@@ -38,10 +38,24 @@ DATASETS_DIR = KAGGLE_ROOT / "datasets"
 MODELS_DIR = KAGGLE_ROOT / "models"
 
 NOTEBOOK_DIRS = [
+    KERNELS_DIR / "duecare_00_gemma_exploration",
+    KERNELS_DIR / "duecare_00a_prompt_prioritizer",
+    KERNELS_DIR / "duecare_00b_prompt_remixer",
     KERNELS_DIR / "duecare_01_quickstart",
     KERNELS_DIR / "duecare_02_cross_domain_proof",
     KERNELS_DIR / "duecare_03_agent_swarm_deep_dive",
     KERNELS_DIR / "duecare_04_submission_walkthrough",
+    KERNELS_DIR / "duecare_05_rag_comparison",
+    KERNELS_DIR / "duecare_06_adversarial",
+    KERNELS_DIR / "duecare_08_fc_multimodal",
+    KERNELS_DIR / "duecare_09_llm_judge",
+    KERNELS_DIR / "duecare_10_conversations",
+    KERNELS_DIR / "duecare_11_comparative",
+    KERNELS_DIR / "duecare_12_prompt_factory",
+    KERNELS_DIR / "duecare_13_rubric_eval",
+    KERNELS_DIR / "duecare_14_dashboard",
+    KERNELS_DIR / "duecare_phase2_comparison",
+    KERNELS_DIR / "duecare_phase3_finetune",
 ]
 
 KAGGLE_CONFIG_PATH = Path.home() / ".kaggle" / "kaggle.json"

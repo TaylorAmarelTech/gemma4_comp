@@ -48,7 +48,7 @@ def call_ollama(prompt, *, model, host, system_prompt=None, rag_context=None):
 def main(argv=None):
     import sys; sys.path.insert(0, str(REPO_ROOT))
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("--model", default="gemma3:4b")
+    parser.add_argument("--model", default="gemma4:e4b")
     parser.add_argument("--host", default="http://localhost:11434")
     parser.add_argument("--max-prompts", type=int, default=20)
     parser.add_argument("--graded-only", action="store_true")
