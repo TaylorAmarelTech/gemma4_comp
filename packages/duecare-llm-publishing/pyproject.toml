@@ -1,0 +1,70 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "duecare-llm-publishing"
+version = "0.1.0"
+description = "Duecare publication: HF Hub, Kaggle Datasets/Models/Kernels, markdown reports, model cards."
+readme = "README.md"
+license = {text = "MIT"}
+requires-python = ">=3.11"
+authors = [{name = "Taylor Amarel"}]
+keywords = ["llm", "safety", "gemma", "duecare", "agentic"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+dependencies = [
+    "duecare-llm-core>=0.1.0,<0.2.0",
+]
+
+[project.optional-dependencies]
+hf-hub = [
+    "huggingface_hub>=0.27.0",
+]
+kaggle = [
+    "kaggle>=2.0.0",
+]
+all = [
+    "duecare-llm-publishing[hf-hub]",
+    "duecare-llm-publishing[kaggle]",
+]
+
+
+
+[project.urls]
+Homepage = "https://github.com/taylorsamarel/gemma4_comp"
+Documentation = "https://github.com/taylorsamarel/gemma4_comp/blob/main/docs/the_forge.md"
+Issues = "https://github.com/taylorsamarel/gemma4_comp/issues"
+Repository = "https://github.com/taylorsamarel/gemma4_comp"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/duecare"]
+
+[tool.hatch.build.targets.wheel.shared-data]
+"PURPOSE.md" = "PURPOSE.md"
+"AGENTS.md" = "AGENTS.md"
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "src/**/*.py",
+    "src/**/*.md",
+    "src/**/*.yaml",
+    "src/**/*.yml",
+    "src/**/*.json",
+    "tests/**/*.py",
+    "README.md",
+    "PURPOSE.md",
+    "AGENTS.md",
+    "pyproject.toml",
+]

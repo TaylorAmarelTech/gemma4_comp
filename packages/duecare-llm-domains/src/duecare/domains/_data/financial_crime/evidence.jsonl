@@ -1,0 +1,3 @@
+{"id": "ev_f001", "type": "law", "jurisdiction": "us", "title": "18 USC 1956", "summary": "US money laundering statute - up to 20 years imprisonment and $500,000 per violation.", "source": "US Code"}
+{"id": "ev_f002", "type": "law", "jurisdiction": "us", "title": "Bank Secrecy Act", "summary": "US law requiring financial institutions to assist in detecting and preventing money laundering via CTRs, SARs, and KYC.", "source": "US Treasury/FinCEN"}
+{"id": "ev_f003", "type": "advisory", "jurisdiction": "international", "title": "FATF 40 Recommendations", "summary": "International AML/CFT standards. Defines 3 stages of money laundering: placement, layering, integration.", "source": "FATF"}

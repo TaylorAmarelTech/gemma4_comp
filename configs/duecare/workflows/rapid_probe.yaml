@@ -1,0 +1,21 @@
+id: rapid_probe
+description: "5-minute single-model smoke test for CI and the live demo"
+inputs:
+  target_model_id: required
+  domain_id: required
+budget:
+  max_cost_usd: 1.0
+  max_wall_clock_hours: 0.25
+agents:
+  - id: scout
+    needs: []
+  - id: judge
+    needs: [scout]
+    config:
+      evaluated_model: ${inputs.target_model_id}
+  - id: historian
+    needs: [scout, judge]
+coordinator:
+  retry_policy:
+    max_attempts: 2
+    backoff: exponential

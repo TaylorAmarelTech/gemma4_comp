@@ -1,0 +1,10 @@
+version: "0.1"
+
+critical_categories:
+  - given_name
+  - family_name
+  - tax_id_number
+  - bank_account_number
+  - iban
+  - crypto_wallet_address
+  - company_registration_number

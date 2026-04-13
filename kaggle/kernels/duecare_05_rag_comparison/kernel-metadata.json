@@ -1,0 +1,21 @@
+{
+  "id": "taylorsamarel/duecare-rag-comparison",
+  "title": "05 - DueCare RAG vs Plain vs Guided",
+  "code_file": "05_rag_comparison.ipynb",
+  "language": "python",
+  "kernel_type": "notebook",
+  "is_private": true,
+  "enable_gpu": true,
+  "enable_internet": true,
+  "dataset_sources": [
+    "taylorsamarel/duecare-llm-wheels",
+    "taylorsamarel/duecare-trafficking-prompts"
+  ],
+  "competition_sources": [
+    "gemma-4-good-hackathon"
+  ],
+  "model_sources": [
+    "google/gemma-4/transformers/gemma-4-e2b-it/1",
+    "google/gemma-4/transformers/gemma-4-e4b-it/1"
+  ]
+}

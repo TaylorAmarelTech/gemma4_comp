@@ -1,0 +1,249 @@
+# Migration Corridor Registry
+# Source: trafficking_llm_benchmark/src/core/registries.py (26 corridors)
+# + expanded_indicators.py (32 trafficking corridor profiles)
+#
+# Each corridor defines: origin, destination, applicable laws, sectors,
+# kafala system, debt bondage risk, typical fees, and bilateral agreements.
+
+corridors:
+  - id: PH-SA
+    origin: Philippines
+    destination: Saudi Arabia
+    kafala: true
+    debt_bondage_risk: high
+    typical_fee_usd: 2000
+    contract_months: 24
+    sectors: [domestic, healthcare, construction]
+    laws: [RA 10022, RA 8042, Saudi Labor Law]
+    hotlines: ["1343 (POEA)", "+966 11 482 3559 (POLO Riyadh)"]
+
+  - id: PH-HK
+    origin: Philippines
+    destination: Hong Kong
+    kafala: false
+    debt_bondage_risk: medium
+    typical_fee_usd: 1500
+    contract_months: 24
+    sectors: [domestic]
+    laws: [RA 10022, Employment Ordinance Cap. 57]
+    hotlines: ["1343 (POEA)", "2815 2200 (HK Labour Dept)"]
+
+  - id: PH-UAE
+    origin: Philippines
+    destination: UAE
+    kafala: true
+    debt_bondage_risk: high
+    typical_fee_usd: 1800
+    contract_months: 24
+    sectors: [domestic, hospitality, retail, healthcare]
+    laws: [RA 10022, UAE Federal Law 33/2021]
+
+  - id: PH-SG
+    origin: Philippines
+    destination: Singapore
+    kafala: false
+    debt_bondage_risk: medium
+    typical_fee_usd: 1200
+    contract_months: 24
+    sectors: [domestic, healthcare]
+    laws: [RA 10022, EFMA]
+
+  - id: NP-QA
+    origin: Nepal
+    destination: Qatar
+    kafala: true
+    debt_bondage_risk: high
+    typical_fee_usd: 1500
+    contract_months: 24
+    sectors: [construction, security, hospitality]
+    laws: [Nepal Foreign Employment Act 2064, Qatar Labor Law 2004]
+
+  - id: BD-SA
+    origin: Bangladesh
+    destination: Saudi Arabia
+    kafala: true
+    debt_bondage_risk: high
+    typical_fee_usd: 3500
+    contract_months: 24
+    sectors: [construction, domestic, agriculture]
+
+  - id: BD-MY
+    origin: Bangladesh
+    destination: Malaysia
+    kafala: false
+    debt_bondage_risk: high
+    typical_fee_usd: 4000
+    contract_months: 36
+    sectors: [manufacturing, construction, plantation]
+
+  - id: ID-SA
+    origin: Indonesia
+    destination: Saudi Arabia
+    kafala: true
+    debt_bondage_risk: high
+    typical_fee_usd: 2500
+    contract_months: 24
+    sectors: [domestic]
+    laws: [Law 18/2017, BNP2TKI regulations]
+
+  - id: ID-MY
+    origin: Indonesia
+    destination: Malaysia
+    kafala: false
+    debt_bondage_risk: high
+    typical_fee_usd: 2000
+    contract_months: 24
+    sectors: [domestic, plantation, manufacturing]
+
+  - id: ID-TW
+    origin: Indonesia
+    destination: Taiwan
+    kafala: false
+    debt_bondage_risk: medium
+    typical_fee_usd: 3000
+    contract_months: 36
+    sectors: [manufacturing, fishing, domestic]
+
+  - id: ET-SA
+    origin: Ethiopia
+    destination: Saudi Arabia
+    kafala: true
+    debt_bondage_risk: high
+    typical_fee_usd: 1000
+    contract_months: 24
+    sectors: [domestic]
+
+  - id: ET-LB
+    origin: Ethiopia
+    destination: Lebanon
+    kafala: true
+    debt_bondage_risk: high
+    typical_fee_usd: 800
+    contract_months: 24
+    sectors: [domestic]
+
+  - id: LK-SA
+    origin: Sri Lanka
+    destination: Saudi Arabia
+    kafala: true
+    debt_bondage_risk: high
+    typical_fee_usd: 1500
+    contract_months: 24
+    sectors: [domestic, construction]
+
+  - id: LK-KW
+    origin: Sri Lanka
+    destination: Kuwait
+    kafala: true
+    debt_bondage_risk: high
+    typical_fee_usd: 1200
+    contract_months: 24
+    sectors: [domestic]
+
+  - id: MM-TH
+    origin: Myanmar
+    destination: Thailand
+    kafala: false
+    debt_bondage_risk: high
+    typical_fee_usd: 500
+    contract_months: 24
+    sectors: [fishing, agriculture, construction, domestic]
+
+  - id: VN-TW
+    origin: Vietnam
+    destination: Taiwan
+    kafala: false
+    debt_bondage_risk: high
+    typical_fee_usd: 6000
+    contract_months: 36
+    sectors: [manufacturing, fishing, domestic]
+
+  - id: VN-JP
+    origin: Vietnam
+    destination: Japan
+    kafala: false
+    debt_bondage_risk: medium
+    typical_fee_usd: 8000
+    contract_months: 36
+    sectors: [manufacturing, agriculture, care]
+
+  - id: IN-GCC
+    origin: India
+    destination: GCC States
+    kafala: true
+    debt_bondage_risk: high
+    typical_fee_usd: 2000
+    contract_months: 24
+    sectors: [construction, domestic, IT]
+
+  - id: MX-US
+    origin: Mexico
+    destination: United States
+    kafala: false
+    debt_bondage_risk: medium
+    typical_fee_usd: 1000
+    contract_months: 10
+    sectors: [agriculture, hospitality, construction]
+
+  - id: GT-US
+    origin: Guatemala
+    destination: United States
+    kafala: false
+    debt_bondage_risk: medium
+    typical_fee_usd: 2000
+    contract_months: 10
+    sectors: [agriculture, food processing]
+
+  - id: UA-PL
+    origin: Ukraine
+    destination: Poland
+    kafala: false
+    debt_bondage_risk: medium
+    typical_fee_usd: 500
+    contract_months: 12
+    sectors: [agriculture, construction, manufacturing]
+
+  - id: SN-ES
+    origin: Senegal
+    destination: Spain
+    kafala: false
+    debt_bondage_risk: medium
+    typical_fee_usd: 3000
+    contract_months: 9
+    sectors: [agriculture, fishing]
+
+# High-risk specialized corridors
+specialized_corridors:
+  - id: FISH-001
+    name: Global Fishing
+    risk_score: 0.95
+    source_countries: [MM, KH, ID, PH, VN, TH, BD]
+    destination: [TH, TW, KR, CN, FJ, NZ]
+    sectors: [fishing, fish_processing]
+    volume_estimate: "hundreds of thousands"
+
+  - id: NKCR-001
+    name: North Korea State Labor Export
+    risk_score: 0.98
+    source_countries: [KP]
+    destination: [CN, RU, PL, MN]
+    sectors: [construction, logging, manufacturing]
+    volume_estimate: "50K+"
+    note: "State-sponsored forced labor"
+
+  - id: BRIK-001
+    name: South Asian Brick Kilns
+    risk_score: 0.92
+    source_countries: [IN, PK, NP, BD]
+    destination: [IN, PK, NP, BD]  # internal/regional
+    sectors: [brick_manufacturing]
+    volume_estimate: "millions"
+    note: "Generational debt bondage"
+
+  - id: DOMW-001
+    name: Global Domestic Work
+    risk_score: 0.88
+    source_countries: [PH, ID, LK, ET, NP, MM, BD]
+    destination: [Gulf, HK, SG, MY, UK, US, LB, JO]
+    sectors: [domestic, caregiving]
+    volume_estimate: "millions"

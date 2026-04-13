@@ -1,0 +1,71 @@
+# Duecare model registry.
+# Every model that can be evaluated or used by the harness is listed here.
+
+models:
+  # ---- Primary subjects (Gemma 4 family) ----
+  - id: gemma_4_e2b_stock
+    display_name: "Gemma 4 E2B (stock)"
+    adapter: transformers
+    model_id: google/gemma-4-e2b-it
+    capabilities: [text, vision, function_calling, embeddings, fine_tunable]
+    primary_subject: true
+
+  - id: gemma_4_e4b_stock
+    display_name: "Gemma 4 E4B (stock)"
+    adapter: transformers
+    model_id: google/gemma-4-e4b-it
+    capabilities: [text, vision, function_calling, embeddings, fine_tunable]
+    primary_subject: true
+
+  # ---- Open comparison field ----
+  - id: gpt_oss_20b
+    display_name: "GPT-OSS 20B"
+    adapter: transformers
+    model_id: openai/gpt-oss-20b
+    capabilities: [text, function_calling, fine_tunable]
+
+  - id: qwen_2_5_7b
+    display_name: "Qwen 2.5 7B Instruct"
+    adapter: transformers
+    model_id: Qwen/Qwen2.5-7B-Instruct
+    capabilities: [text, function_calling, fine_tunable]
+
+  - id: llama_3_1_8b
+    display_name: "Llama 3.1 8B Instruct"
+    adapter: transformers
+    model_id: meta-llama/Meta-Llama-3.1-8B-Instruct
+    capabilities: [text, function_calling, fine_tunable]
+
+  # ---- API models ----
+  - id: mistral_small
+    display_name: "Mistral Small"
+    adapter: openai_compatible
+    model_id: mistral-small-latest
+    base_url: https://api.mistral.ai/v1
+    api_key_env: MISTRAL_API_KEY
+    capabilities: [text, function_calling]
+
+  - id: deepseek_v3
+    display_name: "DeepSeek V3"
+    adapter: openai_compatible
+    model_id: deepseek-chat
+    base_url: https://api.deepseek.com/v1
+    api_key_env: DEEPSEEK_API_KEY
+    capabilities: [text, long_context, function_calling]
+
+  # ---- Reference (closed) models ----
+  - id: gpt_4o_mini
+    display_name: "GPT-4o mini"
+    adapter: openai_compatible
+    model_id: gpt-4o-mini
+    base_url: https://api.openai.com/v1
+    api_key_env: OPENAI_API_KEY
+    capabilities: [text, vision, function_calling]
+    reference_only: true
+
+  - id: claude_haiku_45
+    display_name: "Claude Haiku 4.5"
+    adapter: anthropic
+    model_id: claude-haiku-4-5-20251001
+    capabilities: [text, vision, long_context, function_calling]
+    reference_only: true

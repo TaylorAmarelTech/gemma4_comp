@@ -1,0 +1,65 @@
+{
+  "$schema": "https://repomix.com/schemas/latest/schema.json",
+  "output": {
+    "filePath": ".repomix/forge-repo.txt",
+    "style": "markdown",
+    "fileSummary": true,
+    "directoryStructure": true,
+    "removeComments": false,
+    "removeEmptyLines": false,
+    "topFilesLength": 10,
+    "showLineNumbers": false,
+    "copyToClipboard": false,
+    "includeEmptyDirectories": false
+  },
+  "include": [
+    "src/forge/**",
+    "packages/**",
+    "configs/duecare/**",
+    "docs/**",
+    "scripts/generate_forge.py",
+    "scripts/scaffold.py",
+    "scripts/scaffold_phases.py",
+    "CLAUDE.md",
+    "README.md",
+    "LICENSE",
+    "pyproject.toml",
+    "requirements.txt",
+    ".claude/rules/**",
+    ".claude/commands/**"
+  ],
+  "ignore": {
+    "useGitignore": true,
+    "useDefaultPatterns": true,
+    "customPatterns": [
+      "_reference/**",
+      "data/**",
+      "models/**",
+      "logs/**",
+      "reports/**",
+      "checkpoints/**",
+      ".repomix/**",
+      "**/*.gguf",
+      "**/*.safetensors",
+      "**/*.bin",
+      "**/*.pt",
+      "**/*.tflite",
+      "**/trafficking_tests.db",
+      "**/*.parquet",
+      "**/*.arrow",
+      "**/__pycache__/**",
+      "**/.pytest_cache/**",
+      "**/.mypy_cache/**",
+      "**/.ruff_cache/**",
+      "**/.venv/**",
+      "**/.venv310/**",
+      "**/nul"
+    ]
+  },
+  "security": {
+    "enableSecurityCheck": true
+  },
+  "tokenCount": {
+    "encoding": "o200k_base"
+  }
+}

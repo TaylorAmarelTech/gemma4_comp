@@ -1,0 +1,69 @@
+# Phase 3 - Enhancement configuration
+# See docs/project_phases.md Phase 3
+
+phase_id: enhancement
+
+base_model: unsloth/gemma-4-e4b-bnb-4bit
+
+rag:
+  enabled: true
+  embedding_model: sentence-transformers/all-mpnet-base-v2
+  chunk_strategy: fact_object
+  top_k: 5
+  fact_sources:
+    - _reference/framework/src/scraper/seeds
+    # add ILO / IOM documentation bundles here when available
+
+finetune:
+  enabled: true
+  framework: unsloth
+  max_seq_length: 4096
+  load_in_4bit: true
+  lora_r: 16
+  lora_alpha: 32
+  lora_dropout: 0.0
+  lora_target_modules:
+    - q_proj
+    - k_proj
+    - v_proj
+    - o_proj
+    - gate_proj
+    - up_proj
+    - down_proj
+  per_device_train_batch_size: 2
+  gradient_accumulation_steps: 4
+  learning_rate: 2.0e-4
+  num_train_epochs: 2
+  warmup_ratio: 0.03
+  lr_scheduler_type: cosine
+  weight_decay: 0.01
+  optim: adamw_8bit
+  seed: 3407
+
+ablation:
+  configs:
+    - id: A_stock
+      rag: false
+      finetune: false
+    - id: B_rag_only
+      rag: true
+      finetune: false
+    - id: C_finetune_only
+      rag: false
+      finetune: true
+    - id: D_hybrid
+      rag: true
+      finetune: true
+
+export:
+  gguf_quantizations:
+    - q4_k_m
+    - q5_k_m
+    - q8_0
+  publish_to_hf_hub: true
+  hf_repo: taylorsamarel/gemma-4-e4b-safetyjudge-v0.1
+
+output:
+  reports_dir: reports/phase3
+  data_dir: data/phase3
+  models_dir: models/gemma-4-e4b-safetyjudge-v0.1

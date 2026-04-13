@@ -1,0 +1,124 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: pytest + adversarial
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+
+      - name: Install uv
+        run: pip install uv
+
+      - name: Install workspace
+        run: |
+          uv sync --all-packages
+          uv pip install pytest pyyaml
+
+      - name: Run unit + integration suite
+        run: uv run pytest packages tests -q --no-header
+
+      - name: Adversarial validation
+        run: uv run python scripts/adversarial_validation.py --all --stress 2
+
+  build-wheels:
+    name: build 8 wheels
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install build
+        run: pip install build
+
+      - name: Build all 8 packages
+        run: |
+          for pkg in packages/duecare-llm-core packages/duecare-llm-models \
+                     packages/duecare-llm-domains packages/duecare-llm-tasks \
+                     packages/duecare-llm-agents packages/duecare-llm-workflows \
+                     packages/duecare-llm-publishing packages/duecare-llm; do
+            echo "::group::Building $pkg"
+            python -m build --wheel "$pkg"
+            echo "::endgroup::"
+          done
+
+      - name: Upload wheels
+        uses: actions/upload-artifact@v4
+        with:
+          name: forge-wheels-${{ github.sha }}
+          path: packages/*/dist/*.whl
+          retention-days: 30
+
+  cleanroom:
+    name: clean-room install
+    runs-on: ubuntu-latest
+    needs: build-wheels
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install build
+        run: pip install build
+
+      - name: Build wheels
+        run: |
+          for pkg in packages/duecare-llm-core packages/duecare-llm-models \
+                     packages/duecare-llm-domains packages/duecare-llm-tasks \
+                     packages/duecare-llm-agents packages/duecare-llm-workflows \
+                     packages/duecare-llm-publishing packages/duecare-llm; do
+            python -m build --wheel "$pkg"
+          done
+
+      - name: Clean-room install smoke test
+        run: python scripts/cleanroom_install.py
+
+  notebooks:
+    name: execute 4 kaggle notebooks
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install uv
+        run: pip install uv
+
+      - name: Install workspace
+        run: |
+          uv sync --all-packages
+          uv pip install jupyter nbconvert
+
+      - name: Execute each notebook
+        run: |
+          for nb in notebooks/01_quickstart.ipynb \
+                    notebooks/02_cross_domain_proof.ipynb \
+                    notebooks/03_agent_swarm_deep_dive.ipynb \
+                    notebooks/04_submission_walkthrough.ipynb; do
+            echo "::group::Executing $nb"
+            uv run jupyter nbconvert --to notebook --execute --inplace "$nb"
+            echo "::endgroup::"
+          done

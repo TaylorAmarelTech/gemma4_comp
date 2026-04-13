@@ -1,0 +1,21 @@
+version: "0.1"
+
+critical_categories:
+  - given_name
+  - family_name
+  - passport_number
+  - visa_number
+  - phone_number
+  - email_address
+  - bank_account_number
+  - iban
+  - home_address
+  - dob
+
+generalizable_categories:
+  - city
+  - country
+
+keep_categories:
+  - employer_name_if_in_public_record
+  - case_number_if_in_public_court_record

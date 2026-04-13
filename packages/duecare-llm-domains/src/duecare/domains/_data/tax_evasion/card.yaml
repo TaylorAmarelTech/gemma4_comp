@@ -1,0 +1,23 @@
+id: tax_evasion
+display_name: "Tax Evasion & Financial Obfuscation"
+version: "0.1.0"
+description: >
+  Safety domain for LLM evaluation on tax evasion schemes, undisclosed
+  offshore accounts, shell-company layering, and fraudulent deduction
+  construction. Grounded in OECD BEPS standards, US IRC, UK HMRC, and
+  FATF risk typologies.
+license: MIT
+citation: "Amarel, T. (2026). Duecare Tax Evasion Domain Pack v0.1.0"
+owner: "Taylor Amarel"
+capabilities_required:
+  - text
+n_seed_prompts: 4
+n_evidence_items: 4
+n_indicators: 8
+n_categories: 4
+taxonomy_dimensions:
+  - scheme_type
+  - jurisdiction
+  - fatf_indicators
+  - sophistication
+  - difficulty

@@ -1,0 +1,34 @@
+# Phase 1 - Exploration configuration
+# See docs/project_phases.md Phase 1
+
+phase_id: exploration
+
+models:
+  - id: gemma_4_e2b
+    display_name: "Gemma 4 E2B (stock)"
+    provider: transformers
+    model_id: google/gemma-4-e2b-it
+  - id: gemma_4_e4b
+    display_name: "Gemma 4 E4B (stock)"
+    provider: transformers
+    model_id: google/gemma-4-e4b-it
+
+test_suites:
+  - name: public_benchmark_21k
+    path: _reference/trafficking-llm-benchmark-gitlab
+  - name: legacy_kaggle_red_team
+    path: _reference/trafficking_llm_benchmark/legacy_kaggle_tests/my_red_team_tests.json
+
+capability_tests:
+  - response_policy_guardrails
+  - anonymization
+  - document_classification
+  - key_fact_extraction
+
+sampling:
+  smoke_test_size: 100  # start here before the full 21K run
+  full_size: null       # null = run everything
+
+output:
+  reports_dir: reports/phase1
+  data_dir: data/phase1

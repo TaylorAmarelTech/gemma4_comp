@@ -1,0 +1,19 @@
+{
+  "id": "taylorsamarel/duecare-gemma-exploration",
+  "title": "00 - DueCare Gemma Exploration (Phase 1 Baseline)",
+  "code_file": "00_gemma_exploration.ipynb",
+  "language": "python",
+  "kernel_type": "notebook",
+  "is_private": true,
+  "enable_gpu": true,
+  "enable_tpu": false,
+  "enable_internet": true,
+  "dataset_sources": [
+    "taylorsamarel/duecare-llm-wheels",
+    "taylorsamarel/duecare-trafficking-prompts"
+  ],
+  "competition_sources": [
+    "gemma-4-good-hackathon"
+  ],
+  "kernel_sources": []
+}

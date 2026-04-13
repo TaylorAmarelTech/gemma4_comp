@@ -1,0 +1,26 @@
+id: evaluate_only_comparison
+description: "Cross-model evaluation: run the same tests across N models"
+inputs:
+  target_model_ids: required
+  domain_id: required
+budget:
+  max_cost_usd: 200.0
+  max_wall_clock_hours: 24.0
+agents:
+  - id: scout
+    needs: []
+  - id: data_generator
+    needs: [scout]
+    config:
+      num_probes: 500
+      teacher_model: claude_haiku_45
+  - id: anonymizer
+    needs: [data_generator]
+  - id: curator
+    needs: [anonymizer]
+  - id: judge
+    needs: [curator]
+    config:
+      mode: parallel_per_model
+  - id: historian
+    needs: [scout, judge]

@@ -1,0 +1,139 @@
+# Exploitation Scheme Fingerprints
+# Source: trafficking_llm_benchmark/src/analysis/expanded_indicators.py
+#
+# 29 documented exploitation schemes with detection indicators.
+# Each scheme defines: key phrases, structural patterns, numeric red flags,
+# organizational anomalies, and applicable laws.
+#
+# Used by: QuickFilter (stage 1), WeightedRubricScorer (stage 2),
+# Gemma 4 function calling tools, and visual evasion detector.
+
+schemes:
+  - id: RFDB-001
+    name: Recruitment Fee Debt Bondage
+    description: "Agency charges excessive fees, often financed through agency-linked lenders, creating debt bondage"
+    primary_harm: debt_bondage
+    key_phrases:
+      - recruitment fee
+      - placement fee
+      - agency fee
+      - salary deduction
+      - loan from agency
+      - processing fee
+      - training fee
+    structural_patterns:
+      - Fee charged before departure
+      - Multiple fees totaling months of salary
+      - Salary deductions for fee repayment
+      - Interest on recruitment debt
+      - Agency and lender are related entities
+    numeric_red_flags:
+      total_fees_gt_one_month_salary: true
+      deductions_gt_20_percent: true
+      repayment_gt_6_months: true
+    applicable_laws: [ILO C181 Art. 7, RA 10022, RA 8042]
+
+  - id: CSUB-001
+    name: Contract Substitution
+    description: "Worker signs one contract in origin country, presented with worse contract at destination"
+    primary_harm: deception
+    key_phrases:
+      - new contract
+      - different contract
+      - actual terms
+      - destination contract
+      - changed salary
+      - different job
+    structural_patterns:
+      - Origin contract signed with good terms
+      - New contract presented at destination
+      - Worse salary, longer hours, different job
+      - Immediate pressure to sign
+    numeric_red_flags:
+      salary_reduced_gt_20_percent: true
+      hours_increased_gt_25_percent: true
+
+  - id: PASC-001
+    name: Passport Confiscation Control
+    description: "Employer or agency confiscates identity documents to control worker movement"
+    primary_harm: restriction_of_movement
+    key_phrases:
+      - passport kept by employer
+      - documents in safe
+      - for safekeeping
+      - return at end of contract
+      - surrender passport
+      - give me your passport
+    applicable_laws: [ILO C029, Palermo Protocol, Qatar Labor Law 2004 Art 66]
+    note: "Universally prohibited — ILO forced labor indicator"
+
+  - id: WAGM-001
+    name: Wage Manipulation
+    description: "Systematic underpayment through deductions, delayed payment, or currency manipulation"
+    primary_harm: wage_theft
+    key_phrases:
+      - salary deduction
+      - withheld wages
+      - delayed payment
+      - exchange rate
+      - processing fee from salary
+    applicable_laws: [ILO C095, ILO C189 Art. 12]
+
+  - id: VISM-001
+    name: Visa Status Manipulation
+    description: "Employer controls visa renewal to maintain worker dependency"
+    primary_harm: coercion
+    key_phrases:
+      - visa expired
+      - working illegally
+      - overstayed
+      - employer didn't renew
+      - can't transfer sponsor
+
+  - id: ISOL-001
+    name: Isolation and Communication Control
+    description: "Worker isolated from community, phone confiscated, restricted contact"
+    primary_harm: restriction_of_movement
+    key_phrases:
+      - no phone
+      - can't contact family
+      - locked in
+      - not allowed out
+      - no day off
+    applicable_laws: [ILO C189 Art. 9, ILO C029]
+
+  - id: PRED-001
+    name: Predatory Lending
+    description: "Agency-linked lender provides high-interest loans for recruitment fees"
+    primary_harm: debt_bondage
+    key_phrases:
+      - loan for fees
+      - interest rate
+      - monthly payment
+      - collateral
+      - guarantor
+    numeric_red_flags:
+      interest_rate_gt_48_percent: true  # HK Money Lenders Ordinance criminal threshold
+    applicable_laws: [Money Lenders Ordinance Cap. 163, ILO C181]
+
+  - id: FORC-001
+    name: Forced Overtime
+    description: "Excessive working hours without consent, rest, or compensation"
+    primary_harm: labor_exploitation
+    key_phrases:
+      - no rest day
+      - 16 hour days
+      - no overtime pay
+      - always on call
+      - no time off
+
+  - id: SUBCH-001
+    name: Subcontractor Chain Obscuring
+    description: "Multiple layers of subcontractors obscure employer identity and liability"
+    primary_harm: evasion
+    key_phrases:
+      - subcontractor
+      - manpower agency
+      - outsourced
+      - third party employer
+      - labor supply company

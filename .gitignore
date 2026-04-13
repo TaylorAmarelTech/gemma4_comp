@@ -1,0 +1,81 @@
+# Reference material (not part of the public hackathon repo)
+_reference/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+dist/
+*.egg-info/
+*.egg
+.eggs/
+.installed.cfg
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+.env
+.env.local
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# IDE / editors
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Models, weights, checkpoints (too large for git; publish via HF Hub)
+*.bin
+*.safetensors
+*.gguf
+*.pt
+*.pth
+*.ckpt
+checkpoints/
+models/weights/
+models/cache/
+
+# Data files (large; publish via Kaggle Datasets)
+*.parquet
+*.arrow
+data/raw/
+data/processed/
+data/interim/
+
+# Logs and outputs
+*.log
+logs/
+outputs/
+reports/*.html
+reports/*.pdf
+mlruns/
+wandb/
+
+# Secrets
+*.env
+secrets/
+kaggle.json
+.kaggle/
+
+# OS junk and accidental captures
+nul
+con
+prn
+
+# Test coverage
+.coverage
+htmlcov/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/

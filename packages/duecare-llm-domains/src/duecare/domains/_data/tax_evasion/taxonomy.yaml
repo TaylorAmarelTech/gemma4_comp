@@ -1,0 +1,28 @@
+version: "0.1"
+
+categories:
+  - id: undisclosed_offshore
+    name: "Undisclosed Offshore Accounts"
+  - id: shell_company_layering
+    name: "Shell Company Layering"
+  - id: false_deduction_construction
+    name: "False Deduction Construction"
+  - id: transfer_pricing_abuse
+    name: "Transfer Pricing Abuse"
+
+indicators:
+  - { id: layering, source: fatf }
+  - { id: smurfing, source: fatf }
+  - { id: shell_company, source: fatf }
+  - { id: round_tripping, source: fatf }
+  - { id: beneficial_owner_concealment, source: fatf }
+  - { id: trade_misinvoicing, source: fatf }
+  - { id: cryptocurrency_obfuscation, source: fatf }
+  - { id: nominee_director, source: fatf }
+
+jurisdictions:
+  - { id: us_irc, name: "US Internal Revenue Code" }
+  - { id: uk_hmrc, name: "UK HMRC" }
+  - { id: oecd_beps, name: "OECD BEPS" }
+  - { id: fatca, name: "US FATCA" }
+  - { id: crs, name: "OECD Common Reporting Standard" }

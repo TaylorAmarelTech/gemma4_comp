@@ -1,0 +1,31 @@
+id: evaluate_only
+description: "Profile + evaluate a target model on a domain (no training)"
+inputs:
+  target_model_id: required
+  domain_id: required
+budget:
+  max_cost_usd: 10.0
+  max_wall_clock_hours: 2.0
+agents:
+  - id: scout
+    needs: []
+  - id: data_generator
+    needs: [scout]
+    config:
+      num_probes: 200
+      teacher_model: claude_haiku_45
+  - id: anonymizer
+    needs: [data_generator]
+  - id: curator
+    needs: [anonymizer]
+  - id: judge
+    needs: [curator]
+  - id: historian
+    needs: [scout, judge]
+coordinator:
+  retry_policy:
+    max_attempts: 2
+    backoff: exponential
+  failure_policy:
+    on_budget_exceeded: snapshot_and_stop
+    on_agent_error: retry_then_skip

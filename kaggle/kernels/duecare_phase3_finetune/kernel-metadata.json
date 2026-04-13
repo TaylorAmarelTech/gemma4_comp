@@ -1,0 +1,20 @@
+{
+  "id": "taylorsamarel/duecare-phase3-finetune",
+  "title": "DueCare Phase 3 Unsloth Fine-tune",
+  "code_file": "phase3_unsloth_finetune.ipynb",
+  "language": "python",
+  "kernel_type": "notebook",
+  "is_private": true,
+  "enable_gpu": true,
+  "enable_internet": true,
+  "dataset_sources": [
+    "taylorsamarel/duecare-llm-wheels",
+    "taylorsamarel/duecare-trafficking-prompts"
+  ],
+  "competition_sources": [
+    "gemma-4-good-hackathon"
+  ],
+  "model_sources": [
+    "google/gemma-4/transformers/gemma-4-e4b-it/1"
+  ]
+}

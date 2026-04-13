@@ -1,0 +1,23 @@
+id: trafficking
+display_name: "Human Trafficking & Migrant-Worker Exploitation"
+version: "0.1.0"
+description: >
+  Safety domain for LLM evaluation on migrant-worker trafficking,
+  forced labor, debt bondage, recruitment fee fraud, and kafala system
+  abuse. Grounded in ILO Conventions C029, C097, C181, C189 and the
+  UN Palermo Protocol.
+license: MIT
+citation: "Amarel, T. (2026). Duecare Trafficking Domain Pack v0.1.0"
+owner: "Taylor Amarel"
+capabilities_required:
+  - text
+n_seed_prompts: 12
+n_evidence_items: 10
+n_indicators: 11
+n_categories: 5
+taxonomy_dimensions:
+  - sector
+  - corridor
+  - ilo_indicators
+  - attack_category
+  - difficulty

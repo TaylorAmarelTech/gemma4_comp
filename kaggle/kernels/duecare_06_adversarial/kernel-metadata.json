@@ -1,0 +1,17 @@
+{
+  "id": "taylorsamarel/duecare-adversarial-resistance",
+  "title": "06 - DueCare Adversarial Attack Resistance",
+  "code_file": "06_adversarial_resistance.ipynb",
+  "language": "python",
+  "kernel_type": "notebook",
+  "is_private": true,
+  "enable_gpu": false,
+  "enable_internet": true,
+  "dataset_sources": [
+    "taylorsamarel/duecare-llm-wheels",
+    "taylorsamarel/duecare-trafficking-prompts"
+  ],
+  "competition_sources": [
+    "gemma-4-good-hackathon"
+  ]
+}

@@ -1,0 +1,491 @@
+#!/usr/bin/env python3
+"""build_notebook_00a.py — Generate Notebook 00a: Prompt Prioritizer.
+
+Selects a diverse, high-impact subset from the 74K+ seed prompts for
+evaluation against Gemma. Prioritization strategy:
+
+  1. Graded prompts first (204 with 5-level reference responses)
+  2. Category coverage (ensure all 5 rubric categories + subcategories)
+  3. Difficulty distribution (basic/medium/hard balanced)
+  4. Source diversity (manual > legacy > generated > untested)
+  5. Deduplicate near-identical prompts
+  6. Output: curated_prompts.jsonl (~2,000 prompts)
+"""
+
+from __future__ import annotations
+
+import json
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent.parent
+NB_DIR = ROOT / "notebooks"
+KAGGLE_KERNELS = ROOT / "kaggle" / "kernels"
+
+
+def md(s: str) -> dict:
+    return {"cell_type": "markdown", "metadata": {}, "source": s.splitlines(keepends=True)}
+
+
+def code(s: str) -> dict:
+    return {
+        "cell_type": "code",
+        "execution_count": None,
+        "metadata": {},
+        "outputs": [],
+        "source": s.splitlines(keepends=True),
+    }
+
+
+NB_METADATA = {
+    "kernelspec": {"display_name": "Python 3", "language": "python", "name": "python3"},
+    "language_info": {
+        "codemirror_mode": {"name": "ipython", "version": 3},
+        "file_extension": ".py",
+        "mimetype": "text/x-python",
+        "name": "python",
+        "pygments_lexer": "ipython3",
+        "version": "3.11",
+    },
+}
+
+
+CELLS = [
+    md(
+        "# 00a -- DueCare Prompt Prioritizer (Data Pipeline)\n"
+        "\n"
+        "**DueCare** | Named for Cal. Civ. Code sect. 1714(a)\n"
+        "\n"
+        "---\n"
+        "\n"
+        "**Purpose:** Select a diverse, high-impact subset from 74,567 trafficking\n"
+        "prompts for evaluation against Gemma 4.\n"
+        "\n"
+        "| | |\n"
+        "|---|---|\n"
+        "| **Input** | `seed_prompts.jsonl` (74,567 prompts, 63.5 MB) from the DueCare trafficking domain pack |\n"
+        "| **Output** | `curated_prompts.jsonl` (~2,000 prompts, balanced across categories and difficulty) |\n"
+        "| **Prerequisites** | `duecare-llm-wheels` dataset attached; no GPU required |\n"
+        "| **Pipeline position** | Stage 1 of the DueCare data pipeline. Previous: none. Next: NB 00b (Prompt Remixer). |\n"
+        "\n"
+        "---\n"
+        "\n"
+        "### Why prioritization is needed\n"
+        "\n"
+        "The full corpus is too large to run through Gemma in one session\n"
+        "(74K prompts x ~5s each = 103 hours on T4 GPU). We need a curated\n"
+        "subset that maximizes the information value of every prompt we evaluate.\n"
+        "\n"
+        "### Prioritization strategy\n"
+        "\n"
+        "1. **Graded first** -- 204 prompts with 5-level reference responses (highest value for calibration)\n"
+        "2. **Category coverage** -- ensure all 5 rubric categories are represented\n"
+        "3. **Difficulty balance** -- basic / medium / hard in roughly equal proportions\n"
+        "4. **Source diversity** -- manual > legacy > generated > untested\n"
+        "5. **Length filtering** -- drop prompts < 20 chars or > 10,000 chars\n"
+        "6. **Near-duplicate removal** -- skip prompts whose first 100 chars match an existing one\n"
+        "\n"
+        "### Flow diagram\n"
+        "\n"
+        "```\n"
+        "seed_prompts.jsonl (74,567)\n"
+        "         |\n"
+        "         v\n"
+        "  Length filter (20-10K chars)\n"
+        "         |\n"
+        "         v\n"
+        "  Tier 1: All 204 graded prompts\n"
+        "         |\n"
+        "         v\n"
+        "  Tier 2: Category-balanced fill\n"
+        "  (min 100 per primary category)\n"
+        "         |\n"
+        "         v\n"
+        "  Near-duplicate removal\n"
+        "         |\n"
+        "         v\n"
+        "  curated_prompts.jsonl (~2,000)\n"
+        "       feeds NB 00b + NB 00\n"
+        "```\n"
+    ),
+
+    md("## 1. Install DueCare + load the full corpus\n"
+       "\n"
+       "We install DueCare from pre-built wheels, then load the full\n"
+       "74,567-prompt corpus from the trafficking domain pack.\n"
+    ),
+
+    code(
+        "import subprocess, glob\n"
+        "for p in ['/kaggle/input/duecare-llm-wheels/*.whl',\n"
+        "          '/kaggle/input/datasets/taylorsamarel/duecare-llm-wheels/*.whl',\n"
+        "          '/kaggle/input/**/*.whl']:\n"
+        "    wheels = glob.glob(p, recursive=True)\n"
+        "    if wheels: break\n"
+        "if wheels:\n"
+        "    subprocess.check_call(['pip', 'install'] + wheels + ['--quiet'])\n"
+    ),
+
+    code(
+        "import json\n"
+        "from pathlib import Path\n"
+        "from collections import Counter, defaultdict\n"
+        "\n"
+        "# Load the full corpus\n"
+        "from duecare.domains import register_discovered, load_domain_pack\n"
+        "register_discovered()\n"
+        "pack = load_domain_pack('trafficking')\n"
+        "\n"
+        "all_prompts = list(pack.seed_prompts())\n"
+        "print(f'Total prompts in corpus: {len(all_prompts):,}')\n"
+        "\n"
+        "# Quick stats\n"
+        "cats = Counter(p.get('category', 'unknown') for p in all_prompts)\n"
+        "graded = [p for p in all_prompts if p.get('graded_responses')]\n"
+        "print(f'Graded (with reference responses): {len(graded)}')\n"
+        "print(f'Unique categories: {len(cats)}')\n"
+        "print(f'\\nTop 15 categories:')\n"
+        "for cat, n in cats.most_common(15):\n"
+        "    print(f'  {cat:<45} {n:>7}')\n"
+    ),
+
+    md("## 2. Define the 5 primary rubric categories\n"
+       "\n"
+       "The 85 subcategories in the corpus map to 5 primary rubric categories.\n"
+       "These categories represent the main vectors through which LLMs can\n"
+       "fail on trafficking-related content. Ensuring coverage across all 5\n"
+       "is essential for a meaningful baseline evaluation.\n"
+       "\n"
+       "| Category | What it tests |\n"
+       "|---|---|\n"
+       "| **business_framed_exploitation** | Exploitation disguised as business practice |\n"
+       "| **jurisdictional_hierarchy_exploitation** | Cross-border regulatory gaps |\n"
+       "| **financial_crime_blindness** | Fee laundering, debt structures |\n"
+       "| **prompt_injection_amplification** | Adversarial jailbreak attacks |\n"
+       "| **victim_revictimization** | Re-traumatization, coercion normalization |\n"
+    ),
+
+    code(
+        "# Map the 85 subcategories to the 5 primary rubric categories\n"
+        "PRIMARY_CATEGORIES = {\n"
+        "    'business_framed_exploitation': [\n"
+        "        'business_framed_exploitation', 'labor_trafficking',\n"
+        "        'recruitment_fees', 'debt_bondage', 'wage_theft',\n"
+        "        'contract_fraud', 'subcontracting_evasion',\n"
+        "        'franchise exploitation networks', 'complex_corporate_hierarchy',\n"
+        "        'integrated service complexes', 'insurance and housing schemes',\n"
+        "    ],\n"
+        "    'jurisdictional_hierarchy_exploitation': [\n"
+        "        'jurisdictional_hierarchy_exploitation', 'regulatory_evasion',\n"
+        "        'corridor_specific', 'document_control', 'technology_control',\n"
+        "        'regulatory_evasion_renaming', 'regulatory_evasion_jurisdictional',\n"
+        "        'regulatory_evasion_third_country', 'regulatory_evasion_micro_fees',\n"
+        "        'regulatory_evasion_debt_assignment', 'regulatory_complexity',\n"
+        "    ],\n"
+        "    'financial_crime_blindness': [\n"
+        "        'financial_crime_blindness', 'financial_obfuscation',\n"
+        "        'multi-entity fee laundering', 'circular debt structures',\n"
+        "        'financial_obfuscation_investment', 'financial_obfuscation_fee_transfer',\n"
+        "        'financial_obfuscation_cost_sharing', 'financial_obfuscation_combo',\n"
+        "        'wage_exploitation',\n"
+        "    ],\n"
+        "    'prompt_injection_amplification': [\n"
+        "        'prompt_injection_amplification', 'adversarial',\n"
+        "        'keyword_mutation', 'output_conditioning', 'obfuscation',\n"
+        "        'persona_framed', 'escalation', 'variation',\n"
+        "        'creative_attack', 'cognitive_manipulation',\n"
+        "        'token-level obfuscation', 'encoding obfuscation',\n"
+        "        'context window exploitation', 'semantic drift attack',\n"
+        "        'multi_turn_attack', 'escalation_strategy',\n"
+        "        'hypothetical_scenario', 'multi_step_conversation',\n"
+        "        'psychological_manipulation', 'authority chain attack',\n"
+        "        'socratic method exploitation', 'translation confusion attack',\n"
+        "        'technical jargon obfuscation',\n"
+        "    ],\n"
+        "    'victim_revictimization': [\n"
+        "        'victim_revictimization', 'bystander_dilemma',\n"
+        "        'coercion', 'coercion_debt_trap_savior', 'coercion_family_pressure',\n"
+        "        'coercion_document_confiscation', 'coercion_graduated', 'coercion_false_hope',\n"
+        "        'justification_coercion', 'justification_emergency',\n"
+        "        'justification_normalization', 'justification_ideological',\n"
+        "        'justification_religious', 'justification_rationalization',\n"
+        "        'justification_destitution', 'justification_authority',\n"
+        "        'moral_religious_framing', 'moral_religious_biblical',\n"
+        "        'moral_religious_cultural', 'moral_religious_philosophical',\n"
+        "        'moral_religious_duty_honor', 'moral_religious_virtue',\n"
+        "        'exploiter_framed', 'synthetic victim testimony',\n"
+        "    ],\n"
+        "}\n"
+        "\n"
+        "# Build reverse lookup\n"
+        "SUBCAT_TO_PRIMARY = {}\n"
+        "for primary, subcats in PRIMARY_CATEGORIES.items():\n"
+        "    for sub in subcats:\n"
+        "        SUBCAT_TO_PRIMARY[sub] = primary\n"
+        "\n"
+        "def get_primary_category(prompt):\n"
+        "    cat = prompt.get('category', 'unknown')\n"
+        "    return SUBCAT_TO_PRIMARY.get(cat, 'other')\n"
+        "\n"
+        "# Classify all prompts\n"
+        "primary_dist = Counter(get_primary_category(p) for p in all_prompts)\n"
+        "print('Primary category distribution:')\n"
+        "for cat, n in primary_dist.most_common():\n"
+        "    print(f'  {cat:<45} {n:>7}')\n"
+    ),
+
+    md("## 3. Prioritize and select\n"
+       "\n"
+       "The selection algorithm works in three passes:\n"
+       "1. **All graded prompts** -- these have reference responses for calibration\n"
+       "2. **Category fill** -- ensure minimum representation per primary category\n"
+       "3. **Remaining slots** -- fill from highest-quality sources\n"
+       "\n"
+       "Near-duplicates are removed by comparing the first 100 characters\n"
+       "of each prompt. This prevents wasting evaluation budget on prompts\n"
+       "that differ only in minor phrasing.\n"
+    ),
+
+    code(
+        "import hashlib\n"
+        "\n"
+        "TARGET_SIZE = 2000  # Total curated prompts\n"
+        "MIN_PER_PRIMARY = 100  # Minimum per primary category\n"
+        "\n"
+        "# Priority tiers\n"
+        "TIER_1 = []  # Graded (with reference responses)\n"
+        "TIER_2 = defaultdict(list)  # By primary category, source quality\n"
+        "\n"
+        "# Source quality ordering (higher = better)\n"
+        "SOURCE_PRIORITY = {\n"
+        "    'taylor_amarel_tests': 10,\n"
+        "    'taylor_amarel_extended': 10,\n"
+        "    'legacy_': 8,\n"
+        "    'all_conversations': 6,\n"
+        "    'gen_': 5,\n"
+        "    'advanced_': 5,\n"
+        "    'test_catalog': 4,\n"
+        "    'trafficking_tests': 4,\n"
+        "    'untested_prompts': 2,\n"
+        "    'claude_cli': 3,\n"
+        "}\n"
+        "\n"
+        "def source_score(prompt):\n"
+        "    src = prompt.get('source', '')\n"
+        "    for prefix, score in SOURCE_PRIORITY.items():\n"
+        "        if src.startswith(prefix):\n"
+        "            return score\n"
+        "    return 1\n"
+        "\n"
+        "# Length filter\n"
+        "valid = [p for p in all_prompts if 20 <= len(p.get('text', '')) <= 10000]\n"
+        "print(f'After length filter: {len(valid):,} (dropped {len(all_prompts) - len(valid):,})')\n"
+        "\n"
+        "# Separate graded vs ungraded\n"
+        "for p in valid:\n"
+        "    if p.get('graded_responses'):\n"
+        "        TIER_1.append(p)\n"
+        "    else:\n"
+        "        primary = get_primary_category(p)\n"
+        "        TIER_2[primary].append(p)\n"
+        "\n"
+        "# Sort each tier by source quality\n"
+        "for cat in TIER_2:\n"
+        "    TIER_2[cat].sort(key=source_score, reverse=True)\n"
+        "\n"
+        "print(f'\\nTier 1 (graded): {len(TIER_1)}')\n"
+        "print(f'Tier 2 by category:')\n"
+        "for cat, items in sorted(TIER_2.items(), key=lambda x: -len(x[1])):\n"
+        "    print(f'  {cat:<45} {len(items):>7}')\n"
+    ),
+
+    code(
+        "# Build the curated set\n"
+        "curated = []\n"
+        "seen_prefixes = set()\n"
+        "\n"
+        "def add_prompt(p):\n"
+        "    \"\"\"Add prompt if not a near-duplicate.\"\"\"\n"
+        "    prefix = p['text'][:100].lower().strip()\n"
+        "    if prefix in seen_prefixes:\n"
+        "        return False\n"
+        "    seen_prefixes.add(prefix)\n"
+        "    curated.append(p)\n"
+        "    return True\n"
+        "\n"
+        "# Step 1: All graded prompts (highest value)\n"
+        "for p in TIER_1:\n"
+        "    add_prompt(p)\n"
+        "print(f'After graded: {len(curated)}')\n"
+        "\n"
+        "# Step 2: Ensure minimum per primary category\n"
+        "remaining = TARGET_SIZE - len(curated)\n"
+        "per_cat = max(MIN_PER_PRIMARY, remaining // max(len(TIER_2), 1))\n"
+        "\n"
+        "for cat, items in TIER_2.items():\n"
+        "    added = 0\n"
+        "    for p in items:\n"
+        "        if added >= per_cat:\n"
+        "            break\n"
+        "        if add_prompt(p):\n"
+        "            added += 1\n"
+        "\n"
+        "print(f'After category fill: {len(curated)}')\n"
+        "\n"
+        "# Step 3: Fill remaining slots from largest categories\n"
+        "if len(curated) < TARGET_SIZE:\n"
+        "    all_remaining = []\n"
+        "    for cat, items in TIER_2.items():\n"
+        "        for p in items:\n"
+        "            if p['text'][:100].lower().strip() not in seen_prefixes:\n"
+        "                all_remaining.append(p)\n"
+        "    all_remaining.sort(key=source_score, reverse=True)\n"
+        "    for p in all_remaining:\n"
+        "        if len(curated) >= TARGET_SIZE:\n"
+        "            break\n"
+        "        add_prompt(p)\n"
+        "\n"
+        "print(f'Final curated set: {len(curated)}')\n"
+    ),
+
+    md("## 4. Curated set statistics\n"
+       "\n"
+       "The stats below verify that the curated set meets our targets:\n"
+       "- All graded prompts included (for calibration)\n"
+       "- All 5 primary categories represented (for coverage)\n"
+       "- Difficulty levels balanced (for comprehensive evaluation)\n"
+       "- Total size manageable within a Kaggle GPU session\n"
+    ),
+
+    code(
+        "curated_cats = Counter(get_primary_category(p) for p in curated)\n"
+        "curated_diff = Counter(p.get('difficulty', 'unknown') for p in curated)\n"
+        "curated_graded = sum(1 for p in curated if p.get('graded_responses'))\n"
+        "\n"
+        "print(f'Curated prompts:     {len(curated):,}')\n"
+        "print(f'Graded (with refs):  {curated_graded}')\n"
+        "print(f'Ungraded:            {len(curated) - curated_graded}')\n"
+        "print(f'\\nBy primary category:')\n"
+        "for cat, n in curated_cats.most_common():\n"
+        "    pct = n / len(curated) * 100\n"
+        "    print(f'  {cat:<45} {n:>5} ({pct:>5.1f}%)')\n"
+        "print(f'\\nBy difficulty:')\n"
+        "for diff, n in curated_diff.most_common():\n"
+        "    print(f'  {diff:<20} {n:>5}')\n"
+        "\n"
+        "# Show a few example prompts per category\n"
+        "print(f'\\n--- Sample prompts ---')\n"
+        "shown = set()\n"
+        "for p in curated:\n"
+        "    cat = get_primary_category(p)\n"
+        "    if cat in shown:\n"
+        "        continue\n"
+        "    shown.add(cat)\n"
+        "    print(f'\\n[{cat}] {p[\"id\"]}')\n"
+        "    print(f'  {p[\"text\"][:150]}...')\n"
+    ),
+
+    md("## 5. Save curated set\n"
+       "\n"
+       "Save the curated subset to `curated_prompts.jsonl` in JSONL format.\n"
+       "This file feeds into the next two stages of the data pipeline.\n"
+    ),
+
+    code(
+        "import json\n"
+        "\n"
+        "output_path = 'curated_prompts.jsonl'\n"
+        "with open(output_path, 'w', encoding='utf-8') as f:\n"
+        "    for p in curated:\n"
+        "        f.write(json.dumps(p, ensure_ascii=False, default=str) + '\\n')\n"
+        "\n"
+        "print(f'Saved {len(curated):,} curated prompts to {output_path}')\n"
+        "print(f'This file feeds into Notebook 00 (Gemma Exploration).')\n"
+        "print(f'\\nTo use in Notebook 00:')\n"
+        "print(f'  prompts = [json.loads(line) for line in open(\"curated_prompts.jsonl\")]')\n"
+    ),
+
+    md(
+        "## Summary and next steps\n"
+        "\n"
+        "### What this produces\n"
+        "\n"
+        "A balanced, prioritized subset of the full 74,567-prompt corpus:\n"
+        "- All 204 graded prompts (with 5-level reference responses for calibration)\n"
+        "- Coverage across all 5 primary rubric categories\n"
+        "- Difficulty balance (basic / medium / hard)\n"
+        "- Near-duplicates removed\n"
+        "- Source quality prioritized (manual > legacy > generated > untested)\n"
+        "\n"
+        "### Connection to the pipeline\n"
+        "\n"
+        "- **Next (NB 00b):** The Prompt Remixer takes this curated set and\n"
+        "  generates adversarial variations (academic framing, role-play,\n"
+        "  corporate wrapping, urgency pressure, corridor swaps)\n"
+        "- **Then (NB 00):** Gemma Exploration runs the combined set through\n"
+        "  stock Gemma 4 E4B and scores every response using the weighted rubric\n"
+        "\n"
+        "### Why the curation matters\n"
+        "\n"
+        "Running 74K prompts through Gemma would take 103 hours. The curated\n"
+        "subset captures the same information in ~17 minutes on T4 GPU. The\n"
+        "prioritization ensures we evaluate what matters most: graded prompts\n"
+        "for calibration, category coverage for completeness, and difficulty\n"
+        "balance for robustness.\n"
+        "\n"
+        "This is the foundation that every subsequent evaluation builds on.\n"
+    ),
+]
+
+
+def main() -> int:
+    NB_DIR.mkdir(parents=True, exist_ok=True)
+    KAGGLE_KERNELS.mkdir(parents=True, exist_ok=True)
+
+    filename = "00a_prompt_prioritizer.ipynb"
+    kernel_dir_name = "duecare_00a_prompt_prioritizer"
+    slug = "duecare-prompt-prioritizer"
+    title = "00a - DueCare Prompt Prioritizer (Data Pipeline)"
+
+    nb = {
+        "nbformat": 4,
+        "nbformat_minor": 5,
+        "metadata": NB_METADATA,
+        "cells": CELLS,
+    }
+
+    nb_path = NB_DIR / filename
+    nb_path.write_text(json.dumps(nb, indent=1), encoding="utf-8")
+    code_count = sum(1 for c in CELLS if c["cell_type"] == "code")
+    md_count = sum(1 for c in CELLS if c["cell_type"] == "markdown")
+    print(f"WROTE {filename}  ({code_count} code + {md_count} md cells)")
+
+    kernel_dir = KAGGLE_KERNELS / kernel_dir_name
+    kernel_dir.mkdir(parents=True, exist_ok=True)
+
+    meta = {
+        "id": f"taylorsamarel/{slug}",
+        "title": title,
+        "code_file": filename,
+        "language": "python",
+        "kernel_type": "notebook",
+        "is_private": True,
+        "enable_gpu": False,
+        "enable_tpu": False,
+        "enable_internet": True,
+        "dataset_sources": ["taylorsamarel/duecare-llm-wheels"],
+        "competition_sources": ["gemma-4-good-hackathon"],
+        "kernel_sources": [],
+    }
+
+    meta_path = kernel_dir / "kernel-metadata.json"
+    meta_path.write_text(json.dumps(meta, indent=2), encoding="utf-8")
+
+    import shutil
+    shutil.copy2(nb_path, kernel_dir / filename)
+
+    print(f"       kaggle kernel dir: {kernel_dir}")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

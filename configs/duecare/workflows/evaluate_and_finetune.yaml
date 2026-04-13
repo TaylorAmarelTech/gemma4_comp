@@ -1,0 +1,50 @@
+id: evaluate_and_finetune
+description: "Profile -> evaluate -> fine-tune -> validate -> publish"
+inputs:
+  target_model_id: required
+  domain_id: required
+budget:
+  max_cost_usd: 100.0
+  max_wall_clock_hours: 12.0
+agents:
+  - id: scout
+    needs: []
+  - id: data_generator
+    needs: [scout]
+    config:
+      num_probes: 1000
+      teacher_model: claude_haiku_45
+  - id: adversary
+    needs: [data_generator]
+  - id: anonymizer
+    needs: [data_generator, adversary]
+  - id: curator
+    needs: [anonymizer]
+  - id: judge
+    needs: [curator]
+  - id: curriculum_designer
+    needs: [judge]
+  - id: trainer
+    needs: [curator, curriculum_designer]
+    config:
+      base_model: ${inputs.target_model_id}
+      framework: unsloth
+      method: lora
+      lora_r: 16
+  - id: validator
+    needs: [trainer, adversary]
+  - id: exporter
+    needs: [validator]
+    config:
+      publish_hf_hub: true
+      publish_kaggle_model: true
+  - id: historian
+    needs: [scout, judge, validator, exporter]
+coordinator:
+  retry_policy:
+    max_attempts: 3
+    backoff: exponential
+  failure_policy:
+    on_validator_harm_flag: abort
+    on_budget_exceeded: snapshot_and_stop
+    on_agent_error: retry_then_skip

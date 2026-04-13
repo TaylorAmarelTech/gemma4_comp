@@ -1,0 +1,77 @@
+base_model: google/gemma-4-E4B-it
+output_dir: checkpoints/gemma4-e4b-duecare-v1
+lora:
+  r: 16
+  alpha: 32
+  dropout: 0.05
+  target_modules:
+  - q_proj
+  - k_proj
+  - v_proj
+  - o_proj
+  - gate_proj
+  - up_proj
+  - down_proj
+  bias: none
+  task_type: CAUSAL_LM
+training:
+  num_epochs: 3
+  per_device_batch_size: 4
+  gradient_accumulation_steps: 4
+  learning_rate: 0.0002
+  weight_decay: 0.01
+  warmup_ratio: 0.03
+  lr_scheduler: cosine
+  max_seq_length: 2048
+  fp16: false
+  bf16: true
+  gradient_checkpointing: true
+  optim: adamw_8bit
+  logging_steps: 10
+  save_strategy: steps
+  save_steps: 100
+  eval_strategy: steps
+  eval_steps: 50
+dataset:
+  train_file: data/training_expanded/train.jsonl
+  val_file: data/training_expanded/val.jsonl
+  test_file: data/training_expanded/test.jsonl
+  format: chat
+  template: '<start_of_turn>user
+
+    {prompt}<end_of_turn>
+
+    <start_of_turn>model
+
+    {response}<end_of_turn>
+
+    '
+  min_grade: 4
+  max_examples: 2000
+export:
+  merge_lora: true
+  gguf:
+    enabled: true
+    quantizations:
+    - Q4_K_M
+    - Q5_K_M
+    - Q8_0
+    output_dir: models/gguf
+  litert:
+    enabled: false
+    output_dir: models/litert
+  hf_hub:
+    enabled: true
+    repo_id: taylorsamarel/gemma-4-e4b-duecare-safety-v1
+    private: true
+evaluation:
+  baseline_model: google/gemma-4-E4B-it
+  eval_prompts: configs/duecare/domains/trafficking/seed_prompts.jsonl
+  eval_rubrics: configs/duecare/domains/trafficking/rubrics/
+  n_eval_prompts: 500
+  metrics:
+  - mean_score
+  - pass_rate
+  - refusal_rate
+  - harmful_phrase_rate
+  - grade_exact_match

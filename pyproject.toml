@@ -1,0 +1,72 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "forge-workspace"
+version = "0.1.0"
+description = "Workspace root for the Duecare multi-package monorepo"
+requires-python = ">=3.11"
+
+# Dev dependencies for the whole workspace
+[dependency-groups]
+dev = [
+    "pytest>=8.3.0",
+    "pytest-asyncio>=0.24.0",
+    "pytest-cov>=5.0.0",
+    "ruff>=0.8.0",
+    "mypy>=1.13.0",
+    "jupytext>=1.16.0",
+    "repomix>=0.2.0",
+]
+
+# uv workspace - one workspace member per package directory
+[tool.uv.workspace]
+members = [
+    "packages/duecare-llm-core",
+    "packages/duecare-llm-models",
+    "packages/duecare-llm-domains",
+    "packages/duecare-llm-tasks",
+    "packages/duecare-llm-agents",
+    "packages/duecare-llm-workflows",
+    "packages/duecare-llm-publishing",
+    "packages/duecare-llm",
+]
+
+# Internal sources for development - resolves Duecare packages from each
+# other inside the workspace instead of pulling from PyPI
+[tool.uv.sources]
+duecare-llm-core = { workspace = true }
+duecare-llm-models = { workspace = true }
+duecare-llm-domains = { workspace = true }
+duecare-llm-tasks = { workspace = true }
+duecare-llm-agents = { workspace = true }
+duecare-llm-workflows = { workspace = true }
+duecare-llm-publishing = { workspace = true }
+duecare-llm = { workspace = true }
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "UP", "B", "SIM", "RUF"]
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+warn_unused_configs = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+disallow_untyped_defs = true
+namespace_packages = true
+explicit_package_bases = true
+
+[tool.pytest.ini_options]
+testpaths = ["packages/*/tests", "packages/*/src/forge/*/tests", "tests"]
+asyncio_mode = "auto"
+markers = [
+    "slow: marks tests as slow",
+    "integration: marks tests as integration tests",
+    "e2e: marks tests as end-to-end tests",
+]

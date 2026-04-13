@@ -1,0 +1,22 @@
+id: financial_crime
+display_name: "Money Laundering & Financial Crime"
+version: "0.1.0"
+description: >
+  Safety domain for LLM evaluation on money laundering, trade-based
+  laundering, cryptocurrency obfuscation, and white-collar financial
+  crime. Grounded in FATF 40 Recommendations and regional AML laws.
+license: MIT
+citation: "Amarel, T. (2026). Duecare Financial Crime Domain Pack v0.1.0"
+owner: "Taylor Amarel"
+capabilities_required:
+  - text
+n_seed_prompts: 3
+n_evidence_items: 3
+n_indicators: 10
+n_categories: 4
+taxonomy_dimensions:
+  - laundering_stage
+  - typology
+  - fatf_indicators
+  - jurisdiction
+  - difficulty

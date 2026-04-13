@@ -1,0 +1,73 @@
+version: "0.1"
+
+categories:
+  - id: regulatory_evasion
+    name: "Regulatory Evasion"
+    description: "Prompts that probe workarounds to recruitment, licensing, or wage regulations."
+    subcategories: [poea_cap_breach, kafala_loophole, visa_mill, fee_fraud]
+
+  - id: coercion_manipulation
+    name: "Coercion & Manipulation"
+    description: "Psychological tactics and coercive framing."
+    subcategories: [debt_bondage_math, impossible_contracts, isolation, threats]
+
+  - id: moral_religious_framing
+    name: "Moral / Religious Framing"
+    description: "Exploitation rationalized via religion or cultural proverbs."
+    subcategories: [biblical_rationalization, proverb_wrapping, quranic_misuse]
+
+  - id: financial_obfuscation
+    name: "Financial Obfuscation"
+    description: "Disguising exploitative charges as investments, fees, or transfers."
+    subcategories: [investment_framing, offshore_transfer, fee_layering]
+
+  - id: mega_variations
+    name: "Systematic Variations"
+    description: "Compound prompts that combine categories."
+    subcategories: [compound, cross_category]
+
+indicators:
+  - { id: deception, source: ilo_c029 }
+  - { id: restriction_of_movement, source: ilo_c029 }
+  - { id: isolation, source: ilo_c029 }
+  - { id: physical_violence, source: ilo_c029 }
+  - { id: sexual_violence, source: ilo_c029 }
+  - { id: intimidation_threats, source: ilo_c029 }
+  - { id: retention_of_identity_documents, source: ilo_c029 }
+  - { id: withholding_of_wages, source: ilo_c029 }
+  - { id: debt_bondage, source: ilo_c029 }
+  - { id: abusive_working_conditions, source: ilo_c029 }
+  - { id: excessive_overtime, source: ilo_c029 }
+
+sectors:
+  - domestic_work
+  - construction
+  - agriculture
+  - fishing_maritime
+  - factory_manufacturing
+  - hospitality
+  - care_nursing
+  - education
+  - forced_begging
+  - free_trade_zone
+
+corridors:
+  - { id: PH-SA, origin: Philippines, destination: Saudi Arabia }
+  - { id: NP-QA, origin: Nepal, destination: Qatar }
+  - { id: ID-MY, origin: Indonesia, destination: Malaysia }
+  - { id: ID-SA, origin: Indonesia, destination: Saudi Arabia }
+  - { id: BD-QA, origin: Bangladesh, destination: Qatar }
+  - { id: LK-KW, origin: Sri Lanka, destination: Kuwait }
+  - { id: IN-AE, origin: India, destination: UAE }
+  - { id: MM-TH, origin: Myanmar, destination: Thailand }
+  - { id: ET-SA, origin: Ethiopia, destination: Saudi Arabia }
+  - { id: MX-US, origin: Mexico, destination: United States }
+
+documentation_refs:
+  - { id: ilo_c029, short: "ILO C029", full: "Forced Labour Convention, 1930" }
+  - { id: ilo_c181, short: "ILO C181", full: "Private Employment Agencies Convention, 1997" }
+  - { id: ilo_c189, short: "ILO C189", full: "Domestic Workers Convention, 2011" }
+  - { id: palermo_protocol, short: "Palermo Protocol", full: "UN Protocol to Prevent, Suppress and Punish Trafficking in Persons" }
+  - { id: poea_ra8042, short: "Philippines RA 8042", full: "Migrant Workers and Overseas Filipinos Act" }
+  - { id: saudi_labor_law, short: "Saudi Labor Law", full: "Saudi Arabia Royal Decree M/51" }
+  - { id: tvpa, short: "TVPA", full: "US Trafficking Victims Protection Act" }

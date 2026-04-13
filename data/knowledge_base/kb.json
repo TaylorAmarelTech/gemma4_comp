@@ -1,0 +1,651 @@
+{
+  "version": "1.0",
+  "created_at": "2026-04-13T08:44:44.676287",
+  "n_entries": 57,
+  "categories": {
+    "legal_provisions": 26,
+    "trafficking_indicators": 0,
+    "country_profiles": 22,
+    "scheme_fingerprints": 9,
+    "resources": 0,
+    "statistics": 0,
+    "definitions": 0
+  },
+  "data": {
+    "legal_provisions": [
+      {
+        "content": "RA 10022 (Migrant Workers Act, amended 2010) Section 6: Prohibits illegal recruitment — charging excessive fees, contract substitution, deploying through unlicensed agencies",
+        "source_law": "RA 10022 (Migrant Workers Act, amended 2010)",
+        "jurisdiction": "PH",
+        "penalty": "6-12 years imprisonment + PHP 200,000-500,000 fine",
+        "confidence": "high",
+        "source": "verified_database"
+      },
+      {
+        "content": "RA 10022 Section 7: Prohibits charging workers any recruitment fees for domestic work",
+        "source_law": "RA 10022",
+        "jurisdiction": "PH",
+        "penalty": "License revocation + imprisonment",
+        "confidence": "high",
+        "source": "verified_database"
+      },
+      {
+        "content": "RA 8042 (Migrant Workers and Overseas Filipinos Act) Section 6: Defines and prohibits illegal recruitment; economic sabotage if committed by syndicate",
+        "source_law": "RA 8042 (Migrant Workers and Overseas Filipinos Act)",
+        "jurisdiction": "PH",
+        "penalty": "Life imprisonment + PHP 500,000-1,000,000 fine",
+        "confidence": "high",
+        "source": "verified_database"
+      },
+      {
+        "content": "RA 9208 (Anti-Trafficking in Persons Act) Sections 4-5: Criminalizes trafficking in persons including recruitment by fraud, coercion, or debt bondage",
+        "source_law": "RA 9208 (Anti-Trafficking in Persons Act)",
+        "jurisdiction": "PH",
+        "penalty": "20 years imprisonment + PHP 1,000,000-2,000,000 fine",
+        "confidence": "high",
+        "source": "verified_database"
+      },
+      {
+        "content": "RA 10364 (Expanded Anti-Trafficking Act) Amendment: Expands trafficking definition to include forced labor, attempted trafficking",
+        "source_law": "RA 10364 (Expanded Anti-Trafficking Act)",
+        "jurisdiction": "PH",
+        "penalty": "",
+        "confidence": "high",
+        "source": "verified_database"
+      },
+      {
+        "content": "Employment Ordinance (Cap. 57) Section 32: Limits employment agency commission to 10% of first month wages",
+        "source_law": "Employment Ordinance (Cap. 57)",
+        "jurisdiction": "HK",
+        "penalty": "Fine up to HK$350,000",
+        "confidence": "high",
+        "source": "verified_database"
+      },
+      {
+        "content": "FDH Minimum Allowable Wage : Minimum wage for foreign domestic helpers: HK$4,870/month (2024)",
+        "source_law": "FDH Minimum Allowable Wage",
+        "jurisdiction": "HK",
+        "penalty": "",
+        "confidence": "high",
+        "source": "verified_database"
+      },
+      {
+        "content": "Money Lenders Ordinance (Cap. 163) Section 24: Interest rate > 48% APR is extortionate; > 60% is criminal",
+        "source_law": "Money Lenders Ordinance (Cap. 163)",
+        "jurisdiction": "HK",
+        "penalty": "2 years imprisonment for > 60% APR",
+        "confidence": "high",
+        "source": "verified_database"
+      },
+      {
+        "content": "Employment Ordinance (Cap. 57) Section 36: Workers entitled to minimum 1 rest day per 7-day period",
+        "source_law": "Employment Ordinance (Cap. 57)",
+        "jurisdiction": "HK",
+        "penalty": "",
+        "confidence": "high",
+        "source": "verified_database"
+      },
+      {
+        "content": "Employment of Foreign Manpower Act (EFMA) Section 22: Prohibits recovering costs from worker through salary deductions exceeding limits",
+        "source_law": "Employment of Foreign Manpower Act (EFMA)",
+        "jurisdiction": "SG",
+        "penalty": "Fine $30,000 or 12 months imprisonment",
+        "confidence": "high",
+        "source": "verified_database"
+      },
+      {
+        "content": "Saudi Labor Law Article 90: Wages must be paid monthly; employer bears recruitment costs under reformed kafala",
+        "source_law": "Saudi Labor Law",
+        "jurisdiction": "SA",
+        "penalty": "",
+        "confidence": "high",
+        "source": "verified_database"
+      },
+      {
+        "content": "Saudi Labor Law Article 40: Employer may not retain worker's passport (reformed 2021)",
+        "source_law": "Saudi Labor Law",
+        "jurisdiction": "SA",
+        "penalty": "",
+        "confidence": "high",
+        "source": "verified_database"
+      },
+      {
+        "content": "Labor Law 2004 Article 66: Prohibits passport confiscation by employer",
+        "source_law": "Labor Law 2004",
+        "jurisdiction": "QA",
+        "penalty": "Fine + imprisonment",
+        "confidence": "high",
+        "source": "verified_database"
+      },
+      {
+        "content": "Wage Protection System : Electronic wage payment within 7 days of due date",
+        "source_law": "Wage Protection System",
+        "jurisdiction": "QA",
+        "penalty": "",
+        "confidence": "high",
+        "source": "verified_database"
+      },
+      {
+        "content": "ILO Convention 29 — Forced Labour (1930) : Prohibits all forms of forced or compulsory labour",
+        "source_law": "ILO Convention 29 — Forced Labour (1930)",
+        "jurisdiction": "INTL",
+        "penalty": "",
+        "confidence": "high",
+        "source": "verified_database"
+      },
+      {
+        "content": "ILO Convention 181 — Private Employment Agencies (1997) Article 7: Workers shall not be charged directly or indirectly, in whole or in part, any fees or costs",
+        "source_law": "ILO Convention 181 — Private Employment Agencies (1997)",
+        "jurisdiction": "INTL",
+        "penalty": "",
+        "confidence": "high",
+        "source": "verified_database"
+      },
+      {
+        "content": "ILO Convention 189 — Domestic Workers (2011) : Domestic workers entitled to: weekly rest, minimum wage, written contract, safe conditions",
+        "source_law": "ILO Convention 189 — Domestic Workers (2011)",
+        "jurisdiction": "INTL",
+        "penalty": "",
+        "confidence": "high",
+        "source": "verified_database"
+      },
+      {
+        "content": "ILO Convention 95 — Protection of Wages (1949) Article 8: Deductions from wages only with consent and within limits set by law",
+        "source_law": "ILO Convention 95 — Protection of Wages (1949)",
+        "jurisdiction": "INTL",
+        "penalty": "",
+        "confidence": "high",
+        "source": "verified_database"
+      },
+      {
+        "content": "ILO Protocol to C029 — Forced Labour (2014) : Updates C029 with victim protection, prevention, and compensation requirements",
+        "source_law": "ILO Protocol to C029 — Forced Labour (2014)",
+        "jurisdiction": "INTL",
+        "penalty": "",
+        "confidence": "high",
+        "source": "verified_database"
+      },
+      {
+        "content": "UN Protocol to Prevent, Suppress and Punish Trafficking in Persons (Palermo Protocol, 2000) : Defines trafficking in persons; requires criminalization and victim protection",
+        "source_law": "UN Protocol to Prevent, Suppress and Punish Trafficking in Persons (Palermo Protocol, 2000)",
+        "jurisdiction": "INTL",
+        "penalty": "",
+        "confidence": "high",
+        "source": "verified_database"
+      },
+      {
+        "content": "Dhaka Principles for Migration with Dignity : 10 principles including: no fees to workers, written contracts, freedom of movement, safe conditions",
+        "source_law": "Dhaka Principles for Migration with Dignity",
+        "jurisdiction": "INTL",
+        "penalty": "",
+        "confidence": "high",
+        "source": "verified_database"
+      },
+      {
+        "content": "Trafficking Victims Protection Act (TVPA, 2000) : Criminalizes trafficking; defines labor trafficking as recruitment through force, fraud, or coercion",
+        "source_law": "Trafficking Victims Protection Act (TVPA, 2000)",
+        "jurisdiction": "US",
+        "penalty": "Up to 20 years imprisonment; life if aggravated",
+        "confidence": "high",
+        "source": "verified_database"
+      },
+      {
+        "content": "Fair Labor Standards Act : Federal minimum wage, overtime pay, child labor protections",
+        "source_law": "Fair Labor Standards Act",
+        "jurisdiction": "US",
+        "penalty": "",
+        "confidence": "high",
+        "source": "verified_database"
+      },
+      {
+        "content": "Modern Slavery Act 2015 : Criminalizes slavery, servitude, forced labor, and trafficking",
+        "source_law": "Modern Slavery Act 2015",
+        "jurisdiction": "UK",
+        "penalty": "Life imprisonment (maximum)",
+        "confidence": "high",
+        "source": "verified_database"
+      },
+      {
+        "content": "Labor Standards Act Article 5: Prohibits forced labor and retention of identity documents",
+        "source_law": "Labor Standards Act",
+        "jurisdiction": "TW",
+        "penalty": "Imprisonment up to 5 years",
+        "confidence": "high",
+        "source": "verified_database"
+      },
+      {
+        "content": "Anti-Trafficking in Persons and Anti-Smuggling of Migrants Act 2007 (ATIPSOM) : Criminalizes trafficking including labor exploitation",
+        "source_law": "Anti-Trafficking in Persons and Anti-Smuggling of Migrants Act 2007 (ATIPSOM)",
+        "jurisdiction": "MY",
+        "penalty": "",
+        "confidence": "high",
+        "source": "verified_database"
+      }
+    ],
+    "trafficking_indicators": [],
+    "country_profiles": [
+      {
+        "content": "Migration corridor PH-SA: Philippines → Saudi Arabia",
+        "corridor_id": "PH-SA",
+        "kafala": true,
+        "risk": "high",
+        "typical_fee_usd": 2000,
+        "sectors": [
+          "domestic",
+          "healthcare",
+          "construction"
+        ],
+        "confidence": "high",
+        "source": "verified_database"
+      },
+      {
+        "content": "Migration corridor PH-HK: Philippines → Hong Kong",
+        "corridor_id": "PH-HK",
+        "kafala": false,
+        "risk": "medium",
+        "typical_fee_usd": 1500,
+        "sectors": [
+          "domestic"
+        ],
+        "confidence": "high",
+        "source": "verified_database"
+      },
+      {
+        "content": "Migration corridor PH-UAE: Philippines → UAE",
+        "corridor_id": "PH-UAE",
+        "kafala": true,
+        "risk": "high",
+        "typical_fee_usd": 1800,
+        "sectors": [
+          "domestic",
+          "hospitality",
+          "retail",
+          "healthcare"
+        ],
+        "confidence": "high",
+        "source": "verified_database"
+      },
+      {
+        "content": "Migration corridor PH-SG: Philippines → Singapore",
+        "corridor_id": "PH-SG",
+        "kafala": false,
+        "risk": "medium",
+        "typical_fee_usd": 1200,
+        "sectors": [
+          "domestic",
+          "healthcare"
+        ],
+        "confidence": "high",
+        "source": "verified_database"
+      },
+      {
+        "content": "Migration corridor NP-QA: Nepal → Qatar",
+        "corridor_id": "NP-QA",
+        "kafala": true,
+        "risk": "high",
+        "typical_fee_usd": 1500,
+        "sectors": [
+          "construction",
+          "security",
+          "hospitality"
+        ],
+        "confidence": "high",
+        "source": "verified_database"
+      },
+      {
+        "content": "Migration corridor BD-SA: Bangladesh → Saudi Arabia",
+        "corridor_id": "BD-SA",
+        "kafala": true,
+        "risk": "high",
+        "typical_fee_usd": 3500,
+        "sectors": [
+          "construction",
+          "domestic",
+          "agriculture"
+        ],
+        "confidence": "high",
+        "source": "verified_database"
+      },
+      {
+        "content": "Migration corridor BD-MY: Bangladesh → Malaysia",
+        "corridor_id": "BD-MY",
+        "kafala": false,
+        "risk": "high",
+        "typical_fee_usd": 4000,
+        "sectors": [
+          "manufacturing",
+          "construction",
+          "plantation"
+        ],
+        "confidence": "high",
+        "source": "verified_database"
+      },
+      {
+        "content": "Migration corridor ID-SA: Indonesia → Saudi Arabia",
+        "corridor_id": "ID-SA",
+        "kafala": true,
+        "risk": "high",
+        "typical_fee_usd": 2500,
+        "sectors": [
+          "domestic"
+        ],
+        "confidence": "high",
+        "source": "verified_database"
+      },
+      {
+        "content": "Migration corridor ID-MY: Indonesia → Malaysia",
+        "corridor_id": "ID-MY",
+        "kafala": false,
+        "risk": "high",
+        "typical_fee_usd": 2000,
+        "sectors": [
+          "domestic",
+          "plantation",
+          "manufacturing"
+        ],
+        "confidence": "high",
+        "source": "verified_database"
+      },
+      {
+        "content": "Migration corridor ID-TW: Indonesia → Taiwan",
+        "corridor_id": "ID-TW",
+        "kafala": false,
+        "risk": "medium",
+        "typical_fee_usd": 3000,
+        "sectors": [
+          "manufacturing",
+          "fishing",
+          "domestic"
+        ],
+        "confidence": "high",
+        "source": "verified_database"
+      },
+      {
+        "content": "Migration corridor ET-SA: Ethiopia → Saudi Arabia",
+        "corridor_id": "ET-SA",
+        "kafala": true,
+        "risk": "high",
+        "typical_fee_usd": 1000,
+        "sectors": [
+          "domestic"
+        ],
+        "confidence": "high",
+        "source": "verified_database"
+      },
+      {
+        "content": "Migration corridor ET-LB: Ethiopia → Lebanon",
+        "corridor_id": "ET-LB",
+        "kafala": true,
+        "risk": "high",
+        "typical_fee_usd": 800,
+        "sectors": [
+          "domestic"
+        ],
+        "confidence": "high",
+        "source": "verified_database"
+      },
+      {
+        "content": "Migration corridor LK-SA: Sri Lanka → Saudi Arabia",
+        "corridor_id": "LK-SA",
+        "kafala": true,
+        "risk": "high",
+        "typical_fee_usd": 1500,
+        "sectors": [
+          "domestic",
+          "construction"
+        ],
+        "confidence": "high",
+        "source": "verified_database"
+      },
+      {
+        "content": "Migration corridor LK-KW: Sri Lanka → Kuwait",
+        "corridor_id": "LK-KW",
+        "kafala": true,
+        "risk": "high",
+        "typical_fee_usd": 1200,
+        "sectors": [
+          "domestic"
+        ],
+        "confidence": "high",
+        "source": "verified_database"
+      },
+      {
+        "content": "Migration corridor MM-TH: Myanmar → Thailand",
+        "corridor_id": "MM-TH",
+        "kafala": false,
+        "risk": "high",
+        "typical_fee_usd": 500,
+        "sectors": [
+          "fishing",
+          "agriculture",
+          "construction",
+          "domestic"
+        ],
+        "confidence": "high",
+        "source": "verified_database"
+      },
+      {
+        "content": "Migration corridor VN-TW: Vietnam → Taiwan",
+        "corridor_id": "VN-TW",
+        "kafala": false,
+        "risk": "high",
+        "typical_fee_usd": 6000,
+        "sectors": [
+          "manufacturing",
+          "fishing",
+          "domestic"
+        ],
+        "confidence": "high",
+        "source": "verified_database"
+      },
+      {
+        "content": "Migration corridor VN-JP: Vietnam → Japan",
+        "corridor_id": "VN-JP",
+        "kafala": false,
+        "risk": "medium",
+        "typical_fee_usd": 8000,
+        "sectors": [
+          "manufacturing",
+          "agriculture",
+          "care"
+        ],
+        "confidence": "high",
+        "source": "verified_database"
+      },
+      {
+        "content": "Migration corridor IN-GCC: India → GCC States",
+        "corridor_id": "IN-GCC",
+        "kafala": true,
+        "risk": "high",
+        "typical_fee_usd": 2000,
+        "sectors": [
+          "construction",
+          "domestic",
+          "IT"
+        ],
+        "confidence": "high",
+        "source": "verified_database"
+      },
+      {
+        "content": "Migration corridor MX-US: Mexico → United States",
+        "corridor_id": "MX-US",
+        "kafala": false,
+        "risk": "medium",
+        "typical_fee_usd": 1000,
+        "sectors": [
+          "agriculture",
+          "hospitality",
+          "construction"
+        ],
+        "confidence": "high",
+        "source": "verified_database"
+      },
+      {
+        "content": "Migration corridor GT-US: Guatemala → United States",
+        "corridor_id": "GT-US",
+        "kafala": false,
+        "risk": "medium",
+        "typical_fee_usd": 2000,
+        "sectors": [
+          "agriculture",
+          "food processing"
+        ],
+        "confidence": "high",
+        "source": "verified_database"
+      },
+      {
+        "content": "Migration corridor UA-PL: Ukraine → Poland",
+        "corridor_id": "UA-PL",
+        "kafala": false,
+        "risk": "medium",
+        "typical_fee_usd": 500,
+        "sectors": [
+          "agriculture",
+          "construction",
+          "manufacturing"
+        ],
+        "confidence": "high",
+        "source": "verified_database"
+      },
+      {
+        "content": "Migration corridor SN-ES: Senegal → Spain",
+        "corridor_id": "SN-ES",
+        "kafala": false,
+        "risk": "medium",
+        "typical_fee_usd": 3000,
+        "sectors": [
+          "agriculture",
+          "fishing"
+        ],
+        "confidence": "high",
+        "source": "verified_database"
+      }
+    ],
+    "scheme_fingerprints": [
+      {
+        "content": "Recruitment Fee Debt Bondage: Agency charges excessive fees, often financed through agency-linked lenders, creating debt bondage",
+        "scheme_id": "RFDB-001",
+        "key_phrases": [
+          "recruitment fee",
+          "placement fee",
+          "agency fee",
+          "salary deduction",
+          "loan from agency",
+          "processing fee",
+          "training fee"
+        ],
+        "confidence": "high",
+        "source": "verified_database"
+      },
+      {
+        "content": "Contract Substitution: Worker signs one contract in origin country, presented with worse contract at destination",
+        "scheme_id": "CSUB-001",
+        "key_phrases": [
+          "new contract",
+          "different contract",
+          "actual terms",
+          "destination contract",
+          "changed salary",
+          "different job"
+        ],
+        "confidence": "high",
+        "source": "verified_database"
+      },
+      {
+        "content": "Passport Confiscation Control: Employer or agency confiscates identity documents to control worker movement",
+        "scheme_id": "PASC-001",
+        "key_phrases": [
+          "passport kept by employer",
+          "documents in safe",
+          "for safekeeping",
+          "return at end of contract",
+          "surrender passport",
+          "give me your passport"
+        ],
+        "confidence": "high",
+        "source": "verified_database"
+      },
+      {
+        "content": "Wage Manipulation: Systematic underpayment through deductions, delayed payment, or currency manipulation",
+        "scheme_id": "WAGM-001",
+        "key_phrases": [
+          "salary deduction",
+          "withheld wages",
+          "delayed payment",
+          "exchange rate",
+          "processing fee from salary"
+        ],
+        "confidence": "high",
+        "source": "verified_database"
+      },
+      {
+        "content": "Visa Status Manipulation: Employer controls visa renewal to maintain worker dependency",
+        "scheme_id": "VISM-001",
+        "key_phrases": [
+          "visa expired",
+          "working illegally",
+          "overstayed",
+          "employer didn't renew",
+          "can't transfer sponsor"
+        ],
+        "confidence": "high",
+        "source": "verified_database"
+      },
+      {
+        "content": "Isolation and Communication Control: Worker isolated from community, phone confiscated, restricted contact",
+        "scheme_id": "ISOL-001",
+        "key_phrases": [
+          "no phone",
+          "can't contact family",
+          "locked in",
+          "not allowed out",
+          "no day off"
+        ],
+        "confidence": "high",
+        "source": "verified_database"
+      },
+      {
+        "content": "Predatory Lending: Agency-linked lender provides high-interest loans for recruitment fees",
+        "scheme_id": "PRED-001",
+        "key_phrases": [
+          "loan for fees",
+          "interest rate",
+          "monthly payment",
+          "collateral",
+          "guarantor"
+        ],
+        "confidence": "high",
+        "source": "verified_database"
+      },
+      {
+        "content": "Forced Overtime: Excessive working hours without consent, rest, or compensation",
+        "scheme_id": "FORC-001",
+        "key_phrases": [
+          "no rest day",
+          "16 hour days",
+          "no overtime pay",
+          "always on call",
+          "no time off"
+        ],
+        "confidence": "high",
+        "source": "verified_database"
+      },
+      {
+        "content": "Subcontractor Chain Obscuring: Multiple layers of subcontractors obscure employer identity and liability",
+        "scheme_id": "SUBCH-001",
+        "key_phrases": [
+          "subcontractor",
+          "manpower agency",
+          "outsourced",
+          "third party employer",
+          "labor supply company"
+        ],
+        "confidence": "high",
+        "source": "verified_database"
+      }
+    ],
+    "resources": [],
+    "statistics": [],
+    "definitions": []
+  }
+}

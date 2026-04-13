@@ -1,0 +1,27 @@
+# Phase 2 - Comparison configuration
+# See docs/project_phases.md Phase 2
+
+phase_id: comparison
+
+# Model list is in src/phases/comparison/model_list.py (code, not config).
+# This file just enables/disables tiers and sets budgets.
+
+enabled_tiers:
+  local_open: true       # Gemma, GPT-OSS, Qwen, Llama
+  api_open: true         # Mistral, DeepSeek
+  api_closed_reference: true  # GPT-4o-mini, Claude Haiku (reference only)
+
+budgets:
+  max_api_spend_usd: 200
+  max_hours_total: 24
+
+capability_tests:
+  - response_policy_guardrails
+  - anonymization
+  - document_classification
+  - key_fact_extraction
+
+output:
+  reports_dir: reports/phase2
+  data_dir: data/phase2
+  publish_kaggle_dataset: true

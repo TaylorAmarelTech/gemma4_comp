@@ -1,0 +1,46 @@
+# Phase 4 - Implementation configuration
+# See docs/project_phases.md Phase 4
+
+phase_id: implementation
+
+model:
+  # Paths are resolved relative to models_dir; picks one quantization at boot.
+  gguf_path: models/gemma-4-e4b-safetyjudge-v0.1/gguf/q5_k_m.gguf
+  context_length: 4096
+  n_gpu_layers: 0  # CPU by default, so it runs anywhere
+
+server:
+  host: 0.0.0.0
+  port: 8080
+  workers: 1
+
+rate_limit:
+  per_ip_per_minute: 10
+  max_input_chars: 4000
+
+abuse_mitigations:
+  topic_classifier_enabled: true
+  reject_off_topic: true
+  research_demo_disclaimer: true
+
+endpoints:
+  evaluate: true
+  classify: true
+  anonymize: true
+  extract_facts: true
+  examples_gallery: true
+  compare_page: true  # stock-vs-enhanced comparison
+  about_page: true
+
+monitors:
+  reddit:
+    enabled: false  # flip to true in week 4 if time permits
+    subreddits:
+      - r/migrantworkers  # example
+      - r/humanrights     # example
+    poll_interval_seconds: 300
+  discord:
+    enabled: false  # P2 stretch
+
+output:
+  reports_dir: reports/phase4

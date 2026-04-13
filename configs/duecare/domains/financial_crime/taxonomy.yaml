@@ -1,0 +1,28 @@
+version: "0.1"
+
+categories:
+  - id: placement
+    name: "Placement"
+  - id: layering
+    name: "Layering"
+  - id: integration
+    name: "Integration"
+  - id: white_collar_fraud
+    name: "White Collar Fraud"
+
+indicators:
+  - { id: smurfing }
+  - { id: structuring }
+  - { id: shell_company }
+  - { id: trade_based_laundering }
+  - { id: cryptocurrency_mixing }
+  - { id: cash_intensive_business }
+  - { id: nominee_account }
+  - { id: beneficial_owner_concealment }
+  - { id: politically_exposed_person }
+  - { id: high_risk_jurisdiction }
+
+jurisdictions:
+  - { id: fatf, name: "FATF 40 Recommendations" }
+  - { id: us_bsa, name: "US Bank Secrecy Act" }
+  - { id: eu_amld, name: "EU Anti-Money-Laundering Directive" }

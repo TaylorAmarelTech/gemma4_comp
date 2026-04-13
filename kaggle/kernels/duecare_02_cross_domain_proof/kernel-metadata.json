@@ -1,0 +1,18 @@
+{
+  "id": "taylorsamarel/duecare-cross-domain-proof",
+  "title": "02 - DueCare Cross-Domain Proof (Generalized Framework)",
+  "code_file": "02_cross_domain_proof.ipynb",
+  "language": "python",
+  "kernel_type": "notebook",
+  "is_private": true,
+  "enable_gpu": false,
+  "enable_tpu": false,
+  "enable_internet": true,
+  "dataset_sources": [
+    "taylorsamarel/duecare-llm-wheels"
+  ],
+  "competition_sources": [
+    "gemma-4-good-hackathon"
+  ],
+  "kernel_sources": []
+}
