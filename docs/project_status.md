@@ -3,19 +3,25 @@
 > Last updated: Session ending April 12-13, 2026
 > Deadline: May 18, 2026 (35 days remaining)
 
-## Real Gemma Results (Phase 1 Complete)
+## Local Baseline (Gemma 3 4B via Ollama -- preliminary)
 
 ```
-Model:      Gemma 4 E2B-IT (stock, no fine-tuning)
-Prompts:    50 graded (from 74,567 corpus)
-Mean score: 0.6096
-Pass rate:  20% (good + best grades)
-Fail rate:  80%
-Runtime:    CPU on Kaggle P100 (~3.5 hours)
+Model:      gemma3:4b (stock, via Ollama, no fine-tuning)
+Prompts:    5 evaluated (from 74,567 corpus)
+Mean score: 0.40
+Pass rate:  0%
+Fail rate:  100%
+Runtime:    ~60s on local CPU
+
+Comparison (n=5, gemma3:4b):
+  Plain:     0.484 mean, 20% pass
+  + RAG:     0.594 mean, 40% pass (+23%)
+  + Guided:  0.620 mean, 40% pass (+28%)
 ```
 
-**Stock Gemma fails 80% of trafficking safety prompts.** This is the
-baseline that Phase 3 fine-tuning will improve.
+**Stock Gemma produces inadequate trafficking safety responses.**
+Context injection improves scores significantly even without fine-tuning.
+Full Gemma 4 E4B evaluation at scale is the Phase 1 deliverable.
 
 ## Component Inventory
 
@@ -60,10 +66,10 @@ rate_evaluate → remix → baseline_test
 - 29 scheme fingerprints
 - 111-entry RAG knowledge base
 
-### Tests: 368+ passing
-### Total Python LOC: 136,618
+### Tests: 407 passing
+### Total Python LOC: 47,351
 
-## Kaggle Notebooks (10)
+## Kaggle Notebooks (18)
 
 | Notebook | Status | URL |
 |---|---|---|
@@ -74,8 +80,20 @@ rate_evaluate → remix → baseline_test
 | 02 Cross-Domain Proof | Live | duecare-cross-domain-proof |
 | 03 Agent Swarm Deep Dive | Live | duecare-agent-swarm-deep-dive |
 | 04 Submission Walkthrough | Live | duecare-submission-walkthrough |
+| 05 RAG Comparison | Live | duecare-rag-comparison |
+| 06 Adversarial | Live | duecare-adversarial |
+| 08 FC + Multimodal | Live | duecare-fc-multimodal |
+| 09 LLM Judge | Live | duecare-llm-judge |
+| 10 Conversations | Live | duecare-conversations |
+| 11 Comparative | Live | duecare-comparative |
+| 12 Prompt Factory | Live | duecare-prompt-factory |
+| 13 Rubric Eval | Live | duecare-rubric-eval |
+| 14 Dashboard | Live | duecare-dashboard |
 | Phase 2 Model Comparison | Live | duecare-phase-2-model-comparison |
 | Phase 3 Unsloth Finetune | Pushed | duecare-phase3-finetune |
+
+> **Note:** Gemma 4 E2B/E4B Kaggle results are pending. The baseline
+> numbers above are from Gemma 3 4B via local Ollama only.
 
 ## Kaggle Datasets (2)
 

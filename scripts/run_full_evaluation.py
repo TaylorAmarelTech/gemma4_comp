@@ -12,9 +12,9 @@ script uses the full DueCare evaluation stack:
 It also generates a comprehensive HTML report and JSON findings.
 
 Usage:
-    python scripts/run_full_evaluation.py --model gemma3:4b --max-prompts 20
-    python scripts/run_full_evaluation.py --model gemma3:4b --graded-only --mode all
-    python scripts/run_full_evaluation.py --model gemma3:4b --max-prompts 50 --mode compare
+    python scripts/run_full_evaluation.py --model gemma4:e4b --max-prompts 20
+    python scripts/run_full_evaluation.py --model gemma4:e4b --graded-only --mode all
+    python scripts/run_full_evaluation.py --model gemma4:e4b --max-prompts 50 --mode compare
 """
 
 from __future__ import annotations

@@ -14,7 +14,7 @@
 
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](./LICENSE)
-[![Tests](https://img.shields.io/badge/tests-188%20passing-brightgreen.svg)](#tests)
+[![Tests](https://img.shields.io/badge/tests-407%20passing-brightgreen.svg)](#tests)
 [![Packages](https://img.shields.io/badge/packages-8-blue.svg)](#packages)
 
 ---
@@ -52,7 +52,7 @@ installable from a single `pip install duecare-llm`:
 | [`duecare-llm-workflows`](./docs/components/duecare_llm_workflows.md) | YAML DAG loader + topological runner | 9 ✅ |
 | [`duecare-llm-publishing`](./docs/components/duecare_llm_publishing.md) | HF Hub + Kaggle publisher, markdown reports, HF model cards | 9 ✅ |
 | [`duecare-llm`](./docs/components/duecare_llm_meta.md) (meta) | `duecare` CLI + re-exports from all 7 siblings | 6 ✅ |
-| **Total** | | **188 ✅** |
+| **Total** | | **407 ✅** |
 
 ## Quick start
 
@@ -127,7 +127,7 @@ See [docs/notebook_guide.md](docs/notebook_guide.md) for the complete catalog.
 
 ```
 Notebooks:
-  00    Gemma Baseline (real model, 0.61 mean, 20% pass)
+  00    Gemma Baseline (real model, stock evaluation)
   00a   Prompt Prioritizer (select from 74K corpus)
   00b   Prompt Remixer (15 adversarial generators)
   01-04 Framework demos (quickstart, cross-domain, agents, submission)
@@ -187,14 +187,14 @@ Notebooks:
 
 | Metric | Value |
 |---|---|
-| Stock Gemma 4 E2B mean score | **0.61** (Kaggle) |
-| Stock Gemma 3 4B pass rate | **20%** (local) |
+| Stock Gemma 3 4B mean score | **0.40** (local baseline) |
+| Stock Gemma 3 4B pass rate | **0%** (local baseline) |
 | With RAG context | **0.59** (+23% over plain) |
 | With guided prompt | **0.62** (+28% over plain) |
 | Trafficking prompt corpus | **74,567** |
 | Adversarial generators | **15** |
 | Evaluation frameworks | **7** |
-| Tests passing | **380+** |
+| Tests passing | **407** |
 
 ### Use it as a library
 
@@ -325,7 +325,7 @@ architecture is **genuinely domain-agnostic**:
 
 | Pack | Seed prompts | Evidence items | Categories | Taxonomy dimensions |
 |---|---|---|---|---|
-| `trafficking` | 12 | 10 | 5 | sector, corridor, ILO indicator, attack category, difficulty |
+| `trafficking` | 74,567 | 10 | 5 | sector, corridor, ILO indicator, attack category, difficulty |
 | `tax_evasion` | 4 | 4 | 4 | scheme type, jurisdiction, FATF indicator, sophistication |
 | `financial_crime` | 3 | 3 | 4 | laundering stage, typology, FATF indicator, jurisdiction |
 
@@ -371,7 +371,7 @@ for per-agent documentation.
 ## Tests
 
 ```bash
-# All 188 tests across all 8 packages
+# All 407 tests across all 8 packages
 python -m pytest packages -v
 
 # Single package
@@ -384,7 +384,7 @@ python -m pytest packages/duecare-llm-core/src/forge/core/enums -v
 Latest full run:
 
 ```
-========================= 188 passed, 1 warning in 6.11s =========================
+========================= 407 passed, 9 warnings in 525.38s =========================
 ```
 
 ## Demo notebook

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from duecare.tasks.generators.test_validator import PromptValidator
+from duecare.tasks.generators.prompt_validator import PromptValidator
 from duecare.tasks.generators.document_quiz import DocumentQuizGenerator
 
 

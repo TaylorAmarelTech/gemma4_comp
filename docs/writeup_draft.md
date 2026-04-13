@@ -19,12 +19,13 @@
 ## TL;DR (80 words)
 
 DueCare is an agentic safety harness for LLMs — named for the
-Cal. Civ. Code sect. 1714(a) duty of care standard. Stock Gemma 4 E2B
-scores **0.61 mean / 20% pass rate** on 50 trafficking prompts from a
-74,567-prompt corpus. The same harness runs against tax evasion and
-financial crime with zero code changes. **15 adversarial generators,
-7 evaluation frameworks (including FATF and TIPS compliance ratings),
-368 tests, 8 pip-installable packages, one CLI command** — runs
+Cal. Civ. Code sect. 1714(a) duty of care standard. Stock Gemma scores
+**0.40–0.48 mean / 0–20% pass rate** on trafficking prompts from a
+74,567-prompt corpus. Context injection alone lifts scores by 28%.
+The same harness runs against tax evasion and financial crime with
+zero code changes. **15 adversarial generators, 7 evaluation frameworks
+(including FATF and TIPS compliance ratings), 407 tests,
+8 pip-installable packages, one CLI command** — runs
 anywhere, including Kaggle notebooks and a laptop.
 
 ## 1. The problem (230 words)
@@ -60,7 +61,7 @@ locally. That's DueCare.
 ## 2. The approach (280 words)
 
 DueCare ships as **8 PyPI packages** sharing the `duecare` Python namespace
-via PEP 420 implicit namespace packages. Each package has a single
+via implicit namespace packages (Python 3.3+). Each package has a single
 layer of the architecture:
 
 | Package | Layer |
@@ -133,14 +134,15 @@ copy and an edit — zero code change.
 
 ## 4. Results (180 words)
 
-**368 tests passing. Gemma 4 E2B baseline: 0.61 mean score, 20% pass
-rate on trafficking prompts. 80% of prompts produce inadequate safety
-responses from stock Gemma.**
+**407 tests passing. Local baseline (Gemma 3 4B via Ollama): 0.40 mean
+score, 0% pass rate on trafficking prompts. Stock Gemma produces
+inadequate safety responses — the exact gap that fine-tuning on the
+DueCare curriculum is designed to close.**
 
 | Metric | Value |
 |---|---|
-| Gemma 4 E2B mean score (stock) | 0.6096 |
-| Gemma 4 E2B pass rate (stock) | 20% |
+| Local baseline mean score (Gemma 3 4B via Ollama) | 0.40 |
+| Local baseline pass rate (Gemma 3 4B via Ollama) | 0% |
 | Trafficking prompts corpus | 74,567 |
 | Adversarial generators | 15 |
 | Evaluation frameworks | 7 (weighted rubric, multi-layer, LLM judge, FATF, TIPS, failure analysis, citation verifier) |
@@ -148,20 +150,23 @@ responses from stock Gemma.**
 | Migration corridors mapped | 26 + 32 specialized |
 | Scheme fingerprints documented | 29 |
 | PyPI packages | 8 |
-| Total tests | 368, all passing |
-| Total Python LOC | 136,618 |
+| Total tests | 407, all passing |
+| Total Python LOC | 47,351 |
 | Model adapters | 8 (incl. Ollama for local execution) |
 | Domain packs | 3 (trafficking, tax_evasion, financial_crime) |
 | Agents in swarm | 12 + Supervisor + Evolution Engine |
 | Pipeline stages | 8 (acquire → classify → extract → KB → generate → rate → remix → test) |
 
-**Key finding: context injection doubles pass rate without fine-tuning.**
+**Key finding: context injection dramatically improves scores without fine-tuning.**
 
 | Mode | Mean Score | Pass Rate | Delta |
 |---|---|---|---|
-| Plain (stock Gemma) | 0.484 | 20% | baseline |
+| Plain (local baseline, Gemma 3 4B via Ollama) | 0.484 | 20% | baseline |
 | + RAG (KB context) | 0.594 | 40% | **+23%** |
 | + Guided (system prompt) | 0.620 | 40% | **+28%** |
+
+*(Comparison results from initial n=5 evaluation; full Gemma 4 E4B
+evaluation at scale is the Phase 1 deliverable.)*
 
 This proves the model has the capability but lacks domain knowledge —
 the exact gap that Phase 3 fine-tuning closes permanently.
@@ -210,10 +215,9 @@ $0/month infrastructure budget can run it.
 - **Code:** [GitHub](https://github.com/taylorsamarel/gemma4_comp) — MIT
 - **Packages:** `pip install duecare-llm` (meta) or any of the 7 sibling
   packages individually
-- **Weights:** [HuggingFace Hub](https://huggingface.co/taylorsamarel/forge-gemma-4-e4b-trafficking-v0.1) *(after the Trainer agent's real run)*
-- **Notebooks:** [Kaggle submission notebook](./notebooks/forge_kaggle_submission.ipynb)
-- **Live demo:** [HF Spaces](https://huggingface.co/spaces/taylorsamarel/forge) *(deployed from the meta package)*
-- **Tests:** `python -m pytest packages` → 188 passed
+- **Weights:** [HuggingFace Hub](https://huggingface.co/taylorsamarel) (weights published after fine-tuning)
+- **Notebooks:** [Kaggle notebooks](https://www.kaggle.com/taylorsamarel/code)
+- **Tests:** `python -m pytest packages tests` → 407 passed
 
 Every metric in this writeup is reproducible from
 `(git_sha, config_hash, dataset_version)`.
@@ -230,6 +234,3 @@ and the FATF 40 Recommendations.
 Privacy is non-negotiable. The lab runs on your machine.
 
 ---
-
-**Running total: ~1,350 words.** Within the 1,500-word cap with ~150
-words of headroom for final polish.

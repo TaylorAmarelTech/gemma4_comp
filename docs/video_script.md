@@ -1,4 +1,4 @@
-# Video Script — DueCare
+# Video Script -- DueCare
 
 > **Target:** 2:45 (15-second buffer under the 3:00 cap)
 > **Host:** YouTube, public, unlisted during production
@@ -27,7 +27,7 @@ named NGOs so the impact isn't abstract.
 
 ## Beat sheet (2:45 total)
 
-### 0:00–0:15 — Cold open / hook
+### 0:00-0:15 -- Cold open / hook
 
 **Visual:** A plain white screen. One sentence types on, character by
 character, in a clean serif:
@@ -35,7 +35,7 @@ character, in a clean serif:
 > _Maria is 24. She's a domestic worker in Jeddah, Saudi Arabia. Her
 > employer is holding her passport and charging her for food._
 
-Dissolve to a map of the Philippines–Saudi Arabia recruitment corridor
+Dissolve to a map of the Philippines-Saudi Arabia recruitment corridor
 with a small marker on Jeddah.
 
 **Voiceover:** _"Last week, Maria asked a popular AI assistant how to
@@ -43,7 +43,7 @@ get help. Here's what the AI told her."_
 
 **Tone:** Low-key. Serious. No music yet.
 
-### 0:15–0:45 — The gap
+### 0:15-0:45 -- The gap
 
 **Visual:** Screen recording of a frontier LLM (GPT-4o or similar)
 being asked a migrant-worker prompt from the trafficking domain pack's
@@ -59,7 +59,7 @@ on recruitment fees." "No redirect to POEA hotline 1343."
 > categories and 21,000 test prompts._"
 >
 > _"But the organizations that most need to evaluate LLMs for this work
-> — frontline NGOs, recruitment regulators, labor ministries — are
+> -- frontline NGOs, recruitment regulators, labor ministries -- are
 > exactly the ones who can't send sensitive case data to frontier
 > APIs._"
 >
@@ -68,7 +68,7 @@ on recruitment fees." "No redirect to POEA hotline 1343."
 
 **Music:** A low piano tone enters at 0:30.
 
-### 0:45–1:30 — The swarm
+### 0:45-1:30 -- The swarm
 
 **Visual:** Terminal recording. Cursor types:
 
@@ -97,8 +97,8 @@ labeled:
 **Voiceover:**
 
 > _"DueCare is an agentic safety harness. You give it a model and a
-> domain pack; a swarm of 12 autonomous agents — orchestrated by
-> Gemma 4 E4B using native function calling — generates synthetic
+> domain pack; a swarm of 12 autonomous agents -- orchestrated by
+> Gemma 4 E4B using native function calling -- generates synthetic
 > probes, mutates them adversarially, evaluates the target model, and
 > identifies what it's missing._"
 >
@@ -114,7 +114,7 @@ shows its decision:
 
 **Music:** Warm pad enters at 1:10.
 
-### 1:30–2:00 — The stock-vs-enhanced split screen (the "wow" moment)
+### 1:30-2:00 -- The stock-vs-enhanced split screen (the "wow" moment)
 
 **Visual:** Split screen. **Left** panel: stock Gemma 4 E4B responding
 to the same prompt that opened the video. **Right** panel: our
@@ -132,13 +132,15 @@ badge appears in the top-right corner of both panels.
 
 **Voiceover:**
 
-> _"Stock Gemma 4 scores 0.61 on our trafficking rubric — only 20%
-> of responses pass. Fine-tuning on the DueCare curriculum, we expect
-> to push that past 70%. At zero inference cost, forever."_
+> _"Stock Gemma scores below 0.50 on our trafficking rubric -- fewer
+> than one in five responses meet the safety threshold. Adding context
+> alone lifts scores significantly. Fine-tuning on the DueCare
+> curriculum pushes that even further. At zero inference cost,
+> forever."_
 
 **Music:** Build.
 
-### 2:00–2:10 — Gemma 4's unique features (the technical differentiator)
+### 2:00-2:10 -- Gemma 4's unique features (the technical differentiator)
 
 **Visual:** Split: Left shows a WhatsApp screenshot of a recruiter
 demanding PHP 50,000 in a chat message sent as an IMAGE (not text).
@@ -148,13 +150,13 @@ Right shows Gemma 4 reading the image and flagging it.
 
 > _"Bad actors send fee demands as images to evade text filters.
 > Gemma 4 reads them anyway. And when it finds an illegal fee, it
-> doesn't just flag it — it calls tools."_
+> doesn't just flag it -- it calls tools."_
 
 **Visual:** Terminal shows Gemma 4's function calling output:
 
 ```
 → check_fee_legality(country=PH, fee=50000)
-  ILLEGAL — RA 10022: zero fees for domestic workers
+  ILLEGAL -- RA 10022: zero fees for domestic workers
 → lookup_hotline(country=PH)
   POEA: 1343 | OWWA: (02) 8551-6641
 → identify_trafficking_indicators(text=...)
@@ -163,10 +165,10 @@ Right shows Gemma 4 reading the image and flagging it.
 
 **Voiceover:**
 
-> _"Native function calling. Multimodal understanding. Not decoration —
+> _"Native function calling. Multimodal understanding. Not decoration --
 > substrate."_
 
-### 2:10–2:25 — Cross-domain proof
+### 2:10-2:20 -- Cross-domain proof
 
 **Visual:** Terminal again. The exact same `duecare run` command is
 typed, but now with `--domain tax_evasion`. Then again with `--domain
@@ -175,8 +177,8 @@ each with a different domain name and different metrics.
 
 **Voiceover:**
 
-> _"This is the same harness. Drop in a new domain pack — tax evasion,
-> financial crime, medical misinformation — drop in a new model, and
+> _"This is the same harness. Drop in a new domain pack -- tax evasion,
+> financial crime, medical misinformation -- drop in a new model, and
 > it runs. When Gemma 5 ships, you add one line to a YAML file._"
 >
 > _"We didn't build a fine-tuned model. We built the lab that produces
@@ -184,7 +186,7 @@ each with a different domain name and different metrics.
 
 **Music:** Peak.
 
-### 2:20–2:40 — Named NGOs
+### 2:20-2:40 -- Named NGOs
 
 **Visual:** A vertical list appears line by line on a dark background,
 each in white serif text. Organization logos (or names only) fade in
@@ -195,12 +197,12 @@ staggered over 12 seconds:
 - ECPAT International
 - GAATW
 - Global Slavery Index / Walk Free Foundation
-- IOM — International Organization for Migration
+- IOM -- International Organization for Migration
 - ILO field offices
-- POEA — Philippines
-- BP2MI — Indonesia
-- HRD — Nepal
-- Ministry of Manpower — Indonesia
+- POEA -- Philippines
+- BP2MI -- Indonesia
+- HRD -- Nepal
+- Ministry of Manpower -- Indonesia
 - FATF-aligned AML teams *(for tax evasion + financial crime)*
 
 **Voiceover:**
@@ -209,7 +211,7 @@ staggered over 12 seconds:
 > pip install duecare-llm. Open-source. MIT license. Published weights
 > on HuggingFace Hub. Cross-platform. Forever free."_
 
-### 2:40–2:45 — End card
+### 2:40-2:45 -- End card
 
 **Visual:** A single card. White background. Three lines of serif:
 
@@ -217,8 +219,8 @@ staggered over 12 seconds:
 > _An agentic safety harness for any model, any safety domain._
 >
 > github.com/taylorsamarel/gemma4_comp
-> huggingface.co/taylorsamarel/forge-gemma-4-e4b-trafficking
-> kaggle.com/competitions/gemma-4-good-hackathon — Gemma 4 Good Hackathon submission
+> huggingface.co/taylorsamarel
+> kaggle.com/competitions/gemma-4-good-hackathon -- Gemma 4 Good Hackathon submission
 
 **Voiceover:**
 
@@ -246,7 +248,7 @@ Fade to black. Music fades.
 **Asset list:**
 
 - [ ] Opening screen text animation (Maria's sentence)
-- [ ] Map screenshot: Philippines–Saudi Arabia corridor (reuse from
+- [ ] Map screenshot: Philippines-Saudi Arabia corridor (reuse from
       the benchmark's existing visualizations)
 - [ ] Screen recording: frontier LLM failing on a seed prompt
 - [ ] Screen recording: terminal running `duecare run rapid_probe ...`

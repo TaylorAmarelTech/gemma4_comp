@@ -4,7 +4,7 @@
 - **target_model**: `gemma-4-e4b`
 - **domain**: `trafficking`
 - **git_sha**: `abc123`
-- **started_at**: 2026-04-12T19:41:16
+- **started_at**: 2026-04-13T11:51:14
 - **budget_used_usd**: $0.0000
 
 ## Decisions

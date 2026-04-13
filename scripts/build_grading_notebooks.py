@@ -1251,7 +1251,7 @@ NB12_CELLS = [
     ),
 
     code(
-        "from duecare.tasks.generators.test_validator import PromptValidator\n"
+        "from duecare.tasks.generators.prompt_validator import PromptValidator\n"
         "\n"
         "validator = PromptValidator()\n"
         "report = validator.validate_batch(all_variations)\n"

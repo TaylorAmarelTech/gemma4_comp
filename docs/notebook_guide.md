@@ -171,7 +171,7 @@ pip install packages/duecare-llm/dist/*.whl
 jupyter notebook notebooks/06_adversarial_resistance.ipynb
 
 # Or use the scripts directly
-python scripts/run_local_gemma.py --model gemma3:4b --max-prompts 10
+python scripts/run_local_gemma.py --model gemma4:e4b --max-prompts 10
 python scripts/pipeline/run_pipeline.py --stages 4,5,6,7 --heuristic --quick
 ```
 

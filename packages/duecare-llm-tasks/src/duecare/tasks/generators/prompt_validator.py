@@ -10,7 +10,7 @@ they enter the evaluation pipeline. Catches:
   - Prompts with PII that should have been anonymized
 
 Usage:
-    from duecare.tasks.generators.test_validator import PromptValidator
+    from duecare.tasks.generators.prompt_validator import PromptValidator
 
     validator = PromptValidator()
     report = validator.validate_batch(prompts)

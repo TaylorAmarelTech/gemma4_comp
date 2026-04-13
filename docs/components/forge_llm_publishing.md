@@ -65,10 +65,10 @@ print(f"Report at {report_path}")
 from duecare.publishing import HFHubPublisher
 
 pub = HFHubPublisher(token_env="HUGGINGFACE_TOKEN")
-pub.create_repo_if_missing("taylorsamarel/forge-gemma-4-e4b-trafficking-v0.1")
+pub.create_repo_if_missing("taylorsamarel/duecare-gemma-4-e4b-safety-v0.1")
 url = pub.upload_folder(
-    repo_id="taylorsamarel/forge-gemma-4-e4b-trafficking-v0.1",
-    folder_path="models/forge/merged_fp16",
+    repo_id="taylorsamarel/duecare-gemma-4-e4b-safety-v0.1",
+    folder_path="models/duecare/merged_fp16",
     commit_message="v0.1 - initial release",
 )
 print(url)
@@ -81,10 +81,10 @@ from duecare.publishing import ModelCardGenerator
 
 gen = ModelCardGenerator()
 gen.write(
-    "models/forge/README.md",
+    "models/duecare/README.md",
     model_name="gemma-4-e4b-safetyjudge-v0.1",
     base_model="unsloth/gemma-4-e4b-bnb-4bit",
-    dataset_id="taylorsamarel/forge-trafficking-training-v1",
+    dataset_id="taylorsamarel/duecare-trafficking-training-v1",
     description="Fine-tuned Gemma 4 E4B safety judge for migrant-worker trafficking",
     grade_exact_match=0.68,
     grade_within_1=0.92,
