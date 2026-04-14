@@ -47,6 +47,7 @@ NOTEBOOK_DIRS = [
     KERNELS_DIR / "duecare_04_submission_walkthrough",
     KERNELS_DIR / "duecare_05_rag_comparison",
     KERNELS_DIR / "duecare_06_adversarial",
+    KERNELS_DIR / "duecare_07_oss_comparison",
     KERNELS_DIR / "duecare_08_fc_multimodal",
     KERNELS_DIR / "duecare_09_llm_judge",
     KERNELS_DIR / "duecare_10_conversations",

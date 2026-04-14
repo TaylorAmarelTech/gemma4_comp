@@ -1,11 +1,12 @@
 {
-  "id": "taylorsamarel/duecare-phase3-finetune",
-  "title": "DueCare Phase3 Finetune",
-  "code_file": "phase3_unsloth_finetune.ipynb",
+  "id": "taylorsamarel/duecare-gemma-vs-oss-comparison",
+  "title": "DueCare Gemma vs OSS Comparison",
+  "code_file": "07_oss_model_comparison.ipynb",
   "language": "python",
   "kernel_type": "notebook",
   "is_private": true,
   "enable_gpu": true,
+  "enable_tpu": false,
   "enable_internet": true,
   "dataset_sources": [
     "taylorsamarel/duecare-llm-wheels",
@@ -14,7 +15,9 @@
   "competition_sources": [
     "gemma-4-good-hackathon"
   ],
+  "kernel_sources": [],
   "model_sources": [
-    "google/gemma-4/transformers/gemma-4-e4b-it/1"
+    "google/gemma-4/transformers/gemma-4-e4b-it/1",
+    "google/gemma-4/transformers/gemma-4-e2b-it/1"
   ]
 }

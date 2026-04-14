@@ -1,6 +1,6 @@
 {
-  "id": "taylorsamarel/duecare-prompt-factory",
-  "title": "12 - DueCare Adversarial Prompt Factory",
+  "id": "taylorsamarel/duecare-adversarial-prompt-factory",
+  "title": "DueCare Adversarial Prompt Factory",
   "code_file": "12_prompt_factory.ipynb",
   "language": "python",
   "kernel_type": "notebook",
@@ -13,5 +13,7 @@
   ],
   "competition_sources": [
     "gemma-4-good-hackathon"
-  ]
+  ],
+  "enable_tpu": false,
+  "kernel_sources": []
 }

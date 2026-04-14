@@ -1,6 +1,6 @@
 {
   "id": "taylorsamarel/duecare-agent-swarm-deep-dive",
-  "title": "03 - DueCare Agent Swarm Deep Dive (Generalized Framework)",
+  "title": "DueCare Agent Swarm Deep Dive",
   "code_file": "03_agent_swarm_deep_dive.ipynb",
   "language": "python",
   "kernel_type": "notebook",

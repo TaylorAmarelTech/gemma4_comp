@@ -1,6 +1,6 @@
 {
   "id": "taylorsamarel/duecare-gemma-exploration",
-  "title": "00 - DueCare Gemma Exploration (Phase 1 Baseline)",
+  "title": "DueCare Gemma Exploration",
   "code_file": "00_gemma_exploration.ipynb",
   "language": "python",
   "kernel_type": "notebook",

@@ -19,14 +19,14 @@
 ## TL;DR (80 words)
 
 DueCare is an agentic safety harness for LLMs — named for the
-Cal. Civ. Code sect. 1714(a) duty of care standard. Stock Gemma scores
-**0.40–0.48 mean / 0–20% pass rate** on trafficking prompts from a
-74,567-prompt corpus. Context injection alone lifts scores by 28%.
-The same harness runs against tax evasion and financial crime with
-zero code changes. **15 adversarial generators, 7 evaluation frameworks
-(including FATF and TIPS compliance ratings), 407 tests,
-8 pip-installable packages, one CLI command** — runs
-anywhere, including Kaggle notebooks and a laptop.
+Cal. Civ. Code sect. 1714(a) duty of care standard. Stock Gemma 4 E4B
+scores **0.61 mean / 20% pass rate / 0% harmful** on trafficking prompts
+from a 74,567-prompt corpus (verified on Kaggle T4 GPU). RAG context
+injection lifts scores by 28%. The same harness runs against tax
+evasion and financial crime with zero code changes. **15 adversarial
+generators, 7 evaluation frameworks, 19 Kaggle notebooks, 407 tests,
+8 pip-installable packages, one CLI command** — runs anywhere,
+including Kaggle notebooks and a laptop.
 
 ## 1. The problem (230 words)
 

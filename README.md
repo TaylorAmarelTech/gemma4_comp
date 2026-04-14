@@ -121,27 +121,29 @@ uvicorn src.demo.app:app --port 8080
 # Open http://localhost:8080 for the HTML dashboard
 ```
 
-### 17 Kaggle Notebooks
+### 19 Kaggle Notebooks
 
-See [docs/notebook_guide.md](docs/notebook_guide.md) for the complete catalog.
-
-```
-Notebooks:
-  00    Gemma Baseline (real model, stock evaluation)
-  00a   Prompt Prioritizer (select from 74K corpus)
-  00b   Prompt Remixer (15 adversarial generators)
-  01-04 Framework demos (quickstart, cross-domain, agents, submission)
-  05    RAG vs Plain vs Guided comparison
-  06    Adversarial attack resistance (15 vectors)
-  08    Function calling + multimodal demo
-  09    LLM-as-Judge grading (0-100, 6 dimensions)
-  10    Conversation thread testing (escalation detection)
-  11    Comparative grading (anchored to best/worst references)
-  12    Prompt factory (generate → validate → rank)
-  13    Rubric-anchored evaluation (54 criteria, per-criterion pass/fail)
-  P2    Phase 2 model comparison (E2B vs E4B)
-  P3    Phase 3 Unsloth fine-tune (LoRA + GGUF export)
-```
+| # | Notebook | GPU | Kaggle Link |
+|---|----------|-----|-------------|
+| 00 | Gemma Baseline (real inference + scoring) | T4 | [duecare-gemma-exploration](https://www.kaggle.com/code/taylorsamarel/duecare-gemma-exploration) |
+| 00a | Prompt Prioritizer (select from 74K corpus) | - | [00a-duecare-prompt-prioritizer](https://www.kaggle.com/code/taylorsamarel/00a-duecare-prompt-prioritizer-data-pipeline) |
+| 00b | Prompt Remixer (15 adversarial generators) | - | [00b-duecare-prompt-remixer](https://www.kaggle.com/code/taylorsamarel/00b-duecare-prompt-remixer-data-pipeline) |
+| 01 | Quickstart (framework smoke test) | - | [duecare-quickstart](https://www.kaggle.com/code/taylorsamarel/01-duecare-quickstart-generalized-framework) |
+| 02 | Cross-Domain Proof (trafficking + tax + finance) | - | [duecare-cross-domain-proof](https://www.kaggle.com/code/taylorsamarel/duecare-cross-domain-proof) |
+| 03 | Agent Swarm Deep Dive (12 agents) | - | [duecare-agent-swarm-deep-dive](https://www.kaggle.com/code/taylorsamarel/duecare-agent-swarm-deep-dive) |
+| 04 | Submission Walkthrough | - | [duecare-submission-walkthrough](https://www.kaggle.com/code/taylorsamarel/duecare-submission-walkthrough) |
+| 05 | RAG vs Plain vs Guided comparison | T4 | [duecare-rag-comparison](https://www.kaggle.com/code/taylorsamarel/duecare-rag-comparison) |
+| 06 | Adversarial Attack Resistance | - | [duecare-adversarial-resistance](https://www.kaggle.com/code/taylorsamarel/duecare-adversarial-resistance) |
+| 07 | **Gemma 4 vs OSS Models** (Llama, Mistral, Qwen) | T4 | [duecare-gemma-vs-oss](https://www.kaggle.com/code/taylorsamarel/duecare-gemma-vs-oss-comparison) |
+| 08 | Function Calling + Multimodal | - | [duecare-function-calling-multimodal](https://www.kaggle.com/code/taylorsamarel/duecare-function-calling-multimodal) |
+| 09 | LLM-as-Judge Grading (6 dimensions, 0-100) | - | [duecare-llm-judge-grading](https://www.kaggle.com/code/taylorsamarel/duecare-llm-judge-grading) |
+| 10 | Conversation Thread Testing | - | [duecare-conversation-testing](https://www.kaggle.com/code/taylorsamarel/duecare-conversation-testing) |
+| 11 | Comparative Grading (best/worst anchored) | - | [duecare-comparative-grading](https://www.kaggle.com/code/taylorsamarel/duecare-comparative-grading) |
+| 12 | Adversarial Prompt Factory | - | [duecare-adversarial-prompt-factory](https://www.kaggle.com/code/taylorsamarel/duecare-adversarial-prompt-factory) |
+| 13 | Rubric-Anchored Evaluation (54 criteria) | - | [duecare-rubric-evaluation](https://www.kaggle.com/code/taylorsamarel/duecare-rubric-anchored-evaluation) |
+| 14 | Results Dashboard (interactive Plotly) | - | [duecare-results-dashboard](https://www.kaggle.com/code/taylorsamarel/duecare-results-dashboard) |
+| P2 | Phase 2 Model Comparison (E2B vs E4B) | T4 | [duecare-phase2-comparison](https://www.kaggle.com/code/taylorsamarel/duecare-phase-2-model-comparison) |
+| P3 | Phase 3 Unsloth Fine-tune (LoRA + GGUF) | T4 | [duecare-phase3-finetune](https://www.kaggle.com/code/taylorsamarel/duecare-phase3-finetune) |
 
 ## Architecture
 
@@ -183,18 +185,20 @@ Notebooks:
 └─────────────────────────────────────────────────────────────────┘
 ```
 
-### Key results
+### Key results (real Kaggle GPU runs)
 
-| Metric | Value |
-|---|---|
-| Stock Gemma 3 4B mean score | **0.40** (local baseline) |
-| Stock Gemma 3 4B pass rate | **0%** (local baseline) |
-| With RAG context | **0.59** (+23% over plain) |
-| With guided prompt | **0.62** (+28% over plain) |
-| Trafficking prompt corpus | **74,567** |
-| Adversarial generators | **15** |
-| Evaluation frameworks | **7** |
-| Tests passing | **407** |
+| Metric | Value | Source |
+|---|---|---|
+| Stock Gemma 4 E4B mean score | **0.610** | [NB 00](https://www.kaggle.com/code/taylorsamarel/duecare-gemma-exploration) |
+| Stock Gemma 4 E4B pass rate | **20%** | NB 00 (50 graded prompts) |
+| Harmful phrase rate | **0.0%** | Gemma 4 never produced harmful content |
+| Refusal rate | **36%** | Clear refusal on exploitation requests |
+| With RAG context | **0.59** (+23% over plain) | NB 05 |
+| With guided prompt | **0.62** (+28% over plain) | NB 05 |
+| Trafficking prompt corpus | **74,567** | NB 00a |
+| Adversarial generators | **15** | NB 12 |
+| Evaluation frameworks | **7** | |
+| Tests passing | **407** | |
 
 ### Use it as a library
 

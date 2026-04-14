@@ -1,6 +1,6 @@
 {
   "id": "taylorsamarel/duecare-rag-comparison",
-  "title": "05 - DueCare RAG vs Plain vs Guided",
+  "title": "DueCare RAG Comparison",
   "code_file": "05_rag_comparison.ipynb",
   "language": "python",
   "kernel_type": "notebook",

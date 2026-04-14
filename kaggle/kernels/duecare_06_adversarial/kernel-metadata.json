@@ -1,6 +1,6 @@
 {
   "id": "taylorsamarel/duecare-adversarial-resistance",
-  "title": "06 - DueCare Adversarial Attack Resistance",
+  "title": "DueCare Adversarial Resistance",
   "code_file": "06_adversarial_resistance.ipynb",
   "language": "python",
   "kernel_type": "notebook",

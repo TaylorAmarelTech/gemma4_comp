@@ -1,6 +1,6 @@
 {
-  "id": "taylorsamarel/duecare-rubric-evaluation",
-  "title": "13 - DueCare Rubric-Anchored Evaluation",
+  "id": "taylorsamarel/duecare-rubric-anchored-evaluation",
+  "title": "DueCare Rubric Anchored Evaluation",
   "code_file": "13_rubric_evaluation.ipynb",
   "language": "python",
   "kernel_type": "notebook",
