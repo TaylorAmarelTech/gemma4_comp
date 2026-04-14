@@ -1,10 +1,10 @@
 {
-  "id": "taylorsamarel/duecare-gemma-vs-oss-comparison",
+  "id": "taylorsamarel/gemma-4-vs-llama-vs-mistral-on-trafficking-safety",
   "title": "Gemma 4 vs Llama vs Mistral on Trafficking Safety",
   "code_file": "07_oss_model_comparison.ipynb",
   "language": "python",
   "kernel_type": "notebook",
-  "is_private": true,
+  "is_private": false,
   "enable_gpu": false,
   "enable_tpu": false,
   "enable_internet": true,

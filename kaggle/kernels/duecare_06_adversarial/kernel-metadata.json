@@ -4,7 +4,7 @@
   "code_file": "06_adversarial_resistance.ipynb",
   "language": "python",
   "kernel_type": "notebook",
-  "is_private": true,
+  "is_private": false,
   "enable_gpu": false,
   "enable_internet": true,
   "dataset_sources": [

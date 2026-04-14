@@ -1,10 +1,10 @@
 {
-  "id": "taylorsamarel/00a-duecare-prompt-prioritizer-data-pipeline",
+  "id": "taylorsamarel/duecare-curating-2k-trafficking-prompts-from-74k",
   "title": "DueCare: Curating 2K Trafficking Prompts from 74K",
   "code_file": "00a_prompt_prioritizer.ipynb",
   "language": "python",
   "kernel_type": "notebook",
-  "is_private": true,
+  "is_private": false,
   "enable_gpu": false,
   "enable_tpu": false,
   "enable_internet": true,

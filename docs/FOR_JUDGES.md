@@ -30,7 +30,7 @@ If you have two minutes to decide if this is real:
    named NGO partners (Polaris, IJM, POEA, BP2MI, HRD Nepal).
 
 3. **Check one completed Kaggle run.**
-   [Notebook 00 — Gemma Exploration (COMPLETE)](https://www.kaggle.com/code/taylorsamarel/duecare-gemma-exploration).
+   [Notebook 00 — Real Gemma 4 on 50 Trafficking Prompts (COMPLETE)](https://www.kaggle.com/code/taylorsamarel/duecare-real-gemma-4-on-50-trafficking-prompts).
    Real Gemma 4 E4B on Kaggle T4. Outputs `gemma_baseline_findings.json`
    saved in `data/gemma_baseline_findings.json` — 50 prompts, 6 dimensions,
    full provenance.
@@ -70,7 +70,7 @@ Every result in the writeup has a provenance chain:
 
 | Result | Where it came from | How to reproduce |
 |---|---|---|
-| Gemma 4 E4B mean score = 0.610 | [Kaggle NB 00](https://www.kaggle.com/code/taylorsamarel/duecare-gemma-exploration) | Fork the kernel, click Run. Output `gemma_baseline_findings.json` matches ours in `data/`. |
+| Gemma 4 E4B mean score = 0.610 | [Kaggle NB 00](https://www.kaggle.com/code/taylorsamarel/duecare-real-gemma-4-on-50-trafficking-prompts) | Fork the kernel, click Run. Output `gemma_baseline_findings.json` matches ours in `data/`. |
 | 74,567 trafficking prompts | `packages/duecare-llm-domains/src/duecare/domains/_data/trafficking/seed_prompts.jsonl` | `wc -l packages/duecare-llm-domains/src/duecare/domains/_data/trafficking/seed_prompts.jsonl` |
 | 15 adversarial generators | `packages/duecare-llm-tasks/src/duecare/tasks/generators/` | `ls packages/duecare-llm-tasks/src/duecare/tasks/generators/ \| grep -v __` |
 | 12 agents | `packages/duecare-llm-agents/src/duecare/agents/` | `ls packages/duecare-llm-agents/src/duecare/agents/` |
@@ -94,16 +94,16 @@ Each produces a structurally identical markdown report in `reports/`.
 
 | # | Notebook | What it proves | Status |
 |---|----------|----------------|--------|
-| 00 | [Gemma Exploration](https://www.kaggle.com/code/taylorsamarel/duecare-gemma-exploration) | Real Gemma 4 E4B on 50 graded trafficking prompts (T4 GPU) | ✅ COMPLETE |
-| 00a | [Prompt Prioritizer](https://www.kaggle.com/code/taylorsamarel/00a-duecare-prompt-prioritizer-data-pipeline) | Curates 2K prompts from 74K corpus | ✅ COMPLETE |
+| 00 | [Gemma Exploration](https://www.kaggle.com/code/taylorsamarel/duecare-real-gemma-4-on-50-trafficking-prompts) | Real Gemma 4 E4B on 50 graded trafficking prompts (T4 GPU) | ✅ COMPLETE |
+| 00a | [Prompt Prioritizer](https://www.kaggle.com/code/taylorsamarel/duecare-curating-2k-trafficking-prompts-from-74k) | Curates 2K prompts from 74K corpus | ✅ COMPLETE |
 | 00b | [Prompt Remixer](https://www.kaggle.com/code/taylorsamarel/00b-duecare-prompt-remixer-data-pipeline) | 15 adversarial generators expand prompt space | ✅ COMPLETE |
 | 01 | [Quickstart](https://www.kaggle.com/code/taylorsamarel/01-duecare-quickstart-generalized-framework) | 5-minute smoke test of the framework | ✅ COMPLETE |
 | 02 | [Cross-Domain Proof](https://www.kaggle.com/code/taylorsamarel/duecare-cross-domain-proof) | Same harness, 3 domains, zero code changes | ✅ COMPLETE |
-| 03 | [Agent Swarm Deep Dive](https://www.kaggle.com/code/taylorsamarel/duecare-agent-swarm-deep-dive) | 12 agents + Supervisor in action | ✅ COMPLETE |
+| 03 | [Agent Swarm Deep Dive](https://www.kaggle.com/code/taylorsamarel/duecare-12-agent-gemma-4-safety-pipeline) | 12 agents + Supervisor in action | ✅ COMPLETE |
 | 04 | [Submission Walkthrough](https://www.kaggle.com/code/taylorsamarel/duecare-submission-walkthrough) | End-to-end submission overview | ✅ COMPLETE |
 | 05 | [RAG Comparison](https://www.kaggle.com/code/taylorsamarel/duecare-rag-comparison) | Plain vs RAG vs Guided on Gemma 4 | ✅ COMPLETE |
 | 06 | [Adversarial Resistance](https://www.kaggle.com/code/taylorsamarel/duecare-adversarial-resistance) | 15 attack vectors tested | ✅ COMPLETE |
-| 07 | [Gemma 4 vs OSS](https://www.kaggle.com/code/taylorsamarel/duecare-gemma-vs-oss-comparison) | Head-to-head vs Llama 3.1, Mistral 7B | 🔄 pending |
+| 07 | [Gemma 4 vs OSS](https://www.kaggle.com/code/taylorsamarel/gemma-4-vs-llama-vs-mistral-on-trafficking-safety) | Head-to-head vs Llama 3.1, Mistral 7B | 🔄 pending |
 | 08 | [Function Calling + Multimodal](https://www.kaggle.com/code/taylorsamarel/duecare-function-calling-multimodal) | Gemma 4's two unique features in action | ✅ COMPLETE |
 | 09 | [LLM-as-Judge Grading](https://www.kaggle.com/code/taylorsamarel/duecare-llm-judge-grading) | 6-dimension 0-100 scoring | 🔄 pending |
 | 10 | [Conversation Testing](https://www.kaggle.com/code/taylorsamarel/duecare-conversation-testing) | Multi-turn escalation detection | ✅ COMPLETE |
@@ -136,7 +136,7 @@ was cached ERROR from previous versions before the fixes were pushed.
 
 - **Engineer on the jury?** `packages/duecare-llm-core/src/duecare/core/contracts/` — Protocol-based contracts, no ABCs. Clean.
 - **NGO partner on the jury?** `configs/duecare/domains/trafficking/` — Real taxonomy + evidence + rubric YAML.
-- **ML researcher on the jury?** [NB 00](https://www.kaggle.com/code/taylorsamarel/duecare-gemma-exploration) — Real Gemma 4 E4B baseline, 6 interactive Plotly charts.
+- **ML researcher on the jury?** [NB 00](https://www.kaggle.com/code/taylorsamarel/duecare-real-gemma-4-on-50-trafficking-prompts) — Real Gemma 4 E4B baseline, 6 interactive Plotly charts.
 - **Product person on the jury?** `docs/video_script.md` — 2:45 story arc with Maria and the named NGOs.
 
 ---

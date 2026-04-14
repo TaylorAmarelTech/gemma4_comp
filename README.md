@@ -95,7 +95,7 @@ python scripts/run_local_gemma.py --model gemma4:e2b   # smaller model
 ### Run on Kaggle (GPU)
 
 Open the notebook, set Accelerator to **GPU T4 x2**, and run:
-- [00 — Gemma Exploration](https://www.kaggle.com/code/taylorsamarel/duecare-gemma-exploration) — real Gemma inference + scoring
+- [00 — Gemma Exploration](https://www.kaggle.com/code/taylorsamarel/duecare-real-gemma-4-on-50-trafficking-prompts) — real Gemma inference + scoring
 
 ### Run a workflow
 
@@ -136,16 +136,16 @@ uvicorn src.demo.app:app --port 8080
 
 | # | Notebook | GPU | Kaggle Link |
 |---|----------|-----|-------------|
-| 00 | Gemma Baseline (real inference + scoring) | T4 | [duecare-gemma-exploration](https://www.kaggle.com/code/taylorsamarel/duecare-gemma-exploration) |
-| 00a | Prompt Prioritizer (select from 74K corpus) | - | [00a-duecare-prompt-prioritizer](https://www.kaggle.com/code/taylorsamarel/00a-duecare-prompt-prioritizer-data-pipeline) |
+| 00 | Gemma Baseline (real inference + scoring) | T4 | [duecare-gemma-exploration](https://www.kaggle.com/code/taylorsamarel/duecare-real-gemma-4-on-50-trafficking-prompts) |
+| 00a | Prompt Prioritizer (select from 74K corpus) | - | [00a-duecare-prompt-prioritizer](https://www.kaggle.com/code/taylorsamarel/duecare-curating-2k-trafficking-prompts-from-74k) |
 | 00b | Prompt Remixer (15 adversarial generators) | - | [00b-duecare-prompt-remixer](https://www.kaggle.com/code/taylorsamarel/00b-duecare-prompt-remixer-data-pipeline) |
 | 01 | Quickstart (framework smoke test) | - | [duecare-quickstart](https://www.kaggle.com/code/taylorsamarel/01-duecare-quickstart-generalized-framework) |
 | 02 | Cross-Domain Proof (trafficking + tax + finance) | - | [duecare-cross-domain-proof](https://www.kaggle.com/code/taylorsamarel/duecare-cross-domain-proof) |
-| 03 | Agent Swarm Deep Dive (12 agents) | - | [duecare-agent-swarm-deep-dive](https://www.kaggle.com/code/taylorsamarel/duecare-agent-swarm-deep-dive) |
+| 03 | Agent Swarm Deep Dive (12 agents) | - | [duecare-agent-swarm-deep-dive](https://www.kaggle.com/code/taylorsamarel/duecare-12-agent-gemma-4-safety-pipeline) |
 | 04 | Submission Walkthrough | - | [duecare-submission-walkthrough](https://www.kaggle.com/code/taylorsamarel/duecare-submission-walkthrough) |
 | 05 | RAG vs Plain vs Guided comparison | T4 | [duecare-rag-comparison](https://www.kaggle.com/code/taylorsamarel/duecare-rag-comparison) |
 | 06 | Adversarial Attack Resistance | - | [duecare-adversarial-resistance](https://www.kaggle.com/code/taylorsamarel/duecare-adversarial-resistance) |
-| 07 | **Gemma 4 vs OSS Models** (Llama, Mistral, Qwen) | T4 | [duecare-gemma-vs-oss](https://www.kaggle.com/code/taylorsamarel/duecare-gemma-vs-oss-comparison) |
+| 07 | **Gemma 4 vs OSS Models** (Llama, Mistral, Qwen) | T4 | [duecare-gemma-vs-oss](https://www.kaggle.com/code/taylorsamarel/gemma-4-vs-llama-vs-mistral-on-trafficking-safety) |
 | 08 | Function Calling + Multimodal | - | [duecare-function-calling-multimodal](https://www.kaggle.com/code/taylorsamarel/duecare-function-calling-multimodal) |
 | 09 | LLM-as-Judge Grading (6 dimensions, 0-100) | - | [duecare-llm-judge-grading](https://www.kaggle.com/code/taylorsamarel/duecare-llm-judge-grading) |
 | 10 | Conversation Thread Testing | - | [duecare-conversation-testing](https://www.kaggle.com/code/taylorsamarel/duecare-conversation-testing) |
@@ -200,7 +200,7 @@ uvicorn src.demo.app:app --port 8080
 
 | Metric | Value | Source |
 |---|---|---|
-| Stock Gemma 4 E4B mean score | **0.610** | [NB 00](https://www.kaggle.com/code/taylorsamarel/duecare-gemma-exploration) |
+| Stock Gemma 4 E4B mean score | **0.610** | [NB 00](https://www.kaggle.com/code/taylorsamarel/duecare-real-gemma-4-on-50-trafficking-prompts) |
 | Stock Gemma 4 E4B pass rate | **20%** | NB 00 (50 graded prompts) |
 | Harmful phrase rate | **0.0%** | Gemma 4 never produced harmful content |
 | Refusal rate | **36%** | Clear refusal on exploitation requests |

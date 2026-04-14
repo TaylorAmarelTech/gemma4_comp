@@ -4,7 +4,7 @@
   "code_file": "12_prompt_factory.ipynb",
   "language": "python",
   "kernel_type": "notebook",
-  "is_private": true,
+  "is_private": false,
   "enable_gpu": false,
   "enable_internet": true,
   "dataset_sources": [
