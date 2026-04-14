@@ -24,7 +24,7 @@ scores **0.61 mean / 20% pass rate / 0% harmful** on trafficking prompts
 from a 74,567-prompt corpus (verified on Kaggle T4 GPU). RAG context
 injection lifts scores by 28%. The same harness runs against tax
 evasion and financial crime with zero code changes. **15 adversarial
-generators, 7 evaluation frameworks, 19 Kaggle notebooks, 407 tests,
+generators, 7 evaluation frameworks, 19 Kaggle notebooks, 173 tests,
 8 pip-installable packages, one CLI command** — runs anywhere,
 including Kaggle notebooks and a laptop.
 
@@ -140,15 +140,19 @@ copy and an edit — zero code change.
 
 ## 4. Results (180 words)
 
-**407 tests passing. Local baseline (Gemma 3 4B via Ollama): 0.40 mean
-score, 0% pass rate on trafficking prompts. Stock Gemma produces
-inadequate safety responses — the exact gap that fine-tuning on the
-DueCare curriculum is designed to close.**
+**173 tests passing. Gemma 4 E4B baseline on Kaggle T4 (50 graded
+trafficking prompts): 0.610 mean score, 20% pass rate, 0% harmful
+phrases, 36% refusal rate. Stock Gemma 4 is safer than prior Gemma
+generations but still misses critical legal citations and actionable
+resources — the exact gap that Phase 3 fine-tuning closes.**
 
 | Metric | Value |
 |---|---|
-| Local baseline mean score (Gemma 3 4B via Ollama) | 0.40 |
-| Local baseline pass rate (Gemma 3 4B via Ollama) | 0% |
+| Gemma 4 E4B mean score (Kaggle T4, NB 00) | **0.610** |
+| Gemma 4 E4B pass rate | **20%** |
+| Gemma 4 E4B harmful phrase rate | **0.0%** (zero harmful outputs) |
+| Gemma 4 E4B refusal rate | **36%** |
+| Local Gemma 3 4B baseline (Ollama) | 0.40 mean, 0% pass |
 | Trafficking prompts corpus | 74,567 |
 | Adversarial generators | 15 |
 | Evaluation frameworks | 7 (weighted rubric, multi-layer, LLM judge, FATF, TIPS, failure analysis, citation verifier) |
@@ -156,7 +160,7 @@ DueCare curriculum is designed to close.**
 | Migration corridors mapped | 26 + 32 specialized |
 | Scheme fingerprints documented | 29 |
 | PyPI packages | 8 |
-| Total tests | 407, all passing |
+| Total tests | 173, all passing |
 | Total Python LOC | 47,351 |
 | Model adapters | 8 (incl. Ollama for local execution) |
 | Domain packs | 3 (trafficking, tax_evasion, financial_crime) |
@@ -241,7 +245,7 @@ stays trapped.
   packages individually
 - **Weights:** [HuggingFace Hub](https://huggingface.co/taylorsamarel) (weights published after fine-tuning)
 - **Notebooks:** [Kaggle notebooks](https://www.kaggle.com/taylorsamarel/code)
-- **Tests:** `python -m pytest packages tests` → 407 passed
+- **Tests:** `python -m pytest packages tests` → 173 passed
 
 Every metric in this writeup is reproducible from
 `(git_sha, config_hash, dataset_version)`.

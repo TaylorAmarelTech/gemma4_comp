@@ -14,7 +14,7 @@
 
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](./LICENSE)
-[![Tests](https://img.shields.io/badge/tests-407%20passing-brightgreen.svg)](#tests)
+[![Tests](https://img.shields.io/badge/tests-179%20passing-brightgreen.svg)](#tests)
 [![Packages](https://img.shields.io/badge/packages-8-blue.svg)](#packages)
 
 ---
@@ -44,15 +44,15 @@ installable from a single `pip install duecare-llm`:
 
 | Package | Role | Tests |
 |---|---|---|
-| [`duecare-llm-core`](./docs/components/duecare_llm_core.md) | Contracts, schemas, enums, registries, provenance, observability | 86 ✅ |
-| [`duecare-llm-models`](./docs/components/duecare_llm_models.md) | 8 model adapters (Transformers, llama.cpp, Unsloth, Ollama, OpenAI-compatible, Anthropic, Gemini, HF Endpoint) | 22 ✅ |
+| [`duecare-llm-core`](./docs/components/duecare_llm_core.md) | Contracts, schemas, enums, registries, provenance, observability | 77 ✅ |
+| [`duecare-llm-models`](./docs/components/duecare_llm_models.md) | 8 model adapters (Transformers+Gemma 4 function calling, llama.cpp, Unsloth, Ollama, OpenAI-compatible, Anthropic, Gemini, HF Endpoint) | 28 ✅ |
 | [`duecare-llm-domains`](./docs/components/duecare_llm_domains.md) | Pluggable domain packs + 3 shipped (trafficking, tax_evasion, financial_crime) | 23 ✅ |
 | [`duecare-llm-tasks`](./docs/components/duecare_llm_tasks.md) | 9 capability tests (guardrails, anon, classify, extract, grounding, multimodal, multi-turn, tool-use, cross-lingual) | 16 ✅ |
 | [`duecare-llm-agents`](./docs/components/duecare_llm_agents.md) | 12-agent swarm + AgentSupervisor with retry/budget/harm-abort | 17 ✅ |
 | [`duecare-llm-workflows`](./docs/components/duecare_llm_workflows.md) | YAML DAG loader + topological runner | 9 ✅ |
 | [`duecare-llm-publishing`](./docs/components/duecare_llm_publishing.md) | HF Hub + Kaggle publisher, markdown reports, HF model cards | 9 ✅ |
-| [`duecare-llm`](./docs/components/duecare_llm_meta.md) (meta) | `duecare` CLI + re-exports from all 7 siblings | 6 ✅ |
-| **Total** | | **407 ✅** |
+| [`duecare-llm`](./docs/components/duecare_llm_meta.md) (meta) | `duecare` CLI + re-exports from all 7 siblings | — |
+| **Total** | | **179 ✅** |
 
 ## Quick start
 
@@ -198,7 +198,7 @@ uvicorn src.demo.app:app --port 8080
 | Trafficking prompt corpus | **74,567** | NB 00a |
 | Adversarial generators | **15** | NB 12 |
 | Evaluation frameworks | **7** | |
-| Tests passing | **407** | |
+| Tests passing | **179** | Across 8 packages |
 
 ### Use it as a library
 
@@ -375,7 +375,7 @@ for per-agent documentation.
 ## Tests
 
 ```bash
-# All 407 tests across all 8 packages
+# All 179 tests across all 8 packages
 python -m pytest packages -v
 
 # Single package
@@ -388,7 +388,7 @@ python -m pytest packages/duecare-llm-core/src/forge/core/enums -v
 Latest full run:
 
 ```
-========================= 407 passed, 9 warnings in 525.38s =========================
+========================= 179 passed in 42.3s =========================
 ```
 
 ## Demo notebook

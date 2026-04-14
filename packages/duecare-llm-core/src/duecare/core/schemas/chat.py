@@ -47,6 +47,23 @@ class ToolSpec(BaseModel):
             "input_schema": self.parameters or {"type": "object", "properties": {}},
         }
 
+    def to_gemma(self) -> dict:
+        """Render as Gemma 4 native function-calling tool definition.
+
+        Gemma 4 uses the Hugging Face Transformers `tools` format, which
+        is itself OpenAI-compatible. The tokenizer's chat template handles
+        the Gemma-specific wire format (typically JSON inside
+        `<tool_call>...</tool_call>` tags in the generated output).
+        """
+        return {
+            "type": "function",
+            "function": {
+                "name": self.name,
+                "description": self.description,
+                "parameters": self.parameters or {"type": "object", "properties": {}},
+            },
+        }
+
 
 class ToolCall(BaseModel):
     """A tool call emitted by a Model."""

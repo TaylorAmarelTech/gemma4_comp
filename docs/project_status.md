@@ -66,7 +66,7 @@ rate_evaluate → remix → baseline_test
 - 29 scheme fingerprints
 - 111-entry RAG knowledge base
 
-### Tests: 407 passing
+### Tests: 173 passing (core: 77, models: 22, domains: 23, tasks: 16, agents: 17, workflows: 9, publishing: 9)
 ### Total Python LOC: 47,351
 
 ## Kaggle Notebooks (18)

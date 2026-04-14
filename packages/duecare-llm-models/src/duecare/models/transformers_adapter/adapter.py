@@ -11,16 +11,54 @@ installed, you get a clean ImportError with install instructions.
 
 from __future__ import annotations
 
+import json
+import re
+
 from duecare.core.enums import Capability
 from duecare.core.schemas import (
     ChatMessage,
     Embedding,
     GenerationResult,
     ModelHealth,
+    ToolCall,
     ToolSpec,
 )
 from duecare.models import model_registry
 from duecare.models.base import ModelAdapterBase
+
+
+# Gemma 4 and many other function-calling-capable chat templates emit tool
+# calls wrapped in either `<tool_call>{...}</tool_call>` or a fenced code
+# block. We extract both forms.
+_TOOL_CALL_PATTERNS = [
+    re.compile(r"<tool_call>\s*(\{.*?\})\s*</tool_call>", re.DOTALL),
+    re.compile(r"```tool_call\s*(\{.*?\})\s*```", re.DOTALL),
+    re.compile(r"```json\s*(\{.*?\})\s*```", re.DOTALL),  # fallback
+]
+
+
+def _parse_tool_calls(raw_text: str) -> tuple[list[ToolCall], str]:
+    """Extract tool calls from model output text.
+
+    Returns (tool_calls, cleaned_text). The cleaned_text has the tool-call
+    markup stripped so only the user-facing prose remains.
+    """
+    calls: list[ToolCall] = []
+    cleaned = raw_text
+    for pattern in _TOOL_CALL_PATTERNS:
+        for match in pattern.finditer(raw_text):
+            try:
+                payload = json.loads(match.group(1))
+                name = payload.get("name") or payload.get("tool_name")
+                args = payload.get("arguments") or payload.get("parameters") or {}
+                if name:
+                    calls.append(ToolCall(name=name, arguments=args))
+                    cleaned = cleaned.replace(match.group(0), "")
+            except (json.JSONDecodeError, KeyError):
+                continue
+        if calls:
+            break  # stop at the first pattern that matched
+    return calls, cleaned.strip()
 
 
 @model_registry.register("transformers")
@@ -92,11 +130,25 @@ class TransformersModel(ModelAdapterBase):
         self._load()
         assert self._tokenizer is not None and self._model is not None
 
-        # Build chat prompt via the tokenizer's chat template
+        # Build chat prompt via the tokenizer's chat template.
         chat = [{"role": m.role, "content": m.content} for m in messages]
-        prompt = self._tokenizer.apply_chat_template(
-            chat, tokenize=False, add_generation_prompt=True
-        )
+
+        template_kwargs: dict = {"tokenize": False, "add_generation_prompt": True}
+        # Gemma 4 (and other function-calling chat templates) accept a `tools`
+        # argument. Pass it through when provided — the template handles the
+        # Gemma-specific wire format.
+        if tools:
+            template_kwargs["tools"] = [t.to_gemma() for t in tools]
+
+        try:
+            prompt = self._tokenizer.apply_chat_template(chat, **template_kwargs)
+        except (TypeError, ValueError):
+            # Older chat templates don't support the tools kwarg — fall back
+            # cleanly to a prose-only prompt.
+            prompt = self._tokenizer.apply_chat_template(
+                chat, tokenize=False, add_generation_prompt=True
+            )
+
         inputs = self._tokenizer(prompt, return_tensors="pt").to(self._model.device)
 
         out = self._model.generate(
@@ -107,14 +159,23 @@ class TransformersModel(ModelAdapterBase):
             pad_token_id=self._tokenizer.eos_token_id,
         )
         completion_ids = out[0][inputs["input_ids"].shape[1] :]
-        text = self._tokenizer.decode(completion_ids, skip_special_tokens=True)
+        raw_text = self._tokenizer.decode(completion_ids, skip_special_tokens=True)
+
+        # If tools were provided, try to parse function-call output.
+        tool_calls: list[ToolCall] = []
+        text = raw_text
+        if tools:
+            tool_calls, text = _parse_tool_calls(raw_text)
+
+        finish_reason = "tool_calls" if tool_calls else "stop"
 
         return GenerationResult(
             text=text,
-            finish_reason="stop",
+            finish_reason=finish_reason,
             prompt_tokens=int(inputs["input_ids"].shape[1]),
             completion_tokens=int(completion_ids.shape[0]),
             tokens_used=int(inputs["input_ids"].shape[1] + completion_ids.shape[0]),
+            tool_calls=tool_calls,
             model_id=self.id,
             model_version="",
         )
