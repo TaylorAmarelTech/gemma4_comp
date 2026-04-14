@@ -1,6 +1,6 @@
 {
   "id": "taylorsamarel/duecare-agent-swarm-deep-dive",
-  "title": "DueCare Agent Swarm Deep Dive",
+  "title": "DueCare: 12-Agent Gemma 4 Safety Pipeline",
   "code_file": "03_agent_swarm_deep_dive.ipynb",
   "language": "python",
   "kernel_type": "notebook",

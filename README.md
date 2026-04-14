@@ -17,6 +17,17 @@
 [![Tests](https://img.shields.io/badge/tests-194%20passing-brightgreen.svg)](#tests)
 [![Packages](https://img.shields.io/badge/packages-8-blue.svg)](#packages)
 
+> **For Gemma 4 Good Hackathon judges:** start at
+> [`docs/FOR_JUDGES.md`](./docs/FOR_JUDGES.md) — a focused 5-minute
+> verification walkthrough with direct links to every claim.
+>
+> **For adopters:** [`docs/EXTENDING.md`](./docs/EXTENDING.md) shows
+> how to add your own safety domain, model, task, or agent in under an
+> hour. DueCare is designed to be reused.
+>
+> **Try the demo:** `docker compose up` → open http://localhost:8080.
+> Full stack (demo + Ollama + Gemma 4) in one command.
+
 ---
 
 ## Why this exists

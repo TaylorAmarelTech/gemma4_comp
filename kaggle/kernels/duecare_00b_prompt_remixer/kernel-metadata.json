@@ -1,6 +1,6 @@
 {
   "id": "taylorsamarel/00b-duecare-prompt-remixer-data-pipeline",
-  "title": "00b - DueCare Prompt Remixer (Data Pipeline)",
+  "title": "DueCare: 15 Adversarial Attack Generators for Gemma 4",
   "code_file": "00b_prompt_remixer.ipynb",
   "language": "python",
   "kernel_type": "notebook",

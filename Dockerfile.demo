@@ -1,0 +1,60 @@
+# Dockerfile.demo — FastAPI dashboard for judges and live users.
+#
+# Build: docker build -f Dockerfile.demo -t duecare-demo .
+# Run:   docker run -p 8080:8080 duecare-demo
+#
+# For the full stack (demo + Gemma 4 via Ollama), use docker-compose.yml.
+
+FROM python:3.12-slim AS base
+
+WORKDIR /app
+
+# Minimal system deps
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        git curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Python deps first (better Docker layer caching)
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Install DueCare wheels if pre-built, else fall back to editable install
+COPY packages/ packages/
+COPY pyproject.toml .
+RUN if ls packages/duecare-llm-core/dist/*.whl 2>/dev/null; then \
+        pip install --no-cache-dir \
+            packages/duecare-llm-core/dist/*.whl \
+            packages/duecare-llm-models/dist/*.whl \
+            packages/duecare-llm-domains/dist/*.whl \
+            packages/duecare-llm-tasks/dist/*.whl \
+            packages/duecare-llm-agents/dist/*.whl \
+            packages/duecare-llm-workflows/dist/*.whl \
+            packages/duecare-llm-publishing/dist/*.whl \
+            packages/duecare-llm/dist/*.whl ; \
+    else \
+        pip install --no-cache-dir -e packages/duecare-llm-core \
+            -e packages/duecare-llm-models \
+            -e packages/duecare-llm-domains \
+            -e packages/duecare-llm-tasks \
+            -e packages/duecare-llm-agents \
+            -e packages/duecare-llm-workflows \
+            -e packages/duecare-llm-publishing \
+            -e packages/duecare-llm ; \
+    fi
+
+# Copy demo app + configs (rubrics)
+COPY src/ src/
+COPY configs/ configs/
+
+# Non-root for security
+RUN useradd --create-home --shell /bin/bash duecare
+USER duecare
+
+EXPOSE 8080
+
+# Health check — the demo's own /api/v1/health endpoint
+HEALTHCHECK --interval=30s --timeout=5s --retries=3 \
+    CMD curl -f http://localhost:8080/api/v1/health || exit 1
+
+ENTRYPOINT ["python", "-m", "uvicorn", "src.demo.app:app", \
+            "--host", "0.0.0.0", "--port", "8080"]

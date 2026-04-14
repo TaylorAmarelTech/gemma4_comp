@@ -1,6 +1,6 @@
 {
   "id": "taylorsamarel/duecare-gemma-vs-oss-comparison",
-  "title": "DueCare Gemma vs OSS Comparison",
+  "title": "Gemma 4 vs Llama vs Mistral on Trafficking Safety",
   "code_file": "07_oss_model_comparison.ipynb",
   "language": "python",
   "kernel_type": "notebook",

@@ -1,0 +1,66 @@
+# docker-compose.yml — one-command DueCare for judges.
+#
+# Usage:
+#   docker compose up
+#   # -> DueCare demo at http://localhost:8080
+#   # -> Ollama at http://localhost:11434 (auto-pulls Gemma 4 on first start)
+#
+# The demo runs standalone (deterministic rubric scorer, no model required).
+# Ollama enables Gemma 4 native function calling + multimodal analysis.
+#
+# First-run note: the ollama-init service pulls gemma4:e4b (~4GB). Takes ~5
+# minutes on a typical home connection. After that, the cache is persisted
+# to the ollama_data volume and restarts are fast.
+
+services:
+  demo:
+    build:
+      context: .
+      dockerfile: Dockerfile.demo
+    ports:
+      - "8080:8080"
+    environment:
+      # Tell the demo where to find Ollama if it wants Gemma 4
+      - OLLAMA_HOST=http://ollama:11434
+      - DUECARE_MODEL=gemma4:e4b
+    depends_on:
+      - ollama
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8080/api/v1/health').read()"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  ollama:
+    image: ollama/ollama:latest
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    restart: unless-stopped
+    # Optional: uncomment for GPU acceleration
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: 1
+    #           capabilities: [gpu]
+
+  # One-shot service that pulls Gemma 4 into Ollama on first start.
+  # Runs once, exits. Safe to re-run — idempotent.
+  ollama-init:
+    image: ollama/ollama:latest
+    depends_on:
+      - ollama
+    entrypoint: >
+      sh -c "
+      sleep 5 &&
+      OLLAMA_HOST=http://ollama:11434 ollama pull gemma4:e4b &&
+      echo 'Gemma 4 E4B ready for DueCare.'
+      "
+    restart: "no"
+
+volumes:
+  ollama_data:

@@ -1,6 +1,6 @@
 {
   "id": "taylorsamarel/duecare-gemma-exploration",
-  "title": "DueCare Gemma Exploration",
+  "title": "DueCare: Real Gemma 4 on 50 Trafficking Prompts",
   "code_file": "00_gemma_exploration.ipynb",
   "language": "python",
   "kernel_type": "notebook",
