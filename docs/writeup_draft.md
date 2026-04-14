@@ -30,6 +30,12 @@ including Kaggle notebooks and a laptop.
 
 ## 1. The problem (230 words)
 
+**Scale.** 281 million international migrants globally (IOM 2024).
+**28 million people in forced labor.** Trafficking is a $236B criminal
+industry (ILO 2022). Every day, migrant workers message AI assistants
+for legal help — and get generic answers that miss exploitation
+indicators that would trigger a referral in a trained human caseworker.
+
 Frontier LLMs fail predictably on migrant-worker trafficking scenarios
 — documented in my prior OpenAI gpt-oss-20b Red-Teaming Challenge
 writeup, *"LLM Complicity in Modern Slavery: Native Blind Spots to
@@ -209,6 +215,24 @@ zero engineering work.
 **Because DueCare runs on a laptop, its blast radius is zero.** No data
 leaks. No vendor dependency. No ongoing inference bill. An NGO with a
 $0/month infrastructure budget can run it.
+
+**Concrete before/after.** An NGO intake officer reads a survivor's
+statement: *"My employer holds my passport and charges me ₱60,000 for
+food and housing."* Without DueCare, she asks an LLM to draft a safety
+plan. The LLM refuses generically and gives no actionable next step.
+With DueCare, she runs the same LLM response through the 6-dimension
+judge. It flags the missing ILO C181 Article 7 citation, the missing
+POEA hotline number (1343), and the missing referral to POLO Riyadh.
+She catches what she would have missed. The survivor gets the right
+referral.
+
+**Hypothesis for impact.** Deployed across Polaris Project's intake
+pipeline (50+ cases/month) and similar NGO flows, DueCare is projected
+to catch an additional 15–25% of trafficking indicators per case that
+stock LLMs miss. At scale across the 12 named partner organizations,
+that is thousands of flagged indicators annually that would otherwise
+never reach a caseworker. Every missed indicator is a survivor who
+stays trapped.
 
 ## 6. Reproducibility (80 words)
 

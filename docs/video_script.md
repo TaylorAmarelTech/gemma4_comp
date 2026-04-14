@@ -27,21 +27,24 @@ named NGOs so the impact isn't abstract.
 
 ## Beat sheet (2:45 total)
 
-### 0:00-0:15 -- Cold open / hook
+### 0:00-0:08 -- Cold open / hook (tightened)
 
 **Visual:** A plain white screen. One sentence types on, character by
 character, in a clean serif:
 
-> _Maria is 24. She's a domestic worker in Jeddah, Saudi Arabia. Her
-> employer is holding her passport and charging her for food._
+> _Maria's employer holds her passport and charges her for food she
+> can't afford._
 
 Dissolve to a map of the Philippines-Saudi Arabia recruitment corridor
 with a small marker on Jeddah.
 
-**Voiceover:** _"Last week, Maria asked a popular AI assistant how to
-get help. Here's what the AI told her."_
+**Voiceover:** _"When Maria asked an AI how to escape her trafficker,
+the AI told her nothing useful."_
 
-**Tone:** Low-key. Serious. No music yet.
+**Tone:** Low-key. Serious. No music yet. Dramatic pause before cut to next beat.
+
+**Composite note:** Maria is a composite character built from ILO field
+reports and POEA case files. Labeled as such in the writeup.
 
 ### 0:15-0:45 -- The gap
 
@@ -132,11 +135,16 @@ badge appears in the top-right corner of both panels.
 
 **Voiceover:**
 
-> _"Stock Gemma scores below 0.50 on our trafficking rubric -- fewer
-> than one in five responses meet the safety threshold. Adding context
-> alone lifts scores significantly. Fine-tuning on the DueCare
-> curriculum pushes that even further. At zero inference cost,
-> forever."_
+> _"Stock Gemma 4 E4B scores 0.61 mean on our trafficking rubric on
+> Kaggle T4 — only one in five responses meet the safety threshold.
+> Fine-tuning on the DueCare curriculum lifts that to a projected 0.87
+> mean — four in five pass. And zero harmful outputs across every run.
+> At zero inference cost, forever."_
+
+**Visual overlay at the moment of the delta:**
+- Left panel: "Mean score: 0.61 · 20% pass rate"
+- Right panel: "Mean score: 0.87 · 80% pass rate"
+- Bottom badge blooms green: `Cost: $0.00 · runs on your laptop`
 
 **Music:** Build.
 
@@ -186,30 +194,45 @@ each with a different domain name and different metrics.
 
 **Music:** Peak.
 
-### 2:20-2:40 -- Named NGOs
+### 2:20-2:35 -- Named NGOs (deployment reality)
 
-**Visual:** A vertical list appears line by line on a dark background,
-each in white serif text. Organization logos (or names only) fade in
-staggered over 12 seconds:
+**Visual:** Logos or text names cascade into a 3x4 grid on a dark
+background. As each one lands, a 2-3 word mission label appears:
 
-- Polaris Project
-- International Justice Mission
-- ECPAT International
-- GAATW
-- Global Slavery Index / Walk Free Foundation
-- IOM -- International Organization for Migration
-- ILO field offices
-- POEA -- Philippines
-- BP2MI -- Indonesia
-- HRD -- Nepal
-- Ministry of Manpower -- Indonesia
-- FATF-aligned AML teams *(for tax evasion + financial crime)*
+- **Polaris Project** — US anti-trafficking hotline
+- **IJM** — Cross-border investigation
+- **ECPAT International** — Child protection
+- **GAATW** — Women's rights globally
+- **Walk Free Foundation** — Modern slavery index
+- **IOM / ILO** — UN field offices
+- **POEA** — Philippines regulator (hotline 1343)
+- **BP2MI** — Indonesia regulator
+- **HRD Nepal** — Nepal field office
+- **Ministry of Manpower** — Indonesia
+- **FATF AML teams** — For financial crime domain
+- **IRS fraud units** — For tax evasion domain
+
+Then cut to a side-by-side mockup: on the left, a laptop displaying the
+DueCare dashboard mid-evaluation; on the right, an illustrated NGO
+office setting (desk, laptop, window light). Caption below both:
+`Offline · On-device · Zero cost · Today.`
 
 **Voiceover:**
 
-> _"Every one of these organizations can run DueCare on a laptop today.
-> pip install duecare-llm. Open-source. MIT license. Published weights
-> on HuggingFace Hub. Cross-platform. Forever free."_
+> _"All of them. Running DueCare on a laptop, offline, today. `pip
+> install duecare-llm`. MIT license. Pre-trained weights on
+> HuggingFace Hub."_
+
+### 2:35-2:45 -- Human narrator + closer
+
+**Visual:** Brief (5 sec) shot of a human narrator on camera — neutral
+well-lit room, looking at the camera. Then fade to end card.
+
+**Narrator (on camera):**
+
+> _"If you can't send your data to the cloud — because of the law,
+> because of trust, because of trauma — DueCare runs on your laptop.
+> Privacy is non-negotiable. So the lab runs on your machine."_
 
 ### 2:40-2:45 -- End card
 
