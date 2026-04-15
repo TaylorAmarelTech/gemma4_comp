@@ -90,7 +90,7 @@ Each produces a structurally identical markdown report in `reports/`.
 
 ---
 
-## The 19 Kaggle notebooks at a glance
+## The 22 Kaggle notebooks at a glance
 
 | # | Notebook | What it proves | Status |
 |---|----------|----------------|--------|
@@ -112,6 +112,9 @@ Each produces a structurally identical markdown report in `reports/`.
 | 13 | [Rubric Evaluation](https://www.kaggle.com/code/taylorsamarel/duecare-rubric-anchored-evaluation) | 54 criteria, per-criterion pass/fail | ✅ COMPLETE |
 | 14 | [Results Dashboard](https://www.kaggle.com/code/taylorsamarel/duecare-results-dashboard) | Interactive Plotly dashboard | ✅ COMPLETE |
 | P2 | [Phase 2 Comparison](https://www.kaggle.com/code/taylorsamarel/duecare-phase-2-model-comparison) | E2B vs E4B head-to-head | 🔄 pending |
+| 15 | [Ollama Cloud OSS (7 models)](https://www.kaggle.com/code/taylorsamarel/duecare-gemma-4-vs-6-oss-models-via-ollama-cloud) | Broadest OSS comparison: Gemma 4 + 6 OSS models via Ollama Cloud API | 🆕 new |
+| 16 | [Mistral Family](https://www.kaggle.com/code/taylorsamarel/duecare-gemma-4-vs-mistral-family) | 5 Mistral variants (Large 2, Small, Nemo, Ministral, 7B) vs Gemma 4 | 🆕 new |
+| 17 | [Frontier Models](https://www.kaggle.com/code/taylorsamarel/duecare-gemma-4-vs-frontier-models) | Gemma 4 vs Claude, GPT-4o, Gemini, Llama 405B, DeepSeek V3 via OpenRouter | 🆕 new |
 | P3 | [Phase 3 Fine-tune](https://www.kaggle.com/code/taylorsamarel/duecare-phase3-finetune) | Unsloth LoRA + GGUF export | 🔄 pending |
 
 **14 of 19 notebooks verified COMPLETE on Kaggle.** The five still

@@ -57,6 +57,9 @@ NOTEBOOK_DIRS = [
     KERNELS_DIR / "duecare_14_dashboard",
     KERNELS_DIR / "duecare_phase2_comparison",
     KERNELS_DIR / "duecare_phase3_finetune",
+    KERNELS_DIR / "duecare_15_ollama_cloud",
+    KERNELS_DIR / "duecare_16_mistral_family",
+    KERNELS_DIR / "duecare_17_openrouter_frontier",
 ]
 
 KAGGLE_CONFIG_PATH = Path.home() / ".kaggle" / "kaggle.json"
