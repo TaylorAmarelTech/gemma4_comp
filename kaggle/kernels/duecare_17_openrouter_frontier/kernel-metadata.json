@@ -1,6 +1,6 @@
 {
-  "id": "taylorsamarel/duecare-gemma-4-vs-large-models",
-  "title": "Duecare Gemma 4 Vs Large Models",
+  "id": "taylorsamarel/duecare-vs-large-cloud-models",
+  "title": "Duecare Vs Large Cloud Models",
   "code_file": "17_openrouter_frontier_comparison.ipynb",
   "language": "python",
   "kernel_type": "notebook",
