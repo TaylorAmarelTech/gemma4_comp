@@ -114,13 +114,15 @@ Each produces a structurally identical markdown report in `reports/`.
 | [`duecare-rag-comparison`](https://www.kaggle.com/code/taylorsamarel/duecare-rag-comparison) | B2 RAG vs Plain vs Guided | Context lift 23–28%, no training needed |
 | [`duecare-phase-2-model-comparison`](https://www.kaggle.com/code/taylorsamarel/duecare-phase-2-model-comparison) | B3 Phase 2 E2B vs E4B | Size vs quality within Gemma 4 family |
 
-### ⚙️ PIPELINE — Data preparation (3 notebooks)
+### 🔍 TASK — Capability-specific evaluations (5 notebooks)
 
-| Slug | Notebook | What it does |
-|------|----------|--------------|
-| [`duecare-curating-2k-trafficking-prompts-from-74k`](https://www.kaggle.com/code/taylorsamarel/duecare-curating-2k-trafficking-prompts-from-74k) | P1 Curation (2K from 74K) | Selects balanced test prompts |
-| [`00b-duecare-prompt-remixer-data-pipeline`](https://www.kaggle.com/code/taylorsamarel/00b-duecare-prompt-remixer-data-pipeline) | P2 Adversarial Remixer | 15 attack generators |
-| [`duecare-adversarial-prompt-factory`](https://www.kaggle.com/code/taylorsamarel/duecare-adversarial-prompt-factory) | P3 Prompt Factory | Generate → validate → rank |
+| Slug | Notebook | What it tests |
+|------|----------|----------------|
+| [`duecare-adversarial-resistance`](https://www.kaggle.com/code/taylorsamarel/duecare-adversarial-resistance) | T1 Adversarial Resistance | 15 attack vectors |
+| [`duecare-function-calling-multimodal`](https://www.kaggle.com/code/taylorsamarel/duecare-function-calling-multimodal) | T2 Function Calling + Multimodal | Gemma 4's unique features |
+| [`duecare-llm-judge-grading`](https://www.kaggle.com/code/taylorsamarel/duecare-llm-judge-grading) | T3 LLM-as-Judge | 6-dimension 0-100 scoring |
+| [`duecare-conversation-testing`](https://www.kaggle.com/code/taylorsamarel/duecare-conversation-testing) | T4 Conversation Testing | Multi-turn escalation |
+| [`duecare-rubric-anchored-evaluation`](https://www.kaggle.com/code/taylorsamarel/duecare-rubric-anchored-evaluation) | T5 Rubric Evaluation | 54 per-criterion checks |
 
 ### ⚖️ COMPARE — Multi-model comparisons (5 notebooks)
 
@@ -132,21 +134,19 @@ Each produces a structurally identical markdown report in `reports/`.
 | [`duecare-openrouter-frontier-comparison`](https://www.kaggle.com/code/taylorsamarel/duecare-openrouter-frontier-comparison) | **C4 Gemma 4 vs Frontier** | Claude, GPT-4o, Gemini, Llama 405B, DeepSeek V3 |
 | [`duecare-comparative-grading`](https://www.kaggle.com/code/taylorsamarel/duecare-comparative-grading) | C5 Comparative Grading | Best/worst anchored methodology |
 
-### 🔍 TASK — Capability-specific evaluations (5 notebooks)
-
-| Slug | Notebook | What it tests |
-|------|----------|----------------|
-| [`duecare-adversarial-resistance`](https://www.kaggle.com/code/taylorsamarel/duecare-adversarial-resistance) | T1 Adversarial Resistance | 15 attack vectors |
-| [`duecare-function-calling-multimodal`](https://www.kaggle.com/code/taylorsamarel/duecare-function-calling-multimodal) | T2 Function Calling + Multimodal | Gemma 4's unique features |
-| [`duecare-llm-judge-grading`](https://www.kaggle.com/code/taylorsamarel/duecare-llm-judge-grading) | T3 LLM-as-Judge | 6-dimension 0-100 scoring |
-| [`duecare-conversation-testing`](https://www.kaggle.com/code/taylorsamarel/duecare-conversation-testing) | T4 Conversation Testing | Multi-turn escalation |
-| [`duecare-rubric-anchored-evaluation`](https://www.kaggle.com/code/taylorsamarel/duecare-rubric-anchored-evaluation) | T5 Rubric Evaluation | 54 per-criterion checks |
-
 ### 🛡️ SAFETY — Red-team research (1 notebook)
 
 | Slug | Notebook | What it shows |
 |------|----------|---------------|
 | [`duecare-finding-gemma-4-safety-line`](https://www.kaggle.com/code/taylorsamarel/duecare-finding-gemma-4-safety-line) | **SF1 Finding Safety Line** | Stock Gemma 4 vs uncensored → refusal is load-bearing |
+
+### ⚙️ PIPELINE — Custom prompts & test generation (3 notebooks)
+
+| Slug | Notebook | What it does |
+|------|----------|--------------|
+| [`duecare-curating-2k-trafficking-prompts-from-74k`](https://www.kaggle.com/code/taylorsamarel/duecare-curating-2k-trafficking-prompts-from-74k) | P1 Curation (2K from 74K) | Selects balanced test prompts |
+| [`00b-duecare-prompt-remixer-data-pipeline`](https://www.kaggle.com/code/taylorsamarel/00b-duecare-prompt-remixer-data-pipeline) | P2 Adversarial Remixer | 15 attack generators |
+| [`duecare-adversarial-prompt-factory`](https://www.kaggle.com/code/taylorsamarel/duecare-adversarial-prompt-factory) | P3 Prompt Factory | Generate → validate → rank |
 
 ### 🎯 FINE-TUNE — Phase 3 training (1 notebook)
 

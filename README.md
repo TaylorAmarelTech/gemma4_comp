@@ -157,13 +157,15 @@ uvicorn src.demo.app:app --port 8080
 | B2 | RAG vs Plain vs Guided (context-lift measurement) | T4 | [duecare-rag-comparison](https://www.kaggle.com/code/taylorsamarel/duecare-rag-comparison) |
 | B3 | Phase 2: E2B vs E4B head-to-head | T4 | [phase-2-model-comparison](https://www.kaggle.com/code/taylorsamarel/duecare-phase-2-model-comparison) |
 
-#### ⚙️ PIPELINE — Data preparation
+#### 🔍 TASK — Capability-specific evaluation
 
 | # | Notebook | GPU | Kaggle Link |
 |---|----------|-----|-------------|
-| P1 | Curating 2K from 74K trafficking prompts | - | [curating-2k-trafficking-prompts-from-74k](https://www.kaggle.com/code/taylorsamarel/duecare-curating-2k-trafficking-prompts-from-74k) |
-| P2 | 15 Adversarial Generators (prompt remixing) | - | [00b-duecare-prompt-remixer](https://www.kaggle.com/code/taylorsamarel/00b-duecare-prompt-remixer-data-pipeline) |
-| P3 | Prompt Factory (generate → validate → rank) | - | [duecare-adversarial-prompt-factory](https://www.kaggle.com/code/taylorsamarel/duecare-adversarial-prompt-factory) |
+| T1 | Adversarial Resistance (15 attack vectors) | - | [duecare-adversarial-resistance](https://www.kaggle.com/code/taylorsamarel/duecare-adversarial-resistance) |
+| T2 | Function Calling + Multimodal | - | [duecare-function-calling-multimodal](https://www.kaggle.com/code/taylorsamarel/duecare-function-calling-multimodal) |
+| T3 | LLM-as-Judge Grading (6 dimensions, 0-100) | - | [duecare-llm-judge-grading](https://www.kaggle.com/code/taylorsamarel/duecare-llm-judge-grading) |
+| T4 | Conversation Thread Testing (escalation detection) | - | [duecare-conversation-testing](https://www.kaggle.com/code/taylorsamarel/duecare-conversation-testing) |
+| T5 | Rubric-Anchored Evaluation (54 criteria) | - | [duecare-rubric-anchored-evaluation](https://www.kaggle.com/code/taylorsamarel/duecare-rubric-anchored-evaluation) |
 
 #### ⚖️ COMPARE — Multi-model comparisons
 
@@ -175,21 +177,19 @@ uvicorn src.demo.app:app --port 8080
 | C4 | **Gemma 4 vs Frontier** (Claude, GPT-4o, Llama 405B) | - | [openrouter-frontier-comparison](https://www.kaggle.com/code/taylorsamarel/duecare-openrouter-frontier-comparison) |
 | C5 | Comparative Grading (best/worst anchored) | - | [duecare-comparative-grading](https://www.kaggle.com/code/taylorsamarel/duecare-comparative-grading) |
 
-#### 🔍 TASK — Capability-specific evaluation
-
-| # | Notebook | GPU | Kaggle Link |
-|---|----------|-----|-------------|
-| T1 | Adversarial Resistance (15 attack vectors) | - | [duecare-adversarial-resistance](https://www.kaggle.com/code/taylorsamarel/duecare-adversarial-resistance) |
-| T2 | Function Calling + Multimodal | - | [duecare-function-calling-multimodal](https://www.kaggle.com/code/taylorsamarel/duecare-function-calling-multimodal) |
-| T3 | LLM-as-Judge Grading (6 dimensions, 0-100) | - | [duecare-llm-judge-grading](https://www.kaggle.com/code/taylorsamarel/duecare-llm-judge-grading) |
-| T4 | Conversation Thread Testing (escalation detection) | - | [duecare-conversation-testing](https://www.kaggle.com/code/taylorsamarel/duecare-conversation-testing) |
-| T5 | Rubric-Anchored Evaluation (54 criteria) | - | [duecare-rubric-anchored-evaluation](https://www.kaggle.com/code/taylorsamarel/duecare-rubric-anchored-evaluation) |
-
 #### 🛡️ SAFETY — Red-team research
 
 | # | Notebook | GPU | Kaggle Link |
 |---|----------|-----|-------------|
 | SF1 | **Finding Gemma 4's Safety Line** (vs uncensored variant) | T4 | [finding-gemma-4-safety-line](https://www.kaggle.com/code/taylorsamarel/duecare-finding-gemma-4-safety-line) |
+
+#### ⚙️ PIPELINE — Custom prompts & test generation
+
+| # | Notebook | GPU | Kaggle Link |
+|---|----------|-----|-------------|
+| P1 | Curating 2K from 74K trafficking prompts | - | [curating-2k-trafficking-prompts-from-74k](https://www.kaggle.com/code/taylorsamarel/duecare-curating-2k-trafficking-prompts-from-74k) |
+| P2 | 15 Adversarial Generators (prompt remixing) | - | [00b-duecare-prompt-remixer](https://www.kaggle.com/code/taylorsamarel/00b-duecare-prompt-remixer-data-pipeline) |
+| P3 | Prompt Factory (generate → validate → rank) | - | [duecare-adversarial-prompt-factory](https://www.kaggle.com/code/taylorsamarel/duecare-adversarial-prompt-factory) |
 
 #### 🎯 FINE-TUNE — Phase 3 training
 
