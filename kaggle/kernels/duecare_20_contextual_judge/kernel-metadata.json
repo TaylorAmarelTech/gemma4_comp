@@ -1,0 +1,19 @@
+{
+  "id": "taylorsamarel/duecare-contextual-judge",
+  "title": "DueCare Contextual Worst-Response Judge",
+  "code_file": "20_contextual_worst_response_judge.ipynb",
+  "language": "python",
+  "kernel_type": "notebook",
+  "is_private": false,
+  "enable_gpu": true,
+  "enable_tpu": false,
+  "enable_internet": true,
+  "dataset_sources": [
+    "taylorsamarel/duecare-llm-wheels",
+    "taylorsamarel/duecare-trafficking-prompts"
+  ],
+  "competition_sources": [
+    "gemma-4-good-hackathon"
+  ],
+  "kernel_sources": []
+}
