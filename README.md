@@ -25,8 +25,19 @@
 > how to add your own safety domain, model, task, or agent in under an
 > hour. DueCare is designed to be reused.
 >
-> **Try the demo:** `docker compose up` → open http://localhost:8080.
-> Full stack (demo + Ollama + Gemma 4) in one command.
+> **Two deployment paths, one binary:**
+>
+> - **Consumer** — for individual workers and their families. Install
+>   the [browser extension](./deployment/browser_extension/) (Chrome/
+>   Edge/Brave), paste the suspicious message, get the grade + POEA/
+>   BP2MI/HRD hotline + ILO citation in Tagalog or English. Or paste it
+>   into the [public web demo](./deployment/hf_spaces/) (HF Spaces).
+>   No login. No account. Nothing leaves the device.
+> - **Enterprise** — for NGOs, recruitment regulators, labor ministries,
+>   platform trust & safety teams. `pip install duecare-llm` then run
+>   the `duecare` CLI for batch evaluation, or deploy the FastAPI
+>   dashboard internally (`docker compose up` → http://localhost:8080).
+>   Same Gemma 4 weights, same offline guarantee, same zero inference cost.
 
 ---
 

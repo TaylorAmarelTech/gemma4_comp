@@ -161,30 +161,43 @@ Unsloth fine-tuning supplies permanently. Cross-domain proof: same
 `duecare run` command on `--domain tax_evasion` or `financial_crime`
 produces structurally-identical reports with zero code changes.
 
-## 5. Impact and who benefits (200 words)
+## 5. Impact and who benefits (260 words)
 
-Three classes of users, none of whom can call a frontier API with
-their data: **recruitment regulators** (POEA, BP2MI, HRD Nepal)
-auditing their licensing workflows; **frontline NGOs and legal aid
-clinics** (IJM, Polaris, ECPAT, ILO/IOM field offices) doing intake
-triage; and **platform trust & safety teams** under discovery
-obligations after the 2026 Meta/YouTube trafficking verdict.
+DueCare ships on two axes at the same time.
 
-**Concrete before/after.** An NGO intake officer reads a statement:
+**Consumer side — individual workers and their families.** A Filipino
+domestic worker in Jeddah pastes a suspicious recruiter message into
+the browser extension (`deployment/browser_extension/`) or into the
+public web demo and gets back, in Tagalog or English: the detected
+violation, the ILO convention it breaks, the local hotline number
+(POEA 1343 / BP2MI / HRD Nepal / IOM), and the embassy contact. No
+login. No account. Nothing leaves the device. The browser extension
+runs against `localhost` by default; the mobile-friendly web UI is
+identical. This is the path that reaches the tens of thousands of
+people actually at risk.
+
+**Enterprise side — institutions that process cases.** Three user
+classes, none of whom can call a frontier API with their data:
+**recruitment regulators** (POEA, BP2MI, HRD Nepal) auditing their
+licensing workflows; **frontline NGOs and legal aid clinics** (IJM,
+Polaris, ECPAT, ILO/IOM field offices) doing intake triage; and
+**platform trust & safety teams** under discovery obligations after
+the 2026 Meta/YouTube trafficking verdict. They run the same `duecare`
+CLI against batches of cases, use the `AgentSupervisor` to enforce
+budget + abort-on-harm policies, and deploy the FastAPI dashboard
+internally.
+
+**Concrete before/after.** An NGO intake officer reads
 *"My employer holds my passport and charges me ₱60,000 for food."*
-Without DueCare, she asks an LLM — generic refusal, no next step.
-With DueCare, she runs the response through the 6-dimension judge.
-It flags the missing ILO C181 Article 7 citation, the missing POEA
-hotline (1343), and the missing POLO Riyadh referral. She catches
-what she'd have missed. The survivor gets the right referral.
+Without DueCare: generic refusal, no next step. With DueCare: the
+6-dimension judge flags the missing ILO C181 Article 7 citation, the
+POEA hotline (1343), the POLO Riyadh referral. The survivor gets the
+right referral. Cross-domain is free: one YAML directory adds medical
+misinformation or AML.
 
-**Impact hypothesis.** Across Polaris-scale intake pipelines (50+
-cases/month), DueCare is projected to catch 15–25% more trafficking
-indicators per case. At scale across the 12 partner organizations,
-that is thousands of indicators annually that would otherwise never
-reach a caseworker. **DueCare runs on a laptop — blast radius zero.
-Zero data leaks. Zero vendor dependency.** Cross-domain is free: one
-YAML directory adds medical misinformation or AML.
+**DueCare runs on a laptop — blast radius zero. Zero data leaks. Zero
+vendor dependency.** Same binary reaches both audiences; the UI wraps
+it differently for each.
 
 ## 6. Reproducibility (80 words)
 

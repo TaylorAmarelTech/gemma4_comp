@@ -194,7 +194,24 @@ each with a different domain name and different metrics.
 
 **Music:** Peak.
 
-### 2:20-2:35 -- Named NGOs (deployment reality)
+### 2:20-2:28 -- Two paths, one binary (consumer + enterprise)
+
+**Visual:** Split screen. **Left** half: a phone screen showing the
+DueCare browser extension popup — a suspicious WhatsApp recruiter
+message is pasted in, analysis reveals ILLEGAL / BLOCK / POEA 1343.
+**Right** half: a desktop monitor showing the FastAPI dashboard, with
+the NGO intake officer running a batch of 50 cases, the heatmap
+visualization lighting up red where the rubric failed. Both halves
+share one logo strip at the bottom.
+
+**Voiceover:**
+
+> _"Same binary, two audiences. A worker pastes a message into the
+> browser extension on their laptop. An NGO intake officer runs 500
+> cases a month through the dashboard. Same Gemma 4 weights, same
+> zero cost, same no-data-leaves-your-machine guarantee."_
+
+### 2:28-2:38 -- Named NGOs + ministries (enterprise deployment reality)
 
 **Visual:** Logos or text names cascade into a 3x4 grid on a dark
 background. As each one lands, a 2-3 word mission label appears:
@@ -212,18 +229,12 @@ background. As each one lands, a 2-3 word mission label appears:
 - **FATF AML teams** — For financial crime domain
 - **IRS fraud units** — For tax evasion domain
 
-Then cut to a side-by-side mockup: on the left, a laptop displaying the
-DueCare dashboard mid-evaluation; on the right, an illustrated NGO
-office setting (desk, laptop, window light). Caption below both:
-`Offline · On-device · Zero cost · Today.`
-
 **Voiceover:**
 
-> _"All of them. Running DueCare on a laptop, offline, today. `pip
-> install duecare-llm`. MIT license. Pre-trained weights on
-> HuggingFace Hub."_
+> _"Every one of these organizations can deploy DueCare today. Offline.
+> On-device. Zero cost. pip install duecare-llm. MIT license."_
 
-### 2:35-2:45 -- Human narrator + closer
+### 2:38-2:45 -- Human narrator + closer
 
 **Visual:** Brief (5 sec) shot of a human narrator on camera — neutral
 well-lit room, looking at the camera. Then fade to end card.
