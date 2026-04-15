@@ -1,0 +1,41 @@
+{
+  "manifest_version": 3,
+  "name": "DueCare — LLM Safety for Frontline Workers",
+  "short_name": "DueCare",
+  "version": "0.1.0",
+  "description": "Analyze selected text on any webpage for trafficking / exploitation indicators. Runs against your DueCare server — no cloud calls.",
+  "author": "Taylor Amarel",
+  "homepage_url": "https://github.com/TaylorAmarelTech/gemma4_comp",
+  "permissions": [
+    "contextMenus",
+    "storage",
+    "activeTab",
+    "scripting"
+  ],
+  "host_permissions": [
+    "http://localhost/*",
+    "https://*.hf.space/*"
+  ],
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "DueCare — analyze page or selection",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "32": "icons/icon32.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "32": "icons/icon32.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "options_page": "options.html",
+  "minimum_chrome_version": "116"
+}

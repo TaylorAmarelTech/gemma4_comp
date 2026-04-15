@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>DueCare — settings</title>
+<style>
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    max-width: 520px; margin: 40px auto; padding: 0 24px;
+    background: #0f1117; color: #e4e6ed;
+  }
+  h1 { color: #4f8cff; font-size: 20px; margin-bottom: 4px; }
+  p { color: #8f93a2; font-size: 13px; margin-bottom: 24px; }
+  label { display: block; font-size: 13px; margin-bottom: 4px; }
+  input, select {
+    width: 100%; padding: 8px; background: #1a1d27; color: #e4e6ed;
+    border: 1px solid #2a2d3a; border-radius: 4px; font-size: 14px;
+    margin-bottom: 16px; font-family: inherit;
+  }
+  button {
+    padding: 10px 20px; background: #4f8cff; color: #fff; border: none;
+    border-radius: 4px; font-weight: 600; cursor: pointer;
+  }
+  .saved { margin-left: 12px; color: #4fff8c; font-size: 13px; display: none; }
+  .saved.visible { display: inline; }
+  .hint { font-size: 12px; color: #8f93a2; margin-top: -12px; margin-bottom: 16px; }
+</style>
+</head>
+<body>
+<h1>DueCare — settings</h1>
+<p>Point the extension at any DueCare server. Your text never leaves your laptop if the server is local.</p>
+
+<label for="endpoint">DueCare endpoint</label>
+<input id="endpoint" type="text" placeholder="http://localhost:8080">
+<div class="hint">For HF Spaces: https://YOUR_HF_USERNAME-duecare-demo.hf.space</div>
+
+<label for="jurisdiction">Default jurisdiction</label>
+<select id="jurisdiction">
+  <option value="">Auto-detect</option>
+  <option value="PH_HK">Philippines &rarr; Hong Kong</option>
+  <option value="PH_SA">Philippines &rarr; Saudi Arabia</option>
+  <option value="BD_MY">Bangladesh &rarr; Malaysia</option>
+  <option value="NP_MY">Nepal &rarr; Malaysia</option>
+  <option value="ID_SA">Indonesia &rarr; Saudi Arabia</option>
+</select>
+
+<label for="language">Default language</label>
+<select id="language">
+  <option value="en">English</option>
+  <option value="tl">Tagalog</option>
+</select>
+
+<button id="save">Save</button>
+<span class="saved" id="saved">Saved.</span>
+
+<script src="options.js"></script>
+</body>
+</html>
