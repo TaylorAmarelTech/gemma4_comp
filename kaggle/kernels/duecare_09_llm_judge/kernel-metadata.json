@@ -1,6 +1,6 @@
 {
   "id": "taylorsamarel/duecare-llm-judge-grading",
-  "title": "DueCare LLM Judge Grading",
+  "title": "[TASK 3] DueCare LLM-as-Judge (6 Dimension 0-100)",
   "code_file": "09_llm_judge_grading.ipynb",
   "language": "python",
   "kernel_type": "notebook",

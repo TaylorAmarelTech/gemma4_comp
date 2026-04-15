@@ -1,6 +1,6 @@
 {
   "id": "taylorsamarel/duecare-gemma-4-vs-mistral-family",
-  "title": "DueCare: Gemma 4 vs Mistral Family",
+  "title": "[COMPARE 3] DueCare Gemma 4 vs Mistral Family",
   "code_file": "16_mistral_family_comparison.ipynb",
   "language": "python",
   "kernel_type": "notebook",

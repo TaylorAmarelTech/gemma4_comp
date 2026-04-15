@@ -1,6 +1,6 @@
 {
   "id": "taylorsamarel/gemma-4-vs-llama-vs-mistral-on-trafficking-safety",
-  "title": "Gemma 4 vs Llama vs Mistral on Trafficking Safety",
+  "title": "[COMPARE 1] DueCare Gemma 4 vs 3 OSS (CPU Analysis)",
   "code_file": "07_oss_model_comparison.ipynb",
   "language": "python",
   "kernel_type": "notebook",

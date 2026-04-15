@@ -1,6 +1,6 @@
 {
   "id": "taylorsamarel/duecare-curating-2k-trafficking-prompts-from-74k",
-  "title": "DueCare: Curating 2K Trafficking Prompts from 74K",
+  "title": "[PIPELINE 1] DueCare Curating 2K from 74K Prompts",
   "code_file": "00a_prompt_prioritizer.ipynb",
   "language": "python",
   "kernel_type": "notebook",

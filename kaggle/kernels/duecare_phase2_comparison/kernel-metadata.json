@@ -1,6 +1,6 @@
 {
   "id": "taylorsamarel/duecare-phase-2-model-comparison",
-  "title": "DueCare Phase 2 Model Comparison",
+  "title": "[BASELINE 3] DueCare Phase 2: E2B vs E4B",
   "code_file": "phase2_model_comparison.ipynb",
   "language": "python",
   "kernel_type": "notebook",

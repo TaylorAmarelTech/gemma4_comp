@@ -1,6 +1,6 @@
 {
   "id": "taylorsamarel/duecare-adversarial-prompt-factory",
-  "title": "DueCare Adversarial Prompt Factory",
+  "title": "[PIPELINE 3] DueCare Prompt Factory (Generate Validate Rank)",
   "code_file": "12_prompt_factory.ipynb",
   "language": "python",
   "kernel_type": "notebook",

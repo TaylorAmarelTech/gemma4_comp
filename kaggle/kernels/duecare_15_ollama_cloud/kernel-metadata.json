@@ -1,6 +1,6 @@
 {
   "id": "taylorsamarel/duecare-gemma-4-vs-6-oss-models-via-ollama-cloud",
-  "title": "DueCare: Gemma 4 vs 6 OSS Models via Ollama Cloud",
+  "title": "[COMPARE 2] DueCare Gemma 4 vs 6 OSS via Ollama Cloud",
   "code_file": "15_ollama_cloud_comparison.ipynb",
   "language": "python",
   "kernel_type": "notebook",
