@@ -1,6 +1,6 @@
 {
-  "id": "taylorsamarel/duecare-c4-frontier",
-  "title": "[COMPARE 4] Gemma 4 vs Claude 3.5 Sonnet, GPT-4o, Gemini 1.5 Pro, Llama 3.1 405B",
+  "id": "taylorsamarel/duecare-gemma-4-vs-large-models",
+  "title": "DueCare Gemma 4 vs Large Models (OpenRouter)",
   "code_file": "17_openrouter_frontier_comparison.ipynb",
   "language": "python",
   "kernel_type": "notebook",
