@@ -1,6 +1,6 @@
 {
-  "id": "taylorsamarel/duecare-openrouter-frontier-comparison",
-  "title": "[COMPARE 4] DueCare Gemma 4 vs Frontier (Claude GPT-4o Llama-405B)",
+  "id": "taylorsamarel/compare-4-duecare-gemma-4-vs-frontier",
+  "title": "[COMPARE 4] DueCare Gemma 4 vs Frontier",
   "code_file": "17_openrouter_frontier_comparison.ipynb",
   "language": "python",
   "kernel_type": "notebook",
