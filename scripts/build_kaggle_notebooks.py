@@ -680,7 +680,7 @@ SUBMISSION_CELLS = [
         "verified end-to-end.\n"
         "\n"
         "**Links:**\n"
-        "- Full code: https://github.com/taylorsamarel/gemma4_comp\n"
+        "- Full code: https://github.com/TaylorAmarelTech/gemma4_comp\n"
         "- Video: https://youtu.be/TODO\n"
         "- Writeup: the Kaggle Writeup this notebook is attached to\n"
         "\n"
@@ -818,7 +818,7 @@ SUBMISSION_CELLS = [
     md(
         "## Where to go next\n"
         "\n"
-        "- **GitHub:** https://github.com/taylorsamarel/gemma4_comp — full source, 194 tests, CI\n"
+        "- **GitHub:** https://github.com/TaylorAmarelTech/gemma4_comp — full source, 194 tests, CI\n"
         "- **Writeup:** the Kaggle Writeup this notebook is attached to\n"
         "- **Video:** https://youtu.be/TODO — 3-minute demo with the agent dashboard running live\n"
         "- **Model weights:** HuggingFace Hub (after the Trainer agent's real run)\n"

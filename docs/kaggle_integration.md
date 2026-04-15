@@ -546,7 +546,7 @@ automatically. Judges can use either one.
 
 | Artifact | Primary | Mirror | Notes |
 |---|---|---|---|
-| Source code | GitHub (`taylorsamarel/gemma4_comp`) | Kaggle Notebooks | git = authoritative |
+| Source code | GitHub (`TaylorAmarelTech/gemma4_comp`) | Kaggle Notebooks | git = authoritative |
 | Training data splits | Kaggle Dataset | (private) | too big for git |
 | Phase 1 baseline results | Kaggle Dataset | local `data/phase1/` | 1-2 GB |
 | Phase 2 comparison results | Kaggle Dataset (public) | — | citable |

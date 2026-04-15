@@ -259,10 +259,10 @@ dependencies = [
 {scripts_block}
 
 [project.urls]
-Homepage = "https://github.com/taylorsamarel/gemma4_comp"
-Documentation = "https://github.com/taylorsamarel/gemma4_comp/blob/main/docs/the_forge.md"
-Issues = "https://github.com/taylorsamarel/gemma4_comp/issues"
-Repository = "https://github.com/taylorsamarel/gemma4_comp"
+Homepage = "https://github.com/TaylorAmarelTech/gemma4_comp"
+Documentation = "https://github.com/TaylorAmarelTech/gemma4_comp/blob/main/docs/the_forge.md"
+Issues = "https://github.com/TaylorAmarelTech/gemma4_comp/issues"
+Repository = "https://github.com/TaylorAmarelTech/gemma4_comp"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/forge"]
@@ -388,8 +388,8 @@ Python imports provided:
 
 ## Source
 
-- Repository: https://github.com/taylorsamarel/gemma4_comp
-- Documentation: https://github.com/taylorsamarel/gemma4_comp/blob/main/docs/the_forge.md
+- Repository: https://github.com/TaylorAmarelTech/gemma4_comp
+- Documentation: https://github.com/TaylorAmarelTech/gemma4_comp/blob/main/docs/the_forge.md
 - License: MIT
 
 ## How to develop on this package

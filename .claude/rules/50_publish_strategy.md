@@ -11,7 +11,7 @@ should target all three or explicitly document which ones it skips.
 **Audience:** hackathon judges (Technical Depth & Execution verification),
 open-source developers, future contributors.
 
-- `github.com/taylorsamarel/gemma4_comp` (or equivalent — the actual slug
+- `github.com/TaylorAmarelTech/gemma4_comp` (or equivalent — the actual slug
   is TBD)
 - MIT license
 - CI on every PR: `ruff check`, `mypy`, `duecare test src/forge --recursive`

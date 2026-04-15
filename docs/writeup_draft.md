@@ -188,7 +188,7 @@ YAML directory adds medical misinformation or AML.
 
 ## 6. Reproducibility (80 words)
 
-- **Code:** [GitHub](https://github.com/taylorsamarel/gemma4_comp) — MIT
+- **Code:** [GitHub](https://github.com/TaylorAmarelTech/gemma4_comp) — MIT
 - **Packages:** `pip install duecare-llm` (meta) or any of the 7 sibling
   packages individually
 - **Weights:** [HuggingFace Hub](https://huggingface.co/taylorsamarel) (weights published after fine-tuning)

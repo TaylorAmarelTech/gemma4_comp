@@ -506,5 +506,5 @@ MIT. See `../../LICENSE`.
 
 ```
 Amarel, T. (2026). duecare-llm-core v0.1.0: Foundation package for the DueCare
-agentic LLM safety harness. https://github.com/taylorsamarel/gemma4_comp
+agentic LLM safety harness. https://github.com/TaylorAmarelTech/gemma4_comp
 ```

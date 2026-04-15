@@ -241,7 +241,7 @@ well-lit room, looking at the camera. Then fade to end card.
 > **DueCare**
 > _An agentic safety harness for any model, any safety domain._
 >
-> github.com/taylorsamarel/gemma4_comp
+> github.com/TaylorAmarelTech/gemma4_comp
 > huggingface.co/taylorsamarel
 > kaggle.com/competitions/gemma-4-good-hackathon -- Gemma 4 Good Hackathon submission
 

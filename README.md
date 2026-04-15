@@ -521,7 +521,7 @@ MIT. See [`LICENSE`](./LICENSE).
   author={Amarel, Taylor},
   year={2026},
   howpublished={Kaggle Gemma 4 Good Hackathon},
-  url={https://github.com/taylorsamarel/gemma4_comp},
+  url={https://github.com/TaylorAmarelTech/gemma4_comp},
 }
 ```
 
