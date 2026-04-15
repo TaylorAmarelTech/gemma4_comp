@@ -168,7 +168,20 @@
       "Bash(npm list:*)",
       "Bash(npm update:*)",
       "Bash(git init:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git check-ignore *)",
+      "Bash(export KAGGLE_API_TOKEN=KGAT_50daddef11d917e3ea63bf7f9a45c39f)",
+      "Read(//c/Users/amare/OneDrive/Documents/gemma4_comp/**)",
+      "Bash(rm -rf p3_meta)",
+      "Bash(mkdir p3_meta)",
+      "Read(//tmp/**)",
+      "Bash(file /tmp/p2_meta/*.ipynb)",
+      "Bash(gh repo *)",
+      "Bash(wait)",
+      "Bash(gh auth *)",
+      "Bash(unset KAGGLE_USERNAME KAGGLE_KEY)",
+      "Bash(curl -s https://huggingface.co/api/users/taylorsamarel/overview)",
+      "Bash(mkdir -p deployment/hf_spaces)"
     ]
   }
 }

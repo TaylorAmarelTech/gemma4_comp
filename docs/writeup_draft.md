@@ -191,9 +191,10 @@ YAML directory adds medical misinformation or AML.
 - **Code:** [GitHub](https://github.com/TaylorAmarelTech/gemma4_comp) — MIT
 - **Packages:** `pip install duecare-llm` (meta) or any of the 7 sibling
   packages individually
-- **Weights:** [HuggingFace Hub](https://huggingface.co/taylorsamarel) (weights published after fine-tuning)
+- **Weights:** [Kaggle Models — DueCare Safety Harness](https://www.kaggle.com/models/taylorsamarel/duecare-safety-harness) (pending Phase 3 fine-tune)
 - **Notebooks:** [Kaggle notebooks](https://www.kaggle.com/taylorsamarel/code)
-- **Tests:** `python -m pytest packages tests` → 173 passed
+- **Live demo:** HF Spaces (URL pinned after week-5 deploy)
+- **Tests:** `python -m pytest packages tests` → 194 passed
 
 Every metric in this writeup is reproducible from
 `(git_sha, config_hash, dataset_version)`.

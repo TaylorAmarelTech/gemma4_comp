@@ -242,7 +242,7 @@ well-lit room, looking at the camera. Then fade to end card.
 > _An agentic safety harness for any model, any safety domain._
 >
 > github.com/TaylorAmarelTech/gemma4_comp
-> huggingface.co/taylorsamarel
+> kaggle.com/taylorsamarel/code
 > kaggle.com/competitions/gemma-4-good-hackathon -- Gemma 4 Good Hackathon submission
 
 **Voiceover:**
