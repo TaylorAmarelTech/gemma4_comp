@@ -1,6 +1,6 @@
 {
-  "id": "taylorsamarel/duecare-gemma-4-vs-frontier-models",
-  "title": "DueCare: Gemma 4 vs Frontier Models",
+  "id": "taylorsamarel/duecare-gemma4-vs-frontier",
+  "title": "DueCare Gemma4 vs Frontier",
   "code_file": "17_openrouter_frontier_comparison.ipynb",
   "language": "python",
   "kernel_type": "notebook",

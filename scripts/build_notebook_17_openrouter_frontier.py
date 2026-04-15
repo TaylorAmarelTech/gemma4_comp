@@ -23,8 +23,8 @@ KAGGLE_KERNELS = ROOT / "kaggle" / "kernels"
 
 NB_DIR_NAME = "duecare_17_openrouter_frontier"
 NB_FILE = "17_openrouter_frontier_comparison.ipynb"
-KERNEL_ID = "taylorsamarel/duecare-gemma-4-vs-frontier-models"
-KERNEL_TITLE = "DueCare: Gemma 4 vs Frontier Models"
+KERNEL_ID = "taylorsamarel/duecare-gemma4-vs-frontier"
+KERNEL_TITLE = "DueCare Gemma4 vs Frontier"
 
 
 def md(s):
