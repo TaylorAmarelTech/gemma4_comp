@@ -1769,7 +1769,7 @@ Hackathon submission is `0.1.0`.
 
 ### 20.4 Artifacts per release
 1. Git tag (`v0.1.0`)
-2. HF Hub model repo (`taylorsamarel/gemma-4-e4b-safetyjudge-v0.1`)
+2. HF Hub model repo (`TaylorScottAmarel/duecare-gemma-4-e4b-safetyjudge-v0.1`)
 3. HF Spaces live demo
 4. Evaluation report markdown + plots
 5. Kaggle writeup

@@ -1,6 +1,6 @@
 {
   "id": "taylorsamarel/duecare-context-judge",
-  "title": "Duecare Context Judge",
+  "title": "[TASK 7] DueCare Contextual Judge (Uncensored Worst-Response)",
   "code_file": "20_contextual_worst_response_judge.ipynb",
   "language": "python",
   "kernel_type": "notebook",

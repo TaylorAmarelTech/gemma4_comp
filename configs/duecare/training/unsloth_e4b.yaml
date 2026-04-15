@@ -62,7 +62,7 @@ export:
     output_dir: models/litert
   hf_hub:
     enabled: true
-    repo_id: taylorsamarel/gemma-4-e4b-duecare-safety-v1
+    repo_id: TaylorScottAmarel/duecare-gemma-4-e4b-safetyjudge-v1
     private: true
 evaluation:
   baseline_model: google/gemma-4-E4B-it

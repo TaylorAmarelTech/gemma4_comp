@@ -128,7 +128,7 @@ package:
 2. **Kaggle notebooks pin specific PyPI versions** so reruns months
    later still work: `!pip install duecare-llm-core==0.1.0`.
 3. **The model on HF Hub is tagged to match**: the Phase 3 weights
-   live at `taylorsamarel/gemma-4-e4b-safetyjudge-v0.1.0`.
+   live at `TaylorScottAmarel/duecare-gemma-4-e4b-safetyjudge-v0.1.0`.
 4. **The writeup links to all three channels.** GitHub for tech depth,
    PyPI for reusability, Kaggle notebook for reproducibility.
 

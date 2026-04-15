@@ -1,6 +1,6 @@
 {
   "id": "taylorsamarel/duecare-22-gemma-generations",
-  "title": "DueCare 22 Gemma Generations",
+  "title": "[BASELINE 4] DueCare Gemma 2 vs 3 vs 4 Generations Comparison",
   "code_file": "22_gemma_generations.ipynb",
   "language": "python",
   "kernel_type": "notebook",

@@ -870,7 +870,7 @@ What happens:
     Certificate issued.
 12. **Exporter** (T=5h) — converts to GGUF (q4_k_m, q5_k_m, q8_0),
     generates model card, uploads to HF Hub as
-    `taylorsamarel/duecare-gemma-4-e4b-safety-v1`, publishes to
+    `TaylorScottAmarel/duecare-gemma-4-e4b-safetyjudge-v1`, publishes to
     Kaggle Models.
 13. **Historian** (T=5h15m) — assembles `reports/<run_id>/run.md`,
     writes a summary, generates the Kaggle submission notebook from

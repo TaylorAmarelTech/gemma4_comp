@@ -360,7 +360,7 @@ Identify which technique helps which category most.
 3. **`reports/phase3/ablation.md`** — 4-config comparison table
 4. **`reports/phase3/enhancement_report.md`** — full methodology, training
    curves, training data statistics, intended-use statement
-5. **HF Hub repo** — `taylorsamarel/gemma-4-e4b-safetyjudge-v0.1` with
+5. **HF Hub repo** — `TaylorScottAmarel/duecare-gemma-4-e4b-safetyjudge-v0.1` with
    model card + all artifacts
 6. **Model card** (for HF Hub) — following HF guidelines: intended use,
    out-of-scope use, training data summary, evaluation results, risks,
@@ -615,7 +615,7 @@ Everything the submission needs, grouped by artifact:
       splits (held out by source_case_id)
 
 ### Models
-- [ ] HF Hub repo `taylorsamarel/gemma-4-e4b-safetyjudge-v0.1`
+- [ ] HF Hub repo `TaylorScottAmarel/duecare-gemma-4-e4b-safetyjudge-v0.1`
   - [ ] LoRA adapters
   - [ ] Merged fp16 weights
   - [ ] GGUF q4_k_m / q5_k_m / q8_0

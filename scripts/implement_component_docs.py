@@ -754,9 +754,9 @@ print(f"Report at {report_path}")
 from duecare.publishing import HFHubPublisher
 
 pub = HFHubPublisher(token_env="HUGGINGFACE_TOKEN")
-pub.create_repo_if_missing("taylorsamarel/duecare-gemma-4-e4b-safety-v0.1")
+pub.create_repo_if_missing("TaylorScottAmarel/duecare-gemma-4-e4b-safetyjudge-v0.1")
 url = pub.upload_folder(
-    repo_id="taylorsamarel/duecare-gemma-4-e4b-safety-v0.1",
+    repo_id="TaylorScottAmarel/duecare-gemma-4-e4b-safetyjudge-v0.1",
     folder_path="models/duecare/merged_fp16",
     commit_message="v0.1 - initial release",
 )

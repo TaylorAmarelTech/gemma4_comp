@@ -1,6 +1,6 @@
 {
   "id": "taylorsamarel/duecare-rubric-pipeline",
-  "title": "Duecare Rubric Pipeline",
+  "title": "[PIPELINE 4] DueCare Per-Prompt Rubric Generator",
   "code_file": "19_per_prompt_rubric_generator.ipynb",
   "language": "python",
   "kernel_type": "notebook",

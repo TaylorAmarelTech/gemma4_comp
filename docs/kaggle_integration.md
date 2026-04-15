@@ -111,7 +111,7 @@ kaggle models instances create -p kaggle/models/safetyjudge/q5_k_m/
 
 # push a new version whenever weights change
 kaggle models instances versions create \
-    taylorsamarel/gemma-4-e4b-safetyjudge/GgufQuant/q5_k_m \
+    TaylorScottAmarel/duecare-gemma-4-e4b-safetyjudge/GgufQuant/q5_k_m \
     -p kaggle/models/safetyjudge/q5_k_m/ \
     -n "v1.0.0: first release"
 ```
