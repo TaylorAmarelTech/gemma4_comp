@@ -1,6 +1,6 @@
 {
   "id": "taylorsamarel/duecare-gemma-4-vs-6-oss-models-via-ollama-cloud",
-  "title": "[COMPARE 2] DueCare Gemma 4 vs 6 OSS via Ollama Cloud",
+  "title": "[COMPARE 2] Gemma 4 vs Gemma 2 9B, Llama 3.1, Mistral 7B, Qwen 2.5, Phi 3, DeepSeek",
   "code_file": "15_ollama_cloud_comparison.ipynb",
   "language": "python",
   "kernel_type": "notebook",

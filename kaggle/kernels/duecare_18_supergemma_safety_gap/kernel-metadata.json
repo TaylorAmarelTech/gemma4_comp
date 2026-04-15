@@ -1,6 +1,6 @@
 {
   "id": "taylorsamarel/duecare-finding-gemma-4-safety-line",
-  "title": "[SAFETY 1] DueCare Finding Gemma 4 Safety Line",
+  "title": "[SAFETY 1] Gemma 4 Stock vs SuperGemma 26B Uncensored: Refusal Gap Analysis",
   "code_file": "18_supergemma_safety_gap.ipynb",
   "language": "python",
   "kernel_type": "notebook",

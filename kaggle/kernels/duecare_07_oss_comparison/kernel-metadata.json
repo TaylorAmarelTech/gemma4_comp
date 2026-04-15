@@ -1,6 +1,6 @@
 {
   "id": "taylorsamarel/gemma-4-vs-llama-vs-mistral-on-trafficking-safety",
-  "title": "[COMPARE 1] DueCare Gemma 4 vs 3 OSS (CPU Analysis)",
+  "title": "[COMPARE 1] Gemma 4 9B vs Llama 3.1 8B, Mistral 7B, Gemma 2B on Trafficking",
   "code_file": "07_oss_model_comparison.ipynb",
   "language": "python",
   "kernel_type": "notebook",

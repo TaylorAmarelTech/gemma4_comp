@@ -1,6 +1,6 @@
 {
   "id": "taylorsamarel/00b-duecare-prompt-remixer-data-pipeline",
-  "title": "[PIPELINE 2] DueCare 15 Adversarial Generators",
+  "title": "[PIPELINE 2] Generate 15 Adversarial Variations per Base Prompt",
   "code_file": "00b_prompt_remixer.ipynb",
   "language": "python",
   "kernel_type": "notebook",

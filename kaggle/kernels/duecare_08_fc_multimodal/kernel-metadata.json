@@ -1,6 +1,6 @@
 {
   "id": "taylorsamarel/duecare-function-calling-multimodal",
-  "title": "[TASK 2] DueCare Function Calling + Multimodal",
+  "title": "[TASK 2] Gemma 4 Native Tool Calls and Document Image Analysis",
   "code_file": "08_function_calling_multimodal.ipynb",
   "language": "python",
   "kernel_type": "notebook",

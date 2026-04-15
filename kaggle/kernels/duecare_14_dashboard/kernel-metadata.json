@@ -1,6 +1,6 @@
 {
   "id": "taylorsamarel/duecare-results-dashboard",
-  "title": "[REPORT 1] DueCare Results Dashboard (Interactive Plotly)",
+  "title": "[REPORT 1] Interactive Safety Evaluation Dashboard",
   "code_file": "14_results_dashboard.ipynb",
   "language": "python",
   "kernel_type": "notebook",

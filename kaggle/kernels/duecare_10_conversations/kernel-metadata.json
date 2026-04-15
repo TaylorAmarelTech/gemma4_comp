@@ -1,6 +1,6 @@
 {
   "id": "taylorsamarel/duecare-conversation-testing",
-  "title": "[TASK 4] DueCare Conversation Thread Testing",
+  "title": "[TASK 4] Multi-Turn Conversation Escalation Detection",
   "code_file": "10_conversation_testing.ipynb",
   "language": "python",
   "kernel_type": "notebook",

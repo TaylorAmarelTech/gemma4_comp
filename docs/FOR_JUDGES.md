@@ -99,66 +99,66 @@ Each produces a structurally identical markdown report in `reports/`.
 
 ### 🚀 START — Where a judge should begin (4 notebooks)
 
-| Slug | Notebook | What it proves |
-|------|----------|----------------|
-| [`01-duecare-quickstart-generalized-framework`](https://www.kaggle.com/code/taylorsamarel/01-duecare-quickstart-generalized-framework) | S1 Framework Quickstart | 5-min smoke test |
-| [`duecare-submission-walkthrough`](https://www.kaggle.com/code/taylorsamarel/duecare-submission-walkthrough) | S2 Submission Walkthrough | End-to-end overview |
-| [`duecare-cross-domain-proof`](https://www.kaggle.com/code/taylorsamarel/duecare-cross-domain-proof) | S3 Cross-Domain Proof | Same harness on trafficking + tax + finance |
-| [`duecare-12-agent-gemma-4-safety-pipeline`](https://www.kaggle.com/code/taylorsamarel/duecare-12-agent-gemma-4-safety-pipeline) | S4 Agent Swarm Deep Dive | 12-agent orchestration |
+| Notebook | Kaggle slug | What it proves |
+|----------|-------------|----------------|
+| S1 — 5-minute setup and first safety evaluation | [`01-duecare-quickstart-generalized-framework`](https://www.kaggle.com/code/taylorsamarel/01-duecare-quickstart-generalized-framework) | Framework installs and scores a prompt end-to-end |
+| S2 — End-to-end walkthrough from install to report | [`duecare-submission-walkthrough`](https://www.kaggle.com/code/taylorsamarel/duecare-submission-walkthrough) | Full submission flow in one notebook |
+| S3 — Same harness on Trafficking, Tax Evasion, Financial Crime | [`duecare-cross-domain-proof`](https://www.kaggle.com/code/taylorsamarel/duecare-cross-domain-proof) | Cross-domain generalization (zero code changes) |
+| S4 — 12 autonomous agents orchestrated by Gemma 4 | [`duecare-12-agent-gemma-4-safety-pipeline`](https://www.kaggle.com/code/taylorsamarel/duecare-12-agent-gemma-4-safety-pipeline) | Full swarm + Supervisor in action |
 
 ### 📊 BASELINE — Real Gemma 4 measurements (3 notebooks)
 
-| Slug | Notebook | What it proves |
-|------|----------|----------------|
-| [`duecare-real-gemma-4-on-50-trafficking-prompts`](https://www.kaggle.com/code/taylorsamarel/duecare-real-gemma-4-on-50-trafficking-prompts) | **B1 Gemma 4 E4B / 50 prompts** | **Primary result:** 0.610 mean, 20% pass, 0% harmful |
-| [`duecare-rag-comparison`](https://www.kaggle.com/code/taylorsamarel/duecare-rag-comparison) | B2 RAG vs Plain vs Guided | Context lift 23–28%, no training needed |
-| [`duecare-phase-2-model-comparison`](https://www.kaggle.com/code/taylorsamarel/duecare-phase-2-model-comparison) | B3 Phase 2 E2B vs E4B | Size vs quality within Gemma 4 family |
+| Notebook | Kaggle slug | What it proves |
+|----------|-------------|----------------|
+| **B1 — Gemma 4 9B on 50 trafficking prompts** | [`duecare-real-gemma-4-on-50-trafficking-prompts`](https://www.kaggle.com/code/taylorsamarel/duecare-real-gemma-4-on-50-trafficking-prompts) | **Primary result:** 0.610 mean score, 20% pass rate, 0% harmful phrases (real Kaggle T4 GPU run) |
+| B2 — Plain vs retrieval-augmented vs system-guided | [`duecare-rag-comparison`](https://www.kaggle.com/code/taylorsamarel/duecare-rag-comparison) | Context injection lifts scores 23–28% without training |
+| B3 — 2-billion vs 9-billion parameter Gemma 4 | [`duecare-phase-2-model-comparison`](https://www.kaggle.com/code/taylorsamarel/duecare-phase-2-model-comparison) | Size/quality trade-off within the Gemma 4 family |
 
 ### 🔍 TASK — Capability-specific evaluations (5 notebooks)
 
-| Slug | Notebook | What it tests |
-|------|----------|----------------|
-| [`duecare-adversarial-resistance`](https://www.kaggle.com/code/taylorsamarel/duecare-adversarial-resistance) | T1 Adversarial Resistance | 15 attack vectors |
-| [`duecare-function-calling-multimodal`](https://www.kaggle.com/code/taylorsamarel/duecare-function-calling-multimodal) | T2 Function Calling + Multimodal | Gemma 4's unique features |
-| [`duecare-llm-judge-grading`](https://www.kaggle.com/code/taylorsamarel/duecare-llm-judge-grading) | T3 LLM-as-Judge | 6-dimension 0-100 scoring |
-| [`duecare-conversation-testing`](https://www.kaggle.com/code/taylorsamarel/duecare-conversation-testing) | T4 Conversation Testing | Multi-turn escalation |
-| [`duecare-rubric-anchored-evaluation`](https://www.kaggle.com/code/taylorsamarel/duecare-rubric-anchored-evaluation) | T5 Rubric Evaluation | 54 per-criterion checks |
+| Notebook | Kaggle slug | What it tests |
+|----------|-------------|----------------|
+| T1 — 15 adversarial attack vectors against Gemma 4 | [`duecare-adversarial-resistance`](https://www.kaggle.com/code/taylorsamarel/duecare-adversarial-resistance) | Gemma 4 holds up against evasion, coercion, jailbreak, persona injection, etc. |
+| T2 — Gemma 4 native tool calls + document image analysis | [`duecare-function-calling-multimodal`](https://www.kaggle.com/code/taylorsamarel/duecare-function-calling-multimodal) | Gemma 4's two distinguishing features: function calling and multimodal input |
+| T3 — Six-dimension safety grading (0-100) | [`duecare-llm-judge-grading`](https://www.kaggle.com/code/taylorsamarel/duecare-llm-judge-grading) | Refusal quality, legal accuracy, completeness, victim safety, cultural sensitivity, actionability |
+| T4 — Multi-turn conversation escalation detection | [`duecare-conversation-testing`](https://www.kaggle.com/code/taylorsamarel/duecare-conversation-testing) | Does Gemma 4 catch exploitation framed across multiple messages? |
+| T5 — 54-criterion pass/fail rubric evaluation | [`duecare-rubric-anchored-evaluation`](https://www.kaggle.com/code/taylorsamarel/duecare-rubric-anchored-evaluation) | Structured per-criterion pass/fail against the 5 trafficking rubrics |
 
 ### ⚖️ COMPARE — Multi-model comparisons (5 notebooks)
 
-| Slug | Notebook | What it compares |
-|------|----------|------------------|
-| [`gemma-4-vs-llama-vs-mistral-on-trafficking-safety`](https://www.kaggle.com/code/taylorsamarel/gemma-4-vs-llama-vs-mistral-on-trafficking-safety) | C1 Gemma 4 vs 3 OSS (CPU) | CPU analysis from real NB 00 data |
-| [`duecare-gemma-4-vs-6-oss-models-via-ollama-cloud`](https://www.kaggle.com/code/taylorsamarel/duecare-gemma-4-vs-6-oss-models-via-ollama-cloud) | **C2 Gemma 4 vs 6 OSS** (Ollama) | Broad OSS live comparison |
-| [`duecare-gemma-4-vs-mistral-family`](https://www.kaggle.com/code/taylorsamarel/duecare-gemma-4-vs-mistral-family) | **C3 Gemma 4 vs Mistral family** | 5 Mistral variants |
-| [`duecare-openrouter-frontier-comparison`](https://www.kaggle.com/code/taylorsamarel/duecare-openrouter-frontier-comparison) | **C4 Gemma 4 vs Frontier** | Claude, GPT-4o, Gemini, Llama 405B, DeepSeek V3 |
-| [`duecare-comparative-grading`](https://www.kaggle.com/code/taylorsamarel/duecare-comparative-grading) | C5 Comparative Grading | Best/worst anchored methodology |
+| Notebook | Kaggle slug | What it compares |
+|----------|-------------|------------------|
+| C1 — Gemma 4 9B vs Llama 3.1 8B, Mistral 7B, Gemma 2B (CPU analysis) | [`gemma-4-vs-llama-vs-mistral-on-trafficking-safety`](https://www.kaggle.com/code/taylorsamarel/gemma-4-vs-llama-vs-mistral-on-trafficking-safety) | Gemma 4 vs 3 similarly-sized open-source models |
+| **C2 — Gemma 4 vs Gemma 2 9B, Llama 3.1 8B, Mistral 7B, Qwen 2.5 7B, Phi 3 Mini, DeepSeek Coder** | [`duecare-gemma-4-vs-6-oss-models-via-ollama-cloud`](https://www.kaggle.com/code/taylorsamarel/duecare-gemma-4-vs-6-oss-models-via-ollama-cloud) | Six open-source models via Ollama Cloud API |
+| **C3 — Gemma 4 vs Mistral Large 2 (123B), Mistral Small 3 (24B), Mistral Nemo (12B), Ministral 8B, Mistral 7B** | [`duecare-gemma-4-vs-mistral-family`](https://www.kaggle.com/code/taylorsamarel/duecare-gemma-4-vs-mistral-family) | Full Mistral family (EU-sovereign OSS provider) |
+| **C4 — Gemma 4 vs Claude 3.5 Sonnet, GPT-4o, Gemini 1.5 Pro, Llama 3.1 405B, DeepSeek V3 (685B MoE), Qwen 2.5 72B** | [`duecare-openrouter-frontier-comparison`](https://www.kaggle.com/code/taylorsamarel/duecare-openrouter-frontier-comparison) | 9B on-device vs the six largest models in the world |
+| C5 — Gemma 4 responses scored against hand-written best and worst examples | [`duecare-comparative-grading`](https://www.kaggle.com/code/taylorsamarel/duecare-comparative-grading) | Reference-anchored grading methodology |
 
 ### 🛡️ SAFETY — Red-team research (1 notebook)
 
-| Slug | Notebook | What it shows |
-|------|----------|---------------|
-| [`duecare-finding-gemma-4-safety-line`](https://www.kaggle.com/code/taylorsamarel/duecare-finding-gemma-4-safety-line) | **SF1 Finding Safety Line** | Stock Gemma 4 vs uncensored → refusal is load-bearing |
+| Notebook | Kaggle slug | What it shows |
+|----------|-------------|---------------|
+| **SF1 — Gemma 4 stock vs SuperGemma 26B uncensored: refusal-gap analysis** | [`duecare-finding-gemma-4-safety-line`](https://www.kaggle.com/code/taylorsamarel/duecare-finding-gemma-4-safety-line) | Proves Gemma 4's safety training is load-bearing (not cosmetic hedging) by comparing against a known-unrestricted variant |
 
 ### ⚙️ PIPELINE — Custom prompts & test generation (3 notebooks)
 
-| Slug | Notebook | What it does |
-|------|----------|--------------|
-| [`duecare-curating-2k-trafficking-prompts-from-74k`](https://www.kaggle.com/code/taylorsamarel/duecare-curating-2k-trafficking-prompts-from-74k) | P1 Curation (2K from 74K) | Selects balanced test prompts |
-| [`00b-duecare-prompt-remixer-data-pipeline`](https://www.kaggle.com/code/taylorsamarel/00b-duecare-prompt-remixer-data-pipeline) | P2 Adversarial Remixer | 15 attack generators |
-| [`duecare-adversarial-prompt-factory`](https://www.kaggle.com/code/taylorsamarel/duecare-adversarial-prompt-factory) | P3 Prompt Factory | Generate → validate → rank |
+| Notebook | Kaggle slug | What it does |
+|----------|-------------|--------------|
+| P1 — Select 2,000 high-value prompts from the 74,567-prompt corpus | [`duecare-curating-2k-trafficking-prompts-from-74k`](https://www.kaggle.com/code/taylorsamarel/duecare-curating-2k-trafficking-prompts-from-74k) | Prioritized, balanced test set (graded first, then category-diverse) |
+| P2 — Generate 15 adversarial variations per base prompt | [`00b-duecare-prompt-remixer-data-pipeline`](https://www.kaggle.com/code/taylorsamarel/00b-duecare-prompt-remixer-data-pipeline) | 15 attack generators expand the test space combinatorially |
+| P3 — Prompt factory: generate, validate, rank by victim impact | [`duecare-adversarial-prompt-factory`](https://www.kaggle.com/code/taylorsamarel/duecare-adversarial-prompt-factory) | Full pipeline from 10 base prompts to 200+ validated tests |
 
-### 🎯 FINE-TUNE — Phase 3 training (1 notebook)
+### 🎯 FINE-TUNE — Improve Gemma 4 for your domain (1 notebook)
 
-| Slug | Notebook | What it does |
-|------|----------|--------------|
-| [`duecare-phase3-finetune`](https://www.kaggle.com/code/taylorsamarel/duecare-phase3-finetune) | F1 Phase 3 Unsloth | LoRA fine-tune + GGUF export |
+| Notebook | Kaggle slug | What it does |
+|----------|-------------|--------------|
+| F1 — Gemma 4 low-rank adaptation fine-tuning + local-model export | [`duecare-phase3-finetune`](https://www.kaggle.com/code/taylorsamarel/duecare-phase3-finetune) | Trains Gemma 4 on the DueCare curriculum using Unsloth; exports as GGUF for local inference via llama.cpp |
 
 ### 📈 REPORT — Results dashboards (1 notebook)
 
-| Slug | Notebook | What it shows |
-|------|----------|---------------|
-| [`duecare-results-dashboard`](https://www.kaggle.com/code/taylorsamarel/duecare-results-dashboard) | R1 Results Dashboard | Interactive Plotly dashboard |
+| Notebook | Kaggle slug | What it shows |
+|----------|-------------|---------------|
+| R1 — Interactive safety evaluation dashboard | [`duecare-results-dashboard`](https://www.kaggle.com/code/taylorsamarel/duecare-results-dashboard) | Plotly dashboard aggregating every DueCare evaluation result |
 
 **All 23 notebooks are publicly visible on Kaggle.** The kernel slugs
 are stable URLs and will not change. See

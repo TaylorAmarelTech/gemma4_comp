@@ -1,6 +1,6 @@
 {
   "id": "taylorsamarel/duecare-12-agent-gemma-4-safety-pipeline",
-  "title": "[START 4] DueCare 12-Agent Gemma 4 Safety Pipeline",
+  "title": "[START 4] DueCare: 12 Autonomous Agents with Gemma 4 Orchestrator",
   "code_file": "03_agent_swarm_deep_dive.ipynb",
   "language": "python",
   "kernel_type": "notebook",

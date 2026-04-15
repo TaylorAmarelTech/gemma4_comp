@@ -1,6 +1,6 @@
 {
   "id": "taylorsamarel/duecare-rubric-anchored-evaluation",
-  "title": "[TASK 5] DueCare Rubric-Anchored Evaluation (54 Criteria)",
+  "title": "[TASK 5] 54-Criterion Pass/Fail Rubric Evaluation",
   "code_file": "13_rubric_evaluation.ipynb",
   "language": "python",
   "kernel_type": "notebook",

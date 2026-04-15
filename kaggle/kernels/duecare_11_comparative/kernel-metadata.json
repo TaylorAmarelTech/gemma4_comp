@@ -1,6 +1,6 @@
 {
   "id": "taylorsamarel/duecare-comparative-grading",
-  "title": "[COMPARE 5] DueCare Comparative Grading",
+  "title": "[COMPARE 5] Anchored Grading: Scoring vs Hand-Written Best and Worst Responses",
   "code_file": "11_comparative_grading.ipynb",
   "language": "python",
   "kernel_type": "notebook",

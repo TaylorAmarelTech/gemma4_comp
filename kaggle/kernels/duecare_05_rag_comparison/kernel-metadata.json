@@ -1,6 +1,6 @@
 {
   "id": "taylorsamarel/duecare-rag-comparison",
-  "title": "[BASELINE 2] DueCare RAG vs Plain vs Guided",
+  "title": "[BASELINE 2] Gemma 4: Plain vs Retrieval-Augmented vs System-Guided",
   "code_file": "05_rag_comparison.ipynb",
   "language": "python",
   "kernel_type": "notebook",

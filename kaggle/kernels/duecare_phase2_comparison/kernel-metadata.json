@@ -1,6 +1,6 @@
 {
   "id": "taylorsamarel/duecare-phase-2-model-comparison",
-  "title": "[BASELINE 3] DueCare Phase 2: E2B vs E4B",
+  "title": "[BASELINE 3] Gemma 4 2-Billion vs 9-Billion Parameters on Safety",
   "code_file": "phase2_model_comparison.ipynb",
   "language": "python",
   "kernel_type": "notebook",
