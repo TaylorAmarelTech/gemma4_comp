@@ -85,21 +85,14 @@ not gigabytes. A Phase 1 baseline notebook pulls
 `duecare-llm-core duecare-llm-domains duecare-llm-tasks duecare-llm-agents`;
 a Phase 3 fine-tune notebook adds `duecare-llm-models[unsloth]`.
 
-**Gemma 4 plays two roles.** First as a **subject of evaluation** (E2B
-and E4B tested against the comparison field of GPT-OSS, Qwen, Llama,
-Mistral, DeepSeek, Claude, and GPT-4o). Second as the **orchestration
-substrate** — the Coordinator agent is Gemma 4 E4B using native
-function calling to schedule the other 11 agents in the swarm.
-Multimodal understanding powers the Scout agent's document-image path
-(a photo of a predatory recruitment contract enters the pipeline,
-structured findings come out). Post-training and domain adaptation
-happen through Unsloth in the Trainer agent. Agentic retrieval happens
-through the Judge agent's `retrieve_from_evidence` tool call.
-
-Every keyword the hackathon rules explicitly flag — **native function
-calling, multimodal understanding, post-training, domain adaptation,
-agentic retrieval** — maps to a load-bearing DueCare component, not a
-decorative demo.
+**Gemma 4 plays two roles.** Subject of evaluation (E2B and E4B tested
+against Llama, Mistral, Qwen, DeepSeek, Claude, GPT-4o) and
+orchestration substrate (the Coordinator agent uses Gemma 4 E4B native
+function calling to schedule the 11 other agents). Multimodal powers
+the Scout's document-image path (recruitment-contract photo in,
+structured findings out). Unsloth + Trainer handles post-training.
+Judge's `retrieve_from_evidence` is agentic retrieval. Every Gemma 4
+hackathon keyword is load-bearing, not decorative.
 
 ## 3. Technical architecture (300 words)
 
@@ -139,30 +132,34 @@ copy and an edit — zero code change.
 
 ## 4. Results (180 words)
 
-**Stock Gemma 4 E4B on Kaggle T4 (50 graded trafficking prompts):**
-**0.610 mean score, 20% pass rate, 0% harmful phrases, 36% refusal rate.**
-Gemma 4 is safer than prior generations but still misses critical legal
-citations and actionable resources — the exact gap Phase 3 fine-tuning
-closes.
+**Stock Gemma 4 E4B on Kaggle T4 (50 graded prompts).** Keyword score
+(0.610 mean, 20% pass, 0% explicit-harmful-phrase) understates the
+safety gap. A refined six-band classifier (negation-context + victim-
+prompt aware) reveals **28% HARD_VIOLATION** (model gave exploitative
+implementation help, e.g. disguising illegal placement fees as salary
+deductions), **46% DETECTION_FAIL** (treated exploitation as legit
+business), **22% refused**, **0% FULL_SUCCESS**. Phase 3 closes this gap.
 
 | Metric | Value |
 |---|---|
-| Gemma 4 E4B mean score (Kaggle NB 00) | **0.610** |
-| Gemma 4 E4B pass rate | **20%** |
-| Harmful phrase rate | **0.0%** |
-| RAG context lift over plain | **+23%** |
-| Guided prompt lift over plain | **+28%** |
+| Mean keyword score (NB 00) | 0.610 |
+| Pass rate by keyword (NB 00) | 20% |
+| Explicit-harmful-phrase rate (NB 00) | 0.0% |
+| **HARD_VIOLATION rate (V3 reclassification)** | **28%** |
+| **DETECTION_FAIL rate (V3)** | **46%** |
+| FULL_SUCCESS rate (V3) | 0% |
+| RAG context lift over plain | +23% |
+| Guided prompt lift over plain | +28% |
 | Trafficking corpus | 74,567 prompts |
 | Adversarial generators | 15 |
 | Tests passing | 194 |
-| Kaggle notebooks completed | 14 of 19 |
+| Kaggle notebooks completed | 21 of 25 |
 
-Context injection alone lifts scores by 23–28% without any training —
-proof that Gemma 4 has the capability but needs domain knowledge, which
-Phase 3 Unsloth fine-tuning supplies permanently. Cross-domain proof:
-one `duecare run` command swaps `--domain trafficking` for
-`tax_evasion` or `financial_crime` and produces structurally-identical
-reports with zero code changes.
+Context injection alone lifts scores 23–28% without training — proof
+Gemma 4 has the capability but needs domain knowledge, which Phase 3
+Unsloth fine-tuning supplies permanently. Cross-domain proof: same
+`duecare run` command on `--domain tax_evasion` or `financial_crime`
+produces structurally-identical reports with zero code changes.
 
 ## 5. Impact and who benefits (200 words)
 
