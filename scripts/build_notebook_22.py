@@ -15,8 +15,8 @@ import json
 from pathlib import Path
 
 KERNEL_DIR = Path(__file__).resolve().parent.parent / "kaggle" / "kernels" / "duecare_22_gemma_generations"
-SLUG = "taylorsamarel/duecare-gemma-generations-comparison"
-TITLE = "DueCare Gemma Generations Comparison"
+SLUG = "taylorsamarel/duecare-22-gemma-generations"
+TITLE = "DueCare 22 Gemma Generations"
 
 
 def _md(text: str) -> dict:

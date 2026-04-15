@@ -1,6 +1,6 @@
 {
-  "id": "taylorsamarel/duecare-gemma-generations-comparison",
-  "title": "DueCare Gemma Generations Comparison",
+  "id": "taylorsamarel/duecare-22-gemma-generations",
+  "title": "DueCare 22 Gemma Generations",
   "code_file": "22_gemma_generations.ipynb",
   "language": "python",
   "kernel_type": "notebook",
