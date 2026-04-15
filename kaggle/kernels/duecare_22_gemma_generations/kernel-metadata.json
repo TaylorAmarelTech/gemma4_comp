@@ -1,0 +1,26 @@
+{
+  "id": "taylorsamarel/duecare-gemma-generations-comparison",
+  "title": "DueCare Gemma Generations Comparison",
+  "code_file": "22_gemma_generations.ipynb",
+  "language": "python",
+  "kernel_type": "notebook",
+  "is_private": false,
+  "enable_gpu": true,
+  "enable_tpu": false,
+  "enable_internet": true,
+  "dataset_sources": [
+    "taylorsamarel/duecare-llm-wheels",
+    "taylorsamarel/duecare-trafficking-prompts"
+  ],
+  "competition_sources": [
+    "gemma-4-good-hackathon"
+  ],
+  "kernel_sources": [],
+  "model_sources": [
+    "google/gemma-2/transformers/gemma-2-2b-it/1",
+    "google/gemma-2/transformers/gemma-2-9b-it/1",
+    "google/gemma-3/transformers/gemma-3-4b-it/1",
+    "google/gemma-4/transformers/gemma-4-e2b-it/1",
+    "google/gemma-4/transformers/gemma-4-e4b-it/1"
+  ]
+}
