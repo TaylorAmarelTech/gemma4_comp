@@ -1,11 +1,11 @@
 {
-  "id": "taylorsamarel/duecare-openrouter-frontier-comparison",
-  "title": "DueCare OpenRouter Frontier Comparison",
-  "code_file": "17_openrouter_frontier_comparison.ipynb",
+  "id": "taylorsamarel/duecare-finding-gemma-4-safety-line",
+  "title": "DueCare: Finding Gemma 4 Safety Line (Red-Team)",
+  "code_file": "18_supergemma_safety_gap.ipynb",
   "language": "python",
   "kernel_type": "notebook",
   "is_private": false,
-  "enable_gpu": false,
+  "enable_gpu": true,
   "enable_tpu": false,
   "enable_internet": true,
   "dataset_sources": [

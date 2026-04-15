@@ -132,7 +132,7 @@ uvicorn src.demo.app:app --port 8080
 # Open http://localhost:8080 for the HTML dashboard
 ```
 
-### 22 Kaggle Notebooks
+### 23 Kaggle Notebooks
 
 | # | Notebook | GPU | Kaggle Link |
 |---|----------|-----|-------------|
@@ -157,7 +157,8 @@ uvicorn src.demo.app:app --port 8080
 | P3 | Phase 3 Unsloth Fine-tune (LoRA + GGUF) | T4 | [duecare-phase3-finetune](https://www.kaggle.com/code/taylorsamarel/duecare-phase3-finetune) |
 | 15 | **Gemma 4 vs 6 OSS via Ollama Cloud** (broadest OSS comparison) | - | [ollama-cloud-oss-comparison](https://www.kaggle.com/code/taylorsamarel/duecare-gemma-4-vs-6-oss-models-via-ollama-cloud) |
 | 16 | **Gemma 4 vs Mistral Family** (Large 2, Small, Nemo, Ministral, 7B) | - | [mistral-family](https://www.kaggle.com/code/taylorsamarel/duecare-gemma-4-vs-mistral-family) |
-| 17 | **Gemma 4 vs Frontier** (Claude, GPT-4o, Gemini, Llama 405B) via OpenRouter | - | [gemma4-vs-frontier](https://www.kaggle.com/code/taylorsamarel/duecare-gemma4-vs-frontier) |
+| 17 | **Gemma 4 vs Frontier** (Claude, GPT-4o, Gemini, Llama 405B) via OpenRouter | - | [openrouter-frontier](https://www.kaggle.com/code/taylorsamarel/duecare-openrouter-frontier-comparison) |
+| 18 | **Safety-Gap Red Team**: Gemma 4 vs SuperGemma Uncensored (measures refusal robustness) | T4 | [safety-line](https://www.kaggle.com/code/taylorsamarel/duecare-finding-gemma-4-safety-line) |
 
 ## Architecture
 
