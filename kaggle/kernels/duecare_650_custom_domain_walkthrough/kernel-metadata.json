@@ -1,0 +1,25 @@
+{
+  "id": "taylorsamarel/duecare-650-custom-domain-walkthrough",
+  "title": "650: DueCare Custom Domain Walkthrough",
+  "code_file": "650_custom_domain_walkthrough.ipynb",
+  "language": "python",
+  "kernel_type": "notebook",
+  "is_private": false,
+  "enable_gpu": false,
+  "enable_tpu": false,
+  "enable_internet": true,
+  "dataset_sources": [
+    "taylorsamarel/duecare-llm-wheels"
+  ],
+  "competition_sources": [
+    "gemma-4-good-hackathon"
+  ],
+  "kernel_sources": [],
+  "keywords": [
+    "gemma",
+    "safety",
+    "domain-pack",
+    "medical-misinformation",
+    "howto"
+  ]
+}

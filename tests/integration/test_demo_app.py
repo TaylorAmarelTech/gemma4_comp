@@ -119,3 +119,65 @@ class TestStats:
         data = resp.json()
         assert "total_analyses" in data
         assert data["total_analyses"] >= 1
+
+
+class TestDocumentAnalysis:
+    def test_document_analysis_returns_structured_fields(self, client):
+        resp = client.post(
+            "/api/v1/analyze-document",
+            json={
+                "text": "Employment contract: Employer will retain the passport and deduct HKD 20000 over 7 months.",
+                "context": "contract",
+            },
+        )
+        assert resp.status_code == 200
+        data = resp.json()
+        assert data["document_type"] == "employment_contract"
+        assert "passport_retention" in data["indicator_flags"]
+        assert "worker_paid_placement_fee" in data["indicator_flags"]
+        assert "amounts" in data["extracted_fields"]
+        assert data["risk_level"] in {"HIGH", "MEDIUM", "LOW"}
+
+
+class TestMigrationCaseWorkflow:
+    def test_migration_case_route_builds_timeline_and_templates(self, client):
+        resp = client.post(
+            "/api/v1/migration-case",
+            json={
+                "case_id": "case-demo-001",
+                "corridor": "PH_HK",
+                "documents": [
+                    {
+                        "document_id": "doc-01",
+                        "title": "Agency receipt",
+                        "context": "receipt",
+                        "captured_at": "2026-01-05",
+                        "text": "Receipt for placement fee: HKD 20000 paid by worker before deployment.",
+                    },
+                    {
+                        "document_id": "doc-02",
+                        "title": "Employment contract",
+                        "context": "contract",
+                        "captured_at": "2026-01-12",
+                        "text": "Employer will retain passport during contract period and deduct fees over 7 months.",
+                    },
+                    {
+                        "document_id": "doc-03",
+                        "title": "Recruiter chat",
+                        "context": "chat",
+                        "captured_at": "2026-01-15",
+                        "text": "Pay the remaining fee now or you cannot leave. We will keep your passport until the debt is cleared.",
+                    },
+                ],
+            },
+        )
+        assert resp.status_code == 200
+        data = resp.json()
+        assert data["case_id"] == "case-demo-001"
+        assert data["corridor"] == "PH_HK"
+        assert data["document_count"] == 3
+        assert data["timeline"]
+        assert data["complaint_templates"]
+        assert data["tool_results"]
+        assert "worker_paid_placement_fee" in data["detected_indicators"]
+        assert any(item["tool"] == "lookup_hotline" for item in data["tool_results"])

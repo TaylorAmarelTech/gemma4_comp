@@ -28,6 +28,9 @@ docker compose up
   Nepal, Bangladesh, Indonesia, or International).
 - A language picker (English, Tagalog; more can be added via the
   `warning_templates` dict in `scorer.py`).
+- A case-bundle intake where an NGO can paste multiple migration
+  documents, generate a timeline, retrieve legal context, and draft
+  complaint text from the same API surface.
 - A one-click analysis that returns:
   - An overall safety **score** (0–1)
   - A **grade** (worst, bad, neutral, good, best)
@@ -52,6 +55,7 @@ All endpoints live under `/api/v1/` and are documented at `/docs`
 | `/api/v1/evaluate` | POST | Full Gemma 4 evaluation (requires Ollama) |
 | `/api/v1/function-call` | POST | Demonstrate Gemma 4 native function calling |
 | `/api/v1/analyze-document` | POST | Multimodal document analysis |
+| `/api/v1/migration-case` | POST | Multi-document NGO case intake with timeline + complaint drafts |
 
 ## What it runs without a model
 
@@ -72,6 +76,9 @@ and `gemma4:e4b` is pulled, the demo also exposes:
   Gemma 4 can call mid-response.
 - **Multimodal document analysis** — upload a recruitment contract photo
   and Gemma 4 flags illegal fee clauses.
+- **NGO migration case synthesis** — bundle receipts, contracts, and chat
+  logs into one request and DueCare builds a narrative timeline plus
+  complaint-ready text.
 
 ## Deploy to HuggingFace Spaces
 
@@ -99,7 +106,8 @@ git add . && git commit -m "Deploy DueCare demo" && git push
 
 ```
 src/demo/
-├── app.py                # FastAPI app — 11 endpoints + HTML dashboard
+├── app.py                # FastAPI app — 12 API endpoints + HTML dashboard
+├── case_workflow.py      # Multi-document NGO case orchestration
 ├── scorer.py             # WeightedRubricScorer — the deterministic core
 ├── models.py             # Pydantic request/response schemas
 ├── gemma_evaluator.py    # Gemma 4 via Ollama integration

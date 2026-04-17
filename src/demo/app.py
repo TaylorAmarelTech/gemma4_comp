@@ -35,8 +35,11 @@ from .models import (
     BatchSummary,
     DomainInfo,
     HealthResponse,
+  MigrationCaseRequest,
+  MigrationCaseResponse,
     RubricInfo,
     StatsResponse,
+  Grade,
 )
 from .scorer import WeightedRubricScorer
 
@@ -125,6 +128,14 @@ def _get_state(request: Request) -> _AppState:
         state = _AppState(scorer)
         request.app.state.app = state
         return state
+
+
+def _case_stats_payload(risk_level: str) -> tuple[Grade, Action, float]:
+  if risk_level == "HIGH":
+    return Grade.WORST, Action.REVIEW, 0.18
+  if risk_level == "MEDIUM":
+    return Grade.NEUTRAL, Action.WARN, 0.55
+  return Grade.GOOD, Action.PASS, 0.86
 
 
 # ---------------------------------------------------------------------------
@@ -394,12 +405,50 @@ async def analyze_document(body: dict) -> dict:
     text = body.get("text", "")
     context = body.get("context", "document")
 
-    # Use the rule-based analyzer (works without model for demo)
-    # In production: DocumentAnalyzer(gemma_model).analyze_image(image_bytes)
     analyzer = DocumentAnalyzer(model=None)
-    result = analyzer._parse_analysis(text)
+    result = analyzer.analyze_text_as_document(text, context=context)
 
     return result.to_dict()
+
+
+@app.post(
+    "/api/v1/migration-case",
+    response_model=MigrationCaseResponse,
+    summary="Analyze a multi-document migration case bundle",
+    tags=["gemma4"],
+) 
+async def analyze_migration_case(
+    request: Request,
+    body: MigrationCaseRequest,
+) -> MigrationCaseResponse:
+    """Analyze a migration-case file and synthesize a narrative packet.
+
+    This is the NGO operator workflow: ingest multiple documents from one
+    migration journey, classify each file, build a timeline, retrieve legal
+    context, and draft complaint-ready text.
+    """
+    from src.demo.case_workflow import MigrationCaseOrchestrator
+
+    state = _get_state(request)
+    orchestrator = MigrationCaseOrchestrator()
+    result = orchestrator.analyze_case(body)
+
+    grade, action, score = _case_stats_payload(result.risk_level)
+    state.stats["total_analyses"] += 1
+    state.stats[f"grade_{grade.value}"] += 1
+    state.stats[f"action_{action.value}"] += 1
+    for indicator in result.detected_indicators:
+      state.stats[f"indicator_{indicator}"] += 1
+    state.analysis_log.append(
+      {
+        "score": score,
+        "grade": grade.value,
+        "action": action.value,
+        "n_indicators": len(result.detected_indicators),
+      }
+    )
+
+    return result
 
 
 # ---------------------------------------------------------------------------
@@ -701,6 +750,39 @@ _DASHBOARD_HTML = """\
   .example-btn:hover {{ border-color: var(--primary); color: var(--text); }}
   .spinner {{ display: none; margin-left: 0.5rem; }}
   .spinner.visible {{ display: inline-block; }}
+  .subtle {{ color: var(--text-dim); font-size: 0.9rem; line-height: 1.5; }}
+  .timeline-item {{
+    border-left: 2px solid var(--primary);
+    margin: 0.75rem 0;
+    padding: 0.15rem 0 0.15rem 0.85rem;
+  }}
+  .doc-card {{
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 0.9rem;
+    margin-top: 0.75rem;
+  }}
+  .pill {{
+    display: inline-block;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 0.18rem 0.55rem;
+    font-size: 0.78rem;
+    color: var(--text-dim);
+    margin: 0.2rem 0.35rem 0 0;
+  }}
+  pre.case-template {{
+    white-space: pre-wrap;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text);
+    font-size: 0.84rem;
+    line-height: 1.5;
+    padding: 0.85rem;
+    margin-top: 0.6rem;
+  }}
 </style>
 </head>
 <body>
@@ -756,6 +838,32 @@ _DASHBOARD_HTML = """\
   </div>
 
   <div class="card">
+    <h2>NGO Migration Case Intake</h2>
+    <p class="subtle">Paste a JSON bundle of contracts, receipts, and recruiter chats from one migration journey. DueCare classifies each document, orders the timeline, retrieves legal context, and drafts complaint-ready text from the same API surface.</p>
+    <textarea id="caseJson" style="min-height:220px" placeholder='{{
+  "case_id": "case-demo-001",
+  "corridor": "PH_HK",
+  "documents": [
+    {{"title": "Agency receipt", "context": "receipt", "text": "..."}},
+    {{"title": "Contract", "context": "contract", "text": "..."}}
+  ]
+}}'></textarea>
+    <div class="row">
+      <button class="primary" onclick="analyzeCase()">Build Case Narrative</button>
+      <span class="spinner" id="caseSpinner">Building case...</span>
+    </div>
+    <div class="examples">
+      <span style="font-size:0.8rem;color:var(--text-dim);">Try:</span>
+      <button class="example-btn" onclick="loadCaseExample()">NGO intake bundle</button>
+    </div>
+  </div>
+
+  <div class="card result" id="caseResultCard">
+    <h2>Migration Case Output</h2>
+    <div id="caseResultContent"></div>
+  </div>
+
+  <div class="card">
     <h2>Loaded Rubrics</h2>
     <p style="font-size:0.9rem;color:var(--text-dim);">{rubric_names}</p>
   </div>
@@ -800,12 +908,44 @@ const EXAMPLES = [
   }}
 ];
 
+const CASE_EXAMPLE = {{
+  case_id: 'case-demo-001',
+  corridor: 'PH_HK',
+  documents: [
+    {{
+      document_id: 'doc-01',
+      title: 'Agency receipt',
+      context: 'receipt',
+      captured_at: '2026-01-05',
+      text: 'Receipt for placement fee: HKD 20000 paid by worker before deployment through salary deductions.',
+    }},
+    {{
+      document_id: 'doc-02',
+      title: 'Employment contract',
+      context: 'contract',
+      captured_at: '2026-01-12',
+      text: 'Employer will retain the passport during the contract period and deduct the remaining fee over 7 months.',
+    }},
+    {{
+      document_id: 'doc-03',
+      title: 'Recruiter chat',
+      context: 'chat',
+      captured_at: '2026-01-15',
+      text: 'Pay the remaining fee now or you cannot leave. We will keep your passport until the debt is cleared.',
+    }},
+  ],
+}};
+
 function loadExample(i) {{
   const ex = EXAMPLES[i];
   document.getElementById('inputText').value = ex.text;
   document.getElementById('context').value = ex.context;
   document.getElementById('jurisdiction').value = ex.jurisdiction;
   document.getElementById('language').value = ex.language;
+}}
+
+function loadCaseExample() {{
+  document.getElementById('caseJson').value = JSON.stringify(CASE_EXAMPLE, null, 2);
 }}
 
 async function analyze() {{
@@ -931,9 +1071,150 @@ function renderResult(data) {{
   document.getElementById('resultContent').innerHTML = html;
 }}
 
+function riskBadgeClass(risk) {{
+  const normalized = String(risk || 'LOW').toUpperCase();
+  if (normalized === 'HIGH') return 'worst';
+  if (normalized === 'MEDIUM') return 'neutral';
+  return 'good';
+}}
+
+async function analyzeCase() {{
+  const raw = document.getElementById('caseJson').value.trim();
+  if (!raw) return;
+
+  const spinner = document.getElementById('caseSpinner');
+  spinner.classList.add('visible');
+
+  try {{
+    const body = JSON.parse(raw);
+    const resp = await fetch('/api/v1/migration-case', {{
+      method: 'POST',
+      headers: {{ 'Content-Type': 'application/json' }},
+      body: JSON.stringify(body),
+    }});
+    const data = await resp.json();
+    if (!resp.ok) {{
+      throw new Error(typeof data.detail === 'string' ? data.detail : JSON.stringify(data.detail || data));
+    }}
+    renderCaseResult(data);
+  }} catch (e) {{
+    document.getElementById('caseResultContent').innerHTML =
+      '<p style="color:var(--danger)">Error: ' + escHtml(e.message) + '</p>';
+  }}
+
+  spinner.classList.remove('visible');
+  document.getElementById('caseResultCard').classList.add('visible');
+}}
+
+function renderCaseResult(data) {{
+  let html = '';
+  const badgeClass = riskBadgeClass(data.risk_level);
+
+  html += '<div style="margin-bottom:1rem;">';
+  html += '<span class="grade-badge grade-' + badgeClass + '">' + escHtml(String(data.risk_level || 'LOW').toLowerCase()) + ' risk</span>';
+  html += '<span style="margin-left:1rem;font-size:0.9rem;color:var(--text-dim);">';
+  html += escHtml(data.corridor || 'auto corridor') + ' | ' + String(data.document_count || 0) + ' documents';
+  html += '</span></div>';
+
+  if (data.executive_summary) {{
+    html += '<div class="warning-box"><strong>Executive summary</strong><br>' + escHtml(data.executive_summary) + '</div>';
+  }}
+
+  if (data.narrative) {{
+    html += '<div style="margin-top:1rem;"><strong>Narrative</strong><p class="subtle" style="margin-top:0.4rem;">' + escHtml(data.narrative) + '</p></div>';
+  }}
+
+  if (data.detected_indicators && data.detected_indicators.length > 0) {{
+    html += '<div style="margin-top:1rem;"><strong>Detected indicators</strong></div><div style="margin-top:0.3rem;">';
+    data.detected_indicators.forEach(function(indicator) {{
+      html += '<span class="pill">' + escHtml(indicator.replace(/_/g, ' ')) + '</span>';
+    }});
+    html += '</div>';
+  }}
+
+  if (data.timeline && data.timeline.length > 0) {{
+    html += '<div style="margin-top:1rem;"><strong>Timeline</strong></div>';
+    data.timeline.forEach(function(event) {{
+      html += '<div class="timeline-item">';
+      html += '<div style="font-size:0.78rem;color:var(--text-dim);">' + escHtml(event.date) + '</div>';
+      html += '<div style="font-weight:600;margin-top:0.2rem;">' + escHtml(event.label) + '</div>';
+      html += '<div class="subtle" style="margin-top:0.2rem;">' + escHtml(event.description) + '</div>';
+      html += '</div>';
+    }});
+  }}
+
+  if (data.document_analyses && data.document_analyses.length > 0) {{
+    html += '<div style="margin-top:1rem;"><strong>Per-document analysis</strong></div>';
+    data.document_analyses.forEach(function(doc) {{
+      html += '<div class="doc-card">';
+      html += '<div style="display:flex;justify-content:space-between;gap:1rem;align-items:center;flex-wrap:wrap;">';
+      html += '<div><strong>' + escHtml(doc.title || doc.document_id) + '</strong><div class="subtle">' + escHtml(doc.document_type || doc.context || 'document') + '</div></div>';
+      html += '<span class="grade-badge grade-' + riskBadgeClass(doc.risk_level) + '">' + escHtml(String(doc.risk_level || 'LOW').toLowerCase()) + '</span>';
+      html += '</div>';
+      if (doc.findings && doc.findings.length > 0) {{
+        html += '<ul class="legal-refs" style="margin-top:0.6rem;">';
+        doc.findings.slice(0, 3).forEach(function(finding) {{
+          html += '<li>' + escHtml(finding) + '</li>';
+        }});
+        html += '</ul>';
+      }}
+      if (doc.indicator_flags && doc.indicator_flags.length > 0) {{
+        html += '<div>'; 
+        doc.indicator_flags.forEach(function(flag) {{
+          html += '<span class="pill">' + escHtml(flag.replace(/_/g, ' ')) + '</span>';
+        }});
+        html += '</div>';
+      }}
+      if (doc.extracted_fields && (doc.extracted_fields.amounts || doc.extracted_fields.dates)) {{
+        html += '<div class="subtle" style="margin-top:0.6rem;">';
+        if (doc.extracted_fields.amounts && doc.extracted_fields.amounts.length > 0) {{
+          html += 'Amounts: ' + escHtml(doc.extracted_fields.amounts.join(', '));
+        }}
+        if (doc.extracted_fields.dates && doc.extracted_fields.dates.length > 0) {{
+          html += (doc.extracted_fields.amounts && doc.extracted_fields.amounts.length > 0 ? ' | ' : '') + 'Dates: ' + escHtml(doc.extracted_fields.dates.join(', '));
+        }}
+        html += '</div>';
+      }}
+      html += '</div>';
+    }});
+  }}
+
+  if (data.recommended_actions && data.recommended_actions.length > 0) {{
+    html += '<div style="margin-top:1rem;"><strong>Recommended actions</strong></div><ul class="legal-refs">';
+    data.recommended_actions.forEach(function(action) {{
+      html += '<li>' + escHtml(action) + '</li>';
+    }});
+    html += '</ul>';
+  }}
+
+  if (data.hotlines && data.hotlines.length > 0) {{
+    html += '<div style="margin-top:1rem;"><strong>Hotlines and support</strong></div><div class="resources">';
+    data.hotlines.forEach(function(resource) {{
+      html += '<div class="resource-item">';
+      html += '<strong>' + escHtml(resource.name) + '</strong>';
+      if (resource.number) html += ' <span style="color:var(--primary);">' + escHtml(resource.number) + '</span>';
+      if (resource.url) html += ' <a href="' + escHtml(resource.url) + '" target="_blank">website</a>';
+      if (resource.jurisdiction) html += ' <span style="color:var(--text-dim);font-size:0.8rem;">[' + escHtml(resource.jurisdiction) + ']</span>';
+      html += '</div>';
+    }});
+    html += '</div>';
+  }}
+
+  if (data.complaint_templates && data.complaint_templates.length > 0) {{
+    html += '<div style="margin-top:1rem;"><strong>Complaint drafts</strong></div>';
+    data.complaint_templates.forEach(function(template) {{
+      html += '<details style="margin-top:0.6rem;"><summary style="cursor:pointer;color:var(--primary);font-weight:600;">';
+      html += escHtml(template.name.replace(/_/g, ' ')) + ' - ' + escHtml(template.audience);
+      html += '</summary><pre class="case-template">' + escHtml(template.text) + '</pre></details>';
+    }});
+  }}
+
+  document.getElementById('caseResultContent').innerHTML = html;
+}}
+
 function escHtml(s) {{
   const div = document.createElement('div');
-  div.textContent = s;
+  div.textContent = String(s ?? '');
   return div.innerHTML;
 }}
 </script>

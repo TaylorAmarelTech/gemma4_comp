@@ -1,0 +1,25 @@
+{
+  "id": "taylorsamarel/duecare-620-demo-api-endpoint-tour",
+  "title": "620: DueCare Demo API Endpoint Tour",
+  "code_file": "620_demo_api_endpoint_tour.ipynb",
+  "language": "python",
+  "kernel_type": "notebook",
+  "is_private": false,
+  "enable_gpu": false,
+  "enable_tpu": false,
+  "enable_internet": true,
+  "dataset_sources": [
+    "taylorsamarel/duecare-llm-wheels"
+  ],
+  "competition_sources": [
+    "gemma-4-good-hackathon"
+  ],
+  "kernel_sources": [],
+  "keywords": [
+    "gemma",
+    "safety",
+    "api",
+    "demo",
+    "fastapi"
+  ]
+}

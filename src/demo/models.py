@@ -8,7 +8,7 @@ a full duecare-llm install.
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import StrEnum
 from typing import Any
 
@@ -153,6 +153,89 @@ class BatchAnalyzeRequest(BaseModel):
     }
 
 
+class MigrationCaseDocument(BaseModel):
+    """One document bundled into a migration-case intake payload."""
+
+    document_id: str = Field(
+        default="",
+        description="Optional stable identifier for the document within the case.",
+    )
+    title: str = Field(
+        default="",
+        description="Short operator-facing label such as 'contract' or 'receipt'.",
+    )
+    text: str = Field(
+        ...,
+        min_length=1,
+        max_length=100_000,
+        description="OCR text or manually transcribed document content.",
+    )
+    context: str = Field(
+        default="document",
+        description="Document type hint: contract, receipt, chat, job_posting, certificate, document.",
+    )
+    captured_at: str = Field(
+        default="",
+        description="Optional event date for the document, if already known.",
+    )
+
+
+class MigrationCaseRequest(BaseModel):
+    """POST /api/v1/migration-case request body."""
+
+    case_id: str = Field(
+        default="",
+        description="Optional external case or intake identifier.",
+    )
+    corridor: str = Field(
+        default="",
+        description="Optional corridor code such as PH_HK or BD_SA.",
+    )
+    documents: list[MigrationCaseDocument] = Field(
+        ...,
+        min_length=1,
+        max_length=50,
+        description="Ordered bundle of recruitment documents for one migration case.",
+    )
+    include_complaint_templates: bool = Field(
+        default=True,
+        description="Whether to draft complaint/intake template text in the response.",
+    )
+    top_k_context: int = Field(
+        default=5,
+        ge=1,
+        le=10,
+        description="How many RAG context entries to retrieve for legal grounding.",
+    )
+
+    model_config = {
+        "json_schema_extra": {
+            "examples": [
+                {
+                    "case_id": "case-demo-001",
+                    "corridor": "PH_HK",
+                    "documents": [
+                        {
+                            "document_id": "doc-01",
+                            "title": "Agency receipt",
+                            "context": "receipt",
+                            "captured_at": "2026-01-05",
+                            "text": "Receipt for placement fee: HKD 20000 paid by worker before deployment.",
+                        },
+                        {
+                            "document_id": "doc-02",
+                            "title": "Employment contract",
+                            "context": "contract",
+                            "captured_at": "2026-01-12",
+                            "text": "Employer will retain passport during contract period and deduct fees over 7 months.",
+                        },
+                    ],
+                }
+            ]
+        },
+    }
+
+
 # ---------------------------------------------------------------------------
 # Response sub-models
 # ---------------------------------------------------------------------------
@@ -242,7 +325,7 @@ class AnalyzeResponse(BaseModel):
 
     # Metadata
     analyzed_at: datetime = Field(
-        default_factory=datetime.utcnow,
+        default_factory=lambda: datetime.now(timezone.utc),
         description="UTC timestamp of analysis.",
     )
     model_id: str = Field(
@@ -312,6 +395,60 @@ class BatchAnalyzeResponse(BaseModel):
         default="",
         description="Unique batch identifier for tracking.",
     )
+
+
+class CaseDocumentFinding(BaseModel):
+    """Structured analysis for one migration-case document."""
+
+    document_id: str
+    title: str = ""
+    context: str = "document"
+    document_type: str = "recruitment_document"
+    risk_level: str = "LOW"
+    findings: list[str] = Field(default_factory=list)
+    legal_refs: list[str] = Field(default_factory=list)
+    indicator_flags: list[str] = Field(default_factory=list)
+    extracted_fields: dict[str, Any] = Field(default_factory=dict)
+    timeline_markers: list[str] = Field(default_factory=list)
+    confidence: float = Field(default=0.0, ge=0.0, le=1.0)
+
+
+class TimelineEvent(BaseModel):
+    """One normalized event in a migration-case timeline."""
+
+    date: str
+    label: str
+    document_id: str
+    description: str
+
+
+class ComplaintDraft(BaseModel):
+    """Generated complaint or intake text derived from a case bundle."""
+
+    name: str
+    audience: str
+    text: str
+
+
+class MigrationCaseResponse(BaseModel):
+    """POST /api/v1/migration-case response body."""
+
+    case_id: str
+    corridor: str = ""
+    document_count: int = 0
+    risk_level: str = "LOW"
+    detected_indicators: list[str] = Field(default_factory=list)
+    applicable_laws: list[str] = Field(default_factory=list)
+    retrieved_context: str = ""
+    executive_summary: str = ""
+    narrative: str = ""
+    timeline: list[TimelineEvent] = Field(default_factory=list)
+    document_analyses: list[CaseDocumentFinding] = Field(default_factory=list)
+    recommended_actions: list[str] = Field(default_factory=list)
+    hotlines: list[Resource] = Field(default_factory=list)
+    tool_results: list[dict[str, Any]] = Field(default_factory=list)
+    complaint_templates: list[ComplaintDraft] = Field(default_factory=list)
+    generated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 
 # ---------------------------------------------------------------------------
