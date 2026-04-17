@@ -1,0 +1,26 @@
+{
+  "id": "taylorsamarel/155-duecare-tool-calling-playground",
+  "title": "155: DueCare Tool Calling Playground",
+  "code_file": "155_tool_calling_playground.ipynb",
+  "language": "python",
+  "kernel_type": "notebook",
+  "is_private": false,
+  "enable_gpu": true,
+  "enable_tpu": false,
+  "enable_internet": true,
+  "dataset_sources": [
+    "taylorsamarel/duecare-llm-wheels"
+  ],
+  "competition_sources": [
+    "gemma-4-good-hackathon"
+  ],
+  "kernel_sources": [],
+  "keywords": [
+    "gemma",
+    "function-calling",
+    "tools",
+    "safety",
+    "trafficking",
+    "gpu"
+  ]
+}

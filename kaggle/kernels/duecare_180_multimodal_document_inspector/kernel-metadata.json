@@ -1,0 +1,27 @@
+{
+  "id": "taylorsamarel/duecare-180-multimodal-document-inspector",
+  "title": "180: DueCare Multimodal Document Inspector",
+  "code_file": "180_multimodal_document_inspector.ipynb",
+  "language": "python",
+  "kernel_type": "notebook",
+  "is_private": false,
+  "enable_gpu": true,
+  "enable_tpu": false,
+  "enable_internet": true,
+  "dataset_sources": [
+    "taylorsamarel/duecare-llm-wheels",
+    "taylorsamarel/duecare-trafficking-prompts"
+  ],
+  "competition_sources": [
+    "gemma-4-good-hackathon"
+  ],
+  "kernel_sources": [],
+  "keywords": [
+    "gemma",
+    "safety",
+    "multimodal",
+    "trafficking",
+    "document",
+    "playground"
+  ]
+}

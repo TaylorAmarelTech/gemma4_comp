@@ -1,0 +1,27 @@
+{
+  "id": "taylorsamarel/duecare-170-live-context-injection-playground",
+  "title": "170: DueCare Live Context Injection Playground",
+  "code_file": "170_live_context_injection_playground.ipynb",
+  "language": "python",
+  "kernel_type": "notebook",
+  "is_private": false,
+  "enable_gpu": true,
+  "enable_tpu": false,
+  "enable_internet": true,
+  "dataset_sources": [
+    "taylorsamarel/duecare-llm-wheels",
+    "taylorsamarel/duecare-trafficking-prompts"
+  ],
+  "competition_sources": [
+    "gemma-4-good-hackathon"
+  ],
+  "kernel_sources": [],
+  "keywords": [
+    "gemma",
+    "safety",
+    "llm",
+    "trafficking",
+    "playground",
+    "rag"
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "id": "taylorsamarel/150-duecare-free-form-gemma-playground",
+  "title": "150: DueCare Free Form Gemma Playground",
+  "code_file": "150_free_form_gemma_playground.ipynb",
+  "language": "python",
+  "kernel_type": "notebook",
+  "is_private": false,
+  "enable_gpu": true,
+  "enable_tpu": false,
+  "enable_internet": true,
+  "dataset_sources": [
+    "taylorsamarel/duecare-llm-wheels"
+  ],
+  "competition_sources": [
+    "gemma-4-good-hackathon"
+  ],
+  "kernel_sources": [],
+  "keywords": [
+    "gemma",
+    "safety",
+    "llm",
+    "trafficking",
+    "playground",
+    "gpu"
+  ]
+}

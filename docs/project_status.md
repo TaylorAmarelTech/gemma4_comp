@@ -1,124 +1,135 @@
 # DueCare Project Status
 
-> Last updated: Session ending April 12-13, 2026
-> Deadline: May 18, 2026 (35 days remaining)
+> Last updated: 2026-04-17 (130-180 notebook band refresh)
+> Deadline: 2026-05-18 (31 days remaining)
 
-## Local Baseline (Gemma 3 4B via Ollama -- preliminary)
+## Snapshot
+
+- **Validator gate:** `python scripts/validate_notebooks.py` ->
+  `Validated 52 notebooks successfully`. Green.
+- **Adversarial validators:** 24 targeted validators pass
+  (000, 005, 140, 150, 155, 160, 170, 180, 190, 210, 220, 230, 240,
+  250, 260, 270, 335, 460, 530, 540, 600, 610, 620, 650).
+- **Kaggle kernels:** 52 directories local; the 130-180 band was
+  rebuilt and validator-cleaned in this session.
+- **Source-of-truth gap closed:** 130 slug metadata now matches the
+  prefixed Kaggle id, and 150 / 155 / 160 now use the same canonical
+  builder shell already used by 170 / 180.
+- **Shared helpers:** `scripts/_public_slugs.py` and
+  `scripts/_canonical_notebook.py` now hold the duplication that used
+  to be scattered across builders.
+
+## Local baseline (Gemma 4 E4B via Kaggle + Gemma 3 4B via Ollama)
 
 ```
-Model:      gemma3:4b (stock, via Ollama, no fine-tuning)
-Prompts:    5 evaluated (from 74,567 corpus)
-Mean score: 0.40
-Pass rate:  0%
-Fail rate:  100%
-Runtime:    ~60s on local CPU
+Gemma 4 E4B on Kaggle T4 (50 graded prompts, NB 100):
+  Mean keyword score: 0.610
+  Pass rate:          20%
+  Explicit-harmful rate: 0%
+  HARD_VIOLATION rate (V3 reclassification): 28%
+  DETECTION_FAIL rate (V3):                  46%
+  FULL_SUCCESS rate (V3):                    0%
 
-Comparison (n=5, gemma3:4b):
-  Plain:     0.484 mean, 20% pass
-  + RAG:     0.594 mean, 40% pass (+23%)
-  + Guided:  0.620 mean, 40% pass (+28%)
+Gemma 3 4B via Ollama (n=5 smoke check):
+  Plain:    0.484 mean, 20% pass
+  + RAG:    0.594 mean, 40% pass (+23%)
+  + Guided: 0.620 mean, 40% pass (+28%)
 ```
 
 **Stock Gemma produces inadequate trafficking safety responses.**
-Context injection improves scores significantly even without fine-tuning.
-Full Gemma 4 E4B evaluation at scale is the Phase 1 deliverable.
+Context injection lifts scores 23-28% without fine-tuning. Phase 3
+Unsloth fine-tuning (NB 530) encodes the same knowledge permanently.
 
-## Component Inventory
+## Component inventory
 
 ### Packages (8 PyPI)
+
 | Package | What it has |
 |---|---|
-| duecare-llm-core | 12 Pydantic schemas, Protocol contracts, Registry, Provenance |
-| duecare-llm-models | 8 model adapters (incl. Ollama for local Gemma) |
-| duecare-llm-domains | Domain pack loader, 3 domain packs, document pipeline (6 modules) |
-| duecare-llm-tasks | 9 capability tests, 15 generators, 7 evaluators |
-| duecare-llm-agents | 12 agents, AgentSupervisor, Evolution engine (4 modules) |
-| duecare-llm-workflows | YAML DAG loader + topological runner |
-| duecare-llm-publishing | HF Hub + Kaggle publisher, markdown reports |
-| duecare-llm (meta) | CLI + re-exports |
+| `duecare-llm-core` | 12 Pydantic schemas, Protocol contracts, Registry, Provenance |
+| `duecare-llm-models` | 8 model adapters (incl. Ollama for local Gemma) |
+| `duecare-llm-domains` | Domain pack loader, 3 domain packs, document pipeline (6 modules) |
+| `duecare-llm-tasks` | 9 capability tests, 15 generators, 7 evaluators |
+| `duecare-llm-agents` | 12 agents, `AgentSupervisor`, Evolution engine (4 modules) |
+| `duecare-llm-workflows` | YAML DAG loader + topological runner |
+| `duecare-llm-publishing` | HF Hub + Kaggle publisher, markdown reports |
+| `duecare-llm` (meta) | CLI + re-exports |
 
-### Generators (15)
-evasion, coercion, financial, regulatory, corridor, multi_turn,
-document_injection, persona (31 personas), interactive (10 formats),
-case_challenge, informed_followup, creative_attacks (12 strategies),
-obfuscation (5 strategies), output_conditioning (5 formats),
-document_quiz (5 question types)
+### Generators (15), evaluators (7), demo app (12 API endpoints), pipeline (8 stages)
 
-### Evaluators (7)
-weighted_scorer (54 criteria), multi_layer (6 evaluation stages),
-llm_judge, FATF compliance ratings, TIPS tier ratings,
-failure_analyzer (6 failure modes), citation_verifier
+Unchanged from the previous status. See `docs/the_forge.md` for the
+canonical list.
 
-### Demo App (12 API endpoints)
-analyze, batch, evaluate (Gemma-powered), function-call,
-analyze-document, rag-context, quick-check, domains, rubrics,
-stats, health, HTML dashboard
+### Data assets
 
-### Pipeline (8 stages)
-acquire → classify → extract → knowledge_base → generate_prompts →
-rate_evaluate → remix → baseline_test
+- 74,567 trafficking prompts (private benchmark; public subset via
+  `taylorsamarel/duecare-trafficking-prompts`).
+- 5 evaluation rubrics (54 criteria).
+- 31 verified legal provisions (15 jurisdictions).
+- 26 + 32 migration corridors.
+- 29 scheme fingerprints.
+- 111-entry RAG knowledge base.
 
-### Data Assets
-- 74,567 trafficking prompts
-- 5 evaluation rubrics (54 criteria)
-- 31 verified legal provisions (15 jurisdictions)
-- 26 + 32 migration corridors
-- 29 scheme fingerprints
-- 111-entry RAG knowledge base
+### Tests: 194 passing. Total Python LOC: 47,351.
 
-### Tests: 194 passing (core: 77, models: 22, domains: 23, tasks: 16, agents: 17, workflows: 9, publishing: 9, tests/: 21)
-### Total Python LOC: 47,351
+## Kaggle notebooks (52 local)
 
-## Kaggle Notebooks (18)
+Full inventory is auto-generated at
+`docs/current_kaggle_notebook_state.md`. Highlights:
 
-| Notebook | Status | URL |
+- 52 notebook mirrors currently match 52 kernel directories locally.
+- 130, 140, 150, 155, 160, 170, and 180 were rebuilt from builders in
+  this session and passed their targeted validators.
+- 150 / 155 / 160 are no longer lightweight placeholders; they now use
+  the canonical header, troubleshooting, handoff, and CPU-safe fallback
+  pattern used by the stronger 170 / 180 builders.
+- Public live-state promotion should be checked against Kaggle at push
+  time; the authoritative local inventory is `docs/current_kaggle_notebook_state.md`.
+
+## Kaggle datasets (2)
+
+| Dataset | Contents | Slug |
 |---|---|---|
-| 00 Gemma Exploration | COMPLETE (v18) | taylorsamarel/duecare-gemma-exploration |
-| 00a Prompt Prioritizer | Live | 00a-duecare-prompt-prioritizer-data-pipeline |
-| 00b Prompt Remixer | Live | 00b-duecare-prompt-remixer-data-pipeline |
-| 01 Quickstart | Live | duecare-quickstart |
-| 02 Cross-Domain Proof | Live | duecare-cross-domain-proof |
-| 03 Agent Swarm Deep Dive | Live | duecare-agent-swarm-deep-dive |
-| 04 Submission Walkthrough | Live | duecare-submission-walkthrough |
-| 05 RAG Comparison | Live | duecare-rag-comparison |
-| 06 Adversarial | Live | duecare-adversarial |
-| 08 FC + Multimodal | Live | duecare-fc-multimodal |
-| 09 LLM Judge | Live | duecare-llm-judge |
-| 10 Conversations | Live | duecare-conversations |
-| 11 Comparative | Live | duecare-comparative |
-| 12 Prompt Factory | Live | duecare-prompt-factory |
-| 13 Rubric Eval | Live | duecare-rubric-eval |
-| 14 Dashboard | Live | duecare-dashboard |
-| Phase 2 Model Comparison | Live | duecare-phase-2-model-comparison |
-| Phase 3 Unsloth Finetune | Pushed | duecare-phase3-finetune |
+| DueCare LLM Wheels | 8 package wheels (v0.1.0) | `taylorsamarel/duecare-llm-wheels` |
+| DueCare Trafficking Prompts | Public subset + 5 rubrics | `taylorsamarel/duecare-trafficking-prompts` |
 
-> **Note:** Gemma 4 E2B/E4B Kaggle results are pending. The baseline
-> numbers above are from Gemma 3 4B via local Ollama only.
+## What's next (priority order)
 
-## Kaggle Datasets (2)
+### P0 - blocks submission
 
-| Dataset | Contents | URL |
-|---|---|---|
-| duecare-llm-wheels | 8 package wheels (v0.3.0) | taylorsamarel/duecare-llm-wheels |
-| duecare-trafficking-prompts | 74,567 prompts + 5 rubrics | taylorsamarel/duecare-trafficking-prompts |
+- [ ] Push the refreshed notebook batch to Kaggle and reconcile live-state drift.
+- [ ] Phase 3 Unsloth fine-tune (NB 530) actual run + HF Hub weights.
+- [ ] Record 3-minute YouTube video per `docs/video_script.md`.
+- [ ] Finalize `docs/writeup_draft.md` with Phase 3 numbers once in.
+- [ ] Public GitHub push (repo is local; see
+  `docs/prompts/30_project_checkpoint.md` release ladder).
 
-## What's Next (Priority Order)
+### P1 - significantly improves score
 
-### P0 — Blocks submission
-- [ ] Run Notebook 00 on T4 x2 GPU (user can set in Kaggle UI)
-- [ ] Phase 3 fine-tuning (run after baseline on T4)
-- [ ] Record video demo (3 minutes)
-- [ ] Finalize writeup (update with Phase 3 results)
-- [ ] Git commit + push to public repo
-
-### P1 — Significantly improves score
-- [ ] Phase 2 comparison results (E2B vs E4B)
-- [ ] RAG vs plain vs guided comparison numbers
+- [ ] Phase 2 cross-model comparison results (E2B vs E4B, NB 510).
 - [ ] Fine-tuned model on HF Hub
-- [ ] GGUF export for llama.cpp track
+  (`TaylorScottAmarel/duecare-gemma-4-e4b-safetyjudge-v0.1.0`).
+- [ ] GGUF export for llama.cpp Special Technology track.
+- [ ] LiteRT export for the mobile on-device story.
 
-### P2 — Nice to have
-- [ ] Run full 74K prompt evaluation (via Ollama locally)
-- [ ] Browser extension prototype
-- [ ] Additional domain packs (medical misinformation)
-- [ ] Interactive HTML report for writeup
+### P2 - nice to have
+
+- [ ] Full 74K prompt evaluation via Ollama locally.
+- [ ] Browser extension prototype polish
+  (`deployment/browser_extension/`).
+- [ ] Additional domain pack (medical misinformation).
+- [ ] Interactive HTML report companion to the writeup.
+
+## Rubric mapping (unchanged)
+
+- **Impact and Vision (40).** 130 shows the corpus concretely; 210,
+  220, 230, 240 show the on-device argument; 399 closes the section
+  honestly. Video opens on a named composite worker; closes on named
+  NGOs.
+- **Video Pitch and Storytelling (30).** 3-minute YouTube,
+  `pip install duecare-llm` one-liner visible, stock-vs-fine-tuned
+  side-by-side from 210 and 530.
+- **Technical Depth and Execution (30).** 7 PyPI packages, typed
+  Protocols, folder-per-module layout, CI-verified tests, 52 Kaggle
+  notebooks with canonical titles, fine-tuned model on HF Hub,
+  llama.cpp and LiteRT deployment artifacts.

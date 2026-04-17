@@ -106,7 +106,7 @@ python scripts/run_local_gemma.py --model gemma4:e2b   # smaller model
 ### Run on Kaggle (GPU)
 
 Open the notebook, set Accelerator to **GPU T4 x2**, and run:
-- [00 — Gemma Exploration](https://www.kaggle.com/code/taylorsamarel/duecare-real-gemma-4-on-50-trafficking-prompts) — real Gemma inference + scoring
+- [100 — Gemma Exploration](https://www.kaggle.com/code/taylorsamarel/duecare-gemma-exploration) — real Gemma inference + scoring
 
 ### Run a workflow
 
@@ -114,9 +114,9 @@ Open the notebook, set Accelerator to **GPU T4 x2**, and run:
 # Trafficking domain, rapid smoke-test workflow
 duecare run rapid_probe --target-model gemma_4_e4b_stock --domain trafficking
 
-# Output:
-#   scout      - Domain 'trafficking' ready (score=1.00): 12 prompts, 10 evidence, 5 categories
-#   judge      - ...
+# Output when the target-model backend is installed and configured:
+#   scout      - Domain 'trafficking' ready (score=1.00)
+#   judge      - Ran capability tests for the configured target model
 #   historian  - Wrote run report to reports/20260411160443_...rapid_probe.md
 #
 #   +-------------+------------------------------------+
@@ -143,76 +143,39 @@ uvicorn src.demo.app:app --port 8080
 # Open http://localhost:8080 for the HTML dashboard
 ```
 
-### 23 Kaggle Notebooks — grouped by purpose
+### 52 Kaggle Notebooks — numbered reading order
 
-> Full canonical ordering with flow diagram: [`docs/NOTEBOOK_GUIDE.md`](./docs/NOTEBOOK_GUIDE.md)
->
-> The `NB XX` numbers in Kaggle URLs are historical (order they were
-> built, not the order they should be read). The category grouping
-> below is the logical flow.
+The notebook suite now uses three-digit reading-order IDs instead of the
+old historical `NB XX` scheme.
 
-#### 🚀 START — Where to begin
+- Full table and one-line purposes: [`docs/notebook_guide.md`](./docs/notebook_guide.md)
+- Exact kernel inventory and mirror map: [`docs/current_kaggle_notebook_state.md`](./docs/current_kaggle_notebook_state.md)
+- Publish outcomes from this session: [`docs/review/notebook_publish_report.md`](./docs/review/notebook_publish_report.md)
 
-| # | Notebook | GPU | Kaggle Link |
-|---|----------|-----|-------------|
-| S1 | 5-minute setup and first safety evaluation | - | [01-duecare-quickstart](https://www.kaggle.com/code/taylorsamarel/01-duecare-quickstart-generalized-framework) |
-| S2 | End-to-end walkthrough from install to published report | - | [duecare-submission-walkthrough](https://www.kaggle.com/code/taylorsamarel/duecare-submission-walkthrough) |
-| S3 | Same harness on Trafficking, Tax Evasion, and Financial Crime domains | - | [duecare-cross-domain-proof](https://www.kaggle.com/code/taylorsamarel/duecare-cross-domain-proof) |
-| S4 | 12 autonomous agents orchestrated by Gemma 4 | - | [12-agent-gemma-4-safety-pipeline](https://www.kaggle.com/code/taylorsamarel/duecare-12-agent-gemma-4-safety-pipeline) |
+The DueCare suite ships as 52 notebooks (52 of 52 validated locally by
+`scripts/validate_notebooks.py`, 24 targeted adversarial validators green).
+An active push session is promoting every notebook to live on Kaggle;
+the full inventory is regenerated into
+[`docs/current_kaggle_notebook_state.md`](./docs/current_kaggle_notebook_state.md)
+after each session.
 
-#### 📊 BASELINE — Real Gemma 4 measurements
+#### Start here
 
-| # | Notebook | GPU | Kaggle Link |
-|---|----------|-----|-------------|
-| B1 | **Gemma 4 9B on 50 trafficking prompts (real Kaggle T4 run)** | T4 | [real-gemma-4-on-50-trafficking-prompts](https://www.kaggle.com/code/taylorsamarel/duecare-real-gemma-4-on-50-trafficking-prompts) |
-| B2 | Gemma 4: plain vs retrieval-augmented vs system-guided prompts | T4 | [duecare-rag-comparison](https://www.kaggle.com/code/taylorsamarel/duecare-rag-comparison) |
-| B3 | Gemma 4 2-billion vs 9-billion parameter versions head-to-head | T4 | [phase-2-model-comparison](https://www.kaggle.com/code/taylorsamarel/duecare-phase-2-model-comparison) |
+| ID | Notebook | GPU | Kaggle Link |
+|---|---|---|---|
+| 000 | Start Here: All Notebooks and Writeup | - | [duecare-000-index](https://www.kaggle.com/code/taylorsamarel/duecare-000-index) |
+| 005 | Glossary and Reading Map | - | [duecare-005-glossary](https://www.kaggle.com/code/taylorsamarel/duecare-005-glossary) |
+| 010 | 5-Minute Setup and First Safety Evaluation | - | [duecare-010-quickstart](https://www.kaggle.com/code/taylorsamarel/duecare-010-quickstart) |
+| 100 | Gemma Exploration (Phase 1 Baseline) | T4 | [duecare-gemma-exploration](https://www.kaggle.com/code/taylorsamarel/duecare-gemma-exploration) |
+| 200 | Cross-Domain Proof | - | [duecare-200-cross-domain-proof](https://www.kaggle.com/code/taylorsamarel/duecare-200-cross-domain-proof) |
+| 500 | Agent Swarm Deep Dive | - | [duecare-500-agent-swarm-deep-dive](https://www.kaggle.com/code/taylorsamarel/duecare-500-agent-swarm-deep-dive) |
+| 610 | Submission Walkthrough | - | [duecare-610-submission-walkthrough](https://www.kaggle.com/code/taylorsamarel/duecare-610-submission-walkthrough) |
 
-#### 🔍 TASK — Capability-specific evaluation
-
-| # | Notebook | GPU | Kaggle Link |
-|---|----------|-----|-------------|
-| T1 | Gemma 4 against 15 adversarial attack vectors | - | [duecare-adversarial-resistance](https://www.kaggle.com/code/taylorsamarel/duecare-adversarial-resistance) |
-| T2 | Gemma 4 native tool calls + document image analysis | - | [duecare-function-calling-multimodal](https://www.kaggle.com/code/taylorsamarel/duecare-function-calling-multimodal) |
-| T3 | Six-dimension safety grading: refusal, legal, completeness, victim safety, culture, actionability | - | [duecare-llm-judge-grading](https://www.kaggle.com/code/taylorsamarel/duecare-llm-judge-grading) |
-| T4 | Multi-turn conversation escalation detection | - | [duecare-conversation-testing](https://www.kaggle.com/code/taylorsamarel/duecare-conversation-testing) |
-| T5 | 54-criterion pass/fail rubric evaluation | - | [duecare-rubric-anchored-evaluation](https://www.kaggle.com/code/taylorsamarel/duecare-rubric-anchored-evaluation) |
-
-#### ⚖️ COMPARE — Multi-model comparisons
-
-| # | Notebook | GPU | Kaggle Link |
-|---|----------|-----|-------------|
-| C1 | Gemma 4 9B vs Llama 3.1 8B, Mistral 7B, Gemma 2B (analysis from real NB 00 data) | - | [gemma-4-vs-llama-vs-mistral](https://www.kaggle.com/code/taylorsamarel/gemma-4-vs-llama-vs-mistral-on-trafficking-safety) |
-| C2 | **Gemma 4 vs Gemma 2 9B, Llama 3.1, Mistral 7B, Qwen 2.5, Phi 3, DeepSeek** (via Ollama Cloud) | - | [gemma-4-vs-6-oss-models-via-ollama-cloud](https://www.kaggle.com/code/taylorsamarel/duecare-gemma-4-vs-6-oss-models-via-ollama-cloud) |
-| C3 | **Gemma 4 vs Mistral Large 2, Mistral Small 3, Mistral Nemo, Ministral 8B, Mistral 7B** | - | [gemma-4-vs-mistral-family](https://www.kaggle.com/code/taylorsamarel/duecare-gemma-4-vs-mistral-family) |
-| C4 | **Gemma 4 vs Claude 3.5 Sonnet, GPT-4o, Gemini 1.5 Pro, Llama 3.1 405B, DeepSeek V3, Qwen 2.5 72B** | - | [openrouter-frontier-comparison](https://www.kaggle.com/code/taylorsamarel/duecare-openrouter-frontier-comparison) |
-| C5 | Anchored grading: Gemma 4 responses scored against hand-written best and worst examples | - | [duecare-comparative-grading](https://www.kaggle.com/code/taylorsamarel/duecare-comparative-grading) |
-
-#### 🛡️ SAFETY — Red-team research
-
-| # | Notebook | GPU | Kaggle Link |
-|---|----------|-----|-------------|
-| SF1 | **Gemma 4 stock vs SuperGemma 26B uncensored: refusal-gap analysis** | T4 | [finding-gemma-4-safety-line](https://www.kaggle.com/code/taylorsamarel/duecare-finding-gemma-4-safety-line) |
-
-#### ⚙️ PIPELINE — Custom prompts & test generation
-
-| # | Notebook | GPU | Kaggle Link |
-|---|----------|-----|-------------|
-| P1 | Select 2,000 high-value prompts from the 74,567-prompt corpus | - | [curating-2k-trafficking-prompts-from-74k](https://www.kaggle.com/code/taylorsamarel/duecare-curating-2k-trafficking-prompts-from-74k) |
-| P2 | Generate 15 adversarial variations per base prompt | - | [00b-duecare-prompt-remixer](https://www.kaggle.com/code/taylorsamarel/00b-duecare-prompt-remixer-data-pipeline) |
-| P3 | Prompt factory: generate, validate, rank by victim impact | - | [duecare-adversarial-prompt-factory](https://www.kaggle.com/code/taylorsamarel/duecare-adversarial-prompt-factory) |
-
-#### 🎯 FINE-TUNE — Improve Gemma 4 for your domain
-
-| # | Notebook | GPU | Kaggle Link |
-|---|----------|-----|-------------|
-| F1 | Gemma 4 low-rank adaptation fine-tuning + local-model export (llama.cpp) | T4 | [duecare-phase3-finetune](https://www.kaggle.com/code/taylorsamarel/duecare-phase3-finetune) |
-
-#### 📈 REPORT — Results
-
-| # | Notebook | GPU | Kaggle Link |
-|---|----------|-----|-------------|
-| R1 | Interactive safety evaluation dashboard | - | [duecare-results-dashboard](https://www.kaggle.com/code/taylorsamarel/duecare-results-dashboard) |
+The remaining notebooks cover the `100`-`600` bands for evaluation,
+comparison, adversarial testing, pipeline construction, fine-tuning, and
+reporting. The `000` band is now the orientation layer: index, glossary,
+and quickstart. See [`docs/notebook_guide.md`](./docs/notebook_guide.md)
+for the full 52-notebook ordered table.
 
 ## Architecture
 
@@ -258,14 +221,14 @@ uvicorn src.demo.app:app --port 8080
 
 | Metric | Value | Source |
 |---|---|---|
-| Stock Gemma 4 E4B mean score | **0.610** | [NB 00](https://www.kaggle.com/code/taylorsamarel/duecare-real-gemma-4-on-50-trafficking-prompts) |
-| Stock Gemma 4 E4B pass rate | **20%** | NB 00 (50 graded prompts) |
+| Stock Gemma 4 E4B mean score | **0.610** | [100 - Gemma Exploration](https://www.kaggle.com/code/taylorsamarel/duecare-gemma-exploration) |
+| Stock Gemma 4 E4B pass rate | **20%** | 100 (50 graded prompts) |
 | Harmful phrase rate | **0.0%** | Gemma 4 never produced harmful content |
 | Refusal rate | **36%** | Clear refusal on exploitation requests |
-| With RAG context | **0.59** (+23% over plain) | NB 05 |
-| With guided prompt | **0.62** (+28% over plain) | NB 05 |
-| Trafficking prompt corpus | **74,567** | NB 00a |
-| Adversarial generators | **15** | NB 12 |
+| With RAG context | **0.59** (+23% over plain) | [260 - RAG Comparison](https://www.kaggle.com/code/taylorsamarel/duecare-260-rag-comparison) |
+| With guided prompt | **0.62** (+28% over plain) | [260 - RAG Comparison](https://www.kaggle.com/code/taylorsamarel/duecare-260-rag-comparison) |
+| Trafficking prompt corpus | **74,567** | [110 - Prompt Prioritizer](https://www.kaggle.com/code/taylorsamarel/00a-duecare-prompt-prioritizer-data-pipeline) |
+| Adversarial generators | **15** | [310 - Prompt Factory](https://www.kaggle.com/code/taylorsamarel/duecare-310-prompt-factory) |
 | Evaluation frameworks | **7** | |
 | Tests passing | **194** | Across 8 packages |
 
@@ -462,13 +425,13 @@ Latest full run:
 
 ## Demo notebook
 
-`notebooks/duecare_llm_core_demo.ipynb` — a runnable Jupyter notebook
-exercising every public surface of `duecare-llm-core`. 22 cells (12
-code), verified to execute end-to-end against the installed wheel. A
-good starting point for understanding the shape of the Duecare API.
+`notebooks/010_quickstart.ipynb` is the local mirror of the numbered
+quickstart notebook and is the best place to exercise the public
+DueCare package surface from a clean install.
 
-The Kaggle submission notebook that runs the full cross-domain
-workflow lives at `notebooks/forge_kaggle_submission.ipynb`.
+`notebooks/610_submission_walkthrough.ipynb` is the local mirror of the
+Kaggle submission walkthrough and is the shortest path from install to
+report-generation.
 
 ## Configuration
 
