@@ -32,20 +32,20 @@ KAGGLE_KERNELS = ROOT / "kaggle" / "kernels"
 
 FILENAME = "620_demo_api_endpoint_tour.ipynb"
 KERNEL_DIR_NAME = "duecare_620_demo_api_endpoint_tour"
-KERNEL_ID = "taylorsamarel/duecare-620-demo-api-endpoint-tour"
+KERNEL_ID = "taylorsamarel/620-duecare-demo-api-endpoint-tour"
 KERNEL_TITLE = "620: DueCare Demo API Endpoint Tour"
 WHEELS_DATASET = "taylorsamarel/duecare-llm-wheels"
-KEYWORDS = ["gemma", "safety", "api", "demo", "fastapi"]
+KEYWORDS = ["evaluation"]
 
 URL_000 = "https://www.kaggle.com/code/taylorsamarel/duecare-000-index"
-URL_140 = "https://www.kaggle.com/code/taylorsamarel/duecare-140-evaluation-mechanics"
+URL_140 = "https://www.kaggle.com/code/taylorsamarel/140-duecare-evaluation-mechanics"
 URL_260 = "https://www.kaggle.com/code/taylorsamarel/duecare-260-rag-comparison"
 URL_460 = "https://www.kaggle.com/code/taylorsamarel/duecare-460-citation-verifier"
 URL_600 = "https://www.kaggle.com/code/taylorsamarel/600-duecare-results-dashboard"
-URL_610 = "https://www.kaggle.com/code/taylorsamarel/duecare-610-submission-walkthrough"
-URL_620 = "https://www.kaggle.com/code/taylorsamarel/duecare-620-demo-api-endpoint-tour"
-URL_650 = "https://www.kaggle.com/code/taylorsamarel/duecare-650-custom-domain-walkthrough"
-URL_899 = "https://www.kaggle.com/code/taylorsamarel/899-duecare-solution-surfaces-conclusion"
+URL_610 = "https://www.kaggle.com/code/taylorsamarel/610-duecare-submission-walkthrough"
+URL_620 = "https://www.kaggle.com/code/taylorsamarel/620-duecare-demo-api-endpoint-tour"
+URL_650 = "https://www.kaggle.com/code/taylorsamarel/650-duecare-custom-domain-walkthrough"
+URL_899 = "https://www.kaggle.com/code/taylorsamarel/duecare-solution-surfaces-conclusion"
 
 
 def md(s: str) -> dict:
@@ -71,7 +71,7 @@ NB_METADATA = {
 
 HEADER_TABLE = canonical_header_table(
     inputs_html=(
-        "An in-notebook <code>ENDPOINTS</code> catalog describing the 13 FastAPI "
+        "An in-notebook <code>ENDPOINTS</code> catalog describing the 17 FastAPI "
         "routes exposed by <code>src/demo/app.py</code>, plus an optional in-process "
         "<code>fastapi.testclient.TestClient</code> bound to the real app so the "
         "calls render live output when the package is installed. No external server "
@@ -79,12 +79,13 @@ HEADER_TABLE = canonical_header_table(
     ),
     outputs_html=(
         "Per-endpoint subsections with <code>curl</code>, request and response "
-        "shape, and a Python <code>requests</code> snippet for seven representative "
+        "shape, and a Python <code>requests</code> snippet for eight representative "
         "routes (<code>/analyze</code>, <code>/rag-context</code>, "
         "<code>/function-call</code>, <code>/analyze-document</code>, "
-        "<code>/migration-case</code>, <code>/evaluate</code>, "
-        "<code>/quick-check</code>); an HTML summary table covering all 13 "
-        "endpoints; and a Plotly sankey rendering the "
+        "<code>/migration-case</code>, <code>/migration-case-upload</code>, "
+        "<code>/evaluate</code>, <code>/quick-check</code>); an HTML summary table "
+        "covering all 17 endpoints, including a live catalog-vs-app drift audit when "
+        "the TestClient import succeeds; and a Plotly sankey rendering the "
         "endpoint -> agent/tool call graph."
     ),
     prerequisites_html=(
@@ -105,7 +106,7 @@ HEADER_TABLE = canonical_header_table(
 
 HEADER = f"""# 620: DueCare Demo API Endpoint Tour
 
-**The deployment surface without a running server.** This notebook walks every FastAPI endpoint the DueCare demo app (<code>src/demo/app.py</code>) exposes: 13 routes covering single-prompt analysis, batch analysis, full rubric evaluation, native function calling, multimodal document analysis, multi-document NGO case intake, RAG retrieval, quick-check triage, metadata listings, aggregate stats, a liveness probe, and the HTML dashboard. Each endpoint gets a titled subsection with a curl example, a sample response shape, and a Python <code>requests</code> snippet. A Plotly sankey at the bottom shows which endpoints call which downstream agents and tools so the deployment story is visible at a glance.
+**The deployment surface without a running server.** This notebook walks every FastAPI endpoint the DueCare demo app (<code>src/demo/app.py</code>) exposes: 17 routes covering single-prompt analysis, batch analysis, full rubric evaluation, native function calling, multimodal document analysis, direct case-example retrieval, multi-document NGO case intake in both JSON and file-upload form, RAG retrieval, quick-check triage, metadata listings, aggregate stats, a liveness probe, the analyst viewer, and the root HTML dashboard. Each endpoint gets a titled subsection with a curl example, a sample response shape, and a Python <code>requests</code> snippet. A Plotly sankey at the bottom shows which endpoints call which downstream agents and tools so the deployment story is visible at a glance.
 
 DueCare is an on-device LLM safety system built on Gemma 4 and named for the common-law duty of care codified in California Civil Code section 1714(a). This tour is the fastest way for a judge or an adopting NGO engineer to understand the demo surface without spinning up uvicorn.
 
@@ -125,10 +126,10 @@ The tour never loads a model. When the demo package is installed, the notebook u
 
 ### What this notebook does
 
-1. Define a typed <code>ENDPOINTS</code> catalog describing all 13 routes.
-2. Optionally spin up a <code>TestClient</code> against <code>duecare.demo.api.app</code>; fall back cleanly when the package is not importable.
-3. Walk seven representative endpoints (<code>/analyze</code>, <code>/rag-context</code>, <code>/function-call</code>, <code>/analyze-document</code>, <code>/migration-case</code>, <code>/evaluate</code>, <code>/quick-check</code>) with curl + response + Python snippets.
-4. Render an HTML summary table covering all 13 endpoints.
+1. Define a typed <code>ENDPOINTS</code> catalog describing all 17 routes.
+2. Optionally spin up a <code>TestClient</code> against <code>duecare.demo.api.app</code>; fall back cleanly when the package is not importable, and compare the live app routes against the catalog when import succeeds.
+3. Walk eight representative endpoints (<code>/analyze</code>, <code>/rag-context</code>, <code>/function-call</code>, <code>/analyze-document</code>, <code>/migration-case</code>, <code>/migration-case-upload</code>, <code>/evaluate</code>, <code>/quick-check</code>) with curl + response + Python snippets.
+4. Render an HTML summary table covering all 17 endpoints.
 5. Render a Plotly sankey of the endpoint -> agent/tool call graph.
 """
 
@@ -137,11 +138,481 @@ STEP_1_INTRO = """---
 
 ## 1. The DueCare API at a glance
 
-The demo app ships 12 routes under the <code>/api/v1</code> prefix plus the root HTML dashboard. The <code>ENDPOINTS</code> catalog below captures the method, path, a one-line summary, the request and response shape, a curl example, and a Python <code>requests</code> snippet for each route. Every downstream cell reads from this one source of truth so if a route signature changes, one edit propagates to every subsection.
+The demo app ships 15 routes under the <code>/api/v1</code> prefix plus the analyst viewer and the root HTML dashboard. The <code>ENDPOINTS</code> catalog below captures the method, path, a one-line summary, the request and response shape, a curl example, and a Python <code>requests</code> snippet for each route. Every downstream cell reads from this one source of truth so if a route signature changes, one edit propagates to every subsection.
 """
 
 
-ENDPOINTS_CODE = """ENDPOINTS = [
+ENDPOINTS_DATA = [
+    {
+        "method": "POST",
+        "path": "/api/v1/analyze",
+        "name": "Single-prompt safety analysis",
+        "summary": "Score one input against all loaded trafficking rubrics and return grade, action, indicators, warning text, legal refs, and resources.",
+        "request_shape": {
+            "text": "str (required)",
+            "context": "enum: job_posting | chat | contract | comment | document | other",
+            "jurisdiction": "str (optional; corridor code like PH_HK)",
+            "language": "enum: en | tl (default en)",
+        },
+        "response_shape": {
+            "score": "float in [0, 1]",
+            "grade": "enum: best | good | neutral | bad | worst",
+            "action": "enum: pass | warn | review | block",
+            "indicators": "list[str]",
+            "warning_text": "str",
+            "legal_refs": "list[str]",
+            "resources": "list[{name, number, url, jurisdiction}]",
+            "rubric_results": "list[{rubric_name, score, grade, criteria_results}]",
+        },
+        "curl_example": (
+            "curl -X POST http://localhost:8080/api/v1/analyze \\\n"
+            "  -H 'Content-Type: application/json' \\\n"
+            "  -d '{\"text\": \"Agency wants six months of wages as placement fee\", \"context\": \"chat\", \"jurisdiction\": \"PH_HK\"}'"
+        ),
+        "python_example": (
+            "import requests\n"
+            "r = requests.post('http://localhost:8080/api/v1/analyze', json={\n"
+            "    'text': 'Agency wants six months of wages as placement fee',\n"
+            "    'context': 'chat',\n"
+            "    'jurisdiction': 'PH_HK',\n"
+            "})\n"
+            "print(r.json()['grade'], r.json()['action'])"
+        ),
+    },
+    {
+        "method": "POST",
+        "path": "/api/v1/batch",
+        "name": "Batch safety analysis",
+        "summary": "Accept up to 500 items, score each against the rubric bank, and return per-item results plus aggregate grade and action distributions.",
+        "request_shape": {"items": "list[AnalyzeRequest] (max 500)"},
+        "response_shape": {
+            "results": "list[AnalyzeResponse]",
+            "summary": {
+                "total": "int",
+                "grade_distribution": "dict[grade, count]",
+                "action_distribution": "dict[action, count]",
+                "flagged_count": "int",
+            },
+            "batch_id": "str (uuid-12)",
+        },
+        "curl_example": (
+            "curl -X POST http://localhost:8080/api/v1/batch \\\n"
+            "  -H 'Content-Type: application/json' \\\n"
+            "  -d '{\"items\": [{\"text\": \"Agency holds passport until fees paid\"}, {\"text\": \"Live-in caregiver, employer pays all fees per ILO C181\"}]}'"
+        ),
+        "python_example": (
+            "import requests\n"
+            "r = requests.post('http://localhost:8080/api/v1/batch', json={\n"
+            "    'items': [\n"
+            "        {'text': 'Agency holds passport until fees paid'},\n"
+            "        {'text': 'Live-in caregiver, employer pays all fees per ILO C181'},\n"
+            "    ],\n"
+            "})\n"
+            "print(r.json()['summary'])"
+        ),
+    },
+    {
+        "method": "POST",
+        "path": "/api/v1/evaluate",
+        "name": "Full model evaluation",
+        "summary": "Send text to Gemma 4 via Ollama and score the response. Modes: plain | rag | guided | compare (all three side-by-side).",
+        "request_shape": {
+            "text": "str (required)",
+            "mode": "enum: plain | rag | guided | compare (default plain)",
+            "model": "str (default gemma4:e4b)",
+        },
+        "response_shape": {
+            "plain": "GemmaResult (when mode=compare)",
+            "rag": "GemmaResult (when mode=compare)",
+            "guided": "GemmaResult (when mode=compare)",
+            "response": "str (when mode != compare)",
+            "score": "float",
+            "grade": "enum",
+            "mode_used": "str",
+            "latency_ms": "int",
+        },
+        "curl_example": (
+            "curl -X POST http://localhost:8080/api/v1/evaluate \\\n"
+            "  -H 'Content-Type: application/json' \\\n"
+            "  -d '{\"text\": \"What should I do about my recruitment fee?\", \"mode\": \"compare\"}'"
+        ),
+        "python_example": (
+            "import requests\n"
+            "r = requests.post('http://localhost:8080/api/v1/evaluate', json={\n"
+            "    'text': 'What should I do about my recruitment fee?',\n"
+            "    'mode': 'compare',\n"
+            "    'model': 'gemma4:e4b',\n"
+            "})\n"
+            "print({k: v.get('grade') for k, v in r.json().items() if isinstance(v, dict)})"
+        ),
+    },
+    {
+        "method": "POST",
+        "path": "/api/v1/function-call",
+        "name": "Native Gemma 4 tool call",
+        "summary": "Demonstrate Gemma 4 native function calling across the fee, hotline, legal, and exploitation tools.",
+        "request_shape": {"text": "str (required)"},
+        "response_shape": {
+            "results": "list[{tool, args, result}]",
+            "final_answer": "str",
+        },
+        "curl_example": (
+            "curl -X POST http://localhost:8080/api/v1/function-call \\\n"
+            "  -H 'Content-Type: application/json' \\\n"
+            "  -d '{\"text\": \"PHP 50000 placement fee for Hong Kong domestic work\"}'"
+        ),
+        "python_example": (
+            "import requests\n"
+            "r = requests.post('http://localhost:8080/api/v1/function-call', json={\n"
+            "    'text': 'PHP 50000 placement fee for Hong Kong domestic work',\n"
+            "})\n"
+            "for call in r.json()['results']:\n"
+            "    print(call['tool'])"
+        ),
+    },
+    {
+        "method": "POST",
+        "path": "/api/v1/analyze-document",
+        "name": "Multimodal document analysis",
+        "summary": "Accept document text or, in production, a photo and extract exploitation indicators, monetary amounts, fee clauses, and passport references.",
+        "request_shape": {
+            "text": "str (required)",
+            "context": "str (optional; default document)",
+        },
+        "response_shape": {
+            "extracted_fields": "dict[str, Any]",
+            "indicator_flags": "list[str]",
+            "score": "float",
+            "grade": "enum",
+            "notes": "list[str]",
+        },
+        "curl_example": (
+            "curl -X POST http://localhost:8080/api/v1/analyze-document \\\n"
+            "  -H 'Content-Type: application/json' \\\n"
+            "  -d '{\"text\": \"Employer to retain passport for contract duration\", \"context\": \"contract\"}'"
+        ),
+        "python_example": (
+            "import requests\n"
+            "r = requests.post('http://localhost:8080/api/v1/analyze-document', json={\n"
+            "    'text': 'Employer to retain passport for contract duration',\n"
+            "    'context': 'contract',\n"
+            "})\n"
+            "print(r.json().get('indicator_flags'))"
+        ),
+    },
+    {
+        "method": "POST",
+        "path": "/api/v1/migration-case",
+        "name": "NGO migration case intake",
+        "summary": "Bundle multiple migration documents into one case packet, classify each file, build a timeline, retrieve grounding context, and draft complaint text.",
+        "request_shape": {
+            "case_id": "str (optional)",
+            "corridor": "str (optional; corridor code like PH_HK)",
+            "documents": "list[{document_id, title, text, context, captured_at}]",
+            "include_complaint_templates": "bool (default True)",
+            "top_k_context": "int (default 5)",
+        },
+        "response_shape": {
+            "case_id": "str",
+            "corridor": "str",
+            "document_count": "int",
+            "risk_level": "enum: HIGH | MEDIUM | LOW",
+            "detected_indicators": "list[str]",
+            "applicable_laws": "list[str]",
+            "retrieved_context": "str",
+            "timeline": "list[{date, label, document_id, description}]",
+            "document_analyses": "list[{document_id, title, risk_level, findings, indicator_flags}]",
+            "recommended_actions": "list[str]",
+            "hotlines": "list[{name, number, url, jurisdiction}]",
+            "tool_results": "list[{tool, result}]",
+            "complaint_templates": "list[{name, audience, text}]",
+        },
+        "curl_example": (
+            "curl -X POST http://localhost:8080/api/v1/migration-case \\\n"
+            "  -H 'Content-Type: application/json' \\\n"
+            "  -d '{\"case_id\": \"case-demo-001\", \"corridor\": \"PH_HK\", \"documents\": [{\"title\": \"Agency receipt\", \"context\": \"receipt\", \"text\": \"Receipt for placement fee: HKD 20000 paid by worker.\"}, {\"title\": \"Employment contract\", \"context\": \"contract\", \"text\": \"Employer will retain passport and deduct fees over 7 months.\"}]}'"
+        ),
+        "python_example": (
+            "import requests\n"
+            "r = requests.post('http://localhost:8080/api/v1/migration-case', json={\n"
+            "    'case_id': 'case-demo-001',\n"
+            "    'corridor': 'PH_HK',\n"
+            "    'documents': [\n"
+            "        {'title': 'Agency receipt', 'context': 'receipt', 'text': 'Receipt for placement fee: HKD 20000 paid by worker.'},\n"
+            "        {'title': 'Employment contract', 'context': 'contract', 'text': 'Employer will retain passport and deduct fees over 7 months.'},\n"
+            "    ],\n"
+            "})\n"
+            "print(r.json()['risk_level'], len(r.json()['timeline']))"
+        ),
+    },
+    {
+        "method": "POST",
+        "path": "/api/v1/migration-case-upload",
+        "name": "Upload-first NGO case intake",
+        "summary": "Accept a multipart upload of receipts, chats, contracts, and notes; normalize the files into a migration case packet before running the same timeline, legal-context, and complaint-drafting workflow as the JSON endpoint.",
+        "request_shape": {
+            "files": "list[UploadFile] (required)",
+            "corridor": "str (optional; corridor code like PH_HK)",
+            "case_id": "str (optional)",
+            "case_notes": "str (optional)",
+            "include_complaint_templates": "bool (default True)",
+            "top_k_context": "int (default 5)",
+            "document_contexts_json": "JSON dict[str, str] (optional)",
+            "document_dates_json": "JSON dict[str, str] (optional)",
+            "document_notes_json": "JSON dict[str, str] (optional)",
+        },
+        "response_shape": {
+            "case_id": "str",
+            "corridor": "str",
+            "document_count": "int",
+            "risk_level": "enum: HIGH | MEDIUM | LOW",
+            "detected_indicators": "list[str]",
+            "timeline": "list[{date, label, document_id, description}]",
+            "document_analyses": "list[{document_id, title, risk_level, findings, indicator_flags}]",
+            "recommended_actions": "list[str]",
+            "complaint_templates": "list[{name, audience, text}]",
+        },
+        "curl_example": (
+            "curl -X POST http://localhost:8080/api/v1/migration-case-upload \\\n"
+            "  -F 'corridor=PH_HK' \\\n"
+            "  -F 'case_id=case-upload-001' \\\n"
+            "  -F 'files=@agency-receipt.txt;type=text/plain' \\\n"
+            "  -F 'files=@employment-contract.txt;type=text/plain'"
+        ),
+        "python_example": (
+            "import requests\n"
+            "files = [\n"
+            "    ('files', ('agency-receipt.txt', 'Receipt for placement fee: HKD 20000', 'text/plain')),\n"
+            "    ('files', ('employment-contract.txt', 'Employer will retain passport during contract period.', 'text/plain')),\n"
+            "]\n"
+            "data = {'corridor': 'PH_HK', 'case_id': 'case-upload-001'}\n"
+            "r = requests.post('http://localhost:8080/api/v1/migration-case-upload', files=files, data=data)\n"
+            "print(r.json()['risk_level'], len(r.json()['timeline']))"
+        ),
+    },
+    {
+        "method": "POST",
+        "path": "/api/v1/rag-context",
+        "name": "RAG retrieval for a prompt",
+        "summary": "Retrieve legal provisions, corridor fingerprints, and scheme fingerprints from the DueCare knowledge base for prompt injection.",
+        "request_shape": {"text": "str (required)", "top_k": "int (default 5)"},
+        "response_shape": {
+            "query": "str",
+            "context": "str (newline-joined, citation-bracketed)",
+            "n_entries": "int",
+            "n_retrieved": "int",
+        },
+        "curl_example": (
+            "curl -X POST http://localhost:8080/api/v1/rag-context \\\n"
+            "  -H 'Content-Type: application/json' \\\n"
+            "  -d '{\"text\": \"Is a placement fee legal for Filipino domestic workers?\", \"top_k\": 5}'"
+        ),
+        "python_example": (
+            "import requests\n"
+            "r = requests.post('http://localhost:8080/api/v1/rag-context', json={\n"
+            "    'text': 'Is a placement fee legal for Filipino domestic workers?',\n"
+            "    'top_k': 5,\n"
+            "})\n"
+            "print(r.json()['n_retrieved'], 'entries retrieved')"
+        ),
+    },
+    {
+        "method": "POST",
+        "path": "/api/v1/quick-check",
+        "name": "Fast keyword-only check",
+        "summary": "Stage 1 enterprise triage. Keyword and regex match under 1 ms. High recall; decides whether to escalate to the full rubric.",
+        "request_shape": {"text": "str (required)"},
+        "response_shape": {
+            "should_trigger": "bool",
+            "score": "float in [0, 1]",
+            "matched_keywords": "list[str]",
+            "matched_patterns": "list[str]",
+            "category_hints": "list[str]",
+        },
+        "curl_example": (
+            "curl -X POST http://localhost:8080/api/v1/quick-check \\\n"
+            "  -H 'Content-Type: application/json' \\\n"
+            "  -d '{\"text\": \"Agency holds passport until fees paid\"}'"
+        ),
+        "python_example": (
+            "import requests\n"
+            "r = requests.post('http://localhost:8080/api/v1/quick-check', json={\n"
+            "    'text': 'Agency holds passport until fees paid',\n"
+            "})\n"
+            "print(r.json()['should_trigger'], r.json()['matched_keywords'])"
+        ),
+    },
+    {
+        "method": "GET",
+        "path": "/api/v1/domains",
+        "name": "List available domain packs",
+        "summary": "Return metadata for every domain pack loaded in the current process.",
+        "request_shape": {},
+        "response_shape": {
+            "id": "str",
+            "display_name": "str",
+            "version": "str",
+            "description": "str",
+            "n_rubrics": "int",
+        },
+        "curl_example": "curl http://localhost:8080/api/v1/domains",
+        "python_example": (
+            "import requests\n"
+            "r = requests.get('http://localhost:8080/api/v1/domains')\n"
+            "for d in r.json():\n"
+            "    print(d['id'])"
+        ),
+    },
+    {
+        "method": "GET",
+        "path": "/api/v1/rubrics",
+        "name": "List available rubrics",
+        "summary": "Return metadata for every rubric the scorer has loaded.",
+        "request_shape": {},
+        "response_shape": {
+            "name": "str",
+            "category": "str",
+            "n_criteria": "int",
+            "weight": "float",
+        },
+        "curl_example": "curl http://localhost:8080/api/v1/rubrics",
+        "python_example": (
+            "import requests\n"
+            "r = requests.get('http://localhost:8080/api/v1/rubrics')\n"
+            "print(len(r.json()), 'rubrics loaded')"
+        ),
+    },
+    {
+        "method": "GET",
+        "path": "/api/v1/case-examples",
+        "name": "List bundled case examples",
+        "summary": "Return the built-in case-study fixtures that feed the demo viewer and the NGO workflow walkthrough.",
+        "request_shape": {},
+        "response_shape": {
+            "examples": "list[{id, title, corridor, summary, document_count}]",
+        },
+        "curl_example": "curl http://localhost:8080/api/v1/case-examples",
+        "python_example": (
+            "import requests\n"
+            "r = requests.get('http://localhost:8080/api/v1/case-examples')\n"
+            "print(len(r.json().get('examples', [])), 'bundled examples')"
+        ),
+    },
+    {
+        "method": "GET",
+        "path": "/api/v1/case-examples/{example_id}",
+        "name": "Fetch one bundled case example",
+        "summary": "Load a single named demo case with its documents, timeline metadata, and corridor label so an operator can inspect or replay it end to end.",
+        "request_shape": {
+            "example_id": "path param: str",
+        },
+        "response_shape": {
+            "id": "str",
+            "title": "str",
+            "corridor": "str",
+            "documents": "list[{document_id, title, text, context, captured_at}]",
+        },
+        "curl_example": "curl http://localhost:8080/api/v1/case-examples/case-demo-001",
+        "python_example": (
+            "import requests\n"
+            "r = requests.get('http://localhost:8080/api/v1/case-examples/case-demo-001')\n"
+            "print(r.json().get('id'), len(r.json().get('documents', [])))"
+        ),
+    },
+    {
+        "method": "GET",
+        "path": "/api/v1/stats",
+        "name": "Aggregate usage stats",
+        "summary": "Report totals for analyses since startup: grade distribution, action distribution, top indicators, rubrics loaded, and uptime.",
+        "request_shape": {},
+        "response_shape": {
+            "total_analyses": "int",
+            "grade_distribution": "dict[grade, count]",
+            "action_distribution": "dict[action, count]",
+            "top_indicators": "list[{indicator, count}]",
+            "uptime_seconds": "int",
+        },
+        "curl_example": "curl http://localhost:8080/api/v1/stats",
+        "python_example": (
+            "import requests\n"
+            "r = requests.get('http://localhost:8080/api/v1/stats')\n"
+            "print(r.json().get('total_analyses'))"
+        ),
+    },
+    {
+        "method": "GET",
+        "path": "/api/v1/health",
+        "name": "Health probe",
+        "summary": "Cheap liveness endpoint for container orchestration and smoke tests.",
+        "request_shape": {},
+        "response_shape": {
+            "status": "str (literal 'ok')",
+            "version": "str",
+            "rubrics_loaded": "int",
+            "model_id": "str",
+            "uptime_seconds": "float",
+        },
+        "curl_example": "curl http://localhost:8080/api/v1/health",
+        "python_example": (
+            "import requests\n"
+            "r = requests.get('http://localhost:8080/api/v1/health')\n"
+            "print(r.json()['status'], r.json()['version'])"
+        ),
+    },
+    {
+        "method": "GET",
+        "path": "/viewer",
+        "name": "Interactive report viewer",
+        "summary": "Serve the richer analyst viewer used for report inspection, HTML exports, and narrative handoff from the dashboard layer.",
+        "request_shape": {},
+        "response_shape": {
+            "Content-Type": "text/html",
+            "body": "HTML document (no JSON contract)",
+        },
+        "curl_example": "curl http://localhost:8080/viewer",
+        "python_example": (
+            "import requests\n"
+            "r = requests.get('http://localhost:8080/viewer')\n"
+            "print(r.headers['content-type'], len(r.text), 'bytes')"
+        ),
+    },
+    {
+        "method": "GET",
+        "path": "/",
+        "name": "HTML dashboard",
+        "summary": "Serve the browser dashboard for analysts and demo reviewers.",
+        "request_shape": {},
+        "response_shape": {
+            "Content-Type": "text/html",
+            "body": "HTML document (no JSON contract)",
+        },
+        "curl_example": "curl http://localhost:8080/",
+        "python_example": (
+            "import requests\n"
+            "r = requests.get('http://localhost:8080/')\n"
+            "print(r.headers['content-type'], len(r.text), 'bytes')"
+        ),
+    },
+]
+
+
+ENDPOINTS_CODE = (
+    "import json\n"
+    "ENDPOINTS = json.loads(r'''\n"
+    + json.dumps(ENDPOINTS_DATA, indent=2)
+    + "\n''')\n"
+)
+
+
+STEP_2_INTRO = """---
+
+## 2. Spin up a local TestClient (optional)
+
+When the DueCare demo package is installed, <code>fastapi.testclient.TestClient</code> imports the FastAPI app directly and calls endpoints in-process, so every subsection below renders live JSON output. The same setup cell also compares the imported app routes against the notebook catalog so route drift shows up immediately. When the package is missing on the Kaggle CPU kernel, the cells fall back to scripted sample responses so the tour still reads end-to-end.
+"""
+
+
+_UNUSED_LEGACY_ENDPOINTS_CODE = """ENDPOINTS = [
     {
         'method': 'POST',
         'path': '/api/v1/analyze',
@@ -302,6 +773,51 @@ ENDPOINTS_CODE = """ENDPOINTS = [
             \"    'model': 'gemma4:e4b',\\n\"
             \"})\\n\"
             \"print({k: v.get('grade') for k, v in r.json().items() if isinstance(v, dict)})\"
+        ),
+    },
+    {
+        'method': 'POST',
+        'path': '/api/v1/migration-case',
+        'name': 'NGO migration case intake',
+        'summary': 'Bundle multiple migration documents into one case packet, classify each file, build a timeline, retrieve grounding context, and draft complaint text.',
+        'request_shape': {
+            'case_id': 'str (optional)',
+            'corridor': 'str (optional; corridor code like PH_HK)',
+            'documents': 'list[{document_id, title, text, context, captured_at}]',
+            'include_complaint_templates': 'bool (default True)',
+            'top_k_context': 'int (default 5)',
+        },
+        'response_shape': {
+            'case_id': 'str',
+            'corridor': 'str',
+            'document_count': 'int',
+            'risk_level': 'enum: HIGH | MEDIUM | LOW',
+            'detected_indicators': 'list[str]',
+            'applicable_laws': 'list[str]',
+            'retrieved_context': 'str',
+            'timeline': 'list[{date, label, document_id, description}]',
+            'document_analyses': 'list[{document_id, title, risk_level, findings, indicator_flags}]',
+            'recommended_actions': 'list[str]',
+            'hotlines': 'list[{name, number, url, jurisdiction}]',
+            'tool_results': 'list[{tool, result}]',
+            'complaint_templates': 'list[{name, audience, text}]',
+        },
+        'curl_example': (
+            "curl -X POST http://localhost:8080/api/v1/migration-case \\\n"
+            "  -H 'Content-Type: application/json' \\\n"
+            "  -d '{\\\"case_id\\\": \\\"case-demo-001\\\", \\\"corridor\\\": \\\"PH_HK\\\", \\\"documents\\\": [{\\\"title\\\": \\\"Agency receipt\\\", \\\"context\\\": \\\"receipt\\\", \\\"text\\\": \\\"Receipt for placement fee: HKD 20000 paid by worker.\\\"}, {\\\"title\\\": \\\"Employment contract\\\", \\\"context\\\": \\\"contract\\\", \\\"text\\\": \\\"Employer will retain passport and deduct fees over 7 months.\\\"}]}'"
+        ),
+        'python_example': (
+            "import requests\\n"
+            "r = requests.post('http://localhost:8080/api/v1/migration-case', json={\\n"
+            "    'case_id': 'case-demo-001',\\n"
+            "    'corridor': 'PH_HK',\\n"
+            "    'documents': [\\n"
+            "        {'title': 'Agency receipt', 'context': 'receipt', 'text': 'Receipt for placement fee: HKD 20000 paid by worker.'},\\n"
+            "        {'title': 'Employment contract', 'context': 'contract', 'text': 'Employer will retain passport and deduct fees over 7 months.'},\\n"
+            "    ],\\n"
+            "})\\n"
+            "print(r.json()['risk_level'], len(r.json()['timeline']))"
         ),
     },
     {
@@ -575,6 +1091,24 @@ except Exception as exc:
 
 print(client_message)
 print(f'CLIENT_AVAILABLE = {CLIENT_AVAILABLE}')
+
+catalog_paths = sorted(ep['path'] for ep in ENDPOINTS)
+print(f'Catalog routes: {len(catalog_paths)}')
+if CLIENT_AVAILABLE:
+    actual_paths = sorted(
+        {
+            route.path
+            for route in app.routes
+            if route.path.startswith('/api/v1/') or route.path in {'/', '/viewer'}
+        }
+    )
+    catalog_only = sorted(set(catalog_paths) - set(actual_paths))
+    app_only = sorted(set(actual_paths) - set(catalog_paths))
+    print(f'Live app routes: {len(actual_paths)}')
+    print('Catalog-only routes:', catalog_only or '(none)')
+    print('App-only routes:', app_only or '(none)')
+else:
+    print('Route drift audit skipped: live app import unavailable.')
 """
 
 
@@ -748,7 +1282,7 @@ STEP_6_INTRO = """---
 
 ## 6. POST /api/v1/analyze-document - multimodal document analysis
 
-Evidence surface for the "Gemma 4's unique features are load-bearing" claim. In production the endpoint accepts an image; in this tour it takes OCR-extracted text and returns the same structured risk, extracted_fields, indicator_flags, and timeline markers payload so adopters can prototype against either input channel.
+Evidence surface for the "Gemma 4's unique features are load-bearing" claim. In production the endpoint accepts an image directly through Gemma 4's multimodal path; in this CPU-safe tour it uses already-extracted text as the stand-in and returns the same structured risk, extracted_fields, indicator_flags, and timeline markers payload. OCR is a fallback integration path here, not a product requirement.
 """
 
 
@@ -891,9 +1425,70 @@ else:
 """
 
 
+STEP_7_UPLOAD_INTRO = """---
+
+## 8. POST /api/v1/migration-case-upload - upload a real case bundle
+
+The JSON case-intake route is what other software calls. This upload route is what an NGO operator or analyst reaches for first: drag in the raw files, attach a corridor label, and let the app normalize them into the same migration-case workflow. It is the notebook surface that proves the demo is usable before a partner writes any integration code.
+"""
+
+
+UPLOAD_CODE = """import json
+UPLOAD_FILES = [
+    ('files', ('agency-receipt.txt', 'Receipt for placement fee: HKD 20000 paid by worker before deployment.', 'text/plain')),
+    ('files', ('employment-contract.txt', 'Employer will retain passport during contract period and deduct fees over 7 months.', 'text/plain')),
+    ('files', ('recruiter-chat.txt', 'Pay the remaining fee now or you cannot leave. We will keep your passport until the debt is cleared.', 'text/plain')),
+]
+UPLOAD_DATA = {
+    'case_id': 'case-upload-001',
+    'corridor': 'PH_HK',
+    'include_complaint_templates': 'true',
+}
+UPLOAD_SAMPLE_RESPONSE = {
+    'case_id': 'case-upload-001',
+    'corridor': 'PH_HK',
+    'document_count': 3,
+    'risk_level': 'HIGH',
+    'detected_indicators': ['worker_paid_placement_fee', 'passport_retention', 'debt_bondage_risk'],
+    'timeline': [
+        {'date': '2026-01-05', 'label': 'Payment demand recorded', 'document_id': 'agency-receipt.txt', 'description': 'Receipt references worker-paid recruitment or placement fees.'},
+        {'date': '2026-01-12', 'label': 'Contract terms recorded', 'document_id': 'employment-contract.txt', 'description': 'Contract includes passport retention language.'},
+        {'date': '2026-01-15', 'label': 'Recruitment conversation captured', 'document_id': 'recruiter-chat.txt', 'description': 'Chat escalates debt pressure before deployment.'},
+    ],
+    'recommended_actions': [
+        'Preserve the uploaded originals and export the timeline for the case file.',
+        'Escalate the bundle to a labor-rights partner before any further payment or travel step.',
+    ],
+}
+
+ep = next(e for e in ENDPOINTS if e['path'] == '/api/v1/migration-case-upload')
+print(f'== {ep["method"]} {ep["path"]} ==')
+print()
+print('-- curl --')
+print(ep['curl_example'])
+print()
+print('-- Python --')
+print(ep['python_example'])
+print()
+print('-- Response --')
+if CLIENT_AVAILABLE:
+    try:
+        resp = client.post('/api/v1/migration-case-upload', files=UPLOAD_FILES, data=UPLOAD_DATA)
+        payload = resp.json()
+        print(f'[LIVE TestClient] status={resp.status_code}')
+        print(json.dumps(payload, indent=2, default=str)[:1500])
+    except Exception as exc:
+        print(f'[LIVE call failed: {exc.__class__.__name__}] Scripted sample below:')
+        print(json.dumps(UPLOAD_SAMPLE_RESPONSE, indent=2))
+else:
+    print('[SCRIPTED sample]')
+    print(json.dumps(UPLOAD_SAMPLE_RESPONSE, indent=2))
+"""
+
+
 STEP_7_INTRO = """---
 
-## 8. POST /api/v1/evaluate - full Gemma rubric evaluation
+## 9. POST /api/v1/evaluate - full Gemma rubric evaluation
 
 When Ollama is running locally with a Gemma 4 checkpoint pulled, the evaluate endpoint runs the full plain / RAG / guided comparison the video shows, and returns all three modes side by side. On the Kaggle CPU kernel Ollama is not available, so the scripted response below mirrors the schema a live run would emit.
 """
@@ -938,7 +1533,7 @@ else:
 
 STEP_8_INTRO = """---
 
-## 9. POST /api/v1/quick-check - fast keyword triage
+## 10. POST /api/v1/quick-check - fast keyword triage
 
 Stage 1 of the enterprise waterfall. Runs on every message to decide whether to escalate to the full rubric or the Gemma 4 analysis. Latency budget is under 1 ms; high recall is favored over precision so the downstream rubric gets to make the actual call.
 """
@@ -981,9 +1576,9 @@ else:
 
 STEP_9_INTRO = """---
 
-## 10. HTML summary table of all 13 endpoints
+## 11. HTML summary table of all 17 endpoints
 
-The seven subsections above covered the representative slice. The table below enumerates every route the demo app exposes so adopters can see the full surface in one place.
+The eight subsections above covered the representative slice. The table below enumerates every route the demo app exposes so adopters can see the full surface in one place, and prints a live catalog-vs-app drift summary when the TestClient import succeeds.
 """
 
 
@@ -1020,12 +1615,28 @@ table_html = (
     '</table>'
 )
 display(HTML(table_html))
+
+catalog_paths = sorted(ep['path'] for ep in ENDPOINTS)
+print(f'Catalog routes listed here: {len(catalog_paths)}')
+if CLIENT_AVAILABLE:
+    actual_paths = sorted(
+        {
+            route.path
+            for route in app.routes
+            if route.path.startswith('/api/v1/') or route.path in {'/', '/viewer'}
+        }
+    )
+    print(f'Live app routes imported: {len(actual_paths)}')
+    print('Catalog-only routes:', sorted(set(catalog_paths) - set(actual_paths)) or '(none)')
+    print('App-only routes:', sorted(set(actual_paths) - set(catalog_paths)) or '(none)')
+else:
+    print('Route drift audit skipped: live app import unavailable.')
 """
 
 
 STEP_10_INTRO = """---
 
-## 11. Call-graph diagram (endpoint -> agent / tool)
+## 12. Call-graph diagram (endpoint -> agent / tool)
 
 The sankey below renders which endpoints flow into which downstream agents and tools. It is the visual restatement of the table above: every request path resolves to a concrete handler whose dependencies are named so a reader can trace a deployment feature end-to-end without opening the source.
 """
@@ -1058,13 +1669,19 @@ EDGES = [
     ('/api/v1/migration-case',   'Tool: score_exploitation_risk',      4),
     ('/api/v1/migration-case',   'Tool: check_legal_framework',        3),
     ('/api/v1/migration-case',   'Tool: lookup_hotline',               3),
+    ('/api/v1/migration-case-upload', 'Upload parser',      5),
+    ('/api/v1/migration-case-upload', 'Case orchestrator',  6),
+    ('/api/v1/migration-case-upload', 'DocumentAnalyzer',   4),
     ('/api/v1/rag-context',      'RAGStore',                6),
     ('/api/v1/rag-context',      'Retriever',               5),
     ('/api/v1/quick-check',      'QuickFilter',             6),
     ('/api/v1/domains',          'DomainPack registry',     3),
     ('/api/v1/rubrics',          'WeightedRubricScorer',    3),
+    ('/api/v1/case-examples',    'CaseExample registry',    3),
+    ('/api/v1/case-examples/{example_id}', 'CaseExample registry', 3),
     ('/api/v1/stats',            'AnalysisLog',             3),
     ('/api/v1/health',           'Lifespan state',          2),
+    ('/viewer',                  'HTML renderer',           2),
     ('/',                        'HTML renderer',           3),
 ]
 
@@ -1144,9 +1761,11 @@ TROUBLESHOOTING = troubleshooting_table_html([
     ),
     (
         "Response shape does not match the table.",
-        "Pydantic models evolve between releases. The <code>ENDPOINTS</code> catalog is "
-        "the source of truth for this notebook; cross-check against <code>src/demo/models.py</code> "
-        "and open an issue if a field disappeared or renamed without a deprecation.",
+        "Pydantic models evolve between releases. Check the route drift audit printed under "
+        "the summary table first; if it shows app-only routes or catalog-only routes, update "
+        "the <code>ENDPOINTS</code> catalog in this builder before trusting the prose. Then "
+        "cross-check against <code>src/demo/models.py</code> and open an issue if a field "
+        "disappeared or renamed without a deprecation.",
     ),
 ])
 
@@ -1155,18 +1774,19 @@ SUMMARY = f"""---
 
 ## What just happened
 
-- Catalogued all 13 FastAPI endpoints the DueCare demo app exposes, with method, path, summary, request shape, response shape, curl example, and Python <code>requests</code> snippet captured in a typed <code>ENDPOINTS</code> list.
-- Bound an in-process <code>fastapi.testclient.TestClient</code> when possible so seven representative endpoints returned live JSON; fell back to scripted responses otherwise so the tour always renders.
-- Walked <code>/api/v1/analyze</code>, <code>/api/v1/rag-context</code>, <code>/api/v1/function-call</code>, <code>/api/v1/analyze-document</code>, <code>/api/v1/migration-case</code>, <code>/api/v1/evaluate</code>, <code>/api/v1/quick-check</code> with full curl + Python + response output.
-- Rendered an HTML summary table covering the full 13-endpoint surface.
+- Catalogued all 17 FastAPI endpoints the DueCare demo app exposes, with method, path, summary, request shape, response shape, curl example, and Python <code>requests</code> snippet captured in a typed <code>ENDPOINTS</code> list.
+- Bound an in-process <code>fastapi.testclient.TestClient</code> when possible so eight representative endpoints returned live JSON; fell back to scripted responses otherwise so the tour always renders.
+- Walked <code>/api/v1/analyze</code>, <code>/api/v1/rag-context</code>, <code>/api/v1/function-call</code>, <code>/api/v1/analyze-document</code>, <code>/api/v1/migration-case</code>, <code>/api/v1/migration-case-upload</code>, <code>/api/v1/evaluate</code>, <code>/api/v1/quick-check</code> with full curl + Python + response output.
+- Rendered an HTML summary table covering the full 17-endpoint surface and printed a live catalog-vs-app drift audit when the demo app imported successfully.
 - Rendered a Plotly sankey of the endpoint -> agent / tool call graph so the deployment story is visible at a glance.
 
 ### Key findings
 
-1. **Every deployment feature the video names resolves to one of these 13 routes.** No hidden surface; no private endpoints; nothing held back for the demo.
-2. **The seven representative endpoints exercise both Gemma 4's unique features** (function-call for native tool calling, analyze-document for multimodal, migration-case for case-level orchestration) and the supporting surfaces (analyze for rubric, rag-context for retrieval, evaluate for the three-mode comparison, quick-check for waterfall stage 1).
+1. **Every deployment feature the video names resolves to one of these 17 routes.** No hidden surface; no private endpoints; nothing held back for the demo.
+2. **The eight representative endpoints exercise both Gemma 4's unique features** (function-call for native tool calling, analyze-document for multimodal, migration-case plus migration-case-upload for case-level orchestration) and the supporting surfaces (analyze for rubric, rag-context for retrieval, evaluate for the three-mode comparison, quick-check for waterfall stage 1).
 3. **The TestClient path is the safest demo mode.** No uvicorn, no port, no firewall issues; the same app object the server mounts is the one the tests drive, so behavior stays identical between the notebook and production.
-4. **The sankey makes the orchestration story legible in one chart.** /function-call flows into the Coordinator agent, /migration-case fans into the Case orchestrator plus retrieval and hotline/legal tools, /evaluate flows into Judge + Scorer agents that share the Ollama backend, and /rag-context feeds the Retriever that every guided mode depends on.
+4. **The route drift audit keeps the catalog honest.** When the live app imports, the notebook prints catalog-only and app-only routes so a stale endpoint list shows up immediately.
+5. **The sankey makes the orchestration story legible in one chart.** /function-call flows into the Coordinator agent, /migration-case and /migration-case-upload fan into the Case orchestrator plus retrieval and hotline/legal tools, /evaluate flows into Judge + Scorer agents that share the Ollama backend, and /rag-context feeds the Retriever that every guided mode depends on.
 
 ---
 
@@ -1186,9 +1806,67 @@ SUMMARY = f"""---
 """
 
 
+
+AT_A_GLANCE_INTRO = """---
+
+## At a glance
+
+Walk all 17 FastAPI endpoints with curl examples and live drift audit.
+"""
+
+
+AT_A_GLANCE_CODE = '''from IPython.display import HTML, display
+
+_P = {"primary":"#4c78a8","success":"#10b981","info":"#3b82f6","warning":"#f59e0b","muted":"#6b7280","danger":"#ef4444",
+      "bg_primary":"#eff6ff","bg_success":"#ecfdf5","bg_info":"#eff6ff","bg_warning":"#fffbeb","bg_danger":"#fef2f2"}
+
+def _stat_card(value, label, sub, kind="primary"):
+    c = _P[kind]; bg = _P.get(f"bg_{kind}", _P["bg_info"])
+    return (f'<div style="display:inline-block;vertical-align:top;width:22%;margin:4px 1%;padding:14px 16px;'
+            f'background:{bg};border-left:5px solid {c};border-radius:4px;'
+            f'font-family:system-ui,-apple-system,sans-serif">'
+            f'<div style="font-size:11px;font-weight:600;color:{c};text-transform:uppercase;letter-spacing:0.04em">{label}</div>'
+            f'<div style="font-size:26px;font-weight:700;color:#1f2937;margin:4px 0 0 0">{value}</div>'
+            f'<div style="font-size:12px;color:{_P["muted"]};margin-top:2px">{sub}</div></div>')
+
+def _step(label, sub, kind="primary"):
+    c = _P[kind]; bg = _P.get(f"bg_{kind}", _P["bg_info"])
+    return (f'<div style="display:inline-block;vertical-align:middle;min-width:138px;padding:10px 12px;'
+            f'margin:4px 0;background:{bg};border:2px solid {c};border-radius:6px;text-align:center;'
+            f'font-family:system-ui,-apple-system,sans-serif">'
+            f'<div style="font-weight:600;color:#1f2937;font-size:13px">{label}</div>'
+            f'<div style="color:{_P["muted"]};font-size:11px;margin-top:2px">{sub}</div></div>')
+
+_arrow = f'<span style="display:inline-block;vertical-align:middle;margin:0 4px;color:{_P["muted"]};font-size:20px">&rarr;</span>'
+
+cards = [
+    _stat_card('17', 'endpoints', 'FastAPI tour', 'primary'),
+    _stat_card('curl', 'examples', 'per endpoint', 'info'),
+    _stat_card('live', 'catalog', 'vs app drift audit', 'warning'),
+    _stat_card('upload', 'case intake', 'multimodal', 'success')
+]
+display(HTML('<div style="margin:8px 0">' + ''.join(cards) + '</div>'))
+
+steps = [
+    _step('Load catalog', '17 endpoints', 'primary'),
+    _step('Show curl', 'examples', 'info'),
+    _step('Response shapes', 'documented', 'warning'),
+    _step('Drift audit', 'catalog vs app', 'success')
+]
+display(HTML(
+    '<div style="margin:10px 0 4px 0;font-family:system-ui,-apple-system,sans-serif;'
+    'font-weight:600;color:#1f2937">API endpoint tour</div>'
+    '<div style="margin:6px 0">' + _arrow.join(steps) + '</div>'
+))
+'''
+
+
+
 def build() -> None:
     cells = [
         md(HEADER),
+        md(AT_A_GLANCE_INTRO),
+        code(AT_A_GLANCE_CODE),
         md(STEP_1_INTRO),
         code(ENDPOINTS_CODE),
         md(STEP_2_INTRO),
@@ -1203,6 +1881,8 @@ def build() -> None:
         code(DOC_CODE),
         md(STEP_7_CASE_INTRO),
         code(CASE_CODE),
+        md(STEP_7_UPLOAD_INTRO),
+        code(UPLOAD_CODE),
         md(STEP_7_INTRO),
         code(EVAL_CODE),
         md(STEP_8_INTRO),

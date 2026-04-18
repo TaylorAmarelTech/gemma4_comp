@@ -85,7 +85,7 @@ def main() -> None:
     ok("cell 0 header has all five expected Field/Value rows")
 
     for slug in (
-        "duecare-gemma-exploration",
+        "duecare-real-gemma-4-on-50-trafficking-prompts",
         "155-duecare-tool-calling-playground",
         "duecare-170-live-context-injection-playground",
         "199-duecare-free-form-exploration-conclusion",
@@ -128,7 +128,7 @@ def main() -> None:
     for slug in (
         "155-duecare-tool-calling-playground",
         "199-duecare-free-form-exploration-conclusion",
-        "duecare-gemma-exploration",
+        "duecare-real-gemma-4-on-50-trafficking-prompts",
     ):
         if slug not in final_print:
             fail(f"final print missing slug {slug}")

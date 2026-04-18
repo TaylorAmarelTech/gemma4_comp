@@ -1,5 +1,5 @@
 {
-  "id": "taylorsamarel/899-duecare-solution-surfaces-conclusion",
+  "id": "taylorsamarel/duecare-solution-surfaces-conclusion",
   "title": "899: DueCare Solution Surfaces Conclusion",
   "code_file": "899_solution_surfaces_conclusion.ipynb",
   "language": "python",
@@ -16,10 +16,6 @@
   ],
   "kernel_sources": [],
   "keywords": [
-    "gemma",
-    "safety",
-    "llm",
-    "trafficking",
-    "tutorial"
+    "evaluation"
   ]
 }

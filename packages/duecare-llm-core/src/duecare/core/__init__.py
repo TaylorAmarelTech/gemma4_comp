@@ -32,6 +32,9 @@ from .schemas import (
     ResponseExample,
     RubricCriterion,
     ScoredResponse,
+    TrainingDatasetManifest,
+    TrainingExample,
+    TrainingMessage,
     TaskConfig,
     TaskResult,
     ToolCall,
@@ -97,4 +100,7 @@ __all__ = [
     "RawPrompt",
     "RubricCriterion",
     "ScoredResponse",
+    "TrainingDatasetManifest",
+    "TrainingExample",
+    "TrainingMessage",
 ]

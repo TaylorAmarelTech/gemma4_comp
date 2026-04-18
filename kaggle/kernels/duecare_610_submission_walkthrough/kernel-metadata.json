@@ -1,5 +1,5 @@
 {
-  "id": "taylorsamarel/duecare-610-submission-walkthrough",
+  "id": "taylorsamarel/610-duecare-submission-walkthrough",
   "title": "610: DueCare Submission Walkthrough",
   "code_file": "610_submission_walkthrough.ipynb",
   "language": "python",
@@ -16,10 +16,6 @@
   ],
   "kernel_sources": [],
   "keywords": [
-    "gemma",
-    "submission",
-    "safety",
-    "evaluation",
-    "dashboard"
+    "evaluation"
   ]
 }

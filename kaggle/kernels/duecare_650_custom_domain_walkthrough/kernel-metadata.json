@@ -1,5 +1,5 @@
 {
-  "id": "taylorsamarel/duecare-650-custom-domain-walkthrough",
+  "id": "taylorsamarel/650-duecare-custom-domain-walkthrough",
   "title": "650: DueCare Custom Domain Walkthrough",
   "code_file": "650_custom_domain_walkthrough.ipynb",
   "language": "python",
@@ -16,10 +16,6 @@
   ],
   "kernel_sources": [],
   "keywords": [
-    "gemma",
-    "safety",
-    "domain-pack",
-    "medical-misinformation",
-    "howto"
+    "evaluation"
   ]
 }

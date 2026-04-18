@@ -1,0 +1,26 @@
+{
+  "id": "taylorsamarel/duecare-183-redteam-prompt-amplifier",
+  "title": "183: DueCare Red-Team Prompt Amplifier",
+  "code_file": "183_redteam_prompt_amplifier.ipynb",
+  "language": "python",
+  "kernel_type": "notebook",
+  "is_private": false,
+  "enable_gpu": true,
+  "enable_tpu": false,
+  "enable_internet": true,
+  "dataset_sources": [
+    "taylorsamarel/duecare-llm-wheels"
+  ],
+  "competition_sources": [
+    "gemma-4-good-hackathon"
+  ],
+  "model_sources": [],
+  "kernel_sources": [],
+  "keywords": [
+    "gemma",
+    "red-team",
+    "jailbreak",
+    "generation",
+    "amplifier"
+  ]
+}

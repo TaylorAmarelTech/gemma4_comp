@@ -169,7 +169,7 @@ after each session.
 | 100 | Gemma Exploration (Phase 1 Baseline) | T4 | [duecare-gemma-exploration](https://www.kaggle.com/code/taylorsamarel/duecare-gemma-exploration) |
 | 200 | Cross-Domain Proof | - | [duecare-200-cross-domain-proof](https://www.kaggle.com/code/taylorsamarel/duecare-200-cross-domain-proof) |
 | 500 | Agent Swarm Deep Dive | - | [duecare-500-agent-swarm-deep-dive](https://www.kaggle.com/code/taylorsamarel/duecare-500-agent-swarm-deep-dive) |
-| 610 | Submission Walkthrough | - | [duecare-610-submission-walkthrough](https://www.kaggle.com/code/taylorsamarel/duecare-610-submission-walkthrough) |
+| 610 | Submission Walkthrough | - | [duecare-submission-walkthrough](https://www.kaggle.com/code/taylorsamarel/duecare-submission-walkthrough) |
 
 The remaining notebooks cover the `100`-`600` bands for evaluation,
 comparison, adversarial testing, pipeline construction, fine-tuning, and

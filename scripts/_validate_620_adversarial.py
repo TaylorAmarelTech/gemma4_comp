@@ -5,7 +5,7 @@ Canonical-shape checks on the notebook emitted by
 solution-surfaces tour between 610 Submission Walkthrough and 650
 Custom Domain Walkthrough; the checks here verify that every FastAPI
 route called out in the task spec is described in the catalog and
-that the six required representative routes are exercised in-notebook.
+that the eight required representative routes are exercised in-notebook.
 """
 from __future__ import annotations
 
@@ -43,7 +43,7 @@ def main() -> None:
     all_code = "\n\n".join(src(c) for c in code_cells)
     all_text = all_md + "\n\n" + all_code
 
-    if meta.get("id") != "taylorsamarel/duecare-620-demo-api-endpoint-tour":
+    if meta.get("id") != "taylorsamarel/620-duecare-demo-api-endpoint-tour":
         fail(f"metadata id wrong: {meta.get('id')!r}")
     ok("metadata id is canonical 620 slug")
 
@@ -74,9 +74,9 @@ def main() -> None:
     ok("cell 0 header has all five expected Field/Value rows")
 
     required_links = [
-        "duecare-610-submission-walkthrough",
-        "duecare-650-custom-domain-walkthrough",
-        "899-duecare-solution-surfaces-conclusion",
+        "610-duecare-submission-walkthrough",
+        "650-duecare-custom-domain-walkthrough",
+        "duecare-solution-surfaces-conclusion",
     ]
     for slug in required_links:
         if slug not in all_text:
@@ -88,29 +88,52 @@ def main() -> None:
         fail(f"expected exactly 1 install cell, found {len(install_cells)}")
     ok("exactly 1 install cell")
 
-    if "ENDPOINTS = [" not in all_code:
+    if "ENDPOINTS = [" not in all_code and "ENDPOINTS = json.loads" not in all_code:
         fail("ENDPOINTS list is not defined")
     ok("ENDPOINTS list is defined")
 
     # Count "'path':" occurrences in the code; each endpoint dict in the
-    # catalog carries a single 'path' key, so at least 13 means the full
-    # thirteen-endpoint surface is present.
-    path_occurrences = all_code.count("'path':")
-    if path_occurrences < 13:
-        fail(f"expected at least 13 ENDPOINTS entries (counted {path_occurrences} 'path': occurrences)")
-    ok(f"ENDPOINTS list has at least 13 entries ({path_occurrences} 'path': occurrences)")
+    # catalog carries a single path key, so at least 17 means the full
+    # seventeen-endpoint surface is present. The catalog may be emitted as
+    # a Python literal or via json.loads(...), so accept both styles.
+    path_occurrences = all_code.count("'path':") + all_code.count('"path":')
+    if path_occurrences < 17:
+        fail(f"expected at least 17 ENDPOINTS entries (counted {path_occurrences} 'path': occurrences)")
+    ok(f"ENDPOINTS list has at least 17 entries ({path_occurrences} 'path': occurrences)")
 
-    required_routes = ["/api/v1/analyze", "/api/v1/rag-context", "/api/v1/function-call", "/api/v1/analyze-document", "/api/v1/migration-case", "/api/v1/evaluate"]
-    missing_routes = [r for r in required_routes if r not in all_code]
-    if missing_routes:
-        fail(f"missing required endpoint paths in code: {missing_routes}")
-    ok("all 6 required endpoint paths exercised in code (/analyze, /rag-context, /function-call, /analyze-document, /migration-case, /evaluate)")
+    representative_routes = [
+        "/api/v1/analyze",
+        "/api/v1/rag-context",
+        "/api/v1/function-call",
+        "/api/v1/analyze-document",
+        "/api/v1/migration-case",
+        "/api/v1/migration-case-upload",
+        "/api/v1/evaluate",
+        "/api/v1/quick-check",
+    ]
+    missing_representative_routes = [r for r in representative_routes if r not in all_code]
+    if missing_representative_routes:
+        fail(f"missing required representative endpoint paths in code: {missing_representative_routes}")
+    ok("all 8 representative endpoint paths are exercised in code (/analyze, /rag-context, /function-call, /analyze-document, /migration-case, /migration-case-upload, /evaluate, /quick-check)")
+
+    required_catalog_routes = [
+        "/api/v1/case-examples",
+        "/api/v1/case-examples/{example_id}",
+        "/viewer",
+        "/",
+    ]
+    missing_catalog_routes = [r for r in required_catalog_routes if r not in all_code]
+    if missing_catalog_routes:
+        fail(f"missing required catalog-only routes in code: {missing_catalog_routes}")
+    ok("catalog includes case-example endpoints plus the viewer and root HTML surfaces")
 
     if "TestClient" not in all_code:
         fail("missing TestClient reference (required for in-process call path)")
     if "CLIENT_AVAILABLE" not in all_code:
         fail("missing CLIENT_AVAILABLE flag (required for TestClient fallback wiring)")
-    ok("TestClient + CLIENT_AVAILABLE wiring present")
+    if "Catalog-only routes:" not in all_code or "App-only routes:" not in all_code:
+        fail("missing live catalog-vs-app drift audit printout")
+    ok("TestClient + CLIENT_AVAILABLE wiring present, with live catalog-vs-app drift audit")
 
     if "Privacy is non-negotiable" in all_text:
         fail("'Privacy is non-negotiable' should not appear in 620; reserve for 610/899")
@@ -132,9 +155,9 @@ def main() -> None:
     if not final_print_cells:
         fail("no URL-bearing 'API tour handoff >>>' final print")
     final_print = src(final_print_cells[-1])
-    if "duecare-650-custom-domain-walkthrough" not in final_print:
+    if "650-duecare-custom-domain-walkthrough" not in final_print:
         fail("final print missing 650 slug")
-    if "899-duecare-solution-surfaces-conclusion" not in final_print:
+    if "duecare-solution-surfaces-conclusion" not in final_print:
         fail("final print missing 899 slug")
     ok("final print is URL-bearing and links to 650 and 899")
 

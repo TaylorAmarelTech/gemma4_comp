@@ -310,17 +310,17 @@ Workflows are YAML-only. Drop a file in `configs/duecare/workflows/`:
 
 id: your_workflow
 description: What this workflow does
-stages:
-  - agent: scout
-    requires: []
-  - agent: anonymizer
-    requires: [scout]
-  - agent: your_agent
-    requires: [anonymizer]
-  - agent: judge
-    requires: [your_agent]
-  - agent: historian
-    requires: [judge]
+agents:
+  - id: scout
+    needs: []
+  - id: anonymizer
+    needs: [scout]
+  - id: your_agent
+    needs: [anonymizer]
+  - id: judge
+    needs: [your_agent]
+  - id: historian
+    needs: [judge]
 ```
 
 Run it:

@@ -1,0 +1,25 @@
+{
+  "id": "taylorsamarel/010-duecare-quickstart-in-5-minutes",
+  "title": "010: DueCare Quickstart in 5 Minutes",
+  "code_file": "010_quickstart.ipynb",
+  "language": "python",
+  "kernel_type": "notebook",
+  "is_private": false,
+  "enable_gpu": false,
+  "enable_tpu": false,
+  "enable_internet": true,
+  "dataset_sources": [
+    "taylorsamarel/duecare-llm-wheels"
+  ],
+  "competition_sources": [
+    "gemma-4-good-hackathon"
+  ],
+  "kernel_sources": [],
+  "keywords": [
+    "gemma",
+    "safety",
+    "llm",
+    "trafficking",
+    "tutorial"
+  ]
+}

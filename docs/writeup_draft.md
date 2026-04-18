@@ -23,8 +23,8 @@ Cal. Civ. Code sect. 1714(a) duty of care standard. Stock Gemma 4 E4B
 scores **0.61 mean / 20% pass / 0% harmful** on trafficking prompts
 from a 74,567-prompt corpus (Kaggle T4). RAG context lifts scores 28%.
 Cross-domain to tax evasion and financial crime with zero code changes.
-**15 adversarial generators, 7 evaluation frameworks, 19 Kaggle
-notebooks, 194 tests, 8 pip-installable packages, one CLI command.**
+**15 adversarial generators, 7 evaluation frameworks, a Kaggle notebook
+suite, 194 tests, 8 pip-installable packages, one CLI command.**
 Runs on a laptop.
 
 ## 1. The problem (230 words)
@@ -142,9 +142,9 @@ business), **22% refused**, **0% FULL_SUCCESS**. Phase 3 closes this gap.
 
 | Metric | Value |
 |---|---|
-| Mean keyword score (NB 00) | 0.610 |
-| Pass rate by keyword (NB 00) | 20% |
-| Explicit-harmful-phrase rate (NB 00) | 0.0% |
+| Mean keyword score (NB 100) | 0.610 |
+| Pass rate by keyword (NB 100) | 20% |
+| Explicit-harmful-phrase rate (NB 100) | 0.0% |
 | **HARD_VIOLATION rate (V3 reclassification)** | **28%** |
 | **DETECTION_FAIL rate (V3)** | **46%** |
 | FULL_SUCCESS rate (V3) | 0% |
@@ -153,7 +153,14 @@ business), **22% refused**, **0% FULL_SUCCESS**. Phase 3 closes this gap.
 | Trafficking corpus | 74,567 prompts |
 | Adversarial generators | 15 |
 | Tests passing | 194 |
-| Kaggle notebooks completed | 21 of 25 |
+| Kaggle notebooks validated | 52 of 52 locally; 29 live on Kaggle (see `docs/notebook_guide.md`) |
+| Adversarial validators green | 17 of 17 (sibling-drift fences on every canonical notebook) |
+| Interactive playgrounds on T4 GPU | 5 (150/155/160/170/180) |
+| RAG retrieval + provenance visualization | yes (190) |
+| Legal-citation real-vs-hallucinated verifier | yes (460) |
+| Stock-vs-fine-tuned delta dashboard | yes (540) |
+| Live FastAPI endpoint tour in-notebook | yes (620, 12 endpoints) |
+| End-to-end custom-domain how-to | yes (650, medical_misinformation pack) |
 
 Context injection alone lifts scores 23–28% without training — proof
 Gemma 4 has the capability but needs domain knowledge, which Phase 3
@@ -205,8 +212,9 @@ it differently for each.
 - **Packages:** `pip install duecare-llm` (meta) or any of the 7 sibling
   packages individually
 - **Weights:** [Kaggle Models — DueCare Safety Harness](https://www.kaggle.com/models/taylorsamarel/duecare-safety-harness) (pending Phase 3 fine-tune)
-- **Notebooks:** [Kaggle notebooks](https://www.kaggle.com/taylorsamarel/code)
+- **Notebooks:** [Kaggle notebooks](https://www.kaggle.com/taylorsamarel/code) — 52 published, 29 live
 - **Live demo:** HF Spaces (URL pinned after week-5 deploy)
+- **Cover image:** `docs/media/cover_1200x675.png` (Kaggle Media Gallery requirement; rebuild via `python scripts/build_cover_image.py`)
 - **Tests:** `python -m pytest packages tests` → 194 passed
 
 Every metric in this writeup is reproducible from

@@ -1,0 +1,27 @@
+{
+  "id": "taylorsamarel/190-duecare-rag-retrieval-inspector",
+  "title": "190 DueCare RAG Retrieval Inspector",
+  "code_file": "190_rag_retrieval_inspector.ipynb",
+  "language": "python",
+  "kernel_type": "notebook",
+  "is_private": false,
+  "enable_gpu": false,
+  "enable_tpu": false,
+  "enable_internet": true,
+  "dataset_sources": [
+    "taylorsamarel/duecare-llm-wheels",
+    "taylorsamarel/duecare-trafficking-prompts"
+  ],
+  "competition_sources": [
+    "gemma-4-good-hackathon"
+  ],
+  "kernel_sources": [],
+  "keywords": [
+    "gemma",
+    "safety",
+    "llm",
+    "trafficking",
+    "rag",
+    "retrieval"
+  ]
+}

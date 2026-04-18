@@ -161,10 +161,18 @@ class AgentSupervisor:
                         f"Harm flag set during {agent.id} execution (run_id={ctx.run_id})"
                     )
 
+                if output.metrics:
+                    ctx.metrics.update(output.metrics)
+                if output.artifacts_written:
+                    ctx.artifacts.update(output.artifacts_written)
+                for key, value in output.context_updates.items():
+                    ctx.record(key, value)
+
                 # Record decision in the shared blackboard
                 ctx.decisions.append(f"{agent.id}: {output.decision}")
                 ctx.outputs_by_agent[agent.role.value] = {
                     "agent_id": agent.id,
+                    "status": output.status.value,
                     "decision": output.decision,
                     "metrics": output.metrics,
                     "artifacts": {k: str(v) for k, v in output.artifacts_written.items()},

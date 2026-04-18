@@ -1,0 +1,27 @@
+{
+  "id": "taylorsamarel/527-duecare-uncensored-rubric-generator",
+  "title": "527: DueCare Uncensored Rubric Generator",
+  "code_file": "527_uncensored_rubric_generator.ipynb",
+  "language": "python",
+  "kernel_type": "notebook",
+  "is_private": false,
+  "enable_gpu": true,
+  "enable_tpu": false,
+  "enable_internet": true,
+  "dataset_sources": [
+    "taylorsamarel/duecare-llm-wheels",
+    "taylorsamarel/duecare-trafficking-prompts",
+    "taylorsamarel/duecare-jailbreak-artifacts"
+  ],
+  "competition_sources": [
+    "gemma-4-good-hackathon"
+  ],
+  "kernel_sources": [],
+  "keywords": [
+    "gemma",
+    "rubric",
+    "dimensions",
+    "grading",
+    "training-data"
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "id": "taylorsamarel/499-duecare-advanced-evaluation-conclusion",
+  "title": "499: DueCare Advanced Evaluation Conclusion",
+  "code_file": "499_advanced_evaluation_conclusion.ipynb",
+  "language": "python",
+  "kernel_type": "notebook",
+  "is_private": false,
+  "enable_gpu": false,
+  "enable_tpu": false,
+  "enable_internet": true,
+  "dataset_sources": [
+    "taylorsamarel/duecare-llm-wheels"
+  ],
+  "competition_sources": [
+    "gemma-4-good-hackathon"
+  ],
+  "kernel_sources": [],
+  "keywords": [
+    "evaluation"
+  ]
+}

@@ -70,7 +70,7 @@ Every result in the writeup has a provenance chain:
 
 | Result | Where it came from | How to reproduce |
 |---|---|---|
-| Gemma 4 E4B mean score = 0.610 | [Kaggle NB 00](https://www.kaggle.com/code/taylorsamarel/duecare-real-gemma-4-on-50-trafficking-prompts) | Fork the kernel, click Run. Output `gemma_baseline_findings.json` matches ours in `data/`. |
+| Gemma 4 E4B mean score = 0.610 | [100 Gemma Exploration](https://www.kaggle.com/code/taylorsamarel/duecare-real-gemma-4-on-50-trafficking-prompts) | Fork the kernel, click Run. Output `gemma_baseline_findings.json` matches ours in `data/`. |
 | 74,567 trafficking prompts | `packages/duecare-llm-domains/src/duecare/domains/_data/trafficking/seed_prompts.jsonl` | `wc -l packages/duecare-llm-domains/src/duecare/domains/_data/trafficking/seed_prompts.jsonl` |
 | 15 adversarial generators | `packages/duecare-llm-tasks/src/duecare/tasks/generators/` | `ls packages/duecare-llm-tasks/src/duecare/tasks/generators/ \| grep -v __` |
 | 12 agents | `packages/duecare-llm-agents/src/duecare/agents/` | `ls packages/duecare-llm-agents/src/duecare/agents/` |
@@ -102,7 +102,7 @@ Each produces a structurally identical markdown report in `reports/`.
 | Notebook | Kaggle slug | What it proves |
 |----------|-------------|----------------|
 | S1 — 5-minute setup and first safety evaluation | [`01-duecare-quickstart-generalized-framework`](https://www.kaggle.com/code/taylorsamarel/01-duecare-quickstart-generalized-framework) | Framework installs and scores a prompt end-to-end |
-| S2 — End-to-end walkthrough from install to report | [`duecare-submission-walkthrough`](https://www.kaggle.com/code/taylorsamarel/duecare-submission-walkthrough) | Full submission flow in one notebook |
+| S2 — End-to-end walkthrough from install to report | [`610-duecare-submission-walkthrough`](https://www.kaggle.com/code/taylorsamarel/610-duecare-submission-walkthrough) | Full submission flow in one notebook |
 | S3 — Same harness on Trafficking, Tax Evasion, Financial Crime | [`duecare-cross-domain-proof`](https://www.kaggle.com/code/taylorsamarel/duecare-cross-domain-proof) | Cross-domain generalization (zero code changes) |
 | S4 — 12 autonomous agents orchestrated by Gemma 4 | [`duecare-12-agent-gemma-4-safety-pipeline`](https://www.kaggle.com/code/taylorsamarel/duecare-12-agent-gemma-4-safety-pipeline) | Full swarm + Supervisor in action |
 
@@ -182,7 +182,7 @@ and a note on why the legacy numbering looks the way it does.
 
 - **Engineer on the jury?** `packages/duecare-llm-core/src/duecare/core/contracts/` — Protocol-based contracts, no ABCs. Clean.
 - **NGO partner on the jury?** `configs/duecare/domains/trafficking/` — Real taxonomy + evidence + rubric YAML.
-- **ML researcher on the jury?** [NB 00](https://www.kaggle.com/code/taylorsamarel/duecare-real-gemma-4-on-50-trafficking-prompts) — Real Gemma 4 E4B baseline, 6 interactive Plotly charts.
+- **ML researcher on the jury?** [100 Gemma Exploration](https://www.kaggle.com/code/taylorsamarel/duecare-real-gemma-4-on-50-trafficking-prompts) — Real Gemma 4 E4B baseline, 6 interactive Plotly charts.
 - **Product person on the jury?** `docs/video_script.md` — 2:45 story arc with Maria and the named NGOs.
 
 ---

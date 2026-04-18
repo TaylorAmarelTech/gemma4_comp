@@ -60,12 +60,13 @@ class TestDryRun:
         result = _run("--dry-run", "push-notebooks")
         # Succeeds even without credentials because every run is a no-op print.
         assert result.returncode == 0, result.stderr
-        # All 4 kernel directories should be referenced in the printed commands
+        assert "# push-notebooks (29 kernels)" in result.stdout
+        assert result.stdout.count("kernels push") == 29
         for kernel in (
-            "duecare_01_quickstart",
-            "duecare_02_cross_domain_proof",
-            "duecare_03_agent_swarm_deep_dive",
-            "duecare_04_submission_walkthrough",
+            "duecare_000_index",
+            "duecare_100_gemma_exploration",
+            "duecare_430_rubric_evaluation",
+            "duecare_600_results_dashboard",
         ):
             assert kernel in result.stdout, f"missing kernel {kernel} in dry-run output"
 
@@ -85,8 +86,7 @@ class TestDryRun:
         result = _run("--dry-run", "publish-all")
         # publish-all runs auth-check, which in dry-run returns 0 regardless
         assert result.returncode == 0, result.stderr
-        # All 4 kernels should appear
-        assert result.stdout.count("duecare_0") >= 4
+        assert "# push-notebooks (29 kernels)" in result.stdout
 
 
 class TestValidation:
@@ -105,6 +105,9 @@ class TestValidation:
             assert nb.exists(), f"{meta}: code_file {nb} does not exist"
             # Wheels dataset must be attached as a source.
             assert "taylorsamarel/duecare-llm-wheels" in data.get("dataset_sources", [])
+            assert data.get("keywords"), f"{meta}: keywords missing"
+            assert data.get("is_private") is False, f"{meta}: is_private should be false"
+            assert "gemma-4-good-hackathon" in data.get("competition_sources", [])
 
     def test_dataset_metadata_is_valid(self):
         meta = REPO_ROOT / "kaggle" / "datasets" / "duecare_eval_results" / "dataset-metadata.json"

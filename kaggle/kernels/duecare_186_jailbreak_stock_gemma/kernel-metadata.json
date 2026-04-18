@@ -1,0 +1,28 @@
+{
+  "id": "taylorsamarel/duecare-186-jailbreak-stock-gemma",
+  "title": "186: DueCare Jailbreak - Stock Gemma Baseline",
+  "code_file": "186_jailbreak_stock_gemma.ipynb",
+  "language": "python",
+  "kernel_type": "notebook",
+  "is_private": false,
+  "enable_gpu": true,
+  "enable_tpu": false,
+  "enable_internet": true,
+  "dataset_sources": [
+    "taylorsamarel/duecare-llm-wheels",
+    "taylorsamarel/duecare-trafficking-prompts"
+  ],
+  "competition_sources": [
+    "gemma-4-good-hackathon"
+  ],
+  "model_sources": [
+    "google/gemma-4/transformers/gemma-4-e4b-it/1"
+  ],
+  "kernel_sources": [],
+  "keywords": [
+    "gemma",
+    "safety",
+    "jailbreak",
+    "baseline"
+  ]
+}

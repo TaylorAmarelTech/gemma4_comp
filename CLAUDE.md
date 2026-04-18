@@ -31,6 +31,7 @@ project memory level. Currently:
 - `30_test_before_commit.md` — duecare test before PR
 - `40_forge_module_contract.md` — folder-per-module pattern
 - `50_publish_strategy.md` — GitHub + multi-package PyPI + Kaggle
+- `60_notebook_presentation.md` — Kaggle-safe styling, no-truncation, pandas Styler + Markdown over raw HTML; shared helpers in `scripts/_notebook_display.py`
 
 ## Execution phases (the 4-phase arc)
 

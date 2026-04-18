@@ -1,0 +1,26 @@
+{
+  "id": "taylorsamarel/duecare-188-jailbreak-uncensored-community",
+  "title": "188: DueCare Jailbreak - Uncensored Community",
+  "code_file": "188_jailbreak_uncensored_community.ipynb",
+  "language": "python",
+  "kernel_type": "notebook",
+  "is_private": false,
+  "enable_gpu": true,
+  "enable_tpu": false,
+  "enable_internet": true,
+  "dataset_sources": [
+    "taylorsamarel/duecare-llm-wheels",
+    "taylorsamarel/duecare-trafficking-prompts"
+  ],
+  "competition_sources": [
+    "gemma-4-good-hackathon"
+  ],
+  "model_sources": [],
+  "kernel_sources": [],
+  "keywords": [
+    "gemma",
+    "safety",
+    "jailbreak",
+    "uncensored"
+  ]
+}

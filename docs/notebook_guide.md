@@ -1,183 +1,45 @@
 # DueCare Notebook Guide
 
-> Complete reference for all 17 DueCare Kaggle notebooks.
-> Each notebook is a self-contained experiment with clear inputs, outputs,
-> and position in the evaluation pipeline.
+`docs/current_kaggle_notebook_state.md` is the authoritative inventory and live-state snapshot for the DueCare notebook suite. This guide is the human-readable purpose map for the public notebooks.
 
-## Pipeline Flow
-
-```
-                         ┌─────────────────────────┐
-                         │   74,567 SEED PROMPTS    │
-                         │   (seed_prompts.jsonl)   │
-                         └───────────┬─────────────┘
-                                     │
-                    ┌────────────────┼────────────────┐
-                    ▼                ▼                ▼
-              ┌──────────┐   ┌──────────┐   ┌──────────────┐
-              │ NB 00a   │   │ NB 12    │   │ NB 00b       │
-              │ Prioritize│   │ Prompt   │   │ Remix        │
-              │ (select  │   │ Factory  │   │ (15 gens)    │
-              │  2000)   │   │ (15 gens │   │              │
-              └────┬─────┘   │ +validate│   └──────┬───────┘
-                   │         │ +rank)   │          │
-                   │         └────┬─────┘          │
-                   └──────────────┼────────────────┘
-                                  │
-                         ┌────────▼────────┐
-                         │  CURATED PROMPTS │
-                         │  (validated,     │
-                         │   ranked,        │
-                         │   diverse)       │
-                         └────────┬────────┘
-                                  │
-              ┌───────────────────┼───────────────────┐
-              │                   │                   │
-              ▼                   ▼                   ▼
-        ┌──────────┐       ┌──────────┐       ┌──────────┐
-        │ NB 00    │       │ NB 05    │       │ NB P2    │
-        │ Gemma    │       │ RAG vs   │       │ Model    │
-        │ Baseline │       │ Plain vs │       │ Compare  │
-        │ (stock)  │       │ Guided   │       │ E2B/E4B  │
-        └────┬─────┘       └────┬─────┘       └────┬─────┘
-             │                  │                   │
-             └──────────────────┼───────────────────┘
-                                │
-                       ┌────────▼────────┐
-                       │  MODEL RESPONSES │
-                       └────────┬────────┘
-                                │
-         ┌──────────────────────┼──────────────────────┐
-         │              │              │               │
-         ▼              ▼              ▼               ▼
-   ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐
-   │ NB 09    │  │ NB 11    │  │ NB 13    │  │ NB 10    │
-   │ LLM Judge│  │ Compare  │  │ Rubric   │  │ Converse │
-   │ (0-100   │  │ Grading  │  │ Per-Crit │  │ Thread   │
-   │  6 dims) │  │ (anchor) │  │ (54 crit)│  │ (escal.) │
-   └────┬─────┘  └────┬─────┘  └────┬─────┘  └────┬─────┘
-        │              │              │              │
-        └──────────────┼──────────────┼──────────────┘
-                       │              │
-                ┌──────▼──────┐  ┌────▼─────┐
-                │ FAILURE     │  │ CURRICULUM│
-                │ ANALYSIS    │  │ DESIGN    │
-                │ (6 modes)   │  │ (tags)    │
-                └──────┬──────┘  └────┬──────┘
-                       │              │
-                       └──────┬───────┘
-                              │
-                     ┌────────▼────────┐
-                     │ NB P3           │
-                     │ Unsloth         │
-                     │ Fine-tune       │
-                     │ (LoRA + GGUF)   │
-                     └─────────────────┘
-```
-
-## Notebook Catalog
-
-### Data Pipeline Notebooks
-
-| # | Title | Input | Output | GPU? |
+| ID | Title | Status | Kaggle URL | Purpose |
 |---|---|---|---|---|
-| **00a** | Prompt Prioritizer | 74,567 seed prompts | curated_prompts.jsonl (~2,000) | No |
-| **00b** | Prompt Remixer | curated prompts | remixed_prompts.jsonl (15x amplified) | No |
-| **12** | Prompt Factory | base prompts | validated + ranked prompt set | No |
-
-### Model Evaluation Notebooks
-
-| # | Title | Input | Output | GPU? |
-|---|---|---|---|---|
-| **00** | Gemma Exploration | curated prompts + Gemma 4 | baseline_findings.json (scores, failures) | **Yes** |
-| **05** | RAG Comparison | prompts + Gemma + KB | plain/RAG/guided comparison table | **Yes** |
-| **P2** | Phase 2 Comparison | prompts + E2B + E4B | cross-model comparison | **Yes** |
-
-### Grading & Evaluation Notebooks
-
-| # | Title | Input | Output | GPU? |
-|---|---|---|---|---|
-| **09** | LLM-as-Judge (0-100) | prompt + response | 6-dimension scores (refusal, legal, completeness, safety, cultural, actionability) | No* |
-| **10** | Conversation Testing | multi-turn threads | per-turn risk + cumulative escalation detection | No |
-| **11** | Comparative Grading | response + best/worst references | anchored 0-100 score with gap analysis | No* |
-| **13** | Rubric-Anchored Eval | response + 5 rubrics | 54 per-criterion pass/fail with evidence | No |
-
-*When connected to Gemma via Ollama or Kaggle GPU, these use real LLM-as-judge scoring
-
-### Adversarial & Feature Notebooks
-
-| # | Title | Input | Output | GPU? |
-|---|---|---|---|---|
-| **06** | Adversarial Resistance | base prompts | 15 attack vectors demonstrated | No |
-| **08** | Function Calling + Multimodal | text/images | tool calls + document analysis | No |
-
-### Framework Demo Notebooks
-
-| # | Title | Input | Output | GPU? |
-|---|---|---|---|---|
-| **01** | Quickstart | wheels dataset | smoke test (registries, scoring) | No |
-| **02** | Cross-Domain Proof | 3 domain packs | identical workflows across trafficking/tax/financial | No |
-| **03** | Agent Swarm Deep Dive | agent registry | 12 agents + supervisor retry/harm/budget | No |
-
-### Fine-tuning Notebook
-
-| # | Title | Input | Output | GPU? |
-|---|---|---|---|---|
-| **P3** | Unsloth Fine-tune | 1,158 training examples | LoRA adapter + GGUF (Q4_K_M) | **Yes** |
-
-### Submission Notebook (Private)
-
-| # | Title | Input | Output | GPU? |
-|---|---|---|---|---|
-| **04** | Submission Walkthrough | all prior results | compact narrative for writeup | No |
-
-## Module Usage Map
-
-| Module | Used in notebooks |
-|---|---|
-| `duecare.domains` (domain packs) | 00, 00a, 01, 02, 03, 04, 05, 06, 12, 13 |
-| `duecare.tasks.generators` (15 generators) | 00b, 06, 10, 12 |
-| `duecare.tasks.guardrails.weighted_scorer` | 00, 05, 13 |
-| `duecare.tasks.guardrails.failure_analysis` | 00 |
-| `duecare.tasks.guardrails.citation_verifier` | 00 |
-| `duecare.tasks.guardrails.compliance_ratings` | (writeup) |
-| `duecare.tasks.guardrails.llm_judge` | 09 |
-| `duecare.agents` (12 agents) | 02, 03 |
-| `duecare.agents.evolution` (mutation engine) | (pipeline stage 8) |
-| `duecare.workflows` (DAG runner) | 02 |
-| `duecare.models.ollama_adapter` | (local scripts) |
-| `src.demo.rag` (111-entry KB) | 05 |
-| `src.demo.function_calling` (5 tools) | 08 |
-| `src.demo.quick_filter` (0.02ms triage) | (demo app) |
-| `src.demo.visual_evasion` (5 patterns) | 08 |
-| `src.demo.social_media_scorer` (30+ indicators) | (demo app) |
-
-## Key Datasets
-
-| Dataset | Kaggle Slug | Contents |
-|---|---|---|
-| DueCare Wheels | `taylorsamarel/duecare-llm-wheels` | 8 package wheels |
-| Trafficking Prompts | `taylorsamarel/duecare-trafficking-prompts` | 74,567 prompts + 5 rubrics |
-
-## Running Locally
-
-All CPU notebooks can run locally without Kaggle:
-
-```bash
-# Install DueCare
-pip install packages/duecare-llm/dist/*.whl
-
-# Run any notebook
-jupyter notebook notebooks/06_adversarial_resistance.ipynb
-
-# Or use the scripts directly
-python scripts/run_local_gemma.py --model gemma4:e4b --max-prompts 10
-python scripts/pipeline/run_pipeline.py --stages 4,5,6,7 --heuristic --quick
-```
-
-GPU notebooks require either Kaggle T4 x2 or a local GPU with Ollama:
-
-```bash
-ollama pull gemma4:e4b
-python scripts/run_full_evaluation.py --model gemma4:e4b --max-prompts 20 --mode compare
-```
+| `000` | DueCare 000 Index | Live | [https://www.kaggle.com/code/taylorsamarel/duecare-000-index](https://www.kaggle.com/code/taylorsamarel/duecare-000-index) | Navigation hub for the writeup, demo, and full notebook sequence. |
+| `005` | DueCare 005 Glossary | Live | [https://www.kaggle.com/code/taylorsamarel/duecare-005-glossary](https://www.kaggle.com/code/taylorsamarel/duecare-005-glossary) | Vocabulary, notebook bands, and recommended reading paths. |
+| `010` | DueCare 010 Quickstart | Live | [https://www.kaggle.com/code/taylorsamarel/010-duecare-quickstart-in-5-minutes](https://www.kaggle.com/code/taylorsamarel/010-duecare-quickstart-in-5-minutes) | Install DueCare and run the smallest end-to-end safety smoke test. |
+| `100` | DueCare Gemma Exploration | Live | [https://www.kaggle.com/code/taylorsamarel/duecare-gemma-exploration](https://www.kaggle.com/code/taylorsamarel/duecare-gemma-exploration) | Run the stock Gemma 4 baseline on trafficking prompts and inspect failures. |
+| `110` | DueCare Prompt Prioritizer | Live | [https://www.kaggle.com/code/taylorsamarel/00a-duecare-prompt-prioritizer-data-pipeline](https://www.kaggle.com/code/taylorsamarel/00a-duecare-prompt-prioritizer-data-pipeline) | Select the highest-value prompts from the full seed corpus. |
+| `120` | DueCare Prompt Remixer | Live | [https://www.kaggle.com/code/taylorsamarel/duecare-prompt-remixer](https://www.kaggle.com/code/taylorsamarel/duecare-prompt-remixer) | Expand curated prompts into remixed and adversarial variants. |
+| `200` | DueCare 200 Cross Domain Proof | Live | [https://www.kaggle.com/code/taylorsamarel/duecare-200-cross-domain-proof](https://www.kaggle.com/code/taylorsamarel/duecare-200-cross-domain-proof) | Show the same harness working across trafficking, tax evasion, and financial crime. |
+| `210` | DueCare Gemma vs OSS Comparison | Live | [https://www.kaggle.com/code/taylorsamarel/duecare-gemma-vs-oss-comparison](https://www.kaggle.com/code/taylorsamarel/duecare-gemma-vs-oss-comparison) | Compare Gemma against peer open-source models on the same safety task. |
+| `220` | DueCare Ollama Cloud OSS Comparison | Live | [https://www.kaggle.com/code/taylorsamarel/duecare-ollama-cloud-oss-comparison](https://www.kaggle.com/code/taylorsamarel/duecare-ollama-cloud-oss-comparison) | Benchmark Gemma against six OSS models exposed through Ollama Cloud. |
+| `230` | DueCare 230 Mistral Family Comparison | Live | [https://www.kaggle.com/code/taylorsamarel/duecare-230-mistral-family-comparison](https://www.kaggle.com/code/taylorsamarel/duecare-230-mistral-family-comparison) | Compare Gemma with Mistral family models under the same prompt slice. |
+| `240` | DueCare OpenRouter Frontier Comparison | Live | [https://www.kaggle.com/code/taylorsamarel/duecare-openrouter-frontier-comparison](https://www.kaggle.com/code/taylorsamarel/duecare-openrouter-frontier-comparison) | Contrast DueCare results with frontier models accessed through OpenRouter. |
+| `250` | DueCare 250 Comparative Grading | Live | [https://www.kaggle.com/code/taylorsamarel/duecare-250-comparative-grading](https://www.kaggle.com/code/taylorsamarel/duecare-250-comparative-grading) | Anchor scores against hand-written best and worst responses. |
+| `260` | DueCare 260 RAG Comparison | Live | [https://www.kaggle.com/code/taylorsamarel/duecare-260-rag-comparison](https://www.kaggle.com/code/taylorsamarel/duecare-260-rag-comparison) | Measure plain, retrieval-augmented, and guided prompting lift. |
+| `270` | DueCare 270 Gemma Generations | Live | [https://www.kaggle.com/code/taylorsamarel/duecare-270-gemma-generations](https://www.kaggle.com/code/taylorsamarel/duecare-270-gemma-generations) | Compare Gemma 2 vs 3 vs 4 safety behavior on the same corpus. |
+| `300` | DueCare 300 Adversarial Resistance | Live | [https://www.kaggle.com/code/taylorsamarel/300-gemma-4-against-15-adversarial-attack-vectors](https://www.kaggle.com/code/taylorsamarel/300-gemma-4-against-15-adversarial-attack-vectors) | Stress-test Gemma against 15 adversarial attack vectors. |
+| `310` | DueCare 310 Prompt Factory | Live | [https://www.kaggle.com/code/taylorsamarel/duecare-310-prompt-factory](https://www.kaggle.com/code/taylorsamarel/duecare-310-prompt-factory) | Generate, validate, and rank adversarial prompts by victim impact. |
+| `320` | DueCare Finding Gemma 4 Safety Line | Live | [https://www.kaggle.com/code/taylorsamarel/duecare-finding-gemma-4-safety-line](https://www.kaggle.com/code/taylorsamarel/duecare-finding-gemma-4-safety-line) | Map the red-team safety gap relative to the base Gemma 4 model. |
+| `400` | DueCare 400 Function Calling Multimodal | Live | [https://www.kaggle.com/code/taylorsamarel/duecare-400-function-calling-multimodal](https://www.kaggle.com/code/taylorsamarel/duecare-400-function-calling-multimodal) | Exercise Gemma 4 native tool calls and document image analysis. |
+| `410` | DueCare 410 LLM Judge Grading | Live | [https://www.kaggle.com/code/taylorsamarel/duecare-410-llm-judge-grading](https://www.kaggle.com/code/taylorsamarel/duecare-410-llm-judge-grading) | Six-dimension 0-100 safety grading with Gemma acting as judge. |
+| `420` | DueCare 420 Conversation Testing | Live | [https://www.kaggle.com/code/taylorsamarel/420-multi-turn-conversation-escalation-detection](https://www.kaggle.com/code/taylorsamarel/420-multi-turn-conversation-escalation-detection) | Detect escalation across multi-turn conversation threads. |
+| `430` | DueCare 430 Rubric Evaluation | Live | [https://www.kaggle.com/code/taylorsamarel/430-54-criterion-pass-fail-rubric-evaluation](https://www.kaggle.com/code/taylorsamarel/430-54-criterion-pass-fail-rubric-evaluation) | Apply the 54-criterion pass/fail rubric to a response corpus. |
+| `440` | DueCare Per Prompt Rubric Generator | Live | [https://www.kaggle.com/code/taylorsamarel/duecare-per-prompt-rubric-generator](https://www.kaggle.com/code/taylorsamarel/duecare-per-prompt-rubric-generator) | Generate per-prompt rubrics with failure-type classification. |
+| `450` | DueCare Contextual Judge | Live | [https://www.kaggle.com/code/taylorsamarel/duecare-contextual-judge](https://www.kaggle.com/code/taylorsamarel/duecare-contextual-judge) | Contextual worst-response judge for uncensored red-team outputs. |
+| `500` | DueCare 500 Agent Swarm Deep Dive | Live | [https://www.kaggle.com/code/taylorsamarel/duecare-500-agent-swarm-deep-dive](https://www.kaggle.com/code/taylorsamarel/duecare-500-agent-swarm-deep-dive) | Walk through the 12-agent Gemma 4 safety swarm orchestration. |
+| `510` | DueCare Phase2 Comparison | Live | [https://www.kaggle.com/code/taylorsamarel/duecare-phase2-comparison](https://www.kaggle.com/code/taylorsamarel/duecare-phase2-comparison) | Compare Gemma 4 2B vs 9B on the safety benchmark suite. |
+| `520` | DueCare 520 Phase3 Curriculum Builder | Live | [https://www.kaggle.com/code/taylorsamarel/duecare-520-phase3-curriculum-builder](https://www.kaggle.com/code/taylorsamarel/duecare-520-phase3-curriculum-builder) | Build the Phase 3 Unsloth fine-tuning curriculum from graded outputs. |
+| `530` | DueCare 530 Phase3 Unsloth Finetune | Live | [https://www.kaggle.com/code/taylorsamarel/duecare-530-phase3-unsloth-finetune](https://www.kaggle.com/code/taylorsamarel/duecare-530-phase3-unsloth-finetune) | Run the Phase 3 Unsloth LoRA fine-tune and local model export. |
+| `600` | DueCare Results Dashboard | Live | [https://www.kaggle.com/code/taylorsamarel/600-duecare-results-dashboard](https://www.kaggle.com/code/taylorsamarel/600-duecare-results-dashboard) | CPU-only proof surface that turns `comparison.json` into the proof snapshot, diagnostic panels, and the video/writeup/live-demo charts. |
+| `610` | DueCare 610 Submission Walkthrough | Live | [https://www.kaggle.com/code/taylorsamarel/610-duecare-submission-walkthrough](https://www.kaggle.com/code/taylorsamarel/610-duecare-submission-walkthrough) | Capstone walkthrough that picks up after 600 and stitches the four public notebook surfaces and five deployment shapes together. |
+| `620` | DueCare Demo API Endpoint Tour | Live | [https://www.kaggle.com/code/taylorsamarel/620-duecare-demo-api-endpoint-tour](https://www.kaggle.com/code/taylorsamarel/620-duecare-demo-api-endpoint-tour) | Walk all 17 FastAPI endpoints, including upload-first case intake, bundled case examples, the viewer surface, and the live catalog-vs-app drift audit. |
+| `650` | DueCare Custom Domain Walkthrough | Live | [https://www.kaggle.com/code/taylorsamarel/650-duecare-custom-domain-walkthrough](https://www.kaggle.com/code/taylorsamarel/650-duecare-custom-domain-walkthrough) | Add a medical misinformation domain pack end to end so adopters can extend DueCare without Python changes. |
+| `660` | DueCare Enterprise Moderation | Draft | Pending publication | Plain-English deployment notebook for screening risky recruitment posts, ads, and recruiter outreach at queue scale. |
+| `670` | DueCare Private Client-Side Checker | Draft | Pending publication | Plain-English deployment notebook for a worker-side private checker that evaluates one suspicious message or document at a time. |
+| `680` | DueCare NGO API Triage | Draft | Pending publication | Plain-English deployment notebook for the software-to-software NGO triage API story. |
+| `690` | DueCare Migration Case Workflow | Draft | Pending publication | Plain-English deployment notebook for the multi-document case-bundle workflow with timelines, grounded findings, and draft complaint materials. |
+| `695` | DueCare Custom Domain Adoption | Draft | Pending publication | Plain-English deployment notebook for partner adoption into a new safety domain without Python changes. |
+| `699` | DueCare Advanced Prompt-Test Generation Conclusion | Live | [https://www.kaggle.com/code/taylorsamarel/duecare-advanced-prompt-test-generation-conclusion](https://www.kaggle.com/code/taylorsamarel/duecare-advanced-prompt-test-generation-conclusion) | Close the prompt-generation section and hand the generated prompts and rubrics into the adversarial pass. |
+| `799` | DueCare Adversarial Prompt-Test Evaluation Conclusion | Live | [https://www.kaggle.com/code/taylorsamarel/duecare-adversarial-evaluation-conclusion](https://www.kaggle.com/code/taylorsamarel/duecare-adversarial-evaluation-conclusion) | Close the adversarial section and hand its measured failures into the orchestration, curriculum, and fine-tune path. |
+| `899` | DueCare Solution Surfaces Conclusion | Live | [https://www.kaggle.com/code/taylorsamarel/duecare-solution-surfaces-conclusion](https://www.kaggle.com/code/taylorsamarel/duecare-solution-surfaces-conclusion) | Close the suite by recapping the late-suite implementation surfaces plus the five deployment-application notebooks. |

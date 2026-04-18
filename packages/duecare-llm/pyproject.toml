@@ -51,6 +51,7 @@ dev = [
 ]
 
 [project.scripts]
+duecare = "duecare.cli:main"
 forge = "duecare.cli:main"
 
 

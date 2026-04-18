@@ -17,7 +17,7 @@ ROOT = Path(__file__).resolve().parent.parent
 NB_DIR = ROOT / "notebooks"
 KAGGLE_KERNELS = ROOT / "kaggle" / "kernels"
 WHEELS_DATASET = "taylorsamarel/duecare-llm-wheels"
-KEYWORDS = ["gemma", "safety", "llm", "trafficking", "tutorial"]
+KEYWORDS = ["evaluation"]
 
 
 SECTIONS = [
@@ -159,16 +159,18 @@ SECTIONS = [
         "recap": (
             "The advanced evaluation section did five things. First, 300 probed Gemma "
             "across 15 adversarial attack vectors to expose failure modes the baseline "
-            "comparisons cannot surface. Second, 400 exercised native function calling "
-            "and multimodal document inputs so the evaluation covers the load-bearing "
-            "Gemma 4 features. Third, 410 applied an LLM-as-judge over six safety "
-            "dimensions (refusal, legality, actionability, empathy, specificity, "
-            "jurisdictional accuracy) so scoring is not a single collapsed number. "
-            "Fourth, 420 tested multi-turn conversational escalation where single-turn "
-            "evaluation misses drift. Fifth, 250 re-anchored the whole grading stack "
-            "against hand-written best and worst references so every score above is "
-            "comparable to a known ceiling and a known floor. Together, this section is "
-            "where the suite stops comparing labels and starts measuring real behavior."
+            "comparisons cannot surface. Second, 400 documented native function calling "
+            "and multimodal document inputs as load-bearing Gemma 4 features (with the "
+            "live round-trips delegated to 155, 160, and 180 on GPU). Third, 410 applied "
+            "a 6-dimension weighted rubric (refusal_quality, legal_accuracy, "
+            "completeness, victim_safety, cultural_sensitivity, actionability) using a "
+            "deterministic heuristic judge that is swappable with an LLM judge for live "
+            "runs, so scoring is reproducible on CPU. Fourth, 420 tested multi-turn "
+            "conversational escalation where single-turn evaluation misses drift. "
+            "Fifth, 250 re-anchored the whole grading stack against hand-written best "
+            "and worst references so every score above is comparable to a known ceiling "
+            "and a known floor. Together, this section is where the suite stops "
+            "comparing labels and starts measuring real behavior."
         ),
         "key_points": [
             "Adversarial, tool, multimodal, and multi-turn inputs expose distinct failure classes; one rubric is not enough.",
@@ -213,12 +215,14 @@ SECTIONS = [
             "The advanced prompt-test generation section turned evaluation findings into "
             "harder prompts, richer rubrics, and reusable scoring assets. Prompt Factory "
             "generates and ranks new cases; Rubric Evaluation and Per-Prompt Rubric Generator "
-            "produce the scoring assets for the adversarial pass."
+            "produce the scoring assets for the adversarial pass that follows immediately in "
+            "320 and 450."
         ),
         "key_points": [
             "Remixing produces surface-variant stress cases; generation produces new cases.",
             "Each generated prompt carries an impact ranking to focus evaluation attention.",
             "Per-prompt rubrics are synthesized here, not written by hand downstream.",
+            "The next section attacks these exact generated prompts and rubrics; this is the handoff, not a side branch.",
         ],
         "next_section": "Adversarial Prompt-Test Evaluation",
         "next_notebook_id": "320",
@@ -234,12 +238,14 @@ SECTIONS = [
         "recap": (
             "The adversarial evaluation section measured Gemma's actual safety line under the "
             "generated prompts and rubrics, and reviewed the worst-case responses in full "
-            "context."
+            "context. It isolated the failures the next section turns into orchestration, "
+            "curriculum, and fine-tune decisions."
         ),
         "key_points": [
             "Adversarial probes expose failures that baseline evaluation does not surface.",
             "The safety line shifts under attack and has to be measured, not assumed.",
             "Contextual review of the worst responses is what turns metrics into training signal.",
+            "500, 520, and 530 only matter because this section identifies which failures are worth fixing first.",
         ],
         "next_section": "Model Improvement Opportunities",
         "next_notebook_id": "500",
@@ -253,15 +259,14 @@ SECTIONS = [
         "section_title": "Solution Surfaces",
         "kaggle_title": "899: DueCare Solution Surfaces Conclusion",
         "recap": (
-            "The solution surfaces section translated the evaluated, fine-tuned system into five "
-            "concrete uses: enterprise-wide content moderation, client-side verification, a "
-            "generalized NGO API endpoint, a multi-document migration-case workflow with timelines "
-            "and complaint drafts, and custom domain adoption for new safety packs."
+            "Across the late-suite implementation and deployment-application notebooks, DueCare now translates the evaluated, fine-tuned "
+            "system into five concrete uses: enterprise-wide content moderation, client-side verification, a generalized NGO API endpoint, "
+            "a multi-document migration-case workflow with timelines and complaint drafts, and custom domain adoption for new safety packs."
         ),
         "key_points": [
-            "The same model supports five different deployment shapes without per-surface forks.",
-            "On-device and public API can coexist when privacy boundaries are made explicit, even for document bundles and case timelines.",
-            "The submission walkthrough now stitches the migration-case workflow into the same end-to-end story as the operator API and partner adoption path.",
+            "The suite now separates implementation-heavy surfaces from plain-English application notebooks, so judges can see both what ships and how it is built.",
+            "Privacy is non-negotiable, so on-device and public API can coexist only when the boundary around case data is explicit, even for document bundles and case timelines.",
+            "The deployment-application notebooks make the five product claims explicit, while 610, 620, and 650 remain the deeper implementation companions.",
         ],
         "next_section": "(end of suite)",
         "next_notebook_id": "610",
@@ -295,7 +300,7 @@ PREV_NOTEBOOK = {
     "599": ("540", "Fine-tune Delta Visualizer", "duecare-540-finetune-delta-visualizer"),
     "699": ("440", "Per-Prompt Rubric Generator", "duecare-per-prompt-rubric-generator"),
     "799": ("450", "Contextual Worst-Response Judge", "duecare-contextual-judge"),
-    "899": ("650", "Custom Domain Walkthrough", "duecare-650-custom-domain-walkthrough"),
+    "899": ("695", "Custom Domain Adoption", "duecare-695-custom-domain-adoption"),
 }
 
 # Notebooks covered by each section (for the concrete recap row).
@@ -308,7 +313,7 @@ SECTION_MEMBERS = {
     "599": "500 Agent Swarm, 510 Phase 2 Comparison, 520 Curriculum Builder, 530 Unsloth Fine-Tune, 540 Fine-tune Delta Visualizer",
     "699": "310 Prompt Factory, 430 Rubric Evaluation, 440 Per-Prompt Rubric Generator",
     "799": "320 Finding Gemma 4 Safety Line, 450 Contextual Worst-Response Judge",
-    "899": "600 Results Dashboard, 610 Submission Walkthrough, 620 Demo API Endpoint Tour, 650 Custom Domain Walkthrough",
+    "899": "600 Results Dashboard, 610 Submission Walkthrough, 620 Demo API Endpoint Tour, 650 Custom Domain Walkthrough, 660 Enterprise Moderation, 670 Private Client-Side Checker, 680 NGO API Triage, 690 Migration Case Workflow, 695 Custom Domain Adoption",
 }
 
 
@@ -373,6 +378,12 @@ def _build_one(section: dict) -> None:
     bullets = "\n".join(f"- {p}" for p in section["key_points"])
 
     # Header block matches the canonical suite format used in 000, 005, 010.
+    outputs_text = (
+        "A plain-English recap, key points, and the next-section handoff."
+        if section["next_section"] != "(end of suite)"
+        else "A plain-English recap, key points, and the capstone/index handoff."
+    )
+
     header_table = (
         '<table style="width: 100%; border-collapse: collapse; margin: 4px 0 8px 0;">\n'
         '  <thead>\n'
@@ -383,7 +394,7 @@ def _build_one(section: dict) -> None:
         '  </thead>\n'
         '  <tbody>\n'
         f'    <tr><td style="padding: 6px 10px;"><b>Inputs</b></td><td style="padding: 6px 10px;">Notebooks read in this section ({members}).</td></tr>\n'
-        '    <tr><td style="padding: 6px 10px;"><b>Outputs</b></td><td style="padding: 6px 10px;">A plain-English recap, key points, and the next-section handoff.</td></tr>\n'
+        f'    <tr><td style="padding: 6px 10px;"><b>Outputs</b></td><td style="padding: 6px 10px;">{outputs_text}</td></tr>\n'
         '    <tr><td style="padding: 6px 10px;"><b>Prerequisites</b></td><td style="padding: 6px 10px;">Kaggle CPU kernel with internet enabled; no GPU or API keys.</td></tr>\n'
         '    <tr><td style="padding: 6px 10px;"><b>Runtime</b></td><td style="padding: 6px 10px;">Under 1 minute.</td></tr>\n'
         f'    <tr><td style="padding: 6px 10px;"><b>Pipeline position</b></td><td style="padding: 6px 10px;">{pipeline_position_text}</td></tr>\n'
@@ -438,7 +449,21 @@ This notebook closes the **{section['section_title']}** section of the DueCare s
 {next_block}
 """
 
-    cells = [_md(body)]
+    # Prepend hero + stat-card cell to every section conclusion.
+    _title_str = section.get("kaggle_title") or section.get("label", "DueCare Conclusion")
+    _hero_src = (
+        f"NOTEBOOK_TITLE = {_title_str!r}\n"
+        "from IPython.display import HTML, display\n"
+        "display(HTML(\n"
+        "    '<div style=\"background:linear-gradient(135deg,#1e3a8a 0%,#4c78a8 100%);color:white;padding:20px 24px;border-radius:8px;margin:8px 0;font-family:system-ui,-apple-system,sans-serif\">'\n"
+        "    '<div style=\"font-size:10px;font-weight:600;letter-spacing:0.14em;opacity:0.8;text-transform:uppercase\">DueCare - Section Conclusion</div>'\n"
+        "    f'<div style=\"font-size:22px;font-weight:700;margin:4px 0 0 0\">{NOTEBOOK_TITLE}</div>'\n"
+        "    '<div style=\"font-size:13px;opacity:0.92;margin-top:4px\">Recap, key findings, and handoff to the next section.</div></div>'\n"
+        "))\n"
+    )
+    _hero_cell = {"cell_type": "code", "execution_count": None, "metadata": {}, "outputs": [],
+                  "source": _hero_src.splitlines(keepends=True)}
+    cells = [_hero_cell, _md(body)]
 
     nb = {
         "nbformat": 4,
@@ -484,6 +509,11 @@ This notebook closes the **{section['section_title']}** section of the DueCare s
             if "pip install" in src or "PACKAGES = [" in src:
                 continue  # Do not replace the install cell.
             cell["source"] = final_print_src.splitlines(keepends=True)
+            md = cell.setdefault("metadata", {})
+            md["_kg_hide-input"] = True
+            md["_kg_hide-output"] = True
+            md.setdefault("jupyter", {})["source_hidden"] = True
+            md["jupyter"]["outputs_hidden"] = True
             replaced_summary = True
             break
 
@@ -492,7 +522,12 @@ This notebook closes the **{section['section_title']}** section of the DueCare s
             {
                 "cell_type": "code",
                 "execution_count": None,
-                "metadata": {"language": "python"},
+                "metadata": {
+                    "language": "python",
+                    "_kg_hide-input": True,
+                    "_kg_hide-output": True,
+                    "jupyter": {"source_hidden": True, "outputs_hidden": True},
+                },
                 "outputs": [],
                 "source": final_print_src.splitlines(keepends=True),
             }

@@ -30,7 +30,17 @@ docker compose up
   `warning_templates` dict in `scorer.py`).
 - A case-bundle intake where an NGO can paste multiple migration
   documents, generate a timeline, retrieve legal context, and draft
-  complaint text from the same API surface.
+  complaint text, intake summaries, and written-interrogatory prep from
+  the same API surface.
+- A file-bundle intake where an NGO can upload PDFs, DOCX files, chat
+  exports, screenshots, receipts, interview notes, government letters,
+  and written questionnaires and get the same case packet without
+  manually building JSON.
+- Built-in scenario bundles for employment agency misconduct,
+  overcharging, medical-clinic fee abuse, and money-lender debt
+  pressure, plus a legal-packet example with police correspondence and
+  interrogatory-style intake questions so the full workflow can be
+  demoed without preparing custom fixtures first.
 - A one-click analysis that returns:
   - An overall safety **score** (0–1)
   - A **grade** (worst, bad, neutral, good, best)
@@ -51,11 +61,14 @@ All endpoints live under `/api/v1/` and are documented at `/docs`
 | `/api/v1/health` | GET | Liveness probe |
 | `/api/v1/analyze` | POST | Single-text safety evaluation |
 | `/api/v1/batch` | POST | Batch evaluation (up to 500 items) |
+| `/api/v1/case-examples` | GET | List bundled migration-case scenarios for the dashboard and API clients |
+| `/api/v1/case-examples/{example_id}` | GET | Load one built-in case bundle as a ready-to-run request payload |
 | `/api/v1/stats` | GET | Aggregate analysis metrics |
 | `/api/v1/evaluate` | POST | Full Gemma 4 evaluation (requires Ollama) |
 | `/api/v1/function-call` | POST | Demonstrate Gemma 4 native function calling |
 | `/api/v1/analyze-document` | POST | Multimodal document analysis |
-| `/api/v1/migration-case` | POST | Multi-document NGO case intake with timeline + complaint drafts |
+| `/api/v1/migration-case` | POST | Multi-document NGO case intake with timeline, legal grounding, and complaint/interrogatory drafts |
+| `/api/v1/migration-case-upload` | POST | Multipart upload intake for real case bundles in common file formats |
 
 ## What it runs without a model
 
@@ -78,7 +91,18 @@ and `gemma4:e4b` is pulled, the demo also exposes:
   and Gemma 4 flags illegal fee clauses.
 - **NGO migration case synthesis** — bundle receipts, contracts, and chat
   logs into one request and DueCare builds a narrative timeline plus
-  complaint-ready text.
+  complaint-ready and interrogatory-ready text.
+- **Scenario-aware case drafts** — the case workflow now distinguishes
+  agency misconduct, worker-fee overcharging, clinic-fee abuse, and
+  money-lender debt pressure and emits targeted complaint drafts,
+  intake summaries, and written-question prep for each category.
+- **Case-bundle upload intake** — submit a victim evidence packet as a
+  multipart upload and DueCare extracts text, classifies each file,
+  explains the risk reasons, and returns chart-ready counts plus
+  targeted drafts for the operator dashboard.
+- **Offline NGO case room** — the same deterministic intake flow can run
+  locally with no cloud dependency, then layer Gemma 4 reasoning and
+  RAG grounding on top when a local model is available.
 
 ## Deploy to HuggingFace Spaces
 
@@ -106,7 +130,9 @@ git add . && git commit -m "Deploy DueCare demo" && git push
 
 ```
 src/demo/
-├── app.py                # FastAPI app — 12 API endpoints + HTML dashboard
+├── app.py                # FastAPI app — 13 API endpoints + HTML dashboard
+├── case_examples.py      # Built-in case bundles for agency, clinic, lender, and overcharge scenarios
+├── case_file_ingest.py   # Multipart upload parsing for case bundles
 ├── case_workflow.py      # Multi-document NGO case orchestration
 ├── scorer.py             # WeightedRubricScorer — the deterministic core
 ├── models.py             # Pydantic request/response schemas

@@ -1,0 +1,23 @@
+{
+  "id": "taylorsamarel/duecare-phase2-comparison",
+  "title": "510: DueCare Phase 2 Model Comparison",
+  "code_file": "510_phase2_model_comparison.ipynb",
+  "language": "python",
+  "kernel_type": "notebook",
+  "is_private": false,
+  "enable_gpu": true,
+  "enable_tpu": false,
+  "enable_internet": true,
+  "dataset_sources": [
+    "taylorsamarel/duecare-llm-wheels",
+    "taylorsamarel/duecare-trafficking-prompts"
+  ],
+  "competition_sources": [
+    "gemma-4-good-hackathon"
+  ],
+  "kernel_sources": [],
+  "model_sources": [
+    "google/gemma-4/transformers/gemma-4-e2b-it/1",
+    "google/gemma-4/transformers/gemma-4-e4b-it/1"
+  ]
+}

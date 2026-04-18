@@ -1,0 +1,17 @@
+{
+  "id": "taylorsamarel/250-duecare-comparative-grading",
+  "title": "250: DueCare Comparative Grading",
+  "code_file": "250_comparative_grading.ipynb",
+  "language": "python",
+  "kernel_type": "notebook",
+  "is_private": false,
+  "enable_gpu": false,
+  "enable_internet": true,
+  "dataset_sources": [
+    "taylorsamarel/duecare-llm-wheels",
+    "taylorsamarel/duecare-trafficking-prompts"
+  ],
+  "competition_sources": [
+    "gemma-4-good-hackathon"
+  ]
+}

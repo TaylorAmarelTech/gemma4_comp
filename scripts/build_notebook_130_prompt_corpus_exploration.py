@@ -29,7 +29,7 @@ KEYWORDS = ["gemma", "safety", "llm", "trafficking", "tutorial"]
 
 URL_000 = "https://www.kaggle.com/code/taylorsamarel/duecare-000-index"
 URL_005 = "https://www.kaggle.com/code/taylorsamarel/duecare-005-glossary"
-URL_100 = "https://www.kaggle.com/code/taylorsamarel/duecare-gemma-exploration"
+URL_100 = "https://www.kaggle.com/code/taylorsamarel/duecare-real-gemma-4-on-50-trafficking-prompts"
 URL_110 = "https://www.kaggle.com/code/taylorsamarel/00a-duecare-prompt-prioritizer-data-pipeline"
 URL_120 = "https://www.kaggle.com/code/taylorsamarel/duecare-prompt-remixer"
 URL_130 = "https://www.kaggle.com/code/taylorsamarel/130-duecare-prompt-corpus-exploration"
@@ -337,10 +337,8 @@ else:
         score_display = f'{score:.2f}' if isinstance(score, (int, float)) else f'{GRADE_TO_SCORE.get(gkey, 0.0):.2f}'
         cards += (
             f'<div style=\"margin: 8px 0; border: 1px solid #d1d5da; border-left: 6px solid {color}; padding: 10px 14px;\">'
-            f'<div style=\"display: flex; justify-content: space-between; align-items: center;\">'
-            f'<div><b>Grade: {escape(gkey)}</b></div>'
-            f'<div style=\"color: #555;\">score {escape(score_display)}</div>'
-            f'</div>'
+            f'<div><b>Grade: {escape(gkey)}</b>'
+            f'<span style=\"color: #555; margin-left: 12px;\">score {escape(score_display)}</span></div>'
             f'<div style=\"margin-top: 8px;\">{escape(text)}</div>'
             + (f'<div style=\"margin-top: 6px; color: #555;\"><i>why this grade:</i> {escape(explanation)}</div>' if explanation else '')
             + '</div>'
@@ -391,12 +389,12 @@ else:
         p = selected.get(cat)
         if p is None:
             continue
-        prompt_text = (p.get('text', '') or '')[:350]
-        best_text = _best_text(p)[:300]
+        prompt_text = p.get('text', '') or ''
+        best_text = _best_text(p)
         rows += (
             f'<tr>'
             f'<td style=\"padding: 8px 10px; vertical-align: top; width: 22%; background: #f6f8fa;\"><b>{escape(cat)}</b><br><span style=\"color: #555;\">{escape(p.get(\"id\", \"\"))}</span></td>'
-            f'<td style=\"padding: 8px 10px; vertical-align: top;\"><b>Prompt:</b> {escape(prompt_text)}<br><br><b>Best-grade reply (truncated):</b> {escape(best_text)}...</td>'
+            f'<td style=\"padding: 8px 10px; vertical-align: top;\"><b>Prompt:</b> {escape(prompt_text)}<br><br><b>Best-grade reply:</b> {escape(best_text)}</td>'
             f'</tr>'
         )
     display(HTML(
@@ -460,6 +458,13 @@ SUMMARY = f"""---
 - Sampled one prompt per major category so the range of failure shapes is visible on screen.
 - Printed a score-distribution summary for the scored reference responses in the active corpus.
 
+### Key findings
+
+1. **The corpus is corridor-aware, not just category-aware.** Each prompt carries a migration corridor label (PH-HK, BD-AE, NP-MY, etc.); cross-corridor variation is what makes the rubric portable across NGO regional offices (Polaris, IJM, ECPAT, POEA, BP2MI, HRD Nepal).
+2. **Every prompt ships with five graded references**, not one ground-truth answer. That is what lets 250 (Comparative Grading) anchor scores against named upper and lower bounds, instead of collapsing safety into a single scalar.
+3. **The 5-grade rubric is the same vocabulary 100 Gemma Exploration scores against** — there is no "training rubric" vs "evaluation rubric" mismatch downstream; one rubric, used everywhere.
+4. **The shipped pack is intentionally small** so the notebook always renders even without the full 74k corpus dataset attached. The full pool is only required when the headline corpus stats need to match the writeup.
+
 ### How this feeds the rest of the suite
 
 - [100 Gemma Exploration]({URL_100}) runs stock Gemma 4 against this slice and writes the Phase 1 baseline that every cross-model comparison anchors to.
@@ -502,9 +507,67 @@ SUMMARY = f"""---
 """
 
 
+
+AT_A_GLANCE_INTRO = """---
+
+## At a glance
+
+Walk through the corpus by category, sector, corridor, and difficulty; render the 5-grade rubric.
+"""
+
+
+AT_A_GLANCE_CODE = '''from IPython.display import HTML, display
+
+_P = {"primary":"#4c78a8","success":"#10b981","info":"#3b82f6","warning":"#f59e0b","muted":"#6b7280","danger":"#ef4444",
+      "bg_primary":"#eff6ff","bg_success":"#ecfdf5","bg_info":"#eff6ff","bg_warning":"#fffbeb","bg_danger":"#fef2f2"}
+
+def _stat_card(value, label, sub, kind="primary"):
+    c = _P[kind]; bg = _P.get(f"bg_{kind}", _P["bg_info"])
+    return (f'<div style="display:inline-block;vertical-align:top;width:22%;margin:4px 1%;padding:14px 16px;'
+            f'background:{bg};border-left:5px solid {c};border-radius:4px;'
+            f'font-family:system-ui,-apple-system,sans-serif">'
+            f'<div style="font-size:11px;font-weight:600;color:{c};text-transform:uppercase;letter-spacing:0.04em">{label}</div>'
+            f'<div style="font-size:26px;font-weight:700;color:#1f2937;margin:4px 0 0 0">{value}</div>'
+            f'<div style="font-size:12px;color:{_P["muted"]};margin-top:2px">{sub}</div></div>')
+
+def _step(label, sub, kind="primary"):
+    c = _P[kind]; bg = _P.get(f"bg_{kind}", _P["bg_info"])
+    return (f'<div style="display:inline-block;vertical-align:middle;min-width:138px;padding:10px 12px;'
+            f'margin:4px 0;background:{bg};border:2px solid {c};border-radius:6px;text-align:center;'
+            f'font-family:system-ui,-apple-system,sans-serif">'
+            f'<div style="font-weight:600;color:#1f2937;font-size:13px">{label}</div>'
+            f'<div style="color:{_P["muted"]};font-size:11px;margin-top:2px">{sub}</div></div>')
+
+_arrow = f'<span style="display:inline-block;vertical-align:middle;margin:0 4px;color:{_P["muted"]};font-size:20px">&rarr;</span>'
+
+cards = [
+    _stat_card('5', 'grade levels', 'worst -> best', 'primary'),
+    _stat_card('categories', 'axes shown', 'sector / corridor / difficulty', 'info'),
+    _stat_card('1', 'example per grade', 'real graded prompt', 'warning'),
+    _stat_card('< 1 min', 'runtime', 'CPU, no model', 'success')
+]
+display(HTML('<div style="margin:8px 0">' + ''.join(cards) + '</div>'))
+
+steps = [
+    _step('Load corpus', 'from pack', 'primary'),
+    _step('Group', 'by category', 'info'),
+    _step('Sample', 'one per grade', 'warning'),
+    _step('Render', '5-band cards', 'success')
+]
+display(HTML(
+    '<div style="margin:10px 0 4px 0;font-family:system-ui,-apple-system,sans-serif;'
+    'font-weight:600;color:#1f2937">Corpus walkthrough</div>'
+    '<div style="margin:6px 0">' + _arrow.join(steps) + '</div>'
+))
+'''
+
+
+
 def build() -> None:
     cells = [
         md(HEADER),
+        md(AT_A_GLANCE_INTRO),
+        code(AT_A_GLANCE_CODE),
         md(STEP_1),
         code(LOAD_CORPUS),
         md(STEP_2),
@@ -549,6 +612,11 @@ def build() -> None:
         if "print(" in src and ("complete" in src.lower() or "continue to" in src.lower()):
             if len(src) < 400:
                 cell["source"] = final_print_src.splitlines(keepends=True)
+                _meta = cell.setdefault("metadata", {})
+                _meta["_kg_hide-input"] = True
+                _meta["_kg_hide-output"] = True
+                _meta.setdefault("jupyter", {})["source_hidden"] = True
+                _meta["jupyter"]["outputs_hidden"] = True
                 break
 
     NB_DIR.mkdir(parents=True, exist_ok=True)

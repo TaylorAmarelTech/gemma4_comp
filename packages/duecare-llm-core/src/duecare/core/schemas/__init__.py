@@ -11,6 +11,9 @@ from .pipeline import (
     RawPrompt,
     RubricCriterion,
     ScoredResponse,
+    TrainingDatasetManifest,
+    TrainingExample,
+    TrainingMessage,
 )
 from .provenance import Provenance
 from .task import ItemResult, TaskConfig, TaskResult
@@ -34,6 +37,9 @@ __all__ = [
     "ResponseExample",
     "RubricCriterion",
     "ScoredResponse",
+    "TrainingDatasetManifest",
+    "TrainingExample",
+    "TrainingMessage",
     "TaskConfig",
     "TaskResult",
     "ToolCall",

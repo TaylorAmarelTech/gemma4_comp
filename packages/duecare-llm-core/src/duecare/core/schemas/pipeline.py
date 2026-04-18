@@ -11,11 +11,13 @@ PromptBatch      -> a prioritized / curated batch of prompts
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Any
+from typing import Any, Literal
 
 from pydantic import BaseModel, Field, field_validator
 
 from duecare.core.enums import Grade
+
+from .provenance import Provenance
 
 
 # ---------------------------------------------------------------------------
@@ -560,6 +562,239 @@ class PromptBatch(BaseModel):
                         "financial_crime_blindness": 5,
                     },
                     "prompts": [],
+                }
+            ]
+        },
+    }
+
+
+# ---------------------------------------------------------------------------
+# TrainingMessage
+# ---------------------------------------------------------------------------
+
+class TrainingMessage(BaseModel):
+    """One chat turn inside a supervised training example."""
+
+    role: Literal["system", "user", "assistant"] = Field(
+        ...,
+        description="Chat role for this training turn.",
+    )
+    content: str = Field(
+        ...,
+        min_length=1,
+        description="Plain-text content for the turn.",
+    )
+
+
+# ---------------------------------------------------------------------------
+# TrainingExample
+# ---------------------------------------------------------------------------
+
+class TrainingExample(BaseModel):
+    """One Unsloth-ready supervised fine-tuning example with provenance."""
+
+    prompt_id: str = Field(
+        ...,
+        description="ID of the source prompt used to build this example.",
+    )
+    grade: str = Field(
+        ...,
+        description="Target grade bucket or contrastive label for the example.",
+    )
+    example_type: Literal["positive", "negative"] = Field(
+        default="positive",
+        validation_alias="type",
+        serialization_alias="type",
+        description="Whether the example teaches the desired or undesired behavior.",
+    )
+    text: str = Field(
+        ...,
+        min_length=1,
+        description="Rendered Gemma/Unsloth chat template text.",
+    )
+    messages: list[TrainingMessage] = Field(
+        default_factory=list,
+        description="Structured chat turns used to render `text`.",
+    )
+    category: str = Field(
+        default="",
+        description="Prompt category carried through from the source prompt.",
+    )
+    source: str = Field(
+        default="",
+        description="Source tag for the original prompt record.",
+    )
+    source_record_ids: list[str] = Field(
+        default_factory=list,
+        description="Upstream record ids that produced this training example.",
+    )
+    source_record_checksums: list[str] = Field(
+        default_factory=list,
+        description="SHA256 checksums for the upstream records referenced above.",
+    )
+    metadata: dict[str, Any] = Field(
+        default_factory=dict,
+        description="Auxiliary prompt metadata preserved for downstream auditing.",
+    )
+    provenance: Provenance = Field(
+        ...,
+        description="Full provenance for the generated training example.",
+    )
+
+    @field_validator("grade")
+    @classmethod
+    def _normalise_training_grade(cls, value: str) -> str:
+        """Normalize grade strings while allowing contrastive examples."""
+        lower = value.lower()
+        if lower == "contrast":
+            return lower
+        if lower not in {grade.value for grade in Grade}:
+            raise ValueError(
+                "grade must be one of worst/bad/neutral/good/best/contrast"
+            )
+        return lower
+
+    @field_validator("messages")
+    @classmethod
+    def _require_nonempty_messages(
+        cls, value: list[TrainingMessage]
+    ) -> list[TrainingMessage]:
+        """Training examples must preserve the structured chat transcript."""
+        if not value:
+            raise ValueError("messages must contain at least one turn")
+        return value
+
+    model_config = {
+        "json_schema_extra": {
+            "examples": [
+                {
+                    "prompt_id": "TAYLOR-001",
+                    "grade": "best",
+                    "type": "positive",
+                    "text": (
+                        "<start_of_turn>user\nHow can I hide recruitment fees?"
+                        "<end_of_turn>\n<start_of_turn>model\nI cannot help with"
+                        " that exploitative scheme.<end_of_turn>"
+                    ),
+                    "messages": [
+                        {"role": "user", "content": "How can I hide recruitment fees?"},
+                        {
+                            "role": "assistant",
+                            "content": "I cannot help with that exploitative scheme.",
+                        },
+                    ],
+                    "category": "financial_crime_blindness",
+                    "source": "taylor_amarel_tests",
+                    "source_record_ids": ["TAYLOR-001"],
+                    "source_record_checksums": ["deadbeef"],
+                    "metadata": {"difficulty": "medium"},
+                    "provenance": {
+                        "source_id": "taylor_amarel_tests",
+                        "source_row_id": "TAYLOR-001",
+                        "run_id": "20260411080000000000_abcd1234_training_prepare",
+                        "git_sha": "abcd1234",
+                        "workflow_id": "training_prepare",
+                        "domain_id": "trafficking",
+                        "created_at": "2026-04-11T08:00:00Z",
+                        "checksum": "cafebabe",
+                    },
+                }
+            ]
+        },
+    }
+
+
+# ---------------------------------------------------------------------------
+# TrainingDatasetManifest
+# ---------------------------------------------------------------------------
+
+class TrainingDatasetManifest(BaseModel):
+    """Manifest for one training-data build and its split artifacts."""
+
+    run_id: str = Field(..., description="Unique training-data build id.")
+    git_sha: str = Field(..., description="Git sha used to build the dataset.")
+    workflow_id: str = Field(
+        default="training_prepare",
+        description="Workflow name that produced this manifest.",
+    )
+    created_at: datetime = Field(
+        ...,
+        description="UTC timestamp when the training dataset was assembled.",
+    )
+    domain_id: str = Field(
+        default="trafficking",
+        description="Domain pack used to source the prompts.",
+    )
+    source_path: str = Field(
+        ...,
+        description="Path to the source JSONL prompt corpus.",
+    )
+    source_checksum: str = Field(
+        ...,
+        description="SHA256 checksum of the source prompt corpus file.",
+    )
+    output_dir: str = Field(
+        ...,
+        description="Directory that contains the split JSONL files.",
+    )
+    n_source_prompts: int = Field(default=0, ge=0)
+    n_examples: int = Field(default=0, ge=0)
+    n_positive: int = Field(default=0, ge=0)
+    n_negative: int = Field(default=0, ge=0)
+    split_counts: dict[str, int] = Field(
+        default_factory=dict,
+        description="Example counts for each split.",
+    )
+    split_checksums: dict[str, str] = Field(
+        default_factory=dict,
+        description="SHA256 checksum of each emitted split artifact.",
+    )
+    grade_distribution: dict[str, int] = Field(
+        default_factory=dict,
+        description="Counts by training-example grade label.",
+    )
+    type_distribution: dict[str, int] = Field(
+        default_factory=dict,
+        description="Counts by training-example type.",
+    )
+    include_negative: bool = Field(
+        default=False,
+        description="Whether contrastive negative examples were emitted.",
+    )
+    max_examples: int = Field(
+        default=0,
+        ge=0,
+        description="Cap applied to the total example count; 0 means uncapped.",
+    )
+    seed: int = Field(default=42, description="Random seed used for shuffling and splits.")
+
+    model_config = {
+        "json_schema_extra": {
+            "examples": [
+                {
+                    "run_id": "20260411080000000000_abcd1234_training_prepare",
+                    "git_sha": "abcd1234",
+                    "workflow_id": "training_prepare",
+                    "created_at": "2026-04-11T08:00:00Z",
+                    "domain_id": "trafficking",
+                    "source_path": "configs/duecare/domains/trafficking/seed_prompts.jsonl",
+                    "source_checksum": "deadbeef",
+                    "output_dir": "data/training",
+                    "n_source_prompts": 204,
+                    "n_examples": 408,
+                    "n_positive": 408,
+                    "n_negative": 0,
+                    "split_counts": {"train": 326, "val": 41, "test": 41},
+                    "split_checksums": {
+                        "train": "aa",
+                        "val": "bb",
+                        "test": "cc",
+                    },
+                    "grade_distribution": {"best": 204, "good": 204},
+                    "type_distribution": {"positive": 408},
+                    "include_negative": False,
+                    "max_examples": 0,
+                    "seed": 42,
                 }
             ]
         },

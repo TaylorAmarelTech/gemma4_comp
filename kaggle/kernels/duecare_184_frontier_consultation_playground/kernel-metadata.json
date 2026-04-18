@@ -1,0 +1,28 @@
+{
+  "id": "taylorsamarel/duecare-184-frontier-consultation-playground",
+  "title": "184: DueCare Frontier Consultation Playground",
+  "code_file": "184_frontier_consultation_playground.ipynb",
+  "language": "python",
+  "kernel_type": "notebook",
+  "is_private": false,
+  "enable_gpu": true,
+  "enable_tpu": false,
+  "enable_internet": true,
+  "dataset_sources": [
+    "taylorsamarel/duecare-llm-wheels"
+  ],
+  "competition_sources": [
+    "gemma-4-good-hackathon"
+  ],
+  "model_sources": [
+    "google/gemma-4/transformers/gemma-4-e4b-it/1"
+  ],
+  "kernel_sources": [],
+  "keywords": [
+    "gemma",
+    "function-calling",
+    "escalation",
+    "frontier",
+    "playground"
+  ]
+}

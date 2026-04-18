@@ -1,0 +1,18 @@
+{
+  "id": "taylorsamarel/duecare-695-custom-domain-adoption",
+  "title": "695: DueCare Custom Domain Adoption",
+  "code_file": "695_custom_domain_adoption.ipynb",
+  "language": "python",
+  "kernel_type": "notebook",
+  "is_private": false,
+  "enable_gpu": false,
+  "enable_tpu": false,
+  "enable_internet": true,
+  "dataset_sources": [
+    "taylorsamarel/duecare-llm-wheels"
+  ],
+  "keywords": [
+    "deployment",
+    "evaluation"
+  ]
+}

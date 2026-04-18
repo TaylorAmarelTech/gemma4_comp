@@ -1,0 +1,21 @@
+{
+  "id": "taylorsamarel/599-duecare-model-improvement-opportunities-conclusion",
+  "title": "599: DueCare Model Improvement Opportunities Conclusion",
+  "code_file": "599_model_improvement_opportunities_conclusion.ipynb",
+  "language": "python",
+  "kernel_type": "notebook",
+  "is_private": false,
+  "enable_gpu": false,
+  "enable_tpu": false,
+  "enable_internet": true,
+  "dataset_sources": [
+    "taylorsamarel/duecare-llm-wheels"
+  ],
+  "competition_sources": [
+    "gemma-4-good-hackathon"
+  ],
+  "kernel_sources": [],
+  "keywords": [
+    "evaluation"
+  ]
+}

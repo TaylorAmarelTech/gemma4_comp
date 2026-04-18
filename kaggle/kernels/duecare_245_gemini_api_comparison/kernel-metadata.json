@@ -1,0 +1,26 @@
+{
+  "id": "taylorsamarel/245-duecare-gemini-api-comparison",
+  "title": "245: DueCare Gemma 4 Gemini API Comparison",
+  "code_file": "245_gemini_api_comparison.ipynb",
+  "language": "python",
+  "kernel_type": "notebook",
+  "is_private": false,
+  "enable_gpu": false,
+  "enable_tpu": false,
+  "enable_internet": true,
+  "dataset_sources": [
+    "taylorsamarel/duecare-llm-wheels"
+  ],
+  "competition_sources": [
+    "gemma-4-good-hackathon"
+  ],
+  "kernel_sources": [],
+  "keywords": [
+    "gemma",
+    "safety",
+    "llm",
+    "gemini",
+    "api",
+    "comparison"
+  ]
+}

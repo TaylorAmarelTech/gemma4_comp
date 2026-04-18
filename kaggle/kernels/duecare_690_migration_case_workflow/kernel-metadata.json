@@ -1,0 +1,18 @@
+{
+  "id": "taylorsamarel/duecare-690-migration-case-workflow",
+  "title": "690: DueCare Migration Case Workflow",
+  "code_file": "690_migration_case_workflow.ipynb",
+  "language": "python",
+  "kernel_type": "notebook",
+  "is_private": false,
+  "enable_gpu": false,
+  "enable_tpu": false,
+  "enable_internet": true,
+  "dataset_sources": [
+    "taylorsamarel/duecare-llm-wheels"
+  ],
+  "keywords": [
+    "deployment",
+    "evaluation"
+  ]
+}

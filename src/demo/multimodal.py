@@ -65,10 +65,15 @@ Output a structured analysis:
 
 
 CONTEXT_PROMPTS = {
+    "agency_record": "This is agency-side paperwork related to recruitment, collection, or deployment. Check for worker-paid fees, license or broker irregularities, and any pressure language tied to deployment.",
+    "debt_note": "This is a loan, promissory note, or debt collection document tied to migration. Check whether the debt is linked to recruitment, payroll deductions, employer control, or passport retention.",
     "contract": "This is a photograph of an employment contract for a migrant worker. Analyze it for exploitation indicators — especially fee clauses, salary deductions, passport retention, and contract substitution.",
     "job_posting": "This is a screenshot of a job posting targeting migrant workers. Analyze it for red flags — unrealistic salary promises, hidden fees, vague job descriptions, and unlicensed agencies.",
     "chat": "This is a screenshot of a chat conversation (WhatsApp, Viber, Messenger) about overseas employment. Analyze it for coercion, urgency pressure, fee demands, or threats. Bad actors often use chat screenshots to evade text filters.",
     "document": "This is a photograph of a document related to migrant worker recruitment. Analyze it for compliance issues and exploitation indicators.",
+    "identity_document": "This is a passport, visa, permit, or identity document connected to a migration case. Extract any dates, country names, and document-control signals that matter for trafficking review.",
+    "medical_record": "This is a clinic bill, medical exam record, or fit-to-work document tied to migration. Check whether the worker is being charged recruitment-linked medical costs or blocked from deployment until payment.",
+    "narrative": "This is an interview narrative or worker statement. Extract the recruitment timeline, money flow, coercion signals, and any references to document control or withheld wages.",
     "receipt": "This is a photograph of a payment receipt or bank transfer related to recruitment. Check if the fees are legal under applicable jurisdiction (ILO C181: workers should not pay recruitment fees).",
     "qr_code": "This image contains a QR code related to recruitment payment. Flag it as potentially dangerous — QR codes are used to direct workers to unregulated payment channels that bypass legal oversight.",
     "certificate": "This is a photograph of an agency certificate, license, or POEA clearance. Check for signs of forgery — expired dates, incorrect formatting, missing hologram descriptions, or unlisted agency names.",
@@ -128,6 +133,12 @@ _ORG_PATTERN = re.compile(
     re.IGNORECASE,
 )
 
+_BUSINESS_ENTITY_PATTERN = re.compile(
+    r"\b([A-Z][A-Za-z&.',-]+(?:\s+[A-Z][A-Za-z&.',-]+){0,5}\s+"
+    r"(?:Agency|Manpower|Recruitment|Services|Service|Clinic|Hospital|Laboratory|Lab|"
+    r"Medical\s+Clinic|Medical\s+Center|Finance|Financial|Lending|Loans|Credit|Collections?))\b"
+)
+
 _LEGAL_PATTERN = re.compile(
     r"\b(?:ILO\s+C\d+(?:\s+Art\.\s*\d+)?|ILO\s+P\d+|RA\s+\d+|Palermo\s+Protocol|Dhaka\s+Principles)\b",
     re.IGNORECASE,
@@ -148,12 +159,18 @@ _CORRIDOR_PAIRS = {
 }
 
 _DOCUMENT_TYPE_HINTS = {
+    "legal_intake_form": ["interrogatory", "questionnaire", "intake form", "intake sheet", "written questions", "case intake", "case questionnaire"],
+    "government_letter": ["police report", "embassy", "consulate", "immigration department", "labour office", "labor office", "cease and desist", "demand letter", "government letter", "case officer"],
     "agency_certificate": ["certificate", "licensed", "license no", "registration", "permit"],
+    "agency_record": ["agency", "recruitment", "manpower", "broker", "placement office"],
     "chat_transcript": ["whatsapp", "viber", "messenger", "chat", "voice note", "pm:"],
     "employment_contract": ["employment contract", "employee", "employer", "salary", "rest day", "contract period"],
     "identity_document": ["passport", "visa", "work permit", "travel document", "nationality"],
     "job_posting": ["apply now", "vacancy", "hiring", "job opening", "benefits"],
+    "loan_agreement": ["promissory note", "loan agreement", "lender", "interest", "repayment"],
+    "medical_record": ["medical clinic", "hospital", "laboratory", "fit-to-work", "medical exam", "x-ray"],
     "payment_receipt": ["receipt", "transfer", "deposit", "invoice", "payment", "paid to"],
+    "worker_statement": ["interview narrative", "worker statement", "statement of facts", "interview", "affidavit", "narrative"],
 }
 
 _INDICATOR_RULES = {
@@ -163,6 +180,9 @@ _INDICATOR_RULES = {
         r"processing fee",
         r"training fee",
         r"medical fee",
+        r"documentation fee",
+        r"broker fee",
+        r"overcharg(?:e|ed|ing)",
         r"service charge",
     ],
     "salary_deduction_scheme": [
@@ -170,6 +190,7 @@ _INDICATOR_RULES = {
         r"deduct(?:ed|ion)?",
         r"installments?",
         r"from wages",
+        r"payroll deduction",
         r"months? of salary",
     ],
     "passport_retention": [
@@ -190,6 +211,7 @@ _INDICATOR_RULES = {
     "coercion_or_penalty": [
         r"penalty",
         r"deport",
+        r"cancel deployment",
         r"cannot leave",
         r"not allowed to leave",
         r"blacklist",
@@ -256,12 +278,19 @@ def _dedupe(values: list[str]) -> list[str]:
 
 def _document_type(text: str, context: str) -> str:
     lowered = text.lower()
-    if context in {"contract", "receipt", "chat", "job_posting", "certificate"}:
+    if context in {"agency_record", "contract", "receipt", "chat", "debt_note", "job_posting", "certificate", "identity_document", "medical_record", "narrative", "government_letter", "legal_intake"}:
         return {
+            "agency_record": "agency_record",
             "certificate": "agency_certificate",
             "chat": "chat_transcript",
             "contract": "employment_contract",
+            "debt_note": "loan_agreement",
+            "government_letter": "government_letter",
+            "identity_document": "identity_document",
             "job_posting": "job_posting",
+            "legal_intake": "legal_intake_form",
+            "medical_record": "medical_record",
+            "narrative": "worker_statement",
             "receipt": "payment_receipt",
         }[context]
     for document_type, hints in _DOCUMENT_TYPE_HINTS.items():
@@ -276,6 +305,10 @@ def _extract_countries(text: str) -> list[str]:
 
 def _extract_organisations(text: str) -> list[str]:
     return _dedupe(match.group(1) for match in _ORG_PATTERN.finditer(text))
+
+
+def _extract_business_entities(text: str) -> list[str]:
+    return _dedupe(match.group(1) for match in _BUSINESS_ENTITY_PATTERN.finditer(text))
 
 
 def _corridor_candidates(countries: list[str]) -> list[str]:
@@ -303,9 +336,51 @@ def _indicator_flags(text: str) -> list[str]:
     return matched
 
 
+def _scenario_hints(
+    text: str,
+    *,
+    document_type: str,
+    indicator_flags: list[str],
+    business_entities: list[str],
+) -> list[str]:
+    lowered = text.lower()
+    hints: list[str] = []
+    business_lower = [entity.lower() for entity in business_entities]
+
+    if document_type in {"agency_record", "agency_certificate"} or any(token in lowered for token in ["agency", "recruitment", "manpower", "placement"]) or any(
+        any(keyword in entity for keyword in ["agency", "recruitment", "manpower", "services"])
+        for entity in business_lower
+    ):
+        hints.append("employment_agency_misconduct")
+
+    if document_type == "medical_record" or any(token in lowered for token in ["clinic", "medical", "hospital", "laboratory", "x-ray", "fit-to-work", "fit to work"]) or any(
+        any(keyword in entity for keyword in ["clinic", "hospital", "laboratory", "medical"])
+        for entity in business_lower
+    ):
+        hints.append("medical_clinic_fee_abuse")
+
+    if document_type == "loan_agreement" or any(token in lowered for token in ["loan", "lender", "interest", "promissory", "finance", "credit", "repay"]) or any(
+        any(keyword in entity for keyword in ["lending", "loans", "finance", "credit", "collection"])
+        for entity in business_lower
+    ):
+        hints.append("money_lender_debt_pressure")
+
+    if "worker_paid_placement_fee" in indicator_flags or any(
+        token in lowered for token in ["processing fee", "documentation fee", "service charge", "overcharge", "extra fee"]
+    ):
+        hints.append("worker_fee_overcharge")
+
+    if "passport_retention" in indicator_flags:
+        hints.append("document_retention")
+    if "contract_substitution" in indicator_flags:
+        hints.append("contract_substitution")
+    return _dedupe(hints)
+
+
 def _findings(indicator_flags: list[str], extracted_fields: dict[str, Any], document_type: str) -> list[str]:
     findings: list[str] = []
     amounts = extracted_fields.get("amounts", [])
+    business_entities = extracted_fields.get("business_entities", [])
     if "worker_paid_placement_fee" in indicator_flags:
         amount_text = f" ({', '.join(amounts[:2])})" if amounts else ""
         findings.append(f"Document references worker-paid recruitment or placement fees{amount_text}.")
@@ -323,6 +398,16 @@ def _findings(indicator_flags: list[str], extracted_fields: dict[str, Any], docu
         findings.append("Document references delayed, withheld, or reduced wages.")
     if "document_irregularity" in indicator_flags:
         findings.append("Document shows signs of invalid, expired, or irregular compliance paperwork.")
+    if document_type == "medical_record" and amounts:
+        findings.append("Medical or clinic charges appear inside the recruitment workflow and should be checked for unlawful worker billing.")
+    if document_type == "loan_agreement":
+        findings.append("Loan or debt terms are tied to migration and should be checked for debt bondage or abusive collection risk.")
+    if document_type == "government_letter":
+        findings.append("Government or enforcement correspondence can anchor dates, allegations, and requested evidence for the legal packet.")
+    if document_type == "legal_intake_form":
+        findings.append("Document is an intake or interrogatory template that turns the case into answer-ready questions and evidence requests.")
+    if document_type == "agency_record" and business_entities:
+        findings.append(f"Agency-side paperwork references {', '.join(business_entities[:2])}, which should be verified for licensing and fee compliance.")
     if not findings and document_type == "payment_receipt" and amounts:
         findings.append("Receipt records worker-side payment activity that should be checked against zero-fee rules.")
     if not findings:
@@ -528,6 +613,7 @@ class DocumentAnalyzer:
         document_type = _document_type(text, context)
         countries = _extract_countries(text)
         organisations = _extract_organisations(text)
+        business_entities = _extract_business_entities(text)
         amounts = _dedupe(match.group(0).strip() for match in _AMOUNT_PATTERN.finditer(text))
         dates = _dedupe(match.group(0).strip() for match in _DATE_PATTERN.finditer(text))
         indicator_flags = _indicator_flags(text)
@@ -543,13 +629,21 @@ class DocumentAnalyzer:
 
         quick_filter = QuickFilter().check(text)
         risk_level = _risk_level(indicator_flags, quick_filter.score)
+        scenario_hints = _scenario_hints(
+            text,
+            document_type=document_type,
+            indicator_flags=indicator_flags,
+            business_entities=business_entities,
+        )
         extracted_fields = {
             "document_type": document_type,
             "amounts": amounts,
+            "business_entities": business_entities,
             "dates": dates,
             "countries": countries,
             "organisations": organisations,
             "corridor_candidates": _corridor_candidates(countries),
+            "scenario_hints": scenario_hints,
             "quick_filter_score": quick_filter.score,
             "matched_keywords": quick_filter.matched_keywords,
             "matched_patterns": quick_filter.matched_patterns,

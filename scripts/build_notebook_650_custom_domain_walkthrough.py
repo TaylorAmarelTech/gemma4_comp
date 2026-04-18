@@ -34,19 +34,20 @@ KAGGLE_KERNELS = ROOT / "kaggle" / "kernels"
 
 FILENAME = "650_custom_domain_walkthrough.ipynb"
 KERNEL_DIR_NAME = "duecare_650_custom_domain_walkthrough"
-KERNEL_ID = "taylorsamarel/duecare-650-custom-domain-walkthrough"
+KERNEL_ID = "taylorsamarel/650-duecare-custom-domain-walkthrough"
 KERNEL_TITLE = "650: DueCare Custom Domain Walkthrough"
 WHEELS_DATASET = "taylorsamarel/duecare-llm-wheels"
-KEYWORDS = ["gemma", "safety", "domain-pack", "medical-misinformation", "howto"]
+KEYWORDS = ["evaluation"]
 
 URL_000 = "https://www.kaggle.com/code/taylorsamarel/duecare-000-index"
-URL_140 = "https://www.kaggle.com/code/taylorsamarel/duecare-140-evaluation-mechanics"
+URL_140 = "https://www.kaggle.com/code/taylorsamarel/140-duecare-evaluation-mechanics"
 URL_190 = "https://www.kaggle.com/code/taylorsamarel/duecare-190-rag-retrieval-inspector"
 URL_200 = "https://www.kaggle.com/code/taylorsamarel/duecare-200-cross-domain-proof"
 URL_460 = "https://www.kaggle.com/code/taylorsamarel/duecare-460-citation-verifier"
-URL_620 = "https://www.kaggle.com/code/taylorsamarel/duecare-620-demo-api-endpoint-tour"
-URL_650 = "https://www.kaggle.com/code/taylorsamarel/duecare-650-custom-domain-walkthrough"
-URL_899 = "https://www.kaggle.com/code/taylorsamarel/899-duecare-solution-surfaces-conclusion"
+URL_620 = "https://www.kaggle.com/code/taylorsamarel/620-duecare-demo-api-endpoint-tour"
+URL_650 = "https://www.kaggle.com/code/taylorsamarel/650-duecare-custom-domain-walkthrough"
+URL_660 = "https://www.kaggle.com/code/taylorsamarel/duecare-660-enterprise-moderation"
+URL_899 = "https://www.kaggle.com/code/taylorsamarel/duecare-solution-surfaces-conclusion"
 
 
 def md(s: str) -> dict:
@@ -103,7 +104,7 @@ HEADER_TABLE = canonical_header_table(
     pipeline_html=(
         f"Solution Surfaces section. Previous: "
         f"<a href=\"{URL_620}\">620 Demo API Endpoint Tour</a>. Next: "
-        f"<a href=\"{URL_899}\">899 Solution Surfaces Conclusion</a>. "
+        f"<a href=\"{URL_660}\">660 Enterprise Moderation</a>. "
         f"Complements <a href=\"{URL_200}\">200 Cross-Domain Proof</a>: "
         "200 runs the harness across three shipped packs, while this "
         "notebook walks you through building a fourth pack from scratch."
@@ -127,7 +128,7 @@ The example target domain is medical misinformation because it is the adjacent-b
 
 ### Reading order
 
-- **Continue the section:** [899 Solution Surfaces Conclusion]({URL_899}) closes the Solution Surfaces arc.
+- **Continue to the application playbooks:** [660 Enterprise Moderation]({URL_660}) starts the plain-English deployment notebook band.
 - **Previous step:** [620 Demo API Endpoint Tour]({URL_620}) showed the 13 REST endpoints the FastAPI demo exposes, including the migration-case workflow; this notebook shows the config layer that sits under those endpoints.
 - **Companion proof:** [200 Cross-Domain Proof]({URL_200}) demonstrates the harness running across the three shipped packs; run it first to see the outcome this walkthrough teaches you to reproduce.
 - **Related deep dives:** [140 Evaluation Mechanics]({URL_140}) explains how the rubric scorer produces the numbers; [190 RAG Retrieval Inspector]({URL_190}) shows how evidence files slot in; [460 Citation Verifier]({URL_460}) audits the citations the rubric rewards.
@@ -143,6 +144,61 @@ The example target domain is medical misinformation because it is the adjacent-b
 6. Register the pack and verify it is visible via `duecare.domains.load_domain_pack('medical_misinformation')`.
 7. Run the shared rubric+scoring machinery against three scripted candidate responses so the reader sees compatible output.
 """
+
+
+AT_A_GLANCE_INTRO = """---
+
+## At a glance
+
+Seven steps, four pack files, one registered domain.
+"""
+
+
+AT_A_GLANCE_CODE = '''from IPython.display import HTML, display
+
+_P = {"primary":"#4c78a8","success":"#10b981","info":"#3b82f6","warning":"#f59e0b","muted":"#6b7280",
+      "bg_primary":"#eff6ff","bg_success":"#ecfdf5","bg_info":"#eff6ff","bg_warning":"#fffbeb"}
+
+def _step(label, sub, kind="primary"):
+    c = _P[kind]; bg = _P.get(f"bg_{kind}", _P["bg_info"])
+    return (f'<div style="display:inline-block;vertical-align:middle;min-width:138px;padding:10px 12px;'
+            f'margin:4px 0;background:{bg};border:2px solid {c};border-radius:6px;text-align:center;'
+            f'font-family:system-ui,-apple-system,sans-serif">'
+            f'<div style="font-weight:600;color:#1f2937;font-size:13px">{label}</div>'
+            f'<div style="color:{_P["muted"]};font-size:11px;margin-top:2px">{sub}</div></div>')
+
+_arrow = f'<span style="display:inline-block;vertical-align:middle;margin:0 4px;color:{_P["muted"]};font-size:20px">&rarr;</span>'
+
+steps = [
+    _step("1 · Layout",    "four pack files",        "primary"),
+    _step("2 · Taxonomy",  "categories + corridors", "primary"),
+    _step("3 · Rubric",    "six dimensions",         "info"),
+    _step("4 · PII spec",  "patient / MRN redact",   "info"),
+    _step("5 · Prompts",   "10 with 5 grades each",  "warning"),
+    _step("6 · Register",  "load_domain_pack",       "success"),
+    _step("7 · Harness",   "rubric + scoring",       "success"),
+]
+display(HTML('<div style="margin:10px 0 4px 0;font-family:system-ui,-apple-system,sans-serif;'
+             'font-weight:600;color:#1f2937">Add a medical_misinformation domain pack end-to-end</div>'
+             '<div style="margin:6px 0">' + _arrow.join(steps) + '</div>'))
+
+def _stat_card(value, label, sub, kind="primary"):
+    c = _P[kind]; bg = _P.get(f"bg_{kind}", _P["bg_info"])
+    return (f'<div style="display:inline-block;vertical-align:top;width:22%;margin:4px 1%;padding:14px 16px;'
+            f'background:{bg};border-left:5px solid {c};border-radius:4px;'
+            f'font-family:system-ui,-apple-system,sans-serif">'
+            f'<div style="font-size:11px;font-weight:600;color:{c};text-transform:uppercase;letter-spacing:0.04em">{label}</div>'
+            f'<div style="font-size:26px;font-weight:700;color:#1f2937;margin:4px 0 0 0">{value}</div>'
+            f'<div style="font-size:12px;color:{_P["muted"]};margin-top:2px">{sub}</div></div>')
+
+cards = [
+    _stat_card("4",      "pack files",     "taxonomy / rubric / pii / prompts", "primary"),
+    _stat_card("10",     "seed prompts",   "each with 5 graded responses",      "info"),
+    _stat_card("6",      "rubric dims",    "safety / accuracy / actionability", "warning"),
+    _stat_card("3",      "test candidates","worst / mid / best scripted",       "success"),
+]
+display(HTML('<div style="margin:10px 0">' + ''.join(cards) + '</div>'))
+'''
 
 
 STEP_1_INTRO = """---
@@ -740,7 +796,7 @@ SUMMARY = f"""---
 
 ## Next
 
-- **Continue the section:** [899 Solution Surfaces Conclusion]({URL_899}) closes the Solution Surfaces arc.
+- **Continue to the application playbooks:** [660 Enterprise Moderation]({URL_660}) starts the plain-English deployment notebook band.
 - **Companion proof:** [200 Cross-Domain Proof]({URL_200}) runs the shipped packs through the harness; this notebook taught you how to add a new one.
 - **Previous step:** [620 Demo API Endpoint Tour]({URL_620}) walks the REST surface, including the migration-case operator flow, that sits above the config layer you just built.
 - **Related deep dives:** [140 Evaluation Mechanics]({URL_140}) for the rubric scorer internals, [460 Citation Verifier]({URL_460}) for auditing the citations the rubric rewards.
@@ -751,6 +807,8 @@ SUMMARY = f"""---
 def build() -> None:
     cells = [
         md(HEADER),
+        md(AT_A_GLANCE_INTRO),
+        code(AT_A_GLANCE_CODE),
         md(STEP_1_INTRO),
         code(LAYOUT_CODE),
         md(STEP_2_INTRO),
@@ -778,8 +836,8 @@ def build() -> None:
 
     final_print_src = (
         "print(\n"
-        "    'Custom domain handoff >>> Continue to 899 Solution Surfaces Conclusion: '\n"
-        f"    '{URL_899}'\n"
+        "    'Custom domain handoff >>> Continue to 660 Enterprise Moderation: '\n"
+        f"    '{URL_660}'\n"
         "    '. Companion proof, 200 Cross-Domain Proof: '\n"
         f"    '{URL_200}'\n"
         "    '.'\n"

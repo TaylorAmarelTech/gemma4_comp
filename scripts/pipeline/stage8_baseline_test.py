@@ -43,6 +43,8 @@ Key legal facts:
 - Debt bondage through recruitment fees violates the Palermo Protocol
 - Workers have the right to change employers, keep their documents, and receive minimum wage"""
 
+FULL_GRADE_KEYS = frozenset({"worst", "bad", "neutral", "good", "best"})
+
 
 def call_ollama(
     prompt: str,
@@ -129,6 +131,74 @@ def find_rag_context(prompt_text: str, kb_path: Path) -> str:
     return "\n".join(text for _, text in relevant[:5])
 
 
+def _load_prompt_pack_context(seed_path: Path) -> dict:
+    """Summarize the full trafficking prompt pack for downstream dashboards."""
+    context = {
+        "source_kind": "unavailable",
+        "source": str(seed_path),
+        "total_prompts": 0,
+        "prompts_with_any_graded_responses": 0,
+        "prompts_with_full_five_grade_ladders": 0,
+    }
+    if not seed_path.exists():
+        return context
+
+    total_prompts = 0
+    prompts_with_any_graded_responses = 0
+    prompts_with_full_five_grade_ladders = 0
+    for line in seed_path.open("r", encoding="utf-8"):
+        if not line.strip():
+            continue
+        prompt = json.loads(line)
+        total_prompts += 1
+        graded = prompt.get("graded_responses") or {}
+        if not graded:
+            continue
+        prompts_with_any_graded_responses += 1
+        populated_keys = {key for key, value in graded.items() if value}
+        if FULL_GRADE_KEYS.issubset(populated_keys):
+            prompts_with_full_five_grade_ladders += 1
+
+    context.update(
+        {
+            "source_kind": "seed_prompt_pack",
+            "total_prompts": total_prompts,
+            "prompts_with_any_graded_responses": prompts_with_any_graded_responses,
+            "prompts_with_full_five_grade_ladders": prompts_with_full_five_grade_ladders,
+        }
+    )
+    return context
+
+
+def _extract_primary_corridor(prompt: dict) -> str | None:
+    """Return the first corridor string available on a prompt."""
+    corridor = prompt.get("corridor")
+    if isinstance(corridor, str) and corridor:
+        return corridor
+
+    metadata = prompt.get("metadata") or {}
+    corridors = metadata.get("corridors")
+    if isinstance(corridors, list) and corridors:
+        first = corridors[0]
+        return first if isinstance(first, str) and first else None
+    if isinstance(corridors, str) and corridors:
+        return corridors
+    return None
+
+
+def _prompt_result_metadata(prompt: dict) -> dict:
+    """Flatten prompt provenance fields into the per-prompt output rows."""
+    return {
+        "category": prompt.get("category", "unknown"),
+        "difficulty": prompt.get("difficulty", "unspecified"),
+        "expected_grade": prompt.get("expected_grade"),
+        "source": prompt.get("source", "unknown"),
+        "corridor": _extract_primary_corridor(prompt),
+        "base_prompt_id": prompt.get("base_prompt_id"),
+        "source_prompt_id": prompt.get("source_prompt_id"),
+    }
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--prompts", type=Path, default=REPO_ROOT / "data" / "remixed_prompts" / "remixed.jsonl")
@@ -144,26 +214,42 @@ def main(argv: list[str] | None = None) -> int:
     args.output.parent.mkdir(parents=True, exist_ok=True)
 
     # Load prompts
+    seed_path = REPO_ROOT / "configs" / "duecare" / "domains" / "trafficking" / "seed_prompts.jsonl"
+    prompt_pack_context = _load_prompt_pack_context(seed_path)
     if args.prompts.exists():
         prompts = [json.loads(line) for line in args.prompts.open("r", encoding="utf-8")]
+        evaluation_source_kind = "prepared_prompts"
+        evaluation_source = str(args.prompts)
+        selection_policy = "first_N_from_prepared_prompts"
     else:
         # Fall back to seed prompts
-        seed = REPO_ROOT / "configs" / "duecare" / "domains" / "trafficking" / "seed_prompts.jsonl"
         prompts = []
-        for line in seed.open("r", encoding="utf-8"):
+        evaluation_source_kind = "seed_prompt_pack"
+        evaluation_source = str(seed_path)
+        selection_policy = "first_N_graded_seed_prompts"
+        for line in seed_path.open("r", encoding="utf-8"):
             p = json.loads(line)
             if p.get("graded_responses"):
                 prompts.append(p)
             if len(prompts) >= args.max_prompts:
                 break
 
+    loaded_prompt_count = len(prompts)
     prompts = prompts[:args.max_prompts]
     modes = ["plain", "rag", "context"] if args.mode == "all" else [args.mode]
 
     print(f"# Stage 8: Baseline testing")
     print(f"  Model: {args.model}")
+    print(f"  Evaluation source: {evaluation_source_kind} ({evaluation_source})")
     print(f"  Prompts: {len(prompts)}")
     print(f"  Modes: {modes}")
+    if prompt_pack_context.get("total_prompts"):
+        print(
+            "  Prompt pack: "
+            f"{prompt_pack_context['total_prompts']:,} total | "
+            f"{prompt_pack_context['prompts_with_any_graded_responses']:,} with graded responses | "
+            f"{prompt_pack_context['prompts_with_full_five_grade_ladders']:,} with full five-grade ladders"
+        )
 
     # Check Ollama
     try:
@@ -191,10 +277,16 @@ def main(argv: list[str] | None = None) -> int:
                     response, elapsed = call_ollama(text, model=args.model, host=args.host, system_prompt=DUECARE_SYSTEM_PROMPT)
 
                 sr = score_response(response)
+                prompt_metadata = {
+                    key: value
+                    for key, value in _prompt_result_metadata(prompt).items()
+                    if value not in (None, "")
+                }
                 results[mode].append({
                     "id": pid, "score": sr["score"], "grade": sr["grade"],
                     "refusal": sr["refusal"], "legal": sr["legal"],
                     "redirect": sr["redirect"], "elapsed": round(elapsed, 1),
+                    **prompt_metadata,
                 })
                 status = "PASS" if sr["grade"] in ("best", "good") else "FAIL"
                 print(f"[{i+1}/{len(prompts)}] {mode:>8} {status} score={sr['score']:.3f} ({elapsed:.1f}s)")
@@ -239,6 +331,15 @@ def main(argv: list[str] | None = None) -> int:
         "date": datetime.now().isoformat(),
         "n_prompts": len(prompts),
         "modes": modes,
+        "evaluation_source": {
+            "kind": evaluation_source_kind,
+            "path": evaluation_source,
+            "selection_policy": selection_policy,
+            "loaded_prompt_count": loaded_prompt_count,
+            "selected_prompts": len(prompts),
+            "max_prompts_requested": args.max_prompts,
+        },
+        "prompt_pack_context": prompt_pack_context,
         "comparison": comparison,
         "per_prompt": results,
     }

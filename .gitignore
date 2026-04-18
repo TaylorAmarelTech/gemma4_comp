@@ -84,3 +84,7 @@ htmlcov/
 data/baseline_results/
 data/full_evaluation/
 local_gemma_results.json
+
+# Claude Code local settings (contains user-local API tokens)
+.claude/settings.local.json
+

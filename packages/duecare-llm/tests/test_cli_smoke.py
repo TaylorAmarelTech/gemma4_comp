@@ -2,9 +2,13 @@
 
 from __future__ import annotations
 
+from pathlib import Path
+
+import pytest
 from typer.testing import CliRunner
 
 from duecare.cli import app
+from duecare.cli.cli import _resolve_target_model
 
 
 runner = CliRunner()
@@ -15,6 +19,11 @@ class TestCLI:
         result = runner.invoke(app, ["--help"])
         assert result.exit_code == 0
         assert "Duecare" in result.output
+
+    def test_duecare_command_name_appears_in_help(self):
+        result = runner.invoke(app, ["--help"])
+        assert result.exit_code == 0
+        assert "duecare" in result.output.lower()
 
     def test_agents_list(self):
         result = runner.invoke(app, ["agents", "list"])
@@ -43,3 +52,20 @@ class TestCLI:
         assert result.exit_code == 0
         assert "models" in result.output
         assert "agents" in result.output
+
+
+def test_resolve_target_model_from_catalog() -> None:
+    model = _resolve_target_model(
+        target_model_id="mistral_small",
+        config_path=Path("configs/duecare/models.yaml"),
+    )
+    assert model.display_name == "Mistral Small"
+    assert model.provider == "openai_compatible"
+
+
+def test_resolve_target_model_unknown_id_raises() -> None:
+    with pytest.raises(KeyError):
+        _resolve_target_model(
+            target_model_id="missing-model",
+            config_path=Path("configs/duecare/models.yaml"),
+        )

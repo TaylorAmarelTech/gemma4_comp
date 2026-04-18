@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from datetime import datetime
 from pathlib import Path
+from time import perf_counter
 
 from duecare.core.contracts import Model
 from duecare.core.enums import TaskStatus
@@ -41,6 +42,7 @@ class WorkflowRunner:
         from duecare.agents import agent_registry, AgentSupervisor
         from duecare.agents.base import SupervisorPolicy
 
+        started_timer = perf_counter()
         run_id = generate_run_id(self.workflow.id)
         config_hash = hash_config(self.workflow.model_dump())
 
@@ -82,14 +84,19 @@ class WorkflowRunner:
 
         result_status = TaskStatus.RUNNING
         error: str | None = None
+        agent_outputs = []
+        skipped_agents: list[str] = []
 
         for agent_id in order:
             if not agent_registry.has(agent_id):
-                log.warning("workflow.skip unknown_agent=%s", agent_id)
-                continue
+                log.error("workflow.unknown_agent agent=%s", agent_id)
+                error = f"Unknown agent in workflow DAG: {agent_id}"
+                result_status = TaskStatus.FAILED
+                break
             agent = agent_registry.get(agent_id)
             try:
                 out = supervisor.run(agent, ctx)
+                agent_outputs.append(out)
                 if out.status == TaskStatus.FAILED:
                     error = out.error
                     if self.workflow.coordinator.failure_policy.on_agent_error == "retry_then_skip":
@@ -97,6 +104,8 @@ class WorkflowRunner:
                         continue
                     result_status = TaskStatus.FAILED
                     break
+                if out.status == TaskStatus.SKIPPED:
+                    skipped_agents.append(agent_id)
             except Exception as e:
                 log.error("workflow.fatal agent=%s error=%s", agent_id, e)
                 error = str(e)
@@ -104,7 +113,13 @@ class WorkflowRunner:
                 break
 
         if result_status == TaskStatus.RUNNING:
-            result_status = TaskStatus.COMPLETED
+            if skipped_agents:
+                result_status = TaskStatus.SKIPPED
+                error = error or f"Skipped required agents: {', '.join(skipped_agents)}"
+            else:
+                result_status = TaskStatus.COMPLETED
+
+        ended_at = datetime.now()
 
         return WorkflowRun(
             run_id=run_id,
@@ -114,10 +129,12 @@ class WorkflowRunner:
             target_model_id=target_model_id,
             domain_id=domain_id,
             started_at=ctx.started_at,
-            ended_at=datetime.now(),
+            ended_at=ended_at,
             status=result_status,
+            agent_outputs=agent_outputs,
             final_metrics=ctx.metrics,
             final_artifacts={k: v for k, v in ctx.artifacts.items()},
             total_cost_usd=supervisor.total_cost_usd,
+            total_duration_s=perf_counter() - started_timer,
             error=error,
         )

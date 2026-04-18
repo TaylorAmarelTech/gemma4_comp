@@ -1,0 +1,218 @@
+54 broken index entries:
+
+  [010] Quickstart
+       broken slug: duecare-010-quickstart
+       candidates:  ['010-duecare-quickstart-in-5-minutes']
+
+  [099] Background and Package Setup Conclusion
+       broken slug: 099-duecare-orientation-and-background-and-package-setup-conclusion
+       NO MATCH on Kaggle
+
+  [100] Gemma Exploration
+       broken slug: duecare-gemma-exploration
+       NO MATCH on Kaggle
+
+  [150] Free Form Gemma Playground
+       broken slug: 150-duecare-free-form-gemma-playground
+       NO MATCH on Kaggle
+
+  [155] Tool Calling Playground
+       broken slug: 155-duecare-tool-calling-playground
+       NO MATCH on Kaggle
+
+  [160] Image Processing Playground
+       broken slug: 160-duecare-image-processing-playground
+       NO MATCH on Kaggle
+
+  [170] Live Context Injection Playground
+       broken slug: duecare-170-live-context-injection-playground
+       NO MATCH on Kaggle
+
+  [180] Multimodal Document Inspector
+       broken slug: duecare-180-multimodal-document-inspector
+       NO MATCH on Kaggle
+
+  [181] Jailbreak Response Viewer
+       broken slug: duecare-181-jailbreak-response-viewer
+       NO MATCH on Kaggle
+
+  [182] Refusal Direction Visualizer
+       broken slug: duecare-182-refusal-direction-visualizer
+       NO MATCH on Kaggle
+
+  [183] Red-Team Prompt Amplifier
+       broken slug: duecare-183-redteam-prompt-amplifier
+       NO MATCH on Kaggle
+
+  [184] Frontier Consultation Playground
+       broken slug: duecare-184-frontier-consultation-playground
+       NO MATCH on Kaggle
+
+  [185] Jailbroken Gemma Comparison
+       broken slug: duecare-185-jailbroken-gemma-comparison
+       NO MATCH on Kaggle
+
+  [186] Jailbreak - Stock Gemma Baseline
+       broken slug: duecare-186-jailbreak-stock-gemma
+       NO MATCH on Kaggle
+
+  [187] Jailbreak - Abliterated E4B
+       broken slug: duecare-187-jailbreak-abliterated-e4b
+       NO MATCH on Kaggle
+
+  [188] Jailbreak - Uncensored Community
+       broken slug: duecare-188-jailbreak-uncensored-community
+       NO MATCH on Kaggle
+
+  [189] Jailbreak - Cracked 31B
+       broken slug: duecare-189-jailbreak-cracked-31b
+       NO MATCH on Kaggle
+
+  [199] Free Form Exploration Conclusion
+       broken slug: 199-duecare-free-form-exploration-conclusion
+       NO MATCH on Kaggle
+
+  [105] Prompt Corpus Introduction
+       broken slug: duecare-105-prompt-corpus-introduction
+       candidates:  ['105-duecare-prompt-corpus-introduction']
+
+  [130] Prompt Corpus Exploration
+       broken slug: 130-duecare-prompt-corpus-exploration
+       NO MATCH on Kaggle
+
+  [140] Evaluation Mechanics
+       broken slug: duecare-140-evaluation-mechanics
+       candidates:  ['140-duecare-evaluation-mechanics']
+
+  [190] RAG Retrieval Inspector
+       broken slug: duecare-190-rag-retrieval-inspector
+       candidates:  ['190-duecare-rag-retrieval-inspector']
+
+  [299] Baseline Text Evaluation Framework Conclusion
+       broken slug: 299-duecare-baseline-text-evaluation-framework-conclusion
+       NO MATCH on Kaggle
+
+  [200] Cross-Domain Proof
+       broken slug: duecare-200-cross-domain-proof
+       NO MATCH on Kaggle
+
+  [220] Ollama Cloud OSS Comparison
+       broken slug: duecare-ollama-cloud-oss-comparison
+       NO MATCH on Kaggle
+
+  [230] Mistral Family Comparison
+       broken slug: duecare-230-mistral-family-comparison
+       NO MATCH on Kaggle
+
+  [240] OpenRouter Frontier Comparison
+       broken slug: duecare-openrouter-frontier-comparison
+       NO MATCH on Kaggle
+
+  [250] Comparative Grading
+       broken slug: duecare-250-comparative-grading
+       candidates:  ['250-duecare-comparative-grading']
+
+  [260] RAG Comparison
+       broken slug: duecare-260-rag-comparison
+       NO MATCH on Kaggle
+
+  [270] Gemma Generations
+       broken slug: duecare-270-gemma-generations
+       NO MATCH on Kaggle
+
+  [399] Baseline Text Comparisons Conclusion
+       broken slug: 399-duecare-baseline-text-comparisons-conclusion
+       NO MATCH on Kaggle
+
+  [300] Adversarial Resistance
+       broken slug: duecare-300-adversarial-resistance
+       candidates:  ['300-duecare-adversarial-resistance']
+
+  [335] Attack Vector Inspector
+       broken slug: duecare-335-attack-vector-inspector
+       candidates:  ['335-duecare-attack-vector-inspector']
+
+  [400] Function Calling and Multimodal
+       broken slug: duecare-400-function-calling-multimodal
+       NO MATCH on Kaggle
+
+  [410] LLM Judge Grading
+       broken slug: duecare-410-llm-judge-grading
+       NO MATCH on Kaggle
+
+  [420] Conversation Testing
+       broken slug: duecare-420-conversation-testing
+       candidates:  ['420-duecare-conversation-testing']
+
+  [460] Citation Verifier
+       broken slug: duecare-460-citation-verifier
+       candidates:  ['460-duecare-citation-verifier']
+
+  [499] Advanced Evaluation Conclusion
+       broken slug: 499-duecare-advanced-evaluation-conclusion
+       NO MATCH on Kaggle
+
+  [310] Prompt Factory
+       broken slug: duecare-310-prompt-factory
+       NO MATCH on Kaggle
+
+  [440] Per-Prompt Rubric Generator
+       broken slug: duecare-per-prompt-rubric-generator
+       NO MATCH on Kaggle
+
+  [699] Advanced Prompt-Test Generation Conclusion
+       broken slug: 699-duecare-advanced-prompt-test-generation-conclusion
+       NO MATCH on Kaggle
+
+  [320] Finding Gemma 4 Safety Line
+       broken slug: duecare-finding-gemma-4-safety-line
+       NO MATCH on Kaggle
+
+  [450] Contextual Worst-Response Judge
+       broken slug: duecare-contextual-judge
+       NO MATCH on Kaggle
+
+  [799] Adversarial Prompt-Test Evaluation Conclusion
+       broken slug: 799-duecare-adversarial-prompt-test-evaluation-conclusion
+       NO MATCH on Kaggle
+
+  [500] Agent Swarm Deep Dive
+       broken slug: duecare-500-agent-swarm-deep-dive
+       NO MATCH on Kaggle
+
+  [510] Phase 2 Model Comparison
+       broken slug: duecare-phase2-comparison
+       NO MATCH on Kaggle
+
+  [520] Phase 3 Curriculum Builder
+       broken slug: duecare-520-phase3-curriculum-builder
+       NO MATCH on Kaggle
+
+  [530] Phase 3 Unsloth Fine-tune
+       broken slug: duecare-530-phase3-unsloth-finetune
+       NO MATCH on Kaggle
+
+  [540] Fine-tune Delta Visualizer
+       broken slug: duecare-540-finetune-delta-visualizer
+       candidates:  ['540-duecare-fine-tune-delta-visualizer']
+
+  [599] Model Improvement Opportunities Conclusion
+       broken slug: 599-duecare-model-improvement-opportunities-conclusion
+       NO MATCH on Kaggle
+
+  [600] Results Dashboard
+       broken slug: duecare-600-results-dashboard
+       candidates:  ['600-duecare-results-dashboard']
+
+  [610] Submission Walkthrough
+       broken slug: duecare-610-submission-walkthrough
+       candidates:  ['610-duecare-submission-walkthrough']
+
+  [650] Custom Domain Walkthrough
+       broken slug: duecare-650-custom-domain-walkthrough
+       candidates:  ['650-duecare-custom-domain-walkthrough']
+
+  [899] Solution Surfaces Conclusion
+       broken slug: 899-duecare-solution-surfaces-conclusion
+       NO MATCH on Kaggle
+

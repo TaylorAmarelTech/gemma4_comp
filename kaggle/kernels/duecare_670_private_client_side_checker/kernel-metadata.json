@@ -1,0 +1,18 @@
+{
+  "id": "taylorsamarel/duecare-670-private-client-side-checker",
+  "title": "670: DueCare Private Client-Side Checker",
+  "code_file": "670_private_client_side_checker.ipynb",
+  "language": "python",
+  "kernel_type": "notebook",
+  "is_private": false,
+  "enable_gpu": false,
+  "enable_tpu": false,
+  "enable_internet": true,
+  "dataset_sources": [
+    "taylorsamarel/duecare-llm-wheels"
+  ],
+  "keywords": [
+    "deployment",
+    "evaluation"
+  ]
+}

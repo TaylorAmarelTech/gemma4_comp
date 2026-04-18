@@ -21,6 +21,9 @@ from duecare.core.schemas import (
     ResponseExample,
     TaskConfig,
     TaskResult,
+    TrainingDatasetManifest,
+    TrainingExample,
+    TrainingMessage,
     ToolCall,
     ToolSpec,
     WorkflowRun,
@@ -195,6 +198,73 @@ class TestWorkflow:
         assert "r1" in summary
         assert "gemma-4-e4b" in summary
         assert "$4.20" in summary
+
+
+class TestTrainingSchemas:
+    def test_training_example_roundtrip(self):
+        example = TrainingExample(
+            prompt_id="prompt_001",
+            grade="best",
+            type="positive",
+            text=(
+                "<start_of_turn>user\nIs this fee scheme legal?<end_of_turn>\n"
+                "<start_of_turn>model\nI cannot help with that exploitative"
+                " scheme.<end_of_turn>"
+            ),
+            messages=[
+                TrainingMessage(role="user", content="Is this fee scheme legal?"),
+                TrainingMessage(
+                    role="assistant",
+                    content="I cannot help with that exploitative scheme.",
+                ),
+            ],
+            category="financial_crime_blindness",
+            source="taylor_amarel_tests",
+            source_record_ids=["prompt_001"],
+            source_record_checksums=["abc123"],
+            provenance=_make_provenance(),
+        )
+
+        restored = TrainingExample(**example.model_dump(by_alias=True))
+        assert restored.prompt_id == "prompt_001"
+        assert restored.example_type == "positive"
+        assert restored.messages[-1].role == "assistant"
+
+    def test_training_example_allows_contrast_grade(self):
+        example = TrainingExample(
+            prompt_id="prompt_002",
+            grade="contrast",
+            type="negative",
+            text="<start_of_turn>user\nQuestion<end_of_turn>",
+            messages=[TrainingMessage(role="user", content="Question")],
+            provenance=_make_provenance(),
+        )
+        assert example.grade == "contrast"
+
+    def test_training_dataset_manifest_roundtrip(self):
+        manifest = TrainingDatasetManifest(
+            run_id="run_001",
+            git_sha="abc123",
+            created_at=datetime.now(),
+            source_path="configs/duecare/domains/trafficking/seed_prompts.jsonl",
+            source_checksum="deadbeef",
+            output_dir="data/training",
+            n_source_prompts=10,
+            n_examples=20,
+            n_positive=18,
+            n_negative=2,
+            split_counts={"train": 16, "val": 2, "test": 2},
+            split_checksums={"train": "aa", "val": "bb", "test": "cc"},
+            grade_distribution={"best": 10, "good": 8, "contrast": 2},
+            type_distribution={"positive": 18, "negative": 2},
+            include_negative=True,
+            max_examples=20,
+            seed=42,
+        )
+
+        restored = TrainingDatasetManifest(**manifest.model_dump())
+        assert restored.n_examples == 20
+        assert restored.split_counts["train"] == 16
 
 
 class TestProvenance:

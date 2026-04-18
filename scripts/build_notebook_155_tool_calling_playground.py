@@ -131,8 +131,20 @@ The live path uses stock Gemma running on a Kaggle T4. The fallback path is not 
 """
 
 
-MODEL_LOAD = """MODEL_AVAILABLE = False
-MODEL_ID = 'google/gemma-2-9b-it'  # swap to a pinned Gemma 4 slug when Kaggle exposes one
+MODEL_LOAD = """import os
+
+MODEL_AVAILABLE = False
+# Prefer Kaggle's hosted Gemma 4 E4B mount (matches 530); fall back to
+# the HF slug when running outside Kaggle. The shared TODO that pinned
+# this to Gemma 2 in earlier drafts is now resolved.
+KAGGLE_MODEL = '/kaggle/input/models/google/gemma-4/transformers/gemma-4-e4b-it/1'
+if os.path.isdir(KAGGLE_MODEL):
+    MODEL_ID = KAGGLE_MODEL
+    MODEL_SOURCE = 'kaggle_model_source: gemma-4-e4b-it'
+else:
+    MODEL_ID = 'google/gemma-4-e4b-it'
+    MODEL_SOURCE = f'hugging_face: {MODEL_ID}'
+
 tokenizer = None
 model = None
 
@@ -143,7 +155,8 @@ try:
     if not torch.cuda.is_available():
         raise RuntimeError('no CUDA device available; using deterministic fallback router')
 
-    print(f'GPU detected: {torch.cuda.get_device_name(0)}')
+    print(f'GPU detected:  {torch.cuda.get_device_name(0)}')
+    print(f'Loading model: {MODEL_SOURCE}')
     quant_config = BitsAndBytesConfig(
         load_in_4bit=True,
         bnb_4bit_compute_dtype=torch.bfloat16,
@@ -158,7 +171,7 @@ try:
     )
     model.eval()
     MODEL_AVAILABLE = True
-    print('Stock Gemma ready for tool routing.')
+    print('Stock Gemma 4 E4B ready for tool routing.')
 except Exception as exc:
     print(f'Model load skipped ({exc.__class__.__name__}: {exc}).')
     print('Using deterministic fallback router so the notebook still renders.')
@@ -223,7 +236,7 @@ def render_tool_table() -> str:
         lines.append(
             f"| `{tool['name']}` | {tool['description']} | {', '.join(tool['arguments'])} |"
         )
-    return '\n'.join(lines)
+    return '\\n'.join(lines)
 
 
 def _heuristic_tool_call(user_scenario: str) -> dict[str, object]:
@@ -291,13 +304,13 @@ def _tool_prompt(user_scenario: str) -> str:
         tool_lines.append(
             f"- {tool['name']}: {tool['description']} Arguments: {', '.join(tool['arguments'])}"
         )
-    joined = '\n'.join(tool_lines)
+    joined = '\\n'.join(tool_lines)
     return (
-        'You are a safety-focused DueCare router. Choose exactly one tool from the catalog below. '\
-        'Return only valid JSON with keys tool_name, arguments, and reasoning. '\
-        'If the user is asking for harmful evasion or exploitation help, choose safety_refusal.\n\n'
-        f'Tool catalog:\n{joined}\n\n'
-        f'User scenario:\n{user_scenario}'
+        'You are a safety-focused DueCare router. Choose exactly one tool from the catalog below. '
+        'Return only valid JSON with keys tool_name, arguments, and reasoning. '
+        'If the user is asking for harmful evasion or exploitation help, choose safety_refusal.\\n\\n'
+        f'Tool catalog:\\n{joined}\\n\\n'
+        f'User scenario:\\n{user_scenario}'
     )
 
 
@@ -493,9 +506,67 @@ FINAL_PRINT = f"""print(
 """
 
 
+
+AT_A_GLANCE_INTRO = """---
+
+## At a glance
+
+Gemma 4 picks a tool and arguments for any scenario you type.
+"""
+
+
+AT_A_GLANCE_CODE = '''from IPython.display import HTML, display
+
+_P = {"primary":"#4c78a8","success":"#10b981","info":"#3b82f6","warning":"#f59e0b","muted":"#6b7280","danger":"#ef4444",
+      "bg_primary":"#eff6ff","bg_success":"#ecfdf5","bg_info":"#eff6ff","bg_warning":"#fffbeb","bg_danger":"#fef2f2"}
+
+def _stat_card(value, label, sub, kind="primary"):
+    c = _P[kind]; bg = _P.get(f"bg_{kind}", _P["bg_info"])
+    return (f'<div style="display:inline-block;vertical-align:top;width:22%;margin:4px 1%;padding:14px 16px;'
+            f'background:{bg};border-left:5px solid {c};border-radius:4px;'
+            f'font-family:system-ui,-apple-system,sans-serif">'
+            f'<div style="font-size:11px;font-weight:600;color:{c};text-transform:uppercase;letter-spacing:0.04em">{label}</div>'
+            f'<div style="font-size:26px;font-weight:700;color:#1f2937;margin:4px 0 0 0">{value}</div>'
+            f'<div style="font-size:12px;color:{_P["muted"]};margin-top:2px">{sub}</div></div>')
+
+def _step(label, sub, kind="primary"):
+    c = _P[kind]; bg = _P.get(f"bg_{kind}", _P["bg_info"])
+    return (f'<div style="display:inline-block;vertical-align:middle;min-width:138px;padding:10px 12px;'
+            f'margin:4px 0;background:{bg};border:2px solid {c};border-radius:6px;text-align:center;'
+            f'font-family:system-ui,-apple-system,sans-serif">'
+            f'<div style="font-weight:600;color:#1f2937;font-size:13px">{label}</div>'
+            f'<div style="color:{_P["muted"]};font-size:11px;margin-top:2px">{sub}</div></div>')
+
+_arrow = f'<span style="display:inline-block;vertical-align:middle;margin:0 4px;color:{_P["muted"]};font-size:20px">&rarr;</span>'
+
+cards = [
+    _stat_card('native', 'function calling', 'Gemma 4 feature', 'primary'),
+    _stat_card('9', 'sample tools', 'hotline / statute / ...', 'info'),
+    _stat_card('live', 'tool picker', 'watch model decide', 'warning'),
+    _stat_card('T4', 'GPU', 'single model load', 'success')
+]
+display(HTML('<div style="margin:8px 0">' + ''.join(cards) + '</div>'))
+
+steps = [
+    _step('Load E4B', 'with tools', 'primary'),
+    _step('Describe tools', 'JSON schema', 'info'),
+    _step('User prompt', 'any scenario', 'warning'),
+    _step('Render', 'tool call + args', 'success')
+]
+display(HTML(
+    '<div style="margin:10px 0 4px 0;font-family:system-ui,-apple-system,sans-serif;'
+    'font-weight:600;color:#1f2937">Tool-calling demo</div>'
+    '<div style="margin:6px 0">' + _arrow.join(steps) + '</div>'
+))
+'''
+
+
+
 def build() -> None:
     cells = [
         md(HEADER),
+        md(AT_A_GLANCE_INTRO),
+        code(AT_A_GLANCE_CODE),
         md(STEP_1_INTRO),
         code(MODEL_LOAD),
         md(STEP_2_INTRO),
@@ -538,6 +609,7 @@ def build() -> None:
         "enable_internet": True,
         "dataset_sources": [WHEELS_DATASET],
         "competition_sources": ["gemma-4-good-hackathon"],
+        "model_sources": ["google/gemma-4/transformers/gemma-4-e4b-it/1"],
         "kernel_sources": [],
         "keywords": KEYWORDS,
     }

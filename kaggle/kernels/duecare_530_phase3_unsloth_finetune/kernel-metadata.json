@@ -1,0 +1,29 @@
+{
+  "id": "taylorsamarel/duecare-530-phase3-unsloth-finetune",
+  "title": "530: DueCare Phase 3 Unsloth Fine-Tune",
+  "code_file": "530_phase3_unsloth_finetune.ipynb",
+  "language": "python",
+  "kernel_type": "notebook",
+  "is_private": false,
+  "enable_gpu": true,
+  "enable_internet": true,
+  "enable_tpu": false,
+  "dataset_sources": [
+    "taylorsamarel/duecare-llm-wheels",
+    "taylorsamarel/duecare-trafficking-prompts"
+  ],
+  "competition_sources": [
+    "gemma-4-good-hackathon"
+  ],
+  "model_sources": [
+    "google/gemma-4/transformers/gemma-4-e4b-it/1"
+  ],
+  "keywords": [
+    "gemma",
+    "unsloth",
+    "lora",
+    "fine-tuning",
+    "llama.cpp"
+  ],
+  "kernel_sources": []
+}

@@ -1,5 +1,5 @@
 {
-  "id": "taylorsamarel/duecare-620-demo-api-endpoint-tour",
+  "id": "taylorsamarel/620-duecare-demo-api-endpoint-tour",
   "title": "620: DueCare Demo API Endpoint Tour",
   "code_file": "620_demo_api_endpoint_tour.ipynb",
   "language": "python",
@@ -16,10 +16,6 @@
   ],
   "kernel_sources": [],
   "keywords": [
-    "gemma",
-    "safety",
-    "api",
-    "demo",
-    "fastapi"
+    "evaluation"
   ]
 }

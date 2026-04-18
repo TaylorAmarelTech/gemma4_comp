@@ -9,7 +9,7 @@ network.
 Sub-commands
 ------------
     auth-check         Verify kaggle CLI + credentials are in place.
-    push-notebooks     Push all 4 duecare notebooks via `kaggle kernels push`.
+    push-notebooks     Push every tracked duecare kernel via `kaggle kernels push`.
     status-notebooks   Query kernel status for every pushed notebook.
     publish-dataset    Create/version the `duecare-eval-results` dataset.
     publish-model      Create/version the `duecare-safety-harness` model.
@@ -31,37 +31,13 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Iterable
 
+from kaggle_notebook_utils import discover_kernel_notebooks
+
 REPO_ROOT = Path(__file__).resolve().parents[1]
 KAGGLE_ROOT = REPO_ROOT / "kaggle"
 KERNELS_DIR = KAGGLE_ROOT / "kernels"
 DATASETS_DIR = KAGGLE_ROOT / "datasets"
 MODELS_DIR = KAGGLE_ROOT / "models"
-
-NOTEBOOK_DIRS = [
-    KERNELS_DIR / "duecare_00_gemma_exploration",
-    KERNELS_DIR / "duecare_00a_prompt_prioritizer",
-    KERNELS_DIR / "duecare_00b_prompt_remixer",
-    KERNELS_DIR / "duecare_01_quickstart",
-    KERNELS_DIR / "duecare_02_cross_domain_proof",
-    KERNELS_DIR / "duecare_03_agent_swarm_deep_dive",
-    KERNELS_DIR / "duecare_04_submission_walkthrough",
-    KERNELS_DIR / "duecare_05_rag_comparison",
-    KERNELS_DIR / "duecare_06_adversarial",
-    KERNELS_DIR / "duecare_07_oss_comparison",
-    KERNELS_DIR / "duecare_08_fc_multimodal",
-    KERNELS_DIR / "duecare_09_llm_judge",
-    KERNELS_DIR / "duecare_10_conversations",
-    KERNELS_DIR / "duecare_11_comparative",
-    KERNELS_DIR / "duecare_12_prompt_factory",
-    KERNELS_DIR / "duecare_13_rubric_eval",
-    KERNELS_DIR / "duecare_14_dashboard",
-    KERNELS_DIR / "duecare_phase2_comparison",
-    KERNELS_DIR / "duecare_phase3_finetune",
-    KERNELS_DIR / "duecare_15_ollama_cloud",
-    KERNELS_DIR / "duecare_16_mistral_family",
-    KERNELS_DIR / "duecare_17_openrouter_frontier",
-    KERNELS_DIR / "duecare_18_supergemma_safety_gap",
-]
 
 KAGGLE_CONFIG_PATH = Path.home() / ".kaggle" / "kaggle.json"
 
@@ -95,6 +71,8 @@ def run(cmd: list[str], *, dry_run: bool, cwd: Path | None = None) -> RunResult:
         cwd=str(cwd) if cwd else None,
         capture_output=True,
         text=True,
+        encoding="utf-8",
+        errors="replace",
         check=False,
     )
     if proc.stdout:
@@ -226,19 +204,32 @@ def _validate_notebook_dir(d: Path) -> None:
         raise FileNotFoundError(f"kernel-metadata.json missing in {d}")
     # validate metadata fields
     data = json.loads(meta.read_text())
-    required = {"id", "title", "code_file", "kernel_type", "language"}
+    required = {"id", "title", "code_file", "kernel_type", "language", "keywords", "competition_sources", "is_private"}
     missing = required - data.keys()
     if missing:
         raise ValueError(f"{meta}: missing required fields {missing}")
     code_file = d / data["code_file"]
     if not code_file.exists():
         raise FileNotFoundError(f"code_file {code_file} referenced by {meta} is missing")
+    keywords = data.get("keywords")
+    if not isinstance(keywords, list) or not keywords:
+        raise ValueError(f"{meta}: keywords must be a non-empty list")
+    if data.get("is_private") is not False:
+        raise ValueError(f"{meta}: is_private must be false before publishing")
+    competition_sources = data.get("competition_sources")
+    if "gemma-4-good-hackathon" not in competition_sources:
+        raise ValueError(f"{meta}: competition_sources must include gemma-4-good-hackathon")
+
+
+def _notebook_dirs() -> list[Path]:
+    return [entry.dir_path for entry in discover_kernel_notebooks(KERNELS_DIR)]
 
 
 def push_notebooks(*, dry_run: bool) -> int:
-    print(f"# push-notebooks ({len(NOTEBOOK_DIRS)} kernels)")
+    notebook_dirs = _notebook_dirs()
+    print(f"# push-notebooks ({len(notebook_dirs)} kernels)")
     failures = 0
-    for d in NOTEBOOK_DIRS:
+    for d in notebook_dirs:
         try:
             _validate_notebook_dir(d)
         except Exception as e:
@@ -254,7 +245,7 @@ def push_notebooks(*, dry_run: bool) -> int:
 def status_notebooks(*, dry_run: bool) -> int:
     print("# status-notebooks")
     failures = 0
-    for d in NOTEBOOK_DIRS:
+    for d in _notebook_dirs():
         meta_path = d / "kernel-metadata.json"
         if not meta_path.exists():
             print(f"  ! skipping {d.name}: no kernel-metadata.json")

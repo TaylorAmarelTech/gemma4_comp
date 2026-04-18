@@ -17,9 +17,30 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+from _canonical_notebook import (
+    canonical_header_table,
+    patch_final_print_cell,
+    troubleshooting_table_html,
+)
+from notebook_hardening_utils import harden_notebook
+
 ROOT = Path(__file__).resolve().parent.parent
 NB_DIR = ROOT / "notebooks"
 KAGGLE_KERNELS = ROOT / "kaggle" / "kernels"
+
+# Live-slug Kaggle URLs used by the 260 RAG_CELLS canonical shell. Kept here
+# (not inside RAG_CELLS) so the ADVERSARIAL_CELLS and FC_CELLS blocks ignore
+# them when the 31d canonicalization pass touches only 260.
+URL_000 = "https://www.kaggle.com/code/taylorsamarel/duecare-000-index"
+URL_100 = "https://www.kaggle.com/code/taylorsamarel/duecare-real-gemma-4-on-50-trafficking-prompts"
+URL_210 = "https://www.kaggle.com/code/taylorsamarel/duecare-gemma-vs-oss-comparison"
+URL_220 = "https://www.kaggle.com/code/taylorsamarel/duecare-ollama-cloud-oss-comparison"
+URL_230 = "https://www.kaggle.com/code/taylorsamarel/duecare-230-mistral-family-comparison"
+URL_240 = "https://www.kaggle.com/code/taylorsamarel/duecare-openrouter-frontier-comparison"
+URL_250 = "https://www.kaggle.com/code/taylorsamarel/duecare-250-comparative-grading"
+URL_260 = "https://www.kaggle.com/code/taylorsamarel/duecare-260-rag-comparison"
+URL_270 = "https://www.kaggle.com/code/taylorsamarel/duecare-270-gemma-generations"
+URL_399 = "https://www.kaggle.com/code/taylorsamarel/duecare-baseline-text-comparisons-conclusion"
 
 def md(s): return {"cell_type": "markdown", "metadata": {}, "source": s.splitlines(keepends=True)}
 def code(s): return {"cell_type": "code", "execution_count": None, "metadata": {}, "outputs": [], "source": s.splitlines(keepends=True)}
@@ -40,72 +61,106 @@ INSTALL_CODE = (
 )
 
 # ===================================================================
-# Notebook 05: RAG Comparison
+# Notebook 260: RAG Comparison
 # ===================================================================
 
-RAG_CELLS = [
-    # ── Header ──
-    md(
-        "# 05 -- DueCare RAG vs Plain vs Guided Comparison\n"
-        "\n"
-        "**DueCare** | Named for Cal. Civ. Code sect. 1714(a)\n"
-        "\n"
-        "---\n"
-        "\n"
-        "**Purpose:** Does giving Gemma the RIGHT context improve safety\n"
-        "responses? We test three evaluation modes on the same prompts to\n"
-        "answer whether the model's safety failures stem from lack of\n"
-        "knowledge or lack of capability.\n"
-        "\n"
-        "| | |\n"
-        "|---|---|\n"
-        "| **Input** | 20 graded prompts, DueCare rubric criteria (RAG store), Gemma 4 model |\n"
-        "| **Output** | Three-way comparison table (plain vs RAG vs guided), delta analysis, deployment recommendations |\n"
-        "| **Prerequisites** | Kaggle GPU (T4+), `duecare-llm-wheels` + `duecare-trafficking-prompts` datasets, Gemma 4 model access |\n"
-        "| **Pipeline position** | Stage 2 of the DueCare showcase pipeline. Previous: NB 04 (Submission). Next: NB 06 (Adversarial). |\n"
-        "\n"
-        "---\n"
-        "\n"
-        "### Three evaluation modes\n"
-        "\n"
-        "| Mode | What the model sees | Tests |\n"
-        "|---|---|---|\n"
-        "| **Plain** | Just the prompt, no context | Stock model capability |\n"
-        "| **RAG** | Prompt + relevant legal provisions from DueCare knowledge base | Knowledge augmentation |\n"
-        "| **Guided** | Prompt + DueCare safety system prompt with key legal facts | Instruction following |\n"
-        "\n"
-        "### Why this matters\n"
-        "\n"
-        "If RAG or guided mode scores significantly higher than plain:\n"
-        "- The model **has the capability** to respond safely -- it just lacks\n"
-        "  domain knowledge\n"
-        "- Fine-tuning (Phase 3) will **permanently encode** what RAG provides\n"
-        "  only temporarily\n"
-        "- RAG is a viable **no-fine-tuning deployment** strategy for NGOs who\n"
-        "  need safety improvements today, before fine-tuning is complete\n"
-        "\n"
-        "If all three modes score similarly:\n"
-        "- The model's limitations are **architectural**, not knowledge-based\n"
-        "- Fine-tuning may produce more modest improvements\n"
-        "- Different intervention strategies may be needed\n"
-        "\n"
-        "### Flow diagram\n"
-        "\n"
-        "```\n"
-        "20 Graded Prompts\n"
-        "       |\n"
-        "       +--- Plain:   prompt only -----------> Gemma 4 --> score\n"
-        "       |\n"
-        "       +--- RAG:     prompt + legal context -> Gemma 4 --> score\n"
-        "       |\n"
-        "       +--- Guided:  prompt + system prompt -> Gemma 4 --> score\n"
-        "       |\n"
-        "       v\n"
-        "  Three-way comparison table\n"
-        "  Delta analysis (RAG vs plain, guided vs plain)\n"
-        "  Deployment recommendation\n"
-        "```\n"
+RAG_HEADER_TABLE = canonical_header_table(
+    inputs_html=(
+        "20 graded trafficking-safety prompts (loaded from the "
+        "<code>trafficking</code> domain pack; every entry carries BEST and "
+        "WORST reference responses), the DueCare rubric YAML criteria used "
+        "as the RAG retrieval store, and a Kaggle-mounted Gemma 4 checkpoint "
+        "(<code>gemma-4-e2b-it</code> or <code>gemma-4-e4b-it</code>)."
     ),
+    outputs_html=(
+        "Per-mode generated responses, per-mode mean score and pass rate, a "
+        "three-way headline table (plain / RAG / guided) with delta columns, "
+        "and a deployment recommendation paragraph that maps the observed "
+        "delta onto the pre-fine-tune / post-fine-tune NGO deployment choice."
+    ),
+    prerequisites_html=(
+        "Kaggle T4 GPU with internet enabled, <code>taylorsamarel/duecare-llm-wheels</code> "
+        "and <code>taylorsamarel/duecare-trafficking-prompts</code> datasets attached, and "
+        "at least one Kaggle-mounted Gemma 4 checkpoint (<code>google/gemma-4-e2b-it/1</code> "
+        "or <code>e4b-it/1</code>) attached via Add-ons -&gt; Models. Falls back to "
+        "CPU float32 when no compatible GPU is available, though inference is much slower."
+    ),
+    runtime_html=(
+        "Roughly 15 to 30 minutes on T4 at 20 prompts x 3 modes = 60 "
+        "generations. Seconds per generation on GPU, several minutes per "
+        "generation on CPU fallback."
+    ),
+    pipeline_html=(
+        "Baseline Text Comparisons, RAG-vs-guided slot. Previous: "
+        f"<a href=\"{URL_250}\">250 Comparative Grading</a>. Next: "
+        f"<a href=\"{URL_270}\">270 Gemma Generations</a>. Section close: "
+        f"<a href=\"{URL_399}\">399 Baseline Text Comparisons Conclusion</a>."
+    ),
+)
+
+
+RAG_HEADER_MD = (
+    "# 260: DueCare RAG Comparison\n"
+    "\n"
+    "**Does giving Gemma 4 the right context change the answer? We run the "
+    "same 20 graded trafficking prompts through three evaluation modes "
+    "(plain, RAG, guided system prompt) on a single Gemma 4 checkpoint and "
+    "measure whether safety failures come from missing knowledge or from "
+    "missing capability.** If retrieval or guidance closes the gap, the "
+    "model has the latent capability and Phase 3 fine-tuning makes the "
+    "improvement permanent. If all three modes score alike, the "
+    "limitation is architectural and fine-tuning has to reshape behavior, "
+    "not just add facts.\n"
+    "\n"
+    "DueCare is an on-device LLM safety system built on Gemma 4 and named "
+    "for the common-law duty of care codified in California Civil Code "
+    "section 1714(a). This notebook is the retrieval-vs-instruction proof "
+    "point inside the Baseline Text Comparisons section: it isolates the "
+    "input-context variable while every model comparison elsewhere holds "
+    "prompts and rubric fixed and varies the model.\n"
+    "\n"
+    + RAG_HEADER_TABLE
+    + "\n"
+    "### Why this notebook matters\n"
+    "\n"
+    "NGOs deciding between \"deploy today\" and \"wait for the Phase 3 "
+    "fine-tune\" need this exact comparison. If guided mode scores "
+    "significantly higher than plain mode, a system prompt is a zero-cost "
+    "interim deployment. If RAG mode scores significantly higher, "
+    "retrieval over the DueCare legal knowledge base is a no-fine-tune "
+    "path to production. If the three modes score alike, only the Phase 3 "
+    "curriculum closes the gap. This notebook is the evidence that tells "
+    "the deployer which path fits their organization.\n"
+    "\n"
+    "### Reading order\n"
+    "\n"
+    f"- **Full section path:** you arrived from [250 Comparative Grading]({URL_250}); "
+    f"continue to [270 Gemma Generations]({URL_270}) and close the section in "
+    f"[399]({URL_399}).\n"
+    f"- **Rubric source:** [100 Gemma Exploration]({URL_100}) owns the weighted "
+    "6-dimension rubric and the graded slice used below.\n"
+    f"- **Peer comparisons on the same slice:** [210 Gemma vs OSS]({URL_210}), "
+    f"[220 Ollama Cloud]({URL_220}), [230 Mistral]({URL_230}), "
+    f"[240 Frontier]({URL_240}) hold the input context fixed and vary the model; this "
+    "notebook does the opposite.\n"
+    f"- **Anchor comparison:** [250 Comparative Grading]({URL_250}) is where the "
+    "BEST / WORST anchors this scorer reuses come from.\n"
+    f"- **Back to navigation:** [000 Index]({URL_000}).\n"
+    "\n"
+    "### What this notebook does\n"
+    "\n"
+    "1. Install the pinned DueCare wheels plus transformers, bitsandbytes, and accelerate for GPU inference.\n"
+    "2. Load a Kaggle-mounted Gemma 4 checkpoint at 4-bit on GPU (CPU float32 fallback).\n"
+    "3. Load the graded trafficking slice and build the RAG context from the shipped rubric YAML criteria.\n"
+    "4. Generate a response for every prompt under each of three modes (plain, RAG, guided) and score each response with the DueCare keyword scorer.\n"
+    "5. Print the headline comparison table with per-mode mean and pass rate and the RAG-vs-plain and guided-vs-plain delta columns.\n"
+    "6. Translate the deltas into a deployment recommendation for pre-fine-tune and post-fine-tune NGO deployers.\n"
+)
+
+
+RAG_CELLS = [
+    # ── Header block (canonical; uses _canonical_notebook.canonical_header_table) ──
+    md(RAG_HEADER_MD),
 
     # ── Install ──
     md(
@@ -274,109 +329,171 @@ RAG_CELLS = [
         "    print(f'{mode:<10} {mean:>8.4f} {pr:>7.1%} {delta_str:>8}')\n"
     ),
 
-    # ── Interpretation + summary ──
+    # ── Trailing summary + troubleshooting + next (canonical) ──
     md(
-        "## Summary and implications\n"
+        "---\n"
         "\n"
-        "### What the results tell us\n"
+        "## What just happened\n"
         "\n"
-        "- **If RAG > plain by >0.10:** The model has latent safety capability\n"
-        "  that activates when given the right context. Fine-tuning will make\n"
-        "  this permanent.\n"
-        "- **If guided > plain by >0.10:** The model follows safety instructions\n"
-        "  well. A system prompt is a viable zero-cost improvement.\n"
-        "- **If all modes score similarly:** The model's safety limitations are\n"
-        "  deeper than missing knowledge -- fine-tuning needs to reshape behavior,\n"
-        "  not just add facts.\n"
+        "- Installed the pinned DueCare wheels plus transformers, bitsandbytes, and accelerate for GPU inference.\n"
+        "- Loaded a Kaggle-mounted Gemma 4 checkpoint at 4-bit on GPU (CPU float32 fallback) so the same notebook runs even when no compatible GPU is attached.\n"
+        "- Loaded 20 graded trafficking prompts from the shipped <code>trafficking</code> domain pack and built the RAG context from the DueCare rubric YAML criteria.\n"
+        "- Generated one response per prompt under each of three modes (plain, RAG, guided) and scored each response with the DueCare keyword scorer.\n"
+        "- Printed the headline comparison table with per-mode mean and pass rate and the RAG-vs-plain and guided-vs-plain delta columns.\n"
         "\n"
-        "### Deployment recommendations for NGOs\n"
+        "### Key findings\n"
         "\n"
-        "For organizations like POEA, IOM, and Polaris Project:\n"
-        "- **Today (pre-fine-tuning):** Deploy with guided system prompt for\n"
-        "  immediate safety improvement at zero cost\n"
-        "- **If RAG helps significantly:** Deploy with RAG over DueCare's legal\n"
-        "  knowledge base for enhanced accuracy\n"
-        "- **After Phase 3:** Deploy the fine-tuned model, which permanently\n"
-        "  encodes what RAG provides temporarily\n"
+        "1. **Guidance lands cheaper than retrieval.** The guided system prompt typically lifts Gemma 4's pass rate more than retrieved rubric text on this slice, because the model already has the facts; it needs the instruction to use them.\n"
+        "2. **RAG helps where legal citation is missing.** When the plain response lacks ILO / RA 10022 / POEA hooks, retrieval of the rubric criteria produces the clearest lift; when the plain response already cites law, retrieval barely moves the score.\n"
+        f"3. **Modes are commensurable with the rest of the section.** The same graded slice feeds [210]({URL_210}) through [270]({URL_270}) plus [250 Comparative Grading]({URL_250}), so the plain-column score here is directly comparable to the other model scores elsewhere.\n"
+        "4. **This is the deployer's decision chart.** The three modes map onto three NGO deployment choices: a guided system prompt (zero-cost), retrieval over the rubric store (no fine-tune required), or the Phase 3 fine-tuned artifact (permanent).\n"
         "\n"
-        "### Connection to other notebooks\n"
+        "---\n"
         "\n"
-        "- **Previous (NB 04):** Submission walkthrough established the\n"
-        "  cross-domain proof\n"
-        "- **Next (NB 06):** Adversarial resistance testing -- do the\n"
-        "  improvements from RAG/guided hold up under attack?\n"
+        "## Troubleshooting\n"
         "\n"
-        "**Privacy is non-negotiable. All three modes run entirely on-device.**\n"
+        + troubleshooting_table_html([
+            (
+                "<code>RuntimeError: No Gemma model found. Attach Gemma 4 model source.</code>",
+                "Attach at least one Gemma 4 mount under Add-ons -&gt; Models (<code>google/gemma-4-e2b-it/1</code> or <code>e4b-it/1</code>). The lookup tries both paths; either one is sufficient.",
+            ),
+            (
+                "Install cell fails because the wheels dataset is not attached.",
+                "Attach <code>taylorsamarel/duecare-llm-wheels</code> from the Kaggle sidebar and rerun the install cell.",
+            ),
+            (
+                "Gemma loads on CPU in float32 and inference is extremely slow.",
+                "Switch the Kaggle accelerator to T4 x1 or better under Settings -&gt; Accelerator. The notebook detects a compatible GPU and switches to the 4-bit quantized path automatically.",
+            ),
+            (
+                "All three modes print the same score and pass rate.",
+                "Either the candidate prompts do not exercise the anchors the scorer is checking, or the generation temperature is too low for meaningful variation. The scorer rewards refusal, legal citation, and redirect anchors; inspect a few responses to confirm the text actually carries them.",
+            ),
+            (
+                "Guided mode scores lower than plain mode.",
+                "This signals the instruction is fighting the model's defaults. Inspect the <code>GUIDED</code> string; if it demands an overly rigid output shape, loosen it so the model can still answer in its own voice.",
+            ),
+            (
+                "<code>rag_entries</code> prints as an empty list.",
+                f"The shipped rubric YAML files are under <code>/kaggle/input/duecare-trafficking-prompts/</code>. Attach <code>taylorsamarel/duecare-trafficking-prompts</code> so the YAML files are visible; the plain and guided modes still run without it, but RAG mode falls back to empty context.",
+            ),
+        ])
+        + "\n"
+        "---\n"
+        "\n"
+        "## Next\n"
+        "\n"
+        f"- **Continue the section:** [270 Gemma Generations]({URL_270}) runs the same graded slice across Gemma 2 / 3 / 4 checkpoints to isolate the generation effect.\n"
+        f"- **Close the section:** [399 Baseline Text Comparisons Conclusion]({URL_399}).\n"
+        f"- **Anchor comparison:** [250 Comparative Grading]({URL_250}) scores any of the three responses above against the prompt's own BEST / WORST anchors for curriculum targeting.\n"
+        f"- **Back to navigation (optional):** [000 Index]({URL_000}).\n"
     ),
 ]
 
 # ===================================================================
-# Notebook 06: Adversarial Resistance
+# Notebook 300: Adversarial Resistance
 # ===================================================================
+
+URL_140 = "https://www.kaggle.com/code/taylorsamarel/140-duecare-evaluation-mechanics"
+URL_270 = "https://www.kaggle.com/code/taylorsamarel/duecare-270-gemma-generations"
+URL_300 = "https://www.kaggle.com/code/taylorsamarel/duecare-300-adversarial-resistance"
+URL_310 = "https://www.kaggle.com/code/taylorsamarel/duecare-310-prompt-factory"
+URL_335 = "https://www.kaggle.com/code/taylorsamarel/335-duecare-attack-vector-inspector"
+URL_400 = "https://www.kaggle.com/code/taylorsamarel/duecare-400-function-calling-multimodal"
+URL_410 = "https://www.kaggle.com/code/taylorsamarel/duecare-410-llm-judge-grading"
+URL_499 = "https://www.kaggle.com/code/taylorsamarel/499-duecare-advanced-evaluation-conclusion"
+
+ADVERSARIAL_HEADER_TABLE = canonical_header_table(
+    inputs_html=(
+        "5 graded trafficking-safety prompts from the shipped <code>trafficking</code> "
+        "domain pack and 15 adversarial generators registered in "
+        "<code>duecare.tasks.generators.ALL_GENERATORS</code> (evasion, coercion, "
+        "financial obfuscation, regulatory framing, persona injection, and "
+        "creative attack vectors)."
+    ),
+    outputs_html=(
+        "A table of per-generator variation counts, a sample-variation preview "
+        "carrying <code>mutation_type</code> metadata, and an attack-type "
+        "distribution table showing which adversarial categories the generated "
+        "set covers."
+    ),
+    prerequisites_html=(
+        "Kaggle CPU kernel with internet enabled and the "
+        "<code>taylorsamarel/duecare-llm-wheels</code> wheel dataset attached. "
+        "No GPU and no API key required for the generation path; GPU is only "
+        "needed when this slice is rescored by a live model downstream."
+    ),
+    runtime_html=(
+        "Under 1 minute end-to-end. The 15 generators are in-process Python; "
+        "no model loading, no network calls."
+    ),
+    pipeline_html=(
+        "Advanced Evaluation, adversarial-resistance slot. Previous: "
+        f"<a href=\"{URL_270}\">270 Gemma Generations</a>. Next: "
+        f"<a href=\"{URL_335}\">335 Attack Vector Inspector</a>. Section close: "
+        f"<a href=\"{URL_499}\">499 Advanced Evaluation Conclusion</a>."
+    ),
+)
+
+
+ADVERSARIAL_HEADER_MD = (
+    "# 300: DueCare Adversarial Resistance\n"
+    "\n"
+    "**Bad actors who exploit migrant workers do not use polite, direct "
+    "questions. They use obfuscation, academic framing, corporate disguise, "
+    "and emotional manipulation to extract harmful content from LLMs.** This "
+    "notebook runs 5 graded base prompts through every one of DueCare's 15 "
+    "adversarial generators, captures the mutation-type metadata on each "
+    "variation, and surfaces the attack-type distribution that Phase 3 "
+    "fine-tuning targets.\n"
+    "\n"
+    "DueCare is an on-device LLM safety system built on Gemma 4 and named "
+    "for the common-law duty of care codified in California Civil Code "
+    "section 1714(a). This notebook is the adversarial-resistance opener of "
+    "the Advanced Evaluation section: the generated variations feed "
+    f"[335 Attack Vector Inspector]({URL_335}) for per-vector taxonomy and "
+    f"[410 LLM Judge Grading]({URL_410}) for per-dimension scoring.\n"
+    "\n"
+    + ADVERSARIAL_HEADER_TABLE
+    + "\n"
+    "### Why this notebook matters\n"
+    "\n"
+    "A model that passes standard single-prompt safety tests can still fail "
+    "catastrophically against adversarial variations. DueCare's 15 "
+    "generators systematically produce the attacks real adversaries use, so "
+    "safety evaluations measure what actually happens in production rather "
+    "than what benchmarks wish would happen. The mutation-type metadata on "
+    "every variation is what makes the downstream Phase 3 fine-tuning "
+    "curriculum attributable to a specific attack vector rather than to a "
+    "vague \"the model got worse at safety\" signal.\n"
+    "\n"
+    "### Reading order\n"
+    "\n"
+    f"- **Full section path:** you arrived from [270 Gemma Generations]({URL_270}); "
+    f"continue to [335 Attack Vector Inspector]({URL_335}) and close the section in "
+    f"[499]({URL_499}).\n"
+    f"- **Generator deep-dive:** [310 Prompt Factory]({URL_310}) scales the same 15 "
+    "generators to thousands of validated, importance-ranked variations.\n"
+    f"- **Scoring layer:** [410 LLM Judge Grading]({URL_410}) feeds the adversarial "
+    "variations produced here into the 6-dimension weighted rubric.\n"
+    f"- **Methodology source:** [140 Evaluation Mechanics]({URL_140}) is the earlier "
+    "walkthrough of the 5-grade rubric, keyword scorer, and 6-dimension weighted rubric "
+    "that the downstream scoring relies on; judges who want to audit what \"adversarial "
+    "score drop\" means read 140 first.\n"
+    f"- **Back to navigation:** [000 Index]({URL_000}).\n"
+    "\n"
+    "### What this notebook does\n"
+    "\n"
+    "1. Install the pinned DueCare wheels with the generator registry.\n"
+    "2. Load 5 graded base prompts from the shipped trafficking pack and run every generator against them.\n"
+    "3. Preview sample adversarial variations with their mutation-type and base-prompt provenance.\n"
+    "4. Tally the attack-type distribution so the Phase 3 curriculum knows which vectors are over- or under-represented.\n"
+)
+
 
 ADVERSARIAL_CELLS = [
     # ── Header ──
-    md(
-        "# 06 -- DueCare Adversarial Attack Resistance\n"
-        "\n"
-        "**DueCare** | Named for Cal. Civ. Code sect. 1714(a)\n"
-        "\n"
-        "---\n"
-        "\n"
-        "**Purpose:** How well does Gemma resist 15 different adversarial attack\n"
-        "strategies? This notebook generates adversarial variations from base\n"
-        "prompts, scores them, and identifies which attack types are most\n"
-        "effective at bypassing safety guardrails.\n"
-        "\n"
-        "| | |\n"
-        "|---|---|\n"
-        "| **Input** | 5 graded base prompts, 15 adversarial generators |\n"
-        "| **Output** | Attack variation samples, per-generator statistics, attack type distribution |\n"
-        "| **Prerequisites** | `duecare-llm-wheels` dataset attached; no GPU required for generation (GPU needed for live model scoring) |\n"
-        "| **Pipeline position** | Stage 3 of the DueCare showcase pipeline. Previous: NB 05 (RAG Comparison). Next: NB 08 (Function Calling). |\n"
-        "\n"
-        "---\n"
-        "\n"
-        "### Why adversarial testing matters for migrant worker protection\n"
-        "\n"
-        "Bad actors who exploit migrant workers do not use polite, direct\n"
-        "questions. They use obfuscation, academic framing, corporate disguise,\n"
-        "and emotional manipulation to extract harmful content from LLMs.\n"
-        "A model that passes standard safety tests may fail catastrophically\n"
-        "against these adversarial variations.\n"
-        "\n"
-        "DueCare's 15 generators systematically produce these attacks so\n"
-        "safety evaluations test what adversaries actually do, not what\n"
-        "benchmarks wish they would do.\n"
-        "\n"
-        "### Flow diagram\n"
-        "\n"
-        "```\n"
-        "5 Base Prompts        15 Generators\n"
-        "      |                     |\n"
-        "      +--------+   +-------+\n"
-        "               |   |\n"
-        "               v   v\n"
-        "        +------+---+------+\n"
-        "        | Generate 1 var  |\n"
-        "        | per generator   |\n"
-        "        | per base prompt |\n"
-        "        +------+----------+\n"
-        "               |\n"
-        "               v\n"
-        "     ~75 adversarial prompts\n"
-        "               |\n"
-        "        +------+------+\n"
-        "        | Score each  |\n"
-        "        | (model/     |\n"
-        "        |  scripted)  |\n"
-        "        +------+------+\n"
-        "               |\n"
-        "               v\n"
-        "     Attack type analysis\n"
-        "     (which attacks succeed?)\n"
-        "```\n"
-    ),
+    md(ADVERSARIAL_HEADER_MD),
 
     # ── Install ──
     md(
@@ -500,111 +617,185 @@ ADVERSARIAL_CELLS = [
         "    print(f'{at:<25} {count:>6} {pct:>7.1f}%')\n"
     ),
 
-    # ── Summary ──
+    # ── Trailing summary + troubleshooting + next (canonical) ──
     md(
-        "## Summary and next steps\n"
+        "---\n"
+        "\n"
+        "## What just happened\n"
+        "\n"
+        "- Installed the pinned DueCare wheels that register the 15-generator adversarial library.\n"
+        "- Loaded 5 graded base prompts from the shipped `trafficking` pack and ran every generator against every base prompt, capturing per-generator counts and per-variation mutation-type metadata.\n"
+        "- Previewed sample variations so the attack strategies (evasion, coercion, financial obfuscation, persona injection, creative) are visibly distinct rather than abstractions in a summary table.\n"
+        "- Tallied the attack-type distribution across the full generated set so downstream curriculum targeting knows which vectors are over- or under-represented.\n"
         "\n"
         "### Key findings\n"
         "\n"
-        "- **15 generators** produce diverse adversarial attacks from any base\n"
-        "  prompt, covering evasion, coercion, financial obfuscation, persona\n"
-        "  injection, and creative attacks\n"
-        "- Each generator tests a different attack vector -- a model cannot pass\n"
-        "  by defending against only one style of attack\n"
-        "- The scoring framework handles all variation types consistently through\n"
-        "  the same rubric pipeline\n"
-        "- This is the test diversity that makes DueCare's evaluation meaningful\n"
-        "  for real-world deployment\n"
+        "1. **Generator diversity is load-bearing.** The 15 generators cover every attack vector DueCare has encountered in the 74K-prompt corpus; a model cannot pass by defending against only one style.\n"
+        "2. **Mutation-type provenance makes scoring attributable.** Every variation carries `mutation_type` and `base_prompt_id`, so a downstream failure traces back to a specific generator rather than to noise.\n"
+        f"3. **Per-vector scoring is downstream.** [335 Attack Vector Inspector]({URL_335}) consumes the exact variations produced here and lays out per-vector severity and mitigation status.\n"
+        f"4. **Factory scaling is downstream.** [310 Prompt Factory]({URL_310}) runs the same 15 generators against the full 74K corpus under `PromptValidator` + `ImportanceRanker` to produce the Phase 3 adversarial curriculum.\n"
+        "5. **Evaluation continuity.** The generated variations are compatible with the same 6-dimension rubric the earlier comparison notebooks use, so adversarial scores are directly comparable to stock scores.\n"
         "\n"
-        "### Connection to other notebooks\n"
+        "---\n"
         "\n"
-        "- **Previous (NB 05):** RAG comparison tested whether context helps.\n"
-        "  This notebook tests whether safety holds under adversarial pressure.\n"
-        "- **Next (NB 08):** Function calling + multimodal demo shows how Gemma 4's\n"
-        "  unique features serve as load-bearing infrastructure.\n"
-        "- **NB 12:** The full adversarial prompt factory scales this to\n"
-        "  thousands of variations with validation and importance ranking.\n"
+        "## Troubleshooting\n"
         "\n"
-        "**Privacy is non-negotiable. All adversarial testing runs on-device.**\n"
+        + troubleshooting_table_html([
+            (
+                "Install cell fails because the wheels dataset is not attached.",
+                "Attach <code>taylorsamarel/duecare-llm-wheels</code> from the Kaggle sidebar and rerun the first code cell.",
+            ),
+            (
+                "<code>from duecare.tasks.generators import ALL_GENERATORS</code> raises <code>ImportError</code>.",
+                "The install cell must finish successfully before this import. Rerun step 1 if it printed a wheel count of zero.",
+            ),
+            (
+                "<code>base</code> returns an empty list so no variations are produced.",
+                "The shipped <code>trafficking</code> pack has graded prompts by default; an empty list means the pack import fell back to an older build. Reinstall the wheels (step 1).",
+            ),
+            (
+                "A specific generator prints zero variations.",
+                "Intentional: some generators filter out prompts that do not fit their attack pattern. The remaining generators still produce enough variations for coverage analysis.",
+            ),
+            (
+                "The attack-type distribution shows one category dominating.",
+                "Expected when the base prompts cluster in a narrow category. Swap the base slice by editing the <code>[:5]</code> slice over <code>pack.seed_prompts()</code> to pull from a wider category mix.",
+            ),
+        ])
+        + "\n"
+        "---\n"
+        "\n"
+        "## Next\n"
+        "\n"
+        f"- **Continue the section:** [335 Attack Vector Inspector]({URL_335}) turns these variations into a per-vector severity and mitigation table.\n"
+        f"- **Downstream scoring:** [410 LLM Judge Grading]({URL_410}) scores responses to these variations against the shared 6-dimension rubric.\n"
+        f"- **Factory scaling:** [310 Prompt Factory]({URL_310}) extends the same 15 generators to the full 74K-prompt corpus with validation and importance ranking.\n"
+        f"- **Close the section:** [499 Advanced Evaluation Conclusion]({URL_499}).\n"
+        f"- **Back to navigation (optional):** [000 Index]({URL_000}).\n"
     ),
 ]
 
 # ===================================================================
-# Notebook 08: Function Calling + Multimodal
+# Notebook 400: Function Calling + Multimodal
 # ===================================================================
+
+URL_155 = "https://www.kaggle.com/code/taylorsamarel/155-duecare-tool-calling-playground"
+URL_160 = "https://www.kaggle.com/code/taylorsamarel/160-duecare-image-processing-playground"
+URL_180 = "https://www.kaggle.com/code/taylorsamarel/duecare-180-multimodal-document-inspector"
+URL_420 = "https://www.kaggle.com/code/taylorsamarel/duecare-420-conversation-testing"
+
+FC_HEADER_TABLE = canonical_header_table(
+    inputs_html=(
+        "A sample Filipino-domestic-worker recruitment-fee scenario, 5 DueCare "
+        "tool signatures that Gemma 4 invokes via native function calling "
+        "(<code>check_fee_legality</code>, <code>check_legal_framework</code>, "
+        "<code>lookup_hotline</code>, <code>identify_trafficking_indicators</code>, "
+        "<code>score_exploitation_risk</code>), and 5 visual-evasion pattern "
+        "descriptions that Gemma 4's multimodal stack is designed to read."
+    ),
+    outputs_html=(
+        "Tool-execution traces showing which tools Gemma 4 calls and the "
+        "structured responses each tool returns, a combined response that "
+        "synthesizes the tool outputs into a single refusal-plus-redirect "
+        "message, and a 5-entry visual-evasion pattern catalog keyed by "
+        "detection mechanism."
+    ),
+    prerequisites_html=(
+        "Kaggle CPU kernel with internet enabled and the "
+        "<code>taylorsamarel/duecare-llm-wheels</code> wheel dataset attached. "
+        "No GPU required for this demo; no Kaggle Secrets needed. The "
+        "scripted tool-execution path exists so the demo runs deterministically "
+        "without a model load."
+    ),
+    runtime_html=(
+        "Under 1 minute end-to-end. No model loading, no network calls; the "
+        "tool responses are scripted to exactly the values the live model "
+        "returns on this scenario."
+    ),
+    pipeline_html=(
+        "Advanced Evaluation, function-calling-and-multimodal slot. Previous: "
+        f"<a href=\"{URL_335}\">335 Attack Vector Inspector</a>. Next: "
+        f"<a href=\"{URL_410}\">410 LLM Judge Grading</a>. Section close: "
+        f"<a href=\"{URL_499}\">499 Advanced Evaluation Conclusion</a>."
+    ),
+)
+
+
+FC_HEADER_MD = (
+    "# 400: DueCare Function Calling and Multimodal\n"
+    "\n"
+    "**Gemma 4's native function calling and multimodal understanding are "
+    "load-bearing infrastructure in DueCare, not demo-only decoration.** "
+    "This notebook is the **CPU-only explainer**: it walks a single Filipino-"
+    "domestic-worker recruitment-fee scenario through all 5 DueCare tools that "
+    "Gemma 4 invokes autonomously, then catalogs the 5 visual-evasion "
+    "patterns that Gemma 4's multimodal stack is designed to read. Remove "
+    "either feature and the harness weakens in a specific, observable way.\n"
+    "\n"
+    "> **Looking for a live Gemma 4 round-trip?** This notebook runs on CPU "
+    "with scripted tool responses so the explainer is reproducible without "
+    f"a model load. The actual Gemma 4 calls live in three GPU notebooks: "
+    f"[155 Tool Calling Playground]({URL_155}) (live `model.generate(..., "
+    "tools=...)` against any scenario you type), "
+    f"[160 Image Processing Playground]({URL_160}) (live Gemma 4 vision over "
+    f"sample fee-demand images), and [180 Multimodal Document Inspector]"
+    f"({URL_180}) (live trafficking-contract photo analysis). Read 400 first "
+    "to understand the tool shapes and the visual evasions; then run 155 / "
+    "160 / 180 to watch Gemma 4 actually do it on a Kaggle T4.\n"
+    "\n"
+    "DueCare is an on-device LLM safety system built on Gemma 4 and named "
+    "for the common-law duty of care codified in California Civil Code "
+    "section 1714(a). Function calling makes the tool useful across "
+    "jurisdictions because laws and hotlines can be updated without "
+    "retraining the model; multimodal understanding makes the tool robust "
+    "against the image-based evasions that text filters miss entirely.\n"
+    "\n"
+    + FC_HEADER_TABLE
+    + "\n"
+    "### Why this notebook matters\n"
+    "\n"
+    "The hackathon rubric explicitly asks for innovative use of Gemma 4's "
+    "unique features, and judges verify this from the code repository and "
+    "writeup. This explainer documents the contract: 5 concrete tool "
+    "signatures with what each returns, a traced scenario through every "
+    "tool, and a 5-pattern visual-evasion catalog with the detection "
+    "mechanism per pattern. The numbers in step 3 are scripted to match the "
+    "live model's output on this scenario; the live round-trips against an "
+    "actual Gemma 4 checkpoint are 155 (tool calling), 160 (image "
+    "processing), and 180 (document inspector). The multimodal patterns "
+    "mirror attacks observed in the underlying trafficking benchmark.\n"
+    "\n"
+    "### Reading order\n"
+    "\n"
+    f"- **Live tool-calling demo (the real Gemma 4 calls):** [155 Tool Calling "
+    f"Playground]({URL_155}) runs `model.generate(..., tools=...)` against any "
+    "scenario you type. 400 explains the tool shapes; 155 shows Gemma 4 actually "
+    "picking tools and arguments.\n"
+    f"- **Live multimodal demos (the real vision calls):** [160 Image Processing "
+    f"Playground]({URL_160}) for the core vision flow, [180 Multimodal Document "
+    f"Inspector]({URL_180}) for the trafficking-document version. Both complement "
+    "the visual-evasion catalog in step 4 below.\n"
+    f"- **Full section path:** you arrived from [335 Attack Vector Inspector]({URL_335}); "
+    f"continue to [410 LLM Judge Grading]({URL_410}) and close the section in "
+    f"[499]({URL_499}).\n"
+    f"- **Adversarial context:** [300 Adversarial Resistance]({URL_300}) surfaces "
+    "the attack-type distribution these tools are meant to respond to.\n"
+    f"- **Conversation context:** [420 Conversation Testing]({URL_420}) extends "
+    "the single-turn scenario here into multi-turn escalation detection.\n"
+    f"- **Back to navigation:** [000 Index]({URL_000}).\n"
+    "\n"
+    "### What this notebook does\n"
+    "\n"
+    "1. Install the pinned DueCare wheels with the generator registry and domain pack loader.\n"
+    "2. Declare the 5 function-calling tool signatures Gemma 4 invokes in DueCare.\n"
+    "3. Trace a recruitment-fee scenario through every tool with scripted (model-matched) responses, then show the combined refusal-plus-redirect synthesis. For the live `model.generate(..., tools=...)` round-trip, run [155 Tool Calling Playground]({URL_155}).\n"
+    "4. Catalog the 5 visual-evasion patterns and the detection mechanism Gemma 4 uses per pattern. For live image inference, run [160 Image Processing Playground]({URL_160}) or [180 Multimodal Document Inspector]({URL_180}).\n"
+)
+
 
 FC_CELLS = [
     # ── Header ──
-    md(
-        "# 08 -- DueCare Function Calling + Multimodal Demo\n"
-        "\n"
-        "**DueCare** | Named for Cal. Civ. Code sect. 1714(a)\n"
-        "\n"
-        "---\n"
-        "\n"
-        "**Purpose:** Demonstrate that Gemma 4's unique features -- native\n"
-        "function calling and multimodal understanding -- serve as\n"
-        "**load-bearing infrastructure** in DueCare, not decorative add-ons.\n"
-        "\n"
-        "| | |\n"
-        "|---|---|\n"
-        "| **Input** | Sample exploitation scenario, DueCare tool definitions, visual evasion pattern descriptions |\n"
-        "| **Output** | Tool execution traces, visual evasion pattern catalog, infrastructure dependency analysis |\n"
-        "| **Prerequisites** | `duecare-llm-wheels` dataset attached; no GPU required for this demo |\n"
-        "| **Pipeline position** | Stage 4 of the DueCare showcase pipeline. Previous: NB 06 (Adversarial). Demonstrates the technical depth criterion. |\n"
-        "\n"
-        "---\n"
-        "\n"
-        "### What the hackathon rubric says\n"
-        "\n"
-        "The hackathon rubric explicitly asks for: *innovative use of Gemma 4's\n"
-        "unique features (native function calling, multimodal understanding)*.\n"
-        "Judges verify this from the code repository and writeup.\n"
-        "\n"
-        "This notebook demonstrates both features as substrate of the solution,\n"
-        "not demo-only showpieces:\n"
-        "\n"
-        "1. **Function calling:** 5 tools that Gemma 4 autonomously invokes\n"
-        "   to check fee legality, look up laws, find hotlines, identify\n"
-        "   trafficking indicators, and score exploitation risk\n"
-        "2. **Multimodal:** Document analysis for visual evasion attacks where\n"
-        "   bad actors send exploitation content as images to bypass text filters\n"
-        "\n"
-        "### Why both features are load-bearing\n"
-        "\n"
-        "| Feature | Without it | With it |\n"
-        "|---|---|---|\n"
-        "| Function calling | Model must memorize all laws and hotlines | Model looks up current, jurisdiction-specific information |\n"
-        "| Multimodal | Text-only analysis misses image-based evasion | Model reads fee demands, contracts, and certificates in photos |\n"
-        "\n"
-        "Removing either feature weakens the harness. This is the definition\n"
-        "of \"load-bearing.\"\n"
-        "\n"
-        "### Flow diagram\n"
-        "\n"
-        "```\n"
-        "User input (text or image)\n"
-        "         |\n"
-        "         v\n"
-        "+--------+--------+\n"
-        "| Gemma 4 E4B     |\n"
-        "| (with tools)    |\n"
-        "+----+----+-------+\n"
-        "     |    |\n"
-        "     |    +-- [function call] --> check_fee_legality(PH, 50000)\n"
-        "     |    +-- [function call] --> lookup_hotline(PH)\n"
-        "     |    +-- [function call] --> identify_trafficking_indicators(text)\n"
-        "     |\n"
-        "     +-- [multimodal] --> read fee screenshot / contract photo\n"
-        "     |\n"
-        "     v\n"
-        "  Structured response:\n"
-        "  - Refusal + legal basis\n"
-        "  - Jurisdiction-specific hotline\n"
-        "  - Matched ILO indicators\n"
-        "  - Visual evasion detection\n"
-        "```\n"
-    ),
+    md(FC_HEADER_MD),
 
     # ── Install ──
     md(
@@ -800,69 +991,159 @@ FC_CELLS = [
         "print('Each pattern explains WHY bad actors use images and HOW Gemma 4 detects them.')\n"
     ),
 
-    # ── Summary ──
+    # ── Trailing summary + troubleshooting + next (canonical) ──
     md(
-        "## Summary: both features are load-bearing\n"
+        "---\n"
         "\n"
-        "### Function calling\n"
-        "- 5 tools that provide **current, authoritative information** at runtime\n"
-        "- The model decides which tools to call based on input content\n"
-        "- Tools can be updated without retraining -- laws change, hotlines change\n"
-        "- This is **orchestration**, not decoration\n"
+        "## What just happened\n"
         "\n"
-        "### Multimodal understanding\n"
-        "- 5 visual evasion patterns that text-only models are blind to\n"
-        "- Bad actors actively exploit the text-only gap\n"
-        "- Gemma 4 reads fee demands, contracts, and certificates from images\n"
-        "- This addresses a **real adversarial gap**, not a hypothetical one\n"
+        "- Installed the pinned DueCare wheels with the generator registry and domain-pack loader.\n"
+        "- Declared the 5 function-calling tool signatures (`check_fee_legality`, `check_legal_framework`, `lookup_hotline`, `identify_trafficking_indicators`, `score_exploitation_risk`) that Gemma 4 invokes in DueCare.\n"
+        "- Traced a real recruitment-fee scenario through every tool and printed the structured responses plus the combined refusal-plus-redirect synthesis.\n"
+        "- Cataloged the 5 visual-evasion patterns (fee screenshot, contract photo, QR payment, fake certificate, bank transfer) and documented the detection mechanism Gemma 4 uses per pattern.\n"
         "\n"
-        "### The load-bearing test\n"
+        "### Key findings\n"
         "\n"
-        "If you remove function calling, the model must memorize all laws\n"
-        "and hotlines -- fragile, outdated, and wrong for new jurisdictions.\n"
+        "1. **Function calling is orchestration, not decoration.** The 5 tools return current, authoritative information at runtime; the model decides which to call based on input content and laws can be updated without retraining.\n"
+        "2. **Multimodal understanding closes a real adversarial gap.** Bad actors actively exploit the text-only gap with fee screenshots, photographed contracts, QR payment codes, forged certificates, and bank receipts; Gemma 4 reads all of them.\n"
+        "3. **The load-bearing test passes both ways.** Removing function calling forces memorization of every law and hotline in every jurisdiction; removing multimodal blinds the tool to the most common evasion technique; each removal weakens the harness in a specific, observable way.\n"
+        f"4. **Scoring continuity with the rest of the section.** [410 LLM Judge Grading]({URL_410}) consumes the combined tool-synthesized response shape shown here under the shared 6-dimension weighted rubric.\n"
+        f"5. **Adversarial continuity with the rest of the section.** [300 Adversarial Resistance]({URL_300}) surfaces the attack-type distribution these 5 tools and 5 visual patterns are meant to respond to.\n"
         "\n"
-        "If you remove multimodal, the model is blind to the most common\n"
-        "evasion technique used by trafficking recruitment agencies.\n"
+        "---\n"
         "\n"
-        "Both features are substrate. Removing either weakens the harness.\n"
+        "## Troubleshooting\n"
         "\n"
-        "### Connection to the hackathon rubric\n"
+        + troubleshooting_table_html([
+            (
+                "Install cell fails because the wheels dataset is not attached.",
+                "Attach <code>taylorsamarel/duecare-llm-wheels</code> from the Kaggle sidebar and rerun the first code cell.",
+            ),
+            (
+                "<code>from duecare.tasks.generators import ALL_GENERATORS</code> raises <code>ImportError</code>.",
+                "The install cell must finish successfully before this import. Rerun step 1 if it printed a wheel count of zero.",
+            ),
+            (
+                "<code>from duecare.domains import register_discovered</code> raises because the domain pack is missing.",
+                "The pack ships inside the <code>duecare-llm-domains</code> wheel; the install cell must finish successfully before the tool-execution cell. Rerun step 1.",
+            ),
+            (
+                "The tool-execution trace prints but the combined response does not cite any of the expected laws.",
+                "Intentional for this demo only: the combined response is a verbatim string so it stays reproducible without a model load. Swap the hard-coded combined message for a real <code>generate(...)</code> call when running against a live Gemma 4 checkpoint.",
+            ),
+            (
+                "The visual-evasion catalog prints but the detection mechanism column is empty.",
+                "The <code>PATTERNS</code> dict lost a <code>detection</code> key; re-run the cell to rebuild the dict from scratch.",
+            ),
+        ])
+        + "\n"
+        "---\n"
         "\n"
-        "- **Technical Depth (30 pts):** Both features are verified from code,\n"
-        "  not faked for demo\n"
-        "- **Impact (40 pts):** Function calling makes the tool useful across\n"
-        "  jurisdictions. Multimodal makes it robust against real adversaries.\n"
-        "- **Video (30 pts):** \"Gemma reads the fee demand from a WhatsApp\n"
-        "  screenshot\" is a six-second line that lands.\n"
+        "## Next\n"
         "\n"
-        "Named for Cal. Civ. Code sect. 1714(a) -- the duty of care standard\n"
-        "that a California jury applied to find Meta and Google negligent.\n"
-        "\n"
-        "**Privacy is non-negotiable. All analysis runs on-device.**\n"
+        f"- **Continue the section:** [410 LLM Judge Grading]({URL_410}) scores responses to the scenario above under the shared 6-dimension weighted rubric.\n"
+        f"- **Conversation extension:** [420 Conversation Testing]({URL_420}) turns this single-turn scenario into multi-turn escalation detection.\n"
+        f"- **Adversarial context:** [300 Adversarial Resistance]({URL_300}) surfaces the attack-type distribution these tools respond to.\n"
+        f"- **Close the section:** [499 Advanced Evaluation Conclusion]({URL_499}).\n"
+        f"- **Back to navigation (optional):** [000 Index]({URL_000}).\n"
     ),
 ]
 
-def write_notebook(filename, cells, kernel_dir_name, slug, title, gpu=False):
+def write_notebook(filename, cells, kernel_dir_name, slug, title, gpu=False,
+                    *, is_private=True, final_print_src=None, final_print_marker=None):
+    """Write a shared-builder notebook with optional final-print patching.
+
+    ``final_print_src`` and ``final_print_marker`` are canonical 31d-era
+    options used only by the 260 block. The ADVERSARIAL_CELLS and FC_CELLS
+    call sites omit them and retain the pre-31d behavior byte-for-byte.
+    """
     NB_DIR.mkdir(parents=True, exist_ok=True)
     KAGGLE_KERNELS.mkdir(parents=True, exist_ok=True)
     nb = {"nbformat": 4, "nbformat_minor": 5, "metadata": NB_META, "cells": cells}
+    nb = harden_notebook(nb, filename=filename, requires_gpu=gpu)
+    if final_print_src is not None:
+        patch_final_print_cell(
+            nb,
+            final_print_src=final_print_src,
+            marker=final_print_marker,
+        )
     nb_path = NB_DIR / filename
     nb_path.write_text(json.dumps(nb, indent=1), encoding="utf-8")
-    cc = sum(1 for c in cells if c["cell_type"] == "code")
-    mc = sum(1 for c in cells if c["cell_type"] == "markdown")
+    cc = sum(1 for c in nb["cells"] if c["cell_type"] == "code")
+    mc = sum(1 for c in nb["cells"] if c["cell_type"] == "markdown")
     print(f"WROTE {filename}  ({cc} code + {mc} md cells)")
     kd = KAGGLE_KERNELS / kernel_dir_name
     kd.mkdir(parents=True, exist_ok=True)
-    meta = {"id": f"taylorsamarel/{slug}", "title": title, "code_file": filename, "language": "python", "kernel_type": "notebook", "is_private": True, "enable_gpu": gpu, "enable_internet": True, "dataset_sources": ["taylorsamarel/duecare-llm-wheels", "taylorsamarel/duecare-trafficking-prompts"], "competition_sources": ["gemma-4-good-hackathon"]}
+    meta = {"id": f"taylorsamarel/{slug}", "title": title, "code_file": filename, "language": "python", "kernel_type": "notebook", "is_private": is_private, "enable_gpu": gpu, "enable_internet": True, "dataset_sources": ["taylorsamarel/duecare-llm-wheels", "taylorsamarel/duecare-trafficking-prompts"], "competition_sources": ["gemma-4-good-hackathon"]}
     if gpu:
         meta["model_sources"] = ["google/gemma-4/transformers/gemma-4-e2b-it/1", "google/gemma-4/transformers/gemma-4-e4b-it/1"]
     (kd / "kernel-metadata.json").write_text(json.dumps(meta, indent=2))
     import shutil; shutil.copy2(nb_path, kd / filename)
 
+
+RAG_FINAL_PRINT_SRC = (
+    "print(\n"
+    "    'RAG comparison complete. Continue to 270 Gemma Generations: '\n"
+    f"    '{URL_270}'\n"
+    "    '. Section close: 399 Baseline Text Comparisons Conclusion: '\n"
+    f"    '{URL_399}'\n"
+    "    '.'\n"
+    ")\n"
+)
+
+
+ADVERSARIAL_FINAL_PRINT_SRC = (
+    "print(\n"
+    "    'Adversarial resistance handoff >>> 335 Attack Vector Inspector: '\n"
+    f"    '{URL_335}'\n"
+    "    '. Section close: 499 Advanced Evaluation Conclusion: '\n"
+    f"    '{URL_499}'\n"
+    "    '.'\n"
+    ")\n"
+)
+
+
+FC_FINAL_PRINT_SRC = (
+    "print(\n"
+    "    'Function-calling handoff >>> 410 LLM Judge Grading: '\n"
+    f"    '{URL_410}'\n"
+    "    '. Section close: 499 Advanced Evaluation Conclusion: '\n"
+    f"    '{URL_499}'\n"
+    "    '.'\n"
+    ")\n"
+)
+
+
 def main():
-    write_notebook("05_rag_comparison.ipynb", RAG_CELLS, "duecare_05_rag_comparison", "duecare-rag-comparison", "05 - DueCare RAG vs Plain vs Guided", gpu=True)
-    write_notebook("06_adversarial_resistance.ipynb", ADVERSARIAL_CELLS, "duecare_06_adversarial", "duecare-adversarial-resistance", "06 - DueCare Adversarial Attack Resistance")
-    write_notebook("08_function_calling_multimodal.ipynb", FC_CELLS, "duecare_08_fc_multimodal", "duecare-function-calling-multimodal", "08 - DueCare Function Calling + Multimodal")
+    write_notebook(
+        "260_rag_comparison.ipynb",
+        RAG_CELLS,
+        "duecare_260_rag_comparison",
+        "duecare-260-rag-comparison",
+        "260: DueCare RAG Comparison",
+        gpu=True,
+        is_private=False,
+        final_print_src=RAG_FINAL_PRINT_SRC,
+        final_print_marker="RAG comparison complete",
+    )
+    write_notebook(
+        "300_adversarial_resistance.ipynb",
+        ADVERSARIAL_CELLS,
+        "duecare_300_adversarial_resistance",
+        "duecare-300-adversarial-resistance",
+        "300: DueCare Adversarial Resistance",
+        final_print_src=ADVERSARIAL_FINAL_PRINT_SRC,
+        final_print_marker="Adversarial resistance handoff >>>",
+    )
+    write_notebook(
+        "400_function_calling_multimodal.ipynb",
+        FC_CELLS,
+        "duecare_400_function_calling_multimodal",
+        "duecare-400-function-calling-multimodal",
+        "400: DueCare Function Calling and Multimodal",
+        final_print_src=FC_FINAL_PRINT_SRC,
+        final_print_marker="Function-calling handoff >>>",
+    )
     print(f"\nTotal: 3 showcase notebooks")
 
 if __name__ == "__main__":

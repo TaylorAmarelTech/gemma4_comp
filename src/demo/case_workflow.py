@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import re
+from collections import Counter
 from datetime import datetime, timezone
 
 from .function_calling import execute_tool
@@ -89,6 +90,30 @@ _INDICATOR_LABELS = {
     "worker_paid_placement_fee": "worker-paid recruitment fee",
 }
 
+_CASE_CATEGORY_ORDER = {
+    "employment_agency_misconduct": 0,
+    "worker_fee_overcharge": 1,
+    "medical_clinic_fee_abuse": 2,
+    "money_lender_debt_pressure": 3,
+    "document_retention": 4,
+    "contract_substitution": 5,
+}
+
+_CASE_CATEGORY_LABELS = {
+    "employment_agency_misconduct": "employment agency misconduct",
+    "worker_fee_overcharge": "worker fee overcharge",
+    "medical_clinic_fee_abuse": "medical clinic fee abuse",
+    "money_lender_debt_pressure": "money lender debt pressure",
+    "document_retention": "document retention",
+    "contract_substitution": "contract substitution",
+}
+
+_CATEGORY_NAME_KEYWORDS = {
+    "employment_agency_misconduct": ("agency", "recruitment", "manpower", "services"),
+    "medical_clinic_fee_abuse": ("clinic", "hospital", "laboratory", "medical"),
+    "money_lender_debt_pressure": ("lending", "loans", "finance", "credit", "collection"),
+}
+
 _FLAG_TO_SCENARIO = {
     "worker_paid_placement_fee": "recruitment_fee",
     "salary_deduction_scheme": "salary_deduction",
@@ -101,12 +126,18 @@ _FLAG_TO_SCENARIO = {
 
 _DOCUMENT_EVENT_LABELS = {
     "agency_certificate": "Agency credential reviewed",
+    "agency_record": "Agency paperwork reviewed",
     "chat_transcript": "Recruitment conversation captured",
     "employment_contract": "Contract terms recorded",
+    "government_letter": "Government or enforcement letter reviewed",
     "identity_document": "Identity document referenced",
     "job_posting": "Recruitment offer documented",
+    "legal_intake_form": "Legal intake questions reviewed",
+    "loan_agreement": "Loan or debt instrument reviewed",
+    "medical_record": "Medical fee document reviewed",
     "payment_receipt": "Payment demand recorded",
     "recruitment_document": "Recruitment paperwork reviewed",
+    "worker_statement": "Worker interview recorded",
 }
 
 _LEGAL_PATTERN = re.compile(
@@ -349,15 +380,33 @@ def _legal_refs_from_context(retrieved_context: str) -> list[str]:
     return _dedupe(_LEGAL_PATTERN.findall(retrieved_context))
 
 
+def _case_category_laws(corridor: str, case_categories: list[str]) -> list[str]:
+    laws: list[str] = []
+    normalized = _normalize_corridor(corridor)
+    corridor_codes = normalized.split("_") if normalized else []
+
+    if "employment_agency_misconduct" in case_categories:
+        laws.append("POEA Rules and Regulations on Recruitment")
+    if "medical_clinic_fee_abuse" in case_categories:
+        laws.append("ILO C181 Art. 7")
+    if "money_lender_debt_pressure" in case_categories and "HK" in corridor_codes:
+        laws.append("Money Lenders Ordinance (Cap. 163)")
+
+    return laws
+
+
 def _aggregate_legal_refs(
     document_analyses: list[CaseDocumentFinding],
     tool_results: list[dict[str, object]],
     retrieved_context: str,
+    corridor: str,
+    case_categories: list[str],
 ) -> list[str]:
     refs: list[str] = []
     for document in document_analyses:
         refs.extend(document.legal_refs)
     refs.extend(_legal_refs_from_context(retrieved_context))
+    refs.extend(_case_category_laws(corridor, case_categories))
 
     for tool_call in tool_results:
         result = tool_call.get("result", {})
@@ -432,6 +481,7 @@ def _executive_summary(
     *,
     corridor: str,
     risk_level: str,
+    case_categories: list[str],
     document_analyses: list[CaseDocumentFinding],
     indicators: list[str],
     legal_refs: list[str],
@@ -443,6 +493,9 @@ def _executive_summary(
     parts = [
         f"DueCare reviewed {len(document_analyses)} documents for {corridor_text} and rated the bundle {risk_level.lower()} risk.",
     ]
+    if case_categories:
+        category_labels = [_CASE_CATEGORY_LABELS.get(category, category.replace("_", " ")) for category in case_categories[:4]]
+        parts.append(f"Case themes include {', '.join(category_labels)}.")
     if indicator_labels:
         parts.append(f"The strongest signals were {', '.join(indicator_labels)}.")
     if highest_risk_titles:
@@ -476,6 +529,7 @@ def _case_narrative(
 
 def _recommended_actions(
     *,
+    case_categories: list[str],
     indicators: list[str],
     risk_level: str,
     hotlines: list[Resource],
@@ -487,6 +541,12 @@ def _recommended_actions(
 
     if any(flag in indicators for flag in {"worker_paid_placement_fee", "salary_deduction_scheme", "debt_bondage_risk"}):
         actions.append("Freeze further worker-paid fees or deductions until a labor-law review confirms they are lawful.")
+    if "employment_agency_misconduct" in case_categories:
+        actions.append("Verify the recruitment agency license and preserve all receipts, chat messages, and deduction schedules tied to deployment.")
+    if "medical_clinic_fee_abuse" in case_categories:
+        actions.append("Request an itemized clinic invoice and determine whether medical screening costs should have been paid by the employer or recruiter.")
+    if "money_lender_debt_pressure" in case_categories:
+        actions.append("Preserve the loan note and collection messages, and review whether the interest, deductions, or collection method breaches lending or anti-trafficking rules.")
     if "passport_retention" in indicators:
         actions.append("Escalate any passport or identity-document retention language immediately; do not surrender original documents without legal review.")
     if risk_level == "HIGH":
@@ -496,10 +556,182 @@ def _recommended_actions(
     return _dedupe(actions)
 
 
+def _risk_reasons(
+    *,
+    case_categories: list[str],
+    document_analyses: list[CaseDocumentFinding],
+    indicators: list[str],
+    tool_results: list[dict[str, object]],
+) -> list[str]:
+    reasons: list[str] = []
+    high_risk_count = sum(1 for document in document_analyses if document.risk_level == "HIGH")
+    if high_risk_count:
+        reasons.append(f"{high_risk_count} uploaded document(s) were individually classified high risk.")
+
+    indicator_reason_map = {
+        "worker_paid_placement_fee": "The bundle contains worker-paid recruitment or placement fees.",
+        "salary_deduction_scheme": "The bundle shows salary deductions tied to recruitment or debt repayment.",
+        "passport_retention": "The bundle includes passport or identity-document retention language.",
+        "debt_bondage_risk": "The bundle reflects debt or advance structures that could trap the worker.",
+        "contract_substitution": "The bundle suggests the final contract differs from the original promise.",
+        "wage_withholding": "The bundle references withheld or delayed wages.",
+        "coercion_or_penalty": "The bundle contains coercive or penalty language that restricts worker choice.",
+    }
+    category_reason_map = {
+        "employment_agency_misconduct": "The bundle points to agency-side misconduct or broker involvement in the recruitment flow.",
+        "medical_clinic_fee_abuse": "The bundle routes migration-related costs through a clinic or medical provider.",
+        "money_lender_debt_pressure": "The bundle ties migration or deployment to a loan, lender, or collection pressure.",
+    }
+    for category in case_categories:
+        reason = category_reason_map.get(category)
+        if reason:
+            reasons.append(reason)
+    for indicator in indicators:
+        reason = indicator_reason_map.get(indicator)
+        if reason:
+            reasons.append(reason)
+
+    for tool_call in tool_results:
+        if tool_call.get("tool") != "score_exploitation_risk":
+            continue
+        result = tool_call.get("result", {})
+        if not isinstance(result, dict):
+            continue
+        matched_keywords = result.get("matched_keywords")
+        if isinstance(matched_keywords, list) and matched_keywords:
+            reasons.append(
+                "Risk scoring matched exploitation keywords such as "
+                + ", ".join(str(item) for item in matched_keywords[:4])
+                + "."
+            )
+        break
+
+    return _dedupe(reasons)
+
+
+def _indicator_counts(document_analyses: list[CaseDocumentFinding]) -> dict[str, int]:
+    counter = Counter()
+    for document in document_analyses:
+        counter.update(document.indicator_flags)
+    return dict(counter.most_common())
+
+
+def _document_type_counts(document_analyses: list[CaseDocumentFinding]) -> dict[str, int]:
+    counter = Counter(document.document_type for document in document_analyses)
+    return dict(counter.most_common())
+
+
+def _risk_distribution(document_analyses: list[CaseDocumentFinding]) -> dict[str, int]:
+    counter = Counter(document.risk_level for document in document_analyses)
+    ordered_levels = ("HIGH", "MEDIUM", "LOW")
+    return {level: counter[level] for level in ordered_levels if counter[level]}
+
+
+def _aggregate_extracted_entities(document_analyses: list[CaseDocumentFinding]) -> dict[str, list[str]]:
+    fields = {
+        "amounts": [],
+        "business_entities": [],
+        "countries": [],
+        "dates": [],
+        "organisations": [],
+        "corridor_candidates": [],
+    }
+    for document in document_analyses:
+        for field_name in fields:
+            raw_values = document.extracted_fields.get(field_name, [])
+            if isinstance(raw_values, list):
+                fields[field_name].extend(str(value) for value in raw_values)
+    return {name: _dedupe(values)[:25] for name, values in fields.items() if values}
+
+
+def _case_categories(
+    document_analyses: list[CaseDocumentFinding],
+    indicators: list[str],
+) -> list[str]:
+    categories: list[str] = []
+    for document in document_analyses:
+        raw_hints = document.extracted_fields.get("scenario_hints", [])
+        if isinstance(raw_hints, list):
+            categories.extend(str(value) for value in raw_hints)
+
+    if any(flag in indicators for flag in {"worker_paid_placement_fee", "salary_deduction_scheme"}):
+        categories.append("worker_fee_overcharge")
+    if "passport_retention" in indicators:
+        categories.append("document_retention")
+    if "contract_substitution" in indicators:
+        categories.append("contract_substitution")
+
+    deduped = _dedupe(categories)
+    return sorted(deduped, key=lambda category: (_CASE_CATEGORY_ORDER.get(category, 99), category))
+
+
+def _category_target_names(
+    document_analyses: list[CaseDocumentFinding],
+    category: str,
+) -> list[str]:
+    keywords = _CATEGORY_NAME_KEYWORDS.get(category, ())
+    if not keywords:
+        return []
+
+    names: list[str] = []
+    for document in document_analyses:
+        raw_values = document.extracted_fields.get("business_entities", [])
+        if not isinstance(raw_values, list):
+            continue
+        for value in raw_values:
+            text = str(value).strip()
+            lowered = text.lower()
+            if text and any(keyword in lowered for keyword in keywords):
+                names.append(text)
+    return _dedupe(names)
+
+
+def _target_label(names: list[str], fallback: str) -> str:
+    if not names:
+        return fallback
+    if len(names) == 1:
+        return names[0]
+    return f"{names[0]} and {names[1]}"
+
+
+def _follow_up_items(
+    *,
+    case_categories: list[str],
+    document_analyses: list[CaseDocumentFinding],
+    indicators: list[str],
+    extracted_entities: dict[str, list[str]],
+) -> list[str]:
+    document_types = {document.document_type for document in document_analyses}
+    items: list[str] = []
+
+    if "worker_statement" not in document_types:
+        items.append("Collect or transcribe a worker interview narrative that states who recruited the worker, what was promised, and what happened after travel or attempted deployment.")
+    if "employment_agency_misconduct" in case_categories and not document_types.intersection({"agency_record", "agency_certificate"}):
+        items.append("Capture the recruiter or agency identity, license number, and any official letterhead or registration records tied to the case.")
+    if "worker_fee_overcharge" in case_categories and "payment_receipt" not in document_types:
+        items.append("Obtain receipts, ledgers, bank transfers, or payroll slips that show every worker-paid fee or salary deduction.")
+    if "medical_clinic_fee_abuse" in case_categories and "medical_record" not in document_types:
+        items.append("Attach the clinic invoice, referral note, or repeat-test paperwork so the medical-fee chain is documented.")
+    if "money_lender_debt_pressure" in case_categories and "loan_agreement" not in document_types:
+        items.append("Preserve the promissory note, collection messages, and any payroll-deduction records tied to the lender.")
+    if "passport_retention" in indicators and "identity_document" not in document_types:
+        items.append("Record where the passport or ID is currently held and attach a copy or image of the document if it is safe to do so.")
+    if not extracted_entities.get("dates"):
+        items.append("Pin down the key dates: first recruiter contact, payment, contract signing, travel, and any police or regulator filing.")
+    if not extracted_entities.get("business_entities"):
+        items.append("Confirm the names of the agency, employer, clinic, lender, or other business actors appearing in the file.")
+    if "government_letter" not in document_types:
+        items.append("If the case has already reached police, embassy, or labor-office review, attach that correspondence so deadlines and requested evidence are preserved.")
+
+    return _dedupe(items)
+
+
 def _complaint_templates(
     *,
     case_id: str,
+    case_categories: list[str],
     corridor: str,
+    document_analyses: list[CaseDocumentFinding],
     executive_summary: str,
     narrative: str,
     timeline: list[TimelineEvent],
@@ -512,8 +744,34 @@ def _complaint_templates(
     law_lines = "\n".join(f"- {law}" for law in legal_refs[:6])
     action_lines = "\n".join(f"- {action}" for action in actions)
     corridor_label = _corridor_display(corridor) or corridor or "unspecified corridor"
+    category_lines = "\n".join(
+        f"- {_CASE_CATEGORY_LABELS.get(category, category.replace('_', ' '))}"
+        for category in case_categories
+    )
+    extracted_entities = _aggregate_extracted_entities(document_analyses)
+    follow_up_items = _follow_up_items(
+        case_categories=case_categories,
+        document_analyses=document_analyses,
+        indicators=[
+            flag
+            for document in document_analyses
+            for flag in document.indicator_flags
+        ],
+        extracted_entities=extracted_entities,
+    )
+    actor_values = extracted_entities.get("business_entities") or extracted_entities.get("organisations") or []
+    amount_values = extracted_entities.get("amounts", [])
+    date_values = extracted_entities.get("dates", [])
+    exhibit_lines = "\n".join(
+        f"- {document.title or document.document_id} ({document.document_type}; risk {document.risk_level.lower()})"
+        for document in document_analyses
+    )
+    actor_line = ", ".join(actor_values[:4]) if actor_values else "Need confirmation from the file or interviewer"
+    amount_line = ", ".join(amount_values[:6]) if amount_values else "Amounts still need confirmation from receipts, ledgers, or payroll records"
+    date_line = ", ".join(date_values[:6]) if date_values else "Dates still need confirmation from the documents or interviewer"
+    follow_up_lines = "\n".join(f"- {item}" for item in follow_up_items)
 
-    return [
+    drafts = [
         ComplaintDraft(
             name="ngo_intake_summary",
             audience="NGO case worker",
@@ -521,7 +779,8 @@ def _complaint_templates(
                 f"Case ID: {case_id}\n"
                 f"Corridor: {corridor_label}\n\n"
                 f"Executive summary:\n{executive_summary}\n\n"
-                f"Narrative:\n{narrative}\n\n"
+                + (f"Case categories:\n{category_lines}\n\n" if category_lines else "")
+                + f"Narrative:\n{narrative}\n\n"
                 f"Timeline:\n{timeline_lines}\n\n"
                 f"Immediate actions:\n{action_lines}"
             ),
@@ -533,10 +792,11 @@ def _complaint_templates(
                 f"Subject: Request for review of possible migrant worker exploitation in {corridor_label}\n\n"
                 f"Summary:\n{executive_summary}\n\n"
                 f"Key legal references:\n{law_lines}\n\n"
-                f"Documented timeline:\n{timeline_lines}\n\n"
+                + (f"Case categories:\n{category_lines}\n\n" if category_lines else "")
+                + f"Documented timeline:\n{timeline_lines}\n\n"
                 "Requested next step:\n"
                 "- Review the recruitment fee, salary deduction, and document-control evidence attached to this complaint.\n"
-                "- Confirm whether the agency or employer is compliant with the listed laws and conventions."
+                "- Confirm whether the agency, clinic, lender, or employer named in the records is compliant with the listed laws and conventions."
             ),
         ),
         ComplaintDraft(
@@ -554,7 +814,120 @@ def _complaint_templates(
                 f"Timeline cues:\n{timeline_lines}"
             ),
         ),
+        ComplaintDraft(
+            name="written_interrogatory_prep",
+            audience="NGO legal intake or written interrogatory drafter",
+            text=(
+                f"Case reference: {case_id}\n"
+                f"Corridor: {corridor_label}\n\n"
+                "Use this packet to answer written interrogatories, intake questionnaires, or affidavit-prep templates without re-reading the full bundle.\n\n"
+                "Answer-ready facts:\n"
+                + (f"Case categories:\n{category_lines}\n" if category_lines else "")
+                + f"- Known actors: {actor_line}\n"
+                f"- Known amounts: {amount_line}\n"
+                f"- Known dates: {date_line}\n"
+                "\n"
+                "Suggested answer blocks:\n"
+                "1. Recruitment pathway and who was involved\n"
+                f"{narrative}\n\n"
+                "2. Payments, deductions, and debt\n"
+                f"Amounts documented in the file: {amount_line}.\n\n"
+                "3. Document control, threats, or movement restrictions\n"
+                f"Risk indicators reflected in the timeline:\n{timeline_lines}\n\n"
+                "4. Laws and legal grounding to cite\n"
+                f"{law_lines}\n\n"
+                "5. Exhibits to cite when answering\n"
+                f"{exhibit_lines}\n\n"
+                "6. Follow-up questions or missing evidence\n"
+                f"{follow_up_lines}"
+            ),
+        ),
     ]
+
+    if "employment_agency_misconduct" in case_categories:
+        target = _target_label(
+            _category_target_names(document_analyses, "employment_agency_misconduct"),
+            "the recruitment agency",
+        )
+        drafts.append(
+            ComplaintDraft(
+                name="employment_agency_complaint",
+                audience="Recruitment regulator or labor ministry",
+                text=(
+                    f"Subject: Complaint regarding {target} and migration-related recruitment misconduct\n\n"
+                    f"Case reference: {case_id}\n"
+                    f"Corridor: {corridor_label}\n\n"
+                    "Requested review:\n"
+                    f"- Assess whether {target} collected or arranged unlawful fees from the worker.\n"
+                    f"- Review any passport handling, deduction schedules, or coercive deployment messages linked to {target}.\n"
+                    "- Confirm license or registration status and preserve the attached evidence.\n\n"
+                    f"Supporting timeline:\n{timeline_lines}"
+                ),
+            )
+        )
+
+    if "worker_fee_overcharge" in case_categories:
+        drafts.append(
+            ComplaintDraft(
+                name="fee_overcharge_recovery_request",
+                audience="Agency, employer, or compliance officer",
+                text=(
+                    f"Case reference: {case_id}\n"
+                    f"Corridor: {corridor_label}\n\n"
+                    "Request:\n"
+                    "- Provide a full accounting of every worker-paid fee, deduction, and service charge in this file.\n"
+                    "- Identify which charges were authorized by law and which party should legally bear them.\n"
+                    "- Suspend any further deductions or collections until the review is complete.\n\n"
+                    f"Supporting evidence:\n{timeline_lines}"
+                ),
+            )
+        )
+
+    if "medical_clinic_fee_abuse" in case_categories:
+        target = _target_label(
+            _category_target_names(document_analyses, "medical_clinic_fee_abuse"),
+            "the clinic or medical provider",
+        )
+        drafts.append(
+            ComplaintDraft(
+                name="medical_clinic_fee_complaint",
+                audience="Clinic management or health regulator",
+                text=(
+                    f"Subject: Request for review of migration-related charges imposed by {target}\n\n"
+                    f"Case reference: {case_id}\n"
+                    f"Corridor: {corridor_label}\n\n"
+                    "Requested review:\n"
+                    f"- Provide an itemized explanation for every exam, repeat test, and certificate fee charged by {target}.\n"
+                    "- Explain whether the clinic coordinated with an agency or recruiter to condition deployment on payment.\n"
+                    "- Preserve billing, referral, and release records tied to the attached case bundle.\n\n"
+                    f"Supporting timeline:\n{timeline_lines}"
+                ),
+            )
+        )
+
+    if "money_lender_debt_pressure" in case_categories:
+        target = _target_label(
+            _category_target_names(document_analyses, "money_lender_debt_pressure"),
+            "the lender or debt collector",
+        )
+        drafts.append(
+            ComplaintDraft(
+                name="money_lender_debt_complaint",
+                audience="Financial regulator or consumer protection office",
+                text=(
+                    f"Subject: Complaint regarding migration-linked debt collection by {target}\n\n"
+                    f"Case reference: {case_id}\n"
+                    f"Corridor: {corridor_label}\n\n"
+                    "Requested review:\n"
+                    f"- Review the interest, repayment structure, and payroll-linked collection activity associated with {target}.\n"
+                    "- Determine whether the debt arrangement contributes to debt bondage, unlawful deductions, or coercive control over the worker.\n"
+                    "- Preserve the promissory note, deduction schedule, and collection messages included with this complaint.\n\n"
+                    f"Supporting timeline:\n{timeline_lines}"
+                ),
+            )
+        )
+
+    return drafts
 
 
 class MigrationCaseOrchestrator:
@@ -598,6 +971,7 @@ class MigrationCaseOrchestrator:
 
         detected_indicators = _dedupe(detected_indicators)
         resolved_corridor = _resolve_corridor(request.corridor, document_analyses)
+        case_categories = _case_categories(document_analyses, detected_indicators)
         combined_text = "\n\n".join(combined_text_parts)
         tool_results = _tool_results(
             combined_text=combined_text,
@@ -613,11 +987,28 @@ class MigrationCaseOrchestrator:
         retrieved_context = rag_store.retrieve(query, top_k=request.top_k_context)
 
         hotlines = _resources_from_documents(document_analyses, tool_results)
-        applicable_laws = _aggregate_legal_refs(document_analyses, tool_results, retrieved_context)
+        applicable_laws = _aggregate_legal_refs(
+            document_analyses,
+            tool_results,
+            retrieved_context,
+            resolved_corridor,
+            case_categories,
+        )
         risk_level = _overall_risk_level(document_analyses, tool_results, detected_indicators)
+        risk_reasons = _risk_reasons(
+            case_categories=case_categories,
+            document_analyses=document_analyses,
+            indicators=detected_indicators,
+            tool_results=tool_results,
+        )
+        indicator_counts = _indicator_counts(document_analyses)
+        document_type_counts = _document_type_counts(document_analyses)
+        risk_distribution = _risk_distribution(document_analyses)
+        extracted_entities = _aggregate_extracted_entities(document_analyses)
         executive_summary = _executive_summary(
             corridor=resolved_corridor,
             risk_level=risk_level,
+            case_categories=case_categories,
             document_analyses=document_analyses,
             indicators=detected_indicators,
             legal_refs=applicable_laws,
@@ -629,6 +1020,7 @@ class MigrationCaseOrchestrator:
             legal_refs=applicable_laws,
         )
         recommended_actions = _recommended_actions(
+            case_categories=case_categories,
             indicators=detected_indicators,
             risk_level=risk_level,
             hotlines=hotlines,
@@ -637,7 +1029,9 @@ class MigrationCaseOrchestrator:
         if request.include_complaint_templates:
             complaint_templates = _complaint_templates(
                 case_id=request.case_id or "case-demo-001",
+                case_categories=case_categories,
                 corridor=resolved_corridor,
+                document_analyses=document_analyses,
                 executive_summary=executive_summary,
                 narrative=narrative,
                 timeline=timeline,
@@ -650,7 +1044,13 @@ class MigrationCaseOrchestrator:
             corridor=resolved_corridor,
             document_count=len(document_analyses),
             risk_level=risk_level,
+            case_categories=case_categories,
+            risk_reasons=risk_reasons,
             detected_indicators=detected_indicators,
+            indicator_counts=indicator_counts,
+            document_type_counts=document_type_counts,
+            risk_distribution=risk_distribution,
+            extracted_entities=extracted_entities,
             applicable_laws=applicable_laws,
             retrieved_context=retrieved_context,
             executive_summary=executive_summary,

@@ -668,7 +668,7 @@ SUBMISSION_CELLS = [
     md(
         "# 610: DueCare Submission Walkthrough\n"
         "\n"
-        "**This is the judge-facing capstone notebook.** [600 Results Dashboard](https://www.kaggle.com/code/taylorsamarel/600-duecare-results-dashboard) carries the measured charts. [620 Demo API Endpoint Tour](https://www.kaggle.com/code/taylorsamarel/duecare-620-demo-api-endpoint-tour) shows the deployed surface, including the NGO migration-case workflow. [650 Custom Domain Walkthrough](https://www.kaggle.com/code/taylorsamarel/duecare-650-custom-domain-walkthrough) shows how a partner adopts the same system in a new domain. 610 stitches those proof surfaces into one submission story a reviewer can verify in minutes.\n"
+        "**This is the judge-facing capstone notebook.** [600 Results Dashboard](https://www.kaggle.com/code/taylorsamarel/600-duecare-results-dashboard) carries the measured charts. [620 Demo API Endpoint Tour](https://www.kaggle.com/code/taylorsamarel/620-duecare-demo-api-endpoint-tour) shows the deployed surface, including the NGO migration-case workflow. [650 Custom Domain Walkthrough](https://www.kaggle.com/code/taylorsamarel/650-duecare-custom-domain-walkthrough) shows how a partner adopts the same system in a new domain. 610 stitches those proof surfaces into one submission story a reviewer can verify in minutes.\n"
         "\n"
         "DueCare is an on-device LLM safety system built on Gemma 4 and named for the common-law duty of care codified in California Civil Code section 1714(a). Gemma 4's native function calling is load-bearing in the agent swarm. Gemma 4's multimodal understanding is load-bearing in the document-analysis and case-file path. This notebook stays CPU-only by verifying the installed package, real registries, and a scripted cross-domain run rather than trying to replay GPU-heavy notebooks inline.\n"
         "\n"
@@ -680,30 +680,30 @@ SUBMISSION_CELLS = [
         "    </tr>\n"
         "  </thead>\n"
         "  <tbody>\n"
-        "    <tr><td style=\"padding: 6px 10px;\"><b>Inputs</b></td><td style=\"padding: 6px 10px;\">The installed <code>duecare-llm</code> meta package, live registry counts, and proof surfaces already established elsewhere in the suite: <a href='https://www.kaggle.com/code/taylorsamarel/600-duecare-results-dashboard'>600 Results Dashboard</a>, <a href='https://www.kaggle.com/code/taylorsamarel/duecare-620-demo-api-endpoint-tour'>620 Demo API Endpoint Tour</a>, and <a href='https://www.kaggle.com/code/taylorsamarel/duecare-650-custom-domain-walkthrough'>650 Custom Domain Walkthrough</a>.</td></tr>\n"
+        "    <tr><td style=\"padding: 6px 10px;\"><b>Inputs</b></td><td style=\"padding: 6px 10px;\">The installed <code>duecare-llm</code> meta package, live registry counts, and proof surfaces already established elsewhere in the suite: <a href='https://www.kaggle.com/code/taylorsamarel/600-duecare-results-dashboard'>600 Results Dashboard</a>, <a href='https://www.kaggle.com/code/taylorsamarel/620-duecare-demo-api-endpoint-tour'>620 Demo API Endpoint Tour</a>, and <a href='https://www.kaggle.com/code/taylorsamarel/650-duecare-custom-domain-walkthrough'>650 Custom Domain Walkthrough</a>.</td></tr>\n"
         "    <tr><td style=\"padding: 6px 10px;\"><b>Outputs</b></td><td style=\"padding: 6px 10px;\">One capstone claim cell, a reader-facing surface map, registry counts, and a scripted guardrails run across the shipped <code>trafficking</code>, <code>tax_evasion</code>, and <code>financial_crime</code> packs. The operator story now explicitly includes the NGO migration-case workflow before the final handoff to 620, 650, and 899.</td></tr>\n"
         "    <tr><td style=\"padding: 6px 10px;\"><b>Prerequisites</b></td><td style=\"padding: 6px 10px;\">Kaggle CPU kernel with internet enabled and the <code>taylorsamarel/duecare-llm-wheels</code> wheel dataset attached. No GPU or API keys. Reading <a href='https://www.kaggle.com/code/taylorsamarel/600-duecare-results-dashboard'>600 Results Dashboard</a> first is recommended because 610 is the narrative capstone that picks up after the measured proof.</td></tr>\n"
         "    <tr><td style=\"padding: 6px 10px;\"><b>Runtime</b></td><td style=\"padding: 6px 10px;\">Under 90 seconds end to end. This notebook only installs the pinned package, inspects registries, and runs a scripted cross-domain proof.</td></tr>\n"
-        "    <tr><td style=\"padding: 6px 10px;\"><b>Pipeline position</b></td><td style=\"padding: 6px 10px;\">Solution Surfaces capstone. Previous: <a href='https://www.kaggle.com/code/taylorsamarel/600-duecare-results-dashboard'>600 Results Dashboard</a>. Next: <a href='https://www.kaggle.com/code/taylorsamarel/duecare-620-demo-api-endpoint-tour'>620 Demo API Endpoint Tour</a>. Adoption path: <a href='https://www.kaggle.com/code/taylorsamarel/duecare-650-custom-domain-walkthrough'>650 Custom Domain Walkthrough</a>. Section close: <a href='https://www.kaggle.com/code/taylorsamarel/899-duecare-solution-surfaces-conclusion'>899 Solution Surfaces Conclusion</a>.</td></tr>\n"
+        "    <tr><td style=\"padding: 6px 10px;\"><b>Pipeline position</b></td><td style=\"padding: 6px 10px;\">Solution Surfaces capstone. Previous: <a href='https://www.kaggle.com/code/taylorsamarel/600-duecare-results-dashboard'>600 Results Dashboard</a>. Next: <a href='https://www.kaggle.com/code/taylorsamarel/620-duecare-demo-api-endpoint-tour'>620 Demo API Endpoint Tour</a>. Adoption path: <a href='https://www.kaggle.com/code/taylorsamarel/650-duecare-custom-domain-walkthrough'>650 Custom Domain Walkthrough</a>. Section close: <a href='https://www.kaggle.com/code/taylorsamarel/duecare-solution-surfaces-conclusion'>899 Solution Surfaces Conclusion</a>.</td></tr>\n"
         "  </tbody>\n"
         "</table>\n"
         "\n"
         "### Why this notebook exists\n"
         "\n"
-        "A judge should not have to reverse-engineer the repo. 610 is the short answer to three questions: what ships, who uses it, and why the claim is credible.\n"
+        "A judge should not have to reverse-engineer the repo. 610 is the short answer to three questions: what ships, who uses it, and why the claim is credible. The suite exposes four public notebook surfaces, but five deployment shapes, because the 620 API notebook carries both the generalized NGO API and the migration-case workflow.\n"
         "\n"
         "### Reading order\n"
         "\n"
         "- **Previous proof surface:** [600 Results Dashboard](https://www.kaggle.com/code/taylorsamarel/600-duecare-results-dashboard) contains the measured charts used in the video and writeup.\n"
         "- **Earlier evidence:** [010 Quickstart](https://www.kaggle.com/code/taylorsamarel/010-duecare-quickstart-in-5-minutes) proves the local install path, [200 Cross-Domain Proof](https://www.kaggle.com/code/taylorsamarel/duecare-200-cross-domain-proof) proves the harness generalizes, [500 Agent Swarm Deep Dive](https://www.kaggle.com/code/taylorsamarel/duecare-500-agent-swarm-deep-dive) proves the coordinator and agents are real, and [530 Phase 3 Unsloth Fine-tune](https://www.kaggle.com/code/taylorsamarel/duecare-530-phase3-unsloth-finetune) is the improvement path that eventually feeds 600.\n"
-        "- **Next surfaces:** [620 Demo API Endpoint Tour](https://www.kaggle.com/code/taylorsamarel/duecare-620-demo-api-endpoint-tour) for the deployed API story and NGO case-bundle workflow, [650 Custom Domain Walkthrough](https://www.kaggle.com/code/taylorsamarel/duecare-650-custom-domain-walkthrough) for partner adoption, and [899 Solution Surfaces Conclusion](https://www.kaggle.com/code/taylorsamarel/899-duecare-solution-surfaces-conclusion) for the section close.\n"
+        "- **Next surfaces:** [620 Demo API Endpoint Tour](https://www.kaggle.com/code/taylorsamarel/620-duecare-demo-api-endpoint-tour) for the deployed API story and NGO case-bundle workflow, [650 Custom Domain Walkthrough](https://www.kaggle.com/code/taylorsamarel/650-duecare-custom-domain-walkthrough) for partner adoption, and [899 Solution Surfaces Conclusion](https://www.kaggle.com/code/taylorsamarel/duecare-solution-surfaces-conclusion) for the section close.\n"
         "- **Back to navigation:** [000 Index](https://www.kaggle.com/code/taylorsamarel/duecare-000-index).\n"
         "\n"
         "### What this notebook does\n"
         "\n"
         "1. Install the meta package and verify the <code>duecare</code> namespace is intact.\n"
         "2. Print the submission claim in one cell.\n"
-        "3. Map the four user-facing surfaces the submission actually ships.\n"
+        "3. Map the four public notebook surfaces the submission actually ships.\n"
         "4. Count the registries so the package shape is visible.\n"
         "5. Run one scripted cross-domain proof across trafficking, tax evasion, and financial crime.\n"
         "6. Close with the deployer story, named partners, and a strong handoff.\n"
@@ -752,12 +752,12 @@ SUBMISSION_CELLS = [
         "  <tbody>\n"
         "    <tr><td style=\"padding: 6px 10px;\"><b>Private local install</b></td><td style=\"padding: 6px 10px;\">NGO staff, judges, regulators</td><td style=\"padding: 6px 10px;\"><a href='https://www.kaggle.com/code/taylorsamarel/010-duecare-quickstart-in-5-minutes'>010 Quickstart</a></td><td style=\"padding: 6px 10px;\"><code>pip install duecare-llm</code> works on a laptop and the namespace resolves cleanly.</td></tr>\n"
         "    <tr><td style=\"padding: 6px 10px;\"><b>Measured proof surface</b></td><td style=\"padding: 6px 10px;\">Judges, writeup, video viewers</td><td style=\"padding: 6px 10px;\"><a href='https://www.kaggle.com/code/taylorsamarel/600-duecare-results-dashboard'>600 Results Dashboard</a></td><td style=\"padding: 6px 10px;\">The baseline and improvement story is visible in charts instead of prose.</td></tr>\n"
-        "    <tr><td style=\"padding: 6px 10px;\"><b>Deployment API</b></td><td style=\"padding: 6px 10px;\">NGO engineers, product teams</td><td style=\"padding: 6px 10px;\"><a href='https://www.kaggle.com/code/taylorsamarel/duecare-620-demo-api-endpoint-tour'>620 Demo API Endpoint Tour</a></td><td style=\"padding: 6px 10px;\">The web app and REST contract are concrete, inspectable, and now include a multi-document migration-case workflow with timelines, grounding, and complaint drafts.</td></tr>\n"
-        "    <tr><td style=\"padding: 6px 10px;\"><b>Custom domain adoption</b></td><td style=\"padding: 6px 10px;\">Partner researchers and NGOs</td><td style=\"padding: 6px 10px;\"><a href='https://www.kaggle.com/code/taylorsamarel/duecare-650-custom-domain-walkthrough'>650 Custom Domain Walkthrough</a></td><td style=\"padding: 6px 10px;\">A new domain pack can be added without Python changes, which is the reusability story judges will test.</td></tr>\n"
+        "    <tr><td style=\"padding: 6px 10px;\"><b>Deployment API</b></td><td style=\"padding: 6px 10px;\">NGO engineers, product teams</td><td style=\"padding: 6px 10px;\"><a href='https://www.kaggle.com/code/taylorsamarel/620-duecare-demo-api-endpoint-tour'>620 Demo API Endpoint Tour</a></td><td style=\"padding: 6px 10px;\">The web app and REST contract are concrete, inspectable, and now include a multi-document migration-case workflow with timelines, grounding, and complaint drafts.</td></tr>\n"
+        "    <tr><td style=\"padding: 6px 10px;\"><b>Custom domain adoption</b></td><td style=\"padding: 6px 10px;\">Partner researchers and NGOs</td><td style=\"padding: 6px 10px;\"><a href='https://www.kaggle.com/code/taylorsamarel/650-duecare-custom-domain-walkthrough'>650 Custom Domain Walkthrough</a></td><td style=\"padding: 6px 10px;\">A new domain pack can be added without Python changes, which is the reusability story judges will test.</td></tr>\n"
         "  </tbody>\n"
         "</table>\n"
         "\n"
-        "The technical depth behind these surfaces lives in [500 Agent Swarm Deep Dive](https://www.kaggle.com/code/taylorsamarel/duecare-500-agent-swarm-deep-dive) and [530 Phase 3 Unsloth Fine-tune](https://www.kaggle.com/code/taylorsamarel/duecare-530-phase3-unsloth-finetune). 610 is the product-facing stitch, not a substitute for those deeper proofs.\n"
+        "The technical depth behind these surfaces lives in [500 Agent Swarm Deep Dive](https://www.kaggle.com/code/taylorsamarel/duecare-500-agent-swarm-deep-dive) and [530 Phase 3 Unsloth Fine-tune](https://www.kaggle.com/code/taylorsamarel/duecare-530-phase3-unsloth-finetune). 610 is the product-facing stitch, not a substitute for those deeper proofs. Read the surface count as four public notebooks and five deployment shapes: 620 covers both the generalized operator API and the multi-document migration-case path.\n"
     ),
 
     md("## Verify all 8 sub-packages imported via the `duecare` namespace"),
@@ -851,8 +851,8 @@ SUBMISSION_CELLS = [
         "\n"
         "- [600 Results Dashboard](https://www.kaggle.com/code/taylorsamarel/600-duecare-results-dashboard) is the measured proof surface.\n"
         "- [010 Quickstart](https://www.kaggle.com/code/taylorsamarel/010-duecare-quickstart-in-5-minutes) is the local reproducibility surface.\n"
-        "- [620 Demo API Endpoint Tour](https://www.kaggle.com/code/taylorsamarel/duecare-620-demo-api-endpoint-tour) is the operator surface, including the NGO migration-case intake.\n"
-        "- [650 Custom Domain Walkthrough](https://www.kaggle.com/code/taylorsamarel/duecare-650-custom-domain-walkthrough) is the adoption surface.\n"
+        "- [620 Demo API Endpoint Tour](https://www.kaggle.com/code/taylorsamarel/620-duecare-demo-api-endpoint-tour) is the operator surface, including the NGO migration-case intake.\n"
+        "- [650 Custom Domain Walkthrough](https://www.kaggle.com/code/taylorsamarel/650-duecare-custom-domain-walkthrough) is the adoption surface.\n"
         "- [530 Phase 3 Unsloth Fine-tune](https://www.kaggle.com/code/taylorsamarel/duecare-530-phase3-unsloth-finetune) is the improvement path that eventually feeds 600.\n"
         "\n"
         "Named deployers are not hypothetical: Polaris Project, IJM, ECPAT, POEA, BP2MI, and HRD Nepal are exactly the kind of organizations this package is built for.\n"
@@ -915,13 +915,9 @@ def kernel_metadata(
 
 
 NOTEBOOKS = [
-    {
-        "filename": "010_quickstart.ipynb",
-        "kernel_dir": "duecare_010_quickstart",
-        "slug": "duecare-010-quickstart",
-        "title": "DueCare 010 Quickstart",
-        "cells": QUICKSTART_CELLS,
-    },
+    # 010 Quickstart is owned by build_notebook_010_quickstart.py which has
+    # the Gemma 4 cascade + scripted smoke test. Do not let this builder
+    # overwrite that canonical version.
     {
         "filename": "200_cross_domain_proof.ipynb",
         "kernel_dir": "duecare_200_cross_domain_proof",
@@ -939,9 +935,9 @@ NOTEBOOKS = [
     {
         "filename": "610_submission_walkthrough.ipynb",
         "kernel_dir": "duecare_610_submission_walkthrough",
-        "slug": "duecare-610-submission-walkthrough",
+        "slug": "610-duecare-submission-walkthrough",
         "title": "610: DueCare Submission Walkthrough",
-        "keywords": ["gemma", "submission", "safety", "evaluation", "dashboard"],
+        "keywords": ["evaluation"],
         "cells": SUBMISSION_CELLS,
     },
 ]
@@ -983,10 +979,49 @@ def main(argv: list[str] | None = None) -> int:
         if not selected_notebooks:
             parser.error(f"No notebooks matched --only filters: {args.only}")
 
+    # Inject a generic at-a-glance hero row into every shared-builder notebook.
+    # Renders as a gradient header + 4 stat tiles so judges see visual identity
+    # before any code cell runs. Kaggle-viewer safe (no flex, inline styles).
+    _AAG_CODE = '''from IPython.display import HTML, display
+display(HTML(
+    \'\'\'<div style="background:linear-gradient(135deg,#1e3a8a 0%,#4c78a8 100%);color:white;padding:20px 24px;border-radius:8px;margin:8px 0;font-family:system-ui,-apple-system,sans-serif">\'\'\'
+    \'\'\'<div style="font-size:10px;font-weight:600;letter-spacing:0.14em;opacity:0.8;text-transform:uppercase">DueCare - Gemma 4 Good Hackathon</div>\'\'\'
+    f\'\'\'<div style="font-size:24px;font-weight:700;margin:4px 0 0 0">{NOTEBOOK_TITLE}</div>\'\'\'
+    \'\'\'<div style="font-size:13px;opacity:0.92;margin-top:4px">Fine-tuned Gemma 4 as an on-device safety judge. Privacy is non-negotiable.</div></div>\'\'\'
+))
+
+_P = {"primary":"#4c78a8","success":"#10b981","info":"#3b82f6","warning":"#f59e0b","muted":"#6b7280",
+      "bg_primary":"#eff6ff","bg_success":"#ecfdf5","bg_info":"#eff6ff","bg_warning":"#fffbeb"}
+def _card(v, l, s, k="primary"):
+    c = _P[k]; bg = _P.get(f"bg_{k}", _P["bg_info"])
+    return (f'<div style="display:inline-block;vertical-align:top;width:22%;margin:4px 1%;padding:14px 16px;'
+            f'background:{bg};border-left:5px solid {c};border-radius:4px;font-family:system-ui,-apple-system,sans-serif">'
+            f'<div style="font-size:11px;font-weight:600;color:{c};text-transform:uppercase;letter-spacing:0.04em">{l}</div>'
+            f'<div style="font-size:26px;font-weight:700;color:#1f2937;margin:4px 0 0 0">{v}</div>'
+            f'<div style="font-size:12px;color:{_P["muted"]};margin-top:2px">{s}</div></div>')
+
+cards = [
+    _card('on-device', 'runtime', 'privacy-preserving', 'success'),
+    _card('Gemma 4', 'model family', 'E2B / E4B / 31B', 'primary'),
+    _card('6-dim', 'rubric', 'consistent across suite', 'info'),
+    _card('open', 'license', 'CC-BY 4.0 per comp rules', 'warning'),
+]
+display(HTML('<div style="margin:6px 0">' + ''.join(cards) + '</div>'))
+'''
+
     for nb in selected_notebooks:
+        # Prepend a hero + stat-card cell to every notebook.
+        _hero_cell = {
+            "cell_type": "code",
+            "execution_count": None,
+            "metadata": {},
+            "outputs": [],
+            "source": (f"NOTEBOOK_TITLE = {nb.get('title', 'DueCare')!r}\n" + _AAG_CODE).splitlines(keepends=True),
+        }
+        cells_with_hero = [_hero_cell] + list(nb["cells"])
         # Write the notebook to notebooks/
         notebook = {
-            "cells": nb["cells"],
+            "cells": cells_with_hero,
             "metadata": NB_METADATA,
             "nbformat": 4,
             "nbformat_minor": 5,

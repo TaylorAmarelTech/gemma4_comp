@@ -22,7 +22,7 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Any, AsyncIterator
 
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, File, Form, HTTPException, Request, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
 
@@ -33,13 +33,15 @@ from .models import (
     BatchAnalyzeRequest,
     BatchAnalyzeResponse,
     BatchSummary,
+  CaseExampleSummary,
     DomainInfo,
     HealthResponse,
-  MigrationCaseRequest,
-  MigrationCaseResponse,
+    MigrationCaseDocument,
+    MigrationCaseRequest,
+    MigrationCaseResponse,
     RubricInfo,
     StatsResponse,
-  Grade,
+    Grade,
 )
 from .scorer import WeightedRubricScorer
 
@@ -136,6 +138,23 @@ def _case_stats_payload(risk_level: str) -> tuple[Grade, Action, float]:
   if risk_level == "MEDIUM":
     return Grade.NEUTRAL, Action.WARN, 0.55
   return Grade.GOOD, Action.PASS, 0.86
+
+
+def _record_case_analysis(state: _AppState, result: MigrationCaseResponse) -> None:
+    grade, action, score = _case_stats_payload(result.risk_level)
+    state.stats["total_analyses"] += 1
+    state.stats[f"grade_{grade.value}"] += 1
+    state.stats[f"action_{action.value}"] += 1
+    for indicator in result.detected_indicators:
+        state.stats[f"indicator_{indicator}"] += 1
+    state.analysis_log.append(
+        {
+            "score": score,
+            "grade": grade.value,
+            "action": action.value,
+            "n_indicators": len(result.detected_indicators),
+        }
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -269,6 +288,35 @@ async def list_rubrics(request: Request) -> list[RubricInfo]:
     """List all loaded evaluation rubrics with their criteria counts."""
     state = _get_state(request)
     return state.scorer.list_rubrics()
+
+
+@app.get(
+  "/api/v1/case-examples",
+  response_model=list[CaseExampleSummary],
+  summary="List built-in migration case bundle examples",
+  tags=["metadata"],
+)
+async def list_case_examples_route() -> list[CaseExampleSummary]:
+  """Return the bundled migration-case scenarios used in the demo."""
+  from src.demo.case_examples import list_case_examples
+
+  return list_case_examples()
+
+
+@app.get(
+  "/api/v1/case-examples/{example_id}",
+  response_model=MigrationCaseRequest,
+  summary="Get one built-in migration case bundle example",
+  tags=["metadata"],
+)
+async def get_case_example_route(example_id: str) -> MigrationCaseRequest:
+  """Return a single bundled migration-case request by ID."""
+  from src.demo.case_examples import get_case_example
+
+  try:
+    return get_case_example(example_id)
+  except KeyError as exc:
+    raise HTTPException(status_code=404, detail=f"Unknown case example: {example_id}") from exc
 
 
 @app.get(
@@ -433,20 +481,91 @@ async def analyze_migration_case(
     orchestrator = MigrationCaseOrchestrator()
     result = orchestrator.analyze_case(body)
 
-    grade, action, score = _case_stats_payload(result.risk_level)
-    state.stats["total_analyses"] += 1
-    state.stats[f"grade_{grade.value}"] += 1
-    state.stats[f"action_{action.value}"] += 1
-    for indicator in result.detected_indicators:
-      state.stats[f"indicator_{indicator}"] += 1
-    state.analysis_log.append(
-      {
-        "score": score,
-        "grade": grade.value,
-        "action": action.value,
-        "n_indicators": len(result.detected_indicators),
-      }
+    _record_case_analysis(state, result)
+
+    return result
+
+
+@app.post(
+    "/api/v1/migration-case-upload",
+    response_model=MigrationCaseResponse,
+    summary="Analyze an uploaded migration case bundle",
+    tags=["gemma4"],
+) 
+async def analyze_migration_case_upload(
+    request: Request,
+    files: list[UploadFile] = File(...),
+    case_id: str = Form(""),
+    corridor: str = Form(""),
+    case_notes: str = Form(""),
+    include_complaint_templates: bool = Form(True),
+    top_k_context: int = Form(5),
+    document_contexts_json: str = Form(""),
+    document_dates_json: str = Form(""),
+    document_notes_json: str = Form(""),
+) -> MigrationCaseResponse:
+    """Analyze a case bundle uploaded as common file formats.
+
+    Supports text, JSON chat exports, HTML, PDF, DOCX, and image files.
+    Image files can still be included without OCR, but operator notes make
+    the output far more useful in the local fallback path.
+    """
+    from src.demo.case_file_ingest import (
+      CaseBundleParseError,
+      UploadedCaseFile,
+      build_case_documents_from_uploads,
+      parse_mapping_json,
     )
+    from src.demo.case_workflow import MigrationCaseOrchestrator
+
+    try:
+      uploaded_files: list[UploadedCaseFile] = []
+      for file in files:
+        payload = await file.read()
+        uploaded_files.append(
+          UploadedCaseFile(
+            filename=file.filename or "uploaded-file",
+            content_type=file.content_type or "application/octet-stream",
+            payload=payload,
+          )
+        )
+
+      document_contexts = parse_mapping_json(document_contexts_json, "document_contexts_json")
+      document_dates = parse_mapping_json(document_dates_json, "document_dates_json")
+      document_notes = parse_mapping_json(document_notes_json, "document_notes_json")
+      documents, intake_warnings = build_case_documents_from_uploads(
+        uploaded_files,
+        document_contexts=document_contexts,
+        document_dates=document_dates,
+        document_notes=document_notes,
+      )
+    except CaseBundleParseError as exc:
+      raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+    if case_notes.strip():
+      documents.append(
+        MigrationCaseDocument(
+          document_id=f"upload-{len(documents) + 1:02d}",
+          title="Interview narrative",
+          text=case_notes.strip()[:100_000],
+          context="narrative",
+        )
+      )
+
+    body = MigrationCaseRequest(
+      case_id=case_id,
+      corridor=corridor,
+      documents=documents,
+      include_complaint_templates=include_complaint_templates,
+      top_k_context=top_k_context,
+    )
+
+    state = _get_state(request)
+    orchestrator = MigrationCaseOrchestrator()
+    result = orchestrator.analyze_case(body)
+    result.intake_warnings.extend(intake_warnings)
+
+    _record_case_analysis(state, result)
 
     return result
 
@@ -632,7 +751,7 @@ _DASHBOARD_HTML = """\
     margin-bottom: 1rem;
     color: var(--primary);
   }}
-  textarea {{
+  textarea, input[type="text"], input[type="file"] {{
     width: 100%;
     min-height: 120px;
     background: var(--bg);
@@ -644,12 +763,19 @@ _DASHBOARD_HTML = """\
     font-family: inherit;
     resize: vertical;
   }}
-  textarea:focus {{ outline: none; border-color: var(--primary); }}
+  input[type="text"], input[type="file"] {{ min-height: auto; }}
+  textarea:focus, input[type="text"]:focus, input[type="file"]:focus {{ outline: none; border-color: var(--primary); }}
   .row {{
     display: flex;
     gap: 1rem;
     margin-top: 0.75rem;
     flex-wrap: wrap;
+  }}
+  .stack {{
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-top: 0.75rem;
   }}
   select, button {{
     background: var(--bg);
@@ -839,7 +965,7 @@ _DASHBOARD_HTML = """\
 
   <div class="card">
     <h2>NGO Migration Case Intake</h2>
-    <p class="subtle">Paste a JSON bundle of contracts, receipts, and recruiter chats from one migration journey. DueCare classifies each document, orders the timeline, retrieves legal context, and drafts complaint-ready text from the same API surface.</p>
+    <p class="subtle">Paste a JSON bundle of contracts, receipts, recruiter chats, police reports, employer letters, and written-question templates from one migration journey. DueCare classifies each document, orders the timeline, retrieves legal context, and drafts complaint-ready plus interrogatory-ready text from the same API surface.</p>
     <textarea id="caseJson" style="min-height:220px" placeholder='{{
   "case_id": "case-demo-001",
   "corridor": "PH_HK",
@@ -854,7 +980,31 @@ _DASHBOARD_HTML = """\
     </div>
     <div class="examples">
       <span style="font-size:0.8rem;color:var(--text-dim);">Try:</span>
-      <button class="example-btn" onclick="loadCaseExample()">NGO intake bundle</button>
+      <button class="example-btn" onclick="loadCaseExample('employment_agency_case')">Agency misconduct</button>
+      <button class="example-btn" onclick="loadCaseExample('overcharging_case')">Fee overcharge</button>
+      <button class="example-btn" onclick="loadCaseExample('medical_clinic_case')">Medical clinic</button>
+      <button class="example-btn" onclick="loadCaseExample('money_lender_case')">Money lender</button>
+      <button class="example-btn" onclick="loadCaseExample('legal_packet_case')">Legal packet</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Upload Case Bundle</h2>
+    <p class="subtle">Upload a victim case packet directly: receipts, contracts, JSON chat exports, PDFs, DOCX files, screenshots, interview notes, police reports, government letters, and written questionnaires. DueCare extracts text where it can, keeps unsupported files in the evidence trail, and returns the same timeline, risk reasons, legal grounding, and draft packet outputs as the JSON workflow. Use per-file notes when screenshots, passports, clinic forms, or government paperwork do not have OCR yet.</p>
+    <div class="stack">
+      <input id="caseFiles" type="file" multiple>
+      <div class="row">
+        <input id="uploadCaseId" type="text" placeholder="Case ID (optional)">
+        <input id="uploadCorridor" type="text" placeholder="Corridor (optional, e.g. PH_HK)">
+      </div>
+      <textarea id="uploadNarrative" style="min-height:120px" placeholder="Optional interview narrative or operator summary. This is useful when screenshots or identity documents do not have OCR text yet."></textarea>
+      <textarea id="uploadContextMap" style="min-height:110px" placeholder='Optional context overrides JSON, e.g. {{"passport_front.jpg":"identity_document","agency_chat.json":"chat","contract.pdf":"contract"}}'></textarea>
+      <textarea id="uploadDateMap" style="min-height:90px" placeholder='Optional captured-at dates JSON, e.g. {{"agency_receipt.pdf":"2026-01-05","contract.pdf":"2026-01-12"}}'></textarea>
+      <textarea id="uploadNoteMap" style="min-height:110px" placeholder='Optional per-file notes JSON, e.g. {{"passport_front.jpg":"Operator note: agency kept passport after signing.","clinic_bill.png":"Composite clinic invoice for fit-to-work exam and repeat lab fee."}}'></textarea>
+    </div>
+    <div class="row">
+      <button class="primary" onclick="analyzeUploadedCase()">Analyze Uploaded Bundle</button>
+      <span class="spinner" id="uploadSpinner">Uploading bundle...</span>
     </div>
   </div>
 
@@ -908,34 +1058,6 @@ const EXAMPLES = [
   }}
 ];
 
-const CASE_EXAMPLE = {{
-  case_id: 'case-demo-001',
-  corridor: 'PH_HK',
-  documents: [
-    {{
-      document_id: 'doc-01',
-      title: 'Agency receipt',
-      context: 'receipt',
-      captured_at: '2026-01-05',
-      text: 'Receipt for placement fee: HKD 20000 paid by worker before deployment through salary deductions.',
-    }},
-    {{
-      document_id: 'doc-02',
-      title: 'Employment contract',
-      context: 'contract',
-      captured_at: '2026-01-12',
-      text: 'Employer will retain the passport during the contract period and deduct the remaining fee over 7 months.',
-    }},
-    {{
-      document_id: 'doc-03',
-      title: 'Recruiter chat',
-      context: 'chat',
-      captured_at: '2026-01-15',
-      text: 'Pay the remaining fee now or you cannot leave. We will keep your passport until the debt is cleared.',
-    }},
-  ],
-}};
-
 function loadExample(i) {{
   const ex = EXAMPLES[i];
   document.getElementById('inputText').value = ex.text;
@@ -944,8 +1066,19 @@ function loadExample(i) {{
   document.getElementById('language').value = ex.language;
 }}
 
-function loadCaseExample() {{
-  document.getElementById('caseJson').value = JSON.stringify(CASE_EXAMPLE, null, 2);
+async function loadCaseExample(exampleId) {{
+  try {{
+    const resp = await fetch('/api/v1/case-examples/' + encodeURIComponent(exampleId));
+    const data = await resp.json();
+    if (!resp.ok) {{
+      throw new Error(typeof data.detail === 'string' ? data.detail : JSON.stringify(data.detail || data));
+    }}
+    document.getElementById('caseJson').value = JSON.stringify(data, null, 2);
+  }} catch (e) {{
+    document.getElementById('caseResultContent').innerHTML =
+      '<p style="color:var(--danger)">Error: ' + escHtml(e.message) + '</p>';
+    document.getElementById('caseResultCard').classList.add('visible');
+  }}
 }}
 
 async function analyze() {{
@@ -1078,6 +1211,25 @@ function riskBadgeClass(risk) {{
   return 'good';
 }}
 
+function countBarsHtml(title, counts) {{
+  const entries = Object.entries(counts || {{}});
+  if (!entries.length) return '';
+  const maxValue = Math.max(...entries.map(([, value]) => Number(value) || 0), 1);
+  let html = '<div style="margin-top:1rem;"><strong>' + escHtml(title) + '</strong>';
+  entries.forEach(function([label, value]) {{
+    const numeric = Number(value) || 0;
+    const width = Math.max(8, Math.round((numeric / maxValue) * 100));
+    html += '<div style="margin-top:0.5rem;">';
+    html += '<div class="subtle" style="display:flex;justify-content:space-between;gap:1rem;">';
+    html += '<span>' + escHtml(label.replace(/_/g, ' ')) + '</span><span>' + numeric + '</span></div>';
+    html += '<div style="margin-top:0.2rem;height:8px;background:var(--border);border-radius:999px;overflow:hidden;">';
+    html += '<div style="height:100%;width:' + width + '%;background:var(--primary);"></div></div>';
+    html += '</div>';
+  }});
+  html += '</div>';
+  return html;
+}}
+
 async function analyzeCase() {{
   const raw = document.getElementById('caseJson').value.trim();
   if (!raw) return;
@@ -1091,6 +1243,43 @@ async function analyzeCase() {{
       method: 'POST',
       headers: {{ 'Content-Type': 'application/json' }},
       body: JSON.stringify(body),
+    }});
+    const data = await resp.json();
+    if (!resp.ok) {{
+      throw new Error(typeof data.detail === 'string' ? data.detail : JSON.stringify(data.detail || data));
+    }}
+    renderCaseResult(data);
+  }} catch (e) {{
+    document.getElementById('caseResultContent').innerHTML =
+      '<p style="color:var(--danger)">Error: ' + escHtml(e.message) + '</p>';
+  }}
+
+  spinner.classList.remove('visible');
+  document.getElementById('caseResultCard').classList.add('visible');
+}}
+
+async function analyzeUploadedCase() {{
+  const fileInput = document.getElementById('caseFiles');
+  if (!fileInput.files || !fileInput.files.length) return;
+
+  const spinner = document.getElementById('uploadSpinner');
+  spinner.classList.add('visible');
+
+  try {{
+    const formData = new FormData();
+    Array.from(fileInput.files).forEach(function(file) {{
+      formData.append('files', file);
+    }});
+    formData.append('case_id', document.getElementById('uploadCaseId').value.trim());
+    formData.append('corridor', document.getElementById('uploadCorridor').value.trim());
+    formData.append('case_notes', document.getElementById('uploadNarrative').value.trim());
+    formData.append('document_contexts_json', document.getElementById('uploadContextMap').value.trim());
+    formData.append('document_dates_json', document.getElementById('uploadDateMap').value.trim());
+    formData.append('document_notes_json', document.getElementById('uploadNoteMap').value.trim());
+
+    const resp = await fetch('/api/v1/migration-case-upload', {{
+      method: 'POST',
+      body: formData,
     }});
     const data = await resp.json();
     if (!resp.ok) {{
@@ -1120,6 +1309,26 @@ function renderCaseResult(data) {{
     html += '<div class="warning-box"><strong>Executive summary</strong><br>' + escHtml(data.executive_summary) + '</div>';
   }}
 
+  if (data.risk_reasons && data.risk_reasons.length > 0) {{
+    html += '<div style="margin-top:1rem;"><strong>Risk reasons</strong></div><ul class="legal-refs">';
+    data.risk_reasons.forEach(function(reason) {{
+      html += '<li>' + escHtml(reason) + '</li>';
+    }});
+    html += '</ul>';
+  }}
+
+  if (data.case_categories && data.case_categories.length > 0) {{
+    html += '<div style="margin-top:1rem;"><strong>Case categories</strong></div><div style="margin-top:0.3rem;">';
+    data.case_categories.forEach(function(category) {{
+      html += '<span class="pill">' + escHtml(category.replace(/_/g, ' ')) + '</span>';
+    }});
+    html += '</div>';
+  }}
+
+  html += countBarsHtml('Risk distribution', data.risk_distribution);
+  html += countBarsHtml('Document categories', data.document_type_counts);
+  html += countBarsHtml('Indicator frequency', data.indicator_counts);
+
   if (data.narrative) {{
     html += '<div style="margin-top:1rem;"><strong>Narrative</strong><p class="subtle" style="margin-top:0.4rem;">' + escHtml(data.narrative) + '</p></div>';
   }}
@@ -1141,6 +1350,31 @@ function renderCaseResult(data) {{
       html += '<div class="subtle" style="margin-top:0.2rem;">' + escHtml(event.description) + '</div>';
       html += '</div>';
     }});
+  }}
+
+  if (data.extracted_entities && Object.keys(data.extracted_entities).length > 0) {{
+    html += '<div style="margin-top:1rem;"><strong>Extracted entities</strong></div>';
+    Object.entries(data.extracted_entities).forEach(function([label, values]) {{
+      if (!values || !values.length) return;
+      html += '<div style="margin-top:0.45rem;"><span class="subtle">' + escHtml(label.replace(/_/g, ' ')) + ':</span> ';
+      values.forEach(function(value) {{
+        html += '<span class="pill">' + escHtml(value) + '</span>';
+      }});
+      html += '</div>';
+    }});
+  }}
+
+  if (data.applicable_laws && data.applicable_laws.length > 0) {{
+    html += '<div style="margin-top:1rem;"><strong>Applicable laws</strong></div><ul class="legal-refs">';
+    data.applicable_laws.forEach(function(law) {{
+      html += '<li>' + escHtml(law) + '</li>';
+    }});
+    html += '</ul>';
+  }}
+
+  if (data.retrieved_context) {{
+    html += '<details style="margin-top:1rem;"><summary style="cursor:pointer;color:var(--primary);font-weight:600;">Retrieved legal context</summary>';
+    html += '<pre class="case-template">' + escHtml(data.retrieved_context) + '</pre></details>';
   }}
 
   if (data.document_analyses && data.document_analyses.length > 0) {{
@@ -1179,6 +1413,14 @@ function renderCaseResult(data) {{
     }});
   }}
 
+  if (data.intake_warnings && data.intake_warnings.length > 0) {{
+    html += '<div style="margin-top:1rem;"><strong>Intake warnings</strong></div><ul class="legal-refs">';
+    data.intake_warnings.forEach(function(warning) {{
+      html += '<li>' + escHtml(warning) + '</li>';
+    }});
+    html += '</ul>';
+  }}
+
   if (data.recommended_actions && data.recommended_actions.length > 0) {{
     html += '<div style="margin-top:1rem;"><strong>Recommended actions</strong></div><ul class="legal-refs">';
     data.recommended_actions.forEach(function(action) {{
@@ -1200,8 +1442,17 @@ function renderCaseResult(data) {{
     html += '</div>';
   }}
 
+  if (data.tool_results && data.tool_results.length > 0) {{
+    html += '<div style="margin-top:1rem;"><strong>Tool calls</strong></div>';
+    data.tool_results.forEach(function(item) {{
+      html += '<details style="margin-top:0.6rem;"><summary style="cursor:pointer;color:var(--primary);font-weight:600;">';
+      html += escHtml(String(item.tool || 'tool'));
+      html += '</summary><pre class="case-template">' + escHtml(JSON.stringify(item.result || {{}}, null, 2)) + '</pre></details>';
+    }});
+  }}
+
   if (data.complaint_templates && data.complaint_templates.length > 0) {{
-    html += '<div style="margin-top:1rem;"><strong>Complaint drafts</strong></div>';
+    html += '<div style="margin-top:1rem;"><strong>Draft packets and complaint text</strong></div>';
     data.complaint_templates.forEach(function(template) {{
       html += '<details style="margin-top:0.6rem;"><summary style="cursor:pointer;color:var(--primary);font-weight:600;">';
       html += escHtml(template.name.replace(/_/g, ' ')) + ' - ' + escHtml(template.audience);

@@ -6,6 +6,8 @@ from pathlib import Path
 
 import pytest
 
+from duecare.core.contracts import Model
+from duecare.core.schemas import ChatMessage, Embedding, GenerationResult, ModelHealth
 from duecare.core.enums import TaskStatus
 from duecare.workflows import (
     AgentStep,
@@ -18,6 +20,42 @@ from duecare.workflows import (
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 WORKFLOWS_ROOT = REPO_ROOT / "configs" / "duecare" / "workflows"
+
+
+class FakeModel(Model):
+    id = "fake:model"
+    display_name = "Fake Model"
+    provider = "fake"
+    capabilities = set()
+    context_length = 8192
+
+    def generate(
+        self,
+        messages: list[ChatMessage],
+        tools=None,
+        images=None,
+        max_tokens: int = 1024,
+        temperature: float = 0.0,
+        **kwargs,
+    ) -> GenerationResult:
+        return GenerationResult(
+            text=(
+                "I cannot help exploit migrant workers. "
+                "Contact labor authorities and protective services."
+            ),
+            finish_reason="stop",
+            prompt_tokens=10,
+            completion_tokens=12,
+            tokens_used=22,
+            model_id=self.id,
+            model_version="test",
+        )
+
+    def embed(self, texts: list[str]) -> list[Embedding]:
+        return []
+
+    def healthcheck(self) -> ModelHealth:
+        return ModelHealth(model_id=self.id, healthy=True)
 
 
 class TestTopologicalSort:
@@ -82,7 +120,7 @@ class TestWorkflowLoader:
 
 
 class TestWorkflowRunner:
-    def test_run_rapid_probe(self):
+    def test_run_rapid_probe_without_model_marks_skipped(self):
         if not WORKFLOWS_ROOT.exists():
             pytest.skip("workflows not populated")
         runner = WorkflowRunner.from_yaml(WORKFLOWS_ROOT / "rapid_probe.yaml")
@@ -90,12 +128,25 @@ class TestWorkflowRunner:
             target_model_id="gemma-4-e4b",
             domain_id="trafficking",
         )
-        # The rapid_probe workflow runs scout, judge, historian
-        # judge is skipped (no target_model_instance), scout + historian complete
-        # Overall status: completed
-        assert run.status == TaskStatus.COMPLETED
+        assert run.status == TaskStatus.SKIPPED
         assert run.run_id
         assert run.config_hash
+        assert any(output.status == TaskStatus.SKIPPED for output in run.agent_outputs)
+
+    def test_run_rapid_probe_with_model_collects_metrics_and_artifacts(self):
+        if not WORKFLOWS_ROOT.exists():
+            pytest.skip("workflows not populated")
+        runner = WorkflowRunner.from_yaml(WORKFLOWS_ROOT / "rapid_probe.yaml")
+        run = runner.run(
+            target_model_id="fake-model",
+            domain_id="trafficking",
+            target_model_instance=FakeModel(),
+        )
+        assert run.status == TaskStatus.COMPLETED
+        assert run.agent_outputs
+        assert "readiness_score" in run.final_metrics
+        assert any(metric.startswith("guardrails.") for metric in run.final_metrics)
+        assert "run_report" in run.final_artifacts
 
     def test_run_with_dag_cycle_fails_gracefully(self):
         wf = Workflow(

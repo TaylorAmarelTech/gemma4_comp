@@ -1,0 +1,27 @@
+{
+  "id": "taylorsamarel/duecare-189-jailbreak-cracked-31b",
+  "title": "189: DueCare Jailbreak - Cracked Gemma 4 31B",
+  "code_file": "189_jailbreak_cracked_31b.ipynb",
+  "language": "python",
+  "kernel_type": "notebook",
+  "is_private": false,
+  "enable_gpu": true,
+  "enable_tpu": false,
+  "enable_internet": true,
+  "dataset_sources": [
+    "taylorsamarel/duecare-llm-wheels",
+    "taylorsamarel/duecare-trafficking-prompts"
+  ],
+  "competition_sources": [
+    "gemma-4-good-hackathon"
+  ],
+  "model_sources": [],
+  "kernel_sources": [],
+  "keywords": [
+    "gemma",
+    "safety",
+    "jailbreak",
+    "cracked",
+    "31b"
+  ]
+}

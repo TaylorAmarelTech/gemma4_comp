@@ -1,0 +1,17 @@
+{
+  "id": "taylorsamarel/duecare-430-rubric-evaluation",
+  "title": "DueCare 430 Rubric Evaluation",
+  "code_file": "430_rubric_evaluation.ipynb",
+  "language": "python",
+  "kernel_type": "notebook",
+  "is_private": true,
+  "enable_gpu": false,
+  "enable_internet": true,
+  "dataset_sources": [
+    "taylorsamarel/duecare-llm-wheels",
+    "taylorsamarel/duecare-trafficking-prompts"
+  ],
+  "competition_sources": [
+    "gemma-4-good-hackathon"
+  ]
+}

@@ -29,6 +29,7 @@ import argparse
 import json
 import random
 import sys
+from collections import Counter
 from datetime import datetime
 from pathlib import Path
 
@@ -36,11 +37,49 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 PROMPTS_PATH = REPO_ROOT / "configs" / "duecare" / "domains" / "trafficking" / "seed_prompts.jsonl"
 OUTPUT_DIR = REPO_ROOT / "data" / "training"
 
+
+def _bootstrap_workspace_packages() -> None:
+    """Add all workspace package src roots so namespace-package imports work."""
+    packages_dir = REPO_ROOT / "packages"
+    for src_dir in sorted(packages_dir.glob("*/src")):
+        src_str = str(src_dir)
+        if src_str not in sys.path:
+            sys.path.insert(0, src_str)
+
+
+_bootstrap_workspace_packages()
+
+from duecare.core import (  # noqa: E402
+    Provenance,
+    TrainingDatasetManifest,
+    TrainingExample,
+    TrainingMessage,
+    compute_checksum,
+    generate_run_id,
+    get_git_sha,
+)
+
 # Gemma 4 chat template
 CHAT_TEMPLATE = """<start_of_turn>user
 {prompt}<end_of_turn>
 <start_of_turn>model
 {response}<end_of_turn>"""
+
+
+def render_chat(messages: list[TrainingMessage]) -> str:
+    """Render structured chat messages into the Gemma/Unsloth text template."""
+    rendered_parts = []
+    for message in messages:
+        role = "model" if message.role == "assistant" else message.role
+        rendered_parts.append(
+            f"<start_of_turn>{role}\n{message.content}<end_of_turn>"
+        )
+    return "\n".join(rendered_parts)
+
+
+def _prompt_record_checksum(prompt: dict) -> str:
+    """Stable checksum for the source prompt record."""
+    return compute_checksum(json.dumps(prompt, sort_keys=True, default=str))
 
 
 def load_graded_prompts() -> list[dict]:
@@ -66,27 +105,62 @@ def load_graded_prompts() -> list[dict]:
 def create_training_examples(
     prompts: list[dict],
     *,
+    run_id: str,
+    git_sha: str,
+    created_at: datetime,
     include_negative: bool = False,
     max_examples: int = 0,
-) -> list[dict]:
+) -> list[TrainingExample]:
     """Convert graded prompts to chat-format training examples."""
-    examples = []
+    examples: list[TrainingExample] = []
 
     for p in prompts:
         text = p["text"]
         responses = p.get("graded_responses", {})
         pid = p.get("id", "unknown")
+        category = p.get("category", "")
+        source = p.get("source", "")
+        record_checksum = _prompt_record_checksum(p)
+        metadata = dict(p.get("metadata", {}))
+        metadata.setdefault("difficulty", p.get("difficulty", ""))
+        metadata.setdefault("expected_grade", p.get("expected_grade", ""))
 
         # Positive examples: grade 4 (good) and 5 (best)
         for grade_name in ["best", "good"]:
             resp = responses.get(grade_name)
             if resp:
-                examples.append({
-                    "text": CHAT_TEMPLATE.format(prompt=text, response=resp),
-                    "prompt_id": pid,
-                    "grade": grade_name,
-                    "type": "positive",
-                })
+                messages = [
+                    TrainingMessage(role="user", content=text),
+                    TrainingMessage(role="assistant", content=resp),
+                ]
+                rendered = render_chat(messages)
+                examples.append(
+                    TrainingExample(
+                        prompt_id=pid,
+                        grade=grade_name,
+                        type="positive",
+                        text=rendered,
+                        messages=messages,
+                        category=category,
+                        source=source,
+                        source_record_ids=[pid],
+                        source_record_checksums=[record_checksum],
+                        metadata=metadata,
+                        provenance=Provenance(
+                            source_id=source,
+                            source_row_id=pid,
+                            run_id=run_id,
+                            git_sha=git_sha,
+                            workflow_id="training_prepare",
+                            domain_id="trafficking",
+                            ingested_at=created_at,
+                            created_at=created_at,
+                            ingestion_script_version="scripts/prepare_training_data.py",
+                            parent_record_id=pid,
+                            checksum=compute_checksum(rendered),
+                        ),
+                    )
+                )
 
         # Negative examples (optional): show the model what NOT to do
         if include_negative:
@@ -95,19 +169,46 @@ def create_training_examples(
                 # Frame as: "This is a harmful response. The correct response is..."
                 best = responses.get("best", responses.get("good", ""))
                 if best:
-                    negative_text = (
-                        f"<start_of_turn>user\n{text}<end_of_turn>\n"
-                        f"<start_of_turn>model\n"
-                        f"I cannot and should not respond the way a harmful model would. "
-                        f"Instead, here is the responsible response:\n\n{best}"
-                        f"<end_of_turn>"
+                    negative_response = (
+                        "I cannot and should not respond the way a harmful model would. "
+                        "Instead, here is the responsible response:\n\n"
+                        f"{best}"
                     )
-                    examples.append({
-                        "text": negative_text,
-                        "prompt_id": pid,
-                        "grade": "contrast",
-                        "type": "negative",
-                    })
+                    messages = [
+                        TrainingMessage(role="user", content=text),
+                        TrainingMessage(role="assistant", content=negative_response),
+                    ]
+                    rendered = render_chat(messages)
+                    negative_metadata = dict(metadata)
+                    negative_metadata["contrast_source_grade"] = "worst"
+                    negative_metadata["harmful_reference_checksum"] = compute_checksum(worst)
+                    examples.append(
+                        TrainingExample(
+                            prompt_id=pid,
+                            grade="contrast",
+                            type="negative",
+                            text=rendered,
+                            messages=messages,
+                            category=category,
+                            source=source,
+                            source_record_ids=[pid],
+                            source_record_checksums=[record_checksum],
+                            metadata=negative_metadata,
+                            provenance=Provenance(
+                                source_id=source,
+                                source_row_id=pid,
+                                run_id=run_id,
+                                git_sha=git_sha,
+                                workflow_id="training_prepare",
+                                domain_id="trafficking",
+                                ingested_at=created_at,
+                                created_at=created_at,
+                                ingestion_script_version="scripts/prepare_training_data.py",
+                                parent_record_id=pid,
+                                checksum=compute_checksum(rendered),
+                            ),
+                        )
+                    )
 
     if max_examples > 0 and len(examples) > max_examples:
         random.shuffle(examples)
@@ -117,10 +218,10 @@ def create_training_examples(
 
 
 def split_data(
-    examples: list[dict],
+    examples: list[TrainingExample],
     train_ratio: float = 0.8,
     val_ratio: float = 0.1,
-) -> tuple[list[dict], list[dict], list[dict]]:
+) -> tuple[list[TrainingExample], list[TrainingExample], list[TrainingExample]]:
     """Split into train/val/test."""
     random.shuffle(examples)
     n = len(examples)
@@ -130,11 +231,32 @@ def split_data(
     return examples[:train_end], examples[train_end:val_end], examples[val_end:]
 
 
-def write_jsonl(path: Path, examples: list[dict]) -> None:
+def assign_split(examples: list[TrainingExample], split_name: str) -> None:
+    """Persist split membership into each example's provenance."""
+    for example in examples:
+        example.provenance.split = split_name
+
+
+def write_jsonl(path: Path, examples: list[TrainingExample]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("w", encoding="utf-8") as f:
         for ex in examples:
-            f.write(json.dumps(ex, ensure_ascii=False) + "\n")
+            f.write(
+                json.dumps(
+                    ex.model_dump(mode="json", by_alias=True),
+                    ensure_ascii=False,
+                )
+                + "\n"
+            )
+
+
+def split_checksum(examples: list[TrainingExample]) -> str:
+    """Stable checksum for one emitted JSONL split."""
+    payload = "\n".join(
+        json.dumps(example.model_dump(mode="json", by_alias=True), sort_keys=True)
+        for example in examples
+    )
+    return compute_checksum(payload)
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -145,6 +267,9 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
 
     random.seed(args.seed)
+    run_id = generate_run_id("training_prepare")
+    git_sha = get_git_sha()
+    created_at = datetime.now()
 
     # Load
     prompts = load_graded_prompts()
@@ -155,17 +280,23 @@ def main(argv: list[str] | None = None) -> int:
     # Create examples
     examples = create_training_examples(
         prompts,
+        run_id=run_id,
+        git_sha=git_sha,
+        created_at=created_at,
         include_negative=args.include_negative,
         max_examples=args.max_examples,
     )
     print(f"Created {len(examples)} training examples")
-    positive = sum(1 for e in examples if e["type"] == "positive")
-    negative = sum(1 for e in examples if e["type"] == "negative")
+    positive = sum(1 for e in examples if e.example_type == "positive")
+    negative = sum(1 for e in examples if e.example_type == "negative")
     print(f"  Positive (good/best): {positive}")
     print(f"  Negative (contrastive): {negative}")
 
     # Split
     train, val, test = split_data(examples)
+    assign_split(train, "train")
+    assign_split(val, "val")
+    assign_split(test, "test")
     print(f"  Train: {len(train)}, Val: {len(val)}, Test: {len(test)}")
 
     # Write
@@ -174,22 +305,36 @@ def main(argv: list[str] | None = None) -> int:
     write_jsonl(OUTPUT_DIR / "test.jsonl", test)
 
     # Manifest
-    manifest = {
-        "created_at": datetime.now().isoformat(),
-        "source": str(PROMPTS_PATH),
-        "n_source_prompts": len(prompts),
-        "n_examples": len(examples),
-        "n_positive": positive,
-        "n_negative": negative,
-        "n_train": len(train),
-        "n_val": len(val),
-        "n_test": len(test),
-        "include_negative": args.include_negative,
-        "max_examples": args.max_examples,
-        "seed": args.seed,
-    }
+    grade_distribution = Counter(example.grade for example in examples)
+    type_distribution = Counter(example.example_type for example in examples)
+    manifest = TrainingDatasetManifest(
+        run_id=run_id,
+        git_sha=git_sha,
+        created_at=created_at,
+        source_path=str(PROMPTS_PATH),
+        source_checksum=compute_checksum(PROMPTS_PATH.read_bytes()),
+        output_dir=str(OUTPUT_DIR),
+        n_source_prompts=len(prompts),
+        n_examples=len(examples),
+        n_positive=positive,
+        n_negative=negative,
+        split_counts={"train": len(train), "val": len(val), "test": len(test)},
+        split_checksums={
+            "train": split_checksum(train),
+            "val": split_checksum(val),
+            "test": split_checksum(test),
+        },
+        grade_distribution=dict(grade_distribution),
+        type_distribution=dict(type_distribution),
+        include_negative=args.include_negative,
+        max_examples=args.max_examples,
+        seed=args.seed,
+    )
     manifest_path = OUTPUT_DIR / "manifest.json"
-    manifest_path.write_text(json.dumps(manifest, indent=2), encoding="utf-8")
+    manifest_path.write_text(
+        json.dumps(manifest.model_dump(mode="json"), indent=2),
+        encoding="utf-8",
+    )
 
     print(f"\nWritten to {OUTPUT_DIR}/")
     print(f"  train.jsonl: {len(train)} examples")

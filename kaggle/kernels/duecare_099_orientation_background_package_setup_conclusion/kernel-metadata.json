@@ -1,0 +1,21 @@
+{
+  "id": "taylorsamarel/099-duecare-orientation-and-background-and-package-setup-conclusion",
+  "title": "099: DueCare Orientation and Background and Package Setup Conclusion",
+  "code_file": "099_orientation_background_package_setup_conclusion.ipynb",
+  "language": "python",
+  "kernel_type": "notebook",
+  "is_private": false,
+  "enable_gpu": false,
+  "enable_tpu": false,
+  "enable_internet": true,
+  "dataset_sources": [
+    "taylorsamarel/duecare-llm-wheels"
+  ],
+  "competition_sources": [
+    "gemma-4-good-hackathon"
+  ],
+  "kernel_sources": [],
+  "keywords": [
+    "evaluation"
+  ]
+}

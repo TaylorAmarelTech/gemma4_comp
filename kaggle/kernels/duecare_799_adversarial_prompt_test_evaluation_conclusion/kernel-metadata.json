@@ -1,0 +1,21 @@
+{
+  "id": "taylorsamarel/duecare-adversarial-evaluation-conclusion",
+  "title": "799: DueCare Adversarial Prompt-Test Evaluation Conclusion",
+  "code_file": "799_adversarial_prompt_test_evaluation_conclusion.ipynb",
+  "language": "python",
+  "kernel_type": "notebook",
+  "is_private": false,
+  "enable_gpu": false,
+  "enable_tpu": false,
+  "enable_internet": true,
+  "dataset_sources": [
+    "taylorsamarel/duecare-llm-wheels"
+  ],
+  "competition_sources": [
+    "gemma-4-good-hackathon"
+  ],
+  "kernel_sources": [],
+  "keywords": [
+    "evaluation"
+  ]
+}

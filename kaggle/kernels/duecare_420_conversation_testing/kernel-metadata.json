@@ -1,0 +1,17 @@
+{
+  "id": "taylorsamarel/420-duecare-conversation-testing",
+  "title": "420 DueCare Conversation Testing",
+  "code_file": "420_conversation_testing.ipynb",
+  "language": "python",
+  "kernel_type": "notebook",
+  "is_private": true,
+  "enable_gpu": false,
+  "enable_internet": true,
+  "dataset_sources": [
+    "taylorsamarel/duecare-llm-wheels",
+    "taylorsamarel/duecare-trafficking-prompts"
+  ],
+  "competition_sources": [
+    "gemma-4-good-hackathon"
+  ]
+}

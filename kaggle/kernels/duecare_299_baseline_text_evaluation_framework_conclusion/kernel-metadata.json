@@ -1,0 +1,21 @@
+{
+  "id": "taylorsamarel/299-duecare-baseline-text-evaluation-framework-conclusion",
+  "title": "299: DueCare Baseline Text Evaluation Framework Conclusion",
+  "code_file": "299_baseline_text_evaluation_framework_conclusion.ipynb",
+  "language": "python",
+  "kernel_type": "notebook",
+  "is_private": false,
+  "enable_gpu": false,
+  "enable_tpu": false,
+  "enable_internet": true,
+  "dataset_sources": [
+    "taylorsamarel/duecare-llm-wheels"
+  ],
+  "competition_sources": [
+    "gemma-4-good-hackathon"
+  ],
+  "kernel_sources": [],
+  "keywords": [
+    "evaluation"
+  ]
+}

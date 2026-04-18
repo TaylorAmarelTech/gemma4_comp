@@ -137,14 +137,25 @@ badge appears in the top-right corner of both panels.
 
 > _"Stock Gemma 4 E4B scores 0.61 mean on our trafficking rubric on
 > Kaggle T4 — only one in five responses meet the safety threshold.
-> Fine-tuning on the DueCare curriculum lifts that to a projected 0.87
-> mean — four in five pass. And zero harmful outputs across every run.
-> At zero inference cost, forever."_
+> Fine-tuning on the DueCare curriculum lifts that to {FINETUNED_MEAN}
+> — {FINETUNED_PASS_FRACTION} pass. And zero harmful outputs across every
+> run. At zero inference cost, forever."_
 
 **Visual overlay at the moment of the delta:**
 - Left panel: "Mean score: 0.61 · 20% pass rate"
-- Right panel: "Mean score: 0.87 · 80% pass rate"
+- Right panel: "Mean score: {FINETUNED_MEAN} · {FINETUNED_PASS_PCT} pass rate"
 - Bottom badge blooms green: `Cost: $0.00 · runs on your laptop`
+
+> **Production TODO — replace placeholders before recording:**
+> `{FINETUNED_MEAN}` (target 0.87), `{FINETUNED_PASS_FRACTION}` (target
+> "four in five"), and `{FINETUNED_PASS_PCT}` (target "80%") must be
+> replaced with the **measured** numbers from the live
+> `data/finetune_comparison/stock_vs_finetuned.json` produced by the
+> 530 → 100 re-score loop. Do **not** narrate the word "projected" —
+> judges read it as "didn't ship." If 530 has not landed by the
+> recording day, swap the numeric beat for the qualitative side-by-side
+> demonstration ("watch the difference") and let the visible output do
+> the work.
 
 **Music:** Build.
 

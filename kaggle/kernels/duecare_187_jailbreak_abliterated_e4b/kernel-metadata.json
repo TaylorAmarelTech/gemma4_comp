@@ -1,0 +1,28 @@
+{
+  "id": "taylorsamarel/duecare-187-jailbreak-abliterated-e4b",
+  "title": "187: DueCare Jailbreak - Abliterated E4B",
+  "code_file": "187_jailbreak_abliterated_e4b.ipynb",
+  "language": "python",
+  "kernel_type": "notebook",
+  "is_private": false,
+  "enable_gpu": true,
+  "enable_tpu": false,
+  "enable_internet": true,
+  "dataset_sources": [
+    "taylorsamarel/duecare-llm-wheels",
+    "taylorsamarel/duecare-trafficking-prompts"
+  ],
+  "competition_sources": [
+    "gemma-4-good-hackathon"
+  ],
+  "model_sources": [
+    "google/gemma-4/transformers/gemma-4-e4b-it/1"
+  ],
+  "kernel_sources": [],
+  "keywords": [
+    "gemma",
+    "safety",
+    "jailbreak",
+    "abliteration"
+  ]
+}

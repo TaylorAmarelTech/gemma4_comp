@@ -1,0 +1,26 @@
+{
+  "id": "taylorsamarel/175-duecare-temperature-sweep",
+  "title": "175: DueCare Temperature Sweep",
+  "code_file": "175_temperature_sweep.ipynb",
+  "language": "python",
+  "kernel_type": "notebook",
+  "is_private": false,
+  "enable_gpu": false,
+  "enable_tpu": false,
+  "enable_internet": true,
+  "dataset_sources": [
+    "taylorsamarel/duecare-llm-wheels"
+  ],
+  "competition_sources": [
+    "gemma-4-good-hackathon"
+  ],
+  "kernel_sources": [],
+  "keywords": [
+    "gemma",
+    "safety",
+    "llm",
+    "temperature",
+    "sampling",
+    "playground"
+  ]
+}

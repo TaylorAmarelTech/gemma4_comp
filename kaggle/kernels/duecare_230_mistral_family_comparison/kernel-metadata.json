@@ -1,0 +1,19 @@
+{
+  "id": "taylorsamarel/duecare-230-mistral-family-comparison",
+  "title": "230: DueCare Gemma 4 vs Mistral Family",
+  "code_file": "230_mistral_family_comparison.ipynb",
+  "language": "python",
+  "kernel_type": "notebook",
+  "is_private": false,
+  "enable_gpu": false,
+  "enable_tpu": false,
+  "enable_internet": true,
+  "dataset_sources": [
+    "taylorsamarel/duecare-llm-wheels",
+    "taylorsamarel/duecare-trafficking-prompts"
+  ],
+  "competition_sources": [
+    "gemma-4-good-hackathon"
+  ],
+  "kernel_sources": []
+}

@@ -1,0 +1,18 @@
+{
+  "id": "taylorsamarel/duecare-660-enterprise-moderation",
+  "title": "660: DueCare Enterprise Moderation",
+  "code_file": "660_enterprise_moderation.ipynb",
+  "language": "python",
+  "kernel_type": "notebook",
+  "is_private": false,
+  "enable_gpu": false,
+  "enable_tpu": false,
+  "enable_internet": true,
+  "dataset_sources": [
+    "taylorsamarel/duecare-llm-wheels"
+  ],
+  "keywords": [
+    "deployment",
+    "evaluation"
+  ]
+}

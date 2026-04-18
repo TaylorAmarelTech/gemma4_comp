@@ -1,0 +1,26 @@
+{
+  "id": "taylorsamarel/duecare-181-jailbreak-response-viewer",
+  "title": "181: DueCare Jailbreak Response Viewer",
+  "code_file": "181_jailbreak_response_viewer.ipynb",
+  "language": "python",
+  "kernel_type": "notebook",
+  "is_private": false,
+  "enable_gpu": false,
+  "enable_tpu": false,
+  "enable_internet": true,
+  "dataset_sources": [
+    "taylorsamarel/duecare-llm-wheels"
+  ],
+  "competition_sources": [
+    "gemma-4-good-hackathon"
+  ],
+  "model_sources": [],
+  "kernel_sources": [],
+  "keywords": [
+    "gemma",
+    "safety",
+    "jailbreak",
+    "viewer",
+    "playground"
+  ]
+}

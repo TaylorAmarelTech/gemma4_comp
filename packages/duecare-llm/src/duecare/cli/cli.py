@@ -15,9 +15,11 @@ Commands:
 
 from __future__ import annotations
 
+import inspect
 from pathlib import Path
 
 import typer
+import yaml
 from rich.console import Console
 from rich.table import Table
 
@@ -44,6 +46,55 @@ app.add_typer(runs_app, name="runs")
 console = Console()
 
 
+def _load_model_specs(config_path: Path) -> list[dict]:
+    """Load model specs from the YAML catalog used by the public CLI."""
+    raw = yaml.safe_load(config_path.read_text(encoding="utf-8")) or {}
+    models = raw.get("models", [])
+    if not isinstance(models, list):
+        raise ValueError(f"Invalid models catalog at {config_path}")
+    return models
+
+
+def _resolve_target_model(
+    *,
+    target_model_id: str,
+    config_path: Path = Path("configs/duecare/models.yaml"),
+):
+    """Construct a configured model instance from `configs/duecare/models.yaml`."""
+    from duecare.core.enums import Capability
+    from duecare.models import model_registry
+
+    for spec in _load_model_specs(config_path):
+        if spec.get("id") != target_model_id:
+            continue
+
+        adapter_id = spec.get("adapter")
+        if not adapter_id:
+            raise ValueError(f"Model {target_model_id!r} has no adapter field")
+        if not model_registry.has(adapter_id):
+            raise KeyError(f"Unknown adapter {adapter_id!r} for model {target_model_id!r}")
+
+        adapter_cls = model_registry.get(adapter_id)
+        init_params = inspect.signature(adapter_cls.__init__).parameters
+        supported_kwargs = {name for name in init_params if name != "self"}
+
+        adapter_kwargs = {
+            key: value
+            for key, value in spec.items()
+            if key in supported_kwargs
+        }
+        if "capabilities" in adapter_kwargs:
+            adapter_kwargs["capabilities"] = {
+                Capability(value) for value in adapter_kwargs["capabilities"]
+            }
+
+        return adapter_cls(**adapter_kwargs)
+
+    raise KeyError(
+        f"Unknown target model id {target_model_id!r} in {config_path}"
+    )
+
+
 @app.command()
 def run(
     workflow: str = typer.Argument(..., help="Workflow id (e.g., rapid_probe)"),
@@ -54,6 +105,11 @@ def run(
         "--workflow-dir",
         help="Directory containing workflow YAMLs",
     ),
+    model_config: Path = typer.Option(
+        Path("configs/duecare/models.yaml"),
+        "--model-config",
+        help="Model catalog YAML used to construct the target model instance",
+    ),
 ) -> None:
     """Run a workflow end-to-end via the WorkflowRunner."""
     from duecare.workflows import WorkflowRunner
@@ -62,11 +118,30 @@ def run(
     if not workflow_path.exists():
         console.print(f"[red]Workflow YAML not found:[/red] {workflow_path}")
         raise typer.Exit(code=1)
+    if not model_config.exists():
+        console.print(f"[red]Model catalog YAML not found:[/red] {model_config}")
+        raise typer.Exit(code=1)
+
+    try:
+        target_model_instance = _resolve_target_model(
+            target_model_id=target_model,
+            config_path=model_config,
+        )
+    except Exception as exc:
+        console.print(
+            f"[red]Could not construct target model[/red] "
+            f"[cyan]{target_model}[/cyan]: {exc}"
+        )
+        raise typer.Exit(code=1)
 
     runner = WorkflowRunner.from_yaml(workflow_path)
     console.print(f"[bold]Running[/bold] workflow=[cyan]{workflow}[/cyan] "
                   f"model=[cyan]{target_model}[/cyan] domain=[cyan]{domain}[/cyan]")
-    result = runner.run(target_model_id=target_model, domain_id=domain)
+    result = runner.run(
+        target_model_id=target_model,
+        domain_id=domain,
+        target_model_instance=target_model_instance,
+    )
 
     table = Table(title="Workflow run result")
     table.add_column("Field")
@@ -87,6 +162,9 @@ def run(
         for k, v in sorted(result.final_metrics.items()):
             m_table.add_row(k, f"{v:.4f}" if isinstance(v, float) else str(v))
         console.print(m_table)
+
+    if result.status.value != "completed":
+        raise typer.Exit(code=1)
 
 
 @agents_app.command("list")

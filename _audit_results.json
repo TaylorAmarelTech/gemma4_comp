@@ -1,0 +1,194 @@
+[
+  {
+    "kdir": "duecare_000_index",
+    "slug": "duecare-000-index",
+    "live_private": false,
+    "local_private": false,
+    "live_title": "DueCare 000 Index",
+    "local_title": "DueCare 000 Index"
+  },
+  {
+    "kdir": "duecare_005_glossary",
+    "slug": "duecare-005-glossary",
+    "live_private": false,
+    "local_private": false,
+    "live_title": "DueCare 005 Glossary",
+    "local_title": "005: DueCare Glossary and Reading Map"
+  },
+  {
+    "kdir": "duecare_010_quickstart",
+    "slug": "010-duecare-quickstart-in-5-minutes",
+    "live_private": false,
+    "local_private": false,
+    "live_title": "010: DueCare Quickstart in 5 Minutes",
+    "local_title": "010: DueCare Quickstart in 5 Minutes"
+  },
+  {
+    "kdir": "duecare_100_gemma_exploration",
+    "slug": "duecare-real-gemma-4-on-50-trafficking-prompts",
+    "live_private": true,
+    "local_private": true,
+    "live_title": "DueCare: Real Gemma 4 on 50 Trafficking Prompts",
+    "local_title": "DueCare: Real Gemma 4 on 50 Trafficking Prompts"
+  },
+  {
+    "kdir": "duecare_105_prompt_corpus_introduction",
+    "slug": "105-duecare-prompt-corpus-introduction",
+    "live_private": false,
+    "local_private": false,
+    "live_title": "105: DueCare Prompt Corpus Introduction",
+    "local_title": "105: DueCare Prompt Corpus Introduction"
+  },
+  {
+    "kdir": "duecare_110_prompt_prioritizer",
+    "slug": "duecare-prompt-prioritizer",
+    "live_private": false,
+    "local_private": false,
+    "live_title": "DueCare Prompt Prioritizer",
+    "local_title": "110: DueCare Prompt Prioritizer"
+  },
+  {
+    "kdir": "duecare_120_prompt_remixer",
+    "slug": "duecare-prompt-remixer",
+    "live_private": false,
+    "local_private": false,
+    "live_title": "DueCare Prompt Remixer",
+    "local_title": "120: DueCare Prompt Remixer"
+  },
+  {
+    "kdir": "duecare_140_evaluation_mechanics",
+    "slug": "140-duecare-evaluation-mechanics",
+    "live_private": false,
+    "local_private": false,
+    "live_title": "140: DueCare Evaluation Mechanics",
+    "local_title": "140: DueCare Evaluation Mechanics"
+  },
+  {
+    "kdir": "duecare_190_rag_retrieval_inspector",
+    "slug": "190-duecare-rag-retrieval-inspector",
+    "live_private": false,
+    "local_private": false,
+    "live_title": "190 DueCare RAG Retrieval Inspector",
+    "local_title": "190 DueCare RAG Retrieval Inspector"
+  },
+  {
+    "kdir": "duecare_210_oss_model_comparison",
+    "slug": "duecare-gemma-vs-oss-comparison",
+    "live_private": false,
+    "local_private": false,
+    "live_title": "DueCare Gemma vs OSS Comparison",
+    "local_title": "210: DueCare Gemma 4 vs OSS Models"
+  },
+  {
+    "kdir": "duecare_250_comparative_grading",
+    "slug": "250-duecare-comparative-grading",
+    "live_private": false,
+    "local_private": false,
+    "live_title": "250 DueCare Comparative Grading",
+    "local_title": "250 DueCare Comparative Grading"
+  },
+  {
+    "kdir": "duecare_300_adversarial_resistance",
+    "slug": "300-duecare-adversarial-resistance",
+    "live_private": true,
+    "local_private": true,
+    "live_title": "300 DueCare Adversarial Resistance",
+    "local_title": "300 DueCare Adversarial Resistance"
+  },
+  {
+    "kdir": "duecare_335_attack_vector_inspector",
+    "slug": "335-duecare-attack-vector-inspector",
+    "live_private": false,
+    "local_private": false,
+    "live_title": "335 DueCare Attack Vector Inspector",
+    "local_title": "335 DueCare Attack Vector Inspector"
+  },
+  {
+    "kdir": "duecare_420_conversation_testing",
+    "slug": "420-duecare-conversation-testing",
+    "live_private": true,
+    "local_private": true,
+    "live_title": "420 DueCare Conversation Testing",
+    "local_title": "420 DueCare Conversation Testing"
+  },
+  {
+    "kdir": "duecare_430_rubric_evaluation",
+    "slug": "duecare-430-rubric-evaluation",
+    "live_private": true,
+    "local_private": true,
+    "live_title": "DueCare 430 Rubric Evaluation",
+    "local_title": "DueCare 430 Rubric Evaluation"
+  },
+  {
+    "kdir": "duecare_460_citation_verifier",
+    "slug": "460-duecare-citation-verifier",
+    "live_private": false,
+    "local_private": false,
+    "live_title": "460 DueCare Citation Verifier",
+    "local_title": "460 DueCare Citation Verifier"
+  },
+  {
+    "kdir": "duecare_540_finetune_delta_visualizer",
+    "slug": "540-duecare-fine-tune-delta-visualizer",
+    "live_private": false,
+    "local_private": false,
+    "live_title": "540 DueCare Fine-tune Delta Visualizer",
+    "local_title": "540 DueCare Fine-tune Delta Visualizer"
+  },
+  {
+    "kdir": "duecare_600_results_dashboard",
+    "slug": "600-duecare-results-dashboard",
+    "live_private": false,
+    "local_private": false,
+    "live_title": "600: DueCare Results Dashboard",
+    "local_title": "600: DueCare Results Dashboard"
+  },
+  {
+    "kdir": "duecare_610_submission_walkthrough",
+    "slug": "610-duecare-submission-walkthrough",
+    "live_private": false,
+    "local_private": false,
+    "live_title": "610: DueCare Submission Walkthrough",
+    "local_title": "610: DueCare Submission Walkthrough"
+  },
+  {
+    "kdir": "duecare_620_demo_api_endpoint_tour",
+    "slug": "620-duecare-demo-api-endpoint-tour",
+    "live_private": false,
+    "local_private": false,
+    "live_title": "620: DueCare Demo API Endpoint Tour",
+    "local_title": "620: DueCare Demo API Endpoint Tour"
+  },
+  {
+    "kdir": "duecare_650_custom_domain_walkthrough",
+    "slug": "650-duecare-custom-domain-walkthrough",
+    "live_private": false,
+    "local_private": false,
+    "live_title": "650: DueCare Custom Domain Walkthrough",
+    "local_title": "650: DueCare Custom Domain Walkthrough"
+  },
+  {
+    "kdir": "duecare_699_advanced_prompt_test_generation_conclusion",
+    "slug": "duecare-advanced-prompt-test-generation-conclusion",
+    "live_private": false,
+    "local_private": false,
+    "live_title": "DueCare Advanced Prompt-Test Generation Conclusion",
+    "local_title": "699: DueCare Advanced Prompt-Test Generation Conclusion"
+  },
+  {
+    "kdir": "duecare_799_adversarial_prompt_test_evaluation_conclusion",
+    "slug": "duecare-adversarial-evaluation-conclusion",
+    "live_private": false,
+    "local_private": false,
+    "live_title": "DueCare Adversarial Evaluation Conclusion",
+    "local_title": "799: DueCare Adversarial Prompt-Test Evaluation Conclusion"
+  },
+  {
+    "kdir": "duecare_899_solution_surfaces_conclusion",
+    "slug": "duecare-solution-surfaces-conclusion",
+    "live_private": false,
+    "local_private": false,
+    "live_title": "DueCare Solution Surfaces Conclusion",
+    "local_title": "899: DueCare Solution Surfaces Conclusion"
+  }
+]

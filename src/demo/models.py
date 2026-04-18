@@ -172,7 +172,11 @@ class MigrationCaseDocument(BaseModel):
     )
     context: str = Field(
         default="document",
-        description="Document type hint: contract, receipt, chat, job_posting, certificate, document.",
+        description=(
+            "Document type hint: contract, receipt, chat, job_posting, certificate, "
+            "identity_document, narrative, medical_record, debt_note, agency_record, "
+            "government_letter, legal_intake, document."
+        ),
     )
     captured_at: str = Field(
         default="",
@@ -199,7 +203,7 @@ class MigrationCaseRequest(BaseModel):
     )
     include_complaint_templates: bool = Field(
         default=True,
-        description="Whether to draft complaint/intake template text in the response.",
+        description="Whether to draft complaint, intake, and written-question template text in the response.",
     )
     top_k_context: int = Field(
         default=5,
@@ -423,11 +427,22 @@ class TimelineEvent(BaseModel):
 
 
 class ComplaintDraft(BaseModel):
-    """Generated complaint or intake text derived from a case bundle."""
+    """Generated complaint, intake, or interrogatory-prep text derived from a case bundle."""
 
     name: str
     audience: str
     text: str
+
+
+class CaseExampleSummary(BaseModel):
+    """Metadata for a built-in case bundle example."""
+
+    id: str
+    title: str
+    summary: str = ""
+    corridor: str = ""
+    document_count: int = 0
+    case_categories: list[str] = Field(default_factory=list)
 
 
 class MigrationCaseResponse(BaseModel):
@@ -437,7 +452,13 @@ class MigrationCaseResponse(BaseModel):
     corridor: str = ""
     document_count: int = 0
     risk_level: str = "LOW"
+    case_categories: list[str] = Field(default_factory=list)
+    risk_reasons: list[str] = Field(default_factory=list)
     detected_indicators: list[str] = Field(default_factory=list)
+    indicator_counts: dict[str, int] = Field(default_factory=dict)
+    document_type_counts: dict[str, int] = Field(default_factory=dict)
+    risk_distribution: dict[str, int] = Field(default_factory=dict)
+    extracted_entities: dict[str, list[str]] = Field(default_factory=dict)
     applicable_laws: list[str] = Field(default_factory=list)
     retrieved_context: str = ""
     executive_summary: str = ""
@@ -448,6 +469,7 @@ class MigrationCaseResponse(BaseModel):
     hotlines: list[Resource] = Field(default_factory=list)
     tool_results: list[dict[str, Any]] = Field(default_factory=list)
     complaint_templates: list[ComplaintDraft] = Field(default_factory=list)
+    intake_warnings: list[str] = Field(default_factory=list)
     generated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 
