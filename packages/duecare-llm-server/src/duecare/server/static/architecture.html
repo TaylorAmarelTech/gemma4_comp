@@ -1,0 +1,320 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Architecture deep dive — Duecare</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<header class="dc-nav">
+  <h1>Duecare<span class="tag"> · architecture</span></h1>
+  <nav>
+    <a href="/">Home</a>
+    <a href="/examples">Examples</a>
+    <a href="/workspace">Workspace</a>
+    <a href="/architecture" class="active">Architecture</a>
+    <a href="/enterprise">Enterprise</a>
+    <a href="/individual">Individual</a>
+    <a href="/knowledge">Knowledge</a>
+    <a href="/dashboard">Dashboard</a>
+    <a href="/queue">Queue</a>
+    <a href="/logs">Logs</a>
+    <a href="/chat">Chat</a>
+    <a href="/settings">Settings</a>
+  </nav>
+</header>
+<main class="dc-main">
+
+  <h2 class="dc-h2">How the moderation pipeline works (deep dive)</h2>
+  <p class="dc-sub">
+    A reading-grade explanation of every stage. Each section answers
+    <b>what it does</b>, <b>why it's there</b>, <b>what it can / can't
+    catch</b>, and <b>cost in time + memory</b>. Use this to brief
+    judges or NGO partners.
+  </p>
+
+  <!-- ============ Stage 1: Heuristic prescan ============ -->
+  <div class="dc-arch-stage">
+    <div class="dc-arch-num">1</div>
+    <div class="dc-arch-body">
+      <h3>Heuristic prescan</h3>
+      <p>Eleven keyword signals organised into 3 tiers
+        (<b>critical</b> · <b>strong</b> · <b>legitimate-context</b>).
+        The signal set is tuned to the rubric vocabulary that matters
+        for ILO C029 forced-labour indicators and PH RA 8042 / DMW
+        recruitment violations. Every signal has a numeric weight; the
+        sum (capped 0–10) becomes the heuristic severity floor.</p>
+      <h4>Why a heuristic at all?</h4>
+      <p>It runs in <b>under 5 ms</b>, no GPU, no network. That gives
+        Gemma a deterministic anchor to reason from — Gemma sees the
+        prescan findings in its prompt, so it can say "the heuristic
+        flagged X; confirm or refute" rather than free-associating.
+        Also: if Gemma underrates a clearly-severe post (severity 1/10
+        on something with passport confiscation), the heuristic floor
+        kicks in via <code>final_sev = max(gemma, heuristic)</code>.</p>
+      <h4>What it catches</h4>
+      <ul>
+        <li><b>Critical (verdict-driving):</b>
+          <code>passport_confiscation</code>, <code>excessive_fee_with_currency</code>,
+          <code>movement_restriction</code>, <code>debt_bondage</code>,
+          <code>coercion_authority</code></li>
+        <li><b>Strong (escalating):</b> <code>identity_doc_request</code>,
+          <code>placement_fee_mention</code>, <code>private_channel_payment</code>,
+          <code>excessive_overtime</code></li>
+        <li><b>Legitimate (de-escalating):</b> <code>poea_license_mention</code>,
+          <code>employer_pays_principle</code></li>
+      </ul>
+      <h4>What it misses</h4>
+      <p>Polite or euphemistic language ("we hold the passport for
+        safekeeping") may not match a literal keyword. Stages 2 and 3
+        catch those via the KB.</p>
+    </div>
+    <div class="dc-arch-meta">
+      <div class="m"><span class="lbl">runtime</span><span class="val">≈ 5 ms</span></div>
+      <div class="m"><span class="lbl">cost</span><span class="val">CPU only</span></div>
+      <div class="m"><span class="lbl">deps</span><span class="val">stdlib</span></div>
+      <a class="dc-arch-cta" href="/settings#tab-heuristics">View signals →</a>
+    </div>
+  </div>
+
+  <!-- ============ Stage 2: GREP KB ============ -->
+  <div class="dc-arch-stage">
+    <div class="dc-arch-num">2</div>
+    <div class="dc-arch-body">
+      <h3>GREP knowledge base</h3>
+      <p>Regex match of the input's tokens + a curated phrase set
+        (<i>"ILO C029"</i>, <i>"RA 8042"</i>, <i>"kafala"</i>, …)
+        against 27 KB passages: 8 statutes, 7 ILO conventions, 4 ILO
+        forced-labour indicators, plus 13 hotline entries. Each
+        passage has tags + jurisdiction + topic so we can score
+        relevance without an embedding model.</p>
+      <h4>Why GREP before RAG?</h4>
+      <p>Two reasons: (a) it always works, even if the embedder
+        didn't load; (b) some matches you actively want to be
+        <b>explainable</b> ("we returned <code>ph_ra8042_sec6a</code>
+        because the input contained the literal phrase 'placement
+        fee'"). RAG returns top-K by cosine, which can drift on weird
+        inputs.</p>
+      <h4>What it catches</h4>
+      <p>Anything where the user uses the same vocabulary as the KB
+        passages — statute names, convention numbers, well-known terms
+        like "kafala" or "POLO".</p>
+      <h4>What it misses</h4>
+      <p>Paraphrases ("they keep my documents for safekeeping") match
+        the KB's <code>passport</code> tag only via tokens, so the
+        score is lower. Stage 3 fixes this.</p>
+    </div>
+    <div class="dc-arch-meta">
+      <div class="m"><span class="lbl">runtime</span><span class="val">≈ 20 ms</span></div>
+      <div class="m"><span class="lbl">cost</span><span class="val">CPU only</span></div>
+      <div class="m"><span class="lbl">deps</span><span class="val">stdlib re</span></div>
+      <a class="dc-arch-cta" href="/settings#tab-kb">View KB passages →</a>
+    </div>
+  </div>
+
+  <!-- ============ Stage 3: RAG ============ -->
+  <div class="dc-arch-stage">
+    <div class="dc-arch-num">3</div>
+    <div class="dc-arch-body">
+      <h3>RAG retrieval</h3>
+      <p>Encodes the input via <code>sentence-transformers/all-MiniLM-L6-v2</code>
+        (22 MB model, runs on CPU in ~200 ms). KB passages are
+        pre-embedded once at startup. Cosine top-K on the in-memory
+        matrix returns the most-similar passages, regardless of
+        whether the input shares any literal tokens.</p>
+      <h4>Why RAG when we have GREP?</h4>
+      <p>Coverage. A worker writing in their own language, or
+        paraphrasing the way real complaints actually sound, will
+        rarely use the KB's exact words. Embedding-based retrieval
+        catches "they took my papers" → ILO C029 indicator #7.
+        Surfacing both stages' hits to Gemma is what the literature
+        calls retrieval-augmented generation (RAG).</p>
+      <h4>What it catches</h4>
+      <p>Semantic matches: euphemisms, near-synonyms, paraphrases.
+        Multilingual to a degree — MiniLM was trained on parallel
+        corpora that include Tagalog, Indonesian, Hindi.</p>
+      <h4>What it misses</h4>
+      <p>Adversarial inputs that share semantic surface with the KB
+        but mean the opposite (e.g. "we DO NOT hold passports").
+        Stage 5 (Gemma) catches these.</p>
+      <h4>Fallback</h4>
+      <p>If <code>sentence-transformers</code> isn't installed (e.g.
+        a slim Docker image), this stage falls back to keyword scoring
+        and emits a <code>fallback</code> trace tag.</p>
+    </div>
+    <div class="dc-arch-meta">
+      <div class="m"><span class="lbl">runtime</span><span class="val">≈ 200 ms</span></div>
+      <div class="m"><span class="lbl">cost</span><span class="val">CPU 1×</span></div>
+      <div class="m"><span class="lbl">deps</span><span class="val">sentence-transformers</span></div>
+      <div class="m"><span class="lbl">model</span><span class="val">all-MiniLM-L6-v2 (22 MB)</span></div>
+    </div>
+  </div>
+
+  <!-- ============ Stage 4: Tool calls ============ -->
+  <div class="dc-arch-stage">
+    <div class="dc-arch-num">4</div>
+    <div class="dc-arch-body">
+      <h3>Deterministic tool calls</h3>
+      <p>Seven tools fire on every moderate run, deterministically (no
+        model needed):</p>
+      <ol>
+        <li><code>lookup_statute(juris, topic)</code> — legal anchoring.</li>
+        <li><code>lookup_hotline(country)</code> — locale-aware contact.</li>
+        <li><code>check_agency_license(name, juris)</code> — POEA / EAA / MOM lookup.</li>
+        <li><code>calculate_max_fee(juris, role)</code> — fee-cap citation.</li>
+        <li><code>identify_ilo_indicators(text)</code> — ILO C029 #1–#11 regex match.</li>
+        <li><code>lookup_embassy(origin, destination)</code> — consulate + secondary hotline.</li>
+        <li><code>search_known_actors(text)</code> — past-violations check; bumps severity.</li>
+      </ol>
+      <h4>Why tools instead of just RAG?</h4>
+      <p>Two things RAG can't do: (a) <b>compute</b> ("is USD 5000
+        over the fee cap?" needs a comparison, not a passage), and (b)
+        <b>cross-reference</b> ("is Pacific Coast Manpower licensed?"
+        needs a registry, not the law). Tools handle the
+        non-text-shaped parts of the answer.</p>
+      <h4>Why deterministic and not Gemma-driven?</h4>
+      <p>For the demo, we want every example to fire the same tools
+        in the same order so judges see consistent, reproducible
+        behaviour. The architecture supports Gemma-emitted tool calls
+        too (see <code>raw_python/gemma4_*_v1.py</code>) but the
+        synchronous demo path is deterministic for clarity.</p>
+    </div>
+    <div class="dc-arch-meta">
+      <div class="m"><span class="lbl">runtime</span><span class="val">≈ 5 ms total</span></div>
+      <div class="m"><span class="lbl">cost</span><span class="val">CPU only</span></div>
+      <div class="m"><span class="lbl">tools</span><span class="val">7 deterministic</span></div>
+      <a class="dc-arch-cta" href="/settings#tab-tools">View tool registry →</a>
+    </div>
+  </div>
+
+  <!-- ============ Stage 5: Gemma 4 ============ -->
+  <div class="dc-arch-stage dc-arch-gemma">
+    <div class="dc-arch-num">5</div>
+    <div class="dc-arch-body">
+      <h3>Gemma 4 classification</h3>
+      <p>The final classifier. Receives a structured prompt with: the
+        original input, the heuristic findings (so it can confirm or
+        refute the prescan), the matched KB passages (so it can cite
+        them), an explicit <b>severity-anchor table</b> tied to ILO /
+        Palermo / RA 8042 thresholds, and the verdict rules. Returns
+        a JSON object with <code>verdict</code> ∈ {block, review, pass},
+        <code>severity</code> 0–10, and a one-sentence reasoning.</p>
+      <h4>Why anchor with the heuristic?</h4>
+      <p>Without the anchor, Gemma 4 occasionally returned
+        <code>severity: 1</code> for inputs with passport
+        confiscation. Anchoring it to the heuristic prescan + the
+        explicit severity table fixes this to high single-digits
+        consistently. The post-processor takes
+        <code>max(gemma, heuristic)</code> as a safety net.</p>
+      <h4>Why Gemma 4 specifically?</h4>
+      <p>Three Gemma 4 features matter for this rubric:</p>
+      <ul>
+        <li><b>Native multimodal</b> — image + text in one model
+          means the same Gemma can read a contract photo and the
+          accompanying message. We use the text-only path here for
+          speed; multimodal is wired in <code>load_gemma_smart</code>.</li>
+        <li><b>Native function calling</b> — the chat template
+          accepts a <code>tools</code> list and emits structured tool
+          calls. The pipeline's deterministic tools are an MVP; the
+          full agentic loop is one bool flag away.</li>
+        <li><b>On-device deployable</b> — E4B in 4-bit fits a Kaggle
+          T4 (15 GB VRAM) and a $300 LiteRT phone. NGOs that can't
+          send case data to the cloud can still run the analysis.</li>
+      </ul>
+    </div>
+    <div class="dc-arch-meta">
+      <div class="m"><span class="lbl">runtime</span><span class="val">≈ 8–18 s</span></div>
+      <div class="m"><span class="lbl">cost</span><span class="val">GPU (T4 4-bit)</span></div>
+      <div class="m"><span class="lbl">model</span><span class="val">Gemma 4 E4B-IT (4.8 B)</span></div>
+      <div class="m"><span class="lbl">VRAM</span><span class="val">~5.5 GB (4-bit)</span></div>
+      <a class="dc-arch-cta" href="/chat">Try Gemma chat →</a>
+    </div>
+  </div>
+
+  <!-- ============ Output stage ============ -->
+  <div class="dc-arch-stage">
+    <div class="dc-arch-num">6</div>
+    <div class="dc-arch-body">
+      <h3>Output: verdict + evidence + action</h3>
+      <p>Every moderate run returns a JSON payload that includes:</p>
+      <ul>
+        <li><code>verdict</code> + <code>severity</code> + <code>reasoning</code></li>
+        <li><code>matched_signals</code> — heuristic findings as objects</li>
+        <li><code>kb_hits</code> — every passage retrieved by GREP + RAG</li>
+        <li><code>tool_calls</code> — every tool invocation with args + result</li>
+        <li><code>ilo_indicators</code> — which ILO C029 indicators fired</li>
+        <li><code>fee_cap</code>, <code>license_check</code>,
+          <code>embassy</code>, <code>known_actors</code></li>
+        <li><code>hotline</code> — locale-aware contact</li>
+      </ul>
+      <p>This is what makes the verdict <b>actionable</b>: a
+        moderator doesn't just see "BLOCK", they see the statute, the
+        embassy contact, and the unverified-licence flag they need to
+        write the take-down report.</p>
+    </div>
+    <div class="dc-arch-meta">
+      <div class="m"><span class="lbl">format</span><span class="val">JSON</span></div>
+      <a class="dc-arch-cta" href="/queue">View live tasks →</a>
+    </div>
+  </div>
+
+</main>
+<style>
+.dc-arch-stage {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 12px; padding: 22px;
+  margin-bottom: 18px;
+  display: grid;
+  grid-template-columns: 60px 1fr 220px;
+  gap: 22px; align-items: start;
+}
+.dc-arch-stage.dc-arch-gemma { border-color: var(--primary);
+  background: linear-gradient(180deg, #ffffff 0%, #eff6ff 100%); }
+.dc-arch-num {
+  width: 46px; height: 46px; border-radius: 12px;
+  background: var(--primary); color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: 22px;
+}
+.dc-arch-stage.dc-arch-gemma .dc-arch-num { background: #1e40af; }
+.dc-arch-body h3 { margin: 0 0 8px 0; font-size: 19px; }
+.dc-arch-body h4 { margin: 16px 0 6px 0; font-size: 13px;
+                    color: var(--primary); text-transform: uppercase;
+                    letter-spacing: 0.04em; }
+.dc-arch-body p { margin: 6px 0; line-height: 1.6; }
+.dc-arch-body ul, .dc-arch-body ol {
+  margin: 6px 0 6px 22px; padding: 0;
+}
+.dc-arch-body li { margin: 4px 0; }
+.dc-arch-meta {
+  display: flex; flex-direction: column; gap: 8px;
+  padding: 14px; background: #f8fafc;
+  border: 1px solid var(--border); border-radius: 10px;
+  font-size: 12px;
+}
+.dc-arch-meta .m {
+  display: flex; flex-direction: column; gap: 2px;
+}
+.dc-arch-meta .lbl {
+  font-size: 10px; color: var(--muted); text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.dc-arch-meta .val { font-weight: 600; color: var(--ink); font-size: 13px; }
+.dc-arch-cta {
+  display: inline-block; margin-top: 6px; padding: 8px 12px;
+  background: var(--primary); color: #fff; text-decoration: none;
+  border-radius: 6px; font-size: 12px; font-weight: 600;
+  text-align: center;
+}
+.dc-arch-cta:hover { background: #3a5d83; }
+@media (max-width: 900px) {
+  .dc-arch-stage { grid-template-columns: 46px 1fr; }
+  .dc-arch-meta { grid-column: 1 / -1; flex-direction: row;
+                   flex-wrap: wrap; gap: 14px; }
+  .dc-arch-meta .m { flex: 0 0 auto; }
+  .dc-arch-cta { flex: 1 1 100%; }
+}
+</style>
+</body>
+</html>

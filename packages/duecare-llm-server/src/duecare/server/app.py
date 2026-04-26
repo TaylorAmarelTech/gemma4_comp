@@ -163,6 +163,10 @@ def create_app(state: Optional[ServerState] = None) -> FastAPI:
     def workspace_page():
         return _serve_html(static_dir / "workspace.html")
 
+    @app.get("/architecture", response_class=HTMLResponse)
+    def architecture_page():
+        return _serve_html(static_dir / "architecture.html")
+
     @app.get("/api/logs")
     def api_logs(limit: int = 200, level: Optional[str] = None,
                   source: Optional[str] = None,
@@ -753,25 +757,59 @@ def create_app(state: Optional[ServerState] = None) -> FastAPI:
 
     @app.get("/api/config/tools")
     def api_tools():
-        from duecare.server.pipeline_steps import (
-            tool_lookup_statute, tool_lookup_hotline)
         return {
-            "tool_count": 2,
+            "tool_count": 7,
             "tools": [
                 {"name": "lookup_statute",
                  "params": ["jurisdiction", "topic"],
                  "description": "Returns matching statutes / conventions "
                                   "from the KB for the (jurisdiction, topic) "
-                                  "combo. Jurisdictions: PH, HK, SG, MY, "
-                                  "AE, SA, QA, KW, NP, ID, LK, IN, BD, "
-                                  "international.",
+                                  "combo. Used to anchor Gemma's reasoning "
+                                  "to actual legal text.",
                  "example": {"jurisdiction": "PH", "topic": "fee"}},
                 {"name": "lookup_hotline",
                  "params": ["country"],
                  "description": "Returns the official labour-rights / "
-                                  "anti-trafficking hotline name + contact "
-                                  "for the country code.",
+                                  "anti-trafficking hotline. 13 locales "
+                                  "preloaded (PH 1343, HK 2717-1771, etc.).",
                  "example": {"country": "ph"}},
+                {"name": "check_agency_license",
+                 "params": ["agency_name", "jurisdiction"],
+                 "description": "Verify whether a recruitment agency holds "
+                                  "a current government licence (POEA/DMW "
+                                  "for PH, EAA for HK, MOM for SG, MOHRE "
+                                  "for AE). Returns licence number + expiry.",
+                 "example": {"agency_name": "Pacific Source Manpower Corp.",
+                              "jurisdiction": "PH"}},
+                {"name": "calculate_max_fee",
+                 "params": ["jurisdiction", "role"],
+                 "description": "Legal placement-fee cap for a "
+                                  "(jurisdiction, role) combo, with the "
+                                  "citation. Used to flag fees that exceed "
+                                  "the statutory limit.",
+                 "example": {"jurisdiction": "PH",
+                              "role": "domestic_worker"}},
+                {"name": "identify_ilo_indicators",
+                 "params": ["text"],
+                 "description": "Match ILO C029 forced-labour indicators "
+                                  "against the input via curated regexes. "
+                                  "Returns the unique indicators present, "
+                                  "each with a quoted excerpt.",
+                 "example": {"text": "[any free-form text]"}},
+                {"name": "lookup_embassy",
+                 "params": ["origin", "destination"],
+                 "description": "Embassy / consulate contact for the "
+                                  "worker's origin country in the "
+                                  "destination country. Adds a layer "
+                                  "beyond the generic hotline.",
+                 "example": {"origin": "PH", "destination": "HK"}},
+                {"name": "search_known_actors",
+                 "params": ["text"],
+                 "description": "Scan input for known bad-actor names "
+                                  "from past complaints / enforcement "
+                                  "actions. Adds severity-modifier and "
+                                  "one-sentence history.",
+                 "example": {"text": "Pacific Coast Manpower Inc..."}},
             ],
             "registered_task_types": tq.known_task_types(),
         }

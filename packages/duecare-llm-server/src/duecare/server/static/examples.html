@@ -13,6 +13,7 @@
     <a href="/">Home</a>
     <a href="/examples" class="active">Examples</a>
     <a href="/workspace">Workspace</a>
+    <a href="/architecture">Architecture</a>
     <a href="/enterprise">Enterprise</a>
     <a href="/individual">Individual</a>
     <a href="/knowledge">Knowledge</a>
@@ -25,14 +26,22 @@
 </header>
 <main class="dc-main">
 
-  <h2 class="dc-h2">Curated example use cases</h2>
+  <h2 class="dc-h2">Curated example use cases — guided tour</h2>
   <p class="dc-sub">
-    Four real-world scenarios with pre-loaded inputs. Each card
-    explains who the operator is, what they're trying to accomplish,
-    what the pipeline finds, and why each verdict matters. Click any
-    card to expand. The "Run" button submits the example through the
-    same traced queue that powers Workspace.
+    Four real-world scenarios. Click a card to expand inline, OR hit
+    <b>Start guided tour</b> to walk through all four in slideshow
+    mode (auto-runs each example with narrated stage explanations).
   </p>
+
+  <div class="dc-tour-controls">
+    <button class="dc-btn" onclick="startTour()">▶ Start guided tour</button>
+    <button class="dc-btn secondary" onclick="stopTour()" id="stop-btn"
+            style="display:none">■ Stop tour</button>
+    <span id="tour-status" style="font-size:13px; color:var(--muted)"></span>
+    <span style="margin-left:auto; font-size:12px; color:var(--muted)">
+      For the video pitch, use the tour. For exploration, click any card.
+    </span>
+  </div>
 
   <div id="examples-grid" class="dc-examples-grid"></div>
 
@@ -157,8 +166,81 @@
   border-radius: 4px; padding: 2px 8px; margin: 2px 4px 2px 0;
   font-size: 11px; font-family: monospace;
 }
+.dc-tour-controls {
+  display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  padding: 14px 18px; background: linear-gradient(135deg, #eff6ff 0%, #f5f3ff 100%);
+  border: 1px solid #ddd6fe; border-radius: 10px; margin-bottom: 18px;
+}
+.dc-narration {
+  background: #1e293b; color: #e2e8f0;
+  border-radius: 10px; padding: 16px 22px; margin: 14px 0;
+  font-size: 15px; line-height: 1.6;
+  border-left: 4px solid #60a5fa;
+}
+.dc-narration b { color: #ffffff; }
+.dc-narration code { background: rgba(255,255,255,0.12); padding: 1px 6px;
+                       border-radius: 3px; font-size: 13px; color: #93c5fd; }
+.dc-narration .speaker {
+  font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em;
+  color: #93c5fd; margin-bottom: 6px; font-weight: 600;
+}
+.dc-stage-detail {
+  background: #f8fafc; border: 1px solid var(--border);
+  border-radius: 8px; padding: 12px 16px; margin-top: 10px;
+  font-size: 13px;
+}
+.dc-stage-detail h5 {
+  margin: 0 0 6px 0; font-size: 13px;
+  color: var(--primary); text-transform: uppercase; letter-spacing: 0.04em;
+}
+.dc-tool-detail {
+  background: #ffffff; border: 1px solid var(--border);
+  border-radius: 6px; padding: 8px 12px; margin: 4px 0;
+  font-size: 12px;
+}
+.dc-tool-detail .tname {
+  font-family: monospace; color: var(--primary); font-weight: 600;
+}
+.dc-tool-detail .targs { color: var(--muted); font-size: 11px; }
+.dc-tool-detail .tresult {
+  margin-top: 4px; padding-top: 4px;
+  border-top: 1px dashed var(--border);
+  white-space: pre-wrap; font-family: monospace; font-size: 11px;
+}
 </style>
 <script>
+// ===== Per-stage narration shown live during the tour =====
+const STAGE_NARRATION = {
+  input_check:        'Input received and routed into the queue.',
+  heuristic_prescan:  'Eleven keyword signals run in under 5 ms. ' +
+                        'This sets the severity floor — even if the LLM later ' +
+                        'misjudges, the rule-based prescan keeps clear scams from ' +
+                        'sneaking through as low-severity.',
+  grep_kb:            'Regex match against 27 statutes, conventions, and ILO ' +
+                        'indicators. Deterministic, explainable — every match ' +
+                        'cites a specific KB passage ID.',
+  rag_kb:             'Sentence-transformer embedding + cosine top-K. Catches ' +
+                        'paraphrases the regex misses. The euphemisms ' +
+                        'recruiters use ("safekeeping", "documentation") map ' +
+                        'to the right ILO indicators here.',
+  tool_calls:         'Seven deterministic tools fire: statute lookup, ' +
+                        'hotline, agency-licence verification, fee-cap ' +
+                        'calculator, ILO indicator matcher, embassy ' +
+                        'lookup, and known-actor search. These add the ' +
+                        'numbers and the names the LLM cannot synthesise.',
+  gemma_classify:     'Gemma 4 receives the original input PLUS the ' +
+                        'heuristic findings PLUS the KB hits PLUS a ' +
+                        'severity-anchor table. Returns BLOCK / REVIEW / ' +
+                        'PASS with one-sentence reasoning. Severity floor: ' +
+                        'max(gemma, heuristic).',
+  gemma_advise:       'Gemma 4 receives the heuristic + KB context and ' +
+                        'returns plain-language advice for the worker, the ' +
+                        'right hotline, and concrete next steps.',
+  done:               'Final result is JSON with verdict, severity, ' +
+                        'matched signals, KB evidence, every tool call ' +
+                        'and result, and the locale-aware hotline.',
+};
+
 // ===== The 4 curated examples =====
 const EXAMPLES = [
   {
@@ -486,11 +568,14 @@ function renderTrace(id, trace) {
     const cls = 's-' + (s.status || 'ok');
     const t = (s.elapsed_since_start != null
                 ? '+' + s.elapsed_since_start.toFixed(2) + 's' : '');
+    const narration = STAGE_NARRATION[s.name];
     html += `<div class="dc-trace-step ${cls}">` +
       `<span class="t-time">${t}</span>` +
       `<span class="t-tag">${(s.status||'ok').slice(0,4)}</span>` +
       `<div><div class="t-name">${s.name}</div>` +
       (s.detail ? `<div class="t-detail">${s.detail}</div>` : '') +
+      (narration ? `<div class="t-detail" style="color:#1e40af;` +
+                       `margin-top:4px;font-style:italic">${narration}</div>` : '') +
       `</div></div>`;
   }
   document.getElementById('trace-' + id).innerHTML = html;
@@ -544,11 +629,110 @@ function renderVerdict(id, result, taskType) {
                 : c.result ? ` → ${c.result}` : '';
       tcHtml += `<span class="dc-tool-call">${c.tool}(${args})${rs}</span>`;
     }
+    // Detail boxes for the rich tools
+    if (result.ilo_indicators && result.ilo_indicators.indicator_count > 0) {
+      tcHtml += `<div class="dc-tool-detail">` +
+        `<div><span class="tname">identify_ilo_indicators</span> ` +
+        `<span class="targs">→ ${result.ilo_indicators.indicator_count} ILO C029 indicator(s)</span></div>` +
+        `<div class="tresult">`;
+      for (const ind of result.ilo_indicators.indicators_present) {
+        tcHtml += `• <b>${ind.name}</b>\n`;
+        for (const ev of (ind.evidence || [])) {
+          tcHtml += `   "${ev}"\n`;
+        }
+      }
+      tcHtml += `</div></div>`;
+    }
+    if (result.fee_cap) {
+      const fc = result.fee_cap;
+      tcHtml += `<div class="dc-tool-detail">` +
+        `<div><span class="tname">calculate_max_fee</span> ` +
+        `<span class="targs">(${fc.jurisdiction}, ${fc.role}) → ${fc.currency} ${fc.max_fee}</span></div>` +
+        `<div class="tresult">${fc.citation}</div></div>`;
+    }
+    if (result.license_check) {
+      const lc = result.license_check;
+      const cls = lc.verified ? 'dc-state-completed' : 'dc-state-failed';
+      tcHtml += `<div class="dc-tool-detail">` +
+        `<div><span class="tname">check_agency_license</span> ` +
+        `<span class="targs">"${lc.agency_name}" (${lc.jurisdiction}) → <span class="dc-badge ${cls}">${lc.status}</span></span></div>`;
+      if (lc.license_number) {
+        tcHtml += `<div class="tresult">licence: ${lc.license_number} (${lc.registry}), expires ${lc.expiry}</div>`;
+      }
+      tcHtml += `</div>`;
+    }
+    if (result.embassy && result.embassy.found) {
+      const e = result.embassy;
+      tcHtml += `<div class="dc-tool-detail">` +
+        `<div><span class="tname">lookup_embassy</span> ` +
+        `<span class="targs">${e.origin} → ${e.destination}</span></div>` +
+        `<div class="tresult">${e.embassy} — ${e.phone}\n   secondary: ${e.secondary_contact}</div></div>`;
+    }
+    if (result.known_actors && result.known_actors.match_count > 0) {
+      tcHtml += `<div class="dc-tool-detail">` +
+        `<div><span class="tname">search_known_actors</span> ` +
+        `<span class="targs">→ <span class="dc-badge dc-state-failed">${result.known_actors.match_count} known actor(s)</span></span></div>` +
+        `<div class="tresult">`;
+      for (const a of result.known_actors.actors) {
+        tcHtml += `• ${a.name} (${a.type}, ${a.jurisdiction})\n   ${a.history}\n   severity bump: +${a.severity_modifier}\n`;
+      }
+      tcHtml += `</div></div>`;
+    }
   } else {
     tcHtml = '<p style="color:var(--muted);font-size:12px">(no tool calls)</p>';
   }
   document.getElementById('tools-' + id).innerHTML = tcHtml;
 }
+
+// ===== Guided tour (slideshow) =====
+let _tourActive = false;
+let _tourIndex = 0;
+
+async function startTour() {
+  _tourActive = true;
+  _tourIndex = 0;
+  document.getElementById('stop-btn').style.display = 'inline-block';
+  // Close all open cards
+  document.querySelectorAll('.dc-ex-card.open').forEach(c => c.classList.remove('open'));
+  await playTourStep();
+}
+
+function stopTour() {
+  _tourActive = false;
+  document.getElementById('stop-btn').style.display = 'none';
+  document.getElementById('tour-status').innerText = 'Tour stopped.';
+}
+
+async function playTourStep() {
+  if (!_tourActive) return;
+  if (_tourIndex >= EXAMPLES.length) {
+    document.getElementById('tour-status').innerText =
+      `✓ Tour complete (${EXAMPLES.length}/${EXAMPLES.length}).`;
+    document.getElementById('stop-btn').style.display = 'none';
+    _tourActive = false;
+    return;
+  }
+  const ex = EXAMPLES[_tourIndex];
+  document.getElementById('tour-status').innerHTML =
+    `<b>Tour step ${_tourIndex + 1} of ${EXAMPLES.length}:</b> ${ex.title}`;
+  // Open the card
+  document.querySelectorAll('.dc-ex-card.open').forEach(c => c.classList.remove('open'));
+  const card = document.getElementById('card-' + ex.id);
+  card.classList.add('open');
+  buildDetail(ex);
+  card.scrollIntoView({behavior:'smooth', block:'start'});
+  await sleep(800);
+  // Run it
+  await runExample(ex.id);
+  if (!_tourActive) return;
+  // Wait a beat for the user to read
+  await sleep(4000);
+  if (!_tourActive) return;
+  _tourIndex += 1;
+  await playTourStep();
+}
+
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 
 renderCards();
 </script>
