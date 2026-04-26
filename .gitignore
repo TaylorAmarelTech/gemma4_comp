@@ -88,3 +88,10 @@ local_gemma_results.json
 # Claude Code local settings (contains user-local API tokens)
 .claude/settings.local.json
 
+# Raw single-cell Kaggle deliverables -- contain hardcoded API keys
+# for private Kaggle notebooks. Built locally from per-component
+# source files; never commit.
+raw_python/
+
+evidence_raw/
+_work/

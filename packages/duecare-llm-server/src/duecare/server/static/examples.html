@@ -349,39 +349,71 @@ designed for exactly that audit trail.
   },
   {
     id: 'social_media_examples',
-    title: 'Social media: where the recruitment actually happens',
+    title: 'Real evidence: what these patterns look like in the wild',
     accent: '#f59e0b',
     body: `<p style="font-size:15px;line-height:1.65">
-Recruiters openly post on Facebook Marketplace Jobs, TikTok,
-Instagram, Telegram, and WhatsApp groups — often in the worker's
-language, often with explicit ILO-indicator language, often without
-moderation. A few real-world pattern categories:
+Below are <b>redacted thumbnails of actual public Facebook posts</b>
+documenting the predatory-lender doxxing pattern targeting Filipino
+and Indonesian OFWs. Originals are screen recordings + screenshots
+collected from public pages (Bank Hongkong, Yoursun Caretaker, Wang
+Tzu, and others) between February 2021 and April 2024 — across
+multiple lender accounts, in multiple languages, over four years.
+</p>
+
+<div style="background:#fef2f2;border-left:4px solid #ef4444;padding:12px 16px;border-radius:6px;margin:14px 0;font-size:13px">
+<b style="color:#991b1b">⚠ Why the images are heavily blurred:</b>
+the originals contain unredacted full names, passport photos, and
+identifying details of real OFW victims. Per the project's safety
+gate (<a href="/background">/background section 5</a>) we cannot ship
+the raw screenshots — even though they are technically public — because
+doing so would compound the doxxing harm. The thumbnails below are
+deliberately reduced to <i>pattern-only</i> visibility (boxblur=20,
+downscale to 480px, "REDACTED" watermark). The pattern (Facebook
+post · photo thumbnail · debt-shaming text block) is recognisable;
+no individual identification is possible. Click "Open evidence
+gallery" below for the full collection (4 image albums + 30 video
+keyframes + sanitised research-document summary).
+</div>
+
+<div id="slide3-evidence-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;margin:14px 0">
+  <!-- populated from /static/evidence/manifest.json on slide enter -->
+  <div style="grid-column:1/-1;color:var(--muted);font-size:12px">Loading evidence thumbnails…</div>
+</div>
+
+<p style="font-size:14px;line-height:1.6;margin-top:14px">
+<b>What the pipeline catches in this category:</b>
 </p>
 <ul style="font-size:14px;line-height:1.6">
-<li>Closed FB groups for "OFWs going to KSA" with weekly recruiter
-  posts asking workers to deposit USD 3,000–6,000 to personal
-  accounts before any documents are signed.</li>
-<li>TikTok ads in Indonesian / Tagalog with "<i>walang placement
-  fee, deposit lang ng USD 5K muna</i>" (no placement fee, just
-  deposit USD 5K first) — the linguistic frame designed to skirt
-  POEA detection.</li>
-<li>Telegram channels where "agency bosses" privately ask for
-  passport scans + NBI clearances + financial signing authority.</li>
-<li>Instagram-DM conversations escalating from a polite job pitch
-  to "I will hold your passport for safety" within 6 messages.</li>
+<li><b>"WANTED:" / "looking for this OFW" framing</b> →
+  <code>check_social_media_harassment</code> matches "manhunt language"</li>
+<li><b>Passport photo + full name combination</b> →
+  <code>check_doxxing_indicators</code> flags HIGH risk</li>
+<li><b>"asap pay ur overdues" / threat to escalate publicly</b> →
+  <code>check_debt_harassment</code> detects HARASSMENT</li>
+<li><b>Bank Hongkong / Yoursun Caretaker / Wang Tzu page names</b> →
+  <code>check_predatory_lender</code> applies +3 severity bump</li>
+<li><b>Multi-language amplification</b> (English / Tagalog / Bahasa
+  Indonesia / Vietnamese) → RAG retrieves the relevant local statutes
+  (PH RA 10173 / 10175 / 9995 / SEC MC 18-2019 + HK Cap. 486)</li>
 </ul>
-<p style="font-size:14px;color:var(--muted);margin-top:14px;font-style:italic">
-[Placeholder section — Taylor will drop in screenshot evidence
-of these patterns from public Facebook / TikTok / Telegram posts
-he has been collecting. Composite text inputs in the 4 example
-cards below are synthesised from this pattern set.]
+
+<p style="margin-top:14px">
+<a href="/evidence" class="dc-btn" style="display:inline-block;padding:8px 16px;text-decoration:none">📂 Open evidence gallery</a>
 </p>`,
     callouts: [
-      ['The platform problem', 'These platforms have moderation but it is ' +
-                                  'tuned to general toxicity. Trafficking-specific ' +
-                                  'language (passport "safekeeping", "kafala", debt-bondage ' +
-                                  'phrasing) sails through because no model has been trained ' +
-                                  'on it as a category.'],
+      ['The platform problem', 'These platforms have moderation tuned to ' +
+                                  'general toxicity. Trafficking-specific language (passport ' +
+                                  '"safekeeping", "kafala", debt-bondage phrasing, "wanted ' +
+                                  'poster" debt-shaming) sails through because no model has ' +
+                                  'been trained on it as a category. Hence the multi-stage ' +
+                                  'KB+tool approach Duecare uses.'],
+      ['Redaction policy', 'The 30+ evidence images shipped with the demo ' +
+                              'are aggressive blur ("schematic only") versions of real ' +
+                              'public posts. Originals stay in a gitignored evidence_raw/ ' +
+                              'directory on the operator\'s machine and never enter the ' +
+                              'wheel. The redaction tool (scripts/redact_evidence.py) is ' +
+                              'open and auditable -- ffmpeg boxblur=20 + downscale + ' +
+                              '"REDACTED" watermark.'],
     ],
   },
   {
@@ -763,6 +795,44 @@ const EXAMPLES = [
   },
 ];
 
+async function _loadSlide3Evidence() {
+  // Pull a curated subset of thumbnails for slide 3 (one per major
+  // evidence asset: 4 imgur images + 1 keyframe per video = 9 thumbs).
+  const grid = document.getElementById('slide3-evidence-grid');
+  if (!grid) return;
+  let m;
+  try {
+    m = await (await fetch('/static/evidence/manifest.json?t=' + Date.now())).json();
+  } catch (e) {
+    grid.innerHTML = '<div style="grid-column:1/-1;color:var(--muted);' +
+      'font-size:12px">evidence manifest load failed: ' + e + '</div>';
+    return;
+  }
+  const items = (m.items || []).filter(it => it.kind === 'image');
+  // Pick 4 imgur + 1 representative keyframe per video (slug starts with imgur_ or _f02 of each video)
+  const picks = [
+    ...items.filter(it => it.id.startsWith('imgur_')),
+    ...items.filter(it => /_f02$/.test(it.id)),
+  ].slice(0, 9);
+  if (!picks.length) {
+    grid.innerHTML = '<div style="grid-column:1/-1;color:var(--muted);' +
+      'font-size:12px">No evidence assets in manifest yet.</div>';
+    return;
+  }
+  let html = '';
+  for (const it of picks) {
+    html += `<a href="/evidence" style="display:block;background:#fff;` +
+      `border:1px solid var(--border);border-radius:6px;overflow:hidden;` +
+      `text-decoration:none;color:inherit">` +
+      `<img src="/static/evidence/${it.filename}" style="width:100%;` +
+      `display:block" alt="redacted evidence">` +
+      `<div style="padding:6px 8px;font-size:10px;color:var(--muted);` +
+      `line-height:1.3">${(it.title || '').slice(0, 50)}…</div>` +
+      `</a>`;
+  }
+  grid.innerHTML = html;
+}
+
 function renderCards() {
   const grid = document.getElementById('examples-grid');
   let html = '';
@@ -1105,6 +1175,8 @@ async function playTourStep() {
 function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 
 renderCards();
+// Load evidence thumbnails into slide 3 once cards are in the DOM
+setTimeout(_loadSlide3Evidence, 200);
 </script>
 </body>
 </html>
