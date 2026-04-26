@@ -1,0 +1,559 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Enterprise compliance — Duecare</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <script src="/static/examples.js"></script>
+</head>
+<body>
+<header class="dc-nav">
+  <h1>Duecare<span class="tag"> · enterprise compliance</span></h1>
+  <nav>
+    <a href="/">Home</a>
+    <a href="/enterprise" class="active">Enterprise</a>
+    <a href="/individual">Individual</a>
+    <a href="/knowledge">Knowledge</a>
+    <a href="/dashboard">Dashboard</a>
+    <a href="/queue">Queue</a>
+    <a href="/logs">Logs</a>
+    <a href="/chat">Chat</a>
+    <a href="/settings">Settings</a>
+  </nav>
+</header>
+<main class="dc-main">
+
+  <h2 class="dc-h2">Content moderation queue</h2>
+  <p class="dc-sub">
+    Paste a job-board post, recruiter ad, or message. Multi-signal
+    heuristic + Gemma 4 (when loaded) returns BLOCK / REVIEW / PASS.
+    Image / PDF / DOCX upload supported with OCR.
+  </p>
+
+  <div class="dc-panel">
+    <h3>Try a curated example</h3>
+    <p class="dc-sub" style="font-size:13px;margin-bottom:10px">
+      8 examples spanning suspicious → legitimate, English / Tagalog /
+      Indonesian. Click to populate the input below.
+    </p>
+    <div id="examples" class="dc-examplesgrid">Loading…</div>
+  </div>
+
+  <div class="dc-panel">
+    <h3>1. Submit content</h3>
+    <textarea id="text" placeholder="Paste a job posting or message…"></textarea>
+    <div style="margin-top:10px; display:flex; gap:10px; align-items:center; flex-wrap:wrap">
+      <select id="locale" style="width:160px">
+        <option value="en">English</option>
+        <option value="ph">Tagalog (PH)</option>
+        <option value="id">Indonesian</option>
+        <option value="hk">English (HK)</option>
+        <option value="sa">Saudi Arabia</option>
+      </select>
+      <button class="dc-btn" onclick="moderate()">Run moderation</button>
+      <button class="dc-btn secondary" onclick="document.getElementById('text').value=''">Clear</button>
+    </div>
+    <div style="margin-top:14px; padding-top:14px; border-top:1px dashed var(--border)">
+      <h4 style="margin:0 0 10px 0; font-size:14px; color:var(--muted)">
+        OR upload a file (image / PDF / DOCX / TXT) for OCR + verdict
+      </h4>
+      <input type="file" id="file"
+             accept=".pdf,.docx,.txt,.md,.png,.jpg,.jpeg,.tiff,.tif,.bmp,.gif,.webp">
+      <button class="dc-btn" style="margin-left:10px"
+              onclick="moderateFile()">Run moderation (file)</button>
+      <div id="file-extracted" style="margin-top:10px; color:var(--muted); font-size:12px"></div>
+    </div>
+
+    <div style="margin-top:14px; padding-top:14px; border-top:1px dashed var(--border)">
+      <h4 style="margin:0 0 10px 0; font-size:14px; color:var(--muted)">
+        OR upload a <b>folder archive</b> (.zip / .tar / .tar.gz) for batch
+        moderation — every file inside gets queued individually
+      </h4>
+      <p style="font-size:12px; color:var(--muted); margin:0 0 8px 0">
+        Caps: 500 files per archive, 25 MB per file, 500 MB total.
+        Supported file types: txt, md, csv, pdf, docx, png, jpg, jpeg,
+        tiff, bmp, gif, webp.
+      </p>
+      <input type="file" id="batch-file"
+             accept=".zip,.tar,.tar.gz,.tgz,.tar.bz2">
+      <button class="dc-btn" style="margin-left:10px"
+              onclick="moderateBatch()">Run batch moderation</button>
+      <div id="batch-status" style="margin-top:10px; color:var(--muted); font-size:12px"></div>
+    </div>
+  </div>
+
+  <div class="dc-panel" id="batch-panel" style="display:none">
+    <h3>Batch results</h3>
+    <div id="batch-summary" style="margin-bottom:14px; display:flex; gap:10px; flex-wrap:wrap"></div>
+    <div class="dc-progress" style="margin-bottom:10px"><div id="batch-bar"></div></div>
+    <div id="batch-detail" style="margin-bottom:10px; font-size:12px; color:var(--muted)"></div>
+    <div id="batch-table" style="max-height:520px; overflow:auto"></div>
+  </div>
+
+  <div class="dc-panel" id="progress-panel" style="display:none">
+    <h3>2. Job progress</h3>
+    <div id="progress-line" style="display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:8px">
+      <span id="progress-state" class="dc-badge">submitting…</span>
+      <span id="progress-id" style="font-family:monospace; font-size:12px; color:var(--muted)"></span>
+      <span id="progress-worker" style="font-size:12px; color:var(--muted)"></span>
+      <span id="progress-elapsed" style="font-size:12px; color:var(--muted)"></span>
+    </div>
+    <div class="dc-progress"><div id="progress-bar"></div></div>
+    <div id="progress-detail" style="margin-top:8px; font-size:12px; color:var(--muted)"></div>
+    <div id="queue-pos" style="margin-top:6px; font-size:12px; color:var(--muted)"></div>
+  </div>
+
+  <div class="dc-panel" id="result-panel" style="display:none">
+    <h3>3. Verdict</h3>
+    <div id="verdict"></div>
+    <div id="reasoning" style="margin-top: 12px; color: var(--muted); white-space: pre-wrap"></div>
+    <div id="signals" style="margin-top: 14px"></div>
+    <details style="margin-top: 14px">
+      <summary>Raw response</summary>
+      <div class="dc-output" id="raw"></div>
+    </details>
+  </div>
+
+  <div class="dc-panel">
+    <h3>Live task queue</h3>
+    <p class="dc-sub" style="font-size:13px;margin-bottom:10px">
+      Last 15 tasks across all submissions. Updates every 2 seconds.
+    </p>
+    <div id="queue-table">Loading…</div>
+  </div>
+
+  <div class="dc-panel">
+    <h3>Recent flagged findings (across all runs)</h3>
+    <div id="findings">Loading…</div>
+  </div>
+
+</main>
+<style>
+.dc-examplesgrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 10px;
+}
+.dc-example {
+  background: #f8fafc; border: 1px solid var(--border);
+  border-radius: 8px; padding: 12px; cursor: pointer;
+  font-size: 13px; transition: border-color 100ms ease, background 100ms ease;
+}
+.dc-example:hover { border-color: var(--primary); background: #eff6ff; }
+.dc-example .ex-title { font-weight: 600; margin-bottom: 4px; }
+.dc-example .ex-tag {
+  display: inline-block; padding: 2px 8px; border-radius: 4px;
+  font-size: 11px; font-weight: 600; margin-right: 6px;
+}
+.dc-example .ex-tag.block { background: #fef2f2; color: #991b1b; }
+.dc-example .ex-tag.review { background: #fffbeb; color: #92400e; }
+.dc-example .ex-tag.pass { background: #ecfdf5; color: #065f46; }
+.dc-example .ex-text {
+  color: var(--muted); margin-top: 6px;
+  display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.dc-progress {
+  width: 100%; height: 10px; background: #f1f5f9;
+  border-radius: 5px; overflow: hidden; border: 1px solid var(--border);
+}
+.dc-progress > div {
+  height: 100%; width: 0%;
+  background: linear-gradient(90deg, var(--primary), #60a5fa);
+  transition: width 200ms linear;
+}
+.dc-progress.indeterminate > div {
+  width: 30%;
+  animation: dc-indet 1.4s ease-in-out infinite;
+}
+@keyframes dc-indet {
+  0%   { transform: translateX(-100%); }
+  100% { transform: translateX(400%); }
+}
+.dc-state-pending  { background: #fffbeb; color: #92400e; }
+.dc-state-running  { background: #dbeafe; color: #1e40af; }
+.dc-state-completed { background: #d1fae5; color: #065f46; }
+.dc-state-failed   { background: #fee2e2; color: #991b1b; }
+.dc-qrow {
+  display: grid; grid-template-columns: auto 90px 80px 90px 1fr;
+  gap: 10px; padding: 6px 0; border-bottom: 1px solid var(--border);
+  font-size: 12px; align-items: center;
+}
+.dc-qrow.head { font-weight: 600; color: var(--muted); }
+.dc-qrow code { font-family: monospace; font-size: 11px; }
+.dc-qrow.row-running { animation: dc-pulse 1.4s ease-in-out infinite; }
+@keyframes dc-pulse { 0%,100% {opacity: 1;} 50% {opacity: 0.55;} }
+.dc-stat-mini {
+  background: #f8fafc; border: 1px solid var(--border);
+  border-radius: 6px; padding: 8px 14px; font-size: 12px; min-width: 80px;
+}
+.dc-stat-mini .num { font-weight: 700; color: var(--primary); font-size: 20px; }
+.dc-stat-mini .lbl { color: var(--muted); font-size: 11px; text-transform: lowercase; }
+</style>
+<script>
+function loadExamples() {
+  const grid = document.getElementById('examples');
+  let html = '';
+  for (const ex of (window.DUECARE_EXAMPLES.enterprise || [])) {
+    html += `<div class="dc-example" onclick="useExample(${JSON.stringify(ex).replace(/"/g, '&quot;')})">` +
+      `<div class="ex-title">${ex.title}</div>` +
+      `<span class="ex-tag ${ex.severity_hint}">${ex.severity_hint.toUpperCase()}</span>` +
+      `<span class="ex-tag" style="background:#f1f5f9;color:var(--muted)">${ex.locale}</span>` +
+      `<div class="ex-text">${ex.text}</div>` +
+      `</div>`;
+  }
+  grid.innerHTML = html;
+}
+function useExample(ex) {
+  document.getElementById('text').value = ex.text;
+  document.getElementById('locale').value = ex.locale;
+  document.getElementById('text').scrollIntoView({behavior:'smooth', block:'start'});
+}
+
+function _renderModerateResult(j) {
+  document.getElementById('result-panel').style.display = 'block';
+  const v = (j.verdict || 'review').toLowerCase();
+  document.getElementById('verdict').innerHTML = `
+    <span class="dc-badge ${v}">${v.toUpperCase()}</span>
+    severity ${j.severity || 0} / 10
+    <span class="dc-pill ${j.mode === 'gemma' ? 'ok' : ''}"
+          style="margin-left:8px">${j.mode || 'heuristic'}</span>`;
+  document.getElementById('reasoning').innerText = j.reasoning || '';
+  let sigHtml = '';
+  if (j.matched_signals && j.matched_signals.length) {
+    sigHtml += '<b>Matched signals:</b><ul>';
+    for (const s of j.matched_signals) {
+      const cls = s.tier === 'critical' ? 'severity-high' :
+                  s.tier === 'strong' ? 'severity-med' : 'severity-low';
+      sigHtml += `<li><span class="dc-badge ${cls}">${s.signal}</span> ` +
+        `(${s.tier}, +${s.severity_weight}): ${(s.hits||[]).join(', ')}</li>`;
+    }
+    sigHtml += '</ul>';
+  }
+  if (j.legitimate_signals && j.legitimate_signals.length) {
+    sigHtml += '<b>Legitimate-context signals (reduce severity):</b><ul>';
+    for (const s of j.legitimate_signals) {
+      sigHtml += `<li><span class="dc-badge pass">${s.signal}</span> ` +
+        `(${s.severity_offset}): ${(s.hits||[]).join(', ')}</li>`;
+    }
+    sigHtml += '</ul>';
+  }
+  if (j.source) {
+    sigHtml += `<p style="margin-top:10px;color:var(--muted);font-size:12px">` +
+      `<b>Source:</b> ${j.source.filename} (${j.source.size_bytes} bytes, ` +
+      `${j.source.extracted_text_chars} chars extracted)<br>` +
+      `<b>Preview:</b> ${(j.source.extracted_text_preview||'').slice(0,300)}</p>`;
+  }
+  document.getElementById('signals').innerHTML = sigHtml;
+  document.getElementById('raw').innerText = JSON.stringify(j, null, 2);
+}
+
+// ---------- Progress UI helpers ----------
+function _showProgress() {
+  document.getElementById('progress-panel').style.display = 'block';
+  document.getElementById('result-panel').style.display = 'none';
+}
+function _setProgressState(state, label) {
+  const s = document.getElementById('progress-state');
+  s.className = 'dc-badge dc-state-' + state;
+  s.innerText = label;
+}
+function _setProgressBar(pct, indeterminate) {
+  const wrap = document.querySelector('.dc-progress');
+  const bar = document.getElementById('progress-bar');
+  if (indeterminate) {
+    wrap.classList.add('indeterminate');
+    bar.style.width = '100%';
+  } else {
+    wrap.classList.remove('indeterminate');
+    bar.style.width = (pct || 0) + '%';
+  }
+}
+
+async function _pollUntilDone(taskId, t0) {
+  document.getElementById('progress-id').innerText = '#' + taskId;
+  let lastStatus = null;
+  while (true) {
+    let task;
+    try {
+      const r = await fetch('/api/queue/status/' + taskId);
+      task = await r.json();
+    } catch (e) {
+      _setProgressState('failed', 'poll error');
+      document.getElementById('progress-detail').innerText = String(e);
+      return null;
+    }
+    const elapsed = ((Date.now() - t0) / 1000).toFixed(1);
+    document.getElementById('progress-elapsed').innerText = elapsed + 's elapsed';
+    if (task.status !== lastStatus) {
+      if (task.status === 'pending') {
+        _setProgressState('pending', 'queued');
+        _setProgressBar(0, true);
+      } else if (task.status === 'running') {
+        const worker = task.gpu ? 'GPU worker' : 'CPU worker';
+        _setProgressState('running', 'running on ' + worker);
+        document.getElementById('progress-worker').innerText = worker;
+        _setProgressBar(0, true);
+      } else if (task.status === 'completed') {
+        _setProgressState('completed', '✓ completed');
+        _setProgressBar(100, false);
+        const rt = task.runtime_seconds != null
+                    ? task.runtime_seconds.toFixed(2) : elapsed;
+        document.getElementById('progress-detail').innerText =
+          'handler returned in ' + rt + 's';
+        return task.result;
+      } else if (task.status === 'failed') {
+        _setProgressState('failed', '✗ failed');
+        _setProgressBar(100, false);
+        document.getElementById('progress-detail').innerText =
+          task.error || '(no error message)';
+        return null;
+      }
+      lastStatus = task.status;
+    }
+    if (task.status === 'pending') {
+      try {
+        const stats = await (await fetch('/api/queue/stats')).json();
+        document.getElementById('queue-pos').innerText =
+          'Queue depth: GPU=' + stats.gpu_qsize + ', CPU=' + stats.cpu_qsize +
+          ' · Running=' + (stats.by_status.running || 0);
+      } catch (e) {}
+    }
+    await new Promise(r => setTimeout(r, 400));
+  }
+}
+
+async function moderate() {
+  const text = document.getElementById('text').value;
+  const locale = document.getElementById('locale').value;
+  if (!text.trim()) { alert('Type or pick an example first.'); return; }
+  _showProgress();
+  _setProgressState('pending', 'submitting…');
+  _setProgressBar(0, true);
+  const t0 = Date.now();
+  let submitJ;
+  try {
+    const r = await fetch('/api/queue/submit', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({task_type: 'moderate',
+                              payload: {text, locale}})
+    });
+    submitJ = await r.json();
+  } catch (e) {
+    _setProgressState('failed', 'submit error');
+    document.getElementById('progress-detail').innerText = String(e);
+    return;
+  }
+  const result = await _pollUntilDone(submitJ.task_id, t0);
+  if (result) {
+    document.getElementById('result-panel').style.display = 'block';
+    _renderModerateResult(result);
+  }
+  _refreshQueueTable();
+}
+
+async function moderateFile() {
+  const f = document.getElementById('file').files[0];
+  if (!f) { alert('Pick a file first.'); return; }
+  _showProgress();
+  _setProgressState('pending', 'uploading…');
+  _setProgressBar(0, true);
+  document.getElementById('file-extracted').innerText =
+    `Uploading ${f.name} (${f.size} bytes) ...`;
+  const t0 = Date.now();
+  // The file-upload endpoint is sync (multipart), but we still show a
+  // progress UI so the user knows something is happening.
+  const fd = new FormData();
+  fd.append('file', f);
+  fd.append('locale', document.getElementById('locale').value);
+  let j;
+  try {
+    const r = await fetch('/api/moderate_file', {method:'POST', body:fd});
+    j = await r.json();
+  } catch (e) {
+    _setProgressState('failed', 'upload error');
+    document.getElementById('progress-detail').innerText = String(e);
+    return;
+  }
+  _setProgressState('completed', '✓ completed');
+  _setProgressBar(100, false);
+  const elapsed = ((Date.now() - t0) / 1000).toFixed(1);
+  document.getElementById('progress-elapsed').innerText = elapsed + 's elapsed';
+  if (j.source) {
+    document.getElementById('file-extracted').innerText =
+      `Extracted ${j.source.extracted_text_chars} chars from ${f.name}.`;
+  }
+  document.getElementById('result-panel').style.display = 'block';
+  _renderModerateResult(j);
+  _refreshQueueTable();
+}
+
+// ---------- Bulk batch moderation ----------
+let _batchPollTimer = null;
+async function moderateBatch() {
+  const f = document.getElementById('batch-file').files[0];
+  if (!f) { alert('Pick a .zip / .tar archive first.'); return; }
+  document.getElementById('batch-status').innerText =
+    `Uploading ${f.name} (${f.size} bytes), extracting & queuing tasks…`;
+  const fd = new FormData();
+  fd.append('file', f);
+  fd.append('locale', document.getElementById('locale').value);
+  fd.append('kind', 'moderate');
+  let initJ;
+  try {
+    const r = await fetch('/api/moderate_batch', {method:'POST', body:fd});
+    if (!r.ok) {
+      const err = await r.json().catch(()=>({detail: r.statusText}));
+      throw new Error(err.detail || 'unknown error');
+    }
+    initJ = await r.json();
+  } catch (e) {
+    document.getElementById('batch-status').innerText =
+      'Batch upload FAILED: ' + e;
+    return;
+  }
+  document.getElementById('batch-status').innerText =
+    `Queued ${initJ.file_count} files from ${initJ.source_filename}. Polling…`;
+  document.getElementById('batch-panel').style.display = 'block';
+  if (_batchPollTimer) clearInterval(_batchPollTimer);
+  const poll = () => _refreshBatch(initJ.batch_id);
+  poll();
+  _batchPollTimer = setInterval(poll, 1000);
+}
+
+async function _refreshBatch(batchId) {
+  let b;
+  try {
+    b = await (await fetch('/api/batch/' + batchId)).json();
+  } catch (e) {
+    document.getElementById('batch-detail').innerText = 'poll failed: ' + e;
+    return;
+  }
+  const s = b.status_counts || {};
+  const v = b.verdict_counts || {};
+  const total = b.file_count || 1;
+  const done = (s.completed || 0) + (s.failed || 0);
+  const pct = Math.round((done / total) * 100);
+  document.getElementById('batch-bar').style.width = pct + '%';
+
+  let summary = '';
+  const cards = [
+    ['files', total, 'total'],
+    ['done', done, 'completed'],
+    ['running', s.running || 0, 'running'],
+    ['pending', s.pending || 0, 'queued'],
+    ['failed', s.failed || 0, 'failed'],
+    ['BLOCK', v.block || 0, 'block'],
+    ['REVIEW', v.review || 0, 'review'],
+    ['PASS', v.pass || 0, 'pass'],
+  ];
+  for (const [lbl, n, kind] of cards) {
+    summary += `<div class="dc-stat-mini"><div class="num">${n}</div>` +
+      `<div class="lbl">${lbl}</div></div>`;
+  }
+  document.getElementById('batch-summary').innerHTML = summary;
+  document.getElementById('batch-detail').innerText =
+    `Batch ${batchId}: ${done}/${total} done (${pct}%)` +
+    (b.avg_severity != null ? ` · avg severity ${b.avg_severity.toFixed(1)}/10` : '') +
+    (b.is_done ? ' · ✓ FINISHED' : '');
+
+  // Per-file table
+  let html = '<div class="dc-qrow head" style="grid-template-columns: 1fr 90px 80px 90px 1fr">' +
+    '<span>file</span><span>status</span><span>verdict</span>' +
+    '<span>severity</span><span>reasoning</span></div>';
+  for (const r of (b.files || [])) {
+    const cls = 'dc-state-' + (r.status || 'pending');
+    const vCls = r.verdict || '';
+    const sev = (r.severity != null) ? r.severity : '-';
+    const reason = (r.reasoning || r.error || '').slice(0, 120);
+    const rowCls = r.status === 'running' ? 'row-running' : '';
+    html += `<div class="dc-qrow ${rowCls}" style="grid-template-columns: 1fr 90px 80px 90px 1fr">` +
+      `<span style="font-family:monospace;word-break:break-all">${r.path}</span>` +
+      `<span class="dc-badge ${cls}">${r.status}</span>` +
+      `<span>${vCls ? `<span class="dc-badge ${vCls}">${vCls.toUpperCase()}</span>` : '-'}</span>` +
+      `<span>${sev}</span>` +
+      `<span style="color:var(--muted)">${reason}</span></div>`;
+  }
+  document.getElementById('batch-table').innerHTML = html;
+
+  if (b.is_done) {
+    clearInterval(_batchPollTimer);
+    _batchPollTimer = null;
+  }
+}
+
+// ---------- Live queue table ----------
+async function _refreshQueueTable() {
+  let rows;
+  try {
+    rows = await (await fetch('/api/queue/list?limit=15')).json();
+  } catch (e) {
+    document.getElementById('queue-table').innerText =
+      'queue load failed: ' + e;
+    return;
+  }
+  if (!rows.length) {
+    document.getElementById('queue-table').innerText =
+      'No tasks submitted yet.';
+    return;
+  }
+  let html = '<div class="dc-qrow head">' +
+    '<span>task_id</span><span>type</span><span>status</span>' +
+    '<span>runtime</span><span>verdict / preview</span></div>';
+  for (const t of rows) {
+    const cls = 'dc-state-' + t.status;
+    const rt = t.runtime_seconds != null
+                ? t.runtime_seconds.toFixed(1) + 's'
+                : (t.started_at ? '…' : '-');
+    let preview = '';
+    if (t.result && typeof t.result === 'object') {
+      if (t.result.verdict) preview =
+        `${t.result.verdict.toUpperCase()} (sev ${t.result.severity || 0})`;
+      else if (t.result.advice) preview =
+        `advice: ${(t.result.advice || '').slice(0, 80)}`;
+      else preview = '(result)';
+    } else if (t.error) {
+      preview = 'ERR: ' + t.error.slice(0, 80);
+    }
+    html += `<div class="dc-qrow">` +
+      `<code>${t.task_id.replace('task_','')}</code>` +
+      `<span>${t.task_type}</span>` +
+      `<span class="dc-badge ${cls}">${t.status}</span>` +
+      `<span>${rt}</span>` +
+      `<span style="color:var(--muted)">${preview}</span></div>`;
+  }
+  document.getElementById('queue-table').innerHTML = html;
+}
+
+(async () => {
+  loadExamples();
+  _refreshQueueTable();
+  setInterval(_refreshQueueTable, 2000);
+  try {
+    const r = await fetch('/api/findings?min_severity=5&limit=20');
+    const rows = await r.json();
+    if (!rows.length) {
+      document.getElementById('findings').innerText =
+        'No findings yet. Run an example or `duecare ingest`.';
+      return;
+    }
+    let html = '<table class="dc-table"><thead><tr>' +
+      '<th>Trigger</th><th>Type</th><th>Severity</th>' +
+      '<th>Bundle</th><th>Statute</th></tr></thead><tbody>';
+    for (const r of rows) {
+      const sev = r.severity || 0;
+      const cls = sev >= 7 ? 'severity-high' : sev >= 4 ? 'severity-med' : 'severity-low';
+      html += `<tr><td>${r.trigger_name||''}</td><td>${r.finding_type||''}</td>` +
+              `<td><span class="dc-badge ${cls}">${sev}</span></td>` +
+              `<td>${r.bundle||''}</td><td>${r.statute_violated||''}</td></tr>`;
+    }
+    html += '</tbody></table>';
+    document.getElementById('findings').innerHTML = html;
+  } catch (e) {
+    document.getElementById('findings').innerText = 'load failed: ' + e;
+  }
+})();
+</script>
+</body>
+</html>

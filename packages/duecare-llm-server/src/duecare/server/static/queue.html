@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Task queue — Duecare</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<header class="dc-nav">
+  <h1>Duecare<span class="tag"> · task queue</span></h1>
+  <nav>
+    <a href="/">Home</a>
+    <a href="/enterprise">Enterprise</a>
+    <a href="/individual">Individual</a>
+    <a href="/knowledge">Knowledge</a>
+    <a href="/dashboard">Dashboard</a>
+    <a href="/queue" class="active">Queue</a>
+    <a href="/logs">Logs</a>
+    <a href="/chat">Chat</a>
+    <a href="/settings">Settings</a>
+  </nav>
+</header>
+<main class="dc-main">
+
+  <div class="dc-panel">
+    <h3>Queue snapshot</h3>
+    <p class="dc-sub" style="font-size:13px;margin-bottom:14px">
+      Live snapshot of all tasks (max 1000 history). GPU pool serializes
+      Gemma calls; CPU pool runs everything else in parallel. Updates
+      every second.
+    </p>
+    <div id="snapshot" style="display:flex; gap:14px; flex-wrap:wrap; margin-bottom:14px"></div>
+    <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap">
+      <label>Filter status:
+        <select id="filter-status">
+          <option value="">all</option>
+          <option value="pending">pending</option>
+          <option value="running">running</option>
+          <option value="completed">completed</option>
+          <option value="failed">failed</option>
+        </select>
+      </label>
+      <label>Limit:
+        <select id="filter-limit">
+          <option value="20">20</option>
+          <option value="50" selected>50</option>
+          <option value="100">100</option>
+          <option value="500">500</option>
+        </select>
+      </label>
+      <button class="dc-btn secondary" onclick="loadTasks()">Refresh now</button>
+    </div>
+  </div>
+
+  <div class="dc-panel">
+    <h3>Tasks</h3>
+    <div id="tasks">Loading…</div>
+  </div>
+
+  <div class="dc-panel" id="task-detail-panel" style="display:none">
+    <h3>Task detail</h3>
+    <p class="dc-sub" style="font-size:12px;margin-bottom:8px">
+      Click any task above to inspect the full payload + result JSON.
+    </p>
+    <div class="dc-output" id="task-detail" style="max-height:600px;overflow:auto"></div>
+  </div>
+
+</main>
+<style>
+.dc-stat-mini {
+  background: #f8fafc; border: 1px solid var(--border);
+  border-radius: 6px; padding: 8px 14px; font-size: 13px;
+}
+.dc-stat-mini .num { font-weight: 700; color: var(--primary); font-size: 20px; }
+.dc-stat-mini .lbl { color: var(--muted); font-size: 11px; }
+.dc-state-pending  { background: #fffbeb; color: #92400e; }
+.dc-state-running  { background: #dbeafe; color: #1e40af; }
+.dc-state-completed { background: #d1fae5; color: #065f46; }
+.dc-state-failed   { background: #fee2e2; color: #991b1b; }
+.dc-trow {
+  display: grid;
+  grid-template-columns: 110px 110px 100px 80px 80px 1fr;
+  gap: 10px; padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 12px; align-items: center;
+  cursor: pointer;
+}
+.dc-trow:hover { background: #f8fafc; }
+.dc-trow.head { font-weight: 700; color: var(--muted); cursor: default; }
+.dc-trow.head:hover { background: transparent; }
+.dc-trow code { font-family: monospace; font-size: 11px; }
+.dc-trow .row-running { animation: dc-pulse 1.4s ease-in-out infinite; }
+@keyframes dc-pulse { 0%,100% {opacity: 1;} 50% {opacity: 0.55;} }
+</style>
+<script>
+let _tasks = [];
+
+async function loadTasks() {
+  const status = document.getElementById('filter-status').value;
+  const limit = document.getElementById('filter-limit').value;
+  const params = new URLSearchParams({limit});
+  if (status) params.set('status', status);
+
+  // snapshot
+  try {
+    const stats = await (await fetch('/api/queue/stats')).json();
+    const cells = [
+      ['total', stats.total, 'tasks tracked'],
+      ['gpu_qsize', stats.gpu_qsize, 'GPU queue depth'],
+      ['cpu_qsize', stats.cpu_qsize, 'CPU queue depth'],
+    ];
+    const counts = stats.by_status || {};
+    for (const k of ['pending','running','completed','failed']) {
+      cells.push([k, counts[k] || 0, k]);
+    }
+    let sh = '';
+    for (const [k, v, lbl] of cells) {
+      sh += `<div class="dc-stat-mini">` +
+        `<div class="num">${v}</div>` +
+        `<div class="lbl">${lbl}</div></div>`;
+    }
+    document.getElementById('snapshot').innerHTML = sh;
+  } catch (e) {}
+
+  // task list
+  try {
+    _tasks = await (await fetch('/api/queue/list?' + params)).json();
+  } catch (e) {
+    document.getElementById('tasks').innerText = 'load failed: ' + e;
+    return;
+  }
+  if (!_tasks.length) {
+    document.getElementById('tasks').innerHTML =
+      '<p>No tasks match filter.</p>';
+    return;
+  }
+  let html = '<div class="dc-trow head">' +
+    '<span>task_id</span><span>type</span><span>status</span>' +
+    '<span>runtime</span><span>worker</span>' +
+    '<span>verdict / preview</span></div>';
+  const now = new Date();
+  for (const t of _tasks) {
+    const cls = 'dc-state-' + t.status;
+    let rt = '-';
+    if (t.runtime_seconds != null) {
+      rt = t.runtime_seconds.toFixed(2) + 's';
+    } else if (t.started_at) {
+      const elapsed = (now - new Date(t.started_at)) / 1000;
+      rt = elapsed.toFixed(1) + 's…';
+    }
+    let preview = '';
+    if (t.result && typeof t.result === 'object') {
+      if (t.result.verdict) {
+        const v = t.result.verdict.toUpperCase();
+        const sev = t.result.severity != null ? t.result.severity : '?';
+        preview = `<span class="dc-badge ${t.result.verdict}">${v}</span> sev ${sev}/10`;
+      } else if (t.result.advice) {
+        preview = (t.result.advice || '').slice(0, 80);
+      } else if (t.result.method) {
+        preview = `${t.result.method} (${t.result.row_count || 0} rows)`;
+      } else { preview = '(result available)'; }
+    } else if (t.error) {
+      preview = `<span style="color:#991b1b">ERR: ${t.error.slice(0, 80)}</span>`;
+    }
+    const rowCls = t.status === 'running' ? 'row-running' : '';
+    html += `<div class="dc-trow ${rowCls}" onclick="showDetail('${t.task_id}')">` +
+      `<code>${t.task_id.replace('task_','')}</code>` +
+      `<span>${t.task_type}${t.gpu ? ' (GPU)' : ''}</span>` +
+      `<span class="dc-badge ${cls}">${t.status}</span>` +
+      `<span>${rt}</span>` +
+      `<span style="color:var(--muted)">${t.gpu ? 'GPU' : 'CPU'}</span>` +
+      `<span>${preview}</span></div>`;
+  }
+  document.getElementById('tasks').innerHTML = html;
+}
+
+function showDetail(taskId) {
+  const t = _tasks.find(x => x.task_id === taskId);
+  if (!t) return;
+  document.getElementById('task-detail-panel').style.display = 'block';
+  document.getElementById('task-detail').innerText =
+    JSON.stringify(t, null, 2);
+  document.getElementById('task-detail-panel').scrollIntoView(
+    {behavior: 'smooth', block: 'start'});
+}
+
+loadTasks();
+setInterval(loadTasks, 1000);
+</script>
+</body>
+</html>

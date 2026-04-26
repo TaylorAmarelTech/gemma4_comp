@@ -1,0 +1,270 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Dashboard — Duecare</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+<header class="dc-nav">
+  <h1>Duecare<span class="tag"> · dashboard</span></h1>
+  <nav>
+    <a href="/">Home</a>
+    <a href="/enterprise">Enterprise</a>
+    <a href="/individual">Individual</a>
+    <a href="/knowledge">Knowledge</a>
+    <a href="/dashboard" class="active">Dashboard</a>
+    <a href="/queue">Queue</a>
+    <a href="/logs">Logs</a>
+    <a href="/chat">Chat</a>
+    <a href="/settings">Settings</a>
+  </nav>
+</header>
+<main class="dc-main">
+
+  <h2 class="dc-h2">Live evidence dashboard</h2>
+  <p class="dc-sub">Refreshes every 5 seconds from the evidence DB.</p>
+
+  <div class="dc-panel">
+    <h3>Snapshot</h3>
+    <div id="stats" class="dc-statsgrid">Loading…</div>
+  </div>
+
+  <div class="dc-panel">
+    <h3>Findings by trigger</h3>
+    <canvas id="trigChart" height="200"></canvas>
+  </div>
+
+  <div class="dc-panel">
+    <h3>Entities by type</h3>
+    <canvas id="entChart" height="200"></canvas>
+  </div>
+
+  <div class="dc-panel">
+    <h3>Findings per case bundle</h3>
+    <canvas id="bundleChart" height="200"></canvas>
+  </div>
+
+  <div class="dc-panel">
+    <h3>Task queue activity</h3>
+    <div id="queue">Loading…</div>
+  </div>
+
+  <div class="dc-panel">
+    <h3>Live tasks (last 20)</h3>
+    <p class="dc-sub" style="font-size:13px;margin-bottom:10px">
+      Every submit-and-poll job from /enterprise and /individual lands
+      here. Watch BLOCK / REVIEW / PASS verdicts arrive as Gemma
+      finishes each one. Refreshes every 2 seconds.
+    </p>
+    <div id="live-tasks">Loading…</div>
+  </div>
+
+</main>
+<style>
+.dc-statsgrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+}
+.dc-stat {
+  background: #f8fafc; border: 1px solid var(--border);
+  border-radius: 8px; padding: 14px;
+}
+.dc-stat .num { font-size: 24px; font-weight: 700; color: var(--primary); }
+.dc-stat .lbl { font-size: 12px; color: var(--muted); margin-top: 4px; }
+.dc-state-pending  { background: #fffbeb; color: #92400e; }
+.dc-state-running  { background: #dbeafe; color: #1e40af; }
+.dc-state-completed { background: #d1fae5; color: #065f46; }
+.dc-state-failed   { background: #fee2e2; color: #991b1b; }
+.dc-qrow {
+  display: grid; grid-template-columns: 110px 110px 100px 80px 1fr;
+  gap: 10px; padding: 6px 0; border-bottom: 1px solid var(--border);
+  font-size: 12px; align-items: center;
+}
+.dc-qrow.head { font-weight: 600; color: var(--muted); }
+.dc-qrow code { font-family: monospace; font-size: 11px; }
+.dc-qrow .row-running { animation: dc-pulse 1.4s ease-in-out infinite; }
+@keyframes dc-pulse {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.55; }
+}
+</style>
+<script>
+let trigChart, entChart, bundleChart;
+
+async function refresh() {
+  let s;
+  try {
+    s = await (await fetch('/api/stats')).json();
+  } catch (e) {
+    document.getElementById('stats').innerText = 'stats load failed: ' + e;
+    return;
+  }
+
+  // Snapshot tiles
+  const cells = [
+    ['runs', 'Runs ingested'],
+    ['documents', 'Documents'],
+    ['entities', 'Entities'],
+    ['edges', 'Edges'],
+    ['findings', 'Findings'],
+    ['pairwise_links', 'Pairwise links'],
+    ['tool_call_cache', 'Tool calls cached'],
+  ];
+  let html = '';
+  for (const [k, lbl] of cells) {
+    html += `<div class="dc-stat"><div class="num">${s[k] ?? 0}</div>` +
+            `<div class="lbl">${lbl}</div></div>`;
+  }
+  html += `<div class="dc-stat"><div class="num">${s.mode || '?'}</div>` +
+          `<div class="lbl">Mode</div></div>`;
+  document.getElementById('stats').innerHTML = html;
+
+  // Findings by trigger
+  const trigs = s.by_trigger || [];
+  const trigData = {
+    labels: trigs.map(t => t.trigger_name),
+    datasets: [{
+      label: 'Findings',
+      data: trigs.map(t => t.n),
+      backgroundColor: ['#4c78a8', '#10b981', '#f59e0b', '#ef4444', '#a78bfa', '#3b82f6'],
+    }],
+  };
+  if (trigChart) {
+    trigChart.data = trigData;
+    trigChart.update();
+  } else {
+    trigChart = new Chart(document.getElementById('trigChart'),
+      {type:'bar', data:trigData,
+       options:{plugins:{legend:{display:false}},
+                scales:{y:{beginAtZero:true,ticks:{precision:0}}}}});
+  }
+
+  // Entities by type
+  const ents = s.by_etype || [];
+  const entData = {
+    labels: ents.map(e => e.etype),
+    datasets: [{
+      data: ents.map(e => e.n),
+      backgroundColor: ['#4c78a8', '#10b981', '#f59e0b', '#ef4444',
+                         '#a78bfa', '#3b82f6', '#dc2626', '#6b7280',
+                         '#94a3b8', '#0ea5e9'],
+    }],
+  };
+  if (entChart) {
+    entChart.data = entData;
+    entChart.update();
+  } else {
+    entChart = new Chart(document.getElementById('entChart'),
+      {type:'doughnut', data:entData,
+       options:{plugins:{legend:{position:'right'}}}});
+  }
+
+  // By bundle
+  const bundles = s.by_bundle || [];
+  const bundleData = {
+    labels: bundles.map(b => b.bundle),
+    datasets: [{
+      label: 'Findings',
+      data: bundles.map(b => b.n_findings),
+      backgroundColor: '#4c78a8',
+    }, {
+      label: 'Max severity',
+      data: bundles.map(b => b.max_sev),
+      backgroundColor: '#ef4444',
+    }],
+  };
+  if (bundleChart) {
+    bundleChart.data = bundleData;
+    bundleChart.update();
+  } else {
+    bundleChart = new Chart(document.getElementById('bundleChart'),
+      {type:'bar', data:bundleData,
+       options:{scales:{y:{beginAtZero:true}}}});
+  }
+
+  // Task queue
+  const tq = s.task_queue || {};
+  const bs = tq.by_status || {};
+  let qhtml = '<table class="dc-table"><thead><tr>' +
+    '<th>Status</th><th>Count</th></tr></thead><tbody>';
+  for (const k of ['pending','running','completed','failed']) {
+    qhtml += `<tr><td>${k}</td><td>${bs[k] || 0}</td></tr>`;
+  }
+  qhtml += `<tr><td>GPU queue size</td><td>${tq.gpu_qsize || 0}</td></tr>`;
+  qhtml += `<tr><td>CPU queue size</td><td>${tq.cpu_qsize || 0}</td></tr>`;
+  qhtml += '</tbody></table>';
+  document.getElementById('queue').innerHTML = qhtml;
+}
+
+async function refreshLiveTasks() {
+  let rows;
+  try {
+    rows = await (await fetch('/api/queue/list?limit=20')).json();
+  } catch (e) {
+    document.getElementById('live-tasks').innerText =
+      'queue load failed: ' + e;
+    return;
+  }
+  if (!rows.length) {
+    document.getElementById('live-tasks').innerText =
+      'No tasks submitted yet. Try /enterprise or /individual.';
+    return;
+  }
+  let html = '<div class="dc-qrow head">' +
+    '<span>task_id</span><span>type</span><span>status</span>' +
+    '<span>runtime</span><span>verdict / preview</span></div>';
+  const now = new Date();
+  for (const t of rows) {
+    const cls = 'dc-state-' + t.status;
+    let rt = '-';
+    if (t.runtime_seconds != null) {
+      rt = t.runtime_seconds.toFixed(1) + 's';
+    } else if (t.started_at) {
+      const elapsed = (now - new Date(t.started_at)) / 1000;
+      rt = elapsed.toFixed(1) + 's…';
+    }
+    let preview = '';
+    if (t.result && typeof t.result === 'object') {
+      if (t.result.verdict) {
+        const v = t.result.verdict.toUpperCase();
+        const sev = t.result.severity != null ? t.result.severity : '?';
+        preview = `<span class="dc-badge ${t.result.verdict}">${v}</span> sev ${sev}/10`;
+        if (t.result.reasoning) {
+          preview += ` · ${t.result.reasoning.slice(0, 100)}`;
+        }
+      } else if (t.result.advice) {
+        preview = (t.result.advice || '').slice(0, 100);
+      } else if (t.result.method) {
+        preview = `${t.result.method} (${t.result.row_count || 0} rows)`;
+      } else {
+        preview = '(result available)';
+      }
+    } else if (t.error) {
+      preview = `<span style="color:#991b1b">ERR: ${t.error.slice(0, 100)}</span>`;
+    } else if (t.status === 'running') {
+      preview = '⟳ processing on ' + (t.gpu ? 'GPU' : 'CPU') + ' worker';
+    } else if (t.status === 'pending') {
+      preview = '⏳ waiting in queue';
+    }
+    const rowCls = t.status === 'running' ? 'row-running' : '';
+    html += `<div class="dc-qrow ${rowCls}">` +
+      `<code>${t.task_id.replace('task_','')}</code>` +
+      `<span>${t.task_type}${t.gpu ? ' (GPU)' : ''}</span>` +
+      `<span class="dc-badge ${cls}">${t.status}</span>` +
+      `<span>${rt}</span>` +
+      `<span>${preview}</span></div>`;
+  }
+  document.getElementById('live-tasks').innerHTML = html;
+}
+
+refresh();
+refreshLiveTasks();
+setInterval(refresh, 5000);
+setInterval(refreshLiveTasks, 2000);
+</script>
+</body>
+</html>

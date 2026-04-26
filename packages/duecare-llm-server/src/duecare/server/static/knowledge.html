@@ -1,0 +1,469 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Knowledge insights — Duecare</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <script src="/static/examples.js"></script>
+  <script src="https://unpkg.com/cytoscape@3.30.0/dist/cytoscape.min.js"></script>
+  <script src="https://unpkg.com/layout-base@2.0.1/layout-base.js"></script>
+  <script src="https://unpkg.com/cose-base@2.2.0/cose-base.js"></script>
+  <script src="https://unpkg.com/cytoscape-cose-bilkent@4.1.0/cytoscape-cose-bilkent.js"></script>
+</head>
+<body>
+<header class="dc-nav">
+  <h1>Duecare<span class="tag"> · NGO knowledge insights</span></h1>
+  <nav>
+    <a href="/">Home</a>
+    <a href="/enterprise">Enterprise</a>
+    <a href="/individual">Individual</a>
+    <a href="/knowledge" class="active">Knowledge</a>
+    <a href="/dashboard">Dashboard</a>
+    <a href="/queue">Queue</a>
+    <a href="/logs">Logs</a>
+    <a href="/chat">Chat</a>
+    <a href="/settings">Settings</a>
+  </nav>
+</header>
+<main class="dc-main">
+
+  <div class="dc-panel">
+    <h3>Ask the evidence database in natural language</h3>
+    <p class="dc-sub" style="margin-bottom:12px">
+      Falls back to a parameterised template when no Gemma backend
+      is wired in. Click an example, edit it, or type your own.
+    </p>
+    <div id="example-questions" class="dc-qpills">Loading…</div>
+    <textarea id="q" style="margin-top:14px"
+      placeholder="Type your question…">What is the average illicit fee?</textarea>
+    <div style="margin-top: 10px; display:flex; gap:10px">
+      <button class="dc-btn" onclick="ask()">Ask</button>
+      <button class="dc-btn secondary" onclick="document.getElementById('q').value=''">Clear</button>
+    </div>
+  </div>
+
+  <div class="dc-panel" id="answer-panel" style="display:none">
+    <h3>Answer</h3>
+    <div id="answer"></div>
+    <details style="margin-top: 14px">
+      <summary>SQL executed</summary>
+      <div class="dc-output" id="sql"></div>
+    </details>
+  </div>
+
+  <div class="dc-panel">
+    <h3>Top bad-actor candidates</h3>
+    <p class="dc-sub" style="font-size:13px">
+      Entities appearing in ≥2 documents, ranked by doc_count + severity.
+    </p>
+    <div id="actors">Loading…</div>
+  </div>
+
+  <div class="dc-panel">
+    <h3>Live entity graph</h3>
+    <p class="dc-sub" style="font-size:13px;margin-bottom:10px">
+      Cytoscape.js + cose-bilkent layout. Drag any node, scroll to
+      zoom. Click to pin info card. Search by name, filter by type.
+    </p>
+    <div class="dc-graph-controls">
+      <input id="graph-search" type="text" placeholder="Search by name…"
+             style="flex:1; min-width:160px; padding:6px 10px">
+      <button class="dc-btn secondary" onclick="graphLayout()">Re-layout</button>
+      <button class="dc-btn secondary" onclick="graphFit()">Fit to screen</button>
+      <button class="dc-btn secondary" onclick="graphReset()">Reset filters</button>
+    </div>
+    <div id="graph-legend" class="dc-graph-legend"></div>
+    <div style="position:relative">
+      <div id="net" style="width:100%; height:600px;
+            border:1px solid var(--border); border-radius:8px;
+            background:#ffffff"></div>
+      <div id="graph-info" class="dc-graph-info" style="display:none"></div>
+    </div>
+    <div id="graph-meta" style="margin-top:8px; font-size:12px; color:var(--muted)"></div>
+  </div>
+
+</main>
+<style>
+.dc-qpills {
+  display: flex; flex-wrap: wrap; gap: 8px;
+}
+.dc-qpills .pill {
+  background: #f8fafc; border: 1px solid var(--border);
+  border-radius: 999px; padding: 6px 14px; cursor: pointer;
+  font-size: 13px; transition: border-color 100ms;
+}
+.dc-qpills .pill:hover { border-color: var(--primary); background:#eff6ff; }
+.dc-graph-controls {
+  display: flex; gap: 8px; align-items: center; flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+.dc-graph-legend {
+  display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px;
+}
+.dc-graph-legend .chip {
+  font-size: 11px; padding: 3px 10px; border-radius: 999px;
+  cursor: pointer; user-select: none; border: 1px solid transparent;
+  font-weight: 600;
+}
+.dc-graph-legend .chip.muted {
+  opacity: 0.35;
+  filter: grayscale(0.6);
+}
+.dc-graph-info {
+  position: absolute; top: 12px; right: 12px;
+  width: 300px; max-height: 560px; overflow: auto;
+  background: #ffffff; border: 1px solid var(--border);
+  border-radius: 8px; padding: 14px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  font-size: 13px;
+}
+.dc-graph-info h4 { margin: 0 0 8px 0; font-size: 14px; }
+.dc-graph-info dl { margin: 8px 0 0 0; }
+.dc-graph-info dt {
+  font-size: 11px; color: var(--muted); text-transform: uppercase;
+  margin-top: 8px; font-weight: 600;
+}
+.dc-graph-info dd { margin: 2px 0 0 0; word-break: break-word; }
+.dc-graph-info .close {
+  position: absolute; top: 8px; right: 12px; cursor: pointer;
+  color: var(--muted); font-size: 18px; line-height: 1;
+}
+</style>
+<script>
+function loadExampleQuestions() {
+  const qs = window.DUECARE_EXAMPLES.knowledge || [];
+  let html = '';
+  for (const q of qs) {
+    html += `<div class="pill" onclick="useQuestion(${JSON.stringify(q).replace(/"/g,'&quot;')})">${q}</div>`;
+  }
+  document.getElementById('example-questions').innerHTML = html;
+}
+function useQuestion(q) {
+  document.getElementById('q').value = q;
+}
+
+async function ask() {
+  const question = document.getElementById('q').value;
+  if (!question.trim()) { alert('Type a question first.'); return; }
+  const r = await fetch('/api/query', {
+    method: 'POST', headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({question, prefer_template: true})
+  });
+  const j = await r.json();
+  document.getElementById('answer-panel').style.display = 'block';
+  document.getElementById('sql').innerText = j.sql || '(no SQL)';
+  if (j.error) {
+    document.getElementById('answer').innerHTML =
+      `<span class="dc-pill" style="background:#fef2f2;color:#991b1b">error</span> ${j.error}`;
+    return;
+  }
+  if (!j.rows || !j.rows.length) {
+    document.getElementById('answer').innerHTML =
+      `<p>No matching rows. (method: ${j.method}${j.template_name ? ', template: '+j.template_name : ''})</p>`;
+    return;
+  }
+  const cols = Object.keys(j.rows[0]);
+  let html = `<p style="color:var(--muted);font-size:13px">method: ${j.method}` +
+             (j.template_name ? `, template: <code>${j.template_name}</code>` : '') +
+             `, ${j.row_count} row(s)</p>`;
+  html += '<table class="dc-table"><thead><tr>';
+  for (const c of cols) html += `<th>${c}</th>`;
+  html += '</tr></thead><tbody>';
+  for (const row of j.rows) {
+    html += '<tr>';
+    for (const c of cols) html += `<td>${row[c] === null ? '' : row[c]}</td>`;
+    html += '</tr>';
+  }
+  html += '</tbody></table>';
+  document.getElementById('answer').innerHTML = html;
+}
+
+async function loadActors() {
+  try {
+    const r = await fetch('/api/entities?min_doc_count=2&limit=20');
+    const rows = await r.json();
+    if (!rows.length) {
+      document.getElementById('actors').innerText =
+        'No entities yet. Run pipeline + ingest.';
+      return;
+    }
+    let html = '<table class="dc-table"><thead><tr>' +
+      '<th>Type</th><th>Canonical name</th><th>Doc count</th>' +
+      '<th>Severity max</th></tr></thead><tbody>';
+    for (const r of rows) {
+      const sev = r.severity_max || 0;
+      const cls = sev >= 7 ? 'severity-high' : sev >= 4 ? 'severity-med' : 'severity-low';
+      html += `<tr><td>${r.etype||''}</td><td>${r.canonical_name||''}</td>` +
+              `<td>${r.doc_count||0}</td>` +
+              `<td><span class="dc-badge ${cls}">${sev}</span></td></tr>`;
+    }
+    html += '</tbody></table>';
+    document.getElementById('actors').innerHTML = html;
+  } catch (e) {
+    document.getElementById('actors').innerText = 'load failed: ' + e;
+  }
+}
+
+const COLOR_MAP = {
+  "person":              "#4c78a8",
+  "person_or_org":       "#4c78a8",
+  "organization":        "#4c78a8",
+  "recruitment_agency":  "#3b82f6",
+  "employer":            "#3b82f6",
+  "phone":               "#ef4444",
+  "email":               "#f59e0b",
+  "financial_account":   "#10b981",
+  "money":               "#10b981",
+  "address":             "#6b7280",
+  "location":            "#6b7280",
+  "passport_number":     "#a78bfa",
+  "id_number":           "#a78bfa",
+  "case_bundle":         "#dc2626",
+};
+function _typeColor(t) { return COLOR_MAP[t] || '#6b7280'; }
+
+let _cy = null;
+let _activeTypes = new Set();
+
+async function loadGraph() {
+  let g;
+  try {
+    g = await (await fetch('/api/graph')).json();
+  } catch (e) {
+    document.getElementById('net').innerText = 'graph load failed: ' + e;
+    return;
+  }
+  const candidates = g.bad_actor_candidates || [];
+  const edges = g.top_edges || [];
+
+  // Build cytoscape elements
+  const elements = [];
+  const seen = new Set();
+  function nodeKey(t, v) { return `${t}::${v}`; }
+  function addNode(t, v, extra) {
+    const k = nodeKey(t, v);
+    if (seen.has(k)) return k;
+    seen.add(k);
+    elements.push({ data: Object.assign({
+      id: k, label: v, etype: t,
+      sevMax: 0, docCount: 1,
+    }, extra || {}) });
+    return k;
+  }
+
+  for (const c of candidates) {
+    addNode(c.type, c.value, {
+      docCount: c.doc_count || 1,
+      sevMax: c.severity_max || 0,
+      cooccurDeg: c.co_occurrence_degree || 0,
+      rawValues: (c.raw_values || []).slice(0, 5),
+    });
+  }
+  // Edges may reference nodes not in bad_actor_candidates; auto-add.
+  for (const e of edges) {
+    const a = addNode(e.a_type, e.a_value, {});
+    const b = addNode(e.b_type, e.b_value, {});
+    elements.push({ data: {
+      id: `e_${a}__${b}_${elements.length}`,
+      source: a, target: b,
+      relation: e.relation_type || 'co_occur',
+      docCount: e.doc_count || 1,
+      confidence: (e.confidence != null) ? e.confidence : 0,
+      evidence: e.evidence || '',
+    }});
+  }
+
+  // Compute size scale based on docCount
+  const docCounts = elements
+    .filter(el => el.data && el.data.etype)
+    .map(el => el.data.docCount || 1);
+  const maxDoc = Math.max(1, ...docCounts);
+
+  // Tally types for legend
+  const typeCounts = {};
+  for (const el of elements) {
+    if (el.data && el.data.etype) {
+      typeCounts[el.data.etype] = (typeCounts[el.data.etype] || 0) + 1;
+    }
+  }
+  _activeTypes = new Set(Object.keys(typeCounts));
+
+  // Render legend chips
+  const legend = document.getElementById('graph-legend');
+  let lh = '';
+  for (const [t, n] of Object.entries(typeCounts).sort(
+        (a,b) => b[1] - a[1])) {
+    lh += `<span class="chip" data-type="${t}" ` +
+      `style="background:${_typeColor(t)}; color:#fff" ` +
+      `onclick="toggleType('${t}', this)">${t} (${n})</span>`;
+  }
+  legend.innerHTML = lh;
+
+  document.getElementById('graph-meta').innerText =
+    `${elements.filter(el => el.data && el.data.etype).length} entities, ` +
+    `${elements.filter(el => el.data && el.data.source).length} edges, ` +
+    `${Object.keys(typeCounts).length} types`;
+
+  if (_cy) { try { _cy.destroy(); } catch (_) {} }
+
+  _cy = cytoscape({
+    container: document.getElementById('net'),
+    elements: elements,
+    minZoom: 0.2, maxZoom: 3, wheelSensitivity: 0.25,
+    style: [
+      { selector: 'node',
+        style: {
+          'background-color': el => _typeColor(el.data('etype')),
+          'label': 'data(label)',
+          'color': '#111827',
+          'font-size': 10,
+          'text-valign': 'bottom',
+          'text-halign': 'center',
+          'text-margin-y': 4,
+          'text-background-color': '#ffffff',
+          'text-background-opacity': 0.8,
+          'text-background-padding': 2,
+          'text-background-shape': 'roundrectangle',
+          'text-max-width': 120,
+          'text-wrap': 'wrap',
+          'border-width': el => Math.min(4, (el.data('sevMax') || 0) / 3),
+          'border-color': '#dc2626',
+          'width':  el => 12 + 32 * Math.sqrt((el.data('docCount') || 1) / maxDoc),
+          'height': el => 12 + 32 * Math.sqrt((el.data('docCount') || 1) / maxDoc),
+        }
+      },
+      { selector: 'node:selected',
+        style: {
+          'border-width': 4, 'border-color': '#0ea5e9',
+          'overlay-color': '#0ea5e9', 'overlay-opacity': 0.15,
+        }
+      },
+      { selector: 'edge',
+        style: {
+          'line-color': el => el.data('relation') === 'co_occur'
+            ? '#cbd5e1' : '#3b82f6',
+          'width': el => 1 + 3 * Math.log2(1 + (el.data('docCount') || 1)),
+          'curve-style': 'bezier',
+          'target-arrow-color': '#3b82f6',
+          'target-arrow-shape': el => el.data('relation') !== 'co_occur'
+            ? 'triangle' : 'none',
+          'arrow-scale': 1.2,
+          'opacity': 0.8,
+          'label': el => el.data('relation') !== 'co_occur'
+            ? el.data('relation') : '',
+          'font-size': 9, 'color': '#374151',
+          'text-rotation': 'autorotate',
+          'text-background-color': '#ffffff',
+          'text-background-opacity': 0.8,
+          'text-background-padding': 1,
+        }
+      },
+      { selector: '.dimmed', style: {opacity: 0.18} },
+    ],
+    layout: {
+      name: 'cose-bilkent', animate: false, randomize: true,
+      idealEdgeLength: 100, nodeRepulsion: 7000,
+      gravity: 0.25, gravityRange: 3.8, numIter: 2500,
+      tile: true, padding: 30,
+    },
+  });
+
+  _cy.on('tap', 'node', evt => _showInfo(evt.target));
+  _cy.on('tap', evt => { if (evt.target === _cy) _hideInfo(); });
+}
+
+function _showInfo(node) {
+  const d = node.data();
+  const box = document.getElementById('graph-info');
+  let html = `<span class="close" onclick="_hideInfo()">×</span>` +
+    `<h4 style="color:${_typeColor(d.etype)}">${d.label}</h4>` +
+    `<dl>` +
+    `<dt>Type</dt><dd>${d.etype}</dd>` +
+    `<dt>Document count</dt><dd>${d.docCount || 0}</dd>` +
+    `<dt>Max severity</dt><dd>${d.sevMax || 0} / 10</dd>`;
+  if (d.cooccurDeg) html += `<dt>Co-occurrence degree</dt><dd>${d.cooccurDeg}</dd>`;
+  if (d.rawValues && d.rawValues.length) {
+    html += `<dt>Raw values</dt><dd>${d.rawValues.map(v=>'<code>'+v+'</code>').join('<br>')}</dd>`;
+  }
+  // Connected nodes/edges
+  const incoming = node.connectedEdges();
+  if (incoming.length) {
+    html += `<dt>Connections (${incoming.length})</dt><dd>`;
+    incoming.forEach(e => {
+      const other = e.connectedNodes().not(node).first();
+      html += `<div style="margin-top:4px">` +
+        `<small style="color:var(--muted)">${e.data('relation')}</small> ` +
+        `→ <code>${other.data('label')}</code>` +
+        ` <small>(${e.data('docCount')} docs)</small></div>`;
+    });
+    html += `</dd>`;
+  }
+  html += `</dl>`;
+  box.innerHTML = html;
+  box.style.display = 'block';
+}
+function _hideInfo() {
+  document.getElementById('graph-info').style.display = 'none';
+  if (_cy) _cy.elements().unselect();
+}
+
+function graphLayout() {
+  if (_cy) _cy.layout({name: 'cose-bilkent', animate: 'end',
+                        animationDuration: 500, randomize: true,
+                        idealEdgeLength: 100, nodeRepulsion: 7000,
+                        numIter: 2000}).run();
+}
+function graphFit() { if (_cy) _cy.fit(undefined, 30); }
+function graphReset() {
+  _activeTypes = new Set(Object.keys({}.constructor === Object ? {} : {}));
+  document.querySelectorAll('.dc-graph-legend .chip').forEach(c => {
+    c.classList.remove('muted');
+    _activeTypes.add(c.dataset.type);
+  });
+  document.getElementById('graph-search').value = '';
+  if (_cy) {
+    _cy.elements().removeClass('dimmed');
+  }
+  _hideInfo();
+}
+function toggleType(t, chipEl) {
+  if (_activeTypes.has(t)) { _activeTypes.delete(t); chipEl.classList.add('muted'); }
+  else { _activeTypes.add(t); chipEl.classList.remove('muted'); }
+  if (!_cy) return;
+  _cy.batch(() => {
+    _cy.nodes().forEach(n => {
+      if (_activeTypes.has(n.data('etype'))) n.removeClass('dimmed');
+      else n.addClass('dimmed');
+    });
+    _cy.edges().forEach(e => {
+      const a = _cy.getElementById(e.data('source'));
+      const b = _cy.getElementById(e.data('target'));
+      if (_activeTypes.has(a.data('etype'))
+          && _activeTypes.has(b.data('etype'))) e.removeClass('dimmed');
+      else e.addClass('dimmed');
+    });
+  });
+}
+
+document.getElementById('graph-search').addEventListener('input', e => {
+  if (!_cy) return;
+  const q = (e.target.value || '').trim().toLowerCase();
+  _cy.batch(() => {
+    if (!q) {
+      _cy.elements().removeClass('dimmed');
+      return;
+    }
+    const matches = _cy.nodes().filter(n =>
+      (n.data('label') || '').toLowerCase().includes(q));
+    const keep = matches.union(matches.connectedEdges())
+                          .union(matches.connectedEdges().connectedNodes());
+    _cy.elements().addClass('dimmed');
+    keep.removeClass('dimmed');
+  });
+});
+
+loadExampleQuestions(); loadActors(); loadGraph();
+</script>
+</body>
+</html>

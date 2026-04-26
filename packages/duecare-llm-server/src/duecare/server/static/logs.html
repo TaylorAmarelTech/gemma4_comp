@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Logs — Duecare</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<header class="dc-nav">
+  <h1>Duecare<span class="tag"> · structured logs</span></h1>
+  <nav>
+    <a href="/">Home</a>
+    <a href="/enterprise">Enterprise</a>
+    <a href="/individual">Individual</a>
+    <a href="/knowledge">Knowledge</a>
+    <a href="/dashboard">Dashboard</a>
+    <a href="/queue">Queue</a>
+    <a href="/logs" class="active">Logs</a>
+    <a href="/chat">Chat</a>
+    <a href="/settings">Settings</a>
+  </nav>
+</header>
+<main class="dc-main">
+
+  <div class="dc-panel">
+    <h3>Live structured event log</h3>
+    <p class="dc-sub" style="font-size:13px;margin-bottom:10px">
+      In-memory ring buffer (last 2000 events). Captures every API
+      request, queue task, Gemma call, and error.
+      <b>Auto-refreshes every 1.5 seconds.</b>
+      Server restart clears the buffer.
+    </p>
+    <div id="logs-stats" style="margin-bottom:14px; display:flex; gap:14px; flex-wrap:wrap"></div>
+    <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-bottom:14px">
+      <label>Level:
+        <select id="filter-level">
+          <option value="">all</option>
+          <option value="info">info</option>
+          <option value="warn">warn</option>
+          <option value="error">error</option>
+          <option value="debug">debug</option>
+        </select>
+      </label>
+      <label>Source:
+        <select id="filter-source">
+          <option value="">all</option>
+        </select>
+      </label>
+      <label>Limit:
+        <select id="filter-limit">
+          <option value="50">50</option>
+          <option value="100" selected>100</option>
+          <option value="200">200</option>
+          <option value="500">500</option>
+          <option value="2000">2000 (max)</option>
+        </select>
+      </label>
+      <label><input type="checkbox" id="auto-refresh" checked> auto-refresh</label>
+      <button class="dc-btn secondary" onclick="loadLogs()">Refresh now</button>
+      <button class="dc-btn secondary" onclick="clearLogs()" style="background:#fee2e2;color:#991b1b">Clear buffer</button>
+      <button class="dc-btn secondary" onclick="downloadJson()">Download JSON</button>
+    </div>
+    <div id="logs"></div>
+  </div>
+
+</main>
+<style>
+.dc-stat-mini {
+  background: #f8fafc; border: 1px solid var(--border);
+  border-radius: 6px; padding: 6px 12px; font-size: 12px;
+}
+.dc-stat-mini .num { font-weight: 700; color: var(--primary); }
+.dc-log-row {
+  display: grid;
+  grid-template-columns: 90px 60px 90px 1fr;
+  gap: 12px; padding: 6px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 12px; align-items: start;
+  font-family: monospace;
+}
+.dc-log-row.head { font-weight: 700; color: var(--muted); }
+.dc-log-row .lvl { padding: 2px 6px; border-radius: 3px; text-align: center;
+                    font-weight: 600; font-size: 11px; }
+.dc-log-row .lvl-info  { background: #eff6ff; color: #1e40af; }
+.dc-log-row .lvl-warn  { background: #fffbeb; color: #92400e; }
+.dc-log-row .lvl-error { background: #fef2f2; color: #991b1b; }
+.dc-log-row .lvl-debug { background: #f1f5f9; color: var(--muted); }
+.dc-log-row .src { color: var(--muted); }
+.dc-log-row .event-name { font-weight: 600; }
+.dc-log-row .fields { color: var(--muted); white-space: pre-wrap; word-break: break-word; }
+.dc-log-row .fields code { background: #f8fafc; padding: 1px 4px; border-radius: 3px; font-size: 11px; }
+.dc-log-row .traceback { color: #991b1b; font-size: 11px; white-space: pre-wrap;
+                          background: #fef2f2; padding: 6px; border-radius: 4px;
+                          margin-top: 4px; max-height: 200px; overflow: auto; }
+</style>
+<script>
+let _knownSources = new Set();
+let _autoTimer = null;
+let _lastLogs = [];
+
+function _fieldsHtml(entry) {
+  const skip = new Set(['id','ts','epoch','level','source','event','traceback']);
+  const parts = [];
+  for (const k of Object.keys(entry)) {
+    if (skip.has(k)) continue;
+    let v = entry[k];
+    if (typeof v === 'object') v = JSON.stringify(v);
+    if (typeof v === 'string' && v.length > 200) v = v.slice(0, 200) + '…';
+    parts.push(`<code>${k}=${v}</code>`);
+  }
+  let html = parts.join(' ');
+  if (entry.traceback) {
+    html += `<div class="traceback">${entry.traceback}</div>`;
+  }
+  return html;
+}
+
+async function loadLogs() {
+  const level = document.getElementById('filter-level').value;
+  const source = document.getElementById('filter-source').value;
+  const limit = document.getElementById('filter-limit').value;
+  const params = new URLSearchParams({limit});
+  if (level) params.set('level', level);
+  if (source) params.set('source', source);
+  let entries;
+  try {
+    entries = await (await fetch('/api/logs?' + params)).json();
+  } catch (e) {
+    document.getElementById('logs').innerText = 'load failed: ' + e;
+    return;
+  }
+  _lastLogs = entries;
+  let html = '<div class="dc-log-row head">' +
+    '<span>time</span><span>level</span><span>source</span>' +
+    '<span>event / fields</span></div>';
+  for (const e of entries) {
+    const t = (e.ts || '').split('T')[1] || e.ts || '';
+    html += `<div class="dc-log-row">` +
+      `<span>${t}</span>` +
+      `<span class="lvl lvl-${e.level}">${e.level}</span>` +
+      `<span class="src">${e.source}</span>` +
+      `<span><span class="event-name">${e.event}</span> ` +
+      `<span class="fields">${_fieldsHtml(e)}</span></span>` +
+      `</div>`;
+    _knownSources.add(e.source);
+  }
+  if (!entries.length) html += '<p>(no entries match filter)</p>';
+  document.getElementById('logs').innerHTML = html;
+
+  // Update source filter options
+  const sel = document.getElementById('filter-source');
+  const cur = sel.value;
+  let opts = '<option value="">all</option>';
+  for (const s of [..._knownSources].sort()) {
+    opts += `<option value="${s}" ${s===cur?'selected':''}>${s}</option>`;
+  }
+  sel.innerHTML = opts;
+
+  // Stats
+  try {
+    const stats = await (await fetch('/api/logs/stats')).json();
+    let sh = '';
+    sh += `<div class="dc-stat-mini"><span class="num">${stats.total}</span> / ${stats.capacity} entries</div>`;
+    for (const lvl of ['info', 'warn', 'error', 'debug']) {
+      const n = stats.by_level[lvl] || 0;
+      if (n) sh += `<div class="dc-stat-mini"><span class="lvl lvl-${lvl}">${lvl}</span> <span class="num">${n}</span></div>`;
+    }
+    document.getElementById('logs-stats').innerHTML = sh;
+  } catch (e) {}
+}
+
+async function clearLogs() {
+  if (!confirm('Clear all log entries from the in-memory buffer?')) return;
+  try { await fetch('/api/logs/clear', {method: 'POST'}); }
+  catch (e) {}
+  loadLogs();
+}
+
+function downloadJson() {
+  const blob = new Blob([JSON.stringify(_lastLogs, null, 2)],
+                          {type: 'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `duecare-logs-${Date.now()}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+document.getElementById('auto-refresh').addEventListener('change', e => {
+  if (e.target.checked) _autoTimer = setInterval(loadLogs, 1500);
+  else { clearInterval(_autoTimer); _autoTimer = null; }
+});
+
+loadLogs();
+_autoTimer = setInterval(loadLogs, 1500);
+</script>
+</body>
+</html>

@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Duecare — Multimodal trafficking-safety harness</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<header class="dc-nav">
+  <h1>Duecare<span class="tag"> · multimodal trafficking-safety harness</span></h1>
+  <nav>
+    <a href="/" class="active">Home</a>
+    <a href="/enterprise">Enterprise</a>
+    <a href="/individual">Individual</a>
+    <a href="/knowledge">Knowledge</a>
+    <a href="/dashboard">Dashboard</a>
+    <a href="/queue">Queue</a>
+    <a href="/logs">Logs</a>
+    <a href="/chat">Chat</a>
+    <a href="/settings">Settings</a>
+  </nav>
+</header>
+<main class="dc-main">
+
+  <div class="dc-banner">
+    <b>Privacy is non-negotiable.</b> Every Gemma 4 inference runs on
+    the operator's own machine. No worker case data is sent to any
+    cloud service. Powered by Gemma 4 + Docling + GLiNER + a 5-trigger
+    reactive pipeline + a queryable evidence database with NL-to-SQL.
+  </div>
+
+  <h2 class="dc-h2">Pick the application to run</h2>
+  <p class="dc-sub">
+    One engine, three audiences. Each card opens a working surface
+    with example inputs and live demos.
+  </p>
+
+  <div class="dc-cardgrid">
+
+    <a class="dc-card" href="/enterprise">
+      <div class="dc-icon primary">⚙</div>
+      <h3>Enterprise compliance</h3>
+      <p>Job-board / chat-platform moderation. Multi-signal scoring +
+      Gemma + tool calls over an updated DB of fee caps and statutes.
+      <b>Text + image/PDF/DOCX upload.</b></p>
+    </a>
+
+    <a class="dc-card" href="/individual">
+      <div class="dc-icon success">👤</div>
+      <h3>Individual chatbot</h3>
+      <p>Workers, families, prospective migrants paste a chat or
+      a document photo and get plain-language warnings + the right
+      hotline. <b>13 locale-aware hotlines.</b></p>
+    </a>
+
+    <a class="dc-card" href="/knowledge">
+      <div class="dc-icon info">🔎</div>
+      <h3>Knowledge insights (NGO)</h3>
+      <p>Folder of case files → entity graph → queryable database.
+      Ask <i>"How many complaints does Pacific Coast Manpower have?"</i>
+      <b>Live interactive entity graph.</b></p>
+    </a>
+
+    <a class="dc-card" href="/dashboard">
+      <div class="dc-icon warning">📊</div>
+      <h3>Dashboard</h3>
+      <p>Charts: findings by trigger, severity distribution,
+      bad-actor counts, fee trends. Real-time refresh from the
+      evidence DB.</p>
+    </a>
+
+  </div>
+
+  <div class="dc-panel" style="margin-top: 30px">
+    <h3>Live status</h3>
+    <div id="stats" class="dc-statsgrid">Loading…</div>
+  </div>
+
+  <div class="dc-panel">
+    <h3>Recent activity</h3>
+    <div id="activity">Loading…</div>
+  </div>
+
+</main>
+<style>
+.dc-statsgrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+}
+.dc-stat {
+  background: #f8fafc; border: 1px solid var(--border);
+  border-radius: 8px; padding: 14px;
+}
+.dc-stat .num { font-size: 24px; font-weight: 700; color: var(--primary); }
+.dc-stat .lbl { font-size: 12px; color: var(--muted); margin-top: 4px; }
+</style>
+<script>
+async function refreshStats() {
+  try {
+    const r = await fetch('/api/stats');
+    const s = await r.json();
+    const cells = [
+      ['runs', 'Runs ingested'],
+      ['documents', 'Documents'],
+      ['entities', 'Entities'],
+      ['edges', 'Edges'],
+      ['findings', 'Findings'],
+      ['pairwise_links', 'Pairwise links'],
+    ];
+    let html = '';
+    for (const [k, lbl] of cells) {
+      html += `<div class="dc-stat"><div class="num">${s[k] ?? 0}</div>` +
+              `<div class="lbl">${lbl}</div></div>`;
+    }
+    html += `<div class="dc-stat"><div class="num">${s.mode || '?'}</div>` +
+            `<div class="lbl">Mode</div></div>`;
+    if (s.public_url) {
+      html += `<div class="dc-stat"><div class="num" style="font-size:14px">` +
+              `<a href="${s.public_url}">tunnel</a></div>` +
+              `<div class="lbl">Public URL active</div></div>`;
+    }
+    document.getElementById('stats').innerHTML = html;
+  } catch (e) {
+    document.getElementById('stats').innerText = 'stats unavailable: ' + e;
+  }
+}
+async function refreshActivity() {
+  try {
+    const r = await fetch('/api/activity?limit=10');
+    const items = await r.json();
+    if (!items.length) {
+      document.getElementById('activity').innerHTML =
+        '<p style="color:var(--muted)">No activity yet -- try the Enterprise / Individual / Knowledge pages.</p>';
+      return;
+    }
+    let html = '<table class="dc-table"><thead><tr><th>When</th>' +
+      '<th>Type</th><th>GPU</th><th>Status</th><th>Runtime</th></tr></thead><tbody>';
+    for (const t of items) {
+      const status = t.status;
+      const cls = status === 'completed' ? 'pass' :
+                  status === 'failed' ? 'block' : 'review';
+      html += `<tr><td>${(t.submitted_at || '').slice(11, 19)}</td>` +
+              `<td><code>${t.task_type}</code></td>` +
+              `<td>${t.gpu ? '✓' : ''}</td>` +
+              `<td><span class="dc-badge ${cls}">${status}</span></td>` +
+              `<td>${(t.runtime_seconds || 0).toFixed(2)}s</td></tr>`;
+    }
+    html += '</tbody></table>';
+    document.getElementById('activity').innerHTML = html;
+  } catch (e) {
+    document.getElementById('activity').innerText = 'activity unavailable: ' + e;
+  }
+}
+refreshStats(); refreshActivity();
+setInterval(refreshStats, 5000);
+setInterval(refreshActivity, 5000);
+</script>
+</body>
+</html>

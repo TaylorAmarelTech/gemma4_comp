@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Settings — Duecare</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<header class="dc-nav">
+  <h1>Duecare<span class="tag"> · settings</span></h1>
+  <nav>
+    <a href="/">Home</a>
+    <a href="/enterprise">Enterprise</a>
+    <a href="/individual">Individual</a>
+    <a href="/knowledge">Knowledge</a>
+    <a href="/dashboard">Dashboard</a>
+    <a href="/queue">Queue</a>
+    <a href="/logs">Logs</a>
+    <a href="/chat">Chat</a>
+    <a href="/settings" class="active">Settings</a>
+  </nav>
+</header>
+<main class="dc-main">
+
+  <h2 class="dc-h2">Configuration</h2>
+  <p class="dc-sub">All values are runtime-only and read from env vars when the server starts.</p>
+
+  <div class="dc-panel">
+    <h3>Database</h3>
+    <table class="dc-table">
+      <tr><th>db_path</th><td><code id="dbpath">…</code></td></tr>
+      <tr><th>backend</th><td>DuckDB (local) — change with <code>DUECARE_DB</code> env var.<br>Examples:<br><code>duecare.duckdb</code> · <code>sqlite:///path/to.db</code> · <code>postgresql://user@host/db</code></td></tr>
+    </table>
+  </div>
+
+  <div class="dc-panel">
+    <h3>Pipeline</h3>
+    <table class="dc-table">
+      <tr><th>pipeline_output_dir</th><td><code id="pipelineout">…</code></td></tr>
+      <tr><th>tunnel public URL</th><td id="publicurl">…</td></tr>
+    </table>
+    <p style="margin-top:14px">
+      <button class="dc-btn" onclick="ingest()">Ingest pipeline outputs into DB</button>
+      <button class="dc-btn secondary" onclick="status()">Refresh status</button>
+    </p>
+    <div id="ingest-result" style="margin-top:10px"></div>
+  </div>
+
+  <div class="dc-panel">
+    <h3>OpenClaw research tool</h3>
+    <table class="dc-table">
+      <tr><th>mode</th><td><code id="ocmode">…</code></td></tr>
+      <tr><th>API key configured</th><td id="occonfig">…</td></tr>
+    </table>
+    <p style="margin-top:10px">Set <code>OPENCLAW_API_KEY</code> + <code>OPENCLAW_MODE=online</code> in env, then restart.</p>
+    <h4 style="margin-top:18px;font-size:14px">Test query (PII-filtered):</h4>
+    <input id="ocquery" placeholder="org name, jurisdiction, etc -- NO PERSON NAMES">
+    <div style="margin-top:8px">
+      <button class="dc-btn" onclick="testOpenclaw()">Run OpenClaw search</button>
+    </div>
+    <div class="dc-output" id="ocresult" style="margin-top:10px;display:none"></div>
+  </div>
+
+  <div class="dc-panel">
+    <h3>Run history (database)</h3>
+    <div id="runs">Loading…</div>
+  </div>
+
+</main>
+<script>
+async function status() {
+  const r = await fetch('/api/settings');
+  const s = await r.json();
+  document.getElementById('dbpath').innerText = s.db_path;
+  document.getElementById('pipelineout').innerText = s.pipeline_output_dir;
+  document.getElementById('publicurl').innerHTML = s.public_url
+    ? `<a href="${s.public_url}">${s.public_url}</a>` : '<i>(local only — start with --tunnel cloudflared)</i>';
+  document.getElementById('ocmode').innerText = s.openclaw_mode;
+  document.getElementById('occonfig').innerText = s.openclaw_configured ? 'yes' : 'no';
+}
+async function ingest() {
+  document.getElementById('ingest-result').innerText = 'Ingesting…';
+  try {
+    const r = await fetch('/api/ingest', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({})
+    });
+    const j = await r.json();
+    document.getElementById('ingest-result').innerHTML =
+      `<span class="dc-pill ok">OK</span> run <code>${j.run_id}</code> from <code>${j.output_dir}</code>`;
+    loadRuns();
+  } catch (e) {
+    document.getElementById('ingest-result').innerText = 'ingest failed: ' + e;
+  }
+}
+async function testOpenclaw() {
+  const q = document.getElementById('ocquery').value;
+  const r = await fetch('/api/research/openclaw', {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({endpoint:'search', args:{query:q}})
+  });
+  const j = await r.json();
+  document.getElementById('ocresult').style.display = 'block';
+  document.getElementById('ocresult').innerText = JSON.stringify(j, null, 2);
+}
+async function loadRuns() {
+  try {
+    const r = await fetch('/api/runs');
+    const rows = await r.json();
+    if (!rows.length) {
+      document.getElementById('runs').innerText = 'No runs ingested yet.';
+      return;
+    }
+    let html = '<table class="dc-table"><thead><tr>' +
+      '<th>run_id</th><th>started</th><th>n_docs</th><th>n_entities</th>' +
+      '<th>n_findings</th></tr></thead><tbody>';
+    for (const r of rows.slice(0, 25)) {
+      html += `<tr><td>${r.run_id}</td><td>${r.started_at||''}</td>` +
+              `<td>${r.n_documents||0}</td><td>${r.n_entities||0}</td>` +
+              `<td>${r.n_findings||0}</td></tr>`;
+    }
+    html += '</tbody></table>';
+    document.getElementById('runs').innerHTML = html;
+  } catch (e) {
+    document.getElementById('runs').innerText = 'runs load failed: ' + e;
+  }
+}
+status(); loadRuns();
+</script>
+</body>
+</html>
