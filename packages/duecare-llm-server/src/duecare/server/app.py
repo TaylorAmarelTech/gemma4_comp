@@ -155,6 +155,14 @@ def create_app(state: Optional[ServerState] = None) -> FastAPI:
     def chat_page():
         return _serve_html(static_dir / "chat.html")
 
+    @app.get("/examples", response_class=HTMLResponse)
+    def examples_page():
+        return _serve_html(static_dir / "examples.html")
+
+    @app.get("/workspace", response_class=HTMLResponse)
+    def workspace_page():
+        return _serve_html(static_dir / "workspace.html")
+
     @app.get("/api/logs")
     def api_logs(limit: int = 200, level: Optional[str] = None,
                   source: Optional[str] = None,

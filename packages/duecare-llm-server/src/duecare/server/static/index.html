@@ -11,6 +11,8 @@
   <h1>Duecare<span class="tag"> · multimodal trafficking-safety harness</span></h1>
   <nav>
     <a href="/" class="active">Home</a>
+    <a href="/examples">Examples</a>
+    <a href="/workspace">Workspace</a>
     <a href="/enterprise">Enterprise</a>
     <a href="/individual">Individual</a>
     <a href="/knowledge">Knowledge</a>
@@ -23,57 +25,148 @@
 </header>
 <main class="dc-main">
 
-  <div class="dc-banner">
-    <b>Privacy is non-negotiable.</b> Every Gemma 4 inference runs on
-    the operator's own machine. No worker case data is sent to any
-    cloud service. Powered by Gemma 4 + Docling + GLiNER + a 5-trigger
-    reactive pipeline + a queryable evidence database with NL-to-SQL.
+  <div class="dc-hero">
+    <h1 class="dc-hero-title">A private safety judge for migrant-worker trafficking</h1>
+    <p class="dc-hero-sub">
+      Paste a recruiter ad, a chat screenshot, or a folder of NGO case files.
+      Duecare runs the same multi-stage pipeline an analyst would —
+      heuristic prescan, knowledge-base grep, semantic RAG, deterministic
+      tool calls, then a Gemma 4 verdict — and shows you every step.
+    </p>
+    <p class="dc-hero-sub" style="margin-top:8px">
+      <b style="color:var(--primary)">Privacy is non-negotiable.</b>
+      Every Gemma 4 inference runs on the operator's own machine. No
+      worker case data leaves your laptop.
+    </p>
   </div>
 
-  <h2 class="dc-h2">Pick the application to run</h2>
+  <!-- ============== Pipeline diagram ============== -->
+  <div class="dc-panel">
+    <h3>How it works (per request)</h3>
+    <p class="dc-sub" style="font-size:13px;margin-bottom:18px">
+      Every input goes through the same 5-stage pipeline. Each stage
+      emits a trace step you can watch live on the Workspace and
+      Examples pages.
+    </p>
+    <div class="dc-pipeline">
+      <div class="dc-pstage">
+        <div class="dc-pstage-num">1</div>
+        <div class="dc-pstage-name">Heuristic prescan</div>
+        <div class="dc-pstage-desc">
+          11 keyword signals scored 0–10 (passport-confiscation,
+          excessive fee, debt-bondage, …). Establishes a severity floor.
+        </div>
+        <div class="dc-pstage-tag">≈ 5 ms</div>
+      </div>
+      <div class="dc-parrow">→</div>
+      <div class="dc-pstage">
+        <div class="dc-pstage-num">2</div>
+        <div class="dc-pstage-name">GREP knowledge base</div>
+        <div class="dc-pstage-desc">
+          Regex match against 27 statutes / conventions / ILO
+          indicators (RA 8042, ILO C181, Palermo Art 3, …).
+        </div>
+        <div class="dc-pstage-tag">≈ 20 ms</div>
+      </div>
+      <div class="dc-parrow">→</div>
+      <div class="dc-pstage">
+        <div class="dc-pstage-num">3</div>
+        <div class="dc-pstage-name">RAG retrieval</div>
+        <div class="dc-pstage-desc">
+          sentence-transformers (MiniLM) → cosine top-K. Surfaces
+          semantically-relevant passages the regex missed.
+        </div>
+        <div class="dc-pstage-tag">≈ 200 ms</div>
+      </div>
+      <div class="dc-parrow">→</div>
+      <div class="dc-pstage">
+        <div class="dc-pstage-num">4</div>
+        <div class="dc-pstage-name">Tool calls</div>
+        <div class="dc-pstage-desc">
+          Deterministic <code>lookup_statute(juris, topic)</code> and
+          <code>lookup_hotline(country)</code> chosen from prescan
+          signals + locale.
+        </div>
+        <div class="dc-pstage-tag">≈ 5 ms</div>
+      </div>
+      <div class="dc-parrow">→</div>
+      <div class="dc-pstage dc-pstage-gemma">
+        <div class="dc-pstage-num">5</div>
+        <div class="dc-pstage-name">Gemma 4 classify</div>
+        <div class="dc-pstage-desc">
+          Severity-anchored prompt + heuristic findings + KB hits as
+          context. Returns <b>BLOCK / REVIEW / PASS</b> with reasoning.
+        </div>
+        <div class="dc-pstage-tag">≈ 8–18 s (T4 4-bit)</div>
+      </div>
+    </div>
+    <div class="dc-pipeline-output">
+      <div class="dc-poutput">
+        <div><b>Verdict</b></div>
+        <div class="dc-poutput-detail">BLOCK · REVIEW · PASS</div>
+      </div>
+      <div class="dc-poutput">
+        <div><b>Severity</b></div>
+        <div class="dc-poutput-detail">0–10 (max(gemma, heuristic))</div>
+      </div>
+      <div class="dc-poutput">
+        <div><b>Evidence</b></div>
+        <div class="dc-poutput-detail">KB passages + tool results</div>
+      </div>
+      <div class="dc-poutput">
+        <div><b>Hotline</b></div>
+        <div class="dc-poutput-detail">Locale-aware contact</div>
+      </div>
+      <div class="dc-poutput">
+        <div><b>Reasoning</b></div>
+        <div class="dc-poutput-detail">One-sentence explanation</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============== Two big choice cards ============== -->
+  <h2 class="dc-h2" style="margin-top:32px">Where would you like to start?</h2>
   <p class="dc-sub">
-    One engine, three audiences. Each card opens a working surface
-    with example inputs and live demos.
+    Two paths into the demo. Curated examples walk you through 4
+    real-world use cases. The workspace lets you bring your own data.
   </p>
 
-  <div class="dc-cardgrid">
-
-    <a class="dc-card" href="/enterprise">
-      <div class="dc-icon primary">⚙</div>
-      <h3>Enterprise compliance</h3>
-      <p>Job-board / chat-platform moderation. Multi-signal scoring +
-      Gemma + tool calls over an updated DB of fee caps and statutes.
-      <b>Text + image/PDF/DOCX upload.</b></p>
+  <div class="dc-bigchoices">
+    <a class="dc-bigcard" href="/examples">
+      <div class="dc-bigcard-icon" style="background:var(--info)">📚</div>
+      <h3>Curated examples</h3>
+      <p>4 real-world scenarios with pre-loaded inputs. Each one
+        explains what the operator is trying to do, what the pipeline
+        finds, and why each verdict matters.</p>
+      <ul class="dc-bigcard-list">
+        <li>Job-board moderation (recruitment fraud)</li>
+        <li>Worker self-check (chat / contract screenshot)</li>
+        <li>NGO bulk triage (folder of case files)</li>
+        <li>Investigator query (NL-to-SQL over evidence DB)</li>
+      </ul>
+      <div class="dc-bigcard-cta">Open the examples →</div>
     </a>
 
-    <a class="dc-card" href="/individual">
-      <div class="dc-icon success">👤</div>
-      <h3>Individual chatbot</h3>
-      <p>Workers, families, prospective migrants paste a chat or
-      a document photo and get plain-language warnings + the right
-      hotline. <b>13 locale-aware hotlines.</b></p>
+    <a class="dc-bigcard" href="/workspace">
+      <div class="dc-bigcard-icon" style="background:var(--primary)">🛠</div>
+      <h3>Self-directed workspace</h3>
+      <p>Paste your own text, upload a file, drop an archive of
+        documents, or load a JSONL of cases. Pick from templated
+        prompts or write your own. Everything routes through the same
+        traced queue.</p>
+      <ul class="dc-bigcard-list">
+        <li>Single-text moderation (free-form input)</li>
+        <li>File upload (image / PDF / DOCX / TXT)</li>
+        <li>Archive upload (zip / tar / tar.gz of folders)</li>
+        <li>JSONL batch import + template library</li>
+      </ul>
+      <div class="dc-bigcard-cta">Open the workspace →</div>
     </a>
-
-    <a class="dc-card" href="/knowledge">
-      <div class="dc-icon info">🔎</div>
-      <h3>Knowledge insights (NGO)</h3>
-      <p>Folder of case files → entity graph → queryable database.
-      Ask <i>"How many complaints does Pacific Coast Manpower have?"</i>
-      <b>Live interactive entity graph.</b></p>
-    </a>
-
-    <a class="dc-card" href="/dashboard">
-      <div class="dc-icon warning">📊</div>
-      <h3>Dashboard</h3>
-      <p>Charts: findings by trigger, severity distribution,
-      bad-actor counts, fee trends. Real-time refresh from the
-      evidence DB.</p>
-    </a>
-
   </div>
 
-  <div class="dc-panel" style="margin-top: 30px">
-    <h3>Live status</h3>
+  <!-- ============== Live status (kept compact) ============== -->
+  <div class="dc-panel" style="margin-top:30px">
+    <h3>Live system status</h3>
     <div id="stats" class="dc-statsgrid">Loading…</div>
   </div>
 
@@ -84,6 +177,97 @@
 
 </main>
 <style>
+.dc-hero {
+  margin-bottom: 24px; padding: 28px 30px;
+  background: linear-gradient(135deg, #eff6ff 0%, #f5f3ff 100%);
+  border: 1px solid #ddd6fe; border-radius: 14px;
+}
+.dc-hero-title {
+  margin: 0 0 8px 0; font-size: 26px; font-weight: 700;
+  color: var(--ink); letter-spacing: -0.01em;
+}
+.dc-hero-sub { margin: 0; color: var(--ink); font-size: 15px; line-height: 1.6; }
+
+/* Pipeline diagram */
+.dc-pipeline {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 0; align-items: stretch; position: relative;
+  margin-bottom: 12px;
+}
+.dc-pstage {
+  background: #ffffff; border: 1px solid var(--border);
+  border-radius: 10px; padding: 12px 12px 36px 12px;
+  position: relative; min-width: 0;
+}
+.dc-pstage.dc-pstage-gemma { border-color: var(--primary);
+  background: linear-gradient(180deg, #ffffff 0%, #eff6ff 100%); }
+.dc-pstage-num {
+  position: absolute; top: -10px; left: -10px;
+  width: 28px; height: 28px; border-radius: 50%;
+  background: var(--primary); color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: 13px;
+}
+.dc-pstage.dc-pstage-gemma .dc-pstage-num { background: #1e40af; }
+.dc-pstage-name {
+  font-weight: 600; font-size: 14px; margin-bottom: 6px;
+}
+.dc-pstage-desc { font-size: 11px; color: var(--muted); line-height: 1.4; }
+.dc-pstage-tag {
+  position: absolute; bottom: 8px; left: 12px;
+  font-size: 10px; color: var(--primary); font-weight: 600;
+  background: #eff6ff; padding: 2px 8px; border-radius: 999px;
+  font-family: monospace;
+}
+.dc-parrow {
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px; color: var(--muted); margin: 0 -2px;
+}
+.dc-pipeline-output {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 8px; margin-top: 14px;
+  border-top: 2px dashed var(--border); padding-top: 14px;
+}
+.dc-poutput {
+  background: #f8fafc; border: 1px solid var(--border);
+  border-radius: 8px; padding: 10px 12px; font-size: 12px;
+}
+.dc-poutput-detail { color: var(--muted); margin-top: 3px; font-size: 11px; }
+
+/* Big choice cards */
+.dc-bigchoices {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+  gap: 22px;
+}
+.dc-bigcard {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 14px; padding: 28px 26px;
+  text-decoration: none; color: inherit; display: block;
+  transition: transform 120ms, border-color 120ms, box-shadow 160ms;
+}
+.dc-bigcard:hover {
+  transform: translateY(-3px); border-color: var(--primary);
+  box-shadow: 0 8px 22px rgba(76, 120, 168, 0.14);
+}
+.dc-bigcard-icon {
+  width: 56px; height: 56px; border-radius: 12px; color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 28px; margin-bottom: 16px;
+}
+.dc-bigcard h3 { margin: 0 0 8px 0; font-size: 22px; color: var(--ink); }
+.dc-bigcard p { margin: 0 0 12px 0; color: var(--muted); font-size: 14px; }
+.dc-bigcard-list {
+  margin: 12px 0 16px 18px; padding: 0; color: var(--ink); font-size: 13px;
+}
+.dc-bigcard-list li { margin: 4px 0; }
+.dc-bigcard-cta {
+  color: var(--primary); font-weight: 600; font-size: 14px;
+  margin-top: 8px;
+}
+
 .dc-statsgrid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
@@ -93,8 +277,16 @@
   background: #f8fafc; border: 1px solid var(--border);
   border-radius: 8px; padding: 14px;
 }
-.dc-stat .num { font-size: 24px; font-weight: 700; color: var(--primary); }
+.dc-stat .num { font-size: 22px; font-weight: 700; color: var(--primary); }
 .dc-stat .lbl { font-size: 12px; color: var(--muted); margin-top: 4px; }
+
+@media (max-width: 900px) {
+  .dc-pipeline { grid-template-columns: 1fr; }
+  .dc-parrow { transform: rotate(90deg); padding: 4px 0; }
+  .dc-pstage { padding-bottom: 30px; }
+  .dc-bigchoices { grid-template-columns: 1fr; }
+  .dc-hero-title { font-size: 22px; }
+}
 </style>
 <script>
 async function refreshStats() {
@@ -107,7 +299,6 @@ async function refreshStats() {
       ['entities', 'Entities'],
       ['edges', 'Edges'],
       ['findings', 'Findings'],
-      ['pairwise_links', 'Pairwise links'],
     ];
     let html = '';
     for (const [k, lbl] of cells) {
@@ -132,7 +323,7 @@ async function refreshActivity() {
     const items = await r.json();
     if (!items.length) {
       document.getElementById('activity').innerHTML =
-        '<p style="color:var(--muted)">No activity yet -- try the Enterprise / Individual / Knowledge pages.</p>';
+        '<p style="color:var(--muted)">No activity yet — try the Examples or Workspace page.</p>';
       return;
     }
     let html = '<table class="dc-table"><thead><tr><th>When</th>' +

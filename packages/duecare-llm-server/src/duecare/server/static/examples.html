@@ -1,0 +1,556 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Curated examples — Duecare</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<header class="dc-nav">
+  <h1>Duecare<span class="tag"> · curated examples</span></h1>
+  <nav>
+    <a href="/">Home</a>
+    <a href="/examples" class="active">Examples</a>
+    <a href="/workspace">Workspace</a>
+    <a href="/enterprise">Enterprise</a>
+    <a href="/individual">Individual</a>
+    <a href="/knowledge">Knowledge</a>
+    <a href="/dashboard">Dashboard</a>
+    <a href="/queue">Queue</a>
+    <a href="/logs">Logs</a>
+    <a href="/chat">Chat</a>
+    <a href="/settings">Settings</a>
+  </nav>
+</header>
+<main class="dc-main">
+
+  <h2 class="dc-h2">Curated example use cases</h2>
+  <p class="dc-sub">
+    Four real-world scenarios with pre-loaded inputs. Each card
+    explains who the operator is, what they're trying to accomplish,
+    what the pipeline finds, and why each verdict matters. Click any
+    card to expand. The "Run" button submits the example through the
+    same traced queue that powers Workspace.
+  </p>
+
+  <div id="examples-grid" class="dc-examples-grid"></div>
+
+</main>
+<style>
+.dc-examples-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(440px, 1fr));
+  gap: 18px;
+}
+.dc-ex-card {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 12px; padding: 22px;
+}
+.dc-ex-card.open { grid-column: 1 / -1; }
+.dc-ex-card h3 { margin: 0 0 6px 0; font-size: 18px; }
+.dc-ex-card .who {
+  font-size: 12px; color: var(--primary); font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.04em;
+  margin-bottom: 8px;
+}
+.dc-ex-card .what { color: var(--muted); margin: 0 0 12px 0; font-size: 14px; }
+.dc-ex-card .meta {
+  display: flex; gap: 6px; flex-wrap: wrap; margin: 10px 0;
+}
+.dc-ex-card .pill {
+  padding: 3px 10px; border-radius: 999px; font-size: 11px;
+  background: #f1f5f9; color: var(--muted); font-weight: 600;
+}
+.dc-ex-card .pill.input { background: #eff6ff; color: #1e40af; }
+.dc-ex-card .pill.task { background: #ecfdf5; color: #065f46; }
+.dc-ex-card .pill.expected { background: #fef2f2; color: #991b1b; }
+.dc-ex-card .open-btn {
+  background: var(--primary); color: #fff; border: 0;
+  padding: 9px 18px; border-radius: 8px; cursor: pointer;
+  font-size: 13px; font-weight: 600;
+}
+.dc-ex-detail {
+  display: none; margin-top: 18px; padding-top: 18px;
+  border-top: 1px solid var(--border);
+}
+.dc-ex-card.open .dc-ex-detail { display: block; }
+.dc-ex-detail h4 { margin: 14px 0 8px 0; font-size: 14px; }
+.dc-ex-detail .input-box {
+  background: #fafafa; border: 1px solid var(--border);
+  border-radius: 8px; padding: 12px; font-size: 13px;
+  white-space: pre-wrap; max-height: 280px; overflow: auto;
+  font-family: ui-monospace, SFMono-Regular, monospace;
+}
+.dc-ex-detail .row { display: flex; gap: 10px; flex-wrap: wrap;
+                       align-items: center; margin: 12px 0; }
+.dc-trace-flow {
+  display: flex; flex-direction: column; gap: 6px;
+  border-left: 2px solid var(--border); padding-left: 14px;
+  margin-top: 6px;
+}
+.dc-trace-step {
+  display: grid; grid-template-columns: 60px 22px 1fr;
+  gap: 10px; align-items: start; font-size: 12px; position: relative;
+}
+.dc-trace-step::before {
+  content: ''; position: absolute; left: -19px; top: 5px;
+  width: 10px; height: 10px; border-radius: 50%;
+  background: var(--border); border: 2px solid var(--card);
+}
+.dc-trace-step.s-ok::before { background: #10b981; }
+.dc-trace-step.s-running::before {
+  background: #3b82f6; animation: dc-pulse 1.4s ease-in-out infinite;
+}
+.dc-trace-step.s-fail::before { background: #ef4444; }
+.dc-trace-step.s-skip::before { background: #94a3b8; }
+.dc-trace-step.s-fallback::before { background: #f59e0b; }
+@keyframes dc-pulse { 0%,100% {opacity: 1;} 50% {opacity: 0.4;} }
+.dc-trace-step .t-time { font-family: monospace; color: var(--muted); font-size: 11px; }
+.dc-trace-step .t-tag {
+  font-size: 10px; padding: 1px 6px; border-radius: 3px;
+  text-transform: uppercase; font-weight: 700; text-align: center;
+}
+.dc-trace-step.s-ok .t-tag { background: #d1fae5; color: #065f46; }
+.dc-trace-step.s-running .t-tag { background: #dbeafe; color: #1e40af; }
+.dc-trace-step.s-fail .t-tag { background: #fee2e2; color: #991b1b; }
+.dc-trace-step.s-skip .t-tag { background: #f1f5f9; color: var(--muted); }
+.dc-trace-step.s-fallback .t-tag { background: #fef3c7; color: #92400e; }
+.dc-trace-step .t-name { font-weight: 600; }
+.dc-trace-step .t-detail { color: var(--muted); margin-top: 2px; font-size: 11px; word-break: break-word; }
+.dc-progress {
+  width: 100%; height: 8px; background: #f1f5f9;
+  border-radius: 4px; overflow: hidden; border: 1px solid var(--border);
+}
+.dc-progress > div {
+  height: 100%; width: 0%;
+  background: linear-gradient(90deg, var(--primary), #60a5fa);
+  transition: width 200ms linear;
+}
+.dc-progress.indeterminate > div {
+  width: 30%;
+  animation: dc-indet 1.4s ease-in-out infinite;
+}
+@keyframes dc-indet {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(400%); }
+}
+.dc-state-pending  { background: #fffbeb; color: #92400e; }
+.dc-state-running  { background: #dbeafe; color: #1e40af; }
+.dc-state-completed { background: #d1fae5; color: #065f46; }
+.dc-state-failed   { background: #fee2e2; color: #991b1b; }
+.dc-callout {
+  background: #fffbeb; border-left: 4px solid #f59e0b;
+  padding: 12px 16px; margin: 12px 0; border-radius: 6px;
+  font-size: 13px;
+}
+.dc-callout.info { background: #eff6ff; border-color: #3b82f6; }
+.dc-callout.success { background: #ecfdf5; border-color: #10b981; }
+.dc-callout b { color: var(--ink); }
+.dc-kb-hit {
+  background: #f8fafc; border: 1px solid var(--border);
+  border-radius: 6px; padding: 8px 12px; margin-bottom: 6px; font-size: 12px;
+}
+.dc-kb-hit .id { font-family: monospace; color: var(--primary); font-weight: 600; }
+.dc-tool-call {
+  display: inline-block; background: #eff6ff; color: #1e40af;
+  border-radius: 4px; padding: 2px 8px; margin: 2px 4px 2px 0;
+  font-size: 11px; font-family: monospace;
+}
+</style>
+<script>
+// ===== The 4 curated examples =====
+const EXAMPLES = [
+  {
+    id: 'jobboard_fraud',
+    title: 'Recruitment fraud on a job board',
+    who: 'Job-board moderator (enterprise)',
+    icon: '⚙',
+    iconBg: '#3b82f6',
+    what: 'A recruitment agency posts what looks like a normal job ' +
+          'ad. The pipeline catches passport-confiscation language, ' +
+          'an excessive USD 5000 placement fee, and a deposit account ' +
+          'that doesn\'t match the agency\'s registration.',
+    pills: [
+      ['input', 'job posting (text)'],
+      ['task', 'moderate'],
+      ['expected', 'BLOCK · severity 9/10'],
+    ],
+    locale: 'ph',
+    text: 'Pacific Coast Manpower Inc. is hiring 50 domestic workers ' +
+          'for Riyadh, Saudi Arabia. USD 5,000 placement fee payable to ' +
+          'account TEST-9988-7766-5544. We will keep your passport ' +
+          'until you finish 2 years. Send your passport copy to ' +
+          'recruitment@pacificcoast.demo.',
+    explain: [
+      ['Use case', 'A jobs platform (think Facebook Marketplace ' +
+        'jobs, Indeed regional, Bossjob, JobStreet) needs to triage ' +
+        '~50K postings/day. Most are legitimate; the moderation team ' +
+        'cannot read every one. Duecare runs as a pre-filter that ' +
+        'BLOCKs or queues for human REVIEW only the suspicious ones.'],
+      ['Why this is a BLOCK', 'Three critical signals fire ' +
+        'simultaneously: (1) explicit passport confiscation — an ILO ' +
+        'C029 forced-labour indicator, (2) USD 5000 placement fee ' +
+        'over the PH RA 8042 cap (one month\'s salary), (3) a numbered ' +
+        'deposit account being requested directly from the worker.'],
+      ['What Gemma 4 adds', 'The heuristic prescan flags it at sev 8. ' +
+        'Gemma\'s contribution is the legal anchoring: it cites RA 8042 ' +
+        'sec 6(a) and the Employer-Pays Principle (ILO C181 Art 7) ' +
+        'in the reasoning, which the regex layer can\'t do.'],
+      ['Real-world impact', 'POEA / DMW estimate that ~17% of OFW ' +
+        'recruitment complaints involve agencies that publicly ' +
+        'recruited via these channels. Pre-publication moderation ' +
+        'gives the platform legal cover and protects workers before ' +
+        'the contract is signed.'],
+    ],
+    task_type: 'moderate',
+  },
+  {
+    id: 'worker_self_check',
+    title: 'Worker checking a recruiter chat message',
+    who: 'Migrant worker (individual)',
+    icon: '👤',
+    iconBg: '#10b981',
+    what: 'A Filipina caregiver receives what looks like an OK job ' +
+          'offer from a "Hong Kong agency boss." The fee is small but ' +
+          'the request to surrender her NBI clearance and passport ' +
+          'scans to a personal WhatsApp number is a yellow flag.',
+    pills: [
+      ['input', 'chat message (text)'],
+      ['task', 'worker_check'],
+      ['expected', 'REVIEW · severity 6/10 + hotline'],
+    ],
+    locale: 'ph',
+    text: 'URGENT: 30 caregivers needed in Hong Kong. Free placement ' +
+          '(small processing fee USD 800). Trust me, the agency boss ' +
+          'will help you with everything. Send your NBI clearance and ' +
+          'passport scan to whatsapp +85295551234.',
+    explain: [
+      ['Use case', 'A worker pastes a message they just received ' +
+        'into the Individual chatbot (web, browser extension, or ' +
+        'Telegram bot). The model returns plain-language advice and ' +
+        'the right hotline for their locale. Nothing leaves their ' +
+        'device — Gemma 4 runs locally.'],
+      ['Why this is REVIEW (not BLOCK)', 'There IS a fee mentioned ' +
+        '(USD 800 — over what RA 8042 allows for domestic workers but ' +
+        'under the catastrophic threshold) and a personal-channel ' +
+        'document request, but no explicit passport confiscation. The ' +
+        'pipeline lands on REVIEW with concrete actions: verify the ' +
+        'agency licence, never send documents to a personal WhatsApp.'],
+      ['What the worker sees', 'A short paragraph in their language: ' +
+        '"This message has serious warning signs. Verify the agency\'s ' +
+        'POEA / DMW licence in writing and refuse to deposit any fee ' +
+        'or hand over your passport until 1343 confirms the agency is ' +
+        'legitimate." Plus the POLO + IOM contacts.'],
+      ['Why a hotline matters', '13 locale-aware hotlines are ' +
+        'preloaded (PH 1343, HK 2717-1771, Saudi MOHRSD, Qatar ADLSA, ' +
+        'etc.). The worker doesn\'t have to know which agency / ministry ' +
+        'to call from a country they\'ve never been to.'],
+    ],
+    task_type: 'worker_check',
+  },
+  {
+    id: 'ngo_passport_indicator',
+    title: 'NGO triage: passport-held-by-employer pattern',
+    who: 'NGO caseworker / investigator',
+    icon: '🔎',
+    iconBg: '#8b5cf6',
+    what: 'A complaint letter from a domestic worker in Hong Kong ' +
+          'describes 18 months of passport retention plus a personal ' +
+          'loan that grew to HKD 25,000. Two ILO forced-labour ' +
+          'indicators fire at once.',
+    pills: [
+      ['input', 'complaint letter (text)'],
+      ['task', 'moderate'],
+      ['expected', 'BLOCK · severity 10/10'],
+    ],
+    locale: 'hk',
+    text: 'I am Sita Tamang, Nepali domestic helper in Hong Kong for ' +
+          '18 months. My employer holds my passport since I arrived. ' +
+          'I owe Hong Kong City Credit Management Group HKD 25,000 — ' +
+          'they keep raising the interest. I cannot leave the house ' +
+          'without permission. I want to go home but my employer says ' +
+          'I cannot until I finish my contract.',
+    explain: [
+      ['Use case', 'An NGO caseworker (Polaris Project, IJM, HRD ' +
+        'Nepal, ECPAT) drops a letter or chat transcript into the ' +
+        'pipeline to get an immediate triage + the relevant statute / ' +
+        'convention citations they\'ll need for the rescue package.'],
+      ['Why this is a BLOCK', 'Three forced-labour indicators are ' +
+        'present: (1) document retention — ILO C029 indicator + Palermo ' +
+        'Article 3 coercion mechanism, (2) debt bondage — escalating ' +
+        'lender debt — Palermo definition, (3) restriction of movement ' +
+        '— a fourth ILO indicator. Severity caps at 10/10.'],
+      ['What the KB retrieval adds', 'GREP + RAG surface the exact ' +
+        'passages a caseworker needs for their report: ILO C029, ' +
+        'Palermo Art 3, HK Employment Ordinance Cap. 57 sec 32 (which ' +
+        'caps the interest the lender can charge). Tool call returns ' +
+        'the HK Labour Department hotline + the Nepali Embassy.'],
+      ['Bigger picture', 'Aggregating these triage rows in the ' +
+        'evidence DB lets the NGO ask <i>"how many cases involve ' +
+        'this lender?"</i> via NL-to-SQL on the Knowledge page — ' +
+        'patterns emerge across cases that no single caseworker would ' +
+        'see.'],
+    ],
+    task_type: 'moderate',
+  },
+  {
+    id: 'subtle_passport',
+    title: 'Subtle scam: kafala / "safekeeping" passport language',
+    who: 'Job-board moderator (enterprise)',
+    icon: '⚠',
+    iconBg: '#f59e0b',
+    what: 'A Saudi household post phrased politely — sponsor visa, ' +
+          'live-in, "safekeeping" of the passport. No fee mentioned, ' +
+          'no obvious scam tells. The pipeline still flags it because ' +
+          'the language patterns map to forced-labour indicators.',
+    pills: [
+      ['input', 'job posting (text, polite tone)'],
+      ['task', 'moderate'],
+      ['expected', 'BLOCK · severity 9/10'],
+    ],
+    locale: 'sa',
+    text: 'Filipino domestic helper needed for Riyadh family. ' +
+          'Salary SAR 1,500/month. We hold the passport for ' +
+          'safekeeping during the 2-year contract. Worker lives with ' +
+          'the employer, no day off, alone in the house. Sponsor visa ' +
+          'under kafala system.',
+    explain: [
+      ['Use case', 'The hardest moderation case isn\'t the obvious ' +
+        '"send USD 5000" scam — it\'s the polite household ad that ' +
+        'normalises kafala-era practices. A pure keyword filter ' +
+        'wouldn\'t catch "safekeeping" as a synonym for confiscation. ' +
+        'A pure LLM might miss the structural pattern.'],
+      ['Why this is BLOCK', 'Five indicators stack: (1) "we hold ' +
+        'the passport" is document retention regardless of ' +
+        'euphemism, (2) "no day off" violates ILO C95 / GCC reform ' +
+        'standards, (3) "alone in the house" maps to the ILO ISOLATION ' +
+        'indicator, (4) live-in setups are the highest-risk category ' +
+        'for domestic-worker abuse, (5) "kafala" itself triggers the ' +
+        'jurisdictional alert (Saudi reformed in 2021 but enforcement ' +
+        'is uneven).'],
+      ['What the KB adds', 'Without the KB, an LLM might say "this ' +
+        'is normal for that region." With the KB, GREP retrieves the ' +
+        'kafala_passport_indicator passage and the Saudi 2021 reform ' +
+        'note. Gemma is then anchored on the gap between the legal ' +
+        'reform and the still-circulating language pattern.'],
+      ['What about salary?', 'SAR 1,500/month ≈ USD 400. That alone ' +
+        'doesn\'t fire a signal (it\'s common for the region) — but ' +
+        'combined with passport retention + isolation + no day off ' +
+        'it forms the pattern the ILO calls "indicators of forced ' +
+        'labour." The pipeline\'s job is to surface the pattern, not ' +
+        'to second-guess the wage.'],
+    ],
+    task_type: 'moderate',
+  },
+];
+
+function renderCards() {
+  const grid = document.getElementById('examples-grid');
+  let html = '';
+  for (const ex of EXAMPLES) {
+    const pillsHtml = ex.pills.map(([k, v]) =>
+      `<span class="pill ${k}">${v}</span>`).join('');
+    html += `<div class="dc-ex-card" id="card-${ex.id}">` +
+      `<div class="who"><span style="display:inline-block;width:24px;` +
+        `height:24px;background:${ex.iconBg};color:#fff;border-radius:6px;` +
+        `text-align:center;line-height:24px;margin-right:6px">${ex.icon}</span>` +
+        `${ex.who}</div>` +
+      `<h3>${ex.title}</h3>` +
+      `<p class="what">${ex.what}</p>` +
+      `<div class="meta">${pillsHtml}</div>` +
+      `<button class="open-btn" onclick="toggleCard('${ex.id}')">` +
+      `<span class="cta-label">Open + run this example</span></button>` +
+      `<div class="dc-ex-detail" id="detail-${ex.id}"></div>` +
+      `</div>`;
+  }
+  grid.innerHTML = html;
+}
+
+function toggleCard(id) {
+  const card = document.getElementById('card-' + id);
+  if (card.classList.contains('open')) {
+    card.classList.remove('open');
+    return;
+  }
+  // Close all others
+  document.querySelectorAll('.dc-ex-card.open').forEach(c => c.classList.remove('open'));
+  card.classList.add('open');
+  const ex = EXAMPLES.find(e => e.id === id);
+  buildDetail(ex);
+  card.scrollIntoView({behavior:'smooth', block:'start'});
+}
+
+function buildDetail(ex) {
+  const detail = document.getElementById('detail-' + ex.id);
+  let html = `<h4>The input</h4>` +
+    `<div class="input-box">${ex.text}</div>` +
+    `<div class="row">` +
+    `<button class="open-btn" onclick="runExample('${ex.id}')">` +
+    `▶ Run this example through the pipeline</button>` +
+    `<span style="font-size:12px;color:var(--muted)">` +
+    `task_type=<code>${ex.task_type}</code> · locale=<code>${ex.locale}</code>` +
+    `</span></div>` +
+    `<div id="run-${ex.id}" style="display:none">` +
+    `<h4>Pipeline progress</h4>` +
+    `<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:6px">` +
+    `<span class="dc-badge" id="state-${ex.id}">submitting…</span>` +
+    `<span style="font-family:monospace;font-size:11px;color:var(--muted)" id="tid-${ex.id}"></span>` +
+    `<span style="font-size:11px;color:var(--muted)" id="elapsed-${ex.id}"></span>` +
+    `</div>` +
+    `<div class="dc-progress"><div id="bar-${ex.id}"></div></div>` +
+    `<div id="trace-${ex.id}" class="dc-trace-flow" style="margin-top:10px"></div>` +
+    `<h4>Verdict + reasoning</h4>` +
+    `<div id="verdict-${ex.id}"></div>` +
+    `<h4>Knowledge base evidence</h4>` +
+    `<div id="kb-${ex.id}"></div>` +
+    `<h4>Tool calls</h4>` +
+    `<div id="tools-${ex.id}"></div>` +
+    `</div>` +
+    `<h4>What this example demonstrates</h4>`;
+  for (const [title, body] of ex.explain) {
+    html += `<div class="dc-callout"><b>${title}.</b> ${body}</div>`;
+  }
+  detail.innerHTML = html;
+}
+
+async function runExample(id) {
+  const ex = EXAMPLES.find(e => e.id === id);
+  document.getElementById('run-' + id).style.display = 'block';
+  document.getElementById('trace-' + id).innerHTML = '';
+  document.getElementById('verdict-' + id).innerHTML = '';
+  document.getElementById('kb-' + id).innerHTML = '';
+  document.getElementById('tools-' + id).innerHTML = '';
+  setState(id, 'pending', 'submitting…');
+  setBar(id, true);
+  const t0 = Date.now();
+
+  let submitJ;
+  try {
+    const r = await fetch('/api/queue/submit', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({task_type: ex.task_type,
+                              payload: {text: ex.text, locale: ex.locale}})
+    });
+    submitJ = await r.json();
+  } catch (e) {
+    setState(id, 'failed', 'submit error: ' + e); return;
+  }
+  document.getElementById('tid-' + id).innerText = '#' + submitJ.task_id;
+
+  // Poll
+  while (true) {
+    let task;
+    try { task = await (await fetch('/api/queue/status/' + submitJ.task_id)).json(); }
+    catch (e) { setState(id, 'failed', 'poll err'); return; }
+    const elapsed = ((Date.now() - t0) / 1000).toFixed(1);
+    document.getElementById('elapsed-' + id).innerText = elapsed + 's elapsed';
+    renderTrace(id, task.trace || []);
+    if (task.status === 'pending') setState(id, 'pending', 'queued');
+    else if (task.status === 'running') {
+      setState(id, 'running', 'running on ' + (task.gpu ? 'GPU' : 'CPU') + ' worker');
+    } else if (task.status === 'completed') {
+      setState(id, 'completed', '✓ completed');
+      setBar(id, false, 100);
+      renderVerdict(id, task.result, ex.task_type);
+      return;
+    } else if (task.status === 'failed') {
+      setState(id, 'failed', '✗ ' + (task.error || 'failed'));
+      setBar(id, false, 100);
+      return;
+    }
+    await new Promise(r => setTimeout(r, 400));
+  }
+}
+
+function setState(id, state, label) {
+  const s = document.getElementById('state-' + id);
+  s.className = 'dc-badge dc-state-' + state;
+  s.innerText = label;
+}
+function setBar(id, indet, pct) {
+  const wrap = document.querySelector('#run-' + id + ' .dc-progress');
+  const bar = document.getElementById('bar-' + id);
+  if (indet) { wrap.classList.add('indeterminate'); bar.style.width = '100%'; }
+  else { wrap.classList.remove('indeterminate'); bar.style.width = (pct||0)+'%'; }
+}
+function renderTrace(id, trace) {
+  if (!trace.length) {
+    document.getElementById('trace-' + id).innerHTML =
+      '<p style="color:var(--muted);font-size:12px;margin:0">' +
+      '(handler has not emitted any steps yet)</p>';
+    return;
+  }
+  let html = '';
+  for (const s of trace) {
+    const cls = 's-' + (s.status || 'ok');
+    const t = (s.elapsed_since_start != null
+                ? '+' + s.elapsed_since_start.toFixed(2) + 's' : '');
+    html += `<div class="dc-trace-step ${cls}">` +
+      `<span class="t-time">${t}</span>` +
+      `<span class="t-tag">${(s.status||'ok').slice(0,4)}</span>` +
+      `<div><div class="t-name">${s.name}</div>` +
+      (s.detail ? `<div class="t-detail">${s.detail}</div>` : '') +
+      `</div></div>`;
+  }
+  document.getElementById('trace-' + id).innerHTML = html;
+}
+function renderVerdict(id, result, taskType) {
+  if (!result) return;
+  if (taskType === 'moderate') {
+    const v = (result.verdict || 'review').toLowerCase();
+    document.getElementById('verdict-' + id).innerHTML =
+      `<div class="dc-callout ${v === 'pass' ? 'success' : 'info'}">` +
+      `<span class="dc-badge ${v}">${v.toUpperCase()}</span> ` +
+      `<b>severity ${result.severity || 0}/10</b> ` +
+      `<span class="dc-pill ${result.mode === 'gemma' ? 'ok' : ''}">` +
+      `${result.mode || 'heuristic'}</span><br>` +
+      `<div style="margin-top:8px">${result.reasoning || ''}</div>` +
+      `</div>`;
+  } else {
+    document.getElementById('verdict-' + id).innerHTML =
+      `<div class="dc-callout">` +
+      `<b>Severity: ${result.severity || 0} / 10</b> ` +
+      `<span class="dc-pill ${result.mode === 'gemma' ? 'ok' : ''}">${result.mode}</span><br>` +
+      `<div style="margin-top:8px">${result.advice || ''}</div>` +
+      (result.hotline ?
+        `<div style="margin-top:8px"><b>Hotline:</b> ${result.hotline.name} — ` +
+        `<code>${result.hotline.contact}</code></div>` : '') +
+      `</div>`;
+  }
+  // KB hits
+  let kbHtml = '';
+  if (result.kb_hits && result.kb_hits.length) {
+    for (const h of result.kb_hits) {
+      const score = (h.score != null) ? `score=${(+h.score).toFixed(2)}` : '';
+      kbHtml += `<div class="dc-kb-hit">` +
+        `<div><span class="id">${h.id}</span> ` +
+        `<span class="dc-pill">${h.kind}</span></div>` +
+        `<div>${h.text}</div>` +
+        `<div style="font-size:11px;color:var(--muted);margin-top:2px">` +
+        `jurisdiction=${h.jurisdiction} · topic=${h.topic} · ${score}</div>` +
+        `</div>`;
+    }
+  } else {
+    kbHtml = '<p style="color:var(--muted);font-size:12px">(no KB hits)</p>';
+  }
+  document.getElementById('kb-' + id).innerHTML = kbHtml;
+  // Tool calls
+  let tcHtml = '';
+  if (result.tool_calls && result.tool_calls.length) {
+    for (const c of result.tool_calls) {
+      const args = JSON.stringify(c.args || {}).replace(/"/g,'');
+      const rs = c.n_results != null ? ` → ${c.n_results} result(s)`
+                : c.result ? ` → ${c.result}` : '';
+      tcHtml += `<span class="dc-tool-call">${c.tool}(${args})${rs}</span>`;
+    }
+  } else {
+    tcHtml = '<p style="color:var(--muted);font-size:12px">(no tool calls)</p>';
+  }
+  document.getElementById('tools-' + id).innerHTML = tcHtml;
+}
+
+renderCards();
+</script>
+</body>
+</html>
