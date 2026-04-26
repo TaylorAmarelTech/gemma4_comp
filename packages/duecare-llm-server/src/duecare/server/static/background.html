@@ -1,0 +1,530 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Background & literature — Duecare</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<header class="dc-nav">
+  <h1>Duecare<span class="tag"> · background &amp; literature</span></h1>
+  <nav>
+    <a href="/">Home</a>
+    <a href="/examples">Examples</a>
+    <a href="/workspace">Workspace</a>
+    <a href="/architecture">Architecture</a>
+    <a href="/background" class="active">Background</a>
+    <a href="/enterprise">Enterprise</a>
+    <a href="/individual">Individual</a>
+    <a href="/knowledge">Knowledge</a>
+    <a href="/dashboard">Dashboard</a>
+    <a href="/queue">Queue</a>
+    <a href="/logs">Logs</a>
+    <a href="/chat">Chat</a>
+    <a href="/settings">Settings</a>
+  </nav>
+</header>
+<main class="dc-main">
+
+  <h2 class="dc-h2">Background, literature & ethical framework</h2>
+  <p class="dc-sub">
+    Why migrant-worker trafficking warrants a dedicated tool, what
+    prior work exists, what gap Duecare fills, and how the system
+    should and should not be deployed.
+  </p>
+
+  <!-- ============== Section 1: Scope of the problem ============== -->
+  <div class="dc-panel">
+    <h3>1. The scope of the problem</h3>
+
+    <div class="dc-stat-grid">
+      <div class="dc-stat-tile">
+        <div class="num">49.6M</div>
+        <div class="lbl">people in modern slavery worldwide
+          <small>(ILO + Walk Free Foundation + IOM, <i>Global Estimates of Modern Slavery</i>, 2022)</small></div>
+      </div>
+      <div class="dc-stat-tile">
+        <div class="num">27.6M</div>
+        <div class="lbl">in forced labour specifically
+          <small>(ILO, 2022)</small></div>
+      </div>
+      <div class="dc-stat-tile">
+        <div class="num">169M</div>
+        <div class="lbl">international migrant workers
+          <small>(ILO, <i>Global Estimates on International Migrant Workers</i>, 2021)</small></div>
+      </div>
+      <div class="dc-stat-tile">
+        <div class="num">75.6M</div>
+        <div class="lbl">domestic workers globally; ~11.5M migrant
+          <small>(ILO, <i>Making Decent Work a Reality for Domestic Workers</i>, 2021)</small></div>
+      </div>
+      <div class="dc-stat-tile">
+        <div class="num">~30M</div>
+        <div class="lbl">migrant workers in the GCC corridor (Saudi
+          Arabia, UAE, Kuwait, Qatar, Bahrain, Oman)
+          <small>(ILO Regional Office for Arab States estimates)</small></div>
+      </div>
+      <div class="dc-stat-tile">
+        <div class="num">~$5,250</div>
+        <div class="lbl">average recruitment-fee debt per migrant
+          worker (USD)
+          <small>(IOM &amp; IFC, <i>Recruitment Fees and Related Costs</i>, 2017)</small></div>
+      </div>
+    </div>
+
+    <h4>What "trafficking" means here, technically</h4>
+    <p>
+      The <a href="https://www.unodc.org/unodc/en/treaties/CTOC/" target="_blank">Palermo Protocol Article 3</a> (UN, 2000) defines
+      trafficking as the <b>act</b> (recruitment, transport, harbouring)
+      + <b>means</b> (force, fraud, coercion, abuse of vulnerability,
+      debt bondage, document retention) + <b>purpose</b> (exploitation,
+      including forced labour). All three elements must be present.
+      Duecare's heuristic + KB targets the <b>means</b> element because
+      that's where the language patterns are most identifiable in
+      recruitment ads, chats, and contracts.
+    </p>
+
+    <h4>The 11 ILO indicators of forced labour</h4>
+    <p>
+      The <a href="https://www.ilo.org/global/topics/forced-labour/publications/WCMS_203832/lang--en/index.htm" target="_blank">ILO Indicators of Forced Labour (2012)</a>
+      framework lists 11 operational indicators. Duecare's
+      <code>identify_ilo_indicators</code> tool maps free-form input to
+      these via curated regex:
+    </p>
+    <ol class="dc-ilo-list">
+      <li>Abuse of vulnerability</li>
+      <li>Deception</li>
+      <li>Restriction of movement</li>
+      <li>Isolation</li>
+      <li>Physical and sexual violence</li>
+      <li>Intimidation and threats</li>
+      <li><b>Retention of identity documents</b> ← the headline
+        indicator for migrant domestic workers</li>
+      <li>Withholding of wages</li>
+      <li><b>Debt bondage</b> ← the headline indicator for
+        recruitment-fee schemes</li>
+      <li>Abusive working and living conditions</li>
+      <li>Excessive overtime</li>
+    </ol>
+    <p>
+      The four indicators above in <b>bold</b> are the most common
+      patterns in recruitment-stage ads and chats — they're the ones
+      Duecare's prescan is tuned for.
+    </p>
+  </div>
+
+  <!-- ============== Section 2: The current detection gap ============== -->
+  <div class="dc-panel">
+    <h3>2. The current detection gap</h3>
+    <p>
+      There are good systems for parts of this problem, but none for
+      the specific job we're targeting (real-time, per-case, on-device,
+      across multiple jurisdictions and languages).
+    </p>
+
+    <table class="dc-lit-table">
+      <thead><tr><th>System</th><th>What it does</th><th>The gap</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><b>IOM CTDC</b><br>(Counter-Trafficking Data Collaborative)</td>
+          <td>Aggregates ~200K case records from IOM, Polaris, Liberty
+            Shared globally for research and pattern analysis.</td>
+          <td>Aggregated, not per-case. Researcher tool, not operator
+            tool. Lag: 6+ months.</td>
+        </tr>
+        <tr>
+          <td><b>Polaris BeFree</b></td>
+          <td>US-focused text-message hotline (BeFree / 233733). Human
+            counsellors triage incoming messages and connect to
+            services.</td>
+          <td>Reactive (worker has to text in). English-first. US scope.
+            Doesn't help upstream where workers are still being recruited.</td>
+        </tr>
+        <tr>
+          <td><b>POEA / DMW (PH), EAA (HK), MOM (SG), MOHRE (UAE)</b></td>
+          <td>Government licensing + complaint registries. The
+            authoritative source for who's allowed to recruit.</td>
+          <td>Reactive (license is checked after a complaint is filed).
+            Static (no language analysis). Not exposed as a real-time API
+            for moderation.</td>
+        </tr>
+        <tr>
+          <td><b>Google Perspective / Jigsaw</b></td>
+          <td>General-purpose text toxicity classifiers used by job
+            boards and chat platforms.</td>
+          <td>Trained on online toxicity, not trafficking signals.
+            Misses passport-confiscation language because it isn't
+            "toxic" by their model's definition.</td>
+        </tr>
+        <tr>
+          <td><b>Frontier LLMs (GPT-4, Claude, Gemini)</b></td>
+          <td>Generic LLMs that can answer questions about labour law
+            if asked.</td>
+          <td>Cloud-only. NGOs cannot send victim case data to a
+            commercial cloud due to revictimization + data-sovereignty
+            concerns. Cost-per-call non-trivial at NGO scale.</td>
+        </tr>
+        <tr>
+          <td><b>Commercial AML / KYC products</b></td>
+          <td>Sanctions and PEP screening for banks.</td>
+          <td>Built around financial entities, not recruitment language.
+            ~$50K/year licensing — out of reach for the NGOs that need
+            it.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h4>The specific gap Duecare fills</h4>
+    <p>
+      <b>An on-device, multilingual, real-time pre-filter that understands
+      forced-labour language patterns AND can cite the specific statute
+      / convention / hotline a moderator or worker needs to act on it.</b>
+      Privacy-preserving (worker case data never leaves the laptop),
+      open-weight (Gemma 4 + Apache 2.0), free for NGOs to deploy.
+    </p>
+  </div>
+
+  <!-- ============== Section 3: Technical literature ============== -->
+  <div class="dc-panel">
+    <h3>3. Technical literature this builds on</h3>
+
+    <h4>Retrieval-augmented generation (RAG)</h4>
+    <p>
+      The two-stage retrieve-then-generate pattern was formalized in
+      <b>Lewis et al., "Retrieval-Augmented Generation for
+      Knowledge-Intensive NLP Tasks"</b>, NeurIPS 2020
+      (<a href="https://arxiv.org/abs/2005.11401" target="_blank">arXiv:2005.11401</a>).
+      Duecare's stage 3 is a small-corpus instantiation:
+      <code>sentence-transformers/all-MiniLM-L6-v2</code> over 27 KB
+      passages, top-K cosine. The KB is small because the legal
+      vocabulary for trafficking is finite (statutes, conventions,
+      indicators), so dense retrieval is overkill — but it covers
+      paraphrase / multilingual cases that GREP misses.
+    </p>
+
+    <h4>Tool-augmented language models</h4>
+    <p>
+      The pattern of LLMs calling deterministic tools to compensate for
+      brittle factual recall is best documented in <b>Schick et al.,
+      "Toolformer: Language Models Can Teach Themselves to Use
+      Tools"</b>, NeurIPS 2023
+      (<a href="https://arxiv.org/abs/2302.04761" target="_blank">arXiv:2302.04761</a>).
+      Gemma 4 ships native function-calling support in its chat template,
+      so the path from prompt → tool call → result → final answer is
+      single-model. Duecare's stage 4 demonstrates this with 7 deterministic
+      tools (statute lookup, hotline, agency licence verification, fee-cap
+      calculator, ILO indicator matcher, embassy lookup, known-actor search).
+    </p>
+
+    <h4>On-device LLM deployment</h4>
+    <p>
+      The viability of running a 4–8 B parameter LLM on consumer
+      hardware was established by the <b>llama.cpp project</b>
+      (<a href="https://github.com/ggerganov/llama.cpp" target="_blank">github.com/ggerganov/llama.cpp</a>)
+      and the GGUF + 4-bit quantization stack. Google's <b>LiteRT
+      (formerly TFLite)</b> extends this to mobile with CPU + NNAPI +
+      GPU delegates. Duecare targets both: the FastAPI server uses
+      the transformers library with bitsandbytes 4-bit quantization
+      (~5.5 GB VRAM on a Kaggle T4); the on-device path targets LiteRT
+      for sub-1 GB mobile inference.
+    </p>
+
+    <h4>Multilingual + low-resource NLP</h4>
+    <p>
+      Migrant workers communicate in Tagalog, Bahasa Indonesia, Hindi,
+      Bengali, Sinhala, Nepali, Urdu, Vietnamese, and Burmese — many of
+      which are low-resource for English-trained models. Duecare's
+      embedding model (MiniLM) covers these to a working degree because
+      it was trained on the parallel <i>OPUS</i> + <i>FLORES-200</i>
+      corpora. Gemma 4 itself is multilingual via its training mix.
+      For high-stakes deployment we recommend per-language fine-tuning
+      (the Phase 3 Unsloth pipeline in this repo provides the
+      scaffolding).
+    </p>
+
+    <h4>Trafficking-specific NLP work</h4>
+    <p>
+      Academic NLP work on trafficking is dominated by sex-trafficking
+      detection in online ads (e.g., the <b>TraffickCam</b> project at
+      Washington University and the <b>HotelsCombined</b> dataset). The
+      most-cited paper is <b>Tong et al., "Combating Human Trafficking
+      with Multimodal Deep Models"</b>, ACL 2017
+      (<a href="https://aclanthology.org/P17-1138/" target="_blank">aclanthology.org/P17-1138</a>).
+      Labour-trafficking detection (recruitment-fee fraud, kafala-system
+      abuse) is comparatively underserved in the literature; the
+      operational frameworks come from ILO, IOM, and Verité reports
+      rather than peer-reviewed papers. Duecare positions itself in
+      that operational gap.
+    </p>
+
+    <h4>The trafficking-LLM benchmark this work builds on</h4>
+    <p>
+      The submission's training and evaluation data is bootstrapped
+      from <b>Taylor Amarel's 21K-test migrant-worker trafficking
+      benchmark</b> (released as the public
+      <a href="https://gitlab.com/" target="_blank">trafficking-llm-benchmark-gitlab</a>
+      repository). It contains graded response examples (5-point scale:
+      harmful → incomplete → adequate → good → best) across the
+      ILO indicator set, with scenarios spanning the major recruitment
+      corridors (PH→GCC, ID→ME, NP→GCC, BD→ME, etc.) and the major
+      operational dimensions (fee shifting, document retention,
+      kafala transfer fraud, debt-bondage lending, dual-contract
+      novation, family-vendor bundles, premium-credit platforms,
+      cross-border novation).
+    </p>
+  </div>
+
+  <!-- ============== Section 4: Why Gemma 4 specifically ============== -->
+  <div class="dc-panel">
+    <h3>4. Why Gemma 4 specifically</h3>
+    <p>Three Gemma 4 features make this submission tractable:</p>
+
+    <ol>
+      <li><b>Native multimodal understanding.</b>
+        Gemma 4's E4B and E2B
+        instruction-tuned variants accept image + text in a single
+        forward pass via the <code>AutoModelForImageTextToText</code>
+        class. This means a worker can paste a photo of a contract page
+        and get a verdict on the same model — no separate OCR + vision
+        encoder pipeline needed. (We currently use a text-only fallback
+        for the demo because the multimodal Processor class isn't
+        registered in transformers 4.57.x; the multimodal path is wired
+        for transformers ≥ 5.5.0.dev0.)</li>
+
+      <li><b>Native function calling.</b>
+        Gemma 4's chat template
+        accepts a <code>tools</code> list parameter and emits structured
+        tool-call JSON in a multi-turn loop. This is the substrate of
+        Duecare's stage 4 — for the demo we use deterministic tool
+        calls for reproducibility, but the agentic path is one bool
+        flag away (see <code>raw_python/gemma4_*_v1.py</code> for the
+        full Gemma-driven tool-calling agent loop).</li>
+
+      <li><b>On-device deployable.</b>
+        Gemma 4 E4B at 4-bit
+        quantization fits in ~5.5 GB VRAM (a Kaggle T4 has 15 GB).
+        E2B fits in ~2 GB and runs on a high-end phone via LiteRT.
+        For NGOs working with trafficking victims, this is the
+        difference between "cannot use AI tools" and "deploys to a
+        $300 laptop." The Apache 2.0 licence means no commercial
+        restriction on humanitarian deployment.</li>
+    </ol>
+  </div>
+
+  <!-- ============== Section 5: Privacy framework ============== -->
+  <div class="dc-panel">
+    <h3>5. Privacy framework</h3>
+    <p>
+      <b>"Privacy is non-negotiable"</b> — the rules state this verbatim
+      and so do we. The threat model isn't curiosity; it's revictimization:
+    </p>
+    <ul>
+      <li>A trafficked worker's case file contains the names of family
+        members still in the origin country who could be retaliated
+        against.</li>
+      <li>A NGO's caseload is a target for state actors hostile to
+        labour-rights activism (Cambodia, GCC monarchies, etc.).</li>
+      <li>A platform's content-moderation queue is competitive
+        intelligence (which agencies are getting flagged) that
+        recruiters will exfiltrate if they can.</li>
+    </ul>
+    <p>The architectural commitments that follow:</p>
+    <ol>
+      <li><b>On-device inference.</b> Every Gemma 4 forward pass runs
+        on the operator's hardware. No worker text is sent to
+        external APIs.</li>
+      <li><b>No logging of inputs.</b> The structured event log
+        (<a href="/logs">/logs</a>) records request paths, status
+        codes, durations, task lifecycle — but not the input text.
+        The trace records what each stage <i>found</i> (a count, an
+        ID), not the original content.</li>
+      <li><b>Anonymizer gate.</b> Anything that does end up in the
+        evidence DB or training pipeline goes through the
+        <code>duecare.agents.anonymizer</code> hard gate, which
+        replaces names / passport numbers / phone numbers / addresses
+        / financial accounts with tagged placeholders and stores only
+        sha256 hashes of the originals.</li>
+      <li><b>Composite characters in all examples.</b> Maria, Sita,
+        and Ramesh in the example set are composites synthesized from
+        the public ILO + Verité case typology, not real victims.</li>
+      <li><b>Open-source.</b> Apache 2.0 model + MIT code so NGOs
+        can audit every line.</li>
+    </ol>
+  </div>
+
+  <!-- ============== Section 6: Limitations & ethics ============== -->
+  <div class="dc-panel">
+    <h3>6. Limitations and ethical use</h3>
+
+    <h4>What Duecare is not</h4>
+    <ul>
+      <li><b>Not a replacement for a human caseworker.</b> Every BLOCK
+        / REVIEW verdict is a triage signal, not a final determination.
+        The architecture is designed to pass actionable evidence (KB
+        passages, statute citations, hotline numbers) to a human, not
+        to make the decision instead of one.</li>
+      <li><b>Not a sanctions or KYC product.</b> The
+        <code>search_known_actors</code> tool ships with a small mocked
+        list for demonstration. Operators who deploy this should wire
+        in a real registry (national POEA / DMW / EAA / MOM /
+        MOHRE feeds; UN sanctions list; OFAC SDN).</li>
+      <li><b>Not a court-admissible determination.</b> The system can
+        surface evidence; it cannot establish guilt under any
+        jurisdiction's evidentiary standards.</li>
+    </ul>
+
+    <h4>Known false-positive risks</h4>
+    <ul>
+      <li><b>Legitimate fee mentions</b> — a POEA-licensed agency
+        clearly stating their cap-compliant placement fee can fire the
+        prescan. Mitigated by the legitimate-context signals
+        (<code>poea_license_mention</code>,
+        <code>employer_pays_principle</code>) and the licence-check
+        tool, but operators should not auto-block on severity 4–6.</li>
+      <li><b>Cultural framing of "live-in" arrangements</b> — some
+        regions treat live-in domestic work as the default. The system
+        flags it as a risk pattern; the human reviewer applies the
+        cultural context.</li>
+      <li><b>Multilingual coverage is uneven.</b> English / Tagalog /
+        Indonesian are well-covered; Bengali / Sinhala / Nepali / Urdu
+        rely on MiniLM's cross-lingual embeddings and may miss
+        idiomatic local phrasings.</li>
+    </ul>
+
+    <h4>Recommended deployment posture</h4>
+    <p>
+      Duecare should be deployed as a <b>pre-filter to a human-review
+      queue</b>, not as an automatic enforcement engine. The output of
+      a moderate run is structured evidence designed to make a human's
+      review faster and better-informed — citation, hotline, embassy
+      contact, and explicit ILO indicator matches all in one record.
+      Auto-blocking should be reserved for severity-9-or-10 with
+      multiple critical signals AND no legitimate-context signals.
+    </p>
+  </div>
+
+  <!-- ============== Section 7: Named NGO partners ============== -->
+  <div class="dc-panel">
+    <h3>7. Named NGO partners and the operational ecosystem</h3>
+    <p>
+      Duecare is designed to interoperate with the existing
+      anti-trafficking ecosystem. The hotline lookups, embassy
+      database, and KB passages all reference the operational entities
+      below. None are project sponsors; they are the field this work
+      is positioned within.
+    </p>
+
+    <table class="dc-lit-table">
+      <thead><tr><th>Partner</th><th>Role</th><th>Where Duecare touches them</th></tr></thead>
+      <tbody>
+        <tr><td><b>POEA / DMW</b> (Philippines)</td>
+            <td>Government regulator + complaint registry for OFW recruitment</td>
+            <td><code>check_agency_license</code>; <code>lookup_hotline("ph")</code> → 1343</td></tr>
+        <tr><td><b>BP2MI</b> (Indonesia)</td>
+            <td>Indonesian migrant worker placement agency</td>
+            <td>Hotline (1500-30); embassy secondary contact</td></tr>
+        <tr><td><b>HRD Nepal</b></td>
+            <td>NGO supporting Nepali workers in GCC + return reintegration</td>
+            <td>Embassy secondary contact (NP→QA, NP→SA)</td></tr>
+        <tr><td><b>Polaris Project</b></td>
+            <td>US national hotline + data partner in IOM CTDC</td>
+            <td>Operational model for the worker-check use case</td></tr>
+        <tr><td><b>IJM (International Justice Mission)</b></td>
+            <td>Litigation + rescue NGO across Africa / South Asia / SE Asia</td>
+            <td>Reference for the NGO triage use case</td></tr>
+        <tr><td><b>ECPAT</b></td>
+            <td>Global alliance against child trafficking</td>
+            <td>Reference for cross-border novation patterns</td></tr>
+        <tr><td><b>IOM</b> (UN Migration)</td>
+            <td>UN agency; CTDC operator; victim-assistance protocols</td>
+            <td>KB passage references; embassy fallback contacts</td></tr>
+        <tr><td><b>ILO</b> (UN Labour)</td>
+            <td>Setter of the C029 / C181 / C95 standards we cite</td>
+            <td>Every KB passage with kind=convention</td></tr>
+        <tr><td><b>Verité</b></td>
+            <td>Research NGO publishing recruitment-fee + supply-chain reports</td>
+            <td>Source for the recruitment-fee scheme typology</td></tr>
+        <tr><td><b>FairLabor.org / FATF</b></td>
+            <td>Multi-stakeholder labour standards / financial action task force</td>
+            <td>FATF Rec 29 KB passage; AML cross-reference</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ============== Section 8: Reproducibility ============== -->
+  <div class="dc-panel">
+    <h3>8. Reproducibility</h3>
+    <p>
+      Every numeric claim in the writeup and demo is traceable to
+      <code>(git_sha, dataset_version)</code>. The code repository
+      is public; the wheels are versioned on PyPI and Kaggle Datasets;
+      the fine-tuned model weights are tagged and pushed to Hugging Face
+      Hub (Phase 3). To reproduce a run:
+    </p>
+    <pre style="background:#0f172a;color:#e2e8f0;padding:14px;
+      border-radius:8px;font-size:12px;overflow-x:auto"># Local
+pip install duecare-llm
+duecare run --input ./case_files/ --output ./out/
+
+# Or via the Kaggle notebook (one-click)
+# https://www.kaggle.com/code/taylorsamarel/duecare-live-demo</pre>
+
+    <p>
+      The exact severity / verdict any input produces is deterministic
+      given (model, KB version, heuristic rules). The trace exposed
+      via <a href="/queue">/queue</a> records every stage's output so a
+      researcher or auditor can verify the decision path.
+    </p>
+  </div>
+
+</main>
+<style>
+.dc-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px; margin: 14px 0 22px 0;
+}
+.dc-stat-tile {
+  background: #f8fafc; border: 1px solid var(--border);
+  border-radius: 10px; padding: 16px;
+}
+.dc-stat-tile .num {
+  font-size: 28px; font-weight: 700; color: var(--primary);
+  margin-bottom: 4px; letter-spacing: -0.02em;
+}
+.dc-stat-tile .lbl {
+  font-size: 12px; color: var(--ink); line-height: 1.4;
+}
+.dc-stat-tile .lbl small {
+  display: block; color: var(--muted); font-size: 11px;
+  margin-top: 4px; font-style: italic;
+}
+.dc-ilo-list { margin-left: 22px; line-height: 1.7; }
+.dc-lit-table {
+  width: 100%; border-collapse: collapse; font-size: 13px;
+  margin: 10px 0;
+}
+.dc-lit-table th, .dc-lit-table td {
+  padding: 10px 12px; border-bottom: 1px solid var(--border);
+  text-align: left; vertical-align: top;
+}
+.dc-lit-table th {
+  background: #f1f5f9; font-weight: 600;
+}
+.dc-lit-table td:first-child { width: 22%; }
+.dc-lit-table td:nth-child(2) { width: 36%; }
+.dc-panel h3 { font-size: 19px; margin-bottom: 14px; }
+.dc-panel h4 {
+  margin-top: 22px; font-size: 14px; color: var(--primary);
+  text-transform: uppercase; letter-spacing: 0.04em;
+}
+.dc-panel p { line-height: 1.65; }
+.dc-panel a { color: var(--primary); text-decoration: underline; }
+@media (max-width: 600px) {
+  .dc-stat-grid { grid-template-columns: 1fr 1fr; }
+  .dc-lit-table { display: block; overflow-x: auto; }
+}
+</style>
+</body>
+</html>

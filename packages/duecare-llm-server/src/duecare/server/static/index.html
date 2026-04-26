@@ -14,6 +14,7 @@
     <a href="/examples">Examples</a>
     <a href="/workspace">Workspace</a>
     <a href="/architecture">Architecture</a>
+    <a href="/background">Background</a>
     <a href="/enterprise">Enterprise</a>
     <a href="/individual">Individual</a>
     <a href="/knowledge">Knowledge</a>
@@ -34,10 +35,33 @@
       heuristic prescan, knowledge-base grep, semantic RAG, deterministic
       tool calls, then a Gemma 4 verdict — and shows you every step.
     </p>
-    <p class="dc-hero-sub" style="margin-top:8px">
+    <div class="dc-hero-stats">
+      <div class="hs">
+        <div class="n">27.6M</div>
+        <div class="l">people in forced labour worldwide
+          <small>(ILO + IOM, 2022)</small></div>
+      </div>
+      <div class="hs">
+        <div class="n">169M</div>
+        <div class="l">international migrant workers
+          <small>(ILO, 2021)</small></div>
+      </div>
+      <div class="hs">
+        <div class="n">~30M</div>
+        <div class="l">migrant workers in the GCC corridor alone
+          <small>(ILO Arab States)</small></div>
+      </div>
+      <div class="hs">
+        <div class="n">~$5,250</div>
+        <div class="l">average recruitment-fee debt per worker
+          <small>(IOM &amp; IFC, 2017)</small></div>
+      </div>
+    </div>
+    <p class="dc-hero-sub" style="margin-top:14px">
       <b style="color:var(--primary)">Privacy is non-negotiable.</b>
       Every Gemma 4 inference runs on the operator's own machine. No
       worker case data leaves your laptop.
+      &nbsp;&nbsp;<a href="/background" style="color:var(--primary);font-weight:600">Read the background &amp; literature →</a>
     </p>
   </div>
 
@@ -188,6 +212,27 @@
   color: var(--ink); letter-spacing: -0.01em;
 }
 .dc-hero-sub { margin: 0; color: var(--ink); font-size: 15px; line-height: 1.6; }
+.dc-hero-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px; margin-top: 18px;
+}
+.dc-hero-stats .hs {
+  background: rgba(255,255,255,0.7);
+  border: 1px solid #ddd6fe; border-radius: 10px;
+  padding: 12px 14px;
+}
+.dc-hero-stats .hs .n {
+  font-size: 22px; font-weight: 700; color: var(--primary);
+  letter-spacing: -0.02em; line-height: 1;
+}
+.dc-hero-stats .hs .l {
+  font-size: 12px; color: var(--ink); margin-top: 4px; line-height: 1.35;
+}
+.dc-hero-stats .hs .l small {
+  display: block; color: var(--muted); font-size: 10px;
+  margin-top: 2px; font-style: italic;
+}
 
 /* Pipeline diagram */
 .dc-pipeline {

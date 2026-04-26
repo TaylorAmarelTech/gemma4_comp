@@ -167,6 +167,10 @@ def create_app(state: Optional[ServerState] = None) -> FastAPI:
     def architecture_page():
         return _serve_html(static_dir / "architecture.html")
 
+    @app.get("/background", response_class=HTMLResponse)
+    def background_page():
+        return _serve_html(static_dir / "background.html")
+
     @app.get("/api/logs")
     def api_logs(limit: int = 200, level: Optional[str] = None,
                   source: Optional[str] = None,
