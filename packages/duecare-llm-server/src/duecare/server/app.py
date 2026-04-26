@@ -584,18 +584,16 @@ def create_app(state: Optional[ServerState] = None) -> FastAPI:
     # process (so VRAM stays single-tenant). GPU=False for everything
     # the heuristic / template paths handle.
     def _h_moderate(payload: dict) -> dict:
-        from duecare.server.heuristics import quick_moderate
-        return quick_moderate(
-            payload.get("text", ""),
-            locale=payload.get("locale", "en"),
-            gemma_call=app.state.duecare._gemma_call)
+        # Use the multi-stage orchestrator so the task trace records
+        # heuristic prescan -> grep KB -> RAG KB -> tool calls -> Gemma.
+        from duecare.server.pipeline_steps import orchestrate_moderate
+        return orchestrate_moderate(
+            payload, gemma_call=app.state.duecare._gemma_call)
 
     def _h_worker_check(payload: dict) -> dict:
-        from duecare.server.heuristics import worker_check
-        return worker_check(
-            payload.get("text", ""),
-            locale=payload.get("locale", "en"),
-            gemma_call=app.state.duecare._gemma_call)
+        from duecare.server.pipeline_steps import orchestrate_worker_check
+        return orchestrate_worker_check(
+            payload, gemma_call=app.state.duecare._gemma_call)
 
     def _h_query(payload: dict) -> dict:
         result = app.state.duecare.translator.answer(

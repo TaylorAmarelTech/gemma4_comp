@@ -49,6 +49,33 @@ class Task:
     result: Any = None
     error: Optional[str] = None
     runtime_seconds: Optional[float] = None
+    # Per-task execution trace -- filled in by handlers via add_step()
+    # Each entry: {name, status, detail, elapsed_since_start, ts, ...}
+    trace: list = field(default_factory=list)
+    _step_lock: Any = None
+
+    def add_step(self, name: str, status: str = "ok",
+                  detail: Any = None, **fields: Any) -> None:
+        """Append a trace step. Handlers call this to surface intermediate
+        stages (prescan, grep, RAG, tool call, Gemma) so the UI can
+        render a live timeline."""
+        if self._step_lock is None:
+            self._step_lock = threading.Lock()
+        with self._step_lock:
+            now = datetime.now()
+            elapsed = (
+                (now - self.started_at).total_seconds()
+                if self.started_at else 0.0)
+            entry: dict = {
+                "name": name,
+                "status": status,
+                "ts": now.isoformat(timespec="milliseconds"),
+                "elapsed_since_start": round(elapsed, 3),
+                "detail": detail,
+            }
+            for k, v in fields.items():
+                entry[k] = v
+            self.trace.append(entry)
 
     def as_dict(self) -> dict:
         return {
@@ -65,7 +92,30 @@ class Task:
             "result": self.result,
             "error": self.error,
             "runtime_seconds": self.runtime_seconds,
+            "trace": list(self.trace),
         }
+
+
+# Thread-local that points to the Task currently being processed by
+# this worker thread. Handlers can call `step("name")` from anywhere
+# in their call stack and the trace lands on the right task.
+_current = threading.local()
+
+
+def current_task() -> Optional["Task"]:
+    return getattr(_current, "task", None)
+
+
+def step(name: str, status: str = "ok", detail: Any = None,
+          **fields: Any) -> None:
+    """Module-level convenience: append a step to the currently
+    running task's trace. No-op outside a worker context."""
+    t = current_task()
+    if t is not None:
+        try:
+            t.add_step(name, status=status, detail=detail, **fields)
+        except Exception:
+            pass
 
 
 class TaskQueue:
@@ -198,6 +248,10 @@ class TaskQueue:
                           task_type=task.task_type,
                           worker=worker_name,
                           gpu=task.gpu)
+            # Bind this task as "current" for the duration of handler
+            # execution so anything in the handler call stack can call
+            # `step(...)` and have the trace land on this task.
+            _current.task = task
             try:
                 task.result = handler(task.payload)
                 task.status = "completed"
@@ -229,7 +283,10 @@ class TaskQueue:
                           task_type=task.task_type,
                           worker=worker_name,
                           runtime_sec=task.runtime_seconds,
-                          result_preview=preview)
+                          result_preview=preview,
+                          n_steps=len(task.trace))
+            # Clear thread-local
+            _current.task = None
             q.task_done()
 
     def _evict_old(self) -> None:

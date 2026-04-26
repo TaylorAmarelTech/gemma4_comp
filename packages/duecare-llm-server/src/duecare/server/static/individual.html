@@ -107,6 +107,8 @@
     <div class="dc-progress"><div id="progress-bar"></div></div>
     <div id="progress-detail" style="margin-top:8px; font-size:12px; color:var(--muted)"></div>
     <div id="queue-pos" style="margin-top:6px; font-size:12px; color:var(--muted)"></div>
+    <h4 style="margin:18px 0 8px 0; font-size:14px">Execution trace</h4>
+    <div id="trace-flow" class="dc-trace-flow"></div>
   </div>
 
   <div class="dc-panel" id="result-panel" style="display:none">
@@ -115,6 +117,8 @@
     <p id="advice" style="margin-top:14px; font-size:15px"></p>
     <div id="hotline" style="margin-top:8px"></div>
     <div id="signs" style="margin-top:14px"></div>
+    <div id="kb-hits" style="margin-top:14px"></div>
+    <div id="tool-calls" style="margin-top:14px"></div>
     <details style="margin-top: 14px">
       <summary>Raw response</summary>
       <div class="dc-output" id="raw"></div>
@@ -180,7 +184,53 @@
 }
 .dc-qrow.head { font-weight: 600; color: var(--muted); }
 .dc-qrow.row-running { animation: dc-pulse 1.4s ease-in-out infinite; }
-@keyframes dc-pulse { 0%,100% {opacity: 1;} 50% {opacity: 0.55;} }
+@keyframes dc-pulse { 0%,100% {opacity: 1;} 50% {opacity: 0.4;} }
+.dc-trace-flow {
+  display: flex; flex-direction: column; gap: 6px;
+  border-left: 2px solid var(--border); padding-left: 14px;
+  margin-top: 6px;
+}
+.dc-trace-step {
+  display: grid; grid-template-columns: 60px 22px 1fr;
+  gap: 10px; align-items: start; font-size: 12px;
+  position: relative;
+}
+.dc-trace-step::before {
+  content: ''; position: absolute; left: -19px; top: 5px;
+  width: 10px; height: 10px; border-radius: 50%;
+  background: var(--border); border: 2px solid var(--card);
+}
+.dc-trace-step.s-ok::before     { background: #10b981; }
+.dc-trace-step.s-running::before {
+  background: #3b82f6; animation: dc-pulse 1.4s ease-in-out infinite;
+}
+.dc-trace-step.s-fail::before   { background: #ef4444; }
+.dc-trace-step.s-skip::before   { background: #94a3b8; }
+.dc-trace-step.s-fallback::before { background: #f59e0b; }
+.dc-trace-step .t-time { font-family: monospace; color: var(--muted); font-size: 11px; }
+.dc-trace-step .t-tag {
+  font-size: 10px; padding: 1px 6px; border-radius: 3px;
+  text-transform: uppercase; font-weight: 700; text-align: center;
+}
+.dc-trace-step.s-ok       .t-tag { background: #d1fae5; color: #065f46; }
+.dc-trace-step.s-running  .t-tag { background: #dbeafe; color: #1e40af; }
+.dc-trace-step.s-fail     .t-tag { background: #fee2e2; color: #991b1b; }
+.dc-trace-step.s-skip     .t-tag { background: #f1f5f9; color: var(--muted); }
+.dc-trace-step.s-fallback .t-tag { background: #fef3c7; color: #92400e; }
+.dc-trace-step .t-body { word-break: break-word; }
+.dc-trace-step .t-name { font-weight: 600; color: var(--ink); }
+.dc-trace-step .t-detail { color: var(--muted); margin-top: 2px; font-size: 11px; }
+.dc-kb-hit {
+  background: #f8fafc; border: 1px solid var(--border);
+  border-radius: 6px; padding: 8px 12px; margin-bottom: 6px; font-size: 12px;
+}
+.dc-kb-hit .id { font-family: monospace; color: var(--primary); font-weight: 600; }
+.dc-kb-hit .meta { font-size: 11px; color: var(--muted); margin-top: 2px; }
+.dc-tool-call {
+  display: inline-block; background: #eff6ff; color: #1e40af;
+  border-radius: 4px; padding: 2px 8px; margin: 2px 4px 2px 0;
+  font-size: 11px; font-family: monospace;
+}
 </style>
 <script>
 function loadExamples() {
@@ -244,6 +294,34 @@ function _renderWorkerResult(j) {
       `<b>Preview:</b> ${(j.source.extracted_text_preview||'').slice(0,300)}</p>`;
   }
   document.getElementById('signs').innerHTML = signsHTML;
+
+  // KB hits
+  let kbHtml = '';
+  if (j.kb_hits && j.kb_hits.length) {
+    kbHtml = `<b>Knowledge base evidence (${j.kb_hits.length} hits):</b>`;
+    for (const h of j.kb_hits) {
+      const score = (h.score != null) ? `score=${(+h.score).toFixed(2)}` : '';
+      kbHtml += `<div class="dc-kb-hit">` +
+        `<div><span class="id">${h.id}</span> ` +
+        `<span class="dc-pill">${h.kind}</span></div>` +
+        `<div>${h.text}</div>` +
+        `<div class="meta">jurisdiction=${h.jurisdiction} · topic=${h.topic} · ${score}</div>` +
+        `</div>`;
+    }
+  }
+  document.getElementById('kb-hits').innerHTML = kbHtml;
+  // Tool calls
+  let tcHtml = '';
+  if (j.tool_calls && j.tool_calls.length) {
+    tcHtml = `<b>Tool calls (${j.tool_calls.length}):</b><br>`;
+    for (const c of j.tool_calls) {
+      const args = JSON.stringify(c.args || {}).replace(/"/g,'');
+      const rs = c.n_results != null ? ` → ${c.n_results} result(s)`
+                : c.result ? ` → ${c.result}` : '';
+      tcHtml += `<span class="dc-tool-call">${c.tool}(${args})${rs}</span>`;
+    }
+  }
+  document.getElementById('tool-calls').innerHTML = tcHtml;
   document.getElementById('raw').innerText = JSON.stringify(j, null, 2);
 }
 
@@ -269,8 +347,33 @@ function _setProgressBar(pct, indeterminate) {
   }
 }
 
+function _renderTrace(trace) {
+  if (!trace || !trace.length) {
+    document.getElementById('trace-flow').innerHTML =
+      '<p style="color:var(--muted);font-size:12px;margin:0">' +
+      '(handler has not emitted any steps yet)</p>';
+    return;
+  }
+  let html = '';
+  for (const s of trace) {
+    const cls = 's-' + (s.status || 'ok');
+    const t = (s.elapsed_since_start != null
+                ? '+' + s.elapsed_since_start.toFixed(2) + 's' : '');
+    const detail = s.detail || '';
+    html += `<div class="dc-trace-step ${cls}">` +
+      `<span class="t-time">${t}</span>` +
+      `<span class="t-tag">${(s.status||'ok').slice(0,4)}</span>` +
+      `<div class="t-body">` +
+      `<div class="t-name">${s.name}</div>` +
+      (detail ? `<div class="t-detail">${detail}</div>` : '') +
+      `</div></div>`;
+  }
+  document.getElementById('trace-flow').innerHTML = html;
+}
+
 async function _pollUntilDone(taskId, t0) {
   document.getElementById('progress-id').innerText = '#' + taskId;
+  document.getElementById('trace-flow').innerHTML = '';
   let lastStatus = null;
   while (true) {
     let task;
@@ -284,6 +387,7 @@ async function _pollUntilDone(taskId, t0) {
     }
     const elapsed = ((Date.now() - t0) / 1000).toFixed(1);
     document.getElementById('progress-elapsed').innerText = elapsed + 's elapsed';
+    _renderTrace(task.trace || []);
     if (task.status !== lastStatus) {
       if (task.status === 'pending') {
         _setProgressState('pending', 'queued');
