@@ -127,6 +127,108 @@ _KB_PASSAGES = [
                   "reporting; covers cross-border recruitment-fee laundering "
                   "via shell companies.",
     },
+    {
+        "id": "ph_dmw_circular",
+        "kind": "regulation",
+        "jurisdiction": "PH",
+        "topic": "fee",
+        "tags": ["fee", "PH", "DMW", "POEA"],
+        "text": "PH DMW (Department of Migrant Workers, formerly POEA) "
+                  "regulations cap placement fees at one month's salary "
+                  "for skilled workers and prohibit fees entirely for "
+                  "domestic workers.",
+    },
+    {
+        "id": "ilo_c143",
+        "kind": "convention",
+        "jurisdiction": "international",
+        "topic": "migrant_workers",
+        "tags": ["ILO", "C143", "migrant_workers"],
+        "text": "ILO C143 Migrant Workers (Supplementary Provisions) "
+                  "Convention -- equal treatment, ban on irregular "
+                  "migration trafficking, freedom of movement protections.",
+    },
+    {
+        "id": "ilo_c95_wages",
+        "kind": "convention",
+        "jurisdiction": "international",
+        "topic": "wages",
+        "tags": ["ILO", "C95", "wage_protection"],
+        "text": "ILO C95 Protection of Wages Convention -- wages must be "
+                  "paid in full, in legal tender, and at regular intervals; "
+                  "deductions are restricted by law.",
+    },
+    {
+        "id": "sa_kafala_reform_2021",
+        "kind": "regulation",
+        "jurisdiction": "SA",
+        "topic": "kafala",
+        "tags": ["SA", "kafala", "WPS"],
+        "text": "Saudi Arabia 2021 Labour Reforms -- workers can change "
+                  "employers and exit the country without sponsor consent. "
+                  "Implemented via Wage Protection System (WPS).",
+    },
+    {
+        "id": "sg_efma",
+        "kind": "statute",
+        "jurisdiction": "SG",
+        "topic": "fee",
+        "tags": ["SG", "EFMA", "MOM"],
+        "text": "Singapore Employment of Foreign Manpower Act (EFMA) -- "
+                  "agencies cannot collect fees exceeding 1 month salary; "
+                  "MOM enforces. Tripartite Alliance for Dispute Management "
+                  "(TADM) handles complaints.",
+    },
+    {
+        "id": "my_employment_act",
+        "kind": "statute",
+        "jurisdiction": "MY",
+        "topic": "wages",
+        "tags": ["MY", "employment_act", "JTK"],
+        "text": "Malaysian Employment Act 1955 + Act 446 (Workers' Minimum "
+                  "Standards of Housing and Amenities) -- wage protection "
+                  "and accommodation standards for foreign workers.",
+    },
+    {
+        "id": "us_tvpa",
+        "kind": "statute",
+        "jurisdiction": "US",
+        "topic": "trafficking",
+        "tags": ["US", "TVPA", "trafficking"],
+        "text": "US Trafficking Victims Protection Act (TVPA) -- federal "
+                  "anti-trafficking statute; defines forced labour and "
+                  "debt bondage as criminal offences.",
+    },
+    {
+        "id": "ilo_indicator_isolation",
+        "kind": "indicator",
+        "jurisdiction": "international",
+        "topic": "forced_labor",
+        "tags": ["ILO", "indicator", "isolation"],
+        "text": "ILO forced-labour indicator: ISOLATION -- worker is "
+                  "geographically or socially isolated from outside contact "
+                  "(no day off, restricted communication, no community).",
+    },
+    {
+        "id": "ilo_indicator_excessive_overtime",
+        "kind": "indicator",
+        "jurisdiction": "international",
+        "topic": "wages",
+        "tags": ["ILO", "indicator", "overtime"],
+        "text": "ILO forced-labour indicator: EXCESSIVE OVERTIME -- "
+                  "worker forced to work hours beyond legal limits with "
+                  "no real consent or rest.",
+    },
+    {
+        "id": "ilo_indicator_intimidation",
+        "kind": "indicator",
+        "jurisdiction": "international",
+        "topic": "forced_labor",
+        "tags": ["ILO", "indicator", "intimidation"],
+        "text": "ILO forced-labour indicator: INTIMIDATION & THREATS -- "
+                  "verbal abuse, threats of denunciation to authorities, "
+                  "or threats against family members.",
+    },
     # Hotline passages mirror _HOTLINES so RAG retrieval can surface them.
     *[
         {

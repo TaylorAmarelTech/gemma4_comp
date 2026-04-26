@@ -715,6 +715,123 @@ def create_app(state: Optional[ServerState] = None) -> FastAPI:
     def api_queue_stats():
         return tq.stats()
 
+    # ------ Config introspection (what's in the wheel?) -------------------
+    @app.get("/api/config/knowledge_base")
+    def api_kb():
+        from duecare.server.pipeline_steps import _KB_PASSAGES, _rag_state
+        # Trigger lazy embedder init so the report knows if RAG is wired
+        try:
+            from duecare.server.pipeline_steps import _rag_init
+            _rag_init()
+        except Exception:
+            pass
+        return {
+            "passage_count": len(_KB_PASSAGES),
+            "passages": [
+                {"id": p["id"], "kind": p["kind"],
+                 "jurisdiction": p["jurisdiction"],
+                 "topic": p["topic"], "tags": p["tags"],
+                 "text": p["text"]}
+                for p in _KB_PASSAGES
+            ],
+            "rag_embedder": (
+                "sentence-transformers/all-MiniLM-L6-v2"
+                if _rag_state.get("embedder") is not None
+                else "(not loaded -- using keyword fallback)"),
+            "rag_embedded_count": (
+                len(_rag_state["embeddings"])
+                if _rag_state.get("embeddings") is not None else 0),
+        }
+
+    @app.get("/api/config/tools")
+    def api_tools():
+        from duecare.server.pipeline_steps import (
+            tool_lookup_statute, tool_lookup_hotline)
+        return {
+            "tool_count": 2,
+            "tools": [
+                {"name": "lookup_statute",
+                 "params": ["jurisdiction", "topic"],
+                 "description": "Returns matching statutes / conventions "
+                                  "from the KB for the (jurisdiction, topic) "
+                                  "combo. Jurisdictions: PH, HK, SG, MY, "
+                                  "AE, SA, QA, KW, NP, ID, LK, IN, BD, "
+                                  "international.",
+                 "example": {"jurisdiction": "PH", "topic": "fee"}},
+                {"name": "lookup_hotline",
+                 "params": ["country"],
+                 "description": "Returns the official labour-rights / "
+                                  "anti-trafficking hotline name + contact "
+                                  "for the country code.",
+                 "example": {"country": "ph"}},
+            ],
+            "registered_task_types": tq.known_task_types(),
+        }
+
+    @app.get("/api/config/heuristics")
+    def api_heuristics():
+        from duecare.server.heuristics import (
+            _CRITICAL_SIGNALS, _STRONG_SIGNALS, _LEGITIMATE_SIGNALS)
+        def _as_dict(sigs, tier):
+            return [{"name": n, "tier": tier,
+                     "weight": w, "keyword_count": len(kws),
+                     "keywords": kws[:8]}
+                    for n, kws, w in sigs]
+        return {
+            "verdict_thresholds": {"block": 7, "review": 4, "pass": 0},
+            "critical_signals": _as_dict(_CRITICAL_SIGNALS, "critical"),
+            "strong_signals":  _as_dict(_STRONG_SIGNALS,  "strong"),
+            "legitimate_signals": _as_dict(_LEGITIMATE_SIGNALS, "legitimate"),
+        }
+
+    @app.get("/api/config/hotlines")
+    def api_hotlines():
+        from duecare.server.heuristics import _HOTLINES
+        return {
+            "hotline_count": len(_HOTLINES),
+            "hotlines": [
+                {"locale": k, "name": v[0], "contact": v[1]}
+                for k, v in sorted(_HOTLINES.items())
+            ],
+        }
+
+    @app.get("/api/config/db_schema")
+    def api_db_schema():
+        st: ServerState = app.state.duecare
+        out: dict = {"db_path": st.db_path, "tables": []}
+        try:
+            tables = ("runs", "documents", "entities", "entity_documents",
+                       "edges", "edge_documents", "findings",
+                       "tool_call_cache", "bundle_summaries",
+                       "pairwise_links", "schema_meta")
+            for tbl in tables:
+                try:
+                    r = st.store.fetchone(
+                        f"SELECT COUNT(*) AS n FROM {tbl}")
+                    out["tables"].append({
+                        "name": tbl, "row_count": int(r["n"]) if r else 0,
+                    })
+                except Exception:
+                    out["tables"].append({"name": tbl, "row_count": None,
+                                            "error": "table not present"})
+            out["total_rows"] = sum(
+                (t.get("row_count") or 0) for t in out["tables"])
+        except Exception as e:
+            out["error"] = str(e)
+        return out
+
+    @app.get("/api/config/handlers")
+    def api_handlers():
+        """Show every queue task type registered + whether it's GPU-bound."""
+        items = []
+        for ttype, (handler, gpu) in tq.handlers.items():
+            items.append({
+                "task_type": ttype,
+                "gpu": gpu,
+                "handler": getattr(handler, "__name__", str(handler)),
+            })
+        return {"handlers": sorted(items, key=lambda x: x["task_type"])}
+
     # ------ API: stats (live counts for the dashboard) --------------------
     @app.get("/api/stats")
     def api_stats():

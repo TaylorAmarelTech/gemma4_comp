@@ -67,7 +67,63 @@
     <div id="runs">Loading…</div>
   </div>
 
+  <div class="dc-panel">
+    <h3>Configuration explorer</h3>
+    <p class="dc-sub" style="font-size:13px">
+      Everything pre-loaded inside the wheel that powers RAG / GREP /
+      tool calls / heuristics. Use this to verify what's actually in
+      the demo before judges look.
+    </p>
+    <div class="dc-tabs">
+      <button class="dc-tab active" data-tab="kb"   onclick="showTab('kb')">Knowledge base</button>
+      <button class="dc-tab" data-tab="tools"        onclick="showTab('tools')">Tool registry</button>
+      <button class="dc-tab" data-tab="heuristics"   onclick="showTab('heuristics')">Heuristics</button>
+      <button class="dc-tab" data-tab="hotlines"     onclick="showTab('hotlines')">Hotlines</button>
+      <button class="dc-tab" data-tab="schema"       onclick="showTab('schema')">DB schema</button>
+      <button class="dc-tab" data-tab="handlers"     onclick="showTab('handlers')">Queue handlers</button>
+    </div>
+    <div id="tab-kb"          class="dc-tabpanel">Loading…</div>
+    <div id="tab-tools"       class="dc-tabpanel" style="display:none">Loading…</div>
+    <div id="tab-heuristics"  class="dc-tabpanel" style="display:none">Loading…</div>
+    <div id="tab-hotlines"    class="dc-tabpanel" style="display:none">Loading…</div>
+    <div id="tab-schema"      class="dc-tabpanel" style="display:none">Loading…</div>
+    <div id="tab-handlers"    class="dc-tabpanel" style="display:none">Loading…</div>
+  </div>
+
 </main>
+<style>
+.dc-tabs {
+  display: flex; gap: 4px; flex-wrap: wrap;
+  border-bottom: 1px solid var(--border); margin-bottom: 16px;
+}
+.dc-tab {
+  background: transparent; border: 0; cursor: pointer;
+  padding: 10px 16px; font-size: 13px; color: var(--muted);
+  border-bottom: 2px solid transparent; font-weight: 600;
+  margin-bottom: -1px;
+}
+.dc-tab:hover { color: var(--ink); }
+.dc-tab.active {
+  color: var(--primary); border-bottom-color: var(--primary);
+}
+.dc-tabpanel { padding: 6px 0; }
+.dc-config-row {
+  background: #f8fafc; border: 1px solid var(--border);
+  border-radius: 6px; padding: 10px 14px; margin-bottom: 8px;
+  font-size: 13px;
+}
+.dc-config-row .id { font-family: monospace; color: var(--primary); font-weight: 600; }
+.dc-config-row .meta {
+  font-size: 11px; color: var(--muted); margin-top: 4px;
+  display: flex; flex-wrap: wrap; gap: 8px;
+}
+.dc-config-row .meta code {
+  background: #ffffff; padding: 1px 6px; border-radius: 3px;
+}
+.dc-tier-critical    { background: #fef2f2; color: #991b1b; padding: 2px 8px; border-radius: 3px; font-size: 11px; }
+.dc-tier-strong      { background: #fffbeb; color: #92400e; padding: 2px 8px; border-radius: 3px; font-size: 11px; }
+.dc-tier-legitimate  { background: #ecfdf5; color: #065f46; padding: 2px 8px; border-radius: 3px; font-size: 11px; }
+</style>
 <script>
 async function status() {
   const r = await fetch('/api/settings');
@@ -127,6 +183,179 @@ async function loadRuns() {
   }
 }
 status(); loadRuns();
+
+// ===== Configuration explorer tabs =====
+function showTab(name) {
+  document.querySelectorAll('.dc-tab').forEach(t => {
+    t.classList.toggle('active', t.dataset.tab === name);
+  });
+  document.querySelectorAll('.dc-tabpanel').forEach(p => {
+    p.style.display = p.id === ('tab-' + name) ? 'block' : 'none';
+  });
+}
+
+async function loadKB() {
+  let j;
+  try { j = await (await fetch('/api/config/knowledge_base')).json(); }
+  catch (e) {
+    document.getElementById('tab-kb').innerText = 'load failed: ' + e;
+    return;
+  }
+  let html = `<p style="color:var(--muted);font-size:13px;margin:0 0 12px 0">` +
+    `<b>${j.passage_count}</b> passages preloaded · ` +
+    `RAG embedder: <code>${j.rag_embedder}</code> ` +
+    `(${j.rag_embedded_count} embedded vectors)</p>`;
+  // Group by jurisdiction
+  const byJur = {};
+  for (const p of j.passages) {
+    (byJur[p.jurisdiction] = byJur[p.jurisdiction] || []).push(p);
+  }
+  for (const [jur, items] of Object.entries(byJur)) {
+    html += `<h4 style="margin:14px 0 6px 0;font-size:13px">Jurisdiction: <code>${jur}</code> (${items.length})</h4>`;
+    for (const p of items) {
+      html += `<div class="dc-config-row">` +
+        `<div><span class="id">${p.id}</span></div>` +
+        `<div style="margin-top:4px">${p.text}</div>` +
+        `<div class="meta">` +
+        `<code>kind=${p.kind}</code>` +
+        `<code>topic=${p.topic}</code>` +
+        `<code>tags=${(p.tags||[]).join(', ')}</code>` +
+        `</div></div>`;
+    }
+  }
+  document.getElementById('tab-kb').innerHTML = html;
+}
+
+async function loadTools() {
+  let j;
+  try { j = await (await fetch('/api/config/tools')).json(); }
+  catch (e) {
+    document.getElementById('tab-tools').innerText = 'load failed: ' + e;
+    return;
+  }
+  let html = `<p style="color:var(--muted);font-size:13px;margin:0 0 12px 0">` +
+    `<b>${j.tool_count}</b> deterministic tools wired into the moderate / ` +
+    `worker_check pipeline.</p>`;
+  for (const t of j.tools) {
+    const params = (t.params||[]).join(', ');
+    html += `<div class="dc-config-row">` +
+      `<div><span class="id">${t.name}(${params})</span></div>` +
+      `<div style="margin-top:6px">${t.description}</div>` +
+      `<div class="meta">` +
+      `<code>example: ${JSON.stringify(t.example)}</code>` +
+      `</div></div>`;
+  }
+  html += `<h4 style="margin:18px 0 8px 0;font-size:13px">Queue task types</h4>`;
+  html += `<p style="color:var(--muted);font-size:12px;margin:0">` +
+    j.registered_task_types.map(t=>`<code>${t}</code>`).join(' · ') + `</p>`;
+  document.getElementById('tab-tools').innerHTML = html;
+}
+
+async function loadHeuristics() {
+  let j;
+  try { j = await (await fetch('/api/config/heuristics')).json(); }
+  catch (e) {
+    document.getElementById('tab-heuristics').innerText = 'load failed: ' + e;
+    return;
+  }
+  let html = `<p style="color:var(--muted);font-size:13px;margin:0 0 12px 0">` +
+    `Verdict thresholds: severity ≥ <b>${j.verdict_thresholds.block}</b> = BLOCK · ` +
+    `≥ <b>${j.verdict_thresholds.review}</b> = REVIEW · ` +
+    `else = PASS</p>`;
+  function renderGroup(title, sigs, tier) {
+    let h = `<h4 style="margin:14px 0 6px 0;font-size:13px">${title} (${sigs.length})</h4>`;
+    for (const s of sigs) {
+      h += `<div class="dc-config-row">` +
+        `<div><span class="id">${s.name}</span> ` +
+        `<span class="dc-tier-${tier}">${tier}</span> ` +
+        `<code>weight=${s.weight}</code></div>` +
+        `<div class="meta">${s.keyword_count} keyword(s): ` +
+        (s.keywords||[]).map(k=>`<code>${k}</code>`).join(' ') +
+        (s.keyword_count > (s.keywords||[]).length
+          ? ` <i>(showing first 8)</i>` : '') +
+        `</div></div>`;
+    }
+    return h;
+  }
+  html += renderGroup('Critical signals (verdict-driving)',
+                       j.critical_signals, 'critical');
+  html += renderGroup('Strong signals (escalating)',
+                       j.strong_signals, 'strong');
+  html += renderGroup('Legitimate-context signals (de-escalating)',
+                       j.legitimate_signals, 'legitimate');
+  document.getElementById('tab-heuristics').innerHTML = html;
+}
+
+async function loadHotlines() {
+  let j;
+  try { j = await (await fetch('/api/config/hotlines')).json(); }
+  catch (e) {
+    document.getElementById('tab-hotlines').innerText = 'load failed: ' + e;
+    return;
+  }
+  let html = `<p style="color:var(--muted);font-size:13px;margin:0 0 12px 0">` +
+    `<b>${j.hotline_count}</b> hotlines preloaded · selected by ` +
+    `<code>locale</code> on every moderate / worker_check call.</p>` +
+    '<table class="dc-table"><thead><tr>' +
+    '<th>locale</th><th>name</th><th>contact</th></tr></thead><tbody>';
+  for (const h of j.hotlines) {
+    html += `<tr><td><code>${h.locale}</code></td>` +
+      `<td>${h.name}</td><td><code>${h.contact}</code></td></tr>`;
+  }
+  html += '</tbody></table>';
+  document.getElementById('tab-hotlines').innerHTML = html;
+}
+
+async function loadSchema() {
+  let j;
+  try { j = await (await fetch('/api/config/db_schema')).json(); }
+  catch (e) {
+    document.getElementById('tab-schema').innerText = 'load failed: ' + e;
+    return;
+  }
+  let html = `<p style="color:var(--muted);font-size:13px;margin:0 0 12px 0">` +
+    `Evidence DB: <code>${j.db_path}</code>`;
+  if (j.total_rows != null) html += ` · <b>${j.total_rows}</b> total rows`;
+  html += `</p>`;
+  if (j.error) {
+    html += `<p style="color:#991b1b">${j.error}</p>`;
+  }
+  html += '<table class="dc-table"><thead><tr>' +
+    '<th>table</th><th>row count</th></tr></thead><tbody>';
+  for (const t of (j.tables||[])) {
+    const rc = t.row_count != null ? t.row_count :
+                `<i style="color:#991b1b">${t.error||'-'}</i>`;
+    html += `<tr><td><code>${t.name}</code></td><td>${rc}</td></tr>`;
+  }
+  html += '</tbody></table>';
+  document.getElementById('tab-schema').innerHTML = html;
+}
+
+async function loadHandlers() {
+  let j;
+  try { j = await (await fetch('/api/config/handlers')).json(); }
+  catch (e) {
+    document.getElementById('tab-handlers').innerText = 'load failed: ' + e;
+    return;
+  }
+  let html = `<p style="color:var(--muted);font-size:13px;margin:0 0 12px 0">` +
+    `Every task type the queue knows about. GPU-flagged tasks go to ` +
+    `the GPU pool (serialized); others go to the CPU pool (4 workers ` +
+    `in parallel).</p>` +
+    '<table class="dc-table"><thead><tr>' +
+    '<th>task_type</th><th>gpu</th><th>handler function</th>' +
+    '</tr></thead><tbody>';
+  for (const h of (j.handlers||[])) {
+    html += `<tr><td><code>${h.task_type}</code></td>` +
+      `<td>${h.gpu ? '<span class="dc-pill ok">GPU</span>' : '<span class="dc-pill">CPU</span>'}</td>` +
+      `<td><code>${h.handler}</code></td></tr>`;
+  }
+  html += '</tbody></table>';
+  document.getElementById('tab-handlers').innerHTML = html;
+}
+
+// Load all tabs on page load (small payloads -- no harm in pre-fetching)
+loadKB(); loadTools(); loadHeuristics(); loadHotlines(); loadSchema(); loadHandlers();
 </script>
 </body>
 </html>
