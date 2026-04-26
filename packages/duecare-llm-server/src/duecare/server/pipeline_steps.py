@@ -229,6 +229,118 @@ _KB_PASSAGES = [
                   "verbal abuse, threats of denunciation to authorities, "
                   "or threats against family members.",
     },
+
+    # ---- Social-media public-shaming / debt-harassment statutes ----
+    {
+        "id": "ph_ra10173_data_privacy",
+        "kind": "statute",
+        "jurisdiction": "PH",
+        "topic": "doxxing",
+        "tags": ["PH", "data_privacy", "RA10173", "doxxing"],
+        "text": "PH RA 10173 (Data Privacy Act 2012) -- prohibits "
+                  "unauthorized processing of personal information; "
+                  "publishing a worker's full name + photo + alleged "
+                  "debt without consent is a criminal violation. "
+                  "Fines: PHP 500K-5M; imprisonment up to 6 years.",
+    },
+    {
+        "id": "ph_ra10175_cybercrime",
+        "kind": "statute",
+        "jurisdiction": "PH",
+        "topic": "online_harassment",
+        "tags": ["PH", "cybercrime", "RA10175", "online_libel"],
+        "text": "PH RA 10175 (Cybercrime Prevention Act 2012) -- "
+                  "online libel, cyber-harassment, and cyber-bullying "
+                  "are punishable. Public 'wanted poster' posts of "
+                  "alleged debtors fall under this even when factually "
+                  "true if posted with intent to harass.",
+    },
+    {
+        "id": "ph_ra9995_anti_voyeurism",
+        "kind": "statute",
+        "jurisdiction": "PH",
+        "topic": "image_abuse",
+        "tags": ["PH", "RA9995", "image_abuse", "passport"],
+        "text": "PH RA 9995 (Anti-Photo and Video Voyeurism Act 2009) -- "
+                  "prohibits publication of photographs depicting an "
+                  "identifiable person without consent in a context "
+                  "designed to shame or harass. Applies to public "
+                  "posting of passport-photo 'wanted posters'.",
+    },
+    {
+        "id": "ph_sec_mc18_2019_lending",
+        "kind": "regulation",
+        "jurisdiction": "PH",
+        "topic": "predatory_lending",
+        "tags": ["PH", "SEC", "predatory_lending", "online_lending"],
+        "text": "PH SEC Memorandum Circular 18-2019 -- prohibits "
+                  "online lenders from accessing borrower contact "
+                  "lists, public shaming, and threats. Multiple "
+                  "lending app cancellations 2019-2024 cite this MC.",
+    },
+    {
+        "id": "hk_cap486_personal_data",
+        "kind": "statute",
+        "jurisdiction": "HK",
+        "topic": "doxxing",
+        "tags": ["HK", "Cap486", "data_privacy", "doxxing"],
+        "text": "HK Personal Data (Privacy) Ordinance Cap. 486 + "
+                  "Anti-Doxxing Amendment 2021 -- criminalises the "
+                  "publication of personal data with intent to cause "
+                  "harm. Fine HKD 1M + 5 years imprisonment. "
+                  "Applicable to public shaming of OFWs by "
+                  "HK-based lenders.",
+    },
+    {
+        "id": "hk_money_lenders_ordinance",
+        "kind": "statute",
+        "jurisdiction": "HK",
+        "topic": "lending",
+        "tags": ["HK", "Cap163", "money_lenders", "interest_cap"],
+        "text": "HK Money Lenders Ordinance Cap. 163 -- 48% APR "
+                  "statutory cap on personal loans; >48% is "
+                  "presumptively extortionate. Many predatory lenders "
+                  "target OFW domestic helpers with rates exceeding "
+                  "this cap and use harassment + passport-collateral "
+                  "as enforcement.",
+    },
+    {
+        "id": "gdpr_art17_erasure",
+        "kind": "convention",
+        "jurisdiction": "international",
+        "topic": "doxxing",
+        "tags": ["GDPR", "right_to_erasure", "doxxing"],
+        "text": "GDPR Article 17 (Right to Erasure / Right to be "
+                  "Forgotten) -- where applicable (any data subject "
+                  "in the EU, including OFW relatives), platforms "
+                  "must remove unlawful personal-data publications "
+                  "such as 'wanted poster' debt-shaming posts.",
+    },
+    {
+        "id": "fb_community_standards_doxxing",
+        "kind": "policy",
+        "jurisdiction": "international",
+        "topic": "doxxing",
+        "tags": ["facebook", "platform_policy", "doxxing"],
+        "text": "Facebook Community Standards: Coordinating Harm "
+                  "and Promoting Crime -- prohibits posting "
+                  "personally identifiable information of private "
+                  "individuals with intent to expose them to harm. "
+                  "'Wanted poster' debt-shaming posts violate this "
+                  "even when the underlying debt is real.",
+    },
+    {
+        "id": "ilo_c95_wages_recovery",
+        "kind": "convention",
+        "jurisdiction": "international",
+        "topic": "wage_recovery",
+        "tags": ["ILO", "C95", "wage_recovery"],
+        "text": "ILO C95 Article 8 -- wage deductions must be "
+                  "limited by national law; cross-border wage "
+                  "garnishment by predatory lenders is generally "
+                  "unenforceable absent a specific bilateral "
+                  "treaty or court order.",
+    },
     # Hotline passages mirror _HOTLINES so RAG retrieval can surface them.
     *[
         {
@@ -628,6 +740,211 @@ def tool_search_known_actors(text: str) -> dict:
 
 
 # ---------------------------------------------------------------------------
+# Social-media harassment / doxxing / debt-collection abuse tools
+# Documented pattern: PH-OFW-targeting Facebook pages (e.g. "Bank
+# Hongkong", "Yoursun Caretaker") publicly post passport photos +
+# full names of alleged debtors with "WANTED" / "asap pay ur overdues"
+# framing. Violates RA 10173 (PH), Cap. 486 (HK), GDPR Art 17,
+# Facebook Community Standards, and FB Coordinating Harm policy.
+# ---------------------------------------------------------------------------
+
+# Patterns that indicate a "wanted poster" / public-shaming post
+_WANTED_POSTER_PATTERNS = [
+    (r"\bwanted\s*[:!]", "wanted: framing"),
+    (r"\b(looking\s+for|search\s+for)\s+this\s+(ofw|person|debtor)\b",
+     "manhunt language"),
+    (r"\b(name and shame|share until found|tag this)\b",
+     "viral-amplification request"),
+    (r"\b(asap pay|pay ur overdue|pay or we will|pay or your)\b",
+     "deadline pressure"),
+    (r"\b(passport.*as.*collateral|collateral.*passport)\b",
+     "passport-as-collateral disclosure"),
+    (r"\b(post your face|share until|tag.*friends|tag.*relatives)\b",
+     "doxxing escalation"),
+    (r"\b(bank fraud|estafa case|criminal complaint)\s+(?:filed|case)?\b",
+     "false-criminal-charge framing"),
+]
+
+
+def tool_check_social_media_harassment(text: str) -> dict:
+    """Detect social-media public-shaming / 'wanted poster' patterns.
+    Returns matched indicator labels with quoted excerpts. Used to
+    flag predatory-lender pages targeting OFWs.
+
+    Returns:
+      pattern_count: number of unique patterns matched
+      patterns: [{label, evidence: [excerpt, ...]}, ...]
+      framework: which legal framework applies (PH RA 10173, HK Cap 486)
+    """
+    if not text:
+        return {"pattern_count": 0, "patterns": [],
+                "framework": "n/a"}
+    found: dict[str, list[str]] = {}
+    for pat, label in _WANTED_POSTER_PATTERNS:
+        for m in re.finditer(pat, text, re.IGNORECASE):
+            excerpt = text[max(0, m.start() - 30):m.end() + 30]
+            found.setdefault(label, []).append(excerpt.strip())
+            break
+    patterns = [{"label": k, "evidence": v[:2]} for k, v in found.items()]
+    framework = ("PH RA 10173 + RA 10175 + HK Cap. 486 + "
+                  "FB Coordinating-Harm policy"
+                  if patterns else "n/a")
+    return {
+        "pattern_count": len(patterns),
+        "patterns": patterns,
+        "framework": framework,
+    }
+
+
+# Doxxing indicators -- signs of personally-identifying-info exposure
+_DOXXING_PATTERNS = [
+    (r"\b(?:full name|first name and last name)\s*[:=]?\s*[A-Z][a-z]+\s+[A-Z][a-z]+\b",
+     "full-name disclosure"),
+    (r"\b(?:passport\s*(?:no|number|#)?|p\.?p\.?\s*no)\s*[:=]?\s*[A-Z]{1,2}\d{6,9}\b",
+     "passport number exposure"),
+    (r"\b(?:phone|mobile|contact|whatsapp|tel)\s*[:=]?\s*[\+]?\d{8,15}\b",
+     "phone number exposure"),
+    (r"\b\d{1,5}\s+[A-Z][a-z]+\s+(?:Street|St|Road|Rd|Avenue|Ave|Drive|Dr)\b",
+     "address exposure"),
+    (r"\b(?:works?\s+at|employed\s+by|employer\s*[:=])\s+[A-Z][a-z]+\b",
+     "workplace exposure"),
+    (r"\b(?:passport\s+photo|id\s+photo|face\s+attached|photo\s+attached)\b",
+     "photo attachment reference"),
+    (r"\b(?:relatives?|family|mother|father|sister|brother|husband|wife)\s+(?:in|live[s]?\s+in|are\s+in)\s+[A-Z][a-z]+",
+     "family-member geo-disclosure (retaliation risk)"),
+]
+
+
+def tool_check_doxxing_indicators(text: str) -> dict:
+    """Detect personally-identifying-information exposure patterns.
+    Distinguishes 7 categories of PII leakage."""
+    if not text:
+        return {"indicator_count": 0, "indicators": [],
+                "risk_level": "none"}
+    found: dict[str, list[str]] = {}
+    for pat, label in _DOXXING_PATTERNS:
+        for m in re.finditer(pat, text, re.IGNORECASE):
+            excerpt = text[max(0, m.start() - 20):m.end() + 30]
+            found.setdefault(label, []).append(excerpt.strip())
+            break
+    indicators = [{"label": k, "evidence": v[:2]}
+                   for k, v in found.items()]
+    if len(indicators) >= 4:
+        risk = "CRITICAL (4+ PII categories exposed)"
+    elif len(indicators) >= 2:
+        risk = "HIGH (2+ PII categories)"
+    elif indicators:
+        risk = "MODERATE (1 PII category)"
+    else:
+        risk = "none"
+    return {
+        "indicator_count": len(indicators),
+        "indicators": indicators,
+        "risk_level": risk,
+    }
+
+
+# Debt-collection harassment patterns
+_DEBT_HARASSMENT_PATTERNS = [
+    (r"\b(asap|urgent|today|24\s*hours|immediately)\s*pay\b",
+     "deadline-pressure debt demand"),
+    (r"\b(pay\s+(?:or|otherwise|else)|pay\s+now\s+or)\b",
+     "ultimatum demand"),
+    (r"\b(post\s+your|share\s+your|expose\s+your|tag\s+your)\b",
+     "threat to escalate publicly"),
+    (r"\b(legal action|file\s+case|criminal\s+(?:case|complaint)|sue\s+you)\b",
+     "threat of legal action (often without basis)"),
+    (r"\b(report\s+to\s+(?:police|immigration|barangay|embassy))\b",
+     "threat to report to authorities"),
+    (r"\b(blacklist|ban\s+from|deport|cancel\s+your\s+visa)\b",
+     "threat affecting future employment / migration status"),
+    (r"\b(?:overdue|delinquent|defaulter)\s+(?:since|for|of)\s+[\d.]+\b",
+     "public debt-status disclosure"),
+    (r"\b(?:contact|message|call)\s+(?:my|your|their)\s+(?:family|relatives|employer|workplace)\b",
+     "third-party harassment escalation"),
+]
+
+
+def tool_check_debt_harassment(text: str) -> dict:
+    """Detect predatory debt-collection patterns. Flags both the
+    creditor's tactics and the legal frameworks they likely violate."""
+    if not text:
+        return {"tactic_count": 0, "tactics": [],
+                "violations": [], "is_harassment": False}
+    found: dict[str, list[str]] = {}
+    for pat, label in _DEBT_HARASSMENT_PATTERNS:
+        for m in re.finditer(pat, text, re.IGNORECASE):
+            excerpt = text[max(0, m.start() - 20):m.end() + 30]
+            found.setdefault(label, []).append(excerpt.strip())
+            break
+    tactics = [{"label": k, "evidence": v[:2]}
+                for k, v in found.items()]
+    is_harassment = len(tactics) >= 2
+    violations = []
+    if is_harassment:
+        violations = [
+            "PH SEC MC 18-2019 (online lending public-shaming ban)",
+            "PH RA 10175 sec 4(c)(4) (cyber-libel + cyber-harassment)",
+            "HK Money Lenders Ordinance Cap. 163 (predatory tactics)",
+            "FATF Rec 29 (suspicious cross-border collection)",
+        ]
+    return {
+        "tactic_count": len(tactics),
+        "tactics": tactics,
+        "violations": violations,
+        "is_harassment": is_harassment,
+    }
+
+
+# Predatory-lender names + pages observed in the wild (PH-OFW context).
+# Add new ones here as evidence accumulates. These bump severity when matched.
+_KNOWN_PREDATORY_LENDERS = {
+    "bank hongkong": {
+        "type": "lender_page",
+        "platform": "facebook",
+        "jurisdiction": "HK",
+        "tactics": "Public 'wanted poster' shaming with passport-photo "
+                      "thumbnails of alleged OFW debtors. Documented pattern "
+                      "since Feb 2021.",
+        "severity_modifier": +3,
+    },
+    "yoursun caretaker": {
+        "type": "lender_page",
+        "platform": "facebook",
+        "jurisdiction": "HK",
+        "tactics": "Posts 'asap pay ur overdues' demands with face-altered "
+                      "passport photos of HK-based Filipino domestic workers. "
+                      "Pattern observed Apr 2024+.",
+        "severity_modifier": +3,
+    },
+    "hong kong city credit management group": {
+        "type": "lender",
+        "jurisdiction": "HK",
+        "tactics": "Predatory cross-border lending; debt-trapping HK-based "
+                      "Filipino domestic workers via personal loans with "
+                      "interest exceeding HK Cap. 163's 48% APR cap.",
+        "severity_modifier": +2,
+    },
+}
+
+
+def tool_check_predatory_lender(text: str) -> dict:
+    """Scan for known predatory-lender names / Facebook pages targeting
+    OFWs with shaming campaigns. Bumps severity when matched."""
+    t = (text or "").lower()
+    hits = []
+    for name_low, info in _KNOWN_PREDATORY_LENDERS.items():
+        if name_low in t:
+            hits.append({"name": name_low, **info})
+    return {
+        "scanned_chars": len(text or ""),
+        "match_count": len(hits),
+        "lenders": hits,
+        "severity_bump": sum(h.get("severity_modifier", 0) for h in hits),
+    }
+
+
+# ---------------------------------------------------------------------------
 # Stage 4: deterministic tool calls (now richer)
 # ---------------------------------------------------------------------------
 def stage_tool_calls(prescan: dict, locale: str,
@@ -734,6 +1051,36 @@ def stage_tool_calls(prescan: dict, locale: str,
                     "n_results": actors["match_count"],
                     "result": f"{actors['match_count']} known actor(s)"})
 
+    # 8. check_social_media_harassment -- 'wanted poster' / shaming patterns
+    sm_harass = tool_check_social_media_harassment(text)
+    calls.append({"tool": "check_social_media_harassment",
+                    "args": {"text_chars": len(text or "")},
+                    "n_results": sm_harass["pattern_count"],
+                    "result": f"{sm_harass['pattern_count']} shaming "
+                                f"pattern(s)"})
+
+    # 9. check_doxxing_indicators -- PII exposure categories
+    doxxing = tool_check_doxxing_indicators(text)
+    calls.append({"tool": "check_doxxing_indicators",
+                    "args": {"text_chars": len(text or "")},
+                    "n_results": doxxing["indicator_count"],
+                    "result": doxxing["risk_level"]})
+
+    # 10. check_debt_harassment -- predatory collection tactics
+    debt_harass = tool_check_debt_harassment(text)
+    calls.append({"tool": "check_debt_harassment",
+                    "args": {"text_chars": len(text or "")},
+                    "n_results": debt_harass["tactic_count"],
+                    "result": (f"{debt_harass['tactic_count']} tactic(s) -- "
+                                f"{'HARASSMENT' if debt_harass['is_harassment'] else 'no'}")})
+
+    # 11. check_predatory_lender -- known bad-actor lender pages
+    pred_lender = tool_check_predatory_lender(text)
+    calls.append({"tool": "check_predatory_lender",
+                    "args": {"text_chars": len(text or "")},
+                    "n_results": pred_lender["match_count"],
+                    "result": f"{pred_lender['match_count']} lender(s)"})
+
     step("tool_calls", status="ok",
          detail=f"{len(calls)} tool call(s): "
                   f"statute({sum(1 for c in calls if c['tool']=='lookup_statute')}) + "
@@ -741,7 +1088,11 @@ def stage_tool_calls(prescan: dict, locale: str,
                   f"fee_cap + " +
                   ("license + " if license_check else "") +
                   ("embassy + " if emb else "") +
-                  f"actors({actors['match_count']})",
+                  f"actors({actors['match_count']}) + "
+                  f"shaming({sm_harass['pattern_count']}) + "
+                  f"doxxing({doxxing['indicator_count']}) + "
+                  f"harass({debt_harass['tactic_count']}) + "
+                  f"predator({pred_lender['match_count']})",
          call_count=len(calls),
          calls=calls)
     return {
@@ -753,6 +1104,10 @@ def stage_tool_calls(prescan: dict, locale: str,
         "license_check": license_check,
         "embassy": emb,
         "known_actors": actors,
+        "social_media_harassment": sm_harass,
+        "doxxing_indicators": doxxing,
+        "debt_harassment": debt_harass,
+        "predatory_lender": pred_lender,
     }
 
 
@@ -817,11 +1172,15 @@ def orchestrate_moderate(payload: dict, gemma_call: Any = None) -> dict:
     tools = stage_tool_calls(prescan, locale, text=text)
     result = stage_gemma(text, locale, gemma_call, prescan, kb_hits)
 
-    # Apply known-actor severity bumps
+    # Apply known-actor severity bumps + predatory-lender bumps + harassment bump
     actor_bump = sum(a.get("severity_modifier", 0)
                        for a in tools["known_actors"]["actors"])
-    if actor_bump > 0 and result.get("severity") is not None:
-        result["severity"] = min(10, result["severity"] + actor_bump)
+    pred_bump = tools["predatory_lender"].get("severity_bump", 0)
+    harass_bump = (2 if tools["debt_harassment"]["is_harassment"] else 0)
+    sm_bump = (2 if tools["social_media_harassment"]["pattern_count"] >= 2 else 0)
+    total_bump = actor_bump + pred_bump + harass_bump + sm_bump
+    if total_bump > 0 and result.get("severity") is not None:
+        result["severity"] = min(10, result["severity"] + total_bump)
         if result["severity"] >= 7:
             result["verdict"] = "block"
 
@@ -839,6 +1198,10 @@ def orchestrate_moderate(payload: dict, gemma_call: Any = None) -> dict:
     result["license_check"] = tools.get("license_check")
     result["embassy"] = tools.get("embassy")
     result["known_actors"] = tools["known_actors"]
+    result["social_media_harassment"] = tools["social_media_harassment"]
+    result["doxxing_indicators"] = tools["doxxing_indicators"]
+    result["debt_harassment"] = tools["debt_harassment"]
+    result["predatory_lender"] = tools["predatory_lender"]
     step("done", status="ok",
          detail=f"final verdict={result.get('verdict')} "
                   f"severity={result.get('severity')}/10")
@@ -899,11 +1262,15 @@ def orchestrate_worker_check(payload: dict, gemma_call: Any = None) -> dict:
         step("gemma_advise", status="ok",
              detail=f"severity={result.get('severity')}/10")
 
-    # Apply known-actor severity bumps
+    # Apply all severity bumps (known actors + predatory lenders + harassment)
     actor_bump = sum(a.get("severity_modifier", 0)
                        for a in tools["known_actors"]["actors"])
-    if actor_bump > 0 and result.get("severity") is not None:
-        result["severity"] = min(10, result["severity"] + actor_bump)
+    pred_bump = tools["predatory_lender"].get("severity_bump", 0)
+    harass_bump = (2 if tools["debt_harassment"]["is_harassment"] else 0)
+    sm_bump = (2 if tools["social_media_harassment"]["pattern_count"] >= 2 else 0)
+    total_bump = actor_bump + pred_bump + harass_bump + sm_bump
+    if total_bump > 0 and result.get("severity") is not None:
+        result["severity"] = min(10, result["severity"] + total_bump)
 
     result["kb_hits"] = [
         {"id": h["id"], "kind": h["kind"], "text": h["text"],
@@ -917,6 +1284,10 @@ def orchestrate_worker_check(payload: dict, gemma_call: Any = None) -> dict:
     result["license_check"] = tools.get("license_check")
     result["embassy"] = tools.get("embassy")
     result["known_actors"] = tools["known_actors"]
+    result["social_media_harassment"] = tools["social_media_harassment"]
+    result["doxxing_indicators"] = tools["doxxing_indicators"]
+    result["debt_harassment"] = tools["debt_harassment"]
+    result["predatory_lender"] = tools["predatory_lender"]
     step("done", status="ok",
          detail=f"final severity={result.get('severity')}/10")
     return result

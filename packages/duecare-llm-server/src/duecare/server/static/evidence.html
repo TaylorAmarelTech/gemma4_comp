@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Evidence gallery — Duecare</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<header class="dc-nav">
+  <h1>Duecare<span class="tag"> · evidence gallery</span></h1>
+  <nav>
+    <a href="/">Home</a>
+    <a href="/examples">Examples</a>
+    <a href="/workspace">Workspace</a>
+    <a href="/architecture">Architecture</a>
+    <a href="/background">Background</a>
+    <a href="/evidence" class="active">Evidence</a>
+    <a href="/enterprise">Enterprise</a>
+    <a href="/individual">Individual</a>
+    <a href="/knowledge">Knowledge</a>
+    <a href="/dashboard">Dashboard</a>
+    <a href="/queue">Queue</a>
+    <a href="/logs">Logs</a>
+    <a href="/chat">Chat</a>
+    <a href="/settings">Settings</a>
+  </nav>
+</header>
+<main class="dc-main">
+
+  <h2 class="dc-h2">Evidence gallery</h2>
+  <p class="dc-sub">
+    Real-world public-post screenshots that motivate the abuse
+    categories Duecare detects. Every asset here is <b>REDACTED</b>
+    (faces blurred, names removed) per the project's safety gate
+    (see <a href="/background">/background section 5</a>).
+    Originals contain PII and are <b>not</b> committed to the repo.
+  </p>
+
+  <div class="dc-evidence-controls">
+    <button class="dc-btn secondary" onclick="filterCat('all')" id="filter-all">All</button>
+    <button class="dc-btn secondary" onclick="filterCat('doxxing')" id="filter-doxxing">Doxxing / public shaming</button>
+    <button class="dc-btn secondary" onclick="filterCat('passport_collateral')" id="filter-passport_collateral">Passport-as-collateral</button>
+    <button class="dc-btn secondary" onclick="filterCat('recruitment_fraud')" id="filter-recruitment_fraud">Recruitment fraud</button>
+    <button class="dc-btn secondary" onclick="filterCat('kafala')" id="filter-kafala">Kafala patterns</button>
+    <button class="dc-btn secondary" onclick="filterCat('predatory_lending')" id="filter-predatory_lending">Predatory lending</button>
+  </div>
+
+  <div id="gallery" class="dc-evidence-grid">Loading…</div>
+
+  <div class="dc-panel" style="margin-top:24px">
+    <h3>How to add new evidence (operator workflow)</h3>
+    <ol>
+      <li><b>Redact first.</b> Blur every identifiable face. Remove
+        every full name (replace with <code>[NAME REDACTED]</code> or
+        <code>[OFW]</code>). Cover passport / ID numbers with a solid
+        bar. Cover phone numbers / emails / handles. Use a real image
+        editor — do not rely on browser-side blurs.</li>
+      <li><b>Save the redacted PNG/JPG</b> into
+        <code>packages/duecare-llm-server/src/duecare/server/static/evidence/</code></li>
+      <li><b>Add a manifest entry</b> in
+        <code>static/evidence/manifest.json</code> with the schema
+        below. <code>redaction_status</code> must be
+        <code>"REDACTED"</code> — anything else is rejected at build.</li>
+      <li><b>Rebuild the wheel</b> and re-upload. The gallery will
+        pick up the new asset on next page load.</li>
+    </ol>
+    <h4 style="margin-top:18px">Manifest schema</h4>
+    <pre style="background:#0f172a;color:#e2e8f0;padding:14px;border-radius:8px;font-size:12px;overflow-x:auto">{
+  "id": "doxxing_001",
+  "kind": "image",
+  "filename": "doxxing_001_redacted.png",
+  "title": "Bank Hongkong -- 'wanted poster' template",
+  "caption": "Predatory lender's public-shaming Facebook post. Names + face blurred. Documents passport-as-collateral pattern.",
+  "category": "doxxing",
+  "redaction_status": "REDACTED (faces blurred, full name removed)",
+  "source_note": "Public FB page, captured Apr 2024"
+}</pre>
+  </div>
+
+</main>
+<style>
+.dc-evidence-controls {
+  display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 18px;
+}
+.dc-evidence-controls button.active {
+  background: var(--primary); color: #fff;
+}
+.dc-evidence-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 14px;
+}
+.dc-ev-card {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 10px; padding: 14px;
+}
+.dc-ev-card .dc-ev-img {
+  background: #f8fafc; border: 1px solid var(--border);
+  border-radius: 6px; padding: 10px; text-align: center;
+  margin-bottom: 10px;
+}
+.dc-ev-card img, .dc-ev-card video {
+  max-width: 100%; max-height: 320px; border-radius: 4px;
+  background: #fff;
+}
+.dc-ev-card h4 { margin: 0 0 6px 0; font-size: 14px; }
+.dc-ev-card p { font-size: 12px; color: var(--muted); margin: 6px 0; line-height: 1.4; }
+.dc-ev-card .pill {
+  display: inline-block; padding: 2px 8px; border-radius: 999px;
+  font-size: 10px; font-weight: 700; text-transform: uppercase;
+  margin-right: 4px;
+}
+.dc-ev-card .pill.cat { background: #eff6ff; color: #1e40af; }
+.dc-ev-card .pill.red { background: #d1fae5; color: #065f46; }
+.dc-ev-card .pill.unred { background: #fee2e2; color: #991b1b; }
+.dc-ev-placeholder {
+  background: #fffbeb; border: 1px dashed #f59e0b;
+  border-radius: 10px; padding: 28px 22px;
+  font-size: 14px; color: #92400e;
+}
+.dc-ev-placeholder b { color: #78350f; }
+</style>
+<script>
+let _items = [];
+let _activeCat = 'all';
+
+async function loadGallery() {
+  try {
+    const r = await fetch('/static/evidence/manifest.json?t=' + Date.now());
+    const j = await r.json();
+    _items = j.items || [];
+  } catch (e) {
+    document.getElementById('gallery').innerText = 'manifest load failed: ' + e;
+    return;
+  }
+  render();
+}
+
+function filterCat(cat) {
+  _activeCat = cat;
+  document.querySelectorAll('.dc-evidence-controls button').forEach(b => {
+    b.classList.toggle('active', b.id === 'filter-' + cat);
+  });
+  render();
+}
+
+function render() {
+  const g = document.getElementById('gallery');
+  let visible = _items.filter(it => it.id !== 'placeholder');
+  if (_activeCat !== 'all') {
+    visible = visible.filter(it => it.category === _activeCat);
+  }
+  if (!visible.length) {
+    g.innerHTML = `<div class="dc-ev-placeholder" style="grid-column:1/-1">
+      <b>No evidence assets committed yet${_activeCat !== 'all' ? ' (in ' + _activeCat + ')' : ''}.</b>
+      <br><br>
+      The evidence-gallery infrastructure is wired and ready. Once an
+      operator follows the redact-then-commit workflow below and adds
+      entries to <code>static/evidence/manifest.json</code>, they will
+      appear here automatically.
+      <br><br>
+      <small><i>Reason for the placeholder: the source screenshots
+      Taylor shared via Imgur/Drive contain unredacted full names and
+      face photos — committing them as-is would violate the project's
+      safety gate (.claude/rules/10_safety_gate.md). They need to be
+      run through the redaction step first.</i></small>
+    </div>`;
+    return;
+  }
+  let html = '';
+  for (const it of visible) {
+    const isRed = (it.redaction_status || '').toUpperCase().includes('REDACTED');
+    const redCls = isRed ? 'red' : 'unred';
+    const redLbl = isRed ? 'REDACTED' : 'UNREDACTED — DO NOT DEPLOY';
+    let media = '';
+    if (it.kind === 'image') {
+      media = `<img src="/static/evidence/${it.filename}" alt="${it.title}">`;
+    } else if (it.kind === 'video') {
+      media = `<video controls><source src="/static/evidence/${it.filename}">video</video>`;
+    } else {
+      media = `<a href="/static/evidence/${it.filename}" target="_blank">📄 ${it.filename}</a>`;
+    }
+    html += `<div class="dc-ev-card">` +
+      `<div class="dc-ev-img">${media}</div>` +
+      `<h4>${it.title}</h4>` +
+      `<p>${it.caption}</p>` +
+      `<div>` +
+      `<span class="pill cat">${it.category}</span>` +
+      `<span class="pill ${redCls}">${redLbl}</span>` +
+      `</div>` +
+      (it.source_note ? `<p style="font-style:italic;margin-top:6px">Source: ${it.source_note}</p>` : '') +
+      `</div>`;
+  }
+  g.innerHTML = html;
+}
+
+loadGallery();
+</script>
+</body>
+</html>

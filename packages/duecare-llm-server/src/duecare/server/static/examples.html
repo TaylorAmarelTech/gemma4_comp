@@ -15,6 +15,7 @@
     <a href="/workspace">Workspace</a>
     <a href="/architecture">Architecture</a>
     <a href="/background">Background</a>
+    <a href="/evidence">Evidence</a>
     <a href="/enterprise">Enterprise</a>
     <a href="/individual">Individual</a>
     <a href="/knowledge">Knowledge</a>
@@ -642,6 +643,72 @@ const EXAMPLES = [
         'this lender?"</i> via NL-to-SQL on the Knowledge page — ' +
         'patterns emerge across cases that no single caseworker would ' +
         'see.'],
+    ],
+    task_type: 'moderate',
+  },
+  {
+    id: 'social_media_doxxing',
+    title: 'Social media doxxing: predatory-lender "wanted poster" against an OFW',
+    who: 'Job-board moderator / hotline operator / NGO',
+    icon: '⚠',
+    iconBg: '#dc2626',
+    what: 'A Facebook page operated by a predatory lender publicly ' +
+          'posts a "wanted poster" naming an alleged OFW debtor with ' +
+          'her passport photo and personal details. Pattern documented ' +
+          'on pages like "Bank Hongkong" and "Yoursun Caretaker" -- ' +
+          'a category the original recruitment-stage pipeline misses.',
+    pills: [
+      ['input', 'social media post (sanitized)'],
+      ['task', 'moderate'],
+      ['expected', 'BLOCK · severity 10/10'],
+    ],
+    locale: 'ph',
+    text: 'WANTED: LENDING BANK BASED IN HONG KONG IS LOOKING FOR ' +
+          'THIS OFW [composite name] FOR BANK FRAUD/ESTAFA CASE FOR ' +
+          'ISSUING A PHIL. PASSPORT AS A COLLATERAL AND WENT HIDING ' +
+          'AFTER RECEIVING THE LOAN. ASAP PAY UR OVERDUES. Tag this ' +
+          'OFW. Share until found. Posted by: Bank Hongkong page.',
+    explain: [
+      ['Use case', 'A Facebook moderator, a worker hotline (1343), or ' +
+        'an NGO ingests a flagged public post. The pipeline returns ' +
+        'BLOCK with the specific statutes the page is violating, the ' +
+        'right takedown channel (Facebook Coordinating Harm policy + ' +
+        'PH NPC complaint), and the predatory-lender history.'],
+      ['Why this is BLOCK 10/10', 'Five tools fire simultaneously: ' +
+        '(1) <code>check_social_media_harassment</code> matches the ' +
+        '"WANTED:" framing + "ASAP PAY" deadline + "Tag this OFW" ' +
+        'viral-amplification, (2) <code>check_doxxing_indicators</code> ' +
+        'flags HIGH risk (passport-photo reference + full name + ' +
+        'criminal-charge framing), (3) <code>check_debt_harassment</code> ' +
+        'detects HARASSMENT (deadline pressure + public escalation + ' +
+        'false-criminal-charge framing), (4) ' +
+        '<code>check_predatory_lender</code> matches "Bank Hongkong" ' +
+        'in the known-actors list (+3 severity bump), (5) ' +
+        '<code>identify_ilo_indicators</code> flags ILO C029 #2 ' +
+        '(intimidation/threats) + #4 (debt bondage).'],
+      ['What the KB adds', 'GREP+RAG retrieve PH RA 10173 (Data Privacy ' +
+        'Act), PH RA 10175 (Cybercrime / online libel), PH RA 9995 ' +
+        '(Anti-Photo Voyeurism Act -- the passport-photo posting), ' +
+        'PH SEC MC 18-2019 (online-lending public-shaming ban), HK Cap. ' +
+        '486 (Personal Data Privacy + Anti-Doxxing 2021 amendment), ' +
+        'HK Cap. 163 (Money Lenders Ordinance 48% APR cap), and FB ' +
+        'Community Standards on Coordinating Harm.'],
+      ['Why this category matters', 'Recruitment-stage trafficking ' +
+        'detection (slides 6-8) covers the upstream abuse; this slide ' +
+        'covers the downstream debt-trap that comes AFTER the worker ' +
+        'is already deployed. Without it, the pipeline only sees half ' +
+        'of the trafficking lifecycle. The pattern (predatory cross-' +
+        'border lender targets remitting OFW with extortionate loan, ' +
+        'collects via public shaming when payments slip) is documented ' +
+        'in HK + Saudi + UAE + Qatar contexts and increasingly active ' +
+        'on Facebook / TikTok / Telegram.'],
+      ['Safety note', 'The example text above is a SANITIZED composite ' +
+        'derived from public-evidence patterns. Real screenshots from ' +
+        'pages like Bank Hongkong contain unredacted full names + face ' +
+        'photos and are NEVER ingested into this demo without first ' +
+        'passing through the Anonymizer agent (face-blur + name-' +
+        'redaction + sha256 audit). See <a href="/background">/background ' +
+        'section 5</a> for the privacy framework.'],
     ],
     task_type: 'moderate',
   },

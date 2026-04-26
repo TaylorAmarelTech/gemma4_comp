@@ -1,0 +1,27 @@
+{
+  "_comment": "Evidence-gallery manifest. Each entry shows up in slide 3 of the guided tour and in the /evidence page. SAFETY: every image listed here MUST be redacted (faces blurred, full names removed) before commit. Raw imgur/Drive URLs are NOT acceptable.",
+
+  "items": [
+    {
+      "id": "placeholder",
+      "kind": "image",
+      "filename": "_placeholder.png",
+      "title": "(no evidence images committed yet)",
+      "caption": "Drop redacted PNG/JPG screenshots into static/evidence/ and add an entry here. See manifest schema below.",
+      "category": "placeholder",
+      "redaction_status": "n/a",
+      "source_note": "Schema example only -- not an actual asset."
+    }
+  ],
+
+  "_schema": {
+    "id": "unique slug",
+    "kind": "image | video | doc",
+    "filename": "filename inside static/evidence/ (no path)",
+    "title": "short headline (will be displayed)",
+    "caption": "1-2 sentence description of what is shown + why it is evidence",
+    "category": "doxxing | passport_collateral | recruitment_fraud | kafala | predatory_lending | other",
+    "redaction_status": "REDACTED (faces blurred, names removed) | UNREDACTED (NEVER COMMIT)",
+    "source_note": "where the original came from (public FB page, NGO submission, etc.) -- NO URLs to live posts"
+  }
+}

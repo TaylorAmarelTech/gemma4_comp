@@ -76,6 +76,35 @@ _CRITICAL_SIGNALS: list[tuple[str, list[str], int]] = [
         "agency fee usd", "placement fee usd", "must pay before flight",
         "advance salary deduction", "salary deduction for fee",
     ], 4),
+
+    # ---- Social-media public-shaming / debt-collection harassment ----
+    # These fire when a post / page targets a named individual with
+    # public shaming, "wanted poster" framing, or doxxing for debt
+    # collection. Pattern documented in PH OFW context (Bank Hongkong,
+    # Yoursun Caretaker etc.) -- predatory lenders publicly post the
+    # passport photo + full name of an alleged debtor with a "wanted"
+    # narrative. Violates PH RA 10173 + RA 10175 + HK Cap. 486 + GDPR.
+    ("public_shaming_doxxing", [
+        "wanted:", "looking for this ofw", "looking for this person",
+        "asap pay ur overdues", "asap pay your overdue",
+        "pay or we will post", "pay before we post", "we will expose",
+        "bank fraud/estafa case", "estafa case for issuing",
+        "passport as a collateral", "passport as collateral",
+        "wanted poster", "post your photo",
+        "name and shame", "your face will be posted",
+        "post your face", "share this until found",
+        "tag this person", "tag this ofw", "share until found",
+    ], 4),
+
+    ("predatory_loan_to_ofw", [
+        "lending bank based in", "personal loan to ofw",
+        "ofw loan no collateral", "loan against passport",
+        "passport collateral", "collateral your passport",
+        "private lender hong kong", "private lender saudi",
+        "interest 10% per month", "interest 20% per month",
+        "compound interest weekly", "compound interest daily",
+        "credit management group",
+    ], 3),
 ]
 
 

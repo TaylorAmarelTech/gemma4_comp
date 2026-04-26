@@ -171,6 +171,10 @@ def create_app(state: Optional[ServerState] = None) -> FastAPI:
     def background_page():
         return _serve_html(static_dir / "background.html")
 
+    @app.get("/evidence", response_class=HTMLResponse)
+    def evidence_page():
+        return _serve_html(static_dir / "evidence.html")
+
     @app.get("/api/logs")
     def api_logs(limit: int = 200, level: Optional[str] = None,
                   source: Optional[str] = None,
@@ -762,7 +766,7 @@ def create_app(state: Optional[ServerState] = None) -> FastAPI:
     @app.get("/api/config/tools")
     def api_tools():
         return {
-            "tool_count": 7,
+            "tool_count": 11,
             "tools": [
                 {"name": "lookup_statute",
                  "params": ["jurisdiction", "topic"],
@@ -814,6 +818,39 @@ def create_app(state: Optional[ServerState] = None) -> FastAPI:
                                   "actions. Adds severity-modifier and "
                                   "one-sentence history.",
                  "example": {"text": "Pacific Coast Manpower Inc..."}},
+                {"name": "check_social_media_harassment",
+                 "params": ["text"],
+                 "description": "Detect 'wanted poster' / public-shaming "
+                                  "patterns used by predatory lenders against "
+                                  "OFWs (Bank Hongkong, Yoursun Caretaker "
+                                  "etc.). Returns matched patterns + the "
+                                  "legal framework they violate.",
+                 "example": {"text": "WANTED: looking for this OFW for "
+                                       "estafa case..."}},
+                {"name": "check_doxxing_indicators",
+                 "params": ["text"],
+                 "description": "Detect personally-identifying-info "
+                                  "exposure: full names, passport numbers, "
+                                  "phones, addresses, workplace, family "
+                                  "geo-disclosure. Returns risk_level "
+                                  "(none / MODERATE / HIGH / CRITICAL).",
+                 "example": {"text": "[any text containing PII]"}},
+                {"name": "check_debt_harassment",
+                 "params": ["text"],
+                 "description": "Detect predatory debt-collection tactics "
+                                  "(deadline pressure, threats to escalate "
+                                  "publicly, threats of legal action, "
+                                  "third-party harassment). Returns "
+                                  "violations across PH SEC MC 18-2019 + "
+                                  "RA 10175 + HK Cap. 163 + FATF Rec 29.",
+                 "example": {"text": "asap pay or we will post your face"}},
+                {"name": "check_predatory_lender",
+                 "params": ["text"],
+                 "description": "Scan for known predatory-lender names / "
+                                  "Facebook pages targeting OFWs with "
+                                  "shaming campaigns. Bumps severity by "
+                                  "+2 to +3 when matched.",
+                 "example": {"text": "Bank Hongkong, Yoursun Caretaker..."}},
             ],
             "registered_task_types": tq.known_task_types(),
         }
