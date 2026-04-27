@@ -671,8 +671,25 @@ def load_gemma_unsloth(env: Env, verbose: bool = True) -> Optional[LoadedModel]:
                           .replace("26b-a4b-it", "26B-A4B-it")
                           .replace("31b-it", "31B-it"))
     repo = f"unsloth/gemma-4-{repo_variant}"
+
+    # Auto-upgrade device_map to "balanced" for big variants so the
+    # model splits across 2x T4 (per Hanchen's notebook). Without
+    # this, 31B 4-bit (~18GB) blows past a single T4's 15GB.
+    effective_device_map = GEMMA_DEVICE_MAP
+    big_variants = ("31b-it", "26b-a4b-it")
+    if effective_device_map == "auto" and variant in big_variants:
+        if env.gpu.count >= 2:
+            effective_device_map = "balanced"
+            if verbose:
+                print(f"  variant={variant} + {env.gpu.count}xGPU detected: "
+                      f"upgrading device_map auto -> balanced")
+        else:
+            if verbose:
+                print(f"  WARN: variant={variant} typically needs 2x GPUs "
+                      f"with device_map=balanced. You have {env.gpu.count}. "
+                      f"Load may OOM.")
     if verbose: print(f"  Unsloth load: {repo} (max_seq={GEMMA_MAX_SEQ_LEN}, "
-                      f"4bit={GEMMA_LOAD_IN_4BIT}, device_map={GEMMA_DEVICE_MAP})")
+                      f"4bit={GEMMA_LOAD_IN_4BIT}, device_map={effective_device_map})")
 
     # EXACT call from Daniel Hanchen's notebook (the 2-T4 31B path):
     #   model, tokenizer = FastModel.from_pretrained(
@@ -689,7 +706,7 @@ def load_gemma_unsloth(env: Env, verbose: bool = True) -> Optional[LoadedModel]:
             max_seq_length=GEMMA_MAX_SEQ_LEN,   # 8192 (Hanchen)
             load_in_4bit=GEMMA_LOAD_IN_4BIT,    # True (Hanchen)
             full_finetuning=False,              # False (Hanchen)
-            device_map=GEMMA_DEVICE_MAP,        # "balanced" for 31B on 2xT4
+            device_map=effective_device_map,    # "balanced" for 31B on 2xT4
         )
     except Exception as e:
         if verbose:
@@ -723,8 +740,10 @@ def load_gemma_unsloth(env: Env, verbose: bool = True) -> Optional[LoadedModel]:
         model_name=f"gemma-4-{variant}",
         model_size_b=_model_size_b_for(variant),
         quantization="4-bit nf4" if GEMMA_LOAD_IN_4BIT else "bf16",
-        device=("balanced (2x T4)" if GEMMA_DEVICE_MAP == "balanced"
-                else GEMMA_DEVICE_MAP if isinstance(GEMMA_DEVICE_MAP, str)
+        device=(f"balanced ({env.gpu.count}x {env.gpu.name or 'GPU'})"
+                if effective_device_map == "balanced"
+                else effective_device_map
+                if isinstance(effective_device_map, str)
                 else "cuda:0"),
         loader="unsloth",
     )
