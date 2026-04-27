@@ -26,18 +26,25 @@
   <h2 class="dc-home-cta">Where would you like to start?</h2>
 
   <div class="dc-home-choices">
-    <a class="dc-home-card dc-home-card-primary" href="/demo">
+    <a class="dc-home-card dc-home-card-primary" href="/overview">
+      <div class="dc-home-card-icon">📖</div>
+      <h3>Overview slides</h3>
+      <p>Seven slides covering the problem, legal context, real evidence, why Gemma 4, prior art &amp; benchmark gaps, and the five-stage pipeline architecture.</p>
+      <div class="dc-home-card-cta">Read the overview →</div>
+    </a>
+
+    <a class="dc-home-card" href="/demo">
       <div class="dc-home-card-icon">▶</div>
-      <h3>Demo</h3>
-      <p>Walk through the pipeline on a series of real-world scenarios — recruitment fraud, debt-bondage chats, doxxing posts, fee-cap violations — slide by slide. Three minutes, end-to-end.</p>
-      <div class="dc-home-card-cta">Start the tour →</div>
+      <h3>Demo scenarios</h3>
+      <p>Pick from a menu of real-world cases — recruitment fraud, debt-bondage chats, doxxing posts, fee-cap violations, kafala-era contracts. Each one runs end-to-end through the pipeline with a live trace.</p>
+      <div class="dc-home-card-cta">Choose a scenario →</div>
     </a>
 
     <a class="dc-home-card" href="/workspace">
       <div class="dc-home-card-icon">⚙</div>
-      <h3>Self-directed workspace</h3>
+      <h3>Workbench</h3>
       <p>Bring your own data. Paste text, upload a file, drop an archive of documents, draft a complaint. Same pipeline, your inputs.</p>
-      <div class="dc-home-card-cta">Open the workspace →</div>
+      <div class="dc-home-card-cta">Open the workbench →</div>
     </a>
   </div>
 
@@ -80,8 +87,8 @@ body.dc-home-min {
   color: var(--ink); letter-spacing: -0.01em; text-align: center;
 }
 .dc-home-choices {
-  display: grid; grid-template-columns: 1fr 1fr; gap: 22px;
-  width: 100%; max-width: 820px;
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px;
+  width: 100%; max-width: 1080px;
 }
 .dc-home-card {
   background: var(--card); border: 1px solid var(--border);
@@ -118,12 +125,14 @@ body.dc-home-min {
 .dc-home-card-cta {
   color: var(--primary); font-weight: 600; font-size: 14px;
 }
+@media (max-width: 1000px) {
+  .dc-home-choices { grid-template-columns: 1fr; max-width: 540px; }
+}
 @media (max-width: 800px) {
   .dc-home-main { padding: 0 20px; gap: 18px; }
   .dc-home-brand { font-size: 42px; }
   .dc-home-tagline { font-size: 16px; }
   .dc-home-cta { font-size: 18px; margin-top: 14px; }
-  .dc-home-choices { grid-template-columns: 1fr; }
 }
 </style>
 </body>

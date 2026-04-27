@@ -291,6 +291,43 @@ body.dc-slideshow header.dc-nav { display: none !important; }
   border: 1px solid var(--border);
 }
 
+/* Picker (demo chooser) */
+.dc-picker-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 14px; margin-top: 22px;
+}
+.dc-picker-card {
+  text-align: left; background: var(--card); border: 1px solid var(--border);
+  border-radius: 12px; padding: 16px 18px; cursor: pointer;
+  font-family: inherit; color: inherit; text-decoration: none;
+  display: block; transition: transform 120ms, border-color 120ms,
+                              box-shadow 160ms;
+}
+.dc-picker-card:hover {
+  transform: translateY(-2px); border-color: var(--primary);
+  box-shadow: 0 6px 18px rgba(76,120,168,0.12);
+}
+.dc-picker-card.dc-picker-allcard {
+  background: linear-gradient(135deg, #ffffff 0%, #eff6ff 100%);
+  border-color: #ddd6fe;
+}
+.dc-picker-card .dc-pick-tag {
+  display: inline-block; font-size: 10px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.07em;
+  padding: 3px 8px; border-radius: 999px; margin-bottom: 8px;
+}
+.dc-picker-card .dc-pick-title {
+  font-size: 15px; font-weight: 600; color: var(--ink);
+  line-height: 1.35; margin-bottom: 6px;
+}
+.dc-picker-card .dc-pick-desc {
+  font-size: 13px; color: var(--muted); line-height: 1.5;
+  margin-bottom: 8px;
+}
+.dc-picker-card .dc-pick-meta {
+  font-size: 11px; color: var(--primary); font-family: monospace;
+}
+
 /* Mobile */
 @media (max-width: 1100px) {
   .dc-pipeline-grid { grid-template-columns: 1fr; }
@@ -315,28 +352,30 @@ body.dc-slideshow header.dc-nav { display: none !important; }
 // 'Run' button can submit them through the queue and stream the trace
 // inline below the input.
 
-const SLIDES = [
+const ALL_SLIDES = [
   // ----------------------------------------------------------------
   // Slide 1 -- Title
   // ----------------------------------------------------------------
   {
     id: 'title',
-    tag: 'Demo',
+    tag: 'Overview',
     tagBg: '#eff6ff', tagFg: '#1e40af',
-    title: 'Maria\'s recruitment journey',
+    title: 'A Gemma 4 implementation against human exploitation',
     autoSec: 12,
     body: `
 <p style="font-size:18px;line-height:1.6;color:var(--muted);margin-top:8px">
-A composite Filipina caregiver bound for Saudi Arabia. Five moments
-in her recruitment, each one caught by a different layer of the
-Duecare pipeline.
+Duecare is a multi-stage safety harness that flags exploitation and
+abuse patterns in recruiter ads, chat messages, contracts, complaint
+letters, and bulk case files. The next seven slides cover the
+problem, the law, the evidence, why Gemma 4 is the right substrate,
+prior art that informs the design, and the five-stage pipeline
+itself.
 </p>
 <div class="dc-callout info">
-<b>What is Duecare?</b> An on-device, multilingual, audit-trailable
-Gemma 4 pipeline that detects migrant-worker trafficking patterns
-in recruitment ads, chat messages, contracts, and social-media
-posts. <b>Privacy is non-negotiable</b> — every inference runs on
-the operator's own machine.
+Every input flows through a heuristic prescan, a regex&#8209;and&#8209;RAG
+knowledge base spanning 18+ jurisdictions, deterministic domain
+tools, and a Gemma 4 verdict — with each stage written to an audit
+trail an investigator, regulator, or NGO can review.
 </div>
 <p style="font-size:14px;color:var(--muted);margin-top:18px">
 Press <code>→</code> or click <b>Next</b> to advance. Press <code>▶ Auto</code>
@@ -644,6 +683,68 @@ suggested_complaint_template. Every field is auditable.
   },
 
   // ----------------------------------------------------------------
+  // Picker slide -- only shown in /demo (picker) mode
+  // ----------------------------------------------------------------
+  {
+    id: 'picker',
+    tag: 'Demo',
+    tagBg: '#eff6ff', tagFg: '#1e40af',
+    title: 'Pick a scenario',
+    autoSec: null,
+    onlyMode: 'picker',
+    body: `
+<p style="font-size:15px;color:var(--muted);margin-top:6px">
+Each scenario is a real-world pattern Duecare is tuned to catch.
+Click any card to run it through the pipeline; you can navigate
+between scenarios from there or come back here.
+</p>
+<div class="dc-picker-grid">
+  <button class="dc-picker-card" onclick="gotoSlideById('ex_jobboard')">
+    <div class="dc-pick-tag" style="background:#fef2f2;color:#991b1b">Recruitment fraud</div>
+    <div class="dc-pick-title">Job board ad with passport-confiscation + excessive fee</div>
+    <div class="dc-pick-desc">A Riyadh-bound caregiver ad asking USD 5,000 placement
+      fee + passport surrender to "secure the contract."</div>
+    <div class="dc-pick-meta">expected: BLOCK · severity 9-10/10 · locale ph</div>
+  </button>
+  <button class="dc-picker-card" onclick="gotoSlideById('ex_worker')">
+    <div class="dc-pick-tag" style="background:#ecfdf5;color:#065f46">Worker self-check</div>
+    <div class="dc-pick-title">WhatsApp message: too-good-to-be-true HK caregiver job</div>
+    <div class="dc-pick-desc">A worker pastes an "agency boss" recruitment message
+      asking for NBI clearance + passport scan via WhatsApp.</div>
+    <div class="dc-pick-meta">expected: REVIEW · severity 6/10 + hotline · locale ph</div>
+  </button>
+  <button class="dc-picker-card" onclick="gotoSlideById('ex_ngo')">
+    <div class="dc-pick-tag" style="background:#fef2f2;color:#991b1b">NGO bulk triage</div>
+    <div class="dc-pick-title">Complaint letter: Nepali helper, debt bondage, document retention</div>
+    <div class="dc-pick-desc">A caseworker drops Sita's letter into the pipeline.
+      Three forced-labour indicators stack at once.</div>
+    <div class="dc-pick-meta">expected: BLOCK · severity 10/10 · locale hk</div>
+  </button>
+  <button class="dc-picker-card" onclick="gotoSlideById('ex_doxxing')">
+    <div class="dc-pick-tag" style="background:#fef2f2;color:#991b1b">Online debt-shaming / doxxing</div>
+    <div class="dc-pick-title">Predatory-lender Facebook page publishes a "wanted poster"</div>
+    <div class="dc-pick-desc">A composite OFW is named, photographed, and shamed
+      across multiple lender pages for an alleged overdue loan.</div>
+    <div class="dc-pick-meta">expected: BLOCK · severity 10/10 · 5 tools fire</div>
+  </button>
+  <button class="dc-picker-card" onclick="gotoSlideById('ex_kafala')">
+    <div class="dc-pick-tag" style="background:#fef2f2;color:#991b1b">Contract substitution / kafala</div>
+    <div class="dc-pick-title">Polite household ad that normalises kafala-era practice</div>
+    <div class="dc-pick-desc">"Safekeeping" of passport, no day off, alone in the
+      house. The hardest moderation case — a euphemism wrapper.</div>
+    <div class="dc-pick-meta">expected: BLOCK · severity 9/10 · locale sa</div>
+  </button>
+  <a class="dc-picker-card dc-picker-allcard" href="?play=all">
+    <div class="dc-pick-tag" style="background:#dbeafe;color:#1e40af">All five</div>
+    <div class="dc-pick-title">Play all 5 scenarios in sequence</div>
+    <div class="dc-pick-desc">Auto-advances every 35s with the pipeline trace
+      streaming live for each scenario. ~3 minutes total.</div>
+    <div class="dc-pick-meta">▶ click to start the full sequence</div>
+  </a>
+</div>`
+  },
+
+  // ----------------------------------------------------------------
   // Slides 8-12 -- Examples (auto-run)
   // ----------------------------------------------------------------
   {
@@ -855,12 +956,53 @@ Open <a href="/workspace">/workspace</a> to bring your own data ·
 for the code.
 </p>
 <div class="dc-callout success">
-<b>Apache 2.0 model. MIT code. Privacy is non-negotiable.</b>
+<b>Apache 2.0 model. MIT code.</b>
 The same Gemma 4 + 11 tools + 53-passage KB + 22-signal heuristics
 serves every stakeholder above.
 </div>`
   },
 ];
+
+// ===== Mode detection — filter ALL_SLIDES into SLIDES based on URL =====
+const _MODE = (() => {
+  const path = window.location.pathname;
+  const params = new URLSearchParams(window.location.search);
+  if (path === '/overview') return 'overview';
+  if (params.get('play') === 'all') return 'all';
+  const showOne = params.get('show');
+  if (showOne) return 'one:' + showOne;
+  return 'picker';  // default for /demo
+})();
+
+const _OVERVIEW_IDS = new Set([
+  'title', 'problem', 'legal', 'evidence',
+  'why_gemma', 'prior_art', 'architecture', 'closing'
+]);
+const _EXAMPLE_IDS = new Set([
+  'ex_jobboard', 'ex_worker', 'ex_ngo', 'ex_doxxing', 'ex_kafala'
+]);
+
+const SLIDES = (() => {
+  if (_MODE === 'overview') {
+    return ALL_SLIDES.filter(s => _OVERVIEW_IDS.has(s.id));
+  }
+  if (_MODE === 'all') {
+    return ALL_SLIDES.filter(s => _EXAMPLE_IDS.has(s.id) || s.id === 'closing');
+  }
+  if (_MODE.startsWith('one:')) {
+    const showId = _MODE.split(':')[1];
+    return ALL_SLIDES.filter(s => s.id === showId || s.id === 'closing');
+  }
+  // 'picker' (default for /demo): picker first, then examples, then closing
+  return ALL_SLIDES.filter(
+    s => s.id === 'picker' || _EXAMPLE_IDS.has(s.id) || s.id === 'closing'
+  );
+})();
+
+function gotoSlideById(id) {
+  const idx = SLIDES.findIndex(s => s.id === id);
+  if (idx >= 0) gotoSlide(idx);
+}
 
 // ===== Slideshow controller =====
 let _curSlide = 0;
@@ -1133,6 +1275,8 @@ function _scheduleAutoAdvance() {
   if (!_isAuto) return;
   if (_autoTimer) clearTimeout(_autoTimer);
   const s = SLIDES[_curSlide];
+  // Skip auto-advance entirely on slides with autoSec === null (picker).
+  if (s.autoSec === null) return;
   const delaySec = s.isExample ? 35 : (s.autoSec || 12);
   _autoTimer = setTimeout(() => {
     if (_curSlide < SLIDES.length - 1) {
