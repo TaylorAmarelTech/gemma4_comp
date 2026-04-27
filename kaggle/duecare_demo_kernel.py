@@ -625,43 +625,95 @@ def load_gemma_unsloth(env: Env, verbose: bool = True) -> Optional[LoadedModel]:
         if verbose: print("  no GPU; skipping Unsloth load")
         return None
 
-    # Daniel Hanchen's EXACT install recipe for Gemma 4 31B on 2x T4
-    # https://www.kaggle.com/code/danielhanchen/gemma4-31b-unsloth
-    # Pinning unsloth_zoo>=2026.4.6 + transformers==5.5.0 + torch>=2.8.0
-    # is non-negotiable; older transformers crashes on gemma4 model_type
-    # and older unsloth doesn't know about device_map="balanced".
+    # ===================================================================
+    # Daniel Hanchen's EXACT install recipe (verbatim from
+    # https://www.kaggle.com/code/danielhanchen/gemma4-31b-unsloth):
+    #
+    #     %%capture
+    #     try: import numpy, PIL; _numpy = f"numpy=={numpy.__version__}"; _pil = f"pillow=={PIL.__version__}"
+    #     except: _numpy = "numpy"; _pil = "pillow"
+    #     !uv pip install -qqq \
+    #         "torch>=2.8.0" "triton>=3.4.0" {_numpy} {_pil} torchvision bitsandbytes \
+    #         unsloth "unsloth_zoo>=2026.4.6" transformers==5.5.0 torchcodec timm
+    #
+    # Pinning transformers==5.5.0 is non-negotiable: older versions
+    # don't know the gemma4 model_type and crash on load. Older unsloth
+    # doesn't know about device_map="balanced". Newer transformers may
+    # have ABI breaks Unsloth hasn't pinned for yet.
+    # We always force-install when transformers is missing OR not
+    # exactly at 5.5.0, OR unsloth is missing OR unsloth_zoo<2026.4.6.
+    # ===================================================================
+    needs_install = False
+    why_install = ""
     try:
-        import unsloth, transformers, torch
-        u_v = getattr(unsloth, '__version__', '?')
-        t_v = transformers.__version__
+        import unsloth, unsloth_zoo, transformers
+        if transformers.__version__ != "5.5.0":
+            needs_install = True
+            why_install = (f"transformers=={transformers.__version__} "
+                           f"-> need 5.5.0")
+        else:
+            uz_v = getattr(unsloth_zoo, "__version__", "0.0.0")
+            try:
+                from packaging.version import parse as _vp
+                if _vp(uz_v) < _vp("2026.4.6"):
+                    needs_install = True
+                    why_install = f"unsloth_zoo=={uz_v} -> need >=2026.4.6"
+            except Exception:
+                pass
+    except ImportError as e:
+        needs_install = True
+        why_install = f"missing: {e.name}"
+
+    if needs_install:
         if verbose:
-            print(f"  unsloth={u_v}  transformers={t_v}  torch={torch.__version__}")
-    except Exception:
-        if verbose:
-            print("  installing Hanchen's pinned Gemma 4 stack via uv pip ...")
+            print(f"  installing Hanchen's pinned Gemma 4 stack ({why_install})")
+        # Try numpy/pillow version pinning preamble (Hanchen verbatim)
         try:
             import numpy, PIL
             np_pin = f"numpy=={numpy.__version__}"
             pil_pin = f"pillow=={PIL.__version__}"
         except Exception:
             np_pin, pil_pin = "numpy", "pillow"
-        cmd = (
-            f'uv pip install -qqq '
-            f'"torch>=2.8.0" "triton>=3.4.0" {np_pin} {pil_pin} '
-            f'torchvision bitsandbytes unsloth "unsloth_zoo>=2026.4.6" '
-            f'transformers==5.5.0 torchcodec timm'
-        )
-        os.system(cmd)
-        # Re-import after install
+        # Hanchen uses uv; fall back to pip if uv isn't on PATH
+        uv_check = subprocess.run(["uv", "--version"],
+                                    capture_output=True, text=True)
+        installer = (["uv", "pip", "install", "-qqq"]
+                     if uv_check.returncode == 0
+                     else [sys.executable, "-m", "pip", "install",
+                           "-q", "--no-input"])
+        cmd = installer + [
+            "torch>=2.8.0", "triton>=3.4.0", np_pin, pil_pin,
+            "torchvision", "bitsandbytes",
+            "unsloth", "unsloth_zoo>=2026.4.6",
+            "transformers==5.5.0", "torchcodec", "timm",
+        ]
+        if verbose:
+            print(f"  $ {' '.join(cmd)}")
+        proc = subprocess.run(cmd, capture_output=True, text=True)
+        if proc.returncode != 0:
+            if verbose:
+                print(f"  install FAILED ({proc.returncode}):")
+                print(f"    stderr: {proc.stderr[-500:]}")
+            return None
+        # Re-import everything Hanchen depends on
         for mod in list(sys.modules):
-            if mod.startswith(("unsloth", "transformers", "torch")):
+            if mod.startswith(("unsloth", "transformers", "torch",
+                               "torchvision", "bitsandbytes",
+                               "torchcodec", "timm", "triton")):
                 del sys.modules[mod]
 
     try:
         import torch
+        import transformers
         from unsloth import FastModel
+        if verbose:
+            print(f"  versions: torch={torch.__version__}  "
+                  f"transformers={transformers.__version__}  "
+                  f"unsloth=OK")
     except Exception as e:
-        if verbose: print(f"  unsloth import FAILED: {type(e).__name__}: {e}")
+        if verbose:
+            print(f"  unsloth import FAILED after install: "
+                  f"{type(e).__name__}: {e}")
         return None
 
     variant = GEMMA_MODEL_VARIANT
@@ -714,21 +766,47 @@ def load_gemma_unsloth(env: Env, verbose: bool = True) -> Optional[LoadedModel]:
                   f"{type(e).__name__}: {str(e)[:300]}")
         return None
 
+    # Apply Hanchen's recommended chat template post-load
+    try:
+        from unsloth.chat_templates import get_chat_template
+        tokenizer = get_chat_template(tokenizer,
+                                        chat_template="gemma-4-thinking")
+        if verbose: print("  applied chat_template=gemma-4-thinking")
+    except Exception as e:
+        if verbose:
+            print(f"  WARN: get_chat_template failed: {type(e).__name__}: {e}")
+
     def _gemma_call(prompt: str, max_new_tokens: int = 350) -> str:
+        # Match Hanchen's apply_chat_template / model.generate pattern
+        # verbatim. Inputs go to "cuda" (the first device); when
+        # device_map="balanced" the model layers are split but the
+        # input embedding layer always lives on cuda:0.
         messages = [{"role": "user",
                      "content": [{"type": "text", "text": prompt}]}]
         inputs = tokenizer.apply_chat_template(
-            messages, add_generation_prompt=True,
-            return_tensors="pt", tokenize=True, return_dict=True,
+            messages,
+            add_generation_prompt=True,   # Must add for generation (Hanchen)
+            tokenize=True,
+            return_dict=True,
+            return_tensors="pt",
         ).to("cuda")
         out = model.generate(
-            **inputs, max_new_tokens=max_new_tokens, use_cache=True,
+            **inputs,
+            max_new_tokens=max_new_tokens,
+            use_cache=True,
+            # Recommended Gemma 4 settings (Hanchen)
             temperature=1.0, top_p=0.95, top_k=64,
         )
         text = tokenizer.batch_decode(out)[0]
-        # Strip everything before the model's response
+        # Strip the conversation prefix
         if "<|turn>model" in text:
             text = text.split("<|turn>model", 1)[1]
+        # Strip the thinking-mode chain-of-thought wrapper. Format:
+        #   <|channel>thought\n<channel|>actual answer<turn|>
+        if "<channel|>" in text:
+            text = text.split("<channel|>", 1)[1]
+        # Strip end-of-turn marker
+        text = text.split("<turn|>", 1)[0]
         return text.replace("<bos>", "").replace("<eos>", "").strip()
 
     vram = round(torch.cuda.memory_allocated() / 1024**3, 2)
