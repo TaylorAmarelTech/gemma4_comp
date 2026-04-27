@@ -163,6 +163,10 @@ def create_app(state: Optional[ServerState] = None) -> FastAPI:
     def overview_page():
         return _serve_html(static_dir / "demo.html")
 
+    @app.get("/credits", response_class=HTMLResponse)
+    def credits_page():
+        return _serve_html(static_dir / "credits.html")
+
     @app.get("/examples")
     def examples_redirect():
         from fastapi.responses import RedirectResponse

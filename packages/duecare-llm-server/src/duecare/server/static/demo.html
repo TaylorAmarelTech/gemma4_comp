@@ -489,6 +489,31 @@ body.dc-slideshow header.dc-nav { display: none !important; }
   color: var(--ink);
 }
 
+/* Appendix G -- credits grid */
+.dc-credits-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: 14px; margin: 16px 0;
+}
+.dc-credits-section {
+  background: #f8fafc; border: 1px solid var(--border);
+  border-radius: 10px; padding: 12px 14px;
+}
+.dc-credits-section h3 {
+  margin: 0 0 8px 0; font-size: 13.5px;
+  color: var(--primary); letter-spacing: -0.01em;
+}
+.dc-credits-section ul {
+  margin: 0; padding-left: 16px; font-size: 11.5px;
+  line-height: 1.5; color: var(--ink);
+}
+.dc-credits-section li { margin-bottom: 6px; }
+.dc-credits-section a { color: var(--primary); text-decoration: none; word-break: break-all; }
+.dc-credits-section a:hover { text-decoration: underline; }
+.dc-credits-section code {
+  background: #f1f5f9; padding: 1px 5px; border-radius: 3px;
+  font-size: 10.5px; color: var(--muted);
+}
+
 /* Appendix B -- tool catalog table */
 .dc-tool-table {
   display: grid; grid-template-columns: 1fr; gap: 0;
@@ -695,6 +720,7 @@ body.dc-slideshow header.dc-nav { display: none !important; }
   .dc-enhance-grid { grid-template-columns: 1fr 1fr; }
   .dc-appx-grid { grid-template-columns: 1fr; }
   .dc-tool-row { grid-template-columns: 1fr; padding: 8px; }
+  .dc-credits-grid { grid-template-columns: 1fr; }
 }
 @media (max-width: 800px) {
   .dc-slide-stage { padding: 70px 12px 60px 12px; }
@@ -1947,6 +1973,122 @@ the <code>ToolResult</code> shape and the KB passage schema.
   },
 
   // ----------------------------------------------------------------
+  // Slide -- Appendix G: Credits & Attributions
+  // ----------------------------------------------------------------
+  {
+    id: 'appendix_credits',
+    tag: 'Appendix G',
+    tagBg: '#f5f3ff', tagFg: '#5b21b6',
+    title: 'Appendix G. Credits &amp; attributions.',
+    autoSec: 22,
+    body: `
+<p style="font-size:15px;margin-top:0;color:var(--muted)">
+Duecare stands on a lot of open-source shoulders. Every component
+listed here is used under its original licence; nothing has been
+forked or modified beyond standard configuration.
+</p>
+
+<div class="dc-credits-grid">
+  <div class="dc-credits-section">
+    <h3>Models — Google Gemma 4</h3>
+    <ul>
+      <li><b>Gemma 4 E2B-it</b> &nbsp;<code>~2B params, mobile / LiteRT</code><br>
+        <a href="https://huggingface.co/google/gemma-4-e2b-it" target="_blank" rel="noopener noreferrer">huggingface.co/google/gemma-4-e2b-it</a></li>
+      <li><b>Gemma 4 E4B-it</b> &nbsp;<code>~4B params, default consumer GPU</code><br>
+        <a href="https://huggingface.co/google/gemma-4-e4b-it" target="_blank" rel="noopener noreferrer">huggingface.co/google/gemma-4-e4b-it</a></li>
+      <li><b>Gemma 4 26B-A4B-it</b> &nbsp;<code>MoE, ~14GB 4-bit</code><br>
+        <a href="https://huggingface.co/google/gemma-4-26b-a4b-it" target="_blank" rel="noopener noreferrer">huggingface.co/google/gemma-4-26b-a4b-it</a></li>
+      <li><b>Gemma 4 31B-it</b> &nbsp;<code>dense, 2x T4 via device_map=balanced</code><br>
+        <a href="https://huggingface.co/google/gemma-4-31b-it" target="_blank" rel="noopener noreferrer">huggingface.co/google/gemma-4-31b-it</a></li>
+      <li style="color:var(--muted)">All four under <b>Apache 2.0</b>. "Built with Google's Gemma" attribution required by the Gemma terms of use.</li>
+    </ul>
+  </div>
+
+  <div class="dc-credits-section">
+    <h3>Inference + training stack</h3>
+    <ul>
+      <li><b>Unsloth</b> — 4-bit FastModel + 31B-on-2xT4 path<br>
+        <a href="https://github.com/unslothai/unsloth" target="_blank" rel="noopener noreferrer">github.com/unslothai/unsloth</a></li>
+      <li><b>transformers</b> — model loading (HuggingFace)<br>
+        <a href="https://github.com/huggingface/transformers" target="_blank" rel="noopener noreferrer">github.com/huggingface/transformers</a></li>
+      <li><b>bitsandbytes</b> — nf4 4-bit quantization<br>
+        <a href="https://github.com/bitsandbytes-foundation/bitsandbytes" target="_blank" rel="noopener noreferrer">github.com/bitsandbytes-foundation/bitsandbytes</a></li>
+      <li><b>sentence-transformers</b> — RAG retrieval (MiniLM-L6-v2)<br>
+        <a href="https://github.com/UKPLab/sentence-transformers" target="_blank" rel="noopener noreferrer">github.com/UKPLab/sentence-transformers</a></li>
+      <li><b>llama.cpp</b> — GGUF runtime path<br>
+        <a href="https://github.com/ggerganov/llama.cpp" target="_blank" rel="noopener noreferrer">github.com/ggerganov/llama.cpp</a></li>
+      <li><b>Ollama</b> — local-runtime adapter<br>
+        <a href="https://github.com/ollama/ollama" target="_blank" rel="noopener noreferrer">github.com/ollama/ollama</a></li>
+      <li><b>Google AI Edge LiteRT</b> — mobile runtime path<br>
+        <a href="https://ai.google.dev/edge/litert" target="_blank" rel="noopener noreferrer">ai.google.dev/edge/litert</a></li>
+    </ul>
+  </div>
+
+  <div class="dc-credits-section">
+    <h3>Server, data, redaction</h3>
+    <ul>
+      <li><b>FastAPI</b> + Uvicorn — HTTP server<br>
+        <a href="https://github.com/fastapi/fastapi" target="_blank" rel="noopener noreferrer">github.com/fastapi/fastapi</a></li>
+      <li><b>DuckDB</b> — evidence database<br>
+        <a href="https://github.com/duckdb/duckdb" target="_blank" rel="noopener noreferrer">github.com/duckdb/duckdb</a></li>
+      <li><b>pypdfium2</b> — PDF text extraction<br>
+        <a href="https://github.com/pypdfium2-team/pypdfium2" target="_blank" rel="noopener noreferrer">github.com/pypdfium2-team/pypdfium2</a></li>
+      <li><b>pytesseract</b> + Tesseract OCR — image OCR<br>
+        <a href="https://github.com/madmaze/pytesseract" target="_blank" rel="noopener noreferrer">github.com/madmaze/pytesseract</a></li>
+      <li><b>ffmpeg</b> — evidence redaction (downscale + watermark)<br>
+        <a href="https://ffmpeg.org" target="_blank" rel="noopener noreferrer">ffmpeg.org</a></li>
+      <li><b>Cytoscape.js</b> + cose-bilkent — knowledge-graph viz<br>
+        <a href="https://js.cytoscape.org" target="_blank" rel="noopener noreferrer">js.cytoscape.org</a></li>
+      <li><b>Pydantic v2</b> · <b>structlog</b> · <b>pytest</b> — Python plumbing</li>
+    </ul>
+  </div>
+
+  <div class="dc-credits-section">
+    <h3>Reference notebooks</h3>
+    <ul>
+      <li><b>Daniel Hanchen — Gemma 4 31B Unsloth</b><br>
+        The exact install + FastModel.from_pretrained recipe Duecare follows for 2xT4 31B inference.<br>
+        <a href="https://www.kaggle.com/code/danielhanchen/gemma4-31b-unsloth" target="_blank" rel="noopener noreferrer">kaggle.com/code/danielhanchen/gemma4-31b-unsloth</a></li>
+      <li><b>Unsloth Gemma 4 notebooks</b> — text / vision / audio<br>
+        <a href="https://github.com/unslothai/notebooks#gemma-4-notebooks" target="_blank" rel="noopener noreferrer">github.com/unslothai/notebooks#gemma-4-notebooks</a></li>
+    </ul>
+  </div>
+
+  <div class="dc-credits-section">
+    <h3>Standards &amp; data sources</h3>
+    <ul>
+      <li><b>UN Palermo Protocol Article 3</b> (2000) — trafficking definition<br>
+        <a href="https://www.unodc.org/unodc/en/treaties/CTOC/" target="_blank" rel="noopener noreferrer">unodc.org</a></li>
+      <li><b>ILO 11 Indicators of Forced Labour</b> (2012)<br>
+        <a href="https://www.ilo.org/global/topics/forced-labour/publications/WCMS_203832/lang--en/index.htm" target="_blank" rel="noopener noreferrer">ilo.org</a></li>
+      <li><b>ILO Conventions</b> C029 (Forced Labour) · C181 (Private Employment Agencies) · C189 (Domestic Workers) · C188 (Fishing)</li>
+      <li><b>IOM Counter-Trafficking Data Collaborative</b> (CTDC)<br>
+        <a href="https://www.ctdatacollaborative.org" target="_blank" rel="noopener noreferrer">ctdatacollaborative.org</a></li>
+      <li><b>Regulatory frameworks:</b> CA AB 587, Texas HB 20, Cal. Civ. Code §1714, EU Directive 2011/36, US TVPA, RA 8042 (PH), Cap. 57 / 163 / 486 (HK), GCC kafala-reform statutes (2017–2022)</li>
+    </ul>
+  </div>
+
+  <div class="dc-credits-section">
+    <h3>Prior work this builds on</h3>
+    <ul>
+      <li><b>Taylor Amarel</b> — 21K-test exploitation benchmark + 5-tier graded responses (the labelled corpus this submission's evaluation relies on)</li>
+      <li><b>OpenAI gpt-oss-20b Red-Teaming Challenge</b> — comparative baseline framework<br>
+        <a href="https://www.kaggle.com/competitions/openai-gpt-oss-20b-red-teaming" target="_blank" rel="noopener noreferrer">kaggle.com/competitions/openai-gpt-oss-20b-red-teaming</a></li>
+      <li>Polaris Project · IJM · ECPAT · HRD Nepal · Verité · IOM (operational frameworks consulted; not formally endorsed)</li>
+    </ul>
+  </div>
+</div>
+
+<div class="dc-callout success" style="margin-top:auto">
+<b>Licences:</b> Gemma 4 weights = Apache 2.0 (Google).
+Duecare code = MIT.
+Every dependency above is OSS-licence-compatible. The full
+machine-readable credit list also lives at
+<a href="/credits">/credits</a>.
+</div>`
+  },
+
+  // ----------------------------------------------------------------
   // Slide -- Closing (Deploy + partners + home button)
   // ----------------------------------------------------------------
   {
@@ -2000,8 +2142,13 @@ stakeholder in the human-exploitation-detection ecosystem.
 The same Gemma 4 + 11 tools + 53-passage KB + 22-signal heuristics
 serves every stakeholder above.
 </div>
-<p style="font-size:11px;color:var(--muted);text-align:center;margin:0 0 12px 0">
-Built with Google's Gemma 4. Original model: <a href="https://huggingface.co/google/gemma-4-e4b-it" target="_blank" rel="noopener noreferrer">huggingface.co/google/gemma-4-e4b-it</a>. Used under Apache 2.0.
+<p style="font-size:11px;color:var(--muted);text-align:center;margin:0 0 12px 0;line-height:1.55">
+Built with <b>Google's Gemma 4</b> (Apache 2.0). Supported variants:
+<a href="https://huggingface.co/google/gemma-4-e2b-it" target="_blank" rel="noopener noreferrer">E2B-it</a> ·
+<a href="https://huggingface.co/google/gemma-4-e4b-it" target="_blank" rel="noopener noreferrer">E4B-it</a> ·
+<a href="https://huggingface.co/google/gemma-4-26b-a4b-it" target="_blank" rel="noopener noreferrer">26B-A4B-it</a> ·
+<a href="https://huggingface.co/google/gemma-4-31b-it" target="_blank" rel="noopener noreferrer">31B-it</a>.
+Full credits on the Appendix G slide and at <a href="/credits">/credits</a>.
 </p>
 <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:auto">
   <a href="/" class="dc-qa-home-btn">← Back to home</a>
@@ -2028,7 +2175,7 @@ const _OVERVIEW_IDS = new Set([
   'why_gemma', 'enhancing_gemma', 'architecture', 'qa',
   'appendix_kb', 'appendix_retrieval', 'appendix_tools',
   'appendix_tool_calls', 'appendix_heuristics',
-  'appendix_extensibility', 'closing'
+  'appendix_extensibility', 'appendix_credits', 'closing'
 ]);
 const _EXAMPLE_IDS = new Set([
   'ex_jobboard', 'ex_worker', 'ex_ngo', 'ex_doxxing', 'ex_kafala'

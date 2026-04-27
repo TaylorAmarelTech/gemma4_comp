@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Credits &amp; attributions — Duecare</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<header class="dc-nav">
+  <h1>Duecare<span class="tag"> · credits &amp; attributions</span></h1>
+  <nav>
+    <a href="/">Home</a>
+    <a href="/demo">Demo</a>
+    <a href="/workspace">Workbench</a>
+    <a href="/architecture">Architecture</a>
+    <a href="/background">Background</a>
+    <a href="/evidence">Evidence</a>
+    <a href="/enterprise">Enterprise</a>
+    <a href="/individual">Individual</a>
+    <a href="/knowledge">Knowledge</a>
+    <a href="/dashboard">Dashboard</a>
+    <a href="/queue">Queue</a>
+    <a href="/logs">Logs</a>
+    <a href="/chat">Chat</a>
+    <a href="/settings">Settings</a>
+  </nav>
+</header>
+<main class="dc-main">
+
+  <h2 class="dc-h2">Credits &amp; attributions</h2>
+  <p class="dc-sub">
+    Duecare stands on a lot of open-source shoulders. Every component listed
+    here is used under its original licence; nothing has been forked or
+    modified beyond standard configuration.
+  </p>
+
+  <div class="dc-panel">
+    <h3>Models — Google Gemma 4 (Apache 2.0)</h3>
+    <p>
+      Built with Google's Gemma 4. Duecare supports four variants depending
+      on the deployment target. Attribution per the Gemma terms of use:
+      <i>"Built with Google's Gemma."</i>
+    </p>
+    <table class="dc-lit-table">
+      <thead><tr><th>Variant</th><th>Approx params</th><th>Typical deployment</th><th>HF Hub</th></tr></thead>
+      <tbody>
+        <tr><td><b>Gemma 4 E2B-it</b></td><td>~2B</td><td>Mobile via LiteRT, ~2GB 4-bit</td>
+            <td><a href="https://huggingface.co/google/gemma-4-e2b-it" target="_blank" rel="noopener noreferrer">google/gemma-4-e2b-it</a></td></tr>
+        <tr><td><b>Gemma 4 E4B-it</b></td><td>~4B</td><td>Default consumer GPU, ~5.5GB 4-bit</td>
+            <td><a href="https://huggingface.co/google/gemma-4-e4b-it" target="_blank" rel="noopener noreferrer">google/gemma-4-e4b-it</a></td></tr>
+        <tr><td><b>Gemma 4 26B-A4B-it</b></td><td>~26B (MoE)</td><td>Single A100 or 2x T4, ~14GB 4-bit</td>
+            <td><a href="https://huggingface.co/google/gemma-4-26b-a4b-it" target="_blank" rel="noopener noreferrer">google/gemma-4-26b-a4b-it</a></td></tr>
+        <tr><td><b>Gemma 4 31B-it</b></td><td>~31B (dense)</td><td>2x T4 via Unsloth (device_map="balanced"), ~18GB 4-bit</td>
+            <td><a href="https://huggingface.co/google/gemma-4-31b-it" target="_blank" rel="noopener noreferrer">google/gemma-4-31b-it</a></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="dc-panel">
+    <h3>Inference + training stack</h3>
+    <ul style="line-height:1.7">
+      <li><b>Unsloth</b> — 4-bit FastModel + the 31B-on-2xT4 path via <code>device_map="balanced"</code>.
+        <a href="https://github.com/unslothai/unsloth" target="_blank" rel="noopener noreferrer">github.com/unslothai/unsloth</a> · LGPL-3.0</li>
+      <li><b>HuggingFace transformers</b> — model loading, tokenization, generation.
+        <a href="https://github.com/huggingface/transformers" target="_blank" rel="noopener noreferrer">github.com/huggingface/transformers</a> · Apache 2.0</li>
+      <li><b>bitsandbytes</b> — nf4 4-bit quantization.
+        <a href="https://github.com/bitsandbytes-foundation/bitsandbytes" target="_blank" rel="noopener noreferrer">github.com/bitsandbytes-foundation/bitsandbytes</a> · MIT</li>
+      <li><b>sentence-transformers</b> — RAG retrieval (<code>all-MiniLM-L6-v2</code>).
+        <a href="https://github.com/UKPLab/sentence-transformers" target="_blank" rel="noopener noreferrer">github.com/UKPLab/sentence-transformers</a> · Apache 2.0</li>
+      <li><b>llama.cpp</b> — GGUF runtime path for desktop / on-device.
+        <a href="https://github.com/ggerganov/llama.cpp" target="_blank" rel="noopener noreferrer">github.com/ggerganov/llama.cpp</a> · MIT</li>
+      <li><b>Ollama</b> — local-runtime adapter (<code>scripts/run_local_gemma.py</code>).
+        <a href="https://github.com/ollama/ollama" target="_blank" rel="noopener noreferrer">github.com/ollama/ollama</a> · MIT</li>
+      <li><b>Google AI Edge LiteRT</b> — mobile runtime path.
+        <a href="https://ai.google.dev/edge/litert" target="_blank" rel="noopener noreferrer">ai.google.dev/edge/litert</a> · Apache 2.0</li>
+      <li><b>PyTorch</b> · <b>triton</b> · <b>torchcodec</b> · <b>torchvision</b> · <b>timm</b> — supporting compute</li>
+    </ul>
+  </div>
+
+  <div class="dc-panel">
+    <h3>Server, data, redaction</h3>
+    <ul style="line-height:1.7">
+      <li><b>FastAPI</b> + <b>Uvicorn</b> — HTTP server.
+        <a href="https://github.com/fastapi/fastapi" target="_blank" rel="noopener noreferrer">github.com/fastapi/fastapi</a> · MIT</li>
+      <li><b>DuckDB</b> — embedded evidence database.
+        <a href="https://github.com/duckdb/duckdb" target="_blank" rel="noopener noreferrer">github.com/duckdb/duckdb</a> · MIT</li>
+      <li><b>Pydantic v2</b> — schema validation.
+        <a href="https://github.com/pydantic/pydantic" target="_blank" rel="noopener noreferrer">github.com/pydantic/pydantic</a> · MIT</li>
+      <li><b>structlog</b> — structured logging.
+        <a href="https://github.com/hynek/structlog" target="_blank" rel="noopener noreferrer">github.com/hynek/structlog</a> · MIT/Apache 2.0</li>
+      <li><b>pypdfium2</b> — PDF text extraction.
+        <a href="https://github.com/pypdfium2-team/pypdfium2" target="_blank" rel="noopener noreferrer">github.com/pypdfium2-team/pypdfium2</a> · Apache 2.0 / BSD-3</li>
+      <li><b>pytesseract</b> + <b>Tesseract OCR</b> — image OCR.
+        <a href="https://github.com/madmaze/pytesseract" target="_blank" rel="noopener noreferrer">github.com/madmaze/pytesseract</a> · Apache 2.0</li>
+      <li><b>ffmpeg</b> — evidence redaction pipeline (downscale + watermark).
+        <a href="https://ffmpeg.org" target="_blank" rel="noopener noreferrer">ffmpeg.org</a> · LGPL/GPL</li>
+      <li><b>Cytoscape.js</b> + <b>cose-bilkent</b> layout — knowledge-graph viz.
+        <a href="https://js.cytoscape.org" target="_blank" rel="noopener noreferrer">js.cytoscape.org</a> · MIT</li>
+      <li><b>cloudflared</b> — public-tunnel for Kaggle demos.
+        <a href="https://github.com/cloudflare/cloudflared" target="_blank" rel="noopener noreferrer">github.com/cloudflare/cloudflared</a> · Apache 2.0</li>
+    </ul>
+  </div>
+
+  <div class="dc-panel">
+    <h3>Reference notebooks (followed verbatim)</h3>
+    <ul style="line-height:1.7">
+      <li><b>Daniel Hanchen — Gemma 4 31B Unsloth</b>: the install + <code>FastModel.from_pretrained</code> recipe Duecare follows for 2x T4 31B inference.
+        <a href="https://www.kaggle.com/code/danielhanchen/gemma4-31b-unsloth" target="_blank" rel="noopener noreferrer">kaggle.com/code/danielhanchen/gemma4-31b-unsloth</a></li>
+      <li><b>Unsloth Gemma 4 notebooks</b> — text / vision / audio reference patterns.
+        <a href="https://github.com/unslothai/notebooks#gemma-4-notebooks" target="_blank" rel="noopener noreferrer">github.com/unslothai/notebooks</a></li>
+    </ul>
+  </div>
+
+  <div class="dc-panel">
+    <h3>Standards &amp; data sources</h3>
+    <ul style="line-height:1.7">
+      <li><b>UN Palermo Protocol Article 3</b> (2000) — trafficking definition.
+        <a href="https://www.unodc.org/unodc/en/treaties/CTOC/" target="_blank" rel="noopener noreferrer">unodc.org</a></li>
+      <li><b>ILO 11 Indicators of Forced Labour</b> (2012) — operational framework.
+        <a href="https://www.ilo.org/global/topics/forced-labour/publications/WCMS_203832/lang--en/index.htm" target="_blank" rel="noopener noreferrer">ilo.org</a></li>
+      <li><b>ILO Conventions</b> — C029 (Forced Labour, 1930), C181 (Private Employment Agencies, 1997), C188 (Fishing, 2007), C189 (Domestic Workers, 2011)</li>
+      <li><b>IOM Counter-Trafficking Data Collaborative</b> (CTDC).
+        <a href="https://www.ctdatacollaborative.org" target="_blank" rel="noopener noreferrer">ctdatacollaborative.org</a></li>
+      <li><b>Regulatory + statutory frameworks consulted:</b> CA AB 587, Texas HB 20, Cal. Civ. Code §1714, EU Directive 2011/36, US TVPA, US DOJ HTPU, RA 8042 / RA 10022 (PH DMW), HK Cap. 57 / 163 / 486 + 2021 anti-doxxing amendment, ID BP2MI Decree 38/2020, NP Foreign Employment Act, BD Overseas Employment Act, GCC kafala-reform statutes (2017–2022), VN Decree 38/2020, IN Emigration Act 1983, LK SLBFE Act, KH Sub-Decree 190/2014, MM Overseas Employment Law</li>
+    </ul>
+  </div>
+
+  <div class="dc-panel">
+    <h3>Prior work this builds on</h3>
+    <ul style="line-height:1.7">
+      <li><b>Taylor Amarel</b> — author's existing 21K-test exploitation benchmark + 5-tier graded-response taxonomy. The labelled corpus this submission's evaluation depends on.</li>
+      <li><b>OpenAI gpt-oss-20b Red-Teaming Challenge</b> — comparative baseline framework + the gpt-oss-20b harm baseline cited in the Why-Gemma slide.
+        <a href="https://www.kaggle.com/competitions/openai-gpt-oss-20b-red-teaming" target="_blank" rel="noopener noreferrer">kaggle.com/competitions/openai-gpt-oss-20b-red-teaming</a></li>
+      <li><b>NGOs whose operational playbooks shaped the rubrics</b>: Polaris Project, IJM, ECPAT, HRD Nepal, Verité, IOM. None of these orgs has formally endorsed Duecare; they are referenced as the authoritative source of the patterns Duecare detects.</li>
+    </ul>
+  </div>
+
+  <div class="dc-panel">
+    <h3>Licences summary</h3>
+    <p>
+      <b>Gemma 4 weights</b> — Apache 2.0 (Google) ·
+      <b>Duecare code</b> — MIT ·
+      <b>Every dependency above</b> — OSS-licence-compatible with both.
+      No CC-NC, no proprietary-on-redistribution licences.
+    </p>
+    <p style="font-size:13px;color:var(--muted)">
+      If you use Duecare in production, verify each transitive licence
+      against your own legal requirements. The <a
+      href="https://github.com/TaylorAmarelTech/gemma4_comp/blob/master/LICENSE" target="_blank" rel="noopener noreferrer">project LICENSE
+      file</a> applies only to the original Duecare code.
+    </p>
+  </div>
+
+</main>
+<script src="/static/_backend_badge.js"></script>
+</body>
+</html>
