@@ -762,12 +762,35 @@ def load_gemma_unsloth(env: Env, verbose: bool = True) -> Optional[LoadedModel]:
         return None
 
     variant = GEMMA_MODEL_VARIANT
-    # Unsloth's repo naming uses CapitalCase for E2B/E4B
+    # Unsloth's HF Hub repo naming uses CapitalCase for E2B/E4B
     repo_variant = (variant.replace("e2b-it", "E2B-it")
                           .replace("e4b-it", "E4B-it")
                           .replace("26b-a4b-it", "26B-A4B-it")
                           .replace("31b-it", "31B-it"))
-    repo = f"unsloth/gemma-4-{repo_variant}"
+    hf_repo = f"unsloth/gemma-4-{repo_variant}"
+
+    # Prefer the locally-attached Kaggle Gemma model if present -- saves
+    # the 5-8 min HF Hub download. FastModel.from_pretrained accepts
+    # either a HF Hub repo id or a local path; load_in_4bit=True
+    # quantizes either way.
+    local_candidates = []
+    if env.in_kaggle:
+        for v in ("1", "2", "3"):
+            p = (f"/kaggle/input/models/google/gemma-4/transformers/"
+                 f"gemma-4-{variant}/{v}")
+            if Path(p, "config.json").exists():
+                local_candidates.append(p)
+    if local_candidates:
+        repo = local_candidates[0]
+        if verbose:
+            print(f"  using LOCAL attached model: {repo}")
+            print(f"  (skipping HF Hub download of {hf_repo})")
+    else:
+        repo = hf_repo
+        if verbose:
+            print(f"  no attached gemma-4-{variant} found at "
+                  f"/kaggle/input/models/google/gemma-4/transformers/...")
+            print(f"  downloading from HF Hub: {repo}")
 
     # Auto-upgrade device_map to "balanced" for big variants so the
     # model splits across 2x T4 (per Hanchen's notebook). Without
