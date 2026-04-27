@@ -440,18 +440,25 @@ _KB_PASSAGES = [
                   "Ordinance Cap. 57 + Employment Agency Regulations.",
     },
     {
-        "id": "migrasia_threat_taxonomy",
+        "id": "operational_threat_taxonomy",
         "kind": "indicator",
         "jurisdiction": "international",
         "topic": "threat_taxonomy",
-        "tags": ["Migrasia", "casework_manual", "threat_model"],
-        "text": "Migrasia Case Work Manual (2020) -- enumerates the "
-                  "operational attack patterns Duecare detects: "
-                  "passport/HKID confiscation, 'savings account' theft, "
-                  "processing-fee fraud, harassment of references, "
-                  "agency-lender conspiracy, infiltration by 'spies "
-                  "from agencies / lending companies'. Used as the "
-                  "ground-truth taxonomy for our heuristic signal set.",
+        "tags": ["threat_model", "operational_pattern"],
+        "text": "Operational attack-pattern taxonomy -- enumerates the "
+                  "patterns Duecare detects across jurisdictions and MOs: "
+                  "identity-document confiscation (passport, ID, "
+                  "residence-permit, HKID, iqama, kafala-system kafeel "
+                  "transfer), 'savings account' / 'security deposit' "
+                  "theft, processing-fee fraud, document-as-collateral, "
+                  "harassment of references / employer / family, agency-"
+                  "lender conspiracy, infiltration of NGO / hotline "
+                  "channels, social-media doxxing, predatory cross-border "
+                  "lending. Compiled from a synthesis of public ILO + "
+                  "IOM + UNODC TIP reports, government regulator "
+                  "complaint registries (DMW, BP2MI, MOM, EAA, MOHRE), "
+                  "academic NLP literature, and field-collected public-"
+                  "record evidence.",
     },
     # Hotline passages mirror _HOTLINES so RAG retrieval can surface them.
     *[
@@ -1314,6 +1321,19 @@ def orchestrate_moderate(payload: dict, gemma_call: Any = None) -> dict:
     result["doxxing_indicators"] = tools["doxxing_indicators"]
     result["debt_harassment"] = tools["debt_harassment"]
     result["predatory_lender"] = tools["predatory_lender"]
+
+    # Suggest a complaint / cause-of-action template based on the
+    # detected pattern. Operator can pick a different one in /workspace.
+    try:
+        from duecare.server.complaint_templates import suggest_template
+        suggestion = suggest_template(result)
+        if suggestion:
+            result["suggested_complaint_template"] = suggestion
+            step("complaint_suggestion", status="ok",
+                 detail=f"suggested template: {suggestion['slug']}")
+    except Exception as _e:
+        pass
+
     step("done", status="ok",
          detail=f"final verdict={result.get('verdict')} "
                   f"severity={result.get('severity')}/10")

@@ -907,6 +907,25 @@ def create_app(state: Optional[ServerState] = None) -> FastAPI:
             out["error"] = str(e)
         return out
 
+    # ------ Complaint / cause-of-action templates ------------------------
+    @app.get("/api/complaints/list")
+    def api_complaints_list(jurisdiction: Optional[str] = None,
+                              violation_type: Optional[str] = None):
+        """List available complaint templates, optionally filtered."""
+        from duecare.server.complaint_templates import list_templates
+        return {"templates": list_templates(jurisdiction, violation_type)}
+
+    @app.post("/api/complaints/render")
+    def api_complaints_render(req: dict):
+        """Render a template with operator-supplied fields. Missing
+        placeholders are kept as {placeholder} so the operator sees
+        what's left to fill."""
+        from duecare.server.complaint_templates import render_template
+        slug = req.get("slug")
+        if not slug:
+            raise HTTPException(400, "slug is required")
+        return render_template(slug, req.get("fields") or {})
+
     @app.get("/api/config/handlers")
     def api_handlers():
         """Show every queue task type registered + whether it's GPU-bound."""

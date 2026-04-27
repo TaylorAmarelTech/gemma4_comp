@@ -41,6 +41,7 @@
     <button class="dc-tab"        data-tab="archive"   onclick="showTab('archive')">Archive (folder)</button>
     <button class="dc-tab"        data-tab="jsonl"     onclick="showTab('jsonl')">JSONL batch</button>
     <button class="dc-tab"        data-tab="templates" onclick="showTab('templates')">Templates</button>
+    <button class="dc-tab"        data-tab="complaints" onclick="showTab('complaints')">Generate complaint</button>
   </div>
 
   <!-- ============ Single text ============ -->
@@ -194,6 +195,76 @@
         These are starting points the operator can edit before running.
       </p>
       <div id="template-list"></div>
+    </div>
+  </div>
+
+  <!-- ============ Generate complaint ============ -->
+  <div id="tab-complaints" class="dc-tabpanel" style="display:none">
+    <div class="dc-panel">
+      <h3>Generate complaint / cause-of-action letter</h3>
+      <p class="dc-sub" style="font-size:13px">
+        Pick a jurisdiction + violation type, fill in the
+        operator-known facts, and the system renders a draft
+        letter / sworn affidavit / takedown request you can submit
+        to the relevant authority. Templates currently cover PH
+        (DMW, POLO), HK (PCPD, money lenders, demands), Indonesia
+        (BP2MI), Nepal (FET), GCC states (WPS), US (TVPA + FLSA),
+        EU (GDPR), and Facebook (platform takedown).
+      </p>
+      <p class="dc-sub" style="font-size:12px">
+        After a moderation run on the other tabs, the verdict
+        will include a <code>suggested_complaint_template</code>
+        based on the patterns detected; pick that suggestion or
+        any other template here.
+      </p>
+      <div class="row">
+        <label>Filter by jurisdiction:
+          <select id="ct-juris">
+            <option value="">all</option>
+            <option value="PH">Philippines</option>
+            <option value="HK">Hong Kong</option>
+            <option value="ID">Indonesia</option>
+            <option value="NP">Nepal</option>
+            <option value="GCC">GCC (UAE/Saudi/Qatar/Kuwait/Bahrain/Oman)</option>
+            <option value="US">United States</option>
+            <option value="EU">European Union</option>
+            <option value="international">International (platform / treaty)</option>
+          </select>
+        </label>
+        <label>Filter by violation type:
+          <select id="ct-vtype">
+            <option value="">all</option>
+            <option value="recruitment_fraud">Recruitment fraud / illegal fees</option>
+            <option value="passport_retention">Passport / document retention</option>
+            <option value="doxxing">Social-media doxxing / public shaming</option>
+            <option value="predatory_lending">Predatory lender / debt-collection abuse</option>
+            <option value="wage_theft">Wage theft / WPS non-payment</option>
+            <option value="forced_labor">Forced labour (TVPA / Palermo)</option>
+          </select>
+        </label>
+        <button class="dc-btn secondary" onclick="loadComplaintTemplates()">Refresh</button>
+      </div>
+      <div id="ct-list" style="margin-top:14px">Loading…</div>
+    </div>
+
+    <div class="dc-panel" id="ct-form-panel" style="display:none">
+      <h3>Fill in the fields</h3>
+      <p class="dc-sub" style="font-size:13px" id="ct-form-meta"></p>
+      <div id="ct-fields"></div>
+      <div class="row">
+        <button class="dc-btn" onclick="renderComplaint()">Generate draft</button>
+        <button class="dc-btn secondary" onclick="document.getElementById('ct-form-panel').style.display='none'">Cancel</button>
+      </div>
+    </div>
+
+    <div class="dc-panel" id="ct-output-panel" style="display:none">
+      <h3>Draft complaint</h3>
+      <div id="ct-output-meta" style="font-size:12px;color:var(--muted);margin-bottom:10px"></div>
+      <div class="dc-output" id="ct-output-body" style="white-space:pre-wrap"></div>
+      <div class="row">
+        <button class="dc-btn" onclick="copyComplaint()">Copy to clipboard</button>
+        <button class="dc-btn secondary" onclick="downloadComplaint()">Download .txt</button>
+      </div>
     </div>
   </div>
 
@@ -698,6 +769,131 @@ function renderRunVerdict(result, taskType) {
 }
 
 loadTemplates();
+
+// ============ Complaint / cause-of-action templates ============
+let _ctActive = null;          // currently-loaded template summary
+let _ctRendered = null;        // last rendered draft
+
+async function loadComplaintTemplates() {
+  const j = document.getElementById('ct-juris').value;
+  const v = document.getElementById('ct-vtype').value;
+  const params = new URLSearchParams();
+  if (j) params.set('jurisdiction', j);
+  if (v) params.set('violation_type', v);
+  let res;
+  try {
+    res = await (await fetch('/api/complaints/list?' + params)).json();
+  } catch (e) {
+    document.getElementById('ct-list').innerText = 'load failed: ' + e;
+    return;
+  }
+  const items = res.templates || [];
+  if (!items.length) {
+    document.getElementById('ct-list').innerHTML =
+      '<p style="color:var(--muted)">No templates match the filter.</p>';
+    return;
+  }
+  let html = '';
+  for (const t of items) {
+    html += `<div class="dc-template-card" onclick="pickComplaint('${t.slug}')">` +
+      `<span class="t-title">${t.title}</span>` +
+      `<span class="t-loc">jurisdiction: ${t.jurisdiction} · ` +
+      `violation: ${t.violation_type}</span>` +
+      `<div class="t-text" style="max-height:120px">` +
+      `<b>To:</b> ${t.addressee}<br>` +
+      `<b>Cites:</b> ${(t.cites||[]).join(', ')}<br>` +
+      `<b>Fields to fill:</b> ${(t.placeholders||[]).length} ` +
+      `(${(t.placeholders||[]).slice(0, 6).join(', ')}…)<br>` +
+      `<b>Notes:</b> ${(t.notes||'').slice(0, 200)}</div>` +
+      `</div>`;
+  }
+  document.getElementById('ct-list').innerHTML = html;
+}
+
+async function pickComplaint(slug) {
+  // Load full template metadata and render the field-input form
+  let res;
+  try {
+    res = await (await fetch('/api/complaints/list')).json();
+  } catch (e) { return; }
+  const t = (res.templates || []).find(x => x.slug === slug);
+  if (!t) return;
+  _ctActive = t;
+  document.getElementById('ct-form-panel').style.display = 'block';
+  document.getElementById('ct-form-meta').innerHTML =
+    `<b>${t.title}</b><br>To: ${t.addressee}<br>` +
+    `Cites: ${(t.cites||[]).join(', ')}<br>` +
+    `<i>${t.notes || ''}</i>`;
+  let html = '';
+  for (const p of (t.placeholders || [])) {
+    if (p === 'today') continue; // auto-filled
+    const isMultiline = p.includes('narrative') ||
+                          p.includes('summary') ||
+                          p.includes('facts') ||
+                          p.includes('evidence') ||
+                          p.includes('conditions');
+    html += `<div style="margin-bottom:10px">` +
+      `<label style="display:block;font-size:12px;color:var(--muted);` +
+      `margin-bottom:4px"><code>{${p}}</code></label>`;
+    if (isMultiline) {
+      html += `<textarea id="ct-field-${p}" rows="3" ` +
+        `style="width:100%" placeholder="${p.replace(/_/g,' ')}…"></textarea>`;
+    } else {
+      html += `<input id="ct-field-${p}" type="text" ` +
+        `style="width:100%" placeholder="${p.replace(/_/g,' ')}…">`;
+    }
+    html += `</div>`;
+  }
+  document.getElementById('ct-fields').innerHTML = html;
+  document.getElementById('ct-form-panel').scrollIntoView({behavior:'smooth'});
+}
+
+async function renderComplaint() {
+  if (!_ctActive) return;
+  const fields = {};
+  for (const p of (_ctActive.placeholders || [])) {
+    if (p === 'today') continue;
+    const el = document.getElementById('ct-field-' + p);
+    if (el && el.value.trim()) fields[p] = el.value.trim();
+  }
+  let r;
+  try {
+    r = await fetch('/api/complaints/render', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({slug: _ctActive.slug, fields})
+    });
+    _ctRendered = await r.json();
+  } catch (e) {
+    alert('render failed: ' + e); return;
+  }
+  document.getElementById('ct-output-panel').style.display = 'block';
+  const meta = `<b>${_ctRendered.title}</b> · ${_ctRendered.template_chars} chars · ` +
+                  `${_ctRendered.used_fields.length} field(s) filled` +
+                  (_ctRendered.missing_fields.length
+                    ? ` · <span style="color:#991b1b">${_ctRendered.missing_fields.length} field(s) still as {placeholders}: ${_ctRendered.missing_fields.join(', ')}</span>`
+                    : '');
+  document.getElementById('ct-output-meta').innerHTML = meta;
+  document.getElementById('ct-output-body').innerText = _ctRendered.body;
+  document.getElementById('ct-output-panel').scrollIntoView({behavior:'smooth'});
+}
+
+function copyComplaint() {
+  if (!_ctRendered) return;
+  navigator.clipboard.writeText(_ctRendered.body).then(
+    () => { alert('Copied to clipboard.'); });
+}
+function downloadComplaint() {
+  if (!_ctRendered) return;
+  const blob = new Blob([_ctRendered.body], {type: 'text/plain'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `complaint_${_ctRendered.slug}_${Date.now()}.txt`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+loadComplaintTemplates();
 </script>
 </body>
 </html>

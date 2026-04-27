@@ -272,8 +272,9 @@ def main() -> int:
                 "category": "predatory_lending",
                 "redaction_status": "REDACTED (boxblur=20, downscale=480w, "
                                       "watermarked)",
-                "source_note": "Migrasia HK casework archive "
-                                  "(/TRANSLATION WORK/Facebook Posts).",
+                "source_note": "Field-collected public-record evidence "
+                                  "of predatory-lender activity targeting "
+                                  "migrant workers (~2020-2021).",
             })
         except Exception as e:
             print(f"  X{src.name} FAILED: {e}")
