@@ -15,8 +15,11 @@
   document.body.appendChild(el);
 
   function format(info) {
-    if (!info || !info.loaded) return 'Heuristic-only';
-    return info.display || info.name || 'unknown';
+    if (!info || !info.loaded) return 'Heuristic-only · Built on Gemma 4';
+    const display = info.display || info.name || 'unknown';
+    // Hint at upstream attribution; the closing slide carries the
+    // full Apache 2.0 + HF link.
+    return display + ' · Built on Google\'s Gemma 4';
   }
 
   async function refresh() {

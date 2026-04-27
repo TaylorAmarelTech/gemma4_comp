@@ -65,6 +65,29 @@ DUECARE_API_TOKEN = ""        # non-empty -> require auth on /api/*
 DUECARE_DB = "/kaggle/working/duecare.duckdb"
 PIPELINE_OUT = "/kaggle/working/multimodal_v1_output"
 
+# ===== Benchmark =============================================================
+# If True, runs the bundled smoke benchmark (~25 prompts) on startup
+# right after the server is healthy, prints the aggregate score, and
+# saves the per-row JSON to PIPELINE_OUT. Useful for proving "Backend
+# X scored Y on the same test set" in the writeup. The Workbench
+# Benchmark tab can still be used interactively after.
+BENCHMARK_AUTORUN = False
+BENCHMARK_AUTORUN_SET = "smoke_25"
+
+
+# ============================================================================
+# HF Hub naming convention for any fine-tuned variants you publish:
+#   Pattern: <user>/Duecare-Gemma-4-<size>-<purpose>-v<version>
+#   Examples:
+#     taylorscottamarel/Duecare-Gemma-4-E4B-it-SafetyJudge-v0.1.0
+#     taylorscottamarel/Duecare-Gemma-4-31B-it-SafetyJudge-v0.1.0
+#     taylorscottamarel/Duecare-Gemma-4-E4B-it-SafetyJudge-DPO-v0.1.0
+#
+# Model card MUST include a "Built with Google's Gemma 4" attribution
+# and link to https://huggingface.co/google/gemma-4-e4b-it (or the
+# variant you fine-tuned). Used under Apache 2.0.
+# ============================================================================
+
 # Surface the model name to the FastAPI app so the UI can show a
 # "Backend: <model>" badge on every page.
 os.environ["DUECARE_MODEL_NAME"] = (
@@ -1363,6 +1386,58 @@ if DUECARE_API_TOKEN:
     print(f"   AUTH ON:  Authorization: Bearer {DUECARE_API_TOKEN}")
 print(f"\n   stop the demo by interrupting this cell.\n")
 print("=" * 76)
+
+
+# ===========================================================================
+# 8.5  Optional: auto-run the bundled smoke benchmark and print results.
+# ===========================================================================
+if BENCHMARK_AUTORUN:
+    print("\n" + "=" * 76)
+    print(f"[autobench] running bundled benchmark: {BENCHMARK_AUTORUN_SET}")
+    print("=" * 76)
+    try:
+        import urllib.request
+        import urllib.parse
+        # Submit
+        req = urllib.request.Request(
+            f"http://localhost:{PORT}/api/benchmark/run",
+            data=json.dumps({"slug": BENCHMARK_AUTORUN_SET}).encode(),
+            headers={"Content-Type": "application/json"},
+            method="POST")
+        sub = json.loads(urllib.request.urlopen(req, timeout=20).read())
+        bid = sub["batch_id"]
+        n_rows = sub.get("n_rows", "?")
+        print(f"  submitted: {bid}  rows={n_rows}  "
+              f"backend={sub.get('model_info', {}).get('display', '?')}")
+        # Poll
+        for tick in range(900):  # up to ~15 min
+            time.sleep(1.0)
+            s = json.loads(urllib.request.urlopen(
+                f"http://localhost:{PORT}/api/benchmark/status/{bid}",
+                timeout=10).read())
+            c = s.get("counts", {})
+            done = c.get("completed", 0) + c.get("failed", 0)
+            if (tick % 5) == 0:
+                sm = s.get("summary", {})
+                print(f"  [{tick:3d}s] {done}/{n_rows} done · "
+                      f"pass={sm.get('pass_rate','-')} · "
+                      f"verdict={sm.get('verdict_acc','-')}")
+            if done >= n_rows:
+                # Final summary + save JSON
+                sm = s.get("summary", {})
+                print(f"\n  FINAL: pass_rate={sm.get('pass_rate')}  "
+                      f"verdict_acc={sm.get('verdict_acc')}  "
+                      f"severity_acc={sm.get('severity_acc')}  "
+                      f"signal_recall={sm.get('signal_recall')}")
+                out_path = Path(PIPELINE_OUT) / f"{bid}.json"
+                out_path.parent.mkdir(parents=True, exist_ok=True)
+                out_path.write_text(json.dumps(s, indent=2),
+                                     encoding="utf-8")
+                print(f"  saved: {out_path}")
+                break
+    except Exception as e:
+        print(f"  autobench FAILED: {type(e).__name__}: {e}")
+
 
 try:
     while True:

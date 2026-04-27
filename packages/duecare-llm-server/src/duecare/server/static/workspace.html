@@ -40,6 +40,7 @@
     <button class="dc-tab"        data-tab="file"      onclick="showTab('file')">Single file</button>
     <button class="dc-tab"        data-tab="archive"   onclick="showTab('archive')">Archive (folder)</button>
     <button class="dc-tab"        data-tab="jsonl"     onclick="showTab('jsonl')">JSONL batch</button>
+    <button class="dc-tab"        data-tab="benchmark" onclick="showTab('benchmark')">Benchmark</button>
     <button class="dc-tab"        data-tab="templates" onclick="showTab('templates')">Templates</button>
     <button class="dc-tab"        data-tab="complaints" onclick="showTab('complaints')">Generate complaint</button>
   </div>
@@ -197,6 +198,39 @@
           parses up to 200 lines / submission</span>
       </div>
       <div id="jsonl-status" style="margin-top:10px; color:var(--muted); font-size:12px"></div>
+    </div>
+  </div>
+
+  <!-- ============ Benchmark ============ -->
+  <div id="tab-benchmark" class="dc-tabpanel" style="display:none">
+    <div class="dc-panel">
+      <h3>Benchmark this backend</h3>
+      <p class="dc-sub" style="font-size:13px">
+        Run a curated test set against the currently-loaded model and
+        score it against expected verdicts. Each row streams its own
+        trace; aggregates update live. Export the JSON when done so
+        you can pin <code>(git_sha, dataset_version, model_name) →
+        score</code> in the writeup.
+      </p>
+      <div class="row">
+        <label>Test set:
+          <select id="bench-set"><option>loading...</option></select>
+        </label>
+        <button class="dc-btn" onclick="runBenchmark()">▶ Run benchmark</button>
+        <button class="dc-btn secondary" onclick="exportBenchmark()" id="bench-export-btn" disabled>Export JSON</button>
+      </div>
+      <div id="bench-status" style="margin-top:10px; color:var(--muted); font-size:12px"></div>
+    </div>
+
+    <div class="dc-panel" id="bench-panel" style="display:none">
+      <h3>Live results</h3>
+      <div id="bench-summary" style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:14px"></div>
+      <div class="dc-progress" style="margin-bottom:10px"><div id="bench-bar"></div></div>
+      <div id="bench-confusion" style="margin:8px 0; font-size:12px; color:var(--muted)"></div>
+      <h4 style="margin:18px 0 6px 0; font-size:14px">By category</h4>
+      <div id="bench-by-cat" style="font-size:12px; margin-bottom:14px"></div>
+      <h4 style="margin:18px 0 6px 0; font-size:14px">Per-row results</h4>
+      <div id="bench-rows" style="max-height:520px; overflow:auto"></div>
     </div>
   </div>
 
@@ -811,6 +845,146 @@ function renderRunVerdict(result, taskType) {
 }
 
 loadTemplates();
+
+// ============ Benchmark tab ============
+let _benchBatchId = null;
+let _benchTimer = null;
+
+async function loadBenchmarkSets() {
+  try {
+    const sets = await (await fetch('/api/benchmark/sets')).json();
+    const sel = document.getElementById('bench-set');
+    sel.innerHTML = sets.map(s =>
+      `<option value="${s.slug}">${s.title} (${s.n_rows} rows) — ${s.description}</option>`
+    ).join('') || '<option>(no test sets bundled)</option>';
+  } catch (e) {
+    document.getElementById('bench-set').innerHTML =
+      '<option>(failed to load)</option>';
+  }
+}
+
+async function runBenchmark() {
+  const slug = document.getElementById('bench-set').value;
+  if (!slug) return;
+  document.getElementById('bench-status').innerText = 'submitting…';
+  document.getElementById('bench-export-btn').disabled = true;
+  let res;
+  try {
+    res = await (await fetch('/api/benchmark/run', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({slug}),
+    })).json();
+  } catch (e) {
+    document.getElementById('bench-status').innerText = 'submit error: ' + e;
+    return;
+  }
+  _benchBatchId = res.batch_id;
+  document.getElementById('bench-status').innerText =
+    `${res.batch_id} · ${res.n_rows} rows · backend=${res.model_info?.display || '?'}`;
+  document.getElementById('bench-panel').style.display = 'block';
+  if (_benchTimer) clearInterval(_benchTimer);
+  _benchTimer = setInterval(pollBenchmark, 1000);
+}
+
+async function pollBenchmark() {
+  if (!_benchBatchId) return;
+  let s;
+  try {
+    s = await (await fetch('/api/benchmark/status/' + _benchBatchId)).json();
+  } catch (e) { return; }
+  const c = s.counts || {};
+  const total = (c.pending||0) + (c.running||0) + (c.completed||0) + (c.failed||0);
+  const done = (c.completed||0) + (c.failed||0);
+  const pct = total ? (done/total)*100 : 0;
+  document.getElementById('bench-bar').style.width = pct.toFixed(1) + '%';
+
+  const sm = s.summary || {};
+  document.getElementById('bench-summary').innerHTML =
+    summaryTile('Pass rate', sm.pass_rate != null ? (sm.pass_rate*100).toFixed(0)+'%' : '-', '#10b981') +
+    summaryTile('Verdict acc', sm.verdict_acc != null ? (sm.verdict_acc*100).toFixed(0)+'%' : '-', '#3b82f6') +
+    summaryTile('Severity acc', sm.severity_acc != null ? (sm.severity_acc*100).toFixed(0)+'%' : '-', '#3b82f6') +
+    summaryTile('Close (incl over-cautious)', sm.close_rate != null ? (sm.close_rate*100).toFixed(0)+'%' : '-', '#f59e0b') +
+    summaryTile('Signal recall', sm.signal_recall != null ? (sm.signal_recall*100).toFixed(0)+'%' : '-', '#5b21b6') +
+    summaryTile('Done', `${done}/${total}`, '#6b7280');
+
+  // Confusion grid
+  const conf = sm.confusion || {};
+  document.getElementById('bench-confusion').innerHTML =
+    Object.entries(conf).map(([k, v]) =>
+      `<span class="dc-pill" style="margin-right:6px"><code>${k}</code> ${v}</span>`
+    ).join('');
+
+  // By category
+  const cats = sm.by_category || {};
+  document.getElementById('bench-by-cat').innerHTML =
+    Object.entries(cats).map(([cat, b]) =>
+      `<div style="display:flex;align-items:center;gap:8px;margin:2px 0">
+        <span style="min-width:200px;font-family:monospace">${cat}</span>
+        <div style="flex:1;background:#f1f5f9;height:8px;border-radius:4px;overflow:hidden">
+          <div style="width:${(b.pass_rate*100).toFixed(0)}%;background:#10b981;height:100%"></div>
+        </div>
+        <span style="font-family:monospace;color:var(--muted)">${b.pass}/${b.n}</span>
+      </div>`
+    ).join('');
+
+  // Per-row table (collapsed by default; misses expanded)
+  document.getElementById('bench-rows').innerHTML =
+    (s.rows || []).map(r => benchRowHtml(r)).join('');
+
+  // Stop polling when all done
+  if (done >= total && total > 0) {
+    clearInterval(_benchTimer); _benchTimer = null;
+    document.getElementById('bench-export-btn').disabled = false;
+    document.getElementById('bench-status').innerText =
+      `complete · ${done}/${total} · pass=${(sm.pass_rate*100).toFixed(0)}%`;
+  }
+}
+
+function summaryTile(label, value, color) {
+  return `<div style="background:${color}20;border:1px solid ${color};padding:8px 14px;border-radius:8px">
+    <div style="font-size:11px;color:var(--muted)">${label}</div>
+    <div style="font-size:18px;font-weight:700;color:${color}">${value}</div>
+  </div>`;
+}
+
+function benchRowHtml(r) {
+  const status = r.status || '?';
+  const pass = r.row_pass === true;
+  const cls = pass ? 'pass' : (r.verdict_close ? 'review' : 'block');
+  const color = pass ? '#10b981' : (r.verdict_close ? '#f59e0b' : '#ef4444');
+  const exp = r.expected_verdict || '-';
+  const got = r.got_verdict || (r.result?.verdict || '...');
+  const sev = r.got_severity != null ? r.got_severity :
+              (r.result?.severity || '-');
+  const sevExp = r.expected_severity_min || 0;
+  return `<div style="border-left:3px solid ${color};padding:6px 12px;margin:4px 0;background:#fafafa;border-radius:4px;font-size:12px">
+    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+      <code style="color:${color};font-weight:700">${r.id}</code>
+      <span style="color:var(--muted)">${r.category || ''}</span>
+      <span class="dc-badge ${cls}">${got.toUpperCase()}</span>
+      <span style="color:var(--muted)">expected: <b>${exp}</b> ≥${sevExp}, got sev=${sev}</span>
+      <span style="color:var(--muted)">· ${status}</span>
+    </div>
+    <div style="color:var(--muted);font-size:11px;margin-top:4px;font-family:ui-monospace,monospace">
+      ${(r.text_preview || '').replace(/</g, '&lt;')}
+    </div>
+  </div>`;
+}
+
+async function exportBenchmark() {
+  if (!_benchBatchId) return;
+  const data = await (await fetch('/api/benchmark/export/' + _benchBatchId)).json();
+  const blob = new Blob([JSON.stringify(data, null, 2)],
+                          {type: 'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `${_benchBatchId}.json`;
+  document.body.appendChild(a); a.click(); a.remove();
+  URL.revokeObjectURL(url);
+}
+
+loadBenchmarkSets();
 
 // ============ Complaint / cause-of-action templates ============
 let _ctActive = null;          // currently-loaded template summary

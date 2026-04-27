@@ -27,4 +27,5 @@ Homepage = "https://github.com/TaylorAmarelTech/gemma4_comp"
 packages = ["src/duecare"]
 include = [
     "src/duecare/server/static/**/*",
+    "src/duecare/server/benchmark/**/*.jsonl",
 ]

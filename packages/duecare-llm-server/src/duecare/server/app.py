@@ -517,6 +517,129 @@ def create_app(state: Optional[ServerState] = None) -> FastAPI:
             "file_count": len(b.get("files") or []),
         } for b in items]
 
+    # ===== API: BENCHMARK ============================================
+    # Bundled JSONL test sets, scored against the currently-loaded
+    # backend so the UI can show a "Backend X scored Y on test set Z"
+    # board. Reuses the per-task queue + batch infra above so each row
+    # streams its own trace and the aggregator polls once a second.
+    @app.get("/api/benchmark/sets")
+    def api_benchmark_sets():
+        from duecare.server.benchmark import list_sets
+        return [{
+            "slug": b.slug, "title": b.title,
+            "description": b.description, "n_rows": b.n_rows,
+        } for b in list_sets()]
+
+    @app.post("/api/benchmark/run", status_code=202)
+    def api_benchmark_run(payload: dict):
+        """Submit a bundled benchmark set as a batch of moderate
+        tasks. Returns batch_id; poll /api/benchmark/status/{id}."""
+        from duecare.server.benchmark import load_set
+        st: ServerState = app.state.duecare
+        slug = (payload or {}).get("slug") or ""
+        try:
+            rows = load_set(slug)
+        except KeyError as e:
+            raise HTTPException(404, str(e))
+        batch_id = f"bench_{slug}_{uuid.uuid4().hex[:8]}"
+        files_meta: list[dict] = []
+        for row in rows:
+            tid = tq.submit("moderate", {
+                "text": row.get("text", ""),
+                "locale": row.get("locale", "en"),
+            })
+            files_meta.append({
+                "id": row.get("id"),
+                "category": row.get("category"),
+                "task_id": tid,
+                # carry expectations forward so the status endpoint
+                # can score live without re-reading the file
+                "expected_verdict": row.get("expected_verdict"),
+                "expected_severity_min": row.get(
+                    "expected_severity_min", 0),
+                "expected_signals": row.get("expected_signals") or [],
+                "text_preview": (row.get("text") or "")[:140],
+            })
+        st._batches[batch_id] = {
+            "batch_id": batch_id,
+            "created_at": datetime.now().isoformat(),
+            "kind": "benchmark",
+            "benchmark_slug": slug,
+            "model_info": st.model_info(),
+            "n_rows": len(rows),
+            "files": files_meta,
+        }
+        LOG_BUFFER.add("info", "benchmark", "benchmark_started",
+                         batch_id=batch_id, slug=slug,
+                         n_rows=len(rows),
+                         model=st.model_info().get("name"))
+        return {
+            "batch_id": batch_id,
+            "slug": slug,
+            "n_rows": len(rows),
+            "model_info": st.model_info(),
+            "poll_url": f"/api/benchmark/status/{batch_id}",
+        }
+
+    @app.get("/api/benchmark/status/{batch_id}")
+    def api_benchmark_status(batch_id: str):
+        """Live aggregate. Per-row scores + roll-up summary."""
+        from duecare.server.benchmark import score_row, aggregate
+        st: ServerState = app.state.duecare
+        batch = st._batches.get(batch_id)
+        if batch is None:
+            raise HTTPException(404, f"unknown batch_id: {batch_id}")
+        rows: list[dict] = []
+        counts = {"pending": 0, "running": 0,
+                   "completed": 0, "failed": 0}
+        scored: list[dict] = []
+        for f in batch.get("files") or []:
+            t = tq.get(f["task_id"])
+            row = {
+                "id": f["id"], "category": f.get("category"),
+                "task_id": f["task_id"],
+                "text_preview": f.get("text_preview"),
+                "expected_verdict": f.get("expected_verdict"),
+                "expected_severity_min": f.get("expected_severity_min"),
+                "status": (t.status if t else "missing"),
+                "result": (t.result if t and t.status == "completed"
+                           else None),
+                "error": (t.error if t and t.status == "failed"
+                          else None),
+            }
+            if t and t.status in counts:
+                counts[t.status] += 1
+            if row["status"] == "completed" and row["result"]:
+                s = score_row({
+                    "expected_verdict": f.get("expected_verdict"),
+                    "expected_severity_min": f.get(
+                        "expected_severity_min"),
+                    "expected_signals": f.get("expected_signals"),
+                }, row["result"])
+                row.update(s)
+                scored.append(s)
+            rows.append(row)
+        return {
+            "batch_id": batch_id,
+            "benchmark_slug": batch.get("benchmark_slug"),
+            "model_info": batch.get("model_info"),
+            "created_at": batch.get("created_at"),
+            "n_rows": batch.get("n_rows", len(rows)),
+            "counts": counts,
+            "summary": aggregate(scored) if scored else {"n": 0},
+            "rows": rows,
+        }
+
+    @app.get("/api/benchmark/export/{batch_id}")
+    def api_benchmark_export(batch_id: str):
+        """Self-contained JSON dump: the inputs (with expectations),
+        the model info, and the per-row results. Pinning this to a
+        commit hash + dataset version is the reproducibility story
+        in the writeup."""
+        full = api_benchmark_status(batch_id)
+        full["exported_at"] = datetime.now().isoformat()
+        return full
+
     # ------ API: file-upload worker-check (Individual UC) -----------------
     @app.post("/api/worker_check_file")
     async def api_worker_check_file(
