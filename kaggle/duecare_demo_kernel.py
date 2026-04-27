@@ -35,13 +35,41 @@ from typing import Any, Callable, Optional
 # CONFIG -- edit these for your run
 # ---------------------------------------------------------------------------
 DATASET_SLUG = "duecare-llm-wheels"
-USE_GEMMA = "auto"            # "auto" | True | False
-GEMMA_MODEL = "google/gemma-4-e4b-it"
+
+# ===== Model selection =====================================================
+# Pick which Gemma 4 to serve. The kernel will fall back to heuristic-only
+# mode if the chosen model can't be loaded (no GPU / no weights / OOM).
+#
+# Recommended pairings (based on Daniel Hanchen / Unsloth's notebooks):
+#   gemma-4-e2b-it    : ~2 GB  4-bit ; runs on a single T4 or even CPU
+#   gemma-4-e4b-it    : ~5.5 GB 4-bit; runs on a single T4 (default)
+#   gemma-4-26b-a4b-it: ~14 GB 4-bit; needs P100/A100 or 2xT4
+#   gemma-4-31b-it    : ~18 GB 4-bit; needs 2xT4 (device_map="balanced") or A100
+#
+# Setting LOADER="unsloth" uses Unsloth's FastModel which gives the cleanest
+# 31B-on-2xT4 path. LOADER="transformers" is the legacy path (E4B / E2B).
+GEMMA_MODEL_VARIANT = "e4b-it"   # "e2b-it" | "e4b-it" | "26b-a4b-it" | "31b-it"
+GEMMA_LOADER        = "auto"     # "auto" | "transformers" | "unsloth"
+GEMMA_LOAD_IN_4BIT  = True       # 4-bit quantization on small GPUs
+GEMMA_DEVICE_MAP    = "auto"     # "auto" | "balanced" (2xT4 for 31B) | {"":0}
+GEMMA_MAX_SEQ_LEN   = 8192       # context window
+USE_GEMMA           = "auto"     # "auto" | True | False; False = heuristic only
+
+# Legacy aliases kept for back-compat with older bootstrap code below
+GEMMA_MODEL = f"google/gemma-4-{GEMMA_MODEL_VARIANT}"
+
+# ===== Server / runtime =====================================================
 PORT = 8080
 TUNNEL = "cloudflared"        # "cloudflared" | "ngrok" | "none"
 DUECARE_API_TOKEN = ""        # non-empty -> require auth on /api/*
 DUECARE_DB = "/kaggle/working/duecare.duckdb"
 PIPELINE_OUT = "/kaggle/working/multimodal_v1_output"
+
+# Surface the model name to the FastAPI app so the UI can show a
+# "Backend: <model>" badge on every page.
+os.environ["DUECARE_MODEL_NAME"] = (
+    GEMMA_MODEL.replace("google/", "").replace("unsloth/", "")
+    if USE_GEMMA else "heuristic-only")
 
 
 # ===========================================================================
@@ -428,6 +456,12 @@ class LoadedModel:
     processor: Any
     mode: str
     vram_used_gb: float = 0.0
+    # Surfaced via /api/model-info to the UI badge.
+    model_name: str = ""              # e.g. "gemma-4-31b-it"
+    model_size_b: float = 0.0         # parameter count in billions
+    quantization: str = ""            # "4-bit nf4" | "bf16" | etc
+    device: str = ""                  # "cuda:0" | "balanced (2x T4)" | "cpu"
+    loader: str = "transformers"      # "transformers" | "unsloth"
 
 
 def _gemma_diag_dump(model_path: str) -> None:
@@ -540,6 +574,139 @@ def _try_strategy(name: str, fn: Callable, verbose: bool = True) -> Any:
         return None
 
 
+def _model_size_b_for(variant: str) -> float:
+    """Approximate parameter count in billions, for the UI badge."""
+    return {
+        "e2b-it":     2.0,
+        "e4b-it":     4.0,
+        "26b-a4b-it": 26.0,
+        "31b-it":     31.0,
+    }.get(variant.lower(), 0.0)
+
+
+def load_gemma_unsloth(env: Env, verbose: bool = True) -> Optional[LoadedModel]:
+    """Unsloth FastModel loader -- the cleanest path for 31B on 2x T4.
+
+    Per the official Unsloth Gemma-4 31B notebook (Daniel Hanchen,
+    https://www.kaggle.com/code/danielhanchen/gemma4-31b-unsloth):
+        from unsloth import FastModel
+        model, tok = FastModel.from_pretrained(
+            "unsloth/gemma-4-31B-it",
+            max_seq_length=8192,
+            load_in_4bit=True,
+            full_finetuning=False,
+            device_map="balanced",   # <-- splits across 2 T4
+        )
+    """
+    if not env.gpu.available:
+        if verbose: print("  no GPU; skipping Unsloth load")
+        return None
+
+    # Daniel Hanchen's EXACT install recipe for Gemma 4 31B on 2x T4
+    # https://www.kaggle.com/code/danielhanchen/gemma4-31b-unsloth
+    # Pinning unsloth_zoo>=2026.4.6 + transformers==5.5.0 + torch>=2.8.0
+    # is non-negotiable; older transformers crashes on gemma4 model_type
+    # and older unsloth doesn't know about device_map="balanced".
+    try:
+        import unsloth, transformers, torch
+        u_v = getattr(unsloth, '__version__', '?')
+        t_v = transformers.__version__
+        if verbose:
+            print(f"  unsloth={u_v}  transformers={t_v}  torch={torch.__version__}")
+    except Exception:
+        if verbose:
+            print("  installing Hanchen's pinned Gemma 4 stack via uv pip ...")
+        try:
+            import numpy, PIL
+            np_pin = f"numpy=={numpy.__version__}"
+            pil_pin = f"pillow=={PIL.__version__}"
+        except Exception:
+            np_pin, pil_pin = "numpy", "pillow"
+        cmd = (
+            f'uv pip install -qqq '
+            f'"torch>=2.8.0" "triton>=3.4.0" {np_pin} {pil_pin} '
+            f'torchvision bitsandbytes unsloth "unsloth_zoo>=2026.4.6" '
+            f'transformers==5.5.0 torchcodec timm'
+        )
+        os.system(cmd)
+        # Re-import after install
+        for mod in list(sys.modules):
+            if mod.startswith(("unsloth", "transformers", "torch")):
+                del sys.modules[mod]
+
+    try:
+        import torch
+        from unsloth import FastModel
+    except Exception as e:
+        if verbose: print(f"  unsloth import FAILED: {type(e).__name__}: {e}")
+        return None
+
+    variant = GEMMA_MODEL_VARIANT
+    # Unsloth's repo naming uses CapitalCase for E2B/E4B
+    repo_variant = (variant.replace("e2b-it", "E2B-it")
+                          .replace("e4b-it", "E4B-it")
+                          .replace("26b-a4b-it", "26B-A4B-it")
+                          .replace("31b-it", "31B-it"))
+    repo = f"unsloth/gemma-4-{repo_variant}"
+    if verbose: print(f"  Unsloth load: {repo} (max_seq={GEMMA_MAX_SEQ_LEN}, "
+                      f"4bit={GEMMA_LOAD_IN_4BIT}, device_map={GEMMA_DEVICE_MAP})")
+
+    # EXACT call from Daniel Hanchen's notebook (the 2-T4 31B path):
+    #   model, tokenizer = FastModel.from_pretrained(
+    #       model_name="unsloth/gemma-4-31B-it",
+    #       max_seq_length=8192,
+    #       load_in_4bit=True,
+    #       full_finetuning=False,
+    #       device_map="balanced",
+    #   )
+    try:
+        model, tokenizer = FastModel.from_pretrained(
+            model_name=repo,
+            dtype=None,                         # auto-detect (Hanchen)
+            max_seq_length=GEMMA_MAX_SEQ_LEN,   # 8192 (Hanchen)
+            load_in_4bit=GEMMA_LOAD_IN_4BIT,    # True (Hanchen)
+            full_finetuning=False,              # False (Hanchen)
+            device_map=GEMMA_DEVICE_MAP,        # "balanced" for 31B on 2xT4
+        )
+    except Exception as e:
+        if verbose:
+            print(f"  Unsloth FastModel.from_pretrained FAILED: "
+                  f"{type(e).__name__}: {str(e)[:300]}")
+        return None
+
+    def _gemma_call(prompt: str, max_new_tokens: int = 350) -> str:
+        messages = [{"role": "user",
+                     "content": [{"type": "text", "text": prompt}]}]
+        inputs = tokenizer.apply_chat_template(
+            messages, add_generation_prompt=True,
+            return_tensors="pt", tokenize=True, return_dict=True,
+        ).to("cuda")
+        out = model.generate(
+            **inputs, max_new_tokens=max_new_tokens, use_cache=True,
+            temperature=1.0, top_p=0.95, top_k=64,
+        )
+        text = tokenizer.batch_decode(out)[0]
+        # Strip everything before the model's response
+        if "<|turn>model" in text:
+            text = text.split("<|turn>model", 1)[1]
+        return text.replace("<bos>", "").replace("<eos>", "").strip()
+
+    vram = round(torch.cuda.memory_allocated() / 1024**3, 2)
+    return LoadedModel(
+        backend=_gemma_call,
+        processor=tokenizer,
+        mode="unsloth",
+        vram_used_gb=vram,
+        model_name=f"gemma-4-{variant}",
+        model_size_b=_model_size_b_for(variant),
+        quantization="4-bit nf4" if GEMMA_LOAD_IN_4BIT else "bf16",
+        device=("balanced (2x T4)" if GEMMA_DEVICE_MAP == "balanced"
+                else GEMMA_DEVICE_MAP if isinstance(GEMMA_DEVICE_MAP, str)
+                else "cuda:0"),
+        loader="unsloth",
+    )
+
+
 def load_gemma_smart(env: Env, model_id: str = GEMMA_MODEL,
                        verbose: bool = True) -> Optional[LoadedModel]:
     """EXHAUSTIVE Gemma 4 loader. Tries multimodal first, then
@@ -550,6 +717,24 @@ def load_gemma_smart(env: Env, model_id: str = GEMMA_MODEL,
 
     Demo's gemma_call only needs text generation (moderate /
     worker_check / query). Multimodal is a bonus."""
+    # ---- Loader dispatch ------------------------------------------------
+    # If the user explicitly picked "unsloth" OR if the variant is one
+    # that only Unsloth supports cleanly on Kaggle (31B, 26B-A4B), use
+    # FastModel.
+    big_variants = ("31b-it", "26b-a4b-it")
+    use_unsloth = (
+        GEMMA_LOADER == "unsloth"
+        or (GEMMA_LOADER == "auto" and GEMMA_MODEL_VARIANT in big_variants))
+    if use_unsloth:
+        if verbose:
+            print(f"  routing through Unsloth FastModel (variant="
+                  f"{GEMMA_MODEL_VARIANT}, loader_pref={GEMMA_LOADER})")
+        out = load_gemma_unsloth(env, verbose=verbose)
+        if out is not None:
+            return out
+        if verbose:
+            print(f"  Unsloth path failed; falling back to transformers")
+
     if not env.gpu.available:
         if verbose:
             print(f"  no GPU -- skipping Gemma load")
@@ -710,7 +895,12 @@ def load_gemma_smart(env: Env, model_id: str = GEMMA_MODEL,
                         return text
                     return LoadedModel(
                         backend=gemma_call_mm, processor=processor,
-                        mode=f"mm-{name}", vram_used_gb=vram_used)
+                        mode=f"mm-{name}", vram_used_gb=vram_used,
+                        model_name=f"gemma-4-{GEMMA_MODEL_VARIANT}",
+                        model_size_b=_model_size_b_for(GEMMA_MODEL_VARIANT),
+                        quantization=quant_label,
+                        device="cuda:0",
+                        loader="transformers")
                 try: torch.cuda.empty_cache()
                 except Exception: pass
 
@@ -858,7 +1048,12 @@ def load_gemma_smart(env: Env, model_id: str = GEMMA_MODEL,
                 return LoadedModel(
                     backend=gemma_call_text, processor=tokenizer,
                     mode=f"text-{name}-tk={tk_used}",
-                    vram_used_gb=vram_used)
+                    vram_used_gb=vram_used,
+                    model_name=f"gemma-4-{GEMMA_MODEL_VARIANT}",
+                    model_size_b=_model_size_b_for(GEMMA_MODEL_VARIANT),
+                    quantization=quant_label,
+                    device="cuda:0",
+                    loader="transformers")
             try: torch.cuda.empty_cache()
             except Exception: pass
 
@@ -996,8 +1191,18 @@ print("=" * 76)
 from duecare.server.state import ServerState
 state = ServerState(db_path=DUECARE_DB, pipeline_output_dir=PIPELINE_OUT)
 if gemma_call is not None:
-    state.set_gemma_call(gemma_call)
-    print("  gemma_call wired into server state (GPU worker active)")
+    # Pass model metadata so the UI badge (/api/model-info) can show
+    # "Backend: gemma-4-31b-it · 31.0B · 4-bit nf4" or similar.
+    state.set_gemma_call(
+        gemma_call,
+        model_name=(loaded.model_name or GEMMA_MODEL_VARIANT) if loaded else None,
+        model_size_b=loaded.model_size_b if loaded else None,
+        model_quantization=loaded.quantization if loaded else None,
+        model_device=loaded.device if loaded else None,
+    )
+    print(f"  gemma_call wired into server state "
+          f"(model={loaded.model_name or GEMMA_MODEL_VARIANT}, "
+          f"loader={loaded.loader if loaded else 'transformers'})")
 else:
     print("  no gemma_call -- server uses heuristic fallbacks")
 

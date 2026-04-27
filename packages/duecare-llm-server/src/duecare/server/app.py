@@ -239,6 +239,15 @@ def create_app(state: Optional[ServerState] = None) -> FastAPI:
     def settings_page():
         return _serve_html(static_dir / "settings.html")
 
+    # ------ API: model-info -----------------------------------------------
+    @app.get("/api/model-info")
+    def api_model_info():
+        """Surfaces which Gemma model is currently loaded so the UI can
+        show a `Backend: <model>` badge. Returns a stable shape even
+        when no model is loaded (heuristic-only mode)."""
+        st: ServerState = app.state.duecare
+        return st.model_info()
+
     # ------ API: status ----------------------------------------------------
     @app.get("/api/status")
     def api_status():

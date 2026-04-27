@@ -1913,7 +1913,11 @@ that ship as standard Python packages. No upstream PR required.
       <li><code>configs/duecare/domains/&lt;id&gt;/</code></li>
       <li>Files: <code>pii_spec.yaml</code>, <code>kb.jsonl</code>, <code>hotlines.jsonl</code>, <code>complaint_templates.jsonl</code></li>
       <li>Loaded automatically by the domain-pack loader</li>
-      <li>Use for: medical misinformation, financial fraud, child safety, etc.</li>
+      <li>Same multi-stage pipeline; same audit format. The framework
+        has been tested against trafficking; it is structurally
+        applicable to <i>financial crime, tax evasion, cross-border
+        trafficking syndicates, child-safety, and medical
+        misinformation</i> domains as future expansions.</li>
     </ul>
   </div>
   <div class="dc-appx-section">
@@ -2506,5 +2510,6 @@ function _buildPicker() {
 _buildPicker();
 _renderSlide(0);
 </script>
+<script src="/static/_backend_badge.js"></script>
 </body>
 </html>

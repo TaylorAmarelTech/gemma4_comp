@@ -275,3 +275,31 @@ table.dc-table tbody tr:hover { background: #f8fafc; }
 }
 .dc-footer a { color: var(--primary); text-decoration: none; margin: 0 8px; }
 .dc-footer a:hover { text-decoration: underline; }
+
+/* ---- Global "Backend: <model>" floating pill (every page) ---- */
+.dc-backend-badge {
+  position: fixed; bottom: 14px; right: 14px; z-index: 90;
+  background: rgba(15, 23, 42, 0.88); color: #e2e8f0;
+  border: 1px solid #334155; border-radius: 999px;
+  padding: 6px 14px; font-size: 12px; font-weight: 600;
+  font-family: ui-monospace, SFMono-Regular, Menlo, "Courier New", monospace;
+  display: flex; align-items: center; gap: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.18);
+  backdrop-filter: blur(4px);
+  max-width: 90vw; overflow: hidden; text-overflow: ellipsis;
+  white-space: nowrap; pointer-events: none;
+}
+.dc-backend-badge .dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: #ef4444; flex-shrink: 0;
+}
+.dc-backend-badge.loaded .dot { background: #10b981; animation: dc-pulse 2s ease-in-out infinite; }
+.dc-backend-badge .label { color: #94a3b8; font-weight: 500; }
+.dc-backend-badge .name { color: #f1f5f9; }
+@media (max-width: 600px) {
+  .dc-backend-badge {
+    bottom: 8px; right: 8px; font-size: 10.5px; padding: 4px 10px;
+  }
+}
+/* On the slideshow, place above the dot picker so it doesn't collide */
+body.dc-slideshow .dc-backend-badge { bottom: 70px; }
