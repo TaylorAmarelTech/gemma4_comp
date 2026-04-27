@@ -3,15 +3,15 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Duecare — Multimodal trafficking-safety harness</title>
+  <title>Duecare — A private safety judge for migrant-worker trafficking</title>
   <link rel="stylesheet" href="/static/style.css">
 </head>
-<body>
+<body class="dc-home-min">
 <header class="dc-nav">
   <h1>Duecare<span class="tag"> · multimodal trafficking-safety harness</span></h1>
   <nav>
     <a href="/" class="active">Home</a>
-    <a href="/examples">Examples</a>
+    <a href="/demo">Demo</a>
     <a href="/workspace">Workspace</a>
     <a href="/architecture">Architecture</a>
     <a href="/background">Background</a>
@@ -26,374 +26,103 @@
     <a href="/settings">Settings</a>
   </nav>
 </header>
-<main class="dc-main">
+<main class="dc-home-main">
 
-  <div class="dc-hero">
-    <h1 class="dc-hero-title">A private safety judge for migrant-worker trafficking</h1>
-    <p class="dc-hero-sub">
-      Paste a recruiter ad, a chat screenshot, or a folder of NGO case files.
-      Duecare runs the same multi-stage pipeline an analyst would —
-      heuristic prescan, knowledge-base grep, semantic RAG, deterministic
-      tool calls, then a Gemma 4 verdict — and shows you every step.
-    </p>
-    <div class="dc-hero-stats">
-      <div class="hs">
-        <div class="n">27.6M</div>
-        <div class="l">people in forced labour worldwide
-          <small>(ILO + IOM, 2022)</small></div>
-      </div>
-      <div class="hs">
-        <div class="n">169M</div>
-        <div class="l">international migrant workers
-          <small>(ILO, 2021)</small></div>
-      </div>
-      <div class="hs">
-        <div class="n">~30M</div>
-        <div class="l">migrant workers in the GCC corridor alone
-          <small>(ILO Arab States)</small></div>
-      </div>
-      <div class="hs">
-        <div class="n">~$5,250</div>
-        <div class="l">average recruitment-fee debt per worker
-          <small>(IOM &amp; IFC, 2017)</small></div>
-      </div>
-    </div>
-    <p class="dc-hero-sub" style="margin-top:14px">
-      <b style="color:var(--primary)">Privacy is non-negotiable.</b>
-      Every Gemma 4 inference runs on the operator's own machine. No
-      worker case data leaves your laptop.
-      &nbsp;&nbsp;<a href="/background" style="color:var(--primary);font-weight:600">Read the background &amp; literature →</a>
+  <div class="dc-home-intro">
+    <h2 class="dc-home-title">A private safety judge for migrant-worker trafficking.</h2>
+    <p class="dc-home-sub">
+      An on-device, multilingual, audit-trailable Gemma 4 pipeline.
+      <b>Privacy is non-negotiable</b> — every inference runs on the
+      operator's own machine.
     </p>
   </div>
 
-  <!-- ============== Pipeline diagram ============== -->
-  <div class="dc-panel">
-    <h3>How it works (per request)</h3>
-    <p class="dc-sub" style="font-size:13px;margin-bottom:18px">
-      Every input goes through the same 5-stage pipeline. Each stage
-      emits a trace step you can watch live on the Workspace and
-      Examples pages.
-    </p>
-    <div class="dc-pipeline">
-      <div class="dc-pstage">
-        <div class="dc-pstage-num">1</div>
-        <div class="dc-pstage-name">Heuristic prescan</div>
-        <div class="dc-pstage-desc">
-          11 keyword signals scored 0–10 (passport-confiscation,
-          excessive fee, debt-bondage, …). Establishes a severity floor.
-        </div>
-        <div class="dc-pstage-tag">≈ 5 ms</div>
-      </div>
-      <div class="dc-parrow">→</div>
-      <div class="dc-pstage">
-        <div class="dc-pstage-num">2</div>
-        <div class="dc-pstage-name">GREP knowledge base</div>
-        <div class="dc-pstage-desc">
-          Regex match against 27 statutes / conventions / ILO
-          indicators (RA 8042, ILO C181, Palermo Art 3, …).
-        </div>
-        <div class="dc-pstage-tag">≈ 20 ms</div>
-      </div>
-      <div class="dc-parrow">→</div>
-      <div class="dc-pstage">
-        <div class="dc-pstage-num">3</div>
-        <div class="dc-pstage-name">RAG retrieval</div>
-        <div class="dc-pstage-desc">
-          sentence-transformers (MiniLM) → cosine top-K. Surfaces
-          semantically-relevant passages the regex missed.
-        </div>
-        <div class="dc-pstage-tag">≈ 200 ms</div>
-      </div>
-      <div class="dc-parrow">→</div>
-      <div class="dc-pstage">
-        <div class="dc-pstage-num">4</div>
-        <div class="dc-pstage-name">Tool calls</div>
-        <div class="dc-pstage-desc">
-          Deterministic <code>lookup_statute(juris, topic)</code> and
-          <code>lookup_hotline(country)</code> chosen from prescan
-          signals + locale.
-        </div>
-        <div class="dc-pstage-tag">≈ 5 ms</div>
-      </div>
-      <div class="dc-parrow">→</div>
-      <div class="dc-pstage dc-pstage-gemma">
-        <div class="dc-pstage-num">5</div>
-        <div class="dc-pstage-name">Gemma 4 classify</div>
-        <div class="dc-pstage-desc">
-          Severity-anchored prompt + heuristic findings + KB hits as
-          context. Returns <b>BLOCK / REVIEW / PASS</b> with reasoning.
-        </div>
-        <div class="dc-pstage-tag">≈ 8–18 s (T4 4-bit)</div>
-      </div>
-    </div>
-    <div class="dc-pipeline-output">
-      <div class="dc-poutput">
-        <div><b>Verdict</b></div>
-        <div class="dc-poutput-detail">BLOCK · REVIEW · PASS</div>
-      </div>
-      <div class="dc-poutput">
-        <div><b>Severity</b></div>
-        <div class="dc-poutput-detail">0–10 (max(gemma, heuristic))</div>
-      </div>
-      <div class="dc-poutput">
-        <div><b>Evidence</b></div>
-        <div class="dc-poutput-detail">KB passages + tool results</div>
-      </div>
-      <div class="dc-poutput">
-        <div><b>Hotline</b></div>
-        <div class="dc-poutput-detail">Locale-aware contact</div>
-      </div>
-      <div class="dc-poutput">
-        <div><b>Reasoning</b></div>
-        <div class="dc-poutput-detail">One-sentence explanation</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ============== Two big choice cards ============== -->
-  <h2 class="dc-h2" style="margin-top:32px">Where would you like to start?</h2>
-  <p class="dc-sub">
-    Two paths into the demo. Curated examples walk you through 4
-    real-world use cases. The workspace lets you bring your own data.
-  </p>
-
-  <div class="dc-bigchoices">
-    <a class="dc-bigcard" href="/examples">
-      <div class="dc-bigcard-icon" style="background:var(--info)">📚</div>
-      <h3>Curated examples</h3>
-      <p>4 real-world scenarios with pre-loaded inputs. Each one
-        explains what the operator is trying to do, what the pipeline
-        finds, and why each verdict matters.</p>
-      <ul class="dc-bigcard-list">
-        <li>Job-board moderation (recruitment fraud)</li>
-        <li>Worker self-check (chat / contract screenshot)</li>
-        <li>NGO bulk triage (folder of case files)</li>
-        <li>Investigator query (NL-to-SQL over evidence DB)</li>
-      </ul>
-      <div class="dc-bigcard-cta">Open the examples →</div>
+  <div class="dc-home-choices">
+    <a class="dc-home-card dc-home-card-primary" href="/demo">
+      <div class="dc-home-card-icon">▶</div>
+      <h3>Demo</h3>
+      <p>Watch the guided tour — Maria's recruitment journey, slide by
+        slide. Three minutes, end-to-end.</p>
+      <div class="dc-home-card-cta">Start the tour →</div>
     </a>
 
-    <a class="dc-bigcard" href="/workspace">
-      <div class="dc-bigcard-icon" style="background:var(--primary)">🛠</div>
+    <a class="dc-home-card" href="/workspace">
+      <div class="dc-home-card-icon">⚙</div>
       <h3>Self-directed workspace</h3>
-      <p>Paste your own text, upload a file, drop an archive of
-        documents, or load a JSONL of cases. Pick from templated
-        prompts or write your own. Everything routes through the same
-        traced queue.</p>
-      <ul class="dc-bigcard-list">
-        <li>Single-text moderation (free-form input)</li>
-        <li>File upload (image / PDF / DOCX / TXT)</li>
-        <li>Archive upload (zip / tar / tar.gz of folders)</li>
-        <li>JSONL batch import + template library</li>
-      </ul>
-      <div class="dc-bigcard-cta">Open the workspace →</div>
+      <p>Bring your own data. Paste text, upload a file, drop an
+        archive of documents, draft a complaint. Same pipeline, your
+        inputs.</p>
+      <div class="dc-home-card-cta">Open the workspace →</div>
     </a>
-  </div>
-
-  <!-- ============== Live status (kept compact) ============== -->
-  <div class="dc-panel" style="margin-top:30px">
-    <h3>Live system status</h3>
-    <div id="stats" class="dc-statsgrid">Loading…</div>
-  </div>
-
-  <div class="dc-panel">
-    <h3>Recent activity</h3>
-    <div id="activity">Loading…</div>
   </div>
 
 </main>
 <style>
-.dc-hero {
-  margin-bottom: 24px; padding: 28px 30px;
+body.dc-home-min { min-height: 100vh; display: flex; flex-direction: column; }
+.dc-home-main {
+  flex: 1;
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 60px 40px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 50px;
+  width: 100%;
+}
+.dc-home-intro { text-align: center; }
+.dc-home-title {
+  font-size: 32px; font-weight: 700; margin: 0 0 14px 0;
+  color: var(--ink); letter-spacing: -0.02em; line-height: 1.2;
+}
+.dc-home-sub {
+  font-size: 17px; color: var(--muted); margin: 0;
+  max-width: 680px; margin-inline: auto; line-height: 1.55;
+}
+.dc-home-sub b { color: var(--primary); }
+.dc-home-choices {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 22px;
+}
+.dc-home-card {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 16px; padding: 36px 32px;
+  text-decoration: none; color: inherit; display: block;
+  transition: transform 160ms, border-color 160ms, box-shadow 200ms;
+  position: relative;
+}
+.dc-home-card:hover {
+  transform: translateY(-4px); border-color: var(--primary);
+  box-shadow: 0 12px 28px rgba(76, 120, 168, 0.16);
+}
+.dc-home-card-primary {
   background: linear-gradient(135deg, #eff6ff 0%, #f5f3ff 100%);
-  border: 1px solid #ddd6fe; border-radius: 14px;
+  border-color: #ddd6fe;
 }
-.dc-hero-title {
-  margin: 0 0 8px 0; font-size: 26px; font-weight: 700;
-  color: var(--ink); letter-spacing: -0.01em;
-}
-.dc-hero-sub { margin: 0; color: var(--ink); font-size: 15px; line-height: 1.6; }
-.dc-hero-stats {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: 12px; margin-top: 18px;
-}
-.dc-hero-stats .hs {
-  background: rgba(255,255,255,0.7);
-  border: 1px solid #ddd6fe; border-radius: 10px;
-  padding: 12px 14px;
-}
-.dc-hero-stats .hs .n {
-  font-size: 22px; font-weight: 700; color: var(--primary);
-  letter-spacing: -0.02em; line-height: 1;
-}
-.dc-hero-stats .hs .l {
-  font-size: 12px; color: var(--ink); margin-top: 4px; line-height: 1.35;
-}
-.dc-hero-stats .hs .l small {
-  display: block; color: var(--muted); font-size: 10px;
-  margin-top: 2px; font-style: italic;
-}
-
-/* Pipeline diagram */
-.dc-pipeline {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 0; align-items: stretch; position: relative;
-  margin-bottom: 12px;
-}
-.dc-pstage {
-  background: #ffffff; border: 1px solid var(--border);
-  border-radius: 10px; padding: 12px 12px 36px 12px;
-  position: relative; min-width: 0;
-}
-.dc-pstage.dc-pstage-gemma { border-color: var(--primary);
-  background: linear-gradient(180deg, #ffffff 0%, #eff6ff 100%); }
-.dc-pstage-num {
-  position: absolute; top: -10px; left: -10px;
-  width: 28px; height: 28px; border-radius: 50%;
+.dc-home-card-icon {
+  width: 56px; height: 56px; border-radius: 14px;
   background: var(--primary); color: #fff;
   display: flex; align-items: center; justify-content: center;
-  font-weight: 700; font-size: 13px;
+  font-size: 26px; font-weight: 700; margin-bottom: 18px;
 }
-.dc-pstage.dc-pstage-gemma .dc-pstage-num { background: #1e40af; }
-.dc-pstage-name {
-  font-weight: 600; font-size: 14px; margin-bottom: 6px;
+.dc-home-card-primary .dc-home-card-icon {
+  background: linear-gradient(135deg, var(--primary), #1e40af);
 }
-.dc-pstage-desc { font-size: 11px; color: var(--muted); line-height: 1.4; }
-.dc-pstage-tag {
-  position: absolute; bottom: 8px; left: 12px;
-  font-size: 10px; color: var(--primary); font-weight: 600;
-  background: #eff6ff; padding: 2px 8px; border-radius: 999px;
-  font-family: monospace;
+.dc-home-card h3 {
+  margin: 0 0 10px 0; font-size: 22px; color: var(--ink);
+  letter-spacing: -0.01em;
 }
-.dc-parrow {
-  display: flex; align-items: center; justify-content: center;
-  font-size: 22px; color: var(--muted); margin: 0 -2px;
+.dc-home-card p {
+  margin: 0 0 16px 0; color: var(--muted); font-size: 14px;
+  line-height: 1.55;
 }
-.dc-pipeline-output {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-  gap: 8px; margin-top: 14px;
-  border-top: 2px dashed var(--border); padding-top: 14px;
-}
-.dc-poutput {
-  background: #f8fafc; border: 1px solid var(--border);
-  border-radius: 8px; padding: 10px 12px; font-size: 12px;
-}
-.dc-poutput-detail { color: var(--muted); margin-top: 3px; font-size: 11px; }
-
-/* Big choice cards */
-.dc-bigchoices {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
-  gap: 22px;
-}
-.dc-bigcard {
-  background: var(--card); border: 1px solid var(--border);
-  border-radius: 14px; padding: 28px 26px;
-  text-decoration: none; color: inherit; display: block;
-  transition: transform 120ms, border-color 120ms, box-shadow 160ms;
-}
-.dc-bigcard:hover {
-  transform: translateY(-3px); border-color: var(--primary);
-  box-shadow: 0 8px 22px rgba(76, 120, 168, 0.14);
-}
-.dc-bigcard-icon {
-  width: 56px; height: 56px; border-radius: 12px; color: #fff;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 28px; margin-bottom: 16px;
-}
-.dc-bigcard h3 { margin: 0 0 8px 0; font-size: 22px; color: var(--ink); }
-.dc-bigcard p { margin: 0 0 12px 0; color: var(--muted); font-size: 14px; }
-.dc-bigcard-list {
-  margin: 12px 0 16px 18px; padding: 0; color: var(--ink); font-size: 13px;
-}
-.dc-bigcard-list li { margin: 4px 0; }
-.dc-bigcard-cta {
+.dc-home-card-cta {
   color: var(--primary); font-weight: 600; font-size: 14px;
-  margin-top: 8px;
 }
-
-.dc-statsgrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: 12px;
-}
-.dc-stat {
-  background: #f8fafc; border: 1px solid var(--border);
-  border-radius: 8px; padding: 14px;
-}
-.dc-stat .num { font-size: 22px; font-weight: 700; color: var(--primary); }
-.dc-stat .lbl { font-size: 12px; color: var(--muted); margin-top: 4px; }
-
-@media (max-width: 900px) {
-  .dc-pipeline { grid-template-columns: 1fr; }
-  .dc-parrow { transform: rotate(90deg); padding: 4px 0; }
-  .dc-pstage { padding-bottom: 30px; }
-  .dc-bigchoices { grid-template-columns: 1fr; }
-  .dc-hero-title { font-size: 22px; }
+@media (max-width: 800px) {
+  .dc-home-choices { grid-template-columns: 1fr; }
+  .dc-home-main { padding: 36px 20px; }
+  .dc-home-title { font-size: 26px; }
 }
 </style>
-<script>
-async function refreshStats() {
-  try {
-    const r = await fetch('/api/stats');
-    const s = await r.json();
-    const cells = [
-      ['runs', 'Runs ingested'],
-      ['documents', 'Documents'],
-      ['entities', 'Entities'],
-      ['edges', 'Edges'],
-      ['findings', 'Findings'],
-    ];
-    let html = '';
-    for (const [k, lbl] of cells) {
-      html += `<div class="dc-stat"><div class="num">${s[k] ?? 0}</div>` +
-              `<div class="lbl">${lbl}</div></div>`;
-    }
-    html += `<div class="dc-stat"><div class="num">${s.mode || '?'}</div>` +
-            `<div class="lbl">Mode</div></div>`;
-    if (s.public_url) {
-      html += `<div class="dc-stat"><div class="num" style="font-size:14px">` +
-              `<a href="${s.public_url}">tunnel</a></div>` +
-              `<div class="lbl">Public URL active</div></div>`;
-    }
-    document.getElementById('stats').innerHTML = html;
-  } catch (e) {
-    document.getElementById('stats').innerText = 'stats unavailable: ' + e;
-  }
-}
-async function refreshActivity() {
-  try {
-    const r = await fetch('/api/activity?limit=10');
-    const items = await r.json();
-    if (!items.length) {
-      document.getElementById('activity').innerHTML =
-        '<p style="color:var(--muted)">No activity yet — try the Examples or Workspace page.</p>';
-      return;
-    }
-    let html = '<table class="dc-table"><thead><tr><th>When</th>' +
-      '<th>Type</th><th>GPU</th><th>Status</th><th>Runtime</th></tr></thead><tbody>';
-    for (const t of items) {
-      const status = t.status;
-      const cls = status === 'completed' ? 'pass' :
-                  status === 'failed' ? 'block' : 'review';
-      html += `<tr><td>${(t.submitted_at || '').slice(11, 19)}</td>` +
-              `<td><code>${t.task_type}</code></td>` +
-              `<td>${t.gpu ? '✓' : ''}</td>` +
-              `<td><span class="dc-badge ${cls}">${status}</span></td>` +
-              `<td>${(t.runtime_seconds || 0).toFixed(2)}s</td></tr>`;
-    }
-    html += '</tbody></table>';
-    document.getElementById('activity').innerHTML = html;
-  } catch (e) {
-    document.getElementById('activity').innerText = 'activity unavailable: ' + e;
-  }
-}
-refreshStats(); refreshActivity();
-setInterval(refreshStats, 5000);
-setInterval(refreshActivity, 5000);
-</script>
 </body>
 </html>

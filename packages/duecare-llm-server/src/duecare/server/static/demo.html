@@ -1,0 +1,1185 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Demo — Duecare</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body class="dc-slideshow">
+
+  <!-- ============== Slideshow chrome (always visible) ============== -->
+  <div class="dc-slide-chrome">
+    <div class="dc-slide-chrome-left">
+      <a href="/" class="dc-chrome-btn" title="Exit demo (Esc)">✕ Exit</a>
+      <span class="dc-slide-counter"><span id="slide-num">1</span> / <span id="slide-total">13</span></span>
+    </div>
+    <div class="dc-slide-chrome-center">
+      <div class="dc-slide-progress">
+        <div id="slide-progress-bar"></div>
+      </div>
+    </div>
+    <div class="dc-slide-chrome-right">
+      <button class="dc-chrome-btn" onclick="prevSlide()" id="prev-btn" title="Previous (←)">← Prev</button>
+      <button class="dc-chrome-btn" onclick="toggleAuto()" id="auto-btn" title="Auto-advance">▶ Auto</button>
+      <button class="dc-chrome-btn primary" onclick="nextSlide()" id="next-btn" title="Next (→)">Next →</button>
+    </div>
+  </div>
+
+  <!-- ============== Slide stage ============== -->
+  <div class="dc-slide-stage" id="slide-stage">
+    <!-- slides injected by JS -->
+  </div>
+
+  <!-- ============== Slide picker (clickable dots) ============== -->
+  <div class="dc-slide-picker" id="slide-picker"></div>
+
+<style>
+/* ===== Slideshow shell ===== */
+body.dc-slideshow {
+  margin: 0; padding: 0;
+  background: linear-gradient(135deg, #f8fafc 0%, #eff6ff 100%);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+body.dc-slideshow header.dc-nav { display: none !important; }
+
+.dc-slide-chrome {
+  position: fixed; top: 0; left: 0; right: 0; height: 56px;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; padding: 0 18px;
+  z-index: 100; gap: 14px;
+}
+.dc-slide-chrome-left, .dc-slide-chrome-right {
+  display: flex; align-items: center; gap: 10px;
+  flex: 0 0 auto;
+}
+.dc-slide-chrome-center {
+  flex: 1; display: flex; align-items: center;
+  padding: 0 12px;
+}
+.dc-chrome-btn {
+  background: transparent; border: 1px solid var(--border);
+  color: var(--ink); padding: 7px 14px; border-radius: 8px;
+  font-size: 13px; font-weight: 600; cursor: pointer;
+  text-decoration: none; transition: background 120ms, border-color 120ms;
+}
+.dc-chrome-btn:hover { background: #f1f5f9; border-color: var(--primary); }
+.dc-chrome-btn.primary {
+  background: var(--primary); color: #fff; border-color: var(--primary);
+}
+.dc-chrome-btn.primary:hover { background: #3a5d83; border-color: #3a5d83; }
+.dc-chrome-btn.active {
+  background: #fef3c7; border-color: #f59e0b; color: #92400e;
+}
+.dc-chrome-btn:disabled {
+  opacity: 0.4; cursor: not-allowed;
+}
+.dc-slide-counter {
+  font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums;
+}
+.dc-slide-progress {
+  width: 100%; height: 4px; background: var(--border);
+  border-radius: 2px; overflow: hidden;
+}
+.dc-slide-progress > div {
+  height: 100%; width: 0%;
+  background: linear-gradient(90deg, var(--primary), #60a5fa);
+  transition: width 200ms;
+}
+
+.dc-slide-stage {
+  padding: 90px 40px 80px 40px;
+  min-height: 100vh;
+  display: flex; align-items: center; justify-content: center;
+}
+
+.dc-slide {
+  display: none;
+  width: 100%; max-width: 1100px;
+  background: #ffffff;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 44px 52px;
+  box-shadow: 0 8px 32px rgba(15, 23, 42, 0.06);
+  animation: dc-slide-in 280ms ease-out;
+}
+.dc-slide.active { display: block; }
+@keyframes dc-slide-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.dc-slide h1 {
+  margin: 0 0 8px 0; font-size: 32px; line-height: 1.15;
+  letter-spacing: -0.02em; color: var(--ink);
+}
+.dc-slide .dc-slide-tag {
+  display: inline-block; font-size: 11px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.08em;
+  padding: 4px 10px; border-radius: 999px;
+  margin-bottom: 14px;
+}
+.dc-slide h2 {
+  font-size: 18px; margin: 22px 0 10px 0;
+  color: var(--primary);
+}
+.dc-slide p { line-height: 1.65; font-size: 15px; }
+.dc-slide ul, .dc-slide ol { line-height: 1.65; font-size: 15px; }
+.dc-slide a { color: var(--primary); }
+.dc-slide code {
+  background: #f1f5f9; padding: 1px 6px;
+  border-radius: 4px; font-size: 13px;
+}
+.dc-slide .dc-slide-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 14px; margin: 22px 0;
+}
+.dc-slide .dc-slide-stat {
+  background: #f8fafc; border-left: 4px solid var(--primary);
+  padding: 16px 18px; border-radius: 8px;
+}
+.dc-slide .dc-slide-stat .num {
+  font-size: 28px; font-weight: 700; color: var(--primary);
+  line-height: 1; letter-spacing: -0.02em;
+}
+.dc-slide .dc-slide-stat .lbl {
+  font-size: 13px; color: var(--ink); margin-top: 6px;
+}
+.dc-slide .dc-slide-stat .lbl small {
+  display: block; color: var(--muted); font-size: 11px;
+  margin-top: 3px; font-style: italic;
+}
+.dc-slide .dc-callout {
+  background: #fffbeb; border-left: 4px solid #f59e0b;
+  padding: 14px 18px; border-radius: 8px; margin: 16px 0;
+  font-size: 14px;
+}
+.dc-slide .dc-callout.info { background: #eff6ff; border-color: #3b82f6; }
+.dc-slide .dc-callout.danger { background: #fef2f2; border-color: #ef4444; }
+.dc-slide .dc-callout.success { background: #ecfdf5; border-color: #10b981; }
+.dc-slide .dc-callout b { color: var(--ink); }
+
+/* Slide picker (dot rail) */
+.dc-slide-picker {
+  position: fixed; bottom: 14px; left: 50%; transform: translateX(-50%);
+  display: flex; gap: 6px; z-index: 100;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(6px);
+  padding: 8px 12px; border-radius: 999px;
+  border: 1px solid var(--border);
+  max-width: 90%; overflow-x: auto;
+}
+.dc-slide-picker .dot {
+  width: 10px; height: 10px; border-radius: 50%;
+  background: #cbd5e1; cursor: pointer; border: 0;
+  padding: 0; transition: transform 120ms, background 120ms;
+  flex: 0 0 auto;
+}
+.dc-slide-picker .dot:hover { transform: scale(1.3); background: #94a3b8; }
+.dc-slide-picker .dot.active {
+  background: var(--primary); transform: scale(1.4);
+}
+
+/* Pipeline diagram (slide 7: Architecture) */
+.dc-pipeline-grid {
+  display: grid;
+  grid-template-columns: 1fr 22px 1fr 22px 1fr 22px 1fr 22px 1fr;
+  gap: 6px; align-items: stretch; margin: 22px 0;
+}
+.dc-pipe-stage {
+  background: #f8fafc; border: 1px solid var(--border);
+  border-radius: 10px; padding: 14px 14px 38px 14px;
+  position: relative; min-width: 0;
+}
+.dc-pipe-stage.gemma { border-color: var(--primary);
+  background: linear-gradient(180deg, #ffffff 0%, #eff6ff 100%); }
+.dc-pipe-stage .num {
+  position: absolute; top: -10px; left: -10px;
+  width: 28px; height: 28px; border-radius: 50%;
+  background: var(--primary); color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: 13px;
+}
+.dc-pipe-stage.gemma .num { background: #1e40af; }
+.dc-pipe-stage .name { font-weight: 600; font-size: 14px; margin-bottom: 6px; }
+.dc-pipe-stage .desc { font-size: 11px; color: var(--muted); line-height: 1.4; }
+.dc-pipe-stage .tag {
+  position: absolute; bottom: 8px; left: 14px;
+  font-size: 10px; color: var(--primary); font-weight: 600;
+  background: #eff6ff; padding: 2px 8px; border-radius: 999px;
+  font-family: monospace;
+}
+.dc-pipe-arrow {
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; color: var(--muted);
+}
+
+/* Example slide -- input/run/result layout */
+.dc-ex-layout {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 22px;
+  margin-top: 18px;
+}
+.dc-ex-input-box {
+  background: #fafafa; border: 1px solid var(--border);
+  border-radius: 8px; padding: 14px;
+  font-size: 13px; line-height: 1.5;
+  font-family: ui-monospace, SFMono-Regular, monospace;
+  white-space: pre-wrap; max-height: 300px; overflow: auto;
+}
+.dc-ex-runline {
+  display: flex; align-items: center; gap: 12px;
+  flex-wrap: wrap; margin: 12px 0;
+}
+.dc-ex-trace {
+  border-left: 2px solid var(--border); padding-left: 14px;
+  margin-top: 6px; max-height: 240px; overflow-y: auto;
+}
+.dc-ex-trace .step {
+  display: grid; grid-template-columns: 60px 22px 1fr;
+  gap: 10px; align-items: start; font-size: 12px;
+  position: relative; margin-bottom: 6px;
+}
+.dc-ex-trace .step::before {
+  content: ''; position: absolute; left: -19px; top: 5px;
+  width: 10px; height: 10px; border-radius: 50%;
+  background: var(--border); border: 2px solid #fff;
+}
+.dc-ex-trace .step.s-ok::before { background: #10b981; }
+.dc-ex-trace .step.s-running::before { background: #3b82f6;
+  animation: dc-pulse 1.4s ease-in-out infinite; }
+.dc-ex-trace .step.s-fail::before { background: #ef4444; }
+.dc-ex-trace .step.s-fallback::before { background: #f59e0b; }
+.dc-ex-trace .step .t-time {
+  font-family: monospace; color: var(--muted); font-size: 11px;
+}
+.dc-ex-trace .step .t-tag {
+  font-size: 10px; padding: 1px 6px; border-radius: 3px;
+  text-transform: uppercase; font-weight: 700; text-align: center;
+  background: #d1fae5; color: #065f46;
+}
+.dc-ex-trace .step.s-running .t-tag { background: #dbeafe; color: #1e40af; }
+.dc-ex-trace .step.s-fail .t-tag { background: #fee2e2; color: #991b1b; }
+.dc-ex-trace .step .t-name { font-weight: 600; }
+.dc-ex-trace .step .t-detail {
+  color: var(--muted); margin-top: 2px; font-size: 11px;
+  word-break: break-word;
+}
+.dc-ex-verdict {
+  background: #f8fafc; border-radius: 8px; padding: 16px;
+  margin-top: 12px;
+}
+.dc-ex-verdict-line {
+  display: flex; align-items: center; gap: 10px;
+  flex-wrap: wrap; margin-bottom: 10px;
+}
+.dc-ex-explain {
+  background: #f8fafc; border-left: 4px solid var(--primary);
+  border-radius: 6px; padding: 12px 16px; margin: 10px 0;
+  font-size: 13px;
+}
+.dc-ex-explain b { color: var(--ink); }
+.dc-ex-evidence-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 8px; margin-top: 10px;
+}
+.dc-ex-evidence-grid img {
+  width: 100%; display: block; border-radius: 6px;
+  border: 1px solid var(--border);
+}
+
+/* Mobile */
+@media (max-width: 1100px) {
+  .dc-pipeline-grid { grid-template-columns: 1fr; }
+  .dc-pipe-arrow { transform: rotate(90deg); padding: 4px 0; }
+}
+@media (max-width: 800px) {
+  .dc-slide-stage { padding: 80px 16px 70px 16px; }
+  .dc-slide { padding: 28px 24px; }
+  .dc-slide h1 { font-size: 24px; }
+  .dc-ex-layout { grid-template-columns: 1fr; }
+  .dc-slide-chrome-center { display: none; }
+  .dc-chrome-btn { padding: 6px 10px; font-size: 12px; }
+  .dc-slide-picker { padding: 6px 10px; }
+  .dc-slide-picker .dot { width: 8px; height: 8px; }
+}
+</style>
+
+<script>
+// ===== Slide content =====
+// Each slide is a function returning HTML. The current slide is rendered
+// into #slide-stage. Examples that auto-run carry a `task_type` so the
+// 'Run' button can submit them through the queue and stream the trace
+// inline below the input.
+
+const SLIDES = [
+  // ----------------------------------------------------------------
+  // Slide 1 -- Title
+  // ----------------------------------------------------------------
+  {
+    id: 'title',
+    tag: 'Demo',
+    tagBg: '#eff6ff', tagFg: '#1e40af',
+    title: 'Maria\'s recruitment journey',
+    autoSec: 12,
+    body: `
+<p style="font-size:18px;line-height:1.6;color:var(--muted);margin-top:8px">
+A composite Filipina caregiver bound for Saudi Arabia. Five moments
+in her recruitment, each one caught by a different layer of the
+Duecare pipeline.
+</p>
+<div class="dc-callout info">
+<b>What is Duecare?</b> An on-device, multilingual, audit-trailable
+Gemma 4 pipeline that detects migrant-worker trafficking patterns
+in recruitment ads, chat messages, contracts, and social-media
+posts. <b>Privacy is non-negotiable</b> — every inference runs on
+the operator's own machine.
+</div>
+<p style="font-size:14px;color:var(--muted);margin-top:18px">
+Press <code>→</code> or click <b>Next</b> to advance. Press <code>▶ Auto</code>
+to let the slideshow self-advance. Press <code>Esc</code> to exit.
+</p>`
+  },
+
+  // ----------------------------------------------------------------
+  // Slide 2 -- The problem
+  // ----------------------------------------------------------------
+  {
+    id: 'problem',
+    tag: 'The problem',
+    tagBg: '#fef2f2', tagFg: '#991b1b',
+    title: 'Maria is a composite of 169 million.',
+    autoSec: 14,
+    body: `
+<p>
+Migrant workers clean houses, build stadiums, fish, farm, and care
+for children far from their own homes. Recruitment-stage abuses
+— passport confiscation, debt bondage from illegal placement fees,
+kafala-system "safekeeping," movement restrictions — are
+<b>linguistically detectable</b> in the ads, chats, and contracts
+that put workers into those situations.
+</p>
+<div class="dc-slide-stats">
+  <div class="dc-slide-stat">
+    <div class="num">27.6M</div>
+    <div class="lbl">in forced labour worldwide
+      <small>(ILO + IOM, 2022)</small></div>
+  </div>
+  <div class="dc-slide-stat">
+    <div class="num">169M</div>
+    <div class="lbl">international migrant workers
+      <small>(ILO, 2021)</small></div>
+  </div>
+  <div class="dc-slide-stat">
+    <div class="num">~30M</div>
+    <div class="lbl">migrant workers in the GCC corridor alone
+      <small>(ILO Arab States)</small></div>
+  </div>
+  <div class="dc-slide-stat">
+    <div class="num">~$5,250</div>
+    <div class="lbl">avg recruitment-fee debt per worker
+      <small>(IOM &amp; IFC, 2017)</small></div>
+  </div>
+</div>
+<div class="dc-callout danger">
+<b>The platform problem.</b> Job boards, social platforms, and
+messaging apps where this language circulates are where the
+leverage is — but they're also where the existing detection
+tools fail. Google Perspective is tuned for toxic speech, not
+trafficking patterns. POEA / EAA / MOM registries are reactive
+lookups. Frontier LLMs require sending case data to a cloud NGOs
+can't legally use.
+</div>`
+  },
+
+  // ----------------------------------------------------------------
+  // Slide 3 -- Legal context
+  // ----------------------------------------------------------------
+  {
+    id: 'legal',
+    tag: 'Legal context',
+    tagBg: '#eff6ff', tagFg: '#1e40af',
+    title: 'Platform liability is no longer optional.',
+    autoSec: 14,
+    body: `
+<p>
+Two recent legal developments make passive moderation a liability,
+not a feature:
+</p>
+<h2>California AB 587 (2022)</h2>
+<p>
+The Content Moderation Transparency Act forces platforms with
+revenue over $100M to publicly report what content categories
+they detect, how, and at what rate — including trafficking-
+adjacent content. Vague "we use AI" is no longer a defence.
+</p>
+<h2>Cal. Civ. Code § 1714(a) negligence verdicts (2024-2026)</h2>
+<p>
+Civil juries applying the duty-of-care standard have found
+platforms liable for <i>defective design</i> when their
+recommendation systems amplified content that injured a known
+vulnerable population. The doctrine has expanded from suicide-
+ideation cases (Bonta v. Meta line) toward broader exploitation
+patterns.
+</p>
+<h2>Texas HB 20 (2021, upheld by 5th Circuit)</h2>
+<p>
+Forces platforms operating in Texas to disclose moderation
+rationales — raising the bar for explainable AI in moderation
+pipelines.
+</p>
+<div class="dc-callout">
+<b>Implication:</b> "we ran the post through a model and it
+said PASS" is not enough. Regulators want the evidence chain.
+Plaintiffs' lawyers want it too. Duecare's traced pipeline (every
+KB hit, every tool call, every heuristic match recorded) is
+designed for exactly that audit trail.
+</div>`
+  },
+
+  // ----------------------------------------------------------------
+  // Slide 4 -- Real evidence
+  // ----------------------------------------------------------------
+  {
+    id: 'evidence',
+    tag: 'Real evidence',
+    tagBg: '#fffbeb', tagFg: '#92400e',
+    title: 'What Maria sees.',
+    autoSec: 14,
+    body: `
+<p>
+The recruiters, lenders, and "agency bosses" who target Maria
+operate on Facebook, TikTok, Telegram, and WhatsApp — in her
+language, in her communities, with no platform moderation tuned
+for trafficking. Below: <b>redacted thumbnails of real public
+posts</b> we collected from predatory-lender pages.
+</p>
+<div class="dc-callout danger">
+<b>Why heavy blur:</b> the originals contain unredacted full
+names + passport photos of real OFWs. We cannot ship the raw
+screenshots even though they are public — doing so would compound
+the doxxing harm. The pattern (Facebook post · photo thumbnail ·
+debt-shaming text block) is recognisable; no individual
+identification is possible.
+</div>
+<div id="slide-evidence-grid" class="dc-ex-evidence-grid">
+  <div style="grid-column:1/-1;color:var(--muted);font-size:13px">Loading evidence thumbnails…</div>
+</div>
+<p style="margin-top:16px">
+<a href="/evidence" class="dc-chrome-btn primary" style="display:inline-block;text-decoration:none">📂 Open the full evidence gallery (74 assets)</a>
+</p>`,
+    onShow: () => loadSlideEvidence(),
+  },
+
+  // ----------------------------------------------------------------
+  // Slide 5 -- Why Gemma 4
+  // ----------------------------------------------------------------
+  {
+    id: 'why_gemma',
+    tag: 'Why Gemma 4',
+    tagBg: '#ecfdf5', tagFg: '#065f46',
+    title: 'Same model, two deployment modes.',
+    autoSec: 14,
+    body: `
+<p>
+The same Gemma 4 E4B that runs in 4-bit on a $300 laptop is what
+runs at scale on enterprise infrastructure — only the deployment
+mode changes.
+</p>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;margin:22px 0">
+  <div style="background:#ecfdf5;border:1px solid #10b981;border-radius:10px;padding:18px">
+    <h2 style="margin-top:0;color:#065f46">On-device</h2>
+    <ul style="margin:0;padding-left:18px;font-size:14px">
+      <li>E4B 4-bit fits in <b>~5.5 GB VRAM</b> (Kaggle T4)</li>
+      <li>E2B 4-bit fits in <b>~2 GB</b> (high-end phone, LiteRT)</li>
+      <li><b>Zero data egress</b> — case files never leave</li>
+      <li>Apache 2.0 — no commercial licence concerns</li>
+      <li>Works offline — useful in field operations</li>
+    </ul>
+  </div>
+  <div style="background:#eff6ff;border:1px solid #3b82f6;border-radius:10px;padding:18px">
+    <h2 style="margin-top:0;color:#1e40af">Enterprise / batch</h2>
+    <ul style="margin:0;padding-left:18px;font-size:14px">
+      <li><b>~$0/call</b> after deploy vs. $0.005-0.05 frontier API</li>
+      <li>~100 verdicts/min on a single A100 (4-bit)</li>
+      <li>Same KB + tools as the on-device build</li>
+      <li>Audit-trail-friendly per CA AB 587</li>
+      <li>Fine-tunable on operator data via Unsloth</li>
+    </ul>
+  </div>
+</div>
+<p style="font-size:14px">
+<b>One model, every stakeholder:</b> NGOs (Polaris, IJM, ECPAT,
+HRD Nepal, Verité), regulators (POEA/DMW, BP2MI, EAA, MOM, MOHRE,
+MHRSD, ADLSA), worker hotlines, job platforms, courts &
+enforcement, academic researchers.
+</p>`
+  },
+
+  // ----------------------------------------------------------------
+  // Slide 6 -- Prior art
+  // ----------------------------------------------------------------
+  {
+    id: 'prior_art',
+    tag: 'Prior art',
+    tagBg: '#f5f3ff', tagFg: '#5b21b6',
+    title: 'Why a great system layers all five stages.',
+    autoSec: 14,
+    body: `
+<p>
+The author's <b>OpenAI gpt-oss-20b Red-Teaming Challenge</b>
+submission documented five recurring failure modes of frontier
+LLMs on migrant-worker trafficking scenarios:
+</p>
+<ol>
+  <li>Moral / religious framing of exploitation as "duty"</li>
+  <li>Regulatory evasion (advice on how to skirt POEA caps)</li>
+  <li>Coercion math (calculating debt-bondage interest schedules)</li>
+  <li>Financial obfuscation (helping structure shell-company fee collection)</li>
+  <li>Systematic combinatorial variations bypassing safety filters</li>
+</ol>
+<h2>Existing benchmark gaps</h2>
+<p>
+General-purpose harm benchmarks (HarmBench, JailbreakBench,
+SafetyBench, ToxicChat) include chemical-weapons or hate-speech
+categories — but trafficking-specific harm is either absent or
+collapsed into "illegal activities." Stock Gemma 4 E4B on the
+74,567-prompt trafficking benchmark scores
+<b>0.61 mean / 20% pass rate / 0% harmful</b> — meaning the model
+refuses correctly but doesn't actually <i>detect</i> the patterns.
+</p>
+<div class="dc-callout">
+<b>Why a great system layers all five stages:</b> heuristic alone
+is brittle. GREP alone is vocabulary-bound. RAG alone drifts on
+adversarial inputs. Tool calls alone don't ask questions. LLM alone
+misses specific facts (statute numbers, fee caps, agency licence
+status), can be jailbroken, costs per token. <b>All five together</b>:
+the LLM provides reasoning glue + audit-trail-friendly verdict;
+everything else provides the ground-truth facts the LLM doesn't know.
+</div>`
+  },
+
+  // ----------------------------------------------------------------
+  // Slide 7 -- Architecture (NEW per Taylor's request)
+  // ----------------------------------------------------------------
+  {
+    id: 'architecture',
+    tag: 'Architecture',
+    tagBg: '#dbeafe', tagFg: '#1e40af',
+    title: 'Five stages. Every input goes through all of them.',
+    autoSec: 16,
+    body: `
+<p>
+Every input to Duecare runs through this exact sequence. The
+trace timeline you'll see on the example slides is generated
+live by these stages.
+</p>
+<div class="dc-pipeline-grid">
+  <div class="dc-pipe-stage">
+    <div class="num">1</div>
+    <div class="name">Heuristic prescan</div>
+    <div class="desc">22 keyword signals across 3 tiers.
+      Multilingual: English, Tagalog, Bahasa, Hindi, Bengali,
+      Nepali, Arabic transliteration. Establishes the severity floor.</div>
+    <div class="tag">≈ 5 ms · CPU</div>
+  </div>
+  <div class="dc-pipe-arrow">→</div>
+  <div class="dc-pipe-stage">
+    <div class="num">2</div>
+    <div class="name">GREP knowledge base</div>
+    <div class="desc">Regex match against 53 curated passages
+      (statutes, conventions, ILO indicators) across 18+
+      jurisdictions. Always works, fully explainable.</div>
+    <div class="tag">≈ 20 ms · CPU</div>
+  </div>
+  <div class="dc-pipe-arrow">→</div>
+  <div class="dc-pipe-stage">
+    <div class="num">3</div>
+    <div class="name">RAG retrieval</div>
+    <div class="desc">sentence-transformers MiniLM → cosine top-K
+      against the same KB. Catches paraphrases + cross-language
+      semantic matches GREP misses.</div>
+    <div class="tag">≈ 200 ms · CPU</div>
+  </div>
+  <div class="dc-pipe-arrow">→</div>
+  <div class="dc-pipe-stage">
+    <div class="num">4</div>
+    <div class="name">Tool calls</div>
+    <div class="desc">11 deterministic tools fire every run:
+      lookup_statute, lookup_hotline, check_agency_license,
+      calculate_max_fee, identify_ilo_indicators, lookup_embassy,
+      check_predatory_lender, etc.</div>
+    <div class="tag">≈ 5 ms · CPU</div>
+  </div>
+  <div class="dc-pipe-arrow">→</div>
+  <div class="dc-pipe-stage gemma">
+    <div class="num">5</div>
+    <div class="name">Gemma 4 classify</div>
+    <div class="desc">Receives input + heuristic findings + KB
+      hits + severity-anchor table + tool results. Returns
+      BLOCK / REVIEW / PASS with reasoning. Multimodal-capable
+      (image + text in one model).</div>
+    <div class="tag">≈ 8-18 s · GPU</div>
+  </div>
+</div>
+<h2>Why this layering wins</h2>
+<p>
+Each stage catches what the others miss:
+<b>Heuristic</b> = brittle but fast and explainable.
+<b>GREP</b> = vocabulary-bound but auditable.
+<b>RAG</b> = covers paraphrase but can drift.
+<b>Tools</b> = compute the things RAG can't (fee caps, licence
+status, embassy contacts). <b>Gemma</b> = synthesises everything
+into a verdict + reasoning a human can act on.
+</p>
+<div class="dc-callout success">
+<b>Output is JSON.</b> verdict + severity (max of gemma vs heuristic
+floor) + matched_signals + kb_hits + tool_calls + ilo_indicators +
+fee_cap + license_check + embassy + known_actors + hotline +
+suggested_complaint_template. Every field is auditable.
+</div>`
+  },
+
+  // ----------------------------------------------------------------
+  // Slides 8-12 -- Examples (auto-run)
+  // ----------------------------------------------------------------
+  {
+    id: 'ex_jobboard',
+    tag: 'Scene 1 of 5',
+    tagBg: '#fef2f2', tagFg: '#991b1b',
+    title: 'Maria sees a job ad on Bossjob.',
+    autoSec: 30,
+    isExample: true,
+    locale: 'ph',
+    task_type: 'moderate',
+    text: 'Pacific Coast Manpower Inc. is hiring 50 domestic workers ' +
+            'for Riyadh, Saudi Arabia. USD 5,000 placement fee payable to ' +
+            'account TEST-9988-7766-5544. We will keep your passport ' +
+            'until you finish 2 years. Send your passport copy to ' +
+            'recruitment@pacificcoast.demo.',
+    expected: 'BLOCK · severity 9-10/10',
+    explain: [
+      ['What\'s happening', 'Maria scrolls past this ad on a Filipino job ' +
+        'platform. The pipeline catches passport-confiscation language, an ' +
+        'excessive USD 5000 placement fee (over the PH RA 8042 cap of 1 ' +
+        'month\'s salary), and a deposit account being requested directly ' +
+        'from the worker.'],
+      ['Why this is BLOCK', 'Three critical signals fire: passport ' +
+        'confiscation (ILO C029 #7), excessive fee (PH RA 8042 sec 6(a) ' +
+        'violation), and direct-account payment. Add the predatory-lender ' +
+        'severity bump and we\'re at 10/10.'],
+    ],
+  },
+  {
+    id: 'ex_worker',
+    tag: 'Scene 2 of 5',
+    tagBg: '#ecfdf5', tagFg: '#065f46',
+    title: 'Maria pastes a WhatsApp message.',
+    autoSec: 30,
+    isExample: true,
+    locale: 'ph',
+    task_type: 'worker_check',
+    text: 'URGENT: 30 caregivers needed in Hong Kong. Free placement ' +
+            '(small processing fee USD 800). Trust me, the agency boss ' +
+            'will help you with everything. Send your NBI clearance and ' +
+            'passport scan to whatsapp +85295551234.',
+    expected: 'REVIEW · severity 6/10 + hotline',
+    explain: [
+      ['What\'s happening', 'A Filipina caregiver (Maria) receives what ' +
+        'looks like an OK job offer from a "Hong Kong agency boss." The fee ' +
+        'is small, but the request to send NBI clearance + passport scans ' +
+        'to a personal WhatsApp number is a yellow flag.'],
+      ['Why REVIEW (not BLOCK)', 'There IS a fee mentioned (over what RA ' +
+        '8042 allows but under the catastrophic threshold). The model lands ' +
+        'on REVIEW with concrete actions: verify the agency licence, ' +
+        'never send documents to a personal WhatsApp.'],
+      ['What Maria sees', 'Plain-language advice in Tagalog + the right ' +
+        'PH 1343 hotline + POLO HK contact, all locale-aware.'],
+    ],
+  },
+  {
+    id: 'ex_ngo',
+    tag: 'Scene 3 of 5',
+    tagBg: '#fef2f2', tagFg: '#991b1b',
+    title: 'Maria\'s dorm-mate Sita writes a complaint letter.',
+    autoSec: 30,
+    isExample: true,
+    locale: 'hk',
+    task_type: 'moderate',
+    text: 'I am Sita Tamang, Nepali domestic helper in Hong Kong for ' +
+            '18 months. My employer holds my passport since I arrived. ' +
+            'I owe Hong Kong City Credit Management Group HKD 25,000 — ' +
+            'they keep raising the interest. I cannot leave the house ' +
+            'without permission. I want to go home but my employer says ' +
+            'I cannot until I finish my contract.',
+    expected: 'BLOCK · severity 10/10',
+    explain: [
+      ['What\'s happening', 'An NGO caseworker drops Sita\'s letter into ' +
+        'the pipeline. Three forced-labour indicators fire at once: ' +
+        'document retention (ILO C029 #7), debt bondage, restriction of ' +
+        'movement.'],
+      ['What KB retrieval adds', 'GREP + RAG surface ILO C029, Palermo ' +
+        'Art 3, HK Cap. 57 sec 32 (employment ordinance), and HK Cap. 163 ' +
+        'Money Lenders Ordinance — every passage the caseworker needs for ' +
+        'their report.'],
+      ['Bigger picture', 'Aggregating triage rows in the evidence DB ' +
+        'lets the NGO ask "how many cases involve this lender?" via ' +
+        'NL-to-SQL on the Knowledge page — patterns emerge across cases ' +
+        'no single caseworker would see.'],
+    ],
+  },
+  {
+    id: 'ex_doxxing',
+    tag: 'Scene 4 of 5',
+    tagBg: '#fef2f2', tagFg: '#991b1b',
+    title: 'Maria misses a payment, lender posts her photo.',
+    autoSec: 30,
+    isExample: true,
+    locale: 'ph',
+    task_type: 'moderate',
+    text: 'WANTED: LENDING BANK BASED IN HONG KONG IS LOOKING FOR ' +
+            'THIS OFW [composite name] FOR BANK FRAUD/ESTAFA CASE FOR ' +
+            'ISSUING A PHIL. PASSPORT AS A COLLATERAL AND WENT HIDING ' +
+            'AFTER RECEIVING THE LOAN. ASAP PAY UR OVERDUES. Tag this ' +
+            'OFW. Share until found. Posted by: Bank Hongkong page.',
+    expected: 'BLOCK · severity 10/10',
+    explain: [
+      ['What\'s happening', 'A predatory-lender Facebook page publicly ' +
+        'posts a "wanted poster" naming Maria with her passport photo + ' +
+        'personal details. Pattern documented on Bank Hongkong, Yoursun ' +
+        'Caretaker, Wang Tzu pages.'],
+      ['Five tools fire at once', 'check_social_media_harassment matches ' +
+        '"WANTED:" + "ASAP PAY" + "Tag this OFW". check_doxxing_indicators ' +
+        'flags HIGH risk. check_debt_harassment detects HARASSMENT. ' +
+        'check_predatory_lender matches "Bank Hongkong" (+3 severity). ' +
+        'identify_ilo_indicators flags ILO C029 #2 (intimidation) + #4 ' +
+        '(debt bondage).'],
+      ['What the KB adds', 'PH RA 10173 (Data Privacy), RA 10175 ' +
+        '(Cybercrime / online libel), RA 9995 (Anti-Photo Voyeurism), ' +
+        'PH SEC MC 18-2019 (online-lending shaming ban), HK Cap. 486 + ' +
+        'Anti-Doxxing 2021 amendment, FB Coordinating Harm policy.'],
+    ],
+  },
+  {
+    id: 'ex_kafala',
+    tag: 'Scene 5 of 5',
+    tagBg: '#fef2f2', tagFg: '#991b1b',
+    title: 'The contract Maria almost signed (kafala "safekeeping").',
+    autoSec: 30,
+    isExample: true,
+    locale: 'sa',
+    task_type: 'moderate',
+    text: 'Filipino domestic helper needed for Riyadh family. ' +
+            'Salary SAR 1,500/month. We hold the passport for ' +
+            'safekeeping during the 2-year contract. Worker lives with ' +
+            'the employer, no day off, alone in the house. Sponsor visa ' +
+            'under kafala system.',
+    expected: 'BLOCK · severity 9/10',
+    explain: [
+      ['What\'s happening', 'The hardest moderation case — polite ' +
+        'household ad that normalises kafala-era practices. A pure keyword ' +
+        'filter wouldn\'t catch "safekeeping" as a synonym for ' +
+        'confiscation. A pure LLM might miss the structural pattern.'],
+      ['Five indicators stack', '(1) "we hold the passport" = document ' +
+        'retention regardless of euphemism, (2) "no day off" violates ILO ' +
+        'C95 / GCC reform standards, (3) "alone in the house" = ILO ' +
+        'ISOLATION indicator, (4) live-in = highest-risk category for ' +
+        'domestic-worker abuse, (5) "kafala" triggers the jurisdictional ' +
+        'alert (Saudi reformed in 2021 but enforcement is uneven).'],
+      ['What the KB adds', 'Without it, an LLM might say "this is normal ' +
+        'for that region." With it, GREP retrieves the kafala_passport ' +
+        'indicator + Saudi 2021 reform note. Gemma is then anchored on ' +
+        'the gap between the legal reform and the still-circulating ' +
+        'language pattern.'],
+    ],
+  },
+
+  // ----------------------------------------------------------------
+  // Slide 13 -- Closing
+  // ----------------------------------------------------------------
+  {
+    id: 'closing',
+    tag: 'Deploy this',
+    tagBg: '#ecfdf5', tagFg: '#065f46',
+    title: 'Maria\'s story is composite. The partners are real.',
+    autoSec: 18,
+    body: `
+<p>
+Duecare is designed to deploy directly into the workflows of every
+stakeholder in the trafficking-detection ecosystem.
+</p>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;margin:22px 0">
+  <div style="background:#f8fafc;border:1px solid var(--border);border-radius:8px;padding:14px">
+    <h2 style="margin-top:0;font-size:14px">NGOs</h2>
+    <ul style="font-size:13px;margin:6px 0 0 18px;padding:0">
+      <li>Polaris Project (US national hotline)</li>
+      <li>IJM (International Justice Mission)</li>
+      <li>ECPAT (child trafficking alliance)</li>
+      <li>HRD Nepal (Nepali GCC workers)</li>
+      <li>Verité (recruitment-fee research)</li>
+      <li>IOM (UN Migration / CTDC)</li>
+    </ul>
+  </div>
+  <div style="background:#f8fafc;border:1px solid var(--border);border-radius:8px;padding:14px">
+    <h2 style="margin-top:0;font-size:14px">Government regulators</h2>
+    <ul style="font-size:13px;margin:6px 0 0 18px;padding:0">
+      <li>POEA / DMW (Philippines, hotline 1343)</li>
+      <li>BP2MI (Indonesia, 1500-30)</li>
+      <li>EAA (Hong Kong)</li>
+      <li>MOM (Singapore) · MOHRE (UAE, 800-60)</li>
+      <li>MHRSD (Saudi) · ADLSA (Qatar)</li>
+      <li>FET (Nepal) · BMET (Bangladesh)</li>
+    </ul>
+  </div>
+  <div style="background:#f8fafc;border:1px solid var(--border);border-radius:8px;padding:14px">
+    <h2 style="margin-top:0;font-size:14px">Platforms + courts</h2>
+    <ul style="font-size:13px;margin:6px 0 0 18px;padding:0">
+      <li>Bossjob, JobStreet, Indeed regional</li>
+      <li>Facebook Marketplace Jobs</li>
+      <li>HK PCPD (Privacy Commissioner)</li>
+      <li>US DOL WHD + DOJ HTPU (TVPA)</li>
+      <li>EU Data Protection Authorities</li>
+      <li>Polaris BeFree, IJM legal teams</li>
+    </ul>
+  </div>
+</div>
+<h2>What's next</h2>
+<p>
+Open <a href="/workspace">/workspace</a> to bring your own data ·
+<a href="/architecture">/architecture</a> for the deep dive ·
+<a href="/background">/background</a> for the literature ·
+<a href="https://github.com/TaylorAmarelTech/gemma4_comp" target="_blank">github.com/TaylorAmarelTech/gemma4_comp</a>
+for the code.
+</p>
+<div class="dc-callout success">
+<b>Apache 2.0 model. MIT code. Privacy is non-negotiable.</b>
+The same Gemma 4 + 11 tools + 53-passage KB + 22-signal heuristics
+serves every stakeholder above.
+</div>`
+  },
+];
+
+// ===== Slideshow controller =====
+let _curSlide = 0;
+let _autoTimer = null;
+let _isAuto = false;
+
+function _renderSlide(i) {
+  const s = SLIDES[i];
+  const stage = document.getElementById('slide-stage');
+
+  let html = `<div class="dc-slide active" id="slide-${s.id}">`;
+  html += `<span class="dc-slide-tag" style="background:${s.tagBg};color:${s.tagFg}">${s.tag}</span>`;
+  html += `<h1>${s.title}</h1>`;
+  if (s.isExample) {
+    html += _exampleSlideBody(s);
+  } else if (s.body) {
+    html += s.body;
+  }
+  html += `</div>`;
+
+  stage.innerHTML = html;
+
+  // Update chrome
+  document.getElementById('slide-num').innerText = (i + 1).toString();
+  document.getElementById('slide-total').innerText = SLIDES.length.toString();
+  const pct = ((i + 1) / SLIDES.length) * 100;
+  document.getElementById('slide-progress-bar').style.width = pct + '%';
+
+  // Update picker
+  document.querySelectorAll('.dc-slide-picker .dot').forEach((d, idx) => {
+    d.classList.toggle('active', idx === i);
+  });
+
+  // Update prev/next disabled state
+  document.getElementById('prev-btn').disabled = (i === 0);
+  document.getElementById('next-btn').disabled = (i === SLIDES.length - 1);
+
+  // Run any onShow hook
+  if (s.onShow) try { s.onShow(); } catch (e) {}
+
+  // If example slide, kick off the run automatically
+  if (s.isExample) {
+    setTimeout(() => _runExampleInSlide(s), 600);
+  }
+
+  // Scroll stage to top
+  window.scrollTo({top: 0, behavior: 'smooth'});
+}
+
+function _exampleSlideBody(s) {
+  return `
+<p style="font-size:15px;color:var(--muted);margin-top:6px">
+Expected: <b>${s.expected}</b> · locale: <code>${s.locale}</code> ·
+task_type: <code>${s.task_type}</code>
+</p>
+<div class="dc-ex-layout">
+  <div>
+    <h2>Input</h2>
+    <div class="dc-ex-input-box">${s.text}</div>
+    <div class="dc-ex-runline">
+      <button class="dc-chrome-btn primary" id="ex-run-${s.id}"
+        onclick="_runExampleInSlide(SLIDES.find(x=>x.id==='${s.id}'))">▶ Run through pipeline</button>
+      <span id="ex-status-${s.id}" style="font-size:12px;color:var(--muted)"></span>
+    </div>
+    <div class="dc-progress" style="margin-top:8px">
+      <div id="ex-bar-${s.id}"></div>
+    </div>
+    <h2>Pipeline trace</h2>
+    <div id="ex-trace-${s.id}" class="dc-ex-trace">
+      <p style="color:var(--muted);font-size:12px;margin:0">(awaiting run)</p>
+    </div>
+  </div>
+  <div>
+    <h2>Verdict</h2>
+    <div id="ex-verdict-${s.id}" class="dc-ex-verdict">
+      <p style="color:var(--muted);font-size:12px;margin:0">(awaiting run)</p>
+    </div>
+    <h2>Why this matters</h2>
+    ${(s.explain || []).map(([t, b]) =>
+      `<div class="dc-ex-explain"><b>${t}.</b> ${b}</div>`).join('')}
+  </div>
+</div>`;
+}
+
+const STAGE_NARRATION = {
+  input_check:        'Input received and routed into the queue.',
+  heuristic_prescan:  'Stage 1: 22 keyword signals run in <5 ms.',
+  grep_kb:            'Stage 2: regex match against 53 KB passages.',
+  rag_kb:             'Stage 3: sentence-transformer cosine top-K.',
+  tool_calls:         'Stage 4: 11 deterministic tools fire.',
+  gemma_classify:     'Stage 5: Gemma 4 with anchor table + KB hits.',
+  gemma_advise:       'Stage 5: Gemma 4 plain-language advice + hotline.',
+  complaint_suggestion: 'Bonus: matches a complaint template for the verdict.',
+  done:               'Final JSON: verdict, severity, evidence, hotline.',
+};
+
+async function _runExampleInSlide(s) {
+  if (!s || s._running) return;
+  s._running = true;
+  document.getElementById('ex-status-' + s.id).innerText = 'submitting…';
+  document.getElementById('ex-bar-' + s.id).style.width = '0%';
+  document.querySelector('#slide-' + s.id + ' .dc-progress').classList.add('indeterminate');
+  document.getElementById('ex-trace-' + s.id).innerHTML = '';
+  document.getElementById('ex-verdict-' + s.id).innerHTML =
+    '<p style="color:var(--muted);font-size:12px;margin:0">(running…)</p>';
+
+  let submitJ;
+  try {
+    const r = await fetch('/api/queue/submit', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({task_type: s.task_type,
+                              payload: {text: s.text, locale: s.locale}})
+    });
+    submitJ = await r.json();
+  } catch (e) {
+    document.getElementById('ex-status-' + s.id).innerText = 'submit error: ' + e;
+    s._running = false; return;
+  }
+  document.getElementById('ex-status-' + s.id).innerText = '#' + submitJ.task_id;
+  const t0 = Date.now();
+  while (true) {
+    let task;
+    try { task = await (await fetch('/api/queue/status/' + submitJ.task_id)).json(); }
+    catch (e) {
+      document.getElementById('ex-status-' + s.id).innerText = 'poll err';
+      s._running = false; return;
+    }
+    const elapsed = ((Date.now() - t0) / 1000).toFixed(1);
+    document.getElementById('ex-status-' + s.id).innerText =
+      `${task.status} · ${elapsed}s`;
+    _renderExampleTrace(s.id, task.trace || []);
+    if (task.status === 'completed') {
+      document.querySelector('#slide-' + s.id + ' .dc-progress').classList.remove('indeterminate');
+      document.getElementById('ex-bar-' + s.id).style.width = '100%';
+      _renderExampleVerdict(s.id, task.result, s.task_type);
+      s._running = false; return;
+    } else if (task.status === 'failed') {
+      document.querySelector('#slide-' + s.id + ' .dc-progress').classList.remove('indeterminate');
+      document.getElementById('ex-bar-' + s.id).style.width = '100%';
+      document.getElementById('ex-verdict-' + s.id).innerHTML =
+        '<p style="color:#991b1b">FAILED: ' + (task.error || 'unknown') + '</p>';
+      s._running = false; return;
+    }
+    await new Promise(r => setTimeout(r, 400));
+  }
+}
+
+function _renderExampleTrace(slideId, trace) {
+  if (!trace.length) return;
+  const el = document.getElementById('ex-trace-' + slideId);
+  let html = '';
+  for (const stp of trace) {
+    const cls = 's-' + (stp.status || 'ok');
+    const t = (stp.elapsed_since_start != null
+                ? '+' + stp.elapsed_since_start.toFixed(2) + 's' : '');
+    const narration = STAGE_NARRATION[stp.name];
+    html += `<div class="step ${cls}">` +
+      `<span class="t-time">${t}</span>` +
+      `<span class="t-tag">${(stp.status||'ok').slice(0,4)}</span>` +
+      `<div><div class="t-name">${stp.name}</div>` +
+      (stp.detail ? `<div class="t-detail">${stp.detail}</div>` : '') +
+      (narration ? `<div class="t-detail" style="color:#1e40af;` +
+                       `margin-top:3px;font-style:italic">${narration}</div>` : '') +
+      `</div></div>`;
+  }
+  el.innerHTML = html;
+}
+
+function _renderExampleVerdict(slideId, result, taskType) {
+  if (!result) return;
+  const el = document.getElementById('ex-verdict-' + slideId);
+  let html = '<div class="dc-ex-verdict-line">';
+  if (taskType === 'moderate') {
+    const v = (result.verdict || 'review').toLowerCase();
+    html += `<span class="dc-badge ${v}">${v.toUpperCase()}</span>`;
+    html += `<span><b>severity ${result.severity || 0}/10</b></span>`;
+    html += `<span class="dc-pill ${result.mode === 'gemma' ? 'ok' : ''}">${result.mode || 'heuristic'}</span>`;
+  } else {
+    html += `<span><b>Severity ${result.severity || 0}/10</b></span>`;
+    html += `<span class="dc-pill ${result.mode === 'gemma' ? 'ok' : ''}">${result.mode || 'heuristic'}</span>`;
+  }
+  html += '</div>';
+  if (result.reasoning) {
+    html += `<p style="margin:6px 0;font-size:13px">${result.reasoning}</p>`;
+  } else if (result.advice) {
+    html += `<p style="margin:6px 0;font-size:13px">${result.advice}</p>`;
+  }
+  // KB hits
+  if (result.kb_hits && result.kb_hits.length) {
+    html += `<div style="margin-top:8px;font-size:11px;color:var(--muted)">` +
+      `<b>KB hits (${result.kb_hits.length}):</b> ` +
+      result.kb_hits.slice(0, 5).map(h => `<code>${h.id}</code>`).join(' ') +
+      `</div>`;
+  }
+  // Tool calls
+  if (result.tool_calls && result.tool_calls.length) {
+    html += `<div style="margin-top:6px;font-size:11px;color:var(--muted)">` +
+      `<b>Tools fired (${result.tool_calls.length}):</b> ` +
+      [...new Set(result.tool_calls.map(c => c.tool))].join(', ') +
+      `</div>`;
+  }
+  // Hotline
+  if (result.hotline) {
+    html += `<div style="margin-top:8px;background:#ecfdf5;padding:8px 12px;` +
+      `border-radius:6px;font-size:13px"><b>Hotline:</b> ` +
+      `${result.hotline.name} — <code>${result.hotline.contact}</code></div>`;
+  }
+  // Suggested complaint
+  if (result.suggested_complaint_template) {
+    const sc = result.suggested_complaint_template;
+    html += `<div style="margin-top:8px;background:#eff6ff;padding:8px 12px;` +
+      `border-radius:6px;font-size:13px"><b>Next step:</b> use template ` +
+      `<code>${sc.slug}</code> — ${sc.reason}</div>`;
+  }
+  el.innerHTML = html;
+}
+
+async function loadSlideEvidence() {
+  const grid = document.getElementById('slide-evidence-grid');
+  if (!grid) return;
+  let m;
+  try { m = await (await fetch('/static/evidence/manifest.json')).json(); }
+  catch (e) { return; }
+  const items = (m.items || []).filter(it => it.kind === 'image');
+  const picks = [
+    ...items.filter(it => it.id.startsWith('imgur_')),
+    ...items.filter(it => /_f02$/.test(it.id)),
+  ].slice(0, 9);
+  grid.innerHTML = picks.map(it =>
+    `<a href="/evidence" style="display:block">` +
+    `<img src="/static/evidence/${it.filename}" alt="${it.title}">` +
+    `</a>`).join('');
+}
+
+// ===== Navigation =====
+function nextSlide() {
+  if (_curSlide < SLIDES.length - 1) {
+    _curSlide++;
+    _renderSlide(_curSlide);
+  }
+}
+function prevSlide() {
+  if (_curSlide > 0) {
+    _curSlide--;
+    _renderSlide(_curSlide);
+  }
+}
+function gotoSlide(i) {
+  if (i >= 0 && i < SLIDES.length) {
+    _curSlide = i;
+    _renderSlide(_curSlide);
+  }
+}
+
+function toggleAuto() {
+  _isAuto = !_isAuto;
+  const btn = document.getElementById('auto-btn');
+  if (_isAuto) {
+    btn.classList.add('active');
+    btn.innerText = '⏸ Pause';
+    _scheduleAutoAdvance();
+  } else {
+    btn.classList.remove('active');
+    btn.innerText = '▶ Auto';
+    if (_autoTimer) clearTimeout(_autoTimer);
+  }
+}
+
+function _scheduleAutoAdvance() {
+  if (!_isAuto) return;
+  if (_autoTimer) clearTimeout(_autoTimer);
+  const s = SLIDES[_curSlide];
+  const delaySec = s.isExample ? 35 : (s.autoSec || 12);
+  _autoTimer = setTimeout(() => {
+    if (_curSlide < SLIDES.length - 1) {
+      nextSlide();
+      _scheduleAutoAdvance();
+    } else {
+      _isAuto = false;
+      const btn = document.getElementById('auto-btn');
+      btn.classList.remove('active');
+      btn.innerText = '▶ Auto';
+    }
+  }, delaySec * 1000);
+}
+
+// Re-schedule auto on any user navigation
+const _origRender = _renderSlide;
+_renderSlide = function(i) {
+  _origRender(i);
+  if (_isAuto) _scheduleAutoAdvance();
+};
+
+// ===== Keyboard shortcuts =====
+document.addEventListener('keydown', e => {
+  // Ignore when focused in input/textarea
+  const tag = (e.target.tagName || '').toUpperCase();
+  if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+  if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); nextSlide(); }
+  else if (e.key === 'ArrowLeft') { e.preventDefault(); prevSlide(); }
+  else if (e.key === 'Escape') { window.location = '/'; }
+  else if (e.key === 'Home') { gotoSlide(0); }
+  else if (e.key === 'End') { gotoSlide(SLIDES.length - 1); }
+});
+
+// ===== Build picker =====
+function _buildPicker() {
+  const p = document.getElementById('slide-picker');
+  let html = '';
+  for (let i = 0; i < SLIDES.length; i++) {
+    html += `<button class="dot" onclick="gotoSlide(${i})" ` +
+      `title="Slide ${i+1}: ${SLIDES[i].tag}"></button>`;
+  }
+  p.innerHTML = html;
+}
+
+// ===== Init =====
+_buildPicker();
+_renderSlide(0);
+</script>
+</body>
+</html>

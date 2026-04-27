@@ -155,9 +155,14 @@ def create_app(state: Optional[ServerState] = None) -> FastAPI:
     def chat_page():
         return _serve_html(static_dir / "chat.html")
 
-    @app.get("/examples", response_class=HTMLResponse)
-    def examples_page():
-        return _serve_html(static_dir / "examples.html")
+    @app.get("/demo", response_class=HTMLResponse)
+    def demo_page():
+        return _serve_html(static_dir / "demo.html")
+
+    @app.get("/examples")
+    def examples_redirect():
+        from fastapi.responses import RedirectResponse
+        return RedirectResponse(url="/demo", status_code=308)
 
     @app.get("/workspace", response_class=HTMLResponse)
     def workspace_page():
