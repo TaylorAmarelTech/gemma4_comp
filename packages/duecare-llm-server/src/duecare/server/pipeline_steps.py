@@ -439,6 +439,126 @@ _KB_PASSAGES = [
                   "a current licence is an offence under the Employment "
                   "Ordinance Cap. 57 + Employment Agency Regulations.",
     },
+    # ---- South + Southeast Asia origin-country statutes ----
+    {
+        "id": "vn_decree_38_2020",
+        "kind": "statute",
+        "jurisdiction": "VN",
+        "topic": "recruitment_fees",
+        "tags": ["VN", "Vietnam", "DOLAB", "recruitment"],
+        "text": "Vietnam Decree 38/2020/ND-CP and the Law on Vietnamese "
+                  "Workers Working Abroad Under Contract (2020) -- caps "
+                  "service fees collected from workers and obliges PRAs "
+                  "(private recruitment agencies) to register with DOLAB "
+                  "(Department of Overseas Labour). Fee collection above "
+                  "statutory cap is a criminal offence.",
+    },
+    {
+        "id": "kh_subdecree_190_2014",
+        "kind": "regulation",
+        "jurisdiction": "KH",
+        "topic": "recruitment_fees",
+        "tags": ["KH", "Cambodia", "MoLVT", "PRA"],
+        "text": "Cambodia Sub-Decree 190 (2014) on the Management of "
+                  "Private Recruitment Agencies -- requires PRA licence "
+                  "from MoLVT and prohibits worker-paid recruitment "
+                  "fees beyond a small documentation cost. Khmer + "
+                  "English versions both authoritative.",
+    },
+    {
+        "id": "mm_overseas_employment_law",
+        "kind": "statute",
+        "jurisdiction": "MM",
+        "topic": "recruitment_fees",
+        "tags": ["MM", "Myanmar", "MoLIP", "OSE"],
+        "text": "Myanmar Overseas Employment Law 2013 (revised 2019) -- "
+                  "regulates Overseas Employment Agencies (OEAs) under "
+                  "the Ministry of Labour, Immigration and Population. "
+                  "Post-2021 enforcement has weakened; ILO and IOM both "
+                  "report a sharp increase in unregistered recruitment "
+                  "since the 2021 coup, particularly into Thailand and "
+                  "Malaysia.",
+    },
+    {
+        "id": "in_emigration_act_1983",
+        "kind": "statute",
+        "jurisdiction": "IN",
+        "topic": "recruitment_fees",
+        "tags": ["IN", "India", "MEA", "eMigrate"],
+        "text": "India Emigration Act 1983 + the eMigrate platform "
+                  "(Ministry of External Affairs) -- requires Recruitment "
+                  "Agents (RAs) to register and migrants to obtain "
+                  "Emigration Clearance Required (ECR) endorsement on "
+                  "the passport. Fees for ECR-category workers are "
+                  "capped at INR 30,000 by Foreign Manpower notification.",
+    },
+    {
+        "id": "bd_overseas_employment_act_2013",
+        "kind": "statute",
+        "jurisdiction": "BD",
+        "topic": "recruitment_fees",
+        "tags": ["BD", "Bangladesh", "BMET", "BAIRA"],
+        "text": "Bangladesh Overseas Employment and Migrants Act 2013 -- "
+                  "establishes BMET (Bureau of Manpower Employment and "
+                  "Training) oversight + BAIRA self-regulation. Section "
+                  "32 makes excessive fee collection a punishable "
+                  "offence; the government-set cap varies by destination "
+                  "country and is widely reported to be evaded.",
+    },
+    {
+        "id": "lk_slbfe_act",
+        "kind": "statute",
+        "jurisdiction": "LK",
+        "topic": "recruitment_fees",
+        "tags": ["LK", "Sri Lanka", "SLBFE"],
+        "text": "Sri Lanka Bureau of Foreign Employment (SLBFE) Act -- "
+                  "all licensed FEAs (Foreign Employment Agencies) must "
+                  "follow the Code of Ethical Conduct. Fee collection "
+                  "from female migrant workers is restricted; Family "
+                  "Background Report (FBR) clearance was reformed in "
+                  "2022 after years of criticism.",
+    },
+    # ---- ILO C188 (Work in Fishing) -- recruitment / fishing-vessel sector ----
+    {
+        "id": "ilo_c188_fishing",
+        "kind": "convention",
+        "jurisdiction": "international",
+        "topic": "fishing_sector",
+        "tags": ["ILO", "C188", "fishing_vessel", "MLC"],
+        "text": "ILO C188 Work in Fishing Convention (2007) -- minimum "
+                  "standards for fisher work agreements, hours, "
+                  "accommodations, and recruitment. Particularly "
+                  "relevant for distant-water fleets where transshipment "
+                  "at sea + flag-of-convenience registration enable "
+                  "forced-labour patterns documented by EJF, Greenpeace, "
+                  "and ILO field reports.",
+    },
+    # ---- Sex-trafficking / Mann Act / EU Directive ----
+    {
+        "id": "eu_directive_2011_36_trafficking",
+        "kind": "convention",
+        "jurisdiction": "international",
+        "topic": "trafficking",
+        "tags": ["EU", "anti_trafficking_directive", "2011/36"],
+        "text": "EU Anti-Trafficking Directive 2011/36/EU -- harmonised "
+                  "EU framework on preventing and combating trafficking, "
+                  "protecting victims, and prosecuting traffickers. "
+                  "Article 2 includes both labour and sexual exploitation "
+                  "as forms of trafficking; member states must transpose.",
+    },
+    {
+        "id": "us_mann_act",
+        "kind": "statute",
+        "jurisdiction": "US",
+        "topic": "sex_trafficking",
+        "tags": ["US", "Mann_Act", "interstate"],
+        "text": "US Mann Act (18 U.S.C. sec 2421-2424) -- federal "
+                  "prohibition on transporting any individual across "
+                  "state lines for prostitution or any criminal sexual "
+                  "activity. Often paired with TVPA charges for "
+                  "interstate sex-trafficking cases.",
+    },
+
     {
         "id": "operational_threat_taxonomy",
         "kind": "indicator",

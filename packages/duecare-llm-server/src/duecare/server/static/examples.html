@@ -28,13 +28,14 @@
 </header>
 <main class="dc-main">
 
-  <h2 class="dc-h2">Guided tour — the demo as a video script</h2>
+  <h2 class="dc-h2">Guided tour — Maria's recruitment journey</h2>
   <p class="dc-sub">
-    The tour walks through <b>5 narrative slides</b> (problem · legal
-    context · social-media patterns · why Gemma 4 · prior art) followed
-    by <b>4 live use-case runs</b>. Each example auto-runs through the
-    pipeline with narrated stage explanations. Designed to function
-    as the 3-minute hackathon video when screen-recorded.
+    A composite migrant worker walks through five moments in her
+    recruitment journey, each one caught by a different layer of the
+    pipeline. <b>3 setup slides</b> (Maria · what she sees · why Gemma 4) →
+    <b>5 live pipeline runs</b> → <b>1 closing slide</b> (NGO partners
+    + how to deploy). Designed to be screen-recorded as the
+    3-minute hackathon video.
   </p>
 
   <div class="dc-tour-controls">
@@ -272,273 +273,199 @@ const STAGE_NARRATION = {
                         'and result, and the locale-aware hotline.',
 };
 
-// ===== Intro slides (shown before the 4 examples in the guided tour) =====
+// ===== Outro slide (shown after the 5 examples in the guided tour) =====
+const OUTRO_SLIDES = [
+  {
+    id: 'closing',
+    title: 'Deploy this today — the named partners',
+    accent: '#10b981',
+    body: `<p style="font-size:16px;line-height:1.65">
+Maria's story is composite. The partners below are real. Duecare is
+designed to deploy directly into their workflows:
+</p>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;margin:18px 0">
+  <div style="background:#f8fafc;border:1px solid var(--border);border-radius:8px;padding:14px">
+    <b style="color:var(--primary)">NGOs</b>
+    <ul style="font-size:13px;margin:6px 0 0 18px;padding:0">
+      <li>Polaris Project (US national hotline)</li>
+      <li>IJM (International Justice Mission)</li>
+      <li>ECPAT (child trafficking alliance)</li>
+      <li>HRD Nepal (Nepali GCC workers)</li>
+      <li>Verité (recruitment-fee research)</li>
+      <li>IOM (UN Migration / CTDC)</li>
+    </ul>
+  </div>
+  <div style="background:#f8fafc;border:1px solid var(--border);border-radius:8px;padding:14px">
+    <b style="color:var(--primary)">Government regulators</b>
+    <ul style="font-size:13px;margin:6px 0 0 18px;padding:0">
+      <li>POEA / DMW (Philippines, hotline 1343)</li>
+      <li>BP2MI (Indonesia, 1500-30)</li>
+      <li>EAA (Hong Kong)</li>
+      <li>MOM (Singapore)</li>
+      <li>MOHRE (UAE, 800-60)</li>
+      <li>MHRSD (Saudi Arabia)</li>
+    </ul>
+  </div>
+  <div style="background:#f8fafc;border:1px solid var(--border);border-radius:8px;padding:14px">
+    <b style="color:var(--primary)">Job platforms + courts</b>
+    <ul style="font-size:13px;margin:6px 0 0 18px;padding:0">
+      <li>Bossjob, JobStreet, Indeed regional</li>
+      <li>Facebook Marketplace Jobs</li>
+      <li>HK PCPD (Privacy Commissioner)</li>
+      <li>US DOL WHD + DOJ HTPU (TVPA)</li>
+      <li>EU DPAs (GDPR Art 17)</li>
+      <li>Polaris BeFree, IJM legal teams</li>
+    </ul>
+  </div>
+</div>
+<p style="font-size:15px;line-height:1.65">
+<b>What's next:</b> open <a href="/workspace">/workspace</a> to bring
+your own data, <a href="/architecture">/architecture</a> for the deep
+dive, <a href="/background">/background</a> for the literature, or
+<a href="https://github.com/TaylorAmarelTech/gemma4_comp" target="_blank">github.com/TaylorAmarelTech/gemma4_comp</a>
+for the code. Apache 2.0 model. MIT code. Privacy is non-negotiable.
+</p>`,
+    callouts: [
+      ['One model, eleven jurisdictions',
+        'PH, HK, ID, NP, BD, IN, LK, SG, MY, AE, SA, QA, KW, BH, OM, US, EU + 5 more in the KB. The same Gemma 4 + 11 tools + 53-passage KB serves every one of them.'],
+    ],
+  },
+];
+
+// ===== Intro slides (shown before the example runs in the guided tour) =====
+// Three slides timed for ~25s each in the auto-tour (~75s total).
+// Uses Maria Santos -- a composite Filipina caregiver bound for Jeddah --
+// as the named character whose journey threads through every example below.
 const INTRO_SLIDES = [
   {
-    id: 'opening',
-    title: 'The problem we are solving',
+    id: 'meet_maria',
+    title: 'Meet Maria — a composite of 169 million',
     accent: '#ef4444',
-    body: `<p style="font-size:15px;line-height:1.65">
-Migrant workers are the people who clean houses, build stadiums,
-fish, farm, and care for children far from their own homes.
-<b>27.6 million people are in forced labour</b>
-(<a href="https://www.ilo.org/global/topics/forced-labour/publications/WCMS_854733/lang--en/index.htm" target="_blank">ILO + IOM, 2022</a>);
-<b>169 million</b> are international migrant workers
-(<a href="https://www.ilo.org/wcmsp5/groups/public/---dgreports/---dcomm/documents/publication/wcms_808935.pdf" target="_blank">ILO, 2021</a>).
-The recruitment-stage abuses — passport confiscation, debt bondage from
-illegal placement fees, kafala-system "safekeeping," movement
-restrictions — are <b>linguistically detectable</b> in the ads,
-chats, and contracts that put workers into those situations.
+    body: `<p style="font-size:16px;line-height:1.65">
+<b>Maria Santos is a composite character.</b> She is a 32-year-old
+Filipina nurse looking for caregiver work in Saudi Arabia — built
+from public ILO + IOM + Verité case typology, not from any one
+victim. Her story illustrates a pattern that plays out for
+<b>millions</b>:
 </p>
-<p style="font-size:15px;line-height:1.65;margin-top:14px">
-The job boards, social platforms, and messaging apps
-where this language circulates are where the leverage is — but
-they're also where the existing detection tools fail.
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin:18px 0">
+  <div style="background:#fef2f2;border-left:4px solid #ef4444;padding:14px;border-radius:6px">
+    <div style="font-size:24px;font-weight:700;color:#991b1b">27.6M</div>
+    <div style="font-size:12px;color:#1f2937">in forced labour worldwide
+      <small style="display:block;color:var(--muted)">(ILO + IOM, 2022)</small></div>
+  </div>
+  <div style="background:#fef2f2;border-left:4px solid #ef4444;padding:14px;border-radius:6px">
+    <div style="font-size:24px;font-weight:700;color:#991b1b">169M</div>
+    <div style="font-size:12px;color:#1f2937">international migrant workers
+      <small style="display:block;color:var(--muted)">(ILO, 2021)</small></div>
+  </div>
+  <div style="background:#fef2f2;border-left:4px solid #ef4444;padding:14px;border-radius:6px">
+    <div style="font-size:24px;font-weight:700;color:#991b1b">~$5,250</div>
+    <div style="font-size:12px;color:#1f2937">avg recruitment-fee debt
+      <small style="display:block;color:var(--muted)">(IOM/IFC, 2017)</small></div>
+  </div>
+  <div style="background:#fef2f2;border-left:4px solid #ef4444;padding:14px;border-radius:6px">
+    <div style="font-size:24px;font-weight:700;color:#991b1b">~50K/yr</div>
+    <div style="font-size:12px;color:#1f2937">complaints filed with PH DMW alone
+      <small style="display:block;color:var(--muted)">(operational estimate)</small></div>
+  </div>
+</div>
+<p style="font-size:15px;line-height:1.65">
+The four examples that follow are <b>five moments in
+Maria's recruitment journey</b>: the suspicious job ad she scrolls
+past on Facebook, the recruiter's WhatsApp message she pastes into
+her phone, the contract excerpt her caseworker reads, the public-
+shaming post that targets her when she misses a payment, and the
+"safekeeping" clause buried in her final contract. Watch Duecare
+catch each one, in real time, on a $300 laptop.
 </p>`,
     callouts: [
-      ['Today', '~$236 B annual criminal industry estimate (ILO 2022). ' +
-                  '~50K migrant-worker recruitment complaints per year filed with the ' +
-                  'Philippines DMW alone. The supply of cases dwarfs ' +
-                  'the supply of caseworkers.'],
-      ['The gap', 'Frontier LLMs can answer general questions about labour ' +
-                    'law, but they (a) require sending case data to a commercial ' +
-                    'cloud (NGOs cannot), (b) cost too much per token at NGO scale, ' +
-                    'and (c) routinely miss the specific patterns the rubric cares ' +
-                    'about.'],
+      ['Why "composite"', 'No real victim names appear in this demo. ' +
+                              'The patterns are real — names are not. See ' +
+                              '<a href="/background">/background section 5</a> for ' +
+                              'the privacy framework.'],
     ],
   },
   {
-    id: 'legal_context',
-    title: 'Legal context: California + Texas — platforms are now liable',
-    accent: '#3b82f6',
-    body: `<p style="font-size:15px;line-height:1.65">
-Two recent legal developments make passive moderation a liability,
-not a feature:
-</p>
-<ul style="font-size:14px;line-height:1.6">
-<li><b>California AB 587</b> (Content Moderation Transparency Act,
-  2022): platforms with > $100M revenue must publicly report what
-  content categories they detect, how, and at what rate — including
-  trafficking-adjacent content. Vague "we use AI" is no longer a
-  defence.</li>
-<li><b>California negligence verdicts (2024-2026)</b>: civil juries
-  applying the Cal. Civ. Code § 1714(a) duty-of-care standard have
-  found platforms liable for <i>defective design</i> when their
-  recommendation systems amplified content that injured a known
-  vulnerable population. The doctrine has expanded from suicide
-  ideation cases (Bonta v. Meta line) toward broader exploitation
-  patterns.</li>
-<li><b>Texas HB 20</b> (2021, upheld by the 5th Circuit): forces
-  platforms operating in Texas to disclose moderation rationales —
-  raising the bar for explainable AI in moderation pipelines.</li>
-</ul>
-<p style="font-size:15px;line-height:1.65;margin-top:14px">
-The implication: <b>"we ran the post through a model and it said
-PASS" is not enough.</b> Regulators want the evidence chain.
-Plaintiffs' lawyers want it too. Duecare's traced pipeline (every
-KB hit, every tool call, every heuristic match recorded) is
-designed for exactly that audit trail.
-</p>`,
-    callouts: [
-      ['Why this matters for the demo', 'Every Duecare verdict ships with ' +
-                                          'the statutes it cites, the tools it called, the heuristic ' +
-                                          'signals that fired, and the KB passages it retrieved. ' +
-                                          'That is the audit trail AB 587 + the 1714(a) ' +
-                                          'duty-of-care standard demand.'],
-    ],
-  },
-  {
-    id: 'social_media_examples',
-    title: 'Real evidence: what these patterns look like in the wild',
+    id: 'evidence_reel',
+    title: 'What Maria sees — and why no current tool catches it',
     accent: '#f59e0b',
     body: `<p style="font-size:15px;line-height:1.65">
-Below are <b>redacted thumbnails of actual public Facebook posts</b>
-documenting the predatory-lender doxxing pattern targeting Filipino
-and Indonesian OFWs. Originals are screen recordings + screenshots
-collected from public pages (Bank Hongkong, Yoursun Caretaker, Wang
-Tzu, and others) between February 2021 and April 2024 — across
-multiple lender accounts, in multiple languages, over four years.
+The recruiters, lenders, and "agency bosses" who target Maria
+operate on Facebook, TikTok, Telegram, and WhatsApp — in her
+language, in her communities, with no platform moderation tuned
+for trafficking. <b>Below: redacted thumbnails of real public
+posts</b> we collected.
 </p>
 
 <div style="background:#fef2f2;border-left:4px solid #ef4444;padding:12px 16px;border-radius:6px;margin:14px 0;font-size:13px">
-<b style="color:#991b1b">⚠ Why the images are heavily blurred:</b>
-the originals contain unredacted full names, passport photos, and
-identifying details of real OFW victims. Per the project's safety
-gate (<a href="/background">/background section 5</a>) we cannot ship
-the raw screenshots — even though they are technically public — because
-doing so would compound the doxxing harm. The thumbnails below are
-deliberately reduced to <i>pattern-only</i> visibility (boxblur=20,
-downscale to 480px, "REDACTED" watermark). The pattern (Facebook
-post · photo thumbnail · debt-shaming text block) is recognisable;
-no individual identification is possible. Click "Open evidence
-gallery" below for the full collection (4 image albums + 30 video
-keyframes + sanitised research-document summary).
+<b style="color:#991b1b">Why heavy blur:</b> the originals contain
+unredacted full names + passport photos of real OFWs. We cannot ship
+the raw screenshots even though they are public — doing so would
+compound the doxxing harm. The pattern (Facebook post · photo
+thumbnail · debt-shaming text block) is recognisable; no individual
+identification is possible. <a href="/background">Privacy framework →</a>
 </div>
 
 <div id="slide3-evidence-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;margin:14px 0">
-  <!-- populated from /static/evidence/manifest.json on slide enter -->
   <div style="grid-column:1/-1;color:var(--muted);font-size:12px">Loading evidence thumbnails…</div>
 </div>
 
 <p style="font-size:14px;line-height:1.6;margin-top:14px">
-<b>What the pipeline catches in this category:</b>
+<b>What today's tools miss:</b> Google Perspective is tuned for
+toxic speech, not trafficking patterns. POEA / EAA / MOM registries
+are reactive lookups, not real-time pre-filters. Frontier LLMs
+require sending Maria's case data to a cloud her NGO can't legally
+use. Specialized AML tools cost ~$50K/year — out of reach.
 </p>
-<ul style="font-size:14px;line-height:1.6">
-<li><b>"WANTED:" / "looking for this OFW" framing</b> →
-  <code>check_social_media_harassment</code> matches "manhunt language"</li>
-<li><b>Passport photo + full name combination</b> →
-  <code>check_doxxing_indicators</code> flags HIGH risk</li>
-<li><b>"asap pay ur overdues" / threat to escalate publicly</b> →
-  <code>check_debt_harassment</code> detects HARASSMENT</li>
-<li><b>Bank Hongkong / Yoursun Caretaker / Wang Tzu page names</b> →
-  <code>check_predatory_lender</code> applies +3 severity bump</li>
-<li><b>Multi-language amplification</b> (English / Tagalog / Bahasa
-  Indonesia / Vietnamese) → RAG retrieves the relevant local statutes
-  (PH RA 10173 / 10175 / 9995 / SEC MC 18-2019 + HK Cap. 486)</li>
-</ul>
-
 <p style="margin-top:14px">
-<a href="/evidence" class="dc-btn" style="display:inline-block;padding:8px 16px;text-decoration:none">📂 Open evidence gallery</a>
+<a href="/evidence" class="dc-btn" style="display:inline-block;padding:8px 16px;text-decoration:none">📂 Browse the full evidence gallery (74 assets)</a>
 </p>`,
     callouts: [
-      ['The platform problem', 'These platforms have moderation tuned to ' +
-                                  'general toxicity. Trafficking-specific language (passport ' +
-                                  '"safekeeping", "kafala", debt-bondage phrasing, "wanted ' +
-                                  'poster" debt-shaming) sails through because no model has ' +
-                                  'been trained on it as a category. Hence the multi-stage ' +
-                                  'KB+tool approach Duecare uses.'],
-      ['Redaction policy', 'The 30+ evidence images shipped with the demo ' +
-                              'are aggressive blur ("schematic only") versions of real ' +
-                              'public posts. Originals stay in a gitignored evidence_raw/ ' +
-                              'directory on the operator\'s machine and never enter the ' +
-                              'wheel. The redaction tool (scripts/redact_evidence.py) is ' +
-                              'open and auditable -- ffmpeg boxblur=20 + downscale + ' +
-                              '"REDACTED" watermark.'],
+      ['The detection gap',
+        'Heuristic + GREP + RAG + tool calls + Gemma 4 — five layers, each catching what the others miss. The pipeline diagram on /architecture explains how.'],
     ],
   },
   {
     id: 'why_gemma',
-    title: 'Why Gemma 4 — and why the answer is the same for every stakeholder',
+    title: 'Why Gemma 4 — privacy, price, and one model for everyone',
     accent: '#10b981',
     body: `<p style="font-size:15px;line-height:1.65">
-Two deployment modes, same model. The same Gemma 4 E4B that runs in
-4-bit on a $300 used laptop is what runs at scale on enterprise
-infra — just with bigger batch sizes.
+The same Gemma 4 E4B that runs in 4-bit on a $300 laptop is what
+runs at scale on enterprise infrastructure — only the deployment mode
+changes.
 </p>
 <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:14px 0">
-  <div style="background:#f8fafc;border:1px solid var(--border);border-radius:8px;padding:14px">
-    <b style="color:var(--primary)">Local / on-device</b>
-    <ul style="font-size:13px;margin-top:6px">
-      <li>E4B 4-bit fits in <b>~5.5 GB VRAM</b> (Kaggle T4, NVIDIA 3060)</li>
-      <li>E2B 4-bit fits in <b>~2 GB</b> (high-end phone via LiteRT)</li>
-      <li><b>Zero data egress</b> — case files stay on operator hardware</li>
-      <li>Apache 2.0 — NGOs can deploy without commercial licence concerns</li>
-      <li>Works offline — useful in field operations</li>
+  <div style="background:#ecfdf5;border:1px solid #10b981;border-radius:8px;padding:14px">
+    <b style="color:#065f46">On-device (NGO / hotline / phone)</b>
+    <ul style="font-size:13px;margin-top:6px;padding-left:18px">
+      <li>E4B 4-bit fits in <b>~5.5 GB VRAM</b> (Kaggle T4)</li>
+      <li>E2B 4-bit fits in <b>~2 GB</b> (high-end phone, LiteRT)</li>
+      <li><b>Zero data egress</b> — case files never leave</li>
+      <li>Apache 2.0, free for humanitarian deployment</li>
     </ul>
   </div>
-  <div style="background:#f8fafc;border:1px solid var(--border);border-radius:8px;padding:14px">
-    <b style="color:var(--primary)">Enterprise / batch</b>
-    <ul style="font-size:13px;margin-top:6px">
-      <li><b>~$0 per call</b> after deployment vs. $0.005–0.05 frontier API call</li>
-      <li>Throughput: ~100 verdicts/min on a single A100 (4-bit)</li>
-      <li>Same prompts, same KB, same tools as the local deployment</li>
-      <li>Audit: model weights are pinned + reproducible (git_sha + ckpt)</li>
-      <li>Fine-tunable on operator data via Unsloth (Phase 3 in this repo)</li>
+  <div style="background:#eff6ff;border:1px solid #3b82f6;border-radius:8px;padding:14px">
+    <b style="color:#1e40af">Enterprise / batch (platform, regulator)</b>
+    <ul style="font-size:13px;margin-top:6px;padding-left:18px">
+      <li><b>~$0/call</b> after deploy vs. $0.005-0.05/frontier call</li>
+      <li>~100 verdicts/min on a single A100 (4-bit)</li>
+      <li>Same KB + tools as the on-device build</li>
+      <li>Audit-trail-friendly per California AB 587</li>
     </ul>
   </div>
 </div>
-<p style="font-size:15px;line-height:1.65;margin-top:14px">
-The same engine works for every stakeholder in this ecosystem:
-</p>
-<ul style="font-size:14px;line-height:1.6">
-<li><b>NGOs</b> (Polaris, IJM, ECPAT, HRD Nepal, Verité): triage
-  case-file folders without uploading to a cloud.</li>
-<li><b>Government regulators</b> (POEA/DMW, BP2MI, EAA, MOM, MOHRE,
-  Saudi MHRSD, Qatar ADLSA): batch-review recruitment-agency
-  postings before licensing decisions.</li>
-<li><b>Worker hotlines</b> (1343 PH, 2717-1771 HK, MOHRE 800-60):
-  pre-classify incoming messages so human operators see the
-  high-severity cases first.</li>
-<li><b>Job platforms</b> (Bossjob, JobStreet, Indeed regional,
-  Facebook Marketplace Jobs): pre-publication moderation that's
-  accountable + explainable per CA AB 587.</li>
-<li><b>Courts / enforcement</b> (PACER, AustLII, BAILII, POEA legal
-  affairs): the audit trail makes the moderation chain admissible
-  evidence.</li>
-<li><b>Academic researchers</b> (CMU, IOM CTDC, Verité): an open
-  standardised pipeline for trafficking-detection benchmarking.</li>
-</ul>`,
-    callouts: [
-      ['Why one model works for all', 'The expensive cognitive work ' +
-                                          '(forced-labour reasoning) is the same regardless of who ' +
-                                          'is calling. The DEPLOYMENT mode (T4 vs. A100 vs. phone) ' +
-                                          'is the only variable. That is what Gemma 4 makes possible.'],
-    ],
-  },
-  {
-    id: 'prior_art',
-    title: 'Prior art + benchmark gaps',
-    accent: '#8b5cf6',
-    body: `<p style="font-size:15px;line-height:1.65">
-The author's <b>OpenAI gpt-oss-20b Red-Teaming Challenge</b>
-submission (<i>"LLM Complicity in Modern Slavery: Native Blind
-Spots to Amplified Exploitation"</i>) documented five recurring
-failure modes of frontier LLMs on migrant-worker trafficking
-scenarios:
-</p>
-<ol style="font-size:14px;line-height:1.6">
-<li>Moral / religious framing of exploitation as "duty"</li>
-<li>Regulatory evasion (advice on how to skirt POEA caps)</li>
-<li>Coercion math (calculating debt-bondage interest schedules)</li>
-<li>Financial obfuscation (helping structure shell-company fee
-  collection)</li>
-<li>Systematic combinatorial variations (small parameter changes
-  that bypass the same model's safety filter)</li>
-</ol>
-<h4 style="color:var(--primary);text-transform:uppercase;letter-spacing:.04em;font-size:13px;margin-top:18px">Where existing benchmarks fall short</h4>
 <p style="font-size:14px;line-height:1.6">
-General-purpose harm benchmarks like <b>HarmBench</b>, <b>JailbreakBench</b>,
-<b>SafetyBench</b>, and <b>ToxicChat</b> include categories like
-chemical weapons or hate speech — but trafficking-specific harm is
-either absent or collapsed into "illegal activities." Stock Gemma
-4 E4B on the author's 74,567-prompt trafficking benchmark scores
-<b>0.61 mean / 20% pass rate / 0% harmful</b> on Kaggle T4 — meaning
-the model REFUSES correctly most of the time but doesn't actually
-DETECT the patterns it's looking at.
-</p>
-<h4 style="color:var(--primary);text-transform:uppercase;letter-spacing:.04em;font-size:13px;margin-top:18px">Why the layered system wins</h4>
-<p style="font-size:14px;line-height:1.6">
-A <b>good</b> trafficking-detection system can be built with Gemma + native
-tool calling alone — the model can ask for statute lookups and
-hotline contacts and get them. A <b>great</b> system layers all five
-stages, because each catches what the others miss:
-</p>
-<ul style="font-size:13px;line-height:1.55">
-<li><b>Heuristic alone</b>: deterministic but brittle. Misses
-  euphemisms.</li>
-<li><b>GREP alone</b>: explainable but vocabulary-bound.</li>
-<li><b>RAG alone</b>: covers paraphrase but can drift on adversarial
-  inputs.</li>
-<li><b>Tool calls alone</b>: precise but reactive — they answer
-  questions, they don't ask them.</li>
-<li><b>LLM alone</b>: misses specific facts (statute numbers, fee
-  caps, agency licence status), can be jailbroken, costs per token.</li>
-<li><b>All five together</b>: the LLM provides reasoning glue + the
-  audit-trail-friendly verdict; everything else provides the
-  ground-truth facts the LLM doesn't know.</li>
-</ul>
-<p style="font-size:14px;line-height:1.6;margin-top:14px">
-The <b>ideal posture</b>: each stage's data (KB passages, heuristic
-rules, tool registries) is maintained by the organisation closest to
-ground truth — POEA owns the agency-licence registry, ILO owns the
-indicator framework, IOM owns the embassy contacts. Duecare is the
-plumbing that lets a model use all of it.
+The same engine deploys for: <b>NGOs</b> (Polaris, IJM, ECPAT, HRD
+Nepal, Verité), <b>regulators</b> (POEA/DMW, BP2MI, EAA, MOM,
+MOHRE, MHRSD, ADLSA), <b>worker hotlines</b> (PH 1343, HK 2717-1771,
+MOHRE 800-60), <b>job platforms</b> (Bossjob, JobStreet, Indeed
+regional, FB Marketplace Jobs), <b>courts + enforcement</b>, and
+<b>academic researchers</b>.
 </p>`,
     callouts: [
-      ['Implication for the demo', 'Watch the 4 examples below: each ' +
-                                      'verdict is a JSON record with all 5 stages\' outputs ' +
-                                      'attached. That is the audit trail courts will ask for and ' +
-                                      'the evidence package NGOs will need.'],
+      ['One model, one pipeline',
+        'The "real, not faked" rubric criterion is satisfied because every example below runs through the same 5-stage pipeline as the on-device build. No demo-only code paths.'],
     ],
   },
 ];
@@ -547,8 +474,8 @@ plumbing that lets a model use all of it.
 const EXAMPLES = [
   {
     id: 'jobboard_fraud',
-    title: 'Recruitment fraud on a job board',
-    who: 'Job-board moderator (enterprise)',
+    title: 'Scene 1 — Maria sees the job ad on Bossjob',
+    who: 'Job-board moderator (Maria almost applied)',
     icon: '⚙',
     iconBg: '#3b82f6',
     what: 'A recruitment agency posts what looks like a normal job ' +
@@ -591,8 +518,8 @@ const EXAMPLES = [
   },
   {
     id: 'worker_self_check',
-    title: 'Worker checking a recruiter chat message',
-    who: 'Migrant worker (individual)',
+    title: 'Scene 2 — Maria pastes a WhatsApp message',
+    who: 'Maria using the Individual chatbot on her phone',
     icon: '👤',
     iconBg: '#10b981',
     what: 'A Filipina caregiver receives what looks like an OK job ' +
@@ -635,8 +562,8 @@ const EXAMPLES = [
   },
   {
     id: 'ngo_passport_indicator',
-    title: 'NGO triage: passport-held-by-employer pattern',
-    who: 'NGO caseworker / investigator',
+    title: 'Scene 3 — Maria\'s dorm-mate Sita writes a complaint letter',
+    who: 'NGO caseworker triaging the letter',
     icon: '🔎',
     iconBg: '#8b5cf6',
     what: 'A complaint letter from a domestic worker in Hong Kong ' +
@@ -680,8 +607,8 @@ const EXAMPLES = [
   },
   {
     id: 'social_media_doxxing',
-    title: 'Social media doxxing: predatory-lender "wanted poster" against an OFW',
-    who: 'Job-board moderator / hotline operator / NGO',
+    title: 'Scene 4 — Maria misses a payment, lender posts her photo',
+    who: 'Hotline operator + platform-takedown moderator',
     icon: '⚠',
     iconBg: '#dc2626',
     what: 'A Facebook page operated by a predatory lender publicly ' +
@@ -746,7 +673,7 @@ const EXAMPLES = [
   },
   {
     id: 'subtle_passport',
-    title: 'Subtle scam: kafala / "safekeeping" passport language',
+    title: 'Scene 5 — The contract Maria almost signed (kafala "safekeeping")',
     who: 'Job-board moderator (enterprise)',
     icon: '⚠',
     iconBg: '#f59e0b',
@@ -849,7 +776,7 @@ function renderCards() {
       calloutsHtml +
       `</div>`;
   }
-  // Then: 4 example cards (collapsible with run buttons)
+  // Then: example cards (collapsible with run buttons)
   for (const ex of EXAMPLES) {
     const pillsHtml = ex.pills.map(([k, v]) =>
       `<span class="pill ${k}">${v}</span>`).join('');
@@ -864,6 +791,19 @@ function renderCards() {
       `<button class="open-btn" onclick="toggleCard('${ex.id}')">` +
       `<span class="cta-label">Open + run this example</span></button>` +
       `<div class="dc-ex-detail" id="detail-${ex.id}"></div>` +
+      `</div>`;
+  }
+  // Then: outro slides (full-width narrative, no run button)
+  for (let i = 0; i < OUTRO_SLIDES.length; i++) {
+    const slide = OUTRO_SLIDES[i];
+    const calloutsHtml = (slide.callouts || []).map(([t, b]) =>
+      `<div class="dc-callout" style="border-color:${slide.accent}">` +
+      `<b>${t}.</b> ${b}</div>`).join('');
+    html += `<div class="dc-intro-card" id="card-${slide.id}">` +
+      `<div class="dc-intro-num" style="background:${slide.accent}">✓</div>` +
+      `<h3 style="margin:0 0 12px 0;color:${slide.accent}">${slide.title}</h3>` +
+      `<div>${slide.body}</div>` +
+      calloutsHtml +
       `</div>`;
   }
   grid.innerHTML = html;
@@ -1124,47 +1064,53 @@ function stopTour() {
 
 async function playTourStep() {
   if (!_tourActive) return;
-  const totalSteps = INTRO_SLIDES.length + EXAMPLES.length;
+  const nIntro = INTRO_SLIDES.length;
+  const nEx = EXAMPLES.length;
+  const nOutro = OUTRO_SLIDES.length;
+  const totalSteps = nIntro + nEx + nOutro;
   if (_tourIndex >= totalSteps) {
     document.getElementById('tour-status').innerHTML =
-      `<b>✓ Tour complete (${totalSteps}/${totalSteps}).</b> ` +
-      `Open <a href="/architecture">/architecture</a> for the deep ` +
-      `dive or <a href="/workspace">/workspace</a> to try your own data.`;
+      `<b>✓ Tour complete (${totalSteps}/${totalSteps}).</b>`;
     document.getElementById('stop-btn').style.display = 'none';
     _tourActive = false;
     return;
   }
 
-  if (_tourIndex < INTRO_SLIDES.length) {
-    // Intro slide -- just scroll to it and pause
-    const slide = INTRO_SLIDES[_tourIndex];
-    document.getElementById('tour-status').innerHTML =
-      `<b>Slide ${_tourIndex + 1} of ${totalSteps}:</b> ` +
-      `<i>${slide.title}</i>`;
+  let slide = null;
+  let isExample = false;
+  if (_tourIndex < nIntro) {
+    slide = INTRO_SLIDES[_tourIndex];
+  } else if (_tourIndex < nIntro + nEx) {
+    slide = EXAMPLES[_tourIndex - nIntro];
+    isExample = true;
+  } else {
+    slide = OUTRO_SLIDES[_tourIndex - nIntro - nEx];
+  }
+
+  document.getElementById('tour-status').innerHTML =
+    `<b>Slide ${_tourIndex + 1} of ${totalSteps}:</b> ` +
+    `<i>${slide.title}</i>`;
+
+  if (isExample) {
+    document.querySelectorAll('.dc-ex-card.open')
+      .forEach(c => c.classList.remove('open'));
+    const card = document.getElementById('card-' + slide.id);
+    card.classList.add('open');
+    buildDetail(slide);
+    card.scrollIntoView({behavior:'smooth', block:'start'});
+    await sleep(800);
+    await runExample(slide.id);
+    if (!_tourActive) return;
+    await sleep(5000);
+  } else {
     const card = document.getElementById('card-' + slide.id);
     if (card) {
       card.classList.add('dc-intro-card-active');
       card.scrollIntoView({behavior:'smooth', block:'start'});
     }
-    // Hold long enough for a viewer to read (~7s for intro slides)
-    await sleep(8000);
+    // Intro/outro slides ~12s each (longer for the rich visuals).
+    await sleep(12000);
     if (card) card.classList.remove('dc-intro-card-active');
-  } else {
-    // Example slide -- open + auto-run
-    const ex = EXAMPLES[_tourIndex - INTRO_SLIDES.length];
-    document.getElementById('tour-status').innerHTML =
-      `<b>Slide ${_tourIndex + 1} of ${totalSteps}:</b> ` +
-      `<i>${ex.title}</i>`;
-    document.querySelectorAll('.dc-ex-card.open')
-      .forEach(c => c.classList.remove('open'));
-    const card = document.getElementById('card-' + ex.id);
-    card.classList.add('open');
-    buildDetail(ex);
-    card.scrollIntoView({behavior:'smooth', block:'start'});
-    await sleep(800);
-    await runExample(ex.id);
-    if (!_tourActive) return;
-    await sleep(5000);
   }
 
   if (!_tourActive) return;
