@@ -20,8 +20,16 @@
     flows through a heuristic prescan, a regex&#8209;and&#8209;RAG
     knowledge base of statutes and conventions, deterministic
     domain tools, and a Gemma 4 verdict — with each stage written
-    to an audit trail an investigator, regulator, or NGO can review.
+    to an audit trail any reviewer can inspect.
   </p>
+
+  <ul class="dc-home-users" aria-label="Built for">
+    <li><span class="dc-user-icon" style="background:#dbeafe;color:#1e40af">⚡</span><b>Social-media platforms</b><br>moderation queues, CA AB 587 / Texas HB 20 transparency reports</li>
+    <li><span class="dc-user-icon" style="background:#fef3c7;color:#92400e">🛡</span><b>NGOs &amp; hotlines</b><br>Polaris, IJM, ECPAT, HRD Nepal — bulk case triage</li>
+    <li><span class="dc-user-icon" style="background:#fef2f2;color:#991b1b">⚖</span><b>Government &amp; regulators</b><br>DOL, BP2MI, MOM, MOHRE, FET — license &amp; statute enforcement</li>
+    <li><span class="dc-user-icon" style="background:#ecfdf5;color:#065f46">👤</span><b>Individuals</b><br>workers &amp; families — self-check a suspicious offer or message</li>
+    <li><span class="dc-user-icon" style="background:#f5f3ff;color:#5b21b6">🔬</span><b>Researchers</b><br>auditable harness for benchmarking, fine-tuning, policy work</li>
+  </ul>
 
   <h2 class="dc-home-cta">Where would you like to start?</h2>
 
@@ -81,6 +89,31 @@ body.dc-home-min {
 .dc-home-sub {
   margin: 0; font-size: 14px; color: var(--muted);
   text-align: center; max-width: 760px; line-height: 1.6;
+}
+.dc-home-users {
+  list-style: none; padding: 0; margin: 4px 0 0 0;
+  display: grid; grid-template-columns: repeat(5, 1fr);
+  gap: 10px; width: 100%; max-width: 1180px;
+}
+.dc-home-users li {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 10px; padding: 12px 14px;
+  font-size: 12px; line-height: 1.45; color: var(--muted);
+}
+.dc-home-users li b { color: var(--ink); font-size: 13px; }
+.dc-home-users .dc-user-icon {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 28px; height: 28px; border-radius: 8px;
+  font-size: 14px; margin-bottom: 8px;
+}
+@media (max-width: 1100px) {
+  .dc-home-users { grid-template-columns: repeat(3, 1fr); max-width: 760px; }
+}
+@media (max-width: 700px) {
+  .dc-home-users { grid-template-columns: repeat(2, 1fr); max-width: 540px; }
+}
+@media (max-width: 480px) {
+  .dc-home-users { grid-template-columns: 1fr; }
 }
 .dc-home-cta {
   margin: 18px 0 4px 0; font-size: 22px; font-weight: 600;
