@@ -1596,13 +1596,73 @@ Used by the GREP and RAG stages of the pipeline.
   },
 
   // ----------------------------------------------------------------
-  // Slide -- Appendix B: Tool catalog
+  // Slide -- Appendix B: Retrieval mechanism (GREP + RAG)
+  // ----------------------------------------------------------------
+  {
+    id: 'appendix_retrieval',
+    tag: 'Appendix B',
+    tagBg: '#f5f3ff', tagFg: '#5b21b6',
+    title: 'Appendix B. Retrieval mechanism (GREP + RAG).',
+    autoSec: 18,
+    body: `
+<p style="font-size:16px;margin-top:0;color:var(--muted)">
+Stages 2 and 3 of the pipeline both retrieve from the same 53-passage
+knowledge base, but with different mechanics. Together they catch
+both vocabulary-exact and paraphrased / cross-language matches.
+</p>
+<div class="dc-twocol-layout">
+  <div class="dc-twocol-card good">
+    <h2 style="margin-top:0;color:#065f46">Stage 2: GREP (regex)</h2>
+    <ul style="font-size:13px">
+      <li><b>Mechanism.</b> Each KB passage compiles a per-passage
+        <code>re.Pattern</code> (case-insensitive, multiline, dotall)
+        from its <code>match_terms</code> field. <code>re.search</code>
+        runs against the input text.</li>
+      <li><b>Cost.</b> ~20 ms total for all 53 passages on CPU.</li>
+      <li><b>Strengths.</b> Deterministic, explainable, exact-match.
+        Captures statute citations verbatim
+        (e.g. <code>RA 8042 sec 6(a)</code>).</li>
+      <li><b>Weaknesses.</b> Vocabulary-bound. Misses paraphrase
+        (<i>"keep your passport safe"</i> vs
+        <i>"hold the passport for safekeeping"</i>) and translations.</li>
+      <li><b>Audit field.</b> <code>kb_hits[].kind = "grep"</code>
+        with the matched term recorded.</li>
+    </ul>
+  </div>
+  <div class="dc-twocol-card good">
+    <h2 style="margin-top:0;color:#065f46">Stage 3: RAG (embeddings)</h2>
+    <ul style="font-size:13px">
+      <li><b>Mechanism.</b> sentence-transformers
+        <code>all-MiniLM-L6-v2</code> embeds the input. Cosine
+        similarity against the pre-computed embeddings of all 53
+        passages. Top-K = 5 above a 0.40 threshold.</li>
+      <li><b>Cost.</b> ~200 ms total on CPU; ~30 ms on GPU.</li>
+      <li><b>Strengths.</b> Catches paraphrase and cross-language
+        semantic matches GREP misses. Works on any of the 27+
+        Gemma-supported languages.</li>
+      <li><b>Weaknesses.</b> Can drift on adversarial inputs;
+        embedding quality limits ceiling.</li>
+      <li><b>Audit field.</b> <code>kb_hits[].kind = "rag"</code>
+        with the cosine score recorded.</li>
+    </ul>
+  </div>
+</div>
+<div class="dc-callout success" style="margin-top:auto">
+<b>Combination strategy.</b> Hits from GREP and RAG are deduplicated
+by passage ID, then the merged set is passed to Gemma 4 as ground
+truth. GREP hits get priority (deterministic). When the same passage
+is matched by both stages, the verdict reasoning shows both signals.
+</div>`
+  },
+
+  // ----------------------------------------------------------------
+  // Slide -- Appendix C: Tool catalog
   // ----------------------------------------------------------------
   {
     id: 'appendix_tools',
-    tag: 'Appendix B',
+    tag: 'Appendix C',
     tagBg: '#f5f3ff', tagFg: '#5b21b6',
-    title: 'Appendix B. Tool catalog.',
+    title: 'Appendix C. Tool catalog.',
     autoSec: 18,
     body: `
 <p style="font-size:16px;margin-top:0;color:var(--muted)">
@@ -1673,13 +1733,88 @@ Gemma 4 prompt as ground-truth context.
   },
 
   // ----------------------------------------------------------------
-  // Slide -- Appendix C: Heuristic taxonomy
+  // Slide -- Appendix D: Tool call orchestration
+  // ----------------------------------------------------------------
+  {
+    id: 'appendix_tool_calls',
+    tag: 'Appendix D',
+    tagBg: '#f5f3ff', tagFg: '#5b21b6',
+    title: 'Appendix D. Tool call orchestration.',
+    autoSec: 18,
+    body: `
+<p style="font-size:16px;margin-top:0;color:var(--muted)">
+How the 11 deterministic tools actually fire. Each is a pure
+Python function with a uniform signature, gated by prescan signals
+and locale, executed in parallel before Gemma sees the input.
+</p>
+<div class="dc-twocol-layout">
+  <div class="dc-twocol-card good">
+    <h2 style="margin-top:0;color:#065f46">Tool contract</h2>
+    <p style="font-size:13px">
+    Every tool implements the same signature so the orchestrator
+    can fire them uniformly:
+    </p>
+    <pre style="background:#0f172a;color:#e2e8f0;padding:12px;border-radius:6px;font-size:11.5px;overflow:auto;line-height:1.5;margin:8px 0"><code>def my_tool(
+    prescan: dict,
+    locale: str,
+    text: str,
+) -> ToolResult:
+    # ToolResult = {
+    #   tool: str,           # tool name
+    #   args: dict,          # what we called it with
+    #   result: Any,         # structured output
+    #   n_results: int,      # 0 if no match
+    #   fallback_used: bool, # heuristic fallback?
+    #   error: str | None,   # set if tool failed
+    # }
+    ...</code></pre>
+    <p style="font-size:13px;margin-bottom:0">
+    Pure functions, no I/O outside the bound knowledge base.
+    Every call is reproducible from
+    <code>(prescan_hash, locale, text_hash)</code>.
+    </p>
+  </div>
+  <div class="dc-twocol-card good">
+    <h2 style="margin-top:0;color:#065f46">Orchestration</h2>
+    <ul style="font-size:13px">
+      <li><b>Parallel firing.</b>
+        <code>ThreadPoolExecutor(max_workers=11)</code> dispatches
+        every tool simultaneously. Total wall-clock for the bundle
+        is the slowest tool, not the sum.</li>
+      <li><b>Signal gating.</b> Each tool decides itself whether to
+        fire (e.g. <code>lookup_hotline</code> returns empty if no
+        locale; <code>lookup_statute</code> returns empty if no
+        prescan signal matches its topic). No wasted work.</li>
+      <li><b>Fallback policy.</b> If a tool errors,
+        <code>fallback_used: true</code> + a heuristic stand-in
+        (e.g. generic hotline list). The pipeline never blocks
+        on a single tool failure.</li>
+      <li><b>Audit log.</b> Every fired tool, its args, its
+        n_results, and any error are recorded in the trace as a
+        separate <code>tool_calls[]</code> entry.</li>
+      <li><b>Gemma 4 follow-up.</b> Even after the parallel batch
+        runs, Gemma can request additional calls via
+        function-calling primitives (e.g. drill into a specific
+        statute's fee-cap calculation).</li>
+    </ul>
+  </div>
+</div>
+<div class="dc-callout success" style="margin-top:auto">
+<b>Why before, not during.</b> Running tools deterministically
+before Gemma means the LLM never has to invent a statute number,
+fee cap, or hotline contact. The grounding facts are present in
+the prompt context, so Gemma synthesises rather than guesses.
+</div>`
+  },
+
+  // ----------------------------------------------------------------
+  // Slide -- Appendix E: Heuristic taxonomy
   // ----------------------------------------------------------------
   {
     id: 'appendix_heuristics',
-    tag: 'Appendix C',
+    tag: 'Appendix E',
     tagBg: '#f5f3ff', tagFg: '#5b21b6',
-    title: 'Appendix C. Heuristic taxonomy.',
+    title: 'Appendix E. Heuristic taxonomy.',
     autoSec: 18,
     body: `
 <p style="font-size:16px;margin-top:0;color:var(--muted)">
@@ -1726,6 +1861,84 @@ LLM call.
       <li>Social-media job-board cross-postings</li>
     </ul>
   </div>
+</div>`
+  },
+
+  // ----------------------------------------------------------------
+  // Slide -- Appendix F: Extensibility
+  // ----------------------------------------------------------------
+  {
+    id: 'appendix_extensibility',
+    tag: 'Appendix F',
+    tagBg: '#f5f3ff', tagFg: '#5b21b6',
+    title: 'Appendix F. Extending Duecare.',
+    autoSec: 18,
+    body: `
+<p style="font-size:16px;margin-top:0;color:var(--muted)">
+Every layer of the stack is meant to be extended. New jurisdictions,
+new tools, new languages, new domain packs are local-only changes
+that ship as standard Python packages. No upstream PR required.
+</p>
+<div class="dc-appx-grid">
+  <div class="dc-appx-section">
+    <h3>Add a KB passage</h3>
+    <ul>
+      <li>Edit <code>scripts/build_kb.py</code></li>
+      <li>Append: <code>id, title, kind (statute / convention / indicator), jurisdiction, topic, text, match_terms[]</code></li>
+      <li>Re-run; embeddings rebuild automatically</li>
+      <li>Available to GREP and RAG immediately</li>
+    </ul>
+  </div>
+  <div class="dc-appx-section">
+    <h3>Add a tool</h3>
+    <ul>
+      <li>Implement <code>(prescan, locale, text) → ToolResult</code></li>
+      <li>Register in <code>TOOL_REGISTRY</code> in pipeline_steps.py</li>
+      <li>Orchestrator picks it up; fires in parallel</li>
+      <li>Add to severity-anchor table if it influences verdicts</li>
+    </ul>
+  </div>
+  <div class="dc-appx-section">
+    <h3>Add a locale</h3>
+    <ul>
+      <li>Add to <code>LOCALES</code> dict (country code, language)</li>
+      <li>Provide localised hotline + embassy contacts</li>
+      <li>Add multilingual heuristic variants for passport, fee, kafala terms</li>
+      <li>Optional: localise complaint templates</li>
+    </ul>
+  </div>
+  <div class="dc-appx-section">
+    <h3>Add a domain pack</h3>
+    <ul>
+      <li><code>configs/duecare/domains/&lt;id&gt;/</code></li>
+      <li>Files: <code>pii_spec.yaml</code>, <code>kb.jsonl</code>, <code>hotlines.jsonl</code>, <code>complaint_templates.jsonl</code></li>
+      <li>Loaded automatically by the domain-pack loader</li>
+      <li>Use for: medical misinformation, financial fraud, child safety, etc.</li>
+    </ul>
+  </div>
+  <div class="dc-appx-section">
+    <h3>Fine-tune for a jurisdiction</h3>
+    <ul>
+      <li><code>scripts/finetune_unsloth.py --domain &lt;id&gt;</code></li>
+      <li>Unsloth + LoRA on a single GPU; ~hours per adaptation</li>
+      <li>Resulting checkpoint plugs in via <code>DUECARE_MODEL_PATH</code></li>
+      <li>Same pipeline; better domain-specific verdicts</li>
+    </ul>
+  </div>
+  <div class="dc-appx-section">
+    <h3>Ship as a PyPI package</h3>
+    <ul>
+      <li>Your fork: <code>duecare-llm-domains-foo</code></li>
+      <li>Installs alongside the core 8 packages</li>
+      <li>Domain pack auto-discovered via PEP 420 namespace</li>
+      <li>Operators install only what they need</li>
+    </ul>
+  </div>
+</div>
+<div class="dc-callout success" style="margin-top:auto">
+<b>Apache 2.0 model + MIT code.</b> Every extension you write is
+yours; nothing forces you to upstream changes. The only contract is
+the <code>ToolResult</code> shape and the KB passage schema.
 </div>`
   },
 
@@ -1806,7 +2019,9 @@ const _MODE = (() => {
 const _OVERVIEW_IDS = new Set([
   'title', 'problem', 'social_media', 'legal', 'not_okay',
   'why_gemma', 'enhancing_gemma', 'architecture', 'qa',
-  'appendix_kb', 'appendix_tools', 'appendix_heuristics', 'closing'
+  'appendix_kb', 'appendix_retrieval', 'appendix_tools',
+  'appendix_tool_calls', 'appendix_heuristics',
+  'appendix_extensibility', 'closing'
 ]);
 const _EXAMPLE_IDS = new Set([
   'ex_jobboard', 'ex_worker', 'ex_ngo', 'ex_doxxing', 'ex_kafala'
