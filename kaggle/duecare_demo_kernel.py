@@ -94,6 +94,31 @@ PIPELINE_OUT = "/kaggle/working/multimodal_v1_output"
 BENCHMARK_AUTORUN = False
 BENCHMARK_AUTORUN_SET = "smoke_25"
 
+# ===== GGUF export (llama.cpp / Ollama distribution) =========================
+# If True, after the model loads cleanly (Phase 3), Unsloth's
+# save_pretrained_gguf() writes a GGUF artifact to GGUF_OUTPUT_DIR.
+# Required for the llama.cpp Special Tech track: a single .gguf
+# file is the canonical desktop / on-device format.
+#
+# Only works with the Unsloth FastModel loader path (GEMMA_LOADER
+# in {auto, unsloth}). Does NOT work with GEMMA_LOADER="transformers".
+#
+# Per Hanchen's notebook, currently-supported quantization methods
+# are: "Q8_0", "BF16", "F16". Q4_K_M is on the Unsloth roadmap.
+# Recommended default: "Q8_0" (best compression of the supported set,
+# ~50% smaller than F16, lossless for most uses).
+GGUF_EXPORT          = False
+GGUF_QUANTIZATION    = "Q8_0"        # "Q8_0" | "BF16" | "F16"
+GGUF_OUTPUT_DIR      = "/kaggle/working/duecare_gguf"
+
+# Optional: push the GGUF to your HuggingFace account after export.
+# Requires HF_TOKEN (set as a Kaggle secret named HF_TOKEN, OR set
+# directly here as an env var). Repo will be created if it doesn't
+# exist. Naming convention follows the Gemma attribution rules:
+#   <user>/Duecare-Gemma-4-<size>-<purpose>-v<version>-GGUF
+GGUF_PUSH_TO_HUB     = False
+GGUF_HF_REPO         = ""            # e.g. "taylorscottamarel/Duecare-Gemma-4-E4B-it-SafetyJudge-v0.1.0-GGUF"
+
 
 # ============================================================================
 # HF Hub naming convention for any fine-tuned variants you publish:
@@ -624,6 +649,10 @@ class LoadedModel:
     quantization: str = ""            # "4-bit nf4" | "bf16" | etc
     device: str = ""                  # "cuda:0" | "balanced (2x T4)" | "cpu"
     loader: str = "transformers"      # "transformers" | "unsloth"
+    # Raw model handle. Required for downstream operations like
+    # save_pretrained_gguf() / push_to_hub_gguf() / get_peft_model().
+    # Only populated when loader == "unsloth".
+    raw_model: Any = None
 
 
 def _gemma_diag_dump(model_path: str) -> None:
@@ -917,8 +946,101 @@ def load_gemma_unsloth(env: Env, verbose: bool = True) -> Optional[LoadedModel]:
                 else effective_device_map
                 if isinstance(effective_device_map, str)
                 else "cuda:0"),
+        raw_model=model,                # for save_pretrained_gguf etc.
         loader="unsloth",
     )
+
+
+def maybe_export_gguf(loaded: Optional["LoadedModel"], env: "Env",
+                       verbose: bool = True) -> Optional[Path]:
+    """Optional Phase 3.5: export the loaded model to GGUF for the
+    llama.cpp / Ollama distribution path. Toggled via GGUF_EXPORT.
+
+    Per Hanchen's notebook (the reference Unsloth recipe), the call is:
+        model.save_pretrained_gguf(
+            "gemma_4_finetune", tokenizer,
+            quantization_method="Q8_0",   # or "BF16" or "F16"
+        )
+    Optionally push to HF Hub via:
+        model.push_to_hub_gguf(
+            "<user>/<repo>", tokenizer,
+            quantization_method="Q8_0",
+            token="HF_TOKEN",
+        )
+    Only the Unsloth FastModel path supports this. The legacy
+    transformers loader returns raw_model=None and we skip gracefully.
+    """
+    if not GGUF_EXPORT:
+        return None
+    if loaded is None or loaded.raw_model is None:
+        if verbose:
+            print(f"  GGUF_EXPORT requested but no Unsloth model loaded "
+                  f"(loader={loaded.loader if loaded else 'none'}); "
+                  f"skipping. Set GEMMA_LOADER=auto or unsloth.")
+        return None
+    if GGUF_QUANTIZATION not in ("Q8_0", "BF16", "F16"):
+        if verbose:
+            print(f"  GGUF_QUANTIZATION={GGUF_QUANTIZATION!r} unsupported; "
+                  f"Hanchen's notebook says only Q8_0 / BF16 / F16 work "
+                  f"today (Q4_K_M is on the roadmap). Skipping export.")
+        return None
+
+    out_dir = Path(GGUF_OUTPUT_DIR)
+    out_dir.mkdir(parents=True, exist_ok=True)
+    if verbose:
+        print(f"  exporting GGUF: dir={out_dir}  q={GGUF_QUANTIZATION}")
+        print(f"  this may take several minutes for large variants")
+
+    try:
+        loaded.raw_model.save_pretrained_gguf(
+            str(out_dir),
+            loaded.processor,
+            quantization_method=GGUF_QUANTIZATION,
+        )
+    except Exception as e:
+        if verbose:
+            print(f"  save_pretrained_gguf FAILED: "
+                  f"{type(e).__name__}: {str(e)[:300]}")
+        return None
+
+    # Locate the resulting .gguf file
+    gguf_files = sorted(out_dir.rglob("*.gguf"))
+    if not gguf_files:
+        if verbose:
+            print(f"  WARN: save_pretrained_gguf returned 0 .gguf files "
+                  f"in {out_dir}")
+        return None
+    gguf_path = gguf_files[-1]   # most recent
+    sz_mb = gguf_path.stat().st_size / 1024 / 1024
+    if verbose:
+        print(f"  GGUF written: {gguf_path}  ({sz_mb:.1f} MB)")
+
+    # Optional HF Hub push
+    if GGUF_PUSH_TO_HUB and GGUF_HF_REPO:
+        hf_token = (os.environ.get("HF_TOKEN") or
+                     os.environ.get("HUGGING_FACE_HUB_TOKEN") or "")
+        if not hf_token:
+            if verbose:
+                print(f"  GGUF_PUSH_TO_HUB requested but no HF_TOKEN "
+                      f"in env; skipping upload.")
+        else:
+            if verbose:
+                print(f"  pushing GGUF to HuggingFace: {GGUF_HF_REPO}")
+            try:
+                loaded.raw_model.push_to_hub_gguf(
+                    GGUF_HF_REPO,
+                    loaded.processor,
+                    quantization_method=GGUF_QUANTIZATION,
+                    token=hf_token,
+                )
+                if verbose:
+                    print(f"  GGUF pushed: huggingface.co/{GGUF_HF_REPO}")
+            except Exception as e:
+                if verbose:
+                    print(f"  push_to_hub_gguf FAILED: "
+                          f"{type(e).__name__}: {str(e)[:300]}")
+
+    return gguf_path
 
 
 def load_gemma_smart(env: Env, model_id: str = GEMMA_MODEL,
@@ -1394,6 +1516,18 @@ else:
               f"VRAM: {loaded.vram_used_gb:.2f} GB)")
     else:
         print(f"  no Gemma backend; running in HEURISTIC mode")
+
+
+# ===========================================================================
+# 3.5  Optional GGUF export (llama.cpp / Ollama distribution)
+# ===========================================================================
+if GGUF_EXPORT and loaded is not None:
+    print("\n" + "=" * 76)
+    print(f"[3.5/8] exporting GGUF (q={GGUF_QUANTIZATION})")
+    print("=" * 76)
+    gguf_path = maybe_export_gguf(loaded, env, verbose=True)
+    if gguf_path:
+        print(f"  GGUF artifact: {gguf_path}")
 
 
 # ===========================================================================
