@@ -3,16 +3,16 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Workspace — Duecare</title>
+  <title>Workbench — Duecare</title>
   <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
 <header class="dc-nav">
-  <h1>Duecare<span class="tag"> · self-directed workspace</span></h1>
+  <h1>Duecare<span class="tag"> · self-directed workbench</span></h1>
   <nav>
     <a href="/">Home</a>
     <a href="/demo">Demo</a>
-    <a href="/workspace" class="active">Workspace</a>
+    <a href="/workspace" class="active">Workbench</a>
     <a href="/architecture">Architecture</a>
     <a href="/background">Background</a>
     <a href="/evidence">Evidence</a>
@@ -28,7 +28,7 @@
 </header>
 <main class="dc-main">
 
-  <h2 class="dc-h2">Workspace — bring your own data</h2>
+  <h2 class="dc-h2">Workbench — bring your own data</h2>
   <p class="dc-sub">
     Paste text, upload a file, drop an archive of documents, or import
     a JSONL of cases. Everything routes through the same traced queue
@@ -102,12 +102,18 @@
         </label>
         <label>Locale:
           <select id="ws-file-locale">
-            <option value="en">English</option>
-            <option value="ph">Tagalog</option>
+            <option value="en">English (default)</option>
+            <option value="ph">Tagalog (PH)</option>
+            <option value="id">Indonesian</option>
+            <option value="np">Nepali</option>
+            <option value="in">Hindi (IN)</option>
+            <option value="bd">Bengali (BD)</option>
+            <option value="lk">Sinhala (LK)</option>
             <option value="hk">English (HK)</option>
-            <option value="sa">Saudi</option>
+            <option value="sa">Saudi Arabia</option>
             <option value="ae">UAE</option>
             <option value="qa">Qatar</option>
+            <option value="kw">Kuwait</option>
           </select>
         </label>
         <button class="dc-btn" onclick="runFile()">▶ Upload + analyze</button>
@@ -137,10 +143,18 @@
         </label>
         <label>Locale:
           <select id="ws-arc-locale">
-            <option value="en">English</option>
-            <option value="ph">Tagalog</option>
+            <option value="en">English (default)</option>
+            <option value="ph">Tagalog (PH)</option>
+            <option value="id">Indonesian</option>
+            <option value="np">Nepali</option>
+            <option value="in">Hindi (IN)</option>
+            <option value="bd">Bengali (BD)</option>
+            <option value="lk">Sinhala (LK)</option>
             <option value="hk">English (HK)</option>
-            <option value="sa">Saudi</option>
+            <option value="sa">Saudi Arabia</option>
+            <option value="ae">UAE</option>
+            <option value="qa">Qatar</option>
+            <option value="kw">Kuwait</option>
           </select>
         </label>
         <button class="dc-btn" onclick="runArchive()">▶ Upload + batch analyze</button>
@@ -280,13 +294,24 @@
     <div class="dc-progress"><div id="run-bar"></div></div>
     <div id="run-detail" style="margin-top:8px; font-size:12px; color:var(--muted)"></div>
     <h4 style="margin:18px 0 8px 0; font-size:14px">Execution trace</h4>
-    <div id="run-trace" class="dc-trace-flow"></div>
+    <div id="run-trace" class="dc-trace-flow">
+      <p style="color:var(--muted);font-size:12px;margin:0">
+        (handler has not emitted any steps yet)
+      </p>
+    </div>
     <h4 style="margin:18px 0 8px 0; font-size:14px">Verdict</h4>
-    <div id="run-verdict"></div>
+    <div id="run-verdict">
+      <p style="color:var(--muted);font-size:12px;margin:0">
+        (verdict appears here once the pipeline finishes)
+      </p>
+    </div>
     <h4 style="margin:18px 0 8px 0; font-size:14px">Knowledge base evidence</h4>
     <div id="run-kb"></div>
     <h4 style="margin:18px 0 8px 0; font-size:14px">Tool calls</h4>
     <div id="run-tools"></div>
+    <div id="run-audit-link" style="margin-top:14px;font-size:12px;color:var(--muted);display:none">
+      <a href="#" id="run-audit-anchor">View full audit JSON in /logs →</a>
+    </div>
   </div>
 
 </main>
@@ -725,6 +750,14 @@ function renderRunTrace(trace) {
 }
 function renderRunVerdict(result, taskType) {
   if (!result) return;
+  // Build verdict block (and append the suggested-complaint-template hint)
+  const sct = result.suggested_complaint_template;
+  const sctHtml = sct ? `<div style="margin-top:10px;background:#eff6ff;` +
+    `padding:8px 12px;border-radius:6px;font-size:13px;border-left:3px solid var(--primary)">` +
+    `<b>Next step:</b> use template <code>${sct.slug}</code> — ${sct.reason} ` +
+    `&nbsp;<a href="#" onclick="document.querySelector('.dc-tab[data-tab=complaints]').click();` +
+    `if (typeof ctLoadTemplate==='function') ctLoadTemplate('${sct.slug}'); return false">` +
+    `→ open Generate complaint</a></div>` : '';
   if (taskType === 'moderate') {
     const v = (result.verdict || 'review').toLowerCase();
     document.getElementById('run-verdict').innerHTML =
@@ -733,6 +766,7 @@ function renderRunVerdict(result, taskType) {
       `<b>severity ${result.severity || 0}/10</b> ` +
       `<span class="dc-pill ${result.mode === 'gemma' ? 'ok' : ''}">${result.mode}</span><br>` +
       `<div style="margin-top:8px">${result.reasoning || ''}</div>` +
+      sctHtml +
       `</div>`;
   } else {
     document.getElementById('run-verdict').innerHTML =
@@ -742,7 +776,15 @@ function renderRunVerdict(result, taskType) {
       `<div style="margin-top:8px">${result.advice || ''}</div>` +
       (result.hotline ? `<div style="margin-top:8px"><b>Hotline:</b> ${result.hotline.name} — ` +
         `<code>${result.hotline.contact}</code></div>` : '') +
+      sctHtml +
       `</div>`;
+  }
+  // Reveal the "view full audit JSON" link
+  const tid = (document.getElementById('run-tid').innerText || '').trim().replace(/^#/, '');
+  if (tid) {
+    const a = document.getElementById('run-audit-anchor');
+    a.href = '/logs?task_id=' + encodeURIComponent(tid);
+    document.getElementById('run-audit-link').style.display = 'block';
   }
   let kbHtml = '';
   if (result.kb_hits && result.kb_hits.length) {

@@ -12,7 +12,7 @@
   <nav>
     <a href="/">Home</a>
     <a href="/demo">Demo</a>
-    <a href="/workspace">Workspace</a>
+    <a href="/workspace">Workbench</a>
     <a href="/architecture">Architecture</a>
     <a href="/background">Background</a>
     <a href="/evidence" class="active">Evidence</a>
@@ -179,7 +179,7 @@ function render() {
     } else if (it.kind === 'video') {
       media = `<video controls><source src="/static/evidence/${it.filename}">video</video>`;
     } else {
-      media = `<a href="/static/evidence/${it.filename}" target="_blank">📄 ${it.filename}</a>`;
+      media = `<a href="/static/evidence/${it.filename}" target="_blank" rel="noopener noreferrer">📄 ${it.filename}</a>`;
     }
     html += `<div class="dc-ev-card">` +
       `<div class="dc-ev-img">${media}</div>` +

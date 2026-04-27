@@ -12,7 +12,7 @@
   <nav>
     <a href="/">Home</a>
     <a href="/demo">Demo</a>
-    <a href="/workspace">Workspace</a>
+    <a href="/workspace">Workbench</a>
     <a href="/architecture">Architecture</a>
     <a href="/background" class="active">Background</a>
     <a href="/evidence">Evidence</a>
@@ -30,7 +30,7 @@
 
   <h2 class="dc-h2">Background, literature & ethical framework</h2>
   <p class="dc-sub">
-    Why migrant-worker trafficking warrants a dedicated tool, what
+    Why human exploitation and abuse warrants a dedicated tool, what
     prior work exists, what gap Duecare fills, and how the system
     should and should not be deployed.
   </p>
@@ -76,7 +76,7 @@
 
     <h4>What "trafficking" means here, technically</h4>
     <p>
-      The <a href="https://www.unodc.org/unodc/en/treaties/CTOC/" target="_blank">Palermo Protocol Article 3</a> (UN, 2000) defines
+      The <a href="https://www.unodc.org/unodc/en/treaties/CTOC/" target="_blank" rel="noopener noreferrer">Palermo Protocol Article 3</a> (UN, 2000) defines
       trafficking as the <b>act</b> (recruitment, transport, harbouring)
       + <b>means</b> (force, fraud, coercion, abuse of vulnerability,
       debt bondage, document retention) + <b>purpose</b> (exploitation,
@@ -88,7 +88,7 @@
 
     <h4>The 11 ILO indicators of forced labour</h4>
     <p>
-      The <a href="https://www.ilo.org/global/topics/forced-labour/publications/WCMS_203832/lang--en/index.htm" target="_blank">ILO Indicators of Forced Labour (2012)</a>
+      The <a href="https://www.ilo.org/global/topics/forced-labour/publications/WCMS_203832/lang--en/index.htm" target="_blank" rel="noopener noreferrer">ILO Indicators of Forced Labour (2012)</a>
       framework lists 11 operational indicators. Duecare's
       <code>identify_ilo_indicators</code> tool maps free-form input to
       these via curated regex:
@@ -120,8 +120,8 @@
     <h3>2. The current detection gap</h3>
     <p>
       There are good systems for parts of this problem, but none for
-      the specific job we're targeting (real-time, per-case, on-device,
-      across multiple jurisdictions and languages).
+      the specific job we're targeting (real-time, per-case,
+      flexible-deployment, across multiple jurisdictions and languages).
     </p>
 
     <table class="dc-lit-table">
@@ -178,11 +178,13 @@
 
     <h4>The specific gap Duecare fills</h4>
     <p>
-      <b>An on-device, multilingual, real-time pre-filter that understands
-      forced-labour language patterns AND can cite the specific statute
-      / convention / hotline a moderator or worker needs to act on it.</b>
-      Privacy-preserving (worker case data never leaves the laptop),
-      open-weight (Gemma 4 + Apache 2.0), free for NGOs to deploy.
+      <b>A multilingual, real-time pre-filter that understands
+      forced-labour and exploitation language patterns AND can cite
+      the specific statute / convention / hotline a reviewer needs to
+      act on it.</b> Open-weight (Gemma 4 + Apache 2.0), Apache-2.0
+      runtime, deployment-mode-flexible (enterprise GPU batch or
+      consumer / mobile via LiteRT), and built so that every verdict
+      is auditable.
     </p>
   </div>
 
@@ -195,7 +197,7 @@
       The two-stage retrieve-then-generate pattern was formalized in
       <b>Lewis et al., "Retrieval-Augmented Generation for
       Knowledge-Intensive NLP Tasks"</b>, NeurIPS 2020
-      (<a href="https://arxiv.org/abs/2005.11401" target="_blank">arXiv:2005.11401</a>).
+      (<a href="https://arxiv.org/abs/2005.11401" target="_blank" rel="noopener noreferrer">arXiv:2005.11401</a>).
       Duecare's stage 3 is a small-corpus instantiation:
       <code>sentence-transformers/all-MiniLM-L6-v2</code> over 27 KB
       passages, top-K cosine. The KB is small because the legal
@@ -210,7 +212,7 @@
       brittle factual recall is best documented in <b>Schick et al.,
       "Toolformer: Language Models Can Teach Themselves to Use
       Tools"</b>, NeurIPS 2023
-      (<a href="https://arxiv.org/abs/2302.04761" target="_blank">arXiv:2302.04761</a>).
+      (<a href="https://arxiv.org/abs/2302.04761" target="_blank" rel="noopener noreferrer">arXiv:2302.04761</a>).
       Gemma 4 ships native function-calling support in its chat template,
       so the path from prompt → tool call → result → final answer is
       single-model. Duecare's stage 4 demonstrates this with 7 deterministic
@@ -218,17 +220,19 @@
       calculator, ILO indicator matcher, embassy lookup, known-actor search).
     </p>
 
-    <h4>On-device LLM deployment</h4>
+    <h4>Flexible deployment (server, consumer, mobile)</h4>
     <p>
       The viability of running a 4–8 B parameter LLM on consumer
       hardware was established by the <b>llama.cpp project</b>
-      (<a href="https://github.com/ggerganov/llama.cpp" target="_blank">github.com/ggerganov/llama.cpp</a>)
+      (<a href="https://github.com/ggerganov/llama.cpp" target="_blank" rel="noopener noreferrer">github.com/ggerganov/llama.cpp</a>)
       and the GGUF + 4-bit quantization stack. Google's <b>LiteRT
       (formerly TFLite)</b> extends this to mobile with CPU + NNAPI +
-      GPU delegates. Duecare targets both: the FastAPI server uses
-      the transformers library with bitsandbytes 4-bit quantization
-      (~5.5 GB VRAM on a Kaggle T4); the on-device path targets LiteRT
-      for sub-1 GB mobile inference.
+      GPU delegates. Duecare targets the full spectrum: the FastAPI
+      server uses the transformers library with bitsandbytes 4-bit
+      quantization (~5.5 GB VRAM on a Kaggle T4) for enterprise + GPU
+      batch; the consumer path runs on a single GPU; the mobile path
+      targets LiteRT for sub-1 GB inference. The same KB, tools, and
+      audit-trail format are shared across all three.
     </p>
 
     <h4>Multilingual + low-resource NLP</h4>
@@ -251,7 +255,7 @@
       Washington University and the <b>HotelsCombined</b> dataset). The
       most-cited paper is <b>Tong et al., "Combating Human Trafficking
       with Multimodal Deep Models"</b>, ACL 2017
-      (<a href="https://aclanthology.org/P17-1138/" target="_blank">aclanthology.org/P17-1138</a>).
+      (<a href="https://aclanthology.org/P17-1138/" target="_blank" rel="noopener noreferrer">aclanthology.org/P17-1138</a>).
       Labour-trafficking detection (recruitment-fee fraud, kafala-system
       abuse) is comparatively underserved in the literature; the
       operational frameworks come from ILO, IOM, and Verité reports
@@ -259,12 +263,12 @@
       that operational gap.
     </p>
 
-    <h4>The trafficking-LLM benchmark this work builds on</h4>
+    <h4>The exploitation-LLM benchmark this work builds on</h4>
     <p>
       The submission's training and evaluation data is bootstrapped
-      from <b>Taylor Amarel's 21K-test migrant-worker trafficking
+      from <b>Taylor Amarel's 21K-test human-exploitation
       benchmark</b> (released as the public
-      <a href="https://gitlab.com/" target="_blank">trafficking-llm-benchmark-gitlab</a>
+      <a href="https://gitlab.com/" target="_blank" rel="noopener noreferrer">trafficking-llm-benchmark-gitlab</a>
       repository). It contains graded response examples (5-point scale:
       harmful → incomplete → adequate → good → best) across the
       ILO indicator set, with scenarios spanning the major recruitment
@@ -313,12 +317,15 @@
     </ol>
   </div>
 
-  <!-- ============== Section 5: Privacy framework ============== -->
+  <!-- ============== Section 5: Data-handling framework ============== -->
   <div class="dc-panel">
-    <h3>5. Privacy framework</h3>
+    <h3>5. Data-handling framework</h3>
     <p>
-      <b>"Privacy is non-negotiable"</b> — the rules state this verbatim
-      and so do we. The threat model isn't curiosity; it's revictimization:
+      Duecare can be deployed in any of three modes (enterprise GPU
+      batch, single-operator on a workstation, or on-device via LiteRT)
+      — and the data-handling rules below apply <b>regardless of the
+      deployment mode</b>. The threat model isn't curiosity; it's
+      revictimization:
     </p>
     <ul>
       <li>A trafficked worker's case file contains the names of family
@@ -332,9 +339,10 @@
     </ul>
     <p>The architectural commitments that follow:</p>
     <ol>
-      <li><b>On-device inference.</b> Every Gemma 4 forward pass runs
-        on the operator's hardware. No worker text is sent to
-        external APIs.</li>
+      <li><b>Operator-controlled inference.</b> Every Gemma 4 forward
+        pass runs on hardware the operator chooses (enterprise GPU,
+        single workstation, or mobile device). The default deployment
+        does not send worker text to any external API.</li>
       <li><b>No logging of inputs.</b> The structured event log
         (<a href="/logs">/logs</a>) records request paths, status
         codes, durations, task lifecycle — but not the input text.

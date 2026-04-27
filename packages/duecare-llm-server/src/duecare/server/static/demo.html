@@ -419,6 +419,11 @@ body.dc-slideshow header.dc-nav { display: none !important; }
   font-size: 11px; color: var(--primary); font-family: monospace;
 }
 
+/* Conference-monitor breakpoint -- 5-col audience row gets cramped */
+@media (max-width: 1366px) {
+  .dc-audience-row { grid-template-columns: repeat(3, 1fr); }
+}
+
 /* Mobile */
 @media (max-width: 1100px) {
   .dc-pipeline-grid { grid-template-columns: 1fr; }
@@ -921,10 +926,11 @@ on the home page.
     <div class="dc-pick-meta">→ open /logs</div>
   </a>
   <a class="dc-picker-card" href="/workspace">
-    <div class="dc-pick-tag" style="background:#fef3c7;color:#92400e">NGO / hotline</div>
-    <div class="dc-pick-title">Bring your own data</div>
-    <div class="dc-pick-desc">Paste text, upload a file, drop a folder
-      of PDFs/DOCX/JSONL. Same pipeline, your inputs.</div>
+    <div class="dc-pick-tag" style="background:#f1f5f9;color:#334155">Any user</div>
+    <div class="dc-pick-title">Workbench — bring your own data</div>
+    <div class="dc-pick-desc">Paste text, upload a file, drop an
+      archive, or run a JSONL batch. Same traced pipeline, your
+      inputs.</div>
     <div class="dc-pick-meta">→ open /workspace</div>
   </a>
 </div>`
@@ -1137,7 +1143,7 @@ stakeholder in the trafficking-detection ecosystem.
 Open <a href="/workspace">/workspace</a> to bring your own data ·
 <a href="/architecture">/architecture</a> for the deep dive ·
 <a href="/background">/background</a> for the literature ·
-<a href="https://github.com/TaylorAmarelTech/gemma4_comp" target="_blank">github.com/TaylorAmarelTech/gemma4_comp</a>
+<a href="https://github.com/TaylorAmarelTech/gemma4_comp" target="_blank" rel="noopener noreferrer">github.com/TaylorAmarelTech/gemma4_comp</a>
 for the code.
 </p>
 <div class="dc-callout success">
@@ -1228,9 +1234,12 @@ function _renderSlide(i) {
   // Run any onShow hook
   if (s.onShow) try { s.onShow(); } catch (e) {}
 
-  // If example slide, kick off the run automatically
+  // If example slide, kick off the run automatically. Use 1000ms so the
+  // newly-injected DOM is settled — at 600ms a fast click could submit
+  // before #ex-status-<id> exists, which made _runExampleInSlide silently
+  // fail.
   if (s.isExample) {
-    setTimeout(() => _runExampleInSlide(s), 600);
+    setTimeout(() => _runExampleInSlide(s), 1000);
   }
 
   // Scroll stage to top
@@ -1286,6 +1295,10 @@ const STAGE_NARRATION = {
 
 async function _runExampleInSlide(s) {
   if (!s || s._running) return;
+  // DOM safety check: if the slide was navigated away from before the
+  // 1000ms render-settle delay completed, _ex-status-<id>_ may be gone.
+  // Bail silently rather than crashing the JS.
+  if (!document.getElementById('ex-status-' + s.id)) return;
   s._running = true;
   document.getElementById('ex-status-' + s.id).innerText = 'submitting…';
   document.getElementById('ex-bar-' + s.id).style.width = '0%';
@@ -1328,7 +1341,14 @@ async function _runExampleInSlide(s) {
       document.querySelector('#slide-' + s.id + ' .dc-progress').classList.remove('indeterminate');
       document.getElementById('ex-bar-' + s.id).style.width = '100%';
       document.getElementById('ex-verdict-' + s.id).innerHTML =
-        '<p style="color:#991b1b">FAILED: ' + (task.error || 'unknown') + '</p>';
+        '<p style="color:#991b1b;margin:0"><b>Pipeline failed:</b> ' +
+          (task.error || 'unknown') + '</p>' +
+        '<p style="font-size:12px;color:var(--muted);margin:8px 0 0 0">' +
+          '<a href="/logs?task_id=' + encodeURIComponent(submitJ.task_id) +
+          '">Inspect the audit JSON →</a> · ' +
+          '<a href="#" onclick="s=SLIDES.find(x=>x.id===\'' + s.id +
+          '\');s._running=false;_runExampleInSlide(s);return false">↻ Retry</a>' +
+        '</p>';
       s._running = false; return;
     }
     await new Promise(r => setTimeout(r, 400));
@@ -1450,18 +1470,26 @@ async function loadNotOkayPhotos() {
   if (!grid) return;
   const m = await _loadEvidenceManifest();
   const items = (m.items || []).filter(it => it.kind === 'image');
-  // Curated 4-tile set with named patterns
+  // Curated 4-tile set. Patterns matched against id and filename;
+  // includes a fallback for each tile so the 4-tile grid always renders.
   const picks = [
-    {match: /imgur_/,                tag: 'Wanted-poster doxxing'},
-    {match: /drive_fb_(bank|hong|hk|carry|hoya)/i, tag: 'Predatory-lender shaming'},
-    {match: /drive_fb_(asia|asean|express|finance|credit|cash|loan|elend)/i, tag: 'Online-lending fraud'},
-    {match: /drive_fb_(agency|recruit|placement|ample|good_hope|honour|jan_2020)/i, tag: 'Recruitment fraud / blacklist'},
+    {match: /imgur_/,                              tag: 'Wanted-poster doxxing'},
+    {match: /drive_fb_(carry|hoya|royal|prime)/i,  tag: 'Predatory-lender shaming'},
+    {match: /drive_fb_(finance|credit|excel|cash|loan|elend|peso)/i, tag: 'Online-lending fraud'},
+    {match: /drive_fb_(jan_2020|worst_agency|agency_list|honour|good_hope|ample)/i, tag: 'Recruitment fraud / blacklist'},
   ];
+  const usedIds = new Set();
   const html = picks.map(p => {
-    const it = items.find(x => p.match.test(x.id) || p.match.test(x.filename || ''));
+    let it = items.find(x =>
+      !usedIds.has(x.id) &&
+      (p.match.test(x.id) || p.match.test(x.filename || '')));
+    // Fallback: any unused FB lender item, then any unused image item.
+    if (!it) it = items.find(x => !usedIds.has(x.id) && /drive_fb_/.test(x.filename || ''));
+    if (!it) it = items.find(x => !usedIds.has(x.id));
     if (!it) return '';
+    usedIds.add(it.id);
     return `<a href="/evidence" class="dc-not-okay-tile">` +
-      `<img src="/static/evidence/${it.filename}" alt="${it.title || p.tag}">` +
+      `<img src="/static/evidence/${it.filename}" alt="${it.title || p.tag}" loading="lazy">` +
       `<div class="dc-not-okay-caption">${p.tag}</div></a>`;
   }).filter(Boolean).join('');
   grid.innerHTML = html || '<div style="grid-column:1/-1;color:var(--muted);' +
