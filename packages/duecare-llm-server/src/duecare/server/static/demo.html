@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Demo — Duecare</title>
+  <title>Demo · Duecare</title>
   <link rel="stylesheet" href="/static/style.css">
 </head>
 <body class="dc-slideshow">
@@ -33,6 +33,25 @@
 
   <!-- ============== Slide picker (clickable dots) ============== -->
   <div class="dc-slide-picker" id="slide-picker"></div>
+
+  <!-- ============== Lightbox (clickable evidence thumbnails) ============== -->
+  <div class="dc-lightbox" id="evidence-lightbox" onclick="closeLightbox(event)">
+    <div class="dc-lightbox-card" onclick="event.stopPropagation()" style="position:relative">
+      <button class="dc-lightbox-close" aria-label="Close" onclick="closeLightbox()">×</button>
+      <div class="dc-lightbox-img-wrap">
+        <img id="lb-img" src="" alt="">
+      </div>
+      <div class="dc-lightbox-meta">
+        <span class="lb-tag" id="lb-tag">Redacted evidence</span>
+        <h3 id="lb-title"></h3>
+        <p class="lb-section-h">What this is</p>
+        <p class="lb-caption" id="lb-caption"></p>
+        <p class="lb-section-h">Source</p>
+        <p class="lb-source" id="lb-source"></p>
+        <div class="lb-redaction" id="lb-redaction"></div>
+      </div>
+    </div>
+  </div>
 
 <style>
 /* ===== Slideshow shell ===== */
@@ -382,6 +401,140 @@ body.dc-slideshow header.dc-nav { display: none !important; }
   font-size: 11px; font-weight: 600; line-height: 1.35;
 }
 
+/* Q & A slide grid */
+.dc-qa-grid {
+  display: grid; grid-template-columns: repeat(2, 1fr);
+  gap: 14px; margin: 18px 0;
+}
+.dc-qa {
+  background: #f8fafc; border: 1px solid var(--border);
+  border-left: 4px solid var(--primary); border-radius: 10px;
+  padding: 14px 16px;
+}
+.dc-qa-q {
+  font-weight: 700; font-size: 14px; color: var(--ink);
+  margin-bottom: 6px;
+}
+.dc-qa-a { font-size: 13px; color: var(--muted); line-height: 1.55; }
+.dc-qa-home-btn {
+  display: inline-block; padding: 12px 22px;
+  background: var(--primary); color: #fff !important;
+  border-radius: 10px; text-decoration: none;
+  font-size: 14px; font-weight: 600;
+  transition: background 120ms;
+}
+.dc-qa-home-btn:hover { background: #3a5d83; }
+.dc-qa-cta-btn {
+  display: inline-block; padding: 12px 22px;
+  background: var(--card); color: var(--ink) !important;
+  border: 1px solid var(--border); border-radius: 10px;
+  text-decoration: none; font-size: 14px; font-weight: 600;
+  transition: border-color 120ms, background 120ms;
+}
+.dc-qa-cta-btn:hover { border-color: var(--primary); background: #f1f5f9; }
+
+/* "Where it starts" -- 3-column channel grid (Social / Messaging / Web) */
+.dc-channel-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: 14px; margin: 18px 0;
+}
+.dc-channel {
+  background: var(--card); border: 1px solid var(--border);
+  border-left: 4px solid var(--danger); border-radius: 12px;
+  padding: 14px 16px; display: flex; flex-direction: column;
+}
+.dc-ch-head { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+.dc-ch-icon {
+  width: 34px; height: 34px; border-radius: 9px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 17px;
+}
+.dc-ch-name { font-weight: 700; font-size: 17px; color: var(--ink); }
+.dc-ch-detail { font-size: 13px; color: var(--muted); line-height: 1.5; flex: 1; }
+.dc-ch-shot {
+  margin-top: 12px; aspect-ratio: 16/10;
+  background: #f1f5f9; border-radius: 8px;
+  border: 1px solid var(--border); overflow: hidden; cursor: pointer;
+  position: relative;
+}
+.dc-ch-shot img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.dc-ch-shot .dc-ch-shot-loading {
+  display: flex; align-items: center; justify-content: center;
+  height: 100%; color: var(--muted); font-size: 12px; font-style: italic;
+}
+
+/* ===== Lightbox (clickable evidence thumbs) ===== */
+.dc-lightbox {
+  position: fixed; inset: 0; z-index: 200; display: none;
+  background: rgba(15, 23, 42, 0.78); backdrop-filter: blur(4px);
+  align-items: center; justify-content: center; padding: 32px;
+  animation: dc-lb-fade 200ms ease-out;
+}
+.dc-lightbox.open { display: flex; }
+@keyframes dc-lb-fade {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+.dc-lightbox-card {
+  background: #fff; border-radius: 14px; max-width: 1100px;
+  width: 100%; max-height: 92vh; overflow: auto;
+  display: grid; grid-template-columns: 1.4fr 1fr;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+}
+.dc-lightbox-img-wrap {
+  background: #f8fafc; display: flex; align-items: center; justify-content: center;
+  padding: 12px; min-height: 320px;
+}
+.dc-lightbox-img-wrap img {
+  max-width: 100%; max-height: 80vh; display: block;
+  border-radius: 6px;
+}
+.dc-lightbox-meta {
+  padding: 24px 26px; display: flex; flex-direction: column;
+  gap: 10px; min-width: 0;
+}
+.dc-lightbox-meta h3 {
+  margin: 0; font-size: 18px; color: var(--ink);
+  letter-spacing: -0.01em; line-height: 1.3;
+}
+.dc-lightbox-meta .lb-tag {
+  display: inline-block; font-size: 10px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.08em;
+  padding: 3px 10px; border-radius: 999px;
+  background: #fef2f2; color: #991b1b; align-self: flex-start;
+}
+.dc-lightbox-meta .lb-section-h {
+  font-size: 11px; font-weight: 700; color: var(--muted);
+  text-transform: uppercase; letter-spacing: 0.08em; margin: 4px 0 0 0;
+}
+.dc-lightbox-meta .lb-caption {
+  font-size: 14px; color: var(--ink); line-height: 1.55; margin: 0;
+}
+.dc-lightbox-meta .lb-source {
+  font-size: 12px; color: var(--muted); line-height: 1.5; margin: 0;
+}
+.dc-lightbox-meta .lb-redaction {
+  font-size: 11px; color: var(--success); font-family: monospace;
+  background: #ecfdf5; padding: 6px 10px; border-radius: 6px;
+}
+.dc-lightbox-close {
+  position: absolute; top: 16px; right: 18px;
+  background: rgba(255, 255, 255, 0.9); border: 0;
+  width: 36px; height: 36px; border-radius: 50%;
+  font-size: 18px; cursor: pointer; color: var(--ink);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 1;
+}
+.dc-lightbox-close:hover { background: #fff; }
+.dc-evidence-thumb { cursor: pointer; }
+
+@media (max-width: 800px) {
+  .dc-lightbox { padding: 16px; }
+  .dc-lightbox-card { grid-template-columns: 1fr; max-height: 95vh; }
+  .dc-lightbox-img-wrap { min-height: 200px; }
+  .dc-lightbox-meta { padding: 18px 20px; }
+}
+
 /* Picker (demo chooser) */
 .dc-picker-grid {
   display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -433,6 +586,8 @@ body.dc-slideshow header.dc-nav { display: none !important; }
   .dc-audience-row { grid-template-columns: repeat(3, 1fr); }
   .dc-split-layout { grid-template-columns: 1fr; }
   .dc-twocol-layout { grid-template-columns: 1fr; }
+  .dc-channel-grid { grid-template-columns: 1fr; }
+  .dc-qa-grid { grid-template-columns: 1fr; }
 }
 @media (max-width: 800px) {
   .dc-slide-stage { padding: 70px 12px 60px 12px; }
@@ -473,7 +628,7 @@ const ALL_SLIDES = [
 <p style="font-size:20px;line-height:1.55;color:var(--muted);margin-top:8px;max-width:900px">
 Duecare flags exploitation and abuse patterns in
 <b>recruiter ads, chat messages, contracts, complaint letters,</b>
-and <b>bulk case files</b> — and writes every step of the reasoning
+and <b>bulk case files</b>, and writes every step of the reasoning
 to an audit trail.
 </p>
 <div class="dc-audience-row">
@@ -482,13 +637,13 @@ to an audit trail.
     <div class="dc-aud-desc">moderation queues, transparency reports under CA AB 587 / Texas HB 20</div></div>
   <div class="dc-aud"><div class="dc-aud-icon" style="background:#fef3c7;color:#92400e">🛡</div>
     <div class="dc-aud-name">NGOs &amp; hotlines</div>
-    <div class="dc-aud-desc">Polaris, IJM, ECPAT, HRD Nepal — bulk case triage</div></div>
+    <div class="dc-aud-desc">Bulk case triage, intelligence, MO recognition. Polaris, IJM, ECPAT, HRD Nepal.</div></div>
   <div class="dc-aud"><div class="dc-aud-icon" style="background:#fef2f2;color:#991b1b">⚖</div>
     <div class="dc-aud-name">Government &amp; regulators</div>
-    <div class="dc-aud-desc">DOL, BP2MI, MOM, MOHRE, FET — license &amp; statute enforcement</div></div>
+    <div class="dc-aud-desc">License &amp; statute enforcement at DOL, BP2MI, MOM, MOHRE, FET.</div></div>
   <div class="dc-aud"><div class="dc-aud-icon" style="background:#ecfdf5;color:#065f46">👤</div>
     <div class="dc-aud-name">Individuals</div>
-    <div class="dc-aud-desc">workers &amp; families — self-check a suspicious offer or message</div></div>
+    <div class="dc-aud-desc">Workers and families self-checking a suspicious offer or message.</div></div>
   <div class="dc-aud"><div class="dc-aud-icon" style="background:#f5f3ff;color:#5b21b6">🔬</div>
     <div class="dc-aud-name">Researchers</div>
     <div class="dc-aud-desc">benchmarking, fine-tuning, policy work</div></div>
@@ -511,13 +666,12 @@ self-advance · <code>Esc</code> to exit.
     body: `
 <div class="dc-split-layout">
   <div>
-    <p style="font-size:18px">
-    The most common forms of human exploitation —
-    <b>passport confiscation, debt bondage, fee fraud, document
-    substitution, doxxing for debt collection, intimate-image
-    coercion, kafala-era "safekeeping"</b> — are
+    <p style="font-size:17px;margin-top:0">
+    The most common forms of human exploitation are
     <b>linguistically detectable</b> in the ads, chats, and contracts
-    that put people into those situations.
+    that put people into those situations: passport confiscation,
+    debt bondage, fee fraud, document substitution, online debt
+    shaming, intimate-image coercion, kafala-era "safekeeping".
     </p>
     <div class="dc-slide-stats" style="grid-template-columns:1fr 1fr">
       <div class="dc-slide-stat">
@@ -541,6 +695,13 @@ self-advance · <code>Esc</code> to exit.
           <small>(ILO, 2024)</small></div>
       </div>
     </div>
+    <div class="dc-callout danger" style="margin-top:14px">
+    <b>Why this matters.</b> Stock open-weight LLMs catch under 20%
+    of these patterns on the 21K-test benchmark. The fix is not a
+    bigger model. The fix is the architecture around the model:
+    heuristics, KB retrieval, deterministic tools, and Gemma 4
+    reasoning together.
+    </div>
   </div>
   <div>
     <h2 style="margin-top:0">What it looks like</h2>
@@ -549,8 +710,8 @@ self-advance · <code>Esc</code> to exit.
     </div>
     <p style="font-size:12px;color:var(--muted);margin-top:10px;font-style:italic">
     Public-record posts. Heavily redacted: faces blurred, names
-    erased, identifying details removed. The pattern remains
-    visible, the individual cannot be re-identified.
+    erased, identifying details removed. Click any tile to see a
+    larger view with the source note.
     </p>
   </div>
 </div>`,
@@ -564,49 +725,71 @@ self-advance · <code>Esc</code> to exit.
     id: 'social_media',
     tag: 'Where it starts',
     tagBg: '#fef2f2', tagFg: '#991b1b',
-    title: 'It starts on social media.',
-    autoSec: 14,
+    title: 'It starts on the open internet.',
+    autoSec: 16,
     body: `
-<p style="font-size:18px;max-width:900px">
+<p style="font-size:17px;max-width:980px;margin-top:0">
 The recruiters, lenders, and impostor "agency bosses" who target
-vulnerable users meet them <b>on the platforms they already use</b> —
+vulnerable users meet them <b>on the platforms they already use</b>:
 in their own language, in their own communities, with the platforms'
 detection tools tuned for entirely different categories.
 </p>
-<div class="dc-platform-grid">
-  <div class="dc-platform"><div class="dc-pf-name">Facebook</div>
-    <div class="dc-pf-detail">"Agency boss" pages, lender pages
-      publishing wanted-poster shaming posts, fake job-fair events
-      in closed groups</div></div>
-  <div class="dc-platform"><div class="dc-pf-name">TikTok</div>
-    <div class="dc-pf-detail">Glamourised live-stream recruitment to
-      GCC corridors; algorithmic amplification to vulnerable
-      demographics</div></div>
-  <div class="dc-platform"><div class="dc-pf-name">Telegram</div>
-    <div class="dc-pf-detail">Channel groups for fee collection,
-      passport "safekeeping" coordination, doc fraud
-      marketplaces</div></div>
-  <div class="dc-platform"><div class="dc-pf-name">WhatsApp</div>
-    <div class="dc-pf-detail">1:1 contract substitution, demand for
-      personal docs (NBI, passport scans), deposit instructions
-      direct from worker</div></div>
-  <div class="dc-platform"><div class="dc-pf-name">Job boards</div>
-    <div class="dc-pf-detail">Bossjob, JobStreet, Indeed regional —
-      placement-fee + passport-confiscation language slipped past
-      keyword filters</div></div>
-  <div class="dc-platform"><div class="dc-pf-name">Marketplace classifieds</div>
-    <div class="dc-pf-detail">FB Marketplace Jobs, Craigslist
-      regional, OLX — least-moderated surfaces with the highest
-      pattern density</div></div>
+<div class="dc-channel-grid">
+  <div class="dc-channel">
+    <div class="dc-ch-head">
+      <div class="dc-ch-icon" style="background:#dbeafe;color:#1e40af">📱</div>
+      <div class="dc-ch-name">Social media</div>
+    </div>
+    <div class="dc-ch-detail">
+      Facebook pages and groups, TikTok live-stream recruitment,
+      Instagram doxxing reels. Wanted-poster shaming, fake job
+      fairs in closed groups, algorithmic amplification to
+      vulnerable demographics.
+    </div>
+    <div id="slide-channel-social" class="dc-ch-shot">
+      <div class="dc-ch-shot-loading">loading sample…</div>
+    </div>
+  </div>
+  <div class="dc-channel">
+    <div class="dc-ch-head">
+      <div class="dc-ch-icon" style="background:#fef3c7;color:#92400e">💬</div>
+      <div class="dc-ch-name">Messaging apps</div>
+    </div>
+    <div class="dc-ch-detail">
+      WhatsApp 1:1 contract substitution, Telegram channels for
+      fee collection and passport "safekeeping" coordination,
+      Signal / Viber doc-fraud marketplaces. Where the deals
+      actually close.
+    </div>
+    <div id="slide-channel-messaging" class="dc-ch-shot">
+      <div class="dc-ch-shot-loading">loading sample…</div>
+    </div>
+  </div>
+  <div class="dc-channel">
+    <div class="dc-ch-head">
+      <div class="dc-ch-icon" style="background:#f5f3ff;color:#5b21b6">🌐</div>
+      <div class="dc-ch-name">Other websites</div>
+    </div>
+    <div class="dc-ch-detail">
+      Regional job boards (Bossjob, JobStreet, Indeed regional),
+      classified marketplaces (FB Marketplace Jobs, Craigslist,
+      OLX), and lender / agency listing sites where placement-fee
+      and passport-confiscation language slips past keyword filters.
+    </div>
+    <div id="slide-channel-web" class="dc-ch-shot">
+      <div class="dc-ch-shot-loading">loading sample…</div>
+    </div>
+  </div>
 </div>
-<div class="dc-callout danger" style="margin-top:auto">
+<div class="dc-callout danger" style="margin-top:14px">
 <b>The detection gap.</b> Toxic-speech classifiers (Perspective,
-HateXplain) flag slurs but miss the calm vocabulary of
-exploitation. Government registries (POEA, EAA, MOM) are reactive
-lookups. Frontier LLMs raise data-residency, cost, and audit-trail
-issues. Stock open-weight LLMs catch &lt;20% of patterns on the
-21K-test trafficking benchmark.
-</div>`
+HateXplain) flag slurs but miss the calm vocabulary of exploitation.
+Government registries (POEA, EAA, MOM) are reactive lookups. Frontier
+LLMs raise data-residency, cost, and audit-trail issues. Stock
+open-weight LLMs catch under 20% of patterns on the 21K-test
+benchmark.
+</div>`,
+    onShow: () => loadChannelShots(),
   },
 
   // ----------------------------------------------------------------
@@ -627,8 +810,8 @@ not a feature:
 <p>
 The Content Moderation Transparency Act forces platforms with
 revenue over $100M to publicly report what content categories
-they detect, how, and at what rate — including trafficking-
-adjacent content. Vague "we use AI" is no longer a defence.
+they detect, how, and at what rate, including trafficking-adjacent
+content. Vague "we use AI" is no longer a defence.
 </p>
 <h2>Cal. Civ. Code § 1714(a) negligence verdicts (2024-2026)</h2>
 <p>
@@ -642,7 +825,7 @@ patterns.
 <h2>Texas HB 20 (2021, upheld by 5th Circuit)</h2>
 <p>
 Forces platforms operating in Texas to disclose moderation
-rationales — raising the bar for explainable AI in moderation
+rationales, raising the bar for explainable AI in moderation
 pipelines.
 </p>
 <div class="dc-callout">
@@ -664,18 +847,16 @@ designed for exactly that audit trail.
     title: 'This is NOT okay.',
     autoSec: 16,
     body: `
-<p style="font-size:18px;color:var(--muted);max-width:900px;margin-bottom:18px">
+<p style="font-size:17px;color:var(--muted);max-width:980px;margin-top:0;margin-bottom:18px">
 Each tile is a redacted, public-record post that fits one of the
 patterns Duecare is tuned to catch. Faces blurred, names and
-identifying details stripped — the exploitation pattern stays
-visible, the individual stays anonymous.
+identifying details stripped. The exploitation pattern stays
+visible; the individual stays anonymous. Click any tile to see
+the larger view with the source note.
 </p>
 <div id="slide-notokay-grid" class="dc-not-okay-grid">
   <div style="grid-column:1/-1;color:var(--muted);font-size:13px;text-align:center;padding:40px">Loading redacted samples…</div>
-</div>
-<p style="font-size:13px;color:var(--muted);font-style:italic;margin-top:16px">
-Open <a href="/evidence">/evidence</a> for the full gallery (74 redacted assets).
-</p>`,
+</div>`,
     onShow: () => loadNotOkayPhotos(),
   },
 
@@ -686,31 +867,34 @@ Open <a href="/evidence">/evidence</a> for the full gallery (74 redacted assets)
     id: 'why_gemma',
     tag: 'Why Gemma 4',
     tagBg: '#ecfdf5', tagFg: '#065f46',
-    title: 'Why Gemma 4 — and why Gemma alone is not enough.',
+    title: 'Why Gemma 4 + multi-stage architecture.',
     autoSec: 16,
     body: `
 <div class="dc-twocol-layout">
   <div class="dc-twocol-card good">
-    <h2 style="margin-top:0;color:#065f46">Why Gemma 4 is the right substrate</h2>
+    <h2 style="margin-top:0;color:#065f46">Gemma 4 is the right substrate</h2>
     <ul>
-      <li><b>Open weights, Apache 2.0</b> — no API lock-in, no usage-rights
-        ambiguity for compliance teams</li>
-      <li><b>27+ languages</b> including Tagalog, Bahasa, Hindi, Bengali,
-        Nepali, Arabic — the languages this exploitation is conducted in</li>
-      <li><b>Multimodal in one model</b> — image + text together, so a
-        contract photo and the caption text can be reasoned about jointly</li>
-      <li><b>Function-calling primitives</b> — the model can choose which
-        deterministic tool to invoke and parse the result</li>
-      <li><b>Two sizes</b>: E4B fits in ~5.5GB VRAM (consumer GPU);
-        E2B fits in ~2GB (mobile via LiteRT)</li>
-      <li><b>Fine-tunable</b> via Unsloth + LoRA on a single GPU in hours
-        — operators can adapt to their jurisdiction</li>
+      <li><b>Open weights, Apache 2.0.</b> No API lock-in, no
+        usage-rights ambiguity for compliance teams.</li>
+      <li><b>27+ languages</b> including Tagalog, Bahasa, Hindi,
+        Bengali, Nepali, Arabic. The languages this exploitation is
+        actually conducted in.</li>
+      <li><b>Multimodal in one model.</b> Image and text together,
+        so a contract photo and the caption text can be reasoned
+        about jointly.</li>
+      <li><b>Function-calling primitives.</b> The model can choose
+        which deterministic tool to invoke and parse the result.</li>
+      <li><b>Two sizes.</b> E4B fits in ~5.5GB VRAM (consumer GPU);
+        E2B fits in ~2GB (mobile via LiteRT).</li>
+      <li><b>Fine-tunable</b> via Unsloth + LoRA on a single GPU in
+        hours, so operators can adapt to their jurisdiction.</li>
     </ul>
   </div>
   <div class="dc-twocol-card warn">
-    <h2 style="margin-top:0;color:#92400e">Why Gemma alone is not enough</h2>
-    <p style="font-size:14px">
-    Stock Gemma 4 E4B on the <b>21K-test trafficking benchmark</b>:
+    <h2 style="margin-top:0;color:#92400e">Why architecture matters</h2>
+    <p style="font-size:14px;margin-top:0">
+    Stock Gemma 4 E4B on the 21K-test exploitation benchmark scores
+    safely (0% harmful output) but is conservative on detection.
     </p>
     <div class="dc-bench-row">
       <div><div class="bn">0.61</div><div class="bl">mean score</div></div>
@@ -718,25 +902,27 @@ Open <a href="/evidence">/evidence</a> for the full gallery (74 redacted assets)
       <div><div class="bn">0%</div><div class="bl">harmful output</div></div>
     </div>
     <p style="font-size:14px">
-    Refuses safely — but <i>fails to detect</i> the patterns. Same gap
-    holds for every open-weight model we tested (Llama, Mistral, Qwen,
-    DeepSeek, gpt-oss). <b>The LLM does not know the statute numbers,
-    fee caps, licence status, or hotline contacts an operator needs.</b>
+    The same gap exists for every open-weight model we tested
+    (Llama, Mistral, Qwen, DeepSeek, gpt-oss). LLMs simply don't
+    know specific statute numbers, fee caps, licence status, or
+    hotline contacts an operator needs. That's not what they were
+    trained for.
     </p>
-    <p style="font-size:14px">
-    The fix is not a bigger model — it's a better <b>architecture</b>
-    around the model. Heuristics catch vocabulary. GREP catches the
-    statutes verbatim. RAG catches paraphrase. Tools deliver the
-    deterministic facts (no hallucination). Gemma synthesises
-    everything into a verdict + reasoning a human can act on.
+    <p style="font-size:14px;margin-bottom:0">
+    The fix is the architecture around the model. Heuristics catch
+    vocabulary. GREP retrieves statutes verbatim. RAG catches
+    paraphrase. Deterministic tools deliver facts with zero
+    hallucination. Gemma 4 synthesises everything into a verdict
+    plus reasoning a human can act on.
     </p>
   </div>
 </div>
 <div class="dc-callout success" style="margin-top:auto">
 <b>Two deployment modes, one architecture.</b>
 &nbsp;&nbsp;<b>Enterprise:</b> ~100 verdicts/min on a single A100,
-~$0/call after deploy, audit-trail-friendly under CA AB 587.
-&nbsp;&nbsp;<b>On-device:</b> E2B/E4B 4-bit in 2-6GB VRAM,
+roughly zero per-call cost after deploy, audit-trail-friendly under
+CA AB 587.
+&nbsp;&nbsp;<b>Local / on-device:</b> E2B/E4B 4-bit in 2-6GB VRAM,
 data stays where the operator chooses.
 &nbsp;&nbsp;Same KB, same tools, same audit format.
 </div>`
@@ -787,38 +973,45 @@ live by these stages.
   <div class="dc-pipe-arrow">→</div>
   <div class="dc-pipe-stage">
     <div class="num">4</div>
-    <div class="name">Tool calls</div>
-    <div class="desc">11 deterministic tools fire every run:
-      lookup_statute, lookup_hotline, check_agency_license,
-      calculate_max_fee, identify_ilo_indicators, lookup_embassy,
-      check_predatory_lender, etc.</div>
+    <div class="name">Deterministic tools</div>
+    <div class="desc">11 domain tools fire in parallel BEFORE Gemma,
+      driven by prescan signals + locale: lookup_statute,
+      lookup_hotline, check_agency_license, calculate_max_fee,
+      identify_ilo_indicators, lookup_embassy, check_predatory_lender,
+      and others. Pre-computed grounding facts, no LLM hallucination.</div>
     <div class="tag">≈ 5 ms · CPU</div>
   </div>
   <div class="dc-pipe-arrow">→</div>
   <div class="dc-pipe-stage gemma">
     <div class="num">5</div>
-    <div class="name">Gemma 4 classify</div>
-    <div class="desc">Receives input + heuristic findings + KB
-      hits + severity-anchor table + tool results. Returns
-      BLOCK / REVIEW / PASS with reasoning. Multimodal-capable
-      (image + text in one model).</div>
+    <div class="name">Gemma 4 verdict</div>
+    <div class="desc">Receives input + heuristic findings + KB hits +
+      severity-anchor table + pre-computed tool results. Returns
+      BLOCK / REVIEW / PASS with reasoning. Can also invoke
+      additional tools through Gemma 4's function-calling primitives
+      when the pre-computed set is insufficient. Multimodal: image
+      and text in one model.</div>
     <div class="tag">≈ 8-18 s · GPU</div>
   </div>
 </div>
 <h2>Why this layering wins</h2>
 <p>
+Tools fire deterministically <i>before</i> Gemma so the LLM gets
+ground-truth facts as context, not as something it has to invent.
 Each stage catches what the others miss:
-<b>Heuristic</b> = brittle but fast and explainable.
-<b>GREP</b> = vocabulary-bound but auditable.
-<b>RAG</b> = covers paraphrase but can drift.
-<b>Tools</b> = compute the things RAG can't (fee caps, licence
-status, embassy contacts). <b>Gemma</b> = synthesises everything
-into a verdict + reasoning a human can act on.
+<b>Heuristic</b> is brittle but fast and explainable.
+<b>GREP</b> is vocabulary-bound but auditable.
+<b>RAG</b> covers paraphrase but can drift.
+<b>Tools</b> compute the things RAG can't (fee caps, licence
+status, embassy contacts).
+<b>Gemma 4</b> synthesises everything into a verdict plus
+reasoning a human can act on, and (via function-calling primitives)
+can request additional tools when needed.
 </p>
 <div class="dc-callout success">
-<b>Output is JSON.</b> verdict + severity (max of gemma vs heuristic
-floor) + matched_signals + kb_hits + tool_calls + ilo_indicators +
-fee_cap + license_check + embassy + known_actors + hotline +
+<b>Output is JSON.</b> verdict, severity (max of gemma vs heuristic
+floor), matched_signals, kb_hits, tool_calls, ilo_indicators,
+fee_cap, license_check, embassy, known_actors, hotline,
 suggested_complaint_template. Every field is auditable.
 </div>`
   },
@@ -872,7 +1065,7 @@ between scenarios from there or come back here.
     <div class="dc-pick-tag" style="background:#fef2f2;color:#991b1b">Contract substitution / kafala</div>
     <div class="dc-pick-title">Polite household ad that normalises kafala-era practice</div>
     <div class="dc-pick-desc">"Safekeeping" of passport, no day off, alone in the
-      house. The hardest moderation case — a euphemism wrapper.</div>
+      house. The hardest moderation case: a euphemism wrapper.</div>
     <div class="dc-pick-meta">expected: BLOCK · severity 9/10 · locale sa</div>
   </button>
   <a class="dc-picker-card dc-picker-allcard" href="?play=all">
@@ -927,7 +1120,7 @@ on the home page.
   </a>
   <a class="dc-picker-card" href="/workspace">
     <div class="dc-pick-tag" style="background:#f1f5f9;color:#334155">Any user</div>
-    <div class="dc-pick-title">Workbench — bring your own data</div>
+    <div class="dc-pick-title">Workbench: bring your own data</div>
     <div class="dc-pick-desc">Paste text, upload a file, drop an
       archive, or run a JSONL batch. Same traced pipeline, your
       inputs.</div>
@@ -1015,11 +1208,11 @@ on the home page.
         'retention (ILO C029 #7), debt bondage, restriction of movement.'],
       ['What KB retrieval adds', 'GREP + RAG surface ILO C029, Palermo ' +
         'Art 3, HK Cap. 57 sec 32 (employment ordinance), and HK Cap. 163 ' +
-        'Money Lenders Ordinance — every passage the caseworker needs for ' +
+        'Money Lenders Ordinance: every passage the caseworker needs for ' +
         'their report.'],
       ['Bigger picture', 'Aggregating triage rows in the evidence DB ' +
         'lets the NGO ask "how many cases involve this lender?" via ' +
-        'NL-to-SQL on the Knowledge page — patterns emerge across cases ' +
+        'NL-to-SQL on the Knowledge page: patterns emerge across cases ' +
         'no single caseworker would see.'],
     ],
   },
@@ -1071,7 +1264,7 @@ on the home page.
             'under kafala system.',
     expected: 'BLOCK · severity 9/10',
     explain: [
-      ['What\'s happening', 'The hardest moderation case — polite ' +
+      ['What\'s happening', 'The hardest moderation case: a polite ' +
         'household ad that normalises kafala-era practices. A pure keyword ' +
         'filter wouldn\'t catch "safekeeping" as a synonym for ' +
         'confiscation. A pure LLM might miss the structural pattern.'],
@@ -1090,7 +1283,71 @@ on the home page.
   },
 
   // ----------------------------------------------------------------
-  // Slide 13 -- Closing
+  // Slide -- Q & A (with home button)
+  // ----------------------------------------------------------------
+  {
+    id: 'qa',
+    tag: 'Q & A',
+    tagBg: '#dbeafe', tagFg: '#1e40af',
+    title: 'Common questions.',
+    autoSec: 20,
+    body: `
+<div class="dc-qa-grid">
+  <div class="dc-qa">
+    <div class="dc-qa-q">Where does the worker's data live?</div>
+    <div class="dc-qa-a">Wherever the operator chooses. The same
+      pipeline runs as an enterprise cloud service, on a single
+      GPU at an NGO office, or on a phone via LiteRT. Inputs do
+      not leave the deployment unless the operator wires them out.
+    </div>
+  </div>
+  <div class="dc-qa">
+    <div class="dc-qa-q">Can I fine-tune Gemma 4 for my jurisdiction?</div>
+    <div class="dc-qa-a">Yes. Unsloth + LoRA training scripts ship
+      with the project. A single GPU finishes a domain-pack
+      adaptation in hours, not days. Add your own KB passages,
+      hotlines, and statutes alongside.
+    </div>
+  </div>
+  <div class="dc-qa">
+    <div class="dc-qa-q">Why deterministic tools instead of agentic Gemma?</div>
+    <div class="dc-qa-a">Audit, grounding, and zero hallucination on
+      facts (statute numbers, fee caps, license status). Gemma 4 can
+      still call additional tools through function-calling primitives
+      when the pre-computed set is insufficient.
+    </div>
+  </div>
+  <div class="dc-qa">
+    <div class="dc-qa-q">What's the difference vs. a general LLM chatbot?</div>
+    <div class="dc-qa-a">A chatbot answers questions. Duecare returns
+      a verdict, severity, evidence chain, and the next operational
+      step (hotline, complaint template, agency referral). Built for
+      operators, not for conversation.
+    </div>
+  </div>
+  <div class="dc-qa">
+    <div class="dc-qa-q">Open source?</div>
+    <div class="dc-qa-a">Apache 2.0 model weights (Gemma 4). MIT
+      code, eight PyPI packages under the duecare namespace. Public
+      benchmark, public KB, public model cards.
+    </div>
+  </div>
+  <div class="dc-qa">
+    <div class="dc-qa-q">How is detection performance measured?</div>
+    <div class="dc-qa-a">A 21K-test benchmark with graded responses
+      (worst → best, 5-tier scale). Every released checkpoint is
+      scored against the same benchmark with reproducible seed.
+      See /background for methodology.
+    </div>
+  </div>
+</div>
+<div style="margin-top:auto;display:flex;justify-content:center">
+  <a href="/" class="dc-qa-home-btn">← Back to the dashboard</a>
+</div>`
+  },
+
+  // ----------------------------------------------------------------
+  // Slide -- Closing (Deploy + partners + home button)
   // ----------------------------------------------------------------
   {
     id: 'closing',
@@ -1099,35 +1356,35 @@ on the home page.
     title: 'The scenarios are composite. The partners are real.',
     autoSec: 18,
     body: `
-<p>
+<p style="margin-top:0">
 Duecare is designed to deploy directly into the workflows of every
-stakeholder in the trafficking-detection ecosystem.
+stakeholder in the human-exploitation-detection ecosystem.
 </p>
-<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;margin:22px 0">
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;margin:18px 0">
   <div style="background:#f8fafc;border:1px solid var(--border);border-radius:8px;padding:14px">
-    <h2 style="margin-top:0;font-size:14px">NGOs</h2>
+    <h2 style="margin-top:0;font-size:14px">NGOs &amp; hotlines</h2>
     <ul style="font-size:13px;margin:6px 0 0 18px;padding:0">
       <li>Polaris Project (US national hotline)</li>
       <li>IJM (International Justice Mission)</li>
-      <li>ECPAT (child trafficking alliance)</li>
+      <li>ECPAT (child-trafficking alliance)</li>
       <li>HRD Nepal (Nepali GCC workers)</li>
       <li>Verité (recruitment-fee research)</li>
       <li>IOM (UN Migration / CTDC)</li>
     </ul>
   </div>
   <div style="background:#f8fafc;border:1px solid var(--border);border-radius:8px;padding:14px">
-    <h2 style="margin-top:0;font-size:14px">Government regulators</h2>
+    <h2 style="margin-top:0;font-size:14px">Government &amp; regulators</h2>
     <ul style="font-size:13px;margin:6px 0 0 18px;padding:0">
       <li>POEA / DMW (Philippines, hotline 1343)</li>
       <li>BP2MI (Indonesia, 1500-30)</li>
       <li>EAA (Hong Kong)</li>
-      <li>MOM (Singapore) · MOHRE (UAE, 800-60)</li>
-      <li>MHRSD (Saudi) · ADLSA (Qatar)</li>
-      <li>FET (Nepal) · BMET (Bangladesh)</li>
+      <li>MOM (Singapore), MOHRE (UAE, 800-60)</li>
+      <li>MHRSD (Saudi), ADLSA (Qatar)</li>
+      <li>FET (Nepal), BMET (Bangladesh)</li>
     </ul>
   </div>
   <div style="background:#f8fafc;border:1px solid var(--border);border-radius:8px;padding:14px">
-    <h2 style="margin-top:0;font-size:14px">Platforms + courts</h2>
+    <h2 style="margin-top:0;font-size:14px">Platforms &amp; courts</h2>
     <ul style="font-size:13px;margin:6px 0 0 18px;padding:0">
       <li>Bossjob, JobStreet, Indeed regional</li>
       <li>Facebook Marketplace Jobs</li>
@@ -1138,18 +1395,16 @@ stakeholder in the trafficking-detection ecosystem.
     </ul>
   </div>
 </div>
-<h2>What's next</h2>
-<p>
-Open <a href="/workspace">/workspace</a> to bring your own data ·
-<a href="/architecture">/architecture</a> for the deep dive ·
-<a href="/background">/background</a> for the literature ·
-<a href="https://github.com/TaylorAmarelTech/gemma4_comp" target="_blank" rel="noopener noreferrer">github.com/TaylorAmarelTech/gemma4_comp</a>
-for the code.
-</p>
-<div class="dc-callout success">
+<div class="dc-callout success" style="margin:0 0 14px 0">
 <b>Apache 2.0 model. MIT code.</b>
 The same Gemma 4 + 11 tools + 53-passage KB + 22-signal heuristics
 serves every stakeholder above.
+</div>
+<div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:auto">
+  <a href="/" class="dc-qa-home-btn">← Back to the dashboard</a>
+  <a href="/workspace" class="dc-qa-cta-btn">Open the Workbench →</a>
+  <a href="/architecture" class="dc-qa-cta-btn">Read the architecture →</a>
+  <a href="https://github.com/TaylorAmarelTech/gemma4_comp" target="_blank" rel="noopener noreferrer" class="dc-qa-cta-btn">View the code →</a>
 </div>`
   },
 ];
@@ -1167,7 +1422,7 @@ const _MODE = (() => {
 
 const _OVERVIEW_IDS = new Set([
   'title', 'problem', 'social_media', 'legal', 'not_okay',
-  'why_gemma', 'architecture', 'closing'
+  'why_gemma', 'architecture', 'qa', 'closing'
 ]);
 const _EXAMPLE_IDS = new Set([
   'ex_jobboard', 'ex_worker', 'ex_ngo', 'ex_doxxing', 'ex_kafala'
@@ -1450,19 +1705,78 @@ async function loadProblemPhotos() {
   if (!grid) return;
   const m = await _loadEvidenceManifest();
   const items = (m.items || []).filter(it => it.kind === 'image');
-  // 4 representative tiles: 2 imgur, 2 FB lender posts
   const imgur = items.filter(it => it.id.startsWith('imgur_')).slice(0, 2);
   const fb = items.filter(it => /drive_fb_/.test(it.filename || '')).slice(0, 2);
   const picks = [...imgur, ...fb].slice(0, 4);
   if (!picks.length) {
     grid.innerHTML = '<div style="grid-column:1/-1;color:var(--muted);' +
-      'font-size:13px">(no evidence loaded — open /evidence)</div>';
+      'font-size:13px">(no evidence available)</div>';
     return;
   }
   grid.innerHTML = picks.map(it =>
-    `<a href="/evidence">` +
-    `<img src="/static/evidence/${it.filename}" alt="${it.title || 'redacted'}">` +
-    `</a>`).join('');
+    `<button type="button" class="dc-evidence-thumb" ` +
+    `onclick="openLightbox('${it.id}')" ` +
+    `style="background:none;border:0;padding:0;cursor:pointer">` +
+    `<img src="/static/evidence/${it.filename}" alt="${it.title || 'redacted'}" ` +
+    `loading="lazy" style="width:100%;aspect-ratio:1/1;object-fit:cover;` +
+    `border-radius:8px;border:1px solid var(--border)">` +
+    `</button>`).join('');
+}
+
+async function loadChannelShots() {
+  const m = await _loadEvidenceManifest();
+  const items = (m.items || []).filter(it => it.kind === 'image');
+  const pickFor = (...patterns) => {
+    for (const p of patterns) {
+      const it = items.find(x => p.test(x.id) || p.test(x.filename || ''));
+      if (it) return it;
+    }
+    return items[0];
+  };
+  const channels = [
+    {id: 'slide-channel-social',    item: pickFor(/imgur_/, /drive_fb_carry/, /drive_fb_/)},
+    {id: 'slide-channel-messaging', item: pickFor(/imgur_03/, /imgur_/, /drive_fb_carry/)},
+    {id: 'slide-channel-web',       item: pickFor(/jan_2020|worst_agency/, /drive_fb_finance/, /drive_fb_/)},
+  ];
+  for (const ch of channels) {
+    const el = document.getElementById(ch.id);
+    if (!el) continue;
+    if (!ch.item) {
+      el.innerHTML = '<div class="dc-ch-shot-loading">(no sample available)</div>';
+      continue;
+    }
+    el.innerHTML = `<img src="/static/evidence/${ch.item.filename}" ` +
+      `alt="${ch.item.title || 'redacted'}" loading="lazy">`;
+    el.classList.add('dc-evidence-thumb');
+    el.onclick = () => openLightbox(ch.item.id);
+  }
+}
+
+let _lbItems = null;
+async function openLightbox(itemId) {
+  if (!_lbItems) {
+    const m = await _loadEvidenceManifest();
+    _lbItems = (m.items || []);
+  }
+  const it = _lbItems.find(x => x.id === itemId);
+  if (!it) return;
+  document.getElementById('lb-img').src = '/static/evidence/' + it.filename;
+  document.getElementById('lb-img').alt = it.title || 'redacted evidence';
+  document.getElementById('lb-title').innerText = it.title || itemId;
+  document.getElementById('lb-tag').innerText = (it.category || 'evidence').replace(/_/g, ' ');
+  document.getElementById('lb-caption').innerText = it.caption || '(no caption)';
+  document.getElementById('lb-source').innerText = it.source_note || '(source not recorded)';
+  document.getElementById('lb-redaction').innerText = it.redaction_status || 'Redacted';
+  document.getElementById('evidence-lightbox').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeLightbox(ev) {
+  if (ev && ev.target && ev.target.id !== 'evidence-lightbox' && ev.type === 'click') {
+    // Only close on backdrop click, not card click
+    if (!ev.target.classList.contains('dc-lightbox')) return;
+  }
+  document.getElementById('evidence-lightbox').classList.remove('open');
+  document.body.style.overflow = '';
 }
 
 async function loadNotOkayPhotos() {
@@ -1488,12 +1802,15 @@ async function loadNotOkayPhotos() {
     if (!it) it = items.find(x => !usedIds.has(x.id));
     if (!it) return '';
     usedIds.add(it.id);
-    return `<a href="/evidence" class="dc-not-okay-tile">` +
+    return `<button type="button" class="dc-not-okay-tile dc-evidence-thumb" ` +
+      `onclick="openLightbox('${it.id}')" ` +
+      `style="background:none;border:1px solid var(--border);padding:0;` +
+      `cursor:pointer;text-align:left;font-family:inherit">` +
       `<img src="/static/evidence/${it.filename}" alt="${it.title || p.tag}" loading="lazy">` +
-      `<div class="dc-not-okay-caption">${p.tag}</div></a>`;
+      `<div class="dc-not-okay-caption">${p.tag}</div></button>`;
   }).filter(Boolean).join('');
   grid.innerHTML = html || '<div style="grid-column:1/-1;color:var(--muted);' +
-    'font-size:13px;text-align:center;padding:40px">(no evidence loaded — open /evidence)</div>';
+    'font-size:13px;text-align:center;padding:40px">(no evidence available)</div>';
 }
 
 // ===== Navigation =====
@@ -1562,6 +1879,12 @@ document.addEventListener('keydown', e => {
   // Ignore when focused in input/textarea
   const tag = (e.target.tagName || '').toUpperCase();
   if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+  // If lightbox is open, Esc closes it (and only it -- don't exit the deck)
+  const lb = document.getElementById('evidence-lightbox');
+  if (lb && lb.classList.contains('open')) {
+    if (e.key === 'Escape') { e.preventDefault(); closeLightbox(); }
+    return;
+  }
   if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); nextSlide(); }
   else if (e.key === 'ArrowLeft') { e.preventDefault(); prevSlide(); }
   else if (e.key === 'Escape') { window.location = '/'; }
