@@ -96,6 +96,119 @@ os.environ["DUECARE_MODEL_NAME"] = (
 
 
 # ===========================================================================
+# PHASE 0 -- Pre-install Hanchen's Unsloth stack BEFORE anything imports
+# torch / transformers. Required for big variants (31B, 26B-A4B) since the
+# default Kaggle env ships an older transformers + torch that conflict
+# with Unsloth's compiled extensions. Once installed, Python must be
+# restarted before the new torch C-extensions can be imported -- you
+# CANNOT swap a running torch in-process. So:
+#   1. Check marker file.
+#   2. If marker missing AND we need the Unsloth stack: install it via
+#      subprocess, write marker, print restart instructions, sys.exit(0).
+#   3. If marker present: skip and proceed.
+# This pattern is from feedback_bwandowando_recipe_verbatim memory -- the
+# restarted run picks up exactly where the cell would have if Unsloth had
+# already been installed.
+# ===========================================================================
+def _need_unsloth_stack() -> bool:
+    if not USE_GEMMA:
+        return False
+    big = ("31b-it", "26b-a4b-it")
+    if GEMMA_MODEL_VARIANT in big:
+        return True
+    if GEMMA_LOADER == "unsloth":
+        return True
+    return False
+
+
+_UNSLOTH_MARKER = Path("/tmp/.duecare_unsloth_stack_v1_done")
+
+
+def _install_unsloth_stack_and_exit() -> None:
+    """Install Daniel Hanchen's pinned Gemma 4 stack via subprocess
+    (so no torch imports happen first), then exit so the user can
+    restart and re-run -- a Python restart is the ONLY way the new
+    torch / transformers C-extensions can come up cleanly."""
+    print("=" * 76)
+    print("[phase 0] preparing Unsloth Gemma 4 stack (Hanchen recipe)")
+    print("=" * 76)
+    print(f"  variant   : {GEMMA_MODEL_VARIANT}")
+    print(f"  loader    : {GEMMA_LOADER}")
+    print(f"  marker    : {_UNSLOTH_MARKER}  (will write on success)")
+    print()
+
+    # Hanchen's exact command. We use uv if present (Kaggle has it),
+    # otherwise fall back to pip.
+    try:
+        import numpy as _np_for_ver, PIL as _pil_for_ver
+        np_pin = f"numpy=={_np_for_ver.__version__}"
+        pil_pin = f"pillow=={_pil_for_ver.__version__}"
+    except Exception:
+        np_pin, pil_pin = "numpy", "pillow"
+
+    uv_check = subprocess.run(["uv", "--version"],
+                                capture_output=True, text=True)
+    if uv_check.returncode == 0:
+        installer = ["uv", "pip", "install", "-qqq", "--system"]
+        print(f"  using uv: {uv_check.stdout.strip()}")
+    else:
+        installer = [sys.executable, "-m", "pip", "install",
+                       "-q", "--no-input", "--disable-pip-version-check"]
+        print(f"  uv not found, falling back to pip")
+
+    cmd = installer + [
+        "torch>=2.8.0", "triton>=3.4.0", np_pin, pil_pin,
+        "torchvision", "bitsandbytes",
+        "unsloth", "unsloth_zoo>=2026.4.6",
+        "transformers==5.5.0", "torchcodec", "timm",
+    ]
+    print(f"  $ {' '.join(cmd)}")
+    proc = subprocess.run(cmd, capture_output=True, text=True)
+    if proc.returncode != 0:
+        print(f"  INSTALL FAILED ({proc.returncode}):")
+        print(f"    stderr tail: {proc.stderr[-1000:]}")
+        # Fall through and let the kernel proceed in heuristic mode.
+        return
+
+    # Mark success so the restarted run skips this whole block
+    try:
+        _UNSLOTH_MARKER.parent.mkdir(parents=True, exist_ok=True)
+        _UNSLOTH_MARKER.write_text(
+            json.dumps({
+                "variant": GEMMA_MODEL_VARIANT,
+                "loader": GEMMA_LOADER,
+                "installed_at": time.strftime("%Y-%m-%dT%H:%M:%S"),
+                "uv": uv_check.returncode == 0,
+            }, indent=2))
+    except Exception as e:
+        print(f"  WARN: could not write marker: {e}")
+
+    print()
+    print("=" * 76)
+    print("  STACK INSTALLED. Python MUST be restarted to pick it up.")
+    print("=" * 76)
+    print()
+    print("  In Kaggle:  Run > Restart & Run All  (or the circular-arrow")
+    print("              icon in the toolbar). The marker file means the")
+    print("              install will be SKIPPED on the next run, so the")
+    print("              cell will go straight to model load.")
+    print()
+    print("  Reason:     torch C-extensions cannot be hot-swapped inside")
+    print("              a running process. Continuing here would crash")
+    print("              with '_has_torch_function already has a docstring'.")
+    print()
+    print("=" * 76)
+    sys.exit(0)
+
+
+if _need_unsloth_stack() and not _UNSLOTH_MARKER.exists():
+    _install_unsloth_stack_and_exit()
+elif _need_unsloth_stack():
+    print(f"[phase 0] Unsloth stack marker present ({_UNSLOTH_MARKER}); "
+          f"skipping install")
+
+
+# ===========================================================================
 # SMART BOOTSTRAP -- environment-aware install + model load
 # ===========================================================================
 @dataclass
@@ -626,82 +739,12 @@ def load_gemma_unsloth(env: Env, verbose: bool = True) -> Optional[LoadedModel]:
         return None
 
     # ===================================================================
-    # Daniel Hanchen's EXACT install recipe (verbatim from
-    # https://www.kaggle.com/code/danielhanchen/gemma4-31b-unsloth):
-    #
-    #     %%capture
-    #     try: import numpy, PIL; _numpy = f"numpy=={numpy.__version__}"; _pil = f"pillow=={PIL.__version__}"
-    #     except: _numpy = "numpy"; _pil = "pillow"
-    #     !uv pip install -qqq \
-    #         "torch>=2.8.0" "triton>=3.4.0" {_numpy} {_pil} torchvision bitsandbytes \
-    #         unsloth "unsloth_zoo>=2026.4.6" transformers==5.5.0 torchcodec timm
-    #
-    # Pinning transformers==5.5.0 is non-negotiable: older versions
-    # don't know the gemma4 model_type and crash on load. Older unsloth
-    # doesn't know about device_map="balanced". Newer transformers may
-    # have ABI breaks Unsloth hasn't pinned for yet.
-    # We always force-install when transformers is missing OR not
-    # exactly at 5.5.0, OR unsloth is missing OR unsloth_zoo<2026.4.6.
+    # The Hanchen Unsloth stack is installed by Phase 0 BEFORE any torch
+    # import (see top of file). By the time we get here, either:
+    #   - the stack is already in place (marker file existed at start)
+    #   - OR Phase 0 just installed it and exited; this is the second run
+    # In both cases the import below should succeed cleanly.
     # ===================================================================
-    needs_install = False
-    why_install = ""
-    try:
-        import unsloth, unsloth_zoo, transformers
-        if transformers.__version__ != "5.5.0":
-            needs_install = True
-            why_install = (f"transformers=={transformers.__version__} "
-                           f"-> need 5.5.0")
-        else:
-            uz_v = getattr(unsloth_zoo, "__version__", "0.0.0")
-            try:
-                from packaging.version import parse as _vp
-                if _vp(uz_v) < _vp("2026.4.6"):
-                    needs_install = True
-                    why_install = f"unsloth_zoo=={uz_v} -> need >=2026.4.6"
-            except Exception:
-                pass
-    except ImportError as e:
-        needs_install = True
-        why_install = f"missing: {e.name}"
-
-    if needs_install:
-        if verbose:
-            print(f"  installing Hanchen's pinned Gemma 4 stack ({why_install})")
-        # Try numpy/pillow version pinning preamble (Hanchen verbatim)
-        try:
-            import numpy, PIL
-            np_pin = f"numpy=={numpy.__version__}"
-            pil_pin = f"pillow=={PIL.__version__}"
-        except Exception:
-            np_pin, pil_pin = "numpy", "pillow"
-        # Hanchen uses uv; fall back to pip if uv isn't on PATH
-        uv_check = subprocess.run(["uv", "--version"],
-                                    capture_output=True, text=True)
-        installer = (["uv", "pip", "install", "-qqq"]
-                     if uv_check.returncode == 0
-                     else [sys.executable, "-m", "pip", "install",
-                           "-q", "--no-input"])
-        cmd = installer + [
-            "torch>=2.8.0", "triton>=3.4.0", np_pin, pil_pin,
-            "torchvision", "bitsandbytes",
-            "unsloth", "unsloth_zoo>=2026.4.6",
-            "transformers==5.5.0", "torchcodec", "timm",
-        ]
-        if verbose:
-            print(f"  $ {' '.join(cmd)}")
-        proc = subprocess.run(cmd, capture_output=True, text=True)
-        if proc.returncode != 0:
-            if verbose:
-                print(f"  install FAILED ({proc.returncode}):")
-                print(f"    stderr: {proc.stderr[-500:]}")
-            return None
-        # Re-import everything Hanchen depends on
-        for mod in list(sys.modules):
-            if mod.startswith(("unsloth", "transformers", "torch",
-                               "torchvision", "bitsandbytes",
-                               "torchcodec", "timm", "triton")):
-                del sys.modules[mod]
-
     try:
         import torch
         import transformers
@@ -712,8 +755,10 @@ def load_gemma_unsloth(env: Env, verbose: bool = True) -> Optional[LoadedModel]:
                   f"unsloth=OK")
     except Exception as e:
         if verbose:
-            print(f"  unsloth import FAILED after install: "
-                  f"{type(e).__name__}: {e}")
+            print(f"  unsloth import FAILED: {type(e).__name__}: {e}")
+            print(f"  if you see '_has_torch_function already has a "
+                  f"docstring', the install ran but Python wasn't "
+                  f"restarted -- Run > Restart & Run All in Kaggle.")
         return None
 
     variant = GEMMA_MODEL_VARIANT
