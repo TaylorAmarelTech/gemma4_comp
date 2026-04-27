@@ -50,10 +50,30 @@ DATASET_SLUG = "duecare-llm-wheels"
 # 31B-on-2xT4 path. LOADER="transformers" is the legacy path (E4B / E2B).
 GEMMA_MODEL_VARIANT = "e4b-it"   # "e2b-it" | "e4b-it" | "26b-a4b-it" | "31b-it"
 GEMMA_LOADER        = "auto"     # "auto" | "transformers" | "unsloth"
+                                  # "auto" = Unsloth FastModel for ALL variants
+                                  #          (uniform path, matches Hanchen's
+                                  #           reference notebook).
+                                  # "transformers" = legacy HF transformers
+                                  #                  path (faster cold-start
+                                  #                  on E4B, no Phase 0 install
+                                  #                  + restart needed).
 GEMMA_LOAD_IN_4BIT  = True       # 4-bit quantization on small GPUs
 GEMMA_DEVICE_MAP    = "auto"     # "auto" | "balanced" (2xT4 for 31B) | {"":0}
 GEMMA_MAX_SEQ_LEN   = 8192       # context window
 USE_GEMMA           = "auto"     # "auto" | True | False; False = heuristic only
+
+# Unsloth FastModel supports all 8 Gemma 4 variants (per Hanchen's
+# notebook https://www.kaggle.com/code/danielhanchen/gemma4-31b-unsloth):
+#   Instruct (recommended for serving):
+#     unsloth/gemma-4-E2B-it    unsloth/gemma-4-E4B-it
+#     unsloth/gemma-4-31B-it    unsloth/gemma-4-26B-A4B-it
+#   Base (for fine-tuning):
+#     unsloth/gemma-4-E2B       unsloth/gemma-4-E4B
+#     unsloth/gemma-4-31B       unsloth/gemma-4-26B-A4B
+GEMMA4_FASTMODEL_VARIANTS = [
+    "e2b-it", "e4b-it", "26b-a4b-it", "31b-it",
+    "e2b",    "e4b",    "26b-a4b",    "31b",
+]
 
 # Legacy aliases kept for back-compat with older bootstrap code below
 GEMMA_MODEL = f"google/gemma-4-{GEMMA_MODEL_VARIANT}"
@@ -111,13 +131,19 @@ os.environ["DUECARE_MODEL_NAME"] = (
 # already been installed.
 # ===========================================================================
 def _need_unsloth_stack() -> bool:
+    """Phase 0 install triggers when:
+      - GEMMA_LOADER explicitly == "unsloth" (always)
+      - GEMMA_LOADER == "auto" (default; we use FastModel for ALL
+        variants now -- uniform Hanchen recipe across E2B/E4B/26B/31B)
+    Skipped when GEMMA_LOADER == "transformers" (legacy fast-path opt-out).
+    """
     if not USE_GEMMA:
         return False
-    big = ("31b-it", "26b-a4b-it")
-    if GEMMA_MODEL_VARIANT in big:
-        return True
     if GEMMA_LOADER == "unsloth":
         return True
+    if GEMMA_LOADER == "auto":
+        return True
+    # GEMMA_LOADER == "transformers" -> skip Hanchen install, use legacy path
     return False
 
 
@@ -906,22 +932,22 @@ def load_gemma_smart(env: Env, model_id: str = GEMMA_MODEL,
     Demo's gemma_call only needs text generation (moderate /
     worker_check / query). Multimodal is a bonus."""
     # ---- Loader dispatch ------------------------------------------------
-    # If the user explicitly picked "unsloth" OR if the variant is one
-    # that only Unsloth supports cleanly on Kaggle (31B, 26B-A4B), use
-    # FastModel.
-    big_variants = ("31b-it", "26b-a4b-it")
-    use_unsloth = (
-        GEMMA_LOADER == "unsloth"
-        or (GEMMA_LOADER == "auto" and GEMMA_MODEL_VARIANT in big_variants))
+    # FastModel (Unsloth) is the default for ALL Gemma 4 variants:
+    # uniform install + load + inference path matching Hanchen's
+    # reference notebook. The legacy HF transformers path is only used
+    # when the user explicitly opts out via GEMMA_LOADER="transformers".
+    use_unsloth = GEMMA_LOADER in ("auto", "unsloth")
     if use_unsloth:
         if verbose:
-            print(f"  routing through Unsloth FastModel (variant="
-                  f"{GEMMA_MODEL_VARIANT}, loader_pref={GEMMA_LOADER})")
+            print(f"  routing through Unsloth FastModel "
+                  f"(variant={GEMMA_MODEL_VARIANT}, "
+                  f"loader_pref={GEMMA_LOADER})")
         out = load_gemma_unsloth(env, verbose=verbose)
         if out is not None:
             return out
         if verbose:
-            print(f"  Unsloth path failed; falling back to transformers")
+            print(f"  Unsloth path failed; falling back to legacy "
+                  f"transformers path (this should rarely happen)")
 
     if not env.gpu.available:
         if verbose:
