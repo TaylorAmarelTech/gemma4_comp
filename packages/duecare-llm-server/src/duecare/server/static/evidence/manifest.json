@@ -8,7 +8,7 @@
       "title": "Bank Hongkong page -- 'WANTED' poster template (English)",
       "caption": "Predatory lender FB page publicly shaming an OFW with passport photos + full name. Pattern documented since Feb 2021. Heavily blurred to schematic-only level.",
       "category": "doxxing",
-      "redaction_status": "REDACTED (boxblur=20, downscale=480w, watermarked)",
+      "redaction_status": "REDACTED (downscale=720w, watermarked)downscale=480w, watermarked)",
       "source_note": "Public Facebook page screenshot, Imgur public album."
     },
     {
@@ -18,7 +18,7 @@
       "title": "Bank Hongkong -- second 'WANTED' post variant",
       "caption": "Same template; second post visible. User had begun manual redaction (black bars over passport thumbnails) but full name remained in body text. Re-redacted defensively here.",
       "category": "doxxing",
-      "redaction_status": "REDACTED (boxblur=20, downscale=480w, watermarked)",
+      "redaction_status": "REDACTED (downscale=720w, watermarked)downscale=480w, watermarked)",
       "source_note": "Public Facebook page screenshot, Imgur public album."
     },
     {
@@ -28,7 +28,7 @@
       "title": "Facebook user 'Nicole Cruz' reposting the 'WANTED' template",
       "caption": "Cropped Facebook post (Feb 24, 2021) -- same lender-shaming wording amplified by an individual user. Documents the viral-spread pattern.",
       "category": "doxxing",
-      "redaction_status": "REDACTED (boxblur=20, downscale=480w, watermarked)",
+      "redaction_status": "REDACTED (downscale=720w, watermarked)downscale=480w, watermarked)",
       "source_note": "Public Facebook page screenshot, Imgur public album."
     },
     {
@@ -38,7 +38,7 @@
       "title": "Yoursun Caretaker -- 'asap pay ur overdues' shaming",
       "caption": "Two stacked posts (Apr 2024) targeting HK-based Filipina domestic helpers with passport photos + 'pay overdues' demands. Eyes-only redaction in original was insufficient -- fully blurred here.",
       "category": "doxxing",
-      "redaction_status": "REDACTED (boxblur=20, downscale=480w, watermarked)",
+      "redaction_status": "REDACTED (downscale=720w, watermarked)downscale=480w, watermarked)",
       "source_note": "Public Facebook page screenshot, Imgur public album."
     },
     {
@@ -48,7 +48,7 @@
       "title": "Predatory lender FB post -- 123 Finance",
       "caption": "Tagalog-language predatory-lender shaming post. Lender: 123 Finance. Same template as Bank Hongkong / Yoursun Caretaker -- WANTED-poster framing + passport-photo collateral + public-shaming demands.",
       "category": "predatory_lending",
-      "redaction_status": "REDACTED (boxblur=20, downscale=480w, watermarked)",
+      "redaction_status": "REDACTED (downscale=720w, watermarked)",
       "source_note": "Field-collected public-record evidence of predatory-lender activity targeting migrant workers (~2020-2021)."
     },
     {
@@ -58,7 +58,7 @@
       "title": "Predatory lender FB post -- Ample",
       "caption": "Tagalog-language predatory-lender shaming post. Lender: Ample. Same template as Bank Hongkong / Yoursun Caretaker -- WANTED-poster framing + passport-photo collateral + public-shaming demands.",
       "category": "predatory_lending",
-      "redaction_status": "REDACTED (boxblur=20, downscale=480w, watermarked)",
+      "redaction_status": "REDACTED (downscale=720w, watermarked)",
       "source_note": "Field-collected public-record evidence of predatory-lender activity targeting migrant workers (~2020-2021)."
     },
     {
@@ -68,7 +68,7 @@
       "title": "Predatory lender FB post -- Asean",
       "caption": "Tagalog-language predatory-lender shaming post. Lender: Asean. Same template as Bank Hongkong / Yoursun Caretaker -- WANTED-poster framing + passport-photo collateral + public-shaming demands.",
       "category": "predatory_lending",
-      "redaction_status": "REDACTED (boxblur=20, downscale=480w, watermarked)",
+      "redaction_status": "REDACTED (downscale=720w, watermarked)",
       "source_note": "Field-collected public-record evidence of predatory-lender activity targeting migrant workers (~2020-2021)."
     },
     {
@@ -78,7 +78,7 @@
       "title": "Predatory lender FB post -- Asia Link",
       "caption": "Tagalog-language predatory-lender shaming post. Lender: Asia Link. Same template as Bank Hongkong / Yoursun Caretaker -- WANTED-poster framing + passport-photo collateral + public-shaming demands.",
       "category": "predatory_lending",
-      "redaction_status": "REDACTED (boxblur=20, downscale=480w, watermarked)",
+      "redaction_status": "REDACTED (downscale=720w, watermarked)",
       "source_note": "Field-collected public-record evidence of predatory-lender activity targeting migrant workers (~2020-2021)."
     },
     {
@@ -88,7 +88,7 @@
       "title": "Predatory lender FB post -- Carry You Hoya",
       "caption": "Tagalog-language predatory-lender shaming post. Lender: Carry You Hoya. Same template as Bank Hongkong / Yoursun Caretaker -- WANTED-poster framing + passport-photo collateral + public-shaming demands.",
       "category": "predatory_lending",
-      "redaction_status": "REDACTED (boxblur=20, downscale=480w, watermarked)",
+      "redaction_status": "REDACTED (downscale=720w, watermarked)",
       "source_note": "Field-collected public-record evidence of predatory-lender activity targeting migrant workers (~2020-2021)."
     },
     {
@@ -98,7 +98,7 @@
       "title": "Predatory lender FB post -- Cash4U",
       "caption": "Tagalog-language predatory-lender shaming post. Lender: Cash4U. Same template as Bank Hongkong / Yoursun Caretaker -- WANTED-poster framing + passport-photo collateral + public-shaming demands.",
       "category": "predatory_lending",
-      "redaction_status": "REDACTED (boxblur=20, downscale=480w, watermarked)",
+      "redaction_status": "REDACTED (downscale=720w, watermarked)",
       "source_note": "Field-collected public-record evidence of predatory-lender activity targeting migrant workers (~2020-2021)."
     },
     {
@@ -108,7 +108,7 @@
       "title": "Predatory lender FB post -- Central Mindanao Lending",
       "caption": "Tagalog-language predatory-lender shaming post. Lender: Central Mindanao Lending. Same template as Bank Hongkong / Yoursun Caretaker -- WANTED-poster framing + passport-photo collateral + public-shaming demands.",
       "category": "predatory_lending",
-      "redaction_status": "REDACTED (boxblur=20, downscale=480w, watermarked)",
+      "redaction_status": "REDACTED (downscale=720w, watermarked)",
       "source_note": "Field-collected public-record evidence of predatory-lender activity targeting migrant workers (~2020-2021)."
     },
     {
@@ -118,7 +118,7 @@
       "title": "Predatory lender FB post -- Completed  Familyhan Staff",
       "caption": "Tagalog-language predatory-lender shaming post. Lender: Completed  Familyhan Staff. Same template as Bank Hongkong / Yoursun Caretaker -- WANTED-poster framing + passport-photo collateral + public-shaming demands.",
       "category": "predatory_lending",
-      "redaction_status": "REDACTED (boxblur=20, downscale=480w, watermarked)",
+      "redaction_status": "REDACTED (downscale=720w, watermarked)",
       "source_note": "Field-collected public-record evidence of predatory-lender activity targeting migrant workers (~2020-2021)."
     },
     {
@@ -128,7 +128,7 @@
       "title": "Predatory lender FB post -- Elend",
       "caption": "Tagalog-language predatory-lender shaming post. Lender: Elend. Same template as Bank Hongkong / Yoursun Caretaker -- WANTED-poster framing + passport-photo collateral + public-shaming demands.",
       "category": "predatory_lending",
-      "redaction_status": "REDACTED (boxblur=20, downscale=480w, watermarked)",
+      "redaction_status": "REDACTED (downscale=720w, watermarked)",
       "source_note": "Field-collected public-record evidence of predatory-lender activity targeting migrant workers (~2020-2021)."
     },
     {
@@ -138,7 +138,7 @@
       "title": "Predatory lender FB post -- Excel Credit",
       "caption": "Tagalog-language predatory-lender shaming post. Lender: Excel Credit. Same template as Bank Hongkong / Yoursun Caretaker -- WANTED-poster framing + passport-photo collateral + public-shaming demands.",
       "category": "predatory_lending",
-      "redaction_status": "REDACTED (boxblur=20, downscale=480w, watermarked)",
+      "redaction_status": "REDACTED (downscale=720w, watermarked)",
       "source_note": "Field-collected public-record evidence of predatory-lender activity targeting migrant workers (~2020-2021)."
     },
     {
@@ -148,7 +148,7 @@
       "title": "Predatory lender FB post -- Express Finance",
       "caption": "Tagalog-language predatory-lender shaming post. Lender: Express Finance. Same template as Bank Hongkong / Yoursun Caretaker -- WANTED-poster framing + passport-photo collateral + public-shaming demands.",
       "category": "predatory_lending",
-      "redaction_status": "REDACTED (boxblur=20, downscale=480w, watermarked)",
+      "redaction_status": "REDACTED (downscale=720w, watermarked)",
       "source_note": "Field-collected public-record evidence of predatory-lender activity targeting migrant workers (~2020-2021)."
     },
     {
@@ -158,7 +158,7 @@
       "title": "Predatory lender FB post -- Good Hope Lending",
       "caption": "Tagalog-language predatory-lender shaming post. Lender: Good Hope Lending. Same template as Bank Hongkong / Yoursun Caretaker -- WANTED-poster framing + passport-photo collateral + public-shaming demands.",
       "category": "predatory_lending",
-      "redaction_status": "REDACTED (boxblur=20, downscale=480w, watermarked)",
+      "redaction_status": "REDACTED (downscale=720w, watermarked)",
       "source_note": "Field-collected public-record evidence of predatory-lender activity targeting migrant workers (~2020-2021)."
     },
     {
@@ -168,7 +168,7 @@
       "title": "Predatory lender FB post -- Hs Finance",
       "caption": "Tagalog-language predatory-lender shaming post. Lender: Hs Finance. Same template as Bank Hongkong / Yoursun Caretaker -- WANTED-poster framing + passport-photo collateral + public-shaming demands.",
       "category": "predatory_lending",
-      "redaction_status": "REDACTED (boxblur=20, downscale=480w, watermarked)",
+      "redaction_status": "REDACTED (downscale=720w, watermarked)",
       "source_note": "Field-collected public-record evidence of predatory-lender activity targeting migrant workers (~2020-2021)."
     },
     {
@@ -178,7 +178,7 @@
       "title": "Predatory lender FB post -- Jan 2020 Worst Agency List",
       "caption": "Tagalog-language predatory-lender shaming post. Lender: Jan 2020 Worst Agency List. Same template as Bank Hongkong / Yoursun Caretaker -- WANTED-poster framing + passport-photo collateral + public-shaming demands.",
       "category": "predatory_lending",
-      "redaction_status": "REDACTED (boxblur=20, downscale=480w, watermarked)",
+      "redaction_status": "REDACTED (downscale=720w, watermarked)",
       "source_note": "Field-collected public-record evidence of predatory-lender activity targeting migrant workers (~2020-2021)."
     },
     {
@@ -188,7 +188,7 @@
       "title": "Predatory lender FB post -- Luckypeso",
       "caption": "Tagalog-language predatory-lender shaming post. Lender: Luckypeso. Same template as Bank Hongkong / Yoursun Caretaker -- WANTED-poster framing + passport-photo collateral + public-shaming demands.",
       "category": "predatory_lending",
-      "redaction_status": "REDACTED (boxblur=20, downscale=480w, watermarked)",
+      "redaction_status": "REDACTED (downscale=720w, watermarked)",
       "source_note": "Field-collected public-record evidence of predatory-lender activity targeting migrant workers (~2020-2021)."
     },
     {
@@ -198,7 +198,7 @@
       "title": "Predatory lender FB post -- More Reasons To Avoid",
       "caption": "Tagalog-language predatory-lender shaming post. Lender: More Reasons To Avoid. Same template as Bank Hongkong / Yoursun Caretaker -- WANTED-poster framing + passport-photo collateral + public-shaming demands.",
       "category": "predatory_lending",
-      "redaction_status": "REDACTED (boxblur=20, downscale=480w, watermarked)",
+      "redaction_status": "REDACTED (downscale=720w, watermarked)",
       "source_note": "Field-collected public-record evidence of predatory-lender activity targeting migrant workers (~2020-2021)."
     },
     {
@@ -208,7 +208,7 @@
       "title": "Predatory lender FB post -- Mutual Honour",
       "caption": "Tagalog-language predatory-lender shaming post. Lender: Mutual Honour. Same template as Bank Hongkong / Yoursun Caretaker -- WANTED-poster framing + passport-photo collateral + public-shaming demands.",
       "category": "predatory_lending",
-      "redaction_status": "REDACTED (boxblur=20, downscale=480w, watermarked)",
+      "redaction_status": "REDACTED (downscale=720w, watermarked)",
       "source_note": "Field-collected public-record evidence of predatory-lender activity targeting migrant workers (~2020-2021)."
     },
     {
@@ -218,7 +218,7 @@
       "title": "Predatory lender FB post -- Niaga",
       "caption": "Tagalog-language predatory-lender shaming post. Lender: Niaga. Same template as Bank Hongkong / Yoursun Caretaker -- WANTED-poster framing + passport-photo collateral + public-shaming demands.",
       "category": "predatory_lending",
-      "redaction_status": "REDACTED (boxblur=20, downscale=480w, watermarked)",
+      "redaction_status": "REDACTED (downscale=720w, watermarked)",
       "source_note": "Field-collected public-record evidence of predatory-lender activity targeting migrant workers (~2020-2021)."
     },
     {
@@ -228,7 +228,7 @@
       "title": "Predatory lender FB post -- Numerous Ofw Report About Aw Int",
       "caption": "Tagalog-language predatory-lender shaming post. Lender: Numerous Ofw Report About Aw Int. Same template as Bank Hongkong / Yoursun Caretaker -- WANTED-poster framing + passport-photo collateral + public-shaming demands.",
       "category": "predatory_lending",
-      "redaction_status": "REDACTED (boxblur=20, downscale=480w, watermarked)",
+      "redaction_status": "REDACTED (downscale=720w, watermarked)",
       "source_note": "Field-collected public-record evidence of predatory-lender activity targeting migrant workers (~2020-2021)."
     },
     {
@@ -238,7 +238,7 @@
       "title": "Predatory lender FB post -- Olm",
       "caption": "Tagalog-language predatory-lender shaming post. Lender: Olm. Same template as Bank Hongkong / Yoursun Caretaker -- WANTED-poster framing + passport-photo collateral + public-shaming demands.",
       "category": "predatory_lending",
-      "redaction_status": "REDACTED (boxblur=20, downscale=480w, watermarked)",
+      "redaction_status": "REDACTED (downscale=720w, watermarked)",
       "source_note": "Field-collected public-record evidence of predatory-lender activity targeting migrant workers (~2020-2021)."
     },
     {
@@ -248,7 +248,7 @@
       "title": "Predatory lender FB post -- Owa",
       "caption": "Tagalog-language predatory-lender shaming post. Lender: Owa. Same template as Bank Hongkong / Yoursun Caretaker -- WANTED-poster framing + passport-photo collateral + public-shaming demands.",
       "category": "predatory_lending",
-      "redaction_status": "REDACTED (boxblur=20, downscale=480w, watermarked)",
+      "redaction_status": "REDACTED (downscale=720w, watermarked)",
       "source_note": "Field-collected public-record evidence of predatory-lender activity targeting migrant workers (~2020-2021)."
     },
     {
@@ -258,7 +258,7 @@
       "title": "Predatory lender FB post -- Pjh",
       "caption": "Tagalog-language predatory-lender shaming post. Lender: Pjh. Same template as Bank Hongkong / Yoursun Caretaker -- WANTED-poster framing + passport-photo collateral + public-shaming demands.",
       "category": "predatory_lending",
-      "redaction_status": "REDACTED (boxblur=20, downscale=480w, watermarked)",
+      "redaction_status": "REDACTED (downscale=720w, watermarked)",
       "source_note": "Field-collected public-record evidence of predatory-lender activity targeting migrant workers (~2020-2021)."
     },
     {
@@ -268,7 +268,7 @@
       "title": "Predatory lender FB post -- Prime Credit",
       "caption": "Tagalog-language predatory-lender shaming post. Lender: Prime Credit. Same template as Bank Hongkong / Yoursun Caretaker -- WANTED-poster framing + passport-photo collateral + public-shaming demands.",
       "category": "predatory_lending",
-      "redaction_status": "REDACTED (boxblur=20, downscale=480w, watermarked)",
+      "redaction_status": "REDACTED (downscale=720w, watermarked)",
       "source_note": "Field-collected public-record evidence of predatory-lender activity targeting migrant workers (~2020-2021)."
     },
     {
@@ -278,7 +278,7 @@
       "title": "Predatory lender FB post -- Prime Excel",
       "caption": "Tagalog-language predatory-lender shaming post. Lender: Prime Excel. Same template as Bank Hongkong / Yoursun Caretaker -- WANTED-poster framing + passport-photo collateral + public-shaming demands.",
       "category": "predatory_lending",
-      "redaction_status": "REDACTED (boxblur=20, downscale=480w, watermarked)",
+      "redaction_status": "REDACTED (downscale=720w, watermarked)",
       "source_note": "Field-collected public-record evidence of predatory-lender activity targeting migrant workers (~2020-2021)."
     },
     {
@@ -288,7 +288,7 @@
       "title": "Predatory lender FB post -- Prosperity",
       "caption": "Tagalog-language predatory-lender shaming post. Lender: Prosperity. Same template as Bank Hongkong / Yoursun Caretaker -- WANTED-poster framing + passport-photo collateral + public-shaming demands.",
       "category": "predatory_lending",
-      "redaction_status": "REDACTED (boxblur=20, downscale=480w, watermarked)",
+      "redaction_status": "REDACTED (downscale=720w, watermarked)",
       "source_note": "Field-collected public-record evidence of predatory-lender activity targeting migrant workers (~2020-2021)."
     },
     {
@@ -298,7 +298,7 @@
       "title": "Predatory lender FB post -- Quicken Light",
       "caption": "Tagalog-language predatory-lender shaming post. Lender: Quicken Light. Same template as Bank Hongkong / Yoursun Caretaker -- WANTED-poster framing + passport-photo collateral + public-shaming demands.",
       "category": "predatory_lending",
-      "redaction_status": "REDACTED (boxblur=20, downscale=480w, watermarked)",
+      "redaction_status": "REDACTED (downscale=720w, watermarked)",
       "source_note": "Field-collected public-record evidence of predatory-lender activity targeting migrant workers (~2020-2021)."
     },
     {
@@ -308,7 +308,7 @@
       "title": "Predatory lender FB post -- Rainbow Finance",
       "caption": "Tagalog-language predatory-lender shaming post. Lender: Rainbow Finance. Same template as Bank Hongkong / Yoursun Caretaker -- WANTED-poster framing + passport-photo collateral + public-shaming demands.",
       "category": "predatory_lending",
-      "redaction_status": "REDACTED (boxblur=20, downscale=480w, watermarked)",
+      "redaction_status": "REDACTED (downscale=720w, watermarked)",
       "source_note": "Field-collected public-record evidence of predatory-lender activity targeting migrant workers (~2020-2021)."
     },
     {
@@ -318,7 +318,7 @@
       "title": "Predatory lender FB post -- Rainbow Int.",
       "caption": "Tagalog-language predatory-lender shaming post. Lender: Rainbow Int.. Same template as Bank Hongkong / Yoursun Caretaker -- WANTED-poster framing + passport-photo collateral + public-shaming demands.",
       "category": "predatory_lending",
-      "redaction_status": "REDACTED (boxblur=20, downscale=480w, watermarked)",
+      "redaction_status": "REDACTED (downscale=720w, watermarked)",
       "source_note": "Field-collected public-record evidence of predatory-lender activity targeting migrant workers (~2020-2021)."
     },
     {
@@ -328,7 +328,7 @@
       "title": "Predatory lender FB post -- Rich Credit",
       "caption": "Tagalog-language predatory-lender shaming post. Lender: Rich Credit. Same template as Bank Hongkong / Yoursun Caretaker -- WANTED-poster framing + passport-photo collateral + public-shaming demands.",
       "category": "predatory_lending",
-      "redaction_status": "REDACTED (boxblur=20, downscale=480w, watermarked)",
+      "redaction_status": "REDACTED (downscale=720w, watermarked)",
       "source_note": "Field-collected public-record evidence of predatory-lender activity targeting migrant workers (~2020-2021)."
     },
     {
@@ -338,7 +338,7 @@
       "title": "Predatory lender FB post -- Royal Lending",
       "caption": "Tagalog-language predatory-lender shaming post. Lender: Royal Lending. Same template as Bank Hongkong / Yoursun Caretaker -- WANTED-poster framing + passport-photo collateral + public-shaming demands.",
       "category": "predatory_lending",
-      "redaction_status": "REDACTED (boxblur=20, downscale=480w, watermarked)",
+      "redaction_status": "REDACTED (downscale=720w, watermarked)",
       "source_note": "Field-collected public-record evidence of predatory-lender activity targeting migrant workers (~2020-2021)."
     },
     {
@@ -348,7 +348,7 @@
       "title": "Predatory lender FB post -- Savings Account",
       "caption": "Tagalog-language predatory-lender shaming post. Lender: Savings Account. Same template as Bank Hongkong / Yoursun Caretaker -- WANTED-poster framing + passport-photo collateral + public-shaming demands.",
       "category": "predatory_lending",
-      "redaction_status": "REDACTED (boxblur=20, downscale=480w, watermarked)",
+      "redaction_status": "REDACTED (downscale=720w, watermarked)",
       "source_note": "Field-collected public-record evidence of predatory-lender activity targeting migrant workers (~2020-2021)."
     },
     {
@@ -358,7 +358,7 @@
       "title": "Predatory lender FB post -- Scenery Credit",
       "caption": "Tagalog-language predatory-lender shaming post. Lender: Scenery Credit. Same template as Bank Hongkong / Yoursun Caretaker -- WANTED-poster framing + passport-photo collateral + public-shaming demands.",
       "category": "predatory_lending",
-      "redaction_status": "REDACTED (boxblur=20, downscale=480w, watermarked)",
+      "redaction_status": "REDACTED (downscale=720w, watermarked)",
       "source_note": "Field-collected public-record evidence of predatory-lender activity targeting migrant workers (~2020-2021)."
     },
     {
@@ -368,7 +368,7 @@
       "title": "Predatory lender FB post -- Sincere Credit",
       "caption": "Tagalog-language predatory-lender shaming post. Lender: Sincere Credit. Same template as Bank Hongkong / Yoursun Caretaker -- WANTED-poster framing + passport-photo collateral + public-shaming demands.",
       "category": "predatory_lending",
-      "redaction_status": "REDACTED (boxblur=20, downscale=480w, watermarked)",
+      "redaction_status": "REDACTED (downscale=720w, watermarked)",
       "source_note": "Field-collected public-record evidence of predatory-lender activity targeting migrant workers (~2020-2021)."
     },
     {
@@ -378,7 +378,7 @@
       "title": "Predatory lender FB post -- Top Credit Post",
       "caption": "Tagalog-language predatory-lender shaming post. Lender: Top Credit Post. Same template as Bank Hongkong / Yoursun Caretaker -- WANTED-poster framing + passport-photo collateral + public-shaming demands.",
       "category": "predatory_lending",
-      "redaction_status": "REDACTED (boxblur=20, downscale=480w, watermarked)",
+      "redaction_status": "REDACTED (downscale=720w, watermarked)",
       "source_note": "Field-collected public-record evidence of predatory-lender activity targeting migrant workers (~2020-2021)."
     },
     {
@@ -388,7 +388,7 @@
       "title": "Predatory lender FB post -- Topway Credit",
       "caption": "Tagalog-language predatory-lender shaming post. Lender: Topway Credit. Same template as Bank Hongkong / Yoursun Caretaker -- WANTED-poster framing + passport-photo collateral + public-shaming demands.",
       "category": "predatory_lending",
-      "redaction_status": "REDACTED (boxblur=20, downscale=480w, watermarked)",
+      "redaction_status": "REDACTED (downscale=720w, watermarked)",
       "source_note": "Field-collected public-record evidence of predatory-lender activity targeting migrant workers (~2020-2021)."
     },
     {
@@ -398,7 +398,7 @@
       "title": "Predatory lender FB post -- Toyo",
       "caption": "Tagalog-language predatory-lender shaming post. Lender: Toyo. Same template as Bank Hongkong / Yoursun Caretaker -- WANTED-poster framing + passport-photo collateral + public-shaming demands.",
       "category": "predatory_lending",
-      "redaction_status": "REDACTED (boxblur=20, downscale=480w, watermarked)",
+      "redaction_status": "REDACTED (downscale=720w, watermarked)",
       "source_note": "Field-collected public-record evidence of predatory-lender activity targeting migrant workers (~2020-2021)."
     },
     {
@@ -408,7 +408,7 @@
       "title": "Predatory lender FB post -- True Credit",
       "caption": "Tagalog-language predatory-lender shaming post. Lender: True Credit. Same template as Bank Hongkong / Yoursun Caretaker -- WANTED-poster framing + passport-photo collateral + public-shaming demands.",
       "category": "predatory_lending",
-      "redaction_status": "REDACTED (boxblur=20, downscale=480w, watermarked)",
+      "redaction_status": "REDACTED (downscale=720w, watermarked)",
       "source_note": "Field-collected public-record evidence of predatory-lender activity targeting migrant workers (~2020-2021)."
     },
     {
@@ -418,7 +418,7 @@
       "title": "Predatory lender FB post -- Urgent Reminder Familyhan",
       "caption": "Tagalog-language predatory-lender shaming post. Lender: Urgent Reminder Familyhan. Same template as Bank Hongkong / Yoursun Caretaker -- WANTED-poster framing + passport-photo collateral + public-shaming demands.",
       "category": "predatory_lending",
-      "redaction_status": "REDACTED (boxblur=20, downscale=480w, watermarked)",
+      "redaction_status": "REDACTED (downscale=720w, watermarked)",
       "source_note": "Field-collected public-record evidence of predatory-lender activity targeting migrant workers (~2020-2021)."
     },
     {
@@ -428,7 +428,7 @@
       "title": "Predatory lender FB post -- Zazu",
       "caption": "Tagalog-language predatory-lender shaming post. Lender: Zazu. Same template as Bank Hongkong / Yoursun Caretaker -- WANTED-poster framing + passport-photo collateral + public-shaming demands.",
       "category": "predatory_lending",
-      "redaction_status": "REDACTED (boxblur=20, downscale=480w, watermarked)",
+      "redaction_status": "REDACTED (downscale=720w, watermarked)",
       "source_note": "Field-collected public-record evidence of predatory-lender activity targeting migrant workers (~2020-2021)."
     },
     {
@@ -438,7 +438,7 @@
       "title": "Bank Hongkong page -- scroll-through screen recording -- t=14.1s",
       "caption": "~94 MB screen recording (Feb 25, 2021) scrolling through the 'Bank Hongkong' Facebook page. Captures multiple 'WANTED' posts with different OFW victims. 6 evenly-spaced keyframes extracted, each heavily blurred.",
       "category": "doxxing",
-      "redaction_status": "REDACTED (boxblur=20, downscale=480w, watermarked)",
+      "redaction_status": "REDACTED (downscale=720w, watermarked)downscale=480w, watermarked)",
       "source_note": "Keyframe @ 14.1s of original recording."
     },
     {
@@ -448,7 +448,7 @@
       "title": "Bank Hongkong page -- scroll-through screen recording -- t=28.2s",
       "caption": "~94 MB screen recording (Feb 25, 2021) scrolling through the 'Bank Hongkong' Facebook page. Captures multiple 'WANTED' posts with different OFW victims. 6 evenly-spaced keyframes extracted, each heavily blurred.",
       "category": "doxxing",
-      "redaction_status": "REDACTED (boxblur=20, downscale=480w, watermarked)",
+      "redaction_status": "REDACTED (downscale=720w, watermarked)downscale=480w, watermarked)",
       "source_note": "Keyframe @ 28.2s of original recording."
     },
     {
@@ -458,7 +458,7 @@
       "title": "Bank Hongkong page -- scroll-through screen recording -- t=42.2s",
       "caption": "~94 MB screen recording (Feb 25, 2021) scrolling through the 'Bank Hongkong' Facebook page. Captures multiple 'WANTED' posts with different OFW victims. 6 evenly-spaced keyframes extracted, each heavily blurred.",
       "category": "doxxing",
-      "redaction_status": "REDACTED (boxblur=20, downscale=480w, watermarked)",
+      "redaction_status": "REDACTED (downscale=720w, watermarked)downscale=480w, watermarked)",
       "source_note": "Keyframe @ 42.2s of original recording."
     },
     {
@@ -468,7 +468,7 @@
       "title": "Bank Hongkong page -- scroll-through screen recording -- t=56.3s",
       "caption": "~94 MB screen recording (Feb 25, 2021) scrolling through the 'Bank Hongkong' Facebook page. Captures multiple 'WANTED' posts with different OFW victims. 6 evenly-spaced keyframes extracted, each heavily blurred.",
       "category": "doxxing",
-      "redaction_status": "REDACTED (boxblur=20, downscale=480w, watermarked)",
+      "redaction_status": "REDACTED (downscale=720w, watermarked)downscale=480w, watermarked)",
       "source_note": "Keyframe @ 56.3s of original recording."
     },
     {
@@ -478,7 +478,7 @@
       "title": "Bank Hongkong page -- scroll-through screen recording -- t=70.4s",
       "caption": "~94 MB screen recording (Feb 25, 2021) scrolling through the 'Bank Hongkong' Facebook page. Captures multiple 'WANTED' posts with different OFW victims. 6 evenly-spaced keyframes extracted, each heavily blurred.",
       "category": "doxxing",
-      "redaction_status": "REDACTED (boxblur=20, downscale=480w, watermarked)",
+      "redaction_status": "REDACTED (downscale=720w, watermarked)downscale=480w, watermarked)",
       "source_note": "Keyframe @ 70.4s of original recording."
     },
     {
@@ -488,7 +488,7 @@
       "title": "Bank Hongkong page -- scroll-through screen recording -- t=84.5s",
       "caption": "~94 MB screen recording (Feb 25, 2021) scrolling through the 'Bank Hongkong' Facebook page. Captures multiple 'WANTED' posts with different OFW victims. 6 evenly-spaced keyframes extracted, each heavily blurred.",
       "category": "doxxing",
-      "redaction_status": "REDACTED (boxblur=20, downscale=480w, watermarked)",
+      "redaction_status": "REDACTED (downscale=720w, watermarked)downscale=480w, watermarked)",
       "source_note": "Keyframe @ 84.5s of original recording."
     },
     {
@@ -498,7 +498,7 @@
       "title": "Indonesian-language doxxing post -- 'Melly Wong' page -- t=16.3s",
       "caption": "~108 MB recording showing the same template in Bahasa Indonesia: 'SIAPA YANG TAHU ORANG INI' (whoever knows this person) with full name + KTP number + village location. Documents the cross-language pattern.",
       "category": "doxxing",
-      "redaction_status": "REDACTED (boxblur=20, downscale=480w, watermarked)",
+      "redaction_status": "REDACTED (downscale=720w, watermarked)downscale=480w, watermarked)",
       "source_note": "Keyframe @ 16.3s of original recording."
     },
     {
@@ -508,7 +508,7 @@
       "title": "Indonesian-language doxxing post -- 'Melly Wong' page -- t=32.7s",
       "caption": "~108 MB recording showing the same template in Bahasa Indonesia: 'SIAPA YANG TAHU ORANG INI' (whoever knows this person) with full name + KTP number + village location. Documents the cross-language pattern.",
       "category": "doxxing",
-      "redaction_status": "REDACTED (boxblur=20, downscale=480w, watermarked)",
+      "redaction_status": "REDACTED (downscale=720w, watermarked)downscale=480w, watermarked)",
       "source_note": "Keyframe @ 32.7s of original recording."
     },
     {
@@ -518,7 +518,7 @@
       "title": "Indonesian-language doxxing post -- 'Melly Wong' page -- t=49.0s",
       "caption": "~108 MB recording showing the same template in Bahasa Indonesia: 'SIAPA YANG TAHU ORANG INI' (whoever knows this person) with full name + KTP number + village location. Documents the cross-language pattern.",
       "category": "doxxing",
-      "redaction_status": "REDACTED (boxblur=20, downscale=480w, watermarked)",
+      "redaction_status": "REDACTED (downscale=720w, watermarked)downscale=480w, watermarked)",
       "source_note": "Keyframe @ 49.0s of original recording."
     },
     {
@@ -528,7 +528,7 @@
       "title": "Indonesian-language doxxing post -- 'Melly Wong' page -- t=65.3s",
       "caption": "~108 MB recording showing the same template in Bahasa Indonesia: 'SIAPA YANG TAHU ORANG INI' (whoever knows this person) with full name + KTP number + village location. Documents the cross-language pattern.",
       "category": "doxxing",
-      "redaction_status": "REDACTED (boxblur=20, downscale=480w, watermarked)",
+      "redaction_status": "REDACTED (downscale=720w, watermarked)downscale=480w, watermarked)",
       "source_note": "Keyframe @ 65.3s of original recording."
     },
     {
@@ -538,7 +538,7 @@
       "title": "Indonesian-language doxxing post -- 'Melly Wong' page -- t=81.6s",
       "caption": "~108 MB recording showing the same template in Bahasa Indonesia: 'SIAPA YANG TAHU ORANG INI' (whoever knows this person) with full name + KTP number + village location. Documents the cross-language pattern.",
       "category": "doxxing",
-      "redaction_status": "REDACTED (boxblur=20, downscale=480w, watermarked)",
+      "redaction_status": "REDACTED (downscale=720w, watermarked)downscale=480w, watermarked)",
       "source_note": "Keyframe @ 81.6s of original recording."
     },
     {
@@ -548,7 +548,7 @@
       "title": "Indonesian-language doxxing post -- 'Melly Wong' page -- t=98.0s",
       "caption": "~108 MB recording showing the same template in Bahasa Indonesia: 'SIAPA YANG TAHU ORANG INI' (whoever knows this person) with full name + KTP number + village location. Documents the cross-language pattern.",
       "category": "doxxing",
-      "redaction_status": "REDACTED (boxblur=20, downscale=480w, watermarked)",
+      "redaction_status": "REDACTED (downscale=720w, watermarked)downscale=480w, watermarked)",
       "source_note": "Keyframe @ 98.0s of original recording."
     },
     {
@@ -558,7 +558,7 @@
       "title": "Wang Tzu page -- second predator profile -- t=5.0s",
       "caption": "~33 MB recording of the same 'WANTED' template on a different page (Wang Tzu, Mar 3 2021). Targets another named OFW. Confirms the template is industrialised across multiple coordinated actors.",
       "category": "doxxing",
-      "redaction_status": "REDACTED (boxblur=20, downscale=480w, watermarked)",
+      "redaction_status": "REDACTED (downscale=720w, watermarked)downscale=480w, watermarked)",
       "source_note": "Keyframe @ 5.0s of original recording."
     },
     {
@@ -568,7 +568,7 @@
       "title": "Wang Tzu page -- second predator profile -- t=10.1s",
       "caption": "~33 MB recording of the same 'WANTED' template on a different page (Wang Tzu, Mar 3 2021). Targets another named OFW. Confirms the template is industrialised across multiple coordinated actors.",
       "category": "doxxing",
-      "redaction_status": "REDACTED (boxblur=20, downscale=480w, watermarked)",
+      "redaction_status": "REDACTED (downscale=720w, watermarked)downscale=480w, watermarked)",
       "source_note": "Keyframe @ 10.1s of original recording."
     },
     {
@@ -578,7 +578,7 @@
       "title": "Wang Tzu page -- second predator profile -- t=15.1s",
       "caption": "~33 MB recording of the same 'WANTED' template on a different page (Wang Tzu, Mar 3 2021). Targets another named OFW. Confirms the template is industrialised across multiple coordinated actors.",
       "category": "doxxing",
-      "redaction_status": "REDACTED (boxblur=20, downscale=480w, watermarked)",
+      "redaction_status": "REDACTED (downscale=720w, watermarked)downscale=480w, watermarked)",
       "source_note": "Keyframe @ 15.1s of original recording."
     },
     {
@@ -588,7 +588,7 @@
       "title": "Wang Tzu page -- second predator profile -- t=20.1s",
       "caption": "~33 MB recording of the same 'WANTED' template on a different page (Wang Tzu, Mar 3 2021). Targets another named OFW. Confirms the template is industrialised across multiple coordinated actors.",
       "category": "doxxing",
-      "redaction_status": "REDACTED (boxblur=20, downscale=480w, watermarked)",
+      "redaction_status": "REDACTED (downscale=720w, watermarked)downscale=480w, watermarked)",
       "source_note": "Keyframe @ 20.1s of original recording."
     },
     {
@@ -598,7 +598,7 @@
       "title": "Wang Tzu page -- second predator profile -- t=25.1s",
       "caption": "~33 MB recording of the same 'WANTED' template on a different page (Wang Tzu, Mar 3 2021). Targets another named OFW. Confirms the template is industrialised across multiple coordinated actors.",
       "category": "doxxing",
-      "redaction_status": "REDACTED (boxblur=20, downscale=480w, watermarked)",
+      "redaction_status": "REDACTED (downscale=720w, watermarked)downscale=480w, watermarked)",
       "source_note": "Keyframe @ 25.1s of original recording."
     },
     {
@@ -608,7 +608,7 @@
       "title": "Wang Tzu page -- second predator profile -- t=30.2s",
       "caption": "~33 MB recording of the same 'WANTED' template on a different page (Wang Tzu, Mar 3 2021). Targets another named OFW. Confirms the template is industrialised across multiple coordinated actors.",
       "category": "doxxing",
-      "redaction_status": "REDACTED (boxblur=20, downscale=480w, watermarked)",
+      "redaction_status": "REDACTED (downscale=720w, watermarked)downscale=480w, watermarked)",
       "source_note": "Keyframe @ 30.2s of original recording."
     },
     {
@@ -618,7 +618,7 @@
       "title": "Apr 2021 follow-up shaming post -- t=3.7s",
       "caption": "~25 MB recording (Apr 7 2021). Continued documentation of the pattern persisting over weeks.",
       "category": "doxxing",
-      "redaction_status": "REDACTED (boxblur=20, downscale=480w, watermarked)",
+      "redaction_status": "REDACTED (downscale=720w, watermarked)downscale=480w, watermarked)",
       "source_note": "Keyframe @ 3.7s of original recording."
     },
     {
@@ -628,7 +628,7 @@
       "title": "Apr 2021 follow-up shaming post -- t=7.5s",
       "caption": "~25 MB recording (Apr 7 2021). Continued documentation of the pattern persisting over weeks.",
       "category": "doxxing",
-      "redaction_status": "REDACTED (boxblur=20, downscale=480w, watermarked)",
+      "redaction_status": "REDACTED (downscale=720w, watermarked)downscale=480w, watermarked)",
       "source_note": "Keyframe @ 7.5s of original recording."
     },
     {
@@ -638,7 +638,7 @@
       "title": "Apr 2021 follow-up shaming post -- t=11.2s",
       "caption": "~25 MB recording (Apr 7 2021). Continued documentation of the pattern persisting over weeks.",
       "category": "doxxing",
-      "redaction_status": "REDACTED (boxblur=20, downscale=480w, watermarked)",
+      "redaction_status": "REDACTED (downscale=720w, watermarked)downscale=480w, watermarked)",
       "source_note": "Keyframe @ 11.2s of original recording."
     },
     {
@@ -648,7 +648,7 @@
       "title": "Apr 2021 follow-up shaming post -- t=14.9s",
       "caption": "~25 MB recording (Apr 7 2021). Continued documentation of the pattern persisting over weeks.",
       "category": "doxxing",
-      "redaction_status": "REDACTED (boxblur=20, downscale=480w, watermarked)",
+      "redaction_status": "REDACTED (downscale=720w, watermarked)downscale=480w, watermarked)",
       "source_note": "Keyframe @ 14.9s of original recording."
     },
     {
@@ -658,7 +658,7 @@
       "title": "Apr 2021 follow-up shaming post -- t=18.6s",
       "caption": "~25 MB recording (Apr 7 2021). Continued documentation of the pattern persisting over weeks.",
       "category": "doxxing",
-      "redaction_status": "REDACTED (boxblur=20, downscale=480w, watermarked)",
+      "redaction_status": "REDACTED (downscale=720w, watermarked)downscale=480w, watermarked)",
       "source_note": "Keyframe @ 18.6s of original recording."
     },
     {
@@ -668,7 +668,7 @@
       "title": "Apr 2021 follow-up shaming post -- t=22.4s",
       "caption": "~25 MB recording (Apr 7 2021). Continued documentation of the pattern persisting over weeks.",
       "category": "doxxing",
-      "redaction_status": "REDACTED (boxblur=20, downscale=480w, watermarked)",
+      "redaction_status": "REDACTED (downscale=720w, watermarked)downscale=480w, watermarked)",
       "source_note": "Keyframe @ 22.4s of original recording."
     },
     {
@@ -678,7 +678,7 @@
       "title": "Jun 2021 -- long-term campaign continuation -- t=8.8s",
       "caption": "~16 MB recording (Jun 7 2021). 4-month timeline confirms this is not a one-off but an ongoing harassment campaign.",
       "category": "doxxing",
-      "redaction_status": "REDACTED (boxblur=20, downscale=480w, watermarked)",
+      "redaction_status": "REDACTED (downscale=720w, watermarked)downscale=480w, watermarked)",
       "source_note": "Keyframe @ 8.8s of original recording."
     },
     {
@@ -688,7 +688,7 @@
       "title": "Jun 2021 -- long-term campaign continuation -- t=17.7s",
       "caption": "~16 MB recording (Jun 7 2021). 4-month timeline confirms this is not a one-off but an ongoing harassment campaign.",
       "category": "doxxing",
-      "redaction_status": "REDACTED (boxblur=20, downscale=480w, watermarked)",
+      "redaction_status": "REDACTED (downscale=720w, watermarked)downscale=480w, watermarked)",
       "source_note": "Keyframe @ 17.7s of original recording."
     },
     {
@@ -698,7 +698,7 @@
       "title": "Jun 2021 -- long-term campaign continuation -- t=26.5s",
       "caption": "~16 MB recording (Jun 7 2021). 4-month timeline confirms this is not a one-off but an ongoing harassment campaign.",
       "category": "doxxing",
-      "redaction_status": "REDACTED (boxblur=20, downscale=480w, watermarked)",
+      "redaction_status": "REDACTED (downscale=720w, watermarked)downscale=480w, watermarked)",
       "source_note": "Keyframe @ 26.5s of original recording."
     },
     {
@@ -708,7 +708,7 @@
       "title": "Jun 2021 -- long-term campaign continuation -- t=35.3s",
       "caption": "~16 MB recording (Jun 7 2021). 4-month timeline confirms this is not a one-off but an ongoing harassment campaign.",
       "category": "doxxing",
-      "redaction_status": "REDACTED (boxblur=20, downscale=480w, watermarked)",
+      "redaction_status": "REDACTED (downscale=720w, watermarked)downscale=480w, watermarked)",
       "source_note": "Keyframe @ 35.3s of original recording."
     },
     {
@@ -718,7 +718,7 @@
       "title": "Jun 2021 -- long-term campaign continuation -- t=44.1s",
       "caption": "~16 MB recording (Jun 7 2021). 4-month timeline confirms this is not a one-off but an ongoing harassment campaign.",
       "category": "doxxing",
-      "redaction_status": "REDACTED (boxblur=20, downscale=480w, watermarked)",
+      "redaction_status": "REDACTED (downscale=720w, watermarked)downscale=480w, watermarked)",
       "source_note": "Keyframe @ 44.1s of original recording."
     },
     {
@@ -728,7 +728,7 @@
       "title": "Jun 2021 -- long-term campaign continuation -- t=53.0s",
       "caption": "~16 MB recording (Jun 7 2021). 4-month timeline confirms this is not a one-off but an ongoing harassment campaign.",
       "category": "doxxing",
-      "redaction_status": "REDACTED (boxblur=20, downscale=480w, watermarked)",
+      "redaction_status": "REDACTED (downscale=720w, watermarked)downscale=480w, watermarked)",
       "source_note": "Keyframe @ 53.0s of original recording."
     },
     {

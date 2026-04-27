@@ -311,11 +311,48 @@ body.dc-slideshow header.dc-nav { display: none !important; }
   border: 1px solid var(--border);
 }
 
-/* Title-slide audience row */
+/* Title-slide audience row (legacy 5-col, kept for any other usage) */
 .dc-audience-row {
   display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px;
   margin: 26px 0 0 0;
 }
+
+/* Title-slide 2-use-case layout */
+.dc-title-sub-card {
+  background: var(--card); border: 1px solid var(--border);
+  border-left: 3px solid var(--primary); border-radius: 10px;
+  padding: 14px 20px; margin: 6px 0 18px 0;
+}
+.dc-uc-grid {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 16px; flex: 1; min-height: 0;
+}
+.dc-title-uc {
+  background: #f8fafc; border: 1px solid var(--border);
+  border-radius: 12px; padding: 16px 18px;
+  display: flex; flex-direction: column;
+}
+.dc-title-uc-head { margin-bottom: 12px; }
+.dc-title-uc-head h2 {
+  margin: 6px 0 4px 0; font-size: 17px; font-weight: 700;
+  color: var(--ink); letter-spacing: -0.01em; line-height: 1.25;
+}
+.dc-title-uc-head p {
+  margin: 0; font-size: 12.5px; color: var(--muted); line-height: 1.5;
+}
+.dc-title-aud-row {
+  display: grid; grid-template-columns: 1fr; gap: 8px;
+  flex: 1;
+}
+.dc-title-aud-row .dc-aud {
+  background: var(--card); padding: 10px 12px;
+}
+.dc-title-aud-row .dc-aud-icon {
+  width: 28px; height: 28px; font-size: 14px; margin-bottom: 6px;
+  border-radius: 7px;
+}
+.dc-title-aud-row .dc-aud-name { font-size: 13px; }
+.dc-title-aud-row .dc-aud-desc { font-size: 11.5px; }
 
 /* Why-Gemma 2-column layout */
 .dc-twocol-layout {
@@ -357,8 +394,11 @@ body.dc-slideshow header.dc-nav { display: none !important; }
 /* Two-column problem layout (text + side photos) */
 .dc-split-layout {
   display: grid; grid-template-columns: 1.15fr 1fr;
-  gap: 32px; align-items: start;
+  gap: 32px; align-items: stretch;
 }
+.dc-split-layout > div { display: flex; flex-direction: column; }
+.dc-split-layout > div > .dc-callout:last-child { margin-top: auto; }
+.dc-split-layout > div > .dc-side-photo-grid { flex: 1; }
 .dc-side-photo-grid {
   display: grid; grid-template-columns: 1fr 1fr;
   gap: 8px;
@@ -405,6 +445,69 @@ body.dc-slideshow header.dc-nav { display: none !important; }
 .dc-qa-grid {
   display: grid; grid-template-columns: repeat(2, 1fr);
   gap: 14px; margin: 18px 0;
+}
+
+/* Enhancing Gemma slide -- 4-column step grid */
+.dc-enhance-grid {
+  display: grid; grid-template-columns: repeat(4, 1fr);
+  gap: 14px; margin: 18px 0;
+}
+.dc-enhance {
+  background: #f8fafc; border: 1px solid var(--border);
+  border-top: 4px solid var(--primary); border-radius: 10px;
+  padding: 16px; position: relative;
+}
+.dc-enh-num {
+  position: absolute; top: -14px; left: -14px;
+  width: 32px; height: 32px; border-radius: 50%;
+  background: var(--primary); color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: 14px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+}
+.dc-enh-title {
+  font-weight: 700; font-size: 14px; color: var(--ink);
+  margin: 6px 0 6px 0; line-height: 1.3;
+}
+.dc-enh-desc { font-size: 12.5px; color: var(--muted); line-height: 1.5; }
+
+/* Appendix slides -- 3-column section grid */
+.dc-appx-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: 16px; margin: 18px 0;
+}
+.dc-appx-section {
+  background: #f8fafc; border: 1px solid var(--border);
+  border-radius: 10px; padding: 14px 16px;
+}
+.dc-appx-section h3 {
+  margin: 0 0 8px 0; font-size: 14px;
+  color: var(--primary); letter-spacing: -0.01em;
+}
+.dc-appx-section ul {
+  margin: 0; padding-left: 18px; font-size: 12.5px; line-height: 1.5;
+  color: var(--ink);
+}
+
+/* Appendix B -- tool catalog table */
+.dc-tool-table {
+  display: grid; grid-template-columns: 1fr; gap: 0;
+  margin: 18px 0; border: 1px solid var(--border); border-radius: 10px;
+  overflow: hidden;
+}
+.dc-tool-row {
+  display: grid; grid-template-columns: 200px 180px 1fr;
+  padding: 8px 14px; border-bottom: 1px solid var(--border);
+  font-size: 12.5px; color: var(--muted);
+}
+.dc-tool-row:last-child { border-bottom: 0; }
+.dc-tool-row.dc-tool-h {
+  background: #f1f5f9; font-weight: 700; color: var(--ink);
+  font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em;
+}
+.dc-tool-row code {
+  background: #f1f5f9; padding: 1px 6px; border-radius: 3px;
+  font-size: 11.5px; color: var(--ink);
 }
 .dc-qa {
   background: #f8fafc; border: 1px solid var(--border);
@@ -588,6 +691,10 @@ body.dc-slideshow header.dc-nav { display: none !important; }
   .dc-twocol-layout { grid-template-columns: 1fr; }
   .dc-channel-grid { grid-template-columns: 1fr; }
   .dc-qa-grid { grid-template-columns: 1fr; }
+  .dc-uc-grid { grid-template-columns: 1fr; }
+  .dc-enhance-grid { grid-template-columns: 1fr 1fr; }
+  .dc-appx-grid { grid-template-columns: 1fr; }
+  .dc-tool-row { grid-template-columns: 1fr; padding: 8px; }
 }
 @media (max-width: 800px) {
   .dc-slide-stage { padding: 70px 12px 60px 12px; }
@@ -623,32 +730,59 @@ const ALL_SLIDES = [
     tag: 'Overview',
     tagBg: '#eff6ff', tagFg: '#1e40af',
     title: 'A Gemma 4 implementation against human exploitation.',
-    autoSec: 12,
+    autoSec: 14,
     body: `
-<p style="font-size:20px;line-height:1.55;color:var(--muted);margin-top:8px;max-width:900px">
-Duecare flags exploitation and abuse patterns in
-<b>recruiter ads, chat messages, contracts, complaint letters,</b>
-and <b>bulk case files</b>, and writes every step of the reasoning
-to an audit trail.
+<div class="dc-title-sub-card">
+<p style="margin:0;font-size:16px;line-height:1.55;color:var(--ink)">
+Duecare flags exploitation and abuse patterns through two
+complementary modes. The same multi-stage pipeline (heuristic
+prescan, regex and RAG knowledge base, deterministic domain
+tools, Gemma 4 verdict) serves both, and writes every step of
+the reasoning to an audit trail any reviewer can inspect.
 </p>
-<div class="dc-audience-row">
-  <div class="dc-aud"><div class="dc-aud-icon" style="background:#dbeafe;color:#1e40af">⚡</div>
-    <div class="dc-aud-name">Social-media platforms</div>
-    <div class="dc-aud-desc">moderation queues, transparency reports under CA AB 587 / Texas HB 20</div></div>
-  <div class="dc-aud"><div class="dc-aud-icon" style="background:#fef3c7;color:#92400e">🛡</div>
-    <div class="dc-aud-name">NGOs &amp; hotlines</div>
-    <div class="dc-aud-desc">Bulk case triage, intelligence, MO recognition. Polaris, IJM, ECPAT, HRD Nepal.</div></div>
-  <div class="dc-aud"><div class="dc-aud-icon" style="background:#fef2f2;color:#991b1b">⚖</div>
-    <div class="dc-aud-name">Government &amp; regulators</div>
-    <div class="dc-aud-desc">License &amp; statute enforcement at DOL, BP2MI, MOM, MOHRE, FET.</div></div>
-  <div class="dc-aud"><div class="dc-aud-icon" style="background:#ecfdf5;color:#065f46">👤</div>
-    <div class="dc-aud-name">Individuals</div>
-    <div class="dc-aud-desc">Workers and families self-checking a suspicious offer or message.</div></div>
-  <div class="dc-aud"><div class="dc-aud-icon" style="background:#f5f3ff;color:#5b21b6">🔬</div>
-    <div class="dc-aud-name">Researchers</div>
-    <div class="dc-aud-desc">benchmarking, fine-tuning, policy work</div></div>
 </div>
-<p style="font-size:13px;color:var(--muted);margin-top:auto;padding-top:24px">
+<div class="dc-uc-grid">
+  <section class="dc-title-uc">
+    <div class="dc-title-uc-head">
+      <span class="dc-uc-tag dc-uc-tag-blue">Use case 1</span>
+      <h2>Enterprise evaluation of internet content</h2>
+      <p>Real-time moderation of social posts, recruiter ads, marketplace
+        listings, comments, and platform messaging at scale.</p>
+    </div>
+    <div class="dc-title-aud-row">
+      <div class="dc-aud"><div class="dc-aud-icon" style="background:#dbeafe;color:#1e40af">⚡</div>
+        <div class="dc-aud-name">Social-media platforms</div>
+        <div class="dc-aud-desc">Moderation queues, CA AB 587 / Texas HB 20 transparency reports.</div></div>
+      <div class="dc-aud"><div class="dc-aud-icon" style="background:#fef2f2;color:#991b1b">⚖</div>
+        <div class="dc-aud-name">Government &amp; regulators</div>
+        <div class="dc-aud-desc">License &amp; statute enforcement at DOL, BP2MI, MOM, MOHRE, FET.</div></div>
+      <div class="dc-aud"><div class="dc-aud-icon" style="background:#f5f3ff;color:#5b21b6">🔬</div>
+        <div class="dc-aud-name">Researchers</div>
+        <div class="dc-aud-desc">Benchmarking, fine-tuning, longitudinal pattern studies across platforms and corridors.</div></div>
+    </div>
+  </section>
+  <section class="dc-title-uc">
+    <div class="dc-title-uc-head">
+      <span class="dc-uc-tag dc-uc-tag-amber">Use case 2</span>
+      <h2>Local evaluation of case files &amp; documents</h2>
+      <p>Per-case analysis of contracts, complaint letters, passport
+        scans, screenshots, chat exports, and other documents an
+        operator handles directly.</p>
+    </div>
+    <div class="dc-title-aud-row">
+      <div class="dc-aud"><div class="dc-aud-icon" style="background:#fef3c7;color:#92400e">🛡</div>
+        <div class="dc-aud-name">NGOs &amp; hotlines</div>
+        <div class="dc-aud-desc">Bulk case triage, cross-case intelligence, MO recognition. Polaris, IJM, ECPAT, HRD Nepal.</div></div>
+      <div class="dc-aud"><div class="dc-aud-icon" style="background:#ecfdf5;color:#065f46">👤</div>
+        <div class="dc-aud-name">Individuals</div>
+        <div class="dc-aud-desc">Workers and families self-checking a suspicious offer or message.</div></div>
+      <div class="dc-aud"><div class="dc-aud-icon" style="background:#fef2f2;color:#991b1b">⚖️</div>
+        <div class="dc-aud-name">Lawyers &amp; journalists</div>
+        <div class="dc-aud-desc">Pro-bono attorneys and investigative reporters analysing case files for litigation or exposure.</div></div>
+    </div>
+  </section>
+</div>
+<p style="font-size:13px;color:var(--muted);margin-top:auto;padding-top:18px;text-align:center">
 Press <code>→</code> · <b>Next</b> to advance · <code>▶ Auto</code> to
 self-advance · <code>Esc</code> to exit.
 </p>`
@@ -709,9 +843,10 @@ self-advance · <code>Esc</code> to exit.
       <div style="grid-column:1/-1;color:var(--muted);font-size:13px">Loading redacted samples…</div>
     </div>
     <p style="font-size:12px;color:var(--muted);margin-top:10px;font-style:italic">
-    Public-record posts. Heavily redacted: faces blurred, names
-    erased, identifying details removed. Click any tile to see a
-    larger view with the source note.
+    Public-record posts. Redacted: identifying details removed,
+    watermarked. Click any tile to see a larger view with the
+    source note. Verified audits with the full evidence chain
+    are available upon request from operators.
     </p>
   </div>
 </div>`,
@@ -729,10 +864,11 @@ self-advance · <code>Esc</code> to exit.
     autoSec: 16,
     body: `
 <p style="font-size:17px;max-width:980px;margin-top:0">
-The recruiters, lenders, and impostor "agency bosses" who target
-vulnerable users meet them <b>on the platforms they already use</b>:
-in their own language, in their own communities, with the platforms'
-detection tools tuned for entirely different categories.
+The bad actors who target vulnerable users (recruiters, lenders,
+impostor agencies, debt collectors) meet them <b>on the platforms
+they already use</b>: in their own language, in their own
+communities, with the platforms' detection tools tuned for entirely
+different categories.
 </p>
 <div class="dc-channel-grid">
   <div class="dc-channel">
@@ -867,18 +1003,20 @@ the larger view with the source note.
     id: 'why_gemma',
     tag: 'Why Gemma 4',
     tagBg: '#ecfdf5', tagFg: '#065f46',
-    title: 'Why Gemma 4 + multi-stage architecture.',
-    autoSec: 16,
+    title: 'Why Gemma 4 is the right substrate.',
+    autoSec: 14,
     body: `
 <div class="dc-twocol-layout">
   <div class="dc-twocol-card good">
-    <h2 style="margin-top:0;color:#065f46">Gemma 4 is the right substrate</h2>
+    <h2 style="margin-top:0;color:#065f46">Capabilities that matter for this domain</h2>
     <ul>
-      <li><b>Open weights, Apache 2.0.</b> No API lock-in, no
-        usage-rights ambiguity for compliance teams.</li>
+      <li><b>Open weights, Apache 2.0, fine-tunable.</b> No API
+        lock-in, no usage-rights ambiguity. Operators can adapt to
+        their jurisdiction via Unsloth + LoRA on a single GPU in
+        hours.</li>
       <li><b>27+ languages</b> including Tagalog, Bahasa, Hindi,
-        Bengali, Nepali, Arabic. The languages this exploitation is
-        actually conducted in.</li>
+        Bengali, Nepali, Arabic. The languages this exploitation
+        is actually conducted in.</li>
       <li><b>Multimodal in one model.</b> Image and text together,
         so a contract photo and the caption text can be reasoned
         about jointly.</li>
@@ -886,35 +1024,27 @@ the larger view with the source note.
         which deterministic tool to invoke and parse the result.</li>
       <li><b>Two sizes.</b> E4B fits in ~5.5GB VRAM (consumer GPU);
         E2B fits in ~2GB (mobile via LiteRT).</li>
-      <li><b>Fine-tunable</b> via Unsloth + LoRA on a single GPU in
-        hours, so operators can adapt to their jurisdiction.</li>
     </ul>
   </div>
-  <div class="dc-twocol-card warn">
-    <h2 style="margin-top:0;color:#92400e">Why architecture matters</h2>
+  <div class="dc-twocol-card good">
+    <h2 style="margin-top:0;color:#065f46">Safety baseline (good news)</h2>
     <p style="font-size:14px;margin-top:0">
-    Stock Gemma 4 E4B on the 21K-test exploitation benchmark scores
-    safely (0% harmful output) but is conservative on detection.
+    On a similar evaluation framework to Taylor's
+    <a href="https://www.kaggle.com/competitions/openai-gpt-oss-20b-red-teaming" target="_blank" rel="noopener noreferrer"><b>OpenAI gpt-oss-20b Red-Teaming Challenge submission</b></a>,
+    stock Gemma 4 E4B produces <b>materially less harmful output
+    than gpt-oss-20b</b> on exploitation-pattern probes.
     </p>
-    <div class="dc-bench-row">
-      <div><div class="bn">0.61</div><div class="bl">mean score</div></div>
-      <div><div class="bn">20%</div><div class="bl">pass rate</div></div>
-      <div><div class="bn">0%</div><div class="bl">harmful output</div></div>
-    </div>
     <p style="font-size:14px">
-    The same gap exists for every open-weight model we tested
-    (Llama, Mistral, Qwen, DeepSeek, gpt-oss). LLMs simply don't
-    know specific statute numbers, fee caps, licence status, or
-    hotline contacts an operator needs. That's not what they were
-    trained for.
+    Gemma is the safer base out of the box. What stock Gemma
+    doesn't yet know is the jurisdictional facts an operator needs
+    (statute numbers, fee caps, licence status, hotline contacts)
+    and that's exactly where the next slide picks up.
     </p>
-    <p style="font-size:14px;margin-bottom:0">
-    The fix is the architecture around the model. Heuristics catch
-    vocabulary. GREP retrieves statutes verbatim. RAG catches
-    paraphrase. Deterministic tools deliver facts with zero
-    hallucination. Gemma 4 synthesises everything into a verdict
-    plus reasoning a human can act on.
-    </p>
+    <div class="dc-callout success" style="background:#ecfdf5;border-left:4px solid #10b981;padding:10px 14px;margin:0">
+    <b>Bottom line.</b> Gemma 4 is the right base substrate;
+    the architecture in the next two slides explains how we
+    enhance it for operator-grade output.
+    </div>
   </div>
 </div>
 <div class="dc-callout success" style="margin-top:auto">
@@ -925,6 +1055,62 @@ CA AB 587.
 &nbsp;&nbsp;<b>Local / on-device:</b> E2B/E4B 4-bit in 2-6GB VRAM,
 data stays where the operator chooses.
 &nbsp;&nbsp;Same KB, same tools, same audit format.
+</div>`
+  },
+
+  // ----------------------------------------------------------------
+  // Slide -- Enhancing Gemma (transition between why_gemma and architecture)
+  // ----------------------------------------------------------------
+  {
+    id: 'enhancing_gemma',
+    tag: 'Enhancing Gemma',
+    tagBg: '#fef3c7', tagFg: '#92400e',
+    title: 'Enhancing Gemma 4 for operator-grade detection.',
+    autoSec: 14,
+    body: `
+<p style="font-size:17px;margin-top:0;max-width:980px">
+Gemma 4 is the right starting point but no general LLM ships with
+the ground truth an operator needs: specific statute numbers, fee
+caps, licence status, jurisdictional hotlines, predatory-actor
+registries. That information must come from somewhere deterministic.
+Duecare layers four pre-LLM stages around Gemma so it has the
+right facts when it answers.
+</p>
+<div class="dc-enhance-grid">
+  <div class="dc-enhance">
+    <div class="dc-enh-num">1</div>
+    <div class="dc-enh-title">Heuristics catch vocabulary</div>
+    <div class="dc-enh-desc">22 multilingual signals across 3 tiers.
+      Establish severity floor in 5 ms. No LLM call required.</div>
+  </div>
+  <div class="dc-enhance">
+    <div class="dc-enh-num">2</div>
+    <div class="dc-enh-title">GREP retrieves statutes verbatim</div>
+    <div class="dc-enh-desc">Regex match against 53 curated KB
+      passages across 18+ jurisdictions. Always works, fully
+      auditable.</div>
+  </div>
+  <div class="dc-enhance">
+    <div class="dc-enh-num">3</div>
+    <div class="dc-enh-title">RAG catches paraphrase</div>
+    <div class="dc-enh-desc">sentence-transformers MiniLM cosine
+      retrieval finds semantic matches GREP misses, especially
+      across languages.</div>
+  </div>
+  <div class="dc-enhance">
+    <div class="dc-enh-num">4</div>
+    <div class="dc-enh-title">Tools deliver facts</div>
+    <div class="dc-enh-desc">11 deterministic tools fire in
+      parallel: license checks, fee caps, hotlines, ILO indicators.
+      Zero hallucination.</div>
+  </div>
+</div>
+<div class="dc-callout" style="margin-top:auto">
+<b>Then Gemma reasons.</b> By the time Gemma 4 sees the input it
+also sees: heuristic signals, KB hits, severity-anchor table, and
+pre-computed tool results. Gemma synthesises everything into a
+verdict plus reasoning a human can act on. The next slide shows
+the full pipeline laid out end to end.
 </div>`
   },
 
@@ -1289,16 +1475,21 @@ on the home page.
     id: 'qa',
     tag: 'Q & A',
     tagBg: '#dbeafe', tagFg: '#1e40af',
-    title: 'Common questions.',
+    title: 'Questions',
     autoSec: 20,
     body: `
+<p style="font-size:17px;margin-top:0;color:var(--muted)">
+Common questions and quick answers. The next three slides
+(Appendix) cover knowledge-base, tool catalog, and heuristic
+taxonomy in more detail.
+</p>
 <div class="dc-qa-grid">
   <div class="dc-qa">
     <div class="dc-qa-q">Where does the worker's data live?</div>
     <div class="dc-qa-a">Wherever the operator chooses. The same
-      pipeline runs as an enterprise cloud service, on a single
-      GPU at an NGO office, or on a phone via LiteRT. Inputs do
-      not leave the deployment unless the operator wires them out.
+      pipeline runs as an enterprise cloud service, on a single GPU
+      at an NGO office, or on a phone via LiteRT. Inputs do not
+      leave the deployment unless the operator wires them out.
     </div>
   </div>
   <div class="dc-qa">
@@ -1335,14 +1526,206 @@ on the home page.
   <div class="dc-qa">
     <div class="dc-qa-q">How is detection performance measured?</div>
     <div class="dc-qa-a">A 21K-test benchmark with graded responses
-      (worst → best, 5-tier scale). Every released checkpoint is
-      scored against the same benchmark with reproducible seed.
-      See /background for methodology.
+      (worst to best, 5-tier scale). Every released checkpoint is
+      scored against the same benchmark with reproducible seed. See
+      <a href="/background">/background</a> for methodology.
     </div>
   </div>
 </div>
 <div style="margin-top:auto;display:flex;justify-content:center">
-  <a href="/" class="dc-qa-home-btn">← Back to the dashboard</a>
+  <a href="/" class="dc-qa-home-btn">← Back to home</a>
+</div>`
+  },
+
+  // ----------------------------------------------------------------
+  // Slide -- Appendix A: Knowledge base
+  // ----------------------------------------------------------------
+  {
+    id: 'appendix_kb',
+    tag: 'Appendix A',
+    tagBg: '#f5f3ff', tagFg: '#5b21b6',
+    title: 'Appendix A. Knowledge base.',
+    autoSec: 18,
+    body: `
+<p style="font-size:16px;margin-top:0;color:var(--muted)">
+53 curated passages spanning international conventions, regional
+statutes, and operational frameworks across 18+ jurisdictions.
+Used by the GREP and RAG stages of the pipeline.
+</p>
+<div class="dc-appx-grid">
+  <div class="dc-appx-section">
+    <h3>International conventions</h3>
+    <ul>
+      <li>UN Palermo Protocol Article 3 (trafficking definition)</li>
+      <li>ILO Forced Labour Convention C029 (1930)</li>
+      <li>ILO Worst Forms of Child Labour C182 (1999)</li>
+      <li>ILO Domestic Workers Convention C189 (2011)</li>
+      <li>ILO Private Employment Agencies C181 (1997)</li>
+      <li>ILO Fishing Convention C188 (2007)</li>
+      <li>ILO 11 Indicators of Forced Labour (2012)</li>
+    </ul>
+  </div>
+  <div class="dc-appx-section">
+    <h3>Regional statutes (sender countries)</h3>
+    <ul>
+      <li>PH RA 8042 + RA 10022 (Migrant Workers Act, fee caps)</li>
+      <li>PH RA 9208 + RA 10364 (Anti-Trafficking)</li>
+      <li>PH RA 10173 + RA 10175 + RA 9995 (Privacy / Cybercrime / Photo Voyeurism)</li>
+      <li>ID Law 18/2017 (Indonesian Migrant Workers)</li>
+      <li>ID BP2MI Decree 38/2020 (zero placement-fee corridor)</li>
+      <li>NP Foreign Employment Act 2007 + 2020 amendment</li>
+      <li>BD Overseas Employment Act 2013</li>
+      <li>LK SLBFE Act + KH Sub-Decree 190/2014</li>
+      <li>VN Decree 38/2020 + IN Emigration Act 1983</li>
+    </ul>
+  </div>
+  <div class="dc-appx-section">
+    <h3>Regional statutes (receiver countries)</h3>
+    <ul>
+      <li>HK Cap. 57 (Employment Ordinance)</li>
+      <li>HK Cap. 163 (Money Lenders Ordinance)</li>
+      <li>HK Cap. 486 + Anti-Doxxing 2021 amendment</li>
+      <li>SG MOM Employment of Foreign Manpower Act</li>
+      <li>SA, AE, QA, KW kafala-reform statutes (2017-2022)</li>
+      <li>EU Directive 2011/36 (Trafficking) + GDPR Art. 17/20</li>
+      <li>US TVPA + Mann Act</li>
+      <li>CA AB 587 + Cal. Civ. Code 1714 + TX HB 20</li>
+    </ul>
+  </div>
+</div>`
+  },
+
+  // ----------------------------------------------------------------
+  // Slide -- Appendix B: Tool catalog
+  // ----------------------------------------------------------------
+  {
+    id: 'appendix_tools',
+    tag: 'Appendix B',
+    tagBg: '#f5f3ff', tagFg: '#5b21b6',
+    title: 'Appendix B. Tool catalog.',
+    autoSec: 18,
+    body: `
+<p style="font-size:16px;margin-top:0;color:var(--muted)">
+11 deterministic tools fire on every run, driven by prescan signals
+and locale. Each returns structured results that flow into the
+Gemma 4 prompt as ground-truth context.
+</p>
+<div class="dc-tool-table">
+  <div class="dc-tool-row dc-tool-h">
+    <div>Tool</div><div>Inputs</div><div>What it returns</div>
+  </div>
+  <div class="dc-tool-row">
+    <div><code>lookup_statute</code></div>
+    <div>jurisdiction, topic</div>
+    <div>matching statutes from the KB with section + text</div>
+  </div>
+  <div class="dc-tool-row">
+    <div><code>lookup_hotline</code></div>
+    <div>country / locale</div>
+    <div>local victim / migrant-worker hotline + protocol</div>
+  </div>
+  <div class="dc-tool-row">
+    <div><code>check_agency_license</code></div>
+    <div>agency name, country</div>
+    <div>POEA / DMW / EAA / MOM / MOHRE registry status</div>
+  </div>
+  <div class="dc-tool-row">
+    <div><code>calculate_max_fee</code></div>
+    <div>country, role, salary</div>
+    <div>statutory fee cap (e.g. RA 8042 = 1 month salary)</div>
+  </div>
+  <div class="dc-tool-row">
+    <div><code>identify_ilo_indicators</code></div>
+    <div>free-form text</div>
+    <div>which of the 11 ILO indicators fire</div>
+  </div>
+  <div class="dc-tool-row">
+    <div><code>lookup_embassy</code></div>
+    <div>country, nationality</div>
+    <div>embassy / consulate contact for victim referral</div>
+  </div>
+  <div class="dc-tool-row">
+    <div><code>check_predatory_lender</code></div>
+    <div>lender name / page</div>
+    <div>flagged-actor registry hit + historical doxxing pattern</div>
+  </div>
+  <div class="dc-tool-row">
+    <div><code>check_doxxing_indicators</code></div>
+    <div>free-form text</div>
+    <div>doxxing-risk signals (wanted-poster framing, ID demands)</div>
+  </div>
+  <div class="dc-tool-row">
+    <div><code>check_debt_harassment</code></div>
+    <div>free-form text</div>
+    <div>debt-collection harassment patterns</div>
+  </div>
+  <div class="dc-tool-row">
+    <div><code>check_social_media_harassment</code></div>
+    <div>post text + platform</div>
+    <div>platform-policy violations + escalation paths</div>
+  </div>
+  <div class="dc-tool-row">
+    <div><code>suggest_complaint_template</code></div>
+    <div>verdict + jurisdiction</div>
+    <div>complaint draft (DMW, BP2MI, FET, GCC WPS, US TVPA, etc.)</div>
+  </div>
+</div>`
+  },
+
+  // ----------------------------------------------------------------
+  // Slide -- Appendix C: Heuristic taxonomy
+  // ----------------------------------------------------------------
+  {
+    id: 'appendix_heuristics',
+    tag: 'Appendix C',
+    tagBg: '#f5f3ff', tagFg: '#5b21b6',
+    title: 'Appendix C. Heuristic taxonomy.',
+    autoSec: 18,
+    body: `
+<p style="font-size:16px;margin-top:0;color:var(--muted)">
+22 keyword signals across 3 severity tiers, multilingual
+(English, Tagalog, Bahasa, Hindi, Bengali, Nepali, Arabic
+transliteration). Establishes the severity floor before any
+LLM call.
+</p>
+<div class="dc-appx-grid">
+  <div class="dc-appx-section">
+    <h3 style="color:#991b1b">Tier 1: critical (severity 8-10)</h3>
+    <ul>
+      <li>Passport / ID retention (ILO C029 #7)</li>
+      <li>Movement restriction / confinement</li>
+      <li>Debt bondage / wage withholding</li>
+      <li>Family threat / coercion</li>
+      <li>Phone / device confiscation</li>
+      <li>Visa-overstay coercion</li>
+      <li>Multilingual passport variants (Bahasa, Hindi, Bengali, Nepali, Arabic)</li>
+    </ul>
+  </div>
+  <div class="dc-appx-section">
+    <h3 style="color:#92400e">Tier 2: high (severity 5-7)</h3>
+    <ul>
+      <li>Excessive recruitment fee (over jurisdictional cap)</li>
+      <li>Recruitment chain (multiple sub-agents)</li>
+      <li>Contract substitution language</li>
+      <li>Forced savings / accommodation deduction</li>
+      <li>Document substitution / fraud</li>
+      <li>Direct-to-worker payment account</li>
+      <li>Kafala "safekeeping" euphemisms</li>
+    </ul>
+  </div>
+  <div class="dc-appx-section">
+    <h3 style="color:#3b82f6">Tier 3: review (severity 3-5)</h3>
+    <ul>
+      <li>Personal-WhatsApp document requests</li>
+      <li>Offshore agency claims</li>
+      <li>"Free placement" with hidden fees</li>
+      <li>Vague salary or working-hours terms</li>
+      <li>Live-in domestic-work + isolation phrases</li>
+      <li>Doxxing / debt-shaming framing</li>
+      <li>Online-lending coordination patterns</li>
+      <li>Social-media job-board cross-postings</li>
+    </ul>
+  </div>
 </div>`
   },
 
@@ -1401,7 +1784,7 @@ The same Gemma 4 + 11 tools + 53-passage KB + 22-signal heuristics
 serves every stakeholder above.
 </div>
 <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:auto">
-  <a href="/" class="dc-qa-home-btn">← Back to the dashboard</a>
+  <a href="/" class="dc-qa-home-btn">← Back to home</a>
   <a href="/workspace" class="dc-qa-cta-btn">Open the Workbench →</a>
   <a href="/architecture" class="dc-qa-cta-btn">Read the architecture →</a>
   <a href="https://github.com/TaylorAmarelTech/gemma4_comp" target="_blank" rel="noopener noreferrer" class="dc-qa-cta-btn">View the code →</a>
@@ -1422,7 +1805,8 @@ const _MODE = (() => {
 
 const _OVERVIEW_IDS = new Set([
   'title', 'problem', 'social_media', 'legal', 'not_okay',
-  'why_gemma', 'architecture', 'qa', 'closing'
+  'why_gemma', 'enhancing_gemma', 'architecture', 'qa',
+  'appendix_kb', 'appendix_tools', 'appendix_heuristics', 'closing'
 ]);
 const _EXAMPLE_IDS = new Set([
   'ex_jobboard', 'ex_worker', 'ex_ngo', 'ex_doxxing', 'ex_kafala'

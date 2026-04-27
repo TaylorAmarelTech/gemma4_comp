@@ -27,10 +27,10 @@ SRC = REPO_ROOT / "evidence_raw"
 DST = (REPO_ROOT / "packages" / "duecare-llm-server" / "src"
        / "duecare" / "server" / "static" / "evidence")
 
-BLUR = 20
-TARGET_W = 480
-JPG_Q = 5            # ffmpeg JPG quality (lower = better, 1-31)
-WATERMARK = "REDACTED -- schematic only -- Duecare evidence"
+BLUR = 0             # 0 disables boxblur entirely; downscale + watermark only
+TARGET_W = 720
+JPG_Q = 4            # ffmpeg JPG quality (lower = better, 1-31)
+WATERMARK = "REDACTED -- Duecare evidence -- not for republication"
 VIDEO_FRAMES_PER_CLIP = 6
 MAKE_VIDEO_STRIP = (
     os.environ.get("MAKE_VIDEO_STRIP", "0").lower() in ("1", "true", "yes"))
@@ -84,9 +84,11 @@ def _redact_filter() -> str:
     )
     if _FONT:
         text_args += f":fontfile='{_FONT}'"
-    return (f"scale={TARGET_W}:-2,"
-              f"boxblur={BLUR}:2,"
-              f"drawtext={text_args}")
+    chain = [f"scale={TARGET_W}:-2"]
+    if BLUR > 0:
+        chain.append(f"boxblur={BLUR}:2")
+    chain.append(f"drawtext={text_args}")
+    return ",".join(chain)
 
 
 def redact_image(src_path: Path, dst_path: Path) -> dict:
@@ -232,7 +234,7 @@ def main() -> int:
             items.append({
                 "id": slug, "kind": "image", "filename": dst.name,
                 "title": title, "caption": caption, "category": category,
-                "redaction_status": "REDACTED (boxblur=20, "
+                "redaction_status": "REDACTED (downscale=720w, watermarked)"
                                       "downscale=480w, watermarked)",
                 "source_note": "Public Facebook page screenshot, "
                                   "Imgur public album.",
@@ -270,8 +272,7 @@ def main() -> int:
                               f"poster framing + passport-photo collateral "
                               f"+ public-shaming demands.",
                 "category": "predatory_lending",
-                "redaction_status": "REDACTED (boxblur=20, downscale=480w, "
-                                      "watermarked)",
+                "redaction_status": "REDACTED (downscale=720w, watermarked)",
                 "source_note": "Field-collected public-record evidence "
                                   "of predatory-lender activity targeting "
                                   "migrant workers (~2020-2021).",
@@ -296,8 +297,8 @@ def main() -> int:
                         "filename": fm["filename"],
                         "title": title + " (redacted MP4)",
                         "caption": caption, "category": category,
-                        "redaction_status": "REDACTED (boxblur=20, 240p, "
-                                              "no audio, 10fps)",
+                        "redaction_status": "REDACTED (downscale=720w, "
+                                              "no audio, 10fps, watermarked)",
                         "source_note": "Original screen recording from "
                                           "Taylor's NGO casework "
                                           "(Feb-Jun 2021).",
@@ -308,7 +309,7 @@ def main() -> int:
                         "filename": fm["filename"],
                         "title": f"{title} -- t={fm['ts_seconds']}s",
                         "caption": caption, "category": category,
-                        "redaction_status": "REDACTED (boxblur=20, "
+                        "redaction_status": "REDACTED (downscale=720w, watermarked)"
                                               "downscale=480w, watermarked)",
                         "source_note": f"Keyframe @ "
                                           f"{fm['ts_seconds']}s of original "

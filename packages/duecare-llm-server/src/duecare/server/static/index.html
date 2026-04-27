@@ -14,13 +14,15 @@
     A Gemma 4 implementation built to stop bad actors and reduce human
     exploitation and abuse.
   </p>
-  <p class="dc-home-sub">
-    Duecare flags exploitation and abuse patterns through two
-    complementary modes. The same multi-stage pipeline (heuristic
-    prescan, regex and RAG knowledge base, deterministic domain
-    tools, Gemma 4 verdict) serves both, and writes every step of
-    the reasoning to an audit trail any reviewer can inspect.
-  </p>
+  <div class="dc-home-sub-card">
+    <p class="dc-home-sub">
+      Duecare flags exploitation and abuse patterns through two
+      complementary modes. The same multi-stage pipeline (heuristic
+      prescan, regex and RAG knowledge base, deterministic domain
+      tools, Gemma 4 verdict) serves both, and writes every step of
+      the reasoning to an audit trail any reviewer can inspect.
+    </p>
+  </div>
 
   <div class="dc-home-usecases">
     <section class="dc-uc">
@@ -58,12 +60,17 @@
         <li>
           <div class="dc-user-icon" style="background:#fef3c7;color:#92400e">🛡</div>
           <div class="dc-user-name">NGOs &amp; hotlines</div>
-          <div class="dc-user-desc">Bulk case triage, cross-case intelligence, modus-operandi recognition, predatory-actor identification, jurisdictional referral. Used by Polaris, IJM, ECPAT, HRD Nepal, Verité.</div>
+          <div class="dc-user-desc">Bulk case triage, cross-case intelligence, modus-operandi recognition, predatory-actor identification, jurisdictional referral. Polaris, IJM, ECPAT, HRD Nepal, Verité.</div>
         </li>
         <li>
           <div class="dc-user-icon" style="background:#ecfdf5;color:#065f46">👤</div>
           <div class="dc-user-name">Individuals</div>
           <div class="dc-user-desc">Workers, families, recruiters self-checking a suspicious offer, message, or contract. Locale-aware advice plus the right hotline number.</div>
+        </li>
+        <li>
+          <div class="dc-user-icon" style="background:#fef2f2;color:#991b1b">⚖️</div>
+          <div class="dc-user-name">Lawyers &amp; journalists</div>
+          <div class="dc-user-desc">Pro-bono attorneys and investigative reporters analysing case files, contract evidence, and complaint letters for litigation, exposure, or victim representation.</div>
         </li>
       </ul>
     </section>
@@ -129,13 +136,22 @@ body.dc-home-min {
   margin: 0; font-size: 13.5px; color: var(--muted);
   text-align: center; max-width: 880px; line-height: 1.55;
 }
+.dc-home-sub-card {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 12px; padding: 14px 22px;
+  width: 100%; max-width: 980px;
+  border-left: 3px solid var(--primary);
+}
+.dc-home-sub-card .dc-home-sub { margin: 0; text-align: left; }
+
 .dc-home-usecases {
-  display: grid; grid-template-columns: 1.45fr 1fr;
+  display: grid; grid-template-columns: 1fr 1fr;
   gap: 14px; width: 100%; max-width: 1280px; margin-top: 4px;
 }
 .dc-uc {
   background: var(--card); border: 1px solid var(--border);
   border-radius: 14px; padding: 14px 16px;
+  display: flex; flex-direction: column;
 }
 .dc-uc-head { margin-bottom: 10px; }
 .dc-uc-tag {
