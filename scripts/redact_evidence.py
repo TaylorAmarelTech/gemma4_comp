@@ -240,6 +240,44 @@ def main() -> int:
         except Exception as e:
             print(f"  X{src_name} FAILED: {e}")
 
+    # ---- Auto-discover Drive FB lender screenshots -----------------------
+    print(f"\n== DRIVE FB LENDER SCREENSHOTS ==")
+    drive_fb = sorted(SRC.glob("drive_fb_*.png"))
+    for src in drive_fb:
+        # Slugify the filename: drive_fb_PRIME_CREDIT_POST.png ->
+        #                        drive_fb_prime_credit_post
+        slug = (src.stem.lower()
+                  .replace(" ", "_").replace("-", "_"))
+        # Friendly display name: PRIME CREDIT POST -> "Prime Credit"
+        lender = (src.stem.replace("drive_fb_", "")
+                            .replace("_POST", "")
+                            .replace("_DONE", "")
+                            .replace("_", " ").title())
+        dst = DST / f"{slug}.jpg"
+        try:
+            meta = redact_image(src, dst)
+            print(f"  OK{src.name} -> {dst.name}  "
+                  f"({meta['out_bytes']//1024} KB)")
+            items.append({
+                "id": slug,
+                "kind": "image",
+                "filename": dst.name,
+                "title": f"Predatory lender FB post -- {lender}",
+                "caption": "Tagalog-language predatory-lender shaming "
+                              f"post (Migrasia investigation evidence). "
+                              f"Lender: {lender}. Same template as Bank "
+                              f"Hongkong / Yoursun Caretaker -- WANTED-"
+                              f"poster framing + passport-photo collateral "
+                              f"+ public-shaming demands.",
+                "category": "predatory_lending",
+                "redaction_status": "REDACTED (boxblur=20, downscale=480w, "
+                                      "watermarked)",
+                "source_note": "Migrasia HK casework archive "
+                                  "(/TRANSLATION WORK/Facebook Posts).",
+            })
+        except Exception as e:
+            print(f"  X{src.name} FAILED: {e}")
+
     print(f"\n== VIDEO KEYFRAMES ==")
     for src_name, slug, title, category, caption in VIDEO_SPECS:
         src = SRC / src_name

@@ -341,6 +341,118 @@ _KB_PASSAGES = [
                   "unenforceable absent a specific bilateral "
                   "treaty or court order.",
     },
+
+    # ---- HK Ordinances (Migrasia Case Work Manual references) ----
+    {
+        "id": "hk_cap200_crimes_intimidation",
+        "kind": "statute",
+        "jurisdiction": "HK",
+        "topic": "intimidation",
+        "tags": ["HK", "Cap200", "criminal_intimidation"],
+        "text": "HK Crimes Ordinance Cap. 200 sec 24 -- criminal "
+                  "intimidation: threats of injury to person, property, "
+                  "or reputation, including threats against family "
+                  "members. Predatory lenders' 'we know your family' / "
+                  "'we will tell your employer' threats fall here.",
+    },
+    {
+        "id": "hk_cap200_unauthorized_access",
+        "kind": "statute",
+        "jurisdiction": "HK",
+        "topic": "cybercrime",
+        "tags": ["HK", "Cap200", "computer_misuse"],
+        "text": "HK Crimes Ordinance Cap. 200 sec 161 -- access to "
+                  "computer with criminal or dishonest intent. Covers "
+                  "unauthorized access to a worker's bank app or "
+                  "Facebook account by a recruiter / lender holding "
+                  "credentials they coerced from the worker.",
+    },
+    {
+        "id": "hk_cap210_blackmail",
+        "kind": "statute",
+        "jurisdiction": "HK",
+        "topic": "blackmail",
+        "tags": ["HK", "Cap210", "blackmail", "extortion"],
+        "text": "HK Theft Ordinance Cap. 210 sec 23 -- blackmail: any "
+                  "unwarranted demand with menaces (threats), made with "
+                  "view to gain or intent to cause loss. 'WANTED-poster' "
+                  "shaming campaigns by predatory lenders against OFW "
+                  "debtors fall within this offence.",
+    },
+    {
+        "id": "hk_cap210_deception",
+        "kind": "statute",
+        "jurisdiction": "HK",
+        "topic": "fraud",
+        "tags": ["HK", "Cap210", "deception", "fraud"],
+        "text": "HK Theft Ordinance Cap. 210 secs 16A-18 -- fraud, "
+                  "obtaining property by deception, obtaining pecuniary "
+                  "advantage by deception. Covers fake-fee schemes "
+                  "(processing fees, savings-account theft, fake "
+                  "insurance) by recruitment agencies and lenders.",
+    },
+    {
+        "id": "hk_cap455_osco_proceeds",
+        "kind": "statute",
+        "jurisdiction": "HK",
+        "topic": "money_laundering",
+        "tags": ["HK", "Cap455", "OSCO", "AML"],
+        "text": "HK Organized and Serious Crimes Ordinance Cap. 455 "
+                  "sec 25(1) -- dealing with proceeds of crime; sec "
+                  "25A(1) -- failing to file a suspicious-transaction "
+                  "report (STR). Covers money-laundering by "
+                  "trafficking-fee collection rings.",
+    },
+    {
+        "id": "hk_cap362_aggressive_practice",
+        "kind": "statute",
+        "jurisdiction": "HK",
+        "topic": "consumer_protection",
+        "tags": ["HK", "Cap362", "aggressive_sales", "TDO"],
+        "text": "HK Trade Descriptions Ordinance Cap. 362 sec 13F -- a "
+                  "commercial practice is 'aggressive' if it "
+                  "significantly impairs the consumer's freedom of "
+                  "choice through harassment, coercion or undue "
+                  "influence. Predatory recruitment sales tactics on "
+                  "vulnerable migrants fall here.",
+    },
+    {
+        "id": "hk_cap622_company_directors",
+        "kind": "statute",
+        "jurisdiction": "HK",
+        "topic": "corporate",
+        "tags": ["HK", "Cap622", "company_directors"],
+        "text": "HK Companies Ordinance Cap. 622 -- director duties + "
+                  "personal liability. Used to pierce the corporate veil "
+                  "of shell-company recruitment agencies and money-"
+                  "lending fronts that operate the trafficking schemes.",
+    },
+    {
+        "id": "hk_eaa_employment_agencies",
+        "kind": "regulation",
+        "jurisdiction": "HK",
+        "topic": "agency_licensing",
+        "tags": ["HK", "EAA", "agency_licence"],
+        "text": "HK Employment Agencies Administration (EAA) -- the HK "
+                  "Labour Department maintains a public register of "
+                  "~3,800 licensed employment agencies. Operating without "
+                  "a current licence is an offence under the Employment "
+                  "Ordinance Cap. 57 + Employment Agency Regulations.",
+    },
+    {
+        "id": "migrasia_threat_taxonomy",
+        "kind": "indicator",
+        "jurisdiction": "international",
+        "topic": "threat_taxonomy",
+        "tags": ["Migrasia", "casework_manual", "threat_model"],
+        "text": "Migrasia Case Work Manual (2020) -- enumerates the "
+                  "operational attack patterns Duecare detects: "
+                  "passport/HKID confiscation, 'savings account' theft, "
+                  "processing-fee fraud, harassment of references, "
+                  "agency-lender conspiracy, infiltration by 'spies "
+                  "from agencies / lending companies'. Used as the "
+                  "ground-truth taxonomy for our heuristic signal set.",
+    },
     # Hotline passages mirror _HOTLINES so RAG retrieval can surface them.
     *[
         {
