@@ -181,18 +181,29 @@ def _need_unsloth_stack() -> bool:
 _UNSLOTH_MARKER = Path("/tmp/.duecare_unsloth_stack_v1_done")
 
 
-def _install_unsloth_stack_and_exit() -> None:
-    """Install Daniel Hanchen's pinned Gemma 4 stack via subprocess
-    (so no torch imports happen first), then exit so the user can
-    restart and re-run -- a Python restart is the ONLY way the new
-    torch / transformers C-extensions can come up cleanly."""
+def _install_unsloth_stack_inline() -> bool:
+    """Install Daniel Hanchen's pinned Gemma 4 stack via subprocess.
+
+    THIS MUST RUN BEFORE ANY OTHER CODE THAT IMPORTS torch / transformers
+    so that the upcoming `from unsloth import FastModel` is the FIRST
+    Python torch import in the process -- the freshly installed torch
+    2.8+ then loads cleanly with no C-extension conflict.
+
+    Mirrors Hanchen's notebook pattern (cell 1 = install, cell 2 = load).
+    We do it all in one cell by being strict about import order:
+      stdlib only at top of file
+      -> Phase 0 install via subprocess (no Python imports)
+      -> install_duecare_wheels (subprocess, no torch import)
+      -> SKIP force_upgrade_hf_stack (it imports transformers)
+      -> load_gemma_unsloth -> first torch import = clean
+
+    Returns True on success, False on failure.
+    """
     print("=" * 76)
-    print("[phase 0] preparing Unsloth Gemma 4 stack (Hanchen recipe)")
+    print("[phase 0] installing Hanchen's Unsloth Gemma 4 stack")
     print("=" * 76)
-    print(f"  variant   : {GEMMA_MODEL_VARIANT}")
-    print(f"  loader    : {GEMMA_LOADER}")
-    print(f"  marker    : {_UNSLOTH_MARKER}  (will write on success)")
-    print()
+    print(f"  variant: {GEMMA_MODEL_VARIANT}  (~30 sec, single-cell run -- "
+          f"no restart needed)")
 
     # Hanchen's exact command. We use uv if present (Kaggle has it),
     # otherwise fall back to pip.
@@ -207,11 +218,9 @@ def _install_unsloth_stack_and_exit() -> None:
                                 capture_output=True, text=True)
     if uv_check.returncode == 0:
         installer = ["uv", "pip", "install", "-qqq", "--system"]
-        print(f"  using uv: {uv_check.stdout.strip()}")
     else:
         installer = [sys.executable, "-m", "pip", "install",
                        "-q", "--no-input", "--disable-pip-version-check"]
-        print(f"  uv not found, falling back to pip")
 
     cmd = installer + [
         "torch>=2.8.0", "triton>=3.4.0", np_pin, pil_pin,
@@ -220,49 +229,41 @@ def _install_unsloth_stack_and_exit() -> None:
         "transformers==5.5.0", "torchcodec", "timm",
     ]
     print(f"  $ {' '.join(cmd)}")
+    t0 = time.time()
     proc = subprocess.run(cmd, capture_output=True, text=True)
     if proc.returncode != 0:
         print(f"  INSTALL FAILED ({proc.returncode}):")
-        print(f"    stderr tail: {proc.stderr[-1000:]}")
-        # Fall through and let the kernel proceed in heuristic mode.
-        return
+        print(f"    stderr tail: {proc.stderr[-800:]}")
+        return False
+    elapsed = time.time() - t0
+    print(f"  ✓ Hanchen stack installed in {elapsed:.0f}s "
+          f"(transformers==5.5.0, torch>=2.8.0, unsloth, unsloth_zoo>=2026.4.6)")
 
-    # Mark success so the restarted run skips this whole block
+    # Mark success so subsequent runs in the SAME session skip the install
     try:
         _UNSLOTH_MARKER.parent.mkdir(parents=True, exist_ok=True)
         _UNSLOTH_MARKER.write_text(
-            json.dumps({
-                "variant": GEMMA_MODEL_VARIANT,
-                "loader": GEMMA_LOADER,
-                "installed_at": time.strftime("%Y-%m-%dT%H:%M:%S"),
-                "uv": uv_check.returncode == 0,
-            }, indent=2))
-    except Exception as e:
-        print(f"  WARN: could not write marker: {e}")
-
-    print()
-    print("=" * 76)
-    print("  STACK INSTALLED. Python MUST be restarted to pick it up.")
-    print("=" * 76)
-    print()
-    print("  In Kaggle:  Run > Restart & Run All  (or the circular-arrow")
-    print("              icon in the toolbar). The marker file means the")
-    print("              install will be SKIPPED on the next run, so the")
-    print("              cell will go straight to model load.")
-    print()
-    print("  Reason:     torch C-extensions cannot be hot-swapped inside")
-    print("              a running process. Continuing here would crash")
-    print("              with '_has_torch_function already has a docstring'.")
-    print()
-    print("=" * 76)
-    sys.exit(0)
+            json.dumps({"variant": GEMMA_MODEL_VARIANT,
+                        "installed_at": time.strftime("%Y-%m-%dT%H:%M:%S")},
+                        indent=2))
+    except Exception:
+        pass
+    return True
 
 
-if _need_unsloth_stack() and not _UNSLOTH_MARKER.exists():
-    _install_unsloth_stack_and_exit()
-elif _need_unsloth_stack():
-    print(f"[phase 0] Unsloth stack marker present ({_UNSLOTH_MARKER}); "
-          f"skipping install")
+# Tracks whether we ran Phase 0 inline this session. When True, the
+# bootstrap below will SKIP force_upgrade_hf_stack because (a) Hanchen's
+# install pinned transformers==5.5.0 already and (b) running it again
+# would import transformers and load the old torch into the process,
+# triggering the "_has_torch_function already has a docstring" crash.
+_HANCHEN_STACK_INSTALLED = False
+if _need_unsloth_stack():
+    if _UNSLOTH_MARKER.exists():
+        print(f"[phase 0] Unsloth stack marker present ({_UNSLOTH_MARKER}); "
+              f"skipping install")
+        _HANCHEN_STACK_INSTALLED = True
+    else:
+        _HANCHEN_STACK_INSTALLED = _install_unsloth_stack_inline()
 
 
 # ===========================================================================
@@ -1483,11 +1484,22 @@ if not wheels:
         "Add Data -> Datasets -> taylorsamarel/duecare-llm-wheels.")
 
 print()
-print("=== pinning HF stack (transformers + hub + tokenizers + bnb) ===")
-# Always force-reinstall the HF stack as ONE pip command so pip's
-# resolver picks the consistent gemma4-compatible chain. This mirrors
-# the baseline pipeline's proven bootstrap (raw_python/gemma4_*_v1.py).
-hf_status = force_upgrade_hf_stack()
+if _HANCHEN_STACK_INSTALLED:
+    # CRITICAL: when the Unsloth path is in use, Phase 0 already pinned
+    # transformers==5.5.0 + torch>=2.8.0. Running force_upgrade_hf_stack
+    # here would (a) overwrite that pin with a different transformers
+    # and (b) import transformers into the running process, loading
+    # the OLD torch C-extensions. That triggers the
+    # "_has_torch_function already has a docstring" crash on the next
+    # `from unsloth import FastModel`. Skip entirely.
+    print("=== HF stack pinned by Phase 0 (Hanchen recipe); skipping ===")
+    hf_status = {"hf_stack": "ok-hanchen-phase0"}
+else:
+    print("=== pinning HF stack (transformers + hub + tokenizers + bnb) ===")
+    # Always force-reinstall the HF stack as ONE pip command so pip's
+    # resolver picks the consistent gemma4-compatible chain. This mirrors
+    # the baseline pipeline's proven bootstrap (raw_python/gemma4_*_v1.py).
+    hf_status = force_upgrade_hf_stack()
 print()
 print("=== installing optional server deps ===")
 opt_status = install_optional_deps()
