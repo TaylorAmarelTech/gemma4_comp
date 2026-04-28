@@ -17,6 +17,7 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parents[1]
 KERNELS_DIR = REPO_ROOT / "kaggle" / "kernels"
 NOTEBOOKS_DIR = REPO_ROOT / "notebooks"
+SKUNKWORKS_NOTEBOOKS_DIR = REPO_ROOT / "skunkworks" / "notebooks"
 
 TITLE_TOKEN_OVERRIDES = {
     "api": "API",
@@ -105,17 +106,28 @@ def load_kernel_metadata(dir_path: Path) -> dict:
 def discover_kernel_notebooks(
     kernels_dir: Path = KERNELS_DIR,
     notebooks_dir: Path = NOTEBOOKS_DIR,
+    skunkworks_dir: Path | None = SKUNKWORKS_NOTEBOOKS_DIR,
 ) -> list[KaggleNotebook]:
-    """Return every tracked Kaggle kernel discovered from metadata files."""
+    """Return every tracked Kaggle kernel discovered from metadata files.
+
+    Mirror lookup checks `notebooks_dir` first, then `skunkworks_dir`
+    so notebooks moved out of the core 60-ish into the skunkworks
+    research bucket still validate."""
     entries: list[KaggleNotebook] = []
+    mirror_dirs: list[Path] = [notebooks_dir]
+    if skunkworks_dir is not None:
+        mirror_dirs.append(skunkworks_dir)
     for dir_path in sorted(child for child in kernels_dir.iterdir() if child.is_dir()):
         meta_path = dir_path / "kernel-metadata.json"
         if not meta_path.exists():
             continue
         meta = load_kernel_metadata(dir_path)
-        mirror_path = notebooks_dir / meta["code_file"]
-        if not mirror_path.exists():
-            mirror_path = None
+        mirror_path: Path | None = None
+        for candidate_dir in mirror_dirs:
+            candidate = candidate_dir / meta["code_file"]
+            if candidate.exists():
+                mirror_path = candidate
+                break
 
         kernel_id = meta["id"]
         slug = kernel_id.split("/", 1)[1] if "/" in kernel_id else kernel_id
@@ -142,7 +154,11 @@ def render_inventory_markdown(entries: list[KaggleNotebook]) -> str:
     title_divergences = [entry for entry in entries if not entry.title_matches_slug]
     tracked_mirror_names = {entry.code_file for entry in entries}
     extra_local_notebooks = sorted(
-        path.name for path in NOTEBOOKS_DIR.glob("*.ipynb") if path.name not in tracked_mirror_names
+        path.name
+        for search_dir in (NOTEBOOKS_DIR, SKUNKWORKS_NOTEBOOKS_DIR)
+        if search_dir.exists()
+        for path in search_dir.glob("*.ipynb")
+        if path.name not in tracked_mirror_names
     )
 
     lines: list[str] = []

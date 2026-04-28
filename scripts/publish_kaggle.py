@@ -36,7 +36,7 @@ from kaggle_notebook_utils import discover_kernel_notebooks
 REPO_ROOT = Path(__file__).resolve().parents[1]
 KAGGLE_ROOT = REPO_ROOT / "kaggle"
 KERNELS_DIR = KAGGLE_ROOT / "kernels"
-DATASETS_DIR = KAGGLE_ROOT / "datasets"
+SHARED_DATASETS_DIR = KAGGLE_ROOT / "shared-datasets"
 MODELS_DIR = KAGGLE_ROOT / "models"
 
 KAGGLE_CONFIG_PATH = Path.home() / ".kaggle" / "kaggle.json"
@@ -193,6 +193,13 @@ def auth_check(*, dry_run: bool) -> int:
     return 0 if cfg.ok else cfg.returncode
 
 
+def _require_auth(*, dry_run: bool, auth_checked: bool = False) -> int:
+    """Fail fast for non-dry-run Kaggle operations when auth is unavailable."""
+    if dry_run or auth_checked:
+        return 0
+    return auth_check(dry_run=False)
+
+
 # --------------------------- notebooks -------------------------
 
 
@@ -221,12 +228,48 @@ def _validate_notebook_dir(d: Path) -> None:
         raise ValueError(f"{meta}: competition_sources must include gemma-4-good-hackathon")
 
 
-def _notebook_dirs() -> list[Path]:
-    return [entry.dir_path for entry in discover_kernel_notebooks(KERNELS_DIR)]
+def _normalize_notebook_ids(raw_ids: list[str] | None) -> set[str] | None:
+    if not raw_ids:
+        return None
+    normalized: set[str] = set()
+    for raw in raw_ids:
+        for item in raw.split(","):
+            stripped = item.strip()
+            if stripped:
+                normalized.add(stripped)
+    return normalized or None
 
 
-def push_notebooks(*, dry_run: bool) -> int:
-    notebook_dirs = _notebook_dirs()
+def _selected_notebooks(*, notebook_ids: set[str] | None = None, limit: int | None = None):
+    entries = discover_kernel_notebooks(KERNELS_DIR)
+    if notebook_ids is not None:
+        entries = [
+            entry
+            for entry in entries
+            if entry.notebook_number in notebook_ids
+            or entry.dir_name in notebook_ids
+            or entry.kernel_id in notebook_ids
+        ]
+    if limit is not None:
+        entries = entries[:limit]
+    return entries
+
+
+def _notebook_dirs(*, notebook_ids: set[str] | None = None, limit: int | None = None) -> list[Path]:
+    return [entry.dir_path for entry in _selected_notebooks(notebook_ids=notebook_ids, limit=limit)]
+
+
+def push_notebooks(
+    *,
+    dry_run: bool,
+    notebook_ids: set[str] | None = None,
+    limit: int | None = None,
+    auth_checked: bool = False,
+) -> int:
+    rc = _require_auth(dry_run=dry_run, auth_checked=auth_checked)
+    if rc != 0:
+        return rc
+    notebook_dirs = _notebook_dirs(notebook_ids=notebook_ids, limit=limit)
     print(f"# push-notebooks ({len(notebook_dirs)} kernels)")
     failures = 0
     for d in notebook_dirs:
@@ -242,10 +285,19 @@ def push_notebooks(*, dry_run: bool) -> int:
     return 0 if failures == 0 else 1
 
 
-def status_notebooks(*, dry_run: bool) -> int:
+def status_notebooks(
+    *,
+    dry_run: bool,
+    notebook_ids: set[str] | None = None,
+    limit: int | None = None,
+    auth_checked: bool = False,
+) -> int:
+    rc = _require_auth(dry_run=dry_run, auth_checked=auth_checked)
+    if rc != 0:
+        return rc
     print("# status-notebooks")
     failures = 0
-    for d in _notebook_dirs():
+    for d in _notebook_dirs(notebook_ids=notebook_ids, limit=limit):
         meta_path = d / "kernel-metadata.json"
         if not meta_path.exists():
             print(f"  ! skipping {d.name}: no kernel-metadata.json")
@@ -261,10 +313,13 @@ def status_notebooks(*, dry_run: bool) -> int:
 # --------------------------- datasets --------------------------
 
 
-def publish_dataset(*, dry_run: bool, dataset_dir: Path | None = None) -> int:
+def publish_dataset(*, dry_run: bool, dataset_dir: Path | None = None, auth_checked: bool = False) -> int:
     """Create or version the duecare-eval-results dataset."""
+    rc = _require_auth(dry_run=dry_run, auth_checked=auth_checked)
+    if rc != 0:
+        return rc
     print("# publish-dataset")
-    target = dataset_dir or (DATASETS_DIR / "duecare_eval_results")
+    target = dataset_dir or (SHARED_DATASETS_DIR / "eval-results")
     if not target.exists():
         print(f"  ! dataset dir not found: {target}", file=sys.stderr)
         return 2
@@ -307,7 +362,10 @@ def publish_dataset(*, dry_run: bool, dataset_dir: Path | None = None) -> int:
 # --------------------------- models ----------------------------
 
 
-def publish_model(*, dry_run: bool, model_dir: Path | None = None) -> int:
+def publish_model(*, dry_run: bool, model_dir: Path | None = None, auth_checked: bool = False) -> int:
+    rc = _require_auth(dry_run=dry_run, auth_checked=auth_checked)
+    if rc != 0:
+        return rc
     print("# publish-model")
     target = model_dir or (MODELS_DIR / "duecare_safety_harness")
     if not target.exists():
@@ -357,15 +415,15 @@ def publish_all(*, dry_run: bool) -> int:
     rc = auth_check(dry_run=dry_run)
     if rc != 0:
         return rc
-    rc = push_notebooks(dry_run=dry_run)
+    rc = push_notebooks(dry_run=dry_run, auth_checked=True)
     if rc != 0:
         print("  ! push-notebooks failed, aborting publish-all", file=sys.stderr)
         return rc
-    rc = publish_dataset(dry_run=dry_run)
+    rc = publish_dataset(dry_run=dry_run, auth_checked=True)
     if rc != 0:
         print("  ! publish-dataset failed, aborting publish-all", file=sys.stderr)
         return rc
-    rc = publish_model(dry_run=dry_run)
+    rc = publish_model(dry_run=dry_run, auth_checked=True)
     return rc
 
 
@@ -377,21 +435,24 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--dry-run", action="store_true", help="print commands but do not execute")
     sub = parser.add_subparsers(dest="cmd", required=True)
 
-    for cmd in [
-        "auth-check",
-        "push-notebooks",
-        "status-notebooks",
-        "publish-dataset",
-        "publish-model",
-        "publish-all",
-    ]:
-        sub.add_parser(cmd)
+    sub.add_parser("auth-check")
+    push_parser = sub.add_parser("push-notebooks")
+    push_parser.add_argument("--ids", nargs="*", help="Notebook ids, kernel dir names, or full kernel ids to push")
+    push_parser.add_argument("--limit", type=int, help="Push only the first N tracked kernels after filtering")
+    status_parser = sub.add_parser("status-notebooks")
+    status_parser.add_argument("--ids", nargs="*", help="Notebook ids, kernel dir names, or full kernel ids to query")
+    status_parser.add_argument("--limit", type=int, help="Check only the first N tracked kernels after filtering")
+    sub.add_parser("publish-dataset")
+    sub.add_parser("publish-model")
+    sub.add_parser("publish-all")
 
     args = parser.parse_args(argv)
+    notebook_ids = _normalize_notebook_ids(getattr(args, "ids", None))
+    limit = getattr(args, "limit", None)
     dispatch = {
         "auth-check": lambda: auth_check(dry_run=args.dry_run),
-        "push-notebooks": lambda: push_notebooks(dry_run=args.dry_run),
-        "status-notebooks": lambda: status_notebooks(dry_run=args.dry_run),
+        "push-notebooks": lambda: push_notebooks(dry_run=args.dry_run, notebook_ids=notebook_ids, limit=limit),
+        "status-notebooks": lambda: status_notebooks(dry_run=args.dry_run, notebook_ids=notebook_ids, limit=limit),
         "publish-dataset": lambda: publish_dataset(dry_run=args.dry_run),
         "publish-model": lambda: publish_model(dry_run=args.dry_run),
         "publish-all": lambda: publish_all(dry_run=args.dry_run),

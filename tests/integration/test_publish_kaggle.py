@@ -19,6 +19,10 @@ SCRIPT = REPO_ROOT / "scripts" / "publish_kaggle.py"
 KERNELS_DIR = REPO_ROOT / "kaggle" / "kernels"
 
 
+def _tracked_kernel_count() -> int:
+    return sum(1 for kernel_dir in KERNELS_DIR.iterdir() if (kernel_dir / "kernel-metadata.json").exists())
+
+
 def _run(*args: str, env_overrides: dict[str, str] | None = None) -> subprocess.CompletedProcess[str]:
     import os
 
@@ -60,8 +64,9 @@ class TestDryRun:
         result = _run("--dry-run", "push-notebooks")
         # Succeeds even without credentials because every run is a no-op print.
         assert result.returncode == 0, result.stderr
-        assert "# push-notebooks (29 kernels)" in result.stdout
-        assert result.stdout.count("kernels push") == 29
+        tracked = _tracked_kernel_count()
+        assert f"# push-notebooks ({tracked} kernels)" in result.stdout
+        assert result.stdout.count("kernels push") == tracked
         for kernel in (
             "duecare_000_index",
             "duecare_100_gemma_exploration",
@@ -73,8 +78,8 @@ class TestDryRun:
     def test_publish_dataset_dry_run(self):
         result = _run("--dry-run", "publish-dataset")
         assert result.returncode == 0, result.stderr
-        assert "datasets" in result.stdout
-        assert "duecare_eval_results" in result.stdout
+        assert "shared-datasets" in result.stdout
+        assert "eval-results" in result.stdout
 
     def test_publish_model_dry_run(self):
         result = _run("--dry-run", "publish-model")
@@ -86,7 +91,33 @@ class TestDryRun:
         result = _run("--dry-run", "publish-all")
         # publish-all runs auth-check, which in dry-run returns 0 regardless
         assert result.returncode == 0, result.stderr
-        assert "# push-notebooks (29 kernels)" in result.stdout
+        assert f"# push-notebooks ({_tracked_kernel_count()} kernels)" in result.stdout
+
+    def test_push_notebooks_dry_run_limit_and_ids(self):
+        result = _run("--dry-run", "push-notebooks", "--ids", "000", "600", "--limit", "1")
+        assert result.returncode == 0, result.stderr
+        assert "# push-notebooks (1 kernels)" in result.stdout
+        assert "duecare_000_index" in result.stdout
+        assert "duecare_600_results_dashboard" not in result.stdout
+
+    def test_status_notebooks_without_creds_fails_fast(self, tmp_path: Path):
+        result = _run(
+            "status-notebooks",
+            "--limit",
+            "1",
+            env_overrides={
+                "HOME": str(tmp_path),
+                "USERPROFILE": str(tmp_path),
+                "KAGGLE_API_TOKEN": "",
+                "KAGGLE_USERNAME": "",
+                "KAGGLE_KEY": "",
+            },
+        )
+        assert result.returncode == 2
+        combined = result.stdout + result.stderr
+        assert "# auth-check" in result.stdout
+        assert "No credentials found" in combined
+        assert "You must authenticate before you can call the Kaggle API." not in combined
 
 
 class TestValidation:
@@ -110,7 +141,7 @@ class TestValidation:
             assert "gemma-4-good-hackathon" in data.get("competition_sources", [])
 
     def test_dataset_metadata_is_valid(self):
-        meta = REPO_ROOT / "kaggle" / "datasets" / "duecare_eval_results" / "dataset-metadata.json"
+        meta = REPO_ROOT / "kaggle" / "shared-datasets" / "eval-results" / "dataset-metadata.json"
         assert meta.exists()
         data = json.loads(meta.read_text())
         for field in ("id", "title", "licenses"):

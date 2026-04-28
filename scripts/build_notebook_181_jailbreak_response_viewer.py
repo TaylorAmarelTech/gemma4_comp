@@ -21,7 +21,7 @@ from notebook_hardening_utils import harden_notebook
 
 
 ROOT = Path(__file__).resolve().parent.parent
-NB_DIR = ROOT / "notebooks"
+NB_DIR = ROOT / "skunkworks" / "notebooks"
 KAGGLE_KERNELS = ROOT / "kaggle" / "kernels"
 
 FILENAME = "181_jailbreak_response_viewer.ipynb"
@@ -33,7 +33,7 @@ ARTIFACTS_DATASET = "taylorsamarel/duecare-jailbreak-artifacts"
 KEYWORDS = ["gemma", "safety", "jailbreak", "viewer", "playground"]
 
 URL_000 = "https://www.kaggle.com/code/taylorsamarel/duecare-000-index"
-URL_180 = "https://www.kaggle.com/code/taylorsamarel/duecare-180-multimodal-document-inspector"
+URL_180 = "https://www.kaggle.com/code/taylorsamarel/180-duecare-multimodal-document-inspector"
 URL_182 = "https://www.kaggle.com/code/taylorsamarel/duecare-182-refusal-direction-visualizer"
 URL_185 = "https://www.kaggle.com/code/taylorsamarel/duecare-185-jailbroken-gemma-comparison"
 

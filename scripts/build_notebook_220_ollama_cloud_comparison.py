@@ -15,7 +15,7 @@ from notebook_hardening_utils import harden_notebook
 
 
 ROOT = Path(__file__).resolve().parent.parent
-NB_DIR = ROOT / "notebooks"
+NB_DIR = ROOT / "skunkworks" / "notebooks"
 KAGGLE_KERNELS = ROOT / "kaggle" / "kernels"
 
 FILENAME = "220_ollama_cloud_comparison.ipynb"
@@ -29,7 +29,7 @@ KEYWORDS = ["gemma", "llm-comparison", "safety", "evaluation"]
 URL_000 = "https://www.kaggle.com/code/taylorsamarel/duecare-000-index"
 URL_100 = "https://www.kaggle.com/code/taylorsamarel/duecare-real-gemma-4-on-50-trafficking-prompts"
 URL_140 = "https://www.kaggle.com/code/taylorsamarel/140-duecare-evaluation-mechanics"
-URL_200 = "https://www.kaggle.com/code/taylorsamarel/duecare-200-cross-domain-proof"
+URL_200 = "https://www.kaggle.com/code/taylorsamarel/duecare-cross-domain-proof"
 URL_210 = "https://www.kaggle.com/code/taylorsamarel/duecare-gemma-vs-oss-comparison"
 URL_220 = "https://www.kaggle.com/code/taylorsamarel/duecare-ollama-cloud-oss-comparison"
 URL_230 = "https://www.kaggle.com/code/taylorsamarel/duecare-230-mistral-family-comparison"

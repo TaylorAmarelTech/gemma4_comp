@@ -54,21 +54,21 @@ def _api(method: str, path: str, *, body=None, headers=None,
 
 
 # ---------------------------------------------------------------------------
-# Convert kaggle/duecare_demo_kernel.py -> .ipynb (single huge cell)
+# Convert kaggle/<notebook>/kernel.py -> .ipynb (single huge cell)
 # ---------------------------------------------------------------------------
-def build_ipynb(py_path: Path, out_path: Path) -> Path:
+def build_ipynb(py_path: Path, out_path: Path,
+                  markdown_intro: str | None = None) -> Path:
     """Build the .ipynb. CRITICAL: Kaggle's /kernels/push silently
     discards `source` if it's a list of lines (the standard nbformat).
     Source must be a single string."""
     src = py_path.read_text(encoding="utf-8")
-    md = (
-        "# Duecare live demo\n\n"
-        "Single cell that installs the wheels, loads Gemma 4, wires "
-        "the task queue, pre-loads the evidence DB, launches the "
-        "FastAPI server, and opens a Cloudflare quick-tunnel.\n\n"
+    md = markdown_intro or (
+        "# Duecare notebook\n\n"
+        "Single cell that installs the wheels, loads Gemma 4, and "
+        "launches the application.\n\n"
         "**Requires:** GPU T4 (or better), Internet ON, `HF_TOKEN` "
-        "Kaggle Secret, the `taylorsamarel/duecare-llm-wheels` "
-        "dataset attached."
+        "Kaggle Secret, and the wheels dataset declared in "
+        "kernel-metadata.json attached."
     )
     nb = {
         "cells": [
@@ -320,22 +320,33 @@ _DEFAULT_GEMMA4_MODELS = [
 
 _KERNEL_PRESETS = {
     "demo": {
-        "py_name": "duecare_demo_kernel.py",
-        "nb_dir": "duecare_live_demo",
-        "nb_name": "duecare_live_demo.ipynb",
+        "notebook_dir": "kaggle/live-demo",
+        "kernel_py": "kernel.py",
+        "ipynb_name": "notebook.ipynb",
         "slug": "duecare-live-demo",
-        "title": "DueCare Live Demo App",
+        "title": "Duecare Live Demo",
+        "wheels_dataset_slug": "duecare-llm-wheels",
+        "wheels_dir": "wheels",
         "model_sources": _DEFAULT_GEMMA4_MODELS,
     },
-    "validation": {
-        "py_name": "duecare_validation.py",
-        "nb_dir": "duecare_validation",
-        "nb_name": "duecare_validation.ipynb",
-        # Slug must match Kaggle's derivation from the title; passing
-        # a different slug causes 409 because the GET kernels/pull
-        # 404s and the push then tries CREATE under the new title.
-        "slug": "duecare-adversarial-validation",
-        "title": "DueCare Adversarial Validation",
+    "gemma-chat": {
+        "notebook_dir": "kaggle/gemma-chat",
+        "kernel_py": "kernel.py",
+        "ipynb_name": "notebook.ipynb",
+        "slug": "duecare-gemma-chat",
+        "title": "Duecare Gemma Chat",
+        "wheels_dataset_slug": "duecare-gemma-chat-wheels",
+        "wheels_dir": "wheels",
+        "model_sources": _DEFAULT_GEMMA4_MODELS,
+    },
+    "bench-and-tune": {
+        "notebook_dir": "kaggle/bench-and-tune",
+        "kernel_py": "kernel.py",
+        "ipynb_name": "notebook.ipynb",
+        "slug": "duecare-bench-and-tune",
+        "title": "Duecare Bench & Tune",
+        "wheels_dataset_slug": "duecare-bench-and-tune-wheels",
+        "wheels_dir": "wheels",
         "model_sources": _DEFAULT_GEMMA4_MODELS,
     },
 }
@@ -350,7 +361,8 @@ def main() -> int:
                      help="skip kernel push")
     ap.add_argument("--kernel", choices=list(_KERNEL_PRESETS),
                      default="demo",
-                     help="which kernel preset to push (demo|validation)")
+                     help="which kernel preset to push "
+                          "(demo|gemma-chat|bench-and-tune)")
     ap.add_argument("--kernel-slug", default=None,
                      help="override the slug for the chosen preset")
     ap.add_argument("--enable-gpu", default="false",
@@ -362,12 +374,26 @@ def main() -> int:
     root = args.repo_root.resolve()
     preset = _KERNEL_PRESETS[args.kernel]
     slug = args.kernel_slug or preset["slug"]
+    notebook_dir = root / preset["notebook_dir"]
+    wheels_dir = notebook_dir / preset["wheels_dir"]
+    wheels_slug = preset["wheels_dataset_slug"]
 
     # 1. Build the .ipynb from the python kernel source.
-    py_path = root / "kaggle" / preset["py_name"]
-    nb_path = root / "kaggle" / preset["nb_dir"] / preset["nb_name"]
+    py_path = notebook_dir / preset["kernel_py"]
+    nb_path = notebook_dir / preset["ipynb_name"]
+    if not py_path.exists():
+        print(f"[1] kernel source not found: {py_path.relative_to(root)}")
+        return 1
     print(f"[1] building notebook -> {nb_path.relative_to(root)}")
-    build_ipynb(py_path, nb_path)
+    md_intro = (
+        f"# {preset['title']}\n\n"
+        f"Single cell that installs the wheels, loads Gemma 4, and "
+        f"launches the application.\n\n"
+        f"**Requires:** GPU T4 (or better), Internet ON, `HF_TOKEN` "
+        f"Kaggle Secret, the `{USERNAME}/{wheels_slug}` dataset "
+        f"attached."
+    )
+    build_ipynb(py_path, nb_path, markdown_intro=md_intro)
 
     # 2. Write kernel-metadata.json (in the same dir as the .ipynb).
     kernel_dir = nb_path.parent
@@ -380,7 +406,7 @@ def main() -> int:
         "is_private": "true",
         "enable_gpu": args.enable_gpu,
         "enable_internet": "true",
-        "dataset_sources": [f"{USERNAME}/duecare-llm-wheels"],
+        "dataset_sources": [f"{USERNAME}/{wheels_slug}"],
         "competition_sources": [],
         "kernel_sources": [],
         "model_sources": preset.get("model_sources", []),
@@ -392,19 +418,23 @@ def main() -> int:
     print(f"[2] wrote kernel-metadata.json "
           f"(id={kernel_meta['id']}, gpu={kernel_meta['enable_gpu']})")
 
-    # 3. Version the wheels dataset (or skip).
+    # 3. Version the wheels dataset (or skip). Each notebook bundles
+    # its own subset of wheels under kaggle/<notebook>/wheels/, so the
+    # upload pulls from there rather than the shared root /dist.
     if not args.skip_dataset:
-        wheels = sorted((root / "dist").glob("*.whl"))
+        wheels = sorted(wheels_dir.glob("*.whl"))
         if not wheels:
-            print(f"[3] no wheels in {root/'dist'}; build them first "
-                  f"with `python scripts/build_all_wheels.py "
-                  f"--no-isolation --clean`")
+            print(f"[3] no wheels in {wheels_dir.relative_to(root)}; "
+                  f"build them first with "
+                  f"`python scripts/build_all_wheels.py "
+                  f"--no-isolation --clean` and copy the relevant "
+                  f"subset into {wheels_dir.relative_to(root)}")
             return 1
         print(f"[3] uploading {len(wheels)} wheel(s) as a new version "
-              f"of {USERNAME}/duecare-llm-wheels")
+              f"of {USERNAME}/{wheels_slug}")
         try:
             result = version_dataset(
-                owner=USERNAME, slug="duecare-llm-wheels",
+                owner=USERNAME, slug=wheels_slug,
                 file_paths=wheels,
                 version_notes=(f"duecare-llm-* v0.1.0 wheels "
                                 f"({time.strftime('%Y-%m-%d %H:%M')})"))

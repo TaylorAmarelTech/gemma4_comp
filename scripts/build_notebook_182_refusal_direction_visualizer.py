@@ -24,7 +24,7 @@ from _jailbreak_cells import PROMPT_SLICE, LOAD_SINGLE
 
 
 ROOT = Path(__file__).resolve().parent.parent
-NB_DIR = ROOT / "notebooks"
+NB_DIR = ROOT / "skunkworks" / "notebooks"
 KAGGLE_KERNELS = ROOT / "kaggle" / "kernels"
 
 FILENAME = "182_refusal_direction_visualizer.ipynb"

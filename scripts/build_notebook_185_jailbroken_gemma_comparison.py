@@ -30,7 +30,7 @@ from notebook_hardening_utils import harden_notebook
 
 
 ROOT = Path(__file__).resolve().parent.parent
-NB_DIR = ROOT / "notebooks"
+NB_DIR = ROOT / "skunkworks" / "notebooks"
 KAGGLE_KERNELS = ROOT / "kaggle" / "kernels"
 
 FILENAME = "185_jailbroken_gemma_comparison.ipynb"
@@ -43,7 +43,7 @@ KEYWORDS = ["gemma", "safety", "jailbreak", "comparison"]
 
 URL_000 = "https://www.kaggle.com/code/taylorsamarel/duecare-000-index"
 URL_150 = "https://www.kaggle.com/code/taylorsamarel/150-duecare-free-form-gemma-playground"
-URL_180 = "https://www.kaggle.com/code/taylorsamarel/duecare-180-multimodal-document-inspector"
+URL_180 = "https://www.kaggle.com/code/taylorsamarel/180-duecare-multimodal-document-inspector"
 URL_186 = "https://www.kaggle.com/code/taylorsamarel/duecare-186-jailbreak-stock-gemma"
 URL_187 = "https://www.kaggle.com/code/taylorsamarel/duecare-187-jailbreak-abliterated-e4b"
 URL_188 = "https://www.kaggle.com/code/taylorsamarel/duecare-188-jailbreak-uncensored-community"

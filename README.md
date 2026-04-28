@@ -15,7 +15,7 @@
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](./LICENSE)
 [![Tests](https://img.shields.io/badge/tests-194%20passing-brightgreen.svg)](#tests)
-[![Packages](https://img.shields.io/badge/packages-8-blue.svg)](#packages)
+[![Packages](https://img.shields.io/badge/packages-17-blue.svg)](#packages)
 
 > **For Gemma 4 Good Hackathon judges:** start at
 > [`docs/FOR_JUDGES.md`](./docs/FOR_JUDGES.md) — a focused 5-minute
@@ -61,7 +61,7 @@ can describe itself with a taxonomy, an evidence base, and a rubric.
 
 ## What ships
 
-**8 PyPI packages** sharing the `duecare` Python namespace (PEP 420), all
+**17 PyPI packages** sharing the `duecare` Python namespace (PEP 420), all
 installable from a single `pip install duecare-llm`:
 
 | Package | Role | Tests |
@@ -73,7 +73,16 @@ installable from a single `pip install duecare-llm`:
 | [`duecare-llm-agents`](./docs/components/duecare_llm_agents.md) | 12-agent swarm + AgentSupervisor with retry/budget/harm-abort + Gemma 4 function-calling orchestration | 26 ✅ |
 | [`duecare-llm-workflows`](./docs/components/duecare_llm_workflows.md) | YAML DAG loader + topological runner | 9 ✅ |
 | [`duecare-llm-publishing`](./docs/components/duecare_llm_publishing.md) | HF Hub + Kaggle publisher, markdown reports, HF model cards | 9 ✅ |
-| [`duecare-llm`](./docs/components/duecare_llm_meta.md) (meta) | `duecare` CLI + re-exports from all 7 siblings | — |
+| `duecare-llm-engine` | Heuristic prescan + GREP KB + RAG + tool-call + Gemma verdict pipeline (the safety harness) | — |
+| `duecare-llm-server` | FastAPI app that hosts the pipeline + audit dashboard (the live demo) | — |
+| `duecare-llm-evidence-db` | Redacted-evidence corpus + audit trail SQLite store | — |
+| `duecare-llm-benchmark` | `smoke_25` + `score_row` + `aggregate` scoring helpers (zero deps) | — |
+| `duecare-llm-training` | Unsloth SFT + DPO scripts, GGUF export | — |
+| `duecare-llm-research-tools` | Playwright scrapers + document extractors for domain corpora | — |
+| `duecare-llm-nl2sql` | NL → SQL translator for evidence DB queries | — |
+| `duecare-llm-chat` | Minimal Gemma 4 chat playground (UI + FastAPI shell, no harness) | — |
+| `duecare-llm-cli` | The `duecare` command-line tool (tree, test, review, status, deps) | — |
+| [`duecare-llm`](./docs/components/duecare_llm_meta.md) (meta) | Pulls in all 16 siblings + the CLI | — |
 | **Total** | | **194 ✅** |
 
 ## Quick start
@@ -81,7 +90,7 @@ installable from a single `pip install duecare-llm`:
 ### Install
 
 ```bash
-# Everything (meta package pulls in all 7 siblings)
+# Everything (meta package pulls in all 16 siblings)
 pip install duecare-llm
 
 # Or, granular: install only what a Kaggle notebook needs
@@ -143,19 +152,16 @@ uvicorn src.demo.app:app --port 8080
 # Open http://localhost:8080 for the HTML dashboard
 ```
 
-### 52 Kaggle Notebooks — numbered reading order
+### 76 Kaggle Notebooks — numbered reading order
 
 The notebook suite now uses three-digit reading-order IDs instead of the
 old historical `NB XX` scheme.
 
 - Full table and one-line purposes: [`docs/notebook_guide.md`](./docs/notebook_guide.md)
 - Exact kernel inventory and mirror map: [`docs/current_kaggle_notebook_state.md`](./docs/current_kaggle_notebook_state.md)
-- Publish outcomes from this session: [`docs/review/notebook_publish_report.md`](./docs/review/notebook_publish_report.md)
-
-The DueCare suite ships as 52 notebooks (52 of 52 validated locally by
-`scripts/validate_notebooks.py`, 24 targeted adversarial validators green).
-An active push session is promoting every notebook to live on Kaggle;
-the full inventory is regenerated into
+The DueCare suite ships as 76 notebooks (76 of 76 validated locally by
+`scripts/validate_notebooks.py`, 42 targeted adversarial validators green).
+The full inventory is regenerated into
 [`docs/current_kaggle_notebook_state.md`](./docs/current_kaggle_notebook_state.md)
 after each session.
 
@@ -175,7 +181,7 @@ The remaining notebooks cover the `100`-`600` bands for evaluation,
 comparison, adversarial testing, pipeline construction, fine-tuning, and
 reporting. The `000` band is now the orientation layer: index, glossary,
 and quickstart. See [`docs/notebook_guide.md`](./docs/notebook_guide.md)
-for the full 52-notebook ordered table.
+for the full 76-notebook ordered table.
 
 ## Architecture
 
@@ -230,7 +236,7 @@ for the full 52-notebook ordered table.
 | Trafficking prompt corpus | **74,567** | [110 - Prompt Prioritizer](https://www.kaggle.com/code/taylorsamarel/00a-duecare-prompt-prioritizer-data-pipeline) |
 | Adversarial generators | **15** | [310 - Prompt Factory](https://www.kaggle.com/code/taylorsamarel/duecare-310-prompt-factory) |
 | Evaluation frameworks | **7** | |
-| Tests passing | **194** | Across 8 packages |
+| Tests passing | **194** | Across 17 packages |
 
 ### Use it as a library
 
@@ -335,8 +341,8 @@ When Gemma 5 ships, that's the entire integration cost: one YAML row.
    tasks, agents are all structurally typed. No forced inheritance.
 2. **Pydantic v2 for every data model.** JSON round-trips for free,
    strict validation at every layer boundary.
-3. **PEP 420 namespace packages.** All 8 packages share the `duecare`
-   Python namespace. Install one or all eight; imports work identically.
+3. **PEP 420 namespace packages.** All 17 packages share the `duecare`
+   Python namespace. Install one or all seventeen; imports work identically.
 4. **AgentSupervisor meta-agent** enforces retry, budget, and
    abort-on-harm policies across every agent call. Validator can
    signal `harm_detected=True` to abort a release workflow immediately.
@@ -407,7 +413,7 @@ for per-agent documentation.
 ## Tests
 
 ```bash
-# All 194 tests across all 8 packages
+# All 194 tests across all 17 packages
 python -m pytest packages -v
 
 # Single package
@@ -458,19 +464,35 @@ Secrets (API keys) come from environment variables only — see
 
 ```
 gemma4_comp/
-├── packages/                     # 8 PyPI packages (workspace members)
-│   ├── duecare-llm-core/
-│   ├── duecare-llm-models/
-│   ├── duecare-llm-domains/
-│   ├── duecare-llm-tasks/
-│   ├── duecare-llm-agents/
-│   ├── duecare-llm-workflows/
-│   ├── duecare-llm-publishing/
-│   └── duecare-llm/                # meta package + CLI
-├── configs/duecare/                # YAML configuration (models, workflows, domains)
+├── packages/                     # 17 PyPI packages (workspace members)
+│   ├── duecare-llm-core/         # contracts, schemas, observability
+│   ├── duecare-llm-models/       # 8 model adapters
+│   ├── duecare-llm-domains/      # pluggable domain packs
+│   ├── duecare-llm-tasks/        # 9 capability tests
+│   ├── duecare-llm-agents/       # 12-agent swarm
+│   ├── duecare-llm-workflows/    # YAML DAG runner
+│   ├── duecare-llm-publishing/   # HF Hub + Kaggle uploaders
+│   ├── duecare-llm-engine/       # heuristic + GREP + RAG + tools pipeline
+│   ├── duecare-llm-server/       # FastAPI app for the live demo
+│   ├── duecare-llm-evidence-db/  # redacted evidence + audit trail
+│   ├── duecare-llm-benchmark/    # smoke_25 + score_row + aggregate
+│   ├── duecare-llm-training/     # Unsloth SFT + DPO scripts
+│   ├── duecare-llm-research-tools/ # Playwright scrapers + extractors
+│   ├── duecare-llm-nl2sql/       # NL → SQL for evidence DB
+│   ├── duecare-llm-chat/         # minimal Gemma 4 chat playground
+│   ├── duecare-llm-cli/          # the `duecare` CLI
+│   └── duecare-llm/              # meta package (pulls in all 16 above)
+├── kaggle/                       # Kaggle deliverables (per-notebook bundles)
+│   ├── live-demo/                # Notebook 1: kernel.py + wheels/*.whl
+│   ├── bench-and-tune/           # Notebook 2: kernel.py (TBD) + wheels/*.whl
+│   ├── gemma-chat/               # Notebook 3: kernel.py + wheels/*.whl
+│   ├── shared-datasets/          # cross-notebook: trafficking-prompts, eval-results
+│   ├── kernels/                  # the 76-notebook research pipeline (separate)
+│   └── models/                   # Kaggle Models artifacts
+├── configs/duecare/              # YAML configuration (models, workflows, domains)
 ├── docs/                         # architecture, component docs, writeup, video script
 │   └── components/               # per-package component docs
-├── notebooks/                    # Jupyter demos
+├── notebooks/                    # canonical .ipynb sources for the 76-notebook pipeline
 ├── scripts/                      # implementation + maintenance scripts
 ├── tests/                        # integration tests
 ├── pyproject.toml                # uv workspace root

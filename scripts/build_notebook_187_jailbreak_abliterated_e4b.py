@@ -25,7 +25,7 @@ from _jailbreak_cells import PROMPT_SLICE, INFER, LOAD_SINGLE
 
 
 ROOT = Path(__file__).resolve().parent.parent
-NB_DIR = ROOT / "notebooks"
+NB_DIR = ROOT / "skunkworks" / "notebooks"
 KAGGLE_KERNELS = ROOT / "kaggle" / "kernels"
 
 FILENAME = "187_jailbreak_abliterated_e4b.ipynb"

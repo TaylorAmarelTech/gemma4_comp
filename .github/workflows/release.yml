@@ -1,0 +1,79 @@
+# Release workflow — fan out across packages/duecare-llm-* on a v* tag
+# and publish each wheel to PyPI under a single coordinated version.
+#
+# Triggers on tags matching v*.*.* (e.g. v0.1.0, v1.0.0). Skips publish
+# when secrets aren't set (lets the workflow be tested via tag-on-fork
+# without needing PyPI credentials).
+#
+# Required secret: PYPI_API_TOKEN (scope: project-wide, all duecare-llm-*).
+# Set at https://github.com/<owner>/<repo>/settings/secrets/actions
+
+name: Release packages to PyPI
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+jobs:
+  discover:
+    runs-on: ubuntu-latest
+    outputs:
+      packages: ${{ steps.list.outputs.packages }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: list
+        name: Discover packages/duecare-llm-* members
+        run: |
+          packages=$(ls -d packages/duecare-llm-* | xargs -n1 basename | jq -R . | jq -s -c .)
+          echo "packages=$packages" >> "$GITHUB_OUTPUT"
+          echo "Found $(echo "$packages" | jq length) packages"
+
+  build-and-publish:
+    needs: discover
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        package: ${{ fromJson(needs.discover.outputs.packages) }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install build tooling
+        run: python -m pip install --upgrade pip build twine
+
+      - name: Build wheel + sdist for ${{ matrix.package }}
+        working-directory: packages/${{ matrix.package }}
+        run: python -m build
+
+      - name: Verify metadata
+        working-directory: packages/${{ matrix.package }}
+        run: python -m twine check dist/*
+
+      - name: Publish to PyPI
+        if: ${{ env.PYPI_API_TOKEN != '' }}
+        env:
+          PYPI_API_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
+          TWINE_NON_INTERACTIVE: '1'
+        working-directory: packages/${{ matrix.package }}
+        run: |
+          # Skip if version already on PyPI (idempotent re-tag safe).
+          name=$(python -c "import tomllib; print(tomllib.load(open('pyproject.toml','rb'))['project']['name'])")
+          version=$(python -c "import tomllib; print(tomllib.load(open('pyproject.toml','rb'))['project']['version'])")
+          if python -m pip index versions "$name" 2>/dev/null | grep -q "^Available versions:.*\\b${version}\\b"; then
+            echo "Skipping: $name $version already on PyPI."
+            exit 0
+          fi
+          python -m twine upload dist/* --skip-existing
+
+      - name: Skip publish (no PYPI_API_TOKEN secret)
+        if: ${{ env.PYPI_API_TOKEN == '' }}
+        run: |
+          echo "PYPI_API_TOKEN secret not set; built ${{ matrix.package }} but did not publish."
+          echo "To enable publishing, add the secret at"
+          echo "  https://github.com/${{ github.repository }}/settings/secrets/actions"
