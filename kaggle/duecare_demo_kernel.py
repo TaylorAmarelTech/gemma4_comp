@@ -50,13 +50,15 @@ DATASET_SLUG = "duecare-llm-wheels"
 # 31B-on-2xT4 path. LOADER="transformers" is the legacy path (E4B / E2B).
 GEMMA_MODEL_VARIANT = "e4b-it"   # "e2b-it" | "e4b-it" | "26b-a4b-it" | "31b-it"
 GEMMA_LOADER        = "auto"     # "auto" | "transformers" | "unsloth"
-                                  # "auto" = Unsloth FastModel for ALL variants
-                                  #          (uniform path, matches Hanchen's
-                                  #           reference notebook).
-                                  # "transformers" = legacy HF transformers
-                                  #                  path (faster cold-start
-                                  #                  on E4B, no Phase 0 install
-                                  #                  + restart needed).
+                                  # "auto" = legacy transformers for E2B/E4B
+                                  #          (~30s start, server runs in same
+                                  #           cell, no restart needed)
+                                  #        + Unsloth FastModel for 31B/26B-A4B
+                                  #          (Phase 0 install + restart dance
+                                  #           required; only path that fits
+                                  #           on T4 x2 for those variants).
+                                  # "unsloth"      = force Unsloth on any variant
+                                  # "transformers" = force legacy on any variant
 GEMMA_LOAD_IN_4BIT  = True       # 4-bit quantization on small GPUs
 GEMMA_DEVICE_MAP    = "auto"     # "auto" | "balanced" (2xT4 for 31B) | {"":0}
 GEMMA_MAX_SEQ_LEN   = 8192       # context window
@@ -156,19 +158,23 @@ os.environ["DUECARE_MODEL_NAME"] = (
 # already been installed.
 # ===========================================================================
 def _need_unsloth_stack() -> bool:
-    """Phase 0 install triggers when:
-      - GEMMA_LOADER explicitly == "unsloth" (always)
-      - GEMMA_LOADER == "auto" (default; we use FastModel for ALL
-        variants now -- uniform Hanchen recipe across E2B/E4B/26B/31B)
-    Skipped when GEMMA_LOADER == "transformers" (legacy fast-path opt-out).
+    """Phase 0 install triggers ONLY when the user picks a variant
+    that REQUIRES Unsloth (31B / 26B-A4B), or explicitly opts in.
+    E4B / E2B keep the fast 30-second legacy transformers path that
+    has been working for weeks -- no install + restart dance needed.
+
+      - GEMMA_LOADER == "unsloth"                                : always
+      - GEMMA_LOADER == "auto" + variant in {31b-it, 26b-a4b-it} : install
+      - GEMMA_LOADER == "auto" + variant in {e2b-it, e4b-it}     : SKIP
+      - GEMMA_LOADER == "transformers"                            : SKIP
     """
     if not USE_GEMMA:
         return False
     if GEMMA_LOADER == "unsloth":
         return True
-    if GEMMA_LOADER == "auto":
+    big = ("31b-it", "26b-a4b-it")
+    if GEMMA_LOADER == "auto" and GEMMA_MODEL_VARIANT in big:
         return True
-    # GEMMA_LOADER == "transformers" -> skip Hanchen install, use legacy path
     return False
 
 
@@ -1054,11 +1060,17 @@ def load_gemma_smart(env: Env, model_id: str = GEMMA_MODEL,
     Demo's gemma_call only needs text generation (moderate /
     worker_check / query). Multimodal is a bonus."""
     # ---- Loader dispatch ------------------------------------------------
-    # FastModel (Unsloth) is the default for ALL Gemma 4 variants:
-    # uniform install + load + inference path matching Hanchen's
-    # reference notebook. The legacy HF transformers path is only used
-    # when the user explicitly opts out via GEMMA_LOADER="transformers".
-    use_unsloth = GEMMA_LOADER in ("auto", "unsloth")
+    # FastModel (Unsloth) only fires for variants that REQUIRE it:
+    #   - 31b-it, 26b-a4b-it: Unsloth is the only path that fits on T4 x2
+    #   - GEMMA_LOADER == "unsloth": user opt-in
+    # E2B / E4B stay on the legacy transformers path (30-sec startup,
+    # no Phase 0 install + restart needed). This preserves the working
+    # E4B flow that has been running for weeks.
+    big_variants = ("31b-it", "26b-a4b-it")
+    use_unsloth = (
+        GEMMA_LOADER == "unsloth"
+        or (GEMMA_LOADER == "auto" and GEMMA_MODEL_VARIANT in big_variants)
+    )
     if use_unsloth:
         if verbose:
             print(f"  routing through Unsloth FastModel "
@@ -1069,7 +1081,7 @@ def load_gemma_smart(env: Env, model_id: str = GEMMA_MODEL,
             return out
         if verbose:
             print(f"  Unsloth path failed; falling back to legacy "
-                  f"transformers path (this should rarely happen)")
+                  f"transformers path")
 
     if not env.gpu.available:
         if verbose:
