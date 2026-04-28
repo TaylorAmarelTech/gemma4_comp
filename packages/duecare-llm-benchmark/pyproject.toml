@@ -1,0 +1,22 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "duecare-llm-benchmark"
+version = "0.1.0"
+description = "Bundled benchmark test sets + scoring + aggregation for the Duecare safety harness. Pure Python; no FastAPI / no GPU dependency. Used by the live demo (Workbench Benchmark tab) and by the standalone duecare-bench-and-tune notebook."
+readme = "README.md"
+license = {text = "MIT"}
+requires-python = ">=3.11"
+authors = [{name = "Taylor Amarel"}]
+dependencies = []
+
+[project.urls]
+Homepage = "https://github.com/TaylorAmarelTech/gemma4_comp"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/duecare"]
+include = [
+    "src/duecare/benchmark/**/*.jsonl",
+]

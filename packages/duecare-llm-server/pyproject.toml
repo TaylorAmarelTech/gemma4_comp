@@ -18,6 +18,7 @@ dependencies = [
     "duecare-llm-engine>=0.1.0",
     "duecare-llm-nl2sql>=0.1.0",
     "duecare-llm-research-tools>=0.1.0",
+    "duecare-llm-benchmark>=0.1.0",
 ]
 
 [project.urls]
@@ -27,5 +28,4 @@ Homepage = "https://github.com/TaylorAmarelTech/gemma4_comp"
 packages = ["src/duecare"]
 include = [
     "src/duecare/server/static/**/*",
-    "src/duecare/server/benchmark/**/*.jsonl",
 ]

@@ -528,7 +528,7 @@ def create_app(state: Optional[ServerState] = None) -> FastAPI:
     # streams its own trace and the aggregator polls once a second.
     @app.get("/api/benchmark/sets")
     def api_benchmark_sets():
-        from duecare.server.benchmark import list_sets
+        from duecare.benchmark import list_sets
         return [{
             "slug": b.slug, "title": b.title,
             "description": b.description, "n_rows": b.n_rows,
@@ -538,7 +538,7 @@ def create_app(state: Optional[ServerState] = None) -> FastAPI:
     def api_benchmark_run(payload: dict):
         """Submit a bundled benchmark set as a batch of moderate
         tasks. Returns batch_id; poll /api/benchmark/status/{id}."""
-        from duecare.server.benchmark import load_set
+        from duecare.benchmark import load_set
         st: ServerState = app.state.duecare
         slug = (payload or {}).get("slug") or ""
         try:
@@ -588,7 +588,7 @@ def create_app(state: Optional[ServerState] = None) -> FastAPI:
     @app.get("/api/benchmark/status/{batch_id}")
     def api_benchmark_status(batch_id: str):
         """Live aggregate. Per-row scores + roll-up summary."""
-        from duecare.server.benchmark import score_row, aggregate
+        from duecare.benchmark import score_row, aggregate
         st: ServerState = app.state.duecare
         batch = st._batches.get(batch_id)
         if batch is None:
