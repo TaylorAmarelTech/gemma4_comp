@@ -1,0 +1,26 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "duecare-llm-chat"
+version = "0.1.0"
+description = "Minimal Gemma 4 chat playground -- single FastAPI app with a chat UI, no audit trail / no Duecare pipeline / no evidence DB. Pairs with Unsloth-loaded Gemma 4 (any variant including 31B) and a cloudflared quick-tunnel for Kaggle-hosted demos."
+readme = "README.md"
+license = {text = "MIT"}
+requires-python = ">=3.11"
+authors = [{name = "Taylor Amarel"}]
+dependencies = [
+    "fastapi>=0.115.0",
+    "uvicorn>=0.30.0",
+    "pydantic>=2.9.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/TaylorAmarelTech/gemma4_comp"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/duecare"]
+include = [
+    "src/duecare/chat/static/**/*",
+]

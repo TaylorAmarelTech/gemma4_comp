@@ -1,0 +1,391 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Duecare Gemma Chat</title>
+<style>
+:root {
+  --bg: #0f172a;        --panel: #1e293b;       --panel2: #334155;
+  --ink: #f1f5f9;       --muted: #94a3b8;       --accent: #3b82f6;
+  --user: #1d4ed8;      --bot: #1e293b;         --border: #475569;
+  --good: #10b981;      --warn: #f59e0b;        --bad: #ef4444;
+}
+* { box-sizing: border-box; }
+html, body {
+  margin: 0; padding: 0; height: 100vh;
+  background: var(--bg); color: var(--ink);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  font-size: 15px; line-height: 1.5;
+}
+.shell {
+  display: flex; flex-direction: column; height: 100vh;
+  max-width: 1200px; margin: 0 auto;
+}
+header.bar {
+  display: flex; align-items: center; gap: 16px;
+  padding: 12px 20px; background: var(--panel);
+  border-bottom: 1px solid var(--border);
+}
+header.bar h1 {
+  margin: 0; font-size: 18px; font-weight: 700;
+  letter-spacing: -0.01em;
+}
+header.bar h1 .accent { color: var(--accent); }
+header.bar .badge {
+  margin-left: auto; padding: 6px 12px; border-radius: 999px;
+  background: var(--panel2); color: var(--muted);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 11.5px; display: flex; align-items: center; gap: 8px;
+}
+header.bar .badge .dot {
+  width: 8px; height: 8px; border-radius: 50%; background: var(--bad);
+}
+header.bar .badge.loaded .dot {
+  background: var(--good);
+  animation: dc-pulse 2s ease-in-out infinite;
+}
+@keyframes dc-pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+
+.chat {
+  flex: 1; overflow-y: auto; padding: 24px 20px;
+  display: flex; flex-direction: column; gap: 14px;
+}
+.empty {
+  color: var(--muted); text-align: center; margin: auto;
+  max-width: 520px;
+}
+.empty h2 { color: var(--ink); margin: 0 0 10px 0; font-size: 22px; }
+.empty p { margin: 0 0 8px 0; }
+.empty .hints {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+  margin-top: 18px;
+}
+.empty .hints button {
+  background: var(--panel); border: 1px solid var(--border);
+  color: var(--ink); padding: 12px 14px; border-radius: 10px;
+  text-align: left; font-size: 13px; line-height: 1.4;
+  cursor: pointer; transition: border-color 120ms;
+}
+.empty .hints button:hover { border-color: var(--accent); }
+
+.msg { display: flex; gap: 12px; max-width: 85%; }
+.msg.user { align-self: flex-end; flex-direction: row-reverse; }
+.msg .avatar {
+  width: 32px; height: 32px; border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: 13px; flex-shrink: 0;
+}
+.msg.user .avatar { background: var(--user); color: #fff; }
+.msg.assistant .avatar { background: var(--accent); color: #fff; }
+.msg .body {
+  background: var(--panel); border: 1px solid var(--border);
+  border-radius: 14px; padding: 12px 16px;
+  white-space: pre-wrap; word-wrap: break-word;
+  font-size: 14.5px; line-height: 1.6;
+}
+.msg.user .body { background: var(--user); border-color: var(--user); }
+.msg.assistant.thinking .body {
+  color: var(--muted); font-style: italic;
+}
+.msg .body img.user-img {
+  max-width: 280px; border-radius: 8px; margin-bottom: 8px;
+  display: block;
+}
+.msg .body code {
+  background: rgba(0,0,0,0.35); padding: 1px 6px; border-radius: 4px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 13px;
+}
+.msg .body pre {
+  background: rgba(0,0,0,0.35); padding: 10px 12px;
+  border-radius: 8px; overflow-x: auto; margin: 8px 0;
+}
+.msg .meta {
+  font-size: 11px; color: var(--muted); margin-top: 4px;
+  font-family: ui-monospace, monospace;
+}
+
+.composer {
+  background: var(--panel); border-top: 1px solid var(--border);
+  padding: 12px 20px;
+}
+.composer .pending-images {
+  display: flex; gap: 6px; margin-bottom: 8px;
+}
+.composer .pending-images img {
+  width: 56px; height: 56px; object-fit: cover; border-radius: 6px;
+  border: 1px solid var(--border);
+}
+.composer .pending-images .pi-wrap { position: relative; }
+.composer .pending-images .pi-wrap button {
+  position: absolute; top: -6px; right: -6px;
+  background: var(--bad); color: #fff; border: 0;
+  width: 18px; height: 18px; border-radius: 50%;
+  font-size: 11px; cursor: pointer; line-height: 1; padding: 0;
+}
+.composer .row {
+  display: flex; gap: 10px; align-items: flex-end;
+}
+.composer textarea {
+  flex: 1; min-height: 44px; max-height: 220px;
+  background: var(--bg); color: var(--ink);
+  border: 1px solid var(--border); border-radius: 10px;
+  padding: 10px 14px; resize: vertical;
+  font-family: inherit; font-size: 14.5px; line-height: 1.4;
+}
+.composer textarea:focus { outline: 2px solid var(--accent); border-color: var(--accent); }
+.composer .btns { display: flex; flex-direction: column; gap: 6px; }
+.composer .btn {
+  padding: 9px 18px; border-radius: 10px; border: 0; cursor: pointer;
+  font-weight: 600; font-size: 14px;
+  background: var(--accent); color: #fff;
+}
+.composer .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.composer .btn.secondary {
+  background: transparent; border: 1px solid var(--border);
+  color: var(--ink); font-weight: 500;
+}
+.composer .btn.secondary:hover { border-color: var(--accent); }
+.composer .controls {
+  display: flex; gap: 16px; align-items: center;
+  margin-top: 10px; font-size: 12px; color: var(--muted);
+}
+.composer .controls label { display: flex; align-items: center; gap: 6px; }
+.composer .controls input[type=range] { width: 80px; }
+.composer .controls input[type=number] {
+  width: 60px; background: var(--bg); color: var(--ink);
+  border: 1px solid var(--border); border-radius: 4px; padding: 2px 6px;
+  font-family: ui-monospace, monospace; font-size: 11px;
+}
+
+@media (max-width: 600px) {
+  .msg { max-width: 95%; }
+  .composer .controls { display: none; }
+  header.bar .badge { font-size: 10px; padding: 4px 8px; }
+}
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <header class="bar">
+    <h1><span class="accent">Duecare</span> · Gemma 4 Chat</h1>
+    <div class="badge" id="badge">
+      <span class="dot"></span>
+      <span id="badge-text">checking…</span>
+    </div>
+  </header>
+
+  <div class="chat" id="chat">
+    <div class="empty" id="empty">
+      <h2>Talk to Gemma 4</h2>
+      <p>Pure Gemma chat — no Duecare moderation pipeline. Drop an image
+      to use multimodal mode (E4B / 31B).</p>
+      <div class="hints">
+        <button onclick="useHint('Continue the sequence: 1, 1, 2, 3, 5, 8,')">Continue the Fibonacci sequence</button>
+        <button onclick="useHint('Why is the sky blue?')">Why is the sky blue?</button>
+        <button onclick="useHint('Write a haiku about migrant workers in Singapore.')">Write a haiku</button>
+        <button onclick="useHint('Explain Rayleigh scattering in 3 sentences.')">Explain Rayleigh scattering</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="composer">
+    <div class="pending-images" id="pending-images"></div>
+    <div class="row">
+      <textarea id="input" placeholder="Type a message…  (Shift+Enter for newline)" rows="2"></textarea>
+      <div class="btns">
+        <button class="btn" id="send" onclick="sendMessage()">Send ↑</button>
+        <input type="file" id="image-upload" accept="image/*" style="display:none" onchange="onUploadChange(event)">
+        <button class="btn secondary" onclick="document.getElementById('image-upload').click()" title="Attach image">+ image</button>
+      </div>
+    </div>
+    <div class="controls">
+      <label>temp <input type="range" id="temp" min="0.1" max="2" step="0.1" value="1.0" oninput="document.getElementById('temp-out').value=this.value"><input type="number" id="temp-out" value="1.0" min="0.1" max="2" step="0.1"></label>
+      <label>top_p <input type="range" id="topp" min="0.1" max="1" step="0.05" value="0.95" oninput="document.getElementById('topp-out').value=this.value"><input type="number" id="topp-out" value="0.95" min="0" max="1" step="0.05"></label>
+      <label>top_k <input type="number" id="topk" value="64" min="0" max="500"></label>
+      <label>max tokens <input type="number" id="maxtok" value="512" min="32" max="4096"></label>
+      <button class="btn secondary" style="margin-left:auto" onclick="resetChat()">Clear</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const messages = [];        // [{role, content: [{type, text|image}]}]
+const pendingImages = [];   // [{id, mime, dataUrl}]
+
+document.getElementById('input').addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+});
+
+async function refreshBadge() {
+  try {
+    const r = await fetch('/api/model-info', {cache:'no-store'});
+    const info = await r.json();
+    const el = document.getElementById('badge');
+    const txt = document.getElementById('badge-text');
+    txt.innerText = info.display || (info.loaded ? info.name : 'no model loaded');
+    el.classList.toggle('loaded', !!info.loaded);
+  } catch (e) {
+    document.getElementById('badge-text').innerText = 'offline';
+  }
+}
+refreshBadge();
+setInterval(refreshBadge, 30000);
+
+function useHint(text) {
+  document.getElementById('input').value = text;
+  sendMessage();
+}
+
+function resetChat() {
+  messages.length = 0;
+  pendingImages.length = 0;
+  renderPendingImages();
+  renderChat();
+}
+
+async function onUploadChange(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const fd = new FormData();
+  fd.append('file', file);
+  try {
+    const r = await fetch('/api/chat/upload-image', {method:'POST', body:fd});
+    if (!r.ok) throw new Error(await r.text());
+    const j = await r.json();
+    const reader = new FileReader();
+    reader.onload = () => {
+      pendingImages.push({id: j.id, mime: j.mime, dataUrl: reader.result});
+      renderPendingImages();
+    };
+    reader.readAsDataURL(file);
+  } catch (e) {
+    alert('image upload failed: ' + e);
+  }
+  event.target.value = '';  // reset for next upload
+}
+
+function renderPendingImages() {
+  const wrap = document.getElementById('pending-images');
+  wrap.innerHTML = pendingImages.map((p, i) =>
+    `<div class="pi-wrap"><img src="${p.dataUrl}" alt="">
+      <button onclick="pendingImages.splice(${i},1);renderPendingImages()" title="remove">×</button>
+    </div>`).join('');
+}
+
+async function sendMessage() {
+  const input = document.getElementById('input');
+  const text = input.value.trim();
+  if (!text && pendingImages.length === 0) return;
+
+  const btn = document.getElementById('send');
+  btn.disabled = true;
+
+  // Build the user message: images first, then text
+  const content = [];
+  for (const p of pendingImages) {
+    content.push({type:'image', image:'store://' + p.id, _previewUrl: p.dataUrl});
+  }
+  if (text) content.push({type:'text', text});
+
+  messages.push({role:'user', content});
+  pendingImages.length = 0;
+  renderPendingImages();
+  input.value = '';
+  renderChat();
+
+  // Push a "thinking" placeholder
+  const thinkingIdx = messages.length;
+  messages.push({role:'assistant', content:[{type:'text', text:'…'}], _thinking: true});
+  renderChat();
+
+  // Strip _previewUrl before sending
+  const payloadMessages = messages.slice(0, thinkingIdx).map(m => ({
+    role: m.role,
+    content: m.content.map(c => c.type === 'image'
+      ? {type:'image', image: c.image}
+      : {type:'text', text: c.text})
+  }));
+
+  const gen = {
+    max_new_tokens: parseInt(document.getElementById('maxtok').value) || 512,
+    temperature:    parseFloat(document.getElementById('temp').value) || 1.0,
+    top_p:          parseFloat(document.getElementById('topp').value) || 0.95,
+    top_k:          parseInt(document.getElementById('topk').value) || 64,
+  };
+
+  let result;
+  try {
+    const r = await fetch('/api/chat/send', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({messages: payloadMessages, generation: gen}),
+    });
+    if (!r.ok) {
+      const errTxt = await r.text();
+      throw new Error(`HTTP ${r.status}: ${errTxt}`);
+    }
+    result = await r.json();
+  } catch (e) {
+    messages[thinkingIdx] = {role:'assistant',
+      content:[{type:'text', text:`⚠ Error: ${e.message || e}`}],
+      _error: true};
+    renderChat();
+    btn.disabled = false;
+    return;
+  }
+
+  messages[thinkingIdx] = {
+    role:'assistant',
+    content:[{type:'text', text: result.response || '(empty response)'}],
+    _meta: `${result.elapsed_ms} ms · ${result.model_info?.name || 'gemma'}`,
+  };
+  renderChat();
+  btn.disabled = false;
+  document.getElementById('input').focus();
+}
+
+function renderChat() {
+  const chat = document.getElementById('chat');
+  if (messages.length === 0) {
+    chat.innerHTML = document.getElementById('empty')?.outerHTML
+      || '<div class="empty">empty</div>';
+    return;
+  }
+  let html = '';
+  for (const m of messages) {
+    const cls = m._thinking ? 'thinking' : (m._error ? 'error' : '');
+    const avatarTxt = m.role === 'user' ? 'YOU' : 'G4';
+    let bodyHtml = '';
+    for (const c of m.content) {
+      if (c.type === 'image') {
+        const src = c._previewUrl || c.image;
+        bodyHtml += `<img class="user-img" src="${src}" alt="user image">`;
+      } else {
+        bodyHtml += escapeAndFormat(c.text);
+      }
+    }
+    if (m._meta) bodyHtml += `<div class="meta">${m._meta}</div>`;
+    html += `<div class="msg ${m.role} ${cls}">
+      <div class="avatar">${avatarTxt}</div>
+      <div class="body">${bodyHtml}</div>
+    </div>`;
+  }
+  chat.innerHTML = html;
+  chat.scrollTop = chat.scrollHeight;
+}
+
+function escapeAndFormat(text) {
+  // Minimal: escape HTML, preserve fenced code blocks + inline code
+  text = (text || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  // Fenced code blocks ```lang ... ```
+  text = text.replace(/```([a-z0-9]*)\n?([\s\S]*?)```/g,
+    (m, lang, body) => `<pre><code>${body}</code></pre>`);
+  // Inline `code`
+  text = text.replace(/`([^`]+)`/g, '<code>$1</code>');
+  return text;
+}
+</script>
+</body>
+</html>
