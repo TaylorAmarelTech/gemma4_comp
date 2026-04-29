@@ -1,0 +1,977 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Duecare Content Classifier</title>
+<style>
+:root {
+  --bg: #0f172a;        --panel: #1e293b;       --panel2: #334155;
+  --ink: #f1f5f9;       --muted: #94a3b8;       --accent: #3b82f6;
+  --user: #1d4ed8;      --bot: #1e293b;         --border: #475569;
+  --good: #10b981;      --warn: #f59e0b;        --bad: #ef4444;
+}
+* { box-sizing: border-box; }
+html, body {
+  margin: 0; padding: 0; min-height: 100vh;
+  background: var(--bg); color: var(--ink);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  font-size: 15px; line-height: 1.5;
+}
+.shell {
+  display: flex; flex-direction: column; min-height: 100vh;
+  max-width: 1280px; margin: 0 auto; padding: 0 16px;
+}
+header.bar {
+  display: flex; align-items: center; gap: 16px;
+  padding: 14px 4px; border-bottom: 1px solid var(--border);
+  position: sticky; top: 0; background: var(--bg); z-index: 50;
+}
+header.bar h1 {
+  margin: 0; font-size: 18px; font-weight: 700; letter-spacing: -0.01em;
+}
+header.bar h1 .accent { color: var(--accent); }
+header.bar .badge {
+  margin-left: auto; padding: 6px 12px; border-radius: 999px;
+  background: var(--panel2); color: var(--muted);
+  font-family: ui-monospace, SFMono-Regular, monospace;
+  font-size: 11.5px; display: flex; align-items: center; gap: 8px;
+}
+header.bar .badge .dot {
+  width: 8px; height: 8px; border-radius: 50%; background: var(--bad);
+}
+header.bar .badge.loaded .dot { background: var(--good); }
+
+.layout { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; padding: 18px 0; }
+@media (max-width: 980px) { .layout { grid-template-columns: 1fr; } }
+
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 18px;
+}
+.panel h2 {
+  margin: 0 0 14px 0; font-size: 14px; font-weight: 700;
+  color: var(--ink); letter-spacing: 0.05em; text-transform: uppercase;
+}
+
+/* INPUT panel */
+.classifier-textarea {
+  width: 100%; min-height: 220px; max-height: 480px;
+  background: var(--bg); color: var(--ink);
+  border: 1px solid var(--border); border-radius: 8px;
+  padding: 12px 14px; resize: vertical;
+  font-family: inherit; font-size: 13.5px; line-height: 1.5;
+}
+.classifier-textarea:focus {
+  outline: 2px solid var(--accent); border-color: var(--accent);
+}
+.image-row {
+  display: flex; align-items: center; gap: 12px; margin-top: 10px;
+  flex-wrap: wrap;
+}
+.image-preview {
+  max-width: 120px; max-height: 90px; border-radius: 6px;
+  border: 1px solid var(--border);
+}
+.btn-row {
+  display: flex; gap: 10px; margin-top: 12px;
+  flex-wrap: wrap; align-items: center;
+}
+.btn {
+  padding: 9px 18px; border-radius: 8px; border: 0; cursor: pointer;
+  font-weight: 600; font-size: 14px;
+  background: var(--accent); color: #fff;
+}
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn.secondary {
+  background: transparent; border: 1px solid var(--border);
+  color: var(--ink); font-weight: 500;
+}
+.btn.secondary:hover { border-color: var(--accent); }
+
+.gen-controls {
+  display: flex; gap: 16px; align-items: center;
+  margin-top: 12px; font-size: 12px; color: var(--muted);
+  flex-wrap: wrap;
+}
+.gen-controls label { display: flex; align-items: center; gap: 6px; }
+.gen-controls input[type=number] {
+  width: 70px; background: var(--bg); color: var(--ink);
+  border: 1px solid var(--border); border-radius: 4px;
+  padding: 3px 6px; font-family: ui-monospace, monospace; font-size: 11px;
+}
+
+/* HARNESS TILES (shared concept with chat playground) */
+.harness-tiles {
+  display: none; grid-template-columns: 1fr 1fr 1fr 1fr;
+  gap: 10px; margin-top: 14px;
+}
+.harness-tile {
+  background: var(--bg); border: 2px solid var(--border);
+  border-radius: 8px; padding: 10px 12px; cursor: pointer;
+  transition: all 0.15s ease; user-select: none;
+  font-size: 12px;
+}
+.harness-tile[data-wired="false"] { opacity: 0.4; cursor: not-allowed; }
+.harness-tile-name { font-weight: 700; font-size: 12.5px; }
+.harness-tile-state {
+  font-size: 9.5px; font-weight: 600; padding: 2px 7px;
+  border-radius: 999px; letter-spacing: 0.05em;
+  background: rgba(148,163,184,0.15); color: var(--muted);
+  text-transform: uppercase; margin-left: 6px;
+}
+.harness-tile.persona .harness-tile-name { color: #a855f7; }
+.harness-tile.grep    .harness-tile-name { color: #ef4444; }
+.harness-tile.rag     .harness-tile-name { color: #3b82f6; }
+.harness-tile.tools   .harness-tile-name { color: #10b981; }
+.harness-tile.persona[data-enabled="true"] { border-color: #a855f7; background: rgba(168,85,247,0.08); }
+.harness-tile.persona[data-enabled="true"] .harness-tile-state { background: #a855f7; color: #fff; }
+.harness-tile.grep[data-enabled="true"] { border-color: #ef4444; background: rgba(239,68,68,0.08); }
+.harness-tile.grep[data-enabled="true"] .harness-tile-state { background: #ef4444; color: #fff; }
+.harness-tile.rag[data-enabled="true"] { border-color: #3b82f6; background: rgba(59,130,246,0.08); }
+.harness-tile.rag[data-enabled="true"] .harness-tile-state { background: #3b82f6; color: #fff; }
+.harness-tile.tools[data-enabled="true"] { border-color: #10b981; background: rgba(16,185,129,0.08); }
+.harness-tile.tools[data-enabled="true"] .harness-tile-state { background: #10b981; color: #fff; }
+
+/* RESULT card */
+.result-card {
+  border: 2px solid var(--border); border-radius: 10px;
+  padding: 16px; margin-bottom: 12px;
+  background: var(--bg);
+}
+.result-card[data-action="urgent_safety_referral"],
+.result-card[data-action="escalate_to_regulator"] { border-color: #ef4444; }
+.result-card[data-action="escalate_to_ngo"] { border-color: #f59e0b; }
+.result-card[data-action="review"] { border-color: #3b82f6; }
+.result-card[data-action="log_only"],
+.result-card[data-action="allow"] { border-color: #10b981; }
+.result-header {
+  display: flex; justify-content: space-between; align-items: flex-start;
+  gap: 12px; flex-wrap: wrap;
+}
+.result-classification {
+  font-weight: 700; font-size: 16px; color: var(--ink);
+}
+.result-action-pill {
+  font-size: 10.5px; font-weight: 700; padding: 4px 10px;
+  border-radius: 999px; text-transform: uppercase; letter-spacing: 0.06em;
+  white-space: nowrap;
+}
+.action-allow,         .action-log_only           { background: rgba(16,185,129,0.18); color: #10b981; }
+.action-review                                     { background: rgba(59,130,246,0.18); color: #3b82f6; }
+.action-escalate_to_ngo                           { background: rgba(245,158,11,0.18); color: #f59e0b; }
+.action-escalate_to_regulator,
+.action-urgent_safety_referral                    { background: rgba(239,68,68,0.18); color: #ef4444; }
+
+.risk-score-row {
+  display: flex; align-items: center; gap: 10px; margin-top: 12px;
+}
+.risk-bar {
+  flex: 1; height: 14px; background: var(--panel2);
+  border-radius: 999px; overflow: hidden; position: relative;
+}
+.risk-bar-fill {
+  height: 100%; border-radius: 999px;
+  transition: width 0.35s ease, background 0.35s ease;
+}
+.risk-bar-label {
+  font-family: ui-monospace, monospace; font-size: 12px; min-width: 80px;
+  text-align: right; font-weight: 600;
+}
+
+.result-rationale {
+  margin-top: 10px; padding: 10px 12px;
+  background: rgba(255,255,255,0.03);
+  border-left: 2px solid var(--accent);
+  border-radius: 4px; font-size: 12.5px; color: #cbd5e1;
+  line-height: 1.55;
+}
+
+.risk-vectors {
+  margin-top: 12px; display: flex; flex-direction: column; gap: 6px;
+}
+.vector-row {
+  display: grid; grid-template-columns: 200px 1fr 60px;
+  gap: 10px; align-items: center;
+  padding: 4px 0; font-size: 12px;
+}
+.vector-name { color: var(--muted); font-family: ui-monospace, monospace; font-size: 11.5px; }
+.vector-mag-bar {
+  height: 8px; background: var(--panel2); border-radius: 999px; overflow: hidden;
+}
+.vector-mag-fill {
+  height: 100%; border-radius: 999px; transition: width 0.3s ease;
+}
+.vector-mag-label {
+  font-family: ui-monospace, monospace; font-size: 11px;
+  color: var(--ink); text-align: right;
+}
+.vector-evidence {
+  grid-column: 1 / -1; margin-top: 2px; padding-left: 8px;
+  font-size: 11.5px; color: #94a3b8; line-height: 1.4;
+  border-left: 2px solid var(--border);
+}
+
+.result-footer {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--border);
+  font-size: 11px; color: var(--muted);
+}
+.result-footer a {
+  color: var(--accent); text-decoration: none; font-weight: 600;
+}
+.result-footer .ngo-pills {
+  display: flex; gap: 4px; flex-wrap: wrap;
+}
+.ngo-pill {
+  background: rgba(255,255,255,0.05); padding: 2px 7px;
+  border-radius: 4px; font-family: ui-monospace, monospace; font-size: 10.5px;
+}
+
+/* HISTORY panel + threshold filter */
+.history-controls {
+  display: flex; align-items: center; gap: 12px; margin-bottom: 14px;
+  flex-wrap: wrap;
+}
+.threshold-slider {
+  flex: 1; min-width: 200px; display: flex; align-items: center; gap: 10px;
+}
+.threshold-slider input[type=range] {
+  flex: 1; accent-color: var(--accent);
+}
+.threshold-slider label {
+  font-size: 12px; color: var(--muted); font-family: ui-monospace, monospace;
+  min-width: 110px;
+}
+.history-empty {
+  padding: 32px 16px; text-align: center; color: var(--muted);
+  font-size: 13px; border: 1px dashed var(--border); border-radius: 8px;
+}
+
+/* RAW JSON toggle */
+.raw-json {
+  margin-top: 8px; max-height: 240px; overflow-y: auto;
+  padding: 8px 10px; background: rgba(0,0,0,0.3); border-radius: 6px;
+  font-family: ui-monospace, monospace; font-size: 11px;
+  color: #cbd5e1; white-space: pre-wrap; word-wrap: break-word;
+  display: none;
+}
+.raw-json.show { display: block; }
+
+/* Modal (lightbox) -- shared with chat playground */
+.modal-overlay {
+  position: fixed; inset: 0; z-index: 1000;
+  background: rgba(0,0,0,0.7); backdrop-filter: blur(2px);
+  display: none; align-items: center; justify-content: center;
+}
+.modal-overlay.active { display: flex; }
+.modal {
+  background: var(--panel); border: 1px solid var(--border);
+  border-radius: 14px; width: 92%; max-width: 760px;
+  max-height: 86vh; display: flex; flex-direction: column;
+  box-shadow: 0 25px 60px rgba(0,0,0,0.5); overflow: hidden;
+}
+.modal-header {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 16px 20px; border-bottom: 1px solid var(--border);
+  background: var(--panel2);
+}
+.modal-title { margin: 0; font-size: 17px; font-weight: 700; }
+.modal-close {
+  background: transparent; border: 0; color: var(--muted);
+  cursor: pointer; font-size: 22px; line-height: 1;
+  padding: 4px 8px; border-radius: 6px;
+}
+.modal-close:hover { background: rgba(255,255,255,0.05); color: var(--ink); }
+.modal-body {
+  padding: 18px 20px; overflow-y: auto; flex: 1;
+  font-size: 13px; line-height: 1.55;
+}
+
+.thinking {
+  padding: 24px; text-align: center; color: var(--muted);
+  background: var(--bg); border: 1px dashed var(--border); border-radius: 8px;
+}
+.error-box {
+  padding: 12px 14px; background: rgba(239,68,68,0.1);
+  border: 1px solid #ef4444; border-radius: 8px;
+  color: #fca5a5; font-size: 12.5px; margin-top: 8px;
+}
+</style>
+</head>
+<body>
+
+<div class="shell">
+
+  <header class="bar">
+    <h1><span class="accent">Duecare</span> · Content Risk Classifier</h1>
+    <div class="badge" id="badge">
+      <span class="dot"></span><span id="badge-text">checking…</span>
+    </div>
+  </header>
+
+  <div class="layout">
+
+    <!-- LEFT: Input panel -->
+    <div class="panel">
+      <h2>Submit content for classification</h2>
+      <textarea class="classifier-textarea" id="content-input"
+                placeholder="Paste social-media content, recruitment ad, message thread, job posting, etc. Optional: attach a screenshot."></textarea>
+      <div class="image-row">
+        <input type="file" id="image-upload" accept="image/*" style="display:none" onchange="onImageSelected(event)">
+        <button class="btn secondary" onclick="document.getElementById('image-upload').click()">+ image</button>
+        <span id="image-status" style="font-size:11.5px; color:var(--muted);"></span>
+        <img id="image-preview" class="image-preview" style="display:none">
+      </div>
+      <div class="harness-tiles" id="harness-tiles">
+        <div class="harness-tile persona" id="tile-persona" data-wired="false" data-enabled="false" onclick="toggleTile('persona')">
+          <div><span class="harness-tile-name">Persona</span><span class="harness-tile-state" id="state-persona">OFF</span></div>
+        </div>
+        <div class="harness-tile grep" id="tile-grep" data-wired="false" data-enabled="false" onclick="toggleTile('grep')">
+          <div><span class="harness-tile-name">GREP</span><span class="harness-tile-state" id="state-grep">OFF</span></div>
+        </div>
+        <div class="harness-tile rag" id="tile-rag" data-wired="false" data-enabled="false" onclick="toggleTile('rag')">
+          <div><span class="harness-tile-name">RAG</span><span class="harness-tile-state" id="state-rag">OFF</span></div>
+        </div>
+        <div class="harness-tile tools" id="tile-tools" data-wired="false" data-enabled="false" onclick="toggleTile('tools')">
+          <div><span class="harness-tile-name">Tools</span><span class="harness-tile-state" id="state-tools">OFF</span></div>
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn" id="classify-btn" onclick="runClassification()">Classify ▶</button>
+        <button class="btn secondary" onclick="openExamplesModal()" title="Browse curated example content">▸ Examples</button>
+        <button class="btn secondary" onclick="resetForm()">Clear</button>
+      </div>
+      <div class="gen-controls">
+        <label>temp <input type="number" id="temp" value="0.3" min="0.0" max="2" step="0.1" title="Lower temperature = more deterministic JSON output"></label>
+        <label>max tokens <input type="number" id="maxtok" value="2048" min="32" max="32768"></label>
+      </div>
+    </div>
+
+    <!-- RIGHT: Result panel -->
+    <div class="panel">
+      <h2>Classification result</h2>
+      <div id="result-area">
+        <div class="thinking" id="empty-result">
+          Submit content on the left to see the structured classification, risk score, and risk-vector breakdown.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- HISTORY panel: full width below the layout -->
+  <div class="panel" style="margin-bottom:18px;">
+    <h2>History queue</h2>
+    <div class="history-controls">
+      <div class="threshold-slider">
+        <label>min risk: <span id="threshold-label">0.00</span></label>
+        <input type="range" id="threshold-input" min="0" max="100" step="1" value="0" oninput="updateThreshold()">
+      </div>
+      <div style="font-size:12px; color:var(--muted);">Showing <strong id="history-count">0</strong> of <strong id="history-total">0</strong></div>
+      <button class="btn secondary" onclick="clearHistory()" style="margin-left:auto; padding:6px 14px; font-size:12px;">Clear history</button>
+      <button class="btn secondary" onclick="exportHistory()" style="padding:6px 14px; font-size:12px;">Export</button>
+    </div>
+    <div id="history-list"></div>
+  </div>
+</div>
+
+<!-- Pipeline modal -->
+<div class="modal-overlay" id="modal-overlay" onclick="if(event.target.id==='modal-overlay')closeModal()">
+  <div class="modal" id="modal" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <h3 class="modal-title" id="modal-title">Pipeline</h3>
+      <button class="modal-close" onclick="closeModal()">×</button>
+    </div>
+    <div class="modal-body" id="modal-body"></div>
+  </div>
+</div>
+
+<script>
+// ---------------------------------------------------------------------------
+// State
+// ---------------------------------------------------------------------------
+let _personaDefault = '';
+let _harnessInfo = null;
+let _pendingImage = null;  // {id, mime, dataUrl}
+let _history = [];          // [{ts, content, parsed, raw, harness_trace, elapsed_ms, ...}]
+let _examplesCache = null;
+
+const STORAGE_HISTORY = 'duecare.classifier.history.v1';
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function attrJson(v) { return JSON.stringify(v).replace(/"/g, '&quot;'); }
+
+function loadHistory() {
+  try { _history = JSON.parse(localStorage.getItem(STORAGE_HISTORY) || '[]'); }
+  catch (e) { _history = []; }
+}
+function saveHistory() {
+  try { localStorage.setItem(STORAGE_HISTORY, JSON.stringify(_history)); }
+  catch (e) { console.warn('history save failed', e); }
+}
+
+// ---------------------------------------------------------------------------
+// Boot
+// ---------------------------------------------------------------------------
+async function refreshBadge() {
+  try {
+    const r = await fetch('/api/model-info', {cache:'no-store'});
+    const info = await r.json();
+    document.getElementById('badge-text').textContent =
+        info.display || (info.loaded ? info.name : 'no model loaded');
+    document.getElementById('badge').classList.toggle('loaded', !!info.loaded);
+  } catch (e) {
+    document.getElementById('badge-text').textContent = 'offline';
+  }
+}
+refreshBadge();
+setInterval(refreshBadge, 30000);
+
+async function probeHarness() {
+  try {
+    const r = await fetch('/api/harness-info', {cache:'no-store'});
+    if (!r.ok) return;
+    _harnessInfo = await r.json();
+    if (!(_harnessInfo.persona || _harnessInfo.grep || _harnessInfo.rag || _harnessInfo.tools)) return;
+    document.getElementById('harness-tiles').style.display = 'grid';
+    for (const layer of ['persona', 'grep', 'rag', 'tools']) {
+      const tile = document.getElementById(`tile-${layer}`);
+      const wired = !!_harnessInfo[layer];
+      tile.dataset.wired = wired ? 'true' : 'false';
+      // Enable all by default for the classifier (judges expect a "loaded" experience)
+      tile.dataset.enabled = wired ? 'true' : 'false';
+      const state = document.getElementById(`state-${layer}`);
+      state.textContent = wired ? 'ON' : 'NOT WIRED';
+    }
+    if (_harnessInfo.persona && _harnessInfo.persona_default) {
+      _personaDefault = _harnessInfo.persona_default;
+    }
+  } catch (e) {}
+}
+probeHarness();
+
+loadHistory();
+renderHistory();
+
+// ---------------------------------------------------------------------------
+// Toggle tiles
+// ---------------------------------------------------------------------------
+function toggleTile(layer) {
+  const tile = document.getElementById(`tile-${layer}`);
+  if (!tile || tile.dataset.wired !== 'true') return;
+  const newState = tile.dataset.enabled === 'true' ? 'false' : 'true';
+  tile.dataset.enabled = newState;
+  document.getElementById(`state-${layer}`).textContent = newState === 'true' ? 'ON' : 'OFF';
+}
+
+// ---------------------------------------------------------------------------
+// Image upload
+// ---------------------------------------------------------------------------
+async function onImageSelected(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const fd = new FormData();
+  fd.append('file', file);
+  document.getElementById('image-status').textContent = 'uploading...';
+  try {
+    const r = await fetch('/api/classifier/upload-image', {method:'POST', body:fd});
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    const info = await r.json();
+    const reader = new FileReader();
+    reader.onload = e => {
+      _pendingImage = {id: info.id, mime: info.mime, dataUrl: e.target.result};
+      document.getElementById('image-preview').src = e.target.result;
+      document.getElementById('image-preview').style.display = 'inline-block';
+      document.getElementById('image-status').textContent = `${file.name} (${(file.size/1024).toFixed(1)} KB)`;
+    };
+    reader.readAsDataURL(file);
+  } catch (e) {
+    document.getElementById('image-status').textContent = `upload failed: ${e.message}`;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Run classification
+// ---------------------------------------------------------------------------
+async function runClassification() {
+  const content = document.getElementById('content-input').value.trim();
+  if (!content && !_pendingImage) return;
+  const btn = document.getElementById('classify-btn');
+  btn.disabled = true;
+  btn.textContent = 'Classifying...';
+
+  const toggles = {
+    persona: document.getElementById('tile-persona')?.dataset.enabled === 'true',
+    persona_text: null,
+    grep: document.getElementById('tile-grep')?.dataset.enabled === 'true',
+    rag: document.getElementById('tile-rag')?.dataset.enabled === 'true',
+    tools: document.getElementById('tile-tools')?.dataset.enabled === 'true',
+  };
+  const generation = {
+    max_new_tokens: parseInt(document.getElementById('maxtok').value) || 2048,
+    temperature: parseFloat(document.getElementById('temp').value) || 0.3,
+    top_p: 0.95,
+    top_k: 64,
+  };
+  const payload = {
+    content,
+    image: _pendingImage ? `store://${_pendingImage.id}` : null,
+    generation,
+    toggles,
+  };
+
+  // Show "thinking" placeholder
+  const resultArea = document.getElementById('result-area');
+  resultArea.innerHTML = `<div class="thinking" id="thinking">Running classifier... <span id="elapsed">(0s)</span></div>`;
+  const tStart = Date.now();
+
+  try {
+    const r = await fetch('/api/classifier/evaluate', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify(payload),
+    });
+    if (!r.ok) throw new Error(`HTTP ${r.status}: ${await r.text()}`);
+    const reader = r.body.getReader();
+    const decoder = new TextDecoder('utf-8');
+    let buffer = '';
+    let result = null;
+    while (true) {
+      const {done, value} = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, {stream: true});
+      let sep;
+      while ((sep = buffer.indexOf('\n\n')) !== -1) {
+        const event = buffer.slice(0, sep);
+        buffer = buffer.slice(sep + 2);
+        if (!event.trim()) continue;
+        if (event.startsWith(':')) {
+          const elapsed = ((Date.now() - tStart) / 1000).toFixed(0);
+          const e = document.getElementById('elapsed');
+          if (e) e.textContent = `(${elapsed}s)`;
+          continue;
+        }
+        if (event.startsWith('data:')) {
+          result = JSON.parse(event.slice(5).trim());
+          if (result.error) throw new Error(result.error);
+        }
+      }
+    }
+    if (!result) throw new Error('stream ended without a result');
+
+    // Save to history (newest first)
+    const entry = {
+      ts: Date.now(),
+      content,
+      image_dataurl: _pendingImage?.dataUrl || null,
+      ...result,
+    };
+    _history.unshift(entry);
+    if (_history.length > 100) _history = _history.slice(0, 100);
+    saveHistory();
+    renderResult(entry);
+    renderHistory();
+  } catch (e) {
+    resultArea.innerHTML = `<div class="error-box">⚠ ${escapeHtml(e.message || e)}</div>`;
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Classify ▶';
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Result rendering
+// ---------------------------------------------------------------------------
+function _riskColor(v) {
+  if (v >= 0.75) return '#ef4444';
+  if (v >= 0.5)  return '#f59e0b';
+  if (v >= 0.25) return '#3b82f6';
+  return '#10b981';
+}
+function _riskLabel(v) {
+  if (v >= 0.75) return 'high';
+  if (v >= 0.5)  return 'medium';
+  if (v >= 0.25) return 'low';
+  return 'minimal';
+}
+
+function renderResult(entry) {
+  const area = document.getElementById('result-area');
+  if (!entry.parse_ok) {
+    area.innerHTML = `
+      <div class="error-box">
+        <strong>Could not parse Gemma output as JSON.</strong> Showing raw text below.
+      </div>
+      <pre class="raw-json show">${escapeHtml(entry.raw || '(empty)')}</pre>
+      <div style="margin-top:10px; font-size:11px; color:var(--muted);">
+        ${entry.elapsed_ms} ms · <a href="#" onclick="openPipelineModal(${attrJson(entry.ts)}); return false;" style="color:var(--accent);">▸ View pipeline</a>
+      </div>
+    `;
+    return;
+  }
+  const p = entry.parsed;
+  const action = p.recommended_action || 'review';
+  const overall = parseFloat(p.overall_risk) || 0;
+  const conf = parseFloat(p.confidence) || 0;
+  let html = `<div class="result-card" data-action="${escapeHtml(action)}">`;
+  html += `<div class="result-header">`;
+  html += `<div>`;
+  html += `<div class="result-classification">${escapeHtml(p.classification_label || p.classification || '(unclassified)')}</div>`;
+  html += `<div style="font-size:11.5px; color:var(--muted); margin-top:3px; font-family:ui-monospace,monospace;">${escapeHtml(p.classification || '')}</div>`;
+  html += `</div>`;
+  html += `<span class="result-action-pill action-${escapeHtml(action)}">${escapeHtml(action.replace(/_/g, ' '))}</span>`;
+  html += `</div>`;
+  // Risk score bar
+  html += `<div class="risk-score-row">`;
+  html += `<div style="font-size:11.5px; color:var(--muted); min-width:80px;">overall risk</div>`;
+  html += `<div class="risk-bar"><div class="risk-bar-fill" style="width:${(overall*100).toFixed(0)}%; background:${_riskColor(overall)};"></div></div>`;
+  html += `<div class="risk-bar-label">${overall.toFixed(2)} <span style="color:${_riskColor(overall)};">${_riskLabel(overall)}</span></div>`;
+  html += `</div>`;
+  html += `<div class="risk-score-row">`;
+  html += `<div style="font-size:11.5px; color:var(--muted); min-width:80px;">confidence</div>`;
+  html += `<div class="risk-bar"><div class="risk-bar-fill" style="width:${(conf*100).toFixed(0)}%; background:#3b82f6;"></div></div>`;
+  html += `<div class="risk-bar-label">${conf.toFixed(2)}</div>`;
+  html += `</div>`;
+  // Rationale
+  if (p.rationale) {
+    html += `<div class="result-rationale">${escapeHtml(p.rationale)}</div>`;
+  }
+  // Risk vectors
+  if (p.risk_vectors && p.risk_vectors.length) {
+    html += `<div class="risk-vectors">`;
+    html += `<div style="font-size:11.5px; color:var(--muted); margin-bottom:4px; text-transform:uppercase; letter-spacing:0.05em; font-weight:600;">Risk vectors</div>`;
+    for (const v of p.risk_vectors) {
+      const m = parseFloat(v.magnitude) || 0;
+      const c = _riskColor(m);
+      html += `<div class="vector-row">`;
+      html += `<div class="vector-name">${escapeHtml(v.dimension || '?')}</div>`;
+      html += `<div class="vector-mag-bar"><div class="vector-mag-fill" style="width:${(m*100).toFixed(0)}%; background:${c};"></div></div>`;
+      html += `<div class="vector-mag-label" style="color:${c};">${m.toFixed(2)} ${escapeHtml(v.direction || '')}</div>`;
+      if (v.evidence) {
+        html += `<div class="vector-evidence">${escapeHtml(v.evidence)}</div>`;
+      }
+      html += `</div>`;
+    }
+    html += `</div>`;
+  }
+  // Footer with NGO referrals + pipeline link
+  const ngos = (p.ngo_referrals || []).map(n =>
+      `<span class="ngo-pill">${escapeHtml(n)}</span>`).join('');
+  html += `<div class="result-footer">`;
+  html += `<div class="ngo-pills">${ngos || '<span style="color:var(--muted);">no NGO referrals</span>'}</div>`;
+  html += `<div>${entry.elapsed_ms} ms · <a href="#" onclick="openPipelineModal(${attrJson(entry.ts)}); return false;">▸ View pipeline</a> · <a href="#" onclick="toggleRawJson(this); return false;">▸ Raw JSON</a></div>`;
+  html += `</div>`;
+  html += `<pre class="raw-json">${escapeHtml(JSON.stringify(p, null, 2))}</pre>`;
+  html += `</div>`;
+  area.innerHTML = html;
+}
+
+function toggleRawJson(link) {
+  const card = link.closest('.result-card');
+  const raw = card.querySelector('.raw-json');
+  raw.classList.toggle('show');
+  link.textContent = raw.classList.contains('show') ? '▾ Raw JSON' : '▸ Raw JSON';
+}
+
+// ---------------------------------------------------------------------------
+// History + threshold filter
+// ---------------------------------------------------------------------------
+function updateThreshold() {
+  const v = parseInt(document.getElementById('threshold-input').value) / 100;
+  document.getElementById('threshold-label').textContent = v.toFixed(2);
+  renderHistory();
+}
+
+function renderHistory() {
+  const v = parseInt(document.getElementById('threshold-input').value) / 100;
+  const list = document.getElementById('history-list');
+  document.getElementById('history-total').textContent = _history.length;
+  if (!_history.length) {
+    list.innerHTML = `<div class="history-empty">No items yet. Run a classification to populate the history.</div>`;
+    document.getElementById('history-count').textContent = 0;
+    return;
+  }
+  const filtered = _history.filter(e => {
+    const r = parseFloat(e.parsed?.overall_risk) || 0;
+    return r >= v;
+  });
+  document.getElementById('history-count').textContent = filtered.length;
+  if (!filtered.length) {
+    list.innerHTML = `<div class="history-empty">No items at or above the risk threshold.</div>`;
+    return;
+  }
+  let html = '';
+  for (const e of filtered) {
+    const p = e.parsed;
+    const risk = parseFloat(p?.overall_risk) || 0;
+    const action = p?.recommended_action || 'review';
+    const dt = new Date(e.ts);
+    const dtStr = dt.toLocaleString();
+    const preview = (e.content || '').slice(0, 200) + (e.content?.length > 200 ? '…' : '');
+    html += `<div class="result-card" data-action="${escapeHtml(action)}" style="margin-bottom:8px; padding:12px 14px;">`;
+    html += `<div class="result-header">`;
+    html += `<div>`;
+    html += `<div class="result-classification" style="font-size:14px;">${escapeHtml(p?.classification_label || p?.classification || '(unclassified)')}</div>`;
+    html += `<div style="font-size:11px; color:var(--muted); margin-top:2px;">${dtStr} · ${preview ? escapeHtml(preview) : '(no text content)'}</div>`;
+    html += `</div>`;
+    html += `<span class="result-action-pill action-${escapeHtml(action)}">${escapeHtml(action.replace(/_/g, ' '))}</span>`;
+    html += `</div>`;
+    html += `<div class="risk-score-row" style="margin-top:8px;">`;
+    html += `<div style="font-size:11px; color:var(--muted); min-width:60px;">risk</div>`;
+    html += `<div class="risk-bar" style="height:8px;"><div class="risk-bar-fill" style="width:${(risk*100).toFixed(0)}%; background:${_riskColor(risk)};"></div></div>`;
+    html += `<div class="risk-bar-label" style="font-size:11px;">${risk.toFixed(2)}</div>`;
+    html += `<a href="#" onclick="openPipelineModal(${attrJson(e.ts)}); return false;" style="color:var(--accent); font-size:11px; text-decoration:none; margin-left:6px;">▸ pipeline</a>`;
+    html += `</div>`;
+    html += `</div>`;
+  }
+  list.innerHTML = html;
+}
+
+function clearHistory() {
+  if (!confirm('Clear all history?')) return;
+  _history = [];
+  saveHistory();
+  renderHistory();
+}
+
+function exportHistory() {
+  const blob = new Blob([JSON.stringify(_history, null, 2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'duecare-classifier-history.json';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function resetForm() {
+  document.getElementById('content-input').value = '';
+  _pendingImage = null;
+  document.getElementById('image-preview').style.display = 'none';
+  document.getElementById('image-status').textContent = '';
+  document.getElementById('image-upload').value = '';
+}
+
+async function _fetchExamples() {
+  if (_examplesCache !== null) return _examplesCache;
+  try {
+    const r = await fetch('/api/examples', {cache:'no-store'});
+    _examplesCache = (await r.json()).examples || [];
+  } catch (e) { _examplesCache = []; }
+  return _examplesCache;
+}
+
+const CATEGORY_LABEL = {
+  recruitment_post:    'Recruitment posts / ads',
+  document_receipt:    'Documents — receipts',
+  document_letter:     'Documents — letters / forms',
+  document_report:     'Documents — police reports',
+  narrative:           'Worker / family narratives',
+  compliance_query:    'Compliance / due-diligence queries',
+  borderline_ambiguous:'Borderline / ambiguous cases',
+  off_topic:           'Off-topic (sanity check)',
+};
+const CATEGORY_ORDER = [
+  'recruitment_post', 'document_receipt', 'document_letter',
+  'document_report', 'narrative', 'compliance_query',
+  'borderline_ambiguous', 'off_topic',
+];
+const CATEGORY_COLOR = {
+  recruitment_post:     '#3b82f6',
+  document_receipt:     '#f59e0b',
+  document_letter:      '#a855f7',
+  document_report:      '#ef4444',
+  narrative:            '#10b981',
+  compliance_query:     '#06b6d4',
+  borderline_ambiguous: '#94a3b8',
+  off_topic:            '#64748b',
+};
+
+async function openExamplesModal() {
+  const examples = await _fetchExamples();
+  const body = document.getElementById('modal-body');
+  if (!examples.length) {
+    body.innerHTML = '<i style="color:var(--muted)">No classifier examples bundled in this kernel.</i>';
+    document.getElementById('modal-title').textContent = 'Examples';
+    document.getElementById('modal-overlay').classList.add('active');
+    document.body.style.overflow = 'hidden';
+    return;
+  }
+  // Group by category
+  const byCat = {};
+  for (const ex of examples) {
+    (byCat[ex.category] = byCat[ex.category] || []).push(ex);
+  }
+  let html = `<p style="color:var(--muted); margin-top:0; font-size:12px;">${examples.length} curated example items spanning recruitment ads, documents, narratives, police reports, compliance queries, borderline cases, and off-topic content. Items with a 📄 icon include a synthetic SVG mockup of the document type so you can demo Gemma's multimodal classification (text + image). Click any card to load it into the form.</p>`;
+  for (const cat of CATEGORY_ORDER) {
+    if (!byCat[cat]) continue;
+    const color = CATEGORY_COLOR[cat] || '#94a3b8';
+    html += `<div style="margin:18px 0 10px 0; padding-top:14px; border-top:1px solid var(--border);">`;
+    html += `<div style="font-size:11.5px; font-weight:700; color:${color}; letter-spacing:0.06em; text-transform:uppercase; margin-bottom:8px;">${escapeHtml(CATEGORY_LABEL[cat] || cat)} (${byCat[cat].length})</div>`;
+    for (const ex of byCat[cat]) {
+      const hasImage = !!ex.image_data_uri;
+      html += `<div style="margin-bottom:10px; padding:12px 14px; background:var(--bg); border:1px solid var(--border); border-radius:8px; cursor:pointer; transition:border-color 0.15s;" onmouseover="this.style.borderColor='${color}'" onmouseout="this.style.borderColor='var(--border)'" onclick="useClassifierExample(${attrJson(ex.id)})">`;
+      html += `<div style="display:flex; gap:14px; align-items:flex-start;">`;
+      if (hasImage) {
+        html += `<img src="${escapeHtml(ex.image_data_uri)}" style="max-width:160px; max-height:120px; border-radius:6px; border:1px solid var(--border); flex-shrink:0; object-fit:contain; background:#fff;">`;
+      }
+      html += `<div style="flex:1; min-width:0;">`;
+      html += `<div style="font-weight:700; font-size:13px; color:var(--ink);">${hasImage ? '📄 ' : ''}${escapeHtml(ex.label)}</div>`;
+      const preview = ex.content.length > 220 ? ex.content.slice(0, 220) + '…' : ex.content;
+      html += `<div style="font-size:11.5px; color:#cbd5e1; margin-top:6px; line-height:1.5; white-space:pre-wrap; word-wrap:break-word;">${escapeHtml(preview)}</div>`;
+      html += `<div style="margin-top:6px; font-size:10.5px; color:var(--muted); font-family:ui-monospace,monospace;">${escapeHtml(ex.id)}</div>`;
+      html += `</div></div></div>`;
+    }
+    html += `</div>`;
+  }
+  body.innerHTML = html;
+  document.getElementById('modal-title').textContent = 'Example content (click to load)';
+  document.getElementById('modal-overlay').classList.add('active');
+  document.body.style.overflow = 'hidden';
+}
+
+async function useClassifierExample(id) {
+  const examples = await _fetchExamples();
+  const ex = examples.find(e => e.id === id);
+  if (!ex) return;
+  document.getElementById('content-input').value = ex.content;
+  if (ex.image_data_uri) {
+    // Upload the image to the server's image store so the request
+    // payload can reference it via store://<id>.
+    try {
+      const blob = await (await fetch(ex.image_data_uri)).blob();
+      const fd = new FormData();
+      fd.append('file', blob, `${ex.id}.svg`);
+      const r = await fetch('/api/classifier/upload-image', {method:'POST', body:fd});
+      if (r.ok) {
+        const info = await r.json();
+        _pendingImage = {id: info.id, mime: info.mime, dataUrl: ex.image_data_uri};
+        document.getElementById('image-preview').src = ex.image_data_uri;
+        document.getElementById('image-preview').style.display = 'inline-block';
+        document.getElementById('image-status').textContent = `${ex.id}.svg (mockup)`;
+      }
+    } catch (e) {
+      console.warn('image attach failed:', e);
+    }
+  } else {
+    _pendingImage = null;
+    document.getElementById('image-preview').style.display = 'none';
+    document.getElementById('image-status').textContent = '';
+  }
+  closeModal();
+  document.getElementById('content-input').focus();
+}
+
+// ---------------------------------------------------------------------------
+// Pipeline modal (reuses same arrow-flow as the chat playground)
+// ---------------------------------------------------------------------------
+const PIPELINE_LAYER_ORDER = ['persona', 'grep', 'rag', 'tools'];
+const PIPELINE_LAYER_COLOR = {persona:'#a855f7', grep:'#ef4444', rag:'#3b82f6', tools:'#10b981'};
+const PIPELINE_LAYER_LABEL = {persona:'PERSONA', grep:'GREP', rag:'RAG', tools:'TOOLS'};
+const PIPELINE_LAYER_ROLE = {
+  persona: 'prepends an expert role / framework knowledge / response policy',
+  grep:    'matches regex KB rules — flags trafficking patterns + cites statutes',
+  rag:     'retrieves top-K docs from the evidence corpus + injects as context',
+  tools:   'pre-calls heuristic lookups — corridor caps, fee labels, NGO hotlines',
+};
+
+function _pcard(opts) {
+  return `<div style="position:relative; padding:14px 18px; background:var(--panel); border:1px solid var(--border); border-left:4px solid ${opts.color}; border-radius:10px;${opts.dim ? ' opacity:0.45;' : ''}">
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+      <div style="display:flex; align-items:center; gap:10px;">
+        <div style="width:24px; height:24px; border-radius:50%; background:${opts.color}; color:#fff; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:12px;">${opts.step}</div>
+        <div style="font-weight:700; color:${opts.color}; font-size:14px;">${escapeHtml(opts.title)}</div>
+      </div>
+      ${opts.status ? `<div style="font-size:10.5px; font-weight:600; padding:3px 9px; border-radius:999px; background:${opts.statusBg ? opts.color : 'rgba(148,163,184,0.18)'}; color:${opts.statusBg ? '#fff' : 'var(--muted)'}; text-transform:uppercase;">${escapeHtml(opts.status)}</div>` : ''}
+    </div>
+    ${opts.subtitle ? `<div style="margin:4px 0 0 34px; color:var(--muted); font-size:11.5px;">${escapeHtml(opts.subtitle)}</div>` : ''}
+    ${opts.body ? `<div style="margin:12px 0 0 34px;">${opts.body}</div>` : ''}
+  </div>`;
+}
+function _parrow(label) {
+  return `<div style="display:flex; align-items:center; justify-content:center; gap:8px; padding:6px 0;">
+    <div style="width:2px; height:18px; background:var(--border);"></div>
+    ${label ? `<div style="font-size:10.5px; color:var(--muted); padding:2px 10px; background:var(--bg); border-radius:999px; border:1px solid var(--border);">${escapeHtml(label)}</div>` : ''}
+    <div style="width:2px; height:18px; background:var(--border);"></div>
+  </div>
+  <div style="display:flex; align-items:center; justify-content:center;"><div style="width:0; height:0; border-left:6px solid transparent; border-right:6px solid transparent; border-top:8px solid var(--border);"></div></div>`;
+}
+function _renderLayerBody(layer, t) {
+  if (layer === 'persona' && t.text_preview) {
+    return `<div style="padding:10px 12px; background:rgba(168,85,247,0.06); border-radius:6px; font-size:11.5px; color:#cbd5e1; white-space:pre-wrap; font-style:italic; max-height:180px; overflow-y:auto;">${escapeHtml(t.text_preview)}</div>`;
+  }
+  if (layer === 'grep' && t.hits?.length) {
+    return t.hits.map(h => `<div style="margin-bottom:8px; padding:8px 10px; background:var(--bg); border-radius:6px;">
+      <div style="font-family:ui-monospace,monospace; font-size:12px; font-weight:600;">${escapeHtml(h.rule)} <span style="color:var(--muted); font-size:10.5px; font-weight:400;">[${escapeHtml(h.severity || '')}]</span></div>
+      <div style="color:var(--muted); font-size:11px; margin-top:3px;">${escapeHtml(h.citation || '')}</div>
+      <div style="color:#cbd5e1; font-size:11.5px; margin-top:4px;">${escapeHtml(h.indicator || '')}</div>
+    </div>`).join('');
+  }
+  if (layer === 'rag' && t.docs?.length) {
+    return t.docs.map(d => `<div style="margin-bottom:8px; padding:8px 10px; background:var(--bg); border-radius:6px;">
+      <div style="font-weight:600; font-size:12px;">${escapeHtml(d.title || '?')} <span style="color:var(--muted); font-size:11px; font-weight:400;">score=${d.score}</span></div>
+      <div style="color:var(--muted); font-size:11px; margin-top:3px;">${escapeHtml(d.source || '')}</div>
+      <div style="color:#cbd5e1; font-size:11.5px; margin-top:4px; max-height:120px; overflow-y:auto;">${escapeHtml(d.snippet || '')}</div>
+    </div>`).join('');
+  }
+  if (layer === 'tools' && t.tool_calls?.length) {
+    return t.tool_calls.map(c => `<div style="margin-bottom:8px; padding:8px 10px; background:var(--bg); border-radius:6px;">
+      <div style="font-family:ui-monospace,monospace; font-size:12px; font-weight:600; color:#10b981;">${escapeHtml(c.name)}(${escapeHtml(JSON.stringify(c.args))})</div>
+      <pre style="color:#cbd5e1; font-size:11px; margin:5px 0 0 0; white-space:pre-wrap; word-wrap:break-word; font-family:ui-monospace,monospace; max-height:160px; overflow-y:auto;">${escapeHtml(JSON.stringify(c.result, null, 2))}</pre>
+    </div>`).join('');
+  }
+  return '<div style="color:var(--muted); font-size:11.5px; font-style:italic;">no output</div>';
+}
+
+function openPipelineModal(ts) {
+  const entry = _history.find(e => e.ts === ts);
+  if (!entry || !entry.harness_trace) return;
+  const trace = entry.harness_trace;
+  const finalText = trace._final_user_text || entry.content;
+  const cards = [];
+  cards.push(_pcard({step: 1, color: '#3b82f6', title: 'CONTENT INPUT',
+    subtitle: `${entry.content.length} chars · raw text submitted for classification`,
+    body: `<pre style="background:var(--bg); padding:10px; border-radius:6px; font-size:11.5px; color:#cbd5e1; white-space:pre-wrap; word-wrap:break-word; max-height:220px; overflow-y:auto; margin:0;">${escapeHtml(entry.content)}</pre>`}));
+  let n = 2;
+  for (const layer of PIPELINE_LAYER_ORDER) {
+    const t = trace[layer];
+    if (!t) { n++; continue; }
+    let status, dim, body;
+    if (!t.wired) { status = 'not wired'; dim = true; body = `<div style="color:var(--muted); font-size:11.5px; font-style:italic;">Layer not wired in this kernel.</div>`; }
+    else if (!t.enabled) { status = 'skipped'; dim = true; body = `<div style="color:var(--muted); font-size:11.5px; font-style:italic;">Toggle was OFF.</div>`; }
+    else { status = `${t.summary || 'fired'} · ${t.elapsed_ms}ms`; dim = false; body = _renderLayerBody(layer, t); }
+    cards.push(_pcard({step: n++, color: PIPELINE_LAYER_COLOR[layer],
+      title: PIPELINE_LAYER_LABEL[layer], subtitle: PIPELINE_LAYER_ROLE[layer],
+      status, statusBg: !dim, body, dim}));
+  }
+  cards.push(_pcard({step: n++, color: '#f59e0b', title: 'FINAL MERGED PROMPT',
+    subtitle: `${finalText.length} chars · what Gemma actually saw`,
+    body: `<pre style="background:var(--bg); padding:10px; border-radius:6px; font-size:11.5px; color:#cbd5e1; white-space:pre-wrap; word-wrap:break-word; max-height:340px; overflow-y:auto; margin:0;">${escapeHtml(finalText)}</pre>`}));
+  cards.push(_pcard({step: n++, color: '#10b981', title: 'CLASSIFIER OUTPUT (JSON)',
+    subtitle: `${entry.elapsed_ms}ms generation time`,
+    body: `<pre style="background:var(--bg); padding:10px; border-radius:6px; font-size:11.5px; color:#cbd5e1; white-space:pre-wrap; word-wrap:break-word; max-height:300px; overflow-y:auto; margin:0;">${escapeHtml(JSON.stringify(entry.parsed, null, 2) || entry.raw)}</pre>`}));
+  const arrows = ['sent through pipeline', 'persona prepended', 'GREP findings prepended', 'RAG context injected', 'tool results injected', 'sent to Gemma'];
+  let html = `<p style="color:var(--muted); margin-top:0; font-size:12px;">Trace of how this content flowed through the safety harness — from raw input, through each enabled layer, into the final prompt Gemma received, and out as the structured classification.</p>`;
+  for (let i = 0; i < cards.length; i++) {
+    html += cards[i];
+    if (i < cards.length - 1) html += _parrow(arrows[Math.min(i, arrows.length - 1)]);
+  }
+  document.getElementById('modal-body').innerHTML = html;
+  document.getElementById('modal-title').textContent = 'Classification pipeline';
+  document.getElementById('modal-overlay').classList.add('active');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeModal() {
+  document.getElementById('modal-overlay').classList.remove('active');
+  document.body.style.overflow = '';
+}
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+</script>
+</body>
+</html>

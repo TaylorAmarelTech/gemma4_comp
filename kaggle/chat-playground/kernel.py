@@ -16,7 +16,7 @@
     - GPU T4 x2 if loading 31B; single T4 fine for E2B/E4B
     - Internet ON
     - Datasets attached:
-        taylorsamarel/duecare-gemma-chat-wheels   (3 wheels: core+models+chat)
+        taylorsamarel/duecare-chat-playground-wheels   (3 wheels: core+models+chat)
         google/gemma-4 (any variant; the kernel auto-detects which)
     - HF_TOKEN OPTIONAL (only needed if you want to download from HF Hub
       instead of using the locally attached Kaggle Gemma model)
@@ -38,7 +38,7 @@ from typing import Any, Optional
 # ---------------------------------------------------------------------------
 # CONFIG -- edit these for your run
 # ---------------------------------------------------------------------------
-DATASET_SLUG = "duecare-gemma-chat-wheels"
+DATASET_SLUG = "duecare-chat-playground-wheels"
 
 # Pick which Gemma 4 to load. All 4 instruct variants supported via
 # Unsloth FastModel (Daniel Hanchen's reference recipe).
@@ -128,7 +128,7 @@ if _need_unsloth_stack():
 # 1. Install duecare wheels (chat-only subset: core, models, chat)
 # ===========================================================================
 print("\n" + "=" * 76)
-print("[1/5] installing duecare-gemma-chat wheels")
+print("[1/5] installing duecare-chat-playground wheels")
 print("=" * 76)
 
 
@@ -335,6 +335,12 @@ print("[3/5] launching chat server")
 print("=" * 76)
 
 from duecare.chat import create_app
+# Pull just the example prompts + docs from the harness module --
+# NOT the harness layer callables. The whole point of this notebook
+# is RAW Gemma chat with no GREP/RAG/Tools/Persona; we still want the
+# 204-prompt Examples library + the doc-extension content so a judge
+# can run the SAME prompt here vs in the toggle notebook and compare.
+from duecare.chat.harness import EXAMPLE_PROMPTS, LAYER_DOCS
 import uvicorn
 
 model_info = {
@@ -347,7 +353,14 @@ model_info = {
                 f"{loaded.quantization}",
 }
 
-app = create_app(gemma_call=loaded.backend, model_info=model_info)
+app = create_app(
+    gemma_call=loaded.backend,
+    model_info=model_info,
+    # No grep_call / rag_call / tools_call / persona_default --
+    # raw Gemma. Harness toggle row stays hidden in the UI.
+    example_prompts=EXAMPLE_PROMPTS,
+    layer_docs={"examples": LAYER_DOCS.get("examples", "")},
+)
 
 
 def _server_thread():
@@ -374,32 +387,57 @@ if TUNNEL != "none":
     # roll our own minimal cloudflared launcher.
     try:
         # Note: duecare-llm-server is NOT in this notebook's wheel set;
-        # we do a minimal cloudflared launch inline.
-        import shutil as _shutil
+        # we do a minimal cloudflared launch inline. Kaggle minimal
+        # images don't ship cloudflared, so download the linux-amd64
+        # release binary on demand (~30 MB, ~5 s).
+        import shutil as _shutil, urllib.request as _urlreq, stat as _stat
         cf_bin = _shutil.which("cloudflared")
         if cf_bin is None:
-            print(f"  cloudflared not found on PATH")
-        else:
-            proc = subprocess.Popen(
-                [cf_bin, "tunnel", "--url", f"http://localhost:{PORT}"],
-                stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-                text=True, bufsize=1)
-            # Read until we see the public URL line
-            t0 = time.time()
-            while time.time() - t0 < 30:
-                line = proc.stdout.readline()
-                if not line:
-                    time.sleep(0.1); continue
-                print(f"  [tunnel] {line.rstrip()}")
-                if "trycloudflare.com" in line:
-                    # Extract the URL
-                    import re
-                    m = re.search(r"https://[a-z0-9\-]+\.trycloudflare\.com",
-                                   line)
-                    if m:
-                        public_url = m.group(0)
-                        print(f"  ✓ tunnel ready: {public_url}")
-                        break
+            cf_bin = "/tmp/cloudflared"
+            if not os.path.exists(cf_bin):
+                print(f"  cloudflared not on PATH -- downloading "
+                      f"linux-amd64 release ...")
+                _url = ("https://github.com/cloudflare/cloudflared/"
+                         "releases/latest/download/cloudflared-linux-amd64")
+                _urlreq.urlretrieve(_url, cf_bin)
+                os.chmod(cf_bin, _stat.S_IRWXU | _stat.S_IXGRP
+                                  | _stat.S_IXOTH)
+                print(f"  ✓ downloaded "
+                      f"{os.path.getsize(cf_bin)//1_000_000} MB to {cf_bin}")
+            else:
+                print(f"  reusing cached cloudflared at {cf_bin}")
+        proc = subprocess.Popen(
+            [cf_bin, "tunnel", "--url", f"http://localhost:{PORT}"],
+            stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+            text=True, bufsize=1)
+        # Read until we see the public URL line
+        t0 = time.time()
+        while time.time() - t0 < 60:
+            line = proc.stdout.readline()
+            if not line:
+                time.sleep(0.1); continue
+            print(f"  [tunnel] {line.rstrip()}")
+            if "trycloudflare.com" in line:
+                import re
+                m = re.search(r"https://[a-z0-9\-]+\.trycloudflare\.com",
+                               line)
+                if m:
+                    public_url = m.group(0)
+                    print(f"  ✓ tunnel ready: {public_url}")
+                    break
+        # CRITICAL: keep draining cloudflared's stdout in a daemon
+        # thread so the OS pipe buffer never fills. If we don't drain,
+        # cloudflared blocks on write within ~minutes of chatty heartbeat
+        # logs and the tunnel stops forwarding -> Cloudflare 1033s the
+        # next request.
+        def _drain_stdout(p=proc):
+            try:
+                for raw_line in p.stdout:
+                    pass  # discard; the URL was already captured above
+            except Exception:
+                pass
+        threading.Thread(target=_drain_stdout, daemon=True,
+                          name="cloudflared-stdout-drain").start()
     except Exception as e:
         print(f"  tunnel error: {type(e).__name__}: {e}")
 

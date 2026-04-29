@@ -325,17 +325,17 @@ _KERNEL_PRESETS = {
         "ipynb_name": "notebook.ipynb",
         "slug": "duecare-live-demo",
         "title": "Duecare Live Demo",
-        "wheels_dataset_slug": "duecare-llm-wheels",
+        "wheels_dataset_slug": "duecare-live-demo-wheels",
         "wheels_dir": "wheels",
         "model_sources": _DEFAULT_GEMMA4_MODELS,
     },
-    "gemma-chat": {
-        "notebook_dir": "kaggle/gemma-chat",
+    "chat-playground": {
+        "notebook_dir": "kaggle/chat-playground",
         "kernel_py": "kernel.py",
         "ipynb_name": "notebook.ipynb",
-        "slug": "duecare-gemma-chat",
-        "title": "Duecare Gemma Chat",
-        "wheels_dataset_slug": "duecare-gemma-chat-wheels",
+        "slug": "duecare-chat-playground",
+        "title": "Duecare Chat Playground",
+        "wheels_dataset_slug": "duecare-chat-playground-wheels",
         "wheels_dir": "wheels",
         "model_sources": _DEFAULT_GEMMA4_MODELS,
     },
@@ -346,6 +346,26 @@ _KERNEL_PRESETS = {
         "slug": "duecare-bench-and-tune",
         "title": "Duecare Bench & Tune",
         "wheels_dataset_slug": "duecare-bench-and-tune-wheels",
+        "wheels_dir": "wheels",
+        "model_sources": _DEFAULT_GEMMA4_MODELS,
+    },
+    "chat-playground-with-grep-rag-tools": {
+        "notebook_dir": "kaggle/chat-playground-with-grep-rag-tools",
+        "kernel_py": "kernel.py",
+        "ipynb_name": "notebook.ipynb",
+        "slug": "duecare-chat-playground-with-grep-rag-tools",
+        "title": "Duecare Chat Playground with GREP RAG Tools",
+        "wheels_dataset_slug": "duecare-chat-playground-with-grep-rag-tools-wheels",
+        "wheels_dir": "wheels",
+        "model_sources": _DEFAULT_GEMMA4_MODELS,
+    },
+    "content-classifier": {
+        "notebook_dir": "kaggle/gemma-content-classification-evaluation",
+        "kernel_py": "kernel.py",
+        "ipynb_name": "notebook.ipynb",
+        "slug": "duecare-gemma-content-classification-evaluation",
+        "title": "Duecare Gemma Content Classification Evaluation",
+        "wheels_dataset_slug": "duecare-gemma-content-classification-evaluation-wheels",
         "wheels_dir": "wheels",
         "model_sources": _DEFAULT_GEMMA4_MODELS,
     },
@@ -362,7 +382,9 @@ def main() -> int:
     ap.add_argument("--kernel", choices=list(_KERNEL_PRESETS),
                      default="demo",
                      help="which kernel preset to push "
-                          "(demo|gemma-chat|bench-and-tune)")
+                          "(demo|chat-playground|"
+                          "chat-playground-with-grep-rag-tools|"
+                          "bench-and-tune)")
     ap.add_argument("--kernel-slug", default=None,
                      help="override the slug for the chosen preset")
     ap.add_argument("--enable-gpu", default="false",

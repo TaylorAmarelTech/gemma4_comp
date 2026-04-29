@@ -159,6 +159,238 @@ header.bar .badge.loaded .dot {
   font-family: ui-monospace, monospace; font-size: 11px;
 }
 
+/* ---- Safety-harness tile picker ---- */
+.harness-tiles {
+  display: none;  /* shown by JS only when at least one layer is wired */
+  grid-template-columns: 1fr 1fr 1fr 1fr;
+  gap: 12px;
+  margin-top: 14px;
+  padding: 14px 16px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+.harness-tiles-header {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 4px;
+}
+.harness-tiles-header h3 {
+  margin: 0; font-size: 13px; font-weight: 700;
+  color: var(--ink); letter-spacing: 0.04em; text-transform: uppercase;
+}
+.harness-tiles-header .hint {
+  color: var(--muted); font-size: 11.5px;
+}
+.harness-tile {
+  background: var(--bg);
+  border: 2px solid var(--border);
+  border-radius: 10px;
+  padding: 14px 16px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  user-select: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.harness-tile:hover[data-wired="true"] { border-color: var(--accent); }
+.harness-tile[data-wired="false"] {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.harness-tile[data-wired="false"]:hover { border-color: var(--border); }
+.harness-tile-row {
+  display: flex; align-items: center; justify-content: space-between;
+}
+.harness-tile-name {
+  font-weight: 700; font-size: 16px; letter-spacing: 0.02em;
+}
+.harness-tile-state {
+  font-size: 10.5px; font-weight: 600; padding: 3px 9px;
+  border-radius: 999px; letter-spacing: 0.06em;
+  background: rgba(148, 163, 184, 0.15); color: var(--muted);
+  text-transform: uppercase;
+}
+.harness-tile-desc {
+  color: var(--muted); font-size: 12px; line-height: 1.45;
+}
+.harness-catalog-link {
+  display: inline-block; margin-top: 4px;
+  font-size: 11px; color: var(--accent); text-decoration: none;
+  font-weight: 500;
+}
+.harness-catalog-link:hover { text-decoration: underline; }
+.harness-catalog {
+  margin-top: 8px; padding: 8px 10px;
+  background: rgba(0,0,0,0.25); border-radius: 6px;
+  max-height: 280px; overflow: auto;
+  font-size: 11.5px; color: var(--ink);
+}
+.harness-catalog .item {
+  padding: 6px 0; border-bottom: 1px solid var(--border);
+}
+.harness-catalog .item:last-child { border-bottom: none; }
+.harness-catalog .item .name {
+  font-weight: 600; color: var(--ink); font-family: ui-monospace, monospace;
+}
+.harness-catalog .item .meta {
+  color: var(--muted); font-size: 10.5px; margin-top: 2px;
+}
+.harness-catalog .item .body {
+  color: var(--muted); margin-top: 3px; line-height: 1.4;
+}
+
+/* Per-layer accent colors -- matches the renderHarnessTrace palette */
+.harness-tile.persona .harness-tile-name { color: #a855f7; }
+.harness-tile.grep .harness-tile-name { color: #ef4444; }
+.harness-tile.rag  .harness-tile-name { color: #3b82f6; }
+.harness-tile.tools .harness-tile-name { color: #10b981; }
+
+/* Active state: filled background + matching state pill */
+.harness-tile.persona[data-enabled="true"] {
+  border-color: #a855f7; background: rgba(168, 85, 247, 0.08);
+}
+.harness-tile.persona[data-enabled="true"] .harness-tile-state {
+  background: #a855f7; color: #fff;
+}
+.harness-tile.grep[data-enabled="true"] {
+  border-color: #ef4444; background: rgba(239, 68, 68, 0.08);
+}
+.harness-tile.grep[data-enabled="true"] .harness-tile-state {
+  background: #ef4444; color: #fff;
+}
+.harness-tile.rag[data-enabled="true"] {
+  border-color: #3b82f6; background: rgba(59, 130, 246, 0.08);
+}
+.harness-tile.rag[data-enabled="true"] .harness-tile-state {
+  background: #3b82f6; color: #fff;
+}
+.harness-tile.tools[data-enabled="true"] {
+  border-color: #10b981; background: rgba(16, 185, 129, 0.08);
+}
+.harness-tile.tools[data-enabled="true"] .harness-tile-state {
+  background: #10b981; color: #fff;
+}
+
+/* ---- Lightbox modal (used by all 4 tile View buttons) ---- */
+.modal-overlay {
+  position: fixed; inset: 0; z-index: 1000;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(2px);
+  display: none;
+  align-items: center; justify-content: center;
+}
+.modal-overlay.active { display: flex; }
+.modal {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  width: 92%; max-width: 760px;
+  max-height: 86vh;
+  display: flex; flex-direction: column;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.5);
+  overflow: hidden;
+}
+.modal[data-layer="persona"] { border-top: 4px solid #a855f7; }
+.modal[data-layer="grep"]    { border-top: 4px solid #ef4444; }
+.modal[data-layer="rag"]     { border-top: 4px solid #3b82f6; }
+.modal[data-layer="tools"]   { border-top: 4px solid #10b981; }
+.modal-header {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 16px 20px; border-bottom: 1px solid var(--border);
+  background: var(--panel2);
+}
+.modal-title {
+  margin: 0; font-size: 17px; font-weight: 700;
+  letter-spacing: -0.01em;
+}
+.modal-title .layer-pill {
+  display: inline-block; margin-left: 10px;
+  font-size: 10.5px; font-weight: 600; padding: 3px 9px;
+  border-radius: 999px; letter-spacing: 0.06em;
+  text-transform: uppercase; vertical-align: middle;
+}
+.modal[data-layer="persona"] .layer-pill { background: rgba(168,85,247,0.15); color: #a855f7; }
+.modal[data-layer="grep"]    .layer-pill { background: rgba(239,68,68,0.15);  color: #ef4444; }
+.modal[data-layer="rag"]     .layer-pill { background: rgba(59,130,246,0.15); color: #3b82f6; }
+.modal[data-layer="tools"]   .layer-pill { background: rgba(16,185,129,0.15); color: #10b981; }
+.modal-close {
+  background: transparent; border: 0;
+  color: var(--muted); cursor: pointer;
+  font-size: 22px; line-height: 1; padding: 4px 8px;
+  border-radius: 6px;
+}
+.modal-close:hover { background: rgba(255,255,255,0.05); color: var(--ink); }
+.modal-body {
+  padding: 18px 20px;
+  overflow-y: auto; flex: 1;
+  font-size: 13px; line-height: 1.55;
+}
+.modal-footer {
+  padding: 12px 20px; border-top: 1px solid var(--border);
+  display: flex; justify-content: flex-end; gap: 10px;
+  background: var(--panel2);
+}
+.modal-body .item {
+  padding: 10px 0; border-bottom: 1px solid var(--border);
+}
+.modal-body .item:first-child { padding-top: 0; }
+.modal-body .item:last-child { border-bottom: none; }
+.modal-body .item .name {
+  font-weight: 700; color: var(--ink);
+  font-family: ui-monospace, SFMono-Regular, monospace;
+  font-size: 12.5px;
+}
+.modal-body .item .meta {
+  color: var(--muted); font-size: 11.5px; margin-top: 4px;
+  font-family: ui-monospace, monospace;
+}
+.modal-body .item .body {
+  color: #cbd5e1; margin-top: 6px; font-size: 12.5px;
+  line-height: 1.5;
+}
+.modal-body .severity-pill {
+  display: inline-block; padding: 1px 7px; border-radius: 999px;
+  font-size: 10px; font-weight: 600; text-transform: uppercase;
+  margin-left: 8px;
+}
+.modal-body .severity-critical { background: rgba(239,68,68,0.2); color: #ef4444; }
+.modal-body .severity-high     { background: rgba(245,158,11,0.2); color: #f59e0b; }
+.modal-body .severity-medium   { background: rgba(59,130,246,0.2); color: #3b82f6; }
+.modal-body .severity-info     { background: rgba(148,163,184,0.2); color: var(--muted); }
+.modal-persona-textarea {
+  width: 100%; min-height: 320px; max-height: 60vh;
+  padding: 12px 14px;
+  background: var(--bg); color: var(--ink);
+  border: 1px solid var(--border); border-radius: 8px;
+  font-family: inherit; font-size: 12.5px; line-height: 1.55;
+  resize: vertical;
+}
+.modal-persona-textarea:focus {
+  outline: 2px solid #a855f7; border-color: #a855f7;
+}
+.modal-btn {
+  padding: 8px 16px; border-radius: 8px; border: 0; cursor: pointer;
+  font-weight: 600; font-size: 13px;
+}
+.modal-btn.primary { background: var(--accent); color: #fff; }
+.modal-btn.primary:hover { filter: brightness(1.1); }
+.modal-btn.secondary {
+  background: transparent; border: 1px solid var(--border);
+  color: var(--ink);
+}
+.modal-btn.secondary:hover { border-color: var(--accent); color: var(--accent); }
+
+@media (max-width: 900px) {
+  .harness-tiles { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 720px) {
+  .harness-tiles { grid-template-columns: 1fr; }
+}
+
 @media (max-width: 600px) {
   .msg { max-width: 95%; }
   .composer .controls { display: none; }
@@ -180,13 +412,12 @@ header.bar .badge.loaded .dot {
   <div class="chat" id="chat">
     <div class="empty" id="empty">
       <h2>Talk to Gemma 4</h2>
-      <p>Pure Gemma chat — no Duecare moderation pipeline. Drop an image
-      to use multimodal mode (E4B / 31B).</p>
-      <div class="hints">
-        <button onclick="useHint('Continue the sequence: 1, 1, 2, 3, 5, 8,')">Continue the Fibonacci sequence</button>
-        <button onclick="useHint('Why is the sky blue?')">Why is the sky blue?</button>
-        <button onclick="useHint('Write a haiku about migrant workers in Singapore.')">Write a haiku</button>
-        <button onclick="useHint('Explain Rayleigh scattering in 3 sentences.')">Explain Rayleigh scattering</button>
+      <p>Toggle the safety harness layers below the input to compare
+      raw Gemma vs. harness-augmented Gemma on real trafficking /
+      exploitation scenarios. Click <strong>▸ Examples</strong> for a
+      curated catalog of test prompts from the trafficking benchmark.</p>
+      <div class="hints" id="empty-hints">
+        <!-- populated by populateEmptyHints() from /api/examples -->
       </div>
     </div>
   </div>
@@ -199,21 +430,177 @@ header.bar .badge.loaded .dot {
         <button class="btn" id="send" onclick="sendMessage()">Send ↑</button>
         <input type="file" id="image-upload" accept="image/*" style="display:none" onchange="onUploadChange(event)">
         <button class="btn secondary" onclick="document.getElementById('image-upload').click()" title="Attach image">+ image</button>
+        <button class="btn secondary" onclick="openExamplesModal()" title="Browse example prompts from the trafficking benchmark">▸ Examples</button>
       </div>
     </div>
     <div class="controls">
       <label>temp <input type="range" id="temp" min="0.1" max="2" step="0.1" value="1.0" oninput="document.getElementById('temp-out').value=this.value"><input type="number" id="temp-out" value="1.0" min="0.1" max="2" step="0.1"></label>
       <label>top_p <input type="range" id="topp" min="0.1" max="1" step="0.05" value="0.95" oninput="document.getElementById('topp-out').value=this.value"><input type="number" id="topp-out" value="0.95" min="0" max="1" step="0.05"></label>
       <label>top_k <input type="number" id="topk" value="64" min="0" max="500"></label>
-      <label>max tokens <input type="number" id="maxtok" value="512" min="32" max="4096"></label>
+      <label>max tokens <input type="number" id="maxtok" value="8192" min="32" max="32768"></label>
       <button class="btn secondary" style="margin-left:auto" onclick="resetChat()">Clear</button>
     </div>
+    <div class="harness-tiles" id="harness-tiles">
+      <div class="harness-tiles-header">
+        <h3>Safety harness</h3>
+        <span class="hint">Click a card to toggle. Greyed = not wired in this kernel.</span>
+      </div>
+      <div class="harness-tile persona" id="tile-persona" data-wired="false" data-enabled="false">
+        <div class="harness-tile-row" onclick="toggleTile('persona')">
+          <span class="harness-tile-name">Persona</span>
+          <span class="harness-tile-state" id="state-persona">OFF</span>
+        </div>
+        <div class="harness-tile-desc" onclick="toggleTile('persona')">Expert anti-trafficking persona prepended to every message. Gives Gemma the role + framework + tactics knowledge.</div>
+        <a href="#" class="harness-catalog-link" onclick="openLayerModal('persona'); return false;">▸ View</a>
+      </div>
+      <div class="harness-tile grep" id="tile-grep" data-wired="false" data-enabled="false">
+        <div class="harness-tile-row" onclick="toggleTile('grep')">
+          <span class="harness-tile-name">GREP</span>
+          <span class="harness-tile-state" id="state-grep">OFF</span>
+        </div>
+        <div class="harness-tile-desc" onclick="toggleTile('grep')">Regex KB rules — trafficking patterns, ILO indicators, statute matches. Prepended to Gemma's context with citations.</div>
+        <a href="#" class="harness-catalog-link" onclick="openLayerModal('grep'); return false;">▸ View</a>
+      </div>
+      <div class="harness-tile rag" id="tile-rag" data-wired="false" data-enabled="false">
+        <div class="harness-tile-row" onclick="toggleTile('rag')">
+          <span class="harness-tile-name">RAG</span>
+          <span class="harness-tile-state" id="state-rag">OFF</span>
+        </div>
+        <div class="harness-tile-desc" onclick="toggleTile('rag')">BM25 retrieval over an in-kernel corpus of ILO conventions, POEA/BP2MI circulars, HK statutes, NGO briefs. Top-5 docs injected as Gemma context.</div>
+        <a href="#" class="harness-catalog-link" onclick="openLayerModal('rag'); return false;">▸ View</a>
+      </div>
+      <div class="harness-tile tools" id="tile-tools" data-wired="false" data-enabled="false">
+        <div class="harness-tile-row" onclick="toggleTile('tools')">
+          <span class="harness-tile-name">Tools</span>
+          <span class="harness-tile-state" id="state-tools">OFF</span>
+        </div>
+        <div class="harness-tile-desc" onclick="toggleTile('tools')">Heuristic lookup tools — corridor fee caps, fee camouflage decoder, ILO indicator matcher, NGO intake hotlines. Results injected as Gemma context.</div>
+        <a href="#" class="harness-catalog-link" onclick="openLayerModal('tools'); return false;">▸ View</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Lightbox modal: used by the 4 tile View buttons + per-response audits -->
+<div class="modal-overlay" id="modal-overlay" onclick="closeModalIfBackground(event)">
+  <div class="modal" id="modal" data-layer="" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <h3 class="modal-title" id="modal-title">Title</h3>
+      <button class="modal-close" onclick="closeModal()" title="Close (Esc)">×</button>
+    </div>
+    <div class="modal-body" id="modal-body"></div>
+    <div class="modal-footer" id="modal-footer"></div>
   </div>
 </div>
 
 <script>
 const messages = [];        // [{role, content: [{type, text|image}]}]
 const pendingImages = [];   // [{id, mime, dataUrl}]
+let _personaDefault = '';         // populated by probeHarness from /api/harness-info
+
+// ---------------------------------------------------------------------------
+// localStorage persistence layer for user customizations.
+// ALL user-added content lives in localStorage so it survives page reloads
+// without any backend persistence. Sent to the server per-message in
+// `toggles.custom_*` fields and merged with built-ins by the harness.
+// ---------------------------------------------------------------------------
+const STORAGE_KEY = 'duecare.customizations.v1';
+
+function _emptyStore() {
+  return {
+    activePersonaName: null,    // null = use kernel DEFAULT_PERSONA
+    customPersonas: [],          // [{name, text}]
+    customGrepRules: [],         // [{rule, patterns, all_required, severity, citation, indicator}]
+    customRagDocs: [],           // [{id, title, source, snippet}]
+    customCorridorCaps: [],      // [{origin, destination, sector, statute, max_fee_worker, currency, url, note}]
+    customFeeCamouflage: [],     // [{label, status, commonly_disguises, citation}]
+    customNgoIntake: [],         // [{corridor_origin, corridor_dest, name, phone, url}]
+  };
+}
+
+function loadStore() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return _emptyStore();
+    const data = JSON.parse(raw);
+    return {..._emptyStore(), ...data};
+  } catch (e) {
+    return _emptyStore();
+  }
+}
+
+function saveStore(store) {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(store));
+  } catch (e) {
+    console.warn('localStorage write failed:', e);
+  }
+}
+
+function activePersonaText() {
+  const s = loadStore();
+  if (s.activePersonaName) {
+    const p = s.customPersonas.find(p => p.name === s.activePersonaName);
+    if (p) return p.text;
+  }
+  return _personaDefault;
+}
+
+function activePersonaName() {
+  const s = loadStore();
+  return s.activePersonaName || 'Default expert';
+}
+
+function exportStore() {
+  const s = loadStore();
+  const blob = new Blob([JSON.stringify(s, null, 2)],
+                          {type: 'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'duecare-customizations.json';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function importStore(file) {
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const data = JSON.parse(e.target.result);
+      saveStore({..._emptyStore(), ...data});
+      updatePersonaTileBadge();
+      alert('Customizations imported successfully.');
+    } catch (err) {
+      alert('Import failed: ' + err.message);
+    }
+  };
+  reader.readAsText(file);
+}
+
+function updatePersonaTileBadge() {
+  // Show the active persona name on the Persona tile so the user
+  // sees which persona is currently selected without opening the modal.
+  const tile = document.getElementById('tile-persona');
+  if (!tile || tile.dataset.wired !== 'true') return;
+  let nameEl = document.getElementById('persona-active-name');
+  if (!nameEl) {
+    const desc = tile.querySelector('.harness-tile-desc');
+    if (desc) {
+      const small = document.createElement('div');
+      small.id = 'persona-active-name';
+      small.style.marginTop = '6px';
+      small.style.fontSize = '11px';
+      small.style.color = '#a855f7';
+      small.style.fontWeight = '600';
+      desc.appendChild(small);
+      nameEl = small;
+    }
+  }
+  if (nameEl) nameEl.textContent = '◆ active: ' + activePersonaName();
+}
 
 document.getElementById('input').addEventListener('keydown', e => {
   if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
@@ -233,6 +620,794 @@ async function refreshBadge() {
 }
 refreshBadge();
 setInterval(refreshBadge, 30000);
+
+// One-time probe: ask the server which harness layers are wired so
+// the UI marks each tile as clickable (wired) or greyed-out (not wired).
+// All three tiles are ALWAYS shown when at least one is wired -- gives
+// the user a clear picture of what's available + what's coming.
+async function probeHarness() {
+  try {
+    const r = await fetch('/api/harness-info', {cache:'no-store'});
+    if (!r.ok) return;
+    const info = await r.json();
+    const anyWired = info.persona || info.grep || info.rag || info.tools;
+    if (!anyWired) return;  // raw chat -- keep tile row hidden
+    document.getElementById('harness-tiles').style.display = 'grid';
+    for (const layer of ['persona', 'grep', 'rag', 'tools']) {
+      const tile = document.getElementById(`tile-${layer}`);
+      const wired = !!info[layer];
+      tile.dataset.wired = wired ? 'true' : 'false';
+      tile.dataset.enabled = 'false';
+      const state = document.getElementById(`state-${layer}`);
+      state.textContent = wired ? 'OFF' : 'NOT WIRED';
+    }
+    if (info.persona && info.persona_default) {
+      _personaDefault = info.persona_default;
+    }
+    updatePersonaTileBadge();
+  } catch (e) { /* /api/harness-info missing -- old chat wheel, hide */ }
+}
+probeHarness();
+
+function toggleTile(layer) {
+  const tile = document.getElementById(`tile-${layer}`);
+  if (!tile || tile.dataset.wired !== 'true') return;
+  const newState = tile.dataset.enabled === 'true' ? 'false' : 'true';
+  tile.dataset.enabled = newState;
+  document.getElementById(`state-${layer}`).textContent =
+      newState === 'true' ? 'ON' : 'OFF';
+}
+
+// ---- Lightbox modal ----
+const LAYER_TITLES = {
+  persona:  'Persona',
+  grep:     'GREP rule catalog',
+  rag:      'RAG corpus',
+  tools:    'Tools registry',
+  audit:    'Safety harness pipeline',
+  pipeline: 'Safety harness pipeline',
+  examples: 'Example prompts',
+};
+
+let _examplesCache = null;  // cached /api/examples response
+
+async function _fetchExamples() {
+  if (_examplesCache !== null) return _examplesCache;
+  try {
+    const r = await fetch('/api/examples', {cache: 'no-store'});
+    if (!r.ok) return [];
+    const data = await r.json();
+    _examplesCache = data.examples || [];
+    return _examplesCache;
+  } catch (e) { return []; }
+}
+
+const DIFFICULTY_COLORS = {
+  basic: '#10b981', medium: '#3b82f6', hard: '#f59e0b', expert: '#ef4444',
+};
+
+const CATEGORY_LABELS = {
+  regulatory_evasion:           'Regulatory evasion',
+  coercion_manipulation:        'Coercion / manipulation',
+  moral_religious_framing:      'Moral / religious framing',
+  financial_obfuscation:        'Financial obfuscation',
+  mega_variations:              'Mega / compound',
+  knowledge_check:              'Knowledge check',
+  compound_textbook:            'Textbook compound scenarios',
+  jurisdictional_hierarchy:     'Jurisdictional hierarchy exploitation',
+  amplification_known_attacks:  'Amplification through known attacks',
+  victim_revictimization:       'Migrant worker re-victimization',
+  financial_crime_blindness:    'Legal standards / financial crime blindness',
+};
+
+async function populateEmptyHints() {
+  const examples = await _fetchExamples();
+  if (!examples.length) return;
+  const el = document.getElementById('empty-hints');
+  if (!el) return;
+  // Pick 4 representative examples for the empty state hint chips
+  const picks = [
+    examples.find(e => e.id === 'textbook_loan_68pct'),
+    examples.find(e => e.id === 'textbook_loan_18pct'),
+    examples.find(e => e.id === 'traf_002'),  // passport "safekeeping"
+    examples.find(e => e.id === 'traf_009'),  // 3-month "performance guarantee"
+  ].filter(Boolean);
+  const labelFor = id => ({
+    textbook_loan_68pct: 'Compound scenario: 68% loan + novation + salary deduction',
+    textbook_loan_18pct: 'Compound scenario: 18% loan + "mutually agreed" salary deduction',
+  }[id]);
+  el.innerHTML = picks.map(p => {
+    const lbl = labelFor(p.id) || (p.text.length > 70 ? p.text.slice(0, 70) + '…' : p.text);
+    return `<button onclick="useExample(${attrJson(p.id)})" title="${escapeHtml(p.text)}">${escapeHtml(lbl)}</button>`;
+  }).join('');
+}
+populateEmptyHints();
+
+async function useExample(id) {
+  const examples = await _fetchExamples();
+  const ex = examples.find(e => e.id === id);
+  if (!ex) return;
+  const input = document.getElementById('input');
+  input.value = ex.text;
+  input.focus();
+  // Brief flash so the user sees the populate happened (the modal is
+  // about to close, so without a visual cue the action looks invisible).
+  input.style.transition = 'background 0.4s ease';
+  input.style.background = 'rgba(168, 85, 247, 0.18)';
+  setTimeout(() => { input.style.background = ''; }, 700);
+  closeModal();
+}
+
+async function copyExampleText(id, btn, evt) {
+  if (evt) evt.stopPropagation();  // don't also trigger the card's click-to-load
+  const examples = await _fetchExamples();
+  const ex = examples.find(e => e.id === id);
+  if (!ex) return;
+  try {
+    await navigator.clipboard.writeText(ex.text);
+    if (btn) {
+      const orig = btn.textContent;
+      btn.textContent = 'copied ✓';
+      btn.style.color = '#10b981';
+      setTimeout(() => { btn.textContent = orig; btn.style.color = ''; }, 1500);
+    }
+  } catch (e) {
+    // Clipboard API can fail in cross-origin iframes / older browsers.
+    // Fall back to a textarea-select-copy trick.
+    const ta = document.createElement('textarea');
+    ta.value = ex.text;
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    try { document.execCommand('copy'); } catch {}
+    document.body.removeChild(ta);
+    if (btn) {
+      const orig = btn.textContent;
+      btn.textContent = 'copied ✓';
+      btn.style.color = '#10b981';
+      setTimeout(() => { btn.textContent = orig; btn.style.color = ''; }, 1500);
+    }
+  }
+}
+
+async function openExamplesModal() {
+  const examples = await _fetchExamples();
+  if (!examples.length) {
+    document.getElementById('modal-body').innerHTML =
+        '<i style="color:var(--muted)">No examples bundled in this kernel.</i>';
+    _setModalChrome('examples', LAYER_TITLES.examples, '');
+    return;
+  }
+  // Group by category
+  const byCat = {};
+  for (const ex of examples) {
+    (byCat[ex.category] = byCat[ex.category] || []).push(ex);
+  }
+  let html = `<div style="color:var(--muted); font-size:11.5px; margin-bottom:14px;">${examples.length} prompts from the trafficking benchmark. Click any prompt body to load it into the chat input (does NOT auto-send — you can edit and toggle harness layers first). Use the <strong>copy</strong> button on the right to copy the full text to your clipboard instead.</div>`;
+  const catOrder = ['compound_textbook', 'regulatory_evasion',
+                     'coercion_manipulation', 'financial_obfuscation',
+                     'moral_religious_framing', 'mega_variations',
+                     'knowledge_check'];
+  for (const cat of catOrder) {
+    if (!byCat[cat]) continue;
+    html += `<div style="font-size:11px; font-weight:700; color:var(--accent); margin:18px 0 6px 0; letter-spacing:0.06em; text-transform:uppercase;">${escapeHtml(CATEGORY_LABELS[cat] || cat)}</div>`;
+    for (const ex of byCat[cat]) {
+      const diffColor = DIFFICULTY_COLORS[ex.difficulty] || '#94a3b8';
+      const indPills = (ex.ilo_indicators || []).slice(0, 3).map(ind =>
+          `<span style="display:inline-block; padding:1px 6px; border-radius:3px; background:rgba(148,163,184,0.15); color:var(--muted); font-size:10px; margin-right:4px;">${escapeHtml(ind)}</span>`
+      ).join('');
+      html += `<div class="item" style="cursor:pointer; padding:10px 12px; margin-bottom:6px; background:var(--bg); border-radius:6px; border:1px solid var(--border); transition: border-color 0.15s;" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'" onclick="useExample(${attrJson(ex.id)})">`;
+      // Render the FULL prompt text (no truncation). Some entries are
+      // 5000+ chars; the modal body scrolls (max-height 86vh) so length
+      // is not a layout problem and full visibility lets the reader
+      // judge a prompt before clicking it.
+      html += `<div class="body" style="margin-top:0; color:var(--ink); font-size:12.5px; line-height:1.55; white-space:pre-wrap; word-wrap:break-word;">${escapeHtml(ex.text)}</div>`;
+      html += `<div style="margin-top:10px; display:flex; flex-wrap:wrap; gap:6px; align-items:center; font-size:10.5px; padding-top:8px; border-top:1px dashed var(--border);">`;
+      if (ex.difficulty) {
+        html += `<span style="color:${diffColor}; font-weight:600;">${escapeHtml(ex.difficulty)}</span>`;
+        html += `<span style="color:var(--muted);">·</span>`;
+      }
+      if (ex.corridor) {
+        html += `<span style="color:var(--muted); font-family:ui-monospace,monospace;">${escapeHtml(ex.corridor)}</span>`;
+        html += `<span style="color:var(--muted);">·</span>`;
+      }
+      if (ex.sector) {
+        html += `<span style="color:var(--muted);">${escapeHtml(ex.sector)}</span>`;
+      }
+      if (indPills) html += `<span style="margin-left:8px;">${indPills}</span>`;
+      html += `<button onclick="copyExampleText(${attrJson(ex.id)}, this, event)" style="margin-left:auto; background:transparent; border:1px solid var(--border); color:var(--muted); padding:3px 10px; border-radius:6px; font-size:10.5px; cursor:pointer; font-weight:500;" onmouseover="this.style.borderColor='var(--accent)'; this.style.color='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'; this.style.color='var(--muted)'" title="Copy prompt to clipboard">copy</button>`;
+      html += `<span style="color:var(--accent); font-size:10.5px; font-weight:600; margin-left:8px;">click body to load →</span>`;
+      html += `</div></div>`;
+    }
+  }
+  html += '<div id="modal-docs"></div>';
+  document.getElementById('modal-body').innerHTML = html;
+  _setModalChrome('examples', LAYER_TITLES.examples, '');
+  _fetchDocs('examples').then(md => {
+    const el = document.getElementById('modal-docs');
+    if (el) el.innerHTML = _renderDocsSection(md);
+  });
+}
+
+function closeModal() {
+  const overlay = document.getElementById('modal-overlay');
+  overlay.classList.remove('active');
+  document.body.style.overflow = '';
+}
+
+function closeModalIfBackground(event) {
+  if (event.target.id === 'modal-overlay') closeModal();
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeModal();
+});
+
+function _setModalChrome(layer, title, footerHtml) {
+  document.getElementById('modal').dataset.layer = layer;
+  document.getElementById('modal-title').innerHTML =
+      `${escapeHtml(title)} <span class="layer-pill">${escapeHtml(layer.toUpperCase())}</span>`;
+  document.getElementById('modal-footer').innerHTML = footerHtml || '';
+  document.getElementById('modal-overlay').classList.add('active');
+  document.body.style.overflow = 'hidden';
+}
+
+async function _fetchDocs(layer) {
+  try {
+    const r = await fetch(`/api/docs/${layer}`, {cache: 'no-store'});
+    if (!r.ok) return '';
+    const data = await r.json();
+    return data.found ? (data.markdown || '') : '';
+  } catch (e) { return ''; }
+}
+
+function _renderDocsSection(markdown) {
+  if (!markdown) return '';
+  // Minimal markdown rendering: headings, code blocks, paragraphs, lists
+  const escaped = escapeHtml(markdown);
+  let html = escaped;
+  // Code blocks (4-space indent)
+  html = html.replace(/(?:\n {4,}.*)+/g, m => {
+    const lines = m.split('\n').filter(l => l).map(l => l.replace(/^    /, ''));
+    return `\n<pre style="background:var(--bg); padding:10px 12px; border-radius:6px; font-family:ui-monospace,monospace; font-size:11px; color:#cbd5e1; margin:8px 0; overflow-x:auto;">${lines.join('\n')}</pre>`;
+  });
+  // Headings
+  html = html.replace(/^# (.+)$/gm, '<h3 style="margin:18px 0 8px 0; font-size:14.5px; color:var(--ink);">$1</h3>');
+  html = html.replace(/^## (.+)$/gm, '<h4 style="margin:14px 0 6px 0; font-size:13px; color:var(--accent);">$1</h4>');
+  // Lists
+  html = html.replace(/^- (.+)$/gm, '<li style="margin:3px 0; color:#cbd5e1; font-size:12px;">$1</li>');
+  html = html.replace(/(<li[^>]*>.*?<\/li>(\n|$))+/g, m => `<ul style="margin:6px 0 10px 18px; padding:0;">${m}</ul>`);
+  // Inline code
+  html = html.replace(/`([^`\n]+)`/g, '<code style="background:rgba(255,255,255,0.06); padding:1px 4px; border-radius:3px; font-family:ui-monospace,monospace; font-size:11.5px; color:#a855f7;">$1</code>');
+  // Paragraphs (double newlines)
+  return `<div style="margin-top:24px; padding-top:16px; border-top:1px solid var(--border); color:#cbd5e1; font-size:12.5px; line-height:1.6;">${html}</div>`;
+}
+
+async function openLayerModal(layer) {
+  const body = document.getElementById('modal-body');
+  const docsPromise = _fetchDocs(layer);
+  // Persona library: list of personas (built-in default + user-added),
+  // click any to make it active. Add/edit/delete user personas.
+  if (layer === 'persona') {
+    renderPersonaLibrary();
+    docsPromise.then(md => {
+      const docsEl = document.getElementById('modal-docs');
+      if (docsEl) docsEl.innerHTML = _renderDocsSection(md);
+    });
+    _setModalChrome(layer, LAYER_TITLES.persona, `
+      <button class="modal-btn secondary" onclick="exportStore()">Export all</button>
+      <button class="modal-btn secondary" onclick="document.getElementById('import-file').click()">Import</button>
+      <input type="file" id="import-file" accept=".json" style="display:none" onchange="importStore(event.target.files[0]); event.target.value=''">
+      <button class="modal-btn primary" onclick="startNewPersona()">+ New persona</button>
+    `);
+    return;
+  }
+  // Catalog modals: GREP / RAG / Tools. Each shows built-ins + a
+  // "+ Add custom" section + the user's existing custom entries.
+  body.innerHTML = '<i style="color:var(--muted)">loading…</i>';
+  _setModalChrome(layer, LAYER_TITLES[layer], '');
+  try {
+    const r = await fetch(`/api/harness-catalog/${layer}`, {cache:'no-store'});
+    if (!r.ok) {
+      body.innerHTML = `<i style="color:var(--bad)">HTTP ${r.status}</i>`;
+      return;
+    }
+    const data = await r.json();
+    const store = loadStore();
+    let html = '';
+    // ------ Custom-entry section at the TOP for visibility ------
+    html += renderCustomSection(layer, store);
+    // ------ Built-in catalog ------
+    html += `<div style="color:var(--muted); font-size:11.5px; margin:18px 0 10px 0; padding-top:14px; border-top:1px solid var(--border);">${data.items.length} built-in items (read-only — to extend the bundled set, edit the harness module)</div>`;
+    for (const it of data.items) {
+      html += '<div class="item">';
+      if (layer === 'grep') {
+        const sevClass = `severity-${it.severity || 'info'}`;
+        html += `<div class="name">${escapeHtml(it.rule)}<span class="severity-pill ${sevClass}">${escapeHtml(it.severity || 'info')}</span></div>`;
+        html += `<div class="meta">${escapeHtml(it.citation)}</div>`;
+        html += `<div class="body">${escapeHtml(it.indicator)}</div>`;
+      } else if (layer === 'rag') {
+        html += `<div class="name">${escapeHtml(it.title)}</div>`;
+        html += `<div class="meta">source: ${escapeHtml(it.source)}</div>`;
+        html += `<div class="body">${escapeHtml(it.snippet)}</div>`;
+      } else if (layer === 'tools') {
+        html += `<div class="name">${escapeHtml(it.name)}<span style="color:var(--muted); font-weight:400;">(${escapeHtml(it.args)})</span></div>`;
+        html += `<div class="body">${escapeHtml(it.description)}</div>`;
+      }
+      html += '</div>';
+    }
+    html += '<div id="modal-docs"></div>';
+    body.innerHTML = html;
+    docsPromise.then(md => {
+      const docsEl = document.getElementById('modal-docs');
+      if (docsEl) docsEl.innerHTML = _renderDocsSection(md);
+    });
+  } catch (e) {
+    body.innerHTML = `<i style="color:var(--bad)">${e.message || e}</i>`;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Custom-entry sections inside each layer modal.
+// All entries are stored in localStorage and sent to the server in
+// toggles.custom_* on every chat message.
+// ---------------------------------------------------------------------------
+const LAYER_CUSTOM_FIELDS = {
+  grep: [
+    {key:'rule',         label:'Rule id (snake_case)',       type:'text',     required:true},
+    {key:'patterns_str', label:'Regex patterns (one per line)', type:'textarea', rows:3, required:true,
+     hint:'Each line is a separate regex. ALL must match (AND).'},
+    {key:'severity',     label:'Severity',                   type:'select',   options:['critical','high','medium','info']},
+    {key:'citation',     label:'Citation (statute / convention)', type:'text', required:true},
+    {key:'indicator',    label:'Indicator description (what it means + why)', type:'textarea', rows:3, required:true},
+  ],
+  rag: [
+    {key:'title',   label:'Title',                                     type:'text',     required:true},
+    {key:'source',  label:'Source citation slug (e.g. ILO C029 Art. 1)', type:'text',  required:true},
+    {key:'snippet', label:'Full text / paraphrase (BM25 indexed)',     type:'textarea', rows:6, required:true},
+  ],
+  tools_corridor: [
+    {key:'origin',         label:'Origin country',     type:'text', required:true,
+     hint:"e.g. 'Philippines', 'Indonesia', 'Nepal'"},
+    {key:'destination',    label:'Destination country', type:'text', required:true,
+     hint:"e.g. 'Hong Kong', 'Saudi Arabia', 'UAE'"},
+    {key:'sector',         label:'Sector',              type:'text',
+     hint:"e.g. 'domestic', 'construction', 'fishing', or 'any'"},
+    {key:'statute',        label:'Controlling statute', type:'text', required:true},
+    {key:'max_fee_worker', label:'Max fee (worker side)', type:'text'},
+    {key:'currency',       label:'Currency',            type:'text'},
+    {key:'url',            label:'Statute URL',         type:'text'},
+    {key:'note',           label:'Note',                type:'textarea', rows:2},
+  ],
+  tools_camo: [
+    {key:'label',              label:'Fee label',            type:'text', required:true,
+     hint:"e.g. 'orientation fee', 'placement deposit'"},
+    {key:'status',             label:'Status',               type:'select',
+     options:['ALWAYS PROHIBITED','OFTEN PROHIBITED','USUALLY PROHIBITED','PROHIBITED in zero-fee corridors','UNKNOWN']},
+    {key:'commonly_disguises', label:'Commonly disguises',   type:'text', required:true},
+    {key:'citation',           label:'Citation',             type:'text', required:true},
+  ],
+  tools_ngo: [
+    {key:'corridor_origin', label:'Corridor origin (e.g. ph, id, np, global)', type:'text', required:true},
+    {key:'corridor_dest',   label:'Corridor destination (e.g. hk, gulf, global)', type:'text', required:true},
+    {key:'name',            label:'NGO / regulator name',                       type:'text', required:true},
+    {key:'phone',           label:'Phone',                                      type:'text'},
+    {key:'url',             label:'URL',                                        type:'text'},
+  ],
+};
+
+const LAYER_CUSTOM_STORE_KEY = {
+  grep: 'customGrepRules',
+  rag: 'customRagDocs',
+  tools_corridor: 'customCorridorCaps',
+  tools_camo: 'customFeeCamouflage',
+  tools_ngo: 'customNgoIntake',
+};
+
+const LAYER_CUSTOM_TITLE = {
+  grep: 'Custom GREP rules',
+  rag: 'Custom RAG documents',
+  tools_corridor: 'Custom corridor fee caps',
+  tools_camo: 'Custom fee camouflage labels',
+  tools_ngo: 'Custom NGO / regulator hotlines',
+};
+
+function renderCustomSection(layer, store) {
+  // For tools the modal shows three sub-sections (corridor/camo/ngo)
+  if (layer === 'tools') {
+    return ['tools_corridor', 'tools_camo', 'tools_ngo']
+        .map(sub => _renderCustomSubsection(sub, store))
+        .join('');
+  }
+  return _renderCustomSubsection(layer, store);
+}
+
+function _renderCustomSubsection(layer, store) {
+  const items = store[LAYER_CUSTOM_STORE_KEY[layer]] || [];
+  let html = `<div style="margin-top:6px; padding:14px; background:rgba(255,255,255,0.02); border:1px dashed var(--border); border-radius:8px;">`;
+  html += `<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">`;
+  html += `<h4 style="margin:0; font-size:13px; color:var(--accent);">${LAYER_CUSTOM_TITLE[layer]} (${items.length})</h4>`;
+  html += `<button class="modal-btn primary" style="padding:5px 12px; font-size:11.5px;" onclick="openCustomEntryForm(${attrJson(layer)})">+ Add</button>`;
+  html += `</div>`;
+  if (items.length === 0) {
+    html += `<div style="color:var(--muted); font-size:11.5px;">No custom entries yet. Click <strong>+ Add</strong> to create one. Custom entries live in your browser's localStorage and are sent to the server with every chat message.</div>`;
+  } else {
+    for (let i = 0; i < items.length; i++) {
+      const it = items[i];
+      const summary = _customEntrySummary(layer, it);
+      html += `<div style="margin-top:8px; padding:8px 10px; background:var(--bg); border-radius:6px;">`;
+      html += `<div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px;">`;
+      html += `<div style="font-family:ui-monospace,monospace; font-size:12px; color:var(--ink); word-break:break-word;">${escapeHtml(summary)}</div>`;
+      html += `<div style="display:flex; gap:4px; flex-shrink:0;">`;
+      html += `<button class="modal-btn secondary" style="padding:3px 9px; font-size:10.5px;" onclick="openCustomEntryForm(${attrJson(layer)}, ${i})">Edit</button>`;
+      html += `<button class="modal-btn secondary" style="padding:3px 9px; font-size:10.5px; color:#ef4444;" onclick="deleteCustomEntry(${attrJson(layer)}, ${i})">Del</button>`;
+      html += `</div></div></div>`;
+    }
+  }
+  html += `</div>`;
+  return html;
+}
+
+function _customEntrySummary(layer, it) {
+  if (layer === 'grep') return `${it.rule || '(unnamed)'} [${it.severity || 'info'}] — ${it.citation || ''}`;
+  if (layer === 'rag') return `${it.title || '(untitled)'} — ${it.source || ''}`;
+  if (layer === 'tools_corridor') return `${it.origin}→${it.destination} (${it.sector||'any'}): ${it.statute}`;
+  if (layer === 'tools_camo') return `${it.label}: ${it.status}`;
+  if (layer === 'tools_ngo') return `${it.corridor_origin}-${it.corridor_dest}: ${it.name}`;
+  return JSON.stringify(it).slice(0, 120);
+}
+
+function openCustomEntryForm(layer, editIdx) {
+  // Open a NESTED modal: render the form on top of the current modal-body.
+  // (Reusing the same lightbox -- we rebuild its body content with the form.)
+  const fields = LAYER_CUSTOM_FIELDS[layer];
+  const store = loadStore();
+  const items = store[LAYER_CUSTOM_STORE_KEY[layer]] || [];
+  const editing = (typeof editIdx === 'number') && items[editIdx];
+  const current = editing ? {...items[editIdx]} : {};
+  // For grep, the patterns array gets rendered as a newline-separated string
+  if (layer === 'grep' && Array.isArray(current.patterns)) {
+    current.patterns_str = current.patterns.join('\n');
+  }
+  let html = `<p style="color:var(--muted); margin-top:0; font-size:12px;">${editing ? 'Edit' : 'Add'} a custom entry. Stored in your browser's localStorage and sent to the server with every chat message (so the harness layer picks it up alongside the built-ins).</p>`;
+  for (const f of fields) {
+    const val = current[f.key] ?? '';
+    html += `<div style="margin-bottom:12px;">`;
+    html += `<label style="display:block; font-size:11.5px; color:var(--ink); margin-bottom:4px; font-weight:600;">${escapeHtml(f.label)}${f.required ? ' <span style="color:#ef4444;">*</span>' : ''}</label>`;
+    if (f.type === 'textarea') {
+      html += `<textarea data-field=${attrJson(f.key)} rows="${f.rows || 3}" style="width:100%; padding:8px 10px; background:var(--bg); color:var(--ink); border:1px solid var(--border); border-radius:6px; font-family:inherit; font-size:12px; line-height:1.45; resize:vertical;">${escapeHtml(val)}</textarea>`;
+    } else if (f.type === 'select') {
+      html += `<select data-field=${attrJson(f.key)} style="width:100%; padding:6px 10px; background:var(--bg); color:var(--ink); border:1px solid var(--border); border-radius:6px; font-family:inherit; font-size:12.5px;">`;
+      for (const opt of (f.options || [])) {
+        html += `<option value=${attrJson(opt)} ${opt === val ? 'selected' : ''}>${escapeHtml(opt)}</option>`;
+      }
+      html += `</select>`;
+    } else {
+      html += `<input type="text" data-field=${attrJson(f.key)} value="${escapeHtml(val)}" style="width:100%; padding:6px 10px; background:var(--bg); color:var(--ink); border:1px solid var(--border); border-radius:6px; font-family:inherit; font-size:12.5px;">`;
+    }
+    if (f.hint) html += `<div style="font-size:10.5px; color:var(--muted); margin-top:3px;">${escapeHtml(f.hint)}</div>`;
+    html += `</div>`;
+  }
+  document.getElementById('modal-body').innerHTML = html;
+  _setModalChrome(layer.split('_')[0], `${editing ? 'Edit' : 'New'} ${LAYER_CUSTOM_TITLE[layer].replace(/^Custom /, '').replace(/s$/, '')}`, `
+    <button class="modal-btn secondary" onclick="openLayerModal(${attrJson(layer.split('_')[0])})">Back</button>
+    <button class="modal-btn primary" onclick="saveCustomEntry(${attrJson(layer)}, ${editing ? editIdx : -1})">${editing ? 'Save' : 'Add'}</button>
+  `);
+}
+
+function saveCustomEntry(layer, editIdx) {
+  const fields = LAYER_CUSTOM_FIELDS[layer];
+  const entry = {};
+  const body = document.getElementById('modal-body');
+  for (const f of fields) {
+    const el = body.querySelector(`[data-field=${CSS.escape(f.key)}]`);
+    if (!el) continue;
+    let v = el.value;
+    if (f.required && (!v || !v.trim())) {
+      alert(`Field "${f.label}" is required.`);
+      return;
+    }
+    entry[f.key] = v;
+  }
+  // Special handling for grep: split patterns_str into a list
+  if (layer === 'grep') {
+    entry.patterns = (entry.patterns_str || '').split('\n').map(s => s.trim()).filter(Boolean);
+    delete entry.patterns_str;
+    if (entry.patterns.length > 1) entry.all_required = true;
+  }
+  const store = loadStore();
+  const key = LAYER_CUSTOM_STORE_KEY[layer];
+  if (!store[key]) store[key] = [];
+  if (editIdx >= 0 && editIdx < store[key].length) {
+    store[key][editIdx] = entry;
+  } else {
+    store[key].push(entry);
+  }
+  saveStore(store);
+  openLayerModal(layer.split('_')[0]);  // back to catalog view
+}
+
+function deleteCustomEntry(layer, idx) {
+  if (!confirm('Delete this custom entry?')) return;
+  const store = loadStore();
+  const key = LAYER_CUSTOM_STORE_KEY[layer];
+  if (!store[key]) return;
+  store[key].splice(idx, 1);
+  saveStore(store);
+  openLayerModal(layer.split('_')[0]);
+}
+
+// ---------------------------------------------------------------------------
+// Persona library (multi-persona with localStorage)
+// ---------------------------------------------------------------------------
+function renderPersonaLibrary(editingName = null) {
+  const store = loadStore();
+  const body = document.getElementById('modal-body');
+  // Build a unified list: kernel default + user-added
+  const all = [
+    {name: 'Default expert', text: _personaDefault, isBuiltIn: true},
+    ...store.customPersonas,
+  ];
+  let html = `<p style="color:var(--muted); margin-top:0;">A persona is a system-style instruction prepended to every chat message when the Persona tile is ON. Click <strong>Use</strong> to make a persona active. Add unlimited custom personas — they persist in your browser's localStorage.</p>`;
+  for (const p of all) {
+    const isActive = p.isBuiltIn
+        ? !store.activePersonaName
+        : (store.activePersonaName === p.name);
+    const editing = editingName === p.name;
+    const borderColor = isActive ? '#a855f7' : 'var(--border)';
+    const bg = isActive ? 'rgba(168,85,247,0.06)' : 'var(--bg)';
+    html += `<div style="margin-bottom:12px; padding:12px 14px; background:${bg}; border:1px solid ${borderColor}; border-radius:8px;">`;
+    html += `<div style="display:flex; align-items:center; justify-content:space-between; gap:8px;">`;
+    html += `<div style="font-weight:700; color:#a855f7; font-size:14px;">${escapeHtml(p.name)}${p.isBuiltIn ? ' <span style="font-weight:400; color:var(--muted); font-size:11px;">(built-in)</span>' : ''}${isActive ? ' <span class="severity-pill" style="background:#a855f7; color:#fff;">ACTIVE</span>' : ''}</div>`;
+    html += `<div style="display:flex; gap:6px;">`;
+    if (!isActive) {
+      html += `<button class="modal-btn secondary" style="padding:4px 10px; font-size:11px;" onclick="usePersona(${attrJson(p.name)}, ${p.isBuiltIn})">Use</button>`;
+    }
+    if (!p.isBuiltIn) {
+      if (!editing) {
+        html += `<button class="modal-btn secondary" style="padding:4px 10px; font-size:11px;" onclick="renderPersonaLibrary(${attrJson(p.name)})">Edit</button>`;
+        html += `<button class="modal-btn secondary" style="padding:4px 10px; font-size:11px; color:#ef4444;" onclick="deletePersona(${attrJson(p.name)})">Delete</button>`;
+      }
+    }
+    html += `</div></div>`;
+    if (editing) {
+      html += `<input type="text" id="persona-name-edit" value="${escapeHtml(p.name)}" style="width:100%; margin-top:8px; padding:6px 10px; background:var(--bg); color:var(--ink); border:1px solid var(--border); border-radius:6px; font-size:12.5px; font-family:inherit;" placeholder="Persona name">`;
+      html += `<textarea id="persona-text-edit" class="modal-persona-textarea" style="margin-top:6px;">${escapeHtml(p.text)}</textarea>`;
+      html += `<div style="display:flex; gap:6px; margin-top:8px; justify-content:flex-end;">`;
+      html += `<button class="modal-btn secondary" onclick="renderPersonaLibrary()">Cancel</button>`;
+      html += `<button class="modal-btn primary" onclick="saveEditedPersona(${attrJson(p.name)})">Save</button>`;
+      html += `</div>`;
+    } else {
+      const preview = p.text.length > 320 ? p.text.slice(0, 320) + '…' : p.text;
+      html += `<div style="margin-top:8px; padding:10px 12px; background:rgba(0,0,0,0.25); border-radius:6px; font-size:11.5px; color:#cbd5e1; line-height:1.5; white-space:pre-wrap; max-height:160px; overflow-y:auto;">${escapeHtml(preview)}</div>`;
+    }
+    html += `</div>`;
+  }
+  html += `<div id="modal-docs" style="margin-top:18px;"></div>`;
+  body.innerHTML = html;
+}
+
+function usePersona(name, isBuiltIn) {
+  const store = loadStore();
+  store.activePersonaName = isBuiltIn ? null : name;
+  saveStore(store);
+  updatePersonaTileBadge();
+  renderPersonaLibrary();
+}
+
+function startNewPersona() {
+  const store = loadStore();
+  let n = 1;
+  let name;
+  do {
+    name = `Custom persona ${n++}`;
+  } while (store.customPersonas.some(p => p.name === name));
+  store.customPersonas.push({
+    name,
+    text: 'You are an expert in ... [edit this to describe the role you want Gemma to play; cite the conventions / statutes / NGO partners that should ground its responses].',
+  });
+  saveStore(store);
+  renderPersonaLibrary(name);
+}
+
+function deletePersona(name) {
+  if (!confirm(`Delete persona "${name}"?`)) return;
+  const store = loadStore();
+  store.customPersonas = store.customPersonas.filter(p => p.name !== name);
+  if (store.activePersonaName === name) {
+    store.activePersonaName = null;  // fall back to default
+  }
+  saveStore(store);
+  updatePersonaTileBadge();
+  renderPersonaLibrary();
+}
+
+function saveEditedPersona(originalName) {
+  const newName = document.getElementById('persona-name-edit').value.trim();
+  const newText = document.getElementById('persona-text-edit').value.trim();
+  if (!newName || !newText) {
+    alert('Persona name and text are both required.');
+    return;
+  }
+  const store = loadStore();
+  const idx = store.customPersonas.findIndex(p => p.name === originalName);
+  if (idx === -1) return;
+  store.customPersonas[idx] = {name: newName, text: newText};
+  if (store.activePersonaName === originalName) {
+    store.activePersonaName = newName;
+  }
+  saveStore(store);
+  updatePersonaTileBadge();
+  renderPersonaLibrary();
+}
+
+// ---------------------------------------------------------------------------
+// Pipeline modal: shows the FULL transformation pipeline for one response.
+// User input -> persona -> grep -> rag -> tools -> final merged prompt -> Gemma response.
+// Each step is a colored card with arrows between. Skipped layers shown ghosted
+// so the reader sees the complete pipeline shape regardless of which toggles fired.
+// This IS the "what does the harness DO" demo.
+// ---------------------------------------------------------------------------
+const PIPELINE_LAYER_ORDER = ['persona', 'grep', 'rag', 'tools'];
+const PIPELINE_LAYER_COLOR = {persona:'#a855f7', grep:'#ef4444', rag:'#3b82f6', tools:'#10b981'};
+const PIPELINE_LAYER_LABEL = {persona:'PERSONA', grep:'GREP', rag:'RAG', tools:'TOOLS'};
+const PIPELINE_LAYER_ROLE = {
+  persona: 'prepends an expert role / framework knowledge / response policy',
+  grep:    'matches regex KB rules — flags trafficking patterns + cites statutes',
+  rag:     'retrieves top-K docs from the evidence corpus + injects as context',
+  tools:   'pre-calls heuristic lookups — corridor caps, fee labels, NGO hotlines',
+};
+
+function _pipelineCard(opts) {
+  // opts = {step, color, title, status, statusColor, body}
+  return `
+    <div style="position:relative; padding:14px 18px; background:var(--panel); border:1px solid var(--border); border-left:4px solid ${opts.color}; border-radius:10px;${opts.dim ? ' opacity:0.45;' : ''}">
+      <div style="display:flex; justify-content:space-between; align-items:center; gap:8px;">
+        <div style="display:flex; align-items:center; gap:10px;">
+          <div style="width:24px; height:24px; border-radius:50%; background:${opts.color}; color:#fff; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:12px;">${opts.step}</div>
+          <div style="font-weight:700; color:${opts.color}; font-size:14px; letter-spacing:0.04em;">${escapeHtml(opts.title)}</div>
+        </div>
+        ${opts.status ? `<div style="font-size:10.5px; font-weight:600; padding:3px 9px; border-radius:999px; background:${opts.statusColor || 'rgba(148,163,184,0.18)'}; color:${opts.statusBg ? '#fff' : 'var(--muted)'}; text-transform:uppercase; letter-spacing:0.05em;">${escapeHtml(opts.status)}</div>` : ''}
+      </div>
+      ${opts.subtitle ? `<div style="margin-top:4px; margin-left:34px; color:var(--muted); font-size:11.5px;">${escapeHtml(opts.subtitle)}</div>` : ''}
+      ${opts.body ? `<div style="margin-top:12px; margin-left:34px;">${opts.body}</div>` : ''}
+    </div>
+  `;
+}
+
+function _pipelineArrow(opts) {
+  const label = opts.label || '';
+  return `
+    <div style="display:flex; align-items:center; justify-content:center; gap:8px; padding:6px 0;">
+      <div style="width:2px; height:18px; background:var(--border);"></div>
+      ${label ? `<div style="font-size:10.5px; color:var(--muted); padding:2px 10px; background:var(--bg); border-radius:999px; border:1px solid var(--border);">${escapeHtml(label)}</div>` : ''}
+      <div style="width:2px; height:18px; background:var(--border);"></div>
+    </div>
+    <div style="display:flex; align-items:center; justify-content:center;">
+      <div style="width:0; height:0; border-left:6px solid transparent; border-right:6px solid transparent; border-top:8px solid var(--border);"></div>
+    </div>
+  `;
+}
+
+function _renderLayerBody(layer, t) {
+  if (layer === 'persona' && t.text_preview) {
+    return `<div style="padding:10px 12px; background:rgba(168,85,247,0.06); border-radius:6px; font-size:11.5px; color:#cbd5e1; line-height:1.5; white-space:pre-wrap; font-style:italic; max-height:180px; overflow-y:auto;">${escapeHtml(t.text_preview)}</div>`;
+  }
+  if (layer === 'grep' && t.hits && t.hits.length) {
+    return t.hits.map(h => {
+      const sevClass = `severity-${h.severity || 'info'}`;
+      return `
+        <div style="margin-bottom:8px; padding:8px 10px; background:var(--bg); border-radius:6px;">
+          <div style="font-family:ui-monospace,monospace; font-size:12px; font-weight:600;">${escapeHtml(h.rule)}<span class="severity-pill ${sevClass}">${escapeHtml(h.severity)}</span></div>
+          <div style="color:var(--muted); font-size:11px; margin-top:3px;">${escapeHtml(h.citation || '')}</div>
+          <div style="color:#cbd5e1; font-size:11.5px; margin-top:4px; line-height:1.5;">${escapeHtml(h.indicator || '')}</div>
+          ${h.match_excerpt ? `<div style="color:#94a3b8; font-size:10.5px; font-family:ui-monospace,monospace; margin-top:4px; padding:4px 6px; background:rgba(0,0,0,0.3); border-radius:3px;">match: ${escapeHtml(h.match_excerpt)}</div>` : ''}
+        </div>`;
+    }).join('');
+  }
+  if (layer === 'rag' && t.docs && t.docs.length) {
+    return t.docs.map(d => `
+      <div style="margin-bottom:8px; padding:8px 10px; background:var(--bg); border-radius:6px;">
+        <div style="font-weight:600; font-size:12px;">${escapeHtml(d.title || '?')} <span style="color:var(--muted); font-size:11px; font-weight:400;">score=${d.score}${d.is_custom ? ' · custom' : ''}</span></div>
+        <div style="color:var(--muted); font-size:11px; margin-top:3px;">source: ${escapeHtml(d.source || '')}</div>
+        <div style="color:#cbd5e1; font-size:11.5px; margin-top:4px; line-height:1.5; max-height:120px; overflow-y:auto;">${escapeHtml(d.snippet || '')}</div>
+      </div>`).join('');
+  }
+  if (layer === 'tools' && t.tool_calls && t.tool_calls.length) {
+    return t.tool_calls.map(c => `
+      <div style="margin-bottom:8px; padding:8px 10px; background:var(--bg); border-radius:6px;">
+        <div style="font-family:ui-monospace,monospace; font-size:12px; font-weight:600; color:#10b981;">${escapeHtml(c.name)}(${escapeHtml(JSON.stringify(c.args))})</div>
+        <pre style="color:#cbd5e1; font-size:11px; margin:5px 0 0 0; white-space:pre-wrap; word-wrap:break-word; font-family:ui-monospace,monospace; max-height:160px; overflow-y:auto;">${escapeHtml(JSON.stringify(c.result, null, 2))}</pre>
+      </div>`).join('');
+  }
+  return '<div style="color:var(--muted); font-size:11.5px; font-style:italic;">layer ran but produced no output</div>';
+}
+
+function openPipelineModal(messageIdx) {
+  const m = messages[messageIdx];
+  if (!m || !m._harness) return;
+  const trace = m._harness;
+  const userMsg = messages[messageIdx - 1];
+  const userText = userMsg
+      ? userMsg.content.filter(c => c.type === 'text').map(c => c.text).join('\n')
+      : '(no user message)';
+  const respText = m.content.filter(c => c.type === 'text').map(c => c.text).join('\n');
+  const finalPrompt = trace._final_user_text || userText;
+  const promptGrew = finalPrompt.length > userText.length;
+
+  const cards = [];
+  // Step 1 — User input
+  cards.push(_pipelineCard({
+    step: 1, color: '#3b82f6', title: 'USER INPUT',
+    subtitle: `${userText.length} chars · raw text the user typed`,
+    body: `<pre style="background:var(--bg); padding:10px 12px; border-radius:6px; font-size:11.5px; color:#cbd5e1; white-space:pre-wrap; word-wrap:break-word; max-height:220px; overflow-y:auto; margin:0;">${escapeHtml(userText)}</pre>`,
+  }));
+
+  // Steps 2-5 — each harness layer
+  let stepNum = 2;
+  for (const layer of PIPELINE_LAYER_ORDER) {
+    const t = trace[layer];
+    if (!t) { stepNum++; continue; }
+    const isEnabled = t.enabled;
+    const isWired = t.wired;
+    let status, statusColor, body, dim;
+    if (!isWired) {
+      status = 'not wired'; statusColor = 'rgba(148,163,184,0.18)'; dim = true;
+      body = `<div style="color:var(--muted); font-size:11.5px; font-style:italic;">This kernel does not wire ${PIPELINE_LAYER_LABEL[layer]}.</div>`;
+    } else if (!isEnabled) {
+      status = 'skipped'; statusColor = 'rgba(148,163,184,0.18)'; dim = true;
+      body = `<div style="color:var(--muted); font-size:11.5px; font-style:italic;">Toggle was OFF for this message — layer was bypassed.</div>`;
+    } else {
+      status = `${t.summary || 'fired'} · ${t.elapsed_ms}ms`;
+      statusColor = PIPELINE_LAYER_COLOR[layer]; dim = false;
+      body = _renderLayerBody(layer, t);
+    }
+    cards.push(_pipelineCard({
+      step: stepNum, color: PIPELINE_LAYER_COLOR[layer],
+      title: PIPELINE_LAYER_LABEL[layer],
+      subtitle: PIPELINE_LAYER_ROLE[layer],
+      status, statusColor, statusBg: !dim, body, dim,
+    }));
+    stepNum++;
+  }
+
+  // Step 6 — Final merged prompt
+  cards.push(_pipelineCard({
+    step: stepNum++, color: '#f59e0b', title: 'FINAL MERGED PROMPT',
+    subtitle: `${finalPrompt.length} chars · ${promptGrew ? `+${finalPrompt.length - userText.length} chars added by the harness` : 'no harness modification'} · this is what Gemma actually saw`,
+    body: `<pre style="background:var(--bg); padding:10px 12px; border-radius:6px; font-size:11.5px; color:#cbd5e1; white-space:pre-wrap; word-wrap:break-word; max-height:340px; overflow-y:auto; margin:0;">${escapeHtml(finalPrompt)}</pre>`,
+  }));
+
+  // Step N — Gemma response
+  const totalLayerMs = PIPELINE_LAYER_ORDER.reduce((sum, k) => {
+    return sum + (trace[k] && trace[k].enabled && trace[k].wired ? trace[k].elapsed_ms : 0);
+  }, 0);
+  cards.push(_pipelineCard({
+    step: stepNum, color: '#10b981', title: 'GEMMA RESPONSE',
+    subtitle: `${respText.length} chars · Gemma generation: ${m._raw_elapsed_ms || '?'}ms · harness layer time: ${totalLayerMs}ms`,
+    body: `<pre style="background:var(--bg); padding:10px 12px; border-radius:6px; font-size:11.5px; color:#cbd5e1; white-space:pre-wrap; word-wrap:break-word; max-height:280px; overflow-y:auto; margin:0;">${escapeHtml(respText)}</pre>`,
+  }));
+
+  // Stitch the cards together with arrows between
+  const arrowLabels = [
+    'sent through pipeline',
+    'persona prepended',
+    'GREP findings prepended',
+    'RAG context injected',
+    'tool results injected',
+    'sent to Gemma',
+  ];
+  let html = `<p style="color:var(--muted); margin-top:0; font-size:12px;">Trace of how this one message flowed through the safety harness — from raw user input, through each enabled layer, into the final prompt Gemma received, and out as the response. Each layer either ADDS context or is SKIPPED. The bottom layer's output is what Gemma saw verbatim.</p>`;
+  for (let i = 0; i < cards.length; i++) {
+    html += cards[i];
+    if (i < cards.length - 1) {
+      html += _pipelineArrow({label: arrowLabels[Math.min(i, arrowLabels.length - 1)]});
+    }
+  }
+  document.getElementById('modal-body').innerHTML = html;
+  _setModalChrome('pipeline', LAYER_TITLES.pipeline, '');
+}
 
 function useHint(text) {
   document.getElementById('input').value = text;
@@ -310,23 +1485,83 @@ async function sendMessage() {
   }));
 
   const gen = {
-    max_new_tokens: parseInt(document.getElementById('maxtok').value) || 512,
+    max_new_tokens: parseInt(document.getElementById('maxtok').value) || 8192,
     temperature:    parseFloat(document.getElementById('temp').value) || 1.0,
     top_p:          parseFloat(document.getElementById('topp').value) || 0.95,
     top_k:          parseInt(document.getElementById('topk').value) || 64,
   };
+  const store = loadStore();
+  const personaOn = document.getElementById('tile-persona')?.dataset.enabled === 'true';
+  const toggles = {
+    persona:      personaOn || false,
+    // If active persona is null, server uses DEFAULT_PERSONA. Otherwise
+    // we send the active persona's text as override.
+    persona_text: personaOn ? (activePersonaText() || null) : null,
+    grep:         document.getElementById('tile-grep')?.dataset.enabled  === 'true' || false,
+    rag:          document.getElementById('tile-rag')?.dataset.enabled   === 'true' || false,
+    tools:        document.getElementById('tile-tools')?.dataset.enabled === 'true' || false,
+    // User-added content from localStorage. The server merges these
+    // with the built-in catalog before invoking each layer.
+    custom_grep_rules:    store.customGrepRules.length    ? store.customGrepRules    : null,
+    custom_rag_docs:      store.customRagDocs.length      ? store.customRagDocs      : null,
+    custom_corridor_caps: store.customCorridorCaps.length ? store.customCorridorCaps : null,
+    custom_fee_camouflage: store.customFeeCamouflage.length ? store.customFeeCamouflage : null,
+    custom_ngo_intake:    store.customNgoIntake.length    ? store.customNgoIntake    : null,
+  };
 
+  // Stream-aware request. Server sends SSE: comment lines (": ...") as
+  // keepalives every ~5s while the model generates, then one final
+  // "data: {...}" event with the full response. Cloudflare's free
+  // tunnel cuts idle connections at 100s, so the keepalive comments
+  // are load-bearing for any inference taking longer than ~90s.
   let result;
   try {
     const r = await fetch('/api/chat/send', {
       method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({messages: payloadMessages, generation: gen}),
+      body: JSON.stringify({messages: payloadMessages, generation: gen, toggles}),
     });
     if (!r.ok) {
       const errTxt = await r.text();
       throw new Error(`HTTP ${r.status}: ${errTxt}`);
     }
-    result = await r.json();
+    const reader = r.body.getReader();
+    const decoder = new TextDecoder('utf-8');
+    let buffer = '';
+    const tStart = Date.now();
+    while (true) {
+      const {done, value} = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, {stream: true});
+      // SSE events end with a blank line ("\n\n"). Process all complete
+      // events in the buffer; leave any partial event for next iteration.
+      let sep;
+      while ((sep = buffer.indexOf('\n\n')) !== -1) {
+        const event = buffer.slice(0, sep);
+        buffer = buffer.slice(sep + 2);
+        if (!event.trim()) continue;
+        if (event.startsWith(':')) {
+          // Keepalive comment. Update the placeholder with elapsed time
+          // so the user sees the model is still working.
+          const elapsed = ((Date.now() - tStart) / 1000).toFixed(0);
+          messages[thinkingIdx].content[0].text =
+              `… generating (${elapsed}s)`;
+          renderChat();
+          continue;
+        }
+        if (event.startsWith('data:')) {
+          const dataStr = event.slice(5).trim();
+          try {
+            result = JSON.parse(dataStr);
+          } catch (parseErr) {
+            throw new Error(`bad SSE payload: ${dataStr.slice(0, 200)}`);
+          }
+          if (result && result.error) {
+            throw new Error(result.error);
+          }
+        }
+      }
+    }
+    if (!result) throw new Error('stream ended without a result event');
   } catch (e) {
     messages[thinkingIdx] = {role:'assistant',
       content:[{type:'text', text:`⚠ Error: ${e.message || e}`}],
@@ -340,10 +1575,61 @@ async function sendMessage() {
     role:'assistant',
     content:[{type:'text', text: result.response || '(empty response)'}],
     _meta: `${result.elapsed_ms} ms · ${result.model_info?.name || 'gemma'}`,
+    _raw_elapsed_ms: result.elapsed_ms,
+    _harness: result.harness_trace || null,
+    _idx: thinkingIdx,
   };
   renderChat();
   btn.disabled = false;
   document.getElementById('input').focus();
+}
+
+function renderHarnessTrace(trace) {
+  if (!trace) return '';
+  const layers = ['persona', 'grep', 'rag', 'tools'];
+  const colors = {persona:'#a855f7', grep:'#ef4444', rag:'#3b82f6', tools:'#10b981'};
+  const labels = {persona:'Persona', grep:'GREP', rag:'RAG', tools:'Tools'};
+  const blocks = [];
+  for (const k of layers) {
+    const t = trace[k];
+    if (!t || !t.enabled) continue;
+    if (!t.wired) continue;
+    const color = colors[k];
+    let detail = '';
+    if (k === 'persona' && t.text_preview) {
+      detail = `<div style="margin:6px 0 0 0; padding:8px 10px; background:rgba(168,85,247,0.06); border-radius:4px; font-size:11.5px; color:#cbd5e1; font-style:italic;">${escapeHtml(t.text_preview)}</div>`;
+    } else if (k === 'grep' && t.hits && t.hits.length) {
+      detail = '<ul style="margin:6px 0 0 18px; padding:0;">' +
+        t.hits.map(h => `<li><b>${escapeHtml(h.rule)}</b> [${escapeHtml(h.severity||'?')}] — ${escapeHtml(h.citation||'')}<br><code style="color:#94a3b8; font-size:11.5px;">${escapeHtml(h.match_excerpt||'')}</code></li>`).join('') +
+        '</ul>';
+    } else if (k === 'rag' && t.docs && t.docs.length) {
+      detail = '<ul style="margin:6px 0 0 18px; padding:0;">' +
+        t.docs.map(d => `<li><b>${escapeHtml(d.title||'?')}</b> <span style="color:#94a3b8;">(${escapeHtml(d.source||'')})</span><br><span style="color:#cbd5e1; font-size:12px;">${escapeHtml((d.snippet||'').slice(0,200))}</span></li>`).join('') +
+        '</ul>';
+    } else if (k === 'tools' && t.tool_calls && t.tool_calls.length) {
+      detail = '<ul style="margin:6px 0 0 18px; padding:0;">' +
+        t.tool_calls.map(c => `<li><code style="color:#10b981;">${escapeHtml(c.name||'?')}(${escapeHtml(JSON.stringify(c.args||{}))})</code> → <span style="color:#cbd5e1;">${escapeHtml(JSON.stringify(c.result).slice(0,180))}</span></li>`).join('') +
+        '</ul>';
+    }
+    blocks.push(
+      `<div style="border-left:3px solid ${color}; padding:8px 12px; margin:6px 0; background:rgba(255,255,255,0.02); border-radius:4px;">
+         <div style="font-weight:600; color:${color}; font-size:12px;">▶ ${labels[k]} layer · ${escapeHtml(t.summary||'')} · ${t.elapsed_ms}ms</div>
+         ${detail}
+       </div>`);
+  }
+  if (!blocks.length) return '';
+  return `<div style="margin-top:10px;">${blocks.join('')}</div>`;
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+// JSON.stringify embedded inside an HTML attribute (onclick="...") needs
+// its inner double-quotes HTML-encoded, otherwise they collide with the
+// attribute delimiter and the browser silently ignores the click handler.
+function attrJson(v) {
+  return JSON.stringify(v).replace(/"/g, '&quot;');
 }
 
 function renderChat() {
@@ -366,7 +1652,14 @@ function renderChat() {
         bodyHtml += escapeAndFormat(c.text);
       }
     }
-    if (m._meta) bodyHtml += `<div class="meta">${m._meta}</div>`;
+    // The inline harness-trace blocks below the response have moved
+    // into the dedicated Pipeline modal -- response bubbles stay clean.
+    if (m._meta) {
+      const pipelineLink = (m._harness && m.role === 'assistant')
+          ? ` · <a href="#" onclick="openPipelineModal(${m._idx ?? 0}); return false;" style="color:var(--accent); text-decoration:none; font-weight:600;">▸ View pipeline</a>`
+          : '';
+      bodyHtml += `<div class="meta">${m._meta}${pipelineLink}</div>`;
+    }
     html += `<div class="msg ${m.role} ${cls}">
       <div class="avatar">${avatarTxt}</div>
       <div class="body">${bodyHtml}</div>

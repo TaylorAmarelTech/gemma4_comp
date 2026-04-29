@@ -23,4 +23,7 @@ Homepage = "https://github.com/TaylorAmarelTech/gemma4_comp"
 packages = ["src/duecare"]
 include = [
     "src/duecare/chat/static/**/*",
+    "src/duecare/chat/classifier_static/**/*",
+    "src/duecare/chat/harness/_examples.json",
+    "src/duecare/chat/harness/_classifier_examples.json",
 ]
