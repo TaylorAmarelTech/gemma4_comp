@@ -1,275 +1,194 @@
-# Video Script -- DueCare
+# Video Script — Duecare (v2, matches actual submission)
 
-> **Target:** 2:45 (15-second buffer under the 3:00 cap)
-> **Host:** YouTube, public, unlisted during production
-> **Judged at:** 30 points (Video Pitch & Storytelling) + 40 points
-> (Impact & Vision is judged FROM the video). **70 of 100 points live
-> in this file.**
->
-> Word count budget: ~280 words of voiceover at ~100 wpm = 2:48.
+> **Target:** 2:50 (10-second buffer under the 3:00 cap).
+> **Voiceover budget:** ~285 words at ~100 wpm = 2:51.
+> **Host:** YouTube, public.
+> **Judged at:** 30 pts (Video Pitch & Storytelling) + 40 pts (Impact &
+> Vision is judged FROM the video). **70 of 100 points live in this file.**
 
-## Framing notes (non-diegetic)
+## Framing rules (non-diegetic)
 
-Story > demo. Judges see hundreds of demos. What they don't see is the
-human consequence. Open with the stakes, earn the technical credit,
-land on the "zero-dollar evaluator on any laptop" reveal. Close with
-named NGOs so the impact isn't abstract.
+1. **No stock footage of trafficking victims.** Maps, code, the demo
+   UIs, named NGO logos — never exploit the people the tool exists for.
+2. **Maria is a composite**, labeled as such in the writeup. Use her
+   name once for emotional anchor; never claim she is real.
+3. **Human narrator**, not TTS. A clear single-take is dramatically
+   better than synthetic voice for a humanitarian topic.
+4. **The demo IS the differentiator.** The "click GREP toggle, watch
+   Gemma's response transform" moment is the whole pitch. Spend ~70
+   seconds on it.
 
-**Three hard rules:**
-1. **No stock imagery of trafficking victims.** Never exploit the
-   people this tool is meant to protect. Use abstract visuals: maps,
-   text, code, the agent dashboard, the demo UI.
-2. **Maria is a composite**, labeled as such in the writeup. We don't
-   claim she's real.
-3. **Human narrator**, not TTS. Even a one-take narration from a clear
-   speaker is markedly better than a synthetic voice for a
-   humanitarian topic.
+---
 
-## Beat sheet (2:45 total)
+## Beat sheet (2:50 total)
 
-### 0:00-0:08 -- Cold open / hook (tightened)
+### 0:00–0:08 — Cold open / hook
 
-**Visual:** A plain white screen. One sentence types on, character by
-character, in a clean serif:
+**Visual:** White screen. One sentence types on, character by character,
+in a clean serif:
 
-> _Maria's employer holds her passport and charges her for food she
-> can't afford._
+> *Maria's recruiter charged her ₱50,000 for "training fees" she didn't
+> know were illegal.*
 
-Dissolve to a map of the Philippines-Saudi Arabia recruitment corridor
-with a small marker on Jeddah.
+Dissolve to a desaturated map: the Indonesia–Hong Kong domestic-worker
+corridor with markers in Manila, Jakarta, and Hong Kong.
 
-**Voiceover:** _"When Maria asked an AI how to escape her trafficker,
-the AI told her nothing useful."_
+**Voiceover:** *"When Maria asked an LLM if her arrangement was
+legitimate, it offered her five ways to optimize her cash flow."*
 
-**Tone:** Low-key. Serious. No music yet. Dramatic pause before cut to next beat.
+**Tone:** Low. Serious. No music yet. Beat.
 
-**Composite note:** Maria is a composite character built from ILO field
-reports and POEA case files. Labeled as such in the writeup.
+**Composite note (in writeup):** Maria is a composite character built
+from POEA case files and ILO field reports.
 
-### 0:15-0:45 -- The gap
+### 0:08–0:35 — The gap (the problem we're solving)
 
-**Visual:** Screen recording of a frontier LLM (GPT-4o or similar)
-being asked a migrant-worker prompt from the trafficking domain pack's
-seed set. The response is generic, unhelpful, and misses the ILO
-indicators. Annotations pop up on screen: "Missed: passport retention
-warning under Saudi Labor Law Article 40." "Missed: ILO C181 Article 7
-on recruitment fees." "No redirect to POEA hotline 1343."
+**Visual:** Screen recording of the **chat-playground notebook on
+Kaggle** (raw Gemma 4 31B). The textbook 68%-loan prompt is pasted
+in. Gemma's response scrolls: a tidy 5-bullet "cash flow optimization"
+plan. Tripartite payment agreements. Escrow accounts. Preferred-partner
+incentives. Receivables financing.
 
-**Voiceover:**
+Annotations pop up:
 
-> _"LLMs still fail predictably on migrant-worker trafficking. My prior
-> Red-Teaming Challenge writeup documented these failures across five
-> categories and 21,000 test prompts._"
->
-> _"But the organizations that most need to evaluate LLMs for this work
-> -- frontline NGOs, recruitment regulators, labor ministries -- are
-> exactly the ones who can't send sensitive case data to frontier
-> APIs._"
->
-> _"This is a community where privacy is non-negotiable. And until
-> today, they had nothing."_
-
-**Music:** A low piano tone enters at 0:30.
-
-### 0:45-1:30 -- The swarm
-
-**Visual:** Terminal recording. Cursor types:
-
-```
-$ duecare run rapid_probe --target-model gemma_4_e4b_stock --domain trafficking
-```
-
-Cut to a web dashboard showing **12 agent tiles** arranged in a
-hexagonal grid. One at a time, they light up green as the workflow
-progresses. The Coordinator at the center pulses. The tiles are
-labeled:
-
-- Scout
-- DataGenerator
-- Adversary
-- Anonymizer
-- Curator
-- Judge
-- Validator
-- CurriculumDesigner
-- Trainer
-- Exporter
-- Historian
-- Coordinator (pulsing)
+- *"Misses ILO C029 forced-labour indicator 4 (debt bondage)"*
+- *"Misses POEA MC 14-2017 (PH→HK zero placement fee)"*
+- *"Misses HK Employment Ord §32 (wage protection)"*
+- *"No NGO referral. No statute citation. No refusal."*
 
 **Voiceover:**
 
-> _"DueCare is an agentic safety harness. You give it a model and a
-> domain pack; a swarm of 12 autonomous agents -- orchestrated by
-> Gemma 4 E4B using native function calling -- generates synthetic
-> probes, mutates them adversarially, evaluates the target model, and
-> identifies what it's missing._"
->
-> _"The entire swarm runs on a laptop. Zero cloud calls. Zero data
-> egress. Zero dollars per evaluation."_
+> *"Stock LLMs fail predictably on migrant-worker exploitation
+> scenarios. They don't cite ILO conventions. They don't recognize
+> camouflaged recruitment fees. They don't know which corridors have
+> zero-fee policies. They give the trafficker advice."*
 
-**Visual rise:** as each agent tile lights up, a small inline text
-shows its decision:
+> *"The organizations that most need to evaluate LLMs for this work
+> — frontline NGOs, recruitment regulators, labor ministries — can't
+> send sensitive case data to frontier APIs. Privacy is non-negotiable."*
 
-- `scout: domain trafficking ready (score=1.00)`
-- `anonymizer: 1,247 redactions, 3 quarantined`
-- `judge: guardrails grade_exact_match=0.68`
+**Music:** Low piano enters at 0:25.
 
-**Music:** Warm pad enters at 1:10.
+### 0:35–1:50 — The demo (the headline 75 seconds)
 
-### 1:30-2:00 -- The stock-vs-enhanced split screen (the "wow" moment)
+**Visual:** Cut to the **chat-playground-with-grep-rag-tools notebook**.
+Same 68%-loan prompt is pasted. **All four toggle tiles (Persona /
+GREP / RAG / Tools) are visible at the bottom.** Cursor clicks
+**Persona** ON (purple). Then **GREP** (red). Then **RAG** (blue).
+Then **Tools** (green). Each tile fills with color and shows `ON`.
 
-**Visual:** Split screen. **Left** panel: stock Gemma 4 E4B responding
-to the same prompt that opened the video. **Right** panel: our
-fine-tuned DueCare-trained Gemma 4 E4B responding to the same prompt.
+Cut to the response area. Gemma's response now reads:
 
-Left response is generic. Right response:
-- Refuses the exploitation framing
-- Cites ILO C181 Article 7
-- Cites Saudi Labor Law Article 40
-- Flags passport retention as an ILO forced-labor indicator
-- Redirects to POEA hotline 1343 and the Saudi Labor Ministry
-
-Green highlights bloom over the cited references. A small `cost: $0.00`
-badge appears in the top-right corner of both panels.
-
-**Voiceover:**
-
-> _"Stock Gemma 4 E4B scores 0.61 mean on our trafficking rubric on
-> Kaggle T4 — only one in five responses meet the safety threshold.
-> Fine-tuning on the DueCare curriculum lifts that to {FINETUNED_MEAN}
-> — {FINETUNED_PASS_FRACTION} pass. And zero harmful outputs across every
-> run. At zero inference cost, forever."_
-
-**Visual overlay at the moment of the delta:**
-- Left panel: "Mean score: 0.61 · 20% pass rate"
-- Right panel: "Mean score: {FINETUNED_MEAN} · {FINETUNED_PASS_PCT} pass rate"
-- Bottom badge blooms green: `Cost: $0.00 · runs on your laptop`
-
-> **Production TODO — replace placeholders before recording:**
-> `{FINETUNED_MEAN}` (target 0.87), `{FINETUNED_PASS_FRACTION}` (target
-> "four in five"), and `{FINETUNED_PASS_PCT}` (target "80%") must be
-> replaced with the **measured** numbers from the live
-> `data/finetune_comparison/stock_vs_finetuned.json` produced by the
-> 530 → 100 re-score loop. Do **not** narrate the word "projected" —
-> judges read it as "didn't ship." If 530 has not landed by the
-> recording day, swap the numeric beat for the qualitative side-by-side
-> demonstration ("watch the difference") and let the visible output do
-> the work.
-
-**Music:** Build.
-
-### 2:00-2:10 -- Gemma 4's unique features (the technical differentiator)
-
-**Visual:** Split: Left shows a WhatsApp screenshot of a recruiter
-demanding PHP 50,000 in a chat message sent as an IMAGE (not text).
-Right shows Gemma 4 reading the image and flagging it.
+> *"This scenario triggers 5 ILO forced-labour indicators including
+> debt bondage (#4), withheld wages (#7), and abuse of vulnerability
+> (#1). The 68% APR violates ILO C029 §2 and Indonesia OJK Reg
+> 10/POJK.05/2022. The salary-deduction-to-lender structure is
+> prohibited under HK Employment Ord §32 and ILO C095 Art. 9. The
+> cross-border novation pattern triggers FATF Recommendation 32. POEA
+> Memorandum Circular 14-2017 sets a zero placement fee for the
+> Philippines→Hong Kong domestic-worker corridor; any fee charged to
+> the worker is a regulatory violation. I cannot help optimize this
+> structure. Please contact POEA Anti-Illegal Recruitment Branch at
+> +63-2-8721-1144 or Mission for Migrant Workers Hong Kong at
+> +852-2522-8264."*
 
 **Voiceover:**
 
-> _"Bad actors send fee demands as images to evade text filters.
-> Gemma 4 reads them anyway. And when it finds an illegal fee, it
-> doesn't just flag it -- it calls tools."_
+> *"This is Duecare. Same Gemma 4. Four toggle layers built into the
+> chat surface. Persona — a 40-year anti-trafficking expert. GREP —
+> 22 regex rules tagged with ILO conventions and national statutes.
+> RAG — an 18-document corpus of ILO C029, C181, C095, POEA circulars,
+> BP2MI regulations, HK statutes. Tools — corridor fee caps, fee
+> camouflage decoder, ILO indicator matcher, NGO intake hotlines."*
 
-**Visual:** Terminal shows Gemma 4's function calling output:
+> *"Watch the response transform. Then click 'View pipeline.'"*
 
-```
-→ check_fee_legality(country=PH, fee=50000)
-  ILLEGAL -- RA 10022: zero fees for domestic workers
-→ lookup_hotline(country=PH)
-  POEA: 1343 | OWWA: (02) 8551-6641
-→ identify_trafficking_indicators(text=...)
-  3 ILO indicators matched: excessive fees, debt bondage, deception
-```
-
-**Voiceover:**
-
-> _"Native function calling. Multimodal understanding. Not decoration --
-> substrate."_
-
-### 2:10-2:20 -- Cross-domain proof
-
-**Visual:** Terminal again. The exact same `duecare run` command is
-typed, but now with `--domain tax_evasion`. Then again with `--domain
-financial_crime`. Three identical output tables flash by in sequence,
-each with a different domain name and different metrics.
+**Visual:** Cursor clicks `▸ View pipeline` below the response. The
+modal opens — vertical arrow flow with numbered cards: ① USER INPUT →
+② PERSONA → ③ GREP → ④ RAG → ⑤ TOOLS → ⑥ FINAL MERGED PROMPT → ⑦
+GEMMA RESPONSE. The FINAL MERGED PROMPT card fills with 13,000 chars
+of structured pre-context. Camera scrolls through.
 
 **Voiceover:**
 
-> _"This is the same harness. Drop in a new domain pack -- tax evasion,
-> financial crime, medical misinformation -- drop in a new model, and
-> it runs. When Gemma 5 ships, you add one line to a YAML file._"
->
-> _"We didn't build a fine-tuned model. We built the lab that produces
-> them."_
+> *"You see exactly how the prompt was transformed. 348 characters in.
+> 13,000 characters out. Every citation Gemma used is traceable to a
+> rule, a document, or a tool result. This is the harness."*
 
-**Music:** Peak.
+**Music:** Warm pad enters at 1:20.
 
-### 2:20-2:28 -- Two paths, one binary (consumer + enterprise)
+### 1:50–2:15 — The classification path (the dashboard reveal)
 
-**Visual:** Split screen. **Left** half: a phone screen showing the
-DueCare browser extension popup — a suspicious WhatsApp recruiter
-message is pasted in, analysis reveals ILLEGAL / BLOCK / POEA 1343.
-**Right** half: a desktop monitor showing the FastAPI dashboard, with
-the NGO intake officer running a batch of 50 cases, the heatmap
-visualization lighting up red where the rubric failed. Both halves
-share one logo strip at the bottom.
+**Visual:** Cut to the **content-classification-evaluation notebook**.
+Form on the left. Cursor clicks `▸ Examples` → modal opens with
+categorized cards. Cursor selects "WhatsApp recruiter pitch (debt
+bondage indicators)" — a card with a green-bubble WhatsApp screenshot
+mockup. Click loads text + image into the form. Click `Classify ▶`.
 
-**Voiceover:**
+A few seconds later, the result card on the right fills:
 
-> _"Same binary, two audiences. A worker pastes a message into the
-> browser extension on their laptop. An NGO intake officer runs 500
-> cases a month through the dashboard. Same Gemma 4 weights, same
-> zero cost, same no-data-leaves-your-machine guarantee."_
-
-### 2:28-2:38 -- Named NGOs + ministries (enterprise deployment reality)
-
-**Visual:** Logos or text names cascade into a 3x4 grid on a dark
-background. As each one lands, a 2-3 word mission label appears:
-
-- **Polaris Project** — US anti-trafficking hotline
-- **IJM** — Cross-border investigation
-- **ECPAT International** — Child protection
-- **GAATW** — Women's rights globally
-- **Walk Free Foundation** — Modern slavery index
-- **IOM / ILO** — UN field offices
-- **POEA** — Philippines regulator (hotline 1343)
-- **BP2MI** — Indonesia regulator
-- **HRD Nepal** — Nepal field office
-- **Ministry of Manpower** — Indonesia
-- **FATF AML teams** — For financial crime domain
-- **IRS fraud units** — For tax evasion domain
+- **Classification:** Predatory Recruitment Debt Bondage
+- **Recommended action pill:** ESCALATE TO REGULATOR (red)
+- **Overall risk:** 0.91 (red bar)
+- **Confidence:** 0.94
+- **Risk vectors:** ilo_forced_labor_indicators 0.95 high · fee_violation
+  0.88 high · wage_protection_violation 0.85 high · debt_bondage 0.92
+  high · document_retention 0.78 high
+- **NGO referrals:** POEA · BP2MI · MfMW HK
 
 **Voiceover:**
 
-> _"Every one of these organizations can deploy DueCare today. Offline.
-> On-device. Zero cost. pip install duecare-llm. MIT license."_
+> *"For an NGO intake officer with a queue of 500 cases, switch to
+> structured-output mode. Submit content. Get back a classification, a
+> risk score, per-vector magnitudes, and the NGO hotlines to refer
+> to. Filter the queue by risk threshold. Export the JSON. Same
+> harness, same Gemma 4, different deployment."*
 
-### 2:38-2:45 -- Human narrator + closer
+### 2:15–2:30 — Gemma 4's unique features (technical credit)
 
-**Visual:** Brief (5 sec) shot of a human narrator on camera — neutral
-well-lit room, looking at the camera. Then fade to end card.
+**Visual:** Hold on the classifier result card. Highlight the image
+that was attached (the WhatsApp screenshot). A small badge appears:
+"Gemma 4 multimodal — read text from screenshot."
 
-**Narrator (on camera):**
+Cut to the Tools section of the pipeline modal. Show the function call:
+`lookup_corridor_fee_cap({"origin": "Indonesia", "destination":
+"Hong Kong", "sector": "domestic"})` and the structured result
+returned.
 
-> _"If you can't send your data to the cloud — because of the law,
-> because of trust, because of trauma — DueCare runs on your laptop.
-> Privacy is non-negotiable. So the lab runs on your machine."_
+**Voiceover:**
 
-### 2:40-2:45 -- End card
+> *"Multimodal — Gemma 4 reads the WhatsApp screenshot directly.
+> Native function calling — Gemma decides when to call the corridor
+> lookup. Both are first-class in our pipeline, not decoration."*
 
-**Visual:** A single card. White background. Three lines of serif:
+### 2:30–2:42 — Two paths, one harness
 
-> **DueCare**
-> _An agentic safety harness for any model, any safety domain._
+**Visual:** Side-by-side. Left: phone showing the chat playground
+loaded in a mobile browser (a worker pasting a recruiter message).
+Right: desktop showing the content-classification dashboard (an NGO
+officer reviewing a queue).
+
+**Voiceover:**
+
+> *"Same harness. Two audiences. A migrant worker pastes a recruiter
+> message into the chat. An NGO officer triages 500 cases through the
+> dashboard. Same Gemma 4 weights. Same zero inference cost. Same
+> no-data-leaves-your-machine guarantee."*
+
+### 2:42–2:50 — Closer
+
+**Visual:** End card. White background. Three lines of serif:
+
+> **Duecare**
+> *Exercising due care in LLM safety design.*
 >
 > github.com/TaylorAmarelTech/gemma4_comp
-> kaggle.com/taylorsamarel/code
-> kaggle.com/competitions/gemma-4-good-hackathon -- Gemma 4 Good Hackathon submission
+> kaggle.com/taylorsamarel · five public Kaggle notebooks
+> Submission: Gemma 4 Good Hackathon · Safety & Trust track
 
-**Voiceover:**
+**Voiceover (on-camera narrator, 5 sec):**
 
-> _"Privacy is non-negotiable. So the lab runs on your machine."_
+> *"Privacy is non-negotiable. So the harness runs on your laptop."*
 
 Fade to black. Music fades.
 
@@ -279,48 +198,46 @@ Fade to black. Music fades.
 
 **Must have:**
 
-- [ ] Human narrator (not TTS). If you don't have one, a Fiverr
-      narrator costs $50-100 for 3 minutes.
-- [ ] 1080p minimum. Judges are watching on laptops, not phones, but
-      YouTube auto-transcodes for mobile.
-- [ ] Captions embedded in the video itself, not just auto-generated.
-      Accessibility + muted auto-play.
-- [ ] One clean music bed. Something restrained. No dramatic piano
-      sting. Suggested: a warm synth pad under the swarm beat, lifting
-      slightly at the stock-vs-enhanced reveal.
-- [ ] No stock footage of trafficking victims. Never.
+- [ ] Human narrator (not TTS). $50–100 on Fiverr if no in-house option.
+- [ ] 1080p minimum, embedded captions (accessibility + muted auto-play).
+- [ ] One restrained music bed. Suggested: warm synth pad lifting
+      slightly at the GREP-toggle-on reveal (1:00) and at the
+      classification result fill (2:00).
+- [ ] No stock footage of trafficking victims. Ever.
 
 **Asset list:**
 
-- [ ] Opening screen text animation (Maria's sentence)
-- [ ] Map screenshot: Philippines-Saudi Arabia corridor (reuse from
-      the benchmark's existing visualizations)
-- [ ] Screen recording: frontier LLM failing on a seed prompt
-- [ ] Screen recording: terminal running `duecare run rapid_probe ...`
-- [ ] Web dashboard mockup: 12 agent hex grid lighting up
-- [ ] Split-screen video: stock vs fine-tuned Gemma on the same prompt
-- [ ] Terminal recording: three sequential `duecare run` commands with
-      different `--domain` values
-- [ ] NGO list text animation
+- [ ] Cold-open serif typewriter animation (Maria's sentence)
+- [ ] Map screenshot: Indonesia/Philippines → Hong Kong corridor (no
+      personal data)
+- [ ] Screen recording: chat-playground notebook, raw 31B response
+      to the 68%-loan prompt
+- [ ] Screen recording: chat-playground-with-grep-rag-tools, cursor
+      clicking each of 4 toggles, then sending the same prompt
+- [ ] Screen recording: View pipeline modal scrolling through all 7
+      cards including the FINAL MERGED PROMPT
+- [ ] Screen recording: classification notebook, Examples modal, click
+      WhatsApp example, Classify, result card fills
+- [ ] Side-by-side phone/desktop split (the "two audiences" beat)
 - [ ] End card with URLs
 
-**Voiceover draft word count:** ~275 words at ~100 wpm = 2:45.
-Trim by 10-15 words if pacing feels rushed on first read.
+**Voiceover word count:** ~285 words. Trim 10–15 if read feels rushed.
 
-**Shoot:** Week 5 Monday.
-**Edit:** Week 5 Tuesday-Wednesday.
-**Upload:** Week 5 Thursday.
-**Verify:** Week 5 Friday (does it actually play without a login?
-captions present? runtime under 3:00?).
-**Submit:** Week 5 Friday afternoon.
+**Schedule (revised for 20-day timeline from 2026-04-28):**
+
+- **Week 1 (Apr 28 – May 4):** asset capture (screen recordings on
+  the live cloudflared URLs while the kernels are running). Lock the
+  voiceover script.
+- **Week 2 (May 5 – May 11):** edit + sound design + on-camera
+  narrator close. Color-pass.
+- **Week 3 (May 12 – May 16):** captions + final pass + upload to
+  YouTube unlisted. Test playback on phone + laptop.
+- **Submit:** May 17 (one-day buffer before the 5/18 deadline).
 
 ---
 
-## The one sentence that matters
+## The one sentence that has to land
 
-If the judge can only remember one sentence from the video, it should
-be the closing line:
+> ***"Privacy is non-negotiable. So the harness runs on your laptop."***
 
-> **_"Privacy is non-negotiable. So the lab runs on your machine."_**
-
-Everything else is support for that sentence.
+Everything else is support.
