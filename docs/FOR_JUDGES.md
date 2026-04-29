@@ -1,20 +1,26 @@
-# For Judges — Verify DueCare in 5 Minutes
+# For Judges — Verify Duecare in 5 Minutes
 
-> A focused walkthrough for Gemma 4 Good Hackathon judges. This document
-> exists so you don't have to spelunk the codebase to verify our claims.
-> Every claim in the writeup and video is backed by a file or a Kaggle
-> kernel link below.
+> A focused walkthrough for Gemma 4 Good Hackathon judges. This
+> document exists so you don't have to spelunk the codebase to verify
+> our claims. Every claim in the [writeup](./writeup_draft.md) and
+> [video](./video_script.md) is backed by a file or a Kaggle notebook
+> link below.
 
 ---
 
 ## The 30-second pitch
 
-DueCare is an agentic safety harness that fine-tunes Gemma 4 to evaluate
-LLM responses on migrant-worker trafficking safety. NGOs can't send
-sensitive case data to frontier APIs, so DueCare runs entirely on a
-laptop. It ships as 8 `pip install`-able packages and 19 Kaggle notebooks.
-Real Gemma 4 E4B baseline on Kaggle T4: **0.610 mean score, 20% pass rate,
-0% harmful output** across 50 graded trafficking prompts.
+Stock Gemma 4 fails predictably on migrant-worker exploitation
+scenarios — it cites no ILO conventions, recognizes no camouflaged
+recruitment fees, and gives traffickers operational advice. **Duecare
+wraps Gemma 4 with four toggleable safety layers** (Persona, GREP,
+RAG, Tools) and shows the *exact* prompt transformation in a
+per-response Pipeline modal.
+
+Same harness powers a **chat playground** for individual workers and
+a **structured-output classifier** for NGO triage dashboards. Ships
+as **5 public Kaggle notebooks** + **17 PyPI packages**. MIT licensed.
+Runs on a laptop. Zero data egress.
 
 ---
 
@@ -22,201 +28,148 @@ Real Gemma 4 E4B baseline on Kaggle T4: **0.610 mean score, 20% pass rate,
 
 If you have two minutes to decide if this is real:
 
-1. **Read the writeup.** `docs/writeup_draft.md` (1,490 words, under the 1,500 limit).
-   Frames the problem, the approach, the 6-dimension rubric, the real numbers.
+1. **Read the writeup.** [`docs/writeup_draft.md`](./writeup_draft.md)
+   (1,437 words, under the 1,500-word cap). Frames the problem (3 LLM
+   blind spots), the harness (4 layers), the 5 notebooks, and the two
+   deployment modes.
 
-2. **Watch the video.** Script at `docs/video_script.md` (2:45 target).
-   Opens with Maria (a composite character, labeled as such). Closes with
-   named NGO partners (Polaris, IJM, POEA, BP2MI, HRD Nepal).
+2. **Watch the video.** Script at [`docs/video_script.md`](./video_script.md)
+   (2:50 target). Opens with Maria (a composite character, labeled as
+   such). Headline beat at 0:35–1:50: cursor clicks Persona / GREP /
+   RAG / Tools tiles ON one at a time, sends the textbook 68%-loan
+   prompt, response transforms from "5 cash flow strategies" to "5 ILO
+   indicators triggered, contact POEA + MfMW HK." Closes on the
+   `▸ View pipeline` modal scrolling through 7 cards.
 
-3. **Check one completed Kaggle run.**
-   [Notebook 00 — Real Gemma 4 on 50 Trafficking Prompts (COMPLETE)](https://www.kaggle.com/code/taylorsamarel/duecare-real-gemma-4-on-50-trafficking-prompts).
-   Real Gemma 4 E4B on Kaggle T4. Outputs `gemma_baseline_findings.json`
-   saved in `data/gemma_baseline_findings.json` — 50 prompts, 6 dimensions,
-   full provenance.
+3. **Click the headline notebook.**
+   [Duecare Chat Playground with GREP RAG Tools](https://www.kaggle.com/code/taylorsamarel/duecare-chat-playground-with-grep-rag-tools).
+   Run it (T4 ×2 + Internet ON + `HF_TOKEN`). When the cloudflared URL
+   appears, click. Toggle all 4 tiles ON. Submit any example prompt.
+   Click `▸ View pipeline` below the response. **That visualization
+   is the demo.**
+
+---
+
+## The five Kaggle notebooks (the submission surface)
+
+| # | Notebook | Wheels dataset | Purpose |
+|---|---|---|---|
+| 1 | [duecare-live-demo](https://www.kaggle.com/code/taylorsamarel/duecare-live-demo) | `duecare-llm-wheels` | Full safety-harness pipeline + 22-slide deck + audit Workbench. The hosted live URL. |
+| 2 | [duecare-bench-and-tune](https://www.kaggle.com/code/taylorsamarel/duecare-bench-and-tune) *(TBD)* | `duecare-bench-and-tune-wheels` | Smoke benchmark + Unsloth SFT/DPO + GGUF export + HF Hub push. |
+| 3 | [duecare-chat-playground](https://www.kaggle.com/code/taylorsamarel/duecare-chat-playground) | `duecare-chat-playground-wheels` | Raw Gemma 4 chat. NOT the safety harness. The baseline for the comparison story. |
+| 4 | [duecare-chat-playground-with-grep-rag-tools](https://www.kaggle.com/code/taylorsamarel/duecare-chat-playground-with-grep-rag-tools) | `duecare-chat-playground-with-grep-rag-tools-wheels` | **The headline demo.** Same chat UI with 4 toggle tiles + multi-persona library + custom rule additions + 204-prompt Examples library + per-response Pipeline modal. |
+| 5 | [duecare-gemma-content-classification-evaluation](https://www.kaggle.com/code/taylorsamarel/duecare-gemma-content-classification-evaluation) | `duecare-gemma-content-classification-evaluation-wheels` | **The Agency / NGO dashboard.** Form-based content submission → structured JSON classification with risk vectors + threshold-filterable history queue + 16 example items (6 with SVG document mockups). |
 
 ---
 
 ## Five-minute verification path
 
-### Verify the technology is real (Technical Depth = 30pts)
+### Verify the technology is real (Technical Depth & Execution = 30 pts)
 
 ```bash
 git clone https://github.com/TaylorAmarelTech/gemma4_comp
 cd gemma4_comp
-pip install duecare-llm                         # or: pip install packages/duecare-llm
-python -m pytest packages -v                    # 194 tests
+pip install duecare-llm-chat duecare-llm-core duecare-llm-models
+python -c "
+from duecare.chat.harness import GREP_RULES, RAG_CORPUS, _TOOL_DISPATCH, EXAMPLE_PROMPTS, CLASSIFIER_EXAMPLES
+print(f'GREP rules: {len(GREP_RULES)}')        # expect 22
+print(f'RAG docs:   {len(RAG_CORPUS)}')        # expect 18
+print(f'Tools:      {len(_TOOL_DISPATCH)}')    # expect 4
+print(f'Example prompts:    {len(EXAMPLE_PROMPTS)}')      # expect 204
+print(f'Classifier examples: {len(CLASSIFIER_EXAMPLES)}') # expect 16
+"
 ```
 
-You should see **194 passed**. The README claims match the actual count
-(we previously had inflated numbers; those are fixed).
+Or with no install: open [`packages/duecare-llm-chat/src/duecare/chat/harness/__init__.py`](https://github.com/TaylorAmarelTech/gemma4_comp/blob/master/packages/duecare-llm-chat/src/duecare/chat/harness/__init__.py)
+and read the rule definitions, RAG corpus, tool dispatcher inline.
 
 ### Verify Gemma 4's unique features are load-bearing, not decorative
 
-Gemma 4's distinguishing features per Google's docs: **native function
-calling** and **multimodal understanding**. Both are load-bearing in
-DueCare:
-
-| Claim | File to verify | What you'll see |
-|---|---|---|
-| Function calling in the Transformers adapter | `packages/duecare-llm-models/src/duecare/models/transformers_adapter/adapter.py` | `_generate_impl` passes `tools` via `apply_chat_template`; `_parse_tool_calls` extracts Gemma's `<tool_call>...</tool_call>` output |
-| Coordinator orchestrated by Gemma 4 | `packages/duecare-llm-agents/src/duecare/agents/coordinator/coordinator.py` | `use_gemma_orchestration=True` dispatches Gemma's `tool_calls` to agents — each agent exposed as `run_<agent_id>` tool |
-| Multimodal document classification | `packages/duecare-llm-tasks/src/duecare/tasks/multimodal_classification/multimodal_classification.py` | `_load_images` loads from domain's `images/` dir; `model.generate(images=...)` processes contract photos |
-| ToolSpec.to_gemma() | `packages/duecare-llm-core/src/duecare/core/schemas/chat.py` | Renders tools in Gemma 4's native function-calling format |
+| Claim | Where to verify |
+|---|---|
+| **Native function calling** drives the Tools layer | `packages/duecare-llm-chat/src/duecare/chat/harness/__init__.py` — see `_tool_lookup_corridor_fee_cap`, `_tool_lookup_fee_camouflage`, `_tool_lookup_ilo_indicator`, `_tool_lookup_ngo_intake` registered in `_TOOL_DISPATCH`. The classifier kernel's `gemma_call` uses `tokenizer.apply_chat_template` with chat templates that support tool calls. |
+| **Multimodal understanding** drives the classifier | `packages/duecare-llm-chat/src/duecare/chat/classifier.py` — `_build_messages` includes uploaded images as content chunks; the kernel passes them to Gemma 4's multimodal `apply_chat_template`. The classifier examples include 6 SVG document mockups that demo this end-to-end. |
 
 ### Verify reproducibility
 
-Every result in the writeup has a provenance chain:
-
 | Result | Where it came from | How to reproduce |
 |---|---|---|
-| Gemma 4 E4B mean score = 0.610 | [100 Gemma Exploration](https://www.kaggle.com/code/taylorsamarel/duecare-real-gemma-4-on-50-trafficking-prompts) | Fork the kernel, click Run. Output `gemma_baseline_findings.json` matches ours in `data/`. |
-| 74,567 trafficking prompts | `packages/duecare-llm-domains/src/duecare/domains/_data/trafficking/seed_prompts.jsonl` | `wc -l packages/duecare-llm-domains/src/duecare/domains/_data/trafficking/seed_prompts.jsonl` |
-| 15 adversarial generators | `packages/duecare-llm-tasks/src/duecare/tasks/generators/` | `ls packages/duecare-llm-tasks/src/duecare/tasks/generators/ \| grep -v __` |
-| 12 agents | `packages/duecare-llm-agents/src/duecare/agents/` | `ls packages/duecare-llm-agents/src/duecare/agents/` |
-| 8 PyPI packages | `packages/` | `ls packages/` |
+| The pipeline transformation | `packages/duecare-llm-chat/src/duecare/chat/app.py:_run_harness` + `_resolve_messages` | Click `▸ View pipeline` on any chat response. The "FINAL MERGED PROMPT" card shows the byte-for-byte text Gemma saw. |
+| GREP rule citations | `packages/duecare-llm-chat/src/duecare/chat/harness/__init__.py:GREP_RULES` | 22 rules across 5 categories, each with `citation` + `indicator` fields naming ILO conventions, POEA/BP2MI/Nepal/HK statutes |
+| RAG corpus | `packages/duecare-llm-chat/src/duecare/chat/harness/__init__.py:RAG_CORPUS` | 18 docs covering ILO C029/C181/C095/C189 + POEA MCs + BP2MI Reg + HK statutes + IJM/Polaris briefs |
+| 204 example prompts | `packages/duecare-llm-chat/src/duecare/chat/harness/_examples.json` | 190 from public Kaggle benchmark notebooks (jurisdictional-hierarchy, amplification-known-attacks, victim-revictimization, financial-crime-blindness sets) + 14 hand-curated |
+| 17 PyPI packages | `packages/duecare-llm-*/` | `ls packages/` |
+| RESULTS provenance | [`RESULTS.md`](../RESULTS.md) | Every headline metric pinned to `(git_sha, dataset_version, model_revision)` |
 
-### Verify cross-domain generalization
+### Verify the safety harness actually flips Gemma's response
 
-The same harness runs on three domains. Swap `--domain` and it works:
+The shortest reproducible test:
 
-```bash
-duecare run rapid_probe --target-model gemma_4_e4b_stock --domain trafficking
-duecare run rapid_probe --target-model gemma_4_e4b_stock --domain tax_evasion
-duecare run rapid_probe --target-model gemma_4_e4b_stock --domain financial_crime
-```
+1. Open [duecare-chat-playground](https://www.kaggle.com/code/taylorsamarel/duecare-chat-playground)
+   (raw Gemma).
+2. Click `▸ Examples` → load any "Textbook compound scenarios" prompt
+   (the 68%-loan or 18%-loan example).
+3. Submit. Note Gemma's response is operational advice ("here are 5
+   strategies").
+4. Open [duecare-chat-playground-with-grep-rag-tools](https://www.kaggle.com/code/taylorsamarel/duecare-chat-playground-with-grep-rag-tools)
+   in another tab.
+5. Toggle all 4 tiles ON (Persona / GREP / RAG / Tools).
+6. Load the **same** example prompt → submit.
+7. Note Gemma's response now cites ILO C029, POEA MC 14-2017, HK
+   Employment Ord §32, and references POEA Anti-Illegal Recruitment
+   Branch hotline.
 
-Each produces a structurally identical markdown report in `reports/`.
-
----
-
-## The 23 Kaggle notebooks — organized by purpose
-
-> The raw kernel slugs use legacy numbers (`00`, `00a`, `00b`, `01`–`18`,
-> plus `Phase 2`, `Phase 3`). The logical flow is captured in the
-> canonical guide at [`docs/NOTEBOOK_GUIDE.md`](./NOTEBOOK_GUIDE.md).
-> This table groups by category.
-
-### 🚀 START — Where a judge should begin (4 notebooks)
-
-| Notebook | Kaggle slug | What it proves |
-|----------|-------------|----------------|
-| S1 — 5-minute setup and first safety evaluation | [`01-duecare-quickstart-generalized-framework`](https://www.kaggle.com/code/taylorsamarel/01-duecare-quickstart-generalized-framework) | Framework installs and scores a prompt end-to-end |
-| S2 — End-to-end walkthrough from install to report | [`610-duecare-submission-walkthrough`](https://www.kaggle.com/code/taylorsamarel/610-duecare-submission-walkthrough) | Full submission flow in one notebook |
-| S3 — Same harness on Trafficking, Tax Evasion, Financial Crime | [`duecare-cross-domain-proof`](https://www.kaggle.com/code/taylorsamarel/duecare-cross-domain-proof) | Cross-domain generalization (zero code changes) |
-| S4 — 12 autonomous agents orchestrated by Gemma 4 | [`duecare-12-agent-gemma-4-safety-pipeline`](https://www.kaggle.com/code/taylorsamarel/duecare-12-agent-gemma-4-safety-pipeline) | Full swarm + Supervisor in action |
-
-### 📊 BASELINE — Real Gemma 4 measurements (3 notebooks)
-
-| Notebook | Kaggle slug | What it proves |
-|----------|-------------|----------------|
-| **B1 — Gemma 4 9B on 50 trafficking prompts** | [`duecare-real-gemma-4-on-50-trafficking-prompts`](https://www.kaggle.com/code/taylorsamarel/duecare-real-gemma-4-on-50-trafficking-prompts) | **Primary result:** 0.610 mean score, 20% pass rate, 0% harmful phrases (real Kaggle T4 GPU run) |
-| B2 — Plain vs retrieval-augmented vs system-guided | [`duecare-rag-comparison`](https://www.kaggle.com/code/taylorsamarel/duecare-rag-comparison) | Context injection lifts scores 23–28% without training |
-| B3 — 2-billion vs 9-billion parameter Gemma 4 | [`duecare-phase-2-model-comparison`](https://www.kaggle.com/code/taylorsamarel/duecare-phase-2-model-comparison) | Size/quality trade-off within the Gemma 4 family |
-
-### 🔍 TASK — Capability-specific evaluations (5 notebooks)
-
-| Notebook | Kaggle slug | What it tests |
-|----------|-------------|----------------|
-| T1 — 15 adversarial attack vectors against Gemma 4 | [`duecare-adversarial-resistance`](https://www.kaggle.com/code/taylorsamarel/duecare-adversarial-resistance) | Gemma 4 holds up against evasion, coercion, jailbreak, persona injection, etc. |
-| T2 — Gemma 4 native tool calls + document image analysis | [`duecare-function-calling-multimodal`](https://www.kaggle.com/code/taylorsamarel/duecare-function-calling-multimodal) | Gemma 4's two distinguishing features: function calling and multimodal input |
-| T3 — Six-dimension safety grading (0-100) | [`duecare-llm-judge-grading`](https://www.kaggle.com/code/taylorsamarel/duecare-llm-judge-grading) | Refusal quality, legal accuracy, completeness, victim safety, cultural sensitivity, actionability |
-| T4 — Multi-turn conversation escalation detection | [`duecare-conversation-testing`](https://www.kaggle.com/code/taylorsamarel/duecare-conversation-testing) | Does Gemma 4 catch exploitation framed across multiple messages? |
-| T5 — 54-criterion pass/fail rubric evaluation | [`duecare-rubric-anchored-evaluation`](https://www.kaggle.com/code/taylorsamarel/duecare-rubric-anchored-evaluation) | Structured per-criterion pass/fail against the 5 trafficking rubrics |
-
-### ⚖️ COMPARE — Multi-model comparisons (5 notebooks)
-
-| Notebook | Kaggle slug | What it compares |
-|----------|-------------|------------------|
-| C1 — Gemma 4 9B vs Llama 3.1 8B, Mistral 7B, Gemma 2B (CPU analysis) | [`gemma-4-vs-llama-vs-mistral-on-trafficking-safety`](https://www.kaggle.com/code/taylorsamarel/gemma-4-vs-llama-vs-mistral-on-trafficking-safety) | Gemma 4 vs 3 similarly-sized open-source models |
-| **C2 — Gemma 4 vs Gemma 2 9B, Llama 3.1 8B, Mistral 7B, Qwen 2.5 7B, Phi 3 Mini, DeepSeek Coder** | [`duecare-gemma-4-vs-6-oss-models-via-ollama-cloud`](https://www.kaggle.com/code/taylorsamarel/duecare-gemma-4-vs-6-oss-models-via-ollama-cloud) | Six open-source models via Ollama Cloud API |
-| **C3 — Gemma 4 vs Mistral Large 2 (123B), Mistral Small 3 (24B), Mistral Nemo (12B), Ministral 8B, Mistral 7B** | [`duecare-gemma-4-vs-mistral-family`](https://www.kaggle.com/code/taylorsamarel/duecare-gemma-4-vs-mistral-family) | Full Mistral family (EU-sovereign OSS provider) |
-| **C4 — Gemma 4 vs Claude 3.5 Sonnet, GPT-4o, Gemini 1.5 Pro, Llama 3.1 405B, DeepSeek V3 (685B MoE), Qwen 2.5 72B** | [`duecare-openrouter-frontier-comparison`](https://www.kaggle.com/code/taylorsamarel/duecare-openrouter-frontier-comparison) | 9B on-device vs the six largest models in the world |
-| C5 — Gemma 4 responses scored against hand-written best and worst examples | [`duecare-comparative-grading`](https://www.kaggle.com/code/taylorsamarel/duecare-comparative-grading) | Reference-anchored grading methodology |
-
-### 🛡️ SAFETY — Red-team research (1 notebook)
-
-| Notebook | Kaggle slug | What it shows |
-|----------|-------------|---------------|
-| **SF1 — Gemma 4 stock vs SuperGemma 26B uncensored: refusal-gap analysis** | [`duecare-finding-gemma-4-safety-line`](https://www.kaggle.com/code/taylorsamarel/duecare-finding-gemma-4-safety-line) | Proves Gemma 4's safety training is load-bearing (not cosmetic hedging) by comparing against a known-unrestricted variant |
-
-### ⚙️ PIPELINE — Custom prompts & test generation (3 notebooks)
-
-| Notebook | Kaggle slug | What it does |
-|----------|-------------|--------------|
-| P1 — Select 2,000 high-value prompts from the 74,567-prompt corpus | [`duecare-curating-2k-trafficking-prompts-from-74k`](https://www.kaggle.com/code/taylorsamarel/duecare-curating-2k-trafficking-prompts-from-74k) | Prioritized, balanced test set (graded first, then category-diverse) |
-| P2 — Generate 15 adversarial variations per base prompt | [`00b-duecare-prompt-remixer-data-pipeline`](https://www.kaggle.com/code/taylorsamarel/00b-duecare-prompt-remixer-data-pipeline) | 15 attack generators expand the test space combinatorially |
-| P3 — Prompt factory: generate, validate, rank by victim impact | [`duecare-adversarial-prompt-factory`](https://www.kaggle.com/code/taylorsamarel/duecare-adversarial-prompt-factory) | Full pipeline from 10 base prompts to 200+ validated tests |
-
-### 🎯 FINE-TUNE — Improve Gemma 4 for your domain (1 notebook)
-
-| Notebook | Kaggle slug | What it does |
-|----------|-------------|--------------|
-| F1 — Gemma 4 low-rank adaptation fine-tuning + local-model export | [`duecare-phase3-finetune`](https://www.kaggle.com/code/taylorsamarel/duecare-phase3-finetune) | Trains Gemma 4 on the DueCare curriculum using Unsloth; exports as GGUF for local inference via llama.cpp |
-
-### 📈 REPORT — Results dashboards (1 notebook)
-
-| Notebook | Kaggle slug | What it shows |
-|----------|-------------|---------------|
-| R1 — Interactive safety evaluation dashboard | [`duecare-results-dashboard`](https://www.kaggle.com/code/taylorsamarel/duecare-results-dashboard) | Plotly dashboard aggregating every DueCare evaluation result |
-
-**All 23 notebooks are publicly visible on Kaggle.** The kernel slugs
-are stable URLs and will not change. See
-[`docs/NOTEBOOK_GUIDE.md`](./NOTEBOOK_GUIDE.md) for the flow diagram
-and a note on why the legacy numbering looks the way it does.
+That delta IS the demo. Click `▸ View pipeline` to see the exact
+transformation byte-for-byte.
 
 ---
 
-## Special Technology Track alignment
+## Three deployment modes
 
-| Track | Prize | Evidence |
+| Mode | Doc | Use case |
 |---|---|---|
-| **Unsloth** | $10K | `scripts/build_notebook_phase3.py` + `kaggle/kernels/duecare_phase3_finetune/` — uses official Kaggle Unsloth install (xformers + git HEAD) and SFTTrainer |
-| **llama.cpp** | $10K | GGUF Q4_K_M export in Phase 3 notebook; adapter at `packages/duecare-llm-models/src/duecare/models/llama_cpp_adapter/` |
-| **LiteRT** | $10K | Exporter agent scaffolds LiteRT output path; on-device mobile deployment is the "Worker-Side Tool" deployment mode in `docs/deployment_modes.md` |
-| **Impact & Trust** | $10K | 12 named NGO partners (Polaris, IJM, POEA, BP2MI, HRD Nepal, etc.); concrete before/after workflow in writeup § 5 |
+| Worker-side (Kaggle / local laptop) | [`docs/deployment_local.md`](./deployment_local.md) | Migrant worker pastes recruiter message, gets back ILO citations + corridor fee caps + NGO hotlines. No data leaves the device. |
+| Agency / NGO dashboard | The classifier notebook (#5 above) | Intake officer triages 500 cases via structured JSON + risk vectors + threshold-filterable history. |
+| Enterprise integration (Dockerized API) | [`docs/deployment_enterprise.md`](./deployment_enterprise.md) | `POST /api/classifier/evaluate` from your existing service. Customizable per-team rules / docs / corridor caps. |
 
 ---
 
-## What to look at first (by role)
+## What this submission is NOT claiming
 
-- **Engineer on the jury?** `packages/duecare-llm-core/src/duecare/core/contracts/` — Protocol-based contracts, no ABCs. Clean.
-- **NGO partner on the jury?** `configs/duecare/domains/trafficking/` — Real taxonomy + evidence + rubric YAML.
-- **ML researcher on the jury?** [100 Gemma Exploration](https://www.kaggle.com/code/taylorsamarel/duecare-real-gemma-4-on-50-trafficking-prompts) — Real Gemma 4 E4B baseline, 6 interactive Plotly charts.
-- **Product person on the jury?** `docs/video_script.md` — 2:45 story arc with Maria and the named NGOs.
+- We did **not** build a 12-agent autonomous swarm. We built a
+  toggleable harness with 4 layers (Persona / GREP / RAG / Tools).
+- We did **not** ship 76 notebooks as the submission. The 76-notebook
+  research pipeline lives in `kaggle/kernels/` for reproducibility but
+  the **submission is the 5 notebooks listed above**.
+- We are **not** claiming a fine-tuned Gemma 4 model is shipped at
+  submission time. The bench-and-tune notebook (#2) is the planned
+  Unsloth SFT/DPO + GGUF + HF Hub push — status TBD by the 2026-05-18
+  deadline.
 
----
-
-## Known gaps (honesty)
-
-1. **Phase 3 fine-tuning hasn't completed on Kaggle yet.** The notebook
-   is real code (real Unsloth + SFTTrainer) but takes 2-4 hours on T4 and
-   the published Gemma 4 E4B model terms need to be accepted before the
-   kernel can run. Expected completion before submission.
-
-2. **HuggingFace Hub model page is pending.** It exists as a publishing
-   target in `duecare-llm-publishing`; weights will be uploaded once
-   Phase 3 completes.
-
-3. **Live demo at src/demo/** is functional locally; a hosted HF Spaces
-   deployment is in progress.
-
-4. **Video is currently a script, not a produced video.** Recording and
-   editing scheduled for Week 4 (May 4-10) per the project plan in
-   `docs/project_phases.md`.
-
-We're noting these up front because "real, not faked for the demo" is
-the invariant we care most about. Everything that claims to be real is
-real. Everything in progress is labeled as such.
+What we ARE claiming: a working safety harness wrapping Gemma 4 that
+demonstrably transforms the model's response to migrant-worker
+exploitation scenarios from "operational advice" to "ILO-cited
+refusal + NGO referral," visualized end-to-end in a per-response
+Pipeline modal, deployable in three modes, MIT licensed, with full
+provenance tracking.
 
 ---
 
-## Contact
+## Where everything lives
 
-- **Repo:** github.com/TaylorAmarelTech/gemma4_comp (public before submission per plan)
-- **Kaggle:** kaggle.com/taylorsamarel (19 public notebooks before submission)
-- **Author:** Taylor Amarel, author of the 21K-test migrant-worker trafficking benchmark that is the foundation of this submission
+| Thing | Path |
+|---|---|
+| Source code (17 packages) | [`packages/duecare-llm-*/`](../packages/) |
+| Five Kaggle notebooks | [`kaggle/<notebook>/kernel.py`](../kaggle/) |
+| The harness module (rules, corpus, tools, examples) | [`packages/duecare-llm-chat/src/duecare/chat/harness/__init__.py`](../packages/duecare-llm-chat/src/duecare/chat/harness/__init__.py) |
+| Chat app + classifier app | [`packages/duecare-llm-chat/src/duecare/chat/app.py`](../packages/duecare-llm-chat/src/duecare/chat/app.py), [`classifier.py`](../packages/duecare-llm-chat/src/duecare/chat/classifier.py) |
+| Writeup | [`docs/writeup_draft.md`](./writeup_draft.md) |
+| Video script | [`docs/video_script.md`](./video_script.md) |
+| Provenance | [`RESULTS.md`](../RESULTS.md) |
+| Local install | [`docs/deployment_local.md`](./deployment_local.md) |
+| Dockerized API | [`docs/deployment_enterprise.md`](./deployment_enterprise.md) |
+| MIT license | [`LICENSE`](../LICENSE) |
 
 ---
 
-**Privacy is non-negotiable. The lab runs on your machine.**
+> **Privacy is non-negotiable. So the harness runs on your laptop.**

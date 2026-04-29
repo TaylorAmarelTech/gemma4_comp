@@ -17,27 +17,29 @@
 [![Tests](https://img.shields.io/badge/tests-194%20passing-brightgreen.svg)](#tests)
 [![Packages](https://img.shields.io/badge/packages-17-blue.svg)](#packages)
 
-> **For Gemma 4 Good Hackathon judges:** start at
-> [`docs/FOR_JUDGES.md`](./docs/FOR_JUDGES.md) — a focused 5-minute
-> verification walkthrough with direct links to every claim.
+> ### 🚀 Submission state (Gemma 4 Good Hackathon, due 2026-05-18)
 >
-> **For adopters:** [`docs/EXTENDING.md`](./docs/EXTENDING.md) shows
-> how to add your own safety domain, model, task, or agent in under an
-> hour. DueCare is designed to be reused.
+> **Five Kaggle notebooks** (the submission surface):
 >
-> **Two deployment paths, one binary:**
+> 1. [`duecare-live-demo`](https://www.kaggle.com/code/taylorsamarel/duecare-live-demo) — full safety-harness pipeline + slide deck + audit Workbench
+> 2. `duecare-bench-and-tune` *(TBD)* — Unsloth SFT/DPO + GGUF + HF Hub push
+> 3. [`duecare-chat-playground`](https://www.kaggle.com/code/taylorsamarel/duecare-chat-playground) — raw Gemma 4 (the baseline for the comparison story)
+> 4. [`duecare-chat-playground-with-grep-rag-tools`](https://www.kaggle.com/code/taylorsamarel/duecare-chat-playground-with-grep-rag-tools) — **the headline demo**: 4 toggleable safety layers + per-response Pipeline modal
+> 5. [`duecare-gemma-content-classification-evaluation`](https://www.kaggle.com/code/taylorsamarel/duecare-gemma-content-classification-evaluation) — **NGO dashboard scenario**: structured JSON classification + risk vectors + threshold-filtered queue
 >
-> - **Consumer** — for individual workers and their families. Install
->   the [browser extension](./deployment/browser_extension/) (Chrome/
->   Edge/Brave), paste the suspicious message, get the grade + POEA/
->   BP2MI/HRD hotline + ILO citation in Tagalog or English. Or paste it
->   into the [public web demo](./deployment/hf_spaces/) (HF Spaces).
->   No login. No account. Nothing leaves the device.
-> - **Enterprise** — for NGOs, recruitment regulators, labor ministries,
->   platform trust & safety teams. `pip install duecare-llm` then run
->   the `duecare` CLI for batch evaluation, or deploy the FastAPI
->   dashboard internally (`docker compose up` → http://localhost:8080).
->   Same Gemma 4 weights, same offline guarantee, same zero inference cost.
+> **Judges start here:** [`docs/FOR_JUDGES.md`](./docs/FOR_JUDGES.md)
+> — focused 5-minute verification.
+> **Writeup (≤1500 words):** [`docs/writeup_draft.md`](./docs/writeup_draft.md).
+> **Video script (~2:50):** [`docs/video_script.md`](./docs/video_script.md).
+> **Provenance:** [`RESULTS.md`](./RESULTS.md) — every metric pinned to `(git_sha, dataset_version, model_revision)`.
+>
+> **Three deployment modes:**
+>
+> - **Worker-side / local** — paste suspicious recruiter message into the chat playground running on free Kaggle T4 or your own GPU; get back ILO citations + corridor fee caps + NGO hotlines. Setup: [`docs/deployment_local.md`](./docs/deployment_local.md).
+> - **Agency / NGO dashboard** — form-based content submission → structured JSON risk envelope. The classifier notebook (#5 above).
+> - **Enterprise integration** — `POST /api/classifier/evaluate` from your existing service. Dockerized API: [`docs/deployment_enterprise.md`](./docs/deployment_enterprise.md).
+>
+> No data leaves the device. Privacy is non-negotiable.
 
 ---
 

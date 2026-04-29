@@ -6,13 +6,15 @@ the duecare framework lives in [`../packages/`](../packages/) — the
 files here are bundles built from those packages, plus the kernel
 sources judges open in Kaggle.
 
-## Three hackathon notebooks (the 2026 Gemma 4 Good Hackathon submission)
+## Five hackathon notebooks (the 2026 Gemma 4 Good Hackathon submission)
 
-| Folder | Kaggle URL | Purpose |
-|---|---|---|
-| [`live-demo/`](./live-demo/) | https://www.kaggle.com/code/taylorsamarel/duecare-live-demo | The user-facing live URL judges click. Full safety-harness pipeline. |
-| [`bench-and-tune/`](./bench-and-tune/) | https://www.kaggle.com/code/taylorsamarel/duecare-bench-and-tune *(TBD)* | The science / methodology piece. Smoke benchmark + Unsloth SFT + DPO + GGUF + HF Hub push. |
-| [`gemma-chat/`](./gemma-chat/) | https://www.kaggle.com/code/taylorsamarel/duecare-gemma-chat *(TBD)* | A pure Gemma 4 chat playground. NOT the safety harness. |
+| # | Folder | Kaggle URL | Purpose |
+|---|---|---|---|
+| 1 | [`live-demo/`](./live-demo/) | https://www.kaggle.com/code/taylorsamarel/duecare-live-demo (wheels: `duecare-live-demo-wheels`) | The user-facing live URL judges click. Full safety-harness pipeline + 22-slide deck + audit Workbench. |
+| 2 | [`bench-and-tune/`](./bench-and-tune/) | https://www.kaggle.com/code/taylorsamarel/duecare-bench-and-tune *(TBD)* | The science / methodology piece. Smoke benchmark + Unsloth SFT + DPO + GGUF + HF Hub push. |
+| 3 | [`chat-playground/`](./chat-playground/) | https://www.kaggle.com/code/taylorsamarel/duecare-chat-playground | Raw Gemma 4 chat playground. NOT the safety harness — the baseline for the comparison story. |
+| 4 | [`chat-playground-with-grep-rag-tools/`](./chat-playground-with-grep-rag-tools/) | https://www.kaggle.com/code/taylorsamarel/duecare-chat-playground-with-grep-rag-tools | Same chat UI with toggleable Persona/GREP/RAG/Tools safety layers + Pipeline modal showing the prompt transformation. **The headline demo.** |
+| 5 | [`gemma-content-classification-evaluation/`](./gemma-content-classification-evaluation/) | https://www.kaggle.com/code/taylorsamarel/duecare-gemma-content-classification-evaluation | Form-based content submission → structured JSON classification with risk vectors + threshold-filterable history queue. **The Agency / NGO dashboard.** |
 
 Each folder has its own `README.md` with paste-into-Kaggle
 instructions, dataset attachments needed, GPU/Secrets requirements,
@@ -30,7 +32,7 @@ Cross-notebook datasets that aren't bundled into one folder:
 ## Other folders
 
 - [`kernels/`](./kernels/) — the **76-notebook research pipeline**
-  (separate from the 3 hackathon submissions above). Each subfolder
+  (separate from the 5 hackathon submissions above). Each subfolder
   is one Kaggle kernel with its own metadata + .ipynb. Built from
   `notebooks/*.ipynb` via `python scripts/build_notebook_*.py`.
 - [`models/`](./models/) — Kaggle Models artifacts (model cards +
