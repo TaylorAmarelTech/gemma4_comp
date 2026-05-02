@@ -1,7 +1,9 @@
 .PHONY: install install-uv install-pip dev test test-stress adversarial cleanroom \
         build lint serve serve-chat serve-classifier verify reproduce \
         docker docker-build docker-up docker-down docker-logs \
-        helm helm-install helm-uninstall \
+        docker-dev docker-dev-up docker-dev-down docker-dev-shell docker-dev-test \
+        observability observability-up observability-down observability-logs \
+        helm helm-install helm-uninstall helm-lint helm-template \
         notebooks kaggle-push kaggle-status kaggle-publish-all kaggle-dry-run kaggle-auth \
         clean help
 
@@ -153,6 +155,31 @@ docker-logs:  ## Tail docker-compose logs
 docker-run:
 	docker run --rm -it duecare-llm:latest --help
 
+# ── Docker (developer hot-reload compose) ────────────────────────
+docker-dev: docker-dev-up  ## Alias for docker-dev-up
+docker-dev-up:  ## Start hot-reload dev stack (bind-mounts repo, ruff/mypy/pytest in image)
+	docker compose -f docker-compose.dev.yml up -d --build
+
+docker-dev-down:  ## Stop dev stack
+	docker compose -f docker-compose.dev.yml down
+
+docker-dev-shell:  ## Open a bash shell inside the dev container
+	docker compose -f docker-compose.dev.yml exec dev bash
+
+docker-dev-test:  ## Run pytest inside the dev container (fastest local feedback loop)
+	docker compose -f docker-compose.dev.yml exec dev pytest -x
+
+# ── Observability stack (Prometheus + Grafana + OTel + Loki) ─────
+observability: observability-up  ## Alias for observability-up
+observability-up:  ## Start Prom + Loki + OTel + Grafana (http://localhost:3000)
+	docker compose -f infra/observability/docker-compose.yml up -d
+
+observability-down:  ## Stop observability stack
+	docker compose -f infra/observability/docker-compose.yml down
+
+observability-logs:  ## Tail observability stack logs
+	docker compose -f infra/observability/docker-compose.yml logs -f --tail=100
+
 # ── Kubernetes (Helm) ────────────────────────────────────────────
 helm: helm-install  ## Alias for helm-install
 helm-install:  ## Install the Duecare Helm chart into the current kube context
@@ -162,6 +189,14 @@ helm-install:  ## Install the Duecare Helm chart into the current kube context
 
 helm-uninstall:  ## Remove the Duecare Helm release
 	helm uninstall duecare --namespace duecare
+
+helm-lint:  ## Lint the Helm chart for syntax + best-practice violations
+	helm lint infra/helm/duecare
+
+helm-template:  ## Render the Helm chart locally (preview the K8s YAML before apply)
+	helm template duecare infra/helm/duecare \
+		--namespace duecare \
+		--values infra/helm/duecare/values.yaml
 
 # ── Cleanup ──────────────────────────────────────────────────────
 clean:  ## Remove build artifacts (dist/, __pycache__, *.egg-info)

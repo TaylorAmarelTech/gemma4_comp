@@ -1,0 +1,50 @@
+# Duecare LLM — development Dockerfile.
+#
+# Differs from the production Dockerfile in three ways:
+#   1. Single stage (no wheel-build pre-pass) — installs editable
+#      from a bind-mounted source tree so a Kotlin- or Python-source
+#      change reloads the server without a rebuild.
+#   2. Includes dev tools (ruff, mypy, pytest) so `docker compose
+#      -f docker-compose.dev.yml exec dev pytest` Just Works.
+#   3. Runs as root inside the container so the bind-mounted
+#      uid/gid match the host worker. Production image runs as a
+#      non-root user.
+#
+# Usage (paired with docker-compose.dev.yml):
+#   docker compose -f docker-compose.dev.yml up
+#   docker compose -f docker-compose.dev.yml exec dev bash
+#   docker compose -f docker-compose.dev.yml exec dev pytest -x
+
+ARG PYTHON_VERSION=3.12
+
+FROM python:${PYTHON_VERSION}-slim
+
+WORKDIR /workspace
+
+# System deps for compiling native wheels + curl for healthchecks +
+# git so `pip install -e` against a local clone works.
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+        build-essential git curl ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+# uv: 10x faster than pip for the workspace install
+RUN pip install --no-cache-dir --upgrade pip wheel uv
+
+# Source is bind-mounted in via docker-compose.dev.yml. The workspace
+# install runs at container start (in the entrypoint) so a fresh
+# packages/* layout is picked up automatically.
+
+ENV DUECARE_HOST=0.0.0.0
+ENV DUECARE_PORT=8080
+ENV DUECARE_LOG_LEVEL=debug
+ENV DUECARE_OLLAMA_MODEL=gemma4:e2b
+ENV PYTHONUNBUFFERED=1
+ENV PYTHONDONTWRITEBYTECODE=1
+
+EXPOSE 8080
+
+# Default command: install the workspace editable, then run the chat
+# server with auto-reload. Override via `command:` in compose to run
+# tests / shell / something else.
+CMD ["bash", "-lc", "uv sync --all-packages && uv run python -m duecare.chat.run_server --host 0.0.0.0 --port 8080 --reload"]

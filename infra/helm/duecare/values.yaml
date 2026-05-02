@@ -199,3 +199,44 @@ affinity: {}
 # ---------------------------------------------------------------------------
 secrets:
   hfToken: ""                # if set, mounted as HF_TOKEN env var
+
+# ---------------------------------------------------------------------------
+# Pod Disruption Budget — survives node maintenance + voluntary disruptions
+# ---------------------------------------------------------------------------
+podDisruptionBudget:
+  enabled: true
+  # Pick ONE of minAvailable or maxUnavailable. minAvailable is more
+  # aggressive about keeping replicas up during a node drain.
+  minAvailable: ""           # e.g. 1 or "50%"
+  maxUnavailable: 1
+
+# ---------------------------------------------------------------------------
+# NetworkPolicy — default-deny ingress + egress, then explicit allows.
+# Requires a CNI that enforces policies (Calico, Cilium, Antrea, etc.).
+# Disable if your cluster doesn't enforce — the policy will be ignored
+# safely, but it pollutes kubectl get netpol output.
+# ---------------------------------------------------------------------------
+networkPolicy:
+  enabled: false
+  # Namespaces whose pods are allowed to call into the chat service.
+  # Set the kubernetes.io/metadata.name label on the namespace to
+  # match. Default empty = same-namespace ingress only.
+  ingressFromNamespaces: {}
+  # Allow egress to public HTTPS (for cloud Ollama / OpenAI fallback /
+  # research-tools internet search). Leave false for air-gapped
+  # deployments.
+  allowExternalHTTPS: false
+
+# ---------------------------------------------------------------------------
+# ServiceMonitor — exposes metrics to Prometheus Operator
+# (kube-prometheus-stack). Disable if your monitoring is configured
+# via static scrape jobs instead.
+# ---------------------------------------------------------------------------
+serviceMonitor:
+  enabled: false
+  namespace: ""              # leave empty to use the release namespace
+  path: /metrics
+  interval: 30s
+  scrapeTimeout: 10s
+  additionalLabels:
+    release: kube-prometheus-stack    # kube-prometheus-stack default selector

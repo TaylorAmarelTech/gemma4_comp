@@ -1,0 +1,79 @@
+# Duecare developer-facing Docker Compose — bind-mounts the repo
+# into a single dev container alongside Ollama. Source changes reload
+# without a rebuild.
+#
+# Usage:
+#   docker compose -f docker-compose.dev.yml up        # foreground
+#   docker compose -f docker-compose.dev.yml up -d     # detached
+#   docker compose -f docker-compose.dev.yml exec dev bash
+#   docker compose -f docker-compose.dev.yml exec dev pytest -x
+#   docker compose -f docker-compose.dev.yml exec dev make test
+#   docker compose -f docker-compose.dev.yml down -v   # tear down + drop volumes
+#
+# Overlays the production docker-compose.yml. To test the *production*
+# image instead, use the bare `docker compose up` (no -f flag).
+#
+# Ports:
+#   - 8080  — chat playground (auto-reload)
+#   - 11434 — Ollama (model server)
+
+services:
+
+  dev:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    image: duecare-llm:dev
+    container_name: duecare-dev
+    restart: unless-stopped
+    ports:
+      - "${DUECARE_DEV_PORT:-8080}:8080"
+    environment:
+      DUECARE_LOG_LEVEL: debug
+      OLLAMA_HOST: http://ollama:11434
+      DUECARE_OLLAMA_MODEL: ${DUECARE_OLLAMA_MODEL:-gemma4:e2b}
+      PYTHONPATH: /workspace
+    volumes:
+      # Bind-mount the entire repo for hot-reload + in-container test runs
+      - .:/workspace
+      # Persistent uv + pip cache so re-syncs are fast
+      - uv-cache:/root/.cache/uv
+      - pip-cache:/root/.cache/pip
+    depends_on:
+      ollama:
+        condition: service_healthy
+    networks: [duecare]
+    # Override the default CMD in interactive use:
+    #   docker compose -f docker-compose.dev.yml run --rm dev bash
+
+  ollama:
+    image: ollama/ollama:latest
+    container_name: duecare-dev-ollama
+    restart: unless-stopped
+    ports:
+      - "${OLLAMA_DEV_PORT:-11434}:11434"
+    volumes:
+      - ollama-dev-data:/root/.ollama
+    healthcheck:
+      test: ["CMD", "ollama", "list"]
+      interval: 30s
+      timeout: 10s
+      start_period: 30s
+      retries: 5
+    entrypoint: >
+      /bin/sh -c "
+        ollama serve &
+        sleep 5;
+        ollama pull ${DUECARE_OLLAMA_MODEL:-gemma4:e2b} || true;
+        wait
+      "
+    networks: [duecare]
+
+volumes:
+  uv-cache:
+  pip-cache:
+  ollama-dev-data:
+
+networks:
+  duecare:
+    driver: bridge

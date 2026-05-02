@@ -1,0 +1,97 @@
+{{- if .Values.networkPolicy.enabled }}
+# Default-deny all ingress + egress, then explicitly allow:
+#   - Ingress on the chat service port from the same namespace + ingress controller
+#   - Egress to the in-cluster Ollama service (or external endpoint)
+#   - Egress to the in-cluster OpenTelemetry collector
+#   - Egress to DNS (kube-system kube-dns)
+#   - Egress to HTTPS (for the optional research-tools internet search)
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "duecare.fullname" . }}-default-deny
+  labels:
+    {{- include "duecare.labels" . | nindent 4 }}
+spec:
+  podSelector:
+    matchLabels:
+      {{- include "duecare.selectorLabels" . | nindent 6 }}
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress: []
+  egress: []
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "duecare.fullname" . }}-allow-chat
+  labels:
+    {{- include "duecare.labels" . | nindent 4 }}
+spec:
+  podSelector:
+    matchLabels:
+      {{- include "duecare.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: chat
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    # Allow same-namespace pods + the ingress controller
+    - from:
+        - podSelector: {}
+        - namespaceSelector:
+            matchLabels:
+              {{- toYaml .Values.networkPolicy.ingressFromNamespaces | nindent 14 }}
+      ports:
+        - protocol: TCP
+          port: {{ .Values.chat.port }}
+  egress:
+    # DNS
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+          podSelector:
+            matchLabels:
+              k8s-app: kube-dns
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+    # In-cluster Ollama
+    - to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: {{ include "duecare.name" . }}
+              app.kubernetes.io/component: ollama
+      ports:
+        - protocol: TCP
+          port: 11434
+    # OpenTelemetry collector (if shipped alongside)
+    - to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: opentelemetry-collector
+      ports:
+        - protocol: TCP
+          port: 4317
+        - protocol: TCP
+          port: 4318
+    {{- if .Values.networkPolicy.allowExternalHTTPS }}
+    # External HTTPS (for duecare-llm-research-tools internet search +
+    # cloud Ollama / OpenAI-compatible fallback). Restrict to specific
+    # domains in production via egress firewall / Calico GlobalNetworkPolicy.
+    - to:
+        - ipBlock:
+            cidr: 0.0.0.0/0
+            except:
+              - 10.0.0.0/8
+              - 172.16.0.0/12
+              - 192.168.0.0/16
+              - 169.254.0.0/16
+      ports:
+        - protocol: TCP
+          port: 443
+    {{- end }}
+{{- end }}

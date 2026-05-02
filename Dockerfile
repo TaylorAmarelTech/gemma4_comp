@@ -40,11 +40,17 @@ COPY packages/ ./packages/
 COPY pyproject.toml ./
 
 # Build wheels into /build/dist (in-package dependency order).
+# All 17 packages — bumped from the 9-package shortlist to keep
+# duecare-llm-server, -engine, -benchmark, -training, -evidence-db,
+# -nl2sql, -research-tools, -cli reachable inside the container.
 RUN mkdir -p /build/dist \
     && for pkg in \
         duecare-llm-core duecare-llm-models duecare-llm-domains \
         duecare-llm-tasks duecare-llm-agents duecare-llm-workflows \
-        duecare-llm-publishing duecare-llm-chat duecare-llm; do \
+        duecare-llm-publishing duecare-llm-chat duecare-llm-engine \
+        duecare-llm-benchmark duecare-llm-training duecare-llm-evidence-db \
+        duecare-llm-nl2sql duecare-llm-research-tools duecare-llm-server \
+        duecare-llm-cli duecare-llm; do \
             if [ -d "packages/$pkg" ]; then \
                 echo "==> Building $pkg" \
                 && python -m build --wheel --outdir /build/dist packages/$pkg \
@@ -88,6 +94,10 @@ HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
 ENV DUECARE_HOST=0.0.0.0
 ENV DUECARE_PORT=8080
 ENV DUECARE_LOG_LEVEL=info
+# v0.6+ default model. Override via DUECARE_OLLAMA_MODEL env var, or
+# point OLLAMA_HOST at any Ollama / OpenAI-compatible endpoint that
+# already has a different model loaded.
+ENV DUECARE_OLLAMA_MODEL=gemma4:e2b
 
 ENTRYPOINT ["python", "-m", "duecare.chat.run_server"]
 CMD ["--host", "0.0.0.0", "--port", "8080"]

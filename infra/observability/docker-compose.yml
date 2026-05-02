@@ -1,0 +1,108 @@
+# Duecare observability stack — Prometheus + Grafana + OpenTelemetry
+# Collector + Loki. Bring up alongside the Duecare server stack to get
+# the dashboards a SRE expects.
+#
+# Usage:
+#   cd infra/observability
+#   docker compose up -d
+#
+# After ~30 sec:
+#   - Grafana:    http://localhost:3000  (admin / admin — change on first login)
+#   - Prometheus: http://localhost:9090
+#   - Loki:       http://localhost:3100  (query via Grafana)
+#   - OTel:       http://localhost:4317 (gRPC) / :4318 (HTTP)
+#
+# Wire the Duecare server to point at this stack:
+#   DUECARE_METRICS_ENABLED=true
+#   DUECARE_OTEL_ENDPOINT=http://otel-collector:4318
+#   DUECARE_LOKI_ENDPOINT=http://loki:3100
+#
+# These env vars are already plumbed through duecare-llm-server (see
+# packages/duecare-llm-server/src/duecare/server/observability.py).
+#
+# This stack is self-contained — no dependencies on the main
+# docker-compose.yml. Both can run side-by-side on the same host.
+
+version: "3.9"
+
+services:
+
+  prometheus:
+    image: prom/prometheus:v2.51.2
+    container_name: duecare-prometheus
+    restart: unless-stopped
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+      - "--storage.tsdb.retention.time=15d"
+      - "--web.enable-lifecycle"        # POST /-/reload
+      - "--web.console.libraries=/usr/share/prometheus/console_libraries"
+      - "--web.console.templates=/usr/share/prometheus/consoles"
+    ports:
+      - "${PROMETHEUS_PORT:-9090}:9090"
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./prometheus/rules.yml:/etc/prometheus/rules.yml:ro
+      - prometheus-data:/prometheus
+    networks: [observability]
+
+  loki:
+    image: grafana/loki:3.0.0
+    container_name: duecare-loki
+    restart: unless-stopped
+    command: ["-config.file=/etc/loki/local-config.yaml"]
+    ports:
+      - "${LOKI_PORT:-3100}:3100"
+    volumes:
+      - ./loki/loki-config.yaml:/etc/loki/local-config.yaml:ro
+      - loki-data:/loki
+    networks: [observability]
+
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.99.0
+    container_name: duecare-otel
+    restart: unless-stopped
+    command: ["--config=/etc/otel-collector.yaml"]
+    ports:
+      - "${OTEL_GRPC_PORT:-4317}:4317"   # OTLP gRPC
+      - "${OTEL_HTTP_PORT:-4318}:4318"   # OTLP HTTP
+      - "8889:8889"                       # Prometheus exposition for collector internal metrics
+    volumes:
+      - ./otel/otel-collector.yaml:/etc/otel-collector.yaml:ro
+    depends_on:
+      - prometheus
+      - loki
+    networks: [observability]
+
+  grafana:
+    image: grafana/grafana:10.4.2
+    container_name: duecare-grafana
+    restart: unless-stopped
+    ports:
+      - "${GRAFANA_PORT:-3000}:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:-admin}
+      GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_ANALYTICS_REPORTING_ENABLED: "false"
+      GF_ANALYTICS_CHECK_FOR_UPDATES: "false"
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - grafana-data:/var/lib/grafana
+    depends_on:
+      - prometheus
+      - loki
+    networks: [observability]
+
+volumes:
+  prometheus-data:
+  loki-data:
+  grafana-data:
+
+networks:
+  observability:
+    name: duecare-observability
+    # Allow the main docker-compose.yml network to attach by joining
+    # the duecare-observability network at deploy time:
+    #   docker network connect duecare-observability duecare-chat

@@ -1,0 +1,78 @@
+# OpenTelemetry Collector — receives spans + metrics + logs from
+# Duecare services, fans out to Prometheus + Loki + (optionally)
+# a managed APM endpoint.
+#
+# Receivers:
+#   - OTLP gRPC on :4317
+#   - OTLP HTTP on :4318
+#
+# Exporters:
+#   - Prometheus exposition on :8889 (scraped by Prometheus)
+#   - Loki on http://loki:3100/loki/api/v1/push
+#   - logging (debug — print to collector stderr)
+#
+# To add Datadog / New Relic / Honeycomb / Grafana Cloud, drop a new
+# exporter block below and add it to the pipeline.
+
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
+
+processors:
+  batch:
+    timeout: 10s
+    send_batch_size: 1024
+
+  # Drop or hash any attributes that look like prompt content — no
+  # raw prompts in the trace store. The harness's audit-log is the
+  # only place prompts may be retained.
+  attributes/scrub:
+    actions:
+      - key: prompt
+        action: hash
+      - key: response
+        action: hash
+      - key: user_id
+        action: hash
+
+  resource:
+    attributes:
+      - key: deployment.environment
+        from_attribute: env
+        action: insert
+        value: ${env:DUECARE_ENV:-local}
+
+exporters:
+  prometheus:
+    endpoint: 0.0.0.0:8889
+    namespace: duecare
+    send_timestamps: true
+    metric_expiration: 5m
+
+  loki:
+    endpoint: http://loki:3100/loki/api/v1/push
+    default_labels_enabled:
+      exporter: false
+      job: true
+
+  debug:
+    verbosity: basic
+
+service:
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [batch, attributes/scrub, resource]
+      exporters: [debug]
+    metrics:
+      receivers: [otlp]
+      processors: [batch, resource]
+      exporters: [prometheus]
+    logs:
+      receivers: [otlp]
+      processors: [batch, attributes/scrub, resource]
+      exporters: [loki, debug]

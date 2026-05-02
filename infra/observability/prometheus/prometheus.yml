@@ -1,0 +1,58 @@
+# Prometheus scrape config for the Duecare observability stack.
+#
+# Scrapes:
+#   - duecare-chat            (the chat playground server)
+#   - duecare-classifier      (the structured-output classifier)
+#   - otel-collector          (collector's own metrics)
+#   - prometheus              (self-scrape)
+#
+# Add new targets by editing this file and POSTing to /-/reload, or
+# by editing it in version control and re-running `docker compose up -d`.
+
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    cluster: "duecare-local"
+
+rule_files:
+  - /etc/prometheus/rules.yml
+
+scrape_configs:
+
+  - job_name: prometheus
+    static_configs:
+      - targets: ["localhost:9090"]
+
+  - job_name: duecare-chat
+    metrics_path: /metrics
+    static_configs:
+      - targets:
+          # The main docker-compose.yml puts the chat service on
+          # `duecare-chat:8080` inside its own bridge network.
+          # Cross-network resolution requires either: (a) attach the
+          # duecare-observability network to the chat container at
+          # deploy time, or (b) point this at the host gateway.
+          - "host.docker.internal:8080"
+        labels:
+          service: "duecare-chat"
+
+  - job_name: duecare-classifier
+    metrics_path: /metrics
+    static_configs:
+      - targets: ["host.docker.internal:8081"]
+        labels:
+          service: "duecare-classifier"
+
+  - job_name: otel-collector
+    static_configs:
+      - targets: ["otel-collector:8889"]
+        labels:
+          service: "otel-collector"
+
+  - job_name: ollama
+    metrics_path: /metrics
+    static_configs:
+      - targets: ["host.docker.internal:11434"]
+        labels:
+          service: "ollama"

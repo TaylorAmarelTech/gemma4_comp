@@ -12,10 +12,12 @@
 #   - classifier:       http://localhost:8081  (POST /api/classifier/evaluate)
 #   - Ollama:           http://localhost:11434 (model server)
 #
-# First run pulls the gemma2:2b Ollama model (~1.5 GB). Set
-# DUECARE_OLLAMA_MODEL=gemma2:9b in .env to use the larger variant
-# (~5.4 GB, requires 8GB+ RAM). Once Gemma 4 is in Ollama stable,
-# use gemma4:e2b (~1.5 GB) or gemma4:e4b (~4 GB).
+# First run pulls the gemma4:e2b Ollama model (~1.5 GB). Set
+# DUECARE_OLLAMA_MODEL in .env to use a different variant:
+#   gemma4:e2b   (default, ~1.5 GB INT8, fits 8 GB RAM)
+#   gemma4:e4b   (~3.5 GB, recommended for 16 GB+ RAM)
+#   gemma3:1b    (~600 MB, fastest first-token latency)
+#   gemma2:2b    (~1.5 GB legacy fallback if Gemma 4 not yet pulled)
 #
 # GPU: uncomment the `deploy.resources.reservations.devices` block
 # under the ollama service if you have NVIDIA + nvidia-container-toolkit
@@ -35,7 +37,7 @@ services:
     environment:
       DUECARE_LOG_LEVEL: ${DUECARE_LOG_LEVEL:-info}
       OLLAMA_HOST: http://ollama:11434
-      DUECARE_OLLAMA_MODEL: ${DUECARE_OLLAMA_MODEL:-gemma2:2b}
+      DUECARE_OLLAMA_MODEL: ${DUECARE_OLLAMA_MODEL:-gemma4:e2b}
     depends_on:
       ollama:
         condition: service_healthy
@@ -56,7 +58,7 @@ services:
     environment:
       DUECARE_LOG_LEVEL: ${DUECARE_LOG_LEVEL:-info}
       OLLAMA_HOST: http://ollama:11434
-      DUECARE_OLLAMA_MODEL: ${DUECARE_OLLAMA_MODEL:-gemma2:2b}
+      DUECARE_OLLAMA_MODEL: ${DUECARE_OLLAMA_MODEL:-gemma4:e2b}
     command: ["--classifier", "--host", "0.0.0.0", "--port", "8080"]
     depends_on:
       chat:
@@ -107,8 +109,8 @@ services:
       - sh
       - -c
       - |
-        echo "Pulling model ${DUECARE_OLLAMA_MODEL:-gemma2:2b}..."
-        ollama pull ${DUECARE_OLLAMA_MODEL:-gemma2:2b}
+        echo "Pulling model ${DUECARE_OLLAMA_MODEL:-gemma4:e2b}..."
+        ollama pull ${DUECARE_OLLAMA_MODEL:-gemma4:e2b}
         echo "Model ready."
     networks: [duecare]
 
