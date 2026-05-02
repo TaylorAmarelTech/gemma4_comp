@@ -1,20 +1,21 @@
 # DueCare Project Status
 
-> Last updated: 2026-04-17 (130-180 notebook band refresh)
-> Deadline: 2026-05-18 (31 days remaining)
+> Last updated: 2026-04-18 (post-cleanup pass)
+> Deadline: 2026-05-18 (30 days remaining)
 
 ## Snapshot
 
 - **Validator gate:** `python scripts/validate_notebooks.py` ->
-  `Validated 52 notebooks successfully`. Green.
-- **Adversarial validators:** 24 targeted validators pass
-  (000, 005, 140, 150, 155, 160, 170, 180, 190, 210, 220, 230, 240,
-  250, 260, 270, 335, 460, 530, 540, 600, 610, 620, 650).
-- **Kaggle kernels:** 52 directories local; the 130-180 band was
-  rebuilt and validator-cleaned in this session.
-- **Source-of-truth gap closed:** 130 slug metadata now matches the
-  prefixed Kaggle id, and 150 / 155 / 160 now use the same canonical
-  builder shell already used by 170 / 180.
+  `Validated 76 notebooks successfully`. Green.
+- **Adversarial validators:** 42 targeted validators pass across the
+  tracked suite.
+- **Kaggle kernels:** 76 directories local; every tracked kernel now
+  ships the canonical hero banner + header table and the shared
+  `canonical_hero_code` helper in `scripts/_canonical_notebook.py`.
+- **Slug source of truth:** `scripts/_public_slugs.py` is the single
+  `PUBLIC_SLUG_OVERRIDES` table. `scripts/kaggle_live_slug_map.json`
+  is still consumed by the index renderer and stays as a live-state
+  probe artifact.
 - **Shared helpers:** `scripts/_public_slugs.py` and
   `scripts/_canonical_notebook.py` now hold the duplication that used
   to be scattered across builders.
@@ -57,7 +58,7 @@ Unsloth fine-tuning (NB 530) encodes the same knowledge permanently.
 
 ### Generators (15), evaluators (7), demo app (12 API endpoints), pipeline (8 stages)
 
-Unchanged from the previous status. See `docs/the_forge.md` for the
+Unchanged from the previous status. See `docs/architecture.md` for the
 canonical list.
 
 ### Data assets
@@ -72,12 +73,12 @@ canonical list.
 
 ### Tests: 194 passing. Total Python LOC: 47,351.
 
-## Kaggle notebooks (52 local)
+## Kaggle notebooks (76 local)
 
 Full inventory is auto-generated at
 `docs/current_kaggle_notebook_state.md`. Highlights:
 
-- 52 notebook mirrors currently match 52 kernel directories locally.
+- 76 notebook mirrors currently match 76 kernel directories locally.
 - 130, 140, 150, 155, 160, 170, and 180 were rebuilt from builders in
   this session and passed their targeted validators.
 - 150 / 155 / 160 are no longer lightweight placeholders; they now use
@@ -129,7 +130,7 @@ Full inventory is auto-generated at
 - **Video Pitch and Storytelling (30).** 3-minute YouTube,
   `pip install duecare-llm` one-liner visible, stock-vs-fine-tuned
   side-by-side from 210 and 530.
-- **Technical Depth and Execution (30).** 7 PyPI packages, typed
-  Protocols, folder-per-module layout, CI-verified tests, 52 Kaggle
+- **Technical Depth and Execution (30).** 8 PyPI packages, typed
+  Protocols, folder-per-module layout, CI-verified tests, 76 Kaggle
   notebooks with canonical titles, fine-tuned model on HF Hub,
   llama.cpp and LiteRT deployment artifacts.

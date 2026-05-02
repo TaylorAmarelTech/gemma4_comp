@@ -164,39 +164,39 @@ class _StubCoordinator:
 # -------- actual tests --------
 
 
-def test_model_protocol_structural_check():
+def test_model_protocol_structural_check() -> None:
     m = _StubModel()
     assert isinstance(m, Model)
 
 
-def test_domain_pack_protocol_structural_check():
+def test_domain_pack_protocol_structural_check() -> None:
     d = _StubDomainPack()
     assert isinstance(d, DomainPack)
 
 
-def test_task_protocol_structural_check():
+def test_task_protocol_structural_check() -> None:
     t = _StubTask()
     assert isinstance(t, Task)
 
 
-def test_agent_protocol_structural_check():
+def test_agent_protocol_structural_check() -> None:
     a = _StubAgent()
     assert isinstance(a, Agent)
 
 
-def test_coordinator_protocol_structural_check():
+def test_coordinator_protocol_structural_check() -> None:
     c = _StubCoordinator()
     assert isinstance(c, Coordinator)
 
 
-def test_stub_model_generate_roundtrip():
+def test_stub_model_generate_roundtrip() -> None:
     m = _StubModel()
     result = m.generate([ChatMessage(role="user", content="hi")])
     assert result.text == "stub"
     assert result.model_id == "stub:model"
 
 
-def test_stub_task_run_produces_completed_result():
+def test_stub_task_run_produces_completed_result() -> None:
     m = _StubModel()
     d = _StubDomainPack()
     t = _StubTask()

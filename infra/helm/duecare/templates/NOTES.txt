@@ -1,0 +1,41 @@
+Duecare {{ .Chart.AppVersion }} installed!
+
+Pods coming up:
+{{- if .Values.chat.enabled }}
+  • {{ include "duecare.fullname" . }}-chat        ({{ .Values.chat.replicas }} replica{{ if ne (int .Values.chat.replicas) 1 }}s{{ end }}, autoscale {{ if .Values.chat.autoscaling.enabled }}{{ .Values.chat.autoscaling.minReplicas }}-{{ .Values.chat.autoscaling.maxReplicas }}{{ else }}off{{ end }})
+{{- end }}
+{{- if .Values.classifier.enabled }}
+  • {{ include "duecare.fullname" . }}-classifier  ({{ .Values.classifier.replicas }} replica{{ if ne (int .Values.classifier.replicas) 1 }}s{{ end }})
+{{- end }}
+{{- if .Values.ollama.enabled }}
+  • {{ include "duecare.fullname" . }}-ollama      (1 replica, {{ .Values.ollama.persistence.size }} model cache)
+{{- end }}
+
+Watch them roll out:
+  kubectl --namespace {{ .Release.Namespace }} get pods -l app.kubernetes.io/instance={{ .Release.Name }} -w
+
+Once chat is Ready:
+{{- if .Values.ingress.enabled }}
+  Open: https://{{ (index .Values.ingress.hosts 0).host }}/
+{{- else if eq .Values.service.type "LoadBalancer" }}
+  Wait for the LoadBalancer to assign an external IP:
+    kubectl --namespace {{ .Release.Namespace }} get svc -w {{ include "duecare.fullname" . }}-chat
+{{- else }}
+  Port-forward to access locally:
+    kubectl --namespace {{ .Release.Namespace }} port-forward svc/{{ include "duecare.fullname" . }}-chat 8080:{{ .Values.chat.port }}
+    open http://localhost:8080
+{{- end }}
+
+{{- if .Values.ollama.enabled }}
+
+Ollama model pull job runs as a post-install hook. Watch it:
+  kubectl --namespace {{ .Release.Namespace }} logs job/{{ include "duecare.fullname" . }}-ollama-pull -f
+
+First pull of `{{ .Values.ollama.modelTag }}` is ~1.5-5 GB depending on model. Subsequent restarts use the persistent cache.
+{{- end }}
+
+Tweak per env:
+  helm upgrade {{ .Release.Name }} ./infra/helm/duecare \
+      --namespace {{ .Release.Namespace }} \
+      --set chat.autoscaling.maxReplicas=20 \
+      --set ollama.modelTag=gemma2:9b

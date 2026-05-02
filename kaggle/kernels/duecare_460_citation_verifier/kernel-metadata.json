@@ -16,11 +16,9 @@
   ],
   "kernel_sources": [],
   "keywords": [
-    "gemma",
-    "safety",
-    "llm",
-    "trafficking",
-    "legal",
-    "citation"
+    "llm-judge",
+    "rubric",
+    "grading",
+    "safety"
   ]
 }

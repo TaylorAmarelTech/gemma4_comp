@@ -6,7 +6,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from _canonical_notebook import canonical_header_table, patch_final_print_cell
+from _canonical_notebook import canonical_header_table, canonical_hero_code, patch_final_print_cell
 from build_index_notebook import PHASES as INDEX_PHASES
 from notebook_hardening_utils import DUECARE_VERSION, harden_notebook
 from _public_slugs import PUBLIC_SLUG_OVERRIDES
@@ -18,7 +18,7 @@ KAGGLE_KERNELS = ROOT / "kaggle" / "kernels"
 FILENAME = "005_glossary.ipynb"
 KERNEL_DIR_NAME = "duecare_005_glossary"
 KERNEL_ID = "taylorsamarel/duecare-005-glossary"
-KERNEL_TITLE = 'DueCare 005 Glossary'
+KERNEL_TITLE = "005: DueCare Glossary and Reading Map"
 WHEELS_DATASET = "taylorsamarel/duecare-llm-wheels"
 KEYWORDS = ["gemma", "safety", "llm", "trafficking", "tutorial"]
 
@@ -44,9 +44,9 @@ def _kaggle_url(nb_id: str, default_slug: str) -> str:
 
 URL_000 = _kaggle_url("000", "duecare-000-index")
 URL_010 = _kaggle_url("010", "duecare-010-quickstart")
-URL_099 = _kaggle_url("099", "099-duecare-orientation-and-background-and-package-setup-conclusion")
+URL_099 = _kaggle_url("099", "099-duecare-orientation-setup-conclusion")
 URL_100 = _kaggle_url("100", "duecare-gemma-exploration")
-URL_200 = _kaggle_url("200", "duecare-200-cross-domain-proof")
+URL_200 = _kaggle_url("200", "duecare-cross-domain-proof")
 URL_500 = _kaggle_url("500", "duecare-500-agent-swarm-deep-dive")
 URL_600 = _kaggle_url("600", "duecare-600-results-dashboard")
 URL_610 = _kaggle_url("610", "duecare-610-submission-walkthrough")
@@ -57,13 +57,13 @@ URL_899 = _kaggle_url("899", "899-duecare-solution-surfaces-conclusion")
 NOTEBOOK_LINKS = {
     "000": ("duecare-000-index", "000 Index"),
     "010": ("duecare-010-quickstart", "010 Quickstart"),
-    "099": ("099-duecare-orientation-and-background-and-package-setup-conclusion", "099 Conclusion"),
+    "099": ("099-duecare-orientation-setup-conclusion", "099 Conclusion"),
     "100": ("duecare-gemma-exploration", "100 Gemma Exploration"),
     "150": ("150-duecare-free-form-gemma-playground", "150 Free Form Gemma Playground"),
     "155": ("155-duecare-tool-calling-playground", "155 Tool Calling Playground"),
     "160": ("160-duecare-image-processing-playground", "160 Image Processing Playground"),
-    "180": ("duecare-180-multimodal-document-inspector", "180 Multimodal Document Inspector"),
-    "200": ("duecare-200-cross-domain-proof", "200 Cross-Domain Proof"),
+    "180": ("180-duecare-multimodal-document-inspector", "180 Multimodal Document Inspector"),
+    "200": ("duecare-cross-domain-proof", "200 Cross-Domain Proof"),
     "500": ("duecare-500-agent-swarm-deep-dive", "500 Agent Swarm Deep Dive"),
     "530": ("duecare-530-phase3-unsloth-finetune", "530 Phase 3 Unsloth Fine-tune"),
     "540": ("duecare-540-finetune-delta-visualizer", "540 Fine-tune Delta Visualizer"),
@@ -73,6 +73,21 @@ NOTEBOOK_LINKS = {
     "650": ("650-duecare-custom-domain-walkthrough", "650 Custom Domain Walkthrough"),
     "899": ("899-duecare-solution-surfaces-conclusion", "899 Conclusion"),
 }
+
+TRACKED_NOTEBOOK_COUNT = sum(
+    1 for phase in INDEX_PHASES for nb in phase["notebooks"] if "(planned)" not in nb["id"]
+)
+PLANNED_PLACEHOLDER_COUNT = sum(
+    1 for phase in INDEX_PHASES for nb in phase["notebooks"] if "(planned)" in nb["id"]
+)
+SECTION_COUNT = len(INDEX_PHASES)
+SUNBURST_SECTIONS = [
+    (
+        phase["label"],
+        [f"{nb['id']} {nb['title']}" for nb in phase["notebooks"]],
+    )
+    for phase in INDEX_PHASES
+]
 
 # Why notebook IDs and section order do not line up: ID first digits reflect
 # the functional band (100s exploration, 200s comparison, 300s adversarial,
@@ -102,11 +117,11 @@ GLOSSARY_ROWS = [
 
     # Notation
     ("NNN prefix", "Three-digit zero-padded notebook ID. The first digit names the functional band (100s exploration, 200s comparison, 300s adversarial), not the reading order. Step of 10 between siblings leaves room for insertion.", ("000", "duecare-000-index", "000 Index")),
-    ("N99 conclusion", "The section-closing notebook at the top of each 100-slot band (099, 199 through 899). Recap, key points, and the next-section handoff.", ("099", "099-duecare-orientation-and-background-and-package-setup-conclusion", "099 Conclusion")),
-    ("Section map", "The 9-section reading order shown in 000 Index: Background and Package Setup, Free Form Exploration, Baseline Text Evaluation Framework, Baseline Text Comparisons, Advanced Evaluation, Advanced Prompt-Test Generation, Adversarial Prompt-Test Evaluation, Model Improvement Opportunities, Solution Surfaces.", ("000", "duecare-000-index", "000 Index")),
+    ("N99 conclusion", "The section-closing notebook at the top of each 100-slot band (099, 199 through 899). Recap, key points, and the next-section handoff.", ("099", "099-duecare-orientation-setup-conclusion", "099 Conclusion")),
+    ("Section map", "The 16-section reading order shown in 000 Index spans orientation, exploration, jailbreak research, baseline text evaluation, comparisons, advanced evaluation, model improvement, results, solution surfaces, deployment applications, and the explicit planned image-side sections.", ("000", "duecare-000-index", "000 Index")),
 
     # Data and grading
-    ("Domain pack", "A packaged safety domain with prompts, rubric criteria, taxonomy, evidence, and deployment context.", ("200", "duecare-200-cross-domain-proof", "200 Cross-Domain Proof")),
+    ("Domain pack", "A packaged safety domain with prompts, rubric criteria, taxonomy, evidence, and deployment context.", ("200", "duecare-cross-domain-proof", "200 Cross-Domain Proof")),
     ("Graded response", "A reference answer on a quality ladder (worst, neutral, good, best) for the same prompt.", ("110", None, "110 Prompt Prioritizer")),
     ("Rubric", "The criterion set used to judge whether a response is safe, complete, accurate, and actionable.", ("430", None, "430 Rubric Evaluation")),
     ("Anchored grading", "Scoring by comparing against hand-written best and worst references, not against a free-floating judge.", ("250", "duecare-250-comparative-grading", "250 Comparative Grading")),
@@ -121,7 +136,7 @@ GLOSSARY_ROWS = [
     ("Per-prompt rubric", "A rubric synthesized for a single prompt so scoring matches the specific failure mode that prompt targets.", ("440", "duecare-per-prompt-rubric-generator", "440 Per-Prompt Rubric Generator")),
 
     # Evaluation
-    ("Cross-domain proof", "The claim that the same harness works across trafficking, tax evasion, and financial crime.", ("200", "duecare-200-cross-domain-proof", "200 Cross-Domain Proof")),
+    ("Cross-domain proof", "The claim that the same harness works across trafficking, tax evasion, and financial crime.", ("200", "duecare-cross-domain-proof", "200 Cross-Domain Proof")),
     ("RAG", "Retrieval-augmented generation: inject domain evidence or rubric context before generating a response.", ("260", "duecare-260-rag-comparison", "260 RAG Comparison")),
     ("Function calling", "Structured tool invocation by the model using native function-call syntax rather than plain-text instructions.", ("400", "duecare-400-function-calling-multimodal", "400 Function Calling and Multimodal")),
     ("Multimodal", "Using both text and image inputs, such as document photos, in a single evaluation.", ("160", "160-duecare-image-processing-playground", "160 Image Processing Playground")),
@@ -147,8 +162,8 @@ GLOSSARY_ROWS = [
 
     # Safety and domain
     ("PII gate", "The anonymization boundary that strips or generalizes sensitive personal information before downstream use.", ("610", "duecare-610-submission-walkthrough", "610 Submission Walkthrough")),
-    ("Migration corridor", "A worker movement pattern between countries, such as Nepal to UAE or Philippines to Hong Kong.", ("200", "duecare-200-cross-domain-proof", "200 Cross-Domain Proof")),
-    ("ILO indicators", "Forced-labor and trafficking indicators defined by the International Labour Organization.", ("200", "duecare-200-cross-domain-proof", "200 Cross-Domain Proof")),
+    ("Migration corridor", "A worker movement pattern between countries, such as Nepal to UAE or Philippines to Hong Kong.", ("200", "duecare-cross-domain-proof", "200 Cross-Domain Proof")),
+    ("ILO indicators", "Forced-labor and trafficking indicators defined by the International Labour Organization.", ("200", "duecare-cross-domain-proof", "200 Cross-Domain Proof")),
     ("Named partners", "Public organizations the project references as plausible real-world deployers: Polaris Project, IJM, ECPAT, POEA, BP2MI, HRD Nepal.", ("610", "duecare-610-submission-walkthrough", "610 Submission Walkthrough")),
 ]
 
@@ -284,16 +299,31 @@ def _header_markdown() -> str:
         )
         return f"""# 005: DueCare Glossary and Reading Map
 
-This notebook defines the project vocabulary and maps each term back to the notebook that demonstrates it. Open it whenever a label, route, or section order in the suite needs to be pinned down before clicking deeper.
+This notebook defines the project vocabulary and maps each term back to the notebook that demonstrates it. Open it whenever a label, route, or deployment-surface name in the suite needs to be pinned down before clicking deeper.
 
 {header_table}
 
-This glossary is the suite's second navigation surface. [**000 Index**]({URL_000}) answers *where to click next*; 005 answers *what the notebook names and deployment-surface terms mean*, and gives you clickable routes that stay aligned with the live Kaggle slugs.
+### How 005 differs from 000 Index
+
+[**000 Index**]({URL_000}) is the suite-map surface. It lists every section, every notebook, the section coverage table, and the recommended reading routes. If you want to know **where to click next**, open 000.
+
+005 is the vocabulary surface. It does not re-list the sections or the suite map. It answers a different question: **what does this name mean**, and **which notebook is the canonical demonstration**. Term first, notebook second. Eight thematic groups scan top to bottom: project framing, notation, data and grading, prompt engineering, evaluation, orchestration and training, export and deployment, safety and domain.
 
 **Privacy is non-negotiable** is the project's load-bearing invariant: raw migrant-worker case data never leaves the deployment boundary. Every term on this page maps back to a notebook that either enforces that boundary (Anonymizer, AgentSupervisor, the on-device GGUF runtime) or proves the model still meets its safety rubric while doing so. The named partners who would deploy DueCare against this guarantee — Polaris, IJM, ECPAT, POEA, BP2MI, HRD Nepal, IOM — appear in the Solution Surfaces section.
 
 This notebook is CPU-only by design. Gemma 4 inference starts in [100 Gemma Exploration]({URL_100}) on a T4 GPU.
 """
+
+
+HERO_CODE = canonical_hero_code(
+    title=KERNEL_TITLE,
+    kicker="DueCare - Orientation Navigation Surface",
+    tagline=(
+        "One place to look up what a label means and which notebook "
+        "demonstrates it. 41 anchored terms in 8 scannable groups, "
+        "plus 5 reading paths tied to each term."
+    ),
+)
 
 
 AT_A_GLANCE_INTRO = """## At a glance
@@ -326,18 +356,18 @@ def _stat_card(value, label, sub, kind="primary"):
 
 n_terms = {len(GLOSSARY_ROWS)}
 cards = [
-    _stat_card(f"{{n_terms}}",  "glossary terms", "anchored to notebooks",   "primary"),
-    _stat_card("8",             "topic groups",   "framing -> deployment",   "info"),
-    _stat_card("9",             "sections",       "reading narrative",       "warning"),
-    _stat_card("3",             "reading paths",  "judge / adopter / depth", "success"),
+    _stat_card(f"{{n_terms}}",  "glossary terms",     "anchored to notebooks",    "primary"),
+    _stat_card("8",                     "topic groups",       "framing -> deployment",    "info"),
+    _stat_card("{len(READING_PATHS)}",  "reading paths",      "judge / adopter / depth",  "success"),
+    _stat_card("7",                     "rubric dimensions",  "5-grade + 6 weighted",     "warning"),
 ]
 display(HTML('<div style="margin:8px 0">' + ''.join(cards) + '</div>'))
 '''
 
 
-SECTION_MAP_INTRO = """## Section order
+SECTION_MAP_INTRO = f"""## Section order
 
-DueCare ships as 9 sections. Read them top to bottom for the full project arc. Notebook IDs do not align one-to-one with section order, because ID first digits reflect functional bands (100s exploration, 200s comparison, 300s adversarial) while section order reflects the reading narrative. The two are independent on purpose.
+DueCare ships as {SECTION_COUNT} sections. Read them top to bottom for the full project arc. Notebook IDs do not align one-to-one with section order, because ID first digits reflect functional bands (100s exploration, 200s comparison, 300s adversarial) while section order reflects the reading narrative. The two are independent on purpose.
 
 """
 
@@ -348,9 +378,9 @@ Paths through the suite for different reader goals. These routes complement the 
 """
 
 
-SUNBURST_INTRO = """## Suite map (sunburst)
+SUNBURST_INTRO = f"""## Suite map (sunburst)
 
-One image showing the full suite: 14 sections at the center ring, notebooks at the outer ring, sized by relative content weight. Interactive — click a section to zoom, hover a leaf to see the title.
+One image showing the full suite: {SECTION_COUNT} sections at the center ring, {TRACKED_NOTEBOOK_COUNT} tracked notebooks plus {PLANNED_PLACEHOLDER_COUNT} planned placeholders at the outer ring, sized by relative content weight. Interactive — click a section to zoom, hover a leaf to see the title.
 """
 
 SUNBURST_CODE = '''import subprocess, sys
@@ -364,20 +394,7 @@ import plotly.io as pio
 pio.renderers.default = 'notebook_connected'
 from IPython.display import HTML, display
 
-_SECTIONS = [
-    ('000 Background',      ['000 Index','005 Glossary','010 Quickstart','099 Conclusion']),
-    ('100 Free Form',       ['100 Gemma Exploration','150 Playground','152 Chat','155 Tool Calling','160 Image','170 Context Injection','180 Multimodal','190 RAG Inspector','199 Conclusion']),
-    ('180 Jailbreak',       ['181 Viewer','182 Refusal Direction','183 Amplifier','184 Frontier Consult','185 Comparison','186 Stock','187 Abliterated','188 Uncensored','189 Cracked 31B']),
-    ('200 Text Eval',       ['105 Corpus','110 Prioritizer','120 Remixer','130 Exploration','140 Mechanics','299 Conclusion']),
-    ('300 Comparisons',     ['200 Cross-Domain','210 OSS','220 Ollama','230 Mistral','240 OpenRouter','250 Comparative','260 RAG','270 Generations','399 Conclusion']),
-    ('400 Advanced Eval',   ['300 Adversarial','335 Attack Vectors','400 FC+Multimodal','410 LLM Judge','420 Conversation','460 Citations','499 Conclusion']),
-    ('500 Prompt Gen',      ['310 Factory','430 Rubric','440 Per-Prompt','699 Conclusion']),
-    ('600 Adversarial Eval',['320 Safety Line','450 Worst Response','799 Conclusion']),
-    ('700 Improvement',     ['500 Agent Swarm','510 Phase 2','520 Curriculum','530 Fine-tune','540 Delta','599 Conclusion']),
-    ('800 Results',         ['600 Dashboard']),
-    ('900 Solution',        ['610 Submission','620 Demo API','650 Custom Domain']),
-    ('999 Close',           ['899 Conclusion']),
-]
+_SECTIONS = {json.dumps(SUNBURST_SECTIONS, indent=4)}
 
 labels = ['DueCare Suite']
 parents = ['']
@@ -397,7 +414,7 @@ fig = go.Figure(go.Sunburst(
     insidetextfont=dict(size=11, color='white'),
 ))
 fig.update_layout(
-    title=dict(text='DueCare notebook suite — 14 sections, 50+ notebooks', font_size=17),
+    title=dict(text='DueCare notebook suite — {SECTION_COUNT} sections, {TRACKED_NOTEBOOK_COUNT} tracked + {PLANNED_PLACEHOLDER_COUNT} planned', font_size=17),
     template='plotly_white', height=620, margin=dict(t=60, l=10, r=10, b=10),
 )
 fig.show()
@@ -479,12 +496,10 @@ FINAL_PRINT = (
 
 def build() -> None:
     cells = [
+        _code(HERO_CODE),
         _md(_header_markdown()),
         _md(AT_A_GLANCE_INTRO),
         _code(AT_A_GLANCE_CODE),
-        _md(SUNBURST_INTRO),
-        _code(SUNBURST_CODE),
-        _md(SECTION_MAP_INTRO + _section_order_table_html()),
         _md(READING_PATHS_INTRO + _reading_paths_table_html()),
         _md("## Glossary: " + GLOSSARY_GROUPS[0][0] + "\n\n" + _glossary_table_html(GLOSSARY_GROUPS[0][1])),
         _md("## Glossary: " + GLOSSARY_GROUPS[1][0] + "\n\n" + _glossary_table_html(GLOSSARY_GROUPS[1][1])),

@@ -1,0 +1,24 @@
+{
+  "id": "taylorsamarel/duecarellm-streamlined-gen-a19",
+  "title": "DueCareLLM Streamlined 01: Adversarial Prompt and Test Generation",
+  "code_file": "strm_01_prompt_test_generation.ipynb",
+  "language": "python",
+  "kernel_type": "notebook",
+  "is_private": false,
+  "enable_gpu": true,
+  "enable_tpu": false,
+  "enable_internet": true,
+  "dataset_sources": [],
+  "competition_sources": [
+    "gemma-4-good-hackathon"
+  ],
+  "kernel_sources": [],
+  "keywords": [
+    "gemma",
+    "safety",
+    "trafficking",
+    "streamlined",
+    "uncensored",
+    "duecarellm"
+  ]
+}

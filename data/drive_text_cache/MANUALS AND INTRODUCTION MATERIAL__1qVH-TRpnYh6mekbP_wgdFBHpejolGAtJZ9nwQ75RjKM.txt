@@ -1,0 +1,1054 @@
+﻿Case Work Manual
+
+
+1. Common Acronyms and Terms
+2. Navigating Google Folders
+Client folders, casework folders, general organization.
+3. Facebook Pages and Messenger
+Assisting clients online, collecting evidence.
+   4. Online Tools
+   1. SignRequest 
+Sign documents on mobile phones.
+   2. Document Studio
+Google Spreadsheet data to Google Document.
+   3. Form Director
+Google Form data to Google Document.
+   4. EC Ship
+Generate shipping labels for postage.
+      5. Client Meetings
+Onboarding process, procedures and substantive advice. 
+      6. Actions (Hong Kong)
+         1. Data Access Request
+A.k.a. “PDPO request” under Personal Data (Privacy) Ordinance 
+         2. Demand Letter to Money Lenders
+         3. Consumer Council Complaint
+         4. EAA (Labour) Complaint
+         5. Police Report
+         6. Customs Report
+         7. Useful Links
+________________
+
+
+1. Common Acronyms and Terms
+
+
+General Terms
+         * OFW: Overseas Filipino Worker (term used in the Philippines)
+         * TKI/TKW: Indonesian term for foreign domestic worker
+         * PDOS: Pre-Departure Orientation Seminar
+         * TESDA: Technical Education and Skills Development Authority
+         * RA: Republic Act (Philippines law, followed by a number e.g. 10022)
+	Other Non-Governmental Organizations 
+         * MFMW: Mission for Migrant Workers
+         * HELP: Help For Domestic Workers (at St John’s Cathedral)
+	Finance Related Terms
+         * AML: Anti Money Laundering
+         * CTF/CFT: Counter Terrorism Financing / Counter-Financing of Terrorism
+         * MSO: Money Service Operator
+         * SVF: Stored Value Facility
+         * MLLC: Money Lenders Licensing Conditions
+	Hong Kong Authorities and Government Bodies
+         * EAA: Employment Agencies Administration of the Labour Department
+         * LD: HK Labour Department
+         * ImmD: Immigration Department
+         * CE&D/Customs: Customs and Excise Department 
+         * HKPF: Hong Kong Police Force
+         * JFIU: Joint Financial Intelligence Unit of Hong Kong Police
+         * HKMA: Hong Kong Monetary Authority 
+         * CR: Companies Registry
+	Hong Kong Legal Terms
+         * PDPO: Personal Data (Privacy) Ordinance
+         * PDPO Request: Data Access request under PDPO
+         * TDO: Trade Descriptions Ordinance
+         * MLO: Money Lenders Ordinance
+         * EO: Employment Ordinance
+         * CO: Companies Ordinance, Crimes Ordinance, or Competition Ordinance
+         * TO: Theft Ordinance
+         * LT: Labour Tribunal 
+         * SCT: Small Claims Tribunal
+	Philippines Authorities and Government Bodies
+         * POLO: Philippines Overseas Labour Office (body of Philippines but has office in HK)
+         * POEA: Philippine Overseas Employment Administration
+         * CIDG: Criminal Investigation and Detection Group
+         * DOLE: Department of Labour and Employment 
+         * SEC: Securities and Exchange Commission
+         * PCC: Presidential Complaint Center 
+         * NPC: National Privacy Commission
+         * NBI: National Bureau of Investigations
+	2. Navigating Google Folders
+
+
+A. Case Folders
+
+
+         1. Case folders are usually in one of the following locations:
+         1. GMLC Cases folder
+         2. Migrasia Investigations folder
+
+
+         2. Within each case folder, usually the following sub-folders and files can be found:
+         1. Client folders (often called “known victims”)
+         2. Binder files (if any):
+         1. Typology/diagram of the scheme
+         2. List of suspects (often called “rap sheets”)
+         3. Key figures
+         4. Summary of the relevant laws 
+         5. Descriptions of violations and supporting evidence
+         6. Table of witnesses and their documents
+         3. Evidence, including screenshots of conversations, harassment, payment instructions, etc.
+         4. Various letters to the lender, agency, authorities, money service operators, banks, etc.
+         5. Complaints and reports to authorities 
+         6. For lending companies, spreadsheets containing loan information and interest rates
+
+
+         3. If there are unorganized files which obviously belong into an existing folder, please move the files. 
+
+         4. If there are files such as unorganized letters/scans, please create new folders with the appropriate names.
+
+
+B. Client Folders
+            1. Client folders are usually called “known victims” in each case folder.
+
+            2. Client folders usually contain the following:
+               1. Scanned documents, including:
+               1. Employment contract
+               2. Passport
+               3. HKID
+               4. Certificates, e.g. training centre, PDOS
+               5. Receipts from employment agency, training, medical check, etc.
+               6. Employment agency paperwork, e.g. instructions, flyers, business card
+               7. Loan paperwork, e.g. payment slips, payment instructions, business card 
+               8. Receipts of loan instalments paid
+               9. Demand letters received
+               2. Screenshots, including:
+               1. Conversations with employment agency staff
+               2. Conversations with lending company, e.g. instructions for payment, harassment, bank account details
+               3. Suspects’ phone numbers, Facebook profiles
+               3. Scanned copies of completed letters or forms, including:
+               1. POLO and EAA checklist
+               2. POLO form
+               3. SEC complaint
+               4. PDPO data requests
+               5. Record of Consumer Council complaint
+               6. Record of EAA online complaint
+               7. Records of any other letters signed or complaints made
+               8. Any letters received by the client sent to our office address
+               4. Notes and action plan for client (if applicable)
+               5. Support letter
+               6. Statements made, e.g.
+               1. Police statements
+               2. EAA statements
+
+
+               3. If clients send any of the information above via Messenger, e.g. photo of passport or loan payment slips, immediately upload them to the client’s folder and give the file a suitable name.
+________________
+
+
+3. Facebook Pages and Messenger
+
+
+A. General Onboarding 
+               1. Please see the following manuals:
+               1. Virtual Assistants and Volunteers - note especially the common queries and responses. 
+               2. Brief Agency and Lender Manual - for how to screen each case and actions to take
+               3. Social Media Scraping 
+
+                  2. Many clients find us through one of these three Facebook pages, although we operate many more:
+                  1. SAFE HK
+                  2. Report Bad Agencies
+                  3. Help & Support for HK Domestic Workers
+
+
+                  3. For casework purposes, the inbox and messages of these pages will be most important. Clients often seek advice initially here before visiting the office if needed.
+
+
+B. Actions 
+                  1. For money lenders, send the relevant Google Form link to collect information and ask for screenshots. 
+                  1. List of links to money lender assistance forms.
+
+
+                  2. For employment agency issues, ask for a copy of the PDOS and ask how much was paid in total. In general, refunds may be available for payments of over 25,000 pesos 
+
+                  3. Support letter. This is automatically generated if the money lender assistance form is completed by the client, and can be found by searching in Google Drive for the client’s name. 
+                     1. If making support letters manually, see the list of support letter templates.
+                     2. Do not give support letters to people unless we know their identity, i.e. we have seen their passport or HKID and they genuinely wish to file complaints
+
+
+C. Additional Notes
+                     1. For certain cases, you may need to use SignRequest for clients to sign documents remotely. This speeds up the process considerably. Ask for the client’s email address and see the guide below on how to use SignRequest. 
+
+
+                     2. Look out for potential spies from agencies or lending companies. Spies may continuously ask questions with no intention to provide information about their own situation. When in doubt, please inform a member of staff.
+
+
+                     3. Ensure all files are uploaded to Google Drive immediately. The sheer amount of files we receive (often without identifiers) means that if they are not uploaded to the correct client folder, it is highly likely they will get lost. 
+
+                     4. Do not give a mobile phone number. Explain that our team responds fastest on Facebook.
+
+                     5. Do not give your own name or contact details. Only provide our email address should clients ask: globalmigrationassistance@gmail.com 
+
+                     6. Do not give our office address. Simply saying HKU station Exit B near McDonalds usually suffices. A member of staff usually will pick clients up from there. 
+________________
+4.1. SignRequest
+
+
+NB. For some SEC complaints, note that the complaints are automatically sent by email to the client after filling out the money lender assistance form: see the automated process with Zapier.
+                        1. Clients scan the appropriate QR code and fill out a Google Form link including:
+                        1. Full name
+                        2. Email
+                        3. Contact no.
+                        2. Google Form is integrated with SignRequest via Zapier to automatically send an SignRequest email to the victim;
+                        3. After signing the documents GlobalMigrationAssistance@gmail.com sends an email to cgfd_md@sec.gov.ph with the completed SignRequest documents.
+
+
+A. Setting Up and Sending Forms on SignRequest
+The instructions below use the SEC complaint for Hoya to illustrate. 
+
+
+                        1. Go to https://signrequest.com/ and login with Google using globalmigrationassistance@gmail.com. Consult a member of staff for login details. 
+
+
+                        2. Go to the top right corner and click on the appropriate Team. For instance, click on Assistance for HOYA if the HOYA SEC complaint is required. Then click on the Templates tab on the left menu. Find the applicable document and click SignRequest. (If you do not see a menu on the left, skip this step.)
+  
+
+
+
+                        3. Under the selected document, check only others need to sign, and enter the client’s email address under contact(s). Scroll down and click send. Please note that as of June 2020, completing the Witness Information form for each lender will automatically send the SEC form to the client’s email address, hence this step is usually automatically completed.
+  
+  
+
+
+
+                        4. To access completed forms, click My Documents at the top of the page. If there is a side menu on the left, click documents. The forms should also automatically appear in the Google Drive folder SignRequest and should be searchable by typing the client’s email address into Google Drive.
+
+
+                        5. If there is incorrect information or a formatting error, the form may either be sent out again for the client to fill, or where the format is the fault of SignRequest, the completed form may be edited by our staff. Ensure the client consents to any changes made after signing.
+
+
+B. Adding Templates to SignRequest
+
+
+                        1. If there is no existing “Team”, create one.
+
+
+                        2. To edit the template or add a new one, click My Documents at the top of the page, and click Templates on the left menu. 
+
+                        3. If uploading a file, ensure it is in PDF format.
+
+                        4. Click anywhere on the document to add a new field. You may add fields for: a signature, date, text, and checkbox.
+  
+
+C. Filling in the SignRequest Form on a Mobile Device
+Some clients may need additional guidance on how to fill out the form. Please guide them through the following steps. 
+
+
+                           1. Clients should provide an email address on Messenger or on the relevant Google Form. They may also provide it in the Client Intake Form if at the office (see section on Client Meetings).
+
+
+                           2. Client to check email for a message from “GlobalMigration Assistance”. Clients should scroll down and click the green box “review document”. If an email is not received, the Spam folder should be checked.
+  
+
+
+
+                           3. If prompted, click “No thanks, sign document without logging in”
+  
+
+
+
+                           4. Follow the blue arrows to fill in the fields. Enter the correct text when asked to. 
+  
+  
+
+
+
+
+
+                           5. Provide a signature at the end of the form. Clients may enter text or draw a signature.
+  
+  
+
+
+
+                           6. After completing all the fields, follow the blue arrow and click “Finalize”.
+  
+
+
+
+                           7. Check the “I agree” box and click “sign”.
+  
+
+
+
+                           8. Clients will receive a confirmation email after completion. There will be a copy of the completed form attached.
+  
+  
+
+
+
+                           9. Information submitted may occasionally be incorrect or in a strange format. The completed PDF form may be edited by our staff but ensure the changes are consented to by the client.
+________________
+
+
+4.2. Document Studio
+
+
+Introduction:
+                           * Document Studio is an add-on for Google Docs which allows for mail-merge documents to be generated from a spreadsheet. 
+                           * Document Studio is primarily used for generating loan interest rate calculations, and has been set up for most spreadsheets for existing cases, including Cash4U, HOYA, FamilyHan. Links are provided in the Useful Links section.
+	
+
+1. Download and install the Document Studio add-on for Google documents.
+  
+
+
+
+2. Prepare a spreadsheet containing information to use for mail merge. 
+  
+
+
+
+3. Prepare a template for the mail merge document. Put variable markers inside two sets of curly brackets: {{marker name}}. 
+  
+
+
+
+4. Generate merged files on Document Studio.
+
+
+4.1. Open Document Studio on Google Sheets file, under the “Add-ons” menu.
+  
+
+
+
+4.2. Link the Google Sheets file to the template file. 
+  
+  
+
+
+
+4.3. Check that the markers have been correctly identified.
+  
+ 
+
+
+4.4. Name the merged file and select export format.
+  
+
+
+
+Merged file name:
+Name can be customized with markers. 
+For example: {{full name}}.
+
+
+Export format:
+Supported formats include: PDF, Google Document, Word, plain text, rich text, HTML web page.
+
+
+4.5. Select output location.
+  
+  We usually select Google Drive as documents are for our use.
+
+
+4.6. Complete the merge.   
+
+
+Note that the free version only allows 20 files to be generated every 20 hours. You may switch to a different Google account to use its quota,
+
+
+5. Check that the merge has been successfully completed.
+  
+
+
+
+6. Managing merged files.
+
+
+6.1. Document Studio automatically adds three columns to the Google Sheets file with links to the new merged files and a record of sent emails. 
+For example:
+  
+
+Note: Document Studio will no longer process rows already containing the links and records above.
+
+
+6.2. To generate new files using data from existing rows, delete the links and records in the Document Studio columns and re-run the merge process.
+
+
+Delete the links and records.
+Example: deleting two rows to generate updated documents.
+  
+
+
+
+Repeat the merge process.
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Document Studio will generate new files for rows without existing links and records.
+Example: updates to the first two rows successfully made.
+  
+
+________________
+
+
+4.3. Form Director
+
+
+Form Director is a useful tool in which allows Google Form responses to be used to automatically generate a Google Document template.
+
+
+                           1. Set up a template on a Google Document.
+                           1. For slots to be completed by Google Form responses, use ${Text} where text is a placeholder.
+                           2. For example, see a support letter template.
+
+
+                           2. Log into Global Migration Assistance email in incognito mode (i.e. no other account is signed in at the same).
+
+                           3. Open “Form Director” and click “Setup”.
+  
+     
+
+
+                              4. Complete the relevant settings:
+        
+  
+
+Select the Google Document template
+	  
+
+Destination and file name
+	  
+
+Mapping - this is to link the Google Form answer to the placeholder in the template
+	
+
+                              5. Test the set up form director. You may also set notifications to globalmigrationassistance@gmail.com or to an email provided in the form. 
+
+
+________________
+
+
+4.4. EC Ship
+
+
+                              1. Open and log in to EC Ship.
+
+
+                              1. https://ec-ship.hongkongpost.hk/platform/index.jsf 
+
+                              2. Username: migrasia
+Speak to a member of staff for the password
+
+                                 2. Prepare the shipping label. 
+
+
+                                 3. Select Mailing and then Prepare Shipping Labels
+  
+
+
+
+                                 4. Select international or local (usually local). Instructions below are for local shipping.
+  
+
+
+
+                                 5. Fill in sender’s information.
+  
+
+	Contact person/company - name of the client or the name used on the document, e.g. Global Migration Assistance, Migration Assistance & Research, Samusai Intelligence
+
+
+Address - our office address or P.O. Box 50499 Sai Ying Pun Post Office
+
+
+Telephone number - leave as it is.
+	
+
+
+
+                                 6. Fill in shipping information: 0.15 kg and Smart Post.
+  
+
+
+
+                                 7. Fill in the recipient’s information.
+  
+
+	Contact person/company - full name of the company as shown on corporate records
+
+
+Address - full address as shown on corporate records
+
+
+Notification method - SMS or email depending on what information is available. If there is no information, select email.
+
+
+Email - type the company’s email if known. If not known, type our email. 
+	
+
+                                 8. Click continue at the bottom right corner. 
+
+                                 9. Check the details are correct and then click confirm and pay at the bottom right corner. Select payment at counter and then continue.
+
+                                 10. Repeat for all shipping labels required before printing.
+
+
+                                    3. Print shipping labels.
+
+
+                                    11. Select Mailing and then Edit/View Shipping Labels
+  
+
+
+
+                                    12. Select all the relevant shipping labels prepared and click Print Batch Shipping Labels.  
+
+
+                                       13. Print the document generated.
+  
+
+
+
+                                       4. Stick or tape the shipping label onto the envelope securely.
+
+
+                                       5. Scan the envelope with the shipping label attached and scan the contents to be posted. Upload the documents into the appropriate Google Drive folder.
+
+
+                                       6. Seeing tracking records.
+
+
+                                       14. Select Mailing and Edit/View Shipping Labels. Then select the Posted tab.
+  
+
+
+
+                                       15. Click on View to see further information about an item including:
+Delivery Information - information on the shipping label
+Payment Details - method and amount
+Delivery Status - date and time of processing and delivery
+Certificate of Posting - confirmation that item was posted and paid for
+________________
+
+
+5. Client Meetings
+
+
+Important notes: 
+                                       * These guidelines are only general steps taken for clients. If you are unsure or notice anything special about a particular client’s case, please make a note on the spreadsheet(s) and raise the matter with a member of staff.
+                                       * Please ensure all of the documents remain on the Google Drive at all times. If you have screenshots or scanned files on your local device, upload them before leaving the office.
+                                       * See the “Useful Links” below for commonly used documents. Once familiar with the names, it may be faster to find them using the search function on Google Drive.
+	
+
+ Process Leading to Client Meeting
+                                       * Clients usually are asked to come to the office by Messenger from our Facebook pages, or by referrals from people who have already come to the office. 
+                                       * Avoid disclosing our office address. It usually suffices to say HKU exit B near McDonalds. Our staff or volunteers usually meet clients at the McDonalds directly outside the MTR exit. 
+                                       * Clients are encouraged to complete the form 
+
+
+ General On-Boarding for All Clients
+                                       1. Client to complete the client intake form, either:
+                                       * By scanning the printed QR code 'step 1' (preferable if many clients have just arrived together); or
+                                       * By giving them the tablet with the form loaded up (preferable if only 1 or 2 clients at one time).
+Responses are saved in the spreadsheet called "Client intake form" which contains the contact information and Messenger accounts of clients.
+
+
+                                       2. Client to provide basic information about their lending company or companies, either
+                                       * By scanning the printed QR codes for their money lender 'step 2'. Responses are saved into spreadsheets with the money lender's name followed by 'loan information".
+                                       * By asking questions directly and typing them into the applicable spreadsheet directly.
+See ‘Useful Links’ below for links to each spreadsheet. 
+
+
+                                       3. Clients' information to be logged onto the relevant spreadsheets, usually called "potential prosecution witnesses". Crucial information includes:
+                                       * Amount of loan applied for
+                                       * Fees charged for processing, transactions, etc
+                                       * The date the loan was given (usually as "print date" on loan payment slips, or printed on other documents, or from messaging between client and lender)
+                                       * The exchange rate (HKD to PHP) of the loan on the date the loan was given. This is to be copied manually from a site with historical exchange rate records. 
+                                       * Amount payable for each loan instalment 
+                                       * Number of monthly instalments
+                                       * Number of payments already made 
+                                       * The date which final payment is due (according to the loan documentation provided or by adding the number of months to the date the loan was received)
+On the same spreadsheet (towards the right), check the interest rate of the loan to see if exceeding 60%. 
+
+
+                                       4. Scan all of the relevant documents of the client. The most important documents include:
+                                       * Passport (photo + name page, and page showing their visa)
+                                       * Employment contract (the blue document with 4 sides)
+                                       * Certificates which show the client’s Philippines/Hong Kong agency 
+                                       * Certificates and paperwork from employment agency 
+                                       * Receipts of employment agency fees
+                                       * Paperwork from the money lender (payment slips, payment instructions, QR codes)
+                                       * Receipts of any payments made to the money lender
+                                       * Demand letters sent
+Create a folder for the client and upload the scanned file immediately.
+
+                                       5. Ask clients to take screenshots of any correspondence with the money lender or its staff. These screenshots should be sent to our Facebook Pages, or if there is a problem, screenshots may be sent to our accounts Julie Xin or Dain Kim (can be found by clicking into ‘member’ of the victim group chat). Important information includes:
+                                       * Any verbal abuse or harassment from the money lender/collector
+                                       * Instructions on payment, e.g. bank account details, remittance company names
+                                       * *For FamilyHan, screenshot all records and photos especially those with information on the loan
+Add these screenshots to the client folder immediately, or remind the member of staff receiving these screenshots to do so.
+
+
+                                       6. Provide a support letter to the client. For money lenders, the support letters are generated automatically after the relevant money lender assistance form is complete. Ensure the name of the client (appears several times), date, and if applicable, the name of the money lender, are correct. Explain that:
+                                       * The letter explains some of the illicit activities of the money lender such as suspected money laundering and charging excessive interest rates;
+                                       * Employers are asked to give their full support to the employee and understand their situation;
+                                       * Employers are welcome to send an email to the contact provided should they have further questions;
+                                       * Clients are advised to give the letter (together with the documents below on HK law and loan interest rate if applicable) to their employer when convenient. They are advised to do so sooner rather than later, since employers may be angry and terminate workers if loan collectors start harassing the employer - the support letter might be too late to help by then.
+
+
+ Employment Agency Issues
+                                       7. Screen for employment agency issues:
+Checklist
+	Actions
+	Philippines employment agency 
+	                                       * Clients to complete the POLO complaint form. 
+                                       * This may allow for refunds of excessive agency fees.
+                                       * Assist in filling out the information, including personal details and the sums paid.
+                                       * After completion, the form needs to be taken to POLO where their complaint can be notarized. See the full guide here.
+	Hong Kong employment agency
+	                                       * Assist clients to complete the online EAA Labour complaint form.
+                                       * Explain that when asked whether they consent to the Labour Department disclosing their identity to the employment agency, saying ‘yes’ may ensure the Department prioritizes their case and investigates.
+                                       * Clients should be told that they may be called or messaged by Labour and asked to do a statement. We can assist further at that stage.
+	
+
+                                       8. Ensure all scan/screenshots relating to these employment agency issues are uploaded to the client’s folder on Google Drive.
+
+
+ Money Lender Issues 
+
+
+ Explain the Relevant Laws
+                                       9. Explain Hong Kong law: 
+Firstly, the loan agreement must be provided, and failure to do so is a violation of the Money Lenders Ordinance. If the loan interest rate exceeds 60%, the loan is illegal under Hong Kong law. (NB. if the loan interest rates are not excessive, e.g. Ceazar/Mutual Honour then skip this) The implications are:
+                                          * Any loan carrying excessive interest rate is not enforceable under Hong Kong law;
+                                          * Attempts to deal with the loan monies in Hong Kong may constitute dealing with proceeds of an indictable offence;
+                                          * If any company in Hong Kong such as a collection company or remittance company accepts payments, they risk committing the offence of money laundering;
+                                          * As such, we have been writing to Hong Kong entities involved, asking them to cease and desist from collecting the loan repayments. Our actions have usually resulted in intermediaries (such as banks and 7-Eleven) blocking payments to the money lender. This is likely the reason why some clients will notice it is becoming increasingly difficult to pay in Hong Kong through remittance companies or otherwise.
+
+
+                                          10. *For HOYA, Cash4U, FamilyHan, or other cases where the loan interest rate is excessive, you may provide an interest rate calculation followed by an explanation of the laws.
+                                          * Use Document Studio to generate the loan interest rate calculation. Where this is not possible, calculate this using a simple interest rate calculator and copy the figures into a template (e.g. template for Hoya - do not edit this). This will show the client that their loan is clearly illegal under Hong Kong law.
+                                          * For FamilyHan, the interest rate calculation is accompanied by a handout containing the relevant laws.
+                                          * For OWA, the standard interest rate calculation is included in the support letter handout.
+                                          * For others, you may provide the generic handout on excessive interests.
+
+
+These documents will be for the client's own reference or supplementary to the support letter for their employer if they wish to show their employer.
+
+
+                                          11. Explain Philippines law: (Truth in Lending Act), borrowers must be provided with a copy of the loan agreement and a disclosure statement providing certain information including the loan principal and the interest rate. If the client was forced or pressured into taking a loan due to the employment agency, this is also a violation of the law. 
+
+                                          12. Provide a copy of the table of violations for the relevant lending company.
+
+
+ Initial Advice
+                                             13. On future payments. Explain to clients that they should only pay if: 
+                                             * A copy of the loan agreement and disclosure statement is provided and these documents have been reviewed by us; and 
+                                             * Ongoing investigations by the SEC or other law enforcement have been concluded.
+If clients are anxious or worried about consequences for not paying, it may be advised that they repay only the actual loan amount received (i.e. the principal) and wait for the information above before paying any alleged interest owed. 
+
+
+                                             14. Harassment and demands. 
+                                             * Inform clients that if they receive threatening messages or demands from money lenders/collectors, they should send us screenshots and either:
+                                             1. Ignore them entirely; or
+                                             2. Ask for a copy of the loan agreement and refuse payment until a copy of the loan agreement is provided. 
+                                             * If the money lender/collectors have sent demand letters to the employers of clients, advise them to provide the support letter and explain the situation to the employer ASAP. 
+                                             * If money lenders/collectors have called clients in the past, ask clients to install an app on their phone which records phone calls. 
+                                             * Clients should message us should they have any questions about this.
+                                             * We may ask clients to either ask for more information on payment methods (and then attempt to get these methods blocked).
+
+
+ Actions to be taken
+                                             15. Check with a member of staff to determine the best course of action. This will vary as cases are ongoing. Usually, initial action will include an SEC complaint, sending letters, filing a data access request, or other complaints.
+
+                                             16. See below for more detailed instructions on each action or complaint. Wrapping Up and Follow-Up
+
+
+                                                17. Ensure clients have our contact details, e.g. Facebook page: https://www.facebook.com/HelpAndSupportForHKOFWs/
+
+                                                18. Remind clients to send photos of documents they did not bring, e.g. passport, loan payment slips.
+________________
+
+
+6.1. Data Access Request
+
+
+A PDPO request or data access request is a formal document that can be sent pursuant to the Personal Data (Privacy) Ordinance (Cap. 486). 
+                                                   * This is a 7 page form submitted by a Data Subject (our client) to the Data User (company with our client’s personal data, usually an employment agency or lending company). 
+                                                   * The Data User upon receiving the PDPO request must respond in writing within 40 days and provide a copy of the information stored regarding the Data Subject, if any.
+                                                   * The PDPO request is usually sent to request a copy of loan agreements, receipts, records or other information of a client. It is also sent to apply pressure onto the suspected illegal company, and is often sent with a demand letter. 
+
+
+ For the majority of ongoing cases there should be a template in the case folder already.
+
+
+ Completing the PDPO Request
+ The form is easy to fill out and only a few entries need to be made. The fields to fill out begin on page 4.
+
+
+Part I. Data User 
+Name - full name of the company ( lender or agency) as shown on corporate documents
+
+
+Address - full address as shown on corporate documents
+	  
+
+	Part II. Data Subject
+Name - full name of client, surname first
+
+
+Personal identifier - client’s HKID no. and/or passport no.
+
+
+Remaining fields - as shown on the right (or our office address)
+	  
+
+	Part III. The Requestor
+
+
+Irrelevant.
+
+
+Cross out all fields.
+	  
+
+	Part IV. Requested Data
+Description - sample on right. Draft the request broadly to include all personal data held including documents signed, agreements, records, etc. and any specific needs for the client
+
+
+Date - to begin from the time the client came in contact with the target company 
+	  
+
+	Part V. Exclusions
+
+
+Irrelevant.
+
+Cross out all fields. 
+	  
+
+	Part VI. The Request
+
+
+Tick both (a) and (b)
+	  
+
+	Part VII. Preferred Manner of Compliance
+
+
+Tick options 2, 3 and 4.
+
+
+For option 3, circle “English” and cross out “Chinese”.
+
+
+For option 4, type our email address.
+	  
+
+	Part VIII. Further Information and Payment
+
+
+Make a copy of the client’s HKID/passport (whichever was used in Part II) and put it behind this page (7).
+	  
+
+	Part IX. Use of Personal Data
+No actions required.
+	  
+
+	Date - to be typed or filled out by staff, e.g. 06 June 2020
+
+
+Signature - by client
+	  
+
+	Attach a photocopy of the client’s HKID
+	
+
+________________
+
+
+6.2. Letter to Money Lender
+
+
+A letter is often sent to money lenders to demand that documents such as the loan agreement are provided, and to demand that the money lender cease and desist from harassment, collection attempts, disclosure of information to third parties, etc. 
+
+
+This guide outlines some of the key components which may be needed. If a letter has already been sent for the particular lender, consider copying it and editing as appropriate. Alternatively consider copying an existing letter from the closest scheme to the one at hand. Some examples of letters previously drafted:
+                                                   * Rich Credit
+                                                   * Halo/Affinity
+                                                   * Niaga (response to letter)
+                                                   * OWTEL
+
+
+                                                   1. Sender, recipient, date
+  
+
+	  
+
+	Sender: name of client, our office address or P.O. Box 50499 Sai Ying Pun Post Office
+Date: under address of sender
+Recipient: full name of company and address as shown on corporate records; email if any; if more than one recipient, create a table (white borders) to add a column. 
+	
+
+                                                   2. Heading and Opening
+As appropriate - some previous examples include:
+  
+
+	  
+
+	  
+
+	  
+
+	
+
+                                                   3. Summary of Problems Identified 
+Give a broad account of the illegal/illicit activities of the lender. Draft broadly (and avoid giving too much detail and our cards away) and with appropriate reference to the law (just the Ordinance is enough). If there is insufficient information, skip this entirely. Examples:
+I am writing to express my concerns that Rich Credit Finance Limited, its employees, agents, affiliates, directors, managers, shareholders, and controllers (collectively “Rich Credit”), appear to be engaged in a scheme that violates the laws and regulations concerning the operation of money lenders. Indeed, the following illicit activity has been observed:
+                                                   1. Charging excessive interest by way of ‘processing’ and ‘savings’ fees, in direct violation of the Money Lenders Ordinance;
+                                                   2. Making harassing phone calls to third parties and disclosing personal information without appropriate authorization;
+                                                   3. Stealing or otherwise confiscating money the ‘savings’ accounts of clients and advertising ‘savings’ account products despite not having a banking license;
+                                                   4. Failing to provide borrowers or references with a copy of various documents, such as loan agreements.
+	Reference is made to your 03 December 2019 letter wherein Niaga Finance Company Limited (Niaga) and its director Lie Chau Pin, Paul (Lie), alleged that I am required to make payments amounting 7,500 HKD in three monthly installments due on 2019/09/03, 2019/10/03, and 2019/11/03.
+
+A personal data access request was made to Niaga as well as a demand letter requesting access to data and documents pertaining to the loan. Unfortunately, the responses to these requests were insufficient. After reviewing the enclosed loan agreement (Exhibit 1), it has been determined that the annual interest rate carried by this loan exceeds 60%. Indeed, as shown in Exhibit 1, the loan principal is 35,000 PHP which is equal to 5,386.87 HKD. Furthermore, loan principal was dispersed on or around 2019/07/22.
+
+Furthermore, Exhibit 1 specifically states the borrower "shall pay the total amount payable in 3 monthly installments in Hong Kong Dollar in the amount of TWO THOUSAND FIVE HUNDRED (HKD 2,500) per month starting on 2019/09/03". Such an arrangement provides that I am required to pay 7,500 HKD by 2019/11/03, a timeframe of just 0.29 years which equates to 2113.13 HKD in interest. Using a simple interest rate calculation, the effective interest rate is roughly 135% - and therefore the loan is invalid and any further collection or dealing with the proceeds of the loan would constitute money laundering
+	
+
+                                                   4. Cease and Desist
+List out all activities the money lender should cease and desist from. Draft broadly and with appropriate reference to law (just the Ordinance is enough). Examples:
+In consideration of the above and to prevent Rich Credit from causing further damages, it is demanded that Rich Credit:
+                                                   1. Cease and desist from making harassing phone calls and sending messages to myself and any third party. Rich Credit is not authorized to contact my employer or any other person, and Rich Credit is not authorized to send letters to my employer’s address. Attempts to do so will likely violate the Personal Data (Privacy) Ordinance. This letter constitutes a formal demand for all correspondence hereafter to be addressed to Room 15B1, Cheung Fat Industrial Building, 7-9 Hill Road, Shek Tong Tsui, Hong Kong.
+                                                   2. Cease and desist from any collection attempts until I am provided with a copy of the loan agreement or authorization to be a reference as is my right under the Money Lenders Ordinance (extracts as Annex 1);
+	I am writing this letter to demand Affinity Finance Limited, Halo World Limited, Shareholders, Staff, Directors, and Affiliated Parties immediately cease and desist from:
+                                                   1. Charging excessive interest by way of processing fees, late fees, or other non-interest fees in direct contravention to the Money Lenders Ordinance and SKYLINE CREDIT LTD v LEUNG HING CHUNG - [2019] HKCU 311;
+                                                   2. Contacting third parties, harassing third parties, and disclosing personal data and financial information to third parties;
+                                                   3. Failing to obtain consent from so called “references” as required by the Licensing Conditions for Money Lenders;
+                                                   4. Engaging in all other illicit behavior, including but not limited to money laundering, criminal harassment, criminal intimidation, and other violations of the law.
+	
+
+                                                   5. Requests/Demands
+List out all demands. Draft broadly and with appropriate reference to law (just the Ordinance is enough). Examples:
+In consideration of the above and to prevent Rich Credit from causing further damages, it is demanded that Rich Credit:
+                                                   1. Promptly respond to the enclosed Data Access Request made pursuant to the Personal Data (Privacy) Ordinance and provide a copy of the loan agreement or reference authorization;
+                                                   2. Immediately provide a refund of the ‘savings’ accounts to all applicable borrowers or references, ‘savings’ accounts can not be advertised unless Rich Credit is a licensed bank;
+                                                   3. Promptly ensure compliance with the Money Lenders Ordinance, Money Lenders Regulations, and Licensing Conditions for Money Lenders.
+	Furthermore, it is requested that: 
+                                                   1. Pursuant to the requirements under the Money Lenders Ordinance, provide the alleged loan agreement or any other documentation signed.
+                                                   2. An explanation is provided as to the relationship between Affinity Finance Limited and Halo World Limited.
+                                                   3. The attached data request made pursuant to the Personal Data (Privacy) Ordinance is responded to.
+	In light of the above, it is requested that Niaga promptly provide a letter stating that the loan has been cancelled and is uncollectable for reasons of being non-compliance with the law. Niaga should also take no further action to collect such a loan until proof, if any, can be provided that the loan does not carry excessive interest.
+	
+
+                                                   6. Closing
+
+
+                                                   1. Demand all correspondence to use post to our P.O. Box
+Any future correspondence should use the address P.O. Box 50499, Sai Ying Pun Post Office. It is reiterated that no consent is given to use any other address. 
+	Furthermore, you are hereby notified of the following:
+                                                   1. Owtel shall make no further collection attempts until a valid money lenders license is furnished;
+                                                   2. Owtel shall only contact me for the purpose of responding to the above inquiries. Further, all correspondence should be to RM15B1, 15/F, 7-9 Hill Road Sai Wan, Hong Kong;
+                                                   3. Under no circumstances should Owtel and/or Owtel’s agents share my personal information with any third parties without my consent.
+	
+
+                                                   2. Include the usual express reservation of rights
+Nothing herein is or shall be construed as a waiver or any rights or remedies, all of which are expressly reserved.
+	
+
+                                                   3. Sign off with “Sincerely Yours” and the client’s name.
+
+
+                                                   7. Exhibits
+It may be appropriate to include exhibits (or annexes) such as loan papers, agreements, payment slips, evidence of harassment, etc. Include these at the back of the letter with appropriate labels and make reference to this in the text of the letter.
+  
+
+	  
+
+	
+
+                                                   8. Client to read the letter carefully and ask any questions before signing at the end.
+
+                                                   9. Scan the letter after it is signed by the client together with the shipping label.
+________________
+
+
+6.3. Consumer Council Complaints 
+
+
+Consumer Council complaints are intended for consumers to raise concerns so the Council may assist to mediate or negotiate with the trader. For our purposes, we usually use Consumer Council complaints to apply pressure rather than to reach settlement.
+
+
+                                                      1. Open the Consumer Council website on complaint information.
+
+                                                      2. Generally it is preferable to use the online complaint form.
+
+                                                      3. Provide information on:
+                                                         1. The trader, their address, etc.
+                                                         2. Brief facts
+                                                         3. Desired outcome (usually refund, settlement, and other)
+                                                         4. Contact information of client
+                                                         5. Supporting documents e.g. receipts, contracts
+
+                                                            4. Download a copy of the complaint and save it to the client folder.
+________________
+
+
+6.4. EAA Complaint
+
+
+EAA complaints are made against HK employment agencies. The EAA complaint will need to contain specific violations by the employment agency, and will likely require the client to do a formal statement (with an interpreter) at the Labour Department’s office. 
+
+
+                                                            1. Open the CEAA website on complaint information.
+
+                                                            2. Generally it is preferable to use the online complaint form.
+
+
+                                                               3. Provide information on:
+                                                               1. The agency, their address, etc.
+                                                               2. Brief facts
+                                                               3. Details of violations
+                                                               4. Contact information of client
+                                                               5. Supporting documents e.g. receipts, contracts
+                                                               6. Client’s day off 
+                                                               7. Client’s willingness to give a statement with an interpreter
+
+
+                                                               4. Download a copy of the complaint and save it to the client folder.
+________________
+
+
+6.5. Police Report
+
+
+Police reports are made for illegal lenders who engage in criminal activity, e.g. blackmail, criminal intimidation, harassment, operating savings accounts without a license, etc. 
+
+
+Read background information here: https://www.police.gov.hk/ppp_en/13_faqs/faq_erc.html 
+
+
+Make a police report here: https://www1.erc.police.gov.hk/cmiserc/EGIS-HK-Web_NEW_UI/ereport_details?report=CRIME_INFMTN&fontSize=100
+
+
+Keep the details general and avoid putting words into the mouth of clients. Write a short line explaining that the complainant is a domestic worker with Sunday as a day off, and can make a statement with a Tagalog interpreter. 
+
+
+________________
+
+
+6.6. Customs Report
+
+
+A report to Customs and Excise is made when there are violations of the Trade Descriptions Ordinance, when money service operators are in breach of rules/regulations/conditions, or other violations are observed and Customs has jurisdiction.
+
+
+See Customs report details: https://www.customs.gov.hk/en/contact_us/enforcement/index.html
+
+
+It is easiest to do an email to: crimereport@customs.gov.hk 
+
+
+Briefly provide information on:
+                                                               * The trader, their address, etc.
+                                                               * Brief facts
+                                                               * Details of violations
+                                                               * Contact information of client
+                                                               * Supporting documents e.g. receipts, contracts
+                                                               * Client’s day off 
+                                                               * Client’s willingness to give a statement with an interpreter
+________________
+
+
+7. Useful Links
+
+
+Be familiar with:
+                                                               * Migrasia volunteer guide
+                                                               * ‘How to’ notes (e.g. how to report wage deduction, report agency overcharging, report withheld documents)
+                                                               * Refund guide 
+                                                               * Labour’s guide for employment of foreign domestic helpers
+
+
+Documents to Provide Clients 
+                                                               * Support letter
+                                                               * MLO s.24 Bilingual 
+                                                               * Loan interest rate calculations - generated by the “master spreadsheets” below
+                                                               * Sample template
+                                                               * Simple interest rate calculator
+                                                               * Table of violations
+
+
+Links sorted by Money Lender
+NB. some of these folders do not have a master spreadsheet, usually because each individual case is too complex to be logged onto a spreadsheet. In such cases, create a Google Doc in the client’s folder and type notes of their case.
+Cash4U/Niaga Finance
+	Master folder
+Victim folders
+Master spreadsheet
+	HOYA/Carry You
+	Master folder
+Victim folders
+Loan information form
+Master spreadsheet
+	FamilyHan
+
+
+	Steps for FamilyHan victims
+Master folder
+Victim folders
+Loan information form
+Master spreadsheet
+	Rich Credit
+	Master folder
+Victim folders
+	Prosperity
+	Master folder
+Victim folders
+	Ceazar/Mutual Honour
+	Master folder
+Victim folders
+Loan information form
+Master spreadsheet
+	123 Finance
+	Master folder
+Master spreadsheet
+	Others
+	GMLC Cases folder
+Migrasia Investigations folder
+	
+
+For calculating interest rates
+                                                               * Historical exchange rate records
+                                                               * Simple interest rate calculator (not needed since the master spreadsheets have the formula set up - but good for a quick calculation)
+
+
+Forms and Complaints
+It will be preferable to be familiar with what the forms look like:
+                                                               * PDPO data access request [these are already on SignRequest for Niaga Finance, Carry You, Mutual Honour]
+                                                               * Sample data access request (Niaga Finance)
+                                                               * PDPO complaint form
+                                                               * SEC form [already on SignRequest for Cash4U, Ceazar Pacific, HOYA, FamilyHan]
+                                                               * Sample SEC complaint (FamilyHan)
+                                                               * Labour EAA online complaint form
+                                                               * Consumer Council online complaint form

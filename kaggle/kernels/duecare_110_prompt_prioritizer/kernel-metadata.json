@@ -1,5 +1,5 @@
 {
-  "id": "taylorsamarel/duecare-prompt-prioritizer",
+  "id": "taylorsamarel/00a-duecare-prompt-prioritizer-data-pipeline",
   "title": "DueCare Prompt Prioritizer",
   "code_file": "110_prompt_prioritizer.ipynb",
   "language": "python",
@@ -20,6 +20,6 @@
     "safety",
     "llm",
     "trafficking",
-    "tutorial"
+    "baseline"
   ]
 }

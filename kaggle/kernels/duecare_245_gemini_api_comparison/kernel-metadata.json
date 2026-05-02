@@ -17,10 +17,8 @@
   "kernel_sources": [],
   "keywords": [
     "gemma",
+    "llm-comparison",
     "safety",
-    "llm",
-    "gemini",
-    "api",
-    "comparison"
+    "evaluation"
   ]
 }

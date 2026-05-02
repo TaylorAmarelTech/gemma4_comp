@@ -42,21 +42,21 @@ class ServerState:
 
     # -- lazy accessors -----------------------------------------------------
     @property
-    def store(self):
+    def store(self) -> Any:
         if self._store is None:
             from duecare.evidence import EvidenceStore
             self._store = EvidenceStore.open(self.db_path)
         return self._store
 
     @property
-    def engine(self):
+    def engine(self) -> Any:
         if self._engine is None:
             from duecare.engine import Engine
             self._engine = Engine(project_root=self.project_root)
         return self._engine
 
     @property
-    def translator(self):
+    def translator(self) -> Any:
         if self._translator is None:
             from duecare.nl2sql import Translator
             self._translator = Translator(
@@ -64,7 +64,7 @@ class ServerState:
         return self._translator
 
     @property
-    def openclaw(self):
+    def openclaw(self) -> Any:
         if self._openclaw is None:
             from duecare.research_tools import OpenClawTool
             self._openclaw = OpenClawTool.from_env()

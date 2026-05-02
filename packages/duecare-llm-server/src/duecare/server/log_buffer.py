@@ -19,7 +19,7 @@ from typing import Any, Optional
 class LogBuffer:
     """A bounded, thread-safe ring of structured log records."""
 
-    def __init__(self, max_entries: int = 2000):
+    def __init__(self, max_entries: int = 2000) -> None:
         self._max = max_entries
         self._buf: deque[dict] = deque(maxlen=max_entries)
         self._lock = threading.Lock()

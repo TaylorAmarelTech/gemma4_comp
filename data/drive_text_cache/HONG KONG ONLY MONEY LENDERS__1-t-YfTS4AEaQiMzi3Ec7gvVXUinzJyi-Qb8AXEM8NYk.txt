@@ -1,0 +1,363 @@
+﻿Money Lender Quick Reference Table
+
+Reason For Complaint
+(Mga dahilan para sa reklamo)
+	Source Of Law
+(Pinagmumulan ng Batas)
+	Check
+(tsekan)
+	Including processing, deposit, application, or other fees did the lender charge an interest rate of over 60% per annum?
+
+(Kasama ang pagproseso, deposito, aplikasyon, o iba pang bayarin, Naningil ba ang nagpapahiram ng interes na may rate na higit pa sa 60% ka da taon?)
+	Money Lenders Ordinance
+	
+
+	Did the lender require or offer unlicensed “savings” / “deposit taking account”?
+
+
+(Kinailangan o nag-alok ba ang nagpapahiram ng isang hindi lisensyadong "savings" / "deposit-taking account"?)
+	Banking Ordinance
+	
+
+	Did the lender fail or refuse to provide a copy of the loan agreement?
+
+
+(Nabigo o tumanggi ba ang nagpapahiram na magbigay ng kopya ng loan agreement?)
+	Money Lenders Ordinance
+	
+
+	Did the lender require you to send money via a remittance company, place money within a mastercard, or use part of the loan proceeds to buy electronics or other products/services?
+
+
+(Kinailangan ka ba ng nagpapahiram na magpadala ka ng pera sa pamamagitan ng remmitance na kumpanya, o maglagay ng pera sa isang mastercard, o gamitin ang bahagi ng na nakalikom na utang upang bumili ng  electronics o iba pang mga produkto/serbisyo?)
+	Licensing Conditions for Money Lenders
+Trade Descriptions Ordinance
+	
+
+	Did the lender require a personal picture as security for the loan?
+
+
+(Kinailangan ba ng nagpapahiram ang isang personal na larawan bilang seguridad sa utang?)
+	Money Lenders Regulations
+	
+
+	Did the lender withhold your passport or HKID as security for the loan?
+
+
+(Kinumpiska at pinagkait ba ang iyong passport o HKID bilang seguridad sa utang?)
+	Money Lenders Regulations
+	
+
+	Did the money lender accept reference information without written authorization from the reference?
+
+
+(Tinanggap ba ng nagpapahiram ang impormasyon ng reference nang walang nakasulat na pahintulot mula sa reference?)
+	Licensing Conditions for Money Lenders
+	
+
+	Did the lender disclose your personal information to third parties (employer, friends, family, or publicly on social media)?
+
+
+(Inihayag ba ng nagpapahiram ang iyong personal na impormasyon sa mga third party (halimbawa sa mga amo, kaibigan, pamilya, o publikong nilagay sa social media?)
+	Licensing Conditions for Money Lenders
+Personal Data (Privacy) Ordinance
+	
+
+	Did the lender engage in repetitive behavior that could constitute harassment?
+(Ang nagpapahiram ba ay mag ugali na paulit-ulit na maaaring maging sanhi ng harassment?)
+	Licensing Conditions for Money Lenders
+	
+
+	Did the lender share an office with a remittance company?
+
+
+(Ang nagpapahiram ba ay nakikibahagi ng opisina kasama ang isang remittance na kumpanya?)
+	Money Service Operators Licensing Guide
+	
+
+	Did the lender fail to provide a summary of the Money Lenders Ordinance?
+
+
+(Nabigo ba ang nagpapahiram na magbigay ng buod ng Money Lenders Ordinance?)
+	Money Lenders Regulations
+	
+
+	Other
+
+
+(Iba pa)
+	
+
+	
+
+	
+
+Potential Actions
+Actions
+	Check
+(tsekan)
+	Send a demand letter to the lender requesting a copy of the loan agreement and payment records.
+	
+
+	Send a Data Access Request under Personal Data (Privacy) Ordinance and request personal data
+	
+
+	Send a demand letter to the lender asking them to cease and desist calling all references who have not furnished written authorization to be a reference.
+	
+
+	Send a demand letter to the lender asking them to provide a refund of all processing and savings fees.
+	
+
+	Send a demand letter to the lender asking them to cease harassing behavior such as house visits and repetitive calls.
+	
+
+	Send a demand letter to the lender asking them to delete any photos taken as security for the loan.
+	
+
+	Send a demand letter requesting compensation for harassment. See https://www.tannerdewitt.com/court-confirms-tort-harassment-hong-kong/ 
+	
+
+	File small claims suit
+	
+
+	Conduct additional research
+	
+
+	Potential STR/JFIU report
+	
+
+	Contacting / reporting to bank AML/ CFT officers
+	
+
+	
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Narrative (Interview) Questions
+
+
+1. Example statements: https://drive.google.com/file/d/1V3LwEgMd8Wj8ZaSCraPG6PznqNh2tx-J/view?usp=sharing 
+2. Name?
+3. Age?
+4. Marital status?
+5. Education level?
+6. Amount of time in Hong Kong?
+7. When did Client first learn about the lender?
+8. How did the Client first learn about the lender (facebook ad, friend, flyer, advertisement, etc)?
+9. Who did the Client speak to first at the lender (name of staff, phone number, business card, etc)?
+10. Why did the Client apply for the loan?
+11. Where did the Client apply for the loan?
+12. When did the Client apply for the loan?
+13. What information did the Client provide to the lender?
+14. What information did the lender give or explain to the Client?
+15. Elaborate on nominal loan principal, processing fees, savings fees and any supporting evidence (receipts, conversations)?
+16. See below police reports for other potential questions and information to include
+17. Ask:
+   1. Processing fees
+   2. Savings accounts
+   3. Address
+   4. Was license visible in the office
+   5. Name of staff
+   6. Description (body build, glasses, hair color, eye color)
+18. Try to write questions that will find violations of MLO, MLR, and/or licensing conditions
+19. Did you receive the loan via WeChat, Alipay, TNG, or other mobile wallets?
+20. Do you have transaction receipts of the loan disbursement?
+21. Do you have transaction receipts of the loan payments?
+22. Do you have whatsapp conversations that can be exported?
+23. What damages has the lender caused you?
+   1. Did the lender cause your termination?
+   2. Has your employer deducted your salary?
+   3. Has the lender threatened you with your personal information?
+   4. Has the lender withheld any of your documents as collateral?
+24. Try to get creative as possible.
+
+
+
+
+
+
+
+
+
+
+
+
+These questions serve as a backbone to police reports and potential civil claims. Example reports:
+
+
+Example Police Reports
+
+
+* Sample HKPF statement against Rich Credit for reference (authorized for disclosure).
+* Sample HKPF statement
+* More detailed sample statement on HKPF statement form
+* More sample or redacted HKPF, EAA, or other statement can be made available
+
+________________
+Interview questions for domestic worker:
+
+
+Background
+   1. What is your name?
+   2. What is your age?
+   3. What is your marital status?
+   4. What is your education level?
+   5. What is the amount of time you have spent in Hong Kong?
+   6. Are you still in HK at the moment?
+   7. When did you arrive in Hong Kong?
+   1. If possible, please provide relevant proof, e.g. electronic plane ticket, VISAs or landing slips, etc.
+
+
+First Contact with Lender
+   8. When did you first learn about the lender?
+   9. How did you first learn about the lender (facebook ad, friend, flyer, advertisement, etc)?
+   10. If you learned about the lender on facebook, what is the:
+   1. Name of the Page?
+   2. Facebook Name of the person managing the page?
+   3. Is the facebook page still active?
+   11. If you were referred by your agency:
+   1. What was the name of your Philippines agency?
+   2. Which staff in the agency referred you to the lender?
+   3. Can you provide any information about the staff, e.g. telephone number, business card, etc?
+   4. Can you give a description of the staff, e.g. body build, glasses, hair color, eye color?
+   5. When did the referral take place?
+   6. Did the referral take place shortly before your flight to Hong Kong?
+   7. Did you have enough time to consider applying for the loan?
+   * Was the Client free to choose whom to borrow money?
+   * Did you understand the content/ instruction/ terms of the loan? 
+   1. Where did the referral take place, e.g. inside the lender’s office, inside the agency’s office?
+   2. Did your agency charge a high placement fee?
+   1. If yes, what was the fee made up of, e.g. medical fee, training fee, etc.?
+   2. Please provide any documentary evidence for each of the components.
+   3. Did your agency withhold your personal document, e.g. passport?
+   1. If yes, what were the documents withheld?
+   2. If yes, did your agency ask you to apply for a loan in order to get the documents back?
+   3. If yes, did your agency provide your personal information to the lender on your behalf?
+   4. If yes, when did your agency return your personal document to you?
+   12. What was the name of the lender’s staff you first spoke with?
+   1. If possible, please provide any supporting information: eg, telephone number, business card, advertisement, flyers, etc.
+   13. Have you ever met the lender’s staff in person? If yes:
+   1. Can you give a description of the staff, eg body build, glasses, hair color, eye color, uniform etc.?
+   14. Why did you apply for the loan?
+   15. Where did you get your loan documents?
+   16. Is there a hardcopy for the loan documents?
+   17. When did you apply for the loan?
+   18. What was the amount of the loan
+   19. What is the loan amount actually received?
+   1. Did the lender deduct a processing fee?
+   2. Did the lender deduct a “savings account deposit”?
+   3. Did the lender deduct other fees?
+   20. Did the lender mention the additional charge?
+   21. What is the amount of repayment each month?
+   22. When do you have to repay each month?
+   23. Did you sign on any contracts, concerning the loan application?
+   1. If yes, when did you sign the relevant contracts?
+   24. Did the lender give you a copy of the relevant contracts?
+   25. If yes, please provide the relevant contract.
+   26. Did you sign on any contracts before receiving the loan amount?
+   27. When did the lender’s staff explain the details of the loan to you?
+   1. Did the lender explain the details of the loan to you before or after you signed the loan agreement?
+   28. When did you receive the loan amount?
+   29. What information did you provide to the lender, e.g. passport, employment agency in Hong Kong, information about your friends/family, information about your employer in Hong Kong, etc.?
+   30. Did you provide the above information by yourself?
+   31. If not, who provided the above information?
+   32. Did you consent to the provision of the above information?
+   33. If yes, was there any written consent recorded by the lender?
+   34. What information did the lender give or explain to you?
+   35. Please provide the relevant documents and information.
+   36. Did the lender mention any consequences if you fail to repay?
+
+
+
+
+The Loan
+   37. What is the loan period?
+   38. What is the loan amount? Did the lenders provide you with loan options?
+   39. What was the principal?
+   40. Was the principal the same amount as the money actually received? If not: 
+   1. what was the amount actually received?
+   2. If not, what were the “expenses deducted”?
+   3. Were the expenses deducted mentioned/disclosed by the lender?
+   41. What is the amount of repayment each month?
+   42. When do you have to pay each month? 
+   43. Have you received any loan agreement? 
+   44. If yes, Does the loan agreement include the following information:
+   1. Name and address of the money lender
+   2. Name and address of the borrower
+   3. Name and address of the surety, if any
+   4. Amount of the principal of the loan in words and figures
+   5. Date of making of the agreement
+   6. Date of the making of the loan
+   7. Terms of repayment of the loan
+   8. Form of security for the loan, if any
+   9. Rate of interest charged expressed as a rate per cent per annum
+   45. Are you provided with a copy of the loan agreement
+   46. How did you receive the loan? 
+   47. Through Cash? Online Banking? WeChat Pay? Alipay?
+   48. Did you provide your photo to secure the loan?
+   49. Did you provide information about your employer to the lender?
+   50. Up to the present, how much have you paid?
+   51. How many months have you paid?
+   52. What is the interest per month?
+   53. How much have you left unpaid for the loan?
+
+
+
+
+Payment
+   54. Did the lender send you any method of payment e.g. Ali-pay, WeChat pay, payment via 7-11, bank transfer, cash payment at the lender’s office, etc.?
+   55. If yes, please provide evidence, e.g. any screenshots / QR Code?
+   56. How did you repay the loan?
+   57. Please provide evidence of the payment.
+   58. How did you inform the lender after the repayment was made?
+   59. Would the lender remind you to pay before each payment deadline?
+   60. Did you receive any receipt from the lender after the repayment was made?
+   61. If yes, please provide the relevant documents.
+   62. Was there any punishment or consequences for any defaulted repayment? In particular, 
+   1. Additional payment?
+
+
+Demand of payment
+   63. How did the lender contact you after the lending?
+   64. Via facebook, Whatsapp, or phone calls, etc.?
+   65. What was the account/telephone number?
+   66. Please provide evidence, e.g. screenshots.
+   67. When did the lender contact you, Was the timing reasonable or during early mornings and late nights?
+   68. Would the lender contact on weekdays or weekends?
+   69. Did the lender use any insults?
+   70. Did the lender use any threats?
+   1. Did the lender threaten to make any lawsuits, eg B.P 22 or ESTAFA case? 
+   2. Did the lender make any threats concerning you or your closed one’s personal safety?
+   3. Did the lender threaten to make house visits?
+   4. Did the lender threaten to contact your employer
+   5. If yes, please provide evidence, eg screenshots
+   6. Did the lender actualize the threats?
+
+
+   71. Did the lender post your personal information on social media?
+   1. Did the lender post your name?
+   2. Did the lender post your photo
+   3. Did the lender post your ID information?
+   4. Did the lender post your address?
+   5. Did the lender post your loan details
+   72. If applicable, how did the lender contact your family, friends or employers?
+   1. Did the lender contact via facebook, text messages, etc.?
+   2. If yes, did you provide the information of your family or friends to the lender?
+   3. Please provide evidence as to the content of the conversation.
+   73. Was your employer aware of your loan application?
+   74. Did you make any report? Eg to the Philippines consulate, to PESO, etc.?

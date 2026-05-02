@@ -1,10 +1,10 @@
 {
-  "id": "taylorsamarel/420-duecare-conversation-testing",
+  "id": "taylorsamarel/duecare-420-conversation-testing",
   "title": "420 DueCare Conversation Testing",
   "code_file": "420_conversation_testing.ipynb",
   "language": "python",
   "kernel_type": "notebook",
-  "is_private": true,
+  "is_private": false,
   "enable_gpu": false,
   "enable_internet": true,
   "dataset_sources": [
@@ -13,5 +13,13 @@
   ],
   "competition_sources": [
     "gemma-4-good-hackathon"
-  ]
+  ],
+  "keywords": [
+    "llm-judge",
+    "rubric",
+    "grading",
+    "safety"
+  ],
+  "enable_tpu": false,
+  "kernel_sources": []
 }

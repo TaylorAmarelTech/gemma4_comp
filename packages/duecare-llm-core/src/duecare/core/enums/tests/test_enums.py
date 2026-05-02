@@ -14,7 +14,7 @@ from duecare.core.enums import (
 
 
 class TestCapability:
-    def test_all_expected_values(self):
+    def test_all_expected_values(self) -> None:
         expected = {
             "text", "vision", "audio", "function_calling",
             "streaming", "embeddings", "long_context", "fine_tunable",
@@ -22,14 +22,14 @@ class TestCapability:
         assert {c.value for c in Capability} == expected
         assert len(list(Capability)) == 8
 
-    def test_string_comparison(self):
+    def test_string_comparison(self) -> None:
         # StrEnum equality with strings
         assert Capability.TEXT == "text"
         assert Capability.FUNCTION_CALLING == "function_calling"
 
 
 class TestAgentRole:
-    def test_all_twelve_roles(self):
+    def test_all_twelve_roles(self) -> None:
         assert len(list(AgentRole)) == 12
         required = {
             "scout", "data_generator", "adversary", "anonymizer",
@@ -40,7 +40,7 @@ class TestAgentRole:
 
 
 class TestTaskStatus:
-    def test_all_states(self):
+    def test_all_states(self) -> None:
         assert set(TaskStatus) == {
             TaskStatus.PENDING,
             TaskStatus.RUNNING,
@@ -52,14 +52,14 @@ class TestTaskStatus:
 
 
 class TestGrade:
-    def test_ordinal_ordering(self):
+    def test_ordinal_ordering(self) -> None:
         assert Grade.WORST.ordinal == 0
         assert Grade.BAD.ordinal == 1
         assert Grade.NEUTRAL.ordinal == 2
         assert Grade.GOOD.ordinal == 3
         assert Grade.BEST.ordinal == 4
 
-    def test_ordinals_are_totally_ordered(self):
+    def test_ordinals_are_totally_ordered(self) -> None:
         grades_in_order = [Grade.WORST, Grade.BAD, Grade.NEUTRAL, Grade.GOOD, Grade.BEST]
         ordinals = [g.ordinal for g in grades_in_order]
         assert ordinals == sorted(ordinals)
@@ -79,12 +79,12 @@ class TestGrade:
             (1.00, Grade.BEST),
         ],
     )
-    def test_from_score(self, score: float, expected: Grade):
+    def test_from_score(self, score: float, expected: Grade) -> None:
         assert Grade.from_score(score) is expected
 
 
 class TestSeverity:
-    def test_all_levels(self):
+    def test_all_levels(self) -> None:
         assert set(Severity) == {
             Severity.CRITICAL,
             Severity.HIGH,

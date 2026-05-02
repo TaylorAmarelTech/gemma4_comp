@@ -30,7 +30,7 @@ KEYWORDS = ["gemma", "safety", "llm", "gemini", "api", "comparison"]
 URL_000 = "https://www.kaggle.com/code/taylorsamarel/duecare-000-index"
 URL_220 = "https://www.kaggle.com/code/taylorsamarel/220-duecare-ollama-cloud-comparison"
 URL_240 = "https://www.kaggle.com/code/taylorsamarel/240-duecare-openrouter-frontier-comparison"
-URL_299 = "https://www.kaggle.com/code/taylorsamarel/duecare-baseline-text-evaluation-framework-conclusion"
+URL_299 = "https://www.kaggle.com/code/taylorsamarel/299-duecare-text-evaluation-conclusion"
 
 
 def md(s): return {"cell_type": "markdown", "metadata": {}, "source": s.splitlines(keepends=True)}

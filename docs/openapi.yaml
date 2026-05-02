@@ -1,0 +1,503 @@
+# OpenAPI 3.0 spec for the Duecare REST API.
+#
+# Use cases:
+#   1. Codegen typed clients in any language:
+#        openapi-generator-cli generate -i docs/openapi.yaml -g python -o ./client
+#   2. Drive interactive API exploration via Swagger UI / Redoc.
+#   3. Validate requests + responses in tests.
+#   4. Anchor for the embedding integrations doc.
+#
+# Source of truth: this file. The FastAPI app at
+# packages/duecare-llm-chat/src/duecare/chat/app.py implements these
+# endpoints; the spec is hand-curated to match. CI verifies they
+# stay in sync (planned).
+
+openapi: 3.0.3
+
+info:
+  title: Duecare API
+  description: |
+    REST API for the Duecare safety harness wrapping Gemma 4. Same
+    surface used by the Kaggle notebooks, the HF Space, the Android
+    app, and the embedded widgets.
+
+    ## Endpoints in scope
+
+    - **Chat** — send a message to Gemma with optional GREP / RAG /
+      Tools / Persona toggles, get the response + a per-layer trace.
+    - **Grade** — score a model response against the rubric system
+      (5-tier per-prompt OR per-category required-element rubric).
+    - **Classifier** — submit content (text + optional image) for
+      structured classification with risk vectors + recommended
+      action.
+    - **Catalog** — introspect the bundled GREP rules / RAG docs /
+      tools / examples without loading the chat UI.
+    - **Health** — liveness + readiness probes.
+
+    ## Auth
+
+    The default server has no auth — appropriate for local
+    development, internal NGO deployments behind a reverse proxy, or
+    air-gapped environments. For public embeds, run an auth proxy in
+    front (per `docs/embedding_guide.md` §"Privacy + security posture").
+  version: 0.5.0
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+  contact:
+    name: Duecare maintainers
+    url: https://github.com/TaylorAmarelTech/gemma4_comp
+
+servers:
+  - url: http://localhost:8080
+    description: Local dev (uvicorn duecare.chat.app:app)
+  - url: https://huggingface.co/spaces/{owner}/duecare-live-demo
+    description: HF Space deploy (cloudflared via the SDK)
+    variables:
+      owner:
+        default: taylorscottamarel
+  - url: https://{deploy_host}
+    description: Custom deploy (Render / Cloud Run / EKS / etc.)
+    variables:
+      deploy_host:
+        default: duecare.example.com
+
+tags:
+  - name: chat
+    description: Send messages to Gemma via the safety harness
+  - name: grade
+    description: Score responses against rubrics
+  - name: classifier
+    description: Structured-output content classification
+  - name: catalog
+    description: Introspect bundled rules / docs / tools
+  - name: health
+    description: Liveness + readiness
+
+paths:
+  /healthz:
+    get:
+      tags: [health]
+      summary: Liveness probe
+      operationId: healthz
+      responses:
+        '200':
+          description: Server is up
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok: { type: boolean, example: true }
+                  ts: { type: number, example: 1746115200.123 }
+
+  /api/model-info:
+    get:
+      tags: [health]
+      summary: Which model is wired into this deployment
+      operationId: getModelInfo
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ModelInfo'
+
+  /api/harness-info:
+    get:
+      tags: [catalog]
+      summary: Which harness layers are wired
+      operationId: getHarnessInfo
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HarnessInfo'
+
+  /api/harness-catalog/{layer}:
+    get:
+      tags: [catalog]
+      summary: Browse the catalog of rules / docs / tools for a layer
+      operationId: getHarnessCatalog
+      parameters:
+        - name: layer
+          in: path
+          required: true
+          description: One of `grep`, `rag`, `tools`
+          schema:
+            type: string
+            enum: [grep, rag, tools]
+      responses:
+        '200':
+          description: Catalog items
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CatalogResponse'
+        '404':
+          description: Unknown layer
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/docs/{layer}:
+    get:
+      tags: [catalog]
+      summary: Markdown extension guide for a layer
+      operationId: getLayerDocs
+      parameters:
+        - name: layer
+          in: path
+          required: true
+          description: One of `persona`, `grep`, `rag`, `tools`, `examples`, `grade`
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Markdown documentation for the layer
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  layer: { type: string }
+                  found: { type: boolean }
+                  markdown: { type: string }
+
+  /api/examples:
+    get:
+      tags: [catalog]
+      summary: Bundled example prompts (the 394-prompt library)
+      operationId: getExamples
+      responses:
+        '200':
+          description: List of example prompts
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  examples:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ExamplePrompt'
+
+  /api/chat/send:
+    post:
+      tags: [chat]
+      summary: Send a chat message to Gemma with optional safety harness
+      description: |
+        Accepts a message history + per-message harness toggles. The
+        server runs the enabled layers (GREP / RAG / Tools) on the
+        last user message, folds their output into Gemma's prompt
+        context, calls Gemma, and streams the response back via
+        Server-Sent Events. The final SSE event contains the full
+        response + a `harness_trace` showing what each layer
+        contributed.
+      operationId: sendChatMessage
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChatRequest'
+      responses:
+        '200':
+          description: SSE stream of keepalive comments + one final data event
+          content:
+            text/event-stream:
+              schema:
+                type: string
+        '400':
+          description: Malformed request
+        '503':
+          description: No Gemma engine wired into this deployment
+
+  /api/chat/upload-image:
+    post:
+      tags: [chat]
+      summary: Upload an image to be referenced in a subsequent chat message
+      description: |
+        Returns an opaque `id` the client uses in subsequent chat
+        messages as `{type: "image", image: "store://<id>"}`. Image
+        store is in-memory and capped at 50 entries; oldest evicted
+        on overflow.
+      operationId: uploadChatImage
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: Upload accepted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id: { type: string }
+                  mime: { type: string }
+                  bytes: { type: integer }
+        '400':
+          description: Empty or non-image file
+        '413':
+          description: File exceeds 12 MB cap
+
+  /api/grade:
+    post:
+      tags: [grade]
+      summary: Grade a model response against a rubric
+      description: |
+        Score the response either against:
+          - a per-prompt 5-tier rubric (worst..best), passing `prompt_id`
+          - a per-category required-element rubric (FAIL/PARTIAL/PASS),
+            passing `category` (e.g., `legal_citation_quality`)
+      operationId: gradeResponse
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GradeRequest'
+      responses:
+        '200':
+          description: Grade result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GradeResult'
+        '400':
+          description: Missing both prompt_id and category, or empty response_text
+        '503':
+          description: Grading not enabled in this deployment
+
+  /api/classifier/evaluate:
+    post:
+      tags: [classifier]
+      summary: Classify content with structured-output JSON
+      description: |
+        Submit a text + optional image. Returns a structured
+        envelope: classification, overall_risk, per-vector
+        magnitudes (ILO indicators, fee violations, wage
+        protection, debt bondage, ...), recommended_action,
+        ngo_referrals.
+      operationId: classifyContent
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ClassifyRequest'
+      responses:
+        '200':
+          description: Classification result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClassifyResult'
+
+components:
+  schemas:
+    ModelInfo:
+      type: object
+      properties:
+        loaded: { type: boolean }
+        name: { type: string, nullable: true, example: "gemma-4-e4b-it" }
+        display: { type: string, example: "Gemma 4 E4B" }
+        size_b: { type: number, nullable: true, example: 4.1 }
+        quantization: { type: string, nullable: true, example: "Q4_K_M" }
+        device: { type: string, nullable: true, example: "cuda" }
+
+    HarnessInfo:
+      type: object
+      properties:
+        persona: { type: boolean }
+        persona_default: { type: string }
+        grep: { type: boolean }
+        rag: { type: boolean }
+        tools: { type: boolean }
+        grade: { type: boolean }
+        grade_categories:
+          type: array
+          items: { type: string }
+
+    CatalogResponse:
+      type: object
+      properties:
+        layer: { type: string }
+        wired: { type: boolean }
+        items:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+        note: { type: string, nullable: true }
+
+    ExamplePrompt:
+      type: object
+      properties:
+        id: { type: string }
+        text: { type: string }
+        category: { type: string }
+        subcategory: { type: string }
+        sector: { type: string }
+        corridor: { type: string }
+        difficulty: { type: string, enum: [easy, medium, hard] }
+        ilo_indicators:
+          type: array
+          items: { type: string }
+
+    ChatMessage:
+      type: object
+      required: [role, content]
+      properties:
+        role:
+          type: string
+          enum: [user, assistant, system]
+        content:
+          oneOf:
+            - type: string
+            - type: array
+              items:
+                type: object
+                properties:
+                  type: { type: string, enum: [text, image] }
+                  text: { type: string, nullable: true }
+                  image: { type: string, nullable: true }
+
+    GenerationParams:
+      type: object
+      properties:
+        max_new_tokens: { type: integer, default: 8192 }
+        temperature: { type: number, default: 1.0 }
+        top_p: { type: number, default: 0.95 }
+        top_k: { type: integer, default: 64 }
+
+    HarnessToggles:
+      type: object
+      properties:
+        persona: { type: boolean, default: false }
+        persona_text: { type: string, nullable: true }
+        grep: { type: boolean, default: false }
+        rag: { type: boolean, default: false }
+        tools: { type: boolean, default: false }
+        custom_grep_rules:
+          type: array
+          nullable: true
+          items: { type: object, additionalProperties: true }
+        custom_rag_docs:
+          type: array
+          nullable: true
+          items: { type: object, additionalProperties: true }
+        custom_corridor_caps:
+          type: array
+          nullable: true
+          items: { type: object, additionalProperties: true }
+        custom_fee_camouflage:
+          type: array
+          nullable: true
+          items: { type: object, additionalProperties: true }
+        custom_ngo_intake:
+          type: array
+          nullable: true
+          items: { type: object, additionalProperties: true }
+
+    ChatRequest:
+      type: object
+      required: [messages]
+      properties:
+        messages:
+          type: array
+          items:
+            $ref: '#/components/schemas/ChatMessage'
+        generation:
+          $ref: '#/components/schemas/GenerationParams'
+        toggles:
+          $ref: '#/components/schemas/HarnessToggles'
+
+    GradeRequest:
+      type: object
+      required: [response_text]
+      properties:
+        response_text: { type: string }
+        prompt_id:
+          type: string
+          nullable: true
+          description: For per-prompt 5-tier rubric grading
+        category:
+          type: string
+          nullable: true
+          description: For per-category required-element rubric (e.g., `legal_citation_quality`)
+
+    GradeCriterion:
+      type: object
+      properties:
+        id: { type: string }
+        description: { type: string }
+        status: { type: string, enum: [PASS, PARTIAL, FAIL] }
+        weight: { type: number }
+        required: { type: boolean }
+        kind: { type: string, enum: [recognition, refusal, legal_citation, warning] }
+        pass_hits:
+          type: array
+          items: { type: string }
+        fail_hits:
+          type: array
+          items: { type: string }
+
+    GradeResult:
+      type: object
+      properties:
+        category: { type: string }
+        name: { type: string }
+        description: { type: string }
+        criteria:
+          type: array
+          items: { $ref: '#/components/schemas/GradeCriterion' }
+        total_score: { type: number }
+        total_weight: { type: number }
+        pct_score: { type: number }
+
+    ClassifyRequest:
+      type: object
+      properties:
+        content_text: { type: string }
+        image_base64:
+          type: string
+          nullable: true
+        schema_mode:
+          type: string
+          enum: [single_label, multi_label, risk_vector, custom]
+          default: risk_vector
+
+    ClassifyResult:
+      type: object
+      properties:
+        classification: { type: string }
+        overall_risk: { type: number, minimum: 0, maximum: 1 }
+        confidence: { type: number, minimum: 0, maximum: 1 }
+        risk_vectors:
+          type: object
+          additionalProperties: { type: number }
+        recommended_action:
+          type: string
+          enum: [allow, log_only, review, escalate_to_ngo,
+                  escalate_to_regulator, urgent_safety_referral]
+        ngo_referrals:
+          type: array
+          items: { type: string }
+
+    Error:
+      type: object
+      properties:
+        detail: { type: string }

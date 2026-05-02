@@ -57,22 +57,14 @@ def main() -> None:
         fail("live 010 public slug missing")
     ok("live 010 public slug is present")
 
-    if "2</td><td style=\"padding: 6px 10px;\"><b>Free Form Exploration</b>" not in all_md:
-        fail("section order row 2 is not Free Form Exploration")
-    if "3</td><td style=\"padding: 6px 10px;\"><b>Baseline Text Evaluation Framework</b>" not in all_md:
-        fail("section order row 3 is not Baseline Text Evaluation Framework")
-    ok("section order matches the 000 phase registry")
+    # After the 2026-04-18 restructure, 005 no longer duplicates the 000
+    # Index section-order table (that surface lives solely in the index).
+    # 005 keeps glossary groups, reading paths, and the live registry proof.
+    if "## How 005 differs from 000 Index" not in all_md:
+        fail("header is missing the '005 differs from 000 Index' explainer")
+    ok("header explains how 005 differs from the index (no duplication)")
 
-    # After the 2026-04-17 restructure, Solution Surfaces holds only
-    # 610/620/650; 600 sits in its own Results Dashboard section and 899
-    # sits in its own Suite Conclusion section.
-    if "610 Submission Walkthrough, 620 Demo API Endpoint Tour, 650 Custom Domain Walkthrough" not in all_md:
-        fail("solution surfaces row is missing 610 / 620 / 650")
-    if "600 Results Dashboard" not in all_md:
-        fail("results dashboard section is missing 600")
-    ok("Results Dashboard and Solution Surfaces sections are split correctly")
-
-    for label in ("Judge fast path", "Technical proof path", "Adopter path", "Interactive demos"):
+    for label in ("Judge fast path", "Technical proof path", "Adopter path", "Interactive demos", "Evaluation depth"):
         if label not in all_text:
             fail(f"reading-path label missing: {label}")
     ok("current reading-path labels are present")
@@ -97,7 +89,7 @@ def main() -> None:
     if len(final_print_cells) != 1:
         fail(f"expected exactly one URL-bearing final print cell, found {len(final_print_cells)}")
     final_print = _src(final_print_cells[0])
-    if "010-duecare-quickstart-in-5-minutes" not in final_print or "099-duecare-orientation-and-background-and-package-setup-conclusion" not in final_print:
+    if "010-duecare-quickstart-in-5-minutes" not in final_print or "099-duecare-orientation-setup-conclusion" not in final_print:
         fail("final print does not link to both 010 and 099")
     ok("final print links to 010 and 099")
 

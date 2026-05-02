@@ -1,0 +1,43 @@
+﻿1. Download the SEC Complaint form which is online here: 
+
+   1. Download link as of 29 October 2021: https://www.sec.gov.ph/wp-content/uploads/2021/04/2021FORM_Updated-Complaint-Form.docx 
+
+      2. Upload the downloaded complaint form to Google Drive
+
+
+      3. Fill out the details in the SEC Complaint using Google Documents:
+
+         1. You can follow the example format here: https://drive.google.com/file/d/1UbunIis2E_7JDaWT7-dhaHcKD_hv6dhv/view?usp=sharing
+
+            4. Open a new Google Document and help write a Narrative (story) for the client that has all the details, dates, and information about what happened
+
+               1. You can follow the example format here: https://drive.google.com/file/d/1UbunIis2E_7JDaWT7-dhaHcKD_hv6dhv/view?usp=sharing 
+
+                  5. Upload all the evidence to Google Drive
+
+                  6. Write an email to the SEC and include the following documents as attachments:
+
+                     1. SEC Complaint Form
+                     2. Narrative
+                     3. Evidence
+
+                     4. TO: ebaquino@sec.gov.ph,ksbello@sec.gov.ph,elbamatong@sec.gov.ph,oclee@sec.gov.ph,office_cjdfrancisco@sec.gov.ph,comsec@sec.gov.ph,epd@sec.gov.ph,imessagemo@sec.gov.ph,cgfd_md@sec.gov.ph
+
+
+CC: pcc@malacanang.gov.ph,complaints@pacc.gov.ph,attyrlestevez@gmail.com,wenchiesabban@yahoo.com,pab@ombudsman.gov.ph,pllo.osec@pllo.gov.ph,complaints@arta.gov.ph,malacanangosap@gmail.com,sap.closein@gmail.com
+
+
+SUBJECT: COMPLETE NAME_RESPONDENT COMPANY_SUBJECT OF COMPLAINT
+
+
+Dear Sirs/Madams:
+
+
+Please see the attached complaint forms and supporting evidence.
+
+
+Be advised that I am not required to engage in bi-lateral communication with the Respondent because Respondent is subject to ongoing human trafficking and money laundering investigations and I may be a prosecution witness. Furthermore, given that the Respondent is known to make and execute threats against persons, property, and wellbeing of borrowers and their families it would be dangerous to engage in bi-lateral communications.
+
+
+Thank you,
+<Name>

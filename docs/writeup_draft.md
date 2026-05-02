@@ -18,15 +18,18 @@
 
 ---
 
-## TL;DR (75 words)
+## TL;DR (95 words)
 
 Stock Gemma 4 cites no ILO conventions, recognizes no camouflaged
 recruitment fees, and gives traffickers operational advice. Duecare
-wraps Gemma 4 with four toggleable layers (Persona, GREP, RAG, Tools),
-shows the *exact* prompt transformation in a per-response Pipeline
-modal, and ships as five Kaggle notebooks + 17 PyPI packages. Same
-harness powers a chat for individual workers and a structured-output
-classifier for NGO dashboards. MIT. On a laptop. Zero data egress.
+wraps Gemma 4 with four toggleable layers (Persona, GREP, RAG, Tools)
+and powers a single migrant-worker companion with a clear north star:
+**inform AND document.** A worker can follow the advice (don't pay
+the illegal fee) — or pay anyway under their corridor's real
+constraints, with the journal capturing every receipt + statute
+citation + recipient so the same harness pre-stages the refund claim.
+Six core + five appendix Kaggle notebooks, 17 PyPI packages, an
+on-device Android companion via LiteRT. MIT. Zero data egress.
 
 ## 1. The problem (240 words)
 
@@ -66,6 +69,31 @@ Polaris, Mission for Migrant Workers HK — cannot send case data to
 frontier APIs. The hackathon's own framing names this gap: *a
 community where privacy is non-negotiable*.
 
+And every published trafficking benchmark misses a deeper one:
+even when a worker knows a fee is illegal, the practical reality
+often forces them to pay (the recruiter is the only deployment
+path their corridor offers; family back home is in crisis;
+refusal means the deployment goes to someone else). The worst
+case isn't paying the illegal fee — it's paying it AND having
+no evidence trail to recover.
+
+## 1a. The north star: inform AND document (110 words)
+
+Duecare is a harm-reduction tool, not a paternalistic blocker. The
+worker has agency, and constraints we don't see. Two paths, both
+fully offline:
+
+1. **Inform.** The chat (Gemma 4 + 37 GREP rules + 26 RAG docs +
+   4 tools, on-device) tells the worker which statute the fee
+   violates, what the cap should be, and which NGO handles refund
+   claims for that corridor. The worker may refuse — preventing
+   the harm.
+2. **Document.** If the worker pays anyway, the journal captures
+   the receipt, the recruiter's name + POEA license number, the
+   contract clause, the payment method. The same harness pre-stages
+   a refund-claim packet citing the right statute — file later with
+   POEA / BP2MI / BMET.
+
 ## 2. The harness (340 words)
 
 Duecare wraps Gemma 4 with four toggleable layers. Each layer is
@@ -75,16 +103,18 @@ the user clicks ON or OFF per message:
 - **Persona** — a 40-year anti-trafficking expert system prompt
   prepended to every chat message. Multi-persona library: editable,
   user-addable, persisted client-side in `localStorage`.
-- **GREP** — 22 regex KB rules across five categories (debt bondage,
-  fee camouflage, corridor caps, ILO indicators, meta patterns), each
-  tagged with the controlling ILO convention or national statute.
-  Fired hits prepend to Gemma's context with citation + indicator
-  description + match excerpt.
-- **RAG** — BM25 retrieval over an 18-document in-kernel corpus: full
-  ILO C029/C181/C095/C189 + 11-indicator manual + POEA MC 14-2017 +
-  POEA MC 02-2007 + RA 8042 + BP2MI Reg 9/2020 + Nepal FEA §11 + HK
-  Cap. 57 §32 + HK Money Lenders Ord. + HK EA Reg. + SG EFMA + FATF
-  Rec. 32 + IJM "Tied Up" 2023 + Polaris recruitment fraud typology.
+- **GREP** — 37 regex KB rules across five categories (debt bondage,
+  fee camouflage, corridor caps, ILO indicators, multi-party /
+  governed-by clause stripping, sub-agent layering, esoteric legal
+  language), each tagged with the controlling ILO convention or
+  national statute. Fired hits prepend to Gemma's context with citation
+  + indicator description + match excerpt.
+- **RAG** — BM25 retrieval over a 26-document in-kernel corpus: full
+  ILO C029/C181/C095/C189 + 11-indicator manual + POEA MCs + RA 8042 +
+  BP2MI Reg 9/2020 + Nepal FEA §11 + Bangladesh OEA + HK Cap. 57/163/57A
+  + SG EFMA + Saudi MoHR + FATF Rec. 32 + Palermo Protocol Art. 3(b) +
+  ICRMW Art. 18/22 + Hague Service Convention + Saudi kafala reforms +
+  DIFC unconscionability anchor + a substance-over-form analytic doc.
   Top-5 results inject as context.
 - **Tools** — four heuristic lookup functions that Gemma uses for
   grounding: `lookup_corridor_fee_cap(origin, destination, sector)`,
@@ -116,24 +146,57 @@ the server merges them with the bundled built-ins before invoking
 each layer. Export/import the full customization JSON via the Persona
 modal footer.
 
-## 3. The five Kaggle notebooks (220 words)
+## 2a. What the harness does, quantified (110 words)
+
+We hand-built a 12-criterion rubric covering the three failure modes
+stock LLMs actually exhibit: (1) jurisdiction-specific statute citation,
+(2) ILO and international regulation citation, (3) substance-over-form
+analysis. Scored on 207 prompts under harness-OFF vs harness-ON:
+
+| Dimension | OFF | ON | **Lift** |
+|---|---|---|---|
+| Jurisdiction-specific rules | 0.4% | 87.8% | **+87.5 pp** |
+| ILO / international regulations | 0.1% | 51.3% | **+51.2 pp** |
+| Substance-over-form analysis | 0.8% | 34.8% | **+34.1 pp** |
+
+Layer ablation: GREP-only +35 pp, RAG-only +47 pp, both +56.5 pp —
+both layers independently load-bearing. With harness ON, 99.3% of
+emitted statutory citations trace back to the bundled corpus.
+Reproducible: `python scripts/rubric_comparison.py`. Full report:
+[`docs/harness_lift_report.md`](./harness_lift_report.md).
+
+## 3. The Kaggle notebooks (190 words)
+
+Six core notebooks in canonical order plus five appendix notebooks.
+Walk the core in sequence — each builds context for the next.
+
+**Core (6):**
 
 | # | Notebook | Purpose |
 |---|---|---|
-| 1 | `duecare-live-demo` | Full safety-harness pipeline + 22-slide deck + audit Workbench. The hosted live URL judges click. |
-| 2 | `duecare-bench-and-tune` | Smoke benchmark + Unsloth SFT + DPO + GGUF export + HF Hub push. |
-| 3 | `duecare-chat-playground` | Raw Gemma 4 chat — no harness. Baseline for the comparison story. |
-| 4 | `duecare-chat-playground-with-grep-rag-tools` | The same chat UI with 4 harness toggles, multi-persona library, custom rule additions, 204-prompt examples library, per-response pipeline modal. *The headline demo.* |
-| 5 | `duecare-gemma-content-classification-evaluation` | Form-based content submission → structured JSON classification with risk vectors, threshold-filterable history queue. *The Agency / NGO dashboard scenario.* |
+| 1 | `duecare-chat-playground` | Raw Gemma 4 chat — NO harness. Baseline. |
+| 2 | `duecare-chat-playground-with-grep-rag-tools` | Same chat UI + 4 toggle tiles + Persona library + Pipeline modal. *The headline demo.* |
+| 3 | `duecare-content-classification-playground` | Classification sandbox: 4 schemas, shows merged prompt + raw response + parsed JSON. |
+| 4 | `duecare-content-knowledge-builder-playground` | Knowledge-base sandbox: add GREP rules + RAG docs; test what fires; export JSON. |
+| 5 | `duecare-gemma-content-classification-evaluation` | Polished NGO dashboard with risk vectors + threshold-filterable history. |
+| 6 | `duecare-live-demo` | User-facing live URL. Combines 3 + 4 into one polished product. |
 
-Each notebook has its own bundled wheels dataset on Kaggle:
-`duecare-llm-wheels` (live-demo, 16 wheels, ~6.2 MB),
-`duecare-bench-and-tune-wheels` (6 wheels), `duecare-chat-playground-wheels`
-(3 wheels, ~280 KB), `duecare-chat-playground-with-grep-rag-tools-wheels`
-(3 wheels), `duecare-gemma-content-classification-evaluation-wheels`
-(3 wheels). The chat package ships everything: 22 GREP rules + 18 RAG
-docs + 4 tools + 200+ example prompts + 16 classifier examples (6 with
-SVG document mockups) + the persona default + the Pipeline modal UI.
+**Appendix (5, optional):** `duecare-prompt-generation` (Gemma 4
+generates new evaluation prompts + 5 graded responses each),
+`duecare-bench-and-tune` (Unsloth SFT → DPO → GGUF Q8_0 → HF Hub push),
+`duecare-research-graphs` (6 Plotly charts, CPU-only),
+`duecare-chat-playground-with-agentic-research` (5th toggle for agentic
+web search; proof-of-concept), and
+`duecare-chat-playground-jailbroken-models` (loads abliterated/cracked
+Gemma 4 variants; proves the harness works even when refusals are
+ablated).
+
+Each notebook has its own bundled wheels dataset (`*-wheels`). The
+chat package ships 37 GREP rules + 26 RAG docs + 4 tools + 394
+example prompts + 207 hand-graded 5-tier rubrics + 6 required-element
+rubric categories (66 criteria) + 16 classifier examples (6 with SVG
+document mockups) + the persona default + the Pipeline modal UI +
+the per-response Grade modal.
 
 ## 4. Architecture (120 words)
 
@@ -152,31 +215,39 @@ layer uses Gemma's tool-call API to ground responses in corridor fee
 caps, fee-camouflage decoders, ILO indicator matchers, and NGO intake
 hotlines.
 
-## 5. Two deployment modes (130 words)
+## 5. Three deployment surfaces, one philosophy (170 words)
 
-**Worker-side (the chat playground).** A migrant worker pastes a
-suspicious recruiter message; all four toggles ON; the response cites
-the violated ILO conventions, names the corridor's controlling
-statute, lists POEA / BP2MI / MfMW HK hotlines. Same Gemma 4 weights
-the frontier-API customers use — no data leaves the device.
-Multi-language via persona-text customization.
+**Worker-side chat (laptop / Kaggle / mobile-responsive HF Space).**
+Inform-and-document for the worker themselves. Paste a recruiter
+message → harness fires → response cites ILO C181 Art. 7, the
+corridor's controlling statute, the POEA/BP2MI/MfMW hotline. If
+the worker decides to refuse the fee, the harm is prevented. If
+they decide to pay anyway, the same surface captures the receipt
+(photo upload), the recipient's full name + license number, and
+the controlling statute — pre-staging the refund claim. Same
+Gemma 4 weights the frontier-API customers use; no data leaves
+the device.
 
 **Agency / NGO dashboard (the classifier).** Paste content (text +
 optional screenshot — contract, receipt, police report, WhatsApp
-thread). Get back a structured JSON envelope: classification, overall
-risk, per-vector magnitudes (ILO indicators, fee violations, wage
+thread). Structured JSON envelope: classification, overall risk,
+per-vector magnitudes (ILO indicators, fee violations, wage
 protection, debt bondage), recommended action (`allow` → `log_only`
 → `review` → `escalate_to_ngo` → `escalate_to_regulator` →
-`urgent_safety_referral`), NGO referrals. History queue with a
+`urgent_safety_referral`), NGO referrals. History queue with
 risk-threshold slider. Export JSON for compliance.
 
-Third deployment — **Dockerized API** — documented at
-`docs/deployment_enterprise.md`.
+**On-device Android (stretch, LiteRT track).** Same harness on
+`google/gemma-4-e2b-it` via LiteRT + SQLCipher-encrypted journal +
+one-tap refund-claim or complaint-packet PDF. v0.1.0 APK published;
+v1 MVP week of 2026-05-19. Sibling repo: `duecare-journey-android/`.
+
+Fourth deployment, Dockerized API, at `docs/deployment_enterprise.md`.
 
 ## 6. Reproducibility (90 words)
 
 - **Code:** github.com/TaylorAmarelTech/gemma4_comp — MIT
-- **Notebooks:** kaggle.com/taylorsamarel/code (5 public)
+- **Notebooks:** kaggle.com/taylorsamarel/code (6 core + 5 appendix)
 - **Datasets:** auto-attached per notebook
 - **HF Hub fine-tune:** `taylorscottamarel/Duecare-Gemma-4-E4B-it-SafetyJudge-v0.1.0`
   (LoRA + GGUF Q8_0)
@@ -189,9 +260,13 @@ Third deployment — **Dockerized API** — documented at
   duecare.chat.run_server`. Full instructions:
   `docs/deployment_local.md`.
 
-## 7. Acknowledgements (40 words)
+## 7. Prior art and acknowledgements (75 words)
 
-Built on the author's prior 21K-test migrant-worker trafficking
-benchmark. Grounded in ILO C029/C097/C181/C189/C095, the UN Palermo
-Protocol, POEA enforcement data, FATF 40 Recommendations. Maria is a
-composite, labeled in the video. The harness runs on your machine.
+**Cited / adjacent.** Just Good Work (ETI + Our Journey) — static
+recruitment-journey app, Kenya→Qatar; Duecare is the generative
+successor on PH/ID/NP/BD→HK/Saudi. Polaris 2017 Typology of Modern
+Slavery — upstream taxonomy. Tella by Horizontal — SQLCipher journal
++ share-to-NGO design analog. HarmBench / AILuminate — general LLM
+benchmarks; Duecare goes deep on one domain. **Distinct from DoNotPay:**
+the worker files, not the app. Maria is a composite, labeled in the
+video. Full prior-art doc at `docs/prior_art.md`.

@@ -4,13 +4,12 @@
   "code_file": "100_gemma_exploration.ipynb",
   "language": "python",
   "kernel_type": "notebook",
-  "is_private": true,
+  "is_private": false,
   "enable_gpu": true,
   "enable_tpu": false,
   "enable_internet": true,
   "dataset_sources": [
-    "taylorsamarel/duecare-llm-wheels",
-    "taylorsamarel/duecare-trafficking-prompts"
+    "taylorsamarel/duecare-llm-wheels"
   ],
   "competition_sources": [
     "gemma-4-good-hackathon"

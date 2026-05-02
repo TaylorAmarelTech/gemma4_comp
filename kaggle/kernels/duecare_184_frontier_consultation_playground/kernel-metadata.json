@@ -1,5 +1,5 @@
 {
-  "id": "taylorsamarel/duecare-184-frontier-consultation-playground",
+  "id": "taylorsamarel/184-duecare-frontier-consultation-playground",
   "title": "184: DueCare Frontier Consultation Playground",
   "code_file": "184_frontier_consultation_playground.ipynb",
   "language": "python",
@@ -19,10 +19,9 @@
   ],
   "kernel_sources": [],
   "keywords": [
-    "gemma",
-    "function-calling",
-    "escalation",
-    "frontier",
-    "playground"
+    "adversarial",
+    "red-team",
+    "jailbreak",
+    "safety"
   ]
 }

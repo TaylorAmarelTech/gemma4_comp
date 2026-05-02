@@ -1,0 +1,163 @@
+﻿Legal Violations under the Trade Descriptions Ordinance (Cap. 362) 
+
+
+Potential Questions to ask victims:
+* Did you have previous experience of similar jobs before applying to hkTalent (Kenya)? [important in regards to the training school, possibly YAU only educate those without previous experience]. 
+
+* Where you provided with any training by Talent (Kenya)? 
+   * If so, who payed?
+   * Do you know anything else about the training school? have you or anyone you know been there? 
+
+      * Where you informed of the probation period or what it entailed? 
+
+      * When were you informed of the placement fees? 
+         * Total amount? 
+Question that remains: 
+         * Payment was often accepted later, as it was paid by installments, can it wrongly accepting payment still apply? Other considerations could apply, e.g. affidavit (in some cases). 
+
+
+Generally applicable and relevant provisions to this case 
+
+
+21A. Extra-territoriality 
+A trader may commit an offence under this Ordinance with respect to a commercial practice even if the practice is directed to consumers who are outside Hong Kong if, at the time of engaging in the practice, the trader is in Hong Kong or Hong Kong is the trader’s usual place of business.
+	
+
+22. Accessory to offences committed outside Hong Kong
+Subject to the provisions of this Ordinance, any person who, in Hong Kong, procures, counsels, aids, abets or is accessory to the commission outside Hong Kong of an act which, if committed in Hong Kong, would be an offence under this Ordinance, commits that offence as a principal and shall be liable to be prosecuted in Hong Kong as if the offence had been committed within Hong Kong.
+	
+
+
+
+________________
+
+
+FALSE TRADE DESCRIPTION OF SERVICES 
+
+
+FALSE TRADE DESCRIPTION- SUMMARY 
+	Offence: s.7A(1), Trade Descriptions Ordinance (Cap. 362)
+A trader who—
+         1. applies a false trade description to a service supplied or offered to be supplied to a consumer; or
+         2. supplies or offers to supply to a consumer a service to which a false trade description is applied, commits an offence.
+	Penalty for Violation: liable on conviction upon indictment to a fine of $500,000 and to imprisonment for 5 years; and on summary conviction, to a fine at level 6 and to imprisonment for 2 years (s.18, Cap. 362). Note a level 6 fine is currently $100,000 (Sch. 8, Criminal Procedure Ordinance (Cap. 221)). 
+	Summary of Suspected Violation:
+
+
+LAU Yuk Ling Ivy and Talent (Kenya) Company Limited purported to offer the following services and accepted payment on account of promising to fulfil the same. The following thus constitutes applying trade description to a service(s) to be supplied: 
+
+         1. It was advertised that the jobs would be equivalent to US$ 440 (or at least the Hong Kong statutory minimum wage to Foreign Domestic Workers). This was advertised so on Talent (Kenya) Company Limited’s Facebook page, Website and in the employment contracts. 
+         2. Talent (Kenya) Company Limited’s holds out that[a]:  “With the full support from Kenya Government[b], we have established a training school to train and recruit excellent domestic helpers.” This provides an assurance and impression that suspects educate the workers before they are being employed in Hong Kong. 
+         3. Nowhere on Talent (Kenya) Company Limited’s Facebook page, Website or any communication between LAU Yuk Ling Ivy was it communicated to the victims beforehand the proper nature of the job supplied would entail a three month probation period, which would entail no public holidays (illegal), no rest days (illegal), and confiscation of the victim’s phones. 
+         1. Alice [c]made representations on the Talent (Kenya) Company Limited’s Facebook page “here is freedom, off day, public holiday & no discrimination. This company is so reliable so don’t have any doubt, infact I work for them meaning I know them very well.” Talent (Kenya) Company Limited chose to publicize this, thus holding out that this is what their services entailed, which would be very much assumed so by any reasonable consumer. 
+
+
+These trade descriptions applied to the services, however, were false. The following acts constitute the above mentioned trade descriptions being false: 
+
+
+         1. In reality the victims were not given any salary for the first 4-6 months, hence not receiving the promised amount. Further, this was due to what (on at least some occasions, when the suspects explained why), illegal agency fees (well above the 10% of one month’s salary), as the suspects stated this amount to be HK$24,000. 
+         2. No such training is known to have taken place. Nor is such a school likely to exist. This is misleading, not only to the victims, but also to all (prospective) foreign domestic worker employers, i.e. also consumers of Talent (Kenya) Company Limited.  It is highly likely that the photos supplied are either photoshopped or simply misleading.[d][e] 
+         3. By not including vital information about the circumstances of the three month probation period, wherein some of the acts were illegal, but also false as it deprived the victims of a true representation of the nature of the service supplied, i.e in supplying the employment, representing the nature of the employment correctly. 
+
+All the factors above indicate that the trade description provided directly by the suspects to the victims was false to a material degree or at least misleading, to be taken for a trade description false to a material degree. 
+	Suspects[f][g]: LAU Yuk Ling Ivy, Talent (Kenya) Company Limited and Directors, 
+	
+
+FALSE TRADE DESCRIPTION-SUGGESTED ACTIONS
+	            * Confirm that victims were not actually trained at the Talent (Kenya) Company Limited’s training school. Nor that there actually any training school established at all by the suspects. 
+            * Confirm that no representation was made in regards to any description of the nature of the three month probation period. As of now it seems as if the victims were only informed upon arrival in Hong Kong and in very close proximity to the time or on the same day they took up their employment. 
+
+
+	
+
+
+
+________________
+
+
+WRONGLY ACCEPTING PAYMENT
+
+
+WRONGLY ACCEPTING PAYMENT- SUMMARY 
+	Offence: s.13l, Trade Descriptions Ordinance (Cap. 362)
+            1. A trader who engages in relation to a consumer in a commercial practice that constitutes wrongly accepting payment for a product commits an offence.
+            2. A trader wrongly accepts payment for a product if the trader accepts payment or other consideration for the product and at the time of that acceptance—
+            1. the trader intends not to supply the product;
+            2. the trader intends to supply a product that is materially different from the product in respect of which the payment or other consideration is accepted; or
+            3. there are no reasonable grounds for believing that the trader will be able to supply the product—
+            1. within the period specified by the trader at or before the time at which the payment or other consideration is accepted; or
+            2. if no period is specified at or before that time, within a reasonable period.
+	Penalty for Violation: liable on conviction on indictment to a fine of $500,000 and to imprisonment for 5 years; and on summary conviction, to a fine at level 6 and to imprisonment for 2 years (s.18, Cap. 362). Note a level 6 fins is currently $100,000 (Sch. 8, Criminal Procedure Ordinance (Cap. 221)). Civil debt recovery, if a person is convicted, the court may order the person to pay any amount of compensation that it thinks reasonable to any person who has suffered financial loss resulting from that offence (s.18A, Cap. 362). 
+	Summary of Suspected Violation:
+LAU Yuk Ling Ivy is operating the employment agency Talent (Kenya) Company Limited and accepting payments (by salary deduction, either in cash or by way of bank transfers) of placement fees from victims for services (providing job placements and processing visas). These payments were wrongly accepted both because there was an intention to supply a service materially different from the one that payment was accepted for.
+There is a strong reason to suspect that the suspects intended to supply a product which was materially different from the one payment was accepted for, which constitutes wrongly accepting payment. This is because:
+
+            1. LAU intended to deprive the victims of HK$ 4,000 of the victims statutory minimum wage salary for foreign domestic workers,over the  course of the first four to six months. This was not always stipulated clearly for before contracts and agreements were made. The service to supply job placements and such corresponding fees, were not mentioned in advertising materials at all, but always deducted and there was thus always an intention for LAU to receive around HK$24,000. 
+            2. The suspects hold out to supply a service wherein the victims were educated at the suspect’s training school. This training never occurred and thus is materially different from the service promised by the suspects to the victims and to the employers (who also paid the suspects). It is also strongly suspected that no such training facility exists at all in Kenya, as purported by the suspects and there was never an intention (nor could there have been) to supply such a service. 
+            3. There was further no intention to supply the victims with work, as prescribed by the contract signed and through representations made on their official digital platforms, including but not limited to statements such as “here is freedom, off day, public holiday & no discrimination. This company is so reliable so don’t have any doubt, infact I work for them meaning I know them very well.” When in reality there was an intention all along to supply the victims with a three month probation period, which although mentioned on Talent (Kenya) Company Limited’s website did not include vital information, which materially altered the product supplied. The suspects knew that this would entail some legal offences, limited freedom, no holidays, no monthly leave and confiscation of personal property, such as mobile phones. This is thus wholly different from the nature of the job, as supplied by the job placement services of the suspects. 
+            4. 	Suspects: LAU Yuk Ling Ivy, Talent (Kenya) Company Limited 
+	
+
+WRONGLY ACCEPTING PAYMENT- SUGGESTED ACTIONS
+	            * Confirm that victims were not actually trained at the Talent (Kenya) Company Limited’s training school. Nor that there actually any training school established at all by the suspects.
+            * Confirm that no representation was made in regards to any description of the nature of the three month probation period. As of now it seems as if the victims were only informed upon arrival in Hong Kong and in very close proximity to the time or on the same day they took up their employment. 
+	
+
+
+
+
+
+________________
+
+
+MISLEADING OMISSIONS (UNCLEAR) 
+
+
+MISLEADING OMISSIONS- SUMMARY
+	Offence:  s.13E, Trade Descriptions Ordinance (Cap. 362)
+(1)A trader who engages in relation to a consumer in a commercial practice that is a misleading omission commits an offence.
+(2)A commercial practice is a misleading omission if, in its factual context, taking account of the matters in subsection (3)—
+(a)it omits material information;
+(b)it hides material information;
+(c)it provides material information in a manner that is unclear, unintelligible, ambiguous or untimely; or
+(d)it fails to identify its commercial intent, unless this is already apparent from the context,
+and as a result it causes, or is likely to cause, the average consumer to make a transactional decision that the consumer would not have made otherwise[h].
+(3)The matters referred to in subsection (2) are—
+(a)all the features and circumstances of the commercial practice;
+(b)the limitations of the medium used to communicate the commercial practice (including limitations of space or time); and
+(c)if the medium used to communicate the commercial practice imposes limitations of space or time, any measures taken by the trader to make the information available to consumers by other means.
+(4)If a commercial practice is an invitation to purchase, t[i]he following information is material, if not already apparent from the context—
+(a)the main characteristics of the product,[j] to the extent appropriate to the product and to the medium by which the invitation to purchase is communicated;
+(d)either—
+(i)the price,[k] including any taxes; or
+(ii)if the nature of the product is such that the price cannot reasonably be calculated in advance, the manner in which the price is calculated;
+(5)In this section—
+material information (重要資料) means—
+(a)in relation to a commercial practice that is an invitation to purchase, any information that is material as a result of subsection (4); and
+(b)in every case—
+(i)the information that the average consumer needs, according to the context, to make an informed transactional decision; or
+(ii)any other information required in relation to a commercial communication under any other enactment;
+professional diligence (專業勤勉) means the standard of skill and care that a trader may reasonably be expected to exercise towards consumers which is commensurate with either—
+(a)honest market practice in the trader’s field of activity; or
+(b)the general principle of good faith in that field.
+
+
+	Penalty for Violation: liable on conviction on indictment to a fine of $500,000 and to imprisonment for 5 years; and on summary conviction, to a fine at level 6 and to imprisonment for 2 years (s.18, Cap. 362). Note a level 6 fins is currently $100,000 (Sch. 8, Criminal Procedure Ordinance (Cap. 221)). Civil debt recovery, if a person is convicted, the court may order the person to pay any amount of compensation that it thinks reasonable to any person who has suffered financial loss resulting from that offence (s.18A, Cap. 362). 
+	Summary of Suspected Violation:
+	Suspects: LAU Yuk Ling Ivy, Talent (Kenya) Company Limited 
+	
+
+[a]need to confirm, whether other victims trained or not. could this be because they are already experienced (as Ruth was???)
+[b]This could be misleading and also something that we could try to confirm or dis-prove by contacting the Keynan Consulate.
+[c]Alice Gathoni??
+[d]not sure if include
+[e]I can analyze this further. I think most of the reasoning in here is good and relatively easy to follow.
+
+
+We are lacking a bit on the evidence, but I hope after adding a few screenshots and links to this document I can send it over to Kay Chan to push him to explore these further and I can try to get in touch with Ruth and Lois.
+[f]others?
+[g]Husband of Ivy maybe.
+[h]PROBLEM, because LAU told them before they went that they had to pay placement fee, agreed on it and decided to go anyway.
+[i]based on website+facebook
+[j]if anything, this apply
+[k]could also apply

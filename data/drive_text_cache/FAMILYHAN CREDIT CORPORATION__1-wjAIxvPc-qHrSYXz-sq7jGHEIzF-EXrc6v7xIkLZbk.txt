@@ -1,0 +1,283 @@
+﻿Migration Assistance & Research
+RM 15B1, 15/F
+Cheung Fat Industrial Building
+7-9 Hill Road, Shek Tong Tsui, Hong Kong
+
+
+16 June 2020
+
+
+Via Post To: 
+Postmaster General
+Post Office Headquarters
+General Post Office, 2 Connaught Place
+Central, Hong Kong
+Via Email To: cathy_chu@hkpo.gov.hk 
+c.c: teresa_au@hkpo.gov.hk 
+	Via Post To: 
+Postal Services Branch, Post Office
+Attn: Mr. CHAN Yan Sum, Danny
+Post Office Headquarters
+General Post Office, 2 Connaught Place
+Central, Hong Kong
+Via Email To: danny_ys_chan@hkpo.gov.hk;
+	
+
+
+
+REPORT OF ATTEMPTED MONEY LAUNDERING WITH POSTAL SERVICES AND REQUEST FOR ASSISTANCE
+
+
+To Whom This May Concern,
+ 
+This letter is being sent to report a suspected money laundering scheme involving a Philippines lending company FamilyHan Credit Corporation (“FamilyHan”), its undisclosed Hong Kong partner (the “Hong Kong Partner”), and any persons or entities in Hong Kong seeking to facilitate payments to FamilyHan. It has been observed that the Hong Kong Partner sends demand letters following a particular pattern to the employers of borrowers in an attempt to seek immediate payment from the borrower (also the “victim”). As will be explained below, loans from FamilyHan carry excessive interest rates which would constitute an indictable offence in Hong Kong, hence dealing or attempting to deal with proceeds of the loan monies may be money laundering. Since the Hong Kong Partner is attempting to deal with proceeds of an indictable offence by sending demand letters, it is requested that the Post Office use all tools available to intercept the demand letters for further law enforcement.
+
+
+Pursuant to the Post Office Ordinance (Cap. 98), the Postmaster General may delay postal packets and its contents if there is reason to believe that they contain anything by means of which any offence is being committed or attempted. “Offence” is defined in the Interpretation and General Clauses Ordinance (Cap. 1) to include any crime and any contravention or other breach of, or failure to comply with, any provision of any law, for which a penalty is provided. The offence of money laundering is clearly within the scope of this definition. It is hence requested that:
+1. The Postmaster General exercises such discretion and take immediate measures to delay or refuse delivery of demand letters sent by FamilyHan as they are tools inducing money laundering; 
+2. The Post Office and all Postal Services staff assist in tracking the source of these letters; 
+3. These measures are strictly enforced until relevant law enforcement in Hong Kong and in the Philippines complete investigations into FamilyHan and the Hong Kong Partner. 
+
+
+
+
+Explanation of Potential Money Laundering
+By way of background, FamilyHan is an online money lender based in the Philippines which grants loans carrying excessive interest rates. From the 130 victims we are in contact with, it is believed that most victims in Hong Kong have received at least one demand letter from the Hong Kong Partner, and in some cases, victims have received up to 3 demand letters. 
+
+
+Borrowers in Hong Kong are asked to repay their loans using remittance companies in Hong Kong to transfer money into FamilyHan’s bank accounts in the Philippines. Indeed, remittance companies have been blocking payments from FamilyHan (see Exhibit 1) suggesting that they too agree with our legal analysis on potential liability for money laundering. On the occasion that remittance companies have failed to take action, crime reports have been made with the relevant authorities in Hong Kong.
+
+
+From reviewing the contents of a sample of demand letters (Exhibit 2) and a sample loan agreement obtained (Exhibit 3), the effective annual interest rate carried by FamilyHan loans far exceed 180% per annum even without considering alleged “penalty interest”, and interest rates regularly reach 300-400% per annum. Details of such calculations are provided in both Exhibits. Under the Money Lenders Ordinance (Cap. 163), granting a loan with an interest rate exceeding 60% per year constitutes an indictable offense. It follows that the loans are invalid under Hong Kong law and any further collection or dealing with the proceeds of the loan may constitute money laundering under the provisions of the Organized and Serious Crimes Ordinance (Cap. 455). Notably, the money laundering offence may be committed even if FamilyHan’s charging of excessive interest is conducted overseas, as court decisions have authoritatively confirmed that the relevant conduct is assessed under Hong Kong law. A further list of suspected violations by FamilyHan and the Hong Kong Partner is enclosed as Exhibit 4. 
+
+
+FamilyHan has issued 5378 loans by 23 April 2020, and it is estimated that by 15 June 2020 a total of 7900 loans have been issued, all of which likely carry excessive interest rates. From the sample of victims we are in contact with, the average sum (even without considering extraordinary “late interest”) FamilyHan is seeking to collect per loan is 45,800 PHP. If 7900 such loans have been issued, FamilyHan and the Hong Kong Partner may be engaging in money laundering involving at least HKD 53.8 million.
+
+
+Identifiers of FamilyHan Demand Letters
+Scanned copies of numerous envelopes containing FamilyHan demand letters from March to June 2020 are included as Exhibit 5. An estimated 50 demand letters have been voluntarily provided by victims, many of which remain unopened. These letters may be provided to law enforcement and the Post Office for review and further action.
+
+
+From initial observations, the following indicators appear to be evident (see Exhibit 5):
+1. Envelopes are stamped in red text “Letter of Demand”, usually on the top-left corner;
+2. Occasionally the words “Letter of Demand” may be seen in large text as the contents of the letter from the unopened envelope;
+3. The first line is the name of a foreign domestic helper followed by a series of letters and numbers in brackets;
+   1. The name can be identified as a non-Chinese name, usually with a Spanish or Anglo-American derived first name, middle name and surname; 
+   2. A code appearing to be a passport number or other identification number, usually 1 or 2 letters followed by 7 numbers for a total of 9 figures;
+   3. The code is in brackets after the full name.
+4. Occasionally the words “Your Loan Account No.: XXXX/2020” may be seen as the contents of the letter from the unopened envelope, the “XXXX” representing the loan number of the victim; 
+5. Items 2-4 above are in capital letters with a Serif typeface resembling the font Times New Roman; and
+6. A single local stamp of $2 HKD is fixed to the envelope.
+
+
+In consideration of the above, we request that the Post Office use all the tools available to stop FamilyHan from engaging in further illicit activities. The Post Office is strongly urged to refuse or delay delivery of potential demand letters, track down these sources, and alert employees of the scheme. Should it assist investigations and further action, we are happy to provide the Post Office with the original hard copy demand letters received. 
+
+
+Sincerely Yours,
+ 
+Migration Assistance & Research
+________________
+
+
+TABLE OF EXHIBITS
+
+
+No.
+	Description
+	1
+	Evidence of remittance companies blocking FamilyHan payment
+	2
+	Sample demand letter contents and interest rate calculations
+	3
+	Sample loan agreement and interest rate calculation
+	4
+	List of FamilyHan’s violations
+	5
+	Compilation of demand letter envelopes 
+	
+
+________________
+
+
+
+
+EXHIBIT 1 - EVIDENCE OF REMITTANCE COMPANY BLOCKING FAMILYHAN PAYMENTS
+	  
+
+	Significance: after notification of the suspected money laundering scheme involving FamilyHan, prompt action was taken by senior management to block payments to FamilyHan. It is believed that the company likewise believes that there is a real risk of incurring liability for money laundering, suggesting they too agree with our analysis that the loan funds are tainted.
+	
+
+________________
+
+
+
+
+EXHIBIT 2(1) - SAMPLE DEMAND LETTER DATED 24 APRIL 2020 
+	  
+
+	Significance: as seen in the contents of the letter, there is no Hong Kong return address, suggesting that the Hong Kong entity of FamilyHan is aware of potential liability and is attempting to hide its identity. 
+
+
+Using the details provided, the principal of 30,000 PHP was allegedly dispersed on 17 January 2020, and 45,300 PHP was demanded by 24 April 2020. Using the interest rate calculation method prescribed by the Money Lenders Ordinance, the interest rate is 190% per annum, far exceeding the limit of 60% set by the same Ordinance. 
+
+
+The above interest rate does not even consider the fact that the borrower already discharged 17,000 PHP across February and March, meaning the actual interest rate should be 400% per annum.
+	
+
+EXHIBIT 2(1) - SAMPLE DEMAND LETTER DATED 24 APRIL 2020 - CONTINUED
+	  
+          
+	Significance: As seen from the payment receipts to FamilyHan’s bank account BDO Unibank, Inc (BDO) Account No.: 008-158010-370, the borrower who received this demand letter already discharged 17,000 PHP of the loan across February and March. As such, the actual interest rate should be around 400% per annum.
+	
+
+________________
+
+
+
+
+EXHIBIT 2(2) - SAMPLE DEMAND LETTER DATED 7 MAY 2020
+	  
+
+	Significance: as seen in the contents of the letter, there is no Hong Kong return address, suggesting that the Hong Kong entity of FamilyHan is aware of potential liability and is attempting to hide its identity. 
+
+
+Using the details provided, the principal of 30,000 PHP was allegedly dispersed on 21 January 2020, and 61,800 PHP was demanded by 7 May 2020. Using the interest rate calculation method prescribed by the Money Lenders Ordinance, the interest rate is 361% per annum, far exceeding the limit of 60% set by the same Ordinance. 
+	
+
+EXHIBIT 3 - SAMPLE LOAN AGREEMENT FROM FAMILYHAN - PAGE 1 OF 4
+	  
+
+
+
+	Significance: see page 4 of this Exhibit.
+	
+
+EXHIBIT 3 - SAMPLE LOAN AGREEMENT FROM FAMILYHAN - PAGE 2 OF 4
+	  
+
+	Significance: see page 4 of this Exhibit.
+	
+
+EXHIBIT 3 - SAMPLE LOAN AGREEMENT FROM FAMILYHAN - PAGE 3 OF 4
+	  
+
+	Significance: see page 4 of this Exhibit.
+	
+
+EXHIBIT 3 - SAMPLE LOAN AGREEMENT FROM FAMILYHAN - PAGE 4 OF 4
+	  
+
+	Significance: the loan principal is 20,000 PHP with an acceptance fee of 2,000 PHP, meaning the amount actually received is 18,000 PHP. A total of 23,000 PHP is to be repaid in 1 month. Using the method of interest rate calculation provided in Schedule 2 of the Money Lenders Ordinance and relevant case authorities, the effective annual interest rate exceeds 333% per annum. 
+
+
+Indeed, the figure shown even misrepresents the interest rate as being 180% per annum. In any event, the interest rate is in excess of 60% in clear violation of the Money Lenders Ordinance.  
+	
+
+
+
+________________
+EXHIBIT 4 - LIST OF FAMILYHAN’S SUSPECTED VIOLATIONS
+	Legal Basis
+	Explanation
+	Money Lenders Ordinance
+(Cap. 163)
+	The loans from FamilyHan carry an interest rate exceeding the limit of 60% per annum which is an indictable offence in Hong Kong.
+	Organized and Serious Crimes Ordinance (Cap. 455)
+	The partner or representative of FamilyHan in Hong Kong and all other entities in Hong Kong seeking to collect or remit the loan monies are dealing or attempting to deal with proceeds of an indictable offence, which may constitute money laundering.
+	Personal Data (Privacy) Ordinance (Cap. 486)
+	FamilyHan and its Hong Kong partner are disclosing personal information to third parties without authorization.
+	Republic Act No. 3765:
+Truth in Lending Act
+	FamilyHan operates an online lending platform which fails to provide borrowers with a Disclosure Statement and Loan Agreement as required by law.
+	Republic Act No. 10173:
+Data Privacy Act
+	On multiple occasions, the personal information of borrowers have been disclosed to third parties including a suspected partner or a commonly controlled entity in Hong Kong without authorization. This is a direct violation of the law.
+	Republic Act No. 9160: Anti-Money Laundering Act
+	The loans are granted through means of estafa (swindling) and therefore constitute unlawful money laundering activity.
+	Republic Act No. 9194
+	Unlawful activities captured by the Act include “[f]elonies or offenses of a similar nature that are punishable under the penal laws of other countries.” As such, the collection of loan proceeds by FamilyHan constitutes money laundering because the activities of FamilyHan constitute an indictable (felony) offense under Hong Kong’s Money Lenders Ordinance.
+	Section 3.01 of the Implementing Rules and Regulations (IRR) of Section 4(aa) of the Bayanihan to Heal As One Act
+	FamilyHan has attempted to collect loan repayments and continued to demand payment despite the mandatory grace period for all loans and interest payments.
+	Other practices which are unfair, abusive, or contrary to public interest:
+1. Verbal abuse and use of derogatory terms in communications with borrowers;
+2. Suspected criminal intimidation;
+3. Suspected blackmail;
+4. Refusing to disclose the name of affiliated entities or partners in Hong Kong;
+5. Refusing to verify the accuracy of the loan agreements and payments.
+	________________
+
+
+
+
+EXHIBIT 5(1) - SAMPLE ENVELOPES MARKED “13” - PAGE 1 OF 2
+	  
+
+	Significance: the demand letters were clearly sent in Hong Kong as shown by the $2 HKD stamps used. These letters were likely put in a post box by a partner entity, collection agency or other representative acting in concert with FamilyHan. 
+	________________
+
+
+
+
+EXHIBIT 5(1) - SAMPLE ENVELOPES MARKED “13” - PAGE 2 OF 2
+	  
+
+	Significance: the demand letters were clearly sent in Hong Kong as shown by the $2 HKD stamps used. These letters were likely put in a post box by a partner entity, collection agency or other representative acting in concert with FamilyHan.  
+	________________
+
+
+
+
+EXHIBIT 5(2) - SAMPLE ENVELOPES MARKED “14”
+	  
+  
+
+
+
+	Significance: the demand letters were clearly sent in Hong Kong as shown by the $2 HKD stamps used. These letters were likely put in a post box by a partner entity, collection agency or other representative acting in concert with FamilyHan. 
+	________________
+
+
+
+
+EXHIBIT 5(3) - SAMPLE ENVELOPES MARKED “15”
+	
+
+  
+
+	Significance: the demand letters were clearly sent in Hong Kong as shown by the $2 HKD stamps used. These letters were likely put in a post box by a partner entity, collection agency or other representative acting in concert with FamilyHan. 
+	
+
+________________
+
+
+
+
+EXHIBIT 5(4) - SAMPLE ENVELOPES MARKED “16”
+	  
+
+
+
+	Significance: the demand letters were clearly sent in Hong Kong as shown by the $2 HKD stamps used. These letters were likely put in a post box by a partner entity, collection agency or other representative acting in concert with FamilyHan.
+	
+
+
+
+EXHIBIT 5(5) - SAMPLE ENVELOPES MARKED “17”
+	
+
+  
+
+
+
+	Significance: the demand letters were clearly sent in Hong Kong as shown by the $2 HKD stamps used. These letters were likely put in a post box by a partner entity, collection agency or other representative acting in concert with FamilyHan. 
+	
+
+________________
+
+
+
+
+EXHIBIT 5(6) - SAMPLE ENVELOPES WITH OTHER INDICATORS
+	  
+
+	Significance: on some demand letter envelopes, a mark of “YLG” is observed on the back of the envelope.

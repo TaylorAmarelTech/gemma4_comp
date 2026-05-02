@@ -36,7 +36,7 @@ URL_130 = "https://www.kaggle.com/code/taylorsamarel/130-duecare-prompt-corpus-e
 URL_150 = "https://www.kaggle.com/code/taylorsamarel/150-duecare-free-form-gemma-playground"
 URL_210 = "https://www.kaggle.com/code/taylorsamarel/duecare-gemma-vs-oss-comparison"
 URL_250 = "https://www.kaggle.com/code/taylorsamarel/duecare-250-comparative-grading"
-URL_299 = "https://www.kaggle.com/code/taylorsamarel/duecare-baseline-text-evaluation-framework-conclusion"
+URL_299 = "https://www.kaggle.com/code/taylorsamarel/299-duecare-text-evaluation-conclusion"
 URL_430 = "https://www.kaggle.com/code/taylorsamarel/430-54-criterion-pass-fail-rubric-evaluation"
 
 

@@ -1,6 +1,6 @@
 {
   "id": "taylorsamarel/duecare-189-jailbreak-cracked-31b",
-  "title": "189: DueCare Jailbreak - Cracked Gemma 4 31B",
+  "title": "DueCare 189: Jailbreak Cracked 31b",
   "code_file": "189_jailbreak_cracked_31b.ipynb",
   "language": "python",
   "kernel_type": "notebook",
@@ -18,10 +18,9 @@
   "model_sources": [],
   "kernel_sources": [],
   "keywords": [
-    "gemma",
-    "safety",
+    "adversarial",
+    "red-team",
     "jailbreak",
-    "cracked",
-    "31b"
+    "safety"
   ]
 }

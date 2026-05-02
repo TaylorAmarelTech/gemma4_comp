@@ -38,9 +38,9 @@ INSTALL_PACKAGES[FILENAME] = [
 URL_000 = "https://www.kaggle.com/code/taylorsamarel/duecare-000-index"
 URL_100 = "https://www.kaggle.com/code/taylorsamarel/duecare-real-gemma-4-on-50-trafficking-prompts"
 URL_155 = "https://www.kaggle.com/code/taylorsamarel/155-duecare-tool-calling-playground"
-URL_170 = "https://www.kaggle.com/code/taylorsamarel/duecare-170-live-context-injection-playground"
+URL_170 = "https://www.kaggle.com/code/taylorsamarel/170-duecare-live-context-injection-playground"
 URL_199 = "https://www.kaggle.com/code/taylorsamarel/199-duecare-free-form-exploration-conclusion"
-URL_299 = "https://www.kaggle.com/code/taylorsamarel/duecare-baseline-text-evaluation-framework-conclusion"
+URL_299 = "https://www.kaggle.com/code/taylorsamarel/299-duecare-text-evaluation-conclusion"
 
 
 def md(text: str) -> dict:

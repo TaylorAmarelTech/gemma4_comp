@@ -1,0 +1,155 @@
+﻿Complaint Regarding Illicit Agency Activity
+For POLO/POEA
+
+
+To Whom This May Concern (Sa Sinumang Kinauukulan),
+
+After review of the relevant laws and agency provisions, I would like to submit a complaint against my agency/agencies for the following reasons (Matapos suriin ang mga naaayon sa batas at mga probisyon ng ahensya, gusto kong magsumite ng reklamo laban sa aking ahensya sa mga susunod na kadahilanan): 
+
+I am _${fullName)_ (name), a Filipino Citizen, of legal age, who is, ( ) Married, ( ) Widowed, () Single, presently residing in the Philippines at  ________________________________________________________________________________________________________________________________________________________
+That after having been duly sworn in accordance with law, do hereby depose and state:
+
+
+1. On approximately __________________(date) I applied for a job as a ____________________under _${philippinesAgency)_(name of agency) located at _________________________________________________________;(address of agency)
+
+
+2. Where  I (   ) PAID, (   ) NOT PAID a total amount of _${philippinesFees}_ (Pesos) under  the aforementioned agency, where __________________ (name of receiver) received the payment on ______________________ at ______________________ (address of agency) and claimed that this payment is for _______________________; (reason of payment)
+
+
+Details of Payment
+Date of Payment
+	Amount
+	Particulars/Details
+	Name of Receipt
+	With Receipt
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+3. I arrived in Hong Kong on ___________________________ (date of arrival) and  worked as a ____________________ (name of job) under __________________ (name of Employer) with an address of _______________________________________________ (address of Employer) with a monthly salary of ________________________; 
+
+
+4. With my agency in Hong Kong named _${hongKongAgency}_ (name of agency) that is located in _________________________________________________________________________________________________________________________________; (address of agency) My Hong Kong agency charged me _{$hongKongFees}_ as an agency fee.
+
+
+5. That/Which___________________________________________________________________________________________________________________________________________
+
+
+In addition to the information and complaint details above, which are incorporated herein, I submit the following information as additional complaint details which should be investigated by POLO, POEA, or other relevant authority.
+
+
+Reason For Complaint 
+(Mga dahilan para sa reklamo)
+	Source Of Law
+(Pinagmumulan ng Batas)
+	Check
+(tsekan)
+	Agency forced me to use a specific training center
+(Ang ahensya ay pinuwersado akong gumamit ng isang tanging sentro ng pagsasanay o training center) 
+	RA. 10022
+	${exclusiveTraining)
+	Agency forced me to use a specific medical center
+(Ang ahensya ay pinuwersado akong gumamit ng isang tanging sentro ng medikal/ospital o medical center) 
+	RA. 10022
+	${exclusiveMedical)
+	Agency forced me to use a specific lending company
+(Ang ahensya ay pinuwersado akong gumamit ng isang tanging kumpanyang nag papahiram /papautang o lending company)
+	RA. 10022
+	${exclusiveLending)
+	Agency is colluding with a money lender which grants loans with interest exceeding 8% per year
+(Ang ahensya ay nakikisabwatan kasama ang isang nagpapahiram ng pera o money lender na nagpapautang na may tubo na lumalampas na 8% kada taon)
+	RA. 10022 / POEA Rules
+	${colludingExcessiveInterestLoans}
+	Agency withheld my documents, such as my passport, before my deployment 
+(Ang ahensya ay kinumpiska  at  pinagkait ang aking mga dokumento, kalunad ng aking pasaporte bago ang aking pagalis) 
+	RA. 10022 / POEA Rules
+	${withholdingDocuments}
+	Agency failed to meet me at the airport
+(Ang ahensya ay nabigong kitaan ako sa airport)
+	POLO-HK AGENCY'S UNDERTAKING
+	${notMeetingAtAirport}
+	Agency withheld my HKID (or other documents) while I was in Hong Kong
+(Ang ahensya ay kinumpisa at pinagkait ang aking HKID (at iba pang dokumento) habang ako ay nasa Hong Kong) 
+	POLO-HK AGENCY'S UNDERTAKING
+	${withholdingHKID}
+	Agency failed to provide payment receipts
+(Ang ahensya ay nabigong magbigay ng mga resibo) 
+	POLO-HK AGENCY'S UNDERTAKING
+	${noPaymentReceipts}
+	Agency is colluding with a money lender in Hong Kong
+(Ang ahensya ay nakikisabwatan kasama ang isang nagpapahiram ng pera o money lender sa Hong Kong) 
+	POLO-HK AGENCY'S UNDERTAKING
+	${colludingHKLender}
+	Agency charged to accomodation at boarding house
+(Ang ahensya ay naniningil saakin sa pagtuloy ko sa bahay pangaserahan o boarding house)
+	POLO-HK AGENCY'S UNDERTAKING
+	${boardingHouseFees}
+	Agency failed to ensure I was given 30KG luggage
+(Ang ahensya ay nabigong siguraduhin na mabigyan ako ng 30KG na bagahe) 
+	POLO-HK AGENCY'S UNDERTAKING
+	${insufficientLuggage}
+	Agency is colluding with a sub-agent/unlicensed recruiter
+(Ang ahensya ay nakikisabwatan kasama ang isang sub-ahente/hindi lisensyadong o rehistradong rekruter
+	POLO-HK AGENCY'S UNDERTAKING
+	${brokerOrUnlicensedRecruiter}
+	Agency did not allow me to go to PAOS
+(Ang ahensya ay hindi ako pinayagan na pumunta sa PAOS) 
+	POLO-HK AGENCY'S UNDERTAKING
+	${noPAOS)
+	Agency forged my signature on my contract
+(Ang ahensya ay ilegal na ginaya (palsipikasyon) ang aking pirma para sa aking kontrata) 
+	POLO-HK AGENCY'S UNDERTAKING
+	${forgedSignature}
+	Agency failed to extend assistance to me 
+(Ang ahensya ay nabigong magbigay ng tulong saakin) 
+	POLO-HK AGENCY'S UNDERTAKING
+	${noAssistance}
+	Agency facilitated the violation of conditions of stay
+(Ang ahensya ay pinapadali ang paglabag ko sa mga kondisyon ng pamamalagi) 
+	POLO-HK AGENCY'S UNDERTAKING
+	${violatingConditionsOfStay}
+	Collecting excessive commissions in Hong Kong
+(Nangongolekta ng mga malabis na komisyon sa Hong Kong) 
+	POLO-HK AGENCY'S UNDERTAKING
+	${excessiveCommission}
+	
+
+Page  of

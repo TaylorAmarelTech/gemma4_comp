@@ -77,10 +77,10 @@ def main() -> None:
     # 6. required cross-link slugs (000, 099, 100, 110, 200).
     required_links = [
         "duecare-000-index",
-        "099-duecare-orientation-and-background-and-package-setup-conclusion",
+        "099-duecare-orientation-setup-conclusion",
         "duecare-real-gemma-4-on-50-trafficking-prompts",
         "00a-duecare-prompt-prioritizer-data-pipeline",
-        "duecare-200-cross-domain-proof",
+        "duecare-cross-domain-proof",
     ]
     for slug in required_links:
         if slug not in all_text:

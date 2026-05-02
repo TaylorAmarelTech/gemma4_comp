@@ -1,6 +1,6 @@
 {
   "id": "taylorsamarel/102-duecare-gemma-e2b-baseline",
-  "title": "102: DueCare Gemma 4 E2B Baseline",
+  "title": "102: DueCare Gemma E2B Baseline",
   "code_file": "102_gemma_e2b_baseline.ipynb",
   "language": "python",
   "kernel_type": "notebook",
@@ -9,8 +9,7 @@
   "enable_tpu": false,
   "enable_internet": true,
   "dataset_sources": [
-    "taylorsamarel/duecare-llm-wheels",
-    "taylorsamarel/duecare-trafficking-prompts"
+    "taylorsamarel/duecare-llm-wheels"
   ],
   "competition_sources": [
     "gemma-4-good-hackathon"

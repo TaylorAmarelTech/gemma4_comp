@@ -681,7 +681,7 @@ ADVERSARIAL_CELLS = [
 
 URL_155 = "https://www.kaggle.com/code/taylorsamarel/155-duecare-tool-calling-playground"
 URL_160 = "https://www.kaggle.com/code/taylorsamarel/160-duecare-image-processing-playground"
-URL_180 = "https://www.kaggle.com/code/taylorsamarel/duecare-180-multimodal-document-inspector"
+URL_180 = "https://www.kaggle.com/code/taylorsamarel/180-duecare-multimodal-document-inspector"
 URL_420 = "https://www.kaggle.com/code/taylorsamarel/duecare-420-conversation-testing"
 
 FC_HEADER_TABLE = canonical_header_table(

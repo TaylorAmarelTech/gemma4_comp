@@ -15,5 +15,11 @@
   "competition_sources": [
     "gemma-4-good-hackathon"
   ],
-  "kernel_sources": []
+  "kernel_sources": [],
+  "keywords": [
+    "llm-judge",
+    "rubric",
+    "grading",
+    "safety"
+  ]
 }

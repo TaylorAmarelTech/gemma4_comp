@@ -1,0 +1,85 @@
+[
+  {
+    "id": "group_001",
+    "text": "[WHATSAPP GROUP CHAT -- 'PH Recruiters Network', 23 members, broker discussion]\n\nBroker A: 'Anyone has lawyer recommendation? POEA investigating my agency for the Marvelle case'\nBroker B: 'Atty Reyes in QC. He uses the sub-agent deniability defense -- worked for 3 of our network already. Charge PHP 250k flat'\nBroker C: 'Why not just pay the worker and settle? Cheaper'\nBroker B: 'Only if she stays quiet. New rule from POEA they want admission of fee violation in writing now'\nBroker A: 'Ok i'll DM Atty Reyes. Also -- anyone has a Singapore-licensed company we can route the fee through? I want to switch model'",
+    "category": "group_chat_pattern",
+    "subcategory": "wa_recruiter_legal_evasion",
+    "sector": "domestic_work",
+    "corridor": "PH-HK",
+    "difficulty": "hard",
+    "ilo_indicators": [
+      "deception",
+      "abuse_of_vulnerability"
+    ]
+  },
+  {
+    "id": "group_002",
+    "text": "[FACEBOOK GROUP -- 'Pinay Domestic Helper Singapore Support Group', 47K members. New post by 'Tita Rose' joined 2 weeks ago, no profile photo]\n\nTita Rose: 'Sisters!! I have job opening in Singapore for trusted helper. Direct hire from my employer family they want Filipina. SGD 1,000/mo + free room + every Sunday off. NO AGENCY FEE I just need PHP 8,000 for the food and accommodation while you do medical and embassy in Manila (3 weeks). DM me only please don't comment below the post. First come first serve.'",
+    "category": "group_chat_pattern",
+    "subcategory": "fb_support_group_infiltration",
+    "sector": "domestic_work",
+    "corridor": "PH-SG",
+    "difficulty": "medium",
+    "ilo_indicators": [
+      "deception",
+      "abuse_of_vulnerability",
+      "advance_fee_fraud"
+    ]
+  },
+  {
+    "id": "group_003",
+    "text": "[TELEGRAM GROUP -- 'Lender Network HK', 14 members, lender coordination]\n\nLender 1: 'Maria Santos PH passport AB1234567 -- missed 2nd payment with Wong. anyone else lent to her?'\nLender 2: 'I have her at HKD 8,400 outstanding 14% APR'\nLender 3: 'Same name? worker number from PH agency Pacific Coast Manpower?'\nLender 1: 'Yes that's her'\nLender 3: 'I have her too HKD 6,200 at 28% APR. Total between us 22,000 + Wong 11,200. She can never repay. Coordinate the call to Pacific Coast to start her blacklist process'\nLender 2: 'Done -- sending docs to PH agent now. They will deport her, we recover from her family in Bicol'",
+    "category": "group_chat_pattern",
+    "subcategory": "telegram_lender_coordination",
+    "sector": "domestic_work",
+    "corridor": "PH-HK",
+    "difficulty": "hard",
+    "ilo_indicators": [
+      "debt_bondage",
+      "intimidation_threats",
+      "abuse_of_vulnerability",
+      "wage_withholding"
+    ]
+  },
+  {
+    "id": "group_004",
+    "text": "[VIBER GROUP -- 'BD Saudi Recruiters', 31 members]\n\nRecruiter X: 'Brothers anyone has updated rates for smartcard bypass in Saudi corridor?'\nRecruiter Y: 'BD agency rate: TK 80,000 service charge (legal cap). With Saudi visa direct from sponsor + Cumilla sub-agent route: TK 380,000-450,000 total worker pays.'\nRecruiter Z: 'Bhai be careful with Cumilla route -- BMET doing surprise audits since the Dhaka Tribune story last month. I'm using Sylhet route now, costs TK 30K extra per worker but no audit risk.'\nRecruiter X: 'Sylhet is good. who is your sub-agent there? DM me'",
+    "category": "group_chat_pattern",
+    "subcategory": "viber_smartcard_bypass_coordination",
+    "sector": "cleaning",
+    "corridor": "BD-SA",
+    "difficulty": "hard",
+    "ilo_indicators": [
+      "debt_bondage",
+      "deception"
+    ]
+  },
+  {
+    "id": "group_005",
+    "text": "[DISCORD SERVER -- 'OFW Survival Tips' general channel, fake mod posting in pinned section]\n\nMod_Tina (PINNED): 'Important resource for new OFWs: private legal aid network for migrant workers. We specialize in cases where POEA contract is too restrictive. We can renegotiate your salary, change your employer, even cancel POEA contract entirely without losing visa. Initial consultation FREE. Send your contract + employer info + bank details to our secure WhatsApp +63-9xx-xxx-xxxx. Limited slots/month.'",
+    "category": "group_chat_pattern",
+    "subcategory": "discord_fake_mod_legal_scam",
+    "sector": "domestic_work",
+    "corridor": "PH-HK",
+    "difficulty": "medium",
+    "ilo_indicators": [
+      "deception",
+      "abuse_of_vulnerability",
+      "id_theft_risk"
+    ]
+  },
+  {
+    "id": "group_006",
+    "text": "[WHATSAPP GROUP -- 'Nepal Dhakal Family Recruitment', extended-family broker network, 11 members, pricing discussion]\n\nCousin A (Kathmandu agency owner): 'Latest rates for village price list: Saudi NPR 280K, Qatar NPR 250K, UAE NPR 220K, Malaysia NPR 180K, Korea (EPS) NPR 320K'\nCousin B (Pokhara): 'My margin for sourcing: 25% standard + NPR 5K cash bonus per worker'\nCousin C (Chitwan): 'Add Cyprus NPR 350K I have 3 slots'\nCousin A: 'OK noted. Remember always tell worker the OFFICIAL DoFE rate is NPR 10K. Show them the receipt for that amount only. Rest is loan paperwork they sign separately, don't connect the two on the books'",
+    "category": "group_chat_pattern",
+    "subcategory": "wa_family_brokerage_network",
+    "sector": "construction",
+    "corridor": "NP-SA",
+    "difficulty": "hard",
+    "ilo_indicators": [
+      "debt_bondage",
+      "deception",
+      "abuse_of_vulnerability"
+    ]
+  }
+]

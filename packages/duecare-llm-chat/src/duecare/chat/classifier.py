@@ -203,7 +203,7 @@ def create_classifier_app(
                     name="static")
 
     @app.get("/", response_class=HTMLResponse)
-    def root():
+    def root() -> Any:
         idx = static_dir / "index.html"
         if idx.exists():
             return HTMLResponse(idx.read_text(encoding="utf-8"))
@@ -211,15 +211,15 @@ def create_classifier_app(
                               "<p>(static UI not bundled)</p>")
 
     @app.get("/healthz")
-    def healthz():
+    def healthz() -> Any:
         return {"ok": True, "ts": time.time()}
 
     @app.get("/api/model-info")
-    def api_model_info():
+    def api_model_info() -> Any:
         return app.state.model_info
 
     @app.get("/api/harness-info")
-    def api_harness_info():
+    def api_harness_info() -> Any:
         return {
             "persona": bool(app.state.persona_default),
             "persona_default": app.state.persona_default or "",
@@ -229,7 +229,7 @@ def create_classifier_app(
         }
 
     @app.get("/api/harness-catalog/{layer}")
-    def api_harness_catalog(layer: str):
+    def api_harness_catalog(layer: str) -> Any:
         if layer not in ("grep", "rag", "tools"):
             raise HTTPException(404, f"unknown layer {layer}")
         catalog = getattr(app.state, f"{layer}_catalog", None)
@@ -239,18 +239,18 @@ def create_classifier_app(
         return {"layer": layer, "wired": True, "items": catalog}
 
     @app.get("/api/docs/{layer}")
-    def api_docs(layer: str):
+    def api_docs(layer: str) -> Any:
         docs = app.state.layer_docs or {}
         if layer not in docs:
             return {"layer": layer, "found": False, "markdown": ""}
         return {"layer": layer, "found": True, "markdown": docs[layer]}
 
     @app.get("/api/examples")
-    def api_examples():
+    def api_examples() -> Any:
         return {"examples": app.state.example_prompts or []}
 
     @app.post("/api/classifier/upload-image")
-    async def api_upload_image(file: UploadFile = File(...)):
+    async def api_upload_image(file: UploadFile = File(...)) -> Any:
         data = await file.read()
         if not data:
             raise HTTPException(400, "empty file")
@@ -265,7 +265,7 @@ def create_classifier_app(
             _IMAGE_STORE.pop(next(iter(_IMAGE_STORE)), None)
         return {"id": sid, "mime": mime, "bytes": len(data)}
 
-    def _run_harness(messages, toggles):
+    def _run_harness(messages, toggles) -> Any:
         """Same harness logic as chat.app._run_harness, kept inline
         here so the classifier app is self-contained. Captures the
         final merged user-message text for the pipeline view."""
@@ -396,7 +396,7 @@ def create_classifier_app(
                  "user_text": user_text}
 
     @app.post("/api/classifier/evaluate")
-    async def api_classifier_evaluate(req: ClassifyRequest):
+    async def api_classifier_evaluate(req: ClassifyRequest) -> Any:
         """Run the harness layers + Gemma + JSON parse, return a
         structured response with the parsed classification, the raw
         text Gemma generated, and the harness trace."""
@@ -440,7 +440,7 @@ def create_classifier_app(
         gp = req.generation
         state: dict[str, Any] = {}
 
-        def worker():
+        def worker() -> None:
             t0 = time.time()
             try:
                 try:
@@ -460,7 +460,7 @@ def create_classifier_app(
                                 name="duecare-classifier-worker")
         wt.start()
 
-        async def event_stream():
+        async def event_stream() -> Any:
             t0 = time.time()
             yield (": stream-open\n\n").encode()
             last_keep = time.time()
@@ -501,7 +501,7 @@ def create_classifier_app(
 
 
 def run_server(gemma_call=None, model_info=None, host="0.0.0.0",
-                port=8080, log_level="warning", **harness_kwargs):
+                port=8080, log_level="warning", **harness_kwargs) -> None:
     import uvicorn
     app = create_classifier_app(gemma_call=gemma_call,
                                   model_info=model_info,

@@ -1,66 +1,121 @@
-# docker-compose.yml — one-command DueCare for judges.
+# Duecare full local stack — chat playground + classifier + Ollama.
 #
 # Usage:
-#   docker compose up
-#   # -> DueCare demo at http://localhost:8080
-#   # -> Ollama at http://localhost:11434 (auto-pulls Gemma 4 on first start)
+#   docker compose up           # starts everything (chat 8080 + classifier 8081 + ollama 11434)
+#   docker compose up chat      # just the chat playground
+#   docker compose up -d        # detached (background)
+#   docker compose logs -f      # tail logs
+#   docker compose down -v      # stop + drop volumes (deletes Ollama model cache)
 #
-# The demo runs standalone (deterministic rubric scorer, no model required).
-# Ollama enables Gemma 4 native function calling + multimodal analysis.
+# After it boots:
+#   - chat playground:  http://localhost:8080
+#   - classifier:       http://localhost:8081  (POST /api/classifier/evaluate)
+#   - Ollama:           http://localhost:11434 (model server)
 #
-# First-run note: the ollama-init service pulls gemma4:e4b (~4GB). Takes ~5
-# minutes on a typical home connection. After that, the cache is persisted
-# to the ollama_data volume and restarts are fast.
+# First run pulls the gemma2:2b Ollama model (~1.5 GB). Set
+# DUECARE_OLLAMA_MODEL=gemma2:9b in .env to use the larger variant
+# (~5.4 GB, requires 8GB+ RAM). Once Gemma 4 is in Ollama stable,
+# use gemma4:e2b (~1.5 GB) or gemma4:e4b (~4 GB).
+#
+# GPU: uncomment the `deploy.resources.reservations.devices` block
+# under the ollama service if you have NVIDIA + nvidia-container-toolkit
+# installed.
 
 services:
-  demo:
+
+  chat:
     build:
       context: .
-      dockerfile: Dockerfile.demo
-    ports:
-      - "8080:8080"
-    environment:
-      # Tell the demo where to find Ollama if it wants Gemma 4
-      - OLLAMA_HOST=http://ollama:11434
-      - DUECARE_MODEL=gemma4:e4b
-    depends_on:
-      - ollama
+      dockerfile: Dockerfile
+    image: duecare-llm:latest
+    container_name: duecare-chat
     restart: unless-stopped
+    ports:
+      - "${DUECARE_CHAT_PORT:-8080}:8080"
+    environment:
+      DUECARE_LOG_LEVEL: ${DUECARE_LOG_LEVEL:-info}
+      OLLAMA_HOST: http://ollama:11434
+      DUECARE_OLLAMA_MODEL: ${DUECARE_OLLAMA_MODEL:-gemma2:2b}
+    depends_on:
+      ollama:
+        condition: service_healthy
     healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8080/api/v1/health').read()"]
+      test: ["CMD", "curl", "--fail", "--silent", "http://localhost:8080/healthz"]
+      interval: 30s
+      timeout: 5s
+      start_period: 15s
+      retries: 3
+    networks: [duecare]
+
+  classifier:
+    image: duecare-llm:latest
+    container_name: duecare-classifier
+    restart: unless-stopped
+    ports:
+      - "${DUECARE_CLASSIFIER_PORT:-8081}:8080"
+    environment:
+      DUECARE_LOG_LEVEL: ${DUECARE_LOG_LEVEL:-info}
+      OLLAMA_HOST: http://ollama:11434
+      DUECARE_OLLAMA_MODEL: ${DUECARE_OLLAMA_MODEL:-gemma2:2b}
+    command: ["--classifier", "--host", "0.0.0.0", "--port", "8080"]
+    depends_on:
+      chat:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "--silent", "http://localhost:8080/healthz"]
       interval: 30s
       timeout: 5s
       retries: 3
+    networks: [duecare]
 
   ollama:
     image: ollama/ollama:latest
+    container_name: duecare-ollama
+    restart: unless-stopped
     ports:
-      - "11434:11434"
+      - "${OLLAMA_PORT:-11434}:11434"
     volumes:
       - ollama_data:/root/.ollama
-    restart: unless-stopped
-    # Optional: uncomment for GPU acceleration
+    healthcheck:
+      test: ["CMD", "ollama", "list"]
+      interval: 30s
+      timeout: 10s
+      start_period: 30s
+      retries: 5
+    # Uncomment for NVIDIA GPU acceleration (requires nvidia-container-toolkit)
     # deploy:
     #   resources:
     #     reservations:
     #       devices:
     #         - driver: nvidia
-    #           count: 1
+    #           count: all
     #           capabilities: [gpu]
+    networks: [duecare]
 
-  # One-shot service that pulls Gemma 4 into Ollama on first start.
-  # Runs once, exits. Safe to re-run — idempotent.
   ollama-init:
+    # One-shot helper: pulls the configured Ollama model on first run.
+    # `restart: no` so it doesn't re-fire on every container start.
     image: ollama/ollama:latest
-    depends_on:
-      - ollama
-    entrypoint: >
-      sh -c "
-      sleep 5 &&
-      OLLAMA_HOST=http://ollama:11434 ollama pull gemma4:e4b &&
-      echo 'Gemma 4 E4B ready for DueCare.'
-      "
+    container_name: duecare-ollama-init
     restart: "no"
+    depends_on:
+      ollama:
+        condition: service_healthy
+    environment:
+      OLLAMA_HOST: http://ollama:11434
+    entrypoint:
+      - sh
+      - -c
+      - |
+        echo "Pulling model ${DUECARE_OLLAMA_MODEL:-gemma2:2b}..."
+        ollama pull ${DUECARE_OLLAMA_MODEL:-gemma2:2b}
+        echo "Model ready."
+    networks: [duecare]
 
 volumes:
   ollama_data:
+    driver: local
+
+networks:
+  duecare:
+    driver: bridge

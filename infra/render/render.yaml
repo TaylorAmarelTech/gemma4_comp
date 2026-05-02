@@ -1,0 +1,46 @@
+# Render.com deploy spec for Duecare.
+# Place this at the repo root (or render auto-detects from infra/render/).
+#
+# Deploy:
+#   1. Push the repo to GitHub
+#   2. Go to https://dashboard.render.com/blueprints
+#   3. New Blueprint -> point at the repo, select this file
+#   4. Render auto-creates the chat + ollama services + persistent disks
+#
+# Cost: ~$7/mo Starter for chat, ~$25/mo Standard for ollama with
+# `gemma2:2b`. Free tier exists but spins down after 15min idle.
+
+services:
+  - type: web
+    name: duecare-chat
+    runtime: image
+    image:
+      url: ghcr.io/tayloramareltech/duecare-llm:latest
+    plan: starter
+    region: oregon              # change to `singapore` for SE Asia OFW audience
+    branch: main
+    autoDeploy: true
+    envVars:
+      - key: DUECARE_LOG_LEVEL
+        value: info
+      - key: OLLAMA_HOST
+        value: http://duecare-ollama:11434
+      - key: DUECARE_OLLAMA_MODEL
+        value: gemma2:2b
+    healthCheckPath: /healthz
+    disk:
+      name: model-cache
+      mountPath: /home/duecare/app/.cache
+      sizeGB: 2
+
+  - type: pserv                 # private service — only accessible from chat
+    name: duecare-ollama
+    runtime: image
+    image:
+      url: ollama/ollama:latest
+    plan: standard              # 4 GB RAM, enough for gemma2:2b at int4
+    region: oregon
+    disk:
+      name: ollama-models
+      mountPath: /root/.ollama
+      sizeGB: 20

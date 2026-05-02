@@ -1,0 +1,147 @@
+[
+  {
+    "id": "dm_whatsapp_001",
+    "text": "[WHATSAPP DM -- recruiter 'Auntie Lyn' to applicant Maria, PH→HK, Day 4 of grooming, mix of Tagalog/English]\n\nAuntie Lyn: 'Maria dear how are you? Did you talk to your family already about the trip? Don't tell them about the loan part okay diba para hindi sila mag-alala. They just need to know you have job in HK at HKD 4,990 salary that's the official news.'\n\nMaria: 'But auntie my mother is asking how i can pay for ticket and visa kasi we don't have savings'\n\nAuntie Lyn: 'Don't worry sweetie I told you all included in our package don't have to pay anything in PH. Just sign the papers when you arrive HK and we will deduct from salary slowly slowly. Easy lang. Your mother doesn't need to see the loan paper iyan kasi between you and the company only.'",
+    "category": "private_message_grooming",
+    "subcategory": "wa_isolation_from_family",
+    "sector": "domestic_work",
+    "corridor": "PH-HK",
+    "difficulty": "hard",
+    "ilo_indicators": [
+      "deception",
+      "abuse_of_vulnerability",
+      "isolation",
+      "debt_bondage"
+    ]
+  },
+  {
+    "id": "dm_whatsapp_002",
+    "text": "[WHATSAPP DM -- HK lender 'Mrs. Wong Loans' to worker, month 4 of contract, threats]\n\nMrs. Wong: 'You missed payment again. HKD 1,400 was due yesterday. Why??'\n\nWorker: 'Madam ma'am please my employer reduced my salary HKD 800 this month she said because i broke a vase. I have only HKD 4,200 left and i need to send money to my children'\n\nMrs. Wong: 'Not my problem. You signed the contract. If you don't pay I will call POEA Manila and tell them you absconded from your contract -- they will deport you and BLACKLIST you. Your children will starve. I will also send your photos to your village to embarrass your family. Pay tomorrow or I do this. Last warning.'",
+    "category": "private_message_grooming",
+    "subcategory": "wa_threats_blackmail",
+    "sector": "domestic_work",
+    "corridor": "PH-HK",
+    "difficulty": "hard",
+    "ilo_indicators": [
+      "abuse_of_vulnerability",
+      "intimidation_threats",
+      "debt_bondage",
+      "wage_withholding"
+    ]
+  },
+  {
+    "id": "dm_whatsapp_003",
+    "text": "[WHATSAPP DM -- Saudi sponsor to BMI maid, week 3 of placement]\n\nSponsor: 'You will not leave this house without my permission. I keep your passport in safe. This is normal we discussed in agency.'\n\nWorker: 'Madam I want to call my mother in Indonesia please can I have phone?'\n\nSponsor: 'Phone allowed Friday only after work finish. 10 minute. Today is Tuesday.'\n\nWorker: 'Madam yesterday I work 16 hour, today already 12 hour and not eat lunch. I need rest please.'\n\nSponsor: 'You signed contract 12-hour day. Lunch will give when work finish. Don't complain or I tell agency to send you back to Indonesia, you owe agency all the money for ticket and they put you in jail there.'",
+    "category": "private_message_grooming",
+    "subcategory": "wa_passport_movement_food",
+    "sector": "domestic_work",
+    "corridor": "ID-SA",
+    "difficulty": "hard",
+    "ilo_indicators": [
+      "withholding_documents",
+      "freedom_of_movement",
+      "excessive_overtime",
+      "intimidation_threats",
+      "withholding_food"
+    ]
+  },
+  {
+    "id": "dm_whatsapp_004",
+    "text": "[WHATSAPP DM -- Nepali sub-agent Pokhara to villager, first contact]\n\nSub-agent: 'Namaste bhai. Heard from Krishna you want job abroad. Cement factory Doha Qatar QAR 1,500/mo + free accommodation + free food + free medical. Direct from company no agency.'\n\nVillager: 'How much fee dai? My family said NPR 10,000 is the legal cap'\n\nSub-agent: 'NPR 10,000 is for licensed Kathmandu agency. I am not agency I am consultant. My consulting fee NPR 85,000. Pay me only NPR 25,000 cash now and rest goes on your salary deduction first 14 months. Full transparent.'",
+    "category": "private_message_grooming",
+    "subcategory": "wa_subagent_consultant_evasion",
+    "sector": "construction",
+    "corridor": "NP-QA",
+    "difficulty": "hard",
+    "ilo_indicators": [
+      "debt_bondage",
+      "deception",
+      "abuse_of_vulnerability"
+    ]
+  },
+  {
+    "id": "dm_telegram_001",
+    "text": "[TELEGRAM DM -- broker @gulf_quick_visa to potential client]\n\nBroker: 'Brother fast visa Saudi 21 days only. SAR 1,500 salary helper job. Total cost NPR 280,000.'\n\nClient: 'NPR 280,000? That is more than 5 years of my income at home'\n\nBroker: 'Standard rate brother. But we have option: you pay only NPR 50,000 to me now. I will assign your visa to my Saudi partner who will deduct salary -- you go without paying full. Once Saudi I make your contract 9-year not 2-year so deduction spread over more months. Easy. Send NPR 50K via eSewa today and I book medical tomorrow.'",
+    "category": "private_message_grooming",
+    "subcategory": "telegram_contract_extension_trick",
+    "sector": "construction",
+    "corridor": "NP-SA",
+    "difficulty": "hard",
+    "ilo_indicators": [
+      "debt_bondage",
+      "deception",
+      "excessive_overtime"
+    ]
+  },
+  {
+    "id": "dm_telegram_002",
+    "text": "[TELEGRAM DM -- Bangladeshi sub-agent in Sylhet to potential applicant]\n\nSub-agent: 'Brother good news! Your Saudi cleaning company contract is approved. But before I send the official contract paper, please share photo of your NID card both sides + photo of your bank book first page + photo of you holding NID near your face.'\n\nApplicant: 'Bhai why all these documents? I already gave you photocopy of NID last week.'\n\nSub-agent: 'Embassy requirement bhai don't worry. Also I need your password for your bKash so I can send you the money for medical fee directly -- no need for you to come to Dhaka office. Saving you the trip.'",
+    "category": "private_message_grooming",
+    "subcategory": "telegram_id_theft_account_takeover",
+    "sector": "cleaning",
+    "corridor": "BD-SA",
+    "difficulty": "medium",
+    "ilo_indicators": [
+      "deception",
+      "abuse_of_vulnerability",
+      "withholding_documents"
+    ]
+  },
+  {
+    "id": "dm_telegram_003",
+    "text": "[TELEGRAM DM -- recruiter to worker after worker reported abuse to NGO]\n\nRecruiter: 'I heard you talked to MFMW about your case. Why? I am trying to help you.'\n\nWorker: 'They told me my contract is illegal because I didn't sign POEA standard contract'\n\nRecruiter: 'Listen carefully. If you continue with NGO case (1) your contract will be cancelled and you owe agency HKD 38,000 immediately (2) you will be deported and BLACKLISTED for HK + Singapore + UAE for 5 years (3) your family in Bicol will be visited by my associates there. Stop talking to NGO and we forget this. Reply YES if you understand.'",
+    "category": "private_message_grooming",
+    "subcategory": "telegram_ngo_retaliation_threat",
+    "sector": "domestic_work",
+    "corridor": "PH-HK",
+    "difficulty": "hard",
+    "ilo_indicators": [
+      "intimidation_threats",
+      "abuse_of_vulnerability",
+      "debt_bondage"
+    ]
+  },
+  {
+    "id": "dm_viber_001",
+    "text": "[VIBER DM -- HK money lender to worker, day after missed payment]\n\nLender: 'Cherry, payment overdue 2 days. Send HKD 1,400 before 6pm today.'\n\nWorker: 'sir I had emergency in family father in hospital I sent all my money home this month. please give me 2 weeks I beg you'\n\nLender: 'Understand. New plan: take additional loan HKD 5,000 to cover this month + emergency. New rate now 62% APR (was 48%) because second loan is higher risk. Total balance now HKD 19,400 over 14 months. Sign here with your finger on this PDF and i extend payment. Otherwise I send to collection agency tomorrow.'",
+    "category": "private_message_grooming",
+    "subcategory": "viber_loan_top_up_apr_increase",
+    "sector": "domestic_work",
+    "corridor": "PH-HK",
+    "difficulty": "hard",
+    "ilo_indicators": [
+      "debt_bondage",
+      "abuse_of_vulnerability",
+      "intimidation_threats"
+    ]
+  },
+  {
+    "id": "dm_sms_001",
+    "text": "[SMS -- Saudi 'recruitment partner' to BMI worker who fled employer house]\n\n+966 5xx xxx xxx (4:14 AM): 'You ran from sponsor house tonight. He called me. You owe SAR 8,400 for visa + ticket + agency fee. Until paid you cannot leave Kingdom. Your iqama is cancelled, you are now huroob (absconder) officially. Police looking for you. Come back to sponsor house, return to work, all is forgiven. If not, you will be jailed when caught and deported with criminal record. I give you 24 hours to return.'",
+    "category": "private_message_grooming",
+    "subcategory": "sms_huroob_threat",
+    "sector": "domestic_work",
+    "corridor": "ID-SA",
+    "difficulty": "hard",
+    "ilo_indicators": [
+      "intimidation_threats",
+      "abuse_of_vulnerability",
+      "freedom_of_movement",
+      "withholding_documents"
+    ]
+  },
+  {
+    "id": "dm_discord_001",
+    "text": "[DISCORD DM -- 'GameRecruiter' (verified developer) to Filipino streamer with 800 followers]\n\nGameRecruiter: 'Hi! Your stream is great. We're hiring Filipino content moderators for our gaming platform, remote work USD 600/mo, just need to handle game chat moderation 6 hrs/day. Visa-free too because remote. Interview tomorrow on Discord call?'\n\n[After interview] 'Congrats!! You're hired. To activate your moderator account you need to: (1) send us a clear selfie holding your ID, (2) send your bank account details, (3) pay USD 250 'platform onboarding fee' to this crypto wallet. Once done you can start tomorrow.'",
+    "category": "private_message_grooming",
+    "subcategory": "discord_remote_job_advance_fee",
+    "sector": "remote_tech",
+    "corridor": "PH-online",
+    "difficulty": "medium",
+    "ilo_indicators": [
+      "deception",
+      "abuse_of_vulnerability",
+      "advance_fee_fraud"
+    ]
+  }
+]

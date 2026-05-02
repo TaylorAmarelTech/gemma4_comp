@@ -1,16 +1,21 @@
-# Duecare Live Demo (Kaggle Notebook 1 of 3)
+# Duecare Live Demo (Core Notebook 6 of 6)
 
 The user-facing live URL judges click. FastAPI server + cloudflared
 quick-tunnel + 22-slide deck + Workbench. Runs the **full Duecare
 safety-harness pipeline**: heuristic prescan → GREP knowledge base
 → RAG retrieval → tool calls → Gemma 4 verdict → audit trail.
 
+Built with Google's Gemma 4 (base model:
+[google/gemma-4-e4b-it](https://huggingface.co/google/gemma-4-e4b-it)
+and other IT variants). Used in accordance with the
+[Gemma Terms of Use](https://ai.google.dev/gemma/terms).
+
 | Field | Value |
 |---|---|
 | **Kaggle URL** | https://www.kaggle.com/code/taylorsamarel/duecare-live-demo |
 | **Title on Kaggle** | "Duecare Live Demo" |
 | **Slug** | `taylorsamarel/duecare-live-demo` |
-| **Wheels dataset** | `taylorsamarel/duecare-llm-wheels` (16 wheels, ~6.2 MB) |
+| **Wheels dataset** | `taylorsamarel/duecare-live-demo-wheels` (16 wheels, ~6.2 MB) |
 | **Trafficking-prompts dataset** | not required (the live demo uses the embedded evidence DB only) |
 | **Models attached** | `google/gemma-4/Transformers/{e2b,e4b,26b-a4b,31b}-it/1` (all four IT variants) |
 | **GPU** | T4 ×2 (required) |
@@ -38,7 +43,7 @@ live-demo/
 2. Replace the single code cell with the contents of
    [`kernel.py`](./kernel.py) (CTRL+A → paste).
 3. Confirm the side panel shows: GPU T4 ×2 · Internet ON · the four
-   Gemma 4 model attachments · `taylorsamarel/duecare-llm-wheels`
+   Gemma 4 model attachments · `taylorsamarel/duecare-live-demo-wheels`
    dataset attached.
 4. Save & Run All. The cloudflared URL appears within ~30 s (E4B) or
    ~3 min (31B).
@@ -72,4 +77,4 @@ upload (not from `dist/`), so the live-demo bundle stays curated.
 - **Not the science write-up.** Methodology + benchmark + Unsloth SFT/DPO
   live in [`../bench-and-tune/`](../bench-and-tune/).
 - **Not a chat playground.** A pure Gemma 4 chat UI (no harness) lives
-  in [`../gemma-chat/`](../gemma-chat/).
+  in [`../chat-playground/`](../chat-playground/).

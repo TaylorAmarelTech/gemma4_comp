@@ -87,7 +87,7 @@ def main() -> None:
     for slug in (
         "duecare-real-gemma-4-on-50-trafficking-prompts",
         "155-duecare-tool-calling-playground",
-        "duecare-170-live-context-injection-playground",
+        "170-duecare-live-context-injection-playground",
         "199-duecare-free-form-exploration-conclusion",
     ):
         if slug not in all_text:
@@ -101,7 +101,7 @@ def main() -> None:
         fail(f"expected exactly 1 install cell, found {len(install_cells)}")
     ok("exactly 1 install cell")
 
-    for marker in ("MODEL_AVAILABLE = False", "PROMPT_PRESETS = {", "def _fallback_response", "def gemma_generate"):
+    for marker in ("MODEL_AVAILABLE = False", "PROMPT_PRESETS = {", "def _remote_gemma_call", "def gemma_generate"):
         if marker not in all_code:
             fail(f"missing notebook marker: {marker}")
     ok("model fallback, presets, and generation helper all defined in-notebook")

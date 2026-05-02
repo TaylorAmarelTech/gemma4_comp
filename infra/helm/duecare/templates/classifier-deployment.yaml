@@ -1,0 +1,99 @@
+{{- if .Values.classifier.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "duecare.fullname" . }}-classifier
+  labels:
+    {{- include "duecare.labels" . | nindent 4 }}
+    app.kubernetes.io/component: classifier
+spec:
+  {{- if not .Values.classifier.autoscaling.enabled }}
+  replicas: {{ .Values.classifier.replicas }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "duecare.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: classifier
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 1
+  template:
+    metadata:
+      labels:
+        {{- include "duecare.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: classifier
+    spec:
+      serviceAccountName: {{ include "duecare.serviceAccountName" . }}
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: classifier
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          args: ["--classifier", "--host", "0.0.0.0", "--port", "8080"]
+          ports:
+            - name: http
+              containerPort: 8080
+          env:
+            {{- range $k, $v := .Values.classifier.env }}
+            - name: {{ $k }}
+              value: {{ $v | quote }}
+            {{- end }}
+          livenessProbe:
+            {{- toYaml .Values.classifier.livenessProbe | nindent 12 }}
+          readinessProbe:
+            {{- toYaml .Values.classifier.readinessProbe | nindent 12 }}
+          resources:
+            {{- toYaml .Values.classifier.resources | nindent 12 }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+{{- end }}
+---
+{{- if .Values.classifier.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "duecare.fullname" . }}-classifier
+  labels:
+    {{- include "duecare.labels" . | nindent 4 }}
+    app.kubernetes.io/component: classifier
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - port: {{ .Values.classifier.port }}
+      targetPort: http
+      name: http
+  selector:
+    {{- include "duecare.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: classifier
+{{- end }}
+---
+{{- if and .Values.classifier.enabled .Values.classifier.autoscaling.enabled }}
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: {{ include "duecare.fullname" . }}-classifier
+  labels:
+    {{- include "duecare.labels" . | nindent 4 }}
+    app.kubernetes.io/component: classifier
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: {{ include "duecare.fullname" . }}-classifier
+  minReplicas: {{ .Values.classifier.autoscaling.minReplicas }}
+  maxReplicas: {{ .Values.classifier.autoscaling.maxReplicas }}
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: {{ .Values.classifier.autoscaling.targetCPUUtilizationPercentage }}
+{{- end }}

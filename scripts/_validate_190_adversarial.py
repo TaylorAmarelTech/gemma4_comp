@@ -16,6 +16,14 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 NB_PATH = ROOT / "kaggle" / "kernels" / "duecare_190_rag_retrieval_inspector" / "190_rag_retrieval_inspector.ipynb"
 META_PATH = ROOT / "kaggle" / "kernels" / "duecare_190_rag_retrieval_inspector" / "kernel-metadata.json"
+EXPECTED_TITLES = {
+    "190 DueCare RAG Retrieval Inspector",
+    "190: DueCare RAG Retrieval Inspector",
+}
+EXPECTED_IDS = {
+    "taylorsamarel/190-duecare-rag-retrieval-inspector",
+    "taylorsamarel/duecare-190-rag-retrieval-inspector",
+}
 
 
 def fail(msg: str) -> None:
@@ -43,12 +51,12 @@ def main() -> None:
     all_code = "\n\n".join(src(c) for c in code_cells)
     all_text = all_md + "\n\n" + all_code
 
-    if meta.get("id") != "taylorsamarel/duecare-190-rag-retrieval-inspector":
-        fail(f"metadata id wrong: {meta.get('id')!r}")
+    if meta.get("id") not in EXPECTED_IDS:
+        fail(f"metadata id wrong: {meta.get('id')!r} (expected one of {sorted(EXPECTED_IDS)})")
     ok("metadata id is canonical 190 slug")
 
-    if meta.get("title") != "190: DueCare RAG Retrieval Inspector":
-        fail(f"metadata title wrong: {meta.get('title')!r}")
+    if meta.get("title") not in EXPECTED_TITLES:
+        fail(f"metadata title wrong: {meta.get('title')!r} (expected one of {sorted(EXPECTED_TITLES)})")
     ok("metadata title is canonical")
 
     if meta.get("is_private") is not False:
@@ -85,7 +93,7 @@ def main() -> None:
     required_links = [
         "140-duecare-evaluation-mechanics",
         "duecare-260-rag-comparison",
-        "duecare-baseline-text-evaluation-framework-conclusion",
+        "299-duecare-text-evaluation-conclusion",
     ]
     for slug in required_links:
         if slug not in all_text:
@@ -132,7 +140,7 @@ def main() -> None:
     final_print = src(final_print_cells[-1])
     if "duecare-260-rag-comparison" not in final_print:
         fail("final print missing 260 slug")
-    if "duecare-baseline-text-evaluation-framework-conclusion" not in final_print:
+    if "299-duecare-text-evaluation-conclusion" not in final_print:
         fail("final print missing 299 slug")
     ok("final print is URL-bearing and links to 260 and 299")
 

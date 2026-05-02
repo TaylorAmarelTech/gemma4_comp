@@ -1,0 +1,18 @@
+{
+  "id": "taylorsamarel/duecare-research-graphs",
+  "title": "Duecare Research Graphs",
+  "code_file": "notebook.ipynb",
+  "language": "python",
+  "kernel_type": "notebook",
+  "is_private": "true",
+  "enable_gpu": "false",
+  "enable_internet": "true",
+  "dataset_sources": [
+    "taylorsamarel/duecare-research-graphs-wheels"
+  ],
+  "competition_sources": [],
+  "kernel_sources": [],
+  "model_sources": [],
+  "docker_image_pinning_type": "original",
+  "keywords": []
+}

@@ -1,0 +1,59 @@
+﻿1. Scraping information on social media
+         1. Create a fake Facebook profile (you may use https://thispersondoesnotexist.com/ for profile pictures)
+         2. Overview of SM pages
+         3. How to create good SM posts
+         4. How to chat with someone on pages?
+            1. Standardized responses
+            2. Hi *NAME* how can I help you today?
+            3. Do you have an agency, employer, or lending problem?
+            4. If people aren’t sure:
+               1. Ask for more information and tell client that a “case manager” will contact them later
+               2. Google simple stuff
+               3. Contact team (TA, etc)
+            5. Provide contact information of other NGOs
+         5. Resources:
+            1. Admin Manuals
+            2. Social Media Post Example
+            3. SMVISS - Diagram V1.0
+
+
+      2. Identifying legal theories (theories may change as information is gathered)
+
+
+      3. Building the Binder 
+1. Binder Template
+2. EXAMPLE BINDERS
+3. Get all of the information on the suspects, witnesses, and any other persons of interest
+   1. Going through the evidence finding phone numbers, websites, etc and documenting it within the “rap sheets” on the binder template
+   2. Conduct due diligence on the entities/people/companies
+4. Create diagram(s) that show the relationship (money flow) between all of the parties
+   1. https://app.diagrams.net/
+5. Written summary of the diagram that highlights
+   1. Money flows
+   2. Ownership
+   3. Partnerships
+   4. Etc
+6. List suspected violations (screen various ordinances)
+   1. List of ordinances to screen through
+   2. Research case law
+7. Post on social media soliciting more information by:
+   1. Sharing the list of suspected violations in English/Tagalog/Etc
+   2. Asking for more information
+   3. Asking people to come to our office for interviews
+   4. Create applicable witness information collection Google form if it hasn’t been created already
+      1. Lender-specific form example - Top Credit 
+8. Gathering enough evidence to justify each suspected violation and write a narrative/summary of each violation with references to the evidence.
+9. Research case law again, articles, legal memos, etc to prove or disprove any theories
+10. “Test” the binder by providing it to someone who doesn’t know about the scheme to:
+   1. See if they can understand the scheme in 5-10 minutes
+   2. See if they agree or disagree with legal theories
+   3. See if they agree or disagree with evidence
+11. Confirm aggregate or estimated numbers
+   1. Number of victims
+   2. Amount of illicit crime proceeds
+   3. Length of time criminal activity has occurred
+12. If applicable fill out an STR form
+   1. https://www.jfiu.gov.hk/en/str.html#download
+13. Other strategies with approval of Migrasia team
+   1. Approach media
+   2. Request meeting with government officials

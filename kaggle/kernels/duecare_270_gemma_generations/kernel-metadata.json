@@ -22,5 +22,11 @@
     "google/gemma-3/transformers/gemma-3-4b-it/1",
     "google/gemma-4/transformers/gemma-4-e2b-it/1",
     "google/gemma-4/transformers/gemma-4-e4b-it/1"
+  ],
+  "keywords": [
+    "gemma",
+    "llm-comparison",
+    "safety",
+    "evaluation"
   ]
 }

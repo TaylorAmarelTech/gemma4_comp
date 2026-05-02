@@ -17,25 +17,39 @@ ROOT = Path(__file__).resolve().parent.parent
 NB_DIR = ROOT / "notebooks"
 KAGGLE_KERNELS = ROOT / "kaggle" / "kernels"
 WHEELS_DATASET = "taylorsamarel/duecare-llm-wheels"
-KEYWORDS = ["evaluation"]
+KEYWORDS = ["gemma", "safety", "evaluation", "summary"]
 
 
 SECTIONS = [
     {
         "num": "099",
-        "slug": "orientation-background-package-setup-conclusion",
+        "slug": "orientation-setup-conclusion",
         "snake": "orientation_background_package_setup_conclusion",
         "section_title": "Orientation and Background and Package Setup",
-        "kaggle_title": "099: DueCare Orientation and Background and Package Setup Conclusion",
+        "kaggle_title": "099: DueCare Orientation + Setup Conclusion",
         "recap": (
-            "The orientation section introduced the DueCare project, its duty-of-care framing, "
-            "the background literature, and the shape of the suite. Readers installed the "
-            "package, inspected the registries, and ran the smallest smoke test."
+            "The orientation section did three things, in this order. First, 000 Index "
+            "laid out the full suite as eleven sections with an explicit reading order, "
+            "so a reader lands on any later notebook knowing where it sits in the "
+            "narrative rather than treating it as a standalone demo. Second, 005 "
+            "Glossary and Reading Map named the vocabulary the rest of the suite uses "
+            "(DueCare, Gemma 4, 6-dimension weighted rubric, V3 6-band classifier, "
+            "domain packs, Anonymizer gate, cross-domain proof) and gave each term a "
+            "concrete pointer to the notebook that introduces it. Third, 010 Quickstart "
+            "installed the 8 duecare-llm-* PyPI packages, verified the model, task, "
+            "agent, and domain registries resolved with real plugins (not placeholders), "
+            "and ran a minimal safety-scoring loop end-to-end on a free Kaggle CPU "
+            "kernel. Together, the section converts an abstract project description "
+            "into a working install that any reader can reproduce in five minutes before "
+            "any GPU-bound evaluation section spends compute."
         ),
         "key_points": [
-            "DueCare is named for California Civil Code section 1714(a) duty of care.",
-            "The project is an applied exploration of Gemma 4 as an on-device safety system.",
-            "The suite moves from orientation through to deployment surfaces in a fixed order.",
+            "DueCare is named for California Civil Code section 1714(a) duty of care; the duty-of-care framing is the legal basis for why NGOs need an on-device evaluator rather than a frontier API.",
+            "The project is an applied exploration of Gemma 4 as an on-device safety system; Gemma 4's native function calling and multimodal understanding are load-bearing infrastructure, not demo-only decoration.",
+            "The suite ships as 8 PyPI packages under the duecare-llm-* namespace sharing the duecare Python import namespace (PEP 420), so a Kaggle notebook can pip install only the subset it needs instead of multi-GB of deps.",
+            "The registries (8 model adapters, 9 capability tests, 12 agents, 3 domain packs) auto-register on import; the quickstart asserts non-empty registries so every later section has real plugins to call.",
+            "The glossary and reading map are the navigation surface; a reader who lands on a single notebook via a public link can still orient themselves because every later notebook's header table names its inputs, outputs, prerequisites, runtime, and pipeline position.",
+            "With the environment verified, the next section can spend GPU time on real Gemma 4 inference instead of re-proving the install path works.",
         ],
         "next_section": "Free Form Exploration",
         "next_notebook_id": "100",
@@ -71,14 +85,14 @@ SECTIONS = [
         "next_notebook_slug": "duecare-105-prompt-corpus-introduction",
         "followup_notebook_id": "110",
         "followup_notebook_title": "Prompt Prioritizer",
-        "followup_notebook_slug": "duecare-prompt-prioritizer",
+        "followup_notebook_slug": "00a-duecare-prompt-prioritizer-data-pipeline",
     },
     {
         "num": "299",
-        "slug": "baseline-text-evaluation-framework-conclusion",
+        "slug": "text-evaluation-conclusion",
         "snake": "baseline_text_evaluation_framework_conclusion",
         "section_title": "Baseline Text Evaluation Framework",
-        "kaggle_title": "299: DueCare Baseline Text Evaluation Framework Conclusion",
+        "kaggle_title": "299: DueCare Text Evaluation Conclusion",
         "recap": (
             "The Baseline Text Evaluation Framework section did two things, in this "
             "order. First, 110 Prompt Prioritizer narrowed the 74K-prompt corpus to a "
@@ -103,7 +117,7 @@ SECTIONS = [
         "next_section": "Baseline Text Comparisons",
         "next_notebook_id": "200",
         "next_notebook_title": "Cross-Domain Proof",
-        "next_notebook_slug": "duecare-200-cross-domain-proof",
+        "next_notebook_slug": "duecare-cross-domain-proof",
     },
     {
         "num": "399",
@@ -293,7 +307,7 @@ def _kaggle_url(notebook_id: str, default_slug: str) -> str:
 # the pipeline-position header table of each conclusion.
 PREV_NOTEBOOK = {
     "099": ("010", "Quickstart", "duecare-010-quickstart"),
-    "199": ("180", "Multimodal Document Inspector", "duecare-180-multimodal-document-inspector"),
+    "199": ("180", "Multimodal Document Inspector", "180-duecare-multimodal-document-inspector"),
     "299": ("190", "RAG Retrieval Inspector", "duecare-190-rag-retrieval-inspector"),
     "399": ("270", "Gemma Generations", "duecare-270-gemma-generations"),
     "499": ("460", "Citation Verifier", "duecare-460-citation-verifier"),

@@ -1,0 +1,2292 @@
+[
+  {
+    "a_type": "gov_ref",
+    "a_value": "POEA",
+    "b_type": "gov_ref",
+    "b_value": "POLO",
+    "relation_guess": "co_occurs",
+    "n_docs": 10,
+    "n_bundles": 7,
+    "bundles": [
+      "00-MAJOR CASES",
+      "BAGUIO BENGUET INTERNATIONAL RECRUITMENT AGENCY INC",
+      "HUMANIA INTERNATIONAL, INC.",
+      "LUZERN INTERNATIONAL MANPOWER SERVICES CORPORATION",
+      "Lenders Conspiring With Agencies (Philippines Money Lenders)",
+      "PHILCO HUMAN RESOURCE SERVICES CO.",
+      "TRANSLATION WORK"
+    ],
+    "sample_file_ids": [
+      "17ybRJZzNQ7NMQ79g7kuWt77Spk2KosSw",
+      "1DyxkWBqfvgGER5cyxU35Vj-GvrS0akkQ",
+      "1JX67Fs8N9yiAuetRJElYeqdBUHixwODIemH5JrYnD88",
+      "1JXDsE4LZsNJGnxqtQYLMw-yrM3LPKJEGno0NibPAIIA",
+      "1KKvN7RjwUDU0Ht-Dc5KcM1KmKmrkRw1X"
+    ]
+  },
+  {
+    "a_type": "email",
+    "a_value": "epd@sec.gov.ph",
+    "b_type": "gov_ref",
+    "b_value": "SEC",
+    "relation_guess": "co_occurs",
+    "n_docs": 8,
+    "n_bundles": 6,
+    "bundles": [
+      "FAMILYHAN CREDIT CORPORATION",
+      "LICO LENDING INVESTOR CORPORATION",
+      "Lenders Conspiring With Agencies (Philippines Money Lenders)",
+      "NITTAN CAPITAL FINANCE INC",
+      "PERAPO / HOVONO LENDING CORPORATION",
+      "TAIWAN"
+    ],
+    "sample_file_ids": [
+      "1-O_RLMTVR0TwDnOa0fCGmT0SLtfrVPY4",
+      "15v1sbSi5pWG_hdjOKWppEbFz41dCBdMG",
+      "1TmKRk4N3pmQjJqtwoK8F9LwnX-AWUhek",
+      "1dQPhlrDtqzKbQ0tzglXihM_UcQaHO8VTvT2Bjg5orlQ",
+      "1g1RwVM0O-SmhLU8-2ck67YX7u5DQPuXv"
+    ]
+  },
+  {
+    "a_type": "email",
+    "a_value": "epd@sec.gov.ph",
+    "b_type": "org",
+    "b_value": "CORPORATE GOVERNANCE AND FINANCE",
+    "relation_guess": "org_has_email",
+    "n_docs": 7,
+    "n_bundles": 5,
+    "bundles": [
+      "LICO LENDING INVESTOR CORPORATION",
+      "Lenders Conspiring With Agencies (Philippines Money Lenders)",
+      "NITTAN CAPITAL FINANCE INC",
+      "PERAPO / HOVONO LENDING CORPORATION",
+      "TAIWAN"
+    ],
+    "sample_file_ids": [
+      "1-O_RLMTVR0TwDnOa0fCGmT0SLtfrVPY4",
+      "15v1sbSi5pWG_hdjOKWppEbFz41dCBdMG",
+      "1TmKRk4N3pmQjJqtwoK8F9LwnX-AWUhek",
+      "1g1RwVM0O-SmhLU8-2ck67YX7u5DQPuXv",
+      "1hfQhHnVbQGkwJaEcYODNJyARJsnhmhCw"
+    ]
+  },
+  {
+    "a_type": "email",
+    "a_value": "epd@sec.gov.ph",
+    "b_type": "org",
+    "b_value": "ONE COMPLAINT FORM PER RESPONDENT COMPANY",
+    "relation_guess": "org_has_email",
+    "n_docs": 7,
+    "n_bundles": 5,
+    "bundles": [
+      "LICO LENDING INVESTOR CORPORATION",
+      "Lenders Conspiring With Agencies (Philippines Money Lenders)",
+      "NITTAN CAPITAL FINANCE INC",
+      "PERAPO / HOVONO LENDING CORPORATION",
+      "TAIWAN"
+    ],
+    "sample_file_ids": [
+      "1-O_RLMTVR0TwDnOa0fCGmT0SLtfrVPY4",
+      "15v1sbSi5pWG_hdjOKWppEbFz41dCBdMG",
+      "1TmKRk4N3pmQjJqtwoK8F9LwnX-AWUhek",
+      "1g1RwVM0O-SmhLU8-2ck67YX7u5DQPuXv",
+      "1hfQhHnVbQGkwJaEcYODNJyARJsnhmhCw"
+    ]
+  },
+  {
+    "a_type": "org",
+    "a_value": "CORPORATE GOVERNANCE AND FINANCE",
+    "b_type": "org",
+    "b_value": "ONE COMPLAINT FORM PER RESPONDENT COMPANY",
+    "relation_guess": "orgs_co_appear",
+    "n_docs": 7,
+    "n_bundles": 5,
+    "bundles": [
+      "LICO LENDING INVESTOR CORPORATION",
+      "Lenders Conspiring With Agencies (Philippines Money Lenders)",
+      "NITTAN CAPITAL FINANCE INC",
+      "PERAPO / HOVONO LENDING CORPORATION",
+      "TAIWAN"
+    ],
+    "sample_file_ids": [
+      "1-O_RLMTVR0TwDnOa0fCGmT0SLtfrVPY4",
+      "15v1sbSi5pWG_hdjOKWppEbFz41dCBdMG",
+      "1TmKRk4N3pmQjJqtwoK8F9LwnX-AWUhek",
+      "1g1RwVM0O-SmhLU8-2ck67YX7u5DQPuXv",
+      "1hfQhHnVbQGkwJaEcYODNJyARJsnhmhCw"
+    ]
+  },
+  {
+    "a_type": "gov_ref",
+    "a_value": "SEC",
+    "b_type": "org",
+    "b_value": "CORPORATE GOVERNANCE AND FINANCE",
+    "relation_guess": "org_regulated_by_agency",
+    "n_docs": 7,
+    "n_bundles": 5,
+    "bundles": [
+      "LICO LENDING INVESTOR CORPORATION",
+      "Lenders Conspiring With Agencies (Philippines Money Lenders)",
+      "NITTAN CAPITAL FINANCE INC",
+      "PERAPO / HOVONO LENDING CORPORATION",
+      "TAIWAN"
+    ],
+    "sample_file_ids": [
+      "1-O_RLMTVR0TwDnOa0fCGmT0SLtfrVPY4",
+      "15v1sbSi5pWG_hdjOKWppEbFz41dCBdMG",
+      "1TmKRk4N3pmQjJqtwoK8F9LwnX-AWUhek",
+      "1g1RwVM0O-SmhLU8-2ck67YX7u5DQPuXv",
+      "1hfQhHnVbQGkwJaEcYODNJyARJsnhmhCw"
+    ]
+  },
+  {
+    "a_type": "gov_ref",
+    "a_value": "SEC",
+    "b_type": "org",
+    "b_value": "ONE COMPLAINT FORM PER RESPONDENT COMPANY",
+    "relation_guess": "org_regulated_by_agency",
+    "n_docs": 7,
+    "n_bundles": 5,
+    "bundles": [
+      "LICO LENDING INVESTOR CORPORATION",
+      "Lenders Conspiring With Agencies (Philippines Money Lenders)",
+      "NITTAN CAPITAL FINANCE INC",
+      "PERAPO / HOVONO LENDING CORPORATION",
+      "TAIWAN"
+    ],
+    "sample_file_ids": [
+      "1-O_RLMTVR0TwDnOa0fCGmT0SLtfrVPY4",
+      "15v1sbSi5pWG_hdjOKWppEbFz41dCBdMG",
+      "1TmKRk4N3pmQjJqtwoK8F9LwnX-AWUhek",
+      "1g1RwVM0O-SmhLU8-2ck67YX7u5DQPuXv",
+      "1hfQhHnVbQGkwJaEcYODNJyARJsnhmhCw"
+    ]
+  },
+  {
+    "a_type": "gov_ref",
+    "a_value": "PCG",
+    "b_type": "gov_ref",
+    "b_value": "POLO",
+    "relation_guess": "co_occurs",
+    "n_docs": 6,
+    "n_bundles": 5,
+    "bundles": [
+      "BAGUIO BENGUET INTERNATIONAL RECRUITMENT AGENCY INC",
+      "HUMANIA INTERNATIONAL, INC.",
+      "LUZERN INTERNATIONAL MANPOWER SERVICES CORPORATION",
+      "Lenders Conspiring With Agencies (Philippines Money Lenders)",
+      "Pacific Ace Finance Limited"
+    ],
+    "sample_file_ids": [
+      "1DyxkWBqfvgGER5cyxU35Vj-GvrS0akkQ",
+      "1KKvN7RjwUDU0Ht-Dc5KcM1KmKmrkRw1X",
+      "1LZE6nU4uePSP57Cib5_gNDuaXf5fU54akKmqpyWPzaI",
+      "1Sy8NhJq4dvaobmbjyM1I3Ujq9nzzb5jSq-kqb7uStlw",
+      "1llp7P1_iHGoAryF5Vj-uS54KwttKO-MR"
+    ]
+  },
+  {
+    "a_type": "gov_ref",
+    "a_value": "POEA",
+    "b_type": "org",
+    "b_value": "PHILIPPINE OVERSEAS EMPLOYMENT",
+    "relation_guess": "org_regulated_by_agency",
+    "n_docs": 6,
+    "n_bundles": 4,
+    "bundles": [
+      "HUMANIA INTERNATIONAL, INC.",
+      "INFINITY INTERNATIONAL MANPOWER SERVICES",
+      "LUZERN INTERNATIONAL MANPOWER SERVICES CORPORATION",
+      "PHILCO HUMAN RESOURCE SERVICES CO."
+    ],
+    "sample_file_ids": [
+      "1AWeay8e8LWaai57b1_3HkCHFnLJGGfS9O_P7gMBH_vg",
+      "1Df4b7EsN6sGeO5NWxIAkIvs2y10A2RVFI0xczEByvKc",
+      "1JXDsE4LZsNJGnxqtQYLMw-yrM3LPKJEGno0NibPAIIA",
+      "1KKvN7RjwUDU0Ht-Dc5KcM1KmKmrkRw1X",
+      "1Sy8NhJq4dvaobmbjyM1I3Ujq9nzzb5jSq-kqb7uStlw"
+    ]
+  },
+  {
+    "a_type": "gov_ref",
+    "a_value": "PCG",
+    "b_type": "gov_ref",
+    "b_value": "POEA",
+    "relation_guess": "co_occurs",
+    "n_docs": 4,
+    "n_bundles": 4,
+    "bundles": [
+      "BAGUIO BENGUET INTERNATIONAL RECRUITMENT AGENCY INC",
+      "HUMANIA INTERNATIONAL, INC.",
+      "LUZERN INTERNATIONAL MANPOWER SERVICES CORPORATION",
+      "Lenders Conspiring With Agencies (Philippines Money Lenders)"
+    ],
+    "sample_file_ids": [
+      "1DyxkWBqfvgGER5cyxU35Vj-GvrS0akkQ",
+      "1KKvN7RjwUDU0Ht-Dc5KcM1KmKmrkRw1X",
+      "1Sy8NhJq4dvaobmbjyM1I3Ujq9nzzb5jSq-kqb7uStlw",
+      "1up_4uhdDOvjGd1h_xgAZbwqGhlFGLk0tOBRLYe6M0t4"
+    ]
+  },
+  {
+    "a_type": "email",
+    "a_value": "pcc@malacanang.gov.ph",
+    "b_type": "email",
+    "b_value": "poea.prosecution@gmail.com",
+    "relation_guess": "co_occurs",
+    "n_docs": 4,
+    "n_bundles": 3,
+    "bundles": [
+      "00-MAJOR CASES",
+      "BAGUIO BENGUET INTERNATIONAL RECRUITMENT AGENCY INC",
+      "Lenders Conspiring With Agencies (Philippines Money Lenders)"
+    ],
+    "sample_file_ids": [
+      "1DyxkWBqfvgGER5cyxU35Vj-GvrS0akkQ",
+      "1JX67Fs8N9yiAuetRJElYeqdBUHixwODIemH5JrYnD88",
+      "1WQMeT-T0EsZPW1Eo6qdCscUEENnwAzeGPzPHUgf3cIk",
+      "1YKNI4JhZkQL_gV33EvasomMskTLtEXwvPJSw9wuYJ4I"
+    ]
+  },
+  {
+    "a_type": "email",
+    "a_value": "pcc@malacanang.gov.ph",
+    "b_type": "email",
+    "b_value": "polo.hongkong@yahoo.com",
+    "relation_guess": "co_occurs",
+    "n_docs": 4,
+    "n_bundles": 3,
+    "bundles": [
+      "00-MAJOR CASES",
+      "BAGUIO BENGUET INTERNATIONAL RECRUITMENT AGENCY INC",
+      "Lenders Conspiring With Agencies (Philippines Money Lenders)"
+    ],
+    "sample_file_ids": [
+      "1DyxkWBqfvgGER5cyxU35Vj-GvrS0akkQ",
+      "1JX67Fs8N9yiAuetRJElYeqdBUHixwODIemH5JrYnD88",
+      "1WQMeT-T0EsZPW1Eo6qdCscUEENnwAzeGPzPHUgf3cIk",
+      "1YKNI4JhZkQL_gV33EvasomMskTLtEXwvPJSw9wuYJ4I"
+    ]
+  },
+  {
+    "a_type": "email",
+    "a_value": "poea.prosecution@gmail.com",
+    "b_type": "email",
+    "b_value": "polo.hongkong@yahoo.com",
+    "relation_guess": "co_occurs",
+    "n_docs": 4,
+    "n_bundles": 3,
+    "bundles": [
+      "00-MAJOR CASES",
+      "BAGUIO BENGUET INTERNATIONAL RECRUITMENT AGENCY INC",
+      "Lenders Conspiring With Agencies (Philippines Money Lenders)"
+    ],
+    "sample_file_ids": [
+      "1DyxkWBqfvgGER5cyxU35Vj-GvrS0akkQ",
+      "1JX67Fs8N9yiAuetRJElYeqdBUHixwODIemH5JrYnD88",
+      "1WQMeT-T0EsZPW1Eo6qdCscUEENnwAzeGPzPHUgf3cIk",
+      "1YKNI4JhZkQL_gV33EvasomMskTLtEXwvPJSw9wuYJ4I"
+    ]
+  },
+  {
+    "a_type": "gov_ref",
+    "a_value": "DOLE",
+    "b_type": "gov_ref",
+    "b_value": "POEA",
+    "relation_guess": "co_occurs",
+    "n_docs": 3,
+    "n_bundles": 3,
+    "bundles": [
+      "BAGUIO BENGUET INTERNATIONAL RECRUITMENT AGENCY INC",
+      "Lenders Conspiring With Agencies (Philippines Money Lenders)",
+      "PHILCO HUMAN RESOURCE SERVICES CO."
+    ],
+    "sample_file_ids": [
+      "1AWeay8e8LWaai57b1_3HkCHFnLJGGfS9O_P7gMBH_vg",
+      "1DyxkWBqfvgGER5cyxU35Vj-GvrS0akkQ",
+      "1up_4uhdDOvjGd1h_xgAZbwqGhlFGLk0tOBRLYe6M0t4"
+    ]
+  },
+  {
+    "a_type": "email",
+    "a_value": "dbishop@hku.hk",
+    "b_type": "email",
+    "b_value": "ea-ee@labour.gov.hk",
+    "relation_guess": "co_occurs",
+    "n_docs": 3,
+    "n_bundles": 3,
+    "bundles": [
+      "Example Of Government Letters",
+      "GENERIC INVESTIGATIONS (Migrasia)",
+      "Letter To Labour Petitioning For License To Be Refused To Be Renewed"
+    ],
+    "sample_file_ids": [
+      "15y7ifaG6N2FaOONhuFb6XZRW7l6gcW--",
+      "16X1Cc9Ss75LhDZcErQ-uTu5VU4dcd9tq",
+      "1SFa8spa8GKZN78DZxFv33nHUk8pO_jidtr7BRV6pqe8"
+    ]
+  },
+  {
+    "a_type": "email",
+    "a_value": "info@jemhk.org",
+    "b_type": "gov_ref",
+    "b_value": "PCG",
+    "relation_guess": "co_occurs",
+    "n_docs": 6,
+    "n_bundles": 2,
+    "bundles": [
+      "Lenders Conspiring With Agencies (Philippines Money Lenders)",
+      "Pacific Ace Finance Limited"
+    ],
+    "sample_file_ids": [
+      "1-TkNqD8bZLSqLesYRw--HB9kpCswobUu",
+      "1LQzxmPzhyMbmeuSvsPXogLVVAECCp8OF",
+      "1SvU3unS47Iy2OIAoIXSsjmNUmy-bOdZWN9UiKmBNl2Q",
+      "1iMbjCAwkr5DQR-aWsVhx_UbbA6tiOuGv",
+      "1llp7P1_iHGoAryF5Vj-uS54KwttKO-MR"
+    ]
+  },
+  {
+    "a_type": "email",
+    "a_value": "cgfd_md@sec.gov.ph",
+    "b_type": "gov_ref",
+    "b_value": "SEC",
+    "relation_guess": "co_occurs",
+    "n_docs": 5,
+    "n_bundles": 2,
+    "bundles": [
+      "FAMILYHAN CREDIT CORPORATION",
+      "Lenders Conspiring With Agencies (Philippines Money Lenders)"
+    ],
+    "sample_file_ids": [
+      "10Y4-pUv1Z0VCXuI4g3l7-KMP8Mt4Ar8o6Ec84X21dc4",
+      "17Chlc0ONAME4ZxzTiF2M38HW7fEXYMgOsmB1Lguu-s8",
+      "1FAljaptPjz5s0BaPZQ8QLrRBAEpWosF4FIxERiwhU2Y",
+      "1dQPhlrDtqzKbQ0tzglXihM_UcQaHO8VTvT2Bjg5orlQ",
+      "1up_4uhdDOvjGd1h_xgAZbwqGhlFGLk0tOBRLYe6M0t4"
+    ]
+  },
+  {
+    "a_type": "email",
+    "a_value": "info@jemhk.org",
+    "b_type": "org",
+    "b_value": "SUSPECTED ILLEGAL LENDING",
+    "relation_guess": "org_has_email",
+    "n_docs": 5,
+    "n_bundles": 2,
+    "bundles": [
+      "Lenders Conspiring With Agencies (Philippines Money Lenders)",
+      "Pacific Ace Finance Limited"
+    ],
+    "sample_file_ids": [
+      "1-TkNqD8bZLSqLesYRw--HB9kpCswobUu",
+      "1LQzxmPzhyMbmeuSvsPXogLVVAECCp8OF",
+      "1SvU3unS47Iy2OIAoIXSsjmNUmy-bOdZWN9UiKmBNl2Q",
+      "1iMbjCAwkr5DQR-aWsVhx_UbbA6tiOuGv",
+      "1uoQix6ctMJrgWVS-MaEl6CXsqfve-1uT6_U1yOOeZoQ"
+    ]
+  },
+  {
+    "a_type": "gov_ref",
+    "a_value": "PCG",
+    "b_type": "org",
+    "b_value": "SUSPECTED ILLEGAL LENDING",
+    "relation_guess": "org_regulated_by_agency",
+    "n_docs": 5,
+    "n_bundles": 2,
+    "bundles": [
+      "Lenders Conspiring With Agencies (Philippines Money Lenders)",
+      "Pacific Ace Finance Limited"
+    ],
+    "sample_file_ids": [
+      "1-TkNqD8bZLSqLesYRw--HB9kpCswobUu",
+      "1LQzxmPzhyMbmeuSvsPXogLVVAECCp8OF",
+      "1SvU3unS47Iy2OIAoIXSsjmNUmy-bOdZWN9UiKmBNl2Q",
+      "1iMbjCAwkr5DQR-aWsVhx_UbbA6tiOuGv",
+      "1uoQix6ctMJrgWVS-MaEl6CXsqfve-1uT6_U1yOOeZoQ"
+    ]
+  },
+  {
+    "a_type": "email",
+    "a_value": "gmlc.hku@gmail.com",
+    "b_type": "gov_ref",
+    "b_value": "SEC",
+    "relation_guess": "co_occurs",
+    "n_docs": 4,
+    "n_bundles": 2,
+    "bundles": [
+      "FAMILYHAN CREDIT CORPORATION",
+      "Lenders Conspiring With Agencies (Philippines Money Lenders)"
+    ],
+    "sample_file_ids": [
+      "1086dPhZuzxmLjJ3PLntk0HH0ZyaY_6c-",
+      "1ey6Bp84IEk_o-ZtGlL4xShKrkPheihgHqspV_rF5neM",
+      "1hMBnSz0tcuj88giSg2T0Q8ASYtF90s-2",
+      "1o-m9LD3AvIx5GdblI-F8tJ7mOWQMKTbv"
+    ]
+  },
+  {
+    "a_type": "email",
+    "a_value": "pcc@malacanang.gov.ph",
+    "b_type": "gov_ref",
+    "b_value": "POLO",
+    "relation_guess": "co_occurs",
+    "n_docs": 3,
+    "n_bundles": 2,
+    "bundles": [
+      "00-MAJOR CASES",
+      "BAGUIO BENGUET INTERNATIONAL RECRUITMENT AGENCY INC"
+    ],
+    "sample_file_ids": [
+      "1DyxkWBqfvgGER5cyxU35Vj-GvrS0akkQ",
+      "1JX67Fs8N9yiAuetRJElYeqdBUHixwODIemH5JrYnD88",
+      "1YKNI4JhZkQL_gV33EvasomMskTLtEXwvPJSw9wuYJ4I"
+    ]
+  },
+  {
+    "a_type": "email",
+    "a_value": "poea.prosecution@gmail.com",
+    "b_type": "gov_ref",
+    "b_value": "POLO",
+    "relation_guess": "co_occurs",
+    "n_docs": 3,
+    "n_bundles": 2,
+    "bundles": [
+      "00-MAJOR CASES",
+      "BAGUIO BENGUET INTERNATIONAL RECRUITMENT AGENCY INC"
+    ],
+    "sample_file_ids": [
+      "1DyxkWBqfvgGER5cyxU35Vj-GvrS0akkQ",
+      "1JX67Fs8N9yiAuetRJElYeqdBUHixwODIemH5JrYnD88",
+      "1YKNI4JhZkQL_gV33EvasomMskTLtEXwvPJSw9wuYJ4I"
+    ]
+  },
+  {
+    "a_type": "email",
+    "a_value": "polo.hongkong@yahoo.com",
+    "b_type": "gov_ref",
+    "b_value": "POLO",
+    "relation_guess": "co_occurs",
+    "n_docs": 3,
+    "n_bundles": 2,
+    "bundles": [
+      "00-MAJOR CASES",
+      "BAGUIO BENGUET INTERNATIONAL RECRUITMENT AGENCY INC"
+    ],
+    "sample_file_ids": [
+      "1DyxkWBqfvgGER5cyxU35Vj-GvrS0akkQ",
+      "1JX67Fs8N9yiAuetRJElYeqdBUHixwODIemH5JrYnD88",
+      "1YKNI4JhZkQL_gV33EvasomMskTLtEXwvPJSw9wuYJ4I"
+    ]
+  },
+  {
+    "a_type": "org",
+    "a_value": "BY THE DEPARTMENT OF LABOR AND EMPLOYMENT",
+    "b_type": "org",
+    "b_value": "PHILIPPINE OVERSEAS EMPLOYMENT",
+    "relation_guess": "orgs_co_appear",
+    "n_docs": 3,
+    "n_bundles": 2,
+    "bundles": [
+      "HUMANIA INTERNATIONAL, INC.",
+      "LUZERN INTERNATIONAL MANPOWER SERVICES CORPORATION"
+    ],
+    "sample_file_ids": [
+      "1JXDsE4LZsNJGnxqtQYLMw-yrM3LPKJEGno0NibPAIIA",
+      "1KKvN7RjwUDU0Ht-Dc5KcM1KmKmrkRw1X",
+      "1Sy8NhJq4dvaobmbjyM1I3Ujq9nzzb5jSq-kqb7uStlw"
+    ]
+  },
+  {
+    "a_type": "gov_ref",
+    "a_value": "POEA",
+    "b_type": "org",
+    "b_value": "BY THE DEPARTMENT OF LABOR AND EMPLOYMENT",
+    "relation_guess": "org_regulated_by_agency",
+    "n_docs": 3,
+    "n_bundles": 2,
+    "bundles": [
+      "HUMANIA INTERNATIONAL, INC.",
+      "LUZERN INTERNATIONAL MANPOWER SERVICES CORPORATION"
+    ],
+    "sample_file_ids": [
+      "1JXDsE4LZsNJGnxqtQYLMw-yrM3LPKJEGno0NibPAIIA",
+      "1KKvN7RjwUDU0Ht-Dc5KcM1KmKmrkRw1X",
+      "1Sy8NhJq4dvaobmbjyM1I3Ujq9nzzb5jSq-kqb7uStlw"
+    ]
+  },
+  {
+    "a_type": "gov_ref",
+    "a_value": "POLO",
+    "b_type": "org",
+    "b_value": "BY THE DEPARTMENT OF LABOR AND EMPLOYMENT",
+    "relation_guess": "org_regulated_by_agency",
+    "n_docs": 3,
+    "n_bundles": 2,
+    "bundles": [
+      "HUMANIA INTERNATIONAL, INC.",
+      "LUZERN INTERNATIONAL MANPOWER SERVICES CORPORATION"
+    ],
+    "sample_file_ids": [
+      "1JXDsE4LZsNJGnxqtQYLMw-yrM3LPKJEGno0NibPAIIA",
+      "1KKvN7RjwUDU0Ht-Dc5KcM1KmKmrkRw1X",
+      "1Sy8NhJq4dvaobmbjyM1I3Ujq9nzzb5jSq-kqb7uStlw"
+    ]
+  },
+  {
+    "a_type": "org",
+    "a_value": "GOLD AND GREEN MANPOWER",
+    "b_type": "org",
+    "b_value": "PHILIPPINE OVERSEAS EMPLOYMENT",
+    "relation_guess": "orgs_co_appear",
+    "n_docs": 3,
+    "n_bundles": 2,
+    "bundles": [
+      "HUMANIA INTERNATIONAL, INC.",
+      "INFINITY INTERNATIONAL MANPOWER SERVICES"
+    ],
+    "sample_file_ids": [
+      "1Df4b7EsN6sGeO5NWxIAkIvs2y10A2RVFI0xczEByvKc",
+      "1JXDsE4LZsNJGnxqtQYLMw-yrM3LPKJEGno0NibPAIIA",
+      "1_5Zz_N2De1gaQM7lHe0AtyNk6fsK3jQCkC3TpUOLGmM"
+    ]
+  },
+  {
+    "a_type": "org",
+    "a_value": "GOLD AND GREEN MANPOWER",
+    "b_type": "org",
+    "b_value": "SAGE INTERNATIONAL DEVELOPMENT COMPANY",
+    "relation_guess": "orgs_co_appear",
+    "n_docs": 3,
+    "n_bundles": 2,
+    "bundles": [
+      "HUMANIA INTERNATIONAL, INC.",
+      "INFINITY INTERNATIONAL MANPOWER SERVICES"
+    ],
+    "sample_file_ids": [
+      "1Df4b7EsN6sGeO5NWxIAkIvs2y10A2RVFI0xczEByvKc",
+      "1JXDsE4LZsNJGnxqtQYLMw-yrM3LPKJEGno0NibPAIIA",
+      "1_5Zz_N2De1gaQM7lHe0AtyNk6fsK3jQCkC3TpUOLGmM"
+    ]
+  },
+  {
+    "a_type": "gov_ref",
+    "a_value": "NLRC",
+    "b_type": "org",
+    "b_value": "GOLD AND GREEN MANPOWER",
+    "relation_guess": "org_regulated_by_agency",
+    "n_docs": 3,
+    "n_bundles": 2,
+    "bundles": [
+      "HUMANIA INTERNATIONAL, INC.",
+      "INFINITY INTERNATIONAL MANPOWER SERVICES"
+    ],
+    "sample_file_ids": [
+      "1Df4b7EsN6sGeO5NWxIAkIvs2y10A2RVFI0xczEByvKc",
+      "1JXDsE4LZsNJGnxqtQYLMw-yrM3LPKJEGno0NibPAIIA",
+      "1_5Zz_N2De1gaQM7lHe0AtyNk6fsK3jQCkC3TpUOLGmM"
+    ]
+  },
+  {
+    "a_type": "gov_ref",
+    "a_value": "POEA",
+    "b_type": "org",
+    "b_value": "GOLD AND GREEN MANPOWER",
+    "relation_guess": "org_regulated_by_agency",
+    "n_docs": 3,
+    "n_bundles": 2,
+    "bundles": [
+      "HUMANIA INTERNATIONAL, INC.",
+      "INFINITY INTERNATIONAL MANPOWER SERVICES"
+    ],
+    "sample_file_ids": [
+      "1Df4b7EsN6sGeO5NWxIAkIvs2y10A2RVFI0xczEByvKc",
+      "1JXDsE4LZsNJGnxqtQYLMw-yrM3LPKJEGno0NibPAIIA",
+      "1_5Zz_N2De1gaQM7lHe0AtyNk6fsK3jQCkC3TpUOLGmM"
+    ]
+  },
+  {
+    "a_type": "org",
+    "a_value": "PHILIPPINE OVERSEAS EMPLOYMENT",
+    "b_type": "org",
+    "b_value": "SAGE INTERNATIONAL DEVELOPMENT COMPANY",
+    "relation_guess": "orgs_co_appear",
+    "n_docs": 3,
+    "n_bundles": 2,
+    "bundles": [
+      "HUMANIA INTERNATIONAL, INC.",
+      "INFINITY INTERNATIONAL MANPOWER SERVICES"
+    ],
+    "sample_file_ids": [
+      "1Df4b7EsN6sGeO5NWxIAkIvs2y10A2RVFI0xczEByvKc",
+      "1JXDsE4LZsNJGnxqtQYLMw-yrM3LPKJEGno0NibPAIIA",
+      "1_5Zz_N2De1gaQM7lHe0AtyNk6fsK3jQCkC3TpUOLGmM"
+    ]
+  },
+  {
+    "a_type": "gov_ref",
+    "a_value": "NLRC",
+    "b_type": "org",
+    "b_value": "PHILIPPINE OVERSEAS EMPLOYMENT",
+    "relation_guess": "org_regulated_by_agency",
+    "n_docs": 3,
+    "n_bundles": 2,
+    "bundles": [
+      "HUMANIA INTERNATIONAL, INC.",
+      "INFINITY INTERNATIONAL MANPOWER SERVICES"
+    ],
+    "sample_file_ids": [
+      "1Df4b7EsN6sGeO5NWxIAkIvs2y10A2RVFI0xczEByvKc",
+      "1JXDsE4LZsNJGnxqtQYLMw-yrM3LPKJEGno0NibPAIIA",
+      "1_5Zz_N2De1gaQM7lHe0AtyNk6fsK3jQCkC3TpUOLGmM"
+    ]
+  },
+  {
+    "a_type": "gov_ref",
+    "a_value": "POLO",
+    "b_type": "org",
+    "b_value": "PHILIPPINE OVERSEAS EMPLOYMENT",
+    "relation_guess": "org_regulated_by_agency",
+    "n_docs": 3,
+    "n_bundles": 2,
+    "bundles": [
+      "HUMANIA INTERNATIONAL, INC.",
+      "LUZERN INTERNATIONAL MANPOWER SERVICES CORPORATION"
+    ],
+    "sample_file_ids": [
+      "1JXDsE4LZsNJGnxqtQYLMw-yrM3LPKJEGno0NibPAIIA",
+      "1KKvN7RjwUDU0Ht-Dc5KcM1KmKmrkRw1X",
+      "1Sy8NhJq4dvaobmbjyM1I3Ujq9nzzb5jSq-kqb7uStlw"
+    ]
+  },
+  {
+    "a_type": "gov_ref",
+    "a_value": "NLRC",
+    "b_type": "org",
+    "b_value": "SAGE INTERNATIONAL DEVELOPMENT COMPANY",
+    "relation_guess": "org_regulated_by_agency",
+    "n_docs": 3,
+    "n_bundles": 2,
+    "bundles": [
+      "HUMANIA INTERNATIONAL, INC.",
+      "INFINITY INTERNATIONAL MANPOWER SERVICES"
+    ],
+    "sample_file_ids": [
+      "1Df4b7EsN6sGeO5NWxIAkIvs2y10A2RVFI0xczEByvKc",
+      "1JXDsE4LZsNJGnxqtQYLMw-yrM3LPKJEGno0NibPAIIA",
+      "1_5Zz_N2De1gaQM7lHe0AtyNk6fsK3jQCkC3TpUOLGmM"
+    ]
+  },
+  {
+    "a_type": "gov_ref",
+    "a_value": "POEA",
+    "b_type": "org",
+    "b_value": "SAGE INTERNATIONAL DEVELOPMENT COMPANY",
+    "relation_guess": "org_regulated_by_agency",
+    "n_docs": 3,
+    "n_bundles": 2,
+    "bundles": [
+      "HUMANIA INTERNATIONAL, INC.",
+      "INFINITY INTERNATIONAL MANPOWER SERVICES"
+    ],
+    "sample_file_ids": [
+      "1Df4b7EsN6sGeO5NWxIAkIvs2y10A2RVFI0xczEByvKc",
+      "1JXDsE4LZsNJGnxqtQYLMw-yrM3LPKJEGno0NibPAIIA",
+      "1_5Zz_N2De1gaQM7lHe0AtyNk6fsK3jQCkC3TpUOLGmM"
+    ]
+  },
+  {
+    "a_type": "gov_ref",
+    "a_value": "NLRC",
+    "b_type": "gov_ref",
+    "b_value": "POEA",
+    "relation_guess": "co_occurs",
+    "n_docs": 3,
+    "n_bundles": 2,
+    "bundles": [
+      "HUMANIA INTERNATIONAL, INC.",
+      "INFINITY INTERNATIONAL MANPOWER SERVICES"
+    ],
+    "sample_file_ids": [
+      "1Df4b7EsN6sGeO5NWxIAkIvs2y10A2RVFI0xczEByvKc",
+      "1JXDsE4LZsNJGnxqtQYLMw-yrM3LPKJEGno0NibPAIIA",
+      "1_5Zz_N2De1gaQM7lHe0AtyNk6fsK3jQCkC3TpUOLGmM"
+    ]
+  },
+  {
+    "a_type": "email",
+    "a_value": "cgfd_md@sec.gov.ph",
+    "b_type": "email",
+    "b_value": "imessagemo@sec.gov.ph",
+    "relation_guess": "co_occurs",
+    "n_docs": 3,
+    "n_bundles": 2,
+    "bundles": [
+      "FAMILYHAN CREDIT CORPORATION",
+      "Lenders Conspiring With Agencies (Philippines Money Lenders)"
+    ],
+    "sample_file_ids": [
+      "10Y4-pUv1Z0VCXuI4g3l7-KMP8Mt4Ar8o6Ec84X21dc4",
+      "1FAljaptPjz5s0BaPZQ8QLrRBAEpWosF4FIxERiwhU2Y",
+      "1up_4uhdDOvjGd1h_xgAZbwqGhlFGLk0tOBRLYe6M0t4"
+    ]
+  },
+  {
+    "a_type": "email",
+    "a_value": "imessagemo@sec.gov.ph",
+    "b_type": "gov_ref",
+    "b_value": "SEC",
+    "relation_guess": "co_occurs",
+    "n_docs": 3,
+    "n_bundles": 2,
+    "bundles": [
+      "FAMILYHAN CREDIT CORPORATION",
+      "Lenders Conspiring With Agencies (Philippines Money Lenders)"
+    ],
+    "sample_file_ids": [
+      "10Y4-pUv1Z0VCXuI4g3l7-KMP8Mt4Ar8o6Ec84X21dc4",
+      "1FAljaptPjz5s0BaPZQ8QLrRBAEpWosF4FIxERiwhU2Y",
+      "1up_4uhdDOvjGd1h_xgAZbwqGhlFGLk0tOBRLYe6M0t4"
+    ]
+  },
+  {
+    "a_type": "gov_ref",
+    "a_value": "POEA",
+    "b_type": "gov_ref",
+    "b_value": "SEC",
+    "relation_guess": "co_occurs",
+    "n_docs": 3,
+    "n_bundles": 2,
+    "bundles": [
+      "Lenders Conspiring With Agencies (Philippines Money Lenders)",
+      "SEC RECORDS"
+    ],
+    "sample_file_ids": [
+      "1234I39Pbd8oaLDykKQZAO0joIqXroECl",
+      "17Chlc0ONAME4ZxzTiF2M38HW7fEXYMgOsmB1Lguu-s8",
+      "1up_4uhdDOvjGd1h_xgAZbwqGhlFGLk0tOBRLYe6M0t4"
+    ]
+  },
+  {
+    "a_type": "email",
+    "a_value": "cgfd_md@sec.gov.ph",
+    "b_type": "email",
+    "b_value": "complaints@privacy.gov.ph",
+    "relation_guess": "co_occurs",
+    "n_docs": 3,
+    "n_bundles": 2,
+    "bundles": [
+      "FAMILYHAN CREDIT CORPORATION",
+      "Lenders Conspiring With Agencies (Philippines Money Lenders)"
+    ],
+    "sample_file_ids": [
+      "10Y4-pUv1Z0VCXuI4g3l7-KMP8Mt4Ar8o6Ec84X21dc4",
+      "1FAljaptPjz5s0BaPZQ8QLrRBAEpWosF4FIxERiwhU2Y",
+      "1c5iapiYilDFQh89s57H9USGh32lBjWI8XjSclbgYixc"
+    ]
+  },
+  {
+    "a_type": "email",
+    "a_value": "cgfd_md@sec.gov.ph",
+    "b_type": "email",
+    "b_value": "globalmigrationassistance@gmail.com",
+    "relation_guess": "co_occurs",
+    "n_docs": 3,
+    "n_bundles": 2,
+    "bundles": [
+      "Client Folders - Generic",
+      "FAMILYHAN CREDIT CORPORATION"
+    ],
+    "sample_file_ids": [
+      "10Y4-pUv1Z0VCXuI4g3l7-KMP8Mt4Ar8o6Ec84X21dc4",
+      "1ANsakxIYZDc3tI_LiXhbbj1LeaLOviAK",
+      "1FAljaptPjz5s0BaPZQ8QLrRBAEpWosF4FIxERiwhU2Y"
+    ]
+  },
+  {
+    "a_type": "email",
+    "a_value": "cgfd_md@sec.gov.ph",
+    "b_type": "email",
+    "b_value": "pcc@malacanang.gov.ph",
+    "relation_guess": "co_occurs",
+    "n_docs": 3,
+    "n_bundles": 2,
+    "bundles": [
+      "FAMILYHAN CREDIT CORPORATION",
+      "Lenders Conspiring With Agencies (Philippines Money Lenders)"
+    ],
+    "sample_file_ids": [
+      "10Y4-pUv1Z0VCXuI4g3l7-KMP8Mt4Ar8o6Ec84X21dc4",
+      "1FAljaptPjz5s0BaPZQ8QLrRBAEpWosF4FIxERiwhU2Y",
+      "1c5iapiYilDFQh89s57H9USGh32lBjWI8XjSclbgYixc"
+    ]
+  },
+  {
+    "a_type": "email",
+    "a_value": "cgfd_md@sec.gov.ph",
+    "b_type": "email",
+    "b_value": "secretariat@amlc.gov.ph",
+    "relation_guess": "co_occurs",
+    "n_docs": 3,
+    "n_bundles": 2,
+    "bundles": [
+      "FAMILYHAN CREDIT CORPORATION",
+      "Lenders Conspiring With Agencies (Philippines Money Lenders)"
+    ],
+    "sample_file_ids": [
+      "10Y4-pUv1Z0VCXuI4g3l7-KMP8Mt4Ar8o6Ec84X21dc4",
+      "1FAljaptPjz5s0BaPZQ8QLrRBAEpWosF4FIxERiwhU2Y",
+      "1c5iapiYilDFQh89s57H9USGh32lBjWI8XjSclbgYixc"
+    ]
+  },
+  {
+    "a_type": "email",
+    "a_value": "complaints@privacy.gov.ph",
+    "b_type": "email",
+    "b_value": "pcc@malacanang.gov.ph",
+    "relation_guess": "co_occurs",
+    "n_docs": 3,
+    "n_bundles": 2,
+    "bundles": [
+      "FAMILYHAN CREDIT CORPORATION",
+      "Lenders Conspiring With Agencies (Philippines Money Lenders)"
+    ],
+    "sample_file_ids": [
+      "10Y4-pUv1Z0VCXuI4g3l7-KMP8Mt4Ar8o6Ec84X21dc4",
+      "1FAljaptPjz5s0BaPZQ8QLrRBAEpWosF4FIxERiwhU2Y",
+      "1c5iapiYilDFQh89s57H9USGh32lBjWI8XjSclbgYixc"
+    ]
+  },
+  {
+    "a_type": "email",
+    "a_value": "complaints@privacy.gov.ph",
+    "b_type": "email",
+    "b_value": "secretariat@amlc.gov.ph",
+    "relation_guess": "co_occurs",
+    "n_docs": 3,
+    "n_bundles": 2,
+    "bundles": [
+      "FAMILYHAN CREDIT CORPORATION",
+      "Lenders Conspiring With Agencies (Philippines Money Lenders)"
+    ],
+    "sample_file_ids": [
+      "10Y4-pUv1Z0VCXuI4g3l7-KMP8Mt4Ar8o6Ec84X21dc4",
+      "1FAljaptPjz5s0BaPZQ8QLrRBAEpWosF4FIxERiwhU2Y",
+      "1c5iapiYilDFQh89s57H9USGh32lBjWI8XjSclbgYixc"
+    ]
+  },
+  {
+    "a_type": "email",
+    "a_value": "pcc@malacanang.gov.ph",
+    "b_type": "email",
+    "b_value": "secretariat@amlc.gov.ph",
+    "relation_guess": "co_occurs",
+    "n_docs": 3,
+    "n_bundles": 2,
+    "bundles": [
+      "FAMILYHAN CREDIT CORPORATION",
+      "Lenders Conspiring With Agencies (Philippines Money Lenders)"
+    ],
+    "sample_file_ids": [
+      "10Y4-pUv1Z0VCXuI4g3l7-KMP8Mt4Ar8o6Ec84X21dc4",
+      "1FAljaptPjz5s0BaPZQ8QLrRBAEpWosF4FIxERiwhU2Y",
+      "1c5iapiYilDFQh89s57H9USGh32lBjWI8XjSclbgYixc"
+    ]
+  },
+  {
+    "a_type": "gov_ref",
+    "a_value": "SEC",
+    "b_type": "org",
+    "b_value": "HOYA LENDING INVESTOR CORPORATION",
+    "relation_guess": "org_regulated_by_agency",
+    "n_docs": 3,
+    "n_bundles": 2,
+    "bundles": [
+      "Lenders Conspiring With Agencies (Philippines Money Lenders)",
+      "TAIWAN"
+    ],
+    "sample_file_ids": [
+      "1hfQhHnVbQGkwJaEcYODNJyARJsnhmhCw",
+      "1k_bSSwSJm2ktZ_yfLp1i8IitdIGPrYNBKwal0qmbYSY",
+      "1xhFm5MrMtGMAoJelue3362i-naXzytiv"
+    ]
+  },
+  {
+    "a_type": "email",
+    "a_value": "pcc@malacanang.gov.ph",
+    "b_type": "gov_ref",
+    "b_value": "POEA",
+    "relation_guess": "co_occurs",
+    "n_docs": 2,
+    "n_bundles": 2,
+    "bundles": [
+      "00-MAJOR CASES",
+      "BAGUIO BENGUET INTERNATIONAL RECRUITMENT AGENCY INC"
+    ],
+    "sample_file_ids": [
+      "1DyxkWBqfvgGER5cyxU35Vj-GvrS0akkQ",
+      "1JX67Fs8N9yiAuetRJElYeqdBUHixwODIemH5JrYnD88"
+    ]
+  },
+  {
+    "a_type": "email",
+    "a_value": "poea.prosecution@gmail.com",
+    "b_type": "gov_ref",
+    "b_value": "POEA",
+    "relation_guess": "co_occurs",
+    "n_docs": 2,
+    "n_bundles": 2,
+    "bundles": [
+      "00-MAJOR CASES",
+      "BAGUIO BENGUET INTERNATIONAL RECRUITMENT AGENCY INC"
+    ],
+    "sample_file_ids": [
+      "1DyxkWBqfvgGER5cyxU35Vj-GvrS0akkQ",
+      "1JX67Fs8N9yiAuetRJElYeqdBUHixwODIemH5JrYnD88"
+    ]
+  },
+  {
+    "a_type": "email",
+    "a_value": "polo.hongkong@yahoo.com",
+    "b_type": "gov_ref",
+    "b_value": "POEA",
+    "relation_guess": "co_occurs",
+    "n_docs": 2,
+    "n_bundles": 2,
+    "bundles": [
+      "00-MAJOR CASES",
+      "BAGUIO BENGUET INTERNATIONAL RECRUITMENT AGENCY INC"
+    ],
+    "sample_file_ids": [
+      "1DyxkWBqfvgGER5cyxU35Vj-GvrS0akkQ",
+      "1JX67Fs8N9yiAuetRJElYeqdBUHixwODIemH5JrYnD88"
+    ]
+  },
+  {
+    "a_type": "gov_ref",
+    "a_value": "DOLE",
+    "b_type": "gov_ref",
+    "b_value": "PCG",
+    "relation_guess": "co_occurs",
+    "n_docs": 2,
+    "n_bundles": 2,
+    "bundles": [
+      "BAGUIO BENGUET INTERNATIONAL RECRUITMENT AGENCY INC",
+      "Lenders Conspiring With Agencies (Philippines Money Lenders)"
+    ],
+    "sample_file_ids": [
+      "1DyxkWBqfvgGER5cyxU35Vj-GvrS0akkQ",
+      "1up_4uhdDOvjGd1h_xgAZbwqGhlFGLk0tOBRLYe6M0t4"
+    ]
+  },
+  {
+    "a_type": "gov_ref",
+    "a_value": "DOLE",
+    "b_type": "gov_ref",
+    "b_value": "POLO",
+    "relation_guess": "co_occurs",
+    "n_docs": 2,
+    "n_bundles": 2,
+    "bundles": [
+      "BAGUIO BENGUET INTERNATIONAL RECRUITMENT AGENCY INC",
+      "Lenders Conspiring With Agencies (Philippines Money Lenders)"
+    ],
+    "sample_file_ids": [
+      "1DyxkWBqfvgGER5cyxU35Vj-GvrS0akkQ",
+      "1up_4uhdDOvjGd1h_xgAZbwqGhlFGLk0tOBRLYe6M0t4"
+    ]
+  },
+  {
+    "a_type": "email",
+    "a_value": "cp@police.gov.hk",
+    "b_type": "email",
+    "b_value": "kittytsui@cr.gov.hk",
+    "relation_guess": "co_occurs",
+    "n_docs": 2,
+    "n_bundles": 2,
+    "bundles": [
+      "HONG KONG ONLY MONEY LENDERS",
+      "Template - law letters"
+    ],
+    "sample_file_ids": [
+      "1CJ0PI_I00322gePTsg3Phq6RzcvELvRLPHnyvC8lJMc",
+      "1ks1WuIZ8KZwypzLSTfpZEpmcVVGdlYROofICEfkgv7c"
+    ]
+  },
+  {
+    "a_type": "email",
+    "a_value": "cp@police.gov.hk",
+    "b_type": "email",
+    "b_value": "sfst@fstb.gov.hk",
+    "relation_guess": "co_occurs",
+    "n_docs": 2,
+    "n_bundles": 2,
+    "bundles": [
+      "HONG KONG ONLY MONEY LENDERS",
+      "Template - law letters"
+    ],
+    "sample_file_ids": [
+      "1CJ0PI_I00322gePTsg3Phq6RzcvELvRLPHnyvC8lJMc",
+      "1ks1WuIZ8KZwypzLSTfpZEpmcVVGdlYROofICEfkgv7c"
+    ]
+  },
+  {
+    "a_type": "email",
+    "a_value": "kittytsui@cr.gov.hk",
+    "b_type": "email",
+    "b_value": "sfst@fstb.gov.hk",
+    "relation_guess": "co_occurs",
+    "n_docs": 2,
+    "n_bundles": 2,
+    "bundles": [
+      "HONG KONG ONLY MONEY LENDERS",
+      "Template - law letters"
+    ],
+    "sample_file_ids": [
+      "1CJ0PI_I00322gePTsg3Phq6RzcvELvRLPHnyvC8lJMc",
+      "1ks1WuIZ8KZwypzLSTfpZEpmcVVGdlYROofICEfkgv7c"
+    ]
+  },
+  {
+    "a_type": "gov_ref",
+    "a_value": "PCG",
+    "b_type": "org",
+    "b_value": "BY THE DEPARTMENT OF LABOR AND EMPLOYMENT",
+    "relation_guess": "org_regulated_by_agency",
+    "n_docs": 2,
+    "n_bundles": 2,
+    "bundles": [
+      "HUMANIA INTERNATIONAL, INC.",
+      "LUZERN INTERNATIONAL MANPOWER SERVICES CORPORATION"
+    ],
+    "sample_file_ids": [
+      "1KKvN7RjwUDU0Ht-Dc5KcM1KmKmrkRw1X",
+      "1Sy8NhJq4dvaobmbjyM1I3Ujq9nzzb5jSq-kqb7uStlw"
+    ]
+  },
+  {
+    "a_type": "gov_ref",
+    "a_value": "PCG",
+    "b_type": "org",
+    "b_value": "PHILIPPINE OVERSEAS EMPLOYMENT",
+    "relation_guess": "org_regulated_by_agency",
+    "n_docs": 2,
+    "n_bundles": 2,
+    "bundles": [
+      "HUMANIA INTERNATIONAL, INC.",
+      "LUZERN INTERNATIONAL MANPOWER SERVICES CORPORATION"
+    ],
+    "sample_file_ids": [
+      "1KKvN7RjwUDU0Ht-Dc5KcM1KmKmrkRw1X",
+      "1Sy8NhJq4dvaobmbjyM1I3Ujq9nzzb5jSq-kqb7uStlw"
+    ]
+  },
+  {
+    "a_type": "email",
+    "a_value": "cl_office@labour.gov.hk",
+    "b_type": "email",
+    "b_value": "dbishop@hku.hk",
+    "relation_guess": "co_occurs",
+    "n_docs": 2,
+    "n_bundles": 2,
+    "bundles": [
+      "Example Of Government Letters",
+      "Letter To Labour Petitioning For License To Be Refused To Be Renewed"
+    ],
+    "sample_file_ids": [
+      "16X1Cc9Ss75LhDZcErQ-uTu5VU4dcd9tq",
+      "1SFa8spa8GKZN78DZxFv33nHUk8pO_jidtr7BRV6pqe8"
+    ]
+  },
+  {
+    "a_type": "email",
+    "a_value": "cl_office@labour.gov.hk",
+    "b_type": "email",
+    "b_value": "dennis@denniskwok.hk",
+    "relation_guess": "co_occurs",
+    "n_docs": 2,
+    "n_bundles": 2,
+    "bundles": [
+      "Example Of Government Letters",
+      "Letter To Labour Petitioning For License To Be Refused To Be Renewed"
+    ],
+    "sample_file_ids": [
+      "16X1Cc9Ss75LhDZcErQ-uTu5VU4dcd9tq",
+      "1SFa8spa8GKZN78DZxFv33nHUk8pO_jidtr7BRV6pqe8"
+    ]
+  },
+  {
+    "a_type": "email",
+    "a_value": "cl_office@labour.gov.hk",
+    "b_type": "email",
+    "b_value": "ea-ee@labour.gov.hk",
+    "relation_guess": "co_occurs",
+    "n_docs": 2,
+    "n_bundles": 2,
+    "bundles": [
+      "Example Of Government Letters",
+      "Letter To Labour Petitioning For License To Be Refused To Be Renewed"
+    ],
+    "sample_file_ids": [
+      "16X1Cc9Ss75LhDZcErQ-uTu5VU4dcd9tq",
+      "1SFa8spa8GKZN78DZxFv33nHUk8pO_jidtr7BRV6pqe8"
+    ]
+  },
+  {
+    "a_type": "email",
+    "a_value": "cl_office@labour.gov.hk",
+    "b_type": "email",
+    "b_value": "hilary_tl_lung@customs.gov.hk",
+    "relation_guess": "co_occurs",
+    "n_docs": 2,
+    "n_bundles": 2,
+    "bundles": [
+      "Example Of Government Letters",
+      "Letter To Labour Petitioning For License To Be Refused To Be Renewed"
+    ],
+    "sample_file_ids": [
+      "16X1Cc9Ss75LhDZcErQ-uTu5VU4dcd9tq",
+      "1SFa8spa8GKZN78DZxFv33nHUk8pO_jidtr7BRV6pqe8"
+    ]
+  },
+  {
+    "a_type": "email",
+    "a_value": "cl_office@labour.gov.hk",
+    "b_type": "email",
+    "b_value": "lernst@hku.hk",
+    "relation_guess": "co_occurs",
+    "n_docs": 2,
+    "n_bundles": 2,
+    "bundles": [
+      "Example Of Government Letters",
+      "Letter To Labour Petitioning For License To Be Refused To Be Renewed"
+    ],
+    "sample_file_ids": [
+      "16X1Cc9Ss75LhDZcErQ-uTu5VU4dcd9tq",
+      "1SFa8spa8GKZN78DZxFv33nHUk8pO_jidtr7BRV6pqe8"
+    ]
+  },
+  {
+    "a_type": "email",
+    "a_value": "cl_office@labour.gov.hk",
+    "b_type": "email",
+    "b_value": "sbenq@sb.gov.hk",
+    "relation_guess": "co_occurs",
+    "n_docs": 2,
+    "n_bundles": 2,
+    "bundles": [
+      "Example Of Government Letters",
+      "Letter To Labour Petitioning For License To Be Refused To Be Renewed"
+    ],
+    "sample_file_ids": [
+      "16X1Cc9Ss75LhDZcErQ-uTu5VU4dcd9tq",
+      "1SFa8spa8GKZN78DZxFv33nHUk8pO_jidtr7BRV6pqe8"
+    ]
+  },
+  {
+    "a_type": "email",
+    "a_value": "cl_office@labour.gov.hk",
+    "b_type": "email",
+    "b_value": "slwo@lwb.gov.hk",
+    "relation_guess": "co_occurs",
+    "n_docs": 2,
+    "n_bundles": 2,
+    "bundles": [
+      "Example Of Government Letters",
+      "Letter To Labour Petitioning For License To Be Refused To Be Renewed"
+    ],
+    "sample_file_ids": [
+      "16X1Cc9Ss75LhDZcErQ-uTu5VU4dcd9tq",
+      "1SFa8spa8GKZN78DZxFv33nHUk8pO_jidtr7BRV6pqe8"
+    ]
+  },
+  {
+    "a_type": "email",
+    "a_value": "cl_office@labour.gov.hk",
+    "b_type": "person",
+    "b_value": "CHAN, Mr",
+    "relation_guess": "person_uses_email",
+    "n_docs": 2,
+    "n_bundles": 2,
+    "bundles": [
+      "Example Of Government Letters",
+      "Letter To Labour Petitioning For License To Be Refused To Be Renewed"
+    ],
+    "sample_file_ids": [
+      "16X1Cc9Ss75LhDZcErQ-uTu5VU4dcd9tq",
+      "1SFa8spa8GKZN78DZxFv33nHUk8pO_jidtr7BRV6pqe8"
+    ]
+  },
+  {
+    "a_type": "email",
+    "a_value": "cl_office@labour.gov.hk",
+    "b_type": "person",
+    "b_value": "David Bishop Global Migration Legal",
+    "relation_guess": "person_uses_email",
+    "n_docs": 2,
+    "n_bundles": 2,
+    "bundles": [
+      "Example Of Government Letters",
+      "Letter To Labour Petitioning For License To Be Refused To Be Renewed"
+    ],
+    "sample_file_ids": [
+      "16X1Cc9Ss75LhDZcErQ-uTu5VU4dcd9tq",
+      "1SFa8spa8GKZN78DZxFv33nHUk8pO_jidtr7BRV6pqe8"
+    ]
+  },
+  {
+    "a_type": "email",
+    "a_value": "cl_office@labour.gov.hk",
+    "b_type": "person",
+    "b_value": "LAW, Mr",
+    "relation_guess": "person_uses_email",
+    "n_docs": 2,
+    "n_bundles": 2,
+    "bundles": [
+      "Example Of Government Letters",
+      "Letter To Labour Petitioning For License To Be Refused To Be Renewed"
+    ],
+    "sample_file_ids": [
+      "16X1Cc9Ss75LhDZcErQ-uTu5VU4dcd9tq",
+      "1SFa8spa8GKZN78DZxFv33nHUk8pO_jidtr7BRV6pqe8"
+    ]
+  },
+  {
+    "a_type": "email",
+    "a_value": "cl_office@labour.gov.hk",
+    "b_type": "gov_ref",
+    "b_value": "IOM",
+    "relation_guess": "co_occurs",
+    "n_docs": 2,
+    "n_bundles": 2,
+    "bundles": [
+      "Example Of Government Letters",
+      "Letter To Labour Petitioning For License To Be Refused To Be Renewed"
+    ],
+    "sample_file_ids": [
+      "16X1Cc9Ss75LhDZcErQ-uTu5VU4dcd9tq",
+      "1SFa8spa8GKZN78DZxFv33nHUk8pO_jidtr7BRV6pqe8"
+    ]
+  },
+  {
+    "a_type": "email",
+    "a_value": "dbishop@hku.hk",
+    "b_type": "email",
+    "b_value": "dennis@denniskwok.hk",
+    "relation_guess": "co_occurs",
+    "n_docs": 2,
+    "n_bundles": 2,
+    "bundles": [
+      "Example Of Government Letters",
+      "Letter To Labour Petitioning For License To Be Refused To Be Renewed"
+    ],
+    "sample_file_ids": [
+      "16X1Cc9Ss75LhDZcErQ-uTu5VU4dcd9tq",
+      "1SFa8spa8GKZN78DZxFv33nHUk8pO_jidtr7BRV6pqe8"
+    ]
+  },
+  {
+    "a_type": "email",
+    "a_value": "dbishop@hku.hk",
+    "b_type": "email",
+    "b_value": "hilary_tl_lung@customs.gov.hk",
+    "relation_guess": "co_occurs",
+    "n_docs": 2,
+    "n_bundles": 2,
+    "bundles": [
+      "Example Of Government Letters",
+      "Letter To Labour Petitioning For License To Be Refused To Be Renewed"
+    ],
+    "sample_file_ids": [
+      "16X1Cc9Ss75LhDZcErQ-uTu5VU4dcd9tq",
+      "1SFa8spa8GKZN78DZxFv33nHUk8pO_jidtr7BRV6pqe8"
+    ]
+  },
+  {
+    "a_type": "email",
+    "a_value": "dbishop@hku.hk",
+    "b_type": "email",
+    "b_value": "lernst@hku.hk",
+    "relation_guess": "co_occurs",
+    "n_docs": 2,
+    "n_bundles": 2,
+    "bundles": [
+      "Example Of Government Letters",
+      "Letter To Labour Petitioning For License To Be Refused To Be Renewed"
+    ],
+    "sample_file_ids": [
+      "16X1Cc9Ss75LhDZcErQ-uTu5VU4dcd9tq",
+      "1SFa8spa8GKZN78DZxFv33nHUk8pO_jidtr7BRV6pqe8"
+    ]
+  },
+  {
+    "a_type": "email",
+    "a_value": "dbishop@hku.hk",
+    "b_type": "email",
+    "b_value": "sbenq@sb.gov.hk",
+    "relation_guess": "co_occurs",
+    "n_docs": 2,
+    "n_bundles": 2,
+    "bundles": [
+      "Example Of Government Letters",
+      "Letter To Labour Petitioning For License To Be Refused To Be Renewed"
+    ],
+    "sample_file_ids": [
+      "16X1Cc9Ss75LhDZcErQ-uTu5VU4dcd9tq",
+      "1SFa8spa8GKZN78DZxFv33nHUk8pO_jidtr7BRV6pqe8"
+    ]
+  },
+  {
+    "a_type": "email",
+    "a_value": "dbishop@hku.hk",
+    "b_type": "email",
+    "b_value": "slwo@lwb.gov.hk",
+    "relation_guess": "co_occurs",
+    "n_docs": 2,
+    "n_bundles": 2,
+    "bundles": [
+      "Example Of Government Letters",
+      "Letter To Labour Petitioning For License To Be Refused To Be Renewed"
+    ],
+    "sample_file_ids": [
+      "16X1Cc9Ss75LhDZcErQ-uTu5VU4dcd9tq",
+      "1SFa8spa8GKZN78DZxFv33nHUk8pO_jidtr7BRV6pqe8"
+    ]
+  },
+  {
+    "a_type": "email",
+    "a_value": "dbishop@hku.hk",
+    "b_type": "person",
+    "b_value": "CHAN, Mr",
+    "relation_guess": "person_uses_email",
+    "n_docs": 2,
+    "n_bundles": 2,
+    "bundles": [
+      "Example Of Government Letters",
+      "Letter To Labour Petitioning For License To Be Refused To Be Renewed"
+    ],
+    "sample_file_ids": [
+      "16X1Cc9Ss75LhDZcErQ-uTu5VU4dcd9tq",
+      "1SFa8spa8GKZN78DZxFv33nHUk8pO_jidtr7BRV6pqe8"
+    ]
+  },
+  {
+    "a_type": "email",
+    "a_value": "dbishop@hku.hk",
+    "b_type": "person",
+    "b_value": "David Bishop Global Migration Legal",
+    "relation_guess": "person_uses_email",
+    "n_docs": 2,
+    "n_bundles": 2,
+    "bundles": [
+      "Example Of Government Letters",
+      "Letter To Labour Petitioning For License To Be Refused To Be Renewed"
+    ],
+    "sample_file_ids": [
+      "16X1Cc9Ss75LhDZcErQ-uTu5VU4dcd9tq",
+      "1SFa8spa8GKZN78DZxFv33nHUk8pO_jidtr7BRV6pqe8"
+    ]
+  },
+  {
+    "a_type": "email",
+    "a_value": "dbishop@hku.hk",
+    "b_type": "person",
+    "b_value": "LAW, Mr",
+    "relation_guess": "person_uses_email",
+    "n_docs": 2,
+    "n_bundles": 2,
+    "bundles": [
+      "Example Of Government Letters",
+      "Letter To Labour Petitioning For License To Be Refused To Be Renewed"
+    ],
+    "sample_file_ids": [
+      "16X1Cc9Ss75LhDZcErQ-uTu5VU4dcd9tq",
+      "1SFa8spa8GKZN78DZxFv33nHUk8pO_jidtr7BRV6pqe8"
+    ]
+  },
+  {
+    "a_type": "email",
+    "a_value": "dbishop@hku.hk",
+    "b_type": "gov_ref",
+    "b_value": "IOM",
+    "relation_guess": "co_occurs",
+    "n_docs": 2,
+    "n_bundles": 2,
+    "bundles": [
+      "Example Of Government Letters",
+      "Letter To Labour Petitioning For License To Be Refused To Be Renewed"
+    ],
+    "sample_file_ids": [
+      "16X1Cc9Ss75LhDZcErQ-uTu5VU4dcd9tq",
+      "1SFa8spa8GKZN78DZxFv33nHUk8pO_jidtr7BRV6pqe8"
+    ]
+  },
+  {
+    "a_type": "email",
+    "a_value": "dennis@denniskwok.hk",
+    "b_type": "email",
+    "b_value": "ea-ee@labour.gov.hk",
+    "relation_guess": "co_occurs",
+    "n_docs": 2,
+    "n_bundles": 2,
+    "bundles": [
+      "Example Of Government Letters",
+      "Letter To Labour Petitioning For License To Be Refused To Be Renewed"
+    ],
+    "sample_file_ids": [
+      "16X1Cc9Ss75LhDZcErQ-uTu5VU4dcd9tq",
+      "1SFa8spa8GKZN78DZxFv33nHUk8pO_jidtr7BRV6pqe8"
+    ]
+  },
+  {
+    "a_type": "email",
+    "a_value": "dennis@denniskwok.hk",
+    "b_type": "email",
+    "b_value": "hilary_tl_lung@customs.gov.hk",
+    "relation_guess": "co_occurs",
+    "n_docs": 2,
+    "n_bundles": 2,
+    "bundles": [
+      "Example Of Government Letters",
+      "Letter To Labour Petitioning For License To Be Refused To Be Renewed"
+    ],
+    "sample_file_ids": [
+      "16X1Cc9Ss75LhDZcErQ-uTu5VU4dcd9tq",
+      "1SFa8spa8GKZN78DZxFv33nHUk8pO_jidtr7BRV6pqe8"
+    ]
+  },
+  {
+    "a_type": "email",
+    "a_value": "dennis@denniskwok.hk",
+    "b_type": "email",
+    "b_value": "lernst@hku.hk",
+    "relation_guess": "co_occurs",
+    "n_docs": 2,
+    "n_bundles": 2,
+    "bundles": [
+      "Example Of Government Letters",
+      "Letter To Labour Petitioning For License To Be Refused To Be Renewed"
+    ],
+    "sample_file_ids": [
+      "16X1Cc9Ss75LhDZcErQ-uTu5VU4dcd9tq",
+      "1SFa8spa8GKZN78DZxFv33nHUk8pO_jidtr7BRV6pqe8"
+    ]
+  },
+  {
+    "a_type": "email",
+    "a_value": "dennis@denniskwok.hk",
+    "b_type": "email",
+    "b_value": "sbenq@sb.gov.hk",
+    "relation_guess": "co_occurs",
+    "n_docs": 2,
+    "n_bundles": 2,
+    "bundles": [
+      "Example Of Government Letters",
+      "Letter To Labour Petitioning For License To Be Refused To Be Renewed"
+    ],
+    "sample_file_ids": [
+      "16X1Cc9Ss75LhDZcErQ-uTu5VU4dcd9tq",
+      "1SFa8spa8GKZN78DZxFv33nHUk8pO_jidtr7BRV6pqe8"
+    ]
+  },
+  {
+    "a_type": "email",
+    "a_value": "dennis@denniskwok.hk",
+    "b_type": "email",
+    "b_value": "slwo@lwb.gov.hk",
+    "relation_guess": "co_occurs",
+    "n_docs": 2,
+    "n_bundles": 2,
+    "bundles": [
+      "Example Of Government Letters",
+      "Letter To Labour Petitioning For License To Be Refused To Be Renewed"
+    ],
+    "sample_file_ids": [
+      "16X1Cc9Ss75LhDZcErQ-uTu5VU4dcd9tq",
+      "1SFa8spa8GKZN78DZxFv33nHUk8pO_jidtr7BRV6pqe8"
+    ]
+  },
+  {
+    "a_type": "email",
+    "a_value": "dennis@denniskwok.hk",
+    "b_type": "person",
+    "b_value": "CHAN, Mr",
+    "relation_guess": "person_uses_email",
+    "n_docs": 2,
+    "n_bundles": 2,
+    "bundles": [
+      "Example Of Government Letters",
+      "Letter To Labour Petitioning For License To Be Refused To Be Renewed"
+    ],
+    "sample_file_ids": [
+      "16X1Cc9Ss75LhDZcErQ-uTu5VU4dcd9tq",
+      "1SFa8spa8GKZN78DZxFv33nHUk8pO_jidtr7BRV6pqe8"
+    ]
+  },
+  {
+    "a_type": "email",
+    "a_value": "dennis@denniskwok.hk",
+    "b_type": "person",
+    "b_value": "David Bishop Global Migration Legal",
+    "relation_guess": "person_uses_email",
+    "n_docs": 2,
+    "n_bundles": 2,
+    "bundles": [
+      "Example Of Government Letters",
+      "Letter To Labour Petitioning For License To Be Refused To Be Renewed"
+    ],
+    "sample_file_ids": [
+      "16X1Cc9Ss75LhDZcErQ-uTu5VU4dcd9tq",
+      "1SFa8spa8GKZN78DZxFv33nHUk8pO_jidtr7BRV6pqe8"
+    ]
+  },
+  {
+    "a_type": "email",
+    "a_value": "dennis@denniskwok.hk",
+    "b_type": "person",
+    "b_value": "LAW, Mr",
+    "relation_guess": "person_uses_email",
+    "n_docs": 2,
+    "n_bundles": 2,
+    "bundles": [
+      "Example Of Government Letters",
+      "Letter To Labour Petitioning For License To Be Refused To Be Renewed"
+    ],
+    "sample_file_ids": [
+      "16X1Cc9Ss75LhDZcErQ-uTu5VU4dcd9tq",
+      "1SFa8spa8GKZN78DZxFv33nHUk8pO_jidtr7BRV6pqe8"
+    ]
+  },
+  {
+    "a_type": "email",
+    "a_value": "dennis@denniskwok.hk",
+    "b_type": "gov_ref",
+    "b_value": "IOM",
+    "relation_guess": "co_occurs",
+    "n_docs": 2,
+    "n_bundles": 2,
+    "bundles": [
+      "Example Of Government Letters",
+      "Letter To Labour Petitioning For License To Be Refused To Be Renewed"
+    ],
+    "sample_file_ids": [
+      "16X1Cc9Ss75LhDZcErQ-uTu5VU4dcd9tq",
+      "1SFa8spa8GKZN78DZxFv33nHUk8pO_jidtr7BRV6pqe8"
+    ]
+  },
+  {
+    "a_type": "email",
+    "a_value": "ea-ee@labour.gov.hk",
+    "b_type": "email",
+    "b_value": "hilary_tl_lung@customs.gov.hk",
+    "relation_guess": "co_occurs",
+    "n_docs": 2,
+    "n_bundles": 2,
+    "bundles": [
+      "Example Of Government Letters",
+      "Letter To Labour Petitioning For License To Be Refused To Be Renewed"
+    ],
+    "sample_file_ids": [
+      "16X1Cc9Ss75LhDZcErQ-uTu5VU4dcd9tq",
+      "1SFa8spa8GKZN78DZxFv33nHUk8pO_jidtr7BRV6pqe8"
+    ]
+  },
+  {
+    "a_type": "email",
+    "a_value": "ea-ee@labour.gov.hk",
+    "b_type": "email",
+    "b_value": "lernst@hku.hk",
+    "relation_guess": "co_occurs",
+    "n_docs": 2,
+    "n_bundles": 2,
+    "bundles": [
+      "Example Of Government Letters",
+      "Letter To Labour Petitioning For License To Be Refused To Be Renewed"
+    ],
+    "sample_file_ids": [
+      "16X1Cc9Ss75LhDZcErQ-uTu5VU4dcd9tq",
+      "1SFa8spa8GKZN78DZxFv33nHUk8pO_jidtr7BRV6pqe8"
+    ]
+  },
+  {
+    "a_type": "email",
+    "a_value": "ea-ee@labour.gov.hk",
+    "b_type": "email",
+    "b_value": "sbenq@sb.gov.hk",
+    "relation_guess": "co_occurs",
+    "n_docs": 2,
+    "n_bundles": 2,
+    "bundles": [
+      "Example Of Government Letters",
+      "Letter To Labour Petitioning For License To Be Refused To Be Renewed"
+    ],
+    "sample_file_ids": [
+      "16X1Cc9Ss75LhDZcErQ-uTu5VU4dcd9tq",
+      "1SFa8spa8GKZN78DZxFv33nHUk8pO_jidtr7BRV6pqe8"
+    ]
+  },
+  {
+    "a_type": "email",
+    "a_value": "ea-ee@labour.gov.hk",
+    "b_type": "email",
+    "b_value": "slwo@lwb.gov.hk",
+    "relation_guess": "co_occurs",
+    "n_docs": 2,
+    "n_bundles": 2,
+    "bundles": [
+      "Example Of Government Letters",
+      "Letter To Labour Petitioning For License To Be Refused To Be Renewed"
+    ],
+    "sample_file_ids": [
+      "16X1Cc9Ss75LhDZcErQ-uTu5VU4dcd9tq",
+      "1SFa8spa8GKZN78DZxFv33nHUk8pO_jidtr7BRV6pqe8"
+    ]
+  },
+  {
+    "a_type": "email",
+    "a_value": "ea-ee@labour.gov.hk",
+    "b_type": "person",
+    "b_value": "CHAN, Mr",
+    "relation_guess": "person_uses_email",
+    "n_docs": 2,
+    "n_bundles": 2,
+    "bundles": [
+      "Example Of Government Letters",
+      "Letter To Labour Petitioning For License To Be Refused To Be Renewed"
+    ],
+    "sample_file_ids": [
+      "16X1Cc9Ss75LhDZcErQ-uTu5VU4dcd9tq",
+      "1SFa8spa8GKZN78DZxFv33nHUk8pO_jidtr7BRV6pqe8"
+    ]
+  },
+  {
+    "a_type": "email",
+    "a_value": "ea-ee@labour.gov.hk",
+    "b_type": "person",
+    "b_value": "David Bishop Global Migration Legal",
+    "relation_guess": "person_uses_email",
+    "n_docs": 2,
+    "n_bundles": 2,
+    "bundles": [
+      "Example Of Government Letters",
+      "Letter To Labour Petitioning For License To Be Refused To Be Renewed"
+    ],
+    "sample_file_ids": [
+      "16X1Cc9Ss75LhDZcErQ-uTu5VU4dcd9tq",
+      "1SFa8spa8GKZN78DZxFv33nHUk8pO_jidtr7BRV6pqe8"
+    ]
+  },
+  {
+    "a_type": "email",
+    "a_value": "ea-ee@labour.gov.hk",
+    "b_type": "person",
+    "b_value": "LAW, Mr",
+    "relation_guess": "person_uses_email",
+    "n_docs": 2,
+    "n_bundles": 2,
+    "bundles": [
+      "Example Of Government Letters",
+      "Letter To Labour Petitioning For License To Be Refused To Be Renewed"
+    ],
+    "sample_file_ids": [
+      "16X1Cc9Ss75LhDZcErQ-uTu5VU4dcd9tq",
+      "1SFa8spa8GKZN78DZxFv33nHUk8pO_jidtr7BRV6pqe8"
+    ]
+  },
+  {
+    "a_type": "email",
+    "a_value": "ea-ee@labour.gov.hk",
+    "b_type": "gov_ref",
+    "b_value": "IOM",
+    "relation_guess": "co_occurs",
+    "n_docs": 2,
+    "n_bundles": 2,
+    "bundles": [
+      "Example Of Government Letters",
+      "Letter To Labour Petitioning For License To Be Refused To Be Renewed"
+    ],
+    "sample_file_ids": [
+      "16X1Cc9Ss75LhDZcErQ-uTu5VU4dcd9tq",
+      "1SFa8spa8GKZN78DZxFv33nHUk8pO_jidtr7BRV6pqe8"
+    ]
+  },
+  {
+    "a_type": "email",
+    "a_value": "hilary_tl_lung@customs.gov.hk",
+    "b_type": "email",
+    "b_value": "lernst@hku.hk",
+    "relation_guess": "co_occurs",
+    "n_docs": 2,
+    "n_bundles": 2,
+    "bundles": [
+      "Example Of Government Letters",
+      "Letter To Labour Petitioning For License To Be Refused To Be Renewed"
+    ],
+    "sample_file_ids": [
+      "16X1Cc9Ss75LhDZcErQ-uTu5VU4dcd9tq",
+      "1SFa8spa8GKZN78DZxFv33nHUk8pO_jidtr7BRV6pqe8"
+    ]
+  },
+  {
+    "a_type": "email",
+    "a_value": "hilary_tl_lung@customs.gov.hk",
+    "b_type": "email",
+    "b_value": "sbenq@sb.gov.hk",
+    "relation_guess": "co_occurs",
+    "n_docs": 2,
+    "n_bundles": 2,
+    "bundles": [
+      "Example Of Government Letters",
+      "Letter To Labour Petitioning For License To Be Refused To Be Renewed"
+    ],
+    "sample_file_ids": [
+      "16X1Cc9Ss75LhDZcErQ-uTu5VU4dcd9tq",
+      "1SFa8spa8GKZN78DZxFv33nHUk8pO_jidtr7BRV6pqe8"
+    ]
+  },
+  {
+    "a_type": "email",
+    "a_value": "hilary_tl_lung@customs.gov.hk",
+    "b_type": "email",
+    "b_value": "slwo@lwb.gov.hk",
+    "relation_guess": "co_occurs",
+    "n_docs": 2,
+    "n_bundles": 2,
+    "bundles": [
+      "Example Of Government Letters",
+      "Letter To Labour Petitioning For License To Be Refused To Be Renewed"
+    ],
+    "sample_file_ids": [
+      "16X1Cc9Ss75LhDZcErQ-uTu5VU4dcd9tq",
+      "1SFa8spa8GKZN78DZxFv33nHUk8pO_jidtr7BRV6pqe8"
+    ]
+  },
+  {
+    "a_type": "email",
+    "a_value": "hilary_tl_lung@customs.gov.hk",
+    "b_type": "person",
+    "b_value": "CHAN, Mr",
+    "relation_guess": "person_uses_email",
+    "n_docs": 2,
+    "n_bundles": 2,
+    "bundles": [
+      "Example Of Government Letters",
+      "Letter To Labour Petitioning For License To Be Refused To Be Renewed"
+    ],
+    "sample_file_ids": [
+      "16X1Cc9Ss75LhDZcErQ-uTu5VU4dcd9tq",
+      "1SFa8spa8GKZN78DZxFv33nHUk8pO_jidtr7BRV6pqe8"
+    ]
+  },
+  {
+    "a_type": "email",
+    "a_value": "hilary_tl_lung@customs.gov.hk",
+    "b_type": "person",
+    "b_value": "David Bishop Global Migration Legal",
+    "relation_guess": "person_uses_email",
+    "n_docs": 2,
+    "n_bundles": 2,
+    "bundles": [
+      "Example Of Government Letters",
+      "Letter To Labour Petitioning For License To Be Refused To Be Renewed"
+    ],
+    "sample_file_ids": [
+      "16X1Cc9Ss75LhDZcErQ-uTu5VU4dcd9tq",
+      "1SFa8spa8GKZN78DZxFv33nHUk8pO_jidtr7BRV6pqe8"
+    ]
+  },
+  {
+    "a_type": "email",
+    "a_value": "hilary_tl_lung@customs.gov.hk",
+    "b_type": "person",
+    "b_value": "LAW, Mr",
+    "relation_guess": "person_uses_email",
+    "n_docs": 2,
+    "n_bundles": 2,
+    "bundles": [
+      "Example Of Government Letters",
+      "Letter To Labour Petitioning For License To Be Refused To Be Renewed"
+    ],
+    "sample_file_ids": [
+      "16X1Cc9Ss75LhDZcErQ-uTu5VU4dcd9tq",
+      "1SFa8spa8GKZN78DZxFv33nHUk8pO_jidtr7BRV6pqe8"
+    ]
+  },
+  {
+    "a_type": "email",
+    "a_value": "hilary_tl_lung@customs.gov.hk",
+    "b_type": "gov_ref",
+    "b_value": "IOM",
+    "relation_guess": "co_occurs",
+    "n_docs": 2,
+    "n_bundles": 2,
+    "bundles": [
+      "Example Of Government Letters",
+      "Letter To Labour Petitioning For License To Be Refused To Be Renewed"
+    ],
+    "sample_file_ids": [
+      "16X1Cc9Ss75LhDZcErQ-uTu5VU4dcd9tq",
+      "1SFa8spa8GKZN78DZxFv33nHUk8pO_jidtr7BRV6pqe8"
+    ]
+  },
+  {
+    "a_type": "email",
+    "a_value": "lernst@hku.hk",
+    "b_type": "email",
+    "b_value": "sbenq@sb.gov.hk",
+    "relation_guess": "co_occurs",
+    "n_docs": 2,
+    "n_bundles": 2,
+    "bundles": [
+      "Example Of Government Letters",
+      "Letter To Labour Petitioning For License To Be Refused To Be Renewed"
+    ],
+    "sample_file_ids": [
+      "16X1Cc9Ss75LhDZcErQ-uTu5VU4dcd9tq",
+      "1SFa8spa8GKZN78DZxFv33nHUk8pO_jidtr7BRV6pqe8"
+    ]
+  },
+  {
+    "a_type": "email",
+    "a_value": "lernst@hku.hk",
+    "b_type": "email",
+    "b_value": "slwo@lwb.gov.hk",
+    "relation_guess": "co_occurs",
+    "n_docs": 2,
+    "n_bundles": 2,
+    "bundles": [
+      "Example Of Government Letters",
+      "Letter To Labour Petitioning For License To Be Refused To Be Renewed"
+    ],
+    "sample_file_ids": [
+      "16X1Cc9Ss75LhDZcErQ-uTu5VU4dcd9tq",
+      "1SFa8spa8GKZN78DZxFv33nHUk8pO_jidtr7BRV6pqe8"
+    ]
+  },
+  {
+    "a_type": "email",
+    "a_value": "lernst@hku.hk",
+    "b_type": "person",
+    "b_value": "CHAN, Mr",
+    "relation_guess": "person_uses_email",
+    "n_docs": 2,
+    "n_bundles": 2,
+    "bundles": [
+      "Example Of Government Letters",
+      "Letter To Labour Petitioning For License To Be Refused To Be Renewed"
+    ],
+    "sample_file_ids": [
+      "16X1Cc9Ss75LhDZcErQ-uTu5VU4dcd9tq",
+      "1SFa8spa8GKZN78DZxFv33nHUk8pO_jidtr7BRV6pqe8"
+    ]
+  },
+  {
+    "a_type": "email",
+    "a_value": "lernst@hku.hk",
+    "b_type": "person",
+    "b_value": "David Bishop Global Migration Legal",
+    "relation_guess": "person_uses_email",
+    "n_docs": 2,
+    "n_bundles": 2,
+    "bundles": [
+      "Example Of Government Letters",
+      "Letter To Labour Petitioning For License To Be Refused To Be Renewed"
+    ],
+    "sample_file_ids": [
+      "16X1Cc9Ss75LhDZcErQ-uTu5VU4dcd9tq",
+      "1SFa8spa8GKZN78DZxFv33nHUk8pO_jidtr7BRV6pqe8"
+    ]
+  },
+  {
+    "a_type": "email",
+    "a_value": "lernst@hku.hk",
+    "b_type": "person",
+    "b_value": "LAW, Mr",
+    "relation_guess": "person_uses_email",
+    "n_docs": 2,
+    "n_bundles": 2,
+    "bundles": [
+      "Example Of Government Letters",
+      "Letter To Labour Petitioning For License To Be Refused To Be Renewed"
+    ],
+    "sample_file_ids": [
+      "16X1Cc9Ss75LhDZcErQ-uTu5VU4dcd9tq",
+      "1SFa8spa8GKZN78DZxFv33nHUk8pO_jidtr7BRV6pqe8"
+    ]
+  },
+  {
+    "a_type": "email",
+    "a_value": "lernst@hku.hk",
+    "b_type": "gov_ref",
+    "b_value": "IOM",
+    "relation_guess": "co_occurs",
+    "n_docs": 2,
+    "n_bundles": 2,
+    "bundles": [
+      "Example Of Government Letters",
+      "Letter To Labour Petitioning For License To Be Refused To Be Renewed"
+    ],
+    "sample_file_ids": [
+      "16X1Cc9Ss75LhDZcErQ-uTu5VU4dcd9tq",
+      "1SFa8spa8GKZN78DZxFv33nHUk8pO_jidtr7BRV6pqe8"
+    ]
+  },
+  {
+    "a_type": "email",
+    "a_value": "sbenq@sb.gov.hk",
+    "b_type": "email",
+    "b_value": "slwo@lwb.gov.hk",
+    "relation_guess": "co_occurs",
+    "n_docs": 2,
+    "n_bundles": 2,
+    "bundles": [
+      "Example Of Government Letters",
+      "Letter To Labour Petitioning For License To Be Refused To Be Renewed"
+    ],
+    "sample_file_ids": [
+      "16X1Cc9Ss75LhDZcErQ-uTu5VU4dcd9tq",
+      "1SFa8spa8GKZN78DZxFv33nHUk8pO_jidtr7BRV6pqe8"
+    ]
+  },
+  {
+    "a_type": "email",
+    "a_value": "sbenq@sb.gov.hk",
+    "b_type": "person",
+    "b_value": "CHAN, Mr",
+    "relation_guess": "person_uses_email",
+    "n_docs": 2,
+    "n_bundles": 2,
+    "bundles": [
+      "Example Of Government Letters",
+      "Letter To Labour Petitioning For License To Be Refused To Be Renewed"
+    ],
+    "sample_file_ids": [
+      "16X1Cc9Ss75LhDZcErQ-uTu5VU4dcd9tq",
+      "1SFa8spa8GKZN78DZxFv33nHUk8pO_jidtr7BRV6pqe8"
+    ]
+  },
+  {
+    "a_type": "email",
+    "a_value": "sbenq@sb.gov.hk",
+    "b_type": "person",
+    "b_value": "David Bishop Global Migration Legal",
+    "relation_guess": "person_uses_email",
+    "n_docs": 2,
+    "n_bundles": 2,
+    "bundles": [
+      "Example Of Government Letters",
+      "Letter To Labour Petitioning For License To Be Refused To Be Renewed"
+    ],
+    "sample_file_ids": [
+      "16X1Cc9Ss75LhDZcErQ-uTu5VU4dcd9tq",
+      "1SFa8spa8GKZN78DZxFv33nHUk8pO_jidtr7BRV6pqe8"
+    ]
+  },
+  {
+    "a_type": "email",
+    "a_value": "sbenq@sb.gov.hk",
+    "b_type": "person",
+    "b_value": "LAW, Mr",
+    "relation_guess": "person_uses_email",
+    "n_docs": 2,
+    "n_bundles": 2,
+    "bundles": [
+      "Example Of Government Letters",
+      "Letter To Labour Petitioning For License To Be Refused To Be Renewed"
+    ],
+    "sample_file_ids": [
+      "16X1Cc9Ss75LhDZcErQ-uTu5VU4dcd9tq",
+      "1SFa8spa8GKZN78DZxFv33nHUk8pO_jidtr7BRV6pqe8"
+    ]
+  },
+  {
+    "a_type": "email",
+    "a_value": "sbenq@sb.gov.hk",
+    "b_type": "gov_ref",
+    "b_value": "IOM",
+    "relation_guess": "co_occurs",
+    "n_docs": 2,
+    "n_bundles": 2,
+    "bundles": [
+      "Example Of Government Letters",
+      "Letter To Labour Petitioning For License To Be Refused To Be Renewed"
+    ],
+    "sample_file_ids": [
+      "16X1Cc9Ss75LhDZcErQ-uTu5VU4dcd9tq",
+      "1SFa8spa8GKZN78DZxFv33nHUk8pO_jidtr7BRV6pqe8"
+    ]
+  },
+  {
+    "a_type": "email",
+    "a_value": "slwo@lwb.gov.hk",
+    "b_type": "person",
+    "b_value": "CHAN, Mr",
+    "relation_guess": "person_uses_email",
+    "n_docs": 2,
+    "n_bundles": 2,
+    "bundles": [
+      "Example Of Government Letters",
+      "Letter To Labour Petitioning For License To Be Refused To Be Renewed"
+    ],
+    "sample_file_ids": [
+      "16X1Cc9Ss75LhDZcErQ-uTu5VU4dcd9tq",
+      "1SFa8spa8GKZN78DZxFv33nHUk8pO_jidtr7BRV6pqe8"
+    ]
+  },
+  {
+    "a_type": "email",
+    "a_value": "slwo@lwb.gov.hk",
+    "b_type": "person",
+    "b_value": "David Bishop Global Migration Legal",
+    "relation_guess": "person_uses_email",
+    "n_docs": 2,
+    "n_bundles": 2,
+    "bundles": [
+      "Example Of Government Letters",
+      "Letter To Labour Petitioning For License To Be Refused To Be Renewed"
+    ],
+    "sample_file_ids": [
+      "16X1Cc9Ss75LhDZcErQ-uTu5VU4dcd9tq",
+      "1SFa8spa8GKZN78DZxFv33nHUk8pO_jidtr7BRV6pqe8"
+    ]
+  },
+  {
+    "a_type": "email",
+    "a_value": "slwo@lwb.gov.hk",
+    "b_type": "person",
+    "b_value": "LAW, Mr",
+    "relation_guess": "person_uses_email",
+    "n_docs": 2,
+    "n_bundles": 2,
+    "bundles": [
+      "Example Of Government Letters",
+      "Letter To Labour Petitioning For License To Be Refused To Be Renewed"
+    ],
+    "sample_file_ids": [
+      "16X1Cc9Ss75LhDZcErQ-uTu5VU4dcd9tq",
+      "1SFa8spa8GKZN78DZxFv33nHUk8pO_jidtr7BRV6pqe8"
+    ]
+  },
+  {
+    "a_type": "email",
+    "a_value": "slwo@lwb.gov.hk",
+    "b_type": "gov_ref",
+    "b_value": "IOM",
+    "relation_guess": "co_occurs",
+    "n_docs": 2,
+    "n_bundles": 2,
+    "bundles": [
+      "Example Of Government Letters",
+      "Letter To Labour Petitioning For License To Be Refused To Be Renewed"
+    ],
+    "sample_file_ids": [
+      "16X1Cc9Ss75LhDZcErQ-uTu5VU4dcd9tq",
+      "1SFa8spa8GKZN78DZxFv33nHUk8pO_jidtr7BRV6pqe8"
+    ]
+  },
+  {
+    "a_type": "person",
+    "a_value": "CHAN, Mr",
+    "b_type": "person",
+    "b_value": "David Bishop Global Migration Legal",
+    "relation_guess": "persons_co_appear",
+    "n_docs": 2,
+    "n_bundles": 2,
+    "bundles": [
+      "Example Of Government Letters",
+      "Letter To Labour Petitioning For License To Be Refused To Be Renewed"
+    ],
+    "sample_file_ids": [
+      "16X1Cc9Ss75LhDZcErQ-uTu5VU4dcd9tq",
+      "1SFa8spa8GKZN78DZxFv33nHUk8pO_jidtr7BRV6pqe8"
+    ]
+  },
+  {
+    "a_type": "person",
+    "a_value": "CHAN, Mr",
+    "b_type": "person",
+    "b_value": "LAW, Mr",
+    "relation_guess": "persons_co_appear",
+    "n_docs": 2,
+    "n_bundles": 2,
+    "bundles": [
+      "Example Of Government Letters",
+      "Letter To Labour Petitioning For License To Be Refused To Be Renewed"
+    ],
+    "sample_file_ids": [
+      "16X1Cc9Ss75LhDZcErQ-uTu5VU4dcd9tq",
+      "1SFa8spa8GKZN78DZxFv33nHUk8pO_jidtr7BRV6pqe8"
+    ]
+  },
+  {
+    "a_type": "gov_ref",
+    "a_value": "IOM",
+    "b_type": "person",
+    "b_value": "CHAN, Mr",
+    "relation_guess": "person_filed_with_agency",
+    "n_docs": 2,
+    "n_bundles": 2,
+    "bundles": [
+      "Example Of Government Letters",
+      "Letter To Labour Petitioning For License To Be Refused To Be Renewed"
+    ],
+    "sample_file_ids": [
+      "16X1Cc9Ss75LhDZcErQ-uTu5VU4dcd9tq",
+      "1SFa8spa8GKZN78DZxFv33nHUk8pO_jidtr7BRV6pqe8"
+    ]
+  },
+  {
+    "a_type": "person",
+    "a_value": "David Bishop Global Migration Legal",
+    "b_type": "person",
+    "b_value": "LAW, Mr",
+    "relation_guess": "persons_co_appear",
+    "n_docs": 2,
+    "n_bundles": 2,
+    "bundles": [
+      "Example Of Government Letters",
+      "Letter To Labour Petitioning For License To Be Refused To Be Renewed"
+    ],
+    "sample_file_ids": [
+      "16X1Cc9Ss75LhDZcErQ-uTu5VU4dcd9tq",
+      "1SFa8spa8GKZN78DZxFv33nHUk8pO_jidtr7BRV6pqe8"
+    ]
+  },
+  {
+    "a_type": "gov_ref",
+    "a_value": "IOM",
+    "b_type": "person",
+    "b_value": "David Bishop Global Migration Legal",
+    "relation_guess": "person_filed_with_agency",
+    "n_docs": 2,
+    "n_bundles": 2,
+    "bundles": [
+      "Example Of Government Letters",
+      "Letter To Labour Petitioning For License To Be Refused To Be Renewed"
+    ],
+    "sample_file_ids": [
+      "16X1Cc9Ss75LhDZcErQ-uTu5VU4dcd9tq",
+      "1SFa8spa8GKZN78DZxFv33nHUk8pO_jidtr7BRV6pqe8"
+    ]
+  },
+  {
+    "a_type": "gov_ref",
+    "a_value": "IOM",
+    "b_type": "person",
+    "b_value": "LAW, Mr",
+    "relation_guess": "person_filed_with_agency",
+    "n_docs": 2,
+    "n_bundles": 2,
+    "bundles": [
+      "Example Of Government Letters",
+      "Letter To Labour Petitioning For License To Be Refused To Be Renewed"
+    ],
+    "sample_file_ids": [
+      "16X1Cc9Ss75LhDZcErQ-uTu5VU4dcd9tq",
+      "1SFa8spa8GKZN78DZxFv33nHUk8pO_jidtr7BRV6pqe8"
+    ]
+  },
+  {
+    "a_type": "email",
+    "a_value": "info@jemhk.org",
+    "b_type": "person",
+    "b_value": "Loremay Sayo",
+    "relation_guess": "person_uses_email",
+    "n_docs": 2,
+    "n_bundles": 2,
+    "bundles": [
+      "Lenders Conspiring With Agencies (Philippines Money Lenders)",
+      "Overseas Worker Aid - OWA Lending"
+    ],
+    "sample_file_ids": [
+      "11NH7hWibHMQ_SBvv3umsbvM3P1MdGbEG",
+      "1zILQbKVq7T2PbXbs5Bq62ib8B0JTT_JA"
+    ]
+  },
+  {
+    "a_type": "email",
+    "a_value": "info@jemhk.org",
+    "b_type": "person",
+    "b_value": "Loremay Sayo This",
+    "relation_guess": "person_uses_email",
+    "n_docs": 2,
+    "n_bundles": 2,
+    "bundles": [
+      "Lenders Conspiring With Agencies (Philippines Money Lenders)",
+      "Overseas Worker Aid - OWA Lending"
+    ],
+    "sample_file_ids": [
+      "11NH7hWibHMQ_SBvv3umsbvM3P1MdGbEG",
+      "1zILQbKVq7T2PbXbs5Bq62ib8B0JTT_JA"
+    ]
+  },
+  {
+    "a_type": "person",
+    "a_value": "Loremay Sayo",
+    "b_type": "person",
+    "b_value": "Loremay Sayo This",
+    "relation_guess": "persons_co_appear",
+    "n_docs": 2,
+    "n_bundles": 2,
+    "bundles": [
+      "Lenders Conspiring With Agencies (Philippines Money Lenders)",
+      "Overseas Worker Aid - OWA Lending"
+    ],
+    "sample_file_ids": [
+      "11NH7hWibHMQ_SBvv3umsbvM3P1MdGbEG",
+      "1zILQbKVq7T2PbXbs5Bq62ib8B0JTT_JA"
+    ]
+  },
+  {
+    "a_type": "email",
+    "a_value": "pcc@malacanang.gov.ph",
+    "b_type": "phone",
+    "b_value": "+85256297700",
+    "relation_guess": "co_occurs",
+    "n_docs": 2,
+    "n_bundles": 2,
+    "bundles": [
+      "00-MAJOR CASES",
+      "Lenders Conspiring With Agencies (Philippines Money Lenders)"
+    ],
+    "sample_file_ids": [
+      "1JX67Fs8N9yiAuetRJElYeqdBUHixwODIemH5JrYnD88",
+      "1WQMeT-T0EsZPW1Eo6qdCscUEENnwAzeGPzPHUgf3cIk"
+    ]
+  },
+  {
+    "a_type": "email",
+    "a_value": "poea.prosecution@gmail.com",
+    "b_type": "phone",
+    "b_value": "+85256297700",
+    "relation_guess": "co_occurs",
+    "n_docs": 2,
+    "n_bundles": 2,
+    "bundles": [
+      "00-MAJOR CASES",
+      "Lenders Conspiring With Agencies (Philippines Money Lenders)"
+    ],
+    "sample_file_ids": [
+      "1JX67Fs8N9yiAuetRJElYeqdBUHixwODIemH5JrYnD88",
+      "1WQMeT-T0EsZPW1Eo6qdCscUEENnwAzeGPzPHUgf3cIk"
+    ]
+  },
+  {
+    "a_type": "email",
+    "a_value": "polo.hongkong@yahoo.com",
+    "b_type": "phone",
+    "b_value": "+85256297700",
+    "relation_guess": "co_occurs",
+    "n_docs": 2,
+    "n_bundles": 2,
+    "bundles": [
+      "00-MAJOR CASES",
+      "Lenders Conspiring With Agencies (Philippines Money Lenders)"
+    ],
+    "sample_file_ids": [
+      "1JX67Fs8N9yiAuetRJElYeqdBUHixwODIemH5JrYnD88",
+      "1WQMeT-T0EsZPW1Eo6qdCscUEENnwAzeGPzPHUgf3cIk"
+    ]
+  }
+]

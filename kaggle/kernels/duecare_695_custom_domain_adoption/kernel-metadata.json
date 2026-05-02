@@ -13,6 +13,12 @@
   ],
   "keywords": [
     "deployment",
+    "gemma",
+    "safety",
     "evaluation"
-  ]
+  ],
+  "competition_sources": [
+    "gemma-4-good-hackathon"
+  ],
+  "kernel_sources": []
 }

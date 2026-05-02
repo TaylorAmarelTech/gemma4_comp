@@ -1,0 +1,24 @@
+{
+  "total": 394,
+  "categories": {
+    "amplification_known_attacks": 161,
+    "business_framed_exploitation": 11,
+    "coercion_manipulation": 3,
+    "compound_textbook": 2,
+    "fake_document": 6,
+    "financial_crime_blindness": 29,
+    "financial_obfuscation": 2,
+    "group_chat_pattern": 6,
+    "jurisdictional_hierarchy": 74,
+    "knowledge_check": 3,
+    "mega_variations": 1,
+    "moral_religious_framing": 1,
+    "private_message_grooming": 10,
+    "prompt_injection_amplification": 1,
+    "receipt_evidence": 6,
+    "regulatory_evasion": 3,
+    "social_media_recruitment": 12,
+    "victim_revictimization": 63
+  },
+  "generated_at": "auto"
+}

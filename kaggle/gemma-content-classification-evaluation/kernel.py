@@ -55,6 +55,130 @@ from pathlib import Path
 from typing import Any, Optional
 
 
+# ===========================================================================
+# CLEAN SHUTDOWN -- /api/shutdown POST + /shutdown GET + floating button.
+# Users can:
+#   (1) click the floating "Shutdown" button in the top-right of the UI
+#   (2) open <public-url>/shutdown for a full confirmation page
+#   (3) POST /api/shutdown directly (curl, etc.)
+# All three signal the main loop to exit; cleanup runs after.
+# ===========================================================================
+import threading as _shutdown_threading
+_SHUTDOWN_EVENT = _shutdown_threading.Event()
+_CLOUDFLARED_PROC: dict = {"p": None}
+
+
+_SHUTDOWN_BUTTON_SNIPPET = """
+<style>
+  #_dc-shutdown-btn { position: fixed; top: 12px; right: 12px; z-index: 99999;
+    background: #dc2626; color: white; padding: 8px 14px;
+    border-radius: 8px; font-family: -apple-system,system-ui,sans-serif;
+    font-weight: 700; font-size: 12px; cursor: pointer; border: none;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.18); }
+  #_dc-shutdown-btn:hover { background: #991b1b; }
+</style>
+<button id="_dc-shutdown-btn" onclick="
+  if(!confirm('Shut down Duecare?')) return;
+  fetch('/api/shutdown',{method:'POST'}).then(()=>{
+    document.body.innerHTML=
+      '<div style=\"padding:60px;text-align:center;font-family:system-ui\">'+
+      '<h1 style=\"color:#047857\">Shutting down\u2026</h1>'+
+      '<p style=\"color:#6b7280\">You can close this tab.</p></div>';
+  });
+">\u23FB Shutdown</button>
+"""
+
+_HIDE_HARNESS_TILES_SNIPPET = """
+<style>
+  #harness-tiles, [id^='tile-'], .harness-tile { display: none !important; }
+</style>
+"""
+
+
+def _attach_shutdown(app, hide_harness_tiles: bool = False) -> None:
+    """Bolt /api/shutdown + /shutdown + floating button onto any FastAPI app."""
+    from fastapi.responses import HTMLResponse, JSONResponse
+    from starlette.middleware.base import BaseHTTPMiddleware
+
+    def _api_shutdown():
+        _shutdown_threading.Thread(
+            target=lambda: (time.sleep(0.5), _SHUTDOWN_EVENT.set()),
+            daemon=True, name="shutdown-fire").start()
+        return JSONResponse({"shutting_down": True,
+                             "message": "Cell will exit within ~5 seconds."})
+
+    def _shutdown_page():
+        html = (
+            "<!doctype html><html><head><meta charset='utf-8'>"
+            "<title>Shut down Duecare</title><style>"
+            "body{font-family:-apple-system,system-ui,sans-serif;"
+            "background:#f8fafc;color:#1f2937;display:flex;"
+            "align-items:center;justify-content:center;min-height:100vh;"
+            "margin:0}.box{background:white;border:1px solid #e5e7eb;"
+            "border-radius:14px;padding:40px 50px;text-align:center;"
+            "max-width:480px}h1{color:#dc2626;margin:0 0 14px}"
+            "p{color:#6b7280;line-height:1.6;margin:0 0 24px}"
+            "button{background:#dc2626;color:white;padding:12px 28px;"
+            "border:none;border-radius:10px;font-weight:700;font-size:15px;"
+            "cursor:pointer}button:hover{background:#991b1b}"
+            ".meta{color:#6b7280;font-size:12px;margin-top:18px}"
+            "</style></head><body><div class='box'>"
+            "<h1>Shut down Duecare?</h1>"
+            "<p>Stops the FastAPI server, closes the browser session "
+            "(if any), terminates the cloudflared tunnel, and exits "
+            "the Kaggle cell. Re-run the cell to restart.</p>"
+            "<button onclick='doShutdown()'>Confirm shutdown</button>"
+            "<div class='meta' id='status'></div></div>"
+            "<script>async function doShutdown(){"
+            "document.getElementById('status').textContent='shutting down...';"
+            "try{await fetch('/api/shutdown',{method:'POST'});"
+            "document.querySelector('.box').innerHTML="
+            "\"<h1 style='color:#047857'>Shutting down</h1>\"+"
+            "\"<p>You can close this tab. The Kaggle cell will exit shortly.</p>\";"
+            "}catch(e){document.getElementById('status').textContent='error: '+e.message;}}"
+            "</script></body></html>")
+        return HTMLResponse(html)
+
+    app.add_api_route("/api/shutdown", _api_shutdown, methods=["POST"])
+    app.add_api_route("/shutdown", _shutdown_page, methods=["GET"])
+
+    # Inject the floating shutdown button into the main page via middleware.
+    # Filters: only path "/" + content-type text/html. Streaming endpoints
+    # like /api/chat (SSE / JSON) pass through untouched.
+    extras = _SHUTDOWN_BUTTON_SNIPPET
+    if hide_harness_tiles:
+        extras = _HIDE_HARNESS_TILES_SNIPPET + extras
+
+    class _UIInjector(BaseHTTPMiddleware):
+        async def dispatch(self, request, call_next):
+            response = await call_next(request)
+            if request.url.path != "/":
+                return response
+            ct = response.headers.get("content-type", "")
+            if not ct.startswith("text/html"):
+                return response
+            chunks = []
+            async for c in response.body_iterator:
+                chunks.append(c)
+            try:
+                html = b"".join(chunks).decode("utf-8")
+            except UnicodeDecodeError:
+                return response
+            if "</body>" in html:
+                html = html.replace("</body>", extras + "</body>", 1)
+            else:
+                html = html + extras
+            new_headers = {k: v for k, v in response.headers.items()
+                           if k.lower() != "content-length"}
+            return HTMLResponse(html,
+                                status_code=response.status_code,
+                                headers=new_headers)
+
+    app.add_middleware(_UIInjector)
+
+
+
+
 DATASET_SLUG = "duecare-gemma-content-classification-evaluation-wheels"
 GEMMA_MODEL_VARIANT = "31b-it"
 GEMMA_LOAD_IN_4BIT  = True
@@ -292,6 +416,7 @@ app = create_classifier_app(
     model_info=model_info,
     **_h,
 )
+_attach_shutdown(app)
 
 print(f"  ✓ harness loaded: {len(GREP_RULES)} GREP rules, "
       f"{len(RAG_CORPUS)} RAG docs, {len(_TOOL_DISPATCH)} tools")
@@ -334,6 +459,7 @@ if TUNNEL != "none":
             [cf_bin, "tunnel", "--url", f"http://localhost:{PORT}"],
             stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
             text=True, bufsize=1)
+        _CLOUDFLARED_PROC['p'] = proc
         t0 = time.time()
         while time.time() - t0 < 60:
             line = proc.stdout.readline()
@@ -374,7 +500,27 @@ print(f"\n   stop the playground by interrupting this cell.\n")
 print("=" * 76)
 
 try:
-    while True:
-        time.sleep(60)
+    while not _SHUTDOWN_EVENT.is_set():
+        time.sleep(1)
 except KeyboardInterrupt:
     print("\n  interrupted -- shutting down")
+
+# Cleanup on shutdown
+print("\n  shutting down cleanly...")
+try:
+    if _CLOUDFLARED_PROC.get("p"):
+        _CLOUDFLARED_PROC["p"].terminate()
+        try:
+            _CLOUDFLARED_PROC["p"].wait(timeout=5)
+        except Exception:
+            _CLOUDFLARED_PROC["p"].kill()
+        print("  cloudflared tunnel closed")
+except Exception as _e:
+    print(f"  cloudflared close: {_e}")
+try:
+    from duecare.research_tools.browser_tool import shutdown as _browser_shutdown
+    _browser_shutdown()
+    print("  browser session closed (if any)")
+except Exception:
+    pass
+print("  shutdown complete -- cell exiting.\n")

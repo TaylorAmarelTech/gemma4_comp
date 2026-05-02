@@ -31,7 +31,7 @@ INSTALL_PACKAGES[FILENAME] = [
 URL_000 = "https://www.kaggle.com/code/taylorsamarel/duecare-000-index"
 URL_150 = "https://www.kaggle.com/code/taylorsamarel/150-duecare-free-form-gemma-playground"
 URL_160 = "https://www.kaggle.com/code/taylorsamarel/160-duecare-image-processing-playground"
-URL_170 = "https://www.kaggle.com/code/taylorsamarel/duecare-170-live-context-injection-playground"
+URL_170 = "https://www.kaggle.com/code/taylorsamarel/170-duecare-live-context-injection-playground"
 URL_199 = "https://www.kaggle.com/code/taylorsamarel/199-duecare-free-form-exploration-conclusion"
 URL_400 = "https://www.kaggle.com/code/taylorsamarel/duecare-400-function-calling-multimodal"
 

@@ -55,7 +55,7 @@ def main() -> None:
     all_code = "\n\n".join(src(c) for c in code_cells)
     all_text = all_md + "\n\n" + all_code
 
-    if meta.get("id") != "taylorsamarel/duecare-170-live-context-injection-playground":
+    if meta.get("id") != "taylorsamarel/170-duecare-live-context-injection-playground":
         fail(f"metadata id wrong: {meta.get('id')!r}")
     ok("metadata id is canonical 170 slug")
 

@@ -1,6 +1,6 @@
 {
   "id": "taylorsamarel/duecare-186-jailbreak-stock-gemma",
-  "title": "186: DueCare Jailbreak - Stock Gemma Baseline",
+  "title": "DueCare 186: Jailbreak Stock Gemma",
   "code_file": "186_jailbreak_stock_gemma.ipynb",
   "language": "python",
   "kernel_type": "notebook",
@@ -20,9 +20,9 @@
   ],
   "kernel_sources": [],
   "keywords": [
-    "gemma",
-    "safety",
+    "adversarial",
+    "red-team",
     "jailbreak",
-    "baseline"
+    "safety"
   ]
 }

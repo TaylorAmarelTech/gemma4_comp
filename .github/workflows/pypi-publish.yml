@@ -1,0 +1,122 @@
+name: pypi-publish
+
+# Publishes all 8 worker-side duecare-llm-* packages to PyPI on a
+# `v*` tag push. Uses PyPI's OIDC trusted publishing — no API token
+# stored in GitHub Secrets, the OIDC token is exchanged at publish
+# time. Requires one-time setup at https://pypi.org/manage/account/publishing/
+# (project: each of the 8 packages; trusted-publisher: this repo +
+# this workflow + this environment).
+#
+# Manual fire (testing): use the workflow_dispatch trigger from the
+# Actions tab. Test PyPI publishes go to https://test.pypi.org/.
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      target:
+        description: "Where to publish"
+        type: choice
+        default: testpypi
+        options:
+          - pypi
+          - testpypi
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pypi-publish-${{ github.ref }}
+  cancel-in-progress: false   # never abort an in-flight publish
+
+jobs:
+  build:
+    name: Build wheels for all 8 packages
+    runs-on: ubuntu-latest
+    outputs:
+      packages: ${{ steps.list.outputs.packages }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install build tooling
+        run: pip install --upgrade pip wheel build
+
+      - name: List packages
+        id: list
+        run: |
+          PKGS=$(ls packages | grep '^duecare-llm' | tr '\n' ' ')
+          echo "Packages to publish: $PKGS"
+          echo "packages=$PKGS" >> "$GITHUB_OUTPUT"
+
+      - name: Build wheels (in dependency order)
+        run: |
+          mkdir -p dist
+          for pkg in duecare-llm-core duecare-llm-models duecare-llm-domains \
+                     duecare-llm-tasks duecare-llm-agents duecare-llm-workflows \
+                     duecare-llm-publishing duecare-llm-chat duecare-llm; do
+              if [[ -d "packages/$pkg" ]]; then
+                  echo "==> Building $pkg"
+                  python -m build --wheel --sdist --outdir dist packages/$pkg
+              fi
+          done
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+          retention-days: 7
+          if-no-files-found: error
+
+  publish-testpypi:
+    name: Publish to TestPyPI
+    if: |
+      (github.event_name == 'push' && contains(github.ref, '-rc')) ||
+      (github.event_name == 'workflow_dispatch' && github.event.inputs.target == 'testpypi')
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: testpypi
+      url: https://test.pypi.org/project/duecare-llm/
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+      - name: Publish to TestPyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          repository-url: https://test.pypi.org/legacy/
+          packages-dir: dist/
+          verbose: true
+
+  publish-pypi:
+    name: Publish to PyPI
+    if: |
+      (github.event_name == 'push' && !contains(github.ref, '-rc')) ||
+      (github.event_name == 'workflow_dispatch' && github.event.inputs.target == 'pypi')
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/project/duecare-llm/
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: dist/
+          verbose: true

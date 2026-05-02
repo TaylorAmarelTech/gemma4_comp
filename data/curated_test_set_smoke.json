@@ -1,0 +1,126 @@
+[
+  {
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Sample%20UAE%20alien%20worker%20contract-2.jpg?width=1200",
+    "category": "contract_employment",
+    "source": "Wikimedia Commons",
+    "license": "CC-BY-SA-4.0",
+    "attribution": "Wikimedia Commons contributors, 'Sample UAE alien worker contract' (page 2)",
+    "score": 14.0,
+    "signals": [
+      "in_domain-1",
+      "corridor-1",
+      "ocr_sparse",
+      "sample:sample"
+    ]
+  },
+  {
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Pakistan%20Passport%20Biodata%20Page.jpg?width=1200",
+    "category": "passport_page",
+    "source": "Wikimedia Commons",
+    "license": "CC-BY-SA-4.0",
+    "attribution": "Wikimedia Commons contributors, 'Pakistan Passport Biodata Page'",
+    "score": 16.0,
+    "signals": [
+      "in_domain-2",
+      "corridor-1",
+      "ocr_sparse"
+    ]
+  },
+  {
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Emirates%20ID%20Card%20For%20UAE%20Citizens%20%28New%29.png?width=1200",
+    "category": "id_card",
+    "source": "Wikimedia Commons / search:UAE Emirates ID card",
+    "license": "see file page on Wikimedia Commons",
+    "attribution": "Wikimedia Commons contributors, 'Emirates ID Card For UAE Citizens (New).png' -- search hit for 'UAE Emirates ID card'",
+    "score": 8.0,
+    "signals": [
+      "corridor-2",
+      "ocr_sparse"
+    ]
+  },
+  {
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/2015-03-09%20Dalbath%20Receipt%20of%20Yin%20Yang%20Restaurant%20in%20Thamel%2C%20Kathmandu%2C%20Nepal%20%E3%83%80%E3%83%AB%E3%83%90%E3%83%BC%E3%83%88%20DSCF6295.JPG?width=1200",
+    "category": "receipt_remittance",
+    "source": "Wikimedia Commons / Category:Receipts",
+    "license": "see file page on Wikimedia Commons",
+    "attribution": "Wikimedia Commons contributors, '2015-03-09 Dalbath Receipt of Yin Yang Restaurant in Thamel, Kathmandu, Nepal ダルバート DSCF6295.JPG' -- auto-pulled from Category:Receipts",
+    "score": 10.0,
+    "signals": [
+      "in_domain-1",
+      "corridor-1",
+      "ocr_sparse"
+    ]
+  },
+  {
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Malaysian%20visa%20stamp.jpg?width=1200",
+    "category": "visa_stamp",
+    "source": "Wikimedia Commons / search:Malaysia visa stamp passport",
+    "license": "see file page on Wikimedia Commons",
+    "attribution": "Wikimedia Commons contributors, 'Malaysian visa stamp.jpg' -- search hit for 'Malaysia visa stamp passport'",
+    "score": 14.0,
+    "signals": [
+      "in_domain-1",
+      "corridor-2",
+      "ocr_sparse"
+    ]
+  },
+  {
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/BuyingWikipediaBacklinkSEO%201.jpg?width=1200",
+    "category": "chat_screenshot",
+    "source": "Wikimedia Commons / Category:Screenshots of WhatsApp",
+    "license": "see file page on Wikimedia Commons",
+    "attribution": "Wikimedia Commons contributors, 'BuyingWikipediaBacklinkSEO 1.jpg' -- auto-pulled from Category:Screenshots of WhatsApp",
+    "score": 0.0,
+    "signals": [
+      "ocr_sparse"
+    ]
+  },
+  {
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/The%20Merchant%20Shipping%20%28Maritime%20Labour%20Convention%29%20%28Recruitment%20and%20Placement%29%20Regulations%202014%20%28UKSI%202014-1615%29.pdf?width=1200",
+    "category": "receipt_recruitment_fee",
+    "source": "Wikimedia Commons / search:recruitment agency receipt fee",
+    "license": "see file page on Wikimedia Commons",
+    "attribution": "Wikimedia Commons contributors, 'The Merchant Shipping (Maritime Labour Convention) (Recruitment and Placement) Regulations 2014 (UKSI 2014-1615).pdf' -- search hit for 'recruitment agency receipt fee'",
+    "score": 11.0,
+    "signals": [
+      "in_domain-2",
+      "ocr_sparse"
+    ]
+  },
+  {
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Discover%20MyPlate%20curriculum%20training%20for%20teachers%20%28IA%20CAT31308258%29.pdf?width=1200",
+    "category": "training_certificate",
+    "source": "Wikimedia Commons / search:caregiver training certificate",
+    "license": "see file page on Wikimedia Commons",
+    "attribution": "Wikimedia Commons contributors, 'Discover MyPlate curriculum training for teachers (IA CAT31308258).pdf' -- search hit for 'caregiver training certificate'",
+    "score": 5.0,
+    "signals": [
+      "in_domain-1",
+      "ocr_sparse"
+    ]
+  },
+  {
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/TRAFFICKING%20IN%20PERSONS-%20THE%20FEDERAL%20GOVERNMENT%27S%20APPROACH%20TO%20ERADICATE%20THIS%20WORLDWIDE%20PROBLEM%20%28IA%20gov.gpo.fdsys.CHRG-108hhrg97774%29.pdf?width=1200",
+    "category": "hotline_poster",
+    "source": "Wikimedia Commons / search:human trafficking hotline poster",
+    "license": "see file page on Wikimedia Commons",
+    "attribution": "Wikimedia Commons contributors, 'TRAFFICKING IN PERSONS- THE FEDERAL GOVERNMENT'S APPROACH TO ERADICATE THIS WORLDWIDE PROBLEM (IA gov.gpo.fdsys.CHRG-108hhrg97774).pdf' -- search hit for 'human trafficking hotline poster'",
+    "score": 5.0,
+    "signals": [
+      "in_domain-1",
+      "ocr_sparse"
+    ]
+  },
+  {
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Part-time%20miko%20wanted%20at%20Yasaka%20Shrine.jpg?width=1200",
+    "category": "job_posting",
+    "source": "Wikimedia Commons / search:hiring poster recruitment",
+    "license": "see file page on Wikimedia Commons",
+    "attribution": "Wikimedia Commons contributors, 'Part-time miko wanted at Yasaka Shrine.jpg' -- search hit for 'hiring poster recruitment'",
+    "score": 6.0,
+    "signals": [
+      "in_domain-1",
+      "ocr_sparse"
+    ]
+  }
+]

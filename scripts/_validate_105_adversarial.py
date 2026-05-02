@@ -74,12 +74,12 @@ def main() -> None:
     ok("cell 0 header has all five expected Field/Value rows")
 
     required_links = [
-        "099-duecare-orientation-and-background-and-package-setup-conclusion",
+        "099-duecare-orientation-setup-conclusion",
         "00a-duecare-prompt-prioritizer-data-pipeline",  # 110 live slug
         "duecare-prompt-remixer",
         "140-duecare-evaluation-mechanics",
         "190-duecare-rag-retrieval-inspector",
-        "duecare-baseline-text-evaluation-framework-conclusion",
+        "299-duecare-text-evaluation-conclusion",
     ]
     for slug in required_links:
         if slug not in all_text:

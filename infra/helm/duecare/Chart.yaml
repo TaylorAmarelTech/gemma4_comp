@@ -1,0 +1,31 @@
+apiVersion: v2
+name: duecare
+description: |
+  Duecare — toggleable safety harness wrapping Gemma 4 for migrant-
+  worker exploitation scenarios. This chart deploys the chat
+  playground + classifier API together with optional Ollama for
+  local model serving. Supports horizontal autoscaling, rolling
+  deploys, and per-component resource limits.
+
+type: application
+version: 0.1.0
+appVersion: "0.1.0"
+
+home: https://github.com/TaylorAmarelTech/gemma4_comp
+icon: https://avatars.githubusercontent.com/u/?
+sources:
+  - https://github.com/TaylorAmarelTech/gemma4_comp
+
+keywords:
+  - llm
+  - safety
+  - trafficking
+  - migrant-worker
+  - gemma
+  - on-device
+  - rag
+  - grep
+
+maintainers:
+  - name: Taylor Amarel
+    url: https://github.com/TaylorAmarelTech

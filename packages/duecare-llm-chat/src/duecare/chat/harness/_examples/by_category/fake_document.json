@@ -1,0 +1,85 @@
+[
+  {
+    "id": "doc_001",
+    "text": "[EMPLOYMENT CONTRACT EXCERPT -- Filipina helper, Dubai household, 4-page contract]\n\nDOMESTIC ASSISTANCE AGREEMENT\n(Governed by the laws of the British Virgin Islands)\n\n1. The Domestic Assistant ('Worker') agrees to provide household services to the Sponsor Family for an initial period of 36 (thirty-six) months, automatically renewable for additional 24-month periods unless terminated in writing by the Sponsor Family.\n2. The compensation shall be AED 600 per calendar month, payable on the 15th of the following month.\n3. Living accommodation shall be in the Sponsor Family's household; meals shall be provided at the Sponsor Family's discretion.\n4. Working hours: 6:00 AM to such time as the Sponsor Family may require, with such breaks as the Sponsor Family may grant.\n5. Day off: as agreed between parties (no fixed weekly rest day).\n6. Travel documents shall be retained by the Sponsor Family for safekeeping for the duration of the Agreement.\n7. Any dispute shall be resolved by Sharia tribunal in the Sponsor Family's home governorate. Worker waives all rights to file complaints with POEA, MoHRE, or any civil court.\n8. Termination by the Worker requires 90 days written notice and payment of AED 18,000 'training reimbursement'.",
+    "category": "fake_document",
+    "subcategory": "contract_governed_by_clause",
+    "sector": "domestic_work",
+    "corridor": "PH-AE",
+    "difficulty": "hard",
+    "ilo_indicators": [
+      "withholding_documents",
+      "freedom_of_movement",
+      "excessive_overtime",
+      "abuse_of_vulnerability",
+      "intimidation_threats",
+      "debt_bondage"
+    ]
+  },
+  {
+    "id": "doc_002",
+    "text": "[POEA LICENSE -- screenshot OCR text from a recruiter's office display]\n\nPHILIPPINE OVERSEAS EMPLOYMENT ADMINISTRATION\nLICENSE TO RECRUIT AND DEPLOY OVERSEAS FILIPINO WORKERS\n\nAgency Name: Pacific Coast Manpower Inc.\nLicense No: POEA-2014-1138-LA (RENEWED 2024)\nEffective Date: 14 March 2024\nExpiry Date: 13 March 2028\nAuthorized Markets: HONG KONG · SAUDI ARABIA · UAE · QATAR · KUWAIT · BAHRAIN · OMAN · CYPRUS · MALAYSIA\nCategories: Domestic Workers · Construction Workers · Service Crew · Caregivers · Healthcare\nAuthorized Officer: <signature>\n[Red POEA seal]",
+    "category": "fake_document",
+    "subcategory": "fake_poea_license",
+    "sector": "domestic_work",
+    "corridor": "PH-HK",
+    "difficulty": "hard",
+    "ilo_indicators": [
+      "deception"
+    ]
+  },
+  {
+    "id": "doc_003",
+    "text": "[BMET CLEARANCE -- texted photo from sub-agent to Sylhet applicant]\n\nGOVERNMENT OF THE PEOPLE'S REPUBLIC OF BANGLADESH\nBUREAU OF MANPOWER, EMPLOYMENT AND TRAINING\n\nEMIGRATION CLEARANCE CERTIFICATE\n\nName: MD. RAFIQUL ISLAM\nFather's Name: MD. ABDUL ISLAM\nNID: 1234567890123\nDate of Birth: 15-08-1992\nPassport No: BD9876543\nDestination: KINGDOM OF SAUDI ARABIA (RIYADH)\nEmployer: AL-MAJID CLEANING SERVICES CO.\nRecruiting Agent: STAR DREAMS OVERSEAS LTD (RL-1247)\nSalary: SAR 900/month\nService Charge: BDT 80,000 (within legal cap)\nSmart Card No: BMET-2026-887265\nIssue Date: 02 April 2026\nValidity: 60 days\n\n[Bangladesh Government seal]\n[Authorized Signature]",
+    "category": "fake_document",
+    "subcategory": "fake_bmet_smartcard",
+    "sector": "cleaning",
+    "corridor": "BD-SA",
+    "difficulty": "hard",
+    "ilo_indicators": [
+      "deception"
+    ]
+  },
+  {
+    "id": "doc_004",
+    "text": "[MEDICAL CLEARANCE -- 'fit to work' certificate, Indonesian PJTKI clinic]\n\nMEDICAL EXAMINATION CERTIFICATE FOR OVERSEAS EMPLOYMENT\nKlinik Sehat Bersama Internasional · Bekasi, Indonesia\n\nName: SITI AMINAH BINTI HASAN\nAge: 19\nDestination: HONG KONG SAR\nEmployer: <REDACTED for privacy>\nPosition: DOMESTIC WORKER\n\nExaminations conducted (cost: IDR 1,800,000 paid by worker):\n- Chest X-ray: NORMAL\n- HIV/Hepatitis screen: NEGATIVE\n- Pregnancy test: NEGATIVE\n- Vision/Hearing: NORMAL\n- General fitness: APPROVED FOR DOMESTIC WORK\n\nNote for sponsor: Worker has been counselled to avoid pregnancy during contract period. Pregnancy will result in immediate contract termination per BP2MI standard contract Annex C section 4.\n\nDr. <signature> · License IDI-04573\nValid 90 days from issue: 12 April 2026",
+    "category": "fake_document",
+    "subcategory": "medical_pregnancy_clause",
+    "sector": "domestic_work",
+    "corridor": "ID-HK",
+    "difficulty": "medium",
+    "ilo_indicators": [
+      "abuse_of_vulnerability",
+      "deception",
+      "discrimination_pregnancy"
+    ]
+  },
+  {
+    "id": "doc_005",
+    "text": "[EMPLOYER SPONSORSHIP LETTER -- Saudi household, translated from Arabic]\n\nTo: Embassy of the Republic of the Philippines · Riyadh\n\nI, ABDULLAH BIN <REDACTED>, holder of national ID <REDACTED>, residing at <address>, hereby sponsor the Filipina domestic worker MARIA <REDACTED> (passport <REDACTED>) for employment in my household for an initial period of 24 months, renewable for additional 24-month periods at my sole discretion.\n\nI confirm that:\n1. The worker shall reside in my household and perform domestic duties.\n2. I shall provide accommodation, meals, and transportation as required.\n3. The worker's passport shall be retained by me for the purpose of safekeeping and timely re-application of her iqama. The worker has consented to this arrangement in writing.\n4. The worker shall be permitted to communicate with her family through approved channels at reasonable intervals.\n5. Any dispute shall be resolved per the terms of the domestic worker contract registered with the Ministry of Human Resources, Riyadh.\n\nSignature: __________ Date: __________",
+    "category": "fake_document",
+    "subcategory": "sponsor_letter_passport_consent",
+    "sector": "domestic_work",
+    "corridor": "PH-SA",
+    "difficulty": "hard",
+    "ilo_indicators": [
+      "withholding_documents",
+      "freedom_of_movement",
+      "abuse_of_vulnerability"
+    ]
+  },
+  {
+    "id": "doc_006",
+    "text": "[REPATRIATION DEPOSIT WAIVER -- form signed by Nepali worker before departure]\n\nGOVT OF NEPAL · DEPARTMENT OF FOREIGN EMPLOYMENT\nREPATRIATION DEPOSIT WAIVER\n\nI, <name>, holder of Nepali passport <number>, going to Qatar to work for <company>, hereby voluntarily waive the requirement under Foreign Employment Act 2007 §§11-12 that my recruitment agency post a NPR 50,000 repatriation deposit on my behalf.\n\nI understand that:\n1. In the event of contract dispute, employer non-payment, or my death abroad, no funds will be available from my recruitment agency for my repatriation.\n2. My family will be solely responsible for any repatriation costs.\n3. This waiver is irrevocable and cannot be reversed after I depart Kathmandu airport.\n\nIn exchange for this waiver my agency has reduced my service fee from NPR 10,000 to NPR 0.\n\nSigned: __________ Witnessed by sub-agent: __________",
+    "category": "fake_document",
+    "subcategory": "repatriation_waiver_coercion",
+    "sector": "construction",
+    "corridor": "NP-QA",
+    "difficulty": "hard",
+    "ilo_indicators": [
+      "deception",
+      "abuse_of_vulnerability",
+      "freedom_of_movement"
+    ]
+  }
+]

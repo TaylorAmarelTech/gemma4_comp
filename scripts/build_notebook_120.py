@@ -25,12 +25,12 @@ KERNEL_TITLE = 'DueCare Prompt Remixer'
 WHEELS_DATASET = "taylorsamarel/duecare-llm-wheels"
 KEYWORDS = ["gemma", "safety", "llm", "trafficking", "baseline"]
 
-URL_099 = "https://www.kaggle.com/code/taylorsamarel/099-duecare-orientation-and-background-and-package-setup-conclusion"
+URL_099 = "https://www.kaggle.com/code/taylorsamarel/099-duecare-orientation-setup-conclusion"
 URL_110 = "https://www.kaggle.com/code/taylorsamarel/00a-duecare-prompt-prioritizer-data-pipeline"
 URL_120 = "https://www.kaggle.com/code/taylorsamarel/120-duecare-prompt-remixer"
-URL_299 = "https://www.kaggle.com/code/taylorsamarel/duecare-baseline-text-evaluation-framework-conclusion"
+URL_299 = "https://www.kaggle.com/code/taylorsamarel/299-duecare-text-evaluation-conclusion"
 URL_100 = "https://www.kaggle.com/code/taylorsamarel/duecare-real-gemma-4-on-50-trafficking-prompts"
-URL_200 = "https://www.kaggle.com/code/taylorsamarel/duecare-200-cross-domain-proof"
+URL_200 = "https://www.kaggle.com/code/taylorsamarel/duecare-cross-domain-proof"
 URL_310 = "https://www.kaggle.com/code/taylorsamarel/duecare-310-prompt-factory"
 URL_430 = "https://www.kaggle.com/code/taylorsamarel/430-54-criterion-pass-fail-rubric-evaluation"
 URL_000 = "https://www.kaggle.com/code/taylorsamarel/duecare-000-index"

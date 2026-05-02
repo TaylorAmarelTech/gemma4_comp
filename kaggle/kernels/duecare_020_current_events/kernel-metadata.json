@@ -1,0 +1,25 @@
+{
+  "id": "taylorsamarel/020-duecare-current-events",
+  "title": "020: DueCare Current Events",
+  "code_file": "020_current_events.ipynb",
+  "language": "python",
+  "kernel_type": "notebook",
+  "is_private": false,
+  "enable_gpu": false,
+  "enable_tpu": false,
+  "enable_internet": true,
+  "dataset_sources": [
+    "taylorsamarel/duecare-llm-wheels"
+  ],
+  "competition_sources": [
+    "gemma-4-good-hackathon"
+  ],
+  "kernel_sources": [],
+  "keywords": [
+    "gemma",
+    "safety",
+    "llm",
+    "trafficking",
+    "current-events"
+  ]
+}

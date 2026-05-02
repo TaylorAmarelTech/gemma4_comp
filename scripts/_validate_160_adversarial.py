@@ -86,8 +86,8 @@ def main() -> None:
 
     for slug in (
         "155-duecare-tool-calling-playground",
-        "duecare-170-live-context-injection-playground",
-        "duecare-180-multimodal-document-inspector",
+        "170-duecare-live-context-injection-playground",
+        "180-duecare-multimodal-document-inspector",
         "duecare-400-function-calling-multimodal",
         "199-duecare-free-form-exploration-conclusion",
     ):
@@ -134,8 +134,8 @@ def main() -> None:
         fail("no URL-bearing 'Multimodal handoff >>>' final print")
     final_print = src(final_print_cells[-1])
     for slug in (
-        "duecare-170-live-context-injection-playground",
-        "duecare-180-multimodal-document-inspector",
+        "170-duecare-live-context-injection-playground",
+        "180-duecare-multimodal-document-inspector",
         "199-duecare-free-form-exploration-conclusion",
     ):
         if slug not in final_print:

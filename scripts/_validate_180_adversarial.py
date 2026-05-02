@@ -55,7 +55,7 @@ def main() -> None:
     all_code = "\n\n".join(src(c) for c in code_cells)
     all_text = all_md + "\n\n" + all_code
 
-    if meta.get("id") != "taylorsamarel/duecare-180-multimodal-document-inspector":
+    if meta.get("id") != "taylorsamarel/180-duecare-multimodal-document-inspector":
         fail(f"metadata id wrong: {meta.get('id')!r}")
     ok("metadata id is canonical 180 slug")
 
@@ -92,7 +92,7 @@ def main() -> None:
     ok("cell 0 header has all five expected Field/Value rows")
 
     required_links = [
-        "duecare-170-live-context-injection-playground",
+        "170-duecare-live-context-injection-playground",
         "199-duecare-free-form-exploration-conclusion",
         "duecare-400-function-calling-multimodal",
     ]

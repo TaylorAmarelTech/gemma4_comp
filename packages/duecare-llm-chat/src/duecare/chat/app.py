@@ -98,18 +98,33 @@ class ChatRequest(BaseModel):
     toggles: HarnessToggles = Field(default_factory=HarnessToggles)
 
 
+class GradeRequest(BaseModel):
+    """Score a model response against a rubric. Supply EITHER:
+      - `prompt_id` to score against the per-prompt 5-tier rubric, OR
+      - `category` to score against the per-category required-element
+        rubric (FAIL/PARTIAL/PASS).
+    The category form is the cross-cutting one (e.g.
+    `legal_citation_quality`); the prompt_id form ties to a specific
+    bundled example."""
+    response_text: str
+    prompt_id: Optional[str] = None
+    category: Optional[str] = None
+
+
 def create_app(
     gemma_call: Optional[Callable] = None,
     model_info: Optional[dict] = None,
     grep_call: Optional[Callable] = None,
     rag_call: Optional[Callable] = None,
     tools_call: Optional[Callable] = None,
+    grade_call: Optional[Callable] = None,
     grep_catalog: Optional[list] = None,
     rag_catalog: Optional[list] = None,
     tools_catalog: Optional[list] = None,
     persona_default: Optional[str] = None,
     example_prompts: Optional[list] = None,
     layer_docs: Optional[dict] = None,
+    rubrics_required_categories: Optional[list[str]] = None,
 ) -> FastAPI:
     """Build the FastAPI app.
 
@@ -146,6 +161,10 @@ def create_app(
     app.state.grep_call = grep_call
     app.state.rag_call = rag_call
     app.state.tools_call = tools_call
+    app.state.grade_call = grade_call
+    app.state.rubrics_required_categories = (
+        rubrics_required_categories or []
+    )
     app.state.grep_catalog = grep_catalog
     app.state.rag_catalog = rag_catalog
     app.state.tools_catalog = tools_catalog
@@ -164,7 +183,7 @@ def create_app(
                   name="static")
 
     @app.get("/", response_class=HTMLResponse)
-    def root():
+    def root() -> Any:
         idx = static_dir / "index.html"
         if idx.exists():
             return HTMLResponse(idx.read_text(encoding="utf-8"))
@@ -172,16 +191,16 @@ def create_app(
                             "<p>(static UI not bundled)</p>")
 
     @app.get("/healthz")
-    def healthz():
+    def healthz() -> Any:
         return {"ok": True, "ts": time.time()}
 
     @app.get("/api/model-info")
-    def api_model_info():
+    def api_model_info() -> Any:
         return app.state.model_info or {"loaded": False, "name": None,
                                           "display": "(no model)"}
 
     @app.get("/api/harness-info")
-    def api_harness_info():
+    def api_harness_info() -> Any:
         """Tell the UI which harness layers are wired so it can show
         only the relevant toggles. Layers that aren't wired are not
         invokable and not displayed. The persona layer is always
@@ -192,10 +211,12 @@ def create_app(
             "grep": app.state.grep_call is not None,
             "rag": app.state.rag_call is not None,
             "tools": app.state.tools_call is not None,
+            "grade": app.state.grade_call is not None,
+            "grade_categories": app.state.rubrics_required_categories or [],
         }
 
     @app.get("/api/docs/{layer}")
-    def api_docs(layer: str):
+    def api_docs(layer: str) -> Any:
         """Return the markdown documentation/extension guide for a
         layer (persona, grep, rag, tools, examples). Used by the UI's
         modal to show 'how to extend this' content alongside the
@@ -206,14 +227,14 @@ def create_app(
         return {"layer": layer, "found": True, "markdown": docs[layer]}
 
     @app.get("/api/examples")
-    def api_examples():
+    def api_examples() -> Any:
         """Return the bundled example prompts for the chat UI's
         Examples modal. Each entry: {id, text, category, subcategory,
         sector, corridor, difficulty, ilo_indicators}."""
         return {"examples": app.state.example_prompts or []}
 
     @app.get("/api/harness-catalog/{layer}")
-    def api_harness_catalog(layer: str):
+    def api_harness_catalog(layer: str) -> Any:
         """Return a JSON catalog of what each harness layer exposes,
         for the UI's inspector modal. The kernel can override the
         default by setting `app.state.{grep,rag,tools}_catalog` to
@@ -226,8 +247,36 @@ def create_app(
                      "note": f"No catalog wired for {layer}."}
         return {"layer": layer, "wired": True, "items": catalog}
 
+    @app.post("/api/grade")
+    def api_grade(req: GradeRequest) -> Any:
+        """Grade a model response against either:
+          - a per-prompt 5-tier rubric (worst..best), passing `prompt_id`
+          - a per-category required-element rubric, passing `category`
+
+        Returns the rubric score breakdown the chat UI's "Grade response"
+        panel renders. Always returns a stable shape so the UI can render
+        the same 'no rubric available' state for unknown ids/categories.
+
+        The `grade_call` callable is wired at create_app time. Returns
+        503 if not wired (e.g. older kernels that don't pass it)."""
+        gc = app.state.grade_call
+        if gc is None:
+            raise HTTPException(503, "grading not enabled in this kernel")
+        if not req.response_text or not req.response_text.strip():
+            raise HTTPException(400, "response_text is required")
+        if not req.prompt_id and not req.category:
+            raise HTTPException(400, "supply prompt_id or category")
+        try:
+            if req.category:
+                result = gc(req.category, req.response_text, is_category=True)
+            else:
+                result = gc(req.prompt_id, req.response_text)
+        except Exception as e:  # noqa: BLE001 -- surface to client
+            raise HTTPException(500, f"grading failed: {e}") from e
+        return result
+
     @app.post("/api/chat/upload-image")
-    async def api_upload_image(file: UploadFile = File(...)):
+    async def api_upload_image(file: UploadFile = File(...)) -> Any:
         """Accept an image upload. Returns an opaque id the client
         sends in subsequent chat messages as
         {"type": "image", "image": "store://<id>"}."""
@@ -248,7 +297,7 @@ def create_app(
         return {"id": sid, "mime": mime, "bytes": len(data)}
 
     @app.get("/api/chat/image/{sid}")
-    def api_get_image(sid: str):
+    def api_get_image(sid: str) -> Any:
         item = _IMAGE_STORE.get(sid)
         if item is None:
             raise HTTPException(404, "image not found")
@@ -497,7 +546,7 @@ def create_app(
         return {"trace": trace, "prepend_snippets": prepend_snippets}
 
     @app.post("/api/chat/send")
-    async def api_chat_send(req: ChatRequest):
+    async def api_chat_send(req: ChatRequest) -> Any:
         """Stream the response back via Server-Sent Events with
         keepalive comments while the model generates. Cloudflare's
         free tunnel idle-connection timeout is 100s; without keepalives
@@ -577,7 +626,7 @@ def create_app(
         # detect completion + emit the final payload.
         state: dict[str, Any] = {}
 
-        def worker():
+        def worker() -> None:
             t0 = time.time()
             try:
                 state["response"] = _call_gemma(gc, messages, gp)
@@ -590,7 +639,7 @@ def create_app(
                                             name="duecare-chat-worker")
         worker_thread.start()
 
-        async def event_stream():
+        async def event_stream() -> Any:
             t_start = time.time()
             # Initial open marker (also flushes headers immediately).
             yield (": stream-open\n\n").encode()

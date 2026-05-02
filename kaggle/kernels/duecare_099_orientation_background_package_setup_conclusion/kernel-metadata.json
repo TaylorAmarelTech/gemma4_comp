@@ -1,6 +1,6 @@
 {
-  "id": "taylorsamarel/099-duecare-orientation-and-background-and-package-setup-conclusion",
-  "title": "099: DueCare Orientation and Background and Package Setup Conclusion",
+  "id": "taylorsamarel/099-duecare-orientation-setup-conclusion",
+  "title": "099: DueCare Orientation + Setup Conclusion",
   "code_file": "099_orientation_background_package_setup_conclusion.ipynb",
   "language": "python",
   "kernel_type": "notebook",
@@ -16,6 +16,9 @@
   ],
   "kernel_sources": [],
   "keywords": [
-    "evaluation"
+    "gemma",
+    "safety",
+    "evaluation",
+    "summary"
   ]
 }

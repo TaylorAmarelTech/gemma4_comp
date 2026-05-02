@@ -18,10 +18,9 @@
   ],
   "kernel_sources": [],
   "keywords": [
-    "gemma",
-    "rubric",
-    "dimensions",
-    "grading",
-    "training-data"
+    "agent",
+    "fine-tuning",
+    "unsloth",
+    "lora"
   ]
 }

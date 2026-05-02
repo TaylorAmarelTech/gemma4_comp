@@ -1,5 +1,5 @@
 {
-  "id": "taylorsamarel/duecare-200-cross-domain-proof",
+  "id": "taylorsamarel/duecare-cross-domain-proof",
   "title": "DueCare 200 Cross Domain Proof",
   "code_file": "200_cross_domain_proof.ipynb",
   "language": "python",
@@ -14,5 +14,11 @@
   "competition_sources": [
     "gemma-4-good-hackathon"
   ],
-  "kernel_sources": []
+  "kernel_sources": [],
+  "keywords": [
+    "gemma",
+    "llm-comparison",
+    "safety",
+    "evaluation"
+  ]
 }

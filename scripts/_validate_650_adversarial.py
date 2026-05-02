@@ -75,14 +75,14 @@ def main() -> None:
     ok("cell 0 header has all five expected Field/Value rows")
 
     required_links = [
-        "duecare-200-cross-domain-proof",
+        "duecare-cross-domain-proof",
         "620-duecare-demo-api-endpoint-tour",
-        "duecare-solution-surfaces-conclusion",
+        "duecare-660-enterprise-moderation",
     ]
     for slug in required_links:
         if slug not in all_text:
             fail(f"missing cross-link slug {slug}")
-    ok("cross-links to 200, 620, 899 present")
+    ok("cross-links to 200, 620, 660 present")
 
     install_cells = [c for c in code_cells if "pip install" in src(c).lower() or "PACKAGES = [" in src(c)]
     if len(install_cells) != 1:
@@ -152,11 +152,11 @@ def main() -> None:
     if not final_print_cells:
         fail("no URL-bearing 'Custom domain handoff >>>' final print")
     final_print = src(final_print_cells[-1])
-    if "duecare-solution-surfaces-conclusion" not in final_print:
-        fail("final print missing 899 slug")
-    if "duecare-200-cross-domain-proof" not in final_print:
+    if "duecare-660-enterprise-moderation" not in final_print:
+        fail("final print missing 660 slug")
+    if "duecare-cross-domain-proof" not in final_print:
         fail("final print missing 200 slug")
-    ok("final print is URL-bearing and links to 899 and 200")
+    ok("final print is URL-bearing and links to 660 and 200")
 
     print("\nALL CHECKS PASSED")
 

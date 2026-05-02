@@ -124,7 +124,7 @@ class TaskQueue:
 
     def __init__(self, gpu_workers: int = 1,
                   cpu_workers: int = 4,
-                  max_history: int = 1000):
+                  max_history: int = 1000) -> None:
         self.tasks: dict[str, Task] = {}
         self.gpu_q: queue.Queue = queue.Queue()
         self.cpu_q: queue.Queue = queue.Queue()

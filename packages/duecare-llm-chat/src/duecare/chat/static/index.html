@@ -391,10 +391,93 @@ header.bar .badge.loaded .dot {
   .harness-tiles { grid-template-columns: 1fr; }
 }
 
+/* ===========================================================================
+   Mobile-first overrides (≤600px = phone, ≤480px = small phone).
+
+   Goals: 44px minimum tap targets per WCAG 2.1; full-bleed modals; the
+   composer (textarea + send) reachable with the thumb; safe-area-inset
+   for notched / curved-edge devices.
+
+   Same surface as the desktop chat — same harness, same Pipeline + Grade
+   modals — just sized for a worker's phone.
+   =========================================================================== */
 @media (max-width: 600px) {
-  .msg { max-width: 95%; }
-  .composer .controls { display: none; }
+  .shell { padding: 0; max-width: 100%; }
+  header.bar {
+    padding: 10px 12px;
+    padding-top: max(10px, env(safe-area-inset-top));
+    flex-wrap: wrap; gap: 8px;
+  }
+  header.bar h1 { font-size: 15px; }
   header.bar .badge { font-size: 10px; padding: 4px 8px; }
+  .chat {
+    padding: 10px;
+    padding-bottom: 100px;  /* leave room above the composer */
+  }
+  .msg { max-width: 95%; gap: 8px; }
+  .msg .avatar { width: 28px; height: 28px; font-size: 11px; flex-shrink: 0; }
+  .msg .body { font-size: 14px; line-height: 1.5; }
+  .composer {
+    position: sticky; bottom: 0; left: 0; right: 0;
+    padding: 10px 12px;
+    padding-bottom: max(10px, env(safe-area-inset-bottom));
+    background: var(--bg);
+    border-top: 1px solid var(--border);
+  }
+  .composer textarea {
+    min-height: 44px; font-size: 16px;  /* 16px to prevent iOS zoom */
+  }
+  .composer button, .composer .icon-btn {
+    min-height: 44px; min-width: 44px;
+  }
+  .composer .controls { display: none; }
+  .harness-tiles { gap: 6px; }
+  .harness-tile {
+    padding: 10px; min-height: 56px;  /* touch-friendly */
+  }
+  .empty { padding: 24px 16px; }
+  .empty h2 { font-size: 20px; }
+  .empty p { font-size: 14px; }
+}
+
+@media (max-width: 480px) {
+  /* Modal becomes full-screen on small phones — the desktop "card on
+     a backdrop" layout is unusable when the card is wider than the
+     viewport. Pipeline + Grade modals already scroll their bodies. */
+  .modal {
+    width: 100% !important;
+    max-width: 100% !important;
+    height: 100vh; height: 100dvh;
+    max-height: 100vh; max-height: 100dvh;
+    border-radius: 0;
+    margin: 0;
+  }
+  .modal-overlay {
+    padding: 0;
+    align-items: stretch;
+  }
+  .modal-header {
+    padding-top: max(14px, env(safe-area-inset-top));
+  }
+  .modal-body {
+    padding: 12px 14px;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .modal-close {
+    min-height: 44px; min-width: 44px;
+    font-size: 24px;
+  }
+  /* Pipeline modal cards stack vertically on phones (already do, but
+     reduce padding). */
+  .modal-body pre {
+    font-size: 11px;
+    word-break: break-word;
+  }
+  /* Grade modal stat cards: stack vertically instead of in a row */
+  #grade-result-pane > div:first-child {
+    flex-direction: column !important;
+  }
 }
 </style>
 </head>
@@ -497,6 +580,8 @@ header.bar .badge.loaded .dot {
 const messages = [];        // [{role, content: [{type, text|image}]}]
 const pendingImages = [];   // [{id, mime, dataUrl}]
 let _personaDefault = '';         // populated by probeHarness from /api/harness-info
+let _gradeAvailable = false;      // set by probeHarness if /api/grade is wired
+let _gradeCategories = [];        // categories the rubric supports
 
 // ---------------------------------------------------------------------------
 // localStorage persistence layer for user customizations.
@@ -644,6 +729,8 @@ async function probeHarness() {
     if (info.persona && info.persona_default) {
       _personaDefault = info.persona_default;
     }
+    _gradeAvailable = !!info.grade;
+    _gradeCategories = Array.isArray(info.grade_categories) ? info.grade_categories : [];
     updatePersonaTileBadge();
   } catch (e) { /* /api/harness-info missing -- old chat wheel, hide */ }
 }
@@ -667,6 +754,7 @@ const LAYER_TITLES = {
   audit:    'Safety harness pipeline',
   pipeline: 'Safety harness pipeline',
   examples: 'Example prompts',
+  grade:    'Grade response (rubric)',
 };
 
 let _examplesCache = null;  // cached /api/examples response
@@ -1409,6 +1497,176 @@ function openPipelineModal(messageIdx) {
   _setModalChrome('pipeline', LAYER_TITLES.pipeline, '');
 }
 
+// ----------------------------------------------------------------------
+// Grade modal: scores the model response against the per-category
+// required-element rubric and renders the FAIL/PARTIAL/PASS table.
+// ----------------------------------------------------------------------
+let _gradeSelectedCategory = 'legal_citation_quality';
+
+const RUBRIC_CATEGORY_LABELS = {
+  legal_citation_quality:        'Legal citation quality (cross-cutting)',
+  business_framed_exploitation:  'Business-framed exploitation',
+  financial_crime_blindness:     'Financial crime blindness',
+  jurisdictional_hierarchy:      'Jurisdictional hierarchy exploitation',
+  victim_revictimization:        'Victim re-victimization',
+  prompt_injection_amplification:'Prompt injection amplification',
+};
+
+const RUBRIC_STATUS_COLOR = {
+  PASS:    '#10b981',
+  PARTIAL: '#f59e0b',
+  FAIL:    '#ef4444',
+};
+
+async function openGradeModal(messageIdx) {
+  const m = messages[messageIdx];
+  if (!m || m.role !== 'assistant') return;
+  const respText = m.content
+      .filter(c => c.type === 'text').map(c => c.text).join('\n');
+
+  // Pick the default category. Use legal_citation_quality if available,
+  // otherwise the first one the kernel exposes.
+  const cats = (_gradeCategories && _gradeCategories.length)
+      ? _gradeCategories
+      : ['legal_citation_quality'];
+  if (!cats.includes(_gradeSelectedCategory)) {
+    _gradeSelectedCategory = cats[0];
+  }
+
+  // Build the category dropdown
+  const optsHtml = cats.map(c =>
+    `<option value="${escapeHtml(c)}" ${c === _gradeSelectedCategory ? 'selected' : ''}>${escapeHtml(RUBRIC_CATEGORY_LABELS[c] || c)}</option>`
+  ).join('');
+
+  const skeleton = `
+    <p style="color:var(--muted); margin-top:0; font-size:12px;">
+      Score this response against the Duecare rubric. The cross-cutting
+      <code>legal_citation_quality</code> category measures whether the
+      response cites jurisdiction-specific rules, ILO/international standards,
+      and applies substance-over-form analysis -- the three dimensions where
+      stock LLMs most often fail on trafficking-shaped prompts. Scoring is a
+      lightweight keyword check; for ground-truth scoring, run
+      <code>scripts/rubric_comparison.py</code>.
+    </p>
+    <div style="margin:12px 0; display:flex; gap:8px; align-items:center;">
+      <label style="font-size:12px; color:var(--ink);">Rubric category:</label>
+      <select id="grade-category-select"
+              onchange="_runGrade(${messageIdx})"
+              style="background:var(--bg); color:var(--ink); border:1px solid var(--border); border-radius:4px; padding:4px 8px; font-size:12px;">
+        ${optsHtml}
+      </select>
+    </div>
+    <div id="grade-result-pane">
+      <div style="color:var(--muted); font-style:italic; padding:16px 0;">Scoring…</div>
+    </div>
+  `;
+  document.getElementById('modal-body').innerHTML = skeleton;
+  _setModalChrome('grade', LAYER_TITLES.grade, '');
+  _runGrade(messageIdx);
+}
+
+async function _runGrade(messageIdx) {
+  const sel = document.getElementById('grade-category-select');
+  if (sel) _gradeSelectedCategory = sel.value;
+  const m = messages[messageIdx];
+  if (!m) return;
+  const respText = m.content
+      .filter(c => c.type === 'text').map(c => c.text).join('\n');
+  const pane = document.getElementById('grade-result-pane');
+  pane.innerHTML = `<div style="color:var(--muted); font-style:italic; padding:16px 0;">Scoring against <code>${escapeHtml(_gradeSelectedCategory)}</code>…</div>`;
+  let result;
+  try {
+    const r = await fetch('/api/grade', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        response_text: respText,
+        category: _gradeSelectedCategory,
+      }),
+    });
+    if (!r.ok) {
+      const errTxt = await r.text();
+      throw new Error(`HTTP ${r.status}: ${errTxt}`);
+    }
+    result = await r.json();
+  } catch (e) {
+    pane.innerHTML = `<div style="color:#ef4444; padding:16px 0;">Error scoring: ${escapeHtml(String(e.message || e))}</div>`;
+    return;
+  }
+  pane.innerHTML = _renderGradeResult(result);
+}
+
+function _renderGradeResult(g) {
+  if (!g || !g.criteria) {
+    return `<div style="color:var(--muted); font-style:italic;">No rubric available for this category.</div>`;
+  }
+  const pct = g.pct_score ?? 0;
+  const scoreColor = pct >= 70 ? '#10b981' : pct >= 40 ? '#f59e0b' : '#ef4444';
+  const passN = g.criteria.filter(c => c.status === 'PASS').length;
+  const partialN = g.criteria.filter(c => c.status === 'PARTIAL').length;
+  const failN = g.criteria.filter(c => c.status === 'FAIL').length;
+
+  let html = `
+    <div style="display:flex; gap:14px; margin-bottom:14px;">
+      <div style="flex:1; background:var(--bg); border-radius:6px; padding:12px 14px; border-left:4px solid ${scoreColor};">
+        <div style="font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:0.5px;">Score</div>
+        <div style="font-size:24px; font-weight:700; color:${scoreColor};">${pct}%</div>
+        <div style="font-size:11px; color:var(--muted); margin-top:2px;">${g.total_score} / ${g.total_weight} weighted</div>
+      </div>
+      <div style="flex:1; background:var(--bg); border-radius:6px; padding:12px 14px; border-left:4px solid #10b981;">
+        <div style="font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:0.5px;">Pass</div>
+        <div style="font-size:24px; font-weight:700; color:#10b981;">${passN}</div>
+      </div>
+      <div style="flex:1; background:var(--bg); border-radius:6px; padding:12px 14px; border-left:4px solid #f59e0b;">
+        <div style="font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:0.5px;">Partial</div>
+        <div style="font-size:24px; font-weight:700; color:#f59e0b;">${partialN}</div>
+      </div>
+      <div style="flex:1; background:var(--bg); border-radius:6px; padding:12px 14px; border-left:4px solid #ef4444;">
+        <div style="font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:0.5px;">Fail</div>
+        <div style="font-size:24px; font-weight:700; color:#ef4444;">${failN}</div>
+      </div>
+    </div>
+  `;
+
+  html += `<table style="width:100%; border-collapse:collapse; font-size:12px;">
+    <thead>
+      <tr style="background:var(--bg);">
+        <th style="text-align:left; padding:8px 10px; color:var(--muted); border-bottom:1px solid var(--border);">Criterion</th>
+        <th style="text-align:center; padding:8px 10px; color:var(--muted); border-bottom:1px solid var(--border); width:80px;">Status</th>
+        <th style="text-align:left; padding:8px 10px; color:var(--muted); border-bottom:1px solid var(--border); width:120px;">Kind</th>
+        <th style="text-align:center; padding:8px 10px; color:var(--muted); border-bottom:1px solid var(--border); width:60px;">Weight</th>
+        <th style="text-align:left; padding:8px 10px; color:var(--muted); border-bottom:1px solid var(--border);">Hits</th>
+      </tr>
+    </thead>
+    <tbody>`;
+  for (const c of g.criteria) {
+    const color = RUBRIC_STATUS_COLOR[c.status] || '#94a3b8';
+    const reqMark = c.required ? ' <span style="color:#ef4444;" title="required">*</span>' : '';
+    const passHits = (c.pass_hits || []).slice(0, 4).join(', ');
+    const failHits = (c.fail_hits || []).slice(0, 4).join(', ');
+    let hitsHtml = '';
+    if (passHits) hitsHtml += `<span style="color:#10b981;">${escapeHtml(passHits)}</span>`;
+    if (passHits && failHits) hitsHtml += '<br>';
+    if (failHits) hitsHtml += `<span style="color:#ef4444;">${escapeHtml(failHits)}</span>`;
+    if (!hitsHtml) hitsHtml = `<span style="color:var(--muted); font-style:italic;">no terms matched</span>`;
+    html += `<tr>
+      <td style="padding:6px 10px; border-bottom:1px solid var(--border);">
+        <code style="color:var(--ink); font-size:11px;">${escapeHtml(c.id)}</code>${reqMark}<br>
+        <span style="color:var(--muted); font-size:11px;">${escapeHtml(c.description)}</span>
+      </td>
+      <td style="padding:6px 10px; border-bottom:1px solid var(--border); text-align:center;">
+        <span style="background:${color}; color:#fff; padding:2px 8px; border-radius:3px; font-weight:600; font-size:10.5px;">${escapeHtml(c.status)}</span>
+      </td>
+      <td style="padding:6px 10px; border-bottom:1px solid var(--border); color:var(--muted); font-size:11px;">${escapeHtml(c.kind || '')}</td>
+      <td style="padding:6px 10px; border-bottom:1px solid var(--border); text-align:center; color:var(--muted); font-size:11px;">${c.weight}</td>
+      <td style="padding:6px 10px; border-bottom:1px solid var(--border); font-size:11px;">${hitsHtml}</td>
+    </tr>`;
+  }
+  html += '</tbody></table>';
+  html += `<div style="font-size:11px; color:var(--muted); margin-top:10px; font-style:italic;">* = required criterion. Scoring is keyword-based for fast UI feedback; ground-truth scoring uses semantic match (run <code>scripts/rubric_comparison.py</code> for batch evaluation).</div>`;
+  return html;
+}
+
 function useHint(text) {
   document.getElementById('input').value = text;
   sendMessage();
@@ -1658,7 +1916,10 @@ function renderChat() {
       const pipelineLink = (m._harness && m.role === 'assistant')
           ? ` · <a href="#" onclick="openPipelineModal(${m._idx ?? 0}); return false;" style="color:var(--accent); text-decoration:none; font-weight:600;">▸ View pipeline</a>`
           : '';
-      bodyHtml += `<div class="meta">${m._meta}${pipelineLink}</div>`;
+      const gradeLink = (_gradeAvailable && m.role === 'assistant')
+          ? ` · <a href="#" onclick="openGradeModal(${m._idx ?? 0}); return false;" style="color:var(--accent); text-decoration:none; font-weight:600;">▸ Grade response</a>`
+          : '';
+      bodyHtml += `<div class="meta">${m._meta}${pipelineLink}${gradeLink}</div>`;
     }
     html += `<div class="msg ${m.role} ${cls}">
       <div class="avatar">${avatarTxt}</div>

@@ -44,7 +44,7 @@ def main() -> None:
     all_text = all_md + "\n\n" + all_code
 
     # 1. metadata id is the canonical 200 live slug.
-    if meta.get("id") != "taylorsamarel/200-duecare-cross-domain-proof":
+    if meta.get("id") != "taylorsamarel/duecare-cross-domain-proof":
         fail(f"metadata id wrong: {meta.get('id')!r}")
     ok("metadata id targets the live Kaggle kernel slug")
 

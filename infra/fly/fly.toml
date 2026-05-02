@@ -1,0 +1,49 @@
+# Fly.io deploy spec for Duecare.
+# Place this at the repo root (or use `fly deploy --config infra/fly/fly.toml`).
+#
+# Deploy:
+#   1. fly auth login
+#   2. fly launch --no-deploy --copy-config --no-public-ips
+#   3. fly deploy --config infra/fly/fly.toml
+#   4. fly open
+#
+# For Ollama colocation, run a second Fly machine with 4 GB RAM:
+#   fly machine run ollama/ollama:latest -a duecare-ollama --vm-memory 4096
+#
+# Cost: ~$5/mo for shared-cpu-1x with auto-stop, scale-to-zero.
+
+app = "duecare-chat"
+primary_region = "sin"          # Singapore — closest to PH/ID OFW audience
+                                 # change to: ord, fra, gru, syd as needed
+
+[build]
+  image = "ghcr.io/tayloramareltech/duecare-llm:latest"
+
+[env]
+  DUECARE_LOG_LEVEL = "info"
+  PORT = "8080"
+  # Point at a separate Fly app running Ollama, or override at deploy
+  # OLLAMA_HOST = "http://duecare-ollama.internal:11434"
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = "stop"
+  auto_start_machines = true
+  min_machines_running = 0      # scale to zero when idle
+  processes = ["app"]
+
+[[http_service.checks]]
+  grace_period = "15s"
+  interval = "30s"
+  timeout = "5s"
+  method = "GET"
+  path = "/healthz"
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "512mb"
+
+[[mounts]]
+  source = "duecare_data"
+  destination = "/home/duecare/app/.cache"

@@ -12,6 +12,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+from _canonical_notebook import canonical_hero_code
 from notebook_hardening_utils import harden_notebook
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -29,7 +30,7 @@ PROMPTS_DATASET = "taylorsamarel/duecare-trafficking-prompts"
 URL_000 = "https://www.kaggle.com/code/taylorsamarel/duecare-000-index"
 URL_005 = "https://www.kaggle.com/code/taylorsamarel/duecare-005-glossary"
 URL_010 = "https://www.kaggle.com/code/taylorsamarel/010-duecare-quickstart-in-5-minutes"
-URL_099 = "https://www.kaggle.com/code/taylorsamarel/099-duecare-orientation-and-background-and-package-setup-conclusion"
+URL_099 = "https://www.kaggle.com/code/taylorsamarel/099-duecare-orientation-setup-conclusion"
 URL_105 = "https://www.kaggle.com/code/taylorsamarel/105-duecare-prompt-corpus-introduction"
 URL_110 = "https://www.kaggle.com/code/taylorsamarel/00a-duecare-prompt-prioritizer-data-pipeline"
 URL_120 = "https://www.kaggle.com/code/taylorsamarel/duecare-prompt-remixer"
@@ -38,10 +39,10 @@ URL_140 = "https://www.kaggle.com/code/taylorsamarel/140-duecare-evaluation-mech
 URL_150 = "https://www.kaggle.com/code/taylorsamarel/150-duecare-free-form-gemma-playground"
 URL_155 = "https://www.kaggle.com/code/taylorsamarel/155-duecare-tool-calling-playground"
 URL_160 = "https://www.kaggle.com/code/taylorsamarel/160-duecare-image-processing-playground"
-URL_170 = "https://www.kaggle.com/code/taylorsamarel/duecare-170-live-context-injection-playground"
-URL_180 = "https://www.kaggle.com/code/taylorsamarel/duecare-180-multimodal-document-inspector"
+URL_170 = "https://www.kaggle.com/code/taylorsamarel/170-duecare-live-context-injection-playground"
+URL_180 = "https://www.kaggle.com/code/taylorsamarel/180-duecare-multimodal-document-inspector"
 URL_199 = "https://www.kaggle.com/code/taylorsamarel/199-duecare-free-form-exploration-conclusion"
-URL_200 = "https://www.kaggle.com/code/taylorsamarel/duecare-200-cross-domain-proof"
+URL_200 = "https://www.kaggle.com/code/taylorsamarel/duecare-cross-domain-proof"
 URL_210 = "https://www.kaggle.com/code/taylorsamarel/duecare-gemma-vs-oss-comparison"
 URL_270 = "https://www.kaggle.com/code/taylorsamarel/duecare-270-gemma-generations"
 URL_410 = "https://www.kaggle.com/code/taylorsamarel/duecare-410-llm-judge-grading"
@@ -903,7 +904,15 @@ def _fmt_signals(signals):
     keep = [s for s in signals if not s.startswith('PARTIAL')]
     return ', '.join(keep) if keep else '(none)'
 
-bottom3 = sorted(valid_results, key=lambda r: r['score'])[:3]
+# Defensive: rebuild valid_results from results if the validate cell was
+# skipped or partially executed. This cell is self-contained.
+if 'valid_results' not in globals():
+    if 'results' in globals():
+        valid_results = [r for r in results if r.get('grade') != 'error']
+    else:
+        valid_results = []
+
+bottom3 = sorted(valid_results, key=lambda r: r['score'])[:3] if valid_results else []
 
 display(HTML(
     '<div style=\"background:#fef2f2;border-left:4px solid #ef4444;padding:10px 14px;'
@@ -1267,7 +1276,19 @@ If you prefer the fast proof path, jump straight from [199]({URL_199}) to [210 G
 """
 
 
+HERO_CODE = canonical_hero_code(
+    title=KERNEL_TITLE,
+    kicker="DueCare - Gemma 4 Exploration",
+    tagline=(
+        "First systematic stock-Gemma baseline on 50 trafficking prompts "
+        "under the weighted 6-dimension rubric. Every later comparison "
+        "in the suite references the findings JSON this notebook saves."
+    ),
+)
+
+
 CELLS = [
+    code(HERO_CODE),
     md(HEADER),
     # Section 0 preview removed 2026-04-18: hardcoded excerpts were at risk
     # of reading as "faked" even when clearly labeled. Section 9 renders the
@@ -1350,14 +1371,13 @@ def main() -> int:
         'code_file': FILENAME,
         'language': 'python',
         'kernel_type': 'notebook',
-        # Must match the live kernel's privacy setting on Kaggle.
-        # Flipping private->public via push triggers a misleading 429 error.
-        # Toggle to public manually in the Kaggle web UI.
-        'is_private': True,
+        # Live kernel is public on Kaggle; push with is_private=False so
+        # subsequent updates preserve the public visibility.
+        'is_private': False,
         'enable_gpu': True,
         'enable_tpu': False,
         'enable_internet': True,
-        'dataset_sources': [WHEELS_DATASET, PROMPTS_DATASET],
+        'dataset_sources': [WHEELS_DATASET],
         'competition_sources': ['gemma-4-good-hackathon'],
         'model_sources': [
             'google/gemma-4/transformers/gemma-4-e4b-it/1',

@@ -18,5 +18,11 @@
   "model_sources": [
     "google/gemma-4/transformers/gemma-4-e4b-it/1"
   ],
-  "kernel_sources": []
+  "kernel_sources": [],
+  "keywords": [
+    "llm-judge",
+    "rubric",
+    "grading",
+    "safety"
+  ]
 }

@@ -7,6 +7,25 @@
 > Audience: anyone (human or AI) picking up this project.
 > Last updated: 2026-04-10.
 
+> **Path layout update (2026-04-18):** references to `src/phases/*`,
+> `src/forge/*`, and `src/<subsystem>/*` below reflect the *pre-package*
+> monolithic layout. The live code now lives under
+> `packages/duecare-llm-*/src/duecare/*` (8 PyPI packages, PEP 420
+> namespace). Mapping:
+>
+> - `src/forge/core/*`       → `packages/duecare-llm-core/src/duecare/core/*`
+> - `src/forge/models/*`     → `packages/duecare-llm-models/src/duecare/models/*`
+> - `src/forge/domains/*`    → `packages/duecare-llm-domains/src/duecare/domains/*`
+> - `src/forge/tasks/*`      → `packages/duecare-llm-tasks/src/duecare/tasks/*`
+> - `src/forge/agents/*`     → `packages/duecare-llm-agents/src/duecare/agents/*`
+> - `src/forge/workflows/*`  → `packages/duecare-llm-workflows/src/duecare/workflows/*`
+> - `src/forge/publishing/*` → `packages/duecare-llm-publishing/src/duecare/publishing/*`
+> - `src/phases/*`           → Kaggle notebooks under `kaggle/kernels/duecare_NNN_*/`
+>   plus the FastAPI demo under `src/demo/`.
+>
+> The component-level design decisions below are still authoritative; only
+> the concrete file paths have moved.
+
 ## Table of contents
 
 - [0. Philosophy and design principles](#0-philosophy-and-design-principles)
@@ -222,6 +241,94 @@ through.
                    │  /evaluate       │
                    └──────────────────┘
 ```
+
+### 1.1.1 Live chat-app pipeline (per-request, what users actually see)
+
+The data flow above describes the offline pipeline that builds the
+training data and the model. The `duecare-llm-chat` package implements
+a separate **inference-time** pipeline — what fires on every chat
+request from a user. Each layer is a wired callable; turning a layer
+ON at request time means it runs before Gemma sees the prompt and its
+output is folded into the final context.
+
+```
+┌──────────────────┐
+│  [a] USER INPUT  │   raw text the user typed
+└────────┬─────────┘
+         │
+         v
+┌──────────────────┐
+│  [b] PERSONA     │   system prompt (kernel-default or per-request)
+│  (always on if   │   names ILO conventions, statutes, NGO partners,
+│   wired)         │   the analytic discipline the model should apply
+└────────┬─────────┘
+         │
+         v
+┌──────────────────┐
+│  [c] GREP        │   37 regex/keyword rules across 5 categories
+│  (toggle)        │   matched against user text -> ILO + statute
+│                  │   citations + indicator descriptions
+└────────┬─────────┘
+         │
+         v
+┌──────────────────┐
+│  [d] RAG         │   BM25 over 26-doc corpus (ILO conventions,
+│  (toggle)        │   POEA/BP2MI/Nepal/HK statutes, Saudi MoHR,
+│                  │   Palermo Art. 3(b), ICRMW, Hague, kafala
+│                  │   reforms, substance-over-form anchor)
+└────────┬─────────┘
+         │
+         v
+┌──────────────────┐
+│  [e] TOOLS       │   heuristic dispatch -> 4 lookups:
+│  (toggle)        │   corridor_fee_caps, fee_camouflage,
+│                  │   ilo_indicator, ngo_intake
+└────────┬─────────┘
+         │
+         v
+┌──────────────────┐
+│  [f] ONLINE      │   ONLY layer that touches the network. Only
+│  AGENTIC         │   wired in the A4 'with-agentic-research'
+│  RESEARCH        │   notebook -- ALL other layers ([b]..[e]) are
+│  (toggle)        │   local, in-process, zero network. PII-filtered
+│                  │   (HARD GATE) before any outbound call;
+│                  │   audit-logged as sha256(query) only;
+│                  │   BYOK panel (Tavily/Brave/Serper) or
+│                  │   Playwright real-browser fallback.
+└────────┬─────────┘
+         │
+         v
+┌──────────────────┐
+│  [g] FINAL       │   user text + persona + GREP citations +
+│  MERGED PROMPT   │   RAG snippets + tool results -> single
+│                  │   message Gemma sees
+└────────┬─────────┘
+         │
+         v
+┌──────────────────┐
+│  [h] GEMMA 4     │   inference (E2B/E4B/26B-A4B/31B-it)
+│  RESPONSE        │   on Kaggle T4 / P100 / A100
+└────────┬─────────┘
+         │
+         v
+┌──────────────────┐
+│  [i] GRADE       │   per-prompt 5-tier rubric (worst..best) +
+│  (per-response,  │   per-category required-element rubric
+│   on demand)     │   (FAIL/PARTIAL/PASS, 6 categories,
+│                  │   66 criteria, including the cross-cutting
+│                  │   legal_citation_quality 12-criterion rubric).
+│                  │   Surfaced via /api/grade + the chat UI's
+│                  │   "▸ Grade response" link on every response.
+└──────────────────┘
+```
+
+The chat UI's `▸ View pipeline` modal renders [a]–[h] byte-for-byte
+for any one chat response, and `▸ Grade response` renders [i] as a
+PASS/PARTIAL/FAIL table per criterion. The harness lift report at
+[`docs/harness_lift_report.md`](./harness_lift_report.md) quantifies
+the [i]-step delta between toggles-OFF and toggles-ON across 207 prompts
+(mean **+56.5 pp** on the cross-cutting `legal_citation_quality`
+rubric, 207/207 prompts helped).
 
 ### 1.2 Responsibility boundaries in one sentence
 

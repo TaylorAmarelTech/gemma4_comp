@@ -18,10 +18,9 @@
   ],
   "kernel_sources": [],
   "keywords": [
-    "gemma",
-    "jailbreak",
-    "training-data",
-    "curriculum",
-    "fine-tune"
+    "agent",
+    "fine-tuning",
+    "unsloth",
+    "lora"
   ]
 }

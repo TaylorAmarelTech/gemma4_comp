@@ -194,7 +194,7 @@ testing, and Python/FastAPI. Do NOT re-explain their own codebase to them.
 
 ```
 gemma4_comp/
-├── packages/                           <- 8 PyPI packages (PEP 420 namespace under forge.*)
+├── packages/                           <- 8 PyPI packages (PEP 420 namespace under duecare.*)
 │   ├── duecare-llm-core/                 <- duecare.core.* + duecare.observability.*
 │   ├── duecare-llm-models/               <- duecare.models.* (8 adapters with optional extras)
 │   ├── duecare-llm-domains/              <- duecare.domains.*
@@ -245,10 +245,10 @@ gemma4_comp/
 ├── docs/
 │   ├── project_overview.md   <- hackathon strategy, track alignment, timeline
 │   ├── architecture.md       <- THIS project's technical design (20 sections)
-│   ├── integration_plan.md   <- mapping of framework+benchmark assets -> src/
+│   ├── integration_plan.md   <- mapping of framework+benchmark assets -> packages/
 │   ├── writeup_draft.md      <- Kaggle writeup draft (<=1,500 words)
 │   └── video_script.md       <- 3-minute narration draft
-├── src/                      <- training, eval, demo code (to be built)
+├── src/demo/                 <- FastAPI dashboard + demo app (live)
 ├── README.md                 <- public-facing project overview for judges
 ├── LICENSE                   <- MIT (required by the hackathon rules)
 ├── CLAUDE.md                 <- THIS file
@@ -283,18 +283,18 @@ Files of note:
   benchmark suite that is already public (the `trafficking-llm-benchmark-gitlab`
   21K-test release) should end up in the public Kaggle repo.
 
-## Open questions (as of 2026-04-10)
+## Resolved decisions (2026-04-18)
 
-1. **Unsloth experience**: does Taylor have prior Unsloth fine-tuning
-   experience, or does the pipeline need to be walked through end-to-end?
-   (This was asked in an earlier session and never answered.)
-2. **Which Gemma model**: E2B (smaller, fits smaller devices) or E4B
-   (better quality, still sub-6GB in 4-bit GGUF)? Leaning E4B for quality.
-3. **Deployment target priority**: llama.cpp desktop first, or LiteRT mobile
-   first? llama.cpp is easier; LiteRT is the better story for frontline
-   NGO workers with only a phone.
-4. **Video hosting**: public YouTube is required by the hackathon. Who
-   holds the channel?
+1. **Unsloth fine-tune**: implemented in 525, 527, 530; Phase 3 curriculum
+   plus uncensored 5-grade generator plus full LoRA fine-tune all live.
+2. **Gemma model**: E4B is the primary baseline (100) with a dedicated
+   E2B like-for-like (102). E2B is the on-device story; E4B is the
+   headline quality number.
+3. **Deployment target priority**: llama.cpp desktop is the current
+   runtime target (600/610 results dashboard, submission walkthrough).
+   LiteRT mobile is the next target; tracked as a deployment-applications
+   notebook (670 Private Client-Side Checker).
+4. **Video hosting**: public YouTube under Taylor's channel.
 
 ## Useful commands
 
@@ -309,7 +309,7 @@ python scripts/run_local_gemma.py --model gemma4:e2b  # smaller model
 python scripts/extract_benchmark_prompts.py   # 74K+ prompts → seed_prompts.jsonl
 
 # ── Build and test ──
-make test                                     # run 159 tests
+make test                                     # run the 194-test suite (22 files under packages/ + 16 under tests/)
 make build                                    # rebuild all 8 wheels
 make adversarial                              # adversarial validation + stress test
 make cleanroom                                # clean-room install test
@@ -320,10 +320,17 @@ python scripts/publish_kaggle.py push-notebooks
 python scripts/publish_kaggle.py status-notebooks
 
 # ── Generate notebooks ──
-python scripts/build_notebook_00.py           # Gemma Exploration (GPU)
-python scripts/build_notebook_00a.py          # Prompt Prioritizer
-python scripts/build_notebook_00b.py          # Prompt Remixer
-python scripts/build_kaggle_notebooks.py      # Generalized framework (01-04)
+# Every notebook has its own scripts/build_notebook_NNN_*.py builder.
+# The three shared orchestrators are:
+python scripts/build_index_notebook.py            # 000 Index
+python scripts/build_notebook_005_glossary.py     # 005 Glossary and Reading Map
+python scripts/build_section_conclusion_notebooks.py  # 099/199/299/.../899 conclusions
+# Any individual notebook:
+python scripts/build_notebook_100.py              # Gemma Exploration (GPU T4)
+python scripts/build_notebook_140_evaluation_mechanics.py
+python scripts/build_notebook_210_oss_model_comparison.py
+# After edits, run the repo-wide gate:
+python scripts/validate_notebooks.py              # 76 notebooks must pass
 ```
 
 ## Hackathon requirements checklist

@@ -1,0 +1,138 @@
+﻿Profession
+	License/Registration
+	Dealings In
+	Capital Requirements
+	Time To Get License
+	Fees To Get License/Registration
+	Finance Professional (Individual)
+	SFC License
+	securities, futures, trading services, credit rating, asset management, etc
+	None
+	8-10 Weeks
+	$1,790 to $2,420
+	Finance Company (Business/Corporate)
+	SFC Registration
+	securities, futures, trading services, credit rating, asset management, etc
+	Minimum paid up capital: N/A (If a Company has a licensing condition that it shall not hold client assets); in other cases $5,000,000)
+
+Minimum liquid capital requirement $ 100,000.00; in other cases $ 3,000,000.00
+	16 Weeks
+	$4,740 to $23,500
+	Employment Agency
+(Business/Corporate)
+	Employment Agency License
+	migration
+	None
+	2-4 Weeks
+	$2,000
+	Employment Agent (Individual)
+	None[1]
+	migration
+	None
+	0 Weeks
+	$0
+	Money Lender
+	
+
+	
+
+	
+
+	
+
+	
+
+	Insurance Agent
+	
+
+	
+
+	
+
+	
+
+	
+
+	Real Estate Agent
+	
+
+	
+
+	
+
+	
+
+	
+
+	Karaoke
+	
+
+	
+
+	
+
+	
+
+	
+
+	Bar
+	
+
+	
+
+	
+
+	
+
+	
+
+	Contractor
+	
+
+	
+
+	
+
+	
+
+	
+
+	More regulated industries, F&B License, Ferry Service License, Boating License, Auditor’s license, etc
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+________________
+[1] Although the Code of Practice for Employment Agencies requires related persons to provide particulars to the Employment Agencies Administration, there is no penalty for not providing this information.

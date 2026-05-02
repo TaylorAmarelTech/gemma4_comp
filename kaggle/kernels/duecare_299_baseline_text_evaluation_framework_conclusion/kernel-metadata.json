@@ -1,6 +1,6 @@
 {
-  "id": "taylorsamarel/299-duecare-baseline-text-evaluation-framework-conclusion",
-  "title": "299: DueCare Baseline Text Evaluation Framework Conclusion",
+  "id": "taylorsamarel/299-duecare-text-evaluation-conclusion",
+  "title": "299: DueCare Text Evaluation Conclusion",
   "code_file": "299_baseline_text_evaluation_framework_conclusion.ipynb",
   "language": "python",
   "kernel_type": "notebook",
@@ -16,6 +16,9 @@
   ],
   "kernel_sources": [],
   "keywords": [
-    "evaluation"
+    "gemma",
+    "safety",
+    "evaluation",
+    "summary"
   ]
 }
