@@ -143,24 +143,32 @@ python scripts/run_local_gemma.py --model gemma4:e2b   # smaller model
 ### Deploy in 60 seconds
 
 ```bash
-# Single-machine local stack (Ollama + Duecare server + reverse proxy)
-docker compose up -d
+# One-command bring-up: Docker stack + Gemma 4 pull + smoke test.
+make demo
+
+# After it finishes:
 open http://localhost:8080
 ```
 
-For other deployment shapes — solo laptop, NGO-office Mac mini, cloud
-server with thin clients, on-device Android, hybrid edge LLM + cloud
-knowledge — see the [**deployment topology selector**](./docs/deployment_topologies.md).
-Five concrete runnable examples at [`examples/deployment/`](./examples/deployment/).
+After deploy: `make doctor` for a one-screen health report,
+`make backup` for a journal/audit snapshot.
 
-For multi-cloud production deployments (Render / Fly / Cloud Run /
-EKS / GKE / AKS / Lightsail / Azure Container Apps / k3s / air-gapped),
-see [`docs/cloud_deployment.md`](./docs/cloud_deployment.md).
+### Pick your deployment shape
 
-For optional enterprise extras (telemetry, multi-tenancy, SLOs,
-incident runbook, compliance crosswalk), see
-[`docs/considerations/`](./docs/considerations/) — these are
-supplements for operators who need them, not central to the project.
+| You are... | Read |
+|---|---|
+| Solo developer evaluating the harness on a laptop | [`docs/deployment_local.md`](./docs/deployment_local.md) |
+| **NGO director** running it privately at the office | [`docs/scenarios/ngo-office-deployment.md`](./docs/scenarios/ngo-office-deployment.md) |
+| **Caseworker** at an NGO that already deployed Duecare | [`docs/scenarios/caseworker_workflow.md`](./docs/scenarios/caseworker_workflow.md) |
+| **Platform CTO** evaluating for enterprise rollout | [`docs/scenarios/enterprise_pilot.md`](./docs/scenarios/enterprise_pilot.md) |
+| Just want to skim the choices | [`docs/deployment_topologies.md`](./docs/deployment_topologies.md) (5 topologies + decision tree) |
+| Deploying on a specific cloud | [`docs/cloud_deployment.md`](./docs/cloud_deployment.md) (13 platforms) |
+| Picking which Gemma 4 variant to load | [`docs/gemma4_model_guide.md`](./docs/gemma4_model_guide.md) |
+
+Five runnable topology examples at [`examples/deployment/`](./examples/deployment/).
+Optional enterprise governance supplements (SLOs, runbook,
+compliance crosswalk, threat model, vendor questionnaire) at
+[`docs/considerations/`](./docs/considerations/) — read only if you need them.
 
 ### Run on Kaggle (GPU)
 
