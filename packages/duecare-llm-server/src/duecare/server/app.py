@@ -18,6 +18,10 @@ from pydantic import BaseModel, Field
 from duecare.server.state import ServerState
 from duecare.server.tunnel import open_tunnel
 from duecare.server.log_buffer import LOG_BUFFER
+from duecare.server.observability import install_observability
+from duecare.server.tenancy import TenancyMiddleware
+from duecare.server.ratelimit import RateLimitMiddleware
+from duecare.server.request_metrics_mw import RequestMetricsMiddleware
 
 
 # Endpoints that DO NOT require auth (homepage + healthz + status).
@@ -78,6 +82,19 @@ def create_app(state: Optional[ServerState] = None) -> FastAPI:
     # for the lifetime of the server process; survives restart only via
     # the training_runs / runs tables in the DB.
     app.state.jobs = {}
+
+    # ── Observability: /metrics + per-request counters/duration ────────
+    # Always on. The metrics endpoint is free if prometheus-client is
+    # not installed (the module ships a no-op CollectorRegistry).
+    install_observability(app)
+    # Order matters: TenancyMiddleware sets request.state.tenant_id;
+    # RateLimitMiddleware reads it; RequestMetricsMiddleware reads it
+    # too. Starlette runs middleware in REVERSE order of add — so the
+    # first one added is the outermost wrapper. Add metrics last so
+    # it's outermost (sees status code after auth/rate-limit).
+    app.add_middleware(RequestMetricsMiddleware)
+    app.add_middleware(RateLimitMiddleware)
+    app.add_middleware(TenancyMiddleware)
 
     # ------ Auth middleware (DUECARE_API_TOKEN) ----------------------------
     api_token = os.environ.get("DUECARE_API_TOKEN", "").strip()
