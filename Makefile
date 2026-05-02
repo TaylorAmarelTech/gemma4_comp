@@ -1,6 +1,7 @@
 .PHONY: install install-uv install-pip dev test test-stress adversarial cleanroom \
         build lint serve serve-chat serve-classifier verify reproduce \
-        docker docker-build docker-up docker-down docker-logs \
+        demo demo-with-monitoring demo-with-auth doctor backup backup-light \
+        docker docker-build docker-up docker-down docker-logs docker-up-auth \
         docker-dev docker-dev-up docker-dev-down docker-dev-shell docker-dev-test \
         observability observability-up observability-down observability-logs \
         helm helm-install helm-uninstall helm-lint helm-template \
@@ -137,6 +138,25 @@ verify:  ## Smoke-check installation: harness imports + counts above thresholds
 
 reproduce:  ## Reproduce all submission claims end-to-end (~5 min)
 	bash scripts/reproduce.sh
+
+# ── One-command lifecycle (the friendliest entry points) ─────────
+demo:  ## Bring up the whole stack + pull Gemma 4 + smoke-test (recommended for first-time)
+	bash scripts/deploy-stack.sh
+
+demo-with-monitoring:  ## demo + Prometheus/Grafana/Loki/OTel observability stack
+	bash scripts/deploy-stack.sh --observability
+
+demo-with-auth:  ## demo + oauth2-proxy SSO overlay (configure OAUTH2_* in .env first)
+	bash scripts/deploy-stack.sh --auth
+
+doctor:  ## Diagnose a running deployment (prints health report)
+	bash scripts/duecare-doctor.sh
+
+backup:  ## Snapshot journal + audit log + caddy state to backups/duecare-DATE.tgz
+	bash scripts/backup.sh
+
+backup-light:  ## Same as backup but skip the Ollama model cache (90% smaller)
+	bash scripts/backup.sh --skip-models
 
 # ── Docker ───────────────────────────────────────────────────────
 docker: docker-up  ## Alias for docker-up
