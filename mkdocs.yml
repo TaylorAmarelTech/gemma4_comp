@@ -1,0 +1,182 @@
+site_name: Duecare
+site_url: https://tayloramareltech.github.io/gemma4_comp/
+site_description: >-
+  Open-source AI safety harness around Google's Gemma 4 — for migrant
+  workers, NGOs, regulators, and researchers fighting recruitment
+  fraud and trafficking. MIT licensed. Runs offline.
+site_author: Taylor Amarel
+repo_url: https://github.com/TaylorAmarelTech/gemma4_comp
+repo_name: TaylorAmarelTech/gemma4_comp
+edit_uri: edit/master/docs/
+copyright: >-
+  MIT licensed.
+  <a href="https://github.com/TaylorAmarelTech/gemma4_comp">Source on GitHub.</a>
+
+theme:
+  name: material
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.instant
+    - navigation.tracking
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.sections
+    - navigation.top
+    - navigation.indexes
+    - navigation.footer
+    - search.suggest
+    - search.highlight
+    - search.share
+    - content.code.copy
+    - content.code.annotate
+    - content.action.edit
+    - content.action.view
+    - toc.follow
+  icon:
+    repo: fontawesome/brands/github
+    edit: material/pencil
+    view: material/eye
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/TaylorAmarelTech
+    - icon: fontawesome/brands/kaggle
+      link: https://www.kaggle.com/taylorsamarel
+
+markdown_extensions:
+  - abbr
+  - admonition
+  - attr_list
+  - def_list
+  - footnotes
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.arithmatex:
+      generic: true
+  - pymdownx.betterem
+  - pymdownx.caret
+  - pymdownx.details
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.keys
+  - pymdownx.magiclink
+  - pymdownx.mark
+  - pymdownx.snippets
+  - pymdownx.smartsymbols
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.tilde
+
+plugins:
+  - search:
+      separator: '[\s\-,:!=\[\]()"`/]+|\.(?!\d)|&[lg]t;|(?!\b)(?=[A-Z][a-z])'
+  # mkdocs-material has these built in; add others via requirements-docs.txt
+  # - awesome-pages
+  # - git-revision-date-localized
+  # - minify
+
+# Navigation — curated path through the docs tree. Untouched docs
+# remain indexable + searchable but don't appear in the sidebar.
+nav:
+  - Home: index.md
+  - Get started:
+      - Try in 2 minutes: try_in_2_minutes.md
+      - Pick a deployment shape: deployment_topologies.md
+      - Pick a Gemma 4 variant: gemma4_model_guide.md
+      - Local install: deployment_local.md
+      - Cloud deploy (13 platforms): cloud_deployment.md
+      - Container guide: containers.md
+  - Scenarios:
+      - Index: scenarios/README.md
+      - For users:
+          - OFW / migrant worker: scenarios/worker-self-help.md
+          - "OFW (Tagalog draft)": scenarios/translations/worker-self-help.tl.md
+          - "OFW (Spanish draft)": scenarios/translations/worker-self-help.es.md
+          - Caseworker workflow: scenarios/caseworker_workflow.md
+          - Legal aid lawyer: scenarios/lawyer-evidence-prep.md
+          - Researcher: scenarios/researcher-analysis.md
+          - Investigative journalist: scenarios/journalist-investigation.md
+          - Recruitment compliance: scenarios/recruiter-self-audit.md
+      - For organizations:
+          - NGO director: scenarios/ngo-office-deployment.md
+          - IT director: scenarios/it-director.md
+          - Chief architect: scenarios/chief-architect.md
+          - VP Engineering: scenarios/vp-engineering.md
+          - Platform CTO: scenarios/enterprise_pilot.md
+          - Government regulator: scenarios/regulator-pattern-analysis.md
+          - Embassy / consulate: scenarios/embassy-consular.md
+          - ILO / IOM regional: scenarios/ilo-iom-regional.md
+  - Strategic:
+      - Ecosystem overview: ecosystem_overview.md
+      - "Maria's case end-to-end": marias_case_end_to_end.md
+      - Cross-NGO trends federation: cross_ngo_trends_federation.md
+      - 2-week submission plan: two_week_submission_plan.md
+  - Submission:
+      - For judges: FOR_JUDGES.md
+      - Writeup draft: writeup_draft.md
+      - Rubric evaluation: rubric_evaluation_v07.md
+      - Project status: project_status.md
+      - Notebook QA companion: notebook_qa_companion.md
+      - Bench-and-tune readiness: bench_and_tune_readiness.md
+  - Architecture:
+      - Overview: architecture.md
+      - Deployment topologies: deployment_topologies.md
+      - Embedding guide: embedding_guide.md
+      - Notebook guide: notebook_guide.md
+      - Decision records:
+          - ADR index: adr/README.md
+          - 001 Multi-package PyPI split: adr/001-multi-package-pypi-split.md
+          - 002 Folder-per-module: adr/002-folder-per-module-pattern.md
+          - 003 On-device default: adr/003-on-device-default-cloud-opt-in.md
+          - 004 6+5 notebook shape: adr/004-six-plus-five-notebook-shape.md
+          - 005 Tenant id from edge proxy: adr/005-tenant-id-from-edge-proxy.md
+  - Enterprise considerations:
+      - Index: considerations/README.md
+      - Enterprise readiness: considerations/enterprise_readiness.md
+      - SLO: considerations/SLO.md
+      - Runbook: considerations/runbook.md
+      - Multi-tenancy: considerations/multi_tenancy.md
+      - Threat model: considerations/THREAT_MODEL.md
+      - Compliance: considerations/COMPLIANCE.md
+      - Vendor questionnaire: considerations/vendor_questionnaire.md
+      - Capacity planning: considerations/capacity_planning.md
+  - Outreach:
+      - Press kit: press_kit.md
+      - Educator resources: educator_resources.md
+      - Comparison vs alternatives: comparison_to_alternatives.md
+      - First-deployer feedback: first_deployer_feedback.md
+      - FAQ: FAQ.md
+  - Research:
+      - Harness lift report: harness_lift_report.md
+      - Project phases: project_phases.md
+      - Cloud deployment: cloud_deployment.md
