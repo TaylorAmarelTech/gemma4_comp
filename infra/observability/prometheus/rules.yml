@@ -19,7 +19,7 @@ groups:
         annotations:
           summary: "Duecare chat server is down"
           description: "The chat playground at {{ $labels.instance }} has been unreachable for 2m."
-          runbook: "docs/runbook.md#chat-server-down"
+          runbook: "docs/considerations/runbook.md#chat-server-down"
 
       - alert: DuecareClassifierDown
         expr: up{job="duecare-classifier"} == 0
@@ -29,7 +29,7 @@ groups:
           service: duecare-classifier
         annotations:
           summary: "Duecare classifier server is down"
-          runbook: "docs/runbook.md#classifier-server-down"
+          runbook: "docs/considerations/runbook.md#classifier-server-down"
 
       - alert: OllamaDown
         expr: up{job="ollama"} == 0
@@ -58,7 +58,7 @@ groups:
           service: duecare-chat
         annotations:
           summary: "Chat p95 latency is above the 8s SLO"
-          runbook: "docs/runbook.md#chat-high-latency"
+          runbook: "docs/considerations/runbook.md#chat-high-latency"
 
       - alert: DuecareChatHighErrorRate
         # SLO: 99.5% chat-completion success.
@@ -74,7 +74,7 @@ groups:
           service: duecare-chat
         annotations:
           summary: "Chat error rate above 0.5% SLO"
-          runbook: "docs/runbook.md#chat-error-rate"
+          runbook: "docs/considerations/runbook.md#chat-error-rate"
 
   - name: duecare-saturation
     interval: 60s
@@ -92,7 +92,7 @@ groups:
           severity: warning
         annotations:
           summary: "Tenant {{ $labels.tenant }} has used >80% of daily token budget"
-          runbook: "docs/runbook.md#token-budget-exhausted"
+          runbook: "docs/considerations/runbook.md#token-budget-exhausted"
 
       - alert: DuecareGrepRuleSilent
         # If a high-severity GREP rule has not fired in 24h despite
@@ -110,4 +110,4 @@ groups:
           severity: warning
         annotations:
           summary: "Critical GREP rule {{ $labels.rule_id }} has not fired in 24h"
-          runbook: "docs/runbook.md#grep-rule-silent"
+          runbook: "docs/considerations/runbook.md#grep-rule-silent"

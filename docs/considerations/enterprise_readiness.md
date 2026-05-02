@@ -6,8 +6,8 @@
 > Each gap has a concrete fix path and a "ship-by" target.
 >
 > **Generated:** 2026-05-01. Read alongside
-> [`docs/rubric_evaluation_v07.md`](./rubric_evaluation_v07.md) (the
-> hackathon-judge view) and [`docs/deployment_topologies.md`](./deployment_topologies.md)
+> [`docs/rubric_evaluation_v07.md`]( ../rubric_evaluation_v07.md) (the
+> hackathon-judge view) and [`docs/deployment_topologies.md`]( ../deployment_topologies.md)
 > (how to deploy what's here today).
 
 ## TL;DR — readiness score
@@ -117,7 +117,7 @@ Strong:
 - Pydantic settings layer with env-var overrides
 - Per-deployment YAML for domain packs, GREP rules, RAG corpus
 - Extension-pack format documented in
-  [`docs/extension_pack_format.md`](./extension_pack_format.md)
+  [`docs/extension_pack_format.md`]( ../extension_pack_format.md)
 
 Missing:
 - Feature flags (OpenFeature / LaunchDarkly / Unleash) — today every
@@ -141,17 +141,17 @@ Missing:
    inference call generates a span.
 4. **HPA + PodDisruptionBudget + NetworkPolicy** Helm templates.
 5. **Per-tenant token + cost meter** in the server (middleware).
-6. **`docs/runbook.md`** — incident response: what to look at when
+6. **`docs/considerations/runbook.md`** — incident response: what to look at when
    p95 spikes / error rate climbs / model returns garbage.
-7. **`docs/SLO.md`** — explicit SLOs: 99.5% chat-completion success,
+7. **`docs/considerations/SLO.md`** — explicit SLOs: 99.5% chat-completion success,
    p95 < 8s for E2B chat, p99 < 20s.
 8. **OAuth2 proxy + per-tenant rate-limit middleware** at the edge.
 
 ### P1 — needed for compliance review
 
-9. **`docs/COMPLIANCE.md`** — SOC 2 + GDPR + HIPAA + FedRAMP control
+9. **`docs/considerations/COMPLIANCE.md`** — SOC 2 + GDPR + HIPAA + FedRAMP control
    mapping. Cite where each control is implemented in the codebase.
-10. **`docs/THREAT_MODEL.md`** — STRIDE breakdown of the chat surface
+10. **`docs/considerations/THREAT_MODEL.md`** — STRIDE breakdown of the chat surface
     + the harness + the journal.
 11. **Multi-tenant isolation** — tenant-id propagation; per-tenant DB
     schemas or row-level security; per-tenant audit log shard.
@@ -179,7 +179,7 @@ Missing:
 | Day 1 (today) | `infra/observability/` compose stack; `/metrics` endpoint stub; this doc | Visible "we monitor" story |
 | Day 2 | Helm HPA + NetworkPolicy + PDB templates | Production k8s posture |
 | Day 3 | Cost-tracking middleware design doc + per-tenant counter implementation | Billing story for procurement |
-| Day 4 | `docs/COMPLIANCE.md` + `docs/THREAT_MODEL.md` + `docs/runbook.md` | Survives a security review |
+| Day 4 | `docs/considerations/COMPLIANCE.md` + `docs/considerations/THREAT_MODEL.md` + `docs/considerations/runbook.md` | Survives a security review |
 | Day 5 | Grafana dashboard JSON committed; OTel SDK wired in `duecare-llm-engine` | "We can see everything" story |
 | Day 6+ | Multi-tenancy primitives + feature flags + vendor questionnaire template | P1 polish |
 
