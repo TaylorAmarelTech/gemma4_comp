@@ -237,10 +237,17 @@ protection, debt bondage), recommended action (`allow` → `log_only`
 `urgent_safety_referral`), NGO referrals. History queue with
 risk-threshold slider. Export JSON for compliance.
 
-**On-device Android (stretch, LiteRT track).** Same harness on
-`google/gemma-4-e2b-it` via LiteRT + SQLCipher-encrypted journal +
-one-tap refund-claim or complaint-packet PDF. v0.1.0 APK published;
-v1 MVP week of 2026-05-19. Sibling repo: `duecare-journey-android/`.
+**On-device Android (Special Tech: LiteRT track).** Duecare Journey
+v0.6.0 ships the same harness on-device via MediaPipe Gemma 4 E2B
+(six selectable variants, mirror-fallback URLs) plus cloud-Gemma
+routing as a configurable fallback (Ollama / OpenAI-compatible /
+HF Inference). Encrypted SQLCipher journal. Eleven ILO indicator
+detectors and six migration corridors with statute lookups in a
+Kotlin port of the harness. Ten-question guided intake wizard turns
+worker answers into auto-tagged journal entries. Reports tab
+generates a markdown NGO intake document the worker shares via the
+OS share sheet. APK at the [v0.6 release](https://github.com/TaylorAmarelTech/duecare-journey-android/releases/tag/v0.6.0-cloud-and-knowledge).
+Sibling repo: `duecare-journey-android/`.
 
 Fourth deployment, Dockerized API, at `docs/deployment_enterprise.md`.
 

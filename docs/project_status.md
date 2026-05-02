@@ -1,7 +1,7 @@
 # DueCare Project Status
 
-> Last updated: 2026-04-18 (post-cleanup pass)
-> Deadline: 2026-05-18 (30 days remaining)
+> Last updated: 2026-05-01 (Android v0.6 + deployment topologies)
+> Deadline: 2026-05-18 (17 days remaining)
 
 ## Snapshot
 
@@ -94,13 +94,36 @@ Full inventory is auto-generated at
 | DueCare LLM Wheels | 8 package wheels (v0.1.0) | `taylorsamarel/duecare-llm-wheels` |
 | DueCare Trafficking Prompts | Public subset + 5 rubrics | `taylorsamarel/duecare-trafficking-prompts` |
 
+## Android sibling repo status (2026-05-01)
+
+- **v0.6.0 APK live** at the duecare-journey-android sibling
+  ([release tag](https://github.com/TaylorAmarelTech/duecare-journey-android/releases/tag/v0.6.0-cloud-and-knowledge)).
+- v0.6 ships: cloud Gemma 4 routing (Ollama/OpenAI-compat/HF Inference),
+  six on-device variants with mirror-fallback URLs, intel domain
+  knowledge layer (11 GREP rules + 11 ILO indicators + 6 corridor
+  profiles), Reports tab with NGO intake doc generator, guided intake
+  wizard, and risk auto-tagging.
+- v0.7 in progress: image-picker for attachments, intel-layer unit
+  tests, "Clear chat history" affordance, doc-refresh from this audit.
+
+## Deployment topologies (2026-05-01)
+
+- `docs/deployment_topologies.md` — master selector across five
+  topologies (single-component local / NGO-office edge / server +
+  thin clients / on-device only / hybrid edge LLM + cloud knowledge).
+- `examples/deployment/` — runnable examples for each topology
+  (Docker Compose all-in-one, single-file Python CLI, Mac mini /
+  NUC edge box, server + 8 client patterns, hybrid privacy contract).
+
 ## What's next (priority order)
 
 ### P0 - blocks submission
 
 - [ ] Push the refreshed notebook batch to Kaggle and reconcile live-state drift.
 - [ ] Phase 3 Unsloth fine-tune (NB 530) actual run + HF Hub weights.
-- [ ] Record 3-minute YouTube video per `docs/video_script.md`.
+- [ ] Record 3-minute YouTube video per `docs/video_script.md`
+  (script updated 2026-05-01 to show live v0.6 APK on the Android
+  beat instead of the static mockup).
 - [ ] Finalize `docs/writeup_draft.md` with Phase 3 numbers once in.
 - [ ] Public GitHub push (repo is local; see
   `docs/prompts/30_project_checkpoint.md` release ladder).
@@ -112,6 +135,8 @@ Full inventory is auto-generated at
   (`TaylorScottAmarel/duecare-gemma-4-e4b-safetyjudge-v0.1.0`).
 - [ ] GGUF export for llama.cpp Special Technology track.
 - [ ] LiteRT export for the mobile on-device story.
+- [x] Android v0.6 APK in production with cloud + on-device routing
+  (replaces "v1 MVP coming post-hackathon" claim).
 
 ### P2 - nice to have
 
@@ -120,6 +145,7 @@ Full inventory is auto-generated at
   (`deployment/browser_extension/`).
 - [ ] Additional domain pack (medical misinformation).
 - [ ] Interactive HTML report companion to the writeup.
+- [ ] Android v0.7: image-picker for attachments, intel unit tests.
 
 ## Rubric mapping (unchanged)
 
