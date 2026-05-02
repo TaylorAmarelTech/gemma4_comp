@@ -1,0 +1,51 @@
+cff-version: 1.2.0
+message: "If you use Duecare in academic work, please cite it as below."
+title: "Duecare: A content-safety harness for Gemma 4 on migrant-worker trafficking risk"
+abstract: >-
+  Duecare is an open-source AI safety harness around Google's Gemma 4 model
+  that helps migrant workers, NGOs, regulators, and researchers identify
+  recruitment fraud and trafficking-shaped patterns. The harness composes a
+  GREP-rule pattern detector, a BM25 RAG layer over a 26-doc legal corpus,
+  a corridor-aware tool dispatcher, and a journey-aware persona prompt.
+  Quantified result: +56.5 percentage points mean lift on a 207-prompt
+  hand-graded legal-citation rubric (+87.5 pp on jurisdiction-specific
+  rules, +51.2 pp on ILO/international convention citations) when the
+  harness is on vs off. Bundled coverage: 11 ILO C029 forced-labour
+  indicators, 12 migration corridors, 37 GREP rules, 26 RAG documents.
+authors:
+  - family-names: Amarel
+    given-names: Taylor
+    email: amarel.taylor.s@gmail.com
+    affiliation: Independent
+version: "0.1.0"
+date-released: "2026-05-02"
+license: MIT
+repository-code: "https://github.com/TaylorAmarelTech/gemma4_comp"
+url: "https://github.com/TaylorAmarelTech/gemma4_comp"
+keywords:
+  - LLM safety
+  - Gemma 4
+  - trafficking prevention
+  - migrant workers
+  - ILO forced-labour indicators
+  - on-device AI
+  - privacy by design
+references:
+  - type: report
+    title: "ILO Global Estimates of Modern Slavery"
+    authors:
+      - name: International Labour Organization
+    year: 2022
+    url: "https://www.ilo.org/global/topics/forced-labour/publications/WCMS_854733/lang--en/index.htm"
+preferred-citation:
+  type: software
+  title: "Duecare: A content-safety harness for Gemma 4 on migrant-worker trafficking risk"
+  authors:
+    - family-names: Amarel
+      given-names: Taylor
+  year: 2026
+  version: "0.1.0"
+  url: "https://github.com/TaylorAmarelTech/gemma4_comp"
+  notes: >-
+    Submission to the Google Gemma 4 Good Hackathon (Safety & Trust track),
+    deadline 2026-05-18.
