@@ -1,0 +1,19 @@
+{{- if and .Values.chat.enabled .Values.podDisruptionBudget.enabled }}
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include "duecare.fullname" . }}-chat
+  labels:
+    {{- include "duecare.labels" . | nindent 4 }}
+    app.kubernetes.io/component: chat
+spec:
+  {{- if .Values.podDisruptionBudget.minAvailable }}
+  minAvailable: {{ .Values.podDisruptionBudget.minAvailable }}
+  {{- else }}
+  maxUnavailable: {{ .Values.podDisruptionBudget.maxUnavailable | default 1 }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "duecare.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: chat
+{{- end }}

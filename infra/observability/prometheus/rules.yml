@@ -1,0 +1,113 @@
+# Prometheus alert rules for Duecare.
+#
+# These are the SLO-anchored alerts an SRE expects. Severity tags
+# follow the convention: `critical` pages on-call; `warning` opens
+# a ticket but doesn't page.
+
+groups:
+
+  - name: duecare-availability
+    interval: 30s
+    rules:
+
+      - alert: DuecareChatDown
+        expr: up{job="duecare-chat"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          service: duecare-chat
+        annotations:
+          summary: "Duecare chat server is down"
+          description: "The chat playground at {{ $labels.instance }} has been unreachable for 2m."
+          runbook: "docs/runbook.md#chat-server-down"
+
+      - alert: DuecareClassifierDown
+        expr: up{job="duecare-classifier"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          service: duecare-classifier
+        annotations:
+          summary: "Duecare classifier server is down"
+          runbook: "docs/runbook.md#classifier-server-down"
+
+      - alert: OllamaDown
+        expr: up{job="ollama"} == 0
+        for: 5m
+        labels:
+          severity: warning
+          service: ollama
+        annotations:
+          summary: "Ollama model server is down"
+          description: "Chat will fall back to canned responses or return errors. {{ $labels.instance }}"
+
+  - name: duecare-latency
+    interval: 30s
+    rules:
+
+      - alert: DuecareChatHighLatency
+        # SLO: p95 chat-completion latency < 8s for the E2B model.
+        expr: |
+          histogram_quantile(
+            0.95,
+            sum(rate(duecare_chat_request_duration_seconds_bucket[5m])) by (le)
+          ) > 8
+        for: 10m
+        labels:
+          severity: warning
+          service: duecare-chat
+        annotations:
+          summary: "Chat p95 latency is above the 8s SLO"
+          runbook: "docs/runbook.md#chat-high-latency"
+
+      - alert: DuecareChatHighErrorRate
+        # SLO: 99.5% chat-completion success.
+        expr: |
+          (
+            sum(rate(duecare_chat_requests_total{status=~"5.."}[5m]))
+            /
+            sum(rate(duecare_chat_requests_total[5m]))
+          ) > 0.005
+        for: 5m
+        labels:
+          severity: critical
+          service: duecare-chat
+        annotations:
+          summary: "Chat error rate above 0.5% SLO"
+          runbook: "docs/runbook.md#chat-error-rate"
+
+  - name: duecare-saturation
+    interval: 60s
+    rules:
+
+      - alert: DuecareTokenBudgetExhausted
+        # Per-tenant token budget — fires when a tenant exceeds 80%
+        # of their daily budget. Drives chargeback dashboards too.
+        expr: |
+          sum(increase(duecare_model_tokens_out_total[24h])) by (tenant)
+          / on(tenant) group_left
+          duecare_tenant_token_budget_daily > 0.8
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Tenant {{ $labels.tenant }} has used >80% of daily token budget"
+          runbook: "docs/runbook.md#token-budget-exhausted"
+
+      - alert: DuecareGrepRuleSilent
+        # If a high-severity GREP rule has not fired in 24h despite
+        # incoming traffic, the rule may be broken (regex regression
+        # after a corpus update).
+        expr: |
+          (
+            sum(rate(duecare_chat_requests_total[24h])) > 0.01
+          ) and on()
+          (
+            sum(increase(duecare_grep_rule_hits_total{severity="critical"}[24h])) by (rule_id) == 0
+          )
+        for: 6h
+        labels:
+          severity: warning
+        annotations:
+          summary: "Critical GREP rule {{ $labels.rule_id }} has not fired in 24h"
+          runbook: "docs/runbook.md#grep-rule-silent"

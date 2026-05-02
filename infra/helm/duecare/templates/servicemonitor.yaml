@@ -1,0 +1,31 @@
+{{- if .Values.serviceMonitor.enabled }}
+# Requires the Prometheus Operator (or kube-prometheus-stack) to be
+# installed in the cluster. The operator watches for ServiceMonitor
+# CRDs and configures Prometheus to scrape them.
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ include "duecare.fullname" . }}-chat
+  {{- with .Values.serviceMonitor.namespace }}
+  namespace: {{ . }}
+  {{- end }}
+  labels:
+    {{- include "duecare.labels" . | nindent 4 }}
+    {{- with .Values.serviceMonitor.additionalLabels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "duecare.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: chat
+  namespaceSelector:
+    matchNames:
+      - {{ .Release.Namespace }}
+  endpoints:
+    - port: http
+      path: {{ .Values.serviceMonitor.path | default "/metrics" }}
+      interval: {{ .Values.serviceMonitor.interval | default "30s" }}
+      scrapeTimeout: {{ .Values.serviceMonitor.scrapeTimeout | default "10s" }}
+      honorLabels: true
+{{- end }}
