@@ -1,0 +1,656 @@
+[
+  {
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Sample%20UAE%20alien%20worker%20contract-2.jpg?width=1200",
+    "category": "contract_employment",
+    "source": "Wikimedia Commons",
+    "license": "CC-BY-SA-4.0",
+    "attribution": "Wikimedia Commons contributors, 'Sample UAE alien worker contract' (page 2)",
+    "score": 14.0,
+    "signals": [
+      "in_domain-1",
+      "corridor-1",
+      "ocr_sparse",
+      "sample:sample"
+    ]
+  },
+  {
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Sample%20UAE%20alien%20worker%20contract-1.jpg?width=1200",
+    "category": "contract_employment",
+    "source": "Wikimedia Commons",
+    "license": "CC-BY-SA-4.0",
+    "attribution": "Wikimedia Commons contributors, 'Sample UAE alien worker contract' (page 1)",
+    "score": 14.0,
+    "signals": [
+      "in_domain-1",
+      "corridor-1",
+      "ocr_sparse",
+      "sample:sample"
+    ]
+  },
+  {
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Philippine%20Passport%20Biometric%20Data%20Page.jpg?width=1200",
+    "category": "passport_page",
+    "source": "Wikimedia Commons",
+    "license": "CC-BY-SA-4.0",
+    "attribution": "Wikimedia Commons contributors, 'Philippine Passport Biometric Data Page'",
+    "score": 12.0,
+    "signals": [
+      "in_domain-2",
+      "ocr_sparse"
+    ]
+  },
+  {
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Pakistan%20Passport%20Biodata%20Page.jpg?width=1200",
+    "category": "passport_page",
+    "source": "Wikimedia Commons",
+    "license": "CC-BY-SA-4.0",
+    "attribution": "Wikimedia Commons contributors, 'Pakistan Passport Biodata Page'",
+    "score": 16.0,
+    "signals": [
+      "in_domain-2",
+      "corridor-1",
+      "ocr_sparse"
+    ]
+  },
+  {
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Indonesian%20passport%20data%20page.jpg?width=1200",
+    "category": "passport_page",
+    "source": "Wikimedia Commons",
+    "license": "CC-BY-SA-4.0",
+    "attribution": "Wikimedia Commons contributors, 'Indonesian passport data page'",
+    "score": 14.0,
+    "signals": [
+      "in_domain-1",
+      "corridor-2",
+      "ocr_sparse"
+    ]
+  },
+  {
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Nepali%20E-Passport.jpg?width=1200",
+    "category": "passport_page",
+    "source": "Wikimedia Commons",
+    "license": "CC-BY-SA-4.0",
+    "attribution": "Wikimedia Commons contributors, 'Nepali E-Passport' -- Nepal is a major sending country (HRD Nepal partner)",
+    "score": 14.0,
+    "signals": [
+      "in_domain-1",
+      "corridor-2",
+      "ocr_sparse"
+    ]
+  },
+  {
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Bangladesh%20Passport%20Bio%20Page.jpg?width=1200",
+    "category": "passport_page",
+    "source": "Wikimedia Commons",
+    "license": "CC-BY-SA-4.0",
+    "attribution": "Wikimedia Commons contributors, 'Bangladesh Passport Bio Page'",
+    "score": 10.0,
+    "signals": [
+      "in_domain-1",
+      "corridor-1",
+      "ocr_sparse"
+    ]
+  },
+  {
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Saudi-ID-Card.jpg?width=1200",
+    "category": "id_card",
+    "source": "Wikimedia Commons",
+    "license": "CC-BY-SA-4.0",
+    "attribution": "Wikimedia Commons contributors, 'Saudi ID Card' -- destination-country iqama-style ID",
+    "score": 4.0,
+    "signals": [
+      "corridor-1",
+      "ocr_sparse"
+    ]
+  },
+  {
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Egyptian%20Passport%20Bio%20Page.jpg?width=1200",
+    "category": "passport_page",
+    "source": "Wikimedia Commons",
+    "license": "CC-BY-SA-4.0",
+    "attribution": "Wikimedia Commons contributors, 'Egyptian Passport Bio Page'",
+    "score": 6.0,
+    "signals": [
+      "in_domain-1",
+      "ocr_sparse"
+    ]
+  },
+  {
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Tazkira%20September%202025.jpg?width=1200",
+    "category": "id_card",
+    "source": "Wikimedia Commons",
+    "license": "CC-BY-SA-4.0",
+    "attribution": "Wikimedia Commons contributors, 'Tazkira September 2025' -- Afghan national ID",
+    "score": 6.0,
+    "signals": [
+      "in_domain-1",
+      "ocr_sparse"
+    ]
+  },
+  {
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Indian%20Passport%20Bio%20Page%202021.jpg?width=1200",
+    "category": "passport_page",
+    "source": "Wikimedia Commons",
+    "license": "CC-BY-SA-4.0",
+    "attribution": "Wikimedia Commons contributors, 'Indian Passport Bio Page 2021'",
+    "score": 14.0,
+    "signals": [
+      "in_domain-1",
+      "corridor-2",
+      "ocr_sparse"
+    ]
+  },
+  {
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Refugees%20family%20Identity.jpg?width=1200",
+    "category": "id_card",
+    "source": "Wikimedia Commons",
+    "license": "CC-BY-SA-4.0",
+    "attribution": "Wikimedia Commons contributors, 'Refugees family Identity' -- refugee/migrant household ID document",
+    "score": 0.0,
+    "signals": [
+      "ocr_sparse"
+    ]
+  },
+  {
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/LBOT%20ATM%20TX%20receipt%2020161226.jpg?width=1200",
+    "category": "receipt_remittance",
+    "source": "Wikimedia Commons",
+    "license": "CC-BY-SA-4.0",
+    "attribution": "Wikimedia Commons contributors, 'LBOT ATM TX receipt 20161226' -- ATM transaction slip (remittance proxy)",
+    "score": 4.0,
+    "signals": [
+      "historical-1",
+      "in_domain-2",
+      "ocr_sparse"
+    ]
+  },
+  {
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Iranian%20identity%20card.jpg?width=1200",
+    "category": "id_card",
+    "source": "Wikimedia Commons",
+    "license": "CC-BY-SA-4.0",
+    "attribution": "Wikimedia Commons contributors, 'Iranian identity card'",
+    "score": 0.0,
+    "signals": [
+      "ocr_sparse"
+    ]
+  },
+  {
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Beleg%20f%C3%BCr%20Devisenkauf%20%28Brasilien%202019%29.jpg?width=1200",
+    "category": "receipt_remittance",
+    "source": "Wikimedia Commons",
+    "license": "CC-BY-SA-4.0",
+    "attribution": "Wikimedia Commons contributors, 'Beleg fuer Devisenkauf (Brasilien 2019)' -- foreign-currency purchase receipt",
+    "score": 0.0,
+    "signals": [
+      "ocr_sparse"
+    ]
+  },
+  {
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/CapePartyPassport.jpg?width=1200",
+    "category": "passport_page",
+    "source": "Wikimedia Commons / Category:Passports by country",
+    "license": "see file page on Wikimedia Commons",
+    "attribution": "Wikimedia Commons contributors, 'CapePartyPassport.jpg' -- auto-pulled from Category:Passports by country",
+    "score": 6.0,
+    "signals": [
+      "in_domain-1",
+      "ocr_sparse"
+    ]
+  },
+  {
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Biometric%20Passport%20Map%20Updated.png?width=1200",
+    "category": "passport_page",
+    "source": "Wikimedia Commons / Category:Biometric passports",
+    "license": "see file page on Wikimedia Commons",
+    "attribution": "Wikimedia Commons contributors, 'Biometric Passport Map Updated.png' -- auto-pulled from Category:Biometric passports",
+    "score": 12.0,
+    "signals": [
+      "in_domain-2",
+      "ocr_sparse"
+    ]
+  },
+  {
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Biometric%20passports%20country.png?width=1200",
+    "category": "passport_page",
+    "source": "Wikimedia Commons / Category:Biometric passports",
+    "license": "see file page on Wikimedia Commons",
+    "attribution": "Wikimedia Commons contributors, 'Biometric passports country.png' -- auto-pulled from Category:Biometric passports",
+    "score": 12.0,
+    "signals": [
+      "in_domain-2",
+      "ocr_sparse"
+    ]
+  },
+  {
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Biometric%20passport%20RFID%20chip%20high%20res.png?width=1200",
+    "category": "passport_page",
+    "source": "Wikimedia Commons / Category:Biometric passports",
+    "license": "see file page on Wikimedia Commons",
+    "attribution": "Wikimedia Commons contributors, 'Biometric passport RFID chip high res.png' -- auto-pulled from Category:Biometric passports",
+    "score": 12.0,
+    "signals": [
+      "in_domain-2",
+      "ocr_sparse"
+    ]
+  },
+  {
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Albania%20identity%20card%201981%20001.jpg?width=1200",
+    "category": "id_card",
+    "source": "Wikimedia Commons / Category:Identity cards by country",
+    "license": "see file page on Wikimedia Commons",
+    "attribution": "Wikimedia Commons contributors, 'Albania identity card 1981 001.jpg' -- auto-pulled from Category:Identity cards by country",
+    "score": 0.0,
+    "signals": [
+      "ocr_sparse"
+    ]
+  },
+  {
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Aufenthaltskarte-%C3%96sterreich.JPG?width=1200",
+    "category": "id_card",
+    "source": "Wikimedia Commons / Category:Identity cards by country",
+    "license": "see file page on Wikimedia Commons",
+    "attribution": "Wikimedia Commons contributors, 'Aufenthaltskarte-Österreich.JPG' -- auto-pulled from Category:Identity cards by country",
+    "score": 0.0,
+    "signals": [
+      "ocr_sparse"
+    ]
+  },
+  {
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Licencia%20conduccion%20Colombia.png?width=1200",
+    "category": "id_card",
+    "source": "Wikimedia Commons / Category:Driver's licenses by country",
+    "license": "see file page on Wikimedia Commons",
+    "attribution": "Wikimedia Commons contributors, 'Licencia conduccion Colombia.png' -- auto-pulled from Category:Driver's licenses by country",
+    "score": 0.0,
+    "signals": [
+      "ocr_sparse"
+    ]
+  },
+  {
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/2022.%20%D0%9C%D1%83%D0%B7%D0%B5%D0%B9%20%D0%B8%D1%81%D1%82%D0%BE%D1%80%D0%B8%D0%B8%20%D0%B3%D0%BE%D1%80%D0%BE%D0%B4%D0%B0%20%D0%A1%D0%B8%D0%BC%D1%84%D0%B5%D1%80%D0%BE%D0%BF%D0%BE%D0%BB%D1%8F%20DSC%201819.jpg?width=1200",
+    "category": "id_card",
+    "source": "Wikimedia Commons / Category:Driver's licenses",
+    "license": "see file page on Wikimedia Commons",
+    "attribution": "Wikimedia Commons contributors, '2022. Музей истории города Симферополя DSC 1819.jpg' -- auto-pulled from Category:Driver's licenses",
+    "score": 0.0,
+    "signals": [
+      "ocr_sparse"
+    ]
+  },
+  {
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Aminadab%20Gaxiola%20Gonzalez.jpg?width=1200",
+    "category": "id_card",
+    "source": "Wikimedia Commons / Category:Driver's licenses",
+    "license": "see file page on Wikimedia Commons",
+    "attribution": "Wikimedia Commons contributors, 'Aminadab Gaxiola Gonzalez.jpg' -- auto-pulled from Category:Driver's licenses",
+    "score": 0.0,
+    "signals": [
+      "ocr_sparse"
+    ]
+  },
+  {
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/11-11-11%2011-11%20example.jpg?width=1200",
+    "category": "receipt_remittance",
+    "source": "Wikimedia Commons / Category:Receipts",
+    "license": "see file page on Wikimedia Commons",
+    "attribution": "Wikimedia Commons contributors, '11-11-11 11-11 example.jpg' -- auto-pulled from Category:Receipts",
+    "score": 0.0,
+    "signals": [
+      "ocr_sparse"
+    ]
+  },
+  {
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/1955%20Kingdom%20of%20Libya%20visa%20%26%20consular%20revenue%20stamps%20inside%20a%20British%20passport%20issued%20in%20Cairo.jpg?width=1200",
+    "category": "visa_stamp",
+    "source": "Wikimedia Commons / Category:Visas",
+    "license": "see file page on Wikimedia Commons",
+    "attribution": "Wikimedia Commons contributors, '1955 Kingdom of Libya visa & consular revenue stamps inside a British passport issued in Cairo.jpg' -- auto-pulled from Category:Visas",
+    "score": 6.0,
+    "signals": [
+      "in_domain-1",
+      "ocr_sparse"
+    ]
+  },
+  {
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/315607%20315607%20315607%20img%200658.jpg?width=1200",
+    "category": "visa_stamp",
+    "source": "Wikimedia Commons / Category:Visas",
+    "license": "see file page on Wikimedia Commons",
+    "attribution": "Wikimedia Commons contributors, '315607 315607 315607 img 0658.jpg' -- auto-pulled from Category:Visas",
+    "score": 0.0,
+    "signals": [
+      "ocr_sparse"
+    ]
+  },
+  {
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/British%20Consul%20General%20Visa%20For%20Israel%20Palestine%201933%20Djerassi%20Family%20Salonica.jpg?width=1200",
+    "category": "visa_stamp",
+    "source": "Wikimedia Commons / Category:Visas",
+    "license": "see file page on Wikimedia Commons",
+    "attribution": "Wikimedia Commons contributors, 'British Consul General Visa For Israel Palestine 1933 Djerassi Family Salonica.jpg' -- auto-pulled from Category:Visas",
+    "score": 6.0,
+    "signals": [
+      "in_domain-1",
+      "ocr_sparse"
+    ]
+  },
+  {
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/2015-03-09%20Dalbath%20Receipt%20of%20Yin%20Yang%20Restaurant%20in%20Thamel%2C%20Kathmandu%2C%20Nepal%20%E3%83%80%E3%83%AB%E3%83%90%E3%83%BC%E3%83%88%20DSCF6295.JPG?width=1200",
+    "category": "receipt_remittance",
+    "source": "Wikimedia Commons / Category:Receipts",
+    "license": "see file page on Wikimedia Commons",
+    "attribution": "Wikimedia Commons contributors, '2015-03-09 Dalbath Receipt of Yin Yang Restaurant in Thamel, Kathmandu, Nepal ダルバート DSCF6295.JPG' -- auto-pulled from Category:Receipts",
+    "score": 10.0,
+    "signals": [
+      "in_domain-1",
+      "corridor-1",
+      "ocr_sparse"
+    ]
+  },
+  {
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Canadian%20National%20Express%20%2844437195931%29.jpg?width=1200",
+    "category": "receipt_remittance",
+    "source": "Wikimedia Commons / Category:Money orders",
+    "license": "see file page on Wikimedia Commons",
+    "attribution": "Wikimedia Commons contributors, 'Canadian National Express (44437195931).jpg' -- auto-pulled from Category:Money orders",
+    "score": 0.0,
+    "signals": [
+      "ocr_sparse"
+    ]
+  },
+  {
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/2007.08.15.Kassazettel.WienerWasser.JPG?width=1200",
+    "category": "receipt_remittance",
+    "source": "Wikimedia Commons / Category:Receipts",
+    "license": "see file page on Wikimedia Commons",
+    "attribution": "Wikimedia Commons contributors, '2007.08.15.Kassazettel.WienerWasser.JPG' -- auto-pulled from Category:Receipts",
+    "score": 0.0,
+    "signals": [
+      "ocr_sparse"
+    ]
+  },
+  {
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/American%20Express%20Money%20Order%20LCCN2014710042.jpg?width=1200",
+    "category": "receipt_remittance",
+    "source": "Wikimedia Commons / Category:Money orders",
+    "license": "see file page on Wikimedia Commons",
+    "attribution": "Wikimedia Commons contributors, 'American Express Money Order LCCN2014710042.jpg' -- auto-pulled from Category:Money orders",
+    "score": 0.0,
+    "signals": [
+      "ocr_sparse"
+    ]
+  },
+  {
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/%22These%20Wires%20Carry%20Fighting%20Words%20Mister%22%20-%20NARA%20-%20534004.jpg?width=1200",
+    "category": "receipt_remittance",
+    "source": "Wikimedia Commons / Category:Western Union",
+    "license": "see file page on Wikimedia Commons",
+    "attribution": "Wikimedia Commons contributors, '\"These Wires Carry Fighting Words Mister\" - NARA - 534004.jpg' -- auto-pulled from Category:Western Union",
+    "score": 6.0,
+    "signals": [
+      "in_domain-1",
+      "ocr_sparse"
+    ]
+  },
+  {
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/08481jfSaint%20Mabini%20San%20Ramon%20Barangays%20Dinalupihan%20Bataanfvf%2043.JPG?width=1200",
+    "category": "receipt_remittance",
+    "source": "Wikimedia Commons / Category:Western Union",
+    "license": "see file page on Wikimedia Commons",
+    "attribution": "Wikimedia Commons contributors, '08481jfSaint Mabini San Ramon Barangays Dinalupihan Bataanfvf 43.JPG' -- auto-pulled from Category:Western Union",
+    "score": 0.0,
+    "signals": [
+      "ocr_sparse"
+    ]
+  },
+  {
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/%22A%20view%20of%20a%20group%20of%20applicants%20at%20the%20High%20School%20building%2C%20Clinton%2C%20Tennessee%2C%20ready%20to%20take%20the%20examination%20for...%20-%20NARA%20-%20532812.jpg?width=1200",
+    "category": "contract_employment",
+    "source": "Wikimedia Commons / Category:Employment",
+    "license": "see file page on Wikimedia Commons",
+    "attribution": "Wikimedia Commons contributors, '\"A view of a group of applicants at the High School building, Clinton, Tennessee, ready to take the examination for... - NARA - 532812.jpg' -- auto-pulled from Category:Employment",
+    "score": 0.0,
+    "signals": [
+      "ocr_sparse"
+    ]
+  },
+  {
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/BuyingWikipediaBacklinkSEO%201.jpg?width=1200",
+    "category": "chat_screenshot",
+    "source": "Wikimedia Commons / Category:Screenshots of WhatsApp",
+    "license": "see file page on Wikimedia Commons",
+    "attribution": "Wikimedia Commons contributors, 'BuyingWikipediaBacklinkSEO 1.jpg' -- auto-pulled from Category:Screenshots of WhatsApp",
+    "score": 0.0,
+    "signals": [
+      "ocr_sparse"
+    ]
+  },
+  {
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/2013%20auf%20der%20Wirschaftsmesse%20Hannover%2C%20Stand%20Mediengruppe%20Madsack%2C%20Philipp%20Dempewolf%20f%C3%BCr%20den%20Stellenmarkt%20und%20die%20online-Jobb%C3%B6rse%20%C3%BCber%20haz-job.de.jpg?width=1200",
+    "category": "contract_employment",
+    "source": "Wikimedia Commons / Category:Employment",
+    "license": "see file page on Wikimedia Commons",
+    "attribution": "Wikimedia Commons contributors, '2013 auf der Wirschaftsmesse Hannover, Stand Mediengruppe Madsack, Philipp Dempewolf für den Stellenmarkt und die online-Jobbörse über haz-job.de.jpg' -- auto-pulled from Category:Employment",
+    "score": 0.0,
+    "signals": [
+      "ocr_sparse"
+    ]
+  },
+  {
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Dad%20joke.jpg?width=1200",
+    "category": "chat_screenshot",
+    "source": "Wikimedia Commons / Category:Screenshots of WhatsApp",
+    "license": "see file page on Wikimedia Commons",
+    "attribution": "Wikimedia Commons contributors, 'Dad joke.jpg' -- auto-pulled from Category:Screenshots of WhatsApp",
+    "score": 0.0,
+    "signals": [
+      "ocr_sparse"
+    ]
+  },
+  {
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Degeneration.jpg?width=1200",
+    "category": "chat_screenshot",
+    "source": "Wikimedia Commons / Category:Text messages",
+    "license": "see file page on Wikimedia Commons",
+    "attribution": "Wikimedia Commons contributors, 'Degeneration.jpg' -- auto-pulled from Category:Text messages",
+    "score": 0.0,
+    "signals": [
+      "ocr_sparse"
+    ]
+  },
+  {
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Russian%20Biometric%20International%20Passport%20Data%20Page.jpg?width=1200",
+    "category": "passport_page",
+    "source": "Wikimedia Commons / search:biometric passport data page",
+    "license": "see file page on Wikimedia Commons",
+    "attribution": "Wikimedia Commons contributors, 'Russian Biometric International Passport Data Page.jpg' -- search hit for 'biometric passport data page'",
+    "score": 12.0,
+    "signals": [
+      "in_domain-2",
+      "ocr_sparse"
+    ]
+  },
+  {
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Saudi%20Hajj%20Umrah%20visit%20visa%20stamp%202019.jpg?width=1200",
+    "category": "visa_stamp",
+    "source": "Wikimedia Commons / search:Saudi Arabia work visa stamp",
+    "license": "see file page on Wikimedia Commons",
+    "attribution": "Wikimedia Commons contributors, 'Saudi Hajj Umrah visit visa stamp 2019.jpg' -- search hit for 'Saudi Arabia work visa stamp'",
+    "score": 10.0,
+    "signals": [
+      "in_domain-1",
+      "corridor-1",
+      "ocr_sparse"
+    ]
+  },
+  {
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Ukrainian%20biometric%20passport%20data%20page.jpg?width=1200",
+    "category": "passport_page",
+    "source": "Wikimedia Commons / search:biometric passport data page",
+    "license": "see file page on Wikimedia Commons",
+    "attribution": "Wikimedia Commons contributors, 'Ukrainian biometric passport data page.jpg' -- search hit for 'biometric passport data page'",
+    "score": 12.0,
+    "signals": [
+      "in_domain-2",
+      "ocr_sparse"
+    ]
+  },
+  {
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Saudentry.png?width=1200",
+    "category": "visa_stamp",
+    "source": "Wikimedia Commons / search:Saudi Arabia work visa stamp",
+    "license": "see file page on Wikimedia Commons",
+    "attribution": "Wikimedia Commons contributors, 'Saudentry.png' -- search hit for 'Saudi Arabia work visa stamp'",
+    "score": 6.0,
+    "signals": [
+      "in_domain-1",
+      "ocr_sparse"
+    ]
+  },
+  {
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Authenticity%20tests%20of%20the%20recovered%20passport%20and%20visa%20of%20Satam%20al-Suqami.pdf?width=1200",
+    "category": "visa_stamp",
+    "source": "Wikimedia Commons / search:Qatar visa stamp passport",
+    "license": "see file page on Wikimedia Commons",
+    "attribution": "Wikimedia Commons contributors, 'Authenticity tests of the recovered passport and visa of Satam al-Suqami.pdf' -- search hit for 'Qatar visa stamp passport'",
+    "score": 5.0,
+    "signals": [
+      "in_domain-1",
+      "ocr_sparse"
+    ]
+  },
+  {
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Afghanistan%20Evacuation%20210823-D-D0477-003.jpg?width=1200",
+    "category": "visa_stamp",
+    "source": "Wikimedia Commons / search:Kuwait visa stamp",
+    "license": "see file page on Wikimedia Commons",
+    "attribution": "Wikimedia Commons contributors, 'Afghanistan Evacuation 210823-D-D0477-003.jpg' -- search hit for 'Kuwait visa stamp'",
+    "score": 0.0,
+    "signals": [
+      "ocr_sparse"
+    ]
+  },
+  {
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Afghanistan%20Evacuation%20210823-D-D0477-001.jpg?width=1200",
+    "category": "visa_stamp",
+    "source": "Wikimedia Commons / search:Kuwait visa stamp",
+    "license": "see file page on Wikimedia Commons",
+    "attribution": "Wikimedia Commons contributors, 'Afghanistan Evacuation 210823-D-D0477-001.jpg' -- search hit for 'Kuwait visa stamp'",
+    "score": 0.0,
+    "signals": [
+      "ocr_sparse"
+    ]
+  },
+  {
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Hong%20Kong%20Visit%20Permit%20%28other%2C%2014days%2C%20single%29%20by%20PRC%20with%20stamps.jpg?width=1200",
+    "category": "visa_stamp",
+    "source": "Wikimedia Commons / search:Hong Kong visa stamp",
+    "license": "see file page on Wikimedia Commons",
+    "attribution": "Wikimedia Commons contributors, 'Hong Kong Visit Permit (other, 14days, single) by PRC with stamps.jpg' -- search hit for 'Hong Kong visa stamp'",
+    "score": 0.0,
+    "signals": [
+      "ocr_sparse"
+    ]
+  },
+  {
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Entry%20stamp%20of%20British%20Hong%20Kong.jpg?width=1200",
+    "category": "visa_stamp",
+    "source": "Wikimedia Commons / search:Hong Kong visa stamp",
+    "license": "see file page on Wikimedia Commons",
+    "attribution": "Wikimedia Commons contributors, 'Entry stamp of British Hong Kong.jpg' -- search hit for 'Hong Kong visa stamp'",
+    "score": 6.0,
+    "signals": [
+      "in_domain-1",
+      "ocr_sparse"
+    ]
+  },
+  {
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Visa%20Requirements%20for%20Singapore%20nationals.jpg?width=1200",
+    "category": "visa_stamp",
+    "source": "Wikimedia Commons / search:Singapore work visa",
+    "license": "see file page on Wikimedia Commons",
+    "attribution": "Wikimedia Commons contributors, 'Visa Requirements for Singapore nationals.jpg' -- search hit for 'Singapore work visa'",
+    "score": 10.0,
+    "signals": [
+      "in_domain-1",
+      "corridor-1",
+      "ocr_sparse"
+    ]
+  },
+  {
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Emirates%20ID%20Card%20For%20UAE%20Citizens%20%28Old%29.jpg?width=1200",
+    "category": "id_card",
+    "source": "Wikimedia Commons / search:UAE Emirates ID card",
+    "license": "see file page on Wikimedia Commons",
+    "attribution": "Wikimedia Commons contributors, 'Emirates ID Card For UAE Citizens (Old).jpg' -- search hit for 'UAE Emirates ID card'",
+    "score": 0.0,
+    "signals": [
+      "historical-1",
+      "corridor-2",
+      "ocr_sparse"
+    ]
+  },
+  {
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Malaysian%20visa%20stamp.jpg?width=1200",
+    "category": "visa_stamp",
+    "source": "Wikimedia Commons / search:Malaysia visa stamp passport",
+    "license": "see file page on Wikimedia Commons",
+    "attribution": "Wikimedia Commons contributors, 'Malaysian visa stamp.jpg' -- search hit for 'Malaysia visa stamp passport'",
+    "score": 14.0,
+    "signals": [
+      "in_domain-1",
+      "corridor-2",
+      "ocr_sparse"
+    ]
+  },
+  {
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Old%20Visitor%20Visa%20of%20Malaysia%20Issued%20on%20the%20old%20PRC%20Passport%20in%202012.jpg?width=1200",
+    "category": "visa_stamp",
+    "source": "Wikimedia Commons / search:Malaysia visa stamp passport",
+    "license": "see file page on Wikimedia Commons",
+    "attribution": "Wikimedia Commons contributors, 'Old Visitor Visa of Malaysia Issued on the old PRC Passport in 2012.jpg' -- search hit for 'Malaysia visa stamp passport'",
+    "score": 10.0,
+    "signals": [
+      "in_domain-1",
+      "corridor-1",
+      "ocr_sparse"
+    ]
+  },
+  {
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Emirates%20ID%20Card%20For%20UAE%20Citizens%20%28New%29.png?width=1200",
+    "category": "id_card",
+    "source": "Wikimedia Commons / search:UAE Emirates ID card",
+    "license": "see file page on Wikimedia Commons",
+    "attribution": "Wikimedia Commons contributors, 'Emirates ID Card For UAE Citizens (New).png' -- search hit for 'UAE Emirates ID card'",
+    "score": 8.0,
+    "signals": [
+      "corridor-2",
+      "ocr_sparse"
+    ]
+  },
+  {
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Contracts%20for%20Overseas%20Employment%20Ordinance%201965%20%28Cap.%2078%29.pdf?width=1200",
+    "category": "contract_employment",
+    "source": "Wikimedia Commons / search:standard employment contract domestic worker",
+    "license": "see file page on Wikimedia Commons",
+    "attribution": "Wikimedia Commons contributors, 'Contracts for Overseas Employment Ordinance 1965 (Cap. 78).pdf' -- search hit for 'standard employment contract domestic worker'",
+    "score": 5.0,
+    "signals": [
+      "in_domain-1",
+      "ocr_sparse"
+    ]
+  },
+  {
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/The%20Merchant%20Shipping%20%28Maritime%20Labour%20Convention%29%20%28Recruitment%20and%20Placement%29%20Regulations%202014%20%28UKSI%202014-1615%29.pdf?width=1200",
+    "category": "receipt_recruitment_fee",
+    "source": "Wikimedia Commons / search:recruitment agency receipt fee",
+    "license": "see file page on Wikimedia Commons",
+    "attribution": "Wikimedia Commons contributors, 'The Merchant Shipping (Maritime Labour Convention) (Recruitment and Placement) Regulations 2014 (UKSI 2014-1615).pdf' -- search hit for 'recruitment agency receipt fee'",
+    "score": 11.0,
+    "signals": [
+      "in_domain-2",
+      "ocr_sparse"
+    ]
+  }
+]

@@ -344,7 +344,11 @@ _KERNEL_PRESETS = {
         "kernel_py": "kernel.py",
         "ipynb_name": "notebook.ipynb",
         "slug": "duecare-bench-and-tune",
-        "title": "Duecare Bench & Tune",
+        # Title MUST derive to the slug above when lowercased + spaces->hyphens
+        # (per feedback_kaggle_slug_derivation memory). "Duecare Bench and Tune"
+        # -> "duecare-bench-and-tune". The "&" form would derive to a
+        # different slug and break the existence check.
+        "title": "Duecare Bench and Tune",
         "wheels_dataset_slug": "duecare-bench-and-tune-wheels",
         "wheels_dir": "wheels",
         "model_sources": _DEFAULT_GEMMA4_MODELS,
@@ -368,6 +372,66 @@ _KERNEL_PRESETS = {
         "wheels_dataset_slug": "duecare-gemma-content-classification-evaluation-wheels",
         "wheels_dir": "wheels",
         "model_sources": _DEFAULT_GEMMA4_MODELS,
+    },
+    "prompt-generation": {
+        "notebook_dir": "kaggle/prompt-generation",
+        "kernel_py": "kernel.py",
+        "ipynb_name": "notebook.ipynb",
+        "slug": "duecare-prompt-generation",
+        "title": "Duecare Prompt Generation",
+        "wheels_dataset_slug": "duecare-prompt-generation-wheels",
+        "wheels_dir": "wheels",
+        "model_sources": _DEFAULT_GEMMA4_MODELS,
+    },
+    "research-graphs": {
+        "notebook_dir": "kaggle/research-graphs",
+        "kernel_py": "kernel.py",
+        "ipynb_name": "notebook.ipynb",
+        "slug": "duecare-research-graphs",
+        "title": "Duecare Research Graphs",
+        "wheels_dataset_slug": "duecare-research-graphs-wheels",
+        "wheels_dir": "wheels",
+        "model_sources": [],   # pure visualization, no model attached
+    },
+    "content-classification-playground": {
+        "notebook_dir": "kaggle/content-classification-playground",
+        "kernel_py": "kernel.py",
+        "ipynb_name": "notebook.ipynb",
+        "slug": "duecare-content-classification-playground",
+        "title": "Duecare Content Classification Playground",
+        "wheels_dataset_slug": "duecare-content-classification-playground-wheels",
+        "wheels_dir": "wheels",
+        "model_sources": _DEFAULT_GEMMA4_MODELS,
+    },
+    "content-knowledge-builder-playground": {
+        "notebook_dir": "kaggle/content-knowledge-builder-playground",
+        "kernel_py": "kernel.py",
+        "ipynb_name": "notebook.ipynb",
+        "slug": "duecare-content-knowledge-builder-playground",
+        "title": "Duecare Content Knowledge Builder Playground",
+        "wheels_dataset_slug": "duecare-content-knowledge-builder-playground-wheels",
+        "wheels_dir": "wheels",
+        "model_sources": _DEFAULT_GEMMA4_MODELS[:2],  # only E4B + E2B
+    },
+    "chat-playground-with-agentic-research": {
+        "notebook_dir": "kaggle/chat-playground-with-agentic-research",
+        "kernel_py": "kernel.py",
+        "ipynb_name": "notebook.ipynb",
+        "slug": "duecare-chat-playground-with-agentic-research",
+        "title": "Duecare Chat Playground with Agentic Research",
+        "wheels_dataset_slug": "duecare-chat-playground-with-agentic-research-wheels",
+        "wheels_dir": "wheels",
+        "model_sources": _DEFAULT_GEMMA4_MODELS,
+    },
+    "chat-playground-jailbroken-models": {
+        "notebook_dir": "kaggle/chat-playground-jailbroken-models",
+        "kernel_py": "kernel.py",
+        "ipynb_name": "notebook.ipynb",
+        "slug": "duecare-chat-playground-jailbroken-models",
+        "title": "Duecare Chat Playground Jailbroken Models",
+        "wheels_dataset_slug": "duecare-chat-playground-jailbroken-models-wheels",
+        "wheels_dir": "wheels",
+        "model_sources": [],   # HF Hub download per JAILBROKEN_MODEL config
     },
 }
 

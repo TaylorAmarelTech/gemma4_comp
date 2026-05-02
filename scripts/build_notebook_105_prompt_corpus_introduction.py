@@ -38,7 +38,7 @@ KEYWORDS = ["gemma", "safety", "llm", "trafficking", "corpus", "introduction"]
 
 URL_000 = "https://www.kaggle.com/code/taylorsamarel/duecare-000-index"
 URL_005 = "https://www.kaggle.com/code/taylorsamarel/duecare-005-glossary"
-URL_099 = "https://www.kaggle.com/code/taylorsamarel/099-duecare-orientation-and-background-and-package-setup-conclusion"
+URL_099 = "https://www.kaggle.com/code/taylorsamarel/099-duecare-orientation-setup-conclusion"
 URL_100 = "https://www.kaggle.com/code/taylorsamarel/duecare-real-gemma-4-on-50-trafficking-prompts"
 URL_105 = "https://www.kaggle.com/code/taylorsamarel/105-duecare-prompt-corpus-introduction"
 URL_110 = "https://www.kaggle.com/code/taylorsamarel/00a-duecare-prompt-prioritizer-data-pipeline"
@@ -46,7 +46,7 @@ URL_120 = "https://www.kaggle.com/code/taylorsamarel/duecare-prompt-remixer"
 URL_130 = "https://www.kaggle.com/code/taylorsamarel/duecare-prompt-corpus-exploration"
 URL_140 = "https://www.kaggle.com/code/taylorsamarel/140-duecare-evaluation-mechanics"
 URL_190 = "https://www.kaggle.com/code/taylorsamarel/190-duecare-rag-retrieval-inspector"
-URL_299 = "https://www.kaggle.com/code/taylorsamarel/duecare-baseline-text-evaluation-framework-conclusion"
+URL_299 = "https://www.kaggle.com/code/taylorsamarel/299-duecare-text-evaluation-conclusion"
 
 
 def md(s: str) -> dict:

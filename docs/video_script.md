@@ -63,13 +63,15 @@ Annotations pop up:
 > camouflaged recruitment fees. They don't know which corridors have
 > zero-fee policies. They give the trafficker advice."*
 
-> *"The organizations that most need to evaluate LLMs for this work
-> — frontline NGOs, recruitment regulators, labor ministries — can't
-> send sensitive case data to frontier APIs. Privacy is non-negotiable."*
+> *"And every published trafficking benchmark misses a deeper gap:
+> even when Maria knew the fee was illegal, refusing meant her
+> deployment went to someone else, and her family wouldn't eat. The
+> worst case isn't paying the illegal fee — it's paying it AND
+> having no evidence trail to recover."*
 
 **Music:** Low piano enters at 0:25.
 
-### 0:35–1:50 — The demo (the headline 75 seconds)
+### 0:35–1:42 — The demo (67 seconds)
 
 **Visual:** Cut to the **chat-playground-with-grep-rag-tools notebook**.
 Same 68%-loan prompt is pasted. **All four toggle tiles (Persona /
@@ -96,10 +98,10 @@ Cut to the response area. Gemma's response now reads:
 
 > *"This is Duecare. Same Gemma 4. Four toggle layers built into the
 > chat surface. Persona — a 40-year anti-trafficking expert. GREP —
-> 22 regex rules tagged with ILO conventions and national statutes.
-> RAG — an 18-document corpus of ILO C029, C181, C095, POEA circulars,
-> BP2MI regulations, HK statutes. Tools — corridor fee caps, fee
-> camouflage decoder, ILO indicator matcher, NGO intake hotlines."*
+> 37 regex rules tagged with ILO conventions and national statutes.
+> RAG — a 26-document corpus including ILO C029, C181, C189, POEA
+> circulars, the Palermo Protocol, ICRMW. Tools — corridor fee caps,
+> fee camouflage decoder, ILO indicator matcher, NGO intake hotlines."*
 
 > *"Watch the response transform. Then click 'View pipeline.'"*
 
@@ -116,6 +118,30 @@ of structured pre-context. Camera scrolls through.
 > rule, a document, or a tool result. This is the harness."*
 
 **Music:** Warm pad enters at 1:20.
+
+### 1:42–1:50 — The numbers (8-second on-screen evidence)
+
+**Visual:** Hold on the FINAL MERGED PROMPT card. A clean white
+callout fades in over the lower third of the screen with three lines:
+
+> **+87.5 pp** — citing the right jurisdiction-specific statute
+> **+51.2 pp** — citing the right ILO convention
+> **+34.1 pp** — applying substance-over-form analysis
+
+Below in smaller type: *"207 prompts. Hand-graded 12-criterion rubric.
+docs/harness_lift_report.md"*.
+
+**Voiceover (inserts naturally over the existing demo beat):**
+
+> *"And we measured it. Across 207 prompts, three failure modes stock
+> LLMs share — citing the wrong jurisdiction's law, missing the ILO
+> convention, ignoring substance over form — the harness lifts each
+> by 34 to 88 percentage points. Both GREP and RAG pull their weight
+> independently."*
+
+**Production note.** Keep the callout visible for 7-8 seconds. Don't
+read every number — let the on-screen text carry the detail; the
+voiceover names the high-level claim.
 
 ### 1:50–2:15 — The classification path (the dashboard reveal)
 
@@ -161,19 +187,35 @@ returned.
 > Native function calling — Gemma decides when to call the corridor
 > lookup. Both are first-class in our pipeline, not decoration."*
 
-### 2:30–2:42 — Two paths, one harness
+### 2:30–2:42 — Two paths today, three tomorrow
 
-**Visual:** Side-by-side. Left: phone showing the chat playground
-loaded in a mobile browser (a worker pasting a recruiter message).
-Right: desktop showing the content-classification dashboard (an NGO
-officer reviewing a queue).
+**Visual:** Three-up split.
+- **Left:** phone showing the chat playground loaded in a mobile
+  browser, with the responsive layout snapped to portrait (worker
+  pasting a recruiter message).
+- **Middle:** desktop showing the content-classification dashboard
+  (an NGO officer reviewing a queue).
+- **Right (overlay card with subtle "v1 — in development" pill):**
+  a mockup of the Android home screen of **Duecare Journey** — the
+  4-tab nav (Journal · Advice · Complaint · Settings) — fading in
+  as the camera holds.
 
 **Voiceover:**
 
-> *"Same harness. Two audiences. A migrant worker pastes a recruiter
-> message into the chat. An NGO officer triages 500 cases through the
-> dashboard. Same Gemma 4 weights. Same zero inference cost. Same
-> no-data-leaves-your-machine guarantee."*
+> *"Same harness. Inform AND document. The chat tells Maria the fee
+> violates POEA Memorandum 14-2017. If she refuses, harm prevented.
+> If she has to pay anyway, the journal captures the receipt + the
+> recruiter's POEA license number + the controlling statute, and
+> pre-stages her refund claim. Same harness on the desktop NGO
+> dashboard for triage. And next — Duecare Journey: the same
+> harness fully on-device, LiteRT Gemma 4 E2B, encrypted journal,
+> one-tap refund or complaint PDF. APK published."*
+
+**Production note.** The Android mockup is a static frame, not a live
+build — the v1 app lands the week after the hackathon. The "in
+development" pill keeps this honest. Architecture doc:
+`docs/android_app_architecture.md`. Skeleton + CI build pipeline live
+in the sibling repo `duecare-journey-android/`.
 
 ### 2:42–2:50 — Closer
 
@@ -183,7 +225,7 @@ officer reviewing a queue).
 > *Exercising due care in LLM safety design.*
 >
 > github.com/TaylorAmarelTech/gemma4_comp
-> kaggle.com/taylorsamarel · five public Kaggle notebooks
+> kaggle.com/taylorsamarel · six core + five appendix notebooks
 > Submission: Gemma 4 Good Hackathon · Safety & Trust track
 
 **Voiceover (on-camera narrator, 5 sec):**
@@ -216,12 +258,26 @@ Fade to black. Music fades.
       clicking each of 4 toggles, then sending the same prompt
 - [ ] Screen recording: View pipeline modal scrolling through all 7
       cards including the FINAL MERGED PROMPT
+- [ ] Lower-third callout overlay (white background, three lift-pp
+      numbers + rubric attribution; 7-8 sec hold at 1:42-1:50)
 - [ ] Screen recording: classification notebook, Examples modal, click
       WhatsApp example, Classify, result card fills
-- [ ] Side-by-side phone/desktop split (the "two audiences" beat)
+- [ ] Three-up split: phone (mobile-responsive web chat) +
+      desktop (classifier dashboard) + Android mockup with "v1 —
+      in development" pill
+- [ ] Static Android mockup frame: bottom-nav with Journal · Advice
+      · Complaint · Settings tabs (matches the sibling
+      `duecare-journey-android/` skeleton)
 - [ ] End card with URLs
 
-**Voiceover word count:** ~285 words. Trim 10–15 if read feels rushed.
+**Voiceover word count:** ~325 words after the numbers beat insert
+(was ~285). At 100 wpm that's 3:15 — over the 2:50 visual cap. To
+land on time, either: (a) keep the new "the numbers" VO and trim
+20-30 words from the demo + classification + features beats, OR
+(b) keep the new visual overlay but DROP the new VO entirely — let
+the on-screen numbers carry the moment in silence (recommended; the
+restraint reads as confidence, and the warm pad music covers the
+8-second hold).
 
 **Schedule (revised for 20-day timeline from 2026-04-28):**
 

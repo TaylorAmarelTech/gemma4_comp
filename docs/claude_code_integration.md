@@ -5,6 +5,12 @@
 > landscape, what's worth adopting, what we're already doing right.
 >
 > Last updated: 2026-04-11.
+>
+> **Path layout update (2026-04-18):** references to `src/forge/*` below
+> describe the pre-package monolithic layout. Live code now lives under
+> `packages/duecare-llm-*/src/duecare/*`. The hierarchical context
+> precedence rule, `AGENTS.md` placement logic, and `.claude/rules/*.md`
+> patterns described here are unchanged; only the file roots moved.
 
 ## TL;DR — what's landing in the project
 
@@ -56,7 +62,8 @@ it probably reads AGENTS.md.
 
 ### 1.4 What this means for us — we're already compliant
 
-Our folder-per-module scaffold (`scripts/generate_forge.py`) produces an
+Our folder-per-module scaffold (historical: `scripts/generate_forge.py`,
+now archived under `_archive/scripts_one_off_2026-04/`) produced an
 `AGENTS.md` file in every single module folder. Every one of those files
 already has a "Do NOT" section, a "How to modify this module safely"
 section, and explicit references to the surrounding meta files. When an
@@ -270,8 +277,7 @@ status`) is already well-suited to slash command wrappers. I'm adding:
 - `/forge-test` — runs `duecare test` on a path, returns pass/fail
 - `/forge-status` — runs `duecare status`, returns completion report
 - `/review-architecture` — loads `docs/architecture.md` +
-  `docs/the_forge.md` + `docs/project_phases.md` and asks Claude to
-  review consistency
+  `docs/project_phases.md` and asks Claude to review consistency
 - `/rubric-check` — loads `docs/rubric_alignment.md` and validates the
   current writeup draft against it
 
@@ -328,7 +334,6 @@ gemma4_comp/
 │
 └── docs/
     ├── architecture.md           # component architecture
-    ├── the_forge.md              # north-star vision
     ├── project_phases.md         # 4-phase plan
     ├── integration_plan.md       # mapping existing assets -> DueCare
     ├── rubric_alignment.md       # honest scorecard + gap closers

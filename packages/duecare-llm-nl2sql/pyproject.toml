@@ -1,0 +1,22 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "duecare-llm-nl2sql"
+version = "0.1.0"
+description = "Natural-language -> SQL translator for the Duecare evidence DB. Gemma 4 picks among parameterised templates first; falls back to free-form generation with a strict read-only safety guard."
+readme = "README.md"
+license = {text = "MIT"}
+requires-python = ">=3.11"
+authors = [{name = "Taylor Amarel"}]
+dependencies = [
+    "pydantic>=2.9.0",
+    "duecare-llm-evidence-db>=0.1.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/TaylorAmarelTech/gemma4_comp"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/duecare"]

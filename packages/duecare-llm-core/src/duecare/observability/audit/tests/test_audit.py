@@ -15,7 +15,7 @@ def audit(tmp_path: Path) -> AuditTrail:
     return AuditTrail(tmp_path / "audit.sqlite")
 
 
-def test_init_creates_schema(audit: AuditTrail):
+def test_init_creates_schema(audit: AuditTrail) -> None:
     with sqlite3.connect(audit.db_path) as conn:
         tables = {
             row[0]
@@ -27,7 +27,7 @@ def test_init_creates_schema(audit: AuditTrail):
     assert "run_audit" in tables
 
 
-def test_record_anonymization_stores_hash_not_plaintext(audit: AuditTrail):
+def test_record_anonymization_stores_hash_not_plaintext(audit: AuditTrail) -> None:
     audit.record_anonymization(
         audit_id="a1",
         item_id="item_001",
@@ -50,7 +50,7 @@ def test_record_anonymization_stores_hash_not_plaintext(audit: AuditTrail):
     assert rows[0][1] == "[PHONE]"
 
 
-def test_record_run_lifecycle(audit: AuditTrail):
+def test_record_run_lifecycle(audit: AuditTrail) -> None:
     audit.record_run_start(
         run_id="r1",
         workflow_id="evaluate_only",
@@ -79,7 +79,7 @@ def test_record_run_lifecycle(audit: AuditTrail):
     assert "grade_exact_match" in row[3]
 
 
-def test_multiple_anonymization_records(audit: AuditTrail):
+def test_multiple_anonymization_records(audit: AuditTrail) -> None:
     for i in range(5):
         audit.record_anonymization(
             audit_id=f"a{i}",
@@ -101,7 +101,7 @@ def test_multiple_anonymization_records(audit: AuditTrail):
     assert count == 5
 
 
-def test_audit_parent_dir_autocreated(tmp_path: Path):
+def test_audit_parent_dir_autocreated(tmp_path: Path) -> None:
     path = tmp_path / "deep" / "nested" / "audit.sqlite"
     AuditTrail(path)
     assert path.exists()

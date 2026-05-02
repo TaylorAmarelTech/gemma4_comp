@@ -25,7 +25,7 @@ KAGGLE_KERNELS = ROOT / "kaggle" / "kernels"
 
 FILENAME = "200_cross_domain_proof.ipynb"
 KERNEL_DIR_NAME = "duecare_200_cross_domain_proof"
-KERNEL_ID = "taylorsamarel/200-duecare-cross-domain-proof"
+KERNEL_ID = "taylorsamarel/duecare-cross-domain-proof"
 KERNEL_TITLE = "200: DueCare Cross-Domain Proof"
 WHEELS_DATASET = "taylorsamarel/duecare-llm-wheels"
 KEYWORDS = ["gemma", "llm-comparison", "safety", "evaluation"]
@@ -35,7 +35,7 @@ URL_100 = "https://www.kaggle.com/code/taylorsamarel/duecare-real-gemma-4-on-50-
 URL_140 = "https://www.kaggle.com/code/taylorsamarel/140-duecare-evaluation-mechanics"
 URL_190 = "https://www.kaggle.com/code/taylorsamarel/190-duecare-rag-retrieval-inspector"
 URL_199 = "https://www.kaggle.com/code/taylorsamarel/199-duecare-free-form-exploration-conclusion"
-URL_200 = "https://www.kaggle.com/code/taylorsamarel/duecare-200-cross-domain-proof"
+URL_200 = "https://www.kaggle.com/code/taylorsamarel/duecare-cross-domain-proof"
 URL_210 = "https://www.kaggle.com/code/taylorsamarel/duecare-gemma-vs-oss-comparison"
 URL_270 = "https://www.kaggle.com/code/taylorsamarel/duecare-270-gemma-generations"
 URL_399 = "https://www.kaggle.com/code/taylorsamarel/duecare-baseline-text-comparisons-conclusion"

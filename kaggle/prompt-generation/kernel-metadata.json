@@ -1,0 +1,22 @@
+{
+  "id": "taylorsamarel/duecare-prompt-generation",
+  "title": "Duecare Prompt Generation",
+  "code_file": "notebook.ipynb",
+  "language": "python",
+  "kernel_type": "notebook",
+  "is_private": "true",
+  "enable_gpu": "true",
+  "enable_internet": "true",
+  "dataset_sources": [
+    "taylorsamarel/duecare-prompt-generation-wheels",
+    "taylorsamarel/duecare-trafficking-prompts"
+  ],
+  "competition_sources": [],
+  "kernel_sources": [],
+  "model_sources": [
+    "google/gemma-4/Transformers/gemma-4-e4b-it/1",
+    "google/gemma-4/Transformers/gemma-4-e2b-it/1"
+  ],
+  "docker_image_pinning_type": "original",
+  "keywords": []
+}

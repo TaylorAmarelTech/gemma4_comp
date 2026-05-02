@@ -11,6 +11,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+from _canonical_notebook import canonical_hero_code
 from notebook_hardening_utils import harden_notebook
 
 
@@ -27,12 +28,12 @@ KEYWORDS = ["gemma", "safety", "llm", "trafficking", "tutorial"]
 
 # Public slug override: 110 lives under its title-derived legacy slug on Kaggle.
 URL_110 = "https://www.kaggle.com/code/taylorsamarel/00a-duecare-prompt-prioritizer-data-pipeline"
-URL_099 = "https://www.kaggle.com/code/taylorsamarel/099-duecare-orientation-and-background-and-package-setup-conclusion"
+URL_099 = "https://www.kaggle.com/code/taylorsamarel/099-duecare-orientation-setup-conclusion"
 URL_000 = "https://www.kaggle.com/code/taylorsamarel/duecare-000-index"
 URL_005 = "https://www.kaggle.com/code/taylorsamarel/duecare-005-glossary"
 URL_100 = "https://www.kaggle.com/code/taylorsamarel/duecare-real-gemma-4-on-50-trafficking-prompts"
 URL_120 = "https://www.kaggle.com/code/taylorsamarel/duecare-prompt-remixer"
-URL_200 = "https://www.kaggle.com/code/taylorsamarel/duecare-200-cross-domain-proof"
+URL_200 = "https://www.kaggle.com/code/taylorsamarel/duecare-cross-domain-proof"
 URL_500 = "https://www.kaggle.com/code/taylorsamarel/duecare-500-agent-swarm-deep-dive"
 
 
@@ -637,8 +638,20 @@ def _patch_final_print(notebook: dict) -> None:
             return
 
 
+HERO_CODE = canonical_hero_code(
+    title=KERNEL_TITLE,
+    kicker="DueCare - Smallest Runnable Proof",
+    tagline=(
+        "Five-minute end-to-end smoke test: install the DueCare packages, "
+        "verify the registries are real, and run one scored guardrails "
+        "example. No GPU, no API keys required for the scripted path."
+    ),
+)
+
+
 def build() -> None:
     cells = [
+        _code(HERO_CODE),
         _md(HEADER),
         _md(AT_A_GLANCE_INTRO),
         _code(AT_A_GLANCE_CODE),

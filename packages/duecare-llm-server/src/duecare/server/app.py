@@ -83,7 +83,7 @@ def create_app(state: Optional[ServerState] = None) -> FastAPI:
     api_token = os.environ.get("DUECARE_API_TOKEN", "").strip()
     if api_token:
         @app.middleware("http")
-        async def _require_token(request: Request, call_next):
+        async def _require_token(request: Request, call_next) -> Any:
             path = request.url.path
             if any(path == p or path.startswith(p + "/")
                    for p in _PUBLIC_ENDPOINTS):
@@ -104,7 +104,7 @@ def create_app(state: Optional[ServerState] = None) -> FastAPI:
     import time as _time
 
     @app.middleware("http")
-    async def _log_requests(request: Request, call_next):
+    async def _log_requests(request: Request, call_next) -> Any:
         path = request.url.path
         # Skip noisy poll endpoints + static so logs stay readable
         is_quiet = (
@@ -139,68 +139,68 @@ def create_app(state: Optional[ServerState] = None) -> FastAPI:
 
     # ------ healthz (separate from /api/status; no DB call) ----------------
     @app.get("/healthz")
-    def healthz():
+    def healthz() -> Any:
         return {"ok": True, "ts": datetime.now().isoformat()}
 
     # ------ Logs page ------------------------------------------------------
     @app.get("/logs", response_class=HTMLResponse)
-    def logs_page():
+    def logs_page() -> Any:
         return _serve_html(static_dir / "logs.html")
 
     @app.get("/queue", response_class=HTMLResponse)
-    def queue_page():
+    def queue_page() -> Any:
         return _serve_html(static_dir / "queue.html")
 
     @app.get("/chat", response_class=HTMLResponse)
-    def chat_page():
+    def chat_page() -> Any:
         return _serve_html(static_dir / "chat.html")
 
     @app.get("/demo", response_class=HTMLResponse)
-    def demo_page():
+    def demo_page() -> Any:
         return _serve_html(static_dir / "demo.html")
 
     @app.get("/overview", response_class=HTMLResponse)
-    def overview_page():
+    def overview_page() -> Any:
         return _serve_html(static_dir / "demo.html")
 
     @app.get("/credits", response_class=HTMLResponse)
-    def credits_page():
+    def credits_page() -> Any:
         return _serve_html(static_dir / "credits.html")
 
     @app.get("/examples")
-    def examples_redirect():
+    def examples_redirect() -> Any:
         from fastapi.responses import RedirectResponse
         return RedirectResponse(url="/demo", status_code=308)
 
     @app.get("/workspace", response_class=HTMLResponse)
-    def workspace_page():
+    def workspace_page() -> Any:
         return _serve_html(static_dir / "workspace.html")
 
     @app.get("/architecture", response_class=HTMLResponse)
-    def architecture_page():
+    def architecture_page() -> Any:
         return _serve_html(static_dir / "architecture.html")
 
     @app.get("/background", response_class=HTMLResponse)
-    def background_page():
+    def background_page() -> Any:
         return _serve_html(static_dir / "background.html")
 
     @app.get("/evidence", response_class=HTMLResponse)
-    def evidence_page():
+    def evidence_page() -> Any:
         return _serve_html(static_dir / "evidence.html")
 
     @app.get("/api/logs")
     def api_logs(limit: int = 200, level: Optional[str] = None,
                   source: Optional[str] = None,
-                  since_id: Optional[str] = None):
+                  since_id: Optional[str] = None) -> Any:
         return LOG_BUFFER.list(limit=limit, level=level,
                                   source=source, since_id=since_id)
 
     @app.get("/api/logs/stats")
-    def api_logs_stats():
+    def api_logs_stats() -> Any:
         return LOG_BUFFER.stats()
 
     @app.post("/api/logs/clear")
-    def api_logs_clear():
+    def api_logs_clear() -> Any:
         LOG_BUFFER.clear()
         LOG_BUFFER.add("info", "api", "logs_cleared")
         return {"ok": True}
@@ -220,32 +220,32 @@ def create_app(state: Optional[ServerState] = None) -> FastAPI:
 
     # ------ Page routes ----------------------------------------------------
     @app.get("/", response_class=HTMLResponse)
-    def homepage():
+    def homepage() -> Any:
         return _serve_html(static_dir / "index.html")
 
     @app.get("/enterprise", response_class=HTMLResponse)
-    def enterprise_page():
+    def enterprise_page() -> Any:
         return _serve_html(static_dir / "enterprise.html")
 
     @app.get("/individual", response_class=HTMLResponse)
-    def individual_page():
+    def individual_page() -> Any:
         return _serve_html(static_dir / "individual.html")
 
     @app.get("/knowledge", response_class=HTMLResponse)
-    def knowledge_page():
+    def knowledge_page() -> Any:
         return _serve_html(static_dir / "knowledge.html")
 
     @app.get("/dashboard", response_class=HTMLResponse)
-    def dashboard_page():
+    def dashboard_page() -> Any:
         return _serve_html(static_dir / "dashboard.html")
 
     @app.get("/settings", response_class=HTMLResponse)
-    def settings_page():
+    def settings_page() -> Any:
         return _serve_html(static_dir / "settings.html")
 
     # ------ API: model-info -----------------------------------------------
     @app.get("/api/model-info")
-    def api_model_info():
+    def api_model_info() -> Any:
         """Surfaces which Gemma model is currently loaded so the UI can
         show a `Backend: <model>` badge. Returns a stable shape even
         when no model is loaded (heuristic-only mode)."""
@@ -254,7 +254,7 @@ def create_app(state: Optional[ServerState] = None) -> FastAPI:
 
     # ------ API: status ----------------------------------------------------
     @app.get("/api/status")
-    def api_status():
+    def api_status() -> Any:
         st: ServerState = app.state.duecare
         try:
             runs = st.store.list_runs()
@@ -273,7 +273,7 @@ def create_app(state: Optional[ServerState] = None) -> FastAPI:
 
     # ------ API: query (NL -> SQL) ----------------------------------------
     @app.post("/api/query")
-    def api_query(req: QueryReq):
+    def api_query(req: QueryReq) -> Any:
         st: ServerState = app.state.duecare
         result = st.translator.answer(
             req.question, prefer_template=req.prefer_template)
@@ -290,7 +290,7 @@ def create_app(state: Optional[ServerState] = None) -> FastAPI:
 
     # ------ API: ingest ----------------------------------------------------
     @app.post("/api/ingest")
-    def api_ingest(req: IngestReq):
+    def api_ingest(req: IngestReq) -> Any:
         st: ServerState = app.state.duecare
         outdir = req.output_dir or st.pipeline_output_dir
         if not Path(outdir).exists():
@@ -301,14 +301,14 @@ def create_app(state: Optional[ServerState] = None) -> FastAPI:
 
     # ------ API: list entities / findings / runs --------------------------
     @app.get("/api/runs")
-    def api_runs():
+    def api_runs() -> Any:
         return app.state.duecare.store.list_runs()
 
     @app.get("/api/entities")
     def api_entities(etype: Optional[str] = None,
                        run_id: Optional[str] = None,
                        min_doc_count: int = 1,
-                       limit: int = 100):
+                       limit: int = 100) -> Any:
         return app.state.duecare.store.list_entities(
             run_id=run_id, etype=etype,
             min_doc_count=min_doc_count, limit=limit)
@@ -317,14 +317,14 @@ def create_app(state: Optional[ServerState] = None) -> FastAPI:
     def api_findings(trigger: Optional[str] = None,
                        min_severity: float = 0,
                        run_id: Optional[str] = None,
-                       limit: int = 100):
+                       limit: int = 100) -> Any:
         return app.state.duecare.store.list_findings(
             run_id=run_id, trigger_name=trigger,
             min_severity=min_severity, limit=limit)
 
     # ------ API: graph (entity_graph.json passthrough) --------------------
     @app.get("/api/graph")
-    def api_graph(run_id: Optional[str] = None):
+    def api_graph(run_id: Optional[str] = None) -> Any:
         st: ServerState = app.state.duecare
         # Latest run's graph file from the configured output dir.
         graph_path = Path(st.pipeline_output_dir) / "entity_graph.json"
@@ -335,7 +335,7 @@ def create_app(state: Optional[ServerState] = None) -> FastAPI:
 
     # ------ API: moderate (Enterprise UC) ----------------------------------
     @app.post("/api/moderate")
-    def api_moderate(req: ModerateReq):
+    def api_moderate(req: ModerateReq) -> Any:
         st: ServerState = app.state.duecare
         # Light-weight text moderation: classify with a Gemma call if
         # configured, else heuristic.
@@ -353,7 +353,7 @@ def create_app(state: Optional[ServerState] = None) -> FastAPI:
 
     # ------ API: worker-check (Individual UC) -----------------------------
     @app.post("/api/worker_check")
-    def api_worker_check(req: WorkerCheckReq):
+    def api_worker_check(req: WorkerCheckReq) -> Any:
         st: ServerState = app.state.duecare
         from duecare.server.heuristics import worker_check
         return worker_check(req.text, locale=req.locale,
@@ -363,7 +363,7 @@ def create_app(state: Optional[ServerState] = None) -> FastAPI:
     @app.post("/api/moderate_file")
     async def api_moderate_file(
             file: UploadFile = File(...),
-            locale: str = Form("en")):
+            locale: str = Form("en")) -> Any:
         st: ServerState = app.state.duecare
         from duecare.server.heuristics import (quick_moderate,
                                                   extract_text_from_bytes)
@@ -393,7 +393,7 @@ def create_app(state: Optional[ServerState] = None) -> FastAPI:
         from duecare.server.heuristics import (
             extract_archive_to_files, extract_text_from_bytes)
         st: ServerState = app.state.duecare
-        if kind not in ("moderate", "worker_check"):
+        if kind not in ("moderate", "worker_check") -> Any:
             raise HTTPException(400,
                 f"kind must be 'moderate' or 'worker_check', got {kind!r}")
         data = await file.read()
@@ -448,7 +448,7 @@ def create_app(state: Optional[ServerState] = None) -> FastAPI:
         }
 
     @app.get("/api/batch/{batch_id}")
-    def api_batch_status(batch_id: str):
+    def api_batch_status(batch_id: str) -> Any:
         """Aggregated batch status. For each file in the batch, look up
         the task by id and join the result. Returns rolling counts and
         per-file rows so the UI table can render live."""
@@ -507,7 +507,7 @@ def create_app(state: Optional[ServerState] = None) -> FastAPI:
         }
 
     @app.get("/api/batches")
-    def api_list_batches(limit: int = 20):
+    def api_list_batches(limit: int = 20) -> Any:
         """Recent batches (newest first)."""
         st: ServerState = app.state.duecare
         items = sorted(st._batches.values(),
@@ -527,7 +527,7 @@ def create_app(state: Optional[ServerState] = None) -> FastAPI:
     # board. Reuses the per-task queue + batch infra above so each row
     # streams its own trace and the aggregator polls once a second.
     @app.get("/api/benchmark/sets")
-    def api_benchmark_sets():
+    def api_benchmark_sets() -> Any:
         from duecare.benchmark import list_sets
         return [{
             "slug": b.slug, "title": b.title,
@@ -535,7 +535,7 @@ def create_app(state: Optional[ServerState] = None) -> FastAPI:
         } for b in list_sets()]
 
     @app.post("/api/benchmark/run", status_code=202)
-    def api_benchmark_run(payload: dict):
+    def api_benchmark_run(payload: dict) -> Any:
         """Submit a bundled benchmark set as a batch of moderate
         tasks. Returns batch_id; poll /api/benchmark/status/{id}."""
         from duecare.benchmark import load_set
@@ -586,7 +586,7 @@ def create_app(state: Optional[ServerState] = None) -> FastAPI:
         }
 
     @app.get("/api/benchmark/status/{batch_id}")
-    def api_benchmark_status(batch_id: str):
+    def api_benchmark_status(batch_id: str) -> Any:
         """Live aggregate. Per-row scores + roll-up summary."""
         from duecare.benchmark import score_row, aggregate
         st: ServerState = app.state.duecare
@@ -635,7 +635,7 @@ def create_app(state: Optional[ServerState] = None) -> FastAPI:
         }
 
     @app.get("/api/benchmark/export/{batch_id}")
-    def api_benchmark_export(batch_id: str):
+    def api_benchmark_export(batch_id: str) -> Any:
         """Self-contained JSON dump: the inputs (with expectations),
         the model info, and the per-row results. Pinning this to a
         commit hash + dataset version is the reproducibility story
@@ -648,7 +648,7 @@ def create_app(state: Optional[ServerState] = None) -> FastAPI:
     @app.post("/api/worker_check_file")
     async def api_worker_check_file(
             file: UploadFile = File(...),
-            locale: str = Form("en")):
+            locale: str = Form("en")) -> Any:
         st: ServerState = app.state.duecare
         from duecare.server.heuristics import (worker_check,
                                                   extract_text_from_bytes)
@@ -667,7 +667,7 @@ def create_app(state: Optional[ServerState] = None) -> FastAPI:
 
     # ------ API: research / OpenClaw --------------------------------------
     @app.post("/api/research/openclaw")
-    def api_research_openclaw(req: ResearchReq):
+    def api_research_openclaw(req: ResearchReq) -> Any:
         st: ServerState = app.state.duecare
         result = st.openclaw.query(endpoint=req.endpoint, **(req.args or {}))
         return {
@@ -681,7 +681,7 @@ def create_app(state: Optional[ServerState] = None) -> FastAPI:
 
     # ------ API: process (background task; returns 202 + job_id) ----------
     @app.post("/api/process", status_code=202)
-    def api_process(req: ProcessReq, bg: BackgroundTasks):
+    def api_process(req: ProcessReq, bg: BackgroundTasks) -> Any:
         st: ServerState = app.state.duecare
         from duecare.engine import EngineConfig
         cfg = EngineConfig(
@@ -699,7 +699,7 @@ def create_app(state: Optional[ServerState] = None) -> FastAPI:
             "config": cfg.model_dump(),
         }
 
-        def _run_job():
+        def _run_job() -> None:
             app.state.jobs[job_id]["status"] = "running"
             app.state.jobs[job_id]["started_at"] = datetime.now().isoformat()
             try:
@@ -728,14 +728,14 @@ def create_app(state: Optional[ServerState] = None) -> FastAPI:
                 "poll_url": f"/api/jobs/{job_id}"}
 
     @app.get("/api/jobs/{job_id}")
-    def api_job_status(job_id: str):
+    def api_job_status(job_id: str) -> Any:
         job = app.state.jobs.get(job_id)
         if job is None:
             raise HTTPException(404, f"unknown job_id: {job_id}")
         return job
 
     @app.get("/api/jobs")
-    def api_jobs_list():
+    def api_jobs_list() -> Any:
         return list(app.state.jobs.values())
 
     # ------ Task queue (GPU + CPU worker pools) ---------------------------
@@ -842,7 +842,7 @@ def create_app(state: Optional[ServerState] = None) -> FastAPI:
     tq.register("chat",         _h_chat,         gpu=_has_gemma)
 
     @app.post("/api/queue/submit", status_code=202)
-    def api_queue_submit(req: dict):
+    def api_queue_submit(req: dict) -> Any:
         task_type = req.get("task_type")
         if not task_type:
             LOG_BUFFER.add("warn", "queue", "submit_rejected",
@@ -866,23 +866,23 @@ def create_app(state: Optional[ServerState] = None) -> FastAPI:
                 "poll_url": f"/api/queue/status/{tid}"}
 
     @app.get("/api/queue/status/{task_id}")
-    def api_queue_status(task_id: str):
+    def api_queue_status(task_id: str) -> Any:
         task = tq.get(task_id)
         if task is None:
             raise HTTPException(404, f"unknown task_id: {task_id}")
         return task.as_dict()
 
     @app.get("/api/queue/list")
-    def api_queue_list(limit: int = 50, status: Optional[str] = None):
+    def api_queue_list(limit: int = 50, status: Optional[str] = None) -> Any:
         return [t.as_dict() for t in tq.list(limit=limit, status=status)]
 
     @app.get("/api/queue/stats")
-    def api_queue_stats():
+    def api_queue_stats() -> Any:
         return tq.stats()
 
     # ------ Config introspection (what's in the wheel?) -------------------
     @app.get("/api/config/knowledge_base")
-    def api_kb():
+    def api_kb() -> Any:
         from duecare.server.pipeline_steps import _KB_PASSAGES, _rag_state
         # Trigger lazy embedder init so the report knows if RAG is wired
         try:
@@ -909,7 +909,7 @@ def create_app(state: Optional[ServerState] = None) -> FastAPI:
         }
 
     @app.get("/api/config/tools")
-    def api_tools():
+    def api_tools() -> Any:
         return {
             "tool_count": 11,
             "tools": [
@@ -1001,10 +1001,10 @@ def create_app(state: Optional[ServerState] = None) -> FastAPI:
         }
 
     @app.get("/api/config/heuristics")
-    def api_heuristics():
+    def api_heuristics() -> Any:
         from duecare.server.heuristics import (
             _CRITICAL_SIGNALS, _STRONG_SIGNALS, _LEGITIMATE_SIGNALS)
-        def _as_dict(sigs, tier):
+        def _as_dict(sigs, tier) -> Any:
             return [{"name": n, "tier": tier,
                      "weight": w, "keyword_count": len(kws),
                      "keywords": kws[:8]}
@@ -1017,7 +1017,7 @@ def create_app(state: Optional[ServerState] = None) -> FastAPI:
         }
 
     @app.get("/api/config/hotlines")
-    def api_hotlines():
+    def api_hotlines() -> Any:
         from duecare.server.heuristics import _HOTLINES
         return {
             "hotline_count": len(_HOTLINES),
@@ -1028,7 +1028,7 @@ def create_app(state: Optional[ServerState] = None) -> FastAPI:
         }
 
     @app.get("/api/config/db_schema")
-    def api_db_schema():
+    def api_db_schema() -> Any:
         st: ServerState = app.state.duecare
         out: dict = {"db_path": st.db_path, "tables": []}
         try:
@@ -1055,13 +1055,13 @@ def create_app(state: Optional[ServerState] = None) -> FastAPI:
     # ------ Complaint / cause-of-action templates ------------------------
     @app.get("/api/complaints/list")
     def api_complaints_list(jurisdiction: Optional[str] = None,
-                              violation_type: Optional[str] = None):
+                              violation_type: Optional[str] = None) -> Any:
         """List available complaint templates, optionally filtered."""
         from duecare.server.complaint_templates import list_templates
         return {"templates": list_templates(jurisdiction, violation_type)}
 
     @app.post("/api/complaints/render")
-    def api_complaints_render(req: dict):
+    def api_complaints_render(req: dict) -> Any:
         """Render a template with operator-supplied fields. Missing
         placeholders are kept as {placeholder} so the operator sees
         what's left to fill."""
@@ -1072,7 +1072,7 @@ def create_app(state: Optional[ServerState] = None) -> FastAPI:
         return render_template(slug, req.get("fields") or {})
 
     @app.get("/api/config/handlers")
-    def api_handlers():
+    def api_handlers() -> Any:
         """Show every queue task type registered + whether it's GPU-bound."""
         items = []
         for ttype, (handler, gpu) in tq.handlers.items():
@@ -1085,7 +1085,7 @@ def create_app(state: Optional[ServerState] = None) -> FastAPI:
 
     # ------ API: stats (live counts for the dashboard) --------------------
     @app.get("/api/stats")
-    def api_stats():
+    def api_stats() -> Any:
         st: ServerState = app.state.duecare
         out: dict = {"now": datetime.now().isoformat()}
         try:
@@ -1135,12 +1135,12 @@ def create_app(state: Optional[ServerState] = None) -> FastAPI:
 
     # ------ API: activity (recent task-queue events) ----------------------
     @app.get("/api/activity")
-    def api_activity(limit: int = 20):
+    def api_activity(limit: int = 20) -> Any:
         return [t.as_dict() for t in tq.list(limit=limit)]
 
     # ------ API: settings --------------------------------------------------
     @app.get("/api/settings")
-    def api_settings_get():
+    def api_settings_get() -> Any:
         st: ServerState = app.state.duecare
         return {
             "db_path": st.db_path,
@@ -1182,7 +1182,7 @@ def run_server(host: str = "0.0.0.0", port: int = 8080,
     if tunnel != "none":
         import threading
 
-        def _tunnel_worker():
+        def _tunnel_worker() -> None:
             try:
                 url = open_tunnel(tunnel, port)
                 state.public_url = url

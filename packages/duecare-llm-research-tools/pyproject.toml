@@ -1,0 +1,24 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "duecare-llm-research-tools"
+version = "0.1.0"
+description = "External-research tool wrappers for the Duecare harness. Includes OpenClaw integration with strict PII filtering and a pluggable ResearchTool protocol for adding more sources (CourtListener, GDELT, etc.)."
+readme = "README.md"
+license = {text = "MIT"}
+requires-python = ">=3.11"
+authors = [{name = "Taylor Amarel"}]
+dependencies = [
+    "pydantic>=2.9.0",
+]
+
+[project.optional-dependencies]
+http = ["httpx>=0.25.0"]
+
+[project.urls]
+Homepage = "https://github.com/TaylorAmarelTech/gemma4_comp"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/duecare"]

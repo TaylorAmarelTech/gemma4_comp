@@ -47,7 +47,7 @@ class GoogleGeminiModel(ModelAdapterBase):
         }
         self._client = None
 
-    def _load(self):
+    def _load(self) -> None:
         if self._client is not None:
             return
         try:

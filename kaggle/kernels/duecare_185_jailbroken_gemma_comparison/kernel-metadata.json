@@ -1,5 +1,5 @@
 {
-  "id": "taylorsamarel/duecare-185-jailbroken-gemma-comparison",
+  "id": "taylorsamarel/185-duecare-jailbroken-gemma-comparison",
   "title": "185: DueCare Jailbroken Gemma Comparison",
   "code_file": "185_jailbroken_gemma_comparison.ipynb",
   "language": "python",
@@ -17,9 +17,9 @@
   "model_sources": [],
   "kernel_sources": [],
   "keywords": [
-    "gemma",
-    "safety",
+    "adversarial",
+    "red-team",
     "jailbreak",
-    "comparison"
+    "safety"
   ]
 }

@@ -121,7 +121,7 @@ def _scan_for_url(proc: subprocess.Popen, timeout: float) -> Optional[str]:
     """Watch a tunnel subprocess's stdout for its public URL."""
     found: dict = {"url": None}
 
-    def reader():
+    def reader() -> None:
         for line in proc.stdout:   # type: ignore
             line = line.rstrip()
             if line:

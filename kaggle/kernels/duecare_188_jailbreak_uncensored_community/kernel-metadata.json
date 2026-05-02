@@ -1,5 +1,5 @@
 {
-  "id": "taylorsamarel/duecare-188-jailbreak-uncensored-community",
+  "id": "taylorsamarel/188-duecare-jailbreak-uncensored-community",
   "title": "188: DueCare Jailbreak - Uncensored Community",
   "code_file": "188_jailbreak_uncensored_community.ipynb",
   "language": "python",
@@ -18,9 +18,9 @@
   "model_sources": [],
   "kernel_sources": [],
   "keywords": [
-    "gemma",
-    "safety",
+    "adversarial",
+    "red-team",
     "jailbreak",
-    "uncensored"
+    "safety"
   ]
 }

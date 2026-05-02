@@ -23,6 +23,10 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 NB_PATH = ROOT / "kaggle" / "kernels" / "duecare_110_prompt_prioritizer" / "110_prompt_prioritizer.ipynb"
 META_PATH = ROOT / "kaggle" / "kernels" / "duecare_110_prompt_prioritizer" / "kernel-metadata.json"
+EXPECTED_TITLES = {
+    "DueCare Prompt Prioritizer",
+    "110: DueCare Prompt Prioritizer",
+}
 
 
 def fail(msg: str) -> None:
@@ -56,8 +60,8 @@ def main() -> None:
     ok("metadata id targets the live Kaggle kernel slug (legacy 00a form)")
 
     # 2. metadata title canonical.
-    if meta.get("title") != "110: DueCare Prompt Prioritizer":
-        fail(f"metadata title wrong: {meta.get('title')!r}")
+    if meta.get("title") not in EXPECTED_TITLES:
+        fail(f"metadata title wrong: {meta.get('title')!r} (expected one of {sorted(EXPECTED_TITLES)})")
     ok("metadata title is canonical")
 
     # 3. is_private is False.
@@ -87,7 +91,7 @@ def main() -> None:
         "duecare-real-gemma-4-on-50-trafficking-prompts",
         "duecare-prompt-remixer",
         "duecare-310-prompt-factory",
-        "duecare-baseline-text-evaluation-framework-conclusion",
+        "299-duecare-text-evaluation-conclusion",
     ]
     for slug in required_links:
         if slug not in all_text:

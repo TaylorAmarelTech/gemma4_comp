@@ -94,7 +94,7 @@ def main() -> None:
         "duecare-prompt-remixer",
         "duecare-real-gemma-4-on-50-trafficking-prompts",
         "duecare-gemma-vs-oss-comparison",
-        "duecare-baseline-text-evaluation-framework-conclusion",
+        "299-duecare-text-evaluation-conclusion",
     ]
     for slug in required_links:
         if slug not in all_text:

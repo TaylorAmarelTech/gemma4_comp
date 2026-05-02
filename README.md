@@ -6,8 +6,15 @@
 > standard to LLM safety: does the model exercise *due care* when
 > responding to prompts about trafficking, exploitation, and financial crime?
 >
-> **74,567 prompts. 5 weighted rubrics. 48+ evaluation criteria.
-> 12 autonomous agents. One CLI command. On your laptop.**
+> **North star: inform AND document.** A migrant worker can follow
+> the chatbot's advice (don't pay the illegal fee) — or pay anyway
+> under their corridor's real constraints, with the journal
+> capturing every receipt + statute citation + recipient so the
+> same harness pre-stages the refund claim. Harm reduction, not
+> paternalism. Fully offline.
+>
+> **74,567 prompts. 6 weighted rubrics. 66 evaluation criteria.
+> One CLI command. On your laptop or in your pocket.**
 >
 > **Built for the [Gemma 4 Good Hackathon](https://www.kaggle.com/competitions/gemma-4-good-hackathon).**
 > Gemma 4 is DueCare's first published benchmark.
@@ -19,24 +26,41 @@
 
 > ### 🚀 Submission state (Gemma 4 Good Hackathon, due 2026-05-18)
 >
-> **Five Kaggle notebooks** (the submission surface):
+> **6 core + 5 appendix = 11 Kaggle notebooks** (the submission surface).
+> Walk the core in canonical order — each builds context for the next.
+> Single-page index with one-line summaries:
+> [`docs/notebook_index.md`](./docs/notebook_index.md).
 >
-> 1. [`duecare-live-demo`](https://www.kaggle.com/code/taylorsamarel/duecare-live-demo) — full safety-harness pipeline + slide deck + audit Workbench
-> 2. `duecare-bench-and-tune` *(TBD)* — Unsloth SFT/DPO + GGUF + HF Hub push
-> 3. [`duecare-chat-playground`](https://www.kaggle.com/code/taylorsamarel/duecare-chat-playground) — raw Gemma 4 (the baseline for the comparison story)
-> 4. [`duecare-chat-playground-with-grep-rag-tools`](https://www.kaggle.com/code/taylorsamarel/duecare-chat-playground-with-grep-rag-tools) — **the headline demo**: 4 toggleable safety layers + per-response Pipeline modal
-> 5. [`duecare-gemma-content-classification-evaluation`](https://www.kaggle.com/code/taylorsamarel/duecare-gemma-content-classification-evaluation) — **NGO dashboard scenario**: structured JSON classification + risk vectors + threshold-filtered queue
+> **Core (judges evaluate first):**
 >
-> **Judges start here:** [`docs/FOR_JUDGES.md`](./docs/FOR_JUDGES.md)
-> — focused 5-minute verification.
+> 1. [`duecare-chat-playground`](https://www.kaggle.com/code/taylorsamarel/duecare-chat-playground) — raw Gemma 4, no harness. Baseline.
+> 2. [`duecare-chat-playground-with-grep-rag-tools`](https://www.kaggle.com/code/taylorsamarel/duecare-chat-playground-with-grep-rag-tools) — same chat UI + 4 toggleable safety layers + per-response Pipeline modal. *Headline demo.*
+> 3. `duecare-content-classification-playground` *(TBD)* — hands-on classification sandbox; 4 schema modes (single/multi-label, risk-vector, custom JSON Schema).
+> 4. `duecare-content-knowledge-builder-playground` *(TBD)* — hands-on KB builder; add GREP rules, RAG docs, lookup tables; export full JSON.
+> 5. [`duecare-gemma-content-classification-evaluation`](https://www.kaggle.com/code/taylorsamarel/duecare-gemma-content-classification-evaluation) — polished NGO/agency dashboard with risk vectors + threshold-filtered queue.
+> 6. [`duecare-live-demo`](https://www.kaggle.com/code/taylorsamarel/duecare-live-demo) — full deployed product. Combines #3 + #4 in one polished surface.
+>
+> **Appendix (advanced extension + research, optional):**
+>
+> - A1. `duecare-prompt-generation` — Gemma 4 generates new evaluation prompts + 5 graded responses each
+> - A2. `duecare-bench-and-tune` — Unsloth SFT → DPO → GGUF Q8_0 → HF Hub push
+> - A3. `duecare-research-graphs` — 6 interactive Plotly charts (CPU-only, ~30 sec)
+> - A4. `duecare-chat-playground-with-agentic-research` — 5th toggle: **online agentic research** (the only layer that touches the network — all others are local, in-process); BYOK panel (Tavily / Brave / Serper) or Playwright real-browser fallback; PII-filtered before any outbound call, audit-logged as sha256 hashes only
+> - A5. `duecare-chat-playground-jailbroken-models` — loads abliterated/cracked Gemma 4 variants; proves the harness works even when refusals are ablated
+>
+> **Judges start here:** [`docs/FOR_JUDGES.md`](./docs/FOR_JUDGES.md) (5-min verification path).
 > **Writeup (≤1500 words):** [`docs/writeup_draft.md`](./docs/writeup_draft.md).
 > **Video script (~2:50):** [`docs/video_script.md`](./docs/video_script.md).
+> **Audit / report card:** [`docs/REPORT_CARD.md`](./docs/REPORT_CARD.md).
+> **Harness lift report:** [`docs/harness_lift_report.md`](./docs/harness_lift_report.md) — quantifies how RAG/GREP/Tools change rubric scores (mean **+56.5 pp** on the cross-cutting `legal_citation_quality` rubric, 207/207 prompts).
+> **Corpus coverage:** [`docs/corpus_coverage.md`](./docs/corpus_coverage.md) — 2D coverage matrices across category × sector × corridor × ILO indicator.
+> **Stretch — Android (LiteRT track):** [`docs/android_app_architecture.md`](./docs/android_app_architecture.md) — Duecare Journey, the on-device companion. v1 architecture published here; **APK skeleton + GitHub Actions APK build pipeline live in the sibling repo `duecare-journey-android/`** (separated so Android tooling doesn't collide with the Python research workflow). v1 MVP build lands week of 2026-05-19.
 > **Provenance:** [`RESULTS.md`](./RESULTS.md) — every metric pinned to `(git_sha, dataset_version, model_revision)`.
 >
 > **Three deployment modes:**
 >
-> - **Worker-side / local** — paste suspicious recruiter message into the chat playground running on free Kaggle T4 or your own GPU; get back ILO citations + corridor fee caps + NGO hotlines. Setup: [`docs/deployment_local.md`](./docs/deployment_local.md).
-> - **Agency / NGO dashboard** — form-based content submission → structured JSON risk envelope. The classifier notebook (#5 above).
+> - **Worker-side / local** — chat playground on Kaggle free T4 or your own GPU; get back ILO citations + corridor fee caps + NGO hotlines. Setup: [`docs/deployment_local.md`](./docs/deployment_local.md).
+> - **Agency / NGO dashboard** — form-based content submission → structured JSON risk envelope (Core #5).
 > - **Enterprise integration** — `POST /api/classifier/evaluate` from your existing service. Dockerized API: [`docs/deployment_enterprise.md`](./docs/deployment_enterprise.md).
 >
 > No data leaves the device. Privacy is non-negotiable.

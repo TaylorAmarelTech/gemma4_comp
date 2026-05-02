@@ -73,7 +73,7 @@ def main() -> None:
 
     required_links = [
         "010-duecare-quickstart-in-5-minutes",
-        "duecare-200-cross-domain-proof",
+        "duecare-cross-domain-proof",
         "duecare-500-agent-swarm-deep-dive",
         "duecare-530-phase3-unsloth-finetune",
         "600-duecare-results-dashboard",

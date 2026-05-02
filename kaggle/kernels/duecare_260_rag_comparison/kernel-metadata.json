@@ -17,5 +17,13 @@
   "model_sources": [
     "google/gemma-4/transformers/gemma-4-e2b-it/1",
     "google/gemma-4/transformers/gemma-4-e4b-it/1"
-  ]
+  ],
+  "keywords": [
+    "gemma",
+    "llm-comparison",
+    "safety",
+    "evaluation"
+  ],
+  "enable_tpu": false,
+  "kernel_sources": []
 }

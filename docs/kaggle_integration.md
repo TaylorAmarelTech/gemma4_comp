@@ -8,6 +8,13 @@
 > E4B on a single GPU). Kaggle provides the needed compute for free, and
 > aligns naturally with the hackathon's delivery channel.
 >
+> **Path layout update (2026-04-18):** references to `src/phases/*` below
+> reflect the pre-package monolith. Phase runners now live inside Kaggle
+> notebook builders at `scripts/build_notebook_NNN_*.py` with the per-kernel
+> output under `kaggle/kernels/duecare_NNN_*/`. Shared runtime code lives in
+> `packages/duecare-llm-*/src/duecare/*`. The integration patterns below
+> (API usage, secrets, competition tags, dataset wiring) are unchanged.
+>
 > Last updated: 2026-04-11.
 
 ## TL;DR

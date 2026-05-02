@@ -1,0 +1,104 @@
+﻿Complaint Regarding EO and CoP Violations
+For Hong Kong Labour/EAA
+
+
+To Whom This May Concern (Sa Sinumang Kinauukulan), 
+
+I am _______. My agency in the Philippines is____ my agency in Hong Kong is ____
+
+After review of the relevant laws and agency provisions, I would like to submit a complaint against my agency/agencies for the following reasons (Matapos suriin ang mga naaayon sa batas at mga probisyon ng ahensya, gusto kong magsumite ng reklamo laban sa aking ahensya sa mga susunod na kadahilanan): 
+
+Reason For Complaint
+(Mga dahilan para sa reklamo)
+	Source Of Law
+(Pinagmumulan ng Batas)
+	Check
+(tsekan)
+	Unlicensed operation of employment agency
+(Ang pag opera ng employment ahensya ay hindi lisensyado) 
+	EO
+	${unlicensed}
+	Overcharge of commission to job-seekers
+(Ang employment ahensya ay naniningil ng lubos para sa komisyon sa mga naghahanap ng trabaho)
+	EO
+	${overcharge}
+	Confiscation of personal belongings (ID card, Passport, ATM card, etc.)
+(Kinumpiska nila ang mga personal kong gamit (ID card, Pasaporte, ATM card, etc.)
+	EO/CoP
+	${confiscation}
+	Particulars of job-seekers provided by EA not consistent with facts
+(Ang mga detalye o mga partikular ng mga naghahanap ng trabaho na binigay at hinanda ng employment ahensya ay hindi naaayon sa mga katotohanan)
+	EO/CoP
+	${inconsistentFacts}
+	EA failed to provide services in accordance with the terms of guarantee stipulated in the service agreement
+(Ang employment ahensya ay nabigong mag bigay ng serbisyong alinsunod sa mga tuntunin ng garantiya na itinakda sa kasunduan sa serbisyo)
+	EO/CoP
+	${failedServices}
+	EA failed to provide services in accordance with the refund arrangements stipulated in the service agreement
+(Ang employment ahensya ay nabigong magbigay ng serbisyong alinsunod sa pagaayos o pagaaregla ng isauli o refund na itinakda sa kasunduan sa serbisyo)
+	EO/CoP
+	${failedRefund}
+	EA claimed to be authorized by foreign government but failed to display the accreditation or certificate
+(Inangkin ng employment ahensya na sila ay autorisado o may pahintulot galing sa isang foreign na gobyerno ngunit nabigong ipakita ang akreditasyon o sertipiko)
+	EO/CoP
+	${falseAccreditation}
+	EA failed to provide payment receipts
+(Ang employment ahensya ay nabigong magbigay ng mga resibo)
+	EO/CoP
+	${noReceipts}
+	EA failed to explain to job-seekers and employers their statutory rights and obligations
+(Ang employment ahensya ay nabigong ipaliwanag sa mga naghahanap ng trabaho at employer tungkol sa kanilang karapatan sa batas at mga obligasyon)
+	EO/CoP
+	${noExplanation}
+	EA failed to provide job-seekers and employers with reference materials and sample forms relating to their rights and benefits
+(Ang employment ahensya ay nabigong mag bigay sa mga naghahanap ng trabaho at mga employer na may mga sanggunian o reperensiya na materyales at sample form na may kaugnayan sa kanilang mga karapatan at benepisyo)
+	EO/CoP
+	${noMaterials}
+	EA involved in financial affairs of job-seekers
+(Ang employment ahensya ay kasangkot sa pinansiyal na gawain ng mga naghahanap ng trabaho)
+	EO/CoP
+	${involvedInFinance}
+	EA provided fake vacancies
+(Ang employment ahensya ay nagbigay ng mga pekeng bakanteng trabaho)
+	EO/CoP
+	${fakeVacancies}
+	EA violated provisions of the Personal Data (Privacy) Ordinance
+(Nilabag ng employment ahensya ang mga probisyon ng Ordinansa ng Personal na Data (Pagkapribado) o Personal Data (Privacy) Ordinance))
+	EO/CoP
+	${violatePDPO}
+	Other such as (At mga iba pa, tulad ng):
+	
+
+	
+
+	Improper business partners (Hindi maayos na mga kasosyo sa negosyo)
+	EO/CoP
+	${badPartners}
+	Working with unlicensed recruiters (Katrabaho o nagtatrabaho kasama ang mga hindi lisensyadong rekruter)
+	EO/CoP
+	${unlicensedRecruiter}
+	Not registering staff/brokers as related persons (Hindi nila nirehistro ang mga tauhan/koredor (o broker) bilang mga kaugnay na tao)
+	EO/CoP
+	${unregisteredStaff}
+	Failing to provide accurate and complete receipts (Nabigong magbigay ng mga tama at kumpletong mga resibo)
+	EO/CoP
+	${incompleteReceipts}
+	Facilitating potential violations of the Immigration Ordinance (Pinapadali ang mga potensyal na paglabag sa Ordinansa ng Imigrasyon or Immigration Ordinance)
+	EO/CoP
+	${illegalWork}
+	Suspected violations of the Trade Descriptions Ordinance through (Mga hinalang na paglabag sa Ordinansa sa Mga Deskripsyon ng Kalakal o Trade Descriptions Ordinance sa pamamagitan ng)
+	EO/CoP
+	${falseDescriptions}
+	Lies (Kasinungalingan)
+	EO/CoP
+	${lied}
+	False advertising (Maling Anunsiyo)
+	EO/CoP
+	${falseAdvertising}
+	Deception (Desepsiyon/Panlilinlang)
+	EO/CoP
+	${deception}
+	Et Al (At kung ano pa):
+
+
+* ${other}

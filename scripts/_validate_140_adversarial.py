@@ -79,7 +79,7 @@ def main() -> None:
         "duecare-250-comparative-grading",
         "duecare-270-gemma-generations",
         "duecare-410-llm-judge-grading",
-        "duecare-baseline-text-evaluation-framework-conclusion",
+        "299-duecare-text-evaluation-conclusion",
     ]
     for slug in required_links:
         if slug not in all_text:
@@ -131,7 +131,7 @@ def main() -> None:
     if not final_print_cells:
         fail("no URL-bearing 'Mechanics handoff >>>' final print")
     final_print = src(final_print_cells[-1])
-    if "duecare-baseline-text-evaluation-framework-conclusion" not in final_print:
+    if "299-duecare-text-evaluation-conclusion" not in final_print:
         fail("final print missing 299 slug")
     if "duecare-real-gemma-4-on-50-trafficking-prompts" not in final_print:
         fail("final print missing 100 slug")

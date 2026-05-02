@@ -31,11 +31,11 @@ URL_000 = "https://www.kaggle.com/code/taylorsamarel/duecare-000-index"
 URL_100 = "https://www.kaggle.com/code/taylorsamarel/duecare-real-gemma-4-on-50-trafficking-prompts"
 URL_140 = "https://www.kaggle.com/code/taylorsamarel/140-duecare-evaluation-mechanics"
 URL_199 = "https://www.kaggle.com/code/taylorsamarel/199-duecare-free-form-exploration-conclusion"
-URL_200 = "https://www.kaggle.com/code/taylorsamarel/duecare-200-cross-domain-proof"
+URL_200 = "https://www.kaggle.com/code/taylorsamarel/duecare-cross-domain-proof"
 URL_210 = "https://www.kaggle.com/code/taylorsamarel/duecare-gemma-vs-oss-comparison"
 URL_220 = "https://www.kaggle.com/code/taylorsamarel/duecare-ollama-cloud-oss-comparison"
 URL_270 = "https://www.kaggle.com/code/taylorsamarel/duecare-270-gemma-generations"
-URL_299 = "https://www.kaggle.com/code/taylorsamarel/duecare-baseline-text-evaluation-framework-conclusion"
+URL_299 = "https://www.kaggle.com/code/taylorsamarel/299-duecare-text-evaluation-conclusion"
 URL_399 = "https://www.kaggle.com/code/taylorsamarel/duecare-baseline-text-comparisons-conclusion"
 
 

@@ -1,6 +1,6 @@
 {
   "id": "taylorsamarel/duecare-183-redteam-prompt-amplifier",
-  "title": "183: DueCare Red-Team Prompt Amplifier",
+  "title": "DueCare 183: Redteam Prompt Amplifier",
   "code_file": "183_redteam_prompt_amplifier.ipynb",
   "language": "python",
   "kernel_type": "notebook",
@@ -17,10 +17,9 @@
   "model_sources": [],
   "kernel_sources": [],
   "keywords": [
-    "gemma",
+    "adversarial",
     "red-team",
     "jailbreak",
-    "generation",
-    "amplifier"
+    "safety"
   ]
 }

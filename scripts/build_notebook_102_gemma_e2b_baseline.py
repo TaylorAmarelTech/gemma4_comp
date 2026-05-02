@@ -27,7 +27,7 @@ KAGGLE_KERNELS = ROOT / "kaggle" / "kernels"
 FILENAME = "102_gemma_e2b_baseline.ipynb"
 KERNEL_DIR_NAME = "duecare_102_gemma_e2b_baseline"
 KERNEL_ID = "taylorsamarel/102-duecare-gemma-e2b-baseline"
-KERNEL_TITLE = "102: DueCare Gemma 4 E2B Baseline"
+KERNEL_TITLE = "102: DueCare Gemma E2B Baseline"
 WHEELS_DATASET = "taylorsamarel/duecare-llm-wheels"
 PROMPTS_DATASET = "taylorsamarel/duecare-trafficking-prompts"
 KEYWORDS = ["gemma", "safety", "llm", "e2b", "baseline"]
@@ -59,7 +59,8 @@ HEADER_TABLE = canonical_header_table(
     inputs_html=(
         "Gemma 4 E2B IT loaded in 4-bit on a Kaggle T4 GPU (Kaggle model "
         "registry preferred, Hugging Face fallback). The 20-prompt graded "
-        "trafficking slice from <code>duecare-trafficking-prompts</code>."
+        "trafficking slice from the optional <code>duecare-trafficking-prompts</code> "
+        "dataset or the bundled trafficking domain pack."
     ),
     outputs_html=(
         "Per-prompt Gemma 4 E2B responses, scored against the graded rubric "
@@ -68,8 +69,8 @@ HEADER_TABLE = canonical_header_table(
     ),
     prerequisites_html=(
         f"Kaggle T4 GPU kernel with internet enabled, the <code>{WHEELS_DATASET}</code> "
-        f"wheel dataset attached, and the <code>{PROMPTS_DATASET}</code> "
-        "dataset attached. Optional: the Google Gemma 4 Kaggle Model "
+        f"wheel dataset attached. Optional: the <code>{PROMPTS_DATASET}</code> "
+        "dataset for the exact graded slice and the Google Gemma 4 Kaggle Model "
         "attached as <code>google/gemma-4/transformers/gemma-4-e2b-it/1</code>."
     ),
     runtime_html=(
@@ -193,6 +194,8 @@ print(f'Load time: {time.time() - _load_started:.1f}s')
 PROMPTS_CODE = '''import json
 from pathlib import Path
 
+from duecare.domains import load_domain_pack, register_discovered
+
 GRADE_ORDER = ('worst', 'bad', 'neutral', 'good', 'best')
 
 def _load_jsonl(path: Path):
@@ -205,23 +208,27 @@ candidates = [
     Path('/kaggle/input/datasets/taylorsamarel/duecare-trafficking-prompts/seed_prompts.jsonl'),
 ]
 prompts = []
+source_path = None
 for c in candidates:
     if c.exists():
         prompts = _load_jsonl(c)
         print(f'Loaded {len(prompts)} prompts from {c}')
+        source_path = str(c)
         break
 
 if not prompts:
-    raise RuntimeError(
-        'Trafficking prompts dataset not attached. Attach '
-        'taylorsamarel/duecare-trafficking-prompts from the Kaggle sidebar.'
-    )
+    register_discovered()
+    pack = load_domain_pack('trafficking')
+    prompts = list(pack.seed_prompts())
+    source_path = 'duecare.domains:trafficking'
+    print(f'Loaded {len(prompts)} prompts from bundled domain pack fallback ({source_path})')
 
 graded = [p for p in prompts if p.get('graded_responses') and all(k in p['graded_responses'] for k in GRADE_ORDER)]
 print(f'Fully graded prompts: {len(graded)}')
 
 SELECTED = graded[:20]
 print(f'Selected for E2B baseline: {len(SELECTED)}')
+print(f'Prompt source: {source_path}')
 '''
 
 
@@ -480,7 +487,7 @@ def build() -> None:
         "enable_gpu": True,
         "enable_tpu": False,
         "enable_internet": True,
-        "dataset_sources": [WHEELS_DATASET, PROMPTS_DATASET],
+        "dataset_sources": [WHEELS_DATASET],
         "competition_sources": ["gemma-4-good-hackathon"],
         "kernel_sources": [],
         "model_sources": [

@@ -1,0 +1,27 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "duecare-llm-training"
+version = "0.1.0"
+description = "Synthetic-label generation, active-learning review queue, training-dataset assembler, and Unsloth fine-tune kickoff (gated). Closes the loop from pipeline outputs to a custom Gemma 4 LoRA without requiring hand-labeled data."
+readme = "README.md"
+license = {text = "MIT"}
+requires-python = ">=3.11"
+authors = [{name = "Taylor Amarel"}]
+dependencies = [
+    "pydantic>=2.9.0",
+    "duecare-llm-evidence-db>=0.1.0",
+]
+
+[project.optional-dependencies]
+clustering = ["scikit-learn>=1.4.0", "numpy>=1.26.0"]
+unsloth = ["unsloth", "transformers>=4.56", "accelerate>=1.0",
+           "datasets>=2.14.0", "trl>=0.10.0", "peft>=0.10.0"]
+
+[project.urls]
+Homepage = "https://github.com/TaylorAmarelTech/gemma4_comp"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/duecare"]

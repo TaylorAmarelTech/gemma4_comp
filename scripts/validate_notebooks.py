@@ -10,6 +10,7 @@ from kaggle_notebook_utils import discover_kernel_notebooks
 
 
 REQUIRED_VERSION = "0.1.0"
+INSTALL_SCAN_LIMIT = 2
 
 
 def _source_text(cell: dict) -> str:
@@ -42,13 +43,15 @@ def _validate_entry(entry, *, cpu_only: bool) -> list[str]:
         if language is None:
             errors.append(f"Cell {index} missing metadata.language")
 
-    first_code = next((cell for cell in cells if cell.get("cell_type") == "code"), None)
-    if first_code is None:
+    code_cells = [cell for cell in cells if cell.get("cell_type") == "code"]
+    if not code_cells:
         errors.append("Notebook has no code cell")
     else:
-        first_code_text = _source_text(first_code)
-        if REQUIRED_VERSION not in first_code_text:
-            errors.append(f"First code cell does not pin DueCare {REQUIRED_VERSION}")
+        install_window = code_cells[:INSTALL_SCAN_LIMIT]
+        if not any(REQUIRED_VERSION in _source_text(cell) for cell in install_window):
+            errors.append(
+                f"Pinned DueCare {REQUIRED_VERSION} install cell not found in the first {INSTALL_SCAN_LIMIT} code cells"
+            )
 
     last_cell = cells[-1]
     last_cell_text = _source_text(last_cell)

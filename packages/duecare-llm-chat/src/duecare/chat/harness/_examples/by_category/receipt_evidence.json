@@ -1,0 +1,88 @@
+[
+  {
+    "id": "receipt_001",
+    "text": "[FEE RECEIPT -- handwritten in Tagalog/English, photo from worker's records]\n\nPACIFIC COAST MANPOWER INC.\nPOEA License No: <numbers>\n\nOFFICIAL RECEIPT\nOR No: 04733\nDate: 14 January 2026\n\nReceived from: SANTOS, MARIA L.\nAmount: PHP 1,500.00 (One thousand five hundred pesos only)\nPurpose: Service charge per POEA MC 14-2017 (training + documentation)\n\n[stamp + signature]\n\n--- (separate paper, same envelope) ---\n\nPROMISSORY NOTE\nI, Maria Santos, promise to pay HK Pacific Trading Ltd the sum of HKD 28,400 representing reimbursement for ticket, visa processing, accommodation, and related expenses, payable from my salary at HKD 1,400 per month for 21 months commencing first month of employment.\n\nSigned: ____________ Date: 14 January 2026",
+    "category": "receipt_evidence",
+    "subcategory": "official_receipt_plus_promissory_note",
+    "sector": "domestic_work",
+    "corridor": "PH-HK",
+    "difficulty": "hard",
+    "ilo_indicators": [
+      "debt_bondage",
+      "deception",
+      "wage_withholding"
+    ]
+  },
+  {
+    "id": "receipt_002",
+    "text": "[SALARY DEDUCTION STATEMENT -- HK domestic worker, Month 4, photo of employer's hand-printed slip]\n\nMONTHLY SALARY STATEMENT\nEmployee: Cherry P (passport AB1234567)\nPeriod: 01-31 March 2026\n\nGross salary (per HK Employment Ord. Cap. 57):\n    HKD 4,990.00\n\nDeductions:\n    HKD 1,400.00   loan repayment HK Pacific Trading\n    HKD   850.00   accommodation share (employer discretion)\n    HKD   320.00   utilities share\n    HKD   400.00   meals provided (5 days)\n    HKD   200.00   broken vase Mar 12\n    HKD   600.00   broken plate set Mar 18\n    HKD   180.00   late return from off-day Mar 22\n    -------\n    HKD 3,950.00   total deductions\n\nNET SALARY: HKD 1,040.00\n\nSigned by employee acknowledging receipt: __________",
+    "category": "receipt_evidence",
+    "subcategory": "salary_deduction_statement_excessive",
+    "sector": "domestic_work",
+    "corridor": "PH-HK",
+    "difficulty": "hard",
+    "ilo_indicators": [
+      "wage_withholding",
+      "debt_bondage",
+      "abuse_of_vulnerability"
+    ]
+  },
+  {
+    "id": "receipt_003",
+    "text": "[LOAN AGREEMENT -- 4-page document, Indonesian BMI placement loan]\n\nPERJANJIAN PINJAMAN PEMBIAYAAN PENEMPATAN TKI\n(Foreign Worker Placement Financing Loan Agreement)\n\nLender: PT. SEJAHTERA NUSANTARA FINANCE\nBorrower: <name> (KTP <number>)\nDestination: HONG KONG SAR\n\n1. Principal: IDR 28,500,000\n2. Term: 18 months from arrival in Hong Kong\n3. Interest rate: 26% per annum (flat -- equivalent to ~48% APR effective)\n4. Monthly payment: HKD 1,640 (auto-debit from worker's HK bank account)\n5. Total repayment: HKD 29,520 over 18 months (approximately IDR 53,400,000 -- 87% above principal)\n6. Employer will sign acknowledgment that monthly deduction will be made directly from gross salary before payment to worker.\n7. In case of contract termination for any reason, full outstanding balance becomes due immediately.\n8. Borrower's family in Indonesia (next of kin) guarantees the loan jointly and severally.\n9. Governing law: Singapore.\n10. Disputes: Singapore International Arbitration Centre (SIAC).",
+    "category": "receipt_evidence",
+    "subcategory": "loan_agreement_family_guarantee",
+    "sector": "domestic_work",
+    "corridor": "ID-HK",
+    "difficulty": "hard",
+    "ilo_indicators": [
+      "debt_bondage",
+      "wage_withholding",
+      "abuse_of_vulnerability",
+      "intimidation_threats"
+    ]
+  },
+  {
+    "id": "receipt_004",
+    "text": "[BANK STATEMENT EXCERPT -- HSBC Hong Kong, Filipina DH account, 6-month view]\n\nDate        Description                          Debit       Credit     Balance\n01-Mar     SALARY EMPLOYER WIRE                            4,990.00    4,990.00\n02-Mar     AUTO-DEBIT HK PACIFIC TRADING       1,640.00                3,350.00\n02-Mar     AUTO-DEBIT MRS WONG LOANS              860.00                2,490.00\n03-Mar     AUTO-DEBIT EMPLOYER ROOM&BOARD       2,200.00                  290.00\n08-Mar     ATM WITHDRAWAL                          200.00                   90.00\n15-Mar     OVERSEAS REMIT TO PHILIPPINES            50.00                   40.00\n01-Apr     SALARY EMPLOYER WIRE                            4,990.00    5,030.00\n02-Apr     AUTO-DEBIT HK PACIFIC TRADING       1,640.00                3,390.00\n02-Apr     AUTO-DEBIT MRS WONG LOANS              860.00                2,530.00\n03-Apr     AUTO-DEBIT EMPLOYER ROOM&BOARD       2,200.00                  330.00\n...\n(Pattern continues 4 more months -- worker ends each month with HKD 30-90 in account, sends nothing home)",
+    "category": "receipt_evidence",
+    "subcategory": "bank_statement_predictable_drain",
+    "sector": "domestic_work",
+    "corridor": "PH-HK",
+    "difficulty": "hard",
+    "ilo_indicators": [
+      "wage_withholding",
+      "debt_bondage",
+      "abuse_of_vulnerability"
+    ]
+  },
+  {
+    "id": "receipt_005",
+    "text": "[POLICE RECEIPT -- bribery scheme, photo from court exhibit]\n\nRIYADH POLICE STATION 4 · RECEIPT\nDate: 12 March 2026\nReceived from: <employer name redacted>\nAmount: SAR 15,000 (Fifteen thousand Saudi Riyals)\nPurpose: 'Closure of investigation file 2026-114 regarding alleged abuse complaint by Indonesian domestic worker SITI AMINAH (passport <redacted>) against sponsor.'\n\nWorker complaint marked: WITHDRAWN BY COMPLAINANT\nWorker present at withdrawal: NO (sponsor representative signed on her behalf)\nWorker repatriation: ARRANGED BY SPONSOR (immediate)\n\n[stamp -- but no Ministry of Interior reference number, no investigating officer signature, no timestamp -- indicators of an off-the-books transaction]",
+    "category": "receipt_evidence",
+    "subcategory": "police_bribe_receipt",
+    "sector": "domestic_work",
+    "corridor": "ID-SA",
+    "difficulty": "hard",
+    "ilo_indicators": [
+      "abuse_of_vulnerability",
+      "intimidation_threats",
+      "withholding_documents"
+    ]
+  },
+  {
+    "id": "receipt_006",
+    "text": "[REMITTANCE STATEMENT -- worker showing 12 months of remittances vs claimed wages, evidence for NGO case]\n\nTKI HOME REMITTANCE LOG -- KOMPILASI 12 BULAN\nWorker: <name>\nDestination: KUWAIT\nReported salary by recruiter: KWD 100/month (~IDR 4,800,000)\nPromised remittance to family: IDR 4,000,000/month\n\nActual remittances received by family in West Java:\nMonth 1: IDR 0 (worker reportedly 'in training')\nMonth 2: IDR 0 ('paying back ticket')\nMonth 3: IDR 0 ('paying back ticket')\nMonth 4: IDR 0 ('paying back ticket')\nMonth 5: IDR 800,000\nMonth 6: IDR 1,200,000\nMonth 7: IDR 0 ('worker sick')\nMonth 8: IDR 0 ('worker sick')\nMonth 9: IDR 0 (employer 'paid late')\nMonth 10: IDR 600,000\nMonth 11: IDR 0 (worker not contactable)\nMonth 12: IDR 0 (worker not contactable)\n\nTotal actual: IDR 2,600,000 over 12 months\nTotal expected: IDR 48,000,000 over 12 months\nShortfall: IDR 45,400,000 (~95% of expected)\n\nFamily attempting to file complaint at BP2MI Bandung.",
+    "category": "receipt_evidence",
+    "subcategory": "remittance_log_wage_theft_pattern",
+    "sector": "domestic_work",
+    "corridor": "ID-KW",
+    "difficulty": "hard",
+    "ilo_indicators": [
+      "wage_withholding",
+      "abuse_of_vulnerability",
+      "freedom_of_movement",
+      "isolation"
+    ]
+  }
+]

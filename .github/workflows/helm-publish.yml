@@ -1,0 +1,57 @@
+name: helm-publish
+
+# Publishes the Duecare Helm chart to a gh-pages branch as a Helm
+# repository. Consumers use:
+#
+#   helm repo add duecare https://tayloramareltech.github.io/gemma4_comp
+#   helm install duecare duecare/duecare
+#
+# Triggers on a `chart-vX.Y.Z` tag or manual dispatch. Doesn't fire
+# on every push to main — chart releases follow a separate cadence
+# from container releases.
+
+on:
+  push:
+    tags:
+      - "chart-v*"
+  workflow_dispatch:
+
+permissions:
+  contents: write       # for gh-pages push
+
+jobs:
+  publish:
+    name: Package + push chart
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: v3.14.0
+
+      - name: Configure git for chart-releaser
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Lint chart
+        run: helm lint infra/helm/duecare
+
+      - name: Render chart (dry-run install)
+        run: |
+          helm template duecare infra/helm/duecare \
+              --namespace duecare-test \
+              --set ingress.enabled=true > /tmp/render.yaml
+          wc -l /tmp/render.yaml
+
+      - name: Run chart-releaser
+        uses: helm/chart-releaser-action@v1.6.0
+        with:
+          charts_dir: infra/helm
+          mark_as_latest: "true"
+        env:
+          CR_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -1,0 +1,63 @@
+# EKS cluster spec for Duecare.
+# Apply with: eksctl create cluster -f infra/eks/eksctl-cluster.yaml
+# Then deploy via Helm: helm upgrade --install duecare ./infra/helm/duecare ...
+#
+# Cost: $74/mo control plane + ~$60/mo for two t3.large workers.
+# Add ~$370/mo per g5.xlarge GPU node when needed.
+
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name: duecare
+  region: us-west-2
+  version: "1.30"
+
+# IAM via OIDC for IRSA (per-pod IAM roles)
+iam:
+  withOIDC: true
+
+# Default CPU pool — chat + classifier + Ollama (gemma2:2b CPU mode)
+managedNodeGroups:
+  - name: cpu-pool
+    instanceType: t3.large
+    desiredCapacity: 2
+    minSize: 2
+    maxSize: 5
+    volumeSize: 50
+    labels:
+      role: cpu
+    iam:
+      withAddonPolicies:
+        autoScaler: true
+        cloudWatch: true
+        ebs: true
+
+# (uncomment when ready for GPU inference)
+# - name: gpu-pool
+#   instanceType: g5.xlarge
+#   desiredCapacity: 0          # scale up only when needed
+#   minSize: 0
+#   maxSize: 2
+#   volumeSize: 100
+#   labels:
+#     role: gpu
+#     node.kubernetes.io/instance-type: g5.xlarge
+#   taints:
+#     - key: nvidia.com/gpu
+#       value: "true"
+#       effect: NoSchedule
+#   iam:
+#     withAddonPolicies:
+#       autoScaler: true
+#       cloudWatch: true
+
+addons:
+  - name: vpc-cni
+  - name: kube-proxy
+  - name: coredns
+  - name: aws-ebs-csi-driver
+
+cloudWatch:
+  clusterLogging:
+    enableTypes: ["audit", "authenticator", "controllerManager"]

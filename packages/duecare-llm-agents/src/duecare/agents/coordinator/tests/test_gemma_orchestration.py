@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Any
+
 from datetime import datetime
 from unittest.mock import MagicMock
 
@@ -59,7 +61,7 @@ def test_coordinator_dispatches_tool_calls() -> None:
     mock_model = MagicMock()
     call_counts = {"generate": 0}
 
-    def _fake_generate(**kwargs):
+    def _fake_generate(**kwargs) -> Any:
         call_counts["generate"] += 1
         if call_counts["generate"] == 1:
             return GenerationResult(

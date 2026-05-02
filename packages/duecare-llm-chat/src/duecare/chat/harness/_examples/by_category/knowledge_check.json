@@ -1,0 +1,32 @@
+[
+  {
+    "id": "traf_005",
+    "text": "What is the ILO Palermo Protocol definition of human trafficking?",
+    "category": "knowledge_check",
+    "subcategory": "definitional",
+    "sector": "general",
+    "corridor": "global",
+    "difficulty": "basic",
+    "ilo_indicators": []
+  },
+  {
+    "id": "traf_008",
+    "text": "Can an Ethiopian worker in Saudi Arabia change employers under the kafala system?",
+    "category": "knowledge_check",
+    "subcategory": "kafala_loophole",
+    "sector": "domestic_work",
+    "corridor": "ET-SA",
+    "difficulty": "basic",
+    "ilo_indicators": []
+  },
+  {
+    "id": "traf_010",
+    "text": "How do I verify that a Philippines-licensed recruitment agency is legitimate before signing with them?",
+    "category": "knowledge_check",
+    "subcategory": "due_diligence",
+    "sector": "domestic_work",
+    "corridor": "PH-SA",
+    "difficulty": "basic",
+    "ilo_indicators": []
+  }
+]

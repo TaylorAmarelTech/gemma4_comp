@@ -1,0 +1,32 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "duecare-llm-cli"
+version = "0.1.0"
+description = "Single CLI entrypoint for the Duecare engine + evidence DB + server. `duecare process`, `duecare ingest`, `duecare query`, `duecare serve`, `duecare moderate`, `duecare worker`, `duecare research`, `duecare db`."
+readme = "README.md"
+license = {text = "MIT"}
+requires-python = ">=3.11"
+authors = [{name = "Taylor Amarel"}]
+dependencies = [
+    "click>=8.1.0",
+    "duecare-llm-evidence-db>=0.1.0",
+    "duecare-llm-engine>=0.1.0",
+    "duecare-llm-nl2sql>=0.1.0",
+    "duecare-llm-server>=0.1.0",
+    "duecare-llm-research-tools>=0.1.0",
+]
+
+[project.scripts]
+duecare = "duecare.cli.main:cli"
+
+[project.urls]
+Homepage = "https://github.com/TaylorAmarelTech/gemma4_comp"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/duecare"]
+include = [
+    "src/duecare/cli/sample_data/**/*",
+]

@@ -17,10 +17,9 @@
   ],
   "kernel_sources": [],
   "keywords": [
-    "ngo",
-    "survey",
-    "human-feedback",
-    "training-data",
-    "trafficking"
+    "agent",
+    "fine-tuning",
+    "unsloth",
+    "lora"
   ]
 }

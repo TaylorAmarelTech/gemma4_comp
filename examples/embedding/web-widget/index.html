@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Duecare Chat — embedded demo</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+            margin: 0;
+            background: #f8fafc;
+            color: #0f172a;
+        }
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 30px 20px;
+            display: grid;
+            grid-template-columns: 1fr 1.4fr;
+            gap: 30px;
+        }
+        @media (max-width: 800px) {
+            .container { grid-template-columns: 1fr; }
+        }
+        .blurb h1 { margin-top: 0; font-size: 28px; }
+        .blurb p { color: #475569; line-height: 1.6; }
+        .blurb code {
+            background: #e2e8f0; padding: 2px 6px; border-radius: 4px;
+            font-size: 0.9em;
+        }
+        .chat-frame {
+            height: 600px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+
+    <div class="blurb">
+        <h1>Duecare embedded</h1>
+        <p>This page demonstrates the <code>duecare-widget.js</code>
+        single-file embed. It's a complete chat surface — message
+        bubbles, suggested prompts, streaming response — wrapped
+        into one <code>&lt;script&gt;</code> tag.</p>
+        <p>To embed on your own site (NGO website, partner intake
+        portal, internal tool, etc.):</p>
+        <pre style="background:#0f172a;color:#e2e8f0;padding:12px;border-radius:8px;overflow-x:auto;font-size:12px;">
+&lt;div id="duecare-chat" style="height:600px"&gt;&lt;/div&gt;
+&lt;script src="duecare-widget.js"&gt;&lt;/script&gt;
+&lt;script&gt;
+  Duecare.mount('#duecare-chat', {
+    apiUrl: 'https://your-duecare-deploy.example.com',
+    toggles: { grep: true, rag: true, tools: true },
+    theme: 'light'
+  });
+&lt;/script&gt;</pre>
+        <p>Configure the API endpoint to point at any deployed
+        Duecare instance — Render, Cloud Run, EKS, your own
+        Kubernetes, anywhere from
+        <a href="../../../docs/cloud_deployment.md"><code>docs/cloud_deployment.md</code></a>.</p>
+        <p>Full embedding guide:
+        <a href="../../../docs/embedding_guide.md"><code>docs/embedding_guide.md</code></a>.</p>
+    </div>
+
+    <div id="duecare-chat" class="chat-frame"></div>
+
+</div>
+
+<script src="./duecare-widget.js"></script>
+<script>
+    // For the demo, point at localhost. Change `apiUrl` to your
+    // deployed Duecare instance.
+    Duecare.mount('#duecare-chat', {
+        apiUrl: 'http://localhost:8080',
+        toggles: { persona: true, grep: true, rag: true, tools: true },
+        theme: 'light',
+        onResponse: (msg) => console.log('[duecare]', msg.slice(0, 80)),
+        onError: (err) => console.error('[duecare] error:', err),
+    });
+</script>
+
+</body>
+</html>

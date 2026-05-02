@@ -24,8 +24,8 @@ WHEELS_DATASET = "taylorsamarel/duecare-llm-wheels"
 KEYWORDS = ["deployment", "evaluation"]
 
 URL_000 = "https://www.kaggle.com/code/taylorsamarel/duecare-000-index"
-URL_180 = "https://www.kaggle.com/code/taylorsamarel/duecare-180-multimodal-document-inspector"
-URL_200 = "https://www.kaggle.com/code/taylorsamarel/duecare-200-cross-domain-proof"
+URL_180 = "https://www.kaggle.com/code/taylorsamarel/180-duecare-multimodal-document-inspector"
+URL_200 = "https://www.kaggle.com/code/taylorsamarel/duecare-cross-domain-proof"
 URL_300 = "https://www.kaggle.com/code/taylorsamarel/300-gemma-4-against-15-adversarial-attack-vectors"
 URL_400 = "https://www.kaggle.com/code/taylorsamarel/duecare-400-function-calling-multimodal"
 URL_410 = "https://www.kaggle.com/code/taylorsamarel/duecare-410-llm-judge-grading"

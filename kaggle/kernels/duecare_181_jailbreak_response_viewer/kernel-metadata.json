@@ -1,5 +1,5 @@
 {
-  "id": "taylorsamarel/duecare-181-jailbreak-response-viewer",
+  "id": "taylorsamarel/181-duecare-jailbreak-response-viewer",
   "title": "181: DueCare Jailbreak Response Viewer",
   "code_file": "181_jailbreak_response_viewer.ipynb",
   "language": "python",
@@ -17,10 +17,9 @@
   "model_sources": [],
   "kernel_sources": [],
   "keywords": [
-    "gemma",
-    "safety",
+    "adversarial",
+    "red-team",
     "jailbreak",
-    "viewer",
-    "playground"
+    "safety"
   ]
 }

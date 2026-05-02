@@ -1,5 +1,5 @@
 {
-  "id": "taylorsamarel/duecare-187-jailbreak-abliterated-e4b",
+  "id": "taylorsamarel/187-duecare-jailbreak-abliterated-e4b",
   "title": "187: DueCare Jailbreak - Abliterated E4B",
   "code_file": "187_jailbreak_abliterated_e4b.ipynb",
   "language": "python",
@@ -20,9 +20,9 @@
   ],
   "kernel_sources": [],
   "keywords": [
-    "gemma",
-    "safety",
+    "adversarial",
+    "red-team",
     "jailbreak",
-    "abliteration"
+    "safety"
   ]
 }

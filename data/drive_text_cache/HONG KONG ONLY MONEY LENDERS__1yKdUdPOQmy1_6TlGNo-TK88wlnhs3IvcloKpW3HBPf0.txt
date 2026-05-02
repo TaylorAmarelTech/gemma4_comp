@@ -1,0 +1,170 @@
+﻿Agency - Lender Quick Reference Table
+
+Reason For Complaint
+(Mga dahilan para sa reklamo)
+	Source Of Law
+(Pinagmumulan ng Batas)
+	Check
+(tsekan)
+	Including processing, deposit, application, or other fees did the lender charge an interest rate of over 60% per annum?
+
+(Kasama ang pagproseso, deposito, aplikasyon, o iba pang bayarin, Naningil ba ang nagpapahiram ng interes na may rate na higit pa sa 60% ka da taon?)
+	Money Lenders Ordinance
+	
+
+	Did the lender require or offer unlicensed “savings” / “deposit taking account”?
+
+
+(Kinailangan o nag-alok ba ang nagpapahiram ng isang hindi lisensyadong "savings" / "deposit-taking account"?)
+	Banking Ordinance
+	
+
+	Did the lender fail or refuse to provide a copy of the loan agreement?
+
+
+(Nabigo o tumanggi ba ang nagpapahiram na magbigay ng kopya ng loan agreement?)
+	Money Lenders Ordinance
+	
+
+	Did the lender require you to send money via a remittance company, place money within a mastercard, or use part of the loan proceeds to buy electronics or other products/services?
+
+
+(Kinailangan ka ba ng nagpapahiram na magpadala ka ng pera sa pamamagitan ng remmitance na kumpanya, o maglagay ng pera sa isang mastercard, o gamitin ang bahagi ng na nakalikom na utang upang bumili ng  electronics o iba pang mga produkto/serbisyo?)
+	Licensing Conditions for Money Lenders
+Trade Descriptions Ordinance
+	
+
+	Did the lender require a personal picture as security for the loan?
+
+
+(Kinailangan ba ng nagpapahiram ang isang personal na larawan bilang seguridad sa utang?)
+	Money Lenders Regulations
+	
+
+	Did the lender withhold your passport or HKID as security for the loan?
+
+
+(Kinumpiska at pinagkait ba ang iyong passport o HKID bilang seguridad sa utang?)
+	Money Lenders Regulations
+	
+
+	Did the money lender accept reference information without written authorization from the reference?
+
+
+(Tinanggap ba ng nagpapahiram ang impormasyon ng reference nang walang nakasulat na pahintulot mula sa reference?)
+	Licensing Conditions for Money Lenders
+	
+
+	Did the lender disclose your personal information to third parties (employer, friends, family, or publicly on social media)?
+
+
+(Inihayag ba ng nagpapahiram ang iyong personal na impormasyon sa mga third party (halimbawa sa mga amo, kaibigan, pamilya, o publikong nilagay sa social media?)
+	Licensing Conditions for Money Lenders
+Personal Data (Privacy) Ordinance
+	
+
+	Did the lender engage in repetitive behavior that could constitute harassment?
+(Ang nagpapahiram ba ay mag ugali na paulit-ulit na maaaring maging sanhi ng harassment?)
+	Licensing Conditions for Money Lenders
+	
+
+	Did the lender share an office with a remittance company?
+
+
+(Ang nagpapahiram ba ay nakikibahagi ng opisina kasama ang isang remittance na kumpanya?)
+	Money Service Operators Licensing Guide
+	
+
+	Did the lender fail to provide a summary of the Money Lenders Ordinance?
+
+
+(Nabigo ba ang nagpapahiram na magbigay ng buod ng Money Lenders Ordinance?)
+	Money Lenders Regulations
+	
+
+	Other
+
+
+(Iba pa)
+	
+
+	
+
+	
+
+Potential Actions
+Actions
+	Check
+(tsekan)
+	Send a demand letter to the lender requesting a copy of the loan agreement and payment records.
+	
+
+	Send a Data Access Request under Personal Data (Privacy) Ordinance and request personal data
+	
+
+	Send a demand letter to the lender asking them to cease and desist calling all references who have not furnished written authorization to be a reference.
+	
+
+	Send a demand letter to the lender asking them to provide a refund of all processing and savings fees.
+	
+
+	Send a demand letter to the lender asking them to cease harassing behavior such as house visits and repetitive calls.
+	
+
+	Send a demand letter to the lender asking them to delete any photos taken as security for the loan.
+	
+
+	Send a demand letter requesting compensation for harassment. See https://www.tannerdewitt.com/court-confirms-tort-harassment-hong-kong/ 
+	
+
+	File small claims suit
+	
+
+	Conduct additional research
+	
+
+	
+Narrative (Interview) Questions
+Formal Police Reports / Civil Claims
+
+
+1. Name?
+2. Age?
+3. Marital status?
+4. Education level?
+5. Amount of time in Hong Kong?
+6. When did Client first learn about the lender?
+7. How did the Client first learn about the lender (facebook ad, friend, flyer, advertisement, etc)?
+8. Who did the Client speak to first at the lender (name of staff, phone number, business card, etc)?
+9. Why did the Client apply for the loan?
+10. Where did the Client apply for the loan?
+11. When did the Client apply for the loan?
+12. What information did the Client provide to the lender?
+13. What information did the lender give or explain to the Client?
+14. Elaborate on nominal loan principal, processing fees, savings fees and any supporting evidence (receipts, conversations)?
+15. See below police reports for other potential questions and information to include
+16. Ask:
+   1. Processing fees
+   2. Savings accounts
+   3. Address
+   4. Was license visible in the office
+   5. Name of staff
+   6. Description (body build, glasses, hair color, eye color)
+17. Try to write questions that will find violations of MLO, MLR, and/or licensing conditions
+
+
+These questions serve as a backbone to a police report. Example questions / reports:
+
+
+* https://docs.google.com/document/d/1A6A3tUVfsfbGDvO8zQaXYG4Mp0YMcyn_DGAUKRg2S78/edit 
+
+
+
+
+Example Police Reports
+
+
+* Sample HKPF statement against Rich Credit for reference (authorized for disclosure).
+* Sample HKPF statement
+* More detailed sample statement on HKPF statement form
+* More sample or redacted HKPF, EAA, or other statement can be made available

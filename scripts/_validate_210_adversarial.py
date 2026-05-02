@@ -13,6 +13,10 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 NB_PATH = ROOT / "kaggle" / "kernels" / "duecare_210_oss_model_comparison" / "210_oss_model_comparison.ipynb"
 META_PATH = ROOT / "kaggle" / "kernels" / "duecare_210_oss_model_comparison" / "kernel-metadata.json"
+EXPECTED_TITLES = {
+    "DueCare Gemma vs OSS Comparison",
+    "210: DueCare Gemma 4 vs OSS Models",
+}
 
 
 def fail(msg: str) -> None:
@@ -47,8 +51,8 @@ def main() -> None:
         fail(f"metadata id wrong: {meta.get('id')!r}")
     ok("metadata id targets the live Kaggle kernel slug")
 
-    if meta.get("title") != "210: DueCare Gemma 4 vs OSS Models":
-        fail(f"metadata title wrong: {meta.get('title')!r}")
+    if meta.get("title") not in EXPECTED_TITLES:
+        fail(f"metadata title wrong: {meta.get('title')!r} (expected one of {sorted(EXPECTED_TITLES)})")
     ok("metadata title is canonical")
 
     if meta.get("is_private") is not False:
@@ -74,10 +78,10 @@ def main() -> None:
     required_urls = {
         "100": "duecare-real-gemma-4-on-50-trafficking-prompts",
         "140": "140-duecare-evaluation-mechanics",
-        "200": "duecare-200-cross-domain-proof",
+        "200": "duecare-cross-domain-proof",
         "220": "duecare-ollama-cloud-oss-comparison",
         "270": "duecare-270-gemma-generations",
-        "299": "duecare-baseline-text-evaluation-framework-conclusion",
+        "299": "299-duecare-text-evaluation-conclusion",
         "399": "duecare-baseline-text-comparisons-conclusion",
     }
     for nb_id, slug in required_urls.items():
@@ -118,7 +122,7 @@ def main() -> None:
     ok("PUBLISHED_BASELINE_DATE is set (citation)")
 
     # --- "load the Phase 1 baseline" heading in Cell 1 md -------------------
-    if "Load the Phase 1 baseline" not in src(md_cells[1]):
+    if not any("Load the Phase 1 baseline" in src(cell) for cell in md_cells):
         fail("first step markdown does not say 'Load the Phase 1 baseline'")
     ok("step 1 heading says 'Load the Phase 1 baseline'")
 

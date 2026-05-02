@@ -15,7 +15,7 @@ def sink_path(tmp_path: Path) -> Path:
     return tmp_path / "metrics.jsonl"
 
 
-def test_write_single_metric(sink_path: Path):
+def test_write_single_metric(sink_path: Path) -> None:
     sink = MetricsSink(sink_path)
     sink.write("run_1", "grade_exact_match", 0.68)
     rows = [json.loads(line) for line in sink_path.read_text().splitlines()]
@@ -26,7 +26,7 @@ def test_write_single_metric(sink_path: Path):
     assert "timestamp" in rows[0]
 
 
-def test_write_with_agent_and_task(sink_path: Path):
+def test_write_with_agent_and_task(sink_path: Path) -> None:
     sink = MetricsSink(sink_path)
     sink.write(
         "run_1",
@@ -44,21 +44,21 @@ def test_write_with_agent_and_task(sink_path: Path):
     assert row["task_id"] == "guardrails"
 
 
-def test_write_with_extra(sink_path: Path):
+def test_write_with_extra(sink_path: Path) -> None:
     sink = MetricsSink(sink_path)
     sink.write("run_1", "latency_ms", 42, extra={"p95": 100})
     row = json.loads(sink_path.read_text().splitlines()[0])
     assert row["extra"]["p95"] == 100
 
 
-def test_write_creates_parent_dir(tmp_path: Path):
+def test_write_creates_parent_dir(tmp_path: Path) -> None:
     path = tmp_path / "nested" / "dir" / "metrics.jsonl"
     sink = MetricsSink(path)
     sink.write("r", "m", 1.0)
     assert path.exists()
 
 
-def test_many_writes_append(sink_path: Path):
+def test_many_writes_append(sink_path: Path) -> None:
     sink = MetricsSink(sink_path)
     for i in range(100):
         sink.write(f"run_{i}", "score", float(i) / 100.0)
@@ -66,7 +66,7 @@ def test_many_writes_append(sink_path: Path):
     assert len(rows) == 100
 
 
-def test_bulk_write(sink_path: Path):
+def test_bulk_write(sink_path: Path) -> None:
     sink = MetricsSink(sink_path)
     sink.bulk_write([
         {"run_id": "a", "metric": "x", "value": 1.0},
@@ -78,7 +78,7 @@ def test_bulk_write(sink_path: Path):
     assert json.loads(rows[1])["run_id"] == "b"
 
 
-def test_float_coercion(sink_path: Path):
+def test_float_coercion(sink_path: Path) -> None:
     sink = MetricsSink(sink_path)
     sink.write("r", "m", 42)  # int, should be coerced to float
     row = json.loads(sink_path.read_text().splitlines()[0])

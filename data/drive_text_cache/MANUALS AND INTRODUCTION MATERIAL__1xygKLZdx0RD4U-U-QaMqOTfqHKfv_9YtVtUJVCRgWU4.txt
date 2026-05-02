@@ -1,0 +1,414 @@
+﻿A. Hong Kong legislation
+Hong Kong e-Legislation (gov)
+	HKLII Ordinances
+	
+
+Crimes Ordinance (Cap. 200)
+Section
+	Explanation
+	24
+	The offence of criminal intimidation involves:
+1. threats of injury to the person, property or reputation of the person; or
+2. threats of injury to a third person (e.g. a family member) their property or reputation; or
+3. threats of any illegal act.
+	60
+	Criminal damage to property
+	71
+	Forgery
+	72-76
+	Possessing and using false instruments
+	161
+	Access to computer with criminal or dishonest intent
+	
+
+Theft Ordinance (Cap. 210)
+Section
+	Explanation
+	2-7
+	Definitions and components of theft
+	16A
+	Fraud
+	17
+	Obtaining property by deception
+	18
+	Obtaining pecuniary advantage by deception
+	23
+	Blackmail is making any unwarranted demand with menaces. The demand must be made with a view to gain or with intent to cause loss to another person. Menaces simply mean threats. A demand with menaces is unwarranted unless the person making the demand believes he or she has reasonable grounds for making the demand and that the use of the menaces is a proper means of reinforcing the demand.
+	
+
+________________
+
+
+Organized and Serious Crimes Ordinance (Cap. 455)
+Section
+	Explanation
+	25(1)
+	Dealing with the proceeds of a crime or suspicious activity that any reasonable person may believe constitutes an indictable offense - accepting money, property, etc that was obtained through unlawful or suspicious actions.
+	25A(1)
+	Failing to file an suspicious transaction report upon suspicion of a money laundering scheme or transaction relating to money laundering
+	26
+	Revealing that a suspicious transaction report has been made
+	
+
+Anti-Money Laundering and Counter-Terrorist Financing Ordinance (Cap. 615)
+Section
+	Explanation
+	2
+	Inadequate due diligence by financial institution
+	2
+	Inadequate record keeping by financial institution
+	
+
+	Money Service Operator Licensing Guide Violations
+	
+
+	Money Lender AML/CFT Licensing Condition Violations
+	
+
+Trade Descriptions Ordinance (Cap. 362)
+Section
+	Explanation
+	13E
+	A commercial practice is a misleading omission if it:
+* omits / hides / provides unclear, unintelligible, ambiguous or untimely material information;
+* fails to identify its commercial intent; or
+* causes the average consumer to make a transactional decision that he would not have made otherwise.
+	13F
+	A commercial practice is aggressive if:
+* it significantly impairs the average consumer’s freedom of choice or conduct through the use of harassment, coercion or undue influence; and
+* causes the consumer to make a transactional decision that he would not have made otherwise.
+	13G
+	It may be considered bait advertising if:
+* there are no reasonable grounds for believing that the trader will be able to offer for supply a product at the price that has been advertised, or
+* the trader fails to offer for supply the product advertised at that price for a reasonable period and in reasonable quantities.
+	13H
+	A trader who makes an invitation to purchase a product at a specified price with the intention of promoting a different product and:
+* refuses to show or demonstrate the product to consumers;
+* refuses to take orders for the product or deliver it within a reasonable time; or
+* shows or demonstrates a defective sample of the product
+	13I
+	A trader wrongly accepts payment if at the time of acceptance:
+* he intends not to supply the product;
+* he intends to supply a product that is materially different;  or
+* there are no reasonable grounds for believing that the trader will be able to supply the product:
+   * within the period specified by the trader at or before the time at which the payment or other consideration is accepted; or
+   * if no period is specified at or before that time, within a reasonable period.
+	
+
+Registration of Persons Ordinance (Cap. 177)
+Section
+	Explanation
+	3
+	Not registering for an HKID card within 30 days of arrival
+	7A
+	Maintaining custody of another individual's HKID card.
+	
+
+
+
+
+
+Immigration Ordinance (Cap. 115)
+Section
+	Explanation
+	17C
+	Failing to carry carry and produce proof of identity 
+	17I
+	Employing a person who is not lawfully employable
+	17J
+	Failing to inspect documents of a new employee
+	37D
+	Arranging passage to Hong Kong of unauthorized entrants
+	37DA
+	Assisting unauthorized entrant to remain
+	41
+	Working (paid or unpaid) in Hong Kong without approval from the Immigration Department
+	41
+	Violations of conditions of stay
+	41
+	Overstaying VISA
+	42(1)
+	Any person who makes or causes to be made—
+1. to an immigration officer, immigration assistant or any other person lawfully acting under or in the execution of Part IB, II, III, IV or VIIC of this Ordinance;
+2. in any document furnished to an immigration officer or immigration assistant pursuant to this Ordinance or a requirement made thereunder; or
+3. for the purpose of obtaining, whether for himself or any other person, any travel document, certificate of entitlement, entry permit, re-entry permit, certificate of identity, document of identity, APEC business travel card, travel pass or Vietnamese refugee card, 
+any statement or representation which he knows to be false or does not believe to be true shall be guilty of an offence. 
+	42(2)
+	Alters, forges, or unlawfully transfers immigration documents (passport, APEC card, HKID, etc) commits an offense.
+	
+
+________________
+
+
+Companies Ordinance (Cap. 622)
+Section
+	Explanation
+	658
+	Failing to update business address
+	662(6)
+	Failing to file an annual return
+	895
+	Submitting false information to the Companies Registry
+	
+
+Banking Ordinance (Cap. 155)
+Section
+	Explanation
+	11
+	Operating a banking business without a banking license.
+	12
+	Deposit-taking business must be conducted by an authorised institution, i.e. a licensed bank, a restricted licence bank, or a deposit-taking company.
+	
+
+
+
+Summary Offences Ordinance (Cap. 228)
+Section
+	Explanation
+	20
+	Sending menacing messages, messages known to be false for the purpose of causing annoyance, inconvenience or needless anxiety, persistently makes telephone calls without reasonable cause 
+	22
+	Falsely pretending to be or be able to influence a public officer
+	
+
+Prevention of Bribery Ordinance (Cap. 201)
+Section
+	Explanation
+	4
+	Bribery
+	
+
+Personal Data (Privacy) Ordinance (Cap. 486)
+Section
+	Explanation
+	2
+	“Data user” is defined as any person who “controls the collection, holding, processing or use of data”.
+	4
+	A data user must not contravene data protection principles (DPPs).
+	19(1)
+	Data users must comply with a data access request within 40 days after receiving the request.
+	64A
+	Contravention of any requirement under the PDPO is an offence.
+	DPP1
+	Requirement relating to the purpose and manner of data collection.
+	DPP3
+	Personal data cannot be used for a new purpose without prescribed consent, which is defined in s. 2(3).
+	DPP6
+	A data subject is entitled to request access to personal data.
+	
+
+Money Lenders Ordinance (Cap. 163)
+Section
+	Explanation
+	7(1)(a)
+	Operating a money lending business without a money lender’s licence is an offence.
+	7(1)(c)
+	Violating the Money Lenders Licensing Conditions is an offence.
+	14(1)(a)
+	Companies’ Registry or Police Commissioner may apply to revoke or suspend a licence if the money lender is not a “fit and proper person”.
+	14(1)(c)
+	A similar application to revoke or suspend a licence can be made if the money lender violated a Licensing Condition.
+	14(1)(d)
+	A similar application to revoke or suspend a licence can be made if the money lender has carried on business contrary to public interest.
+	18(1)
+	A money lender must give the borrower a copy of the loan agreement at the time of signing, otherwise the loan is unenforceable.
+	18(2)
+	List of terms a loan agreement must include.
+	19
+	Borrower can request information from money lender, including (i) interest rate per annum, (ii) money overdue, and (iii) due date. Money lender must respond within 1 month, otherwise the loan becomes unenforceable.
+	24
+	Charging interest rate per annum over 60% is an indictable offence (on indictment, fine of $5,000,000 and imprisonment for 10 years).
+	29
+	Various offences by money lenders, some aforementioned (e.g. carrying money lending business without licence).
+	30(1)
+	Offence of fraudulent inducement.
+	
+
+Money Lenders Licensing Conditions
+Condition(s)
+	Explanation
+	1-3
+	Conditions related to third parties (useful for cases of collusion with agencies or other entities).
+	4
+	Prohibition of additional fees.
+	6, 10(b)
+	Money lender to comply with Personal Data (Privacy) Ordinance.
+	10(c)
+	Condition prohibiting harassment or improper debt collection.
+	14
+	Money Lenders to comply with the Guideline on Compliance of Anti-Money Laundering and Counter-Terrorist Financing Requirements for Licensed Money Lenders. Non-compliance with the guide casts doubt on whether the money lender is a “fit and proper person”.
+	
+
+Money Lenders Regulations (Cap. 163A)
+
+
+Section
+	Explanation
+	11
+	Failing to include a summary of the Money Lenders Ordinance in loan agreements
+	12
+	No money lender shall demand or accept as security for any loan any—
+1. identity card issued under the Registration of Persons Ordinance (Cap. 177), passport, warrant card, or other document establishing the identity or nationality of the holder;
+2. bank savings or deposit account book; or
+3. photograph (whether developed or not) of the borrower or surety or of any member of the family of the borrower or surety.
+	
+
+
+
+Competition Ordinance (Cap 619)
+
+
+Section
+	Explanation
+	Throughout Cap 619
+	Executing an agreement or practice to prevent, restrict or distort competition in Hong Kong.
+	Throughout Cap 619
+	Fixing, maintaining, increasing or controlling the price for the supply of goods or services;
+	Throughout Cap 619
+	Allocating sales, territories, customers or markets for the production or supply of goods or services;
+	Throughout Cap 619
+	Fixing, maintaining, controlling, preventing, limiting or eliminating the production or supply of goods or services;
+	Throughout Cap 619
+	Bid-rigging;
+	
+
+
+
+________________
+
+
+Pyramid Schemes Prohibition Ordinance (Cap 617)
+
+
+Section
+	Explanation
+	5
+	A person who knowingly promotes a pyramid scheme commits an offence.
+	5
+	A person who—
+1. participates in a pyramid scheme;
+2. knows or ought reasonably to know that any benefit that the person may get from participating in the scheme would be entirely or substantially derived from the introduction to the scheme of new participants; and (c) induces or attempts to induce another person to participate in the scheme,
+commits an offence.
+	
+
+	See https://www.deacons.com/zh-hk/news-and-insights/publications/the-pyramid-schemes-prohibition-ordinance-cap-617.html for applicable definition of “pyramid scheme”.
+	
+
+Employment Ordinance (Cap. 57)
+
+
+Section
+	Explanation
+	
+
+	
+
+	
+
+	
+
+	
+
+
+
+TCSP Rules and Regulations (https://www.tcsp.cr.gov.hk/tcspls/portal/guide/62/eng/TCSP_G2-e.pdf)
+Section
+	Explanation
+	
+
+	Inadequate due diligence
+	
+
+	
+
+	
+
+MSO Rules and Regulations (https://eservices.customs.gov.hk/MSOS/download/guideline/Licensing_Guide_en.pdf)
+Section
+	Explanation
+	
+
+	Inadequate separation between businesses
+	
+
+	
+
+	
+
+
+
+B. Hong Kong case law
+Common law (criminal offences)
+Case
+	Explanation
+	
+
+	Common assault
+	
+
+	Outraging public decency
+	
+
+	False imprisonment
+	
+
+	Conspiracy
+	
+
+	
+
+	
+
+________________
+
+
+Common law (civil wrongs)
+Case
+	Explanation
+	
+
+	Breach of contract
+	
+
+	Negligence
+	
+
+	Harassment
+	
+
+	Defamation
+	
+
+	Infringement of intellectual property
+	
+
+	Nuisance
+	
+
+	Occupiers’ Liability
+	
+
+	Unjust enrichment
+	
+
+	
+
+	
+
+Cases we have used in the past
+Various Legal Judgements Relevant To Migration Industry
+	
+
+	
+
+	
+
+	
+
+Databases for case law research
+
+
+Hong Kong Judiciary - Judgments
+	HKU Library → Database: L or Database: W → log in with HKU Portal
+	Lexis advance Hong Kong
+	Westlaw Asia

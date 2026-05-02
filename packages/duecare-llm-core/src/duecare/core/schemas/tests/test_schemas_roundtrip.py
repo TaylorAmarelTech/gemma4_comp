@@ -41,13 +41,13 @@ def _make_provenance() -> Provenance:
 
 
 class TestChatAndTools:
-    def test_chat_message_roles(self):
+    def test_chat_message_roles(self) -> None:
         for role in ("system", "user", "assistant", "tool"):
             msg = ChatMessage(role=role, content="hello")
             assert msg.role == role
             assert msg.content == "hello"
 
-    def test_tool_spec_to_openai(self):
+    def test_tool_spec_to_openai(self) -> None:
         tool = ToolSpec(
             name="anonymize",
             description="Strip PII from text",
@@ -58,13 +58,13 @@ class TestChatAndTools:
         assert openai["function"]["name"] == "anonymize"
         assert openai["function"]["parameters"]["type"] == "object"
 
-    def test_tool_spec_to_anthropic(self):
+    def test_tool_spec_to_anthropic(self) -> None:
         tool = ToolSpec(name="classify", description="Label text")
         anthropic = tool.to_anthropic()
         assert anthropic["name"] == "classify"
         assert "input_schema" in anthropic
 
-    def test_tool_call_roundtrip(self):
+    def test_tool_call_roundtrip(self) -> None:
         call = ToolCall(name="anonymize", arguments={"text": "Maria"})
         data = call.model_dump()
         restored = ToolCall(**data)
@@ -72,27 +72,27 @@ class TestChatAndTools:
 
 
 class TestGeneration:
-    def test_generation_result_required_fields(self):
+    def test_generation_result_required_fields(self) -> None:
         result = GenerationResult(text="hi", model_id="gemma-4-e4b", finish_reason="stop")
         assert result.tokens_used == 0
         assert result.cost_usd == 0.0
         assert result.tool_calls == []
 
-    def test_embedding_dimension(self):
+    def test_embedding_dimension(self) -> None:
         emb = Embedding(
             text="hello", vector=[0.1, 0.2, 0.3], dimension=3, model_id="sbert"
         )
         assert emb.dimension == 3
         assert len(emb.vector) == 3
 
-    def test_model_health(self):
+    def test_model_health(self) -> None:
         health = ModelHealth(model_id="m1", healthy=True, details={"latency_ms": 42})
         assert health.healthy
         assert health.details["latency_ms"] == 42
 
 
 class TestDomain:
-    def test_domain_card_roundtrip(self):
+    def test_domain_card_roundtrip(self) -> None:
         card = DomainCard(
             id="test",
             display_name="Test Domain",
@@ -105,7 +105,7 @@ class TestDomain:
         assert restored.id == "test"
         assert Capability.TEXT in restored.capabilities_required
 
-    def test_issue_with_severity(self):
+    def test_issue_with_severity(self) -> None:
         issue = Issue(
             type="missed_indicator",
             description="Missed passport retention",
@@ -114,7 +114,7 @@ class TestDomain:
         )
         assert issue.severity == Severity.HIGH
 
-    def test_response_example(self):
+    def test_response_example(self) -> None:
         ex = ResponseExample(
             text="I cannot help with this.",
             grade=Grade.GOOD,
@@ -126,13 +126,13 @@ class TestDomain:
 
 
 class TestTaskAndAgent:
-    def test_task_config_defaults(self):
+    def test_task_config_defaults(self) -> None:
         config = TaskConfig()
         assert config.sample_size is None
         assert config.seed == 3407
         assert config.temperature == 0.0
 
-    def test_item_result(self):
+    def test_item_result(self) -> None:
         item = ItemResult(
             item_id="prompt_001",
             scores={"grade_exact_match": 1.0},
@@ -141,7 +141,7 @@ class TestTaskAndAgent:
         assert item.grade == Grade.BEST
         assert item.scores["grade_exact_match"] == 1.0
 
-    def test_task_result_summary(self):
+    def test_task_result_summary(self) -> None:
         result = TaskResult(
             task_id="guardrails",
             model_id="gemma-4-e4b",
@@ -156,7 +156,7 @@ class TestTaskAndAgent:
         assert "completed" in summary
         assert "0.680" in summary
 
-    def test_agent_context_record_and_lookup(self):
+    def test_agent_context_record_and_lookup(self) -> None:
         ctx = AgentContext(
             run_id="r1",
             git_sha="abc",
@@ -169,7 +169,7 @@ class TestTaskAndAgent:
         assert ctx.lookup("scout_output")["readiness"] == 0.85
         assert ctx.lookup("missing", default="none") == "none"
 
-    def test_agent_output(self):
+    def test_agent_output(self) -> None:
         out = AgentOutput(
             agent_id="scout",
             agent_role=AgentRole.SCOUT,
@@ -181,7 +181,7 @@ class TestTaskAndAgent:
 
 
 class TestWorkflow:
-    def test_workflow_run_summary(self):
+    def test_workflow_run_summary(self) -> None:
         run = WorkflowRun(
             run_id="r1",
             workflow_id="evaluate_only",
@@ -201,7 +201,7 @@ class TestWorkflow:
 
 
 class TestTrainingSchemas:
-    def test_training_example_roundtrip(self):
+    def test_training_example_roundtrip(self) -> None:
         example = TrainingExample(
             prompt_id="prompt_001",
             grade="best",
@@ -230,7 +230,7 @@ class TestTrainingSchemas:
         assert restored.example_type == "positive"
         assert restored.messages[-1].role == "assistant"
 
-    def test_training_example_allows_contrast_grade(self):
+    def test_training_example_allows_contrast_grade(self) -> None:
         example = TrainingExample(
             prompt_id="prompt_002",
             grade="contrast",
@@ -241,7 +241,7 @@ class TestTrainingSchemas:
         )
         assert example.grade == "contrast"
 
-    def test_training_dataset_manifest_roundtrip(self):
+    def test_training_dataset_manifest_roundtrip(self) -> None:
         manifest = TrainingDatasetManifest(
             run_id="run_001",
             git_sha="abc123",
@@ -268,7 +268,7 @@ class TestTrainingSchemas:
 
 
 class TestProvenance:
-    def test_minimum_provenance(self):
+    def test_minimum_provenance(self) -> None:
         p = _make_provenance()
         assert p.run_id == "test_run"
         assert p.git_sha == "abc123"

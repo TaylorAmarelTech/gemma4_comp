@@ -1,5 +1,5 @@
 {
-  "id": "taylorsamarel/duecare-182-refusal-direction-visualizer",
+  "id": "taylorsamarel/182-duecare-refusal-direction-visualizer",
   "title": "182: DueCare Refusal Direction Visualizer",
   "code_file": "182_refusal_direction_visualizer.ipynb",
   "language": "python",
@@ -19,10 +19,9 @@
   ],
   "kernel_sources": [],
   "keywords": [
-    "gemma",
-    "safety",
-    "mechanistic",
-    "abliteration",
-    "playground"
+    "adversarial",
+    "red-team",
+    "jailbreak",
+    "safety"
   ]
 }

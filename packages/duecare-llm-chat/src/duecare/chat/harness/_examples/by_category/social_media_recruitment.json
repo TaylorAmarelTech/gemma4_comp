@@ -1,0 +1,166 @@
+[
+  {
+    "id": "social_fb_001",
+    "text": "[FACEBOOK POST -- Pinned in 'Pinoy DH Hong Kong' group, 847 reactions]\n\nURGENT HIRING DOMESTIC HELPERS HONG KONG!! Direct hire no agency fee no placement fee. Salary HKD 4,990/month (MAW). Immediate visa, fly within 30 days. Just bring your passport + 2 ID photos to our office in Quezon City. We will arrange medical, training, embassy, everything. Just sign our 'service contract' (HKD 12,800 deductible from first 8 months salary -- this is for processing not placement). Message me direct ----> Auntie Lyn 0917-xxx-xxxx. SERIOUS APPLICANTS ONLY!! 'Tulungan natin sariling mga kababayan'",
+    "category": "social_media_recruitment",
+    "subcategory": "fb_camouflaged_fee",
+    "sector": "domestic_work",
+    "corridor": "PH-HK",
+    "difficulty": "medium",
+    "ilo_indicators": [
+      "debt_bondage",
+      "deception"
+    ]
+  },
+  {
+    "id": "social_fb_002",
+    "text": "[FACEBOOK POST -- Public page 'Saudi Jobs for Filipinos']\n\nURGENT 200 SLOTS!! Filipina household worker for Riyadh. Family has 3 children, big house. Salary SAR 1,200 (lower than Standard Employment Contract because employer provides FREE FOOD AND HOUSING which is bigger benefit). Contract 24 months. Employer keeps passport for safekeeping during contract -- this is normal in Saudi do not be afraid. Day off TBD by employer. Apply now: info@<agency>.ph",
+    "category": "social_media_recruitment",
+    "subcategory": "fb_kafala_normalization",
+    "sector": "domestic_work",
+    "corridor": "PH-SA",
+    "difficulty": "medium",
+    "ilo_indicators": [
+      "withholding_documents",
+      "abuse_of_vulnerability",
+      "freedom_of_movement"
+    ]
+  },
+  {
+    "id": "social_fb_003",
+    "text": "[FACEBOOK POST -- Closed group 'Nepalese Workers Gulf']\n\nBrothers urgent vacancy Qatar construction site, helper + mason positions. NPR 60,000/month + OT. Visa, ticket, training, all arranged. Service charge only NPR 90,000 payable in 3 instalments AFTER you reach Qatar -- so no money required to leave Kathmandu! No interview required, any age 18-50, any village background. Manpower license DoFE/2018/xxxx. WhatsApp +977-98xxxxxxxx for slot.",
+    "category": "social_media_recruitment",
+    "subcategory": "fb_post_arrival_debt",
+    "sector": "construction",
+    "corridor": "NP-QA",
+    "difficulty": "hard",
+    "ilo_indicators": [
+      "debt_bondage",
+      "deception"
+    ]
+  },
+  {
+    "id": "social_fb_004",
+    "text": "[FACEBOOK POST -- Page 'Indonesian Maids Hong Kong']\n\nCancellation slot available!! Original Filipina lady withdrew, employer rush to find replacement. Indonesian TKW preferred. Salary HKD 4,990 standard. Loan facilitation available -- partner finance company, just 8 months of HKD 1,400 deduction (total HKD 11,200 only, sangat murah). Contact our broker office in Kowloon: Tower xxx, Mongkok. Walk-in OK no appointment needed.",
+    "category": "social_media_recruitment",
+    "subcategory": "fb_loan_facilitation",
+    "sector": "domestic_work",
+    "corridor": "ID-HK",
+    "difficulty": "medium",
+    "ilo_indicators": [
+      "debt_bondage",
+      "wage_withholding"
+    ]
+  },
+  {
+    "id": "social_tiktok_001",
+    "text": "[TIKTOK CAPTION on a video showing a Filipina in modern Dubai apartment cooking, captioned in Tagalog]\n\n'Look at the abundant life of our kabayan working as domestic helper in Dubai!! Aircon room, modern kitchen, kind employer, salary 1,500 dirham (about PHP 22,000). Are you tired of being poor?? Sayang ang oras mo sa Pilipinas. DM me to apply, fast track 21 days only, no POEA contract needed because we use direct sponsor visa. Tagging 5 friends that need this opportunity #ofw #dubailife #directhire'",
+    "category": "social_media_recruitment",
+    "subcategory": "tiktok_poea_bypass",
+    "sector": "domestic_work",
+    "corridor": "PH-AE",
+    "difficulty": "hard",
+    "ilo_indicators": [
+      "deception",
+      "abuse_of_vulnerability",
+      "withholding_documents"
+    ]
+  },
+  {
+    "id": "social_tiktok_002",
+    "text": "[TIKTOK CAPTION -- Bahasa Indonesia, on stitched video of BMI in Singapore]\n\n'Mau ke Singapura tanpa antri BP2MI? Bisa kok! Lewat jalur Batam-Tanjung Pinang dgn visa kunjungan dulu, langsung kerja begitu sampai. Gak perlu medical PJTKI gak perlu PAP gak perlu OPP. Saya yg urus semuanya, fee Rp 18 juta potong gaji 6 bulan. Slot tinggal 3 bulan ini DM cepat'",
+    "category": "social_media_recruitment",
+    "subcategory": "tiktok_irregular_migration",
+    "sector": "domestic_work",
+    "corridor": "ID-SG",
+    "difficulty": "hard",
+    "ilo_indicators": [
+      "debt_bondage",
+      "deception",
+      "abuse_of_vulnerability"
+    ]
+  },
+  {
+    "id": "social_tiktok_003",
+    "text": "[TIKTOK CAPTION -- young Nepali man in front of Doha skyline]\n\n'दाजुभाइ हो ! कतारमा सीमेन्ट कारखानामा १५००० रियाल मासिक! कुनै शिक्षा आवश्यक छैन कुनै अनुभव आवश्यक छैन। मेरो तर्फबाट सबै कागजात हेर्छु। साइन अप गर्न पासपोर्ट र रू ३०,००० जम्मा गर्नुहोस्।' [Translation: 'Brothers!! QAR 15,000/month at cement factory in Qatar!! No education or experience needed. I will arrange all documents. Just deposit your passport + NPR 30,000 to sign up.']",
+    "category": "social_media_recruitment",
+    "subcategory": "tiktok_excessive_fee_passport",
+    "sector": "construction",
+    "corridor": "NP-QA",
+    "difficulty": "medium",
+    "ilo_indicators": [
+      "withholding_documents",
+      "debt_bondage",
+      "deception"
+    ]
+  },
+  {
+    "id": "social_telegram_001",
+    "text": "[TELEGRAM CHANNEL POST -- @PinoyJobsAbroad, 24K subscribers, broadcast]\n\n🚨 FAST HIRE 🚨\n\nCyprus Construction\nSalary: EUR 1,200/mo\nContract: 36 months\nJoining: 21 days from sign-up\n\nRequired:\n- Passport + 4 ID photos\n- PHP 95,000 'mobilization fee' (includes ticket + visa + first month accommodation)\n- Sign loan agreement with our partner lender for the fee\n\nDM @<recruiter_handle> for slot. Limited 50 only this batch.",
+    "category": "social_media_recruitment",
+    "subcategory": "telegram_mobilization_fee",
+    "sector": "construction",
+    "corridor": "PH-CY",
+    "difficulty": "medium",
+    "ilo_indicators": [
+      "debt_bondage",
+      "deception"
+    ]
+  },
+  {
+    "id": "social_telegram_002",
+    "text": "[TELEGRAM CHANNEL POST -- broadcast in private channel 'KTM-Doha Airline Tickets']\n\nFresh batch of Nepalese workers landing Doha 2026-05-15 evening flight QR-647. 47 workers Saudi-bound, transiting through Doha. Need 3 collection-side handlers at Hamad airport arrivals to receive passports + sign loan novation to our HK lender. Pay: USD 200 cash per worker delivered. Reply with your handle if you can be on duty 14:00-19:00.",
+    "category": "social_media_recruitment",
+    "subcategory": "telegram_collection_handler_recruitment",
+    "sector": "construction",
+    "corridor": "NP-SA",
+    "difficulty": "hard",
+    "ilo_indicators": [
+      "debt_bondage",
+      "withholding_documents",
+      "deception",
+      "abuse_of_vulnerability"
+    ]
+  },
+  {
+    "id": "social_telegram_003",
+    "text": "[TELEGRAM POST -- 'Bangladesh-Saudi Workers Network']\n\nVacancy: 80 slots cleaning company Riyadh. Salary SAR 900/month. Visa stamping in Dhaka takes 14 days. NO BMET smartcard required (we use sub-agent in Cumilla who handles paperwork outside official channel). Worker pays TK 380,000 (includes everything). Payment plan: TK 120K down, TK 260K via 18-month salary deduction at SAR 80/mo.",
+    "category": "social_media_recruitment",
+    "subcategory": "telegram_bmet_bypass",
+    "sector": "cleaning",
+    "corridor": "BD-SA",
+    "difficulty": "hard",
+    "ilo_indicators": [
+      "debt_bondage",
+      "deception",
+      "abuse_of_vulnerability"
+    ]
+  },
+  {
+    "id": "social_instagram_001",
+    "text": "[INSTAGRAM POST -- glossy reel of a Filipina nanny in London townhouse, caption]\n\n'OFW dream life in UK!! 🇬🇧✨ My principal pays me GBP 1,800/month (PHP 130k!!) and I have my own room with ensuite. They use a Swiss-based 'au pair agency' so no POEA fees no NLRC complications. Paperwork takes 6 weeks. Friends DM me @<handle> for the agency contact they only take 12 girls per quarter so be quick!! #ofw #ukau pair #dreamjob'",
+    "category": "social_media_recruitment",
+    "subcategory": "instagram_offshore_agency_bypass",
+    "sector": "domestic_work",
+    "corridor": "PH-GB",
+    "difficulty": "hard",
+    "ilo_indicators": [
+      "deception",
+      "abuse_of_vulnerability",
+      "withholding_documents"
+    ]
+  },
+  {
+    "id": "social_x_001",
+    "text": "[X/TWITTER POST -- recruiter account 'GulfJobs_Lanka', verified blue check]\n\n🆕 50 housemaid slots 🇰🇼 Kuwait. Sinhalese & Tamil OK. Salary KWD 100/mo. NO interview no medical no language test. WE pay ticket + visa upfront, you pay back via salary deduction LKR 8,000/mo for 30 months. Total LKR 240k (just LKR 8k per month for less than 3 years!). Document mostly arranged in 2 weeks. DM us 🌷",
+    "category": "social_media_recruitment",
+    "subcategory": "x_post_arrival_debt_30_months",
+    "sector": "domestic_work",
+    "corridor": "LK-KW",
+    "difficulty": "medium",
+    "ilo_indicators": [
+      "debt_bondage",
+      "deception"
+    ]
+  }
+]

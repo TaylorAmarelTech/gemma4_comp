@@ -1,0 +1,126 @@
+{{- if .Values.ollama.enabled }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "duecare.fullname" . }}-ollama-models
+  labels:
+    {{- include "duecare.labels" . | nindent 4 }}
+    app.kubernetes.io/component: ollama
+spec:
+  accessModes:
+    {{- range .Values.ollama.persistence.accessModes }}
+    - {{ . | quote }}
+    {{- end }}
+  {{- if .Values.ollama.persistence.storageClass }}
+  storageClassName: {{ .Values.ollama.persistence.storageClass | quote }}
+  {{- end }}
+  resources:
+    requests:
+      storage: {{ .Values.ollama.persistence.size }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "duecare.fullname" . }}-ollama
+  labels:
+    {{- include "duecare.labels" . | nindent 4 }}
+    app.kubernetes.io/component: ollama
+spec:
+  replicas: {{ .Values.ollama.replicas }}
+  strategy:
+    type: Recreate            # ollama is stateful; rolling deploys can corrupt model files
+  selector:
+    matchLabels:
+      {{- include "duecare.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: ollama
+  template:
+    metadata:
+      labels:
+        {{- include "duecare.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: ollama
+    spec:
+      {{- with .Values.ollama.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.ollama.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: ollama
+          image: "{{ .Values.ollama.image.repository }}:{{ .Values.ollama.image.tag }}"
+          ports:
+            - containerPort: 11434
+              name: http
+          resources:
+            {{- toYaml .Values.ollama.resources | nindent 12 }}
+          volumeMounts:
+            - name: models
+              mountPath: /root/.ollama
+          readinessProbe:
+            tcpSocket:
+              port: 11434
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          livenessProbe:
+            tcpSocket:
+              port: 11434
+            initialDelaySeconds: 30
+            periodSeconds: 30
+      volumes:
+        - name: models
+          persistentVolumeClaim:
+            claimName: {{ include "duecare.fullname" . }}-ollama-models
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: duecare-ollama
+  labels:
+    {{- include "duecare.labels" . | nindent 4 }}
+    app.kubernetes.io/component: ollama
+spec:
+  type: ClusterIP
+  ports:
+    - port: 11434
+      targetPort: http
+      name: http
+  selector:
+    {{- include "duecare.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: ollama
+{{- end }}
+{{- if and .Values.ollama.enabled .Values.ollama.modelPullEnabled }}
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "duecare.fullname" . }}-ollama-pull
+  labels:
+    {{- include "duecare.labels" . | nindent 4 }}
+    app.kubernetes.io/component: ollama-init
+  annotations:
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-weight": "1"
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+spec:
+  backoffLimit: 3
+  template:
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: pull
+          image: "{{ .Values.ollama.image.repository }}:{{ .Values.ollama.image.tag }}"
+          env:
+            - name: OLLAMA_HOST
+              value: "http://duecare-ollama:11434"
+          command:
+            - sh
+            - -c
+            - |
+              echo "Waiting for Ollama..."
+              until ollama list >/dev/null 2>&1; do sleep 5; done
+              echo "Pulling {{ .Values.ollama.modelTag }}..."
+              ollama pull {{ .Values.ollama.modelTag }}
+              echo "Done."
+{{- end }}

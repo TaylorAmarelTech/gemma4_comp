@@ -43,7 +43,7 @@ KAGGLE_KERNELS = ROOT / "kaggle" / "kernels"
 FILENAME = "190_rag_retrieval_inspector.ipynb"
 KERNEL_DIR_NAME = "duecare_190_rag_retrieval_inspector"
 KERNEL_ID = "taylorsamarel/190-duecare-rag-retrieval-inspector"
-KERNEL_TITLE = "190 DueCare RAG Retrieval Inspector"
+KERNEL_TITLE = "190: DueCare RAG Retrieval Inspector"
 WHEELS_DATASET = "taylorsamarel/duecare-llm-wheels"
 PROMPTS_DATASET = "taylorsamarel/duecare-trafficking-prompts"
 KEYWORDS = ["gemma", "safety", "llm", "trafficking", "rag", "retrieval"]
@@ -55,7 +55,7 @@ URL_130 = "https://www.kaggle.com/code/taylorsamarel/duecare-prompt-corpus-explo
 URL_140 = "https://www.kaggle.com/code/taylorsamarel/140-duecare-evaluation-mechanics"
 URL_190 = "https://www.kaggle.com/code/taylorsamarel/duecare-190-rag-retrieval-inspector"
 URL_260 = "https://www.kaggle.com/code/taylorsamarel/duecare-260-rag-comparison"
-URL_299 = "https://www.kaggle.com/code/taylorsamarel/duecare-baseline-text-evaluation-framework-conclusion"
+URL_299 = "https://www.kaggle.com/code/taylorsamarel/299-duecare-text-evaluation-conclusion"
 URL_600 = "https://www.kaggle.com/code/taylorsamarel/600-duecare-results-dashboard"
 
 

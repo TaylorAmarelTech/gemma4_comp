@@ -1,0 +1,87 @@
+# Keep the Docker build context tight — exclude everything not
+# needed by the multi-stage build in Dockerfile. The builder stage
+# only needs packages/ + pyproject.toml.
+
+# ---- Reference + private content ----
+_reference/
+_archive/
+private/
+.kaggle/
+
+# ---- Notebooks + Kaggle artifacts (the chat package bundles
+#       what it needs; the Kaggle wheel datasets are not part of
+#       the runtime image) ----
+kaggle/
+notebooks/
+skunkworks/
+
+# ---- Documentation + research outputs ----
+docs/
+data/
+checkpoints/
+models/
+outputs/
+logs/
+*.log
+
+# ---- Editor + IDE ----
+.idea/
+.vscode/
+.vs/
+.cursor/
+
+# ---- Git + GitHub ----
+.git/
+.github/
+.gitignore
+.gitattributes
+
+# ---- Python build artifacts ----
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+.eggs/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.tox/
+.coverage
+.coverage.*
+htmlcov/
+
+# ---- Virtual envs ----
+.venv/
+venv/
+env/
+.python-version
+
+# ---- Build outputs ----
+dist/
+build/
+packages/*/dist/
+packages/*/build/
+
+# ---- Docker / Compose runtime ----
+docker-compose.override.yml
+.env
+.env.*
+
+# ---- HF Spaces scaffolding (separate deployment) ----
+hf-space/
+
+# ---- Android repo (sibling, not part of the Python image) ----
+android/
+duecare-journey-android/
+
+# ---- Tests directory at repo root (the per-package tests inside
+#       packages/<pkg>/tests/ are kept) ----
+tests/
+
+# ---- Misc throwaways ----
+*.bak
+*.tmp
+*.swp
+.DS_Store
+Thumbs.db

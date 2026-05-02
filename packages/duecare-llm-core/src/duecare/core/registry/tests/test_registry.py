@@ -7,7 +7,7 @@ import pytest
 from duecare.core.registry import Registry
 
 
-def test_register_and_get_class():
+def test_register_and_get_class() -> None:
     r: Registry = Registry(kind="test_plugin")
 
     @r.register("alpha", note="first")
@@ -29,7 +29,7 @@ def test_register_and_get_class():
     assert "alpha" in r
 
 
-def test_register_and_get_instance_via_add():
+def test_register_and_get_instance_via_add() -> None:
     r: Registry = Registry(kind="model")
 
     class M:
@@ -44,7 +44,7 @@ def test_register_and_get_instance_via_add():
     assert r.metadata("gemma_4_e4b") == {"provider": "transformers"}
 
 
-def test_double_register_raises():
+def test_double_register_raises() -> None:
     r: Registry = Registry(kind="t")
 
     @r.register("alpha")
@@ -57,19 +57,19 @@ def test_double_register_raises():
             pass
 
 
-def test_unknown_id_raises_keyerror():
+def test_unknown_id_raises_keyerror() -> None:
     r: Registry = Registry(kind="t")
     with pytest.raises(KeyError, match="Unknown t id 'missing'"):
         r.get("missing")
 
 
-def test_empty_registry_shows_empty_in_error():
+def test_empty_registry_shows_empty_in_error() -> None:
     r: Registry = Registry(kind="empty")
     with pytest.raises(KeyError, match=r"Known: \(empty\)"):
         r.get("x")
 
 
-def test_iteration_preserves_sorted_order():
+def test_iteration_preserves_sorted_order() -> None:
     r: Registry = Registry(kind="t")
     for id in ["zeta", "alpha", "gamma", "beta"]:
         r.add(id, object())
@@ -77,14 +77,14 @@ def test_iteration_preserves_sorted_order():
     assert ids == ["alpha", "beta", "gamma", "zeta"]
 
 
-def test_repr_includes_kind_and_count():
+def test_repr_includes_kind_and_count() -> None:
     r: Registry = Registry(kind="model")
     r.add("gemma", object())
     r.add("qwen", object())
     assert repr(r) == "Registry[model](2 entries)"
 
 
-def test_metadata_defaults_to_empty_dict():
+def test_metadata_defaults_to_empty_dict() -> None:
     r: Registry = Registry(kind="t")
 
     @r.register("x")

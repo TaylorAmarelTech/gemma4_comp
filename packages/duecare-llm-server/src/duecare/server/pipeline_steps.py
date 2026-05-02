@@ -658,7 +658,7 @@ def stage_grep(text: str, max_hits: int = 6) -> list[dict]:
 _rag_state = {"embedder": None, "embeddings": None, "tried": False}
 
 
-def _rag_init():
+def _rag_init() -> Any:
     if _rag_state["tried"]:
         return _rag_state["embedder"]
     _rag_state["tried"] = True

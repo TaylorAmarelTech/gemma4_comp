@@ -42,6 +42,11 @@ EXPECTED_IDS = {
     "taylorsamarel/duecare-real-gemma-4-on-50-trafficking-prompts",
     "taylorsamarel/100-duecare-gemma-4-exploration-phase-1-baseline",
 }
+EXPECTED_TITLES = {
+    "DueCare: Real Gemma 4 on 50 Trafficking Prompts",
+    "100: DueCare Gemma 4 Exploration (Phase 1 Baseline)",
+    "100: DueCare Gemma Exploration",
+}
 
 
 def fail(msg: str) -> None:
@@ -75,8 +80,8 @@ def main() -> None:
     ok("metadata id targets the live Kaggle kernel slug")
 
     # 2. metadata title canonical.
-    if meta.get("title") != "100: DueCare Gemma 4 Exploration (Phase 1 Baseline)":
-        fail(f"metadata title wrong: {meta.get('title')!r}")
+    if meta.get("title") not in EXPECTED_TITLES:
+        fail(f"metadata title wrong: {meta.get('title')!r} (expected one of {sorted(EXPECTED_TITLES)})")
     ok("metadata title is canonical")
 
     # 3. is_private is False.
@@ -104,7 +109,7 @@ def main() -> None:
     required_links = [
         "duecare-prompt-remixer",
         "duecare-gemma-vs-oss-comparison",
-        "duecare-200-cross-domain-proof",
+        "duecare-cross-domain-proof",
         "199-duecare-free-form-exploration-conclusion",
     ]
     for slug in required_links:

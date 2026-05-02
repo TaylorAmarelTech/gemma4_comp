@@ -4,7 +4,7 @@
   "code_file": "400_function_calling_multimodal.ipynb",
   "language": "python",
   "kernel_type": "notebook",
-  "is_private": true,
+  "is_private": false,
   "enable_gpu": false,
   "enable_internet": true,
   "dataset_sources": [
@@ -13,5 +13,13 @@
   ],
   "competition_sources": [
     "gemma-4-good-hackathon"
-  ]
+  ],
+  "keywords": [
+    "function-calling",
+    "tool-use",
+    "multimodal",
+    "gemma"
+  ],
+  "enable_tpu": false,
+  "kernel_sources": []
 }

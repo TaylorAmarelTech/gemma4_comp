@@ -20,7 +20,9 @@ dev = [
     "repomix>=0.2.0",
 ]
 
-# uv workspace - one workspace member per package directory
+# uv workspace - one workspace member per package directory.
+# All 17 packages live here so `uv sync --all-packages` installs the
+# whole graph and CI / make build / pytest see everything.
 [tool.uv.workspace]
 members = [
     "packages/duecare-llm-core",
@@ -30,11 +32,21 @@ members = [
     "packages/duecare-llm-agents",
     "packages/duecare-llm-workflows",
     "packages/duecare-llm-publishing",
+    "packages/duecare-llm-benchmark",
+    "packages/duecare-llm-evidence-db",
+    "packages/duecare-llm-engine",
+    "packages/duecare-llm-nl2sql",
+    "packages/duecare-llm-research-tools",
+    "packages/duecare-llm-server",
+    "packages/duecare-llm-chat",
+    "packages/duecare-llm-training",
+    "packages/duecare-llm-cli",
     "packages/duecare-llm",
 ]
 
 # Internal sources for development - resolves Duecare packages from each
-# other inside the workspace instead of pulling from PyPI
+# other inside the workspace instead of pulling from PyPI. Required for
+# the inter-package dep graph (server -> engine -> evidence-db, etc.).
 [tool.uv.sources]
 duecare-llm-core = { workspace = true }
 duecare-llm-models = { workspace = true }
@@ -43,6 +55,15 @@ duecare-llm-tasks = { workspace = true }
 duecare-llm-agents = { workspace = true }
 duecare-llm-workflows = { workspace = true }
 duecare-llm-publishing = { workspace = true }
+duecare-llm-benchmark = { workspace = true }
+duecare-llm-evidence-db = { workspace = true }
+duecare-llm-engine = { workspace = true }
+duecare-llm-nl2sql = { workspace = true }
+duecare-llm-research-tools = { workspace = true }
+duecare-llm-server = { workspace = true }
+duecare-llm-chat = { workspace = true }
+duecare-llm-training = { workspace = true }
+duecare-llm-cli = { workspace = true }
 duecare-llm = { workspace = true }
 
 [tool.ruff]

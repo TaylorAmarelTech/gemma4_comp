@@ -6,18 +6,20 @@ import json
 from pathlib import Path
 
 from _canonical_notebook import canonical_header_table, patch_final_print_cell
+from kaggle_notebook_utils import discover_kernel_notebooks
 from notebook_hardening_utils import harden_notebook
-from _public_slugs import PUBLIC_SLUG_OVERRIDES, UNPUBLISHED_IDS
+from _public_slugs import PUBLIC_SLUG_OVERRIDES
 
 ROOT = Path(__file__).resolve().parent.parent
 NB_DIR = ROOT / "notebooks"
 KAGGLE_KERNELS = ROOT / "kaggle" / "kernels"
+SLUG_MAP_PATH = ROOT / "scripts" / "kaggle_live_slug_map.json"
 FILENAME = "000_index.ipynb"
 KERNEL_DIR_NAME = "duecare_000_index"
 KERNEL_ID = "taylorsamarel/duecare-000-index"
 KERNEL_TITLE = "DueCare 000 Index"
 WHEELS_DATASET = "taylorsamarel/duecare-llm-wheels"
-KEYWORDS = ["evaluation"]
+KEYWORDS = ["gemma", "safety", "llm", "trafficking", "tutorial"]
 PUBLIC_REPO_URL = "https://github.com/TaylorAmarelTech/gemma4_comp"
 JUDGES_GUIDE_URL = PUBLIC_REPO_URL + "/blob/main/docs/FOR_JUDGES.md"
 WRITEUP_URL = "https://www.kaggle.com/competitions/gemma-4-good-hackathon/writeups"
@@ -29,8 +31,10 @@ PHASES = [
         "notebooks": [
             {"id": "000", "title": "Index", "slug": "duecare-000-index", "summary": "Entry point and reading map for the full suite."},
             {"id": "005", "title": "Glossary and Map", "slug": "duecare-005-glossary", "summary": "Define the project vocabulary and explain how the notebook sequence fits together."},
-            {"id": "010", "title": "Quickstart", "slug": "duecare-010-quickstart", "summary": "Install the packages and run the smallest end-to-end smoke test."},
-            {"id": "099", "title": "Background and Package Setup Conclusion", "slug": "099-duecare-orientation-and-background-and-package-setup-conclusion", "summary": "Recap the project framing and confirm the environment is ready.", "conclusion": True},
+            {"id": "010", "title": "Quickstart", "slug": "duecare-010-quickstart-in-5-minutes", "summary": "Install the packages and run the smallest end-to-end smoke test."},
+            {"id": "015", "title": "Background Literature", "slug": "015-duecare-background-literature", "summary": "Academic and legal grounding: ILO indicators, Palermo Protocol, migrant-worker regulatory corridors, and the AI-safety literature behind every later rubric."},
+            {"id": "020", "title": "Current Events", "slug": "020-duecare-current-events", "summary": "Recent public trafficking cases, AI-safety incidents, and regulatory changes that ground the abstract rubric in today's news."},
+            {"id": "099", "title": "Background and Package Setup Conclusion", "slug": "099-duecare-orientation-setup-conclusion", "summary": "Recap the project framing and confirm the environment is ready.", "conclusion": True},
         ],
     },
     {
@@ -38,12 +42,15 @@ PHASES = [
         "intro": "What does stock Gemma 4 actually do on trafficking prompts before the comparison stack formalizes anything, and what do the interactive surfaces feel like by hand? This section ends with **199**.",
         "notebooks": [
             {"id": "100", "title": "Gemma Exploration", "slug": "duecare-gemma-exploration", "summary": "First systematic stock-Gemma baseline against the prepared prompt set; inspect raw failure patterns by eye."},
+            {"id": "102", "title": "Gemma 4 E2B Baseline", "slug": "102-duecare-gemma-e2b-baseline", "summary": "Dedicated E2B scored baseline so the smaller Gemma 4 checkpoint has a like-for-like readout against the main E4B baseline."},
             {"id": "150", "title": "Free Form Gemma Playground", "slug": "150-duecare-free-form-gemma-playground", "summary": "Live interactive widget: type any prompt and see Gemma respond on a T4 GPU."},
             {"id": "152", "title": "Interactive Gemma Chat", "slug": "duecare-152-interactive-gemma-chat", "summary": "Stateful chat with Gemma 4 E4B on-device via Transformers + 4-bit; live safety-score overlay on every response; three persona presets."},
             {"id": "155", "title": "Tool Calling Playground", "slug": "155-duecare-tool-calling-playground", "summary": "Live demo: Gemma picks a tool and arguments for any scenario you type."},
             {"id": "160", "title": "Image Processing Playground", "slug": "160-duecare-image-processing-playground", "summary": "Live demo: upload an image, ask a question, see the multimodal response."},
-            {"id": "170", "title": "Live Context Injection Playground", "slug": "duecare-170-live-context-injection-playground", "summary": "Type any prompt and see plain vs RAG vs guided side-by-side on a T4 GPU. The fastest interactive demo of what context does."},
-            {"id": "180", "title": "Multimodal Document Inspector", "slug": "duecare-180-multimodal-document-inspector", "summary": "Upload a recruitment-contract image; Gemma 4 multimodal extracts key fields and flags trafficking indicators."},
+            {"id": "165", "title": "Thinking-Budget Sweep", "slug": "165-duecare-thinking-budget-sweep", "summary": "CPU-side API sweep across multiple token budgets so judges can see how longer reasoning budgets change failure rates and verbosity."},
+            {"id": "170", "title": "Live Context Injection Playground", "slug": "170-duecare-live-context-injection-playground", "summary": "Type any prompt and see plain vs RAG vs guided side-by-side on a T4 GPU. The fastest interactive demo of what context does."},
+            {"id": "175", "title": "Temperature Sweep", "slug": "175-duecare-temperature-sweep", "summary": "CPU-side API sweep across sampling temperatures to show how safety behavior degrades or stabilizes as randomness increases."},
+            {"id": "180", "title": "Multimodal Document Inspector", "slug": "180-duecare-multimodal-document-inspector", "summary": "Upload a recruitment-contract image; Gemma 4 multimodal extracts key fields and flags trafficking indicators."},
             {"id": "190", "title": "RAG Retrieval Inspector", "slug": "190-duecare-rag-retrieval-inspector", "summary": "Show exactly which legal citations match each prompt, with provenance; this is the RAG store 260 consumes."},
             {"id": "199", "title": "Free Form Exploration Conclusion", "slug": "199-duecare-free-form-exploration-conclusion", "summary": "Recap the unscored baseline and the failure patterns seen by eye.", "conclusion": True},
         ],
@@ -72,18 +79,19 @@ PHASES = [
             {"id": "120", "title": "Prompt Remixer", "slug": "duecare-prompt-remixer", "summary": "Mutate curated prompts into remixed and adversarial variants that feed every later evaluation."},
             {"id": "130", "title": "Prompt Corpus Exploration", "slug": "130-duecare-prompt-corpus-exploration", "summary": "Walk through the corpus by category, sector, corridor, and difficulty; render the 5-grade rubric; show one prompt at every grade."},
             {"id": "140", "title": "Evaluation Mechanics", "slug": "duecare-140-evaluation-mechanics", "summary": "Walk through the measurement machinery used across the suite: 5-grade rubric, anchored best/worst references, keyword scorer, 6-dimension weighted rubric, and the V3 6-band classifier."},
-            {"id": "299", "title": "Baseline Text Evaluation Framework Conclusion", "slug": "299-duecare-baseline-text-evaluation-framework-conclusion", "summary": "Recap the prompt set, the remix strategy, and the anchored-grading method.", "conclusion": True},
+            {"id": "299", "title": "Baseline Text Evaluation Framework Conclusion", "slug": "299-duecare-text-evaluation-conclusion", "summary": "Recap the prompt set, the remix strategy, and the anchored-grading method.", "conclusion": True},
         ],
     },
     {
         "label": "Baseline Text Comparisons",
         "intro": "How does Gemma 4 compare with peer open models, frontier models, retrieval-augmented prompting, and earlier Gemma generations on the same safety problem? This section ends with **399**.",
         "notebooks": [
-            {"id": "200", "title": "Cross-Domain Proof", "slug": "duecare-200-cross-domain-proof", "summary": "Show the same harness working across trafficking, tax evasion, and financial crime."},
+            {"id": "200", "title": "Cross-Domain Proof", "slug": "duecare-cross-domain-proof", "summary": "Show the same harness working across trafficking, tax evasion, and financial crime."},
             {"id": "210", "title": "Gemma vs OSS Comparison", "slug": "duecare-gemma-vs-oss-comparison", "summary": "Compare Gemma against peer open-source models on the same task."},
             {"id": "220", "title": "Ollama Cloud OSS Comparison", "slug": "duecare-ollama-cloud-oss-comparison", "summary": "Benchmark Gemma against OSS models exposed through Ollama Cloud."},
             {"id": "230", "title": "Mistral Family Comparison", "slug": "duecare-230-mistral-family-comparison", "summary": "Compare Gemma against the Mistral family under the same prompt slice."},
             {"id": "240", "title": "OpenRouter Frontier Comparison", "slug": "duecare-openrouter-frontier-comparison", "summary": "Contrast DueCare results with large frontier models accessed through OpenRouter."},
+            {"id": "245", "title": "Gemini API Gemma 4 Comparison", "slug": "duecare-245-gemini-api-comparison", "summary": "Head-to-head comparison across the currently available Gemini-routed Gemma endpoints so API behavior can be compared against the notebook-local baselines."},
             {"id": "250", "title": "Comparative Grading", "slug": "duecare-250-comparative-grading", "summary": "Anchor comparative scores against hand-written best and worst responses."},
             {"id": "260", "title": "RAG Comparison", "slug": "duecare-260-rag-comparison", "summary": "Measure plain, retrieval-augmented, and guided prompting lift."},
             {"id": "270", "title": "Gemma Generations", "slug": "duecare-270-gemma-generations", "summary": "Summarize how Gemma 2, 3, and 4 differ on the same safety tasks."},
@@ -150,8 +158,11 @@ PHASES = [
             {"id": "500", "title": "Agent Swarm Deep Dive", "slug": "duecare-500-agent-swarm-deep-dive", "summary": "Walk through the orchestration layer and supervisor flow used across the system."},
             {"id": "510", "title": "Phase 2 Model Comparison", "slug": "duecare-phase2-comparison", "summary": "Compare model variants selected for the next training step."},
             {"id": "520", "title": "Phase 3 Curriculum Builder", "slug": "duecare-520-phase3-curriculum-builder", "summary": "Assemble the curriculum used to prepare fine-tuning data."},
+            {"id": "525", "title": "Uncensored 5-Grade Generator", "slug": "duecare-525-uncensored-grade-generator", "summary": "Generate WORST, BAD, NEUTRAL, GOOD, and BEST responses per prompt so Phase 3 has a richer synthetic curriculum than the stock benchmark alone."},
+            {"id": "527", "title": "Uncensored Rubric Generator", "slug": "duecare-527-uncensored-rubric-generator", "summary": "Generate category-level rubric YAML, five scoring dimensions, and per-grade rules that the fine-tune and judges can consume directly."},
             {"id": "530", "title": "Phase 3 Unsloth Fine-tune", "slug": "duecare-530-phase3-unsloth-finetune", "summary": "Fine-tune Gemma and export deployment artifacts."},
             {"id": "540", "title": "Fine-tune Delta Visualizer", "slug": "duecare-540-finetune-delta-visualizer", "summary": "Before/after 530 plots: stock vs fine-tuned Gemma on the 6-dimension radar, per-prompt delta heatmap, and headline pass-rate lift. Video-ready."},
+            {"id": "550", "title": "NGO Partner Survey Pipeline", "slug": "duecare-550-ngo-partner-survey-pipeline", "summary": "Human-feedback intake surface that turns NGO review into survey rows, email drafts, and partner-validated training examples for the Phase 3 merge."},
             {"id": "599", "title": "Model Improvement Opportunities Conclusion", "slug": "599-duecare-model-improvement-opportunities-conclusion", "summary": "Recap the curriculum build and the fine-tune outcome.", "conclusion": True},
         ],
     },
@@ -201,20 +212,18 @@ def _kaggle_url(slug: str) -> str:
 
 
 def _public_url(notebook_id: str, slug: str) -> str:
-    public_slug = PUBLIC_SLUG_OVERRIDES.get(notebook_id, slug)
+    live_slug = LIVE_KERNEL_SLUGS.get(notebook_id)
+    local_slug = LOCAL_KERNEL_SLUGS.get(notebook_id)
+    public_slug = live_slug or PUBLIC_SLUG_OVERRIDES.get(notebook_id, local_slug or slug)
     return _kaggle_url(public_slug)
 
 
 def _is_published(notebook_id: str) -> bool:
-    """Return False when the notebook is known to be unpublished.
-
-    Used by the index renderer to substitute a ``(pending publication)``
-    label for IDs whose kernels are not yet live on Kaggle. Matches
-    both the bare id (e.g. ``"150"``) and the ``"150 (planned)"``
-    placeholder form used for future-work sections.
-    """
+    """Return False when the notebook is not yet live on Kaggle."""
+    if "(planned)" in notebook_id:
+        return False
     bare = notebook_id.split()[0]
-    return bare not in UNPUBLISHED_IDS
+    return bare in LIVE_KERNEL_SLUGS
 
 
 def _notebook_ids(phase: dict) -> str:
@@ -228,11 +237,64 @@ def _route_link(notebook_id: str, slug: str, label: str) -> str:
 
 
 def _tracked_notebook_count() -> int:
-    return sum(len(phase["notebooks"]) for phase in PHASES)
+    return len(TRACKED_KERNELS)
+
+
+def _live_notebook_count() -> int:
+    return len(TRACKED_NOTEBOOK_IDS)
 
 
 def _section_count() -> int:
     return len(PHASES)
+
+
+TRACKED_KERNELS = discover_kernel_notebooks()
+LOCAL_KERNEL_SLUGS = {
+    entry.notebook_number: entry.slug
+    for entry in TRACKED_KERNELS
+}
+LIVE_SLUG_MAP = json.loads(SLUG_MAP_PATH.read_text(encoding="utf-8"))
+LIVE_KERNEL_SLUGS = {
+    entry.notebook_number: live_kernel_id.split("/", 1)[1]
+    for entry in TRACKED_KERNELS
+    if (live_kernel_id := LIVE_SLUG_MAP.get(entry.dir_name))
+}
+TRACKED_NOTEBOOK_IDS = set(LOCAL_KERNEL_SLUGS)
+
+
+def _coverage_rows() -> list[dict[str, int | str]]:
+    rows: list[dict[str, int | str]] = []
+    for phase in PHASES:
+        notebook_ids = [nb["id"].split()[0] for nb in phase["notebooks"]]
+        first_id = notebook_ids[0]
+        label_suffix = phase["label"].replace(" and ", " & ")
+        rows.append(
+            {
+                "label": f"{first_id} {label_suffix}",
+                "planned": len(phase["notebooks"]),
+                "published": sum(1 for notebook_id in notebook_ids if _is_published(notebook_id)),
+            }
+        )
+    return rows
+
+
+HERO_COVERAGE_ROWS = _coverage_rows()
+
+
+def _coverage_table_rows() -> list[dict[str, int | float | str]]:
+    rows: list[dict[str, int | float | str]] = []
+    for row in HERO_COVERAGE_ROWS:
+        planned = int(row["planned"])
+        live = int(row["published"])
+        rows.append(
+            {
+                "section": str(row["label"]),
+                "planned": planned,
+                "live": live,
+                "live_pct": (live / planned) if planned else 0.0,
+            }
+        )
+    return rows
 
 
 def _recommended_routes_html() -> str:
@@ -255,7 +317,7 @@ def _recommended_routes_html() -> str:
             " -> ".join(
                 [
                     _route_link("100", "duecare-gemma-exploration", "100"),
-                    _route_link("200", "duecare-200-cross-domain-proof", "200"),
+                    _route_link("200", "duecare-cross-domain-proof", "200"),
                     _route_link("500", "duecare-500-agent-swarm-deep-dive", "500"),
                     _route_link("530", "duecare-530-phase3-unsloth-finetune", "530"),
                     _route_link("540", "duecare-540-finetune-delta-visualizer", "540"),
@@ -269,7 +331,7 @@ def _recommended_routes_html() -> str:
             " -> ".join(
                 [
                     _route_link("010", "duecare-010-quickstart", "010"),
-                    _route_link("200", "duecare-200-cross-domain-proof", "200"),
+                    _route_link("200", "duecare-cross-domain-proof", "200"),
                     _route_link("680", "duecare-680-ngo-api-triage", "680"),
                     _route_link("690", "duecare-690-migration-case-workflow", "690"),
                     _route_link("695", "duecare-695-custom-domain-adoption", "695"),
@@ -406,74 +468,82 @@ FINAL_PRINT = (
 )
 
 
-HERO_CODE = '''import subprocess, sys
-try:
-    import plotly.graph_objects as go  # noqa
-except Exception:
-    subprocess.check_call([sys.executable, '-m', 'pip', 'install', '-q', 'plotly'])
-import plotly.graph_objects as go
-from IPython.display import HTML, display
+HERO_CODE = '''from IPython.display import HTML, display
 
-display(HTML(
-    \'\'\'<div style="background:linear-gradient(135deg,#1e3a8a 0%,#4c78a8 100%);color:white;\'\'\'
-    \'\'\'padding:24px 28px;border-radius:8px;margin:10px 0;font-family:system-ui,-apple-system,sans-serif">\'\'\'
-    \'\'\'<div style="font-size:11px;font-weight:600;letter-spacing:0.12em;opacity:0.8;\'\'\'
-    \'\'\'text-transform:uppercase">DueCare - Gemma 4 Good Hackathon</div>\'\'\'
-    \'\'\'<div style="font-size:30px;font-weight:700;margin:6px 0 4px 0">Due Care for AI Safety</div>\'\'\'
-    \'\'\'<div style="font-size:15px;opacity:0.92">Fine-tuned Gemma 4 as an on-device safety judge for migrant-worker protection.\'\'\'
-    \'\'\'<br>60+ notebooks across 15 sections. One duty-of-care standard. Five deployment applications.</div></div>\'\'\'
-))
-
-# Section coverage bar: notebook count + published count by band
-sections = [
-    ('000 Background', 4, 4),
-    ('100 Free Form', 9, 4),
-    ('180 Jailbreak', 9, 0),
-    ('200 Text Eval', 6, 4),
-    ('300 Comparisons', 9, 2),
-    ('400 Advanced Eval', 7, 4),
-    ('500 Prompt Gen', 4, 1),
-    ('600 Adversarial Eval', 3, 1),
-    ('700 Improvement', 6, 1),
-    ('800 Results', 1, 1),
-    ('900 Solution', 3, 3),
-    ('950 Deploy Apps', 5, 0),
-    ('999 Close', 1, 1),
+stats = [
+    {"label": "Tracked notebooks", "value": "__TOTAL_NOTEBOOKS__", "accent": "#4c78a8", "bg": "#eff6ff"},
+    {"label": "Sections", "value": "__TOTAL_SECTIONS__", "accent": "#10b981", "bg": "#ecfdf5"},
+    {"label": "Live on Kaggle", "value": "__LIVE_NOTEBOOKS__", "accent": "#f59e0b", "bg": "#fffbeb"},
+    {"label": "Deployment apps", "value": "5", "accent": "#ef4444", "bg": "#fef2f2"},
 ]
-labels = [s[0] for s in sections]
-planned = [s[1] for s in sections]
-published = [s[2] for s in sections]
 
-fig = go.Figure()
-fig.add_trace(go.Bar(
-    y=labels, x=planned, orientation='h',
-    marker_color='#e5e7eb', name='planned',
-    hovertemplate='<b>%{y}</b><br>planned: %{x}<extra></extra>',
-))
-fig.add_trace(go.Bar(
-    y=labels, x=published, orientation='h',
-    marker_color='#4c78a8', name='published',
-    hovertemplate='<b>%{y}</b><br>published: %{x}<extra></extra>',
-))
-fig.update_layout(
-    title=dict(text='Suite coverage: planned vs published per section', font_size=15),
-    barmode='overlay',
-    xaxis=dict(title='notebook count'),
-    yaxis=dict(autorange='reversed'),
-    template='plotly_white', height=420, width=820,
-    legend=dict(orientation='h', y=-0.12, x=0.5, xanchor='center'),
-    margin=dict(l=10, r=10, t=50, b=10),
+stat_cards = []
+for stat in stats:
+    stat_cards.append(
+        f'<div style="display:inline-block;vertical-align:top;width:23%;margin:4px 1%;padding:14px 16px;'
+        f'background:{stat["bg"]};border-left:5px solid {stat["accent"]};border-radius:4px;'
+        f'font-family:system-ui,-apple-system,sans-serif">'
+        f'<div style="font-size:11px;font-weight:600;color:{stat["accent"]};text-transform:uppercase;'
+        f'letter-spacing:0.04em">{stat["label"]}</div>'
+        f'<div style="font-size:26px;font-weight:700;color:#1f2937;margin:4px 0 0 0">{stat["value"]}</div>'
+        '</div>'
+    )
+
+hero_html = (
+    \'''<div style="background:linear-gradient(135deg,#1e3a8a 0%,#4c78a8 100%);color:white;\'''
+    \'''padding:24px 28px;border-radius:8px;margin:10px 0 6px 0;font-family:system-ui,-apple-system,sans-serif">\'''
+    \'''<div style="font-size:11px;font-weight:600;letter-spacing:0.12em;opacity:0.8;\'''
+    \'''text-transform:uppercase">DueCare - Gemma 4 Good Hackathon</div>\'''
+    \'''<div style="font-size:30px;font-weight:700;margin:6px 0 4px 0">Due Care for AI Safety</div>\'''
+    \'''<div style="font-size:15px;opacity:0.92">Fine-tuned Gemma 4 as an on-device safety judge for migrant-worker protection.\'''
+    \'''<br>__TOTAL_NOTEBOOKS__ notebooks across __TOTAL_SECTIONS__ sections. One duty-of-care standard. Five deployment applications.</div>\'''
+    \'''</div>\'''
+    + '<div style="margin:0 0 8px 0">' + ''.join(stat_cards) + '</div>'
 )
-fig.show()
-'''
+
+display(HTML(hero_html))
+'''.replace('__TOTAL_NOTEBOOKS__', str(_tracked_notebook_count())).replace(
+    '__TOTAL_SECTIONS__',
+    str(_section_count()),
+).replace(
+    '__LIVE_NOTEBOOKS__',
+    str(_live_notebook_count()),
+)
+
+
+COVERAGE_CODE = '''import pandas as pd
+from IPython.display import Markdown, display
+
+coverage = pd.DataFrame(__COVERAGE_ROWS__)
+
+display(Markdown('### Suite coverage by section'))
+display(
+    coverage.style
+      .format({'planned': '{:,}', 'live': '{:,}', 'live_pct': '{:.0%}'})
+      .bar(subset=['planned'], color='#e5e7eb')
+      .bar(subset=['live'], color='#4c78a8')
+      .bar(subset=['live_pct'], color='#10b981')
+      .set_properties(subset=['section'], **{'text-align': 'left', 'white-space': 'pre-wrap'})
+      .set_properties(subset=['planned', 'live', 'live_pct'], **{'text-align': 'center'})
+      .set_table_styles([{'selector': 'th', 'props': [('text-align', 'left')]}])
+      .hide(axis='index')
+)
+'''.replace(
+    '__COVERAGE_ROWS__',
+    json.dumps(_coverage_table_rows(), indent=2),
+)
 
 
 def build() -> None:
     cells = [
-        # Hero + coverage plotly. First cell so the banner is what the reader sees.
+        # Compact hero first so the notebook front door stays tight in Kaggle's saved viewer.
         {'cell_type': 'code', 'execution_count': None, 'metadata': {}, 'outputs': [],
          'source': HERO_CODE.splitlines(keepends=True)},
         _md(_header_markdown()),
+        {'cell_type': 'code', 'execution_count': None,
+         'metadata': {'_kg_hide-input': True, 'jupyter': {'source_hidden': True}},
+         'outputs': [],
+         'source': COVERAGE_CODE.splitlines(keepends=True)},
     ]
     for i, phase in enumerate(PHASES):
         next_phase = PHASES[i + 1] if i + 1 < len(PHASES) else None

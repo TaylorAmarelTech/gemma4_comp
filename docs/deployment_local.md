@@ -89,7 +89,7 @@ The kernel will:
 4. Print the URL
 
 Open `http://localhost:8080` in your browser. You get the same UI
-judges see on Kaggle: 4 toggle tiles, Examples modal with 204 prompts,
+judges see on Kaggle: 4 toggle tiles, Examples modal with 394 prompts,
 View pipeline modal, Persona library, custom rule additions.
 
 ### To run the **classifier** instead
@@ -243,7 +243,7 @@ Expected:
 GREP rules: 22
 RAG docs:   18
 Tools:      4
-Example prompts:    204
+Example prompts:    394
 Classifier examples: 16
 ```
 

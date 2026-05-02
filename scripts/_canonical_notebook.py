@@ -20,6 +20,45 @@ from html import escape
 from typing import Iterable
 
 
+def canonical_hero_code(*, title: str, kicker: str, tagline: str) -> str:
+    """Return the code-cell source for the canonical DueCare hero banner.
+
+    Every DueCare notebook opens with the same gradient banner so judges
+    landing on any single notebook see a consistent frame. The banner has
+    three lines:
+
+    - ``kicker`` — small uppercase label identifying the notebook role
+      (``DueCare - Section Conclusion``, ``DueCare - Gemma 4 Exploration``,
+      ``DueCare - Orientation Navigation Surface``).
+    - ``title`` — the canonical ``NNN: DueCare <Name>`` heading.
+    - ``tagline`` — a single sentence that describes what a reader gets
+      from the notebook.
+
+    Emit as a ``code`` cell at position 0 of the notebook's cell list.
+    """
+
+    def _sq_escape(value: str) -> str:
+        return value.replace("\\", "\\\\").replace("'", "\\'")
+
+    return (
+        f"NOTEBOOK_TITLE = '{_sq_escape(title)}'\n"
+        "from IPython.display import HTML, display\n"
+        "display(HTML(\n"
+        "    '<div style=\"background:linear-gradient(135deg,#1e3a8a 0%,#4c78a8 100%);'\n"
+        "    'color:white;padding:20px 24px;border-radius:8px;margin:8px 0;'\n"
+        "    'font-family:system-ui,-apple-system,sans-serif\">'\n"
+        "    '<div style=\"font-size:10px;font-weight:600;letter-spacing:0.14em;'\n"
+        "    'opacity:0.8;text-transform:uppercase\">"
+        f"{_sq_escape(kicker)}</div>'\n"
+        "    f'<div style=\"font-size:22px;font-weight:700;margin:6px 0 4px 0\">'\n"
+        "    f'{NOTEBOOK_TITLE}</div>'\n"
+        "    '<div style=\"font-size:13px;opacity:0.92;line-height:1.5\">"
+        f"{_sq_escape(tagline)}</div>'\n"
+        "    '</div>'\n"
+        "))\n"
+    )
+
+
 HEX_TO_RGBA_SRC = """def _hex_to_rgba(hex_color: str, alpha: float = 0.08) -> str:
     h = hex_color.lstrip('#')
     r, g, b = int(h[0:2], 16), int(h[2:4], 16), int(h[4:6], 16)
