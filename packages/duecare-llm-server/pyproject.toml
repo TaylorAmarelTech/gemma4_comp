@@ -21,6 +21,19 @@ dependencies = [
     "duecare-llm-benchmark>=0.1.0",
 ]
 
+# Optional. Enables /metrics + per-tenant counters / histograms.
+# Install with: pip install duecare-llm-server[observability]
+[project.optional-dependencies]
+observability = [
+    "prometheus-client>=0.20.0",
+]
+otel = [
+    "opentelemetry-api>=1.27.0",
+    "opentelemetry-sdk>=1.27.0",
+    "opentelemetry-exporter-otlp>=1.27.0",
+    "opentelemetry-instrumentation-fastapi>=0.48b0",
+]
+
 [project.urls]
 Homepage = "https://github.com/TaylorAmarelTech/gemma4_comp"
 

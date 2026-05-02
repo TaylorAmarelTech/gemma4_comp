@@ -1,0 +1,70 @@
+# Optional auth + tenancy overlay for the production docker-compose.
+#
+# Usage:
+#   docker compose -f docker-compose.yml -f docker-compose.auth.yml up -d
+#
+# This puts oauth2-proxy in front of the chat service. After login,
+# the proxy injects:
+#   - X-Forwarded-User       — the user's email
+#   - X-Forwarded-Email      — same as above
+#   - Authorization: Bearer  — upstream OIDC access token
+#
+# The Duecare TenancyMiddleware reads these and stamps every request
+# with `request.state.tenant_id`. Per-tenant token + cost counters
+# and rate limits then key off that.
+#
+# Configure your OIDC provider via env vars in .env (see .env.example).
+# Supported providers (any OIDC-compliant): Google Workspace, Azure
+# Entra ID (formerly AAD), Auth0, Okta, Keycloak, Authentik, Dex,
+# Cognito, GitHub.
+
+version: "3.9"
+
+services:
+
+  oauth2-proxy:
+    image: quay.io/oauth2-proxy/oauth2-proxy:v7.6.0
+    container_name: duecare-oauth2-proxy
+    restart: unless-stopped
+    ports:
+      - "${AUTH_PORT:-4180}:4180"
+    environment:
+      OAUTH2_PROXY_PROVIDER: ${OAUTH2_PROVIDER:-oidc}
+      OAUTH2_PROXY_OIDC_ISSUER_URL: ${OAUTH2_OIDC_ISSUER_URL}
+      OAUTH2_PROXY_CLIENT_ID: ${OAUTH2_CLIENT_ID}
+      OAUTH2_PROXY_CLIENT_SECRET: ${OAUTH2_CLIENT_SECRET}
+      OAUTH2_PROXY_COOKIE_SECRET: ${OAUTH2_COOKIE_SECRET}
+      OAUTH2_PROXY_REDIRECT_URL: ${OAUTH2_REDIRECT_URL:-http://localhost:4180/oauth2/callback}
+      OAUTH2_PROXY_EMAIL_DOMAINS: ${OAUTH2_EMAIL_DOMAINS:-*}
+      OAUTH2_PROXY_HTTP_ADDRESS: 0.0.0.0:4180
+      OAUTH2_PROXY_REVERSE_PROXY: "true"
+      OAUTH2_PROXY_PASS_USER_HEADERS: "true"
+      OAUTH2_PROXY_PASS_ACCESS_TOKEN: "true"
+      OAUTH2_PROXY_PASS_AUTHORIZATION_HEADER: "true"
+      OAUTH2_PROXY_SET_XAUTHREQUEST: "true"
+      OAUTH2_PROXY_UPSTREAMS: http://chat:8080
+      OAUTH2_PROXY_SKIP_AUTH_ROUTES: "^/healthz$,^/metrics$,^/static/.*$"
+      OAUTH2_PROXY_SCOPE: "openid email profile"
+      OAUTH2_PROXY_COOKIE_SECURE: ${OAUTH2_COOKIE_SECURE:-false}    # true when behind TLS
+    depends_on:
+      chat:
+        condition: service_started
+    networks: [duecare]
+
+  chat:
+    # Override: when oauth2-proxy is the front door, stop binding chat
+    # directly to the host port. Internal access only.
+    ports: !reset []
+    environment:
+      # Default tenant for any request that bypassed oauth2-proxy
+      # (healthz / metrics). Real user requests have their tenant
+      # resolved from X-Forwarded-User by TenancyMiddleware.
+      DUECARE_DEFAULT_TENANT: anonymous
+      # Use stricter rate limits when behind auth — assume each user
+      # is real and entitled to 120 r/min instead of the open-server
+      # default of 60.
+      DUECARE_RATE_LIMIT_PER_MIN: ${DUECARE_RATE_LIMIT_PER_MIN:-120}
+      DUECARE_CONCURRENCY_PER_TENANT: ${DUECARE_CONCURRENCY_PER_TENANT:-20}
+
+  classifier:
+    ports: !reset []

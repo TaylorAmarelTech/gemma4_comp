@@ -146,6 +146,9 @@ docker-build:  ## Build the multi-arch Docker image (chat + classifier)
 docker-up:  ## Start chat + classifier via docker-compose (one command)
 	docker compose up -d --build
 
+docker-up-auth:  ## Start chat + classifier with OAuth2-proxy in front (OIDC SSO)
+	docker compose -f docker-compose.yml -f docker-compose.auth.yml up -d --build
+
 docker-down:  ## Stop docker-compose stack
 	docker compose down
 

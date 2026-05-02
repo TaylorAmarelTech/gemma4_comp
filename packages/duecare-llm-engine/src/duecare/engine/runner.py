@@ -8,6 +8,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Optional
 
+from duecare.engine import otel
 from duecare.engine.config import EngineConfig
 from duecare.engine.results import Run
 
@@ -24,37 +25,54 @@ class Engine:
         # a directory containing `raw_python/gemma4_docling_gliner_graph_v1.py`.
         self.project_root = (Path(project_root) if project_root
                               else _detect_project_root())
+        # OTel bootstrap is idempotent + a no-op when DUECARE_OTEL_ENABLED
+        # is unset, so it's safe to call from the constructor.
+        otel.bootstrap()
 
     def process_folder(self, cfg: EngineConfig,
                           stream_output: bool = True) -> Run:
         """Run the full pipeline against `cfg.input_dir` and return a
         materialised Run. Set `stream_output=False` for quiet mode."""
-        script = self._resolve_script(cfg)
-        env = os.environ.copy()
-        env.update(cfg.to_env())
-        Path(cfg.output_dir).mkdir(parents=True, exist_ok=True)
-        started_at = datetime.now()
-        cmd = [sys.executable, str(script)]
-        if stream_output:
-            print(f"[engine] launching: {' '.join(cmd)}")
-            print(f"[engine] env overrides: "
-                  f"{ {k: v for k, v in cfg.to_env().items()} }")
-        proc = subprocess.run(
-            cmd,
-            env=env,
-            cwd=str(self.project_root),
-            stdout=(None if stream_output else subprocess.PIPE),
-            stderr=(None if stream_output else subprocess.PIPE),
-            check=False,
-        )
-        if proc.returncode != 0:
-            raise EngineError(
-                f"pipeline exited with code {proc.returncode}. "
-                f"stdout: {proc.stdout!r} stderr: {proc.stderr!r}")
-        run = Run.load(cfg.output_dir)
-        run.started_at = started_at
-        run.completed_at = datetime.now()
-        return run
+        with otel.trace_span(
+            "engine.process_folder",
+            attributes={
+                "engine.input_dir": cfg.input_dir or "(default)",
+                "engine.output_dir": cfg.output_dir,
+                "engine.script_path": cfg.script_path,
+            },
+        ):
+            script = self._resolve_script(cfg)
+            env = os.environ.copy()
+            env.update(cfg.to_env())
+            Path(cfg.output_dir).mkdir(parents=True, exist_ok=True)
+            started_at = datetime.now()
+            cmd = [sys.executable, str(script)]
+            if stream_output:
+                print(f"[engine] launching: {' '.join(cmd)}")
+                print(f"[engine] env overrides: "
+                      f"{ {k: v for k, v in cfg.to_env().items()} }")
+            with otel.trace_span("engine.subprocess.run"):
+                proc = subprocess.run(
+                    cmd,
+                    env=env,
+                    cwd=str(self.project_root),
+                    stdout=(None if stream_output else subprocess.PIPE),
+                    stderr=(None if stream_output else subprocess.PIPE),
+                    check=False,
+                )
+            if proc.returncode != 0:
+                otel.add_event(
+                    "engine.subprocess.failed",
+                    {"return_code": proc.returncode},
+                )
+                raise EngineError(
+                    f"pipeline exited with code {proc.returncode}. "
+                    f"stdout: {proc.stdout!r} stderr: {proc.stderr!r}")
+            with otel.trace_span("engine.run.load"):
+                run = Run.load(cfg.output_dir)
+                run.started_at = started_at
+                run.completed_at = datetime.now()
+            return run
 
     def load_run(self, output_dir: str) -> Run:
         """Materialise a Run from an existing output directory without
