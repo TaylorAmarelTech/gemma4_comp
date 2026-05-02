@@ -180,8 +180,20 @@ compliance crosswalk, threat model, vendor questionnaire) at
 
 ### Just want to look at it?
 
+- 🌐 **[Browse the docs site](https://tayloramareltech.github.io/gemma4_comp/)**
+  — full searchable site, no install, persistent. Diagrams render
+  via Mermaid; nav by persona / topology / surface.
 - [**Try in 2 minutes**](./docs/try_in_2_minutes.md) — fastest path
   per persona, no install required for most options
+- [**Ecosystem overview**](./docs/ecosystem_overview.md) — how the
+  4 user layers (worker → NGO → researcher → enterprise) compose
+  around one harness, with Mermaid diagrams
+- [**Maria's case end-to-end**](./docs/marias_case_end_to_end.md)
+  — composite case traced through every layer of the ecosystem
+  (writeup + video + pitch material)
+- [**Cross-NGO trends federation**](./docs/cross_ngo_trends_federation.md)
+  — privacy-preserving aggregation protocol for sharing patterns
+  across NGOs without sharing PII
 - [**Comparison vs alternatives**](./docs/comparison_to_alternatives.md)
   — when Duecare fits vs when Hive / Sift / Azure / OpenAI / Llama
   Guard fit better
@@ -190,7 +202,7 @@ compliance crosswalk, threat model, vendor questionnaire) at
 - [**Educator resources**](./docs/educator_resources.md) — drop-in
   lesson plans for AI-ethics / social-work / migration-studies courses
 - [**First-deployer feedback template**](./docs/first_deployer_feedback.md)
-  — if you tried it in your real environment, your input shapes v0.8
+  — if you tried it in your real environment, your input shapes v0.10
 
 ### Run on Kaggle (GPU)
 

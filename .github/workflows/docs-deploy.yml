@@ -1,0 +1,74 @@
+name: Deploy docs site
+
+# Builds the MkDocs Material docs site + publishes to GitHub Pages.
+#
+# Triggers:
+#   - push to master with changes to docs/, mkdocs.yml, or this workflow
+#   - workflow_dispatch (manual fire from Actions tab)
+#
+# Output:
+#   - https://tayloramareltech.github.io/gemma4_comp/
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - "docs/**"
+      - "mkdocs.yml"
+      - "requirements-docs.txt"
+      - ".github/workflows/docs-deploy.yml"
+      # Also rebuild when these top-level docs change
+      - "README.md"
+      - "CHANGELOG.md"
+      - "RESULTS.md"
+      - "CITATION.cff"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: docs-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Build docs site
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0     # full history for git-revision-date plugin (if added later)
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install docs deps
+        run: pip install -r requirements-docs.txt
+
+      - name: Build site
+        run: mkdocs build --clean --verbose
+        # Note: --strict is intentionally NOT set yet. Some referenced
+        # docs have intra-doc broken links from earlier reorganizations
+        # that we want to surface as warnings without failing the build.
+        # Once those are fixed (tracked in docs/notebook_qa_companion.md),
+        # re-add --strict so future PRs can't introduce new broken links.
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+  deploy:
+    name: Deploy to GitHub Pages
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
