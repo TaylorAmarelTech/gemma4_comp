@@ -24,7 +24,7 @@
 | Framework | Today | Gap to attestable |
 |---|:-:|---|
 | SOC 2 — Security | C+ | Need: documented access reviews, incident response runbook (✓ today), change management, vendor management |
-| SOC 2 — Availability | B | SLOs documented (`docs/SLO.md`); need DR test artifacts |
+| SOC 2 — Availability | B | SLOs documented (`docs/considerations/SLO.md`); need DR test artifacts |
 | SOC 2 — Confidentiality | B+ | Encryption at rest in journal (SQLCipher); encryption in transit (TLS); need key-rotation policy |
 | GDPR | B | DPIA template needed; Article 30 record-of-processing template needed |
 | HIPAA | C | BAA template needed; PHI redaction is in `duecare-llm-research-tools` (PIIFilter); audit log present; need designated security officer assignment |
@@ -50,7 +50,7 @@
 |---|---|:-:|
 | A1.1 — Capacity planning | `docs/deployment_topologies.md` hardware sizing; HPA in Helm | A |
 | A1.2 — Backup + recovery | `examples/deployment/ngo-office-edge/README.md` documents backup; no automated DR test | B |
-| A1.3 — Operations + monitoring | `infra/observability/` stack + `docs/runbook.md` + `docs/SLO.md` | A |
+| A1.3 — Operations + monitoring | `infra/observability/` stack + `docs/considerations/runbook.md` + `docs/considerations/SLO.md` | A |
 
 ### Change management (CC8)
 
@@ -63,7 +63,7 @@
 
 | SOC 2 control | Where | Status |
 |---|---|:-:|
-| CC3.1 — Threat model | `docs/THREAT_MODEL.md` (planned) | D |
+| CC3.1 — Threat model | `docs/considerations/THREAT_MODEL.md` (planned) | D |
 | CC3.2 — Risk register | Operator responsibility | n/a |
 
 ## GDPR control map
@@ -88,7 +88,7 @@
 | §164.308(a)(3) — Workforce security | Operator responsibility | n/a |
 | §164.308(a)(4) — Information access management | Auth proxy + RBAC at edge; per-tenant isolation | C |
 | §164.308(a)(5) — Security awareness training | Operator responsibility | n/a |
-| §164.308(a)(6) — Security incident procedures | `docs/runbook.md` | A |
+| §164.308(a)(6) — Security incident procedures | `docs/considerations/runbook.md` | A |
 | §164.308(a)(8) — Evaluation | Penetration testing recommended; not in this repo | D |
 | §164.310 — Physical safeguards | Operator responsibility (cloud provider's controls) | n/a |
 | §164.312(a)(1) — Access control | Tenant-id stamped on every request; per-tenant isolation primitives | B |
@@ -114,7 +114,7 @@ NGO can evaluate scope.
 | CM (Configuration Management) | Helm values + GitHub-tracked changes | strong |
 | CP (Contingency Planning) | Backup docs; DR test artifacts not yet committed | partial |
 | IA (Identification & Authentication) | Operator brings own auth proxy | partial |
-| IR (Incident Response) | `docs/runbook.md` | strong |
+| IR (Incident Response) | `docs/considerations/runbook.md` | strong |
 | RA (Risk Assessment) | Threat-model doc planned | weak |
 | SA (System & Services Acquisition) | All deps pinned + audited; Renovate / Dependabot recommended | partial |
 | SC (System & Communications Protection) | TLS + NetworkPolicy + at-rest encryption | strong |
@@ -145,7 +145,7 @@ These questions show up on every Big Tech procurement:
 | **Where does customer data live?** | In whatever data store the operator deploys to. Topology B/D = on-prem. Topology C = operator's cloud account. We never see it. |
 | **Is data encrypted at rest?** | In the Android journal (Topology D) yes — SQLCipher with key in Android Keystore. In the server's evidence-db, encryption is the operator's responsibility (Postgres TDE, RDS encryption, etc.). |
 | **Is data encrypted in transit?** | TLS 1.3 at the edge. mTLS available via service mesh. |
-| **What's the SLA?** | The community + reference SLOs are in `docs/SLO.md` (99.5% chat success, p95 < 8s for E2B). Commercial SLAs are operator-configurable. |
+| **What's the SLA?** | The community + reference SLOs are in `docs/considerations/SLO.md` (99.5% chat success, p95 < 8s for E2B). Commercial SLAs are operator-configurable. |
 | **What's the data retention default?** | 90 days for the audit log; configurable via env var. Journal is unbounded — operator chooses. |
 | **What sub-processors do you use?** | Zero by default. If the operator configures cloud-Gemma routing (Ollama / OpenAI / HF), those become sub-processors. If they enable internet search (Tavily / Brave / Serper), those too. |
 | **Is the source code auditable?** | Yes — MIT-licensed, all 17 packages on PyPI, all deps pinned, semver tags. |
@@ -165,5 +165,5 @@ These are documented gaps, not hidden ones:
   has cosign step), needs operator's KMS for production signing
 
 Each is a 1-3 day deliverable; tracked in
-[`docs/enterprise_readiness.md`](./enterprise_readiness.md) under
+[`docs/considerations/enterprise_readiness.md`](./enterprise_readiness.md) under
 the P1 set.

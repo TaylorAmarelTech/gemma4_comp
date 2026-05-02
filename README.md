@@ -35,8 +35,8 @@
 >
 > 1. [`duecare-chat-playground`](https://www.kaggle.com/code/taylorsamarel/duecare-chat-playground) — raw Gemma 4, no harness. Baseline.
 > 2. [`duecare-chat-playground-with-grep-rag-tools`](https://www.kaggle.com/code/taylorsamarel/duecare-chat-playground-with-grep-rag-tools) — same chat UI + 4 toggleable safety layers + per-response Pipeline modal. *Headline demo.*
-> 3. `duecare-content-classification-playground` *(TBD)* — hands-on classification sandbox; 4 schema modes (single/multi-label, risk-vector, custom JSON Schema).
-> 4. `duecare-content-knowledge-builder-playground` *(TBD)* — hands-on KB builder; add GREP rules, RAG docs, lookup tables; export full JSON.
+> 3. `duecare-content-classification-playground` *(publish pending)* — hands-on classification sandbox; 4 schema modes (single/multi-label, risk-vector, custom JSON Schema).
+> 4. `duecare-content-knowledge-builder-playground` *(publish pending)* — hands-on KB builder; add GREP rules, RAG docs, lookup tables; export full JSON.
 > 5. [`duecare-gemma-content-classification-evaluation`](https://www.kaggle.com/code/taylorsamarel/duecare-gemma-content-classification-evaluation) — polished NGO/agency dashboard with risk vectors + threshold-filtered queue.
 > 6. [`duecare-live-demo`](https://www.kaggle.com/code/taylorsamarel/duecare-live-demo) — full deployed product. Combines #3 + #4 in one polished surface.
 >
@@ -128,7 +128,9 @@ pip install duecare-llm-core duecare-llm-domains duecare-llm-tasks duecare-llm-a
 ```bash
 # 1. Install Ollama: https://ollama.com/download
 # 2. Pull Gemma 4
-ollama pull gemma4:e4b          # ~4GB (Q4 quantized)
+ollama pull gemma4:e2b          # ~1.5GB INT8 (default)
+# or
+ollama pull gemma4:e4b          # ~3.5GB INT8 (higher quality)
 
 # 3. Run the evaluation
 python scripts/run_local_gemma.py --max-prompts 10   # quick test
@@ -137,6 +139,28 @@ python scripts/run_local_gemma.py --model gemma4:e2b   # smaller model
 
 # Output: per-prompt scores, headline metrics, findings JSON
 ```
+
+### Deploy in 60 seconds
+
+```bash
+# Single-machine local stack (Ollama + Duecare server + reverse proxy)
+docker compose up -d
+open http://localhost:8080
+```
+
+For other deployment shapes — solo laptop, NGO-office Mac mini, cloud
+server with thin clients, on-device Android, hybrid edge LLM + cloud
+knowledge — see the [**deployment topology selector**](./docs/deployment_topologies.md).
+Five concrete runnable examples at [`examples/deployment/`](./examples/deployment/).
+
+For multi-cloud production deployments (Render / Fly / Cloud Run /
+EKS / GKE / AKS / Lightsail / Azure Container Apps / k3s / air-gapped),
+see [`docs/cloud_deployment.md`](./docs/cloud_deployment.md).
+
+For optional enterprise extras (telemetry, multi-tenancy, SLOs,
+incident runbook, compliance crosswalk), see
+[`docs/considerations/`](./docs/considerations/) — these are
+supplements for operators who need them, not central to the project.
 
 ### Run on Kaggle (GPU)
 
