@@ -1,0 +1,31 @@
+# Caddy reverse proxy for the local-all-in-one stack.
+#
+# Default: serve on http://localhost (no TLS — this is local-only).
+# To enable HTTPS, replace the `:80` block below with `your.hostname.tld`
+# and Caddy will fetch a cert from Let's Encrypt automatically.
+
+:80 {
+	# Compress responses for the chat UI's static assets
+	encode gzip
+
+	# Health-check endpoint for monitoring
+	respond /healthz "ok" 200
+
+	# Forward everything else to the duecare FastAPI server
+	reverse_proxy duecare:8000 {
+		header_up Host {host}
+		header_up X-Real-IP {remote}
+		header_up X-Forwarded-For {remote}
+		header_up X-Forwarded-Proto {scheme}
+	}
+
+	# Reasonable defaults
+	header {
+		# Prevent clickjacking on the chat UI
+		X-Frame-Options "DENY"
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "no-referrer"
+		# CSP allowing the chat UI's own assets + the streaming endpoint
+		Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'"
+	}
+}

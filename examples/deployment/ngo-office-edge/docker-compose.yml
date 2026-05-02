@@ -1,0 +1,84 @@
+# Topology B — NGO-office edge box.
+#
+# Same stack as Topology A, plus an mDNS sidecar so caseworkers' phones
+# and laptops can reach the box at http://duecare.local without knowing
+# its IP.
+#
+# Mac users: built-in Bonjour handles mDNS — you can drop the avahi
+# service. Linux users keep it.
+
+version: "3.9"
+
+services:
+  ollama:
+    image: ollama/ollama:latest
+    container_name: duecare-ollama
+    restart: unless-stopped
+    volumes:
+      - ollama-models:/root/.ollama
+    healthcheck:
+      test: ["CMD", "ollama", "list"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+    ports:
+      # Expose Ollama directly so the Android app can hit it without
+      # going through the harness when the worker just wants raw chat.
+      - "11434:11434"
+    entrypoint: >
+      /bin/sh -c "
+        ollama serve &
+        sleep 5;
+        ollama pull ${OLLAMA_MODEL:-gemma4:e2b} || true;
+        wait
+      "
+
+  duecare:
+    image: ghcr.io/tayloramareltech/duecare-llm:latest
+    container_name: duecare-server
+    restart: unless-stopped
+    depends_on:
+      ollama:
+        condition: service_healthy
+    environment:
+      DUECARE_BACKEND: ollama
+      OLLAMA_HOST: http://ollama:11434
+      OLLAMA_MODEL: ${OLLAMA_MODEL:-gemma4:e2b}
+      DUECARE_DATA_DIR: /var/duecare/data
+      TAVILY_API_KEY: ${TAVILY_API_KEY:-}
+      BRAVE_SEARCH_API_KEY: ${BRAVE_SEARCH_API_KEY:-}
+      SERPER_API_KEY: ${SERPER_API_KEY:-}
+    volumes:
+      - duecare-data:/var/duecare/data
+    expose:
+      - "8000"
+
+  caddy:
+    image: caddy:2-alpine
+    container_name: duecare-caddy
+    restart: unless-stopped
+    depends_on:
+      - duecare
+    ports:
+      - "${HTTP_PORT:-80}:80"
+      - "${HTTPS_PORT:-443}:443"
+    volumes:
+      - ../local-all-in-one/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+
+  # Linux-only: advertises duecare.local on the LAN. Skip on macOS
+  # (Bonjour is built in).
+  avahi:
+    image: solidnerd/avahi:0.6
+    container_name: duecare-avahi
+    restart: unless-stopped
+    network_mode: host
+    profiles:
+      - linux
+
+volumes:
+  ollama-models:
+  duecare-data:
+  caddy-data:
+  caddy-config:

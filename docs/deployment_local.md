@@ -1,5 +1,12 @@
 # Duecare — Local setup
 
+> **Picking a deployment shape?** Read
+> [`docs/deployment_topologies.md`](./deployment_topologies.md) first
+> for the comparison matrix + decision tree across all five topologies
+> (single-component local, NGO-office edge, server+thin clients,
+> on-device only, hybrid). This doc covers the three *local* paths in
+> depth.
+
 Three local-deployment paths, fastest to most-controlled:
 
 1. **Ollama** — easiest, CPU works, no Python env required
