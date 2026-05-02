@@ -153,17 +153,25 @@ open http://localhost:8080
 After deploy: `make doctor` for a one-screen health report,
 `make backup` for a journal/audit snapshot.
 
-### Pick your deployment shape
+### Pick your deployment shape (by persona)
 
 | You are... | Read |
 |---|---|
-| Solo developer evaluating the harness on a laptop | [`docs/deployment_local.md`](./docs/deployment_local.md) |
-| **NGO director** running it privately at the office | [`docs/scenarios/ngo-office-deployment.md`](./docs/scenarios/ngo-office-deployment.md) |
-| **Caseworker** at an NGO that already deployed Duecare | [`docs/scenarios/caseworker_workflow.md`](./docs/scenarios/caseworker_workflow.md) |
-| **Platform CTO** evaluating for enterprise rollout | [`docs/scenarios/enterprise_pilot.md`](./docs/scenarios/enterprise_pilot.md) |
-| Just want to skim the choices | [`docs/deployment_topologies.md`](./docs/deployment_topologies.md) (5 topologies + decision tree) |
-| Deploying on a specific cloud | [`docs/cloud_deployment.md`](./docs/cloud_deployment.md) (13 platforms) |
-| Picking which Gemma 4 variant to load | [`docs/gemma4_model_guide.md`](./docs/gemma4_model_guide.md) |
+| **OFW / migrant worker** wanting it on your phone | [`docs/scenarios/worker-self-help.md`](./docs/scenarios/worker-self-help.md) |
+| **Caseworker** at an NGO using Duecare | [`docs/scenarios/caseworker_workflow.md`](./docs/scenarios/caseworker_workflow.md) |
+| **NGO director** running it at the office | [`docs/scenarios/ngo-office-deployment.md`](./docs/scenarios/ngo-office-deployment.md) |
+| **Legal aid lawyer** preparing a case | [`docs/scenarios/lawyer-evidence-prep.md`](./docs/scenarios/lawyer-evidence-prep.md) |
+| **Government regulator** doing pattern analysis | [`docs/scenarios/regulator-pattern-analysis.md`](./docs/scenarios/regulator-pattern-analysis.md) |
+| **Recruitment-agency compliance officer** | [`docs/scenarios/recruiter-self-audit.md`](./docs/scenarios/recruiter-self-audit.md) |
+| **Individual researcher** (academic / journalist) | [`docs/scenarios/researcher-analysis.md`](./docs/scenarios/researcher-analysis.md) |
+| **IT director** evaluating ops + TCO | [`docs/scenarios/it-director.md`](./docs/scenarios/it-director.md) |
+| **Chief architect** designing integration | [`docs/scenarios/chief-architect.md`](./docs/scenarios/chief-architect.md) |
+| **VP of Engineering** at a product org | [`docs/scenarios/vp-engineering.md`](./docs/scenarios/vp-engineering.md) |
+| **Platform CTO** at Big Tech | [`docs/scenarios/enterprise_pilot.md`](./docs/scenarios/enterprise_pilot.md) |
+| Solo developer evaluating on a laptop | [`docs/deployment_local.md`](./docs/deployment_local.md) |
+| Skim the topology choices | [`docs/deployment_topologies.md`](./docs/deployment_topologies.md) |
+| Deploy on a specific cloud | [`docs/cloud_deployment.md`](./docs/cloud_deployment.md) |
+| Pick a Gemma 4 variant | [`docs/gemma4_model_guide.md`](./docs/gemma4_model_guide.md) |
 
 Five runnable topology examples at [`examples/deployment/`](./examples/deployment/).
 Optional enterprise governance supplements (SLOs, runbook,
