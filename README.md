@@ -178,6 +178,20 @@ Optional enterprise governance supplements (SLOs, runbook,
 compliance crosswalk, threat model, vendor questionnaire) at
 [`docs/considerations/`](./docs/considerations/) — read only if you need them.
 
+### Just want to look at it?
+
+- [**Try in 2 minutes**](./docs/try_in_2_minutes.md) — fastest path
+  per persona, no install required for most options
+- [**Comparison vs alternatives**](./docs/comparison_to_alternatives.md)
+  — when Duecare fits vs when Hive / Sift / Azure / OpenAI / Llama
+  Guard fit better
+- [**Press kit**](./docs/press_kit.md) — one-pager + facts + quotes
+  for journalists, NGO comms, academics
+- [**Educator resources**](./docs/educator_resources.md) — drop-in
+  lesson plans for AI-ethics / social-work / migration-studies courses
+- [**First-deployer feedback template**](./docs/first_deployer_feedback.md)
+  — if you tried it in your real environment, your input shapes v0.8
+
 ### Run on Kaggle (GPU)
 
 Open the notebook, set Accelerator to **GPU T4 x2**, and run:
