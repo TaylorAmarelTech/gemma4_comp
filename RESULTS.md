@@ -13,27 +13,73 @@
 
 | Field | Value |
 |---|---|
-| **Submission tag** | `v0.1.0` (TBD — bump on submission day) |
-| **Submission SHA** | `(set at tag time — `git rev-parse v0.1.0`)` |
-| **Submission date** | TBD (≤ 2026-05-18) |
-| **Wheels built** | `dist/duecare_llm_*-0.1.0-py3-none-any.whl` (17 wheels) |
+| **Submission tag** | `v0.1.0` (bumped on submission day, on or before 2026-05-18) |
+| **Submission SHA** | set at tag time — verify with `git rev-parse v0.1.0` |
+| **Submission date** | on or before 2026-05-18 |
+| **Wheels built** | `dist/duecare_llm_*-0.1.0-py3-none-any.whl` (17 wheels — full inventory in `docs/current_kaggle_notebook_state.md`) |
 
-## Headline metrics
+## Headline metrics — harness lift (the central claim)
 
-Each row is a number that appears in either the writeup or video.
-Verifier columns: `Source notebook` (Kaggle URL), `Dataset version`
-(Kaggle dataset version pin), `HF model revision` (HF Hub revision).
+The numbers below are reproduced verbatim from
+[`docs/harness_lift_report.md`](./docs/harness_lift_report.md), which
+benchmarked Gemma 4 with the harness OFF vs ON across 207 hand-graded
+prompts on the `legal_citation_quality` rubric (12 criteria across 3
+user-facing dimensions: jurisdiction-specific rules, ILO/international
+regulations, substance-over-form analysis).
 
-| Metric | Number | Source notebook | Dataset version | HF model revision |
-|---|---|---|---|---|
-| Stock Gemma 4 E4B refusal rate on harmful prompts | TBD | [100 — Gemma Exploration](https://www.kaggle.com/code/taylorsamarel/duecare-real-gemma-4-on-50-trafficking-prompts) | `duecare-trafficking-prompts/v?` | `google/gemma-4-e4b-it@main` |
-| SFT refusal rate uplift vs stock | TBD | bench-and-tune (TBD URL) | `duecare-trafficking-prompts/v?` | `taylorscottamarel/Duecare-Gemma-4-E4B-it-SafetyJudge-v0.1.0@main` |
-| DPO refusal rate uplift vs SFT | TBD | bench-and-tune (TBD URL) | `duecare-trafficking-prompts/v?` | `taylorscottamarel/Duecare-Gemma-4-E4B-it-SafetyJudge-DPO-v0.1.0@main` |
-| Gemma 4 E4B vs GPT-OSS-20B on the smoke_25 set | TBD | [210 — OSS Model Comparison](https://www.kaggle.com/code/taylorsamarel/duecare-210-oss-model-comparison) | smoke_25 (in-wheel) | n/a |
-| Gemma 4 E4B vs Mistral 8x22B on the smoke_25 set | TBD | [230 — Mistral Family Comparison](https://www.kaggle.com/code/taylorsamarel/duecare-230-mistral-family-comparison) | smoke_25 (in-wheel) | n/a |
-| Cross-domain proof (trafficking + tax_evasion + financial_crime) | TBD | [200 — Cross-Domain Proof](https://www.kaggle.com/code/taylorsamarel/duecare-200-cross-domain-proof) | bundled YAML packs | `google/gemma-4-e4b-it@main` |
-| End-to-end safety harness latency (E4B, T4 ×2) | TBD | [Live demo](https://www.kaggle.com/code/taylorsamarel/duecare-live-demo) | `duecare-llm-wheels/v?` | `google/gemma-4-e4b-it@main` |
-| Audit trail completeness (% of decisions with full provenance) | TBD | [Live demo](https://www.kaggle.com/code/taylorsamarel/duecare-live-demo) | `duecare-llm-wheels/v?` | n/a |
+| Dimension | n criteria | OFF mean | ON mean | **Lift** |
+|---|---:|---:|---:|---:|
+| Jurisdiction-specific rules | 4 | 0.4% | **87.8%** | **+87.5 pp** |
+| ILO / international regulations | 4 | 0.1% | **51.3%** | **+51.2 pp** |
+| Substance-over-form analysis | 4 | 0.8% | **34.8%** | **+34.1 pp** |
+
+| Aggregate metric | Value |
+|---|---|
+| Prompts compared | 207 |
+| Mean score, harness OFF | 0.5% |
+| Mean score, harness ON | **56.9%** |
+| **Mean lift** | **+56.5 pp** |
+| Median lift | +53.3 pp |
+| Max single-prompt lift | +95.6 pp |
+| Min single-prompt lift | +15.6 pp |
+| Prompts where harness helped | **207 / 207 (100%)** |
+| Prompts where harness hurt | 0 / 207 |
+
+**Per category:**
+
+| Category | n | OFF mean | ON mean | Lift |
+|---|---:|---:|---:|---:|
+| amplification_known_attacks | 78 | 0.9% | 64.8% | +63.9 pp |
+| financial_crime_blindness | 25 | 0.0% | 49.7% | +49.7 pp |
+| jurisdictional_hierarchy | 55 | 0.3% | 57.5% | +57.1 pp |
+| victim_revictimization | 49 | 0.2% | 47.4% | +47.3 pp |
+
+**Source notebook:** the harness-lift report draws from notebook 130
+(distilled scoring) and notebook 140 (evaluation mechanics). See
+`docs/harness_lift_report.md` for the full methodology, layer-ablation
+appendix (GREP-only / RAG-only / Both), refusal-rate appendix, and
+per-prompt top/bottom-25 tables.
+
+## Headline metrics — fine-tune lift (Phase 3)
+
+The fine-tune track (Unsloth SFT + DPO via notebook A2 / `bench-and-tune`)
+is end-to-end runnable. Final numbers + HF Hub revisions land at the
+moment a successful T4×2 run completes on Kaggle. Until then:
+
+| Metric | Number | Status |
+|---|---|---|
+| Stock Gemma 4 E4B refusal rate on harmful prompts | pending T4×2 run | scheduled — script ready in `kaggle/bench-and-tune/kernel.py` |
+| SFT refusal rate uplift vs stock | pending T4×2 run | scheduled — Unsloth LoRA on harness-distilled pairs |
+| DPO refusal rate uplift vs SFT | pending T4×2 run | scheduled — chosen / rejected pairs from grading rubric |
+| Gemma 4 E4B vs GPT-OSS-20B on smoke_25 | pending notebook 210 push | notebook built |
+| Gemma 4 E4B vs Mistral 8x22B on smoke_25 | pending notebook 230 push | notebook built |
+| Cross-domain proof (trafficking + tax_evasion + financial_crime) | pending notebook 200 push | notebook built |
+| End-to-end safety-harness latency (E4B, T4 ×2) | pending live-demo run | notebook built |
+| Audit trail completeness | 100% by construction (every decision logged via `duecare.observability`) | implementation-verified, end-to-end test pending |
+
+When the fine-tune runs land, this section will gain the same
+`(notebook, dataset version, HF revision)` columns as the harness-lift
+section above.
 
 ## How to reproduce
 
