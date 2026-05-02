@@ -10,7 +10,9 @@ Full guide: [`docs/embedding_guide.md`](../../docs/embedding_guide.md).
 | [`web-widget/`](./web-widget/) | Single-file vanilla JS — embed in any HTML page | ✓ working |
 | [`react-component/`](./react-component/) | React 18+ component | ✓ working |
 | [`telegram-bot/`](./telegram-bot/) | Telegram bot wrapping Duecare REST API | ✓ working |
-| [`whatsapp-twilio/`](./whatsapp-twilio/) | WhatsApp via Twilio Sandbox | planned |
+| [`messenger-bot/`](./messenger-bot/) | Facebook Messenger bot for an NGO Page | ✓ working |
+| [`whatsapp-cloud-api/`](./whatsapp-cloud-api/) | WhatsApp via Meta's official Cloud API (production) | ✓ working |
+| [`whatsapp-twilio/`](./whatsapp-twilio/) | WhatsApp via Twilio Sandbox (5-min prototype) | planned |
 | [`wordpress-plugin/`](./wordpress-plugin/) | WordPress shortcode plugin | planned |
 | [`browser-extension/`](./browser-extension/) | Chrome/Firefox extension flagging trafficking-shaped content | planned |
 | [`android-aar/`](./android-aar/) | Notes on extracting an embeddable Android library from `duecare-journey-android` | planned |
