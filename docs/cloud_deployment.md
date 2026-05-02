@@ -1,5 +1,12 @@
 # Cloud Deployment
 
+> **Picking a deployment shape?** Read
+> [`docs/deployment_topologies.md`](./deployment_topologies.md) first
+> for the comparison matrix + decision tree across all five topologies.
+> This doc is the *cloud cookbook* — it goes platform-by-platform for
+> Topology C (server + thin clients) and assumes you've already
+> decided that's the right shape.
+
 How to run the Duecare chat playground + classifier on every major
 cloud, ranked from cheapest/easiest to most-enterprise. Each section
 gives the exact command(s) to deploy and where the artifact lives.

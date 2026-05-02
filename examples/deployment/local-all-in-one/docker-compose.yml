@@ -1,0 +1,89 @@
+# Topology A — single-component local. Everything runs on one machine.
+#
+# Three containers:
+#   1. ollama   — serves Gemma 4 (E2B by default, INT8 q8 quant)
+#   2. duecare  — FastAPI server with GREP + RAG + tools + research-tools
+#   3. caddy    — reverse proxy + auto HTTPS (off by default; flip ENABLE_TLS=true to enable)
+#
+# After `docker compose up`, the chat UI is at http://localhost
+# and the OpenAPI docs are at http://localhost/docs.
+#
+# Persistent volumes:
+#   - ollama-models  — pulled Gemma 4 weights (~1.5 GB for E2B INT8)
+#   - duecare-data   — chat history, journal, audit log
+#
+# To pick a different model: change OLLAMA_MODEL below + `docker compose
+# up`. The duecare container reads OLLAMA_MODEL at startup.
+
+version: "3.9"
+
+services:
+  ollama:
+    image: ollama/ollama:latest
+    container_name: duecare-ollama
+    restart: unless-stopped
+    volumes:
+      - ollama-models:/root/.ollama
+    healthcheck:
+      test: ["CMD", "ollama", "list"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+    # Pull the model on first startup. Uses an init script so the
+    # ollama daemon is up before the pull runs.
+    entrypoint: >
+      /bin/sh -c "
+        ollama serve &
+        sleep 5;
+        ollama pull ${OLLAMA_MODEL:-gemma4:e2b} || true;
+        wait
+      "
+    # Uncomment if you have an NVIDIA GPU and the toolkit installed.
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - capabilities: [gpu]
+
+  duecare:
+    image: ghcr.io/tayloramareltech/duecare-llm:latest
+    container_name: duecare-server
+    restart: unless-stopped
+    depends_on:
+      ollama:
+        condition: service_healthy
+    environment:
+      DUECARE_BACKEND: ollama
+      OLLAMA_HOST: http://ollama:11434
+      OLLAMA_MODEL: ${OLLAMA_MODEL:-gemma4:e2b}
+      DUECARE_DATA_DIR: /var/duecare/data
+      # Internet search: optional. Set ONE of these to enable web research.
+      # Without any of them, Duecare falls back to DuckDuckGo HTML search
+      # (rate-limited, may stop working without notice — bring your own key).
+      TAVILY_API_KEY: ${TAVILY_API_KEY:-}
+      BRAVE_SEARCH_API_KEY: ${BRAVE_SEARCH_API_KEY:-}
+      SERPER_API_KEY: ${SERPER_API_KEY:-}
+    volumes:
+      - duecare-data:/var/duecare/data
+    expose:
+      - "8000"
+
+  caddy:
+    image: caddy:2-alpine
+    container_name: duecare-caddy
+    restart: unless-stopped
+    depends_on:
+      - duecare
+    ports:
+      - "${HTTP_PORT:-80}:80"
+      - "${HTTPS_PORT:-443}:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+
+volumes:
+  ollama-models:
+  duecare-data:
+  caddy-data:
+  caddy-config:
