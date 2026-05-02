@@ -195,27 +195,31 @@ returned.
   pasting a recruiter message).
 - **Middle:** desktop showing the content-classification dashboard
   (an NGO officer reviewing a queue).
-- **Right (overlay card with subtle "v1 — in development" pill):**
-  a mockup of the Android home screen of **Duecare Journey** — the
-  4-tab nav (Journal · Advice · Complaint · Settings) — fading in
-  as the camera holds.
+- **Right (live screen recording of the v0.6 APK on a phone):**
+  Duecare Journey — the 4-tab nav (Journal · Advice · Reports ·
+  Settings). Open the Reports tab; the worker's ILO indicator
+  histogram + fee table + "Generate intake document" button are
+  visible. Tap Generate; the markdown intake document fills the
+  screen. Hold for 4 seconds.
 
 **Voiceover:**
 
 > *"Same harness. Inform AND document. The chat tells Maria the fee
 > violates POEA Memorandum 14-2017. If she refuses, harm prevented.
 > If she has to pay anyway, the journal captures the receipt + the
-> recruiter's POEA license number + the controlling statute, and
-> pre-stages her refund claim. Same harness on the desktop NGO
-> dashboard for triage. And next — Duecare Journey: the same
-> harness fully on-device, LiteRT Gemma 4 E2B, encrypted journal,
-> one-tap refund or complaint PDF. APK published."*
+> recruiter's POEA license number + the controlling statute. Same
+> harness on the desktop NGO dashboard for triage. And on the phone:
+> Duecare Journey v0.6 — same harness on-device via MediaPipe Gemma 4
+> E2B, encrypted journal, eleven ILO indicator detectors, six
+> migration corridors with statute lookups, and an NGO intake
+> document the worker generates with one tap and shares with one
+> more. APK published; install link in the description."*
 
-**Production note.** The Android mockup is a static frame, not a live
-build — the v1 app lands the week after the hackathon. The "in
-development" pill keeps this honest. Architecture doc:
-`docs/android_app_architecture.md`. Skeleton + CI build pipeline live
-in the sibling repo `duecare-journey-android/`.
+**Production note.** The Android beat shows the live v0.6.0 APK
+running on a real device. APK:
+`https://github.com/TaylorAmarelTech/duecare-journey-android/releases/download/v0.6.0-cloud-and-knowledge/duecare-journey-v0.6.0-cloud-and-knowledge.apk`.
+Architecture: `docs/android_app_architecture.md`. Source +
+CI: `duecare-journey-android/`.
 
 ### 2:42–2:50 — Closer
 
@@ -263,11 +267,12 @@ Fade to black. Music fades.
 - [ ] Screen recording: classification notebook, Examples modal, click
       WhatsApp example, Classify, result card fills
 - [ ] Three-up split: phone (mobile-responsive web chat) +
-      desktop (classifier dashboard) + Android mockup with "v1 —
-      in development" pill
-- [ ] Static Android mockup frame: bottom-nav with Journal · Advice
-      · Complaint · Settings tabs (matches the sibling
-      `duecare-journey-android/` skeleton)
+      desktop (classifier dashboard) + live Android v0.6.0 APK on a
+      real phone showing the Reports tab
+- [ ] Live Android screen capture: bottom-nav (Journal · Advice ·
+      Reports · Settings) → Reports tab → Generate intake document
+      → markdown intake doc visible (matches the sibling
+      `duecare-journey-android/` v0.6.0 release)
 - [ ] End card with URLs
 
 **Voiceover word count:** ~325 words after the numbers beat insert

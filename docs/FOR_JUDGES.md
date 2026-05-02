@@ -28,8 +28,11 @@ pre-stages the refund-claim packet.
 Same harness powers a **chat playground** for individual workers and
 a **structured-output classifier** for NGO triage dashboards. Ships
 as **6 core public Kaggle notebooks + 5 appendix notebooks** + **17
-PyPI packages** + an **on-device Android companion** (LiteRT, v0.1.0
-APK published). MIT licensed. Runs on a laptop. Zero data egress.
+PyPI packages** + an **on-device Android companion** (Duecare
+Journey v0.6.0 — MediaPipe Gemma 4 E2B, encrypted SQLCipher journal,
+11 ILO indicator detectors, 6 corridor profiles, NGO intake document
+generator, [APK published](https://github.com/TaylorAmarelTech/duecare-journey-android/releases)).
+MIT licensed. Runs on a laptop. Zero data egress.
 
 ---
 
@@ -210,7 +213,7 @@ transformation byte-for-byte.
 | Worker-side (Kaggle / local laptop) | [`docs/deployment_local.md`](./deployment_local.md) | Migrant worker pastes recruiter message, gets back ILO citations + corridor fee caps + NGO hotlines. No data leaves the device. |
 | Agency / NGO dashboard | The classifier notebook (#5 above) | Intake officer triages 500 cases via structured JSON + risk vectors + threshold-filterable history. |
 | Enterprise integration (Dockerized API) | [`docs/deployment_enterprise.md`](./deployment_enterprise.md) | `POST /api/classifier/evaluate` from your existing service. Customizable per-team rules / docs / corridor caps. |
-| **Android (stretch — v1 in development)** | [`docs/android_app_architecture.md`](./android_app_architecture.md) (this repo) + [`duecare-journey-android/`](../../duecare-journey-android/) (sibling repo) | **Duecare Journey** — fully on-device Gemma 4 E2B (LiteRT) + encrypted journal + journey-aware advice + one-tap complaint-packet PDF. The architecture lives here in the Python research repo for judges to read alongside the rest of the submission; the buildable APK skeleton + GitHub Actions APK-build pipeline live in the sibling repo (separated so Android Gradle/SDK tooling doesn't collide with the Python workflow). v1 MVP build lands week of 2026-05-19. |
+| **Android (v0.6.0 shipped, v0.7 in flight)** | [`docs/android_app_architecture.md`](./android_app_architecture.md) (this repo) + [`duecare-journey-android/`](../../duecare-journey-android/) (sibling repo) | **Duecare Journey** v0.6.0 — fully on-device Gemma 4 E2B via MediaPipe (six variants selectable: E2B/E4B INT4/INT8, Gemma 3 1B, Gemma 2 2B legacy, each with mirror-fallback URLs) + cloud Gemma routing as fallback (Ollama / OpenAI-compat / HF Inference) + SQLCipher-encrypted journal + 11 ILO indicator detectors + 6 corridor profiles with statute lookups + 10-question guided intake wizard + Reports tab generating shareable NGO intake document. APK is at the [v0.6 release](https://github.com/TaylorAmarelTech/duecare-journey-android/releases/tag/v0.6.0-cloud-and-knowledge). The architecture lives here for judges to read alongside the Python research; the buildable Gradle project + GitHub Actions APK-build pipeline live in the sibling repo. |
 
 ---
 
@@ -247,7 +250,7 @@ neighborhood with source URLs and per-item differentiation. Highlights:
 |---|---|---|
 | [Just Good Work](https://justgood.work/) (ETI + Our Journey) | Static migrant-recruitment-journey app for Kenya→Qatar | Generative legal Q&A grounded in 26-doc RAG; PH/ID/NP/BD→HK/Saudi corridor |
 | [Polaris 2017 Typology of Modern Slavery](https://polarisproject.org/the-typology-of-modern-slavery/) | 25 trafficking types × 120 fields taxonomy | Upstream taxonomy our concern schema maps to (cited) |
-| [Tella by Horizontal](https://tella-app.org/) | Open-source human-rights documentation app, SQLCipher-encrypted | Same threat model + SQLCipher journal + share-to-NGO design — our Android v1 MVP studies this directly |
+| [Tella by Horizontal](https://tella-app.org/) | Open-source human-rights documentation app, SQLCipher-encrypted | Same threat model + SQLCipher journal + share-to-NGO design — directly studied for the Android Reports tab and panic-wipe semantics. |
 | [HarmBench](https://github.com/centerforaisafety/HarmBench) / [AILuminate v1.0](https://mlcommons.org/working-groups/ai-safety/ailuminate-v1-0/) | General-purpose LLM safety benchmarks (400+ behaviors) | Trafficking is one row of dozens for them; Duecare goes deep on one domain with quantified harness lift (+87.5/+51.2/+34.1 pp on three legal-grounding dimensions) |
 | [Janie Chuang — "Exploitation Creep"](https://digitalcommons.wcl.american.edu/facsch_lawrev/686/) | Foundational legal scholarship on the trafficking-continuum framing | Cited as the conceptual anchor for the harness's substance-over-form analysis |
 

@@ -185,7 +185,7 @@ Per audience.
 | **L4** L3 + REST API with OpenAPI + client SDKs | — |
 | **L5** L4 + webhook subscriptions + event bus + plugin architecture | — |
 
-**Duecare current: L3** (17 PyPI packages, semver tagged from v0.1.0). Target: **L4**.
+**Duecare current: L3.5** (17 PyPI packages semver-tagged from v0.1.0; FastAPI server with OpenAPI 3 schema published at `docs/openapi.yaml`; thin clients in `examples/embedding/` for React, vanilla JS, Telegram, Messenger, WhatsApp Cloud API; reaching full L4 needs typed-client SDKs in pip + npm). Target: **L4** by hackathon submission (2026-05-18).
 
 ## Rubric 7: UI / UX
 

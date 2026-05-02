@@ -17,7 +17,7 @@ without rebuilding the wheel or republishing the APK.
 
 The corpus is a moving target — laws change (POEA MCs are issued
 annually, kafala reform in 2024 invalidated several previously-valid
-rules), case precedents accumulate, NGO contacts churn. A v0.4 APK
+rules), case precedents accumulate, NGO contacts churn. A v0.6 APK
 released today would have stale rules in 6 months unless the user
 manually updates the app.
 
