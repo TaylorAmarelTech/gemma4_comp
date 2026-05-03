@@ -135,6 +135,8 @@ Sorted by who you are:
 - :material-school: [Educator resources](educator_resources.md) — drop-in lesson plans
 - :material-compare: [Comparison vs alternatives](comparison_to_alternatives.md) — when Duecare fits vs Hive / Sift / Azure / OpenAI
 - :material-check-decagram: [For judges](FOR_JUDGES.md) — the hackathon-judge view
+- :material-view-dashboard: [Readiness dashboard](readiness_dashboard.md) — single-screen status across every dimension
+- :material-account-multiple-check: [Persona readiness audit](persona_readiness_audit.md) — happy path verified per persona
 - :material-frequently-asked-questions: [FAQ](FAQ.md) — common questions answered
 
 ## Headline numbers

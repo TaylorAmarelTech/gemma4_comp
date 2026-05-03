@@ -85,4 +85,4 @@ cloud routing in plain language before saving.
   Topology D vs E
 - Android sibling repo:
   `app/src/main/java/com/duecare/journey/inference/SmartGemmaEngine.kt`
-- [`docs/considerations/THREAT_MODEL.md`](../THREAT_MODEL.md) Boundary 4
+- [`docs/considerations/THREAT_MODEL.md`](../considerations/THREAT_MODEL.md) Boundary 4

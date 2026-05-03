@@ -14,7 +14,7 @@
 
 | # | Question | Answer |
 |---|---|---|
-| A1 | Is Duecare SaaS or self-hosted? | **Self-hosted only.** Operator deploys to their own infra (laptop / NGO office / cloud / k8s). The Duecare authors do not operate any service that customer data passes through. See [`docs/deployment_topologies.md`]( ../deployment_topologies.md). |
+| A1 | Is Duecare SaaS or self-hosted? | **Self-hosted only.** Operator deploys to their own infra (laptop / NGO office / cloud / k8s). The Duecare authors do not operate any service that customer data passes through. See [`docs/deployment_topologies.md`](../deployment_topologies.md). |
 | A2 | What's the licensing model? | MIT. All 17 PyPI packages, the Docker image, the Helm chart, and the Android repo are MIT. Gemma model weights are Apache 2.0 (Gemma 3/4) or [Gemma Terms of Use](https://ai.google.dev/gemma/terms) (Gemma 2 legacy). |
 | A3 | Where's the source code? | https://github.com/TaylorAmarelTech/gemma4_comp + https://github.com/TaylorAmarelTech/duecare-journey-android |
 | A4 | Who's the maintainer? | Taylor Amarel (`amarel.taylor.s@gmail.com`). See `SECURITY.md` for vulnerability reporting. |

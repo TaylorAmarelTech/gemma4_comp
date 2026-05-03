@@ -76,6 +76,6 @@ optional.
 ## References
 
 - `packages/duecare-llm-server/src/duecare/server/tenancy.py`
-- [`docs/considerations/multi_tenancy.md`](../multi_tenancy.md)
-- [`docs/considerations/THREAT_MODEL.md`](../THREAT_MODEL.md) Boundary 1 + Boundary 2
+- [`docs/considerations/multi_tenancy.md`](../considerations/multi_tenancy.md)
+- [`docs/considerations/THREAT_MODEL.md`](../considerations/THREAT_MODEL.md) Boundary 1 + Boundary 2
 - [`docker-compose.auth.yml`](../../docker-compose.auth.yml)

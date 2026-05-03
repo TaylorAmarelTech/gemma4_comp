@@ -57,7 +57,7 @@ storage column.
   Duecare chart and put a tenant-aware ingress in front.
 - **Domain pack content** — the GREP rules + RAG corpus + tools are
   shared. To split (e.g. a tenant with their own legal corpus),
-  use the [extension pack format]( ../extension_pack_format.md) and
+  use the [extension pack format](../extension_pack_format.md) and
   load per-tenant packs at request time.
 - **Storage** — the SQLite/Postgres DB is single-schema. For
   per-tenant row-level security, enable PG RLS and partition the
