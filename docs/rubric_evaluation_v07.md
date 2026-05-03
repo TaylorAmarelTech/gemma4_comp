@@ -136,8 +136,8 @@ a scoring component.
 
 | Layer | State | Grade |
 |---|---|:-:|
-| v0.6.0 APK released | ✓ on GitHub | A |
-| v0.7.0 APK in CI | building (commit 47a17be) | A |
+| v0.9.0 APK released | ✓ on GitHub | A |
+| v0.9.0 release | ✓ on GitHub Releases | A |
 | MediaPipe Gemma 4 E2B on-device | ✓ working (six selectable variants, mirror fallbacks) | A |
 | Cloud Gemma routing fallback (Ollama / OpenAI / HF) | ✓ working | A |
 | Encrypted SQLCipher journal | ✓ working | A |
@@ -164,7 +164,7 @@ a scoring component.
 **Today: 32 / 40.** Strengths:
 - Quantified harness lift (+56.5 pp mean across 207 prompts; +87.5 pp
   on jurisdiction-specific citations) is real, deep evidence.
-- 11 ILO indicators + 6 corridor profiles = recognized international
+- 11 ILO indicators + 20 corridor profiles = recognized international
   taxonomy, not invented categories.
 - Three deployment surfaces (NGO dashboard, worker chat, encrypted
   journal app) shows the technology meets workers where they are.

@@ -167,7 +167,7 @@ docker compose up -d --no-deps --build chat classifier
 helm upgrade duecare ./infra/helm/duecare \
     --namespace duecare \
     --reuse-values \
-    --set image.tag=v0.6.0
+    --set image.tag=v0.1.0
 ```
 
 The Deployment `RollingUpdate` strategy (`maxUnavailable: 1, maxSurge: 1`)

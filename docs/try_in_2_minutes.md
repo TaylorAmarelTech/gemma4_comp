@@ -183,7 +183,7 @@ If you're still stuck, file an issue: https://github.com/TaylorAmarelTech/gemma4
 These are the things that need a longer engagement:
 
 - **Whether the rule pack covers your specific corridor.** The
-  bundled corpus has 12 corridors today. Yours may need an
+  bundled corpus has 20 corridors today. Yours may need an
   extension pack (~1 day work for an experienced caseworker).
 - **What it feels like at scale.** A single chat is not the same as
   100 caseworkers using it Monday morning; load-test per
