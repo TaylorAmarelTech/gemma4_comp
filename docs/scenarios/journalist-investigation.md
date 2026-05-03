@@ -67,7 +67,7 @@ clauses are unlawful.
 
 ```bash
 # Pull up the chat playground (Kaggle is fine for this — no PII)
-# https://www.kaggle.com/code/taylorsamarel/duecare-chat-playground-with-grep-rag-tools
+# https://www.kaggle.com/code/taylorsamarel/duecare-gemma-chat-playground-grep-rag-tools
 
 # Or locally:
 make demo

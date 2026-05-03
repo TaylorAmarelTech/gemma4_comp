@@ -13,7 +13,7 @@ and other IT variants). Used in accordance with the
 
 | Field | Value |
 |---|---|
-| **Kaggle URL** | https://www.kaggle.com/code/taylorsamarel/duecare-chat-playground-with-grep-rag-tools (TBD — kernel not yet pushed) |
+| **Kaggle URL** | https://www.kaggle.com/code/taylorsamarel/duecare-gemma-chat-playground-grep-rag-tools (TBD — kernel not yet pushed) |
 | **Title on Kaggle** | "Duecare Chat Playground with GREP RAG Tools" |
 | **Slug** | `taylorsamarel/duecare-chat-playground-with-grep-rag-tools` |
 | **Wheels dataset** | `taylorsamarel/duecare-chat-playground-with-grep-rag-tools-wheels` (3 wheels, ~165 KB) |
@@ -71,7 +71,7 @@ Send the textbook prompt:
 
 ### A. Paste-into-Kaggle (preferred)
 
-1. Open https://www.kaggle.com/code/taylorsamarel/duecare-chat-playground-with-grep-rag-tools (create with title `Duecare Chat Playground with GREP RAG Tools` if it doesn't exist).
+1. Open https://www.kaggle.com/code/taylorsamarel/duecare-gemma-chat-playground-grep-rag-tools (create with title `Duecare Chat Playground with GREP RAG Tools` if it doesn't exist).
 2. Side panel attachments:
    - GPU T4 ×2 · Internet ON · `HF_TOKEN` Secret
    - Models: all four `google/gemma-4/Transformers/{e2b,e4b,26b-a4b,31b}-it/1`

@@ -87,7 +87,7 @@ If you have two minutes to decide if this is real:
    `▸ View pipeline` modal scrolling through 7 cards.
 
 3. **Click the headline notebook.**
-   [Duecare Chat Playground with GREP RAG Tools](https://www.kaggle.com/code/taylorsamarel/duecare-chat-playground-with-grep-rag-tools).
+   [Duecare Chat Playground with GREP RAG Tools](https://www.kaggle.com/code/taylorsamarel/duecare-gemma-chat-playground-grep-rag-tools).
    Run it (T4 ×2 + Internet ON + `HF_TOKEN`). When the cloudflared URL
    appears, click. Toggle all 4 tiles ON. Submit any example prompt.
    Click `▸ View pipeline` below the response. **That visualization
@@ -116,7 +116,7 @@ NGO shape. The live-demo (6) is the polished combined product.
 | # | Notebook | Wheels dataset | Purpose |
 |---|---|---|---|
 | 1 | [duecare-chat-playground](https://www.kaggle.com/code/taylorsamarel/duecare-gemma-chat-playground) | `duecare-chat-playground-wheels` | Raw Gemma 4 chat — NO harness. Baseline for the comparison story. |
-| 2 | [duecare-chat-playground-with-grep-rag-tools](https://www.kaggle.com/code/taylorsamarel/duecare-chat-playground-with-grep-rag-tools) | `duecare-chat-playground-with-grep-rag-tools-wheels` | **The headline demo.** Same chat UI with 4 toggle tiles + multi-persona library + custom rule additions + 394-prompt Examples library + per-response Pipeline modal. |
+| 2 | [duecare-chat-playground-with-grep-rag-tools](https://www.kaggle.com/code/taylorsamarel/duecare-gemma-chat-playground-grep-rag-tools) | `duecare-chat-playground-with-grep-rag-tools-wheels` | **The headline demo.** Same chat UI with 4 toggle tiles + multi-persona library + custom rule additions + 394-prompt Examples library + per-response Pipeline modal. |
 | 3 | [duecare-content-classification-playground](https://www.kaggle.com/code/taylorsamarel/duecare-content-classification-playground) *(publish pending)* | `duecare-content-classification-playground-wheels` *(publish pending — wheels built locally)* | Hands-on classification sandbox. 4 schema modes (single-label / multi-label / risk-vector / custom). Shows merged prompt + raw response + parsed JSON. **Pre-live-demo intro to classification.** |
 | 4 | [duecare-content-knowledge-builder-playground](https://www.kaggle.com/code/taylorsamarel/duecare-content-knowledge-builder-playground) *(publish pending)* | `duecare-content-knowledge-builder-playground-wheels` *(publish pending — wheels built locally)* | Hands-on knowledge-base sandbox. Add GREP rules + RAG docs; test what fires; export full JSON. **Pre-live-demo intro to knowledge building.** |
 | 5 | [duecare-gemma-content-classification-evaluation](https://www.kaggle.com/code/taylorsamarel/duecare-gemma-content-classification-evaluation) | `duecare-gemma-content-classification-evaluation-wheels` | **The polished Agency / NGO dashboard.** Form-based content submission → structured JSON classification with risk vectors + threshold-filterable history queue + 16 example items (6 with SVG document mockups). |
@@ -209,7 +209,7 @@ The shortest reproducible test:
    (the 68%-loan or 18%-loan example).
 3. Submit. Note Gemma's response is operational advice ("here are 5
    strategies").
-4. Open [duecare-chat-playground-with-grep-rag-tools](https://www.kaggle.com/code/taylorsamarel/duecare-chat-playground-with-grep-rag-tools)
+4. Open [duecare-chat-playground-with-grep-rag-tools](https://www.kaggle.com/code/taylorsamarel/duecare-gemma-chat-playground-grep-rag-tools)
    in another tab.
 5. Toggle all 4 tiles ON (Persona / GREP / RAG / Tools).
 6. Load the **same** example prompt → submit.

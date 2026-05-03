@@ -59,6 +59,8 @@ def _probe(url: str, *, timeout: int) -> int:
 SLUG_OVERRIDES = {
     "taylorsamarel/duecare-chat-playground":
         "taylorsamarel/duecare-gemma-chat-playground",
+    "taylorsamarel/duecare-chat-playground-with-grep-rag-tools":
+        "taylorsamarel/duecare-gemma-chat-playground-grep-rag-tools",
 }
 
 # The 11 submission notebooks live at kaggle/<purpose>/ (NOT under
