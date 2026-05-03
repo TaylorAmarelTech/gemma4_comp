@@ -163,9 +163,9 @@ See [`infra/observability/README.md`](../infra/observability/README.md).
   with bind-mounts. Tilt is overkill for a 3-container dev loop.
 - **A devcontainer.json** — exists at `.devcontainer/` for
   Codespaces / VS Code Remote Containers, separate from this
-  Docker Compose surface. See
-  [`docs/local_setup.md`](../duecare-journey-android/docs/local_setup.md)
-  in the Android sibling repo for the equivalent.
+  Docker Compose surface. The Android sibling repo
+  ([`TaylorAmarelTech/duecare-journey-android`](https://github.com/TaylorAmarelTech/duecare-journey-android))
+  has its own equivalent local-setup doc.
 
 ## Common operations
 

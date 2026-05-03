@@ -144,6 +144,11 @@ nav:
   - Submission:
       - For judges: FOR_JUDGES.md
       - Writeup draft: writeup_draft.md
+      - Readiness dashboard: readiness_dashboard.md
+      - Persona readiness audit: persona_readiness_audit.md
+      - Submission gate checklist: submission_gate_checklist.md
+      - Post-submission sustainability: post_submission_sustainability.md
+      - Smoke test report (2026-05-02): smoke_test_report_2026-05-02.md
       - Rubric evaluation: rubric_evaluation_v07.md
       - Project status: project_status.md
       - Notebook QA companion: notebook_qa_companion.md

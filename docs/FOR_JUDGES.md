@@ -5,6 +5,11 @@
 > our claims. Every claim in the [writeup](./writeup_draft.md) and
 > [video](./video_script.md) is backed by a file or a Kaggle notebook
 > link below.
+>
+> **For the headline status across every dimension in 60 seconds**,
+> see [`docs/readiness_dashboard.md`](./readiness_dashboard.md). For
+> per-persona happy-path verification, see
+> [`docs/persona_readiness_audit.md`](./persona_readiness_audit.md).
 
 ---
 
@@ -29,9 +34,11 @@ Same harness powers a **chat playground** for individual workers and
 a **structured-output classifier** for NGO triage dashboards. Ships
 as **6 core public Kaggle notebooks + 5 appendix notebooks** + **17
 PyPI packages** + an **on-device Android companion** (Duecare
-Journey v0.6.0 — MediaPipe Gemma 4 E2B, encrypted SQLCipher journal,
-11 ILO indicator detectors, 6 corridor profiles, NGO intake document
-generator, [APK published](https://github.com/TaylorAmarelTech/duecare-journey-android/releases)).
+Journey v0.9.0 — MediaPipe Gemma 4 E2B/E4B, encrypted SQLCipher journal,
+11 ILO indicator detectors, **20 corridor profiles** (Asia + GCC + LATAM
++ West Africa + refugee routes), **42 GREP rules**, structured Add-Fee
+dialog with auto-LegalAssessment + RefundClaim drafting, NGO intake
+document generator, cloud Gemma 4 routing fallback, [APK published](https://github.com/TaylorAmarelTech/duecare-journey-android/releases)).
 MIT licensed. Runs on a laptop. Zero data egress.
 
 ---
@@ -222,7 +229,7 @@ transformation byte-for-byte.
 | Worker-side (Kaggle / local laptop) | [`docs/deployment_local.md`](./deployment_local.md) | Migrant worker pastes recruiter message, gets back ILO citations + corridor fee caps + NGO hotlines. No data leaves the device. |
 | Agency / NGO dashboard | The classifier notebook (#5 above) | Intake officer triages 500 cases via structured JSON + risk vectors + threshold-filterable history. |
 | Enterprise integration (Dockerized API) | [`docs/deployment_enterprise.md`](./deployment_enterprise.md) | `POST /api/classifier/evaluate` from your existing service. Customizable per-team rules / docs / corridor caps. |
-| **Android (v0.6.0 shipped, v0.7 in flight)** | [`docs/android_app_architecture.md`](./android_app_architecture.md) (this repo) + [`duecare-journey-android/`](../../duecare-journey-android/) (sibling repo) | **Duecare Journey** v0.6.0 — fully on-device Gemma 4 E2B via MediaPipe (six variants selectable: E2B/E4B INT4/INT8, Gemma 3 1B, Gemma 2 2B legacy, each with mirror-fallback URLs) + cloud Gemma routing as fallback (Ollama / OpenAI-compat / HF Inference) + SQLCipher-encrypted journal + 11 ILO indicator detectors + 6 corridor profiles with statute lookups + 10-question guided intake wizard + Reports tab generating shareable NGO intake document. APK is at the [v0.6 release](https://github.com/TaylorAmarelTech/duecare-journey-android/releases/tag/v0.6.0-cloud-and-knowledge). The architecture lives here for judges to read alongside the Python research; the buildable Gradle project + GitHub Actions APK-build pipeline live in the sibling repo. |
+| **Android (v0.9.0 shipped)** | [`docs/android_app_architecture.md`](./android_app_architecture.md) (this repo) + [`duecare-journey-android/`](../../duecare-journey-android/) (sibling repo) | **Duecare Journey** v0.9.0 — fully on-device Gemma 4 via MediaPipe (six variants selectable: E2B/E4B INT4/INT8, Gemma 3 1B, Gemma 2 2B legacy, each with mirror-fallback URLs) + cloud Gemma routing as fallback (Ollama / OpenAI-compat / HF Inference) + SQLCipher-encrypted journal + 11 ILO indicator detectors + **20 corridor profiles** (Asia → GCC, Asia → Asia, LATAM, West Africa → Lebanon kafala, refugee routes Syria→Germany / Ukraine→Poland) with statute lookups + **42 GREP rules** (incl. kafala-huroob-absconder, H2A-H2B-fee-violation, fishing-vessel-debt-confinement) + 10-question guided intake wizard + structured Add-Fee dialog with auto-LegalAssessment + RefundClaim drafting + image picker for evidence attach + Reports tab generating shareable NGO intake document. APK is at the [latest release](https://github.com/TaylorAmarelTech/duecare-journey-android/releases). The architecture lives here for judges to read alongside the Python research; the buildable Gradle project + GitHub Actions APK-build pipeline live in the sibling repo. |
 
 ---
 

@@ -2,7 +2,7 @@
 
 > Sizing tables for each topology, the k6 load test that validates
 > them, and a procurement-ready cost estimator. Read alongside
-> [`docs/deployment_topologies.md`]( ../deployment_topologies.md) (which
+> [`docs/deployment_topologies.md`](../deployment_topologies.md) (which
 > shape to pick) and [`docs/considerations/SLO.md`](./SLO.md) (what the numbers
 > commit to).
 

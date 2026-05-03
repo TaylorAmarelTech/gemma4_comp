@@ -6,8 +6,8 @@
 > Each gap has a concrete fix path and a "ship-by" target.
 >
 > **Generated:** 2026-05-01. Read alongside
-> [`docs/rubric_evaluation_v07.md`]( ../rubric_evaluation_v07.md) (the
-> hackathon-judge view) and [`docs/deployment_topologies.md`]( ../deployment_topologies.md)
+> [`docs/rubric_evaluation_v07.md`](../rubric_evaluation_v07.md) (the
+> hackathon-judge view) and [`docs/deployment_topologies.md`](../deployment_topologies.md)
 > (how to deploy what's here today).
 
 ## TL;DR — readiness score
@@ -117,7 +117,7 @@ Strong:
 - Pydantic settings layer with env-var overrides
 - Per-deployment YAML for domain packs, GREP rules, RAG corpus
 - Extension-pack format documented in
-  [`docs/extension_pack_format.md`]( ../extension_pack_format.md)
+  [`docs/extension_pack_format.md`](../extension_pack_format.md)
 
 Missing:
 - Feature flags (OpenFeature / LaunchDarkly / Unleash) — today every

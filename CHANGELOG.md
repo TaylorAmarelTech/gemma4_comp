@@ -14,6 +14,18 @@ the meta `duecare-llm` package tracking the workspace lockstep.
   push of `Duecare-Gemma-4-E4B-it-SafetyJudge-v0.1.0`
 - Pending: notebook publish for #3, #4, A1, A3, A4, A5 (built
   locally; gated by Kaggle daily push rate-limit)
+- Added: readiness rubric suite consolidating ~10 scattered
+  status / rubric docs into 4 canonical views —
+  `docs/readiness_dashboard.md` (single-screen status across every
+  dimension), `docs/persona_readiness_audit.md` (happy path verified
+  per persona, 13/14 ready), `docs/submission_gate_checklist.md`
+  (13-phase pre-Submit verification), and
+  `docs/post_submission_sustainability.md` (T+7 → T+365 plan with 8
+  non-negotiable principles + decision triggers)
+- Added: Android v0.9.0 (2026-05-02) doubles bundled corridors
+  6 → 12 → 20; adds 5 new GREP rules (kafala-huroob-absconder,
+  H2A-H2B-fee-violation, fishing-vessel-debt-confinement,
+  smuggler-fee-and-coercion, domestic-work-locked-in-residence)
 
 ## v0.1.0 — Hackathon submission target (2026-05-18)
 
