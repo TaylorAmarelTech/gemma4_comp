@@ -57,7 +57,7 @@ Harness lift (207 prompts, harness OFF vs ON, see harness_lift_report.md):
 |---|---|
 | `duecare-llm-core` | 12 Pydantic schemas, Protocol contracts, Registry, Provenance |
 | `duecare-llm-models` | 8 model adapters (incl. Ollama for local Gemma) |
-| `duecare-llm-chat` | The 4-layer harness: 37 GREP rules + 26 RAG docs + 4 tools + 394 prompts + 207 5-tier rubrics + 6 required-rubric categories + 16 classifier examples + chat app + classifier app |
+| `duecare-llm-chat` | The 4-layer harness: 42 GREP rules + 26 RAG docs + 4 tools + 394 prompts + 207 5-tier rubrics + 6 required-rubric categories + 16 classifier examples + chat app + classifier app |
 | `duecare-llm-domains` | Domain pack loader, 3 domain packs, document pipeline (6 modules) |
 | `duecare-llm-tasks` | 9 capability tests, 15 generators, 7 evaluators |
 | `duecare-llm-benchmark` | Smoke benchmark + harness-OFF/ON comparison runner |
@@ -83,7 +83,7 @@ Unchanged. See `docs/architecture.md` for the canonical list.
 - 207 5-tier rubrics (per-prompt graded examples, worst → best)
 - 6 required-rubric categories with 66 criteria total
 - 16 classifier examples (6 with SVG document mockups)
-- 37 GREP rules across 5 categories (Python harness)
+- 42 GREP rules across 5 categories (Python harness)
 - 26-doc RAG corpus (full ILO C029/C181/C095/C189 + POEA MCs +
   national statutes + Palermo + ICRMW + Saudi kafala reforms + ...)
 - 11 ILO C029 forced-labour indicators

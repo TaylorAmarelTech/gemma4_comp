@@ -63,7 +63,7 @@ load-bearing — neither is redundant given the other.
 **Citation grounding** (Appendix C): with the harness ON, Gemma emits
 ~6 statutory citations per response (vs ~0 baseline), and 99.3% of
 those citations trace directly back to the bundled 26-doc RAG corpus
-or 37-rule GREP catalog.
+or 42-rule GREP catalog.
 
 Reproduce: `python scripts/rubric_comparison.py`.
 
@@ -128,7 +128,7 @@ These notebooks are **not required for deployment**. A1–A2 extend
 Duecare to new domains; A3 visualizes the harness data; A4 is a
 proof-of-concept for agentic web research; A5 demonstrates the
 harness against jailbroken/abliterated models. The core 6 notebooks
-above already work end-to-end with the bundled 394 prompts, 37 GREP
+above already work end-to-end with the bundled 394 prompts, 42 GREP
 rules, 26 RAG docs, and 207 hand-graded 5-tier rubrics — judges can
 verify the submission *without* running any of these.
 
@@ -165,7 +165,7 @@ from duecare.chat.harness import (
     EXAMPLE_PROMPTS, CLASSIFIER_EXAMPLES,
     RUBRICS_5TIER, RUBRICS_REQUIRED,
 )
-print(f'GREP rules:           {len(GREP_RULES)}')              # expect 37
+print(f'GREP rules:           {len(GREP_RULES)}')              # expect 42
 print(f'RAG docs:             {len(RAG_CORPUS)}')              # expect 26
 print(f'Tools:                {len(_TOOL_DISPATCH)}')          # expect 4
 print(f'Example prompts:      {len(EXAMPLE_PROMPTS)}')         # expect 394
@@ -190,7 +190,7 @@ and read the rule definitions, RAG corpus, tool dispatcher inline.
 | Result | Where it came from | How to reproduce |
 |---|---|---|
 | The pipeline transformation | `packages/duecare-llm-chat/src/duecare/chat/app.py:_run_harness` + `_resolve_messages` | Click `▸ View pipeline` on any chat response. The "FINAL MERGED PROMPT" card shows the byte-for-byte text Gemma saw. |
-| GREP rule citations | `packages/duecare-llm-chat/src/duecare/chat/harness/__init__.py:GREP_RULES` | **37 rules** across 5 categories (multi-party arrangements, governed-by-clause stripping, in pari delicto, sub-agent layering, huroob/NGO retaliation threats, archaic legal language, etc.), each with `citation` + `indicator` fields naming ILO conventions, POEA/BP2MI/Nepal/HK statutes |
+| GREP rule citations | `packages/duecare-llm-chat/src/duecare/chat/harness/__init__.py:GREP_RULES` | **42 rules** across 6 categories (multi-party arrangements, governed-by-clause stripping, in pari delicto, sub-agent layering, huroob/NGO retaliation threats, archaic legal language, etc.), each with `citation` + `indicator` fields naming ILO conventions, POEA/BP2MI/Nepal/HK statutes |
 | RAG corpus | `packages/duecare-llm-chat/src/duecare/chat/harness/__init__.py:RAG_CORPUS` | **26 docs** covering ILO C029/C181/C095/C189 + POEA MCs + BP2MI Reg + HK/SG/Saudi statutes + Palermo Protocol Art. 3(b) + ICRMW Art. 18/22 + Hague Service Convention + Saudi kafala reforms + BMET smartcard + DIFC unconscionability + cross-cutting substance-over-form anchor |
 | Per-prompt + per-category rubrics | `packages/duecare-llm-chat/src/duecare/chat/harness/_rubrics_5tier.json` (207 prompts, 5 tiers each) + `_rubrics_required.json` (**6 categories, 66 criteria** including the cross-cutting `legal_citation_quality`) | Click `▸ Grade response` on any chat response — opens the Grade modal showing PASS/PARTIAL/FAIL on each criterion + matched keywords. Or `python scripts/rubric_comparison.py` for the batch harness-OFF vs harness-ON delta report. |
 | Harness lift quantification | [`docs/harness_lift_report.md`](./harness_lift_report.md) | Mean **+56.5 pp** lift across 207/207 prompts when grading harness-ON vs harness-OFF responses against the cross-cutting `legal_citation_quality` rubric. Reproducible via `python scripts/rubric_comparison.py`. |

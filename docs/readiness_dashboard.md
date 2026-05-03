@@ -204,7 +204,7 @@ labor-migration flows. Each corridor has: origin regulator, destination
 regulator, ≥2 NGO contacts, statute citations, fee policy, kafala
 flag. Auto-detected from journal text via JournalRepository heuristic.
 
-### GREP rules (42 Android / 37 Python harness)
+### GREP rules (42 — Android + Python harness in lockstep)
 
 | Pack | Rules | Grade |
 |---|---:|:-:|
@@ -217,12 +217,12 @@ flag. Auto-detected from journal text via JournalRepository heuristic.
 
 **Status: A.** Pack format documented at
 [`docs/extension_pack_format.md`](extension_pack_format.md). Packs
-are Ed25519-signed for distribution. **Surface-count gap:** Android
-v0.9 ships 42 GREP rules; the Python harness module ships 37 (the
-5 sector-specific rules added in Android v0.9 — kafala-huroob,
-H-2A/H-2B, fishing-vessel, smuggler-fee, domestic-locked-in — have
-not yet been backported to the Python harness corpus). Backport is
-post-submission housekeeping; not blocking.
+are Ed25519-signed for distribution. **Surface-count gap closed
+2026-05-03:** the 5 sector-specific rules added in Android v0.9
+(kafala-huroob, H-2A/H-2B, fishing-vessel, smuggler-fee,
+domestic-locked-in) backported into the Python harness corpus
+(`packages/duecare-llm-chat/src/duecare/chat/harness/__init__.py`).
+Both surfaces now ship 42 rules in lockstep.
 
 ### ILO C029 forced-labour indicators (11)
 
