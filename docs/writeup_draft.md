@@ -157,11 +157,10 @@ analysis. Scored on 207 prompts under harness-OFF vs harness-ON:
 | ILO / international regulations | 0.1% | 51.3% | **+51.2 pp** |
 | Substance-over-form analysis | 0.8% | 34.8% | **+34.1 pp** |
 
-Layer ablation: GREP-only +35 pp, RAG-only +47 pp, both +56.5 pp —
-both layers independently load-bearing. With harness ON, 99.3% of
-emitted statutory citations trace back to the bundled corpus.
-Reproducible: `python scripts/rubric_comparison.py`. Full report:
-[`docs/harness_lift_report.md`](./harness_lift_report.md).
+Layer ablation: GREP +35 pp, RAG +47 pp, both +56.5 pp — both
+load-bearing. 99.3% of emitted citations trace to the 106-source
+corpus. Universal grader v3 (semantic clusters + section
+verification + intent profiling) regenerates via notebook A6.
 
 ## 3. The Kaggle notebooks (190 words)
 

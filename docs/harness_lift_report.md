@@ -1,8 +1,22 @@
 # Harness Lift Report
 
-**Target rubric:** `legal_citation_quality` (legal citation quality, cross-cutting)
+**Target rubric:** `legal_citation_quality` (legal citation quality, cross-cutting). **Now superseded by Universal Grader v3** (15 dimensions, intent-aware, 106-source citation cross-reference) — see "Live regenerator" below.
 
 **One-line takeaway.** The Duecare safety harness moves Gemma 4 responses from near-zero legal grounding to mid-50%-plus on a 12-criterion rubric, with the strongest lift on jurisdiction-specific citations (+87.5 pp) and meaningful gains on ILO + substance-over-form. Three appendices at the bottom (refusal rate, layer ablation, fabrication detection) add depth for technical readers.
+
+**Live regenerator (2026-05-03 onwards).** Re-run any number in this report from a git SHA via the dedicated A6 notebook
+[`duecare-grading-evaluation`](https://www.kaggle.com/code/taylorsamarel/duecare-grading-evaluation):
+
+- Runs N curated prompts through Gemma 4 twice (harness OFF vs ON full Persona+GREP+RAG+Tools)
+- Grades both with the **Universal Grader v3** (15 cross-prompt dimensions, intent-aware
+  reweighting across 5 intents, 106-source citation cross-reference, section-number
+  verification, semantic phrase clusters, structural quality detection)
+- Emits `duecare_lift_eval.json` + `duecare_lift_eval.md` with provenance tuple
+  `(model_revision, git_sha, dataset_version)` so every number traces back to a commit
+
+The legacy 12-criterion `legal_citation_quality` rubric below remains valid as the
+canonical measurement for the +56.5pp headline number; the v3 grader is the
+forward-going regenerator with broader signal coverage.
 
 ## Contents
 
