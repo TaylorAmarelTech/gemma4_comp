@@ -38,7 +38,7 @@ specific shape fits.
 | **Deploy on-prem / air-gapped** | No | Rare | Yes | Yes | **Yes** | Yes |
 | **Time to first response in production** | 1 day | 4-12 weeks | 1 week | 2-4 weeks | 1 day to 6 weeks | 6-18 months |
 | **Customizability of detection rules** | Low | Medium | Medium | High | **High** | Highest |
-| **Worker-facing mobile app included** | No | No | No | No | **Yes** (Android v0.7) | DIY |
+| **Worker-facing mobile app included** | No | No | No | No | **Yes** (Android v0.9) | DIY |
 | **Maintained by** | Vendor team | Vendor team | Open-source community | NVIDIA | One open-source maintainer | You |
 
 ## When NOT to use Duecare
@@ -116,7 +116,7 @@ Choose Duecare when most of these are true:
 - ✅ Cost ceiling matters — you can't pay $10k-100k/year SaaS
 - ✅ You want **per-tenant cost attribution** + per-tenant rate
   limits (chargeback, multi-NGO sharing, per-caseworker isolation)
-- ✅ You need a **mobile app for workers** (Android v0.7 is
+- ✅ You need a **mobile app for workers** (Android v0.9 is
   shipping)
 - ✅ You're OK with **community support** (GitHub issues, no
   paid SLA, single-maintainer project)

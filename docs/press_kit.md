@@ -37,7 +37,7 @@
 | **Started** | 2025 as a research benchmark (21K-prompt LLM safety evaluation for migrant-worker exploitation); productized 2026-Q1 around Gemma 4 |
 | **Submitted to** | Google Gemma 4 Good Hackathon (deadline 2026-05-18, Safety & Trust track) |
 | **Built on** | Google Gemma 4 (Apache 2.0 license, ungated) — specifically the E2B variant for on-device + E4B for higher-quality cloud |
-| **Runs on** | Android (v0.7 APK, 64 MB), Mac mini / Linux NUC, single Docker container, k8s Helm chart, 13 cloud platforms |
+| **Runs on** | Android (v0.9 APK, 64 MB), Mac mini / Linux NUC, single Docker container, k8s Helm chart, 13 cloud platforms |
 | **Operating cost** | $0/mo (laptop or office Mac mini); $25-100/mo (small cloud); $1,500-10k/mo (national-scale regulator) |
 | **No telemetry** | Zero phone-home. The maintainers don't operate any service the user's data passes through. |
 | **Languages supported** | English UI; chat accepts any Gemma 4 language (Tagalog, Bahasa, Nepali, Bangla, Arabic, Spanish, French, etc.) |
@@ -139,7 +139,7 @@ These are reproducible per `(git_sha, dataset_version, model_revision)`
 (In the absence of bundled image assets in this repo, journalists
 should screenshot the live live-demo Kaggle notebook
 [https://www.kaggle.com/code/taylorsamarel/duecare-live-demo] for
-chat surface visuals, and the Reports tab of the Android v0.7 APK
+chat surface visuals, and the Reports tab of the Android v0.9 APK
 [https://github.com/TaylorAmarelTech/duecare-journey-android/releases]
 for mobile UI visuals. All screenshots usable under the MIT
 license; please preserve any visible attribution lines.)

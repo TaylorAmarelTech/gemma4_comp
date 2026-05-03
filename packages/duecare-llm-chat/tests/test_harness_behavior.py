@@ -125,3 +125,121 @@ def test_layer_docs_present() -> None:
     for layer in ("persona", "grep", "rag", "tools"):
         assert layer in docs
         assert len(docs[layer]) > 50, f"layer {layer} doc too short"
+
+
+# =============================================================================
+# CATEGORY F: 5 sector-specific GREP rules backported from Android v0.9
+# (kafala-huroob, H-2A/H-2B, fishing-vessel, smuggler-fee, domestic-locked-in)
+# =============================================================================
+
+
+def _grep_rule_ids(text: str):
+    h = _load_harness()
+    grep = h.default_harness()["grep_call"]
+    return {hit.get("rule") for hit in grep(text)["hits"]}
+
+
+def test_grep_42_rules_total() -> None:
+    """The Python harness should ship 42 GREP rules in lockstep with Android v0.9."""
+    h = _load_harness()
+    assert len(h.GREP_RULES) == 42, f"expected 42 GREP rules, got {len(h.GREP_RULES)}"
+
+
+def test_kafala_huroob_fires_on_huroob_status() -> None:
+    """A worker reporting 'huroob' status from a Saudi kafeel should match."""
+    text = "My kafeel filed huroob status against me when I asked to leave."
+    assert "kafala_huroob_absconder" in _grep_rule_ids(text)
+
+
+def test_kafala_huroob_fires_on_absconder_label() -> None:
+    """The Lebanese 'absconder' framing should also fire the rule."""
+    text = "The agent threatened to file me as an absconder if I complain."
+    assert "kafala_huroob_absconder" in _grep_rule_ids(text)
+
+
+def test_h2a_h2b_fee_fires_on_h2a_with_deduction() -> None:
+    """An H-2A worker charged for transportation should fire the rule."""
+    text = ("I came on an H-2A petition and they charged me $850 in "
+            "transportation deductions from my first paycheck.")
+    assert "h2a_h2b_fee_violation" in _grep_rule_ids(text)
+
+
+def test_h2a_h2b_fee_fires_on_h2b_with_housing() -> None:
+    """An H-2B worker with housing deduction should fire the rule."""
+    text = ("I work on an H-2B visa as a landscaper, they deduct housing "
+            "and tool rental from my pay every week.")
+    assert "h2a_h2b_fee_violation" in _grep_rule_ids(text)
+
+
+def test_fishing_vessel_fires_on_at_sea_debt_pattern() -> None:
+    """Fishing vessel + debt + at-sea confinement should fire the rule."""
+    text = ("I work on a fishing trawler at sea for 6 months and they "
+            "deduct my advance loan from each catch settlement.")
+    assert "fishing_vessel_debt_confinement" in _grep_rule_ids(text)
+
+
+def test_fishing_vessel_fires_on_transhipment_confinement() -> None:
+    """Transhipment-at-sea + can't go ashore should fire the rule."""
+    text = ("Workers on the long-liner cannot leave to go ashore and the "
+            "captain transships the catch to a reefer to keep us at sea.")
+    assert "fishing_vessel_debt_confinement" in _grep_rule_ids(text)
+
+
+def test_smuggler_fee_fires_on_dollar_crossing_pattern() -> None:
+    """A smuggler-fee + crossing-fee pattern should fire the rule."""
+    text = "The coyote charged me USD 4500 to cross and another $1200 mid-journey."
+    assert "smuggler_fee_and_coercion" in _grep_rule_ids(text)
+
+
+def test_smuggler_fee_fires_on_passage_fee() -> None:
+    """The 'passage fee' framing should also fire the rule."""
+    text = "The smuggler asked for a passage fee of EUR 800 to take me across."
+    assert "smuggler_fee_and_coercion" in _grep_rule_ids(text)
+
+
+def test_domestic_locked_in_fires_on_live_in_employer() -> None:
+    """Live-in domestic worker arrangement should fire the rule."""
+    text = "I am a live-in maid and must sleep at the employer household every night."
+    assert "domestic_work_locked_in_residence" in _grep_rule_ids(text)
+
+
+def test_domestic_locked_in_fires_on_24_7_availability() -> None:
+    """24/7 availability requirement should fire the rule."""
+    text = ("They told me I must be on call 24/7 and cannot leave the "
+            "house without permission.")
+    assert "domestic_work_locked_in_residence" in _grep_rule_ids(text)
+
+
+def test_new_rules_dont_fire_on_benign_text() -> None:
+    """None of the 5 new rules should fire on unrelated text."""
+    benign = "I'm planning a hiking trip with friends next weekend."
+    new_rule_ids = {
+        "kafala_huroob_absconder",
+        "h2a_h2b_fee_violation",
+        "fishing_vessel_debt_confinement",
+        "smuggler_fee_and_coercion",
+        "domestic_work_locked_in_residence",
+    }
+    fired = _grep_rule_ids(benign)
+    assert fired & new_rule_ids == set(), \
+        f"benign text triggered new rules: {fired & new_rule_ids}"
+
+
+def test_new_rules_have_required_metadata() -> None:
+    """All 5 new rules must have severity + citation + indicator."""
+    h = _load_harness()
+    new_rule_ids = {
+        "kafala_huroob_absconder",
+        "h2a_h2b_fee_violation",
+        "fishing_vessel_debt_confinement",
+        "smuggler_fee_and_coercion",
+        "domestic_work_locked_in_residence",
+    }
+    matched = [r for r in h.GREP_RULES if r["rule"] in new_rule_ids]
+    assert len(matched) == 5, f"expected 5 new rules, found {len(matched)}"
+    for rule in matched:
+        assert rule.get("severity") in ("critical", "high", "medium", "low")
+        assert rule.get("citation"), f"{rule['rule']} missing citation"
+        assert rule.get("indicator"), f"{rule['rule']} missing indicator"
+        assert rule.get("citation").startswith(("Saudi", "US DOL", "ILO", "UN")), \
+            f"{rule['rule']} citation should reference real statute: {rule.get('citation')[:80]}"
