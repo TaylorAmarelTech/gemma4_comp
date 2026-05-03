@@ -15,7 +15,7 @@
 | Cloud Run / Render free tier | `gemma3:1b` (fastest cold start) |
 | GPU pod (T4 / L4 / A10) for production | `gemma4:e4b` |
 | Old phone (4 GB RAM) | `gemma3:1b` |
-| Modern Android (8 GB+ RAM) | `gemma4:e2b` (the v0.7 default) |
+| Modern Android (8 GB+ RAM) | `gemma4:e2b` (the v0.9 default) |
 | Workstation with H100 / A100 | `gemma4:31b` |
 
 ## All Gemma 4 variants we support

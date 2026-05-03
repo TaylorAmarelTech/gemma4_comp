@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Duecare — System Map (Bird's-Eye View)</title>
+<style>
+  :root {
+    --bg: #0f172a;
+    --panel: #1e293b;
+    --panel-2: #334155;
+    --text: #e2e8f0;
+    --muted: #94a3b8;
+    --primary: #4c78a8;
+    --success: #10b981;
+    --warning: #f59e0b;
+    --danger: #ef4444;
+    --info: #3b82f6;
+    --user: #a78bfa;
+    --notebook: #fb923c;
+    --pkg: #34d399;
+    --topology: #f472b6;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    line-height: 1.5;
+  }
+  header {
+    padding: 1.25rem 2rem;
+    background: var(--panel);
+    border-bottom: 1px solid var(--panel-2);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+  header h1 { margin: 0; font-size: 1.25rem; font-weight: 600; }
+  header .subtitle { color: var(--muted); font-size: 0.875rem; }
+  .filters {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+  .filter-btn {
+    padding: 0.375rem 0.75rem;
+    background: var(--panel-2);
+    border: 1px solid transparent;
+    color: var(--text);
+    border-radius: 6px;
+    font-size: 0.8125rem;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .filter-btn:hover { background: var(--primary); }
+  .filter-btn.active { background: var(--primary); border-color: var(--text); }
+  main { padding: 1.5rem 2rem; max-width: 1600px; margin: 0 auto; }
+  .legend {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    padding: 0.75rem 1rem;
+    background: var(--panel);
+    border-radius: 8px;
+    margin-bottom: 1rem;
+    font-size: 0.8125rem;
+  }
+  .legend-item { display: flex; align-items: center; gap: 0.375rem; }
+  .swatch { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
+  .swatch.user { background: var(--user); }
+  .swatch.notebook { background: var(--notebook); }
+  .swatch.pkg { background: var(--pkg); }
+  .swatch.topology { background: var(--topology); }
+  .swatch.surface { background: var(--info); }
+  .layer {
+    background: var(--panel);
+    border-radius: 12px;
+    padding: 1.25rem;
+    margin-bottom: 1.25rem;
+    border: 1px solid var(--panel-2);
+  }
+  .layer-title {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+    margin: 0 0 0.875rem 0;
+  }
+  .grid {
+    display: grid;
+    gap: 0.625rem;
+  }
+  .grid.cols-7 { grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); }
+  .grid.cols-5 { grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); }
+  .grid.cols-4 { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
+  .grid.cols-3 { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+  .node {
+    background: var(--panel-2);
+    padding: 0.75rem 0.875rem;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.15s;
+    border-left: 3px solid var(--primary);
+    font-size: 0.875rem;
+    position: relative;
+  }
+  .node:hover { background: #475569; transform: translateY(-1px); }
+  .node.user { border-left-color: var(--user); }
+  .node.notebook { border-left-color: var(--notebook); }
+  .node.pkg { border-left-color: var(--pkg); }
+  .node.topology { border-left-color: var(--topology); }
+  .node.surface { border-left-color: var(--info); }
+  .node-title { font-weight: 600; margin-bottom: 0.25rem; font-size: 0.875rem; }
+  .node-sub { color: var(--muted); font-size: 0.75rem; line-height: 1.35; }
+  .node.dim { opacity: 0.25; }
+  .node.highlight {
+    border-left-color: var(--warning) !important;
+    box-shadow: 0 0 0 2px var(--warning), 0 4px 12px rgba(245, 158, 11, 0.3);
+  }
+  .core-flow {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr auto 1fr auto 1fr;
+    gap: 0.5rem;
+    align-items: center;
+    padding: 0.75rem;
+    background: var(--panel-2);
+    border-radius: 8px;
+    margin-bottom: 1rem;
+  }
+  .flow-step {
+    background: var(--panel);
+    padding: 0.625rem;
+    border-radius: 6px;
+    text-align: center;
+    font-size: 0.8125rem;
+    border: 1px solid var(--panel-2);
+  }
+  .flow-step strong { display: block; color: var(--primary); margin-bottom: 0.25rem; }
+  .arrow { color: var(--muted); text-align: center; font-size: 1.25rem; }
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 0.625rem;
+    margin-bottom: 1.25rem;
+  }
+  .stat {
+    background: var(--panel);
+    padding: 0.875rem;
+    border-radius: 8px;
+    text-align: center;
+    border: 1px solid var(--panel-2);
+  }
+  .stat-num { font-size: 1.75rem; font-weight: 700; color: var(--primary); display: block; }
+  .stat-label { font-size: 0.75rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; }
+  .modal-bg {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.7);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    padding: 1rem;
+  }
+  .modal-bg.show { display: flex; }
+  .modal {
+    background: var(--panel);
+    border: 1px solid var(--panel-2);
+    border-radius: 12px;
+    max-width: 720px;
+    width: 100%;
+    max-height: 80vh;
+    overflow-y: auto;
+    padding: 1.5rem;
+  }
+  .modal h2 { margin: 0 0 0.75rem 0; }
+  .modal h3 { color: var(--muted); font-size: 0.875rem; margin: 1rem 0 0.5rem 0; text-transform: uppercase; letter-spacing: 0.05em; }
+  .modal a { color: var(--info); }
+  .close-btn {
+    float: right;
+    background: var(--panel-2);
+    color: var(--text);
+    border: none;
+    padding: 0.375rem 0.75rem;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+  .close-btn:hover { background: var(--danger); }
+  .modal ul { padding-left: 1.25rem; margin: 0.5rem 0; }
+  .modal li { margin-bottom: 0.25rem; }
+  footer { text-align: center; padding: 2rem; color: var(--muted); font-size: 0.8125rem; }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>Duecare — System Map</h1>
+    <div class="subtitle">Bird's-eye view of every component, user, deployment, and notebook · 2026-05-03</div>
+  </div>
+  <div class="filters">
+    <button class="filter-btn active" data-filter="all">All</button>
+    <button class="filter-btn" data-filter="user">Users</button>
+    <button class="filter-btn" data-filter="notebook">Notebooks</button>
+    <button class="filter-btn" data-filter="pkg">Packages</button>
+    <button class="filter-btn" data-filter="topology">Deployments</button>
+    <button class="filter-btn" data-filter="surface">Surfaces</button>
+  </div>
+</header>
+
+<main>
+
+<div class="stats">
+  <div class="stat"><span class="stat-num">14</span><span class="stat-label">User personas</span></div>
+  <div class="stat"><span class="stat-num">11</span><span class="stat-label">Kaggle notebooks</span></div>
+  <div class="stat"><span class="stat-num">17</span><span class="stat-label">PyPI packages</span></div>
+  <div class="stat"><span class="stat-num">5</span><span class="stat-label">Deployment topologies</span></div>
+  <div class="stat"><span class="stat-num">42</span><span class="stat-label">GREP rules</span></div>
+  <div class="stat"><span class="stat-num">26</span><span class="stat-label">RAG docs</span></div>
+  <div class="stat"><span class="stat-num">20</span><span class="stat-label">Migration corridors</span></div>
+  <div class="stat"><span class="stat-num">11</span><span class="stat-label">ILO indicators</span></div>
+  <div class="stat"><span class="stat-num">+56.5pp</span><span class="stat-label">Mean harness lift</span></div>
+</div>
+
+<div class="legend">
+  <div class="legend-item"><span class="swatch user"></span> Users / Personas</div>
+  <div class="legend-item"><span class="swatch surface"></span> Product Surfaces</div>
+  <div class="legend-item"><span class="swatch notebook"></span> Kaggle Notebooks (6 core + 5 appendix)</div>
+  <div class="legend-item"><span class="swatch pkg"></span> PyPI Packages (17)</div>
+  <div class="legend-item"><span class="swatch topology"></span> Deployment Topologies (5)</div>
+</div>
+
+<!-- LAYER 1: USERS -->
+<div class="layer">
+  <h2 class="layer-title">Layer 1 · Users (14 personas served)</h2>
+  <div class="grid cols-7">
+    <div class="node user" data-type="user" data-id="ofw">
+      <div class="node-title">OFW / Migrant worker</div>
+      <div class="node-sub">en + Tagalog + Spanish drafts</div>
+    </div>
+    <div class="node user" data-type="user" data-id="caseworker">
+      <div class="node-title">Caseworker</div>
+      <div class="node-sub">NGO front-line</div>
+    </div>
+    <div class="node user" data-type="user" data-id="ngo-director">
+      <div class="node-title">NGO director</div>
+      <div class="node-sub">Day-1 office setup</div>
+    </div>
+    <div class="node user" data-type="user" data-id="lawyer">
+      <div class="node-title">Lawyer</div>
+      <div class="node-sub">Legal aid + evidence prep</div>
+    </div>
+    <div class="node user" data-type="user" data-id="researcher">
+      <div class="node-title">Researcher</div>
+      <div class="node-sub">Reproducible corpus</div>
+    </div>
+    <div class="node user" data-type="user" data-id="journalist">
+      <div class="node-title">Journalist</div>
+      <div class="node-sub">Investigative + ethics</div>
+    </div>
+    <div class="node user" data-type="user" data-id="recruiter">
+      <div class="node-title">Recruiter (compliance)</div>
+      <div class="node-sub">Self-audit</div>
+    </div>
+    <div class="node user" data-type="user" data-id="regulator">
+      <div class="node-title">Regulator</div>
+      <div class="node-sub">Pattern analysis</div>
+    </div>
+    <div class="node user" data-type="user" data-id="embassy">
+      <div class="node-title">Embassy / consulate</div>
+      <div class="node-sub">Worker protection</div>
+    </div>
+    <div class="node user" data-type="user" data-id="ilo-iom">
+      <div class="node-title">ILO / IOM regional</div>
+      <div class="node-sub">Cross-border trends</div>
+    </div>
+    <div class="node user" data-type="user" data-id="it-director">
+      <div class="node-title">IT director</div>
+      <div class="node-sub">Helm + Docker + ops</div>
+    </div>
+    <div class="node user" data-type="user" data-id="architect">
+      <div class="node-title">Chief architect</div>
+      <div class="node-sub">ADRs + threat model</div>
+    </div>
+    <div class="node user" data-type="user" data-id="vp-eng">
+      <div class="node-title">VP Engineering</div>
+      <div class="node-sub">SLO + runbook</div>
+    </div>
+    <div class="node user" data-type="user" data-id="cto">
+      <div class="node-title">Platform CTO</div>
+      <div class="node-sub">Enterprise pilot</div>
+    </div>
+  </div>
+</div>
+
+<!-- LAYER 2: PRODUCT SURFACES -->
+<div class="layer">
+  <h2 class="layer-title">Layer 2 · Product surfaces (5 ways to interact)</h2>
+  <div class="grid cols-5">
+    <div class="node surface" data-type="surface" data-id="chat">
+      <div class="node-title">Worker chat</div>
+      <div class="node-sub">Paste recruiter msg → cited reply</div>
+    </div>
+    <div class="node surface" data-type="surface" data-id="classifier">
+      <div class="node-title">NGO classifier</div>
+      <div class="node-sub">Structured JSON envelope</div>
+    </div>
+    <div class="node surface" data-type="surface" data-id="android">
+      <div class="node-title">Android v0.9 APK</div>
+      <div class="node-sub">On-device, encrypted journal</div>
+    </div>
+    <div class="node surface" data-type="surface" data-id="dashboard">
+      <div class="node-title">Live demo / Reports</div>
+      <div class="node-sub">22-slide deck + Workbench</div>
+    </div>
+    <div class="node surface" data-type="surface" data-id="api">
+      <div class="node-title">FastAPI server</div>
+      <div class="node-sub">Multi-tenant + rate-limited</div>
+    </div>
+  </div>
+</div>
+
+<!-- LAYER 3: 4-LAYER HARNESS -->
+<div class="layer">
+  <h2 class="layer-title">Layer 3 · The 4-layer harness (Persona → GREP → RAG → Tools)</h2>
+  <div class="core-flow">
+    <div class="flow-step"><strong>① Persona</strong>40-yr expert<br>system prompt</div>
+    <div class="arrow">→</div>
+    <div class="flow-step"><strong>② GREP</strong>42 regex KB<br>+ citations</div>
+    <div class="arrow">→</div>
+    <div class="flow-step"><strong>③ RAG</strong>BM25 over<br>26 docs</div>
+    <div class="arrow">→</div>
+    <div class="flow-step"><strong>④ Tools</strong>4 function<br>calls (Gemma 4)</div>
+  </div>
+  <div style="text-align: center; color: var(--muted); font-size: 0.8125rem;">
+    Output: 7-card pipeline modal · ① user input → ② persona → ③ GREP hits → ④ RAG docs → ⑤ tool calls → ⑥ FINAL MERGED PROMPT → ⑦ Gemma response
+  </div>
+</div>
+
+<!-- LAYER 4: KAGGLE NOTEBOOKS -->
+<div class="layer">
+  <h2 class="layer-title">Layer 4 · Kaggle notebooks (6 core + 5 appendix)</h2>
+  <div style="font-size: 0.8125rem; color: var(--muted); margin-bottom: 0.625rem;">CORE (walk in order)</div>
+  <div class="grid cols-3">
+    <div class="node notebook" data-type="notebook" data-id="nb1">
+      <div class="node-title">1. chat-playground</div>
+      <div class="node-sub">Raw Gemma 4 baseline (NO harness)</div>
+    </div>
+    <div class="node notebook" data-type="notebook" data-id="nb2">
+      <div class="node-title">2. chat-playground-with-grep-rag-tools</div>
+      <div class="node-sub">⭐ The headline demo · 4 toggles + Pipeline modal</div>
+    </div>
+    <div class="node notebook" data-type="notebook" data-id="nb3">
+      <div class="node-title">3. content-classification-playground</div>
+      <div class="node-sub">4-schema JSON sandbox</div>
+    </div>
+    <div class="node notebook" data-type="notebook" data-id="nb4">
+      <div class="node-title">4. content-knowledge-builder-playground</div>
+      <div class="node-sub">Add custom GREP/RAG, test what fires</div>
+    </div>
+    <div class="node notebook" data-type="notebook" data-id="nb5">
+      <div class="node-title">5. gemma-content-classification-evaluation</div>
+      <div class="node-sub">NGO dashboard with risk vectors</div>
+    </div>
+    <div class="node notebook" data-type="notebook" data-id="nb6">
+      <div class="node-title">6. live-demo</div>
+      <div class="node-sub">⭐ Polished product · 22-slide deck + Workbench</div>
+    </div>
+  </div>
+  <div style="font-size: 0.8125rem; color: var(--muted); margin: 1rem 0 0.625rem 0;">APPENDIX (extension + research)</div>
+  <div class="grid cols-3">
+    <div class="node notebook" data-type="notebook" data-id="a1">
+      <div class="node-title">A1. prompt-generation</div>
+      <div class="node-sub">Gemma 4 generates new prompts</div>
+    </div>
+    <div class="node notebook" data-type="notebook" data-id="a2">
+      <div class="node-title">A2. bench-and-tune</div>
+      <div class="node-sub">Unsloth SFT + DPO + GGUF + HF push</div>
+    </div>
+    <div class="node notebook" data-type="notebook" data-id="a3">
+      <div class="node-title">A3. research-graphs</div>
+      <div class="node-sub">6 Plotly charts (CPU-only)</div>
+    </div>
+    <div class="node notebook" data-type="notebook" data-id="a4">
+      <div class="node-title">A4. chat-playground-with-agentic-research</div>
+      <div class="node-sub">5th toggle: agentic web search</div>
+    </div>
+    <div class="node notebook" data-type="notebook" data-id="a5">
+      <div class="node-title">A5. chat-playground-jailbroken-models</div>
+      <div class="node-sub">⭐ Strongest "real" proof · abliterated Gemma 4</div>
+    </div>
+  </div>
+</div>
+
+<!-- LAYER 5: PYPI PACKAGES -->
+<div class="layer">
+  <h2 class="layer-title">Layer 5 · PyPI packages (17 wheels under duecare.* namespace)</h2>
+  <div class="grid cols-4">
+    <div class="node pkg" data-type="pkg" data-id="meta"><div class="node-title">duecare-llm</div><div class="node-sub">meta · installs all</div></div>
+    <div class="node pkg" data-type="pkg" data-id="core"><div class="node-title">duecare-llm-core</div><div class="node-sub">Pydantic schemas · contracts</div></div>
+    <div class="node pkg" data-type="pkg" data-id="models"><div class="node-title">duecare-llm-models</div><div class="node-sub">8 model adapters</div></div>
+    <div class="node pkg" data-type="pkg" data-id="chat"><div class="node-title">duecare-llm-chat</div><div class="node-sub">⭐ Harness · 42 GREP + 26 RAG</div></div>
+    <div class="node pkg" data-type="pkg" data-id="domains"><div class="node-title">duecare-llm-domains</div><div class="node-sub">Pack loader · 3 packs</div></div>
+    <div class="node pkg" data-type="pkg" data-id="tasks"><div class="node-title">duecare-llm-tasks</div><div class="node-sub">9 capability tests</div></div>
+    <div class="node pkg" data-type="pkg" data-id="benchmark"><div class="node-title">duecare-llm-benchmark</div><div class="node-sub">Smoke + comparison runner</div></div>
+    <div class="node pkg" data-type="pkg" data-id="training"><div class="node-title">duecare-llm-training</div><div class="node-sub">Unsloth SFT + DPO</div></div>
+    <div class="node pkg" data-type="pkg" data-id="agents"><div class="node-title">duecare-llm-agents</div><div class="node-sub">12 agents · Supervisor</div></div>
+    <div class="node pkg" data-type="pkg" data-id="workflows"><div class="node-title">duecare-llm-workflows</div><div class="node-sub">YAML DAG runner</div></div>
+    <div class="node pkg" data-type="pkg" data-id="publishing"><div class="node-title">duecare-llm-publishing</div><div class="node-sub">HF Hub + Kaggle CLI</div></div>
+    <div class="node pkg" data-type="pkg" data-id="cli"><div class="node-title">duecare-llm-cli</div><div class="node-sub">duecare CLI</div></div>
+    <div class="node pkg" data-type="pkg" data-id="engine"><div class="node-title">duecare-llm-engine</div><div class="node-sub">Inference + OTel</div></div>
+    <div class="node pkg" data-type="pkg" data-id="evidence-db"><div class="node-title">duecare-llm-evidence-db</div><div class="node-sub">Structured journal store</div></div>
+    <div class="node pkg" data-type="pkg" data-id="nl2sql"><div class="node-title">duecare-llm-nl2sql</div><div class="node-sub">NL queries over evidence-db</div></div>
+    <div class="node pkg" data-type="pkg" data-id="research-tools"><div class="node-title">duecare-llm-research-tools</div><div class="node-sub">Tavily/Brave/Wiki + browser</div></div>
+    <div class="node pkg" data-type="pkg" data-id="server"><div class="node-title">duecare-llm-server</div><div class="node-sub">FastAPI · 6.2 MB · multi-tenant</div></div>
+  </div>
+</div>
+
+<!-- LAYER 6: DEPLOYMENT TOPOLOGIES -->
+<div class="layer">
+  <h2 class="layer-title">Layer 6 · Deployment topologies (5 shapes)</h2>
+  <div class="grid cols-5">
+    <div class="node topology" data-type="topology" data-id="A">
+      <div class="node-title">A. On-device only</div>
+      <div class="node-sub">Android APK + MediaPipe Gemma 4</div>
+    </div>
+    <div class="node topology" data-type="topology" data-id="B">
+      <div class="node-title">B. NGO-office edge</div>
+      <div class="node-sub">Mac mini / NUC · Docker compose</div>
+    </div>
+    <div class="node topology" data-type="topology" data-id="C">
+      <div class="node-title">C. Cloud single-tenant</div>
+      <div class="node-sub">Helm chart · Kubernetes</div>
+    </div>
+    <div class="node topology" data-type="topology" data-id="D">
+      <div class="node-title">D. Cloud multi-tenant</div>
+      <div class="node-sub">Helm + tenancy MW + cost meter</div>
+    </div>
+    <div class="node topology" data-type="topology" data-id="E">
+      <div class="node-title">E. Hybrid</div>
+      <div class="node-sub">Cloud Gemma + on-device journal</div>
+    </div>
+  </div>
+</div>
+
+</main>
+
+<!-- MODAL -->
+<div class="modal-bg" id="modal-bg">
+  <div class="modal" id="modal-content">
+    <button class="close-btn" onclick="closeModal()">close ×</button>
+    <h2 id="modal-title"></h2>
+    <div id="modal-body"></div>
+  </div>
+</div>
+
+<footer>
+  Generated 2026-05-03 · gemma4_comp · MIT licensed · See <a href="readiness_dashboard.html" style="color: var(--info);">readiness dashboard</a> for current status
+</footer>
+
+<script>
+// Detail data for each node — shown on click
+const DETAILS = {
+  // USERS
+  'ofw': {
+    title: 'OFW / Migrant worker',
+    body: `<h3>What they need</h3>
+<p>Spot illegal recruitment fees in 5 seconds, before they pay. Document if they can't refuse.</p>
+<h3>How they use Duecare</h3>
+<ul>
+  <li><strong>Surface:</strong> Android v0.9 APK (on-device Gemma 4) or web chat</li>
+  <li><strong>Languages:</strong> English (full), Tagalog (draft), Spanish (draft)</li>
+  <li><strong>Walkthrough:</strong> <a href="scenarios/worker-self-help.html">scenarios/worker-self-help.md</a></li>
+</ul>
+<h3>Notebooks they touch</h3><ul><li>1, 2, A4 (chat playgrounds)</li></ul>`
+  },
+  'caseworker': {
+    title: 'Caseworker (NGO front-line)',
+    body: `<h3>What they need</h3><p>Triage 500 cases/quarter via structured JSON; auto-tag risk + recommended action.</p>
+<h3>Walkthrough</h3><p><a href="scenarios/caseworker_workflow.html">45-min intake walkthrough</a></p>
+<h3>Notebooks</h3><ul><li>5 (NGO dashboard), 6 (live-demo)</li></ul>
+<h3>Topology</h3><p>B (Mac mini in office) or C (cloud single-tenant)</p>`
+  },
+  'ngo-director': {
+    title: 'NGO director',
+    body: `<h3>What they need</h3><p>Box → first intake in 90 minutes. No cloud bills.</p>
+<h3>Walkthrough</h3><p><a href="scenarios/ngo-office-deployment.html">90-min office deployment</a></p>
+<h3>Topology</h3><p>B (NGO-office edge — Mac mini / NUC)</p>`
+  },
+  'lawyer': {
+    title: 'Legal aid lawyer',
+    body: `<h3>What they need</h3><p>Auto-drafted complaint citing the right statute. 3hr → 30min per case.</p>
+<h3>Walkthrough</h3><p><a href="scenarios/lawyer-evidence-prep.html">Evidence prep walkthrough</a></p>
+<h3>Notebooks</h3><ul><li>5 (classifier), 6 (live-demo)</li></ul>
+<h3>Surface</h3><p>NGO classifier (structured JSON) + Android Reports tab</p>`
+  },
+  'researcher': {
+    title: 'Researcher (academic / policy)',
+    body: `<h3>What they need</h3><p>Reproducible corpus + benchmark. Provenance from (git_sha, dataset_version).</p>
+<h3>Walkthrough</h3><p><a href="scenarios/researcher-analysis.html">Researcher analysis walkthrough</a></p>
+<h3>Notebooks</h3><ul><li>A1 (prompt-gen), A3 (research-graphs), A2 (bench-and-tune)</li></ul>
+<h3>Outputs</h3><p>207 hand-graded prompts · 6 Plotly charts · harness lift report (+56.5pp)</p>`
+  },
+  'journalist': {
+    title: 'Investigative journalist',
+    body: `<h3>What they need</h3><p>Pattern across corridor → trend chart. Ethics: never re-identify.</p>
+<h3>Walkthrough</h3><p><a href="scenarios/journalist-investigation.html">Journalist investigation</a></p>
+<h3>Press kit</h3><p><a href="press_kit.html">Press kit (one-pager + facts + story angles)</a></p>`
+  },
+  'recruiter': {
+    title: 'Recruitment compliance officer',
+    body: `<h3>What they need</h3><p>Self-audit before regulators audit them.</p>
+<h3>Walkthrough</h3><p><a href="scenarios/recruiter-self-audit.html">Self-audit workflow</a></p>
+<h3>Notebooks</h3><ul><li>4 (knowledge-builder), 5 (classifier)</li></ul>`
+  },
+  'regulator': {
+    title: 'Government regulator',
+    body: `<h3>What they need</h3><p>Cross-NGO trend analysis without reading raw cases (PII protection).</p>
+<h3>Walkthrough</h3><p><a href="scenarios/regulator-pattern-analysis.html">Pattern analysis</a></p>
+<h3>Federation protocol</h3><p><a href="cross_ngo_trends_federation.html">Cross-NGO trends federation design</a> (Ed25519-signed + ε=1.0 differential privacy)</p>`
+  },
+  'embassy': {
+    title: 'Embassy / consulate',
+    body: `<h3>What they need</h3><p>Worker-protection officer view: which cases need consular intervention vs caseworker-handleable.</p>
+<h3>Walkthrough</h3><p><a href="scenarios/embassy-consular.html">Embassy + consular workflow</a></p>`
+  },
+  'ilo-iom': {
+    title: 'ILO / IOM regional analyst',
+    body: `<h3>What they need</h3><p>Cross-corridor analysis (e.g., Asia → GCC cluster). Tagged with all 11 ILO C029 indicators.</p>
+<h3>Walkthrough</h3><p><a href="scenarios/ilo-iom-regional.html">ILO/IOM regional view</a></p>`
+  },
+  'it-director': {
+    title: 'IT director',
+    body: `<h3>What they need</h3><p>Helm + Docker + observability stack. Runbook + SLO + on-call burden estimate.</p>
+<h3>Walkthrough</h3><p><a href="scenarios/it-director.html">IT director TCO + ops</a></p>
+<h3>Topology</h3><p>B (NGO-office edge) or C (cloud single-tenant)</p>`
+  },
+  'architect': {
+    title: 'Chief architect',
+    body: `<h3>What they need</h3><p>Decision records + threat model + folder-per-module pattern.</p>
+<h3>Walkthrough</h3><p><a href="scenarios/chief-architect.html">Architect integration</a></p>
+<h3>ADRs</h3><ul><li>5 ADRs at <a href="adr/README.html">adr/</a> (multi-package PyPI split, folder-per-module, on-device default, 6+5 notebook shape, edge-proxy tenant)</li></ul>`
+  },
+  'vp-eng': {
+    title: 'VP Engineering',
+    body: `<h3>What they need</h3><p>SLO + runbook + 90-day adoption plan + on-call rotation.</p>
+<h3>Walkthrough</h3><p><a href="scenarios/vp-engineering.html">VP 90-day plan</a></p>
+<h3>Considerations</h3><p><a href="considerations/SLO.html">SLO</a> · <a href="considerations/runbook.html">Runbook</a> · <a href="considerations/capacity_planning.html">Capacity planning</a></p>`
+  },
+  'cto': {
+    title: 'Platform CTO (enterprise pilot)',
+    body: `<h3>What they need</h3><p>Multi-tenancy + cost meter + carbon estimator + compliance crosswalk.</p>
+<h3>Walkthrough</h3><p><a href="scenarios/enterprise_pilot.html">Enterprise pilot (30-day adoption)</a></p>
+<h3>Considerations</h3><p><a href="considerations/multi_tenancy.html">Multi-tenancy</a> · <a href="considerations/COMPLIANCE.html">Compliance</a> · <a href="considerations/vendor_questionnaire.html">Vendor questionnaire</a></p>`
+  },
+  // SURFACES
+  'chat': { title: 'Worker chat', body: '<h3>What it is</h3><p>Paste recruiter message → harness fires → cited reply.</p><h3>Where it lives</h3><ul><li>Notebooks 1, 2, A4, A5 (Kaggle)</li><li>HF Space (live demo)</li><li>Android v0.9 (on-device)</li></ul>' },
+  'classifier': { title: 'NGO classifier', body: '<h3>What it is</h3><p>Structured JSON envelope: classification, risk vectors, recommended action, NGO referrals.</p><h3>Where it lives</h3><ul><li>Notebooks 3, 5 (Kaggle)</li><li>FastAPI server endpoint</li></ul>' },
+  'android': { title: 'Android v0.9 APK', body: '<h3>What it is</h3><p>On-device Gemma 4 (MediaPipe) + SQLCipher journal + 20-corridor profiles + Reports tab.</p><h3>Where</h3><p><a href="https://github.com/TaylorAmarelTech/duecare-journey-android/releases">Latest release</a></p><h3>Architecture</h3><p><a href="android_app_architecture.html">Android app architecture</a></p>' },
+  'dashboard': { title: 'Live demo / Reports', body: '<h3>Notebook 6: live-demo</h3><p>Polished product with 22-slide deck + audit Workbench. Combines classification + knowledge-building.</p>' },
+  'api': { title: 'FastAPI server', body: '<h3>What it is</h3><p>Multi-tenant FastAPI surface with token meter, rate limit, /metrics, OTel auto-instrumentation.</p><h3>Package</h3><p>duecare-llm-server (6.2 MB wheel)</p>' },
+  // NOTEBOOKS
+  'nb1': { title: '1. duecare-chat-playground', body: '<h3>Purpose</h3><p>Raw Gemma 4 chat — NO harness. Baseline for the comparison story.</p><h3>Wheels</h3><p>core + models + chat</p><h3><a href="https://www.kaggle.com/code/taylorsamarel/duecare-chat-playground">Open on Kaggle →</a></h3>' },
+  'nb2': { title: '2. chat-playground-with-grep-rag-tools', body: '<h3>⭐ The headline demo</h3><p>Same chat UI + 4 toggle tiles + multi-persona library + 394-prompt examples + per-response Pipeline modal.</p><h3><a href="https://www.kaggle.com/code/taylorsamarel/duecare-chat-playground-with-grep-rag-tools">Open on Kaggle →</a></h3>' },
+  'nb3': { title: '3. content-classification-playground', body: '<h3>Purpose</h3><p>Hands-on classification sandbox: 4 schemas (single-label / multi-label / risk-vector / custom).</p><h3><a href="https://www.kaggle.com/code/taylorsamarel/duecare-content-classification-playground">Open on Kaggle →</a></h3>' },
+  'nb4': { title: '4. content-knowledge-builder-playground', body: '<h3>Purpose</h3><p>Add custom GREP rules + RAG docs; test what fires; export full JSON.</p><h3><a href="https://www.kaggle.com/code/taylorsamarel/duecare-content-knowledge-builder-playground">Open on Kaggle →</a></h3>' },
+  'nb5': { title: '5. gemma-content-classification-evaluation', body: '<h3>Purpose</h3><p>Polished Agency / NGO dashboard: form-based content submission → structured JSON with risk vectors + threshold-filterable history queue.</p><h3><a href="https://www.kaggle.com/code/taylorsamarel/duecare-gemma-content-classification-evaluation">Open on Kaggle →</a></h3>' },
+  'nb6': { title: '6. live-demo', body: '<h3>⭐ The user-facing live URL</h3><p>Full safety-harness pipeline + 22-slide deck + audit Workbench. Combines classification + knowledge-building into one polished product.</p><h3><a href="https://www.kaggle.com/code/taylorsamarel/duecare-live-demo">Open on Kaggle →</a></h3>' },
+  'a1': { title: 'A1. prompt-generation', body: '<h3>Purpose</h3><p>Use Gemma 4 to generate new evaluation prompts + 5 graded response examples per prompt (worst → best). Output feeds A2.</p>' },
+  'a2': { title: 'A2. bench-and-tune', body: '<h3>Purpose</h3><p>Smoke benchmark on stock Gemma 4 → Unsloth SFT (LoRA) → DPO → re-benchmark → GGUF Q8_0 export → HF Hub push.</p><h3>Status</h3><p>Pending T4×2 run on Kaggle.</p>' },
+  'a3': { title: 'A3. research-graphs', body: '<h3>Purpose</h3><p>6 Plotly charts: entity graph, corridor Sankey, per-category benchmark bars, fee-camouflage heatmap, ILO indicator hits, RAG corpus sunburst. CPU-only, ~30 sec.</p>' },
+  'a4': { title: 'A4. chat-playground-with-agentic-research', body: '<h3>Purpose</h3><p>Same chat UI as #2 + 5th toggle for agentic web research using DuckDuckGo + httpx + Wikipedia. All open-source, no API keys.</p>' },
+  'a5': { title: 'A5. chat-playground-jailbroken-models', body: '<h3>⭐ Strongest "real, not faked" proof</h3><p>Same chat UI as #2 + 4-toggle harness, but loads an abliterated/cracked Gemma 4 variant (default: dealignai/Gemma-4-31B-JANG_4M-CRACK). Demonstrates the harness still produces safe outputs even when the base model has had its refusals ablated.</p>' },
+  // PACKAGES
+  'meta': { title: 'duecare-llm (meta)', body: '<p><code>pip install duecare-llm</code> installs all 16 sub-packages + the duecare CLI.</p>' },
+  'core': { title: 'duecare-llm-core', body: '<p>12 Pydantic schemas, Protocol contracts, Registry, Provenance. Foundation for every other package.</p>' },
+  'models': { title: 'duecare-llm-models', body: '<p>8 model adapters (Ollama, Transformers, llama.cpp, MediaPipe, OpenAI-compat, HF Inference, Gemini, Groq).</p>' },
+  'chat': { title: 'duecare-llm-chat ⭐', body: '<p><strong>The 4-layer harness lives here.</strong> 42 GREP rules + 26 RAG docs + 4 tools + 394 example prompts + 207 5-tier rubrics + 6 required-rubric categories + 16 classifier examples + chat app + classifier app.</p>' },
+  'domains': { title: 'duecare-llm-domains', body: '<p>Domain pack loader, 3 domain packs (trafficking, tax_evasion, financial_crime), document pipeline.</p>' },
+  'tasks': { title: 'duecare-llm-tasks', body: '<p>9 capability tests, 15 generators, 7 evaluators.</p>' },
+  'benchmark': { title: 'duecare-llm-benchmark', body: '<p>Smoke benchmark + harness-OFF/ON comparison runner. Generates the harness lift numbers.</p>' },
+  'training': { title: 'duecare-llm-training', body: '<p>Unsloth SFT + DPO loops. Used by bench-and-tune notebook (A2).</p>' },
+  'agents': { title: 'duecare-llm-agents', body: '<p>12 agents + AgentSupervisor + Evolution engine. Function calling via Gemma 4.</p>' },
+  'workflows': { title: 'duecare-llm-workflows', body: '<p>YAML DAG loader + topological runner.</p>' },
+  'publishing': { title: 'duecare-llm-publishing', body: '<p>HF Hub push + Kaggle CLI wrappers + markdown report generators.</p>' },
+  'cli': { title: 'duecare-llm-cli', body: '<p>The <code>duecare</code> CLI entry point.</p>' },
+  'engine': { title: 'duecare-llm-engine', body: '<p>Inference orchestrator with OpenTelemetry auto-instrumentation. OTLP export to any OTel-compatible backend.</p>' },
+  'evidence-db': { title: 'duecare-llm-evidence-db', body: '<p>Structured journal store. SQLite with SQLCipher option for encryption-at-rest.</p>' },
+  'nl2sql': { title: 'duecare-llm-nl2sql', body: '<p>Natural-language queries over the evidence-db schema. Used by the Reports tab on Android.</p>' },
+  'research-tools': { title: 'duecare-llm-research-tools', body: '<p>Tavily/Brave/Serper/DuckDuckGo/Wikipedia + Playwright browser. Used by A4 (agentic-research notebook).</p>' },
+  'server': { title: 'duecare-llm-server', body: '<p>FastAPI surface (6.2 MB wheel includes the chat UI assets). Tenancy + RateLimit + Metering + Metrics + Carbon estimator middleware.</p>' },
+  // TOPOLOGIES
+  'A': { title: 'Topology A · On-device only', body: '<h3>What it is</h3><p>Single Android phone running MediaPipe Gemma 4 on-device. Encrypted SQLCipher journal. No cloud at all.</p><h3>Best for</h3><p>Individual workers in transit, kafala-system contexts, anywhere offline-first matters.</p><h3>Setup</h3><p>Download APK → grant storage → first chat in &lt; 5 min</p>' },
+  'B': { title: 'Topology B · NGO-office edge', body: '<h3>What it is</h3><p>Mac mini / Linux NUC running Docker compose. 2-10 caseworkers via thin clients on the LAN.</p><h3>Best for</h3><p>NGO offices that handle 50-500 cases/month, sensitive corridor work.</p><h3>Setup</h3><p>~90 min from box. <a href="scenarios/ngo-office-deployment.html">Setup walkthrough</a></p>' },
+  'C': { title: 'Topology C · Cloud single-tenant', body: '<h3>What it is</h3><p>Helm chart on Kubernetes. Single org, multi-user. HPA + PodDisruptionBudget + NetworkPolicy.</p><h3>Best for</h3><p>NGOs with existing K8s infrastructure or scaling beyond ~100 daily users.</p>' },
+  'D': { title: 'Topology D · Cloud multi-tenant', body: '<h3>What it is</h3><p>Helm chart + tenancy middleware + per-tenant rate limit + cost meter. SaaS-shape but self-hostable.</p><h3>Best for</h3><p>Federations like ILO/Polaris/ASI hosting an aggregator for many member NGOs.</p>' },
+  'E': { title: 'Topology E · Hybrid', body: '<h3>What it is</h3><p>Cloud Gemma 4 (Ollama / OpenAI-compat / HF Inference) + on-device journal that never leaves the phone.</p><h3>Best for</h3><p>Workers in low-RAM contexts who want richer Gemma 4 31B quality but still privacy-first journal storage.</p>' },
+};
+
+function showModal(id) {
+  const data = DETAILS[id];
+  if (!data) return;
+  document.getElementById('modal-title').textContent = data.title;
+  document.getElementById('modal-body').innerHTML = data.body;
+  document.getElementById('modal-bg').classList.add('show');
+}
+function closeModal() {
+  document.getElementById('modal-bg').classList.remove('show');
+}
+document.getElementById('modal-bg').addEventListener('click', e => {
+  if (e.target.id === 'modal-bg') closeModal();
+});
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+document.querySelectorAll('.node').forEach(n => {
+  n.addEventListener('click', () => showModal(n.dataset.id));
+});
+
+document.querySelectorAll('.filter-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const filter = btn.dataset.filter;
+    document.querySelectorAll('.node').forEach(n => {
+      if (filter === 'all') n.classList.remove('dim');
+      else if (n.dataset.type === filter) n.classList.remove('dim');
+      else n.classList.add('dim');
+    });
+  });
+});
+</script>
+
+</body>
+</html>

@@ -249,5 +249,5 @@ office, that's a caseworker FTE recovered for direct service.
 
 - [`docs/scenarios/ngo-office-deployment.md`](./ngo-office-deployment.md) — the setup that makes this workflow possible
 - [`docs/considerations/multi_tenancy.md`](../considerations/multi_tenancy.md) — when you have ≥ 5 caseworkers
-- [Android v0.7 APK](https://github.com/TaylorAmarelTech/duecare-journey-android/releases) — the same workflow for caseworkers in the field
+- [Android v0.9 APK](https://github.com/TaylorAmarelTech/duecare-journey-android/releases) — the same workflow for caseworkers in the field
 - [`docs/embedding_guide.md`](../embedding_guide.md) — bring the chat surface to where the worker already is (Telegram / WhatsApp / Messenger / NGO website)

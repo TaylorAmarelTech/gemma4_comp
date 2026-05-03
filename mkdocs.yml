@@ -144,6 +144,9 @@ nav:
   - Submission:
       - For judges: FOR_JUDGES.md
       - Writeup draft: writeup_draft.md
+      - System map (bird's-eye): system_map.md
+      - Author's notes: authors_notes.md
+      - Appendices index: appendices/README.md
       - Readiness dashboard: readiness_dashboard.md
       - Persona readiness audit: persona_readiness_audit.md
       - Submission gate checklist: submission_gate_checklist.md

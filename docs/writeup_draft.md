@@ -68,7 +68,7 @@ Duecare is a harm-reduction tool, not a paternalistic blocker. The
 worker has agency, and constraints we don't see. Two paths, both
 fully offline:
 
-1. **Inform.** The chat (Gemma 4 + 37 GREP rules + 26 RAG docs +
+1. **Inform.** The chat (Gemma 4 + 42 GREP rules + 26 RAG docs +
    4 tools, on-device) tells the worker which statute the fee
    violates, what the cap should be, and which NGO handles refund
    claims for that corridor. The worker may refuse — preventing
@@ -88,7 +88,7 @@ the user clicks ON or OFF per message:
 - **Persona** — a 40-year anti-trafficking expert system prompt
   prepended to every message. Multi-persona library: editable,
   user-addable, persisted in `localStorage`.
-- **GREP** — 37 regex KB rules across debt bondage, fee camouflage,
+- **GREP** — 42 regex KB rules across debt bondage, fee camouflage,
   corridor caps, ILO indicators, multi-party / governed-by stripping,
   sub-agent layering, esoteric legal language. Each tagged with the
   controlling ILO convention or national statute; fired hits prepend
@@ -170,7 +170,7 @@ Gemma 4 variants; proves the harness works even when refusals are
 ablated).
 
 Each notebook has its own bundled wheels dataset (`*-wheels`). The
-chat package ships 37 GREP rules + 26 RAG docs + 4 tools + 394
+chat package ships 42 GREP rules + 26 RAG docs + 4 tools + 394
 example prompts + 207 hand-graded 5-tier rubrics + 6 required-element
 rubric categories (66 criteria) + 16 classifier examples (6 with SVG
 document mockups) + the persona default + the Pipeline modal UI +
@@ -251,3 +251,9 @@ Slavery — upstream taxonomy. Tella by Horizontal — SQLCipher journal
 benchmarks; Duecare goes deep on one domain. **Distinct from DoNotPay:**
 the worker files, not the app. Maria is a composite, labeled in the
 video. Full prior-art doc at `docs/prior_art.md`.
+
+## 8. Going deeper
+
+[system map](system_map.md) · [author's notes](authors_notes.md) ·
+[appendices](appendices/README.md) · [for judges](FOR_JUDGES.md) ·
+[readiness dashboard](readiness_dashboard.md).

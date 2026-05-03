@@ -263,7 +263,7 @@ Once the workflow has stabilized, consider:
 | Add-on | Cost | Benefit |
 |---|---|---|
 | Observability stack (`make demo-with-monitoring`) | $0 + RAM | Per-caseworker usage dashboards, error spikes alert before users notice |
-| Android v0.7 APK installed on caseworker phones | $0 | Workers can do field intake offline, sync to office on Wi-Fi |
+| Android v0.9 APK installed on caseworker phones | $0 | Workers can do field intake offline, sync to office on Wi-Fi |
 | 2nd Mac mini as hot standby | $250-800 | Survives a hardware failure with < 1h RTO |
 | Tavily / Brave / Serper API key for web research | $0-25/mo | The agentic-research toggle (A4 notebook) becomes useful |
 | Per-caseworker OIDC group → tenant routing | $0 | Per-caseworker rate limit + audit log shard |

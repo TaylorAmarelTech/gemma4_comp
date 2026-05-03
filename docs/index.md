@@ -131,6 +131,9 @@ Sorted by who you are:
 
 ## Quick links
 
+- :material-map-marker-radius: [**System map**](system_map.md) — interactive bird's-eye view of all components, users, deployments, notebooks
+- :material-notebook-edit-outline: [**Author's notes**](authors_notes.md) — informal observations, what didn't work, design judgments
+- :material-bookshelf: [**Appendices**](appendices/README.md) — index of deeper enclosures linked from the writeup
 - :material-format-quote-open: [Press kit](press_kit.md) — one-pager + facts + quotes for journalists
 - :material-school: [Educator resources](educator_resources.md) — drop-in lesson plans
 - :material-compare: [Comparison vs alternatives](comparison_to_alternatives.md) — when Duecare fits vs Hive / Sift / Azure / OpenAI

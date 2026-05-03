@@ -229,7 +229,7 @@ Duecare doesn't try to be your case management system. Common pairings:
 - [`docs/scenarios/ngo-office-deployment.md`](./ngo-office-deployment.md) — set up the office Mac mini that runs all this
 - [`docs/scenarios/caseworker_workflow.md`](./caseworker_workflow.md) — what a non-lawyer caseworker uses it for
 - [`docs/scenarios/regulator-pattern-analysis.md`](./regulator-pattern-analysis.md) — what your government counterparts do with it
-- [Android v0.7 APK](https://github.com/TaylorAmarelTech/duecare-journey-android/releases) — for field-intake on a phone
+- [Android v0.9 APK](https://github.com/TaylorAmarelTech/duecare-journey-android/releases) — for field-intake on a phone
 
 ## Bottom line
 
