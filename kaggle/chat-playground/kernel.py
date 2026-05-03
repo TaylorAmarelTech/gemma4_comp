@@ -398,11 +398,17 @@ _HIDE_HARNESS_TILES_SNIPPET = """
   .empty-state strong { display: inline; }
 </style>
 <script>
-  // Belt-and-suspenders: also strip the "View pipeline" link from any
-  // assistant reply DOM after render, in case CSS alone doesn't catch
-  // the inline-styled inserts the chat JS emits per message.
+  // Belt-and-suspenders: strip "View pipeline" / "Grade response" links
+  // from assistant replies, AND rewrite the empty-state paragraph that
+  // hardcodes references to harness layers + the Examples button.
+  // CSS alone can't catch text content; JS rewrites it to baseline copy.
   (function() {
     const PIPELINE_RE = /View pipeline|Grade response/i;
+    const BASELINE_EMPTY_TEXT =
+      'Type a message below to chat with Gemma 4. This is the raw '
+      + 'baseline — no safety harness, no GREP rules, no RAG context, '
+      + 'no tool calls. Compare to the harness-augmented chat at '
+      + 'duecare-chat-playground-with-grep-rag-tools.';
     function stripPipelineLinks() {
       document.querySelectorAll('a').forEach(a => {
         const oc = a.getAttribute('onclick') || '';
@@ -417,8 +423,24 @@ _HIDE_HARNESS_TILES_SNIPPET = """
         }
       });
     }
-    stripPipelineLinks();
-    new MutationObserver(stripPipelineLinks).observe(
+    function rewriteEmptyState() {
+      // The chat package's empty <p> hardcodes references to the harness
+      // and the Examples button — both of which we hide for the baseline
+      // notebook. Replace the prose so the empty state matches reality.
+      const empty = document.querySelector('#empty p');
+      if (empty && empty.textContent.includes('Examples')) {
+        empty.textContent = BASELINE_EMPTY_TEXT;
+      }
+      // Also clear the empty-hints chip row (populated from /api/examples)
+      const hints = document.getElementById('empty-hints');
+      if (hints) hints.innerHTML = '';
+    }
+    function applyAll() {
+      stripPipelineLinks();
+      rewriteEmptyState();
+    }
+    applyAll();
+    new MutationObserver(applyAll).observe(
       document.body, {childList: true, subtree: true}
     );
   })();
