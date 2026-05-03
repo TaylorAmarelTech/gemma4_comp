@@ -115,7 +115,7 @@ NGO shape. The live-demo (6) is the polished combined product.
 
 | # | Notebook | Wheels dataset | Purpose |
 |---|---|---|---|
-| 1 | [duecare-chat-playground](https://www.kaggle.com/code/taylorsamarel/duecare-chat-playground) | `duecare-chat-playground-wheels` | Raw Gemma 4 chat — NO harness. Baseline for the comparison story. |
+| 1 | [duecare-chat-playground](https://www.kaggle.com/code/taylorsamarel/duecare-gemma-chat-playground) | `duecare-chat-playground-wheels` | Raw Gemma 4 chat — NO harness. Baseline for the comparison story. |
 | 2 | [duecare-chat-playground-with-grep-rag-tools](https://www.kaggle.com/code/taylorsamarel/duecare-chat-playground-with-grep-rag-tools) | `duecare-chat-playground-with-grep-rag-tools-wheels` | **The headline demo.** Same chat UI with 4 toggle tiles + multi-persona library + custom rule additions + 394-prompt Examples library + per-response Pipeline modal. |
 | 3 | [duecare-content-classification-playground](https://www.kaggle.com/code/taylorsamarel/duecare-content-classification-playground) *(publish pending)* | `duecare-content-classification-playground-wheels` *(publish pending — wheels built locally)* | Hands-on classification sandbox. 4 schema modes (single-label / multi-label / risk-vector / custom). Shows merged prompt + raw response + parsed JSON. **Pre-live-demo intro to classification.** |
 | 4 | [duecare-content-knowledge-builder-playground](https://www.kaggle.com/code/taylorsamarel/duecare-content-knowledge-builder-playground) *(publish pending)* | `duecare-content-knowledge-builder-playground-wheels` *(publish pending — wheels built locally)* | Hands-on knowledge-base sandbox. Add GREP rules + RAG docs; test what fires; export full JSON. **Pre-live-demo intro to knowledge building.** |
@@ -203,7 +203,7 @@ and read the rule definitions, RAG corpus, tool dispatcher inline.
 
 The shortest reproducible test:
 
-1. Open [duecare-chat-playground](https://www.kaggle.com/code/taylorsamarel/duecare-chat-playground)
+1. Open [duecare-chat-playground](https://www.kaggle.com/code/taylorsamarel/duecare-gemma-chat-playground)
    (raw Gemma).
 2. Click `▸ Examples` → load any "Textbook compound scenarios" prompt
    (the 68%-loan or 18%-loan example).

@@ -19,7 +19,7 @@ and other IT variants). Used in accordance with the
 
 | Field | Value |
 |---|---|
-| **Kaggle URL** | https://www.kaggle.com/code/taylorsamarel/duecare-chat-playground |
+| **Kaggle URL** | https://www.kaggle.com/code/taylorsamarel/duecare-gemma-chat-playground |
 | **Title on Kaggle** | "Duecare Chat Playground" |
 | **Slug** | `taylorsamarel/duecare-chat-playground` |
 | **Wheels dataset** | `taylorsamarel/duecare-chat-playground-wheels` (3 wheels, ~160 KB) |
@@ -46,7 +46,7 @@ chat-playground/
 
 ### A. Paste-into-Kaggle (preferred)
 
-1. Open https://www.kaggle.com/code/taylorsamarel/duecare-chat-playground (create with title `Duecare Chat Playground` if it doesn't exist).
+1. Open https://www.kaggle.com/code/taylorsamarel/duecare-gemma-chat-playground (create with title `Duecare Chat Playground` if it doesn't exist).
 2. Side panel: GPU T4 ×2 · Internet ON · `HF_TOKEN` Secret · all 4 Gemma 4 models · `taylorsamarel/duecare-chat-playground-wheels` dataset.
 3. Replace the single code cell with the contents of [`kernel.py`](./kernel.py) (CTRL+A → paste).
 4. **Save Version → Save & Run All**.
