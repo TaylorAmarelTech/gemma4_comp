@@ -181,22 +181,191 @@ _CLOUDFLARED_PROC: dict = {"p": None}
 
 _SHUTDOWN_BUTTON_SNIPPET = """
 <style>
-  #_dc-shutdown-btn { position: fixed; top: 12px; right: 12px; z-index: 99999;
-    background: #dc2626; color: white; padding: 8px 14px;
-    border-radius: 8px; font-family: -apple-system,system-ui,sans-serif;
-    font-weight: 700; font-size: 12px; cursor: pointer; border: none;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.18); }
-  #_dc-shutdown-btn:hover { background: #991b1b; }
+  /* Header-integrated shutdown button — placed into header.bar by JS so
+     it sits next to the model badge instead of floating over the UI.
+     Falls back to a fixed bottom-right position if header not found. */
+  .dc-shutdown-pill {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 6px 12px;
+    background: rgba(220, 38, 38, 0.18);
+    color: #fca5a5;
+    border: 1px solid rgba(220, 38, 38, 0.35);
+    border-radius: 999px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    font-weight: 600; font-size: 11.5px; line-height: 1;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    user-select: none;
+    white-space: nowrap;
+  }
+  .dc-shutdown-pill:hover {
+    background: rgba(220, 38, 38, 0.92);
+    color: #fff;
+    border-color: rgba(255, 255, 255, 0.2);
+  }
+  .dc-shutdown-pill[data-state="confirming"] {
+    background: rgba(245, 158, 11, 0.92);
+    color: #fff;
+    border-color: rgba(255, 255, 255, 0.2);
+  }
+  .dc-shutdown-pill[data-state="shutting"] {
+    background: rgba(107, 114, 128, 0.92);
+    color: #fff;
+    cursor: wait;
+  }
+  .dc-shutdown-pill[data-state="done"] {
+    background: rgba(16, 185, 129, 0.92);
+    color: #fff;
+    cursor: default;
+  }
+  .dc-shutdown-pill svg {
+    width: 12px; height: 12px;
+    flex-shrink: 0;
+    display: block;
+  }
+  /* Fallback fixed position: only used when header.bar is NOT found.
+     Bottom-right so it doesn't overlap a header. */
+  .dc-shutdown-pill.dc-floating {
+    position: fixed;
+    bottom: 14px; right: 14px;
+    z-index: 99999;
+    padding: 8px 14px;
+    background: rgba(220, 38, 38, 0.92);
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
+  }
+  /* Full-screen success overlay shown after shutdown completes */
+  #_dc-shutdown-overlay {
+    position: fixed; inset: 0; z-index: 100000;
+    display: none;
+    align-items: center; justify-content: center;
+    background: linear-gradient(135deg, rgba(15, 23, 42, 0.97) 0%, rgba(30, 41, 59, 0.97) 100%);
+    color: #e2e8f0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
+  }
+  #_dc-shutdown-overlay.show { display: flex; }
+  #_dc-shutdown-overlay .box {
+    text-align: center;
+    padding: 44px 52px;
+    background: rgba(30, 41, 59, 0.85);
+    border: 1px solid rgba(71, 85, 105, 0.5);
+    border-radius: 16px;
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.5);
+    max-width: 440px;
+  }
+  #_dc-shutdown-overlay svg.icon {
+    width: 56px; height: 56px;
+    color: #10b981;
+    margin: 0 auto 14px;
+    display: block;
+  }
+  #_dc-shutdown-overlay h1 {
+    margin: 0 0 8px 0;
+    font-size: 22px; font-weight: 700;
+    color: #f1f5f9;
+  }
+  #_dc-shutdown-overlay p {
+    margin: 0; color: #94a3b8;
+    font-size: 13.5px; line-height: 1.5;
+  }
+  #_dc-shutdown-overlay .meta {
+    margin-top: 14px;
+    color: #64748b; font-size: 11.5px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
 </style>
-<button id="_dc-shutdown-btn" onclick="
-  if(!confirm('Shut down Duecare?')) return;
-  fetch('/api/shutdown',{method:'POST'}).then(()=>{
-    document.body.innerHTML=
-      '<div style=\"padding:60px;text-align:center;font-family:system-ui\">'+
-      '<h1 style=\"color:#047857\">Shutting down\u2026</h1>'+
-      '<p style=\"color:#6b7280\">You can close this tab.</p></div>';
-  });
-">\u23FB Shutdown</button>
+<div id="_dc-shutdown-overlay" role="dialog" aria-modal="true" aria-live="polite">
+  <div class="box">
+    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+         stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"
+         aria-hidden="true">
+      <polyline points="20 6 9 17 4 12"></polyline>
+    </svg>
+    <h1>Server stopped</h1>
+    <p>The FastAPI server is down and the Kaggle cell will exit shortly.</p>
+    <p class="meta">You can close this tab.</p>
+  </div>
+</div>
+<template id="_dc-shutdown-tpl">
+  <button class="dc-shutdown-pill" type="button" data-state="idle"
+          title="Stop the FastAPI server and exit the Kaggle cell"
+          aria-label="Shutdown Duecare server">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+         stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+         aria-hidden="true">
+      <path d="M18.36 6.64a9 9 0 1 1-12.73 0"></path>
+      <line x1="12" y1="2" x2="12" y2="12"></line>
+    </svg>
+    <span class="dc-shutdown-label">Shutdown</span>
+  </button>
+</template>
+<script>
+(function() {
+  function mount() {
+    var tpl = document.getElementById('_dc-shutdown-tpl');
+    var overlay = document.getElementById('_dc-shutdown-overlay');
+    if (!tpl || !overlay) return;
+    var btn = tpl.content.firstElementChild.cloneNode(true);
+    // Try to inject into the chat header bar; otherwise float bottom-right
+    var header = document.querySelector('header.bar');
+    if (header) {
+      header.appendChild(btn);
+    } else {
+      btn.classList.add('dc-floating');
+      document.body.appendChild(btn);
+    }
+    var lbl = btn.querySelector('.dc-shutdown-label');
+    var confirmTimer = null;
+    function setState(state, text) {
+      btn.dataset.state = state;
+      if (text) lbl.textContent = text;
+    }
+    btn.addEventListener('click', function() {
+      var s = btn.dataset.state || 'idle';
+      if (s === 'shutting' || s === 'done') return;
+      if (s === 'confirming') {
+        if (confirmTimer) clearTimeout(confirmTimer);
+        setState('shutting', 'Stopping…');
+        try {
+          fetch('/api/shutdown', {method: 'POST'}).catch(function(){});
+        } catch (e) {}
+        setTimeout(function() {
+          setState('done', 'Stopped');
+          overlay.classList.add('show');
+        }, 350);
+      } else {
+        setState('confirming', 'Click again to confirm');
+        confirmTimer = setTimeout(function() {
+          if (btn.dataset.state === 'confirming') {
+            setState('idle', 'Shutdown');
+          }
+        }, 4000);
+      }
+    });
+  }
+  // Run on DOM ready, and again after 800ms in case the header is hydrated
+  // late by the chat UI's own JS.
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', mount);
+  } else {
+    mount();
+  }
+  setTimeout(function() {
+    // If we mounted floating + a header has since appeared, move into it
+    var existing = document.querySelector('header.bar .dc-shutdown-pill');
+    var floating = document.querySelector('body > .dc-shutdown-pill.dc-floating');
+    if (!existing && floating) {
+      var header = document.querySelector('header.bar');
+      if (header) {
+        floating.classList.remove('dc-floating');
+        header.appendChild(floating);
+      }
+    }
+  }, 800);
+})();
+</script>
 """
 
 _HIDE_HARNESS_TILES_SNIPPET = """
