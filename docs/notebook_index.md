@@ -53,7 +53,7 @@ in #2.
 | | |
 |---|---|
 | Folder | [`kaggle/chat-playground-with-grep-rag-tools/`](../kaggle/chat-playground-with-grep-rag-tools/) |
-| Notebook URL | https://www.kaggle.com/code/taylorsamarel/duecare-chat-playground-with-grep-rag-tools |
+| Notebook URL | https://www.kaggle.com/code/taylorsamarel/duecare-gemma-chat-playground-grep-rag-tools |
 | Wheels | `taylorsamarel/duecare-chat-playground-with-grep-rag-tools-wheels` ✓ live |
 | LOC | 557 |
 | GPU | T4 ×2 |

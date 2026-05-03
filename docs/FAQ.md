@@ -149,7 +149,7 @@ for the detailed math.
 ### Q: What's the fastest way to try it?
 
 Open the Kaggle notebook
-[duecare-chat-playground-with-grep-rag-tools](https://www.kaggle.com/code/taylorsamarel/duecare-chat-playground-with-grep-rag-tools).
+[duecare-chat-playground-with-grep-rag-tools](https://www.kaggle.com/code/taylorsamarel/duecare-gemma-chat-playground-grep-rag-tools).
 "Run All". Type a question. Two-minute time investment.
 
 For the Docker stack: `git clone` + `make demo`. Five minutes.

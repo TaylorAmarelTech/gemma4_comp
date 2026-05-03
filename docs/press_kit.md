@@ -152,7 +152,7 @@ license; please preserve any visible attribution lines.)
 | **Android app** | https://github.com/TaylorAmarelTech/duecare-journey-android |
 | **Latest APK** | https://github.com/TaylorAmarelTech/duecare-journey-android/releases |
 | **Live demo (Kaggle)** | https://www.kaggle.com/code/taylorsamarel/duecare-live-demo |
-| **Chat playground** | https://www.kaggle.com/code/taylorsamarel/duecare-chat-playground-with-grep-rag-tools |
+| **Chat playground** | https://www.kaggle.com/code/taylorsamarel/duecare-gemma-chat-playground-grep-rag-tools |
 | **Hackathon submission** | https://www.kaggle.com/competitions/gemma-4-good-hackathon |
 | **Press inquiries** | amarel.taylor.s [at] gmail.com (subject: `[duecare press]`) |
 

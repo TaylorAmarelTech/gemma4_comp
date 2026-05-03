@@ -29,7 +29,7 @@ happens. Or after, to recover the money.
 
     Open the live chat playground on Kaggle:
 
-    [duecare-chat-playground-with-grep-rag-tools :octicons-arrow-right-24:](https://www.kaggle.com/code/taylorsamarel/duecare-chat-playground-with-grep-rag-tools){ .md-button .md-button--primary }
+    [duecare-chat-playground-with-grep-rag-tools :octicons-arrow-right-24:](https://www.kaggle.com/code/taylorsamarel/duecare-gemma-chat-playground-grep-rag-tools){ .md-button .md-button--primary }
 
     Click "Run All". Type:
 
