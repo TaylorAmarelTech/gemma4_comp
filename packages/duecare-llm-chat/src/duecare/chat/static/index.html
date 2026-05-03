@@ -1667,91 +1667,111 @@ const RUBRIC_APPLIES_TO = {
 let _lastLoadedExampleCategory = null;
 let _lastLoadedExampleId = null;
 
+// Default grading mode: universal (no prompt-shape coupling).
+// Power users can flip to expert per-category mode via the toggle.
+let _gradeMode = 'universal';  // 'universal' | 'category'
+
 async function openGradeModal(messageIdx) {
   const m = messages[messageIdx];
   if (!m || m.role !== 'assistant') return;
-  const respText = m.content
-      .filter(c => c.type === 'text').map(c => c.text).join('\n');
-
-  // Pick the default category. Use legal_citation_quality if available,
-  // otherwise the first one the kernel exposes.
-  const cats = (_gradeCategories && _gradeCategories.length)
-      ? _gradeCategories
-      : ['legal_citation_quality'];
-
-  // Auto-suggest the best-fit rubric based on the most-recently-loaded
-  // example prompt's category. Falls back to the user's last selection,
-  // then to the cross-cutting legal_citation_quality.
-  const promptCat = _lastLoadedExampleCategory;
-  let suggested = null;
-  if (promptCat) {
-    for (const rcat of cats) {
-      const applies = RUBRIC_APPLIES_TO[rcat] || [];
-      if (applies.includes(promptCat)) { suggested = rcat; break; }
-    }
-  }
-  if (suggested) {
-    _gradeSelectedCategory = suggested;
-  } else if (!cats.includes(_gradeSelectedCategory)) {
-    _gradeSelectedCategory = cats[0];
-  }
-
-  // Build the category dropdown with relevance badges
-  const optsHtml = cats.map(c => {
-    const applies = RUBRIC_APPLIES_TO[c] || [];
-    let badge = '';
-    if (applies.length === 0) badge = ' [cross-cutting]';
-    else if (promptCat && applies.includes(promptCat)) badge = ' ★ recommended';
-    else if (promptCat) badge = ' (low relevance)';
-    return `<option value="${escapeHtml(c)}" ${c === _gradeSelectedCategory ? 'selected' : ''}>${escapeHtml(RUBRIC_CATEGORY_LABELS[c] || c)}${badge}</option>`;
-  }).join('');
-
   const skeleton = `
     <p style="color:var(--muted); margin-top:0; font-size:12px;">
-      Score this response against the Duecare rubric. The cross-cutting
-      <code>legal_citation_quality</code> category measures whether the
-      response cites jurisdiction-specific rules, ILO/international standards,
-      and applies substance-over-form analysis -- the three dimensions where
-      stock LLMs most often fail on trafficking-shaped prompts. Scoring is a
-      lightweight keyword check; for ground-truth scoring, run
-      <code>scripts/rubric_comparison.py</code>.
+      Score this response against 15 universal grading dimensions. The
+      grader auto-detects which dimensions are testable from this prompt+
+      response — dimensions with no signals are marked <strong>N/A</strong>
+      and excluded from the score. Replaces the legacy prompt-shape
+      categories (business_framed / victim / etc.).
     </p>
-    <div style="margin:12px 0; display:flex; gap:8px; align-items:center;">
-      <label style="font-size:12px; color:var(--ink);">Rubric category:</label>
-      <select id="grade-category-select"
-              onchange="_runGrade(${messageIdx})"
-              style="background:var(--bg); color:var(--ink); border:1px solid var(--border); border-radius:4px; padding:4px 8px; font-size:12px;">
-        ${optsHtml}
-      </select>
+    <div style="margin:12px 0; display:flex; gap:12px; align-items:center; flex-wrap:wrap;">
+      <label style="font-size:12px; color:var(--ink); display:flex; align-items:center; gap:6px;">
+        <input type="radio" name="grade-mode" value="universal"
+               ${_gradeMode === 'universal' ? 'checked' : ''}
+               onchange="_gradeMode='universal'; _runGrade(${messageIdx})">
+        Universal (recommended)
+      </label>
+      <label style="font-size:12px; color:var(--muted); display:flex; align-items:center; gap:6px;">
+        <input type="radio" name="grade-mode" value="category"
+               ${_gradeMode === 'category' ? 'checked' : ''}
+               onchange="_gradeMode='category'; _runGrade(${messageIdx})">
+        Expert mode (legacy per-category rubrics)
+      </label>
     </div>
+    <div id="grade-mode-controls"></div>
     <div id="grade-result-pane">
       <div style="color:var(--muted); font-style:italic; padding:16px 0;">Scoring…</div>
     </div>
   `;
   document.getElementById('modal-body').innerHTML = skeleton;
+  _renderGradeModeControls(messageIdx);
   _setModalChrome('grade', LAYER_TITLES.grade, '');
   _runGrade(messageIdx);
+}
+
+function _renderGradeModeControls(messageIdx) {
+  const ctl = document.getElementById('grade-mode-controls');
+  if (!ctl) return;
+  if (_gradeMode === 'category') {
+    const cats = (_gradeCategories && _gradeCategories.length)
+        ? _gradeCategories
+        : ['legal_citation_quality'];
+    const promptCat = _lastLoadedExampleCategory;
+    let suggested = null;
+    if (promptCat) {
+      for (const rcat of cats) {
+        const applies = RUBRIC_APPLIES_TO[rcat] || [];
+        if (applies.includes(promptCat)) { suggested = rcat; break; }
+      }
+    }
+    if (suggested) _gradeSelectedCategory = suggested;
+    else if (!cats.includes(_gradeSelectedCategory)) _gradeSelectedCategory = cats[0];
+    const optsHtml = cats.map(c => {
+      const applies = RUBRIC_APPLIES_TO[c] || [];
+      let badge = '';
+      if (applies.length === 0) badge = ' [cross-cutting]';
+      else if (promptCat && applies.includes(promptCat)) badge = ' ★ recommended';
+      else if (promptCat) badge = ' (low relevance)';
+      return `<option value="${escapeHtml(c)}" ${c === _gradeSelectedCategory ? 'selected' : ''}>${escapeHtml(RUBRIC_CATEGORY_LABELS[c] || c)}${badge}</option>`;
+    }).join('');
+    ctl.innerHTML = `
+      <div style="margin:12px 0; display:flex; gap:8px; align-items:center;">
+        <label style="font-size:12px; color:var(--ink);">Rubric category:</label>
+        <select id="grade-category-select"
+                onchange="_runGrade(${messageIdx})"
+                style="background:var(--bg); color:var(--ink); border:1px solid var(--border); border-radius:4px; padding:4px 8px; font-size:12px;">
+          ${optsHtml}
+        </select>
+      </div>
+    `;
+  } else {
+    ctl.innerHTML = '';
+  }
 }
 
 async function _runGrade(messageIdx) {
   const sel = document.getElementById('grade-category-select');
   if (sel) _gradeSelectedCategory = sel.value;
+  _renderGradeModeControls(messageIdx);
   const m = messages[messageIdx];
   if (!m) return;
   const respText = m.content
       .filter(c => c.type === 'text').map(c => c.text).join('\n');
+  // Pull the most recent user-message text for prompt-side applicability
+  const userMsg = messages[messageIdx - 1];
+  const promptText = userMsg
+      ? userMsg.content.filter(c => c.type === 'text').map(c => c.text).join('\n')
+      : '';
   const pane = document.getElementById('grade-result-pane');
-  pane.innerHTML = `<div style="color:var(--muted); font-style:italic; padding:16px 0;">Scoring against <code>${escapeHtml(_gradeSelectedCategory)}</code>…</div>`;
+  pane.innerHTML = `<div style="color:var(--muted); font-style:italic; padding:16px 0;">Scoring (${escapeHtml(_gradeMode)} mode)…</div>`;
   let result;
   try {
+    const body = (_gradeMode === 'universal')
+        ? {response_text: respText, prompt_text: promptText, harness_trace: m._harness, mode: 'universal'}
+        : {response_text: respText, category: _gradeSelectedCategory,
+            prompt_category: _lastLoadedExampleCategory, mode: 'category'};
     const r = await fetch('/api/grade', {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({
-        response_text: respText,
-        category: _gradeSelectedCategory,
-        prompt_category: _lastLoadedExampleCategory,  // server uses this for relevance scoring
-      }),
+      body: JSON.stringify(body),
     });
     if (!r.ok) {
       const errTxt = await r.text();
@@ -1762,7 +1782,137 @@ async function _runGrade(messageIdx) {
     pane.innerHTML = `<div style="color:#ef4444; padding:16px 0;">Error scoring: ${escapeHtml(String(e.message || e))}</div>`;
     return;
   }
-  pane.innerHTML = _renderGradeResult(result);
+  if (result && result.mode === 'universal') {
+    pane.innerHTML = _renderUniversalGradeResult(result);
+  } else {
+    pane.innerHTML = _renderGradeResult(result);
+  }
+}
+
+// Render universal grader output: 15 dimensions, with N/A excluded
+// from score, applicability reason shown per row.
+function _renderUniversalGradeResult(g) {
+  if (!g || !g.dimensions) {
+    return `<div style="color:var(--muted); font-style:italic;">No universal rubric available — make sure the kernel ships duecare-llm-chat ≥0.1.0.</div>`;
+  }
+  const pct = g.pct_score ?? 0;
+  const scoreColor = pct >= 70 ? '#10b981' : pct >= 40 ? '#f59e0b' : '#ef4444';
+  // v2 response profile panel (shown when grader returns intent + citations)
+  let profileHtml = '';
+  if (g.profile) {
+    const p = g.profile;
+    const cc = g.citation_check || {};
+    const intentBadges = (p.intents || []).map((i, idx) => {
+      const isPrimary = i === p.primary_intent;
+      const colors = {refusal:'#ef4444', education:'#3b82f6', referral:'#10b981', analytical:'#a855f7', evasion:'#f59e0b'};
+      const c = colors[i] || '#94a3b8';
+      return `<span style="background:${c}${isPrimary ? '' : '40'}; color:${isPrimary ? '#fff' : c}; padding:2px 8px; border-radius:3px; font-weight:${isPrimary ? '700' : '500'}; font-size:10.5px; margin-right:4px;">${isPrimary ? '★ ' : ''}${escapeHtml(i)}</span>`;
+    }).join('');
+    const groundedColor = cc.grounded_pct >= 80 ? '#10b981' : cc.grounded_pct >= 50 ? '#f59e0b' : '#ef4444';
+    profileHtml = `
+      <div style="background:var(--bg); border-radius:6px; padding:12px 14px; margin-bottom:14px; border-left:4px solid #a855f7;">
+        <div style="font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:6px;">Response profile (auto-detected)</div>
+        <div style="margin-bottom:6px;">
+          <span style="color:var(--muted); font-size:11px;">Intent:</span> ${intentBadges || '<span style="color:var(--muted); font-style:italic;">none detected</span>'}
+        </div>
+        ${p.cited_statutes && p.cited_statutes.length ? `
+        <div style="margin-bottom:6px; font-size:11.5px;">
+          <span style="color:var(--muted);">Cited statutes (${p.n_citations}):</span>
+          ${p.cited_statutes.map(s => `<code style="background:rgba(168,85,247,0.12); color:#c084fc; padding:1px 5px; border-radius:3px; margin-right:3px; font-size:10.5px;">${escapeHtml(s)}</code>`).join('')}
+        </div>
+        <div style="margin-bottom:6px; font-size:11px;">
+          <span style="color:var(--muted);">Citation grounding:</span>
+          <strong style="color:${groundedColor};">${cc.grounded_pct}%</strong>
+          <span style="color:var(--muted);">in corpus</span>
+          ${cc.possibly_fabricated && cc.possibly_fabricated.length ? `
+            <br><span style="color:#ef4444; font-size:10.5px;">⚠ possibly fabricated:</span>
+            ${cc.possibly_fabricated.map(s => `<code style="background:rgba(239,68,68,0.15); color:#fca5a5; padding:1px 5px; border-radius:3px; margin-right:3px; font-size:10.5px;">${escapeHtml(s)}</code>`).join('')}
+          ` : ''}
+        </div>` : ''}
+        ${p.cited_hotlines && p.cited_hotlines.length ? `
+        <div style="margin-bottom:6px; font-size:11.5px;">
+          <span style="color:var(--muted);">Hotlines (${p.n_hotlines}):</span>
+          ${p.cited_hotlines.map(h => `<code style="background:rgba(16,185,129,0.12); color:#4ade80; padding:1px 5px; border-radius:3px; margin-right:3px; font-size:10.5px;">${escapeHtml(h)}</code>`).join('')}
+        </div>` : ''}
+        ${p.numeric_claims && p.numeric_claims.length ? `
+        <div style="font-size:11.5px;">
+          <span style="color:var(--muted);">Numeric claims (${p.n_numeric}):</span>
+          ${p.numeric_claims.map(n => `<code style="background:rgba(59,130,246,0.12); color:#60a5fa; padding:1px 5px; border-radius:3px; margin-right:3px; font-size:10.5px;">${escapeHtml(n)}</code>`).join('')}
+        </div>` : ''}
+      </div>
+    `;
+  }
+  let html = profileHtml + `
+    <div style="display:flex; gap:14px; margin-bottom:14px; flex-wrap:wrap;">
+      <div style="flex:1 1 130px; background:var(--bg); border-radius:6px; padding:12px 14px; border-left:4px solid ${scoreColor};">
+        <div style="font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:0.5px;">Score</div>
+        <div style="font-size:24px; font-weight:700; color:${scoreColor};">${pct}%</div>
+        <div style="font-size:11px; color:var(--muted); margin-top:2px;">${g.total_score} / ${g.total_weight} weighted (over ${g.n_applicable} applicable dimensions)</div>
+      </div>
+      <div style="flex:1 1 80px; background:var(--bg); border-radius:6px; padding:12px 14px; border-left:4px solid #10b981;">
+        <div style="font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:0.5px;">Pass</div>
+        <div style="font-size:24px; font-weight:700; color:#10b981;">${g.n_pass}</div>
+      </div>
+      <div style="flex:1 1 80px; background:var(--bg); border-radius:6px; padding:12px 14px; border-left:4px solid #f59e0b;">
+        <div style="font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:0.5px;">Partial</div>
+        <div style="font-size:24px; font-weight:700; color:#f59e0b;">${g.n_partial}</div>
+      </div>
+      <div style="flex:1 1 80px; background:var(--bg); border-radius:6px; padding:12px 14px; border-left:4px solid #ef4444;">
+        <div style="font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:0.5px;">Fail</div>
+        <div style="font-size:24px; font-weight:700; color:#ef4444;">${g.n_fail}</div>
+      </div>
+      <div style="flex:1 1 80px; background:var(--bg); border-radius:6px; padding:12px 14px; border-left:4px solid #64748b;">
+        <div style="font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:0.5px;">N/A</div>
+        <div style="font-size:24px; font-weight:700; color:#64748b;">${g.n_not_applicable}</div>
+        <div style="font-size:10px; color:var(--muted); margin-top:2px;">no signals</div>
+      </div>
+    </div>
+    <div style="font-size:11px; color:var(--muted); margin-bottom:10px;">
+      Detected signals: ${g.signals.grep_fired ? '<span style="color:#ef4444; font-weight:600;">GREP fired</span>' : 'no GREP'}
+      · ${g.signals.rag_fired ? '<span style="color:#3b82f6; font-weight:600;">RAG retrieved</span>' : 'no RAG'}
+      · ${g.signals.response_refuses ? '<span style="color:#10b981; font-weight:600;">response refuses</span>' : 'response does not refuse'}
+    </div>
+  `;
+  html += `<table style="width:100%; border-collapse:collapse; font-size:12px;">
+    <thead>
+      <tr style="background:var(--bg);">
+        <th style="text-align:left; padding:8px 10px; color:var(--muted); border-bottom:1px solid var(--border);">Dimension</th>
+        <th style="text-align:center; padding:8px 10px; color:var(--muted); border-bottom:1px solid var(--border); width:90px;">Status</th>
+        <th style="text-align:left; padding:8px 10px; color:var(--muted); border-bottom:1px solid var(--border); width:120px;">Applies</th>
+        <th style="text-align:center; padding:8px 10px; color:var(--muted); border-bottom:1px solid var(--border); width:60px;">Weight</th>
+        <th style="text-align:left; padding:8px 10px; color:var(--muted); border-bottom:1px solid var(--border);">Hits</th>
+      </tr>
+    </thead>
+    <tbody>`;
+  for (const d of g.dimensions) {
+    const color = RUBRIC_STATUS_COLOR[d.status] || '#94a3b8';
+    const isNA = d.status === 'NOT_APPLICABLE';
+    const passHits = (d.pass_hits || []).slice(0, 4).join(', ');
+    const failHits = (d.fail_hits || []).slice(0, 4).join(', ');
+    let hitsHtml = '';
+    if (passHits) hitsHtml += `<span style="color:#10b981;">${escapeHtml(passHits)}</span>`;
+    if (passHits && failHits) hitsHtml += '<br>';
+    if (failHits) hitsHtml += `<span style="color:#ef4444;">${escapeHtml(failHits)}</span>`;
+    if (!hitsHtml) hitsHtml = `<span style="color:var(--muted); font-style:italic;">${isNA ? 'dimension not testable from this exchange' : 'no terms matched (response did not address this)'}</span>`;
+    const rowOpacity = isNA ? 'opacity:0.55;' : '';
+    const statusLabel = d.status === 'NOT_APPLICABLE' ? 'N/A' : d.status;
+    html += `<tr style="${rowOpacity}">
+      <td style="padding:6px 10px; border-bottom:1px solid var(--border);">
+        <strong style="color:var(--ink); font-size:12px;">${escapeHtml(d.name)}</strong><br>
+        <code style="color:var(--muted); font-size:10.5px;">${escapeHtml(d.id)}</code><br>
+        <span style="color:var(--muted); font-size:11px;">${escapeHtml(d.description)}</span>
+      </td>
+      <td style="padding:6px 10px; border-bottom:1px solid var(--border); text-align:center;">
+        <span style="background:${color}; color:#fff; padding:2px 8px; border-radius:3px; font-weight:600; font-size:10.5px;">${escapeHtml(statusLabel)}</span>
+      </td>
+      <td style="padding:6px 10px; border-bottom:1px solid var(--border); color:var(--muted); font-size:10.5px; font-family:ui-monospace,monospace;">${escapeHtml(d.applicability)}</td>
+      <td style="padding:6px 10px; border-bottom:1px solid var(--border); text-align:center; color:var(--muted); font-size:11px;">${d.weight}</td>
+      <td style="padding:6px 10px; border-bottom:1px solid var(--border); font-size:11px;">${hitsHtml}</td>
+    </tr>`;
+  }
+  html += '</tbody></table>';
+  html += `<div style="font-size:11px; color:var(--muted); margin-top:10px; font-style:italic;">Universal rubric ${escapeHtml(g.version)} · 15 dimensions · auto-detects applicability from prompt + response + harness trace · NOT_APPLICABLE rows excluded from score · keyword-based scoring (run <code>scripts/rubric_comparison.py</code> for semantic scoring).</div>`;
+  return html;
 }
 
 function _renderGradeResult(g) {
