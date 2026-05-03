@@ -184,22 +184,138 @@ _CLOUDFLARED_PROC: dict = {"p": None}
 
 _SHUTDOWN_BUTTON_SNIPPET = """
 <style>
-  #_dc-shutdown-btn { position: fixed; top: 12px; right: 12px; z-index: 99999;
-    background: #dc2626; color: white; padding: 8px 14px;
-    border-radius: 8px; font-family: -apple-system,system-ui,sans-serif;
-    font-weight: 700; font-size: 12px; cursor: pointer; border: none;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.18); }
-  #_dc-shutdown-btn:hover { background: #991b1b; }
+  #_dc-shutdown-btn {
+    position: fixed; top: 12px; right: 12px; z-index: 99999;
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 7px 14px;
+    background: rgba(220, 38, 38, 0.92);
+    color: #fff;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 999px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    font-weight: 600; font-size: 12px; line-height: 1;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
+    transition: all 0.18s ease;
+    user-select: none;
+  }
+  #_dc-shutdown-btn:hover {
+    background: rgba(153, 27, 27, 1);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 18px rgba(220, 38, 38, 0.45);
+  }
+  #_dc-shutdown-btn[data-state="confirming"] {
+    background: rgba(245, 158, 11, 0.95);
+    border-color: rgba(255, 255, 255, 0.25);
+  }
+  #_dc-shutdown-btn[data-state="confirming"]:hover {
+    background: rgba(217, 119, 6, 1);
+  }
+  #_dc-shutdown-btn[data-state="shutting"] {
+    background: rgba(107, 114, 128, 0.95);
+    cursor: wait; transform: none;
+  }
+  #_dc-shutdown-btn[data-state="done"] {
+    background: rgba(16, 185, 129, 0.95);
+    cursor: default; transform: none;
+  }
+  #_dc-shutdown-icon { font-size: 14px; line-height: 1; }
+  #_dc-shutdown-overlay {
+    position: fixed; inset: 0; z-index: 100000;
+    display: none;
+    align-items: center; justify-content: center;
+    background: linear-gradient(135deg, rgba(15, 23, 42, 0.97) 0%, rgba(30, 41, 59, 0.97) 100%);
+    color: #e2e8f0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
+  }
+  #_dc-shutdown-overlay.show { display: flex; }
+  #_dc-shutdown-overlay .box {
+    text-align: center;
+    padding: 48px 56px;
+    background: rgba(30, 41, 59, 0.85);
+    border: 1px solid rgba(71, 85, 105, 0.5);
+    border-radius: 16px;
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.5);
+    max-width: 440px;
+  }
+  #_dc-shutdown-overlay .icon {
+    font-size: 56px; line-height: 1;
+    color: #10b981;
+    margin-bottom: 16px;
+  }
+  #_dc-shutdown-overlay h1 {
+    margin: 0 0 10px 0;
+    font-size: 24px; font-weight: 700;
+    color: #f1f5f9;
+  }
+  #_dc-shutdown-overlay p {
+    margin: 0; color: #94a3b8;
+    font-size: 14px; line-height: 1.55;
+  }
+  #_dc-shutdown-overlay .meta {
+    margin-top: 18px;
+    color: #64748b; font-size: 12px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
 </style>
-<button id="_dc-shutdown-btn" onclick="
-  if(!confirm('Shut down Duecare?')) return;
-  fetch('/api/shutdown',{method:'POST'}).then(()=>{
-    document.body.innerHTML=
-      '<div style=\"padding:60px;text-align:center;font-family:system-ui\">'+
-      '<h1 style=\"color:#047857\">Shutting down\u2026</h1>'+
-      '<p style=\"color:#6b7280\">You can close this tab.</p></div>';
+<div id="_dc-shutdown-overlay" role="dialog" aria-modal="true" aria-live="polite">
+  <div class="box">
+    <div class="icon">✓</div>
+    <h1>Server stopped</h1>
+    <p>The FastAPI server is down and the Kaggle cell will exit shortly.</p>
+    <p class="meta">You can close this tab.</p>
+  </div>
+</div>
+<button id="_dc-shutdown-btn" type="button" data-state="idle"
+        title="Stop the FastAPI server and exit the Kaggle cell"
+        aria-label="Shutdown Duecare server">
+  <span id="_dc-shutdown-icon">⏻</span><span id="_dc-shutdown-label">Shutdown</span>
+</button>
+<script>
+(function() {
+  var btn = document.getElementById('_dc-shutdown-btn');
+  var lbl = document.getElementById('_dc-shutdown-label');
+  var overlay = document.getElementById('_dc-shutdown-overlay');
+  if (!btn || !lbl || !overlay) return;
+  var confirmTimer = null;
+
+  function setState(state, text) {
+    btn.dataset.state = state;
+    if (text) lbl.textContent = text;
+  }
+
+  btn.addEventListener('click', function() {
+    var s = btn.dataset.state || 'idle';
+    if (s === 'shutting' || s === 'done') return;
+    if (s === 'confirming') {
+      // Second click within 4s = confirm + fire shutdown
+      if (confirmTimer) clearTimeout(confirmTimer);
+      setState('shutting', 'Stopping…');
+      // Fire-and-don't-wait: the server tears itself down within
+      // ~500ms so the response often never arrives. Either path is fine.
+      try {
+        fetch('/api/shutdown', {method: 'POST'}).catch(function(){});
+      } catch (e) { /* server already gone */ }
+      // Show success overlay after a short delay so the state pill is
+      // visible long enough for the user to register the click.
+      setTimeout(function() {
+        setState('done', 'Stopped ✓');
+        overlay.classList.add('show');
+      }, 350);
+    } else {
+      // First click: enter confirming state, auto-revert in 4s if no second click
+      setState('confirming', 'Click again to confirm');
+      confirmTimer = setTimeout(function() {
+        if (btn.dataset.state === 'confirming') {
+          setState('idle', 'Shutdown');
+        }
+      }, 4000);
+    }
   });
-">\u23FB Shutdown</button>
+})();
+</script>
 """
 
 _HIDE_HARNESS_TILES_SNIPPET = """
