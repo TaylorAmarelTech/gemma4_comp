@@ -204,8 +204,56 @@ _SHUTDOWN_BUTTON_SNIPPET = """
 
 _HIDE_HARNESS_TILES_SNIPPET = """
 <style>
-  #harness-tiles, [id^='tile-'], .harness-tile { display: none !important; }
+  /* BASELINE NOTEBOOK: hide every safety-harness affordance.
+     This kernel is RAW Gemma 4 chat with NO harness. Notebook #2
+     (chat-playground-with-grep-rag-tools) is the version that shows
+     all of these. */
+  #harness-tiles,
+  .harness-tiles,
+  .harness-tiles-header,
+  [id^='tile-'],
+  .harness-tile,
+  .harness-catalog,
+  .harness-catalog-link,
+  button[onclick*='openExamplesModal'],
+  a[onclick*='openPipelineModal'],
+  a[onclick*='openLayerModal'],
+  a[onclick*='openGradeModal'],
+  .empty-state-chips,
+  .empty-hints,
+  #empty-hints,
+  .pipeline-link,
+  .grade-link { display: none !important; }
+  /* Also strip the "Click ▸ Examples for ..." prose from the empty
+     state since the Examples button is hidden. */
+  .empty-state strong { display: inline; }
 </style>
+<script>
+  // Belt-and-suspenders: also strip the "View pipeline" link from any
+  // assistant reply DOM after render, in case CSS alone doesn't catch
+  // the inline-styled inserts the chat JS emits per message.
+  (function() {
+    const PIPELINE_RE = /View pipeline|Grade response/i;
+    function stripPipelineLinks() {
+      document.querySelectorAll('a').forEach(a => {
+        const oc = a.getAttribute('onclick') || '';
+        if (oc.includes('openPipelineModal') || oc.includes('openGradeModal')
+            || PIPELINE_RE.test(a.textContent)) {
+          a.style.display = 'none';
+          // also strip the leading " · " separator if present
+          const prev = a.previousSibling;
+          if (prev && prev.nodeType === 3 && prev.textContent.includes('·')) {
+            prev.textContent = prev.textContent.replace(/\\s*·\\s*$/, '');
+          }
+        }
+      });
+    }
+    stripPipelineLinks();
+    new MutationObserver(stripPipelineLinks).observe(
+      document.body, {childList: true, subtree: true}
+    );
+  })();
+</script>
 """
 
 
@@ -266,8 +314,9 @@ def _attach_shutdown(app, hide_harness_tiles: bool = False) -> None:
     class _UIInjector(BaseHTTPMiddleware):
         async def dispatch(self, request, call_next):
             response = await call_next(request)
-            if request.url.path != "/":
-                return response
+            # Inject on ANY text/html response — the chat UI may serve at
+            # "/" or "/index.html" or another path depending on which app
+            # mounts which router. Filter only by content-type, not path.
             ct = response.headers.get("content-type", "")
             if not ct.startswith("text/html"):
                 return response
