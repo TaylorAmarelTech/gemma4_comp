@@ -109,6 +109,7 @@ class GradeRequest(BaseModel):
     response_text: str
     prompt_id: Optional[str] = None
     category: Optional[str] = None
+    prompt_category: Optional[str] = None  # passed by UI when prompt was loaded from Examples
 
 
 def create_app(
@@ -268,7 +269,13 @@ def create_app(
             raise HTTPException(400, "supply prompt_id or category")
         try:
             if req.category:
-                result = gc(req.category, req.response_text, is_category=True)
+                # Pass prompt_category through so the grader can mark
+                # rubric relevance (high / low / cross_cutting / unknown)
+                from .harness import grade_response_required
+                result = grade_response_required(
+                    req.category, req.response_text,
+                    prompt_category=req.prompt_category,
+                )
             else:
                 result = gc(req.prompt_id, req.response_text)
         except Exception as e:  # noqa: BLE001 -- surface to client
