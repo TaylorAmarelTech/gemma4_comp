@@ -12,8 +12,40 @@ the meta `duecare-llm` package tracking the workspace lockstep.
 
 - Pending: bench-and-tune (A2) Kaggle T4×2 fine-tune run + HF Hub
   push of `Duecare-Gemma-4-E4B-it-SafetyJudge-v0.1.0`
-- Pending: notebook publish for #3, #4, A1, A3, A4, A5 (built
+- Pending: notebook publish for #3, #4, A1, A3, A4, A5, A6 (built
   locally; gated by Kaggle daily push rate-limit)
+- **NEW (2026-05-03):** Universal Grader v3.0 — replaces
+  prompt-shape-coupled categories (business_framed / victim / etc.)
+  with 15 cross-prompt dimensions. Multi-signal scoring beyond
+  keyword matching:
+  - Intent detection: 5 categories (refusal / education / referral
+    / analytical / evasion) auto-derived from response text;
+    dimension weights reweighted by primary intent
+  - Citation cross-reference: 106-source reference corpus
+    (was 26 RAG docs only) — adds 42 GREP rule citations + 7
+    corridor caps + 11 ILO indicators + 4 NGO names + 16 fee labels
+  - Section-number verification: catches hallucinated section
+    references (e.g., `ILO C029 §99` flagged because convention
+    only has 33 articles); 19 known statutes mapped
+  - Semantic phrase clusters: each indicator expands to
+    paraphrases/synonyms (e.g., `cannot provide` → 18 variants);
+    catches semantic equivalents that pure keyword matching misses
+  - Structural detection: well-organized responses (sections,
+    lists, emphasis) get up to +5pp score boost
+  - Per-citation source attribution (`grounded_via`)
+- **NEW (2026-05-03):** A6 `duecare-grading-evaluation` notebook —
+  dedicated lift regenerator. Runs N prompts × 2 conditions through
+  Gemma 4, grades both with v3 grader, emits MD + JSON reports with
+  provenance tuple `(model, git_sha, dataset_version)`. The
+  falsifiable +56.5pp number, regenerated live from a git SHA.
+- **NEW (2026-05-03):** Copy Pipeline button (Markdown / JSON) in
+  the chat package's Pipeline modal — copies the full 7-card trace
+  for any response into the clipboard. Useful for bug reports,
+  GitHub issues, downstream tooling.
+- **NEW (2026-05-03):** 13 unit tests for v3 grader functions
+  (semantic clusters, section verification, citation expansion,
+  structural detection, response profile, lift evaluator,
+  aggregator). Test count: 23 → 36 in test_harness_behavior.py.
 - Added: readiness rubric suite consolidating ~10 scattered
   status / rubric docs into 4 canonical views —
   `docs/readiness_dashboard.md` (single-screen status across every

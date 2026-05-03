@@ -216,7 +216,7 @@
 
 <div class="stats">
   <div class="stat"><span class="stat-num">14</span><span class="stat-label">User personas</span></div>
-  <div class="stat"><span class="stat-num">11</span><span class="stat-label">Kaggle notebooks</span></div>
+  <div class="stat"><span class="stat-num">12</span><span class="stat-label">Kaggle notebooks</span></div>
   <div class="stat"><span class="stat-num">17</span><span class="stat-label">PyPI packages</span></div>
   <div class="stat"><span class="stat-num">5</span><span class="stat-label">Deployment topologies</span></div>
   <div class="stat"><span class="stat-num">42</span><span class="stat-label">GREP rules</span></div>
@@ -392,6 +392,10 @@
     <div class="node notebook" data-type="notebook" data-id="a5">
       <div class="node-title">A5. chat-playground-jailbroken-models</div>
       <div class="node-sub">⭐ Strongest "real" proof · abliterated Gemma 4</div>
+    </div>
+    <div class="node notebook" data-type="notebook" data-id="a6">
+      <div class="node-title">A6. grading-evaluation</div>
+      <div class="node-sub">⭐ Live lift regenerator · v3 grader · OFF vs ON</div>
     </div>
   </div>
 </div>
@@ -575,6 +579,7 @@ const DETAILS = {
   'a3': { title: 'A3. research-graphs', body: '<h3>Purpose</h3><p>6 Plotly charts: entity graph, corridor Sankey, per-category benchmark bars, fee-camouflage heatmap, ILO indicator hits, RAG corpus sunburst. CPU-only, ~30 sec.</p>' },
   'a4': { title: 'A4. chat-playground-with-agentic-research', body: '<h3>Purpose</h3><p>Same chat UI as #2 + 5th toggle for agentic web research using DuckDuckGo + httpx + Wikipedia. All open-source, no API keys.</p>' },
   'a5': { title: 'A5. chat-playground-jailbroken-models', body: '<h3>⭐ Strongest "real, not faked" proof</h3><p>Same chat UI as #2 + 4-toggle harness, but loads an abliterated/cracked Gemma 4 variant (default: dealignai/Gemma-4-31B-JANG_4M-CRACK). Demonstrates the harness still produces safe outputs even when the base model has had its refusals ablated.</p>' },
+  'a6': { title: 'A6. grading-evaluation', body: '<h3>⭐ Live lift regenerator</h3><p>Dedicated rubric-evaluation notebook. Runs N prompts through Gemma 4 twice (harness OFF vs ON), grades both with the universal v3 grader (15 cross-prompt dimensions, intent-aware reweighting, 106-source citation cross-reference, section-number verification, semantic phrase clusters), and emits a markdown + JSON report with provenance tuple. THE falsifiable +56.5pp number, regenerated from a git SHA.</p><h3><a href="https://www.kaggle.com/code/taylorsamarel/duecare-grading-evaluation">Open on Kaggle →</a></h3>' },
   // PACKAGES
   'meta': { title: 'duecare-llm (meta)', body: '<p><code>pip install duecare-llm</code> installs all 16 sub-packages + the duecare CLI.</p>' },
   'core': { title: 'duecare-llm-core', body: '<p>12 Pydantic schemas, Protocol contracts, Registry, Provenance. Foundation for every other package.</p>' },
