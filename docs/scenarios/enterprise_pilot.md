@@ -163,7 +163,7 @@ Avoid:
 |---|---|
 | 17 PyPI packages + 6 + 5 Kaggle notebooks + Helm chart + Docker image | Your client UI (web / mobile / Slack / Discord / etc.) |
 | 37 GREP rules + 26 RAG docs + 4 corridor lookups | Your domain-specific extensions (custom GREP rules, internal corpus, internal tools) |
-| 11 ILO C029 indicators + 6 corridor profiles | Your jurisdiction-specific corridors / regulators / NGO lists |
+| 11 ILO C029 indicators + 20 corridor profiles | Your jurisdiction-specific corridors / regulators / NGO lists |
 | Per-tenant token + cost meter | Hook to your billing pipeline |
 | OpenTelemetry traces + Prometheus metrics | Hook to your existing observability stack |
 | Cosign-signed image | Cosign verification policy in admission |

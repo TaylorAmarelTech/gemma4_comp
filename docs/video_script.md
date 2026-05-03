@@ -209,15 +209,15 @@ returned.
 > If she has to pay anyway, the journal captures the receipt + the
 > recruiter's POEA license number + the controlling statute. Same
 > harness on the desktop NGO dashboard for triage. And on the phone:
-> Duecare Journey v0.6 — same harness on-device via MediaPipe Gemma 4
+> Duecare Journey v0.9 — same harness on-device via MediaPipe Gemma 4
 > E2B, encrypted journal, eleven ILO indicator detectors, six
 > migration corridors with statute lookups, and an NGO intake
 > document the worker generates with one tap and shares with one
 > more. APK published; install link in the description."*
 
-**Production note.** The Android beat shows the live v0.6.0 APK
+**Production note.** The Android beat shows the live v0.9.0 APK
 running on a real device. APK:
-`https://github.com/TaylorAmarelTech/duecare-journey-android/releases/download/v0.6.0-cloud-and-knowledge/duecare-journey-v0.6.0-cloud-and-knowledge.apk`.
+`https://github.com/TaylorAmarelTech/duecare-journey-android/releases/download/v0.9.0-twenty-corridors-new-rules/duecare-journey-v0.9.0-twenty-corridors-new-rules.apk`.
 Architecture: `docs/android_app_architecture.md`. Source +
 CI: `duecare-journey-android/`.
 
@@ -267,12 +267,12 @@ Fade to black. Music fades.
 - [ ] Screen recording: classification notebook, Examples modal, click
       WhatsApp example, Classify, result card fills
 - [ ] Three-up split: phone (mobile-responsive web chat) +
-      desktop (classifier dashboard) + live Android v0.6.0 APK on a
+      desktop (classifier dashboard) + live Android v0.9.0 APK on a
       real phone showing the Reports tab
 - [ ] Live Android screen capture: bottom-nav (Journal · Advice ·
       Reports · Settings) → Reports tab → Generate intake document
       → markdown intake doc visible (matches the sibling
-      `duecare-journey-android/` v0.6.0 release)
+      `duecare-journey-android/` v0.9.0 release)
 - [ ] End card with URLs
 
 **Voiceover word count:** ~325 words after the numbers beat insert

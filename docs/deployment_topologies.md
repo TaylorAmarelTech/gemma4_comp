@@ -189,7 +189,7 @@ MediaPipe. The Android app's `intel/` package is a Kotlin port of the
 GREP rules + ILO indicators + corridor knowledge. The journal is
 SQLCipher-encrypted at rest.
 
-This is the mode the `duecare-journey-android` app v0.6.0 ships in by
+This is the mode the `duecare-journey-android` app v0.9.0 ships in by
 default. The Settings → Cloud model section is opt-in.
 
 **Best for:** worker who's been told never to install anything that

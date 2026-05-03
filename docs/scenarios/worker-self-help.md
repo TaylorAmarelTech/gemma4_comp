@@ -45,7 +45,7 @@ a report yourself.
 
 1. On your Android phone, open the browser.
 2. Go to: **https://github.com/TaylorAmarelTech/duecare-journey-android/releases**
-3. Tap the latest `duecare-journey-v0.7.0-quality-and-claims.apk`.
+3. Tap the latest `duecare-journey-v0.9.0-twenty-corridors-new-rules.apk`.
 4. Allow "Install unknown apps" if prompted (it's needed because
    the app is not in the Play Store yet — that's deliberate, the
    Play Store would require a Google account; we don't want you
