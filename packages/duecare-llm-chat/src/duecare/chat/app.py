@@ -110,6 +110,9 @@ class GradeRequest(BaseModel):
     prompt_id: Optional[str] = None
     category: Optional[str] = None
     prompt_category: Optional[str] = None  # passed by UI when prompt was loaded from Examples
+    prompt_text: Optional[str] = None      # used by universal grader for applicability detection
+    harness_trace: Optional[dict] = None   # used by universal grader for applicability detection
+    mode: Optional[str] = None             # "universal" | "category" | "prompt_id" (default: universal if no other params)
 
 
 def create_app(
@@ -261,23 +264,37 @@ def create_app(
         The `grade_call` callable is wired at create_app time. Returns
         503 if not wired (e.g. older kernels that don't pass it)."""
         gc = app.state.grade_call
-        if gc is None:
+        if gc is None and not req.mode == "universal":
             raise HTTPException(503, "grading not enabled in this kernel")
         if not req.response_text or not req.response_text.strip():
             raise HTTPException(400, "response_text is required")
-        if not req.prompt_id and not req.category:
-            raise HTTPException(400, "supply prompt_id or category")
+        # Default mode = universal (no prompt_id or category needed)
+        mode = req.mode or ("category" if req.category else
+                              "prompt_id" if req.prompt_id else "universal")
         try:
-            if req.category:
-                # Pass prompt_category through so the grader can mark
-                # rubric relevance (high / low / cross_cutting / unknown)
+            if mode == "universal":
+                from .harness import grade_response_universal
+                result = grade_response_universal(
+                    req.response_text,
+                    prompt_text=req.prompt_text or "",
+                    harness_trace=req.harness_trace,
+                )
+            elif mode == "category":
                 from .harness import grade_response_required
+                if not req.category:
+                    raise HTTPException(400, "category required for mode=category")
                 result = grade_response_required(
                     req.category, req.response_text,
                     prompt_category=req.prompt_category,
                 )
-            else:
+            elif mode == "prompt_id":
+                if not req.prompt_id:
+                    raise HTTPException(400, "prompt_id required for mode=prompt_id")
                 result = gc(req.prompt_id, req.response_text)
+            else:
+                raise HTTPException(400, f"unknown mode: {mode!r}")
+        except HTTPException:
+            raise
         except Exception as e:  # noqa: BLE001 -- surface to client
             raise HTTPException(500, f"grading failed: {e}") from e
         return result
