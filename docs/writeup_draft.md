@@ -81,6 +81,26 @@ fully offline:
 
 ## 2. The harness (340 words)
 
+```
+USER INPUT
+    │
+    ▼
+┌─────────┐   ┌─────────┐   ┌─────────┐   ┌─────────┐
+│ ① Persona│──▶│ ② GREP  │──▶│ ③ RAG   │──▶│ ④ Tools │
+│ 40-yr    │   │ 42 KB   │   │ BM25/26 │   │ 4 fn    │
+│ expert   │   │ regex + │   │ docs +  │   │ calls   │
+│ system   │   │ citatns │   │ top-5   │   │ via     │
+│ prompt   │   │         │   │ inject  │   │ Gemma 4 │
+└─────────┘   └─────────┘   └─────────┘   └─────────┘
+                              │
+                              ▼
+                  ⑥ FINAL MERGED PROMPT (byte-for-byte)
+                              │
+                              ▼
+                   ⑦ GEMMA 4 RESPONSE  ──▶ ▸ View pipeline modal
+                                            (all 7 cards visible)
+```
+
 Duecare wraps Gemma 4 with four toggleable layers. Each layer is
 visible in the chat UI as a colored tile (purple/red/blue/green) that
 the user clicks ON or OFF per message:
