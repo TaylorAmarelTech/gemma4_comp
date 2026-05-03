@@ -2552,6 +2552,184 @@ def grade_response(prompt_id_or_category: str, response_text: str,
     return grade_response_5tier(prompt_id_or_category, response_text)
 
 
+# ---------------------------------------------------------------------------
+# Lift evaluator: side-by-side OFF vs ON harness comparison.
+# Used by the dedicated grading-evaluation notebook (A6) to produce the
+# headline +56.5pp number per-prompt with full provenance.
+# ---------------------------------------------------------------------------
+
+def evaluate_lift(
+    prompt_text: str,
+    *,
+    response_off: str,
+    response_on: str,
+    harness_trace_on: dict | None = None,
+) -> dict:
+    """Grade a prompt's OFF and ON responses with the universal v2
+    grader and compute the per-dimension delta. Returns:
+      {
+        prompt_text, response_off, response_on,
+        grade_off: <universal grader output>,
+        grade_on:  <universal grader output>,
+        lift: {
+          pct_score_delta, n_pass_delta, n_fail_delta,
+          per_dimension: [{id, off_status, on_status, status_change}],
+          intent_change: (off_intent, on_intent),
+          citation_grounding_delta,
+        }
+      }
+    """
+    grade_off = grade_response_universal(
+        response_off, prompt_text=prompt_text, harness_trace=None
+    )
+    grade_on = grade_response_universal(
+        response_on, prompt_text=prompt_text, harness_trace=harness_trace_on
+    )
+    # Per-dimension status change
+    off_dim = {d["id"]: d["status"] for d in grade_off["dimensions"]}
+    on_dim  = {d["id"]: d["status"] for d in grade_on["dimensions"]}
+    per_dim = []
+    for d in grade_on["dimensions"]:
+        off_s = off_dim.get(d["id"], "MISSING")
+        on_s = d["status"]
+        # Score the change: PASS > PARTIAL > FAIL > NOT_APPLICABLE
+        rank = {"PASS": 3, "PARTIAL": 2, "FAIL": 1, "NOT_APPLICABLE": 0,
+                "MISSING": 0}
+        diff = rank[on_s] - rank[off_s]
+        if diff > 0: change = "improved"
+        elif diff < 0: change = "regressed"
+        else: change = "same"
+        per_dim.append({
+            "id": d["id"], "name": d["name"],
+            "off_status": off_s, "on_status": on_s,
+            "status_change": change,
+            "weight": d["weight"],
+        })
+    return {
+        "prompt_text":       prompt_text,
+        "response_off":      response_off,
+        "response_on":       response_on,
+        "grade_off":         grade_off,
+        "grade_on":          grade_on,
+        "lift": {
+            "pct_score_delta":         round(
+                grade_on["pct_score"] - grade_off["pct_score"], 1
+            ),
+            "n_pass_delta":            grade_on["n_pass"] - grade_off["n_pass"],
+            "n_partial_delta":         grade_on["n_partial"] - grade_off["n_partial"],
+            "n_fail_delta":            grade_on["n_fail"] - grade_off["n_fail"],
+            "per_dimension":           per_dim,
+            "intent_change":           (
+                grade_off["profile"]["primary_intent"],
+                grade_on["profile"]["primary_intent"],
+            ),
+            "citation_grounding_delta": round(
+                grade_on["citation_check"]["grounded_pct"]
+                - grade_off["citation_check"]["grounded_pct"], 1
+            ),
+            "n_citations_delta":       (
+                grade_on["profile"]["n_citations"]
+                - grade_off["profile"]["n_citations"]
+            ),
+            "n_hotlines_delta":        (
+                grade_on["profile"]["n_hotlines"]
+                - grade_off["profile"]["n_hotlines"]
+            ),
+        },
+    }
+
+
+def aggregate_lift_results(results: list[dict]) -> dict:
+    """Aggregate lift evaluation across N prompts. Returns mean lift
+    per dimension + overall stats."""
+    if not results:
+        return {"n": 0}
+    n = len(results)
+    mean_off = sum(r["grade_off"]["pct_score"] for r in results) / n
+    mean_on = sum(r["grade_on"]["pct_score"] for r in results) / n
+    # Per-dimension aggregate change
+    dim_stats: dict[str, dict] = {}
+    for r in results:
+        for d in r["lift"]["per_dimension"]:
+            ds = dim_stats.setdefault(d["id"], {
+                "name": d["name"], "improved": 0, "same": 0,
+                "regressed": 0, "n": 0,
+            })
+            ds[d["status_change"]] += 1
+            ds["n"] += 1
+    # Citation grounding aggregate
+    grounding_off = [r["grade_off"]["citation_check"]["grounded_pct"]
+                      for r in results
+                      if r["grade_off"]["profile"]["n_citations"]]
+    grounding_on = [r["grade_on"]["citation_check"]["grounded_pct"]
+                     for r in results
+                     if r["grade_on"]["profile"]["n_citations"]]
+    return {
+        "n":                  n,
+        "mean_pct_off":       round(mean_off, 1),
+        "mean_pct_on":        round(mean_on, 1),
+        "mean_lift_pp":       round(mean_on - mean_off, 1),
+        "n_helped":           sum(1 for r in results
+                                   if r["lift"]["pct_score_delta"] > 0),
+        "n_unchanged":        sum(1 for r in results
+                                   if r["lift"]["pct_score_delta"] == 0),
+        "n_hurt":             sum(1 for r in results
+                                   if r["lift"]["pct_score_delta"] < 0),
+        "per_dimension":      dim_stats,
+        "mean_citations_off": round(sum(r["grade_off"]["profile"]["n_citations"] for r in results) / n, 1),
+        "mean_citations_on":  round(sum(r["grade_on"]["profile"]["n_citations"] for r in results) / n, 1),
+        "mean_grounding_off": round(sum(grounding_off) / len(grounding_off), 1) if grounding_off else 0,
+        "mean_grounding_on":  round(sum(grounding_on) / len(grounding_on), 1) if grounding_on else 0,
+    }
+
+
+def format_lift_report_md(
+    results: list[dict],
+    aggregate: dict,
+    *,
+    title: str = "Duecare Harness Lift Report",
+    model_name: str = "(unspecified)",
+    git_sha: str = "(unspecified)",
+    dataset_version: str = "(unspecified)",
+) -> str:
+    """Format the lift evaluation as a Markdown report ready for
+    inclusion in the writeup or as a standalone artifact."""
+    import datetime as _dt
+    md = []
+    md.append(f"# {title}\n")
+    md.append(f"_Generated {_dt.datetime.utcnow().isoformat()}Z_\n")
+    md.append(f"Model: `{model_name}` · Git SHA: `{git_sha}` · Dataset: `{dataset_version}`\n")
+    md.append("")
+    md.append("## Headline numbers\n")
+    md.append(f"| Metric | Harness OFF | Harness ON | Delta |")
+    md.append(f"|---|---:|---:|---:|")
+    md.append(f"| **Mean rubric score (universal v2)** | {aggregate['mean_pct_off']}% | {aggregate['mean_pct_on']}% | **+{aggregate['mean_lift_pp']} pp** |")
+    md.append(f"| Mean cited statutes per response | {aggregate['mean_citations_off']} | {aggregate['mean_citations_on']} | +{round(aggregate['mean_citations_on'] - aggregate['mean_citations_off'], 1)} |")
+    md.append(f"| Mean citation grounding | {aggregate['mean_grounding_off']}% | {aggregate['mean_grounding_on']}% | +{round(aggregate['mean_grounding_on'] - aggregate['mean_grounding_off'], 1)} pp |")
+    md.append("")
+    md.append(f"**Test set:** {aggregate['n']} prompts. **Helped:** {aggregate['n_helped']} · **Unchanged:** {aggregate['n_unchanged']} · **Hurt:** {aggregate['n_hurt']}\n")
+    md.append("")
+    md.append("## Per-dimension status change (across the test set)\n")
+    md.append("| Dimension | Improved | Same | Regressed |")
+    md.append("|---|---:|---:|---:|")
+    for did, ds in sorted(aggregate["per_dimension"].items(),
+                            key=lambda kv: -kv[1].get("improved", 0)):
+        md.append(f"| {ds['name']} | {ds.get('improved', 0)} | {ds.get('same', 0)} | {ds.get('regressed', 0)} |")
+    md.append("")
+    md.append("## Per-prompt detail\n")
+    for i, r in enumerate(results, 1):
+        prompt_short = r["prompt_text"][:140].replace("\n", " ")
+        if len(r["prompt_text"]) > 140: prompt_short += "..."
+        md.append(f"### Prompt {i}: {prompt_short}\n")
+        l = r["lift"]
+        md.append(f"- **Score:** {r['grade_off']['pct_score']}% (OFF) → {r['grade_on']['pct_score']}% (ON) — Δ **{l['pct_score_delta']:+.1f} pp**")
+        md.append(f"- **Primary intent change:** {l['intent_change'][0]} → {l['intent_change'][1]}")
+        md.append(f"- **Citations:** {r['grade_off']['profile']['n_citations']} → {r['grade_on']['profile']['n_citations']} (+{l['n_citations_delta']})")
+        md.append(f"- **Hotlines:** {r['grade_off']['profile']['n_hotlines']} → {r['grade_on']['profile']['n_hotlines']} (+{l['n_hotlines_delta']})")
+        md.append("")
+    return "\n".join(md)
+
+
 def _load_classifier_examples() -> Any:
     """Load the classifier-specific example content (recruitment ads,
     documents, narratives, etc. — different shape from the chat

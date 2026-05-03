@@ -1,0 +1,6 @@
+{
+  "title": "Duecare Grading Evaluation Wheels",
+  "id": "taylorsamarel/duecare-grading-evaluation-wheels",
+  "licenses": [{"name": "CC0-1.0"}],
+  "description": "Pinned v0.1.0 wheels for the duecare-grading-evaluation Kaggle notebook (A6). Includes duecare-llm-chat (with the universal v2 grader + lift evaluator), duecare-llm-core, and duecare-llm-models. Updated when the chat package or grader changes."
+}
