@@ -2033,54 +2033,90 @@ def grade_response_5tier(prompt_id: str, response_text: str) -> dict:
     }
 
 
-def grade_response_required(category: str, response_text: str) -> dict:
+def grade_response_required(category: str, response_text: str,
+                              prompt_category: str | None = None) -> dict:
     """Score a Gemma response against per-category required-element rubric.
-    Returns the FAIL/PARTIAL/PASS table the user wants."""
+
+    Status policy:
+    - PASS: pass-indicators hit, no fail-indicators
+    - PARTIAL: both pass + fail indicators hit
+    - FAIL: only fail-indicators hit, OR a *required* criterion has no hits
+    - NOT_TESTED: an *optional* criterion has no hits — excluded from
+      score denominator (the response simply didn't touch this criterion;
+      shouldn't penalize when it wasn't load-bearing for this prompt)
+
+    Returns the FAIL/PARTIAL/PASS/NOT_TESTED table + a relevance hint
+    indicating whether this rubric category fits the prompt category.
+    """
     if category not in RUBRICS_REQUIRED:
         return {"category": category,
                 "error": f"no rubric for category {category!r}",
                 "criteria": [], "total_score": 0, "total_weight": 0,
-                "pct_score": 0}
+                "pct_score": 0,
+                "relevance": "unknown"}
     rub = RUBRICS_REQUIRED[category]
     text_low = response_text.lower()
     rows = []
-    total_w = 0.0
+    total_w = 0.0       # only counts non-NOT_TESTED criteria
     score_w = 0.0
+    not_tested_count = 0
     for c in rub.get("criteria", []):
         pass_hits = [p for p in c.get("pass_indicators", [])
                       if p.lower() in text_low]
         fail_hits = [f for f in c.get("fail_indicators", [])
                       if f.lower() in text_low]
         weight = float(c.get("weight", 1.0))
+        is_required = bool(c.get("required", False))
         if pass_hits and not fail_hits:
-            status, contrib = "PASS", 1.0
+            status, contrib, counts = "PASS", 1.0, True
         elif pass_hits and fail_hits:
-            status, contrib = "PARTIAL", 0.5
+            status, contrib, counts = "PARTIAL", 0.5, True
         elif fail_hits:
-            status, contrib = "FAIL", 0.0
+            status, contrib, counts = "FAIL", 0.0, True
+        elif is_required:
+            # No hits, but required → real failure to address.
+            status, contrib, counts = "FAIL", 0.0, True
         else:
-            # No hits either way -- failure to address the criterion
-            status, contrib = "FAIL", 0.0
-        total_w += weight
-        score_w += weight * contrib
+            # No hits, optional criterion → not load-bearing for this
+            # prompt; don't penalize.
+            status, contrib, counts = "NOT_TESTED", 0.0, False
+            not_tested_count += 1
+        if counts:
+            total_w += weight
+            score_w += weight * contrib
         rows.append({
             "id":          c.get("id"),
             "description": c.get("description"),
             "status":      status,
             "weight":      weight,
-            "required":    bool(c.get("required", False)),
+            "required":    is_required,
             "kind":        c.get("kind", ""),
             "pass_hits":   pass_hits,
             "fail_hits":   fail_hits,
         })
+    # Relevance hint: cross-cutting rubrics always relevant; otherwise
+    # check applies_to_prompt_categories.
+    cross_cutting = bool(rub.get("cross_cutting", False))
+    applies_to = rub.get("applies_to_prompt_categories", [])
+    if cross_cutting:
+        relevance = "cross_cutting"
+    elif prompt_category and applies_to:
+        relevance = "high" if prompt_category in applies_to else "low"
+    else:
+        relevance = "unknown"
     return {
-        "category":      category,
-        "name":          rub.get("name", category),
-        "description":   rub.get("description", ""),
-        "criteria":      rows,
-        "total_score":   round(score_w, 2),
-        "total_weight":  round(total_w, 2),
-        "pct_score":     round((score_w / total_w * 100) if total_w > 0 else 0, 1),
+        "category":          category,
+        "name":              rub.get("name", category),
+        "description":       rub.get("description", ""),
+        "criteria":          rows,
+        "total_score":       round(score_w, 2),
+        "total_weight":      round(total_w, 2),
+        "pct_score":         round((score_w / total_w * 100) if total_w > 0 else 0, 1),
+        "not_tested_count":  not_tested_count,
+        "relevance":         relevance,
+        "applies_to":        applies_to,
+        "cross_cutting":     cross_cutting,
+        "prompt_category":   prompt_category,
     }
 
 

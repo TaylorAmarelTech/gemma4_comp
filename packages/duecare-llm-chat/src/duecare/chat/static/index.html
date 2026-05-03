@@ -818,6 +818,10 @@ async function useExample(id) {
   const input = document.getElementById('input');
   input.value = ex.text;
   input.focus();
+  // Remember the example's category so the Grade modal can suggest the
+  // best-fit rubric for the response.
+  _lastLoadedExampleId = ex.id;
+  _lastLoadedExampleCategory = ex.category || null;
   // Brief flash so the user sees the populate happened (the modal is
   // about to close, so without a visual cue the action looks invisible).
   input.style.transition = 'background 0.4s ease';
@@ -1494,7 +1498,134 @@ function openPipelineModal(messageIdx) {
     }
   }
   document.getElementById('modal-body').innerHTML = html;
-  _setModalChrome('pipeline', LAYER_TITLES.pipeline, '');
+  // Stash the message index on the modal so the Copy button can find it
+  document.getElementById('modal').dataset.pipelineMsgIdx = String(messageIdx);
+  _setModalChrome('pipeline', LAYER_TITLES.pipeline,
+    `<button class="modal-btn secondary" onclick="copyPipelineMarkdown(this)" title="Copy the full pipeline trace as Markdown to your clipboard">Copy pipeline (Markdown)</button>
+     <button class="modal-btn secondary" onclick="copyPipelineJson(this)" title="Copy the raw harness trace as JSON">Copy as JSON</button>`);
+}
+
+// Serialize the full pipeline trace for the message at the given idx
+// into a Markdown blob that round-trips cleanly through copy/paste,
+// GitHub issue bodies, and chat. Includes the user input, every
+// layer's output (or its skipped/not-wired status), the final merged
+// prompt verbatim, and the Gemma response.
+function _serializePipelineMarkdown(messageIdx) {
+  const m = messages[messageIdx];
+  if (!m || !m._harness) return '';
+  const t = m._harness;
+  const userMsg = messages[messageIdx - 1];
+  const userText = userMsg
+      ? userMsg.content.filter(c => c.type === 'text').map(c => c.text).join('\n')
+      : '(no user message)';
+  const respText = m.content.filter(c => c.type === 'text').map(c => c.text).join('\n');
+  const finalPrompt = t._final_user_text || userText;
+  const ts = new Date().toISOString();
+  let md = `# Duecare pipeline trace\n\n`;
+  md += `_Captured ${ts}_\n\n`;
+  md += `Model: ${m._meta || '(unknown)'}\n\n`;
+  md += `---\n\n`;
+  md += `## ① USER INPUT (${userText.length} chars)\n\n`;
+  md += '```\n' + userText + '\n```\n\n';
+  let n = 2;
+  for (const layer of PIPELINE_LAYER_ORDER) {
+    const lt = t[layer];
+    if (!lt) { n++; continue; }
+    const label = PIPELINE_LAYER_LABEL[layer];
+    if (!lt.wired) {
+      md += `## ${'②③④⑤'[n-2]} ${label} — not wired\n\n`;
+    } else if (!lt.enabled) {
+      md += `## ${'②③④⑤'[n-2]} ${label} — skipped (toggle was OFF)\n\n`;
+    } else {
+      md += `## ${'②③④⑤'[n-2]} ${label} — ${lt.summary || 'fired'} · ${lt.elapsed_ms}ms\n\n`;
+      if (layer === 'persona' && lt.text_preview) {
+        md += '```\n' + lt.text_preview + '\n```\n\n';
+      } else if (layer === 'grep' && lt.hits && lt.hits.length) {
+        for (const h of lt.hits) {
+          md += `- **${h.rule}** [${h.severity || 'info'}]\n`;
+          if (h.citation) md += `  - Citation: ${h.citation}\n`;
+          if (h.indicator) md += `  - Indicator: ${h.indicator}\n`;
+          if (h.match_excerpt) md += `  - Match: \`${h.match_excerpt}\`\n`;
+        }
+        md += '\n';
+      } else if (layer === 'rag' && lt.docs && lt.docs.length) {
+        for (const d of lt.docs) {
+          md += `### ${d.title || '(untitled)'} (score=${d.score}${d.is_custom ? ' · custom' : ''})\n`;
+          md += `Source: ${d.source || '(none)'}\n\n`;
+          md += '> ' + (d.snippet || '').replace(/\n/g, '\n> ') + '\n\n';
+        }
+      } else if (layer === 'tools' && lt.tool_calls && lt.tool_calls.length) {
+        for (const c of lt.tool_calls) {
+          md += `- \`${c.name}(${JSON.stringify(c.args)})\`\n`;
+          md += '  ```json\n';
+          for (const line of JSON.stringify(c.result, null, 2).split('\n')) {
+            md += '  ' + line + '\n';
+          }
+          md += '  ```\n';
+        }
+        md += '\n';
+      }
+    }
+    n++;
+  }
+  md += `## ⑥ FINAL MERGED PROMPT (${finalPrompt.length} chars · +${finalPrompt.length - userText.length} added by harness)\n\n`;
+  md += '```\n' + finalPrompt + '\n```\n\n';
+  md += `## ⑦ GEMMA RESPONSE (${respText.length} chars · ${m._raw_elapsed_ms || '?'}ms)\n\n`;
+  md += '```\n' + respText + '\n```\n';
+  return md;
+}
+
+function _serializePipelineJson(messageIdx) {
+  const m = messages[messageIdx];
+  if (!m || !m._harness) return '';
+  const userMsg = messages[messageIdx - 1];
+  const userText = userMsg
+      ? userMsg.content.filter(c => c.type === 'text').map(c => c.text).join('\n')
+      : '';
+  const respText = m.content.filter(c => c.type === 'text').map(c => c.text).join('\n');
+  return JSON.stringify({
+    captured_at: new Date().toISOString(),
+    model_meta: m._meta || null,
+    user_input: userText,
+    final_merged_prompt: m._harness._final_user_text || userText,
+    response: respText,
+    response_elapsed_ms: m._raw_elapsed_ms || null,
+    harness: m._harness,
+  }, null, 2);
+}
+
+async function _copyToClipboardWithFeedback(text, btn, kindLabel) {
+  if (!btn || !text) return;
+  const orig = btn.textContent;
+  try {
+    await navigator.clipboard.writeText(text);
+    btn.textContent = `copied ${kindLabel} ✓`;
+    btn.style.color = '#10b981';
+  } catch (e) {
+    // Fallback for cross-origin / older browsers
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    try { document.execCommand('copy'); } catch {}
+    document.body.removeChild(ta);
+    btn.textContent = `copied ${kindLabel} ✓`;
+    btn.style.color = '#10b981';
+  }
+  setTimeout(() => { btn.textContent = orig; btn.style.color = ''; }, 1800);
+}
+
+function copyPipelineMarkdown(btn) {
+  const idx = parseInt(document.getElementById('modal').dataset.pipelineMsgIdx, 10);
+  const md = _serializePipelineMarkdown(idx);
+  _copyToClipboardWithFeedback(md, btn, `${(md.length/1024).toFixed(1)}KB MD`);
+}
+
+function copyPipelineJson(btn) {
+  const idx = parseInt(document.getElementById('modal').dataset.pipelineMsgIdx, 10);
+  const j = _serializePipelineJson(idx);
+  _copyToClipboardWithFeedback(j, btn, `${(j.length/1024).toFixed(1)}KB JSON`);
 }
 
 // ----------------------------------------------------------------------
@@ -1513,10 +1644,28 @@ const RUBRIC_CATEGORY_LABELS = {
 };
 
 const RUBRIC_STATUS_COLOR = {
-  PASS:    '#10b981',
-  PARTIAL: '#f59e0b',
-  FAIL:    '#ef4444',
+  PASS:       '#10b981',
+  PARTIAL:    '#f59e0b',
+  FAIL:       '#ef4444',
+  NOT_TESTED: '#64748b',
 };
+
+// Map: rubric category id -> list of prompt categories it best fits.
+// Mirrors `applies_to_prompt_categories` in _rubrics_required.json.
+// Empty list = cross-cutting (applies to all prompt categories).
+const RUBRIC_APPLIES_TO = {
+  business_framed_exploitation:  ['compound_textbook', 'regulatory_evasion', 'financial_obfuscation', 'mega_variations'],
+  financial_crime_blindness:     ['financial_obfuscation', 'compound_textbook', 'regulatory_evasion'],
+  jurisdictional_hierarchy:      ['jurisdictional_hierarchy', 'regulatory_evasion'],
+  victim_revictimization:        ['victim_revictimization', 'coercion_manipulation', 'moral_religious_framing'],
+  prompt_injection_amplification:['amplification_known_attacks', 'mega_variations'],
+  legal_citation_quality:        [],  // cross-cutting
+};
+
+// Track which example prompt was loaded most recently into the input.
+// Used by the Grade modal to suggest the best-fit rubric.
+let _lastLoadedExampleCategory = null;
+let _lastLoadedExampleId = null;
 
 async function openGradeModal(messageIdx) {
   const m = messages[messageIdx];
@@ -1529,14 +1678,33 @@ async function openGradeModal(messageIdx) {
   const cats = (_gradeCategories && _gradeCategories.length)
       ? _gradeCategories
       : ['legal_citation_quality'];
-  if (!cats.includes(_gradeSelectedCategory)) {
+
+  // Auto-suggest the best-fit rubric based on the most-recently-loaded
+  // example prompt's category. Falls back to the user's last selection,
+  // then to the cross-cutting legal_citation_quality.
+  const promptCat = _lastLoadedExampleCategory;
+  let suggested = null;
+  if (promptCat) {
+    for (const rcat of cats) {
+      const applies = RUBRIC_APPLIES_TO[rcat] || [];
+      if (applies.includes(promptCat)) { suggested = rcat; break; }
+    }
+  }
+  if (suggested) {
+    _gradeSelectedCategory = suggested;
+  } else if (!cats.includes(_gradeSelectedCategory)) {
     _gradeSelectedCategory = cats[0];
   }
 
-  // Build the category dropdown
-  const optsHtml = cats.map(c =>
-    `<option value="${escapeHtml(c)}" ${c === _gradeSelectedCategory ? 'selected' : ''}>${escapeHtml(RUBRIC_CATEGORY_LABELS[c] || c)}</option>`
-  ).join('');
+  // Build the category dropdown with relevance badges
+  const optsHtml = cats.map(c => {
+    const applies = RUBRIC_APPLIES_TO[c] || [];
+    let badge = '';
+    if (applies.length === 0) badge = ' [cross-cutting]';
+    else if (promptCat && applies.includes(promptCat)) badge = ' ★ recommended';
+    else if (promptCat) badge = ' (low relevance)';
+    return `<option value="${escapeHtml(c)}" ${c === _gradeSelectedCategory ? 'selected' : ''}>${escapeHtml(RUBRIC_CATEGORY_LABELS[c] || c)}${badge}</option>`;
+  }).join('');
 
   const skeleton = `
     <p style="color:var(--muted); margin-top:0; font-size:12px;">
@@ -1582,6 +1750,7 @@ async function _runGrade(messageIdx) {
       body: JSON.stringify({
         response_text: respText,
         category: _gradeSelectedCategory,
+        prompt_category: _lastLoadedExampleCategory,  // server uses this for relevance scoring
       }),
     });
     if (!r.ok) {
@@ -1605,26 +1774,47 @@ function _renderGradeResult(g) {
   const passN = g.criteria.filter(c => c.status === 'PASS').length;
   const partialN = g.criteria.filter(c => c.status === 'PARTIAL').length;
   const failN = g.criteria.filter(c => c.status === 'FAIL').length;
+  const ntN = g.criteria.filter(c => c.status === 'NOT_TESTED').length;
+  // Relevance banner: warn the user if rubric doesn't fit prompt category
+  let relevanceBanner = '';
+  if (g.relevance === 'low' && g.prompt_category) {
+    relevanceBanner = `<div style="background:rgba(245,158,11,0.12); border:1px solid rgba(245,158,11,0.4); color:#fbbf24; padding:8px 12px; border-radius:6px; margin-bottom:14px; font-size:12px;">
+      ⚠ Low-relevance rubric for this prompt category (<code>${escapeHtml(g.prompt_category)}</code>). Try the ★ recommended rubric in the dropdown for a more meaningful score.
+    </div>`;
+  } else if (g.relevance === 'high' && g.prompt_category) {
+    relevanceBanner = `<div style="background:rgba(16,185,129,0.10); border:1px solid rgba(16,185,129,0.35); color:#34d399; padding:8px 12px; border-radius:6px; margin-bottom:14px; font-size:12px;">
+      ★ This rubric matches the prompt category (<code>${escapeHtml(g.prompt_category)}</code>) — score is meaningful.
+    </div>`;
+  } else if (g.relevance === 'cross_cutting') {
+    relevanceBanner = `<div style="background:rgba(59,130,246,0.10); border:1px solid rgba(59,130,246,0.35); color:#60a5fa; padding:8px 12px; border-radius:6px; margin-bottom:14px; font-size:12px;">
+      Cross-cutting rubric — applies to every prompt category.
+    </div>`;
+  }
 
-  let html = `
-    <div style="display:flex; gap:14px; margin-bottom:14px;">
-      <div style="flex:1; background:var(--bg); border-radius:6px; padding:12px 14px; border-left:4px solid ${scoreColor};">
+  let html = relevanceBanner + `
+    <div style="display:flex; gap:14px; margin-bottom:14px; flex-wrap:wrap;">
+      <div style="flex:1 1 130px; background:var(--bg); border-radius:6px; padding:12px 14px; border-left:4px solid ${scoreColor};">
         <div style="font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:0.5px;">Score</div>
         <div style="font-size:24px; font-weight:700; color:${scoreColor};">${pct}%</div>
-        <div style="font-size:11px; color:var(--muted); margin-top:2px;">${g.total_score} / ${g.total_weight} weighted</div>
+        <div style="font-size:11px; color:var(--muted); margin-top:2px;">${g.total_score} / ${g.total_weight} weighted${ntN > 0 ? ` (${ntN} N/A excluded)` : ''}</div>
       </div>
-      <div style="flex:1; background:var(--bg); border-radius:6px; padding:12px 14px; border-left:4px solid #10b981;">
+      <div style="flex:1 1 80px; background:var(--bg); border-radius:6px; padding:12px 14px; border-left:4px solid #10b981;">
         <div style="font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:0.5px;">Pass</div>
         <div style="font-size:24px; font-weight:700; color:#10b981;">${passN}</div>
       </div>
-      <div style="flex:1; background:var(--bg); border-radius:6px; padding:12px 14px; border-left:4px solid #f59e0b;">
+      <div style="flex:1 1 80px; background:var(--bg); border-radius:6px; padding:12px 14px; border-left:4px solid #f59e0b;">
         <div style="font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:0.5px;">Partial</div>
         <div style="font-size:24px; font-weight:700; color:#f59e0b;">${partialN}</div>
       </div>
-      <div style="flex:1; background:var(--bg); border-radius:6px; padding:12px 14px; border-left:4px solid #ef4444;">
+      <div style="flex:1 1 80px; background:var(--bg); border-radius:6px; padding:12px 14px; border-left:4px solid #ef4444;">
         <div style="font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:0.5px;">Fail</div>
         <div style="font-size:24px; font-weight:700; color:#ef4444;">${failN}</div>
       </div>
+      ${ntN > 0 ? `<div style="flex:1 1 80px; background:var(--bg); border-radius:6px; padding:12px 14px; border-left:4px solid #64748b;">
+        <div style="font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:0.5px;">N/A</div>
+        <div style="font-size:24px; font-weight:700; color:#64748b;">${ntN}</div>
+        <div style="font-size:10px; color:var(--muted); margin-top:2px;">optional, no hits</div>
+      </div>` : ''}
     </div>
   `;
 
@@ -1641,6 +1831,7 @@ function _renderGradeResult(g) {
     <tbody>`;
   for (const c of g.criteria) {
     const color = RUBRIC_STATUS_COLOR[c.status] || '#94a3b8';
+    const isNT = c.status === 'NOT_TESTED';
     const reqMark = c.required ? ' <span style="color:#ef4444;" title="required">*</span>' : '';
     const passHits = (c.pass_hits || []).slice(0, 4).join(', ');
     const failHits = (c.fail_hits || []).slice(0, 4).join(', ');
@@ -1648,14 +1839,16 @@ function _renderGradeResult(g) {
     if (passHits) hitsHtml += `<span style="color:#10b981;">${escapeHtml(passHits)}</span>`;
     if (passHits && failHits) hitsHtml += '<br>';
     if (failHits) hitsHtml += `<span style="color:#ef4444;">${escapeHtml(failHits)}</span>`;
-    if (!hitsHtml) hitsHtml = `<span style="color:var(--muted); font-style:italic;">no terms matched</span>`;
-    html += `<tr>
+    if (!hitsHtml) hitsHtml = `<span style="color:var(--muted); font-style:italic;">${isNT ? 'optional & not load-bearing for this prompt' : 'no terms matched'}</span>`;
+    const rowOpacity = isNT ? 'opacity:0.55;' : '';
+    const statusLabel = c.status === 'NOT_TESTED' ? 'N/A' : c.status;
+    html += `<tr style="${rowOpacity}">
       <td style="padding:6px 10px; border-bottom:1px solid var(--border);">
         <code style="color:var(--ink); font-size:11px;">${escapeHtml(c.id)}</code>${reqMark}<br>
         <span style="color:var(--muted); font-size:11px;">${escapeHtml(c.description)}</span>
       </td>
       <td style="padding:6px 10px; border-bottom:1px solid var(--border); text-align:center;">
-        <span style="background:${color}; color:#fff; padding:2px 8px; border-radius:3px; font-weight:600; font-size:10.5px;">${escapeHtml(c.status)}</span>
+        <span style="background:${color}; color:#fff; padding:2px 8px; border-radius:3px; font-weight:600; font-size:10.5px;">${escapeHtml(statusLabel)}</span>
       </td>
       <td style="padding:6px 10px; border-bottom:1px solid var(--border); color:var(--muted); font-size:11px;">${escapeHtml(c.kind || '')}</td>
       <td style="padding:6px 10px; border-bottom:1px solid var(--border); text-align:center; color:var(--muted); font-size:11px;">${c.weight}</td>
@@ -1663,7 +1856,7 @@ function _renderGradeResult(g) {
     </tr>`;
   }
   html += '</tbody></table>';
-  html += `<div style="font-size:11px; color:var(--muted); margin-top:10px; font-style:italic;">* = required criterion. Scoring is keyword-based for fast UI feedback; ground-truth scoring uses semantic match (run <code>scripts/rubric_comparison.py</code> for batch evaluation).</div>`;
+  html += `<div style="font-size:11px; color:var(--muted); margin-top:10px; font-style:italic;">* = required criterion. <strong>N/A</strong> = optional criterion with no keyword hits — excluded from the score because the response simply didn't touch it (and it wasn't required for this prompt). Scoring is keyword-based for fast UI feedback; ground-truth scoring uses semantic match (run <code>scripts/rubric_comparison.py</code> for batch evaluation).</div>`;
   return html;
 }
 
