@@ -54,6 +54,7 @@ Status legend:
 | A3 | duecare-research-graphs | [link](https://www.kaggle.com/code/taylorsamarel/duecare-research-graphs) | 🟡 PUSH PENDING | 🔴 YES (chat wheel) | CPU | Rebuild chat wheel → push wheels dataset → push notebook → run + verify all 6 Plotly charts render |
 | A4 | duecare-chat-playground-with-agentic-research | [link](https://www.kaggle.com/code/taylorsamarel/duecare-chat-playground-with-agentic-research) | 🟡 PUSH PENDING | 🔴 YES (chat wheel) | T4 | Rebuild chat wheel → push wheels dataset → push notebook → run + verify 5th toggle (agentic research) fires DuckDuckGo |
 | A5 | duecare-chat-playground-jailbroken-models | [link](https://www.kaggle.com/code/taylorsamarel/duecare-chat-playground-jailbroken-models) | 🟡 PUSH PENDING ⭐ | 🔴 YES (chat wheel) | T4 | **STRONGEST "REAL" PROOF** — rebuild chat wheel → push wheels dataset → push notebook → run with default abliterated model → verify harness still produces safe outputs |
+| A6 | duecare-grading-evaluation | [link](https://www.kaggle.com/code/taylorsamarel/duecare-grading-evaluation) | 🟡 PUSH PENDING ⭐ | ⚪ NO (chat wheel already current) | T4 | **DEDICATED LIFT EVALUATOR** — push notebook → run on T4 (~15 min for 5 prompts × 2 conditions) → verify it produces `duecare_lift_eval.json` + `duecare_lift_eval.md` with mean lift, per-dimension status changes, citation grounding %. The headline +56.5pp number, regenerated live. |
 
 ## Step-by-step recipe per notebook
 
