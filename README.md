@@ -33,7 +33,7 @@
 >
 > **Core (judges evaluate first):**
 >
-> 1. [`duecare-chat-playground`](https://www.kaggle.com/code/taylorsamarel/duecare-chat-playground) — raw Gemma 4, no harness. Baseline.
+> 1. [`duecare-chat-playground`](https://www.kaggle.com/code/taylorsamarel/duecare-gemma-chat-playground) — raw Gemma 4, no harness. Baseline.
 > 2. [`duecare-chat-playground-with-grep-rag-tools`](https://www.kaggle.com/code/taylorsamarel/duecare-chat-playground-with-grep-rag-tools) — same chat UI + 4 toggleable safety layers + per-response Pipeline modal. *Headline demo.*
 > 3. `duecare-content-classification-playground` *(publish pending)* — hands-on classification sandbox; 4 schema modes (single/multi-label, risk-vector, custom JSON Schema).
 > 4. `duecare-content-knowledge-builder-playground` *(publish pending)* — hands-on KB builder; add GREP rules, RAG docs, lookup tables; export full JSON.

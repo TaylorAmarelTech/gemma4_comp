@@ -35,7 +35,7 @@
 | | |
 |---|---|
 | Folder | [`kaggle/chat-playground/`](../kaggle/chat-playground/) |
-| Notebook URL | https://www.kaggle.com/code/taylorsamarel/duecare-chat-playground |
+| Notebook URL | https://www.kaggle.com/code/taylorsamarel/duecare-gemma-chat-playground |
 | Wheels | `taylorsamarel/duecare-chat-playground-wheels` ✓ live |
 | LOC | 611 |
 | GPU | T4 ×2 (default 31B; E2B/E4B run on single T4) |

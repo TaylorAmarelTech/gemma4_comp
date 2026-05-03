@@ -82,7 +82,7 @@ The 11 to verify:
 
 | # | Notebook | URL |
 |---|---|---|
-| 1 | duecare-chat-playground | https://www.kaggle.com/code/taylorsamarel/duecare-chat-playground |
+| 1 | duecare-chat-playground | https://www.kaggle.com/code/taylorsamarel/duecare-gemma-chat-playground |
 | 2 | duecare-chat-playground-with-grep-rag-tools | https://www.kaggle.com/code/taylorsamarel/duecare-chat-playground-with-grep-rag-tools |
 | 3 | duecare-content-classification-playground | https://www.kaggle.com/code/taylorsamarel/duecare-content-classification-playground |
 | 4 | duecare-content-knowledge-builder-playground | https://www.kaggle.com/code/taylorsamarel/duecare-content-knowledge-builder-playground |
