@@ -65,7 +65,7 @@ with **(cite)** are close enough that we should reference them in the writeup;
   port to Cactus. **(build-on)**
 - **Google AI Edge Gallery** — https://ai.google.dev/edge/mediapipe/solutions/genai/llm_inference/android.
   Google's reference Android app for LiteRT-LM + Gemma 4. Generic chat,
-  no domain. **Duecare differs:** domain-loaded with 37 GREP rules,
+  no domain. **Duecare differs:** domain-loaded with 42 GREP rules,
   26-doc RAG corpus, 4 lookup tools. **(build-on)** — same stack.
 - **OfflineLLM (jegly)** — https://github.com/jegly/OfflineLLM. Kotlin +
   Compose + llama.cpp ARM NEON. MIT-licensed reference for the runtime

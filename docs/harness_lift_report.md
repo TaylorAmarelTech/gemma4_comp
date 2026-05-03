@@ -199,5 +199,5 @@ python scripts/rubric_comparison.py --output docs/harness_lift_report.md
 **Caveats.**
 
 - The detector is *conservative on false positives*: only citations that LOOK statutory trigger the check. Bare phrases like "the labour law" don't qualify.
-- The allowlist comes from the bundled 26-doc RAG corpus + 37 GREP rule citations. A real legal citation that's NOT in our corpus is flagged as unsupported here. Treat the unsupported-rate as a CEILING, not a ground-truth count.
+- The allowlist comes from the bundled 26-doc RAG corpus + 37 GREP rule citations *as of the measurement run*. The harness now ships **42 GREP rules** (5 sector-specific rules backported from Android v0.9 on 2026-05-03: kafala-huroob, H-2A/H-2B fee violation, fishing-vessel debt confinement, smuggler-fee + coercion, domestic-locked-in residence). The +56.5pp number is the lower bound — re-running with the 42-rule corpus would only add additional matches. A real legal citation that's NOT in our corpus is flagged as unsupported here. Treat the unsupported-rate as a CEILING, not a ground-truth count.
 - Real Gemma (GPU mode) is expected to incorporate the RAG-injected citations more naturally than this proxy appends them, raising the grounding rate further.

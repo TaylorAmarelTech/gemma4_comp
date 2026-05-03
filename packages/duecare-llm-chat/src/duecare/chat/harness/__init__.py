@@ -745,6 +745,120 @@ GREP_RULES = [
                        "presumptively forced labour under ILO C029 "
                        "regardless of how it is phrased.",
     },
+    # ====================================================================
+    # CATEGORY F: SECTOR + CORRIDOR-SPECIFIC PATTERNS
+    # (backported from Android v0.9 — closes the 37/42 surface gap)
+    # ====================================================================
+    {
+        "rule": "kafala_huroob_absconder",
+        "patterns": [r"\b(huroob|absconder|absconding|tasreeh|"
+                       r"exit\s+visa\s+denied|kafeel\s+refus\w+|"
+                       r"sponsor\s+refus\w+\s+(to\s+)?(release|let\s+me\s+go))\b"],
+        "severity": "critical",
+        "citation": "Saudi MoHR Domestic Worker Regulation Art. 6 "
+                      "(reformed 2021/2024); Lebanese General Security "
+                      "kafala framework; ILO C029 Indicator 5 "
+                      "(restriction of movement)",
+        "indicator": "'Huroob' (Saudi) / 'absconder' is a kafala-system "
+                       "status the kafeel/sponsor files when they want "
+                       "to deny a worker the right to change employer or "
+                       "leave the country. Recent Saudi reforms reduce "
+                       "but don't eliminate the abuse vector — and "
+                       "Lebanon hasn't reformed at all. Time-sensitive: "
+                       "workers with huroob status can be detained "
+                       "without notice. Embassy attaché contact required.",
+    },
+    {
+        "rule": "h2a_h2b_fee_violation",
+        "patterns": [r"\b(h-?2[ab]|temporary\s+(agricultural|"
+                       r"non-agricultural)\s+work|petition|"
+                       r"labor\s+certification)\b",
+                       r"\b(fee|charge|cost|paid|charged|deduct\w*|"
+                       r"transportation\s+deduct|housing\s+deduct|"
+                       r"tool\s+rental|equipment\s+rental)\b"],
+        "all_required": True,
+        "severity": "high",
+        "citation": "US DOL 20 CFR 655.135(j) (H-2A); 20 CFR 655.20(p) "
+                      "(H-2B); INA Sec. 274C; ILO C029 Indicator 4 "
+                      "(debt bondage)",
+        "indicator": "US H-2A and H-2B visa programs prohibit the worker "
+                       "from bearing recruitment costs (visa fees, "
+                       "transportation, housing). Charges flow to the US "
+                       "employer or to the recruiter; the worker's pay "
+                       "must not be reduced below the AEWR (Adverse "
+                       "Effect Wage Rate) by recruitment-related "
+                       "deductions. Report to US DOL Wage and Hour "
+                       "Division: 1-866-487-9243 or wagehour.dol.gov.",
+    },
+    {
+        "rule": "fishing_vessel_debt_confinement",
+        "patterns": [r"\b(fishing\s+(boat|vessel|trawler)|sea\s+work|"
+                       r"(at|on)\s+sea\s+for\s+\d+\s+(month|year)|"
+                       r"transhipment|reefer|long-?liner|"
+                       r"purse\s+seiner)\b",
+                       r"\b(debt|loan|advance|deduct|withhold|"
+                       r"(can(no|')t|cannot|not\s+allowed)\s+to\s+"
+                       r"(leave|go\s+ashore))\b"],
+        "all_required": True,
+        "severity": "critical",
+        "citation": "ILO C188 (Work in Fishing Convention, 2007); ILO "
+                      "C029 Indicators 4 (debt bondage) + 5 (restriction "
+                      "of movement) + 8 (withholding of wages); Thailand "
+                      "Royal Ordinance Concerning Sea Fishery 2015",
+        "indicator": "The combination of recruitment debt + extended "
+                       "at-sea confinement + transhipment-at-sea (workers "
+                       "transferred between vessels without touching "
+                       "shore) is the documented forced-labour pattern "
+                       "in Thai/Indonesian/Taiwanese fishing fleets. "
+                       "Workers may go 1-3 years without setting foot on "
+                       "land. Issara Institute hotline (Thailand: "
+                       "+66 2 245 2380) or Stella Maris international "
+                       "port chaplaincy network.",
+    },
+    {
+        "rule": "smuggler_fee_and_coercion",
+        "patterns": [r"\b(smuggler|trafficker|coyote|guia|"
+                       r"(USD|EUR|\$|€)\s*\d{3,4}\s+(to\s+cross|"
+                       r"to\s+take\s+me|to\s+get\s+(across|to))|"
+                       r"crossing\s+fee|passage\s+fee)\b"],
+        "severity": "high",
+        "citation": "UN Palermo Protocol Art. 3(a) (Trafficking); UN "
+                      "Smuggling-of-Migrants Protocol Art. 3; ILO C029 "
+                      "Indicator 9 (deception)",
+        "indicator": "Smuggling fees are not themselves illegal for the "
+                       "migrant — but the deception/coercion pattern "
+                       "around them (false promises about destination, "
+                       "extortion of additional fees mid-journey, sale "
+                       "of the migrant to a third party at destination) "
+                       "is trafficking under Palermo Art. 3(a). "
+                       "Destination-country anti-trafficking hotlines "
+                       "often have multilingual support and can intervene "
+                       "without exposing the smuggler relationship to "
+                       "immigration authorities; trafficking-victim "
+                       "status carries different protections than asylum.",
+    },
+    {
+        "rule": "domestic_work_locked_in_residence",
+        "patterns": [r"\b(live-?in|sleep\s+at\s+(employer|household)|"
+                       r"must\s+stay\s+in\s+(the\s+)?house|"
+                       r"(no|cannot|can(no|')t)\s+(go|leave)\s+"
+                       r"(home|out)|(available|on\s+call)\s+"
+                       r"(24/7|all\s+night|whenever))\b"],
+        "severity": "high",
+        "citation": "ILO C189 (Domestic Workers Convention, 2011) "
+                      "Arts. 9 + 10 (right to keep travel docs + free "
+                      "agreement on whether to reside in the household); "
+                      "ILO C029 Indicators 5 (restriction of movement) "
+                      "+ 11 (excessive overtime)",
+        "indicator": "ILO C189 specifically protects domestic workers' "
+                       "right to choose whether to live in the "
+                       "employer's household and to retain their identity "
+                       "documents. Forced live-in arrangements are a "
+                       "primary kafala-system + HK FDH abuse pattern. "
+                       "ILO C189 + most destination-country labour codes "
+                       "require either separate accommodation OR "
+                       "genuinely off-duty hours within the household.",
+    },
 ]
 
 

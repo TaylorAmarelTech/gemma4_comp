@@ -201,7 +201,7 @@ The NGO-office walkthrough angle. Key data points:
 The technical-depth angle. Key data points:
 - 11 ILO C029 forced-labour indicators encoded
 - 12 migration corridors with statute lookups
-- 37 GREP rules for pattern detection
+- 42 GREP rules for pattern detection
 - 26-doc legal RAG corpus (ILO conventions, POEA MCs, etc.)
 - 6+5 published Kaggle notebooks for reproducibility
 

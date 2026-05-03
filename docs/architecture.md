@@ -265,7 +265,7 @@ output is folded into the final context.
          │
          v
 ┌──────────────────┐
-│  [c] GREP        │   37 regex/keyword rules across 5 categories
+│  [c] GREP        │   42 regex/keyword rules across 5 categories
 │  (toggle)        │   matched against user text -> ILO + statute
 │                  │   citations + indicator descriptions
 └────────┬─────────┘
