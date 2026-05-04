@@ -5166,6 +5166,63 @@ and emits `docs/harness_lift_report.md`. Mean lift on the
 `legal_citation_quality` cross-cutting rubric is the headline harness-
 quality number.
 """,
+
+    "online": """# Online — extending the web-search backend
+
+The Online layer is intentionally **kernel-supplied**, not bundled
+in the wheel. Different notebooks wire different backends:
+
+- `kaggle/duecare-harness-chat/kernel.py`: DuckDuckGo HTML scraper
+  (no API key, ~1s latency, best-effort regex parse — returns []
+  on parse failure rather than crashing).
+- `kaggle/chat-playground-with-agentic-research/kernel.py`: full
+  Playwright multi-step agentic loop (BYOK for Brave Search, Bing,
+  DuckDuckGo). Higher fidelity, ~5-15s per query.
+
+## Wiring a custom backend
+
+Pass `online_search_call` to `create_app`:
+
+    def my_search(query: str, top_n: int = 5) -> dict:
+        # call your search provider, normalise to:
+        return {
+            "results": [
+                {"rank": 1, "title": "...", "url": "...",
+                 "snippet": "..."},
+                ...
+            ],
+            "source": "my-provider-name",
+            "elapsed_ms": 123,
+        }
+
+    app = create_app(
+        gemma_call=loaded.backend,
+        online_search_call=my_search,
+        **default_harness(),
+    )
+
+The chat send pipeline picks it up automatically when the Online
+toggle is enabled. Results are formatted as a context block with
+URL attribution requirement and a "cross-check before adopting"
+instruction prepended.
+
+## Why a kernel-supplied hook (not bundled)
+
+- Search providers come and go; a kernel-supplied hook lets the
+  notebook owner update the backend without bumping the wheel.
+- Some backends require API keys or browser automation that don't
+  belong inside a redistributable wheel.
+- Different deployment topologies (NGO offline / enterprise on-prem
+  / public web) need different search policies.
+
+## How the layer is rendered
+
+The Online toggle tile uses amber (#f59e0b). When the layer fires,
+the Pipeline modal shows: rank · title · clickable URL · snippet.
+The audit modal shows the same with the URL as an external link.
+The model sees a system-style context block titled "SAFETY HARNESS
+— Online search layer" with a cross-check warning.
+""",
 }
 
 
