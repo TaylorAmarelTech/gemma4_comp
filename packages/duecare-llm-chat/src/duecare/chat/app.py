@@ -118,14 +118,24 @@ class GradeRequest(BaseModel):
 class DeepGradeRequest(BaseModel):
     """LLM-as-judge grade request: send the response back to the loaded
     Gemma with dimension-specific yes/no questions. Optional dimension
-    list lets the UI ask for a single-dimension deep dive."""
-    response_text: str
-    prompt_text: Optional[str] = None
-    dimensions: Optional[list[str]] = None
+    list lets the UI ask for a single-dimension deep dive.
+
+    H4: explicit Field constraints prevent denial-of-service via
+    oversized response_text + unbounded dimension count + extreme
+    max_new_tokens.
+    """
+    response_text: str = Field(..., min_length=1, max_length=20_000,
+                                  description="The response to evaluate. Capped at 20k chars; longer inputs are truncated by the caller.")
+    prompt_text: Optional[str] = Field(default=None, max_length=20_000)
+    dimensions: Optional[list[str]] = Field(default=None, max_length=20,
+                                                description="Optional list of dimension ids to grade. Unknown ids → 400.")
     skip_not_applicable: bool = True
-    judge_weight: float = 0.5  # used only by /api/grade-combined
-    max_new_tokens: int = 320  # judge replies are short JSON; cap tight
-    temperature: float = 0.0   # deterministic verdicts
+    judge_weight: float = Field(default=0.5, ge=0.0, le=1.0,
+                                   description="0=det only, 1=judge only, 0.5=blend. NaN/Inf rejected.")
+    max_new_tokens: int = Field(default=320, ge=16, le=2048,
+                                   description="Per-call token cap. Judge envelopes are tiny; 320 is generous.")
+    temperature: float = Field(default=0.0, ge=0.0, le=2.0,
+                                  description="0.0 for deterministic verdicts.")
 
 
 def create_app(
@@ -361,7 +371,16 @@ def create_app(
             )
         if not req.response_text or not req.response_text.strip():
             raise HTTPException(400, "response_text is required")
-        from .harness import grade_response_via_llm
+        from .harness import grade_response_via_llm, RUBRIC_UNIVERSAL
+        # M4: unknown dimension ids should 400, not silently return 0%.
+        if req.dimensions:
+            valid_ids = {d["id"] for d in RUBRIC_UNIVERSAL.get("dimensions", [])}
+            unknown = [d for d in req.dimensions if d not in valid_ids]
+            if unknown:
+                raise HTTPException(
+                    400, f"unknown dimension ids: {unknown}. "
+                            f"Valid: {sorted(valid_ids)}",
+                )
 
         def model_call(p: str) -> str:
             return _judge_model_call(
@@ -399,7 +418,16 @@ def create_app(
             )
         if not req.response_text or not req.response_text.strip():
             raise HTTPException(400, "response_text is required")
-        from .harness import grade_response_combined
+        from .harness import grade_response_combined, RUBRIC_UNIVERSAL
+        # M4: same dimension-id validation as /api/grade-deep
+        if req.dimensions:
+            valid_ids = {d["id"] for d in RUBRIC_UNIVERSAL.get("dimensions", [])}
+            unknown = [d for d in req.dimensions if d not in valid_ids]
+            if unknown:
+                raise HTTPException(
+                    400, f"unknown dimension ids: {unknown}. "
+                            f"Valid: {sorted(valid_ids)}",
+                )
 
         def model_call(p: str) -> str:
             return _judge_model_call(

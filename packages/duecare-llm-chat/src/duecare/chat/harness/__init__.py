@@ -4414,8 +4414,15 @@ def _parse_judge_verdict(judge_response: str) -> dict:
     """Parse the JSON envelope returned by the judge. Best-effort —
     handles common deviations (markdown fences, trailing prose).
     Falls back to keyword detection if JSON parse fails entirely.
+
+    Hardening: cap input at 64 KB (the envelope is supposed to be
+    tiny; longer inputs are wasteful and can mask the real signal).
     """
-    text = (judge_response or "").strip()
+    raw_full = judge_response or ""
+    # Cap input — envelope is supposed to be small. Anything beyond
+    # 64 KB is either prompt-injection or runaway hallucination.
+    raw = raw_full[:65_536]
+    text = raw.strip()
     # Strip ```json ... ``` fences
     fence = re.search(r"```(?:json)?\s*(\{.*?\})\s*```", text, re.DOTALL)
     if fence:
@@ -4426,33 +4433,75 @@ def _parse_judge_verdict(judge_response: str) -> dict:
         text = brace.group(0)
     try:
         parsed = json.loads(text)
-        verdict = str(parsed.get("verdict", "uncertain")).lower().strip()
+        # M2 fix: if verdict isn't a plain string in the allowed set,
+        # surface that with parse_ok=False so the caller can flag it.
+        raw_verdict = parsed.get("verdict", "uncertain")
+        if not isinstance(raw_verdict, str):
+            return {
+                "verdict":        "uncertain",
+                "evidence_quote": "",
+                "rationale":      f"(non-string verdict: {type(raw_verdict).__name__})",
+                "parse_ok":       False,
+            }
+        verdict = raw_verdict.lower().strip().rstrip(".!?,;:")
         if verdict not in ("yes", "no", "partial", "uncertain"):
-            verdict = "uncertain"
+            return {
+                "verdict":        "uncertain",
+                "evidence_quote": "",
+                "rationale":      f"(unknown verdict {raw_verdict!r})",
+                "parse_ok":       False,
+            }
+        # Evidence quote / rationale: cap at 500 chars each. If the
+        # judge writes 10 KB of "rationale", that's prompt-injection or
+        # a confused model — either way, truncate before storing.
+        evidence_quote = str(parsed.get("evidence_quote", ""))[:500]
+        rationale = str(parsed.get("rationale", ""))[:500]
         return {
             "verdict":        verdict,
-            "evidence_quote": str(parsed.get("evidence_quote", "")),
-            "rationale":      str(parsed.get("rationale", "")),
+            "evidence_quote": evidence_quote,
+            "rationale":      rationale,
             "parse_ok":       True,
         }
     except Exception:
-        # Fallback: scan for yes/no/partial in the raw response
-        low = (judge_response or "").lower()
-        if "verdict" in low:
-            for v in ("yes", "no", "partial", "uncertain"):
-                if re.search(rf'"verdict"\s*:\s*"{v}"', low):
-                    return {"verdict": v, "evidence_quote": "",
-                            "rationale": "(parse failed; scanned key)",
-                            "parse_ok": False}
-        # Last resort: first occurrence wins
-        for v in ("partial", "uncertain", "yes", "no"):
-            if re.search(rf"\b{v}\b", low):
-                return {"verdict": v, "evidence_quote": "",
-                        "rationale": "(parse failed; scanned text)",
-                        "parse_ok": False}
+        # Fallback: find the first verdict-like word by POSITION,
+        # not by verdict-list order. Avoids the M3 bias where
+        # "no, partial citation" returned 'partial' (wrong).
+        low = raw.lower()
+        # First check for `"verdict": "..."` JSON-ish key pattern
+        m_key = re.search(r'"verdict"\s*:\s*"(yes|no|partial|uncertain)"', low)
+        if m_key:
+            return {"verdict": m_key.group(1), "evidence_quote": "",
+                    "rationale": "(parse failed; scanned key)",
+                    "parse_ok": False}
+        # Last resort: first verdict word by position (not by enum order)
+        m_word = re.search(r"\b(yes|no|partial|uncertain)\b", low)
+        if m_word:
+            return {"verdict": m_word.group(1), "evidence_quote": "",
+                    "rationale": "(parse failed; scanned text)",
+                    "parse_ok": False}
         return {"verdict": "uncertain", "evidence_quote": "",
                 "rationale": "(parse failed)",
                 "parse_ok": False}
+
+
+def _evidence_substring_check(evidence_quote: str, response_text: str,
+                                 *, min_len: int = 8) -> bool:
+    """M1 sanity check: an evidence quote should be an actual substring
+    of the response under evaluation, not a hallucinated quote or a
+    prompt-injection payload. Case-insensitive, ignores leading/
+    trailing whitespace + a few common quote-character variants.
+    Returns True if the evidence appears to be grounded.
+    """
+    if not evidence_quote or len(evidence_quote) < min_len:
+        return True  # too short to verify; don't flag
+    needle = evidence_quote.strip().strip('"\'`""''').lower()
+    haystack = (response_text or "").lower()
+    if needle in haystack:
+        return True
+    # Try with whitespace collapsed (the model may reformat its quote)
+    needle_collapsed = re.sub(r"\s+", " ", needle)
+    haystack_collapsed = re.sub(r"\s+", " ", haystack)
+    return needle_collapsed in haystack_collapsed
 
 
 def _verdict_to_status(verdict: str) -> str:
@@ -4564,6 +4613,26 @@ def grade_response_via_llm(
         elapsed_ms = (_time.time() - t0) * 1000.0
         latencies.append(elapsed_ms)
         parsed = _parse_judge_verdict(judge_response)
+        # M1: verify the judge's evidence_quote actually appears in the
+        # response. If not, it's a hallucination or prompt-injection —
+        # demote the verdict to PARTIAL and flag.
+        evidence_grounded = _evidence_substring_check(
+            parsed["evidence_quote"], response_text,
+        )
+        if not evidence_grounded:
+            parsed = {
+                **parsed,
+                "evidence_quote_ungrounded": parsed["evidence_quote"],
+                "evidence_quote": "",
+                "rationale": (parsed.get("rationale", "") +
+                                " (evidence quote not found in response — flagged)").strip(),
+                "parse_ok": False,
+            }
+            # Demote: a verdict whose claimed evidence isn't real
+            # shouldn't carry full weight. yes → partial; everything
+            # else stays as-is.
+            if parsed["verdict"] == "yes":
+                parsed["verdict"] = "partial"
         status = _verdict_to_status(parsed["verdict"])
         contrib = {"PASS": 1.0, "PARTIAL": 0.5, "FAIL": 0.0}[status]
         total_w += weight
@@ -4573,17 +4642,18 @@ def grade_response_via_llm(
         elif parsed["verdict"] == "no": n_fail += 1
         else: n_uncertain += 1
         rows.append({
-            "id":                    dim["id"],
-            "name":                  dim.get("name", dim["id"]),
-            "weight":                weight,
-            "verdict":               parsed["verdict"],
-            "status":                status,
-            "evidence_quote":        parsed["evidence_quote"],
-            "rationale":             parsed["rationale"],
-            "parse_ok":              parsed["parse_ok"],
-            "judge_prompt_chars":    len(prompt),
-            "judge_response_chars":  len(judge_response),
-            "judge_latency_ms":      round(elapsed_ms, 1),
+            "id":                          dim["id"],
+            "name":                        dim.get("name", dim["id"]),
+            "weight":                      weight,
+            "verdict":                     parsed["verdict"],
+            "status":                      status,
+            "evidence_quote":              parsed["evidence_quote"],
+            "evidence_grounded":           evidence_grounded,
+            "rationale":                   parsed["rationale"],
+            "parse_ok":                    parsed["parse_ok"],
+            "judge_prompt_chars":          len(prompt),
+            "judge_response_chars":        len(judge_response),
+            "judge_latency_ms":            round(elapsed_ms, 1),
         })
 
     pct = round((score_w / total_w * 100) if total_w > 0 else 0, 1)
@@ -4625,6 +4695,9 @@ def grade_response_combined(
     deterministic = grade_response_universal(
         response_text, prompt_text=prompt_text, harness_trace=harness_trace
     )
+    # H1 fix: NaN/Inf bypass min/max clamps. Reject explicitly.
+    if not isinstance(judge_weight, (int, float)) or not math.isfinite(judge_weight):
+        judge_weight = 0.5
     if model_call is None or judge_weight <= 0:
         return {
             "mode":          "combined",
@@ -4638,7 +4711,7 @@ def grade_response_combined(
         response_text, model_call=model_call,
         prompt_text=prompt_text,
     )
-    w = max(0.0, min(1.0, judge_weight))
+    w = max(0.0, min(1.0, float(judge_weight)))
     combined_pct = round(
         deterministic["pct_score"] * (1 - w) + judge["pct_score"] * w, 1
     )
@@ -4657,14 +4730,31 @@ def _judge_deterministic_agreement(deterministic: dict, judge: dict) -> dict:
     """Compute agreement between the deterministic grader and the judge
     on dimensions where both produced a status. Helps surface dimensions
     where the two signals disagree (often a sign of a paraphrased citation
-    the keyword grader missed)."""
-    det_status = {d["id"]: d["status"] for d in deterministic.get("dimensions", [])
-                    if d["status"] != "NOT_APPLICABLE"}
-    judge_status = {d["id"]: d["status"] for d in judge.get("dimensions", [])
-                     if d["status"] != "NOT_APPLICABLE"}
+    the keyword grader missed).
+
+    H2 fix: malformed dimension dicts (missing 'id' or 'status') no
+    longer KeyError — they're skipped via .get() with sentinel checks.
+    """
+    def _status_map(payload: dict) -> dict[str, str]:
+        out: dict[str, str] = {}
+        for d in payload.get("dimensions", []) or []:
+            if not isinstance(d, dict):
+                continue
+            did = d.get("id")
+            status = d.get("status")
+            if not isinstance(did, str) or not isinstance(status, str):
+                continue
+            if status == "NOT_APPLICABLE":
+                continue
+            out[did] = status
+        return out
+
+    det_status = _status_map(deterministic)
+    judge_status = _status_map(judge)
     common = set(det_status) & set(judge_status)
     if not common:
-        return {"n_compared": 0, "agreement_pct": 0.0, "disagreements": []}
+        return {"n_compared": 0, "n_agree": 0, "agreement_pct": 0.0,
+                "disagreements": []}
     agree = sum(1 for k in common if det_status[k] == judge_status[k])
     disagreements = [
         {"id": k, "deterministic": det_status[k], "judge": judge_status[k]}

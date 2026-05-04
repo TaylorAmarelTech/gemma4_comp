@@ -1847,13 +1847,21 @@ function _renderJudgeGradeResult(g) {
     const evi = d.evidence_quote
         ? `<div style="margin-top:4px; padding:6px 10px; background:rgba(168,85,247,0.08); border-left:3px solid #a855f7; border-radius:3px; font-size:11px; font-style:italic; color:var(--ink);">"${escapeHtml(d.evidence_quote)}"</div>`
         : '';
+    // Server-side ground-truth check: if the judge claimed an
+    // evidence quote that doesn't appear in the response, surface
+    // a warning. Defends against prompt-injection / hallucinated
+    // quotes propagated through the UI as authoritative evidence.
+    const ungrounded = (d.evidence_grounded === false)
+        ? `<div style="margin-top:4px; padding:6px 10px; background:rgba(239,68,68,0.10); border-left:3px solid #ef4444; border-radius:3px; font-size:10.5px; color:#ef4444;">⚠ Judge claimed an evidence quote that does not appear in the response. Verdict demoted to PARTIAL.</div>`
+        : '';
     return `
       <div style="background:var(--bg); border-radius:5px; padding:10px 12px; margin-bottom:8px; border-left:4px solid ${c};">
         <div style="display:flex; justify-content:space-between; align-items:center; gap:8px;">
           <strong style="color:var(--ink); font-size:12px;">${escapeHtml(d.name)}</strong>
-          <span style="background:${c}; color:#fff; padding:2px 8px; border-radius:3px; font-size:10.5px; font-weight:700;">${verdictLabels[d.verdict] || d.verdict}</span>
+          <span style="background:${c}; color:#fff; padding:2px 8px; border-radius:3px; font-size:10.5px; font-weight:700;">${verdictLabels[d.verdict] || escapeHtml(d.verdict)}</span>
         </div>
         ${evi}
+        ${ungrounded}
         <div style="margin-top:4px; font-size:11px; color:var(--muted);">${escapeHtml(d.rationale || '')}</div>
         ${d.judge_latency_ms ? `<div style="margin-top:3px; font-size:10px; color:var(--muted);">${d.judge_latency_ms.toFixed(0)} ms judge call</div>` : ''}
       </div>`;
