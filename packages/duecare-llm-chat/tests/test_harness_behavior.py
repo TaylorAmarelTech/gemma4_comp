@@ -396,6 +396,61 @@ def test_lift_evaluator_detects_score_increase() -> None:
     assert lift["grade_on"]["pct_score"] > lift["grade_off"]["pct_score"]
 
 
+def test_multi_signal_match_handles_typos() -> None:
+    """v3.1: fuzzy match catches 1-char typos in proper nouns."""
+    h = _load_harness()
+    m = h._multi_signal_match("kafala", "the kalala system is widespread")
+    assert m["matched"], f"kafala/kalala should match; got {m}"
+    assert m["signal"] == "fuzzy"
+
+
+def test_multi_signal_match_handles_word_reorder() -> None:
+    """v3.1: token-overlap catches word reordering."""
+    h = _load_harness()
+    m = h._multi_signal_match("violates ILO C029", "in violation of ILO C029")
+    assert m["matched"], f"reorder should match; got {m}"
+    assert m["signal"] == "token_overlap"
+
+
+def test_multi_signal_match_handles_uk_us_spelling() -> None:
+    """v3.1: 'forced labour' (UK) matches 'forced labor' (US)."""
+    h = _load_harness()
+    m = h._multi_signal_match("forced labour", "this is forced labor")
+    assert m["matched"], f"UK/US spelling should match; got {m}"
+
+
+def test_multi_signal_match_handles_abbreviation_HK() -> None:
+    """v3.1: 'Hong Kong' matches 'HK' via multi-word entity normalization
+    + ABBREVIATIONS expansion."""
+    h = _load_harness()
+    m = h._multi_signal_match("hong kong", "in HK the rules differ")
+    assert m["matched"], f"hong kong/HK should match; got {m}"
+
+
+def test_stem_token_normalizes_consistently() -> None:
+    """v3.1: 'violates', 'violation', 'violating', 'violated' all stem
+    to the same root so they match in token-overlap."""
+    h = _load_harness()
+    stems = {h._stem_token(w) for w in
+              ("violates", "violation", "violating", "violated")}
+    assert len(stems) == 1, f"expected single stem; got {stems}"
+
+
+def test_normalized_edit_distance_kafala_kalala() -> None:
+    """v3.1: Levenshtein normalized distance returns expected ratio."""
+    h = _load_harness()
+    sim = h._normalized_edit_distance("kafala", "kalala")
+    # 1 substitution / 6 chars = 5/6 ≈ 0.833
+    assert sim >= 0.83 and sim <= 0.84, f"expected ~0.833; got {sim}"
+
+
+def test_trigram_jaccard_catches_partial_typos() -> None:
+    """v3.1: character trigrams catch what fuzzy + token-overlap miss."""
+    h = _load_harness()
+    score = h._trigram_jaccard("trafficking", "traffiking")  # missing c
+    assert score >= 0.4, f"trigram should catch 1-letter typo; got {score}"
+
+
 def test_aggregate_lift_results_computes_means() -> None:
     """Aggregator should compute mean OFF/ON + helped/unchanged/hurt counts."""
     h = _load_harness()
