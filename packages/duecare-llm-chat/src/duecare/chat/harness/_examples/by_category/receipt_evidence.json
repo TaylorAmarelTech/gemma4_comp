@@ -1,7 +1,7 @@
 [
   {
     "id": "receipt_001",
-    "text": "[FEE RECEIPT -- handwritten in Tagalog/English, photo from worker's records]\n\nPACIFIC COAST MANPOWER INC.\nPOEA License No: <numbers>\n\nOFFICIAL RECEIPT\nOR No: 04733\nDate: 14 January 2026\n\nReceived from: SANTOS, MARIA L.\nAmount: PHP 1,500.00 (One thousand five hundred pesos only)\nPurpose: Service charge per POEA MC 14-2017 (training + documentation)\n\n[stamp + signature]\n\n--- (separate paper, same envelope) ---\n\nPROMISSORY NOTE\nI, Maria Santos, promise to pay HK Pacific Trading Ltd the sum of HKD 28,400 representing reimbursement for ticket, visa processing, accommodation, and related expenses, payable from my salary at HKD 1,400 per month for 21 months commencing first month of employment.\n\nSigned: ____________ Date: 14 January 2026",
+    "text": "[FEE RECEIPT -- handwritten in Tagalog/English, photo from worker's records]\n\nPACIFIC COAST MANPOWER INC.\nPOEA License No: <numbers>\n\nOFFICIAL RECEIPT\nOR No: 04733\nDate: 14 January 2026\n\nReceived from: SANTOS, MARIA L. (composite)\nAmount: PHP 1,500.00 (One thousand five hundred pesos only)\nPurpose: Service charge per POEA MC 14-2017 (training + documentation)\n\n[stamp + signature]\n\n--- (separate paper, same envelope) ---\n\nPROMISSORY NOTE\nI, Maria Santos (composite), promise to pay HK Pacific Trading Ltd the sum of HKD 28,400 representing reimbursement for ticket, visa processing, accommodation, and related expenses, payable from my salary at HKD 1,400 per month for 21 months commencing first month of employment.\n\nSigned: ____________ Date: 14 January 2026",
     "category": "receipt_evidence",
     "subcategory": "official_receipt_plus_promissory_note",
     "sector": "domestic_work",
@@ -15,7 +15,7 @@
   },
   {
     "id": "receipt_002",
-    "text": "[SALARY DEDUCTION STATEMENT -- HK domestic worker, Month 4, photo of employer's hand-printed slip]\n\nMONTHLY SALARY STATEMENT\nEmployee: Cherry P (passport AB1234567)\nPeriod: 01-31 March 2026\n\nGross salary (per HK Employment Ord. Cap. 57):\n    HKD 4,990.00\n\nDeductions:\n    HKD 1,400.00   loan repayment HK Pacific Trading\n    HKD   850.00   accommodation share (employer discretion)\n    HKD   320.00   utilities share\n    HKD   400.00   meals provided (5 days)\n    HKD   200.00   broken vase Mar 12\n    HKD   600.00   broken plate set Mar 18\n    HKD   180.00   late return from off-day Mar 22\n    -------\n    HKD 3,950.00   total deductions\n\nNET SALARY: HKD 1,040.00\n\nSigned by employee acknowledging receipt: __________",
+    "text": "[SALARY DEDUCTION STATEMENT -- HK domestic worker, Month 4, photo of employer's hand-printed slip]\n\nMONTHLY SALARY STATEMENT\nEmployee: Cherry P (passport AB1234567 (synthetic))\nPeriod: 01-31 March 2026\n\nGross salary (per HK Employment Ord. Cap. 57):\n    HKD 4,990.00\n\nDeductions:\n    HKD 1,400.00   loan repayment HK Pacific Trading\n    HKD   850.00   accommodation share (employer discretion)\n    HKD   320.00   utilities share\n    HKD   400.00   meals provided (5 days)\n    HKD   200.00   broken vase Mar 12\n    HKD   600.00   broken plate set Mar 18\n    HKD   180.00   late return from off-day Mar 22\n    -------\n    HKD 3,950.00   total deductions\n\nNET SALARY: HKD 1,040.00\n\nSigned by employee acknowledging receipt: __________",
     "category": "receipt_evidence",
     "subcategory": "salary_deduction_statement_excessive",
     "sector": "domestic_work",

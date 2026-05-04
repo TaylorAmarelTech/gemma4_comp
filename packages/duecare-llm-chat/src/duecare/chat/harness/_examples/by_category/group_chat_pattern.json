@@ -28,7 +28,7 @@
   },
   {
     "id": "group_003",
-    "text": "[TELEGRAM GROUP -- 'Lender Network HK', 14 members, lender coordination]\n\nLender 1: 'Maria Santos PH passport AB1234567 -- missed 2nd payment with Wong. anyone else lent to her?'\nLender 2: 'I have her at HKD 8,400 outstanding 14% APR'\nLender 3: 'Same name? worker number from PH agency Pacific Coast Manpower?'\nLender 1: 'Yes that's her'\nLender 3: 'I have her too HKD 6,200 at 28% APR. Total between us 22,000 + Wong 11,200. She can never repay. Coordinate the call to Pacific Coast to start her blacklist process'\nLender 2: 'Done -- sending docs to PH agent now. They will deport her, we recover from her family in Bicol'",
+    "text": "[TELEGRAM GROUP -- 'Lender Network HK', 14 members, lender coordination]\n\nLender 1: 'Maria Santos (composite) PH passport AB1234567 (synthetic) -- missed 2nd payment with Wong. anyone else lent to her?'\nLender 2: 'I have her at HKD 8,400 outstanding 14% APR'\nLender 3: 'Same name? worker number from PH agency Pacific Coast Manpower?'\nLender 1: 'Yes that's her'\nLender 3: 'I have her too HKD 6,200 at 28% APR. Total between us 22,000 + Wong 11,200. She can never repay. Coordinate the call to Pacific Coast to start her blacklist process'\nLender 2: 'Done -- sending docs to PH agent now. They will deport her, we recover from her family in Bicol'",
     "category": "group_chat_pattern",
     "subcategory": "telegram_lender_coordination",
     "sector": "domestic_work",

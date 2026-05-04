@@ -166,7 +166,7 @@ IMGUR_SPECS = [
      "redaction (black bars over passport thumbnails) but full name "
      "remained in body text. Re-redacted defensively here."),
     ("imgur_03_vQXz42N.png", "imgur_03_facebook_wanted_thumbnail",
-     "Facebook user 'Nicole Cruz' reposting the 'WANTED' template",
+     "Facebook user [composite reposter handle] reposting the 'WANTED' template",
      "doxxing",
      "Cropped Facebook post (Feb 24, 2021) -- same lender-shaming "
      "wording amplified by an individual user. Documents the "
@@ -189,17 +189,17 @@ VIDEO_SPECS = [
      "with different OFW victims. 6 evenly-spaced keyframes extracted, "
      "each heavily blurred."),
     ("video_02_20210225_152144.mp4", "video_02_indonesian_doxxing",
-     "Indonesian-language doxxing post -- 'Melly Wong' page",
+     "Indonesian-language doxxing post -- [anonymized FB page A]",
      "doxxing",
      "~108 MB recording showing the same template in Bahasa Indonesia: "
      "'SIAPA YANG TAHU ORANG INI' (whoever knows this person) with "
      "full name + KTP number + village location. Documents the cross-"
      "language pattern."),
     ("video_03_20210303_114223.mp4", "video_03_wang_tzu_wanted",
-     "Wang Tzu page -- second predator profile",
+     "[anonymized FB page B] page -- second predator profile",
      "doxxing",
      "~33 MB recording of the same 'WANTED' template on a different "
-     "page (Wang Tzu, Mar 3 2021). Targets another named OFW. Confirms "
+     "page ([anonymized FB page B], early 2021). Targets another named OFW. Confirms "
      "the template is industrialised across multiple coordinated actors."),
     ("video_04_20210407_213026.mp4", "video_04_followup_post",
      "Apr 2021 follow-up shaming post",

@@ -53,6 +53,17 @@ data/raw/
 data/processed/
 data/interim/
 
+# PII-bearing harvested data (Google Drive ingest cache + entity tables)
+# These contain real complainant names/emails/phones from legal source
+# documents; NEVER track in git per .claude/rules/10_safety_gate.md.
+data/drive_text_cache/
+data/drive_image_cache/
+data/drive_*.json
+data/drive_*.md
+data/drive_*.npz
+data/_drive_*
+data/_curated_drive_*
+
 # Logs and outputs
 *.log
 logs/
