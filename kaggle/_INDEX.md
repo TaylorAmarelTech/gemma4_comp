@@ -4,21 +4,28 @@
 > [`kaggle/README.md`](./README.md) and [`docs/FOR_JUDGES.md`](../docs/FOR_JUDGES.md).
 > Every row reflects what's in this directory tree right now.
 
-## Build status — 6 core + 5 appendix = 11 submission notebooks
+## Build status — 2 core + 9 appendix = 11 submission notebooks
+
+**Submission shape (2026-05-04):** judges land on the unified
+**`duecare-harness-chat`** notebook to see every capability surface,
+then proceed to **`live-demo`** for the focused thesis demonstration.
+The 9 specialised playgrounds remain as appendix for depth signal.
 
 | # | Slug | Files | Wheels | kernel-metadata target | Publish |
 |---|---|:-:|:-:|---|:-:|
-| 1 | `chat-playground` | ✓ all 4 | ✓ | `taylorsamarel/duecare-chat-playground` | live |
-| 2 | `chat-playground-with-grep-rag-tools` | ✓ all 4 | ✓ | `taylorsamarel/duecare-chat-playground-with-grep-rag-tools` | live |
-| 3 | `content-classification-playground` | ✓ all 4 | ✓ | `taylorsamarel/duecare-content-classification-playground` | pending |
-| 4 | `content-knowledge-builder-playground` | ✓ all 4 | ✓ | `taylorsamarel/duecare-content-knowledge-builder-playground` | pending |
-| 5 | `gemma-content-classification-evaluation` | ✓ all 4 | ✓ | `taylorsamarel/duecare-gemma-content-classification-evaluation` | live |
-| 6 | `live-demo` | ✓ all 4 | ✓ | `taylorsamarel/duecare-live-demo` | live |
-| A1 | `prompt-generation` | ✓ all 4 | ✓ | `taylorsamarel/duecare-prompt-generation` | pending |
-| A2 | `bench-and-tune` | ✓ all 4 | ✓ | `taylorsamarel/duecare-bench-and-tune` | pending |
-| A3 | `research-graphs` | ✓ all 4 | ✓ | `taylorsamarel/duecare-research-graphs` | pending |
-| A4 | `chat-playground-with-agentic-research` | ✓ all 4 | ✓ | `taylorsamarel/duecare-chat-playground-with-agentic-research` | pending |
-| A5 | `chat-playground-jailbroken-models` | ✓ all 4 | ✓ | `taylorsamarel/duecare-chat-playground-jailbroken-models` | pending |
+| **1** | **`duecare-harness-chat`** ★ unified omni playground | ✓ all 4 | ✓ | `taylorsamarel/duecare-harness-chat` | pending |
+| **2** | **`live-demo`** ★ focused live demo | ✓ all 4 | ✓ | `taylorsamarel/duecare-live-demo` | live |
+| A1 | `chat-playground` (baseline, harness OFF) | ✓ all 4 | ✓ | `taylorsamarel/duecare-chat-playground` | live |
+| A2 | `chat-playground-with-grep-rag-tools` (harness ON) | ✓ all 4 | ✓ | `taylorsamarel/duecare-chat-playground-with-grep-rag-tools` | live |
+| A3 | `content-classification-playground` | ✓ all 4 | ✓ | `taylorsamarel/duecare-content-classification-playground` | pending |
+| A4 | `content-knowledge-builder-playground` | ✓ all 4 | ✓ | `taylorsamarel/duecare-content-knowledge-builder-playground` | pending |
+| A5 | `gemma-content-classification-evaluation` | ✓ all 4 | ✓ | `taylorsamarel/duecare-gemma-content-classification-evaluation` | live |
+| A6 | `prompt-generation` | ✓ all 4 | ✓ | `taylorsamarel/duecare-prompt-generation` | pending |
+| A7 | `bench-and-tune` (Unsloth fine-tune) | ✓ all 4 | ✓ | `taylorsamarel/duecare-bench-and-tune` | pending |
+| A8 | `research-graphs` (Plotly evaluation graphs) | ✓ all 4 | ✓ | `taylorsamarel/duecare-research-graphs` | pending |
+| A9 | `chat-playground-with-agentic-research` (Playwright web search) | ✓ all 4 | ✓ | `taylorsamarel/duecare-chat-playground-with-agentic-research` | pending |
+| A10 | `chat-playground-jailbroken-models` (abliterated baselines) | ✓ all 4 | ✓ | `taylorsamarel/duecare-chat-playground-jailbroken-models` | pending |
+| A11 | `grading-evaluation` (lift regenerator + provenance JSON) | ✓ all 4 | ✓ | `taylorsamarel/duecare-grading-evaluation` | pending |
 
 **Files** column legend (each row reads `kernel.py + kernel-metadata.json + notebook.ipynb + README.md`):
 

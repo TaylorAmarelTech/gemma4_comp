@@ -97,32 +97,22 @@ If you have two minutes to decide if this is real:
 
 ## The Kaggle notebooks (the submission surface)
 
-The submission is structured as **6 core notebooks** (sufficient for
-end-user deployment) plus **5 appendix notebooks** (advanced extension
-workflows, research visualization, agentic web-research, and a
-jailbroken-models proof). Judges should walk the core notebooks IN
-ORDER — each builds context for the next. The "What the harness
-actually does, quantified" section above already shows the harness
-delta as a single table; the core notebooks below are the click-to-
-verify version of that claim.
+The submission is structured as **2 core notebooks** (the omni
+playground + the focused live demo) plus **9 appendix notebooks**
+(specialised playgrounds, research visualisation, agentic web-search,
+jailbroken-models proof, lift regenerator). Judges land on the
+**unified harness chat** to flip every toggle and see every capability
+at once, then proceed to **live-demo** for the focused thesis
+demonstration with the headline +56.5pp lift number.
 
-### Core (6 notebooks — walk in order)
-
-The chat playgrounds (1-2) introduce the chat surface. The two
-playgrounds (3-4) introduce classification and knowledge-building
-each on their own. The classifier dashboard (5) shows the production
-NGO shape. The live-demo (6) is the polished combined product.
+### Core (2 notebooks — walk in this order)
 
 | # | Notebook | Wheels dataset | Purpose |
 |---|---|---|---|
-| 1 | [duecare-chat-playground](https://www.kaggle.com/code/taylorsamarel/duecare-gemma-chat-playground) | `duecare-chat-playground-wheels` | Raw Gemma 4 chat — NO harness. Baseline for the comparison story. |
-| 2 | [duecare-chat-playground-with-grep-rag-tools](https://www.kaggle.com/code/taylorsamarel/duecare-gemma-chat-playground-grep-rag-tools) | `duecare-chat-playground-with-grep-rag-tools-wheels` | **The headline demo.** Same chat UI with 4 toggle tiles + multi-persona library + custom rule additions + 394-prompt Examples library + per-response Pipeline modal. |
-| 3 | [duecare-content-classification-playground](https://www.kaggle.com/code/taylorsamarel/duecare-content-classification-playground) *(publish pending)* | `duecare-content-classification-playground-wheels` *(publish pending — wheels built locally)* | Hands-on classification sandbox. 4 schema modes (single-label / multi-label / risk-vector / custom). Shows merged prompt + raw response + parsed JSON. **Pre-live-demo intro to classification.** |
-| 4 | [duecare-content-knowledge-builder-playground](https://www.kaggle.com/code/taylorsamarel/duecare-content-knowledge-builder-playground) *(publish pending)* | `duecare-content-knowledge-builder-playground-wheels` *(publish pending — wheels built locally)* | Hands-on knowledge-base sandbox. Add GREP rules + RAG docs; test what fires; export full JSON. **Pre-live-demo intro to knowledge building.** |
-| 5 | [duecare-gemma-content-classification-evaluation](https://www.kaggle.com/code/taylorsamarel/duecare-gemma-content-classification-evaluation) | `duecare-gemma-content-classification-evaluation-wheels` | **The polished Agency / NGO dashboard.** Form-based content submission → structured JSON classification with risk vectors + threshold-filterable history queue + 16 example items (6 with SVG document mockups). |
-| 6 | [duecare-live-demo](https://www.kaggle.com/code/taylorsamarel/duecare-live-demo) | `duecare-live-demo-wheels` | **The user-facing live URL.** Full safety-harness pipeline + 22-slide deck + audit Workbench. Combines classification + knowledge-building (notebooks 3 + 4) into one polished product. |
+| **1** | [duecare-harness-chat](https://www.kaggle.com/code/taylorsamarel/duecare-harness-chat) *(publish pending)* | `duecare-harness-chat-wheels` ✓ live | **The omni playground.** Single configurable interface with all 4 harness layers (Persona / GREP 49 rules / RAG 33 docs / Tools 5 lookups) + optional online search + 4-mode grader (Universal / Expert / Deep / Combined) + **Gemma 4 model selector**: pick from 9 variants (E2B / E4B / 26B-A4B / 31B / 2 jailbroken / 3 cloud BYOK routes). Judges flip toggles, change models, and see the harness work end-to-end across the whole capability surface. |
+| **2** | [duecare-live-demo](https://www.kaggle.com/code/taylorsamarel/duecare-live-demo) | `duecare-live-demo-wheels` ✓ live | **The user-facing live URL.** Full safety-harness pipeline + 22-slide deck + audit Workbench. The polished, scripted live demonstration of the +56.5pp lift thesis. |
 
-### Appendix (5 notebooks — advanced extension + research)
+### Appendix (9 notebooks — specialised + research)
 
 These notebooks are **not required for deployment**. A1–A2 extend
 Duecare to new domains; A3 visualizes the harness data; A4 is a
