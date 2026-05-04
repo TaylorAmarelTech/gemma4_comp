@@ -115,6 +115,19 @@ class GradeRequest(BaseModel):
     mode: Optional[str] = None             # "universal" | "category" | "prompt_id" (default: universal if no other params)
 
 
+class DeepGradeRequest(BaseModel):
+    """LLM-as-judge grade request: send the response back to the loaded
+    Gemma with dimension-specific yes/no questions. Optional dimension
+    list lets the UI ask for a single-dimension deep dive."""
+    response_text: str
+    prompt_text: Optional[str] = None
+    dimensions: Optional[list[str]] = None
+    skip_not_applicable: bool = True
+    judge_weight: float = 0.5  # used only by /api/grade-combined
+    max_new_tokens: int = 320  # judge replies are short JSON; cap tight
+    temperature: float = 0.0   # deterministic verdicts
+
+
 def create_app(
     gemma_call: Optional[Callable] = None,
     model_info: Optional[dict] = None,
@@ -208,7 +221,11 @@ def create_app(
         """Tell the UI which harness layers are wired so it can show
         only the relevant toggles. Layers that aren't wired are not
         invokable and not displayed. The persona layer is always
-        considered 'wired' if a default text exists."""
+        considered 'wired' if a default text exists.
+
+        `grade_deep` reflects whether the LLM-as-judge endpoint will
+        work — it requires `gemma_call` to be wired so the kernel can
+        ask its own loaded Gemma the dimension yes/no questions."""
         return {
             "persona": bool(app.state.persona_default),
             "persona_default": app.state.persona_default or "",
@@ -216,6 +233,7 @@ def create_app(
             "rag": app.state.rag_call is not None,
             "tools": app.state.tools_call is not None,
             "grade": app.state.grade_call is not None,
+            "grade_deep": app.state.gemma_call is not None,
             "grade_categories": app.state.rubrics_required_categories or [],
         }
 
@@ -298,6 +316,107 @@ def create_app(
         except Exception as e:  # noqa: BLE001 -- surface to client
             raise HTTPException(500, f"grading failed: {e}") from e
         return result
+
+    def _judge_model_call(prompt_str: str, *, max_new_tokens: int,
+                            temperature: float) -> str:
+        """Wrap the kernel's gemma_call into the (prompt: str) -> str
+        signature the LLM-judge grader expects. Builds a single-turn
+        message list (no harness layers — the judge looks at the raw
+        response on its own merits). Uses low temperature for
+        deterministic verdicts."""
+        gc = app.state.gemma_call
+        if gc is None:
+            raise HTTPException(503, "deep grading needs gemma_call wired")
+        messages = [{
+            "role": "user",
+            "content": [{"type": "text", "text": prompt_str}],
+        }]
+        try:
+            return gc(
+                messages,
+                max_new_tokens=max_new_tokens,
+                temperature=temperature,
+                top_p=0.95,
+                top_k=20,
+            ) or ""
+        except TypeError:
+            return gc(messages) or ""
+
+    @app.post("/api/grade-deep")
+    def api_grade_deep(req: DeepGradeRequest) -> Any:
+        """LLM-as-judge grader. Sends the response back to the loaded
+        Gemma with one focused yes/no question per applicable rubric
+        dimension. Returns dimension-by-dimension verdicts with
+        evidence quotes pulled from the response.
+
+        Why this complements the deterministic v3 grader: keyword/
+        cluster/fuzzy/trigram match catches lexical evidence; the LLM
+        judge catches paraphrased citations, implicit refusals, and
+        semantic substance the lexical grader can't see. Together they
+        form a defence-in-depth grading stack."""
+        if app.state.gemma_call is None:
+            raise HTTPException(
+                503,
+                "deep grading not available — kernel did not wire gemma_call",
+            )
+        if not req.response_text or not req.response_text.strip():
+            raise HTTPException(400, "response_text is required")
+        from .harness import grade_response_via_llm
+
+        def model_call(p: str) -> str:
+            return _judge_model_call(
+                p, max_new_tokens=req.max_new_tokens,
+                temperature=req.temperature,
+            )
+        try:
+            return grade_response_via_llm(
+                req.response_text,
+                model_call=model_call,
+                prompt_text=req.prompt_text or "",
+                dimensions=req.dimensions,
+                skip_not_applicable=req.skip_not_applicable,
+            )
+        except HTTPException:
+            raise
+        except Exception as e:  # noqa: BLE001
+            raise HTTPException(500, f"deep grading failed: {e}") from e
+
+    @app.post("/api/grade-combined")
+    def api_grade_combined(req: DeepGradeRequest) -> Any:
+        """Run the deterministic v3 grader AND the LLM judge, return
+        both results plus a blended pct_score (default 50/50). Surfaces
+        an `agreement` block listing dimensions where the two graders
+        disagree — those are the high-information cases for a reviewer
+        to look at."""
+        if app.state.gemma_call is None:
+            # No model wired → fall back to deterministic only
+            from .harness import grade_response_combined
+            return grade_response_combined(
+                req.response_text,
+                model_call=None,
+                prompt_text=req.prompt_text or "",
+                judge_weight=0.0,
+            )
+        if not req.response_text or not req.response_text.strip():
+            raise HTTPException(400, "response_text is required")
+        from .harness import grade_response_combined
+
+        def model_call(p: str) -> str:
+            return _judge_model_call(
+                p, max_new_tokens=req.max_new_tokens,
+                temperature=req.temperature,
+            )
+        try:
+            return grade_response_combined(
+                req.response_text,
+                model_call=model_call,
+                prompt_text=req.prompt_text or "",
+                judge_weight=req.judge_weight,
+            )
+        except HTTPException:
+            raise
+        except Exception as e:  # noqa: BLE001
+            raise HTTPException(500, f"combined grading failed: {e}") from e
 
     @app.post("/api/chat/upload-image")
     async def api_upload_image(file: UploadFile = File(...)) -> Any:

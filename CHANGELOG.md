@@ -14,6 +14,71 @@ the meta `duecare-llm` package tracking the workspace lockstep.
   push of `Duecare-Gemma-4-E4B-it-SafetyJudge-v0.1.0`
 - Pending: notebook publish for #3, #4, A1, A3, A4, A5, A6 (built
   locally; gated by Kaggle daily push rate-limit)
+- **NEW (2026-05-04 PM):** v3.3 harness expansion — 7 new GREP rules
+  + 7 new RAG docs + 9 fee-camouflage labels + 9 corridor caps + 7
+  NGO contacts + new `lookup_ilo_convention` tool + 2 new universal
+  rubric dimensions. Diagnosed via 6 escalating-difficulty tricky
+  prompts (kafala, novation, multi-convention reasoning) and closed
+  every gap.
+  - GREP additions (49 total, was 42): kafala safekeeping passport
+    fee · Lebanon kafala domestic worker · loan transferred to
+    lender/employer · ILO convention specific query · novation no-
+    keyword loan transfer · fishing-or-domestic-work convention
+    comparison · Gulf employer + payday lender loan
+  - RAG additions (33 total, was 26): Lebanon Cabinet Decree
+    13166/2021 (kafala reform) · Kuwait Decree 19/2018 (DW
+    protections) · ILO C188 (Work in Fishing 2007) · ILO C181 (no
+    fees from workers) · POEA complaint procedure RA 8042 §10 +
+    §11 · ILO Forced Labour Protocol P029 (2014) · UN Smuggling-
+    of-Migrants Protocol
+  - Fee camouflage (25 total, was 16): safekeeping fee · guarantee
+    fee · passport fee · loan transfer fee · loan novation fee ·
+    documentation fee · skills test fee · orientation fee ·
+    stamping fee
+  - Corridor caps (16 total, was 7): PH→Saudi · PH→Kuwait ·
+    PH→Lebanon · PH→UAE · ID→Saudi · ID→Lebanon · LK→Lebanon ·
+    BD→Saudi · BD→Kuwait
+  - NGO intake (12 total, was 4): PH+Saudi · PH+Kuwait · PH+Lebanon
+    · ID+Saudi · ID+Lebanon · LK+Lebanon · BD+Saudi · BD+Kuwait
+  - New tool: `lookup_ilo_convention(number)` — returns year,
+    title, key articles, focus, ratification context. Auto-fires
+    when prompt mentions "C0XX" / "Convention 0XX" / "ILO 189".
+  - Dispatcher: now fires `lookup_corridor_fee_cap` +
+    `lookup_ngo_intake` when EITHER side of a corridor is named
+    (was: required both)
+  - Universal rubric: 17 dimensions now (was 15). New:
+    `procedural_pathway` (concrete file-at-X-under-§Y vs vague
+    "consult an authority") and `convention_specific_article`
+    (cites Art. 9, not just C189). Tightened
+    `multi_jurisdiction_coverage` applicability — fires on country
+    names + cross-border verbs, not generic "from/to" noise.
+  - 22 new tests; total 54 → 76. All pass.
+- **NEW (2026-05-04):** LLM-as-judge grader (v1.0) — sends the
+  response back to the loaded Gemma with one focused yes/no
+  question per rubric dimension. Complements the deterministic
+  multi-signal v3.1 grader for cases where keyword/cluster/fuzzy/
+  trigram all fall short — paraphrased citations, implicit
+  refusals, semantic substance the lexical grader can't see.
+  - Two new endpoints: `/api/grade-deep` (LLM judge only) and
+    `/api/grade-combined` (50/50 blend of deterministic + judge,
+    with disagreement panel highlighting dimensions where the two
+    graders see different evidence)
+  - 15 dimension-specific yes/no questions in `JUDGE_QUESTIONS`,
+    each requiring an evidence quote pulled from the response —
+    no hallucinated support
+  - Strict JSON envelope parsing with three fallback layers
+    (fenced JSON, embedded JSON, scanned-keyword) so a model that
+    drifts from the format still produces a verdict
+  - Skips `NOT_APPLICABLE` dimensions to save model calls
+  - 11 new unit tests (all pass with mock model_call)
+  - UI: 4 grader modes now (Universal / Expert / Deep / Combined)
+- **FIXED (2026-05-04):** GREP rules `usury_pattern_high_apr` and
+  `fishing_vessel_debt_confinement` had regex bugs that made
+  their primary test cases not fire. Usury now matches `68% APR`
+  (was requiring `year/annum/annual` after the percentage);
+  fishing-vessel matches `cannot leave to go ashore` and `keep us
+  at sea` (was requiring literal `cannot to leave`). Tests pass
+  54/54.
 - **NEW (2026-05-03):** Universal Grader v3.0 — replaces
   prompt-shape-coupled categories (business_framed / victim / etc.)
   with 15 cross-prompt dimensions. Multi-signal scoring beyond

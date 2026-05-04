@@ -581,6 +581,7 @@ const messages = [];        // [{role, content: [{type, text|image}]}]
 const pendingImages = [];   // [{id, mime, dataUrl}]
 let _personaDefault = '';         // populated by probeHarness from /api/harness-info
 let _gradeAvailable = false;      // set by probeHarness if /api/grade is wired
+let _gradeDeepAvailable = false;  // set by probeHarness if /api/grade-deep is wired (needs gemma_call)
 let _gradeCategories = [];        // categories the rubric supports
 
 // ---------------------------------------------------------------------------
@@ -730,6 +731,7 @@ async function probeHarness() {
       _personaDefault = info.persona_default;
     }
     _gradeAvailable = !!info.grade;
+    _gradeDeepAvailable = !!info.grade_deep;
     _gradeCategories = Array.isArray(info.grade_categories) ? info.grade_categories : [];
     updatePersonaTileBadge();
   } catch (e) { /* /api/harness-info missing -- old chat wheel, hide */ }
@@ -1669,32 +1671,51 @@ let _lastLoadedExampleId = null;
 
 // Default grading mode: universal (no prompt-shape coupling).
 // Power users can flip to expert per-category mode via the toggle.
-let _gradeMode = 'universal';  // 'universal' | 'category'
+// 'deep' / 'combined' need the kernel to wire gemma_call so the LLM
+// judge can ask the loaded Gemma the dimension questions.
+let _gradeMode = 'universal';  // 'universal' | 'category' | 'deep' | 'combined'
 
 async function openGradeModal(messageIdx) {
   const m = messages[messageIdx];
   if (!m || m.role !== 'assistant') return;
+  const deepBlurb = _gradeDeepAvailable
+      ? '<strong>Deep (LLM judge)</strong> sends the response back to the loaded Gemma with one yes/no question per dimension and quotes the evidence. Slow (~15 model calls) but catches paraphrased citations the keyword grader misses. <strong>Combined</strong> blends Universal + Deep 50/50 and flags the dimensions where the two graders disagree.'
+      : '<em style="color:var(--muted);">Deep grading needs the kernel to wire gemma_call. The current kernel does not — only Universal + Expert modes are available.</em>';
+  const deepRadio = _gradeDeepAvailable ? `
+      <label style="font-size:12px; color:var(--ink); display:flex; align-items:center; gap:6px;">
+        <input type="radio" name="grade-mode" value="deep"
+               ${_gradeMode === 'deep' ? 'checked' : ''}
+               onchange="_gradeMode='deep'; _runGrade(${messageIdx})">
+        Deep (LLM judge)
+      </label>
+      <label style="font-size:12px; color:var(--ink); display:flex; align-items:center; gap:6px;">
+        <input type="radio" name="grade-mode" value="combined"
+               ${_gradeMode === 'combined' ? 'checked' : ''}
+               onchange="_gradeMode='combined'; _runGrade(${messageIdx})">
+        Combined (Universal + Judge)
+      </label>` : '';
   const skeleton = `
     <p style="color:var(--muted); margin-top:0; font-size:12px;">
       Score this response against 15 universal grading dimensions. The
       grader auto-detects which dimensions are testable from this prompt+
       response — dimensions with no signals are marked <strong>N/A</strong>
-      and excluded from the score. Replaces the legacy prompt-shape
-      categories (business_framed / victim / etc.).
+      and excluded from the score.
+      <br>${deepBlurb}
     </p>
     <div style="margin:12px 0; display:flex; gap:12px; align-items:center; flex-wrap:wrap;">
       <label style="font-size:12px; color:var(--ink); display:flex; align-items:center; gap:6px;">
         <input type="radio" name="grade-mode" value="universal"
                ${_gradeMode === 'universal' ? 'checked' : ''}
                onchange="_gradeMode='universal'; _runGrade(${messageIdx})">
-        Universal (recommended)
+        Universal (fast, deterministic)
       </label>
       <label style="font-size:12px; color:var(--muted); display:flex; align-items:center; gap:6px;">
         <input type="radio" name="grade-mode" value="category"
                ${_gradeMode === 'category' ? 'checked' : ''}
                onchange="_gradeMode='category'; _runGrade(${messageIdx})">
-        Expert mode (legacy per-category rubrics)
+        Expert (legacy per-category)
       </label>
+      ${deepRadio}
     </div>
     <div id="grade-mode-controls"></div>
     <div id="grade-result-pane">
@@ -1761,14 +1782,32 @@ async function _runGrade(messageIdx) {
       ? userMsg.content.filter(c => c.type === 'text').map(c => c.text).join('\n')
       : '';
   const pane = document.getElementById('grade-result-pane');
-  pane.innerHTML = `<div style="color:var(--muted); font-style:italic; padding:16px 0;">Scoring (${escapeHtml(_gradeMode)} mode)…</div>`;
+  // Deep / combined modes are slow (~15 model calls). Surface that
+  // explicitly so a user doesn't think the UI is hung.
+  const slowNote = (_gradeMode === 'deep' || _gradeMode === 'combined')
+      ? '<br><span style="font-size:11px; color:var(--muted); font-style:italic;">LLM-judge runs ~15 model calls (one per applicable dimension). This will take ~30–90 seconds depending on the kernel.</span>'
+      : '';
+  pane.innerHTML = `<div style="color:var(--muted); font-style:italic; padding:16px 0;">Scoring (${escapeHtml(_gradeMode)} mode)…${slowNote}</div>`;
   let result;
-  try {
-    const body = (_gradeMode === 'universal')
-        ? {response_text: respText, prompt_text: promptText, harness_trace: m._harness, mode: 'universal'}
-        : {response_text: respText, category: _gradeSelectedCategory,
+  let url = '/api/grade';
+  let body;
+  if (_gradeMode === 'universal') {
+    body = {response_text: respText, prompt_text: promptText, harness_trace: m._harness, mode: 'universal'};
+  } else if (_gradeMode === 'category') {
+    body = {response_text: respText, category: _gradeSelectedCategory,
             prompt_category: _lastLoadedExampleCategory, mode: 'category'};
-    const r = await fetch('/api/grade', {
+  } else if (_gradeMode === 'deep') {
+    url = '/api/grade-deep';
+    body = {response_text: respText, prompt_text: promptText};
+  } else if (_gradeMode === 'combined') {
+    url = '/api/grade-combined';
+    body = {response_text: respText, prompt_text: promptText, judge_weight: 0.5};
+  } else {
+    pane.innerHTML = `<div style="color:#ef4444; padding:16px 0;">Unknown grade mode: ${escapeHtml(_gradeMode)}</div>`;
+    return;
+  }
+  try {
+    const r = await fetch(url, {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
       body: JSON.stringify(body),
@@ -1782,11 +1821,140 @@ async function _runGrade(messageIdx) {
     pane.innerHTML = `<div style="color:#ef4444; padding:16px 0;">Error scoring: ${escapeHtml(String(e.message || e))}</div>`;
     return;
   }
-  if (result && result.mode === 'universal') {
+  if (result && result.mode === 'llm_judge') {
+    pane.innerHTML = _renderJudgeGradeResult(result);
+  } else if (result && result.mode === 'combined') {
+    pane.innerHTML = _renderCombinedGradeResult(result);
+  } else if (result && result.mode === 'universal') {
     pane.innerHTML = _renderUniversalGradeResult(result);
   } else {
     pane.innerHTML = _renderGradeResult(result);
   }
+}
+
+// LLM-judge result renderer: per-dimension yes/no/partial verdicts
+// with quoted evidence pulled from the response.
+function _renderJudgeGradeResult(g) {
+  if (!g || !g.dimensions) {
+    return `<div style="color:var(--muted); font-style:italic;">Deep grader returned no dimensions — kernel may not have wired gemma_call.</div>`;
+  }
+  const pct = g.pct_score ?? 0;
+  const scoreColor = pct >= 70 ? '#10b981' : pct >= 40 ? '#f59e0b' : '#ef4444';
+  const verdictColors = {yes:'#10b981', partial:'#f59e0b', no:'#ef4444', uncertain:'#a855f7', skipped:'#64748b'};
+  const verdictLabels = {yes:'YES', partial:'PARTIAL', no:'NO', uncertain:'?', skipped:'N/A'};
+  const rows = (g.dimensions || []).map(d => {
+    const c = verdictColors[d.verdict] || '#64748b';
+    const evi = d.evidence_quote
+        ? `<div style="margin-top:4px; padding:6px 10px; background:rgba(168,85,247,0.08); border-left:3px solid #a855f7; border-radius:3px; font-size:11px; font-style:italic; color:var(--ink);">"${escapeHtml(d.evidence_quote)}"</div>`
+        : '';
+    return `
+      <div style="background:var(--bg); border-radius:5px; padding:10px 12px; margin-bottom:8px; border-left:4px solid ${c};">
+        <div style="display:flex; justify-content:space-between; align-items:center; gap:8px;">
+          <strong style="color:var(--ink); font-size:12px;">${escapeHtml(d.name)}</strong>
+          <span style="background:${c}; color:#fff; padding:2px 8px; border-radius:3px; font-size:10.5px; font-weight:700;">${verdictLabels[d.verdict] || d.verdict}</span>
+        </div>
+        ${evi}
+        <div style="margin-top:4px; font-size:11px; color:var(--muted);">${escapeHtml(d.rationale || '')}</div>
+        ${d.judge_latency_ms ? `<div style="margin-top:3px; font-size:10px; color:var(--muted);">${d.judge_latency_ms.toFixed(0)} ms judge call</div>` : ''}
+      </div>`;
+  }).join('');
+  return `
+    <div style="display:flex; gap:14px; margin-bottom:14px; flex-wrap:wrap;">
+      <div style="flex:1 1 130px; background:var(--bg); border-radius:6px; padding:12px 14px; border-left:4px solid ${scoreColor};">
+        <div style="font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:0.5px;">Judge score</div>
+        <div style="font-size:24px; font-weight:700; color:${scoreColor};">${pct}%</div>
+        <div style="font-size:11px; color:var(--muted); margin-top:2px;">${g.total_score} / ${g.total_weight} weighted (over ${g.n_evaluated} evaluated dimensions)</div>
+      </div>
+      <div style="flex:1 1 70px; background:var(--bg); border-radius:6px; padding:12px 14px; border-left:4px solid #10b981;">
+        <div style="font-size:11px; color:var(--muted); text-transform:uppercase;">YES</div>
+        <div style="font-size:24px; font-weight:700; color:#10b981;">${g.n_pass}</div>
+      </div>
+      <div style="flex:1 1 70px; background:var(--bg); border-radius:6px; padding:12px 14px; border-left:4px solid #f59e0b;">
+        <div style="font-size:11px; color:var(--muted); text-transform:uppercase;">Partial</div>
+        <div style="font-size:24px; font-weight:700; color:#f59e0b;">${g.n_partial}</div>
+      </div>
+      <div style="flex:1 1 70px; background:var(--bg); border-radius:6px; padding:12px 14px; border-left:4px solid #ef4444;">
+        <div style="font-size:11px; color:var(--muted); text-transform:uppercase;">NO</div>
+        <div style="font-size:24px; font-weight:700; color:#ef4444;">${g.n_fail}</div>
+      </div>
+      <div style="flex:1 1 70px; background:var(--bg); border-radius:6px; padding:12px 14px; border-left:4px solid #a855f7;">
+        <div style="font-size:11px; color:var(--muted); text-transform:uppercase;">Uncertain</div>
+        <div style="font-size:24px; font-weight:700; color:#a855f7;">${g.n_uncertain}</div>
+      </div>
+      <div style="flex:1 1 70px; background:var(--bg); border-radius:6px; padding:12px 14px; border-left:4px solid #64748b;">
+        <div style="font-size:11px; color:var(--muted); text-transform:uppercase;">N/A</div>
+        <div style="font-size:24px; font-weight:700; color:#64748b;">${g.n_skipped}</div>
+      </div>
+    </div>
+    <div style="background:rgba(168,85,247,0.06); border-left:3px solid #a855f7; padding:8px 12px; border-radius:3px; margin-bottom:12px; font-size:11px; color:var(--muted);">
+      Each verdict comes from a focused yes/no question to the loaded Gemma. Evidence quotes are pulled directly from the response — no hallucinated support.
+      Mean judge latency: <strong>${g.judge_latency_ms_mean?.toFixed(0)} ms</strong> · Total: <strong>${(g.judge_latency_ms_total/1000).toFixed(1)} s</strong>
+    </div>
+    ${rows}`;
+}
+
+// Combined renderer: shows deterministic + judge side by side, plus
+// the agreement panel highlighting where the two graders disagree.
+function _renderCombinedGradeResult(g) {
+  if (!g || !g.deterministic) {
+    return `<div style="color:var(--muted);">Combined grader returned an unexpected shape.</div>`;
+  }
+  if (!g.judge) {
+    // Fell back to deterministic only (no gemma_call in kernel)
+    const fallback = `<div style="background:rgba(245,158,11,0.10); border-left:3px solid #f59e0b; padding:8px 12px; border-radius:3px; margin-bottom:12px; font-size:11.5px;">Combined mode requires the kernel to wire gemma_call. Showing the deterministic grader only.</div>`;
+    return fallback + _renderUniversalGradeResult(g.deterministic);
+  }
+  const detPct = g.deterministic.pct_score ?? 0;
+  const judgePct = g.judge.pct_score ?? 0;
+  const combinedPct = g.pct_score ?? 0;
+  const w = g.judge_weight ?? 0.5;
+  const agreement = g.agreement || {};
+  const disagreementsHtml = (agreement.disagreements || []).map(d => `
+    <tr>
+      <td style="padding:4px 8px; border-bottom:1px solid var(--border);">${escapeHtml(d.id)}</td>
+      <td style="padding:4px 8px; border-bottom:1px solid var(--border); color:#94a3b8;">det: <strong>${escapeHtml(d.deterministic)}</strong></td>
+      <td style="padding:4px 8px; border-bottom:1px solid var(--border); color:#a855f7;">judge: <strong>${escapeHtml(d.judge)}</strong></td>
+    </tr>`).join('');
+  const agreementColor = (agreement.agreement_pct ?? 0) >= 80 ? '#10b981'
+                            : (agreement.agreement_pct ?? 0) >= 50 ? '#f59e0b' : '#ef4444';
+  return `
+    <div style="display:flex; gap:14px; margin-bottom:14px; flex-wrap:wrap;">
+      <div style="flex:1 1 150px; background:var(--bg); border-radius:6px; padding:12px 14px; border-left:4px solid #4c78a8;">
+        <div style="font-size:11px; color:var(--muted); text-transform:uppercase;">Combined score</div>
+        <div style="font-size:24px; font-weight:700; color:#4c78a8;">${combinedPct}%</div>
+        <div style="font-size:11px; color:var(--muted); margin-top:2px;">${(1-w)*100}% deterministic + ${w*100}% judge</div>
+      </div>
+      <div style="flex:1 1 130px; background:var(--bg); border-radius:6px; padding:12px 14px; border-left:4px solid #10b981;">
+        <div style="font-size:11px; color:var(--muted); text-transform:uppercase;">Deterministic</div>
+        <div style="font-size:24px; font-weight:700; color:#10b981;">${detPct}%</div>
+        <div style="font-size:11px; color:var(--muted); margin-top:2px;">multi-signal v3</div>
+      </div>
+      <div style="flex:1 1 130px; background:var(--bg); border-radius:6px; padding:12px 14px; border-left:4px solid #a855f7;">
+        <div style="font-size:11px; color:var(--muted); text-transform:uppercase;">LLM judge</div>
+        <div style="font-size:24px; font-weight:700; color:#a855f7;">${judgePct}%</div>
+        <div style="font-size:11px; color:var(--muted); margin-top:2px;">Gemma yes/no</div>
+      </div>
+      <div style="flex:1 1 130px; background:var(--bg); border-radius:6px; padding:12px 14px; border-left:4px solid ${agreementColor};">
+        <div style="font-size:11px; color:var(--muted); text-transform:uppercase;">Agreement</div>
+        <div style="font-size:24px; font-weight:700; color:${agreementColor};">${agreement.agreement_pct ?? 0}%</div>
+        <div style="font-size:11px; color:var(--muted); margin-top:2px;">${agreement.n_agree ?? 0}/${agreement.n_compared ?? 0} dimensions</div>
+      </div>
+    </div>
+    ${disagreementsHtml ? `
+    <div style="background:rgba(168,85,247,0.06); border-radius:5px; padding:10px 12px; margin-bottom:14px; border-left:3px solid #a855f7;">
+      <div style="font-size:11.5px; color:var(--ink); margin-bottom:6px;"><strong>Disagreements</strong> — high-information cases where the two graders see different evidence. Worth a manual look.</div>
+      <table style="width:100%; font-size:11.5px; border-collapse:collapse;">
+        <tbody>${disagreementsHtml}</tbody>
+      </table>
+    </div>` : ''}
+    <details style="margin-bottom:14px;">
+      <summary style="cursor:pointer; font-size:12px; color:var(--ink); padding:6px 0;"><strong>▸ Deterministic grader details</strong></summary>
+      <div style="margin-top:8px;">${_renderUniversalGradeResult(g.deterministic)}</div>
+    </details>
+    <details style="margin-bottom:14px;">
+      <summary style="cursor:pointer; font-size:12px; color:var(--ink); padding:6px 0;"><strong>▸ LLM judge details</strong></summary>
+      <div style="margin-top:8px;">${_renderJudgeGradeResult(g.judge)}</div>
+    </details>`;
 }
 
 // Render universal grader output: 15 dimensions, with N/A excluded

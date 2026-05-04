@@ -159,8 +159,8 @@ analysis. Scored on 207 prompts under harness-OFF vs harness-ON:
 
 Layer ablation: GREP +35 pp, RAG +47 pp, both +56.5 pp — both
 load-bearing. 99.3% of emitted citations trace to the 106-source
-corpus. Universal grader v3 (semantic clusters + section
-verification + intent profiling) regenerates via notebook A6.
+corpus. Three-grader stack — keyword v3.1, LLM-judge yes/no with
+evidence quotes, blended — regenerates via notebook A6.
 
 ## 3. The Kaggle notebooks (190 words)
 

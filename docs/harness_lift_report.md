@@ -8,15 +8,26 @@
 [`duecare-grading-evaluation`](https://www.kaggle.com/code/taylorsamarel/duecare-grading-evaluation):
 
 - Runs N curated prompts through Gemma 4 twice (harness OFF vs ON full Persona+GREP+RAG+Tools)
-- Grades both with the **Universal Grader v3** (15 cross-prompt dimensions, intent-aware
+- Grades both with the **Universal Grader v3.1** (15 cross-prompt dimensions, intent-aware
   reweighting across 5 intents, 106-source citation cross-reference, section-number
-  verification, semantic phrase clusters, structural quality detection)
+  verification, semantic phrase clusters, multi-signal matching: exact + cluster +
+  token-overlap + fuzzy + trigram, structural quality detection) and optionally with the
+  **LLM-as-judge grader (v1.0)** which sends the response back to the loaded Gemma with
+  one focused yes/no question per dimension and pulls evidence quotes from the response
 - Emits `duecare_lift_eval.json` + `duecare_lift_eval.md` with provenance tuple
   `(model_revision, git_sha, dataset_version)` so every number traces back to a commit
 
+**Defence-in-depth grading stack (2026-05-04).** Three graders, three failure modes:
+
+| Grader | Strength | Weakness |
+|---|---|---|
+| Deterministic v3.1 (multi-signal) | Fast, cheap, deterministic, auditable | Misses semantic equivalents the lexicon doesn't know |
+| LLM-as-judge v1.0 | Catches paraphrased citations, implicit refusals | Slow (~15 model calls), needs the model the response came from |
+| Combined (50/50 blend) | Each grader covers the other's blind spots; disagreements surface as high-information cases for review | More expensive than either alone |
+
 The legacy 12-criterion `legal_citation_quality` rubric below remains valid as the
-canonical measurement for the +56.5pp headline number; the v3 grader is the
-forward-going regenerator with broader signal coverage.
+canonical measurement for the +56.5pp headline number; the v3.1 grader + LLM judge are
+the forward-going regenerators with broader signal coverage.
 
 ## Contents
 
