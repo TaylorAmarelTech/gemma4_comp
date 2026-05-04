@@ -778,11 +778,25 @@ model_info = {
 
 # All 4 layers (Persona / GREP / RAG / Tools) wired in one line.
 # The chat package's DEFAULT_PERSONA is used unless overridden.
-app = create_app(
-    gemma_call=loaded.backend,
-    model_info=model_info,
+# 5th layer (Online) is wired below if ENABLE_ONLINE_SEARCH=1.
+_create_kwargs = {
+    "gemma_call": loaded.backend,
+    "model_info": model_info,
     **default_harness(),
-)
+}
+
+# Wire the online_search_call kwarg so the chat UI surfaces the 5th
+# tile. The actual search function is defined further down (after
+# create_app) — define a forward-reference shim now and bind it later.
+_online_search_fn = {"f": None}
+def _online_search_dispatch(query: str, top_n: int = 5) -> dict:
+    f = _online_search_fn["f"]
+    if f is None:
+        return {"query": query, "results": [], "source": "not_wired"}
+    return f(query, top_n=top_n)
+if ENABLE_ONLINE_SEARCH:
+    _create_kwargs["online_search_call"] = _online_search_dispatch
+app = create_app(**_create_kwargs)
 _attach_shutdown(app)
 
 print(f"  ✓ harness loaded: {len(GREP_RULES)} GREP rules, "
@@ -869,7 +883,11 @@ if ENABLE_ONLINE_SEARCH:
             raise _HTTPException(400, "q (query) parameter is required")
         return _online_search(q, top_n=max(1, min(int(top_n), 20)))
 
-    print(f"  ✓ online search wired: GET /api/online-search?q=...")
+    # Bind the search function into the create_app callable shim
+    # so the chat send pipeline picks it up when the Online toggle
+    # is enabled.
+    _online_search_fn["f"] = _online_search
+    print(f"  ✓ online search wired: GET /api/online-search?q=... + Online toggle tile")
 else:
     print(f"  · online search disabled (ENABLE_ONLINE_SEARCH=0)")
 

@@ -248,6 +248,7 @@ header.bar .badge.loaded .dot {
 .harness-tile.grep .harness-tile-name { color: #ef4444; }
 .harness-tile.rag  .harness-tile-name { color: #3b82f6; }
 .harness-tile.tools .harness-tile-name { color: #10b981; }
+.harness-tile.online .harness-tile-name { color: #f59e0b; }
 
 /* Active state: filled background + matching state pill */
 .harness-tile.persona[data-enabled="true"] {
@@ -273,6 +274,12 @@ header.bar .badge.loaded .dot {
 }
 .harness-tile.tools[data-enabled="true"] .harness-tile-state {
   background: #10b981; color: #fff;
+}
+.harness-tile.online[data-enabled="true"] {
+  border-color: #f59e0b; background: rgba(245, 158, 11, 0.08);
+}
+.harness-tile.online[data-enabled="true"] .harness-tile-state {
+  background: #f59e0b; color: #fff;
 }
 
 /* ---- Lightbox modal (used by all 4 tile View buttons) ---- */
@@ -560,6 +567,14 @@ header.bar .badge.loaded .dot {
         <div class="harness-tile-desc" onclick="toggleTile('tools')">Heuristic lookup tools — corridor fee caps, fee camouflage decoder, ILO indicator matcher, NGO intake hotlines. Results injected as Gemma context.</div>
         <a href="#" class="harness-catalog-link" onclick="openLayerModal('tools'); return false;">▸ View</a>
       </div>
+      <div class="harness-tile online" id="tile-online" data-wired="false" data-enabled="false">
+        <div class="harness-tile-row" onclick="toggleTile('online')">
+          <span class="harness-tile-name">Online</span>
+          <span class="harness-tile-state" id="state-online">OFF</span>
+        </div>
+        <div class="harness-tile-desc" onclick="toggleTile('online')">Live web search — kernel-supplied search hook (DuckDuckGo HTML by default; Brave/Playwright via the agentic-research kernel). Top results injected as fresh-context citations the model is told to cross-check.</div>
+        <a href="#" class="harness-catalog-link" onclick="openLayerModal('online'); return false;">▸ View</a>
+      </div>
     </div>
   </div>
 </div>
@@ -716,10 +731,10 @@ async function probeHarness() {
     const r = await fetch('/api/harness-info', {cache:'no-store'});
     if (!r.ok) return;
     const info = await r.json();
-    const anyWired = info.persona || info.grep || info.rag || info.tools;
+    const anyWired = info.persona || info.grep || info.rag || info.tools || info.online;
     if (!anyWired) return;  // raw chat -- keep tile row hidden
     document.getElementById('harness-tiles').style.display = 'grid';
-    for (const layer of ['persona', 'grep', 'rag', 'tools']) {
+    for (const layer of ['persona', 'grep', 'rag', 'tools', 'online']) {
       const tile = document.getElementById(`tile-${layer}`);
       const wired = !!info[layer];
       tile.dataset.wired = wired ? 'true' : 'false';
@@ -753,6 +768,7 @@ const LAYER_TITLES = {
   grep:     'GREP rule catalog',
   rag:      'RAG corpus',
   tools:    'Tools registry',
+  online:   'Online search',
   audit:    'Safety harness pipeline',
   pipeline: 'Safety harness pipeline',
   examples: 'Example prompts',
@@ -995,6 +1011,47 @@ async function openLayerModal(layer) {
       <input type="file" id="import-file" accept=".json" style="display:none" onchange="importStore(event.target.files[0]); event.target.value=''">
       <button class="modal-btn primary" onclick="startNewPersona()">+ New persona</button>
     `);
+    return;
+  }
+  // Online-search layer: no catalog (the search hook is kernel-
+  // supplied), just a description of how it works + a live test
+  // button that hits /api/online-search?q=<sample>.
+  if (layer === 'online') {
+    _setModalChrome(layer, LAYER_TITLES.online, '');
+    body.innerHTML = `
+      <div style="color:var(--ink); font-size:13px; line-height:1.55;">
+        <p>The <strong style="color:#f59e0b;">Online</strong> layer
+        runs a live web search on the user's message and prepends the
+        top results as context BEFORE Gemma generates. Mirrors the
+        RAG pattern but with fresh-from-the-web sources instead of the
+        bundled corpus.</p>
+        <p style="color:var(--muted); font-size:12px;">The search
+        backend is kernel-supplied. The default in the unified
+        <code>duecare-harness-chat</code> notebook is a DuckDuckGo
+        HTML scraper (no API key, ~1s latency). For Brave Search /
+        Playwright-driven multi-step research use the
+        <code>duecare-chat-playground-with-agentic-research</code>
+        appendix notebook.</p>
+        <p style="color:var(--muted); font-size:12px;">Important: the
+        prepended context tells Gemma to <em>cross-check</em> any
+        web claim against GREP rules + RAG corpus before adopting it.
+        Web results are treated as candidate evidence requiring URL
+        attribution, not as ground truth.</p>
+        <h4 style="margin-top:18px;">Live test</h4>
+        <div style="display:flex; gap:8px; align-items:center;">
+          <input id="online-test-q" type="text"
+                 placeholder="POEA complaint procedure for OFW in Hong Kong"
+                 style="flex:1; padding:6px 8px; background:var(--bg); color:var(--ink); border:1px solid var(--border); border-radius:4px;">
+          <button class="modal-btn primary" onclick="_runOnlineSearchTest()">Search</button>
+        </div>
+        <pre id="online-test-out" style="margin-top:10px; max-height:400px; overflow:auto; font-size:11.5px; color:var(--muted); background:var(--bg); padding:10px; border-radius:4px;">(results render here)</pre>
+      </div>
+      <div id="modal-docs"></div>
+    `;
+    docsPromise.then(md => {
+      const docsEl = document.getElementById('modal-docs');
+      if (docsEl) docsEl.innerHTML = _renderDocsSection(md);
+    });
     return;
   }
   // Catalog modals: GREP / RAG / Tools. Each shows built-ins + a
@@ -1338,14 +1395,14 @@ function saveEditedPersona(originalName) {
 
 // ---------------------------------------------------------------------------
 // Pipeline modal: shows the FULL transformation pipeline for one response.
-// User input -> persona -> grep -> rag -> tools -> final merged prompt -> Gemma response.
+// User input -> persona -> grep -> rag -> tools -> online -> final merged prompt -> Gemma response.
 // Each step is a colored card with arrows between. Skipped layers shown ghosted
 // so the reader sees the complete pipeline shape regardless of which toggles fired.
 // This IS the "what does the harness DO" demo.
 // ---------------------------------------------------------------------------
-const PIPELINE_LAYER_ORDER = ['persona', 'grep', 'rag', 'tools'];
-const PIPELINE_LAYER_COLOR = {persona:'#a855f7', grep:'#ef4444', rag:'#3b82f6', tools:'#10b981'};
-const PIPELINE_LAYER_LABEL = {persona:'PERSONA', grep:'GREP', rag:'RAG', tools:'TOOLS'};
+const PIPELINE_LAYER_ORDER = ['persona', 'grep', 'rag', 'tools', 'online'];
+const PIPELINE_LAYER_COLOR = {persona:'#a855f7', grep:'#ef4444', rag:'#3b82f6', tools:'#10b981', online:'#f59e0b'};
+const PIPELINE_LAYER_LABEL = {persona:'PERSONA', grep:'GREP', rag:'RAG', tools:'TOOLS', online:'ONLINE'};
 const PIPELINE_LAYER_ROLE = {
   persona: 'prepends an expert role / framework knowledge / response policy',
   grep:    'matches regex KB rules — flags trafficking patterns + cites statutes',
@@ -1765,6 +1822,36 @@ function _renderGradeModeControls(messageIdx) {
     `;
   } else {
     ctl.innerHTML = '';
+  }
+}
+
+async function _runOnlineSearchTest() {
+  const inp = document.getElementById('online-test-q');
+  const out = document.getElementById('online-test-out');
+  if (!inp || !out) return;
+  const q = (inp.value || '').trim();
+  if (!q) { out.textContent = '(enter a query first)'; return; }
+  out.textContent = 'searching...';
+  try {
+    const r = await fetch(`/api/online-search?q=${encodeURIComponent(q)}&top_n=5`,
+                            {cache:'no-store'});
+    if (!r.ok) {
+      out.textContent = `HTTP ${r.status}: ${await r.text()}`;
+      return;
+    }
+    const data = await r.json();
+    if (!data.results || data.results.length === 0) {
+      out.textContent = `No results (source=${data.source||'?'})${data.error ? ' — ' + data.error : ''}`;
+      return;
+    }
+    out.innerHTML = data.results.map(rs =>
+      `<div style="margin-bottom:10px; padding:6px; border-left:2px solid #f59e0b;">
+        <div style="color:var(--ink);"><strong>[${rs.rank||'?'}] ${escapeHtml(rs.title||'?')}</strong></div>
+        <a href="${escapeHtml(rs.url||'#')}" target="_blank" rel="noopener" style="color:#f59e0b; font-size:11px;">${escapeHtml((rs.url||'').slice(0,90))}</a>
+        <div style="color:var(--muted); font-size:11.5px; margin-top:4px;">${escapeHtml((rs.snippet||'').slice(0,250))}</div>
+      </div>`).join('');
+  } catch (e) {
+    out.textContent = `error: ${e.message || e}`;
   }
 }
 
@@ -2277,6 +2364,7 @@ async function sendMessage() {
     grep:         document.getElementById('tile-grep')?.dataset.enabled  === 'true' || false,
     rag:          document.getElementById('tile-rag')?.dataset.enabled   === 'true' || false,
     tools:        document.getElementById('tile-tools')?.dataset.enabled === 'true' || false,
+    online:       document.getElementById('tile-online')?.dataset.enabled === 'true' || false,
     // User-added content from localStorage. The server merges these
     // with the built-in catalog before invoking each layer.
     custom_grep_rules:    store.customGrepRules.length    ? store.customGrepRules    : null,
@@ -2363,9 +2451,9 @@ async function sendMessage() {
 
 function renderHarnessTrace(trace) {
   if (!trace) return '';
-  const layers = ['persona', 'grep', 'rag', 'tools'];
-  const colors = {persona:'#a855f7', grep:'#ef4444', rag:'#3b82f6', tools:'#10b981'};
-  const labels = {persona:'Persona', grep:'GREP', rag:'RAG', tools:'Tools'};
+  const layers = ['persona', 'grep', 'rag', 'tools', 'online'];
+  const colors = {persona:'#a855f7', grep:'#ef4444', rag:'#3b82f6', tools:'#10b981', online:'#f59e0b'};
+  const labels = {persona:'Persona', grep:'GREP', rag:'RAG', tools:'Tools', online:'Online'};
   const blocks = [];
   for (const k of layers) {
     const t = trace[k];
@@ -2386,6 +2474,10 @@ function renderHarnessTrace(trace) {
     } else if (k === 'tools' && t.tool_calls && t.tool_calls.length) {
       detail = '<ul style="margin:6px 0 0 18px; padding:0;">' +
         t.tool_calls.map(c => `<li><code style="color:#10b981;">${escapeHtml(c.name||'?')}(${escapeHtml(JSON.stringify(c.args||{}))})</code> → <span style="color:#cbd5e1;">${escapeHtml(JSON.stringify(c.result).slice(0,180))}</span></li>`).join('') +
+        '</ul>';
+    } else if (k === 'online' && t.results && t.results.length) {
+      detail = '<ul style="margin:6px 0 0 18px; padding:0;">' +
+        t.results.map(r => `<li><b>[${r.rank||'?'}] ${escapeHtml(r.title||'?')}</b><br><a href="${escapeHtml(r.url||'#')}" target="_blank" rel="noopener" style="color:#f59e0b; font-size:11.5px;">${escapeHtml((r.url||'').slice(0,80))}</a><br><span style="color:#cbd5e1; font-size:12px;">${escapeHtml((r.snippet||'').slice(0,200))}</span></li>`).join('') +
         '</ul>';
     }
     blocks.push(
