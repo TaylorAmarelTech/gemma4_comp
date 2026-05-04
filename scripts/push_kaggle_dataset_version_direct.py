@@ -177,9 +177,10 @@ def push_version(folder: pathlib.Path, notes: str) -> bool:
     return True
 
 
-# The 10 notebooks that bundle the chat wheel and need a re-push
-# (grading-evaluation = A6, added 2026-05-03)
+# The 11 notebooks that bundle the chat wheel and need a re-push
+# (duecare-harness-chat = unified core, added 2026-05-04)
 CHAT_BUNDLING = (
+    "duecare-harness-chat",   # NEW unified core (2026-05-04)
     "chat-playground",
     "chat-playground-with-grep-rag-tools",
     "content-classification-playground",

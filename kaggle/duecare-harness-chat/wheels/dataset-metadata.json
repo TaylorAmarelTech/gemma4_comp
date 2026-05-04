@@ -1,0 +1,15 @@
+{
+  "title": "Duecare harness chat — wheels",
+  "id": "taylorsamarel/duecare-harness-chat-wheels",
+  "licenses": [
+    {"name": "MIT"}
+  ],
+  "subtitle": "All Duecare wheels for the unified harness-chat notebook (Persona + GREP + RAG + Tools + Online + Grade modes; Gemma 4 model selector)",
+  "description": "Bundled wheels (duecare-llm-chat, duecare-llm-core, duecare-llm-models) for the duecare-harness-chat Kaggle notebook. The notebook is the single CORE entry point for the Duecare hackathon submission: one configurable interface that wires every harness layer (Persona / GREP 49 rules / RAG 33 docs / Tools 5 lookups / Online search) and lets judges select between 9 model variants (Gemma 4 E2B / E4B / 26B-A4B / 31B / two abliterated jailbroken variants / 3 cloud BYOK routes). Updates to the harness rules / corpus / tools / grader land here — bumping this dataset version is sufficient; the kernel.py does not change.",
+  "keywords": [
+    "duecare",
+    "gemma-4",
+    "trafficking",
+    "safety-harness"
+  ]
+}
