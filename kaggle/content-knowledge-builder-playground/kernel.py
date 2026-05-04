@@ -1027,6 +1027,8 @@ def launch_server() -> Optional[str]:
         [cf, "tunnel", "--url", f"http://localhost:{PORT}"],
         stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True,
         bufsize=1)
+    # R2 fix: register the proc so shutdown can terminate the tunnel.
+    _CLOUDFLARED_PROC["p"] = proc
     public_url = {"u": None}
     def _drain():
         for line in proc.stdout:
