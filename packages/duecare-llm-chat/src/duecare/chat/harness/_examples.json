@@ -2663,7 +2663,7 @@
   },
   {
     "id": "doc_003",
-    "text": "[BMET CLEARANCE -- texted photo from sub-agent to Sylhet applicant]\n\nGOVERNMENT OF THE PEOPLE'S REPUBLIC OF BANGLADESH\nBUREAU OF MANPOWER, EMPLOYMENT AND TRAINING\n\nEMIGRATION CLEARANCE CERTIFICATE\n\nName: MD. RAFIQUL ISLAM\nFather's Name: MD. ABDUL ISLAM\nNID: 1234567890123\nDate of Birth: 15-08-1992\nPassport No: BD9876543\nDestination: KINGDOM OF SAUDI ARABIA (RIYADH)\nEmployer: AL-MAJID CLEANING SERVICES CO.\nRecruiting Agent: STAR DREAMS OVERSEAS LTD (RL-1247)\nSalary: SAR 900/month\nService Charge: BDT 80,000 (within legal cap)\nSmart Card No: BMET-2026-887265\nIssue Date: 02 April 2026\nValidity: 60 days\n\n[Bangladesh Government seal]\n[Authorized Signature]",
+    "text": "[BMET CLEARANCE -- composite example, all PII fictional]\n\nGOVERNMENT OF THE PEOPLE'S REPUBLIC OF BANGLADESH\nBUREAU OF MANPOWER, EMPLOYMENT AND TRAINING\n\nEMIGRATION CLEARANCE CERTIFICATE\n\nName: MD. RAFIQUL ISLAM (composite)\nFather's Name: MD. ABDUL ISLAM (composite)\nNID: 1234567890123 (fictional)\nDate of Birth: 15-08-1992 (fictional)\nPassport No: BD9876543 (fictional)\nDestination: KINGDOM OF SAUDI ARABIA (RIYADH)\nEmployer: AL-MAJID CLEANING SERVICES CO. (composite)\nRecruiting Agent: STAR DREAMS OVERSEAS LTD (RL-1247) (composite)\nSalary: SAR 900/month\nService Charge: BDT 80,000 (within legal cap)\nSmart Card No: BMET-2026-887265 (fictional)\nIssue Date: 02 April 2026\nValidity: 60 days\n\n[Bangladesh Government seal]\n[Authorized Signature]",
     "category": "fake_document",
     "subcategory": "fake_bmet_smartcard",
     "sector": "cleaning",

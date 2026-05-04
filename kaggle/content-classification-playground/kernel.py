@@ -746,6 +746,10 @@ def launch_server() -> Optional[str]:
         [cf, "tunnel", "--url", f"http://localhost:{PORT}"],
         stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True,
         bufsize=1)
+    # R2 fix: register the proc so the shutdown handler can terminate
+    # the cloudflared tunnel. Without this, re-running the cell spawns
+    # additional cloudflared processes until something binds.
+    _CLOUDFLARED_PROC["p"] = proc
 
     # Daemon thread that drains stdout to prevent pipe-buffer fill (the
     # known cloudflared 1033 root cause).

@@ -51,6 +51,16 @@ print("[3/6] loading Gemma 4 E4B")
 import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
+# R2 fix: explicit GPU check. Loading a 4B model in fp32 on CPU
+# OOMs the Kaggle worker after ~5 min. Fail fast with a clear
+# message instead.
+if not torch.cuda.is_available():
+    raise SystemExit(
+        "ERROR: This kernel requires a GPU. Loading Gemma 4 E4B in "
+        "fp32 on CPU OOMs a 16 GB Kaggle worker. Please attach a T4 "
+        "or P100 in the Kaggle session settings and re-run."
+    )
+
 MODEL_NAME = _os.environ.get("DUECARE_MODEL_NAME", "google/gemma-4-4b-it")
 HF_TOKEN = _os.environ.get("HF_TOKEN") or _os.environ.get("HUGGING_FACE_HUB_TOKEN")
 
@@ -58,11 +68,11 @@ tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME, token=HF_TOKEN)
 model = AutoModelForCausalLM.from_pretrained(
     MODEL_NAME,
     token=HF_TOKEN,
-    torch_dtype=torch.bfloat16 if torch.cuda.is_available() else torch.float32,
-    device_map="auto" if torch.cuda.is_available() else None,
+    torch_dtype=torch.bfloat16,
+    device_map="auto",
 )
 model.eval()
-print(f"  Loaded {MODEL_NAME} on {('cuda' if torch.cuda.is_available() else 'cpu')}")
+print(f"  Loaded {MODEL_NAME} on cuda")
 
 print("[4/6] loading Duecare harness")
 from duecare.chat.harness import (
@@ -161,6 +171,16 @@ PROMPT_IDS = tuple(s.strip() for s in override.split(",") if s.strip()) or DEFAU
 print(f"[5/6] running {len(PROMPT_IDS)} prompts × 2 conditions (OFF/ON)")
 selected = [e for e in EXAMPLE_PROMPTS if e["id"] in PROMPT_IDS]
 print(f"  Selected {len(selected)} of {len(PROMPT_IDS)} requested prompts")
+# R2 fix: empty `selected` (all PROMPT_IDS unmatched) leads downstream
+# aggregate_lift_results to divide by zero. Fail fast with diagnostic.
+if not selected:
+    available = sorted({e["id"] for e in EXAMPLE_PROMPTS})[:30]
+    raise SystemExit(
+        f"ERROR: No matching prompt ids in EXAMPLE_PROMPTS for "
+        f"{list(PROMPT_IDS)!r}. Set DUECARE_EVAL_PROMPT_IDS to a "
+        f"comma-separated subset of available ids. First 30 "
+        f"available: {available}"
+    )
 
 results = []
 for i, ex in enumerate(selected, 1):
@@ -223,7 +243,22 @@ provenance = {
 }
 
 # Write outputs
-output_dir = "/kaggle/working" if _os.path.isdir("/kaggle/working") else "."
+# R2 fix: pick the first writable directory. Some Kaggle viewer /
+# nbexec contexts have read-only cwd; /tmp is always writable.
+def _pick_output_dir() -> str:
+    for d in ("/kaggle/working", _os.path.expanduser("~"), "/tmp", "."):
+        if _os.path.isdir(d):
+            try:
+                t = _os.path.join(d, ".duecare_write_test")
+                with open(t, "w") as _f:
+                    _f.write("ok")
+                _os.remove(t)
+                return d
+            except Exception:
+                continue
+    return "."
+output_dir = _pick_output_dir()
+print(f"  Writing outputs to {output_dir}")
 
 # 1. JSON: full per-prompt detail
 with open(f"{output_dir}/duecare_lift_eval.json", "w", encoding="utf-8") as f:
