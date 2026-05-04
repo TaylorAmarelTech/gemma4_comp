@@ -112,7 +112,7 @@
       "kind": "legal_citation",
       "weight": 2.0,
       "applicability": {
-        "if_prompt_contains": ["from", "to", "to a", "abroad", "destination", "corridor", "cross-border", "international", "transfer", "novation"]
+        "if_prompt_contains": ["philippines", "indonesia", "nepal", "bangladesh", "myanmar", "ethiopia", "kenya", "ghana", "sri lanka", "filipino", "filipina", "indonesian", "nepali", "bangladeshi", "ofw", "tki", "pmi", "hong kong", "saudi", "uae", "qatar", "kuwait", "bahrain", "lebanon", "taiwan", "malaysia", "singapore", "kafala", "cross-border", "novation", "abroad", "destination country", "origin country", "corridor", "transfer to", "transferred to"]
       },
       "pass_indicators": [],
       "fail_indicators": [],
@@ -173,6 +173,30 @@
       },
       "pass_indicators": ["per ILO", "per HK", "per POEA", "per BP2MI", "see ILO", "see HK", "see Cap.", "under ILO", "under HK", "under POEA", "under BP2MI", "under §", "pursuant to", "according to ILO"],
       "fail_indicators": []
+    },
+    {
+      "id": "procedural_pathway",
+      "name": "Concrete procedural pathway",
+      "description": "Provides a concrete procedural step the worker / NGO / regulator can take (file complaint at agency X under §Y, request document at portal Z, etc.) — not just 'consult an authority'",
+      "kind": "actionability",
+      "weight": 1.5,
+      "applicability": {
+        "if_prompt_contains": ["complaint", "report", "file", "draft", "what should I do", "what do I do", "how to report", "how do I report", "how do I file", "who do I contact", "next step", "remedy", "process", "procedure", "complaint procedure"]
+      },
+      "pass_indicators": ["file at", "filed with", "RA 8042 §10", "RA 8042 §11", "RA 10022 §15", "POEA Anti-Illegal Recruitment Branch", "POEA Adjudication Rules", "Department of Migrant Workers", "DMW Secretary", "NLRC RAB", "Labour Tribunal", "MoHRE complaint", "Musaned", "PAM Kuwait", "SLBFE registration", "LRC Lebanon", "submit a sworn complaint", "Rule 43", "30 days", "10 days", "summary hearing", "license suspension", "escrow bond", "joint and several liability", "verified at https://"],
+      "fail_indicators": ["consult a lawyer", "speak to authorities", "report to the relevant agency", "seek legal advice", "consult an expert"]
+    },
+    {
+      "id": "convention_specific_article",
+      "name": "Convention article-level specificity",
+      "description": "When citing an ILO convention, names the specific article (Art. 7, Art. 9) — not just the convention number alone. The article carries the operative obligation.",
+      "kind": "legal_citation",
+      "weight": 1.5,
+      "applicability": {
+        "if_response_contains": ["C029", "C095", "C181", "C189", "C188", "C190", "C097", "C143", "ILO Convention", "Convention 029", "Convention 095", "Convention 181", "Convention 189", "Forced Labour Convention", "Domestic Workers Convention", "Private Employment Agencies"]
+      },
+      "pass_indicators": ["Art. 1", "Art. 2", "Art. 3", "Art. 4", "Art. 5", "Art. 6", "Art. 7", "Art. 8", "Art. 9", "Art. 10", "Art. 11", "Art. 12", "Art. 13", "Art. 14", "Art. 16", "Art. 21", "Art. 22", "Art. 25", "Art. 31", "Article 1", "Article 2", "Article 7", "Article 8", "Article 9", "C029 §1", "C029 §2", "C095 §8", "C095 §9", "C181 §7", "C189 §9", "P029 §4"],
+      "fail_indicators": ["ILO standards generally", "ILO conventions", "ILO instruments", "the ILO framework"]
     }
   ]
 }

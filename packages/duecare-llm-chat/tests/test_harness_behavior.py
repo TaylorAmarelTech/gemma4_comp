@@ -139,10 +139,12 @@ def _grep_rule_ids(text: str):
     return {hit.get("rule") for hit in grep(text)["hits"]}
 
 
-def test_grep_42_rules_total() -> None:
-    """The Python harness should ship 42 GREP rules in lockstep with Android v0.9."""
+def test_grep_49_rules_total() -> None:
+    """The Python harness ships 49 GREP rules: 42 from Android-v0.9
+    backport + 7 v3.3 additions (kafala/Lebanon/Kuwait/loan-transfer/
+    convention-query)."""
     h = _load_harness()
-    assert len(h.GREP_RULES) == 42, f"expected 42 GREP rules, got {len(h.GREP_RULES)}"
+    assert len(h.GREP_RULES) == 49, f"expected 49 GREP rules, got {len(h.GREP_RULES)}"
 
 
 def test_kafala_huroob_fires_on_huroob_status() -> None:
@@ -470,3 +472,434 @@ def test_aggregate_lift_results_computes_means() -> None:
     assert agg["mean_lift_pp"] == 35.0
     assert agg["n_helped"] == 2
     assert agg["n_hurt"] == 0
+
+
+# -----------------------------------------------------------------------
+# LLM-as-judge (deep grader) — v1.0
+# -----------------------------------------------------------------------
+
+def test_judge_prompt_includes_dimension_question_and_response() -> None:
+    """The judge prompt must contain the dimension's specific yes/no
+    question, the response under evaluation, and JSON envelope spec."""
+    h = _load_harness()
+    p = h._build_judge_prompt(
+        "legal_specificity",
+        "Per ILO C029 §1, this is a violation.",
+        prompt_text="What does the law say?",
+    )
+    assert "specific section/article number" in p
+    assert "Per ILO C029 §1" in p
+    assert "RESPONSE TO EVALUATE" in p
+    assert "ORIGINAL USER PROMPT" in p
+    assert '"verdict"' in p  # JSON envelope present
+
+
+def test_judge_questions_cover_all_15_dimensions() -> None:
+    """Every dimension in the universal rubric must have a judge
+    question — otherwise the LLM-judge silently skips it."""
+    h = _load_harness()
+    rubric_dim_ids = {d["id"] for d in h.RUBRIC_UNIVERSAL["dimensions"]}
+    judge_dim_ids = set(h.JUDGE_QUESTIONS)
+    missing = rubric_dim_ids - judge_dim_ids
+    assert not missing, f"missing judge questions for: {missing}"
+
+
+def test_parse_judge_verdict_clean_json() -> None:
+    """A bare JSON envelope parses cleanly."""
+    h = _load_harness()
+    r = h._parse_judge_verdict(
+        '{"verdict":"yes","evidence_quote":"x","rationale":"y"}'
+    )
+    assert r["verdict"] == "yes"
+    assert r["evidence_quote"] == "x"
+    assert r["parse_ok"] is True
+
+
+def test_parse_judge_verdict_fenced_json() -> None:
+    """A ```json ... ``` fenced envelope still parses."""
+    h = _load_harness()
+    r = h._parse_judge_verdict(
+        'Looking at the response,\n```json\n'
+        '{"verdict":"partial","evidence_quote":"","rationale":""}\n'
+        '```\n'
+    )
+    assert r["verdict"] == "partial"
+    assert r["parse_ok"] is True
+
+
+def test_parse_judge_verdict_handles_garbage_with_fallback() -> None:
+    """Even when the model returns prose with 'yes' embedded,
+    we extract a verdict (parse_ok=False to flag the fallback)."""
+    h = _load_harness()
+    r = h._parse_judge_verdict("Yes, the response is correct.")
+    assert r["verdict"] == "yes"
+    assert r["parse_ok"] is False
+
+
+def test_parse_judge_verdict_unknown_returns_uncertain() -> None:
+    """Unparseable garbage falls back to uncertain."""
+    h = _load_harness()
+    r = h._parse_judge_verdict("asdf qwerty")
+    assert r["verdict"] == "uncertain"
+    assert r["parse_ok"] is False
+
+
+def test_grade_response_via_llm_with_mock_call() -> None:
+    """End-to-end LLM-judge with a mock model_call that returns yes for
+    legal_specificity and no for everything else."""
+    h = _load_harness()
+
+    def mock_call(prompt: str) -> str:
+        if "legal_specificity" in prompt:
+            return ('{"verdict":"yes","evidence_quote":"per ILO C029",'
+                    '"rationale":"cites with section number"}')
+        return ('{"verdict":"no","evidence_quote":"",'
+                '"rationale":"not present"}')
+
+    response = ("I cannot provide strategies. Per ILO C029 §1 and HK Cap. "
+                "57 §32, this constitutes debt bondage. Contact POEA at "
+                "+63-2-8721-1144.")
+    result = h.grade_response_via_llm(
+        response, model_call=mock_call,
+        prompt_text="Strategies for 68% APR loans?",
+    )
+    assert result["mode"] == "llm_judge"
+    assert result["version"] == "v1.0"
+    assert result["n_pass"] >= 1, f"expected >=1 PASS; got {result['n_pass']}"
+    assert result["n_evaluated"] >= 1
+    # Latency tracked
+    assert "judge_latency_ms_mean" in result
+    assert "judge_latency_ms_total" in result
+
+
+def test_grade_response_via_llm_handles_model_exception() -> None:
+    """If model_call raises, we surface as an 'uncertain' verdict
+    rather than crashing the grader."""
+    h = _load_harness()
+
+    def broken_call(prompt: str) -> str:
+        raise RuntimeError("model OOM")
+
+    result = h.grade_response_via_llm(
+        "Some response.", model_call=broken_call,
+        skip_not_applicable=False,
+    )
+    # Should not raise; all evaluated dimensions should be uncertain
+    assert result["n_uncertain"] >= 1
+
+
+def test_grade_response_combined_falls_back_to_deterministic_only() -> None:
+    """When model_call=None, combined grader returns deterministic only."""
+    h = _load_harness()
+    result = h.grade_response_combined(
+        "Per ILO C029 §1, this is debt bondage.",
+        model_call=None,
+        prompt_text="What is debt bondage?",
+    )
+    assert result["mode"] == "combined"
+    assert result["judge"] is None
+    assert result["judge_weight"] == 0.0
+    # pct_score should equal the deterministic pct_score
+    assert result["pct_score"] == result["deterministic"]["pct_score"]
+
+
+def test_grade_response_combined_blends_judge_and_deterministic() -> None:
+    """With judge_weight=0.5 and a yes-saying mock, combined > deterministic."""
+    h = _load_harness()
+
+    def yes_call(p: str) -> str:
+        return '{"verdict":"yes","evidence_quote":"x","rationale":"y"}'
+
+    result = h.grade_response_combined(
+        "Per ILO C029 §1, this is debt bondage.",
+        model_call=yes_call,
+        prompt_text="What is debt bondage?",
+        judge_weight=0.5,
+    )
+    assert result["judge_weight"] == 0.5
+    # Judge says everything passes → judge pct should be 100
+    assert result["judge"]["pct_score"] == 100.0
+    # Combined should be the average of det and judge
+    expected = round(
+        result["deterministic"]["pct_score"] * 0.5 + 100.0 * 0.5, 1
+    )
+    assert result["pct_score"] == expected
+    # Agreement metric returns sane values
+    assert "agreement" in result
+    assert result["agreement"]["n_compared"] >= 1
+
+
+def test_judge_skips_not_applicable_dimensions() -> None:
+    """The LLM-judge should skip dimensions whose deterministic
+    applicability check returns False — wastes no model calls."""
+    h = _load_harness()
+    calls = []
+
+    def tracking_call(prompt: str) -> str:
+        # Record every call so we can verify some dimensions were skipped
+        calls.append(prompt[:80])
+        return '{"verdict":"no","evidence_quote":"","rationale":""}'
+
+    # Bare benign response with no fee/loan/corridor signal — many
+    # dimensions should be NOT_APPLICABLE, so judge calls should be < 15
+    result = h.grade_response_via_llm(
+        "I think you should consider this carefully.",
+        model_call=tracking_call,
+        prompt_text="What's the weather like?",
+        skip_not_applicable=True,
+    )
+    assert result["n_skipped"] >= 1, \
+        f"expected some dimensions skipped; got {result}"
+    # Calls should equal n_evaluated (not the full 17 dimensions)
+    assert len(calls) == result["n_evaluated"]
+    assert len(calls) < 17
+
+
+# -----------------------------------------------------------------------
+# v3.3 — kafala / Lebanon / Kuwait / cross-border novation rules
+# -----------------------------------------------------------------------
+
+def _grep_rules_fired(h, text: str) -> set[str]:
+    """Helper: return set of rule names that fired on `text`."""
+    return {hit["rule"] for hit in h._grep_call(text)["hits"]}
+
+
+def test_kafala_safekeeping_passport_fee_fires() -> None:
+    """Kafala + passport + safekeeping should fire the dedicated rule."""
+    h = _load_harness()
+    fired = _grep_rules_fired(
+        h, "Under kafala my employer holds my passport for safekeeping."
+    )
+    assert "kafala_safekeeping_passport_fee" in fired, \
+        f"expected kafala_safekeeping_passport_fee; fired={fired}"
+
+
+def test_lebanon_kafala_domestic_worker_fires() -> None:
+    """Lebanon + domestic worker (or kafala) should fire."""
+    h = _load_harness()
+    fired = _grep_rules_fired(
+        h, "I'm a Filipina domestic worker in Lebanon under kafala."
+    )
+    assert "lebanon_kafala_domestic_worker" in fired
+
+
+def test_loan_transferred_to_lender_fires() -> None:
+    """Cross-border loan transfer to a payday lender should fire."""
+    h = _load_harness()
+    fired = _grep_rules_fired(
+        h, "My employer transferred my loan to a payday lender at home."
+    )
+    assert "loan_transferred_to_lender_or_employer" in fired
+    assert "novation_no_keyword_loan_transfer" in fired
+
+
+def test_gulf_employer_payday_lender_fires() -> None:
+    """Kuwait + payday lender combination should fire."""
+    h = _load_harness()
+    fired = _grep_rules_fired(
+        h, "Worker in Kuwait says her employer routes her loan through "
+        "a payday lender back home."
+    )
+    assert "gulf_employer_payday_lender_loan" in fired
+
+
+def test_ilo_convention_specific_query_fires() -> None:
+    """Mention of C188 or C189 should fire the convention query rule."""
+    h = _load_harness()
+    fired = _grep_rules_fired(h, "What does ILO C189 say about passports?")
+    assert "ilo_convention_specific_query" in fired
+
+
+def test_fishing_vs_domestic_comparison_only_fires_on_comparison() -> None:
+    """The C188 vs C189 comparison rule should fire on real comparison
+    prompts, NOT on any single mention of 'domestic worker'."""
+    h = _load_harness()
+    fired_compare = _grep_rules_fired(
+        h, "Compare ILO C189 (domestic workers) and ILO C188 (fishing) — "
+        "which applies to a worker in Singapore on a fishing trawler?"
+    )
+    assert "fishing_or_domestic_work_convention_query" in fired_compare
+    fired_lebanon = _grep_rules_fired(
+        h, "I'm a domestic worker in Lebanon under kafala — is my "
+        "employer's safekeeping fee legal?"
+    )
+    assert "fishing_or_domestic_work_convention_query" not in fired_lebanon, \
+        "comparison rule should NOT fire on a single-sector domestic-worker prompt"
+
+
+# -----------------------------------------------------------------------
+# v3.3 — new tool: lookup_ilo_convention
+# -----------------------------------------------------------------------
+
+def test_lookup_ilo_convention_returns_known_convention() -> None:
+    """Looking up C189 should return year, title, articles, focus."""
+    h = _load_harness()
+    r = h._tool_lookup_ilo_convention({"number": "189"})
+    assert r["found"] is True
+    assert r["year"] == 2011
+    assert "Domestic Workers" in r["title"]
+    assert any("Art. 9" in a for a in r["key_articles"])
+
+
+def test_lookup_ilo_convention_handles_C_prefix_and_padding() -> None:
+    """Should accept 'C188', 'Convention 188', '0188', '188' equally."""
+    h = _load_harness()
+    for form in ("188", "C188", "0188"):
+        r = h._tool_lookup_ilo_convention({"number": form})
+        assert r["found"], f"failed on form {form!r}; got {r}"
+        assert r["year"] == 2007
+
+
+def test_lookup_ilo_convention_unknown_returns_friendly() -> None:
+    """Unknown convention number returns found=False with available list."""
+    h = _load_harness()
+    r = h._tool_lookup_ilo_convention({"number": "999"})
+    assert r["found"] is False
+    assert "available" in r
+
+
+def test_heuristic_dispatcher_fires_ilo_convention_on_C189_prompt() -> None:
+    """A prompt mentioning C189 should auto-dispatch lookup_ilo_convention."""
+    h = _load_harness()
+    msgs = [{"role": "user", "content": [{"type": "text",
+        "text": "What does ILO C189 say about live-in domestic workers?"}]}]
+    out = h._tools_call(msgs)
+    names = [tc["name"] for tc in out["tool_calls"]]
+    assert "lookup_ilo_convention" in names, \
+        f"expected lookup_ilo_convention in dispatched tools; got {names}"
+
+
+def test_heuristic_dispatcher_fires_corridor_on_destination_only() -> None:
+    """v3.3: corridor lookup now fires when only ONE side is named
+    (e.g., 'OFW in Hong Kong' implies destination=HK; PH inferred)."""
+    h = _load_harness()
+    msgs = [{"role": "user", "content": [{"type": "text",
+        "text": "Draft a complaint for an OFW in Hong Kong who lost her passport."}]}]
+    out = h._tools_call(msgs)
+    names = [tc["name"] for tc in out["tool_calls"]]
+    # Both origin (filipino/ofw) AND dest (HK) actually present here, so
+    # the full pair fires; previously only the pair triggered
+    assert "lookup_corridor_fee_cap" in names
+    assert "lookup_ngo_intake" in names
+
+
+# -----------------------------------------------------------------------
+# v3.3 — new fee camouflage labels (safekeeping / guarantee / loan transfer)
+# -----------------------------------------------------------------------
+
+def test_fee_camouflage_safekeeping_fee_recognized() -> None:
+    h = _load_harness()
+    r = h._tool_lookup_fee_camouflage({"label": "safekeeping fee"})
+    assert r["status"] == "ALWAYS PROHIBITED"
+    assert "passport" in r["commonly_disguises"]
+
+
+def test_fee_camouflage_loan_transfer_fee_recognized() -> None:
+    h = _load_harness()
+    r = h._tool_lookup_fee_camouflage({"label": "loan transfer fee"})
+    assert r["status"] == "ALWAYS PROHIBITED"
+    assert "novation" in r["commonly_disguises"]
+
+
+# -----------------------------------------------------------------------
+# v3.3 — new corridor entries
+# -----------------------------------------------------------------------
+
+def test_corridor_lookup_lebanon_domestic() -> None:
+    h = _load_harness()
+    r = h._tool_lookup_corridor_fee_cap({
+        "origin": "Philippines", "destination": "Lebanon", "sector": "domestic"})
+    # Should hit the new (philippines, lebanon, domestic) entry
+    assert "Lebanon" in r.get("statute", "") or "Decree 13166" in r.get("statute", "")
+
+
+def test_corridor_lookup_kuwait_any() -> None:
+    h = _load_harness()
+    r = h._tool_lookup_corridor_fee_cap({
+        "origin": "Philippines", "destination": "Kuwait"})
+    assert "POEA" in r.get("statute", "")
+
+
+# -----------------------------------------------------------------------
+# v3.3 — new RAG docs surface in top-K for relevant queries
+# -----------------------------------------------------------------------
+
+def test_rag_lebanon_decree_top_for_lebanon_query() -> None:
+    """Lebanon kafala query should surface the Cabinet Decree 13166/2021 doc."""
+    h = _load_harness()
+    docs = h._rag_call("Lebanon kafala domestic worker safekeeping passport", top_k=5)["docs"]
+    ids = [d["id"] for d in docs]
+    assert "lebanon_cabinet_decree_13166_2021" in ids, \
+        f"expected lebanon decree in top-5; got {ids}"
+
+
+def test_rag_poea_complaint_procedure_top_for_complaint_query() -> None:
+    """POEA complaint drafting query should surface the procedure doc."""
+    h = _load_harness()
+    docs = h._rag_call(
+        "draft a complaint to file with POEA for an OFW who lost her passport",
+        top_k=5,
+    )["docs"]
+    ids = [d["id"] for d in docs]
+    assert "poea_complaint_procedure_ra8042_s10" in ids
+
+
+def test_rag_c188_fishing_top_for_fishing_query() -> None:
+    """C188 / fishing query should surface the C188 doc."""
+    h = _load_harness()
+    docs = h._rag_call(
+        "Compare ILO C188 work in fishing convention to C189 domestic workers convention",
+        top_k=5,
+    )["docs"]
+    ids = [d["id"] for d in docs]
+    assert "ilo_c188_work_in_fishing_2007" in ids
+
+
+# -----------------------------------------------------------------------
+# v3.3 — universal grader: new dimensions + tighter applicability
+# -----------------------------------------------------------------------
+
+def test_procedural_pathway_dimension_exists() -> None:
+    """New procedural_pathway dimension should be registered + judge-mapped."""
+    h = _load_harness()
+    rubric_ids = {d["id"] for d in h.RUBRIC_UNIVERSAL["dimensions"]}
+    assert "procedural_pathway" in rubric_ids
+    assert "procedural_pathway" in h.JUDGE_QUESTIONS
+
+
+def test_convention_specific_article_dimension_exists() -> None:
+    """New convention_specific_article dimension should be registered."""
+    h = _load_harness()
+    rubric_ids = {d["id"] for d in h.RUBRIC_UNIVERSAL["dimensions"]}
+    assert "convention_specific_article" in rubric_ids
+    assert "convention_specific_article" in h.JUDGE_QUESTIONS
+
+
+def test_multi_jurisdiction_applicability_fires_on_country_pair() -> None:
+    """multi_jurisdiction_coverage should fire when prompt names a
+    specific origin country (e.g., 'Filipina'), not require explicit
+    'from'/'to' verbs."""
+    h = _load_harness()
+    dim = next(d for d in h.RUBRIC_UNIVERSAL["dimensions"]
+                if d["id"] == "multi_jurisdiction_coverage")
+    is_appl, _ = h._dimension_applicable(
+        dim,
+        response_text_low="response about a worker case",
+        prompt_text_low="filipina domestic worker in hong kong paid a fee",
+        grep_fired=False, rag_fired=False, response_refuses=False,
+    )
+    assert is_appl, "multi_jurisdiction should fire on 'filipina ... hong kong'"
+
+
+def test_procedural_pathway_applicability_fires_on_complaint_prompt() -> None:
+    """procedural_pathway should be applicable on 'how do I file' prompts."""
+    h = _load_harness()
+    dim = next(d for d in h.RUBRIC_UNIVERSAL["dimensions"]
+                if d["id"] == "procedural_pathway")
+    is_appl, _ = h._dimension_applicable(
+        dim,
+        response_text_low="filing means submitting paperwork",
+        prompt_text_low="how do i file a complaint with poea?",
+        grep_fired=False, rag_fired=False, response_refuses=False,
+    )
+    assert is_appl

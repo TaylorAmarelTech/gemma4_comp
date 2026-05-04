@@ -149,8 +149,8 @@ def main() -> int:
                     if isinstance(t, ast.Name) and t.id == "GREP_RULES":
                         count = len(n.value.elts)
                         print(f"  Source GREP_RULES count: {count}")
-                        if count != 42:
-                            print(f"  WARNING expected 42 GREP rules, got {count}")
+                        if count != 49:
+                            print(f"  WARNING expected 49 GREP rules, got {count}")
                         break
 
     # Find every chat wheel under kaggle/
