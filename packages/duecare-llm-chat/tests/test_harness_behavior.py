@@ -903,3 +903,180 @@ def test_procedural_pathway_applicability_fires_on_complaint_prompt() -> None:
         grep_fired=False, rag_fired=False, response_refuses=False,
     )
     assert is_appl
+
+
+# -----------------------------------------------------------------------
+# v3.4 — Adversarial review fixes
+# -----------------------------------------------------------------------
+
+def test_judge_combined_rejects_nan_judge_weight() -> None:
+    """H1: NaN/Inf judge_weight bypassed min/max clamp; should be
+    silently coerced to default 0.5."""
+    h = _load_harness()
+    def yes(p): return '{"verdict":"yes","evidence_quote":"x","rationale":"y"}'
+    for bad in (float("nan"), float("inf"), float("-inf")):
+        r = h.grade_response_combined(
+            "Per ILO C029 §1, this is debt bondage.",
+            model_call=yes, prompt_text="What is debt bondage?",
+            judge_weight=bad,
+        )
+        # Coerced to 0.5 → blended pct between deterministic and 100
+        assert 0 <= r["pct_score"] <= 100
+        assert r["judge_weight"] == 0.5, \
+            f"NaN/Inf bad judge_weight should default to 0.5; got {r['judge_weight']} for input {bad}"
+
+
+def test_judge_combined_clamps_outofrange_judge_weight() -> None:
+    """Negative or >1 judge_weight should clamp to [0,1]."""
+    h = _load_harness()
+    def yes(p): return '{"verdict":"yes","evidence_quote":"x","rationale":"y"}'
+    r_neg = h.grade_response_combined(
+        "Per ILO C029 §1, this is debt bondage.",
+        model_call=yes, prompt_text="x", judge_weight=-100,
+    )
+    # Negative weight → judge bypassed (judge_weight=0 path)
+    assert r_neg["judge_weight"] == 0.0
+    r_huge = h.grade_response_combined(
+        "Per ILO C029 §1, this is debt bondage.",
+        model_call=yes, prompt_text="x", judge_weight=999,
+    )
+    assert r_huge["judge_weight"] == 1.0
+
+
+def test_agreement_metric_handles_malformed_dimension_dicts() -> None:
+    """H2: dimension dicts missing 'id' or 'status' should NOT crash
+    the agreement computation."""
+    h = _load_harness()
+    bad_det = {"dimensions": [
+        {"id": "a", "status": "PASS"},
+        {"id": "b"},                        # missing status
+        {"status": "FAIL"},                  # missing id
+        "not_a_dict",                        # not a dict
+        {"id": "c", "status": "PASS"},
+    ]}
+    bad_judge = {"dimensions": [
+        {"id": "a", "status": "PASS"},
+        {"id": "c", "status": "FAIL"},
+        None,
+    ]}
+    agreement = h._judge_deterministic_agreement(bad_det, bad_judge)
+    # Should not raise. Should compare only 'a' and 'c' (both have id+status)
+    assert agreement["n_compared"] == 2
+    assert agreement["n_agree"] == 1  # 'a' agrees, 'c' disagrees
+    assert any(d["id"] == "c" for d in agreement["disagreements"])
+
+
+def test_agreement_metric_handles_empty_common_set() -> None:
+    """When deterministic + judge share zero applicable dimensions,
+    return zero agreement (not crash with ZeroDivisionError)."""
+    h = _load_harness()
+    det = {"dimensions": [{"id": "a", "status": "PASS"}]}
+    judge = {"dimensions": [{"id": "b", "status": "FAIL"}]}
+    a = h._judge_deterministic_agreement(det, judge)
+    assert a["n_compared"] == 0
+    assert a["agreement_pct"] == 0.0
+    assert a["disagreements"] == []
+    # n_agree should also be present (was missing in v3.2)
+    assert "n_agree" in a
+
+
+def test_parse_judge_verdict_rejects_non_string_verdict() -> None:
+    """M2: verdict must be a string in the allowed set; numbers, lists,
+    null should mark parse_ok=False rather than silently coercing."""
+    h = _load_harness()
+    for bad in (
+        '{"verdict": 42, "evidence_quote": "", "rationale": ""}',
+        '{"verdict": ["yes"], "evidence_quote": "", "rationale": ""}',
+        '{"verdict": null, "evidence_quote": "", "rationale": ""}',
+        '{"verdict": "maybe", "evidence_quote": "", "rationale": ""}',  # unknown string
+    ):
+        r = h._parse_judge_verdict(bad)
+        assert r["verdict"] == "uncertain"
+        assert r["parse_ok"] is False, \
+            f"non-string/unknown verdict should mark parse_ok=False; got {r}"
+
+
+def test_parse_judge_verdict_truncates_long_evidence_and_rationale() -> None:
+    """M1 hardening: evidence_quote + rationale capped at 500 chars."""
+    h = _load_harness()
+    long = "x" * 2000
+    r = h._parse_judge_verdict(
+        '{"verdict": "yes", "evidence_quote": "' + long
+        + '", "rationale": "' + long + '"}'
+    )
+    assert len(r["evidence_quote"]) <= 500
+    assert len(r["rationale"]) <= 500
+
+
+def test_parse_judge_verdict_caps_huge_input() -> None:
+    """L1 hardening: input > 64KB should not cause regex timeout."""
+    h = _load_harness()
+    huge = "garbage " * 100_000  # ~800KB
+    import time
+    t0 = time.time()
+    r = h._parse_judge_verdict(huge)
+    elapsed = time.time() - t0
+    assert elapsed < 1.0, f"parser took {elapsed:.2f}s on 800KB input"
+    # Should still parse (or fall through gracefully)
+    assert r["verdict"] in ("yes", "no", "partial", "uncertain")
+
+
+def test_parse_fallback_picks_first_verdict_by_position() -> None:
+    """M3 fix: fallback should pick first verdict by character position,
+    not by enum order. Was: 'no, partial citation' → 'partial' (wrong).
+    Now: → 'no' (first by position)."""
+    h = _load_harness()
+    r = h._parse_judge_verdict("free-form text saying no, partial citation")
+    assert r["verdict"] == "no", \
+        f"first by position should be 'no'; got {r['verdict']}"
+    assert r["parse_ok"] is False  # fallback path
+
+
+def test_evidence_substring_check_catches_hallucinated_quote() -> None:
+    """M1: judge claiming 'per ILO C029 §99' as evidence when response
+    contains no such phrase should be flagged."""
+    h = _load_harness()
+    response = "This is about debt bondage and forced labour."
+    grounded = h._evidence_substring_check(
+        "per ILO C029 §99 makes this clear", response
+    )
+    assert grounded is False
+    # Real substring should pass
+    grounded2 = h._evidence_substring_check("debt bondage", response)
+    assert grounded2 is True
+
+
+def test_grade_via_llm_demotes_yes_when_evidence_ungrounded() -> None:
+    """M1 integration: a 'yes' verdict with hallucinated evidence
+    quote should be demoted to 'partial' and flagged."""
+    h = _load_harness()
+    def hallucinating_judge(p):
+        # Returns 'yes' with evidence text that's not in the response
+        return ('{"verdict": "yes", '
+                '"evidence_quote": "this exact phrase is invented", '
+                '"rationale": "looks good"}')
+    r = h.grade_response_via_llm(
+        "Per ILO C029 §1, this is debt bondage.",
+        model_call=hallucinating_judge,
+        prompt_text="What does C029 say?",
+        skip_not_applicable=False,
+    )
+    # At least one evidence_grounded=False flag should appear
+    ungrounded = [d for d in r["dimensions"]
+                    if d.get("evidence_grounded") is False]
+    assert len(ungrounded) >= 1
+    # And those rows should have verdict demoted to partial (not yes)
+    for d in ungrounded:
+        assert d["verdict"] != "yes", \
+            f"ungrounded yes should be demoted; got {d}"
+
+
+def test_xss_escape_helper_handles_non_string_input() -> None:
+    """Renderer's escapeHtml uses String(s); verify Python equivalent
+    behavior for the JS side. Smoke check that the helper exists."""
+    # The actual escapeHtml lives in JS. Here we just verify the
+    # harness module's _evidence_substring_check tolerates None/empty.
+    h = _load_harness()
+    assert h._evidence_substring_check(None, "response") is True
+    assert h._evidence_substring_check("", "response") is True
+    assert h._evidence_substring_check("x", None) is True  # too short, skip

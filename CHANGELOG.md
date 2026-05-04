@@ -14,6 +14,36 @@ the meta `duecare-llm` package tracking the workspace lockstep.
   push of `Duecare-Gemma-4-E4B-it-SafetyJudge-v0.1.0`
 - Pending: notebook publish for #3, #4, A1, A3, A4, A5, A6 (built
   locally; gated by Kaggle daily push rate-limit)
+- **NEW (2026-05-04 PM):** v3.4 hardening — adversarial code review
+  by 3 parallel agents (UI/XSS, regex/ReDoS, API/parser). UI + GREP
+  came back clean (one minor verdict-fallback escapeHtml fix). API/
+  parser had 4 HIGH + 4 MEDIUM findings, all addressed:
+  - H1: NaN/Inf `judge_weight` bypassed `min/max` clamp → now
+    rejected via `math.isfinite` check; defaults to 0.5
+  - H2: malformed dimension dicts in `_judge_deterministic_agreement`
+    raised KeyError → now uses `.get()` with isinstance guards;
+    skips rows missing id/status
+  - H4: `/api/grade-deep` had no payload caps → Pydantic Field
+    constraints (response_text max 20k, dimensions max 20,
+    judge_weight 0..1, max_new_tokens 16..2048, temperature 0..2)
+  - M1: judge could hallucinate evidence quotes that didn't appear
+    in the response → new `_evidence_substring_check` validates;
+    `yes` verdicts with ungrounded evidence demoted to `partial`
+    and flagged in UI with red banner
+  - M2: parser silently coerced non-string verdicts (numbers, lists,
+    null) to `uncertain` → now sets `parse_ok=False` so caller can
+    flag
+  - M3: parse fallback picked verdict by enum order (yes/no/partial),
+    causing "no, partial citation" to return `partial` → now picks
+    first verdict by character position
+  - M4: unknown dimension ids in `dimensions=[...]` parameter
+    silently returned `pct_score=0` → now 400 with valid id list
+  - L1: judge response > 64KB caused regex slowdown → input capped
+    at 64KB; evidence_quote + rationale truncated to 500 chars
+  - XSS-L1 (UI): verdict fallback `${verdictLabels[d.verdict] ||
+    d.verdict}` was unescaped → now `escapeHtml(d.verdict)` on
+    fallback
+  - 11 new tests; total 76 → 87. All pass.
 - **NEW (2026-05-04 PM):** v3.3 harness expansion — 7 new GREP rules
   + 7 new RAG docs + 9 fee-camouflage labels + 9 corridor caps + 7
   NGO contacts + new `lookup_ilo_convention` tool + 2 new universal
