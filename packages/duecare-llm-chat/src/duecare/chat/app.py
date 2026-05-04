@@ -33,6 +33,17 @@ from pydantic import BaseModel, Field
 # In-memory image store (transient, request-scoped). Each upload
 # returns an id; the client sends the id in subsequent chat calls.
 _IMAGE_STORE: dict[str, tuple[bytes, str]] = {}
+# H3 (R2 concurrency): lock around _IMAGE_STORE LRU eviction. Without
+# it, three concurrent uploads can all pass `len > 50` and race on
+# `pop(next(iter(...)))` — CPython can raise RuntimeError on dict
+# iteration changing size, plus two threads can pop the same key.
+_IMAGE_STORE_LOCK = threading.Lock()
+# H1 (R2 concurrency): serialise gemma_call. HF model.generate is
+# NOT thread-safe (mutates KV-cache + RNG + CUDA streams). Without
+# this lock, concurrent /api/chat/send + /api/grade-deep corrupts
+# CUDA state. Holding it for the full generation is correct — there's
+# exactly one model and it can only do one forward pass at a time.
+_GEMMA_LOCK = threading.Lock()
 
 
 DEFAULT_PERSONA = """You are an international anti-trafficking in persons and modern-day slavery expert with 40 years of dedicated experience combating human exploitation, illicit recruitment, debt bondage, and labour abuses.
@@ -341,16 +352,19 @@ def create_app(
             "role": "user",
             "content": [{"type": "text", "text": prompt_str}],
         }]
-        try:
-            return gc(
-                messages,
-                max_new_tokens=max_new_tokens,
-                temperature=temperature,
-                top_p=0.95,
-                top_k=20,
-            ) or ""
-        except TypeError:
-            return gc(messages) or ""
+        # H1 (R2): serialise gemma_call. Concurrent generations corrupt
+        # CUDA state. The lock is held for the full forward pass.
+        with _GEMMA_LOCK:
+            try:
+                return gc(
+                    messages,
+                    max_new_tokens=max_new_tokens,
+                    temperature=temperature,
+                    top_p=0.95,
+                    top_k=20,
+                ) or ""
+            except TypeError:
+                return gc(messages) or ""
 
     @app.post("/api/grade-deep")
     def api_grade_deep(req: DeepGradeRequest) -> Any:
@@ -460,11 +474,17 @@ def create_app(
         if not mime.startswith("image/"):
             raise HTTPException(400, f"not an image: {mime}")
         sid = uuid4().hex[:12]
-        _IMAGE_STORE[sid] = (data, mime)
-        # Cap the store at 50 entries to bound memory
-        if len(_IMAGE_STORE) > 50:
-            oldest = next(iter(_IMAGE_STORE))
-            _IMAGE_STORE.pop(oldest, None)
+        # H3 (R2): atomic insert + LRU eviction. Without the lock,
+        # concurrent uploads race on `next(iter(...))` (CPython can
+        # raise on iter-during-mutation) and can pop the same key
+        # twice, letting the store grow past 50.
+        with _IMAGE_STORE_LOCK:
+            _IMAGE_STORE[sid] = (data, mime)
+            while len(_IMAGE_STORE) > 50:
+                # Evict oldest (insertion order). Snapshot keys so the
+                # iterator doesn't observe concurrent mutation.
+                oldest = next(iter(list(_IMAGE_STORE)))
+                _IMAGE_STORE.pop(oldest, None)
         return {"id": sid, "mime": mime, "bytes": len(data)}
 
     @app.get("/api/chat/image/{sid}")
@@ -511,17 +531,24 @@ def create_app(
     def _call_gemma(gc: Callable, messages: list[dict],
                      gp: GenerationParams) -> str:
         """Wrap the kernel-supplied gemma_call. Some callables accept
-        full kwargs; others only accept (messages,). Try both."""
-        try:
-            return gc(
-                messages,
-                max_new_tokens=gp.max_new_tokens,
-                temperature=gp.temperature,
-                top_p=gp.top_p,
-                top_k=gp.top_k,
-            ) or ""
-        except TypeError:
-            return gc(messages) or ""
+        full kwargs; others only accept (messages,). Try both.
+
+        H1 (R2 concurrency): _GEMMA_LOCK serialises calls. HF
+        model.generate is not thread-safe; concurrent invocations
+        from /api/chat/send + /api/grade-deep would corrupt CUDA
+        state.
+        """
+        with _GEMMA_LOCK:
+            try:
+                return gc(
+                    messages,
+                    max_new_tokens=gp.max_new_tokens,
+                    temperature=gp.temperature,
+                    top_p=gp.top_p,
+                    top_k=gp.top_k,
+                ) or ""
+            except TypeError:
+                return gc(messages) or ""
 
     def _last_user_text(messages: list[dict]) -> str:
         """Concatenate text chunks from the most recent user message

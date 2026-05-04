@@ -2251,9 +2251,16 @@ def _heuristic_tool_calls(text: str,
             dests[d] = d.title()
     found_origin = next((v for k, v in origins.items() if k in lower), None)
     found_dest = next((v for k, v in dests.items() if k in lower), None)
-    sector = "domestic" if any(s in lower for s in
-                                  ("domestic", "caretaker", "caregiver",
-                                   "helper", "maid", "nanny")) else "any"
+    # H5 fix (R2): sector inference used naive substring match — caught
+    # "domestic dispute", "domestic flight", "domestic policy". Use
+    # word-boundary patterns + require domestic-WORK noun phrase.
+    sector_patterns = (
+        r"\bdomestic\s+work(er)?s?\b", r"\bhousekeep(er|ing)\b",
+        r"\bcaretaker\b", r"\bcaregiver\b", r"\bhelper\b",
+        r"\bmaid\b", r"\bnanny\b", r"\bhousehold\s+work(er)?s?\b",
+        r"\bfdh\b", r"\bfdw\b", r"\bMDW\b",  # Foreign Domestic Helper/Worker
+    )
+    sector = "domestic" if any(re.search(p, lower) for p in sector_patterns) else "any"
     # Fire corridor + NGO lookups when EITHER side is named.
     # Fully-named pairs get the precise entry; single-sided pairs get
     # the universal fallback (which still cites ILO C181 Art. 7).
@@ -3649,34 +3656,46 @@ def _token_overlap_score(needle: str, haystack: str) -> float:
 
 def _normalized_edit_distance(a: str, b: str) -> float:
     """Levenshtein edit-distance normalized to 0..1 similarity.
-    Pure-Python; O(len(a) * len(b)) using a single-row DP. Faster
-    + more intuitive than SequenceMatcher.ratio() for fuzzy text
-    matching where each char-level edit (insertion/deletion/sub) is
-    one unit. 1.0 = identical, 0.0 = completely different.
+    1.0 = identical, 0.0 = completely different.
 
-    Example: 'kafala' vs 'kalala' = 1 substitution / 6 chars = 5/6 ≈ 0.833
+    R2 perf hardening:
+    - Fast-fail length-delta check: if abs(la-lb)/max_len > 20%,
+      similarity can't exceed 0.80, return 0 without DP. Prunes
+      90%+ of windows in the sliding-window caller.
+    - For strings ≤ 32 chars, use the original single-row DP
+      (Levenshtein semantics — needed for kafala/kalala = 0.833,
+      trafficking/traffiking = 0.91, etc).
+    - For longer strings, fall back to difflib.SequenceMatcher
+      which is C-optimized but uses gestalt matching (slightly
+      different score, fine for "is this similar enough" checks).
     """
     if a == b:
         return 1.0
     if not a or not b:
         return 0.0
     la, lb = len(a), len(b)
-    # Single-row DP: O(min(la,lb)) memory
-    if la > lb:
-        a, b, la, lb = b, a, lb, la
-    prev_row = list(range(la + 1))
-    for i, ch_b in enumerate(b, 1):
-        cur_row = [i]
-        for j, ch_a in enumerate(a, 1):
-            cost = 0 if ch_a == ch_b else 1
-            cur_row.append(min(
-                cur_row[j - 1] + 1,         # insert
-                prev_row[j] + 1,            # delete
-                prev_row[j - 1] + cost,     # substitute
-            ))
-        prev_row = cur_row
-    distance = prev_row[la]
-    return 1.0 - (distance / max(la, lb))
+    max_len = lb if lb > la else la
+    if abs(la - lb) / max_len > 0.20:
+        return 0.0
+    if max_len <= 32:
+        # Original Levenshtein DP — fast enough for short strings
+        if la > lb:
+            a, b, la, lb = b, a, lb, la
+        prev_row = list(range(la + 1))
+        for i, ch_b in enumerate(b, 1):
+            cur_row = [i]
+            for j, ch_a in enumerate(a, 1):
+                cost = 0 if ch_a == ch_b else 1
+                cur_row.append(min(
+                    cur_row[j - 1] + 1,
+                    prev_row[j] + 1,
+                    prev_row[j - 1] + cost,
+                ))
+            prev_row = cur_row
+        return 1.0 - (prev_row[la] / max_len)
+    # Long strings: SequenceMatcher.ratio() (C-optimized)
+    import difflib
+    return difflib.SequenceMatcher(None, a, b, autojunk=False).ratio()
 
 
 def _fuzzy_substring_match(needle: str, haystack: str,
@@ -3728,9 +3747,25 @@ def _multi_signal_match(needle: str, haystack: str,
     Returns:
       {'matched': bool, 'signal': str, 'overlap_score': float}
     """
+    # H1 fix (R2 adversarial): empty needle would match everything via
+    # `"" in any_string` substring rule — silent free PASS for any
+    # caller passing an empty pass_indicator. Reject up front.
+    if not needle or len(needle.strip()) < 2:
+        return {"matched": False, "signal": "none", "overlap_score": 0.0}
+    if haystack is None:
+        haystack = ""
     if haystack_low is None:
         haystack_low = haystack.lower()
     needle_low = needle.lower()
+    # H2 fix (R2 adversarial): _fuzzy_substring_match is O(N) with
+    # step=1 for needles ≤16 chars — a 100KB haystack with one short
+    # needle took 3.3 s in testing; 50KB took 11+ minutes for full
+    # grade pass (170+ calls). Cap haystack passed to fuzzy + trigram
+    # at 8KB — typo detection only needs to see the first few KB,
+    # the cheaper signals (exact, cluster, token-overlap) still see
+    # the full text and catch the substantive content.
+    haystack_capped = haystack[:8_192]
+    haystack_capped_low = haystack_capped.lower() if len(haystack) > 8_192 else haystack_low
     # Signal 1: exact
     if needle_low in haystack_low:
         return {"matched": True, "signal": "exact", "overlap_score": 1.0}
@@ -3740,21 +3775,31 @@ def _multi_signal_match(needle: str, haystack: str,
             return {"matched": True, "signal": "cluster",
                     "overlap_score": 1.0}
     # Signal 3: token-set overlap (handles word reorder + plurals/tenses)
-    overlap = _token_overlap_score(needle, haystack)
+    # H2 (R2 cont'd): cap here too. Token-set overlap on a 50KB
+    # haystack runs _stem_token over ~10K tokens per call; with 170
+    # calls per grade pass that dominates the perf budget.
+    overlap = _token_overlap_score(needle, haystack_capped)
     if overlap >= token_threshold:
         return {"matched": True, "signal": "token_overlap",
                 "overlap_score": round(overlap, 2)}
-    # Signal 4: fuzzy substring (handles typos)
-    if _fuzzy_substring_match(needle, haystack, threshold=fuzzy_threshold):
-        return {"matched": True, "signal": "fuzzy",
-                "overlap_score": round(fuzzy_threshold, 2)}
-    # Signal 5: trigram Jaccard (handles typos + reorder + partial matches
-    # that the prior signals miss). Threshold 0.5 — tighter than token
-    # overlap because trigrams produce more noise.
-    tri = _trigram_jaccard(needle, haystack)
+    # H2 perf (R2): trigram first as a cheap pre-filter. If trigram
+    # similarity is very low, fuzzy can't possibly match — skip the
+    # expensive sliding-window. If trigram already passes the 0.5
+    # threshold, return without paying for fuzzy.
+    tri = _trigram_jaccard(needle, haystack_capped)
     if tri >= 0.5:
         return {"matched": True, "signal": "trigram",
                 "overlap_score": round(tri, 2)}
+    # Signal 4: fuzzy substring (handles typos) — only on capped
+    # haystack AND only if trigram suggests partial similarity.
+    # Threshold 0.10 prunes ~80%+ of fuzzy work on long unrelated
+    # text while keeping short-typo cases (kafala/kalala-style)
+    # firing — those produce trigram >= 0.4 anyway via the matching
+    # `ala` / `kal` shared substrings.
+    if tri >= 0.10 and _fuzzy_substring_match(needle, haystack_capped,
+                                                  threshold=fuzzy_threshold):
+        return {"matched": True, "signal": "fuzzy",
+                "overlap_score": round(fuzzy_threshold, 2)}
     return {"matched": False, "signal": "none",
             "overlap_score": round(max(overlap, tri), 2)}
 
@@ -3845,7 +3890,15 @@ def grade_response_universal(
     is excluded from both numerator + denominator).
     """
     rubric = RUBRIC_UNIVERSAL
-    response_text_low = (response_text or "").lower()
+    # H2 (R2 perf): cap response_text for grading at 32KB. With 17
+    # dimensions × ~10 indicators × multi-signal matching, scoring a
+    # 50KB response took 11 minutes. Real LLM responses rarely exceed
+    # 8KB; the cap prevents adversarial padding from blowing up grader
+    # latency. Original full text is preserved in `response_text_full`
+    # (used by structure detection + length checks).
+    response_text_full = response_text or ""
+    response_text = response_text_full[:32_768]
+    response_text_low = response_text.lower()
     prompt_text_low = (prompt_text or "").lower()
     grep_fired = bool(
         harness_trace and harness_trace.get("grep") and
@@ -3944,8 +3997,11 @@ def grade_response_universal(
         })
 
     # v3 enrichments: structural quality + section-number verification
-    structure = _detect_response_structure(response_text)
-    section_check = _verify_section_numbers(response_text)
+    # Use FULL text here so a long well-structured response gets
+    # appropriate credit; the per-dimension keyword scoring above
+    # used the capped response for perf.
+    structure = _detect_response_structure(response_text_full)
+    section_check = _verify_section_numbers(response_text_full)
     # Bonus: well-structured response gets a small score boost (capped)
     if total_w > 0 and structure["quality_score"] >= 2:
         # Boost up to 5pp for a fully-structured response (sections
@@ -3956,15 +4012,41 @@ def grade_response_universal(
         boost_pp = 0
         adjusted_pct = (score_w / total_w * 100) if total_w > 0 else 0
 
+    # H4 fix (R2 adversarial): defend against the "bag-of-keywords"
+    # gaming attack. A response that only contains rubric pass_indicators
+    # glued together but no sentence structure scored 100%. We now require:
+    #   - response length >= 200 chars (substantive)
+    #   - at least 3 distinct sentence breaks ('.', '!', '?', '\n\n')
+    #     OR markdown structure (header/list/emphasis)
+    # If the response is too short OR has no narrative structure but
+    # claims a high score, cap at 60% and flag.
+    # Use full text for these checks (capped text would underestimate).
+    response_len = len(response_text_full)
+    sentence_breaks = (response_text_full.count(".")
+                          + response_text_full.count("!")
+                          + response_text_full.count("?")
+                          + response_text_full.count("\n\n"))
+    is_substantive = response_len >= 200
+    has_narrative = sentence_breaks >= 3 or structure["quality_score"] >= 1
+    gaming_penalty_pp = 0.0
+    gaming_flagged = False
+    if adjusted_pct > 60 and not (is_substantive and has_narrative):
+        # Looks gamed — cap to 60% and surface why
+        gaming_penalty_pp = round(adjusted_pct - 60.0, 1)
+        adjusted_pct = 60.0
+        gaming_flagged = True
+
     return {
         "mode":               "universal",
-        "version":            "v3.0-multi-signal",
+        "version":            "v3.4-anti-gaming",
         "dimensions":         rows,
         "total_score":        round(score_w, 2),
         "total_weight":       round(total_w, 2),
         "pct_score":          round(adjusted_pct, 1),
         "raw_pct_score":      round((score_w / total_w * 100) if total_w > 0 else 0, 1),
         "structure_boost_pp": round(boost_pp, 1),
+        "gaming_penalty_pp":  gaming_penalty_pp,
+        "gaming_flagged":     gaming_flagged,
         "n_applicable":       n_applicable,
         "n_not_applicable":   n_na,
         "n_pass":             n_pass,

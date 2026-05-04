@@ -399,11 +399,16 @@ def test_lift_evaluator_detects_score_increase() -> None:
 
 
 def test_multi_signal_match_handles_typos() -> None:
-    """v3.1: fuzzy match catches 1-char typos in proper nouns."""
+    """v3.1: fuzzy or trigram match catches 1-char typos in proper
+    nouns. Either signal is acceptable — the goal is that 'kalala'
+    matches the indicator 'kafala' through SOME multi-signal path."""
     h = _load_harness()
     m = h._multi_signal_match("kafala", "the kalala system is widespread")
     assert m["matched"], f"kafala/kalala should match; got {m}"
-    assert m["signal"] == "fuzzy"
+    # v3.4 perf: trigram now fires before fuzzy when its similarity
+    # is high enough (kalala/kafala share the 'ala' trigram → ~0.5).
+    assert m["signal"] in ("fuzzy", "trigram"), \
+        f"expected fuzzy or trigram; got {m['signal']}"
 
 
 def test_multi_signal_match_handles_word_reorder() -> None:
