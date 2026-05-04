@@ -94,6 +94,12 @@ class HarnessToggles(BaseModel):
     grep: bool = False
     rag: bool = False
     tools: bool = False
+    # 5th layer (added 2026-05-04 for the unified harness-chat
+    # notebook): online web search via the kernel-provided
+    # online_search_call. When True, the chat endpoint runs the
+    # kernel's search hook on the user's message and prepends the
+    # top-N results as context (mirrors the RAG layer pattern).
+    online: bool = False
     # Per-request user-added content. Format mirrors the built-in
     # catalog shapes documented in duecare/chat/harness/__init__.py.
     custom_grep_rules: Optional[list[dict]] = None
@@ -156,6 +162,7 @@ def create_app(
     rag_call: Optional[Callable] = None,
     tools_call: Optional[Callable] = None,
     grade_call: Optional[Callable] = None,
+    online_search_call: Optional[Callable] = None,
     grep_catalog: Optional[list] = None,
     rag_catalog: Optional[list] = None,
     tools_catalog: Optional[list] = None,
@@ -167,11 +174,12 @@ def create_app(
     """Build the FastAPI app.
 
     `gemma_call` is the Gemma 4 entry point (always required for
-    chat). `grep_call`, `rag_call`, `tools_call` are optional safety-
-    harness layers — when wired AND enabled per-message via
-    HarnessToggles, the chat endpoint runs them in sequence and folds
-    their output into Gemma's prompt + the response payload. The chat
-    UI surfaces the toggle checkboxes only for layers that are wired.
+    chat). `grep_call`, `rag_call`, `tools_call`, `online_search_call`
+    are optional safety/context layers — when wired AND enabled
+    per-message via HarnessToggles, the chat endpoint runs them in
+    sequence and folds their output into Gemma's prompt + the
+    response payload. The chat UI surfaces the toggle checkboxes only
+    for layers that are wired.
 
     Each layer callable signature:
 
@@ -187,9 +195,14 @@ def create_app(
             {"tool_calls": [{"name": str, "args": dict, "result": Any}],
              "elapsed_ms": int}
 
-    All three are optional so the same chat package can power either
-    the raw playground (gemma_call only) or the toggle notebook
-    (gemma_call + the three harness layers)."""
+        online_search_call(query: str, top_n: int = 5) -> dict
+            {"results": [{"rank": int, "title": str, "url": str,
+                           "snippet": str}], "source": str,
+             "elapsed_ms": int}
+
+    All optional so the same chat package can power either the raw
+    playground (gemma_call only) or the unified harness chat
+    (gemma_call + all 5 layers)."""
     app = FastAPI(
         title="Duecare Gemma Chat",
         version="0.1.0",
@@ -200,6 +213,7 @@ def create_app(
     app.state.rag_call = rag_call
     app.state.tools_call = tools_call
     app.state.grade_call = grade_call
+    app.state.online_search_call = online_search_call
     app.state.rubrics_required_categories = (
         rubrics_required_categories or []
     )
@@ -253,6 +267,7 @@ def create_app(
             "grep": app.state.grep_call is not None,
             "rag": app.state.rag_call is not None,
             "tools": app.state.tools_call is not None,
+            "online": app.state.online_search_call is not None,
             "grade": app.state.grade_call is not None,
             "grade_deep": app.state.gemma_call is not None,
             "grade_categories": app.state.rubrics_required_categories or [],
@@ -631,6 +646,36 @@ def create_app(
             lines.append(f"- `{name}({args})` → {result}")
         return "\n".join(lines) + "\n"
 
+    def _format_online_context(online_result: dict) -> str:
+        """Render online-search results as a context block. Mirrors
+        the RAG layer pattern; each result becomes a numbered
+        attribution-required entry."""
+        results = online_result.get("results") or []
+        if not results:
+            return ""
+        source = online_result.get("source", "online")
+        lines = [
+            "## SAFETY HARNESS — Online search layer",
+            "",
+            f"_Live web results retrieved via `{source}` — DO NOT trust "
+            "uncritically; cross-check against the RAG corpus + GREP "
+            "rules before adopting any claim. Each result requires URL "
+            "attribution if cited._",
+            "",
+        ]
+        for r in results:
+            title = r.get("title", "?")
+            url = r.get("url", "")
+            snippet = r.get("snippet", "")
+            rank = r.get("rank", "?")
+            lines.append(f"### [{rank}] {title}")
+            if url:
+                lines.append(f"<{url}>")
+            if snippet:
+                lines.append(snippet)
+            lines.append("")
+        return "\n".join(lines) + "\n"
+
     def _run_harness(messages: list[dict],
                        toggles: HarnessToggles) -> dict:
         """Run each enabled (and wired) layer; return a trace dict the
@@ -649,6 +694,8 @@ def create_app(
                      "fired": False, "elapsed_ms": 0, "docs": [], "summary": ""},
             "tools": {"enabled": toggles.tools, "wired": app.state.tools_call is not None,
                        "fired": False, "elapsed_ms": 0, "tool_calls": [], "summary": ""},
+            "online": {"enabled": toggles.online, "wired": app.state.online_search_call is not None,
+                         "fired": False, "elapsed_ms": 0, "results": [], "summary": ""},
         }
         prepend_snippets: list[str] = []
         user_text = _last_user_text(messages)
@@ -740,6 +787,27 @@ def create_app(
                     prepend_snippets.append(snippet)
             except Exception as exc:  # noqa: BLE001
                 trace["tools"]["summary"] = f"error: {type(exc).__name__}: {exc}"
+
+        # 5th layer: online search (added 2026-05-04). Mirrors RAG
+        # pattern but with the kernel-supplied online_search_call.
+        if toggles.online and app.state.online_search_call is not None:
+            try:
+                osr = app.state.online_search_call(user_text) or {}
+                trace["online"].update({
+                    "fired": True,
+                    "elapsed_ms": int(osr.get("elapsed_ms", 0)),
+                    "results": osr.get("results") or [],
+                    "source": osr.get("source", "unknown"),
+                })
+                results = trace["online"]["results"]
+                trace["online"]["summary"] = (
+                    f"{len(results)} web result(s)" if results
+                    else "no results returned")
+                snippet = _format_online_context(osr)
+                if snippet:
+                    prepend_snippets.append(snippet)
+            except Exception as exc:  # noqa: BLE001
+                trace["online"]["summary"] = f"error: {type(exc).__name__}: {exc}"
 
         return {"trace": trace, "prepend_snippets": prepend_snippets}
 
