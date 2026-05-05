@@ -1392,9 +1392,10 @@ GREP_RULES = [
         "rule": "iqama_renewal_fee_shifted_to_worker",
         "patterns": [r"\b(iqama|residence\s+permit|residency\s+(?:fee|"
                        r"renewal)|civil\s+id\s+(?:renewal|fee))\b",
-                       r"\b(worker|employee|domestic\s+helper|maid)\b",
                        r"\b(pays?|paying|paid|deducted?\s+from\s+"
-                       r"(?:salary|wages?)|charged)\b"],
+                       r"(?:my\s+|the\s+|our\s+)?(?:salary|wages?|pay)|"
+                       r"charged|shifted\s+to|fee\s+(?:was|is)\s+"
+                       r"(?:deducted|charged))\b"],
         "all_required": True,
         "severity": "high",
         "citation": "Saudi MoHR Resolution 178/2018 (employer bears "
@@ -1591,13 +1592,19 @@ GREP_RULES = [
         "rule": "structured_deposits_smurfing",
         "patterns": [r"\b(?:deposit|cash|payment)s?\s+(?:of|under|"
                        r"below|less\s+than)\s+(?:USD|EUR|\$|€)\s*"
-                       r"(9|9\.\d|10)[\s,]?\d{3}\b|"
+                       r"(9|9\.\d|10)[,\s]?\d{3}\b|"
                        r"\bstructur(?:ed|ing)\s+(?:deposit|payment|"
                        r"transaction)\b|\bsmurf(?:ing|ed)\b|"
-                       r"\bbreak\s+up\s+(?:the\s+)?(?:deposit|payment|"
-                       r"transfer)\b",
+                       r"\bbreak\s+(?:it\s+|them\s+|up\s+)?"
+                       r"(?:up|down|into|the)\s+(?:into|to|"
+                       r"recruitment|the|deposit|payment|transfer)\b|"
+                       r"\bmultiple\s+(?:small|cash|smaller)\s+"
+                       r"(?:deposit|payment|transfer)s?\b|"
+                       r"\bunder\s+(?:USD|EUR|\$|€)\s*"
+                       r"(9|9\.\d|10)[,\s]?\d{3}\b",
                        r"\b(recruitment|placement|fee|commission|"
-                       r"loan|advance|kickback)\b"],
+                       r"loan|advance|kickback|deposit|payment|"
+                       r"transfer)\b"],
         "all_required": True,
         "severity": "high",
         "citation": "FATF Recommendation 32; US Bank Secrecy Act "
@@ -2705,7 +2712,7 @@ def _grep_call(text: str, extra_rules=None) -> dict:
 
 
 # ===========================================================================
-# 2. RAG CORPUS (18 docs) + BM25 retrieval
+# 2. RAG CORPUS (33 docs) + BM25 retrieval
 # ===========================================================================
 RAG_CORPUS = [
     # ----- ILO Conventions (paraphrased excerpts; full text on
@@ -6506,17 +6513,29 @@ Each rule is a dict with:
 2. Rebuild + push (see Persona docs above)
 3. Restart the Kaggle kernel
 
-## Rule categories currently shipped
+## Rule categories currently shipped (108 rules across 16 categories)
 
 - Debt bondage / wage protection (4 rules)
 - Fee camouflage tactics (7 rules)
 - Corridor-specific fee caps (5 rules)
 - ILO forced-labor indicators (3 rules)
-- Meta patterns (3 rules)
+- Meta patterns (4 rules)
+- Multi-party / jurisdictional hierarchy (8 rules)
+- Sector + corridor-specific patterns (5 rules)
+- Kafala-framework recruitment abuses (6 rules)
+- Sector-specific labour abuse (10 rules)
+- Kafala extended mechanisms (8 rules)
+- Cross-border financial flows (6 rules)
+- Employer abuse patterns (8 rules)
+- Document fraud (6 rules)
+- Recruiter sales tactics (6 rules)
+- Recovery-suppression / repatriation barriers (5 rules)
+- Additional corridors (5 rules)
+- Platform / digital recruitment (5 rules)
 """,
     "rag": """# RAG — extending the corpus
 
-18 documents ship by default in:
+33 documents ship by default in:
 
     packages/duecare-llm-chat/src/duecare/chat/harness/__init__.py
 
@@ -6609,7 +6628,7 @@ function calling so the model itself decides what to call.
 """,
     "examples": """# Example prompts — extending the catalog
 
-394 prompts ship by default in:
+407 prompts ship by default in:
 
     packages/duecare-llm-chat/src/duecare/chat/harness/_examples.json
 

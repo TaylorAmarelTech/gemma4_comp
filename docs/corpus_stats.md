@@ -149,7 +149,7 @@ Empty cells reveal gaps in coverage.
 
 ## Rubric coverage
 
-Of 394 prompts, **74** have an explicit 5-tier rubric in `_rubrics_5tier.json`.
+Of 407 prompts, **74** have an explicit 5-tier rubric in `_rubrics_5tier.json`.
 
 Categories with required-element rubrics in `_rubrics_required.json`:
 

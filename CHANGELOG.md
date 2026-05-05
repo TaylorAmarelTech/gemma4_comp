@@ -134,7 +134,7 @@ the meta `duecare-llm` package tracking the workspace lockstep.
     `/api/grade-combined` (50/50 blend of deterministic + judge,
     with disagreement panel highlighting dimensions where the two
     graders see different evidence)
-  - 15 dimension-specific yes/no questions in `JUDGE_QUESTIONS`,
+  - 17 dimensions yes/no questions in `JUDGE_QUESTIONS`,
     each requiring an evidence quote pulled from the response —
     no hallucinated support
   - Strict JSON envelope parsing with three fallback layers

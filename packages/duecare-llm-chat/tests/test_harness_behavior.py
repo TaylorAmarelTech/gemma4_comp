@@ -447,6 +447,152 @@ def test_v316_rules_have_required_metadata() -> None:
         assert rule.get("indicator"), f"{rule['rule']} missing indicator"
 
 
+# Additional spot-checks for under-covered v3.16 rules — second wave.
+# Targets: agriculture, mining, meatpacking, hawala, structured deposits,
+# crypto, no-fee deductions, food withholding, abuse, document fraud,
+# salary held, deepfake, sextortion, syrian-refugee Lebanon corridor,
+# IRAQ KRG corridor, Cyprus North TCN.
+
+def test_agriculture_piece_rate_below_minimum_fires() -> None:
+    text = ("I work as a berry picker, paid per bushel. After a 14-hour day "
+            "I earned less than the minimum wage. The farm uses piece-rate.")
+    assert "agriculture_piece_rate_below_minimum" in _grep_rule_ids(text)
+
+
+def test_mining_artisanal_child_labor_fires() -> None:
+    text = ("DRC cobalt mining sites use artisanal small-scale mining where "
+            "children under 12 years old work with mercury exposure.")
+    assert "mining_artisanal_child_or_forced_labor" in _grep_rule_ids(text)
+
+
+def test_meatpacking_no_bathroom_breaks_fires() -> None:
+    text = ("In the poultry plant they refuse bathroom breaks during the line "
+            "speed; some workers wear adult diapers.")
+    assert "meatpacking_no_bathroom_breaks" in _grep_rule_ids(text)
+
+
+def test_carwash_uniform_deduction_fires() -> None:
+    text = ("At the carwash they deduct uniform fee and chamois cost from "
+            "every pay check.")
+    assert "carwash_uniform_water_deduction" in _grep_rule_ids(text)
+
+
+def test_cleaning_subcontractor_ghost_worker_fires() -> None:
+    text = ("Office cleaning crew through 3 layers of subcontracting; we are "
+            "undocumented workers paid in cash, ghost workers on the books.")
+    assert "cleaning_subcontractor_ghost_worker" in _grep_rule_ids(text)
+
+
+def test_hawala_recruitment_fee_evasion_fires() -> None:
+    text = ("The agency routed our placement fee through hawala back home so "
+            "the official ledger shows zero recruitment fee charged.")
+    assert "hawala_recruitment_fee_evasion" in _grep_rule_ids(text)
+
+
+def test_structured_deposits_smurfing_fires() -> None:
+    text = ("Recruiter asked us to break up the recruitment deposit into "
+            "multiple cash deposits of under USD 9,500 each.")
+    assert "structured_deposits_smurfing" in _grep_rule_ids(text)
+
+
+def test_cryptocurrency_salary_advance_fires() -> None:
+    text = ("They want to pay my salary in USDT to a crypto wallet as an "
+            "advance against wages, not in pesos.")
+    assert "cryptocurrency_salary_advance" in _grep_rule_ids(text)
+
+
+def test_food_withholding_fires() -> None:
+    text = ("The employer deducts food cost from my wages and only gives me "
+            "leftovers; I am hungry most days.")
+    assert "food_withholding_or_deduction" in _grep_rule_ids(text)
+
+
+def test_medical_care_denied_fires() -> None:
+    text = ("When I was sick the employer denied medical care. They said I "
+            "could only have my passport returned for the hospital visit and "
+            "must hand it back.")
+    assert "medical_care_denied_passport_held_for_hospital" in _grep_rule_ids(text)
+
+
+def test_verbal_abuse_with_retention_threat_fires() -> None:
+    text = ("The madam yells at me daily and threatens to deport me and "
+            "cancel my visa if I tell anyone.")
+    assert "verbal_physical_abuse_with_retention_threat" in _grep_rule_ids(text)
+
+
+def test_worker_surveillance_fires() -> None:
+    text = ("There is a hidden camera in my bedroom and a CCTV in the worker "
+            "private space. The employer monitors me 24 hours.")
+    assert "worker_surveillance_in_private_space" in _grep_rule_ids(text)
+
+
+def test_fake_recruiter_license_fires() -> None:
+    text = ("Their POEA license number XX-99999 is unverified and not on the "
+            "POEA registry.")
+    assert "fake_or_unverifiable_recruiter_license" in _grep_rule_ids(text)
+
+
+def test_two_contract_pattern_fires() -> None:
+    text = ("I have two contracts: one POEA-approved from origin (Philippines) "
+            "and a different one enforced at the destination in Saudi Arabia.")
+    assert "two_contract_pattern_origin_vs_destination" in _grep_rule_ids(text)
+
+
+def test_backdated_contract_fires() -> None:
+    text = ("My employment contract was backdated to before I actually started "
+            "work, the date was changed to evade the gratuity calculation.")
+    assert "backdated_employment_contract" in _grep_rule_ids(text)
+
+
+def test_quit_fee_breaking_contract_fires() -> None:
+    text = ("If I quit before two years they charge a breaking-contract fee "
+            "and I must repay the placement cost as liquidated damages.")
+    assert "quit_fee_breaking_contract_penalty" in _grep_rule_ids(text)
+
+
+def test_salary_held_until_contract_end_fires() -> None:
+    text = ("The agency keeps my salary withheld until the end of contract, "
+            "two years deferred so I cannot leave.")
+    assert "salary_held_until_contract_end" in _grep_rule_ids(text)
+
+
+def test_lebanon_internal_syrian_refugee_fires() -> None:
+    text = ("Syrian refugees in Lebanon work in tent settlement agriculture "
+            "in Bekaa with child labour endemic and no work permits.")
+    assert "lebanon_internal_syrian_refugee_labor" in _grep_rule_ids(text)
+
+
+def test_iraq_kurdistan_filipino_fires() -> None:
+    text = ("Filipina domestic worker deployed to Erbil in the Kurdistan "
+            "region of Iraq via Dubai routing.")
+    assert "iraq_kurdistan_filipino_domestic" in _grep_rule_ids(text)
+
+
+def test_cyprus_north_TCN_fires() -> None:
+    text = ("Bangladeshi student visa to Northern Cyprus university in "
+            "Famagusta, then crossing into EU-Cyprus as TCN.")
+    assert "cyprus_north_TCN_eu_backdoor" in _grep_rule_ids(text)
+
+
+def test_deepfake_recruiter_fires() -> None:
+    text = ("The interviewer on the video call seemed AI-generated; the face "
+            "looked like a deepfake and the synthetic voice was off.")
+    assert "deepfake_or_ai_generated_recruiter" in _grep_rule_ids(text)
+
+
+def test_sextortion_camgirl_studio_fires() -> None:
+    text = ("Cam studio recruitment offer with guaranteed income, signing "
+            "bonus, equipment provided and housing provided for OnlyFans "
+            "modeling work.")
+    assert "sextortion_camgirl_studio_recruitment" in _grep_rule_ids(text)
+
+
+def test_iqama_renewal_fee_shifted_fires() -> None:
+    text = ("My iqama renewal fee was deducted from my wages instead of the "
+            "employer paying it as required.")
+    assert "iqama_renewal_fee_shifted_to_worker" in _grep_rule_ids(text)
+
+
 # =============================================================================
 # Universal grader v3 — multi-signal scoring beyond keyword matching.
 # Tests the four upgrades: expanded citation corpus, section verification,

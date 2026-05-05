@@ -73,11 +73,12 @@ Annotations pop up:
 
 ### 0:35–1:42 — The demo (67 seconds)
 
-**Visual:** Cut to the **chat-playground-with-grep-rag-tools notebook**.
-Same 68%-loan prompt is pasted. **All four toggle tiles (Persona /
-GREP / RAG / Tools) are visible at the bottom.** Cursor clicks
-**Persona** ON (purple). Then **GREP** (red). Then **RAG** (blue).
-Then **Tools** (green). Each tile fills with color and shows `ON`.
+**Visual:** Cut to the **duecare-harness-chat notebook** (the omni
+playground, the new core entry point). Same 68%-loan prompt is pasted.
+**All five toggle tiles (Persona / GREP / RAG / Tools / Online) are
+visible at the bottom.** Cursor clicks **Persona** ON (purple). Then
+**GREP** (red). Then **RAG** (blue). Then **Tools** (green). Then
+**Online** (amber). Each tile fills with color and shows `ON`.
 
 Cut to the response area. Gemma's response now reads:
 
@@ -96,12 +97,14 @@ Cut to the response area. Gemma's response now reads:
 
 **Voiceover:**
 
-> *"This is Duecare. Same Gemma 4. Four toggle layers built into the
+> *"This is Duecare. Same Gemma 4. Five toggle layers built into the
 > chat surface. Persona — a 40-year anti-trafficking expert. GREP —
-> 37 regex rules tagged with ILO conventions and national statutes.
-> RAG — a 33-document corpus including ILO C029, C181, C189, POEA
-> circulars, the Palermo Protocol, ICRMW. Tools — corridor fee caps,
-> fee camouflage decoder, ILO indicator matcher, NGO intake hotlines."*
+> 108 regex rules across 16 categories tagged with ILO conventions
+> and national statutes. RAG — a 33-document corpus including ILO
+> C029, C181, C189, POEA circulars, the Palermo Protocol, ICRMW.
+> Tools — corridor fee caps, fee camouflage decoder, ILO indicator
+> matcher, NGO intake hotlines, ILO Convention reference. Online —
+> live web search when the local corpus is silent."*
 
 > *"Watch the response transform. Then click 'View pipeline.'"*
 
@@ -229,7 +232,7 @@ CI: `duecare-journey-android/`.
 > *Exercising due care in LLM safety design.*
 >
 > github.com/TaylorAmarelTech/gemma4_comp
-> kaggle.com/taylorsamarel · six core + five appendix notebooks
+> kaggle.com/taylorsamarel · two core + eleven appendix notebooks
 > Submission: Gemma 4 Good Hackathon · Safety & Trust track
 
 **Voiceover (on-camera narrator, 5 sec):**

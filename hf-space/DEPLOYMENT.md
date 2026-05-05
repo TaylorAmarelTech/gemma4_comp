@@ -6,7 +6,7 @@ For when GPU is back. Step-by-step to get
 ## Pre-flight (5 min)
 
 ```bash
-# 1. Make sure the chat wheel is current (394 prompts + rubrics)
+# 1. Make sure the chat wheel is current (407 prompts + rubrics)
 ls -la kaggle/live-demo/wheels/duecare_llm_chat-0.1.0-py3-none-any.whl
 #       expected: 549,257 bytes (chat wheel with rubrics)
 
@@ -96,7 +96,7 @@ Visit `https://huggingface.co/spaces/taylorscottamarel/duecare-live-demo`.
 
 Expected:
 - The full Duecare home page (4 tile cards: Use cases / pages)
-- Click `▸ Examples` → modal with 394 prompts
+- Click `▸ Examples` → modal with 407 prompts
 - Submit any prompt → response in 5-15 sec
 - Click `▸ View pipeline` on any response → 7-card modal showing
   byte-for-byte transformation

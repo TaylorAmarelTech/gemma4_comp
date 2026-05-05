@@ -1,6 +1,6 @@
 # Embedding Duecare in Other Apps
 
-The Duecare safety harness (Gemma 4 + 49 GREP rules + 33 RAG docs +
+The Duecare safety harness (Gemma 4 + 108 GREP rules + 33 RAG docs +
 5 tools + the rubric system) is designed to be embeddable into other
 applications via multiple integration paths. Pick the one that
 matches your stack.
@@ -55,7 +55,7 @@ Three layers, each independently embeddable:
                             ▼
 ┌──────────────────────────────────────────────────────────────────┐
 │                       LAYER 1: HARNESS                            │
-│  duecare.chat.harness — 49 GREP rules + 33 RAG docs + 5 tools     │
+│  duecare.chat.harness — 108 GREP rules + 33 RAG docs + 5 tools     │
 │                          + 207 5-tier rubrics + 6 required cats   │
 │                          + grade_response() + default_harness()   │
 │  Shipped on PyPI as duecare-llm-chat                              │
