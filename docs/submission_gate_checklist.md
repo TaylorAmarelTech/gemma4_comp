@@ -120,7 +120,7 @@ The 11 to verify:
 - [ ] The direct `.apk` URL works (test in a browser; downloads, not 404)
 - [ ] The APK SHA-256 matches the value in the release notes
 - [ ] The release notes mention Gemma 4 + on-device + cloud routing +
-      20 corridors + 49 GREP rules
+      20 corridors + 108 GREP rules
 
 ## Phase 7 — Live demo (2 min)
 

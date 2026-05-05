@@ -51,7 +51,7 @@
 | Gemma 4 attribution | A | A | **A** | 11/11 notebook READMEs include attribution |
 | Pyproject workspace hygiene | D | A | **A** | 17/17 packages registered |
 | Hackathon-rubric alignment | A | A | **A+** | dense corpus + rubric system shows technical depth |
-| **Corpus & rubric system (NEW dim)** | — | — | **A+** | 394 prompts, 18 categories, 22 corridors, 19 ILO indicators, 207 5-tier rubrics + 5 required-element rubrics with 54 criteria |
+| **Corpus & rubric system (NEW dim)** | — | — | **A+** | 407 prompts, 18 categories, 22 corridors, 19 ILO indicators, 207 5-tier rubrics + 5 required-element rubrics with 54 criteria |
 | **Reusability (NEW dim)** | — | — | **A+** | per-category JSON splits + schema doc + contributing guide + validator script |
 | **OVERALL READINESS** | B+ | A | **A+** | Submission is ready to ship; remaining work is user-triggered |
 
@@ -62,7 +62,7 @@
 This day delivered the **largest single-day improvement** in the
 project's history:
 
-**1. Corpus expanded 305 → 394 prompts** (+29% in one day):
+**1. Corpus expanded 305 → 407 prompts** (+29% in one day):
 
 | Batch | Count | Source |
 |---|---:|---|
@@ -96,7 +96,7 @@ larger wheels:
 - 142 KB (256 prompts) → 158 KB (216 + new categories)
 - → 158 KB (256 prompts after 40 content samples)
 - → 164 KB (305 prompts after writeup canonical)
-- → **549 KB** (394 prompts + 207 5-tier rubrics + 5 required-element rubrics)
+- → **549 KB** (407 prompts + 207 5-tier rubrics + 5 required-element rubrics)
 
 ---
 
@@ -282,7 +282,7 @@ writeup. The round-3 additions strengthen this dimension significantly:
 - **394 evaluation prompts** across 18 categories, 22 corridors, 19 ILO indicators
 - **Per-prompt 5-tier rubrics + per-category required-element rubrics** auto-grade Gemma's responses
 - 11 notebooks (4 core + 5 appendix)
-- 22 GREP rules + 18 RAG docs + 4 in-house tools + 4 web research tools + 3 BYOK fast-paths
+- 108 GREP rules + 33 RAG docs + 4 in-house tools + 4 web research tools + 3 BYOK fast-paths
 - End-to-end SFT/DPO/GGUF/HF Hub pipeline (bench-and-tune)
 - Headless Playwright agentic browsing (no API keys required)
 - Cracked / abliterated model demonstration (proves harness is runtime-safety, not weight-safety)
@@ -316,7 +316,7 @@ writeup. The round-3 additions strengthen this dimension significantly:
 1. ✅ Refreshed all measurements via fresh AST/script runs (no
    inherited claims from rounds 1-2).
 2. ✅ Fixed 4 stale "305 prompts" references in
-   `docs/FOR_JUDGES.md` and `docs/deployment_local.md` → "394 prompts".
+   `docs/FOR_JUDGES.md` and `docs/deployment_local.md` → "407 prompts".
 3. ✅ Updated FOR_JUDGES table row to reflect new corpus provenance
    (notebook AST extraction + esoteric language additions).
 4. ✅ Added two new dimensions to the report card scoring:

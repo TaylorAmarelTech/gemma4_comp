@@ -579,7 +579,7 @@ def chart_rag_corpus_sunburst(harness: dict) -> Path:
         hovertemplate="<b>%{label}</b><br>%{value} doc(s)<extra></extra>",
     ))
     fig.update_layout(
-        title=("<b>RAG corpus structure (18 documents)</b><br>"
+        title=("<b>RAG corpus structure (33 documents)</b><br>"
                "<span style='font-size:11px;color:#6b7280'>"
                "Click a slice to drill in. Outer ring: individual "
                "documents. Inner ring: source family.</span>"),

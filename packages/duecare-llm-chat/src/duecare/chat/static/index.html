@@ -2311,7 +2311,7 @@ function _renderCombinedGradeResult(g) {
     </details>`;
 }
 
-// Render universal grader output: 15 dimensions, with N/A excluded
+// Render universal grader output: 17 dimensions, with N/A excluded
 // from score, applicability reason shown per row.
 function _renderUniversalGradeResult(g) {
   if (!g || !g.dimensions) {
@@ -2433,7 +2433,7 @@ function _renderUniversalGradeResult(g) {
     </tr>`;
   }
   html += '</tbody></table>';
-  html += `<div style="font-size:11px; color:var(--muted); margin-top:10px; font-style:italic;">Universal rubric ${escapeHtml(g.version)} · 15 dimensions · auto-detects applicability from prompt + response + harness trace · NOT_APPLICABLE rows excluded from score · keyword-based scoring (run <code>scripts/rubric_comparison.py</code> for semantic scoring).</div>`;
+  html += `<div style="font-size:11px; color:var(--muted); margin-top:10px; font-style:italic;">Universal rubric ${escapeHtml(g.version)} · 17 dimensions · auto-detects applicability from prompt + response + harness trace · NOT_APPLICABLE rows excluded from score · keyword-based scoring (run <code>scripts/rubric_comparison.py</code> for semantic scoring).</div>`;
   return html;
 }
 

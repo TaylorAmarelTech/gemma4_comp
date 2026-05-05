@@ -4,9 +4,9 @@
   "code_file": "notebook.ipynb",
   "language": "python",
   "kernel_type": "notebook",
-  "is_private": "true",
-  "enable_gpu": "true",
-  "enable_internet": "true",
+  "is_private": true,
+  "enable_gpu": true,
+  "enable_internet": true,
   "dataset_sources": [
     "taylorsamarel/duecare-prompt-generation-wheels",
     "taylorsamarel/duecare-trafficking-prompts"
