@@ -5,5 +5,7 @@
     {
       "name": "MIT"
     }
-  ]
+  ],
+  "subtitle": "Wheels for the 4-toggle chat-playground (Persona / GREP 108 rules / RAG 33 docs / Tools 5 lookups)",
+  "description": "v3.16 - wheels for the chat-playground-with-grep-rag-tools notebook. Bundled: duecare-llm-chat / -core / -models. Shows the 4 harness layers as toggleable tiles. GREP catalog now spans 108 rules across 16 categories (was 49 in v3.15). Each fired rule prepends to the Gemma context with rule name + ILO/national-statute citation + indicator description. Pipeline modal renders the full 7-card transformation trace."
 }

@@ -2,10 +2,12 @@
   "title": "Duecare harness chat — wheels",
   "id": "taylorsamarel/duecare-harness-chat-wheels",
   "licenses": [
-    {"name": "MIT"}
+    {
+      "name": "MIT"
+    }
   ],
-  "subtitle": "All Duecare wheels for the unified harness-chat notebook (Persona + GREP + RAG + Tools + Online + Grade modes; Gemma 4 model selector)",
-  "description": "Bundled wheels (duecare-llm-chat, duecare-llm-core, duecare-llm-models) for the duecare-harness-chat Kaggle notebook. The notebook is the single CORE entry point for the Duecare hackathon submission: one configurable interface that wires every harness layer (Persona / GREP 108 rules / RAG 33 docs / Tools 5 lookups / Online search) and lets judges select between 9 model variants (Gemma 4 E2B / E4B / 26B-A4B / 31B / two abliterated jailbroken variants / 3 cloud BYOK routes). Updates to the harness rules / corpus / tools / grader land here — bumping this dataset version is sufficient; the kernel.py does not change.",
+  "subtitle": "All Duecare wheels for the unified harness-chat notebook (Persona + GREP 108 rules + RAG 33 docs + Tools 5 lookups + Online + 4 grade modes; Gemma 4 model selector)",
+  "description": "v3.16 - GREP rule set expanded 49 to 108 rules across 16 categories (debt bondage, fee camouflage, corridor caps, ILO indicators, multi-party, kafala extended, sectors, financial flows, employer abuse, document fraud, recruiter sales tactics, recovery suppression, additional corridors, digital recruitment, plus meta). Bundled wheels: duecare-llm-chat, duecare-llm-core, duecare-llm-models. Single CORE entry point: one configurable interface wiring every harness layer + 9 model variants (Gemma 4 E2B / E4B / 26B-A4B / 31B / 2 abliterated jailbroken / 3 cloud BYOK routes). Updates land here - bump this dataset version to refresh attached notebooks.",
   "keywords": [
     "duecare",
     "gemma-4",

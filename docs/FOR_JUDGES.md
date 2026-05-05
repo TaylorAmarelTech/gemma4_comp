@@ -87,7 +87,7 @@ If you have two minutes to decide if this is real:
 
 1. **Read the writeup.** [`docs/writeup_draft.md`](./writeup_draft.md)
    (1,437 words, under the 1,500-word cap). Frames the problem (3 LLM
-   blind spots), the harness (4 layers), the notebooks (2 core + 9 appendix), and the two
+   blind spots), the harness (5 layers), the notebooks (2 core + 9 appendix), and the two
    deployment modes.
 
 2. **Watch the video.** Script at [`docs/video_script.md`](./video_script.md)
@@ -121,7 +121,7 @@ demonstration with the headline +56.5pp lift number.
 
 | # | Notebook | Wheels dataset | Purpose |
 |---|---|---|---|
-| **1** | [duecare-harness-chat](https://www.kaggle.com/code/taylorsamarel/duecare-harness-chat) *(publish pending)* | `duecare-harness-chat-wheels` ✓ live | **The omni playground.** Single configurable interface with all 4 harness layers (Persona / GREP 108 rules / RAG 33 docs / Tools 5 lookups) + optional online search + 4-mode grader (Universal / Expert / Deep / Combined) + **Gemma 4 model selector**: pick from 9 variants (E2B / E4B / 26B-A4B / 31B / 2 jailbroken / 3 cloud BYOK routes). Judges flip toggles, change models, and see the harness work end-to-end across the whole capability surface. |
+| **1** | [duecare-harness-chat](https://www.kaggle.com/code/taylorsamarel/duecare-harness-chat) *(publish pending)* | `duecare-harness-chat-wheels` ✓ live | **The omni playground.** Single configurable interface with all 5 harness layers (Persona / GREP 108 rules / RAG 33 docs / Tools 5 lookups / Online live web search) + 4-mode grader (Universal / Expert / Deep / Combined) + **Gemma 4 model selector**: pick from 9 variants (E2B / E4B / 26B-A4B / 31B / 2 jailbroken / 3 cloud BYOK routes). Judges flip toggles, change models, and see the harness work end-to-end across the whole capability surface. |
 | **2** | [duecare-live-demo](https://www.kaggle.com/code/taylorsamarel/duecare-live-demo) | `duecare-live-demo-wheels` ✓ live | **The user-facing live URL.** Full safety-harness pipeline + 22-slide deck + audit Workbench. The polished, scripted live demonstration of the +56.5pp lift thesis. |
 
 ### Appendix (9 notebooks — specialised + research)
@@ -261,7 +261,7 @@ transformation byte-for-byte.
 ## What this submission is NOT claiming
 
 - We did **not** build a 12-agent autonomous swarm. We built a
-  toggleable harness with 4 layers (Persona / GREP / RAG / Tools).
+  toggleable harness with 5 layers (Persona / GREP / RAG / Tools / Online).
 - We did **not** publish 76 notebooks as the submission. The 76-notebook
   research pipeline lives in `kaggle/kernels/` for reproducibility but
   the **submission is the 2 core + 9 appendix notebooks listed above**.

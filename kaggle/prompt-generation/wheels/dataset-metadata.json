@@ -1,1 +1,11 @@
-{"title": "Duecare Prompt Generation Wheels", "id": "taylorsamarel/duecare-prompt-generation-wheels", "licenses": [{"name": "MIT"}]}
+{
+  "title": "Duecare Prompt Generation Wheels",
+  "id": "taylorsamarel/duecare-prompt-generation-wheels",
+  "licenses": [
+    {
+      "name": "MIT"
+    }
+  ],
+  "subtitle": "Wheels for prompt-generation - Gemma 4 self-generates new evaluation prompts + 5-grade response examples",
+  "description": "v3.16 - wheels for prompt-generation. Bundled: duecare-llm-chat / -core / -models. Uses Gemma 4 to generate new evaluation prompts in the smoke_25 row shape, plus 5 graded response examples per prompt (worst / fail / partial / good / best). Output JSON feeds the bench-and-tune A2 fine-tune. Lets the corpus grow beyond the original 21K-test benchmark."
+}

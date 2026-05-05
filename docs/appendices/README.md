@@ -32,7 +32,7 @@ submission.
 
 | # | Appendix | What it covers |
 |---|---|---|
-| B1 | [Architecture](../architecture.md) | The 17-package PyPI workspace + 4-layer harness mechanics + 4-phase execution arc |
+| B1 | [Architecture](../architecture.md) | The 17-package PyPI workspace + 5-layer harness mechanics + 4-phase execution arc |
 | B2 | [Embedding guide](../embedding_guide.md) | Embed the harness in your own product (OpenAPI + JS widget + AAR plan) |
 | B3 | [Extension pack format](../extension_pack_format.md) | Build + sign your own GREP/RAG packs (Ed25519-signed) |
 | B4 | [Notebook guide](../notebook_guide.md) | How the 6+5 notebook shape was decided + per-notebook context |
