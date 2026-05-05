@@ -86,24 +86,39 @@ the A6 notebook (real Gemma 4 generations on Kaggle T4).
 If you have two minutes to decide if this is real:
 
 1. **Read the writeup.** [`docs/writeup_draft.md`](./writeup_draft.md)
-   (1,437 words, under the 1,500-word cap). Frames the problem (3 LLM
-   blind spots), the harness (5 layers), the notebooks (2 core + 9 appendix), and the two
+   (1,497 words, under the 1,500-word cap). Frames the problem (3 LLM
+   blind spots), the harness (5 layers), the notebooks (2 core + 11 appendix), and the
    deployment modes.
 
 2. **Watch the video.** Script at [`docs/video_script.md`](./video_script.md)
    (2:50 target). Opens with Maria (a composite character, labeled as
    such). Headline beat at 0:35–1:50: cursor clicks Persona / GREP /
-   RAG / Tools tiles ON one at a time, sends the textbook 68%-loan
-   prompt, response transforms from "5 cash flow strategies" to "5 ILO
-   indicators triggered, contact POEA + MfMW HK." Closes on the
-   `▸ View pipeline` modal scrolling through 7 cards.
+   RAG / Tools / Online tiles ON one at a time, sends the textbook
+   68%-loan prompt, response transforms from "5 cash flow strategies"
+   to "5 ILO indicators triggered, contact POEA + MfMW HK." Closes
+   on the `▸ View pipeline` modal scrolling through 7 cards.
 
 3. **Click the headline notebook.**
-   [Duecare Chat Playground with GREP RAG Tools](https://www.kaggle.com/code/taylorsamarel/duecare-gemma-chat-playground-grep-rag-tools).
-   Run it (T4 ×2 + Internet ON + `HF_TOKEN`). When the cloudflared URL
-   appears, click. Toggle all 4 tiles ON. Submit any example prompt.
-   Click `▸ View pipeline` below the response. **That visualization
-   is the demo.**
+   [Duecare Harness Chat](https://www.kaggle.com/code/taylorsamarel/duecare-harness-chat)
+   (the omni playground). Run it (T4 ×2 + Internet ON + `HF_TOKEN`).
+   When the cloudflared URL appears, click. Toggle all 5 tiles ON.
+   Submit any example prompt. Click `▸ View pipeline` below the
+   response. **That visualization is the demo.**
+
+### Or skip the boot — read these 4 docs first (5 min total):
+
+1. [`docs/stock_vs_harnessed.md`](./stock_vs_harnessed.md) — 5
+   textbook prompts side-by-side, stock Gemma 4 vs harnessed (mean
+   lift 4.6% → 88.4%). Concrete falsifiable evidence in 2 min.
+2. [`docs/corpus_index.md`](./corpus_index.md) — every GREP rule
+   (108), RAG doc (33), tool (5), dimension (17) by name. Verify
+   the headline counts by counting rows.
+3. [`docs/reproducibility.md`](./reproducibility.md) — every
+   quantitative claim grounded with provenance + re-measurement
+   command. Includes the honest "what we explicitly do NOT claim"
+   section.
+4. [`docs/judge_5min_test_plan.md`](./judge_5min_test_plan.md) —
+   the 5-test verification plan if you do boot a notebook.
 
 ---
 
