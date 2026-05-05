@@ -1,4 +1,4 @@
-# Duecare Chat Playground (Core Notebook 1 of 6)
+# Duecare Chat Playground (Appendix A1 (was core #1))
 
 A **raw** Gemma 4 chat playground. NOT the safety harness — no
 moderation pipeline, no audit trail, no GREP/RAG/Tools toggles.

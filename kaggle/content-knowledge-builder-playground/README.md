@@ -1,4 +1,4 @@
-# Duecare Content Knowledge Builder Playground (Core Notebook 4 of 6)
+# Duecare Content Knowledge Builder Playground (Appendix A4 (was core #4))
 
 The HANDS-ON sandbox for **building** Duecare's knowledge base.
 Pairs with `content-classification-playground`; both are

@@ -1,4 +1,4 @@
-# Duecare Content Classification Playground (Core Notebook 3 of 6)
+# Duecare Content Classification Playground (Appendix A3 (was core #3))
 
 The HANDS-ON sandbox where judges learn HOW Duecare classifies content
 **before** they see the polished live-demo. Pairs with

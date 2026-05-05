@@ -44,7 +44,7 @@ In Tab A, after the cloudflared URL prints, run this in any cell:
 ```
 
 Expected: `ready: true`, all 5 layers `wired: true`, all 4 grade
-modes available, harness counts `49 GREP / 33 RAG / 5 tools / 17
+modes available, harness counts `108 GREP / 33 RAG / 5 tools / 17
 rubric / 17 judge questions`.
 
 **If this fails, tell us — we'll fix it.** If it passes, the rest of

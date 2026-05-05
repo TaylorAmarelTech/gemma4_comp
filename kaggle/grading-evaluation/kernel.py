@@ -6,7 +6,7 @@ does. Runs N curated prompts through Gemma 4 twice each:
   - HARNESS OFF: raw Gemma response (no persona, no GREP, no RAG, no Tools)
   - HARNESS ON:  full harness (Persona + GREP + RAG + Tools all enabled)
 
-Grades both responses with the universal v2 grader (15 dimensions,
+Grades both responses with the universal v2 grader (17 dimensions,
 intent-aware, citation-cross-referenced) and produces:
   - Per-prompt side-by-side comparison cards
   - Aggregate dimension-lift table

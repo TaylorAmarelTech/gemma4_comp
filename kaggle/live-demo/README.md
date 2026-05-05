@@ -1,4 +1,4 @@
-# Duecare Live Demo (Core Notebook 6 of 6)
+# Duecare Live Demo (Core notebook 2 of 2 (omni playground is #1))
 
 The user-facing live URL judges click. FastAPI server + cloudflared
 quick-tunnel + 22-slide deck + Workbench. Runs the **full Duecare

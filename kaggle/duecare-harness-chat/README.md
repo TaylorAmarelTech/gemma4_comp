@@ -19,7 +19,7 @@
                       "tools": true, "online": true},
      "grade_modes": {"universal": true, "expert": true,
                      "deep": true, "combined": true},
-     "harness_counts": {"grep_rules": 49, "rag_docs": 33, "tools": 5,
+     "harness_counts": {"grep_rules": 108, "rag_docs": 33, "tools": 5,
                          "rubric_dimensions": 17, "judge_questions": 17}
    }
    ```
@@ -79,7 +79,7 @@ Full variant list (9 supported):
   Kaggle dataset `taylorsamarel/duecare-harness-chat-wheels`)
 - `notebook.ipynb` — single-cell wrapper around `kernel.py`
 
-All harness CONTENT (49 GREP rules, 33 RAG docs, 5 tools, 17-dim
+All harness CONTENT (108 GREP rules, 33 RAG docs, 5 tools, 17-dim
 rubric, 17 LLM-judge questions) lives in the chat package wheel —
 not in `kernel.py`. Bumping the dataset version updates everything;
 the kernel.py doesn't need to change.

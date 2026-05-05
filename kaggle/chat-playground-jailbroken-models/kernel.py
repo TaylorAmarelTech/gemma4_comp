@@ -458,6 +458,9 @@ app = create_app(
 _attach_shutdown(app)
 print(f"  harness loaded: {len(GREP_RULES)} GREP rules, "
       f"{len(RAG_CORPUS)} RAG docs, {len(_TOOL_DISPATCH)} tools")
+print(f"  ✓ Online toggle = OFF (jailbroken kernel does not wire "
+      f"online_search_call — use duecare-harness-chat for the live "
+      f"web search demo)")
 
 
 def _server_thread():

@@ -1,4 +1,4 @@
-# Duecare Gemma Content Classification Evaluation (Core Notebook 5 of 6)
+# Duecare Gemma Content Classification Evaluation (Appendix A5 (was core #5))
 
 The Agency / NGO dashboard. Form-based content submission → structured
 JSON classification with risk vectors + threshold-filterable history

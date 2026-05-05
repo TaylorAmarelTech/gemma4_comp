@@ -8,12 +8,12 @@
   TILES that let you turn safety-harness layers on/off per message:
 
       Persona  expert anti-trafficking persona prepended to context
-      GREP     22 regex KB rules (trafficking patterns + ILO citations
+      GREP     108 regex KB rules (trafficking patterns + ILO citations
                  + corridor fee caps + ILO indicators + meta patterns)
-      RAG      BM25 retrieval over an 18-doc starter corpus (ILO
+      RAG      BM25 retrieval over an 33-doc starter corpus (ILO
                  conventions, POEA/BP2MI circulars, HK statutes,
                  NGO briefs)
-      Tools    4 lookup functions + heuristic dispatcher (corridor
+      Tools    5 lookup functions + heuristic dispatcher (corridor
                  fee caps, fee camouflage decoder, ILO indicator
                  matcher, NGO intake hotlines)
 

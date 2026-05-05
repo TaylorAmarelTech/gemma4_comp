@@ -1063,15 +1063,15 @@ _PAGE_HTML = """<!doctype html><html><head>
         </div>
         <div class="tile on" data-key="grep" style="--c: #dc2626">
           <div class="tile-title">GREP</div>
-          <div class="tile-desc">22 rules</div>
+          <div class="tile-desc">108 rules</div>
         </div>
         <div class="tile on" data-key="rag" style="--c: #2563eb">
           <div class="tile-title">RAG</div>
-          <div class="tile-desc">18 docs</div>
+          <div class="tile-desc">33 docs</div>
         </div>
         <div class="tile on" data-key="tools" style="--c: #16a34a">
           <div class="tile-title">Tools</div>
-          <div class="tile-desc">4 lookups</div>
+          <div class="tile-desc">5 lookups</div>
         </div>
         <div class="tile on" data-key="agentic" style="--c: #f59e0b">
           <div class="tile-title">Agentic</div>

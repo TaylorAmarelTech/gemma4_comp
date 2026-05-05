@@ -32,7 +32,7 @@
 > **`/api/health-check`** smoke endpoint returns wired layers +
 > grade modes + harness counts + model info in one shot.
 >
-> **Bundled content (now):** 49 GREP rules / 33 RAG docs / 5 tools /
+> **Bundled content (now):** 108 GREP rules / 33 RAG docs / 5 tools /
 > 17-dim universal rubric / 17 LLM-judge questions / 8 ILO conventions
 > / 16 corridors / 25 fee-camouflage labels / 12 NGO intake groups /
 > 407 example prompts.

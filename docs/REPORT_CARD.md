@@ -13,7 +13,7 @@
 >
 > - **Submission shape:** 2 core (`duecare-harness-chat` omni
 >   playground + `duecare-live-demo`) + 9 appendix
-> - **Harness layers:** 5 (Persona / GREP **49 rules** / RAG
+> - **Harness layers:** 5 (Persona / GREP 108 rules / RAG
 >   **33 docs** / Tools **5 lookups** / **Online live web search**)
 > - **Grading:** 4 modes (Universal / Expert / **Deep
 >   LLM-as-judge** / Combined) over **17 universal dimensions**

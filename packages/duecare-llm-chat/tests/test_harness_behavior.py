@@ -139,12 +139,19 @@ def _grep_rule_ids(text: str):
     return {hit.get("rule") for hit in grep(text)["hits"]}
 
 
-def test_grep_49_rules_total() -> None:
-    """The Python harness ships 49 GREP rules: 42 from Android-v0.9
-    backport + 7 v3.3 additions (kafala/Lebanon/Kuwait/loan-transfer/
-    convention-query)."""
+def test_grep_108_rules_total() -> None:
+    """v3.16: 108 GREP rules. Original 49 (42 Android backport + 7 v3.3
+    kafala/Lebanon/Kuwait additions) plus 59 additions across 9 new
+    categories (H–P): sector-specific labour abuse (10), kafala
+    extended mechanisms (8), cross-border financial flows (6), employer
+    abuse patterns (8), document fraud (6), recruiter sales tactics (6),
+    recovery-suppression and repatriation barriers (5), additional
+    corridors (5: Lebanon-internal/Libya transit/Iraq KRG/Cyprus
+    North/Taiwan), and platform/digital recruitment (5: online
+    platforms, deepfake interviews, encrypted-platform coercion,
+    offshore shell HR, cam-studio sextortion)."""
     h = _load_harness()
-    assert len(h.GREP_RULES) == 49, f"expected 49 GREP rules, got {len(h.GREP_RULES)}"
+    assert len(h.GREP_RULES) == 108, f"expected 108 GREP rules, got {len(h.GREP_RULES)}"
 
 
 def test_kafala_huroob_fires_on_huroob_status() -> None:
@@ -245,6 +252,199 @@ def test_new_rules_have_required_metadata() -> None:
         assert rule.get("indicator"), f"{rule['rule']} missing indicator"
         assert rule.get("citation").startswith(("Saudi", "US DOL", "ILO", "UN")), \
             f"{rule['rule']} citation should reference real statute: {rule.get('citation')[:80]}"
+
+
+# =============================================================================
+# CATEGORIES H–P: 59 new GREP rules added in v3.16
+# Spot-checks that each new category fires on representative inputs and
+# stays quiet on benign inputs.
+# =============================================================================
+
+
+def test_construction_payment_held_fires() -> None:
+    """Construction worker waiting for end-of-project payment should fire."""
+    text = ("I work on a construction site in Doha. They told us we will be "
+            "paid at the end of the project, no monthly wages.")
+    assert "construction_payment_held_until_completion" in _grep_rule_ids(text)
+
+
+def test_garment_locked_doors_fires() -> None:
+    """Locked doors in a garment factory should fire (Tazreen/Rana pattern)."""
+    text = ("I work in a garment factory and the fire exits are chained shut "
+            "during the shift. We cannot leave the floor.")
+    assert "garment_factory_locked_doors" in _grep_rule_ids(text)
+
+
+def test_no_day_off_chronic_fires() -> None:
+    """Chronic no-day-off should fire on its own (single-pattern rule)."""
+    text = ("I haven't had a day off in 8 months. I work 7 days a week as a "
+            "domestic helper.")
+    assert "no_day_off_chronic" in _grep_rule_ids(text)
+
+
+def test_inadequate_sleeping_quarters_fires() -> None:
+    """Sleeping on the kitchen floor / no private space should fire."""
+    text = ("My employer makes me sleep on the kitchen floor. I have no "
+            "private room.")
+    assert "inadequate_sleeping_quarters" in _grep_rule_ids(text)
+
+
+def test_exit_permit_denial_fires() -> None:
+    """Sponsor refusing to sign exit permit should fire."""
+    text = ("My kafeel won't sign my exit permit. I cannot leave Saudi until "
+            "he agrees.")
+    assert "exit_permit_denial" in _grep_rule_ids(text)
+
+
+def test_noc_required_for_transfer_fires() -> None:
+    """NOC requirement + denial should fire."""
+    text = ("My current employer refuses to give me an NOC so I cannot "
+            "change to a new employer.")
+    assert "noc_required_for_employer_transfer" in _grep_rule_ids(text)
+
+
+def test_money_mule_pattern_fires() -> None:
+    """Money-mule recruitment with 'easy money' framing should fire."""
+    text = ("Recruiter on Telegram says I can earn quick cash, just receive "
+            "and forward payments through my account, USD 500 per transfer.")
+    assert "money_mule_recruitment_pattern" in _grep_rule_ids(text)
+
+
+def test_embassy_access_denial_fires() -> None:
+    """Blocking worker from contacting embassy should fire."""
+    text = ("My employer won't let me contact the embassy. They blocked me "
+            "from calling the consulate when I asked for help.")
+    assert "embassy_access_denial" in _grep_rule_ids(text)
+
+
+def test_return_ticket_held_fires() -> None:
+    """Employer holding return ticket as leverage should fire."""
+    text = ("My agency has my return ticket. They won't release it until "
+            "I complete the contract.")
+    assert "return_ticket_held_by_employer" in _grep_rule_ids(text)
+
+
+def test_contract_substitution_fires() -> None:
+    """Contract swapped at airport on arrival should fire."""
+    text = ("When I got to the airport in Riyadh they made me sign a "
+            "different contract with worse terms than the POEA one.")
+    assert "contract_substitution_at_airport" in _grep_rule_ids(text)
+
+
+def test_false_urgency_fires() -> None:
+    """False urgency in recruitment ad should fire."""
+    text = ("Only 2 spots left for Hong Kong placement! Decide today, "
+            "first come first served. Hurry, limited slots!")
+    assert "false_urgency_only_n_spots" in _grep_rule_ids(text)
+
+
+def test_free_training_trap_fires() -> None:
+    """Free training that turns into post-placement deduction should fire."""
+    text = ("Free training course offered. We deduct the cost from your "
+            "salary after placement if you leave before 12 months.")
+    assert "free_training_trap" in _grep_rule_ids(text)
+
+
+def test_bait_and_switch_destination_fires() -> None:
+    """Promised X destination, sent to Y should fire."""
+    text = ("I signed a contract for hotel work in Dubai but actually they "
+            "sent me to a different country to work as a domestic helper.")
+    assert "bait_and_switch_destination" in _grep_rule_ids(text)
+
+
+def test_libya_transit_anti_black_fires() -> None:
+    """Libya transit + Sub-Saharan migrant pattern should fire."""
+    text = ("Sub-Saharan migrants in transit through Libya are detained in "
+            "Tripoli detention centers and sold at slave markets.")
+    assert "libya_transit_anti_black_violence" in _grep_rule_ids(text)
+
+
+def test_taiwan_caregiver_fires() -> None:
+    """Taiwan + caregiver should fire the corridor-specific rule."""
+    text = ("I am a Filipina caregiver deployed to Taiwan, working in "
+            "elder care for a family in Taipei.")
+    assert "taiwan_caregiver_corridor" in _grep_rule_ids(text)
+
+
+def test_online_platform_recruitment_fires() -> None:
+    """Social-media recruitment without verification should fire."""
+    text = ("Recruiter on Facebook Messenger offered me a placement to "
+            "Hong Kong. DM us now for the job offer.")
+    assert "online_platform_recruitment_unverified" in _grep_rule_ids(text)
+
+
+def test_shell_company_offshore_HR_fires() -> None:
+    """BVI/offshore HR consultancy should fire."""
+    text = ("Pay the recruitment fee to our BVI HR consultancy. We are an "
+            "offshore manpower agency registered in the British Virgin Islands.")
+    assert "shell_company_offshore_HR" in _grep_rule_ids(text)
+
+
+def test_whatsapp_coercion_fires() -> None:
+    """WhatsApp + threats to share photos with family should fire."""
+    text = ("The recruiter on WhatsApp threatens to share my photo with my "
+            "family in the village if I don't pay him more.")
+    assert "whatsapp_telegram_coercion_pattern" in _grep_rule_ids(text)
+
+
+def test_new_v316_rules_dont_fire_on_benign_text() -> None:
+    """Spot-check: representative new rules should NOT fire on unrelated text."""
+    benign = "I am planning a vacation to visit my family next month. The weather is nice."
+    candidate_ids = {
+        "construction_payment_held_until_completion",
+        "garment_factory_locked_doors",
+        "no_day_off_chronic",
+        "inadequate_sleeping_quarters",
+        "exit_permit_denial",
+        "noc_required_for_employer_transfer",
+        "money_mule_recruitment_pattern",
+        "embassy_access_denial",
+        "return_ticket_held_by_employer",
+        "contract_substitution_at_airport",
+        "false_urgency_only_n_spots",
+        "free_training_trap",
+        "bait_and_switch_destination",
+        "libya_transit_anti_black_violence",
+        "taiwan_caregiver_corridor",
+        "online_platform_recruitment_unverified",
+        "shell_company_offshore_HR",
+        "whatsapp_telegram_coercion_pattern",
+    }
+    fired = _grep_rule_ids(benign)
+    overlap = fired & candidate_ids
+    assert overlap == set(), f"benign text triggered new v3.16 rules: {overlap}"
+
+
+def test_v316_rules_have_required_metadata() -> None:
+    """All 18 spot-checked new rules must have severity + citation + indicator."""
+    h = _load_harness()
+    candidate_ids = {
+        "construction_payment_held_until_completion",
+        "garment_factory_locked_doors",
+        "no_day_off_chronic",
+        "inadequate_sleeping_quarters",
+        "exit_permit_denial",
+        "noc_required_for_employer_transfer",
+        "money_mule_recruitment_pattern",
+        "embassy_access_denial",
+        "return_ticket_held_by_employer",
+        "contract_substitution_at_airport",
+        "false_urgency_only_n_spots",
+        "free_training_trap",
+        "bait_and_switch_destination",
+        "libya_transit_anti_black_violence",
+        "taiwan_caregiver_corridor",
+        "online_platform_recruitment_unverified",
+        "shell_company_offshore_HR",
+        "whatsapp_telegram_coercion_pattern",
+    }
+    matched = [r for r in h.GREP_RULES if r["rule"] in candidate_ids]
+    assert len(matched) == len(candidate_ids), \
+        f"expected {len(candidate_ids)} v3.16 rules, found {len(matched)}"
+    for rule in matched:
+        assert rule.get("severity") in ("critical", "high", "medium", "low")
+        assert rule.get("citation"), f"{rule['rule']} missing citation"
+        assert rule.get("indicator"), f"{rule['rule']} missing indicator"
 
 
 # =============================================================================

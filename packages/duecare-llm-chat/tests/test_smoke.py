@@ -20,14 +20,23 @@ def _load_harness_module():
 
 
 def test_harness_loads_with_expected_counts() -> None:
+    """v3.16 counts. GREP jumped 49→108 with 9 new categories (H–P):
+    sector-specific labour abuse, kafala extended mechanisms,
+    cross-border financial flows, employer abuse patterns, document
+    fraud, recruiter sales tactics, recovery-suppression and
+    repatriation barriers, additional corridors (Lebanon-internal /
+    Libya transit / Iraq KRG / Cyprus North / Taiwan caregiver),
+    and platform/digital recruitment (online platforms, deepfake
+    interviews, encrypted-platform coercion, offshore shell HR,
+    cam-studio sextortion). RAG/tools/examples unchanged this bump."""
     h = _load_harness_module()
-    assert len(h.GREP_RULES) == 22
-    assert len(h.RAG_CORPUS) == 18
-    assert len(h._TOOL_DISPATCH) == 4
-    assert len(h.EXAMPLE_PROMPTS) == 394
+    assert len(h.GREP_RULES) == 108
+    assert len(h.RAG_CORPUS) == 33
+    assert len(h._TOOL_DISPATCH) == 5
+    assert len(h.EXAMPLE_PROMPTS) == 407
     assert len(h.RUBRICS_5TIER) == 207
-    assert len(h.RUBRICS_REQUIRED) == 5
-    assert len(h.CLASSIFIER_EXAMPLES) == 16
+    assert len(h.RUBRICS_REQUIRED) == 6
+    assert len(h.CLASSIFIER_EXAMPLES) == 46
 
 
 def test_harness_lookup_data_present() -> None:

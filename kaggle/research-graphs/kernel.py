@@ -8,7 +8,7 @@
   harness data and any benchmark results.
 
   No model load required -- this kernel renders interactive Plotly
-  charts from the bundled harness data (22 GREP rules, 18 RAG docs,
+  charts from the bundled harness data (108 GREP rules, 33 RAG docs,
   4 corridor fee caps, 16 fee-camouflage labels, 11 ILO indicators,
   4 NGO intake hotlines, 204 example prompts) and from any
   benchmark / classifier outputs in the attached eval-results dataset.
@@ -35,7 +35,7 @@
     5. ILO INDICATOR HIT-RATE -- which of the 11 ILO indicators of
        forced labour fire most often, broken down by prompt category.
 
-    6. RAG CORPUS STRUCTURE -- the 18-document BM25 corpus organized
+    6. RAG CORPUS STRUCTURE -- the 33-document BM25 corpus organized
        as a sunburst by source family (ILO conventions, POEA MCs,
        BP2MI Reg, HK statutes, NGO briefs).
 
@@ -528,7 +528,7 @@ def chart_ilo_indicator_hits(harness: dict) -> Path:
 # CHART 6 -- RAG corpus sunburst
 # ===========================================================================
 def chart_rag_corpus_sunburst(harness: dict) -> Path:
-    """Sunburst of the 18-doc RAG corpus organized by source family."""
+    """Sunburst of the 33-doc RAG corpus organized by source family."""
     print("[chart 6] RAG corpus sunburst")
     docs = harness.get("rag_corpus", [])
     if not docs:
