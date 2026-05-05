@@ -246,6 +246,59 @@ def create_app(
     def healthz() -> Any:
         return {"ok": True, "ts": time.time()}
 
+    @app.get("/api/health-check")
+    def api_health_check() -> Any:
+        """Comprehensive smoke-test endpoint. Returns wired-layer
+        status, model info, grade-mode availability, and a simple
+        liveness-probe shape suitable for Kaggle cold-boot
+        verification:
+
+            curl https://<tunnel>/api/health-check | jq
+
+        Returns 200 with `ready: true` when every wired layer
+        responds. Useful as a single-call check after pasting the
+        kernel into a fresh Kaggle session."""
+        try:
+            from .harness import (
+                GREP_RULES, RAG_CORPUS, _TOOL_DISPATCH, RUBRIC_UNIVERSAL,
+                JUDGE_QUESTIONS,
+            )
+            harness_counts = {
+                "grep_rules":         len(GREP_RULES),
+                "rag_docs":           len(RAG_CORPUS),
+                "tools":              len(_TOOL_DISPATCH),
+                "rubric_dimensions":  len(RUBRIC_UNIVERSAL.get("dimensions", [])),
+                "judge_questions":    len(JUDGE_QUESTIONS),
+            }
+        except Exception as e:  # noqa: BLE001
+            harness_counts = {"error": f"{type(e).__name__}: {e}"}
+        return {
+            "ok":             True,
+            "ready":          app.state.gemma_call is not None,
+            "ts":             time.time(),
+            "model": {
+                "loaded":  bool((app.state.model_info or {}).get("loaded")),
+                "name":    (app.state.model_info or {}).get("name"),
+                "display": (app.state.model_info or {}).get("display"),
+            },
+            "layers_wired": {
+                "persona": bool(app.state.persona_default),
+                "grep":    app.state.grep_call is not None,
+                "rag":     app.state.rag_call is not None,
+                "tools":   app.state.tools_call is not None,
+                "online":  app.state.online_search_call is not None,
+            },
+            "grade_modes": {
+                "universal":  True,
+                "expert":     bool(app.state.grade_call),
+                "deep":       app.state.gemma_call is not None,
+                "combined":   app.state.gemma_call is not None,
+            },
+            "harness_counts": harness_counts,
+            "examples":       len(app.state.example_prompts or []),
+            "package_version": "0.1.0",
+        }
+
     @app.get("/api/model-info")
     def api_model_info() -> Any:
         return app.state.model_info or {"loaded": False, "name": None,
