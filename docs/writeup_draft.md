@@ -65,7 +65,7 @@ Duecare is a harm-reduction tool, not a paternalistic blocker. The
 worker has agency, and constraints we don't see. Two paths, both
 fully offline:
 
-1. **Inform.** The chat (Gemma 4 + 49 GREP rules + 33 RAG docs +
+1. **Inform.** The chat (Gemma 4 + 108 GREP rules + 33 RAG docs +
    5 tools + optional live web search, on-device) tells the worker
    which statute the fee violates, the cap, and the NGO that handles
    refund claims for that corridor. Worker may refuse — harm prevented.
@@ -82,7 +82,7 @@ green / amber) the user clicks ON or OFF per message:
 
 - **Persona** — 40-year anti-trafficking expert system prompt;
   multi-persona library, user-addable, persisted in `localStorage`.
-- **GREP** — 49 regex KB rules across debt bondage, fee camouflage,
+- **GREP** — 108 regex KB rules across debt bondage, fee camouflage,
   corridor caps, ILO indicators, kafala framework (Lebanon / Saudi /
   Kuwait / UAE), cross-border loan novation, multi-party / governed-by
   stripping, sub-agent layering. Each tagged with the controlling
@@ -159,7 +159,7 @@ the dedicated lift regenerator emitting MD + JSON with provenance
 tuple `(model, git_sha, dataset_version)`.
 
 Each notebook ships its own wheels dataset (`*-wheels`). Chat
-package: 49 GREP / 33 RAG / 5 tools / 17-dim universal rubric / 17
+package: 108 GREP / 33 RAG / 5 tools / 17-dim universal rubric / 17
 LLM-judge questions / 8 ILO conventions / 16 corridors / 25 fee
 camouflage labels / 12 NGO intake groups / 407 bundled example
 prompts (5 judge-impact categories pinned to top of Examples modal).

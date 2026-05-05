@@ -22,7 +22,7 @@ per-prompt + per-dimension detail.
 - Per-dimension status change across the test set (improved / same
   / regressed)
 - Citation grounding %: how many cited statutes appear in our
-  bundled 26-doc RAG corpus (hallucination check)
+  bundled 33-doc RAG corpus (hallucination check)
 - Mean cited statutes per response: OFF vs ON
 - Intent shift: which intent the response moves toward when the
   harness is enabled

@@ -8,9 +8,15 @@
   submission visible here:
 
       Persona      expert anti-trafficking persona prepended to context
-      GREP         49 regex KB rules (trafficking patterns + ILO
-                     citations + corridor fee caps + kafala framework
-                     + Lebanon / Kuwait / Gulf rules)
+      GREP         108 regex KB rules across 16 categories (debt
+                     bondage, fee camouflage, corridor fee caps,
+                     ILO indicators, kafala framework + extended
+                     mechanisms, sector-specific labour abuse,
+                     cross-border financial flows, employer abuse,
+                     document fraud, recruiter sales tactics,
+                     recovery suppression / repatriation barriers,
+                     additional corridors, platform / digital
+                     recruitment patterns)
       RAG          BM25 retrieval over a 33-doc reference corpus
       Tools        5 lookup functions (corridor fee caps, fee
                      camouflage, ILO indicators, NGO intake, ILO

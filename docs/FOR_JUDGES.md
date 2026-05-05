@@ -38,7 +38,7 @@ as **2 core public Kaggle notebooks + 9 appendix notebooks** + **17
 PyPI packages** + an **on-device Android companion** (Duecare
 Journey v0.9.0 — MediaPipe Gemma 4 E2B/E4B, encrypted SQLCipher journal,
 11 ILO indicator detectors, **20 corridor profiles** (Asia + GCC + LATAM
-+ West Africa + refugee routes), **49 GREP rules**, structured Add-Fee
++ West Africa + refugee routes), **108 GREP rules**, structured Add-Fee
 dialog with auto-LegalAssessment + RefundClaim drafting, NGO intake
 document generator, cloud Gemma 4 routing fallback, [APK published](https://github.com/TaylorAmarelTech/duecare-journey-android/releases)).
 MIT licensed. Runs on a laptop. Zero data egress.
@@ -111,7 +111,7 @@ demonstration with the headline +56.5pp lift number.
 
 | # | Notebook | Wheels dataset | Purpose |
 |---|---|---|---|
-| **1** | [duecare-harness-chat](https://www.kaggle.com/code/taylorsamarel/duecare-harness-chat) *(publish pending)* | `duecare-harness-chat-wheels` ✓ live | **The omni playground.** Single configurable interface with all 4 harness layers (Persona / GREP 49 rules / RAG 33 docs / Tools 5 lookups) + optional online search + 4-mode grader (Universal / Expert / Deep / Combined) + **Gemma 4 model selector**: pick from 9 variants (E2B / E4B / 26B-A4B / 31B / 2 jailbroken / 3 cloud BYOK routes). Judges flip toggles, change models, and see the harness work end-to-end across the whole capability surface. |
+| **1** | [duecare-harness-chat](https://www.kaggle.com/code/taylorsamarel/duecare-harness-chat) *(publish pending)* | `duecare-harness-chat-wheels` ✓ live | **The omni playground.** Single configurable interface with all 4 harness layers (Persona / GREP 108 rules / RAG 33 docs / Tools 5 lookups) + optional online search + 4-mode grader (Universal / Expert / Deep / Combined) + **Gemma 4 model selector**: pick from 9 variants (E2B / E4B / 26B-A4B / 31B / 2 jailbroken / 3 cloud BYOK routes). Judges flip toggles, change models, and see the harness work end-to-end across the whole capability surface. |
 | **2** | [duecare-live-demo](https://www.kaggle.com/code/taylorsamarel/duecare-live-demo) | `duecare-live-demo-wheels` ✓ live | **The user-facing live URL.** Full safety-harness pipeline + 22-slide deck + audit Workbench. The polished, scripted live demonstration of the +56.5pp lift thesis. |
 
 ### Appendix (9 notebooks — specialised + research)
@@ -120,8 +120,7 @@ These notebooks are **not required for deployment**. A1–A2 extend
 Duecare to new domains; A3 visualizes the harness data; A4 is a
 proof-of-concept for agentic web research; A5 demonstrates the
 harness against jailbroken/abliterated models. The core 2 notebooks
-above already work end-to-end with the bundled 407 prompts, 49 GREP
-rules, 33 RAG docs, 5 tools, 17-dimension universal rubric, and
+above already work end-to-end with the bundled 407 prompts, 108 GREP rules, 33 RAG docs, 5 tools, 17-dimension universal rubric, and
 17 LLM-judge questions — judges can verify the submission *without*
 running any of these.
 
@@ -223,7 +222,7 @@ transformation byte-for-byte.
 | Worker-side (Kaggle / local laptop) | [`docs/deployment_local.md`](./deployment_local.md) | Migrant worker pastes recruiter message, gets back ILO citations + corridor fee caps + NGO hotlines. No data leaves the device. |
 | Agency / NGO dashboard | The classifier notebook (#5 above) | Intake officer triages 500 cases via structured JSON + risk vectors + threshold-filterable history. |
 | Enterprise integration (Dockerized API) | [`docs/deployment_enterprise.md`](./deployment_enterprise.md) | `POST /api/classifier/evaluate` from your existing service. Customizable per-team rules / docs / corridor caps. |
-| **Android (v0.9.0 shipped)** | [`docs/android_app_architecture.md`](./android_app_architecture.md) (this repo) + [`duecare-journey-android/`](../../duecare-journey-android/) (sibling repo) | **Duecare Journey** v0.9.0 — fully on-device Gemma 4 via MediaPipe (six variants selectable: E2B/E4B INT4/INT8, Gemma 3 1B, Gemma 2 2B legacy, each with mirror-fallback URLs) + cloud Gemma routing as fallback (Ollama / OpenAI-compat / HF Inference) + SQLCipher-encrypted journal + 11 ILO indicator detectors + **20 corridor profiles** (Asia → GCC, Asia → Asia, LATAM, West Africa → Lebanon kafala, refugee routes Syria→Germany / Ukraine→Poland) with statute lookups + **49 GREP rules** (incl. kafala-huroob-absconder, H2A-H2B-fee-violation, fishing-vessel-debt-confinement) + 10-question guided intake wizard + structured Add-Fee dialog with auto-LegalAssessment + RefundClaim drafting + image picker for evidence attach + Reports tab generating shareable NGO intake document. APK is at the [latest release](https://github.com/TaylorAmarelTech/duecare-journey-android/releases). The architecture lives here for judges to read alongside the Python research; the buildable Gradle project + GitHub Actions APK-build pipeline live in the sibling repo. |
+| **Android (v0.9.0 shipped)** | [`docs/android_app_architecture.md`](./android_app_architecture.md) (this repo) + [`duecare-journey-android/`](../../duecare-journey-android/) (sibling repo) | **Duecare Journey** v0.9.0 — fully on-device Gemma 4 via MediaPipe (six variants selectable: E2B/E4B INT4/INT8, Gemma 3 1B, Gemma 2 2B legacy, each with mirror-fallback URLs) + cloud Gemma routing as fallback (Ollama / OpenAI-compat / HF Inference) + SQLCipher-encrypted journal + 11 ILO indicator detectors + **20 corridor profiles** (Asia → GCC, Asia → Asia, LATAM, West Africa → Lebanon kafala, refugee routes Syria→Germany / Ukraine→Poland) with statute lookups + **108 GREP rules** (incl. kafala-huroob-absconder, H2A-H2B-fee-violation, fishing-vessel-debt-confinement) + 10-question guided intake wizard + structured Add-Fee dialog with auto-LegalAssessment + RefundClaim drafting + image picker for evidence attach + Reports tab generating shareable NGO intake document. APK is at the [latest release](https://github.com/TaylorAmarelTech/duecare-journey-android/releases). The architecture lives here for judges to read alongside the Python research; the buildable Gradle project + GitHub Actions APK-build pipeline live in the sibling repo. |
 
 ---
 

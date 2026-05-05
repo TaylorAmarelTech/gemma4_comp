@@ -36,7 +36,7 @@
     - GPU T4 x2 (default 31b-it); single T4 fine for E2B/E4B
     - Internet ON
     - Datasets attached:
-        taylorsamarel/duecare-content-classifier-wheels (3 wheels)
+        taylorsamarel/duecare-gemma-content-classification-evaluation-wheels (3 wheels)
         google/gemma-4 (any IT variant)
     - HF_TOKEN OPTIONAL
 ============================================================================
