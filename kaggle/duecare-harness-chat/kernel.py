@@ -966,20 +966,25 @@ if TUNNEL != "none":
 # 5. Print URL prominently and block
 # ===========================================================================
 print("\n" + "=" * 76)
-print("[5/5] DUECARE CHAT PLAYGROUND with GREP/RAG/Tools is LIVE")
+print("[5/5] DUECARE HARNESS CHAT (omni playground) is LIVE")
 print("=" * 76)
 print(f"\n   open this URL on your laptop:")
 print(f"\n       {public_url}\n")
 print(f"   model:    {loaded.name}  ·  {loaded.size_b:.1f}B  ·  "
       f"{loaded.quantization}")
 print(f"   device:   {loaded.device}")
-print(f"   harness:  Persona + GREP ({len(GREP_RULES)} rules) + "
-      f"RAG ({len(RAG_CORPUS)} docs) + Tools ({len(_TOOL_DISPATCH)} fns)")
-print(f"\n   In the chat UI, scroll to the bottom of the composer to find")
-print(f"   4 colored tile cards: Persona (purple) / GREP (red) / "
-      f"RAG (blue) / Tools (green).")
+_online_label = "Online (web search)" if ENABLE_ONLINE_SEARCH else "Online (disabled)"
+print(f"   harness:  Persona + GREP ({len(GREP_RULES)} rules across "
+      f"16 categories) + RAG ({len(RAG_CORPUS)} docs) + "
+      f"Tools ({len(_TOOL_DISPATCH)} fns) + {_online_label}")
+print(f"   grade:    Universal (17-dim) / Expert (5-dim) / "
+      f"Deep (LLM-as-judge) / Combined (50/50 blend)")
+print(f"\n   In the chat UI, the composer footer shows 5 toggle tiles:")
+print(f"     Persona (purple) / GREP (red) / RAG (blue) / "
+      f"Tools (green) / Online (amber)")
 print(f"   Click a tile to toggle it ON/OFF for the next message.")
 print(f"   Click '▸ view' on each tile to inspect the catalog.")
+print(f"   Click 'Pipeline' after a response to see the full 7-card trace.")
 print(f"\n   stop the playground by interrupting this cell.\n")
 print("=" * 76)
 

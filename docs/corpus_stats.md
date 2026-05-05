@@ -5,13 +5,13 @@
 
 ## Headline numbers
 
-- **Total prompts:** 394
-- **Categories represented:** 18
-- **Subcategories:** 103
-- **Corridors:** 22
-- **ILO indicators tagged:** 19
+- **Total prompts:** 407
+- **Categories represented:** 23
+- **Subcategories:** 116
+- **Corridors:** 27
+- **ILO indicators tagged:** 20
 - **5-tier rubrics:** 207 (per-prompt graded examples)
-- **Required-element rubrics:** 5 (per-category)
+- **Required-element rubrics:** 6 (per-category)
 
 ## By category
 
@@ -27,33 +27,38 @@
 | `group_chat_pattern` | 6 | `█░░░░░░░░░░░░░░░░░░░░░░░░░░░░░` |
 | `fake_document` | 6 | `█░░░░░░░░░░░░░░░░░░░░░░░░░░░░░` |
 | `receipt_evidence` | 6 | `█░░░░░░░░░░░░░░░░░░░░░░░░░░░░░` |
+| `jailbreak_resistance` | 4 | `░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░` |
 | `regulatory_evasion` | 3 | `░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░` |
 | `coercion_manipulation` | 3 | `░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░` |
 | `knowledge_check` | 3 | `░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░` |
+| `online_search_demo` | 3 | `░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░` |
+| `social_engineering` | 3 | `░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░` |
 | `financial_obfuscation` | 2 | `░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░` |
 | `compound_textbook` | 2 | `░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░` |
+| `model_comparison_demo` | 2 | `░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░` |
 | `moral_religious_framing` | 1 | `░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░` |
 | `mega_variations` | 1 | `░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░` |
 | `prompt_injection_amplification` | 1 | `░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░` |
+| `headline_lift_demo` | 1 | `░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░` |
 
 ## By difficulty
 
 | Difficulty | Count |
 |---|---:|
-| `easy` | 5 |
-| `medium` | 58 |
-| `hard` | 133 |
+| `easy` | 10 |
+| `medium` | 256 |
+| `hard` | 141 |
 
 ## By corridor
 
 | Corridor | Count |
 |---|---:|
-| `PH-HK` | 134 |
+| `PH-HK` | 139 |
 | `PH-SA` | 11 |
 | `BD-SA` | 10 |
 | `NP-QA` | 8 |
+| `ID-HK` | 7 |
 | `ID-SA` | 6 |
-| `ID-HK` | 5 |
 | `MM-TH` | 4 |
 | `ID-SG` | 4 |
 | `PH-AE` | 3 |
@@ -61,52 +66,60 @@
 | `NP-MY` | 3 |
 | `LK-KW` | 2 |
 | `PH-SG` | 2 |
-| `global` | 1 |
+| `KH-TH` | 2 |
+| `XX-XX` | 1 |
 | `IN-AE` | 1 |
 | `ET-SA` | 1 |
 | `BD-QA` | 1 |
-| `ID/PH-HK` | 1 |
 | `PH-CY` | 1 |
 | `PH-GB` | 1 |
 | `PH-online` | 1 |
 | `ID-KW` | 1 |
+| `ID-Saudi` | 1 |
+| `BD-Kuwait` | 1 |
+| `PH-Saudi` | 1 |
+| `LK-Lebanon` | 1 |
+| `PH-multi` | 1 |
 
 ## By sector
 
 | Sector | Count |
 |---|---:|
 | `` | 190 |
-| `domestic_work` | 177 |
-| `construction` | 17 |
+| `domestic_work` | 187 |
+| `construction` | 18 |
 | `cleaning` | 4 |
 | `agriculture` | 3 |
 | `general` | 1 |
 | `fishing_maritime` | 1 |
 | `remote_tech` | 1 |
+| `fishing` | 1 |
+| `entertainment` | 1 |
 
 ## By ILO indicator
 
 | Indicator | Count |
 |---|---:|
-| `deception` | 99 |
-| `abuse_of_vulnerability` | 85 |
-| `debt_bondage` | 54 |
-| `wage_withholding` | 28 |
-| `withholding_documents` | 22 |
+| `deception` | 105 |
+| `abuse_of_vulnerability` | 91 |
+| `debt_bondage` | 62 |
+| `wage_withholding` | 34 |
+| `withholding_documents` | 28 |
+| `freedom_of_movement` | 14 |
 | `intimidation_threats` | 12 |
-| `freedom_of_movement` | 11 |
-| `withholding_of_wages` | 6 |
 | `excessive_overtime` | 5 |
-| `withholding_of_documents` | 5 |
-| `restriction_of_movement` | 3 |
 | `isolation` | 3 |
-| `abusive_working_conditions` | 2 |
+| `passport_retention` | 3 |
+| `abusive_working_living_conditions` | 2 |
 | `advance_fee_fraud` | 2 |
-| `retention_of_identity_documents` | 1 |
+| `restriction_of_movement` | 2 |
+| `withholding_wages` | 2 |
 | `withholding_food` | 1 |
 | `id_theft_risk` | 1 |
 | `discrimination_pregnancy` | 1 |
 | `child_labour_indicators` | 1 |
+| `intimidation` | 1 |
+| `wage_assignment` | 1 |
 
 ## By id prefix (provenance)
 
@@ -119,37 +132,41 @@ Tells you which corpus batch each prompt came from.
 | `victim_*` | 55 | original (renumbered) |
 | `writeup_*` | 49 | writeup canonical (gpt-oss-20b actionable tests) |
 | `financial_*` | 26 | original (renumbered) |
+| `social_*` | 15 | social media post additions (2026-04-30) |
 | `esoteric_*` | 15 | esoteric / archaic legal language (2026-04-30) |
 | `traf_*` | 12 | original hand-curated set |
 | `multiparty_*` | 12 | multi-party + governed-by additions (2026-04-29) |
-| `social_*` | 12 | social media post additions (2026-04-30) |
 | `dm_*` | 10 | private DM additions (2026-04-30) |
 | `group_*` | 6 | group chat additions (2026-04-30) |
 | `doc_*` | 6 | fake document additions (2026-04-30) |
 | `receipt_*` | 6 | receipt/financial evidence additions (2026-04-30) |
+| `jb_*` | 4 |  |
+| `online_*` | 3 |  |
 | `textbook_*` | 2 | compound textbook scenarios |
+| `compare_*` | 2 |  |
+| `headline_*` | 1 |  |
 
 ## Coverage matrix: category × corridor
 
 How many prompts of each category exist for each corridor.
 Empty cells reveal gaps in coverage.
 
-| Category |  | BD-QA | BD-SA | ET-SA | ID-HK | ID-KW | ID-SA | ID-SG | ID/PH-HK | IN-AE | LK-KW | MM-TH | NP-MY | NP-QA | NP-SA | PH-AE | PH-CY | PH-GB | PH-HK | PH-SA | PH-SG | PH-online | global | TOTAL |
-|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| `amplification_known_attacks` | 56 |  |  |  | 1 |  |  |  |  |  |  |  |  |  |  |  |  |  | 102 | 2 |  |  |  | 161 |
-| `jurisdictional_hierarchy` | 57 |  | 2 |  | 1 |  |  |  |  |  |  |  |  | 2 |  | 1 |  |  | 6 | 5 |  |  |  | 74 |
-| `victim_revictimization` | 52 |  | 2 |  |  |  |  | 1 |  |  |  | 1 | 1 | 1 |  |  |  |  | 5 |  |  |  |  | 63 |
-| `financial_crime_blindness` | 25 |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | 3 |  | 1 |  |  | 29 |
-| `social_media_recruitment` |  |  | 1 |  | 1 |  |  | 1 |  |  | 1 |  |  | 2 | 1 | 1 | 1 | 1 | 1 | 1 |  |  |  | 12 |
-| `business_framed_exploitation` |  |  | 2 |  |  |  |  | 2 |  |  |  | 2 | 2 |  |  |  |  |  | 3 |  |  |  |  | 11 |
-| `private_message_grooming` |  |  | 1 |  |  |  | 2 |  |  |  |  |  |  | 1 | 1 |  |  |  | 4 |  |  | 1 |  | 10 |
-| `group_chat_pattern` |  |  | 1 |  |  |  |  |  |  |  |  |  |  |  | 1 |  |  |  | 3 |  | 1 |  |  | 6 |
-| `fake_document` |  |  | 1 |  | 1 |  |  |  |  |  |  |  |  | 1 |  | 1 |  |  | 1 | 1 |  |  |  | 6 |
-| `receipt_evidence` |  |  |  |  | 1 | 1 | 1 |  |  |  |  |  |  |  |  |  |  |  | 3 |  |  |  |  | 6 |
+| Category |  | BD-Kuwait | BD-QA | BD-SA | ET-SA | ID-HK | ID-KW | ID-SA | ID-SG | ID-Saudi | IN-AE | KH-TH | LK-KW | LK-Lebanon | MM-TH | NP-MY | NP-QA | NP-SA | PH-AE | PH-CY | PH-GB | PH-HK | PH-SA | PH-SG | PH-Saudi | PH-multi | PH-online | XX-XX | TOTAL |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| `amplification_known_attacks` | 56 |  |  |  |  | 1 |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | 102 | 2 |  |  |  |  |  | 161 |
+| `jurisdictional_hierarchy` | 57 |  |  | 2 |  | 1 |  |  |  |  |  |  |  |  |  |  | 2 |  | 1 |  |  | 6 | 5 |  |  |  |  |  | 74 |
+| `victim_revictimization` | 52 |  |  | 2 |  |  |  |  | 1 |  |  |  |  |  | 1 | 1 | 1 |  |  |  |  | 5 |  |  |  |  |  |  | 63 |
+| `financial_crime_blindness` | 25 |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | 3 |  | 1 |  |  |  |  | 29 |
+| `social_media_recruitment` |  |  |  | 1 |  | 1 |  |  | 1 |  |  |  | 1 |  |  |  | 2 | 1 | 1 | 1 | 1 | 1 | 1 |  |  |  |  |  | 12 |
+| `business_framed_exploitation` |  |  |  | 2 |  |  |  |  | 2 |  |  |  |  |  | 2 | 2 |  |  |  |  |  | 3 |  |  |  |  |  |  | 11 |
+| `private_message_grooming` |  |  |  | 1 |  |  |  | 2 |  |  |  |  |  |  |  |  | 1 | 1 |  |  |  | 4 |  |  |  |  | 1 |  | 10 |
+| `group_chat_pattern` |  |  |  | 1 |  |  |  |  |  |  |  |  |  |  |  |  |  | 1 |  |  |  | 3 |  | 1 |  |  |  |  | 6 |
+| `fake_document` |  |  |  | 1 |  | 1 |  |  |  |  |  |  |  |  |  |  | 1 |  | 1 |  |  | 1 | 1 |  |  |  |  |  | 6 |
+| `receipt_evidence` |  |  |  |  |  | 1 | 1 | 1 |  |  |  |  |  |  |  |  |  |  |  |  |  | 3 |  |  |  |  |  |  | 6 |
 
 ## Rubric coverage
 
-Of 407 prompts, **74** have an explicit 5-tier rubric in `_rubrics_5tier.json`.
+Of 407 prompts, **72** have an explicit 5-tier rubric in `_rubrics_5tier.json`.
 
 Categories with required-element rubrics in `_rubrics_required.json`:
 
@@ -158,6 +175,7 @@ Categories with required-element rubrics in `_rubrics_required.json`:
 - `jurisdictional_hierarchy` (11 criteria, name: "Jurisdictional Hierarchy Exploitation")
 - `victim_revictimization` (10 criteria, name: "Victim Re-victimization")
 - `prompt_injection_amplification` (11 criteria, name: "Prompt Injection Amplification")
+- `legal_citation_quality` (12 criteria, name: "Legal Citation Quality (Cross-Cutting)")
 
 ---
 
