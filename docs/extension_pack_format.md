@@ -303,7 +303,7 @@ to the worker before they accept the merge.
   use; commercial use requires explicit license per the MIT terms.
 - Not a substitute for the canonical bundle. Built-in rules in the
   wheel are the floor; packs are additive. A client with no packs
-  installed still has the full 42 GREP / 26 RAG / 4 tools / 394
+  installed still has the full 49 GREP / 33 RAG / 5 tools / 394
   prompts that ship today.
 
 ## See also

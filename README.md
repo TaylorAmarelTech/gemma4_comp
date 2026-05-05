@@ -26,29 +26,32 @@
 
 > ### 🚀 Submission state (Gemma 4 Good Hackathon, due 2026-05-18)
 >
-> **6 core + 5 appendix = 11 Kaggle notebooks** (the submission surface).
-> Walk the core in canonical order — each builds context for the next.
-> Single-page index with one-line summaries:
-> [`docs/notebook_index.md`](./docs/notebook_index.md).
+> **2 core + 9 appendix = 11 Kaggle notebooks.** Judges land on
+> the unified omni playground, then proceed to the focused live
+> demo. The 9 appendix notebooks add depth-of-engineering signal
+> without competing for the first 5 minutes.
 >
-> **Core (judges evaluate first):**
+> **Core (judges evaluate first — in this order):**
 >
-> 1. [`duecare-chat-playground`](https://www.kaggle.com/code/taylorsamarel/duecare-gemma-chat-playground) — raw Gemma 4, no harness. Baseline.
-> 2. [`duecare-chat-playground-with-grep-rag-tools`](https://www.kaggle.com/code/taylorsamarel/duecare-gemma-chat-playground-grep-rag-tools) — same chat UI + 4 toggleable safety layers + per-response Pipeline modal. *Headline demo.*
-> 3. `duecare-content-classification-playground` *(publish pending)* — hands-on classification sandbox; 4 schema modes (single/multi-label, risk-vector, custom JSON Schema).
-> 4. `duecare-content-knowledge-builder-playground` *(publish pending)* — hands-on KB builder; add GREP rules, RAG docs, lookup tables; export full JSON.
-> 5. [`duecare-gemma-content-classification-evaluation`](https://www.kaggle.com/code/taylorsamarel/duecare-gemma-content-classification-evaluation) — polished NGO/agency dashboard with risk vectors + threshold-filtered queue.
-> 6. [`duecare-live-demo`](https://www.kaggle.com/code/taylorsamarel/duecare-live-demo) — full deployed product. Combines #3 + #4 in one polished surface.
+> 1. [`duecare-harness-chat`](https://www.kaggle.com/code/taylorsamarel/duecare-harness-chat) ★ **The omni playground.** All 5 harness toggles (Persona / GREP 49 rules / RAG 33 docs / Tools 5 lookups / Online live web search) + 4 grade modes (Universal / Expert / **Deep LLM-as-judge** / Combined) + **9-variant Gemma 4 model selector** (E2B / E4B / 26B-A4B / 31B / 2 jailbroken / 3 cloud BYOK). One configurable interface for the whole capability surface.
+> 2. [`duecare-live-demo`](https://www.kaggle.com/code/taylorsamarel/duecare-live-demo) — focused, scripted live URL. Polished classification + knowledge-building product with the +56.5pp lift demonstration.
 >
-> **Appendix (advanced extension + research, optional):**
+> **Appendix (9):**
 >
-> - A1. `duecare-prompt-generation` — Gemma 4 generates new evaluation prompts + 5 graded responses each
-> - A2. `duecare-bench-and-tune` — Unsloth SFT → DPO → GGUF Q8_0 → HF Hub push
-> - A3. `duecare-research-graphs` — 6 interactive Plotly charts (CPU-only, ~30 sec)
-> - A4. `duecare-chat-playground-with-agentic-research` — 5th toggle: **online agentic research** (the only layer that touches the network — all others are local, in-process); BYOK panel (Tavily / Brave / Serper) or Playwright real-browser fallback; PII-filtered before any outbound call, audit-logged as sha256 hashes only
-> - A5. `duecare-chat-playground-jailbroken-models` — loads abliterated/cracked Gemma 4 variants; proves the harness works even when refusals are ablated
+> - A1. [`duecare-chat-playground`](https://www.kaggle.com/code/taylorsamarel/duecare-gemma-chat-playground) — raw Gemma 4 chat baseline (no harness)
+> - A2. [`duecare-chat-playground-with-grep-rag-tools`](https://www.kaggle.com/code/taylorsamarel/duecare-gemma-chat-playground-grep-rag-tools) — original 4-toggle subset
+> - A3. `duecare-content-classification-playground` — hands-on classifier sandbox (4 schemas)
+> - A4. `duecare-content-knowledge-builder-playground` — hands-on KB builder + JSON export
+> - A5. [`duecare-gemma-content-classification-evaluation`](https://www.kaggle.com/code/taylorsamarel/duecare-gemma-content-classification-evaluation) — NGO dashboard with risk vectors + queue
+> - A6. `duecare-prompt-generation` — Gemma 4 generates new evaluation prompts + 5 graded responses each
+> - A7. `duecare-bench-and-tune` — Unsloth SFT → DPO → GGUF Q8_0 → HF Hub push
+> - A8. `duecare-research-graphs` — 6 interactive Plotly charts (CPU-only)
+> - A9. `duecare-chat-playground-with-agentic-research` — Playwright real-browser BYOK agentic web search (the deeper version of Online layer)
+> - A10. `duecare-chat-playground-jailbroken-models` — loads abliterated/cracked Gemma 4 variants; proves harness still works even when refusals are ablated
+> - A11. `duecare-grading-evaluation` — **the lift regenerator.** Runs N prompts × 2 conditions, grades both, emits MD+JSON with provenance tuple `(model, git_sha, dataset_version)`. The +56.5pp number, regenerated live from a git SHA.
 >
-> **Judges start here:** [`docs/FOR_JUDGES.md`](./docs/FOR_JUDGES.md) (5-min verification path).
+> **Judges start here:** [`docs/judge_5min_test_plan.md`](./docs/judge_5min_test_plan.md) (one-page click-by-click guide).
+> Or: [`docs/FOR_JUDGES.md`](./docs/FOR_JUDGES.md) (full verification roster).
 > **Writeup (≤1500 words):** [`docs/writeup_draft.md`](./docs/writeup_draft.md).
 > **Video script (~2:50):** [`docs/video_script.md`](./docs/video_script.md).
 > **Audit / report card:** [`docs/REPORT_CARD.md`](./docs/REPORT_CARD.md).

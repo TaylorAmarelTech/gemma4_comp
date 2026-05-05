@@ -64,7 +64,7 @@ For each of the 17 packages:
 
 ## Phase 4 — Kaggle notebooks (15 min)
 
-For each of the 11 notebooks (6 core + 5 appendix):
+For each of the 11 notebooks (2 core + 9 appendix):
 
 - [ ] The notebook URL on Kaggle resolves (not 404, not "Notebook not found")
 - [ ] The notebook is **public** (not private)
@@ -120,7 +120,7 @@ The 11 to verify:
 - [ ] The direct `.apk` URL works (test in a browser; downloads, not 404)
 - [ ] The APK SHA-256 matches the value in the release notes
 - [ ] The release notes mention Gemma 4 + on-device + cloud routing +
-      20 corridors + 42 GREP rules
+      20 corridors + 49 GREP rules
 
 ## Phase 7 — Live demo (2 min)
 

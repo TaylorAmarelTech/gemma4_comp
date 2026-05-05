@@ -322,7 +322,7 @@ publisher_id, pack_id, pack_version)`. A simple dashboard answers:
   (which we cannot turn off but contain only IP + timestamp + path,
   no app or worker identifiers).
 - **Not a substitute for the canonical bundle.** The wheel ships
-  with 37 GREP rules, 26 RAG docs, etc. — that's the floor. Packs
+  with 37 GREP rules, 33 RAG docs, etc. — that's the floor. Packs
   are additive enhancements.
 
 ## Build phases

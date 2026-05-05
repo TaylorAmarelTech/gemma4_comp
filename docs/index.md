@@ -74,7 +74,7 @@ happens. Or after, to recover the money.
 
 - :material-shield-check: **Harness**
 
-    42 GREP rules + 26 RAG documents + 11 ILO C029 indicators +
+    49 GREP rules + 33 RAG documents + 11 ILO C029 indicators +
     20 migration corridors. Quantified +56.5pp lift across 207
     hand-graded prompts.
 

@@ -9,7 +9,7 @@
 
 ## What's already done (don't re-do)
 
-- ✅ Android v0.9 APK (20 corridors, 42 GREP rules, 11 ILO indicators) live on GitHub Releases
+- ✅ Android v0.9 APK (20 corridors, 49 GREP rules, 11 ILO indicators) live on GitHub Releases
 - ✅ Docker stack (`make demo`) works end-to-end
 - ✅ 14 persona walkthroughs in `docs/scenarios/`
 - ✅ 5 ADRs documenting the load-bearing architecture decisions

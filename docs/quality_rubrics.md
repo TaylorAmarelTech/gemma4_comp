@@ -231,7 +231,7 @@ Per audience.
 
 **Duecare current: L3**. CONTRIBUTING.md, CODE_OF_CONDUCT.md, SECURITY.md present.
 
-- **Gap:** no scheduled refresh process for the 26 RAG docs (laws change — kafala 2024 update, new POEA MCs every year). No process for verifying GREP citations stay accurate.
+- **Gap:** no scheduled refresh process for the 33 RAG docs (laws change — kafala 2024 update, new POEA MCs every year). No process for verifying GREP citations stay accurate.
 - **Next:** add a `docs/data_currency.md` listing each RAG doc with last-verified date + statute version + a recurring quarterly check task. Add a `scripts/data_currency_audit.py` that flags docs >12mo old.
 
 ## Rubric 10: Sharing + publishing

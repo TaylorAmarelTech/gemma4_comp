@@ -88,7 +88,7 @@ undergrad CS practicum.
 
 **In session:**
 - 30 min: tour of the bundled domain content — 11 ILO indicators,
-  6 corridors, 42 GREP rules, 26 RAG docs
+  6 corridors, 49 GREP rules, 33 RAG docs
 - 60 min: each participant picks a corridor or pattern not in the
   bundled corpus (e.g., GH-LB if they work in Ghana migration; a
   state-specific anti-fraud regulation; a domain-specific scam

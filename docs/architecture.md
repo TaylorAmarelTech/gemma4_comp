@@ -5,7 +5,40 @@
 > what they own, and how they fit together.
 >
 > Audience: anyone (human or AI) picking up this project.
-> Last updated: 2026-04-10.
+> Last updated: 2026-05-04.
+
+> **v3.14 update (2026-05-04, T-14 to deadline):** the chat package
+> shape changed substantially since v0.1 architecture was drafted.
+> Quick orientation:
+>
+> **5 harness layers** (was 4): Persona / GREP / RAG / Tools / **Online**
+> (live web search; kernel-supplied so notebook owners swap backends
+> without bumping the wheel).
+>
+> **4 grade modes** (was 1): Universal (deterministic 17-dimension
+> multi-signal) / Expert (legacy per-category) / **Deep** (LLM-as-
+> judge — sends response back to the loaded Gemma with one yes/no
+> question per dimension; pulls evidence quotes from the response) /
+> **Combined** (50/50 blend with disagreement panel).
+>
+> **9-variant model selector**: on-device Gemma 4 E2B/E4B/26B-A4B/
+> 31B + 2 jailbroken (abliterated) + 3 cloud BYOK (Gemini /
+> OpenAI-compat / Ollama).
+>
+> **2 core + 9 appendix submission**: judges land on
+> `duecare-harness-chat` (omni playground) → `duecare-live-demo`
+> (focused thesis demo). The 9 specialised playgrounds are appendix.
+>
+> **`/api/health-check`** smoke endpoint returns wired layers +
+> grade modes + harness counts + model info in one shot.
+>
+> **Bundled content (now):** 49 GREP rules / 33 RAG docs / 5 tools /
+> 17-dim universal rubric / 17 LLM-judge questions / 8 ILO conventions
+> / 16 corridors / 25 fee-camouflage labels / 12 NGO intake groups /
+> 407 example prompts.
+>
+> The component-level design below is still authoritative; only the
+> chat package's surface area has expanded.
 
 > **Path layout update (2026-04-18):** references to `src/phases/*`,
 > `src/forge/*`, and `src/<subsystem>/*` below reflect the *pre-package*
@@ -272,7 +305,7 @@ output is folded into the final context.
          │
          v
 ┌──────────────────┐
-│  [d] RAG         │   BM25 over 26-doc corpus (ILO conventions,
+│  [d] RAG         │   BM25 over 33-doc corpus (ILO conventions,
 │  (toggle)        │   POEA/BP2MI/Nepal/HK statutes, Saudi MoHR,
 │                  │   Palermo Art. 3(b), ICRMW, Hague, kafala
 │                  │   reforms, substance-over-form anchor)
