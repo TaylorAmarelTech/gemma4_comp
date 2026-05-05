@@ -14,6 +14,189 @@ the meta `duecare-llm` package tracking the workspace lockstep.
   push of `Duecare-Gemma-4-E4B-it-SafetyJudge-v0.1.0`
 - Pending: notebook publish for #3, #4, A1, A3, A4, A5, A6 (built
   locally; gated by Kaggle daily push rate-limit)
+
+## v3.16 (2026-05-04 evening) — GREP rules doubled
+
+The headline change: GREP rule count **49 → 108** across **9 new
+categories**, addressing user feedback that "22 rules seems like a
+small number" with substantive coverage of every major migrant-worker
+trafficking surface previously absent.
+
+### Added — 59 new GREP rules in 9 categories
+
+- **CATEGORY H — Sector-specific labour abuse (10 rules):**
+  `construction_payment_held_until_completion` (Qatar World Cup
+  pattern), `agriculture_piece_rate_below_minimum` (US H-2A AEWR
+  floor), `garment_factory_locked_doors` (Tazreen / Rana Plaza),
+  `nail_salon_storefront_trafficking` (Vietnamese US storefront),
+  `hospitality_split_shift_tip_theft` (US DOL Wage and Hour),
+  `mining_artisanal_child_or_forced_labor` (DRC cobalt, ILO C182),
+  `meatpacking_no_bathroom_breaks` (Oxfam 2016, OSHA 1904),
+  `carwash_uniform_water_deduction` (NY AG settlement),
+  `cleaning_subcontractor_ghost_worker` (US joint-employer doctrine),
+  `elder_care_24_7_on_call` (CA AB 241, FLSA companionship narrowed).
+
+- **CATEGORY I — Kafala extended mechanisms (8 rules):**
+  `exit_permit_denial`, `noc_required_for_employer_transfer` (Qatar
+  Law 19/2020 abolished), `iqama_renewal_fee_shifted_to_worker`
+  (Saudi Resolution 178/2018), `family_dependent_visa_held_as_leverage`
+  (ICRMW Art. 44), `huroob_absconder_police_report_threat`,
+  `month_to_month_visa_evading_gratuity` (UAE EOSB Art. 51),
+  `sponsorship_transfer_charged_to_worker` (UAE Decree-Law 33/2021
+  Art. 13: free of charge), `retroactive_training_fee_at_destination`
+  (Palermo Art. 3(a) deception).
+
+- **CATEGORY J — Cross-border financial flows (6 rules):**
+  `hawala_recruitment_fee_evasion` (FATF Rec. 14 + 32),
+  `money_mule_recruitment_pattern` (4AMLD + Bank Secrecy Act),
+  `structured_deposits_smurfing` (31 USC §5324 felony),
+  `cryptocurrency_salary_advance` (FATF Rec. 15 virtual assets),
+  `prepaid_card_wage_payment` (CFPB Prepaid Account Rule),
+  `salary_paid_in_kind_or_company_scrip` (ILO C095 Art. 4 + 7).
+
+- **CATEGORY K — Employer abuse patterns (8 rules):**
+  `no_day_off_chronic` (ILO C189 Art. 10 + HK Employment Ord §17),
+  `inadequate_sleeping_quarters` (ILO C189 Art. 6 + R201 ¶17),
+  `food_withholding_or_deduction`,
+  `medical_care_denied_passport_held_for_hospital` (ICRMW Art. 28),
+  `verbal_physical_abuse_with_retention_threat` (ILO C190 Art. 1),
+  `sexual_harassment_with_retention_leverage` (ILO C190 + CEDAW
+  Recommendation 19 + 38), `worker_loaned_to_second_household`
+  (Palermo Art. 3(a) transfer of persons),
+  `worker_surveillance_in_private_space` (HK Crimes Ord. §159AAB
+  voyeurism + GDPR Art. 5).
+
+- **CATEGORY L — Document fraud (6 rules):**
+  `fake_or_unverifiable_recruiter_license` (POEA / BP2MI / BMET /
+  DoFE / SLBFE registries), `medical_certificate_uncertified_clinic`
+  (DOH Department Order 168-2015 + GAMCA),
+  `contract_substitution_at_airport` (ILO Fair Recruitment Principle
+  13), `two_contract_pattern_origin_vs_destination` (POEA-approved
+  vs destination-enforced), `fake_visa_immigration_stamping`
+  (Palermo + Smuggling Protocol + INTERPOL SLTD),
+  `backdated_employment_contract`.
+
+- **CATEGORY M — Recruiter sales tactics (6 rules):**
+  `false_urgency_only_n_spots` (ILO Fair Recruitment Principle 6),
+  `exclusive_opportunity_VIP_framing`,
+  `fake_testimonials_social_proof` (FTC Endorsement Guides),
+  `free_training_trap` (most-cited 2024-2026 PH/ID camouflage),
+  `community_recruiter_family_pressure` (Palermo Art. 3(a) abuse of
+  vulnerability), `bait_and_switch_destination`.
+
+- **CATEGORY N — Recovery suppression / repatriation (5 rules):**
+  `embassy_access_denial` (Vienna Consular Convention Art. 36
+  non-derogable), `quit_fee_breaking_contract_penalty`,
+  `return_ticket_held_by_employer`,
+  `work_permit_cancellation_deportation_threat` (ICRMW Art. 22),
+  `salary_held_until_contract_end` (ILO C095 Art. 12 + Qatar WPS).
+
+- **CATEGORY O — Additional corridors (5 rules):**
+  `lebanon_internal_syrian_refugee_labor`,
+  `libya_transit_anti_black_violence` (UN Sec Council Res. 2491),
+  `iraq_kurdistan_filipino_domestic` (POEA deployment ban history),
+  `cyprus_north_TCN_eu_backdoor` (GRETA + MIGS),
+  `taiwan_caregiver_corridor` (HRW 'Hidden Away' 2014).
+
+- **CATEGORY P — Platform / digital recruitment (5 rules):**
+  `online_platform_recruitment_unverified` (Polaris 2022),
+  `deepfake_or_ai_generated_recruiter` (EU AI Act 2024 deepfake
+  disclosure + FBI PSA), `whatsapp_telegram_coercion_pattern`
+  (ILO C190), `shell_company_offshore_HR` (FATF Rec. 24 beneficial
+  ownership transparency), `sextortion_camgirl_studio_recruitment`
+  (Palermo Art. 3(a) sexual exploitation + RA 9208 / RA 11862).
+
+### Added — 30 anonymized persona examples
+
+`scripts/generate_persona_examples.py` now generates a per-persona ×
+per-corridor × per-content-type matrix of synthetic anonymized
+examples (5 personas × 5 corridors × 6 content types = 30 entries).
+Personas: OFW worker (composite Maria Santos), NGO caseworker (Joana
+Rivera), regulator (Atty. Carlos Lim), labour lawyer (Amira Khan),
+investigative journalist (Sam Patel). Corridors: PH-HK / ID-HK /
+NP-Saudi / BD-Kuwait / LK-Lebanon. Content types: first-person chat,
+recruiter Facebook post, NGO intake form, regulator complaint draft,
+lawyer client memo, journalist research query. All entries
+explicitly tagged `[COMPOSITE EXAMPLE]` with reserved-for-fiction
+phone prefixes per `docs/anonymization_policy.md`.
+
+CLASSIFIER_EXAMPLES count: 16 → 46.
+
+### Added — 40 new behavior tests
+
+22 new spot-check tests (2nd wave) covering: agriculture piece-rate,
+mining child labour, meatpacking line speed, carwash deductions,
+cleaning ghost workers, hawala, structured deposits, crypto wallet,
+food withholding, medical-care denial, verbal abuse + retention
+threat, worker surveillance, fake recruiter license, two-contract
+pattern, backdated contract, quit-fee penalty, salary held,
+Lebanon-internal Syrian refugees, Iraq KRG Filipina, Cyprus North
+TCN, deepfake recruiter, sextortion cam-studio, iqama renewal fee.
+
+18 first-wave tests covering: construction wage hold, garment locked
+doors, no-day-off, sleeping quarters, exit permit, NOC, money mule,
+embassy access, return ticket, contract substitution, false urgency,
+free training trap, bait-and-switch, Libya transit, Taiwan
+caregiver, online platform, shell company, WhatsApp coercion.
+
+Plus negative test (benign text) and metadata sanity test.
+
+Final count: **140 chat tests, 139 pass** (sole failure is the
+pre-existing `duecare`-not-installed import test, unrelated).
+
+### Fixed
+
+- **UI: "15 dimensions" → "17 dimensions"** in the Universal grader
+  output footer (`static/index.html`). Visible to judges in every
+  grade — was off-by-2 because rubric grew without the UI string
+  catching up.
+- **Layer docs out of sync.** `LAYER_DOCS` in `harness/__init__.py`
+  said "18 documents" (now 33), "394 prompts" (now 407), "5 GREP
+  categories" (now 16). Visible in the Pipeline modal.
+- **Two GREP patterns broadened** based on first-wave test failures:
+  `structured_deposits_smurfing` now catches "break up the deposit"
+  variants and "under USD 9,500" without requiring the worker
+  noun. `iqama_renewal_fee_shifted_to_worker` no longer requires
+  "worker/employee/maid" to be present (workers describe themselves
+  in first person).
+
+### Changed
+
+- 33 substitutions across 20 documentation files updating stale
+  counts: 49→108 GREP, 22→108 GREP, 18→33 RAG, 394→407 prompts,
+  16→46 classifier, 15→17 dimensions. Files touched include
+  `android_app_architecture`, `corpus_stats`, `deployment_local`,
+  `deployment_enterprise`, `educator_resources`, `embedding_guide`,
+  `FAQ`, `extension_pack_format`, `index`, `install`, `prior_art`,
+  `REPORT_CARD`, `system_map.html`, `submission_gate_checklist`,
+  `two_week_submission_plan`, `notebook_qa_companion`,
+  `persona_readiness_audit`, `hf-space DEPLOYMENT`, `research-graphs
+  kernel.py`, `CHANGELOG`.
+- `video_script.md`: 4 toggles → 5 (Online added), 37 → 108 GREP
+  rules, demo notebook switched from `chat-playground-with-grep-
+  rag-tools` to `duecare-harness-chat`.
+- 12 `kernel-metadata.json` files: `is_private` / `enable_gpu` /
+  `enable_internet` "true" string → `true` boolean. Semantic no-op
+  for Kaggle CLI (both forms accepted) but cosmetically clean.
+
+### Tooling
+
+- **`scripts/push_v316_wheels.py`** — single-command Kaggle dataset
+  push helper. Iterates 13 notebook slugs in canonical order (CORE
+  first), respects daily push rate limit (stops on 429, prints a
+  resume command), supports `--dry-run`. Usage:
+  `python scripts/push_v316_wheels.py --dry-run` then drop the flag.
+- **`scripts/generate_persona_examples.py`** — idempotent persona
+  example generator (skips already-present IDs).
+
+### Wheels
+
+`duecare-llm-chat` v3.16 rebuilt twice (initial + post-broaden) and
+distributed to all 13 notebook `wheels/` subdirectories. Live-demo,
+bench-and-tune, research-graphs preserved their full transitive
+wheel sets (cli / server / agents / tasks / etc. — those packages
+were not rebuilt; only the 3 harness-bearing wheels changed).
+
 - **NEW (2026-05-04 PM):** v3.5 R2 hardening — second-round
   adversarial review (4 parallel agents on PII, kernel.py,
   concurrency, det-grader edges) found 3 critical bugs the first

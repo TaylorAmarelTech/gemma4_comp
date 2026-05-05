@@ -38,23 +38,35 @@ class Check:
     attr: str
     expected_min: int
     description: str
+    # Optional sub-key: when set, len() the value at obj[sub_key]
+    # instead of obj itself. Lets us verify nested counts like
+    # RUBRIC_UNIVERSAL['dimensions'] without flattening the dict.
+    sub_key: str | None = None
 
 
 CHECKS: tuple[Check, ...] = (
-    Check("GREP rules",        "duecare.chat.harness", "GREP_RULES",        37,
-          "regex rules across 5 categories"),
-    Check("RAG corpus",        "duecare.chat.harness", "RAG_CORPUS",        26,
+    Check("GREP rules",        "duecare.chat.harness", "GREP_RULES",       108,
+          "regex rules across 16 categories (debt bondage / fee "
+          "camouflage / corridors / ILO indicators / multi-party / "
+          "kafala extended / sectors / fin flows / employer abuse / "
+          "doc fraud / sales tactics / recovery suppression / digital)"),
+    Check("RAG corpus",        "duecare.chat.harness", "RAG_CORPUS",        33,
           "documents (ILO conventions, statutes, NGO briefs)"),
-    Check("Tools",             "duecare.chat.harness", "_TOOL_DISPATCH",     4,
-          "lookup functions (corridor / fee / indicator / NGO)"),
-    Check("Example prompts",   "duecare.chat.harness", "EXAMPLE_PROMPTS",  394,
+    Check("Tools",             "duecare.chat.harness", "_TOOL_DISPATCH",     5,
+          "lookup functions (corridor / fee / indicator / NGO / ILO Convention)"),
+    Check("Example prompts",   "duecare.chat.harness", "EXAMPLE_PROMPTS",  407,
           "prompts in the bundled examples library"),
     Check("5-tier rubrics",    "duecare.chat.harness", "RUBRICS_5TIER",    207,
           "prompts with hand-graded worst..best response examples"),
     Check("Required rubrics",  "duecare.chat.harness", "RUBRICS_REQUIRED",   6,
           "categories of required-element rubrics"),
-    Check("Classifier examples","duecare.chat.harness","CLASSIFIER_EXAMPLES",16,
-          "pre-built classifier examples (6 with SVG document mockups)"),
+    Check("Classifier examples","duecare.chat.harness","CLASSIFIER_EXAMPLES",51,
+          "pre-built classifier examples (30 persona × corridor + 16 originals + 5 multimodal SVG)"),
+    Check("Universal rubric dims", "duecare.chat.harness", "RUBRIC_UNIVERSAL", 17,
+          "v3 universal rubric dimensions (auto-detect applicability per dim)",
+          sub_key="dimensions"),
+    Check("LLM-judge questions", "duecare.chat.harness", "JUDGE_QUESTIONS", 17,
+          "yes/no questions sent to loaded Gemma in Deep grade mode"),
 )
 
 
@@ -67,6 +79,11 @@ def _measure(c: Check) -> tuple[bool, int, str | None]:
     obj = getattr(mod, c.attr, None)
     if obj is None:
         return False, 0, f"{c.module}.{c.attr} not found"
+    if c.sub_key is not None:
+        try:
+            obj = obj[c.sub_key]
+        except (KeyError, TypeError) as e:
+            return False, 0, f"{c.module}.{c.attr}[{c.sub_key!r}]: {e}"
     try:
         n = len(obj)
     except TypeError as e:

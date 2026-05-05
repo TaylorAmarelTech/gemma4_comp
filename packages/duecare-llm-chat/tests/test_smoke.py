@@ -28,7 +28,10 @@ def test_harness_loads_with_expected_counts() -> None:
     Libya transit / Iraq KRG / Cyprus North / Taiwan caregiver),
     and platform/digital recruitment (online platforms, deepfake
     interviews, encrypted-platform coercion, offshore shell HR,
-    cam-studio sextortion). RAG/tools/examples unchanged this bump."""
+    cam-studio sextortion). RAG/tools/examples unchanged this bump.
+    Classifier examples 46→51: 5 multimodal additions (TikTok
+    recruitment, Telegram money mule, cam-studio contract,
+    backdated contract, two-contract side-by-side)."""
     h = _load_harness_module()
     assert len(h.GREP_RULES) == 108
     assert len(h.RAG_CORPUS) == 33
@@ -36,7 +39,7 @@ def test_harness_loads_with_expected_counts() -> None:
     assert len(h.EXAMPLE_PROMPTS) == 407
     assert len(h.RUBRICS_5TIER) == 207
     assert len(h.RUBRICS_REQUIRED) == 6
-    assert len(h.CLASSIFIER_EXAMPLES) == 46
+    assert len(h.CLASSIFIER_EXAMPLES) == 51
 
 
 def test_harness_lookup_data_present() -> None:
