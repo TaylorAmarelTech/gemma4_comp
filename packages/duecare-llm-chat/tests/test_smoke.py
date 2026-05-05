@@ -39,7 +39,7 @@ def test_harness_loads_with_expected_counts() -> None:
     assert len(h.EXAMPLE_PROMPTS) == 407
     assert len(h.RUBRICS_5TIER) == 207
     assert len(h.RUBRICS_REQUIRED) == 6
-    assert len(h.CLASSIFIER_EXAMPLES) == 51
+    assert len(h.CLASSIFIER_EXAMPLES) == 54
 
 
 def test_harness_lookup_data_present() -> None:
