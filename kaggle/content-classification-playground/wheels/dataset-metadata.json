@@ -1,1 +1,11 @@
-{"title": "Duecare Content Classification Playground Wheels", "id": "taylorsamarel/duecare-content-classification-playground-wheels", "licenses": [{"name": "MIT"}]}
+{
+  "title": "Duecare Content Classification Playground Wheels",
+  "id": "taylorsamarel/duecare-content-classification-playground-wheels",
+  "licenses": [
+    {
+      "name": "MIT"
+    }
+  ],
+  "subtitle": "Wheels for the NGO-side classifier playground - same harness, structured output instead of chat",
+  "description": "v3.16 - wheels for the content-classification-playground notebook (the NGO-triage surface of the same harness). Bundled: duecare-llm-chat / -core / -models. 51 pre-built classifier examples (16 originals + 30 persona x corridor synthetic + 5 multimodal SVG mockups for the multimodal demo) covering recruitment posts, intake forms, complaints, advisories, journalist queries, and document scans. Each classify call returns risk score + per-vector magnitudes + recommended action pill + NGO referrals."
+}

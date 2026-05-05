@@ -1,6 +1,11 @@
 {
   "title": "Duecare Grading Evaluation Wheels",
   "id": "taylorsamarel/duecare-grading-evaluation-wheels",
-  "licenses": [{"name": "CC0-1.0"}],
-  "description": "Pinned v0.1.0 wheels for the duecare-grading-evaluation Kaggle notebook (A6). Includes duecare-llm-chat (with the universal v2 grader + lift evaluator), duecare-llm-core, and duecare-llm-models. Updated when the chat package or grader changes."
+  "licenses": [
+    {
+      "name": "CC0-1.0"
+    }
+  ],
+  "description": "v3.16 - wheels for grading-evaluation (A6, the lift regenerator). Bundled: duecare-llm-chat / -core / -models. Runs N curated prompts through Gemma 4 twice (harness OFF vs ON full Persona+GREP+RAG+Tools) and grades both with the universal v3.1 grader (17 dimensions, intent-aware, 106-source citation cross-reference, multi-signal matching) plus optional LLM-as-judge with evidence quotes. Emits duecare_lift_eval.json + .md with provenance tuple (model, git_sha, dataset_version). The +56.5pp number, regenerated live from a git SHA. Re-run after pushing v3.16 wheels to get the post-expansion number.",
+  "subtitle": "Wheels for grading-evaluation - the dedicated lift regenerator with provenance tuple"
 }

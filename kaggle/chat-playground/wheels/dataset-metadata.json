@@ -5,5 +5,7 @@
     {
       "name": "MIT"
     }
-  ]
+  ],
+  "subtitle": "Baseline wheels for harness-OFF Gemma 4 chat - the failure mode that the harness fixes",
+  "description": "v3.16 - wheels for the baseline chat-playground (harness OFF). Bundled: duecare-llm-chat / -core / -models. Demonstrates raw Gemma 4 behaviour on trafficking-shaped prompts (the '5 cash flow optimization strategies' failure mode). Pair with chat-playground-with-grep-rag-tools to see the harness-OFF vs harness-ON delta."
 }

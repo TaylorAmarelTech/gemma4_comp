@@ -67,7 +67,7 @@ graph LR
   CTO --> API
 ```
 
-## Layer 2 — The 4-layer harness (the technical core)
+## Layer 2 — The 5-layer harness (the technical core)
 
 ```mermaid
 graph LR

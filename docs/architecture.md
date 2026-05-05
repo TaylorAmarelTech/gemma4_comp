@@ -298,7 +298,7 @@ output is folded into the final context.
          │
          v
 ┌──────────────────┐
-│  [c] GREP        │   42 regex/keyword rules across 5 categories
+│  [c] GREP        │   108 regex/keyword rules across 16 categories
 │  (toggle)        │   matched against user text -> ILO + statute
 │                  │   citations + indicator descriptions
 └────────┬─────────┘
@@ -313,9 +313,9 @@ output is folded into the final context.
          │
          v
 ┌──────────────────┐
-│  [e] TOOLS       │   heuristic dispatch -> 4 lookups:
+│  [e] TOOLS       │   heuristic dispatch -> 5 lookups:
 │  (toggle)        │   corridor_fee_caps, fee_camouflage,
-│                  │   ilo_indicator, ngo_intake
+│                  │   ilo_indicator, ngo_intake, ilo_convention
 └────────┬─────────┘
          │
          v

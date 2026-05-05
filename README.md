@@ -553,7 +553,7 @@ configs/duecare/
 ```
 
 Secrets (API keys) come from environment variables only — see
-[`.env.template`](./.env.template).
+[`.env.example`](./.env.example).
 
 ## Repository layout
 

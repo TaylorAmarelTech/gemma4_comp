@@ -5,5 +5,7 @@
     {
       "name": "MIT"
     }
-  ]
+  ],
+  "subtitle": "Wheels for the side-by-side OFF/ON content-classification evaluation across 51 bundled cases",
+  "description": "v3.16 - wheels for gemma-content-classification-evaluation. Bundled: duecare-llm-chat / -core / -models. Runs all 51 classifier examples (16 originals + 30 persona x corridor + 5 multimodal SVG) through the classifier twice (harness OFF vs harness ON) and emits per-case OFF/ON delta + aggregate lift number + per-case markdown table."
 }

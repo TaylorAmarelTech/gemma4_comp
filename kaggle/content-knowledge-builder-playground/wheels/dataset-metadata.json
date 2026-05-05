@@ -1,1 +1,11 @@
-{"title": "Duecare Knowledge Builder Playground Wheels", "id": "taylorsamarel/duecare-content-knowledge-builder-playground-wheels", "licenses": [{"name": "MIT"}]}
+{
+  "title": "Duecare Knowledge Builder Playground Wheels",
+  "id": "taylorsamarel/duecare-content-knowledge-builder-playground-wheels",
+  "licenses": [
+    {
+      "name": "MIT"
+    }
+  ],
+  "subtitle": "Wheels for the knowledge-builder playground - pull web sources or pasted text into new RAG documents",
+  "description": "v3.16 - wheels for content-knowledge-builder-playground. Bundled: duecare-llm-chat / -core / -models. Lets a user paste a recent ILO press release, court filing, or NGO report; Gemma 4 extracts citations and writes a new RAG corpus entry that the chat / classifier surfaces can immediately retrieve over BM25. The 33-doc baseline RAG corpus extends in place."
+}

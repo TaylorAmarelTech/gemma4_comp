@@ -1,1 +1,11 @@
-{"title": "Duecare Jailbroken Models Wheels", "id": "taylorsamarel/duecare-chat-playground-jailbroken-models-wheels", "licenses": [{"name": "MIT"}]}
+{
+  "title": "Duecare Jailbroken Models Wheels",
+  "id": "taylorsamarel/duecare-chat-playground-jailbroken-models-wheels",
+  "licenses": [
+    {
+      "name": "MIT"
+    }
+  ],
+  "subtitle": "Wheels for chat-playground loading abliterated/cracked Gemma 4 - the strongest 'real not faked' proof",
+  "description": "v3.16 - wheels for the chat-playground-jailbroken-models notebook. Bundled: duecare-llm-chat / -core / -models. Loads dealignai/Gemma-4-31B-JANG_4M-CRACK or mlabonne/Gemma-4-E4B-it-abliterated by default. Demonstrates that the 5-layer harness (Persona / GREP 108 rules / RAG 33 docs / Tools 5 lookups / Online) still produces safe + cited outputs even when the base model has had its refusal layer ablated by the model author. Strongest evidence that the safety lift is harness-driven, not base-model-driven."
+}
