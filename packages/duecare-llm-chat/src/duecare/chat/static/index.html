@@ -174,7 +174,8 @@ header.bar .badge.loaded .dot {
   grid-column: 1 / -1;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
   margin-bottom: 4px;
 }
 .harness-tiles-header h3 {
@@ -551,7 +552,19 @@ header.bar .badge.loaded .dot {
     <div class="harness-tiles" id="harness-tiles">
       <div class="harness-tiles-header">
         <h3>Safety harness</h3>
-        <span class="hint">Click a card to toggle. Greyed = not wired in this kernel.</span>
+        <span class="hint">Click a card to toggle · Greyed = not wired</span>
+        <div style="margin-left:auto; display:flex; gap:6px;">
+          <button onclick="toggleAllHarness(true)"
+                  style="background:transparent; border:1px solid var(--border); color:var(--muted); padding:3px 10px; border-radius:5px; font-size:10.5px; cursor:pointer; font-weight:500;"
+                  onmouseover="this.style.borderColor='var(--accent)'; this.style.color='var(--accent)'"
+                  onmouseout="this.style.borderColor='var(--border)'; this.style.color='var(--muted)'"
+                  title="Enable all wired harness layers (full-stack demo)">Enable all</button>
+          <button onclick="toggleAllHarness(false)"
+                  style="background:transparent; border:1px solid var(--border); color:var(--muted); padding:3px 10px; border-radius:5px; font-size:10.5px; cursor:pointer; font-weight:500;"
+                  onmouseover="this.style.borderColor='#94a3b8'; this.style.color='#94a3b8'"
+                  onmouseout="this.style.borderColor='var(--border)'; this.style.color='var(--muted)'"
+                  title="Disable all harness layers (raw Gemma baseline)">Disable all</button>
+        </div>
       </div>
       <div class="harness-tile persona" id="tile-persona" data-wired="false" data-enabled="false">
         <div class="harness-tile-row" onclick="toggleTile('persona')">
@@ -793,6 +806,23 @@ function toggleTile(layer) {
       newState === 'true' ? 'ON' : 'OFF';
 }
 
+function toggleAllHarness(enable) {
+  // Bulk-flip every WIRED tile. Skips tiles that aren't wired in
+  // this kernel so the user doesn't get confused by un-toggleable
+  // greyed-out cards. Used by the "Enable all" / "Disable all"
+  // buttons in the harness-tiles header — speeds up demo flow.
+  const layers = ['persona', 'grep', 'rag', 'tools', 'online'];
+  for (const layer of layers) {
+    const tile = document.getElementById(`tile-${layer}`);
+    if (!tile || tile.dataset.wired !== 'true') continue;
+    const targetState = enable ? 'true' : 'false';
+    if (tile.dataset.enabled === targetState) continue;
+    tile.dataset.enabled = targetState;
+    const stateEl = document.getElementById(`state-${layer}`);
+    if (stateEl) stateEl.textContent = enable ? 'ON' : 'OFF';
+  }
+}
+
 // ---- Lightbox modal ----
 const LAYER_TITLES = {
   persona:  'Persona',
@@ -824,6 +854,13 @@ const DIFFICULTY_COLORS = {
 };
 
 const CATEGORY_LABELS = {
+  // v3.11 judge-impact categories (top of list)
+  headline_lift_demo:           '★ Headline lift demo (the +56.5pp number)',
+  jailbreak_resistance:         'Jailbreak resistance (DAN / dev-mode / pretext)',
+  online_search_demo:           'Online search demo (live web data adds signal)',
+  model_comparison_demo:        'Model comparison demo (variant matters)',
+  social_engineering:           'Anti-social-engineering (compliance pretexts)',
+  // Original benchmark categories
   regulatory_evasion:           'Regulatory evasion',
   coercion_manipulation:        'Coercion / manipulation',
   moral_religious_framing:      'Moral / religious framing',
@@ -835,6 +872,22 @@ const CATEGORY_LABELS = {
   amplification_known_attacks:  'Amplification through known attacks',
   victim_revictimization:       'Migrant worker re-victimization',
   financial_crime_blindness:    'Legal standards / financial crime blindness',
+  // Document-format categories
+  business_framed_exploitation: 'Business-framed exploitation (operator-side)',
+  social_media_recruitment:     'Social media recruitment posts',
+  private_message_grooming:     'Private message grooming (DM)',
+  group_chat_pattern:           'Group chat (lender coordination)',
+  fake_document:                'Fake documents (clearance certs etc.)',
+  receipt_evidence:             'Receipt / promissory-note evidence',
+};
+
+// Color hint per category for the hierarchical Examples modal
+const CATEGORY_COLORS = {
+  headline_lift_demo:    '#10b981',  // green
+  jailbreak_resistance:  '#ef4444',  // red
+  online_search_demo:    '#f59e0b',  // amber
+  model_comparison_demo: '#a855f7',  // purple
+  social_engineering:    '#3b82f6',  // blue
 };
 
 async function populateEmptyHints() {
@@ -930,6 +983,9 @@ async function copyExampleText(id, btn, evt) {
   }
 }
 
+// Persistent collapse state per category (in-modal session memory).
+let _examplesCollapsed = {};
+
 async function openExamplesModal() {
   const examples = await _fetchExamples();
   if (!examples.length) {
@@ -938,47 +994,90 @@ async function openExamplesModal() {
     _setModalChrome('examples', LAYER_TITLES.examples, '');
     return;
   }
-  // Group by category
+  // Render the hierarchical view + search box. The search box filters
+  // across all categories in real time.
+  const total = examples.length;
   const byCat = {};
   for (const ex of examples) {
     (byCat[ex.category] = byCat[ex.category] || []).push(ex);
   }
-  let html = `<div style="color:var(--muted); font-size:11.5px; margin-bottom:14px;">${examples.length} prompts from the trafficking benchmark. Click any prompt body to load it into the chat input (does NOT auto-send — you can edit and toggle harness layers first). Use the <strong>copy</strong> button on the right to copy the full text to your clipboard instead.</div>`;
-  const catOrder = ['compound_textbook', 'regulatory_evasion',
-                     'coercion_manipulation', 'financial_obfuscation',
-                     'moral_religious_framing', 'mega_variations',
-                     'knowledge_check'];
+  // Top categories first (judge-impact v3.11 entries), then the rest
+  // in insertion order from CATEGORY_LABELS, then any unknown.
+  const judgeImpactOrder = [
+    'headline_lift_demo', 'jailbreak_resistance',
+    'online_search_demo', 'model_comparison_demo',
+    'social_engineering',
+  ];
+  const knownOrder = Object.keys(CATEGORY_LABELS);
+  const catOrder = [
+    ...judgeImpactOrder.filter(c => byCat[c]),
+    ...knownOrder.filter(c => byCat[c] && !judgeImpactOrder.includes(c)),
+    ...Object.keys(byCat).filter(c => !knownOrder.includes(c)),
+  ];
+
+  // Auto-collapse all categories EXCEPT the 5 judge-impact ones on
+  // first open so judges land on the most-important prompts first.
+  if (Object.keys(_examplesCollapsed).length === 0) {
+    for (const cat of catOrder) {
+      _examplesCollapsed[cat] = !judgeImpactOrder.includes(cat);
+    }
+  }
+
+  let html = `
+    <div style="display:flex; gap:10px; align-items:center; margin-bottom:14px; flex-wrap:wrap;">
+      <input id="examples-search" type="text" placeholder="🔍 Search ${total} prompts (text, category, corridor, indicator)…"
+             style="flex:1 1 320px; padding:8px 12px; background:var(--bg); color:var(--ink); border:1px solid var(--border); border-radius:6px; font-size:13px;"
+             oninput="_filterExamples(this.value)">
+      <span id="examples-count" style="color:var(--muted); font-size:11.5px;">${total} prompts in ${catOrder.length} categories</span>
+      <button onclick="_examplesExpandAll(true)" style="background:transparent; border:1px solid var(--border); color:var(--muted); padding:4px 10px; border-radius:6px; font-size:11px; cursor:pointer;">Expand all</button>
+      <button onclick="_examplesExpandAll(false)" style="background:transparent; border:1px solid var(--border); color:var(--muted); padding:4px 10px; border-radius:6px; font-size:11px; cursor:pointer;">Collapse all</button>
+    </div>
+    <div style="color:var(--muted); font-size:11.5px; margin-bottom:14px;">
+      Click any prompt body to load it into the chat input (no auto-send — edit and flip toggles first). Use <strong>copy</strong> on the right to clipboard the text. Categories with the ★ are the high-impact judge demos.
+    </div>
+  `;
   for (const cat of catOrder) {
-    if (!byCat[cat]) continue;
-    html += `<div style="font-size:11px; font-weight:700; color:var(--accent); margin:18px 0 6px 0; letter-spacing:0.06em; text-transform:uppercase;">${escapeHtml(CATEGORY_LABELS[cat] || cat)}</div>`;
-    for (const ex of byCat[cat]) {
+    const items = byCat[cat];
+    const label = CATEGORY_LABELS[cat] || cat;
+    const color = CATEGORY_COLORS[cat] || 'var(--accent)';
+    const collapsed = _examplesCollapsed[cat];
+    html += `
+      <div class="examples-category" data-cat="${escapeHtml(cat)}" style="margin-bottom:12px; border:1px solid var(--border); border-radius:6px; border-left:4px solid ${color}; overflow:hidden;">
+        <div onclick="_toggleExamplesCategory(${attrJson(cat)})"
+             style="cursor:pointer; padding:10px 14px; background:rgba(255,255,255,0.02); display:flex; align-items:center; gap:10px; font-weight:600; user-select:none;">
+          <span class="examples-chevron" style="display:inline-block; width:14px; transition:transform 0.15s; transform:rotate(${collapsed ? '0' : '90'}deg);">▶</span>
+          <span style="color:${color}; font-size:12.5px;">${escapeHtml(label)}</span>
+          <span style="color:var(--muted); font-size:11px; margin-left:auto;">${items.length} prompt${items.length === 1 ? '' : 's'}</span>
+        </div>
+        <div class="examples-items" style="display:${collapsed ? 'none' : 'block'}; padding:6px 14px 12px;">
+    `;
+    for (const ex of items) {
       const diffColor = DIFFICULTY_COLORS[ex.difficulty] || '#94a3b8';
       const indPills = (ex.ilo_indicators || []).slice(0, 3).map(ind =>
           `<span style="display:inline-block; padding:1px 6px; border-radius:3px; background:rgba(148,163,184,0.15); color:var(--muted); font-size:10px; margin-right:4px;">${escapeHtml(ind)}</span>`
       ).join('');
-      html += `<div class="item" style="cursor:pointer; padding:10px 12px; margin-bottom:6px; background:var(--bg); border-radius:6px; border:1px solid var(--border); transition: border-color 0.15s;" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'" onclick="useExample(${attrJson(ex.id)})">`;
-      // Render the FULL prompt text (no truncation). Some entries are
-      // 5000+ chars; the modal body scrolls (max-height 86vh) so length
-      // is not a layout problem and full visibility lets the reader
-      // judge a prompt before clicking it.
-      html += `<div class="body" style="margin-top:0; color:var(--ink); font-size:12.5px; line-height:1.55; white-space:pre-wrap; word-wrap:break-word;">${escapeHtml(ex.text)}</div>`;
-      html += `<div style="margin-top:10px; display:flex; flex-wrap:wrap; gap:6px; align-items:center; font-size:10.5px; padding-top:8px; border-top:1px dashed var(--border);">`;
+      // Truncated body for compactness (full text visible on hover via title attr).
+      const bodyShort = ex.text.length > 240 ? ex.text.slice(0, 240) + '…' : ex.text;
+      html += `<div class="example-item" data-ex-id="${escapeHtml(ex.id)}" data-search-blob="${escapeHtml((ex.text + ' ' + (ex.corridor || '') + ' ' + (ex.sector || '') + ' ' + (ex.subcategory || '') + ' ' + (ex.ilo_indicators || []).join(' ')).toLowerCase())}" style="cursor:pointer; padding:10px 12px; margin-top:6px; background:var(--bg); border-radius:5px; border:1px solid var(--border); transition: border-color 0.15s;" onmouseover="this.style.borderColor='${color}'" onmouseout="this.style.borderColor='var(--border)'" onclick="useExample(${attrJson(ex.id)})">`;
+      html += `<div style="color:var(--ink); font-size:12px; line-height:1.5; white-space:pre-wrap; word-wrap:break-word;" title="${escapeHtml(ex.text)}">${escapeHtml(bodyShort)}</div>`;
+      html += `<div style="margin-top:8px; display:flex; flex-wrap:wrap; gap:6px; align-items:center; font-size:10.5px; padding-top:6px; border-top:1px dashed var(--border);">`;
       if (ex.difficulty) {
         html += `<span style="color:${diffColor}; font-weight:600;">${escapeHtml(ex.difficulty)}</span>`;
         html += `<span style="color:var(--muted);">·</span>`;
       }
-      if (ex.corridor) {
-        html += `<span style="color:var(--muted); font-family:ui-monospace,monospace;">${escapeHtml(ex.corridor)}</span>`;
+      if (ex.subcategory) {
+        html += `<span style="color:var(--muted); font-family:ui-monospace,monospace;">${escapeHtml(ex.subcategory)}</span>`;
         html += `<span style="color:var(--muted);">·</span>`;
       }
-      if (ex.sector) {
-        html += `<span style="color:var(--muted);">${escapeHtml(ex.sector)}</span>`;
+      if (ex.corridor) {
+        html += `<span style="color:var(--muted); font-family:ui-monospace,monospace;">${escapeHtml(ex.corridor)}</span>`;
       }
       if (indPills) html += `<span style="margin-left:8px;">${indPills}</span>`;
-      html += `<button onclick="copyExampleText(${attrJson(ex.id)}, this, event)" style="margin-left:auto; background:transparent; border:1px solid var(--border); color:var(--muted); padding:3px 10px; border-radius:6px; font-size:10.5px; cursor:pointer; font-weight:500;" onmouseover="this.style.borderColor='var(--accent)'; this.style.color='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'; this.style.color='var(--muted)'" title="Copy prompt to clipboard">copy</button>`;
-      html += `<span style="color:var(--accent); font-size:10.5px; font-weight:600; margin-left:8px;">click body to load →</span>`;
+      html += `<button onclick="copyExampleText(${attrJson(ex.id)}, this, event)" style="margin-left:auto; background:transparent; border:1px solid var(--border); color:var(--muted); padding:3px 10px; border-radius:6px; font-size:10.5px; cursor:pointer; font-weight:500;" onmouseover="this.style.borderColor='${color}'; this.style.color='${color}'" onmouseout="this.style.borderColor='var(--border)'; this.style.color='var(--muted)'" title="Copy prompt to clipboard">copy</button>`;
+      html += `<span style="color:${color}; font-size:10.5px; font-weight:600; margin-left:8px;">click body to load →</span>`;
       html += `</div></div>`;
     }
+    html += `</div></div>`;
   }
   html += '<div id="modal-docs"></div>';
   document.getElementById('modal-body').innerHTML = html;
@@ -987,6 +1086,73 @@ async function openExamplesModal() {
     const el = document.getElementById('modal-docs');
     if (el) el.innerHTML = _renderDocsSection(md);
   });
+}
+
+function _toggleExamplesCategory(cat) {
+  _examplesCollapsed[cat] = !_examplesCollapsed[cat];
+  const node = document.querySelector(`.examples-category[data-cat="${cat}"]`);
+  if (!node) return;
+  const items = node.querySelector('.examples-items');
+  const chevron = node.querySelector('.examples-chevron');
+  if (items) items.style.display = _examplesCollapsed[cat] ? 'none' : 'block';
+  if (chevron) chevron.style.transform = `rotate(${_examplesCollapsed[cat] ? '0' : '90'}deg)`;
+}
+
+function _examplesExpandAll(expand) {
+  for (const cat of Object.keys(_examplesCollapsed)) {
+    _examplesCollapsed[cat] = !expand;
+    const node = document.querySelector(`.examples-category[data-cat="${cat}"]`);
+    if (!node) continue;
+    const items = node.querySelector('.examples-items');
+    const chevron = node.querySelector('.examples-chevron');
+    if (items) items.style.display = expand ? 'block' : 'none';
+    if (chevron) chevron.style.transform = `rotate(${expand ? '90' : '0'}deg)`;
+  }
+}
+
+function _filterExamples(query) {
+  const q = (query || '').trim().toLowerCase();
+  const items = document.querySelectorAll('.example-item');
+  const cats = document.querySelectorAll('.examples-category');
+  let matched = 0;
+  // Track per-category match counts so we can hide empty categories
+  // and auto-expand any category that has matching items.
+  const catCounts = {};
+  for (const item of items) {
+    const blob = item.dataset.searchBlob || '';
+    const visible = !q || blob.includes(q);
+    item.style.display = visible ? '' : 'none';
+    if (visible) {
+      matched++;
+      const cat = item.closest('.examples-category')?.dataset.cat;
+      if (cat) catCounts[cat] = (catCounts[cat] || 0) + 1;
+    }
+  }
+  for (const cat of cats) {
+    const c = cat.dataset.cat;
+    const count = catCounts[c] || 0;
+    cat.style.display = (q && count === 0) ? 'none' : '';
+    // Auto-expand categories that have matches when there's an
+    // active search; restore original collapse state when clear.
+    if (q && count > 0) {
+      const itemsEl = cat.querySelector('.examples-items');
+      const chevron = cat.querySelector('.examples-chevron');
+      if (itemsEl) itemsEl.style.display = 'block';
+      if (chevron) chevron.style.transform = 'rotate(90deg)';
+    } else if (!q) {
+      const collapsed = _examplesCollapsed[c];
+      const itemsEl = cat.querySelector('.examples-items');
+      const chevron = cat.querySelector('.examples-chevron');
+      if (itemsEl) itemsEl.style.display = collapsed ? 'none' : 'block';
+      if (chevron) chevron.style.transform = `rotate(${collapsed ? '0' : '90'}deg)`;
+    }
+  }
+  const counter = document.getElementById('examples-count');
+  if (counter) {
+    counter.textContent = q
+        ? `${matched} of ${items.length} prompts match "${query}"`
+        : `${items.length} prompts in ${cats.length} categories`;
+  }
 }
 
 function closeModal() {
@@ -1678,11 +1844,11 @@ function _serializePipelineMarkdown(messageIdx) {
     if (!lt) { n++; continue; }
     const label = PIPELINE_LAYER_LABEL[layer];
     if (!lt.wired) {
-      md += `## ${'②③④⑤'[n-2]} ${label} — not wired\n\n`;
+      md += `## ${'②③④⑤⑥'[n-2]} ${label} — not wired\n\n`;
     } else if (!lt.enabled) {
-      md += `## ${'②③④⑤'[n-2]} ${label} — skipped (toggle was OFF)\n\n`;
+      md += `## ${'②③④⑤⑥'[n-2]} ${label} — skipped (toggle was OFF)\n\n`;
     } else {
-      md += `## ${'②③④⑤'[n-2]} ${label} — ${lt.summary || 'fired'} · ${lt.elapsed_ms}ms\n\n`;
+      md += `## ${'②③④⑤⑥'[n-2]} ${label} — ${lt.summary || 'fired'} · ${lt.elapsed_ms}ms\n\n`;
       if (layer === 'persona' && lt.text_preview) {
         md += '```\n' + lt.text_preview + '\n```\n\n';
       } else if (layer === 'grep' && lt.hits && lt.hits.length) {
@@ -1709,6 +1875,13 @@ function _serializePipelineMarkdown(messageIdx) {
           md += '  ```\n';
         }
         md += '\n';
+      } else if (layer === 'online' && lt.results && lt.results.length) {
+        md += `_Source: ${lt.source || 'unknown'}_\n\n`;
+        for (const r of lt.results) {
+          md += `### [${r.rank || '?'}] ${r.title || '(untitled)'}\n`;
+          if (r.url) md += `${r.url}\n\n`;
+          if (r.snippet) md += '> ' + r.snippet.replace(/\n/g, '\n> ') + '\n\n';
+        }
       }
     }
     n++;
@@ -1829,17 +2002,17 @@ async function openGradeModal(messageIdx) {
         <input type="radio" name="grade-mode" value="deep"
                ${_gradeMode === 'deep' ? 'checked' : ''}
                onchange="_gradeMode='deep'; _runGrade(${messageIdx})">
-        Deep (LLM judge)
+        Deep <span style="color:var(--muted); font-size:10.5px;">~30-90s · LLM judge</span>
       </label>
       <label style="font-size:12px; color:var(--ink); display:flex; align-items:center; gap:6px;">
         <input type="radio" name="grade-mode" value="combined"
                ${_gradeMode === 'combined' ? 'checked' : ''}
                onchange="_gradeMode='combined'; _runGrade(${messageIdx})">
-        Combined (Universal + Judge)
+        Combined <span style="color:var(--muted); font-size:10.5px;">~30-90s · Universal + Judge</span>
       </label>` : '';
   const skeleton = `
     <p style="color:var(--muted); margin-top:0; font-size:12px;">
-      Score this response against 15 universal grading dimensions. The
+      Score this response against 17 universal grading dimensions. The
       grader auto-detects which dimensions are testable from this prompt+
       response — dimensions with no signals are marked <strong>N/A</strong>
       and excluded from the score.
@@ -1850,13 +2023,13 @@ async function openGradeModal(messageIdx) {
         <input type="radio" name="grade-mode" value="universal"
                ${_gradeMode === 'universal' ? 'checked' : ''}
                onchange="_gradeMode='universal'; _runGrade(${messageIdx})">
-        Universal (fast, deterministic)
+        Universal <span style="color:var(--muted); font-size:10.5px;">~1-3s · deterministic</span>
       </label>
       <label style="font-size:12px; color:var(--muted); display:flex; align-items:center; gap:6px;">
         <input type="radio" name="grade-mode" value="category"
                ${_gradeMode === 'category' ? 'checked' : ''}
                onchange="_gradeMode='category'; _runGrade(${messageIdx})">
-        Expert (legacy per-category)
+        Expert <span style="color:var(--muted); font-size:10.5px;">~1s · legacy per-category</span>
       </label>
       ${deepRadio}
     </div>
