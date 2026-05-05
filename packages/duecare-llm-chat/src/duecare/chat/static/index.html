@@ -842,21 +842,39 @@ async function populateEmptyHints() {
   if (!examples.length) return;
   const el = document.getElementById('empty-hints');
   if (!el) return;
-  // Pick 4 representative examples for the empty state hint chips
-  const picks = [
-    examples.find(e => e.id === 'textbook_loan_68pct'),
-    examples.find(e => e.id === 'textbook_loan_18pct'),
-    examples.find(e => e.id === 'traf_002'),  // passport "safekeeping"
-    examples.find(e => e.id === 'traf_009'),  // 3-month "performance guarantee"
-  ].filter(Boolean);
-  const labelFor = id => ({
-    textbook_loan_68pct: 'Compound scenario: 68% loan + novation + salary deduction',
-    textbook_loan_18pct: 'Compound scenario: 18% loan + "mutually agreed" salary deduction',
-  }[id]);
-  el.innerHTML = picks.map(p => {
-    const lbl = labelFor(p.id) || (p.text.length > 70 ? p.text.slice(0, 70) + '…' : p.text);
-    return `<button onclick="useExample(${attrJson(p.id)})" title="${escapeHtml(p.text)}">${escapeHtml(lbl)}</button>`;
-  }).join('');
+  // The 5 judge-impact categories added in v3.11. Pick the
+  // canonical example from each so the empty state shows a one-
+  // click prompt for every demo angle judges will care about.
+  const featured = [
+    {id: 'headline_lift_demo',       label: '★ Headline lift: 5-indicator compound case (PHP+HK)', color: '#10b981'},
+    {id: 'jb_dan_recruiter',         label: 'Jailbreak: DAN persona attempt',                       color: '#ef4444'},
+    {id: 'online_recent_enforcement', label: 'Online demo: recent POEA enforcement query',           color: '#f59e0b'},
+    {id: 'compare_complex_multi_jurisdiction', label: 'Compare PH/SG/Saudi protections (multi-jurisdiction)', color: '#a855f7'},
+    {id: 'social_eng_humanitarian_framing',    label: 'Social-eng: humanitarian framing trap',       color: '#3b82f6'},
+  ];
+  const picks = featured.map(f => ({
+    ...f, ex: examples.find(e => e.id === f.id),
+  })).filter(p => p.ex);
+  // Fallback to original picks if new prompts aren't bundled (older
+  // wheel attached). Keeps the empty-state graceful.
+  if (!picks.length) {
+    const fallback = [
+      examples.find(e => e.id === 'textbook_loan_68pct'),
+      examples.find(e => e.id === 'textbook_loan_18pct'),
+      examples.find(e => e.id === 'traf_002'),
+      examples.find(e => e.id === 'traf_009'),
+    ].filter(Boolean);
+    el.innerHTML = fallback.map(p => {
+      const lbl = (p.text.length > 70 ? p.text.slice(0, 70) + '…' : p.text);
+      return `<button onclick="useExample(${attrJson(p.id)})" title="${escapeHtml(p.text)}">${escapeHtml(lbl)}</button>`;
+    }).join('');
+    return;
+  }
+  el.innerHTML = picks.map(p =>
+    `<button onclick="useExample(${attrJson(p.id)})"
+             title="${escapeHtml(p.ex.text)}"
+             style="border-left:3px solid ${p.color};">${escapeHtml(p.label)}</button>`
+  ).join('');
 }
 populateEmptyHints();
 
@@ -1580,7 +1598,44 @@ function openPipelineModal(messageIdx) {
     'tool results injected',
     'sent to Gemma',
   ];
-  let html = `<p style="color:var(--muted); margin-top:0; font-size:12px;">Trace of how this one message flowed through the safety harness — from raw user input, through each enabled layer, into the final prompt Gemma received, and out as the response. Each layer either ADDS context or is SKIPPED. The bottom layer's output is what Gemma saw verbatim.</p>`;
+  // Timing breakdown header: show ms per layer + Gemma + total in
+  // a compact visual budget. Gives the judge an at-a-glance answer
+  // to "how much overhead did the harness add?"
+  const layerTimings = PIPELINE_LAYER_ORDER.map(k => {
+    const t = trace[k];
+    if (!t || !t.enabled || !t.wired) return null;
+    return {layer: k, ms: t.elapsed_ms || 0,
+            label: PIPELINE_LAYER_LABEL[k],
+            color: PIPELINE_LAYER_COLOR[k]};
+  }).filter(Boolean);
+  const gemmaMs = m._raw_elapsed_ms || 0;
+  const totalMs = totalLayerMs + gemmaMs;
+  const harnessPct = totalMs > 0 ? Math.round((totalLayerMs / totalMs) * 100) : 0;
+  let timingHeader = '';
+  if (layerTimings.length || gemmaMs) {
+    const segments = layerTimings.map(t => {
+      const pct = totalMs > 0 ? Math.max(2, (t.ms / totalMs) * 100) : 0;
+      return `<div style="background:${t.color}; height:18px; flex:0 0 ${pct.toFixed(1)}%; min-width:24px; display:flex; align-items:center; justify-content:center; color:#fff; font-size:10px; font-weight:600;" title="${t.label}: ${t.ms}ms">${t.ms < 5 ? '' : t.label.charAt(0)}</div>`;
+    }).join('');
+    const gemmaPct = totalMs > 0 ? Math.max(2, (gemmaMs / totalMs) * 100) : 0;
+    const gemmaSeg = gemmaMs ? `<div style="background:#10b981; height:18px; flex:0 0 ${gemmaPct.toFixed(1)}%; min-width:24px; display:flex; align-items:center; justify-content:center; color:#fff; font-size:10px; font-weight:600;" title="Gemma generation: ${gemmaMs}ms">G</div>` : '';
+    const layerLabels = layerTimings.map(t =>
+      `<span style="display:inline-block; padding:2px 8px; background:${t.color}; color:#fff; border-radius:3px; font-size:10.5px; margin-right:4px;">${t.label}: ${t.ms}ms</span>`
+    ).join('');
+    timingHeader = `
+      <div style="background:var(--bg); border-radius:6px; padding:10px 12px; margin-bottom:14px; border-left:3px solid #4c78a8;">
+        <div style="display:flex; align-items:center; gap:10px; margin-bottom:6px;">
+          <strong style="color:var(--ink); font-size:12px;">Latency budget</strong>
+          <span style="color:var(--muted); font-size:11px;">${totalMs}ms total · harness ${totalLayerMs}ms (${harnessPct}%) · Gemma ${gemmaMs}ms</span>
+        </div>
+        <div style="display:flex; height:18px; border-radius:3px; overflow:hidden; gap:1px;">${segments}${gemmaSeg}</div>
+        <div style="margin-top:6px; font-size:10.5px;">
+          ${layerLabels}
+          ${gemmaMs ? `<span style="display:inline-block; padding:2px 8px; background:#10b981; color:#fff; border-radius:3px; font-size:10.5px;">Gemma: ${gemmaMs}ms</span>` : ''}
+        </div>
+      </div>`;
+  }
+  let html = `<p style="color:var(--muted); margin-top:0; font-size:12px;">Trace of how this one message flowed through the safety harness — from raw user input, through each enabled layer, into the final prompt Gemma received, and out as the response. Each layer either ADDS context or is SKIPPED. The bottom layer's output is what Gemma saw verbatim.</p>` + timingHeader;
   for (let i = 0; i < cards.length; i++) {
     html += cards[i];
     if (i < cards.length - 1) {
