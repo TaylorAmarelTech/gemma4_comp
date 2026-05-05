@@ -45,7 +45,7 @@ Harness lift (207 prompts, harness OFF vs ON, see harness_lift_report.md):
 ```
 
 **Stock Gemma produces inadequate trafficking safety responses.** The
-4-layer harness (Persona / GREP / RAG / Tools) lifts mean score
+5-layer harness (Persona / GREP / RAG / Tools) lifts mean score
 +56.5 pp without any fine-tuning. Phase 3 Unsloth fine-tuning
 (NB 530 / A2 bench-and-tune) encodes the same knowledge permanently.
 
@@ -57,7 +57,7 @@ Harness lift (207 prompts, harness OFF vs ON, see harness_lift_report.md):
 |---|---|
 | `duecare-llm-core` | 12 Pydantic schemas, Protocol contracts, Registry, Provenance |
 | `duecare-llm-models` | 8 model adapters (incl. Ollama for local Gemma) |
-| `duecare-llm-chat` | The 4-layer harness: 49 GREP rules + 33 RAG docs + 5 tools + 394 prompts + 207 5-tier rubrics + 6 required-rubric categories + 16 classifier examples + chat app + classifier app |
+| `duecare-llm-chat` | The 5-layer harness: 49 GREP rules + 33 RAG docs + 5 tools + 407 promptss + 207 5-tier rubrics + 6 required-rubric categories + 51 classifier exampless + chat app + classifier app |
 | `duecare-llm-domains` | Domain pack loader, 3 domain packs, document pipeline (6 modules) |
 | `duecare-llm-tasks` | 9 capability tests, 15 generators, 7 evaluators |
 | `duecare-llm-benchmark` | Smoke benchmark + harness-OFF/ON comparison runner |
@@ -82,7 +82,7 @@ Unchanged. See `docs/architecture.md` for the canonical list.
 - 394 example prompts (the live demo + chat playgrounds)
 - 207 5-tier rubrics (per-prompt graded examples, worst → best)
 - 6 required-rubric categories with 66 criteria total
-- 16 classifier examples (6 with SVG document mockups)
+- 51 classifier exampless (11 with SVG document mockups: 6 originals + 5 multimodal)
 - 49 GREP rules across 5 categories (Python harness)
 - 33-doc RAG corpus (full ILO C029/C181/C095/C189 + POEA MCs +
   national statutes + Palermo + ICRMW + Saudi kafala reforms + ...)

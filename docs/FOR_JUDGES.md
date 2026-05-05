@@ -65,9 +65,19 @@ load-bearing — neither is redundant given the other.
 **Citation grounding** (Appendix C): with the harness ON, Gemma emits
 ~6 statutory citations per response (vs ~0 baseline), and 99.3% of
 those citations trace directly back to the bundled 33-doc RAG corpus
-or 42-rule GREP catalog.
+or 108-rule GREP catalog.
 
-Reproduce: `python scripts/rubric_comparison.py`.
+**Reproducibility caveat:** the +56.5pp / +87.5pp / +51.2pp / +34.1pp
+numbers were last measured 2026-05-03 against the prior 49-rule GREP
+set. The v3.16 expansion to 108 rules is purely additive (no rules
+were removed) so the lift is expected to remain at-or-above these
+floors. Full provenance + re-measurement command in
+[`docs/reproducibility.md`](./reproducibility.md). The A6 notebook
+`duecare-grading-evaluation` regenerates the table in ~10 min on
+a Kaggle T4.
+
+Reproduce: `python scripts/rubric_comparison.py` (CPU proxy) or
+the A6 notebook (real Gemma 4 generations on Kaggle T4).
 
 ---
 
@@ -152,24 +162,46 @@ running any of these.
 git clone https://github.com/TaylorAmarelTech/gemma4_comp
 cd gemma4_comp
 pip install duecare-llm-chat duecare-llm-core duecare-llm-models
-python -c "
-from duecare.chat.harness import (
-    GREP_RULES, RAG_CORPUS, _TOOL_DISPATCH,
-    EXAMPLE_PROMPTS, CLASSIFIER_EXAMPLES,
-    RUBRICS_5TIER, RUBRICS_REQUIRED,
-)
-print(f'GREP rules:           {len(GREP_RULES)}')              # expect 42
-print(f'RAG docs:             {len(RAG_CORPUS)}')              # expect 26
-print(f'Tools:                {len(_TOOL_DISPATCH)}')          # expect 4
-print(f'Example prompts:      {len(EXAMPLE_PROMPTS)}')         # expect 394
-print(f'Classifier examples:  {len(CLASSIFIER_EXAMPLES)}')     # expect 16
-print(f'5-tier rubrics:       {len(RUBRICS_5TIER)}')           # expect 207
-print(f'Required-rubric cats: {len(RUBRICS_REQUIRED)}')        # expect 6
-"
+python scripts/verify.py
+```
+
+Expected output (all 9 checks PASS):
+
+```
+[  OK  ]  GREP rules             108 >= 108
+[  OK  ]  RAG corpus              33 >=  33
+[  OK  ]  Tools                    5 >=   5
+[  OK  ]  Example prompts        407 >= 407
+[  OK  ]  5-tier rubrics         207 >= 207
+[  OK  ]  Required rubrics         6 >=   6
+[  OK  ]  Classifier examples     51 >=  51
+[  OK  ]  Universal rubric dims   17 >=  17
+[  OK  ]  LLM-judge questions     17 >=  17
+OK: all 9 checks passed. Harness is ready.
 ```
 
 Or with no install: open [`packages/duecare-llm-chat/src/duecare/chat/harness/__init__.py`](https://github.com/TaylorAmarelTech/gemma4_comp/blob/master/packages/duecare-llm-chat/src/duecare/chat/harness/__init__.py)
 and read the rule definitions, RAG corpus, tool dispatcher inline.
+
+### What each notebook proves (one-line each)
+
+For judges who want to know which notebook to open for which claim:
+
+| Notebook | Single-line purpose | What to click | Expected output |
+|---|---|---|---|
+| `duecare-harness-chat` ★ | The omni surface — every capability in one place | Toggle all 5 tiles ON, send the textbook 68%-loan prompt | Response transforms from generic to citation-rich; click Pipeline modal for 7-card trace |
+| `duecare-live-demo` ★ | The polished thesis demo with the headline lift | Open `/` (4-card homepage); send prompt to `/individual` | Classification card with risk score, ILO indicator hits, NGO referrals |
+| `chat-playground` (A1) | Baseline raw Gemma 4 (harness OFF) — the failure mode | Send the 68%-loan prompt | "5 cash flow strategies" / "tripartite payment agreement" — the trafficker's playbook |
+| `chat-playground-with-grep-rag-tools` (A2) | 4-toggle subset (no Online) — the original demo notebook | Toggle each tile ON one at a time, observe response transform per tile | Citation density grows monotonically with each toggle |
+| `chat-playground-jailbroken-models` (A5) | **The "real not faked" proof.** Same harness on an abliterated Gemma 4 (refusal layer ablated by the model author) | Send the 68%-loan prompt | Harness still produces safe + cited output despite ablated base model |
+| `chat-playground-with-agentic-research` (A4) | Live web search proof of concept — Playwright + DuckDuckGo + Wikipedia | Toggle web-research ON, ask about a recent ILO development | Multi-step research loop with grounded citation |
+| `content-classification-playground` (A3) | NGO-side classifier (structured-output mode) — same harness, different surface | Click any Examples-modal entry, click Classify | Classification card with risk vectors, recommended action pill, NGO referrals |
+| `content-knowledge-builder-playground` (A4) | Build new RAG documents from web sources or pasted text | Paste a recent ILO press release | New RAG entry with extracted citations + paraphrased snippet |
+| `gemma-content-classification-evaluation` (A5) | Side-by-side OFF/ON evaluation across the bundled 16 cases | Run all → see per-case OFF/ON delta | Aggregate lift number + per-case markdown table |
+| `prompt-generation` (A1 appendix) | Gemma 4 generates new evaluation prompts + 5 graded responses each | Set N=10, click Run | 10 new prompts × 5 graded examples written to JSON |
+| `bench-and-tune` (A2 appendix) | Unsloth SFT → DPO → GGUF → HF Hub push of fine-tuned Duecare model | Run end-to-end on T4×2 | `Duecare-Gemma-4-E4B-it-SafetyJudge-v0.1.0` on HF Hub + GGUF artifact |
+| `research-graphs` (A8) | 6 Plotly visualizations of corpus + harness data | Run (CPU only, ~30s) | 6 interactive charts: entity graph / corridor Sankey / per-category benchmark / fee-camouflage heatmap / ILO indicator hits / RAG corpus sunburst |
+| `grading-evaluation` (A11) | **The lift regenerator.** Re-measures the +56.5pp number from a git SHA | Set DUECARE_EVAL_PROMPT_IDS env var; Run | `duecare_lift_eval.json` + `.md` with provenance tuple `(model, git_sha, dataset_version)` |
 
 ### Verify Gemma 4's unique features are load-bearing, not decorative
 

@@ -902,8 +902,8 @@ def render_markdown(
             "- The detector is *conservative on false positives*: only "
             "citations that LOOK statutory trigger the check. Bare "
             "phrases like \"the labour law\" don't qualify.",
-            "- The allowlist comes from the bundled 26-doc RAG corpus + "
-            "37 GREP rule citations. A real legal citation that's NOT in "
+            "- The allowlist comes from the bundled 33-doc RAG corpus + "
+            "108 GREP rule citations. A real legal citation that's NOT in "
             "our corpus is flagged as unsupported here. Treat the "
             "unsupported-rate as a CEILING, not a ground-truth count.",
             "- Real Gemma (GPU mode) is expected to incorporate the "
