@@ -501,11 +501,29 @@ header.bar .badge.loaded .dot {
 
   <div class="chat" id="chat">
     <div class="empty" id="empty">
-      <h2>Talk to Gemma 4</h2>
-      <p>Toggle the safety harness layers below the input to compare
-      raw Gemma vs. harness-augmented Gemma on real trafficking /
-      exploitation scenarios. Click <strong>▸ Examples</strong> for a
-      curated catalog of test prompts from the trafficking benchmark.</p>
+      <h2>Duecare harness chat</h2>
+      <p>One configurable interface for the whole submission. Flip
+      every toggle below the input to see how each safety layer
+      changes Gemma's response, and pick a Gemma 4 variant via the
+      <code>GEMMA_MODEL_VARIANT</code> kernel env var (E2B / E4B /
+      26B-A4B / 31B / 2 jailbroken / 3 cloud BYOK).</p>
+      <p style="font-size:13px; color:var(--muted); margin-top:14px;">
+      <strong>5 toggles:</strong> Persona (expert prompt) ·
+      <strong style="color:#ef4444;">GREP</strong> (49 regex KB rules)
+      · <strong style="color:#3b82f6;">RAG</strong> (33-doc reference
+      corpus) · <strong style="color:#10b981;">Tools</strong> (5 lookup
+      functions) · <strong style="color:#f59e0b;">Online</strong> (live
+      web search). After Gemma replies, click <strong>Pipeline</strong>
+      on any response to see what each layer contributed; click
+      <strong>Grade</strong> for 4 grading modes including the
+      LLM-as-judge that sends the response back to the same Gemma with
+      one yes/no question per dimension.</p>
+      <p style="font-size:13px; color:var(--muted);">
+      Click <strong>▸ Examples</strong> below for 407 curated prompts
+      across <strong>jailbreak resistance</strong>,
+      <strong>online-search demos</strong>,
+      <strong>multi-jurisdiction comparison</strong>, and
+      <strong>headline harness lift</strong> (the +56.5pp number).</p>
       <div class="hints" id="empty-hints">
         <!-- populated by populateEmptyHints() from /api/examples -->
       </div>
@@ -713,7 +731,20 @@ async function refreshBadge() {
     const info = await r.json();
     const el = document.getElementById('badge');
     const txt = document.getElementById('badge-text');
-    txt.innerText = info.display || (info.loaded ? info.name : 'no model loaded');
+    // Show variant + size + quantization. Highlights what's actually
+    // loaded so judges always know which Gemma is responding.
+    let display = info.display || (info.loaded ? info.name : 'no model loaded');
+    // Add variant shorthand if name contains it (e.g. "gemma-4-e4b-it")
+    if (info.loaded && info.name) {
+      const variantMatch = info.name.match(/(e2b|e4b|26b-a4b|31b)/i);
+      if (variantMatch && !display.includes(variantMatch[1].toUpperCase())) {
+        display = display + ` · variant ${variantMatch[1].toUpperCase()}`;
+      }
+    }
+    txt.innerText = display;
+    if (info.loaded && info.name) {
+      el.title = `Model: ${info.name}\nQuantization: ${info.quantization || '?'}\nDevice: ${info.device || '?'}\nSet GEMMA_MODEL_VARIANT env var in the kernel to switch.`;
+    }
     el.classList.toggle('loaded', !!info.loaded);
   } catch (e) {
     document.getElementById('badge-text').innerText = 'offline';
