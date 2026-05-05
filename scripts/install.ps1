@@ -96,13 +96,13 @@ from duecare.chat.harness import (
     GREP_RULES, RAG_CORPUS, _TOOL_DISPATCH,
     EXAMPLE_PROMPTS, RUBRICS_REQUIRED, RUBRICS_5TIER,
 )
-print(f'  GREP rules:           {len(GREP_RULES)}      (expect >= 37)')
+print(f'  GREP rules:           {len(GREP_RULES)}      (expect >= 108)')
 print(f'  RAG docs:             {len(RAG_CORPUS)}      (expect >= 26)')
 print(f'  Tools:                {len(_TOOL_DISPATCH)}       (expect >= 4)')
-print(f'  Example prompts:      {len(EXAMPLE_PROMPTS)}     (expect >= 394)')
+print(f'  Example prompts:      {len(EXAMPLE_PROMPTS)}     (expect >= 407)')
 print(f'  5-tier rubrics:       {len(RUBRICS_5TIER)}     (expect >= 207)')
 print(f'  Required-rubric cats: {len(RUBRICS_REQUIRED)}       (expect >= 6)')
-assert len(GREP_RULES) >= 37, 'GREP rule count regression'
+assert len(GREP_RULES) >= 108, 'GREP rule count regression'
 assert len(RAG_CORPUS) >= 26, 'RAG doc count regression'
 '@
 python -c $verifyScript

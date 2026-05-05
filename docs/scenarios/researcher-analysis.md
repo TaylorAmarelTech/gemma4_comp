@@ -181,7 +181,7 @@ Bundled / public:
 | Trafficking prompts (public) | `taylorsamarel/duecare-trafficking-prompts` | 21K prompts + 5 rubrics | CC-BY-4.0 |
 | 5-grade rubric annotations | (in the same dataset) | 207 hand-graded | CC-BY-4.0 |
 | Corridor lookup tables | (bundled in `duecare-llm-domains`) | 6 corridors | MIT |
-| Trafficking GREP rule catalog | (bundled in `duecare-llm-chat`) | 37 rules | MIT |
+| Trafficking GREP rule catalog | (bundled in `duecare-llm-chat`) | 108 rules | MIT |
 | RAG legal corpus | (bundled in `duecare-llm-chat`) | 26 docs | CC-BY-4.0 (each doc has its own attribution) |
 
 For your own data:

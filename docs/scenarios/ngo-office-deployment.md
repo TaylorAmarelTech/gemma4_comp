@@ -170,7 +170,7 @@ The chatbot is trained on:
 - POEA / BMET / BP2MI / DoFE recruitment regulations
 - HK / Saudi / Singapore / UAE / Qatar / Malaysia labour codes
 - Migration-corridor placement-fee caps for 6 corridors
-- Trafficking pattern recognition (37 GREP rules)
+- Trafficking pattern recognition (108 GREP rules)
 
 It is NOT a lawyer. Use it to:
 
