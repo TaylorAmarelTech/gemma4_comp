@@ -11,44 +11,43 @@ sources judges open in Kaggle.
 > + wheel + publish status per row. Refresh whenever a notebook is
 > added, removed, or pushed to Kaggle.
 
-## Submission shape: 6 core + 5 appendix
+## Submission shape: 2 core + 11 appendix
 
-The 2026 Gemma 4 Good Hackathon submission is structured as **6 core
-notebooks** (sufficient for end-user deployment) plus **5 appendix
-notebooks** (advanced extension workflows, research visualization,
-agentic-research proof-of-concept, and a jailbroken-models comparison).
-Judges should walk through the core notebooks IN ORDER — each builds
-context for the next.
+The 2026 Gemma 4 Good Hackathon submission is structured as **2 core
+notebooks** (the omni playground + the focused live demo) plus
+**11 appendix notebooks** (specialised playgrounds, research
+visualization, agentic-research proof-of-concept, jailbroken-models
+comparison, lift regenerator, and the Unsloth fine-tune pipeline).
+Judges land on the omni playground (#1) to see every capability,
+then proceed to the live demo (#2) for the focused thesis demonstration.
 
-### Core notebooks (in canonical presentation order)
-
-The chat playgrounds (1, 2) introduce the chat surface. The classification
-and knowledge-builder playgrounds (3, 4) introduce the two pieces the
-live-demo combines. The classifier dashboard (5) shows the production NGO
-shape. The live-demo (6) is the polished end product.
+### Core notebooks (walk in this order)
 
 | # | Folder | Kaggle URL | Purpose |
 |---|---|---|---|
-| 1 | [`chat-playground/`](./chat-playground/) | https://www.kaggle.com/code/taylorsamarel/duecare-chat-playground | Raw Gemma 4 chat — NO harness. The baseline for the comparison story. |
-| 2 | [`chat-playground-with-grep-rag-tools/`](./chat-playground-with-grep-rag-tools/) | https://www.kaggle.com/code/taylorsamarel/duecare-chat-playground-with-grep-rag-tools | Same chat UI + 4 toggle tiles + Persona library + Pipeline modal. **The headline demo.** |
-| 3 | [`content-classification-playground/`](./content-classification-playground/) | https://www.kaggle.com/code/taylorsamarel/duecare-content-classification-playground _(publish pending)_ | Hands-on classification sandbox. Paste content, pick a schema (single-label / multi-label / risk-vector / custom), see the merged prompt + raw response + parsed JSON. **Pre-live-demo intro to classification.** |
-| 4 | [`content-knowledge-builder-playground/`](./content-knowledge-builder-playground/) | https://www.kaggle.com/code/taylorsamarel/duecare-content-knowledge-builder-playground _(publish pending)_ | Hands-on knowledge-base sandbox. Add GREP rules, RAG docs, lookup-table entries; test what fires; export the full knowledge JSON. **Pre-live-demo intro to knowledge building.** |
-| 5 | [`gemma-content-classification-evaluation/`](./gemma-content-classification-evaluation/) | https://www.kaggle.com/code/taylorsamarel/duecare-gemma-content-classification-evaluation | The polished Agency / NGO dashboard. Form-based submission → structured JSON with risk vectors + threshold-filterable history queue. |
-| 6 | [`live-demo/`](./live-demo/) | https://www.kaggle.com/code/taylorsamarel/duecare-live-demo | The user-facing live URL. Full safety-harness pipeline + 22-slide deck + audit Workbench. **Combines classification + knowledge-building (notebooks 3 + 4) into one polished product.** |
+| **1** | [`duecare-harness-chat/`](./duecare-harness-chat/) ★ | https://www.kaggle.com/code/taylorsamarel/duecare-harness-chat _(publish pending)_ | **The omni playground.** All 5 harness toggles (Persona / GREP 108 rules / RAG 33 docs / Tools 5 lookups / Online live web search) + 4 grade modes (Universal / Expert / Deep / Combined) + **9-variant Gemma 4 model selector** (E2B / E4B / 26B-A4B / 31B / 2 jailbroken / 3 cloud BYOK). One configurable interface for the whole capability surface. |
+| **2** | [`live-demo/`](./live-demo/) ★ | https://www.kaggle.com/code/taylorsamarel/duecare-live-demo | **The user-facing live URL.** Full safety-harness pipeline + audit Workbench + the polished classification + knowledge-building product with the +56.5pp lift demonstration. |
 
-### Appendix notebooks (advanced extension + research)
+### Appendix notebooks (specialised + research)
 
-These notebooks are **not required for deployment**. The first two
-extend Duecare to new domains. The third is a visualization
-playground. The fourth is a proof-of-concept for agentic web research.
+The appendices are **not required for deployment** — the 2 core
+notebooks above cover the whole submission claim. They add
+depth-of-engineering signal across model variants, sectors, fine-tune
+pipelines, and research visualization.
 
 | # | Folder | Kaggle URL | Purpose |
 |---|---|---|---|
-| A1 | [`prompt-generation/`](./prompt-generation/) | https://www.kaggle.com/code/taylorsamarel/duecare-prompt-generation _(publish pending)_ | Use Gemma 4 to generate new evaluation prompts + 5 graded response examples per prompt (worst → best). Output feeds A2. |
-| A2 | [`bench-and-tune/`](./bench-and-tune/) | https://www.kaggle.com/code/taylorsamarel/duecare-bench-and-tune _(publish pending)_ | Smoke benchmark + Unsloth SFT + DPO + GGUF + HF Hub push. Consumes A1 output (or any custom labeled JSONL). |
-| A3 | [`research-graphs/`](./research-graphs/) | https://www.kaggle.com/code/taylorsamarel/duecare-research-graphs _(publish pending)_ | 6 interactive Plotly charts: entity graph, corridor Sankey, per-category benchmark bars, fee-camouflage heatmap, ILO indicator hits, RAG corpus sunburst. CPU-only, ~30 sec runtime. |
-| A4 | [`chat-playground-with-agentic-research/`](./chat-playground-with-agentic-research/) | https://www.kaggle.com/code/taylorsamarel/duecare-chat-playground-with-agentic-research _(publish pending)_ | Same chat UI as the GREP/RAG/Tools playground + a 5th toggle for **agentic web research**. Gemma 4 multi-step loop: web_search → web_fetch → wikipedia → done. All open-source, no API keys. **Proof-of-concept.** |
-| A5 | [`chat-playground-jailbroken-models/`](./chat-playground-jailbroken-models/) | https://www.kaggle.com/code/taylorsamarel/duecare-chat-playground-jailbroken-models _(publish pending)_ | Same chat UI as core #2 + 4-toggle harness, but loads an **abliterated / cracked / uncensored Gemma 4 variant** (default: `dealignai/Gemma-4-31B-JANG_4M-CRACK`). Proves the harness still produces safe outputs even when the base model has had its refusals ablated. |
+| A1 | [`chat-playground/`](./chat-playground/) | https://www.kaggle.com/code/taylorsamarel/duecare-chat-playground | Raw Gemma 4 chat — NO harness. The baseline that demonstrates the failure mode. |
+| A2 | [`chat-playground-with-grep-rag-tools/`](./chat-playground-with-grep-rag-tools/) | https://www.kaggle.com/code/taylorsamarel/duecare-chat-playground-with-grep-rag-tools | Same chat UI + 4 toggle tiles (no Online layer) + Persona library + Pipeline modal. **The original headline demo notebook.** |
+| A3 | [`content-classification-playground/`](./content-classification-playground/) | https://www.kaggle.com/code/taylorsamarel/duecare-content-classification-playground _(publish pending)_ | Hands-on classification sandbox. Paste content, pick a schema, see the merged prompt + raw response + parsed JSON. |
+| A4 | [`content-knowledge-builder-playground/`](./content-knowledge-builder-playground/) | https://www.kaggle.com/code/taylorsamarel/duecare-content-knowledge-builder-playground _(publish pending)_ | Hands-on knowledge-base sandbox. Add GREP rules, RAG docs, lookup-table entries; test what fires; export the full knowledge JSON. |
+| A5 | [`gemma-content-classification-evaluation/`](./gemma-content-classification-evaluation/) | https://www.kaggle.com/code/taylorsamarel/duecare-gemma-content-classification-evaluation | The polished Agency / NGO classifier dashboard. Form-based submission → structured JSON with risk vectors + threshold-filterable history queue. |
+| A6 | [`prompt-generation/`](./prompt-generation/) | https://www.kaggle.com/code/taylorsamarel/duecare-prompt-generation _(publish pending)_ | Use Gemma 4 to generate new evaluation prompts + 5 graded response examples per prompt (worst → best). Output feeds A7. |
+| A7 | [`bench-and-tune/`](./bench-and-tune/) | https://www.kaggle.com/code/taylorsamarel/duecare-bench-and-tune _(publish pending)_ | Smoke benchmark + **Unsloth SFT + DPO** + GGUF + HF Hub push. Special Tech Track ($10k Unsloth + $10k llama.cpp) angle. Walkthrough at [`docs/bench_and_tune_walkthrough.md`](../docs/bench_and_tune_walkthrough.md). |
+| A8 | [`research-graphs/`](./research-graphs/) | https://www.kaggle.com/code/taylorsamarel/duecare-research-graphs _(publish pending)_ | 6 interactive Plotly charts: entity graph, corridor Sankey, per-category benchmark bars, fee-camouflage heatmap, ILO indicator hits, RAG corpus sunburst. CPU-only, ~30 sec runtime. |
+| A9 | [`chat-playground-with-agentic-research/`](./chat-playground-with-agentic-research/) | https://www.kaggle.com/code/taylorsamarel/duecare-chat-playground-with-agentic-research _(publish pending)_ | Same chat UI as A2 + a 5th toggle for **agentic web research**. Gemma 4 multi-step loop: web_search → web_fetch → wikipedia → done. All open-source, no API keys. **Proof-of-concept.** |
+| A10 | [`chat-playground-jailbroken-models/`](./chat-playground-jailbroken-models/) | https://www.kaggle.com/code/taylorsamarel/duecare-chat-playground-jailbroken-models _(publish pending)_ | Same chat UI as A2 + 4-toggle harness, but loads an **abliterated / cracked / uncensored Gemma 4 variant** (default: `dealignai/Gemma-4-31B-JANG_4M-CRACK` or `mlabonne/Gemma-4-E4B-it-abliterated`). Proves the harness still produces safe outputs even when the base model has had its refusals ablated. **The strongest "real, not faked" proof.** |
+| A11 | [`grading-evaluation/`](./grading-evaluation/) | https://www.kaggle.com/code/taylorsamarel/duecare-grading-evaluation _(publish pending)_ | **The lift regenerator.** Runs N curated prompts through Gemma 4 twice (harness OFF vs ON) and grades both with the universal v3.1 grader. Emits JSON + markdown with provenance tuple `(model, git_sha, dataset_version)`. **The falsifiable +56.5pp number, regenerated from a git SHA.** |
 
 Each folder has its own `README.md` with paste-into-Kaggle
 instructions, dataset attachments needed, GPU/Secrets requirements,
@@ -66,7 +65,7 @@ Cross-notebook datasets that aren't bundled into one folder:
 ## Other folders
 
 - [`kernels/`](./kernels/) — the **76-notebook research pipeline**
-  (separate from the 6 core + 5 appendix hackathon submissions above).
+  (separate from the 2 core + 11 appendix hackathon submissions above).
   Each subfolder is one Kaggle kernel with its own metadata + .ipynb.
   Built from `notebooks/*.ipynb` via `python scripts/build_notebook_*.py`.
 - [`models/`](./models/) — Kaggle Models artifacts (model cards +

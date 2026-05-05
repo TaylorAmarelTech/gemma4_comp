@@ -10,20 +10,25 @@
 ## Submission shape
 
 ```
-6 CORE (judges evaluate first; sufficient for end-user deployment)
-  1. duecare-chat-playground                            raw Gemma 4 baseline
-  2. duecare-chat-playground-with-grep-rag-tools        ★ headline demo
-  3. duecare-content-classification-playground          classification sandbox
-  4. duecare-content-knowledge-builder-playground       knowledge-base builder
-  5. duecare-gemma-content-classification-evaluation    NGO/agency dashboard
-  6. duecare-live-demo                                  ★ user-facing live URL
+2 CORE (judges evaluate first; the omni surface + the focused thesis demo)
+  1. duecare-harness-chat                               ★ omni playground
+                                                          (5 toggles + 4 grade modes
+                                                          + 9 model variants)
+  2. duecare-live-demo                                  ★ focused live URL with
+                                                          the +56.5pp lift demonstration
 
-5 APPENDIX (optional; advanced extension + research)
-  A1. duecare-prompt-generation                         generate new prompts
-  A2. duecare-bench-and-tune                            SFT/DPO/GGUF/HF Hub
-  A3. duecare-research-graphs                           6 Plotly charts
-  A4. duecare-chat-playground-with-agentic-research     BYOK + browser agent
-  A5. duecare-chat-playground-jailbroken-models         abliterated model proof
+11 APPENDIX (specialised playgrounds, research, fine-tune, lift regen)
+  A1. duecare-chat-playground                           raw Gemma 4 baseline (no harness)
+  A2. duecare-chat-playground-with-grep-rag-tools       4-toggle subset of the omni notebook
+  A3. duecare-content-classification-playground         classification sandbox
+  A4. duecare-content-knowledge-builder-playground      knowledge-base builder
+  A5. duecare-gemma-content-classification-evaluation   NGO/agency dashboard
+  A6. duecare-prompt-generation                         generate new prompts
+  A7. duecare-bench-and-tune                            SFT/DPO/GGUF/HF Hub (Unsloth)
+  A8. duecare-research-graphs                           6 Plotly charts
+  A9. duecare-chat-playground-with-agentic-research     Playwright + DuckDuckGo + Wikipedia
+  A10. duecare-chat-playground-jailbroken-models        abliterated-model proof
+  A11. duecare-grading-evaluation                       lift regenerator with provenance tuple
 ```
 
 ---

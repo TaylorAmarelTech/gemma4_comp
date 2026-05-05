@@ -142,6 +142,14 @@ Sorted by who you are:
 - :material-account-multiple-check: [Persona readiness audit](persona_readiness_audit.md) — happy path verified per persona
 - :material-frequently-asked-questions: [FAQ](FAQ.md) — common questions answered
 
+### Verifiability + reproducibility (judge-focused)
+
+- :material-clipboard-check: [**Reproducibility**](reproducibility.md) — every quantitative claim grounded with `(git_sha, dataset_version, eval_set, grader_version)` provenance + one-command re-measurement path
+- :material-table-of-contents: [**Corpus index**](corpus_index.md) — single-page reference: every GREP rule (108) + RAG doc (33) + tool (5) + dimension (17) + judge question (17) by name
+- :material-compare-horizontal: [**Stock vs harnessed examples**](stock_vs_harnessed.md) — 5 textbook prompts side-by-side (mean lift 4.6% → 88.4%)
+- :material-tune-vertical: [**Bench-and-tune walkthrough**](bench_and_tune_walkthrough.md) — step-by-step for the A2 Unsloth fine-tune on Kaggle T4×2
+- :material-clock-fast: [**Judge 5-min test plan**](judge_5min_test_plan.md) — the entry point for hackathon judges
+
 ## Headline numbers
 
 The harness, when on, beats the harness off by:
@@ -151,9 +159,16 @@ The harness, when on, beats the harness off by:
 - **+51.2 pp** on ILO / international convention citations
 - **100%** of prompts saw the harness help; 0 saw it hurt
 
-Numbers are reproducible — see the [harness lift report](harness_lift_report.md)
-+ [`RESULTS.md`](https://github.com/TaylorAmarelTech/gemma4_comp/blob/master/RESULTS.md)
-for the `(git_sha, dataset_version, model_revision)` provenance.
+Numbers are reproducible — see the [harness lift report](harness_lift_report.md),
+the [reproducibility doc](reproducibility.md) (provenance for every
+quantitative claim), and [`RESULTS.md`](https://github.com/TaylorAmarelTech/gemma4_comp/blob/master/RESULTS.md)
+for the `(git_sha, dataset_version, model_revision)` tuples.
+
+**Caveat:** the +56.5pp / +87.5pp / +51.2pp / +34.1pp numbers were
+last measured 2026-05-03 against the prior 49-rule GREP set; the
+v3.16 expansion to 108 rules is purely additive (no rules removed)
+so the lift is expected to remain at-or-above these floors. Re-run
+the A6 `duecare-grading-evaluation` notebook to refresh.
 
 ## Privacy is non-negotiable
 
