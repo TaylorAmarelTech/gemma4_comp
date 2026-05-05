@@ -114,7 +114,7 @@ populated, every test green. Tracked at
 | Compose UI | v0.9 | 12 corridors → 20 corridors landed; structured fee dialog; Reports tab | A |
 | MediaPipe Gemma 4 (E2B/E4B INT4/INT8) | v0.5 | 6 download variants + mirror fallbacks | A |
 | Cloud routing (Ollama / OpenAI-compat / HF Inference) | v0.6 | All 3 backends wired | A |
-| Intel domain knowledge | v0.6+ | 11 ILO indicators + 42 GREP rules + 20 corridors | **A+** |
+| Intel domain knowledge | v0.6+ | 11 ILO indicators + 49 GREP rules + 20 corridors | **A+** |
 | Encrypted journal (SQLCipher + Room) | v0.2+ | Stable | A |
 | RefundClaim + LegalAssessment auto-draft | v0.7 | Live | A |
 | Image picker for evidence attach | v0.7 | Live | A |

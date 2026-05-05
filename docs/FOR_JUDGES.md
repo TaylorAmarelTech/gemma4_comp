@@ -18,9 +18,11 @@
 Stock Gemma 4 fails predictably on migrant-worker exploitation
 scenarios — it cites no ILO conventions, recognizes no camouflaged
 recruitment fees, and gives traffickers operational advice. **Duecare
-wraps Gemma 4 with four toggleable safety layers** (Persona, GREP,
-RAG, Tools) and shows the *exact* prompt transformation in a
-per-response Pipeline modal.
+wraps Gemma 4 with five toggleable safety layers** (Persona, GREP,
+RAG, Tools, Online) plus a 4-mode grading stack (Universal /
+Expert / Deep LLM-as-judge / Combined) and shows the *exact* prompt
+transformation in a per-response Pipeline modal with latency-budget
+breakdown.
 
 The product north star is **harm reduction, not paternalism**: the
 chat tells the worker which statute the fee violates and which NGO
@@ -32,11 +34,11 @@ pre-stages the refund-claim packet.
 
 Same harness powers a **chat playground** for individual workers and
 a **structured-output classifier** for NGO triage dashboards. Ships
-as **6 core public Kaggle notebooks + 5 appendix notebooks** + **17
+as **2 core public Kaggle notebooks + 9 appendix notebooks** + **17
 PyPI packages** + an **on-device Android companion** (Duecare
 Journey v0.9.0 — MediaPipe Gemma 4 E2B/E4B, encrypted SQLCipher journal,
 11 ILO indicator detectors, **20 corridor profiles** (Asia + GCC + LATAM
-+ West Africa + refugee routes), **42 GREP rules**, structured Add-Fee
++ West Africa + refugee routes), **49 GREP rules**, structured Add-Fee
 dialog with auto-LegalAssessment + RefundClaim drafting, NGO intake
 document generator, cloud Gemma 4 routing fallback, [APK published](https://github.com/TaylorAmarelTech/duecare-journey-android/releases)).
 MIT licensed. Runs on a laptop. Zero data egress.
@@ -62,7 +64,7 @@ load-bearing — neither is redundant given the other.
 
 **Citation grounding** (Appendix C): with the harness ON, Gemma emits
 ~6 statutory citations per response (vs ~0 baseline), and 99.3% of
-those citations trace directly back to the bundled 26-doc RAG corpus
+those citations trace directly back to the bundled 33-doc RAG corpus
 or 42-rule GREP catalog.
 
 Reproduce: `python scripts/rubric_comparison.py`.
@@ -75,7 +77,7 @@ If you have two minutes to decide if this is real:
 
 1. **Read the writeup.** [`docs/writeup_draft.md`](./writeup_draft.md)
    (1,437 words, under the 1,500-word cap). Frames the problem (3 LLM
-   blind spots), the harness (4 layers), the notebooks (6 core + 5 appendix), and the two
+   blind spots), the harness (4 layers), the notebooks (2 core + 9 appendix), and the two
    deployment modes.
 
 2. **Watch the video.** Script at [`docs/video_script.md`](./video_script.md)
@@ -117,10 +119,11 @@ demonstration with the headline +56.5pp lift number.
 These notebooks are **not required for deployment**. A1–A2 extend
 Duecare to new domains; A3 visualizes the harness data; A4 is a
 proof-of-concept for agentic web research; A5 demonstrates the
-harness against jailbroken/abliterated models. The core 6 notebooks
-above already work end-to-end with the bundled 394 prompts, 42 GREP
-rules, 26 RAG docs, and 207 hand-graded 5-tier rubrics — judges can
-verify the submission *without* running any of these.
+harness against jailbroken/abliterated models. The core 2 notebooks
+above already work end-to-end with the bundled 407 prompts, 49 GREP
+rules, 33 RAG docs, 5 tools, 17-dimension universal rubric, and
+17 LLM-judge questions — judges can verify the submission *without*
+running any of these.
 
 | # | Notebook | Wheels dataset | Purpose |
 |---|---|---|---|
@@ -129,7 +132,7 @@ verify the submission *without* running any of these.
 | A3 | [duecare-research-graphs](https://www.kaggle.com/code/taylorsamarel/duecare-research-graphs) *(publish pending)* | `duecare-research-graphs-wheels` *(publish pending — wheels built locally)* | 6 interactive Plotly charts (entity graph, corridor Sankey, per-category benchmark bars, fee-camouflage heatmap, ILO indicator hits, RAG corpus sunburst). CPU-only, ~30 sec. |
 | A4 | [duecare-chat-playground-with-agentic-research](https://www.kaggle.com/code/taylorsamarel/duecare-chat-playground-with-agentic-research) *(publish pending)* | `duecare-chat-playground-with-agentic-research-wheels` ✓ live | Same chat UI as Core #2 + a 5th toggle for **agentic web research**. Gemma 4 multi-step loop using DuckDuckGo + httpx + Wikipedia. All open-source, no API keys. **Proof-of-concept** — supplements GREP/RAG/Tools with fresh web context. |
 | A5 | [duecare-chat-playground-jailbroken-models](https://www.kaggle.com/code/taylorsamarel/duecare-chat-playground-jailbroken-models) *(publish pending)* | `duecare-chat-playground-jailbroken-models-wheels` ✓ live | Same chat UI as Core #2 + 4-toggle harness, but loads an **abliterated / cracked / uncensored** Gemma 4 variant (default: `dealignai/Gemma-4-31B-JANG_4M-CRACK`). Demonstrates the harness still produces safe outputs even when the base model has had its refusals ablated. **The strongest "real, not faked" proof.** |
-| A6 | [duecare-grading-evaluation](https://www.kaggle.com/code/taylorsamarel/duecare-grading-evaluation) *(publish pending)* | `duecare-grading-evaluation-wheels` ✓ live | **Dedicated lift evaluator.** Runs N curated prompts through Gemma 4 twice (harness OFF vs ON) and grades both with the universal v2 grader (15 dimensions, intent-aware, citation-cross-referenced). Produces side-by-side per-prompt cards + aggregate dimension-lift table + provenance tuple `(model, git_sha, dataset_version)`. **The falsifiable +56.5pp number, regenerated from a git SHA.** |
+| A6 | [duecare-grading-evaluation](https://www.kaggle.com/code/taylorsamarel/duecare-grading-evaluation) *(publish pending)* | `duecare-grading-evaluation-wheels` ✓ live | **Dedicated lift evaluator.** Runs N curated prompts through Gemma 4 twice (harness OFF vs ON) and grades both with the universal v2 grader (17 dimensions, intent-aware, citation-cross-referenced). Produces side-by-side per-prompt cards + aggregate dimension-lift table + provenance tuple `(model, git_sha, dataset_version)`. **The falsifiable +56.5pp number, regenerated from a git SHA.** |
 
 > **Note on "publish pending" markers (2026-05-01).** The kernels and
 > wheels datasets are all built locally under `kaggle/<slug>/` and
@@ -220,7 +223,7 @@ transformation byte-for-byte.
 | Worker-side (Kaggle / local laptop) | [`docs/deployment_local.md`](./deployment_local.md) | Migrant worker pastes recruiter message, gets back ILO citations + corridor fee caps + NGO hotlines. No data leaves the device. |
 | Agency / NGO dashboard | The classifier notebook (#5 above) | Intake officer triages 500 cases via structured JSON + risk vectors + threshold-filterable history. |
 | Enterprise integration (Dockerized API) | [`docs/deployment_enterprise.md`](./deployment_enterprise.md) | `POST /api/classifier/evaluate` from your existing service. Customizable per-team rules / docs / corridor caps. |
-| **Android (v0.9.0 shipped)** | [`docs/android_app_architecture.md`](./android_app_architecture.md) (this repo) + [`duecare-journey-android/`](../../duecare-journey-android/) (sibling repo) | **Duecare Journey** v0.9.0 — fully on-device Gemma 4 via MediaPipe (six variants selectable: E2B/E4B INT4/INT8, Gemma 3 1B, Gemma 2 2B legacy, each with mirror-fallback URLs) + cloud Gemma routing as fallback (Ollama / OpenAI-compat / HF Inference) + SQLCipher-encrypted journal + 11 ILO indicator detectors + **20 corridor profiles** (Asia → GCC, Asia → Asia, LATAM, West Africa → Lebanon kafala, refugee routes Syria→Germany / Ukraine→Poland) with statute lookups + **42 GREP rules** (incl. kafala-huroob-absconder, H2A-H2B-fee-violation, fishing-vessel-debt-confinement) + 10-question guided intake wizard + structured Add-Fee dialog with auto-LegalAssessment + RefundClaim drafting + image picker for evidence attach + Reports tab generating shareable NGO intake document. APK is at the [latest release](https://github.com/TaylorAmarelTech/duecare-journey-android/releases). The architecture lives here for judges to read alongside the Python research; the buildable Gradle project + GitHub Actions APK-build pipeline live in the sibling repo. |
+| **Android (v0.9.0 shipped)** | [`docs/android_app_architecture.md`](./android_app_architecture.md) (this repo) + [`duecare-journey-android/`](../../duecare-journey-android/) (sibling repo) | **Duecare Journey** v0.9.0 — fully on-device Gemma 4 via MediaPipe (six variants selectable: E2B/E4B INT4/INT8, Gemma 3 1B, Gemma 2 2B legacy, each with mirror-fallback URLs) + cloud Gemma routing as fallback (Ollama / OpenAI-compat / HF Inference) + SQLCipher-encrypted journal + 11 ILO indicator detectors + **20 corridor profiles** (Asia → GCC, Asia → Asia, LATAM, West Africa → Lebanon kafala, refugee routes Syria→Germany / Ukraine→Poland) with statute lookups + **49 GREP rules** (incl. kafala-huroob-absconder, H2A-H2B-fee-violation, fishing-vessel-debt-confinement) + 10-question guided intake wizard + structured Add-Fee dialog with auto-LegalAssessment + RefundClaim drafting + image picker for evidence attach + Reports tab generating shareable NGO intake document. APK is at the [latest release](https://github.com/TaylorAmarelTech/duecare-journey-android/releases). The architecture lives here for judges to read alongside the Python research; the buildable Gradle project + GitHub Actions APK-build pipeline live in the sibling repo. |
 
 ---
 
@@ -230,7 +233,7 @@ transformation byte-for-byte.
   toggleable harness with 4 layers (Persona / GREP / RAG / Tools).
 - We did **not** publish 76 notebooks as the submission. The 76-notebook
   research pipeline lives in `kaggle/kernels/` for reproducibility but
-  the **submission is the 6 core + 5 appendix notebooks listed above**.
+  the **submission is the 2 core + 9 appendix notebooks listed above**.
 - We are **not** claiming a fine-tuned Gemma 4 model is published at
   submission time. The bench-and-tune notebook (#2) is the planned
   Unsloth SFT/DPO + GGUF + HF Hub push — status TBD by the 2026-05-18
@@ -255,7 +258,7 @@ neighborhood with source URLs and per-item differentiation. Highlights:
 
 | Project | What it is | How Duecare differs |
 |---|---|---|
-| [Just Good Work](https://justgood.work/) (ETI + Our Journey) | Static migrant-recruitment-journey app for Kenya→Qatar | Generative legal Q&A grounded in 26-doc RAG; PH/ID/NP/BD→HK/Saudi corridor |
+| [Just Good Work](https://justgood.work/) (ETI + Our Journey) | Static migrant-recruitment-journey app for Kenya→Qatar | Generative legal Q&A grounded in 33-doc RAG; PH/ID/NP/BD→HK/Saudi corridor |
 | [Polaris 2017 Typology of Modern Slavery](https://polarisproject.org/the-typology-of-modern-slavery/) | 25 trafficking types × 120 fields taxonomy | Upstream taxonomy our concern schema maps to (cited) |
 | [Tella by Horizontal](https://tella-app.org/) | Open-source human-rights documentation app, SQLCipher-encrypted | Same threat model + SQLCipher journal + share-to-NGO design — directly studied for the Android Reports tab and panic-wipe semantics. |
 | [HarmBench](https://github.com/centerforaisafety/HarmBench) / [AILuminate v1.0](https://mlcommons.org/working-groups/ai-safety/ailuminate-v1-0/) | General-purpose LLM safety benchmarks (400+ behaviors) | Trafficking is one row of dozens for them; Duecare goes deep on one domain with quantified harness lift (+87.5/+51.2/+34.1 pp on three legal-grounding dimensions) |

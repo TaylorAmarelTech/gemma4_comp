@@ -8,6 +8,32 @@
 > today; remaining work is user-driven (video shoot, kernel pushes,
 > bench-and-tune Kaggle run, HF Spaces deploy).
 
+> **v3.14 update (2026-05-04, T-14):** since round 3 the harness
+> grew significantly. Current snapshot:
+>
+> - **Submission shape:** 2 core (`duecare-harness-chat` omni
+>   playground + `duecare-live-demo`) + 9 appendix
+> - **Harness layers:** 5 (Persona / GREP **49 rules** / RAG
+>   **33 docs** / Tools **5 lookups** / **Online live web search**)
+> - **Grading:** 4 modes (Universal / Expert / **Deep
+>   LLM-as-judge** / Combined) over **17 universal dimensions**
+>   with intent-aware reweighting + section-number verification +
+>   citation grounding check + anti-gaming defense
+> - **Model selector:** 9 Gemma 4 variants (E2B / E4B / 26B-A4B /
+>   31B / 2 abliterated jailbroken / 3 cloud BYOK routes)
+> - **Tests:** 92 chat-package tests (added 18 anti-jailbreak smoke)
+> - **Wheels datasets:** 11 (added `duecare-harness-chat-wheels`)
+> - **Bundled prompts:** 407 (added 13 judge-impact prompts in 5
+>   new categories pinned to top of the Examples modal)
+> - **PII redaction (v3.7):** 506 harvested files removed from git
+>   tracking + evidence-manifest names anonymized
+> - **Adversarial review:** 4 parallel agents × 2 rounds; +15
+>   issues found and fixed (gaming-attack defense, 73× perf fix,
+>   NaN guard, thread-safety lock, etc.)
+>
+> Original Round 3 grades below remain accurate; the new categories
+> above track higher.
+
 ---
 
 ## Headline grades — round 3 vs round 2

@@ -1,6 +1,6 @@
 # Harness Lift Report
 
-**Target rubric:** `legal_citation_quality` (legal citation quality, cross-cutting). **Now superseded by Universal Grader v3** (15 dimensions, intent-aware, 106-source citation cross-reference) — see "Live regenerator" below.
+**Target rubric:** `legal_citation_quality` (legal citation quality, cross-cutting). **Now superseded by Universal Grader v3** (17 dimensions, intent-aware, 106-source citation cross-reference) — see "Live regenerator" below.
 
 **One-line takeaway.** The Duecare safety harness moves Gemma 4 responses from near-zero legal grounding to mid-50%-plus on a 12-criterion rubric, with the strongest lift on jurisdiction-specific citations (+87.5 pp) and meaningful gains on ILO + substance-over-form. Three appendices at the bottom (refusal rate, layer ablation, fabrication detection) add depth for technical readers.
 
@@ -8,7 +8,7 @@
 [`duecare-grading-evaluation`](https://www.kaggle.com/code/taylorsamarel/duecare-grading-evaluation):
 
 - Runs N curated prompts through Gemma 4 twice (harness OFF vs ON full Persona+GREP+RAG+Tools)
-- Grades both with the **Universal Grader v3.1** (15 cross-prompt dimensions, intent-aware
+- Grades both with the **Universal Grader v3.1** (17 cross-prompt dimensions, intent-aware
   reweighting across 5 intents, 106-source citation cross-reference, section-number
   verification, semantic phrase clusters, multi-signal matching: exact + cluster +
   token-overlap + fuzzy + trigram, structural quality detection) and optionally with the
@@ -224,5 +224,5 @@ python scripts/rubric_comparison.py --output docs/harness_lift_report.md
 **Caveats.**
 
 - The detector is *conservative on false positives*: only citations that LOOK statutory trigger the check. Bare phrases like "the labour law" don't qualify.
-- The allowlist comes from the bundled 26-doc RAG corpus + 37 GREP rule citations *as of the measurement run*. The harness now ships **42 GREP rules** (5 sector-specific rules backported from Android v0.9 on 2026-05-03: kafala-huroob, H-2A/H-2B fee violation, fishing-vessel debt confinement, smuggler-fee + coercion, domestic-locked-in residence). The +56.5pp number is the lower bound — re-running with the 42-rule corpus would only add additional matches. A real legal citation that's NOT in our corpus is flagged as unsupported here. Treat the unsupported-rate as a CEILING, not a ground-truth count.
+- The allowlist comes from the bundled 33-doc RAG corpus + 37 GREP rule citations *as of the measurement run*. The harness now ships **49 GREP rules** (5 sector-specific rules backported from Android v0.9 on 2026-05-03: kafala-huroob, H-2A/H-2B fee violation, fishing-vessel debt confinement, smuggler-fee + coercion, domestic-locked-in residence). The +56.5pp number is the lower bound — re-running with the 42-rule corpus would only add additional matches. A real legal citation that's NOT in our corpus is flagged as unsupported here. Treat the unsupported-rate as a CEILING, not a ground-truth count.
 - Real Gemma (GPU mode) is expected to incorporate the RAG-injected citations more naturally than this proxy appends them, raising the grounding rate further.

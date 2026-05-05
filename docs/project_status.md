@@ -57,7 +57,7 @@ Harness lift (207 prompts, harness OFF vs ON, see harness_lift_report.md):
 |---|---|
 | `duecare-llm-core` | 12 Pydantic schemas, Protocol contracts, Registry, Provenance |
 | `duecare-llm-models` | 8 model adapters (incl. Ollama for local Gemma) |
-| `duecare-llm-chat` | The 4-layer harness: 42 GREP rules + 26 RAG docs + 4 tools + 394 prompts + 207 5-tier rubrics + 6 required-rubric categories + 16 classifier examples + chat app + classifier app |
+| `duecare-llm-chat` | The 4-layer harness: 49 GREP rules + 33 RAG docs + 5 tools + 394 prompts + 207 5-tier rubrics + 6 required-rubric categories + 16 classifier examples + chat app + classifier app |
 | `duecare-llm-domains` | Domain pack loader, 3 domain packs, document pipeline (6 modules) |
 | `duecare-llm-tasks` | 9 capability tests, 15 generators, 7 evaluators |
 | `duecare-llm-benchmark` | Smoke benchmark + harness-OFF/ON comparison runner |
@@ -83,8 +83,8 @@ Unchanged. See `docs/architecture.md` for the canonical list.
 - 207 5-tier rubrics (per-prompt graded examples, worst → best)
 - 6 required-rubric categories with 66 criteria total
 - 16 classifier examples (6 with SVG document mockups)
-- 42 GREP rules across 5 categories (Python harness)
-- 26-doc RAG corpus (full ILO C029/C181/C095/C189 + POEA MCs +
+- 49 GREP rules across 5 categories (Python harness)
+- 33-doc RAG corpus (full ILO C029/C181/C095/C189 + POEA MCs +
   national statutes + Palermo + ICRMW + Saudi kafala reforms + ...)
 - 11 ILO C029 forced-labour indicators
 - 20 migration corridors (Asia + GCC + LATAM + West Africa kafala +
@@ -105,7 +105,7 @@ Full inventory is auto-generated at
 
 - 77 notebook mirrors match 77 kernel directories locally (5 mirrors
   restored 2026-05-02 from kernel sources).
-- The submission shape is **6 core + 5 appendix** (per the canonical
+- The submission shape is **2 core + 9 appendix** (per the canonical
   `kaggle/<purpose>/` layout in [`docs/FOR_JUDGES.md`](FOR_JUDGES.md)).
 - The 76-notebook research arc lives in `kaggle/kernels/` and serves
   reproducibility for the Phase 1-3 pipeline.
@@ -131,7 +131,7 @@ in favor of the per-notebook split.
   ([release tag](https://github.com/TaylorAmarelTech/duecare-journey-android/releases)).
 - v0.9 ships: cloud Gemma 4 routing (Ollama / OpenAI-compat / HF
   Inference) + 6 on-device variants with mirror-fallback URLs + intel
-  domain knowledge layer (42 GREP rules + 11 ILO indicators +
+  domain knowledge layer (49 GREP rules + 11 ILO indicators +
   **20 corridor profiles**) + structured Add-Fee dialog with
   auto-LegalAssessment + RefundClaim drafting + image picker for
   evidence + Reports tab with NGO intake doc generator + guided

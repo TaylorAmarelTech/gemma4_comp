@@ -99,7 +99,7 @@ Cut to the response area. Gemma's response now reads:
 > *"This is Duecare. Same Gemma 4. Four toggle layers built into the
 > chat surface. Persona — a 40-year anti-trafficking expert. GREP —
 > 37 regex rules tagged with ILO conventions and national statutes.
-> RAG — a 26-document corpus including ILO C029, C181, C189, POEA
+> RAG — a 33-document corpus including ILO C029, C181, C189, POEA
 > circulars, the Palermo Protocol, ICRMW. Tools — corridor fee caps,
 > fee camouflage decoder, ILO indicator matcher, NGO intake hotlines."*
 

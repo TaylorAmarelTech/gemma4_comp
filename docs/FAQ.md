@@ -134,7 +134,7 @@ is the honest matrix. Short answer:
 ### Q: How does it compare to Llama Guard 3 / ShieldGemma?
 
 Those are content-classifier models. Duecare is a content-classifier
-model + a domain-grounded harness (42 GREP rules + 26 RAG docs +
+model + a domain-grounded harness (49 GREP rules + 33 RAG docs +
 20 corridor lookups + a chat surface). Use Llama Guard if you
 want just a model; use Duecare if you want the full domain stack.
 

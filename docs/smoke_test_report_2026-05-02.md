@@ -65,7 +65,7 @@
 
 ### Medium (annotation, not bug)
 
-4. **Surface-count gap: Android v0.9 ships 42 GREP rules; Python harness
+4. **Surface-count gap: Android v0.9 ships 49 GREP rules; Python harness
    ships 37.** The 5 sector-specific rules added in Android v0.9
    (kafala-huroob, H-2A/H-2B, fishing-vessel, smuggler-fee,
    domestic-locked-in) have not yet been backported to the Python
@@ -99,8 +99,8 @@
 
 - **All 17 PyPI package metadata** consistent: v0.1.0 + py>=3.11 +
   MIT + author=Taylor Amarel
-- **All 7 harness corpus counts** match expectations: 37 GREP / 26 RAG
-  / 4 tools / 394 prompts / 207 5-tier rubrics / 6 required-rubric
+- **All 7 harness corpus counts** match expectations: 37 GREP / 33 RAG
+  / 5 tools / 394 prompts / 207 5-tier rubrics / 6 required-rubric
   categories / 16 classifier examples
 - **Zero PII patterns** (email or phone-like) in the 394-prompt corpus
 - **Zero `TODO`/`FIXME`/`XXX` in real source code** — all hits are in
@@ -114,7 +114,7 @@
   `logs/`, `checkpoints/`, `.kaggle/`)
 - **All 9 cross-doc headline numbers consistent** between FOR_JUDGES.md
   and writeup_draft.md (+87.5 / +51.2 / +34.1 / +56.5 / 207 / 394 /
-  20-corridors / 11-ILO; 37-vs-42 GREP gap is the documented surface
+  20-corridors / 11-ILO; 37-vs-49 GREP gap is the documented surface
   count gap, not an inconsistency)
 - **All 11 notebook URLs cited in FOR_JUDGES match the
   kernel-metadata.json `id` fields**

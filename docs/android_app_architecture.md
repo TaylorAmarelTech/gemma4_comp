@@ -84,7 +84,7 @@ HK, IJM, or their embassy attaché.
 │  ┌────────────────────────────────────────────────────────────┐ │
 │  │  [1] INFERENCE LAYER                                       │ │
 │  │      LiteRT Gemma 4 E2B (INT8) + bundled harness:          │ │
-│  │      42 GREP rules, 26 RAG docs, 4 tools                   │ │
+│  │      49 GREP rules, 33 RAG docs, 5 tools                   │ │
 │  └────────────────────────────────────────────────────────────┘ │
 └──────────────────────────────────────────────────────────────────┘
 
@@ -104,7 +104,7 @@ HK, IJM, or their embassy attaché.
 | Throughput target (mid-range, Snapdragon 7-class) | 4-8 tokens/sec |
 | Conversion path | PyTorch → AI Edge Torch → `.task` LiteRT bundle |
 | Hardware acceleration | NNAPI on Android 13+; Vulkan compute fallback; CPU INT8 floor |
-| Bundled with | the same 42 GREP rules + 26 RAG docs + 4 tools that the Kaggle notebooks ship with — packed into the APK assets |
+| Bundled with | the same 49 GREP rules + 33 RAG docs + 5 tools that the Kaggle notebooks ship with — packed into the APK assets |
 
 **Why E2B not E4B:** E2B fits comfortably on every device with 4GB+
 RAM. E4B requires 6GB+ and excludes a meaningful fraction of the
