@@ -32,7 +32,7 @@
 | **33 RAG documents** | writeup §3 + UI + Pipeline | 2026-05-04 (v3.16) | `python scripts/verify.py` |
 | **5 lookup tools** | writeup §3 + UI + Pipeline | 2026-05-04 (v3.16) | `python scripts/verify.py` |
 | **407 example prompts** | writeup §3 + Examples modal | 2026-05-04 (v3.16) | `python scripts/verify.py` |
-| **17-dim universal rubric** | writeup §3 + grade footer + Pipeline | 2026-05-04 (v3.16) | `python scripts/verify.py` |
+| **21-dim universal rubric** | writeup §3 + grade footer + Pipeline | 2026-05-04 (v3.16) | `python scripts/verify.py` |
 | **17 LLM-judge yes/no questions** | writeup §3 + grade footer | 2026-05-04 (v3.16) | `python scripts/verify.py` |
 | **51 classifier examples** (16 originals + 30 persona × corridor + 5 multimodal SVG) | corpus_stats.md, FOR_JUDGES.md | 2026-05-04 (v3.16) | `python scripts/verify.py` |
 | **207 5-tier rubrics** (per-prompt graded examples) | writeup §2 + harness_lift_report.md | unchanged since 2026-05-02 | `python scripts/verify.py` |

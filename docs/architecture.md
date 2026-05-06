@@ -15,7 +15,7 @@
 > (live web search; kernel-supplied so notebook owners swap backends
 > without bumping the wheel).
 >
-> **4 grade modes** (was 1): Universal (deterministic 17-dimension
+> **4 grade modes** (was 1): Universal (deterministic 21-dimension
 > multi-signal) / Expert (legacy per-category) / **Deep** (LLM-as-
 > judge — sends response back to the loaded Gemma with one yes/no
 > question per dimension; pulls evidence quotes from the response) /
@@ -33,7 +33,7 @@
 > grade modes + harness counts + model info in one shot.
 >
 > **Bundled content (now):** 108 GREP rules / 33 RAG docs / 5 tools /
-> 17-dim universal rubric / 17 LLM-judge questions / 8 ILO conventions
+> 21-dim universal rubric / 17 LLM-judge questions / 8 ILO conventions
 > / 16 corridors / 25 fee-camouflage labels / 12 NGO intake groups /
 > 407 example prompts.
 >

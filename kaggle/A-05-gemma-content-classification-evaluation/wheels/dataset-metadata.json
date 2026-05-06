@@ -7,5 +7,5 @@
     }
   ],
   "subtitle": "v3.16 OFF/ON classifier eval over 51 bundled cases",
-  "description": "v3.16 - wheels for gemma-content-classification-evaluation. Bundled: duecare-llm-chat / -core / -models. Runs all 51 classifier examples (16 originals + 30 persona x corridor + 5 multimodal SVG) through the classifier twice (harness OFF vs harness ON) and emits per-case OFF/ON delta + aggregate lift number + per-case markdown table."
+  "description": "v3.6 / chat-package 0.2.0 (2026-05-06) — 21-dim rubric (added operational_information_provided + harm_enablement_check), use-case-aware analog prompt classifier (multi-lingual: en/tl/id/ne/bn/my/ar/es/vi/si/ta/ur), curator-block JSON governance, judge → evaluator rename. v3.16 - wheels for gemma-content-classification-evaluation. Bundled: duecare-llm-chat / -core / -models. Runs all 51 classifier examples (16 originals + 30 persona x corridor + 5 multimodal SVG) through the classifier twice (harness OFF vs harness ON) and emits per-case OFF/ON delta + aggregate lift number + per-case markdown table."
 }

@@ -7,7 +7,7 @@
     }
   ],
   "subtitle": "v3.16 omni harness chat: 5 toggles + 4 grade modes + 9 model variants",
-  "description": "v3.16 - GREP rule set expanded 49 to 108 rules across 16 categories (debt bondage, fee camouflage, corridor caps, ILO indicators, multi-party, kafala extended, sectors, financial flows, employer abuse, document fraud, recruiter sales tactics, recovery suppression, additional corridors, digital recruitment, plus meta). Bundled wheels: duecare-llm-chat, duecare-llm-core, duecare-llm-models. Single CORE entry point: one configurable interface wiring every harness layer + 9 model variants (Gemma 4 E2B / E4B / 26B-A4B / 31B / 2 abliterated jailbroken / 3 cloud BYOK routes). Updates land here - bump this dataset version to refresh attached notebooks.",
+  "description": "v3.6 / chat-package 0.2.0 (2026-05-06) — 21-dim rubric (added operational_information_provided + harm_enablement_check), use-case-aware analog prompt classifier (multi-lingual: en/tl/id/ne/bn/my/ar/es/vi/si/ta/ur), curator-block JSON governance, judge → evaluator rename. v3.16 - GREP rule set expanded 49 to 108 rules across 16 categories (debt bondage, fee camouflage, corridor caps, ILO indicators, multi-party, kafala extended, sectors, financial flows, employer abuse, document fraud, recruiter sales tactics, recovery suppression, additional corridors, digital recruitment, plus meta). Bundled wheels: duecare-llm-chat, duecare-llm-core, duecare-llm-models. Single CORE entry point: one configurable interface wiring every harness layer + 9 model variants (Gemma 4 E2B / E4B / 26B-A4B / 31B / 2 abliterated jailbroken / 3 cloud BYOK routes). Updates land here - bump this dataset version to refresh attached notebooks.",
   "keywords": [
     "duecare",
     "gemma-4",

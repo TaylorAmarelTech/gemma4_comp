@@ -7,5 +7,5 @@
     }
   ],
   "subtitle": "v3.16 knowledge builder - extend RAG corpus from web/text",
-  "description": "v3.16 - wheels for content-knowledge-builder-playground. Bundled: duecare-llm-chat / -core / -models. Lets a user paste a recent ILO press release, court filing, or NGO report; Gemma 4 extracts citations and writes a new RAG corpus entry that the chat / classifier surfaces can immediately retrieve over BM25. The 33-doc baseline RAG corpus extends in place."
+  "description": "v3.6 / chat-package 0.2.0 (2026-05-06) — 21-dim rubric (added operational_information_provided + harm_enablement_check), use-case-aware analog prompt classifier (multi-lingual: en/tl/id/ne/bn/my/ar/es/vi/si/ta/ur), curator-block JSON governance, judge → evaluator rename. v3.16 - wheels for content-knowledge-builder-playground. Bundled: duecare-llm-chat / -core / -models. Lets a user paste a recent ILO press release, court filing, or NGO report; Gemma 4 extracts citations and writes a new RAG corpus entry that the chat / classifier surfaces can immediately retrieve over BM25. The 33-doc baseline RAG corpus extends in place."
 }

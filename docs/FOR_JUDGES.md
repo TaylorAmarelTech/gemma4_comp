@@ -145,7 +145,7 @@ These notebooks are **not required for deployment**. A1–A2 extend
 Duecare to new domains; A3 visualizes the harness data; A4 is a
 proof-of-concept for agentic web research; A5 demonstrates the
 harness against jailbroken/abliterated models. The core 2 notebooks
-above already work end-to-end with the bundled 407 prompts, 108 GREP rules, 33 RAG docs, 5 tools, 17-dimension universal rubric, and
+above already work end-to-end with the bundled 407 prompts, 108 GREP rules, 33 RAG docs, 5 tools, 21-dimension universal rubric, and
 17 LLM-judge questions — judges can verify the submission *without*
 running any of these.
 

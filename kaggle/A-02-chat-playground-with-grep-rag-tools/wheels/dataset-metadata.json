@@ -7,5 +7,5 @@
     }
   ],
   "subtitle": "v3.16 4-toggle chat (Persona/GREP 108/RAG 33/Tools 5)",
-  "description": "v3.16 - wheels for the chat-playground-with-grep-rag-tools notebook. Bundled: duecare-llm-chat / -core / -models. Shows the 4 harness layers as toggleable tiles. GREP catalog now spans 108 rules across 16 categories (was 49 in v3.15). Each fired rule prepends to the Gemma context with rule name + ILO/national-statute citation + indicator description. Pipeline modal renders the full 7-card transformation trace."
+  "description": "v3.6 / chat-package 0.2.0 (2026-05-06) — 21-dim rubric (added operational_information_provided + harm_enablement_check), use-case-aware analog prompt classifier (multi-lingual: en/tl/id/ne/bn/my/ar/es/vi/si/ta/ur), curator-block JSON governance, judge → evaluator rename. v3.16 - wheels for the chat-playground-with-grep-rag-tools notebook. Bundled: duecare-llm-chat / -core / -models. Shows the 4 harness layers as toggleable tiles. GREP catalog now spans 108 rules across 16 categories (was 49 in v3.15). Each fired rule prepends to the Gemma context with rule name + ILO/national-statute citation + indicator description. Pipeline modal renders the full 7-card transformation trace."
 }

@@ -16,7 +16,7 @@
 > - **Harness layers:** 5 (Persona / GREP 108 rules / RAG
 >   **33 docs** / Tools **5 lookups** / **Online live web search**)
 > - **Grading:** 4 modes (Universal / Expert / **Deep
->   LLM-as-judge** / Combined) over **17 universal dimensions**
+>   LLM-as-judge** / Combined) over **21 universal dimensions**
 >   with intent-aware reweighting + section-number verification +
 >   citation grounding check + anti-gaming defense
 > - **Model selector:** 9 Gemma 4 variants (E2B / E4B / 26B-A4B /

@@ -7,5 +7,5 @@
     }
   ],
   "subtitle": "v3.16 6 Plotly visualizations of corpus + harness data (CPU)",
-  "description": "v3.16 - wheels for research-graphs (CPU only, ~30 sec to render). Bundled: duecare-llm-chat / -core / -models / -benchmark. 6 interactive Plotly charts: entity graph / corridor Sankey / per-category benchmark bars / fee-camouflage heatmap / ILO indicator hits / RAG corpus sunburst. Lets researchers explore what the harness actually knows: 108 GREP rules, 33 RAG docs, 11 ILO indicators, 16 fee-camouflage labels, 4+ NGO intake hotlines."
+  "description": "v3.6 / chat-package 0.2.0 (2026-05-06) — 21-dim rubric (added operational_information_provided + harm_enablement_check), use-case-aware analog prompt classifier (multi-lingual: en/tl/id/ne/bn/my/ar/es/vi/si/ta/ur), curator-block JSON governance, judge → evaluator rename. v3.16 - wheels for research-graphs (CPU only, ~30 sec to render). Bundled: duecare-llm-chat / -core / -models / -benchmark. 6 interactive Plotly charts: entity graph / corridor Sankey / per-category benchmark bars / fee-camouflage heatmap / ILO indicator hits / RAG corpus sunburst. Lets researchers explore what the harness actually knows: 108 GREP rules, 33 RAG docs, 11 ILO indicators, 16 fee-camouflage labels, 4+ NGO intake hotlines."
 }

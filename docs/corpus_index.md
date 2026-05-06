@@ -382,7 +382,7 @@ from duecare.chat.harness import (
     GREP_RULES, RAG_CORPUS, _TOOL_DISPATCH,
     EXAMPLE_PROMPTS, CLASSIFIER_EXAMPLES,
     RUBRICS_5TIER, RUBRICS_REQUIRED,
-    RUBRIC_UNIVERSAL, JUDGE_QUESTIONS,
+    RUBRIC_UNIVERSAL, EVALUATION_QUESTIONS,
 )
 print(len(GREP_RULES))                            # 108
 print(len(RAG_CORPUS))                            # 33
@@ -391,8 +391,8 @@ print(len(EXAMPLE_PROMPTS))                       # 407
 print(len(CLASSIFIER_EXAMPLES))                   # 51
 print(len(RUBRICS_5TIER))                         # 207
 print(len(RUBRICS_REQUIRED))                      # 6
-print(len(RUBRIC_UNIVERSAL["dimensions"]))        # 17
-print(len(JUDGE_QUESTIONS))                       # 17
+print(len(RUBRIC_UNIVERSAL["dimensions"]))        # 21
+print(len(EVALUATION_QUESTIONS))                  # 21
 ```
 
 Source-of-truth file: [`packages/duecare-llm-chat/src/duecare/chat/harness/__init__.py`](../packages/duecare-llm-chat/src/duecare/chat/harness/__init__.py)
