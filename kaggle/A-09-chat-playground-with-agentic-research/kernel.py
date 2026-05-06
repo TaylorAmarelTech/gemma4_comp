@@ -265,6 +265,206 @@ _HIDE_HARNESS_TILES_SNIPPET = """
 """
 
 
+# ---------------------------------------------------------------------------
+# COMPACT-LAYOUT OVERRIDE
+# Default chat UI puts the safety-harness panel + sliders inside the
+# composer, eating ~250px of vertical space and pushing the textarea
+# near the top of the viewport. This override:
+#   - Compacts each harness tile (smaller padding, smaller font, hides
+#     description by default)
+#   - Hides the temp/top_p/top_k/max-token sliders behind a ▸ Settings
+#     toggle (rarely changed; not worth the always-visible footprint)
+#   - Adds Expand / Collapse buttons to the harness-tiles header so the
+#     user can bring back the full descriptions when they want depth,
+#     or hide the harness panel entirely to maximize the chat area.
+# Persists user choice in localStorage so reloads remember the layout.
+# ---------------------------------------------------------------------------
+_COMPACT_LAYOUT_SNIPPET = """
+<style id="_dc-compact-layout">
+  /* Compact harness tiles -------------------------------------- */
+  .harness-tiles {
+    padding: 8px 10px !important;
+    margin-top: 8px !important;
+    gap: 6px !important;
+    grid-template-columns: repeat(5, 1fr) !important;
+  }
+  .harness-tiles-header {
+    margin-bottom: 4px !important;
+  }
+  .harness-tiles-header h3 {
+    font-size: 11px !important;
+  }
+  .harness-tiles-header .hint {
+    font-size: 10.5px !important;
+  }
+  .harness-tile {
+    padding: 6px 9px !important;
+    gap: 3px !important;
+  }
+  .harness-tile-name {
+    font-size: 12.5px !important;
+    line-height: 1.2 !important;
+  }
+  .harness-tile-state {
+    font-size: 9px !important;
+    padding: 2px 6px !important;
+  }
+  /* Description + catalog hidden by default; shown when .show-details */
+  .harness-tile-desc, .harness-catalog-link {
+    display: none !important;
+  }
+  .harness-tiles.show-details .harness-tile-desc,
+  .harness-tiles.show-details .harness-catalog-link {
+    display: block !important;
+  }
+  /* Hide tiles entirely when .collapsed */
+  .harness-tiles.collapsed .harness-tile,
+  .harness-tiles.collapsed .harness-catalog {
+    display: none !important;
+  }
+  /* Show the toggle bar even when collapsed */
+  .harness-tiles.collapsed {
+    grid-template-columns: 1fr !important;
+    padding: 4px 10px !important;
+  }
+
+  /* Compact composer -------------------------------------------- */
+  .composer {
+    padding: 8px 12px !important;
+  }
+  .composer textarea {
+    min-height: 38px !important;
+    max-height: 160px !important;
+    padding: 8px 10px !important;
+    font-size: 14px !important;
+  }
+  .composer .pending-images {
+    margin-bottom: 4px !important;
+  }
+  /* Sliders hidden by default; shown when body.show-controls */
+  .composer .controls {
+    display: none !important;
+    font-size: 11px !important;
+    padding: 6px 0 0 0 !important;
+  }
+  body.show-controls .composer .controls {
+    display: flex !important;
+    gap: 12px !important;
+    align-items: center !important;
+    flex-wrap: wrap !important;
+  }
+  .composer .controls input[type=range] { width: 60px !important; }
+  .composer .controls input[type=number] { width: 56px !important; }
+
+  /* Layout toolbar (Expand / Collapse / Settings) ------------- */
+  .dc-layout-toolbar {
+    display: flex; gap: 6px; align-items: center;
+    margin-left: auto;
+  }
+  .dc-layout-toolbar button {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    padding: 3px 8px;
+    border-radius: 5px;
+    font-size: 10.5px;
+    cursor: pointer;
+    font-weight: 500;
+    line-height: 1.2;
+  }
+  .dc-layout-toolbar button:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+  .dc-layout-toolbar button.on {
+    background: rgba(96, 165, 250, 0.12);
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+</style>
+<script>
+(function() {
+  function inject() {
+    var hdr = document.querySelector('.harness-tiles-header');
+    var tiles = document.getElementById('harness-tiles');
+    if (!hdr || !tiles) {
+      // chat UI not yet hydrated; retry
+      setTimeout(inject, 300);
+      return;
+    }
+    if (document.querySelector('.dc-layout-toolbar')) return;  // already mounted
+
+    // Restore saved layout state from localStorage
+    var ls = window.localStorage;
+    var details = ls.getItem('dc-show-details') === '1';
+    var hidden  = ls.getItem('dc-harness-hidden') === '1';
+    var ctrls   = ls.getItem('dc-show-controls') === '1';
+    if (details) tiles.classList.add('show-details');
+    if (hidden)  tiles.classList.add('collapsed');
+    if (ctrls)   document.body.classList.add('show-controls');
+
+    var bar = document.createElement('div');
+    bar.className = 'dc-layout-toolbar';
+
+    var btnDetails = document.createElement('button');
+    btnDetails.type = 'button';
+    btnDetails.textContent = details ? 'Hide details' : 'Show details';
+    if (details) btnDetails.classList.add('on');
+    btnDetails.title = 'Show / hide the description on each harness tile';
+    btnDetails.addEventListener('click', function() {
+      var on = !tiles.classList.contains('show-details');
+      tiles.classList.toggle('show-details', on);
+      btnDetails.textContent = on ? 'Hide details' : 'Show details';
+      btnDetails.classList.toggle('on', on);
+      ls.setItem('dc-show-details', on ? '1' : '0');
+    });
+
+    var btnHide = document.createElement('button');
+    btnHide.type = 'button';
+    btnHide.textContent = hidden ? 'Show harness' : 'Hide harness';
+    if (hidden) btnHide.classList.add('on');
+    btnHide.title = 'Hide / show the entire safety-harness toggle panel to maximize chat area';
+    btnHide.addEventListener('click', function() {
+      var on = !tiles.classList.contains('collapsed');
+      tiles.classList.toggle('collapsed', on);
+      btnHide.textContent = on ? 'Show harness' : 'Hide harness';
+      btnHide.classList.toggle('on', on);
+      ls.setItem('dc-harness-hidden', on ? '1' : '0');
+    });
+
+    var btnControls = document.createElement('button');
+    btnControls.type = 'button';
+    btnControls.textContent = ctrls ? 'Hide controls' : 'Show controls';
+    if (ctrls) btnControls.classList.add('on');
+    btnControls.title = 'Show / hide the temp / top_p / top_k / max-tokens sliders';
+    btnControls.addEventListener('click', function() {
+      var on = !document.body.classList.contains('show-controls');
+      document.body.classList.toggle('show-controls', on);
+      btnControls.textContent = on ? 'Hide controls' : 'Show controls';
+      btnControls.classList.toggle('on', on);
+      ls.setItem('dc-show-controls', on ? '1' : '0');
+    });
+
+    bar.appendChild(btnDetails);
+    bar.appendChild(btnControls);
+    bar.appendChild(btnHide);
+
+    // Insert after the existing Enable-all/Disable-all buttons that
+    // already live with style="margin-left:auto" — we steal that
+    // margin-left by inserting our toolbar AFTER it (last child of
+    // the header, so flex-wrap places ours on the right edge).
+    hdr.appendChild(bar);
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', inject);
+  } else {
+    inject();
+  }
+})();
+</script>
+"""
+
+
 def _attach_shutdown(app, hide_harness_tiles: bool = False) -> None:
     """Bolt /api/shutdown + /shutdown + floating button onto any FastAPI app."""
     from fastapi.responses import HTMLResponse, JSONResponse
@@ -315,7 +515,7 @@ def _attach_shutdown(app, hide_harness_tiles: bool = False) -> None:
     # Inject the floating shutdown button into the main page via middleware.
     # Filters: only path "/" + content-type text/html. Streaming endpoints
     # like /api/chat (SSE / JSON) pass through untouched.
-    extras = _SHUTDOWN_BUTTON_SNIPPET
+    extras = _COMPACT_LAYOUT_SNIPPET + _SHUTDOWN_BUTTON_SNIPPET
     if hide_harness_tiles:
         extras = _HIDE_HARNESS_TILES_SNIPPET + extras
 
