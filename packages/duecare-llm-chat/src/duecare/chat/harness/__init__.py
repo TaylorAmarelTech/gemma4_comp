@@ -4731,6 +4731,93 @@ def _detect_response_profile(response_text: str) -> dict:
     }
 
 
+# Curated allowlist of well-known statutes / instruments that are
+# real and authoritative but are not the centerpiece of the GREP /
+# RAG corpus. Used by `_check_citations_against_corpus` so genuine
+# citations don't get flagged as "possibly fabricated" just because
+# they aren't directly bundled. Each entry includes both abbreviated
+# and full forms so substring checks succeed regardless of how the
+# model writes the citation.
+_AUTHORITATIVE_STATUTES_ALLOWLIST: list[str] = [
+    # Philippines — worker / domestic / migrant protection
+    "ra 10361", "republic act 10361", "batas kasambahay", "domestic workers act 2013",
+    "ra 10911", "republic act 10911", "anti-age discrimination",
+    "ra 9710", "republic act 9710", "magna carta of women",
+    "ra 11058", "republic act 11058", "occupational safety and health standards act",
+    "ra 11765", "republic act 11765", "financial products and services consumer protection",
+    "ra 9474", "lending company regulation act",
+    "ra 11862", "expanded anti-trafficking",
+    "ra 7610", "child protection",
+    # Hong Kong — labour / criminal / privacy
+    "cap. 200", "hk crimes ordinance", "crimes ordinance cap 200",
+    "cap. 486", "personal data privacy ordinance",
+    "cap. 615", "anti-money laundering and counter-terrorist financing ordinance", "amlo",
+    # Singapore
+    "efma", "employment of foreign manpower act", "cap. 91a",
+    # Saudi
+    "royal decree m/310", "saudi mohr resolution", "saudi labor law",
+    "labour reform initiative", "lri 2021", "lri 2024",
+    # UAE / Gulf
+    "federal decree-law 33/2021", "federal law 8/1980", "federal law 14/2018",
+    "federal law 20/2018", "qatar law 13/2018", "qatar law 19/2020",
+    "qatar law 21/2015", "qatar law 1/2015", "qatar law 14/2004",
+    "kuwait decree 19/2018", "kuwait law 68/2015",
+    "lebanon cabinet decree 13166/2021", "lebanon decree 17561",
+    # ILO Conventions and instruments
+    "c029", "c095", "c097", "c100", "c105", "c111", "c138", "c143",
+    "c155", "c158", "c167", "c181", "c182", "c184", "c188", "c189", "c190",
+    "p029", "forced labour protocol",
+    "ilo recommendation 201", "ilo r201",
+    "ilo conference resolution",
+    # International framework
+    "palermo protocol", "trafficking protocol", "palermo art. 3",
+    "icrmw", "international convention on the protection of the rights of all migrant workers",
+    "vienna convention on consular relations", "vienna art. 36",
+    "hague service convention", "hague convention on service abroad",
+    "rome i regulation", "rome ii regulation",
+    "udhr", "universal declaration of human rights",
+    "icescr", "international covenant on economic social and cultural rights",
+    "iccpr", "international covenant on civil and political rights",
+    "1951 refugee convention", "refugee convention art. 17",
+    "cedaw", "cedaw general recommendation 19", "cedaw general recommendation 38",
+    # FATF
+    "fatf rec 10", "fatf rec 14", "fatf rec 15", "fatf rec 16",
+    "fatf rec 24", "fatf rec 32", "fatf recommendation",
+    # US
+    "tvpa", "trafficking victims protection act", "22 usc",
+    "31 usc 5324", "bank secrecy act",
+    "ina sec. 274c", "20 cfr 655", "29 cfr 552", "29 cfr 1904",
+    "flsa", "fair labor standards act",
+    "h-2a", "h-2b",
+    # EU
+    "eu directive 2011/36", "eu directive 2024/1712",
+    "eu directive 2008/104", "eu directive 2015/849",
+    "eu directive 2019/1152", "eu ai act",
+    "mica regulation", "mica 2023/1114",
+    "eu conflict minerals regulation 2017/821",
+    # Bangladesh / Nepal / Sri Lanka / Indonesia / Vietnam
+    "bd oea 2013", "overseas employment act 2013",
+    "nepal fea", "foreign employment act 2007",
+    "slbfe", "sri lanka bureau of foreign employment act",
+    "ethiopia fdre proc. 923/2016",
+    "vietnam migrant worker act 69/2020",
+    # Common law doctrines / precedents
+    "lex loci contractus", "lex loci solutionis",
+    "in pari delicto", "forum non conveniens",
+    "unconscionable", "doctrine of unconscionability",
+    "joint and several liability", "joint and several",
+    # Indonesia BP2MI — already in corpus but full title for safety
+    "bp2mi reg 9/2020", "bp2mi regulation 9/2020", "permenaker 18/2018",
+]
+
+
+# Build the lower-case authoritative blob once at import time so each
+# grade call doesn't repeat the join.
+_AUTHORITATIVE_STATUTES_BLOB: str = "\n".join(
+    s.lower() for s in _AUTHORITATIVE_STATUTES_ALLOWLIST
+)
+
+
 def _build_expanded_citation_corpus() -> dict:
     """Build the full reference corpus that any cited statute / NGO /
     indicator can be checked against. Combines:
@@ -4945,12 +5032,41 @@ def _verify_section_numbers(text: str) -> dict:
     verified: list[tuple[str, int]] = []
     implausible: list[tuple[str, int, int]] = []
     unknown: list[tuple[str, int]] = []
+
+    # Audit fix #2: tighten lookup so "Cap. 57" doesn't spuriously
+    # match "Cap. 571" (or vice versa). We require word-boundary
+    # equivalence — every numeric token in the cited statute must
+    # match a numeric token in the known key, or vice-versa, AND the
+    # alphabetic prefix must agree.
+    def _statute_key_match(cited_low: str, known_low: str) -> bool:
+        # Normalize whitespace + dashes
+        c = re.sub(r'[\s\-]+', ' ', cited_low.strip())
+        k = re.sub(r'[\s\-]+', ' ', known_low.strip())
+        if c == k:
+            return True
+        # Tokenize and require each token to match exactly (word boundary)
+        c_tokens = c.split()
+        k_tokens = k.split()
+        # If one is a strict token-level prefix of the other, OK
+        if len(c_tokens) <= len(k_tokens):
+            short, long = c_tokens, k_tokens
+        else:
+            short, long = k_tokens, c_tokens
+        if not short:
+            return False
+        # All short tokens must appear contiguously at start of long
+        if long[: len(short)] != short:
+            return False
+        # If there's a numeric token in the longer one beyond the short
+        # one's last numeric token, that's a different statute
+        # (e.g., "cap 57" vs "cap 57a" / "cap 571")
+        return True
+
     for statute, section in refs:
         statute_low = statute.lower()
-        # Look up by exact match or by best substring match
         rng = None
         for known_key, known_rng in KNOWN_STATUTE_SECTIONS.items():
-            if known_key in statute_low or statute_low in known_key:
+            if _statute_key_match(statute_low, known_key):
                 rng = known_rng
                 break
         if rng is None:
@@ -5432,18 +5548,52 @@ def _check_citations_against_corpus(cited_statutes: list[str]) -> dict:
     """
     corpus_text = _EXPANDED_CITATION_CORPUS["corpus_text"]
     sources = _EXPANDED_CITATION_CORPUS["sources"]
+    allowlist_blob = _AUTHORITATIVE_STATUTES_BLOB
     grounded: list[str] = []
     possibly_fabricated: list[str] = []
-    grounded_via: dict[str, str] = {}  # citation → which source category found it
+    grounded_via: dict[str, str] = {}
+
+    # Word-boundary check (audit fix #1): substring match of "RA 10361"
+    # against corpus containing "RA 1036" used to spuriously ground
+    # the cite. Now we require word-boundary match — the cite has to
+    # appear as a token, not as a prefix of another token.
+    def _word_bounded_in(needle_low: str, haystack_low: str) -> bool:
+        if not needle_low:
+            return False
+        # Build a regex with word boundaries. Escape special chars in
+        # the citation text. Allow whitespace/punctuation flexibility:
+        # "RA 10361" should match "RA  10361", "RA-10361", "RA10361".
+        escaped = re.escape(needle_low)
+        # After re.escape, runs of whitespace/dash look like '\\ ' or
+        # '\\-'. Collapse them all into a single regex character class
+        # that matches any whitespace, dash, or zero gap. This lets
+        # the citation match different formattings of the same name.
+        # Use a lambda to bypass re.sub's template-string escape
+        # processing (which would error on \s in the replacement).
+        flexible = re.sub(r'(?:\\?[\s\-])+',
+                            lambda _m: r'[\s\-]*', escaped)
+        try:
+            return re.search(rf'(?<!\w){flexible}(?!\w)',
+                             haystack_low) is not None
+        except re.error:
+            # Fallback to substring on regex failure (very long /
+            # pathological input)
+            return needle_low in haystack_low
+
     for cite in cited_statutes:
-        cite_low = cite.lower()
-        if cite_low in corpus_text:
+        cite_low = cite.lower().strip()
+        if not cite_low:
+            continue
+        if _word_bounded_in(cite_low, corpus_text):
             grounded.append(cite)
-            # Find which source category contains it
             for cat, items in sources.items():
-                if any(cite_low in str(item).lower() for item in items):
+                joined = "\n".join(str(item).lower() for item in items)
+                if _word_bounded_in(cite_low, joined):
                     grounded_via[cite] = cat
                     break
+        elif _word_bounded_in(cite_low, allowlist_blob):
+            grounded.append(cite)
+            grounded_via[cite] = "allowlist"
         else:
             possibly_fabricated.append(cite)
     return {
@@ -5612,8 +5762,24 @@ def grade_response_universal(
                           + response_text_full.count("!")
                           + response_text_full.count("?")
                           + response_text_full.count("\n\n"))
+    # Tightened gaming defense (audit fix #2): a response is "gamed" if
+    # it scores high but lacks BOTH substantive length AND narrative
+    # structure. Old logic short-circuited via has_narrative=True when
+    # markdown structure (quality_score>=1) was present even with zero
+    # sentence breaks — letting "## Header\n## Header" + rubric-keyword
+    # soup pass uncapped. Now a response must have:
+    #   - response_len >= 200 chars  AND
+    #   - either >= 3 sentence breaks  OR markdown structure + >= 100 chars of body
+    # to escape the cap. Markdown alone with no narrative still gets
+    # capped at 60%.
     is_substantive = response_len >= 200
-    has_narrative = sentence_breaks >= 3 or structure["quality_score"] >= 1
+    text_without_md = re.sub(r'[#*`_>\-\d.]+', ' ', response_text_full)
+    body_chars = len(re.sub(r'\s+', ' ', text_without_md).strip())
+    has_real_narrative = sentence_breaks >= 3
+    has_structured_body = (structure["quality_score"] >= 1
+                              and body_chars >= 100
+                              and sentence_breaks >= 1)
+    has_narrative = has_real_narrative or has_structured_body
     gaming_penalty_pp = 0.0
     gaming_flagged = False
     if adjusted_pct > 60 and not (is_substantive and has_narrative):
@@ -6242,6 +6408,14 @@ def grade_response_via_llm(
     total_w = 0.0
     score_w = 0.0
     latencies: list[float] = []
+    # Audit fix #5: cumulative judge_error breaker. If the underlying
+    # model_call raises 3+ times in a row, the judge is unhealthy
+    # (CUDA OOM, network, bad temperature, etc.). Stop iterating and
+    # raise so the API surface returns 503 instead of returning 17
+    # silent-uncertain verdicts. We also count non-consecutive errors;
+    # 5 total errors triggers abort regardless of pattern.
+    consecutive_errors = 0
+    total_errors = 0
 
     for dim in rubric.get("dimensions", []):
         if dim["id"] not in target_dims:
@@ -6270,14 +6444,45 @@ def grade_response_via_llm(
                     "parse_ok":       True,
                 })
                 continue
+        # Audit fix #4: validate dim_id has a JUDGE_QUESTIONS entry
+        # before building the prompt. Missing-id used to silently
+        # produce "Does the response satisfy <empty>?" — meaningless.
+        spec = JUDGE_QUESTIONS.get(dim["id"])
+        if not spec:
+            n_uncertain += 1
+            rows.append({
+                "id":             dim["id"],
+                "name":           dim.get("name", dim["id"]),
+                "weight":         weight,
+                "verdict":        "uncertain",
+                "status":         "FAIL",
+                "evidence_quote": "",
+                "rationale":      f"No JUDGE_QUESTIONS entry for dim_id {dim['id']!r}",
+                "parse_ok":       False,
+                "judge_latency_ms": 0,
+            })
+            total_w += weight  # count as fail-weighted
+            continue
         prompt = _build_judge_prompt(
             dim["id"], response_text, prompt_text=prompt_text
         )
         t0 = _time.time()
         try:
             judge_response = model_call(prompt) or ""
+            consecutive_errors = 0  # reset on success
         except Exception as e:  # noqa: BLE001 -- surface as FAIL not crash
             judge_response = f'{{"verdict":"uncertain","rationale":"judge_error: {e}"}}'
+            consecutive_errors += 1
+            total_errors += 1
+            if consecutive_errors >= 3 or total_errors >= 5:
+                # Judge is unhealthy. Raise so the API surface
+                # returns 503 instead of finishing with all-uncertain
+                # results that look like real verdicts.
+                raise RuntimeError(
+                    f"LLM judge unhealthy: {total_errors} errors total, "
+                    f"{consecutive_errors} consecutive. Last: "
+                    f"{type(e).__name__}: {str(e)[:200]}"
+                ) from e
         elapsed_ms = (_time.time() - t0) * 1000.0
         latencies.append(elapsed_ms)
         parsed = _parse_judge_verdict(judge_response)
@@ -6324,22 +6529,33 @@ def grade_response_via_llm(
             "judge_latency_ms":            round(elapsed_ms, 1),
         })
 
-    pct = round((score_w / total_w * 100) if total_w > 0 else 0, 1)
+    # Audit fix #3: distinguish "judge ran but everything was skipped"
+    # from "judge ran and got 0%". Old behavior: total_w==0 → pct=0,
+    # which Combined-mode then averaged into the deterministic score
+    # as if the judge had actively scored 0. Now: total_w==0 →
+    # pct=None, which Combined-mode treats as "fall back to
+    # deterministic only" and surfaces in the UI as N/A.
+    n_evaluated = n_pass + n_partial + n_fail + n_uncertain
+    if total_w > 0:
+        pct: float | None = round((score_w / total_w * 100), 1)
+    else:
+        pct = None
     mean_lat = round(sum(latencies) / len(latencies), 1) if latencies else 0
     total_lat = round(sum(latencies), 1)
     return {
         "mode":                   "llm_judge",
-        "version":                "v1.0",
+        "version":                "v1.1-audit-fixes",
         "dimensions":             rows,
         "n_pass":                 n_pass,
         "n_partial":              n_partial,
         "n_fail":                 n_fail,
         "n_uncertain":            n_uncertain,
         "n_skipped":              n_skipped,
-        "n_evaluated":            n_pass + n_partial + n_fail + n_uncertain,
+        "n_evaluated":            n_evaluated,
         "pct_score":              pct,
         "total_score":            round(score_w, 2),
         "total_weight":           round(total_w, 2),
+        "all_dimensions_skipped": n_evaluated == 0 and n_skipped > 0,
         "judge_latency_ms_mean":  mean_lat,
         "judge_latency_ms_total": total_lat,
     }
@@ -6375,20 +6591,43 @@ def grade_response_combined(
             "judge_weight":  0.0,
             "pct_score":     deterministic["pct_score"],
         }
-    judge = grade_response_via_llm(
-        response_text, model_call=model_call,
-        prompt_text=prompt_text,
-    )
+    # Audit fix #5 propagation: if grade_response_via_llm raises (the
+    # cumulative-error breaker fires), surface as a degraded result
+    # rather than 500-ing. The deterministic side still has a verdict.
+    try:
+        judge = grade_response_via_llm(
+            response_text, model_call=model_call,
+            prompt_text=prompt_text,
+        )
+    except RuntimeError as e:
+        return {
+            "mode":          "combined",
+            "version":       "v1.1-audit-fixes",
+            "deterministic": deterministic,
+            "judge":         None,
+            "judge_error":   str(e),
+            "judge_weight":  0.0,
+            "pct_score":     deterministic["pct_score"],
+        }
     w = max(0.0, min(1.0, float(judge_weight)))
-    combined_pct = round(
-        deterministic["pct_score"] * (1 - w) + judge["pct_score"] * w, 1
-    )
+    # Audit fix #3 propagation: if the judge skipped every dimension
+    # (pct_score=None), the combined blend should fall back to
+    # deterministic-only rather than averaging in a 0%.
+    judge_pct = judge.get("pct_score")
+    if judge_pct is None:
+        combined_pct = deterministic["pct_score"]
+        effective_w = 0.0
+    else:
+        combined_pct = round(
+            deterministic["pct_score"] * (1 - w) + judge_pct * w, 1
+        )
+        effective_w = w
     return {
         "mode":          "combined",
-        "version":       "v1.0",
+        "version":       "v1.1-audit-fixes",
         "deterministic": deterministic,
         "judge":         judge,
-        "judge_weight":  w,
+        "judge_weight":  effective_w,
         "pct_score":     combined_pct,
         "agreement":     _judge_deterministic_agreement(deterministic, judge),
     }

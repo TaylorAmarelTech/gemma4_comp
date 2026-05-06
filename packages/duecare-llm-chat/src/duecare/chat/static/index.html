@@ -1953,12 +1953,12 @@ function copyPipelineJson(btn) {
 let _gradeSelectedCategory = 'legal_citation_quality';
 
 const RUBRIC_CATEGORY_LABELS = {
-  legal_citation_quality:        'Legal citation quality (cross-cutting)',
-  business_framed_exploitation:  'Business-framed exploitation',
-  financial_crime_blindness:     'Financial crime blindness',
-  jurisdictional_hierarchy:      'Jurisdictional hierarchy exploitation',
-  victim_revictimization:        'Victim re-victimization',
-  prompt_injection_amplification:'Prompt injection amplification',
+  legal_citation_quality:        'Legal citation quality (applies to every prompt)',
+  business_framed_exploitation:  'Business-framed exploitation (paper-only consent / structural)',
+  financial_crime_blindness:     'Financial crime blindness (FATF / novation / smurfing)',
+  jurisdictional_hierarchy:      'Jurisdictional hierarchy (multi-party / forum-stripping)',
+  victim_revictimization:        'Victim re-victimization (coercion / paper consent)',
+  prompt_injection_amplification:'Prompt injection amplification (jailbreak / DAN attacks)',
 };
 
 const RUBRIC_STATUS_COLOR = {
@@ -2019,17 +2019,17 @@ async function openGradeModal(messageIdx) {
       <br>${deepBlurb}
     </p>
     <div style="margin:12px 0; display:flex; gap:12px; align-items:center; flex-wrap:wrap;">
-      <label style="font-size:12px; color:var(--ink); display:flex; align-items:center; gap:6px;">
+      <label style="font-size:12px; color:var(--ink); display:flex; align-items:center; gap:6px;" title="17-dimension cross-prompt rubric. Auto-detects which dimensions are testable for this prompt+response. Default; recommended.">
         <input type="radio" name="grade-mode" value="universal"
                ${_gradeMode === 'universal' ? 'checked' : ''}
                onchange="_gradeMode='universal'; _runGrade(${messageIdx})">
-        Universal <span style="color:var(--muted); font-size:10.5px;">~1-3s · deterministic</span>
+        ★ Universal <span style="color:var(--muted); font-size:10.5px;">~1-3s · 17 dim · default</span>
       </label>
-      <label style="font-size:12px; color:var(--muted); display:flex; align-items:center; gap:6px;">
+      <label style="font-size:12px; color:var(--muted); display:flex; align-items:center; gap:6px;" title="Legacy per-category rubric — pick a specific rubric from the dropdown that fits the prompt type. Replaced by Universal; kept for backwards compatibility.">
         <input type="radio" name="grade-mode" value="category"
                ${_gradeMode === 'category' ? 'checked' : ''}
                onchange="_gradeMode='category'; _runGrade(${messageIdx})">
-        Expert <span style="color:var(--muted); font-size:10.5px;">~1s · legacy per-category</span>
+        Expert <span style="color:var(--muted); font-size:10.5px;">~1s · pick a specific rubric · legacy</span>
       </label>
       ${deepRadio}
     </div>
@@ -2064,9 +2064,9 @@ function _renderGradeModeControls(messageIdx) {
     const optsHtml = cats.map(c => {
       const applies = RUBRIC_APPLIES_TO[c] || [];
       let badge = '';
-      if (applies.length === 0) badge = ' [cross-cutting]';
-      else if (promptCat && applies.includes(promptCat)) badge = ' ★ recommended';
-      else if (promptCat) badge = ' (low relevance)';
+      if (applies.length === 0) badge = '';  // already clear from the label
+      else if (promptCat && applies.includes(promptCat)) badge = ' ★ best fit for this prompt';
+      else if (promptCat) badge = ' (different prompt type — pick best-fit above)';
       return `<option value="${escapeHtml(c)}" ${c === _gradeSelectedCategory ? 'selected' : ''}>${escapeHtml(RUBRIC_CATEGORY_LABELS[c] || c)}${badge}</option>`;
     }).join('');
     ctl.innerHTML = `
@@ -2451,15 +2451,15 @@ function _renderGradeResult(g) {
   let relevanceBanner = '';
   if (g.relevance === 'low' && g.prompt_category) {
     relevanceBanner = `<div style="background:rgba(245,158,11,0.12); border:1px solid rgba(245,158,11,0.4); color:#fbbf24; padding:8px 12px; border-radius:6px; margin-bottom:14px; font-size:12px;">
-      ⚠ Low-relevance rubric for this prompt category (<code>${escapeHtml(g.prompt_category)}</code>). Try the ★ recommended rubric in the dropdown for a more meaningful score.
+      ⚠ This rubric was designed for a different prompt type than <code>${escapeHtml(g.prompt_category)}</code>. The score will be weak/uninformative — pick a ★ best-fit rubric from the dropdown above (or switch to <b>Universal</b> mode for prompt-shape-agnostic scoring).
     </div>`;
   } else if (g.relevance === 'high' && g.prompt_category) {
     relevanceBanner = `<div style="background:rgba(16,185,129,0.10); border:1px solid rgba(16,185,129,0.35); color:#34d399; padding:8px 12px; border-radius:6px; margin-bottom:14px; font-size:12px;">
-      ★ This rubric matches the prompt category (<code>${escapeHtml(g.prompt_category)}</code>) — score is meaningful.
+      ★ Best-fit rubric for this prompt type (<code>${escapeHtml(g.prompt_category)}</code>) — score is meaningful.
     </div>`;
   } else if (g.relevance === 'cross_cutting') {
     relevanceBanner = `<div style="background:rgba(59,130,246,0.10); border:1px solid rgba(59,130,246,0.35); color:#60a5fa; padding:8px 12px; border-radius:6px; margin-bottom:14px; font-size:12px;">
-      Cross-cutting rubric — applies to every prompt category.
+      This rubric applies to <b>every</b> prompt type — it scores legal-citation quality regardless of what the prompt asked.
     </div>`;
   }
 

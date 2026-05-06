@@ -490,6 +490,12 @@ def create_app(
                 dimensions=req.dimensions,
                 skip_not_applicable=req.skip_not_applicable,
             )
+        except RuntimeError as e:
+            # Audit fix #5: the LLM judge's cumulative-error breaker
+            # (3+ consecutive or 5+ total model_call failures) raises
+            # RuntimeError. Surface as 503 so the UI can show a real
+            # error instead of "all 17 dimensions Uncertain".
+            raise HTTPException(503, f"LLM judge unavailable: {e}") from e
         except HTTPException:
             raise
         except Exception as e:  # noqa: BLE001
