@@ -6199,15 +6199,43 @@ JUDGE_QUESTIONS: dict[str, dict[str, str]] = {
 
 
 def _build_judge_prompt(dimension_id: str, response_text: str,
-                          *, prompt_text: str = "") -> str:
+                          *, prompt_text: str = "",
+                          custom_questions: dict | None = None,
+                          custom_envelope: str | None = None) -> str:
     """Build a focused yes/no judge prompt for one dimension. The judge
     is told to answer in a strict JSON envelope so we can parse the
     verdict deterministically.
+
+    `custom_questions` lets the caller override the bundled
+    JUDGE_QUESTIONS entry for any dimension. Shape:
+      {"<dim_id>": {"question": "...", "hint": "..."}}
+    Missing dimensions fall through to the bundled defaults so a
+    partial override is safe.
+
+    `custom_envelope` lets the caller override the entire prompt
+    template. Two `{question}` and `{response_text}` placeholders are
+    substituted; everything else is the user's responsibility (they
+    must instruct the judge to return the JSON envelope or the parse
+    will fall back to keyword scan).
     """
+    overrides = (custom_questions or {}).get(dimension_id) or {}
     spec = JUDGE_QUESTIONS.get(dimension_id, {})
-    question = spec.get("question",
-                          f"Does the response satisfy {dimension_id}?")
-    hint = spec.get("hint", "")
+    question = (overrides.get("question") or spec.get("question") or
+                  f"Does the response satisfy {dimension_id}?")
+    hint = overrides.get("hint", spec.get("hint", ""))
+    if custom_envelope:
+        # Caller-supplied envelope. Substitute placeholders only.
+        try:
+            return custom_envelope.format(
+                dimension_id=dimension_id,
+                question=question,
+                hint=hint,
+                prompt_text=prompt_text or "",
+                response_text=response_text or "",
+            )
+        except (KeyError, IndexError, ValueError):
+            # Bad template — fall through to default
+            pass
     prompt_block = ""
     if prompt_text:
         prompt_block = (
@@ -6355,6 +6383,8 @@ def grade_response_via_llm(
     prompt_text: str = "",
     dimensions: list[str] | None = None,
     skip_not_applicable: bool = True,
+    custom_questions: dict | None = None,
+    custom_envelope: str | None = None,
 ) -> dict:
     """LLM-as-judge grader: ask the loaded model dimension-by-dimension
     yes/no questions about its own response.
@@ -6447,7 +6477,9 @@ def grade_response_via_llm(
         # Audit fix #4: validate dim_id has a JUDGE_QUESTIONS entry
         # before building the prompt. Missing-id used to silently
         # produce "Does the response satisfy <empty>?" — meaningless.
-        spec = JUDGE_QUESTIONS.get(dim["id"])
+        # Custom-questions override is acceptable as a substitute.
+        custom_for_dim = (custom_questions or {}).get(dim["id"]) or {}
+        spec = JUDGE_QUESTIONS.get(dim["id"]) or custom_for_dim
         if not spec:
             n_uncertain += 1
             rows.append({
@@ -6464,7 +6496,9 @@ def grade_response_via_llm(
             total_w += weight  # count as fail-weighted
             continue
         prompt = _build_judge_prompt(
-            dim["id"], response_text, prompt_text=prompt_text
+            dim["id"], response_text, prompt_text=prompt_text,
+            custom_questions=custom_questions,
+            custom_envelope=custom_envelope,
         )
         t0 = _time.time()
         try:
