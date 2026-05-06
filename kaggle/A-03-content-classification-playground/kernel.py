@@ -78,7 +78,8 @@ _UNSLOTH_MARKER = Path("/tmp/.duecare_classification_pg_unsloth_v1_done")
 
 
 def _need_unsloth() -> bool:
-    return GEMMA_MODEL_VARIANT in ("31b-it", "26b-a4b-it")
+    # Every on-device variant uses Unsloth's FastModel loader.
+    return GEMMA_MODEL_VARIANT not in ("cloud-gemini", "cloud-openai", "cloud-ollama")
 
 
 def _install_unsloth_stack() -> bool:
