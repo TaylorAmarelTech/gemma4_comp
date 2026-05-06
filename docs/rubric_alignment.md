@@ -629,3 +629,100 @@ window.
 The current 4-phase plan has room for this without slipping Phase 3's
 fine-tune. Recommendation: **add items 4.1-4.8 as Phase 4.5 ("rubric
 polish"), due start of week 5.**
+
+---
+
+# v3.6 update — alignment matrix (2026-05-06)
+
+> The 2026-04-11 self-assessment above is the original gap analysis.
+> This section is the **v3.6-current** ledger: claim → proof. After
+> Phase 5 (multi-lingual classifier, 21-dim rubric, curator JSON
+> governance, judge → evaluator rename, auto-grade chips, layer
+> ablation), the technical-depth score should land at the top of the
+> target range; the video and stable demo URL remain the highest-
+> risk gaps.
+
+## Tracks targeted (and where each is claimed)
+
+### Main Track ($10K – $50K)
+
+| What we claim | Where it's proven |
+|---|---|
+| Real-world problem (281M migrants, 28M in forced labor, $236B trade) | `docs/writeup_draft.md §1` |
+| Inform-AND-document north star | `docs/writeup_draft.md §1a`; demoed in 01-duecare-harness-chat |
+| Worker may refuse → harm prevented; pay anyway → journal pre-stages refund claim | `duecare-journey-android` v0.9 RefundClaim auto-draft |
+
+### Safety & Trust Track ($10K)
+
+| What we claim | Where it's proven |
+|---|---|
+| 5-layer safety harness with toggleable measurement | 01-duecare-harness-chat (`/api/harness-info`) |
+| 21-dim universal grader, use-case-aware weighting | `RUBRIC_UNIVERSAL["dimensions"]` count = 21; `tests/test_harness_v3_6.py` |
+| Two harm-axis dims (operational_information_provided + harm_enablement_check) | `_rubric_universal.json`; `tests/test_harness_v3_6.py` 5 cases |
+| LLM evaluator with evidence-grounding check | `grade_response_via_evaluator()`; M1 fix in `grading_system_audit.md` |
+| Cumulative-error breaker (3 consecutive / 5 total → HTTP 503) | `grading_system_audit.md §5` |
+| Anti-gaming defense (bag-of-keywords cap at 60%) | `_grader_config.json`; `grading_system_audit.md §3` |
+| Multi-lingual analog prompt classifier (11 languages) | `_classifier_signals.json`; 6 multi-lingual showcase prompts in `_examples.json` |
+| Reproducible measurement | `scripts/remeasure_v36_lift.py` + A11 notebook |
+
+### Special Tech — Unsloth ($10K)
+
+| What we claim | Status |
+|---|---|
+| Unsloth FastModel loader for 4 on-device variants | ✅ `kaggle/01-duecare-harness-chat/kernel.py` |
+| LoRA SFT on harness-distilled pairs | ✅ A-07 bench-and-tune notebook |
+| DPO on 5-grade response examples | ✅ A-07 bench-and-tune notebook |
+| GGUF Q8_0 export for llama.cpp | ✅ A-07 bench-and-tune notebook |
+| **PENDING**: actual T4×2 fine-tune run + HF Hub push | Script ready; needs 3-hour GPU run |
+
+### Special Tech — llama.cpp / LiteRT ($10K)
+
+| What we claim | Where it's proven |
+|---|---|
+| MediaPipe Gemma 4 (LiteRT) on Android | `duecare-journey-android` sibling repo, v0.9.0 APK |
+| 6 selectable variants (E2B/E4B INT4/INT8 + Gemma 3 1B + Gemma 2 2B) | Android v0.9 model selector |
+| SQLCipher-encrypted journal | Android v0.9 ROOM database with SQLCipher |
+| 11 ILO indicator detectors + 20 corridor profiles + 108 GREP rules | Android v0.9 release notes |
+| Full on-device — no network at runtime | Android architecture doc |
+
+## Risk register (v3.6)
+
+| Item | Risk | Time-to-fix |
+|---|---|---|
+| Video not yet produced | HIGH (70/100 pts in video) | ~10 hours production |
+| +56.5pp lift not re-measured against v3.6 | MEDIUM (claim is provisional) | Script ready (`scripts/remeasure_v36_lift.py`); 3hr Kaggle T4 run |
+| A-07 fine-tune not yet executed | MEDIUM ($10K Unsloth bonus) | 3hr Kaggle T4×2 run |
+| Stable demo URL | MEDIUM (judges may try after kernel timeout) | 1-3 hours (HF Space / named tunnel / VPS) |
+| Live demo notebook (02) less battle-tested than 01 | LOW | Test-first ordering |
+
+## Pre-submission checklist (v3.6)
+
+| Item | Mapped to | Status |
+|---|---|---|
+| ☐ Public YouTube video ≤3 min | Video Pitch 30 pts | Script ready (v3, 2:55); production pending |
+| ☑ Public code repo (MIT) | Tech Depth 30 pts | github.com/TaylorAmarelTech/gemma4_comp |
+| ☐ Live public demo URL | Impact 40 pts | Cloudflared quick → upgrade pending |
+| ☑ Writeup ≤1500 words | Tech Depth 30 pts | 871 words |
+| ☑ Uses Gemma 4 (E2B or E4B) | Mandatory | E2B + E4B + 26B-A4B + 31B |
+| ☐ Bonus: Unsloth | Special Tech | A-07 ready; T4×2 run pending |
+| ☐ Bonus: llama.cpp | Special Tech | A-07 GGUF export pending |
+| ☑ Bonus: LiteRT | Special Tech | Android v0.9.0 (sibling repo) |
+| ☐ Re-measure +56.5pp against v3.6 | Tech Depth | Script ready; T4 run pending |
+
+## What we're NOT claiming (credibility)
+
+- We are not a deployed production system — research prototype + hackathon submission
+- The lift numbers don't generalize beyond the 207-prompt eval set; should be re-measured against any new domain
+- Maria is a composite character (POEA case files + ILO field reports), not a real person
+- The 99.3% citation grounding rate is calibrated against the 144-statute allowlist + 33-doc RAG corpus
+- The Android app is v0.9, not 1.0 — installable + works, but the on-device LLM is MediaPipe Gemma 4, not a fine-tuned Duecare model
+
+## Cross-references
+
+- Peer-reviewer walkthrough: [`FOR_PEER_REVIEW.md`](FOR_PEER_REVIEW.md)
+- Component ERD: [`component_diagram.md`](component_diagram.md)
+- Reproducibility ledger: [`reproducibility.md`](reproducibility.md)
+- 5-min test plan: [`peer_review_5min_test_plan.md`](peer_review_5min_test_plan.md)
+- Stock vs harnessed proof: [`stock_vs_harnessed.md`](stock_vs_harnessed.md)
+- Project status (current): [`project_status.md`](project_status.md)
+- Per-component maintenance guides: [`maintenance/`](maintenance/)

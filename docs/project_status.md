@@ -106,7 +106,7 @@ Full inventory is auto-generated at
 - 77 notebook mirrors match 77 kernel directories locally (5 mirrors
   restored 2026-05-02 from kernel sources).
 - The submission shape is **2 core + 11 appendix** (per the canonical
-  `kaggle/<purpose>/` layout in [`docs/FOR_JUDGES.md`](FOR_JUDGES.md)).
+  `kaggle/<purpose>/` layout in [`docs/FOR_PEER_REVIEW.md`](FOR_PEER_REVIEW.md)).
 - The 76-notebook research arc lives in `kaggle/kernels/` and serves
   reproducibility for the Phase 1-3 pipeline.
 - Public live-state promotion should be checked against Kaggle at push

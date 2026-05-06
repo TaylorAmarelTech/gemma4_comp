@@ -238,7 +238,7 @@ gemma4_comp/
 - **29 historical prompt-ladder drafts** (06–34) moved to `_archive/docs_2026-04/prompts/`. The 5 band-scoped review prompts (01–05 plus `_shared_discipline.md` and `README.md`) remain.
 - **1 orphan notebook** (`forge_kaggle_submission.ipynb`) and **1 orphan test** (`test_ingest_google_drive_reference_material.py`) relocated.
 - **`docs/components/forge_llm_*.md` → `duecare_llm_*.md`** (renamed; README table links now resolve).
-- Numeric claims reconciled across README, CLAUDE.md, FOR_JUDGES, project_status, writeup_draft, and this checkpoint to the current 76-notebook / 8-package / 12-agent / 15-generator / 9-capability-test / 3-domain-pack state.
+- Numeric claims reconciled across README, CLAUDE.md, FOR_PEER_REVIEW, project_status, writeup_draft, and this checkpoint to the current 76-notebook / 8-package / 12-agent / 15-generator / 9-capability-test / 3-domain-pack state.
 - `build_notebook_320_supergemma_safety_gap.py` updated: pre-renumber `nb00` references replaced with `nb100`.
 
 ---

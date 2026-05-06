@@ -53,7 +53,7 @@ If you want continued doc work between now and submission:
 - Refine specific notebook builders based on what you find during
   testing
 - Update the writeup_draft.md as the fine-tune numbers come in
-- Refresh FOR_JUDGES.md as notebooks transition from
+- Refresh FOR_PEER_REVIEW.md as notebooks transition from
   "publish pending" → live
 - Add more language drafts of worker-self-help.md (Bahasa, Nepali,
   Bangla, Arabic) — same draft + native-review-needed pattern
@@ -87,7 +87,7 @@ If you want continued doc work between now and submission:
 | **T-6 (5/12)** | A2 run continues; record video while waiting | Video draft |
 | **T-5 (5/13)** | A2 completes (or fallback to "scheduled post-hackathon") + push fine-tuned weights to HF Hub | RESULTS.md updated |
 | **T-4 (5/14)** | Video edit + finalization + caption pass | Video locked |
-| **T-3 (5/15)** | Final pass on writeup_draft.md + FOR_JUDGES.md + README to reflect all numbers | All docs SHA-pinned |
+| **T-3 (5/15)** | Final pass on writeup_draft.md + FOR_PEER_REVIEW.md + README to reflect all numbers | All docs SHA-pinned |
 | **T-2 (5/16)** | Smoke-test the entire submission from a logged-out browser | Submission validated |
 
 ### Final stretch (T-1 to T-0)

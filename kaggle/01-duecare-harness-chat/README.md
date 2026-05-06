@@ -108,7 +108,7 @@ This is **core notebook #1** of 2:
 
 The other 9 notebooks are appendix (specialised playgrounds, research
 graphs, agentic web research, jailbroken-models proof, lift
-regenerator). See `docs/FOR_JUDGES.md` for the full submission roster.
+regenerator). See `docs/FOR_PEER_REVIEW.md` for the full submission roster.
 
 ## Troubleshooting
 

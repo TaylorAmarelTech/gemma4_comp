@@ -137,7 +137,7 @@ Sorted by who you are:
 - :material-format-quote-open: [Press kit](press_kit.md) — one-pager + facts + quotes for journalists
 - :material-school: [Educator resources](educator_resources.md) — drop-in lesson plans
 - :material-compare: [Comparison vs alternatives](comparison_to_alternatives.md) — when Duecare fits vs Hive / Sift / Azure / OpenAI
-- :material-check-decagram: [For judges](FOR_JUDGES.md) — the hackathon-judge view
+- :material-check-decagram: [For judges](FOR_PEER_REVIEW.md) — the hackathon-judge view
 - :material-view-dashboard: [Readiness dashboard](readiness_dashboard.md) — single-screen status across every dimension
 - :material-account-multiple-check: [Persona readiness audit](persona_readiness_audit.md) — happy path verified per persona
 - :material-frequently-asked-questions: [FAQ](FAQ.md) — common questions answered
@@ -148,7 +148,7 @@ Sorted by who you are:
 - :material-table-of-contents: [**Corpus index**](corpus_index.md) — single-page reference: every GREP rule (108) + RAG doc (33) + tool (5) + dimension (17) + judge question (17) by name
 - :material-compare-horizontal: [**Stock vs harnessed examples**](stock_vs_harnessed.md) — 5 textbook prompts side-by-side (mean lift 4.6% → 88.4%)
 - :material-tune-vertical: [**Bench-and-tune walkthrough**](bench_and_tune_walkthrough.md) — step-by-step for the A2 Unsloth fine-tune on Kaggle T4×2
-- :material-clock-fast: [**Judge 5-min test plan**](judge_5min_test_plan.md) — the entry point for hackathon judges
+- :material-clock-fast: [**Judge 5-min test plan**](peer_review_5min_test_plan.md) — the entry point for hackathon judges
 
 ## Headline numbers
 

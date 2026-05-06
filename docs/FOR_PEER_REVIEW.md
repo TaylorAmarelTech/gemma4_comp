@@ -122,7 +122,7 @@ If you have two minutes to decide if this is real:
    quantitative claim grounded with provenance + re-measurement
    command. Includes the honest "what we explicitly do NOT claim"
    section.
-4. [`docs/judge_5min_test_plan.md`](./judge_5min_test_plan.md) —
+4. [`docs/peer_review_5min_test_plan.md`](./peer_review_5min_test_plan.md) —
    the 5-test verification plan if you do boot a notebook.
 
 ---

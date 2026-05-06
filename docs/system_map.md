@@ -195,7 +195,7 @@ These aren't a layer — they cut across every layer:
 
 | If you are... | Click in order |
 |---|---|
-| A judge in a hurry | Stat cards → Layer 3 (notebooks) → [`FOR_JUDGES.md`](FOR_JUDGES.md) |
+| A judge in a hurry | Stat cards → Layer 3 (notebooks) → [`FOR_PEER_REVIEW.md`](FOR_PEER_REVIEW.md) |
 | A first-time deployer | Layer 1 (find your persona) → Layer 5 (pick topology) → relevant scenario |
 | A contributor | Layer 4 (packages) → [`adr/`](adr/) → [`CONTRIBUTING.md`](https://github.com/TaylorAmarelTech/gemma4_comp/blob/master/CONTRIBUTING.md) |
 | An academic | Layer 3 (notebooks A1–A3) → [`harness_lift_report.md`](harness_lift_report.md) → [`prompt_schema.md`](prompt_schema.md) |

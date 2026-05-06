@@ -97,7 +97,7 @@ Throughout the rubrics, capabilities are tagged `[W]`, `[N]`, `[R]`, `[E]`, `[I]
 **Duecare current: L4** (target: L4 — sustained).
 
 - `docs/writeup_draft.md` (~1450 words, Kaggle cap 1500) with 8 sections.
-- `docs/FOR_JUDGES.md` audience-specific (Researcher / Engineer audiences).
+- `docs/FOR_PEER_REVIEW.md` audience-specific (Researcher / Engineer audiences).
 - `docs/harness_lift_report.md` quantifies +87.5/+51.2/+34.1 pp lift across 3 dimensions on 207 prompts.
 - `docs/prior_art.md` cites Just Good Work + Polaris + Tella + HarmBench/AILuminate + DoNotPay caveat.
 - `RESULTS.md` pins every metric to `(git_sha, dataset_version, model_revision)`.

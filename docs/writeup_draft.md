@@ -287,7 +287,7 @@ video. Full prior-art doc at `docs/prior_art.md`.
 
 ## 8. Going deeper
 
-[for judges](FOR_JUDGES.md) · [reproducibility](reproducibility.md) ·
+[for judges](FOR_PEER_REVIEW.md) · [reproducibility](reproducibility.md) ·
 [corpus index](corpus_index.md) · [stock-vs-harnessed](stock_vs_harnessed.md) ·
 [bench-and-tune walkthrough](bench_and_tune_walkthrough.md) ·
 [system map](system_map.md) · [author's notes](authors_notes.md) ·

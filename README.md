@@ -50,8 +50,8 @@
 > - A10. `duecare-chat-playground-jailbroken-models` — loads abliterated/cracked Gemma 4 variants; proves harness still works even when refusals are ablated
 > - A11. `duecare-grading-evaluation` — **the lift regenerator.** Runs N prompts × 2 conditions, grades both, emits MD+JSON with provenance tuple `(model, git_sha, dataset_version)`. The +56.5pp number, regenerated live from a git SHA.
 >
-> **Judges start here:** [`docs/judge_5min_test_plan.md`](./docs/judge_5min_test_plan.md) (one-page click-by-click guide).
-> Or: [`docs/FOR_JUDGES.md`](./docs/FOR_JUDGES.md) (full verification roster).
+> **Judges start here:** [`docs/peer_review_5min_test_plan.md`](./docs/peer_review_5min_test_plan.md) (one-page click-by-click guide).
+> Or: [`docs/FOR_PEER_REVIEW.md`](./docs/FOR_PEER_REVIEW.md) (full verification roster).
 > **Writeup (≤1500 words):** [`docs/writeup_draft.md`](./docs/writeup_draft.md).
 > **Video script (~2:50):** [`docs/video_script.md`](./docs/video_script.md).
 > **Audit / report card:** [`docs/REPORT_CARD.md`](./docs/REPORT_CARD.md).

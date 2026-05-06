@@ -388,7 +388,7 @@ header.
 Once you've run the smoke pass:
 
 1. **Update `kaggle/_INDEX.md`** with publish status per notebook
-2. **Update `docs/FOR_JUDGES.md`** to remove "publish pending" markers
+2. **Update `docs/FOR_PEER_REVIEW.md`** to remove "publish pending" markers
    from notebooks now confirmed live
 3. **Push notebooks** in priority order:
    1. #2 (headline demo)
@@ -410,6 +410,6 @@ Once you've run the smoke pass:
 - [ ] HF Hub model card live (if A2 completed)
 - [ ] Video uploaded + linked in writeup_draft.md
 - [ ] writeup_draft.md final version pinned to a release SHA
-- [ ] FOR_JUDGES.md final version pinned to same SHA
+- [ ] FOR_PEER_REVIEW.md final version pinned to same SHA
 - [ ] RESULTS.md final numbers
 - [ ] Submit on the Kaggle competition page on or before 2026-05-18
