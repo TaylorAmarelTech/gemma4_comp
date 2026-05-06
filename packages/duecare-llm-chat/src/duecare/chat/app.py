@@ -151,8 +151,13 @@ class DeepGradeRequest(BaseModel):
                                    description="0=det only, 1=judge only, 0.5=blend. NaN/Inf rejected.")
     max_new_tokens: int = Field(default=320, ge=16, le=2048,
                                    description="Per-call token cap. Judge envelopes are tiny; 320 is generous.")
-    temperature: float = Field(default=0.0, ge=0.0, le=2.0,
-                                  description="0.0 for deterministic verdicts.")
+    # NOTE: floor at 0.01 (not 0.0) because HF transformers
+    # model.generate() raises ValueError on temperature=0.0 when
+    # do_sample=True. The kernel's gemma_call wrapper passes
+    # do_sample=True implicitly. 0.01 is effectively deterministic.
+    # See: github.com/huggingface/transformers issue tracking.
+    temperature: float = Field(default=0.01, ge=0.01, le=2.0,
+                                  description="0.01 for nearly-deterministic verdicts (transformers requires > 0).")
 
 
 def create_app(
@@ -412,10 +417,18 @@ def create_app(
         signature the LLM-judge grader expects. Builds a single-turn
         message list (no harness layers — the judge looks at the raw
         response on its own merits). Uses low temperature for
-        deterministic verdicts."""
+        nearly-deterministic verdicts.
+
+        Defence: clamp temperature to >= 0.01 because HF transformers
+        model.generate() raises on temperature == 0.0 when sampling
+        is enabled. The Pydantic Field already enforces ge=0.01 but
+        a stale client could still send 0.0; clamp here too."""
         gc = app.state.gemma_call
         if gc is None:
             raise HTTPException(503, "deep grading needs gemma_call wired")
+        # Clamp temperature to a strictly positive value — transformers
+        # raises ValueError on 0.0 when do_sample=True (the default)
+        eff_temp = max(0.01, float(temperature))
         messages = [{
             "role": "user",
             "content": [{"type": "text", "text": prompt_str}],
@@ -427,7 +440,7 @@ def create_app(
                 return gc(
                     messages,
                     max_new_tokens=max_new_tokens,
-                    temperature=temperature,
+                    temperature=eff_temp,
                     top_p=0.95,
                     top_k=20,
                 ) or ""
