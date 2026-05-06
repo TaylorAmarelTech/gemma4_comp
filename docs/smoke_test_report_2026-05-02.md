@@ -22,7 +22,7 @@
 | Kaggle dataset metadata | 11 | 11 | — | — |
 | Build script syntax | 8 | 8 | — | — |
 | Doc cross-link integrity | 1 (all .md) | 1 | — | 11 → 0 (fixed 10, 1 is intentional `<name>` template) |
-| Doc cross-consistency (FOR_JUDGES vs writeup) | 9 | 9 | — | annotated 1 surface-count gap |
+| Doc cross-consistency (FOR_PEER_REVIEW vs writeup) | 9 | 9 | — | annotated 1 surface-count gap |
 | Notebook URL ↔ metadata match | 11 | 11 | — | — |
 | .gitignore coverage | 6 paths | 6 | — | — |
 | Source TODO/FIXME audit | critical paths | clean | — | — |
@@ -112,11 +112,11 @@
 - **All 6 .gitignore protections in place** (`_reference/`, `data/raw/`,
   `data/processed/`, `data/interim/`, `models/weights/`, `models/cache/`,
   `logs/`, `checkpoints/`, `.kaggle/`)
-- **All 9 cross-doc headline numbers consistent** between FOR_JUDGES.md
+- **All 9 cross-doc headline numbers consistent** between FOR_PEER_REVIEW.md
   and writeup_draft.md (+87.5 / +51.2 / +34.1 / +56.5 / 207 / 394 /
   20-corridors / 11-ILO; 37-vs-49 GREP gap is the documented surface
   count gap, not an inconsistency)
-- **All 11 notebook URLs cited in FOR_JUDGES match the
+- **All 11 notebook URLs cited in FOR_PEER_REVIEW match the
   kernel-metadata.json `id` fields**
 - **All 8 build scripts in scripts/ syntax-pass `py_compile`**
 - **All 8 Makefile targets that judges use are defined** (test, build,
@@ -180,17 +180,17 @@ for w in sorted(Path('kaggle').rglob('*.whl')):
 print(f'Wheel integrity: {checked} checked, {len(issues)} issues')
 "
 
-# 5. Re-verify FOR_JUDGES URLs match kernel metadata
+# 5. Re-verify FOR_PEER_REVIEW URLs match kernel metadata
 python -c "
 import json
 from pathlib import Path
-fj = open('docs/FOR_JUDGES.md', encoding='utf-8').read()
+fj = open('docs/FOR_PEER_REVIEW.md', encoding='utf-8').read()
 m = 0
 for f in sorted(Path('kaggle').glob('*/kernel-metadata.json')):
     if 'kernels' in str(f) or '_archive' in str(f) or 'shared-datasets' in str(f): continue
     md = json.loads(open(f).read())
     if f'https://www.kaggle.com/code/{md[\"id\"]}' in fj: m += 1
-print(f'FOR_JUDGES URL matches: {m}/11')
+print(f'FOR_PEER_REVIEW URL matches: {m}/11')
 "
 
 # 6. Re-verify harness corpus counts
@@ -221,7 +221,7 @@ print(f'classifier_examples: {len(json.loads((b/\"_classifier_examples.json\").r
 ## Updated as a result of this run
 
 - `docs/writeup_draft.md` — trimmed from 1,734 → 1,485 words
-- `docs/FOR_JUDGES.md` — Android v0.9 + readiness link added
+- `docs/FOR_PEER_REVIEW.md` — Android v0.9 + readiness link added
 - `docs/index.md` — readiness + persona-audit links added
 - `docs/readiness_dashboard.md` — A3 verified, GREP-rule surface-count
   gap annotated

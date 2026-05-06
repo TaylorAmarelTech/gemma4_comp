@@ -2,7 +2,7 @@
 
 > Single-page reference for all 11 submission notebooks. For the full
 > 30-second / 2-minute / 5-minute verification paths, see
-> [`FOR_JUDGES.md`](./FOR_JUDGES.md). For the complete writeup, see
+> [`FOR_PEER_REVIEW.md`](./FOR_PEER_REVIEW.md). For the complete writeup, see
 > [`writeup_draft.md`](./writeup_draft.md).
 
 ---

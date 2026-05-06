@@ -294,7 +294,7 @@ can skip this entire folder.
 | Writeup (≤1,500 words) | ✅ draft | 1,486 | A |
 | Video script (≤3 min) | ✅ locked | ~280 voice-over words | A |
 | README (top-level, judge-facing) | ✅ refreshed | n/a | A |
-| FOR_JUDGES.md (judge entry point) | ✅ | n/a | A |
+| FOR_PEER_REVIEW.md (judge entry point) | ✅ | n/a | A |
 | Press kit | ✅ | n/a | A |
 | FAQ | ✅ | n/a | A |
 | CITATION.cff | ✅ | n/a | A |

@@ -79,7 +79,7 @@ None are stubs.
 | Doc | State | Impact | Tech | Notes |
 |---|---|:-:|:-:|---|
 | writeup_draft.md (1,486 words; <1,500 cap) | Complete + refreshed for v0.6 / v0.7 Android | A | A | Ready to lock |
-| FOR_JUDGES.md | Complete; TBD markers reworded as "publish pending" 2026-05-01 | A | A | Five-min path tested |
+| FOR_PEER_REVIEW.md | Complete; TBD markers reworded as "publish pending" 2026-05-01 | A | A | Five-min path tested |
 | video_script.md (2:50 beat sheet) | Complete; v0.6 Android beat updated 2026-05-01 | A+ | n/a | **Need actual MP4** |
 | RESULTS.md | Refreshed 2026-05-01 with real harness-lift numbers | A | A | Fine-tune row still pending Kaggle T4×2 run |
 | harness_lift_report.md (207 prompts, +56.5 pp mean lift) | Complete | A+ | A+ | The headline evidence |
@@ -247,7 +247,7 @@ score it as video").
    the writeup. Polaris, Mission for Migrant Workers HK, IJM, POEA,
    BP2MI are the highest-leverage targets. Deadline: 2026-05-04 (so
    reply lands by 2026-05-14).
-5. **Lock writeup, FOR_JUDGES, RESULTS, video_script** by 2026-05-16.
+5. **Lock writeup, FOR_PEER_REVIEW, RESULTS, video_script** by 2026-05-16.
    No further edits past that — proof-read only. Submit on 2026-05-17
    for the one-day buffer.
 

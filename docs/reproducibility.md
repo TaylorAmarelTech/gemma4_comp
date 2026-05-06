@@ -34,7 +34,7 @@
 | **407 example prompts** | writeup §3 + Examples modal | 2026-05-04 (v3.16) | `python scripts/verify.py` |
 | **21-dim universal rubric** | writeup §3 + grade footer + Pipeline | 2026-05-04 (v3.16) | `python scripts/verify.py` |
 | **17 LLM-judge yes/no questions** | writeup §3 + grade footer | 2026-05-04 (v3.16) | `python scripts/verify.py` |
-| **51 classifier examples** (16 originals + 30 persona × corridor + 5 multimodal SVG) | corpus_stats.md, FOR_JUDGES.md | 2026-05-04 (v3.16) | `python scripts/verify.py` |
+| **51 classifier examples** (16 originals + 30 persona × corridor + 5 multimodal SVG) | corpus_stats.md, FOR_PEER_REVIEW.md | 2026-05-04 (v3.16) | `python scripts/verify.py` |
 | **207 5-tier rubrics** (per-prompt graded examples) | writeup §2 + harness_lift_report.md | unchanged since 2026-05-02 | `python scripts/verify.py` |
 | **6 required-element rubrics** | writeup §3 + harness_lift_report.md | unchanged since 2026-05-02 | `python scripts/verify.py` |
 | **106-source citation corpus** | writeup §2 + harness_lift_report.md | 2026-05-03 | `EXPANDED_CITATION_CORPUS["n_total"]` in `harness/__init__.py` |
@@ -110,7 +110,7 @@ regresses, so this gate catches accidental rule deletions.
 
 ## What you can verify on Kaggle in <5 minutes
 
-The 5-step judge test plan at [`docs/judge_5min_test_plan.md`](judge_5min_test_plan.md)
+The 5-step judge test plan at [`docs/peer_review_5min_test_plan.md`](peer_review_5min_test_plan.md)
 walks through:
 
 1. `/api/health-check` returns `ok=true, ready=true` with all 5
@@ -183,7 +183,7 @@ during the next re-measurement run).
 1. **`docs/writeup_draft.md`** — submission writeup with headline numbers (~1500 words)
 2. **`docs/harness_lift_report.md`** — full lift methodology + per-prompt breakdowns
 3. **`docs/reproducibility.md`** *(this file)* — provenance for every number
-4. **`docs/judge_5min_test_plan.md`** — the judge entry point
+4. **`docs/peer_review_5min_test_plan.md`** — the judge entry point
 5. **`docs/REPORT_CARD.md`** — self-graded scorecard against the rubric
 6. **`docs/architecture.md`** — technical design (20 sections)
-7. **`docs/FOR_JUDGES.md`** — quick-orient overview
+7. **`docs/FOR_PEER_REVIEW.md`** — quick-orient overview

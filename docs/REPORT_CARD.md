@@ -220,7 +220,7 @@ packages/duecare-llm-chat/src/duecare/chat/harness/_examples/by_category/
 |---|---:|---|
 | `architecture.md` | 8653 | A — comprehensive technical design |
 | `notebook_index.md` | 1651 | **NEW round 2** — single-page reference for all 11 notebooks |
-| `FOR_JUDGES.md` | 1701 | A — 30s/2min/5min verification paths |
+| `FOR_PEER_REVIEW.md` | 1701 | A — 30s/2min/5min verification paths |
 | `writeup_draft.md` | 1496 | A — under 1500 cap |
 | `video_script.md` | 1488 | A — 2:50 target with timing beats |
 | `corpus_stats.md` | 1123 | **NEW round 3** — auto-generated |
@@ -316,8 +316,8 @@ writeup. The round-3 additions strengthen this dimension significantly:
 1. ✅ Refreshed all measurements via fresh AST/script runs (no
    inherited claims from rounds 1-2).
 2. ✅ Fixed 4 stale "305 prompts" references in
-   `docs/FOR_JUDGES.md` and `docs/deployment_local.md` → "407 prompts".
-3. ✅ Updated FOR_JUDGES table row to reflect new corpus provenance
+   `docs/FOR_PEER_REVIEW.md` and `docs/deployment_local.md` → "407 prompts".
+3. ✅ Updated FOR_PEER_REVIEW table row to reflect new corpus provenance
    (notebook AST extraction + esoteric language additions).
 4. ✅ Added two new dimensions to the report card scoring:
    "Corpus & rubric system" and "Reusability".

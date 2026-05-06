@@ -245,7 +245,7 @@ the harness.
 Once weights are live + RESULTS.md is updated:
 
 - Update `kaggle/_INDEX.md` to mark A2 as "live"
-- Update `docs/FOR_JUDGES.md` to remove the "publish pending +
+- Update `docs/FOR_PEER_REVIEW.md` to remove the "publish pending +
   T4×2 run pending" markers from A2
 - Update the fine-tune row in `docs/rubric_evaluation_v07.md`
 - Update the press kit's "Headline numbers" section if the

@@ -34,7 +34,7 @@
       meaning it is currently public)
 - [ ] LICENSE file is MIT and at the repo root
 - [ ] README leads with `make demo` + judge entry points
-- [ ] [`docs/FOR_JUDGES.md`](FOR_JUDGES.md) is up to date with all
+- [ ] [`docs/FOR_PEER_REVIEW.md`](FOR_PEER_REVIEW.md) is up to date with all
       11 notebook URLs, the HF Space URL, and the APK download URL
 - [ ] `_reference/` is `.gitignore`d (it must NOT be in the public
       repo — proprietary)
