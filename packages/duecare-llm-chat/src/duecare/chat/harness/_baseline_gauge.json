@@ -21,6 +21,7 @@
   "eval_set_size":   207,
   "eval_run_date":   "2026-05-04",
   "rubric_version":  "v3.5-anti-victim-blaming-and-pathways",
+  "rubric_version_current":  "v3.6",
   "git_sha":         "fcc7ab1",
-  "footnote":        "Measured against v3.5 rubric (19 dims). Re-measurement against v3.6 (21 dims with two new harm-axis dims) is pending — expected lift is similar or higher because the harm dims discriminate strongly between stock (which often ships operational tips) and harnessed (which refuses with grounding)."
+  "footnote":        "These reference numbers (stock 6%, harnessed 88%) were measured against v3.5 rubric (19 dims, eval set git_sha fcc7ab1). v3.6 (21 dims with two new harm-axis dims) is the current rubric used for live grading; the reference numbers will be re-measured against v3.6 before submission. Expected lift is similar or higher because the harm dims discriminate strongly between stock (which often ships operational tips) and harnessed (which refuses with grounding)."
 }

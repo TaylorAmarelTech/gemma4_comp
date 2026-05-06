@@ -25,9 +25,11 @@
                      for cloud-search APIs; falls back to DuckDuckGo
                      HTML when no key)
       Grade        4 modes (Universal / Expert / Deep / Combined) --
-                     Universal = 17-dim multi-signal grader, Deep =
-                     LLM-as-judge sending response back to the loaded
-                     model with one yes/no question per dimension
+                     Universal = 21-dim multi-signal grader,
+                     Evaluator = LLM-evaluator sending response back
+                     to the loaded model with one yes/no question per
+                     dimension (the framework academic literature
+                     calls 'LLM-as-judge')
 
   MODEL SELECTOR via GEMMA_MODEL_VARIANT env var or edit default below:
 
@@ -1631,8 +1633,8 @@ _online_label = "Online (web search)" if ENABLE_ONLINE_SEARCH else "Online (disa
 print(f"   harness:  Persona + GREP ({len(GREP_RULES)} rules across "
       f"16 categories) + RAG ({len(RAG_CORPUS)} docs) + "
       f"Tools ({len(_TOOL_DISPATCH)} fns) + {_online_label}")
-print(f"   grade:    Universal (17-dim) / Expert (5-dim) / "
-      f"Deep (LLM-as-judge) / Combined (50/50 blend)")
+print(f"   grade:    Universal (21-dim) / Expert (5-dim) / "
+      f"Evaluator (LLM scoring) / Combined (50/50 blend)")
 print(f"\n   On first page-load, the model picker overlay appears.")
 print(f"   Pick a variant; load takes ~30s (E4B) to ~5 min (31B).")
 print(f"   The chat UI then shows 5 toggle tiles in the composer footer:")
