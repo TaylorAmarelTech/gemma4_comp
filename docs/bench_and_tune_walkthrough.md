@@ -1,6 +1,6 @@
 # Bench-and-Tune Walkthrough — A2 notebook on Kaggle T4×2
 
-> Step-by-step guide for running `kaggle/bench-and-tune/kernel.py`
+> Step-by-step guide for running `kaggle/A-07-bench-and-tune/kernel.py`
 > end-to-end. This is the Special Tech Track Unsloth angle ($10k
 > bonus): smoke benchmark stock Gemma 4 → Unsloth SFT (LoRA) → DPO
 > → re-benchmark → GGUF export → HF Hub push.
@@ -279,7 +279,7 @@ the lift claim independently.
 
 ## Critical-path summary
 
-1. Open `kaggle/bench-and-tune/kernel.py` on Kaggle
+1. Open `kaggle/A-07-bench-and-tune/kernel.py` on Kaggle
 2. Attach `duecare-bench-and-tune-wheels` + `google/gemma-4` model
 3. Add `HF_TOKEN` (write scope) to Kaggle Secrets
 4. Run cell — leave for ~3 hours

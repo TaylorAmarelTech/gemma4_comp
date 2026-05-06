@@ -39,7 +39,7 @@
 
 | | |
 |---|---|
-| Folder | [`kaggle/chat-playground/`](../kaggle/chat-playground/) |
+| Folder | [`kaggle/A-01-chat-playground/`](../kaggle/A-01-chat-playground/) |
 | Notebook URL | https://www.kaggle.com/code/taylorsamarel/duecare-gemma-chat-playground |
 | Wheels | `taylorsamarel/duecare-chat-playground-wheels` ✓ live |
 | LOC | 611 |
@@ -57,7 +57,7 @@ in #2.
 
 | | |
 |---|---|
-| Folder | [`kaggle/chat-playground-with-grep-rag-tools/`](../kaggle/chat-playground-with-grep-rag-tools/) |
+| Folder | [`kaggle/A-02-chat-playground-with-grep-rag-tools/`](../kaggle/A-02-chat-playground-with-grep-rag-tools/) |
 | Notebook URL | https://www.kaggle.com/code/taylorsamarel/duecare-chat-playground-with-grep-rag-tools |
 | Wheels | `taylorsamarel/duecare-chat-playground-with-grep-rag-tools-wheels` ✓ live |
 | LOC | 557 |
@@ -73,7 +73,7 @@ the "watch what happens when I turn on GREP" demo the video centers on.
 
 | | |
 |---|---|
-| Folder | [`kaggle/content-classification-playground/`](../kaggle/content-classification-playground/) |
+| Folder | [`kaggle/A-03-content-classification-playground/`](../kaggle/A-03-content-classification-playground/) |
 | Notebook URL | https://www.kaggle.com/code/taylorsamarel/duecare-content-classification-playground *(TBD — kernel needs creation)* |
 | Wheels | `taylorsamarel/duecare-content-classification-playground-wheels` ✓ live |
 | LOC | 815 |
@@ -89,7 +89,7 @@ no threshold filter, just iterate on classification mechanics.
 
 | | |
 |---|---|
-| Folder | [`kaggle/content-knowledge-builder-playground/`](../kaggle/content-knowledge-builder-playground/) |
+| Folder | [`kaggle/A-04-content-knowledge-builder-playground/`](../kaggle/A-04-content-knowledge-builder-playground/) |
 | Notebook URL | https://www.kaggle.com/code/taylorsamarel/duecare-content-knowledge-builder-playground *(TBD)* |
 | Wheels | `taylorsamarel/duecare-content-knowledge-builder-playground-wheels` ✓ live |
 | LOC | 1082 |
@@ -106,7 +106,7 @@ partners extending Duecare to their corridor / domain on a laptop.
 
 | | |
 |---|---|
-| Folder | [`kaggle/gemma-content-classification-evaluation/`](../kaggle/gemma-content-classification-evaluation/) |
+| Folder | [`kaggle/A-05-gemma-content-classification-evaluation/`](../kaggle/A-05-gemma-content-classification-evaluation/) |
 | Notebook URL | https://www.kaggle.com/code/taylorsamarel/duecare-gemma-content-classification-evaluation |
 | Wheels | `taylorsamarel/duecare-gemma-content-classification-evaluation-wheels` ✓ live |
 | LOC | 526 |
@@ -123,7 +123,7 @@ exercising Gemma 4's multimodal path).
 
 | | |
 |---|---|
-| Folder | [`kaggle/live-demo/`](../kaggle/live-demo/) |
+| Folder | [`kaggle/02-live-demo/`](../kaggle/02-live-demo/) |
 | Notebook URL | https://www.kaggle.com/code/taylorsamarel/duecare-live-demo |
 | Wheels | `taylorsamarel/duecare-live-demo-wheels` ✓ live (16 wheels) |
 | LOC | 1951 |
@@ -145,7 +145,7 @@ for the llama.cpp track. Combines #3 + #4 in one polished surface.
 
 | | |
 |---|---|
-| Folder | [`kaggle/prompt-generation/`](../kaggle/prompt-generation/) |
+| Folder | [`kaggle/A-06-prompt-generation/`](../kaggle/A-06-prompt-generation/) |
 | Notebook URL | https://www.kaggle.com/code/taylorsamarel/duecare-prompt-generation *(TBD)* |
 | Wheels | `taylorsamarel/duecare-prompt-generation-wheels` ✓ live |
 | LOC | 646 |
@@ -163,7 +163,7 @@ graded response examples on a worst→best scale (HARMFUL / INCOMPLETE
 
 | | |
 |---|---|
-| Folder | [`kaggle/bench-and-tune/`](../kaggle/bench-and-tune/) |
+| Folder | [`kaggle/A-07-bench-and-tune/`](../kaggle/A-07-bench-and-tune/) |
 | Notebook URL | https://www.kaggle.com/code/taylorsamarel/duecare-bench-and-tune *(TBD)* |
 | Wheels | `taylorsamarel/duecare-bench-and-tune-wheels` ✓ live (6 wheels) |
 | LOC | 1247 |
@@ -180,7 +180,7 @@ GGUF Q8_0 export → HF Hub push of all three artifacts under
 
 | | |
 |---|---|
-| Folder | [`kaggle/research-graphs/`](../kaggle/research-graphs/) |
+| Folder | [`kaggle/A-08-research-graphs/`](../kaggle/A-08-research-graphs/) |
 | Notebook URL | https://www.kaggle.com/code/taylorsamarel/duecare-research-graphs *(TBD)* |
 | Wheels | `taylorsamarel/duecare-research-graphs-wheels` ✓ live |
 | LOC | 667 |
@@ -197,7 +197,7 @@ RAG corpus sunburst by source family. CPU-only, no model load.
 
 | | |
 |---|---|
-| Folder | [`kaggle/chat-playground-with-agentic-research/`](../kaggle/chat-playground-with-agentic-research/) |
+| Folder | [`kaggle/A-09-chat-playground-with-agentic-research/`](../kaggle/A-09-chat-playground-with-agentic-research/) |
 | Notebook URL | https://www.kaggle.com/code/taylorsamarel/duecare-chat-playground-with-agentic-research *(TBD)* |
 | Wheels | `taylorsamarel/duecare-chat-playground-with-agentic-research-wheels` ✓ live |
 | LOC | 1378 |
@@ -217,7 +217,7 @@ every outbound query; audit log records sha256(query) only.
 
 | | |
 |---|---|
-| Folder | [`kaggle/chat-playground-jailbroken-models/`](../kaggle/chat-playground-jailbroken-models/) |
+| Folder | [`kaggle/A-10-chat-playground-jailbroken-models/`](../kaggle/A-10-chat-playground-jailbroken-models/) |
 | Notebook URL | https://www.kaggle.com/code/taylorsamarel/duecare-chat-playground-jailbroken-models *(TBD)* |
 | Wheels | `taylorsamarel/duecare-chat-playground-jailbroken-models-wheels` ✓ live |
 | LOC | 562 |
