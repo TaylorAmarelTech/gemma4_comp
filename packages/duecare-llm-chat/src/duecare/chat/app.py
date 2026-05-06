@@ -133,9 +133,12 @@ class GradeRequest(BaseModel):
 
 
 class DeepGradeRequest(BaseModel):
-    """LLM-as-judge grade request: send the response back to the loaded
-    Gemma with dimension-specific yes/no questions. Optional dimension
-    list lets the UI ask for a single-dimension deep dive.
+    """LLM-evaluator grade request: send the response back to the
+    loaded Gemma with dimension-specific yes/no questions. Optional
+    dimension list lets the UI ask for a single-dimension deep dive.
+
+    The evaluator framework follows the same paradigm as G-Eval,
+    MT-Bench, Prometheus, Auto-J: a model scoring a model.
 
     H4: explicit Field constraints prevent denial-of-service via
     oversized response_text + unbounded dimension count + extreme
@@ -147,10 +150,10 @@ class DeepGradeRequest(BaseModel):
     dimensions: Optional[list[str]] = Field(default=None, max_length=20,
                                                 description="Optional list of dimension ids to grade. Unknown ids → 400.")
     skip_not_applicable: bool = True
-    judge_weight: float = Field(default=0.5, ge=0.0, le=1.0,
-                                   description="0=det only, 1=judge only, 0.5=blend. NaN/Inf rejected.")
+    evaluator_weight: float = Field(default=0.5, ge=0.0, le=1.0,
+                                       description="0=deterministic only, 1=evaluator only, 0.5=blend. NaN/Inf rejected.")
     max_new_tokens: int = Field(default=320, ge=16, le=2048,
-                                   description="Per-call token cap. Judge envelopes are tiny; 320 is generous.")
+                                   description="Per-call token cap. Evaluator envelopes are tiny; 320 is generous.")
     # NOTE: floor at 0.01 (not 0.0) because HF transformers
     # model.generate() raises ValueError on temperature=0.0 when
     # do_sample=True. The kernel's gemma_call wrapper passes
@@ -158,15 +161,15 @@ class DeepGradeRequest(BaseModel):
     # See: github.com/huggingface/transformers issue tracking.
     temperature: float = Field(default=0.01, ge=0.01, le=2.0,
                                   description="0.01 for nearly-deterministic verdicts (transformers requires > 0).")
-    # User-extensible judge prompt. Two override knobs:
+    # User-extensible evaluator prompt. Two override knobs:
     #   custom_questions: per-dimension {question, hint} overrides
     #   custom_envelope:  full prompt template (with {placeholders})
     # Both are optional; missing dimensions fall through to the
-    # bundled JUDGE_QUESTIONS defaults so partial overrides are safe.
+    # bundled EVALUATION_QUESTIONS defaults so partial overrides are safe.
     custom_questions: Optional[dict] = Field(
         default=None,
         description=(
-            'Per-dimension judge-prompt override, shape {dim_id: '
+            'Per-dimension evaluator-prompt override, shape {dim_id: '
             '{"question": "...", "hint": "..."}}. Missing dims '
             'fall through to bundled defaults.'
         ),
@@ -176,9 +179,9 @@ class DeepGradeRequest(BaseModel):
         description=(
             'Full prompt template override. Substitutes {dimension_id}, '
             '{question}, {hint}, {prompt_text}, {response_text}. '
-            'You are responsible for instructing the judge to return '
-            'the JSON envelope; otherwise parse falls back to keyword '
-            'scan. Capped at 8 KB.'
+            'You are responsible for instructing the evaluator to '
+            'return the JSON envelope; otherwise parse falls back to '
+            'keyword scan. Capped at 8 KB.'
         ),
     )
 
@@ -289,14 +292,14 @@ def create_app(
         try:
             from .harness import (
                 GREP_RULES, RAG_CORPUS, _TOOL_DISPATCH, RUBRIC_UNIVERSAL,
-                JUDGE_QUESTIONS,
+                EVALUATION_QUESTIONS,
             )
             harness_counts = {
-                "grep_rules":         len(GREP_RULES),
-                "rag_docs":           len(RAG_CORPUS),
-                "tools":              len(_TOOL_DISPATCH),
-                "rubric_dimensions":  len(RUBRIC_UNIVERSAL.get("dimensions", [])),
-                "judge_questions":    len(JUDGE_QUESTIONS),
+                "grep_rules":            len(GREP_RULES),
+                "rag_docs":              len(RAG_CORPUS),
+                "tools":                 len(_TOOL_DISPATCH),
+                "rubric_dimensions":     len(RUBRIC_UNIVERSAL.get("dimensions", [])),
+                "evaluation_questions":  len(EVALUATION_QUESTIONS),
             }
         except Exception as e:  # noqa: BLE001
             harness_counts = {"error": f"{type(e).__name__}: {e}"}
@@ -339,9 +342,10 @@ def create_app(
         invokable and not displayed. The persona layer is always
         considered 'wired' if a default text exists.
 
-        `grade_deep` reflects whether the LLM-as-judge endpoint will
-        work — it requires `gemma_call` to be wired so the kernel can
-        ask its own loaded Gemma the dimension yes/no questions."""
+        `grade_deep` reflects whether the LLM-evaluator endpoint
+        will work — it requires `gemma_call` to be wired so the
+        kernel can ask its own loaded Gemma the dimension yes/no
+        questions."""
         return {
             "persona": bool(app.state.persona_default),
             "persona_default": app.state.persona_default or "",
@@ -372,14 +376,171 @@ def create_app(
         sector, corridor, difficulty, ilo_indicators}."""
         return {"examples": app.state.example_prompts or []}
 
-    @app.get("/api/judge-questions")
-    def api_judge_questions() -> Any:
-        """Return the bundled JUDGE_QUESTIONS catalog so the UI can
-        display the per-dimension yes/no question + hint AND let the
-        user edit them locally (sent back via DeepGradeRequest's
-        `custom_questions` field). Also returns the default prompt
-        envelope template so the user can override that too."""
-        from .harness import JUDGE_QUESTIONS, RUBRIC_UNIVERSAL
+    @app.get("/api/rubric-hints")
+    def api_rubric_hints() -> Any:
+        """Return the per-dimension PASS/FAIL hint strings rendered
+        inline in the chat UI's grade modal on FAIL/PARTIAL rows.
+        Loaded from `_rubric_hints.json` (curator-block) so jurists
+        can edit hints without touching JS.
+
+        Shape: {hints: {dim_id: hint_string}, version, last_updated,
+        n}. Empty hints dict if the curator block is missing —
+        caller's responsibility to render reasonable fallback.
+        """
+        from .harness import _governance as _gov
+        block = {}
+        if _gov.RUBRIC_HINTS_PATH.exists():
+            block = _gov.load_curator_block(_gov.RUBRIC_HINTS_PATH) or {}
+        hints = _gov.load_rubric_hints()
+        return {
+            "hints":         hints,
+            "n":             len(hints),
+            "version":       block.get("version", ""),
+            "last_updated":  block.get("last_updated", ""),
+            "schema":        block.get("schema", ""),
+        }
+
+    @app.get("/api/baseline")
+    def api_baseline() -> Any:
+        """Return the stock vs harnessed reference benchmark numbers
+        for the score-card gauge. Loaded from `_baseline_gauge.json`
+        (curator-block) so the eval team can re-measure and PR new
+        numbers without a UI rebuild. Shape:
+        {stock:{label,value,color,title,notes},
+         harnessed:{...},
+         eval_set_size, eval_run_date, rubric_version, git_sha,
+         footnote, version, last_updated}.
+        """
+        from .harness import _governance as _gov
+        block = _gov.load_baseline_gauge()
+        if not block:
+            # Conservative fallback so the UI doesn't render a blank
+            # gauge if the curator block is missing.
+            return {
+                "stock":      {"label": "stock", "value": 6.0,
+                                  "color": "#ef4444"},
+                "harnessed":  {"label": "harnessed", "value": 88.0,
+                                  "color": "#10b981"},
+                "_fallback":  True,
+            }
+        return block
+
+    @app.get("/api/governance")
+    def api_governance_index() -> Any:
+        """List the curator-block files bundled with the wheel so the
+        UI knows which 'magic-string' tables exist and where to fetch
+        them. Each entry exposes the schema, version, last_updated,
+        curator, and entry-count so a stakeholder can decide whether
+        a PR needs to bump the version. Pairs with
+        /api/governance/<name> to fetch the actual block."""
+        from .harness import _governance as _gov  # noqa: PLR0915
+        files = [
+            ("classifier_signals",     _gov.CLASSIFIER_SIGNALS_PATH),
+            ("usecase_affinity",       _gov.USECASE_AFFINITY_PATH),
+            ("authoritative_statutes", _gov.AUTHORITATIVE_STATUTES_PATH),
+            ("known_statute_sections", _gov.KNOWN_STATUTE_SECTIONS_PATH),
+            ("evaluation_questions",   _gov.EVALUATION_QUESTIONS_PATH),
+            ("intent_affinity",        _gov.INTENT_AFFINITY_PATH),
+            ("intent_signals",         _gov.INTENT_SIGNALS_PATH),
+            ("country_hints",          _gov.COUNTRY_HINTS_PATH),
+            ("grader_config",          _gov.GRADER_CONFIG_PATH),
+            ("baseline_gauge",         _gov.BASELINE_GAUGE_PATH),
+            ("rubric_hints",           _gov.RUBRIC_HINTS_PATH),
+        ]
+        out: list[dict] = []
+        for name, path in files:
+            block = _gov.load_curator_block(path) if path.exists() else {}
+            entries = _gov.get_entries(block) if block else []
+            count = len(entries)
+            # Some curator blocks store entries under a custom key
+            # (questions / use_cases / intents / countries / thresholds);
+            # report whichever count makes sense.
+            if not entries and isinstance(block, dict):
+                for alt_key in ("questions", "use_cases", "intents",
+                                "countries", "thresholds"):
+                    if alt_key in block and isinstance(block[alt_key], dict):
+                        count = len(block[alt_key])
+                        break
+            out.append({
+                "name":          name,
+                "filename":      path.name,
+                "exists":        path.exists(),
+                "schema":        block.get("schema", "") if block else "",
+                "version":       block.get("version", "") if block else "",
+                "last_updated":  block.get("last_updated", "") if block else "",
+                "curator":       block.get("curator", "") if block else "",
+                "notes":         (block.get("notes", "") if block else "")[:300],
+                "entry_count":   count,
+            })
+        return {"governance": out}
+
+    @app.get("/api/governance/{name}")
+    def api_governance_get(name: str) -> Any:
+        """Return the full curator-block JSON by short name. Names
+        match the index from /api/governance. The response is the
+        raw block (schema/version/notes/entries) so a UI can render
+        it with full provenance for each entry."""
+        from .harness import _governance as _gov
+        registry = {
+            "classifier_signals":     _gov.CLASSIFIER_SIGNALS_PATH,
+            "usecase_affinity":       _gov.USECASE_AFFINITY_PATH,
+            "authoritative_statutes": _gov.AUTHORITATIVE_STATUTES_PATH,
+            "known_statute_sections": _gov.KNOWN_STATUTE_SECTIONS_PATH,
+            "evaluation_questions":   _gov.EVALUATION_QUESTIONS_PATH,
+            "intent_affinity":        _gov.INTENT_AFFINITY_PATH,
+            "intent_signals":         _gov.INTENT_SIGNALS_PATH,
+            "country_hints":          _gov.COUNTRY_HINTS_PATH,
+            "grader_config":          _gov.GRADER_CONFIG_PATH,
+            "baseline_gauge":         _gov.BASELINE_GAUGE_PATH,
+            "rubric_hints":           _gov.RUBRIC_HINTS_PATH,
+        }
+        path = registry.get(name)
+        if not path or not path.exists():
+            raise HTTPException(404, f"unknown curator block {name!r}")
+        try:
+            return json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError) as e:
+            raise HTTPException(500, f"failed to load {name}: {e}") from e
+
+    @app.post("/api/classify-prompt")
+    def api_classify_prompt(req: dict) -> Any:
+        """Run the analog prompt classifier on an arbitrary prompt and
+        return the use-case confidence distribution. Useful as an
+        audit trail for the user — they can see WHY their grade
+        weighted certain dims more (e.g. 'this prompt classified as
+        0.6 worker_asking + 0.3 ngo_intake'). When `use_llm: true`
+        is passed AND a model is wired, the LLM-layer classifier is
+        also invoked; otherwise rules-only.
+
+        Body: {prompt_text: str, use_llm?: bool}
+        Returns: {use_cases: dict, primary, primary_confidence,
+                  rules_scores, llm_scores, llm_used}
+        """
+        from .harness import classify_prompt
+        prompt_text = (req or {}).get("prompt_text") or ""
+        use_llm = bool((req or {}).get("use_llm", False))
+        model_call = None
+        if use_llm and app.state.gemma_call is not None:
+            def _mc(p: str) -> str:
+                msgs = [{"role": "user", "content": [{"type": "text", "text": p}]}]
+                return app.state.gemma_call(msgs, max_new_tokens=128, temperature=0.01)
+            model_call = _mc
+        return classify_prompt(prompt_text, model_call=model_call)
+
+    @app.get("/api/evaluation-questions")
+    def api_evaluation_questions() -> Any:
+        """Return the bundled per-dimension EVALUATION_QUESTIONS
+        catalog so the UI can display the per-dimension yes/no
+        question + hint AND let the user edit them locally (sent
+        back via DeepGradeRequest's `custom_questions` field). Also
+        returns the default prompt envelope template so the user
+        can override that too.
+
+        These are the questions the LLM evaluator is asked to
+        answer about a response, following the same paradigm as
+        G-Eval, MT-Bench, Prometheus.
+        """
+        from .harness import EVALUATION_QUESTIONS, RUBRIC_UNIVERSAL
         # Show the dimensions in the same order as the rubric
         ordered: list[dict] = []
         seen: set[str] = set()
@@ -388,7 +549,7 @@ def create_app(
             if not did or did in seen:
                 continue
             seen.add(did)
-            spec = JUDGE_QUESTIONS.get(did) or {}
+            spec = EVALUATION_QUESTIONS.get(did) or {}
             ordered.append({
                 "id":          did,
                 "name":        dim.get("name", did),
@@ -397,7 +558,7 @@ def create_app(
                 "question":    spec.get("question", ""),
                 "hint":        spec.get("hint", ""),
             })
-        # Default envelope (mirrors _build_judge_prompt). Surfaced so
+        # Default envelope (mirrors _build_evaluator_prompt). Surfaced so
         # the user can copy-paste-edit and pass via custom_envelope.
         default_envelope = (
             "You are a careful evaluator scoring an LLM response "
@@ -500,13 +661,13 @@ def create_app(
             raise HTTPException(500, f"grading failed: {e}") from e
         return result
 
-    def _judge_model_call(prompt_str: str, *, max_new_tokens: int,
-                            temperature: float) -> str:
+    def _evaluator_model_call(prompt_str: str, *, max_new_tokens: int,
+                                temperature: float) -> str:
         """Wrap the kernel's gemma_call into the (prompt: str) -> str
-        signature the LLM-judge grader expects. Builds a single-turn
-        message list (no harness layers — the judge looks at the raw
-        response on its own merits). Uses low temperature for
-        nearly-deterministic verdicts.
+        signature the LLM-evaluator grader expects. Builds a single-
+        turn message list (no harness layers — the evaluator looks
+        at the raw response on its own merits). Uses low temperature
+        for nearly-deterministic verdicts.
 
         Defence: clamp temperature to >= 0.01 because HF transformers
         model.generate() raises on temperature == 0.0 when sampling
@@ -538,16 +699,18 @@ def create_app(
 
     @app.post("/api/grade-deep")
     def api_grade_deep(req: DeepGradeRequest) -> Any:
-        """LLM-as-judge grader. Sends the response back to the loaded
-        Gemma with one focused yes/no question per applicable rubric
-        dimension. Returns dimension-by-dimension verdicts with
-        evidence quotes pulled from the response.
+        """LLM-evaluator grader. Sends the response back to the
+        loaded Gemma with one focused yes/no question per applicable
+        rubric dimension. Returns dimension-by-dimension verdicts
+        with evidence quotes pulled from the response.
 
         Why this complements the deterministic v3 grader: keyword/
-        cluster/fuzzy/trigram match catches lexical evidence; the LLM
-        judge catches paraphrased citations, implicit refusals, and
-        semantic substance the lexical grader can't see. Together they
-        form a defence-in-depth grading stack."""
+        cluster/fuzzy/trigram match catches lexical evidence; the
+        LLM evaluator catches paraphrased citations, implicit
+        refusals, and semantic substance the lexical grader can't
+        see. Together they form a defence-in-depth grading stack.
+        Follows the same paradigm as G-Eval, MT-Bench, Prometheus.
+        """
         if app.state.gemma_call is None:
             raise HTTPException(
                 503,
@@ -555,7 +718,7 @@ def create_app(
             )
         if not req.response_text or not req.response_text.strip():
             raise HTTPException(400, "response_text is required")
-        from .harness import grade_response_via_llm, RUBRIC_UNIVERSAL
+        from .harness import grade_response_via_evaluator, RUBRIC_UNIVERSAL
         # M4: unknown dimension ids should 400, not silently return 0%.
         if req.dimensions:
             valid_ids = {d["id"] for d in RUBRIC_UNIVERSAL.get("dimensions", [])}
@@ -567,12 +730,12 @@ def create_app(
                 )
 
         def model_call(p: str) -> str:
-            return _judge_model_call(
+            return _evaluator_model_call(
                 p, max_new_tokens=req.max_new_tokens,
                 temperature=req.temperature,
             )
         try:
-            return grade_response_via_llm(
+            return grade_response_via_evaluator(
                 req.response_text,
                 model_call=model_call,
                 prompt_text=req.prompt_text or "",
@@ -582,11 +745,12 @@ def create_app(
                 custom_envelope=req.custom_envelope,
             )
         except RuntimeError as e:
-            # Audit fix #5: the LLM judge's cumulative-error breaker
-            # (3+ consecutive or 5+ total model_call failures) raises
-            # RuntimeError. Surface as 503 so the UI can show a real
-            # error instead of "all 17 dimensions Uncertain".
-            raise HTTPException(503, f"LLM judge unavailable: {e}") from e
+            # Audit fix #5: the LLM evaluator's cumulative-error
+            # breaker (3+ consecutive or 5+ total model_call
+            # failures) raises RuntimeError. Surface as 503 so the
+            # UI can show a real error instead of "all dimensions
+            # Uncertain".
+            raise HTTPException(503, f"LLM evaluator unavailable: {e}") from e
         except HTTPException:
             raise
         except Exception as e:  # noqa: BLE001
@@ -594,11 +758,11 @@ def create_app(
 
     @app.post("/api/grade-combined")
     def api_grade_combined(req: DeepGradeRequest) -> Any:
-        """Run the deterministic v3 grader AND the LLM judge, return
-        both results plus a blended pct_score (default 50/50). Surfaces
-        an `agreement` block listing dimensions where the two graders
-        disagree — those are the high-information cases for a reviewer
-        to look at."""
+        """Run the deterministic v3 grader AND the LLM evaluator,
+        return both results plus a blended pct_score (default 50/50).
+        Surfaces an `agreement` block listing dimensions where the
+        two graders disagree — those are the high-information cases
+        for a reviewer to look at."""
         if app.state.gemma_call is None:
             # No model wired → fall back to deterministic only
             from .harness import grade_response_combined
@@ -606,7 +770,7 @@ def create_app(
                 req.response_text,
                 model_call=None,
                 prompt_text=req.prompt_text or "",
-                judge_weight=0.0,
+                evaluator_weight=0.0,
             )
         if not req.response_text or not req.response_text.strip():
             raise HTTPException(400, "response_text is required")
@@ -622,7 +786,7 @@ def create_app(
                 )
 
         def model_call(p: str) -> str:
-            return _judge_model_call(
+            return _evaluator_model_call(
                 p, max_new_tokens=req.max_new_tokens,
                 temperature=req.temperature,
             )
@@ -631,7 +795,7 @@ def create_app(
                 req.response_text,
                 model_call=model_call,
                 prompt_text=req.prompt_text or "",
-                judge_weight=req.judge_weight,
+                evaluator_weight=req.evaluator_weight,
             )
         except HTTPException:
             raise
@@ -973,6 +1137,131 @@ def create_app(
                 trace["online"]["summary"] = f"error: {type(exc).__name__}: {exc}"
 
         return {"trace": trace, "prepend_snippets": prepend_snippets}
+
+    @app.post("/api/ablation")
+    def api_ablation(req: ChatRequest) -> Any:
+        """Run the same prompt 4 times with different harness layer
+        configurations + grade each result with the universal rubric.
+        Demonstrates the harness lift live: OFF (persona only) /
+        GREP only / RAG only / BOTH (grep + rag).
+
+        Synchronous: blocks until all 4 generations complete.
+        Each generation acquires _GEMMA_LOCK in turn (model.generate
+        is not thread-safe). Total latency = 4 × per-generation time;
+        for E4B that's ~4 min on cold cache. The endpoint is intended
+        as a debug / demo affordance, not a hot-path endpoint.
+        """
+        gc = app.state.gemma_call
+        if gc is None:
+            raise HTTPException(503,
+                "ablation needs gemma_call wired into the chat server.")
+        from .harness import grade_response_universal
+
+        ablation_configs = [
+            ("OFF",       HarnessToggles(persona=req.toggles.persona, grep=False, rag=False)),
+            ("GREP only", HarnessToggles(persona=req.toggles.persona, grep=True,  rag=False)),
+            ("RAG only",  HarnessToggles(persona=req.toggles.persona, grep=False, rag=True)),
+            ("BOTH",      HarnessToggles(persona=req.toggles.persona, grep=True,  rag=True)),
+        ]
+        # Skip configurations that have no wiring effect (e.g. GREP only
+        # when grep_call isn't wired) — they'd duplicate OFF's result.
+        if app.state.grep_call is None:
+            ablation_configs = [c for c in ablation_configs
+                                  if c[0] not in ("GREP only", "BOTH")]
+        if app.state.rag_call is None:
+            ablation_configs = [c for c in ablation_configs
+                                  if c[0] not in ("RAG only", "BOTH")]
+
+        # Capture the user prompt text once for grading + UI display.
+        base_messages = _resolve_messages(req.messages)
+        prompt_text = _last_user_text(base_messages)
+
+        results: list[dict] = []
+        gp = req.generation
+        for label, toggles in ablation_configs:
+            t0 = time.time()
+            messages = _resolve_messages(req.messages)
+            harness = _run_harness(messages, toggles)
+            if harness["prepend_snippets"]:
+                harness_text = (
+                    "[DUECARE SAFETY HARNESS - pre-context for the "
+                    "assistant. Cite each fired indicator and the "
+                    "listed statutes. Do not provide operational "
+                    "optimisation for a scenario matching these "
+                    "indicators.]\n\n"
+                    + "\n\n".join(harness["prepend_snippets"])
+                    + "\n\n---\n\nUSER QUESTION:\n\n"
+                )
+                last_msg = dict(messages[-1])
+                content = list(last_msg.get("content") or [])
+                inserted = False
+                for i, chunk in enumerate(content):
+                    if chunk.get("type") == "text":
+                        content[i] = {"type": "text",
+                                          "text": harness_text + (chunk.get("text") or "")}
+                        inserted = True
+                        break
+                if not inserted:
+                    content.insert(0, {"type": "text", "text": harness_text})
+                last_msg["content"] = content
+                messages = messages[:-1] + [last_msg]
+
+            with _GEMMA_LOCK:
+                try:
+                    response_text = gc(
+                        messages,
+                        max_new_tokens=gp.max_new_tokens,
+                        temperature=gp.temperature,
+                        top_p=gp.top_p,
+                        top_k=gp.top_k,
+                    ) or ""
+                except TypeError:
+                    response_text = gc(messages) or ""
+                except Exception as e:  # noqa: BLE001
+                    response_text = f"[generation error: {e}]"
+
+            elapsed_ms = int((time.time() - t0) * 1000)
+            try:
+                grade = grade_response_universal(
+                    response_text,
+                    prompt_text=prompt_text,
+                    harness_trace=harness["trace"],
+                )
+            except Exception as e:  # noqa: BLE001
+                grade = {"error": f"{type(e).__name__}: {e}"}
+            # Compact the grade payload for transport — the UI only
+            # needs the score + a few summary counts. Full per-dim
+            # detail is overkill for the side-by-side view.
+            grade_summary = {
+                "pct_score":      grade.get("pct_score"),
+                "score_0_10":     grade.get("score_0_10"),
+                "raw_pct_score":  grade.get("raw_pct_score"),
+                "n_pass":         grade.get("n_pass", 0),
+                "n_partial":      grade.get("n_partial", 0),
+                "n_fail":         grade.get("n_fail", 0),
+                "n_applicable":   grade.get("n_applicable", 0),
+                "gaming_flagged": grade.get("gaming_flagged", False),
+                "version":        grade.get("version", ""),
+            }
+            results.append({
+                "label":          label,
+                "toggles":        toggles.model_dump() if hasattr(toggles, "model_dump") else toggles.dict(),
+                "response_text":  response_text,
+                "elapsed_ms":     elapsed_ms,
+                "grade":          grade_summary,
+                "harness_trace":  harness["trace"],
+            })
+
+        # Compute a lift summary for the UI banner: BOTH - OFF
+        scores = {r["label"]: (r["grade"].get("pct_score") or 0) for r in results}
+        lift_pp = (scores.get("BOTH", scores.get("RAG only", 0))
+                       - scores.get("OFF", 0))
+        return {
+            "prompt_text":  prompt_text,
+            "ablations":    results,
+            "lift_pp":      round(float(lift_pp), 1),
+            "version":      "v1",
+        }
 
     @app.post("/api/chat/send")
     async def api_chat_send(req: ChatRequest) -> Any:

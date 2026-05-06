@@ -1,0 +1,26 @@
+{
+  "schema": "duecare-baseline-gauge/v1",
+  "version": "1.0.0",
+  "last_updated": "2026-05-06",
+  "curator": "Duecare team",
+  "notes": "Reference benchmark numbers for the score-card gauge. Two marks: stock Gemma 4 baseline (no harness) and harnessed average (full Duecare stack). The user's score is rendered relative to these so a 60% reads correctly as 'big lift over baseline, still room above'. Numbers are measured against a fixed eval set; when the eval set or rubric expands, re-run the eval and PR the new numbers here. Stakeholders re-running the headline measurement should set `eval_set_size`, `eval_run_date`, `git_sha`, and the rubric `version` they measured against — that becomes the audit trail.",
+  "stock": {
+    "label":  "stock 6%",
+    "value":  6.0,
+    "color":  "#ef4444",
+    "title":  "Stock Gemma 4 baseline (no harness, no persona, no GREP/RAG/Tools/Online)",
+    "notes":  "Average pct_score across the 207-prompt eval set with all harness layers OFF and the default Gemma 4 E4B-it persona-free."
+  },
+  "harnessed": {
+    "label":  "harnessed 88%",
+    "value":  88.0,
+    "color":  "#10b981",
+    "title":  "Harnessed average (~88% on 207-prompt eval set)",
+    "notes":  "Average pct_score across the 207-prompt eval set with persona + GREP + RAG + Tools all ON."
+  },
+  "eval_set_size":   207,
+  "eval_run_date":   "2026-05-04",
+  "rubric_version":  "v3.5-anti-victim-blaming-and-pathways",
+  "git_sha":         "fcc7ab1",
+  "footnote":        "Measured against v3.5 rubric (19 dims). Re-measurement against v3.6 (21 dims with two new harm-axis dims) is pending — expected lift is similar or higher because the harm dims discriminate strongly between stock (which often ships operational tips) and harnessed (which refuses with grounding)."
+}

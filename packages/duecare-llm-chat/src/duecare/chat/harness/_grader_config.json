@@ -1,0 +1,83 @@
+{
+  "schema": "duecare-grader-config/v1",
+  "version": "1.0.0",
+  "last_updated": "2026-05-04",
+  "curator": "Duecare team",
+  "notes": "Tunable thresholds for the universal grader and LLM-as-judge. Stakeholders editing here change grader BEHAVIOR (how strict it is, how aggressive the gaming defense is, when the judge breaker fires) without touching code. Each entry has a `value` plus a one-line `rationale`. Override priority: env var > this file > built-in default.",
+  "thresholds": {
+    "grader_response_text_cap_chars": {
+      "value": 32768,
+      "rationale": "Cap response text at 32 KB for grading. Real LLM responses rarely exceed 8 KB; cap prevents adversarial padding from blowing up grader latency."
+    },
+    "gaming_defense_pct_cap": {
+      "value": 60.0,
+      "rationale": "Score cap when response lacks substantive narrative + structure. A bag-of-keywords response cannot exceed 60% even if every dim hits."
+    },
+    "gaming_min_response_len_chars": {
+      "value": 200,
+      "rationale": "Minimum response length to be considered substantive (escapes the gaming cap)."
+    },
+    "gaming_min_sentence_breaks_real": {
+      "value": 3,
+      "rationale": "Real-narrative threshold: 3+ sentence-ending punctuation marks."
+    },
+    "gaming_min_body_chars_with_structure": {
+      "value": 100,
+      "rationale": "When markdown structure is present, body chars must exceed this to count as 'has narrative + structure'."
+    },
+    "structure_boost_max_pp": {
+      "value": 5.0,
+      "rationale": "Maximum percentage-point boost from a fully-structured response (sections + lists + emphasis)."
+    },
+    "structure_boost_quality_floor": {
+      "value": 2,
+      "rationale": "Structure quality_score must be >= this to receive any boost."
+    },
+    "judge_breaker_consecutive": {
+      "value": 3,
+      "rationale": "LLM-as-judge raises after this many CONSECUTIVE model_call exceptions (CUDA OOM, network, bad temperature)."
+    },
+    "judge_breaker_total": {
+      "value": 5,
+      "rationale": "LLM-as-judge raises after this many TOTAL exceptions in a single grade run, regardless of pattern."
+    },
+    "classifier_rules_weight": {
+      "value": 0.6,
+      "rationale": "Default rules-vs-LLM blend for the prompt classifier. 0.6 leans toward rules because they're grounded in named signals and never hallucinate."
+    },
+    "classifier_llm_max_chars": {
+      "value": 6000,
+      "rationale": "Truncate prompt before sending to the classifier LLM call (avoids OOM on long prompts)."
+    },
+    "image_store_lru_cap": {
+      "value": 50,
+      "rationale": "Maximum number of uploaded images held in memory simultaneously."
+    },
+    "deep_judge_max_new_tokens": {
+      "value": 320,
+      "rationale": "Per-call token cap for judge envelope. Tiny envelopes; 320 is generous."
+    },
+    "deep_judge_temperature": {
+      "value": 0.01,
+      "rationale": "Nearly-deterministic verdicts. Cannot be 0 because HF transformers requires > 0 when do_sample=True."
+    }
+  },
+  "feature_flags": {
+    "enable_use_case_aware_weighting": {
+      "value": true,
+      "rationale": "Master switch for prompt-classifier weighting in the universal grader. Set false to fall back to flat dimension weights."
+    },
+    "enable_gaming_defense": {
+      "value": true,
+      "rationale": "Master switch for the bag-of-keywords gaming cap."
+    },
+    "enable_structure_boost": {
+      "value": true,
+      "rationale": "Master switch for the well-structured-response score boost."
+    },
+    "enable_section_verification": {
+      "value": true,
+      "rationale": "Master switch for the §/Article range verification (catches 'RA 8042 §99' = invalid)."
+    }
+  }
+}

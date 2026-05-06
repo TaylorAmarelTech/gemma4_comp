@@ -1,0 +1,73 @@
+{
+  "schema": "duecare-known-statute-sections/v1",
+  "version": "1.0.0",
+  "last_updated": "2026-05-04",
+  "curator": "Duecare team",
+  "notes": "Section/article-number ranges for well-known statutes. Used by `_verify_section_numbers` to flag responses that cite a section number that's outside the statute's actual range (e.g. 'RA 8042 §99' is invalid because RA 8042 has 42 sections). Each entry is keyed by the lowercase canonical statute reference. min/max are inclusive integers. When a statute is amended and a new section is added, increase max here. When a stakeholder finds an obvious mis-range entry (e.g. an out-of-date max for a statute that's been amended), they should PR an update with `last_amended` and a `source_url` for the official text.",
+  "entries": [
+    {"key": "ilo c029", "min": 1, "max": 33, "name": "Forced Labour Convention", "added_by": "duecare", "added_date": "2026-05-04"},
+    {"key": "ilo c095", "min": 1, "max": 16, "name": "Protection of Wages", "added_by": "duecare", "added_date": "2026-05-04"},
+    {"key": "ilo c181", "min": 1, "max": 18, "name": "Private Employment Agencies", "added_by": "duecare", "added_date": "2026-05-04"},
+    {"key": "ilo c189", "min": 1, "max": 27, "name": "Domestic Workers", "added_by": "duecare", "added_date": "2026-05-04"},
+    {"key": "ilo c188", "min": 1, "max": 54, "name": "Work in Fishing", "added_by": "duecare", "added_date": "2026-05-04"},
+    {"key": "ilo c097", "min": 1, "max": 23, "name": "Migration for Employment", "added_by": "duecare", "added_date": "2026-05-04"},
+    {"key": "ilo c143", "min": 1, "max": 24, "name": "Migrant Workers (Supplementary)", "added_by": "duecare", "added_date": "2026-05-04"},
+    {"key": "ilo c190", "min": 1, "max": 20, "name": "Violence and Harassment", "added_by": "duecare", "added_date": "2026-05-04"},
+    {"key": "ilo c105", "min": 1, "max": 4,  "name": "Abolition of Forced Labour 1957", "added_by": "duecare", "added_date": "2026-05-04"},
+    {"key": "ilo c182", "min": 1, "max": 16, "name": "Worst Forms of Child Labour", "added_by": "duecare", "added_date": "2026-05-04"},
+    {"key": "ilo c138", "min": 1, "max": 18, "name": "Minimum Age Convention", "added_by": "duecare", "added_date": "2026-05-04"},
+    {"key": "p029",     "min": 1, "max": 12, "name": "Forced Labour Protocol 2014", "added_by": "duecare", "added_date": "2026-05-04"},
+
+    {"key": "hk employment ord",        "min": 1, "max": 76,  "name": "HK Employment Ord (Cap. 57)", "added_by": "duecare", "added_date": "2026-05-04"},
+    {"key": "hk cap. 57",               "min": 1, "max": 76,  "added_by": "duecare", "added_date": "2026-05-04"},
+    {"key": "cap. 57",                  "min": 1, "max": 76,  "added_by": "duecare", "added_date": "2026-05-04"},
+    {"key": "hk money lenders ord",     "min": 1, "max": 36,  "name": "HK Money Lenders Ord (Cap. 163)", "added_by": "duecare", "added_date": "2026-05-04"},
+    {"key": "cap. 163",                 "min": 1, "max": 36,  "added_by": "duecare", "added_date": "2026-05-04"},
+    {"key": "hk employment agency reg", "min": 1, "max": 18,  "name": "HK Employment Agency Regulations (Cap. 57A)", "added_by": "duecare", "added_date": "2026-05-04"},
+    {"key": "cap. 57a",                 "min": 1, "max": 18,  "added_by": "duecare", "added_date": "2026-05-04"},
+    {"key": "hk crimes ord",            "min": 1, "max": 165, "name": "HK Crimes Ord (Cap. 200)", "added_by": "duecare", "added_date": "2026-05-04"},
+    {"key": "cap. 200",                 "min": 1, "max": 165, "added_by": "duecare", "added_date": "2026-05-04"},
+    {"key": "hk amlo",                  "min": 1, "max": 38,  "name": "HK AMLO (Cap. 615)", "added_by": "duecare", "added_date": "2026-05-04"},
+    {"key": "cap. 615",                 "min": 1, "max": 38,  "added_by": "duecare", "added_date": "2026-05-04"},
+    {"key": "hk modern slavery",        "min": 1, "max": 23,  "name": "(proposed bill structure)", "added_by": "duecare", "added_date": "2026-05-04"},
+
+    {"key": "ra 8042",  "min": 1, "max": 42, "name": "PH Migrant Workers Act 1995", "added_by": "duecare", "added_date": "2026-05-04"},
+    {"key": "ra 10022", "min": 1, "max": 12, "name": "PH RA 10022 amendment", "added_by": "duecare", "added_date": "2026-05-04"},
+    {"key": "ra 9208",  "min": 1, "max": 60, "name": "PH Anti-Trafficking Act 2003", "added_by": "duecare", "added_date": "2026-05-04"},
+    {"key": "ra 10364", "min": 1, "max": 16, "name": "PH RA 10364 amendment", "added_by": "duecare", "added_date": "2026-05-04"},
+    {"key": "ra 11862", "min": 1, "max": 32, "name": "PH Expanded Anti-Trafficking 2022", "added_by": "duecare", "added_date": "2026-05-04"},
+    {"key": "ra 11641", "min": 1, "max": 38, "name": "PH Department of Migrant Workers Act 2021", "added_by": "duecare", "added_date": "2026-05-04"},
+
+    {"key": "efma",        "min": 1, "max": 60,  "name": "SG Employment of Foreign Manpower Act", "added_by": "duecare", "added_date": "2026-05-04"},
+    {"key": "sg cap. 91a", "min": 1, "max": 60,  "added_by": "duecare", "added_date": "2026-05-04"},
+    {"key": "sg cap. 256", "min": 1, "max": 100, "added_by": "duecare", "added_date": "2026-05-04"},
+
+    {"key": "moere",     "min": 1, "max": 40, "name": "UAE MoHRE", "added_by": "duecare", "added_date": "2026-05-04"},
+    {"key": "ae law 33", "min": 1, "max": 40, "name": "UAE Federal Decree-Law 33/2021", "added_by": "duecare", "added_date": "2026-05-04"},
+
+    {"key": "in id 1947",   "min": 1, "max": 40, "name": "India Industrial Disputes Act", "added_by": "duecare", "added_date": "2026-05-04"},
+    {"key": "lk slbfe act", "min": 1, "max": 60, "name": "SL Bureau of Foreign Employment Act", "added_by": "duecare", "added_date": "2026-05-04"},
+
+    {"key": "uu 18 2017", "min": 1, "max": 90, "name": "Indonesia Law on Migrant Worker Protection", "added_by": "duecare", "added_date": "2026-05-04"},
+    {"key": "permenaker", "min": 1, "max": 40, "name": "Indonesia ministerial regulation (generic max)", "added_by": "duecare", "added_date": "2026-05-04"},
+    {"key": "bp2mi reg",  "min": 1, "max": 30, "name": "BP2MI regulations (generic max)", "added_by": "duecare", "added_date": "2026-05-04"},
+
+    {"key": "bd oea",    "min": 1, "max": 50,  "name": "BD Overseas Employment Act 2013", "added_by": "duecare", "added_date": "2026-05-04"},
+    {"key": "nepal fea", "min": 1, "max": 100, "name": "NP Foreign Employment Act 2007", "added_by": "duecare", "added_date": "2026-05-04"},
+    {"key": "mmr ld",    "min": 1, "max": 30,  "name": "Myanmar Labour Department (generic)", "added_by": "duecare", "added_date": "2026-05-04"},
+
+    {"key": "palermo protocol",              "min": 1, "max": 20, "name": "UN Trafficking Protocol", "added_by": "duecare", "added_date": "2026-05-04"},
+    {"key": "smuggling-of-migrants protocol", "min": 1, "max": 25, "added_by": "duecare", "added_date": "2026-05-04"},
+    {"key": "icrmw",                          "min": 1, "max": 93, "added_by": "duecare", "added_date": "2026-05-04"},
+    {"key": "udhr",                           "min": 1, "max": 30, "added_by": "duecare", "added_date": "2026-05-04"},
+    {"key": "iccpr",                          "min": 1, "max": 53, "added_by": "duecare", "added_date": "2026-05-04"},
+    {"key": "icescr",                         "min": 1, "max": 31, "added_by": "duecare", "added_date": "2026-05-04"},
+    {"key": "hague service convention",       "min": 1, "max": 31, "added_by": "duecare", "added_date": "2026-05-04"},
+    {"key": "fatf",                           "min": 1, "max": 40, "name": "40 Recommendations", "added_by": "duecare", "added_date": "2026-05-04"},
+
+    {"key": "20 cfr 655", "min": 1,   "max": 1500, "name": "US H-2 visa regs", "added_by": "duecare", "added_date": "2026-05-04"},
+    {"key": "ina",        "min": 101, "max": 318,  "name": "US Immigration and Nationality Act", "added_by": "duecare", "added_date": "2026-05-04"},
+    {"key": "tvpa",       "min": 101, "max": 113,  "name": "US Trafficking Victims Protection Act", "added_by": "duecare", "added_date": "2026-05-04"},
+    {"key": "tvpra",      "min": 101, "max": 121,  "name": "US TVPRA", "added_by": "duecare", "added_date": "2026-05-04"}
+  ]
+}

@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "duecare-llm-chat"
-version = "0.1.0"
+version = "0.2.0"
 description = "Minimal Gemma 4 chat playground -- single FastAPI app with a chat UI, no audit trail / no Duecare pipeline / no evidence DB. Pairs with Unsloth-loaded Gemma 4 (any variant including 31B) and a cloudflared quick-tunnel for Kaggle-hosted demos."
 readme = "README.md"
 license = {text = "MIT"}
@@ -24,6 +24,21 @@ packages = ["src/duecare"]
 include = [
     "src/duecare/chat/static/**/*",
     "src/duecare/chat/classifier_static/**/*",
-    "src/duecare/chat/harness/_examples.json",
-    "src/duecare/chat/harness/_classifier_examples.json",
+    # Explicit JSON include so a stale hatchling default can't
+    # silently drop curator-block files from the wheel. Every JSON
+    # file under harness/ ships — examples library + 5-tier rubrics +
+    # required-element rubrics + universal rubric + the four
+    # curator-block files (classifier signals, use-case affinity,
+    # authoritative statutes, known statute sections). Adding a new
+    # *.json under harness/ should auto-pick-up via the glob.
+    "src/duecare/chat/harness/*.json",
+]
+
+[tool.hatch.build.targets.sdist]
+# Source distribution mirrors the wheel — keep the JSONs available
+# so a downstream `pip install --no-binary` reproduces the same data.
+include = [
+    "src/duecare/chat/static/**/*",
+    "src/duecare/chat/classifier_static/**/*",
+    "src/duecare/chat/harness/*.json",
 ]
