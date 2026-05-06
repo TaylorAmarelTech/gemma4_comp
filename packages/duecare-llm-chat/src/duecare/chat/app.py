@@ -277,6 +277,99 @@ def create_app(
     def healthz() -> Any:
         return {"ok": True, "ts": time.time()}
 
+    @app.get("/api/version")
+    def api_version() -> Any:
+        """Unified version stamp for one-call audit. Returns the chat
+        package version, rubric version, every curator-block schema +
+        version + entry count, plus useful counts. External tools
+        consume this to verify a deployment is at the expected
+        revision before running benchmarks against it.
+
+        Shape:
+          {chat_package: "0.2.0",
+           harness: {rubric_version: "v3.6", n_dimensions: 21,
+                     n_evaluation_questions: 21, n_grep_rules: 108,
+                     n_rag_docs: 33, n_tools: 5, n_examples: 407,
+                     n_classifier_signals: 194, n_authoritative_statutes: 144,
+                     n_use_cases: 7, n_languages: 12},
+           curator_blocks: [{name, schema, version, last_updated, n_entries}],
+           wire_format_version: "v2.0",
+           ts: <epoch>}
+        """
+        from .harness import (
+            GREP_RULES, RAG_CORPUS, _TOOL_DISPATCH, RUBRIC_UNIVERSAL,
+            EVALUATION_QUESTIONS, EXAMPLE_PROMPTS, USE_CASES,
+            _USECASE_RULE_SIGNALS, _AUTHORITATIVE_STATUTES_ALLOWLIST,
+            _governance as _gov,
+        )
+        # Distinct languages in the classifier-signal table
+        langs: set[str] = set()
+        sigs = _gov.load_curator_block(_gov.CLASSIFIER_SIGNALS_PATH) or {}
+        for entry in sigs.get("entries", []) or []:
+            if isinstance(entry, dict) and "lang" in entry:
+                langs.add(entry["lang"])
+            else:
+                langs.add("en")  # default
+
+        curator_files = [
+            ("classifier_signals",     _gov.CLASSIFIER_SIGNALS_PATH),
+            ("usecase_affinity",       _gov.USECASE_AFFINITY_PATH),
+            ("authoritative_statutes", _gov.AUTHORITATIVE_STATUTES_PATH),
+            ("known_statute_sections", _gov.KNOWN_STATUTE_SECTIONS_PATH),
+            ("evaluation_questions",   _gov.EVALUATION_QUESTIONS_PATH),
+            ("intent_affinity",        _gov.INTENT_AFFINITY_PATH),
+            ("intent_signals",         _gov.INTENT_SIGNALS_PATH),
+            ("country_hints",          _gov.COUNTRY_HINTS_PATH),
+            ("grader_config",          _gov.GRADER_CONFIG_PATH),
+            ("baseline_gauge",         _gov.BASELINE_GAUGE_PATH),
+            ("rubric_hints",           _gov.RUBRIC_HINTS_PATH),
+        ]
+        curator_blocks: list[dict] = []
+        for name, path in curator_files:
+            block = _gov.load_curator_block(path) if path.exists() else {}
+            if not block:
+                curator_blocks.append({"name": name, "exists": False})
+                continue
+            n_entries = len(_gov.get_entries(block))
+            if n_entries == 0:
+                # Some blocks store entries under custom keys
+                for alt in ("hints", "questions", "use_cases",
+                              "intents", "countries", "thresholds"):
+                    if alt in block and isinstance(block[alt], dict):
+                        n_entries = len(block[alt])
+                        break
+            curator_blocks.append({
+                "name":          name,
+                "exists":        True,
+                "schema":        block.get("schema", ""),
+                "version":       block.get("version", ""),
+                "last_updated":  block.get("last_updated", ""),
+                "curator":       block.get("curator", ""),
+                "n_entries":     n_entries,
+            })
+
+        return {
+            "chat_package":         "0.2.0",
+            "wire_format_version":  "v2.0",  # mode='llm_evaluator', evaluator_*
+            "harness": {
+                "rubric_version":              RUBRIC_UNIVERSAL.get("version", ""),
+                "n_dimensions":                len(RUBRIC_UNIVERSAL.get("dimensions", [])),
+                "n_evaluation_questions":      len(EVALUATION_QUESTIONS),
+                "n_grep_rules":                len(GREP_RULES),
+                "n_rag_docs":                  len(RAG_CORPUS),
+                "n_tools":                     len(_TOOL_DISPATCH),
+                "n_examples":                  len(EXAMPLE_PROMPTS),
+                "n_classifier_signals":        len(_USECASE_RULE_SIGNALS),
+                "n_authoritative_statutes":    len(_AUTHORITATIVE_STATUTES_ALLOWLIST),
+                "n_use_cases":                 len(USE_CASES),
+                "n_languages":                 len(langs),
+                "languages":                   sorted(langs),
+                "use_cases":                   list(USE_CASES),
+            },
+            "curator_blocks":       curator_blocks,
+            "ts":                   time.time(),
+        }
+
     @app.get("/api/health-check")
     def api_health_check() -> Any:
         """Comprehensive smoke-test endpoint. Returns wired-layer
