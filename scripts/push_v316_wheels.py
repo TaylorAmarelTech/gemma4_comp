@@ -35,23 +35,25 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 KAGGLE_DIR = REPO_ROOT / "kaggle"
 
 # Submission notebooks. Order matters: 2 CORE first (most important
-# for judges), then appendix in canonical order.
+# for judges), then appendix in canonical order. Folder names use
+# the 01- / 02- / A-01- ... A-11- numbered prefix convention so the
+# `ls kaggle/` listing reads in the canonical presentation order.
 NOTEBOOKS = [
     # 2 CORE
-    "duecare-harness-chat",         # ★ omni playground
-    "live-demo",                     # ★ focused thesis demo
+    "01-duecare-harness-chat",         # ★ omni playground
+    "02-live-demo",                     # ★ focused thesis demo
     # 11 APPENDIX
-    "chat-playground",
-    "chat-playground-with-grep-rag-tools",
-    "chat-playground-jailbroken-models",
-    "chat-playground-with-agentic-research",
-    "content-classification-playground",
-    "content-knowledge-builder-playground",
-    "gemma-content-classification-evaluation",
-    "prompt-generation",
-    "bench-and-tune",
-    "research-graphs",
-    "grading-evaluation",
+    "A-01-chat-playground",
+    "A-02-chat-playground-with-grep-rag-tools",
+    "A-03-content-classification-playground",
+    "A-04-content-knowledge-builder-playground",
+    "A-05-gemma-content-classification-evaluation",
+    "A-06-prompt-generation",
+    "A-07-bench-and-tune",
+    "A-08-research-graphs",
+    "A-09-chat-playground-with-agentic-research",
+    "A-10-chat-playground-jailbroken-models",
+    "A-11-grading-evaluation",
 ]
 
 
