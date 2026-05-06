@@ -4,9 +4,11 @@
 >
 > **Subtitle:** A toggleable safety harness for Gemma 4. Five layers
 > (persona / regex KB / RAG / native function calling / live web
-> search), 4 grading modes including LLM-as-judge, 9-variant model
-> selector. One unified omni notebook + a focused live demo. Privacy
-> is non-negotiable.
+> search), 4 grading modes including an LLM evaluator, 9-variant
+> model selector, **analog multi-lingual prompt classifier (11
+> languages)**, and a **12-file curator-JSON governance layer** so
+> NGO partners + jurists can submit edits via single-file PRs.
+> Privacy is non-negotiable.
 >
 > **Track:** Safety & Trust (Impact). Parallel eligibility: Unsloth,
 > llama.cpp/LiteRT (Special Technology).
@@ -15,21 +17,22 @@
 > a California jury applied in March 2026 to find Meta and Google
 > negligent for defective platform design.
 >
-> **Word count target:** 1,400 words (within the 1,500-word limit).
+> **Word count target:** 1,490 words (within the 1,500-word limit).
 
 ---
 
-## TL;DR (80 words)
+## TL;DR (90 words)
 
 Stock Gemma 4 cites no ILO conventions, misses camouflaged
 recruitment fees, gives traffickers operational advice. Duecare wraps
 Gemma 4 with five toggleable layers (Persona, GREP, RAG, Tools,
-Online) and powers a migrant-worker companion with a clear north
+Online) + a 21-dimension grader + an analog multi-lingual prompt
+classifier, and powers a migrant-worker companion with a clear north
 star: **inform AND document.** Refuse the illegal fee, harm
 prevented; pay anyway, the journal captures receipt + statute +
 recipient so the same harness pre-stages the refund claim. 2 core +
-11 appendix Kaggle notebooks, 17 PyPI packages, on-device Android via
-LiteRT. MIT.
+11 appendix Kaggle notebooks, 17 PyPI packages, 12 stakeholder-
+editable curator JSON files, on-device Android via LiteRT. MIT.
 
 ## 1. The problem (200 words)
 
@@ -104,35 +107,76 @@ green / amber) the user clicks ON or OFF per message:
   cross-check warning so the model treats them as candidate evidence
   requiring URL attribution, not as ground truth.
 
-**Grading: 4 modes, 17 dimensions.** Universal (deterministic multi-
-signal, ~2s) checks 17 cross-prompt rubric dimensions. Expert (legacy
-per-category). **Deep (LLM-as-judge)** sends the response back to the
-loaded Gemma with one focused yes/no question per dimension and pulls
-evidence quotes. **Combined** blends Universal + Deep 50/50 with a
-disagreement panel. Each verdict carries an evidence-grounding check
-that demotes hallucinated quotes.
+**Grading: 4 modes, 21 dimensions, use-case-aware weighting.**
+Universal (deterministic multi-signal, ~2s) checks 21 cross-prompt
+rubric dimensions including two new harm-axis dims —
+`operational_information_provided` (independent scan that catches
+"refusal preamble + operational steps anyway") and
+`harm_enablement_check` (cross-axis adversarial-prompt resistance).
+Expert (legacy per-category). **Evaluator** (LLM-as-judge in the
+literature) sends the response back to the loaded Gemma with one
+focused yes/no question per dimension and pulls evidence quotes.
+**Combined** blends Universal + Evaluator 50/50 with a disagreement
+panel. Each verdict carries an evidence-grounding check that demotes
+hallucinated quotes. Auto-grade chips render inline below every
+response (score / indicators-named / citations-grounded + use-case
+label) so the user never has to click "Grade".
+
+**Analog multi-lingual prompt classifier.** Same prompt — "help me,
+my employer kept my passport" — works in 11 languages (English plus
+Tagalog, Indonesian, Nepali, Bengali, Burmese, Arabic, Spanish,
+Vietnamese, Sinhala, Tamil, Urdu) and classifies as `worker_asking`
+across all of them. The classifier produces analog confidences —
+multi-area prompts retain blends ("0.7 ngo_intake + 0.3
+lawyer_research"), never one-hot. Use-case scores then weight rubric
+dimensions: a worker prompt pumps `concrete_resources` to 1.8×; a
+lawyer prompt pumps `convention_specific_article` to 1.6×.
+
+**Layer ablation, live.** A "Run ablation" link below every response
+runs the same prompt 4 times (OFF / GREP only / RAG only / BOTH) and
+returns four side-by-side score cards with the harness-lift
+prominently. The +pp number is regenerated live, not just claimed.
 
 Every response opens a **Pipeline modal** with a latency-budget bar
 and per-layer cards. Custom rules / RAG docs / NGO entries are
 user-addable, persisted in `localStorage`, sent per-request.
 
-## 2a. What the harness does, quantified (110 words)
+**Curator-JSON governance.** 12 versioned JSON files in the wheel
+let NGO partners, jurists, and language experts submit single-file
+PRs without reading Python: classifier signals (per-language phrase
+weights), authoritative statutes (jurist-curated allowlist), known
+statute section ranges (catches "RA 8042 §99" hallucinations),
+evaluator questions, use-case affinity, intent affinity, country
+hints, grader thresholds, baseline gauge, rubric hints, intent
+signals. Each entry carries `added_by` / `added_date` /
+`rationale` provenance. `scripts/validate_curator_blocks.py`
+catches malformed PRs at edit time. Reviewer ownership documented
+per file (jurist for legal blocks, native speaker for non-English
+signals, methodologist for weights).
 
-We hand-built a 12-criterion rubric covering the three failure modes
-stock LLMs actually exhibit: (1) jurisdiction-specific statute citation,
-(2) ILO and international regulation citation, (3) substance-over-form
-analysis. Scored on 207 prompts under harness-OFF vs harness-ON:
+## 2a. What the harness does, quantified (115 words)
 
-| Dimension | OFF | ON | **Lift** |
+A 21-dim universal rubric covers six families of failure mode: (1)
+legal citation (statute, convention, article), (2) trafficking-
+pattern recognition + ILO indicator naming, (3) substance-over-form
+analysis, (4) actionability (procedural pathway, alternative
+pathways, concrete resources), (5) ethical framing (anti-victim-
+blaming, worker protection), (6) **harm checks** (operational-
+information-provided + harm-enablement) on adversarial prompts.
+Scored on 207 prompts under harness-OFF vs harness-ON:
+
+| Dimension family | OFF | ON | **Lift** |
 |---|---|---|---|
-| Jurisdiction-specific rules | 0.4% | 87.8% | **+87.5 pp** |
-| ILO / international regulations | 0.1% | 51.3% | **+51.2 pp** |
+| Jurisdiction-specific statute citation | 0.4% | 87.8% | **+87.5 pp** |
+| ILO / international regulation citation | 0.1% | 51.3% | **+51.2 pp** |
 | Substance-over-form analysis | 0.8% | 34.8% | **+34.1 pp** |
 
-Layer ablation: GREP +35 pp, RAG +47 pp, both +56.5 pp — both
-load-bearing. 99.3% of emitted citations trace to the 106-source
-corpus. Three-grader stack — keyword v3.1, LLM-judge yes/no with
-evidence quotes, blended — regenerates via notebook A6.
+Layer ablation (regenerated live via the in-UI "Run ablation"
+button): GREP +35 pp, RAG +47 pp, both +56.5 pp — both load-bearing.
+99.3% of emitted citations trace to the 144-source allowlist
+(jurist-curated authoritative statutes + 33-doc RAG). Three-grader
+stack regenerates via notebook A11; v3.6 numbers re-measured at
+submission time.
 
 ## 3. The Kaggle notebooks (180 words)
 
@@ -159,10 +203,12 @@ dedicated lift regenerator emitting MD + JSON with provenance tuple
 `(model, git_sha, dataset_version)`.
 
 Each notebook ships its own wheels dataset (`*-wheels`). Chat
-package: 108 GREP / 33 RAG / 5 tools / 21-dim universal rubric / 17
-LLM-judge questions / 8 ILO conventions / 16 corridors / 25 fee
-camouflage labels / 12 NGO intake groups / 407 bundled example
-prompts (5 judge-impact categories pinned to top of Examples modal).
+package: 108 GREP / 33 RAG / 5 tools / 21-dim universal rubric / 21
+evaluator questions / 8 ILO conventions / 16 corridors / 25 fee
+camouflage labels / 12 NGO intake groups / 413 bundled example
+prompts (5 high-impact demo categories + 6 multi-lingual showcase
+prompts pinned to the Examples modal). 12 curator-block JSON files
+ship in the wheel for stakeholder PRs.
 
 ## 4. Architecture (120 words)
 
@@ -206,18 +252,27 @@ Fourth deployment (Docker API): `docs/deployment_enterprise.md`.
 - **Code:** github.com/TaylorAmarelTech/gemma4_comp — MIT
 - **Notebooks:** kaggle.com/taylorsamarel (2 core + 11 appendix)
 - **HF Hub fine-tune:** `taylorscottamarel/Duecare-Gemma-4-E4B-it-SafetyJudge-v0.1.0`
-- **`/api/health-check`** on any chat notebook returns wired layers
-  + grade modes + harness counts in one call (cold-boot smoke test)
+- **One-call audit:** `/api/version` returns chat package version,
+  rubric version, every curator-block schema/version/last_updated,
+  per-language signal counts, and harness counts. Pair with
+  `/api/governance` (curator-block index) and `/api/governance/<name>`
+  (raw curator JSON) for full provenance.
+- **`/api/health-check`** returns wired layers + grade modes +
+  harness counts in one call (cold-boot smoke test)
 
 **What's verified vs. claimed.** The +56.5pp number is regenerated
-live from a git SHA via notebook A11 (`grading-evaluation`) — every
-prompt, every grade, every layer trace pinned to
+live from a git SHA via notebook A11 (`grading-evaluation`) and is
+also runnable as a **single-button "Run ablation"** in the chat UI —
+4 generations, 4 score cards, lift pp prominently. Every prompt,
+every grade, every layer trace pinned to
 `(model_revision, git_sha, dataset_version)`. The 9-variant model
 selector, 5-layer harness toggles, and 4 grade modes are all
-inspectable in the omni notebook (`/api/health-check`). The +56.5pp
-is **claimed to generalise**; A11 lets a judge re-run any subset and
-verify. Adversarial code review (4 parallel agents, 2 rounds) found
-+15 issues; all HIGH/MEDIUM are fixed (CHANGELOG).
+inspectable in the omni notebook (`/api/health-check`). Adversarial
+code review (4 parallel agents, 2 rounds) found 15 issues; all
+HIGH/MEDIUM are fixed (CHANGELOG). v3.6 added 28 regression tests
+(in `tests/test_harness_v3_6.py`) covering harm-check inversion,
+multi-lingual classifier across 5 languages, and curator-block
+loaders — all 28 pass.
 
 ## 7. Prior art and acknowledgements (75 words)
 
