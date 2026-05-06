@@ -6,6 +6,6 @@
       "name": "MIT"
     }
   ],
-  "subtitle": "Wheels for chat-playground with agentic web research (Playwright + DuckDuckGo + Wikipedia, no API keys)",
+  "subtitle": "v3.16 chat with Playwright web search (no API keys needed)",
   "description": "v3.16 - wheels for chat-playground-with-agentic-research. Bundled: duecare-llm-chat / -core / -models. Adds a 5th toggle for live agentic web research via Playwright (real browser automation). Multi-step Gemma 4 loop using DuckDuckGo HTML + httpx + Wikipedia. Open-source, no API keys. Supplements GREP / RAG / Tools with fresh web context for prompts where the local corpus is silent."
 }

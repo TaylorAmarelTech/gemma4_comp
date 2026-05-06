@@ -64,7 +64,7 @@ For each of the 17 packages:
 
 ## Phase 4 — Kaggle notebooks (15 min)
 
-For each of the 11 notebooks (2 core + 9 appendix):
+For each of the 11 notebooks (2 core + 11 appendix):
 
 - [ ] The notebook URL on Kaggle resolves (not 404, not "Notebook not found")
 - [ ] The notebook is **public** (not private)
@@ -83,7 +83,7 @@ The 11 to verify:
 | # | Notebook | URL |
 |---|---|---|
 | 1 | duecare-chat-playground | https://www.kaggle.com/code/taylorsamarel/duecare-gemma-chat-playground |
-| 2 | duecare-chat-playground-with-grep-rag-tools | https://www.kaggle.com/code/taylorsamarel/duecare-gemma-chat-playground-grep-rag-tools |
+| 2 | duecare-chat-playground-with-grep-rag-tools | https://www.kaggle.com/code/taylorsamarel/duecare-chat-playground-with-grep-rag-tools |
 | 3 | duecare-content-classification-playground | https://www.kaggle.com/code/taylorsamarel/duecare-content-classification-playground |
 | 4 | duecare-content-knowledge-builder-playground | https://www.kaggle.com/code/taylorsamarel/duecare-content-knowledge-builder-playground |
 | 5 | duecare-gemma-content-classification-evaluation | https://www.kaggle.com/code/taylorsamarel/duecare-gemma-content-classification-evaluation |

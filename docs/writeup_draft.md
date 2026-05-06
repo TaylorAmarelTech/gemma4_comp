@@ -28,7 +28,7 @@ Online) and powers a migrant-worker companion with a clear north
 star: **inform AND document.** Refuse the illegal fee, harm
 prevented; pay anyway, the journal captures receipt + statute +
 recipient so the same harness pre-stages the refund claim. 2 core +
-9 appendix Kaggle notebooks, 17 PyPI packages, on-device Android via
+11 appendix Kaggle notebooks, 17 PyPI packages, on-device Android via
 LiteRT. MIT.
 
 ## 1. The problem (200 words)
@@ -136,8 +136,8 @@ evidence quotes, blended — regenerates via notebook A6.
 
 ## 3. The Kaggle notebooks (180 words)
 
-**2 core + 9 appendix.** Judges land on the unified omni playground,
-then proceed to the focused live demo. The 9 appendix notebooks add
+**2 core + 11 appendix.** Judges land on the unified omni playground,
+then proceed to the focused live demo. The 11 appendix notebooks add
 depth-of-engineering signal without competing for the first 5 minutes.
 
 **Core (2):**
@@ -147,16 +147,16 @@ depth-of-engineering signal without competing for the first 5 minutes.
 | 1 | `duecare-harness-chat` | **The omni playground.** All 5 toggles + 4 grade modes + 9-variant Gemma 4 model selector (E2B / E4B / 26B-A4B / 31B / 2 jailbroken / 3 cloud BYOK). One configurable interface for the whole capability surface. |
 | 2 | `duecare-live-demo` | The focused, scripted live URL. Polished classification + knowledge-building product with the +56.5pp lift demonstration. |
 
-**Appendix (9):** the 6 specialised playgrounds (`chat-playground`
+**Appendix (11):** the 7 specialised playgrounds (`chat-playground`
 baseline, `chat-playground-with-grep-rag-tools` 4-toggle subset,
 `content-classification-playground`, `content-knowledge-builder-
 playground`, `gemma-content-classification-evaluation`, plus the
-agentic-web-search and jailbroken-models proofs); A2 `bench-and-
-tune` (Unsloth SFT → DPO → GGUF → HF Hub push); A3 `research-graphs`
-(6 Plotly charts); A6 `prompt-generation` (Gemma 4 self-generates
-new prompts + 5-grade responses); **A11 `grading-evaluation`** —
-the dedicated lift regenerator emitting MD + JSON with provenance
-tuple `(model, git_sha, dataset_version)`.
+agentic-web-search and jailbroken-models proofs); `bench-and-tune`
+(Unsloth SFT → DPO → GGUF → HF Hub push); `research-graphs`
+(6 Plotly charts); `prompt-generation` (Gemma 4 self-generates new
+prompts + 5-grade responses); **`grading-evaluation`** — the
+dedicated lift regenerator emitting MD + JSON with provenance tuple
+`(model, git_sha, dataset_version)`.
 
 Each notebook ships its own wheels dataset (`*-wheels`). Chat
 package: 108 GREP / 33 RAG / 5 tools / 17-dim universal rubric / 17
@@ -204,7 +204,7 @@ Fourth deployment (Docker API): `docs/deployment_enterprise.md`.
 ## 6. Reproducibility & verified-vs-claimed (110 words)
 
 - **Code:** github.com/TaylorAmarelTech/gemma4_comp — MIT
-- **Notebooks:** kaggle.com/taylorsamarel (2 core + 9 appendix)
+- **Notebooks:** kaggle.com/taylorsamarel (2 core + 11 appendix)
 - **HF Hub fine-tune:** `taylorscottamarel/Duecare-Gemma-4-E4B-it-SafetyJudge-v0.1.0`
 - **`/api/health-check`** on any chat notebook returns wired layers
   + grade modes + harness counts in one call (cold-boot smoke test)

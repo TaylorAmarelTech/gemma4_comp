@@ -25,7 +25,7 @@
 > 31B + 2 jailbroken (abliterated) + 3 cloud BYOK (Gemini /
 > OpenAI-compat / Ollama).
 >
-> **2 core + 9 appendix submission**: judges land on
+> **2 core + 11 appendix submission**: judges land on
 > `duecare-harness-chat` (omni playground) → `duecare-live-demo`
 > (focused thesis demo). The 9 specialised playgrounds are appendix.
 >

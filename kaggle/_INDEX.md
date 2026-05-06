@@ -4,7 +4,7 @@
 > [`kaggle/README.md`](./README.md) and [`docs/FOR_JUDGES.md`](../docs/FOR_JUDGES.md).
 > Every row reflects what's in this directory tree right now.
 
-## Build status — 2 core + 9 appendix = 11 submission notebooks
+## Build status — 2 core + 11 appendix = 11 submission notebooks
 
 **Submission shape (2026-05-04):** judges land on the unified
 **`duecare-harness-chat`** notebook to see every capability surface,
