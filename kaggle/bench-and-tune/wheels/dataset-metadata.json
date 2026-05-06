@@ -6,6 +6,6 @@
       "name": "MIT"
     }
   ],
-  "subtitle": "Wheels for bench-and-tune - Unsloth SFT + DPO + GGUF export + HF Hub push fine-tune pipeline",
+  "subtitle": "v3.16 Unsloth SFT + DPO + GGUF + HF Hub fine-tune pipeline",
   "description": "v3.16 - wheels for bench-and-tune. Bundled: duecare-llm-chat / -core / -models / -benchmark / -domains / -tasks / -training. End-to-end fine-tune pipeline: smoke benchmark on stock Gemma 4 -> Unsloth SFT (LoRA on harness-distilled or A1-generated pairs) -> DPO -> re-benchmark -> GGUF Q8_0 export -> HF Hub push. Special Tech Track angle (Unsloth bonus). Outputs Duecare-Gemma-4-E4B-it-SafetyJudge-v0.1.0 on HF Hub + GGUF artifact."
 }

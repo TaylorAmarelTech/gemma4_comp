@@ -83,14 +83,24 @@ def push_dataset(slug: str, dry_run: bool = False) -> tuple[bool, str]:
     ]
     try:
         result = subprocess.run(
-            cmd, capture_output=True, text=True, timeout=300,
+            cmd, capture_output=True, timeout=600,
         )
     except subprocess.TimeoutExpired:
-        return False, "timeout (300s)"
+        return False, "timeout (600s)"
     except FileNotFoundError:
         return False, "kaggle CLI not found in PATH (pip install kaggle)"
 
-    output = (result.stdout + result.stderr).strip()
+    # Decode bytes manually so we can handle non-utf8 / non-cp1252 output
+    def _decode(b):
+        if b is None:
+            return ""
+        if isinstance(b, str):
+            return b
+        try:
+            return b.decode("utf-8")
+        except UnicodeDecodeError:
+            return b.decode("utf-8", errors="replace")
+    output = (_decode(result.stdout) + _decode(result.stderr)).strip()
     if result.returncode == 0:
         return True, output[:200] or "ok"
     if "429" in output or "rate limit" in output.lower():
@@ -150,11 +160,11 @@ def main() -> int:
     print("=" * 60)
     print(f"SUCCEEDED ({len(succeeded)}):")
     for s in succeeded:
-        print(f"  ✓ {s}")
+        print(f"  [ok] {s}")
     if failed:
         print(f"FAILED ({len(failed)}):")
         for s, m in failed:
-            print(f"  ✗ {s}: {m[:120]}")
+            print(f"  [FAIL] {s}: {m[:120]}")
     if rate_limited:
         remaining = [s for s in targets if s not in succeeded
                       and s not in [f[0] for f in failed]]

@@ -6,6 +6,6 @@
       "name": "MIT"
     }
   ],
-  "subtitle": "Wheels for the focused Duecare live-demo notebook - full safety harness pipeline + audit Workbench + lift demonstration",
+  "subtitle": "v3.16 polished live-demo: 17 sub-packages + audit Workbench + lift demo",
   "description": "v3.16 - wheels for the polished live-demo notebook. Bundled: 17 duecare-llm-* sub-packages (chat / core / models / cli / server / agents / tasks / domains / workflows / publishing / engine / nl2sql / research-tools / evidence-db / training / benchmark / meta). Includes the v3.16 chat wheel with 108 GREP rules across 16 categories, 33 RAG docs, 5 tools, 17-dim universal grader + 17 LLM-judge questions. The headline +56.5pp lift demonstration runs end-to-end via the focused 4-card homepage (/individual / /enterprise / /knowledge / /settings)."
 }

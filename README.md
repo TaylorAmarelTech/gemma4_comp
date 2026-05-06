@@ -26,7 +26,7 @@
 
 > ### 🚀 Submission state (Gemma 4 Good Hackathon, due 2026-05-18)
 >
-> **2 core + 9 appendix = 11 Kaggle notebooks.** Judges land on
+> **2 core + 11 appendix = 11 Kaggle notebooks.** Judges land on
 > the unified omni playground, then proceed to the focused live
 > demo. The 9 appendix notebooks add depth-of-engineering signal
 > without competing for the first 5 minutes.
@@ -36,10 +36,10 @@
 > 1. [`duecare-harness-chat`](https://www.kaggle.com/code/taylorsamarel/duecare-harness-chat) ★ **The omni playground.** All 5 harness toggles (Persona / GREP 108 rules / RAG 33 docs / Tools 5 lookups / Online live web search) + 4 grade modes (Universal / Expert / **Deep LLM-as-judge** / Combined) + **9-variant Gemma 4 model selector** (E2B / E4B / 26B-A4B / 31B / 2 jailbroken / 3 cloud BYOK). One configurable interface for the whole capability surface.
 > 2. [`duecare-live-demo`](https://www.kaggle.com/code/taylorsamarel/duecare-live-demo) — focused, scripted live URL. Polished classification + knowledge-building product with the +56.5pp lift demonstration.
 >
-> **Appendix (9):**
+> **Appendix (11):**
 >
 > - A1. [`duecare-chat-playground`](https://www.kaggle.com/code/taylorsamarel/duecare-gemma-chat-playground) — raw Gemma 4 chat baseline (no harness)
-> - A2. [`duecare-chat-playground-with-grep-rag-tools`](https://www.kaggle.com/code/taylorsamarel/duecare-gemma-chat-playground-grep-rag-tools) — original 4-toggle subset
+> - A2. [`duecare-chat-playground-with-grep-rag-tools`](https://www.kaggle.com/code/taylorsamarel/duecare-chat-playground-with-grep-rag-tools) — original 4-toggle subset
 > - A3. `duecare-content-classification-playground` — hands-on classifier sandbox (4 schemas)
 > - A4. `duecare-content-knowledge-builder-playground` — hands-on KB builder + JSON export
 > - A5. [`duecare-gemma-content-classification-evaluation`](https://www.kaggle.com/code/taylorsamarel/duecare-gemma-content-classification-evaluation) — NGO dashboard with risk vectors + queue

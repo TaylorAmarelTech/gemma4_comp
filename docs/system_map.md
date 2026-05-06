@@ -13,7 +13,7 @@
 |---|---:|
 | User personas served | 14 |
 | Product surfaces | 5 |
-| Kaggle notebooks | 11 (2 core + 9 appendix) |
+| Kaggle notebooks | 11 (2 core + 11 appendix) |
 | PyPI packages | 17 |
 | Deployment topologies | 5 |
 | GREP rules | 42 |

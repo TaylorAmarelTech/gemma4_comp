@@ -125,7 +125,7 @@ If you have two minutes to decide if this is real:
 ## The Kaggle notebooks (the submission surface)
 
 The submission is structured as **2 core notebooks** (the omni
-playground + the focused live demo) plus **9 appendix notebooks**
+playground + the focused live demo) plus **11 appendix notebooks**
 (specialised playgrounds, research visualisation, agentic web-search,
 jailbroken-models proof, lift regenerator). Judges land on the
 **unified harness chat** to flip every toggle and see every capability
@@ -139,7 +139,7 @@ demonstration with the headline +56.5pp lift number.
 | **1** | [duecare-harness-chat](https://www.kaggle.com/code/taylorsamarel/duecare-harness-chat) *(publish pending)* | `duecare-harness-chat-wheels` ✓ live | **The omni playground.** Single configurable interface with all 5 harness layers (Persona / GREP 108 rules / RAG 33 docs / Tools 5 lookups / Online live web search) + 4-mode grader (Universal / Expert / Deep / Combined) + **Gemma 4 model selector**: pick from 9 variants (E2B / E4B / 26B-A4B / 31B / 2 jailbroken / 3 cloud BYOK routes). Judges flip toggles, change models, and see the harness work end-to-end across the whole capability surface. |
 | **2** | [duecare-live-demo](https://www.kaggle.com/code/taylorsamarel/duecare-live-demo) | `duecare-live-demo-wheels` ✓ live | **The user-facing live URL.** Full safety-harness pipeline + 22-slide deck + audit Workbench. The polished, scripted live demonstration of the +56.5pp lift thesis. |
 
-### Appendix (9 notebooks — specialised + research)
+### Appendix (11 notebooks — specialised + research)
 
 These notebooks are **not required for deployment**. A1–A2 extend
 Duecare to new domains; A3 visualizes the harness data; A4 is a
@@ -249,7 +249,7 @@ The shortest reproducible test:
    (the 68%-loan or 18%-loan example).
 3. Submit. Note Gemma's response is operational advice ("here are 5
    strategies").
-4. Open [duecare-chat-playground-with-grep-rag-tools](https://www.kaggle.com/code/taylorsamarel/duecare-gemma-chat-playground-grep-rag-tools)
+4. Open [duecare-chat-playground-with-grep-rag-tools](https://www.kaggle.com/code/taylorsamarel/duecare-chat-playground-with-grep-rag-tools)
    in another tab.
 5. Toggle all 4 tiles ON (Persona / GREP / RAG / Tools).
 6. Load the **same** example prompt → submit.
@@ -279,7 +279,7 @@ transformation byte-for-byte.
   toggleable harness with 5 layers (Persona / GREP / RAG / Tools / Online).
 - We did **not** publish 76 notebooks as the submission. The 76-notebook
   research pipeline lives in `kaggle/kernels/` for reproducibility but
-  the **submission is the 2 core + 9 appendix notebooks listed above**.
+  the **submission is the 2 core + 11 appendix notebooks listed above**.
 - We are **not** claiming a fine-tuned Gemma 4 model is published at
   submission time. The bench-and-tune notebook (#2) is the planned
   Unsloth SFT/DPO + GGUF + HF Hub push — status TBD by the 2026-05-18
