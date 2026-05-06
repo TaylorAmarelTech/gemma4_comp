@@ -1014,15 +1014,15 @@ _MODEL_LOAD_STATE = {
 }
 
 _VARIANT_INFO = {
-    "e2b-it":         {"display": "Gemma 4 E2B-it",          "size_gb": 2.0,  "fits": "single T4",  "category": "on-device"},
-    "e4b-it":         {"display": "Gemma 4 E4B-it",          "size_gb": 4.0,  "fits": "single T4",  "category": "on-device"},
-    "26b-a4b-it":     {"display": "Gemma 4 26B-A4B-it",       "size_gb": 14.0, "fits": "T4 ×2 (4-bit)", "category": "on-device"},
-    "31b-it":         {"display": "Gemma 4 31B-it",          "size_gb": 18.0, "fits": "T4 ×2 (4-bit)", "category": "on-device"},
-    "jailbroken-31b": {"display": "Gemma 4 31B (abliterated)", "size_gb": 18.0, "fits": "T4 ×2 (4-bit)", "category": "jailbroken"},
-    "jailbroken-e4b": {"display": "Gemma 4 E4B (abliterated)", "size_gb": 4.0,  "fits": "single T4",  "category": "jailbroken"},
-    "cloud-gemini":   {"display": "Gemini API (cloud)",       "size_gb": 0.0,  "fits": "no GPU",     "category": "cloud"},
-    "cloud-openai":   {"display": "OpenAI-compat (cloud)",    "size_gb": 0.0,  "fits": "no GPU",     "category": "cloud"},
-    "cloud-ollama":   {"display": "Ollama (cloud/local)",     "size_gb": 0.0,  "fits": "no GPU",     "category": "cloud"},
+    "e2b-it":         {"display": "Gemma 4 E2B-it",          "size_gb": 2.0,  "fits": "single T4",  "category": "on-device", "load_eta": "~20–30 sec"},
+    "e4b-it":         {"display": "Gemma 4 E4B-it",          "size_gb": 4.0,  "fits": "single T4",  "category": "on-device", "load_eta": "~30–60 sec"},
+    "26b-a4b-it":     {"display": "Gemma 4 26B-A4B-it",       "size_gb": 14.0, "fits": "T4 ×2 (4-bit)", "category": "on-device", "load_eta": "~2–3 min"},
+    "31b-it":         {"display": "Gemma 4 31B-it",          "size_gb": 18.0, "fits": "T4 ×2 (4-bit)", "category": "on-device", "load_eta": "~3–5 min"},
+    "jailbroken-31b": {"display": "Gemma 4 31B (abliterated)", "size_gb": 18.0, "fits": "T4 ×2 (4-bit)", "category": "jailbroken", "load_eta": "~3–5 min"},
+    "jailbroken-e4b": {"display": "Gemma 4 E4B (abliterated)", "size_gb": 4.0,  "fits": "single T4",  "category": "jailbroken", "load_eta": "~30–60 sec"},
+    "cloud-gemini":   {"display": "Gemini API (cloud)",       "size_gb": 0.0,  "fits": "no GPU",     "category": "cloud", "load_eta": "instant"},
+    "cloud-openai":   {"display": "OpenAI-compat (cloud)",    "size_gb": 0.0,  "fits": "no GPU",     "category": "cloud", "load_eta": "instant"},
+    "cloud-ollama":   {"display": "Ollama (cloud/local)",     "size_gb": 0.0,  "fits": "no GPU",     "category": "cloud", "load_eta": "instant"},
 }
 
 
@@ -1164,9 +1164,29 @@ _PICKER_SNIPPET = """
   #_dc-model-picker .vcard .vfit {
     color: #60a5fa; font-size: 11px; margin-top: 4px; font-weight: 600;
   }
+  #_dc-model-picker .vcard .veta {
+    color: #cbd5e1; font-size: 10.5px; margin-top: 4px;
+    padding-top: 4px; border-top: 1px dashed rgba(100, 116, 139, 0.4);
+    font-weight: 500;
+  }
   #_dc-model-picker .vcard.cloud .vfit { color: #fbbf24; }
+  #_dc-model-picker .vcard.cloud .veta { color: #fde68a; }
   #_dc-model-picker .vcard.jailbroken { border-color: rgba(239, 68, 68, 0.5); }
   #_dc-model-picker .vcard.jailbroken .vfit { color: #f87171; }
+  #_dc-model-picker .vcard.jailbroken .veta { color: #fecaca; }
+  #_dc-model-picker .dc-eta-banner {
+    background: rgba(96, 165, 250, 0.10);
+    border: 1px solid rgba(96, 165, 250, 0.35);
+    border-radius: 8px;
+    padding: 12px 14px;
+    margin: 0 0 18px;
+    color: #cbd5e1;
+    font-size: 12.5px;
+    line-height: 1.55;
+  }
+  #_dc-model-picker .dc-eta-banner b {
+    color: #93c5fd; font-weight: 700;
+  }
   #_dc-model-picker .status {
     margin-top: 18px; padding: 16px; border-radius: 10px;
     background: #1e293b; border: 1px solid rgba(71, 85, 105, 0.5);
@@ -1192,6 +1212,14 @@ _PICKER_SNIPPET = """
   <div class="pbox">
     <h2>Choose a Gemma 4 model</h2>
     <p class="sub">Each variant loads once for the session. Bigger models = better answers but slower start. Cloud routes need an API key set in Kaggle Secrets before launch.</p>
+    <div class="dc-eta-banner">
+      <b>⏱ Estimated load time</b> shown on each card. The model
+      downloads from HuggingFace on first run (cached for the
+      session). E2B / E4B start in under a minute; 26B-A4B and 31B
+      take a few minutes. Cloud routes are instant once the API key
+      is set. Closing this tab during load is safe — the load
+      continues server-side.
+    </div>
     <div id="_dc-pick-groups"></div>
     <div id="_dc-pick-status" class="status"></div>
   </div>
@@ -1242,10 +1270,12 @@ _PICKER_SNIPPET = """
           card.className = 'vcard ' + cat;
           card.dataset.variant = key;
           var size = info.size_gb > 0 ? info.size_gb.toFixed(1) + ' GB' : 'no local download';
+          var eta = info.load_eta || '';
           card.innerHTML =
             '<div class="vt">' + info.display + '</div>' +
             '<div class="vsz">' + size + '</div>' +
-            '<div class="vfit">' + info.fits + '</div>';
+            '<div class="vfit">' + info.fits + '</div>' +
+            (eta ? '<div class="veta">⏱ ' + eta + '</div>' : '');
           card.addEventListener('click', function() {
             pickVariant(key, info.display);
           });
