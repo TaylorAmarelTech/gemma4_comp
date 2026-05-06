@@ -199,7 +199,7 @@ The summary JSON writes everything reproducibility needs:
   "git_sha":              "<from DUECARE_GIT_SHA env or 'unknown'>",
   "wheel_versions":       {"chat": "0.1.0", "core": "0.1.0", "models": "0.1.0"},
   "harness_counts":       {"grep_rules": 108, "rag_docs": 33, "tools": 5,
-                            "rubric_dimensions": 17, "judge_questions": 17,
+                            "rubric_dimensions": 21, "evaluation_questions": 21,
                             "example_prompts": 407, "classifier_examples": 51},
   "benchmark":            "smoke_25",
   "n_prompts":            25,

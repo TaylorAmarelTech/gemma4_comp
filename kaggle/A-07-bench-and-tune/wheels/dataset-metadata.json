@@ -7,5 +7,5 @@
     }
   ],
   "subtitle": "v3.16 Unsloth SFT + DPO + GGUF + HF Hub fine-tune pipeline",
-  "description": "v3.16 - wheels for bench-and-tune. Bundled: duecare-llm-chat / -core / -models / -benchmark / -domains / -tasks / -training. End-to-end fine-tune pipeline: smoke benchmark on stock Gemma 4 -> Unsloth SFT (LoRA on harness-distilled or A1-generated pairs) -> DPO -> re-benchmark -> GGUF Q8_0 export -> HF Hub push. Special Tech Track angle (Unsloth bonus). Outputs Duecare-Gemma-4-E4B-it-SafetyJudge-v0.1.0 on HF Hub + GGUF artifact."
+  "description": "v3.6 / chat-package 0.2.0 (2026-05-06) — 21-dim rubric (added operational_information_provided + harm_enablement_check), use-case-aware analog prompt classifier (multi-lingual: en/tl/id/ne/bn/my/ar/es/vi/si/ta/ur), curator-block JSON governance, judge → evaluator rename. v3.16 - wheels for bench-and-tune. Bundled: duecare-llm-chat / -core / -models / -benchmark / -domains / -tasks / -training. End-to-end fine-tune pipeline: smoke benchmark on stock Gemma 4 -> Unsloth SFT (LoRA on harness-distilled or A1-generated pairs) -> DPO -> re-benchmark -> GGUF Q8_0 export -> HF Hub push. Special Tech Track angle (Unsloth bonus). Outputs Duecare-Gemma-4-E4B-it-SafetyJudge-v0.1.0 on HF Hub + GGUF artifact."
 }

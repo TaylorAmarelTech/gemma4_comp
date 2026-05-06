@@ -100,7 +100,7 @@ Four radio modes with latency hints in the labels:
 
 | Mode | Time | What it does |
 |---|---|---|
-| Universal | ~1-3s | Deterministic 17-dim multi-signal grader (keywords + cluster + token + fuzzy + trigram + structural quality + citation grounding + section-number verification) |
+| Universal | ~1-3s | Deterministic 21-dim multi-signal grader (keywords + cluster + token + fuzzy + trigram + structural quality + citation grounding + section-number verification) |
 | Expert | ~1s | Legacy per-category rubrics |
 | Deep | ~30-90s | LLM-as-judge — sends response back to the loaded Gemma with one focused yes/no question per dimension, pulls evidence quotes from the response itself |
 | Combined | ~30-90s | Universal + Deep blended 50/50 with a disagreement panel highlighting dimensions where the two graders see different evidence |

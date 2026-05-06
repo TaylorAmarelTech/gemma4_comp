@@ -20,11 +20,11 @@
      "grade_modes": {"universal": true, "expert": true,
                      "deep": true, "combined": true},
      "harness_counts": {"grep_rules": 108, "rag_docs": 33, "tools": 5,
-                         "rubric_dimensions": 17, "judge_questions": 17}
+                         "rubric_dimensions": 21, "evaluation_questions": 21}
    }
    ```
 4. **Click any of the 5 colored buttons** in the empty-state. They map
-   to the 5 judge-impact prompt categories:
+   to the 5 high-impact demo prompt categories:
    - 🟢 **Headline lift** — the 5-indicator compound case (PHP+HK)
    - 🔴 **Jailbreak** — DAN persona attempt
    - 🟡 **Online demo** — recent POEA enforcement query
@@ -37,7 +37,7 @@
    a latency-budget bar (per-layer ms + Gemma generation time, with
    harness % of total). Each layer card below shows what fired.
 7. **Click `Grade`** on any response. 4 modes:
-   - **Universal** (fast, deterministic, ~2s) — 17-dimension
+   - **Universal** (fast, deterministic, ~2s) — 21-dimension
      multi-signal grader with citation grounding check
    - **Expert** (legacy per-category) — for backwards compatibility
    - **Deep** (LLM-as-judge, ~30-90s) — sends response back to the
@@ -79,7 +79,7 @@ Full variant list (9 supported):
   Kaggle dataset `taylorsamarel/duecare-harness-chat-wheels`)
 - `notebook.ipynb` — single-cell wrapper around `kernel.py`
 
-All harness CONTENT (108 GREP rules, 33 RAG docs, 5 tools, 17-dim
+All harness CONTENT (108 GREP rules, 33 RAG docs, 5 tools, 21-dim
 rubric, 17 LLM-judge questions) lives in the chat package wheel —
 not in `kernel.py`. Bumping the dataset version updates everything;
 the kernel.py doesn't need to change.

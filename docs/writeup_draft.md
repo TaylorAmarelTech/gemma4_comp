@@ -159,7 +159,7 @@ dedicated lift regenerator emitting MD + JSON with provenance tuple
 `(model, git_sha, dataset_version)`.
 
 Each notebook ships its own wheels dataset (`*-wheels`). Chat
-package: 108 GREP / 33 RAG / 5 tools / 17-dim universal rubric / 17
+package: 108 GREP / 33 RAG / 5 tools / 21-dim universal rubric / 17
 LLM-judge questions / 8 ILO conventions / 16 corridors / 25 fee
 camouflage labels / 12 NGO intake groups / 407 bundled example
 prompts (5 judge-impact categories pinned to top of Examples modal).

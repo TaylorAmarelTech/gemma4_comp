@@ -7,5 +7,5 @@
     }
   ],
   "subtitle": "v3.16 prompt generation: Gemma 4 self-generates eval prompts",
-  "description": "v3.16 - wheels for prompt-generation. Bundled: duecare-llm-chat / -core / -models. Uses Gemma 4 to generate new evaluation prompts in the smoke_25 row shape, plus 5 graded response examples per prompt (worst / fail / partial / good / best). Output JSON feeds the bench-and-tune A2 fine-tune. Lets the corpus grow beyond the original 21K-test benchmark."
+  "description": "v3.6 / chat-package 0.2.0 (2026-05-06) — 21-dim rubric (added operational_information_provided + harm_enablement_check), use-case-aware analog prompt classifier (multi-lingual: en/tl/id/ne/bn/my/ar/es/vi/si/ta/ur), curator-block JSON governance, judge → evaluator rename. v3.16 - wheels for prompt-generation. Bundled: duecare-llm-chat / -core / -models. Uses Gemma 4 to generate new evaluation prompts in the smoke_25 row shape, plus 5 graded response examples per prompt (worst / fail / partial / good / best). Output JSON feeds the bench-and-tune A2 fine-tune. Lets the corpus grow beyond the original 21K-test benchmark."
 }

@@ -11,8 +11,8 @@ Four grading modes evaluated end-to-end:
 
 | Mode | Code path | Strength |
 |---|---|---|
-| **Universal** (default) | `grade_response_universal` ~line 5617 | Fast deterministic 19-dim multi-signal rubric with applicability detection + anti-gaming defense |
-| **Deep** (LLM-as-judge) | `grade_response_via_llm` ~line 6377 | Sends response back to loaded Gemma with one yes/no question per dim, evidence-quote required |
+| **Universal** (default) | `grade_response_universal` ~line 5617 | Fast deterministic 21-dim multi-signal rubric with applicability detection + anti-gaming defense |
+| **Deep** (LLM evaluator) | `grade_response_via_evaluator` ~line 6377 | Sends response back to loaded Gemma with one yes/no question per dim, evidence-quote required |
 | **Combined** (50/50 blend) | `grade_response_combined` ~line 6577 | Universal + Deep with disagreement panel |
 | **Expert** (legacy per-category) | `_grade_legacy_per_category` | 6 prompt-shape rubrics; replaced by Universal but kept for backwards compat |
 
@@ -48,7 +48,7 @@ Old: `model_call` exceptions silently became "uncertain" verdicts with `judge_er
 
 **Fix:** track `consecutive_errors` (resets on success) and `total_errors`. After 3 consecutive or 5 total failures, raise `RuntimeError`. `/api/grade-deep` catches and surfaces as HTTP 503 "LLM judge unavailable" instead of fake-confident verdicts.
 
-Plus audit fix #4 cousin: validate `JUDGE_QUESTIONS` has an entry for the dimension before building the prompt. Missing entries previously produced "Does the response satisfy <empty>?" — now they fail-fast with FAIL+rationale.
+Plus audit fix #4 cousin: validate `EVALUATION_QUESTIONS` (formerly `JUDGE_QUESTIONS`) has an entry for the dimension before building the prompt. Missing entries previously produced "Does the response satisfy <empty>?" — now they fail-fast with FAIL+rationale. Note: the rename was for clarity — these questions are sent to the LLM evaluator (the framework called "LLM-as-judge" in academic literature), unrelated to contest judging.
 
 ## HIGH-priority improvements applied
 
@@ -116,7 +116,7 @@ Items deferred for content-design with an actual NGO partner; these are architec
 ## How to verify the fixes
 
 ```bash
-# Static check — confirms 19-dim rubric + 19 judge questions
+# Static check — confirms 21-dim rubric + 19 judge questions
 python scripts/verify.py
 
 # Smoke + behavior tests
