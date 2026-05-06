@@ -516,9 +516,10 @@ header.bar .badge.loaded .dot {
       functions) · <strong style="color:#f59e0b;">Online</strong> (live
       web search). After Gemma replies, click <strong>Pipeline</strong>
       on any response to see what each layer contributed; click
-      <strong>Grade</strong> for 4 grading modes including the
-      LLM-as-judge that sends the response back to the same Gemma with
-      one yes/no question per dimension.</p>
+      <strong>Grade</strong> for 4 grading modes (Universal,
+      Evaluator, Combined, Expert) including an LLM evaluator that
+      sends the response back to the same Gemma with one yes/no
+      question per dimension.</p>
       <p style="font-size:13px; color:var(--muted);">
       Click <strong>▸ Examples</strong> below for 407 curated prompts
       across <strong>jailbreak resistance</strong>,
@@ -628,6 +629,8 @@ const pendingImages = [];   // [{id, mime, dataUrl}]
 let _personaDefault = '';         // populated by probeHarness from /api/harness-info
 let _gradeAvailable = false;      // set by probeHarness if /api/grade is wired
 let _gradeDeepAvailable = false;  // set by probeHarness if /api/grade-deep is wired (needs gemma_call)
+let _baselineGauge = null;        // populated by probeHarness from /api/baseline (curator-block)
+let _rubricHints = null;          // populated by probeHarness from /api/rubric-hints (curator-block)
 let _gradeCategories = [];        // categories the rubric supports
 
 // ---------------------------------------------------------------------------
@@ -745,7 +748,7 @@ async function refreshBadge() {
     const el = document.getElementById('badge');
     const txt = document.getElementById('badge-text');
     // Show variant + size + quantization. Highlights what's actually
-    // loaded so judges always know which Gemma is responding.
+    // loaded so reviewers always know which Gemma is responding.
     let display = info.display || (info.loaded ? info.name : 'no model loaded');
     // Add variant shorthand if name contains it (e.g. "gemma-4-e4b-it")
     if (info.loaded && info.name) {
@@ -794,6 +797,27 @@ async function probeHarness() {
     _gradeCategories = Array.isArray(info.grade_categories) ? info.grade_categories : [];
     updatePersonaTileBadge();
   } catch (e) { /* /api/harness-info missing -- old chat wheel, hide */ }
+  // Fetch the baseline-gauge curator block (stock vs harnessed
+  // reference numbers). Silent fallback to defaults if the endpoint
+  // is missing (older chat wheel).
+  try {
+    const r = await fetch('/api/baseline');
+    if (r.ok) {
+      _baselineGauge = await r.json();
+    }
+  } catch (e) { /* old wheel without /api/baseline -- defaults render */ }
+  // Fetch per-dimension PASS/FAIL hint strings (curator-block).
+  // Falls back to the in-JS RUBRIC_PASS_HINTS const if the endpoint
+  // is missing or returns empty hints.
+  try {
+    const r = await fetch('/api/rubric-hints');
+    if (r.ok) {
+      const payload = await r.json();
+      if (payload && payload.hints && Object.keys(payload.hints).length) {
+        _rubricHints = payload.hints;
+      }
+    }
+  } catch (e) { /* old wheel without /api/rubric-hints */ }
 }
 probeHarness();
 
@@ -854,7 +878,7 @@ const DIFFICULTY_COLORS = {
 };
 
 const CATEGORY_LABELS = {
-  // v3.11 judge-impact categories (top of list)
+  // v3.11 high-impact demo categories (top of list)
   headline_lift_demo:           '★ Headline lift demo (the +56.5pp number)',
   jailbreak_resistance:         'Jailbreak resistance (DAN / dev-mode / pretext)',
   online_search_demo:           'Online search demo (live web data adds signal)',
@@ -895,9 +919,9 @@ async function populateEmptyHints() {
   if (!examples.length) return;
   const el = document.getElementById('empty-hints');
   if (!el) return;
-  // The 5 judge-impact categories added in v3.11. Pick the
+  // The 5 high-impact demo categories added in v3.11. Pick the
   // canonical example from each so the empty state shows a one-
-  // click prompt for every demo angle judges will care about.
+  // click prompt for every demo angle reviewers will care about.
   const featured = [
     {id: 'headline_lift_demo',       label: '★ Headline lift: 5-indicator compound case (PHP+HK)', color: '#10b981'},
     {id: 'jb_dan_recruiter',         label: 'Jailbreak: DAN persona attempt',                       color: '#ef4444'},
@@ -1001,25 +1025,26 @@ async function openExamplesModal() {
   for (const ex of examples) {
     (byCat[ex.category] = byCat[ex.category] || []).push(ex);
   }
-  // Top categories first (judge-impact v3.11 entries), then the rest
+  // Top categories first (high-impact demo v3.11 entries), then the rest
   // in insertion order from CATEGORY_LABELS, then any unknown.
-  const judgeImpactOrder = [
+  const demoImpactOrder = [
     'headline_lift_demo', 'jailbreak_resistance',
     'online_search_demo', 'model_comparison_demo',
     'social_engineering',
   ];
   const knownOrder = Object.keys(CATEGORY_LABELS);
   const catOrder = [
-    ...judgeImpactOrder.filter(c => byCat[c]),
-    ...knownOrder.filter(c => byCat[c] && !judgeImpactOrder.includes(c)),
+    ...demoImpactOrder.filter(c => byCat[c]),
+    ...knownOrder.filter(c => byCat[c] && !demoImpactOrder.includes(c)),
     ...Object.keys(byCat).filter(c => !knownOrder.includes(c)),
   ];
 
-  // Auto-collapse all categories EXCEPT the 5 judge-impact ones on
-  // first open so judges land on the most-important prompts first.
+  // Auto-collapse all categories EXCEPT the 5 high-impact demo
+  // ones on first open so reviewers land on the most-important
+  // prompts first.
   if (Object.keys(_examplesCollapsed).length === 0) {
     for (const cat of catOrder) {
-      _examplesCollapsed[cat] = !judgeImpactOrder.includes(cat);
+      _examplesCollapsed[cat] = !demoImpactOrder.includes(cat);
     }
   }
 
@@ -1033,7 +1058,7 @@ async function openExamplesModal() {
       <button onclick="_examplesExpandAll(false)" style="background:transparent; border:1px solid var(--border); color:var(--muted); padding:4px 10px; border-radius:6px; font-size:11px; cursor:pointer;">Collapse all</button>
     </div>
     <div style="color:var(--muted); font-size:11.5px; margin-bottom:14px;">
-      Click any prompt body to load it into the chat input (no auto-send — edit and flip toggles first). Use <strong>copy</strong> on the right to clipboard the text. Categories with the ★ are the high-impact judge demos.
+      Click any prompt body to load it into the chat input (no auto-send — edit and flip toggles first). Use <strong>copy</strong> on the right to clipboard the text. Categories with the ★ are the high-impact demo prompts.
     </div>
   `;
   for (const cat of catOrder) {
@@ -1765,8 +1790,8 @@ function openPipelineModal(messageIdx) {
     'sent to Gemma',
   ];
   // Timing breakdown header: show ms per layer + Gemma + total in
-  // a compact visual budget. Gives the judge an at-a-glance answer
-  // to "how much overhead did the harness add?"
+  // a compact visual budget. Gives the reviewer an at-a-glance
+  // answer to "how much overhead did the harness add?"
   const layerTimings = PIPELINE_LAYER_ORDER.map(k => {
     const t = trace[k];
     if (!t || !t.enabled || !t.wired) return null;
@@ -2032,28 +2057,30 @@ let _lastLoadedExampleId = null;
 
 // Default grading mode: universal (no prompt-shape coupling).
 // Power users can flip to expert per-category mode via the toggle.
-// 'deep' / 'combined' need the kernel to wire gemma_call so the LLM
-// judge can ask the loaded Gemma the dimension questions.
+// 'deep' / 'combined' need the kernel to wire gemma_call so the
+// LLM evaluator can ask the loaded Gemma the dimension questions.
+// Same paradigm as G-Eval, MT-Bench, Prometheus, Auto-J — a model
+// scoring a model.
 let _gradeMode = 'universal';  // 'universal' | 'category' | 'deep' | 'combined'
 
 async function openGradeModal(messageIdx) {
   const m = messages[messageIdx];
   if (!m || m.role !== 'assistant') return;
   const deepBlurb = _gradeDeepAvailable
-      ? '<strong>Deep (LLM judge)</strong> sends the response back to the loaded Gemma with one yes/no question per dimension and quotes the evidence. Slow (~15 model calls) but catches paraphrased citations the keyword grader misses. <strong>Combined</strong> blends Universal + Deep 50/50 and flags the dimensions where the two graders disagree.'
-      : '<em style="color:var(--muted);">Deep grading needs the kernel to wire gemma_call. The current kernel does not — only Universal + Expert modes are available.</em>';
+      ? '<strong>Evaluator</strong> mode sends the response back to the loaded Gemma with one yes/no question per dimension and quotes the evidence. Slow (~21 model calls) but catches paraphrased citations the keyword grader misses. <strong>Combined</strong> blends Universal + Evaluator 50/50 and flags the dimensions where the two graders disagree.'
+      : '<em style="color:var(--muted);">Evaluator grading needs the kernel to wire gemma_call. The current kernel does not — only Universal + Expert modes are available.</em>';
   const deepRadio = _gradeDeepAvailable ? `
       <label style="font-size:12px; color:var(--ink); display:flex; align-items:center; gap:6px;">
         <input type="radio" name="grade-mode" value="deep"
                ${_gradeMode === 'deep' ? 'checked' : ''}
                onchange="_gradeMode='deep'; _runGrade(${messageIdx})">
-        Deep <span style="color:var(--muted); font-size:10.5px;">~30-90s · LLM judge</span>
+        Evaluator <span style="color:var(--muted); font-size:10.5px;">~30-90s · LLM scoring</span>
       </label>
       <label style="font-size:12px; color:var(--ink); display:flex; align-items:center; gap:6px;">
         <input type="radio" name="grade-mode" value="combined"
                ${_gradeMode === 'combined' ? 'checked' : ''}
                onchange="_gradeMode='combined'; _runGrade(${messageIdx})">
-        Combined <span style="color:var(--muted); font-size:10.5px;">~30-90s · Universal + Judge</span>
+        Combined <span style="color:var(--muted); font-size:10.5px;">~30-90s · Universal + Evaluator</span>
       </label>` : '';
   const skeleton = `
     <p style="color:var(--muted); margin-top:0; font-size:12px;">
@@ -2178,10 +2205,10 @@ async function _runGrade(messageIdx) {
       ? userMsg.content.filter(c => c.type === 'text').map(c => c.text).join('\n')
       : '';
   const pane = document.getElementById('grade-result-pane');
-  // Deep / combined modes are slow (~15 model calls). Surface that
+  // Evaluator / combined modes are slow (~21 model calls). Surface that
   // explicitly so a user doesn't think the UI is hung.
   const slowNote = (_gradeMode === 'deep' || _gradeMode === 'combined')
-      ? '<br><span style="font-size:11px; color:var(--muted); font-style:italic;">LLM-judge runs ~15 model calls (one per applicable dimension). This will take ~30–90 seconds depending on the kernel.</span>'
+      ? '<br><span style="font-size:11px; color:var(--muted); font-style:italic;">LLM evaluator runs ~15 model calls (one per applicable dimension). This will take ~30–90 seconds depending on the kernel.</span>'
       : '';
   pane.innerHTML = `<div style="color:var(--muted); font-style:italic; padding:16px 0;">Scoring (${escapeHtml(_gradeMode)} mode)…${slowNote}</div>`;
   let result;
@@ -2197,7 +2224,7 @@ async function _runGrade(messageIdx) {
     body = {response_text: respText, prompt_text: promptText};
   } else if (_gradeMode === 'combined') {
     url = '/api/grade-combined';
-    body = {response_text: respText, prompt_text: promptText, judge_weight: 0.5};
+    body = {response_text: respText, prompt_text: promptText, evaluator_weight: 0.5};
   } else {
     pane.innerHTML = `<div style="color:#ef4444; padding:16px 0;">Unknown grade mode: ${escapeHtml(_gradeMode)}</div>`;
     return;
@@ -2217,8 +2244,8 @@ async function _runGrade(messageIdx) {
     pane.innerHTML = `<div style="color:#ef4444; padding:16px 0;">Error scoring: ${escapeHtml(String(e.message || e))}</div>`;
     return;
   }
-  if (result && result.mode === 'llm_judge') {
-    pane.innerHTML = _renderJudgeGradeResult(result);
+  if (result && result.mode === 'llm_evaluator') {
+    pane.innerHTML = _renderEvaluatorGradeResult(result);
   } else if (result && result.mode === 'combined') {
     pane.innerHTML = _renderCombinedGradeResult(result);
   } else if (result && result.mode === 'universal') {
@@ -2228,11 +2255,11 @@ async function _runGrade(messageIdx) {
   }
 }
 
-// LLM-judge result renderer: per-dimension yes/no/partial verdicts
-// with quoted evidence pulled from the response.
-function _renderJudgeGradeResult(g) {
+// LLM-evaluator result renderer: per-dimension yes/no/partial
+// verdicts with quoted evidence pulled from the response.
+function _renderEvaluatorGradeResult(g) {
   if (!g || !g.dimensions) {
-    return `<div style="color:var(--muted); font-style:italic;">Deep grader returned no dimensions — kernel may not have wired gemma_call.</div>`;
+    return `<div style="color:var(--muted); font-style:italic;">Evaluator returned no dimensions — kernel may not have wired gemma_call.</div>`;
   }
   const pct = g.pct_score ?? 0;
   const scoreColor = pct >= 70 ? '#10b981' : pct >= 40 ? '#f59e0b' : '#ef4444';
@@ -2243,12 +2270,12 @@ function _renderJudgeGradeResult(g) {
     const evi = d.evidence_quote
         ? `<div style="margin-top:4px; padding:6px 10px; background:rgba(168,85,247,0.08); border-left:3px solid #a855f7; border-radius:3px; font-size:11px; font-style:italic; color:var(--ink);">"${escapeHtml(d.evidence_quote)}"</div>`
         : '';
-    // Server-side ground-truth check: if the judge claimed an
+    // Server-side ground-truth check: if the evaluator claimed an
     // evidence quote that doesn't appear in the response, surface
     // a warning. Defends against prompt-injection / hallucinated
     // quotes propagated through the UI as authoritative evidence.
     const ungrounded = (d.evidence_grounded === false)
-        ? `<div style="margin-top:4px; padding:6px 10px; background:rgba(239,68,68,0.10); border-left:3px solid #ef4444; border-radius:3px; font-size:10.5px; color:#ef4444;">⚠ Judge claimed an evidence quote that does not appear in the response. Verdict demoted to PARTIAL.</div>`
+        ? `<div style="margin-top:4px; padding:6px 10px; background:rgba(239,68,68,0.10); border-left:3px solid #ef4444; border-radius:3px; font-size:10.5px; color:#ef4444;">⚠ Evaluator claimed an evidence quote that does not appear in the response. Verdict demoted to PARTIAL.</div>`
         : '';
     return `
       <div style="background:var(--bg); border-radius:5px; padding:10px 12px; margin-bottom:8px; border-left:4px solid ${c};">
@@ -2259,13 +2286,13 @@ function _renderJudgeGradeResult(g) {
         ${evi}
         ${ungrounded}
         <div style="margin-top:4px; font-size:11px; color:var(--muted);">${escapeHtml(d.rationale || '')}</div>
-        ${d.judge_latency_ms ? `<div style="margin-top:3px; font-size:10px; color:var(--muted);">${d.judge_latency_ms.toFixed(0)} ms judge call</div>` : ''}
+        ${d.evaluator_latency_ms ? `<div style="margin-top:3px; font-size:10px; color:var(--muted);">${d.evaluator_latency_ms.toFixed(0)} ms evaluator call</div>` : ''}
       </div>`;
   }).join('');
   return `
     <div style="display:flex; gap:14px; margin-bottom:14px; flex-wrap:wrap;">
       <div style="flex:1 1 130px; background:var(--bg); border-radius:6px; padding:12px 14px; border-left:4px solid ${scoreColor};">
-        <div style="font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:0.5px;">Judge score</div>
+        <div style="font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:0.5px;">Evaluator score</div>
         <div style="font-size:24px; font-weight:700; color:${scoreColor};">${pct}%</div>
         <div style="font-size:11px; color:var(--muted); margin-top:2px;">${g.total_score} / ${g.total_weight} weighted (over ${g.n_evaluated} evaluated dimensions)</div>
       </div>
@@ -2292,32 +2319,32 @@ function _renderJudgeGradeResult(g) {
     </div>
     <div style="background:rgba(168,85,247,0.06); border-left:3px solid #a855f7; padding:8px 12px; border-radius:3px; margin-bottom:12px; font-size:11px; color:var(--muted);">
       Each verdict comes from a focused yes/no question to the loaded Gemma. Evidence quotes are pulled directly from the response — no hallucinated support.
-      Mean judge latency: <strong>${g.judge_latency_ms_mean?.toFixed(0)} ms</strong> · Total: <strong>${(g.judge_latency_ms_total/1000).toFixed(1)} s</strong>
+      Mean evaluator latency: <strong>${g.evaluator_latency_ms_mean?.toFixed(0)} ms</strong> · Total: <strong>${(g.evaluator_latency_ms_total/1000).toFixed(1)} s</strong>
     </div>
     ${rows}`;
 }
 
-// Combined renderer: shows deterministic + judge side by side, plus
-// the agreement panel highlighting where the two graders disagree.
+// Combined renderer: shows deterministic + evaluator side by side,
+// plus the agreement panel highlighting where the two graders disagree.
 function _renderCombinedGradeResult(g) {
   if (!g || !g.deterministic) {
     return `<div style="color:var(--muted);">Combined grader returned an unexpected shape.</div>`;
   }
-  if (!g.judge) {
+  if (!g.evaluator) {
     // Fell back to deterministic only (no gemma_call in kernel)
     const fallback = `<div style="background:rgba(245,158,11,0.10); border-left:3px solid #f59e0b; padding:8px 12px; border-radius:3px; margin-bottom:12px; font-size:11.5px;">Combined mode requires the kernel to wire gemma_call. Showing the deterministic grader only.</div>`;
     return fallback + _renderUniversalGradeResult(g.deterministic);
   }
   const detPct = g.deterministic.pct_score ?? 0;
-  const judgePct = g.judge.pct_score ?? 0;
+  const evaluatorPct = g.evaluator.pct_score ?? 0;
   const combinedPct = g.pct_score ?? 0;
-  const w = g.judge_weight ?? 0.5;
+  const w = g.evaluator_weight ?? 0.5;
   const agreement = g.agreement || {};
   const disagreementsHtml = (agreement.disagreements || []).map(d => `
     <tr>
       <td style="padding:4px 8px; border-bottom:1px solid var(--border);">${escapeHtml(d.id)}</td>
       <td style="padding:4px 8px; border-bottom:1px solid var(--border); color:#94a3b8;">det: <strong>${escapeHtml(d.deterministic)}</strong></td>
-      <td style="padding:4px 8px; border-bottom:1px solid var(--border); color:#a855f7;">judge: <strong>${escapeHtml(d.judge)}</strong></td>
+      <td style="padding:4px 8px; border-bottom:1px solid var(--border); color:#a855f7;">evaluator: <strong>${escapeHtml(d.evaluator)}</strong></td>
     </tr>`).join('');
   const agreementColor = (agreement.agreement_pct ?? 0) >= 80 ? '#10b981'
                             : (agreement.agreement_pct ?? 0) >= 50 ? '#f59e0b' : '#ef4444';
@@ -2326,7 +2353,7 @@ function _renderCombinedGradeResult(g) {
       <div style="flex:1 1 150px; background:var(--bg); border-radius:6px; padding:12px 14px; border-left:4px solid #4c78a8;">
         <div style="font-size:11px; color:var(--muted); text-transform:uppercase;">Combined score</div>
         <div style="font-size:24px; font-weight:700; color:#4c78a8;">${combinedPct}%</div>
-        <div style="font-size:11px; color:var(--muted); margin-top:2px;">${(1-w)*100}% deterministic + ${w*100}% judge</div>
+        <div style="font-size:11px; color:var(--muted); margin-top:2px;">${(1-w)*100}% deterministic + ${w*100}% evaluator</div>
       </div>
       <div style="flex:1 1 130px; background:var(--bg); border-radius:6px; padding:12px 14px; border-left:4px solid #10b981;">
         <div style="font-size:11px; color:var(--muted); text-transform:uppercase;">Deterministic</div>
@@ -2334,8 +2361,8 @@ function _renderCombinedGradeResult(g) {
         <div style="font-size:11px; color:var(--muted); margin-top:2px;">multi-signal v3</div>
       </div>
       <div style="flex:1 1 130px; background:var(--bg); border-radius:6px; padding:12px 14px; border-left:4px solid #a855f7;">
-        <div style="font-size:11px; color:var(--muted); text-transform:uppercase;">LLM judge</div>
-        <div style="font-size:24px; font-weight:700; color:#a855f7;">${judgePct}%</div>
+        <div style="font-size:11px; color:var(--muted); text-transform:uppercase;">LLM evaluator</div>
+        <div style="font-size:24px; font-weight:700; color:#a855f7;">${evaluatorPct}%</div>
         <div style="font-size:11px; color:var(--muted); margin-top:2px;">Gemma yes/no</div>
       </div>
       <div style="flex:1 1 130px; background:var(--bg); border-radius:6px; padding:12px 14px; border-left:4px solid ${agreementColor};">
@@ -2347,13 +2374,13 @@ function _renderCombinedGradeResult(g) {
     ${disagreementsHtml ? `
     <div style="background:rgba(168,85,247,0.10); border-radius:5px; padding:12px 14px; margin-bottom:14px; border-left:4px solid #a855f7;">
       <div style="font-size:13px; color:#c084fc; margin-bottom:6px; font-weight:700;">⚠ ${(agreement.disagreements || []).length} grader disagreement${(agreement.disagreements || []).length === 1 ? '' : 's'} — these are the highest-information dimensions</div>
-      <div style="font-size:11.5px; color:var(--ink); margin-bottom:8px; line-height:1.5;">The deterministic grader and the LLM judge see different evidence on these dimensions. <strong>Often a sign the judge caught a paraphrased citation the keyword grader missed</strong> — or that the deterministic grader matched on a literal keyword that the LLM correctly rejected as out of context. <em>Worth a manual look at each row before trusting the combined score.</em></div>
+      <div style="font-size:11.5px; color:var(--ink); margin-bottom:8px; line-height:1.5;">The deterministic grader and the LLM evaluator see different evidence on these dimensions. <strong>Often a sign the evaluator caught a paraphrased citation the keyword grader missed</strong> — or that the deterministic grader matched on a literal keyword that the LLM correctly rejected as out of context. <em>Worth a manual look at each row before trusting the combined score.</em></div>
       <table style="width:100%; font-size:11.5px; border-collapse:collapse;">
         <thead>
           <tr style="background:rgba(168,85,247,0.05);">
             <th style="text-align:left; padding:5px 8px; color:#94a3b8; font-weight:500; font-size:10.5px; text-transform:uppercase; letter-spacing:0.4px;">Dimension</th>
             <th style="text-align:left; padding:5px 8px; color:#94a3b8; font-weight:500; font-size:10.5px; text-transform:uppercase; letter-spacing:0.4px;">Deterministic</th>
-            <th style="text-align:left; padding:5px 8px; color:#94a3b8; font-weight:500; font-size:10.5px; text-transform:uppercase; letter-spacing:0.4px;">LLM Judge</th>
+            <th style="text-align:left; padding:5px 8px; color:#94a3b8; font-weight:500; font-size:10.5px; text-transform:uppercase; letter-spacing:0.4px;">LLM Evaluator</th>
           </tr>
         </thead>
         <tbody>${disagreementsHtml}</tbody>
@@ -2367,8 +2394,8 @@ function _renderCombinedGradeResult(g) {
       <div style="margin-top:8px;">${_renderUniversalGradeResult(g.deterministic)}</div>
     </details>
     <details style="margin-bottom:14px;">
-      <summary style="cursor:pointer; font-size:12px; color:var(--ink); padding:6px 0;"><strong>▸ LLM judge details</strong></summary>
-      <div style="margin-top:8px;">${_renderJudgeGradeResult(g.judge)}</div>
+      <summary style="cursor:pointer; font-size:12px; color:var(--ink); padding:6px 0;"><strong>▸ LLM evaluator details</strong></summary>
+      <div style="margin-top:8px;">${_renderEvaluatorGradeResult(g.evaluator)}</div>
     </details>`;
 }
 
@@ -2426,21 +2453,25 @@ function _renderUniversalGradeResult(g) {
     `;
   }
   // UX fix #7: stock-baseline reference line so the user can anchor
-  // the score. Stock Gemma 4 baseline ~6%; harnessed average ~88%
-  // measured on the 207-prompt eval set (see harness_lift_report.md).
-  // Render a tiny gauge below the score number.
-  const stockBaseline = 6;
-  const harnessedBaseline = 88;
+  // the score. Reference numbers are fetched from /api/baseline
+  // (curator-block JSON) so re-measured values can update without a
+  // UI rebuild. Defaults below are the v3.5-era numbers.
+  const baseline   = _baselineGauge || {};
+  const stockSpec  = baseline.stock     || {label: 'stock 6%',     value: 6,  color: '#ef4444', title: 'Stock Gemma 4 baseline'};
+  const harnSpec   = baseline.harnessed || {label: 'harnessed 88%', value: 88, color: '#10b981', title: 'Harnessed average'};
+  const stockBaseline = Number(stockSpec.value) || 0;
+  const harnessedBaseline = Number(harnSpec.value) || 0;
   const gaugeWidth = 100;
   const stockMark = (stockBaseline / 100) * gaugeWidth;
   const harnessedMark = (harnessedBaseline / 100) * gaugeWidth;
   const youMark = (Math.max(0, Math.min(100, pct)) / 100) * gaugeWidth;
+  const evalSize = baseline.eval_set_size ? `${baseline.eval_set_size}-prompt eval set` : 'eval set';
   const referenceGauge = `
     <div style="margin-top:6px; position:relative; height:14px; background:rgba(100,116,139,0.15); border-radius:7px; width:${gaugeWidth}%;">
-      <div style="position:absolute; left:${stockMark}%; top:-2px; height:18px; width:1px; background:#ef4444;" title="Stock Gemma 4 baseline (~6%)"></div>
-      <div style="position:absolute; left:${stockMark}%; top:18px; font-size:9px; color:#ef4444; transform:translateX(-50%);">stock 6%</div>
-      <div style="position:absolute; left:${harnessedMark}%; top:-2px; height:18px; width:1px; background:#10b981;" title="Harnessed average (~88% on 207-prompt eval set)"></div>
-      <div style="position:absolute; left:${harnessedMark}%; top:18px; font-size:9px; color:#10b981; transform:translateX(-50%);">harnessed 88%</div>
+      <div style="position:absolute; left:${stockMark}%; top:-2px; height:18px; width:1px; background:${stockSpec.color};" title="${escapeHtml(stockSpec.title || '')}"></div>
+      <div style="position:absolute; left:${stockMark}%; top:18px; font-size:9px; color:${stockSpec.color}; transform:translateX(-50%);">${escapeHtml(stockSpec.label)}</div>
+      <div style="position:absolute; left:${harnessedMark}%; top:-2px; height:18px; width:1px; background:${harnSpec.color};" title="${escapeHtml(harnSpec.title || '')}"></div>
+      <div style="position:absolute; left:${harnessedMark}%; top:18px; font-size:9px; color:${harnSpec.color}; transform:translateX(-50%);">${escapeHtml(harnSpec.label)}</div>
       <div style="position:absolute; left:0; top:0; width:${youMark}%; height:14px; background:${scoreColor}; opacity:0.7; border-radius:7px;"></div>
       <div style="position:absolute; left:${youMark}%; top:-3px; height:20px; width:2px; background:${scoreColor}; transform:translateX(-50%);"></div>
     </div>
@@ -2452,7 +2483,7 @@ function _renderUniversalGradeResult(g) {
         <div style="font-size:24px; font-weight:700; color:${scoreColor};">${pct}%</div>
         <div style="font-size:11px; color:var(--muted); margin-top:2px;">${g.total_score} / ${g.total_weight} weighted · ${g.n_applicable} applicable dim · ${g.n_not_applicable} N/A</div>
         ${referenceGauge}
-        <div style="font-size:10px; color:var(--muted); margin-top:24px;">Reference: 6% stock Gemma 4 baseline · 88% harnessed average (207-prompt eval set)</div>
+        <div style="font-size:10px; color:var(--muted); margin-top:24px;">Reference: ${stockBaseline}% ${escapeHtml(stockSpec.label.replace(/[\d%\s]/g, '') || 'stock')} · ${harnessedBaseline}% ${escapeHtml(harnSpec.label.replace(/[\d%\s]/g, '') || 'harnessed')} (${evalSize})</div>
       </div>
       <div style="flex:1 1 80px; background:var(--bg); border-radius:6px; padding:12px 14px; border-left:4px solid #10b981;">
         <div style="font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:0.5px;">Pass</div>
@@ -2501,8 +2532,12 @@ function _renderUniversalGradeResult(g) {
     if (!hitsHtml) hitsHtml = `<span style="color:var(--muted); font-style:italic;">${isNA ? 'dimension not testable from this exchange' : 'no terms matched (response did not address this)'}</span>`;
     // UX fix #6: PASS hint inline expander on FAIL/PARTIAL rows so
     // users learn what the rubric is looking for. Hidden on PASS
-    // and N/A rows to reduce clutter.
-    const passHint = RUBRIC_PASS_HINTS[d.id];
+    // and N/A rows to reduce clutter. Prefer the curator-block
+    // hints fetched from /api/rubric-hints (so jurists can edit
+    // without a UI rebuild); fall back to the in-JS const for
+    // old chat wheels.
+    const passHint = (_rubricHints && _rubricHints[d.id])
+        || RUBRIC_PASS_HINTS[d.id];
     const showHint = passHint && (d.status === 'FAIL' || d.status === 'PARTIAL');
     const passHintHtml = showHint
       ? `<details style="margin-top:6px; font-size:11px;"><summary style="cursor:pointer; color:#94a3b8;">▸ How to PASS this</summary><div style="margin-top:4px; padding:6px 9px; background:rgba(16,185,129,0.05); border-left:2px solid #10b981; color:var(--ink); border-radius:3px;">${escapeHtml(passHint)}</div></details>`
@@ -2793,10 +2828,234 @@ async function sendMessage() {
     _raw_elapsed_ms: result.elapsed_ms,
     _harness: result.harness_trace || null,
     _idx: thinkingIdx,
+    _chips: {state: 'pending'},  // populated by background autoGrade()
   };
   renderChat();
   btn.disabled = false;
   document.getElementById('input').focus();
+
+  // Background auto-grade: fire-and-forget Universal grade so the
+  // user sees inline chips (score / indicators / citations) without
+  // having to click "Grade response". Failure is silent — chips
+  // simply stay in the 'pending' state and the click-to-grade
+  // affordance still works. Find the user prompt that produced this
+  // response by walking back to the most recent user message.
+  let promptForGrade = '';
+  for (let j = thinkingIdx - 1; j >= 0; j--) {
+    const m = messages[j];
+    if (m && m.role === 'user') {
+      for (const c of (m.content || [])) {
+        if (c && c.type === 'text' && c.text) { promptForGrade = c.text; break; }
+      }
+      if (promptForGrade) break;
+    }
+  }
+  autoGradeChips(thinkingIdx, result.response || '', promptForGrade,
+                 result.harness_trace || null).catch(() => {});
+}
+
+async function autoGradeChips(msgIdx, responseText, promptText, harnessTrace) {
+  // Skip if no response (avoid grading empty error placeholders)
+  if (!responseText || !responseText.trim()) return;
+  if (responseText.startsWith('⚠')) return;
+  try {
+    const r = await fetch('/api/grade', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        response_text: responseText,
+        prompt_text: promptText || '',
+        harness_trace: harnessTrace || null,
+        mode: 'universal',
+      }),
+    });
+    if (!r.ok) return;
+    const grade = await r.json();
+    // Project the 21-dim grade into 3 chip values
+    const score   = (grade.pct_score != null) ? Math.round(grade.pct_score) : null;
+    const score10 = (grade.score_0_10 != null) ? grade.score_0_10 : null;
+    const dims    = grade.dimensions || [];
+    // Indicator-kind dims: ilo_indicator_naming, trafficking_pattern_naming
+    const indDims = dims.filter(d => d.kind === 'recognition' && d.status === 'PASS');
+    const indCount = indDims.length;
+    // Citations: from citation_check.cited block
+    const cit = grade.citation_check || {};
+    const grounded = (cit.grounded_citations || []).length;
+    const total    = (cit.cited_statutes || []).length;
+    // Use-case primary
+    const usecase  = grade.classification && grade.classification.primary;
+    const usecaseConf = grade.classification && grade.classification.primary_confidence;
+
+    const m = messages[msgIdx];
+    if (!m) return;
+    m._chips = {
+      state: 'ready',
+      score: score,
+      score_0_10: score10,
+      n_pass: grade.n_pass || 0,
+      n_partial: grade.n_partial || 0,
+      n_fail: grade.n_fail || 0,
+      n_applicable: grade.n_applicable || 0,
+      indicators_named: indCount,
+      citations_grounded: grounded,
+      citations_total: total,
+      usecase: usecase,
+      usecase_conf: usecaseConf,
+      gaming_flagged: !!grade.gaming_flagged,
+      _full: grade,  // stash for click-to-expand
+    };
+    renderChat();
+  } catch (e) {
+    // Silent — chips just remain pending
+  }
+}
+
+async function runAblation(msgIdx) {
+  // Re-build the message list AS IF the user had just sent the
+  // prompt that produced messages[msgIdx]. We need everything up
+  // to (and including) the most recent user message before the
+  // assistant message.
+  let userIdx = -1;
+  for (let j = msgIdx - 1; j >= 0; j--) {
+    if (messages[j] && messages[j].role === 'user') { userIdx = j; break; }
+  }
+  if (userIdx < 0) {
+    alert('Cannot find a user prompt for ablation.');
+    return;
+  }
+  const slice = messages.slice(0, userIdx + 1).map(m => ({
+    role: m.role,
+    content: (m.content || []).map(c => {
+      if (c.type === 'image') return {type: 'image', image: c.image};
+      return {type: 'text', text: c.text || ''};
+    }),
+  }));
+  const m = messages[msgIdx];
+  if (!m) return;
+  // Show running state
+  m._ablation = {state: 'running', started: Date.now()};
+  renderChat();
+
+  // Try to inherit current generation params from the harness panel
+  const gen = readGenerationFromUI();
+
+  try {
+    const r = await fetch('/api/ablation', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        messages: slice,
+        generation: gen,
+        toggles: {persona: false, grep: false, rag: false, tools: false, online: false},
+      }),
+    });
+    if (!r.ok) {
+      const t = await r.text();
+      m._ablation = {state: 'error', error: `HTTP ${r.status}: ${t.slice(0,200)}`};
+      renderChat();
+      return;
+    }
+    const data = await r.json();
+    m._ablation = {state: 'ready', ...data};
+    renderChat();
+  } catch (e) {
+    m._ablation = {state: 'error', error: String(e)};
+    renderChat();
+  }
+}
+
+function readGenerationFromUI() {
+  // Best-effort: read from existing harness sliders if they exist;
+  // otherwise reasonable defaults.
+  const grab = (id, fallback) => {
+    const el = document.getElementById(id);
+    if (!el) return fallback;
+    const v = parseFloat(el.value);
+    return Number.isFinite(v) ? v : fallback;
+  };
+  return {
+    max_new_tokens: Math.round(grab('gen-max-new', 4096)),
+    temperature:    grab('gen-temp', 1.0),
+    top_p:          grab('gen-top-p', 0.95),
+    top_k:          Math.round(grab('gen-top-k', 64)),
+  };
+}
+
+function renderAblationPanel(abl) {
+  if (!abl) return '';
+  if (abl.state === 'running') {
+    return `<div style="margin-top:10px; padding:10px; border:1px dashed #d1d5db; border-radius:8px; background:#f9fafb; font-size:13px; color:#374151;">
+      <b>Layer ablation running...</b> ${(abl.ablations && abl.ablations.length) || 0}/4 generations done. Each ablation runs the same prompt with a different harness toggle and grades the result. Total time: 2-4 min on E4B.
+    </div>`;
+  }
+  if (abl.state === 'error') {
+    return `<div style="margin-top:10px; padding:10px; border:1px solid #fecaca; border-radius:8px; background:#fef2f2; font-size:13px; color:#991b1b;">
+      <b>Ablation failed:</b> ${abl.error || 'unknown error'}
+    </div>`;
+  }
+  if (abl.state !== 'ready') return '';
+  const ablations = abl.ablations || [];
+  if (!ablations.length) return '';
+  const lift = abl.lift_pp;
+  const liftColor = lift > 30 ? '#10b981' : lift > 10 ? '#f59e0b' : '#6b7280';
+  const liftLabel = lift > 0 ? `+${lift}pp` : `${lift}pp`;
+  const cards = ablations.map(a => {
+    const score = (a.grade && a.grade.pct_score != null) ? Math.round(a.grade.pct_score) : null;
+    const score10 = (a.grade && a.grade.score_0_10 != null) ? a.grade.score_0_10 : null;
+    const c = score == null ? '#6b7280'
+            : score >= 70 ? '#10b981'
+            : score >= 40 ? '#f59e0b'
+            : '#ef4444';
+    const responseSnip = (a.response_text || '').slice(0, 280)
+        .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    return `<div style="border:1px solid #e5e7eb; border-radius:8px; padding:10px; background:white; min-width:180px; max-width:280px;">
+      <div style="font-size:11px; color:#6b7280; margin-bottom:4px;">${a.label}</div>
+      <div style="display:flex; align-items:baseline; gap:8px; margin-bottom:6px;">
+        <span style="font-size:24px; font-weight:700; color:${c};">${score == null ? '?' : score + '%'}</span>
+        <span style="font-size:11px; color:#6b7280;">${score10 != null ? score10 + '/10' : ''}</span>
+      </div>
+      <div style="font-size:11px; color:#374151; margin-bottom:4px;">
+        ${a.grade.n_pass}P / ${a.grade.n_partial}~ / ${a.grade.n_fail}F · ${(a.elapsed_ms/1000).toFixed(1)}s
+      </div>
+      <div style="font-size:11px; color:#6b7280; line-height:1.4; max-height:60px; overflow:hidden;">${responseSnip}${a.response_text.length > 280 ? '…' : ''}</div>
+    </div>`;
+  }).join('');
+  return `<div style="margin-top:12px; padding:12px; border:1px solid #e5e7eb; border-radius:8px; background:#f9fafb;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+      <b style="font-size:13px;">Layer ablation — same prompt, 4 harness configurations</b>
+      <span style="font-size:13px; padding:3px 10px; border-radius:12px; background:${liftColor}; color:white; font-weight:600;">harness lift: ${liftLabel}</span>
+    </div>
+    <div style="display:flex; gap:10px; flex-wrap:wrap;">${cards}</div>
+  </div>`;
+}
+
+function renderGradeChips(chips, idx) {
+  if (!chips || chips.state !== 'ready') return '';
+  // 3 chips: score / indicators / citations + use-case label.
+  // Color-code by score: red <40, amber 40-69, green >=70
+  const score = chips.score;
+  const scoreColor = score == null ? '#6b7280'
+                    : score >= 70 ? '#10b981'
+                    : score >= 40 ? '#f59e0b'
+                    : '#ef4444';
+  const gameTag = chips.gaming_flagged
+    ? `<span style="margin-left:6px; font-size:10px; padding:1px 6px; border-radius:8px; background:#fee2e2; color:#991b1b;">gamed→capped</span>`
+    : '';
+  const usecaseTag = chips.usecase
+    ? `<span style="margin-left:6px; font-size:11px; color:var(--muted);">use-case: ${chips.usecase.replace(/_/g, ' ')} ${chips.usecase_conf ? '(' + Math.round(chips.usecase_conf*100) + '%)' : ''}</span>`
+    : '';
+  return `<div class="grade-chips" style="margin-top:8px; display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+    <a href="#" onclick="openGradeModal(${idx}); return false;" style="text-decoration:none;">
+      <span style="display:inline-block; padding:3px 10px; border-radius:12px; background:${scoreColor}; color:white; font-size:12px; font-weight:600;">${score == null ? '?' : score + '%'}${chips.score_0_10 != null ? ' · ' + chips.score_0_10 + '/10' : ''}</span>
+    </a>
+    <a href="#" onclick="openGradeModal(${idx}); return false;" style="text-decoration:none;">
+      <span style="display:inline-block; padding:3px 10px; border-radius:12px; background:#e0f2fe; color:#075985; font-size:12px;">${chips.indicators_named} indicators named</span>
+    </a>
+    <a href="#" onclick="openGradeModal(${idx}); return false;" style="text-decoration:none;">
+      <span style="display:inline-block; padding:3px 10px; border-radius:12px; background:#dcfce7; color:#166534; font-size:12px;">${chips.citations_grounded}/${chips.citations_total} citations grounded</span>
+    </a>
+    ${gameTag}${usecaseTag}
+  </div>`;
 }
 
 function renderHarnessTrace(trace) {
@@ -2880,7 +3139,20 @@ function renderChat() {
       const gradeLink = (_gradeAvailable && m.role === 'assistant')
           ? ` · <a href="#" onclick="openGradeModal(${m._idx ?? 0}); return false;" style="color:var(--accent); text-decoration:none; font-weight:600;">▸ Grade response</a>`
           : '';
-      bodyHtml += `<div class="meta">${m._meta}${pipelineLink}${gradeLink}</div>`;
+      const ablationLink = (m.role === 'assistant')
+          ? ` · <a href="#" onclick="runAblation(${m._idx ?? 0}); return false;" style="color:var(--accent); text-decoration:none; font-weight:600;" title="Run the same prompt 4 times: OFF / GREP only / RAG only / both — to demonstrate the harness lift live.">▸ Run ablation</a>`
+          : '';
+      bodyHtml += `<div class="meta">${m._meta}${pipelineLink}${gradeLink}${ablationLink}</div>`;
+    }
+    // Auto-grade chips (Phase 5): inline 3-chip strip below assistant
+    // messages. Click any chip to open the full grade modal.
+    if (m.role === 'assistant' && m._chips) {
+      bodyHtml += renderGradeChips(m._chips, m._idx ?? 0);
+    }
+    // Layer ablation panel (Phase 5): when the user clicks "Run
+    // ablation" we render 4 side-by-side score cards inline.
+    if (m.role === 'assistant' && m._ablation) {
+      bodyHtml += renderAblationPanel(m._ablation);
     }
     html += `<div class="msg ${m.role} ${cls}">
       <div class="avatar">${avatarTxt}</div>

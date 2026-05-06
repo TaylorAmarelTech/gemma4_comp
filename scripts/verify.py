@@ -62,11 +62,13 @@ CHECKS: tuple[Check, ...] = (
           "categories of required-element rubrics"),
     Check("Classifier examples","duecare.chat.harness","CLASSIFIER_EXAMPLES",54,
           "pre-built classifier examples (30 persona × corridor + 16 originals + 8 multimodal SVG)"),
-    Check("Universal rubric dims", "duecare.chat.harness", "RUBRIC_UNIVERSAL", 19,
-          "v3 universal rubric dimensions (added anti_victim_blaming + alternative_pathway in v3.5)",
+    Check("Universal rubric dims", "duecare.chat.harness", "RUBRIC_UNIVERSAL", 21,
+          "v3 universal rubric dimensions (v3.6 added operational_information_provided + harm_enablement_check)",
           sub_key="dimensions"),
-    Check("LLM-judge questions", "duecare.chat.harness", "JUDGE_QUESTIONS", 19,
-          "yes/no questions sent to loaded Gemma in Deep grade mode"),
+    Check("LLM eval questions",  "duecare.chat.harness", "EVALUATION_QUESTIONS", 21,
+          "per-dim yes/no questions sent to the LLM evaluator (also "
+          "called 'LLM-as-judge' in academic literature). Unrelated "
+          "to contest judging."),
 )
 
 
