@@ -83,7 +83,12 @@ DATASET_SLUG = "duecare-harness-chat-wheels"
 GEMMA_MODEL_VARIANT = os.environ.get("GEMMA_MODEL_VARIANT", "e4b-it")
 GEMMA_LOAD_IN_4BIT  = os.environ.get("GEMMA_LOAD_IN_4BIT", "1") == "1"
 GEMMA_DEVICE_MAP    = "auto"
-GEMMA_MAX_SEQ_LEN   = int(os.environ.get("GEMMA_MAX_SEQ_LEN", "8192"))
+# 32768 (not 8192) because the omni notebook ships all 5 harness
+# layers. With Persona + GREP + RAG + Tools + Online ON, the merged
+# prompt is ~13k chars (≈10-12k tokens) — overflows 8192. Gemma 4's
+# native context window is 128K so 32k is well within capability.
+# Override via env var if you're memory-constrained.
+GEMMA_MAX_SEQ_LEN   = int(os.environ.get("GEMMA_MAX_SEQ_LEN", "32768"))
 
 # Online search (optional). The chat UI surfaces an "Online" toggle when
 # this is True; when False the toggle is hidden and online_search_call
@@ -623,11 +628,81 @@ _COMPACT_LAYOUT_SNIPPET = """
     // the header, so flex-wrap places ours on the right edge).
     hdr.appendChild(bar);
   }
+
+  // Mount a "Clear chat" button into the always-visible header bar
+  // (the controls row that holds Clear is hidden by default in the
+  // compact layout, so users had no obvious way to reset).
+  function injectClearButton() {
+    var headerBar = document.querySelector('header.bar');
+    if (!headerBar) {
+      setTimeout(injectClearButton, 300);
+      return;
+    }
+    if (document.querySelector('.dc-header-clear')) return;
+    var btn = document.createElement('button');
+    btn.className = 'dc-header-clear';
+    btn.type = 'button';
+    btn.title = 'Clear all chat messages and start a new session';
+    btn.textContent = 'Clear chat';
+    btn.style.cssText = (
+      'background: transparent; border: 1px solid var(--border, #475569);' +
+      ' color: var(--muted, #94a3b8); padding: 5px 12px;' +
+      ' border-radius: 6px; font-size: 12px; cursor: pointer;' +
+      ' font-weight: 500; line-height: 1.2; margin-left: 8px;'
+    );
+    btn.addEventListener('mouseenter', function() {
+      btn.style.borderColor = '#f59e0b';
+      btn.style.color = '#fbbf24';
+    });
+    btn.addEventListener('mouseleave', function() {
+      btn.style.borderColor = 'var(--border, #475569)';
+      btn.style.color = 'var(--muted, #94a3b8)';
+    });
+    btn.addEventListener('click', function() {
+      if (typeof window.resetChat === 'function') {
+        window.resetChat();
+      } else {
+        // Fallback: empty the chat container manually
+        var chat = document.getElementById('chat');
+        if (chat) chat.innerHTML = '';
+      }
+    });
+    // Insert before the shutdown pill if present, else append
+    var shutdown = headerBar.querySelector('.dc-shutdown-pill');
+    if (shutdown) {
+      headerBar.insertBefore(btn, shutdown);
+    } else {
+      headerBar.appendChild(btn);
+    }
+  }
+
+  // Update the empty-state text that mentions GEMMA_MODEL_VARIANT
+  // env var (stale — we now have an in-UI picker).
+  function fixEmptyStateText() {
+    var empty = document.querySelector('.empty');
+    if (!empty) return;
+    var html = empty.innerHTML;
+    if (html.indexOf('GEMMA_MODEL_VARIANT') === -1) return;
+    var fixed = html.replace(
+      /pick a Gemma 4 variant via the\\s*<code>GEMMA_MODEL_VARIANT<\\/code>\\s*kernel env var/i,
+      'pick a Gemma 4 variant from the in-browser <b>model picker</b>'
+    );
+    if (fixed !== html) empty.innerHTML = fixed;
+  }
+
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', inject);
+    document.addEventListener('DOMContentLoaded', function() {
+      inject();
+      injectClearButton();
+      fixEmptyStateText();
+    });
   } else {
     inject();
+    injectClearButton();
+    fixEmptyStateText();
   }
+  // Retry empty-state text fix after the chat UI hydrates
+  setTimeout(fixEmptyStateText, 800);
 })();
 </script>
 """
