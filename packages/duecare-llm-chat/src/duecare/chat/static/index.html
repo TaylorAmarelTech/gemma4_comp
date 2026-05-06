@@ -947,11 +947,45 @@ async function populateEmptyHints() {
     }).join('');
     return;
   }
+  // Multi-lingual showcase row — surfaces the 6 worker-asking
+  // prompts in non-English languages so reviewers can demo the
+  // multi-lingual analog classifier with one click. Each button
+  // shows the language flag + a 1-line English translation in the
+  // tooltip; the actual prompt loaded into the input is the
+  // native-language text.
+  const multilingualPicks = [
+    {id: 'ml_tagalog_worker_passport',  flag: 'TL', name: 'Tagalog'},
+    {id: 'ml_indonesian_worker_help',   flag: 'ID', name: 'Indonesian'},
+    {id: 'ml_arabic_worker_kafeel',     flag: 'AR', name: 'Arabic'},
+    {id: 'ml_nepali_worker_debt',       flag: 'NE', name: 'Nepali'},
+    {id: 'ml_spanish_worker_help',      flag: 'ES', name: 'Spanish'},
+    {id: 'ml_bengali_worker_help',      flag: 'BN', name: 'Bengali'},
+  ].map(p => ({...p, ex: examples.find(e => e.id === p.id)}))
+   .filter(p => p.ex);
+
   el.innerHTML = picks.map(p =>
     `<button onclick="useExample(${attrJson(p.id)})"
              title="${escapeHtml(p.ex.text)}"
              style="border-left:3px solid ${p.color};">${escapeHtml(p.label)}</button>`
   ).join('');
+
+  // Append the multi-lingual row only if at least one of the showcase
+  // prompts is bundled (older chat wheels won't have them).
+  if (multilingualPicks.length) {
+    const mlRow = `<div style="margin-top:14px; padding-top:12px; border-top:1px dashed var(--border); width:100%;">
+      <div style="font-size:11px; color:var(--muted); margin-bottom:8px; letter-spacing:0.3px;">
+        🌐 <strong>Multi-lingual classifier showcase</strong> — same prompt shape ("worker asking for help with passport retention") in 6 different origin/destination languages. The analog use-case classifier identifies all of these as <code>worker_asking</code>.
+      </div>
+      <div style="display:flex; gap:6px; flex-wrap:wrap;">
+        ${multilingualPicks.map(p => `<button onclick="useExample(${attrJson(p.id)})"
+            title="${escapeHtml(p.ex.translation_en || '')}\n\n${escapeHtml(p.ex.text)}"
+            style="padding:6px 12px; font-size:12px; background:var(--bg); border:1px solid var(--border); color:var(--ink); border-radius:6px; cursor:pointer;">
+            <span style="display:inline-block; padding:1px 5px; background:#3b82f6; color:white; font-size:10px; font-weight:700; border-radius:3px; margin-right:5px;">${p.flag}</span>${p.name}
+        </button>`).join('')}
+      </div>
+    </div>`;
+    el.insertAdjacentHTML('beforeend', mlRow);
+  }
 }
 populateEmptyHints();
 
