@@ -20,9 +20,14 @@ scenarios — it cites no ILO conventions, recognizes no camouflaged
 recruitment fees, and gives traffickers operational advice. **Duecare
 wraps Gemma 4 with five toggleable safety layers** (Persona, GREP,
 RAG, Tools, Online) plus a 4-mode grading stack (Universal /
-Expert / Deep LLM-as-judge / Combined) and shows the *exact* prompt
-transformation in a per-response Pipeline modal with latency-budget
-breakdown.
+Expert / Evaluator / Combined) backed by a **21-dimension rubric**
+with two harm-axis dims, an **analog multi-lingual prompt classifier
+across 11 languages**, **auto-grade chips inline on every response**,
+and a **one-click Layer Ablation runner** that regenerates the +pp
+lift live. Per-response Pipeline modal shows the *exact* prompt
+transformation with latency-budget breakdown. **12 curator-block JSON
+files** ship in the wheel for stakeholder PRs (jurists, NGO partners,
+language experts) without reading any Python.
 
 The product north star is **harm reduction, not paternalism**: the
 chat tells the worker which statute the fee violates and which NGO
@@ -145,9 +150,12 @@ These notebooks are **not required for deployment**. A1–A2 extend
 Duecare to new domains; A3 visualizes the harness data; A4 is a
 proof-of-concept for agentic web research; A5 demonstrates the
 harness against jailbroken/abliterated models. The core 2 notebooks
-above already work end-to-end with the bundled 407 prompts, 108 GREP rules, 33 RAG docs, 5 tools, 21-dimension universal rubric, and
-17 LLM-judge questions — judges can verify the submission *without*
-running any of these.
+above already work end-to-end with the bundled 413 example prompts
+(incl. 6 multi-lingual showcase), 108 GREP rules, 33 RAG docs, 5
+tools, 21-dimension universal rubric, 21 evaluator questions, 144
+authoritative-statute allowlist, 12 curator-block JSON files, and
+194 multi-lingual classifier signals across 11 languages — reviewers
+can verify the submission *without* running any of these.
 
 | # | Notebook | Wheels dataset | Purpose |
 |---|---|---|---|
@@ -156,7 +164,7 @@ running any of these.
 | A3 | [duecare-research-graphs](https://www.kaggle.com/code/taylorsamarel/duecare-research-graphs) *(publish pending)* | `duecare-research-graphs-wheels` *(publish pending — wheels built locally)* | 6 interactive Plotly charts (entity graph, corridor Sankey, per-category benchmark bars, fee-camouflage heatmap, ILO indicator hits, RAG corpus sunburst). CPU-only, ~30 sec. |
 | A4 | [duecare-chat-playground-with-agentic-research](https://www.kaggle.com/code/taylorsamarel/duecare-chat-playground-with-agentic-research) *(publish pending)* | `duecare-chat-playground-with-agentic-research-wheels` ✓ live | Same chat UI as Core #2 + a 5th toggle for **agentic web research**. Gemma 4 multi-step loop using DuckDuckGo + httpx + Wikipedia. All open-source, no API keys. **Proof-of-concept** — supplements GREP/RAG/Tools with fresh web context. |
 | A5 | [duecare-chat-playground-jailbroken-models](https://www.kaggle.com/code/taylorsamarel/duecare-chat-playground-jailbroken-models) *(publish pending)* | `duecare-chat-playground-jailbroken-models-wheels` ✓ live | Same chat UI as Core #2 + 4-toggle harness, but loads an **abliterated / cracked / uncensored** Gemma 4 variant (default: `dealignai/Gemma-4-31B-JANG_4M-CRACK`). Demonstrates the harness still produces safe outputs even when the base model has had its refusals ablated. **The strongest "real, not faked" proof.** |
-| A6 | [duecare-grading-evaluation](https://www.kaggle.com/code/taylorsamarel/duecare-grading-evaluation) *(publish pending)* | `duecare-grading-evaluation-wheels` ✓ live | **Dedicated lift evaluator.** Runs N curated prompts through Gemma 4 twice (harness OFF vs ON) and grades both with the universal v2 grader (17 dimensions, intent-aware, citation-cross-referenced). Produces side-by-side per-prompt cards + aggregate dimension-lift table + provenance tuple `(model, git_sha, dataset_version)`. **The falsifiable +56.5pp number, regenerated from a git SHA.** |
+| A6 | [duecare-grading-evaluation](https://www.kaggle.com/code/taylorsamarel/duecare-grading-evaluation) *(publish pending)* | `duecare-grading-evaluation-wheels` ✓ live | **Dedicated lift evaluator.** Runs N curated prompts through Gemma 4 twice (harness OFF vs ON) and grades both with the universal v3.6 grader (21 dimensions, use-case-aware, citation-cross-referenced). Produces side-by-side per-prompt cards + aggregate dimension-lift table + provenance tuple `(model, git_sha, dataset_version)`. **The falsifiable +56.5pp number, regenerated from a git SHA.** Companion script `scripts/remeasure_v36_lift.py` reproduces the run locally with mock or real Gemma. |
 
 > **Note on "publish pending" markers (2026-05-01).** The kernels and
 > wheels datasets are all built locally under `kaggle/<slug>/` and
@@ -186,14 +194,26 @@ Expected output (all 9 checks PASS):
 [  OK  ]  GREP rules             108 >= 108
 [  OK  ]  RAG corpus              33 >=  33
 [  OK  ]  Tools                    5 >=   5
-[  OK  ]  Example prompts        407 >= 407
+[  OK  ]  Example prompts        413 >= 407
 [  OK  ]  5-tier rubrics         207 >= 207
 [  OK  ]  Required rubrics         6 >=   6
-[  OK  ]  Classifier examples     51 >=  51
-[  OK  ]  Universal rubric dims   17 >=  17
-[  OK  ]  LLM-judge questions     17 >=  17
+[  OK  ]  Classifier examples     54 >=  54
+[  OK  ]  Universal rubric dims   21 >=  21
+[  OK  ]  LLM eval questions      21 >=  21
 OK: all 9 checks passed. Harness is ready.
 ```
+
+Plus the curator-block validator:
+
+```bash
+python scripts/validate_curator_blocks.py
+```
+
+Validates 11 curator JSON files against schema + cross-references
+(every dim_id in usecase_affinity / evaluation_questions /
+rubric_hints exists in `_rubric_universal.json`). Emits a per-file
+err/warn report. Used by stakeholders (NGO partners, jurists,
+language experts) before submitting curator-block PRs.
 
 Or with no install: open [`packages/duecare-llm-chat/src/duecare/chat/harness/__init__.py`](https://github.com/TaylorAmarelTech/gemma4_comp/blob/master/packages/duecare-llm-chat/src/duecare/chat/harness/__init__.py)
 and read the rule definitions, RAG corpus, tool dispatcher inline.

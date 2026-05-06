@@ -446,6 +446,26 @@ header.bar .badge.loaded .dot {
   .empty { padding: 24px 16px; }
   .empty h2 { font-size: 20px; }
   .empty p { font-size: 14px; }
+  /* Auto-grade chips: keep flex-wrap but tighter spacing on phones */
+  .grade-chips { gap: 6px !important; margin-top: 6px !important; }
+  .grade-chips span { font-size: 11px !important; padding: 2px 8px !important; }
+  /* Layer-ablation cards: 1-per-row on phones (override the
+     desktop min-width:180px which forces 2-up at 375px) */
+  .msg .body div[style*="border:1px solid #e5e7eb"][style*="min-width:180px"] {
+    min-width: 100% !important;
+    max-width: 100% !important;
+  }
+  /* Ablation header: stack title + lift badge vertically on phones */
+  .msg .body div[style*="display:flex; justify-content:space-between"] {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 4px !important;
+  }
+  /* Multi-lingual showcase row: stack into a 3x2 grid on phones */
+  #empty-hints button[onclick^="useExample('ml_"] {
+    flex: 1 1 calc(50% - 4px) !important;
+    min-width: 0 !important;
+  }
 }
 
 @media (max-width: 480px) {

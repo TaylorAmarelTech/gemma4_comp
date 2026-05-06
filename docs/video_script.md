@@ -1,7 +1,7 @@
-# Video Script — Duecare (v2, matches actual submission)
+# Video Script — Duecare (v3, matches v3.6 submission)
 
-> **Target:** 2:50 (10-second buffer under the 3:00 cap).
-> **Voiceover budget:** ~285 words at ~100 wpm = 2:51.
+> **Target:** 2:55 (5-second buffer under the 3:00 cap).
+> **Voiceover budget:** ~290 words at ~100 wpm = 2:54.
 > **Host:** YouTube, public.
 > **Judged at:** 30 pts (Video Pitch & Storytelling) + 40 pts (Impact &
 > Vision is judged FROM the video). **70 of 100 points live in this file.**
@@ -122,31 +122,52 @@ of structured pre-context. Camera scrolls through.
 
 **Music:** Warm pad enters at 1:20.
 
-### 1:42–1:50 — The numbers (8-second on-screen evidence)
+### 1:42–1:54 — Layer ablation, live (12-second proof of lift)
 
-**Visual:** Hold on the FINAL MERGED PROMPT card. A clean white
-callout fades in over the lower third of the screen with three lines:
+**Visual:** Cursor clicks **▸ Run ablation** below the response. A
+panel appears with 4 score cards filling in sequence as each
+generation completes (loading shimmer → number resolves):
 
-> **+87.5 pp** — citing the right jurisdiction-specific statute
-> **+51.2 pp** — citing the right ILO convention
-> **+34.1 pp** — applying substance-over-form analysis
+| OFF | GREP only | RAG only | BOTH |
+|---|---|---|---|
+| 31% | 66% | 78% | 87% |
 
-Below in smaller type: *"207 prompts. Hand-graded 12-criterion rubric.
-docs/harness_lift_report.md"*.
+Above the cards a banner reads: **harness lift: +56pp**.
 
-**Voiceover (inserts naturally over the existing demo beat):**
+**Voiceover:**
 
-> *"And we measured it. Across 207 prompts, three failure modes stock
-> LLMs share — citing the wrong jurisdiction's law, missing the ILO
-> convention, ignoring substance over form — the harness lifts each
-> by 34 to 88 percentage points. Both GREP and RAG pull their weight
-> independently."*
+> *"One click. Same prompt, four times — no harness, GREP only, RAG
+> only, both on. The plus-fifty-six-point-pp lift, regenerated live.
+> Both layers pull their weight."*
 
-**Production note.** Keep the callout visible for 7-8 seconds. Don't
-read every number — let the on-screen text carry the detail; the
-voiceover names the high-level claim.
+**Production note.** Keep the panel visible for the full 12 seconds.
+The cards filling in sequence is the visual hook — viewers see the
+score climb as each layer turns on.
 
-### 1:50–2:15 — The classification path (the dashboard reveal)
+### 1:54–2:08 — Multi-lingual classifier showcase (14 seconds)
+
+**Visual:** Cut to the chat empty-state. Cursor clicks the **TL**
+(Tagalog) language-flag button. The native-language text loads:
+
+> *"Tulungan mo ako, kinuha nila ang pasaporte ko at natatakot ako"*
+
+Below it, a small chip annotation appears: **classified as
+worker_asking (1.00 confidence)**.
+
+Quick cuts to **AR** (Arabic) and **ES** (Spanish) buttons,
+each with the same chip showing **worker_asking**.
+
+**Voiceover:**
+
+> *"Workers don't always type in English. The classifier is analog
+> and multi-lingual — eleven languages including Tagalog, Indonesian,
+> Nepali, Bengali, Arabic. Same prompt shape, same recognition. The
+> rubric then weights the dimensions that matter for THIS audience —
+> a worker prompt amplifies concrete-resources and alternative-
+> pathway; a lawyer prompt amplifies article-level citation
+> specificity. One rubric, audience-aware."*
+
+### 2:08–2:30 — The classification path (the dashboard reveal)
 
 **Visual:** Cut to the **content-classification-evaluation notebook**.
 Form on the left. Cursor clicks `▸ Examples` → modal opens with
@@ -213,7 +234,7 @@ returned.
 > recruiter's POEA license number + the controlling statute. Same
 > harness on the desktop NGO dashboard for triage. And on the phone:
 > Duecare Journey v0.9 — same harness on-device via MediaPipe Gemma 4
-> E2B, encrypted journal, eleven ILO indicator detectors, six
+> E2B, encrypted journal, eleven ILO indicator detectors, twenty
 > migration corridors with statute lookups, and an NGO intake
 > document the worker generates with one tap and shares with one
 > more. APK published; install link in the description."*
@@ -276,6 +297,12 @@ Fade to black. Music fades.
       Reports · Settings) → Reports tab → Generate intake document
       → markdown intake doc visible (matches the sibling
       `duecare-journey-android/` v0.9.0 release)
+- [ ] Screen recording: ▸ Run ablation panel filling 4 score cards
+      in sequence (OFF / GREP / RAG / BOTH) with the harness-lift
+      banner above
+- [ ] Screen recording: empty-state language-flag buttons (TL, ID,
+      AR, NE, ES, BN). Cursor clicks TL; the Tagalog prompt loads;
+      the use-case chip shows "worker_asking 1.00"
 - [ ] End card with URLs
 
 **Voiceover word count:** ~325 words after the numbers beat insert
