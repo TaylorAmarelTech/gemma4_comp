@@ -119,11 +119,12 @@ _UNSLOTH_MARKER = Path("/tmp/.duecare_unsloth_stack_v1_done")
 
 
 def _need_unsloth_stack() -> bool:
-    # Heavy on-device variants need the Unsloth FastModel stack;
-    # cloud routes need nothing GPU-side.
-    return GEMMA_MODEL_VARIANT in (
-        "31b-it", "26b-a4b-it", "jailbroken-31b", "jailbroken-e4b",
-    )
+    # Every on-device variant uses Unsloth's FastModel loader (see
+    # load_gemma() below). Only cloud-* routes can skip the heavy
+    # install. Earlier versions of this file gated the install on the
+    # 26B/31B variants only, which broke E2B/E4B with a confusing
+    # "ModuleNotFoundError: No module named 'unsloth'" at load time.
+    return not _is_cloud_variant()
 
 
 def _is_cloud_variant() -> bool:
