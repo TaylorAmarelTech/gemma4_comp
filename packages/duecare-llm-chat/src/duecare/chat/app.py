@@ -286,7 +286,7 @@ def create_app(
         revision before running benchmarks against it.
 
         Shape:
-          {chat_package: "0.2.3",
+          {chat_package: "0.2.4",
            harness: {rubric_version: "v3.6", n_dimensions: 21,
                      n_evaluation_questions: 21, n_grep_rules: 111,
                      n_rag_docs: 35, n_tools: 5, n_examples: 413,
@@ -349,7 +349,7 @@ def create_app(
             })
 
         return {
-            "chat_package":         "0.2.3",
+            "chat_package":         "0.2.4",
             "wire_format_version":  "v2.0",  # mode='llm_evaluator', evaluator_*
             "harness": {
                 "rubric_version":              RUBRIC_UNIVERSAL.get("version", ""),
@@ -924,7 +924,10 @@ def create_app(
 
     @app.get("/api/chat/image/{sid}")
     def api_get_image(sid: str) -> Any:
-        item = _IMAGE_STORE.get(sid)
+        # Snapshot under the lock so we can't race with eviction between
+        # the existence check and the body read.
+        with _IMAGE_STORE_LOCK:
+            item = _IMAGE_STORE.get(sid)
         if item is None:
             raise HTTPException(404, "image not found")
         from fastapi.responses import Response
@@ -934,7 +937,14 @@ def create_app(
         """Walk the messages, resolve any 'store://<id>' image refs to
         base64 data URIs so the downstream multimodal Gemma call
         doesn't depend on this server being reachable from the model
-        process."""
+        process.
+
+        H3 fix: each image lookup happens under _IMAGE_STORE_LOCK so a
+        concurrent /api/chat/upload-image LRU-eviction can't pull the
+        rug out from under us between the .get() and the b64 encode.
+        We hold the lock only long enough to copy the bytes — encoding
+        is done outside the critical section to keep contention low.
+        """
         out = []
         for msg in raw_messages:
             new_msg = {"role": msg.get("role", "user"), "content": []}
@@ -946,14 +956,19 @@ def create_app(
                     img_ref = chunk.get("image", "")
                     if img_ref.startswith("store://"):
                         sid = img_ref[len("store://"):]
-                        item = _IMAGE_STORE.get(sid)
-                        if item is None:
+                        with _IMAGE_STORE_LOCK:
+                            item = _IMAGE_STORE.get(sid)
+                            # Copy the tuple out under the lock; the
+                            # underlying bytes object is immutable so
+                            # encoding it after the release is safe.
+                            snapshot = (item[0], item[1]) if item else None
+                        if snapshot is None:
                             new_msg["content"].append(
                                 {"type": "text",
                                  "text": "[image expired from server cache]"})
                             continue
-                        b64 = base64.b64encode(item[0]).decode()
-                        data_uri = f"data:{item[1]};base64,{b64}"
+                        b64 = base64.b64encode(snapshot[0]).decode()
+                        data_uri = f"data:{snapshot[1]};base64,{b64}"
                         new_msg["content"].append(
                             {"type": "image", "image": data_uri})
                     else:

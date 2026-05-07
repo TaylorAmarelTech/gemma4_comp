@@ -553,6 +553,18 @@ header.bar .badge.loaded .dot {
   }
   header.bar h1 { font-size: 15px; }
   header.bar .badge { font-size: 10px; padding: 4px 8px; }
+  /* Picker overlay shrinks to fit a phone — variant cards single-column,
+     padding tightened, banner text smaller. */
+  .picker-overlay { padding: 12px; }
+  .picker-box { padding: 16px 14px; }
+  .picker-title { font-size: 18px; }
+  .picker-sub { font-size: 12px; }
+  .picker-banner { font-size: 11px; padding: 8px 10px; }
+  .picker-grid { grid-template-columns: 1fr; }
+  .picker-vcard { padding: 10px 12px; }
+  .picker-vcard .vt { font-size: 13px; }
+  .picker-actions { flex-wrap: wrap; }
+  .picker-actions button { min-height: 40px; padding: 8px 12px; }
   .chat {
     padding: 10px;
     padding-bottom: 100px;  /* leave room above the composer */
@@ -2880,8 +2892,13 @@ async function _runGrade(messageIdx) {
       body: JSON.stringify(body),
     });
     if (!r.ok) {
+      // Surface a short, sanitized error to the modal pane. The full
+      // server response (which can include stack traces, dimension-id
+      // dumps, etc.) is logged to console for debugging — not displayed
+      // to a public-demo viewer.
       const errTxt = await r.text();
-      throw new Error(`HTTP ${r.status}: ${errTxt}`);
+      console.error('[grade] HTTP', r.status, errTxt);
+      throw new Error(_sanitizeServerError(r.status, errTxt));
     }
     result = await r.json();
   } catch (e) {
@@ -3344,13 +3361,24 @@ function renderPendingImages() {
     </div>`).join('');
 }
 
+// Top-level concurrency latch shared across the click handler and the
+// Enter-key keydown handler. A naked `btn.disabled` is not enough —
+// pressing Enter calls sendMessage() directly, bypassing the button's
+// disabled state. With two simultaneous SSE streams the user sees the
+// later response overwrite the earlier one in messages[thinkingIdx],
+// which on a public demo looks like the assistant is hallucinating.
+let _chatBusy = false;
+
 async function sendMessage() {
+  if (_chatBusy) return;
   const input = document.getElementById('input');
   const text = input.value.trim();
   if (!text && pendingImages.length === 0) return;
 
+  _chatBusy = true;
   const btn = document.getElementById('send');
   btn.disabled = true;
+  input.disabled = true;
 
   // Build the user message: images first, then text
   const content = [];
@@ -3417,7 +3445,8 @@ async function sendMessage() {
     });
     if (!r.ok) {
       const errTxt = await r.text();
-      throw new Error(`HTTP ${r.status}: ${errTxt}`);
+      console.error('[chat/send] HTTP', r.status, errTxt);
+      throw new Error(_sanitizeServerError(r.status, errTxt));
     }
     const reader = r.body.getReader();
     const decoder = new TextDecoder('utf-8');
@@ -3463,6 +3492,8 @@ async function sendMessage() {
       _error: true};
     renderChat();
     btn.disabled = false;
+    input.disabled = false;
+    _chatBusy = false;
     return;
   }
 
@@ -3477,6 +3508,8 @@ async function sendMessage() {
   };
   renderChat();
   btn.disabled = false;
+  input.disabled = false;
+  _chatBusy = false;
   document.getElementById('input').focus();
 
   // Background auto-grade: fire-and-forget Universal grade so the
@@ -3515,21 +3548,29 @@ async function autoGradeChips(msgIdx, responseText, promptText, harnessTrace) {
       }),
     });
     if (!r.ok) return;
-    const grade = await r.json();
-    // Project the 21-dim grade into 3 chip values
-    const score   = (grade.pct_score != null) ? Math.round(grade.pct_score) : null;
-    const score10 = (grade.score_0_10 != null) ? grade.score_0_10 : null;
-    const dims    = grade.dimensions || [];
+    let grade;
+    try { grade = await r.json(); }
+    catch (parseErr) { return; }  // malformed JSON — leave chips pending
+    if (!grade || typeof grade !== 'object') return;
+    // Project the 21-dim grade into 3 chip values. All field reads are
+    // defensive — a server-side bug or upgrade-skew should leave chips
+    // in a "best-effort" state, never crash the renderChat loop.
+    const score   = (typeof grade.pct_score === 'number') ? Math.round(grade.pct_score) : null;
+    const score10 = (typeof grade.score_0_10 === 'number') ? grade.score_0_10 : null;
+    const dims    = Array.isArray(grade.dimensions) ? grade.dimensions : [];
     // Indicator-kind dims: ilo_indicator_naming, trafficking_pattern_naming
-    const indDims = dims.filter(d => d.kind === 'recognition' && d.status === 'PASS');
+    const indDims = dims.filter(d => d && d.kind === 'recognition' && d.status === 'PASS');
     const indCount = indDims.length;
     // Citations: from citation_check.cited block
-    const cit = grade.citation_check || {};
-    const grounded = (cit.grounded_citations || []).length;
-    const total    = (cit.cited_statutes || []).length;
+    const cit = (grade.citation_check && typeof grade.citation_check === 'object')
+        ? grade.citation_check : {};
+    const grounded = Array.isArray(cit.grounded_citations) ? cit.grounded_citations.length : 0;
+    const total    = Array.isArray(cit.cited_statutes)     ? cit.cited_statutes.length     : 0;
     // Use-case primary
-    const usecase  = grade.classification && grade.classification.primary;
-    const usecaseConf = grade.classification && grade.classification.primary_confidence;
+    const cls       = (grade.classification && typeof grade.classification === 'object')
+        ? grade.classification : null;
+    const usecase     = cls && typeof cls.primary === 'string' ? cls.primary : null;
+    const usecaseConf = cls && typeof cls.primary_confidence === 'number' ? cls.primary_confidence : null;
 
     const m = messages[msgIdx];
     if (!m) return;
@@ -3762,6 +3803,29 @@ function renderHarnessTrace(trace) {
 
 function escapeHtml(s) {
   return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+// Map a server error response to a short, user-facing message. The full
+// raw text is logged to console for debugging, but the modal pane only
+// gets a short status-line so a public-demo viewer doesn't see internal
+// dimension-id dumps, file paths, or stack traces.
+function _sanitizeServerError(status, raw) {
+  const s = String(status || '');
+  if (s === '503') return 'Grader unavailable — the kernel is busy or the loaded model has not finished initializing. Try again in a moment.';
+  if (s === '413') return 'Response too large to grade — the response_text exceeds the 20 KB cap.';
+  if (s === '400') return 'Grader rejected the request as malformed. Open the browser console for the full server message.';
+  if (s.startsWith('5')) return 'Grader server error (HTTP ' + s + '). Open the browser console for details.';
+  if (s.startsWith('4')) return 'Grader request error (HTTP ' + s + '). Open the browser console for details.';
+  // Try to surface a short detail field from a JSON response without
+  // dumping the whole body. Anything longer than 200 chars is suppressed.
+  try {
+    const parsed = JSON.parse(raw || '');
+    const detail = (parsed && (parsed.detail || parsed.error)) || '';
+    if (typeof detail === 'string' && detail.length && detail.length <= 200) {
+      return 'HTTP ' + s + ': ' + detail;
+    }
+  } catch (e) { /* not JSON, fall through */ }
+  return 'HTTP ' + s + ' — see browser console for details.';
 }
 
 // JSON.stringify embedded inside an HTML attribute (onclick="...") needs
