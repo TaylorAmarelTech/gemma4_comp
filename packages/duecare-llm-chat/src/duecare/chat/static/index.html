@@ -367,6 +367,32 @@ header.bar .badge.loaded .dot {
 .picker-vcard.jailbroken { border-color: rgba(239, 68, 68, 0.5); }
 .picker-vcard.jailbroken .vfit { color: #f87171; }
 .picker-vcard.jailbroken .veta { color: #fecaca; }
+/* Recommended-variant highlight: amber border + soft glow + a pill
+   badge (rendered inline in the card body). The 31B-it card gets this
+   treatment because it's the strongest single-variant default for the
+   submission demo (best quality, fits T4 ×2 in 4-bit). */
+.picker-vcard[data-recommended="true"] {
+  border-color: rgba(245, 158, 11, 0.6);
+  background: linear-gradient(180deg, rgba(245, 158, 11, 0.10), #1e293b 70%);
+  box-shadow: 0 0 0 1px rgba(245, 158, 11, 0.25),
+              0 4px 14px rgba(245, 158, 11, 0.15);
+  position: relative;
+}
+.picker-vcard[data-recommended="true"]:hover {
+  border-color: #fbbf24;
+  box-shadow: 0 0 0 1px rgba(251, 191, 36, 0.55),
+              0 6px 18px rgba(245, 158, 11, 0.30);
+}
+.picker-vcard[data-recommended="true"] .vt { color: #fef3c7; }
+.picker-recommended-pill {
+  position: absolute; top: -8px; right: -6px;
+  background: #f59e0b; color: #0f172a;
+  font-size: 9.5px; font-weight: 800; letter-spacing: 0.5px;
+  padding: 2px 8px; border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(245, 158, 11, 0.45);
+  pointer-events: none;
+}
+.picker-vcard[data-recommended="true"] .vfit { color: #fbbf24; }
 .picker-status {
   margin-top: 18px; padding: 16px; border-radius: 10px;
   background: #1e293b; border: 1px solid rgba(71, 85, 105, 0.5);
@@ -1089,10 +1115,16 @@ function _pickerBuildCards(variants) {
       card.type = 'button';
       card.className = 'picker-vcard ' + cat;
       card.dataset.variant = key;
+      // Recommended-variant flag: 31B-it is the strongest single-variant
+      // default for the submission demo (best quality, fits T4 ×2 in
+      // 4-bit). Card gets a glowing amber border + a pill badge.
+      const isRecommended = (key === '31b-it');
+      if (isRecommended) card.dataset.recommended = 'true';
       const sizeLabel = (typeof info.size_gb === 'number' && info.size_gb > 0)
           ? info.size_gb.toFixed(1) + ' GB' : 'no local download';
       const eta = info.load_eta || '';
       card.innerHTML =
+        (isRecommended ? '<div class="picker-recommended-pill">★ RECOMMENDED</div>' : '') +
         '<div class="vt">' + _pickerEscapeHtml(info.display || key) + '</div>' +
         '<div class="vsz">' + _pickerEscapeHtml(sizeLabel) + '</div>' +
         '<div class="vfit">' + _pickerEscapeHtml(info.fits || '') + '</div>' +
@@ -1217,14 +1249,24 @@ function _pickerEnterChat() {
 function openModelPicker() {
   const overlay = document.getElementById('picker-overlay');
   if (!overlay) return;
+  // Synchronous show + sync card render: no waiting for a network round
+  // trip before the user sees the picker. If /api/load-model/status
+  // later returns a different variants map, _pickerBuildCards just
+  // re-renders in place (idempotent: it clears and rebuilds the
+  // groups container).
+  const groups = _pickerEl('groups');
+  if (groups && !groups.children.length) _pickerBuildCards(null);
   overlay.classList.add('show');
-  // Refresh state every time we open: fetch status, render cards, resume
-  // polling if the kernel is mid-load.
+  // Background refresh: fetch status, refresh cards if the kernel
+  // returns a richer variants map, render logs, resume polling if
+  // mid-load.
   fetch('/api/load-model/status').then(function(r) {
     if (!r.ok) throw new Error('HTTP ' + r.status);
     return r.json();
   }).then(function(s) {
-    _pickerBuildCards(s && s.variants);
+    if (s && s.variants && Object.keys(s.variants).length) {
+      _pickerBuildCards(s.variants);
+    }
     _pickerRenderLogs((s && s.logs) || []);
     // If a model is already wired, give the user a Close button to bail
     // out without picking a new one (switching mid-session restarts the
@@ -1239,10 +1281,9 @@ function openModelPicker() {
       _pickerSetCardsLoaded(s.variant);
     }
   }).catch(function() {
-    // /api/load-model/status missing or down: render fallback cards so
-    // user still sees something. Clicking will surface the real error
-    // when /api/load-model itself responds.
-    _pickerBuildCards(null);
+    // /api/load-model/status missing or down: cards are already the
+    // bundled fallback (rendered synchronously above) so the user
+    // still sees something. Surface a status hint.
     _pickerSetStatus('<b>Could not reach the kernel\'s loader endpoint.</b>' +
                      '<div class="meta">The chat server is up but /api/load-model/status did not respond. The cards below are the bundled defaults; clicking will retry the load endpoint and surface the underlying error.</div>', true);
   });
@@ -1265,6 +1306,18 @@ function openModelPickerFromUI() { openModelPicker(); }
 // Wire the picker buttons + auto-open on first load when no model is
 // wired. Runs once at script-load (the picker DOM lives in this same
 // document so getElementById always succeeds).
+//
+// UX goal: zero perceived delay between page paint and picker visible.
+// Strategy:
+//   1. Pre-render fallback cards synchronously so the picker DOM is
+//      already populated by the time we make .show'd visible.
+//   2. Read a sessionStorage hint from the previous page visit: if the
+//      last-seen state was "loaded", skip the optimistic show (avoids
+//      a flicker on a same-session reload). On first ever visit, the
+//      hint is absent and we fall through to optimistic show.
+//   3. Fire /api/model-info to get ground truth: if loaded, hide the
+//      overlay (no-op if it was already hidden). Otherwise, ensure
+//      it's shown. Update the sessionStorage hint either way.
 (function _initPicker() {
   const logsBtn = _pickerEl('view-logs');
   const enterBtn = _pickerEl('enter-chat');
@@ -1284,17 +1337,44 @@ function openModelPickerFromUI() { openModelPicker(); }
   }
   if (enterBtn) enterBtn.addEventListener('click', _pickerEnterChat);
   if (closeBtn) closeBtn.addEventListener('click', closeModelPicker);
-  // Initial decision: open the picker if no model is loaded yet.
+
+  // Pre-render cards from the bundled fallback catalog so the picker
+  // looks "ready" the instant we toggle .show, even before the
+  // /api/load-model/status round trip completes.
+  _pickerBuildCards(null);
+
+  // Decide whether to show optimistically: if last visit said "loaded",
+  // skip the flash. On any uncertainty (no hint, parse error), default
+  // to showing — better to show twice briefly than to leave a user
+  // staring at an empty page when the model is unloaded.
+  let cachedLoaded = false;
+  try { cachedLoaded = sessionStorage.getItem('duecare.modelLoaded') === '1'; }
+  catch (e) { /* sessionStorage may be disabled (private mode); ignore */ }
+  if (!cachedLoaded) {
+    openModelPicker();
+  }
+
+  // Verify against the server. Update cache + adjust visibility if
+  // the cached hint was wrong.
   fetch('/api/model-info', {cache: 'no-store'}).then(function(r) {
     if (!r.ok) throw new Error('HTTP ' + r.status);
     return r.json();
   }).then(function(info) {
-    if (info && info.loaded) return;  // model already wired: stay hidden
-    openModelPicker();
+    const loaded = !!(info && info.loaded);
+    try { sessionStorage.setItem('duecare.modelLoaded', loaded ? '1' : '0'); }
+    catch (e) {}
+    if (loaded) {
+      closeModelPicker();
+    } else if (cachedLoaded) {
+      // Cached hint was wrong (e.g. kernel restarted between visits).
+      // Show the picker now.
+      openModelPicker();
+    }
   }).catch(function() {
-    // /api/model-info unreachable — open the picker so the user has
-    // SOME way to interact rather than silently hanging.
-    openModelPicker();
+    // /api/model-info unreachable: if we haven't already opened the
+    // picker (because the cache said "loaded"), open it now so the
+    // user has some way to interact.
+    if (cachedLoaded) openModelPicker();
   });
 })();
 
