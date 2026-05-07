@@ -1,7 +1,7 @@
 # Duecare chat package (loaded from PyPI when published, or from a
 # bundled wheel during local builds. The wheel ships the harness +
 # all 12 curator JSON files + the static UI.)
-duecare-llm-chat==0.2.0
+duecare-llm-chat==0.2.1
 
 # FastAPI runtime — the chat package depends on these but pinning
 # here ensures reproducible Docker builds

@@ -1569,6 +1569,27 @@ _PICKER_SNIPPET = """
     function show() { overlay.classList.add('show'); }
     function hide() { overlay.classList.remove('show'); }
 
+    // Expose show() so the chat UI's "Pick a model" CTA + clickable
+    // badge can re-open the picker without forcing a full page reload.
+    // Refreshes the variant grid before showing so cloud-availability
+    // / current-load state stays accurate.
+    window.openModelPicker = function() {
+      try {
+        fetch('/api/load-model/status').then(function(r) { return r.json(); })
+          .then(function(s) {
+            if (s && s.variants) buildCards(s.variants);
+            renderLogs((s && s.logs) || []);
+            show();
+            if (s && s.status === 'loading') {
+              loadingVariant = s.variant;
+              setCardsLoading(s.variant);
+              pollStatus();
+            }
+          })
+          .catch(function() { show(); });
+      } catch (e) { show(); }
+    };
+
     function escapeHtml(s) {
       return String(s == null ? '' : s).replace(/[&<>"']/g, function(c) {
         if (c === '&') return '&amp;';

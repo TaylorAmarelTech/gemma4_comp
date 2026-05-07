@@ -54,7 +54,7 @@ graph TB
   style siblingpkgs fill:#f0fdf4
 ```
 
-**What ships in the wheel** (`duecare_llm_chat-0.2.0-py3-none-any.whl`):
+**What ships in the wheel** (`duecare_llm_chat-0.2.1-py3-none-any.whl`):
 
 ```
 duecare/
