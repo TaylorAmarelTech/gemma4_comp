@@ -250,6 +250,7 @@ header.bar .badge.loaded .dot {
 .harness-tile.rag  .harness-tile-name { color: #3b82f6; }
 .harness-tile.tools .harness-tile-name { color: #10b981; }
 .harness-tile.online .harness-tile-name { color: #f59e0b; }
+.harness-tile.import .harness-tile-name { color: #06b6d4; }
 
 /* Active state: filled background + matching state pill */
 .harness-tile.persona[data-enabled="true"] {
@@ -281,6 +282,12 @@ header.bar .badge.loaded .dot {
 }
 .harness-tile.online[data-enabled="true"] .harness-tile-state {
   background: #f59e0b; color: #fff;
+}
+.harness-tile.import[data-enabled="true"] {
+  border-color: #06b6d4; background: rgba(6, 182, 212, 0.08);
+}
+.harness-tile.import[data-enabled="true"] .harness-tile-state {
+  background: #06b6d4; color: #fff;
 }
 
 /* ---- Self-contained model picker (auto-shows on first load when no
@@ -805,6 +812,14 @@ header.bar .badge.loaded .dot {
         <div class="harness-tile-desc" onclick="toggleTile('online')">Live web search — kernel-supplied search hook (DuckDuckGo HTML by default; Brave/Playwright via the agentic-research kernel). Top results injected as fresh-context citations the model is told to cross-check.</div>
         <a href="#" class="harness-catalog-link" onclick="openLayerModal('online'); return false;">▸ View</a>
       </div>
+      <div class="harness-tile import" id="tile-import" data-wired="true" data-enabled="false">
+        <div class="harness-tile-row" onclick="toggleTile('import')">
+          <span class="harness-tile-name">Import</span>
+          <span class="harness-tile-state" id="state-import">OFF</span>
+        </div>
+        <div class="harness-tile-desc" onclick="toggleTile('import')">Internal-intelligence corpus — paste your own documents (statutes, NGO briefs, case files) and Gemma will ground its answer in them. Stays in your browser; never leaves the session.</div>
+        <a href="#" class="harness-catalog-link" onclick="openLayerModal('import'); return false;">▸ View</a>
+      </div>
     </div>
   </div>
 </div>
@@ -871,6 +886,7 @@ function _emptyStore() {
     customPersonas: [],          // [{name, text}]
     customGrepRules: [],         // [{rule, patterns, all_required, severity, citation, indicator}]
     customRagDocs: [],           // [{id, title, source, snippet}]
+    customImportDocs: [],        // [{id, title, source, snippet}] — internal-intelligence corpus
     customCorridorCaps: [],      // [{origin, destination, sector, statute, max_fee_worker, currency, url, note}]
     customFeeCamouflage: [],     // [{label, status, commonly_disguises, citation}]
     customNgoIntake: [],         // [{corridor_origin, corridor_dest, name, phone, url}]
@@ -1498,9 +1514,13 @@ async function probeHarness() {
     const anyWired = info.persona || info.grep || info.rag || info.tools || info.online;
     if (!anyWired) return;  // raw chat -- keep tile row hidden
     document.getElementById('harness-tiles').style.display = 'grid';
-    for (const layer of ['persona', 'grep', 'rag', 'tools', 'online']) {
+    for (const layer of ['persona', 'grep', 'rag', 'import', 'tools', 'online']) {
       const tile = document.getElementById(`tile-${layer}`);
-      const wired = !!info[layer];
+      // The Import layer is purely client-side — its corpus comes from
+      // localStorage and is sent as `toggles.custom_import_docs` per
+      // request. The server doesn't need to wire any callable, so the
+      // tile is always considered "wired".
+      const wired = (layer === 'import') ? true : !!info[layer];
       tile.dataset.wired = wired ? 'true' : 'false';
       tile.dataset.enabled = 'false';
       const state = document.getElementById(`state-${layer}`);
@@ -1552,7 +1572,7 @@ function toggleAllHarness(enable) {
   // this kernel so the user doesn't get confused by un-toggleable
   // greyed-out cards. Used by the "Enable all" / "Disable all"
   // buttons in the harness-tiles header — speeds up demo flow.
-  const layers = ['persona', 'grep', 'rag', 'tools', 'online'];
+  const layers = ['persona', 'grep', 'rag', 'import', 'tools', 'online'];
   for (const layer of layers) {
     const tile = document.getElementById(`tile-${layer}`);
     if (!tile || tile.dataset.wired !== 'true') continue;
@@ -2004,6 +2024,22 @@ async function openLayerModal(layer) {
     `);
     return;
   }
+  // Import layer: client-only corpus the user pastes/uploads. Stored
+  // in localStorage as customImportDocs and shipped with each chat
+  // request as toggles.custom_import_docs when the Import tile is on.
+  if (layer === 'import') {
+    renderImportLibrary();
+    docsPromise.then(md => {
+      const docsEl = document.getElementById('modal-docs');
+      if (docsEl) docsEl.innerHTML = _renderDocsSection(md);
+    });
+    _setModalChrome(layer, 'Import — internal-intelligence corpus', `
+      <button class="modal-btn secondary" onclick="document.getElementById('import-file-input').click()">Upload .txt / .md</button>
+      <input type="file" id="import-file-input" accept=".txt,.md,text/plain" multiple style="display:none" onchange="importDocsFromFiles(event.target.files); event.target.value=''">
+      <button class="modal-btn primary" onclick="startNewImportDoc()">+ Paste new document</button>
+    `);
+    return;
+  }
   // Online-search layer: no catalog (the search hook is kernel-
   // supplied), just a description of how it works + a live test
   // button that hits /api/online-search?q=<sample>.
@@ -2385,20 +2421,153 @@ function saveEditedPersona(originalName) {
 }
 
 // ---------------------------------------------------------------------------
+// Import library — internal-intelligence corpus the user pastes or
+// uploads. Each entry: {id, title, source, snippet}. Stored in
+// localStorage and sent in toggles.custom_import_docs when the Import
+// tile is on. Mirrors the persona-library UX for consistency.
+// ---------------------------------------------------------------------------
+function renderImportLibrary(editingId = null) {
+  const store = loadStore();
+  const docs = store.customImportDocs || [];
+  const body = document.getElementById('modal-body');
+  let html = `
+    <div style="background:rgba(6,182,212,0.06); border-left:3px solid #06b6d4; padding:10px 14px; border-radius:4px; margin-bottom:14px; font-size:12px; color:var(--ink);">
+      Paste or upload internal documents (statutes, NGO briefs, case files,
+      training material). When the <strong style="color:#06b6d4;">Import</strong>
+      tile is ON, all entries below are sent with each chat message and Gemma
+      grounds its answer in them — independent from the bundled RAG corpus.
+      Documents stay in your browser's localStorage; nothing is uploaded to
+      a server.
+    </div>`;
+  if (!docs.length) {
+    html += `<div style="color:var(--muted); font-style:italic; text-align:center; padding:30px 0;">
+      No imported documents yet. Click <b>+ Paste new document</b> below to add one,
+      or <b>Upload .txt / .md</b> to import files.
+    </div>`;
+  }
+  for (const d of docs) {
+    const editing = editingId === d.id;
+    const borderColor = editing ? '#06b6d4' : 'var(--border)';
+    html += `<div style="border:1px solid ${borderColor}; border-radius:8px; padding:12px 14px; margin-bottom:10px; background:var(--bg);">`;
+    html += `<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">`;
+    html += `<div><strong style="color:var(--ink); font-size:13px;">${escapeHtml(d.title || '(untitled)')}</strong>`;
+    html += ` <span style="color:var(--muted); font-size:11px;">· source: ${escapeHtml(d.source || 'imported')}</span></div>`;
+    html += `<div style="display:flex; gap:6px;">`;
+    if (!editing) {
+      html += `<button class="modal-btn secondary" onclick="renderImportLibrary(${attrJson(d.id)})">Edit</button>`;
+      html += `<button class="modal-btn secondary" onclick="deleteImportDoc(${attrJson(d.id)})" style="color:#ef4444;">Delete</button>`;
+    }
+    html += `</div></div>`;
+    if (editing) {
+      html += `<input id="import-title-edit" value="${escapeHtml(d.title || '')}" placeholder="Document title"
+                  style="width:100%; padding:7px 10px; background:var(--bg); color:var(--ink); border:1px solid var(--border); border-radius:6px; font-size:13px; margin-bottom:6px;">`;
+      html += `<input id="import-source-edit" value="${escapeHtml(d.source || '')}" placeholder="Source citation (e.g., 'POEA MC 14-2017', 'Internal case file 2024-Q3')"
+                  style="width:100%; padding:7px 10px; background:var(--bg); color:var(--ink); border:1px solid var(--border); border-radius:6px; font-size:12px; margin-bottom:6px;">`;
+      html += `<textarea id="import-text-edit" rows="10"
+                   placeholder="Paste the document text here. The full text will be included in Gemma's context when the Import tile is on."
+                   style="width:100%; padding:8px 10px; background:var(--bg); color:var(--ink); border:1px solid var(--border); border-radius:6px; font-size:12.5px; font-family:inherit; line-height:1.5; resize:vertical;">${escapeHtml(d.snippet || '')}</textarea>`;
+      html += `<div style="display:flex; gap:8px; margin-top:8px;">`;
+      html += `<button class="modal-btn primary" onclick="saveEditedImportDoc(${attrJson(d.id)})">Save</button>`;
+      html += `<button class="modal-btn secondary" onclick="renderImportLibrary()">Cancel</button>`;
+      html += `</div>`;
+    } else {
+      const preview = (d.snippet || '').slice(0, 320);
+      const ellipsis = (d.snippet || '').length > 320 ? '…' : '';
+      html += `<div style="color:var(--ink); font-size:12px; line-height:1.55; margin-top:6px; white-space:pre-wrap; max-height:120px; overflow-y:auto; padding:8px 10px; background:rgba(0,0,0,0.18); border-radius:4px;">${escapeHtml(preview)}${ellipsis}</div>`;
+      html += `<div style="color:var(--muted); font-size:10.5px; margin-top:4px;">${(d.snippet || '').length.toLocaleString()} characters</div>`;
+    }
+    html += `</div>`;
+  }
+  body.innerHTML = html;
+}
+
+function startNewImportDoc() {
+  const store = loadStore();
+  if (!store.customImportDocs) store.customImportDocs = [];
+  const id = 'imp_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 6);
+  store.customImportDocs.push({
+    id,
+    title: 'New imported document',
+    source: 'imported',
+    snippet: '',
+  });
+  saveStore(store);
+  renderImportLibrary(id);
+}
+
+function deleteImportDoc(id) {
+  if (!confirm('Delete this imported document?')) return;
+  const store = loadStore();
+  store.customImportDocs = (store.customImportDocs || []).filter(d => d.id !== id);
+  saveStore(store);
+  renderImportLibrary();
+}
+
+function saveEditedImportDoc(id) {
+  const title = document.getElementById('import-title-edit').value.trim();
+  const source = document.getElementById('import-source-edit').value.trim();
+  const text = document.getElementById('import-text-edit').value.trim();
+  if (!title || !text) {
+    alert('Document title and text are both required.');
+    return;
+  }
+  const store = loadStore();
+  const idx = (store.customImportDocs || []).findIndex(d => d.id === id);
+  if (idx === -1) return;
+  store.customImportDocs[idx] = {id, title, source: source || 'imported', snippet: text};
+  saveStore(store);
+  renderImportLibrary();
+}
+
+function importDocsFromFiles(fileList) {
+  if (!fileList || !fileList.length) return;
+  const store = loadStore();
+  if (!store.customImportDocs) store.customImportDocs = [];
+  let pending = fileList.length;
+  for (const f of fileList) {
+    const reader = new FileReader();
+    reader.onload = e => {
+      const id = 'imp_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 6);
+      store.customImportDocs.push({
+        id,
+        title: f.name.replace(/\.(txt|md)$/i, ''),
+        source: 'uploaded: ' + f.name,
+        snippet: String(e.target.result || ''),
+      });
+      pending--;
+      if (pending === 0) {
+        saveStore(store);
+        renderImportLibrary();
+      }
+    };
+    reader.onerror = () => {
+      pending--;
+      if (pending === 0) {
+        saveStore(store);
+        renderImportLibrary();
+      }
+    };
+    reader.readAsText(f);
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Pipeline modal: shows the FULL transformation pipeline for one response.
-// User input -> persona -> grep -> rag -> tools -> online -> final merged prompt -> Gemma response.
+// User input -> persona -> grep -> rag -> import -> tools -> online -> final merged prompt -> Gemma response.
 // Each step is a colored card with arrows between. Skipped layers shown ghosted
 // so the reader sees the complete pipeline shape regardless of which toggles fired.
 // This IS the "what does the harness DO" demo.
 // ---------------------------------------------------------------------------
-const PIPELINE_LAYER_ORDER = ['persona', 'grep', 'rag', 'tools', 'online'];
-const PIPELINE_LAYER_COLOR = {persona:'#a855f7', grep:'#ef4444', rag:'#3b82f6', tools:'#10b981', online:'#f59e0b'};
-const PIPELINE_LAYER_LABEL = {persona:'PERSONA', grep:'GREP', rag:'RAG', tools:'TOOLS', online:'ONLINE'};
+const PIPELINE_LAYER_ORDER = ['persona', 'grep', 'rag', 'import', 'tools', 'online'];
+const PIPELINE_LAYER_COLOR = {persona:'#a855f7', grep:'#ef4444', rag:'#3b82f6', import:'#06b6d4', tools:'#10b981', online:'#f59e0b'};
+const PIPELINE_LAYER_LABEL = {persona:'PERSONA', grep:'GREP', rag:'RAG', import:'IMPORT', tools:'TOOLS', online:'ONLINE'};
 const PIPELINE_LAYER_ROLE = {
   persona: 'prepends an expert role / framework knowledge / response policy',
   grep:    'matches regex KB rules — flags trafficking patterns + cites statutes',
   rag:     'retrieves top-K docs from the evidence corpus + injects as context',
+  import:  'includes user-supplied internal documents (paste / upload) as authoritative context',
   tools:   'pre-calls heuristic lookups — corridor caps, fee labels, NGO hotlines',
+  online:  'live web search — fresh-context citations the model is told to cross-check',
 };
 
 function _pipelineCard(opts) {
@@ -2456,11 +2625,30 @@ function _renderLayerBody(layer, t) {
         <div style="color:#cbd5e1; font-size:11.5px; margin-top:4px; line-height:1.5; max-height:120px; overflow-y:auto;">${escapeHtml(d.snippet || '')}</div>
       </div>`).join('');
   }
+  if (layer === 'import' && t.docs && t.docs.length) {
+    return t.docs.map(d => `
+      <div style="margin-bottom:8px; padding:8px 10px; background:var(--bg); border-radius:6px; border-left:3px solid #06b6d4;">
+        <div style="font-weight:600; font-size:12px; color:#22d3ee;">${escapeHtml(d.title || '(imported)')}</div>
+        <div style="color:var(--muted); font-size:11px; margin-top:3px;">source: ${escapeHtml(d.source || 'imported')}</div>
+        <div style="color:#cbd5e1; font-size:11.5px; margin-top:4px; line-height:1.5; max-height:120px; overflow-y:auto; white-space:pre-wrap;">${escapeHtml(d.snippet || '')}</div>
+      </div>`).join('');
+  }
   if (layer === 'tools' && t.tool_calls && t.tool_calls.length) {
     return t.tool_calls.map(c => `
       <div style="margin-bottom:8px; padding:8px 10px; background:var(--bg); border-radius:6px;">
         <div style="font-family:ui-monospace,monospace; font-size:12px; font-weight:600; color:#10b981;">${escapeHtml(c.name)}(${escapeHtml(JSON.stringify(c.args))})</div>
         <pre style="color:#cbd5e1; font-size:11px; margin:5px 0 0 0; white-space:pre-wrap; word-wrap:break-word; font-family:ui-monospace,monospace; max-height:160px; overflow-y:auto;">${escapeHtml(JSON.stringify(c.result, null, 2))}</pre>
+      </div>`).join('');
+  }
+  if (layer === 'online' && t.results && t.results.length) {
+    const sourceLine = t.source
+      ? `<div style="color:var(--muted); font-size:11px; font-style:italic; margin-bottom:6px;">Source: ${escapeHtml(t.source)}</div>`
+      : '';
+    return sourceLine + t.results.map(r => `
+      <div style="margin-bottom:8px; padding:8px 10px; background:var(--bg); border-radius:6px;">
+        <div style="font-weight:600; font-size:12px; color:#fbbf24;">[${escapeHtml(String(r.rank || '?'))}] ${escapeHtml(r.title || '(untitled)')}</div>
+        ${r.url ? `<a href="${escapeHtml(r.url)}" target="_blank" rel="noopener" style="color:#fde68a; font-size:11px; text-decoration:underline; word-break:break-all;">${escapeHtml(r.url)}</a>` : ''}
+        <div style="color:#cbd5e1; font-size:11.5px; margin-top:4px; line-height:1.5;">${escapeHtml(r.snippet || '')}</div>
       </div>`).join('');
   }
   return '<div style="color:var(--muted); font-size:11.5px; font-style:italic;">layer ran but produced no output</div>';
@@ -3734,10 +3922,12 @@ async function sendMessage() {
     rag:          document.getElementById('tile-rag')?.dataset.enabled   === 'true' || false,
     tools:        document.getElementById('tile-tools')?.dataset.enabled === 'true' || false,
     online:       document.getElementById('tile-online')?.dataset.enabled === 'true' || false,
+    import_corpus: document.getElementById('tile-import')?.dataset.enabled === 'true' || false,
     // User-added content from localStorage. The server merges these
     // with the built-in catalog before invoking each layer.
     custom_grep_rules:    store.customGrepRules.length    ? store.customGrepRules    : null,
     custom_rag_docs:      store.customRagDocs.length      ? store.customRagDocs      : null,
+    custom_import_docs:   store.customImportDocs.length   ? store.customImportDocs   : null,
     custom_corridor_caps: store.customCorridorCaps.length ? store.customCorridorCaps : null,
     custom_fee_camouflage: store.customFeeCamouflage.length ? store.customFeeCamouflage : null,
     custom_ngo_intake:    store.customNgoIntake.length    ? store.customNgoIntake    : null,
@@ -3748,6 +3938,25 @@ async function sendMessage() {
   // "data: {...}" event with the full response. Cloudflare's free
   // tunnel cuts idle connections at 100s, so the keepalive comments
   // are load-bearing for any inference taking longer than ~90s.
+  // Per-message step state. Each step has status pending / running /
+  // complete / error and its own metadata. The renderChat call uses
+  // this to draw a live step list inside the assistant placeholder.
+  const STEP_LABELS = {
+    resolve: 'Resolving images',
+    persona: 'Applied persona',
+    grep:    'Running GREP regex rules',
+    rag:     'Retrieving from RAG corpus',
+    import:  'Loading imported documents',
+    tools:   'Calling lookup tools',
+    online:  'Searching the web',
+    model:   'Generating response',
+  };
+  const STEP_ORDER = ['resolve','persona','grep','rag','import','tools','online','model'];
+  messages[thinkingIdx]._steps = STEP_ORDER.map(id => ({id, label: STEP_LABELS[id], status: 'pending', summary: '', elapsed_ms: 0}));
+  messages[thinkingIdx]._stepStart = Date.now();
+  messages[thinkingIdx]._currentStep = null;
+  renderChat();
+
   let result;
   try {
     const r = await fetch('/api/chat/send', {
@@ -3762,39 +3971,62 @@ async function sendMessage() {
     const reader = r.body.getReader();
     const decoder = new TextDecoder('utf-8');
     let buffer = '';
-    const tStart = Date.now();
     while (true) {
       const {done, value} = await reader.read();
       if (done) break;
       buffer += decoder.decode(value, {stream: true});
-      // SSE events end with a blank line ("\n\n"). Process all complete
-      // events in the buffer; leave any partial event for next iteration.
       let sep;
       while ((sep = buffer.indexOf('\n\n')) !== -1) {
         const event = buffer.slice(0, sep);
         buffer = buffer.slice(sep + 2);
-        if (!event.trim()) continue;
-        if (event.startsWith(':')) {
-          // Keepalive comment. Update the placeholder with elapsed time
-          // so the user sees the model is still working.
-          const elapsed = ((Date.now() - tStart) / 1000).toFixed(0);
-          messages[thinkingIdx].content[0].text =
-              `… generating (${elapsed}s)`;
-          renderChat();
+        if (!event.trim() || event.startsWith(':')) continue;
+        if (!event.startsWith('data:')) continue;
+        const dataStr = event.slice(5).trim();
+        let evt;
+        try { evt = JSON.parse(dataStr); }
+        catch (parseErr) {
+          console.warn('[chat/send] bad payload', dataStr.slice(0, 200));
           continue;
         }
-        if (event.startsWith('data:')) {
-          const dataStr = event.slice(5).trim();
-          try {
-            result = JSON.parse(dataStr);
-          } catch (parseErr) {
-            throw new Error(`bad SSE payload: ${dataStr.slice(0, 200)}`);
+        // step_start: mark step as running. step_done: mark complete
+        // and stash summary + timing. complete: final response. error: bail.
+        if (evt.type === 'step_start') {
+          const step = (messages[thinkingIdx]._steps || []).find(s => s.id === evt.step);
+          if (step) step.status = 'running';
+          messages[thinkingIdx]._currentStep = evt.step;
+          renderChat();
+        } else if (evt.type === 'step_done') {
+          const step = (messages[thinkingIdx]._steps || []).find(s => s.id === evt.step);
+          if (step) {
+            // For toggled-off layers the server emits step_done with
+            // fired=false; render that as a "skipped" status so the
+            // step list communicates "we passed through but did
+            // nothing" rather than implying a successful run.
+            const wasFired = !!evt.fired;
+            const wasEnabled = (evt.enabled !== false);
+            const wasWired = (evt.wired !== false);
+            if (!wasEnabled) step.status = 'skipped';
+            else if (!wasWired) step.status = 'not_wired';
+            else step.status = wasFired ? 'complete' : 'noop';
+            step.summary = evt.summary || '';
+            step.elapsed_ms = evt.elapsed_ms || 0;
           }
-          if (result && result.error) {
-            throw new Error(result.error);
-          }
+          renderChat();
+        } else if (evt.type === 'complete') {
+          result = evt;
+          break;
+        } else if (evt.type === 'error') {
+          throw new Error(evt.error || 'unknown stream error');
+        } else if (evt.error) {
+          throw new Error(evt.error);
+        } else if (evt.response !== undefined) {
+          // Backwards compat with older /api/chat/send that emitted
+          // a single non-typed final event. Treat as complete.
+          result = evt;
+          break;
         }
       }
+      if (result) break;
     }
     if (!result) throw new Error('stream ended without a result event');
   } catch (e) {
@@ -4070,7 +4302,7 @@ function renderGradeChips(chips, idx) {
 
 function renderHarnessTrace(trace) {
   if (!trace) return '';
-  const layers = ['persona', 'grep', 'rag', 'tools', 'online'];
+  const layers = ['persona', 'grep', 'rag', 'import', 'tools', 'online'];
   const colors = {persona:'#a855f7', grep:'#ef4444', rag:'#3b82f6', tools:'#10b981', online:'#f59e0b'};
   const labels = {persona:'Persona', grep:'GREP', rag:'RAG', tools:'Tools', online:'Online'};
   const blocks = [];
@@ -4155,12 +4387,22 @@ function renderChat() {
     const cls = m._thinking ? 'thinking' : (m._error ? 'error' : '');
     const avatarTxt = m.role === 'user' ? 'YOU' : 'G4';
     let bodyHtml = '';
-    for (const c of m.content) {
-      if (c.type === 'image') {
-        const src = c._previewUrl || c.image;
-        bodyHtml += `<img class="user-img" src="${src}" alt="user image">`;
-      } else {
-        bodyHtml += escapeAndFormat(c.text);
+    // Step-progress list while a response is being generated. Each
+    // step has status: pending / running / complete / skipped /
+    // not_wired / noop / error. Replaces the previous "… generating
+    // (Xs)" stub with a transparent multi-stage progress card.
+    if (m._thinking && Array.isArray(m._steps)) {
+      bodyHtml += renderStepProgress(m);
+      // Skip the inner content rendering loop for thinking msgs;
+      // the step card is the entire body.
+    } else {
+      for (const c of m.content) {
+        if (c.type === 'image') {
+          const src = c._previewUrl || c.image;
+          bodyHtml += `<img class="user-img" src="${src}" alt="user image">`;
+        } else {
+          bodyHtml += escapeAndFormat(c.text);
+        }
       }
     }
     // The inline harness-trace blocks below the response have moved
@@ -4196,6 +4438,82 @@ function renderChat() {
   }
   chat.innerHTML = html;
   chat.scrollTop = chat.scrollHeight;
+}
+
+// Render the per-step progress card shown inside the assistant
+// "thinking" placeholder while the harness runs and the model
+// generates. Each step is one row; the currently-running step gets a
+// spinning indicator and its own elapsed-time counter.
+const STEP_COLOR = {
+  resolve: '#94a3b8',
+  persona: '#a855f7',
+  grep:    '#ef4444',
+  rag:     '#3b82f6',
+  import:  '#06b6d4',
+  tools:   '#10b981',
+  online:  '#f59e0b',
+  model:   '#fbbf24',
+};
+function renderStepProgress(m) {
+  const steps = m._steps || [];
+  const tNow = Date.now();
+  const tStart = m._stepStart || tNow;
+  const totalElapsed = ((tNow - tStart) / 1000).toFixed(0);
+  const rows = steps.map(step => {
+    const color = STEP_COLOR[step.id] || '#64748b';
+    let icon, statusBadge, summaryText;
+    if (step.status === 'pending') {
+      icon = `<span style="display:inline-block; width:14px; height:14px; border:2px solid var(--border); border-radius:50%; vertical-align:middle;"></span>`;
+      statusBadge = '';
+      summaryText = '<span style="color:var(--muted); font-style:italic; font-size:11px;">waiting…</span>';
+    } else if (step.status === 'running') {
+      icon = `<span style="display:inline-block; width:14px; height:14px; border:2px solid ${color}33; border-top-color:${color}; border-radius:50%; vertical-align:middle; animation:dc-spin 0.8s linear infinite;"></span>`;
+      statusBadge = `<span style="background:${color}; color:#fff; font-size:9.5px; font-weight:700; padding:2px 7px; border-radius:8px; text-transform:uppercase; letter-spacing:0.4px;">running</span>`;
+      summaryText = '<span style="color:var(--ink); font-size:11px;">in progress…</span>';
+    } else if (step.status === 'complete' || step.status === 'noop') {
+      icon = `<span style="display:inline-block; width:14px; height:14px; background:${color}; border-radius:50%; vertical-align:middle; color:#fff; font-size:10px; font-weight:700; text-align:center; line-height:14px;">✓</span>`;
+      statusBadge = `<span style="background:${color}22; color:${color}; font-size:9.5px; font-weight:700; padding:2px 7px; border-radius:8px; text-transform:uppercase; letter-spacing:0.4px;">${step.status === 'noop' ? 'no-op' : 'done'}</span>`;
+      const ms = step.elapsed_ms || 0;
+      const tStr = ms < 1000 ? `${ms} ms` : `${(ms/1000).toFixed(1)} s`;
+      summaryText = `<span style="color:var(--ink); font-size:11px;">${escapeHtml(step.summary || '')}</span> <span style="color:var(--muted); font-size:11px;">· ${tStr}</span>`;
+    } else if (step.status === 'skipped') {
+      icon = `<span style="display:inline-block; width:14px; height:14px; border:2px dashed var(--border); border-radius:50%; vertical-align:middle;"></span>`;
+      statusBadge = `<span style="background:rgba(148,163,184,0.18); color:#94a3b8; font-size:9.5px; font-weight:700; padding:2px 7px; border-radius:8px; text-transform:uppercase; letter-spacing:0.4px;">skipped</span>`;
+      summaryText = '<span style="color:var(--muted); font-style:italic; font-size:11px;">toggle was OFF</span>';
+    } else if (step.status === 'not_wired') {
+      icon = `<span style="display:inline-block; width:14px; height:14px; border:2px dashed var(--border); border-radius:50%; vertical-align:middle;"></span>`;
+      statusBadge = `<span style="background:rgba(148,163,184,0.18); color:#94a3b8; font-size:9.5px; font-weight:700; padding:2px 7px; border-radius:8px; text-transform:uppercase; letter-spacing:0.4px;">not wired</span>`;
+      summaryText = '<span style="color:var(--muted); font-style:italic; font-size:11px;">kernel did not wire this layer</span>';
+    } else {
+      icon = `<span style="display:inline-block; width:14px; height:14px; background:#ef4444; border-radius:50%; vertical-align:middle; color:#fff; font-size:10px; font-weight:700; text-align:center; line-height:14px;">!</span>`;
+      statusBadge = '';
+      summaryText = `<span style="color:#ef4444; font-size:11px;">${escapeHtml(step.summary || step.status)}</span>`;
+    }
+    return `<div style="display:flex; align-items:center; gap:10px; padding:6px 0; font-size:12px;">
+      <span style="flex:0 0 18px;">${icon}</span>
+      <span style="flex:0 0 160px; color:var(--ink); font-weight:500;">${escapeHtml(step.label || step.id)}</span>
+      <span style="flex:0 0 70px;">${statusBadge}</span>
+      <span style="flex:1 1 auto; min-width:0;">${summaryText}</span>
+    </div>`;
+  }).join('');
+  // Schedule a one-shot re-render in 1s so the elapsed-time counters
+  // tick visibly even between SSE events. Only re-arms while the
+  // message is still in the thinking state.
+  if (!m._stepTickQueued) {
+    m._stepTickQueued = true;
+    setTimeout(() => {
+      m._stepTickQueued = false;
+      if (m._thinking) renderChat();
+    }, 1000);
+  }
+  return `<style>@keyframes dc-spin { to { transform: rotate(360deg); } }</style>
+    <div style="padding:4px 2px; font-family:inherit;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+        <span style="font-size:12px; font-weight:700; color:var(--ink);">Pipeline progress</span>
+        <span style="font-size:11px; color:var(--muted); font-family:ui-monospace,monospace;">${totalElapsed}s elapsed</span>
+      </div>
+      ${rows}
+    </div>`;
 }
 
 function escapeAndFormat(text) {

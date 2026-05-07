@@ -101,10 +101,18 @@ class HarnessToggles(BaseModel):
     # kernel's search hook on the user's message and prepends the
     # top-N results as context (mirrors the RAG layer pattern).
     online: bool = False
+    # 6th layer (added 2026-05-07): import / internal-intelligence
+    # corpus. When True, the user's `custom_import_docs` (uploaded /
+    # pasted via the Import tile in the UI) are prepended to Gemma's
+    # context as a separate retrieval block — independent from the
+    # bundled RAG corpus, so a user can ask Gemma to ground answers
+    # only in their internal documents, or in both.
+    import_corpus: bool = False
     # Per-request user-added content. Format mirrors the built-in
     # catalog shapes documented in duecare/chat/harness/__init__.py.
     custom_grep_rules: Optional[list[dict]] = None
     custom_rag_docs: Optional[list[dict]] = None
+    custom_import_docs: Optional[list[dict]] = None
     custom_corridor_caps: Optional[list[dict]] = None
     custom_fee_camouflage: Optional[list[dict]] = None
     custom_ngo_intake: Optional[list[dict]] = None
@@ -287,7 +295,7 @@ def create_app(
         revision before running benchmarks against it.
 
         Shape:
-          {chat_package: "0.2.7",
+          {chat_package: "0.2.8",
            harness: {rubric_version: "v3.6", n_dimensions: 21,
                      n_evaluation_questions: 21, n_grep_rules: 111,
                      n_rag_docs: 35, n_tools: 5, n_examples: 413,
@@ -350,7 +358,7 @@ def create_app(
             })
 
         return {
-            "chat_package":         "0.2.7",
+            "chat_package":         "0.2.8",
             "wire_format_version":  "v2.0",  # mode='llm_evaluator', evaluator_*
             "harness": {
                 "rubric_version":              RUBRIC_UNIVERSAL.get("version", ""),
@@ -1334,12 +1342,31 @@ def create_app(
         return "\n".join(lines) + "\n"
 
     def _run_harness(messages: list[dict],
-                       toggles: HarnessToggles) -> dict:
+                       toggles: HarnessToggles,
+                       progress_callback: Optional[Callable[[dict], None]] = None
+                       ) -> dict:
         """Run each enabled (and wired) layer; return a trace dict the
         UI can render and a list of system-message snippets to
         prepend to the Gemma conversation. Persona is always
         prepended FIRST (above harness output) so the model reads
-        the role definition before the safety findings."""
+        the role definition before the safety findings.
+
+        progress_callback: optional. Called with
+            {"type": "step_start", "step": <persona|grep|rag|import|tools|online>}
+        before each layer fires, and
+            {"type": "step_done", "step": ..., "elapsed_ms": ...,
+             "summary": ..., "n_items": ...}
+        after it completes (whether it fired, was skipped because it
+        wasn't toggled, or wasn't wired). Used by the chat send SSE
+        endpoint to stream live per-layer progress to the UI.
+        """
+        def _emit(evt: dict) -> None:
+            if not progress_callback:
+                return
+            try:
+                progress_callback(evt)
+            except Exception:  # noqa: BLE001
+                pass  # never let a UI bug crash the harness
         trace = {
             "persona": {"enabled": toggles.persona,
                          "wired": bool(app.state.persona_default),
@@ -1349,6 +1376,9 @@ def create_app(
                       "fired": False, "elapsed_ms": 0, "hits": [], "summary": ""},
             "rag": {"enabled": toggles.rag, "wired": app.state.rag_call is not None,
                      "fired": False, "elapsed_ms": 0, "docs": [], "summary": ""},
+            "import": {"enabled": getattr(toggles, "import_corpus", False),
+                        "wired": True,  # always wired — uses localStorage docs
+                        "fired": False, "elapsed_ms": 0, "docs": [], "summary": ""},
             "tools": {"enabled": toggles.tools, "wired": app.state.tools_call is not None,
                        "fired": False, "elapsed_ms": 0, "tool_calls": [], "summary": ""},
             "online": {"enabled": toggles.online, "wired": app.state.online_search_call is not None,
@@ -1357,6 +1387,9 @@ def create_app(
         prepend_snippets: list[str] = []
         user_text = _last_user_text(messages)
 
+        # ── persona ───────────────────────────────────────────────
+        _emit({"type": "step_start", "step": "persona"})
+        _t0 = time.time()
         if toggles.persona:
             persona_text = (toggles.persona_text or
                               app.state.persona_default or "").strip()
@@ -1368,17 +1401,21 @@ def create_app(
                                        ("…" if len(persona_text) > 280 else ""),
                     "summary": f"persona prepended ({len(persona_text)} chars)",
                 })
-                # Persona goes FIRST so Gemma reads the role before
-                # the safety findings.
                 prepend_snippets.append(
                     "## DUECARE PERSONA\n\n" + persona_text + "\n")
+        _emit({"type": "step_done", "step": "persona",
+               "fired": trace["persona"]["fired"],
+               "wired": trace["persona"]["wired"],
+               "enabled": trace["persona"]["enabled"],
+               "elapsed_ms": int((time.time() - _t0) * 1000),
+               "summary": trace["persona"]["summary"] or
+                          ("not toggled" if not toggles.persona else "no persona text")})
 
+        # ── grep ──────────────────────────────────────────────────
+        _emit({"type": "step_start", "step": "grep"})
+        _t0 = time.time()
         if toggles.grep and app.state.grep_call is not None:
             try:
-                # Pass user-added custom rules through; the kernel's
-                # _grep_call accepts an `extra_rules` kwarg. Older
-                # callables that don't accept it fall through to the
-                # try/except below.
                 try:
                     gr = app.state.grep_call(user_text,
                                                 extra_rules=toggles.custom_grep_rules) or {}
@@ -1398,7 +1435,18 @@ def create_app(
                     prepend_snippets.append(snippet)
             except Exception as exc:  # noqa: BLE001
                 trace["grep"]["summary"] = f"error: {type(exc).__name__}: {exc}"
+        _emit({"type": "step_done", "step": "grep",
+               "fired": trace["grep"]["fired"],
+               "wired": trace["grep"]["wired"],
+               "enabled": trace["grep"]["enabled"],
+               "elapsed_ms": int((time.time() - _t0) * 1000),
+               "summary": trace["grep"]["summary"] or
+                          ("not toggled" if not toggles.grep else
+                           "not wired" if app.state.grep_call is None else "no rules fired")})
 
+        # ── rag ───────────────────────────────────────────────────
+        _emit({"type": "step_start", "step": "rag"})
+        _t0 = time.time()
         if toggles.rag and app.state.rag_call is not None:
             try:
                 try:
@@ -1418,7 +1466,71 @@ def create_app(
                     prepend_snippets.append(snippet)
             except Exception as exc:  # noqa: BLE001
                 trace["rag"]["summary"] = f"error: {type(exc).__name__}: {exc}"
+        _emit({"type": "step_done", "step": "rag",
+               "fired": trace["rag"]["fired"],
+               "wired": trace["rag"]["wired"],
+               "enabled": trace["rag"]["enabled"],
+               "elapsed_ms": int((time.time() - _t0) * 1000),
+               "summary": trace["rag"]["summary"] or
+                          ("not toggled" if not toggles.rag else
+                           "not wired" if app.state.rag_call is None else "no docs")})
 
+        # ── import (internal-intelligence corpus) ─────────────────
+        # Pure user-supplied. Independent from the bundled RAG corpus
+        # so a user can answer-only-from-my-docs without touching the
+        # kernel's bundled materials.
+        _emit({"type": "step_start", "step": "import"})
+        _t0 = time.time()
+        if getattr(toggles, "import_corpus", False):
+            try:
+                docs = list(toggles.custom_import_docs or [])
+                if docs:
+                    # Render the user's docs as a numbered context block
+                    # the model can cite. No retrieval scoring — a small
+                    # personal corpus is dumped verbatim.
+                    blocks = []
+                    for i, d in enumerate(docs, 1):
+                        title = (d.get("title") or f"document {i}")[:140]
+                        source = (d.get("source") or "imported")[:140]
+                        snippet = (d.get("snippet") or d.get("text") or "")
+                        if not snippet:
+                            continue
+                        blocks.append(
+                            f"### [{i}] {title} (source: {source})\n\n{snippet}"
+                        )
+                    trace["import"].update({
+                        "fired":      bool(blocks),
+                        "elapsed_ms": int((time.time() - _t0) * 1000),
+                        "docs":       [{"title": d.get("title", ""),
+                                          "source": d.get("source", ""),
+                                          "snippet": (d.get("snippet") or d.get("text") or "")[:600]}
+                                         for d in docs[:20]],
+                        "summary":    (f"included {len(blocks)} imported doc(s)"
+                                       if blocks else "no usable imported docs"),
+                    })
+                    if blocks:
+                        prepend_snippets.append(
+                            "## IMPORTED INTERNAL DOCUMENTS\n\n"
+                            "The user has supplied the following internal "
+                            "documents. Treat them as authoritative for "
+                            "this conversation and cite by [N] reference.\n\n"
+                            + "\n\n".join(blocks)
+                        )
+                else:
+                    trace["import"]["summary"] = "no imported documents — use the Import tile to add some"
+            except Exception as exc:  # noqa: BLE001
+                trace["import"]["summary"] = f"error: {type(exc).__name__}: {exc}"
+        _emit({"type": "step_done", "step": "import",
+               "fired": trace["import"]["fired"],
+               "wired": True,
+               "enabled": trace["import"]["enabled"],
+               "elapsed_ms": int((time.time() - _t0) * 1000),
+               "summary": trace["import"]["summary"] or
+                          ("not toggled" if not getattr(toggles, "import_corpus", False) else "no docs")})
+
+        # ── tools ─────────────────────────────────────────────────
+        _emit({"type": "step_start", "step": "tools"})
+        _t0 = time.time()
         if toggles.tools and app.state.tools_call is not None:
             try:
                 try:
@@ -1444,17 +1556,31 @@ def create_app(
                     prepend_snippets.append(snippet)
             except Exception as exc:  # noqa: BLE001
                 trace["tools"]["summary"] = f"error: {type(exc).__name__}: {exc}"
+        _emit({"type": "step_done", "step": "tools",
+               "fired": trace["tools"]["fired"],
+               "wired": trace["tools"]["wired"],
+               "enabled": trace["tools"]["enabled"],
+               "elapsed_ms": int((time.time() - _t0) * 1000),
+               "summary": trace["tools"]["summary"] or
+                          ("not toggled" if not toggles.tools else
+                           "not wired" if app.state.tools_call is None else "no tools")})
 
-        # 5th layer: online search (added 2026-05-04). Mirrors RAG
-        # pattern but with the kernel-supplied online_search_call.
+        # ── online (web search) ───────────────────────────────────
+        _emit({"type": "step_start", "step": "online"})
+        _t0 = time.time()
         if toggles.online and app.state.online_search_call is not None:
             try:
                 osr = app.state.online_search_call(user_text) or {}
                 trace["online"].update({
                     "fired": True,
-                    "elapsed_ms": int(osr.get("elapsed_ms", 0)),
+                    # Trust the wall-clock timer over whatever elapsed_ms
+                    # the kernel returned (kernels sometimes report 0
+                    # when the search was cached).
+                    "elapsed_ms": max(int(osr.get("elapsed_ms", 0)),
+                                       int((time.time() - _t0) * 1000)),
                     "results": osr.get("results") or [],
                     "source": osr.get("source", "unknown"),
+                    "query":  user_text[:200],
                 })
                 results = trace["online"]["results"]
                 trace["online"]["summary"] = (
@@ -1465,6 +1591,14 @@ def create_app(
                     prepend_snippets.append(snippet)
             except Exception as exc:  # noqa: BLE001
                 trace["online"]["summary"] = f"error: {type(exc).__name__}: {exc}"
+        _emit({"type": "step_done", "step": "online",
+               "fired": trace["online"]["fired"],
+               "wired": trace["online"]["wired"],
+               "enabled": trace["online"]["enabled"],
+               "elapsed_ms": int((time.time() - _t0) * 1000),
+               "summary": trace["online"]["summary"] or
+                          ("not toggled" if not toggles.online else
+                           "not wired" if app.state.online_search_call is None else "no results")})
 
         return {"trace": trace, "prepend_snippets": prepend_snippets}
 
@@ -1615,114 +1749,129 @@ def create_app(
                 "no gemma_call wired into the chat server. "
                 "Set app.state.gemma_call before calling /api/chat/send.")
 
-        messages = _resolve_messages(req.messages)
+        raw_messages_in = req.messages
         gp = req.generation
+        toggles_snapshot = req.toggles
 
-        # Run the harness layers (cheap-ish, synchronous, no network).
-        # Done outside the worker thread because they need to mutate
-        # `messages` before Gemma generates.
-        harness = _run_harness(messages, req.toggles)
-        if harness["prepend_snippets"]:
-            # MERGE the harness context into the existing final user
-            # message rather than inserting a new message. Gemma's chat
-            # template enforces strict user/assistant alternation, so a
-            # second consecutive user message blows up with
-            # "Conversation roles must alternate ...". By prepending
-            # the harness pre-context to the user's text chunk we keep
-            # the role sequence intact.
-            harness_text = (
-                "[DUECARE SAFETY HARNESS - pre-context for the "
-                "assistant. The user's actual question follows below "
-                "this block. You MUST acknowledge each fired indicator "
-                "and cite the listed statutes in your response. Do NOT "
-                "provide operational optimization for any scenario "
-                "matching these indicators -- name the indicators, "
-                "cite the law, and redirect to NGO/regulator hotlines.]"
-                "\n\n" + "\n\n".join(harness["prepend_snippets"])
-                + "\n\n---\n\nUSER QUESTION:\n\n"
-            )
-            last_msg = dict(messages[-1])
-            content = list(last_msg.get("content") or [])
-            # Inject into the first text chunk; if no text chunk
-            # exists (image-only message), prepend a new one.
-            inserted = False
-            for i, chunk in enumerate(content):
-                if chunk.get("type") == "text":
-                    content[i] = {
-                        "type": "text",
-                        "text": harness_text + (chunk.get("text") or ""),
-                    }
-                    inserted = True
-                    break
-            if not inserted:
-                content.insert(0, {"type": "text", "text": harness_text})
-            last_msg["content"] = content
-            messages = messages[:-1] + [last_msg]
-
-        # Capture the FINAL merged user-message text Gemma will see
-        # so the UI's pipeline modal can show "this is what was sent
-        # to Gemma after all the layers ran".
-        final_text = ""
-        for chunk in messages[-1].get("content") or []:
-            if chunk.get("type") == "text":
-                final_text = chunk.get("text", "")
-                break
-        harness["trace"]["_final_user_text"] = final_text
-
-        # Worker thread runs the (potentially very slow) gemma_call and
-        # stashes the result into `state` so the SSE generator can
-        # detect completion + emit the final payload.
+        # Worker runs both the harness and the model in sequence,
+        # emitting per-step events into `progress_q` so the SSE
+        # generator can stream them to the UI as they happen. The
+        # final {type:"complete"} event carries the response + trace.
+        progress_q: "queue.Queue[dict]" = queue.Queue()
         state: dict[str, Any] = {}
 
         def worker() -> None:
-            t0 = time.time()
             try:
-                state["response"] = _call_gemma(gc, messages, gp)
+                # Stage 1: image resolution (fast — local IO)
+                progress_q.put_nowait({"type": "step_start", "step": "resolve"})
+                _t0 = time.time()
+                messages = _resolve_messages(raw_messages_in)
+                progress_q.put_nowait({
+                    "type": "step_done", "step": "resolve",
+                    "elapsed_ms": int((time.time() - _t0) * 1000),
+                    "summary": "image references resolved",
+                    "fired": True, "wired": True, "enabled": True,
+                })
+
+                # Stage 2: harness layers (each emits its own start/done)
+                harness = _run_harness(
+                    messages, toggles_snapshot,
+                    progress_callback=progress_q.put_nowait,
+                )
+                if harness["prepend_snippets"]:
+                    harness_text = (
+                        "[DUECARE SAFETY HARNESS - pre-context for the "
+                        "assistant. The user's actual question follows below "
+                        "this block. You MUST acknowledge each fired indicator "
+                        "and cite the listed statutes in your response. Do NOT "
+                        "provide operational optimization for any scenario "
+                        "matching these indicators -- name the indicators, "
+                        "cite the law, and redirect to NGO/regulator hotlines.]"
+                        "\n\n" + "\n\n".join(harness["prepend_snippets"])
+                        + "\n\n---\n\nUSER QUESTION:\n\n"
+                    )
+                    last_msg = dict(messages[-1])
+                    content = list(last_msg.get("content") or [])
+                    inserted = False
+                    for i, chunk in enumerate(content):
+                        if chunk.get("type") == "text":
+                            content[i] = {
+                                "type": "text",
+                                "text": harness_text + (chunk.get("text") or ""),
+                            }
+                            inserted = True
+                            break
+                    if not inserted:
+                        content.insert(0, {"type": "text", "text": harness_text})
+                    last_msg["content"] = content
+                    messages = messages[:-1] + [last_msg]
+
+                final_text = ""
+                for chunk in messages[-1].get("content") or []:
+                    if chunk.get("type") == "text":
+                        final_text = chunk.get("text", "")
+                        break
+                harness["trace"]["_final_user_text"] = final_text
+
+                # Stage 3: Gemma generation (the slow part; 5–60s)
+                progress_q.put_nowait({"type": "step_start", "step": "model"})
+                _t0 = time.time()
+                response_text = _call_gemma(gc, messages, gp)
+                model_ms = int((time.time() - _t0) * 1000)
+                progress_q.put_nowait({
+                    "type": "step_done", "step": "model",
+                    "elapsed_ms": model_ms,
+                    "summary": f"generated {len(response_text)} chars",
+                    "fired": True, "wired": True, "enabled": True,
+                })
+
+                state["response"]      = response_text
+                state["elapsed_ms"]    = model_ms
+                state["harness_trace"] = harness["trace"]
+                progress_q.put_nowait({
+                    "type":          "complete",
+                    "response":      response_text,
+                    "elapsed_ms":    model_ms,
+                    "model_info":    app.state.model_info,
+                    "harness_trace": harness["trace"],
+                })
             except Exception as exc:  # noqa: BLE001
                 state["error"] = f"{type(exc).__name__}: {exc}"
-            finally:
-                state["elapsed_ms"] = int((time.time() - t0) * 1000)
+                progress_q.put_nowait({"type": "error", "error": state["error"]})
 
         worker_thread = threading.Thread(target=worker, daemon=True,
                                             name="duecare-chat-worker")
         worker_thread.start()
 
         async def event_stream() -> Any:
-            t_start = time.time()
-            # Initial open marker (also flushes headers immediately).
             yield (": stream-open\n\n").encode()
-            last_keepalive = time.time()
-            while worker_thread.is_alive():
-                await asyncio.sleep(0.5)
-                # Send a keepalive comment every ~5s so cloudflared
-                # sees continuous activity. Comments (lines starting
-                # with `:`) are ignored by SSE parsers.
-                now = time.time()
-                if now - last_keepalive >= 5.0:
-                    elapsed_s = int(now - t_start)
-                    yield (f": keepalive elapsed={elapsed_s}s\n\n").encode()
-                    last_keepalive = now
-            # Worker finished. Emit the final result as a data event.
-            worker_thread.join()
-            if "error" in state:
-                payload = {
-                    "error": state["error"],
-                    "elapsed_ms": state.get("elapsed_ms", 0),
-                }
-            else:
-                payload = {
-                    "response": state.get("response", ""),
-                    "elapsed_ms": state.get("elapsed_ms", 0),
-                    "model_info": app.state.model_info,
-                    "harness_trace": harness["trace"],
-                }
-            yield (f"data: {json.dumps(payload)}\n\n").encode()
+            t_start = time.time()
+            last_keepalive = t_start
+            while True:
+                try:
+                    evt = progress_q.get_nowait()
+                except queue.Empty:
+                    await asyncio.sleep(0.25)
+                    now = time.time()
+                    if now - last_keepalive >= 5.0:
+                        elapsed_s = int(now - t_start)
+                        yield (f": keepalive elapsed={elapsed_s}s\n\n").encode()
+                        last_keepalive = now
+                    if not worker_thread.is_alive() and progress_q.empty():
+                        # Worker exited without emitting complete/error.
+                        # Defensive: synthesise an error event so the UI
+                        # doesn't hang on the spinner.
+                        yield (f"data: {json.dumps({'error': 'worker exited unexpectedly'})}\n\n").encode()
+                        return
+                    continue
+                yield (f"data: {json.dumps(evt)}\n\n").encode()
+                if evt.get("type") in ("complete", "error"):
+                    return
 
         return StreamingResponse(
             event_stream(),
             media_type="text/event-stream",
             headers={
-                # Disable any proxy buffering so bytes flow immediately.
                 "Cache-Control": "no-cache, no-transform",
                 "X-Accel-Buffering": "no",
                 "Connection": "keep-alive",
