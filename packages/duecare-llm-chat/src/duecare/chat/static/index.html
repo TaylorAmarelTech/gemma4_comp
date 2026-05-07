@@ -803,12 +803,13 @@ refreshBadge();
 setInterval(refreshBadge, 30000);
 
 // Model-picker invoker. The kernel injects a full-screen model-picker
-// overlay (`#_dc-model-picker`) before `</body>` and exposes
-// `window.openModelPicker` from its IIFE. The chat package itself does
-// not own that overlay, so this helper is a graceful fallback: try the
-// kernel's exposed function, then directly toggle the overlay's `.show`
-// class, then guide the user to refresh if neither path is available
-// (e.g. the page is cached and the picker overlay was never injected).
+// overlay (id "_dc-model-picker") before the closing body tag and
+// exposes window.openModelPicker from its IIFE. The chat package
+// itself does not own that overlay, so this helper is a graceful
+// fallback: try the kernel's exposed function, then directly toggle
+// the overlay's show class, then guide the user to refresh if neither
+// path is available (e.g. the page is cached and the picker overlay
+// was never injected).
 function openModelPickerFromUI() {
   try {
     if (typeof window.openModelPicker === 'function') {
