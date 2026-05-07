@@ -457,12 +457,15 @@ header.bar .badge.loaded .dot {
   background: var(--panel);
   border: 1px solid var(--border);
   border-radius: 14px;
-  width: 92%; max-width: 760px;
-  max-height: 86vh;
+  width: 94%; max-width: 1100px;
+  max-height: 92vh;
   display: flex; flex-direction: column;
   box-shadow: 0 25px 60px rgba(0, 0, 0, 0.5);
   overflow: hidden;
 }
+/* Grade modal gets a wider max so the per-dim table doesn't word-wrap
+   the rationale column into a vertical column on a 1080p laptop. */
+.modal[data-layer="grade"] { max-width: 1240px; }
 .modal[data-layer="persona"] { border-top: 4px solid #a855f7; }
 .modal[data-layer="grep"]    { border-top: 4px solid #ef4444; }
 .modal[data-layer="rag"]     { border-top: 4px solid #3b82f6; }
@@ -1424,16 +1427,32 @@ function openAboutModal() {
         3 · Read a response
       </h4>
       <p style="margin:0;">
-        After Gemma replies, every response gets auto-grade chips
-        (score · indicators · citations) and two affordances:
+        After Gemma replies, the response gets a one-glance auto rule-based
+        chip (click for details) and two affordances:
       </p>
       <ul style="margin:6px 0 0; padding-left:20px;">
-        <li><b>Pipeline</b> — what each layer contributed before Gemma saw the prompt</li>
-        <li><b>Grade</b> — 4 modes:
-          <i>Universal</i> (deterministic 21-dim rubric),
-          <i>Evaluator</i> (LLM yes/no per dim),
-          <i>Combined</i> (50/50 + disagreement panel),
-          <i>Expert</i> (per-prompt 5-tier rubric, when applicable)</li>
+        <li><b>View pipeline</b> — what each safety layer contributed
+            before Gemma saw the prompt</li>
+        <li><b>Score response</b> — opens a panel with three scoring
+            modes you pick before clicking <b>Run scoring</b>:
+          <ul style="margin:4px 0 0; padding-left:18px;">
+            <li><b>Rule-Based</b> (~1-3s) — deterministic keyword + cluster
+                + token-overlap scoring across the 21-dim rubric. Fast,
+                repeatable, runs without using the loaded model.</li>
+            <li><b>LLM-Based</b> (~30-90s) — sends the response back to
+                the loaded Gemma with one yes/no question per applicable
+                dimension. Catches paraphrased citations the rule-based
+                grader can miss. Streams progress as each dimension is
+                evaluated. Context is cleared between dimensions so a
+                long response does not accumulate VRAM pressure.</li>
+            <li><b>Combined (Rule + LLM)</b> (~30-90s) — runs both, blends
+                the score 50/50, and surfaces a disagreement panel
+                highlighting where the two graders diverge.</li>
+          </ul>
+        </li>
+        <li><i>Expert (legacy)</i> — per-category 5-tier rubric, mostly
+            superseded by Rule-Based; kept as an opt-in for prompt-shape-specific
+            deep dives.</li>
       </ul>
 
       <h4 style="margin:18px 0 6px; font-size:14px; color:var(--accent);">
@@ -2798,59 +2817,125 @@ let _gradeMode = 'universal';  // 'universal' | 'category' | 'deep' | 'combined'
 async function openGradeModal(messageIdx) {
   const m = messages[messageIdx];
   if (!m || m.role !== 'assistant') return;
-  const deepBlurb = _gradeDeepAvailable
-      ? '<strong>Evaluator</strong> mode sends the response back to the loaded Gemma with one yes/no question per dimension and quotes the evidence. Slow (~21 model calls) but catches paraphrased citations the keyword grader misses. <strong>Combined</strong> blends Universal + Evaluator 50/50 and flags the dimensions where the two graders disagree.'
-      : '<em style="color:var(--muted);">Evaluator grading needs the kernel to wire gemma_call. The current kernel does not — only Universal + Expert modes are available.</em>';
-  const deepRadio = _gradeDeepAvailable ? `
-      <label style="font-size:12px; color:var(--ink); display:flex; align-items:center; gap:6px;">
-        <input type="radio" name="grade-mode" value="deep"
-               ${_gradeMode === 'deep' ? 'checked' : ''}
-               onchange="_gradeMode='deep'; _runGrade(${messageIdx})">
-        Evaluator <span style="color:var(--muted); font-size:10.5px;">~30-90s · LLM scoring</span>
+  // Mode catalog. Each mode is a single radio-style segmented button —
+  // exactly one selected at a time. Expert (legacy) is a separate
+  // smaller link below the main row to avoid the two-tier confusion
+  // the previous radio + <details> layout caused.
+  const modes = [
+    {
+      id: 'universal',
+      title: 'Rule-Based',
+      pill: '★ default',
+      eta: '~1-3s',
+      desc: 'Deterministic keyword + cluster + token-overlap scoring across the 21-dim rubric. Fast, repeatable.',
+      pillColor: '#10b981',
+      enabled: true,
+    },
+    {
+      id: 'deep',
+      title: 'LLM-Based',
+      pill: 'slow',
+      eta: '~30-90s',
+      desc: 'Sends the response back to the loaded Gemma with one yes/no question per applicable dimension and quotes evidence. Catches paraphrased citations the rule-based grader can miss.',
+      pillColor: '#a855f7',
+      enabled: _gradeDeepAvailable,
+    },
+    {
+      id: 'combined',
+      title: 'Combined (Rule + LLM)',
+      pill: 'most thorough',
+      eta: '~30-90s',
+      desc: 'Runs both graders and blends the score 50/50, with a disagreement panel highlighting dimensions where the two signals diverge.',
+      pillColor: '#3b82f6',
+      enabled: _gradeDeepAvailable,
+    },
+  ];
+  const modeCards = modes.map(mo => {
+    const active = (_gradeMode === mo.id) && mo.enabled;
+    const disabledStyle = mo.enabled ? '' : 'opacity:0.45; cursor:not-allowed;';
+    const selectedStyle = active
+      ? `border-color:${mo.pillColor}; background:rgba(168,85,247,0.04); box-shadow:0 0 0 2px ${mo.pillColor}33;`
+      : 'background:var(--bg);';
+    const disabledTitle = mo.enabled ? '' : 'title="LLM scoring needs gemma_call wired into the kernel."';
+    return `
+      <button type="button"
+              class="grade-mode-card"
+              data-mode="${mo.id}"
+              ${mo.enabled ? '' : 'disabled'}
+              ${disabledTitle}
+              onclick="${mo.enabled ? `_selectGradeMode('${mo.id}', ${messageIdx})` : ''}"
+              style="${disabledStyle} ${selectedStyle}
+                     flex:1 1 220px; min-width:200px; max-width:340px;
+                     text-align:left; padding:14px 16px; cursor:${mo.enabled ? 'pointer' : 'not-allowed'};
+                     border:2px solid var(--border); border-radius:10px;
+                     color:var(--ink); font:inherit; transition:all 0.12s ease;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+          <span style="font-weight:700; font-size:14px;">${escapeHtml(mo.title)}</span>
+          <span style="background:${mo.pillColor}; color:#fff; font-size:9.5px; font-weight:700; letter-spacing:0.4px; padding:2px 8px; border-radius:10px; text-transform:uppercase;">${escapeHtml(mo.pill)}</span>
+        </div>
+        <div style="color:var(--muted); font-size:11px; margin-bottom:8px; font-family:ui-monospace,monospace;">${escapeHtml(mo.eta)}</div>
+        <div style="color:var(--ink); font-size:11.5px; line-height:1.45;">${mo.desc}</div>
+      </button>`;
+  }).join('');
+  // Force fallback to universal if the user previously had deep/combined
+  // selected but the kernel wired no gemma_call this session.
+  if ((_gradeMode === 'deep' || _gradeMode === 'combined') && !_gradeDeepAvailable) {
+    _gradeMode = 'universal';
+  }
+  // Expert (legacy) toggle: a small link below the main 3 modes.
+  // Activating it swaps the result pane to per-category rubric mode.
+  const expertActive = (_gradeMode === 'category');
+  const expertToggle = `
+    <div style="margin-top:10px; padding-top:10px; border-top:1px dashed var(--border); font-size:11px; color:var(--muted);">
+      <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+        <input type="checkbox" id="grade-expert-toggle"
+               ${expertActive ? 'checked' : ''}
+               onchange="_toggleExpertGrade(${messageIdx}, this.checked)"
+               style="margin:0;">
+        <span>Use <strong>Expert (legacy)</strong> per-category rubric instead — picks a specific rubric for the prompt type. Mostly superseded by Rule-Based; kept for prompt-shape-specific deep dives.</span>
       </label>
-      <label style="font-size:12px; color:var(--ink); display:flex; align-items:center; gap:6px;">
-        <input type="radio" name="grade-mode" value="combined"
-               ${_gradeMode === 'combined' ? 'checked' : ''}
-               onchange="_gradeMode='combined'; _runGrade(${messageIdx})">
-        Combined <span style="color:var(--muted); font-size:10.5px;">~30-90s · Universal + Evaluator</span>
-      </label>` : '';
+    </div>`;
+  // Single primary CTA. Disabled until a mode is picked (always picked
+  // by default, but disabled while a run is in progress).
   const skeleton = `
-    <p style="color:var(--muted); margin-top:0; font-size:12px;">
-      Score this response against 19 universal grading dimensions. The
-      grader auto-detects which dimensions are testable from this prompt+
-      response — dimensions with no signals are marked <strong>N/A</strong>
-      and excluded from the score.
-      <br>${deepBlurb}
-    </p>
-    <div style="margin:12px 0; display:flex; gap:12px; align-items:center; flex-wrap:wrap;">
-      <label style="font-size:12px; color:var(--ink); display:flex; align-items:center; gap:6px;" title="17-dimension cross-prompt rubric. Auto-detects which dimensions are testable for this prompt+response. Default; recommended.">
-        <input type="radio" name="grade-mode" value="universal"
-               ${_gradeMode === 'universal' ? 'checked' : ''}
-               onchange="_gradeMode='universal'; _runGrade(${messageIdx})">
-        ★ Universal <span style="color:var(--muted); font-size:10.5px;">~1-3s · 19 dim · default</span>
-      </label>
-      ${deepRadio}
+    <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:6px;">
+      ${modeCards}
     </div>
-    <details style="margin:8px 0;">
-      <summary style="cursor:pointer; font-size:11px; color:var(--muted); padding:4px 0;">▸ Advanced grading modes</summary>
-      <div style="margin-top:6px; padding:8px 10px; background:rgba(100,116,139,0.06); border-radius:5px;">
-        <label style="font-size:12px; color:var(--muted); display:flex; align-items:center; gap:6px;" title="Legacy per-category rubric — pick a specific rubric from the dropdown that fits the prompt type. Universal replaces this for almost all cases; kept for backwards compatibility and prompt-shape-specific deep dives.">
-          <input type="radio" name="grade-mode" value="category"
-                 ${_gradeMode === 'category' ? 'checked' : ''}
-                 onchange="_gradeMode='category'; _runGrade(${messageIdx})">
-          Expert (legacy per-category) <span style="color:var(--muted); font-size:10.5px;">~1s · pick a specific rubric below</span>
-        </label>
-      </div>
-    </details>
-    <div id="grade-mode-controls"></div>
+    ${expertToggle}
+    <div id="grade-mode-controls" style="margin:14px 0 0;"></div>
+    <div style="margin:14px 0 16px; display:flex; gap:10px; align-items:center; flex-wrap:wrap; padding-top:12px; border-top:1px solid var(--border);">
+      <button type="button" id="grade-run-btn"
+              onclick="_runGrade(${messageIdx})"
+              style="background:var(--accent); color:#fff; border:0; padding:10px 22px; border-radius:8px; font-weight:600; font-size:14px; cursor:pointer; box-shadow:0 1px 3px rgba(59,130,246,0.4);">
+        Run scoring →
+      </button>
+      <span id="grade-run-hint" style="font-size:11.5px; color:var(--muted);">
+        Click <b>Run scoring</b> to evaluate this response. Selected: <b id="grade-selected-name">${escapeHtml(modes.find(mo => mo.id === _gradeMode)?.title || 'Rule-Based')}</b>.
+      </span>
+    </div>
     <div id="grade-result-pane">
-      <div style="color:var(--muted); font-style:italic; padding:16px 0;">Scoring…</div>
+      <div style="color:var(--muted); font-style:italic; padding:16px 0;">No scoring run yet. Pick a mode above and click <b>Run scoring</b>.</div>
     </div>
   `;
   document.getElementById('modal-body').innerHTML = skeleton;
   _renderGradeModeControls(messageIdx);
   _setModalChrome('grade', LAYER_TITLES.grade, '');
-  _runGrade(messageIdx);
+}
+
+// Mode selection: only one card highlighted at a time. Updates the
+// "Selected: ..." label so the user can see what Run scoring will do.
+function _selectGradeMode(mode, messageIdx) {
+  _gradeMode = mode;
+  // Re-render the modal so the segmented control and helper toggle
+  // reflect the new state. Cheaper than per-card class juggling.
+  openGradeModal(messageIdx);
+}
+
+// Expert-mode toggle: when checked, swap to category mode and render
+// the per-category dropdown. When unchecked, fall back to universal.
+function _toggleExpertGrade(messageIdx, on) {
+  _gradeMode = on ? 'category' : 'universal';
+  openGradeModal(messageIdx);
 }
 
 function _renderGradeModeControls(messageIdx) {
@@ -2931,64 +3016,214 @@ async function _runGrade(messageIdx) {
   if (!m) return;
   const respText = m.content
       .filter(c => c.type === 'text').map(c => c.text).join('\n');
-  // Pull the most recent user-message text for prompt-side applicability
   const userMsg = messages[messageIdx - 1];
   const promptText = userMsg
       ? userMsg.content.filter(c => c.type === 'text').map(c => c.text).join('\n')
       : '';
   const pane = document.getElementById('grade-result-pane');
-  // Evaluator / combined modes are slow (~21 model calls). Surface that
-  // explicitly so a user doesn't think the UI is hung.
-  const slowNote = (_gradeMode === 'deep' || _gradeMode === 'combined')
-      ? '<br><span style="font-size:11px; color:var(--muted); font-style:italic;">LLM evaluator runs ~15 model calls (one per applicable dimension). This will take ~30–90 seconds depending on the kernel.</span>'
-      : '';
-  pane.innerHTML = `<div style="color:var(--muted); font-style:italic; padding:16px 0;">Scoring (${escapeHtml(_gradeMode)} mode)…${slowNote}</div>`;
-  let result;
-  let url = '/api/grade';
-  let body;
-  if (_gradeMode === 'universal') {
-    body = {response_text: respText, prompt_text: promptText, harness_trace: m._harness, mode: 'universal'};
-  } else if (_gradeMode === 'category') {
-    body = {response_text: respText, category: _gradeSelectedCategory,
-            prompt_category: _lastLoadedExampleCategory, mode: 'category'};
-  } else if (_gradeMode === 'deep') {
-    url = '/api/grade-deep';
-    body = {response_text: respText, prompt_text: promptText};
-  } else if (_gradeMode === 'combined') {
-    url = '/api/grade-combined';
-    body = {response_text: respText, prompt_text: promptText, evaluator_weight: 0.5};
-  } else {
-    pane.innerHTML = `<div style="color:#ef4444; padding:16px 0;">Unknown grade mode: ${escapeHtml(_gradeMode)}</div>`;
+  const runBtn = document.getElementById('grade-run-btn');
+  const runHint = document.getElementById('grade-run-hint');
+  if (runBtn) {
+    runBtn.disabled = true;
+    runBtn.textContent = 'Scoring…';
+    runBtn.style.opacity = '0.6';
+    runBtn.style.cursor = 'not-allowed';
+  }
+  if (runHint) runHint.style.display = 'none';
+
+  // Re-enable the Run button on any exit path.
+  const _resetRunBtn = () => {
+    if (!runBtn) return;
+    runBtn.disabled = false;
+    runBtn.textContent = 'Run scoring →';
+    runBtn.style.opacity = '';
+    runBtn.style.cursor = 'pointer';
+    if (runHint) runHint.style.display = '';
+  };
+
+  // Rule-Based + Expert modes are fast — POST + render.
+  if (_gradeMode === 'universal' || _gradeMode === 'category') {
+    pane.innerHTML = `<div style="color:var(--muted); font-style:italic; padding:16px 0;">Running rule-based scoring…</div>`;
+    const body = (_gradeMode === 'universal')
+      ? {response_text: respText, prompt_text: promptText, harness_trace: m._harness, mode: 'universal'}
+      : {response_text: respText, category: _gradeSelectedCategory,
+         prompt_category: _lastLoadedExampleCategory, mode: 'category'};
+    try {
+      const r = await fetch('/api/grade', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(body),
+      });
+      if (!r.ok) {
+        const errTxt = await r.text();
+        console.error('[grade] HTTP', r.status, errTxt);
+        throw new Error(_sanitizeServerError(r.status, errTxt));
+      }
+      const result = await r.json();
+      if (result && result.mode === 'universal') pane.innerHTML = _renderUniversalGradeResult(result);
+      else pane.innerHTML = _renderGradeResult(result);
+    } catch (e) {
+      pane.innerHTML = `<div style="color:#ef4444; padding:16px 0;">Error scoring: ${escapeHtml(String(e.message || e))}</div>`;
+    } finally {
+      _resetRunBtn();
+    }
     return;
   }
+
+  // LLM-Based + Combined modes use SSE so per-dim progress arrives as
+  // it happens AND the connection stays alive past Cloudflared's 100s
+  // idle timeout. The same payload shape the synchronous endpoint
+  // returns is delivered via the final {type:"complete", result}
+  // event; intermediate {type:"dim_done"} events feed a progress bar.
+  const url = (_gradeMode === 'deep')
+    ? '/api/grade-deep-stream' : '/api/grade-combined-stream';
+  const body = (_gradeMode === 'deep')
+    ? {response_text: respText, prompt_text: promptText}
+    : {response_text: respText, prompt_text: promptText, evaluator_weight: 0.5};
+  await _streamGradeRun(url, body, pane, _gradeMode);
+  _resetRunBtn();
+}
+
+// SSE progress-aware grade runner. Subscribes to the /api/grade-*-stream
+// endpoint, renders an in-progress card with elapsed time + n/N + per-
+// dim verdict tickers, then renders the full result on completion.
+async function _streamGradeRun(url, body, pane, mode) {
+  const tStart = Date.now();
+  let nDone = 0, nTotal = 0;
+  const dimTicker = [];           // [{id, name, verdict, status}]
+  let deterministicResult = null; // populated on combined-mode "deterministic_done"
+  const renderProgress = () => {
+    const elapsed = ((Date.now() - tStart) / 1000).toFixed(0);
+    const pct = nTotal > 0 ? Math.round((nDone / nTotal) * 100) : 0;
+    const recentDims = dimTicker.slice(-6).reverse().map(d => {
+      const cmap = {yes:'#10b981', partial:'#f59e0b', no:'#ef4444',
+                    uncertain:'#a855f7', skipped:'#64748b'};
+      const lmap = {yes:'YES', partial:'PARTIAL', no:'NO',
+                    uncertain:'?', skipped:'N/A'};
+      const c = cmap[d.verdict] || '#64748b';
+      return `<div style="display:flex; align-items:center; gap:8px; padding:4px 0; font-size:11.5px;">
+        <span style="background:${c}; color:#fff; padding:1px 6px; border-radius:3px; font-size:10px; font-weight:700; min-width:54px; text-align:center;">${lmap[d.verdict] || escapeHtml(d.verdict || '?')}</span>
+        <span style="color:var(--ink);">${escapeHtml(d.name || d.id || '?')}</span>
+      </div>`;
+    }).join('') || '<div style="color:var(--muted); font-size:11px; font-style:italic;">waiting for the model to finish the first dimension…</div>';
+    const detPanel = deterministicResult
+      ? `<div style="margin-top:14px; padding:10px 12px; border:1px dashed var(--border); border-radius:6px; background:rgba(16,185,129,0.05);">
+          <div style="font-size:11px; color:#10b981; font-weight:600; margin-bottom:4px;">✓ Rule-based pass complete</div>
+          <div style="font-size:11.5px; color:var(--ink);">Score so far: <b>${deterministicResult.pct_score ?? 0}%</b> · ${deterministicResult.n_pass} pass / ${deterministicResult.n_partial} partial / ${deterministicResult.n_fail} fail. Now waiting for the LLM-based pass to finish.</div>
+        </div>` : '';
+    pane.innerHTML = `
+      <div style="padding:16px 18px; border:1px solid var(--border); border-radius:10px; background:var(--bg);">
+        <div style="display:flex; justify-content:space-between; align-items:baseline; flex-wrap:wrap; gap:8px; margin-bottom:10px;">
+          <div>
+            <div style="font-size:13px; font-weight:700; color:var(--ink);">
+              ${mode === 'combined' ? 'Combined (Rule + LLM) scoring' : 'LLM-Based scoring'}
+            </div>
+            <div style="font-size:11.5px; color:var(--muted); margin-top:2px;">
+              ${nTotal > 0 ? `${nDone} of ${nTotal} dimensions · ${pct}%` : 'starting up…'} · ${elapsed}s elapsed
+            </div>
+          </div>
+          <div style="font-size:11px; color:var(--muted); font-style:italic;">
+            Each dimension is one model call (~3-7s on 31B). Context is cleared between calls.
+          </div>
+        </div>
+        <div style="height:8px; background:rgba(100,116,139,0.18); border-radius:4px; overflow:hidden; margin-bottom:14px;">
+          <div style="height:100%; width:${pct}%; background:linear-gradient(90deg, #3b82f6, #a855f7); transition:width 0.3s ease;"></div>
+        </div>
+        ${detPanel}
+        <div style="margin-top:12px; font-size:11.5px; color:var(--muted); font-weight:600; text-transform:uppercase; letter-spacing:0.4px;">
+          Recent dimensions
+        </div>
+        <div style="margin-top:6px; padding:6px 10px; background:rgba(100,116,139,0.06); border-radius:6px; max-height:220px; overflow-y:auto;">
+          ${recentDims}
+        </div>
+      </div>`;
+  };
+  renderProgress();
+  // Tick the elapsed-time counter every second so the user sees the
+  // panel breathing even between dim_done events (which can be 5-10s
+  // apart on 31B).
+  const tickHandle = setInterval(renderProgress, 1000);
+
+  let response;
   try {
-    const r = await fetch(url, {
+    response = await fetch(url, {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
       body: JSON.stringify(body),
     });
-    if (!r.ok) {
-      // Surface a short, sanitized error to the modal pane. The full
-      // server response (which can include stack traces, dimension-id
-      // dumps, etc.) is logged to console for debugging — not displayed
-      // to a public-demo viewer.
-      const errTxt = await r.text();
-      console.error('[grade] HTTP', r.status, errTxt);
-      throw new Error(_sanitizeServerError(r.status, errTxt));
-    }
-    result = await r.json();
   } catch (e) {
-    pane.innerHTML = `<div style="color:#ef4444; padding:16px 0;">Error scoring: ${escapeHtml(String(e.message || e))}</div>`;
+    clearInterval(tickHandle);
+    pane.innerHTML = `<div style="color:#ef4444; padding:16px 0;">Network error: ${escapeHtml(String(e.message || e))}</div>`;
     return;
   }
-  if (result && result.mode === 'llm_evaluator') {
-    pane.innerHTML = _renderEvaluatorGradeResult(result);
-  } else if (result && result.mode === 'combined') {
-    pane.innerHTML = _renderCombinedGradeResult(result);
-  } else if (result && result.mode === 'universal') {
-    pane.innerHTML = _renderUniversalGradeResult(result);
+  if (!response.ok) {
+    clearInterval(tickHandle);
+    const errTxt = await response.text();
+    console.error('[grade-stream] HTTP', response.status, errTxt);
+    pane.innerHTML = `<div style="color:#ef4444; padding:16px 0;">Error scoring: ${escapeHtml(_sanitizeServerError(response.status, errTxt))}</div>`;
+    return;
+  }
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder('utf-8');
+  let buffer = '';
+  let finalResult = null;
+  let streamError = null;
+  try {
+    while (true) {
+      const {done, value} = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, {stream: true});
+      let sep;
+      while ((sep = buffer.indexOf('\n\n')) !== -1) {
+        const event = buffer.slice(0, sep);
+        buffer = buffer.slice(sep + 2);
+        if (!event.trim() || event.startsWith(':')) continue;  // keepalive
+        if (!event.startsWith('data:')) continue;
+        const dataStr = event.slice(5).trim();
+        let evt;
+        try { evt = JSON.parse(dataStr); }
+        catch (parseErr) {
+          console.warn('[grade-stream] bad payload', dataStr.slice(0, 200));
+          continue;
+        }
+        if (evt.type === 'dim_done') {
+          if (typeof evt.n_done === 'number') nDone = evt.n_done;
+          if (typeof evt.n_total === 'number') nTotal = evt.n_total;
+          if (evt.row) dimTicker.push(evt.row);
+          renderProgress();
+        } else if (evt.type === 'deterministic_done') {
+          deterministicResult = evt.result || null;
+          renderProgress();
+        } else if (evt.type === 'complete') {
+          finalResult = evt.result;
+          break;
+        } else if (evt.type === 'error') {
+          streamError = evt.error || 'unknown stream error';
+          break;
+        }
+      }
+      if (finalResult || streamError) break;
+    }
+  } catch (e) {
+    streamError = String(e.message || e);
+  } finally {
+    clearInterval(tickHandle);
+  }
+
+  if (streamError) {
+    pane.innerHTML = `<div style="color:#ef4444; padding:16px 0;">Error scoring: ${escapeHtml(streamError)}</div>`;
+    return;
+  }
+  if (!finalResult) {
+    pane.innerHTML = `<div style="color:#ef4444; padding:16px 0;">Stream ended without a final result. Check the browser console for details.</div>`;
+    return;
+  }
+  if (finalResult.mode === 'llm_evaluator') {
+    pane.innerHTML = _renderEvaluatorGradeResult(finalResult);
+  } else if (finalResult.mode === 'combined') {
+    pane.innerHTML = _renderCombinedGradeResult(finalResult);
   } else {
-    pane.innerHTML = _renderGradeResult(result);
+    pane.innerHTML = _renderGradeResult(finalResult);
   }
 }
 
@@ -3809,30 +4044,27 @@ function renderAblationPanel(abl) {
 
 function renderGradeChips(chips, idx) {
   if (!chips || chips.state !== 'ready') return '';
-  // 3 chips: score / indicators / citations + use-case label.
-  // Color-code by score: red <40, amber 40-69, green >=70
+  // Single auto-graded summary chip. The previous design surfaced 3
+  // separate chips (score / indicators / citations) plus a
+  // "use-case: ..." label, which felt cluttered and frequently
+  // showed an "unknown" use-case for fully-multilingual or off-spec
+  // prompts. Replaced with one clear chip + a "details" affordance
+  // that opens the full Score response modal.
   const score = chips.score;
-  const scoreColor = score == null ? '#6b7280'
-                    : score >= 70 ? '#10b981'
+  if (score == null) return '';
+  const scoreColor = score >= 70 ? '#10b981'
                     : score >= 40 ? '#f59e0b'
                     : '#ef4444';
-  const gameTag = chips.gaming_flagged
-    ? `<span style="margin-left:6px; font-size:10px; padding:1px 6px; border-radius:8px; background:#fee2e2; color:#991b1b;">gamed→capped</span>`
-    : '';
-  const usecaseTag = chips.usecase
-    ? `<span style="margin-left:6px; font-size:11px; color:var(--muted);">use-case: ${chips.usecase.replace(/_/g, ' ')} ${chips.usecase_conf ? '(' + Math.round(chips.usecase_conf*100) + '%)' : ''}</span>`
-    : '';
+  const tenLabel = chips.score_0_10 != null ? ` · ${chips.score_0_10}/10` : '';
   return `<div class="grade-chips" style="margin-top:8px; display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
-    <a href="#" onclick="openGradeModal(${idx}); return false;" style="text-decoration:none;">
-      <span style="display:inline-block; padding:3px 10px; border-radius:12px; background:${scoreColor}; color:white; font-size:12px; font-weight:600;">${score == null ? '?' : score + '%'}${chips.score_0_10 != null ? ' · ' + chips.score_0_10 + '/10' : ''}</span>
+    <a href="#" onclick="openGradeModal(${idx}); return false;"
+       style="text-decoration:none; display:inline-flex; align-items:center; gap:8px;
+              padding:4px 12px; border-radius:14px; background:${scoreColor}; color:#fff;
+              font-size:12px; font-weight:600;"
+       title="Auto rule-based score across the 21-dim rubric. Click to open the full scoring panel for LLM-based and combined scoring.">
+      <span>${score}%${tenLabel} · auto rule-based</span>
+      <span style="opacity:0.85; font-weight:500; font-size:11px;">▸ details</span>
     </a>
-    <a href="#" onclick="openGradeModal(${idx}); return false;" style="text-decoration:none;">
-      <span style="display:inline-block; padding:3px 10px; border-radius:12px; background:#e0f2fe; color:#075985; font-size:12px;">${chips.indicators_named} indicators named</span>
-    </a>
-    <a href="#" onclick="openGradeModal(${idx}); return false;" style="text-decoration:none;">
-      <span style="display:inline-block; padding:3px 10px; border-radius:12px; background:#dcfce7; color:#166534; font-size:12px;">${chips.citations_grounded}/${chips.citations_total} citations grounded</span>
-    </a>
-    ${gameTag}${usecaseTag}
   </div>`;
 }
 
@@ -3938,12 +4170,14 @@ function renderChat() {
           ? ` · <a href="#" onclick="openPipelineModal(${m._idx ?? 0}); return false;" style="color:var(--accent); text-decoration:none; font-weight:600;">▸ View pipeline</a>`
           : '';
       const gradeLink = (_gradeAvailable && m.role === 'assistant')
-          ? ` · <a href="#" onclick="openGradeModal(${m._idx ?? 0}); return false;" style="color:var(--accent); text-decoration:none; font-weight:600;">▸ Grade response</a>`
+          ? ` · <a href="#" onclick="openGradeModal(${m._idx ?? 0}); return false;" style="color:var(--accent); text-decoration:none; font-weight:600;">▸ Score response</a>`
           : '';
-      const ablationLink = (m.role === 'assistant')
-          ? ` · <a href="#" onclick="runAblation(${m._idx ?? 0}); return false;" style="color:var(--accent); text-decoration:none; font-weight:600;" title="Run the same prompt 4 times: OFF / GREP only / RAG only / both — to demonstrate the harness lift live.">▸ Run ablation</a>`
-          : '';
-      bodyHtml += `<div class="meta">${m._meta}${pipelineLink}${gradeLink}${ablationLink}</div>`;
+      // The "Run ablation" affordance has been removed: re-running the
+      // same prompt 4 times back-to-back blocks every other user on the
+      // single-GPU demo for 8-15 min on 31B and the label was opaque.
+      // To compare layers manually, toggle the Persona/GREP/RAG/Tools/
+      // Online tiles and re-send the same prompt — clearer + same data.
+      bodyHtml += `<div class="meta">${m._meta}${pipelineLink}${gradeLink}</div>`;
     }
     // Auto-grade chips (Phase 5): inline 3-chip strip below assistant
     // messages. Click any chip to open the full grade modal.
