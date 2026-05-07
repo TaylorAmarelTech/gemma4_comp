@@ -1,0 +1,18 @@
+# Duecare chat package (loaded from PyPI when published, or from a
+# bundled wheel during local builds. The wheel ships the harness +
+# all 12 curator JSON files + the static UI.)
+duecare-llm-chat==0.2.0
+
+# FastAPI runtime — the chat package depends on these but pinning
+# here ensures reproducible Docker builds
+fastapi>=0.115.0
+uvicorn[standard]>=0.30.0
+pydantic>=2.9.0
+
+# Cloud Gemma providers (one is required at runtime; both are pinned
+# so the Space's container has them ready)
+google-generativeai>=0.8.0
+openai>=1.40.0
+
+# Online search providers (optional — activated by env var)
+httpx>=0.27.0

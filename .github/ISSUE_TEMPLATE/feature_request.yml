@@ -1,0 +1,42 @@
+name: Feature request
+description: Propose a new harness layer / grader dim / deployment topology / etc.
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem are you trying to solve?
+      description: One paragraph. Bonus points for citing a real worker / NGO / corridor case.
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: How would you change the harness?
+    validations:
+      required: true
+
+  - type: dropdown
+    id: scope
+    attributes:
+      label: Scope
+      options:
+        - "New rubric dimension (touches _rubric_universal.json)"
+        - "New harness layer (5-layer → 6-layer)"
+        - "New grade mode (5th mode beyond Universal/Expert/Evaluator/Combined)"
+        - "New deployment topology"
+        - "New tool function"
+        - "New corridor / NGO / statute coverage"
+        - "Other"
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: What did you think about and reject? Why?
+    validations:
+      required: false
