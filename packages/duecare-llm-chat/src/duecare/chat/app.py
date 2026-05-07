@@ -18,6 +18,7 @@ import asyncio
 import base64
 import json
 import os
+import queue
 import threading
 import time
 from pathlib import Path
@@ -286,7 +287,7 @@ def create_app(
         revision before running benchmarks against it.
 
         Shape:
-          {chat_package: "0.2.6",
+          {chat_package: "0.2.7",
            harness: {rubric_version: "v3.6", n_dimensions: 21,
                      n_evaluation_questions: 21, n_grep_rules: 111,
                      n_rag_docs: 35, n_tools: 5, n_examples: 413,
@@ -349,7 +350,7 @@ def create_app(
             })
 
         return {
-            "chat_package":         "0.2.6",
+            "chat_package":         "0.2.7",
             "wire_format_version":  "v2.0",  # mode='llm_evaluator', evaluator_*
             "harness": {
                 "rubric_version":              RUBRIC_UNIVERSAL.get("version", ""),
@@ -894,6 +895,227 @@ def create_app(
             raise
         except Exception as e:  # noqa: BLE001
             raise HTTPException(500, f"combined grading failed: {e}") from e
+
+    def _grade_stream_response(
+        run_grade: Callable[[Callable[[dict], None]], dict],
+        first_event: Optional[dict] = None,
+    ) -> StreamingResponse:
+        """Build an SSE StreamingResponse that runs `run_grade` in a
+        background thread and emits dim-by-dim progress events plus a
+        final {type:"complete", result:...} event.
+
+        Why streaming: a 21-dim LLM-evaluator pass on 31B can take 100+
+        seconds, which exceeds Cloudflared's 100s idle timeout for the
+        free tunnel. Per-dim events keep bytes flowing AND let the UI
+        render incremental progress (so users see something happen
+        every ~5s instead of staring at a "scoring..." spinner).
+
+        `run_grade(progress_cb)` is invoked on the worker thread with
+        a callback that puts events on the queue. It must return the
+        final aggregate dict; this helper emits the {complete,result}
+        event for it. Exceptions raise within the worker propagate as
+        a {type:"error",...} event.
+        """
+        progress_q: "queue.Queue[dict]" = queue.Queue()
+
+        def worker() -> None:
+            try:
+                final = run_grade(progress_q.put_nowait)
+                progress_q.put_nowait({"type": "complete", "result": final})
+            except RuntimeError as e:
+                # Cumulative evaluator-error breaker fired (3+ consecutive
+                # or 5+ total model_call failures). Surface as a stream
+                # error event rather than crashing the SSE.
+                progress_q.put_nowait({
+                    "type":  "error",
+                    "error": f"LLM evaluator unavailable: {e}",
+                    "code":  503,
+                })
+            except Exception as e:  # noqa: BLE001
+                progress_q.put_nowait({
+                    "type":  "error",
+                    "error": f"{type(e).__name__}: {e}",
+                    "code":  500,
+                })
+
+        worker_thread = threading.Thread(
+            target=worker, daemon=True, name="duecare-grade-worker")
+        worker_thread.start()
+
+        async def event_stream() -> Any:
+            yield (": stream-open\n\n").encode()
+            t_start = time.time()
+            last_keepalive = t_start
+            if first_event is not None:
+                yield (f"data: {json.dumps(first_event)}\n\n").encode()
+            while True:
+                try:
+                    evt = progress_q.get_nowait()
+                except queue.Empty:
+                    await asyncio.sleep(0.25)
+                    now = time.time()
+                    if now - last_keepalive >= 5.0:
+                        elapsed_s = int(now - t_start)
+                        yield (f": keepalive elapsed={elapsed_s}s\n\n").encode()
+                        last_keepalive = now
+                    if not worker_thread.is_alive() and progress_q.empty():
+                        # Worker exited but never put a complete/error.
+                        # Defensive — shouldn't normally happen.
+                        yield (f"data: {json.dumps({'type':'error','error':'worker exited unexpectedly','code':500})}\n\n").encode()
+                        return
+                    continue
+                yield (f"data: {json.dumps(evt)}\n\n").encode()
+                if evt.get("type") in ("complete", "error"):
+                    return
+
+        return StreamingResponse(
+            event_stream(),
+            media_type="text/event-stream",
+            headers={
+                "Cache-Control": "no-cache, no-transform",
+                "X-Accel-Buffering": "no",
+                "Connection": "keep-alive",
+            },
+        )
+
+    @app.post("/api/grade-deep-stream")
+    def api_grade_deep_stream(req: DeepGradeRequest) -> Any:
+        """Streaming version of /api/grade-deep. Emits one SSE event
+        per dimension as the LLM evaluator finishes it (the row + a
+        {n_done, n_total} progress counter), plus a final
+        {type:"complete", result: <aggregate>} event with the same
+        payload shape /api/grade-deep returns synchronously.
+
+        UI guidance: subscribe to the SSE stream, render each "dim_done"
+        event as it arrives so the user sees progressive scoring; show
+        the final aggregate from the "complete" event.
+        """
+        if app.state.gemma_call is None:
+            raise HTTPException(
+                503,
+                "deep grading not available — kernel did not wire gemma_call",
+            )
+        if not req.response_text or not req.response_text.strip():
+            raise HTTPException(400, "response_text is required")
+        from .harness import grade_response_via_evaluator, RUBRIC_UNIVERSAL
+        if req.dimensions:
+            valid_ids = {d["id"] for d in RUBRIC_UNIVERSAL.get("dimensions", [])}
+            unknown = [d for d in req.dimensions if d not in valid_ids]
+            if unknown:
+                raise HTTPException(
+                    400, f"unknown dimension ids: {unknown}",
+                )
+
+        def model_call(p: str) -> str:
+            return _evaluator_model_call(
+                p, max_new_tokens=req.max_new_tokens,
+                temperature=req.temperature,
+            )
+
+        def run_grade(progress_cb: Callable[[dict], None]) -> dict:
+            return grade_response_via_evaluator(
+                req.response_text,
+                model_call=model_call,
+                prompt_text=req.prompt_text or "",
+                dimensions=req.dimensions,
+                skip_not_applicable=req.skip_not_applicable,
+                custom_questions=req.custom_questions,
+                custom_envelope=req.custom_envelope,
+                progress_callback=progress_cb,
+            )
+
+        return _grade_stream_response(run_grade)
+
+    @app.post("/api/grade-combined-stream")
+    def api_grade_combined_stream(req: DeepGradeRequest) -> Any:
+        """Streaming version of /api/grade-combined. Runs the
+        deterministic v3 grader first (fast, ~1s), emits its result as
+        a "deterministic_done" event so the UI can render that side
+        immediately, then runs the LLM evaluator emitting per-dim
+        events, then finishes with a "complete" event carrying the
+        full combined payload.
+        """
+        if app.state.gemma_call is None:
+            # Deterministic-only fallback: run synchronously and return
+            # as a single "complete" event (no streaming benefit but
+            # keeps the wire format consistent).
+            from .harness import grade_response_combined
+            result = grade_response_combined(
+                req.response_text,
+                model_call=None,
+                prompt_text=req.prompt_text or "",
+                evaluator_weight=0.0,
+            )
+
+            def _trivial(progress_cb):  # noqa: ARG001
+                return result
+
+            return _grade_stream_response(_trivial)
+        if not req.response_text or not req.response_text.strip():
+            raise HTTPException(400, "response_text is required")
+        from .harness import (
+            grade_response_universal, grade_response_via_evaluator,
+            _evaluator_deterministic_agreement, RUBRIC_UNIVERSAL,
+        )
+        if req.dimensions:
+            valid_ids = {d["id"] for d in RUBRIC_UNIVERSAL.get("dimensions", [])}
+            unknown = [d for d in req.dimensions if d not in valid_ids]
+            if unknown:
+                raise HTTPException(
+                    400, f"unknown dimension ids: {unknown}",
+                )
+
+        def model_call(p: str) -> str:
+            return _evaluator_model_call(
+                p, max_new_tokens=req.max_new_tokens,
+                temperature=req.temperature,
+            )
+
+        # Run the deterministic side synchronously (it's <2s) so we can
+        # send it as the first SSE event before the slow LLM phase.
+        deterministic = grade_response_universal(
+            req.response_text,
+            prompt_text=req.prompt_text or "",
+            harness_trace=None,
+        )
+        first_event = {"type": "deterministic_done", "result": deterministic}
+
+        # NaN/Inf guard mirrors grade_response_combined()
+        import math as _math
+        ew = req.evaluator_weight
+        if (not isinstance(ew, (int, float))) or (not _math.isfinite(ew)):
+            ew = 0.5
+        ew = max(0.0, min(1.0, float(ew)))
+
+        def run_grade(progress_cb: Callable[[dict], None]) -> dict:
+            evaluator = grade_response_via_evaluator(
+                req.response_text,
+                model_call=model_call,
+                prompt_text=req.prompt_text or "",
+                progress_callback=progress_cb,
+            )
+            ev_pct = evaluator.get("pct_score")
+            if ev_pct is None:
+                combined_pct = deterministic["pct_score"]
+                effective_w = 0.0
+            else:
+                combined_pct = round(
+                    deterministic["pct_score"] * (1 - ew) + ev_pct * ew, 1
+                )
+                effective_w = ew
+            return {
+                "mode":              "combined",
+                "version":           "v2.0",
+                "deterministic":     deterministic,
+                "evaluator":         evaluator,
+                "evaluator_weight":  effective_w,
+                "pct_score":         combined_pct,
+                "agreement":         _evaluator_deterministic_agreement(
+                    deterministic, evaluator
+                ),
+            }
+
+        return _grade_stream_response(run_grade, first_event=first_event)
 
     @app.post("/api/chat/upload-image")
     async def api_upload_image(file: UploadFile = File(...)) -> Any:

@@ -6894,6 +6894,7 @@ def grade_response_via_evaluator(
     skip_not_applicable: bool = True,
     custom_questions: dict | None = None,
     custom_envelope: str | None = None,
+    progress_callback: Callable[[dict], None] | None = None,
 ) -> dict:
     """LLM-evaluator grader: ask the loaded model dimension-by-
     dimension yes/no questions about its own response. Same paradigm
@@ -6912,6 +6913,12 @@ def grade_response_via_evaluator(
       skip_not_applicable: when True (default), uses the universal
         rubric's applicability rules to skip dimensions that are not
         testable for this exchange. Set False to force-evaluate all.
+      progress_callback: optional. Called once per dimension with a
+        dict {type: "dim_done", row, n_done, n_total} after the row
+        is computed. Intended for SSE-style streaming so the UI can
+        render progressive progress on a long-running LLM eval (~5s
+        per dimension on 31B). Callback exceptions are swallowed so a
+        UI bug never crashes the eval.
 
     Returns:
       {
@@ -6959,6 +6966,43 @@ def grade_response_via_evaluator(
     consecutive_errors = 0
     total_errors = 0
 
+    # Pre-count the dimensions we're going to touch so the progress
+    # callback can report n/N. "Touched" = the dimension is in the
+    # target set, regardless of whether it ends up skipped or evaluated
+    # — that way the progress bar advances steadily and reaches 100%
+    # at the end of the loop.
+    dims_in_scope = [d for d in rubric.get("dimensions", [])
+                          if d.get("id") in target_dims]
+    n_total_dims = len(dims_in_scope)
+    n_done_dims = 0
+
+    def _emit_progress(latest_row: dict) -> None:
+        if not progress_callback:
+            return
+        try:
+            progress_callback({
+                "type":         "dim_done",
+                "row":          latest_row,
+                "n_done":       n_done_dims,
+                "n_total":      n_total_dims,
+            })
+        except Exception:  # noqa: BLE001
+            pass  # never let a UI bug crash the eval
+
+    # Best-effort GPU-cache reclaim between dimensions. With a large
+    # model (31B 4-bit) and 21 sequential generations, fragmentation
+    # can build up and trigger CUDA OOM mid-eval. torch.cuda.empty_cache
+    # tells the allocator to release cached blocks back to the driver
+    # without affecting any tensor that's still referenced. No-op when
+    # torch / CUDA isn't available.
+    def _reclaim_gpu() -> None:
+        try:
+            import torch  # noqa: PLC0415
+            if torch.cuda.is_available():
+                torch.cuda.empty_cache()
+        except Exception:  # noqa: BLE001
+            pass
+
     for dim in rubric.get("dimensions", []):
         if dim["id"] not in target_dims:
             continue
@@ -6974,7 +7018,7 @@ def grade_response_via_evaluator(
             )
             if not is_appl:
                 n_skipped += 1
-                rows.append({
+                skipped_row = {
                     "id":             dim["id"],
                     "name":           dim.get("name", dim["id"]),
                     "weight":         weight,
@@ -6984,7 +7028,10 @@ def grade_response_via_evaluator(
                     "evidence_quote": "",
                     "rationale":      "Skipped — dimension not applicable to this prompt+response.",
                     "parse_ok":       True,
-                })
+                }
+                rows.append(skipped_row)
+                n_done_dims += 1
+                _emit_progress(skipped_row)
                 continue
         # Audit fix #4: validate dim_id has an EVALUATION_QUESTIONS
         # entry before building the prompt. Missing-id used to
@@ -6995,7 +7042,7 @@ def grade_response_via_evaluator(
         spec = EVALUATION_QUESTIONS.get(dim["id"]) or custom_for_dim
         if not spec:
             n_uncertain += 1
-            rows.append({
+            missing_row = {
                 "id":             dim["id"],
                 "name":           dim.get("name", dim["id"]),
                 "weight":         weight,
@@ -7005,8 +7052,11 @@ def grade_response_via_evaluator(
                 "rationale":      f"No EVALUATION_QUESTIONS entry for dim_id {dim['id']!r}",
                 "parse_ok":       False,
                 "evaluator_latency_ms": 0,
-            })
+            }
+            rows.append(missing_row)
             total_w += weight  # count as fail-weighted
+            n_done_dims += 1
+            _emit_progress(missing_row)
             continue
         prompt = _build_evaluator_prompt(
             dim["id"], response_text, prompt_text=prompt_text,
@@ -7061,7 +7111,7 @@ def grade_response_via_evaluator(
         elif parsed["verdict"] == "partial": n_partial += 1
         elif parsed["verdict"] == "no": n_fail += 1
         else: n_uncertain += 1
-        rows.append({
+        eval_row = {
             "id":                          dim["id"],
             "name":                        dim.get("name", dim["id"]),
             "weight":                      weight,
@@ -7074,7 +7124,13 @@ def grade_response_via_evaluator(
             "evaluator_prompt_chars":      len(prompt),
             "evaluator_response_chars":    len(evaluator_response),
             "evaluator_latency_ms":        round(elapsed_ms, 1),
-        })
+        }
+        rows.append(eval_row)
+        n_done_dims += 1
+        _emit_progress(eval_row)
+        # Reclaim cached GPU memory between LLM calls so 21 sequential
+        # generations on 31B don't trigger CUDA OOM via fragmentation.
+        _reclaim_gpu()
 
     # Audit fix #3: distinguish "evaluator ran but everything was
     # skipped" from "evaluator ran and got 0%". Old behavior:
