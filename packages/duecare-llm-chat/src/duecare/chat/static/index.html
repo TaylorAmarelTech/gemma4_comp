@@ -2034,8 +2034,11 @@ async function openLayerModal(layer) {
       if (docsEl) docsEl.innerHTML = _renderDocsSection(md);
     });
     _setModalChrome(layer, 'Import — internal-intelligence corpus', `
+      <button class="modal-btn secondary" onclick="document.getElementById('import-zip-input').click()" title="Upload one or more ZIP archives — every text file inside (.txt, .md, .html, .json, .csv, .yaml, .xml) becomes a separate import doc">Upload .zip</button>
+      <input type="file" id="import-zip-input" accept=".zip,application/zip" multiple style="display:none" onchange="importDocsFromFiles(event.target.files); event.target.value=''">
       <button class="modal-btn secondary" onclick="document.getElementById('import-file-input').click()">Upload .txt / .md</button>
-      <input type="file" id="import-file-input" accept=".txt,.md,text/plain" multiple style="display:none" onchange="importDocsFromFiles(event.target.files); event.target.value=''">
+      <input type="file" id="import-file-input" accept=".txt,.md,.markdown,.html,.htm,.json,.csv,.tsv,.yaml,.yml,.xml,.log,.rst,text/plain" multiple style="display:none" onchange="importDocsFromFiles(event.target.files); event.target.value=''">
+      <button class="modal-btn secondary" onclick="_importClearAll()" style="color:#ef4444;">Clear all</button>
       <button class="modal-btn primary" onclick="startNewImportDoc()">+ Paste new document</button>
     `);
     return;
@@ -2421,134 +2424,236 @@ function saveEditedPersona(originalName) {
 }
 
 // ---------------------------------------------------------------------------
-// Import library — internal-intelligence corpus the user pastes or
-// uploads. Each entry: {id, title, source, snippet}. Stored in
-// localStorage and sent in toggles.custom_import_docs when the Import
-// tile is on. Mirrors the persona-library UX for consistency.
+// Import library — internal-intelligence corpus.
+// As of v0.2.9 the import store lives SERVER-SIDE (in-memory dict,
+// reachable via /api/import/*). The server can extract ZIP archives,
+// run query-relevance retrieval over the full corpus, and ship only
+// the top-N most relevant docs into Gemma's context — none of which
+// is feasible from the browser. The localStorage path is kept for
+// migration only: on first open we POST any legacy customImportDocs
+// to the server then clear them locally.
 // ---------------------------------------------------------------------------
-function renderImportLibrary(editingId = null) {
+let _importDocsCache = null;       // last fetched list (for instant re-renders)
+let _importPendingMigration = true;
+
+async function _importMigrateLegacy() {
+  if (!_importPendingMigration) return;
+  _importPendingMigration = false;
   const store = loadStore();
-  const docs = store.customImportDocs || [];
+  const legacy = store.customImportDocs || [];
+  if (!legacy.length) return;
+  for (const d of legacy) {
+    if (!d || !d.snippet || !d.title) continue;
+    try {
+      await fetch('/api/import/snippet', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+          title:  d.title,
+          source: d.source || 'migrated from browser',
+          text:   d.snippet,
+        }),
+      });
+    } catch (e) { /* best-effort migration */ }
+  }
+  // Clear legacy entries — they live server-side now.
+  store.customImportDocs = [];
+  saveStore(store);
+}
+
+async function _importFetchList() {
+  try {
+    const r = await fetch('/api/import/list', {cache: 'no-store'});
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    _importDocsCache = await r.json();
+    return _importDocsCache;
+  } catch (e) {
+    console.error('[import] list failed', e);
+    _importDocsCache = {docs: [], n: 0, total_bytes: 0, error: String(e.message || e)};
+    return _importDocsCache;
+  }
+}
+
+async function renderImportLibrary(editingId = null, statusMsg = null) {
+  await _importMigrateLegacy();
+  const data = await _importFetchList();
+  const docs = (data && data.docs) || [];
   const body = document.getElementById('modal-body');
+  const totalKB = ((data && data.total_bytes) || 0) / 1024;
+  const cap = data && data.max_docs ? data.max_docs : 200;
+  const capMB = data && data.max_bytes ? data.max_bytes / 1048576 : 100;
   let html = `
-    <div style="background:rgba(6,182,212,0.06); border-left:3px solid #06b6d4; padding:10px 14px; border-radius:4px; margin-bottom:14px; font-size:12px; color:var(--ink);">
-      Paste or upload internal documents (statutes, NGO briefs, case files,
-      training material). When the <strong style="color:#06b6d4;">Import</strong>
-      tile is ON, all entries below are sent with each chat message and Gemma
-      grounds its answer in them — independent from the bundled RAG corpus.
-      Documents stay in your browser's localStorage; nothing is uploaded to
-      a server.
+    <div style="background:rgba(6,182,212,0.06); border-left:3px solid #06b6d4; padding:10px 14px; border-radius:4px; margin-bottom:14px; font-size:12px; color:var(--ink); line-height:1.55;">
+      Upload internal documents (statutes, NGO briefs, case files, training
+      material). The chat server unpacks ZIP archives automatically and
+      treats every <code>.txt / .md / .html / .json / .csv / .yaml / .xml</code>
+      file inside as one document. When the
+      <strong style="color:#06b6d4;">Import</strong> tile is ON, the server
+      scores all stored documents by relevance to your question and
+      prepends the top matches to Gemma's context — independent from
+      the bundled RAG corpus.
+      <div style="margin-top:6px; color:var(--muted); font-size:11px;">
+        Storage: <b>${docs.length}</b> document(s) · <b>${totalKB.toFixed(1)} KB</b> ·
+        cap ${cap} docs / ${capMB.toFixed(0)} MB · session-scoped (wiped when
+        the kernel restarts; never persisted to disk).
+      </div>
     </div>`;
+  if (statusMsg) {
+    html += `<div style="background:${statusMsg.kind === 'error' ? 'rgba(239,68,68,0.10)' : 'rgba(16,185,129,0.10)'}; color:${statusMsg.kind === 'error' ? '#fca5a5' : '#86efac'}; border-left:3px solid ${statusMsg.kind === 'error' ? '#ef4444' : '#10b981'}; padding:8px 12px; border-radius:4px; margin-bottom:12px; font-size:12px;">${escapeHtml(statusMsg.text)}</div>`;
+  }
   if (!docs.length) {
     html += `<div style="color:var(--muted); font-style:italic; text-align:center; padding:30px 0;">
-      No imported documents yet. Click <b>+ Paste new document</b> below to add one,
-      or <b>Upload .txt / .md</b> to import files.
+      No imported documents yet. Use the action buttons in the modal footer:
+      <br><b>+ Paste new document</b>, <b>Upload .txt / .md</b>, or <b>Upload .zip</b>.
     </div>`;
   }
   for (const d of docs) {
     const editing = editingId === d.id;
     const borderColor = editing ? '#06b6d4' : 'var(--border)';
+    const sizeKB = (d.size_bytes / 1024).toFixed(1);
     html += `<div style="border:1px solid ${borderColor}; border-radius:8px; padding:12px 14px; margin-bottom:10px; background:var(--bg);">`;
-    html += `<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">`;
-    html += `<div><strong style="color:var(--ink); font-size:13px;">${escapeHtml(d.title || '(untitled)')}</strong>`;
-    html += ` <span style="color:var(--muted); font-size:11px;">· source: ${escapeHtml(d.source || 'imported')}</span></div>`;
-    html += `<div style="display:flex; gap:6px;">`;
+    html += `<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; gap:10px; flex-wrap:wrap;">`;
+    html += `<div style="flex:1 1 auto; min-width:0;"><strong style="color:var(--ink); font-size:13px; word-break:break-all;">${escapeHtml(d.title || '(untitled)')}</strong>`;
+    html += `<div style="color:var(--muted); font-size:11px; margin-top:2px;">source: ${escapeHtml(d.source || 'imported')} · ${sizeKB} KB</div></div>`;
+    html += `<div style="display:flex; gap:6px; flex-shrink:0;">`;
     if (!editing) {
-      html += `<button class="modal-btn secondary" onclick="renderImportLibrary(${attrJson(d.id)})">Edit</button>`;
-      html += `<button class="modal-btn secondary" onclick="deleteImportDoc(${attrJson(d.id)})" style="color:#ef4444;">Delete</button>`;
+      html += `<button class="modal-btn secondary" onclick="_importViewFull('${d.id}')">View full</button>`;
+      html += `<button class="modal-btn secondary" onclick="deleteImportDoc('${d.id}')" style="color:#ef4444;">Delete</button>`;
     }
     html += `</div></div>`;
-    if (editing) {
-      html += `<input id="import-title-edit" value="${escapeHtml(d.title || '')}" placeholder="Document title"
-                  style="width:100%; padding:7px 10px; background:var(--bg); color:var(--ink); border:1px solid var(--border); border-radius:6px; font-size:13px; margin-bottom:6px;">`;
-      html += `<input id="import-source-edit" value="${escapeHtml(d.source || '')}" placeholder="Source citation (e.g., 'POEA MC 14-2017', 'Internal case file 2024-Q3')"
-                  style="width:100%; padding:7px 10px; background:var(--bg); color:var(--ink); border:1px solid var(--border); border-radius:6px; font-size:12px; margin-bottom:6px;">`;
-      html += `<textarea id="import-text-edit" rows="10"
-                   placeholder="Paste the document text here. The full text will be included in Gemma's context when the Import tile is on."
-                   style="width:100%; padding:8px 10px; background:var(--bg); color:var(--ink); border:1px solid var(--border); border-radius:6px; font-size:12.5px; font-family:inherit; line-height:1.5; resize:vertical;">${escapeHtml(d.snippet || '')}</textarea>`;
-      html += `<div style="display:flex; gap:8px; margin-top:8px;">`;
-      html += `<button class="modal-btn primary" onclick="saveEditedImportDoc(${attrJson(d.id)})">Save</button>`;
-      html += `<button class="modal-btn secondary" onclick="renderImportLibrary()">Cancel</button>`;
-      html += `</div>`;
-    } else {
-      const preview = (d.snippet || '').slice(0, 320);
-      const ellipsis = (d.snippet || '').length > 320 ? '…' : '';
-      html += `<div style="color:var(--ink); font-size:12px; line-height:1.55; margin-top:6px; white-space:pre-wrap; max-height:120px; overflow-y:auto; padding:8px 10px; background:rgba(0,0,0,0.18); border-radius:4px;">${escapeHtml(preview)}${ellipsis}</div>`;
-      html += `<div style="color:var(--muted); font-size:10.5px; margin-top:4px;">${(d.snippet || '').length.toLocaleString()} characters</div>`;
-    }
+    const preview = (d.preview || '').slice(0, 320);
+    const ellipsis = (d.size_bytes > preview.length) ? '…' : '';
+    html += `<div style="color:var(--ink); font-size:12px; line-height:1.55; margin-top:6px; white-space:pre-wrap; max-height:120px; overflow-y:auto; padding:8px 10px; background:rgba(0,0,0,0.18); border-radius:4px;">${escapeHtml(preview)}${ellipsis}</div>`;
     html += `</div>`;
   }
   body.innerHTML = html;
 }
 
 function startNewImportDoc() {
-  const store = loadStore();
-  if (!store.customImportDocs) store.customImportDocs = [];
-  const id = 'imp_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 6);
-  store.customImportDocs.push({
-    id,
-    title: 'New imported document',
-    source: 'imported',
-    snippet: '',
-  });
-  saveStore(store);
-  renderImportLibrary(id);
+  // Render an inline new-doc form by injecting a temporary item at the
+  // top of the modal body. Submitting POSTs to /api/import/snippet and
+  // re-renders the list.
+  const body = document.getElementById('modal-body');
+  const form = document.createElement('div');
+  form.style.cssText = 'border:2px solid #06b6d4; border-radius:8px; padding:12px 14px; margin-bottom:14px; background:var(--bg);';
+  form.innerHTML = `
+    <div style="font-size:12px; font-weight:700; color:#06b6d4; margin-bottom:8px;">+ New imported document</div>
+    <input id="import-new-title" placeholder="Document title (e.g., 'POEA MC 14-2017 — zero-fee corridor PH-HK')"
+           style="width:100%; padding:7px 10px; background:var(--bg); color:var(--ink); border:1px solid var(--border); border-radius:6px; font-size:13px; margin-bottom:6px;">
+    <input id="import-new-source" placeholder="Source citation (optional — e.g., 'official gazette URL', 'internal case file 2024-Q3')"
+           style="width:100%; padding:7px 10px; background:var(--bg); color:var(--ink); border:1px solid var(--border); border-radius:6px; font-size:12px; margin-bottom:6px;">
+    <textarea id="import-new-text" rows="14"
+              placeholder="Paste the document text here. Plain text or markdown works best. Up to 5 MB per document."
+              style="width:100%; padding:8px 10px; background:var(--bg); color:var(--ink); border:1px solid var(--border); border-radius:6px; font-size:12.5px; font-family:inherit; line-height:1.5; resize:vertical;"></textarea>
+    <div style="display:flex; gap:8px; margin-top:8px;">
+      <button class="modal-btn primary" onclick="_importSubmitNew()">Save document</button>
+      <button class="modal-btn secondary" onclick="renderImportLibrary()">Cancel</button>
+    </div>`;
+  body.insertBefore(form, body.firstChild);
+  document.getElementById('import-new-title').focus();
 }
 
-function deleteImportDoc(id) {
-  if (!confirm('Delete this imported document?')) return;
-  const store = loadStore();
-  store.customImportDocs = (store.customImportDocs || []).filter(d => d.id !== id);
-  saveStore(store);
-  renderImportLibrary();
-}
-
-function saveEditedImportDoc(id) {
-  const title = document.getElementById('import-title-edit').value.trim();
-  const source = document.getElementById('import-source-edit').value.trim();
-  const text = document.getElementById('import-text-edit').value.trim();
+async function _importSubmitNew() {
+  const title  = (document.getElementById('import-new-title')?.value || '').trim();
+  const source = (document.getElementById('import-new-source')?.value || '').trim();
+  const text   = (document.getElementById('import-new-text')?.value || '').trim();
   if (!title || !text) {
-    alert('Document title and text are both required.');
+    alert('Title and text are both required.');
     return;
   }
-  const store = loadStore();
-  const idx = (store.customImportDocs || []).findIndex(d => d.id === id);
-  if (idx === -1) return;
-  store.customImportDocs[idx] = {id, title, source: source || 'imported', snippet: text};
-  saveStore(store);
-  renderImportLibrary();
+  try {
+    const r = await fetch('/api/import/snippet', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({title, source, text}),
+    });
+    if (!r.ok) {
+      const errTxt = await r.text();
+      throw new Error(_sanitizeServerError(r.status, errTxt));
+    }
+    await renderImportLibrary(null,
+        {kind: 'ok', text: `Saved "${title}".`});
+  } catch (e) {
+    await renderImportLibrary(null,
+        {kind: 'error', text: 'Save failed: ' + (e.message || e)});
+  }
 }
 
-function importDocsFromFiles(fileList) {
-  if (!fileList || !fileList.length) return;
-  const store = loadStore();
-  if (!store.customImportDocs) store.customImportDocs = [];
-  let pending = fileList.length;
-  for (const f of fileList) {
-    const reader = new FileReader();
-    reader.onload = e => {
-      const id = 'imp_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 6);
-      store.customImportDocs.push({
-        id,
-        title: f.name.replace(/\.(txt|md)$/i, ''),
-        source: 'uploaded: ' + f.name,
-        snippet: String(e.target.result || ''),
-      });
-      pending--;
-      if (pending === 0) {
-        saveStore(store);
-        renderImportLibrary();
-      }
-    };
-    reader.onerror = () => {
-      pending--;
-      if (pending === 0) {
-        saveStore(store);
-        renderImportLibrary();
-      }
-    };
-    reader.readAsText(f);
+async function deleteImportDoc(id) {
+  if (!confirm('Delete this imported document?')) return;
+  try {
+    const r = await fetch('/api/import/' + encodeURIComponent(id), {method: 'DELETE'});
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    await renderImportLibrary();
+  } catch (e) {
+    alert('Delete failed: ' + (e.message || e));
   }
+}
+
+async function _importViewFull(id) {
+  try {
+    const r = await fetch('/api/import/' + encodeURIComponent(id), {cache: 'no-store'});
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const d = await r.json();
+    // Inject a "view full" panel into the modal body. Stays open until
+    // the user clicks Close.
+    const body = document.getElementById('modal-body');
+    const panel = document.createElement('div');
+    panel.style.cssText = 'border:2px solid #06b6d4; border-radius:8px; padding:14px 16px; margin-bottom:14px; background:var(--bg);';
+    panel.innerHTML = `
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+        <div>
+          <div style="font-size:13px; font-weight:700; color:var(--ink); word-break:break-all;">${escapeHtml(d.title || '(untitled)')}</div>
+          <div style="color:var(--muted); font-size:11px; margin-top:2px;">${escapeHtml(d.source || '')} · ${(d.size_bytes / 1024).toFixed(1)} KB</div>
+        </div>
+        <button class="modal-btn secondary" onclick="renderImportLibrary()">Close</button>
+      </div>
+      <pre style="background:rgba(0,0,0,0.25); padding:10px 12px; border-radius:6px; max-height:60vh; overflow:auto; font-size:11.5px; color:#cbd5e1; white-space:pre-wrap; word-wrap:break-word; margin:0;">${escapeHtml(d.text || '')}</pre>`;
+    body.insertBefore(panel, body.firstChild);
+  } catch (e) {
+    alert('Could not load document: ' + (e.message || e));
+  }
+}
+
+async function _importClearAll() {
+  if (!confirm('Delete ALL imported documents? This cannot be undone.')) return;
+  try {
+    const r = await fetch('/api/import', {method: 'DELETE'});
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    await renderImportLibrary(null,
+        {kind: 'ok', text: 'All imported documents cleared.'});
+  } catch (e) {
+    alert('Clear-all failed: ' + (e.message || e));
+  }
+}
+
+async function importDocsFromFiles(fileList) {
+  if (!fileList || !fileList.length) return;
+  let added = 0;
+  let skipped = 0;
+  let errors = [];
+  for (const f of fileList) {
+    const fd = new FormData();
+    fd.append('file', f);
+    try {
+      const r = await fetch('/api/import/upload', {method: 'POST', body: fd});
+      if (!r.ok) {
+        const errTxt = await r.text();
+        errors.push(`${f.name}: ${_sanitizeServerError(r.status, errTxt)}`);
+        continue;
+      }
+      const data = await r.json();
+      added += (data.added || []).length;
+      skipped += (data.skipped || []).length;
+    } catch (e) {
+      errors.push(`${f.name}: ${e.message || e}`);
+    }
+  }
+  let kind = errors.length && !added ? 'error' : 'ok';
+  let text = `Added ${added} document${added === 1 ? '' : 's'}` +
+             (skipped ? `, skipped ${skipped} non-text or oversize entries` : '') +
+             (errors.length ? ` · errors: ${errors.slice(0, 3).join('; ')}` : '');
+  await renderImportLibrary(null, {kind, text});
 }
 
 // ---------------------------------------------------------------------------

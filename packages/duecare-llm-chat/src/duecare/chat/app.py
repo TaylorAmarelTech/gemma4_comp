@@ -16,11 +16,14 @@ from __future__ import annotations
 
 import asyncio
 import base64
+import io
 import json
 import os
 import queue
+import re
 import threading
 import time
+import zipfile
 from pathlib import Path
 from typing import Any, Callable, Optional
 from uuid import uuid4
@@ -45,6 +48,160 @@ _IMAGE_STORE_LOCK = threading.Lock()
 # CUDA state. Holding it for the full generation is correct — there's
 # exactly one model and it can only do one forward pass at a time.
 _GEMMA_LOCK = threading.Lock()
+
+# ---------------------------------------------------------------------------
+# Import / internal-intelligence corpus.
+# ---------------------------------------------------------------------------
+# Server-side store for imported documents. Each entry:
+#   {id, title, source, text, size_bytes, uploaded_at}
+#
+# Lives in process memory — wiped on kernel restart, which matches the
+# overall stateless demo model. Capped to keep VRAM-adjacent CPU memory
+# from accidentally holding hundreds of MB of user-uploaded text.
+#
+# Concurrency: protected by `_IMPORT_LOCK`. All mutating endpoints take
+# the lock for atomic insert + LRU-eviction semantics, mirroring the
+# image store.
+_IMPORT_STORE: dict[str, dict] = {}
+_IMPORT_LOCK  = threading.Lock()
+_IMPORT_MAX_DOCS         = 200            # max number of stored docs
+_IMPORT_MAX_DOC_BYTES    = 5 * 1024 * 1024  # cap per file at 5 MB
+_IMPORT_MAX_TOTAL_BYTES  = 100 * 1024 * 1024  # 100 MB total
+_IMPORT_TEXT_EXTENSIONS  = (
+    ".txt", ".md", ".markdown", ".html", ".htm", ".json", ".csv",
+    ".tsv", ".yaml", ".yml", ".xml", ".log", ".rst", ".org",
+)
+# Tokenizer for the BM25-lite relevance scorer used by _retrieve_imports.
+# Lower-case word characters; matches the kernel's grep / rag conventions.
+_IMPORT_TOKEN_RE = re.compile(r"\w+", re.UNICODE)
+
+
+def _import_total_bytes() -> int:
+    return sum(d.get("size_bytes", 0) for d in _IMPORT_STORE.values())
+
+
+def _import_evict_lru() -> None:
+    """Drop the oldest entries until both count + byte caps are satisfied.
+    Called from inside _IMPORT_LOCK by the upload / snippet endpoints."""
+    while len(_IMPORT_STORE) > _IMPORT_MAX_DOCS:
+        oldest = min(_IMPORT_STORE.values(), key=lambda d: d.get("uploaded_at", 0))
+        _IMPORT_STORE.pop(oldest["id"], None)
+    while _import_total_bytes() > _IMPORT_MAX_TOTAL_BYTES and _IMPORT_STORE:
+        oldest = min(_IMPORT_STORE.values(), key=lambda d: d.get("uploaded_at", 0))
+        _IMPORT_STORE.pop(oldest["id"], None)
+
+
+def _import_add(title: str, source: str, text: str) -> Optional[str]:
+    """Add one entry. Returns the id, or None if rejected (empty text /
+    over-cap / decode failure)."""
+    text = (text or "").strip()
+    if not text:
+        return None
+    if len(text.encode("utf-8")) > _IMPORT_MAX_DOC_BYTES:
+        # Truncate rather than reject — preserve as much as fits so a
+        # ZIP with one giant file still contributes its first chunk.
+        text = text[:_IMPORT_MAX_DOC_BYTES]
+    doc_id = uuid4().hex[:12]
+    with _IMPORT_LOCK:
+        _IMPORT_STORE[doc_id] = {
+            "id":          doc_id,
+            "title":       (title or "(untitled)")[:240],
+            "source":      (source or "imported")[:240],
+            "text":        text,
+            "size_bytes":  len(text),
+            "uploaded_at": time.time(),
+        }
+        _import_evict_lru()
+    return doc_id
+
+
+def _import_decode(data: bytes) -> Optional[str]:
+    """Best-effort decode of a binary blob into text. Returns None for
+    files that look binary (high non-printable ratio)."""
+    for enc in ("utf-8", "utf-16", "latin-1"):
+        try:
+            decoded = data.decode(enc)
+            # Reject if more than 5% non-printable (likely binary)
+            n_bad = sum(1 for c in decoded[:8192]
+                        if ord(c) < 32 and c not in "\t\r\n")
+            sample_len = min(len(decoded), 8192) or 1
+            if n_bad / sample_len > 0.05:
+                return None
+            return decoded
+        except UnicodeDecodeError:
+            continue
+    return None
+
+
+def _retrieve_imports(user_text: str, *, max_docs: int = 5,
+                       max_total_chars: int = 8000) -> list[dict]:
+    """Score imported docs by query-token overlap with `user_text` and
+    return the top-N most-relevant ones, capped at max_total_chars
+    combined. Each returned entry includes a `score` field so the UI
+    can render the relevance ranking. Snippet text is truncated to
+    fit the per-doc share of the char budget.
+
+    This is a deliberately simple BM25-lite scorer (term overlap +
+    title-hit boost) so the harness has zero dependency on numpy /
+    scikit-learn / sentence-transformers. For semantic retrieval at
+    scale, the bundled RAG layer's BM25 still applies — Import is the
+    "I dropped my own corpus on top" affordance, not a vector store.
+    """
+    if not _IMPORT_STORE:
+        return []
+    query_tokens = set(t for t in _IMPORT_TOKEN_RE.findall((user_text or "").lower())
+                        if len(t) > 2)
+    with _IMPORT_LOCK:
+        all_docs = list(_IMPORT_STORE.values())
+    if not all_docs:
+        return []
+    # If query is empty (image-only message etc.), fall back to most-
+    # recent docs so Import still contributes something.
+    if not query_tokens:
+        all_docs.sort(key=lambda d: -d.get("uploaded_at", 0))
+        scored = [(0, d) for d in all_docs[:max_docs]]
+    else:
+        scored = []
+        for d in all_docs:
+            haystack = (d.get("title", "") + " " + d.get("source", "")
+                        + " " + d.get("text", ""))[:50_000].lower()
+            doc_tokens = set(_IMPORT_TOKEN_RE.findall(haystack))
+            if not doc_tokens:
+                continue
+            overlap = len(query_tokens & doc_tokens)
+            if overlap == 0:
+                continue
+            # Tiny title-match bonus so a doc whose title literally
+            # mentions a query word ranks above a body-only mention.
+            title_low = d.get("title", "").lower()
+            title_hits = sum(1 for t in query_tokens if t in title_low)
+            score = overlap + 2 * title_hits
+            scored.append((score, d))
+        scored.sort(key=lambda x: -x[0])
+        scored = scored[:max_docs]
+    # Build snippets, capped at max_total_chars total
+    out = []
+    total = 0
+    for score, d in scored:
+        text = d.get("text", "")
+        share = max(800, max_total_chars // max(1, len(scored)))
+        if total + len(text) > max_total_chars:
+            text = text[:max(0, max_total_chars - total)]
+        else:
+            text = text[:share]
+        if not text:
+            break
+        out.append({
+            "id":      d.get("id"),
+            "title":   d.get("title", ""),
+            "source":  d.get("source", ""),
+            "snippet": text,
+            "score":   score,
+        })
+        total += len(text)
+        if total >= max_total_chars:
+            break
+    return out
 
 
 DEFAULT_PERSONA = """You are an international anti-trafficking in persons and modern-day slavery expert with 40 years of dedicated experience combating human exploitation, illicit recruitment, debt bondage, and labour abuses.
@@ -295,7 +452,7 @@ def create_app(
         revision before running benchmarks against it.
 
         Shape:
-          {chat_package: "0.2.8",
+          {chat_package: "0.2.9",
            harness: {rubric_version: "v3.6", n_dimensions: 21,
                      n_evaluation_questions: 21, n_grep_rules: 111,
                      n_rag_docs: 35, n_tools: 5, n_examples: 413,
@@ -358,7 +515,7 @@ def create_app(
             })
 
         return {
-            "chat_package":         "0.2.8",
+            "chat_package":         "0.2.9",
             "wire_format_version":  "v2.0",  # mode='llm_evaluator', evaluator_*
             "harness": {
                 "rubric_version":              RUBRIC_UNIVERSAL.get("version", ""),
@@ -1125,6 +1282,167 @@ def create_app(
 
         return _grade_stream_response(run_grade, first_event=first_event)
 
+    # ---------------------------------------------------------------
+    # Import / internal-intelligence corpus endpoints. The Import
+    # harness layer (toggles.import_corpus) reads from _IMPORT_STORE
+    # — a server-side dict — so users can upload ZIP archives of
+    # internal documents that get extracted, indexed, and retrieved
+    # at chat time without round-tripping the full corpus through the
+    # client on every message.
+    # ---------------------------------------------------------------
+    @app.post("/api/import/upload")
+    async def api_import_upload(file: UploadFile = File(...)) -> Any:
+        """Accept .zip / .txt / .md / .html / .json / .csv etc. upload.
+        For ZIPs, walks every text-like entry inside and creates one
+        import-store doc per file. Returns metadata for what was added,
+        what was skipped (binary / too-large), and current totals.
+        """
+        data = await file.read()
+        if not data:
+            raise HTTPException(400, "empty file")
+        if len(data) > _IMPORT_MAX_TOTAL_BYTES:
+            raise HTTPException(413,
+                f"upload too large ({len(data)} bytes > "
+                f"{_IMPORT_MAX_TOTAL_BYTES} cap)")
+        filename = file.filename or "uploaded"
+        name_low = filename.lower()
+        added: list[dict] = []
+        skipped: list[dict] = []
+
+        if name_low.endswith(".zip"):
+            try:
+                zf = zipfile.ZipFile(io.BytesIO(data))
+            except zipfile.BadZipFile:
+                raise HTTPException(400, "not a valid zip archive")
+            with zf:
+                for info in zf.infolist():
+                    if info.is_dir():
+                        continue
+                    inner = info.filename
+                    inner_low = inner.lower()
+                    # Walk only text-like extensions
+                    if not any(inner_low.endswith(ext)
+                                 for ext in _IMPORT_TEXT_EXTENSIONS):
+                        skipped.append({"name": inner, "reason": "non-text extension"})
+                        continue
+                    if info.file_size > _IMPORT_MAX_DOC_BYTES:
+                        skipped.append({"name": inner,
+                                          "reason": f"too large ({info.file_size} bytes)"})
+                        continue
+                    try:
+                        raw = zf.read(info)
+                    except Exception as exc:  # noqa: BLE001
+                        skipped.append({"name": inner, "reason": f"read error: {exc}"})
+                        continue
+                    text = _import_decode(raw)
+                    if not text or not text.strip():
+                        skipped.append({"name": inner, "reason": "empty or binary"})
+                        continue
+                    doc_id = _import_add(
+                        title=inner,
+                        source=f"from {filename}",
+                        text=text,
+                    )
+                    if doc_id:
+                        added.append({"id": doc_id, "title": inner,
+                                       "size_bytes": len(text)})
+            if not added and not skipped:
+                raise HTTPException(400, "zip contained no readable text files")
+        else:
+            # Single-file upload (txt / md / etc.)
+            if not any(name_low.endswith(ext)
+                          for ext in _IMPORT_TEXT_EXTENSIONS) and not name_low.endswith(".pdf"):
+                # Allow unknown extensions if the bytes decode as text
+                pass
+            text = _import_decode(data)
+            if not text or not text.strip():
+                raise HTTPException(400,
+                    "file does not appear to be text. ZIP archives are "
+                    "extracted automatically; for PDFs / DOCX export "
+                    "to .txt or .md first.")
+            doc_id = _import_add(
+                title=filename,
+                source=f"uploaded: {filename}",
+                text=text,
+            )
+            if doc_id:
+                added.append({"id": doc_id, "title": filename,
+                               "size_bytes": len(text)})
+
+        return {
+            "added":       added,
+            "skipped":     skipped,
+            "n_total":     len(_IMPORT_STORE),
+            "total_bytes": _import_total_bytes(),
+        }
+
+    @app.post("/api/import/snippet")
+    def api_import_snippet(req: dict) -> Any:
+        """Add one manually-typed text snippet (title + body)."""
+        title = ((req or {}).get("title") or "").strip()
+        source = ((req or {}).get("source") or "pasted").strip()
+        text = ((req or {}).get("text") or "").strip()
+        if not title:
+            raise HTTPException(400, "title is required")
+        if not text:
+            raise HTTPException(400, "text is required")
+        doc_id = _import_add(title=title, source=source, text=text)
+        if not doc_id:
+            raise HTTPException(400, "snippet rejected (empty after trim)")
+        return {
+            "id":          doc_id,
+            "n_total":     len(_IMPORT_STORE),
+            "total_bytes": _import_total_bytes(),
+        }
+
+    @app.get("/api/import/list")
+    def api_import_list() -> Any:
+        """Return import-store metadata. Body text is truncated to a
+        ~200-char preview so a list-of-50 ZIP entries doesn't blow up
+        the payload — the full text only goes to Gemma at chat time."""
+        with _IMPORT_LOCK:
+            docs = sorted(_IMPORT_STORE.values(),
+                          key=lambda d: -d.get("uploaded_at", 0))
+            metas = [{
+                "id":          d["id"],
+                "title":       d["title"],
+                "source":      d["source"],
+                "size_bytes":  d["size_bytes"],
+                "uploaded_at": d["uploaded_at"],
+                "preview":     d["text"][:240],
+            } for d in docs]
+            total = _import_total_bytes()
+        return {
+            "docs":         metas,
+            "n":            len(metas),
+            "total_bytes":  total,
+            "max_docs":     _IMPORT_MAX_DOCS,
+            "max_bytes":    _IMPORT_MAX_TOTAL_BYTES,
+        }
+
+    @app.get("/api/import/{doc_id}")
+    def api_import_get(doc_id: str) -> Any:
+        """Return the full body of one imported doc (for the UI's
+        "view full" affordance)."""
+        with _IMPORT_LOCK:
+            d = _IMPORT_STORE.get(doc_id)
+            if d is None:
+                raise HTTPException(404, "imported document not found")
+            return dict(d)
+
+    @app.delete("/api/import/{doc_id}")
+    def api_import_delete(doc_id: str) -> Any:
+        with _IMPORT_LOCK:
+            removed = _IMPORT_STORE.pop(doc_id, None)
+        return {"ok": removed is not None,
+                "n_total": len(_IMPORT_STORE)}
+
+    @app.delete("/api/import")
+    def api_import_clear() -> Any:
+        with _IMPORT_LOCK:
+            _IMPORT_STORE.clear()
+        return {"ok": True, "n_total": 0}
+
     @app.post("/api/chat/upload-image")
     async def api_upload_image(file: UploadFile = File(...)) -> Any:
         """Accept an image upload. Returns an opaque id the client
@@ -1476,23 +1794,47 @@ def create_app(
                            "not wired" if app.state.rag_call is None else "no docs")})
 
         # ── import (internal-intelligence corpus) ─────────────────
-        # Pure user-supplied. Independent from the bundled RAG corpus
-        # so a user can answer-only-from-my-docs without touching the
-        # kernel's bundled materials.
+        # Combines two sources:
+        #   1. server-side _IMPORT_STORE (populated via /api/import/*
+        #      endpoints — supports ZIP extraction, persists across
+        #      requests until the kernel restarts)
+        #   2. legacy client-side toggles.custom_import_docs from
+        #      browser localStorage (still accepted for backwards
+        #      compat with older UIs)
+        # When the toggle is on AND there are docs, we score them by
+        # query-token overlap with the user's text and prepend the
+        # top-N most-relevant ones to Gemma's context. This avoids
+        # blowing the model's context window when a ZIP contains 50+
+        # files but only a handful are relevant to any given question.
         _emit({"type": "step_start", "step": "import"})
         _t0 = time.time()
         if getattr(toggles, "import_corpus", False):
             try:
-                docs = list(toggles.custom_import_docs or [])
-                if docs:
-                    # Render the user's docs as a numbered context block
-                    # the model can cite. No retrieval scoring — a small
-                    # personal corpus is dumped verbatim.
+                # Score server-stored docs by relevance to the prompt.
+                server_docs = _retrieve_imports(
+                    user_text, max_docs=5, max_total_chars=8000,
+                )
+                # Append client-supplied docs verbatim (small payloads
+                # only — UI is expected to ship at most a few KB).
+                client_docs = []
+                for d in (toggles.custom_import_docs or [])[:20]:
+                    snippet = (d.get("snippet") or d.get("text") or "")[:4000]
+                    if not snippet:
+                        continue
+                    client_docs.append({
+                        "id":      d.get("id", ""),
+                        "title":   d.get("title", "(untitled)"),
+                        "source":  d.get("source", "client-side"),
+                        "snippet": snippet,
+                        "score":   None,
+                    })
+                all_docs = server_docs + client_docs
+                if all_docs:
                     blocks = []
-                    for i, d in enumerate(docs, 1):
+                    for i, d in enumerate(all_docs, 1):
                         title = (d.get("title") or f"document {i}")[:140]
                         source = (d.get("source") or "imported")[:140]
-                        snippet = (d.get("snippet") or d.get("text") or "")
+                        snippet = d.get("snippet") or ""
                         if not snippet:
                             continue
                         blocks.append(
@@ -1501,23 +1843,28 @@ def create_app(
                     trace["import"].update({
                         "fired":      bool(blocks),
                         "elapsed_ms": int((time.time() - _t0) * 1000),
-                        "docs":       [{"title": d.get("title", ""),
-                                          "source": d.get("source", ""),
-                                          "snippet": (d.get("snippet") or d.get("text") or "")[:600]}
-                                         for d in docs[:20]],
-                        "summary":    (f"included {len(blocks)} imported doc(s)"
-                                       if blocks else "no usable imported docs"),
+                        "docs":       all_docs[:20],
+                        "summary":    (
+                            f"included {len(blocks)} of "
+                            f"{len(_IMPORT_STORE) + len(toggles.custom_import_docs or [])} imported doc(s) "
+                            f"(top-N by query relevance)"
+                            if blocks else "no usable imported docs"
+                        ),
                     })
                     if blocks:
                         prepend_snippets.append(
                             "## IMPORTED INTERNAL DOCUMENTS\n\n"
                             "The user has supplied the following internal "
-                            "documents. Treat them as authoritative for "
-                            "this conversation and cite by [N] reference.\n\n"
+                            "documents (selected by query relevance). Treat "
+                            "them as authoritative for this conversation "
+                            "and cite by [N] reference.\n\n"
                             + "\n\n".join(blocks)
                         )
                 else:
-                    trace["import"]["summary"] = "no imported documents — use the Import tile to add some"
+                    trace["import"]["summary"] = (
+                        "Import is on but no documents have been added. "
+                        "Click the Import tile to upload a ZIP / paste text."
+                    )
             except Exception as exc:  # noqa: BLE001
                 trace["import"]["summary"] = f"error: {type(exc).__name__}: {exc}"
         _emit({"type": "step_done", "step": "import",
