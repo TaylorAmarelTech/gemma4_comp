@@ -6,19 +6,27 @@ and the layer outputs are composable into a single pre-context string.
 """
 from __future__ import annotations
 
-import importlib.util
+import importlib
+import sys
+import types
 from pathlib import Path
 
 import pytest
 
 
 def _load_harness():
-    p = (Path(__file__).parent.parent / "src" / "duecare" / "chat"
-         / "harness" / "__init__.py")
-    spec = importlib.util.spec_from_file_location("h", p)
-    mod = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(mod)
-    return mod
+    pkg_root = Path(__file__).parent.parent / "src"
+    if str(pkg_root) not in sys.path:
+        sys.path.insert(0, str(pkg_root))
+    if "duecare" not in sys.modules:
+        duecare = types.ModuleType("duecare")
+        duecare.__path__ = [str(pkg_root / "duecare")]
+        sys.modules["duecare"] = duecare
+    if "duecare.chat" not in sys.modules:
+        duecare_chat = types.ModuleType("duecare.chat")
+        duecare_chat.__path__ = [str(pkg_root / "duecare" / "chat")]
+        sys.modules["duecare.chat"] = duecare_chat
+    return importlib.import_module("duecare.chat.harness")
 
 
 def test_grep_fires_on_predatory_lending() -> None:
@@ -76,6 +84,24 @@ def test_rag_top_doc_relevant() -> None:
                       for d in res["docs"]).upper()
     assert "C029" in titles or "FORCED" in titles, \
         f"C029 not in top-5: {[d.get('id') for d in res['docs']]}"
+
+
+def test_rag_retrieves_digital_fee_collection_doc() -> None:
+    """QR/mobile-wallet fee collection should surface the digital payment doc."""
+    h = _load_harness()
+    rag = h.default_harness()["rag_call"]
+    res = rag("QR code 7-Eleven mobile wallet payment plan recruitment fee", top_k=5)
+    ids = {d.get("id") for d in res["docs"]}
+    assert "digital_fee_collection_qr_wallets" in ids, ids
+
+
+def test_rag_retrieves_side_letter_contract_doc() -> None:
+    """Side-letter prompts should retrieve the two-contract deception doc."""
+    h = _load_harness()
+    rag = h.default_harness()["rag_call"]
+    res = rag("side letter second contract salary rest day mismatch", top_k=5)
+    ids = {d.get("id") for d in res["docs"]}
+    assert "side_letters_two_contract_deception" in ids, ids
 
 
 def test_rag_doc_fields() -> None:
@@ -139,19 +165,20 @@ def _grep_rule_ids(text: str):
     return {hit.get("rule") for hit in grep(text)["hits"]}
 
 
-def test_grep_108_rules_total() -> None:
-    """v3.16: 108 GREP rules. Original 49 (42 Android backport + 7 v3.3
+def test_grep_111_rules_total() -> None:
+    """v3.17: 111 GREP rules. Original 49 (42 Android backport + 7 v3.3
     kafala/Lebanon/Kuwait additions) plus 59 additions across 9 new
     categories (H–P): sector-specific labour abuse (10), kafala
     extended mechanisms (8), cross-border financial flows (6), employer
-    abuse patterns (8), document fraud (6), recruiter sales tactics (6),
+    abuse patterns (8), document fraud (7), recruiter sales tactics (6),
     recovery-suppression and repatriation barriers (5), additional
     corridors (5: Lebanon-internal/Libya transit/Iraq KRG/Cyprus
     North/Taiwan), and platform/digital recruitment (5: online
     platforms, deepfake interviews, encrypted-platform coercion,
-    offshore shell HR, cam-studio sextortion)."""
+    offshore shell HR, cam-studio sextortion), plus 3 v3.17 digital-
+    payment / side-letter / credential-vault rules."""
     h = _load_harness()
-    assert len(h.GREP_RULES) == 108, f"expected 108 GREP rules, got {len(h.GREP_RULES)}"
+    assert len(h.GREP_RULES) == 111, f"expected 111 GREP rules, got {len(h.GREP_RULES)}"
 
 
 def test_kafala_huroob_fires_on_huroob_status() -> None:
@@ -373,6 +400,35 @@ def test_online_platform_recruitment_fires() -> None:
     assert "online_platform_recruitment_unverified" in _grep_rule_ids(text)
 
 
+def test_zalo_platform_recruitment_fires() -> None:
+    """Zalo is a Vietnam-specific recruitment platform signal."""
+    text = ("A Zalo job ad asks Vietnamese workers to pay a guarantee "
+        "deposit via mobile wallet before departure.")
+    assert "online_platform_recruitment_unverified" in _grep_rule_ids(text)
+    assert "fee_camouflage_deposit_bond" in _grep_rule_ids(text)
+
+
+def test_qr_convenience_store_payment_plan_fires() -> None:
+    """QR/convenience-store post-arrival repayment should fire."""
+    text = ("The agency says the training fee is paid through a payment "
+        "plan using QR codes at 7-Eleven after deployment.")
+    assert "fee_camouflage_qr_convenience_store_payment_plan" in _grep_rule_ids(text)
+
+
+def test_side_letter_salary_rest_day_mismatch_fires() -> None:
+    """A side letter changing salary/rest days is contract substitution."""
+    text = ("The contract says salary USD 850 but the side letter says "
+        "AED 900 and no day off.")
+    assert "side_letter_salary_rest_day_mismatch" in _grep_rule_ids(text)
+
+
+def test_digital_credential_vault_debt_control_fires() -> None:
+    """Biometric credential vaults tied to repayment are digital retention."""
+    text = ("Recruiter asks for face scan and biometric verification before "
+        "releasing digital credentials until debt is paid.")
+    assert "digital_credential_vault_debt_control" in _grep_rule_ids(text)
+
+
 def test_shell_company_offshore_HR_fires() -> None:
     """BVI/offshore HR consultancy should fire."""
     text = ("Pay the recruitment fee to our BVI HR consultancy. We are an "
@@ -406,6 +462,9 @@ def test_new_v316_rules_dont_fire_on_benign_text() -> None:
         "bait_and_switch_destination",
         "libya_transit_anti_black_violence",
         "taiwan_caregiver_corridor",
+        "fee_camouflage_qr_convenience_store_payment_plan",
+        "side_letter_salary_rest_day_mismatch",
+        "digital_credential_vault_debt_control",
         "online_platform_recruitment_unverified",
         "shell_company_offshore_HR",
         "whatsapp_telegram_coercion_pattern",
@@ -416,7 +475,7 @@ def test_new_v316_rules_dont_fire_on_benign_text() -> None:
 
 
 def test_v316_rules_have_required_metadata() -> None:
-    """All 18 spot-checked new rules must have severity + citation + indicator."""
+    """All spot-checked new rules must have severity + citation + indicator."""
     h = _load_harness()
     candidate_ids = {
         "construction_payment_held_until_completion",
@@ -434,13 +493,16 @@ def test_v316_rules_have_required_metadata() -> None:
         "bait_and_switch_destination",
         "libya_transit_anti_black_violence",
         "taiwan_caregiver_corridor",
+        "fee_camouflage_qr_convenience_store_payment_plan",
+        "side_letter_salary_rest_day_mismatch",
+        "digital_credential_vault_debt_control",
         "online_platform_recruitment_unverified",
         "shell_company_offshore_HR",
         "whatsapp_telegram_coercion_pattern",
     }
     matched = [r for r in h.GREP_RULES if r["rule"] in candidate_ids]
     assert len(matched) == len(candidate_ids), \
-        f"expected {len(candidate_ids)} v3.16 rules, found {len(matched)}"
+        f"expected {len(candidate_ids)} v3.16/v3.17 rules, found {len(matched)}"
     for rule in matched:
         assert rule.get("severity") in ("critical", "high", "medium", "low")
         assert rule.get("citation"), f"{rule['rule']} missing citation"
