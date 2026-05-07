@@ -514,7 +514,16 @@ header.bar .badge.loaded .dot {
 
   <header class="bar">
     <h1><span class="accent">Duecare</span> · Gemma 4 Chat</h1>
-    <div class="badge" id="badge">
+    <button id="about-btn"
+            onclick="openAboutModal()"
+            title="Getting started + what each layer does"
+            style="background:transparent; border:1px solid var(--border); color:var(--muted); padding:5px 12px; border-radius:8px; font-size:12px; cursor:pointer; font-weight:500;">
+      About
+    </button>
+    <div class="badge" id="badge"
+         onclick="onBadgeClick()"
+         title="Click to open the model picker"
+         style="cursor:pointer;">
       <span class="dot"></span>
       <span id="badge-text">checking…</span>
     </div>
@@ -523,29 +532,22 @@ header.bar .badge.loaded .dot {
   <div class="chat" id="chat">
     <div class="empty" id="empty">
       <h2>Duecare harness chat</h2>
-      <p>One configurable interface for the whole submission. Flip
-      every toggle below the input to see how each safety layer
-      changes Gemma's response, and pick a Gemma 4 variant via the
-      <code>GEMMA_MODEL_VARIANT</code> kernel env var (E2B / E4B /
-      26B-A4B / 31B / 2 jailbroken / 3 cloud BYOK).</p>
-      <p style="font-size:13px; color:var(--muted); margin-top:14px;">
-      <strong>5 toggles:</strong> Persona (expert prompt) ·
-      <strong style="color:#ef4444;">GREP</strong> (111 regex KB rules)
-      · <strong style="color:#3b82f6;">RAG</strong> (35-doc reference
-      corpus) · <strong style="color:#10b981;">Tools</strong> (5 lookup
-      functions) · <strong style="color:#f59e0b;">Online</strong> (live
-      web search). After Gemma replies, click <strong>Pipeline</strong>
-      on any response to see what each layer contributed; click
-      <strong>Grade</strong> for 4 grading modes (Universal,
-      Evaluator, Combined, Expert) including an LLM evaluator that
-      sends the response back to the same Gemma with one yes/no
-      question per dimension.</p>
-      <p style="font-size:13px; color:var(--muted);">
-      Click <strong>▸ Examples</strong> below for 413 curated prompts
-      across <strong>jailbreak resistance</strong>,
-      <strong>online-search demos</strong>,
-      <strong>multi-jurisdiction comparison</strong>, and
-      <strong>headline harness lift</strong> (the +56.5pp number).</p>
+      <p style="font-size:14px;">Pick a Gemma 4 variant, flip the safety
+      layers below, and ask anything about migrant-worker recruitment
+      and trafficking.</p>
+      <div id="pick-model-cta" style="display:none; margin:18px auto 4px;">
+        <button onclick="openModelPickerFromUI()"
+                style="background:var(--accent); color:#fff; border:0; padding:11px 22px; border-radius:10px; font-size:14px; font-weight:600; cursor:pointer; box-shadow:0 1px 4px rgba(59,130,246,0.3);">
+          ↓ Pick a model
+        </button>
+        <div style="font-size:11.5px; color:var(--muted); margin-top:8px;">
+          Or click <button onclick="openAboutModal()" style="background:none; border:0; color:var(--accent); padding:0; cursor:pointer; font-size:11.5px; text-decoration:underline;">About</button> for the full walkthrough.
+        </div>
+      </div>
+      <p id="empty-tip" style="font-size:12px; color:var(--muted); margin-top:14px;">
+        New here? Click <button onclick="openAboutModal()" style="background:none; border:0; color:var(--accent); padding:0; cursor:pointer; font-size:12px; text-decoration:underline;">About</button> in the top bar
+        for what each layer does and how to read a grade.
+      </p>
       <div class="hints" id="empty-hints">
         <!-- populated by populateEmptyHints() from /api/examples -->
       </div>
@@ -781,15 +783,151 @@ async function refreshBadge() {
     }
     txt.innerText = display;
     if (info.loaded && info.name) {
-      el.title = `Model: ${info.name}\nQuantization: ${info.quantization || '?'}\nDevice: ${info.device || '?'}\nSet GEMMA_MODEL_VARIANT env var in the kernel to switch.`;
+      el.title = `Model: ${info.name}\nQuantization: ${info.quantization || '?'}\nDevice: ${info.device || '?'}\nClick to switch model.`;
+    } else {
+      el.title = 'Click to open the model picker';
     }
     el.classList.toggle('loaded', !!info.loaded);
+    // Surface the "Pick a model" CTA only when nothing is loaded yet.
+    // Hides it as soon as a model is wired so the empty-state stays
+    // focused on Examples after that point.
+    const cta = document.getElementById('pick-model-cta');
+    const tip = document.getElementById('empty-tip');
+    if (cta) cta.style.display = info.loaded ? 'none' : 'block';
+    if (tip) tip.style.display = info.loaded ? 'block' : 'none';
   } catch (e) {
     document.getElementById('badge-text').innerText = 'offline';
   }
 }
 refreshBadge();
 setInterval(refreshBadge, 30000);
+
+// Model-picker invoker. The kernel injects a full-screen model-picker
+// overlay (`#_dc-model-picker`) before `</body>` and exposes
+// `window.openModelPicker` from its IIFE. The chat package itself does
+// not own that overlay, so this helper is a graceful fallback: try the
+// kernel's exposed function, then directly toggle the overlay's `.show`
+// class, then guide the user to refresh if neither path is available
+// (e.g. the page is cached and the picker overlay was never injected).
+function openModelPickerFromUI() {
+  try {
+    if (typeof window.openModelPicker === 'function') {
+      window.openModelPicker();
+      return;
+    }
+  } catch (e) { /* fall through */ }
+  const overlay = document.getElementById('_dc-model-picker');
+  if (overlay) {
+    overlay.classList.add('show');
+    return;
+  }
+  alert(
+    'The model picker overlay is not present on this page. The kernel ' +
+    "either hasn't injected it yet or this is a stale cached page.\n\n" +
+    'Try a hard refresh (Cmd/Ctrl + Shift + R). If the picker still ' +
+    "doesn't appear, the kernel may not have started — re-run the cell."
+  );
+}
+
+function onBadgeClick() {
+  // The badge is the most visible "model is/isn't loaded" indicator.
+  // Clicking it opens the picker so users can switch models or pick
+  // an initial one without hunting for the CTA in the empty state.
+  openModelPickerFromUI();
+}
+
+function openAboutModal() {
+  // Detailed walkthrough lives in this modal, not in the empty state.
+  // Same modal-chrome pattern as the layer-doc / examples modals so
+  // Esc / backdrop-click closes it and the close button is reachable.
+  const body = `
+    <div style="font-size:13.5px; line-height:1.6; color:var(--ink);">
+      <p style="margin-top:0;">
+        Duecare is a Gemma 4 safety harness for migrant-worker recruitment
+        and trafficking cases. This page is the live demo: one Gemma 4
+        variant + 5 optional safety layers + 4 grading modes.
+      </p>
+
+      <h4 style="margin:18px 0 6px; font-size:14px; color:var(--accent);">
+        1 · Pick a model
+      </h4>
+      <p style="margin:0;">
+        Click <b>Pick a model</b> (or the badge in the top right) to open
+        the picker. 9 variants:
+        <b>E2B / E4B</b> (fast, single GPU),
+        <b>26B-A4B / 31B</b> (heavier, T4 ×2, 4-bit),
+        <b>2 jailbroken</b> (proves the harness still constrains
+        abliterated weights),
+        <b>3 cloud BYOK</b> (Gemini / OpenAI-compat / Ollama —
+        set the API key as a Kaggle Secret first).
+      </p>
+
+      <h4 style="margin:18px 0 6px; font-size:14px; color:var(--accent);">
+        2 · Flip the safety layers
+      </h4>
+      <ul style="margin:0; padding-left:20px;">
+        <li><b>Persona</b> — expert anti-trafficking system prompt</li>
+        <li><b style="color:#ef4444;">GREP</b> — 111 regex rules
+            (ILO indicators, statutes, recruiter tactics)</li>
+        <li><b style="color:#3b82f6;">RAG</b> — 35-doc corpus
+            (ILO conventions, POEA/BP2MI circulars, HK statutes,
+            NGO briefs)</li>
+        <li><b style="color:#10b981;">Tools</b> — 5 lookup functions
+            (corridor fee caps, fee-camouflage decoder, etc.)</li>
+        <li><b style="color:#f59e0b;">Online</b> — live web search
+            (DuckDuckGo by default; Brave/Playwright if wired)</li>
+      </ul>
+      <p style="margin:6px 0 0; color:var(--muted); font-size:12px;">
+        Greyed cards = the kernel hasn't wired that layer in this session.
+      </p>
+
+      <h4 style="margin:18px 0 6px; font-size:14px; color:var(--accent);">
+        3 · Read a response
+      </h4>
+      <p style="margin:0;">
+        After Gemma replies, every response gets auto-grade chips
+        (score · indicators · citations) and two affordances:
+      </p>
+      <ul style="margin:6px 0 0; padding-left:20px;">
+        <li><b>Pipeline</b> — what each layer contributed before Gemma saw the prompt</li>
+        <li><b>Grade</b> — 4 modes:
+          <i>Universal</i> (deterministic 21-dim rubric),
+          <i>Evaluator</i> (LLM yes/no per dim),
+          <i>Combined</i> (50/50 + disagreement panel),
+          <i>Expert</i> (per-prompt 5-tier rubric, when applicable)</li>
+      </ul>
+
+      <h4 style="margin:18px 0 6px; font-size:14px; color:var(--accent);">
+        4 · Try the demo prompts
+      </h4>
+      <p style="margin:0;">
+        <b>▸ Examples</b> in the composer opens 413 curated prompts
+        organised by category. The five highlighted at the top are the
+        showcase set: headline lift, jailbreak resistance, online-search
+        demo, multi-jurisdiction comparison, social-engineering pretext.
+        Multi-lingual showcase row (TL / ID / AR / NE / ES / BN) is on the
+        empty-state of this page.
+      </p>
+
+      <p style="margin:18px 0 0; font-size:12px; color:var(--muted); border-top:1px solid var(--border); padding-top:10px;">
+        Headline number: <b>+56.5pp</b> harness lift over stock Gemma 4
+        on a 100-prompt eval set. Curl <code>/api/version</code> for the
+        full version stamp (chat-package, rubric, every curator-block
+        revision) before you benchmark.
+      </p>
+    </div>`;
+  // Reuse the existing modal chrome (lightbox overlay + Esc-to-close).
+  document.getElementById('modal-body').innerHTML = body;
+  if (typeof _setModalChrome === 'function') {
+    _setModalChrome('about', 'Getting started · About Duecare', '');
+  } else {
+    // Fallback: if the helper hasn't loaded yet, just show the modal.
+    const ov = document.getElementById('modal-overlay');
+    if (ov) ov.style.display = 'flex';
+    const ttl = document.getElementById('modal-title');
+    if (ttl) ttl.textContent = 'Getting started · About Duecare';
+  }
+}
 
 // One-time probe: ask the server which harness layers are wired so
 // the UI marks each tile as clickable (wired) or greyed-out (not wired).
@@ -2615,7 +2753,8 @@ function _renderUniversalGradeResult(g) {
     </tr>`;
   }
   html += '</tbody></table>';
-  html += `<div style="font-size:11px; color:var(--muted); margin-top:10px; font-style:italic;">Universal rubric ${escapeHtml(g.version)} · 19 dimensions · auto-detects applicability from prompt + response + harness trace · NOT_APPLICABLE rows excluded from score · keyword-based scoring (run <code>scripts/rubric_comparison.py</code> for semantic scoring).</div>`;
+  const dimCount = (g.dimensions || []).length;
+  html += `<div style="font-size:11px; color:var(--muted); margin-top:10px; font-style:italic;">Universal rubric ${escapeHtml(g.version)} · ${dimCount} dimensions · auto-detects applicability from prompt + response + harness trace · NOT_APPLICABLE rows excluded from score · keyword-based scoring (run <code>scripts/rubric_comparison.py</code> for semantic scoring).</div>`;
   return html;
 }
 

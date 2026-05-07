@@ -96,7 +96,7 @@ hf_space/
 └── start.sh            # Container entrypoint
 ```
 
-The chat package itself ships as a wheel from PyPI (`duecare-llm-chat==0.2.0`)
+The chat package itself ships as a wheel from PyPI (`duecare-llm-chat==0.2.1`)
 so this Space stays small (<10 MB layer beyond the base Python image).
 
 ## Deploy / update
