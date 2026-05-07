@@ -283,6 +283,141 @@ header.bar .badge.loaded .dot {
   background: #f59e0b; color: #fff;
 }
 
+/* ---- Self-contained model picker (auto-shows on first load when no
+   model is wired). Lives in the chat package, hits the kernel's
+   /api/load-model* endpoints. Higher z-index than the lightbox modal
+   so it stacks on top of everything else. ---- */
+.picker-overlay {
+  position: fixed; inset: 0; z-index: 99998;
+  display: none;
+  align-items: center; justify-content: center;
+  background: rgba(15, 23, 42, 0.94);
+  color: #e2e8f0;
+  -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
+  padding: 24px;
+  overflow-y: auto;
+}
+.picker-overlay.show { display: flex; }
+.picker-box {
+  background: #0f172a;
+  border: 1px solid rgba(71, 85, 105, 0.5);
+  border-radius: 16px;
+  padding: 32px 36px;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.6);
+  max-width: 980px; width: 100%;
+}
+.picker-title { margin: 0 0 6px; font-size: 22px; font-weight: 700; color: #f1f5f9; }
+.picker-sub { margin: 0 0 20px; color: #94a3b8; font-size: 13px; }
+.picker-banner {
+  background: rgba(96, 165, 250, 0.10);
+  border: 1px solid rgba(96, 165, 250, 0.35);
+  border-radius: 8px;
+  padding: 12px 14px;
+  margin: 0 0 18px;
+  color: #cbd5e1;
+  font-size: 12.5px;
+  line-height: 1.55;
+}
+.picker-banner b { color: #93c5fd; font-weight: 700; }
+.picker-group { margin-top: 18px; }
+.picker-glabel {
+  color: #cbd5e1; font-size: 11px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.05em; margin: 0 0 10px;
+}
+.picker-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 10px;
+}
+.picker-vcard {
+  background: #1e293b;
+  border: 1px solid rgba(71, 85, 105, 0.5);
+  border-radius: 10px;
+  padding: 14px 16px;
+  cursor: pointer;
+  transition: all 0.12s ease;
+  text-align: left;
+  color: inherit;
+  font: inherit;
+  width: 100%;
+}
+.picker-vcard:hover {
+  background: #334155; border-color: #60a5fa;
+  transform: translateY(-1px);
+}
+.picker-vcard.disabled { opacity: 0.45; cursor: not-allowed; transform: none !important; }
+.picker-vcard.loading {
+  opacity: 1; border-color: #60a5fa;
+  background: rgba(59, 130, 246, 0.18);
+  box-shadow: 0 0 0 1px rgba(96, 165, 250, 0.35) inset;
+}
+.picker-vcard.loaded {
+  opacity: 1; border-color: #10b981;
+  background: rgba(16, 185, 129, 0.14);
+}
+.picker-vcard .vt { color: #f1f5f9; font-weight: 700; font-size: 14px; margin-bottom: 4px; }
+.picker-vcard .vsz { color: #94a3b8; font-size: 11px; }
+.picker-vcard .vfit { color: #60a5fa; font-size: 11px; margin-top: 4px; font-weight: 600; }
+.picker-vcard .veta {
+  color: #cbd5e1; font-size: 10.5px; margin-top: 4px;
+  padding-top: 4px; border-top: 1px dashed rgba(100, 116, 139, 0.4);
+  font-weight: 500;
+}
+.picker-vcard.cloud .vfit { color: #fbbf24; }
+.picker-vcard.cloud .veta { color: #fde68a; }
+.picker-vcard.jailbroken { border-color: rgba(239, 68, 68, 0.5); }
+.picker-vcard.jailbroken .vfit { color: #f87171; }
+.picker-vcard.jailbroken .veta { color: #fecaca; }
+.picker-status {
+  margin-top: 18px; padding: 16px; border-radius: 10px;
+  background: #1e293b; border: 1px solid rgba(71, 85, 105, 0.5);
+  color: #cbd5e1; font-size: 13px; line-height: 1.5;
+  display: none;
+}
+.picker-status.show { display: block; }
+.picker-status.error { color: #fca5a5; border-color: rgba(220, 38, 38, 0.6); }
+.picker-status .meta {
+  color: #64748b; font-size: 11px; margin-top: 6px; font-family: ui-monospace, monospace;
+}
+.picker-actions {
+  display: flex; gap: 8px; align-items: center; margin-top: 10px;
+}
+.picker-actions button {
+  background: transparent;
+  border: 1px solid rgba(100, 116, 139, 0.75);
+  color: #cbd5e1;
+  border-radius: 7px;
+  padding: 6px 10px;
+  font-size: 11.5px;
+  font-weight: 650;
+  cursor: pointer;
+}
+.picker-actions button:hover {
+  border-color: #60a5fa; color: #93c5fd;
+}
+.picker-logs {
+  display: none;
+  max-height: 280px;
+  overflow: auto;
+  margin: 10px 0 0;
+  padding: 12px 14px;
+  background: #020617;
+  border: 1px solid rgba(71, 85, 105, 0.65);
+  border-radius: 10px;
+  color: #cbd5e1;
+  font: 11.5px/1.45 ui-monospace, SFMono-Regular, Menlo, monospace;
+  white-space: pre-wrap;
+}
+.picker-logs.show { display: block; }
+.picker-spinner {
+  display: inline-block; width: 14px; height: 14px;
+  border: 2px solid rgba(96, 165, 250, 0.3);
+  border-top-color: #60a5fa;
+  border-radius: 50%;
+  animation: pickerspin 0.8s linear infinite;
+  vertical-align: middle; margin-right: 8px;
+}
+@keyframes pickerspin { to { transform: rotate(360deg); } }
+
 /* ---- Lightbox modal (used by all 4 tile View buttons) ---- */
 .modal-overlay {
   position: fixed; inset: 0; z-index: 1000;
@@ -645,6 +780,32 @@ header.bar .badge.loaded .dot {
   </div>
 </div>
 
+<!-- Model picker (self-contained inside the chat package; the kernel
+     just exposes /api/load-model* endpoints and we drive everything
+     from here). Auto-shows on page load when no model is loaded. -->
+<div id="picker-overlay" class="picker-overlay" role="dialog" aria-modal="true">
+  <div class="picker-box">
+    <h2 class="picker-title">Choose a Gemma 4 model</h2>
+    <p class="picker-sub">Each variant loads once for the session. Bigger models = better answers but slower start. Cloud routes need an API key set in Kaggle Secrets before launch.</p>
+    <div class="picker-banner">
+      <b>⏱ Estimated load time</b> shown on each card. The model
+      downloads from HuggingFace on first run (cached for the
+      session). E2B / E4B start in under a minute; 26B-A4B and 31B
+      take a few minutes. Cloud routes are instant once the API key
+      is set. Closing this tab during load is safe — the load
+      continues server-side.
+    </div>
+    <div id="picker-groups"></div>
+    <div id="picker-status" class="picker-status"></div>
+    <div class="picker-actions">
+      <button id="picker-view-logs" type="button">View logs</button>
+      <button id="picker-enter-chat" type="button" style="display:none">Enter chat</button>
+      <button id="picker-close" type="button" style="display:none" title="Close picker (a model is already loaded)">Close</button>
+    </div>
+    <pre id="picker-logs" class="picker-logs">No loader events yet.</pre>
+  </div>
+</div>
+
 <script>
 const messages = [];        // [{role, content: [{type, text|image}]}]
 const pendingImages = [];   // [{id, mime, dataUrl}]
@@ -802,40 +963,328 @@ async function refreshBadge() {
 refreshBadge();
 setInterval(refreshBadge, 30000);
 
-// Model-picker invoker. The kernel injects a full-screen model-picker
-// overlay (id "_dc-model-picker") before the closing body tag and
-// exposes window.openModelPicker from its IIFE. The chat package
-// itself does not own that overlay, so this helper is a graceful
-// fallback: try the kernel's exposed function, then directly toggle
-// the overlay's show class, then guide the user to refresh if neither
-// path is available (e.g. the page is cached and the picker overlay
-// was never injected).
-function openModelPickerFromUI() {
-  try {
-    if (typeof window.openModelPicker === 'function') {
-      window.openModelPicker();
+// ---------------------------------------------------------------------------
+// Self-contained model picker. The chat package owns the picker overlay
+// and drives the kernel's /api/load-model* endpoints directly. No
+// dependency on kernel-side HTML injection.
+//
+// Variant catalog is hardcoded here as a fallback so cards always render
+// even if the status endpoint returns nothing — but if the status
+// endpoint DOES return a `variants` map, we prefer that (lets a kernel
+// add/remove variants without a UI rebuild).
+// ---------------------------------------------------------------------------
+const PICKER_FALLBACK_VARIANTS = {
+  'e2b-it':         {display: 'Gemma 4 E2B-it',           size_gb: 2.0,  fits: 'single T4',     category: 'on-device', load_eta: '~20–30 sec'},
+  'e4b-it':         {display: 'Gemma 4 E4B-it',           size_gb: 4.0,  fits: 'single T4',     category: 'on-device', load_eta: '~30–60 sec'},
+  '26b-a4b-it':     {display: 'Gemma 4 26B-A4B-it',       size_gb: 14.0, fits: 'T4 ×2 (4-bit)', category: 'on-device', load_eta: '~6–15 min first run · ~3–5 min cached'},
+  '31b-it':         {display: 'Gemma 4 31B-it',           size_gb: 18.0, fits: 'T4 ×2 (4-bit)', category: 'on-device', load_eta: '~15–25 min first run · ~5–8 min cached'},
+  'jailbroken-31b': {display: 'Gemma 4 31B (abliterated)',size_gb: 18.0, fits: 'T4 ×2 (4-bit)', category: 'jailbroken',load_eta: '~15–25 min first run · repo quirks possible'},
+  'jailbroken-e4b': {display: 'Gemma 4 E4B (abliterated)',size_gb: 4.0,  fits: 'single T4',     category: 'jailbroken',load_eta: '~30–60 sec'},
+  'cloud-gemini':   {display: 'Gemini API (cloud)',       size_gb: 0.0,  fits: 'no GPU',        category: 'cloud',     load_eta: 'instant'},
+  'cloud-openai':   {display: 'OpenAI-compat (cloud)',    size_gb: 0.0,  fits: 'no GPU',        category: 'cloud',     load_eta: 'instant'},
+  'cloud-ollama':   {display: 'Ollama (cloud/local)',     size_gb: 0.0,  fits: 'no GPU',        category: 'cloud',     load_eta: 'instant'},
+};
+const PICKER_GROUP_LABELS = {
+  'on-device': 'On-device (Gemma 4 weights, runs in your Kaggle GPU)',
+  'jailbroken': 'Abliterated / jailbroken (proves harness still works on cracked models)',
+  'cloud': 'Cloud routes (no GPU needed — set API key in Kaggle Secrets first)',
+};
+let _pickerLoadingVariant = null;
+let _pickerPollTimer = null;
+
+function _pickerEl(id) { return document.getElementById('picker-' + id); }
+
+function _pickerEscapeHtml(s) {
+  return String(s == null ? '' : s).replace(/[&<>"']/g, function(c) {
+    if (c === '&') return '&amp;';
+    if (c === '<') return '&lt;';
+    if (c === '>') return '&gt;';
+    if (c === '"') return '&quot;';
+    return '&#39;';
+  });
+}
+
+function _pickerSetStatus(html, isError) {
+  const status = _pickerEl('status');
+  if (!status) return;
+  status.innerHTML = html;
+  status.className = 'picker-status show' + (isError ? ' error' : '');
+}
+
+function _pickerRenderLogs(events) {
+  const logs = _pickerEl('logs');
+  if (!logs) return;
+  if (!events || !events.length) { logs.textContent = 'No loader events yet.'; return; }
+  logs.textContent = events.map(function(e) {
+    const elapsed = e.elapsed_s == null ? '' : '+' + Number(e.elapsed_s).toFixed(1) + 's ';
+    const level = e.level && e.level !== 'info' ? e.level.toUpperCase() + ' ' : '';
+    const phase = e.phase ? '[' + e.phase + '] ' : '';
+    return (e.ts || '') + ' ' + elapsed + level + phase + (e.message || '');
+  }).join('\n');
+  logs.scrollTop = logs.scrollHeight;
+}
+
+function _pickerSetCardsLoading(variant) {
+  const groups = _pickerEl('groups');
+  if (!groups) return;
+  Array.prototype.forEach.call(groups.querySelectorAll('.picker-vcard'), function(card) {
+    const active = card.dataset.variant === variant;
+    card.disabled = !!variant;
+    card.classList.toggle('disabled', !!variant && !active);
+    card.classList.toggle('loading', active);
+    card.classList.toggle('loaded', false);
+  });
+}
+
+function _pickerSetCardsLoaded(variant) {
+  const groups = _pickerEl('groups');
+  if (!groups) return;
+  Array.prototype.forEach.call(groups.querySelectorAll('.picker-vcard'), function(card) {
+    const active = card.dataset.variant === variant;
+    card.disabled = false;
+    card.classList.toggle('disabled', false);
+    card.classList.toggle('loading', false);
+    card.classList.toggle('loaded', active);
+  });
+}
+
+function _pickerBuildCards(variants) {
+  const groups = _pickerEl('groups');
+  if (!groups) return;
+  const map = (variants && Object.keys(variants).length)
+      ? variants : PICKER_FALLBACK_VARIANTS;
+  groups.innerHTML = '';
+  const byCat = {};
+  for (const k in map) {
+    const v = map[k] || {};
+    const cat = v.category || 'on-device';
+    if (!byCat[cat]) byCat[cat] = [];
+    byCat[cat].push([k, v]);
+  }
+  ['on-device', 'jailbroken', 'cloud'].forEach(function(cat) {
+    if (!byCat[cat]) return;
+    const div = document.createElement('div');
+    div.className = 'picker-group';
+    const lbl = document.createElement('div');
+    lbl.className = 'picker-glabel';
+    lbl.textContent = PICKER_GROUP_LABELS[cat] || cat;
+    div.appendChild(lbl);
+    const grid = document.createElement('div');
+    grid.className = 'picker-grid';
+    byCat[cat].forEach(function(pair) {
+      const key = pair[0], info = pair[1] || {};
+      const card = document.createElement('button');
+      card.type = 'button';
+      card.className = 'picker-vcard ' + cat;
+      card.dataset.variant = key;
+      const sizeLabel = (typeof info.size_gb === 'number' && info.size_gb > 0)
+          ? info.size_gb.toFixed(1) + ' GB' : 'no local download';
+      const eta = info.load_eta || '';
+      card.innerHTML =
+        '<div class="vt">' + _pickerEscapeHtml(info.display || key) + '</div>' +
+        '<div class="vsz">' + _pickerEscapeHtml(sizeLabel) + '</div>' +
+        '<div class="vfit">' + _pickerEscapeHtml(info.fits || '') + '</div>' +
+        (eta ? '<div class="veta">⏱ ' + _pickerEscapeHtml(eta) + '</div>' : '');
+      card.addEventListener('click', function() {
+        if (_pickerLoadingVariant) {
+          _pickerSetStatus('<span class="picker-spinner"></span>Already loading <b>' +
+                           _pickerEscapeHtml(_pickerLoadingVariant) +
+                           '</b>. Switching during a CUDA load is disabled; wait for completion or restart the Kaggle cell.', false);
+          return;
+        }
+        _pickerStart(key, info.display || key);
+      });
+      grid.appendChild(card);
+    });
+    div.appendChild(grid);
+    groups.appendChild(div);
+  });
+}
+
+function _pickerStart(variant, label) {
+  _pickerLoadingVariant = variant;
+  _pickerSetCardsLoading(variant);
+  const enterBtn = _pickerEl('enter-chat');
+  if (enterBtn) enterBtn.style.display = 'none';
+  _pickerSetStatus('<span class="picker-spinner"></span>Loading ' + _pickerEscapeHtml(label) +
+                   ' — keep this tab open to watch live progress.', false);
+  fetch('/api/load-model', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({variant: variant})
+  }).then(function(r) {
+      return r.json().then(function(data) { return {ok: r.ok, data: data}; })
+        .catch(function() { return {ok: r.ok, data: {}}; });
+    })
+    .then(function(res) {
+      const payload = res.data || {};
+      if (payload.status === 'already_loaded') {
+        _pickerSetStatus('<b>Model already loaded.</b><br>' + _pickerEscapeHtml(payload.message || 'Entering chat.'), false);
+        setTimeout(_pickerEnterChat, 350);
+      } else if (payload.status === 'busy') {
+        _pickerLoadingVariant = payload.variant || variant;
+        _pickerSetCardsLoading(_pickerLoadingVariant);
+        _pickerSetStatus('<span class="picker-spinner"></span>' +
+                         _pickerEscapeHtml(payload.message || 'A model is already loading.'), false);
+        _pickerPoll();
+      } else if (!res.ok || payload.status === 'error') {
+        _pickerLoadingVariant = null;
+        _pickerSetCardsLoading(null);
+        _pickerSetStatus('<b>Load failed:</b><br>' +
+                         _pickerEscapeHtml(payload.error || payload.message || ('HTTP ' + (res.ok ? 'OK' : 'error'))) +
+                         '<div class="meta">Open View logs for the exact failing phase.</div>', true);
+      } else {
+        _pickerPoll();
+      }
+    }).catch(function(e) {
+      _pickerLoadingVariant = null;
+      _pickerSetCardsLoading(null);
+      _pickerSetStatus('<b>Request failed:</b> ' + _pickerEscapeHtml(e && e.message || e), true);
+    });
+}
+
+function _pickerPoll() {
+  fetch('/api/load-model/status').then(function(r) {
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    return r.json();
+  }).then(function(s) {
+    _pickerRenderLogs(s.logs || []);
+    if (s.ready) {
+      _pickerLoadingVariant = null;
+      _pickerSetCardsLoaded(s.variant);
+      const model = (s.active_model && (s.active_model.display || s.active_model.name)) ||
+                    s.variant || 'model';
+      _pickerSetStatus('<b>Ready.</b> ' + _pickerEscapeHtml(model) +
+                       '<div class="meta">Entering chat. If the page does not advance, click Enter chat.</div>', false);
+      const enterBtn = _pickerEl('enter-chat');
+      if (enterBtn) enterBtn.style.display = 'inline-block';
+      setTimeout(_pickerEnterChat, 900);
       return;
     }
-  } catch (e) { /* fall through */ }
-  const overlay = document.getElementById('_dc-model-picker');
-  if (overlay) {
-    overlay.classList.add('show');
-    return;
-  }
-  alert(
-    'The model picker overlay is not present on this page. The kernel ' +
-    "either hasn't injected it yet or this is a stale cached page.\n\n" +
-    'Try a hard refresh (Cmd/Ctrl + Shift + R). If the picker still ' +
-    "doesn't appear, the kernel may not have started — re-run the cell."
-  );
+    if (s.status === 'error') {
+      _pickerLoadingVariant = null;
+      _pickerSetCardsLoading(null);
+      const enterBtn = _pickerEl('enter-chat');
+      if (enterBtn) enterBtn.style.display = 'none';
+      const logs = _pickerEl('logs');
+      if (logs) logs.classList.add('show');
+      const logsBtn = _pickerEl('view-logs');
+      if (logsBtn) logsBtn.textContent = 'Hide logs';
+      _pickerSetStatus('<b>Load failed:</b><br>' + _pickerEscapeHtml(s.error || 'unknown error') +
+                       '<div class="meta">Logs are open below. Pick another variant only after reading the failing phase, or restart the cell.</div>', true);
+      return;
+    }
+    if (s.status === 'loading') {
+      _pickerLoadingVariant = s.variant;
+      _pickerSetCardsLoading(s.variant);
+    }
+    const el = (s.elapsed_s || 0).toFixed(0);
+    const phase = s.phase ? ' · ' + _pickerEscapeHtml(s.phase) : '';
+    const eta = s.eta ? ' · expected ' + _pickerEscapeHtml(s.eta) : '';
+    const last = s.last_log ? '<div class="meta">' + _pickerEscapeHtml(s.last_log) + '</div>' : '';
+    _pickerSetStatus('<span class="picker-spinner"></span>Loading <b>' +
+                     _pickerEscapeHtml(s.variant || _pickerLoadingVariant || 'model') +
+                     '</b><span class="meta" style="color:#cbd5e1"> · ' + el +
+                     's elapsed' + phase + eta + '</span>' + last, false);
+    _pickerPollTimer = setTimeout(_pickerPoll, 1500);
+  }).catch(function() {
+    _pickerPollTimer = setTimeout(_pickerPoll, 3000);
+  });
+}
+
+function _pickerEnterChat() {
+  if (_pickerPollTimer) { clearTimeout(_pickerPollTimer); _pickerPollTimer = null; }
+  const enterBtn = _pickerEl('enter-chat');
+  if (enterBtn) enterBtn.style.display = 'none';
+  closeModelPicker();
+  try { refreshBadge(); } catch (e) {}
+  try { probeHarness(); } catch (e) {}
+  try { document.getElementById('input').focus(); } catch (e) {}
+}
+
+function openModelPicker() {
+  const overlay = document.getElementById('picker-overlay');
+  if (!overlay) return;
+  overlay.classList.add('show');
+  // Refresh state every time we open: fetch status, render cards, resume
+  // polling if the kernel is mid-load.
+  fetch('/api/load-model/status').then(function(r) {
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    return r.json();
+  }).then(function(s) {
+    _pickerBuildCards(s && s.variants);
+    _pickerRenderLogs((s && s.logs) || []);
+    // If a model is already wired, give the user a Close button to bail
+    // out without picking a new one (switching mid-session restarts the
+    // Kaggle cell anyway).
+    const closeBtn = _pickerEl('close');
+    if (closeBtn) closeBtn.style.display = s && s.ready ? 'inline-block' : 'none';
+    if (s && s.status === 'loading') {
+      _pickerLoadingVariant = s.variant;
+      _pickerSetCardsLoading(s.variant);
+      _pickerPoll();
+    } else if (s && s.ready) {
+      _pickerSetCardsLoaded(s.variant);
+    }
+  }).catch(function() {
+    // /api/load-model/status missing or down: render fallback cards so
+    // user still sees something. Clicking will surface the real error
+    // when /api/load-model itself responds.
+    _pickerBuildCards(null);
+    _pickerSetStatus('<b>Could not reach the kernel\'s loader endpoint.</b>' +
+                     '<div class="meta">The chat server is up but /api/load-model/status did not respond. The cards below are the bundled defaults; clicking will retry the load endpoint and surface the underlying error.</div>', true);
+  });
+}
+
+function closeModelPicker() {
+  const overlay = document.getElementById('picker-overlay');
+  if (overlay) overlay.classList.remove('show');
 }
 
 function onBadgeClick() {
   // The badge is the most visible "model is/isn't loaded" indicator.
   // Clicking it opens the picker so users can switch models or pick
   // an initial one without hunting for the CTA in the empty state.
-  openModelPickerFromUI();
+  openModelPicker();
 }
+
+function openModelPickerFromUI() { openModelPicker(); }
+
+// Wire the picker buttons + auto-open on first load when no model is
+// wired. Runs once at script-load (the picker DOM lives in this same
+// document so getElementById always succeeds).
+(function _initPicker() {
+  const logsBtn = _pickerEl('view-logs');
+  const enterBtn = _pickerEl('enter-chat');
+  const closeBtn = _pickerEl('close');
+  const logs = _pickerEl('logs');
+  if (logsBtn && logs) {
+    logsBtn.addEventListener('click', function() {
+      logs.classList.toggle('show');
+      logsBtn.textContent = logs.classList.contains('show') ? 'Hide logs' : 'View logs';
+      if (logs.classList.contains('show')) {
+        fetch('/api/load-model/logs?limit=250', {cache: 'no-store'})
+          .then(function(r) { return r.json(); })
+          .then(function(data) { _pickerRenderLogs(data.logs || []); })
+          .catch(function(e) { logs.textContent = 'Could not fetch logs: ' + (e && e.message || e); });
+      }
+    });
+  }
+  if (enterBtn) enterBtn.addEventListener('click', _pickerEnterChat);
+  if (closeBtn) closeBtn.addEventListener('click', closeModelPicker);
+  // Initial decision: open the picker if no model is loaded yet.
+  fetch('/api/model-info', {cache: 'no-store'}).then(function(r) {
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    return r.json();
+  }).then(function(info) {
+    if (info && info.loaded) return;  // model already wired: stay hidden
+    openModelPicker();
+  }).catch(function() {
+    // /api/model-info unreachable — open the picker so the user has
+    // SOME way to interact rather than silently hanging.
+    openModelPicker();
+  });
+})();
 
 function openAboutModal() {
   // Detailed walkthrough lives in this modal, not in the empty state.
