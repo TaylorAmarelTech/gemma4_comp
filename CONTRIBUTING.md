@@ -7,8 +7,23 @@
 For a full extensibility walkthrough with skeleton code for each plugin
 kind, see [`docs/EXTENDING.md`](./docs/EXTENDING.md).
 
-For judges verifying the submission, see
-[`docs/FOR_JUDGES.md`](./docs/FOR_JUDGES.md).
+For peer reviewers + hackathon judges verifying the submission, see
+[`docs/FOR_PEER_REVIEW.md`](./docs/FOR_PEER_REVIEW.md).
+
+## Stakeholders — edit a curator JSON without reading Python
+
+The grader's "magic strings" — per-language signal lists, statute
+allowlists, dimension multipliers, evaluator questions, etc. — live in
+**12 versioned JSON files** with provenance metadata. Domain experts
+(NGO partners, jurists, language experts, regulators) can submit
+single-file PRs. See:
+
+- **[`docs/contributing_curator_blocks.md`](./docs/contributing_curator_blocks.md)** — single-page guide with file-by-file conventions, required provenance fields, and a step-by-step PR workflow
+- **[`docs/maintenance/`](./docs/maintenance/)** — per-component edit guides (personas, GREP rules, RAG corpus, tool functions, online search)
+- **`scripts/validate_curator_blocks.py`** — schema + cross-reference validator. Run before PR: `python scripts/validate_curator_blocks.py`
+
+CI runs the validator on every PR (see `.github/workflows/ci.yml`).
+Malformed curator blocks are blocked at merge.
 
 ## Quick paths
 

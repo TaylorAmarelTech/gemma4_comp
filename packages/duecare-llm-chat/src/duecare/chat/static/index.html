@@ -765,6 +765,8 @@ async function refreshBadge() {
   try {
     const r = await fetch('/api/model-info', {cache:'no-store'});
     const info = await r.json();
+    // Cache for runAblation's concurrency-warning logic
+    window._modelInfo = info;
     const el = document.getElementById('badge');
     const txt = document.getElementById('badge-text');
     // Show variant + size + quantization. Highlights what's actually
@@ -2965,6 +2967,22 @@ async function autoGradeChips(msgIdx, responseText, promptText, harnessTrace) {
 }
 
 async function runAblation(msgIdx) {
+  // Concurrency footgun guard: ablation runs 4 sequential generations
+  // each holding _GEMMA_LOCK. With 31B that's 8-15 minutes during
+  // which every other user's chat is blocked. Make this explicit
+  // before firing — public-demo failure mode is "one click + walk
+  // away → demo dead for 15 min".
+  const _modelDisplay = (window._modelInfo && (window._modelInfo.display || window._modelInfo.name)) || '';
+  const isLargeVariant = /31b|26b|a4b|jailbroken-31b/i.test(_modelDisplay);
+  const estMinutes = isLargeVariant ? '8-15 min' : '2-4 min';
+  const ok = window.confirm(
+    'Layer ablation runs the same prompt 4 times (OFF / GREP / RAG / BOTH) ' +
+    'and grades each result. Total: ' + estMinutes + '.\n\n' +
+    'During this time every other user on this URL will be blocked ' +
+    'from sending chat messages (single GPU, single _GEMMA_LOCK).\n\n' +
+    'Run ablation now?'
+  );
+  if (!ok) return;
   // Re-build the message list AS IF the user had just sent the
   // prompt that produced messages[msgIdx]. We need everything up
   // to (and including) the most recent user message before the

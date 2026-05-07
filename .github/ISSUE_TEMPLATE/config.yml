@@ -1,0 +1,14 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Documentation
+    url: https://github.com/TaylorAmarelTech/gemma4_comp/blob/master/docs/component_diagram.md
+    about: Architecture, deployment topologies, API surface
+  - name: Curator-block edit guide
+    url: https://github.com/TaylorAmarelTech/gemma4_comp/blob/master/docs/contributing_curator_blocks.md
+    about: How to edit a curator JSON file (signals, statutes, weights, hints)
+  - name: Per-component maintenance guides
+    url: https://github.com/TaylorAmarelTech/gemma4_comp/tree/master/docs/maintenance
+    about: Personas, GREP rules, RAG corpus, tool functions, online search
+  - name: Peer-review walkthrough
+    url: https://github.com/TaylorAmarelTech/gemma4_comp/blob/master/docs/FOR_PEER_REVIEW.md
+    about: 5-minute walkthrough for reviewers + judges

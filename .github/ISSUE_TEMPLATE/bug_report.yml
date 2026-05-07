@@ -1,0 +1,88 @@
+name: Bug report
+description: Something is broken — grader returns wrong score, kernel crashes, UI doesn't load, etc.
+labels: ["bug", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for the report. The chat package has a `/api/version` endpoint
+        that returns every version stamp + curator-block hash; please run it
+        and paste the output below so we can pin the failing revision.
+
+  - type: input
+    id: where
+    attributes:
+      label: Where did this happen?
+      description: e.g. "Kaggle 01-duecare-harness-chat", "HF Space", "local dev", "Android v0.9.0 APK"
+      placeholder: Kaggle 01-duecare-harness-chat
+    validations:
+      required: true
+
+  - type: input
+    id: variant
+    attributes:
+      label: Which Gemma 4 variant?
+      description: e2b-it / e4b-it / 26b-a4b-it / 31b-it / jailbroken-31b / cloud-gemini / cloud-openai / cloud-ollama
+      placeholder: e4b-it
+    validations:
+      required: false
+
+  - type: textarea
+    id: version
+    attributes:
+      label: Output of `/api/version`
+      description: |
+        Run `curl https://<your-url>/api/version | jq` and paste the output here.
+        Pin the chat package version, rubric version, and curator-block versions.
+      render: json
+    validations:
+      required: false
+
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+      description: |
+        Minimal repro. Include the exact prompt + which toggles were on.
+      placeholder: |
+        1. Open https://...
+        2. Toggle Persona + GREP + RAG ON
+        3. Send "..."
+        4. Click ▸ View pipeline
+        5. (See bug)
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Loader logs (if model load failed)
+      description: |
+        Run `curl https://<your-url>/api/load-model/logs?limit=200 | jq` and paste the output.
+      render: json
+
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Severity
+      options:
+        - "Low — UX glitch, workaround exists"
+        - "Medium — feature unusable but core chat still works"
+        - "High — chat broken, blocks demo"
+        - "Critical — data loss, security, or PII leak"
+    validations:
+      required: true

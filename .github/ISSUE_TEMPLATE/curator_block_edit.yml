@@ -1,0 +1,95 @@
+name: Curator-block edit proposal
+description: Suggest an edit to one of the 12 curator JSON files (statutes / signals / questions / weights / hints) — no Python knowledge required
+labels: ["curator-block", "stakeholder-pr"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Welcome! NGO partners, jurists, language experts, and regulators
+        can edit the curator JSON files in single-file PRs. This issue
+        helps you propose an edit before opening the PR.
+
+        **First read:** [`docs/contributing_curator_blocks.md`](../blob/master/docs/contributing_curator_blocks.md)
+        for file-by-file guidance.
+
+  - type: dropdown
+    id: file
+    attributes:
+      label: Which curator JSON file?
+      options:
+        - "_classifier_signals.json (per-language prompt signals)"
+        - "_authoritative_statutes.json (statute allowlist)"
+        - "_known_statute_sections.json (statute §/Art. ranges)"
+        - "_evaluation_questions.json (LLM evaluator questions)"
+        - "_usecase_affinity.json (per-audience dim weights)"
+        - "_intent_affinity.json (response-side intent weights)"
+        - "_intent_signals.json (response-side phrase detection)"
+        - "_country_hints.json (corridor country signals)"
+        - "_grader_config.json (thresholds + feature flags)"
+        - "_baseline_gauge.json (stock vs harnessed reference)"
+        - "_rubric_hints.json (UI PASS/FAIL hints)"
+        - "_rubric_universal.json (rubric dimensions)"
+        - "Not sure / new file"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: kind
+    attributes:
+      label: What kind of edit?
+      options:
+        - "Add new entry (signal / statute / question / etc.)"
+        - "Update existing entry (statute amended, weight tuning, etc.)"
+        - "Remove entry (deprecated / superseded)"
+        - "Add a new top-level field"
+        - "Schema version bump"
+    validations:
+      required: true
+
+  - type: textarea
+    id: change
+    attributes:
+      label: The proposed change
+      description: |
+        For new entries: paste the JSON entry as you'd add it to the file.
+        For updates: show before / after.
+      render: json
+    validations:
+      required: true
+
+  - type: textarea
+    id: rationale
+    attributes:
+      label: Rationale
+      description: |
+        Why this change? Especially important for:
+        - Statute citations (cite the source URL)
+        - Weight tuning (cite the eval set / case data the new weight reflects)
+        - Multi-lingual signals (native-speaker confirmation that the phrase is idiomatic)
+    validations:
+      required: true
+
+  - type: input
+    id: source_url
+    attributes:
+      label: Source URL (if legal claim)
+      description: Link to authoritative source (lawphil.net, ilo.org, etc.)
+    validations:
+      required: false
+
+  - type: input
+    id: native_speaker
+    attributes:
+      label: Native-speaker review (if non-English signal)
+      description: Who reviewed the language correctness? Self-attestation OK; just name + qualification.
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: validator
+    attributes:
+      label: Pre-flight check
+      description: Run before opening the PR — saves a CI round trip
+      options:
+        - label: I ran `python scripts/validate_curator_blocks.py` and got 0 errors
+          required: false

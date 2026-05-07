@@ -2,12 +2,79 @@ name: ci
 
 on:
   push:
-    branches: [main]
+    branches: [master, main]
   pull_request:
-    branches: [main]
+    branches: [master, main]
   workflow_dispatch:
 
+# Don't waste minutes on duplicate runs of the same SHA
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
 jobs:
+
+  curator-blocks-validate:
+    name: curator-block validator
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run validate_curator_blocks.py
+        run: python scripts/validate_curator_blocks.py
+      - name: Strict mode (warnings escalated)
+        run: python scripts/validate_curator_blocks.py --strict || echo "::warning::strict-mode warnings present"
+
+  wheel-content-check:
+    name: wheel-content check (12 curator JSONs ship)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install build tooling
+        run: |
+          python -m pip install --no-cache-dir --upgrade pip
+          python -m pip install --no-cache-dir build hatchling
+      - name: Build chat wheel
+        run: |
+          cd packages/duecare-llm-chat
+          python -m build --wheel --no-isolation --outdir dist/
+      - name: Verify wheel contains all 12 curator JSONs + static UI
+        run: |
+          python - <<'PY'
+          import zipfile
+          from pathlib import Path
+          wheel = next(Path("packages/duecare-llm-chat/dist").glob("*.whl"))
+          z = zipfile.ZipFile(wheel)
+          names = set(z.namelist())
+          required = [
+              "duecare/chat/harness/_classifier_signals.json",
+              "duecare/chat/harness/_usecase_affinity.json",
+              "duecare/chat/harness/_authoritative_statutes.json",
+              "duecare/chat/harness/_known_statute_sections.json",
+              "duecare/chat/harness/_evaluation_questions.json",
+              "duecare/chat/harness/_intent_affinity.json",
+              "duecare/chat/harness/_intent_signals.json",
+              "duecare/chat/harness/_country_hints.json",
+              "duecare/chat/harness/_grader_config.json",
+              "duecare/chat/harness/_baseline_gauge.json",
+              "duecare/chat/harness/_rubric_hints.json",
+              "duecare/chat/harness/_rubric_universal.json",
+              "duecare/chat/static/index.html",
+          ]
+          missing = [r for r in required if r not in names]
+          if missing:
+              raise SystemExit(f"FAIL: wheel is missing {missing}")
+          print(f"OK: {wheel.name} contains all {len(required)} required files")
+          PY
+
   gitleaks:
     name: gitleaks (PII / secret scan)
     runs-on: ubuntu-latest
