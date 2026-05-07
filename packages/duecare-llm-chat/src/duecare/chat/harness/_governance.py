@@ -54,7 +54,16 @@ GRADER_CONFIG_PATH          = _HARNESS_DIR / "_grader_config.json"
 BASELINE_GAUGE_PATH         = _HARNESS_DIR / "_baseline_gauge.json"
 RUBRIC_HINTS_PATH           = _HARNESS_DIR / "_rubric_hints.json"
 
-_REQUIRED_ENVELOPE_KEYS = ("schema", "version", "entries")
+# Only schema + version are universally required. The body shape
+# differs per block type: classifier_signals/authoritative_statutes/
+# known_statute_sections use `entries`, but evaluation_questions uses
+# `questions`, intent_affinity uses `intents`, country_hints uses
+# `countries`, grader_config uses `thresholds` + `feature_flags`,
+# baseline_gauge uses `stock` + `harnessed`, rubric_hints uses
+# `hints`, usecase_affinity uses `use_cases`. Requiring `entries`
+# universally fired a spurious warning for 8/11 files on every
+# /api/governance request — caught in live Kaggle test 2026-05-07.
+_REQUIRED_ENVELOPE_KEYS = ("schema", "version")
 
 
 def load_curator_block(path: os.PathLike | str) -> dict[str, Any]:

@@ -288,8 +288,8 @@ def create_app(
         Shape:
           {chat_package: "0.2.0",
            harness: {rubric_version: "v3.6", n_dimensions: 21,
-                     n_evaluation_questions: 21, n_grep_rules: 108,
-                     n_rag_docs: 33, n_tools: 5, n_examples: 407,
+                     n_evaluation_questions: 21, n_grep_rules: 111,
+                     n_rag_docs: 35, n_tools: 5, n_examples: 413,
                      n_classifier_signals: 194, n_authoritative_statutes: 144,
                      n_use_cases: 7, n_languages: 12},
            curator_blocks: [{name, schema, version, last_updated, n_entries}],

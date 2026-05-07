@@ -8,7 +8,7 @@
   submission visible here:
 
       Persona      expert anti-trafficking persona prepended to context
-      GREP         108 regex KB rules across 16 categories (debt
+      GREP         111 regex KB rules across 16 categories (debt
                      bondage, fee camouflage, corridor fee caps,
                      ILO indicators, kafala framework + extended
                      mechanisms, sector-specific labour abuse,
@@ -17,7 +17,7 @@
                      recovery suppression / repatriation barriers,
                      additional corridors, platform / digital
                      recruitment patterns)
-      RAG          BM25 retrieval over a 33-doc reference corpus
+      RAG          BM25 retrieval over a 35-doc reference corpus
       Tools        5 lookup functions (corridor fee caps, fee
                      camouflage, ILO indicators, NGO intake, ILO
                      Convention reference)
@@ -48,8 +48,9 @@
       model load + create_app(**default_harness()) + cloudflared.
 
   Requires:
-    - GPU T4 x2 (default 31b-it); single T4 for E2B/E4B; CPU OK for
-      cloud-* variants
+    - Single T4 for E2B/E4B; T4 x2 for 31B/26B-A4B; CPU OK for
+      cloud-* variants. No model is loaded until the browser picker
+      selects one.
     - Internet ON
     - Datasets attached:
         taylorsamarel/duecare-harness-chat-wheels
@@ -66,6 +67,7 @@ import subprocess
 import sys
 import threading
 import time
+import traceback
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Optional
@@ -810,6 +812,55 @@ class LoadedModel:
     device: str
 
 
+_MODEL_LOAD_LOG_LOCK = threading.Lock()
+_MODEL_LOAD_EVENTS: list[dict[str, Any]] = []
+_MODEL_LOAD_MAX_EVENTS = 500
+
+
+def _reset_load_events() -> None:
+    """Clear the in-memory model-loader log ring."""
+    with _MODEL_LOAD_LOG_LOCK:
+        _MODEL_LOAD_EVENTS.clear()
+
+
+def _snapshot_load_events(limit: int = 120) -> list[dict[str, Any]]:
+    """Return the most recent model-loader log events for the UI."""
+    limit = max(1, min(int(limit), _MODEL_LOAD_MAX_EVENTS))
+    with _MODEL_LOAD_LOG_LOCK:
+        return [dict(e) for e in _MODEL_LOAD_EVENTS[-limit:]]
+
+
+def _log_load(message: str, *, phase: Optional[str] = None,
+              level: str = "info") -> None:
+    """Record a model-loading event and mirror it to Kaggle stdout."""
+    state = globals().get("_MODEL_LOAD_STATE")
+    elapsed = None
+    if isinstance(state, dict) and state.get("started_at"):
+        elapsed = round(time.time() - float(state["started_at"]), 1)
+    event = {
+        "ts": time.strftime("%H:%M:%S"),
+        "elapsed_s": elapsed,
+        "phase": phase,
+        "level": level,
+        "message": message,
+    }
+    with _MODEL_LOAD_LOG_LOCK:
+        _MODEL_LOAD_EVENTS.append(event)
+        if len(_MODEL_LOAD_EVENTS) > _MODEL_LOAD_MAX_EVENTS:
+            del _MODEL_LOAD_EVENTS[:-_MODEL_LOAD_MAX_EVENTS]
+        seq = len(_MODEL_LOAD_EVENTS)
+    if isinstance(state, dict):
+        state["last_log"] = message
+        state["updated_at"] = time.time()
+        state["log_seq"] = seq
+        if phase:
+            state["phase"] = phase
+    prefix = f"  [load-model][{level}]"
+    if phase:
+        prefix += f"[{phase}]"
+    print(f"{prefix} {message}")
+
+
 def _model_size_b(variant: str) -> float:
     return {
         "e2b-it": 2.0, "e4b-it": 4.0,
@@ -946,92 +997,196 @@ def _load_cloud_route() -> Optional[LoadedModel]:
 
 
 def load_gemma() -> Optional[LoadedModel]:
-    # Cloud routes don't need GPU detection or Unsloth
-    if _is_cloud_variant():
-        print(f"  variant={GEMMA_MODEL_VARIANT} → routing to cloud API")
-        return _load_cloud_route()
-    gpu = _detect_gpu()
-    print(f"  GPU: {gpu['name']} x{gpu['count']}  ({gpu['vram_gb']:.1f} GB)"
-          if gpu["available"] else "  GPU: none")
-    if not gpu["available"]:
-        print("  No GPU available. Re-run with one of the cloud-* "
-                "variants (cloud-gemini / cloud-openai / cloud-ollama) "
-                "or attach a T4.")
-        return None
-    try:
-        import torch
-        from unsloth import FastModel
-    except Exception as e:
-        print(f"  FastModel import FAILED: {type(e).__name__}: {e}")
-        return None
-    variant = GEMMA_MODEL_VARIANT
-    # Resolve HF model id: explicit jailbroken id or the unsloth mirror
-    if variant.startswith("jailbroken-"):
-        repo = _VARIANT_HF_ID.get(variant, variant)
+  # Cloud routes don't need GPU detection or Unsloth.
+  if _is_cloud_variant():
+    _log_load(f"variant={GEMMA_MODEL_VARIANT} -> routing to cloud API",
+          phase="cloud-route")
+    return _load_cloud_route()
+
+  _log_load("checking Kaggle GPU inventory", phase="gpu-check")
+  gpu = _detect_gpu()
+  _log_load(
+    f"GPU: {gpu['name']} x{gpu['count']}  ({gpu['vram_gb']:.1f} GB)"
+    if gpu["available"] else "GPU: none",
+    phase="gpu-check",
+  )
+  if not gpu["available"]:
+    _log_load("No GPU available. Re-run with one of the cloud-* "
+          "variants (cloud-gemini / cloud-openai / cloud-ollama) "
+          "or attach a T4.", phase="error", level="error")
+    return None
+
+  try:
+    _log_load("importing torch and Unsloth FastModel",
+          phase="importing")
+    import torch
+    from unsloth import FastModel
+    cuda_version = getattr(torch.version, "cuda", "unknown")
+    _log_load(f"torch={torch.__version__}; cuda={cuda_version}; "
+          f"cuda_available={torch.cuda.is_available()}",
+          phase="imported")
+  except Exception as e:
+    _log_load(f"FastModel import FAILED: {type(e).__name__}: {e}",
+          phase="error", level="error")
+    return None
+
+  variant = GEMMA_MODEL_VARIANT
+  _log_load(f"resolving repository for variant={variant}",
+        phase="resolve-repo")
+  if variant.startswith("jailbroken-"):
+    repo = _VARIANT_HF_ID.get(variant, variant)
+    _log_load(f"using non-standard / abliterated repo: {repo}",
+          phase="resolve-repo", level="warn")
+  else:
+    repo_variant = (variant.replace("e2b-it", "E2B-it")
+                .replace("e4b-it", "E4B-it")
+                .replace("26b-a4b-it", "26B-A4B-it")
+                .replace("31b-it", "31B-it"))
+    hf_repo = f"unsloth/gemma-4-{repo_variant}"
+    repo = hf_repo
+    for v in ("1", "2", "3"):
+      p = (f"/kaggle/input/models/google/gemma-4/transformers/"
+         f"gemma-4-{variant}/{v}")
+      if Path(p, "config.json").exists():
+        repo = p
+        break
+    if repo == hf_repo:
+      _log_load(f"no local Kaggle model attachment found; will "
+            f"download from HF Hub: {hf_repo}",
+            phase="resolve-repo", level="warn")
     else:
-        repo_variant = (variant.replace("e2b-it", "E2B-it")
-                              .replace("e4b-it", "E4B-it")
-                              .replace("26b-a4b-it", "26B-A4B-it")
-                              .replace("31b-it", "31B-it"))
-        hf_repo = f"unsloth/gemma-4-{repo_variant}"
-        repo = hf_repo
-        for v in ("1", "2", "3"):
-            p = (f"/kaggle/input/models/google/gemma-4/transformers/"
-                 f"gemma-4-{variant}/{v}")
-            if Path(p, "config.json").exists():
-                repo = p; break
-        if repo == hf_repo:
-            print(f"  no local attachment; will download from HF Hub: {hf_repo}")
+      _log_load(f"using local attached model: {repo}",
+            phase="resolve-repo")
+
+  eff_dmap = GEMMA_DEVICE_MAP
+  if eff_dmap == "auto" and variant in ("31b-it", "26b-a4b-it"):
+    eff_dmap = "balanced" if gpu["count"] >= 2 else "auto"
+  if variant in ("31b-it", "26b-a4b-it", "jailbroken-31b"):
+    _log_load("large-model path: first run can take 15-25 min "
+          "(HF download is slow; cached runs are ~5-8 min). "
+          "weights download → shard-map → quantization → CUDA "
+          "memory planning all happen inside from_pretrained.",
+          phase="preload", level="warn")
+  _log_load(f"FastModel.from_pretrained(model={repo}, "
+        f"max_seq={GEMMA_MAX_SEQ_LEN}, "
+        f"4bit={GEMMA_LOAD_IN_4BIT}, device_map={eff_dmap})",
+        phase="from_pretrained")
+
+  # H1 (live-test feedback 2026-05-07): the from_pretrained call is a
+  # 15-25 minute black box on first run for 31B. Without a heartbeat
+  # the user sees "Loading 31b-it ... 1334 seconds elapsed" with no
+  # phase update for 22 minutes and reasonably assumes the kernel
+  # crashed. Spawn a daemon that polls VRAM every 15s and emits a
+  # progress event so the UI knows the load is alive. Killed on
+  # return from from_pretrained.
+  _heartbeat_stop = threading.Event()
+  def _heartbeat_loop():
+    last_alloc = [0.0, 0.0]
+    tick = 0
+    while not _heartbeat_stop.wait(15.0):
+      tick += 1
+      try:
+        if torch.cuda.is_available():
+          alloc_per_dev = []
+          for idx in range(torch.cuda.device_count()):
+            gb = torch.cuda.memory_allocated(idx) / 1_073_741_824
+            alloc_per_dev.append(gb)
+          # Detect growth = download → CPU → GPU is making progress
+          delta = sum(alloc_per_dev) - sum(last_alloc[:len(alloc_per_dev)])
+          last_alloc = alloc_per_dev
+          phase_hint = ("loading_to_gpu" if sum(alloc_per_dev) > 0.1
+                            else "downloading_or_cpu_init")
+          msg = (
+              f"heartbeat #{tick} (still alive after "
+              f"{tick * 15}s): VRAM "
+              + " | ".join(f"cuda:{i}={gb:.2f}GB"
+                              for i, gb in enumerate(alloc_per_dev))
+              + (f" · +{delta:.2f}GB since last tick"
+                  if abs(delta) > 0.01 else " · no change since last tick")
+          )
+          _log_load(msg, phase=phase_hint)
         else:
-            print(f"  using local attached model: {repo}")
-    eff_dmap = GEMMA_DEVICE_MAP
-    if eff_dmap == "auto" and variant in ("31b-it", "26b-a4b-it"):
-        eff_dmap = "balanced" if gpu["count"] >= 2 else "auto"
-    print(f"  FastModel.from_pretrained(model={repo}, "
-          f"max_seq={GEMMA_MAX_SEQ_LEN}, "
-          f"4bit={GEMMA_LOAD_IN_4BIT}, device_map={eff_dmap})")
-    try:
-        model, tokenizer = FastModel.from_pretrained(
-            model_name=repo, dtype=None,
-            max_seq_length=GEMMA_MAX_SEQ_LEN,
-            load_in_4bit=GEMMA_LOAD_IN_4BIT,
-            full_finetuning=False,
-            device_map=eff_dmap,
-        )
-    except Exception as e:
-        print(f"  FastModel FAILED: {type(e).__name__}: {str(e)[:300]}")
-        return None
-    try:
-        from unsloth.chat_templates import get_chat_template
-        tokenizer = get_chat_template(tokenizer,
-                                       chat_template="gemma-4-thinking")
-    except Exception:
-        pass
+          _log_load(f"heartbeat #{tick}: no CUDA available; CPU init "
+                        f"in progress (still alive after {tick * 15}s)",
+                        phase="cpu_init")
+      except Exception as e:  # noqa: BLE001
+        _log_load(f"heartbeat #{tick} probe failed: {type(e).__name__}: {e}",
+                  phase="heartbeat_error", level="warn")
 
-    def _gemma_call(messages, max_new_tokens=512, temperature=1.0,
-                     top_p=0.95, top_k=64):
-        inputs = tokenizer.apply_chat_template(
-            messages, add_generation_prompt=True, tokenize=True,
-            return_dict=True, return_tensors="pt").to("cuda")
-        out = model.generate(
-            **inputs, max_new_tokens=max_new_tokens,
-            use_cache=True,
-            temperature=temperature, top_p=top_p, top_k=top_k)
-        text = tokenizer.batch_decode(out)[0]
-        if "<|turn>model" in text:
-            text = text.split("<|turn>model", 1)[1]
-        if "<channel|>" in text:
-            text = text.split("<channel|>", 1)[1]
-        text = text.split("<turn|>", 1)[0]
-        return text.replace("<bos>", "").replace("<eos>", "").strip()
+  _heartbeat_thread = threading.Thread(
+      target=_heartbeat_loop, daemon=True, name="gemma-loader-heartbeat")
+  _heartbeat_thread.start()
 
-    return LoadedModel(
-        backend=_gemma_call, tokenizer=tokenizer, model=model,
-        name=f"gemma-4-{variant}",
-        size_b=_model_size_b(variant),
-        quantization="4-bit nf4" if GEMMA_LOAD_IN_4BIT else "bf16",
-        device=(f"balanced ({gpu['count']}x {gpu['name']})"
-                if eff_dmap == "balanced" else "cuda:0"))
+  t_load = time.time()
+  try:
+    model, tokenizer = FastModel.from_pretrained(
+      model_name=repo, dtype=None,
+      max_seq_length=GEMMA_MAX_SEQ_LEN,
+      load_in_4bit=GEMMA_LOAD_IN_4BIT,
+      full_finetuning=False,
+      device_map=eff_dmap,
+    )
+  except Exception as e:
+    _heartbeat_stop.set()
+    _log_load(f"FastModel FAILED: {type(e).__name__}: {str(e)[:500]}",
+          phase="error", level="error")
+    for line in traceback.format_exc().splitlines()[-10:]:
+      _log_load(line, phase="error", level="error")
+    return None
+  finally:
+    _heartbeat_stop.set()
+  _log_load(f"FastModel returned in {time.time()-t_load:.1f}s",
+        phase="post-load")
+
+  try:
+    if torch.cuda.is_available():
+      for idx in range(torch.cuda.device_count()):
+        alloc = torch.cuda.memory_allocated(idx) / 1_073_741_824
+        reserved = torch.cuda.memory_reserved(idx) / 1_073_741_824
+        name = torch.cuda.get_device_name(idx)
+        _log_load(f"cuda:{idx} {name}: allocated={alloc:.2f} GB; "
+              f"reserved={reserved:.2f} GB",
+              phase="gpu-memory")
+  except Exception as e:
+    _log_load(f"GPU memory summary unavailable: {type(e).__name__}: {e}",
+          phase="gpu-memory", level="warn")
+
+  try:
+    _log_load("applying gemma-4-thinking chat template",
+          phase="chat-template")
+    from unsloth.chat_templates import get_chat_template
+    tokenizer = get_chat_template(tokenizer,
+                    chat_template="gemma-4-thinking")
+    _log_load("chat template ready", phase="chat-template")
+  except Exception as e:
+    _log_load(f"chat template skipped: {type(e).__name__}: {e}",
+          phase="chat-template", level="warn")
+
+  def _gemma_call(messages, max_new_tokens=512, temperature=1.0,
+          top_p=0.95, top_k=64):
+    inputs = tokenizer.apply_chat_template(
+      messages, add_generation_prompt=True, tokenize=True,
+      return_dict=True, return_tensors="pt").to("cuda")
+    out = model.generate(
+      **inputs, max_new_tokens=max_new_tokens,
+      use_cache=True,
+      temperature=temperature, top_p=top_p, top_k=top_k)
+    text = tokenizer.batch_decode(out)[0]
+    if "<|turn>model" in text:
+      text = text.split("<|turn>model", 1)[1]
+    if "<channel|>" in text:
+      text = text.split("<channel|>", 1)[1]
+    text = text.split("<turn|>", 1)[0]
+    return text.replace("<bos>", "").replace("<eos>", "").strip()
+
+  _log_load("model backend callable ready", phase="ready")
+  return LoadedModel(
+    backend=_gemma_call, tokenizer=tokenizer, model=model,
+    name=f"gemma-4-{variant}",
+    size_b=_model_size_b(variant),
+    quantization="4-bit nf4" if GEMMA_LOAD_IN_4BIT else "bf16",
+    device=(f"balanced ({gpu['count']}x {gpu['name']})"
+        if eff_dmap == "balanced" else "cuda:0"))
 
 
 # ===========================================================================
@@ -1086,16 +1241,22 @@ _MODEL_LOAD_LOCK  = threading.Lock()
 _MODEL_LOAD_STATE = {
     "status":     "idle",
     "variant":    None,
+    "selected_display": None,
+    "phase":      "idle",
     "started_at": None,
+    "updated_at": None,
+    "completed_at": None,
     "error":      None,
+    "last_log":   None,
+    "log_seq":    0,
 }
 
 _VARIANT_INFO = {
     "e2b-it":         {"display": "Gemma 4 E2B-it",          "size_gb": 2.0,  "fits": "single T4",  "category": "on-device", "load_eta": "~20–30 sec"},
     "e4b-it":         {"display": "Gemma 4 E4B-it",          "size_gb": 4.0,  "fits": "single T4",  "category": "on-device", "load_eta": "~30–60 sec"},
-    "26b-a4b-it":     {"display": "Gemma 4 26B-A4B-it",       "size_gb": 14.0, "fits": "T4 ×2 (4-bit)", "category": "on-device", "load_eta": "~2–3 min"},
-    "31b-it":         {"display": "Gemma 4 31B-it",          "size_gb": 18.0, "fits": "T4 ×2 (4-bit)", "category": "on-device", "load_eta": "~3–5 min"},
-    "jailbroken-31b": {"display": "Gemma 4 31B (abliterated)", "size_gb": 18.0, "fits": "T4 ×2 (4-bit)", "category": "jailbroken", "load_eta": "~3–5 min"},
+    "26b-a4b-it":     {"display": "Gemma 4 26B-A4B-it",       "size_gb": 14.0, "fits": "T4 ×2 (4-bit)", "category": "on-device", "load_eta": "~6–15 min first run · ~3–5 min cached"},
+    "31b-it":         {"display": "Gemma 4 31B-it",          "size_gb": 18.0, "fits": "T4 ×2 (4-bit)", "category": "on-device", "load_eta": "~15–25 min first run (HF download) · ~5–8 min cached"},
+    "jailbroken-31b": {"display": "Gemma 4 31B (abliterated)", "size_gb": 18.0, "fits": "T4 ×2 (4-bit)", "category": "jailbroken", "load_eta": "~15–25 min first run · repo quirks possible"},
     "jailbroken-e4b": {"display": "Gemma 4 E4B (abliterated)", "size_gb": 4.0,  "fits": "single T4",  "category": "jailbroken", "load_eta": "~30–60 sec"},
     "cloud-gemini":   {"display": "Gemini API (cloud)",       "size_gb": 0.0,  "fits": "no GPU",     "category": "cloud", "load_eta": "instant"},
     "cloud-openai":   {"display": "OpenAI-compat (cloud)",    "size_gb": 0.0,  "fits": "no GPU",     "category": "cloud", "load_eta": "instant"},
@@ -1105,26 +1266,41 @@ _VARIANT_INFO = {
 
 @app.get("/api/load-model/status")
 def api_load_model_status():
-    elapsed = None
-    if _MODEL_LOAD_STATE.get("started_at"):
-        elapsed = round(time.time() - _MODEL_LOAD_STATE["started_at"], 1)
+  elapsed = None
+  if _MODEL_LOAD_STATE.get("started_at"):
+    elapsed = round(time.time() - _MODEL_LOAD_STATE["started_at"], 1)
+  variant = _MODEL_LOAD_STATE.get("variant")
+  return {
+    **_MODEL_LOAD_STATE,
+    "elapsed_s": elapsed,
+    "ready":     app.state.gemma_call is not None,
+    "variants":  _VARIANT_INFO,
+    "eta":       _VARIANT_INFO.get(variant or "", {}).get("load_eta"),
+    "active_model": app.state.model_info or _placeholder_model_info,
+    "logs":      _snapshot_load_events(120),
+  }
+
+
+@app.get("/api/load-model/logs")
+def api_load_model_logs(limit: int = 200):
+    """Return the model-loader log ring for the browser log viewer."""
     return {
-        **_MODEL_LOAD_STATE,
-        "elapsed_s": elapsed,
-        "ready":     app.state.gemma_call is not None,
-        "variants":  _VARIANT_INFO,
+        "state": _MODEL_LOAD_STATE,
+        "logs": _snapshot_load_events(limit),
     }
 
 
 @app.post("/api/load-model")
 def api_load_model(body: dict = Body(...)):
     """Pick a Gemma 4 variant and load it. Long-running (~30s for E4B,
-    ~3-5 min for 31B); kicks off a background thread and returns
+  ~5-10+ min for 31B first run); kicks off a background thread and returns
     immediately. Poll /api/load-model/status until status='ready'."""
     variant = (body or {}).get("variant", "").strip()
     if app.state.gemma_call is not None:
         return {"status": "already_loaded",
-                "variant": _MODEL_LOAD_STATE.get("variant")}
+                "variant": _MODEL_LOAD_STATE.get("variant"),
+                "message": "A model is already resident in GPU memory. "
+                           "Restart the Kaggle cell to switch variants."}
     if variant not in _VARIANT_INFO:
         return JSONResponse(
             {"status": "error",
@@ -1132,24 +1308,39 @@ def api_load_model(body: dict = Body(...)):
                        f"Choose one of: {sorted(_VARIANT_INFO.keys())}"},
             status_code=400)
     if not _MODEL_LOAD_LOCK.acquire(blocking=False):
-        return {"status": "busy",
-                "variant": _MODEL_LOAD_STATE.get("variant")}
+         current = _MODEL_LOAD_STATE.get("variant")
+         msg = (f"Already loading {current}. Switching mid-load is disabled "
+          "because CUDA/Unsloth loads are not safely cancellable. "
+          "Wait for completion or restart the Kaggle cell.")
+         return JSONResponse({"status": "busy", "variant": current,
+                  "message": msg},
+                 status_code=409 if current != variant else 200)
+    _reset_load_events()
     _MODEL_LOAD_STATE.update({
         "status": "loading", "variant": variant,
-        "started_at": time.time(), "error": None,
+          "selected_display": _VARIANT_INFO[variant]["display"],
+          "phase": "queued",
+          "started_at": time.time(), "updated_at": time.time(),
+          "completed_at": None, "error": None, "last_log": None,
     })
+    _log_load(f"queued {_VARIANT_INFO[variant]['display']} ({variant})",
+          phase="queued")
 
     def _do_load():
         global loaded, GEMMA_MODEL_VARIANT
         try:
             os.environ["GEMMA_MODEL_VARIANT"] = variant
             GEMMA_MODEL_VARIANT = variant
-            print(f"\n  [load-model] loading variant={variant} ...")
+            _log_load(f"loader thread started for variant={variant}",
+                      phase="starting")
             loaded_local = load_gemma()
             if loaded_local is None:
+                _log_load("load_gemma() returned None - inspect messages above",
+                          phase="error", level="error")
                 _MODEL_LOAD_STATE.update(
                     {"status": "error",
-                     "error": "load_gemma() returned None — see kernel logs"})
+                     "completed_at": time.time(),
+                     "error": "load_gemma() returned None - see load logs"})
                 return
             app.state.gemma_call = loaded_local.backend
             app.state.model_info = {
@@ -1162,14 +1353,22 @@ def api_load_model(body: dict = Body(...)):
                             f"{loaded_local.quantization}"),
             }
             loaded = loaded_local
-            _MODEL_LOAD_STATE["status"] = "ready"
-            print(f"  [load-model] {variant} ready: "
-                  f"{loaded_local.name}  ·  {loaded_local.device}")
+            _MODEL_LOAD_STATE.update({
+                "status": "ready", "phase": "ready",
+                "completed_at": time.time(), "updated_at": time.time(),
+                "error": None,
+            })
+            _log_load(f"{variant} ready: {loaded_local.name} - "
+                      f"{loaded_local.device}", phase="ready")
         except Exception as e:
             _MODEL_LOAD_STATE.update(
                 {"status": "error",
+                 "completed_at": time.time(),
                  "error": f"{type(e).__name__}: {str(e)[:300]}"})
-            print(f"  [load-model] FAILED: {type(e).__name__}: {e}")
+            _log_load(f"FAILED: {type(e).__name__}: {e}",
+                      phase="error", level="error")
+            for line in traceback.format_exc().splitlines()[-12:]:
+                _log_load(line, phase="error", level="error")
         finally:
             _MODEL_LOAD_LOCK.release()
 
@@ -1232,6 +1431,22 @@ _PICKER_SNIPPET = """
     background: #334155; border-color: #60a5fa;
     transform: translateY(-1px);
   }
+  #_dc-model-picker .vcard.disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+    transform: none !important;
+  }
+  #_dc-model-picker .vcard.loading {
+    opacity: 1;
+    border-color: #60a5fa;
+    background: rgba(59, 130, 246, 0.18);
+    box-shadow: 0 0 0 1px rgba(96, 165, 250, 0.35) inset;
+  }
+  #_dc-model-picker .vcard.loaded {
+    opacity: 1;
+    border-color: #10b981;
+    background: rgba(16, 185, 129, 0.14);
+  }
   #_dc-model-picker .vcard .vt {
     color: #f1f5f9; font-weight: 700; font-size: 14px; margin-bottom: 4px;
   }
@@ -1275,6 +1490,37 @@ _PICKER_SNIPPET = """
   #_dc-model-picker .status .meta {
     color: #64748b; font-size: 11px; margin-top: 6px; font-family: ui-monospace, monospace;
   }
+  #_dc-model-picker .status-actions {
+    display: flex; gap: 8px; align-items: center; margin-top: 10px;
+  }
+  #_dc-model-picker .status-actions button {
+    background: transparent;
+    border: 1px solid rgba(100, 116, 139, 0.75);
+    color: #cbd5e1;
+    border-radius: 7px;
+    padding: 6px 10px;
+    font-size: 11.5px;
+    font-weight: 650;
+    cursor: pointer;
+  }
+  #_dc-model-picker .status-actions button:hover {
+    border-color: #60a5fa;
+    color: #93c5fd;
+  }
+  #_dc-model-picker .logs {
+    display: none;
+    max-height: 280px;
+    overflow: auto;
+    margin: 10px 0 0;
+    padding: 12px 14px;
+    background: #020617;
+    border: 1px solid rgba(71, 85, 105, 0.65);
+    border-radius: 10px;
+    color: #cbd5e1;
+    font: 11.5px/1.45 ui-monospace, SFMono-Regular, Menlo, monospace;
+    white-space: pre-wrap;
+  }
+  #_dc-model-picker .logs.show { display: block; }
   #_dc-model-picker .spinner {
     display: inline-block; width: 14px; height: 14px;
     border: 2px solid rgba(96, 165, 250, 0.3);
@@ -1299,6 +1545,11 @@ _PICKER_SNIPPET = """
     </div>
     <div id="_dc-pick-groups"></div>
     <div id="_dc-pick-status" class="status"></div>
+    <div class="status-actions">
+      <button id="_dc-view-logs" type="button">View logs</button>
+      <button id="_dc-enter-chat" type="button" style="display:none">Enter chat</button>
+    </div>
+    <pre id="_dc-pick-logs" class="logs">No loader events yet.</pre>
   </div>
 </div>
 <script>
@@ -1307,15 +1558,86 @@ _PICKER_SNIPPET = """
     var overlay = document.getElementById('_dc-model-picker');
     var groups  = document.getElementById('_dc-pick-groups');
     var status  = document.getElementById('_dc-pick-status');
-    if (!overlay || !groups || !status) return;
+    var logs    = document.getElementById('_dc-pick-logs');
+    var logsBtn = document.getElementById('_dc-view-logs');
+    var enterBtn = document.getElementById('_dc-enter-chat');
+    if (!overlay || !groups || !status || !logs || !logsBtn || !enterBtn) return;
+
+    var loadingVariant = null;
+    var pollTimer = null;
 
     function show() { overlay.classList.add('show'); }
     function hide() { overlay.classList.remove('show'); }
+
+    function escapeHtml(s) {
+      return String(s == null ? '' : s).replace(/[&<>"']/g, function(c) {
+        if (c === '&') return '&amp;';
+        if (c === '<') return '&lt;';
+        if (c === '>') return '&gt;';
+        if (c === '"') return '&quot;';
+        return '&#39;';
+      });
+    }
 
     function setStatus(html, isError) {
       status.innerHTML = html;
       status.className = 'status show' + (isError ? ' error' : '');
     }
+
+    function renderLogs(events) {
+      if (!events || !events.length) {
+        logs.textContent = 'No loader events yet.';
+        return;
+      }
+      logs.textContent = events.map(function(e) {
+        var elapsed = e.elapsed_s == null ? '' : '+' + Number(e.elapsed_s).toFixed(1) + 's ';
+        var level = e.level && e.level !== 'info' ? e.level.toUpperCase() + ' ' : '';
+        var phase = e.phase ? '[' + e.phase + '] ' : '';
+        return (e.ts || '') + ' ' + elapsed + level + phase + (e.message || '');
+      }).join('\n');
+      logs.scrollTop = logs.scrollHeight;
+    }
+
+    function setCardsLoading(variant) {
+      Array.prototype.forEach.call(groups.querySelectorAll('.vcard'), function(card) {
+        var active = card.dataset.variant === variant;
+        card.disabled = !!variant;
+        card.classList.toggle('disabled', !!variant && !active);
+        card.classList.toggle('loading', active);
+        card.classList.toggle('loaded', false);
+      });
+    }
+
+    function setCardsLoaded(variant) {
+      Array.prototype.forEach.call(groups.querySelectorAll('.vcard'), function(card) {
+        var active = card.dataset.variant === variant;
+        card.disabled = false;
+        card.classList.toggle('disabled', false);
+        card.classList.toggle('loading', false);
+        card.classList.toggle('loaded', active);
+      });
+    }
+
+    function enterChat() {
+      if (pollTimer) clearTimeout(pollTimer);
+      enterBtn.style.display = 'none';
+      hide();
+      try { if (typeof refreshBadge === 'function') refreshBadge(); } catch (e) {}
+      try { if (typeof probeHarness === 'function') probeHarness(); } catch (e) {}
+      try { document.getElementById('input')?.focus(); } catch (e) {}
+    }
+
+    logsBtn.addEventListener('click', function() {
+      logs.classList.toggle('show');
+      logsBtn.textContent = logs.classList.contains('show') ? 'Hide logs' : 'View logs';
+      if (logs.classList.contains('show')) {
+        fetch('/api/load-model/logs?limit=250', {cache:'no-store'})
+          .then(function(r) { return r.json(); })
+          .then(function(data) { renderLogs(data.logs || []); })
+          .catch(function(e) { logs.textContent = 'Could not fetch logs: ' + e.message; });
+      }
+    });
+    enterBtn.addEventListener('click', enterChat);
 
     function buildCards(variants) {
       groups.innerHTML = '';
@@ -1354,6 +1676,12 @@ _PICKER_SNIPPET = """
             '<div class="vfit">' + info.fits + '</div>' +
             (eta ? '<div class="veta">⏱ ' + eta + '</div>' : '');
           card.addEventListener('click', function() {
+            if (loadingVariant) {
+              setStatus('<span class="spinner"></span>Already loading <b>' +
+                        escapeHtml(loadingVariant) +
+                        '</b>. Switching during a CUDA/Unsloth load is disabled; wait for completion or restart the Kaggle cell.', false);
+              return;
+            }
             pickVariant(key, info.display);
           });
           grid.appendChild(card);
@@ -1364,54 +1692,102 @@ _PICKER_SNIPPET = """
     }
 
     function pickVariant(variant, label) {
-      setStatus('<span class="spinner"></span>Loading ' + label + ' — this can take 30 seconds (E2B/E4B) to 5 minutes (31B). Don\\'t close this tab.', false);
+      loadingVariant = variant;
+      setCardsLoading(variant);
+      enterBtn.style.display = 'none';
+      setStatus('<span class="spinner"></span>Loading ' + escapeHtml(label) +
+                ' — keep this tab open to watch live progress.', false);
       fetch('/api/load-model', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({variant: variant})
-      }).then(function(r) { return r.json(); })
+      }).then(function(r) {
+          return r.json().then(function(data) { return {ok: r.ok, data: data}; });
+        })
         .then(function(data) {
-          if (data.status === 'error') {
-            setStatus('<b>Load failed:</b><br>' + (data.error || 'unknown error') + '<div class="meta">Pick another variant or check the kernel logs.</div>', true);
+          var payload = data.data || {};
+          if (payload.status === 'already_loaded') {
+            setStatus('<b>Model already loaded.</b><br>' + escapeHtml(payload.message || 'Entering chat.'), false);
+            setTimeout(enterChat, 350);
+          } else if (payload.status === 'busy') {
+            loadingVariant = payload.variant || variant;
+            setCardsLoading(loadingVariant);
+            setStatus('<span class="spinner"></span>' + escapeHtml(payload.message || 'A model is already loading.'), false);
+            pollStatus();
+          } else if (!data.ok || payload.status === 'error') {
+            loadingVariant = null;
+            setCardsLoading(null);
+            setStatus('<b>Load failed:</b><br>' + escapeHtml(payload.error || payload.message || 'unknown error') +
+                      '<div class="meta">Open View logs for the exact failing phase.</div>', true);
           } else {
             pollStatus();
           }
         }).catch(function(e) {
-          setStatus('<b>Request failed:</b> ' + e.message, true);
+          loadingVariant = null;
+          setCardsLoading(null);
+          setStatus('<b>Request failed:</b> ' + escapeHtml(e.message), true);
         });
     }
 
     function pollStatus() {
       fetch('/api/load-model/status').then(function(r) { return r.json(); })
         .then(function(s) {
+          renderLogs(s.logs || []);
           if (s.ready) {
-            setStatus('<b>Ready.</b> Loading chat...', false);
+            loadingVariant = null;
+            setCardsLoaded(s.variant);
+            var model = (s.active_model && (s.active_model.display || s.active_model.name)) || s.variant || 'model';
+            setStatus('<b>Ready.</b> ' + escapeHtml(model) +
+                      '<div class="meta">Entering chat. If the page does not advance, click Enter chat.</div>', false);
+            enterBtn.style.display = 'inline-block';
             setTimeout(function() {
-              hide();
-              location.reload();
-            }, 600);
+              enterChat();
+            }, 900);
             return;
           }
           if (s.status === 'error') {
-            setStatus('<b>Load failed:</b><br>' + (s.error || 'unknown error') + '<div class="meta">Pick another variant.</div>', true);
+            loadingVariant = null;
+            setCardsLoading(null);
+            enterBtn.style.display = 'none';
+            logs.classList.add('show');
+            logsBtn.textContent = 'Hide logs';
+            setStatus('<b>Load failed:</b><br>' + escapeHtml(s.error || 'unknown error') +
+                      '<div class="meta">Logs are open below. Pick another variant only after reading the failing phase, or restart the cell.</div>', true);
             return;
           }
+          if (s.status === 'loading') {
+            loadingVariant = s.variant;
+            setCardsLoading(s.variant);
+          }
           var el = (s.elapsed_s || 0).toFixed(0);
-          setStatus('<span class="spinner"></span>Loading <b>' + s.variant + '</b> ... <span class="meta" style="color:#cbd5e1">' + el + ' seconds elapsed</span>', false);
-          setTimeout(pollStatus, 1500);
+          var phase = s.phase ? ' · ' + escapeHtml(s.phase) : '';
+          var eta = s.eta ? ' · expected ' + escapeHtml(s.eta) : '';
+          var last = s.last_log ? '<div class="meta">' + escapeHtml(s.last_log) + '</div>' : '';
+          setStatus('<span class="spinner"></span>Loading <b>' + escapeHtml(s.variant || loadingVariant || 'model') +
+                    '</b><span class="meta" style="color:#cbd5e1"> · ' + el +
+                    's elapsed' + phase + eta + '</span>' + last, false);
+          pollTimer = setTimeout(pollStatus, 1500);
         }).catch(function() {
-          setTimeout(pollStatus, 3000);
+          pollTimer = setTimeout(pollStatus, 3000);
         });
     }
 
     function checkInitial() {
       fetch('/api/load-model/status').then(function(r) { return r.json(); })
         .then(function(s) {
-          if (s.ready) return;  // model already loaded, no overlay needed
           buildCards(s.variants);
+          renderLogs(s.logs || []);
+          if (s.ready) {
+            hide();
+            try { if (typeof refreshBadge === 'function') refreshBadge(); } catch (e) {}
+            try { if (typeof probeHarness === 'function') probeHarness(); } catch (e) {}
+            return;
+          }
           show();
           if (s.status === 'loading') {
-            setStatus('<span class="spinner"></span>Loading <b>' + s.variant + '</b> ...', false);
+            loadingVariant = s.variant;
+            setCardsLoading(s.variant);
+            setStatus('<span class="spinner"></span>Loading <b>' + escapeHtml(s.variant) + '</b> ...', false);
             pollStatus();
           }
         }).catch(function() {
@@ -1636,7 +2012,7 @@ print(f"   harness:  Persona + GREP ({len(GREP_RULES)} rules across "
 print(f"   grade:    Universal (21-dim) / Expert (5-dim) / "
       f"Evaluator (LLM scoring) / Combined (50/50 blend)")
 print(f"\n   On first page-load, the model picker overlay appears.")
-print(f"   Pick a variant; load takes ~30s (E4B) to ~5 min (31B).")
+print(f"   Pick a variant; load takes ~30s (E4B) to ~5-10+ min (31B first run).")
 print(f"   The chat UI then shows 5 toggle tiles in the composer footer:")
 print(f"     Persona (purple) / GREP (red) / RAG (blue) / "
       f"Tools (green) / Online (amber)")

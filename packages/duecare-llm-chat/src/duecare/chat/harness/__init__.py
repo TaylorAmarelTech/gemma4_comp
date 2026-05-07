@@ -30,7 +30,7 @@ _CLASSIFIER_EXAMPLES_PATH = os.path.join(_HARNESS_DIR,
 
 
 # ===========================================================================
-# 1. GREP RULES (108 across 16 categories A–P)
+# 1. GREP RULES (111 across 16 categories A–P)
 # ===========================================================================
 GREP_RULES = [
     # ====================================================================
@@ -227,6 +227,29 @@ GREP_RULES = [
                        "prohibited under ILO C155 (employer-funded OSH) "
                        "and create indirect recruitment fees prohibited "
                        "under ILO C181 Art. 7.",
+    },
+    {
+        "rule": "fee_camouflage_qr_convenience_store_payment_plan",
+        "patterns": [r"\b(qr\s*codes?|7[- ]?eleven|seven[- ]eleven|"
+                       r"convenience\s+store|circle\s*k|mobile\s+wallet|"
+                       r"gcash|paymaya|maya|e[- ]?sewa|esewa|bkash|momo|"
+                       r"zalo\s*pay)\b",
+                       r"\b(payment\s+plan|installments?|instalments?|"
+                       r"repay(?:ment|ing)?|salary\s+deduction|wage\s+"
+                       r"deduction|placement\s+fee|training\s+fee|"
+                       r"processing\s+fee|deposit|advance)\b"],
+        "all_required": True,
+        "severity": "high",
+        "citation": "ILO C181 Art. 7; ILO C095 Art. 9; FATF "
+                      "Recommendation 15 (virtual assets) and "
+                      "Recommendation 32 (cross-border value transfer)",
+        "indicator": "QR-code, convenience-store, or mobile-wallet "
+                       "payment plans are modern fee-camouflage channels. "
+                       "The payment rail does not change the substance: "
+                       "a worker-paid placement/training/processing fee or "
+                       "post-arrival repayment plan remains an indirect "
+                       "recruitment fee under ILO C181 Art. 7 and a wage-"
+                       "deduction risk under ILO C095 Art. 9.",
     },
     # ====================================================================
     # CATEGORY C: CORRIDOR-SPECIFIC FEE CAPS (the user's #3 blind spot)
@@ -2025,6 +2048,26 @@ GREP_RULES = [
                        "open-and-shut.",
     },
     {
+        "rule": "side_letter_salary_rest_day_mismatch",
+        "patterns": [r"\b(side\s+letter|side[- ]agreement|addendum|"
+                       r"rider|parallel\s+contract|off[- ]book\s+"
+                       r"contract|second\s+contract)\b",
+                       r"\b(salary|wage|pay|rest\s+day|day\s+off|"
+                       r"weekly\s+rest|passport|deduction)\b"],
+        "all_required": True,
+        "severity": "critical",
+        "citation": "ILO General Principles for Fair Recruitment "
+                      "Principle 13; Palermo Protocol Art. 3(a) "
+                      "(deception); ILO C189 Art. 7 + Art. 9; POEA "
+                      "Standard Employment Contract rules",
+        "indicator": "A side letter, rider, or off-book addendum that "
+                       "changes salary, rest days, passport control, or "
+                       "deductions is contract substitution by another "
+                       "name. It creates a two-contract deception pattern "
+                       "even if the destination paper avoids saying "
+                       "'second contract'.",
+    },
+    {
         "rule": "fake_visa_immigration_stamping",
         "patterns": [r"\b(visa|immigration\s+stamp|entry\s+stamp|"
                        r"residence\s+permit|work\s+permit)\b",
@@ -2509,11 +2552,33 @@ GREP_RULES = [
     # CATEGORY P: PLATFORM + DIGITAL RECRUITMENT
     # ====================================================================
     {
+        "rule": "digital_credential_vault_debt_control",
+        "patterns": [r"\b(biometric|face\s+scan|facial\s+recognition|"
+                       r"fingerprint|digital\s+credentials?|digital\s+"
+                       r"document\s+vault|credential\s+vault|document\s+"
+                       r"vault|release\s+(?:the\s+)?(?:credentials?|"
+                       r"documents?|passport|id))\b",
+                       r"\b(until|unless|before|after)\b.{0,80}\b"
+                       r"(debt|loan|repay|repayment|paid|pay|payment|"
+                       r"balance|obligation)\b"],
+        "all_required": True,
+        "severity": "critical",
+        "citation": "ILO C029 §1; ILO C095 Art. 9; ILO C189 Art. 9; "
+                      "Palermo Protocol Art. 3(a); IOM IRIS Standard "
+                      "1.2 (no document retention)",
+        "indicator": "Biometric gates or digital credential vaults tied "
+                       "to repayment are document retention in digital "
+                       "form. Releasing passports, IDs, contracts, or "
+                       "work credentials only after debt payment creates "
+                       "coercion and forced-labour risk even when the "
+                       "physical passport is not seized.",
+    },
+    {
         "rule": "online_platform_recruitment_unverified",
         "patterns": [r"\b(facebook|FB|messenger|tiktok|telegram|"
-                       r"whatsapp|wechat|line|instagram|IG|viber)\b",
+                       r"whatsapp|wechat|line|instagram|IG|viber|zalo)\b",
                        r"\b(recruiter|agent|hiring|job\s+(?:offer|"
-                       r"opportunity|posting)|placement|deployment|"
+                       r"opportunity|posting|ad|advert(?:isement)?)|placement|deployment|"
                        r"DM\s+(?:me|us|now))\b"],
         "all_required": True,
         "severity": "medium",
@@ -2712,7 +2777,7 @@ def _grep_call(text: str, extra_rules=None) -> dict:
 
 
 # ===========================================================================
-# 2. RAG CORPUS (33 docs) + BM25 retrieval
+# 2. RAG CORPUS (35 docs) + BM25 retrieval
 # ===========================================================================
 RAG_CORPUS = [
     # ----- ILO Conventions (paraphrased excerpts; full text on
@@ -2881,6 +2946,32 @@ RAG_CORPUS = [
      "by the recruiter in violation of ILO C181 Art. 7, regardless of "
      "the relabeling. Fee stacking ('death by a thousand cuts') is a "
      "specific evasion tactic."),
+    ("digital_fee_collection_qr_wallets",
+     "Digital fee collection via QR codes, mobile wallets, and convenience stores",
+     "ILO C181 Art. 7; ILO C095 Art. 9; FATF Rec. 15/32",
+     "Recruiters increasingly route worker-paid placement, training, "
+     "processing, deposit, or repayment obligations through QR codes, "
+     "mobile wallets, convenience-store counters, or post-arrival "
+     "payment plans. These rails include GCash/Maya, eSewa, bKash, "
+     "MoMo, ZaloPay, Alipay/WeChat Pay, 7-Eleven, and other local "
+     "cash-in channels. The channel does not change the substance: if "
+     "the worker pays to obtain or retain employment, it is an indirect "
+     "recruitment fee under ILO C181 Art. 7 and often an unlawful wage "
+     "deduction under ILO C095 Art. 9. Cross-border digital payment "
+     "flows also warrant FATF virtual-asset and value-transfer due "
+     "diligence."),
+    ("side_letters_two_contract_deception",
+     "Side letters and off-book contract riders as two-contract deception",
+     "ILO Fair Recruitment Principle 13; Palermo Protocol Art. 3(a)",
+     "A side letter, rider, addendum, or off-book agreement that changes "
+     "salary, rest days, deductions, passport control, transfer rights, "
+     "or termination penalties is contract substitution even if the "
+     "official contract remains compliant on its face. Fair Recruitment "
+     "Principle 13 requires transparent employment terms before departure; "
+     "Palermo Protocol Art. 3(a) treats deception about work conditions "
+     "as a trafficking means. The protective answer should compare the "
+     "origin-approved contract, the destination-side paper, and any side "
+     "letter, then preserve all versions as evidence."),
     # ----- Substance-over-form anchors (international) -----
     ("palermo_protocol_3b",
      "Palermo Protocol Art. 3(b) - Consent of the Victim",
@@ -7186,7 +7277,7 @@ client-side only) but doesn't change the kernel default.
 """,
     "grep": """# GREP — extending the rule catalog
 
-108 rules ship by default in:
+111 rules ship by default in:
 
     packages/duecare-llm-chat/src/duecare/chat/harness/__init__.py
 
@@ -7215,10 +7306,10 @@ Each rule is a dict with:
 2. Rebuild + push (see Persona docs above)
 3. Restart the Kaggle kernel
 
-## Rule categories currently shipped (108 rules across 16 categories)
+## Rule categories currently shipped (111 rules across 16 categories)
 
 - Debt bondage / wage protection (4 rules)
-- Fee camouflage tactics (7 rules)
+- Fee camouflage tactics (8 rules)
 - Corridor-specific fee caps (5 rules)
 - ILO forced-labor indicators (3 rules)
 - Meta patterns (4 rules)
@@ -7229,15 +7320,15 @@ Each rule is a dict with:
 - Kafala extended mechanisms (8 rules)
 - Cross-border financial flows (6 rules)
 - Employer abuse patterns (8 rules)
-- Document fraud (6 rules)
+- Document fraud (7 rules)
 - Recruiter sales tactics (6 rules)
 - Recovery-suppression / repatriation barriers (5 rules)
 - Additional corridors (5 rules)
-- Platform / digital recruitment (5 rules)
+- Platform / digital recruitment (6 rules)
 """,
     "rag": """# RAG — extending the corpus
 
-33 documents ship by default in:
+35 documents ship by default in:
 
     packages/duecare-llm-chat/src/duecare/chat/harness/__init__.py
 
@@ -7280,6 +7371,8 @@ over the in-kernel corpus. Top-5 results are injected as context.
 - Singapore: EFMA Cap. 91A §22A
 - AML: FATF Recommendation 32
 - NGO briefs: IJM 'Tied Up' (2023), Polaris recruitment fraud typology
+- Digital-era briefs: QR/mobile-wallet fee collection, side-letter
+    two-contract deception
 """,
     "tools": """# Tools — extending the function registry
 
@@ -7330,7 +7423,7 @@ function calling so the model itself decides what to call.
 """,
     "examples": """# Example prompts — extending the catalog
 
-407 prompts ship by default in:
+413 prompts ship by default in:
 
     packages/duecare-llm-chat/src/duecare/chat/harness/_examples.json
 

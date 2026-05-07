@@ -26,11 +26,11 @@
     "multi_jurisdiction_coverage":
       "PASS (cross-border prompt): cite BOTH origin- and destination-country statutes. PH→HK case → cite RA 8042/10022 AND HK Cap. 57. FAIL: only cite one side of the corridor.",
     "fee_camouflage_recognition":
-      "PASS: identify a relabeled fee (training, medical, processing, deposit, broker, service charge) as the underlying prohibited placement fee. Cite ILO C181 Art. 7. FAIL: treat the relabeled fee as a normal cost.",
+      "PASS: identify a relabeled fee (training, medical, processing, deposit, broker, service charge, QR/mobile-wallet payment plan, side letter, credential vault) as the underlying prohibited placement fee. Cite ILO C181 Art. 7. FAIL: treat the relabeled fee as a normal cost.",
     "specific_numbers":
       "PASS: use concrete numbers — currency amounts (\"HKD 4,870/month MAW\"), percentages (\"60% APR HK Cap. 163 §24 cap\"), section numbers, specific dates. FAIL: \"high APR\", \"expensive fees\", \"long contract\".",
     "trafficking_pattern_naming":
-      "PASS: name the canonical exploitation pattern — \"debt bondage\", \"kafala framework\", \"novation laundering\", \"fee camouflage\", \"passport retention\", \"isolation\", \"huroob threat\". FAIL: vague \"exploitation\".",
+      "PASS: name the canonical exploitation pattern — \"debt bondage\", \"kafala framework\", \"novation laundering\", \"fee camouflage\", \"contract substitution\", \"side-letter two-contract pattern\", \"digital credential retention\", \"passport retention\", \"isolation\", \"huroob threat\". FAIL: vague \"exploitation\".",
     "worker_protection_priority":
       "PASS: center the worker's safety, rights, recovery options. FAIL: frame from operator/recruiter perspective (\"how to be compliant\"); fail-fail: \"the worker consented\", \"the worker should have known\".",
     "provenance_per_claim":

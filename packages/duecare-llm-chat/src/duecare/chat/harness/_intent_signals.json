@@ -72,7 +72,16 @@
         {"text": "technically permitted", "weight": 3},
         {"text": "legally compliant if", "weight": 3},
         {"text": "as long as worker consents", "weight": 3},
-        {"text": "voluntarily agreed", "weight": 3}
+        {"text": "voluntarily agreed", "weight": 3},
+        {"text": "market it as a transparent payment plan", "weight": 3},
+        {"text": "describe it as not a loan", "weight": 3},
+        {"text": "call it not a loan", "weight": 3},
+        {"text": "use a side letter", "weight": 3},
+        {"text": "separate side agreement", "weight": 3},
+        {"text": "route payments through qr", "weight": 3},
+        {"text": "collect through mobile wallets", "weight": 3},
+        {"text": "hold credentials until repayment", "weight": 3},
+        {"text": "release credentials after repayment", "weight": 3}
       ]
     }
   }
