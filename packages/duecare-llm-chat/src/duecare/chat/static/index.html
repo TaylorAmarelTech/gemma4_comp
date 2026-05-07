@@ -1419,9 +1419,6 @@ function openAboutModal() {
         <li><b style="color:#f59e0b;">Online</b> — live web search
             (DuckDuckGo by default; Brave/Playwright if wired)</li>
       </ul>
-      <p style="margin:6px 0 0; color:var(--muted); font-size:12px;">
-        Greyed cards = the kernel hasn't wired that layer in this session.
-      </p>
 
       <h4 style="margin:18px 0 6px; font-size:14px; color:var(--accent);">
         3 · Read a response
@@ -1440,22 +1437,21 @@ function openAboutModal() {
       </ul>
 
       <h4 style="margin:18px 0 6px; font-size:14px; color:var(--accent);">
-        4 · Try the demo prompts
+        4 · Try the sample prompts
       </h4>
       <p style="margin:0;">
         <b>▸ Examples</b> in the composer opens 413 curated prompts
-        organised by category. The five highlighted at the top are the
-        showcase set: headline lift, jailbreak resistance, online-search
-        demo, multi-jurisdiction comparison, social-engineering pretext.
-        Multi-lingual showcase row (TL / ID / AR / NE / ES / BN) is on the
-        empty-state of this page.
+        organised by category. The five highlighted at the top cover
+        featured cases, jailbreak resistance, online-search behaviour,
+        multi-jurisdiction comparison, and social-engineering pretexts.
+        A multi-lingual sample row (TL / ID / AR / NE / ES / BN) is on
+        the empty state of this page.
       </p>
 
       <p style="margin:18px 0 0; font-size:12px; color:var(--muted); border-top:1px solid var(--border); padding-top:10px;">
-        Headline number: <b>+56.5pp</b> harness lift over stock Gemma 4
-        on a 100-prompt eval set. Curl <code>/api/version</code> for the
-        full version stamp (chat-package, rubric, every curator-block
-        revision) before you benchmark.
+        Curl <code>/api/version</code> for the full version stamp
+        (chat-package, rubric, every curator-block revision) before
+        you benchmark.
       </p>
     </div>`;
   // Reuse the existing modal chrome (lightbox overlay + Esc-to-close).
@@ -1581,7 +1577,7 @@ const DIFFICULTY_COLORS = {
 
 const CATEGORY_LABELS = {
   // v3.11 high-impact demo categories (top of list)
-  headline_lift_demo:           '★ Headline lift demo (the +56.5pp number)',
+  headline_lift_demo:           '★ Featured sample prompts',
   jailbreak_resistance:         'Jailbreak resistance (DAN / dev-mode / pretext)',
   online_search_demo:           'Online search demo (live web data adds signal)',
   model_comparison_demo:        'Model comparison demo (variant matters)',
@@ -1625,7 +1621,7 @@ async function populateEmptyHints() {
   // canonical example from each so the empty state shows a one-
   // click prompt for every demo angle reviewers will care about.
   const featured = [
-    {id: 'headline_lift_demo',       label: '★ Headline lift: 5-indicator compound case (PHP+HK)', color: '#10b981'},
+    {id: 'headline_lift_demo',       label: '★ Featured: 5-indicator compound case (PH→HK)',       color: '#10b981'},
     {id: 'jb_dan_recruiter',         label: 'Jailbreak: DAN persona attempt',                       color: '#ef4444'},
     {id: 'online_recent_enforcement', label: 'Online demo: recent POEA enforcement query',           color: '#f59e0b'},
     {id: 'compare_complex_multi_jurisdiction', label: 'Compare PH/SG/Saudi protections (multi-jurisdiction)', color: '#a855f7'},
