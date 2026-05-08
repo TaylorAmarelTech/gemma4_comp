@@ -615,7 +615,7 @@ def create_app(
         revision before running benchmarks against it.
 
         Shape:
-          {chat_package: "0.3.3",
+          {chat_package: "0.3.4",
            harness: {rubric_version: "v3.6", n_dimensions: 21,
                      n_evaluation_questions: 21, n_grep_rules: 111,
                      n_rag_docs: 35, n_tools: 5, n_examples: 413,
@@ -652,6 +652,7 @@ def create_app(
             ("grader_config",          _gov.GRADER_CONFIG_PATH),
             ("baseline_gauge",         _gov.BASELINE_GAUGE_PATH),
             ("rubric_hints",           _gov.RUBRIC_HINTS_PATH),
+            ("personas",               _gov.PERSONAS_PATH),
         ]
         curator_blocks: list[dict] = []
         for name, path in curator_files:
@@ -678,7 +679,7 @@ def create_app(
             })
 
         return {
-            "chat_package":         "0.3.3",
+            "chat_package":         "0.3.4",
             "wire_format_version":  "v2.0",  # mode='llm_evaluator', evaluator_*
             "harness": {
                 "rubric_version":              RUBRIC_UNIVERSAL.get("version", ""),
@@ -840,6 +841,32 @@ def create_app(
             "schema":        block.get("schema", ""),
         }
 
+    @app.get("/api/personas")
+    def api_personas() -> Any:
+        """Return the curator-curated persona library + the kernel
+        default. The UI's persona modal renders these as a one-click
+        selection list above the user's localStorage custom personas.
+
+        Shape: {default: {name, text}, library: [{id, name, audience,
+        tagline, text}], n_library, version, last_updated}.
+        """
+        from .harness import _governance as _gov
+        block = {}
+        if _gov.PERSONAS_PATH.exists():
+            block = _gov.load_curator_block(_gov.PERSONAS_PATH) or {}
+        library = _gov.load_personas()
+        return {
+            "default": {
+                "name": "Default expert",
+                "text": app.state.persona_default or "",
+            },
+            "library":      library,
+            "n_library":    len(library),
+            "version":      block.get("version", ""),
+            "last_updated": block.get("last_updated", ""),
+            "schema":       block.get("schema", ""),
+        }
+
     @app.get("/api/baseline")
     def api_baseline() -> Any:
         """Return the stock vs harnessed reference benchmark numbers
@@ -886,6 +913,7 @@ def create_app(
             ("grader_config",          _gov.GRADER_CONFIG_PATH),
             ("baseline_gauge",         _gov.BASELINE_GAUGE_PATH),
             ("rubric_hints",           _gov.RUBRIC_HINTS_PATH),
+            ("personas",               _gov.PERSONAS_PATH),
         ]
         out: list[dict] = []
         for name, path in files:
@@ -933,6 +961,7 @@ def create_app(
             "grader_config":          _gov.GRADER_CONFIG_PATH,
             "baseline_gauge":         _gov.BASELINE_GAUGE_PATH,
             "rubric_hints":           _gov.RUBRIC_HINTS_PATH,
+            "personas":               _gov.PERSONAS_PATH,
         }
         path = registry.get(name)
         if not path or not path.exists():

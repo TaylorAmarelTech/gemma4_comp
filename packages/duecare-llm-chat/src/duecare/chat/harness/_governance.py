@@ -53,6 +53,7 @@ COUNTRY_HINTS_PATH          = _HARNESS_DIR / "_country_hints.json"
 GRADER_CONFIG_PATH          = _HARNESS_DIR / "_grader_config.json"
 BASELINE_GAUGE_PATH         = _HARNESS_DIR / "_baseline_gauge.json"
 RUBRIC_HINTS_PATH           = _HARNESS_DIR / "_rubric_hints.json"
+PERSONAS_PATH               = _HARNESS_DIR / "_personas.json"
 
 # Only schema + version are universally required. The body shape
 # differs per block type: classifier_signals/authoritative_statutes/
@@ -361,6 +362,41 @@ def load_rubric_hints() -> dict[str, str]:
     for dim_id, val in hints.items():
         if isinstance(dim_id, str) and isinstance(val, str) and val:
             out[dim_id] = val
+    return out
+
+
+def load_personas() -> list[dict]:
+    """Return the curator-curated persona library. Schema:
+    duecare-personas/v1.
+
+    Each entry: {id, name, audience, tagline, text}. The UI's persona
+    library lists these alongside the kernel default + the user's
+    localStorage-stored custom personas. Missing or malformed file
+    returns an empty list — the kernel default still works.
+    """
+    if not PERSONAS_PATH.exists():
+        return []
+    try:
+        block = json.loads(PERSONAS_PATH.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as e:
+        _log.warning("personas parse failed: %s", e)
+        return []
+    entries = block.get("entries") if isinstance(block, dict) else None
+    if not isinstance(entries, list):
+        return []
+    out: list[dict] = []
+    for e in entries:
+        if not isinstance(e, dict):
+            continue
+        if not e.get("id") or not e.get("name") or not e.get("text"):
+            continue
+        out.append({
+            "id":       str(e["id"]),
+            "name":     str(e["name"]),
+            "audience": str(e.get("audience") or ""),
+            "tagline":  str(e.get("tagline") or ""),
+            "text":     str(e["text"]),
+        })
     return out
 
 

@@ -927,8 +927,16 @@ function saveStore(store) {
 function activePersonaText() {
   const s = loadStore();
   if (s.activePersonaName) {
-    const p = s.customPersonas.find(p => p.name === s.activePersonaName);
-    if (p) return p.text;
+    // First check user-added customs (highest priority — user may have
+    // overridden a curator persona name with their own).
+    const own = s.customPersonas.find(p => p.name === s.activePersonaName);
+    if (own) return own.text;
+    // Then check the curator-JSON library cache (populated lazily when
+    // the persona modal opens). If the user activated a curated persona
+    // before opening the modal in this session the cache is empty —
+    // fall back to default and let the next render fix it.
+    const curator = (_personaLibraryCache || []).find(p => p.name === s.activePersonaName);
+    if (curator) return curator.text;
   }
   return _personaDefault;
 }
@@ -1581,6 +1589,11 @@ async function probeHarness() {
     _gradeCategories = Array.isArray(info.grade_categories) ? info.grade_categories : [];
     updatePersonaTileBadge();
   } catch (e) { /* /api/harness-info missing -- old chat wheel, hide */ }
+  // Pre-warm the curator persona library cache so activePersonaText()
+  // can resolve a curator-named persona without waiting for the modal
+  // to open. Best-effort; failure is silent (older wheels lack the
+  // endpoint and the user only sees Default + customs in that case).
+  try { await _ensurePersonaLibrary(); } catch (e) {}
   // Fetch the baseline-gauge curator block (stock vs harnessed
   // reference numbers). Silent fallback to defaults if the endpoint
   // is missing (older chat wheel).
@@ -1827,6 +1840,77 @@ async function copyExampleText(id, btn, evt) {
 
 // Persistent collapse state per category (in-modal session memory).
 let _examplesCollapsed = {};
+// Active use-case filter (one of '' = all, or a USE_CASES key). Cleared
+// when the modal closes; rebuilt fresh on each open via the chip row.
+let _examplesUseCase = '';
+
+// Map from prompt-category id → set of use-cases the category serves.
+// Used by the use-case chip filter to hide categories that don't fit
+// the selected audience. A single category can serve multiple
+// audiences; an empty mapping means "fits all" (cross-cutting).
+const CATEGORY_TO_USECASES = {
+  // Demo-impact bucket
+  headline_lift_demo:           ['lawyer_research', 'ngo_intake', 'regulator_audit'],
+  jailbreak_resistance:         ['adversarial_recruiter'],
+  online_search_demo:           ['journalist_fact_check', 'researcher_tagging', 'lawyer_research'],
+  model_comparison_demo:        ['researcher_tagging'],
+  social_engineering:           ['adversarial_recruiter', 'worker_asking'],
+  // Original benchmark categories
+  regulatory_evasion:           ['regulator_audit', 'lawyer_research'],
+  coercion_manipulation:        ['worker_asking', 'ngo_intake', 'adversarial_recruiter'],
+  moral_religious_framing:      ['adversarial_recruiter', 'worker_asking'],
+  financial_obfuscation:        ['regulator_audit', 'lawyer_research', 'journalist_fact_check'],
+  mega_variations:              ['researcher_tagging', 'adversarial_recruiter'],
+  knowledge_check:              ['researcher_tagging', 'lawyer_research'],
+  compound_textbook:            ['lawyer_research', 'researcher_tagging'],
+  jurisdictional_hierarchy:     ['lawyer_research', 'regulator_audit'],
+  amplification_known_attacks:  ['adversarial_recruiter'],
+  victim_revictimization:       ['ngo_intake', 'worker_asking'],
+  financial_crime_blindness:    ['regulator_audit', 'lawyer_research'],
+  // Document-format categories
+  business_framed_exploitation: ['regulator_audit', 'lawyer_research', 'journalist_fact_check'],
+  social_media_recruitment:     ['ngo_intake', 'worker_asking', 'journalist_fact_check'],
+  private_message_grooming:     ['ngo_intake', 'worker_asking'],
+  group_chat_pattern:           ['regulator_audit', 'journalist_fact_check'],
+  fake_document:                ['regulator_audit', 'journalist_fact_check'],
+  receipt_evidence:             ['regulator_audit', 'lawyer_research', 'journalist_fact_check'],
+};
+
+const USE_CASE_LABELS = {
+  worker_asking:        '👷 Worker asking for help',
+  ngo_intake:           '🤝 NGO intake / case worker',
+  lawyer_research:      '⚖️ Lawyer research',
+  regulator_audit:      '🏛️ Regulator audit',
+  journalist_fact_check:'📰 Journalist fact-check',
+  researcher_tagging:   '🔬 Researcher / dataset tagging',
+  adversarial_recruiter:'🚨 Adversarial / recruiter',
+};
+
+function _renderUseCaseFilterRow() {
+  const ucs = Object.keys(USE_CASE_LABELS);
+  const chip = (key, label, active) => {
+    const bg = active ? 'rgba(168,85,247,0.18)' : 'var(--bg)';
+    const border = active ? '#a855f7' : 'var(--border)';
+    const color = active ? '#fff' : 'var(--muted)';
+    return `<button onclick="_setExamplesUseCase('${key}')" style="background:${bg}; border:1px solid ${border}; color:${color}; padding:4px 10px; border-radius:14px; font-size:11px; cursor:pointer; transition:all 0.12s ease;">${escapeHtml(label)}</button>`;
+  };
+  let row = `<div style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:10px; align-items:center;">`;
+  row += `<span style="color:var(--muted); font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:0.4px; margin-right:4px;">Use case:</span>`;
+  row += chip('', 'All', _examplesUseCase === '');
+  for (const uc of ucs) {
+    row += chip(uc, USE_CASE_LABELS[uc], _examplesUseCase === uc);
+  }
+  row += `</div>`;
+  return row;
+}
+
+function _setExamplesUseCase(uc) {
+  _examplesUseCase = uc;
+  // Re-open the modal to re-render with the new filter applied. Cheaper
+  // than per-category in-place toggling and keeps the search-box +
+  // collapse state semantics identical to a manual reopen.
+  openExamplesModal();
+}
 
 async function openExamplesModal() {
   const examples = await _fetchExamples();
@@ -1851,23 +1935,36 @@ async function openExamplesModal() {
     'social_engineering',
   ];
   const knownOrder = Object.keys(CATEGORY_LABELS);
-  const catOrder = [
+  let catOrder = [
     ...demoImpactOrder.filter(c => byCat[c]),
     ...knownOrder.filter(c => byCat[c] && !demoImpactOrder.includes(c)),
     ...Object.keys(byCat).filter(c => !knownOrder.includes(c)),
   ];
+  // Use-case filter (chip row above the search): when one is active,
+  // restrict catOrder to categories whose CATEGORY_TO_USECASES mapping
+  // includes that use-case. Demo-impact categories ALWAYS pass — they
+  // earn their spot regardless of audience.
+  if (_examplesUseCase) {
+    catOrder = catOrder.filter(c => {
+      if (demoImpactOrder.includes(c)) return true;
+      const ucs = CATEGORY_TO_USECASES[c] || [];
+      return ucs.includes(_examplesUseCase);
+    });
+  }
 
   // Auto-collapse all categories EXCEPT the 5 high-impact demo
   // ones on first open so reviewers land on the most-important
-  // prompts first.
-  if (Object.keys(_examplesCollapsed).length === 0) {
+  // prompts first. When a use-case filter is active, also auto-expand
+  // the (possibly small) filtered set since the user explicitly asked
+  // to see them.
+  if (Object.keys(_examplesCollapsed).length === 0 || _examplesUseCase) {
     for (const cat of catOrder) {
-      _examplesCollapsed[cat] = !demoImpactOrder.includes(cat);
+      _examplesCollapsed[cat] = !demoImpactOrder.includes(cat) && !_examplesUseCase;
     }
   }
 
   let html = `
-    <div style="display:flex; gap:10px; align-items:center; margin-bottom:14px; flex-wrap:wrap;">
+    <div style="display:flex; gap:10px; align-items:center; margin-bottom:10px; flex-wrap:wrap;">
       <input id="examples-search" type="text" placeholder="🔍 Search ${total} prompts (text, category, corridor, indicator)…"
              style="flex:1 1 320px; padding:8px 12px; background:var(--bg); color:var(--ink); border:1px solid var(--border); border-radius:6px; font-size:13px;"
              oninput="_filterExamples(this.value)">
@@ -1875,6 +1972,7 @@ async function openExamplesModal() {
       <button onclick="_examplesExpandAll(true)" style="background:transparent; border:1px solid var(--border); color:var(--muted); padding:4px 10px; border-radius:6px; font-size:11px; cursor:pointer;">Expand all</button>
       <button onclick="_examplesExpandAll(false)" style="background:transparent; border:1px solid var(--border); color:var(--muted); padding:4px 10px; border-radius:6px; font-size:11px; cursor:pointer;">Collapse all</button>
     </div>
+    ${_renderUseCaseFilterRow()}
     <div style="color:var(--muted); font-size:11.5px; margin-bottom:14px;">
       Click any prompt body to load it into the chat input (no auto-send — edit and flip toggles first). Use <strong>copy</strong> on the right to clipboard the text. Categories with the ★ are the high-impact demo prompts.
     </div>
@@ -2405,15 +2503,42 @@ function deleteCustomEntry(layer, idx) {
 // ---------------------------------------------------------------------------
 // Persona library (multi-persona with localStorage)
 // ---------------------------------------------------------------------------
-function renderPersonaLibrary(editingName = null) {
+// Cache the curator-JSON persona library so a re-render (after edit /
+// delete / use) doesn't re-fetch. Set on first openLayerModal('persona').
+let _personaLibraryCache = null;
+
+async function _ensurePersonaLibrary() {
+  if (_personaLibraryCache !== null) return _personaLibraryCache;
+  try {
+    const r = await fetch('/api/personas', {cache: 'no-store'});
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const data = await r.json();
+    _personaLibraryCache = Array.isArray(data.library) ? data.library : [];
+  } catch (e) {
+    // Endpoint may be missing on older chat wheels — fall back to empty list.
+    _personaLibraryCache = [];
+  }
+  return _personaLibraryCache;
+}
+
+async function renderPersonaLibrary(editingName = null) {
   const store = loadStore();
   const body = document.getElementById('modal-body');
-  // Build a unified list: kernel default + user-added
+  const curatorPersonas = await _ensurePersonaLibrary();
+  // Build the unified list: kernel default → curator-JSON library → user customs
   const all = [
-    {name: 'Default expert', text: _personaDefault, isBuiltIn: true},
+    {name: 'Default expert', text: _personaDefault, isBuiltIn: true,
+     tagline: 'The kernel\'s baseline anti-trafficking expert prompt — used when nothing else is selected.'},
+    ...curatorPersonas.map(p => ({
+      name:     p.name,
+      text:     p.text,
+      audience: p.audience || '',
+      tagline:  p.tagline || '',
+      isCurator: true,
+    })),
     ...store.customPersonas,
   ];
-  let html = `<p style="color:var(--muted); margin-top:0;">A persona is a system-style instruction prepended to every chat message when the Persona tile is ON. Click <strong>Use</strong> to make a persona active. Add unlimited custom personas — they persist in your browser's localStorage.</p>`;
+  let html = `<p style="color:var(--muted); margin-top:0;">A persona is a system-style instruction prepended to every chat message when the Persona tile is ON. Click <strong>Use</strong> to make a persona active. The library below ships from the curator-block <code>_personas.json</code>; user-added personas live in your browser's localStorage and persist across reloads.</p>`;
   for (const p of all) {
     const isActive = p.isBuiltIn
         ? !store.activePersonaName
@@ -2421,20 +2546,31 @@ function renderPersonaLibrary(editingName = null) {
     const editing = editingName === p.name;
     const borderColor = isActive ? '#a855f7' : 'var(--border)';
     const bg = isActive ? 'rgba(168,85,247,0.06)' : 'var(--bg)';
+    let kindBadge = '';
+    if (p.isBuiltIn) {
+      kindBadge = ' <span style="font-weight:400; color:var(--muted); font-size:11px;">(built-in)</span>';
+    } else if (p.isCurator) {
+      kindBadge = ' <span style="font-weight:600; color:#fbbf24; font-size:10px; background:rgba(251,191,36,0.12); padding:1px 6px; border-radius:8px; letter-spacing:0.4px;">CURATED</span>';
+    }
     html += `<div style="margin-bottom:12px; padding:12px 14px; background:${bg}; border:1px solid ${borderColor}; border-radius:8px;">`;
-    html += `<div style="display:flex; align-items:center; justify-content:space-between; gap:8px;">`;
-    html += `<div style="font-weight:700; color:#a855f7; font-size:14px;">${escapeHtml(p.name)}${p.isBuiltIn ? ' <span style="font-weight:400; color:var(--muted); font-size:11px;">(built-in)</span>' : ''}${isActive ? ' <span class="severity-pill" style="background:#a855f7; color:#fff;">ACTIVE</span>' : ''}</div>`;
-    html += `<div style="display:flex; gap:6px;">`;
+    html += `<div style="display:flex; align-items:center; justify-content:space-between; gap:8px; flex-wrap:wrap;">`;
+    html += `<div style="font-weight:700; color:#a855f7; font-size:14px;">${escapeHtml(p.name)}${kindBadge}${isActive ? ' <span class="severity-pill" style="background:#a855f7; color:#fff;">ACTIVE</span>' : ''}</div>`;
+    html += `<div style="display:flex; gap:6px; flex-wrap:wrap;">`;
     if (!isActive) {
       html += `<button class="modal-btn secondary" style="padding:4px 10px; font-size:11px;" onclick="usePersona(${attrJson(p.name)}, ${p.isBuiltIn})">Use</button>`;
     }
-    if (!p.isBuiltIn) {
+    if (!p.isBuiltIn && !p.isCurator) {
       if (!editing) {
         html += `<button class="modal-btn secondary" style="padding:4px 10px; font-size:11px;" onclick="renderPersonaLibrary(${attrJson(p.name)})">Edit</button>`;
         html += `<button class="modal-btn secondary" style="padding:4px 10px; font-size:11px; color:#ef4444;" onclick="deletePersona(${attrJson(p.name)})">Delete</button>`;
       }
+    } else if (p.isCurator) {
+      html += `<button class="modal-btn secondary" style="padding:4px 10px; font-size:11px;" onclick="_clonePersonaToCustom(${attrJson(p.name)})" title="Copy this curated persona to your editable custom-persona list">Clone & edit</button>`;
     }
     html += `</div></div>`;
+    if (p.tagline) {
+      html += `<div style="margin-top:6px; font-size:11.5px; color:var(--ink); font-style:italic; line-height:1.45;">${escapeHtml(p.tagline)}</div>`;
+    }
     if (editing) {
       html += `<input type="text" id="persona-name-edit" value="${escapeHtml(p.name)}" style="width:100%; margin-top:8px; padding:6px 10px; background:var(--bg); color:var(--ink); border:1px solid var(--border); border-radius:6px; font-size:12.5px; font-family:inherit;" placeholder="Persona name">`;
       html += `<textarea id="persona-text-edit" class="modal-persona-textarea" style="margin-top:6px;">${escapeHtml(p.text)}</textarea>`;
@@ -2450,6 +2586,25 @@ function renderPersonaLibrary(editingName = null) {
   }
   html += `<div id="modal-docs" style="margin-top:18px;"></div>`;
   body.innerHTML = html;
+}
+
+// Clone a curated persona into the localStorage custom-persona list so
+// the user can tweak it without losing the original. Curator personas
+// themselves are read-only (they reload from the wheel on every kernel
+// restart). Cloning gives the user a starting point.
+function _clonePersonaToCustom(name) {
+  const curator = (_personaLibraryCache || []).find(p => p.name === name);
+  if (!curator) { alert('Curator persona not found.'); return; }
+  const store = loadStore();
+  let suffix = 1;
+  let newName;
+  do {
+    newName = `${name} (copy${suffix > 1 ? ' ' + suffix : ''})`;
+    suffix++;
+  } while (store.customPersonas.some(p => p.name === newName));
+  store.customPersonas.push({name: newName, text: curator.text});
+  saveStore(store);
+  renderPersonaLibrary(newName);
 }
 
 function usePersona(name, isBuiltIn) {
@@ -3317,41 +3472,66 @@ function _toggleExpertGrade(messageIdx, on) {
 function _renderGradeModeControls(messageIdx) {
   const ctl = document.getElementById('grade-mode-controls');
   if (!ctl) return;
-  if (_gradeMode === 'category') {
-    const cats = (_gradeCategories && _gradeCategories.length)
-        ? _gradeCategories
-        : ['legal_citation_quality'];
-    const promptCat = _lastLoadedExampleCategory;
-    let suggested = null;
-    if (promptCat) {
-      for (const rcat of cats) {
-        const applies = RUBRIC_APPLIES_TO[rcat] || [];
-        if (applies.includes(promptCat)) { suggested = rcat; break; }
-      }
-    }
-    if (suggested) _gradeSelectedCategory = suggested;
-    else if (!cats.includes(_gradeSelectedCategory)) _gradeSelectedCategory = cats[0];
-    const optsHtml = cats.map(c => {
-      const applies = RUBRIC_APPLIES_TO[c] || [];
-      let badge = '';
-      if (applies.length === 0) badge = '';  // already clear from the label
-      else if (promptCat && applies.includes(promptCat)) badge = ' ★ best fit for this prompt';
-      else if (promptCat) badge = ' (different prompt type — pick best-fit above)';
-      return `<option value="${escapeHtml(c)}" ${c === _gradeSelectedCategory ? 'selected' : ''}>${escapeHtml(RUBRIC_CATEGORY_LABELS[c] || c)}${badge}</option>`;
-    }).join('');
-    ctl.innerHTML = `
-      <div style="margin:12px 0; display:flex; gap:8px; align-items:center;">
-        <label style="font-size:12px; color:var(--ink);">Rubric category:</label>
-        <select id="grade-category-select"
-                onchange="_runGrade(${messageIdx})"
-                style="background:var(--bg); color:var(--ink); border:1px solid var(--border); border-radius:4px; padding:4px 8px; font-size:12px;">
-          ${optsHtml}
-        </select>
-      </div>
-    `;
-  } else {
-    ctl.innerHTML = '';
+  if (_gradeMode !== 'category') { ctl.innerHTML = ''; return; }
+
+  const cats = (_gradeCategories && _gradeCategories.length)
+      ? _gradeCategories : ['legal_citation_quality'];
+  const promptCat = _lastLoadedExampleCategory;
+
+  // Classify each rubric category for this prompt as one of:
+  //   'best'        — APPLIES_TO contains the prompt category
+  //   'cross-cut'   — applies to all prompts (no APPLIES_TO restriction)
+  //   'mismatch'    — applies elsewhere; useful only for power-user dives
+  // The user sees BEST + CROSS-CUT prominently and the mismatch set is
+  // collapsed behind a "Show all rubrics" toggle.
+  const classified = cats.map(c => {
+    const applies = RUBRIC_APPLIES_TO[c] || [];
+    let kind;
+    if (applies.length === 0) kind = 'cross-cut';
+    else if (promptCat && applies.includes(promptCat)) kind = 'best';
+    else kind = 'mismatch';
+    return {id: c, kind, applies};
+  });
+  const recommended = classified.filter(c => c.kind !== 'mismatch');
+  const mismatched  = classified.filter(c => c.kind === 'mismatch');
+
+  // Auto-select the first 'best' rubric if the user hasn't picked one,
+  // or fall back to the first cross-cutting rubric (typically
+  // legal_citation_quality), or the first available.
+  if (!cats.includes(_gradeSelectedCategory)) {
+    const best = classified.find(c => c.kind === 'best');
+    const cross = classified.find(c => c.kind === 'cross-cut');
+    _gradeSelectedCategory = (best || cross || classified[0]).id;
   }
+
+  const chip = (c) => {
+    const active = c.id === _gradeSelectedCategory;
+    const kindBadge =
+      c.kind === 'best'      ? '<span style="margin-left:4px; font-size:10px; color:#fbbf24;">★ best fit</span>' :
+      c.kind === 'cross-cut' ? '<span style="margin-left:4px; font-size:10px; color:var(--muted);">cross-cutting</span>' :
+                                 '';
+    return `<button onclick="_gradeSelectedCategory='${c.id}'; _runGrade(${messageIdx})"
+      style="background:${active ? 'rgba(168,85,247,0.18)' : 'var(--bg)'}; color:${active ? '#fff' : 'var(--ink)'}; border:1px solid ${active ? '#a855f7' : 'var(--border)'}; border-radius:8px; padding:6px 10px; font-size:11.5px; cursor:pointer; text-align:left;">
+      ${escapeHtml(RUBRIC_CATEGORY_LABELS[c.id] || c.id)}${kindBadge}
+    </button>`;
+  };
+
+  let html = `<div style="margin:12px 0;">`;
+  html += `<div style="font-size:11px; color:var(--muted); font-weight:600; text-transform:uppercase; letter-spacing:0.4px; margin-bottom:6px;">Rubric category</div>`;
+  html += `<div style="display:flex; flex-wrap:wrap; gap:6px;">`;
+  for (const c of recommended) html += chip(c);
+  html += `</div>`;
+  if (mismatched.length) {
+    html += `<details style="margin-top:8px;"><summary style="cursor:pointer; font-size:11px; color:var(--muted);">Show ${mismatched.length} rubric${mismatched.length === 1 ? '' : 's'} for other prompt shapes</summary>`;
+    html += `<div style="display:flex; flex-wrap:wrap; gap:6px; margin-top:6px;">`;
+    for (const c of mismatched) html += chip(c);
+    html += `</div></details>`;
+  }
+  if (!recommended.length && !mismatched.length) {
+    html += `<div style="color:var(--muted); font-size:11.5px;">No rubric categories wired in this kernel.</div>`;
+  }
+  html += `</div>`;
+  ctl.innerHTML = html;
 }
 
 // ---------------------------------------------------------------------------
