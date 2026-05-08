@@ -8,9 +8,9 @@
   harness data and any benchmark results.
 
   No model load required -- this kernel renders interactive Plotly
-  charts from the bundled harness data (108 GREP rules, 33 RAG docs,
+  charts from the bundled harness data (161 GREP rules, 46 RAG docs,
   4 corridor fee caps, 16 fee-camouflage labels, 11 ILO indicators,
-  4 NGO intake hotlines, 204 example prompts) and from any
+  4 NGO intake hotlines, 587 example prompts) and from any
   benchmark / classifier outputs in the attached eval-results dataset.
 
   Charts produced:
@@ -29,7 +29,7 @@
        are present.
 
     4. FEE CAMOUFLAGE HEATMAP -- co-occurrence of the 16 known fee-
-       camouflage labels across the 204 example prompts (which fees
+       camouflage labels across the 587 example prompts (which fees
        appear together in real scenarios).
 
     5. ILO INDICATOR HIT-RATE -- which of the 11 ILO indicators of
@@ -420,7 +420,7 @@ def chart_benchmark_bars() -> Path | None:
 # ===========================================================================
 def chart_fee_camouflage_heatmap(harness: dict) -> Path:
     """Heatmap of which camouflage labels appear together across the
-    204 example prompts."""
+    587 example prompts."""
     print("[chart 4] fee-camouflage co-occurrence heatmap")
     labels = list(harness.get("fee_camouflage", {}).keys())
     if not labels:
@@ -511,7 +511,7 @@ def chart_ilo_indicator_hits(harness: dict) -> Path:
         title=("<b>ILO indicator hit counts per prompt category</b><br>"
                "<span style='font-size:11px;color:#6b7280'>"
                "Which of the 11 ILO indicators of forced labour are "
-               "matched in the 204 example prompts, broken down by "
+               "matched in the 587 example prompts, broken down by "
                "category.</span>"),
         height=560, margin=dict(t=80, l=60, r=20, b=140),
         xaxis=dict(tickangle=-30),
@@ -528,7 +528,7 @@ def chart_ilo_indicator_hits(harness: dict) -> Path:
 # CHART 6 -- RAG corpus sunburst
 # ===========================================================================
 def chart_rag_corpus_sunburst(harness: dict) -> Path:
-    """Sunburst of the 33-doc RAG corpus organized by source family."""
+    """Sunburst of the 46-doc RAG corpus organized by source family."""
     print("[chart 6] RAG corpus sunburst")
     docs = harness.get("rag_corpus", [])
     if not docs:

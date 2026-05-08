@@ -25,7 +25,7 @@ then proceed to the live demo (#2) for the focused thesis demonstration.
 
 | # | Folder | Kaggle URL | Purpose |
 |---|---|---|---|
-| **1** | [`duecare-harness-chat/`](./01-duecare-harness-chat/) ★ | https://www.kaggle.com/code/taylorsamarel/duecare-harness-chat _(publish pending)_ | **The omni playground.** All 5 harness toggles (Persona / GREP 108 rules / RAG 33 docs / Tools 5 lookups / Online live web search) + 4 grade modes (Universal / Expert / Deep / Combined) + **9-variant Gemma 4 model selector** (E2B / E4B / 26B-A4B / 31B / 2 jailbroken / 3 cloud BYOK). One configurable interface for the whole capability surface. |
+| **1** | [`duecare-harness-chat/`](./01-duecare-harness-chat/) ★ | https://www.kaggle.com/code/taylorsamarel/duecare-harness-chat _(publish pending)_ | **The omni playground.** All 6 harness toggles (Persona / GREP 161 rules / RAG 46 docs / Imports / Tools 5 lookups / Online + deep-fetch) + 4 grade modes (Universal / Expert / Deep / Combined) + **9-variant Gemma 4 model selector** (E2B / E4B / 26B-A4B / 31B / 2 jailbroken / 3 cloud BYOK) + A/B Compare + retrieval-config + path-trace. |
 | **2** | [`live-demo/`](./02-live-demo/) ★ | https://www.kaggle.com/code/taylorsamarel/duecare-live-demo | **The user-facing live URL.** Full safety-harness pipeline + audit Workbench + the polished classification + knowledge-building product with the +56.5pp lift demonstration. |
 
 ### Appendix notebooks (specialised + research)

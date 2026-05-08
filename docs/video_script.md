@@ -1,10 +1,78 @@
-# Video Script — Duecare (v3, matches v3.6 submission)
+# Video Script — Duecare (v5 — body refreshed against v0.14.7, 2026-05-08)
 
 > **Target:** 2:55 (5-second buffer under the 3:00 cap).
 > **Voiceover budget:** ~290 words at ~100 wpm = 2:54.
 > **Host:** YouTube, public.
 > **Judged at:** 30 pts (Video Pitch & Storytelling) + 40 pts (Impact &
 > Vision is judged FROM the video). **70 of 100 points live in this file.**
+>
+> **Status:** body is in sync with v0.14.7 reality (6 layers, 161 GREP,
+> 46 RAG, 587 prompts, 11 viewer pages, 26-entry hotlines directory,
+> 8-component platform framing). Asset capture happens AFTER the wheel
+> is pushed and the deployment self-audit banner shows v0.14.7+ in the
+> kernel stdout — see `docs/release_checklist_v0_14_5.md`.
+
+## v0.14.7 demo beats to land (these are the screens the body below records)
+
+Pick 4-5 to demo on screen — not all of them in 3 minutes:
+
+1. **Live GREP tester** (`/static/grep-tester.html`) — paste any text,
+   see which of 161 rules fire instantly. No LLM call. The single
+   most "make the harness tangible in 30 seconds" moment.
+2. **A/B Compare tab** — side-by-side "stock Gemma" vs "full harness"
+   on the same prompt. The score-delta pill is THE most demo-able
+   moment.
+3. **RAG corpus + citation graph** — open `/static/rag-graph.html`
+   for the force-directed view; open `/static/rag-corpus.html` for
+   the searchable list with jurisdiction chips. After a chat turn
+   the corpus list shows yellow `● recent` badges on the docs that
+   were actually retrieved.
+4. **Hotlines directory** (`/static/hotlines.html`) — 26 entries:
+   DMW PH, OWWA, BP2MI Aduan, MfMW HK, IJM, Polaris, embassies,
+   etc. Click-to-call / mailto / open complaint form. Land the
+   safety boundary: **the user submits — we never auto-send.**
+5. **Adversarial-prompt catch** — load `jb_001` (TRAFFICKER-BOT
+   jailbreak). Send. Show the harness refusing + grounding the
+   refusal in cited statutes.
+6. **Cross-layer search** (`/static/search.html`) — type "passport"
+   → instant results from 4 layers. Visible reasoning beats text-
+   only "the model thought…" claims.
+7. **On-device privacy alignment** — frame the "compound /
+   employer-monitored device / hostile jurisdiction" use cases as
+   why frontier APIs can't serve this user. Special Tech tracks
+   (llama.cpp, LiteRT) anchor here.
+
+8. **Platform framing line** (10 seconds, near the close) — exactly
+   one sentence that names the broader vision without overclaiming:
+
+   > "The live demo shows the core safety harness. Around it, Duecare
+   > grows into a platform: **Trainer** adapts Gemma 4 to local
+   > workflows, and **Channels** lets NGOs or regulators deploy the
+   > same grounded assistant on Messenger, WhatsApp, or their own
+   > intake portals."
+
+   This makes the roadmap feel intentional without making judges
+   expect a full Messenger integration in the demo.
+
+## Live numbers (v0.14.7 — read /api/brand for the canonical values)
+
+| Field | Value |
+|---|---|
+| Harness layers | **6** (Persona / GREP / RAG / Imports / Tools / Online) |
+| Universal rubric | **46 dimensions** (v3.10-evaluator-quality) |
+| GREP rules | **161 rules** across 31 categories |
+| RAG corpus | **46 docs** + 46-edge citation graph across 27 jurisdictions |
+| Example prompts | **587** across 8 audience buckets |
+| Adversarial suite | **65 tests** across 16 attack families |
+| Synthetic evidence | 20 CC0 images + 13 structured-post JSONs |
+| Hotlines directory | **26 entries** (regulators / NGOs / embassies / hotlines) |
+| Static viewer pages | **11** under `/static/` (harness landing + 10 per-layer) |
+| Platform components | **8** (Runtime, Harness, Exchange, Eval, Trainer, Sentinel, Channels, Mobile) |
+
+These all read from `_brand.py` via `/api/brand`. If a number on the
+screen recording disagrees with this table, **the recording is stale**
+— bump the wheel and re-record. The deployment self-audit banner in
+the kernel stdout proves the wheel is fresh before recording starts.
 
 ## Framing rules (non-diegetic)
 
@@ -73,12 +141,11 @@ Annotations pop up:
 
 ### 0:35–1:42 — The demo (67 seconds)
 
-**Visual:** Cut to the **duecare-harness-chat notebook** (the omni
-playground, the new core entry point). Same 68%-loan prompt is pasted.
-**All five toggle tiles (Persona / GREP / RAG / Tools / Online) are
-visible at the bottom.** Cursor clicks **Persona** ON (purple). Then
-**GREP** (red). Then **RAG** (blue). Then **Tools** (green). Then
-**Online** (amber). Each tile fills with color and shows `ON`.
+**Visual:** Cut to the **duecare-harness-chat notebook** — the unified
+omni playground. Same 68%-loan prompt is pasted. **All six toggle
+tiles** are visible at the bottom: Persona (purple), GREP (red),
+RAG (blue), Imports (teal), Tools (green), Online (amber). Cursor
+clicks each ON in sequence. Each tile fills with color and shows `ON`.
 
 Cut to the response area. Gemma's response now reads:
 
@@ -97,36 +164,60 @@ Cut to the response area. Gemma's response now reads:
 
 **Voiceover:**
 
-> *"This is Duecare. Same Gemma 4. Five toggle layers built into the
+> *"This is Duecare. Same Gemma 4. Six toggle layers built into the
 > chat surface. Persona — a 40-year anti-trafficking expert. GREP —
-> 108 regex rules across 16 categories tagged with ILO conventions
-> and national statutes. RAG — a 33-document corpus including ILO
-> C029, C181, C189, POEA circulars, the Palermo Protocol, ICRMW.
-> Tools — corridor fee caps, fee camouflage decoder, ILO indicator
-> matcher, NGO intake hotlines, ILO Convention reference. Online —
-> live web search when the local corpus is silent."*
+> 161 hand-curated regex rules across 31 categories, each tagged
+> with the controlling ILO convention or national statute. RAG —
+> a 46-document curated corpus across 27 jurisdictions, plus a
+> 46-edge citation graph for 1-hop expansion. Imports — user-attached
+> evidence: a screenshot of the recruiter's WhatsApp, a contract
+> photo. Tools — corridor fee caps, fee-camouflage decoder, ILO
+> indicator matcher, NGO intake hotlines. Online — live web search
+> with cross-check warning when the local corpus is silent."*
 
 > *"Watch the response transform. Then click 'View pipeline.'"*
 
 **Visual:** Cursor clicks `▸ View pipeline` below the response. The
-modal opens — vertical arrow flow with numbered cards: ① USER INPUT →
-② PERSONA → ③ GREP → ④ RAG → ⑤ TOOLS → ⑥ FINAL MERGED PROMPT → ⑦
-GEMMA RESPONSE. The FINAL MERGED PROMPT card fills with 13,000 chars
-of structured pre-context. Camera scrolls through.
+modal opens — header line reads **"Harness added 32 ms · Gemma
+generated for 4,200 ms"** (the new v0.14.5 framing). Vertical arrow
+flow with numbered cards: ① USER INPUT → ② PERSONA → ③ GREP → ④ RAG
+→ ⑤ IMPORTS → ⑥ TOOLS → ⑦ ONLINE → ⑧ FINAL MERGED PROMPT → ⑨ GEMMA
+RESPONSE. The FINAL MERGED PROMPT card fills with structured
+pre-context. Camera scrolls through. The RETRIEVAL PATH TRACE card
+shows the BM25 → optional rerank → graph expansion → parent
+expansion stages.
 
 **Voiceover:**
 
-> *"You see exactly how the prompt was transformed. 348 characters in.
-> 13,000 characters out. Every citation Gemma used is traceable to a
-> rule, a document, or a tool result. This is the harness."*
+> *"You see exactly how the prompt was transformed. The harness adds
+> milliseconds; the model is the slow part. Every citation Gemma
+> used is traceable to a rule, a document, or a tool result.
+> Auditable. Inspectable. Real."*
 
 **Music:** Warm pad enters at 1:20.
 
-### 1:42–1:54 — Layer ablation, live (12-second proof of lift)
+### 1:42–1:55 — Live regex tester (13-second tangible-in-30-seconds beat)
 
-**Visual:** Cursor clicks **▸ Run ablation** below the response. A
-panel appears with 4 score cards filling in sequence as each
-generation completes (loading shimmer → number resolves):
+**Visual:** Cursor clicks the **Harness ↗** button in the chat top
+bar → `/static/harness.html` loads with 11 viewer cards. Cursor
+clicks **LIVE TESTER**. The tester page loads. Cursor pastes the
+"5-indicator compound" preset (PHP 50K + HK lender + auto-deduct
++ passport retention + no day off). Click **▶ Run GREP**. The right
+panel populates instantly: **5 rules fired** · **2 critical · 2
+high · 1 medium** · **latency 12ms**. Each fired rule shows its
+citation badge.
+
+**Voiceover:**
+
+> *"This is the harness made tangible. Paste any text. See which of
+> 161 rules fire. No model call. Twelve milliseconds. The harness
+> isn't a black box."*
+
+### 1:55–2:08 — Layer ablation, live (13-second proof of lift)
+
+**Visual:** Cursor clicks **▸ Run ablation** below the harness chat
+response. A panel appears with 4 score cards filling in sequence as
+each generation completes (loading shimmer → number resolves):
 
 | OFF | GREP only | RAG only | BOTH |
 |---|---|---|---|
@@ -140,125 +231,103 @@ Above the cards a banner reads: **harness lift: +56pp**.
 > only, both on. The plus-fifty-six-point-pp lift, regenerated live.
 > Both layers pull their weight."*
 
-**Production note.** Keep the panel visible for the full 12 seconds.
+**Production note.** Keep the panel visible for the full 13 seconds.
 The cards filling in sequence is the visual hook — viewers see the
 score climb as each layer turns on.
 
-### 1:54–2:08 — Multi-lingual classifier showcase (14 seconds)
+### 2:08–2:20 — Multi-lingual + adversarial in one pass (12 seconds)
 
 **Visual:** Cut to the chat empty-state. Cursor clicks the **TL**
-(Tagalog) language-flag button. The native-language text loads:
+(Tagalog) language-flag button. Native-language text loads:
 
 > *"Tulungan mo ako, kinuha nila ang pasaporte ko at natatakot ako"*
 
-Below it, a small chip annotation appears: **classified as
-worker_asking (1.00 confidence)**.
+Below it: chip — **classified as `worker_asking` (1.00 confidence)**.
+Quick cuts to **AR** and **ES** showing the same `worker_asking`
+classification.
 
-Quick cuts to **AR** (Arabic) and **ES** (Spanish) buttons,
-each with the same chip showing **worker_asking**.
-
-**Voiceover:**
-
-> *"Workers don't always type in English. The classifier is analog
-> and multi-lingual — eleven languages including Tagalog, Indonesian,
-> Nepali, Bengali, Arabic. Same prompt shape, same recognition. The
-> rubric then weights the dimensions that matter for THIS audience —
-> a worker prompt amplifies concrete-resources and alternative-
-> pathway; a lawyer prompt amplifies article-level citation
-> specificity. One rubric, audience-aware."*
-
-### 2:08–2:30 — The classification path (the dashboard reveal)
-
-**Visual:** Cut to the **content-classification-evaluation notebook**.
-Form on the left. Cursor clicks `▸ Examples` → modal opens with
-categorized cards. Cursor selects "WhatsApp recruiter pitch (debt
-bondage indicators)" — a card with a green-bubble WhatsApp screenshot
-mockup. Click loads text + image into the form. Click `Classify ▶`.
-
-A few seconds later, the result card on the right fills:
-
-- **Classification:** Predatory Recruitment Debt Bondage
-- **Recommended action pill:** ESCALATE TO REGULATOR (red)
-- **Overall risk:** 0.91 (red bar)
-- **Confidence:** 0.94
-- **Risk vectors:** ilo_forced_labor_indicators 0.95 high · fee_violation
-  0.88 high · wage_protection_violation 0.85 high · debt_bondage 0.92
-  high · document_retention 0.78 high
-- **NGO referrals:** POEA · BP2MI · MfMW HK
+Cursor switches to the model-capability bucket and clicks `jb_001`
+(TRAFFICKER-BOT jailbreak). Send. Response refuses with grounded
+citations.
 
 **Voiceover:**
 
-> *"For an NGO intake officer with a queue of 500 cases, switch to
-> structured-output mode. Submit content. Get back a classification, a
-> risk score, per-vector magnitudes, and the NGO hotlines to refer
-> to. Filter the queue by risk threshold. Export the JSON. Same
-> harness, same Gemma 4, different deployment."*
+> *"Workers don't always type in English. The classifier handles
+> eleven languages — same prompt shape, same recognition. And the
+> harness holds when the prompt is a jailbreak. The 65-test
+> adversarial suite ships with the wheel."*
 
-### 2:15–2:30 — Gemma 4's unique features (technical credit)
+### 2:20–2:32 — Hotlines directory + the safety boundary (12 seconds)
 
-**Visual:** Hold on the classifier result card. Highlight the image
-that was attached (the WhatsApp screenshot). A small badge appears:
-"Gemma 4 multimodal — read text from screenshot."
-
-Cut to the Tools section of the pipeline modal. Show the function call:
-`lookup_corridor_fee_cap({"origin": "Indonesia", "destination":
-"Hong Kong", "sector": "domestic"})` and the structured result
-returned.
+**Visual:** Cursor clicks **HOTLINES** card on `/static/harness.html`.
+Page opens — 26 contact cards visible. Cursor scrolls past DMW
+Philippines, OWWA hotline, BP2MI Aduan, MfMW Hong Kong. A yellow
+banner at top reads: **"Duecare drafts; the user submits — we never
+auto-send."** Cursor hovers over Mission for Migrant Workers HK
+(+852-2522-8264). The `mailto:` link previews a pre-filled
+complaint draft body.
 
 **Voiceover:**
 
-> *"Multimodal — Gemma 4 reads the WhatsApp screenshot directly.
-> Native function calling — Gemma decides when to call the corridor
-> lookup. Both are first-class in our pipeline, not decoration."*
+> *"And after the harness flags a scenario, the worker sees verified
+> contacts: DMW Philippines, BP2MI Indonesia, Mission for Migrant
+> Workers Hong Kong, IJM, Polaris. Click-to-call. Click-to-email.
+> Click-to-open-the-complaint-form. Duecare drafts the report.
+> The user submits it. We never auto-send."*
 
-### 2:30–2:42 — Two paths today, three tomorrow
+### 2:32–2:42 — Three deployment surfaces, one harness (10 seconds)
 
 **Visual:** Three-up split.
-- **Left:** phone showing the chat playground loaded in a mobile
-  browser, with the responsive layout snapped to portrait (worker
-  pasting a recruiter message).
+- **Left:** phone showing the chat playground in mobile portrait
+  (worker pasting a recruiter message).
 - **Middle:** desktop showing the content-classification dashboard
-  (an NGO officer reviewing a queue).
-- **Right (live screen recording of the v0.6 APK on a phone):**
-  Duecare Journey — the 4-tab nav (Journal · Advice · Reports ·
-  Settings). Open the Reports tab; the worker's ILO indicator
-  histogram + fee table + "Generate intake document" button are
-  visible. Tap Generate; the markdown intake document fills the
-  screen. Hold for 4 seconds.
+  (NGO officer reviewing a queue).
+- **Right (live screen recording of the v0.9.0 APK on a phone):**
+  Duecare Journey — 4-tab nav (Journal · Advice · Reports ·
+  Settings). Open the Reports tab; ILO-indicator histogram + fee
+  table + "Generate intake document" button are visible. Tap
+  Generate; markdown intake document fills the screen.
 
 **Voiceover:**
 
-> *"Same harness. Inform AND document. The chat tells Maria the fee
-> violates POEA Memorandum 14-2017. If she refuses, harm prevented.
-> If she has to pay anyway, the journal captures the receipt + the
-> recruiter's POEA license number + the controlling statute. Same
-> harness on the desktop NGO dashboard for triage. And on the phone:
-> Duecare Journey v0.9 — same harness on-device via MediaPipe Gemma 4
-> E2B, encrypted journal, eleven ILO indicator detectors, twenty
-> migration corridors with statute lookups, and an NGO intake
-> document the worker generates with one tap and shares with one
-> more. APK published; install link in the description."*
+> *"Same harness, same Gemma 4, three surfaces. The chat tells Maria
+> the fee violates POEA Memorandum 14-2017 — refuse and harm is
+> prevented. If she has to pay anyway, the on-device journal captures
+> the receipt + recruiter license + statute. The desktop classifier
+> serves the NGO triaging her case. The Android app — Duecare Journey
+> v0.9.0, MediaPipe Gemma 4 E2B, twenty corridors, eleven ILO
+> indicators — runs the same harness offline."*
 
-**Production note.** The Android beat shows the live v0.9.0 APK
-running on a real device. APK:
-`https://github.com/TaylorAmarelTech/duecare-journey-android/releases/download/v0.9.0-twenty-corridors-new-rules/duecare-journey-v0.9.0-twenty-corridors-new-rules.apk`.
-Architecture: `docs/android_app_architecture.md`. Source +
-CI: `duecare-journey-android/`.
+### 2:42–2:50 — Platform framing + closer (8 seconds)
 
-### 2:42–2:50 — Closer
-
-**Visual:** End card. White background. Three lines of serif:
+**Visual:** End card. White background. Two-URL split — **left: Kaggle
+demo URL with "live demo" caption + Kaggle logo**; **right: duecare-ai.com
+with "platform infrastructure" caption + globe icon**. Below them, three
+lines of serif:
 
 > **Duecare**
-> *Exercising due care in LLM safety design.*
+> *Gemma 4-powered safety infrastructure for migrant-worker protection.*
 >
-> github.com/TaylorAmarelTech/gemma4_comp
-> kaggle.com/taylorsamarel · two core + eleven appendix notebooks
+> Live demo: kaggle.com/code/taylorsamarel/duecare-harness-chat
+> Platform hub: **duecare-ai.com**
+> Code: github.com/TaylorAmarelTech/gemma4_comp · MIT
+> APK: github.com/TaylorAmarelTech/duecare-journey-android
 > Submission: Gemma 4 Good Hackathon · Safety & Trust track
 
-**Voiceover (on-camera narrator, 5 sec):**
+**Voiceover (on-camera narrator, 8 sec):**
 
-> *"Privacy is non-negotiable. So the harness runs on your laptop."*
+> *"Kaggle proves the safety engine. **duecare-ai.com** proves Duecare
+> is shared infrastructure: a public hub where NGOs, regulators, and
+> researchers exchange anonymized signals and signed knowledge packs.
+> Local Gemma 4 where sensitive data lives. Public hub where only
+> verified patterns flow back. Privacy is non-negotiable. So the
+> harness runs on your laptop."*
+
+**Production note.** The two-URL split visually reinforces the
+"engine + network" dichotomy. Hold the end card for the full 8
+seconds. If the hub is down at recording time, **fall back** to a
+single-URL closer (Kaggle + GitHub) and re-record only the closer
+when the hub is back up.
 
 Fade to black. Music fades.
 
@@ -275,55 +344,59 @@ Fade to black. Music fades.
       classification result fill (2:00).
 - [ ] No stock footage of trafficking victims. Ever.
 
-**Asset list:**
+**Asset list (refreshed for v0.14.7):**
 
 - [ ] Cold-open serif typewriter animation (Maria's sentence)
-- [ ] Map screenshot: Indonesia/Philippines → Hong Kong corridor (no
-      personal data)
-- [ ] Screen recording: chat-playground notebook, raw 31B response
-      to the 68%-loan prompt
-- [ ] Screen recording: chat-playground-with-grep-rag-tools, cursor
-      clicking each of 4 toggles, then sending the same prompt
-- [ ] Screen recording: View pipeline modal scrolling through all 7
-      cards including the FINAL MERGED PROMPT
-- [ ] Lower-third callout overlay (white background, three lift-pp
-      numbers + rubric attribution; 7-8 sec hold at 1:42-1:50)
-- [ ] Screen recording: classification notebook, Examples modal, click
-      WhatsApp example, Classify, result card fills
-- [ ] Three-up split: phone (mobile-responsive web chat) +
-      desktop (classifier dashboard) + live Android v0.9.0 APK on a
-      real phone showing the Reports tab
+- [ ] Map screenshot: Indonesia / Philippines → Hong Kong corridor
+      (no personal data)
+- [ ] Screen recording: stock Gemma 4 31B response to the 68%-loan
+      prompt (the failure-mode baseline — `kaggle/A-01-chat-playground/`)
+- [ ] Screen recording: `duecare-harness-chat`, cursor clicking each
+      of **6 toggles** (Persona / GREP / RAG / Imports / Tools /
+      Online) ON in sequence, then sending the 68%-loan prompt
+- [ ] Screen recording: `▸ View pipeline` modal — header reads
+      "Harness added Xms · Gemma generated for Yms"; vertical flow
+      shows ① USER INPUT through ⑨ GEMMA RESPONSE; RETRIEVAL PATH
+      TRACE card visible
+- [ ] Screen recording: `Harness ↗` button click → `/static/harness.html`
+      landing → click LIVE TESTER card → paste 5-indicator compound
+      preset → click `▶ Run GREP` → 5 rules fire with severity badges
+- [ ] Screen recording: `▸ Run ablation` panel filling 4 score cards
+      in sequence (OFF / GREP / RAG / BOTH) with harness-lift banner
+- [ ] Screen recording: empty-state language-flag buttons (TL, ID,
+      AR, NE, ES, BN). Click TL; Tagalog prompt loads; use-case chip
+      shows "worker_asking 1.00"
+- [ ] Screen recording: `jb_001` adversarial-jailbreak example →
+      send → harness refuses with grounded citations
+- [ ] Screen recording: `/static/hotlines.html` — 26 contact cards
+      visible, yellow safety banner ("Duecare drafts; the user
+      submits — we never auto-send"), hover over an entry to show
+      `mailto:` preview
+- [ ] Three-up split: phone (mobile-responsive web chat) + desktop
+      (classifier dashboard) + live Android v0.9.0 APK on a real
+      phone showing the Reports tab
 - [ ] Live Android screen capture: bottom-nav (Journal · Advice ·
       Reports · Settings) → Reports tab → Generate intake document
-      → markdown intake doc visible (matches the sibling
-      `duecare-journey-android/` v0.9.0 release)
-- [ ] Screen recording: ▸ Run ablation panel filling 4 score cards
-      in sequence (OFF / GREP / RAG / BOTH) with the harness-lift
-      banner above
-- [ ] Screen recording: empty-state language-flag buttons (TL, ID,
-      AR, NE, ES, BN). Cursor clicks TL; the Tagalog prompt loads;
-      the use-case chip shows "worker_asking 1.00"
+      → markdown intake doc visible (sibling repo `duecare-journey-android` v0.9.0)
 - [ ] End card with URLs
 
-**Voiceover word count:** ~325 words after the numbers beat insert
-(was ~285). At 100 wpm that's 3:15 — over the 2:50 visual cap. To
-land on time, either: (a) keep the new "the numbers" VO and trim
-20-30 words from the demo + classification + features beats, OR
-(b) keep the new visual overlay but DROP the new VO entirely — let
-the on-screen numbers carry the moment in silence (recommended; the
-restraint reads as confidence, and the warm pad music covers the
-8-second hold).
+**Voiceover word count:** ~310 words across the new beats. At 100
+wpm that's 3:06 — slightly over the 2:50 cap. Trim 15–20 words from
+the demo beat (1:18–1:42) if needed. The platform-framing close at
+2:42 is non-negotiable: that's the line that names Trainer +
+Channels and protects the demo from "where's the WhatsApp?"
+expectations.
 
-**Schedule (revised for 20-day timeline from 2026-04-28):**
+**Schedule (T-10 from 2026-05-08):**
 
-- **Week 1 (Apr 28 – May 4):** asset capture (screen recordings on
-  the live cloudflared URLs while the kernels are running). Lock the
-  voiceover script.
-- **Week 2 (May 5 – May 11):** edit + sound design + on-camera
-  narrator close. Color-pass.
-- **Week 3 (May 12 – May 16):** captions + final pass + upload to
-  YouTube unlisted. Test playback on phone + laptop.
-- **Submit:** May 17 (one-day buffer before the 5/18 deadline).
+- **By 2026-05-12:** asset capture against the live cloudflared URL
+  AFTER pushing v0.14.7 wheels. All recordings need self-audit
+  banner visible in the kernel stdout to prove freshness.
+- **2026-05-13 / 14:** edit + sound design + on-camera narrator
+  close. Color-pass.
+- **2026-05-15 / 16:** captions + final pass + upload to YouTube
+  unlisted (then make Public). Test playback on phone + laptop.
+- **Submit:** 2026-05-17 (one-day buffer before the 5/18 deadline).
 
 ---
 

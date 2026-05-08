@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Duecare — Cross-layer search</title>
+  <style>
+    :root {
+      --ink: #e2e8f0; --muted: #94a3b8; --bg: #0f172a; --panel: #1e293b;
+      --border: #334155; --accent: #7c3aed; --highlight: #fbbf24;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; background: var(--bg); color: var(--ink);
+                  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+                               Helvetica, Arial, sans-serif; min-height: 100vh; }
+    header { padding: 12px 18px; background: var(--panel); border-bottom: 1px solid var(--border);
+              display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+    header h1 { margin: 0; font-size: 16px; color: var(--accent); }
+    .sub { font-size: 12px; color: var(--muted); flex: 1; }
+    .container { padding: 18px 20px; max-width: 1100px; margin: 0 auto; }
+    .search-box { width: 100%; padding: 14px 18px; font-size: 16px;
+                   border: 2px solid var(--border); background: var(--panel);
+                   color: var(--ink); border-radius: 6px; }
+    .search-box:focus { outline: none; border-color: var(--accent); }
+    .total { font-size: 11px; color: var(--muted); margin-top: 6px; }
+    .group { margin-top: 22px; background: var(--panel); border: 1px solid var(--border);
+              border-radius: 6px; padding: 16px; }
+    .group h2 { margin: 0 0 10px; font-size: 13px; text-transform: uppercase;
+                 letter-spacing: 0.5px; display: flex; align-items: center; gap: 8px; }
+    .group h2 .count { color: var(--muted); font-size: 11px; font-weight: 400; }
+    .group h2 a { margin-left: auto; font-size: 11px; font-weight: 400;
+                   text-decoration: none; }
+    .hit { padding: 9px 12px; border-bottom: 1px solid var(--border); }
+    .hit:last-child { border-bottom: 0; }
+    .hit .label { font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+                   font-size: 12.5px; font-weight: 600; }
+    .hit .source { font-size: 10.5px; color: var(--muted); margin-top: 2px; }
+    .hit .summary { font-size: 11.5px; color: #cbd5e1; margin-top: 4px; line-height: 1.5; }
+    .severity { display: inline-block; padding: 1px 6px; border-radius: 8px;
+                 font-size: 9px; margin-left: 6px; font-weight: 600; text-transform: uppercase; }
+    .severity.critical { background: rgba(239,68,68,0.18); color: #ef4444; border: 1px solid #ef4444; }
+    .severity.high     { background: rgba(245,158,11,0.18); color: #f59e0b; border: 1px solid #f59e0b; }
+    .severity.medium   { background: rgba(59,130,246,0.18); color: #3b82f6; border: 1px solid #3b82f6; }
+    .severity.low      { background: rgba(148,163,184,0.18); color: var(--muted); border: 1px solid var(--muted); }
+    .empty { padding: 30px; text-align: center; color: var(--muted); font-style: italic; }
+    a.back { color: var(--muted); font-size: 11px; text-decoration: none; }
+    a.back:hover { color: var(--accent); }
+    mark { background: rgba(251,191,36,0.45); color: var(--ink); padding: 0 2px; }
+    .examples { margin-top: 8px; display: flex; gap: 6px; flex-wrap: wrap; }
+    .example { padding: 4px 10px; font-size: 11px; border: 1px solid var(--border);
+                background: var(--bg); color: var(--muted); border-radius: 12px; cursor: pointer; }
+    .example:hover { border-color: var(--accent); color: var(--ink); }
+  </style>
+</head>
+<body>
+  <header>
+    <a href="/static/harness.html" class="back">← All layers</a>
+    <h1>Cross-layer search</h1>
+    <div class="sub">Type any term — results from persona / GREP / RAG / tools all in one pane.</div>
+  </header>
+  <div class="container">
+    <input id="q" class="search-box" type="text" placeholder="passport, debt bondage, POEA, Cap. 57, kafala…" autofocus />
+    <div class="examples">
+      <span class="example" onclick="setQ('passport')">passport</span>
+      <span class="example" onclick="setQ('debt bondage')">debt bondage</span>
+      <span class="example" onclick="setQ('POEA')">POEA</span>
+      <span class="example" onclick="setQ('Cap. 57')">Cap. 57</span>
+      <span class="example" onclick="setQ('kafala')">kafala</span>
+      <span class="example" onclick="setQ('fee camouflage')">fee camouflage</span>
+      <span class="example" onclick="setQ('Filipina')">Filipina</span>
+      <span class="example" onclick="setQ('novation')">novation</span>
+    </div>
+    <div class="total" id="total"></div>
+    <div id="results"></div>
+  </div>
+  <script>
+    let lastQ = "";
+    function escapeHtml(s) {
+      return String(s == null ? "" : s).replace(/[&<>"']/g, c =>
+        ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    }
+    function highlight(s, q) {
+      if (!q) return escapeHtml(s);
+      const esc = escapeHtml(s);
+      const re = new RegExp(`(${q.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&')})`, 'gi');
+      return esc.replace(re, '<mark>$1</mark>');
+    }
+    function setQ(q) {
+      document.getElementById("q").value = q;
+      runSearch(q);
+    }
+    async function runSearch(q) {
+      const total = document.getElementById("total");
+      const results = document.getElementById("results");
+      if (!q || !q.trim()) {
+        total.textContent = "";
+        results.innerHTML = "";
+        return;
+      }
+      lastQ = q;
+      try {
+        const r = await fetch(`/api/search-all?q=${encodeURIComponent(q)}`, {cache: "no-store"});
+        if (!r.ok) throw new Error("HTTP " + r.status);
+        const d = await r.json();
+        if (d.q !== lastQ) return;  // stale response
+        total.textContent = `${d.total || 0} match${(d.total || 0) === 1 ? "" : "es"} across ${(d.groups || []).length} layer(s)`;
+        if (!d.groups || !d.groups.length) {
+          results.innerHTML = `<div class="empty">No matches for <strong>${escapeHtml(q)}</strong>.</div>`;
+          return;
+        }
+        results.innerHTML = d.groups.map(g => `
+          <div class="group">
+            <h2>
+              <span style="display:inline-block; width:10px; height:10px; border-radius:50%; background:${g.color || 'var(--muted)'};"></span>
+              ${escapeHtml(g.label)}
+              <span class="count">(${g.hits.length} of ${g.n_total})</span>
+              <a href="${escapeHtml(g.viewer)}" target="_blank" style="color:${g.color || 'var(--accent)'};">Open viewer ↗</a>
+            </h2>
+            ${g.hits.map(h => `
+              <div class="hit">
+                <div class="label">
+                  ${highlight(h.label || h.id || "", q)}
+                  ${h.severity ? `<span class="severity ${escapeHtml(h.severity)}">${escapeHtml(h.severity)}</span>` : ""}
+                </div>
+                ${h.source ? `<div class="source">${highlight(h.source, q)}</div>` : ""}
+                ${h.citation ? `<div class="source">${highlight(h.citation, q)}</div>` : ""}
+                ${h.summary ? `<div class="summary">${highlight(h.summary, q)}</div>` : ""}
+              </div>
+            `).join("")}
+          </div>
+        `).join("");
+      } catch (e) {
+        results.innerHTML = `<div class="empty" style="color:#ef4444;">Error: ${escapeHtml(e.message)}</div>`;
+      }
+    }
+    // Debounced live search
+    let debounce = null;
+    document.getElementById("q").addEventListener("input", e => {
+      clearTimeout(debounce);
+      debounce = setTimeout(() => runSearch(e.target.value), 200);
+    });
+  </script>
+</body>
+</html>

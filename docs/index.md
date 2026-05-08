@@ -74,7 +74,7 @@ happens. Or after, to recover the money.
 
 - :material-shield-check: **Harness**
 
-    108 GREP rules + 33 RAG documents + 11 ILO C029 indicators +
+    161 GREP rules + 46 RAG documents + 11 ILO C029 indicators +
     20 migration corridors. Quantified +56.5pp lift across 207
     hand-graded prompts.
 
@@ -166,7 +166,7 @@ for the `(git_sha, dataset_version, model_revision)` tuples.
 
 **Caveat:** the +56.5pp / +87.5pp / +51.2pp / +34.1pp numbers were
 last measured 2026-05-03 against the prior 49-rule GREP set; the
-v3.16 expansion to 108 rules is purely additive (no rules removed)
+v3.16 expansion to 161 rules is purely additive (no rules removed)
 so the lift is expected to remain at-or-above these floors. Re-run
 the A6 `duecare-grading-evaluation` notebook to refresh.
 

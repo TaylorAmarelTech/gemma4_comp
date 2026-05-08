@@ -45,7 +45,7 @@ Harness lift (207 prompts, harness OFF vs ON, see harness_lift_report.md):
 ```
 
 **Stock Gemma produces inadequate trafficking safety responses.** The
-5-layer harness (Persona / GREP / RAG / Tools) lifts mean score
+6-layer harness (Persona / GREP / RAG / Tools) lifts mean score
 +56.5 pp without any fine-tuning. Phase 3 Unsloth fine-tuning
 (NB 530 / A2 bench-and-tune) encodes the same knowledge permanently.
 
@@ -57,7 +57,7 @@ Harness lift (207 prompts, harness OFF vs ON, see harness_lift_report.md):
 |---|---|
 | `duecare-llm-core` | 12 Pydantic schemas, Protocol contracts, Registry, Provenance |
 | `duecare-llm-models` | 8 model adapters (incl. Ollama for local Gemma) |
-| `duecare-llm-chat` | The 5-layer harness: 49 GREP rules + 33 RAG docs + 5 tools + 407 promptss + 207 5-tier rubrics + 6 required-rubric categories + 51 classifier exampless + chat app + classifier app |
+| `duecare-llm-chat` | The 6-layer harness: 161 GREP rules + 46 RAG docs + 5 tools + 587 promptss + 207 5-tier rubrics + 6 required-rubric categories + 51 classifier exampless + chat app + classifier app |
 | `duecare-llm-domains` | Domain pack loader, 3 domain packs, document pipeline (6 modules) |
 | `duecare-llm-tasks` | 9 capability tests, 15 generators, 7 evaluators |
 | `duecare-llm-benchmark` | Smoke benchmark + harness-OFF/ON comparison runner |
@@ -83,8 +83,8 @@ Unchanged. See `docs/architecture.md` for the canonical list.
 - 207 5-tier rubrics (per-prompt graded examples, worst → best)
 - 6 required-rubric categories with 66 criteria total
 - 51 classifier exampless (11 with SVG document mockups: 6 originals + 5 multimodal)
-- 49 GREP rules across 5 categories (Python harness)
-- 33-doc RAG corpus (full ILO C029/C181/C095/C189 + POEA MCs +
+- 161 GREP rules across 5 categories (Python harness)
+- 46-doc RAG corpus (full ILO C029/C181/C095/C189 + POEA MCs +
   national statutes + Palermo + ICRMW + Saudi kafala reforms + ...)
 - 11 ILO C029 forced-labour indicators
 - 20 migration corridors (Asia + GCC + LATAM + West Africa kafala +
@@ -131,7 +131,7 @@ in favor of the per-notebook split.
   ([release tag](https://github.com/TaylorAmarelTech/duecare-journey-android/releases)).
 - v0.9 ships: cloud Gemma 4 routing (Ollama / OpenAI-compat / HF
   Inference) + 6 on-device variants with mirror-fallback URLs + intel
-  domain knowledge layer (49 GREP rules + 11 ILO indicators +
+  domain knowledge layer (161 GREP rules + 11 ILO indicators +
   **20 corridor profiles**) + structured Add-Fee dialog with
   auto-LegalAssessment + RefundClaim drafting + image picker for
   evidence + Reports tab with NGO intake doc generator + guided

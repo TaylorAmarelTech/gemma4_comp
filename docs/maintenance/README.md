@@ -10,8 +10,8 @@
 | Component | What you can change | Guide |
 |---|---|---|
 | **Personas** | The 40-year-expert system prompt + the multi-persona library | [`personas.md`](personas.md) |
-| **GREP rules** | 108 regex KB rules with citation, severity, ILO indicator tag | [`grep_rules.md`](grep_rules.md) |
-| **RAG corpus** | 33 docs (ILO conventions, statutes, NGO briefs) — adding new statutes, refreshing amended ones, BM25 reindex | [`rag_corpus.md`](rag_corpus.md) |
+| **GREP rules** | 161 regex KB rules with citation, severity, ILO indicator tag | [`grep_rules.md`](grep_rules.md) |
+| **RAG corpus** | 46 docs (ILO conventions, statutes, NGO briefs) — adding new statutes, refreshing amended ones, BM25 reindex | [`rag_corpus.md`](rag_corpus.md) |
 | **Tool functions** | 5 function-calling lookups (corridor fee cap, fee camouflage, ILO indicator, NGO intake, ILO Convention) | [`tool_functions.md`](tool_functions.md) |
 | **Online search** | Provider chain (DuckDuckGo / Brave / Tavily / Wikipedia / arbitrary URL) + BYOK config | [`online_search.md`](online_search.md) |
 | **Curator-JSON blocks** | 12 versioned JSON files for stakeholder PRs | [`../contributing_curator_blocks.md`](../contributing_curator_blocks.md) |

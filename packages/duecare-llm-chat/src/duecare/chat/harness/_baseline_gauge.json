@@ -5,23 +5,25 @@
   "curator": "Duecare team",
   "notes": "Reference benchmark numbers for the score-card gauge. Two marks: stock Gemma 4 baseline (no harness) and harnessed average (full Duecare stack). The user's score is rendered relative to these so a 60% reads correctly as 'big lift over baseline, still room above'. Numbers are measured against a fixed eval set; when the eval set or rubric expands, re-run the eval and PR the new numbers here. Stakeholders re-running the headline measurement should set `eval_set_size`, `eval_run_date`, `git_sha`, and the rubric `version` they measured against — that becomes the audit trail.",
   "stock": {
-    "label":  "stock 6%",
+    "label":  "stock 6% (v3.5)",
     "value":  6.0,
     "color":  "#ef4444",
-    "title":  "Stock Gemma 4 baseline (no harness, no persona, no GREP/RAG/Tools/Online)",
-    "notes":  "Average pct_score across the 207-prompt eval set with all harness layers OFF and the default Gemma 4 E4B-it persona-free."
+    "title":  "Stock Gemma 4 baseline measured against v3.5 rubric (re-measure against v3.10 pending)",
+    "notes":  "Average pct_score across the 207-prompt eval set with all harness layers OFF and the default Gemma 4 E4B-it persona-free. Measured against v3.5 rubric (19 dims). Re-measurement against v3.10 (46 dims) pending GPU budget; expected lift is similar or higher because the new harm-axis dims discriminate strongly between stock (often ships operational tips) and harnessed (refuses with grounding)."
   },
   "harnessed": {
-    "label":  "harnessed 88%",
+    "label":  "harnessed 88% (v3.5)",
     "value":  88.0,
     "color":  "#10b981",
-    "title":  "Harnessed average (~88% on 207-prompt eval set)",
-    "notes":  "Average pct_score across the 207-prompt eval set with persona + GREP + RAG + Tools all ON."
+    "title":  "Harnessed average measured against v3.5 rubric (re-measure against v3.10 pending)",
+    "notes":  "Average pct_score across the 207-prompt eval set with persona + GREP + RAG + Tools all ON. Measured against v3.5 rubric (19 dims). Re-measurement against v3.10 (46 dims) pending GPU budget."
   },
+  "remeasure_pending": true,
+  "remeasure_note":    "Headline numbers are honest about the rubric they were measured against (v3.5, 19 dims). Live grader uses v3.10 (46 dims). Until re-measurement is run on a Kaggle T4, trust the live grader output over this gauge.",
   "eval_set_size":   207,
   "eval_run_date":   "2026-05-04",
   "rubric_version":  "v3.5-anti-victim-blaming-and-pathways",
-  "rubric_version_current":  "v3.6",
+  "rubric_version_current":  "v3.10-evaluator-quality",
   "git_sha":         "fcc7ab1",
-  "footnote":        "These reference numbers (stock 6%, harnessed 88%) were measured against v3.5 rubric (19 dims, eval set git_sha fcc7ab1). v3.6 (21 dims with two new harm-axis dims) is the current rubric used for live grading; the reference numbers will be re-measured against v3.6 before submission. Expected lift is similar or higher because the harm dims discriminate strongly between stock (which often ships operational tips) and harnessed (which refuses with grounding)."
+  "footnote":        "These reference numbers (stock 6%, harnessed 88%) were measured against v3.5 rubric (19 dims, eval set git_sha fcc7ab1). v3.10 (46 dims, finalized 2026-05-08) is the current rubric used for live grading — the v3.7-3.10 progression added evaluator quality, data intelligence, regulatory audit, trauma-informed framing, and harm-axis dims. The reference numbers will be re-measured against v3.10 before submission; expected lift is similar or higher because the harm dims discriminate strongly between stock (which often ships operational tips) and harnessed (which refuses with grounding)."
 }

@@ -12,7 +12,7 @@ Three claims:
 
 1. **Stock Gemma 4 fails predictably** on migrant-worker
    trafficking prompts (no ILO citations, gives traffickers advice).
-2. **A 5-layer harness — privacy-non-negotiable, on-device — fixes
+2. **A 6-layer harness — privacy-non-negotiable, on-device — fixes
    it** with a +56.5pp lift on a 12-criterion legal-citation rubric.
 3. **The grader is itself adversarially defended** with a 4-mode
    stack (deterministic + LLM-as-judge + combined).
@@ -44,7 +44,7 @@ In Tab A, after the cloudflared URL prints, run this in any cell:
 ```
 
 Expected: `ready: true`, all 5 layers `wired: true`, all 4 grade
-modes available, harness counts `108 GREP / 33 RAG / 5 tools / 17
+modes available, harness counts `161 GREP / 33 RAG / 5 tools / 17
 rubric / 17 judge questions`.
 
 **If this fails, tell us — we'll fix it.** If it passes, the rest of
@@ -100,7 +100,7 @@ Four radio modes with latency hints in the labels:
 
 | Mode | Time | What it does |
 |---|---|---|
-| Universal | ~1-3s | Deterministic 21-dim multi-signal grader (keywords + cluster + token + fuzzy + trigram + structural quality + citation grounding + section-number verification) |
+| Universal | ~1-3s | Deterministic 46-dim multi-signal grader (keywords + cluster + token + fuzzy + trigram + structural quality + citation grounding + section-number verification) |
 | Expert | ~1s | Legacy per-category rubrics |
 | Deep | ~30-90s | LLM-as-judge — sends response back to the loaded Gemma with one focused yes/no question per dimension, pulls evidence quotes from the response itself |
 | Combined | ~30-90s | Universal + Deep blended 50/50 with a disagreement panel highlighting dimensions where the two graders see different evidence |
@@ -163,7 +163,7 @@ risk vectors + NGO referrals + audit trail.
 
 By minute 5 you should have:
 
-- ✅ Confirmed all 5 harness layers + 4 grade modes wired
+- ✅ Confirmed all 6 harness layers + 4 grade modes wired
 - ✅ Seen the lift in real-time (vague → cited refusal with hotlines)
 - ✅ Inspected the Pipeline modal with per-layer attribution
 - ✅ Run Combined-mode grading with a disagreement panel

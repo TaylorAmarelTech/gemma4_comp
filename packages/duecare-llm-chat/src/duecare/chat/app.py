@@ -28,7 +28,7 @@ from pathlib import Path
 from typing import Any, Callable, Optional
 from uuid import uuid4
 
-from fastapi import FastAPI, HTTPException, UploadFile, File
+from fastapi import FastAPI, HTTPException, UploadFile, File, Request
 from fastapi.responses import HTMLResponse, JSONResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
@@ -63,13 +63,145 @@ _GEMMA_LOCK = threading.Lock()
 # survives across create_app() calls in tests + reuses. Wiped on
 # process restart — never persisted to disk.
 _ONLINE_CONFIG: dict = {
-    "backend":         "auto",   # 'auto' | 'brave' | 'ddg'
-    "brave_api_key":   None,
-    "brave_test_ok":   None,     # last test result, for the UI light
-    "brave_test_msg":  "",
-    "brave_test_at":   0.0,
+    # Search backend selection. 'auto' tries keyed providers first
+    # (Tavily > Brave) then falls through to the kernel-supplied DDG
+    # scrape on error. 'brave', 'tavily', 'ddg' lock to that backend.
+    "backend":          "auto",   # 'auto' | 'brave' | 'tavily' | 'ddg'
+    "brave_api_key":    None,
+    "brave_test_ok":    None,     # last test result, for the UI light
+    "brave_test_msg":   "",
+    "brave_test_at":    0.0,
+    "tavily_api_key":   None,
+    "tavily_test_ok":   None,
+    "tavily_test_msg":  "",
+    "tavily_test_at":   0.0,
+    # Deep mode: after search returns URLs, fetch top-N pages, run
+    # GREP rules over them, and prepend the parsed text + hits as
+    # additional context. Off by default — adds 2-8s latency per turn
+    # depending on page sizes + network.
+    "fetch_pages":      False,
+    "fetch_top_n":      3,        # how many of the top results to fetch
+    "fetch_max_chars":  4500,     # per-page truncation cap
+    "fetch_timeout":    8.0,      # per-page HTTP timeout (seconds)
 }
 _ONLINE_CONFIG_LOCK = threading.Lock()
+
+
+# ---------------------------------------------------------------------------
+# Retrieval configuration (v0.14.0).
+# ---------------------------------------------------------------------------
+# Central knob set for the chunking + BM25 + rerank + graph + hybrid-dense
+# retrieval pipeline. All defaults are chosen so a kernel that doesn't
+# touch this config gets behavior matching v0.14.0 — no surprise regressions
+# for existing notebooks. Endpoints at /api/retrieval/config let the UI
+# (and external tools) tune the pipeline without restarting the server.
+#
+# Why centralized:
+#   - Five layers (RAG, Imports, deep-fetch chunks, search, citations)
+#     used to read scattered tunables. Centralization gives one /api/
+#     surface for benchmark replay + one UI for runtime tuning.
+#   - Path tracing keys off the same dict, so when a config flag changes
+#     a retrieval result the trace shows it.
+#   - Defaults and bounds live with the data so a malformed POST can't
+#     wedge the system (Pydantic-shape validation in the endpoint).
+_RETRIEVAL_CONFIG: dict = {
+    # ── Chunking parameters (applied at upload + RAG-corpus load) ──
+    "chunk_max_chars":      900,    # target chunk size; smaller → finer BM25
+    "chunk_overlap_chars":  120,    # tail-prepend on non-first chunks
+
+    # ── Parent expansion ───────────────────────────────────────────
+    # After chunk-level BM25 returns a hit, optionally expand the
+    # context shown to the model:
+    #   "off"     → just the matched chunk (current v0.14.0 behaviour)
+    #   "section" → matched chunk + sibling chunks under same heading
+    #   "doc"     → matched chunk + everything from the parent doc up to cap
+    "parent_expand":            "section",
+    "parent_expand_max_chars":  2400,   # per-parent budget
+
+    # ── Citation graph expansion (built atop _citations.json) ──────
+    # 0 = off (no expansion), 1 = surface direct neighbours of any
+    # retrieved doc, 2 = also surface neighbours-of-neighbours.
+    "graph_expand_depth":       1,
+    "graph_expand_per_node":    2,      # max neighbours per retrieved doc
+    "graph_expand_max_chars":   1800,   # total char budget for added context
+
+    # ── Hybrid retrieval (BM25 + optional dense) ────────────────────
+    # mode = "bm25"      → lexical only (v0.14.0 default; deterministic)
+    #        "dense"     → embedding-only (requires embed_call wired)
+    #        "hybrid_rrf"→ both, fused via Reciprocal Rank Fusion
+    "retrieval_mode":           "bm25",
+    "dense_top_k":              20,
+    "rrf_k":                    60,     # standard RRF constant
+
+    # ── Reranker (v0.6.0 hook, made first-class here) ───────────────
+    "rerank_top_k":             50,     # candidates fed to rerank_call
+    "rerank_keep":              8,      # final keep after rerank
+    "rerank_enabled":           True,   # turn off to bypass rerank_call
+
+    # ── Path tracing ───────────────────────────────────────────────
+    # When True, every retrieval call records a structured per-stage
+    # log into trace.path_trace[layer]. Cheap (just dict appends) but
+    # makes traces ~2-3 KB bigger; off-by-default for benchmark runs
+    # to keep wire payloads small.
+    "path_trace_enabled":       True,
+
+    # ── BM25 hyperparameters ────────────────────────────────────────
+    "bm25_k1":                  1.5,
+    "bm25_b":                   0.75,
+}
+_RETRIEVAL_CONFIG_LOCK = threading.Lock()
+
+
+def _retrieval_cfg_snapshot() -> dict:
+    """Read-only thread-safe snapshot of the live retrieval config.
+    Callers should always go through this rather than reading the
+    module-level dict directly so a concurrent POST can't tear a
+    multi-key read."""
+    with _RETRIEVAL_CONFIG_LOCK:
+        return dict(_RETRIEVAL_CONFIG)
+
+
+# ---------------------------------------------------------------------------
+# Path tracing helpers (v0.14.0).
+# ---------------------------------------------------------------------------
+# Every retrieval stage that contributes to a model-feed decision can
+# call _path_trace_record(trace, stage, ...) to log: which candidates
+# entered, which left, scores, and elapsed_ms. The chat send pipeline
+# attaches the per-request path_trace dict to the harness trace so the
+# UI can render a full decision tree per response.
+def _path_trace_init(trace: dict) -> None:
+    if trace is None:
+        return
+    if "path_trace" not in trace:
+        trace["path_trace"] = {"enabled": True, "stages": []}
+
+
+def _path_trace_record(trace: Optional[dict], *,
+                          layer: str,
+                          stage: str,
+                          n_in: int = 0,
+                          n_out: int = 0,
+                          elapsed_ms: float = 0.0,
+                          notes: str = "",
+                          extras: Optional[dict] = None) -> None:
+    """Append one stage record to the path trace. Cheap no-op when
+    tracing is disabled."""
+    if trace is None or not trace.get("path_trace"):
+        return
+    if not trace["path_trace"].get("enabled"):
+        return
+    record = {
+        "layer":      layer,           # rag | import | online | citations
+        "stage":      stage,           # bm25 | dense | rrf | rerank | graph | parent | snippet | grep
+        "n_in":       int(n_in),
+        "n_out":      int(n_out),
+        "elapsed_ms": int(elapsed_ms),
+        "notes":      notes[:240],
+    }
+    if extras:
+        # Truncate per-stage extras to keep trace small for big runs.
+        record["extras"] = {k: v for k, v in list(extras.items())[:8]}
+    trace["path_trace"]["stages"].append(record)
 
 
 def _brave_search(query: str, api_key: str, *,
@@ -154,16 +286,474 @@ def _brave_search(query: str, api_key: str, *,
     }
 
 
+def _tavily_search(query: str, api_key: str, *,
+                     top_n: int = 5, timeout: float = 10.0,
+                     include_raw: bool = True) -> dict:
+    """Call the Tavily Search API. Tavily returns rich `content` per
+    result (200-500 chars of extracted page text, not just a snippet)
+    so the model gets meaningfully more grounding than a Brave/DDG
+    snippet. With include_raw=True the response also carries the full
+    answer summary which we surface in the prepended context.
+
+    Free tier: 1000 queries/month with a key from
+    https://tavily.com (no card required for the free tier).
+
+    Returns the same normalized shape as _brave_search:
+        {results: [{rank, title, url, snippet, content?, age?}],
+         source: 'tavily', elapsed_ms: int, answer?: str}
+
+    Raises:
+      RuntimeError on HTTP error, network error, or malformed JSON.
+    """
+    import urllib.request
+    if not query or not api_key:
+        raise RuntimeError("query and api_key are required")
+    body = json.dumps({
+        "api_key":         api_key.strip(),
+        "query":           (query[:400]).strip(),
+        "max_results":     min(20, max(1, top_n)),
+        "search_depth":    "basic",
+        "include_answer":  bool(include_raw),
+        "include_raw_content": False,
+    }).encode("utf-8")
+    req = urllib.request.Request(
+        "https://api.tavily.com/search",
+        data=body,
+        headers={
+            "Accept":       "application/json",
+            "Content-Type": "application/json",
+            "User-Agent":   "duecare-chat/0.4 (+tavily-byok)",
+        })
+    t0 = time.time()
+    try:
+        with urllib.request.urlopen(req, timeout=timeout) as resp:
+            payload = json.loads(resp.read().decode("utf-8"))
+    except urllib.error.HTTPError as e:
+        msg = ""
+        try:
+            msg = e.read().decode("utf-8", errors="ignore")[:200]
+        except Exception:
+            pass
+        raise RuntimeError(
+            f"Tavily API HTTP {e.code}: {e.reason} {msg}".strip()) from e
+    except (urllib.error.URLError, OSError) as e:
+        raise RuntimeError(f"Tavily network error: {e}") from e
+    except (ValueError, json.JSONDecodeError) as e:
+        raise RuntimeError(f"Tavily malformed response: {e}") from e
+    raw_results = (payload or {}).get("results") or []
+    out = []
+    for i, r in enumerate(raw_results[:top_n], 1):
+        # Tavily packs the actual page extract under `content`; we keep
+        # both `snippet` (short) and `content` (longer) so downstream
+        # formatters can pick the right one for the context budget.
+        content = (r.get("content") or "").strip()
+        snippet = content[:300] if content else ""
+        out.append({
+            "rank":    i,
+            "title":   r.get("title") or "(untitled)",
+            "url":     r.get("url") or "",
+            "snippet": snippet,
+            "content": content,
+            "score":   r.get("score") or 0.0,
+        })
+    return {
+        "results":    out,
+        "source":     "tavily",
+        "elapsed_ms": int((time.time() - t0) * 1000),
+        "query":      query[:200],
+        "answer":     (payload or {}).get("answer", "") or "",
+    }
+
+
+def _basic_html_to_text(html: str) -> str:
+    """Stdlib-only HTML to plain text. Used as the fallback when
+    trafilatura is unavailable. Strips scripts, styles, all tags;
+    converts a few common entities; collapses whitespace.
+
+    Intentionally minimal — for production-grade extraction the
+    `trafilatura` package is preferred and gets used first when
+    importable.
+    """
+    html = re.sub(r"<script[^>]*>.*?</script>", " ", html,
+                  flags=re.IGNORECASE | re.DOTALL)
+    html = re.sub(r"<style[^>]*>.*?</style>", " ", html,
+                  flags=re.IGNORECASE | re.DOTALL)
+    html = re.sub(r"<(nav|header|footer|aside|form)[^>]*>.*?</\1>", " ",
+                  html, flags=re.IGNORECASE | re.DOTALL)
+    html = re.sub(r"</(p|div|li|h[1-6]|tr|br|section|article)\s*[^>]*>",
+                  "\n", html, flags=re.IGNORECASE)
+    html = re.sub(r"<[^>]+>", " ", html)
+    html = (html.replace("&amp;", "&").replace("&lt;", "<")
+                .replace("&gt;", ">").replace("&quot;", '"')
+                .replace("&#39;", "'").replace("&nbsp;", " "))
+    # Collapse runs of whitespace but preserve paragraph breaks
+    html = re.sub(r"[ \t]+", " ", html)
+    html = re.sub(r"\n[ \t]+", "\n", html)
+    html = re.sub(r"\n{3,}", "\n\n", html)
+    return html.strip()
+
+
+def _fetch_and_parse_url(url: str, *, timeout: float = 8.0,
+                            max_chars: int = 6000) -> dict:
+    """Fetch a single URL and extract its main content as plain text.
+
+    Used by the Online layer's "deep mode" (fetch_pages=True) to grab
+    the actual page content for top-N search results, then run those
+    pages through GREP rules + prepend as additional grounding for the
+    model. Without this, the model only sees a 100-200 char snippet.
+
+    Strategy: prefer `trafilatura` for clean main-content extraction
+    when available; fall back to a stdlib regex strip when not.
+
+    Returns:
+        {url, title, text, char_count, truncated, status, error?,
+         elapsed_ms}
+    """
+    import urllib.request
+    t0 = time.time()
+    if not url or not url.startswith(("http://", "https://")):
+        return {"url": url, "title": "", "text": "", "char_count": 0,
+                "truncated": False, "status": 0, "elapsed_ms": 0,
+                "error": "url must start with http(s)"}
+    try:
+        req = urllib.request.Request(url, headers={
+            "User-Agent":      "duecare-chat/0.4 (+page-fetch)",
+            "Accept":          "text/html,application/xhtml+xml,*/*",
+            "Accept-Language": "en-US,en;q=0.9",
+        })
+        with urllib.request.urlopen(req, timeout=timeout) as resp:
+            status = getattr(resp, "status", 200)
+            if status != 200:
+                return {"url": url, "title": "", "text": "",
+                        "char_count": 0, "truncated": False,
+                        "status": status,
+                        "elapsed_ms": int((time.time() - t0) * 1000),
+                        "error": f"http {status}"}
+            # Cap raw bytes read to 2 MB to avoid loading huge pages.
+            raw = resp.read(2_000_000)
+            ctype = resp.headers.get("Content-Type", "")
+            charset = "utf-8"
+            m = re.search(r"charset=([\w-]+)", ctype, re.IGNORECASE)
+            if m:
+                charset = m.group(1).lower()
+            try:
+                body = raw.decode(charset, errors="ignore")
+            except (LookupError, TypeError):
+                body = raw.decode("utf-8", errors="ignore")
+    except urllib.error.HTTPError as e:
+        return {"url": url, "title": "", "text": "", "char_count": 0,
+                "truncated": False, "status": e.code,
+                "elapsed_ms": int((time.time() - t0) * 1000),
+                "error": f"http {e.code}: {e.reason}"}
+    except (urllib.error.URLError, OSError, TimeoutError) as e:
+        return {"url": url, "title": "", "text": "", "char_count": 0,
+                "truncated": False, "status": 0,
+                "elapsed_ms": int((time.time() - t0) * 1000),
+                "error": f"network: {e}"}
+    except Exception as e:  # noqa: BLE001
+        return {"url": url, "title": "", "text": "", "char_count": 0,
+                "truncated": False, "status": 0,
+                "elapsed_ms": int((time.time() - t0) * 1000),
+                "error": f"unexpected: {type(e).__name__}: {e}"}
+
+    title = ""
+    text = ""
+    # Prefer trafilatura when installed (gives clean Markdown stripped
+    # of nav/footer/sidebar). Optional import — kernel works without it
+    # via the stdlib fallback below.
+    try:
+        import trafilatura  # type: ignore
+        extracted = trafilatura.extract(
+            body, output_format="markdown",
+            include_links=False, include_tables=True,
+            favor_precision=True)
+        if extracted:
+            text = extracted
+        meta = trafilatura.extract_metadata(body)
+        if meta and getattr(meta, "title", None):
+            title = meta.title
+    except Exception:  # noqa: BLE001
+        pass
+
+    if not text:
+        text = _basic_html_to_text(body)
+    if not title:
+        m = re.search(r"<title[^>]*>(.*?)</title>", body,
+                      re.IGNORECASE | re.DOTALL)
+        if m:
+            title = re.sub(r"\s+", " ", m.group(1)).strip()[:240]
+
+    # v0.14.0: do NOT head-truncate at fetch time. Truncation moved into
+    # _enrich_search_with_pages which chunks the full text + ranks
+    # chunks against the user query, then keeps only the top-N relevant
+    # chunks. Head-truncating here would discard the page tail before
+    # we even get to look at it. We DO cap raw fetched bytes earlier
+    # (2 MB) to bound memory.
+    return {"url": url, "title": title, "text": text,
+            "char_count": len(text), "truncated": False,
+            "status": 200,
+            "elapsed_ms": int((time.time() - t0) * 1000)}
+
+
+def _enrich_search_with_pages(search_result: dict, *,
+                                  query: str = "",
+                                  grep_call: Optional[Callable] = None,
+                                  top_n: int = 3,
+                                  max_chars: int = 4500,
+                                  timeout: float = 8.0,
+                                  chunks_per_page: int = 3,
+                                  rerank_call: Optional[Callable] = None,
+                                  trace: Optional[dict] = None,
+                                  ) -> dict:
+    """Fetch the top-N URLs from a search_result, parse to text, then
+    chunk + BM25-rank chunks against the query (v0.14.0). Returns the
+    search_result extended with a `fetched_pages` list, where each
+    page carries:
+
+      * `text`            — concatenated breadcrumbed top-K chunks
+                            (suitable for direct prompt prepend)
+      * `chunks`          — full per-chunk records with heading_path,
+                            score, and per-chunk grep_hits
+      * `grep_hits`       — flat union of grep hits across the kept
+                            chunks (model context)
+      * `n_chunks_total`  — how many chunks the full page produced
+                            (so the UI can show "3 of 47 chunks kept")
+
+    Why per-page chunking + ranking: a 50KB legal page might have its
+    relevant clause at character 40,000. Head-truncation at 4500 would
+    discard it. By chunking and ranking against the user's query, we
+    surface the chunks that actually contain query-relevant content
+    and feed only those to the model.
+
+    Parallel HTTP via a small ThreadPoolExecutor — keeps total wall
+    time bounded by the slowest of the N fetches rather than serial
+    sum. Errors per page are captured (not raised) so a single 404
+    doesn't tank the whole online layer.
+    """
+    from concurrent.futures import ThreadPoolExecutor, as_completed
+    results = (search_result or {}).get("results") or []
+    if not results:
+        return search_result
+    target = [r for r in results[:max(1, int(top_n))] if r.get("url")]
+    fetched_pages: list[dict] = []
+    if not target:
+        search_result["fetched_pages"] = fetched_pages
+        return search_result
+    # Pre-tokenize query once for chunk-ranking on each page. Unicode-
+    # aware so a Tagalog / Bengali / Arabic search query still tokenizes.
+    query_toks = re.findall(r"\w+", (query or "").lower(), flags=re.UNICODE)
+    # Allow ~50 KB per page through to chunking. Anything larger we cap
+    # at fetch time as a memory guard, not because the chunker can't
+    # handle it.
+    fetch_max_for_chunking = 50_000
+    with ThreadPoolExecutor(max_workers=min(len(target), 4)) as ex:
+        futures = {ex.submit(_fetch_and_parse_url, r["url"],
+                              timeout=timeout,
+                              max_chars=fetch_max_for_chunking): r
+                    for r in target}
+        for fut in as_completed(futures):
+            src = futures[fut]
+            try:
+                page = fut.result()
+            except Exception as e:  # noqa: BLE001
+                page = {"url": src.get("url", ""),
+                        "title": src.get("title", ""),
+                        "text": "", "char_count": 0,
+                        "truncated": False, "status": 0,
+                        "error": f"fetch failed: {type(e).__name__}: {e}",
+                        "elapsed_ms": 0}
+            page["rank"] = src.get("rank", 0)
+            if not page.get("title"):
+                page["title"] = src.get("title", "")
+            page["chunks"] = []
+            page["n_chunks_total"] = 0
+            page["grep_hits"] = []
+            # Chunk + rank when we got non-empty text.
+            full_text = page.get("text") or ""
+            if full_text and not page.get("error"):
+                try:
+                    from .harness._chunking import chunk_text
+                    page_chunks = chunk_text(
+                        full_text,
+                        parent_doc_id=page.get("url", "")[:200],
+                        parent_doc_title=page.get("title", "")[:200],
+                        source=page.get("url", ""),
+                        max_chunk_chars=900,
+                        overlap_chars=120,
+                    ) or []
+                    page["n_chunks_total"] = len(page_chunks)
+                    # BM25-rank chunks against the user query, falling
+                    # back to "first N chunks" when the query is empty
+                    # or the page somehow has zero overlap (rare; the
+                    # search backend already brought the page in via
+                    # query keywords, so most tokens recur).
+                    import time as _bt
+                    _bt0 = _bt.time()
+                    ranked = _bm25_rank_chunks(query_toks, page_chunks)
+                    _path_trace_record(trace, layer="online", stage="bm25",
+                                          n_in=len(page_chunks), n_out=len(ranked),
+                                          elapsed_ms=(_bt.time() - _bt0) * 1000,
+                                          notes=f"page={page.get('url', '')[:80]}")
+                    if rerank_call is not None and ranked:
+                        try:
+                            # Normalize candidate shape: every entry
+                            # gets both `text` and `snippet` populated
+                            # so a kernel reranker reading either field
+                            # works across all three call sites
+                            # (RAG / Imports / deep-fetch).
+                            for c in ranked:
+                                if not c.get("snippet") and c.get("text"):
+                                    c["snippet"] = c["text"]
+                            ranked = rerank_call(query, ranked) or ranked
+                        except Exception:  # noqa: BLE001
+                            pass  # rerank failure → keep BM25 order
+                    kept = ranked[:max(1, int(chunks_per_page))]
+                    # Replace `text` with breadcrumbed chunk concat
+                    # capped at max_chars.
+                    parts: list[str] = []
+                    total = 0
+                    for c in kept:
+                        snippet = _format_chunk_snippet(c, max_chars=max_chars)
+                        if total + len(snippet) > max_chars:
+                            break
+                        parts.append(snippet)
+                        total += len(snippet) + 2
+                    page["text"] = "\n\n".join(parts)
+                    page["char_count"] = len(page["text"])
+                    # v0.14.0: re-establish a meaningful "truncated"
+                    # signal. v0.14.0 dropped head-truncation in favor
+                    # of chunk-rank, but the UI badge that warned
+                    # "content was dropped" went silent. Now we flip
+                    # `truncated` whenever ANY chunk got pruned (kept
+                    # < total) AND surface the ratio in the UI label.
+                    page["truncated"] = len(kept) < page["n_chunks_total"]
+                    page["n_chunks_kept"] = len(kept)
+                    # Run GREP per kept chunk so hits are localised to
+                    # the actual context the model sees, not the whole
+                    # 50KB page (which may include unrelated boilerplate).
+                    grep_hits_acc: list[dict] = []
+                    if grep_call is not None:
+                        for c in kept:
+                            try:
+                                g = grep_call(c.get("text", "")) or {}
+                                hits = g.get("hits") or []
+                                # Tag each hit with the source chunk's
+                                # breadcrumb so the trace-display can
+                                # show "this hit fired in Article 9 §2".
+                                for h in hits:
+                                    h2 = dict(h)
+                                    h2["chunk_id"] = c.get("id", "")
+                                    h2["heading_path"] = c.get("heading_path", "")
+                                    grep_hits_acc.append(h2)
+                            except Exception:  # noqa: BLE001
+                                pass
+                    page["grep_hits"] = grep_hits_acc
+                    # Stash structured chunk records for the trace
+                    # UI — keeps the model context lean while letting
+                    # the pipeline modal show "we considered chunks X
+                    # of Y, here are the kept ones with scores".
+                    page["chunks"] = [{
+                        "id":            c.get("id"),
+                        "heading_path":  c.get("heading_path", ""),
+                        "score":         round(float(c.get("_score", 0)), 3),
+                        "char_count":    len(c.get("text", "")),
+                        "preview":       (c.get("text") or "")[:200],
+                    } for c in kept]
+                except Exception as e:  # noqa: BLE001
+                    # Chunking failed — fall back to head-truncation
+                    # so the layer still produces SOMETHING. Log via
+                    # error field so the UI can surface it.
+                    page["text"] = full_text[:max_chars]
+                    page["char_count"] = len(page["text"])
+                    page["chunk_error"] = f"chunking failed: {type(e).__name__}: {e}"
+                    if grep_call is not None and page["text"]:
+                        try:
+                            g = grep_call(page["text"]) or {}
+                            page["grep_hits"] = g.get("hits") or []
+                        except Exception:  # noqa: BLE001
+                            page["grep_hits"] = []
+            fetched_pages.append(page)
+    fetched_pages.sort(key=lambda p: p.get("rank", 999))
+    search_result["fetched_pages"] = fetched_pages
+    search_result["fetched_total_chars"] = sum(
+        p.get("char_count", 0) for p in fetched_pages)
+    search_result["fetched_grep_hits"] = sum(
+        len(p.get("grep_hits") or []) for p in fetched_pages)
+    search_result["fetched_chunks_total"] = sum(
+        p.get("n_chunks_total", 0) for p in fetched_pages)
+    search_result["fetched_chunks_kept"] = sum(
+        len(p.get("chunks") or []) for p in fetched_pages)
+    return search_result
+
+
+def _bm25_rank_chunks(query_toks: list[str], chunks: list[dict]) -> list[dict]:
+    """Quick BM25 rank of a list of chunks (single-page corpus). Returns
+    the same list with each chunk annotated with `_score` and sorted
+    descending. Empty query → preserve original (chunk-position) order.
+    """
+    if not chunks:
+        return []
+    if not query_toks:
+        for i, c in enumerate(chunks):
+            c["_score"] = 0.0
+        return list(chunks)
+    import math
+    from collections import Counter
+    # Build per-chunk token list + DF count over THIS page only. Page-
+    # local stats keep relevance comparable across pages of different
+    # sizes, instead of letting one giant page's TF dominate.
+    tok_lists: list[list[str]] = []
+    for c in chunks:
+        toks = re.findall(r"\w+",
+                            (c.get("heading_path", "") + " "
+                             + c.get("text", "")).lower(),
+                            flags=re.UNICODE)
+        tok_lists.append(toks)
+    n = len(tok_lists)
+    avg_len = sum(len(t) for t in tok_lists) / max(1, n)
+    df = Counter()
+    for toks in tok_lists:
+        for t in set(toks):
+            df[t] += 1
+    k1, b = 1.5, 0.75
+    out: list[tuple[float, dict]] = []
+    for c, toks in zip(chunks, tok_lists):
+        if not toks:
+            c["_score"] = 0.0
+            out.append((0.0, c))
+            continue
+        tf = Counter(toks)
+        score = 0.0
+        doc_len = len(toks)
+        for qt in query_toks:
+            f = df.get(qt, 0)
+            if f == 0:
+                continue
+            idf = math.log(1 + (n - f + 0.5) / (f + 0.5))
+            tfn = tf.get(qt, 0) * (k1 + 1) / (
+                tf.get(qt, 0) + k1 * (1 - b + b * doc_len / avg_len))
+            score += idf * tfn
+        c["_score"] = float(score)
+        out.append((score, c))
+    out.sort(key=lambda x: -x[0])
+    return [c for _, c in out]
+
+
 def _online_search_with_fallback(query: str,
                                     *,
                                     kernel_call: Optional[Callable] = None,
                                     top_n: int = 5) -> dict:
     """Resolve online search per current backend config.
 
-      backend == 'brave': require a key, raise on missing/error
-      backend == 'ddg':   call kernel_call only
-      backend == 'auto':  Brave if keyed, else kernel_call. On Brave
-                          error, fall back to kernel_call.
+      backend == 'brave':  require Brave key, raise on missing/error
+      backend == 'tavily': require Tavily key, raise on missing/error
+      backend == 'ddg':    call kernel_call only
+      backend == 'auto':   Tavily if keyed (richest content), else
+                           Brave if keyed, else kernel DDG. On any
+                           keyed-provider error, fall through to the
+                           next available source — and record the
+                           error so the UI can surface WHY it fell
+                           back (vs. silently appearing as DDG).
 
     Returns the normalized search dict + a `backend` field naming
     which path produced the result so the UI can render it.
@@ -171,7 +761,8 @@ def _online_search_with_fallback(query: str,
     with _ONLINE_CONFIG_LOCK:
         cfg = dict(_ONLINE_CONFIG)
     backend = cfg.get("backend") or "auto"
-    key = cfg.get("brave_api_key")
+    brave_key = cfg.get("brave_api_key")
+    tavily_key = cfg.get("tavily_api_key")
 
     def _ddg() -> dict:
         if kernel_call is None:
@@ -184,33 +775,59 @@ def _online_search_with_fallback(query: str,
         out["backend"] = "ddg"
         return out
 
+    def _brave() -> dict:
+        r = _brave_search(query, brave_key, top_n=top_n)
+        r["backend"] = "brave"
+        return r
+
+    def _tavily() -> dict:
+        r = _tavily_search(query, tavily_key, top_n=top_n)
+        r["backend"] = "tavily"
+        return r
+
     if backend == "ddg":
         return _ddg()
     if backend == "brave":
-        if not key:
+        if not brave_key:
             return {"results": [], "source": "brave",
                     "backend": "brave", "elapsed_ms": 0,
                     "error": "Brave selected but no API key configured"}
         try:
-            r = _brave_search(query, key, top_n=top_n)
-            r["backend"] = "brave"
-            return r
+            return _brave()
         except Exception as e:  # noqa: BLE001
             return {"results": [], "source": "brave",
                     "backend": "brave", "elapsed_ms": 0,
                     "error": str(e)}
-    # auto
-    if key:
+    if backend == "tavily":
+        if not tavily_key:
+            return {"results": [], "source": "tavily",
+                    "backend": "tavily", "elapsed_ms": 0,
+                    "error": "Tavily selected but no API key configured"}
         try:
-            r = _brave_search(query, key, top_n=top_n)
-            r["backend"] = "brave"
+            return _tavily()
+        except Exception as e:  # noqa: BLE001
+            return {"results": [], "source": "tavily",
+                    "backend": "tavily", "elapsed_ms": 0,
+                    "error": str(e)}
+    # auto: prefer Tavily (richest content) → Brave → DDG, threading
+    # error messages through so the UI can show why a higher-priority
+    # backend was skipped.
+    fallback_errors: dict[str, str] = {}
+    if tavily_key:
+        try:
+            return _tavily()
+        except Exception as e:  # noqa: BLE001
+            fallback_errors["tavily_fallback_error"] = str(e)
+    if brave_key:
+        try:
+            r = _brave()
+            r.update(fallback_errors)
             return r
         except Exception as e:  # noqa: BLE001
-            # Fall through to DDG; record error in trace
-            ddg = _ddg()
-            ddg["brave_fallback_error"] = str(e)
-            return ddg
-    return _ddg()
+            fallback_errors["brave_fallback_error"] = str(e)
+    ddg = _ddg()
+    ddg.update(fallback_errors)
+    return ddg
 
 # ---------------------------------------------------------------------------
 # Import / internal-intelligence corpus.
@@ -227,6 +844,25 @@ def _online_search_with_fallback(query: str,
 # image store.
 _IMPORT_STORE: dict[str, dict] = {}
 _IMPORT_LOCK  = threading.Lock()
+
+# Chunked-doc index (added v0.14.0). Each upload is now structurally
+# chunked (heading-aware where possible, paragraph fallback) at insert
+# time so retrieval doesn't have to head-truncate a megabyte court
+# filing. The original full text stays in _IMPORT_STORE for "View full"
+# affordance; _IMPORT_CHUNKS is what BM25 actually scores.
+_IMPORT_CHUNKS: dict[str, dict] = {}        # chunk_id -> chunk dict
+_IMPORT_CHUNK_BY_DOC: dict[str, list[str]] = {}  # doc_id -> [chunk_ids]
+# BM25 stats over the whole chunk corpus. Rebuilt on every add/evict
+# (cheap — chunk counts are O(100s), not millions). The keys mirror the
+# RAG layer's BM25 implementation so a future cross-store hybrid is
+# trivial.
+_IMPORT_BM25 = {
+    "doc_tokens":  {},   # chunk_id -> list[str]
+    "doc_lens":    {},   # chunk_id -> int
+    "doc_freq":    {},   # token -> int (corpus-wide)
+    "avg_doc_len": 0.0,
+    "n_docs":      0,
+}
 _IMPORT_MAX_DOCS         = 200            # max number of stored docs
 _IMPORT_MAX_DOC_BYTES    = 5 * 1024 * 1024  # cap per file at 5 MB
 _IMPORT_MAX_TOTAL_BYTES  = 100 * 1024 * 1024  # 100 MB total
@@ -243,20 +879,69 @@ def _import_total_bytes() -> int:
     return sum(d.get("size_bytes", 0) for d in _IMPORT_STORE.values())
 
 
+def _import_drop_doc_chunks(doc_id: str) -> None:
+    """Remove all chunks belonging to `doc_id` from the chunk index +
+    BM25 stats. Caller must hold _IMPORT_LOCK."""
+    chunk_ids = _IMPORT_CHUNK_BY_DOC.pop(doc_id, [])
+    for cid in chunk_ids:
+        _IMPORT_CHUNKS.pop(cid, None)
+        toks = _IMPORT_BM25["doc_tokens"].pop(cid, None)
+        _IMPORT_BM25["doc_lens"].pop(cid, None)
+        if toks:
+            for t in set(toks):
+                df = _IMPORT_BM25["doc_freq"].get(t, 0)
+                if df <= 1:
+                    _IMPORT_BM25["doc_freq"].pop(t, None)
+                else:
+                    _IMPORT_BM25["doc_freq"][t] = df - 1
+    _import_recompute_bm25_aggregates()
+
+
+def _import_recompute_bm25_aggregates() -> None:
+    """Recompute n_docs + avg_doc_len from the current per-chunk lens.
+    Caller must hold _IMPORT_LOCK."""
+    lens = _IMPORT_BM25["doc_lens"]
+    n = len(lens)
+    _IMPORT_BM25["n_docs"] = n
+    _IMPORT_BM25["avg_doc_len"] = (
+        sum(lens.values()) / n if n else 0.0
+    )
+
+
 def _import_evict_lru() -> None:
     """Drop the oldest entries until both count + byte caps are satisfied.
+    Also removes evicted docs' chunks from the BM25 index.
     Called from inside _IMPORT_LOCK by the upload / snippet endpoints."""
     while len(_IMPORT_STORE) > _IMPORT_MAX_DOCS:
         oldest = min(_IMPORT_STORE.values(), key=lambda d: d.get("uploaded_at", 0))
-        _IMPORT_STORE.pop(oldest["id"], None)
+        oid = oldest["id"]
+        _IMPORT_STORE.pop(oid, None)
+        _import_drop_doc_chunks(oid)
     while _import_total_bytes() > _IMPORT_MAX_TOTAL_BYTES and _IMPORT_STORE:
         oldest = min(_IMPORT_STORE.values(), key=lambda d: d.get("uploaded_at", 0))
-        _IMPORT_STORE.pop(oldest["id"], None)
+        oid = oldest["id"]
+        _IMPORT_STORE.pop(oid, None)
+        _import_drop_doc_chunks(oid)
+
+
+def _import_chunk_tokenize(text: str) -> list[str]:
+    """Same regex shape as _bm25_tokenize in harness/__init__.py.
+    Uses \\w+ with re.UNICODE so non-Latin scripts (Bengali, Arabic,
+    CJK, Devanagari, Tagalog with diacritics) still produce real
+    tokens — otherwise BM25 against a multi-lingual prompt returns
+    zero matches even when relevant content exists."""
+    return re.findall(r"\w+", (text or "").lower(), flags=re.UNICODE)
 
 
 def _import_add(title: str, source: str, text: str) -> Optional[str]:
     """Add one entry. Returns the id, or None if rejected (empty text /
-    over-cap / decode failure)."""
+    over-cap / decode failure).
+
+    v0.14.0: also chunks the doc structurally (heading-aware where
+    possible) and indexes each chunk for chunk-level BM25 retrieval.
+    A 200-page court filing now produces ~80-200 chunks instead of
+    being head-truncated to 4000 chars at retrieval time.
+    """
     text = (text or "").strip()
     if not text:
         return None
@@ -265,15 +950,49 @@ def _import_add(title: str, source: str, text: str) -> Optional[str]:
         # ZIP with one giant file still contributes its first chunk.
         text = text[:_IMPORT_MAX_DOC_BYTES]
     doc_id = uuid4().hex[:12]
+    # Chunk OUTSIDE the lock — chunking can be expensive on a huge doc
+    # (regex pass + paragraph splitting) and we don't want to block
+    # other imports / retrieves while it runs.
+    from .harness._chunking import chunk_text  # lazy import: harness loads JSON
+    chunks = chunk_text(
+        text,
+        parent_doc_id=doc_id,
+        parent_doc_title=(title or "(untitled)")[:240],
+        source=(source or "imported")[:240],
+        max_chunk_chars=900,
+        overlap_chars=120,
+    ) or []
+    # Use UTF-8 byte count (matches the per-doc cap check above and
+    # the global _IMPORT_MAX_TOTAL_BYTES limit). Character count would
+    # under-count Bengali / Tagalog / Arabic / CJK uploads by 2-4x and
+    # let the store grow well past the configured cap.
+    size_bytes = len(text.encode("utf-8"))
     with _IMPORT_LOCK:
         _IMPORT_STORE[doc_id] = {
             "id":          doc_id,
             "title":       (title or "(untitled)")[:240],
             "source":      (source or "imported")[:240],
             "text":        text,
-            "size_bytes":  len(text),
+            "size_bytes":  size_bytes,
             "uploaded_at": time.time(),
+            "n_chunks":    len(chunks),
         }
+        chunk_ids: list[str] = []
+        for c in chunks:
+            cid = c["id"]
+            _IMPORT_CHUNKS[cid] = c
+            chunk_ids.append(cid)
+            toks = _import_chunk_tokenize(
+                c.get("heading_path", "") + " "
+                + c.get("parent_doc_title", "") + " "
+                + c.get("text", "")
+            )
+            _IMPORT_BM25["doc_tokens"][cid] = toks
+            _IMPORT_BM25["doc_lens"][cid] = len(toks)
+            for t in set(toks):
+                _IMPORT_BM25["doc_freq"][t] = _IMPORT_BM25["doc_freq"].get(t, 0) + 1
+        _IMPORT_CHUNK_BY_DOC[doc_id] = chunk_ids
+        _import_recompute_bm25_aggregates()
         _import_evict_lru()
     return doc_id
 
@@ -296,75 +1015,384 @@ def _import_decode(data: bytes) -> Optional[str]:
     return None
 
 
-def _retrieve_imports(user_text: str, *, max_docs: int = 5,
-                       max_total_chars: int = 8000) -> list[dict]:
-    """Score imported docs by query-token overlap with `user_text` and
-    return the top-N most-relevant ones, capped at max_total_chars
-    combined. Each returned entry includes a `score` field so the UI
-    can render the relevance ranking. Snippet text is truncated to
-    fit the per-doc share of the char budget.
+def _import_bm25_score(query_toks: list[str], doc_toks: list[str],
+                          doc_len: int, k1: float = 1.5, b: float = 0.75) -> float:
+    """BM25 ranking against the live import-chunk corpus stats. Same
+    formula as the RAG layer's _bm25_score but reading from the
+    _IMPORT_BM25 dict (which is rebuilt on add/evict). Returns 0.0
+    when the corpus is empty (avoids div-by-zero on first query)."""
+    n = _IMPORT_BM25["n_docs"]
+    avg = _IMPORT_BM25["avg_doc_len"]
+    if n == 0 or avg == 0:
+        return 0.0
+    import math
+    from collections import Counter
+    score = 0.0
+    doc_tf = Counter(doc_toks)
+    doc_freq = _IMPORT_BM25["doc_freq"]
+    for qt in query_toks:
+        df = doc_freq.get(qt, 0)
+        if df == 0:
+            continue
+        idf = math.log(1 + (n - df + 0.5) / (df + 0.5))
+        tf = doc_tf.get(qt, 0)
+        norm = tf * (k1 + 1) / (tf + k1 * (1 - b + b * doc_len / avg))
+        score += idf * norm
+    return score
 
-    This is a deliberately simple BM25-lite scorer (term overlap +
-    title-hit boost) so the harness has zero dependency on numpy /
-    scikit-learn / sentence-transformers. For semantic retrieval at
-    scale, the bundled RAG layer's BM25 still applies — Import is the
-    "I dropped my own corpus on top" affordance, not a vector store.
+
+def _retrieve_imports(user_text: str, *, max_docs: int = 5,
+                       max_total_chars: int = 8000,
+                       chunks_per_doc: int = 2,
+                       trace: Optional[dict] = None) -> list[dict]:
+    """v0.14.0 chunk-level retrieval. BM25-rank ALL chunks across ALL
+    imported docs against the query, then group by parent doc and
+    return up to `chunks_per_doc` chunks per parent (each with its
+    heading breadcrumb), capped at `max_docs` parents total.
+
+    Why chunked: a 200-page court filing previously got head-truncated
+    to ~4000 chars at retrieval time, so the relevant clause at page 87
+    was simply unreachable. Now each section/paragraph is independently
+    indexed and scored — the relevant chunk surfaces regardless of where
+    in the doc it lives.
+
+    Returns the same shape as before for backwards compat with the
+    chat-send pipeline + UI:
+        [{id, title, source, snippet, score, ...optional fields}]
+
+    The `snippet` includes a heading-path breadcrumb prefix so the
+    model knows WHICH part of the doc it's seeing:
+        "[Article 9 §2] Each Member shall take measures to ensure …"
     """
-    if not _IMPORT_STORE:
-        return []
-    query_tokens = set(t for t in _IMPORT_TOKEN_RE.findall((user_text or "").lower())
-                        if len(t) > 2)
     with _IMPORT_LOCK:
         all_docs = list(_IMPORT_STORE.values())
+        all_chunk_ids = list(_IMPORT_CHUNKS.keys())
+        # Snapshot under lock to avoid concurrent-mutation surprises.
+        chunks_snapshot = {cid: _IMPORT_CHUNKS[cid] for cid in all_chunk_ids}
+        tokens_snapshot = dict(_IMPORT_BM25["doc_tokens"])
+        lens_snapshot   = dict(_IMPORT_BM25["doc_lens"])
+        n_docs          = _IMPORT_BM25["n_docs"]
     if not all_docs:
         return []
-    # If query is empty (image-only message etc.), fall back to most-
-    # recent docs so Import still contributes something.
-    if not query_tokens:
+    query_toks = _import_chunk_tokenize(user_text or "")
+    # Empty query (image-only message etc.) → return one top chunk per
+    # most-recent doc so Import still contributes something.
+    if not query_toks or n_docs == 0:
         all_docs.sort(key=lambda d: -d.get("uploaded_at", 0))
-        scored = [(0, d) for d in all_docs[:max_docs]]
-    else:
-        scored = []
-        for d in all_docs:
-            haystack = (d.get("title", "") + " " + d.get("source", "")
-                        + " " + d.get("text", ""))[:50_000].lower()
-            doc_tokens = set(_IMPORT_TOKEN_RE.findall(haystack))
-            if not doc_tokens:
+        out = []
+        total = 0
+        for d in all_docs[:max_docs]:
+            chunk_ids = _IMPORT_CHUNK_BY_DOC.get(d["id"], [])
+            if not chunk_ids:
                 continue
-            overlap = len(query_tokens & doc_tokens)
-            if overlap == 0:
-                continue
-            # Tiny title-match bonus so a doc whose title literally
-            # mentions a query word ranks above a body-only mention.
-            title_low = d.get("title", "").lower()
-            title_hits = sum(1 for t in query_tokens if t in title_low)
-            score = overlap + 2 * title_hits
-            scored.append((score, d))
-        scored.sort(key=lambda x: -x[0])
-        scored = scored[:max_docs]
-    # Build snippets, capped at max_total_chars total
-    out = []
+            first = chunks_snapshot.get(chunk_ids[0]) or {}
+            snippet = _format_chunk_snippet(first, max_chars=2000)
+            if total + len(snippet) > max_total_chars:
+                snippet = snippet[:max(0, max_total_chars - total)]
+            if not snippet:
+                break
+            out.append({
+                "id":           d.get("id"),
+                "title":        d.get("title", ""),
+                "source":       d.get("source", ""),
+                "snippet":      snippet,
+                "score":        0,
+                "heading_path": first.get("heading_path", ""),
+                "n_chunks":     d.get("n_chunks", len(chunk_ids)),
+                "n_chunks_returned": 1,
+            })
+            total += len(snippet)
+        return out
+
+    # Score every chunk. With <50 docs × 200 chunks/doc max = 10k
+    # operations, this is sub-millisecond Python.
+    import time as _t  # local alias for path-trace elapsed_ms
+    _bm25_t0 = _t.time()
+    scored: list[tuple[float, str]] = []
+    for cid, toks in tokens_snapshot.items():
+        s = _import_bm25_score(query_toks, toks, lens_snapshot.get(cid, 0))
+        if s > 0:
+            scored.append((s, cid))
+    _path_trace_record(trace, layer="import", stage="bm25",
+                          n_in=len(tokens_snapshot), n_out=len(scored),
+                          elapsed_ms=(_t.time() - _bm25_t0) * 1000)
+    if not scored:
+        return []
+    scored.sort(reverse=True)
+    # v0.14.0: pull live config so parent expansion + chunks_per_doc
+    # respond to retrieval-config changes without a server restart.
+    cfg = _retrieval_cfg_snapshot()
+    parent_mode = cfg.get("parent_expand", "section")
+    parent_max = int(cfg.get("parent_expand_max_chars", 2400))
+    # Take a generous top-K, then group by parent doc. We oversample
+    # by max_docs * chunks_per_doc * 2 so a few low-scoring chunks per
+    # parent don't squeeze out a second high-scoring chunk from a
+    # different parent.
+    oversample = min(len(scored), max(20, max_docs * chunks_per_doc * 4))
+    top_chunks = scored[:oversample]
+    # Group: parent_doc_id -> list[(score, chunk_id)]
+    by_parent: dict[str, list[tuple[float, str]]] = {}
+    for s, cid in top_chunks:
+        chunk = chunks_snapshot.get(cid) or {}
+        parent = chunk.get("parent_doc_id")
+        if not parent:
+            continue
+        by_parent.setdefault(parent, []).append((s, cid))
+    # Pre-build parent-chunk index for parent expansion (v0.14.0).
+    chunks_by_parent = _build_chunks_by_parent(chunks_snapshot.values())
+    # Rank parents by their best-chunk score (descending), take top N.
+    parent_rank = sorted(by_parent.items(),
+                          key=lambda kv: -kv[1][0][0])
+    _path_trace_record(trace, layer="import", stage="parent_group",
+                          n_in=len(top_chunks), n_out=len(parent_rank),
+                          notes=f"parent_expand={parent_mode}")
+    out: list[dict] = []
     total = 0
-    for score, d in scored:
-        text = d.get("text", "")
-        share = max(800, max_total_chars // max(1, len(scored)))
-        if total + len(text) > max_total_chars:
-            text = text[:max(0, max_total_chars - total)]
-        else:
-            text = text[:share]
-        if not text:
+    for parent_id, chunks_for_parent in parent_rank[:max_docs]:
+        # Resolve the parent-doc metadata
+        parent_doc = next((d for d in all_docs if d.get("id") == parent_id), None)
+        if not parent_doc:
+            continue
+        # Take the top-N chunks for this parent
+        keep = chunks_for_parent[:chunks_per_doc]
+        parent_score = sum(s for s, _ in keep)
+        # Build the snippet — v0.14.0 parent expansion. When the config
+        # asks for section/doc expansion, replace each matched chunk's
+        # snippet with an expansion that includes its sibling chunks.
+        parent_chunks = chunks_by_parent.get(parent_id, [])
+        parts: list[str] = []
+        for s, cid in keep:
+            chunk = chunks_snapshot.get(cid) or {}
+            if parent_mode == "off":
+                parts.append(_format_chunk_snippet(chunk, max_chars=1100))
+            else:
+                expanded = _expand_chunk_to_section(
+                    chunk, parent_chunks,
+                    mode=parent_mode, max_chars=parent_max,
+                )
+                # Wrap with a breadcrumb header so the model sees the
+                # parent-doc title + heading_path before the expanded body.
+                bc_parts = []
+                if chunk.get("parent_doc_title"):
+                    bc_parts.append(chunk["parent_doc_title"])
+                if chunk.get("heading_path"):
+                    bc_parts.append(chunk["heading_path"])
+                bc = " > ".join(bc_parts)
+                parts.append(f"[{bc}]\n{expanded}" if bc else expanded)
+        snippet = "\n\n".join(parts).strip()
+        # Per-doc share of the total char budget — guarantees we don't
+        # blow the prepended-context budget even with all parents firing.
+        share = max(1200, max_total_chars // max(1, min(max_docs, len(parent_rank))))
+        if len(snippet) > share:
+            snippet = snippet[:share].rstrip() + "\n\n[…]"
+        if total + len(snippet) > max_total_chars:
+            snippet = snippet[:max(0, max_total_chars - total)]
+        if not snippet:
             break
         out.append({
-            "id":      d.get("id"),
-            "title":   d.get("title", ""),
-            "source":  d.get("source", ""),
-            "snippet": text,
-            "score":   score,
+            "id":            parent_id,
+            "title":         parent_doc.get("title", ""),
+            "source":        parent_doc.get("source", ""),
+            "snippet":       snippet,
+            "score":         round(float(parent_score), 3),
+            "n_chunks":      parent_doc.get("n_chunks", 0),
+            "n_chunks_returned": len(keep),
+            "parent_expand": parent_mode,
+            "heading_path":  ((chunks_snapshot.get(keep[0][1]) or {})
+                              .get("heading_path", "")),
         })
-        total += len(text)
+        total += len(snippet)
         if total >= max_total_chars:
             break
+    _path_trace_record(trace, layer="import", stage="snippet_assemble",
+                          n_in=len(parent_rank[:max_docs]), n_out=len(out),
+                          notes=f"total_chars={total}")
     return out
+
+
+def _hybrid_fuse_with_dense(query_text: str, candidates: list,
+                                *,
+                                embed_call: Optional[Callable],
+                                mode: str,
+                                rrf_k: int = 60,
+                                trace: Optional[dict] = None,
+                                layer: str = "rag") -> list:
+    """Apply hybrid retrieval modes to a BM25-ranked candidate list.
+
+    mode = "bm25" → return candidates unchanged (default; pure lexical).
+    mode = "dense" → re-rank by dense cosine similarity to the query.
+    mode = "hybrid_rrf" → RRF-fuse BM25 rank with dense rank.
+
+    All three modes are no-ops when embed_call is None (kernel didn't
+    wire an embedder), so a config flip from bm25 → hybrid_rrf without
+    a wired embedder degrades gracefully to bm25.
+    """
+    if not candidates or embed_call is None or mode == "bm25":
+        return candidates
+    import time as _t
+    t0 = _t.time()
+    # Build text list — `text` and `snippet` are normalized at the
+    # rerank/import call sites (v0.14.0) so either should be set.
+    texts = [(c.get("text") or c.get("snippet") or "")[:1500]
+             for c in candidates]
+    try:
+        embeddings = embed_call([query_text] + texts)
+        if not embeddings or len(embeddings) != len(texts) + 1:
+            raise RuntimeError(f"embed returned {len(embeddings) if embeddings else 0} vecs, expected {len(texts) + 1}")
+        q_vec = embeddings[0]
+        c_vecs = embeddings[1:]
+    except Exception as e:  # noqa: BLE001
+        _path_trace_record(trace, layer=layer, stage="dense_fail",
+                              n_in=len(candidates), n_out=len(candidates),
+                              elapsed_ms=(_t.time() - t0) * 1000,
+                              notes=f"err={type(e).__name__}; bm25 order preserved")
+        return candidates
+    # Cosine similarity = dot product since vectors are L2-normalized
+    sims: list[tuple[float, int]] = []
+    for i, v in enumerate(c_vecs):
+        try:
+            s = sum(a * b for a, b in zip(q_vec, v))
+        except Exception:  # noqa: BLE001
+            s = 0.0
+        sims.append((s, i))
+    sims.sort(reverse=True)
+    dense_ranked = [{**candidates[i], "dense_score": float(s)} for s, i in sims]
+    _path_trace_record(trace, layer=layer, stage="dense",
+                          n_in=len(candidates), n_out=len(dense_ranked),
+                          elapsed_ms=(_t.time() - t0) * 1000)
+    if mode == "dense":
+        return dense_ranked
+    # hybrid_rrf — fuse BM25 (input order = bm25 rank) with dense_ranked
+    try:
+        from .kernel_helpers.embedding import reciprocal_rank_fusion
+        # Need an `id` on every candidate for fusion. Synthesize from
+        # title+text if missing.
+        for i, c in enumerate(candidates):
+            c.setdefault("id", f"_rrf_{i:04d}")
+        for c in dense_ranked:
+            c.setdefault("id", c.get("id") or f"_rrf_{i:04d}")
+        fused = reciprocal_rank_fusion([candidates, dense_ranked], k=rrf_k)
+        _path_trace_record(trace, layer=layer, stage="rrf",
+                              n_in=len(candidates) + len(dense_ranked),
+                              n_out=len(fused),
+                              elapsed_ms=(_t.time() - t0) * 1000,
+                              notes=f"k={rrf_k}")
+        return fused
+    except Exception as e:  # noqa: BLE001
+        _path_trace_record(trace, layer=layer, stage="rrf_fail",
+                              notes=f"err={type(e).__name__}; bm25 preserved")
+        return candidates
+
+
+def _expand_chunk_to_section(matched: dict, parent_chunks: list,
+                                 *, mode: str, max_chars: int) -> str:
+    """Parent-expansion helper (v0.14.0). Given a BM25-matched chunk and
+    the full list of chunks belonging to its parent doc, return the
+    expanded context string that the model will see.
+
+    mode:
+      - "off"     → just the matched chunk's text (current v0.14.0)
+      - "section" → matched chunk + sibling chunks sharing the same
+                    heading_path (their structural neighbours)
+      - "doc"     → matched chunk + all chunks from the parent doc up
+                    to max_chars, doc-order preserved
+
+    The matched chunk is wrapped with `**...**` markdown emphasis so
+    the model can tell which segment was the actual hit vs. surrounding
+    context. char_start ordering preserves natural reading order.
+    """
+    matched_text = (matched.get("text") or "").strip()
+    if mode == "off" or not parent_chunks:
+        return matched_text
+    target_heading = matched.get("heading_path", "")
+    matched_id = matched.get("id")
+    if mode == "section":
+        candidates = [
+            c for c in parent_chunks
+            if c.get("heading_path", "") == target_heading
+        ]
+    else:  # doc
+        candidates = list(parent_chunks)
+    candidates = sorted(candidates, key=lambda c: c.get("char_start", 0))
+    parts: list[str] = []
+    total = 0
+    found_match = False
+    for c in candidates:
+        text = (c.get("text") or "").strip()
+        if not text:
+            continue
+        if c.get("id") == matched_id:
+            # Wrap the actual matched chunk so the model can attribute
+            # its claim to the specific sub-section that BM25 hit.
+            text = "**" + text + "**"
+            found_match = True
+        if total + len(text) + 2 > max_chars:
+            # Out of budget; if we haven't included the matched chunk
+            # yet, force-include it (shorter than the budget by
+            # construction, since matched chunks are <= chunk_max_chars).
+            if not found_match and c.get("id") == matched_id:
+                parts.append(text)
+            break
+        parts.append(text)
+        total += len(text) + 2
+    if not parts:
+        # Total budget too small for any chunk — fall back to matched.
+        return matched_text
+    return "\n\n".join(parts)
+
+
+def _build_chunks_by_parent(chunks_iter) -> dict:
+    """Group an iterable of chunk dicts by parent_doc_id. Used by the
+    Import + deep-fetch parent-expansion paths to avoid scanning the
+    full chunk store per matched chunk."""
+    by_parent: dict[str, list[dict]] = {}
+    for c in chunks_iter:
+        pid = c.get("parent_doc_id")
+        if not pid:
+            continue
+        by_parent.setdefault(pid, []).append(c)
+    return by_parent
+
+
+def _format_chunk_snippet(chunk: dict, *, max_chars: int = 1100) -> str:
+    """Render a chunk for inclusion in the model context. Prepends a
+    heading-path breadcrumb so the model can attribute claims back to
+    a specific section of the source doc.
+
+    v0.14.0: when a plain-text doc has no markdown headers and no
+    statute markers (so heading_path is empty), fall back to the
+    chunk's first ~8 words as a pseudo-breadcrumb. Better than no
+    breadcrumb at all — the model still sees attribution context.
+    """
+    text = (chunk.get("text") or "").strip()
+    if not text:
+        return ""
+    bc = chunk.get("heading_path", "").strip()
+    title = chunk.get("parent_doc_title", "").strip()
+    breadcrumb_parts = []
+    if title:
+        breadcrumb_parts.append(title)
+    if bc and bc != title:
+        breadcrumb_parts.append(bc)
+    elif not bc:
+        # No structural breadcrumb available — use first words of the
+        # chunk as a positional cue. Helps the model reference back
+        # to "the section starting with 'The worker shall...'" rather
+        # than just citing the doc title.
+        try:
+            from .harness._chunking import first_n_words
+            preview = first_n_words(text, n=8)
+            if preview:
+                breadcrumb_parts.append(f"opens: {preview}")
+        except Exception:  # noqa: BLE001
+            pass
+    breadcrumb = " > ".join(breadcrumb_parts)
+    body = text[:max_chars]
+    if len(text) > max_chars:
+        body = body.rstrip() + " […]"
+    if breadcrumb:
+        return f"[{breadcrumb}]\n{body}"
+    return body
 
 
 DEFAULT_PERSONA = """You are an international anti-trafficking in persons and modern-day slavery expert with 40 years of dedicated experience combating human exploitation, illicit recruitment, debt bondage, and labour abuses.
@@ -523,6 +1551,9 @@ def create_app(
     tools_call: Optional[Callable] = None,
     grade_call: Optional[Callable] = None,
     online_search_call: Optional[Callable] = None,
+    rerank_call: Optional[Callable] = None,
+    embed_call:  Optional[Callable] = None,
+    evaluator_call: Optional[Callable] = None,
     grep_catalog: Optional[list] = None,
     rag_catalog: Optional[list] = None,
     tools_catalog: Optional[list] = None,
@@ -560,12 +1591,44 @@ def create_app(
                            "snippet": str}], "source": str,
              "elapsed_ms": int}
 
+        rerank_call(query: str, candidates: list[dict]) -> list[dict]
+            Reorder a first-stage retrieval result by relevance to the
+            query. Candidates carry at least {text|snippet, ...} and
+            this function returns the same items with a `rerank_score`
+            field added (or just reordered). Used as a second stage
+            after BM25 in the RAG, Import, and deep-fetch paths. The
+            kernel typically loads a tiny CPU cross-encoder like
+            `mixedbread-ai/mxbai-rerank-xsmall-v1` (~70 MB, no VRAM
+            contention with Gemma) and exposes it here. Optional —
+            when None, BM25 order is preserved.
+
+        evaluator_call(messages, **gen_kwargs) -> str  (v0.14.0+)
+            LLM-judge model used by /api/grade-deep-stream and
+            /api/grade-combined-stream. Same callable shape as
+            gemma_call. When wired, the LLM-evaluator graders use
+            THIS model instead of gemma_call. Common patterns:
+
+              - Abliterated Gemma variant (won't refuse to grade
+                adversarial responses; the chat model still refuses to
+                GENERATE them, but the grader needs to engage with
+                them to score correctly).
+              - Frontier model (GPT-4 / Claude 3.5 / Gemini 1.5 Pro)
+                for gold-standard judge quality, while chat stays on
+                the on-device Gemma — the G-Eval / MT-Bench / Auto-J
+                methodology.
+              - Larger Gemma variant (e.g., Gemma 4 31B-it for grading
+                while chat uses Gemma 4 E2B for fast inference).
+
+            Falls back to gemma_call when None (on-device self-grade
+            for the privacy-preserving demo + benchmark replay).
+
     All optional so the same chat package can power either the raw
     playground (gemma_call only) or the unified harness chat
-    (gemma_call + all 5 layers)."""
+    (gemma_call + all harness layers + reranker)."""
+    from . import _brand as _b
     app = FastAPI(
         title="Duecare Gemma Chat",
-        version="0.1.0",
+        version=_b.chat_package_version(),
         description="Gemma 4 chat playground with optional safety-harness toggles.",
     )
     app.state.gemma_call = gemma_call
@@ -574,6 +1637,9 @@ def create_app(
     app.state.tools_call = tools_call
     app.state.grade_call = grade_call
     app.state.online_search_call = online_search_call
+    app.state.rerank_call = rerank_call
+    app.state.embed_call  = embed_call
+    app.state.evaluator_call = evaluator_call
     app.state.rubrics_required_categories = (
         rubrics_required_categories or []
     )
@@ -615,11 +1681,11 @@ def create_app(
         revision before running benchmarks against it.
 
         Shape:
-          {chat_package: "0.3.8",
-           harness: {rubric_version: "v3.6", n_dimensions: 21,
-                     n_evaluation_questions: 21, n_grep_rules: 111,
-                     n_rag_docs: 35, n_tools: 5, n_examples: 413,
-                     n_classifier_signals: 194, n_authoritative_statutes: 144,
+          {chat_package: "<from importlib.metadata>",
+           harness: {rubric_version: "v3.10-evaluator-quality", n_dimensions: 46,
+                     n_evaluation_questions: 46, n_grep_rules: 161,
+                     n_rag_docs: 46, n_tools: 5, n_examples: 587,
+                     n_classifier_signals: <auto>, n_authoritative_statutes: <auto>,
                      n_use_cases: 7, n_languages: 12},
            curator_blocks: [{name, schema, version, last_updated, n_entries}],
            wire_format_version: "v2.0",
@@ -653,6 +1719,7 @@ def create_app(
             ("baseline_gauge",         _gov.BASELINE_GAUGE_PATH),
             ("rubric_hints",           _gov.RUBRIC_HINTS_PATH),
             ("personas",               _gov.PERSONAS_PATH),
+            ("contacts",               _gov.CONTACTS_PATH),
         ]
         curator_blocks: list[dict] = []
         for name, path in curator_files:
@@ -678,9 +1745,10 @@ def create_app(
                 "n_entries":     n_entries,
             })
 
+        from . import _brand
         return {
-            "chat_package":         "0.3.8",
-            "wire_format_version":  "v2.0",  # mode='llm_evaluator', evaluator_*
+            "chat_package":         _brand.chat_package_version(),
+            "wire_format_version":  _brand.WIRE_FORMAT_VERSION,  # mode='llm_evaluator', evaluator_*
             "harness": {
                 "rubric_version":              RUBRIC_UNIVERSAL.get("version", ""),
                 "n_dimensions":                len(RUBRIC_UNIVERSAL.get("dimensions", [])),
@@ -712,6 +1780,7 @@ def create_app(
         Returns 200 with `ready: true` when every wired layer
         responds. Useful as a single-call check after pasting the
         kernel into a fresh Kaggle session."""
+        from . import _brand
         try:
             from .harness import (
                 GREP_RULES, RAG_CORPUS, _TOOL_DISPATCH, RUBRIC_UNIVERSAL,
@@ -750,7 +1819,7 @@ def create_app(
             },
             "harness_counts": harness_counts,
             "examples":       len(app.state.example_prompts or []),
-            "package_version": "0.1.0",
+            "package_version": _brand.chat_package_version(),
         }
 
     @app.get("/api/model-info")
@@ -914,6 +1983,7 @@ def create_app(
             ("baseline_gauge",         _gov.BASELINE_GAUGE_PATH),
             ("rubric_hints",           _gov.RUBRIC_HINTS_PATH),
             ("personas",               _gov.PERSONAS_PATH),
+            ("contacts",               _gov.CONTACTS_PATH),
         ]
         out: list[dict] = []
         for name, path in files:
@@ -962,6 +2032,7 @@ def create_app(
             "baseline_gauge":         _gov.BASELINE_GAUGE_PATH,
             "rubric_hints":           _gov.RUBRIC_HINTS_PATH,
             "personas":               _gov.PERSONAS_PATH,
+            "contacts":               _gov.CONTACTS_PATH,
         }
         path = registry.get(name)
         if not path or not path.exists():
@@ -1068,19 +2139,461 @@ def create_app(
             ],
         }
 
+    @app.get("/api/rag/graph")
+    def api_rag_graph() -> Any:
+        """Return the RAG corpus + citation graph as a force-directed
+        graph spec for the in-notebook visualisation.
+
+        Schema:
+          {
+            "nodes": [{"id", "label", "source", "snippet", "group"}],
+            "edges": [{"from", "to", "relation", "note", "directional"}],
+            "groups": {<group-id>: {"label", "color"}}
+          }
+
+        Group inference: the doc id prefix tells us roughly the source
+        jurisdiction (ilo_, poea_, bp2mi_, hk_, sg_, palermo_, eu_,
+        coe_, asean_, who_, etc). Color-coded so a graph viewer can
+        cluster by international/regional/national/NGO source.
+        """
+        from .harness import RAG_CORPUS, _CITATIONS_BY_FROM, _CITATIONS_META
+        from . import _brand
+
+        nodes = []
+        for doc in RAG_CORPUS:
+            doc_id, title, source, snippet = doc[0], doc[1], doc[2], doc[3]
+            group_id, group_label, color = _brand.classify_doc(doc_id)
+            nodes.append({
+                "id":      doc_id,
+                "label":   title,
+                "source":  source,
+                "snippet": snippet[:600],   # trim for graph payload
+                "group":   group_id,
+            })
+        # Build edge list from the citation graph
+        edges = []
+        for src_id, edge_list in _CITATIONS_BY_FROM.items():
+            for e in edge_list:
+                edges.append({
+                    "from":         e.get("from", src_id),
+                    "to":           e.get("to", ""),
+                    "relation":     e.get("relation", "related_to"),
+                    "note":         e.get("note", ""),
+                    "directional":  True,
+                })
+        # Legend dict — pulls from _brand.jurisdiction_groups() so the
+        # graph viewer + corpus viewer always agree on labels + colors.
+        groups = _brand.jurisdiction_groups()
+        return {
+            "nodes":  nodes,
+            "edges":  edges,
+            "groups": groups,
+            "meta":   {"n_nodes":  len(nodes),
+                       "n_edges":  len(edges),
+                       "schema":   _CITATIONS_META.get("schema", "duecare.citations"),
+                       "version":  _CITATIONS_META.get("version", "")},
+        }
+
+    @app.post("/api/grep/test")
+    async def api_grep_test(request: Request) -> Any:
+        """Run the GREP layer against caller-supplied text and return
+        the firing rules without invoking Gemma. Powers the live regex
+        tester at /static/grep-tester.html — paste any text, see
+        which of the 161 rules match.
+
+        Request body: {"text": "..."}
+        Response shape:
+          {"text_chars": int,
+           "n_rules_total": int,
+           "n_rules_fired": int,
+           "elapsed_ms": int,
+           "hits": [{rule, severity, citation, indicator, match_excerpt}],
+           "by_severity": {"critical": int, "high": int, ...}}
+        """
+        from .harness import GREP_RULES
+        try:
+            body = await request.json()
+        except Exception:  # noqa: BLE001
+            body = {}
+        text = (body or {}).get("text", "")
+        if not isinstance(text, str):
+            raise HTTPException(400, "body.text must be a string")
+        text = text[:50_000]  # cap so a 10MB paste doesn't OOM the server
+        if app.state.grep_call is None:
+            return {"wired": False, "text_chars": len(text),
+                     "n_rules_total": len(GREP_RULES),
+                     "n_rules_fired": 0, "hits": [], "by_severity": {}}
+        gr = app.state.grep_call(text) or {}
+        hits = gr.get("hits") or []
+        by_sev: dict[str, int] = {}
+        for h in hits:
+            s = (h.get("severity") if isinstance(h, dict) else "") or "unknown"
+            by_sev[s] = by_sev.get(s, 0) + 1
+        return {
+            "wired":          True,
+            "text_chars":     len(text),
+            "n_rules_total":  len(GREP_RULES),
+            "n_rules_fired":  len(hits),
+            "elapsed_ms":     int(gr.get("elapsed_ms", 0)),
+            "hits":           hits,
+            "by_severity":    by_sev,
+        }
+
+    @app.get("/api/contacts")
+    def api_contacts(corridor: str = "", country: str = "",
+                       category: str = "", language: str = "",
+                       what_to_report: str = "", q: str = "") -> Any:
+        """Structured directory of NGOs / regulators / embassies /
+        hotlines for migrant-worker complaints. Powers the
+        /static/hotlines.html page and the in-chat "Report this
+        scenario" CTA.
+
+        Filter params (all optional, ANDed):
+          ?corridor=PH→HK     match any entry with this corridor
+          ?country=Hong Kong  match country (substring, case-insensitive)
+          ?category=ngo       regulator | ngo | embassy | hotline |
+                               ilo_office | intl_org
+          ?language=tl        language code present in entry's languages[]
+          ?what_to_report=debt_bondage  match entry.what_to_report
+          ?q=POEA             freetext substring match across name/note
+
+        SAFETY: this endpoint surfaces contacts the user can then choose
+        to call / email / submit-to themselves. The chat package never
+        auto-acts on a contact's behalf.
+        """
+        from .harness._governance import (load_curator_block, CONTACTS_PATH)
+        block = load_curator_block(CONTACTS_PATH) or {}
+        entries = block.get("entries", []) or []
+        q_clean = (q or "").strip().lower()
+        corridor = (corridor or "").strip()
+        country = (country or "").strip().lower()
+        category = (category or "").strip().lower()
+        language = (language or "").strip().lower()
+        wtr = (what_to_report or "").strip().lower()
+
+        def keep(e: dict) -> bool:
+            if category and (e.get("category", "") or "").lower() != category:
+                return False
+            if country and country not in (e.get("country", "") or "").lower():
+                return False
+            if corridor and corridor not in (e.get("corridors", []) or []):
+                # also accept "PH→all" or "all→HK" wildcard match
+                if not any(corridor.split("→")[0] + "→all" == c
+                              or "all→" + corridor.split("→")[-1] == c
+                              for c in (e.get("corridors", []) or [])):
+                    return False
+            if language and language not in [
+                  l.split("-")[0].lower() for l in (e.get("languages", []) or [])
+                  if isinstance(l, str)]:
+                return False
+            if wtr and wtr not in [
+                  w.lower() for w in (e.get("what_to_report", []) or [])
+                  if isinstance(w, str)]:
+                return False
+            if q_clean:
+                blob = " ".join(str(v) for v in e.values()
+                                  if isinstance(v, (str, int, float))).lower()
+                if q_clean not in blob:
+                    return False
+            return True
+
+        filtered = [e for e in entries if keep(e)]
+        return {
+            "schema":       block.get("schema"),
+            "version":      block.get("version"),
+            "last_updated": block.get("last_updated"),
+            "categories":   block.get("categories", {}),
+            "n_total":      len(entries),
+            "n_filtered":   len(filtered),
+            "filters":      {"corridor": corridor, "country": country,
+                              "category": category, "language": language,
+                              "what_to_report": wtr, "q": q},
+            "entries":      filtered,
+        }
+
+    @app.get("/api/search-all")
+    def api_search_all(q: str = "", limit: int = 25) -> Any:
+        """Federated search across persona / GREP rules / RAG corpus /
+        tools / NGO / corridor tables. Powers /static/search.html.
+
+        Query string `q` is matched case-insensitively against every
+        text field of every layer's catalog. Results are grouped by
+        layer with up to `limit` hits each.
+        """
+        from .harness import (
+            GREP_RULES, RAG_CORPUS, _TOOL_DISPATCH,
+            CORRIDOR_FEE_CAPS, FEE_CAMOUFLAGE_DICT,
+            ILO_INDICATORS, NGO_INTAKE, ILO_CONVENTIONS,
+        )
+        from . import _brand
+        q_clean = (q or "").strip().lower()
+        if not q_clean:
+            return {"q": "", "groups": [], "total": 0,
+                     "note": "Empty query — pass ?q=<term>"}
+
+        def matches(*fields) -> bool:
+            for f in fields:
+                if isinstance(f, str) and q_clean in f.lower():
+                    return True
+            return False
+
+        groups: list[dict] = []
+
+        # Persona
+        try:
+            from .harness._governance import (load_curator_block, PERSONAS_PATH)
+            personas = (load_curator_block(PERSONAS_PATH) or {}).get("entries", [])
+        except Exception:  # noqa: BLE001
+            personas = []
+        persona_hits = []
+        for p in personas:
+            blob = " ".join(str(v) for v in p.values() if isinstance(v, (str, int, float)))
+            if matches(blob):
+                persona_hits.append({
+                    "id":     p.get("id") or p.get("name"),
+                    "label":  p.get("label") or p.get("name"),
+                    "summary": p.get("summary", ""),
+                })
+        if persona_hits:
+            groups.append({"layer": "persona", "label": "Persona library",
+                            "color": _brand.LAYERS["persona"].color,
+                            "viewer": "/static/persona.html",
+                            "hits":  persona_hits[:limit],
+                            "n_total": len(persona_hits)})
+
+        # GREP rules
+        grep_hits = []
+        for r in GREP_RULES:
+            if matches(r.get("rule"), r.get("citation"), r.get("indicator"),
+                          r.get("category", "")):
+                grep_hits.append({
+                    "id":        r.get("rule"),
+                    "label":     r.get("rule"),
+                    "severity":  r.get("severity"),
+                    "citation":  r.get("citation"),
+                    "summary":   (r.get("indicator") or "")[:240],
+                })
+        if grep_hits:
+            groups.append({"layer": "grep", "label": "GREP rules",
+                            "color": _brand.LAYERS["grep"].color,
+                            "viewer": "/static/grep-rules.html",
+                            "hits":  grep_hits[:limit],
+                            "n_total": len(grep_hits)})
+
+        # RAG corpus
+        rag_hits = []
+        for doc in RAG_CORPUS:
+            doc_id, title, source, snippet = doc[0], doc[1], doc[2], doc[3]
+            if matches(doc_id, title, source, snippet):
+                rag_hits.append({
+                    "id":      doc_id,
+                    "label":   title,
+                    "source":  source,
+                    "summary": (snippet or "")[:240],
+                })
+        if rag_hits:
+            groups.append({"layer": "rag", "label": "RAG corpus",
+                            "color": _brand.LAYERS["rag"].color,
+                            "viewer": "/static/rag-corpus.html",
+                            "hits":  rag_hits[:limit],
+                            "n_total": len(rag_hits)})
+
+        # Tools + their backing tables
+        tool_hits = []
+        for name, fn in _TOOL_DISPATCH.items():
+            doc = (fn.__doc__ or "").strip()
+            if matches(name, doc):
+                tool_hits.append({"id": name, "label": name,
+                                    "summary": doc.split("\n", 1)[0]})
+        for table_name, table in (
+            ("corridor", CORRIDOR_FEE_CAPS),
+            ("fee_camouflage", FEE_CAMOUFLAGE_DICT),
+            ("ngo_intake", NGO_INTAKE),
+            ("ilo_convention", ILO_CONVENTIONS),
+        ):
+            if hasattr(table, "items"):
+                for k, v in table.items():
+                    blob = f"{k} {v}"
+                    if matches(blob):
+                        tool_hits.append({
+                            "id":      f"{table_name}:{k}",
+                            "label":   f"{k}",
+                            "source":  table_name,
+                            "summary": str(v)[:240],
+                        })
+        if isinstance(ILO_INDICATORS, list):
+            for ind in ILO_INDICATORS:
+                if isinstance(ind, dict):
+                    blob = " ".join(str(v) for v in ind.values())
+                    if matches(blob):
+                        tool_hits.append({
+                            "id":      ind.get("id") or ind.get("name"),
+                            "label":   ind.get("name") or "indicator",
+                            "source":  "ilo_indicator",
+                            "summary": ind.get("description", "")[:240],
+                        })
+        if tool_hits:
+            groups.append({"layer": "tools", "label": "Tools + backing tables",
+                            "color": _brand.LAYERS["tools"].color,
+                            "viewer": "/static/tools.html",
+                            "hits":  tool_hits[:limit],
+                            "n_total": len(tool_hits)})
+
+        total = sum(g["n_total"] for g in groups)
+        return {"q": q, "groups": groups, "total": total}
+
+    @app.get("/api/brand")
+    def api_brand() -> Any:
+        """Single-source product/layer/version metadata. The frontend
+        reads this on page load instead of hardcoding values inline.
+
+        Bumps to product copy, layer descriptions, layer colors, or
+        the rubric/dimension counts propagate to every UI surface in
+        one place. See `_brand.to_dict()` for the schema.
+        """
+        from . import _brand
+        from .harness import (
+            GREP_RULES, RAG_CORPUS, RUBRIC_UNIVERSAL,
+            EXAMPLE_PROMPTS, EVALUATION_QUESTIONS, _CITATIONS_BY_FROM,
+        )
+        out = _brand.to_dict()
+        # Live-resolved counts so the frontend never hardcodes
+        # "161 GREP / 46 RAG / 46-dim / 587 prompts".
+        out["counts"] = {
+            "n_grep_rules":          len(GREP_RULES),
+            "n_rag_docs":            len(RAG_CORPUS),
+            "n_dimensions":          len(RUBRIC_UNIVERSAL.get("dimensions", [])),
+            "n_examples":            len(EXAMPLE_PROMPTS),
+            "n_evaluator_questions": len(EVALUATION_QUESTIONS),
+            "n_citation_edges":      sum(len(v) for v in _CITATIONS_BY_FROM.values()),
+            "rubric_version":        RUBRIC_UNIVERSAL.get("version", "unknown"),
+        }
+        return out
+
     @app.get("/api/harness-catalog/{layer}")
     def api_harness_catalog(layer: str) -> Any:
-        """Return a JSON catalog of what each harness layer exposes,
-        for the UI's inspector modal. The kernel can override the
-        default by setting `app.state.{grep,rag,tools}_catalog` to
-        something serializable."""
-        if layer not in ("grep", "rag", "tools"):
+        """Return a JSON catalog of what each harness layer exposes.
+
+        Layers: 'grep' (161 regex rules), 'rag' (46-doc corpus),
+                'tools' (5 lookups + their backing tables),
+                'online' (search providers), 'persona' (persona library).
+
+        The kernel can override the default by setting
+        `app.state.{grep,rag,tools,online,persona}_catalog` to something
+        serializable; otherwise we expose the in-process harness data
+        directly so the static catalog pages always have something to
+        render.
+        """
+        valid_layers = ("grep", "rag", "tools", "online", "persona")
+        if layer not in valid_layers:
             raise HTTPException(404, f"unknown layer {layer}")
         catalog = getattr(app.state, f"{layer}_catalog", None)
-        if catalog is None:
-            return {"layer": layer, "wired": False, "items": [],
-                     "note": f"No catalog wired for {layer}."}
-        return {"layer": layer, "wired": True, "items": catalog}
+        if catalog is not None:
+            return {"layer": layer, "wired": True, "items": catalog}
+
+        from .harness import (
+            GREP_RULES, RAG_CORPUS, _TOOL_DISPATCH,
+            CORRIDOR_FEE_CAPS, FEE_CAMOUFLAGE_DICT,
+            ILO_INDICATORS, NGO_INTAKE, ILO_CONVENTIONS,
+        )
+
+        if layer == "grep":
+            fire_counts = getattr(app.state, "grep_fire_counts", {}) or {}
+            items = []
+            for r in GREP_RULES:
+                if isinstance(r, dict):
+                    items.append({
+                        "rule":      r.get("rule", ""),
+                        "severity":  r.get("severity", ""),
+                        "citation":  r.get("citation", ""),
+                        "indicator": r.get("indicator", ""),
+                        "patterns":  r.get("patterns", []),
+                        "n_patterns": len(r.get("patterns", [])),
+                        "category":   r.get("category", ""),
+                        "fire_count": fire_counts.get(r.get("rule", ""), 0),
+                    })
+            return {"layer": "grep", "wired": True,
+                     "n_items": len(items), "items": items}
+
+        if layer == "rag":
+            from .harness import _CITATIONS_BY_FROM, _CITATIONS_BY_TO
+            from . import _brand
+            recent_hits = getattr(app.state, "rag_recent_hits", []) or []
+            recent_set = {h.get("id") for h in recent_hits if isinstance(h, dict)}
+            items = []
+            for doc in RAG_CORPUS:
+                doc_id, title, source, snippet = doc[0], doc[1], doc[2], doc[3]
+                gid, glabel, gcolor = _brand.classify_doc(doc_id)
+                cites_out = [
+                    {"to": e.get("to"), "relation": e.get("relation"),
+                      "note": e.get("note", "")}
+                    for e in (_CITATIONS_BY_FROM.get(doc_id, []) or [])
+                ]
+                cites_in = [
+                    {"from": e.get("from"), "relation": e.get("relation"),
+                      "note": e.get("note", "")}
+                    for e in (_CITATIONS_BY_TO.get(doc_id, []) or [])
+                ]
+                items.append({
+                    "id":              doc_id,
+                    "title":           title,
+                    "source":          source,
+                    "snippet":         snippet,
+                    "group":           gid,
+                    "group_label":     glabel,
+                    "group_color":     gcolor,
+                    "cites_out":       cites_out,
+                    "cites_in":        cites_in,
+                    "n_edges_total":   len(cites_out) + len(cites_in),
+                    "recently_retrieved": doc_id in recent_set,
+                })
+            return {"layer": "rag", "wired": True,
+                     "n_items": len(items), "items": items,
+                     "recent_query":  getattr(app.state, "rag_recent_query", None)}
+
+        if layer == "tools":
+            tool_items = []
+            for name, fn in _TOOL_DISPATCH.items():
+                tool_items.append({
+                    "name":        name,
+                    "description": (fn.__doc__ or "").strip().split("\n", 1)[0],
+                })
+            return {"layer": "tools", "wired": True,
+                     "n_items": len(tool_items),
+                     "items":   tool_items,
+                     "tables": {
+                         "corridor_fee_caps":     CORRIDOR_FEE_CAPS,
+                         "fee_camouflage_labels": FEE_CAMOUFLAGE_DICT,
+                         "ilo_indicators":        ILO_INDICATORS,
+                         "ngo_intake_groups":     NGO_INTAKE,
+                         "ilo_conventions":       ILO_CONVENTIONS,
+                     }}
+
+        if layer == "online":
+            providers = getattr(app.state, "online_providers", None) or []
+            return {"layer": "online", "wired": bool(providers),
+                     "n_items": len(providers),
+                     "items": providers,
+                     "note":  ("Online search providers are kernel-supplied. "
+                                 "Default: DuckDuckGo HTML; with BRAVE_API_KEY "
+                                 "Brave Search is preferred. Appendix A9 also "
+                                 "supports Playwright-driven agentic web.")}
+
+        # persona
+        try:
+            from .harness._governance import (load_curator_block,
+                                                  PERSONAS_PATH)
+            personas_block = load_curator_block(PERSONAS_PATH) or {}
+            entries = personas_block.get("entries", [])
+            return {"layer": "persona", "wired": True,
+                     "n_items": len(entries),
+                     "items":  entries,
+                     "schema": personas_block.get("schema"),
+                     "version": personas_block.get("version")}
+        except Exception:  # noqa: BLE001
+            return {"layer": "persona", "wired": False,
+                     "items": [], "n_items": 0,
+                     "note":  "personas curator block unavailable"}
 
     @app.post("/api/grade")
     def api_grade(req: GradeRequest) -> Any:
@@ -1132,19 +2645,40 @@ def create_app(
 
     def _evaluator_model_call(prompt_str: str, *, max_new_tokens: int,
                                 temperature: float) -> str:
-        """Wrap the kernel's gemma_call into the (prompt: str) -> str
+        """Wrap the LLM-judge model into the (prompt: str) -> str
         signature the LLM-evaluator grader expects. Builds a single-
         turn message list (no harness layers — the evaluator looks
         at the raw response on its own merits). Uses low temperature
         for nearly-deterministic verdicts.
 
+        v0.14.0: prefers `app.state.evaluator_call` over
+        `app.state.gemma_call` when wired. This lets a kernel use a
+        DIFFERENT model for grading vs chat — common patterns:
+
+          - Abliterated Gemma variant for grading (won't refuse to
+            grade adversarial responses; the chat model still refuses
+            to GENERATE them but the grader needs to engage with them
+            to score correctly).
+          - Frontier model (GPT-4 / Claude 3.5 / Gemini 1.5 Pro) for
+            grading at gold-standard quality, while chat stays on
+            the on-device Gemma for the privacy-preserving use case.
+            This is the G-Eval / MT-Bench / Auto-J methodology.
+          - Larger Gemma variant (e.g., Gemma 4 31B-it for grading
+            while chat uses E2B for fast inference).
+
+        Falls back to gemma_call when evaluator_call is not wired —
+        the in-process self-grade case used for the on-device demo
+        and benchmark replay (deterministic + privacy-preserving).
+
         Defence: clamp temperature to >= 0.01 because HF transformers
         model.generate() raises on temperature == 0.0 when sampling
         is enabled. The Pydantic Field already enforces ge=0.01 but
         a stale client could still send 0.0; clamp here too."""
+        ec = getattr(app.state, "evaluator_call", None)
         gc = app.state.gemma_call
-        if gc is None:
-            raise HTTPException(503, "deep grading needs gemma_call wired")
+        if ec is None and gc is None:
+            raise HTTPException(503,
+                "deep grading needs gemma_call OR evaluator_call wired")
         # Clamp temperature to a strictly positive value — transformers
         # raises ValueError on 0.0 when do_sample=True (the default)
         eff_temp = max(0.01, float(temperature))
@@ -1152,6 +2686,21 @@ def create_app(
             "role": "user",
             "content": [{"type": "text", "text": prompt_str}],
         }]
+        # When evaluator_call is wired, use it. The kernel decides
+        # whether to share a CUDA lock with chat or run its evaluator
+        # on a separate device / network.
+        if ec is not None:
+            try:
+                return ec(
+                    messages,
+                    max_new_tokens=max_new_tokens,
+                    temperature=eff_temp,
+                    top_p=0.95,
+                    top_k=20,
+                ) or ""
+            except TypeError:
+                return ec(messages) or ""
+        # Fall back to the chat model (on-device self-grade).
         # H1 (R2): serialise gemma_call. Concurrent generations corrupt
         # CUDA state. The lock is held for the full forward pass.
         with _GEMMA_LOCK:
@@ -1365,10 +2914,14 @@ def create_app(
         event as it arrives so the user sees progressive scoring; show
         the final aggregate from the "complete" event.
         """
-        if app.state.gemma_call is None:
+        # v0.14.0: deep grading uses evaluator_call when wired,
+        # otherwise gemma_call. Either is sufficient.
+        if (app.state.gemma_call is None
+                and getattr(app.state, "evaluator_call", None) is None):
             raise HTTPException(
                 503,
-                "deep grading not available — kernel did not wire gemma_call",
+                "deep grading not available — kernel did not wire "
+                "gemma_call or evaluator_call",
             )
         if not req.response_text or not req.response_text.strip():
             raise HTTPException(400, "response_text is required")
@@ -1654,6 +3207,109 @@ def create_app(
         return {"ok": True, "n_total": 0}
 
     # ---------------------------------------------------------------
+    # Retrieval configuration (v0.14.0).
+    # ---------------------------------------------------------------
+    # Central knob set for chunk size, parent-doc expansion, citation-
+    # graph traversal depth, hybrid retrieval mode, rerank, and path
+    # tracing. Endpoint shape: GET returns the live dict; POST patches
+    # any subset of keys, validates bounds, returns the new dict.
+    @app.get("/api/retrieval/config")
+    def api_retrieval_config_get() -> Any:
+        cfg = _retrieval_cfg_snapshot()
+        # v0.14.0: surface embed cache stats when the wrapped cache is
+        # accessible via the embed_call. This lets the UI show "cache
+        # hit-rate 87%, 1,243 entries" so the user knows hybrid mode
+        # is paying off vs. paying re-encode cost every turn.
+        embed_call = getattr(app.state, "embed_call", None)
+        cache_stats = None
+        if embed_call is not None and hasattr(embed_call, "cache"):
+            try:
+                cache_stats = embed_call.cache.stats()
+            except Exception:  # noqa: BLE001
+                cache_stats = None
+        return {
+            **cfg,
+            "rerank_wired":  app.state.rerank_call is not None,
+            "embed_wired":   embed_call is not None,
+            "embed_cache":   cache_stats,
+            "evaluator_wired": getattr(app.state, "evaluator_call", None) is not None,
+            "available_modes": ["bm25", "dense", "hybrid_rrf"],
+            "available_parent_modes": ["off", "section", "doc"],
+        }
+
+    @app.post("/api/retrieval/embed-cache/clear")
+    def api_retrieval_embed_cache_clear() -> Any:
+        """Drop all entries from the embedding cache. Useful after
+        switching embedders or testing cache-cold behavior."""
+        embed_call = getattr(app.state, "embed_call", None)
+        if embed_call is None or not hasattr(embed_call, "cache"):
+            return {"ok": False, "reason": "no cached embedder wired"}
+        try:
+            embed_call.cache.clear()
+            return {"ok": True, "stats": embed_call.cache.stats()}
+        except Exception as e:  # noqa: BLE001
+            raise HTTPException(500, f"clear failed: {e}") from e
+
+    @app.post("/api/retrieval/config")
+    def api_retrieval_config_set(req: dict) -> Any:
+        """Patch the retrieval config. Validates bounds; rejects unknown
+        keys with 400 so a typo doesn't silently no-op. Returns the
+        post-patch live state."""
+        if not isinstance(req, dict):
+            raise HTTPException(400, "body must be a JSON object")
+        # Allowed keys + per-key validators. Each validator returns the
+        # cleaned value or raises HTTPException(400, ...).
+        def _bounded_int(name, lo, hi):
+            def _v(x):
+                try:
+                    n = int(x)
+                except (TypeError, ValueError) as e:
+                    raise HTTPException(400, f"{name} must be int: {e}") from e
+                return max(lo, min(hi, n))
+            return _v
+        def _bounded_float(name, lo, hi):
+            def _v(x):
+                try:
+                    n = float(x)
+                except (TypeError, ValueError) as e:
+                    raise HTTPException(400, f"{name} must be number: {e}") from e
+                return max(lo, min(hi, n))
+            return _v
+        def _enum(name, choices):
+            def _v(x):
+                if x not in choices:
+                    raise HTTPException(400, f"{name} must be one of {choices}, got {x!r}")
+                return x
+            return _v
+        def _bool(_):
+            return lambda x: bool(x)
+        validators = {
+            "chunk_max_chars":         _bounded_int("chunk_max_chars", 200, 5000),
+            "chunk_overlap_chars":     _bounded_int("chunk_overlap_chars", 0, 1000),
+            "parent_expand":           _enum("parent_expand", ("off", "section", "doc")),
+            "parent_expand_max_chars": _bounded_int("parent_expand_max_chars", 200, 12000),
+            "graph_expand_depth":      _bounded_int("graph_expand_depth", 0, 2),
+            "graph_expand_per_node":   _bounded_int("graph_expand_per_node", 0, 6),
+            "graph_expand_max_chars":  _bounded_int("graph_expand_max_chars", 0, 12000),
+            "retrieval_mode":          _enum("retrieval_mode", ("bm25", "dense", "hybrid_rrf")),
+            "dense_top_k":             _bounded_int("dense_top_k", 1, 100),
+            "rrf_k":                   _bounded_int("rrf_k", 1, 1000),
+            "rerank_top_k":            _bounded_int("rerank_top_k", 1, 200),
+            "rerank_keep":             _bounded_int("rerank_keep", 1, 50),
+            "rerank_enabled":          _bool(None),
+            "path_trace_enabled":      _bool(None),
+            "bm25_k1":                 _bounded_float("bm25_k1", 0.5, 3.0),
+            "bm25_b":                  _bounded_float("bm25_b", 0.0, 1.0),
+        }
+        unknown = [k for k in req if k not in validators]
+        if unknown:
+            raise HTTPException(400, f"unknown keys: {unknown}")
+        with _RETRIEVAL_CONFIG_LOCK:
+            for k, v in req.items():
+                _RETRIEVAL_CONFIG[k] = validators[k](v)
+        return api_retrieval_config_get()
+
+    # ---------------------------------------------------------------
     # Online-search backend configuration (BYOK Brave + DDG fallback).
     # ---------------------------------------------------------------
     @app.get("/api/online/config")
@@ -1670,27 +3326,43 @@ def create_app(
             "brave_test_ok":      cfg.get("brave_test_ok"),
             "brave_test_msg":     cfg.get("brave_test_msg", ""),
             "brave_test_at":      cfg.get("brave_test_at", 0),
+            "tavily_configured":  bool(cfg.get("tavily_api_key")),
+            "tavily_test_ok":     cfg.get("tavily_test_ok"),
+            "tavily_test_msg":    cfg.get("tavily_test_msg", ""),
+            "tavily_test_at":     cfg.get("tavily_test_at", 0),
+            "fetch_pages":        bool(cfg.get("fetch_pages")),
+            "fetch_top_n":        int(cfg.get("fetch_top_n", 3)),
+            "fetch_max_chars":    int(cfg.get("fetch_max_chars", 4500)),
+            "fetch_timeout":      float(cfg.get("fetch_timeout", 8.0)),
             "kernel_ddg_wired":   app.state.online_search_call is not None,
-            "available_backends": ["auto", "brave", "ddg"],
+            "available_backends": ["auto", "tavily", "brave", "ddg"],
         }
 
     @app.post("/api/online/config")
     def api_online_config_set(req: dict) -> Any:
-        """Update the backend selection and / or Brave API key.
+        """Update the backend selection, API keys, and deep-fetch
+        settings.
 
-        Body: {backend?: 'auto'|'brave'|'ddg',
-               brave_api_key?: str | null}
+        Body (all fields optional):
+          backend:         'auto' | 'tavily' | 'brave' | 'ddg'
+          brave_api_key:   str | null  (null clears)
+          tavily_api_key:  str | null  (null clears)
+          fetch_pages:     bool        (deep-fetch mode on/off)
+          fetch_top_n:     int 1-10    (how many URLs to fetch)
+          fetch_max_chars: int 500-20000 (per-page cap)
+          fetch_timeout:   float 1-30   (seconds per fetch)
 
-        Passing `null` for brave_api_key clears it. Omitted fields
-        are unchanged. Returns the same shape as GET (no key echo).
+        Omitted fields are unchanged. Returns the GET shape (no key
+        echo).
         """
         body = req or {}
         with _ONLINE_CONFIG_LOCK:
             if "backend" in body:
                 b = (body.get("backend") or "auto").strip().lower()
-                if b not in ("auto", "brave", "ddg"):
+                if b not in ("auto", "tavily", "brave", "ddg"):
                     raise HTTPException(400,
-                        f"backend must be one of auto/brave/ddg, got {b!r}")
+                        "backend must be one of auto/tavily/brave/ddg, "
+                        f"got {b!r}")
                 _ONLINE_CONFIG["backend"] = b
             if "brave_api_key" in body:
                 k = body.get("brave_api_key")
@@ -1703,36 +3375,94 @@ def create_app(
                         raise HTTPException(400,
                             "brave_api_key must be a string under 200 chars")
                     _ONLINE_CONFIG["brave_api_key"] = k.strip()
-                    # Reset test state — user will re-test with the new key.
                     _ONLINE_CONFIG["brave_test_ok"] = None
                     _ONLINE_CONFIG["brave_test_msg"] = ""
+            if "tavily_api_key" in body:
+                k = body.get("tavily_api_key")
+                if k is None or (isinstance(k, str) and not k.strip()):
+                    _ONLINE_CONFIG["tavily_api_key"] = None
+                    _ONLINE_CONFIG["tavily_test_ok"] = None
+                    _ONLINE_CONFIG["tavily_test_msg"] = ""
+                else:
+                    if not isinstance(k, str) or len(k) > 200:
+                        raise HTTPException(400,
+                            "tavily_api_key must be a string under 200 chars")
+                    _ONLINE_CONFIG["tavily_api_key"] = k.strip()
+                    _ONLINE_CONFIG["tavily_test_ok"] = None
+                    _ONLINE_CONFIG["tavily_test_msg"] = ""
+            if "fetch_pages" in body:
+                _ONLINE_CONFIG["fetch_pages"] = bool(body.get("fetch_pages"))
+            if "fetch_top_n" in body:
+                try:
+                    n = int(body.get("fetch_top_n"))
+                except (TypeError, ValueError) as e:
+                    raise HTTPException(400, f"fetch_top_n must be int: {e}") from e
+                _ONLINE_CONFIG["fetch_top_n"] = max(1, min(10, n))
+            if "fetch_max_chars" in body:
+                try:
+                    n = int(body.get("fetch_max_chars"))
+                except (TypeError, ValueError) as e:
+                    raise HTTPException(400, f"fetch_max_chars must be int: {e}") from e
+                _ONLINE_CONFIG["fetch_max_chars"] = max(500, min(20000, n))
+            if "fetch_timeout" in body:
+                try:
+                    n = float(body.get("fetch_timeout"))
+                except (TypeError, ValueError) as e:
+                    raise HTTPException(400, f"fetch_timeout must be number: {e}") from e
+                _ONLINE_CONFIG["fetch_timeout"] = max(1.0, min(30.0, n))
         return api_online_config_get()
 
     @app.post("/api/online/test")
     def api_online_test(req: dict) -> Any:
         """Run a one-shot test query against whichever backend is
         currently selected (honoring the auto-fallback rules). Stores
-        the success/failure result on _ONLINE_CONFIG so the UI can
-        show a "last tested" badge."""
+        the success/failure result on _ONLINE_CONFIG keyed by the
+        backend that actually ran, so the UI can show a "last tested"
+        badge per provider."""
         query = (req or {}).get("query") or "ILO C189 domestic workers convention"
         try:
             r = _online_search_with_fallback(
                 query, kernel_call=app.state.online_search_call,
             )
             ok = bool(r.get("results"))
-            msg = (
-                f"{r.get('backend', 'unknown')}: {len(r.get('results', []))} result(s) "
+            backend_used = r.get("backend", "unknown")
+            msg_parts = [
+                f"{backend_used}: {len(r.get('results', []))} result(s) "
                 f"in {r.get('elapsed_ms', 0)} ms"
-                + (f" · {r['error']}" if r.get("error") else "")
-            )
+            ]
+            if r.get("error"):
+                msg_parts.append(r["error"])
+            if r.get("brave_fallback_error"):
+                msg_parts.append(
+                    f"brave fell back: {r['brave_fallback_error']}")
+            if r.get("tavily_fallback_error"):
+                msg_parts.append(
+                    f"tavily fell back: {r['tavily_fallback_error']}")
+            msg = " · ".join(msg_parts)
             with _ONLINE_CONFIG_LOCK:
-                _ONLINE_CONFIG["brave_test_ok"] = ok
-                _ONLINE_CONFIG["brave_test_msg"] = msg
-                _ONLINE_CONFIG["brave_test_at"] = time.time()
-            return {"ok": ok, "backend": r.get("backend"),
+                # Record the result against whichever provider was
+                # actually exercised so the UI lights up the right row.
+                if backend_used == "tavily":
+                    _ONLINE_CONFIG["tavily_test_ok"] = ok
+                    _ONLINE_CONFIG["tavily_test_msg"] = msg
+                    _ONLINE_CONFIG["tavily_test_at"] = time.time()
+                elif backend_used == "brave":
+                    _ONLINE_CONFIG["brave_test_ok"] = ok
+                    _ONLINE_CONFIG["brave_test_msg"] = msg
+                    _ONLINE_CONFIG["brave_test_at"] = time.time()
+                else:
+                    # DDG / unknown — surface against Brave row for
+                    # backwards-compat with older UIs that only render
+                    # the Brave badge.
+                    _ONLINE_CONFIG["brave_test_ok"] = ok
+                    _ONLINE_CONFIG["brave_test_msg"] = msg
+                    _ONLINE_CONFIG["brave_test_at"] = time.time()
+            return {"ok": ok, "backend": backend_used,
                      "results": r.get("results", []),
                      "elapsed_ms": r.get("elapsed_ms", 0),
-                     "error": r.get("error", "")}
+                     "error": r.get("error", ""),
+                     "brave_fallback_error": r.get("brave_fallback_error", ""),
+                     "tavily_fallback_error": r.get("tavily_fallback_error", "")}
         except Exception as e:  # noqa: BLE001
             msg = f"{type(e).__name__}: {e}"
             with _ONLINE_CONFIG_LOCK:
@@ -1890,7 +3620,8 @@ def create_app(
         return "\n".join(lines) + "\n"
 
     def _format_rag_context(rag_result: dict) -> str:
-        """Render RAG-retrieved docs as a context block."""
+        """Render RAG-retrieved docs (+ optional curated citations) as
+        a context block."""
         docs = rag_result.get("docs") or []
         if not docs:
             return ""
@@ -1908,6 +3639,41 @@ def create_app(
             snippet = d.get("snippet", "")
             lines.append(f"### {title}  ({source})")
             lines.append(snippet)
+            lines.append("")
+        # v0.14.0: surface graph_neighbours — actual content of cited
+        # neighbour docs that the model can quote directly. Rendered
+        # BEFORE the citation-edge list so the model sees the
+        # supplementing content first, edges as cross-reference second.
+        graph_neighbours = rag_result.get("graph_neighbours") or []
+        if graph_neighbours:
+            lines.append("**Related corpus docs (1-hop graph expansion):**")
+            for n in graph_neighbours[:6]:
+                via = n.get("via_edge") or {}
+                rel = (via.get("relation") or "related_to").replace("_", " ")
+                trigger = via.get("trigger", "")
+                hop = via.get("hop", 1)
+                lines.append(f"- _{n.get('title', '?')}_ ({n.get('source', '')}) "
+                              f"-- linked via `{trigger}` [{rel}, hop {hop}]")
+                lines.append(f"  > {(n.get('snippet') or '')[:400]}")
+            lines.append("")
+        # v0.14.0: surface curated cross-reference edges. v0.14.0: render
+        # direction explicitly — `out` means the retrieved doc is the
+        # source of the edge, `in` means it's the target. Reading flows
+        # left-to-right consistently with the relation arrow.
+        citations = rag_result.get("citations") or []
+        if citations:
+            lines.append("**See also (curated cross-references):**")
+            for c in citations[:8]:
+                rel = c.get("relation", "related_to").replace("_", " ")
+                from_id = c.get("from", "?")
+                to_id   = c.get("to", "?")
+                if c.get("direction") == "out":
+                    edge = f"`{from_id}` --[{rel}]--> `{to_id}`"
+                else:
+                    edge = f"`{to_id}` <--[{rel}]-- `{from_id}`"
+                lines.append(
+                    f"- {edge}"
+                    + (f" -- {c['note']}" if c.get("note") else ""))
             lines.append("")
         return "\n".join(lines) + "\n"
 
@@ -1930,11 +3696,23 @@ def create_app(
     def _format_online_context(online_result: dict) -> str:
         """Render online-search results as a context block. Mirrors
         the RAG layer pattern; each result becomes a numbered
-        attribution-required entry."""
+        attribution-required entry.
+
+        When `fetched_pages` is present (deep-mode enabled), each entry
+        is enriched with the actual extracted page body (truncated)
+        and any GREP-rule hits detected against the page text. This
+        gives the model real grounding instead of just a 100-200 char
+        search snippet."""
         results = online_result.get("results") or []
         if not results:
             return ""
         source = online_result.get("source", "online")
+        fetched_pages = online_result.get("fetched_pages") or []
+        # Index fetched pages by rank for fast inline lookup.
+        page_by_rank: dict[int, dict] = {}
+        for p in fetched_pages:
+            page_by_rank[p.get("rank", -1)] = p
+        deep_mode = bool(fetched_pages)
         lines = [
             "## SAFETY HARNESS — Online search layer",
             "",
@@ -1944,16 +3722,76 @@ def create_app(
             "attribution if cited._",
             "",
         ]
+        if deep_mode:
+            total_chars = online_result.get("fetched_total_chars", 0)
+            total_hits = online_result.get("fetched_grep_hits", 0)
+            lines.append(
+                f"_Deep mode: top {len(fetched_pages)} URLs fetched + "
+                f"parsed ({total_chars:,} chars total). "
+                f"GREP rule hits across fetched pages: {total_hits}._")
+            lines.append("")
+        # Tavily provides a synthesized one-paragraph answer alongside
+        # results; surfacing it as a callout (the model is still asked
+        # to verify against URLs) makes the layer more useful even when
+        # deep-fetch is off.
+        answer = (online_result.get("answer") or "").strip()
+        if answer:
+            lines.append("**Search-engine summary** (verify against "
+                         "URLs below before quoting):")
+            lines.append(f"> {answer}")
+            lines.append("")
         for r in results:
             title = r.get("title", "?")
             url = r.get("url", "")
             snippet = r.get("snippet", "")
             rank = r.get("rank", "?")
+            content = r.get("content", "")  # tavily only
             lines.append(f"### [{rank}] {title}")
             if url:
                 lines.append(f"<{url}>")
-            if snippet:
-                lines.append(snippet)
+            # Prefer Tavily's longer `content` field over `snippet`
+            # when present (snippet is just the first 300 chars of
+            # content). Falls back to snippet for Brave/DDG.
+            blurb = content or snippet
+            if blurb:
+                lines.append(blurb)
+            # If we deep-fetched this URL, append the parsed body +
+            # any GREP hits detected against it.
+            page = page_by_rank.get(rank if isinstance(rank, int) else -1)
+            if page:
+                err = page.get("error")
+                if err:
+                    lines.append(
+                        f"_(deep fetch failed: {err}; relying on snippet)_")
+                else:
+                    text = (page.get("text") or "").strip()
+                    if text:
+                        lines.append("")
+                        lines.append("**Page body (extracted):**")
+                        lines.append("```")
+                        lines.append(text)
+                        lines.append("```")
+                    hits = page.get("grep_hits") or []
+                    if hits:
+                        lines.append("")
+                        lines.append(
+                            f"**GREP rules fired against this page "
+                            f"({len(hits)}):**")
+                        for h in hits[:10]:
+                            rule = h.get("rule", "?")
+                            sev = h.get("severity", "?")
+                            cite = h.get("citation", "")
+                            ind = h.get("indicator", "")
+                            excerpt = h.get("match_excerpt", "")
+                            cite_part = f" — {cite}" if cite else ""
+                            ind_part = f" [{ind}]" if ind else ""
+                            lines.append(
+                                f"- `{rule}` ({sev}){cite_part}{ind_part}: "
+                                f"{excerpt[:160]}")
+                        if len(hits) > 10:
+                            lines.append(
+                                f"- _… {len(hits) - 10} more hit(s) "
+                                "omitted from prompt; full list in trace_")
             lines.append("")
         return "\n".join(lines) + "\n"
 
@@ -2046,6 +3884,15 @@ def create_app(
                 trace["grep"]["summary"] = (
                     f"{len(hits)} rule(s) fired" if hits
                     else "no rules fired (clean)")
+                # v0.14.2: track per-rule fire counts so the GREP rule
+                # viewer can show a "fired N times this session" column.
+                fc = getattr(app.state, "grep_fire_counts", None)
+                if fc is None:
+                    fc = {}; app.state.grep_fire_counts = fc
+                for h in hits:
+                    rname = (h.get("rule") if isinstance(h, dict) else None) or ""
+                    if rname:
+                        fc[rname] = fc.get(rname, 0) + 1
                 snippet = _format_grep_context(gr)
                 if snippet:
                     prepend_snippets.append(snippet)
@@ -2070,14 +3917,102 @@ def create_app(
                                               extra_docs=toggles.custom_rag_docs) or {}
                 except TypeError:
                     rr = app.state.rag_call(user_text) or {}
+                docs = rr.get("docs") or []
+                # v0.14.0: layer-scoped path-trace init + retrieval cfg.
+                _path_trace_init(trace["rag"])
+                _ret_cfg = _retrieval_cfg_snapshot()
+                _retrieval_mode = _ret_cfg.get("retrieval_mode", "bm25")
+                # v0.14.0: hybrid retrieval — BM25 → optional dense fusion
+                # via Reciprocal Rank Fusion. No-op when retrieval_mode
+                # is "bm25" or no embed_call is wired.
+                hybrid_applied = False
+                if _retrieval_mode != "bm25" and app.state.embed_call is not None and docs:
+                    try:
+                        new_docs = _hybrid_fuse_with_dense(
+                            user_text, docs,
+                            embed_call=app.state.embed_call,
+                            mode=_retrieval_mode,
+                            rrf_k=int(_ret_cfg.get("rrf_k", 60)),
+                            trace=trace["rag"], layer="rag",
+                        )
+                        if new_docs:
+                            docs = new_docs
+                            hybrid_applied = True
+                    except Exception:  # noqa: BLE001
+                        pass
+                # v0.14.0: optional cross-encoder rerank stage. The
+                # kernel passes a `rerank_call` (e.g. mxbai-rerank-
+                # xsmall-v1 on CPU); when wired, we reorder BM25's
+                # top-K by semantic relevance to the query. Falls back
+                # silently to BM25 order on any failure.
+                reranked = False
+                if (app.state.rerank_call is not None and docs
+                        and _ret_cfg.get("rerank_enabled", True)):
+                    try:
+                        # v0.14.0: normalize candidate shape — populate
+                        # both `text` and `snippet` so a kernel reranker
+                        # reading either field works regardless of call
+                        # site (RAG / Imports / deep-fetch).
+                        for d in docs:
+                            if not d.get("text") and d.get("snippet"):
+                                d["text"] = d["snippet"]
+                        new_docs = app.state.rerank_call(user_text, docs) or docs
+                        if new_docs and len(new_docs) == len(docs):
+                            docs = new_docs
+                            reranked = True
+                    except Exception:  # noqa: BLE001
+                        pass  # rerank failure → keep BM25 order
+                citations = rr.get("citations") or []
+                graph_neighbours = rr.get("graph_neighbours") or []
+                # Trace records for the harness-side stages that ran
+                # inside _rag_call (BM25 + citation lookup + graph
+                # expansion). We don't have the elapsed-ms breakdown
+                # for these without modifying _rag_call's signature,
+                # so we report the aggregate elapsed_ms against bm25
+                # and tag the graph stage with n_in/n_out only.
+                _path_trace_record(trace["rag"], layer="rag", stage="bm25",
+                                      n_in=len(docs) if docs else 0,
+                                      n_out=len(docs),
+                                      elapsed_ms=int(rr.get("elapsed_ms", 0)))
+                if citations:
+                    _path_trace_record(trace["rag"], layer="rag", stage="citations",
+                                          n_in=len(docs), n_out=len(citations))
+                if graph_neighbours:
+                    _path_trace_record(trace["rag"], layer="rag", stage="graph",
+                                          n_in=len(citations),
+                                          n_out=len(graph_neighbours),
+                                          notes=f"depth={_ret_cfg.get('graph_expand_depth')}")
                 trace["rag"].update({
                     "fired": True,
                     "elapsed_ms": int(rr.get("elapsed_ms", 0)),
-                    "docs": rr.get("docs") or [],
+                    "docs": docs,
+                    "citations": citations,
+                    "graph_neighbours": graph_neighbours,
+                    "reranked": reranked,
+                    "hybrid_applied": hybrid_applied,
                 })
-                docs = trace["rag"]["docs"]
-                trace["rag"]["summary"] = f"retrieved {len(docs)} doc(s)"
-                snippet = _format_rag_context(rr)
+                # v0.14.2: stash recent retrieval on app.state so the
+                # /static/rag-corpus.html viewer can highlight the docs
+                # the most-recent chat turn actually pulled. The query
+                # is also stashed so the corpus page can show "showing
+                # docs retrieved for: <query>" context.
+                app.state.rag_recent_hits = [
+                    {"id": d.get("id"), "score": d.get("score")}
+                    for d in docs if isinstance(d, dict)
+                ]
+                app.state.rag_recent_query = (
+                    (user_text or "")[:240]
+                )
+                trace["rag"]["summary"] = (
+                    f"retrieved {len(docs)} doc(s)"
+                    + (f" + {len(citations)} citation(s)" if citations else "")
+                    + (f" + {len(graph_neighbours)} graph neighbour(s)"
+                        if graph_neighbours else "")
+                    + (" · hybrid_rrf" if hybrid_applied
+                        else (" · reranked" if reranked else " · BM25-ranked")))
+                # Use the (possibly reranked) docs when formatting the
+                # context block so the model sees them in the new order.
+                snippet = _format_rag_context({**rr, "docs": docs})
                 if snippet:
                     prepend_snippets.append(snippet)
             except Exception as exc:  # noqa: BLE001
@@ -2108,9 +4043,13 @@ def create_app(
         _t0 = time.time()
         if getattr(toggles, "import_corpus", False):
             try:
-                # Score server-stored docs by relevance to the prompt.
+                # Score server-stored docs by chunk-level BM25 (v0.14.0)
+                # with v0.14.0 parent-expansion + structured path trace.
+                _path_trace_init(trace["import"])
                 server_docs = _retrieve_imports(
                     user_text, max_docs=5, max_total_chars=8000,
+                    chunks_per_doc=2,
+                    trace=trace["import"],
                 )
                 # Append client-supplied docs verbatim (small payloads
                 # only — UI is expected to ship at most a few KB).
@@ -2127,6 +4066,26 @@ def create_app(
                         "score":   None,
                     })
                 all_docs = server_docs + client_docs
+                # Optional rerank stage — same hook as RAG. With a
+                # cross-encoder wired, server-side chunks get reranked
+                # by query-relevance after the BM25 pre-filter.
+                import_reranked = False
+                if app.state.rerank_call is not None and all_docs:
+                    try:
+                        # v0.14.0: shape normalization — same rationale
+                        # as the RAG path. A kernel reranker that only
+                        # reads `text` would silently mis-rank Import
+                        # entries which carry `snippet`; this maps the
+                        # two so either is non-empty.
+                        for d in all_docs:
+                            if not d.get("text") and d.get("snippet"):
+                                d["text"] = d["snippet"]
+                        new_all = app.state.rerank_call(user_text, all_docs) or all_docs
+                        if new_all and len(new_all) == len(all_docs):
+                            all_docs = new_all
+                            import_reranked = True
+                    except Exception:  # noqa: BLE001
+                        pass
                 if all_docs:
                     blocks = []
                     for i, d in enumerate(all_docs, 1):
@@ -2138,14 +4097,18 @@ def create_app(
                         blocks.append(
                             f"### [{i}] {title} (source: {source})\n\n{snippet}"
                         )
+                    n_chunks_total = sum(d.get("n_chunks", 0) for d in server_docs)
+                    n_chunks_kept  = sum(d.get("n_chunks_returned", 1) for d in server_docs)
                     trace["import"].update({
                         "fired":      bool(blocks),
                         "elapsed_ms": int((time.time() - _t0) * 1000),
                         "docs":       all_docs[:20],
+                        "reranked":   import_reranked,
                         "summary":    (
                             f"included {len(blocks)} of "
                             f"{len(_IMPORT_STORE) + len(toggles.custom_import_docs or [])} imported doc(s) "
-                            f"(top-N by query relevance)"
+                            f"({n_chunks_kept} of {n_chunks_total} chunks)"
+                            + (" · reranked" if import_reranked else " · BM25 chunk-level")
                             if blocks else "no usable imported docs"
                         ),
                     })
@@ -2224,6 +4187,36 @@ def create_app(
                 osr = _online_search_with_fallback(
                     user_text, kernel_call=app.state.online_search_call,
                 ) or {}
+                # Deep-mode enrichment: fetch top-N URLs, parse to text,
+                # run GREP rules over each. Configured via /api/online/config
+                # (fetch_pages=True). Off by default — adds 2-8s latency.
+                # Skipped if the search itself returned no results.
+                with _ONLINE_CONFIG_LOCK:
+                    deep_cfg = {
+                        "fetch_pages":     bool(_ONLINE_CONFIG.get("fetch_pages")),
+                        "fetch_top_n":     int(_ONLINE_CONFIG.get("fetch_top_n", 3)),
+                        "fetch_max_chars": int(_ONLINE_CONFIG.get("fetch_max_chars", 4500)),
+                        "fetch_timeout":   float(_ONLINE_CONFIG.get("fetch_timeout", 8.0)),
+                    }
+                if deep_cfg["fetch_pages"] and (osr.get("results") or []):
+                    try:
+                        _path_trace_init(trace["online"])
+                        osr = _enrich_search_with_pages(
+                            osr,
+                            query=user_text,
+                            grep_call=app.state.grep_call,
+                            top_n=deep_cfg["fetch_top_n"],
+                            max_chars=deep_cfg["fetch_max_chars"],
+                            timeout=deep_cfg["fetch_timeout"],
+                            chunks_per_page=3,
+                            rerank_call=getattr(app.state, "rerank_call", None),
+                            trace=trace["online"],
+                        )
+                    except Exception as exc:  # noqa: BLE001
+                        # Enrichment failure should not lose the search
+                        # results — fall back to snippet-only context.
+                        osr["fetch_error"] = (
+                            f"{type(exc).__name__}: {exc}")
                 trace["online"].update({
                     "fired":      True,
                     "elapsed_ms": max(int(osr.get("elapsed_ms", 0)),
@@ -2232,16 +4225,42 @@ def create_app(
                     "source":     osr.get("source", "unknown"),
                     "backend":    osr.get("backend", "unknown"),
                     "query":      user_text[:200],
+                    "fetched_pages": osr.get("fetched_pages") or [],
+                    "fetched_total_chars": int(osr.get("fetched_total_chars") or 0),
+                    "fetched_grep_hits": int(osr.get("fetched_grep_hits") or 0),
+                    "deep_mode":  bool(deep_cfg["fetch_pages"]),
+                    "answer":     osr.get("answer", ""),
                 })
                 if osr.get("error"):
                     trace["online"]["error"] = osr["error"]
+                # Surface BOTH brave_fallback_error AND tavily_fallback_error
+                # so the UI can show why a higher-priority backend was
+                # skipped (closes the silent-fallback diagnostic gap).
                 if osr.get("brave_fallback_error"):
                     trace["online"]["brave_fallback_error"] = osr["brave_fallback_error"]
+                if osr.get("tavily_fallback_error"):
+                    trace["online"]["tavily_fallback_error"] = osr["tavily_fallback_error"]
+                if osr.get("fetch_error"):
+                    trace["online"]["fetch_error"] = osr["fetch_error"]
                 results = trace["online"]["results"]
                 if results:
-                    trace["online"]["summary"] = (
-                        f"{len(results)} result(s) via "
-                        f"{trace['online']['backend']}")
+                    fetched = trace["online"]["fetched_pages"]
+                    if fetched:
+                        n_ok = sum(1 for p in fetched if p.get("text"))
+                        n_err = len(fetched) - n_ok
+                        trace["online"]["summary"] = (
+                            f"{len(results)} result(s) via "
+                            f"{trace['online']['backend']} · "
+                            f"{n_ok} page(s) fetched"
+                            + (f" · {n_err} fetch err"
+                                if n_err else "")
+                            + (f" · {trace['online']['fetched_grep_hits']} "
+                                "GREP hit(s) on pages"
+                                if trace["online"]["fetched_grep_hits"] else ""))
+                    else:
+                        trace["online"]["summary"] = (
+                            f"{len(results)} result(s) via "
+                            f"{trace['online']['backend']}")
                 else:
                     err = osr.get("error") or "no results"
                     trace["online"]["summary"] = (
@@ -2251,9 +4270,11 @@ def create_app(
                     prepend_snippets.append(snippet)
             except Exception as exc:  # noqa: BLE001
                 trace["online"]["summary"] = f"error: {type(exc).__name__}: {exc}"
-        # The "wired" flag now also accepts a Brave key as evidence of
-        # wiring even when the kernel didn't supply online_search_call.
-        if _ONLINE_CONFIG.get("brave_api_key"):
+        # The "wired" flag now also accepts a Brave OR Tavily key as
+        # evidence of wiring even when the kernel didn't supply
+        # online_search_call.
+        if (_ONLINE_CONFIG.get("brave_api_key")
+                or _ONLINE_CONFIG.get("tavily_api_key")):
             trace["online"]["wired"] = True
         _emit({"type": "step_done", "step": "online",
                "fired": trace["online"]["fired"],
@@ -2264,6 +4285,34 @@ def create_app(
                           ("not toggled" if not toggles.online else
                            "not wired" if app.state.online_search_call is None else "no results")})
 
+        # v0.14.0: cap total prepended-harness text. With Online +
+        # deep-fetch + RAG + Imports all firing, the pre-prompt block
+        # can exceed E2B's 8K context window. Bound the total at 24K
+        # chars (~6K tokens) — enough to fit on a 32K model with
+        # plenty of room for the user message + response, and the
+        # smaller variants self-truncate if pushed past their cap.
+        # Per-snippet share is computed as the budget divided by the
+        # number of fired snippets, so no single layer monopolizes.
+        MAX_PREPEND_CHARS = 24_000
+        total_prepend = sum(len(s) for s in prepend_snippets)
+        if total_prepend > MAX_PREPEND_CHARS and prepend_snippets:
+            per_layer = max(2_000, MAX_PREPEND_CHARS // len(prepend_snippets))
+            trimmed: list[str] = []
+            for s in prepend_snippets:
+                if len(s) > per_layer:
+                    trimmed.append(
+                        s[:per_layer].rstrip()
+                        + f"\n\n[…layer truncated to fit {per_layer} chars total budget]"
+                    )
+                else:
+                    trimmed.append(s)
+            prepend_snippets = trimmed
+            trace["_prepend_truncated"] = {
+                "original_chars":  total_prepend,
+                "max_chars":       MAX_PREPEND_CHARS,
+                "per_layer_share": per_layer,
+                "n_layers":        len(prepend_snippets),
+            }
         return {"trace": trace, "prepend_snippets": prepend_snippets}
 
     @app.post("/api/chat/send")

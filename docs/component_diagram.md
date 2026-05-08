@@ -5,6 +5,18 @@
 > with `system_map.md` (which is user→surface oriented). This doc
 > is **server-internals oriented**.
 
+> **Platform framing:** Duecare is an eight-component platform
+> (Runtime, Harness, Exchange, Eval, Trainer, Sentinel, Channels,
+> Mobile). The diagrams below are the **server-internals view of the
+> live core**: components #1 Runtime, #2 Harness, #4 Eval, plus the
+> deterministic Contacts directory. The remaining components are:
+>
+> - #3 **Exchange** — see [`architecture/duecare_exchange.md`](architecture/duecare_exchange.md). No code in this repo; bridge today is curator-block PRs.
+> - #5 **Trainer** — see [`architecture/duecare_trainer.md`](architecture/duecare_trainer.md). Anchored in `kaggle/A-07-bench-and-tune/`.
+> - #6 **Sentinel** — see [`architecture/duecare_sentinel.md`](architecture/duecare_sentinel.md). Bridge today: `scripts/v141_validate_contacts.py`.
+> - #7 **Channels** — see [`architecture/duecare_channels.md`](architecture/duecare_channels.md). No code in this repo.
+> - #8 **Mobile** — see [`architecture/duecare_mobile.md`](architecture/duecare_mobile.md). Sibling repo `duecare-journey-android` v0.9.0.
+
 ## Three views
 
 1. **Static structure** — what exists in the repo + what ships in the wheel
@@ -21,7 +33,7 @@ graph TB
     subgraph chatpkg["packages/duecare-llm-chat/"]
       app["chat/app.py<br/>FastAPI app factory<br/>23 endpoints"]
       static["chat/static/index.html<br/>~3 kLOC vanilla JS UI"]
-      harness["chat/harness/__init__.py<br/>Universal grader, classifier,<br/>profile detector, 21-dim rubric"]
+      harness["chat/harness/__init__.py<br/>Universal grader, classifier,<br/>profile detector, 46-dim rubric"]
       gov["chat/harness/_governance.py<br/>Curator-block loader"]
       json_curator["chat/harness/_*.json<br/>11 curator blocks +<br/>rubric_universal +<br/>examples + 5tier + required"]
     end
@@ -65,7 +77,7 @@ duecare/
 │   │   ├── __init__.py    # Grader + classifier + profile detector
 │   │   ├── _governance.py # Curator-block loader
 │   │   ├── _rubric_universal.json     # 21 dims
-│   │   ├── _evaluation_questions.json # 21 evaluator q+hint
+│   │   ├── _evaluation_questions.json # 46 evaluator q+hint
 │   │   ├── _classifier_signals.json   # 194 entries, 11 langs
 │   │   ├── _usecase_affinity.json     # 7 use-cases × dim weights
 │   │   ├── _intent_affinity.json      # 5 intents × dim weights
@@ -76,7 +88,7 @@ duecare/
 │   │   ├── _grader_config.json        # 14 thresholds + 4 flags
 │   │   ├── _baseline_gauge.json       # stock 6% / harnessed 88%
 │   │   ├── _rubric_hints.json         # 21 dim PASS/FAIL UI hints
-│   │   ├── _examples.json             # 413 example prompts
+│   │   ├── _examples.json             # 587 example prompts
 │   │   ├── _classifier_examples.json  # 54 classifier samples
 │   │   ├── _rubrics_5tier.json        # 207 hand-graded prompts
 │   │   └── _rubrics_required.json     # 6 category rubrics

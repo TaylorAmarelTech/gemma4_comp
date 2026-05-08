@@ -636,7 +636,7 @@ polish"), due start of week 5.**
 
 > The 2026-04-11 self-assessment above is the original gap analysis.
 > This section is the **v3.6-current** ledger: claim → proof. After
-> Phase 5 (multi-lingual classifier, 21-dim rubric, curator JSON
+> Phase 5 (multi-lingual classifier, 46-dim rubric, curator JSON
 > governance, judge → evaluator rename, auto-grade chips, layer
 > ablation), the technical-depth score should land at the top of the
 > target range; the video and stable demo URL remain the highest-
@@ -657,7 +657,7 @@ polish"), due start of week 5.**
 | What we claim | Where it's proven |
 |---|---|
 | 5-layer safety harness with toggleable measurement | 01-duecare-harness-chat (`/api/harness-info`) |
-| 21-dim universal grader, use-case-aware weighting | `RUBRIC_UNIVERSAL["dimensions"]` count = 21; `tests/test_harness_v3_6.py` |
+| 46-dim universal grader, use-case-aware weighting | `RUBRIC_UNIVERSAL["dimensions"]` count = 21; `tests/test_harness_v3_6.py` |
 | Two harm-axis dims (operational_information_provided + harm_enablement_check) | `_rubric_universal.json`; `tests/test_harness_v3_6.py` 5 cases |
 | LLM evaluator with evidence-grounding check | `grade_response_via_evaluator()`; M1 fix in `grading_system_audit.md` |
 | Cumulative-error breaker (3 consecutive / 5 total → HTTP 503) | `grading_system_audit.md §5` |
@@ -682,7 +682,7 @@ polish"), due start of week 5.**
 | MediaPipe Gemma 4 (LiteRT) on Android | `duecare-journey-android` sibling repo, v0.9.0 APK |
 | 6 selectable variants (E2B/E4B INT4/INT8 + Gemma 3 1B + Gemma 2 2B) | Android v0.9 model selector |
 | SQLCipher-encrypted journal | Android v0.9 ROOM database with SQLCipher |
-| 11 ILO indicator detectors + 20 corridor profiles + 108 GREP rules | Android v0.9 release notes |
+| 11 ILO indicator detectors + 20 corridor profiles + 161 GREP rules | Android v0.9 release notes |
 | Full on-device — no network at runtime | Android architecture doc |
 
 ## Risk register (v3.6)
@@ -714,7 +714,7 @@ polish"), due start of week 5.**
 - We are not a deployed production system — research prototype + hackathon submission
 - The lift numbers don't generalize beyond the 207-prompt eval set; should be re-measured against any new domain
 - Maria is a composite character (POEA case files + ILO field reports), not a real person
-- The 99.3% citation grounding rate is calibrated against the 144-statute allowlist + 33-doc RAG corpus
+- The 99.3% citation grounding rate is calibrated against the 144-statute allowlist + 46-doc RAG corpus
 - The Android app is v0.9, not 1.0 — installable + works, but the on-device LLM is MediaPipe Gemma 4, not a fine-tuned Duecare model
 
 ## Cross-references

@@ -471,6 +471,35 @@ header.bar .badge.loaded .dot {
 /* Grade modal gets a wider max so the per-dim table doesn't word-wrap
    the rationale column into a vertical column on a 1080p laptop. */
 .modal[data-layer="grade"] { max-width: 1240px; }
+/* Compare modal needs the most width — two full pipeline traces side
+   by side plus a delta column. */
+.modal[data-layer="compare"] { max-width: 1700px; }
+.modal[data-layer="compare"] { border-top: 4px solid #f59e0b; }
+.compare-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.compare-variant {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px 14px;
+}
+.compare-variant.side-a { border-left: 3px solid #3b82f6; }
+.compare-variant.side-b { border-left: 3px solid #10b981; }
+.compare-toggle-row {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 12px; padding: 4px 0;
+}
+.compare-results {
+  margin-top: 16px; padding: 14px;
+  background: rgba(245, 158, 11, 0.04);
+  border: 1px solid var(--border); border-radius: 8px;
+}
+.compare-delta-pill {
+  display: inline-block; padding: 2px 8px;
+  border-radius: 8px; font-size: 11px; font-weight: 700;
+}
+.compare-delta-pos { background: rgba(16,185,129,0.15); color: #10b981; }
+.compare-delta-neg { background: rgba(239,68,68,0.15); color: #ef4444; }
+.compare-delta-zero { background: rgba(148,163,184,0.18); color: #94a3b8; }
 .modal[data-layer="persona"] { border-top: 4px solid #a855f7; }
 .modal[data-layer="grep"]    { border-top: 4px solid #ef4444; }
 .modal[data-layer="rag"]     { border-top: 4px solid #3b82f6; }
@@ -642,7 +671,7 @@ header.bar .badge.loaded .dot {
     align-items: flex-start !important;
     gap: 4px !important;
   }
-  /* Multi-lingual showcase row: stack into a 3x2 grid on phones */
+  /* Multi-lingual capability row: stack into a 3x2 grid on phones */
   #empty-hints button[onclick^="useExample('ml_"] {
     flex: 1 1 calc(50% - 4px) !important;
     min-width: 0 !important;
@@ -701,6 +730,18 @@ header.bar .badge.loaded .dot {
             style="background:transparent; border:1px solid var(--border); color:var(--muted); padding:5px 12px; border-radius:8px; font-size:12px; cursor:pointer; font-weight:500;">
       About
     </button>
+    <button id="compare-btn"
+            onclick="openCompareModal()"
+            title="A/B compare — same prompt, two harness configs, side-by-side grades"
+            style="background:transparent; border:1px solid var(--border); color:var(--muted); padding:5px 12px; border-radius:8px; font-size:12px; cursor:pointer; font-weight:500; margin-left:6px;">
+      Compare
+    </button>
+    <a id="inspector-btn"
+       href="/static/harness.html" target="_blank"
+       title="Browse every harness layer — GREP rules, RAG corpus, citation graph, tools, online providers, personas"
+       style="background:transparent; border:1px solid var(--border); color:var(--muted); padding:5px 12px; border-radius:8px; font-size:12px; cursor:pointer; font-weight:500; margin-left:6px; text-decoration:none; display:inline-flex; align-items:center;">
+      Harness ↗
+    </a>
     <div class="badge" id="badge"
          onclick="onBadgeClick()"
          title="Click to open the model picker"
@@ -736,6 +777,19 @@ header.bar .badge.loaded .dot {
   </div>
 
   <div class="composer">
+    <!-- v0.7.1: pending-image-hint banner. Surfaces when an
+         image_prompts entry was loaded via the Examples modal so the
+         user knows they need to attach an image. Auto-hides when an
+         image is attached or the message is sent. -->
+    <div id="pending-image-hint" style="display:none; margin-bottom:8px; padding:8px 12px; background:rgba(236,72,153,0.10); border-left:3px solid #ec4899; border-radius:6px; font-size:11.5px; color:#cbd5e1; display:flex; align-items:flex-start; gap:8px;">
+      <span style="color:#ec4899; font-weight:700;">📎</span>
+      <div style="flex:1;">
+        <b style="color:#ec4899;">This prompt expects an image.</b>
+        <span id="pending-image-hint-text"></span>
+        <div style="margin-top:4px; font-size:11px; color:var(--muted);">Click "+ image" below to attach, then send.</div>
+      </div>
+      <button onclick="dismissImageHint()" title="Dismiss" style="background:transparent; border:0; color:var(--muted); cursor:pointer; font-size:14px; padding:0 4px;">✕</button>
+    </div>
     <div class="pending-images" id="pending-images"></div>
     <div class="row">
       <textarea id="input" placeholder="Type a message…  (Shift+Enter for newline)" rows="2"></textarea>
@@ -776,7 +830,7 @@ header.bar .badge.loaded .dot {
           <span class="harness-tile-state" id="state-persona">…</span>
         </div>
         <div class="harness-tile-desc" onclick="toggleTile('persona')">Expert anti-trafficking persona prepended to every message. Gives Gemma the role + framework + tactics knowledge.</div>
-        <a href="#" class="harness-catalog-link" onclick="openLayerModal('persona'); return false;">▸ View</a>
+        <a href="#" class="harness-catalog-link" onclick="openLayerModal('persona'); return false;">▸ View &amp; Configure</a>
       </div>
       <div class="harness-tile grep" id="tile-grep" data-wired="probing" data-enabled="false">
         <div class="harness-tile-row" onclick="toggleTile('grep')">
@@ -784,15 +838,15 @@ header.bar .badge.loaded .dot {
           <span class="harness-tile-state" id="state-grep">…</span>
         </div>
         <div class="harness-tile-desc" onclick="toggleTile('grep')">Regex KB rules — trafficking patterns, ILO indicators, statute matches. Prepended to Gemma's context with citations.</div>
-        <a href="#" class="harness-catalog-link" onclick="openLayerModal('grep'); return false;">▸ View</a>
+        <a href="#" class="harness-catalog-link" onclick="openLayerModal('grep'); return false;">▸ View &amp; Configure</a>
       </div>
       <div class="harness-tile rag" id="tile-rag" data-wired="probing" data-enabled="false">
         <div class="harness-tile-row" onclick="toggleTile('rag')">
           <span class="harness-tile-name">RAG</span>
           <span class="harness-tile-state" id="state-rag">…</span>
         </div>
-        <div class="harness-tile-desc" onclick="toggleTile('rag')">BM25 retrieval over an in-kernel corpus of ILO conventions, POEA/BP2MI circulars, HK statutes, NGO briefs. Top-5 docs injected as Gemma context.</div>
-        <a href="#" class="harness-catalog-link" onclick="openLayerModal('rag'); return false;">▸ View</a>
+        <div class="harness-tile-desc" onclick="toggleTile('rag')">BM25 lexical retrieval (~1ms, no embeddings) over an in-kernel corpus of ILO conventions, POEA/BP2MI circulars, HK statutes, NGO briefs. Top-5 docs injected as Gemma context. Deterministic + GPU-free by design — see ▸ View &amp; Configure for the rationale + corpus list.</div>
+        <a href="#" class="harness-catalog-link" onclick="openLayerModal('rag'); return false;">▸ View &amp; Configure</a>
       </div>
       <div class="harness-tile tools" id="tile-tools" data-wired="probing" data-enabled="false">
         <div class="harness-tile-row" onclick="toggleTile('tools')">
@@ -800,15 +854,15 @@ header.bar .badge.loaded .dot {
           <span class="harness-tile-state" id="state-tools">…</span>
         </div>
         <div class="harness-tile-desc" onclick="toggleTile('tools')">Heuristic lookup tools — corridor fee caps, fee camouflage decoder, ILO indicator matcher, NGO intake hotlines. Results injected as Gemma context.</div>
-        <a href="#" class="harness-catalog-link" onclick="openLayerModal('tools'); return false;">▸ View</a>
+        <a href="#" class="harness-catalog-link" onclick="openLayerModal('tools'); return false;">▸ View &amp; Configure</a>
       </div>
       <div class="harness-tile online" id="tile-online" data-wired="probing" data-enabled="false">
         <div class="harness-tile-row" onclick="toggleTile('online')">
           <span class="harness-tile-name">Online</span>
           <span class="harness-tile-state" id="state-online">…</span>
         </div>
-        <div class="harness-tile-desc" onclick="toggleTile('online')">Live web search — kernel-supplied search hook (DuckDuckGo HTML by default; Brave/Playwright via the agentic-research kernel). Top results injected as fresh-context citations the model is told to cross-check.</div>
-        <a href="#" class="harness-catalog-link" onclick="openLayerModal('online'); return false;">▸ View</a>
+        <div class="harness-tile-desc" onclick="toggleTile('online')">Live web search — Tavily / Brave (BYOK) or kernel DuckDuckGo. Optional <b>deep-fetch mode</b> downloads the top-N URLs, converts HTML→markdown, runs GREP rules over each page, and prepends the parsed bodies + hits as Gemma context. Cross-check required for any cited claim.</div>
+        <a href="#" class="harness-catalog-link" onclick="openLayerModal('online'); return false;">▸ View &amp; Configure</a>
       </div>
       <div class="harness-tile import" id="tile-import" data-wired="true" data-enabled="false">
         <div class="harness-tile-row" onclick="toggleTile('import')">
@@ -816,7 +870,7 @@ header.bar .badge.loaded .dot {
           <span class="harness-tile-state" id="state-import">…</span>
         </div>
         <div class="harness-tile-desc" onclick="toggleTile('import')">Internal-intelligence corpus — paste your own documents (statutes, NGO briefs, case files) and Gemma will ground its answer in them. Stays in your browser; never leaves the session.</div>
-        <a href="#" class="harness-catalog-link" onclick="openLayerModal('import'); return false;">▸ View</a>
+        <a href="#" class="harness-catalog-link" onclick="openLayerModal('import'); return false;">▸ View &amp; Configure</a>
       </div>
     </div>
   </div>
@@ -1027,6 +1081,36 @@ async function refreshBadge() {
 }
 refreshBadge();
 setInterval(refreshBadge, 30000);
+
+// ---------------------------------------------------------------------------
+// Brand fetcher (v0.14.2). Pulls product/layer metadata + live counts
+// from /api/brand on page load. Any DOM node with [data-brand-count="key"]
+// receives the matching count value; any node with [data-brand-text="path"]
+// receives the matching text path (e.g. "product.tagline" or
+// "layers[0].label"). Single fetch, in-page caching — eliminates the
+// "111 GREP / 35-doc" hardcoded-string drift problem.
+// ---------------------------------------------------------------------------
+let _BRAND_CACHE = null;
+async function refreshBrand() {
+  try {
+    const r = await fetch('/api/brand', {cache: 'no-store'});
+    if (!r.ok) return;
+    _BRAND_CACHE = await r.json();
+    document.querySelectorAll('[data-brand-count]').forEach(el => {
+      const key = el.getAttribute('data-brand-count');
+      const v = (_BRAND_CACHE.counts || {})[key];
+      if (v != null) el.textContent = v;
+    });
+    document.querySelectorAll('[data-brand-text]').forEach(el => {
+      const path = el.getAttribute('data-brand-text');
+      const v = path.split('.').reduce(
+        (o, k) => (o == null ? null : o[k.replace(/\[(\d+)\]/, "")]),
+        _BRAND_CACHE);
+      if (v != null) el.textContent = String(v);
+    });
+  } catch (_) { /* offline-tolerant */ }
+}
+refreshBrand();
 
 // ---------------------------------------------------------------------------
 // Self-contained model picker. The chat package owns the picker overlay
@@ -1470,9 +1554,9 @@ function openAboutModal() {
       </h4>
       <ul style="margin:0; padding-left:20px;">
         <li><b>Persona</b> — expert anti-trafficking system prompt</li>
-        <li><b style="color:#ef4444;">GREP</b> — 111 regex rules
+        <li><b style="color:#ef4444;">GREP</b> — <span data-brand-count="n_grep_rules">…</span> regex rules
             (ILO indicators, statutes, recruiter tactics)</li>
-        <li><b style="color:#3b82f6;">RAG</b> — 35-doc bundled corpus
+        <li><b style="color:#3b82f6;">RAG</b> — <span data-brand-count="n_rag_docs">…</span>-doc bundled corpus
             (ILO conventions, POEA/BP2MI circulars, HK statutes,
             NGO briefs)</li>
         <li><b style="color:#10b981;">Tools</b> — 5 lookup functions
@@ -1503,7 +1587,7 @@ function openAboutModal() {
             modes you pick before clicking <b>Run scoring</b>:
           <ul style="margin:4px 0 0; padding-left:18px;">
             <li><b>Rule-Based</b> (~1-3s) — deterministic keyword + cluster
-                + token-overlap scoring across the 21-dim rubric. Fast,
+                + token-overlap scoring across the 46-dimension rubric. Fast,
                 repeatable, runs without using the loaded model.</li>
             <li><b>LLM-Based</b> (~30-90s) — sends the response back to
                 the loaded Gemma with one yes/no question per applicable
@@ -1525,12 +1609,14 @@ function openAboutModal() {
         4 · Try the sample prompts
       </h4>
       <p style="margin:0;">
-        <b>▸ Examples</b> in the composer opens 413 curated prompts
-        organised by category. The five highlighted at the top cover
-        curated cases, jailbreak resistance, online-search behaviour,
-        multi-jurisdiction comparison, and social-engineering pretexts.
-        A multi-lingual sample row (TL / ID / AR / NE / ES / BN) is on
-        the empty state of this page.
+        <b>▸ Examples</b> in the composer opens <span data-brand-text="counts.n_examples">587</span> curated prompts
+        organised across 8 audience buckets (model_capability,
+        enterprise_moderation, ngo_intake, individual_query, research,
+        image_prompts, data_intelligence, regulator_audit). The five
+        highlighted at the top cover curated cases, jailbreak resistance,
+        online-search behaviour, multi-jurisdiction comparison, and
+        social-engineering pretexts. A multi-lingual sample row
+        (TL / ID / AR / NE / ES / BN) is on the empty state of this page.
       </p>
 
       <h4 style="margin:18px 0 6px; font-size:14px; color:var(--accent);">
@@ -1579,7 +1665,7 @@ async function probeHarness() {
     const notWiredHints = {
       persona: 'Kernel did not configure a default persona. Wire `persona_default` in create_app() or paste your own via the persona library.',
       grep:    'Kernel did not pass a grep_call into create_app(). The 01-duecare-harness-chat kernel wires this by default; older kernels may not.',
-      rag:     'Kernel did not pass a rag_call into create_app(). RAG retrieval over the bundled 35-doc corpus needs the kernel to wire it.',
+      rag:     'Kernel did not pass a rag_call into create_app(). RAG retrieval over the bundled corpus needs the kernel to wire it.',
       tools:   'Kernel did not pass a tools_call into create_app(). Lookup tools (corridor caps, fee labels, NGO hotlines) need the kernel to wire them.',
       online:  'Neither the kernel\'s online_search_call nor a Brave Search API key is configured. Click ▸ View on this tile to paste a free Brave key.',
     };
@@ -1695,12 +1781,15 @@ const DIFFICULTY_COLORS = {
 };
 
 const CATEGORY_LABELS = {
-  // v3.11 high-impact demo categories (top of list)
+  // ----- model_capability bucket — adversarial / stress-test prompts
+  // that probe how the model holds up under specific attack patterns.
+  // Top-of-list categories first (used as the default "open" set).
   headline_lift_demo:           'Curated sample prompts',
   jailbreak_resistance:         'Jailbreak resistance (DAN / dev-mode / pretext)',
-  online_search_demo:           'Online search demo (live web data adds signal)',
-  model_comparison_demo:        'Model comparison demo (variant matters)',
+  online_search_demo:           'Live web-search probes',
+  model_comparison_demo:        'Variant-comparison probes',
   social_engineering:           'Anti-social-engineering (compliance pretexts)',
+  prompt_injection_amplification: 'Prompt-injection amplification',
   // Original benchmark categories
   regulatory_evasion:           'Regulatory evasion',
   coercion_manipulation:        'Coercion / manipulation',
@@ -1708,11 +1797,12 @@ const CATEGORY_LABELS = {
   financial_obfuscation:        'Financial obfuscation',
   mega_variations:              'Mega / compound',
   knowledge_check:              'Knowledge check',
-  compound_textbook:            'Textbook compound scenarios',
+  compound_textbook:            'Compound scenarios',
   jurisdictional_hierarchy:     'Jurisdictional hierarchy exploitation',
   amplification_known_attacks:  'Amplification through known attacks',
   victim_revictimization:       'Migrant worker re-victimization',
   financial_crime_blindness:    'Legal standards / financial crime blindness',
+  multilingual_capability:      'Multi-lingual capability (en/tl/id/ne/bn/ar/es)',
   // Document-format categories
   business_framed_exploitation: 'Business-framed exploitation (operator-side)',
   social_media_recruitment:     'Social media recruitment posts',
@@ -1720,15 +1810,113 @@ const CATEGORY_LABELS = {
   group_chat_pattern:           'Group chat (lender coordination)',
   fake_document:                'Fake documents (clearance certs etc.)',
   receipt_evidence:             'Receipt / promissory-note evidence',
+  // ----- enterprise_moderation bucket
+  recruitment_ad_review:        'Recruitment ad review',
+  marketplace_listing_review:   'Marketplace listing review',
+  group_chat_signal:            'Group-chat signal classification',
+  user_complaint_triage:        'User-complaint triage',
+  policy_application:           'Policy edge cases',
+  ad_compliance_check:          'Ad compliance pre-check',
+  // ----- ngo_intake bucket
+  caseworker_triage:            'Caseworker first-intake triage',
+  case_pathway:                 'Case pathway / next-legal-step',
+  policy_brief_request:         'Letter / brief drafting',
+  intake_documentation:         'Intake documentation / evidence',
+  // ----- individual_query bucket (worker, family, prospective migrant)
+  worker_self_help:             'Worker self-help (in worker voice)',
+  family_inquiry:               'Family member inquiry',
+  prospective_migrant:          'Pre-departure questions',
+  returnee_redress:             'Returnee — fee refund / wage recovery',
+  // ----- research bucket (academic / journalistic / policy)
+  comparative_analysis:         'Comparative analysis (cross-jurisdiction)',
+  statute_interpretation:       'Statute interpretation',
+  methodology:                  'Research methodology',
+  literature_synthesis:         'Literature synthesis',
+  investigative_reporting:      'Investigative reporting plan',
+  policy_evaluation:            'Policy efficacy evaluation',
+  // ----- image_prompts bucket (multimodal — Gemma 4 vision)
+  document_image_review:        'Document images (receipts, contracts, passports)',
+  social_media_image:           'Social media screenshots (FB, TikTok, WhatsApp posts)',
+  evidence_image:               'Evidence images (contract pages, chat screenshots)',
+  marketplace_image:            'Marketplace / classified listing images',
 };
 
-// Color hint per category for the hierarchical Examples modal
+// Color hint per category for the hierarchical Examples modal.
+// Default uses the bucket color when the specific category isn't listed.
+// v0.7.1: extended palette so new buckets' categories don't all
+// fall back to var(--accent) and look like one big flat list.
 const CATEGORY_COLORS = {
-  headline_lift_demo:    '#10b981',  // green
-  jailbreak_resistance:  '#ef4444',  // red
-  online_search_demo:    '#f59e0b',  // amber
-  model_comparison_demo: '#a855f7',  // purple
-  social_engineering:    '#3b82f6',  // blue
+  // model_capability bucket
+  headline_lift_demo:           '#10b981',
+  jailbreak_resistance:         '#ef4444',
+  online_search_demo:           '#f59e0b',
+  model_comparison_demo:        '#a855f7',
+  social_engineering:           '#3b82f6',
+  prompt_injection_amplification: '#dc2626',
+  multilingual_capability:      '#06b6d4',
+  // enterprise_moderation bucket — blue family
+  recruitment_ad_review:        '#3b82f6',
+  marketplace_listing_review:   '#2563eb',
+  group_chat_signal:            '#1d4ed8',
+  user_complaint_triage:        '#0ea5e9',
+  policy_application:           '#0284c7',
+  ad_compliance_check:          '#075985',
+  // ngo_intake bucket — green family
+  caseworker_triage:            '#10b981',
+  case_pathway:                 '#059669',
+  policy_brief_request:         '#047857',
+  intake_documentation:         '#15803d',
+  // individual_query bucket — amber family
+  worker_self_help:             '#f59e0b',
+  family_inquiry:               '#d97706',
+  prospective_migrant:          '#b45309',
+  returnee_redress:             '#a16207',
+  // research bucket — cyan family
+  comparative_analysis:         '#06b6d4',
+  statute_interpretation:       '#0891b2',
+  methodology:                  '#0e7490',
+  literature_synthesis:         '#155e75',
+  investigative_reporting:      '#164e63',
+  policy_evaluation:            '#22d3ee',
+  // image_prompts bucket — pink family
+  document_image_review:        '#ec4899',
+  social_media_image:           '#db2777',
+  evidence_image:               '#be185d',
+  marketplace_image:            '#9d174d',
+};
+
+// Bucket-level labels + colors (added v0.7.0). Buckets group prompts
+// by INTENDED USER, not attack pattern. The bucket switcher is the
+// top-level filter; categories are second-level structure inside.
+const BUCKET_LABELS = {
+  model_capability:      'Model capability / stress-test',
+  enterprise_moderation: 'Enterprise content moderation',
+  ngo_intake:            'NGO case intake',
+  individual_query:      'Query from individual',
+  research:              'Research / journalism',
+  image_prompts:         'Image prompts (multimodal)',
+  data_intelligence:     'Data intelligence (analyst)',
+  regulator_audit:       'Regulator audit',
+};
+const BUCKET_DESCRIPTIONS = {
+  model_capability:      'Adversarial prompts that stress-test specific model capabilities — jailbreak resistance, jurisdictional reasoning, fee-camouflage detection, multi-lingual coverage. NOT meant as "good user" prompts; they probe failure modes.',
+  enterprise_moderation: 'Realistic content-moderation tasks: classify a recruitment ad, triage a user-complaint ticket, decide on a marketplace listing, walk a moderator through a policy edge case.',
+  ngo_intake:            'A caseworker / advocate / shelter intake worker triaging a real case, drafting a refund claim, planning evidence preservation, or briefing a regulator.',
+  individual_query:      'A worker, family member, or prospective migrant talking directly to the model in their own voice — no legal framing, the model has to infer the legal posture.',
+  research:              'Academic, journalistic, or policy queries that synthesize across statutes, compare regimes, evaluate methodology, or plan investigative reporting.',
+  image_prompts:         'Multimodal prompts — pair the text prompt with an attached image (receipt, contract page, social-media screenshot, passport photo). Each entry has an `image_hint` describing what kind of image to attach via the chat upload affordance. Requires a vision-capable Gemma variant (E4B / 31B-it).',
+  data_intelligence:     'Data-analyst queries that ingest structured input (JSON post-records from the bundled corpus at static/synthetic/posts/) for cluster analysis, anomaly detection, cross-platform aggregation, and pattern extraction. Each entry references one or more synthetic post-records via a `synthetic_post` field.',
+  regulator_audit:       'Government enforcement-side queries: license-audit packets, agency compliance review, sanctioning analysis, evidence-preservation guidance for regulator investigations. Treats the model as a research aide for a POEA / BP2MI / NEA / MoHRE / Ofcom / equivalent inspector.',
+};
+const BUCKET_COLORS = {
+  model_capability:      '#a855f7',  // purple — adversarial probe
+  enterprise_moderation: '#3b82f6',  // blue — operations
+  ngo_intake:            '#10b981',  // green — service delivery
+  individual_query:      '#f59e0b',  // amber — direct ask
+  research:              '#06b6d4',  // cyan — analysis
+  image_prompts:         '#ec4899',  // pink — multimodal
+  data_intelligence:     '#7c3aed',  // violet — analyst
+  regulator_audit:       '#dc2626',  // red — enforcement
 };
 
 async function populateEmptyHints() {
@@ -1736,17 +1924,19 @@ async function populateEmptyHints() {
   if (!examples.length) return;
   const el = document.getElementById('empty-hints');
   if (!el) return;
-  // The 5 high-impact demo categories added in v3.11. Pick the
-  // canonical example from each so the empty state shows a one-
-  // click prompt for every demo angle reviewers will care about.
-  const featured = [
-    {id: 'headline_lift_demo',       label: 'Curated: 5-indicator compound case (PH→HK)',         color: '#10b981'},
-    {id: 'jb_dan_recruiter',         label: 'Jailbreak: DAN persona attempt',                       color: '#ef4444'},
-    {id: 'online_recent_enforcement', label: 'Online demo: recent POEA enforcement query',           color: '#f59e0b'},
+  // Five canonical example prompts surfaced as one-click buttons in
+  // the empty state — one per attack angle (compound, jailbreak,
+  // live web, multi-jurisdiction, social-engineering). Reviewers
+  // landing on the chat for the first time get a usable prompt
+  // without having to open the full Examples modal.
+  const curatedPicks = [
+    {id: 'headline_lift_demo',       label: 'Curated: 5-indicator compound case (PH→HK)',           color: '#10b981'},
+    {id: 'jb_dan_recruiter',         label: 'Jailbreak: DAN persona attempt',                        color: '#ef4444'},
+    {id: 'online_recent_enforcement', label: 'Online: recent POEA enforcement query',                color: '#f59e0b'},
     {id: 'compare_complex_multi_jurisdiction', label: 'Compare PH/SG/Saudi protections (multi-jurisdiction)', color: '#a855f7'},
-    {id: 'social_eng_humanitarian_framing',    label: 'Social-eng: humanitarian framing trap',       color: '#3b82f6'},
+    {id: 'social_eng_humanitarian_framing',    label: 'Social-eng: humanitarian framing trap',        color: '#3b82f6'},
   ];
-  const picks = featured.map(f => ({
+  const picks = curatedPicks.map(f => ({
     ...f, ex: examples.find(e => e.id === f.id),
   })).filter(p => p.ex);
   // Fallback to original picks if new prompts aren't bundled (older
@@ -1764,11 +1954,12 @@ async function populateEmptyHints() {
     }).join('');
     return;
   }
-  // Multi-lingual showcase row — surfaces the 6 worker-asking
-  // prompts in non-English languages so reviewers can demo the
-  // multi-lingual analog classifier with one click. Each button
-  // shows the language flag + a 1-line English translation in the
-  // tooltip; the actual prompt loaded into the input is the
+  // Multi-lingual capability row — surfaces the 6 worker-asking
+  // prompts in non-English languages so reviewers can verify the
+  // analog use-case classifier handles multi-lingual prompts with
+  // one click. Each button shows the language flag + a 1-line
+  // English translation in the tooltip; the prompt loaded into
+  // the input is the
   // native-language text.
   const multilingualPicks = [
     {id: 'ml_tagalog_worker_passport',  flag: 'TL', name: 'Tagalog'},
@@ -1786,12 +1977,13 @@ async function populateEmptyHints() {
              style="border-left:3px solid ${p.color};">${escapeHtml(p.label)}</button>`
   ).join('');
 
-  // Append the multi-lingual row only if at least one of the showcase
-  // prompts is bundled (older chat wheels won't have them).
+  // Append the multi-lingual row only if at least one of the
+  // multi-lingual capability prompts is bundled (older chat wheels
+  // won't have them).
   if (multilingualPicks.length) {
     const mlRow = `<div style="margin-top:14px; padding-top:12px; border-top:1px dashed var(--border); width:100%;">
       <div style="font-size:11px; color:var(--muted); margin-bottom:8px; letter-spacing:0.3px;">
-        🌐 <strong>Multi-lingual classifier showcase</strong> — same prompt shape ("worker asking for help with passport retention") in 6 different origin/destination languages. The analog use-case classifier identifies all of these as <code>worker_asking</code>.
+        🌐 <strong>Multi-lingual capability</strong> — the same worker-asking prompt shape ("help with passport retention") in 6 different origin/destination languages. The analog use-case classifier identifies all of these as <code>worker_asking</code>.
       </div>
       <div style="display:flex; gap:6px; flex-wrap:wrap;">
         ${multilingualPicks.map(p => `<button onclick="useExample(${attrJson(p.id)})"
@@ -1817,12 +2009,99 @@ async function useExample(id) {
   // best-fit rubric for the response.
   _lastLoadedExampleId = ex.id;
   _lastLoadedExampleCategory = ex.category || null;
+  // v0.7.1: image_prompts bucket carries an `image_hint` describing
+  // what to attach. Surface it as a banner above the chat input so
+  // the user doesn't lose the cue when the modal closes.
+  if (ex.image_hint) {
+    const banner = document.getElementById('pending-image-hint');
+    const text = document.getElementById('pending-image-hint-text');
+    if (banner && text) {
+      text.textContent = ' ' + ex.image_hint;
+      banner.style.display = 'flex';
+    }
+  } else {
+    dismissImageHint();
+  }
+  // v0.10.0: when the prompt declares a `synthetic_image` (a path to a
+  // bundled PNG in /static/synthetic/), auto-attach the image to the
+  // composer so a single click loads BOTH the prompt text AND the
+  // image. Removes the "find your own photo of a recruitment receipt"
+  // friction. The image still goes through the same /api/chat/upload-image
+  // pipeline as a user-uploaded one — synthetic and real assets are
+  // treated identically end-to-end.
+  if (ex.synthetic_image) {
+    _attachSyntheticImage(ex.synthetic_image, ex.image_id || ex.id);
+  }
   // Brief flash so the user sees the populate happened (the modal is
   // about to close, so without a visual cue the action looks invisible).
   input.style.transition = 'background 0.4s ease';
   input.style.background = 'rgba(168, 85, 247, 0.18)';
   setTimeout(() => { input.style.background = ''; }, 700);
   closeModal();
+}
+
+function dismissImageHint() {
+  const banner = document.getElementById('pending-image-hint');
+  if (banner) banner.style.display = 'none';
+}
+
+// v0.10.0: auto-attach a bundled synthetic image to the chat composer.
+// Fetches the PNG from /static/synthetic/<file>.png, posts it through
+// the same /api/chat/upload-image pipeline a user-uploaded image goes
+// through, then renders the pending-images thumbnail strip exactly as
+// if the user had clicked the "+ image" button. The image_id is the
+// example's stable id so a re-attach is idempotent.
+async function _attachSyntheticImage(imagePath, imageId) {
+  if (!imagePath) return;
+  try {
+    // Resolve to absolute URL (handles both "/static/..." and bare paths).
+    const url = imagePath.startsWith("http")
+      ? imagePath
+      : (imagePath.startsWith("/") ? imagePath : "/" + imagePath);
+    const res = await fetch(url, {cache: "force-cache"});
+    if (!res.ok) {
+      console.warn("[synthetic image] fetch failed", url, res.status);
+      return;
+    }
+    const blob = await res.blob();
+    // Wrap as a File so the FormData upload route is identical to the
+    // user-clicked-+-image path.
+    const filename = url.split("/").pop() || `synthetic-${imageId}.png`;
+    const file = new File([blob], filename, {
+      type: blob.type || "image/png",
+    });
+    // Reuse the existing onUploadChange-style flow by constructing a
+    // synthetic FileList payload and dispatching to the shared handler.
+    const fd = new FormData();
+    fd.append("file", file);
+    const uploadRes = await fetch("/api/chat/upload-image", {
+      method: "POST", body: fd,
+    });
+    if (!uploadRes.ok) {
+      console.warn("[synthetic image] upload failed", uploadRes.status);
+      return;
+    }
+    const data = await uploadRes.json();
+    if (!data || !data.id) return;
+    // Mirror the pending-images render path used by onUploadChange.
+    if (typeof window._pendingImages === "undefined") window._pendingImages = [];
+    window._pendingImages.push({
+      id:     data.id,
+      mime:   data.mime || file.type,
+      bytes:  data.bytes || file.size,
+      name:   filename,
+      preview: url,             // local URL — safe to reuse as <img src>
+      synthetic: true,           // marker so the audit trail shows it
+    });
+    // The kernel-side onUploadChange path renders the pending images
+    // by calling _renderPendingImages(); we reuse that to avoid
+    // duplicating the thumbnail HTML.
+    if (typeof _renderPendingImages === "function") {
+      _renderPendingImages();
+    }
+  } catch (e) {
+    console.warn("[synthetic image] attach error", e);
+  }
 }
 
 async function copyExampleText(id, btn, evt) {
@@ -1863,6 +2142,17 @@ let _examplesCollapsed = {};
 // Active use-case filter (one of '' = all, or a USE_CASES key). Cleared
 // when the modal closes; rebuilt fresh on each open via the chip row.
 let _examplesUseCase = '';
+// v0.7.0 bucket filter — top-level grouping by intended user. Default
+// is 'model_capability' so existing (adversarial) prompts still
+// surface first; user can switch to one of the four user-facing
+// buckets to see the realistic-task prompts authored for them.
+let _examplesBucket = 'model_capability';
+// v0.7.1: per-bucket search-string + use-case-filter cache so a user
+// who types "passport" in model_capability, switches to ngo_intake,
+// and switches back can keep their working filters. Without this,
+// every bucket switch wipes the search input + use-case selection.
+const _examplesSearchByBucket = {};
+const _examplesUseCaseByBucket = {};
 
 // Map from prompt-category id → set of use-cases the category serves.
 // Used by the use-case chip filter to hide categories that don't fit
@@ -1932,6 +2222,49 @@ function _setExamplesUseCase(uc) {
   openExamplesModal();
 }
 
+// v0.7.0 bucket filter row — sits ABOVE the use-case filter so the
+// user picks the audience first, then narrows by use-case if desired.
+function _renderBucketFilterRow(bucketCounts) {
+  const buckets = Object.keys(BUCKET_LABELS);
+  const chip = (key, label, count, active) => {
+    const color = BUCKET_COLORS[key] || '#94a3b8';
+    const bg = active ? color + '22' : 'var(--bg)';
+    const border = active ? color : 'var(--border)';
+    const ink = active ? '#fff' : 'var(--ink)';
+    const desc = BUCKET_DESCRIPTIONS[key] || '';
+    return `<button onclick="_setExamplesBucket('${key}')" title="${escapeHtml(desc)}" style="background:${bg}; border:2px solid ${border}; color:${ink}; padding:7px 14px; border-radius:8px; font-size:12px; cursor:pointer; font-weight:${active ? 700 : 500}; transition:all 0.12s ease;">${escapeHtml(label)}<span style="margin-left:6px; padding:1px 6px; border-radius:8px; background:${active ? 'rgba(255,255,255,0.18)' : 'rgba(148,163,184,0.18)'}; font-size:10px; font-weight:700;">${count}</span></button>`;
+  };
+  let row = `<div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:10px; align-items:center; padding:10px 12px; background:rgba(148,163,184,0.06); border-radius:8px;">`;
+  row += `<span style="color:var(--muted); font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.4px; margin-right:4px;">Audience:</span>`;
+  for (const b of buckets) {
+    const count = bucketCounts[b] || 0;
+    row += chip(b, BUCKET_LABELS[b], count, _examplesBucket === b);
+  }
+  row += `</div>`;
+  // Description of the currently-selected bucket, so reviewers
+  // landing on this modal know what the prompts in front of them
+  // are FOR.
+  const desc = BUCKET_DESCRIPTIONS[_examplesBucket] || '';
+  if (desc) {
+    row += `<div style="font-size:11.5px; color:var(--muted); margin-bottom:10px; padding:0 4px; line-height:1.5; font-style:italic;">${escapeHtml(desc)}</div>`;
+  }
+  return row;
+}
+
+function _setExamplesBucket(b) {
+  // v0.7.1: stash the OLD bucket's search + use-case before switching
+  // so a user toggling between buckets keeps their working filters.
+  const oldBucket = _examplesBucket;
+  const searchEl = document.getElementById('examples-search');
+  if (searchEl) _examplesSearchByBucket[oldBucket] = searchEl.value;
+  _examplesUseCaseByBucket[oldBucket] = _examplesUseCase;
+  _examplesBucket = b;
+  // Restore the NEW bucket's saved state (or empty if first visit).
+  _examplesUseCase = _examplesUseCaseByBucket[b] || '';
+  _examplesCollapsed = {};
+  openExamplesModal();
+}
+
 async function openExamplesModal() {
   const examples = await _fetchExamples();
   if (!examples.length) {
@@ -1940,11 +2273,24 @@ async function openExamplesModal() {
     _setModalChrome('examples', LAYER_TITLES.examples, '');
     return;
   }
+  // v0.7.0: bucket filter (audience). Counts go into the chip row
+  // above; only prompts in the selected bucket are exposed to the
+  // category-level structure below. Default bucket is
+  // model_capability so existing reviewers see the same set they
+  // saw before; the new buckets are one chip-click away.
+  const bucketCounts = {};
+  for (const ex of examples) {
+    const b = ex.bucket || 'model_capability';
+    bucketCounts[b] = (bucketCounts[b] || 0) + 1;
+  }
+  const bucketFiltered = examples.filter(
+    ex => (ex.bucket || 'model_capability') === _examplesBucket);
+
   // Render the hierarchical view + search box. The search box filters
   // across all categories in real time.
-  const total = examples.length;
+  const total = bucketFiltered.length;
   const byCat = {};
-  for (const ex of examples) {
+  for (const ex of bucketFiltered) {
     (byCat[ex.category] = byCat[ex.category] || []).push(ex);
   }
   // Top categories first (high-impact demo v3.11 entries), then the rest
@@ -1984,17 +2330,19 @@ async function openExamplesModal() {
   }
 
   let html = `
+    ${_renderBucketFilterRow(bucketCounts)}
     <div style="display:flex; gap:10px; align-items:center; margin-bottom:10px; flex-wrap:wrap;">
-      <input id="examples-search" type="text" placeholder="🔍 Search ${total} prompts (text, category, corridor, indicator)…"
+      <input id="examples-search" type="text" placeholder="🔍 Search ${total} prompts in this bucket (text, category, corridor, indicator)…"
+             value="${escapeHtml(_examplesSearchByBucket[_examplesBucket] || '')}"
              style="flex:1 1 320px; padding:8px 12px; background:var(--bg); color:var(--ink); border:1px solid var(--border); border-radius:6px; font-size:13px;"
-             oninput="_filterExamples(this.value)">
-      <span id="examples-count" style="color:var(--muted); font-size:11.5px;">${total} prompts in ${catOrder.length} categories</span>
+             oninput="_examplesSearchByBucket[_examplesBucket]=this.value; _filterExamples(this.value)">
+      <span id="examples-count" style="color:var(--muted); font-size:11.5px;">${total} prompts in ${catOrder.length} categor${catOrder.length === 1 ? 'y' : 'ies'}</span>
       <button onclick="_examplesExpandAll(true)" style="background:transparent; border:1px solid var(--border); color:var(--muted); padding:4px 10px; border-radius:6px; font-size:11px; cursor:pointer;">Expand all</button>
       <button onclick="_examplesExpandAll(false)" style="background:transparent; border:1px solid var(--border); color:var(--muted); padding:4px 10px; border-radius:6px; font-size:11px; cursor:pointer;">Collapse all</button>
     </div>
-    ${_renderUseCaseFilterRow()}
+    ${_examplesBucket === 'model_capability' ? _renderUseCaseFilterRow() : ''}
     <div style="color:var(--muted); font-size:11.5px; margin-bottom:14px;">
-      Click any prompt body to load it into the chat input (no auto-send — edit and flip toggles first). Use <strong>copy</strong> on the right to clipboard the text. Categories with the ★ are the high-impact demo prompts.
+      Click any prompt body to load it into the chat input (no auto-send — edit and flip toggles first). Use <strong>copy</strong> on the right to clipboard the text.
     </div>
   `;
   for (const cat of catOrder) {
@@ -2028,6 +2376,13 @@ async function openExamplesModal() {
       // Truncated body for compactness (full text visible on hover via title attr).
       const bodyShort = ex.text.length > 240 ? ex.text.slice(0, 240) + '…' : ex.text;
       html += `<div class="example-item" data-ex-id="${escapeHtml(ex.id)}" data-search-blob="${escapeHtml((ex.text + ' ' + (ex.corridor || '') + ' ' + (ex.sector || '') + ' ' + (ex.subcategory || '') + ' ' + (ex.ilo_indicators || []).join(' ')).toLowerCase())}" style="cursor:pointer; padding:10px 12px; margin-top:6px; background:var(--bg); border-radius:5px; border:1px solid var(--border); transition: border-color 0.15s;" onmouseover="this.style.borderColor='${color}'" onmouseout="this.style.borderColor='var(--border)'" onclick="useExample(${attrJson(ex.id)})">`;
+      // v0.7.0: image_prompts bucket carries an `image_hint` describing
+      // what the user should attach via the chat upload affordance.
+      // Surface it inline above the prompt text so the user knows
+      // what kind of image this prompt expects.
+      if (ex.image_hint) {
+        html += `<div style="margin-bottom:6px; padding:6px 10px; background:rgba(236,72,153,0.08); border-left:3px solid #ec4899; border-radius:3px; font-size:11px; color:#cbd5e1;"><b style="color:#ec4899;">📎 Attach an image:</b> ${escapeHtml(ex.image_hint)}</div>`;
+      }
       html += `<div style="color:var(--ink); font-size:12px; line-height:1.5; white-space:pre-wrap; word-wrap:break-word;" title="${escapeHtml(ex.text)}">${escapeHtml(bodyShort)}</div>`;
       html += `<div style="margin-top:8px; display:flex; flex-wrap:wrap; gap:6px; align-items:center; font-size:10.5px; padding-top:6px; border-top:1px dashed var(--border);">`;
       if (ex.difficulty) {
@@ -2051,6 +2406,10 @@ async function openExamplesModal() {
   html += '<div id="modal-docs"></div>';
   document.getElementById('modal-body').innerHTML = html;
   _setModalChrome('examples', LAYER_TITLES.examples, '');
+  // v0.7.1: re-apply saved search filter for this bucket so the
+  // visible items match the search-box value at open time.
+  const savedSearch = _examplesSearchByBucket[_examplesBucket] || '';
+  if (savedSearch) _filterExamples(savedSearch);
   _fetchDocs('examples').then(md => {
     const el = document.getElementById('modal-docs');
     if (el) el.innerHTML = _renderDocsSection(md);
@@ -2132,6 +2491,8 @@ function closeModal() {
   // pane that's now hidden, and the server worker is still spending
   // GPU cycles. Aborting frees both.
   if (typeof _abortGradeStream === 'function') _abortGradeStream();
+  // v0.7.1: also cancel any in-flight Compare run for the same reason.
+  if (typeof _abortCompareRun === 'function') _abortCompareRun();
 }
 
 function closeModalIfBackground(event) {
@@ -2298,6 +2659,47 @@ async function openLayerModal(layer) {
     const data = await r.json();
     const store = loadStore();
     let html = '';
+    // RAG-specific explainer: clarify this is lexical BM25, not
+    // semantic embedding-based retrieval. Users (and reviewers)
+    // sometimes assume "RAG" means embeddings; this layer is
+    // intentionally lexical for speed + determinism.
+    if (layer === 'rag') {
+      // v0.8.0: live-config panel above the static explainer. Lets the
+      // user tune chunk size, parent expansion, graph depth, hybrid
+      // mode, rerank toggles without restarting the server.
+      html += `<div id="retrieval-config-panel" style="margin-bottom:14px;"></div>`;
+      // v0.14.0: graph viewer for the corpus + citation graph. Shows
+      // nodes color-coded by source jurisdiction + edges labelled with
+      // relation. Click a node → see doc content; hover an edge → see
+      // relation note.
+      html += `<div id="rag-graph-viewer" style="margin-bottom:14px;"></div>`;
+      setTimeout(() => _renderRetrievalConfigPanel(), 0);
+      setTimeout(() => _renderRagGraphViewer(), 0);
+      html += `
+        <div style="background:rgba(59,130,246,0.06); border-left:3px solid #3b82f6; padding:10px 12px; margin-bottom:14px; border-radius:4px; font-size:12px; line-height:1.55; color:var(--ink);">
+          <div style="font-weight:700; color:#3b82f6; margin-bottom:6px;">How retrieval works in this layer (v0.6.0)</div>
+          <div style="margin-bottom:6px;">
+            <b>Pipeline (4 stages):</b>
+            <ol style="margin:4px 0 6px 22px; padding:0; font-size:11.5px;">
+              <li><b>Structural chunking</b> — markdown headers (#, ##) and statute markers (Article N, § N) become section boundaries. 50-token overlap on paragraph boundaries so a sentence that straddles two chunks still surfaces in both.</li>
+              <li><b>BM25 lexical retrieval</b> — TF-IDF dot product over chunk tokens. Deterministic, ~1 ms per query. No neural embeddings.</li>
+              <li><b>Optional cross-encoder rerank</b> — when the kernel wires <code>rerank_call</code> (e.g. <code>mxbai-rerank-xsmall-v1</code>, ~70 MB CPU model), top-50 BM25 candidates get reordered by semantic relevance to the query. Falls back to BM25 order if not wired or on error.</li>
+              <li><b>Curated citation lookup</b> — a hand-curated graph of ~30 cross-reference edges (amend / mirror / supplement / sister-protocol relations) surfaces "see also" entries when a primary doc is retrieved. Helps the model reach for the parent statute or supplementing protocol it would otherwise miss.</li>
+            </ol>
+          </div>
+          <div style="margin-bottom:6px;">
+            <b>Why BM25 (not embeddings) for the first stage:</b>
+            (1) deterministic — same query, same docs across reruns, reproducible benchmark scores.
+            (2) zero GPU contention with the loaded chat model.
+            (3) zero extra wheel weight by default.
+            (4) statute IDs ("RA 8042", "C189") are exact-match queries by construction — exactly where BM25 dominates dense embeddings.
+          </div>
+          <div style="color:var(--muted); font-size:11.5px;">
+            <b>What changes at scale:</b> below ~1K docs, BM25 + cross-encoder rerank beats dense+vector-DB on legal corpora (per public benchmarks). Above ~10K chunks consider hierarchical retrieval (RAPTOR) or hybrid BM25+dense fusion. For a custom corpus,
+            swap in a <code>rag_call</code> at <code>create_app</code> — the chat package only owns the BM25 default.
+          </div>
+        </div>`;
+    }
     // ------ Custom-entry section at the TOP for visibility ------
     html += renderCustomSection(layer, store);
     // ------ Built-in catalog ------
@@ -2981,12 +3383,37 @@ function _renderLayerBody(layer, t) {
     }).join('');
   }
   if (layer === 'rag' && t.docs && t.docs.length) {
-    return t.docs.map(d => `
+    let header = '';
+    if (t.reranked) {
+      header += `<div style="margin-bottom:6px; padding:5px 8px; background:rgba(168,85,247,0.08); border-left:3px solid #a855f7; border-radius:3px; font-size:11px; color:#a855f7; font-weight:600;">↻ Reranked by cross-encoder</div>`;
+    }
+    const docsHtml = t.docs.map(d => `
       <div style="margin-bottom:8px; padding:8px 10px; background:var(--bg); border-radius:6px;">
-        <div style="font-weight:600; font-size:12px;">${escapeHtml(d.title || '?')} <span style="color:var(--muted); font-size:11px; font-weight:400;">score=${d.score}${d.is_custom ? ' · custom' : ''}</span></div>
+        <div style="font-weight:600; font-size:12px;">${escapeHtml(d.title || '?')} <span style="color:var(--muted); font-size:11px; font-weight:400;">score=${d.score}${d.is_custom ? ' · custom' : ''}${typeof d.rerank_score === 'number' ? ' · rerank=' + d.rerank_score.toFixed(3) : ''}</span></div>
         <div style="color:var(--muted); font-size:11px; margin-top:3px;">source: ${escapeHtml(d.source || '')}</div>
         <div style="color:#cbd5e1; font-size:11.5px; margin-top:4px; line-height:1.5; max-height:120px; overflow-y:auto;">${escapeHtml(d.snippet || '')}</div>
       </div>`).join('');
+    let citationsHtml = '';
+    if (t.citations && t.citations.length) {
+      citationsHtml = `
+        <div style="margin-top:10px; padding:8px 10px; background:rgba(59,130,246,0.05); border-left:3px solid #3b82f6; border-radius:4px;">
+          <div style="font-weight:700; font-size:11.5px; color:#3b82f6; margin-bottom:4px;">Curated cross-references (${t.citations.length})</div>
+          ${t.citations.slice(0, 8).map(c => {
+            const rel = (c.relation || 'related_to').replace(/_/g, ' ');
+            // Render direction explicitly: 'out' edges put the retrieved
+            // doc on the LEFT (source); 'in' edges put it on the LEFT as
+            // target with the arrow pointing back. Always reads L→R.
+            const fromId = escapeHtml(c.from || '?');
+            const toId   = escapeHtml(c.to || '?');
+            const inner = c.direction === 'out'
+              ? `<code style="color:#fbbf24;">${fromId}</code> <span style="color:var(--muted);">─ ${escapeHtml(rel)} ─▶</span> <code style="color:#fbbf24;">${toId}</code>`
+              : `<code style="color:#fbbf24;">${toId}</code> <span style="color:var(--muted);">◀─ ${escapeHtml(rel)} ─</span> <code style="color:#fbbf24;">${fromId}</code>`;
+            return `<div style="font-size:11px; margin-bottom:3px; color:#cbd5e1;">${inner}${c.note ? `<div style="color:var(--muted); font-size:10.5px; margin-left:6px; font-style:italic;">${escapeHtml(c.note)}</div>` : ''}</div>`;
+          }).join('')}
+          ${t.citations.length > 8 ? `<div style="color:var(--muted); font-size:10.5px; font-style:italic;">… ${t.citations.length - 8} more edges omitted</div>` : ''}
+        </div>`;
+    }
+    return header + docsHtml + citationsHtml;
   }
   if (layer === 'import' && t.docs && t.docs.length) {
     return t.docs.map(d => `
@@ -3004,15 +3431,91 @@ function _renderLayerBody(layer, t) {
       </div>`).join('');
   }
   if (layer === 'online' && t.results && t.results.length) {
-    const sourceLine = t.source
-      ? `<div style="color:var(--muted); font-size:11px; font-style:italic; margin-bottom:6px;">Source: ${escapeHtml(t.source)}</div>`
-      : '';
-    return sourceLine + t.results.map(r => `
-      <div style="margin-bottom:8px; padding:8px 10px; background:var(--bg); border-radius:6px;">
+    // Diagnostic header surfaces fallback errors so the user can see
+    // why a higher-priority backend was skipped (closes the silent-
+    // fallback gap where the trace just said "via ddg" with no hint
+    // that Brave/Tavily had been tried first and failed).
+    const headerParts = [];
+    if (t.source || t.backend) {
+      headerParts.push(`<div style="color:var(--muted); font-size:11px; font-style:italic;">Source: ${escapeHtml(t.source || t.backend)}${t.backend && t.source && t.source !== t.backend ? ` (backend: ${escapeHtml(t.backend)})` : ''}</div>`);
+    }
+    if (t.tavily_fallback_error) {
+      headerParts.push(`<div style="color:#ef4444; font-size:11px; padding:6px 10px; background:rgba(239,68,68,0.08); border-left:3px solid #ef4444; border-radius:4px; margin-top:4px;"><b>Tavily failed → fell back:</b> ${escapeHtml(t.tavily_fallback_error)}</div>`);
+    }
+    if (t.brave_fallback_error) {
+      headerParts.push(`<div style="color:#ef4444; font-size:11px; padding:6px 10px; background:rgba(239,68,68,0.08); border-left:3px solid #ef4444; border-radius:4px; margin-top:4px;"><b>Brave failed → fell back:</b> ${escapeHtml(t.brave_fallback_error)}</div>`);
+    }
+    if (t.fetch_error) {
+      headerParts.push(`<div style="color:#f59e0b; font-size:11px; padding:6px 10px; background:rgba(245,158,11,0.08); border-left:3px solid #f59e0b; border-radius:4px; margin-top:4px;"><b>Deep-fetch enrichment failed:</b> ${escapeHtml(t.fetch_error)} (snippet-only fallback used)</div>`);
+    }
+    if (t.deep_mode) {
+      const fpgs = (t.fetched_pages || []);
+      const total = t.fetched_total_chars || 0;
+      const ghits = t.fetched_grep_hits || 0;
+      headerParts.push(`<div style="color:#10b981; font-size:11px; padding:6px 10px; background:rgba(16,185,129,0.08); border-left:3px solid #10b981; border-radius:4px; margin-top:4px;"><b>Deep mode:</b> ${fpgs.length} URL(s) fetched · ${total.toLocaleString()} chars parsed · ${ghits} GREP rule(s) fired across page bodies</div>`);
+    } else {
+      headerParts.push(`<div style="color:var(--muted); font-size:11px; padding:6px 10px; background:var(--bg); border-radius:4px; margin-top:4px;"><b>Snippet-only mode</b> — Gemma sees the search snippets but not the page bodies. Enable <i>Deep-fetch</i> in the Online tile's <b>View &amp; Configure</b> panel to fetch + parse + GREP each page.</div>`);
+    }
+    if (t.answer) {
+      headerParts.push(`<div style="color:#cbd5e1; font-size:11.5px; padding:6px 10px; background:rgba(59,130,246,0.06); border-left:3px solid #3b82f6; border-radius:4px; margin-top:4px;"><b>Search-engine summary:</b> ${escapeHtml(t.answer)}</div>`);
+    }
+    // Index fetched pages by rank for quick lookup when rendering each result row.
+    const pageByRank = {};
+    for (const p of (t.fetched_pages || [])) {
+      pageByRank[p.rank] = p;
+    }
+    const resultsHtml = t.results.map(r => {
+      const page = pageByRank[r.rank];
+      let pageSection = '';
+      if (page) {
+        if (page.error) {
+          pageSection = `<div style="margin-top:6px; padding:6px 8px; background:rgba(239,68,68,0.06); border-left:3px solid #ef4444; border-radius:4px; font-size:11px; color:#ef4444;"><b>Fetch failed:</b> ${escapeHtml(page.error)}</div>`;
+        } else {
+          const text = (page.text || '').trim();
+          const hits = page.grep_hits || [];
+          const grepBadge = hits.length
+            ? `<span style="background:#10b98122; color:#10b981; font-size:10px; font-weight:700; padding:2px 7px; border-radius:8px; text-transform:uppercase; margin-left:6px;">${hits.length} GREP hit${hits.length === 1 ? '' : 's'}</span>`
+            : '';
+          const chunksRatio = (typeof page.n_chunks_kept === 'number' && typeof page.n_chunks_total === 'number' && page.n_chunks_total > 0)
+            ? ` · ${page.n_chunks_kept} of ${page.n_chunks_total} chunks kept`
+            : '';
+          const charsBadge = page.char_count
+            ? `<span style="background:${page.truncated ? 'rgba(245,158,11,0.18)' : 'rgba(148,163,184,0.18)'}; color:${page.truncated ? '#f59e0b' : '#94a3b8'}; font-size:10px; font-weight:700; padding:2px 7px; border-radius:8px; margin-left:6px;">${page.char_count.toLocaleString()} chars${chunksRatio}</span>`
+            : '';
+          const elapsedBadge = page.elapsed_ms
+            ? `<span style="color:var(--muted); font-size:10px; margin-left:6px;">${page.elapsed_ms} ms</span>`
+            : '';
+          pageSection = `
+            <details style="margin-top:6px;">
+              <summary style="cursor:pointer; font-size:11.5px; color:#10b981; user-select:none;">▸ Fetched page body${charsBadge}${grepBadge}${elapsedBadge}</summary>
+              <div style="margin-top:6px; padding:8px 10px; background:rgba(16,185,129,0.04); border-left:3px solid #10b981; border-radius:4px;">
+                ${text ? `<pre style="margin:0; font-size:11px; color:#cbd5e1; white-space:pre-wrap; word-wrap:break-word; max-height:280px; overflow-y:auto; font-family:ui-monospace,monospace;">${escapeHtml(text)}</pre>` : '<div style="color:var(--muted); font-size:11.5px; font-style:italic;">no text extracted</div>'}
+                ${hits.length ? `
+                  <div style="margin-top:8px; padding-top:8px; border-top:1px solid var(--border);">
+                    <div style="font-weight:600; font-size:11px; color:#10b981; margin-bottom:4px;">GREP hits on this page (${hits.length})</div>
+                    ${hits.slice(0, 20).map(h => `
+                      <div style="margin-bottom:4px; padding:4px 6px; background:var(--bg); border-radius:3px; font-size:11px;">
+                        <span style="font-family:ui-monospace,monospace; color:#fbbf24; font-weight:600;">${escapeHtml(h.rule || '?')}</span>
+                        <span style="color:var(--muted);"> · ${escapeHtml(h.severity || '?')}${h.citation ? ' · ' + escapeHtml(h.citation) : ''}${h.indicator ? ' · [' + escapeHtml(h.indicator) + ']' : ''}</span>
+                        <div style="color:#cbd5e1; font-size:10.5px; margin-top:2px; font-style:italic;">${escapeHtml((h.match_excerpt || '').slice(0, 200))}</div>
+                      </div>`).join('')}
+                    ${hits.length > 20 ? `<div style="color:var(--muted); font-size:10.5px; font-style:italic;">… ${hits.length - 20} more hit(s) omitted</div>` : ''}
+                  </div>` : ''}
+              </div>
+            </details>`;
+        }
+      }
+      // Tavily packs page extract into r.content (longer than snippet).
+      const blurb = r.content || r.snippet || '';
+      return `
+      <div style="margin-bottom:10px; padding:8px 10px; background:var(--bg); border-radius:6px;">
         <div style="font-weight:600; font-size:12px; color:#fbbf24;">[${escapeHtml(String(r.rank || '?'))}] ${escapeHtml(r.title || '(untitled)')}</div>
         ${r.url ? `<a href="${escapeHtml(r.url)}" target="_blank" rel="noopener" style="color:#fde68a; font-size:11px; text-decoration:underline; word-break:break-all;">${escapeHtml(r.url)}</a>` : ''}
-        <div style="color:#cbd5e1; font-size:11.5px; margin-top:4px; line-height:1.5;">${escapeHtml(r.snippet || '')}</div>
-      </div>`).join('');
+        ${blurb ? `<div style="color:#cbd5e1; font-size:11.5px; margin-top:4px; line-height:1.5;">${escapeHtml(blurb)}</div>` : ''}
+        ${pageSection}
+      </div>`;
+    }).join('');
+    return headerParts.join('') + resultsHtml;
   }
   return '<div style="color:var(--muted); font-size:11.5px; font-style:italic;">layer ran but produced no output</div>';
 }
@@ -3065,6 +3568,58 @@ function openPipelineModal(messageIdx) {
     stepNum++;
   }
 
+  // v0.8.0: Path trace card (between harness layers and final merged
+  // prompt). Aggregates trace.{layer}.path_trace.stages across all
+  // layers so the reviewer can see the multi-stage decision tree
+  // (BM25 → dense → RRF → rerank → graph → parent expansion) for
+  // the response in a single timeline.
+  const pathTraceStages = [];
+  for (const layer of PIPELINE_LAYER_ORDER) {
+    const t = trace[layer];
+    if (!t || !t.path_trace || !t.path_trace.stages) continue;
+    for (const stage of t.path_trace.stages) {
+      pathTraceStages.push({...stage, _layer: layer});
+    }
+  }
+  if (pathTraceStages.length > 0) {
+    const stageRows = pathTraceStages.map(s => {
+      const color = PIPELINE_LAYER_COLOR[s._layer] || '#94a3b8';
+      const stageColor = ({
+        bm25: '#3b82f6', dense: '#a855f7', rrf: '#10b981',
+        rerank: '#f59e0b', graph: '#06b6d4', parent_expand: '#ec4899',
+        parent_group: '#ec4899', snippet_assemble: '#94a3b8',
+        dense_fail: '#ef4444', rrf_fail: '#ef4444',
+      })[s.stage] || '#94a3b8';
+      return `<tr>
+        <td style="padding:4px 8px; font-size:11px; color:${color}; font-weight:600;">${escapeHtml(s._layer)}</td>
+        <td style="padding:4px 8px;"><span style="background:${stageColor}22; color:${stageColor}; padding:2px 7px; border-radius:8px; font-size:10px; font-weight:700; text-transform:uppercase;">${escapeHtml(s.stage)}</span></td>
+        <td style="padding:4px 8px; font-size:11px; color:var(--ink); text-align:right;">${s.n_in}</td>
+        <td style="padding:4px 8px; font-size:11px; color:var(--ink); text-align:right;">${s.n_out}</td>
+        <td style="padding:4px 8px; font-size:11px; color:var(--muted); text-align:right;">${s.elapsed_ms} ms</td>
+        <td style="padding:4px 8px; font-size:10.5px; color:var(--muted); font-style:italic;">${escapeHtml(s.notes || '')}</td>
+      </tr>`;
+    }).join('');
+    cards.push(_pipelineCard({
+      step: stepNum++, color: '#a855f7', title: 'RETRIEVAL PATH TRACE',
+      subtitle: `${pathTraceStages.length} retrieval-stage event(s) recorded — full BM25→dense→RRF→rerank→graph→parent decision chain`,
+      body: `
+        <div style="font-size:11px; color:var(--muted); margin-bottom:8px;">Each row is one retrieval-pipeline stage. Sequence reads top-to-bottom in execution order.</div>
+        <table style="width:100%; border-collapse:collapse; font-size:11px;">
+          <thead>
+            <tr style="background:rgba(168,85,247,0.06);">
+              <th style="text-align:left; padding:5px 8px; color:var(--muted); font-size:10px; text-transform:uppercase; letter-spacing:0.4px;">Layer</th>
+              <th style="text-align:left; padding:5px 8px; color:var(--muted); font-size:10px; text-transform:uppercase;">Stage</th>
+              <th style="text-align:right; padding:5px 8px; color:var(--muted); font-size:10px; text-transform:uppercase;">In</th>
+              <th style="text-align:right; padding:5px 8px; color:var(--muted); font-size:10px; text-transform:uppercase;">Out</th>
+              <th style="text-align:right; padding:5px 8px; color:var(--muted); font-size:10px; text-transform:uppercase;">Time</th>
+              <th style="text-align:left; padding:5px 8px; color:var(--muted); font-size:10px; text-transform:uppercase;">Notes</th>
+            </tr>
+          </thead>
+          <tbody>${stageRows}</tbody>
+        </table>`,
+    }));
+  }
+
   // Step 6 — Final merged prompt
   cards.push(_pipelineCard({
     step: stepNum++, color: '#f59e0b', title: 'FINAL MERGED PROMPT',
@@ -3115,11 +3670,22 @@ function openPipelineModal(messageIdx) {
     const layerLabels = layerTimings.map(t =>
       `<span style="display:inline-block; padding:2px 8px; background:${t.color}; color:#fff; border-radius:3px; font-size:10.5px; margin-right:4px;">${t.label}: ${t.ms}ms</span>`
     ).join('');
+    // v0.14.5: explicit "harness fast / Gemma slow" framing so the
+    // story stays legible when Gemma generation dominates the bar.
+    // The harness adds milliseconds; the model is the slow part.
+    const harnessLine = totalLayerMs > 0
+      ? `<strong style="color:#4c78a8;">Harness added ${totalLayerMs}ms</strong> across ${layerTimings.length} layer${layerTimings.length === 1 ? '' : 's'}`
+      : `<span style="color:var(--muted);">Harness skipped (no layers fired)</span>`;
+    const gemmaLine = gemmaMs > 0
+      ? `<strong style="color:#10b981;">Gemma generated for ${gemmaMs.toLocaleString()}ms</strong> (${(gemmaMs / Math.max(1, totalMs) * 100).toFixed(0)}% of wall time)`
+      : '';
     timingHeader = `
       <div style="background:var(--bg); border-radius:6px; padding:10px 12px; margin-bottom:14px; border-left:3px solid #4c78a8;">
         <div style="display:flex; align-items:center; gap:10px; margin-bottom:6px;">
-          <strong style="color:var(--ink); font-size:12px;">Latency budget</strong>
-          <span style="color:var(--muted); font-size:11px;">${totalMs}ms total · harness ${totalLayerMs}ms (${harnessPct}%) · Gemma ${gemmaMs}ms</span>
+          <strong style="color:var(--ink); font-size:12px;">Latency budget · ${totalMs}ms total</strong>
+        </div>
+        <div style="font-size:11.5px; color:var(--ink); margin-bottom:8px; line-height:1.6;">
+          ${harnessLine}${harnessLine && gemmaLine ? '. ' : ''}${gemmaLine}${gemmaLine ? '.' : ''}
         </div>
         <div style="display:flex; height:18px; border-radius:3px; overflow:hidden; gap:1px;">${segments}${gemmaSeg}</div>
         <div style="margin-top:6px; font-size:10.5px;">
@@ -3209,11 +3775,46 @@ function _serializePipelineMarkdown(messageIdx) {
         }
         md += '\n';
       } else if (layer === 'online' && lt.results && lt.results.length) {
-        md += `_Source: ${lt.source || 'unknown'}_\n\n`;
+        md += `_Source: ${lt.source || 'unknown'}` +
+              (lt.backend && lt.backend !== lt.source ? ` (backend: ${lt.backend})` : '') + '_\n\n';
+        if (lt.tavily_fallback_error) md += `⚠️ Tavily failed → fell back: ${lt.tavily_fallback_error}\n\n`;
+        if (lt.brave_fallback_error) md += `⚠️ Brave failed → fell back: ${lt.brave_fallback_error}\n\n`;
+        if (lt.deep_mode) {
+          md += `**Deep mode:** ${(lt.fetched_pages || []).length} URL(s) fetched · ` +
+                `${(lt.fetched_total_chars || 0).toLocaleString()} chars parsed · ` +
+                `${lt.fetched_grep_hits || 0} GREP hit(s) on page bodies\n\n`;
+        }
+        if (lt.answer) md += `**Search-engine summary:** ${lt.answer}\n\n`;
+        const pageByRank = {};
+        for (const p of (lt.fetched_pages || [])) pageByRank[p.rank] = p;
         for (const r of lt.results) {
           md += `### [${r.rank || '?'}] ${r.title || '(untitled)'}\n`;
           if (r.url) md += `${r.url}\n\n`;
-          if (r.snippet) md += '> ' + r.snippet.replace(/\n/g, '\n> ') + '\n\n';
+          const blurb = r.content || r.snippet || '';
+          if (blurb) md += '> ' + blurb.replace(/\n/g, '\n> ') + '\n\n';
+          const page = pageByRank[r.rank];
+          if (page) {
+            if (page.error) {
+              md += `_(deep fetch failed: ${page.error})_\n\n`;
+            } else if (page.text) {
+              md += `**Fetched page body** (${(page.char_count || 0).toLocaleString()} chars` +
+                    (typeof page.n_chunks_kept === 'number' && typeof page.n_chunks_total === 'number' && page.n_chunks_total > 0
+                      ? `, ${page.n_chunks_kept} of ${page.n_chunks_total} chunks kept`
+                      : (page.truncated ? ', truncated' : '')) + `):\n\n`;
+              md += '```\n' + page.text + '\n```\n\n';
+              const hits = page.grep_hits || [];
+              if (hits.length) {
+                md += `**GREP hits on this page (${hits.length}):**\n\n`;
+                for (const h of hits.slice(0, 20)) {
+                  md += `- \`${h.rule || '?'}\` (${h.severity || '?'})` +
+                        (h.citation ? ` — ${h.citation}` : '') +
+                        (h.indicator ? ` [${h.indicator}]` : '') + `: ${(h.match_excerpt || '').slice(0, 200)}\n`;
+                }
+                if (hits.length > 20) md += `- _… ${hits.length - 20} more omitted_\n`;
+                md += '\n';
+              }
+            }
+          }
         }
       }
     }
@@ -3522,7 +4123,7 @@ async function openGradeModal(messageIdx) {
       title: 'Rule-Based',
       pill: '★ default',
       eta: '~1-3s',
-      desc: 'Deterministic keyword + cluster + token-overlap scoring across the 21-dim rubric. Fast, repeatable.',
+      desc: 'Deterministic keyword + cluster + token-overlap scoring across the 46-dimension rubric. Fast, repeatable.',
       pillColor: '#10b981',
       enabled: true,
     },
@@ -3601,6 +4202,20 @@ async function openGradeModal(messageIdx) {
         <div style="margin-bottom:8px;"><strong style="color:#10b981;">Rule-Based</strong> walks the response through 21 deterministic rubric dimensions. For each dim, it scans for keyword clusters, regex patterns, statute references, and structural markers (numbered lists, refusal language, citation formats). Each dim resolves to <code>PASS / PARTIAL / FAIL / N/A</code> with explicit hits + misses. No LLM is called — this is the same scorer used in the +56pp benchmark. Click <em>▸ How to PASS this</em> on any FAIL/PARTIAL row in the result table to see what the rule was looking for.</div>
         <div style="margin-bottom:8px;"><strong style="color:#a855f7;">LLM-Based</strong> sends the response back to the loaded Gemma <em>once per applicable dimension</em> (~3-7s each on 31B). Each call asks a single yes/no question shaped like <em>"Does the response cite a specific ILO Convention by number? Be strict."</em> The model answers in a JSON envelope <code>{verdict, evidence_quote, rationale}</code>. The chat package verifies the evidence quote actually appears in the response (defense against hallucinated quotes) and demotes <code>yes</code> to <code>partial</code> when the quote is fabricated. <em>Click ▸ Inspect evaluator prompt + raw model response on any dim row to see exactly what was asked and what the model said.</em></div>
         <div><strong style="color:#3b82f6;">Combined (Rule + LLM)</strong> runs both passes and blends 50/50. The disagreement panel surfaces dimensions where the two graders diverge — usually a sign that the LLM caught a paraphrased citation the keyword scanner missed, OR that the keyword scanner matched on a literal phrase that the LLM correctly rejected as out of context. Worth a manual look at each disagreement row.</div>
+        <div style="margin-top:10px; padding-top:10px; border-top:1px dashed var(--border);">
+          <strong style="color:#a855f7;">Which model grades?</strong> The <em>same Gemma instance loaded for chat</em> also grades — the on-device self-grade pattern. This keeps the demo private + reproducible (no network call, no second model load).
+          <div style="margin-top:6px; padding:6px 8px; background:rgba(245,158,11,0.08); border-left:2px solid #f59e0b; border-radius:3px; font-size:11px;">
+            <strong style="color:#f59e0b;">Kaggle constraint:</strong> the chat-package wheel exposes an <code>evaluator_call</code> hook in <code>create_app</code> (v0.13.0+) so a stronger judge can be wired separately — but on Kaggle a single T4 / dual-T4 already maxes VRAM with the loaded chat model, so swapping in a second judge would require unload/reload of the chat model mid-session (slow, breaks state). For this Kaggle deployment we run in-process self-grade by necessity. The hook is documented architecture for production deployments outside the Kaggle memory constraint.
+          </div>
+          <div style="margin-top:6px; font-size:11px; color:var(--muted);">
+            What the hook supports outside Kaggle (commentary):
+            <ul style="margin:4px 0 0 18px; padding:0;">
+              <li><strong>Frontier judge</strong> (GPT-4 / Claude 3.5 / Gemini 1.5 Pro) — the G-Eval / MT-Bench / Auto-J methodology. Gold-standard accuracy. Requires a network call so chat stays on-device while grading runs in a separate cloud process for periodic benchmark replay.</li>
+              <li><strong>Abliterated Gemma variant</strong> (e.g. <code>dealignai/Gemma-4-31B-JANG_4M-CRACK</code>) — engages with adversarial responses the safety-tuned chat model refuses to grade. Useful for adversarial-suite scoring at production scale where you have headroom for two model loads.</li>
+              <li><strong>Larger Gemma variant</strong> as the judge while a smaller one chats. Same VRAM-headroom precondition.</li>
+            </ul>
+          </div>
+        </div>
       </div>
     </details>`;
   // Single primary CTA. Disabled until a mode is picked (always picked
@@ -3742,29 +4357,59 @@ async function _renderOnlineBackendPanel() {
   };
   const ddgWired = cfg.kernel_ddg_wired
     ? '<span style="color:#10b981;">DuckDuckGo HTML scrape wired (kernel-supplied, no key required)</span>'
-    : '<span style="color:#f59e0b;">DDG fallback NOT wired in this kernel — Brave key strongly recommended</span>';
-  const testBadge = (cfg.brave_test_ok === true)
+    : '<span style="color:#f59e0b;">DDG fallback NOT wired in this kernel — Brave / Tavily key strongly recommended</span>';
+  const _badge = (ok, msg) => (ok === true)
     ? '<span style="background:#10b98122; color:#10b981; font-size:10px; font-weight:700; padding:2px 7px; border-radius:8px; text-transform:uppercase;">tested OK</span>'
-    : (cfg.brave_test_ok === false)
-    ? `<span style="background:#ef444422; color:#ef4444; font-size:10px; font-weight:700; padding:2px 7px; border-radius:8px; text-transform:uppercase;" title="${escapeHtml(cfg.brave_test_msg || '')}">test failed</span>`
+    : (ok === false)
+    ? `<span style="background:#ef444422; color:#ef4444; font-size:10px; font-weight:700; padding:2px 7px; border-radius:8px; text-transform:uppercase;" title="${escapeHtml(msg || '')}">test failed</span>`
     : '<span style="background:rgba(148,163,184,0.18); color:#94a3b8; font-size:10px; font-weight:700; padding:2px 7px; border-radius:8px; text-transform:uppercase;">not tested</span>';
+  const braveBadge = _badge(cfg.brave_test_ok, cfg.brave_test_msg);
+  const tavilyBadge = _badge(cfg.tavily_test_ok, cfg.tavily_test_msg);
+  // Deep-fetch toggle: when on, after search returns URLs the chat
+  // package fetches the top-N pages, parses HTML to text, runs GREP
+  // rules over each, and prepends the parsed bodies + hits as model
+  // context. Off by default (adds 2-8s latency).
+  const fetchN = Math.max(1, Math.min(10, cfg.fetch_top_n || 3));
+  const fetchMax = Math.max(500, Math.min(20000, cfg.fetch_max_chars || 4500));
   panel.innerHTML = `
     <div style="color:var(--muted); font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.4px; margin-bottom:8px;">Search backend</div>
     <div style="display:flex; flex-direction:column; gap:6px; margin-bottom:12px;">
-      ${opt('auto', 'Auto (recommended)', 'Use Brave Search API if a key is configured below; otherwise fall back to the kernel-supplied DuckDuckGo scrape. On Brave error, automatically retries with DDG.')}
-      ${opt('brave', 'Brave Search API only', 'Force Brave; if the key is missing or fails, the layer returns no results. Choose this for predictable behavior in a benchmark run.')}
-      ${opt('ddg', 'DuckDuckGo only (no key)', 'Use the kernel-supplied DDG HTML scraper. Free, no signup, but fragile — DDG layout changes can break it.')}
+      ${opt('auto', 'Auto (recommended)', 'Try Tavily first if its key is set (returns full page extracts), then Brave, then the kernel-supplied DuckDuckGo scrape. On any provider error, automatically retries the next available source — and surfaces the failure reason in the trace so you can see WHY a fallback happened.')}
+      ${opt('tavily', 'Tavily Search API only', 'Force Tavily. AI-tuned search that returns 200-500 chars of extracted content per result + a synthesized answer paragraph. Free tier: 1,000 queries/month.')}
+      ${opt('brave', 'Brave Search API only', 'Force Brave. Independent index + rich extra_snippets. Free tier: 2,000 queries/month.')}
+      ${opt('ddg', 'DuckDuckGo only (no key)', 'Use the kernel-supplied DDG HTML scraper. Free, no signup, fragile — DDG layout changes can break it.')}
     </div>
-    <div style="border-top:1px solid var(--border); padding-top:12px;">
+
+    <div style="border-top:1px solid var(--border); padding-top:12px; margin-bottom:14px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+        <div style="font-size:12px; color:var(--ink); font-weight:600;">
+          Tavily Search API key
+          <span style="color:var(--muted); font-weight:400; font-size:11px;">— ${cfg.tavily_configured ? 'configured' : 'not set'}</span>
+          ${cfg.tavily_configured ? tavilyBadge : ''}
+        </div>
+      </div>
+      <div style="font-size:11.5px; color:var(--muted); margin-bottom:6px; line-height:1.5;">
+        Get a free key at <a href="https://tavily.com" target="_blank" rel="noopener" style="color:#fbbf24;">tavily.com</a> (1,000 queries/month free, no card). Tavily is the recommended primary because it returns the page extract inline — fewer follow-up fetches needed.
+      </div>
+      <div style="display:flex; gap:6px; margin-bottom:6px;">
+        <input id="online-tavily-key" type="password" placeholder="${cfg.tavily_configured ? '•••• key already set — paste a new one to replace ••••' : 'tvly-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'}"
+               style="flex:1; padding:7px 10px; background:var(--bg); color:var(--ink); border:1px solid var(--border); border-radius:6px; font-size:12px; font-family:ui-monospace,monospace;">
+        <button class="modal-btn primary" onclick="_saveOnlineBackend()">Save</button>
+        ${cfg.tavily_configured ? '<button class="modal-btn secondary" onclick="_clearTavilyKey()" style="color:#ef4444;">Clear</button>' : ''}
+      </div>
+      ${cfg.tavily_configured && cfg.tavily_test_msg ? `<div style="margin-top:4px; font-size:11px; color:var(--muted); font-style:italic;">Last test: ${escapeHtml(cfg.tavily_test_msg)}</div>` : ''}
+    </div>
+
+    <div style="border-top:1px solid var(--border); padding-top:12px; margin-bottom:14px;">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
         <div style="font-size:12px; color:var(--ink); font-weight:600;">
           Brave Search API key
           <span style="color:var(--muted); font-weight:400; font-size:11px;">— ${cfg.brave_configured ? 'configured' : 'not set'}</span>
-          ${cfg.brave_configured ? testBadge : ''}
+          ${cfg.brave_configured ? braveBadge : ''}
         </div>
       </div>
       <div style="font-size:11.5px; color:var(--muted); margin-bottom:6px; line-height:1.5;">
-        Get a free key at <a href="https://brave.com/search/api/" target="_blank" rel="noopener" style="color:#fbbf24;">brave.com/search/api</a> (2,000 queries/month free tier). Paste it below; the key stays in this kernel's process memory and is never persisted.
+        Get a free key at <a href="https://brave.com/search/api/" target="_blank" rel="noopener" style="color:#fbbf24;">brave.com/search/api</a> (2,000 queries/month free). Independent of Google's index — useful as a cross-check or fallback.
       </div>
       <div style="display:flex; gap:6px; margin-bottom:6px;">
         <input id="online-brave-key" type="password" placeholder="${cfg.brave_configured ? '•••• key already set — paste a new one to replace ••••' : 'BSAxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'}"
@@ -3772,21 +4417,58 @@ async function _renderOnlineBackendPanel() {
         <button class="modal-btn primary" onclick="_saveOnlineBackend()">Save</button>
         ${cfg.brave_configured ? '<button class="modal-btn secondary" onclick="_clearBraveKey()" style="color:#ef4444;">Clear</button>' : ''}
       </div>
-      <div style="font-size:11px; color:var(--muted);">${ddgWired}</div>
-      ${cfg.brave_configured && cfg.brave_test_msg ? `<div style="margin-top:6px; font-size:11px; color:var(--muted); font-style:italic;">Last test: ${escapeHtml(cfg.brave_test_msg)}</div>` : ''}
-    </div>`;
+      ${cfg.brave_configured && cfg.brave_test_msg ? `<div style="margin-top:4px; font-size:11px; color:var(--muted); font-style:italic;">Last test: ${escapeHtml(cfg.brave_test_msg)}</div>` : ''}
+    </div>
+
+    <div style="border-top:1px solid var(--border); padding-top:12px; margin-bottom:10px;">
+      <div style="font-size:12px; color:var(--ink); font-weight:600; margin-bottom:4px;">
+        Deep-fetch mode
+        <span style="background:${cfg.fetch_pages ? '#10b98122' : 'rgba(148,163,184,0.18)'}; color:${cfg.fetch_pages ? '#10b981' : '#94a3b8'}; font-size:10px; font-weight:700; padding:2px 7px; border-radius:8px; text-transform:uppercase; margin-left:6px;">${cfg.fetch_pages ? 'on' : 'off'}</span>
+      </div>
+      <div style="font-size:11.5px; color:var(--muted); margin-bottom:8px; line-height:1.5;">
+        After search returns URLs, fetch the top-N pages, convert HTML→markdown, run GREP rules over each page body, and prepend the parsed text + GREP hits as additional context for Gemma. Without this, the model only sees a 100-300 char snippet per result. <b>Adds 2-8 seconds per turn</b> depending on page sizes + network.
+      </div>
+      <label style="display:flex; align-items:center; gap:8px; padding:7px 10px; border:1px solid var(--border); border-radius:6px; background:var(--bg); margin-bottom:8px; cursor:pointer;">
+        <input id="online-fetch-pages" type="checkbox" ${cfg.fetch_pages ? 'checked' : ''}>
+        <span style="font-size:12px; color:var(--ink); font-weight:600;">Fetch + parse + GREP top results</span>
+      </label>
+      <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+        <label style="font-size:11.5px; color:var(--muted); display:flex; align-items:center; gap:6px;">
+          Top-N to fetch:
+          <input id="online-fetch-top-n" type="number" min="1" max="10" value="${fetchN}"
+                 style="width:60px; padding:4px 6px; background:var(--bg); color:var(--ink); border:1px solid var(--border); border-radius:4px; font-size:12px;">
+        </label>
+        <label style="font-size:11.5px; color:var(--muted); display:flex; align-items:center; gap:6px;">
+          Max chars / page:
+          <input id="online-fetch-max-chars" type="number" min="500" max="20000" step="500" value="${fetchMax}"
+                 style="width:80px; padding:4px 6px; background:var(--bg); color:var(--ink); border:1px solid var(--border); border-radius:4px; font-size:12px;">
+        </label>
+      </div>
+    </div>
+
+    <div style="font-size:11px; color:var(--muted);">${ddgWired}</div>`;
 }
 
 async function _saveOnlineBackend() {
   const backendEl = document.querySelector('input[name="online-backend"]:checked');
-  const keyEl = document.getElementById('online-brave-key');
+  const braveKeyEl = document.getElementById('online-brave-key');
+  const tavilyKeyEl = document.getElementById('online-tavily-key');
+  const fetchPagesEl = document.getElementById('online-fetch-pages');
+  const fetchTopNEl = document.getElementById('online-fetch-top-n');
+  const fetchMaxCharsEl = document.getElementById('online-fetch-max-chars');
   const body = {};
   if (backendEl) body.backend = backendEl.value;
-  if (keyEl && keyEl.value && keyEl.value.trim()) {
-    body.brave_api_key = keyEl.value.trim();
+  if (braveKeyEl && braveKeyEl.value && braveKeyEl.value.trim()) {
+    body.brave_api_key = braveKeyEl.value.trim();
   }
+  if (tavilyKeyEl && tavilyKeyEl.value && tavilyKeyEl.value.trim()) {
+    body.tavily_api_key = tavilyKeyEl.value.trim();
+  }
+  if (fetchPagesEl) body.fetch_pages = fetchPagesEl.checked;
+  if (fetchTopNEl && fetchTopNEl.value) body.fetch_top_n = parseInt(fetchTopNEl.value, 10);
+  if (fetchMaxCharsEl && fetchMaxCharsEl.value) body.fetch_max_chars = parseInt(fetchMaxCharsEl.value, 10);
   if (!Object.keys(body).length) {
-    alert('No changes to save. Pick a backend or paste a key first.');
+    alert('No changes to save.');
     return;
   }
   try {
@@ -3799,12 +4481,12 @@ async function _saveOnlineBackend() {
       const errTxt = await r.text();
       throw new Error(_sanitizeServerError(r.status, errTxt));
     }
-    if (keyEl) keyEl.value = '';
+    if (braveKeyEl) braveKeyEl.value = '';
+    if (tavilyKeyEl) tavilyKeyEl.value = '';
     await _renderOnlineBackendPanel();
-    // The Online tile's "wired" status changes the moment a Brave key
-    // is saved (probeHarness reads /api/harness-info which now reports
-    // online=true if either kernel-DDG OR brave is configured). Re-run
-    // probeHarness so the tile flips from NOT WIRED to OFF immediately.
+    // The Online tile's "wired" status changes the moment any keyed
+    // backend (Brave or Tavily) is saved. Re-run probeHarness so the
+    // tile flips from NOT WIRED to OFF immediately.
     try { await probeHarness(); } catch (e) {}
   } catch (e) {
     alert('Save failed: ' + (e.message || e));
@@ -3821,7 +4503,22 @@ async function _clearBraveKey() {
     });
     if (!r.ok) throw new Error('HTTP ' + r.status);
     await _renderOnlineBackendPanel();
-    // Online tile may flip back to NOT WIRED if no kernel hook exists.
+    try { await probeHarness(); } catch (e) {}
+  } catch (e) {
+    alert('Clear failed: ' + (e.message || e));
+  }
+}
+
+async function _clearTavilyKey() {
+  if (!confirm('Remove the saved Tavily API key?')) return;
+  try {
+    const r = await fetch('/api/online/config', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({tavily_api_key: null}),
+    });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    await _renderOnlineBackendPanel();
     try { await probeHarness(); } catch (e) {}
   } catch (e) {
     alert('Clear failed: ' + (e.message || e));
@@ -4399,7 +5096,9 @@ function _renderUniversalGradeResult(g) {
         <div style="font-size:24px; font-weight:700; color:${scoreColor};">${pct}%</div>
         <div style="font-size:11px; color:var(--muted); margin-top:2px;">${g.total_score} / ${g.total_weight} weighted · ${g.n_applicable} applicable dim · ${g.n_not_applicable} N/A</div>
         ${referenceGauge}
-        <div style="font-size:10px; color:var(--muted); margin-top:24px;">Reference: ${stockBaseline}% ${escapeHtml(stockSpec.label.replace(/[\d%\s]/g, '') || 'stock')} · ${harnessedBaseline}% ${escapeHtml(harnSpec.label.replace(/[\d%\s]/g, '') || 'harnessed')} (${evalSize})</div>
+        <div style="font-size:10px; color:var(--muted); margin-top:24px; line-height:1.4;">
+          <b>Static benchmark reference, NOT this run:</b> on a ${evalSize}, stock Gemma scored ${stockBaseline}% on this rubric vs ${harnessedBaseline}% with the full harness. To live-A/B THIS prompt, click <a href="#" onclick="closeModal(); openCompareModal(); return false;" style="color:var(--accent); text-decoration:underline;">Compare</a> in the top bar.
+        </div>
       </div>
       <div style="flex:1 1 80px; background:var(--bg); border-radius:6px; padding:12px 14px; border-left:4px solid #10b981;">
         <div style="font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:0.5px;">Pass</div>
@@ -4590,6 +5289,9 @@ function resetChat() {
 async function onUploadChange(event) {
   const file = event.target.files[0];
   if (!file) return;
+  // v0.7.1: clear the pending-image-hint banner now that an image
+  // is being attached — the user followed through on the prompt's ask.
+  dismissImageHint();
   const fd = new FormData();
   fd.append('file', file);
   try {
@@ -4626,6 +5328,10 @@ let _chatBusy = false;
 
 async function sendMessage() {
   if (_chatBusy) return;
+  // v0.7.1: clear the pending-image-hint banner once the user sends —
+  // the cue has served its purpose (they either attached an image
+  // or chose to send anyway).
+  dismissImageHint();
   const input = document.getElementById('input');
   const text = input.value.trim();
   if (!text && pendingImages.length === 0) return;
@@ -4856,7 +5562,7 @@ async function autoGradeChips(msgIdx, responseText, promptText, harnessTrace) {
     try { grade = await r.json(); }
     catch (parseErr) { return; }  // malformed JSON — leave chips pending
     if (!grade || typeof grade !== 'object') return;
-    // Project the 21-dim grade into 3 chip values. All field reads are
+    // Project the 46-dimension grade into 3 chip values. All field reads are
     // defensive — a server-side bug or upgrade-skew should leave chips
     // in a "best-effort" state, never crash the renderChat loop.
     const score   = (typeof grade.pct_score === 'number') ? Math.round(grade.pct_score) : null;
@@ -5188,6 +5894,1077 @@ function escapeAndFormat(text) {
   // Inline `code`
   text = text.replace(/`([^`]+)`/g, '<code>$1</code>');
   return text;
+}
+
+// ===========================================================================
+// RETRIEVAL CONFIG PANEL (v0.8.0)
+// Lives inside the RAG modal. Fetches /api/retrieval/config, renders
+// editable controls for every knob, POSTs patches on change. The
+// panel is purely UI — server validation is the source of truth.
+// ===========================================================================
+async function _renderRetrievalConfigPanel() {
+  const panel = document.getElementById('retrieval-config-panel');
+  if (!panel) return;
+  let cfg;
+  try {
+    const r = await fetch('/api/retrieval/config', {cache: 'no-store'});
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    cfg = await r.json();
+  } catch (e) {
+    panel.innerHTML = `<div style="color:#ef4444; font-size:11.5px;">Could not load retrieval config (requires duecare-llm-chat ≥ 0.8.0): ${escapeHtml(String(e.message || e))}</div>`;
+    return;
+  }
+  const radio = (name, val, label, desc, current) => {
+    const checked = current === val ? 'checked' : '';
+    const active  = current === val;
+    return `<label style="display:flex; gap:8px; padding:6px 8px; border:1px solid ${active ? '#3b82f6' : 'var(--border)'}; border-radius:5px; cursor:pointer; ${active ? 'background:rgba(59,130,246,0.06);' : 'background:var(--bg);'}">
+      <input type="radio" name="${name}" value="${val}" ${checked} onchange="_retrievalConfigSet('${name}', '${val}')" style="margin-top:2px;">
+      <span><b style="font-size:11.5px; color:var(--ink);">${escapeHtml(label)}</b><br><span style="font-size:10.5px; color:var(--muted);">${escapeHtml(desc)}</span></span>
+    </label>`;
+  };
+  const numInput = (name, val, lo, hi, step, label, desc) => `
+    <label style="display:flex; flex-direction:column; gap:3px;">
+      <span style="font-size:11px; color:var(--muted); font-weight:600;">${escapeHtml(label)}</span>
+      <input type="number" min="${lo}" max="${hi}" step="${step}" value="${val}"
+             onchange="_retrievalConfigSet('${name}', this.value)"
+             style="width:80px; padding:4px 6px; background:var(--bg); color:var(--ink); border:1px solid var(--border); border-radius:4px; font-size:12px;">
+      <span style="font-size:10px; color:var(--muted); font-style:italic;">${escapeHtml(desc)}</span>
+    </label>`;
+  const toggle = (name, val, label, desc) => `
+    <label style="display:flex; gap:8px; padding:6px 8px; border:1px solid var(--border); border-radius:5px; background:var(--bg); cursor:pointer; align-items:center;">
+      <input type="checkbox" ${val ? 'checked' : ''} onchange="_retrievalConfigSet('${name}', this.checked)">
+      <span><b style="font-size:11.5px; color:var(--ink);">${escapeHtml(label)}</b><br><span style="font-size:10.5px; color:var(--muted);">${escapeHtml(desc)}</span></span>
+    </label>`;
+  panel.innerHTML = `
+    <details open>
+      <summary style="cursor:pointer; padding:8px 12px; background:rgba(168,85,247,0.06); border-left:3px solid #a855f7; border-radius:4px; font-weight:700; color:#a855f7; user-select:none;">▸ Configure retrieval (v0.8.0 knobs)</summary>
+      <div style="padding:12px; background:rgba(168,85,247,0.03); border:1px solid rgba(168,85,247,0.2); border-radius:0 0 6px 6px; margin-top:-1px;">
+        <div style="font-size:10.5px; color:var(--muted); margin-bottom:10px; line-height:1.55;">
+          All knobs persist for the kernel session. Reranker wired: <b style="color:${cfg.rerank_wired ? '#10b981' : '#94a3b8'}">${cfg.rerank_wired ? 'yes' : 'no'}</b> · Embedder wired: <b style="color:${cfg.embed_wired ? '#10b981' : '#94a3b8'}">${cfg.embed_wired ? 'yes' : 'no'}</b>. When a hook is unwired, the corresponding mode degrades gracefully to BM25.
+          ${cfg.embed_cache ? `<br><span style="margin-top:4px; display:inline-block;"><b>Embed cache:</b> ${cfg.embed_cache.size.toLocaleString()} entries, ${cfg.embed_cache.hit_rate}% hit-rate (${cfg.embed_cache.hits.toLocaleString()} hits / ${cfg.embed_cache.misses.toLocaleString()} misses) <button onclick="_clearEmbedCache()" style="margin-left:6px; background:transparent; border:1px solid var(--border); color:var(--muted); padding:2px 8px; border-radius:4px; font-size:10px; cursor:pointer;">Clear cache</button></span>` : ''}
+        </div>
+
+        <div style="margin-bottom:14px;">
+          <div style="font-size:11px; color:var(--muted); font-weight:700; text-transform:uppercase; margin-bottom:6px;">Retrieval mode</div>
+          <div style="display:flex; flex-direction:column; gap:5px;">
+            ${radio('retrieval_mode', 'bm25',       'BM25 (lexical only)',   'Deterministic; default. Best for keyword-rich legal text.', cfg.retrieval_mode)}
+            ${radio('retrieval_mode', 'hybrid_rrf', 'Hybrid (BM25 + dense, RRF fused)', 'Requires embed_call wired. Adds semantic recall on top of lexical precision.', cfg.retrieval_mode)}
+            ${radio('retrieval_mode', 'dense',      'Dense only (semantic)', 'Requires embed_call. Best for paraphrase-style queries; weaker on exact statute IDs.', cfg.retrieval_mode)}
+          </div>
+        </div>
+
+        <div style="margin-bottom:14px;">
+          <div style="font-size:11px; color:var(--muted); font-weight:700; text-transform:uppercase; margin-bottom:6px;">Parent-doc expansion</div>
+          <div style="display:flex; flex-direction:column; gap:5px;">
+            ${radio('parent_expand', 'off',     'Off (matched chunk only)', 'Smallest context. Best for benchmark replay.', cfg.parent_expand)}
+            ${radio('parent_expand', 'section', 'Section (siblings under same heading)', 'Default. Captures the article/section the matched chunk lives in.', cfg.parent_expand)}
+            ${radio('parent_expand', 'doc',     'Whole parent doc (up to cap)', 'Maximum context. Costs prepend-budget chars.', cfg.parent_expand)}
+          </div>
+          <div style="margin-top:6px;">
+            ${numInput('parent_expand_max_chars', cfg.parent_expand_max_chars, 200, 12000, 100, 'Max chars / parent', 'Cap per parent doc when expanding.')}
+          </div>
+        </div>
+
+        <div style="margin-bottom:14px;">
+          <div style="font-size:11px; color:var(--muted); font-weight:700; text-transform:uppercase; margin-bottom:6px;">Citation graph expansion</div>
+          <div style="display:flex; gap:10px; flex-wrap:wrap;">
+            ${numInput('graph_expand_depth', cfg.graph_expand_depth, 0, 2, 1, 'Depth (0–2)', '0=off, 1=direct neighbours, 2=neighbours-of-neighbours.')}
+            ${numInput('graph_expand_per_node', cfg.graph_expand_per_node, 0, 6, 1, 'Per-node cap', 'Max neighbours per retrieved doc.')}
+            ${numInput('graph_expand_max_chars', cfg.graph_expand_max_chars, 0, 12000, 100, 'Max chars total', 'Total budget for added neighbour content.')}
+          </div>
+        </div>
+
+        <div style="margin-bottom:14px;">
+          <div style="font-size:11px; color:var(--muted); font-weight:700; text-transform:uppercase; margin-bottom:6px;">Chunking</div>
+          <div style="display:flex; gap:10px; flex-wrap:wrap;">
+            ${numInput('chunk_max_chars', cfg.chunk_max_chars, 200, 5000, 50, 'Chunk size', 'Target chars per chunk. Smaller → finer BM25.')}
+            ${numInput('chunk_overlap_chars', cfg.chunk_overlap_chars, 0, 1000, 10, 'Overlap', 'Tail-prepend on non-first chunks.')}
+          </div>
+        </div>
+
+        <div style="margin-bottom:14px;">
+          <div style="font-size:11px; color:var(--muted); font-weight:700; text-transform:uppercase; margin-bottom:6px;">Reranker</div>
+          <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:flex-end;">
+            ${toggle('rerank_enabled', cfg.rerank_enabled, 'Enable cross-encoder rerank', 'Off = pure BM25 ordering, on = let rerank_call reorder.')}
+            ${numInput('rerank_top_k', cfg.rerank_top_k, 1, 200, 1, 'Candidates fed', 'BM25 top-K passed to rerank_call.')}
+            ${numInput('rerank_keep', cfg.rerank_keep, 1, 50, 1, 'Final keep', 'After rerank, items shown to model.')}
+          </div>
+        </div>
+
+        <div style="margin-bottom:8px;">
+          <div style="font-size:11px; color:var(--muted); font-weight:700; text-transform:uppercase; margin-bottom:6px;">Diagnostics</div>
+          ${toggle('path_trace_enabled', cfg.path_trace_enabled, 'Path-tracing enabled', 'Each retrieval stage logged to trace.path_trace.stages. Adds 2-3 KB per response.')}
+        </div>
+
+        <div style="font-size:10.5px; color:var(--muted); font-style:italic; margin-top:10px;">BM25 hyperparameters (k1, b) and RRF k available via the API but hidden here to avoid mis-tuning. POST /api/retrieval/config to change.</div>
+      </div>
+    </details>`;
+}
+
+// ===========================================================================
+// RAG GRAPH VIEWER (v0.14.0)
+// ---------------------------------------------------------------------------
+// Force-directed graph of the 46-doc RAG corpus + 46-edge citation graph.
+// Pure SVG, ~150 lines, no D3/Cytoscape dependency. Color-codes nodes by
+// source jurisdiction (ILO / national / regional / NGO) so the corpus
+// structure is visible at a glance. Click a node → render its content
+// in the side panel; hover an edge → see the relation + curator note.
+// ===========================================================================
+async function _renderRagGraphViewer() {
+  const panel = document.getElementById('rag-graph-viewer');
+  if (!panel) return;
+  let graph;
+  try {
+    const r = await fetch('/api/rag/graph', {cache: 'no-store'});
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    graph = await r.json();
+  } catch (e) {
+    panel.innerHTML = `<div style="color:#ef4444; font-size:11.5px;">Could not load corpus graph (requires duecare-llm-chat ≥ 0.14.0): ${escapeHtml(String(e.message || e))}</div>`;
+    return;
+  }
+  panel.innerHTML = `
+    <details>
+      <summary style="cursor:pointer; padding:8px 12px; background:rgba(124,58,237,0.06); border-left:3px solid #7c3aed; border-radius:4px; font-weight:700; color:#7c3aed; user-select:none;">
+        ▸ Browse the corpus as a graph (${graph.meta.n_nodes} docs, ${graph.meta.n_edges} citation edges)
+      </summary>
+      <div style="padding:14px; background:rgba(124,58,237,0.03); border:1px solid rgba(124,58,237,0.2); border-radius:0 0 6px 6px; margin-top:-1px;">
+        <div style="font-size:10.5px; color:var(--muted); margin-bottom:10px; line-height:1.5;">
+          Force-directed layout of the curated corpus. Arrowheads point from citation source to citation target. Nodes colored by source jurisdiction. <strong>Click any node to view its content</strong>; hover an edge to see the relation + curator note; scroll to zoom; click-drag empty space to pan; shift-click a node to pin.
+        </div>
+        <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-bottom:8px;">
+          <input id="rag-graph-search" type="text" placeholder="Search nodes (ILO, POEA, kafala, debt bondage…)" oninput="_ragGraphFilter(this.value)"
+                 style="flex:1; min-width:200px; padding:5px 10px; font-size:11px; border:1px solid var(--border); background:var(--bg); color:var(--ink); border-radius:4px;" />
+          <select id="rag-graph-group-filter" onchange="_ragGraphFilterGroup(this.value)"
+                  style="padding:5px 8px; font-size:11px; border:1px solid var(--border); background:var(--bg); color:var(--ink); border-radius:4px;">
+            <option value="">All jurisdictions</option>
+          </select>
+          <button onclick="_ragGraphZoom(1.25)" class="modal-btn secondary" title="Zoom in" style="font-size:11px; padding:4px 8px;">+</button>
+          <button onclick="_ragGraphZoom(0.8)" class="modal-btn secondary" title="Zoom out" style="font-size:11px; padding:4px 8px;">−</button>
+          <button onclick="_ragGraphResetZoom()" class="modal-btn secondary" title="Reset view" style="font-size:11px; padding:4px 10px;">Reset</button>
+          <button onclick="_ragGraphSettle()" class="modal-btn secondary" title="Re-run layout simulation" style="font-size:11px; padding:4px 10px;">Re-settle</button>
+          <button onclick="_ragGraphExportSvg()" class="modal-btn secondary" title="Download as SVG" style="font-size:11px; padding:4px 10px;">⬇ SVG</button>
+          <a href="/static/rag-graph.html" target="_blank" class="modal-btn secondary" title="Open standalone full-screen viewer (great for screenshots)"
+             style="font-size:11px; padding:4px 10px; text-decoration:none;">↗ Standalone</a>
+        </div>
+        <div id="rag-graph-legend" style="margin-bottom:10px; display:flex; flex-wrap:wrap; gap:6px; font-size:10px;"></div>
+        <div style="display:grid; grid-template-columns:1.4fr 1fr; gap:14px;">
+          <div id="rag-graph-svg-wrap" style="background:var(--bg); border:1px solid var(--border); border-radius:6px; min-height:480px; position:relative; overflow:hidden;"></div>
+          <div id="rag-graph-detail" style="background:var(--bg); border:1px solid var(--border); border-radius:6px; padding:14px; min-height:480px; max-height:480px; overflow-y:auto; font-size:11.5px;">
+            <div style="color:var(--muted); font-style:italic;">Click any node to view doc content here. <span id="rag-graph-counts"></span></div>
+          </div>
+        </div>
+      </div>
+    </details>
+  `;
+  _ragGraph = graph;
+  _ragGraphRender();
+}
+
+let _ragGraph = null;
+let _ragGraphSim = null;       // current simulation state (positions + velocities)
+let _ragGraphPinned = new Set(); // node ids the user has pinned
+let _ragGraphView = {zoom: 1, panX: 0, panY: 0}; // current viewBox transform
+let _ragGraphFilterState = {q: '', group: ''};   // search + jurisdiction filter
+
+function _ragGraphRender() {
+  const wrap = document.getElementById('rag-graph-svg-wrap');
+  const legend = document.getElementById('rag-graph-legend');
+  const groupFilter = document.getElementById('rag-graph-group-filter');
+  const counts = document.getElementById('rag-graph-counts');
+  if (!wrap || !_ragGraph) return;
+  const W = wrap.clientWidth || 640, H = 480;
+  // Initialize node positions in a tight grid for a fast settle.
+  const nodes = _ragGraph.nodes.map((n, i) => ({
+    ...n,
+    x: W * 0.5 + 200 * Math.cos(i * 2 * Math.PI / _ragGraph.nodes.length),
+    y: H * 0.5 + 180 * Math.sin(i * 2 * Math.PI / _ragGraph.nodes.length),
+    vx: 0, vy: 0,
+    fx: null, fy: null,
+  }));
+  const nodeById = {};
+  for (const n of nodes) nodeById[n.id] = n;
+  const edges = (_ragGraph.edges || []).filter(e => nodeById[e.from] && nodeById[e.to]);
+  _ragGraphSim = {nodes, nodeById, edges, W, H};
+  _ragGraphView = {zoom: 1, panX: 0, panY: 0};
+  // Run a quick force-direct simulation for ~250 ticks.
+  for (let i = 0; i < 250; i++) _ragGraphTick();
+  _ragGraphDraw();
+  // Legend
+  legend.innerHTML = Object.entries(_ragGraph.groups).map(([gid, g]) => `
+    <span style="display:inline-flex; align-items:center; gap:4px; padding:2px 8px; border-radius:10px; background:${g.color}1f; border:1px solid ${g.color};">
+      <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:${g.color};"></span>
+      <span style="font-size:10px; color:var(--ink);">${escapeHtml(g.label)}</span>
+    </span>
+  `).join('');
+  // Populate group filter dropdown (sorted by label, "All" already in markup)
+  if (groupFilter) {
+    const sorted = Object.entries(_ragGraph.groups).sort((a, b) => a[1].label.localeCompare(b[1].label));
+    groupFilter.innerHTML = '<option value="">All jurisdictions</option>' + sorted.map(([gid, g]) =>
+      `<option value="${escapeHtml(gid)}">${escapeHtml(g.label)} (${nodes.filter(n => n.group === gid).length})</option>`
+    ).join('');
+  }
+  if (counts) counts.textContent = `(${nodes.length} docs · ${edges.length} edges)`;
+}
+
+function _ragGraphTick() {
+  // Tiny force-directed simulation. O(n²) repulsion + spring on edges.
+  // Good enough for ~50 nodes. No need for Barnes-Hut.
+  if (!_ragGraphSim) return;
+  const {nodes, edges, W, H} = _ragGraphSim;
+  const k = 12000;       // repulsion strength
+  const linkK = 0.04;     // edge spring
+  const center = {x: W / 2, y: H / 2};
+  // Repulsion pass
+  for (let i = 0; i < nodes.length; i++) {
+    for (let j = i + 1; j < nodes.length; j++) {
+      const a = nodes[i], b = nodes[j];
+      let dx = a.x - b.x, dy = a.y - b.y;
+      let dsq = dx * dx + dy * dy;
+      if (dsq < 1) dsq = 1;
+      const force = k / dsq;
+      const dist = Math.sqrt(dsq);
+      const fx = force * dx / dist, fy = force * dy / dist;
+      a.vx += fx; a.vy += fy;
+      b.vx -= fx; b.vy -= fy;
+    }
+  }
+  // Edge attraction pass
+  for (const e of edges) {
+    const a = _ragGraphSim.nodeById[e.from];
+    const b = _ragGraphSim.nodeById[e.to];
+    if (!a || !b) continue;
+    const dx = b.x - a.x, dy = b.y - a.y;
+    const fx = dx * linkK, fy = dy * linkK;
+    a.vx += fx; a.vy += fy;
+    b.vx -= fx; b.vy -= fy;
+  }
+  // Gravity toward center + integrate
+  for (const n of nodes) {
+    if (n.fx !== null) { n.x = n.fx; n.y = n.fy; n.vx = 0; n.vy = 0; continue; }
+    n.vx += (center.x - n.x) * 0.005;
+    n.vy += (center.y - n.y) * 0.005;
+    n.vx *= 0.78; n.vy *= 0.78;        // damping
+    n.x += n.vx; n.y += n.vy;
+    // Clamp to viewport
+    n.x = Math.max(20, Math.min(W - 20, n.x));
+    n.y = Math.max(20, Math.min(H - 20, n.y));
+  }
+}
+
+function _ragGraphDraw() {
+  const wrap = document.getElementById('rag-graph-svg-wrap');
+  if (!wrap || !_ragGraphSim) return;
+  const {nodes, edges, W, H} = _ragGraphSim;
+  const groupColor = (gid) => (_ragGraph.groups[gid] || {}).color || '#94a3b8';
+  // Apply current search/group filter to compute "active" set.
+  const q = (_ragGraphFilterState.q || '').toLowerCase().trim();
+  const gFilter = _ragGraphFilterState.group || '';
+  const isMatch = (n) => {
+    if (gFilter && n.group !== gFilter) return false;
+    if (!q) return true;
+    return n.id.toLowerCase().includes(q)
+        || (n.label || '').toLowerCase().includes(q)
+        || (n.source || '').toLowerCase().includes(q)
+        || (n.snippet || '').toLowerCase().includes(q);
+  };
+  const activeIds = new Set(nodes.filter(isMatch).map(n => n.id));
+  const anyFilter = !!q || !!gFilter;
+  // Compute edge endpoints offset by node radius so the arrowhead lands
+  // on the rim, not the center, and is fully visible.
+  const edgesSvg = edges.map(e => {
+    const a = _ragGraphSim.nodeById[e.from], b = _ragGraphSim.nodeById[e.to];
+    if (!a || !b) return '';
+    const dx = b.x - a.x, dy = b.y - a.y;
+    const dist = Math.sqrt(dx * dx + dy * dy) || 1;
+    const ux = dx / dist, uy = dy / dist;
+    const nodeR = 7;
+    const x1 = a.x + ux * nodeR;
+    const y1 = a.y + uy * nodeR;
+    const x2 = b.x - ux * (nodeR + 4);  // leave 4px so arrow tip clears the circle
+    const y2 = b.y - uy * (nodeR + 4);
+    const dim = anyFilter && !(activeIds.has(e.from) && activeIds.has(e.to));
+    const stroke = dim ? 'rgba(148,163,184,0.12)' : 'rgba(148,163,184,0.5)';
+    const marker = dim ? '' : ' marker-end="url(#rag-arrow)"';
+    return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}"
+        stroke="${stroke}" stroke-width="1"${marker}
+        data-from="${escapeHtml(e.from)}" data-to="${escapeHtml(e.to)}"
+        data-relation="${escapeHtml(e.relation)}" data-note="${escapeHtml(e.note || '')}"
+        style="cursor:pointer; transition:stroke 0.15s;"
+        onmouseover="this.style.stroke='#a855f7'; this.style.strokeWidth='2'; _ragGraphHoverEdge(this);"
+        onmouseout="this.style.stroke='${stroke}'; this.style.strokeWidth='1';" />`;
+  }).join('');
+  const nodesSvg = nodes.map(n => {
+    const c = groupColor(n.group);
+    const r = 7;
+    const dim = anyFilter && !activeIds.has(n.id);
+    const opacity = dim ? 0.18 : 1.0;
+    const ringStroke = dim ? '#fff' : '#fff';
+    const ringWidth = (q && activeIds.has(n.id)) ? 2.5 : 1.5;
+    const ringColor = (q && activeIds.has(n.id)) ? '#fbbf24' : '#fff';
+    return `<g style="cursor:pointer; opacity:${opacity}; transition:opacity 0.2s;" data-id="${escapeHtml(n.id)}"
+        onclick="_ragGraphClickNode('${escapeHtml(n.id)}', event)"
+        onmouseover="this.querySelector('text').style.fontWeight='700';"
+        onmouseout="this.querySelector('text').style.fontWeight='500';">
+      <circle cx="${n.x}" cy="${n.y}" r="${r}" fill="${c}" stroke="${ringColor}" stroke-width="${ringWidth}"/>
+      <text x="${n.x + r + 3}" y="${n.y + 3}" font-size="9" fill="var(--ink)" style="pointer-events:none;">
+        ${escapeHtml(n.id.slice(0, 22))}
+      </text>
+      <title>${escapeHtml(n.label)} — ${escapeHtml(n.source)}</title>
+    </g>`;
+  }).join('');
+  // Apply zoom + pan via viewBox math: zooming in shrinks the viewBox.
+  const v = _ragGraphView;
+  const vw = W / v.zoom, vh = H / v.zoom;
+  const vx = (W - vw) / 2 - v.panX, vy = (H - vh) / 2 - v.panY;
+  wrap.innerHTML = `
+    <svg id="rag-graph-svg" width="100%" height="${H}" viewBox="${vx} ${vy} ${vw} ${vh}" xmlns="http://www.w3.org/2000/svg"
+         onwheel="_ragGraphWheel(event)" onmousedown="_ragGraphPanStart(event)">
+      <defs>
+        <marker id="rag-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5"
+                orient="auto-start-reverse" markerUnits="userSpaceOnUse">
+          <path d="M 0 0 L 10 5 L 0 10 z" fill="#94a3b8" />
+        </marker>
+      </defs>
+      <g id="rag-graph-edges">${edgesSvg}</g>
+      <g id="rag-graph-nodes">${nodesSvg}</g>
+    </svg>
+  `;
+}
+
+// ---------------------------------------------------------------------------
+// Search + filter + zoom + pan + export (v0.14.1)
+// ---------------------------------------------------------------------------
+
+function _ragGraphFilter(q) {
+  _ragGraphFilterState.q = q || '';
+  _ragGraphDraw();
+}
+
+function _ragGraphFilterGroup(gid) {
+  _ragGraphFilterState.group = gid || '';
+  _ragGraphDraw();
+}
+
+function _ragGraphZoom(factor) {
+  _ragGraphView.zoom = Math.max(0.3, Math.min(5, _ragGraphView.zoom * factor));
+  _ragGraphDraw();
+}
+
+function _ragGraphResetZoom() {
+  _ragGraphView = {zoom: 1, panX: 0, panY: 0};
+  _ragGraphDraw();
+}
+
+function _ragGraphWheel(evt) {
+  evt.preventDefault();
+  const factor = evt.deltaY > 0 ? 0.9 : 1.1;
+  _ragGraphZoom(factor);
+}
+
+let _ragGraphPanState = null;
+function _ragGraphPanStart(evt) {
+  // Only pan on the SVG background (not on a node or edge).
+  if (evt.target.tagName === 'circle' || evt.target.tagName === 'line'
+      || evt.target.closest('g[data-id]')) return;
+  evt.preventDefault();
+  _ragGraphPanState = {sx: evt.clientX, sy: evt.clientY,
+                       startPanX: _ragGraphView.panX, startPanY: _ragGraphView.panY};
+  document.addEventListener('mousemove', _ragGraphPanMove);
+  document.addEventListener('mouseup', _ragGraphPanEnd, {once: true});
+}
+function _ragGraphPanMove(evt) {
+  if (!_ragGraphPanState || !_ragGraphSim) return;
+  const dx = evt.clientX - _ragGraphPanState.sx;
+  const dy = evt.clientY - _ragGraphPanState.sy;
+  // Convert screen pixels to viewBox units.
+  const factor = 1 / _ragGraphView.zoom;
+  _ragGraphView.panX = _ragGraphPanState.startPanX + dx * factor;
+  _ragGraphView.panY = _ragGraphPanState.startPanY + dy * factor;
+  _ragGraphDraw();
+}
+function _ragGraphPanEnd() {
+  document.removeEventListener('mousemove', _ragGraphPanMove);
+  _ragGraphPanState = null;
+}
+
+function _ragGraphExportSvg() {
+  const svg = document.getElementById('rag-graph-svg');
+  if (!svg) { alert('Graph not rendered yet.'); return; }
+  // Inline a sane background + clone so the downloaded SVG renders standalone.
+  const clone = svg.cloneNode(true);
+  clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+  // Resolve `var(--ink)` and `var(--bg)` to literals so the file is portable.
+  const cs = getComputedStyle(document.body);
+  const ink = cs.getPropertyValue('--ink').trim() || '#0f172a';
+  const bg = cs.getPropertyValue('--bg').trim() || '#ffffff';
+  clone.querySelectorAll('text').forEach(t => t.setAttribute('fill', ink));
+  const bgRect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+  bgRect.setAttribute('x', '0'); bgRect.setAttribute('y', '0');
+  bgRect.setAttribute('width', '100%'); bgRect.setAttribute('height', '100%');
+  bgRect.setAttribute('fill', bg);
+  clone.insertBefore(bgRect, clone.firstChild);
+  const xml = new XMLSerializer().serializeToString(clone);
+  const blob = new Blob([xml], {type: 'image/svg+xml'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `duecare-rag-graph-${new Date().toISOString().slice(0, 10)}.svg`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function _ragGraphClickNode(id, evt) {
+  if (!_ragGraphSim) return;
+  const node = _ragGraphSim.nodeById[id];
+  if (!node) return;
+  if (evt && evt.shiftKey) {
+    // Shift-click pins/unpins
+    if (_ragGraphPinned.has(id)) {
+      _ragGraphPinned.delete(id);
+      node.fx = null; node.fy = null;
+    } else {
+      _ragGraphPinned.add(id);
+      node.fx = node.x; node.fy = node.y;
+    }
+    _ragGraphDraw();
+    return;
+  }
+  const detail = document.getElementById('rag-graph-detail');
+  if (!detail) return;
+  // Find edges incident to this node
+  const incident = (_ragGraphSim.edges || []).filter(e => e.from === id || e.to === id);
+  const seeAlso = incident.length ? `
+    <div style="margin-top:14px; padding-top:10px; border-top:1px dashed var(--border);">
+      <strong style="color:#7c3aed;">Citation edges (${incident.length}):</strong>
+      <ul style="margin:6px 0 0 0; padding:0 0 0 16px; font-size:10.5px;">
+        ${incident.slice(0, 12).map(e => {
+          const arrow = e.from === id ? `→ <code>${escapeHtml(e.to)}</code>` : `← <code>${escapeHtml(e.from)}</code>`;
+          return `<li style="margin-bottom:4px;"><span style="color:var(--muted);">${escapeHtml(e.relation.replace(/_/g, ' '))}</span> ${arrow}${e.note ? `<div style="color:var(--muted); font-style:italic; margin-top:1px;">${escapeHtml(e.note)}</div>` : ''}</li>`;
+        }).join('')}
+      </ul>
+    </div>` : '';
+  detail.innerHTML = `
+    <div style="font-size:10.5px; color:var(--muted); text-transform:uppercase; letter-spacing:0.4px;">${escapeHtml(node.group.replace(/_/g, ' '))}</div>
+    <h4 style="margin:4px 0 4px; color:var(--ink); font-size:13px;">${escapeHtml(node.label)}</h4>
+    <div style="font-size:10.5px; color:var(--muted); margin-bottom:8px;">${escapeHtml(node.source)}</div>
+    <div style="color:#cbd5e1; font-size:11px; line-height:1.6; white-space:pre-wrap;">${escapeHtml(node.snippet)}</div>
+    ${seeAlso}
+  `;
+}
+
+function _ragGraphHoverEdge(elem) {
+  if (!elem) return;
+  const detail = document.getElementById('rag-graph-detail');
+  if (!detail) return;
+  const from = elem.getAttribute('data-from');
+  const to = elem.getAttribute('data-to');
+  const rel = elem.getAttribute('data-relation');
+  const note = elem.getAttribute('data-note');
+  detail.innerHTML = `
+    <div style="font-size:10.5px; color:var(--muted); text-transform:uppercase; letter-spacing:0.4px;">Citation edge</div>
+    <h4 style="margin:4px 0 4px; color:var(--ink); font-size:13px;">${escapeHtml(rel.replace(/_/g, ' '))}</h4>
+    <div style="font-size:11px; color:var(--ink); margin-bottom:8px;">
+      <code>${escapeHtml(from)}</code> → <code>${escapeHtml(to)}</code>
+    </div>
+    ${note ? `<div style="font-size:10.5px; color:var(--muted); font-style:italic;">${escapeHtml(note)}</div>` : '<div style="color:var(--muted); font-size:10.5px;">No curator note for this edge.</div>'}
+  `;
+}
+
+function _ragGraphSettle() {
+  if (!_ragGraphSim) return;
+  for (let i = 0; i < 250; i++) _ragGraphTick();
+  _ragGraphDraw();
+}
+
+async function _clearEmbedCache() {
+  if (!confirm('Clear the embedding cache? Next hybrid_rrf retrievals will pay the re-encode cost.')) return;
+  try {
+    const r = await fetch('/api/retrieval/embed-cache/clear', {method: 'POST'});
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    _renderRetrievalConfigPanel();
+  } catch (e) {
+    alert('Cache clear failed: ' + (e.message || e));
+  }
+}
+
+async function _retrievalConfigSet(key, value) {
+  try {
+    const body = {[key]: value};
+    const r = await fetch('/api/retrieval/config', {
+      method: 'POST', headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(body),
+    });
+    if (!r.ok) {
+      const t = await r.text();
+      alert('Config update failed: ' + t.slice(0, 200));
+      return;
+    }
+    // Re-render so the active highlight + actual stored value match.
+    _renderRetrievalConfigPanel();
+  } catch (e) {
+    alert('Config update failed: ' + (e.message || e));
+  }
+}
+
+// ===========================================================================
+// A/B COMPARE PANEL
+// ---------------------------------------------------------------------------
+// Same prompt, two harness configurations, side-by-side grades. Replaces the
+// previous misleading "stock 6% vs harnessed 88%" static benchmark line —
+// now you can A/B YOUR OWN prompts live and see whether the harness moves
+// the needle on this specific question.
+// ===========================================================================
+const COMPARE_TOGGLES = ['persona', 'grep', 'rag', 'tools', 'online', 'import_corpus'];
+const COMPARE_TOGGLE_LABELS = {
+  persona: 'Persona', grep: 'GREP', rag: 'RAG',
+  tools: 'Tools', online: 'Online', import_corpus: 'Import',
+};
+const COMPARE_PRESETS = {
+  stock:   {persona: false, grep: false, rag: false, tools: false, online: false, import_corpus: false},
+  all:     {persona: true,  grep: true,  rag: true,  tools: true,  online: true,  import_corpus: false},
+  greprag: {persona: false, grep: true,  rag: true,  tools: false, online: false, import_corpus: false},
+  search:  {persona: false, grep: false, rag: false, tools: false, online: true,  import_corpus: false},
+  persona: {persona: true,  grep: false, rag: false, tools: false, online: false, import_corpus: false},
+};
+
+let _compareState = {
+  prompt: '',
+  togglesA: {...COMPARE_PRESETS.stock},
+  togglesB: {...COMPARE_PRESETS.all},
+  gradeMode: 'universal',  // 'universal' (Rule) | 'deep' (LLM) | 'combined'
+  isRunning: false,
+  results: null,           // {variantA, variantB, gradeMode, prompt, ts}
+  abortController: null,   // v0.7.1: in-flight Compare run cancellation
+};
+
+// v0.7.1: cancel any in-flight Compare run. Called on modal close /
+// before starting a new run. Safe to call when nothing is running.
+function _abortCompareRun() {
+  if (_compareState.abortController) {
+    try { _compareState.abortController.abort(); } catch (e) {}
+    _compareState.abortController = null;
+  }
+  _compareState.isRunning = false;
+}
+
+function openCompareModal() {
+  if (typeof _setModalChrome === 'function') {
+    _setModalChrome('compare', 'A/B Compare — same prompt, two harness configs', '');
+  }
+  _renderComparePanel();
+  document.getElementById('modal-overlay').classList.add('active');
+}
+
+function _renderComparePanel() {
+  const body = document.getElementById('modal-body');
+  if (!body) return;
+  const s = _compareState;
+  body.innerHTML = `
+    <div style="margin-bottom:14px; padding:10px 12px; background:rgba(245,158,11,0.06); border-left:3px solid #f59e0b; border-radius:4px;">
+      <div style="font-weight:700; color:#f59e0b; margin-bottom:4px;">How this works</div>
+      <div style="font-size:11.5px; line-height:1.55;">
+        Run the same prompt through TWO harness configurations. Both responses get auto-graded with the mode you select. The side-by-side report shows per-dimension verdict deltas + total score difference. Use this to verify the harness is actually moving the needle on YOUR prompts — not just a 207-prompt offline reference average.
+      </div>
+    </div>
+
+    <div style="margin-bottom:12px;">
+      <label style="font-size:11px; color:var(--muted); font-weight:700; text-transform:uppercase; letter-spacing:0.4px;">Shared prompt (sent to both variants)</label>
+      <textarea id="compare-prompt" rows="4" placeholder="e.g. I am interviewing a 23-year-old Filipina who tells me her Manila agency took PHP 50,000…" style="width:100%; margin-top:4px; padding:8px 10px; background:var(--bg); color:var(--ink); border:1px solid var(--border); border-radius:6px; font-size:12.5px; font-family:inherit; line-height:1.5; resize:vertical; box-sizing:border-box;">${escapeHtml(s.prompt)}</textarea>
+    </div>
+
+    <div class="compare-grid" style="margin-bottom:14px;">
+      ${_renderCompareVariantConfig('a', s.togglesA)}
+      ${_renderCompareVariantConfig('b', s.togglesB)}
+    </div>
+
+    <div style="margin-bottom:14px; padding:10px 12px; background:var(--bg); border:1px solid var(--border); border-radius:6px;">
+      <label style="font-size:11px; color:var(--muted); font-weight:700; text-transform:uppercase; letter-spacing:0.4px;">Grade mode (applied to both)</label>
+      <div style="display:flex; gap:6px; margin-top:6px; flex-wrap:wrap;">
+        ${[
+          ['universal', 'Rule-Based',  'Deterministic keyword + cluster scoring (~1s).'],
+          ['deep',      'LLM-Based',   'Each dim becomes a yes/no question to Gemma (~5-10 min/variant).'],
+          ['combined',  'Combined',    'Rule-Based + LLM-Based, blended 50/50.'],
+        ].map(([val, label, desc]) => `
+          <label style="flex:1; min-width:180px; display:flex; flex-direction:column; gap:2px; padding:8px 10px; border:1px solid ${s.gradeMode === val ? '#f59e0b' : 'var(--border)'}; border-radius:6px; cursor:pointer; ${s.gradeMode === val ? 'background:rgba(245,158,11,0.08);' : ''}">
+            <div style="display:flex; align-items:center; gap:6px;">
+              <input type="radio" name="compare-grade-mode" value="${val}" ${s.gradeMode === val ? 'checked' : ''} onchange="_compareSetGradeMode('${val}')">
+              <span style="font-size:12.5px; font-weight:600; color:var(--ink);">${escapeHtml(label)}</span>
+            </div>
+            <div style="font-size:10.5px; color:var(--muted); margin-left:20px;">${escapeHtml(desc)}</div>
+          </label>
+        `).join('')}
+      </div>
+    </div>
+
+    <div style="display:flex; gap:8px; align-items:center; margin-bottom:14px;">
+      <button onclick="runCompare()" id="compare-run-btn"
+              style="background:#f59e0b; color:#fff; border:0; padding:10px 18px; border-radius:8px; font-size:13px; font-weight:600; cursor:${s.isRunning ? 'not-allowed' : 'pointer'}; opacity:${s.isRunning ? 0.6 : 1};"
+              ${s.isRunning ? 'disabled' : ''}>
+        ${s.isRunning ? '⏳ Running…' : 'Run comparison →'}
+      </button>
+      <span style="color:var(--muted); font-size:11.5px;">
+        ${s.gradeMode === 'universal' ? '~30s total (chat both + grade both)' :
+          s.gradeMode === 'deep'      ? '~12-22 min total (LLM grader runs ~5-10 min per variant)' :
+                                          '~12-22 min total (Combined runs both grading passes)'}
+      </span>
+    </div>
+
+    <div id="compare-results-pane">
+      ${s.results ? _renderCompareResults(s.results) :
+                    '<div style="color:var(--muted); font-size:12px; font-style:italic; padding:14px 0;">No comparison run yet. Configure the variants above and click Run.</div>'}
+    </div>
+  `;
+}
+
+function _renderCompareVariantConfig(side, toggles) {
+  const sideUp = side.toUpperCase();
+  const accentColor = side === 'a' ? '#3b82f6' : '#10b981';
+  const presetSelect = `
+    <select onchange="_compareApplyPreset('${side}', this.value); this.value='';"
+            style="margin-bottom:8px; padding:6px 8px; background:var(--bg); color:var(--ink); border:1px solid var(--border); border-radius:4px; font-size:11.5px; width:100%;">
+      <option value="">— Apply a preset —</option>
+      <option value="stock">Stock (no harness)</option>
+      <option value="all">All layers on</option>
+      <option value="greprag">GREP + RAG only</option>
+      <option value="search">Online search only</option>
+      <option value="persona">Persona only</option>
+      <option value="current">Current chat-tab toggles</option>
+    </select>`;
+  const togglesHtml = COMPARE_TOGGLES.map(t => {
+    const checked = toggles[t] ? 'checked' : '';
+    return `
+      <label class="compare-toggle-row">
+        <input type="checkbox" data-side="${side}" data-toggle="${t}" ${checked} onchange="_compareToggleChange('${side}', '${t}', this.checked)">
+        <span style="color:var(--ink);">${COMPARE_TOGGLE_LABELS[t]}</span>
+      </label>`;
+  }).join('');
+  const nOn = Object.values(toggles).filter(Boolean).length;
+  return `
+    <div class="compare-variant side-${side}">
+      <div style="font-weight:700; font-size:13px; color:${accentColor}; margin-bottom:8px;">Variant ${sideUp}</div>
+      ${presetSelect}
+      <div style="margin-top:6px; padding-top:6px; border-top:1px solid var(--border); display:flex; flex-direction:column; gap:1px;">
+        ${togglesHtml}
+      </div>
+      <div style="margin-top:8px; font-size:10.5px; color:var(--muted); font-style:italic;">
+        ${nOn === 0 ? 'No layers — raw Gemma baseline' : `${nOn} layer(s) on`}
+      </div>
+    </div>`;
+}
+
+function _compareApplyPreset(side, presetId) {
+  if (!presetId) return;
+  const stateKey = side === 'a' ? 'togglesA' : 'togglesB';
+  if (presetId === 'current') {
+    // Read live state from the chat-tab tile DOM (same pattern the
+    // regular send path uses at line ~5076). Each tile carries its
+    // enabled state on `data-enabled`; we map our compare toggle keys
+    // to the corresponding tile id.
+    const tileIdFor = {
+      persona:       'tile-persona',
+      grep:          'tile-grep',
+      rag:           'tile-rag',
+      tools:         'tile-tools',
+      online:        'tile-online',
+      import_corpus: 'tile-import',
+    };
+    const out = {};
+    for (const t of COMPARE_TOGGLES) {
+      const el = document.getElementById(tileIdFor[t]);
+      out[t] = !!(el && el.dataset.enabled === 'true');
+    }
+    _compareState[stateKey] = out;
+  } else if (COMPARE_PRESETS[presetId]) {
+    _compareState[stateKey] = {...COMPARE_PRESETS[presetId]};
+  }
+  _renderComparePanel();
+}
+
+function _compareToggleChange(side, toggle, checked) {
+  const stateKey = side === 'a' ? 'togglesA' : 'togglesB';
+  _compareState[stateKey][toggle] = checked;
+  // Re-render so the n-layer summary updates without losing checkbox state.
+  // (Since we re-render the whole panel, the textarea content is preserved
+  // via _compareState.prompt updated below.)
+  const promptEl = document.getElementById('compare-prompt');
+  if (promptEl) _compareState.prompt = promptEl.value;
+  _renderComparePanel();
+}
+
+function _compareSetGradeMode(mode) {
+  _compareState.gradeMode = mode;
+  const promptEl = document.getElementById('compare-prompt');
+  if (promptEl) _compareState.prompt = promptEl.value;
+  _renderComparePanel();
+}
+
+async function runCompare() {
+  const promptEl = document.getElementById('compare-prompt');
+  if (!promptEl) return;
+  const prompt = promptEl.value.trim();
+  if (!prompt) {
+    alert('Enter a prompt to compare.');
+    return;
+  }
+  // v0.7.1: cancel any prior in-flight run before starting a new one.
+  // Without this, a re-click would race two parallel pipelines and
+  // overwrite results unpredictably.
+  _abortCompareRun();
+  _compareState.abortController = new AbortController();
+  _compareState.prompt = prompt;
+  _compareState.isRunning = true;
+  _compareState.results = null;
+  _renderComparePanel();
+
+  const pane = document.getElementById('compare-results-pane');
+  const log = (msg) => {
+    if (pane) pane.innerHTML = `<div style="color:var(--muted); font-size:12.5px; font-style:italic; padding:14px 0;">⏳ ${escapeHtml(msg)}</div>`;
+  };
+
+  const signal = _compareState.abortController.signal;
+  try {
+    log('Step 1/4 — Variant A: chat call running…');
+    const t0 = Date.now();
+    const respA = await _compareRunChatOnce(prompt, _compareState.togglesA, signal);
+    const tA = Date.now() - t0;
+    log(`Variant A response done (${(tA/1000).toFixed(1)}s · ${(respA.response || '').length} chars). Step 2/4 — Variant B: chat call running…`);
+
+    const t1 = Date.now();
+    const respB = await _compareRunChatOnce(prompt, _compareState.togglesB, signal);
+    const tB = Date.now() - t1;
+    log(`Variant B response done (${(tB/1000).toFixed(1)}s · ${(respB.response || '').length} chars). Step 3/4 — Grading variant A (${_compareState.gradeMode})…`);
+
+    const t2 = Date.now();
+    const gradeA = await _compareRunGradeOnce(respA.response, prompt, _compareState.gradeMode, respA.harness_trace, signal);
+    const gA = Date.now() - t2;
+    log(`Variant A graded (${(gA/1000).toFixed(1)}s). Step 4/4 — Grading variant B…`);
+
+    const t3 = Date.now();
+    const gradeB = await _compareRunGradeOnce(respB.response, prompt, _compareState.gradeMode, respB.harness_trace, signal);
+    const gB = Date.now() - t3;
+
+    _compareState.results = {
+      ts: new Date().toISOString(),
+      gradeMode: _compareState.gradeMode,
+      prompt,
+      variantA: {response: respA.response, trace: respA.harness_trace, grade: gradeA, chat_ms: tA, grade_ms: gA, toggles: {..._compareState.togglesA}},
+      variantB: {response: respB.response, trace: respB.harness_trace, grade: gradeB, chat_ms: tB, grade_ms: gB, toggles: {..._compareState.togglesB}},
+    };
+  } catch (e) {
+    // AbortError from a user-triggered cancel (modal close / new run)
+    // is not really an error — keep the panel quiet.
+    if (e && e.name === 'AbortError') {
+      _compareState.isRunning = false;
+      return;
+    }
+    if (pane) pane.innerHTML = `<div style="color:#ef4444; padding:14px 0;">Error during comparison: ${escapeHtml(String(e.message || e))}</div>`;
+    _compareState.isRunning = false;
+    _compareState.abortController = null;
+    return;
+  }
+  _compareState.isRunning = false;
+  _compareState.abortController = null;
+  _renderComparePanel();
+}
+
+async function _compareRunChatOnce(prompt, toggles, signal) {
+  const payload = {
+    messages: [{role: 'user', content: [{type: 'text', text: prompt}]}],
+    generation: {temperature: 0.7, max_new_tokens: 1024},
+    toggles: {
+      persona:        !!toggles.persona,
+      grep:           !!toggles.grep,
+      rag:            !!toggles.rag,
+      tools:          !!toggles.tools,
+      online:         !!toggles.online,
+      import_corpus:  !!toggles.import_corpus,
+      // Defaults matching the regular chat-send shape so the server's
+      // Pydantic model accepts the request.
+      custom_grep_rules:   [],
+      custom_rag_docs:     [],
+      custom_import_docs:  [],
+      persona_text:        '',
+    },
+  };
+  const r = await fetch('/api/chat/send', {
+    method: 'POST', headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify(payload),
+    signal,
+  });
+  if (!r.ok) {
+    const errTxt = await r.text().catch(() => '');
+    throw new Error('chat/send HTTP ' + r.status + (errTxt ? ' · ' + errTxt.slice(0, 200) : ''));
+  }
+  const reader = r.body.getReader();
+  const decoder = new TextDecoder('utf-8');
+  let buf = '', result = null;
+  while (true) {
+    const {done, value} = await reader.read();
+    if (done) break;
+    buf += decoder.decode(value, {stream: true});
+    let sep;
+    while ((sep = buf.indexOf('\n\n')) !== -1) {
+      const event = buf.slice(0, sep);
+      buf = buf.slice(sep + 2);
+      if (!event.startsWith('data:')) continue;
+      try {
+        const evt = JSON.parse(event.slice(5).trim());
+        if (evt.type === 'complete' || evt.response !== undefined) result = evt;
+        else if (evt.type === 'error') throw new Error(evt.error || 'stream error');
+      } catch (parseErr) {
+        // v0.7.1: distinguish JSON parse errors (skip) from server-
+        // emitted error events (rethrow). The previous "starts with
+        // 'Unexpected'" heuristic also swallowed any server error
+        // text that happened to begin with that word — silent
+        // failure mode.
+        if (parseErr instanceof SyntaxError) continue;
+        throw parseErr;
+      }
+    }
+  }
+  if (!result) throw new Error('no completion event from chat/send');
+  return result;
+}
+
+async function _compareRunGradeOnce(responseText, promptText, mode, harnessTrace, signal) {
+  if (mode === 'universal') {
+    const r = await fetch('/api/grade', {
+      method: 'POST', headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({response_text: responseText, prompt_text: promptText, harness_trace: harnessTrace, mode: 'universal'}),
+      signal,
+    });
+    if (!r.ok) {
+      const errTxt = await r.text().catch(() => '');
+      throw new Error('grade HTTP ' + r.status + (errTxt ? ' · ' + errTxt.slice(0, 200) : ''));
+    }
+    return await r.json();
+  }
+  const url = mode === 'deep' ? '/api/grade-deep-stream' : '/api/grade-combined-stream';
+  const body = mode === 'deep'
+    ? {response_text: responseText, prompt_text: promptText}
+    : {response_text: responseText, prompt_text: promptText, evaluator_weight: 0.5};
+  const r = await fetch(url, {
+    method: 'POST', headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify(body),
+    signal,
+  });
+  if (!r.ok) {
+    const errTxt = await r.text().catch(() => '');
+    throw new Error(`${url} HTTP ${r.status}` + (errTxt ? ' · ' + errTxt.slice(0, 200) : ''));
+  }
+  const reader = r.body.getReader();
+  const decoder = new TextDecoder('utf-8');
+  let buf = '', result = null;
+  while (true) {
+    const {done, value} = await reader.read();
+    if (done) break;
+    buf += decoder.decode(value, {stream: true});
+    let sep;
+    while ((sep = buf.indexOf('\n\n')) !== -1) {
+      const event = buf.slice(0, sep);
+      buf = buf.slice(sep + 2);
+      if (!event.startsWith('data:')) continue;
+      try {
+        const evt = JSON.parse(event.slice(5).trim());
+        if (evt.type === 'complete') result = evt.result || evt;
+        else if (evt.type === 'error') throw new Error(evt.error || 'stream error');
+      } catch (parseErr) {
+        if (parseErr instanceof Error && parseErr.message !== 'stream error') {
+          if (!parseErr.message.startsWith('Unexpected')) throw parseErr;
+        }
+      }
+    }
+  }
+  if (!result) throw new Error(`no completion event from ${url}`);
+  return result;
+}
+
+function _compareExtractScore(g) {
+  if (!g) return null;
+  if (typeof g.pct_score === 'number') return g.pct_score;
+  if (g.deterministic && typeof g.deterministic.pct_score === 'number') return g.deterministic.pct_score;
+  if (g.evaluator && typeof g.evaluator.pct_score === 'number') return g.evaluator.pct_score;
+  if (typeof g.combined_pct === 'number') return g.combined_pct;
+  return null;
+}
+
+function _compareTogglesSummary(t) {
+  const on = COMPARE_TOGGLES.filter(k => t[k]).map(k => COMPARE_TOGGLE_LABELS[k]);
+  return on.length ? on.join(' + ') : 'No layers (stock)';
+}
+
+function _renderCompareResults(r) {
+  const A = r.variantA, B = r.variantB;
+  const sA = _compareExtractScore(A.grade);
+  const sB = _compareExtractScore(B.grade);
+  const delta = (sA != null && sB != null) ? (sB - sA) : null;
+  const deltaCls = delta == null ? 'compare-delta-zero' :
+                   delta > 0.5 ? 'compare-delta-pos' :
+                   delta < -0.5 ? 'compare-delta-neg' : 'compare-delta-zero';
+  const deltaStr = delta == null ? 'n/a' :
+                   `${delta > 0 ? '+' : ''}${delta.toFixed(1)}pp`;
+
+  // Per-dimension delta table — works for Rule-Based (status field) and
+  // LLM-Based (verdict field). Combined returns nested deterministic +
+  // evaluator dim arrays — we use the evaluator one for the visible table.
+  const dimsOf = (g) => {
+    if (!g) return [];
+    if (Array.isArray(g.dimensions)) return g.dimensions;
+    if (g.evaluator && Array.isArray(g.evaluator.dimensions)) return g.evaluator.dimensions;
+    if (g.deterministic && Array.isArray(g.deterministic.dimensions)) return g.deterministic.dimensions;
+    return [];
+  };
+  const dimsA = dimsOf(A.grade), dimsB = dimsOf(B.grade);
+  const idsByA = {}, idsByB = {};
+  for (const d of dimsA) idsByA[d.id] = d;
+  for (const d of dimsB) idsByB[d.id] = d;
+  const allIds = [...new Set([...Object.keys(idsByA), ...Object.keys(idsByB)])];
+  const verdictRank = {PASS: 2, YES: 2, PARTIAL: 1, FAIL: 0, NO: 0, N_A: -1, NOT_APPLICABLE: -1, UNCERTAIN: 0.5};
+  const verdictColor = (s) => ({PASS: '#10b981', YES: '#10b981', PARTIAL: '#f59e0b',
+                                 FAIL: '#ef4444', NO: '#ef4444', N_A: '#94a3b8',
+                                 NOT_APPLICABLE: '#94a3b8', UNCERTAIN: '#a855f7'})[s] || '#94a3b8';
+  const dimRows = allIds.map(id => {
+    const dA = idsByA[id] || {};
+    const dB = idsByB[id] || {};
+    const stA = String(dA.status || dA.verdict || 'N/A').toUpperCase().replace(/[\/\s-]/g, '_');
+    const stB = String(dB.status || dB.verdict || 'N/A').toUpperCase().replace(/[\/\s-]/g, '_');
+    const rA = verdictRank[stA] != null ? verdictRank[stA] : -1;
+    const rB = verdictRank[stB] != null ? verdictRank[stB] : -1;
+    const moved = (rA !== rB);
+    const movedStr = !moved ? '·' : (rB > rA ? '↑' : '↓');
+    const movedCls = !moved ? 'compare-delta-zero' : (rB > rA ? 'compare-delta-pos' : 'compare-delta-neg');
+    return `
+      <tr>
+        <td style="padding:5px 8px; font-size:11px; color:var(--ink);">${escapeHtml(dA.name || dB.name || id)}</td>
+        <td style="padding:5px 8px; text-align:center;"><span style="background:${verdictColor(stA)}; color:#fff; padding:1px 6px; border-radius:3px; font-size:10px; font-weight:700;">${escapeHtml(stA.replace('_', '/'))}</span></td>
+        <td style="padding:5px 8px; text-align:center;"><span style="background:${verdictColor(stB)}; color:#fff; padding:1px 6px; border-radius:3px; font-size:10px; font-weight:700;">${escapeHtml(stB.replace('_', '/'))}</span></td>
+        <td style="padding:5px 8px; text-align:center;"><span class="compare-delta-pill ${movedCls}">${escapeHtml(movedStr)}</span></td>
+      </tr>`;
+  }).join('');
+
+  const tracePreview = (trace) => {
+    if (!trace) return '<div style="color:var(--muted); font-style:italic; font-size:11px;">no trace data</div>';
+    const layers = ['persona', 'grep', 'rag', 'import', 'tools', 'online'];
+    return '<div style="display:flex; flex-direction:column; gap:3px;">' + layers.map(l => {
+      const t = trace[l];
+      if (!t) return '';
+      const fired = t.fired ? `<span style="color:#10b981; min-width:14px;">✓</span>` :
+                   !t.enabled ? `<span style="color:#94a3b8; min-width:14px;">○</span>` :
+                                 `<span style="color:#94a3b8; min-width:14px;">—</span>`;
+      const layerLabel = (l === 'import' ? 'IMPORT' : l.toUpperCase());
+      return `<div style="font-size:11px; display:flex; gap:6px; align-items:baseline;">${fired}<span style="font-weight:600; min-width:48px; font-size:9.5px; color:var(--muted);">${layerLabel}</span><span style="color:var(--ink); flex:1;">${escapeHtml(t.summary || (!t.enabled ? 'off' : 'noop'))}</span><span style="color:var(--muted); font-size:10px;">${t.elapsed_ms || 0}ms</span></div>`;
+    }).filter(Boolean).join('') + '</div>';
+  };
+
+  const bottomLine = delta == null
+    ? `Score delta could not be computed from these grade modes (this can happen if both variants returned an N/A-only grade).`
+    : Math.abs(delta) < 1
+      ? `Variants scored within 1pp — harness configuration did NOT meaningfully change the outcome on this prompt. Either the model already handles it well without harness, or the layers you toggled don't apply here.`
+    : delta > 0
+      ? `Variant B (${escapeHtml(_compareTogglesSummary(B.toggles))}) scored <b>${delta.toFixed(1)}pp higher</b> than Variant A. The added layers contributed positively on THIS prompt.`
+      : `Variant A (${escapeHtml(_compareTogglesSummary(A.toggles))}) scored <b>${Math.abs(delta).toFixed(1)}pp higher</b> than Variant B. The added layers may have hurt rather than helped on this prompt — inspect the per-dim deltas below to see which dims regressed.`;
+  const bottomBg = delta != null && Math.abs(delta) >= 5 ? (delta > 0 ? 'rgba(16,185,129,0.06)' : 'rgba(239,68,68,0.06)') : 'rgba(148,163,184,0.06)';
+  const bottomBorder = delta != null && Math.abs(delta) >= 5 ? (delta > 0 ? '#10b981' : '#ef4444') : '#94a3b8';
+
+  const movedCount = dimRows ? allIds.filter(id => {
+    const dA = idsByA[id] || {}, dB = idsByB[id] || {};
+    const stA = String(dA.status || dA.verdict || 'N/A').toUpperCase().replace(/[\/\s-]/g, '_');
+    const stB = String(dB.status || dB.verdict || 'N/A').toUpperCase().replace(/[\/\s-]/g, '_');
+    return (verdictRank[stA] || -1) !== (verdictRank[stB] || -1);
+  }).length : 0;
+
+  return `
+    <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:10px;">
+      <div style="font-weight:700; font-size:14px; color:var(--ink);">Comparison results <span style="color:var(--muted); font-weight:400; font-size:11.5px;">· ${escapeHtml(r.gradeMode)} grading · ${escapeHtml(r.ts)}</span></div>
+      <div style="display:flex; gap:6px;">
+        <button onclick="_copyCompareMarkdown()" class="modal-btn secondary" style="font-size:11px; padding:5px 10px;">▸ Copy Markdown</button>
+        <button onclick="_copyCompareJson()" class="modal-btn secondary" style="font-size:11px; padding:5px 10px;">▸ Copy JSON</button>
+      </div>
+    </div>
+
+    <div class="compare-grid" style="margin-bottom:14px;">
+      <div class="compare-variant side-a">
+        <div style="font-size:10px; color:var(--muted); text-transform:uppercase; font-weight:700;">Variant A · ${escapeHtml(_compareTogglesSummary(A.toggles))}</div>
+        <div style="font-size:32px; font-weight:700; color:#3b82f6; margin:4px 0;">${sA != null ? sA.toFixed(1) + '%' : 'n/a'}</div>
+        <div style="font-size:11px; color:var(--muted);">${(A.response || '').length} chars · chat ${(A.chat_ms/1000).toFixed(1)}s · grade ${(A.grade_ms/1000).toFixed(1)}s</div>
+      </div>
+      <div class="compare-variant side-b">
+        <div style="font-size:10px; color:var(--muted); text-transform:uppercase; font-weight:700;">Variant B · ${escapeHtml(_compareTogglesSummary(B.toggles))}</div>
+        <div style="font-size:32px; font-weight:700; color:#10b981; margin:4px 0;">${sB != null ? sB.toFixed(1) + '%' : 'n/a'} <span class="compare-delta-pill ${deltaCls}" style="font-size:13px; vertical-align:middle; margin-left:6px;">${escapeHtml(deltaStr)}</span></div>
+        <div style="font-size:11px; color:var(--muted);">${(B.response || '').length} chars · chat ${(B.chat_ms/1000).toFixed(1)}s · grade ${(B.grade_ms/1000).toFixed(1)}s</div>
+      </div>
+    </div>
+
+    <div style="padding:10px 12px; margin-bottom:14px; background:${bottomBg}; border-left:3px solid ${bottomBorder}; border-radius:4px; font-size:12px; line-height:1.5;">
+      <b>Bottom line:</b> ${bottomLine}
+      <div style="margin-top:6px; color:var(--muted); font-size:11px;">${movedCount} of ${allIds.length} dimensions changed verdict between A and B.</div>
+    </div>
+
+    <details style="margin-bottom:14px;">
+      <summary style="cursor:pointer; font-weight:700; font-size:12.5px; color:var(--ink); padding:6px 0; user-select:none;">▸ Harness pipeline (both sides)</summary>
+      <div class="compare-grid" style="margin-top:8px;">
+        <div class="compare-variant side-a"><div style="font-weight:700; font-size:11px; color:#3b82f6; margin-bottom:6px;">Variant A pipeline</div>${tracePreview(A.trace)}</div>
+        <div class="compare-variant side-b"><div style="font-weight:700; font-size:11px; color:#10b981; margin-bottom:6px;">Variant B pipeline</div>${tracePreview(B.trace)}</div>
+      </div>
+    </details>
+
+    <details open style="margin-bottom:14px;">
+      <summary style="cursor:pointer; font-weight:700; font-size:12.5px; color:var(--ink); padding:6px 0; user-select:none;">▸ Responses (full text, both sides)</summary>
+      <div class="compare-grid" style="margin-top:8px;">
+        <div class="compare-variant side-a"><div style="font-weight:700; font-size:11px; color:#3b82f6; margin-bottom:6px;">Variant A response</div><pre style="margin:0; max-height:420px; overflow-y:auto; white-space:pre-wrap; word-wrap:break-word; font-family:ui-monospace,monospace; font-size:11px; color:#cbd5e1; line-height:1.5;">${escapeHtml(A.response || '')}</pre></div>
+        <div class="compare-variant side-b"><div style="font-weight:700; font-size:11px; color:#10b981; margin-bottom:6px;">Variant B response</div><pre style="margin:0; max-height:420px; overflow-y:auto; white-space:pre-wrap; word-wrap:break-word; font-family:ui-monospace,monospace; font-size:11px; color:#cbd5e1; line-height:1.5;">${escapeHtml(B.response || '')}</pre></div>
+      </div>
+    </details>
+
+    <details open>
+      <summary style="cursor:pointer; font-weight:700; font-size:12.5px; color:var(--ink); padding:6px 0; user-select:none;">▸ Per-dimension verdicts (${allIds.length} dims, ${movedCount} changed)</summary>
+      ${allIds.length ? `
+        <table style="width:100%; border-collapse:collapse; margin-top:8px; font-size:11.5px;">
+          <thead>
+            <tr style="background:var(--bg);">
+              <th style="text-align:left; padding:6px 8px; color:var(--muted); font-size:10.5px; text-transform:uppercase; letter-spacing:0.4px;">Dimension</th>
+              <th style="text-align:center; padding:6px 8px; color:#3b82f6; font-size:10.5px; text-transform:uppercase; letter-spacing:0.4px;">A</th>
+              <th style="text-align:center; padding:6px 8px; color:#10b981; font-size:10.5px; text-transform:uppercase; letter-spacing:0.4px;">B</th>
+              <th style="text-align:center; padding:6px 8px; color:var(--muted); font-size:10.5px; text-transform:uppercase; letter-spacing:0.4px;">Δ</th>
+            </tr>
+          </thead>
+          <tbody>${dimRows}</tbody>
+        </table>` : '<div style="color:var(--muted); font-size:11.5px; font-style:italic; padding:8px 0;">No dimension data in either grade result.</div>'}
+    </details>
+  `;
+}
+
+function _copyCompareMarkdown() {
+  const r = _compareState.results;
+  if (!r) return;
+  const A = r.variantA, B = r.variantB;
+  const sA = _compareExtractScore(A.grade);
+  const sB = _compareExtractScore(B.grade);
+  const delta = (sA != null && sB != null) ? (sB - sA) : null;
+  let md = `# Duecare A/B harness comparison\n\n_Captured ${r.ts}_\n\n`;
+  md += `## Prompt\n\n\`\`\`\n${r.prompt}\n\`\`\`\n\n`;
+  md += `## Configuration\n\n| | Variant A | Variant B |\n|---|---|---|\n`;
+  md += `| Harness layers | ${_compareTogglesSummary(A.toggles)} | ${_compareTogglesSummary(B.toggles)} |\n`;
+  md += `| Score (${r.gradeMode}) | ${sA != null ? sA.toFixed(1) + '%' : 'n/a'} | ${sB != null ? sB.toFixed(1) + '%' : 'n/a'} |\n`;
+  md += `| Δ (B − A) | | ${delta != null ? (delta > 0 ? '+' : '') + delta.toFixed(1) + 'pp' : 'n/a'} |\n`;
+  md += `| Response length | ${(A.response || '').length} chars | ${(B.response || '').length} chars |\n`;
+  md += `| Chat time | ${(A.chat_ms/1000).toFixed(1)}s | ${(B.chat_ms/1000).toFixed(1)}s |\n`;
+  md += `| Grade time | ${(A.grade_ms/1000).toFixed(1)}s | ${(B.grade_ms/1000).toFixed(1)}s |\n\n`;
+  md += `## Variant A response (${_compareTogglesSummary(A.toggles)})\n\n\`\`\`\n${A.response || ''}\n\`\`\`\n\n`;
+  md += `## Variant B response (${_compareTogglesSummary(B.toggles)})\n\n\`\`\`\n${B.response || ''}\n\`\`\`\n`;
+  navigator.clipboard.writeText(md).then(
+    () => alert('Comparison copied as Markdown.'),
+    () => alert('Clipboard write failed — try Copy JSON instead.'));
+}
+
+function _copyCompareJson() {
+  const r = _compareState.results;
+  if (!r) return;
+  navigator.clipboard.writeText(JSON.stringify(r, null, 2)).then(
+    () => alert('Comparison copied as JSON.'),
+    () => alert('Clipboard write failed.'));
 }
 </script>
 </body>

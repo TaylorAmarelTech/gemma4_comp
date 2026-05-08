@@ -8,7 +8,7 @@
 > one-command path to re-measure.
 >
 > **Most important caveat:** the headline lift numbers were last
-> measured BEFORE the v3.16 GREP rule expansion (49 → 108 rules).
+> measured BEFORE the v3.16 GREP rule expansion (49 → 161 rules).
 > They have **not** been re-measured against the larger rule set
 > at the time of submission. We expect the lift to remain at-or-
 > above the cited values (more rules = more catches), but the
@@ -28,11 +28,11 @@
 | **+35 pp** GREP only | writeup §2 (layer ablation) | 2026-05-03 (pre v3.16) | same |
 | **+47 pp** RAG only | writeup §2 (layer ablation) | 2026-05-03 (pre v3.16) | same |
 | **99.3 %** of citations trace to corpus | writeup §2 | 2026-05-03 (pre v3.16) | citation cross-reference vs 106-source corpus (per-citation `grounded_via` field) |
-| **108 GREP rules** (current) | writeup §2 + §3 + UI tile + Pipeline modal | 2026-05-04 (v3.16) | `python scripts/verify.py` confirms `len(GREP_RULES) == 108` |
-| **33 RAG documents** | writeup §3 + UI + Pipeline | 2026-05-04 (v3.16) | `python scripts/verify.py` |
+| **161 GREP rules** (current) | writeup §2 + §3 + UI tile + Pipeline modal | 2026-05-04 (v3.16) | `python scripts/verify.py` confirms `len(GREP_RULES) == 161` |
+| **46 RAG documents** | writeup §3 + UI + Pipeline | 2026-05-04 (v3.16) | `python scripts/verify.py` |
 | **5 lookup tools** | writeup §3 + UI + Pipeline | 2026-05-04 (v3.16) | `python scripts/verify.py` |
-| **407 example prompts** | writeup §3 + Examples modal | 2026-05-04 (v3.16) | `python scripts/verify.py` |
-| **21-dim universal rubric** | writeup §3 + grade footer + Pipeline | 2026-05-04 (v3.16) | `python scripts/verify.py` |
+| **587 example prompts** | writeup §3 + Examples modal | 2026-05-04 (v3.16) | `python scripts/verify.py` |
+| **46-dim universal rubric** | writeup §3 + grade footer + Pipeline | 2026-05-04 (v3.16) | `python scripts/verify.py` |
 | **17 LLM-judge yes/no questions** | writeup §3 + grade footer | 2026-05-04 (v3.16) | `python scripts/verify.py` |
 | **51 classifier examples** (16 originals + 30 persona × corridor + 5 multimodal SVG) | corpus_stats.md, FOR_PEER_REVIEW.md | 2026-05-04 (v3.16) | `python scripts/verify.py` |
 | **207 5-tier rubrics** (per-prompt graded examples) | writeup §2 + harness_lift_report.md | unchanged since 2026-05-02 | `python scripts/verify.py` |
@@ -42,7 +42,7 @@
 ## What changed in v3.16 that may shift the lift numbers
 
 The +56.5 pp headline was measured with the **49-rule** GREP layer
-on 2026-05-03. The v3.16 expansion to **108 rules** added 9
+on 2026-05-03. The v3.16 expansion to **161 rules** added 9
 categories the eval set didn't previously stress:
 
 - Sector-specific labour abuse (10 rules) — construction wage holding,
@@ -103,9 +103,9 @@ python scripts/verify.py
 ```
 
 Confirms all 9 capability counts are at-or-above their published
-floors (108 GREP / 33 RAG / 5 tools / 407 prompts / 207 5-tier
+floors (161 GREP / 46 RAG / 5 tools / 587 prompts / 207 5-tier
 rubrics / 6 required rubrics / 51 classifier examples / 17 universal
-dims / 17 LLM-judge questions). Exits non-zero if any count
+dims / 46 LLM-judge questions). Exits non-zero if any count
 regresses, so this gate catches accidental rule deletions.
 
 ## What you can verify on Kaggle in <5 minutes

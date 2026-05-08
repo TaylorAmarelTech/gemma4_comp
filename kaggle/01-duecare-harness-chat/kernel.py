@@ -8,7 +8,7 @@
   submission visible here:
 
       Persona      expert anti-trafficking persona prepended to context
-      GREP         111 regex KB rules across 16 categories (debt
+      GREP         161 regex KB rules across 31 categories (debt
                      bondage, fee camouflage, corridor fee caps,
                      ILO indicators, kafala framework + extended
                      mechanisms, sector-specific labour abuse,
@@ -17,19 +17,28 @@
                      recovery suppression / repatriation barriers,
                      additional corridors, platform / digital
                      recruitment patterns)
-      RAG          BM25 retrieval over a 35-doc reference corpus
+      RAG          BM25 (+ optional dense + RRF) over a 46-doc
+                     reference corpus across 27 jurisdiction groups,
+                     plus a 46-edge citation graph for 1-hop expansion
+      Imports      user-attached evidence (images / docs / posts)
+                     auto-bound to the prompt context
       Tools        5 lookup functions (corridor fee caps, fee
                      camouflage, ILO indicators, NGO intake, ILO
                      Convention reference)
-      Online       optional agentic web search via Playwright (BYOK
-                     for cloud-search APIs; falls back to DuckDuckGo
-                     HTML when no key)
+      Online       optional agentic web search via Playwright / Brave
+                     (BYOK API key) with httpx deep-fetch and
+                     DuckDuckGo HTML fallback
       Grade        4 modes (Universal / Expert / Deep / Combined) --
-                     Universal = 21-dim multi-signal grader,
-                     Evaluator = LLM-evaluator sending response back
-                     to the loaded model with one yes/no question per
-                     dimension (the framework academic literature
-                     calls 'LLM-as-judge')
+                     Universal = 46-dim multi-signal grader (rubric
+                     v3.10), Evaluator = LLM-evaluator sending response
+                     back to the loaded model with one yes/no question
+                     per applicable dimension (the academic literature
+                     calls this 'LLM-as-judge')
+
+      Static viewers (v0.14.2): /static/harness.html landing page +
+      /static/{persona,grep-rules,rag-corpus,rag-graph,tools,online}.html
+      catalog viewers, all driven by /api/harness-catalog/{layer} and
+      /api/brand. Single source of truth for layer metadata + counts.
 
   MODEL SELECTOR via GEMMA_MODEL_VARIANT env var or edit default below:
 
@@ -230,6 +239,79 @@ subprocess.run([sys.executable, "-m", "pip", "install", "--quiet",
                   "--upgrade", "--no-input",
                   "fastapi>=0.115.0", "uvicorn>=0.30.0"],
                   capture_output=True, text=True)
+
+
+# ===========================================================================
+# DEPLOYMENT SELF-AUDIT (v0.14.5)
+# ---------------------------------------------------------------------------
+# After the wheel install, before the model load, verify that the
+# wheel actually serving the kernel matches what we expect. This
+# kills the chronic "old wheel still serving" phantom-bug class.
+# Override with DUECARE_ALLOW_OLD_WHEEL=1 if you need to run an
+# older wheel intentionally.
+# ===========================================================================
+def _verify_chat_wheel_freshness() -> None:
+  try:
+    from importlib.metadata import version as _pkg_version
+    chat_v = _pkg_version("duecare-llm-chat")
+  except Exception as e:  # noqa: BLE001
+    print(f"  WARN  could not resolve duecare-llm-chat version: {e}")
+    chat_v = "unknown"
+
+  try:
+    from duecare.chat.harness import (
+      GREP_RULES, RAG_CORPUS, RUBRIC_UNIVERSAL,
+    )
+    counts = {
+      "n_grep_rules":  len(GREP_RULES),
+      "n_rag_docs":    len(RAG_CORPUS),
+      "n_dimensions":  len(RUBRIC_UNIVERSAL.get("dimensions", [])),
+      "rubric_version": RUBRIC_UNIVERSAL.get("version", "unknown"),
+    }
+  except Exception as e:  # noqa: BLE001
+    print(f"  ERROR could not import harness counts: {e}")
+    return
+
+  # Submission-minimum thresholds. If actual counts fall below these,
+  # something has gone backwards — fail loudly. The user gets a clear
+  # failure mode (rather than the old phantom "21 dim" mystery) and a
+  # concrete instruction to fix it.
+  expected = {"n_grep_rules": 150, "n_rag_docs": 40,
+                "n_dimensions": 40}
+
+  print()
+  print("=" * 68)
+  print(f"  DUECARE SELF-AUDIT  ·  chat-package {chat_v}")
+  print("=" * 68)
+  for k, v in counts.items():
+    print(f"    {k:18s} {v}")
+  print(f"    rubric           {counts['rubric_version']}")
+  print("=" * 68)
+
+  failures = []
+  for key, minimum in expected.items():
+    if counts.get(key, 0) < minimum:
+      failures.append(
+        f"{key} = {counts.get(key)} < required {minimum}")
+
+  if failures:
+    msg = (
+      "Deployment self-audit FAILED:\n  - "
+      + "\n  - ".join(failures)
+      + "\n\nThis usually means an OLD wheel is still serving. "
+      "Bump the dataset version on Kaggle and restart the kernel. "
+      "To override (intentionally run an older wheel) set "
+      "the environment variable DUECARE_ALLOW_OLD_WHEEL=1."
+    )
+    if os.environ.get("DUECARE_ALLOW_OLD_WHEEL") == "1":
+      print(f"  WARN  {msg}\n  (proceeding because DUECARE_ALLOW_OLD_WHEEL=1)")
+    else:
+      raise RuntimeError(msg)
+  else:
+    print("  ✓ all counts at or above v0.14.x submission minimums")
+
+
+_verify_chat_wheel_freshness()
 
 
 
@@ -918,7 +1000,9 @@ def _load_cloud_route() -> Optional[LoadedModel]:
             with _u.urlopen(req, timeout=120) as resp:
                 data = _json.loads(resp.read())
             try:
-                return data["candidates"][0]["content"]["parts"][0]["text"]
+                from duecare.chat._model_output import sanitize_model_output
+                raw = data["candidates"][0]["content"]["parts"][0]["text"]
+                return sanitize_model_output(raw)
             except (KeyError, IndexError):
                 return f"[gemini error: {data}]"
         return LoadedModel(
@@ -955,7 +1039,9 @@ def _load_cloud_route() -> Optional[LoadedModel]:
                          "Content-Type": "application/json"})
             with _u.urlopen(req, timeout=120) as resp:
                 data = _json.loads(resp.read())
-            return data["choices"][0]["message"]["content"]
+            from duecare.chat._model_output import sanitize_model_output
+            return sanitize_model_output(
+              data["choices"][0]["message"]["content"])
         return LoadedModel(
             backend=_openai_call, tokenizer=None, model=None,
             name=f"{OPENAI_MODEL} (cloud)", size_b=0.0,
@@ -986,8 +1072,10 @@ def _load_cloud_route() -> Optional[LoadedModel]:
                 headers={"Content-Type": "application/json"})
             with _u.urlopen(req, timeout=300) as resp:
                 data = _json.loads(resp.read())
-            return data.get("message", {}).get("content",
-                                                 f"[ollama error: {data}]")
+            from duecare.chat._model_output import sanitize_model_output
+            raw = data.get("message", {}).get("content",
+                                                f"[ollama error: {data}]")
+            return sanitize_model_output(raw)
         return LoadedModel(
             backend=_ollama_call, tokenizer=None, model=None,
             name=f"{OLLAMA_MODEL} (ollama)", size_b=0.0,
@@ -1172,12 +1260,12 @@ def load_gemma() -> Optional[LoadedModel]:
       use_cache=True,
       temperature=temperature, top_p=top_p, top_k=top_k)
     text = tokenizer.batch_decode(out)[0]
-    if "<|turn>model" in text:
-      text = text.split("<|turn>model", 1)[1]
-    if "<channel|>" in text:
-      text = text.split("<channel|>", 1)[1]
-    text = text.split("<turn|>", 1)[0]
-    return text.replace("<bos>", "").replace("<eos>", "").strip()
+    # v0.14.5: single-source sanitizer covers Gemma 4 thinking-mode
+    # <channel|> separator, <thinking>/<think> blocks, turn delimiters,
+    # and template control tokens. Same helper is used by cloud /
+    # Ollama paths so artifacts don't surface on a different backend.
+    from duecare.chat._model_output import sanitize_model_output
+    return sanitize_model_output(text)
 
   _log_load("model backend callable ready", phase="ready")
   return LoadedModel(
@@ -1230,6 +1318,22 @@ def _online_search_dispatch(query: str, top_n: int = 5) -> dict:
     return f(query, top_n=top_n)
 if ENABLE_ONLINE_SEARCH:
     _create_kwargs["online_search_call"] = _online_search_dispatch
+
+# v0.8.0/v0.8.1: optional cross-encoder reranker + dense embedder.
+# Single helper handles env-var toggles + lazy load + cache wrapping.
+# Replaces the 30+ lines of per-kernel boilerplate that used to live
+# here — pattern is now identical across all 13 kernels.
+# Env vars:
+#   ENABLE_RERANKER=1   (default ON  — ~70 MB CPU model)
+#   ENABLE_EMBEDDER=1   (default OFF — ~80 MB CPU model + cache)
+#   DUECARE_DISABLE_*=1 (hard kill switch for either hook)
+try:
+    from duecare.chat.kernel_helpers import default_optional_hooks
+    _create_kwargs.update({k: v for k, v in default_optional_hooks().items()
+                              if v is not None})
+except Exception as _e:  # noqa: BLE001
+    print(f"  · default_optional_hooks failed: {_e}")
+
 app = create_app(**_create_kwargs)
 _attach_shutdown(app)
 
@@ -1555,12 +1659,12 @@ print(f"               jailbroken-31b, jailbroken-e4b,")
 print(f"               cloud-gemini, cloud-openai, cloud-ollama")
 _online_label = "Online (web search)" if ENABLE_ONLINE_SEARCH else "Online (disabled)"
 print(f"   harness:  Persona + GREP ({len(GREP_RULES)} rules across "
-      f"16 categories) + RAG ({len(RAG_CORPUS)} docs) + "
-      f"Tools ({len(_TOOL_DISPATCH)} fns) + {_online_label} + Import (your docs)")
+      f"31 categories) + RAG ({len(RAG_CORPUS)} docs + 46-edge citation graph) + "
+      f"Imports (user evidence) + Tools ({len(_TOOL_DISPATCH)} fns) + {_online_label}")
 print(f"   personas: 1 default + 7 curated (NGO intake, lawyer research,")
 print(f"               regulator audit, journalist fact-check, researcher")
 print(f"               tagging, worker advocate, skeptical reviewer)")
-print(f"   grade:    Rule-Based (21-dim, ~1-3s) / LLM-Based / Combined")
+print(f"   grade:    Rule-Based (46-dim rubric v3.10, ~1-3s) / LLM-Based / Combined")
 print(f"             + Expert legacy (5-dim per-category)")
 print(f"\n   On first page-load, the model picker overlay appears.")
 print(f"   Pick a variant; load takes ~30s (E4B) to ~5-10+ min (31B first run).")

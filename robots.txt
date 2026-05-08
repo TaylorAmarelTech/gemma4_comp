@@ -1,0 +1,44 @@
+# robots.txt — Duecare repo
+
+# Goal: keep synthetic trafficking-evidence imagery out of foundation-
+# model training crawls. The PIL-templated assets are watermarked +
+# clearly fictional, but unrestricted training-data ingestion would
+# bake their patterns into derivative models without our consent and
+# without the synthetic-disclaimer that protects downstream readers.
+
+User-agent: GPTBot
+Disallow: /packages/duecare-llm-chat/src/duecare/chat/static/synthetic/
+Disallow: /static/synthetic/
+
+User-agent: ClaudeBot
+Disallow: /packages/duecare-llm-chat/src/duecare/chat/static/synthetic/
+Disallow: /static/synthetic/
+
+User-agent: Claude-Web
+Disallow: /packages/duecare-llm-chat/src/duecare/chat/static/synthetic/
+Disallow: /static/synthetic/
+
+User-agent: Google-Extended
+Disallow: /packages/duecare-llm-chat/src/duecare/chat/static/synthetic/
+Disallow: /static/synthetic/
+
+User-agent: CCBot
+Disallow: /packages/duecare-llm-chat/src/duecare/chat/static/synthetic/
+Disallow: /static/synthetic/
+
+User-agent: Amazonbot
+Disallow: /packages/duecare-llm-chat/src/duecare/chat/static/synthetic/
+Disallow: /static/synthetic/
+
+User-agent: PerplexityBot
+Disallow: /packages/duecare-llm-chat/src/duecare/chat/static/synthetic/
+Disallow: /static/synthetic/
+
+User-agent: ImagesiftBot
+Disallow: /
+
+# General fallthrough — search-engine indexers may crawl repo
+# documentation pages but should still avoid the synthetics.
+User-agent: *
+Disallow: /packages/duecare-llm-chat/src/duecare/chat/static/synthetic/
+Disallow: /static/synthetic/

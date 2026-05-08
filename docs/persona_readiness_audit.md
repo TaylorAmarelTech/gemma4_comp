@@ -114,7 +114,7 @@ auto-drafted documents are a tangible deliverable.
 |---|---|
 | **Walkthrough** | ✅ [`researcher-analysis.md`](scenarios/researcher-analysis.md) |
 | **Code path** | ✅ benchmark notebook + research-graphs notebook + corpus access |
-| **Fixtures** | ✅ 407 prompts + 22 corridors + 19 ILO indicators tagged |
+| **Fixtures** | ✅ 587 prompts + 22 corridors + 19 ILO indicators tagged |
 | **Doc → demo** | ✅ Plotly graphs + harness-lift report numbers |
 | **In video** | ✅ — likely closing beat ("the researcher who can now reproduce a number from a git SHA") |
 | **Biggest gap** | DOI / Zenodo deposit not yet done — corpus is on GitHub but not citably archived. Post-submission task. |

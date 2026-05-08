@@ -1,17 +1,38 @@
-# Architecture — Gemma Migrant-Worker Safety Judge
+# Architecture — Duecare migrant-worker safety platform
 
 > Comprehensive component-level architecture for the Gemma 4 Good Hackathon
 > submission. This is the single source of truth for what modules exist,
 > what they own, and how they fit together.
 >
 > Audience: anyone (human or AI) picking up this project.
-> Last updated: 2026-05-04.
+> Last updated: 2026-05-08.
+
+> **Eight-component platform framing (canonical as of v0.14.7):**
+>
+> | # | Component | Status |
+> |---|---|---|
+> | 1 | **Duecare Runtime** — Gemma 4 model layer | Live |
+> | 2 | **Duecare Harness** — what this submission ships | Live |
+> | 3 | **Duecare Exchange** — privacy-preserving knowledge sharing | Roadmap |
+> | 4 | **Duecare Eval** — rubrics + benchmarks + regression gate | Partial |
+> | 5 | **Duecare Trainer** — model adaptation pipeline | Prototype (`A-07-bench-and-tune`) |
+> | 6 | **Duecare Sentinel** — continuous-update agent + server | Roadmap |
+> | 7 | **Duecare Channels** — NGO / gov chatbot integrations | Roadmap |
+> | 8 | **Duecare Mobile** — worker-facing Android app | Live (sibling repo) |
+>
+> Per-component overviews: [`docs/architecture/`](architecture/).
+> Canonical product definition: [`docs/product_definition.md`](product_definition.md).
+>
+> The live demo runs without Trainer / Channels / Sentinel /
+> Exchange present — those are non-load-bearing for the hackathon
+> submission. The sections below are the **server-internals view**
+> of components #1, #2, and #4 (the live core).
 
 > **v3.14 update (2026-05-04, T-14 to deadline):** the chat package
 > shape changed substantially since v0.1 architecture was drafted.
 > Quick orientation:
 >
-> **5 harness layers** (was 4): Persona / GREP / RAG / Tools / **Online**
+> **6 harness layers** (was 4): Persona / GREP / RAG / Tools / **Online**
 > (live web search; kernel-supplied so notebook owners swap backends
 > without bumping the wheel).
 >
@@ -32,10 +53,10 @@
 > **`/api/health-check`** smoke endpoint returns wired layers +
 > grade modes + harness counts + model info in one shot.
 >
-> **Bundled content (now):** 108 GREP rules / 33 RAG docs / 5 tools /
-> 21-dim universal rubric / 17 LLM-judge questions / 8 ILO conventions
+> **Bundled content (now):** 161 GREP rules / 46 RAG docs / 5 tools /
+> 46-dim universal rubric / 46 LLM-judge questions / 8 ILO conventions
 > / 16 corridors / 25 fee-camouflage labels / 12 NGO intake groups /
-> 407 example prompts.
+> 587 example prompts.
 >
 > The component-level design below is still authoritative; only the
 > chat package's surface area has expanded.
@@ -305,7 +326,7 @@ output is folded into the final context.
          │
          v
 ┌──────────────────┐
-│  [d] RAG         │   BM25 over 33-doc corpus (ILO conventions,
+│  [d] RAG         │   BM25 over 46-doc corpus (ILO conventions,
 │  (toggle)        │   POEA/BP2MI/Nepal/HK statutes, Saudi MoHR,
 │                  │   Palermo Art. 3(b), ICRMW, Hague, kafala
 │                  │   reforms, substance-over-form anchor)

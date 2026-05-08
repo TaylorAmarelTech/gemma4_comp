@@ -146,7 +146,7 @@ src/demo/
 
 ## For judges
 
-If you're on the Gemma 4 Good Hackathon panel, `docs/FOR_JUDGES.md` at
+If you're on the Gemma 4 Good Hackathon panel, `docs/FOR_KAGGLE_JUDGES.md` at
 the repo root has a focused 5-minute verification walkthrough.
 
 **Privacy is non-negotiable.** The demo runs entirely on your machine

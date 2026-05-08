@@ -410,7 +410,7 @@ def create_app(state: Optional[ServerState] = None) -> FastAPI:
         from duecare.server.heuristics import (
             extract_archive_to_files, extract_text_from_bytes)
         st: ServerState = app.state.duecare
-        if kind not in ("moderate", "worker_check") -> Any:
+        if kind not in ("moderate", "worker_check"):
             raise HTTPException(400,
                 f"kind must be 'moderate' or 'worker_check', got {kind!r}")
         data = await file.read()

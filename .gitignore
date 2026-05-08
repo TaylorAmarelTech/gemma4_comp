@@ -106,3 +106,8 @@ raw_python/
 
 evidence_raw/
 _work/
+
+# Hub runtime data (signal intake JSONL + healthcheck file)
+# Persists to a Render disk in production; never commit local copies.
+.duecare/
+apps/duecare-ai.com/.duecare/

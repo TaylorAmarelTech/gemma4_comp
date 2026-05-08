@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://duecare-ai.com/sitemap.xml

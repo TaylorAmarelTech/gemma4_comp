@@ -1,8 +1,32 @@
-# DueCare — exercising due care in LLM safety design
+# Duecare — Gemma 4-powered safety infrastructure for migrant-worker protection
 
+> 🌐 **Public hub:** [duecare-ai.com](https://duecare-ai.com) ·
+> 📓 **Kaggle submission:** [kaggle.com/code/taylorsamarel/duecare-harness-chat](https://www.kaggle.com/code/taylorsamarel/duecare-harness-chat) ·
+> 📦 **Source:** this repo (MIT)
+>
+> **Duecare is a private AI safety platform for migrant-worker
+> protection: tuned Gemma 4 models, grounded safety harnesses,
+> reproducible evaluation, continuously updated knowledge, NGO /
+> government chatbots, and worker-facing mobile assistance.** Four
+> canonical use cases: **Platform Safety**, **NGO / Regulators**,
+> **Migrant Worker Chat**, and **Academic Research**.
+> **Core platform pieces:** Gemma 4 Model Layer · Safety Guidance Layer ·
+> Knowledge Packs · Quality Testing Framework · Central Knowledge Server ·
+> Local Anonymization · Information Submission · Public Information Research ·
+> Stakeholder Engagement · Newsletter and Alerts · Fine-Tuning · Channel and
+> Deployment Package. **Live core** for the Kaggle submission is Gemma 4 +
+> Safety Guidance + Knowledge Packs + Quality Testing. **Prototype:**
+> Fine-Tuning (`kaggle/A-07-bench-and-tune/`). **Roadmap:** Central server
+> modules, research monitor, stakeholder engagement, newsletter, and channel
+> deployment. **Sibling repo (live):** Mobile (Duecare Journey
+> v0.9.0). Full canonical definition:
+> [`docs/product_definition.md`](docs/product_definition.md). Plain-language
+> use-case and component wording:
+> [`docs/canonical_use_cases_and_components.md`](docs/canonical_use_cases_and_components.md).
+>
 > Named for Cal. Civ. Code § 1714(a) — the duty of care standard that
 > a California jury applied to find Meta and Google negligent for
-> defective platform design in March 2026. DueCare applies the same
+> defective platform design in March 2026. Duecare applies the same
 > standard to LLM safety: does the model exercise *due care* when
 > responding to prompts about trafficking, exploitation, and financial crime?
 >
@@ -26,14 +50,14 @@
 
 > ### 🚀 Submission state (Gemma 4 Good Hackathon, due 2026-05-18)
 >
-> **2 core + 11 appendix = 11 Kaggle notebooks.** Judges land on
+> **2 core + 11 appendix = 13 Kaggle notebooks.** Judges land on
 > the unified omni playground, then proceed to the focused live
-> demo. The 9 appendix notebooks add depth-of-engineering signal
+> demo. The 11 appendix notebooks add depth-of-engineering signal
 > without competing for the first 5 minutes.
 >
 > **Core (judges evaluate first — in this order):**
 >
-> 1. [`duecare-harness-chat`](https://www.kaggle.com/code/taylorsamarel/duecare-harness-chat) ★ **The omni playground.** All 5 harness toggles (Persona / GREP 108 rules / RAG 33 docs / Tools 5 lookups / Online live web search) + 4 grade modes (Universal / Expert / **Deep LLM-as-judge** / Combined) + **9-variant Gemma 4 model selector** (E2B / E4B / 26B-A4B / 31B / 2 jailbroken / 3 cloud BYOK). One configurable interface for the whole capability surface.
+> 1. [`duecare-harness-chat`](https://www.kaggle.com/code/taylorsamarel/duecare-harness-chat) ★ **The omni playground.** All 6 harness toggles (Persona / GREP 161 rules / RAG 46 docs + 46-edge citation graph / Imports / Tools 5 lookups / Online live web search with deep-fetch) + 4 grade modes (Universal / Expert / **Deep LLM-as-judge** / Combined) + **9-variant Gemma 4 model selector** (E2B / E4B / 26B-A4B / 31B / 2 jailbroken / 3 cloud BYOK) + A/B Compare tab + retrieval-config panel + retrieval path-trace card + **interactive RAG graph viewer** (in-modal + standalone full-screen at `/static/rag-graph.html`). One configurable interface for the whole capability surface.
 > 2. [`duecare-live-demo`](https://www.kaggle.com/code/taylorsamarel/duecare-live-demo) — focused, scripted live URL. Polished classification + knowledge-building product with the +56.5pp lift demonstration.
 >
 > **Appendix (11):**

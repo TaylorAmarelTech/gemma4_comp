@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: duecare-llm-hub
+    runtime: docker
+    plan: starter
+    region: oregon
+    dockerfilePath: ./deployment/render/Dockerfile
+    healthCheckPath: /healthz
+    envVars:
+      - key: DUECARE_ENV
+        value: production
+      - key: DUECARE_PRIVACY_MODE
+        value: anonymized_signals_only_no_raw_pii

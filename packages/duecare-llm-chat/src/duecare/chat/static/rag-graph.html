@@ -1,0 +1,389 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Duecare — RAG corpus graph</title>
+  <style>
+    :root {
+      --ink: #e2e8f0;
+      --muted: #94a3b8;
+      --bg: #0f172a;
+      --panel: #1e293b;
+      --border: #334155;
+      --accent: #7c3aed;
+      --highlight: #fbbf24;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; background: var(--bg); color: var(--ink);
+                  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+                               Helvetica, Arial, sans-serif; height: 100%; }
+    body { display: flex; flex-direction: column; height: 100vh; }
+    header {
+      padding: 12px 18px; background: var(--panel); border-bottom: 1px solid var(--border);
+      display: flex; gap: 12px; align-items: center; flex-wrap: wrap;
+    }
+    header h1 {
+      margin: 0; font-size: 16px; font-weight: 700; color: var(--accent);
+    }
+    header .subtitle { font-size: 12px; color: var(--muted); }
+    .toolbar { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; flex: 1; justify-content: flex-end; }
+    .toolbar input, .toolbar select {
+      padding: 6px 10px; font-size: 12px; border: 1px solid var(--border);
+      background: var(--bg); color: var(--ink); border-radius: 4px;
+    }
+    .toolbar input { min-width: 220px; }
+    .toolbar button {
+      padding: 6px 12px; font-size: 12px; border: 1px solid var(--border);
+      background: var(--bg); color: var(--ink); border-radius: 4px; cursor: pointer;
+    }
+    .toolbar button:hover { background: var(--panel); }
+    main { flex: 1; display: grid; grid-template-columns: 1.6fr 1fr; gap: 0; min-height: 0; }
+    #svgwrap {
+      background: var(--bg); border-right: 1px solid var(--border);
+      position: relative; overflow: hidden;
+    }
+    #detail {
+      background: var(--panel); padding: 18px; overflow-y: auto;
+      border-left: 1px solid var(--border); font-size: 13px;
+    }
+    #detail h2 { margin: 0 0 8px; font-size: 16px; color: var(--ink); }
+    #detail .group-label { font-size: 11px; color: var(--muted); text-transform: uppercase;
+                            letter-spacing: 0.6px; margin-bottom: 4px; }
+    #detail .source { font-size: 11px; color: var(--muted); margin-bottom: 10px; }
+    #detail .snippet { color: #cbd5e1; line-height: 1.6; white-space: pre-wrap; }
+    #detail .placeholder { color: var(--muted); font-style: italic; }
+    .legend { display: flex; flex-wrap: wrap; gap: 6px; padding: 10px 18px;
+               border-bottom: 1px solid var(--border); background: rgba(124,58,237,0.04); font-size: 11px; }
+    .legend .chip { display: inline-flex; align-items: center; gap: 5px; padding: 3px 9px;
+                     border-radius: 11px; cursor: pointer; user-select: none; }
+    .legend .chip .dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; }
+    .legend .chip.active { font-weight: 700; }
+    .err { color: #ef4444; padding: 18px; }
+    code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+            background: rgba(124,58,237,0.15); padding: 1px 5px; border-radius: 3px; font-size: 11px; }
+    .citation-list { margin: 12px 0 0; padding: 0 0 0 16px; font-size: 11.5px; }
+    .citation-list li { margin-bottom: 5px; }
+    .citation-list .relation { color: var(--muted); }
+    .citation-list .note { color: var(--muted); font-style: italic; margin-top: 1px; font-size: 10.5px; }
+    .help { font-size: 10.5px; color: var(--muted); padding: 8px 18px; border-top: 1px solid var(--border);
+             background: rgba(124,58,237,0.04); }
+  </style>
+</head>
+<body>
+  <header>
+    <div>
+      <h1>Duecare — RAG corpus graph</h1>
+      <div class="subtitle">Force-directed view of the curated corpus + citation graph.
+        <span id="meta"></span>
+      </div>
+    </div>
+    <div class="toolbar">
+      <input id="search" type="text" placeholder="Search nodes..." />
+      <select id="group-filter">
+        <option value="">All jurisdictions</option>
+      </select>
+      <button onclick="rgZoom(1.25)" title="Zoom in">+</button>
+      <button onclick="rgZoom(0.8)" title="Zoom out">−</button>
+      <button onclick="rgResetZoom()">Reset</button>
+      <button onclick="rgSettle()">Re-settle</button>
+      <button onclick="rgExportSvg()">⬇ SVG</button>
+    </div>
+  </header>
+  <div class="legend" id="legend"></div>
+  <main>
+    <div id="svgwrap"></div>
+    <div id="detail">
+      <div class="placeholder">Click any node to view its content here. Hover an edge to see the relation + curator note.</div>
+    </div>
+  </main>
+  <div class="help">
+    Tips: scroll to zoom · click-drag empty space to pan · shift-click a node to pin it · click the colored chips above to filter by jurisdiction. Endpoint: <code>/api/rag/graph</code> (requires duecare-llm-chat ≥ 0.14.0).
+  </div>
+
+  <script>
+    let G = null, sim = null, view = {zoom: 1, panX: 0, panY: 0};
+    let filt = {q: '', group: ''};
+    let pinned = new Set();
+    const W0 = 1, H0 = 1;  // updated after first load
+
+    function escapeHtml(s) {
+      return String(s == null ? '' : s).replace(/[&<>"']/g, c => (
+        {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]
+      ));
+    }
+
+    async function load() {
+      const wrap = document.getElementById('svgwrap');
+      try {
+        const r = await fetch('/api/rag/graph', {cache: 'no-store'});
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        G = await r.json();
+      } catch (e) {
+        wrap.innerHTML = `<div class="err">Could not load corpus graph: ${escapeHtml(String(e.message || e))}</div>`;
+        return;
+      }
+      document.getElementById('meta').textContent =
+        `${G.meta.n_nodes} docs · ${G.meta.n_edges} edges · schema ${G.meta.schema}@${G.meta.version}`;
+      const W = wrap.clientWidth || 800;
+      const H = wrap.clientHeight || 600;
+      const N = G.nodes.length;
+      const nodes = G.nodes.map((n, i) => ({
+        ...n,
+        x: W * 0.5 + (Math.min(W, H) * 0.32) * Math.cos(i * 2 * Math.PI / N),
+        y: H * 0.5 + (Math.min(W, H) * 0.32) * Math.sin(i * 2 * Math.PI / N),
+        vx: 0, vy: 0, fx: null, fy: null,
+      }));
+      const nodeById = {};
+      for (const n of nodes) nodeById[n.id] = n;
+      const edges = (G.edges || []).filter(e => nodeById[e.from] && nodeById[e.to]);
+      sim = {nodes, nodeById, edges, W, H};
+      for (let i = 0; i < 350; i++) tick();
+      // Legend
+      const legend = document.getElementById('legend');
+      const groupFilter = document.getElementById('group-filter');
+      const sorted = Object.entries(G.groups).sort((a, b) => a[1].label.localeCompare(b[1].label));
+      legend.innerHTML = sorted.map(([gid, g]) => {
+        const count = nodes.filter(n => n.group === gid).length;
+        if (!count) return '';
+        return `<span class="chip" style="background:${g.color}1f; border:1px solid ${g.color};"
+                       onclick="rgToggleGroup('${escapeHtml(gid)}')" data-gid="${escapeHtml(gid)}">
+          <span class="dot" style="background:${g.color};"></span>
+          ${escapeHtml(g.label)} (${count})
+        </span>`;
+      }).join('');
+      groupFilter.innerHTML = '<option value="">All jurisdictions</option>' + sorted.map(([gid, g]) =>
+        `<option value="${escapeHtml(gid)}">${escapeHtml(g.label)} (${nodes.filter(n => n.group === gid).length})</option>`
+      ).join('');
+      groupFilter.addEventListener('change', e => { filt.group = e.target.value; updateChipState(); draw(); });
+      document.getElementById('search').addEventListener('input', e => { filt.q = e.target.value; draw(); });
+      draw();
+    }
+
+    function tick() {
+      if (!sim) return;
+      const {nodes, edges, W, H} = sim;
+      const k = 14000, linkK = 0.04;
+      const cx = W / 2, cy = H / 2;
+      for (let i = 0; i < nodes.length; i++) {
+        for (let j = i + 1; j < nodes.length; j++) {
+          const a = nodes[i], b = nodes[j];
+          let dx = a.x - b.x, dy = a.y - b.y;
+          let dsq = dx * dx + dy * dy;
+          if (dsq < 1) dsq = 1;
+          const force = k / dsq;
+          const dist = Math.sqrt(dsq);
+          const fx = force * dx / dist, fy = force * dy / dist;
+          a.vx += fx; a.vy += fy;
+          b.vx -= fx; b.vy -= fy;
+        }
+      }
+      for (const e of edges) {
+        const a = sim.nodeById[e.from], b = sim.nodeById[e.to];
+        if (!a || !b) continue;
+        const dx = b.x - a.x, dy = b.y - a.y;
+        const fx = dx * linkK, fy = dy * linkK;
+        a.vx += fx; a.vy += fy;
+        b.vx -= fx; b.vy -= fy;
+      }
+      for (const n of nodes) {
+        if (n.fx !== null) { n.x = n.fx; n.y = n.fy; n.vx = 0; n.vy = 0; continue; }
+        n.vx += (cx - n.x) * 0.005;
+        n.vy += (cy - n.y) * 0.005;
+        n.vx *= 0.78; n.vy *= 0.78;
+        n.x += n.vx; n.y += n.vy;
+        n.x = Math.max(20, Math.min(W - 20, n.x));
+        n.y = Math.max(20, Math.min(H - 20, n.y));
+      }
+    }
+
+    function draw() {
+      const wrap = document.getElementById('svgwrap');
+      if (!sim) return;
+      const {nodes, edges, W, H} = sim;
+      const groupColor = (gid) => (G.groups[gid] || {}).color || '#94a3b8';
+      const q = (filt.q || '').toLowerCase().trim();
+      const gFilter = filt.group || '';
+      const isMatch = (n) => {
+        if (gFilter && n.group !== gFilter) return false;
+        if (!q) return true;
+        return n.id.toLowerCase().includes(q)
+            || (n.label || '').toLowerCase().includes(q)
+            || (n.source || '').toLowerCase().includes(q)
+            || (n.snippet || '').toLowerCase().includes(q);
+      };
+      const activeIds = new Set(nodes.filter(isMatch).map(n => n.id));
+      const anyFilter = !!q || !!gFilter;
+      const edgesSvg = edges.map(e => {
+        const a = sim.nodeById[e.from], b = sim.nodeById[e.to];
+        if (!a || !b) return '';
+        const dx = b.x - a.x, dy = b.y - a.y;
+        const dist = Math.sqrt(dx * dx + dy * dy) || 1;
+        const ux = dx / dist, uy = dy / dist;
+        const r = 8;
+        const x1 = a.x + ux * r, y1 = a.y + uy * r;
+        const x2 = b.x - ux * (r + 4), y2 = b.y - uy * (r + 4);
+        const dim = anyFilter && !(activeIds.has(e.from) && activeIds.has(e.to));
+        const stroke = dim ? 'rgba(148,163,184,0.10)' : 'rgba(148,163,184,0.55)';
+        const marker = dim ? '' : ' marker-end="url(#arrow)"';
+        return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}"
+            stroke="${stroke}" stroke-width="1.1"${marker}
+            data-from="${escapeHtml(e.from)}" data-to="${escapeHtml(e.to)}"
+            data-relation="${escapeHtml(e.relation)}" data-note="${escapeHtml(e.note || '')}"
+            style="cursor:pointer;"
+            onmouseover="this.style.stroke='#a855f7'; this.style.strokeWidth='2'; rgHoverEdge(this);"
+            onmouseout="this.style.stroke='${stroke}'; this.style.strokeWidth='1.1';" />`;
+      }).join('');
+      const nodesSvg = nodes.map(n => {
+        const c = groupColor(n.group);
+        const r = 8;
+        const dim = anyFilter && !activeIds.has(n.id);
+        const opacity = dim ? 0.18 : 1.0;
+        const ringWidth = (q && activeIds.has(n.id)) ? 2.5 : 1.5;
+        const ringColor = (q && activeIds.has(n.id)) ? 'var(--highlight)' : '#fff';
+        return `<g style="cursor:pointer; opacity:${opacity};" data-id="${escapeHtml(n.id)}"
+            onclick="rgClickNode('${escapeHtml(n.id)}', event)">
+          <circle cx="${n.x}" cy="${n.y}" r="${r}" fill="${c}" stroke="${ringColor}" stroke-width="${ringWidth}"/>
+          <text x="${n.x + r + 3}" y="${n.y + 3}" font-size="10" fill="var(--ink)" style="pointer-events:none;">
+            ${escapeHtml(n.id.length > 26 ? n.id.slice(0, 23) + '…' : n.id)}
+          </text>
+          <title>${escapeHtml(n.label)} — ${escapeHtml(n.source)}</title>
+        </g>`;
+      }).join('');
+      const v = view;
+      const vw = W / v.zoom, vh = H / v.zoom;
+      const vx = (W - vw) / 2 - v.panX, vy = (H - vh) / 2 - v.panY;
+      wrap.innerHTML = `
+        <svg id="svg" width="100%" height="100%" viewBox="${vx} ${vy} ${vw} ${vh}" xmlns="http://www.w3.org/2000/svg"
+             onwheel="rgWheel(event)" onmousedown="rgPanStart(event)">
+          <defs>
+            <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5"
+                    orient="auto-start-reverse" markerUnits="userSpaceOnUse">
+              <path d="M 0 0 L 10 5 L 0 10 z" fill="#94a3b8" />
+            </marker>
+          </defs>
+          <g>${edgesSvg}</g>
+          <g>${nodesSvg}</g>
+        </svg>
+      `;
+    }
+
+    function updateChipState() {
+      document.querySelectorAll('.legend .chip').forEach(el => {
+        el.classList.toggle('active', filt.group && el.dataset.gid === filt.group);
+      });
+    }
+
+    function rgToggleGroup(gid) {
+      filt.group = (filt.group === gid) ? '' : gid;
+      document.getElementById('group-filter').value = filt.group;
+      updateChipState();
+      draw();
+    }
+
+    function rgClickNode(id, evt) {
+      if (!sim) return;
+      const node = sim.nodeById[id];
+      if (!node) return;
+      if (evt && evt.shiftKey) {
+        if (pinned.has(id)) { pinned.delete(id); node.fx = null; node.fy = null; }
+        else { pinned.add(id); node.fx = node.x; node.fy = node.y; }
+        draw(); return;
+      }
+      const detail = document.getElementById('detail');
+      const incident = (sim.edges || []).filter(e => e.from === id || e.to === id);
+      const seeAlso = incident.length ? `
+        <div style="margin-top:14px; padding-top:10px; border-top:1px dashed var(--border);">
+          <strong style="color:var(--accent);">Citation edges (${incident.length}):</strong>
+          <ul class="citation-list">
+            ${incident.map(e => {
+              const arrow = e.from === id
+                ? `<span class="relation">${escapeHtml(e.relation.replace(/_/g, ' '))}</span> → <code>${escapeHtml(e.to)}</code>`
+                : `<span class="relation">${escapeHtml(e.relation.replace(/_/g, ' '))}</span> ← <code>${escapeHtml(e.from)}</code>`;
+              return `<li>${arrow}${e.note ? `<div class="note">${escapeHtml(e.note)}</div>` : ''}</li>`;
+            }).join('')}
+          </ul>
+        </div>` : '';
+      detail.innerHTML = `
+        <div class="group-label">${escapeHtml(node.group.replace(/_/g, ' '))}</div>
+        <h2>${escapeHtml(node.label)}</h2>
+        <div class="source"><code>${escapeHtml(node.id)}</code> — ${escapeHtml(node.source)}</div>
+        <div class="snippet">${escapeHtml(node.snippet)}</div>
+        ${seeAlso}
+      `;
+    }
+
+    function rgHoverEdge(elem) {
+      const detail = document.getElementById('detail');
+      const from = elem.getAttribute('data-from');
+      const to = elem.getAttribute('data-to');
+      const rel = elem.getAttribute('data-relation');
+      const note = elem.getAttribute('data-note');
+      detail.innerHTML = `
+        <div class="group-label">Citation edge</div>
+        <h2>${escapeHtml(rel.replace(/_/g, ' '))}</h2>
+        <div class="source"><code>${escapeHtml(from)}</code> → <code>${escapeHtml(to)}</code></div>
+        ${note ? `<div class="snippet" style="font-style:italic; color:var(--muted);">${escapeHtml(note)}</div>`
+                : '<div class="placeholder">No curator note for this edge.</div>'}
+      `;
+    }
+
+    function rgZoom(factor) {
+      view.zoom = Math.max(0.3, Math.min(5, view.zoom * factor));
+      draw();
+    }
+    function rgResetZoom() { view = {zoom: 1, panX: 0, panY: 0}; draw(); }
+    function rgWheel(evt) { evt.preventDefault(); rgZoom(evt.deltaY > 0 ? 0.9 : 1.1); }
+    let panState = null;
+    function rgPanStart(evt) {
+      if (evt.target.tagName === 'circle' || evt.target.tagName === 'line'
+          || evt.target.closest('g[data-id]')) return;
+      evt.preventDefault();
+      panState = {sx: evt.clientX, sy: evt.clientY,
+                  startPanX: view.panX, startPanY: view.panY};
+      document.addEventListener('mousemove', rgPanMove);
+      document.addEventListener('mouseup', rgPanEnd, {once: true});
+    }
+    function rgPanMove(evt) {
+      if (!panState || !sim) return;
+      const dx = evt.clientX - panState.sx;
+      const dy = evt.clientY - panState.sy;
+      const factor = 1 / view.zoom;
+      view.panX = panState.startPanX + dx * factor;
+      view.panY = panState.startPanY + dy * factor;
+      draw();
+    }
+    function rgPanEnd() {
+      document.removeEventListener('mousemove', rgPanMove);
+      panState = null;
+    }
+    function rgSettle() { if (!sim) return; for (let i = 0; i < 250; i++) tick(); draw(); }
+    function rgExportSvg() {
+      const svg = document.getElementById('svg');
+      if (!svg) return;
+      const clone = svg.cloneNode(true);
+      clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+      const cs = getComputedStyle(document.body);
+      const ink = cs.getPropertyValue('--ink').trim() || '#e2e8f0';
+      const bg = cs.getPropertyValue('--bg').trim() || '#0f172a';
+      clone.querySelectorAll('text').forEach(t => t.setAttribute('fill', ink));
+      const bgRect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+      bgRect.setAttribute('x', '0'); bgRect.setAttribute('y', '0');
+      bgRect.setAttribute('width', '100%'); bgRect.setAttribute('height', '100%');
+      bgRect.setAttribute('fill', bg);
+      clone.insertBefore(bgRect, clone.firstChild);
+      const xml = new XMLSerializer().serializeToString(clone);
+      const blob = new Blob([xml], {type: 'image/svg+xml'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `duecare-rag-graph-${new Date().toISOString().slice(0, 10)}.svg`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+    load();
+  </script>
+</body>
+</html>

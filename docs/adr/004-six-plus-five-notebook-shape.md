@@ -85,5 +85,5 @@ inventory for the rubric numbers, not the artifact judges open.
 
 - [`kaggle/README.md`](../../kaggle/README.md)
 - [`kaggle/_INDEX.md`](../../kaggle/_INDEX.md)
-- [`docs/FOR_JUDGES.md`](../FOR_JUDGES.md)
+- [`docs/FOR_KAGGLE_JUDGES.md`](../FOR_KAGGLE_JUDGES.md)
 - [`docs/rubric_evaluation_v07.md`](../rubric_evaluation_v07.md)

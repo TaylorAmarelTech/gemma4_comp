@@ -192,7 +192,7 @@ can be added later without renumbering.
    inventory. Read this before anything else.
 2. `CLAUDE.md`, root project context.
 3. `.claude/rules/00_overarching_goals.md`, rubric.
-4. `docs/FOR_JUDGES.md`, standard your output must meet.
+4. `docs/FOR_KAGGLE_JUDGES.md`, standard your output must meet.
 5. `docs/copilot_review_prompt.md`, the parent prompt (you are
    narrowing it).
 6. The specific `kaggle/kernels/*` in the band you are reviewing.

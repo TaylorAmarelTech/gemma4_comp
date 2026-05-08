@@ -153,7 +153,7 @@ jobs:
           if fails:
               print()
               print("Lift regressed below documented thresholds.")
-              print("Either fix the regression or update writeup_draft.md / FOR_JUDGES.md / harness_lift_report.md.")
+              print("Either fix the regression or update writeup_draft.md / FOR_KAGGLE_JUDGES.md / harness_lift_report.md.")
               sys.exit(1)
           PYEOF
 

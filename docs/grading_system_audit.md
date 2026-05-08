@@ -11,7 +11,7 @@ Four grading modes evaluated end-to-end:
 
 | Mode | Code path | Strength |
 |---|---|---|
-| **Universal** (default) | `grade_response_universal` ~line 5617 | Fast deterministic 21-dim multi-signal rubric with applicability detection + anti-gaming defense |
+| **Universal** (default) | `grade_response_universal` ~line 5617 | Fast deterministic 46-dim multi-signal rubric with applicability detection + anti-gaming defense |
 | **Deep** (LLM evaluator) | `grade_response_via_evaluator` ~line 6377 | Sends response back to loaded Gemma with one yes/no question per dim, evidence-quote required |
 | **Combined** (50/50 blend) | `grade_response_combined` ~line 6577 | Universal + Deep with disagreement panel |
 | **Expert** (legacy per-category) | `_grade_legacy_per_category` | 6 prompt-shape rubrics; replaced by Universal but kept for backwards compat |
@@ -22,7 +22,7 @@ Four grading modes evaluated end-to-end:
 
 `_check_citations_against_corpus` did substring match against a single corpus blob. **"RA 10361" matched "RA 1036"** and either spuriously grounded or spuriously flagged depending on prefix overlap. User hit this in their live test — the screenshot showed RA 10361 (Batas Kasambahay) flagged as "possibly fabricated" — a real, foundational PH worker-protection statute.
 
-**Fix:** new `_word_bounded_in()` helper builds a regex with `(?<!\w)...(?!\w)` boundaries and flexible whitespace/dash handling. Plus a curated `_AUTHORITATIVE_STATUTES_ALLOWLIST` (~80 entries: RA 10361, HK Cap. 200, ILO C190, EU AI Act, FATF Recs, Saudi LRI 2024, etc.) so genuine citations don't fail just because they aren't directly in the 33-doc RAG corpus.
+**Fix:** new `_word_bounded_in()` helper builds a regex with `(?<!\w)...(?!\w)` boundaries and flexible whitespace/dash handling. Plus a curated `_AUTHORITATIVE_STATUTES_ALLOWLIST` (~80 entries: RA 10361, HK Cap. 200, ILO C190, EU AI Act, FATF Recs, Saudi LRI 2024, etc.) so genuine citations don't fail just because they aren't directly in the 46-doc RAG corpus.
 
 ### #2. Section verification too loose
 
@@ -116,7 +116,7 @@ Items deferred for content-design with an actual NGO partner; these are architec
 ## How to verify the fixes
 
 ```bash
-# Static check — confirms 21-dim rubric + 19 judge questions
+# Static check — confirms 46-dim rubric + 19 judge questions
 python scripts/verify.py
 
 # Smoke + behavior tests

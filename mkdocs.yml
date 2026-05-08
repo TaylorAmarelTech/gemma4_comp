@@ -142,7 +142,7 @@ nav:
       - Cross-NGO trends federation: cross_ngo_trends_federation.md
       - 2-week submission plan: two_week_submission_plan.md
   - Submission:
-      - For judges: FOR_JUDGES.md
+      - For judges: FOR_KAGGLE_JUDGES.md
       - Writeup draft: writeup_draft.md
       - System map (bird's-eye): system_map.md
       - Author's notes: authors_notes.md

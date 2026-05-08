@@ -8,7 +8,7 @@
   TILES that let you turn safety-harness layers on/off per message:
 
       Persona  expert anti-trafficking persona prepended to context
-      GREP     108 regex KB rules (trafficking patterns + ILO citations
+      GREP     161 regex KB rules (trafficking patterns + ILO citations
                  + corridor fee caps + ILO indicators + meta patterns)
       RAG      BM25 retrieval over an 33-doc starter corpus (ILO
                  conventions, POEA/BP2MI circulars, HK statutes,
@@ -807,10 +807,17 @@ model_info = {
 
 # All 4 layers (Persona / GREP / RAG / Tools) wired in one line.
 # The chat package's DEFAULT_PERSONA is used unless overridden.
+# v0.8.1: optional reranker + cached embedder via the shared helper.
+try:
+    from duecare.chat.kernel_helpers import default_optional_hooks
+    _hooks = {k: v for k, v in default_optional_hooks().items() if v is not None}
+except Exception:
+    _hooks = {}
 app = create_app(
     gemma_call=loaded.backend,
     model_info=model_info,
     **default_harness(),
+    **_hooks,
 )
 _attach_shutdown(app)
 
