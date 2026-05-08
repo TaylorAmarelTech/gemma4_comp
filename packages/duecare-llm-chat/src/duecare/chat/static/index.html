@@ -386,32 +386,12 @@ header.bar .badge.loaded .dot {
 .picker-vcard.jailbroken { border-color: rgba(239, 68, 68, 0.5); }
 .picker-vcard.jailbroken .vfit { color: #f87171; }
 .picker-vcard.jailbroken .veta { color: #fecaca; }
-/* Recommended-variant highlight: amber border + soft glow + a pill
-   badge (rendered inline in the card body). The 31B-it card gets this
-   treatment because it's the strongest single-variant default for the
-   submission demo (best quality, fits T4 ×2 in 4-bit). */
-.picker-vcard[data-recommended="true"] {
-  border-color: rgba(245, 158, 11, 0.6);
-  background: linear-gradient(180deg, rgba(245, 158, 11, 0.10), #1e293b 70%);
-  box-shadow: 0 0 0 1px rgba(245, 158, 11, 0.25),
-              0 4px 14px rgba(245, 158, 11, 0.15);
-  position: relative;
-}
-.picker-vcard[data-recommended="true"]:hover {
-  border-color: #fbbf24;
-  box-shadow: 0 0 0 1px rgba(251, 191, 36, 0.55),
-              0 6px 18px rgba(245, 158, 11, 0.30);
-}
-.picker-vcard[data-recommended="true"] .vt { color: #fef3c7; }
-.picker-recommended-pill {
-  position: absolute; top: -8px; right: -6px;
-  background: #f59e0b; color: #0f172a;
-  font-size: 9.5px; font-weight: 800; letter-spacing: 0.5px;
-  padding: 2px 8px; border-radius: 10px;
-  box-shadow: 0 2px 8px rgba(245, 158, 11, 0.45);
-  pointer-events: none;
-}
-.picker-vcard[data-recommended="true"] .vfit { color: #fbbf24; }
+/* Variant cards are presented neutrally — every card gets the same
+   visual weight so the user can decide for themselves. Earlier
+   versions highlighted 31B-it with a "RECOMMENDED" pill, but that
+   read as auto-picking on the user's behalf. The trait labels
+   (size_gb, fits, load_eta) on each card are enough information for
+   the user to choose freely. */
 .picker-status {
   margin-top: 18px; padding: 16px; border-radius: 10px;
   background: #1e293b; border: 1px solid rgba(71, 85, 105, 0.5);
@@ -1156,16 +1136,10 @@ function _pickerBuildCards(variants) {
       card.type = 'button';
       card.className = 'picker-vcard ' + cat;
       card.dataset.variant = key;
-      // Recommended-variant flag: 31B-it is the strongest single-variant
-      // default for the submission demo (best quality, fits T4 ×2 in
-      // 4-bit). Card gets a glowing amber border + a pill badge.
-      const isRecommended = (key === '31b-it');
-      if (isRecommended) card.dataset.recommended = 'true';
       const sizeLabel = (typeof info.size_gb === 'number' && info.size_gb > 0)
           ? info.size_gb.toFixed(1) + ' GB' : 'no local download';
       const eta = info.load_eta || '';
       card.innerHTML =
-        (isRecommended ? '<div class="picker-recommended-pill">★ RECOMMENDED</div>' : '') +
         '<div class="vt">' + _pickerEscapeHtml(info.display || key) + '</div>' +
         '<div class="vsz">' + _pickerEscapeHtml(sizeLabel) + '</div>' +
         '<div class="vfit">' + _pickerEscapeHtml(info.fits || '') + '</div>' +
@@ -1191,8 +1165,21 @@ function _pickerStart(variant, label) {
   _pickerSetCardsLoading(variant);
   const enterBtn = _pickerEl('enter-chat');
   if (enterBtn) enterBtn.style.display = 'none';
+  // Auto-expand the loader log panel the instant the user picks a
+  // variant. The previous behaviour was to keep logs hidden behind a
+  // "View logs" button; that left the user staring at a single
+  // "Loading X — elapsed Ys" line for 30 seconds (E4B) to 25 minutes
+  // (31B cold cache) wondering if anything was happening. Showing
+  // the live log stream surfaces the per-phase progress (download,
+  // unsloth init, GPU transfer, etc.) without an extra click.
+  const logs = _pickerEl('logs');
+  const logsBtn = _pickerEl('view-logs');
+  if (logs && !logs.classList.contains('show')) {
+    logs.classList.add('show');
+    if (logsBtn) logsBtn.textContent = 'Hide logs';
+  }
   _pickerSetStatus('<span class="picker-spinner"></span>Loading ' + _pickerEscapeHtml(label) +
-                   ' — keep this tab open to watch live progress.', false);
+                   ' — keep this tab open. Loader output is streaming below.', false);
   fetch('/api/load-model', {
     method: 'POST',
     headers: {'Content-Type': 'application/json'},
@@ -1266,11 +1253,33 @@ function _pickerPoll() {
     const el = (s.elapsed_s || 0).toFixed(0);
     const phase = s.phase ? ' · ' + _pickerEscapeHtml(s.phase) : '';
     const eta = s.eta ? ' · expected ' + _pickerEscapeHtml(s.eta) : '';
-    const last = s.last_log ? '<div class="meta">' + _pickerEscapeHtml(s.last_log) + '</div>' : '';
+    // Pull the most recent 2 log lines (drop heartbeat noise so the
+    // user sees real phase transitions) and surface them inside the
+    // status pane. The full log panel is already auto-expanded below
+    // for anyone who wants the whole stream.
+    let recentLogsHtml = '';
+    if (Array.isArray(s.logs) && s.logs.length) {
+      const interesting = s.logs.filter(function(e) {
+        const m = (e && e.message || '').toLowerCase();
+        return !m.startsWith('heartbeat #');
+      });
+      const tail = interesting.slice(-2);
+      if (tail.length) {
+        recentLogsHtml = '<div class="meta" style="margin-top:6px; padding-top:6px; border-top:1px dashed rgba(100,116,139,0.4);">'
+          + tail.map(function(e) {
+              const elapsedTag = e.elapsed_s == null
+                ? '' : '+' + Number(e.elapsed_s).toFixed(0) + 's ';
+              return _pickerEscapeHtml(elapsedTag + (e.message || ''));
+            }).join('<br>')
+          + '</div>';
+      }
+    } else if (s.last_log) {
+      recentLogsHtml = '<div class="meta">' + _pickerEscapeHtml(s.last_log) + '</div>';
+    }
     _pickerSetStatus('<span class="picker-spinner"></span>Loading <b>' +
                      _pickerEscapeHtml(s.variant || _pickerLoadingVariant || 'model') +
                      '</b><span class="meta" style="color:#cbd5e1"> · ' + el +
-                     's elapsed' + phase + eta + '</span>' + last, false);
+                     's elapsed' + phase + eta + '</span>' + recentLogsHtml, false);
     _pickerPollTimer = setTimeout(_pickerPoll, 1500);
   }).catch(function() {
     _pickerPollTimer = setTimeout(_pickerPoll, 3000);
