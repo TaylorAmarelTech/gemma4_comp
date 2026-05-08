@@ -4721,6 +4721,27 @@ function renderGradeChips(chips, idx) {
   // that opens the full Score response modal.
   const score = chips.score;
   if (score == null) return '';
+  // Off-rubric responses (e.g., "what's the weather?") trigger zero
+  // passes AND zero partials — the trafficking-safety rubric isn't
+  // matching anything substantive. Even when n_applicable > 0
+  // (because some dims default to "always check"), a response with no
+  // matched signals is best displayed as "rubric N/A" rather than a
+  // misleading red "low %" chip. The user can still click into the
+  // modal to see exactly which dims fired and why.
+  const nApplicable = chips.n_applicable || 0;
+  const nMatched = (chips.n_pass || 0) + (chips.n_partial || 0);
+  if (nApplicable === 0 || nMatched === 0) {
+    return `<div class="grade-chips" style="margin-top:8px; display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+      <a href="#" onclick="openGradeModal(${idx}); return false;"
+         style="text-decoration:none; display:inline-flex; align-items:center; gap:8px;
+                padding:4px 12px; border-radius:14px; background:rgba(100,116,139,0.20); color:var(--ink);
+                font-size:12px; font-weight:600; border:1px dashed var(--border);"
+         title="The trafficking-safety rubric did not match this response in any positive way. This usually means the prompt was off-topic for the rubric (e.g., a chitchat or weather question). Click to see the per-dimension breakdown.">
+        <span>rubric N/A · off-topic for trafficking</span>
+        <span style="opacity:0.85; font-weight:500; font-size:11px;">▸ details</span>
+      </a>
+    </div>`;
+  }
   const scoreColor = score >= 70 ? '#10b981'
                     : score >= 40 ? '#f59e0b'
                     : '#ef4444';
@@ -4730,7 +4751,7 @@ function renderGradeChips(chips, idx) {
        style="text-decoration:none; display:inline-flex; align-items:center; gap:8px;
               padding:4px 12px; border-radius:14px; background:${scoreColor}; color:#fff;
               font-size:12px; font-weight:600;"
-       title="Auto rule-based score across the 21-dim rubric. Click to open the full scoring panel for LLM-based and combined scoring.">
+       title="Auto rule-based score across the ${nApplicable} applicable rubric dimension${nApplicable === 1 ? '' : 's'}. Click to open the full scoring panel for LLM-based and combined scoring.">
       <span>${score}%${tenLabel} · auto rule-based</span>
       <span style="opacity:0.85; font-weight:500; font-size:11px;">▸ details</span>
     </a>
