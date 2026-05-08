@@ -386,12 +386,18 @@ header.bar .badge.loaded .dot {
 .picker-vcard.jailbroken { border-color: rgba(239, 68, 68, 0.5); }
 .picker-vcard.jailbroken .vfit { color: #f87171; }
 .picker-vcard.jailbroken .veta { color: #fecaca; }
-/* Variant cards are presented neutrally — every card gets the same
-   visual weight so the user can decide for themselves. Earlier
-   versions highlighted 31B-it with a "RECOMMENDED" pill, but that
-   read as auto-picking on the user's behalf. The trait labels
-   (size_gb, fits, load_eta) on each card are enough information for
-   the user to choose freely. */
+/* Recommended-variant note: 31B-it gets a small inline "Recommended"
+   tag (not a glowing badge) because it's the strongest single
+   variant for the demo. Same border + background as other cards —
+   the tag is informational, not visually dominant, so the user
+   still picks freely. */
+.picker-vcard[data-recommended="true"] .vt::after {
+  content: "  · recommended";
+  color: #fbbf24;
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+}
 .picker-status {
   margin-top: 18px; padding: 16px; border-radius: 10px;
   background: #1e293b; border: 1px solid rgba(71, 85, 105, 0.5);
@@ -1136,6 +1142,11 @@ function _pickerBuildCards(variants) {
       card.type = 'button';
       card.className = 'picker-vcard ' + cat;
       card.dataset.variant = key;
+      // 31B-it gets a subtle inline " · recommended" tag via CSS
+      // (.picker-vcard[data-recommended="true"] .vt::after). Same
+      // border + glow as other cards — the tag is informational, not
+      // a prescriptive RECOMMENDED pill.
+      if (key === '31b-it') card.dataset.recommended = 'true';
       const sizeLabel = (typeof info.size_gb === 'number' && info.size_gb > 0)
           ? info.size_gb.toFixed(1) + ' GB' : 'no local download';
       const eta = info.load_eta || '';
