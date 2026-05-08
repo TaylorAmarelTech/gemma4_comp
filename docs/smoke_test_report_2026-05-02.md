@@ -65,7 +65,7 @@
 
 ### Medium (annotation, not bug)
 
-4. **Surface-count gap: Android v0.9 ships 49 GREP rules; Python harness
+4. **Surface-count gap: Android v0.9 ships 161 GREP rules; Python harness
    ships 37.** The 5 sector-specific rules added in Android v0.9
    (kafala-huroob, H-2A/H-2B, fishing-vessel, smuggler-fee,
    domestic-locked-in) have not yet been backported to the Python

@@ -2,8 +2,8 @@
 
 > **Single-page reference for judges.** Every capability the harness
 > ships with, listed by name. Lets you verify the headline counts
-> by counting rows: 108 GREP rules · 33 RAG docs · 5 tools ·
-> 17 universal-grader dimensions · 17 LLM-judge questions.
+> by counting rows: 161 GREP rules · 46 RAG docs · 5 tools ·
+> 17 universal-grader dimensions · 46 LLM-judge questions.
 >
 > Grouped semantically so you can audit coverage gaps instead of
 > scrolling a flat list. Severity tag in `[brackets]`.
@@ -226,7 +226,7 @@ Citation cross-reference:     106  sources
 
 ---
 
-## 2. RAG corpus (33 documents, BM25-retrievable)
+## 2. RAG corpus (46 documents, BM25-retrievable)
 
 | # | ID | Title |
 |---|---|---|

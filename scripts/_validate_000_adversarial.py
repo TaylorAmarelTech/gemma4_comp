@@ -62,7 +62,7 @@ def main() -> None:
 
     if "github.com/TaylorAmarelTech/gemma4_comp" not in all_text:
         fail("public GitHub repo link missing")
-    if "docs/FOR_JUDGES.md" not in all_text:
+    if "docs/FOR_KAGGLE_JUDGES.md" not in all_text:
         fail("judges guide link missing")
     ok("public repo and judges guide links present")
 

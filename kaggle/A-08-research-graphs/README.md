@@ -30,10 +30,11 @@ The four core notebooks deliver everything an end user needs for
 deployment. The two earlier appendix notebooks
 (`prompt-generation`, `bench-and-tune`) extend the system with new
 prompts and a fine-tuned model. This third appendix notebook
-visualizes what Duecare *already knows* — the 108 GREP rules, the
-33-doc RAG corpus, the 7 corridor fee caps, the 16 fee-camouflage
-labels, the 11 ILO indicators, the 4 NGO intake hotlines, and the
-204 example prompts — so a researcher can spot patterns,
+visualizes what Duecare *already knows* — the 161 GREP rules, the
+46-doc RAG corpus + 46-edge citation graph, the 7 corridor fee caps,
+the 16+ fee-camouflage labels, the 11 ILO indicators, the 4 NGO intake
+hotlines, and the 587 example prompts across 8 audience buckets — so
+a researcher can spot patterns,
 gaps, and biases in the rule base before deploying or extending it.
 
 ## What it renders (6 interactive Plotly charts)
@@ -56,7 +57,7 @@ gaps, and biases in the rule base before deploying or extending it.
 5. **ILO indicator hit counts per category** — which of the 11 ILO
    indicators of forced labour fire most often in each prompt
    category. Stacked bars.
-6. **RAG corpus sunburst** — the 33-doc BM25 corpus organized by
+6. **RAG corpus sunburst** — the 46-doc BM25 corpus organized by
    source family (ILO conventions, POEA MCs, BP2MI Reg, HK statutes,
    NGO briefs).
 

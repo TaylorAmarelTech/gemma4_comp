@@ -2,7 +2,7 @@
 
 Appendix-style notebook. **Not** part of the core deployment flow —
 this is the data-pipeline tool advanced users invoke when they want
-to grow the evaluation corpus beyond the bundled 204 prompts and
+to grow the evaluation corpus beyond the bundled 587 prompts and
 25-row smoke set. The same kernel a research lab would adapt for
 their own domain (medical misinformation, financial fraud, etc.).
 
@@ -35,7 +35,7 @@ optional, not required.
 
 This kernel sits in the appendix because:
 
-1. Most Duecare deployments will use the bundled 204 prompts +
+1. Most Duecare deployments will use the bundled 587 prompts +
    smoke_25 benchmark; they won't need to generate new ones.
 2. Generating prompts requires GPU + ~1 hour; the core notebooks
    load in 30 seconds.

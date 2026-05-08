@@ -258,8 +258,8 @@ Reproduce any decision after the fact by re-sending the same content
 ## What this image bundles
 
 - Gemma 4 weights (downloaded at first run, cached per the volume)
-- 108 GREP rules with ILO + national-statute citations
-- 33 RAG docsuments (BM25 over ILO C029/C181/C095/C189 + POEA MCs +
+- 161 GREP rules with ILO + national-statute citations
+- 46 RAG docsuments (BM25 over ILO C029/C181/C095/C189 + POEA MCs +
   BP2MI Reg + HK statutes + NGO briefs)
 - 4 lookup tools backed by 7 corridor entries, 16 fee labels, 11 ILO
   indicators, 4 corridor hotline groups

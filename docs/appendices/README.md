@@ -32,7 +32,7 @@ submission.
 
 | # | Appendix | What it covers |
 |---|---|---|
-| B1 | [Architecture](../architecture.md) | The 17-package PyPI workspace + 5-layer harness mechanics + 4-phase execution arc |
+| B1 | [Architecture](../architecture.md) | The 17-package PyPI workspace + 6-layer harness mechanics + 4-phase execution arc |
 | B2 | [Embedding guide](../embedding_guide.md) | Embed the harness in your own product (OpenAPI + JS widget + AAR plan) |
 | B3 | [Extension pack format](../extension_pack_format.md) | Build + sign your own GREP/RAG packs (Ed25519-signed) |
 | B4 | [Notebook guide](../notebook_guide.md) | How the 6+5 notebook shape was decided + per-notebook context |
@@ -97,7 +97,7 @@ submission.
 
 | # | Appendix | What it covers |
 |---|---|---|
-| H1 | [For judges](../FOR_JUDGES.md) | The hackathon-judge entry point + 2-min and 5-min verification paths |
+| H1 | [For judges](../FOR_KAGGLE_JUDGES.md) | The hackathon-judge entry point + 2-min and 5-min verification paths |
 | H2 | [Readiness dashboard](../readiness_dashboard.md) | Single-screen status across every dimension |
 | H3 | [Submission gate checklist](../submission_gate_checklist.md) | 13-phase pre-Submit verification |
 | H4 | [Post-submission sustainability](../post_submission_sustainability.md) | T+7 → T+365 plan with 8 non-negotiable principles |

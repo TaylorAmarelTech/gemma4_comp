@@ -14,22 +14,25 @@
 3. **Pick a model**. E2B/E4B usually load in under a minute; 26B-A4B
    and 31B can take 5-10+ minutes on a first HuggingFace download.
    Keep the picker open and use **View logs** to see live loader phases.
-4. **Verify the harness loaded** with `curl https://<your-url>/api/health-check`. Expected counts: 111 GREP rules, 35 RAG docs, 5 tools, 21 rubric dimensions, 21 evaluator questions, and all wired layers set true.
+4. **Verify the harness loaded** with `curl https://<your-url>/api/brand` (v0.14.2+) or `/api/health-check`. Expected counts: **161 GREP rules, 46 RAG docs (across 27 jurisdiction groups), 5 tools, 46-dim rubric v3.10, 46 evaluator questions, 587 example prompts across 8 audience buckets**, and all wired layers set true. The new `Harness ↗` button in the top bar opens dedicated viewers for each layer (`/static/harness.html` index → grep-rules / rag-corpus / rag-graph / tools / online / persona).
 5. **Click any of the 5 colored buttons** in the empty-state. They map to the 5 high-impact demo prompt categories:
    - 🟢 **Headline lift** — the 5-indicator compound case (PHP+HK)
    - 🔴 **Jailbreak** — DAN persona attempt
    - 🟡 **Online demo** — recent POEA enforcement query
    - 🟣 **Compare** — multi-jurisdiction protections
    - 🔵 **Social-eng** — humanitarian framing trap
-6. **Flip toggles** below the input. Try the same prompt with all 5
-   off (baseline) vs all 5 on (full harness). Expected: baseline gives
-   a vague answer; full harness cites specific statutes + hotlines.
+6. **Flip toggles** below the input. Try the same prompt with all 6
+   off (baseline) vs all 6 on (full harness). Or use the new **Compare**
+   tab in the top bar for a one-click side-by-side. Expected: baseline
+   gives a vague answer; full harness cites specific statutes + hotlines.
 7. **Click `▸ View pipeline`** on any response. Top of the modal shows
    a latency-budget bar (per-layer ms + Gemma generation time, with
-   harness % of total). Each layer card below shows what fired.
+   harness % of total). Each layer card below shows what fired. The
+   **RETRIEVAL PATH TRACE** card surfaces the multi-stage retrieval
+   decision (BM25 → optional rerank → graph expansion → parent expansion).
 8. **Click `Grade`** on any response. 4 modes:
-   - **Universal** (fast, deterministic, ~2s) — 21-dimension
-     multi-signal grader with citation grounding check
+   - **Universal** (fast, deterministic, ~2s) — 46-dimension
+     multi-signal grader (rubric v3.10) with citation grounding check
    - **Expert** (legacy per-category) — for backwards compatibility
    - **Deep** (LLM-as-judge, ~30-90s) — sends response back to the
      loaded Gemma with one yes/no question per dimension; pulls
@@ -89,8 +92,8 @@ Full variant list (9 supported):
   Kaggle dataset `taylorsamarel/duecare-harness-chat-wheels`)
 - `notebook.ipynb` — single-cell wrapper around `kernel.py`
 
-All harness CONTENT (111 GREP rules, 35 RAG docs, 5 tools, 21-dim
-rubric, 21 LLM-judge questions) lives in the chat package wheel —
+All harness CONTENT (161 GREP rules, 46 RAG docs, 5 tools, 46-dim
+rubric, 46 LLM-judge questions) lives in the chat package wheel —
 not in `kernel.py`. Bumping the dataset version updates everything;
 the kernel.py doesn't need to change.
 
@@ -129,13 +132,14 @@ safe enough for judges to test live:
 | 0:00 | Click the cloudflared URL | Model picker opens before chat |
 | 0:15 | Pick E4B, then click **View logs** | Live phases appear; card shows loading state |
 | 1:15 | Picker auto-enters chat when ready | Chat UI loads with empty state showing 5 colored quick-action buttons |
-| 1:30 | Click 🟢 "Headline lift" → toggle ALL 5 layers ON → Send | Response cites ILO C029 §1, POEA MC 14-2017, HK Cap. 57 §32, MfMW HK +852-2522-8264 |
+| 1:30 | Click 🟢 "Headline lift" → toggle ALL 6 layers ON → Send | Response cites ILO C029 §1, POEA MC 14-2017, HK Cap. 57 §32, MfMW HK +852-2522-8264 |
 | 2:30 | Click `▸ View pipeline` on the response | Latency bar shows per-layer ms; cards show GREP hits + RAG docs + tool results + online results |
 | 3:30 | Click `Grade` → switch to **Combined** | Universal score + Judge score + agreement % + disagreement table |
-| 6:00 | Click 🔴 "Jailbreak" → toggle ALL 5 layers OFF → Send | Should refuse but vaguely (this is baseline Gemma) |
-| 7:00 | Same prompt with all 5 layers ON | Refuses with citations + hotlines |
-| 8:00 | Click `Grade` → **Deep** mode | LLM-judge sends 21 questions back to Gemma; per-dimension verdicts with evidence quotes from the response |
-| 10:00 | `curl https://<url>/api/health-check` | All layers wired, all grade modes available |
+| 4:30 | Click `Harness ↗` in top bar | Opens `/static/harness.html` — 6 layer cards with live counts; click any to drill into the dedicated viewer |
+| 6:00 | Click 🔴 "Jailbreak" → toggle ALL 6 layers OFF → Send | Should refuse but vaguely (this is baseline Gemma) |
+| 7:00 | Same prompt with all 6 layers ON | Refuses with citations + hotlines |
+| 8:00 | Click `Grade` → **Deep** mode | LLM-judge sends 46 questions back to Gemma; per-dimension verdicts with evidence quotes from the response |
+| 10:00 | `curl https://<url>/api/brand` | Returns chat package version + 6-layer metadata + live counts (161 GREP / 46 RAG / 46 dims) |
 
 ## Submission context
 
@@ -166,7 +170,8 @@ regenerator). See `docs/FOR_PEER_REVIEW.md` for the full submission roster.
 - **Online layer returns no results** → DuckDuckGo HTML can rate-
   limit; for Brave Search / Playwright agentic search use appendix A9
   (`duecare-chat-playground-with-agentic-research`)
-- **Combined-mode grade is slow** → it's running 21 LLM-judge calls
-  against the loaded model; ~30-90s for E4B, several minutes for 31B
+- **Combined-mode grade is slow** → it's running up to 46 LLM-judge calls
+  against the loaded model (one per applicable rubric dimension);
+  ~30-90s for E4B, several minutes for 31B
 - **Cold-boot timeout** → the unsloth-stack install can take 90s on
   a fresh Kaggle worker; subsequent restarts skip via marker file

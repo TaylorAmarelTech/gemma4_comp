@@ -5,7 +5,7 @@
 
   APPENDIX notebook. Not part of the core deployment flow -- this is the
   data-pipeline tool advanced users invoke when they want to grow the
-  evaluation corpus beyond the bundled 204 prompts and 25-row smoke set.
+  evaluation corpus beyond the bundled 587 prompts and 25-row smoke set.
 
   What it does (per CLAUDE.md A4 -- Prompt Generator):
 

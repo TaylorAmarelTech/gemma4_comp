@@ -75,7 +75,7 @@ notebook for the video. Must be polished.
       response register
 - [ ] **Custom rule** add-form works (paste a rule, save, see it
       fire on next prompt)
-- [ ] **Examples library** lists 407 prompts; clicking one populates
+- [ ] **Examples library** lists 587 prompts; clicking one populates
       the input
 - [ ] Toggle GREP off + same prompt → fewer / no rule citations in
       the response (visible regression confirms toggles work)

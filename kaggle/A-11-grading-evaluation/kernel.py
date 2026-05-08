@@ -1,4 +1,4 @@
-"""Duecare Grading Evaluation (A6)
+"""Duecare Grading Evaluation (A11)
 =====================================
 
 Side-by-side rubric evaluation showing what the safety harness ACTUALLY
@@ -6,7 +6,7 @@ does. Runs N curated prompts through Gemma 4 twice each:
   - HARNESS OFF: raw Gemma response (no persona, no GREP, no RAG, no Tools)
   - HARNESS ON:  full harness (Persona + GREP + RAG + Tools all enabled)
 
-Grades both responses with the universal v3.6 grader (21 dimensions,
+Grades both responses with the universal v3.6 grader (46 dimensions,
 use-case-aware, citation-cross-referenced) and produces:
   - Per-prompt side-by-side comparison cards
   - Aggregate dimension-lift table
@@ -204,7 +204,7 @@ for i, ex in enumerate(selected, 1):
     t_on = _time.time() - t0
     print(f"    ON:  {len(response_on)} chars, {t_on:.0f}s")
 
-    # Grade both with the universal v2 grader
+    # Grade both with the universal v3.10 grader
     lift = evaluate_lift(
         user_text,
         response_off=response_off,

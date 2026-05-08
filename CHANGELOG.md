@@ -156,7 +156,7 @@ log warning rather than crashing.
 ### Fixed — Documentation drift
 
 - "17 dimensions" / "15 dimensions" / "19 dimensions" → "21
-  dimensions" across writeup_draft.md, FOR_JUDGES.md, architecture.md,
+  dimensions" across writeup_draft.md, FOR_KAGGLE_JUDGES.md, architecture.md,
   reproducibility.md, REPORT_CARD.md, judge_5min_test_plan.md,
   stock_vs_harnessed.md, harness_lift_report.md, kernel READMEs,
   Kaggle dataset metadata.
@@ -639,7 +639,7 @@ the rolling list of what's landed as of 2026-05-02.
 - Default model everywhere is now `gemma4:e2b` (was `gemma2:2b`
   in early Docker compose / Android v0.5)
 - Notebook table TBD markers replaced with "publish pending"
-  wording across `docs/FOR_JUDGES.md` + `kaggle/README.md`
+  wording across `docs/FOR_KAGGLE_JUDGES.md` + `kaggle/README.md`
 - Top-level README leads with `make demo` + persona-table
   navigation
 - Enterprise governance docs moved to `docs/considerations/`

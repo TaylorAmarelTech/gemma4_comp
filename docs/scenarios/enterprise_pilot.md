@@ -162,7 +162,7 @@ Avoid:
 | You get | You build |
 |---|---|
 | 17 PyPI packages + 6 + 5 Kaggle notebooks + Helm chart + Docker image | Your client UI (web / mobile / Slack / Discord / etc.) |
-| 108 GREP rules + 33 RAG docss + 5 corridor + ILO lookupss | Your domain-specific extensions (custom GREP rules, internal corpus, internal tools) |
+| 161 GREP rules + 46 RAG docss + 5 corridor + ILO lookupss | Your domain-specific extensions (custom GREP rules, internal corpus, internal tools) |
 | 11 ILO C029 indicators + 20 corridor profiles | Your jurisdiction-specific corridors / regulators / NGO lists |
 | Per-tenant token + cost meter | Hook to your billing pipeline |
 | OpenTelemetry traces + Prometheus metrics | Hook to your existing observability stack |

@@ -217,7 +217,7 @@ Include at least one ticket for:
 2. `docs/prompts/_shared_discipline.md`.
 3. `CLAUDE.md`.
 4. `.claude/rules/00_overarching_goals.md`.
-5. `docs/FOR_JUDGES.md`.
+5. `docs/FOR_KAGGLE_JUDGES.md`.
 6. `kaggle/kernels/duecare_00_gemma_exploration/00_gemma_exploration.ipynb`.
 7. `kaggle/kernels/duecare_01_quickstart/01_quickstart.ipynb`.
 8. `kaggle/kernels/duecare_07_oss_comparison/07_oss_model_comparison.ipynb`.

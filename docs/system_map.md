@@ -16,7 +16,7 @@
 | Kaggle notebooks | 11 (2 core + 11 appendix) |
 | PyPI packages | 17 |
 | Deployment topologies | 5 |
-| GREP rules | 42 |
+| GREP rules | 161 |
 | RAG documents | 26 |
 | Migration corridors | 20 |
 | ILO C029 indicators | 11 |
@@ -67,7 +67,7 @@ graph LR
   CTO --> API
 ```
 
-## Layer 2 — The 5-layer harness (the technical core)
+## Layer 2 — The 6-layer harness (the technical core)
 
 ```mermaid
 graph LR

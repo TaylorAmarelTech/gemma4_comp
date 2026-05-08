@@ -107,7 +107,7 @@ Update these files with the live URL:
 
 ```bash
 sed -i.bak 's|HF_SPACES_URL_TBD|https://huggingface.co/spaces/taylorscottamarel/duecare-live-demo|g' \
-  docs/writeup_draft.md docs/FOR_JUDGES.md docs/notebook_index.md README.md
+  docs/writeup_draft.md docs/FOR_KAGGLE_JUDGES.md docs/notebook_index.md README.md
 ```
 
 ## Troubleshooting

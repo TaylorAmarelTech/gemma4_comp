@@ -717,6 +717,16 @@ model_info = {
 
 from duecare.chat.harness import grade_response, RUBRICS_REQUIRED
 
+# v0.8.1: optional reranker + cached embedder. Same one-line pattern
+# every Duecare chat kernel uses. Toggle via ENABLE_RERANKER /
+# ENABLE_EMBEDDER env vars; falls back silently when transformers
+# unavailable.
+try:
+    from duecare.chat.kernel_helpers import default_optional_hooks
+    _hooks = {k: v for k, v in default_optional_hooks().items() if v is not None}
+except Exception:
+    _hooks = {}
+
 app = create_app(
     gemma_call=loaded.backend,
     model_info=model_info,
@@ -729,6 +739,7 @@ app = create_app(
     rubrics_required_categories=list(RUBRICS_REQUIRED.keys()),
     example_prompts=EXAMPLE_PROMPTS,
     layer_docs={"examples": LAYER_DOCS.get("examples", "")},
+    **_hooks,
 )
 # Force RAW playground: defeat the chat package's persona-default fallback
 # (line 152 of duecare/chat/app.py does `persona_default or DEFAULT_PERSONA`,

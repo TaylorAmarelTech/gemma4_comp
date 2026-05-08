@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Duecare — Tools</title>
+  <style>
+    :root {
+      --ink: #e2e8f0; --muted: #94a3b8; --bg: #0f172a; --panel: #1e293b;
+      --border: #334155; --accent: #10b981;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; background: var(--bg); color: var(--ink);
+                  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+                               Helvetica, Arial, sans-serif; }
+    header { padding: 14px 20px; background: var(--panel); border-bottom: 1px solid var(--border);
+              display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+    header h1 { margin: 0; font-size: 16px; color: var(--accent); }
+    .sub { font-size: 12px; color: var(--muted); flex: 1; }
+    .container { padding: 18px 24px; max-width: 1100px; margin: 0 auto; }
+    section { background: var(--panel); border: 1px solid var(--border); border-radius: 6px;
+               padding: 18px; margin-bottom: 18px; }
+    section h2 { margin: 0 0 12px; font-size: 14px; color: var(--accent); }
+    .tool { padding: 10px 0; border-bottom: 1px dashed var(--border); }
+    .tool:last-child { border-bottom: 0; }
+    .tool .name { font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+                   font-weight: 600; color: var(--accent); }
+    .tool .desc { font-size: 12px; color: var(--muted); margin-top: 2px; }
+    table { width: 100%; border-collapse: collapse; font-size: 11.5px; margin-top: 8px; }
+    th { text-align: left; padding: 6px 8px; background: rgba(124,58,237,0.06);
+          border-bottom: 1px solid var(--border); font-weight: 600; color: var(--muted);
+          font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.4px; }
+    td { padding: 6px 8px; border-bottom: 1px solid var(--border); vertical-align: top; }
+    code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+            background: rgba(16,185,129,0.12); color: var(--accent);
+            padding: 1px 5px; border-radius: 3px; font-size: 11px; }
+    .empty { color: var(--muted); font-style: italic; padding: 8px 0; font-size: 11px; }
+    a.back { color: var(--muted); font-size: 11px; text-decoration: none; }
+    a.back:hover { color: var(--accent); }
+    .err { color: #ef4444; padding: 14px; }
+  </style>
+</head>
+<body>
+  <header>
+    <a href="/static/harness.html" class="back">← All layers</a>
+    <h1>Tools layer</h1>
+    <div class="sub" id="stats">Loading…</div>
+  </header>
+  <div class="container" id="root">Loading…</div>
+  <script>
+    function escapeHtml(s) {
+      return String(s == null ? "" : s).replace(/[&<>"']/g, c =>
+        ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    }
+    function jsonValue(v, depth = 0) {
+      if (v == null) return '<span class="empty">—</span>';
+      if (typeof v === "string" || typeof v === "number" || typeof v === "boolean") {
+        return escapeHtml(String(v));
+      }
+      if (Array.isArray(v)) {
+        return v.map(x => jsonValue(x, depth + 1)).join(", ");
+      }
+      // object — show keys: values
+      return Object.entries(v).map(([k, val]) =>
+        `<div><strong>${escapeHtml(k)}</strong>: ${jsonValue(val, depth + 1)}</div>`).join("");
+    }
+    function tableFromObject(title, obj) {
+      if (!obj) return "";
+      const entries = Object.entries(obj);
+      if (!entries.length) return "";
+      return `<section>
+        <h2>${escapeHtml(title)} <span style="color:var(--muted); font-weight:400; font-size:11px;">(${entries.length})</span></h2>
+        <table>
+          <thead><tr><th>Key</th><th>Value</th></tr></thead>
+          <tbody>
+            ${entries.map(([k, v]) => `
+              <tr><td><code>${escapeHtml(k)}</code></td><td>${jsonValue(v)}</td></tr>
+            `).join("")}
+          </tbody>
+        </table>
+      </section>`;
+    }
+    function tableFromArray(title, arr) {
+      if (!arr || !arr.length) return "";
+      const cols = Object.keys(arr[0] || {});
+      if (!cols.length) {
+        return `<section><h2>${escapeHtml(title)} (${arr.length})</h2>
+          <ul>${arr.map(x => `<li>${escapeHtml(String(x))}</li>`).join("")}</ul></section>`;
+      }
+      return `<section>
+        <h2>${escapeHtml(title)} <span style="color:var(--muted); font-weight:400; font-size:11px;">(${arr.length})</span></h2>
+        <table>
+          <thead><tr>${cols.map(c => `<th>${escapeHtml(c)}</th>`).join("")}</tr></thead>
+          <tbody>
+            ${arr.map(row => `<tr>${cols.map(c =>
+              `<td>${jsonValue(row[c])}</td>`).join("")}</tr>`).join("")}
+          </tbody>
+        </table>
+      </section>`;
+    }
+    async function load() {
+      let d;
+      try {
+        const r = await fetch("/api/harness-catalog/tools", {cache: "no-store"});
+        if (!r.ok) throw new Error("HTTP " + r.status);
+        d = await r.json();
+      } catch (e) {
+        document.getElementById("root").innerHTML =
+          `<div class="err">${escapeHtml(e.message)}</div>`;
+        return;
+      }
+      const tools = d.items || [];
+      const tables = d.tables || {};
+      let html = `
+        <section>
+          <h2>Function-calling tools <span style="color:var(--muted); font-weight:400; font-size:11px;">(${tools.length})</span></h2>
+          ${tools.map(t => `
+            <div class="tool">
+              <div class="name">${escapeHtml(t.name)}</div>
+              <div class="desc">${escapeHtml(t.description) || '<em>no docstring</em>'}</div>
+            </div>
+          `).join("") || '<div class="empty">No tools wired.</div>'}
+        </section>
+      `;
+      // Render the backing tables Gemma queries via these tools.
+      html += tableFromObject("Corridor fee caps (corridor → cap details)", tables.corridor_fee_caps);
+      html += tableFromObject("Fee camouflage labels (label → underlying prohibited fee)", tables.fee_camouflage_labels);
+      html += tableFromArray("ILO Forced-Labour Indicators (1–11)", tables.ilo_indicators);
+      html += tableFromObject("NGO intake groups (corridor → NGO contacts)", tables.ngo_intake_groups);
+      html += tableFromObject("ILO Conventions (number → description)", tables.ilo_conventions);
+      document.getElementById("root").innerHTML = html;
+      const totalRows = (tools.length)
+        + Object.keys(tables.corridor_fee_caps || {}).length
+        + Object.keys(tables.fee_camouflage_labels || {}).length
+        + (tables.ilo_indicators || []).length
+        + Object.keys(tables.ngo_intake_groups || {}).length
+        + Object.keys(tables.ilo_conventions || {}).length;
+      document.getElementById("stats").textContent =
+        `${tools.length} tools · ${totalRows - tools.length} backing-table rows`;
+    }
+    load();
+  </script>
+</body>
+</html>

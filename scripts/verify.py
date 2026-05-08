@@ -28,7 +28,7 @@ from dataclasses import dataclass
 
 
 # Per-artifact thresholds. Each is the published headline number
-# from `docs/writeup_draft.md` / `FOR_JUDGES.md` / `harness_lift_report.md`
+# from `docs/writeup_draft.md` / `FOR_KAGGLE_JUDGES.md` / `harness_lift_report.md`
 # rounded down (so a small future addition still passes; only
 # regressions trip the gate).
 @dataclass(frozen=True)

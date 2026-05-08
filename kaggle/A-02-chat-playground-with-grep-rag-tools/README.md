@@ -29,7 +29,7 @@ The chat backend exposes 3 toggleable safety layers. Each is independent — tog
 
 ### GREP (Phase 1 — shipping now)
 
-108 regex / pattern rules covering 16 categories:
+161 regex / pattern rules covering 16 categories:
 
 | Category | Sample rules |
 |---|---|

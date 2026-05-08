@@ -650,10 +650,16 @@ model_info = {
                 f"{loaded.quantization} · JAILBROKEN"),
 }
 
+try:
+    from duecare.chat.kernel_helpers import default_optional_hooks
+    _hooks = {k: v for k, v in default_optional_hooks().items() if v is not None}
+except Exception:
+    _hooks = {}
 app = create_app(
     gemma_call=loaded.backend,
     model_info=model_info,
     **default_harness(),
+    **_hooks,
 )
 _attach_shutdown(app)
 print(f"  harness loaded: {len(GREP_RULES)} GREP rules, "

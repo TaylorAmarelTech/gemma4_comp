@@ -252,7 +252,7 @@ Include tickets for:
 1. `docs/current_kaggle_notebook_state.md`.
 2. `docs/prompts/_shared_discipline.md`.
 3. `docs/deployment_modes.md`.
-3. `docs/FOR_JUDGES.md` for the honesty bar.
+3. `docs/FOR_KAGGLE_JUDGES.md` for the honesty bar.
 4. `src/demo/app.py`, `src/demo/social_media_scorer.py`,
    `src/demo/quick_filter.py`, `src/demo/report_generator.py`,
    `src/demo/rag.py`, `src/demo/function_calling.py`,

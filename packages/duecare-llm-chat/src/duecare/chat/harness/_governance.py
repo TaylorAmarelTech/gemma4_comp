@@ -54,6 +54,7 @@ GRADER_CONFIG_PATH          = _HARNESS_DIR / "_grader_config.json"
 BASELINE_GAUGE_PATH         = _HARNESS_DIR / "_baseline_gauge.json"
 RUBRIC_HINTS_PATH           = _HARNESS_DIR / "_rubric_hints.json"
 PERSONAS_PATH               = _HARNESS_DIR / "_personas.json"
+CONTACTS_PATH               = _HARNESS_DIR / "_contacts.json"
 
 # Only schema + version are universally required. The body shape
 # differs per block type: classifier_signals/authoritative_statutes/

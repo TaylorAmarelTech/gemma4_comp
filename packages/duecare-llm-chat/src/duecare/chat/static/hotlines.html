@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Duecare — Hotlines & contacts</title>
+  <style>
+    :root {
+      --ink: #e2e8f0; --muted: #94a3b8; --bg: #0f172a; --panel: #1e293b;
+      --border: #334155; --accent: #14b8a6; --highlight: #fbbf24;
+      --green: #10b981; --red: #ef4444; --blue: #3b82f6;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; background: var(--bg); color: var(--ink);
+                  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+                               Helvetica, Arial, sans-serif; min-height: 100vh; }
+    header { padding: 12px 18px; background: var(--panel); border-bottom: 1px solid var(--border);
+              display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+    header h1 { margin: 0; font-size: 16px; color: var(--accent); }
+    .sub { font-size: 12px; color: var(--muted); flex: 1; }
+    input, select { padding: 6px 10px; font-size: 12px; border: 1px solid var(--border);
+                     background: var(--bg); color: var(--ink); border-radius: 4px; }
+    .filterbar { padding: 8px 18px; background: rgba(20,184,166,0.04);
+                  border-bottom: 1px solid var(--border); display: flex; gap: 8px;
+                  flex-wrap: wrap; align-items: center; }
+    .container { padding: 16px 18px; max-width: 1200px; margin: 0 auto; }
+    .card { background: var(--panel); border: 1px solid var(--border); border-radius: 6px;
+             padding: 16px; margin-bottom: 12px; }
+    .card .head { display: flex; gap: 10px; align-items: flex-start; flex-wrap: wrap; }
+    .card h2 { margin: 0 0 4px; font-size: 14px; color: var(--ink); flex: 1; min-width: 200px; }
+    .badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 10px;
+              font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px; }
+    .badge.regulator { background: rgba(59,130,246,0.18); color: #3b82f6; border: 1px solid #3b82f6; }
+    .badge.ngo       { background: rgba(16,185,129,0.18); color: #10b981; border: 1px solid #10b981; }
+    .badge.embassy   { background: rgba(168,85,247,0.18); color: #a855f7; border: 1px solid #a855f7; }
+    .badge.hotline   { background: rgba(239,68,68,0.18);  color: #ef4444; border: 1px solid #ef4444; }
+    .badge.ilo_office { background: rgba(124,58,237,0.18); color: #7c3aed; border: 1px solid #7c3aed; }
+    .badge.intl_org  { background: rgba(245,158,11,0.18); color: #f59e0b; border: 1px solid #f59e0b; }
+    .country { font-size: 11.5px; color: var(--muted); }
+    .actions { margin-top: 12px; display: flex; gap: 8px; flex-wrap: wrap; }
+    .btn { padding: 7px 14px; font-size: 12px; border: 1px solid var(--accent);
+            background: var(--accent); color: #fff; border-radius: 4px;
+            text-decoration: none; font-weight: 600; display: inline-flex;
+            gap: 6px; align-items: center; }
+    .btn:hover { background: #0d9488; }
+    .btn.secondary { background: var(--bg); color: var(--ink); border-color: var(--border); font-weight: 500; }
+    .btn.secondary:hover { background: var(--panel); }
+    .meta { margin-top: 10px; display: flex; gap: 18px; flex-wrap: wrap;
+             font-size: 11px; color: var(--muted); }
+    .meta .key { font-weight: 600; color: var(--ink); margin-right: 4px; }
+    .corridors, .langs, .topics { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 8px; }
+    .chip { padding: 2px 8px; border-radius: 10px; font-size: 10px; border: 1px solid var(--border);
+             background: var(--bg); color: var(--muted); }
+    .chip.lang { background: rgba(20,184,166,0.06); color: var(--accent); border-color: var(--accent); }
+    .chip.corridor { background: rgba(59,130,246,0.06); color: var(--blue); border-color: var(--blue); }
+    .chip.topic { background: rgba(245,158,11,0.06); color: #f59e0b; border-color: #f59e0b; }
+    .note { font-size: 11.5px; color: var(--muted); line-height: 1.6; margin-top: 10px;
+             padding-top: 10px; border-top: 1px dashed var(--border); }
+    .empty { padding: 40px 18px; text-align: center; color: var(--muted); font-style: italic; }
+    a.back { color: var(--muted); font-size: 11px; text-decoration: none; }
+    a.back:hover { color: var(--accent); }
+    .safety-banner { padding: 10px 14px; background: rgba(251,191,36,0.08);
+                      border: 1px solid rgba(251,191,36,0.4); border-radius: 4px;
+                      font-size: 11.5px; color: #fde68a; margin-bottom: 14px;
+                      line-height: 1.6; }
+    .safety-banner strong { color: var(--highlight); }
+    .verified { display: inline-flex; align-items: center; gap: 4px; font-size: 10px;
+                 color: var(--green); }
+  </style>
+</head>
+<body>
+  <header>
+    <a href="/static/harness.html" class="back">← All layers</a>
+    <h1>Hotlines & contacts</h1>
+    <div class="sub" id="stats">Loading…</div>
+    <input id="search" type="text" placeholder="Search name / country / topic…" />
+  </header>
+  <div class="filterbar">
+    <select id="f-category"><option value="">All categories</option></select>
+    <select id="f-corridor"><option value="">All corridors</option></select>
+    <select id="f-language"><option value="">Any language</option></select>
+  </div>
+  <div class="container">
+    <div class="safety-banner">
+      <strong>Important:</strong> The Duecare harness <strong>never auto-sends</strong>
+      reports on a user's behalf. Click-to-call (<code>tel:</code>) and click-to-email
+      (<code>mailto:</code>) links open your device's phone app or mail client with
+      pre-filled context — <strong>you</strong> review and submit. Web-form URLs
+      open in a new tab. Auto-sending would create abuse vectors and remove
+      worker agency over the report. If a contact is wrong, please file an
+      issue at <code>github.com/TaylorAmarelTech/gemma4_comp</code> with the
+      contact <code>id</code> and the corrected information.
+    </div>
+    <div id="cards"></div>
+  </div>
+  <script>
+    let entries = [], categories = {}, filt = {q: "", corridor: "", category: "", language: ""};
+    function escapeHtml(s) {
+      return String(s == null ? "" : s).replace(/[&<>"']/g, c =>
+        ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    }
+    async function load() {
+      try {
+        const r = await fetch('/api/contacts', {cache: 'no-store'});
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        const d = await r.json();
+        entries = d.entries || [];
+        categories = d.categories || {};
+        document.getElementById('stats').textContent =
+          `${entries.length} contacts (schema ${d.schema}@${d.version}, last updated ${d.last_updated})`;
+        // Populate filter dropdowns from data
+        const catSel = document.getElementById('f-category');
+        catSel.innerHTML = '<option value="">All categories</option>' +
+          Object.entries(categories).map(([k, label]) =>
+            `<option value="${escapeHtml(k)}">${escapeHtml(label)}</option>`).join('');
+        const allCorridors = new Set();
+        const allLangs = new Set();
+        for (const e of entries) {
+          (e.corridors || []).forEach(c => allCorridors.add(c));
+          (e.languages || []).forEach(l => allLangs.add(l));
+        }
+        document.getElementById('f-corridor').innerHTML =
+          '<option value="">All corridors</option>' +
+          [...allCorridors].sort().map(c =>
+            `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('');
+        document.getElementById('f-language').innerHTML =
+          '<option value="">Any language</option>' +
+          [...allLangs].sort().map(l =>
+            `<option value="${escapeHtml(l)}">${escapeHtml(l)}</option>`).join('');
+      } catch (e) {
+        document.getElementById('cards').innerHTML =
+          `<div class="empty" style="color:#ef4444;">Could not load contacts: ${escapeHtml(e.message)}</div>`;
+        return;
+      }
+      document.getElementById('search').addEventListener('input', e => { filt.q = e.target.value; render(); });
+      document.getElementById('f-category').addEventListener('change', e => { filt.category = e.target.value; render(); });
+      document.getElementById('f-corridor').addEventListener('change', e => { filt.corridor = e.target.value; render(); });
+      document.getElementById('f-language').addEventListener('change', e => { filt.language = e.target.value; render(); });
+      render();
+    }
+    function render() {
+      const q = filt.q.toLowerCase().trim();
+      const visible = entries.filter(e => {
+        if (filt.category && e.category !== filt.category) return false;
+        if (filt.corridor && !(e.corridors || []).includes(filt.corridor)) return false;
+        if (filt.language && !(e.languages || []).map(l => l.split('-')[0]).includes(filt.language.split('-')[0])) return false;
+        if (!q) return true;
+        const blob = JSON.stringify(e).toLowerCase();
+        return blob.includes(q);
+      });
+      const cardsDiv = document.getElementById('cards');
+      if (!visible.length) {
+        cardsDiv.innerHTML = '<div class="empty">No contacts match your filters.</div>';
+        document.getElementById('stats').textContent = `0 of ${entries.length} contacts`;
+        return;
+      }
+      cardsDiv.innerHTML = visible.map(e => {
+        const phones = [e.phone, e.phone_alt].filter(Boolean);
+        const phoneBtns = phones.map(p =>
+          `<a class="btn" href="tel:${encodeURIComponent(p.replace(/[^+\d]/g, ''))}">📞 ${escapeHtml(p)}</a>`).join('');
+        const emailBtn = e.email ? `<a class="btn secondary" href="mailto:${encodeURIComponent(e.email)}?subject=Migrant-worker%20complaint%20referral">✉ ${escapeHtml(e.email)}</a>` : '';
+        const formBtn = e.web_form_url ? `<a class="btn secondary" href="${escapeHtml(e.web_form_url)}" target="_blank">📝 File complaint</a>` : '';
+        const webBtn  = e.web_url ? `<a class="btn secondary" href="${escapeHtml(e.web_url)}" target="_blank">🌐 Website</a>` : '';
+        const smsBtn  = e.sms ? `<a class="btn secondary" href="sms:${encodeURIComponent(e.sms)}">💬 SMS</a>` : '';
+        const socialEntries = Object.entries(e.social || {});
+        const socialBtns = socialEntries.map(([platform, handle]) =>
+          `<span class="chip">${escapeHtml(platform)}: ${escapeHtml(handle)}</span>`).join('');
+        const corridorChips = (e.corridors || []).slice(0, 6).map(c =>
+          `<span class="chip corridor">${escapeHtml(c)}</span>`).join('');
+        const langChips = (e.languages || []).map(l =>
+          `<span class="chip lang">${escapeHtml(l)}</span>`).join('');
+        const topicChips = (e.what_to_report || []).map(t =>
+          `<span class="chip topic">${escapeHtml(t.replace(/_/g, ' '))}</span>`).join('');
+        const responseTime = e.response_time_hours != null
+          ? (e.response_time_hours <= 1 ? '< 1h'
+              : e.response_time_hours <= 24 ? `${e.response_time_hours}h`
+              : `${Math.round(e.response_time_hours / 24)}d`)
+          : '?';
+        return `<div class="card">
+          <div class="head">
+            <h2>${escapeHtml(e.name)}</h2>
+            <span class="badge ${escapeHtml(e.category)}">${escapeHtml(e.category)}</span>
+          </div>
+          <div class="country">${escapeHtml(e.country || '')}${e.address ? ' · ' + escapeHtml(e.address) : ''}</div>
+          <div class="actions">${phoneBtns}${smsBtn}${emailBtn}${formBtn}${webBtn}</div>
+          <div class="meta">
+            <span><span class="key">Response:</span>${escapeHtml(responseTime)}</span>
+            ${e.after_hours_alternative ? `<span><span class="key">After-hours:</span>${escapeHtml(e.after_hours_alternative)}</span>` : ''}
+            ${e.verified ? `<span class="verified">✓ verified ${escapeHtml(e.verified)}</span>` : ''}
+          </div>
+          ${corridorChips ? `<div class="corridors">${corridorChips}</div>` : ''}
+          ${langChips ? `<div class="langs">${langChips}</div>` : ''}
+          ${topicChips ? `<div class="topics">${topicChips}</div>` : ''}
+          ${socialBtns ? `<div style="margin-top:8px; display:flex; flex-wrap:wrap; gap:4px;">${socialBtns}</div>` : ''}
+          ${e.note ? `<div class="note">${escapeHtml(e.note)}</div>` : ''}
+        </div>`;
+      }).join('');
+      document.getElementById('stats').textContent = `${visible.length} of ${entries.length} contacts`;
+    }
+    load();
+  </script>
+</body>
+</html>

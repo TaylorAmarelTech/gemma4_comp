@@ -1264,7 +1264,7 @@ _PAGE_HTML = """<!doctype html><html><head>
         </div>
         <div class="tile on" data-key="grep" style="--c: #dc2626">
           <div class="tile-title">GREP</div>
-          <div class="tile-desc">108 rules</div>
+          <div class="tile-desc">161 rules</div>
         </div>
         <div class="tile on" data-key="rag" style="--c: #2563eb">
           <div class="tile-title">RAG</div>

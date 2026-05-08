@@ -21,7 +21,7 @@ KERNEL_TITLE = "DueCare 000 Index"
 WHEELS_DATASET = "taylorsamarel/duecare-llm-wheels"
 KEYWORDS = ["gemma", "safety", "llm", "trafficking", "tutorial"]
 PUBLIC_REPO_URL = "https://github.com/TaylorAmarelTech/gemma4_comp"
-JUDGES_GUIDE_URL = PUBLIC_REPO_URL + "/blob/main/docs/FOR_JUDGES.md"
+JUDGES_GUIDE_URL = PUBLIC_REPO_URL + "/blob/main/docs/FOR_KAGGLE_JUDGES.md"
 WRITEUP_URL = "https://www.kaggle.com/competitions/gemma-4-good-hackathon/writeups"
 
 PHASES = [
@@ -187,7 +187,7 @@ PHASES = [
         "intro": "Which concrete products does DueCare actually become once the evaluation, API, and domain-pack machinery are already in place? This section separates the five deployment applications into one notebook each so a judge can understand the product story without reverse-engineering it from 620 and 650.",
         "notebooks": [
             {"id": "660", "title": "Enterprise Moderation", "slug": "duecare-660-enterprise-moderation", "summary": "Platform-scale queueing surface for screening risky recruitment posts, ads, and recruiter outreach before they reach workers."},
-            {"id": "670", "title": "Private Client-Side Checker", "slug": "duecare-670-private-client-side-checker", "summary": "Worker-side private checker for one suspicious message or document at a time, with plain-language warning and next-step guidance."},
+            {"id": "670", "title": "Private Client-Side Checker", "slug": "duecare-670-private-client-side-checker", "summary": "Migrant Worker Chat private checker for one suspicious message or document at a time, with plain-language warning and next-step guidance."},
             {"id": "680", "title": "NGO API Triage", "slug": "duecare-680-ngo-api-triage", "summary": "Software-to-software triage surface: one structured request in, one structured analysis and routing response out."},
             {"id": "690", "title": "Migration Case Workflow", "slug": "duecare-690-migration-case-workflow", "summary": "Multi-document case-bundle workflow that turns uploaded files into a timeline, grounded findings, and draft complaint materials."},
             {"id": "695", "title": "Custom Domain Adoption", "slug": "duecare-695-custom-domain-adoption", "summary": "Plain-English partner-adoption playbook showing how DueCare becomes reusable in a new safety domain without Python changes."},
@@ -445,7 +445,7 @@ def _header_markdown() -> str:
 
 **The public front door for the DueCare competition submission.** DueCare tests whether Gemma 4 can act as a private, on-device safety judge for trafficking, exploitation, tax evasion, and financial crime scenarios. This notebook does not run models. Its job is to route a judge, adopter, or technical reviewer to the right proof notebook quickly and honestly.
 
-The suite currently tracks **{total_notebooks} Kaggle notebooks** across **{total_sections} sections**. The public repository is on [GitHub]({PUBLIC_REPO_URL}). The focused five-minute verification guide for judges is [docs/FOR_JUDGES.md]({JUDGES_GUIDE_URL}). The competition writeup listing is on the [Gemma 4 Good Hackathon writeups page]({WRITEUP_URL}).
+The suite currently tracks **{total_notebooks} Kaggle notebooks** across **{total_sections} sections**. The public repository is on [GitHub]({PUBLIC_REPO_URL}). The focused five-minute verification guide for judges is [docs/FOR_KAGGLE_JUDGES.md]({JUDGES_GUIDE_URL}). The competition writeup listing is on the [Gemma 4 Good Hackathon writeups page]({WRITEUP_URL}).
 
 {header_table}
 

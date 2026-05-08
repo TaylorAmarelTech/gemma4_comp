@@ -6,6 +6,12 @@
       "name": "MIT"
     }
   ],
-  "subtitle": "v3.16 baseline harness-OFF Gemma 4 chat (the failure mode)",
-  "description": "v3.6 / chat-package 0.2.0 (2026-05-06) — 21-dim rubric (added operational_information_provided + harm_enablement_check), use-case-aware analog prompt classifier (multi-lingual: en/tl/id/ne/bn/my/ar/es/vi/si/ta/ur), curator-block JSON governance, judge → evaluator rename. v3.16 - wheels for the baseline chat-playground (harness OFF). Bundled: duecare-llm-chat / -core / -models. Demonstrates raw Gemma 4 behaviour on trafficking-shaped prompts (the '5 cash flow optimization strategies' failure mode). Pair with chat-playground-with-grep-rag-tools to see the harness-OFF vs harness-ON delta."
+  "subtitle": "v0.14.5 baseline harness-OFF Gemma 4 chat (the failure mode)",
+  "description": "v0.14.5 / chat-package 0.14.5 (2026-05-08) — 587 example prompts across 8 audience buckets (model_capability / enterprise_moderation / ngo_intake / individual_query / research / image_prompts / data_intelligence / regulator_audit), 46-dim rubric v3.10, 161 GREP rules across 31 categories, 46-doc curated RAG corpus, 46-edge citation graph, 65-test adversarial validation suite across 16 attack families, 6 harness layers (Persona / GREP / RAG / Imports / Tools / Online), interactive RAG corpus graph viewer, evaluator_call hook for judge-model separation (in-process self-grade in the Kaggle deployment due to T4 VRAM limits), 20 bundled CC0 synthetic-evidence images + 13 structured-post JSONs. Wheels for the baseline chat-playground (harness OFF). Bundled: duecare-llm-chat / -core / -models. Demonstrates raw Gemma 4 behaviour on trafficking-shaped prompts (the '5 cash flow optimization strategies' failure mode). Pair with chat-playground-with-grep-rag-tools to see the harness-OFF vs harness-ON delta.",
+  "keywords": [
+    "duecare",
+    "gemma-4",
+    "trafficking",
+    "safety-harness"
+  ]
 }

@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Duecare — RAG corpus</title>
+  <style>
+    :root {
+      --ink: #e2e8f0; --muted: #94a3b8; --bg: #0f172a; --panel: #1e293b;
+      --border: #334155; --accent: #3b82f6; --highlight: #fbbf24;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; background: var(--bg); color: var(--ink);
+                  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+                               Helvetica, Arial, sans-serif; }
+    header { padding: 12px 18px; background: var(--panel); border-bottom: 1px solid var(--border);
+              display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+    header h1 { margin: 0; font-size: 16px; color: var(--accent); }
+    .sub { font-size: 12px; color: var(--muted); flex: 1; }
+    input, select { padding: 6px 10px; font-size: 12px; border: 1px solid var(--border);
+                     background: var(--bg); color: var(--ink); border-radius: 4px; }
+    .chips { display: flex; flex-wrap: wrap; gap: 5px; padding: 8px 18px;
+             background: rgba(59,130,246,0.04); border-bottom: 1px solid var(--border); }
+    .chip { display: inline-flex; align-items: center; gap: 5px; padding: 3px 9px;
+             border-radius: 10px; font-size: 11px; cursor: pointer; user-select: none;
+             border: 1px solid var(--border); background: var(--bg); }
+    .chip .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; }
+    .chip:hover { border-color: var(--accent); }
+    .chip.active { font-weight: 700; }
+    .chip .n { color: var(--muted); font-size: 10px; }
+    .recent-banner { padding: 8px 18px; background: rgba(251,191,36,0.10);
+                      border-bottom: 1px solid rgba(251,191,36,0.4); font-size: 11.5px;
+                      color: #fde68a; display: none; }
+    .recent-banner.show { display: block; }
+    .container { padding: 14px 18px; max-width: 1450px; margin: 0 auto; }
+    .grid { display: grid; grid-template-columns: 1fr 1.4fr; gap: 14px; }
+    .list { background: var(--panel); border: 1px solid var(--border); border-radius: 6px;
+             overflow-y: auto; max-height: calc(100vh - 170px); }
+    .item { padding: 9px 14px; border-bottom: 1px solid var(--border); cursor: pointer;
+             position: relative; }
+    .item:hover { background: rgba(59,130,246,0.08); }
+    .item.active { background: rgba(59,130,246,0.15); border-left: 3px solid var(--accent); }
+    .item.recent::after { content: "● recent"; position: absolute; right: 12px; top: 9px;
+                          color: var(--highlight); font-size: 10px; font-weight: 700; }
+    .item .id { font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+                 font-size: 10.5px; color: var(--muted); }
+    .item .title { margin-top: 3px; font-size: 12.5px; font-weight: 600; }
+    .item .source { margin-top: 2px; font-size: 10.5px; color: var(--muted); }
+    .item .group-pill { display: inline-block; padding: 1px 6px; border-radius: 8px;
+                         font-size: 9.5px; margin-top: 4px; font-weight: 600; }
+    .detail { background: var(--panel); border: 1px solid var(--border); border-radius: 6px;
+               padding: 22px; max-height: calc(100vh - 170px); overflow-y: auto; }
+    .detail .id-tag { font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+                       font-size: 11px; color: var(--accent); }
+    .detail h2 { margin: 6px 0 8px; font-size: 16px; }
+    .detail .source-tag { font-size: 11.5px; color: var(--muted); margin-bottom: 6px; }
+    .detail .group-tag { display: inline-block; padding: 2px 8px; border-radius: 10px;
+                          font-size: 10px; margin-bottom: 14px; font-weight: 600; }
+    .detail .snippet { font-size: 12.5px; line-height: 1.7; color: #cbd5e1;
+                        white-space: pre-wrap; }
+    .citation-block { margin-top: 16px; padding-top: 12px;
+                       border-top: 1px dashed var(--border); }
+    .citation-block h3 { margin: 0 0 8px; font-size: 12.5px; color: var(--accent); }
+    .citation-list { margin: 0; padding: 0 0 0 14px; font-size: 11.5px; }
+    .citation-list li { margin-bottom: 5px; line-height: 1.5; }
+    .citation-list .relation { color: var(--muted); }
+    .citation-list .note { color: var(--muted); font-style: italic; font-size: 10.5px; margin-top: 1px; }
+    .citation-list code { background: rgba(59,130,246,0.15); color: var(--accent);
+                           padding: 1px 5px; border-radius: 3px; font-size: 10.5px; }
+    .placeholder { color: var(--muted); font-style: italic; }
+    a.back { color: var(--muted); font-size: 11px; text-decoration: none; }
+    a.back:hover { color: var(--accent); }
+    .err { color: #ef4444; padding: 14px; }
+    @media (max-width: 800px) { .grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <header>
+    <a href="/static/harness.html" class="back">← All layers</a>
+    <h1>RAG corpus</h1>
+    <div class="sub" id="stats">Loading…</div>
+    <input id="search" type="text" placeholder="Search id / title / source / snippet…" />
+    <a href="/static/rag-graph.html" class="back" target="_blank" style="color:var(--accent);">↗ View as graph</a>
+  </header>
+  <div class="chips" id="chips"></div>
+  <div class="recent-banner" id="recent-banner"></div>
+  <div class="container">
+    <div class="grid">
+      <div class="list" id="list"></div>
+      <div class="detail" id="detail">
+        <div class="placeholder">Click any document to view full content + citation neighbors.</div>
+      </div>
+    </div>
+  </div>
+  <script>
+    let rows = [], filt = "", activeGroup = "", activeId = null;
+    let recentQuery = null;
+    function escapeHtml(s) {
+      return String(s == null ? "" : s).replace(/[&<>"']/g, c =>
+        ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    }
+    async function load() {
+      try {
+        const r = await fetch("/api/harness-catalog/rag", {cache: "no-store"});
+        if (!r.ok) throw new Error("HTTP " + r.status);
+        const d = await r.json();
+        rows = d.items || [];
+        recentQuery = d.recent_query || null;
+        document.getElementById("stats").textContent = `${d.n_items || rows.length} documents`;
+        const banner = document.getElementById("recent-banner");
+        if (recentQuery) {
+          const recentIds = rows.filter(x => x.recently_retrieved).map(x => x.id);
+          if (recentIds.length) {
+            banner.innerHTML = `<strong>Last retrieval:</strong> ${recentIds.length} document(s) pulled for the most recent chat turn — query: <em>${escapeHtml(recentQuery)}</em>. <a href="#" onclick="filterRecent(); return false;" style="color:#fbbf24;">Show only those →</a>`;
+            banner.classList.add("show");
+          }
+        }
+      } catch (e) {
+        document.getElementById("list").innerHTML = `<div class="err">${escapeHtml(e.message)}</div>`;
+        return;
+      }
+      // Build jurisdiction chips from the data
+      const groups = {};
+      for (const r of rows) {
+        const k = r.group || "other";
+        if (!groups[k]) groups[k] = {label: r.group_label || "Other", color: r.group_color || "#94a3b8", count: 0};
+        groups[k].count++;
+      }
+      const sorted = Object.entries(groups).sort((a, b) => b[1].count - a[1].count);
+      document.getElementById("chips").innerHTML =
+        `<span class="chip ${activeGroup === '' ? 'active' : ''}" onclick="setGroup('')">All <span class="n">(${rows.length})</span></span>` +
+        sorted.map(([gid, g]) => `
+          <span class="chip ${activeGroup === gid ? 'active' : ''}" onclick="setGroup('${escapeHtml(gid)}')"
+                style="background:${g.color}1f; border-color:${g.color};">
+            <span class="dot" style="background:${g.color};"></span>
+            ${escapeHtml(g.label)} <span class="n">(${g.count})</span>
+          </span>
+        `).join("");
+      document.getElementById("search").addEventListener("input", e => { filt = e.target.value; render(); });
+      render();
+    }
+    function setGroup(gid) { activeGroup = gid; load_chips(); render(); }
+    function load_chips() {
+      document.querySelectorAll(".chip").forEach(c => c.classList.toggle("active",
+        (activeGroup === "" && c.textContent.startsWith("All ")) ||
+        (c.getAttribute("onclick") || "").includes(`'${activeGroup}'`)));
+    }
+    function filterRecent() {
+      filt = "";
+      document.getElementById("search").value = "";
+      activeGroup = "_recent_";
+      render();
+    }
+    function render() {
+      const q = filt.toLowerCase().trim();
+      const visible = rows.filter(r => {
+        if (activeGroup === "_recent_") return r.recently_retrieved;
+        if (activeGroup && r.group !== activeGroup) return false;
+        if (!q) return true;
+        return (r.id || "").toLowerCase().includes(q)
+            || (r.title || "").toLowerCase().includes(q)
+            || (r.source || "").toLowerCase().includes(q)
+            || (r.snippet || "").toLowerCase().includes(q);
+      });
+      document.getElementById("list").innerHTML = visible.map(r => `
+        <div class="item ${r.id === activeId ? "active" : ""} ${r.recently_retrieved ? "recent" : ""}" onclick="select('${escapeHtml(r.id)}')">
+          <div class="id">${escapeHtml(r.id)}</div>
+          <div class="title">${escapeHtml(r.title)}</div>
+          <div class="source">${escapeHtml(r.source)}</div>
+          <span class="group-pill" style="background:${r.group_color}1f; color:${r.group_color}; border:1px solid ${r.group_color};">${escapeHtml(r.group_label || "")}</span>
+        </div>
+      `).join("") || `<div class="placeholder" style="padding:14px;">No matches.</div>`;
+      document.getElementById("stats").textContent = `${visible.length} of ${rows.length} documents`;
+    }
+    function select(id) {
+      activeId = id;
+      const doc = rows.find(r => r.id === id);
+      if (!doc) return;
+      const cites_out = doc.cites_out || [];
+      const cites_in = doc.cites_in || [];
+      const out_html = cites_out.length ? `
+        <div class="citation-block">
+          <h3>Cites → (${cites_out.length})</h3>
+          <ul class="citation-list">
+            ${cites_out.map(e => `<li><span class="relation">${escapeHtml((e.relation || "").replace(/_/g, ' '))}</span> → <code>${escapeHtml(e.to)}</code>
+              ${e.note ? `<div class="note">${escapeHtml(e.note)}</div>` : ""}
+            </li>`).join("")}
+          </ul>
+        </div>` : "";
+      const in_html = cites_in.length ? `
+        <div class="citation-block">
+          <h3>← Cited by (${cites_in.length})</h3>
+          <ul class="citation-list">
+            ${cites_in.map(e => `<li><code>${escapeHtml(e.from)}</code> <span class="relation">${escapeHtml((e.relation || "").replace(/_/g, ' '))}</span>
+              ${e.note ? `<div class="note">${escapeHtml(e.note)}</div>` : ""}
+            </li>`).join("")}
+          </ul>
+        </div>` : "";
+      document.getElementById("detail").innerHTML = `
+        <div class="id-tag">${escapeHtml(doc.id)}</div>
+        <h2>${escapeHtml(doc.title)}</h2>
+        <div class="source-tag">${escapeHtml(doc.source)}</div>
+        <span class="group-tag" style="background:${doc.group_color}1f; color:${doc.group_color}; border:1px solid ${doc.group_color};">
+          ${escapeHtml(doc.group_label || "")}
+        </span>
+        ${doc.recently_retrieved ? '<span class="group-tag" style="background:rgba(251,191,36,0.18); color:#fbbf24; border:1px solid #fbbf24; margin-left:6px;">↻ pulled for last chat turn</span>' : ""}
+        <div class="snippet">${escapeHtml(doc.snippet)}</div>
+        ${out_html}
+        ${in_html}
+      `;
+      render();
+    }
+    load();
+    // Auto-refresh every 8s so a chat turn updates the "recently_retrieved" badges live.
+    setInterval(load, 8000);
+  </script>
+</body>
+</html>

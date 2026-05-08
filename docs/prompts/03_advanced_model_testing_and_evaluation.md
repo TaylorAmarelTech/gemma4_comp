@@ -63,7 +63,7 @@ Band 500 to 590:
 11. **Responsible-disclosure notes.** Any novel jailbreak findings
     include disclosure metadata in the provenance chain. Cite
     `.claude/rules/10_safety_gate.md` for PII and the
-    `docs/FOR_JUDGES.md` honesty bar.
+    `docs/FOR_KAGGLE_JUDGES.md` honesty bar.
 12. **Section summary at 590.** Reads cached adversarial outputs,
     produces the headline chart and paragraph (for example,
     attack-success-rate by category and by model).
@@ -223,7 +223,7 @@ Include tickets for:
 
 1. `docs/current_kaggle_notebook_state.md`.
 2. `docs/prompts/_shared_discipline.md`.
-3. `docs/FOR_JUDGES.md` for the honesty and reproducibility bars.
+3. `docs/FOR_KAGGLE_JUDGES.md` for the honesty and reproducibility bars.
 3. `packages/duecare-llm-tasks/src/duecare/tasks/generators/` (full
    folder).
 4. `packages/duecare-llm-tasks/src/duecare/tasks/base/` scoring.

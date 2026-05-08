@@ -320,7 +320,7 @@ SURVEY_CODE = '''def build_survey_schema(ngo: NGO) -> dict:
         ],
         'footer': {
             'revocation_contact': 'duecare@taylorsamarel.com',
-            'data_governance_url': 'https://github.com/TaylorAmarelTech/gemma4_comp/blob/master/docs/FOR_JUDGES.md',
+            'data_governance_url': 'https://github.com/TaylorAmarelTech/gemma4_comp/blob/master/docs/FOR_KAGGLE_JUDGES.md',
         },
         'generated_utc': time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime()),
     }

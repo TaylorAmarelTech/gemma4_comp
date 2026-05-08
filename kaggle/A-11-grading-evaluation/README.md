@@ -1,4 +1,4 @@
-# Duecare Grading Evaluation (A6)
+# Duecare Grading Evaluation (A11)
 
 Side-by-side rubric evaluation: runs N curated prompts through Gemma 4
 twice each — once with the harness OFF, once with full harness ON
@@ -17,12 +17,12 @@ per-prompt + per-dimension detail.
 
 ## Headline metrics it computes
 
-- Mean rubric score (universal v2): OFF vs ON, delta in percentage
+- Mean rubric score (universal v3.10): OFF vs ON, delta in percentage
   points
 - Per-dimension status change across the test set (improved / same
   / regressed)
 - Citation grounding %: how many cited statutes appear in our
-  bundled 33-doc RAG corpus (hallucination check)
+  bundled 46-doc RAG corpus (hallucination check)
 - Mean cited statutes per response: OFF vs ON
 - Intent shift: which intent the response moves toward when the
   harness is enabled

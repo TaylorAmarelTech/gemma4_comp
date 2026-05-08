@@ -1,0 +1,137 @@
+version: "2026-05-08"
+project: duecare
+components:
+  - id: runtime
+    name: Duecare Runtime
+    component: Gemma 4 model runtime
+    status: live_core
+    primary_users:
+      - platform_safety
+      - ngo_regulators
+      - migrant_worker_chat
+      - academic_research
+    owns:
+      - model_loading
+      - generation_config
+      - output_sanitization
+      - runtime_capabilities
+    hard_stop: Do not display hidden thinking, scratchpad, or raw system artifacts.
+
+  - id: harness
+    name: Duecare Harness
+    component: Safety harness
+    status: live_core
+    primary_users:
+      - platform_safety
+      - ngo_regulators
+      - migrant_worker_chat
+      - academic_research
+    owns:
+      - grep_rules
+      - rag_retrieval
+      - function_calling_tools
+      - verified_contacts
+      - complaint_drafts
+      - harness_trace
+    hard_stop: Do not hallucinate contacts, statutes, complaint channels, or legal obligations.
+
+  - id: eval
+    name: Duecare Eval
+    component: Evaluation framework
+    status: live_core
+    primary_users:
+      - platform_safety
+      - ngo_regulators
+      - migrant_worker_chat
+      - academic_research
+    owns:
+      - universal_rubric
+      - evaluation_questions
+      - adversarial_probes
+      - model_comparison_reports
+      - reproducibility_manifests
+    hard_stop: Do not publish unreproducible numbers as benchmark results.
+
+  - id: exchange
+    name: Duecare Exchange
+    component: Knowledge exchange and safety harness connections
+    status: platform_foundation
+    primary_users:
+      - platform_safety
+      - ngo_regulators
+      - migrant_worker_chat
+      - academic_research
+    owns:
+      - knowledge_pack_manifest
+      - signed_pack_import_export
+      - anonymized_signal_schema
+      - provenance_metadata
+    hard_stop: Do not accept or publish packs containing raw PII.
+
+  - id: sentinel
+    name: Duecare Sentinel
+    component: Continuous update agent and server
+    status: platform_foundation
+    primary_users:
+      - platform_safety
+      - ngo_regulators
+      - migrant_worker_chat
+      - academic_research
+    owns:
+      - public_source_registry
+      - contact_freshness_checks
+      - law_and_policy_change_detection
+      - proposed_pack_updates
+    hard_stop: Do not auto-apply crawled updates without curator review.
+
+  - id: trainer
+    name: Duecare Trainer
+    component: Retraining and model adaptation module
+    status: prototype_to_production
+    primary_users:
+      - platform_safety
+      - ngo_regulators
+      - migrant_worker_chat
+      - academic_research
+    owns:
+      - training_manifests
+      - anonymized_splits
+      - lora_recipes
+      - adapter_registry
+      - model_cards
+      - eval_gates
+    hard_stop: Do not train on raw, unapproved, or unredacted case data.
+
+  - id: channels
+    name: Duecare Channels
+    component: NGO and government chatbot channel integrations
+    status: prototype_to_production
+    primary_users:
+      - platform_safety
+      - ngo_regulators
+      - migrant_worker_chat
+      - academic_research
+    owns:
+      - channel_adapters
+      - tenant_config
+      - consent_ux
+      - complaint_draft_flow
+      - human_handoff
+      - channel_audit_redaction
+    hard_stop: Do not auto-send complaints or silently store worker chats.
+
+  - id: mobile
+    name: Duecare Mobile
+    component: Worker-owned mobile assistant
+    status: companion_product
+    primary_users:
+      - platform_safety
+      - ngo_regulators
+      - migrant_worker_chat
+      - academic_research
+    owns:
+      - on_device_guidance
+      - local_encrypted_storage
+      - offline_knowledge_packs
+      - consent_based_handoff
+    hard_stop: Do not transmit worker data without explicit consent.

@@ -1,0 +1,239 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Duecare — GREP rules</title>
+  <style>
+    :root {
+      --ink: #e2e8f0; --muted: #94a3b8; --bg: #0f172a; --panel: #1e293b;
+      --border: #334155; --accent: #ef4444; --highlight: #fbbf24;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; background: var(--bg); color: var(--ink);
+                  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+                               Helvetica, Arial, sans-serif; }
+    header { padding: 12px 18px; background: var(--panel); border-bottom: 1px solid var(--border);
+              display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+    header h1 { margin: 0; font-size: 16px; color: var(--accent); }
+    .sub { font-size: 12px; color: var(--muted); flex: 1; }
+    .toolbar { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+    input, select { padding: 6px 10px; font-size: 12px; border: 1px solid var(--border);
+                     background: var(--bg); color: var(--ink); border-radius: 4px; }
+    .container { padding: 14px 18px; max-width: 1400px; margin: 0 auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    th { text-align: left; padding: 10px 8px; background: var(--panel);
+          border-bottom: 2px solid var(--border); position: sticky; top: 0; z-index: 1;
+          cursor: pointer; user-select: none; }
+    th:hover { color: var(--accent); }
+    td { padding: 10px 8px; border-bottom: 1px solid var(--border); vertical-align: top; }
+    tr.row { cursor: pointer; }
+    tr.row:hover td { background: rgba(124,58,237,0.05); }
+    tr.expanded td { background: rgba(124,58,237,0.08); }
+    .severity { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 10px;
+                 font-weight: 600; text-transform: uppercase; }
+    .severity.critical { background: rgba(239,68,68,0.18); color: #ef4444; border: 1px solid #ef4444; }
+    .severity.high     { background: rgba(245,158,11,0.18); color: #f59e0b; border: 1px solid #f59e0b; }
+    .severity.medium   { background: rgba(59,130,246,0.18); color: #3b82f6; border: 1px solid #3b82f6; }
+    .severity.low      { background: rgba(148,163,184,0.18); color: var(--muted); border: 1px solid var(--muted); }
+    .citation { font-size: 11px; color: var(--muted); }
+    .indicator { font-size: 11.5px; max-width: 460px; line-height: 1.5; }
+    .rule { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-weight: 600;
+             color: var(--accent); white-space: nowrap; }
+    .fire-count { text-align: right; font-weight: 600; min-width: 50px; }
+    .fire-count.hot { color: var(--highlight); }
+    .fire-count.zero { color: var(--muted); font-weight: 400; }
+    .patterns-row td { background: rgba(0,0,0,0.25); padding: 14px; border-bottom: 1px solid var(--border); }
+    .patterns-row pre { margin: 0; font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+                         font-size: 11px; color: #93c5fd; white-space: pre-wrap;
+                         word-break: break-all; line-height: 1.6; }
+    .patterns-row .label { color: var(--muted); font-size: 10.5px; text-transform: uppercase;
+                            letter-spacing: 0.5px; margin-bottom: 6px; }
+    a.back { color: var(--muted); font-size: 11px; text-decoration: none; }
+    a.back:hover { color: var(--accent); }
+    .err { color: #ef4444; padding: 14px; }
+
+    /* Category histogram */
+    .histogram { padding: 10px 18px; background: rgba(239,68,68,0.04);
+                  border-bottom: 1px solid var(--border); display: flex;
+                  gap: 4px; align-items: flex-end; min-height: 70px; flex-wrap: wrap; }
+    .bar { display: flex; flex-direction: column; align-items: center; gap: 3px;
+            cursor: pointer; user-select: none; min-width: 24px; }
+    .bar:hover .bar-fill { filter: brightness(1.4); }
+    .bar.active .bar-fill { box-shadow: 0 0 0 1.5px var(--highlight); }
+    .bar .bar-fill { width: 100%; background: var(--accent); border-radius: 2px 2px 0 0;
+                      min-height: 2px; }
+    .bar .bar-label { font-size: 9px; color: var(--muted); transform: rotate(-45deg);
+                       transform-origin: top right; white-space: nowrap; margin-top: 8px;
+                       line-height: 1; }
+    .bar .bar-count { font-size: 10px; color: var(--accent); font-weight: 700; }
+</head>
+<body>
+  <header>
+    <a href="/static/harness.html" class="back">← All layers</a>
+    <h1>GREP rules</h1>
+    <div class="sub" id="stats">Loading…</div>
+    <div class="toolbar">
+      <input id="search" type="text" placeholder="Search rule / citation / indicator…" />
+      <select id="severity">
+        <option value="">All severities</option>
+        <option value="critical">critical</option>
+        <option value="high">high</option>
+        <option value="medium">medium</option>
+        <option value="low">low</option>
+      </select>
+      <button id="hot-only" onclick="toggleHotOnly()" title="Only show rules that fired in this session"
+              style="padding:6px 12px; font-size:12px; border:1px solid var(--border); background:var(--bg); color:var(--ink); border-radius:4px; cursor:pointer;">
+        🔥 Fired only
+      </button>
+      <a href="/static/grep-tester.html" target="_blank"
+         style="padding:6px 12px; font-size:12px; border:1px solid var(--accent); background:var(--accent); color:#fff; border-radius:4px; text-decoration:none; font-weight:600;">
+        ▶ Live tester
+      </a>
+    </div>
+  </header>
+  <div class="histogram" id="histogram" title="Click a category to filter"></div>
+  <div class="container">
+    <table id="t">
+      <thead>
+        <tr>
+          <th data-key="rule">Rule</th>
+          <th data-key="severity">Severity</th>
+          <th data-key="citation">Citation</th>
+          <th data-key="indicator">Indicator</th>
+          <th data-key="n_patterns" style="text-align:right;">Pat.</th>
+          <th data-key="fire_count" style="text-align:right;" title="Fired this session">🔥</th>
+        </tr>
+      </thead>
+      <tbody id="tbody"></tbody>
+    </table>
+  </div>
+  <script>
+    let rows = [], filt = {q: "", severity: "", hotOnly: false, category: ""}, expandedRule = null;
+    let sortKey = "fire_count", sortDir = -1;  // hottest first by default
+    function escapeHtml(s) {
+      return String(s == null ? "" : s).replace(/[&<>"']/g, c =>
+        ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    }
+    function renderHistogram() {
+      const cats = {};
+      for (const r of rows) {
+        const c = r.category || "(uncategorised)";
+        cats[c] = (cats[c] || 0) + 1;
+      }
+      const sorted = Object.entries(cats).sort((a, b) => b[1] - a[1]);
+      const max = Math.max(1, ...sorted.map(([, n]) => n));
+      const wrap = document.getElementById("histogram");
+      wrap.innerHTML = sorted.map(([cat, n]) => {
+        const h = Math.round(50 * n / max) + 4;
+        const active = cat === filt.category;
+        return `<div class="bar ${active ? "active" : ""}" onclick="setCategory('${escapeHtml(cat)}')" title="${escapeHtml(cat)}: ${n} rule${n === 1 ? "" : "s"}">
+          <div class="bar-count">${n}</div>
+          <div class="bar-fill" style="height:${h}px;"></div>
+          <div class="bar-label">${escapeHtml(cat.length > 18 ? cat.slice(0, 16) + "…" : cat)}</div>
+        </div>`;
+      }).join("");
+    }
+    function setCategory(c) {
+      filt.category = (filt.category === c) ? "" : c;
+      renderHistogram();
+      render();
+    }
+    async function load() {
+      try {
+        const r = await fetch("/api/harness-catalog/grep", {cache: "no-store"});
+        if (!r.ok) throw new Error("HTTP " + r.status);
+        const d = await r.json();
+        rows = d.items || [];
+        const fired = rows.filter(r => (r.fire_count || 0) > 0).length;
+        document.getElementById("stats").textContent =
+          `${rows.length} rules · ${fired} fired this session`;
+        renderHistogram();
+      } catch (e) {
+        document.getElementById("tbody").innerHTML =
+          `<tr><td colspan="6" class="err">${escapeHtml(e.message)}</td></tr>`;
+        return;
+      }
+      document.getElementById("search").addEventListener("input", e => { filt.q = e.target.value; render(); });
+      document.getElementById("severity").addEventListener("change", e => { filt.severity = e.target.value; render(); });
+      document.querySelectorAll("th[data-key]").forEach(th => {
+        th.addEventListener("click", () => {
+          const k = th.dataset.key;
+          if (sortKey === k) sortDir *= -1;
+          else { sortKey = k; sortDir = (k === "fire_count" ? -1 : 1); }
+          render();
+        });
+      });
+      render();
+    }
+    function toggleHotOnly() {
+      filt.hotOnly = !filt.hotOnly;
+      const btn = document.getElementById("hot-only");
+      btn.style.background = filt.hotOnly ? "rgba(251,191,36,0.18)" : "var(--bg)";
+      btn.style.borderColor = filt.hotOnly ? "var(--highlight)" : "var(--border)";
+      render();
+    }
+    function toggleRow(rule) {
+      expandedRule = (expandedRule === rule) ? null : rule;
+      render();
+    }
+    function render() {
+      const sevOrder = {critical: 0, high: 1, medium: 2, low: 3};
+      const q = filt.q.toLowerCase().trim();
+      let visible = rows.filter(r => {
+        if (filt.hotOnly && !(r.fire_count || 0)) return false;
+        if (filt.severity && r.severity !== filt.severity) return false;
+        if (filt.category && (r.category || "(uncategorised)") !== filt.category) return false;
+        if (!q) return true;
+        return (r.rule || "").toLowerCase().includes(q)
+            || (r.citation || "").toLowerCase().includes(q)
+            || (r.indicator || "").toLowerCase().includes(q);
+      });
+      visible.sort((a, b) => {
+        let av = a[sortKey] || 0, bv = b[sortKey] || 0;
+        if (sortKey === "severity") {
+          av = sevOrder[a.severity] != null ? sevOrder[a.severity] : 99;
+          bv = sevOrder[b.severity] != null ? sevOrder[b.severity] : 99;
+        } else if (sortKey === "rule" || sortKey === "citation" || sortKey === "indicator") {
+          av = String(a[sortKey] || "").toLowerCase();
+          bv = String(b[sortKey] || "").toLowerCase();
+        }
+        if (typeof av === "number" && typeof bv === "number") return (av - bv) * sortDir;
+        return String(av).localeCompare(String(bv)) * sortDir;
+      });
+      const html = visible.map(r => {
+        const fc = r.fire_count || 0;
+        const fcClass = fc === 0 ? "zero" : (fc >= 3 ? "hot" : "");
+        const expanded = expandedRule === r.rule;
+        const patterns = (r.patterns || []).map(p =>
+          `<pre>${escapeHtml(typeof p === "string" ? p : JSON.stringify(p))}</pre>`).join("");
+        const expandedRow = expanded ? `
+          <tr class="patterns-row"><td colspan="6">
+            <div class="label">Regex patterns (${r.n_patterns || 0}) — what the rule matches against</div>
+            ${patterns || '<div style="color:var(--muted); font-style:italic;">No patterns surfaced.</div>'}
+          </td></tr>
+        ` : "";
+        return `
+          <tr class="row ${expanded ? "expanded" : ""}" onclick="toggleRow('${escapeHtml(r.rule)}')">
+            <td class="rule">${escapeHtml(r.rule)}</td>
+            <td><span class="severity ${escapeHtml(r.severity)}">${escapeHtml(r.severity)}</span></td>
+            <td class="citation">${escapeHtml(r.citation)}</td>
+            <td class="indicator">${escapeHtml(r.indicator)}</td>
+            <td style="text-align:right; color:var(--muted);">${r.n_patterns || 0}</td>
+            <td class="fire-count ${fcClass}">${fc || ""}</td>
+          </tr>
+          ${expandedRow}
+        `;
+      }).join("");
+      document.getElementById("tbody").innerHTML = html ||
+        `<tr><td colspan="6" class="err" style="border:0;">No matches.</td></tr>`;
+      const fired = rows.filter(r => (r.fire_count || 0) > 0).length;
+      document.getElementById("stats").textContent =
+        `${visible.length} of ${rows.length} rules · ${fired} fired this session`;
+    }
+    load();
+    // Refresh every 8s so fire-counts update as the user chats.
+    setInterval(load, 8000);
+  </script>
+</body>
+</html>

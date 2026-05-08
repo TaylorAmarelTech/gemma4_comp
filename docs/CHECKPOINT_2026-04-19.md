@@ -121,7 +121,7 @@ Full generated inventory: `docs/current_kaggle_notebook_state.md`. Canonical rea
 ### 5 deployment applications
 
 1. **660 Enterprise Moderation** — platform-scale queueing surface for risky recruitment posts / ads / recruiter outreach.
-2. **670 Private Client-Side Checker** — worker-side private checker for one suspicious message or document at a time, plain-language warning + next step.
+2. **670 Private Client-Side Checker** — Migrant Worker Chat private checker for one suspicious message or document at a time, plain-language warning + next step.
 3. **680 NGO API Triage** — software-to-software triage surface: structured request in, structured analysis + routing out.
 4. **690 Migration Case Workflow** — multi-document case-bundle workflow: uploaded files → timeline + grounded findings + draft complaint materials.
 5. **695 Custom Domain Adoption** — plain-English partner-adoption playbook for bringing DueCare to a new safety domain without Python changes.

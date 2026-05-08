@@ -1,7 +1,7 @@
 # Kaggle notebook index — submission roster
 
 > **Generated:** 2026-05-01. Machine-readable companion to
-> [`kaggle/README.md`](./README.md) and [`docs/FOR_JUDGES.md`](../docs/FOR_JUDGES.md).
+> [`kaggle/README.md`](./README.md) and [`docs/FOR_KAGGLE_JUDGES.md`](../docs/FOR_KAGGLE_JUDGES.md).
 > Every row reflects what's in this directory tree right now.
 
 ## Build status — 2 core + 11 appendix = 13 submission notebooks
