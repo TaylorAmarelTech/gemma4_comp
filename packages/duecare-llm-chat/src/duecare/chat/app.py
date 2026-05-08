@@ -615,7 +615,7 @@ def create_app(
         revision before running benchmarks against it.
 
         Shape:
-          {chat_package: "0.3.2",
+          {chat_package: "0.3.3",
            harness: {rubric_version: "v3.6", n_dimensions: 21,
                      n_evaluation_questions: 21, n_grep_rules: 111,
                      n_rag_docs: 35, n_tools: 5, n_examples: 413,
@@ -678,7 +678,7 @@ def create_app(
             })
 
         return {
-            "chat_package":         "0.3.2",
+            "chat_package":         "0.3.3",
             "wire_format_version":  "v2.0",  # mode='llm_evaluator', evaluator_*
             "harness": {
                 "rubric_version":              RUBRIC_UNIVERSAL.get("version", ""),
@@ -2236,131 +2236,6 @@ def create_app(
                            "not wired" if app.state.online_search_call is None else "no results")})
 
         return {"trace": trace, "prepend_snippets": prepend_snippets}
-
-    @app.post("/api/ablation")
-    def api_ablation(req: ChatRequest) -> Any:
-        """Run the same prompt 4 times with different harness layer
-        configurations + grade each result with the universal rubric.
-        Demonstrates the harness lift live: OFF (persona only) /
-        GREP only / RAG only / BOTH (grep + rag).
-
-        Synchronous: blocks until all 4 generations complete.
-        Each generation acquires _GEMMA_LOCK in turn (model.generate
-        is not thread-safe). Total latency = 4 × per-generation time;
-        for E4B that's ~4 min on cold cache. The endpoint is intended
-        as a debug / demo affordance, not a hot-path endpoint.
-        """
-        gc = app.state.gemma_call
-        if gc is None:
-            raise HTTPException(503,
-                "ablation needs gemma_call wired into the chat server.")
-        from .harness import grade_response_universal
-
-        ablation_configs = [
-            ("OFF",       HarnessToggles(persona=req.toggles.persona, grep=False, rag=False)),
-            ("GREP only", HarnessToggles(persona=req.toggles.persona, grep=True,  rag=False)),
-            ("RAG only",  HarnessToggles(persona=req.toggles.persona, grep=False, rag=True)),
-            ("BOTH",      HarnessToggles(persona=req.toggles.persona, grep=True,  rag=True)),
-        ]
-        # Skip configurations that have no wiring effect (e.g. GREP only
-        # when grep_call isn't wired) — they'd duplicate OFF's result.
-        if app.state.grep_call is None:
-            ablation_configs = [c for c in ablation_configs
-                                  if c[0] not in ("GREP only", "BOTH")]
-        if app.state.rag_call is None:
-            ablation_configs = [c for c in ablation_configs
-                                  if c[0] not in ("RAG only", "BOTH")]
-
-        # Capture the user prompt text once for grading + UI display.
-        base_messages = _resolve_messages(req.messages)
-        prompt_text = _last_user_text(base_messages)
-
-        results: list[dict] = []
-        gp = req.generation
-        for label, toggles in ablation_configs:
-            t0 = time.time()
-            messages = _resolve_messages(req.messages)
-            harness = _run_harness(messages, toggles)
-            if harness["prepend_snippets"]:
-                harness_text = (
-                    "[DUECARE SAFETY HARNESS - pre-context for the "
-                    "assistant. Cite each fired indicator and the "
-                    "listed statutes. Do not provide operational "
-                    "optimisation for a scenario matching these "
-                    "indicators.]\n\n"
-                    + "\n\n".join(harness["prepend_snippets"])
-                    + "\n\n---\n\nUSER QUESTION:\n\n"
-                )
-                last_msg = dict(messages[-1])
-                content = list(last_msg.get("content") or [])
-                inserted = False
-                for i, chunk in enumerate(content):
-                    if chunk.get("type") == "text":
-                        content[i] = {"type": "text",
-                                          "text": harness_text + (chunk.get("text") or "")}
-                        inserted = True
-                        break
-                if not inserted:
-                    content.insert(0, {"type": "text", "text": harness_text})
-                last_msg["content"] = content
-                messages = messages[:-1] + [last_msg]
-
-            with _GEMMA_LOCK:
-                try:
-                    response_text = gc(
-                        messages,
-                        max_new_tokens=gp.max_new_tokens,
-                        temperature=gp.temperature,
-                        top_p=gp.top_p,
-                        top_k=gp.top_k,
-                    ) or ""
-                except TypeError:
-                    response_text = gc(messages) or ""
-                except Exception as e:  # noqa: BLE001
-                    response_text = f"[generation error: {e}]"
-
-            elapsed_ms = int((time.time() - t0) * 1000)
-            try:
-                grade = grade_response_universal(
-                    response_text,
-                    prompt_text=prompt_text,
-                    harness_trace=harness["trace"],
-                )
-            except Exception as e:  # noqa: BLE001
-                grade = {"error": f"{type(e).__name__}: {e}"}
-            # Compact the grade payload for transport — the UI only
-            # needs the score + a few summary counts. Full per-dim
-            # detail is overkill for the side-by-side view.
-            grade_summary = {
-                "pct_score":      grade.get("pct_score"),
-                "score_0_10":     grade.get("score_0_10"),
-                "raw_pct_score":  grade.get("raw_pct_score"),
-                "n_pass":         grade.get("n_pass", 0),
-                "n_partial":      grade.get("n_partial", 0),
-                "n_fail":         grade.get("n_fail", 0),
-                "n_applicable":   grade.get("n_applicable", 0),
-                "gaming_flagged": grade.get("gaming_flagged", False),
-                "version":        grade.get("version", ""),
-            }
-            results.append({
-                "label":          label,
-                "toggles":        toggles.model_dump() if hasattr(toggles, "model_dump") else toggles.dict(),
-                "response_text":  response_text,
-                "elapsed_ms":     elapsed_ms,
-                "grade":          grade_summary,
-                "harness_trace":  harness["trace"],
-            })
-
-        # Compute a lift summary for the UI banner: BOTH - OFF
-        scores = {r["label"]: (r["grade"].get("pct_score") or 0) for r in results}
-        lift_pp = (scores.get("BOTH", scores.get("RAG only", 0))
-                       - scores.get("OFF", 0))
-        return {
-            "prompt_text":  prompt_text,
-            "ablations":    results,
-            "lift_pp":      round(float(lift_pp), 1),
-            "version":      "v1",
-        }
 
     @app.post("/api/chat/send")
     async def api_chat_send(req: ChatRequest) -> Any:
