@@ -386,13 +386,13 @@ header.bar .badge.loaded .dot {
 .picker-vcard.jailbroken { border-color: rgba(239, 68, 68, 0.5); }
 .picker-vcard.jailbroken .vfit { color: #f87171; }
 .picker-vcard.jailbroken .veta { color: #fecaca; }
-/* Recommended-variant note: 31B-it gets a small inline "Recommended"
+/* Default-quality note: 31B-it gets a small inline "best quality"
    tag (not a glowing badge) because it's the strongest single
    variant for the demo. Same border + background as other cards —
    the tag is informational, not visually dominant, so the user
    still picks freely. */
 .picker-vcard[data-recommended="true"] .vt::after {
-  content: "  · recommended";
+  content: "  · best quality";
   color: #fbbf24;
   font-size: 10.5px;
   font-weight: 600;
@@ -1142,10 +1142,10 @@ function _pickerBuildCards(variants) {
       card.type = 'button';
       card.className = 'picker-vcard ' + cat;
       card.dataset.variant = key;
-      // 31B-it gets a subtle inline " · recommended" tag via CSS
+      // 31B-it gets a subtle inline " · best quality" tag via CSS
       // (.picker-vcard[data-recommended="true"] .vt::after). Same
-      // border + glow as other cards — the tag is informational, not
-      // a prescriptive RECOMMENDED pill.
+      // border + background as other cards — purely informational,
+      // not a prescriptive RECOMMENDED pill.
       if (key === '31b-it') card.dataset.recommended = 'true';
       const sizeLabel = (typeof info.size_gb === 'number' && info.size_gb > 0)
           ? info.size_gb.toFixed(1) + ' GB' : 'no local download';
@@ -1527,7 +1527,7 @@ function openAboutModal() {
       <p style="margin:0;">
         <b>▸ Examples</b> in the composer opens 413 curated prompts
         organised by category. The five highlighted at the top cover
-        featured cases, jailbreak resistance, online-search behaviour,
+        curated cases, jailbreak resistance, online-search behaviour,
         multi-jurisdiction comparison, and social-engineering pretexts.
         A multi-lingual sample row (TL / ID / AR / NE / ES / BN) is on
         the empty state of this page.
@@ -1696,7 +1696,7 @@ const DIFFICULTY_COLORS = {
 
 const CATEGORY_LABELS = {
   // v3.11 high-impact demo categories (top of list)
-  headline_lift_demo:           '★ Featured sample prompts',
+  headline_lift_demo:           'Curated sample prompts',
   jailbreak_resistance:         'Jailbreak resistance (DAN / dev-mode / pretext)',
   online_search_demo:           'Online search demo (live web data adds signal)',
   model_comparison_demo:        'Model comparison demo (variant matters)',
@@ -1740,7 +1740,7 @@ async function populateEmptyHints() {
   // canonical example from each so the empty state shows a one-
   // click prompt for every demo angle reviewers will care about.
   const featured = [
-    {id: 'headline_lift_demo',       label: '★ Featured: 5-indicator compound case (PH→HK)',       color: '#10b981'},
+    {id: 'headline_lift_demo',       label: 'Curated: 5-indicator compound case (PH→HK)',         color: '#10b981'},
     {id: 'jb_dan_recruiter',         label: 'Jailbreak: DAN persona attempt',                       color: '#ef4444'},
     {id: 'online_recent_enforcement', label: 'Online demo: recent POEA enforcement query',           color: '#f59e0b'},
     {id: 'compare_complex_multi_jurisdiction', label: 'Compare PH/SG/Saudi protections (multi-jurisdiction)', color: '#a855f7'},
@@ -3165,17 +3165,23 @@ function _serializePipelineMarkdown(messageIdx) {
   md += `---\n\n`;
   md += `## ① USER INPUT (${userText.length} chars)\n\n`;
   md += '```\n' + userText + '\n```\n\n';
+  // Step glyphs cover the user-input + 6 layers + final-prompt +
+  // gemma-response (10 in total). When v0.2.8 added the Import layer
+  // the old 5-glyph string ('②③④⑤⑥') went out of bounds and produced
+  // '## undefined ONLINE' in the markdown export.
+  const STEP_GLYPHS = ['①','②','③','④','⑤','⑥','⑦','⑧','⑨','⑩'];
   let n = 2;
   for (const layer of PIPELINE_LAYER_ORDER) {
     const lt = t[layer];
     if (!lt) { n++; continue; }
     const label = PIPELINE_LAYER_LABEL[layer];
+    const glyph = STEP_GLYPHS[n - 1] || `Step ${n}`;
     if (!lt.wired) {
-      md += `## ${'②③④⑤⑥'[n-2]} ${label} — not wired\n\n`;
+      md += `## ${glyph} ${label} — not wired\n\n`;
     } else if (!lt.enabled) {
-      md += `## ${'②③④⑤⑥'[n-2]} ${label} — skipped (toggle was OFF)\n\n`;
+      md += `## ${glyph} ${label} — skipped (toggle was OFF)\n\n`;
     } else {
-      md += `## ${'②③④⑤⑥'[n-2]} ${label} — ${lt.summary || 'fired'} · ${lt.elapsed_ms}ms\n\n`;
+      md += `## ${glyph} ${label} — ${lt.summary || 'fired'} · ${lt.elapsed_ms}ms\n\n`;
       if (layer === 'persona' && lt.text_preview) {
         md += '```\n' + lt.text_preview + '\n```\n\n';
       } else if (layer === 'grep' && lt.hits && lt.hits.length) {
@@ -3213,9 +3219,14 @@ function _serializePipelineMarkdown(messageIdx) {
     }
     n++;
   }
-  md += `## ⑥ FINAL MERGED PROMPT (${finalPrompt.length} chars · +${finalPrompt.length - userText.length} added by harness)\n\n`;
+  // Final-prompt + Gemma response come AFTER the layer block, so
+  // their glyphs continue from wherever n landed (typically 8 after
+  // 6 layers + user input, and 9 for the response).
+  const finalGlyph = STEP_GLYPHS[n - 1] || `Step ${n}`;
+  md += `## ${finalGlyph} FINAL MERGED PROMPT (${finalPrompt.length} chars · +${finalPrompt.length - userText.length} added by harness)\n\n`;
   md += '```\n' + finalPrompt + '\n```\n\n';
-  md += `## ⑦ GEMMA RESPONSE (${respText.length} chars · ${m._raw_elapsed_ms || '?'}ms)\n\n`;
+  const respGlyph = STEP_GLYPHS[n] || `Step ${n + 1}`;
+  md += `## ${respGlyph} GEMMA RESPONSE (${respText.length} chars · ${m._raw_elapsed_ms || '?'}ms)\n\n`;
   md += '```\n' + respText + '\n```\n';
   return md;
 }
@@ -3270,6 +3281,139 @@ function copyPipelineMarkdown(btn) {
 function copyPipelineJson(btn) {
   const idx = parseInt(document.getElementById('modal').dataset.pipelineMsgIdx, 10);
   const j = _serializePipelineJson(idx);
+  _copyToClipboardWithFeedback(j, btn, `${(j.length/1024).toFixed(1)}KB JSON`);
+}
+
+// ---------------------------------------------------------------------------
+// Grade-modal export helpers. After every Run-scoring completion, the
+// result pane gets an inline "Copy as Markdown / JSON" bar (mirrors the
+// Pipeline-modal copy bar). The full result is stashed on
+// window._lastGradeResult so the buttons can serialize without
+// re-running the grader.
+// ---------------------------------------------------------------------------
+function _appendGradeCopyBar(pane, result) {
+  if (!pane || !result) return;
+  window._lastGradeResult = result;
+  const bar = document.createElement('div');
+  bar.style.cssText = 'margin-top:14px; padding:10px 12px; border-top:1px dashed var(--border); display:flex; gap:8px; align-items:center; flex-wrap:wrap; font-size:12px; color:var(--muted);';
+  bar.innerHTML = `<span>Export this evaluation:</span>
+    <button class="modal-btn secondary" onclick="_copyGradeMarkdown(this)">▸ Copy Markdown</button>
+    <button class="modal-btn secondary" onclick="_copyGradeJson(this)">▸ Copy JSON</button>
+    <span style="margin-left:auto; font-style:italic; color:var(--muted); font-size:11px;">paste into a GitHub issue / case-file / dataset</span>`;
+  pane.appendChild(bar);
+}
+
+function _serializeGradeMarkdown(g) {
+  if (!g || typeof g !== 'object') return '';
+  const ts = new Date().toISOString();
+  const mode = g.mode || 'unknown';
+  let md = '# Duecare grade evaluation\n\n';
+  md += `_Captured ${ts} · mode: **${mode}**_\n\n`;
+  // Combined: render deterministic + evaluator side by side
+  if (mode === 'combined') {
+    md += `## Summary\n\n`;
+    md += `- **Combined score:** ${g.pct_score ?? 0}%\n`;
+    md += `- **Deterministic side:** ${g.deterministic?.pct_score ?? 0}%\n`;
+    md += `- **LLM evaluator side:** ${g.evaluator?.pct_score ?? 0}%\n`;
+    md += `- **Evaluator weight:** ${(g.evaluator_weight ?? 0.5) * 100}%\n`;
+    if (g.agreement) {
+      md += `- **Agreement:** ${g.agreement.agreement_pct ?? 0}% (${g.agreement.n_agree ?? 0}/${g.agreement.n_compared ?? 0} dims)\n`;
+      if ((g.agreement.disagreements || []).length) {
+        md += `\n### Disagreement panel\n\n| Dimension | Deterministic | LLM Evaluator |\n|---|---|---|\n`;
+        for (const d of g.agreement.disagreements) {
+          md += `| \`${d.id}\` | ${d.deterministic} | ${d.evaluator} |\n`;
+        }
+      }
+    }
+    if (g.deterministic?.dimensions) {
+      md += '\n## Deterministic per-dimension\n\n';
+      md += _gradeMarkdownDimsTable(g.deterministic.dimensions);
+    }
+    if (g.evaluator?.dimensions) {
+      md += '\n## LLM-Evaluator per-dimension\n\n';
+      md += _gradeMarkdownEvaluatorTable(g.evaluator.dimensions);
+    }
+    return md;
+  }
+  // LLM-evaluator only
+  if (mode === 'llm_evaluator') {
+    md += `## Summary\n\n`;
+    md += `- **Score:** ${g.pct_score ?? 0}%\n`;
+    md += `- **YES:** ${g.n_pass} · **PARTIAL:** ${g.n_partial} · **NO:** ${g.n_fail} · **Uncertain:** ${g.n_uncertain} · **Skipped:** ${g.n_skipped}\n`;
+    md += `- **Latency:** ${(g.evaluator_latency_ms_total / 1000).toFixed(1)}s total, ${(g.evaluator_latency_ms_mean ?? 0).toFixed(0)}ms per call\n\n`;
+    md += '## Per-dimension verdicts\n\n';
+    md += _gradeMarkdownEvaluatorTable(g.dimensions || []);
+    return md;
+  }
+  // Universal (rule-based)
+  if (mode === 'universal') {
+    md += `## Summary\n\n`;
+    md += `- **Score:** ${g.pct_score ?? 0}% (${g.score_0_10 ?? 0}/10) · raw ${g.raw_pct_score ?? 0}%\n`;
+    md += `- **PASS:** ${g.n_pass} · **PARTIAL:** ${g.n_partial} · **FAIL:** ${g.n_fail} · **N/A:** ${g.n_not_applicable}\n`;
+    md += `- **Total weight:** ${g.total_score} / ${g.total_weight}\n`;
+    if (g.gaming_flagged) md += `- **⚠ Gaming flagged** — score capped\n`;
+    if (g.profile && g.profile.intents && g.profile.intents.length) {
+      md += `- **Detected intents:** ${g.profile.intents.join(', ')}${g.profile.primary_intent ? ` (primary: **${g.profile.primary_intent}**)` : ''}\n`;
+    }
+    if (g.profile && g.profile.cited_statutes && g.profile.cited_statutes.length) {
+      md += `- **Cited statutes:** ${g.profile.cited_statutes.join(', ')}\n`;
+    }
+    if (g.citation_check) {
+      md += `- **Citation grounding:** ${g.citation_check.grounded_pct ?? 0}% (${(g.citation_check.grounded_citations || []).length} grounded / ${(g.citation_check.cited_statutes || []).length} cited)\n`;
+      if ((g.citation_check.possibly_fabricated || []).length) {
+        md += `- **⚠ Possibly fabricated:** ${g.citation_check.possibly_fabricated.join(', ')}\n`;
+      }
+    }
+    md += '\n## Per-dimension breakdown\n\n';
+    md += _gradeMarkdownDimsTable(g.dimensions || []);
+    return md;
+  }
+  // Expert (legacy per-category) result has `criteria` instead of `dimensions`
+  if (g.criteria) {
+    md += `## Summary\n\n`;
+    md += `- **Score:** ${g.pct_score ?? 0}%\n`;
+    md += `- **Category:** ${g.category || '(unknown)'}\n`;
+    md += `- **Total weight:** ${g.total_score} / ${g.total_weight}\n\n`;
+    md += '## Criteria\n\n| ID | Status | Weight |\n|---|---|---|\n';
+    for (const c of g.criteria) {
+      md += `| \`${c.id}\` | ${c.status} | ${c.weight} |\n`;
+    }
+    return md;
+  }
+  return md + '_(unknown grader output shape — see JSON export for raw payload)_\n';
+}
+
+function _gradeMarkdownDimsTable(dims) {
+  let md = '| Dimension | Status | Weight | Hits |\n|---|---|---|---|\n';
+  for (const d of dims) {
+    const passHits = (d.pass_hits || []).slice(0, 4).join(', ');
+    const failHits = (d.fail_hits || []).slice(0, 4).join(', ');
+    let hits = passHits;
+    if (passHits && failHits) hits += ' · ';
+    if (failHits) hits += `~~${failHits}~~`;
+    if (!hits) hits = '_no terms matched_';
+    md += `| \`${d.id}\` ${d.name ? `(${d.name.replace(/\|/g, '\\|')})` : ''} | **${d.status}** | ${d.weight} | ${hits.replace(/\|/g, '\\|')} |\n`;
+  }
+  return md + '\n';
+}
+
+function _gradeMarkdownEvaluatorTable(dims) {
+  let md = '| Dimension | Verdict | Latency | Evidence |\n|---|---|---|---|\n';
+  for (const d of dims) {
+    const evi = d.evidence_quote ? `_"${d.evidence_quote.replace(/\|/g, '\\|').slice(0, 200)}"_` : '_(no quote)_';
+    const lat = d.evaluator_latency_ms != null ? `${d.evaluator_latency_ms.toFixed(0)}ms` : '—';
+    md += `| \`${d.id}\` | **${d.verdict}** (${d.status}) | ${lat} | ${evi} |\n`;
+  }
+  return md + '\n';
+}
+
+function _copyGradeMarkdown(btn) {
+  const md = _serializeGradeMarkdown(window._lastGradeResult || {});
+  _copyToClipboardWithFeedback(md, btn, `${(md.length/1024).toFixed(1)}KB MD`);
+}
+
+function _copyGradeJson(btn) {
+  const j = JSON.stringify(window._lastGradeResult || {}, null, 2);
   _copyToClipboardWithFeedback(j, btn, `${(j.length/1024).toFixed(1)}KB JSON`);
 }
 
@@ -3446,6 +3590,19 @@ async function openGradeModal(messageIdx) {
         <span>Use <strong>Expert (legacy)</strong> per-category rubric instead — picks a specific rubric for the prompt type. Mostly superseded by Rule-Based; kept for prompt-shape-specific deep dives.</span>
       </label>
     </div>`;
+  // Brief explanation of how the scoring pipeline actually works,
+  // tucked under a default-collapsed expander so it doesn't clutter
+  // the modal but is one click away for anyone who wants to understand
+  // why an LLM-Based pass returned mostly NO/PARTIAL etc.
+  const howItWorks = `
+    <details style="margin-top:12px; padding:10px 12px; background:rgba(100,116,139,0.06); border:1px solid var(--border); border-radius:6px;">
+      <summary style="cursor:pointer; font-size:12px; color:var(--ink); font-weight:600;">▸ How does scoring work?</summary>
+      <div style="margin-top:10px; font-size:11.5px; line-height:1.55; color:var(--ink);">
+        <div style="margin-bottom:8px;"><strong style="color:#10b981;">Rule-Based</strong> walks the response through 21 deterministic rubric dimensions. For each dim, it scans for keyword clusters, regex patterns, statute references, and structural markers (numbered lists, refusal language, citation formats). Each dim resolves to <code>PASS / PARTIAL / FAIL / N/A</code> with explicit hits + misses. No LLM is called — this is the same scorer used in the +56pp benchmark. Click <em>▸ How to PASS this</em> on any FAIL/PARTIAL row in the result table to see what the rule was looking for.</div>
+        <div style="margin-bottom:8px;"><strong style="color:#a855f7;">LLM-Based</strong> sends the response back to the loaded Gemma <em>once per applicable dimension</em> (~3-7s each on 31B). Each call asks a single yes/no question shaped like <em>"Does the response cite a specific ILO Convention by number? Be strict."</em> The model answers in a JSON envelope <code>{verdict, evidence_quote, rationale}</code>. The chat package verifies the evidence quote actually appears in the response (defense against hallucinated quotes) and demotes <code>yes</code> to <code>partial</code> when the quote is fabricated. <em>Click ▸ Inspect evaluator prompt + raw model response on any dim row to see exactly what was asked and what the model said.</em></div>
+        <div><strong style="color:#3b82f6;">Combined (Rule + LLM)</strong> runs both passes and blends 50/50. The disagreement panel surfaces dimensions where the two graders diverge — usually a sign that the LLM caught a paraphrased citation the keyword scanner missed, OR that the keyword scanner matched on a literal phrase that the LLM correctly rejected as out of context. Worth a manual look at each disagreement row.</div>
+      </div>
+    </details>`;
   // Single primary CTA. Disabled until a mode is picked (always picked
   // by default, but disabled while a run is in progress).
   const skeleton = `
@@ -3453,6 +3610,7 @@ async function openGradeModal(messageIdx) {
       ${modeCards}
     </div>
     ${expertToggle}
+    ${howItWorks}
     <div id="grade-mode-controls" style="margin:14px 0 0;"></div>
     <div style="margin:14px 0 16px; display:flex; gap:10px; align-items:center; flex-wrap:wrap; padding-top:12px; border-top:1px solid var(--border);">
       <button type="button" id="grade-run-btn"
@@ -3809,6 +3967,7 @@ async function _runGrade(messageIdx) {
       const result = await r.json();
       if (result && result.mode === 'universal') pane.innerHTML = _renderUniversalGradeResult(result);
       else pane.innerHTML = _renderGradeResult(result);
+      _appendGradeCopyBar(pane, result);
     } catch (e) {
       pane.innerHTML = `<div style="color:#ef4444; padding:16px 0;">Error scoring: ${escapeHtml(String(e.message || e))}</div>`;
     } finally {
@@ -3983,6 +4142,7 @@ async function _streamGradeRun(url, body, pane, mode) {
   } else {
     pane.innerHTML = _renderGradeResult(finalResult);
   }
+  _appendGradeCopyBar(pane, finalResult);
 }
 
 // LLM-evaluator result renderer: per-dimension yes/no/partial
@@ -4007,6 +4167,29 @@ function _renderEvaluatorGradeResult(g) {
     const ungrounded = (d.evidence_grounded === false)
         ? `<div style="margin-top:4px; padding:6px 10px; background:rgba(239,68,68,0.10); border-left:3px solid #ef4444; border-radius:3px; font-size:10.5px; color:#ef4444;">⚠ Evaluator claimed an evidence quote that does not appear in the response. Verdict demoted to PARTIAL.</div>`
         : '';
+    // Transparency expander: per-dim, surface the EXACT prompt the
+    // evaluator was sent + the RAW model response. Lets a reviewer
+    // audit why the model said NO / PARTIAL / YES without trusting
+    // the parse layer. Only render when the server provided the
+    // fields (older wheels won't).
+    const inspect = (d.evaluator_prompt || d.evaluator_response)
+      ? `<details style="margin-top:6px;">
+          <summary style="cursor:pointer; color:#94a3b8; font-size:11px;">▸ Inspect evaluator prompt + raw model response</summary>
+          <div style="margin-top:6px; padding:8px 10px; background:rgba(0,0,0,0.25); border-radius:4px; font-size:11px; color:var(--ink);">
+            <div style="margin-bottom:6px;"><strong style="color:#a855f7;">Question asked:</strong> ${escapeHtml(d.evaluator_question || '(default question)')}</div>
+            ${d.evaluator_hint ? `<div style="margin-bottom:6px;"><strong style="color:#a855f7;">Hint provided to model:</strong> <em>${escapeHtml(d.evaluator_hint)}</em></div>` : ''}
+            <div style="margin-top:6px;"><strong style="color:#a855f7;">Full prompt sent (${d.evaluator_prompt_chars || 0} chars):</strong></div>
+            <pre style="margin:4px 0 6px; padding:6px 8px; background:rgba(0,0,0,0.4); border-radius:3px; max-height:160px; overflow:auto; font-size:10.5px; font-family:ui-monospace,monospace; color:#cbd5e1; white-space:pre-wrap; word-break:break-word;">${escapeHtml(d.evaluator_prompt || '')}</pre>
+            <div><strong style="color:#a855f7;">Raw model response (${d.evaluator_response_chars || 0} chars):</strong></div>
+            <pre style="margin:4px 0 6px; padding:6px 8px; background:rgba(0,0,0,0.4); border-radius:3px; max-height:120px; overflow:auto; font-size:10.5px; font-family:ui-monospace,monospace; color:#cbd5e1; white-space:pre-wrap; word-break:break-word;">${escapeHtml(d.evaluator_response || '')}</pre>
+            <div style="margin-top:6px; color:var(--muted);">
+              Parsed verdict: <strong style="color:${c};">${escapeHtml(d.verdict || '?')}</strong>
+              ${d.parse_ok === false ? ' <span style="color:#ef4444;">(parse fell back to keyword scan — verdict may be unreliable)</span>' : ''}
+              · evidence-grounded: ${d.evidence_grounded === false ? '<span style="color:#ef4444;">NO (demoted)</span>' : '<span style="color:#10b981;">yes</span>'}
+            </div>
+          </div>
+        </details>`
+      : '';
     return `
       <div style="background:var(--bg); border-radius:5px; padding:10px 12px; margin-bottom:8px; border-left:4px solid ${c};">
         <div style="display:flex; justify-content:space-between; align-items:center; gap:8px;">
@@ -4017,6 +4200,7 @@ function _renderEvaluatorGradeResult(g) {
         ${ungrounded}
         <div style="margin-top:4px; font-size:11px; color:var(--muted);">${escapeHtml(d.rationale || '')}</div>
         ${d.evaluator_latency_ms ? `<div style="margin-top:3px; font-size:10px; color:var(--muted);">${d.evaluator_latency_ms.toFixed(0)} ms evaluator call</div>` : ''}
+        ${inspect}
       </div>`;
   }).join('');
   return `
@@ -4514,7 +4698,12 @@ async function sendMessage() {
   // complete / error and its own metadata. The renderChat call uses
   // this to draw a live step list inside the assistant placeholder.
   const STEP_LABELS = {
-    resolve: 'Resolving images',
+    // The "resolve" step always runs — it walks the messages and
+    // resolves any store://<id> image refs to base64 data URIs. With
+    // no images it's a no-op, but it's still part of the pipeline,
+    // so we use a neutral label here instead of "Resolving images"
+    // (which read as misleading on text-only chats).
+    resolve: 'Preparing message',
     persona: 'Applied persona',
     grep:    'Running GREP regex rules',
     rag:     'Retrieving from RAG corpus',
