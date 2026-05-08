@@ -615,7 +615,7 @@ def create_app(
         revision before running benchmarks against it.
 
         Shape:
-          {chat_package: "0.3.0",
+          {chat_package: "0.3.1",
            harness: {rubric_version: "v3.6", n_dimensions: 21,
                      n_evaluation_questions: 21, n_grep_rules: 111,
                      n_rag_docs: 35, n_tools: 5, n_examples: 413,
@@ -678,7 +678,7 @@ def create_app(
             })
 
         return {
-            "chat_package":         "0.3.0",
+            "chat_package":         "0.3.1",
             "wire_format_version":  "v2.0",  # mode='llm_evaluator', evaluator_*
             "harness": {
                 "rubric_version":              RUBRIC_UNIVERSAL.get("version", ""),
@@ -764,19 +764,37 @@ def create_app(
         invokable and not displayed. The persona layer is always
         considered 'wired' if a default text exists.
 
+        `online` is wired if EITHER the kernel supplied an
+        online_search_call OR a Brave Search API key is configured
+        via /api/online/config — the chat package can drive Brave
+        directly via stdlib urllib without any kernel hook.
+
+        `import` is always considered wired: it reads from the
+        server-side _IMPORT_STORE which is part of the chat package
+        itself, no kernel callable required.
+
         `grade_deep` reflects whether the LLM-evaluator endpoint
         will work — it requires `gemma_call` to be wired so the
         kernel can ask its own loaded Gemma the dimension yes/no
         questions."""
+        with _ONLINE_CONFIG_LOCK:
+            online_brave_key = bool(_ONLINE_CONFIG.get("brave_api_key"))
+        online_wired = (app.state.online_search_call is not None
+                         or online_brave_key)
         return {
-            "persona": bool(app.state.persona_default),
-            "persona_default": app.state.persona_default or "",
-            "grep": app.state.grep_call is not None,
-            "rag": app.state.rag_call is not None,
-            "tools": app.state.tools_call is not None,
-            "online": app.state.online_search_call is not None,
-            "grade": app.state.grade_call is not None,
-            "grade_deep": app.state.gemma_call is not None,
+            "persona":          bool(app.state.persona_default),
+            "persona_default":  app.state.persona_default or "",
+            "grep":             app.state.grep_call is not None,
+            "rag":              app.state.rag_call is not None,
+            "tools":            app.state.tools_call is not None,
+            "online":           online_wired,
+            "online_kernel_ddg": app.state.online_search_call is not None,
+            "online_brave":      online_brave_key,
+            # Import is owned by the chat package; the server-side
+            # _IMPORT_STORE is always reachable.
+            "import":           True,
+            "grade":            app.state.grade_call is not None,
+            "grade_deep":       app.state.gemma_call is not None,
             "grade_categories": app.state.rubrics_required_categories or [],
         }
 
