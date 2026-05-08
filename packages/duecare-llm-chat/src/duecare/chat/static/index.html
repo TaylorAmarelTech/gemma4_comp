@@ -1837,12 +1837,20 @@ async function openExamplesModal() {
     const label = CATEGORY_LABELS[cat] || cat;
     const color = CATEGORY_COLORS[cat] || 'var(--accent)';
     const collapsed = _examplesCollapsed[cat];
+    // Sparse-category visual deemphasis: categories with fewer than 3
+    // examples render dimmer + auto-collapsed, since a one-prompt
+    // category is more confusing than helpful in a long category list.
+    // The 5 high-impact demo categories (demoImpactOrder) are exempt
+    // from this rule — they get full prominence even if thin.
+    const sparse = items.length < 3 && !demoImpactOrder.includes(cat);
+    const opacity = sparse ? '0.55' : '1';
+    const sparseSuffix = sparse ? `<span style="color:var(--muted); font-size:10px; font-style:italic; margin-left:6px;">· thin set</span>` : '';
     html += `
-      <div class="examples-category" data-cat="${escapeHtml(cat)}" style="margin-bottom:12px; border:1px solid var(--border); border-radius:6px; border-left:4px solid ${color}; overflow:hidden;">
+      <div class="examples-category" data-cat="${escapeHtml(cat)}" style="margin-bottom:12px; border:1px solid var(--border); border-radius:6px; border-left:4px solid ${color}; overflow:hidden; opacity:${opacity};">
         <div onclick="_toggleExamplesCategory(${attrJson(cat)})"
              style="cursor:pointer; padding:10px 14px; background:rgba(255,255,255,0.02); display:flex; align-items:center; gap:10px; font-weight:600; user-select:none;">
           <span class="examples-chevron" style="display:inline-block; width:14px; transition:transform 0.15s; transform:rotate(${collapsed ? '0' : '90'}deg);">▶</span>
-          <span style="color:${color}; font-size:12.5px;">${escapeHtml(label)}</span>
+          <span style="color:${color}; font-size:12.5px;">${escapeHtml(label)}</span>${sparseSuffix}
           <span style="color:var(--muted); font-size:11px; margin-left:auto;">${items.length} prompt${items.length === 1 ? '' : 's'}</span>
         </div>
         <div class="examples-items" style="display:${collapsed ? 'none' : 'block'}; padding:6px 14px 12px;">
@@ -1962,7 +1970,36 @@ function closeModalIfBackground(event) {
 }
 
 document.addEventListener('keydown', e => {
-  if (e.key === 'Escape') closeModal();
+  // Esc closes any open modal (existing behaviour). Pressing Esc when
+  // the picker is open ALSO closes it — but only if a model is loaded
+  // (otherwise the user has nothing to chat with).
+  if (e.key === 'Escape') {
+    closeModal();
+    const picker = document.getElementById('picker-overlay');
+    if (picker && picker.classList.contains('show')) {
+      try {
+        const info = window._modelInfo || {};
+        if (info.loaded) closeModelPicker();
+      } catch (e2) {}
+    }
+    return;
+  }
+  // Cmd/Ctrl + K: open the model picker. Mirrors VS Code / Slack /
+  // Linear convention. We DON'T trigger when the user is mid-edit in
+  // the chat textarea (let the browser/textarea handle K natively).
+  const meta = e.metaKey || e.ctrlKey;
+  if (meta && (e.key === 'k' || e.key === 'K')) {
+    e.preventDefault();
+    if (typeof openModelPicker === 'function') openModelPicker();
+    return;
+  }
+  // Cmd/Ctrl + / : open Examples modal. "/" is the conventional
+  // search-bar shortcut on most chat-like UIs.
+  if (meta && e.key === '/') {
+    e.preventDefault();
+    if (typeof openExamplesModal === 'function') openExamplesModal();
+    return;
+  }
 });
 
 function _setModalChrome(layer, title, footerHtml) {
@@ -2043,30 +2080,24 @@ async function openLayerModal(layer) {
     `);
     return;
   }
-  // Online-search layer: no catalog (the search hook is kernel-
-  // supplied), just a description of how it works + a live test
-  // button that hits /api/online-search?q=<sample>.
+  // Online-search layer: backend selector (Brave BYOK + DDG fallback)
+  // plus a live test affordance.
   if (layer === 'online') {
     _setModalChrome(layer, LAYER_TITLES.online, '');
     body.innerHTML = `
       <div style="color:var(--ink); font-size:13px; line-height:1.55;">
         <p>The <strong style="color:#f59e0b;">Online</strong> layer
         runs a live web search on the user's message and prepends the
-        top results as context BEFORE Gemma generates. Mirrors the
-        RAG pattern but with fresh-from-the-web sources instead of the
-        bundled corpus.</p>
-        <p style="color:var(--muted); font-size:12px;">The search
-        backend is kernel-supplied. The default in the unified
-        <code>duecare-harness-chat</code> notebook is a DuckDuckGo
-        HTML scraper (no API key, ~1s latency). For Brave Search /
-        Playwright-driven multi-step research use the
-        <code>duecare-chat-playground-with-agentic-research</code>
-        appendix notebook.</p>
-        <p style="color:var(--muted); font-size:12px;">Important: the
-        prepended context tells Gemma to <em>cross-check</em> any
-        web claim against GREP rules + RAG corpus before adopting it.
-        Web results are treated as candidate evidence requiring URL
-        attribution, not as ground truth.</p>
+        top results as context BEFORE Gemma generates. The prepended
+        context tells Gemma to <em>cross-check</em> any web claim
+        against GREP rules + RAG corpus — web results are candidate
+        evidence requiring URL attribution, not ground truth.</p>
+
+        <div id="online-backend-panel" style="margin-top:16px; padding:12px 14px; border:1px solid var(--border); border-radius:8px; background:var(--bg);">
+          <div style="color:var(--muted); font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.4px; margin-bottom:8px;">Search backend</div>
+          <div style="color:var(--muted); font-size:12px;">Loading current configuration…</div>
+        </div>
+
         <h4 style="margin-top:18px;">Live test</h4>
         <div style="display:flex; gap:8px; align-items:center;">
           <input id="online-test-q" type="text"
@@ -2074,10 +2105,11 @@ async function openLayerModal(layer) {
                  style="flex:1; padding:6px 8px; background:var(--bg); color:var(--ink); border:1px solid var(--border); border-radius:4px;">
           <button class="modal-btn primary" onclick="_runOnlineSearchTest()">Search</button>
         </div>
-        <pre id="online-test-out" style="margin-top:10px; max-height:400px; overflow:auto; font-size:11.5px; color:var(--muted); background:var(--bg); padding:10px; border-radius:4px;">(results render here)</pre>
+        <div id="online-test-out" style="margin-top:10px; max-height:400px; overflow:auto; font-size:11.5px; color:var(--muted); background:var(--bg); padding:10px; border-radius:4px;">(results render here)</div>
       </div>
       <div id="modal-docs"></div>
     `;
+    _renderOnlineBackendPanel();
     docsPromise.then(md => {
       const docsEl = document.getElementById('modal-docs');
       if (docsEl) docsEl.innerHTML = _renderDocsSection(md);
@@ -3271,33 +3303,156 @@ function _renderGradeModeControls(messageIdx) {
   }
 }
 
+// ---------------------------------------------------------------------------
+// Online-search backend config UI. Fetches current state from
+// /api/online/config and renders a panel with backend selector +
+// Brave key input + last-test indicator. Save button POSTs back.
+// ---------------------------------------------------------------------------
+async function _renderOnlineBackendPanel() {
+  const panel = document.getElementById('online-backend-panel');
+  if (!panel) return;
+  let cfg;
+  try {
+    const r = await fetch('/api/online/config', {cache: 'no-store'});
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    cfg = await r.json();
+  } catch (e) {
+    panel.innerHTML = `<div style="color:#ef4444; font-size:12px;">Could not load backend config: ${escapeHtml(String(e.message || e))}. The /api/online/config endpoint requires duecare-llm-chat ≥0.3.0.</div>`;
+    return;
+  }
+  const opt = (val, label, desc) => {
+    const checked = cfg.backend === val ? 'checked' : '';
+    return `
+      <label style="display:flex; align-items:flex-start; gap:8px; padding:8px 10px; border:1px solid var(--border); border-radius:6px; cursor:pointer; ${cfg.backend === val ? 'background:rgba(245,158,11,0.06); border-color:#f59e0b;' : 'background:var(--bg);'}">
+        <input type="radio" name="online-backend" value="${val}" ${checked} style="margin-top:2px;">
+        <div style="flex:1;">
+          <div style="font-weight:600; color:var(--ink); font-size:12.5px;">${escapeHtml(label)}</div>
+          <div style="color:var(--muted); font-size:11px; line-height:1.4; margin-top:2px;">${desc}</div>
+        </div>
+      </label>`;
+  };
+  const ddgWired = cfg.kernel_ddg_wired
+    ? '<span style="color:#10b981;">DuckDuckGo HTML scrape wired (kernel-supplied, no key required)</span>'
+    : '<span style="color:#f59e0b;">DDG fallback NOT wired in this kernel — Brave key strongly recommended</span>';
+  const testBadge = (cfg.brave_test_ok === true)
+    ? '<span style="background:#10b98122; color:#10b981; font-size:10px; font-weight:700; padding:2px 7px; border-radius:8px; text-transform:uppercase;">tested OK</span>'
+    : (cfg.brave_test_ok === false)
+    ? `<span style="background:#ef444422; color:#ef4444; font-size:10px; font-weight:700; padding:2px 7px; border-radius:8px; text-transform:uppercase;" title="${escapeHtml(cfg.brave_test_msg || '')}">test failed</span>`
+    : '<span style="background:rgba(148,163,184,0.18); color:#94a3b8; font-size:10px; font-weight:700; padding:2px 7px; border-radius:8px; text-transform:uppercase;">not tested</span>';
+  panel.innerHTML = `
+    <div style="color:var(--muted); font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.4px; margin-bottom:8px;">Search backend</div>
+    <div style="display:flex; flex-direction:column; gap:6px; margin-bottom:12px;">
+      ${opt('auto', 'Auto (recommended)', 'Use Brave Search API if a key is configured below; otherwise fall back to the kernel-supplied DuckDuckGo scrape. On Brave error, automatically retries with DDG.')}
+      ${opt('brave', 'Brave Search API only', 'Force Brave; if the key is missing or fails, the layer returns no results. Choose this for predictable behavior in a benchmark run.')}
+      ${opt('ddg', 'DuckDuckGo only (no key)', 'Use the kernel-supplied DDG HTML scraper. Free, no signup, but fragile — DDG layout changes can break it.')}
+    </div>
+    <div style="border-top:1px solid var(--border); padding-top:12px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+        <div style="font-size:12px; color:var(--ink); font-weight:600;">
+          Brave Search API key
+          <span style="color:var(--muted); font-weight:400; font-size:11px;">— ${cfg.brave_configured ? 'configured' : 'not set'}</span>
+          ${cfg.brave_configured ? testBadge : ''}
+        </div>
+      </div>
+      <div style="font-size:11.5px; color:var(--muted); margin-bottom:6px; line-height:1.5;">
+        Get a free key at <a href="https://brave.com/search/api/" target="_blank" rel="noopener" style="color:#fbbf24;">brave.com/search/api</a> (2,000 queries/month free tier). Paste it below; the key stays in this kernel's process memory and is never persisted.
+      </div>
+      <div style="display:flex; gap:6px; margin-bottom:6px;">
+        <input id="online-brave-key" type="password" placeholder="${cfg.brave_configured ? '•••• key already set — paste a new one to replace ••••' : 'BSAxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'}"
+               style="flex:1; padding:7px 10px; background:var(--bg); color:var(--ink); border:1px solid var(--border); border-radius:6px; font-size:12px; font-family:ui-monospace,monospace;">
+        <button class="modal-btn primary" onclick="_saveOnlineBackend()">Save</button>
+        ${cfg.brave_configured ? '<button class="modal-btn secondary" onclick="_clearBraveKey()" style="color:#ef4444;">Clear</button>' : ''}
+      </div>
+      <div style="font-size:11px; color:var(--muted);">${ddgWired}</div>
+      ${cfg.brave_configured && cfg.brave_test_msg ? `<div style="margin-top:6px; font-size:11px; color:var(--muted); font-style:italic;">Last test: ${escapeHtml(cfg.brave_test_msg)}</div>` : ''}
+    </div>`;
+}
+
+async function _saveOnlineBackend() {
+  const backendEl = document.querySelector('input[name="online-backend"]:checked');
+  const keyEl = document.getElementById('online-brave-key');
+  const body = {};
+  if (backendEl) body.backend = backendEl.value;
+  if (keyEl && keyEl.value && keyEl.value.trim()) {
+    body.brave_api_key = keyEl.value.trim();
+  }
+  if (!Object.keys(body).length) {
+    alert('No changes to save. Pick a backend or paste a key first.');
+    return;
+  }
+  try {
+    const r = await fetch('/api/online/config', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(body),
+    });
+    if (!r.ok) {
+      const errTxt = await r.text();
+      throw new Error(_sanitizeServerError(r.status, errTxt));
+    }
+    if (keyEl) keyEl.value = '';
+    await _renderOnlineBackendPanel();
+  } catch (e) {
+    alert('Save failed: ' + (e.message || e));
+  }
+}
+
+async function _clearBraveKey() {
+  if (!confirm('Remove the saved Brave API key?')) return;
+  try {
+    const r = await fetch('/api/online/config', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({brave_api_key: null}),
+    });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    await _renderOnlineBackendPanel();
+  } catch (e) {
+    alert('Clear failed: ' + (e.message || e));
+  }
+}
+
 async function _runOnlineSearchTest() {
   const inp = document.getElementById('online-test-q');
   const out = document.getElementById('online-test-out');
   if (!inp || !out) return;
-  const q = (inp.value || '').trim();
-  if (!q) { out.textContent = '(enter a query first)'; return; }
-  out.textContent = 'searching...';
+  const q = (inp.value || '').trim() || 'ILO C189 domestic workers convention';
+  out.innerHTML = '<span style="color:var(--muted); font-style:italic;">searching via configured backend…</span>';
   try {
-    const r = await fetch(`/api/online-search?q=${encodeURIComponent(q)}&top_n=5`,
-                            {cache:'no-store'});
+    const r = await fetch('/api/online/test', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({query: q}),
+    });
     if (!r.ok) {
-      out.textContent = `HTTP ${r.status}: ${await r.text()}`;
+      const errTxt = await r.text();
+      out.innerHTML = `<span style="color:#ef4444;">${escapeHtml(_sanitizeServerError(r.status, errTxt))}</span>`;
       return;
     }
     const data = await r.json();
+    const backend = data.backend || 'unknown';
+    const elapsed = data.elapsed_ms || 0;
+    const header = `<div style="font-size:11.5px; color:var(--ink); margin-bottom:8px; padding-bottom:6px; border-bottom:1px solid var(--border);">
+      <strong>Backend:</strong> <code style="color:#fbbf24;">${escapeHtml(backend)}</code>
+      · <strong>${(data.results || []).length}</strong> result(s)
+      · <strong>${elapsed}</strong> ms
+      ${data.error ? ` · <span style="color:#ef4444;">${escapeHtml(data.error)}</span>` : ''}
+    </div>`;
     if (!data.results || data.results.length === 0) {
-      out.textContent = `No results (source=${data.source||'?'})${data.error ? ' — ' + data.error : ''}`;
+      out.innerHTML = header + '<span style="color:var(--muted); font-style:italic;">No results returned.</span>';
+      // Refresh the panel to show updated last-test status
+      _renderOnlineBackendPanel();
       return;
     }
-    out.innerHTML = data.results.map(rs =>
-      `<div style="margin-bottom:10px; padding:6px; border-left:2px solid #f59e0b;">
-        <div style="color:var(--ink);"><strong>[${rs.rank||'?'}] ${escapeHtml(rs.title||'?')}</strong></div>
-        <a href="${escapeHtml(rs.url||'#')}" target="_blank" rel="noopener" style="color:#f59e0b; font-size:11px;">${escapeHtml((rs.url||'').slice(0,90))}</a>
-        <div style="color:var(--muted); font-size:11.5px; margin-top:4px;">${escapeHtml((rs.snippet||'').slice(0,250))}</div>
+    out.innerHTML = header + data.results.map(rs =>
+      `<div style="margin-bottom:10px; padding:6px 8px; border-left:2px solid #f59e0b; background:rgba(245,158,11,0.04);">
+        <div style="color:var(--ink);"><strong>[${rs.rank || '?'}] ${escapeHtml(rs.title || '?')}</strong>${rs.age ? ` <span style="color:var(--muted); font-size:10.5px;">· ${escapeHtml(rs.age)}</span>` : ''}</div>
+        <a href="${escapeHtml(rs.url || '#')}" target="_blank" rel="noopener" style="color:#fbbf24; font-size:11px; word-break:break-all;">${escapeHtml((rs.url || '').slice(0, 110))}</a>
+        <div style="color:var(--muted); font-size:11.5px; margin-top:4px; line-height:1.5;">${escapeHtml((rs.snippet || '').slice(0, 320))}</div>
       </div>`).join('');
+    _renderOnlineBackendPanel();
   } catch (e) {
-    out.textContent = `error: ${e.message || e}`;
+    out.innerHTML = `<span style="color:#ef4444;">network error: ${escapeHtml(String(e.message || e))}</span>`;
   }
 }
 
