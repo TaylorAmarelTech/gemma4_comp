@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "duecare-llm-chat"
-version = "0.3.7"
+version = "0.3.8"
 description = "Minimal Gemma 4 chat playground -- single FastAPI app with a chat UI, no audit trail / no Duecare pipeline / no evidence DB. Pairs with Unsloth-loaded Gemma 4 (any variant including 31B) and a cloudflared quick-tunnel for Kaggle-hosted demos."
 readme = "README.md"
 license = {text = "MIT"}

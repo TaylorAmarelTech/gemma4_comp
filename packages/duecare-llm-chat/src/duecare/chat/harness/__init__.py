@@ -7124,6 +7124,16 @@ def grade_response_via_evaluator(
             "evaluator_prompt_chars":      len(prompt),
             "evaluator_response_chars":    len(evaluator_response),
             "evaluator_latency_ms":        round(elapsed_ms, 1),
+            # Transparency fields (added v0.3.8): the user-facing UI
+            # uses these to render an "Inspect prompt + raw response"
+            # expander per dimension so reviewers can audit exactly
+            # what was asked of the model and what the model said.
+            # Capped at 8 KB each so a runaway prompt doesn't blow
+            # up the SSE payload.
+            "evaluator_question":          spec.get("question", "") if spec else "",
+            "evaluator_hint":              spec.get("hint", "") if spec else "",
+            "evaluator_prompt":            prompt[:8000],
+            "evaluator_response":          (evaluator_response or "")[:8000],
         }
         rows.append(eval_row)
         n_done_dims += 1
