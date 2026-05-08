@@ -50,6 +50,169 @@ _IMAGE_STORE_LOCK = threading.Lock()
 _GEMMA_LOCK = threading.Lock()
 
 # ---------------------------------------------------------------------------
+# Online-search configuration (BYOK Brave API + DDG fallback).
+# ---------------------------------------------------------------------------
+# The chat package owns the search-backend selection so the kernel
+# stays free of API-key handling. When Brave is configured, the
+# online layer calls Brave's documented JSON endpoint directly via
+# stdlib urllib — no extra dep. When Brave is absent or fails, we
+# fall back to the kernel-supplied online_search_call (typically a
+# DuckDuckGo HTML scrape; reliable enough for a no-key demo).
+#
+# Stored in module-scope dict, NOT in app.state, so the Brave key
+# survives across create_app() calls in tests + reuses. Wiped on
+# process restart — never persisted to disk.
+_ONLINE_CONFIG: dict = {
+    "backend":         "auto",   # 'auto' | 'brave' | 'ddg'
+    "brave_api_key":   None,
+    "brave_test_ok":   None,     # last test result, for the UI light
+    "brave_test_msg":  "",
+    "brave_test_at":   0.0,
+}
+_ONLINE_CONFIG_LOCK = threading.Lock()
+
+
+def _brave_search(query: str, api_key: str, *,
+                    top_n: int = 5, timeout: float = 8.0) -> dict:
+    """Call the Brave Web Search API and return a normalized result
+    dict mirroring the kernel's online_search_call shape:
+
+        {results: [{rank, title, url, snippet, age?}],
+         source: 'brave',
+         elapsed_ms: int}
+
+    Free tier: 2000 queries/month with a key from
+    https://brave.com/search/api/. The endpoint expects an
+    `X-Subscription-Token` header.
+
+    Raises:
+      RuntimeError on HTTP 4xx/5xx, network error, or malformed JSON.
+      Caller decides whether to fall back to the kernel scraper.
+    """
+    import gzip
+    import urllib.parse
+    import urllib.request
+    if not query or not api_key:
+        raise RuntimeError("query and api_key are required")
+    url = ("https://api.search.brave.com/res/v1/web/search?"
+           + urllib.parse.urlencode({
+               "q":     (query[:400]).strip(),
+               "count": min(20, max(1, top_n)),
+           }))
+    req = urllib.request.Request(url, headers={
+        "Accept":             "application/json",
+        "Accept-Encoding":    "gzip",
+        "X-Subscription-Token": api_key,
+        "User-Agent":         "duecare-chat/0.3 (+brave-byok)",
+    })
+    t0 = time.time()
+    try:
+        with urllib.request.urlopen(req, timeout=timeout) as resp:
+            raw = resp.read()
+            if resp.headers.get("Content-Encoding") == "gzip":
+                raw = gzip.decompress(raw)
+            payload = json.loads(raw.decode("utf-8"))
+    except urllib.error.HTTPError as e:
+        # 401 = bad key, 422 = bad query, 429 = quota
+        body = ""
+        try:
+            body = e.read().decode("utf-8", errors="ignore")[:200]
+        except Exception:
+            pass
+        raise RuntimeError(
+            f"Brave API HTTP {e.code}: {e.reason} {body!s}".strip()
+        ) from e
+    except (urllib.error.URLError, OSError) as e:
+        raise RuntimeError(f"Brave network error: {e}") from e
+    except (ValueError, json.JSONDecodeError) as e:
+        raise RuntimeError(f"Brave malformed response: {e}") from e
+    web = (payload or {}).get("web") or {}
+    raw_results = web.get("results") or []
+    out = []
+    for i, r in enumerate(raw_results[:top_n], 1):
+        snippet = r.get("description") or ""
+        # Brave often returns rich extra_snippets (sentence-level
+        # extracts from the page); concatenate the first couple for
+        # a fuller blurb.
+        extras = r.get("extra_snippets") or []
+        if extras and len(snippet) < 240:
+            extra_text = " ".join(extras[:2])[:600]
+            if extra_text:
+                snippet = (snippet + " — " + extra_text) if snippet else extra_text
+        out.append({
+            "rank":    i,
+            "title":   r.get("title") or "(untitled)",
+            "url":     r.get("url") or "",
+            "snippet": snippet,
+            "age":     r.get("age") or "",
+        })
+    return {
+        "results":    out,
+        "source":     "brave",
+        "elapsed_ms": int((time.time() - t0) * 1000),
+        "query":      query[:200],
+    }
+
+
+def _online_search_with_fallback(query: str,
+                                    *,
+                                    kernel_call: Optional[Callable] = None,
+                                    top_n: int = 5) -> dict:
+    """Resolve online search per current backend config.
+
+      backend == 'brave': require a key, raise on missing/error
+      backend == 'ddg':   call kernel_call only
+      backend == 'auto':  Brave if keyed, else kernel_call. On Brave
+                          error, fall back to kernel_call.
+
+    Returns the normalized search dict + a `backend` field naming
+    which path produced the result so the UI can render it.
+    """
+    with _ONLINE_CONFIG_LOCK:
+        cfg = dict(_ONLINE_CONFIG)
+    backend = cfg.get("backend") or "auto"
+    key = cfg.get("brave_api_key")
+
+    def _ddg() -> dict:
+        if kernel_call is None:
+            return {"results": [], "source": "no_kernel_search",
+                    "backend": "none", "elapsed_ms": 0,
+                    "error": "no online_search_call wired"}
+        out = kernel_call(query, top_n=top_n) or {}
+        out.setdefault("results", [])
+        out.setdefault("source", "ddg")
+        out["backend"] = "ddg"
+        return out
+
+    if backend == "ddg":
+        return _ddg()
+    if backend == "brave":
+        if not key:
+            return {"results": [], "source": "brave",
+                    "backend": "brave", "elapsed_ms": 0,
+                    "error": "Brave selected but no API key configured"}
+        try:
+            r = _brave_search(query, key, top_n=top_n)
+            r["backend"] = "brave"
+            return r
+        except Exception as e:  # noqa: BLE001
+            return {"results": [], "source": "brave",
+                    "backend": "brave", "elapsed_ms": 0,
+                    "error": str(e)}
+    # auto
+    if key:
+        try:
+            r = _brave_search(query, key, top_n=top_n)
+            r["backend"] = "brave"
+            return r
+        except Exception as e:  # noqa: BLE001
+            # Fall through to DDG; record error in trace
+            ddg = _ddg()
+            ddg["brave_fallback_error"] = str(e)
+            return ddg
+    return _ddg()
+
+# ---------------------------------------------------------------------------
 # Import / internal-intelligence corpus.
 # ---------------------------------------------------------------------------
 # Server-side store for imported documents. Each entry:
@@ -452,7 +615,7 @@ def create_app(
         revision before running benchmarks against it.
 
         Shape:
-          {chat_package: "0.2.9",
+          {chat_package: "0.3.0",
            harness: {rubric_version: "v3.6", n_dimensions: 21,
                      n_evaluation_questions: 21, n_grep_rules: 111,
                      n_rag_docs: 35, n_tools: 5, n_examples: 413,
@@ -515,7 +678,7 @@ def create_app(
             })
 
         return {
-            "chat_package":         "0.2.9",
+            "chat_package":         "0.3.0",
             "wire_format_version":  "v2.0",  # mode='llm_evaluator', evaluator_*
             "harness": {
                 "rubric_version":              RUBRIC_UNIVERSAL.get("version", ""),
@@ -1443,6 +1606,94 @@ def create_app(
             _IMPORT_STORE.clear()
         return {"ok": True, "n_total": 0}
 
+    # ---------------------------------------------------------------
+    # Online-search backend configuration (BYOK Brave + DDG fallback).
+    # ---------------------------------------------------------------
+    @app.get("/api/online/config")
+    def api_online_config_get() -> Any:
+        """Return the current backend selection. The Brave API key is
+        NOT echoed back — only `brave_configured: bool` so the UI can
+        show the right state without leaking secrets to a screenshot.
+        """
+        with _ONLINE_CONFIG_LOCK:
+            cfg = dict(_ONLINE_CONFIG)
+        return {
+            "backend":            cfg.get("backend", "auto"),
+            "brave_configured":   bool(cfg.get("brave_api_key")),
+            "brave_test_ok":      cfg.get("brave_test_ok"),
+            "brave_test_msg":     cfg.get("brave_test_msg", ""),
+            "brave_test_at":      cfg.get("brave_test_at", 0),
+            "kernel_ddg_wired":   app.state.online_search_call is not None,
+            "available_backends": ["auto", "brave", "ddg"],
+        }
+
+    @app.post("/api/online/config")
+    def api_online_config_set(req: dict) -> Any:
+        """Update the backend selection and / or Brave API key.
+
+        Body: {backend?: 'auto'|'brave'|'ddg',
+               brave_api_key?: str | null}
+
+        Passing `null` for brave_api_key clears it. Omitted fields
+        are unchanged. Returns the same shape as GET (no key echo).
+        """
+        body = req or {}
+        with _ONLINE_CONFIG_LOCK:
+            if "backend" in body:
+                b = (body.get("backend") or "auto").strip().lower()
+                if b not in ("auto", "brave", "ddg"):
+                    raise HTTPException(400,
+                        f"backend must be one of auto/brave/ddg, got {b!r}")
+                _ONLINE_CONFIG["backend"] = b
+            if "brave_api_key" in body:
+                k = body.get("brave_api_key")
+                if k is None or (isinstance(k, str) and not k.strip()):
+                    _ONLINE_CONFIG["brave_api_key"] = None
+                    _ONLINE_CONFIG["brave_test_ok"] = None
+                    _ONLINE_CONFIG["brave_test_msg"] = ""
+                else:
+                    if not isinstance(k, str) or len(k) > 200:
+                        raise HTTPException(400,
+                            "brave_api_key must be a string under 200 chars")
+                    _ONLINE_CONFIG["brave_api_key"] = k.strip()
+                    # Reset test state — user will re-test with the new key.
+                    _ONLINE_CONFIG["brave_test_ok"] = None
+                    _ONLINE_CONFIG["brave_test_msg"] = ""
+        return api_online_config_get()
+
+    @app.post("/api/online/test")
+    def api_online_test(req: dict) -> Any:
+        """Run a one-shot test query against whichever backend is
+        currently selected (honoring the auto-fallback rules). Stores
+        the success/failure result on _ONLINE_CONFIG so the UI can
+        show a "last tested" badge."""
+        query = (req or {}).get("query") or "ILO C189 domestic workers convention"
+        try:
+            r = _online_search_with_fallback(
+                query, kernel_call=app.state.online_search_call,
+            )
+            ok = bool(r.get("results"))
+            msg = (
+                f"{r.get('backend', 'unknown')}: {len(r.get('results', []))} result(s) "
+                f"in {r.get('elapsed_ms', 0)} ms"
+                + (f" · {r['error']}" if r.get("error") else "")
+            )
+            with _ONLINE_CONFIG_LOCK:
+                _ONLINE_CONFIG["brave_test_ok"] = ok
+                _ONLINE_CONFIG["brave_test_msg"] = msg
+                _ONLINE_CONFIG["brave_test_at"] = time.time()
+            return {"ok": ok, "backend": r.get("backend"),
+                     "results": r.get("results", []),
+                     "elapsed_ms": r.get("elapsed_ms", 0),
+                     "error": r.get("error", "")}
+        except Exception as e:  # noqa: BLE001
+            msg = f"{type(e).__name__}: {e}"
+            with _ONLINE_CONFIG_LOCK:
+                _ONLINE_CONFIG["brave_test_ok"] = False
+                _ONLINE_CONFIG["brave_test_msg"] = msg
+                _ONLINE_CONFIG["brave_test_at"] = time.time()
+            raise HTTPException(500, msg) from e
+
     @app.post("/api/chat/upload-image")
     async def api_upload_image(file: UploadFile = File(...)) -> Any:
         """Accept an image upload. Returns an opaque id the client
@@ -1913,31 +2164,50 @@ def create_app(
                            "not wired" if app.state.tools_call is None else "no tools")})
 
         # ── online (web search) ───────────────────────────────────
+        # Routes through _online_search_with_fallback which honors the
+        # /api/online/config backend choice (auto / brave / ddg). With
+        # a Brave key configured, the chat package calls Brave's JSON
+        # API directly; otherwise (or on Brave error in auto mode) it
+        # delegates to the kernel-supplied online_search_call.
         _emit({"type": "step_start", "step": "online"})
         _t0 = time.time()
-        if toggles.online and app.state.online_search_call is not None:
+        if toggles.online and (app.state.online_search_call is not None
+                                  or _ONLINE_CONFIG.get("brave_api_key")):
             try:
-                osr = app.state.online_search_call(user_text) or {}
+                osr = _online_search_with_fallback(
+                    user_text, kernel_call=app.state.online_search_call,
+                ) or {}
                 trace["online"].update({
-                    "fired": True,
-                    # Trust the wall-clock timer over whatever elapsed_ms
-                    # the kernel returned (kernels sometimes report 0
-                    # when the search was cached).
+                    "fired":      True,
                     "elapsed_ms": max(int(osr.get("elapsed_ms", 0)),
                                        int((time.time() - _t0) * 1000)),
-                    "results": osr.get("results") or [],
-                    "source": osr.get("source", "unknown"),
-                    "query":  user_text[:200],
+                    "results":    osr.get("results") or [],
+                    "source":     osr.get("source", "unknown"),
+                    "backend":    osr.get("backend", "unknown"),
+                    "query":      user_text[:200],
                 })
+                if osr.get("error"):
+                    trace["online"]["error"] = osr["error"]
+                if osr.get("brave_fallback_error"):
+                    trace["online"]["brave_fallback_error"] = osr["brave_fallback_error"]
                 results = trace["online"]["results"]
-                trace["online"]["summary"] = (
-                    f"{len(results)} web result(s)" if results
-                    else "no results returned")
+                if results:
+                    trace["online"]["summary"] = (
+                        f"{len(results)} result(s) via "
+                        f"{trace['online']['backend']}")
+                else:
+                    err = osr.get("error") or "no results"
+                    trace["online"]["summary"] = (
+                        f"{trace['online']['backend']}: {err[:120]}")
                 snippet = _format_online_context(osr)
                 if snippet:
                     prepend_snippets.append(snippet)
             except Exception as exc:  # noqa: BLE001
                 trace["online"]["summary"] = f"error: {type(exc).__name__}: {exc}"
+        # The "wired" flag now also accepts a Brave key as evidence of
+        # wiring even when the kernel didn't supply online_search_call.
+        if _ONLINE_CONFIG.get("brave_api_key"):
+            trace["online"]["wired"] = True
         _emit({"type": "step_done", "step": "online",
                "fired": trace["online"]["fired"],
                "wired": trace["online"]["wired"],
