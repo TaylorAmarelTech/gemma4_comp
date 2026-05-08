@@ -203,6 +203,18 @@ header.bar .badge.loaded .dot {
   cursor: not-allowed;
 }
 .harness-tile[data-wired="false"]:hover { border-color: var(--border); }
+/* Initial probe state — looks subtle, signals "loading" instead of
+   "permanently unavailable" so a first-time user doesn't see a wall
+   of grey tiles before /api/harness-info responds. */
+.harness-tile[data-wired="probing"] {
+  opacity: 0.7;
+  cursor: progress;
+}
+.harness-tile[data-wired="probing"] .harness-tile-state {
+  background: rgba(148, 163, 184, 0.18);
+  color: var(--muted);
+  font-style: italic;
+}
 .harness-tile-row {
   display: flex; align-items: center; justify-content: space-between;
 }
@@ -772,42 +784,42 @@ header.bar .badge.loaded .dot {
                   title="Disable all harness layers (raw Gemma baseline)">Disable all</button>
         </div>
       </div>
-      <div class="harness-tile persona" id="tile-persona" data-wired="false" data-enabled="false">
+      <div class="harness-tile persona" id="tile-persona" data-wired="probing" data-enabled="false">
         <div class="harness-tile-row" onclick="toggleTile('persona')">
           <span class="harness-tile-name">Persona</span>
-          <span class="harness-tile-state" id="state-persona">OFF</span>
+          <span class="harness-tile-state" id="state-persona">…</span>
         </div>
         <div class="harness-tile-desc" onclick="toggleTile('persona')">Expert anti-trafficking persona prepended to every message. Gives Gemma the role + framework + tactics knowledge.</div>
         <a href="#" class="harness-catalog-link" onclick="openLayerModal('persona'); return false;">▸ View</a>
       </div>
-      <div class="harness-tile grep" id="tile-grep" data-wired="false" data-enabled="false">
+      <div class="harness-tile grep" id="tile-grep" data-wired="probing" data-enabled="false">
         <div class="harness-tile-row" onclick="toggleTile('grep')">
           <span class="harness-tile-name">GREP</span>
-          <span class="harness-tile-state" id="state-grep">OFF</span>
+          <span class="harness-tile-state" id="state-grep">…</span>
         </div>
         <div class="harness-tile-desc" onclick="toggleTile('grep')">Regex KB rules — trafficking patterns, ILO indicators, statute matches. Prepended to Gemma's context with citations.</div>
         <a href="#" class="harness-catalog-link" onclick="openLayerModal('grep'); return false;">▸ View</a>
       </div>
-      <div class="harness-tile rag" id="tile-rag" data-wired="false" data-enabled="false">
+      <div class="harness-tile rag" id="tile-rag" data-wired="probing" data-enabled="false">
         <div class="harness-tile-row" onclick="toggleTile('rag')">
           <span class="harness-tile-name">RAG</span>
-          <span class="harness-tile-state" id="state-rag">OFF</span>
+          <span class="harness-tile-state" id="state-rag">…</span>
         </div>
         <div class="harness-tile-desc" onclick="toggleTile('rag')">BM25 retrieval over an in-kernel corpus of ILO conventions, POEA/BP2MI circulars, HK statutes, NGO briefs. Top-5 docs injected as Gemma context.</div>
         <a href="#" class="harness-catalog-link" onclick="openLayerModal('rag'); return false;">▸ View</a>
       </div>
-      <div class="harness-tile tools" id="tile-tools" data-wired="false" data-enabled="false">
+      <div class="harness-tile tools" id="tile-tools" data-wired="probing" data-enabled="false">
         <div class="harness-tile-row" onclick="toggleTile('tools')">
           <span class="harness-tile-name">Tools</span>
-          <span class="harness-tile-state" id="state-tools">OFF</span>
+          <span class="harness-tile-state" id="state-tools">…</span>
         </div>
         <div class="harness-tile-desc" onclick="toggleTile('tools')">Heuristic lookup tools — corridor fee caps, fee camouflage decoder, ILO indicator matcher, NGO intake hotlines. Results injected as Gemma context.</div>
         <a href="#" class="harness-catalog-link" onclick="openLayerModal('tools'); return false;">▸ View</a>
       </div>
-      <div class="harness-tile online" id="tile-online" data-wired="false" data-enabled="false">
+      <div class="harness-tile online" id="tile-online" data-wired="probing" data-enabled="false">
         <div class="harness-tile-row" onclick="toggleTile('online')">
           <span class="harness-tile-name">Online</span>
-          <span class="harness-tile-state" id="state-online">OFF</span>
+          <span class="harness-tile-state" id="state-online">…</span>
         </div>
         <div class="harness-tile-desc" onclick="toggleTile('online')">Live web search — kernel-supplied search hook (DuckDuckGo HTML by default; Brave/Playwright via the agentic-research kernel). Top results injected as fresh-context citations the model is told to cross-check.</div>
         <a href="#" class="harness-catalog-link" onclick="openLayerModal('online'); return false;">▸ View</a>
@@ -815,7 +827,7 @@ header.bar .badge.loaded .dot {
       <div class="harness-tile import" id="tile-import" data-wired="true" data-enabled="false">
         <div class="harness-tile-row" onclick="toggleTile('import')">
           <span class="harness-tile-name">Import</span>
-          <span class="harness-tile-state" id="state-import">OFF</span>
+          <span class="harness-tile-state" id="state-import">…</span>
         </div>
         <div class="harness-tile-desc" onclick="toggleTile('import')">Internal-intelligence corpus — paste your own documents (statutes, NGO briefs, case files) and Gemma will ground its answer in them. Stays in your browser; never leaves the session.</div>
         <a href="#" class="harness-catalog-link" onclick="openLayerModal('import'); return false;">▸ View</a>
@@ -1532,17 +1544,32 @@ async function probeHarness() {
     const anyWired = info.persona || info.grep || info.rag || info.tools || info.online;
     if (!anyWired) return;  // raw chat -- keep tile row hidden
     document.getElementById('harness-tiles').style.display = 'grid';
+    // When a tile is NOT wired, give the user a tooltip explaining
+    // why so they don't poke a dead button without feedback.
+    const notWiredHints = {
+      persona: 'Kernel did not configure a default persona. Wire `persona_default` in create_app() or paste your own via the persona library.',
+      grep:    'Kernel did not pass a grep_call into create_app(). The 01-duecare-harness-chat kernel wires this by default; older kernels may not.',
+      rag:     'Kernel did not pass a rag_call into create_app(). RAG retrieval over the bundled 35-doc corpus needs the kernel to wire it.',
+      tools:   'Kernel did not pass a tools_call into create_app(). Lookup tools (corridor caps, fee labels, NGO hotlines) need the kernel to wire them.',
+      online:  'Neither the kernel\'s online_search_call nor a Brave Search API key is configured. Click ▸ View on this tile to paste a free Brave key.',
+    };
     for (const layer of ['persona', 'grep', 'rag', 'import', 'tools', 'online']) {
       const tile = document.getElementById(`tile-${layer}`);
       // The Import layer is purely client-side — its corpus comes from
-      // localStorage and is sent as `toggles.custom_import_docs` per
-      // request. The server doesn't need to wire any callable, so the
-      // tile is always considered "wired".
+      // the server-side _IMPORT_STORE populated via /api/import/*.
+      // The server doesn't need to wire any callable, so the tile is
+      // always considered "wired".
       const wired = (layer === 'import') ? true : !!info[layer];
       tile.dataset.wired = wired ? 'true' : 'false';
       tile.dataset.enabled = 'false';
       const state = document.getElementById(`state-${layer}`);
       state.textContent = wired ? 'OFF' : 'NOT WIRED';
+      // Add or remove the explanatory tooltip on un-wired tiles.
+      if (!wired && notWiredHints[layer]) {
+        tile.title = notWiredHints[layer];
+      } else {
+        tile.removeAttribute('title');
+      }
     }
     if (info.persona && info.persona_default) {
       _personaDefault = info.persona_default;
@@ -1981,6 +2008,10 @@ function closeModal() {
   const overlay = document.getElementById('modal-overlay');
   overlay.classList.remove('active');
   document.body.style.overflow = '';
+  // Cancel any in-flight grade stream — the reader was writing to a
+  // pane that's now hidden, and the server worker is still spending
+  // GPU cycles. Aborting frees both.
+  if (typeof _abortGradeStream === 'function') _abortGradeStream();
 }
 
 function closeModalIfBackground(event) {
@@ -3481,7 +3512,26 @@ async function _runOnlineSearchTest() {
   }
 }
 
+// Single in-flight grade-stream tracker. Used for two purposes:
+//   1. AbortController so closing the modal / switching mode cancels
+//      the in-flight SSE stream + frees the worker thread server-side.
+//   2. Re-entrancy guard: a second click on Run scoring while the
+//      previous run is mid-stream is a no-op, not a double-fire.
+let _gradeStreamCtrl = null;
+
+function _abortGradeStream() {
+  if (_gradeStreamCtrl) {
+    try { _gradeStreamCtrl.abort(); } catch (e) {}
+    _gradeStreamCtrl = null;
+  }
+}
+
 async function _runGrade(messageIdx) {
+  if (_gradeStreamCtrl) {
+    // Run already in flight — ignore this click rather than start a
+    // second stream that would scribble over the result pane.
+    return;
+  }
   const sel = document.getElementById('grade-category-select');
   if (sel) _gradeSelectedCategory = sel.value;
   _renderGradeModeControls(messageIdx);
@@ -3489,6 +3539,13 @@ async function _runGrade(messageIdx) {
   if (!m) return;
   const respText = m.content
       .filter(c => c.type === 'text').map(c => c.text).join('\n');
+  // Client-side guard: empty response_text would be rejected with a
+  // generic 400 from the server; surface a clearer message here.
+  if (!respText || !respText.trim()) {
+    const pane = document.getElementById('grade-result-pane');
+    if (pane) pane.innerHTML = `<div style="color:#ef4444; padding:16px 0;">Cannot score an empty response. Send a message first, then click Score response.</div>`;
+    return;
+  }
   const userMsg = messages[messageIdx - 1];
   const promptText = userMsg
       ? userMsg.content.filter(c => c.type === 'text').map(c => c.text).join('\n')
@@ -3503,15 +3560,30 @@ async function _runGrade(messageIdx) {
     runBtn.style.cursor = 'not-allowed';
   }
   if (runHint) runHint.style.display = 'none';
+  // Disable the mode-card buttons too — switching mode mid-run was
+  // racing the result pane (re-render of openGradeModal stripped the
+  // disabled state and let the user double-fire).
+  document.querySelectorAll('.grade-mode-card').forEach(c => {
+    c.disabled = true;
+    c.style.opacity = '0.55';
+    c.style.cursor = 'not-allowed';
+  });
 
-  // Re-enable the Run button on any exit path.
+  // Re-enable the Run button + mode cards on any exit path.
   const _resetRunBtn = () => {
-    if (!runBtn) return;
-    runBtn.disabled = false;
-    runBtn.textContent = 'Run scoring →';
-    runBtn.style.opacity = '';
-    runBtn.style.cursor = 'pointer';
+    _gradeStreamCtrl = null;
+    if (runBtn) {
+      runBtn.disabled = false;
+      runBtn.textContent = 'Run scoring →';
+      runBtn.style.opacity = '';
+      runBtn.style.cursor = 'pointer';
+    }
     if (runHint) runHint.style.display = '';
+    document.querySelectorAll('.grade-mode-card').forEach(c => {
+      c.disabled = false;
+      c.style.opacity = '';
+      c.style.cursor = '';
+    });
   };
 
   // Rule-Based + Expert modes are fast — POST + render.
@@ -3617,16 +3689,27 @@ async function _streamGradeRun(url, body, pane, mode) {
   // apart on 31B).
   const tickHandle = setInterval(renderProgress, 1000);
 
+  // AbortController lets us cancel the stream cleanly if the user
+  // closes the modal mid-run, switches scoring mode, or clicks Run
+  // again on a fresh message. Without it, the SSE reader would keep
+  // looping in the background and writing to a possibly-detached
+  // pane DOM node.
+  _gradeStreamCtrl = new AbortController();
   let response;
   try {
     response = await fetch(url, {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
       body: JSON.stringify(body),
+      signal: _gradeStreamCtrl.signal,
     });
   } catch (e) {
     clearInterval(tickHandle);
-    pane.innerHTML = `<div style="color:#ef4444; padding:16px 0;">Network error: ${escapeHtml(String(e.message || e))}</div>`;
+    if (e.name === 'AbortError') {
+      pane.innerHTML = `<div style="color:var(--muted); padding:16px 0; font-style:italic;">Scoring cancelled.</div>`;
+    } else {
+      pane.innerHTML = `<div style="color:#ef4444; padding:16px 0;">Network error: ${escapeHtml(String(e.message || e))}</div>`;
+    }
     return;
   }
   if (!response.ok) {
@@ -3820,16 +3903,18 @@ function _renderCombinedGradeResult(g) {
     <div style="background:rgba(168,85,247,0.10); border-radius:5px; padding:12px 14px; margin-bottom:14px; border-left:4px solid #a855f7;">
       <div style="font-size:13px; color:#c084fc; margin-bottom:6px; font-weight:700;">⚠ ${(agreement.disagreements || []).length} grader disagreement${(agreement.disagreements || []).length === 1 ? '' : 's'} — these are the highest-information dimensions</div>
       <div style="font-size:11.5px; color:var(--ink); margin-bottom:8px; line-height:1.5;">The deterministic grader and the LLM evaluator see different evidence on these dimensions. <strong>Often a sign the evaluator caught a paraphrased citation the keyword grader missed</strong> — or that the deterministic grader matched on a literal keyword that the LLM correctly rejected as out of context. <em>Worth a manual look at each row before trusting the combined score.</em></div>
-      <table style="width:100%; font-size:11.5px; border-collapse:collapse;">
-        <thead>
-          <tr style="background:rgba(168,85,247,0.05);">
-            <th style="text-align:left; padding:5px 8px; color:#94a3b8; font-weight:500; font-size:10.5px; text-transform:uppercase; letter-spacing:0.4px;">Dimension</th>
-            <th style="text-align:left; padding:5px 8px; color:#94a3b8; font-weight:500; font-size:10.5px; text-transform:uppercase; letter-spacing:0.4px;">Deterministic</th>
-            <th style="text-align:left; padding:5px 8px; color:#94a3b8; font-weight:500; font-size:10.5px; text-transform:uppercase; letter-spacing:0.4px;">LLM Evaluator</th>
-          </tr>
-        </thead>
-        <tbody>${disagreementsHtml}</tbody>
-      </table>
+      <div style="overflow-x:auto; -webkit-overflow-scrolling:touch;">
+        <table style="width:100%; min-width:480px; font-size:11.5px; border-collapse:collapse;">
+          <thead>
+            <tr style="background:rgba(168,85,247,0.05);">
+              <th style="text-align:left; padding:5px 8px; color:#94a3b8; font-weight:500; font-size:10.5px; text-transform:uppercase; letter-spacing:0.4px;">Dimension</th>
+              <th style="text-align:left; padding:5px 8px; color:#94a3b8; font-weight:500; font-size:10.5px; text-transform:uppercase; letter-spacing:0.4px;">Deterministic</th>
+              <th style="text-align:left; padding:5px 8px; color:#94a3b8; font-weight:500; font-size:10.5px; text-transform:uppercase; letter-spacing:0.4px;">LLM Evaluator</th>
+            </tr>
+          </thead>
+          <tbody>${disagreementsHtml}</tbody>
+        </table>
+      </div>
     </div>` : `
     <div style="background:rgba(16,185,129,0.06); border-radius:5px; padding:10px 12px; margin-bottom:14px; border-left:3px solid #10b981; font-size:11.5px; color:#86efac;">
       ✓ Both graders agree on every comparable dimension — the score is consistent across signal types.
@@ -3954,7 +4039,7 @@ function _renderUniversalGradeResult(g) {
       · ${g.signals.response_refuses ? '<span style="color:#10b981; font-weight:600;">response refuses</span>' : 'response does not refuse'}
     </div>
   `;
-  html += `<table style="width:100%; border-collapse:collapse; font-size:12px;">
+  html += `<div style="overflow-x:auto; -webkit-overflow-scrolling:touch; margin:0 -2px;"><table style="width:100%; min-width:680px; border-collapse:collapse; font-size:12px;">
     <thead>
       <tr style="background:var(--bg);">
         <th style="text-align:left; padding:8px 10px; color:var(--muted); border-bottom:1px solid var(--border);">Dimension</th>
@@ -4003,7 +4088,7 @@ function _renderUniversalGradeResult(g) {
       <td style="padding:6px 10px; border-bottom:1px solid var(--border); font-size:11px;">${hitsHtml}${passHintHtml}</td>
     </tr>`;
   }
-  html += '</tbody></table>';
+  html += '</tbody></table></div>';
   const dimCount = (g.dimensions || []).length;
   html += `<div style="font-size:11px; color:var(--muted); margin-top:10px; font-style:italic;">Universal rubric ${escapeHtml(g.version)} · ${dimCount} dimensions · auto-detects applicability from prompt + response + harness trace · NOT_APPLICABLE rows excluded from score · keyword-based scoring (run <code>scripts/rubric_comparison.py</code> for semantic scoring).</div>`;
   return html;
@@ -4636,20 +4721,41 @@ function escapeHtml(s) {
 // dimension-id dumps, file paths, or stack traces.
 function _sanitizeServerError(status, raw) {
   const s = String(status || '');
-  if (s === '503') return 'Grader unavailable — the kernel is busy or the loaded model has not finished initializing. Try again in a moment.';
-  if (s === '413') return 'Response too large to grade — the response_text exceeds the 20 KB cap.';
-  if (s === '400') return 'Grader rejected the request as malformed. Open the browser console for the full server message.';
-  if (s.startsWith('5')) return 'Grader server error (HTTP ' + s + '). Open the browser console for details.';
-  if (s.startsWith('4')) return 'Grader request error (HTTP ' + s + '). Open the browser console for details.';
-  // Try to surface a short detail field from a JSON response without
-  // dumping the whole body. Anything longer than 200 chars is suppressed.
+  // First try to surface a short JSON `detail` field — many of our
+  // endpoints return shaped errors and the detail is the most useful
+  // single line for the user.
+  let detail = '';
   try {
     const parsed = JSON.parse(raw || '');
-    const detail = (parsed && (parsed.detail || parsed.error)) || '';
-    if (typeof detail === 'string' && detail.length && detail.length <= 200) {
-      return 'HTTP ' + s + ': ' + detail;
-    }
+    detail = (parsed && (parsed.detail || parsed.error)) || '';
   } catch (e) { /* not JSON, fall through */ }
+  if (s === '503') {
+    if (detail) return 'Service unavailable — ' + detail;
+    return 'Service unavailable — the kernel is busy, the loaded model is still initialising, or a wired layer crashed. Try again in a moment.';
+  }
+  if (s === '413') {
+    if (detail) return 'Payload too large — ' + detail;
+    return 'File too large for the server\'s configured cap (default: 100 MB total / 5 MB per file for imports, 12 MB for chat images, 20 KB for grade response_text).';
+  }
+  if (s === '429') {
+    return 'Rate-limited' + (detail ? ': ' + detail : '. Wait a moment then try again.');
+  }
+  if (s === '404') {
+    return detail || 'Endpoint not found. The kernel may be running an older chat-package wheel — bump the wheels-dataset and re-paste kernel.py.';
+  }
+  if (s === '400') {
+    return detail
+      ? 'Server rejected the request: ' + detail
+      : 'Server rejected the request as malformed. Open the browser console for the full server message.';
+  }
+  if (s.startsWith('5')) {
+    return (detail ? 'Server error: ' + detail : 'Server error (HTTP ' + s + '). Open the browser console for details.');
+  }
+  if (s.startsWith('4')) {
+    return (detail ? 'Request error: ' + detail : 'Request error (HTTP ' + s + '). Open the browser console for details.');
+  }
+  // Surface short detail field if available; suppress >200 char dumps
+  if (detail && detail.length <= 200) return 'HTTP ' + s + ': ' + detail;
   return 'HTTP ' + s + ' — see browser console for details.';
 }
 
