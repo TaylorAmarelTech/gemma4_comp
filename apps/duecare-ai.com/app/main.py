@@ -711,6 +711,7 @@ def create_app(*, data_dir: Path | None = None) -> FastAPI:
             "available_kinds": pack_registry.known_kinds(),
             "available_corridors": pack_registry.known_corridors(),
             "available_jurisdictions": pack_registry.known_jurisdictions(),
+            "available_tags": pack_registry.known_tags(),
             "packs": bodies,
         }
 
