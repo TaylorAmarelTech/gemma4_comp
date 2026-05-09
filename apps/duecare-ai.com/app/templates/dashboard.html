@@ -24,7 +24,7 @@
   font-family: var(--mono); font-size: 13px; font-weight: 600;
   flex-shrink: 0;
 }
-.subordinate-banner h4 { font-size: 14px; margin-bottom: 4px; }
+.subordinate-banner h2 { font-size: 14px; margin-bottom: 4px; letter-spacing: -0.005em; }
 .subordinate-banner p { font-size: 13.5px; color: var(--ink-3); max-width: 80ch; }
 .subordinate-banner a { color: var(--ink); border-bottom: 1px dashed var(--ink-3); }
 
@@ -249,7 +249,7 @@
     <div class="subordinate-banner">
       <span class="icon">i</span>
       <div>
-        <h4>Looking for the model demo?</h4>
+        <h2>Looking for the model demo?</h2>
         <p>The grounded answer demo runs in the <a href="#">Kaggle harness notebook</a>
           and on local Duecare deployments. The dashboard below is the
           <strong>coordinator</strong>. pack signing, signal aggregation,
@@ -261,12 +261,13 @@
 
 <section class="tight" data-screen-label="Dashboard · Body">
   <div class="wrap">
+    <h2 class="sr-only">Live hub operations overview</h2>
     <div class="dash-controls">
-      <div class="tab-row">
-        <button class="on">Operations</button>
-        <button>Pack registry</button>
-        <button>Audit log</button>
-        <button>API health</button>
+      <div class="tab-row" role="tablist" aria-label="Dashboard views">
+        <button class="on" type="button" role="tab" aria-selected="true">Operations</button>
+        <button type="button" role="tab" aria-selected="false">Pack registry</button>
+        <button type="button" role="tab" aria-selected="false">Audit log</button>
+        <button type="button" role="tab" aria-selected="false">API health</button>
       </div>
       <div class="dash-spacer"></div>
       <span class="callout-strip mono"><span class="dot"></span>Public read-only view</span>

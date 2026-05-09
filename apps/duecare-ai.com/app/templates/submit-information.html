@@ -69,12 +69,12 @@
       <p class="summary">Every submission is treated as untrusted text until the privacy gate clears it. Nothing is published automatically.</p>
     </div>
     <div class="hp-flow">
-      <div class="step"><span class="num">01</span><div><h4>Schema check</h4><p>Submission must match one of the allowed object types. Free text outside declared fields is dropped.</p></div></div>
-      <div class="step"><span class="num">02</span><div><h4>Privacy gate</h4><p>PII detector scans every text field. If it triggers, the submission is rejected with a reason; nothing is stored.</p></div></div>
-      <div class="step"><span class="num">03</span><div><h4>Quarantine if uncertain</h4><p>Borderline submissions land in a quarantine queue, never the public store.</p></div></div>
-      <div class="step"><span class="num">04</span><div><h4>Curator review</h4><p>A human curator reviews accepted submissions and decides what they become: pack diff, tool proposal, contact update, eval candidate.</p></div></div>
-      <div class="step"><span class="num">05</span><div><h4>Quality testing</h4><p>If a submission becomes a pack diff, it runs through the regression suite before anything is signed.</p></div></div>
-      <div class="step"><span class="num">06</span><div><h4>Receipt to submitter</h4><p>The submitter receives a structured receipt with the review state. No identifying details about reviewers leave the hub.</p></div></div>
+      <div class="step"><span class="num">01</span><div><h3>Schema check</h3><p>Submission must match one of the allowed object types. Free text outside declared fields is dropped.</p></div></div>
+      <div class="step"><span class="num">02</span><div><h3>Privacy gate</h3><p>PII detector scans every text field. If it triggers, the submission is rejected with a reason; nothing is stored.</p></div></div>
+      <div class="step"><span class="num">03</span><div><h3>Quarantine if uncertain</h3><p>Borderline submissions land in a quarantine queue, never the public store.</p></div></div>
+      <div class="step"><span class="num">04</span><div><h3>Curator review</h3><p>A human curator reviews accepted submissions and decides what they become: pack diff, tool proposal, contact update, eval candidate.</p></div></div>
+      <div class="step"><span class="num">05</span><div><h3>Quality testing</h3><p>If a submission becomes a pack diff, it runs through the regression suite before anything is signed.</p></div></div>
+      <div class="step"><span class="num">06</span><div><h3>Receipt to submitter</h3><p>The submitter receives a structured receipt with the review state. No identifying details about reviewers leave the hub.</p></div></div>
     </div>
   </div>
 </section>
