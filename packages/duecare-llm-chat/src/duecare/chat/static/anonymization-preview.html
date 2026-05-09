@@ -1,0 +1,376 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Anonymization preview · DueCare</title>
+  <link rel="stylesheet" href="/static/_chrome.css" />
+  <style>
+    :root { --accent: var(--accent-ember); }
+
+    .ap-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+      margin-top: 20px;
+    }
+    @media (max-width: 920px) { .ap-grid { grid-template-columns: 1fr; } }
+
+    .ap-pane {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: var(--r-lg);
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      min-height: 320px;
+    }
+    .ap-pane.local { border-left: 3px solid var(--accent-ember); }
+    .ap-pane.boundary { border-left: 3px solid var(--accent-civic-teal); }
+    .ap-pane.outbound { border-left: 3px solid var(--accent-rag); }
+
+    .ap-pane h3 {
+      margin: 0;
+      font-size: 14px;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .ap-pane .lab {
+      font-family: var(--mono);
+      font-size: 10.5px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+    .ap-pane .lab::before {
+      content: "";
+      display: inline-block;
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      margin-right: 6px;
+      vertical-align: middle;
+    }
+    .ap-pane.local .lab::before { background: var(--accent-ember); }
+    .ap-pane.boundary .lab::before { background: var(--accent-civic-teal); }
+    .ap-pane.outbound .lab::before { background: var(--accent-rag); }
+
+    textarea {
+      flex: 1;
+      min-height: 220px;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--ink);
+      border-radius: var(--r-md);
+      padding: 12px;
+      font-family: var(--sans);
+      font-size: 13.5px;
+      line-height: 1.55;
+      resize: vertical;
+    }
+    textarea:focus { outline: 2px solid var(--accent); }
+
+    pre {
+      flex: 1;
+      min-height: 220px;
+      max-height: 420px;
+      margin: 0;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--ink);
+      border-radius: var(--r-md);
+      padding: 12px;
+      font-family: var(--mono);
+      font-size: 12px;
+      line-height: 1.55;
+      overflow: auto;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .ap-controls {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+      padding: 16px 0;
+      border-bottom: 1px solid var(--border-soft);
+      margin-bottom: 4px;
+    }
+    .ap-controls input, .ap-controls select {
+      padding: 7px 10px;
+      font-size: 13px;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--ink);
+      border-radius: var(--r-md);
+      font-family: var(--sans);
+    }
+
+    button.primary {
+      background: var(--accent-civic-teal);
+      color: var(--bg);
+      border: 1px solid var(--accent-civic-teal);
+      padding: 8px 16px;
+      border-radius: var(--r-md);
+      font-family: var(--sans);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    button.primary:hover { background: #0fa191; }
+    button.primary:disabled { opacity: 0.4; cursor: not-allowed; }
+    button.ghost {
+      background: transparent;
+      color: var(--muted);
+      border: 1px solid var(--border);
+      padding: 8px 14px;
+      border-radius: var(--r-md);
+      font-family: var(--sans);
+      font-size: 13px;
+      cursor: pointer;
+    }
+    button.ghost:hover { color: var(--ink); border-color: var(--ink); }
+
+    .ap-stage-info {
+      font-size: 12.5px;
+      color: var(--muted);
+      line-height: 1.55;
+    }
+    .ap-stage-info strong { color: var(--ink); }
+
+    .ap-pii-tag {
+      display: inline-block;
+      padding: 2px 8px;
+      margin: 2px 4px 2px 0;
+      border-radius: 999px;
+      font-family: var(--mono);
+      font-size: 10.5px;
+      background: rgba(249, 115, 22, 0.15);
+      color: #ffc599;
+      border: 1px solid var(--accent-ember);
+    }
+
+    .ap-status {
+      padding: 12px 14px;
+      border-radius: var(--r-md);
+      font-size: 13.5px;
+      line-height: 1.5;
+      display: none;
+    }
+    .ap-status.ok    { background: rgba(16,185,129,0.10); color: #99e6c4; border: 1px solid var(--green); display: block; }
+    .ap-status.warn  { background: rgba(245,158,11,0.10); color: #ffd591; border: 1px solid var(--amber); display: block; }
+    .ap-status.err   { background: rgba(239,68,68,0.10);  color: #ffadad; border: 1px solid var(--red);   display: block; }
+
+    .ap-cta-band {
+      margin-top: 24px;
+      padding: 18px 22px;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: var(--r-lg);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 18px;
+      flex-wrap: wrap;
+    }
+    .ap-cta-band .label-block { font-size: 13.5px; color: var(--muted); }
+    .ap-cta-band .label-block strong { color: var(--ink); }
+  </style>
+</head>
+<body>
+  <header class="dc-chrome-header">
+    <a href="/" class="brand"><span class="brand-mark">D</span>DueCare<span class="brand-tag">wheel</span></a>
+    <div>
+      <h1>Anonymization preview</h1>
+      <div class="sub">Paste text, see exactly what would be sent to the public hub before you send it.</div>
+    </div>
+    <a href="/" style="font-family: var(--mono); font-size: 12px; color: var(--muted);">← Back to chat</a>
+  </header>
+
+  <nav class="dc-chrome-nav" aria-label="Cross-page nav">
+    <a href="/static/harness.html">Catalog</a>
+    <a href="/static/persona.html">Persona</a>
+    <a href="/static/grep-rules.html">GREP rules</a>
+    <a href="/static/rag-corpus.html">RAG corpus</a>
+    <a href="/static/tools.html">Tools</a>
+    <a href="/static/online.html">Online</a>
+    <a href="/static/grep-tester.html">Live GREP tester</a>
+    <a href="/static/rag-graph.html">Citation graph</a>
+    <a href="/static/search.html">Cross-layer search</a>
+    <a href="/static/hotlines.html">Hotlines</a>
+    <a href="/static/anonymization-preview.html" class="on">Share preview</a>
+  </nav>
+
+  <div class="dc-chrome-container">
+    <h2>What gets shared, when you click "Send"</h2>
+    <p class="lede">DueCare runs a local anonymization pipeline before any text crosses to the public hub. This page lets you preview the exact payload. Nothing is sent until you choose to send it.</p>
+
+    <div class="ap-controls">
+      <select id="kind" aria-label="Proposal type">
+        <option value="context">Public-source advisory</option>
+        <option value="grep">Pattern detection rule</option>
+        <option value="contact">NGO / regulator contact</option>
+        <option value="rubric">Evaluation rubric</option>
+        <option value="prompt">Evaluation prompt</option>
+        <option value="custom">Other / custom</option>
+      </select>
+      <input id="jurisdiction" placeholder="Jurisdiction (e.g. PHL)" />
+      <input id="corridor" placeholder="Corridor (e.g. PHL-KWT)" />
+      <button class="primary" id="run">Run anonymization &rarr;</button>
+      <button class="ghost" id="clear">Clear</button>
+    </div>
+
+    <div id="status" class="ap-status"></div>
+
+    <div class="ap-grid">
+      <!-- Stage 01: Local -->
+      <div class="ap-pane local">
+        <span class="lab">Stage 01 &middot; Local only (never leaves your device)</span>
+        <h3>Original text</h3>
+        <textarea id="input" placeholder="Paste a public-source advisory, a pattern description, a contact-channel update, or any other text you might want to propose. The pipeline below will show you what (if anything) gets sent."></textarea>
+        <p class="ap-stage-info">This is the raw text you typed. It stays in your browser. The hub never sees it directly.</p>
+      </div>
+
+      <!-- Stage 02: GREP + regex anonymizer -->
+      <div class="ap-pane boundary">
+        <span class="lab">Stage 02 &middot; Local anonymizer (GREP + regex)</span>
+        <h3>What the regex pass redacted</h3>
+        <pre id="redacted">Paste text and click <em>Run anonymization &rarr;</em> to preview.</pre>
+        <p class="ap-stage-info" id="redactedNote">Local rules look for emails, phone numbers, ID-like strings, and street addresses. Anything matching gets replaced with a typed placeholder (e.g. <code>[email]</code>) so the hub never receives the literal string.</p>
+      </div>
+
+      <!-- Stage 03: Outbound payload -->
+      <div class="ap-pane outbound" style="grid-column: 1 / -1;">
+        <span class="lab">Stage 03 &middot; What would be POSTed to the public hub</span>
+        <h3>Outbound payload</h3>
+        <pre id="payload">Run anonymization above to see the JSON that would be sent.</pre>
+        <p class="ap-stage-info">This is the exact body that would POST to <code>/api/hub/client/submission</code> on the configured hub URL. The server-side automation re-checks for PII and sends the proposal to a curator queue. Nothing publishes without a human signature.</p>
+      </div>
+    </div>
+
+    <div class="ap-cta-band">
+      <div class="label-block">
+        <strong>Ready to send?</strong> The payload above goes to the hub at <code id="hubUrl">/api/hub/client/submission</code>. A curator reviews before any vetted pack changes.
+      </div>
+      <div style="display: flex; gap: 10px;">
+        <button class="ghost" id="keepLocal">Keep local only</button>
+        <button class="primary" id="send" disabled>Send to hub &rarr;</button>
+      </div>
+    </div>
+
+    <div class="dc-chrome-help">
+      <h4>How the boundary is enforced</h4>
+      <ul>
+        <li><strong>Stage 02 (regex)</strong> runs in the browser. Email, phone, identity-document, and street-address patterns are replaced with typed placeholders before any network call.</li>
+        <li><strong>Stage 03 (server automation)</strong> re-runs the same checks plus an LLM-based content-safety + PII pass. If anything slipped through Stage 02, the server rejects with a 422.</li>
+        <li><strong>Curator review</strong> is the third gate. The hub never auto-publishes. Every vetted pack carries a curator signature.</li>
+        <li><strong>Retract.</strong> If a curator hasn't reviewed yet, you can call <code>POST /api/hub/client/submission/retract</code> with the submission id and it disappears from the queue.</li>
+      </ul>
+    </div>
+  </div>
+
+  <script>
+    const PII_PATTERNS = [
+      {name: "email",            re: /\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/gi,                                       placeholder: "[email]"},
+      {name: "phone",            re: /(?<!\d)(?:\+?\d[\d\s().-]{7,}\d)(?!\d)/g,                                            placeholder: "[phone]"},
+      {name: "identity_document", re: /\b(?:passport|visa|national\s+id|id\s+number)[:#\s-]*[A-Z0-9-]{5,}\b/gi,            placeholder: "[id]"},
+      {name: "street_address",   re: /\b\d{1,6}\s+[A-Za-z0-9.'-]+\s+(?:street|st\.?|road|rd\.?|avenue|ave\.?|lane|ln\.?|drive|dr\.?)\b/gi, placeholder: "[address]"},
+    ];
+
+    function escapeHtml(s) {
+      return String(s == null ? "" : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    }
+
+    function anonymize(text) {
+      const findings = {};
+      let out = text;
+      for (const p of PII_PATTERNS) {
+        const matches = text.match(p.re) || [];
+        if (matches.length) findings[p.name] = matches.length;
+        out = out.replace(p.re, p.placeholder);
+      }
+      return {out, findings};
+    }
+
+    function setStatus(kind, msg) {
+      const el = document.getElementById("status");
+      el.className = "ap-status " + kind;
+      el.textContent = msg;
+    }
+
+    let lastPayload = null;
+
+    document.getElementById("run").addEventListener("click", () => {
+      const raw = document.getElementById("input").value;
+      if (!raw || raw.trim().length < 10) {
+        setStatus("warn", "Type at least 10 characters of text first.");
+        return;
+      }
+      const {out, findings} = anonymize(raw);
+      const tags = Object.entries(findings)
+        .map(([k, n]) => `<span class="ap-pii-tag">${escapeHtml(k)} &times; ${n}</span>`)
+        .join("");
+      document.getElementById("redacted").innerHTML = escapeHtml(out);
+      document.getElementById("redactedNote").innerHTML = tags
+        ? `Local regex pass redacted: ${tags}`
+        : "Local regex pass found no obvious PII patterns. The server will re-check anyway.";
+
+      const payload = {
+        kind: document.getElementById("kind").value,
+        deployment_id: "wheel-anonymization-preview",
+        jurisdiction: document.getElementById("jurisdiction").value || null,
+        corridor: document.getElementById("corridor").value || null,
+        summary: out,
+        payload: {raw_local_only: false, redacted_text: out},
+        consent_public_proposal: true,
+        contact_publication_consent: false,
+      };
+      Object.keys(payload).forEach(k => { if (payload[k] === null || payload[k] === "") delete payload[k]; });
+      lastPayload = payload;
+      document.getElementById("payload").textContent = JSON.stringify(payload, null, 2);
+      document.getElementById("send").disabled = false;
+      setStatus("ok", "Pipeline ran locally. Review the outbound payload before sending.");
+    });
+
+    document.getElementById("clear").addEventListener("click", () => {
+      document.getElementById("input").value = "";
+      document.getElementById("redacted").textContent = "Paste text and click Run anonymization to preview.";
+      document.getElementById("redactedNote").textContent = "Local rules look for emails, phone numbers, ID-like strings, and street addresses.";
+      document.getElementById("payload").textContent = "Run anonymization above to see the JSON that would be sent.";
+      document.getElementById("send").disabled = true;
+      lastPayload = null;
+      setStatus("", "");
+      document.getElementById("status").style.display = "none";
+    });
+
+    document.getElementById("keepLocal").addEventListener("click", () => {
+      setStatus("ok", "Kept local. Nothing was sent to the hub.");
+      document.getElementById("send").disabled = true;
+    });
+
+    document.getElementById("send").addEventListener("click", async () => {
+      if (!lastPayload) return;
+      try {
+        const r = await fetch("/api/hub/client/submission", {
+          method: "POST",
+          headers: {"content-type": "application/json"},
+          body: JSON.stringify(lastPayload),
+        });
+        const data = await r.json();
+        if (r.ok) {
+          setStatus("ok", `Sent. Tracking id: ${data.id}. Server automation verdict: ${data.automation_verdict} (${data.automation_model}).`);
+          document.getElementById("send").disabled = true;
+        } else {
+          setStatus("err", `Server rejected: ${data.detail || r.status}`);
+        }
+      } catch (err) {
+        setStatus("err", `Network error: ${err.message}`);
+      }
+    });
+  </script>
+</body>
+</html>
