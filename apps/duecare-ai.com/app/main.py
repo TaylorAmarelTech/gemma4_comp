@@ -27,6 +27,7 @@ from pydantic import BaseModel, ConfigDict, Field, HttpUrl, field_validator
 
 from . import __version__
 from . import automation
+from . import local_kb
 from . import packs as pack_registry
 from .pii import detect_pii
 
@@ -78,6 +79,7 @@ PAGE_ROUTES: dict[str, str] = {
     "/login": "login.html",
     "/mission": "mission.html",
     "/newsletter": "newsletter.html",
+    "/local-kb": "local-kb.html",
     "/server-automation": "server-automation.html",
     "/packages": "packages.html",
     "/packages-detail": "packages-detail.html",
@@ -431,6 +433,15 @@ class RetractReceipt(BaseModel):
     retracted: bool
     new_status: UpdateStatus
     message: str
+
+
+class IngestTextIn(BaseModel):
+    """Single-file ingest payload for the local-KB endpoint."""
+
+    text: str = Field(min_length=10, max_length=200_000)
+    source_filename: str = Field(min_length=1, max_length=400)
+    corridor: str | None = Field(default=None, max_length=80)
+    sector: str | None = Field(default=None, max_length=80)
 
 
 class AggregateTrend(BaseModel):
@@ -945,6 +956,52 @@ def create_app(*, data_dir: Path | None = None) -> FastAPI:
             new_status="retracted",
             message="Submission retracted. It will not be reviewed or published.",
         )
+
+    # --- Local knowledge base (operator-side ingest) ---------------------
+
+    _kb = local_kb.LocalKB()
+
+    @application.post("/api/local-kb/ingest", tags=["local-kb"])
+    async def ingest_text(body: IngestTextIn) -> dict[str, object]:
+        """Ingest one file's content into the operator's local KB."""
+        result = _kb.ingest(
+            text=body.text,
+            source_filename=body.source_filename,
+            corridor=body.corridor,
+            sector=body.sector,
+        )
+        return result
+
+    @application.get("/api/local-kb/cases", tags=["local-kb"])
+    async def list_local_cases(
+        corridor: str | None = None,
+        sector: str | None = None,
+        status_: str | None = None,
+        limit: int = 200,
+    ) -> dict[str, object]:
+        cases = _kb.list_cases(
+            corridor=corridor, sector=sector, status=status_, limit=limit  # type: ignore[arg-type]
+        )
+        return {"count": len(cases), "cases": cases}
+
+    @application.get("/api/local-kb/cases/{case_id}", tags=["local-kb"])
+    async def get_local_case(case_id: str) -> dict[str, object]:
+        case = _kb.get_case(case_id)
+        if case is None:
+            raise HTTPException(status_code=404, detail=f"No case '{case_id}' found.")
+        return case
+
+    @application.get("/api/local-kb/graph", tags=["local-kb"])
+    async def get_local_graph() -> dict[str, object]:
+        return _kb.graph()
+
+    @application.get("/api/local-kb/stats", tags=["local-kb"])
+    async def get_local_stats() -> dict[str, object]:
+        return _kb.stats()
+
+    @application.post("/api/local-kb/forget", tags=["local-kb"])
+    async def forget_local_kb() -> dict[str, object]:
+        return _kb.forget_everything()
 
     @application.get("/openclaw", include_in_schema=False)
     async def openclaw_redirect() -> Response:

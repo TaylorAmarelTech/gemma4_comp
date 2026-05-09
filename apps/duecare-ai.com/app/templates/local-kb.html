@@ -1,0 +1,271 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Local knowledge base · DueCare</title>
+<link rel="stylesheet" href="/static/styles.css" />
+<style>
+  .lk-hero { padding: 56px 0 36px; border-bottom: 1px solid var(--line); }
+  .lk-hero .grid { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(280px, 1fr); gap: 56px; align-items: start; }
+  @media (max-width: 920px) { .lk-hero .grid { grid-template-columns: 1fr; gap: 32px; } }
+  .lk-hero h1 { font-size: clamp(36px, 4.4vw, 56px); letter-spacing: -0.025em; line-height: 1.05; margin: 14px 0 0; max-width: 22ch; font-weight: 500; }
+  .lk-hero .lede { margin-top: 18px; font-size: 17px; line-height: 1.55; color: var(--ink-2); max-width: 56ch; }
+  .lk-hero .toc { border: 1px solid var(--line); border-radius: 12px; background: var(--paper-2); padding: 18px 20px; }
+  .lk-hero .toc h3 { font-family: var(--mono); font-size: 11px; font-weight: 600; color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.10em; margin: 0 0 12px; }
+  .lk-hero .toc ol { list-style: none; padding: 0; margin: 0; counter-reset: t; }
+  .lk-hero .toc ol li { counter-increment: t; border-top: 1px solid var(--line-soft); }
+  .lk-hero .toc ol li:first-child { border-top: none; }
+  .lk-hero .toc ol li a { display: grid; grid-template-columns: 28px 1fr 16px; gap: 10px; align-items: center; padding: 10px 0; font-size: 14px; color: var(--ink-1); text-decoration: none; }
+  .lk-hero .toc ol li a::before { content: counter(t, decimal-leading-zero); font-family: var(--mono); font-size: 11px; color: var(--ink-3); }
+  .lk-hero .toc ol li a:hover { color: var(--accent-ink); }
+
+  .lk-section { padding: 56px 0; border-bottom: 1px solid var(--line-soft); }
+  .lk-section .head { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 32px; align-items: end; margin-bottom: 28px; }
+  @media (max-width: 720px) { .lk-section .head { grid-template-columns: 1fr; } }
+  .lk-section .ix { font-family: var(--mono); font-size: 11px; letter-spacing: 0.12em; color: var(--ink-3); text-transform: uppercase; }
+  .lk-section h2 { font-size: clamp(26px, 2.8vw, 36px); letter-spacing: -0.02em; line-height: 1.15; margin: 8px 0 0; max-width: 22ch; font-weight: 500; }
+  .lk-section .summary { font-size: 14.5px; line-height: 1.6; color: var(--ink-2); max-width: 48ch; }
+
+  .lk-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; border: 1px solid var(--line); border-radius: 12px; background: var(--paper); overflow: hidden; }
+  @media (max-width: 720px) { .lk-stats { grid-template-columns: repeat(2, 1fr); } }
+  .lk-stats .cell { padding: 22px 24px; border-right: 1px solid var(--line); }
+  .lk-stats .cell:last-child { border-right: none; }
+  .lk-stats .lbl { font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.10em; color: var(--ink-3); text-transform: uppercase; }
+  .lk-stats .val { font-size: 32px; letter-spacing: -0.025em; margin-top: 6px; line-height: 1; }
+  .lk-stats .delta { font-family: var(--mono); font-size: 11.5px; color: var(--accent-ink); margin-top: 4px; }
+
+  .lk-form { border: 1px solid var(--line); border-radius: 14px; background: var(--paper); padding: 24px 28px; }
+  .lk-form .field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
+  .lk-form label { font-family: var(--mono); font-size: 11px; color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.08em; }
+  .lk-form input, .lk-form textarea { padding: 11px 13px; border: 1px solid var(--line); border-radius: 8px; background: var(--paper); color: var(--ink); font-family: var(--sans); font-size: 14px; }
+  .lk-form textarea { min-height: 140px; resize: vertical; line-height: 1.5; }
+  .lk-form input:focus, .lk-form textarea:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .lk-form .actions { display: flex; gap: 10px; align-items: center; margin-top: 8px; }
+  .lk-form .actions .help { font-size: 12px; color: var(--ink-3); margin-left: auto; }
+
+  .lk-cases { border: 1px solid var(--line); border-radius: 14px; background: var(--paper); overflow: hidden; }
+  .lk-cases .row { display: grid; grid-template-columns: 90px 1.2fr 100px 100px 1fr; gap: 16px; padding: 12px 18px; border-top: 1px solid var(--line-soft); align-items: center; font-size: 13.5px; }
+  .lk-cases .row:first-child { border-top: none; background: var(--paper-2); font-family: var(--mono); font-size: 11px; color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.08em; }
+  .lk-cases .row code { font-family: var(--mono); font-size: 11.5px; color: var(--ink-2); }
+  .lk-cases .row.empty { color: var(--ink-3); font-style: italic; padding: 18px; text-align: center; grid-template-columns: 1fr; }
+  @media (max-width: 720px) { .lk-cases .row { grid-template-columns: 1fr; gap: 4px; } .lk-cases .row:first-child { display: none; } }
+
+  .lk-pill { display: inline-block; padding: 2px 8px; border-radius: 999px; font-family: var(--mono); font-size: 10.5px; background: var(--paper-2); color: var(--ink-2); border: 1px solid var(--line); }
+  .lk-status { padding: 12px 14px; border-radius: 8px; font-size: 13.5px; line-height: 1.5; display: none; margin-bottom: 14px; }
+  .lk-status.ok { background: oklch(0.96 0.04 155); color: oklch(0.32 0.10 155); border: 1px solid oklch(0.78 0.06 155); display: block; }
+  .lk-status.err { background: oklch(0.96 0.04 30); color: oklch(0.42 0.13 30); border: 1px solid oklch(0.78 0.06 30); display: block; }
+
+  .lk-rail { border: 1px dashed oklch(0.78 0.06 45); background: var(--ember-soft); border-radius: 12px; padding: 18px 20px; font-size: 13px; color: oklch(0.32 0.10 45); line-height: 1.55; }
+  .lk-rail h4 { margin: 0 0 6px; font-size: 13px; color: oklch(0.30 0.13 45); }
+</style>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%230E1116'/%3E%3Ctext x='16' y='21' text-anchor='middle' font-family='monospace' font-weight='700' font-size='14' fill='%23F7F6F1'%3ED%3C/text%3E%3C/svg%3E" />
+</head>
+<body>
+{% include "_nav.html" %}
+
+<section class="lk-hero" data-screen-label="Local KB · Hero">
+  <div class="wrap">
+    <div class="grid">
+      <div>
+        <span class="kicker">/local-kb &middot; operator-side case database</span>
+        <h1>Your local case knowledge base.</h1>
+        <p class="lede">Drop in case files. The runtime classifies each one, extracts entities, builds a graph, and writes everything to a SQLite file under <code>~/.duecare/local-kb/cases.db</code>. Nothing leaves the machine until you click "share aggregates" and walk through the anonymization preview.</p>
+      </div>
+      <nav class="toc" aria-label="Sections on this page">
+        <h3>On this page</h3>
+        <ol>
+          <li><a href="#stats"><span>Local KB stats</span><span class="arrow">&rarr;</span></a></li>
+          <li><a href="#ingest"><span>Ingest a file</span><span class="arrow">&rarr;</span></a></li>
+          <li><a href="#cases"><span>Browse cases</span><span class="arrow">&rarr;</span></a></li>
+          <li><a href="#share"><span>Share aggregates</span><span class="arrow">&rarr;</span></a></li>
+          <li><a href="#privacy"><span>Privacy + erasure</span><span class="arrow">&rarr;</span></a></li>
+        </ol>
+      </nav>
+    </div>
+  </div>
+</section>
+
+<section id="stats" class="lk-section" data-screen-label="Local KB · Stats">
+  <div class="wrap">
+    <div class="head">
+      <div>
+        <span class="ix">01 &middot; Local KB stats</span>
+        <h2>What is in your local KB right now.</h2>
+      </div>
+      <p class="summary">Counts come from the SQLite file on this machine. Nothing here travels to the public hub.</p>
+    </div>
+    <div class="lk-stats" id="stats">
+      <div class="cell"><div class="lbl">Cases</div><div class="val" id="stat-cases">&mdash;</div><div class="delta">ingested locally</div></div>
+      <div class="cell"><div class="lbl">Entities</div><div class="val" id="stat-entities">&mdash;</div><div class="delta">extracted across cases</div></div>
+      <div class="cell"><div class="lbl">Edges</div><div class="val" id="stat-edges">&mdash;</div><div class="delta">co-occurrence + relationship</div></div>
+      <div class="cell"><div class="lbl">Corridors</div><div class="val" id="stat-corridors">&mdash;</div><div class="delta">distinct corridors seen</div></div>
+    </div>
+  </div>
+</section>
+
+<section id="ingest" class="lk-section" data-screen-label="Local KB · Ingest">
+  <div class="wrap">
+    <div class="head">
+      <div>
+        <span class="ix">02 &middot; Ingest a file</span>
+        <h2>Drop in case content. The runtime processes it locally.</h2>
+      </div>
+      <p class="summary">Demo path: paste a file's text below. Production path (folder upload + folder watch) is documented in <a href="https://github.com/TaylorAmarelTech/gemma4_comp/blob/master/apps/duecare-ai.com/docs/BULK_INGEST_PLAN.md">BULK_INGEST_PLAN.md</a>; this page handles single-text intake today.</p>
+    </div>
+    <form class="lk-form" onsubmit="return ingest(event)">
+      <div id="ingest-status" class="lk-status"></div>
+      <div class="field"><label>Source filename</label><input type="text" id="filename" placeholder="case-001.txt" required /></div>
+      <div class="field"><label>Corridor (optional, e.g. PHL-KWT)</label><input type="text" id="corridor" placeholder="PHL-KWT" /></div>
+      <div class="field"><label>Sector (optional, e.g. domestic-work)</label><input type="text" id="sector" placeholder="domestic-work" /></div>
+      <div class="field"><label>Case text</label><textarea id="text" placeholder="Paste the file's text here. Anonymizer runs over it; entity extractor pulls recruiters/employers it can find; corridor regex looks for PHL-KWT-style hints. Real PII is detected and tagged in the output." required></textarea></div>
+      <div class="actions">
+        <button type="submit" class="btn">Ingest into local KB &rarr;</button>
+        <span class="help">Local-only. Nothing is sent to the hub.</span>
+      </div>
+    </form>
+  </div>
+</section>
+
+<section id="cases" class="lk-section" data-screen-label="Local KB · Cases">
+  <div class="wrap">
+    <div class="head">
+      <div>
+        <span class="ix">03 &middot; Browse cases</span>
+        <h2>Most recent first.</h2>
+      </div>
+      <p class="summary">Click a case ID to fetch the full record (entities + edges + summary) from the local API.</p>
+    </div>
+    <div class="lk-cases" id="cases">
+      <div class="row"><span>Case ID</span><span>Source</span><span>Corridor</span><span>Status</span><span>Ingested</span></div>
+      <div class="row empty">Loading&hellip;</div>
+    </div>
+  </div>
+</section>
+
+<section id="share" class="lk-section" data-screen-label="Local KB · Share">
+  <div class="wrap">
+    <div class="head">
+      <div>
+        <span class="ix">04 &middot; Share aggregates (optional)</span>
+        <h2>One click; preview before send.</h2>
+      </div>
+      <p class="summary">When you do choose to share aggregates from the local KB, the payload runs through the same three-stage anonymization pipeline as the contribute form. You see the exact JSON before anything leaves the machine.</p>
+    </div>
+    <p style="margin-top:12px;"><a class="btn btn-ghost" href="/static/anonymization-preview.html">Open anonymization preview &rarr;</a></p>
+  </div>
+</section>
+
+<section id="privacy" class="lk-section" data-screen-label="Local KB · Privacy">
+  <div class="wrap">
+    <div class="head">
+      <div>
+        <span class="ix">05 &middot; Privacy + erasure</span>
+        <h2>Operator-controlled. Always.</h2>
+      </div>
+    </div>
+    <div class="lk-rail">
+      <h4>What gets stored locally</h4>
+      <p>Case text and the regex-found entity names are stored in <code>~/.duecare/local-kb/cases.db</code>. Entity names are <strong>hashed with a per-deployment salt</strong>; the raw name never lands in the file. The salt is in your environment (<code>DUECARE_LOCAL_KB_SALT</code>). Lose the salt and the names are unrecoverable even with the file.</p>
+      <p style="margin-top:10px;">When you want to wipe everything, click below. There is no "soft delete"; the rows are gone.</p>
+      <div style="margin-top:14px;">
+        <button class="btn" onclick="forgetEverything()" style="background: oklch(0.55 0.18 30); border-color: oklch(0.55 0.18 30);">Forget everything &rarr;</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+{% include "_footer.html" %}
+
+<script>
+async function refreshStats() {
+  try {
+    const r = await fetch('/api/local-kb/stats');
+    if (!r.ok) return;
+    const d = await r.json();
+    document.getElementById('stat-cases').textContent = d.n_cases;
+    document.getElementById('stat-entities').textContent = d.n_entities;
+    document.getElementById('stat-edges').textContent = d.n_edges;
+    document.getElementById('stat-corridors').textContent = (d.corridors || []).length;
+  } catch (_) {}
+}
+
+async function refreshCases() {
+  const root = document.getElementById('cases');
+  try {
+    const r = await fetch('/api/local-kb/cases');
+    if (!r.ok) return;
+    const d = await r.json();
+    const header = '<div class="row"><span>Case ID</span><span>Source</span><span>Corridor</span><span>Status</span><span>Ingested</span></div>';
+    if (!d.cases || !d.cases.length) {
+      root.innerHTML = header + '<div class="row empty">No cases yet. Ingest one above to see it appear here.</div>';
+      return;
+    }
+    const rows = d.cases.map(c => `
+      <div class="row">
+        <code>${c.case_id}</code>
+        <span>${c.source_filename || ''}</span>
+        <span>${c.corridor ? '<span class="lk-pill">' + c.corridor + '</span>' : '&mdash;'}</span>
+        <span>${c.status}</span>
+        <span>${(c.ingested_at || '').replace('T', ' ').slice(0, 19)}</span>
+      </div>
+    `).join('');
+    root.innerHTML = header + rows;
+  } catch (_) {}
+}
+
+async function ingest(event) {
+  event.preventDefault();
+  const status = document.getElementById('ingest-status');
+  const body = {
+    source_filename: document.getElementById('filename').value,
+    text: document.getElementById('text').value,
+    corridor: document.getElementById('corridor').value || null,
+    sector: document.getElementById('sector').value || null,
+  };
+  Object.keys(body).forEach(k => { if (body[k] === null || body[k] === '') delete body[k]; });
+  try {
+    const r = await fetch('/api/local-kb/ingest', {
+      method: 'POST', headers: {'content-type': 'application/json'}, body: JSON.stringify(body),
+    });
+    const d = await r.json();
+    if (r.ok) {
+      status.className = 'lk-status ok';
+      status.textContent = 'Ingested as ' + d.case_id + '. Entities: ' + (d.entities || []).length + '. Edges: ' + (d.edges || []).length + '.';
+      document.getElementById('text').value = '';
+      document.getElementById('filename').value = '';
+      refreshStats();
+      refreshCases();
+    } else {
+      status.className = 'lk-status err';
+      status.textContent = 'Server rejected: ' + (d.detail || r.status);
+    }
+  } catch (err) {
+    status.className = 'lk-status err';
+    status.textContent = 'Network error: ' + err.message;
+  }
+  return false;
+}
+
+async function forgetEverything() {
+  if (!confirm('This wipes every case in the local KB. There is no undo. Continue?')) return;
+  try {
+    const r = await fetch('/api/local-kb/forget', {method: 'POST'});
+    const d = await r.json();
+    if (r.ok) {
+      alert('Local KB wiped at ' + d.wiped_at + '.');
+      refreshStats();
+      refreshCases();
+    } else {
+      alert('Failed: ' + (d.detail || r.status));
+    }
+  } catch (err) {
+    alert('Network error: ' + err.message);
+  }
+}
+
+refreshStats();
+refreshCases();
+</script>
+</body>
+</html>

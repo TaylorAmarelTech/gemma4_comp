@@ -1,3 +1,18 @@
+# <!-- duecare:kernel-intro -->
+# DueCare — Agentic-research chat (BYOK + Playwright)
+# Appendix notebook #A09 of 13 in the DueCare submission.
+#
+# The deeper Online layer. Real-browser agentic search via Playwright + BYO API key for live web grounding.
+#
+# What to look for after Run All:
+#   - Watch the agent open multiple pages in headless Playwright.
+#   - Citations are pulled from the rendered DOM, not just the URL.
+#   - The grading panel shows whether the cited URL actually supports the claim.
+#
+# Demo path: Run All -> add your API key -> ask a corridor question that needs fresh data -> watch the agent work.
+#
+# Full README + cross-kernel index: see the README in this folder.
+
 """
 ============================================================================
   DUECARE CHAT PLAYGROUND with AGENTIC RESEARCH -- Kaggle notebook

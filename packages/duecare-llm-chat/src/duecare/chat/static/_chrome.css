@@ -27,16 +27,21 @@
   --border-soft: #2a3a55;
   --highlight: #fbbf24;
 
-  /* Layer accent palette (also used as semantic colors). */
+  /* Layer accent palette + semantic mapping.
+     Privacy-bearing layers (Persona, Imports) carry ember.
+     Verification-bearing layers (GREP, RAG, Tools, Online) carry
+     varying shades of civic teal so the user has a mnemonic:
+        warm tone = something about the user's voice or data
+        cool tone = something that grounds the model in vetted sources */
   --accent: #3b82f6;        /* default accent if a page doesn't override */
   --accent-civic-teal: #14b8a6;
   --accent-ember: #f97316;
-  --accent-persona: #a855f7;
-  --accent-grep: #ef4444;
-  --accent-rag: #3b82f6;
-  --accent-tools: #10b981;
-  --accent-online: #f59e0b;
-  --accent-imports: #06b6d4;
+  --accent-persona: #f97316;     /* ember - shapes the model's voice */
+  --accent-imports: #fb923c;     /* ember-light - operator's own evidence */
+  --accent-grep:    #14b8a6;     /* civic-teal - deterministic verification */
+  --accent-rag:     #3b82f6;     /* blue-teal - vetted-source grounding */
+  --accent-tools:   #10b981;     /* green-teal - external verification calls */
+  --accent-online:  #06b6d4;     /* cyan-teal - live web verification */
 
   /* Status colors. */
   --green: #10b981;
@@ -232,12 +237,14 @@ code, .mono {
   letter-spacing: 0.06em;
   text-transform: uppercase;
 }
-.dc-badge.persona { background: rgba(168,85,247,0.18); color: #c4a8ff; border: 1px solid #a855f7; }
-.dc-badge.grep    { background: rgba(239,68,68,0.18);  color: #ffadad; border: 1px solid #ef4444; }
-.dc-badge.rag     { background: rgba(59,130,246,0.18); color: #b6d3ff; border: 1px solid #3b82f6; }
-.dc-badge.tools   { background: rgba(16,185,129,0.18); color: #a8e6c4; border: 1px solid #10b981; }
-.dc-badge.online  { background: rgba(245,158,11,0.18); color: #ffd591; border: 1px solid #f59e0b; }
-.dc-badge.imports { background: rgba(6,182,212,0.18);  color: #99e6f0; border: 1px solid #06b6d4; }
+/* Privacy-bearing layers: ember-warm */
+.dc-badge.persona { background: rgba(249,115,22,0.18); color: #ffc599; border: 1px solid var(--accent-persona); }
+.dc-badge.imports { background: rgba(251,146,60,0.18); color: #ffd6b3; border: 1px solid var(--accent-imports); }
+/* Verification-bearing layers: teal-cool */
+.dc-badge.grep    { background: rgba(20,184,166,0.18); color: #99e6db; border: 1px solid var(--accent-grep); }
+.dc-badge.rag     { background: rgba(59,130,246,0.18); color: #b6d3ff; border: 1px solid var(--accent-rag); }
+.dc-badge.tools   { background: rgba(16,185,129,0.18); color: #a8e6c4; border: 1px solid var(--accent-tools); }
+.dc-badge.online  { background: rgba(6,182,212,0.18);  color: #99e6f0; border: 1px solid var(--accent-online); }
 
 /* ---------- Help / footer ---------- */
 .dc-chrome-help {

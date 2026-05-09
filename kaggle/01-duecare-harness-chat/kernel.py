@@ -1,3 +1,18 @@
+# <!-- duecare:kernel-intro -->
+# DueCare — Migrant-worker safety playground
+# Core notebook #01 of 13 in the DueCare submission.
+#
+# All 6 safety layers, all 4 grading modes, all 9 Gemma 4 variants. One configurable URL.
+#
+# What to look for after Run All:
+#   - Pick a Gemma 4 variant in the picker overlay (start with E2B for speed).
+#   - Flip layer toggles below the input to see what each adds.
+#   - Click Compare to run the same prompt with two harness configs side-by-side.
+#
+# Demo path: Run All -> cloudflared URL prints -> pick a model -> click any of the example prompt buttons.
+#
+# Full README + cross-kernel index: see the README in this folder.
+
 """
 ============================================================================
   DUECARE HARNESS CHAT  --  unified Kaggle notebook (single core)

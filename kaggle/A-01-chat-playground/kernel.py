@@ -1,3 +1,18 @@
+# <!-- duecare:kernel-intro -->
+# DueCare — Stock Gemma 4 chat baseline
+# Appendix notebook #A01 of 13 in the DueCare submission.
+#
+# The before-the-harness baseline. No GREP, no RAG, no tools, no online. Pure stock Gemma 4.
+#
+# What to look for after Run All:
+#   - Stock Gemma's answer to a recruitment-fee question shows zero ILO citations.
+#   - No corridor-specific guidance; no NGO contact suggestions.
+#   - Use this as the contrast for the harnessed kernels.
+#
+# Demo path: Run All -> open URL -> ask a corridor-specific safety question -> compare with kernel 01.
+#
+# Full README + cross-kernel index: see the README in this folder.
+
 """
 ============================================================================
   DUECARE GEMMA CHAT  --  Kaggle notebook (paste into a single code cell)

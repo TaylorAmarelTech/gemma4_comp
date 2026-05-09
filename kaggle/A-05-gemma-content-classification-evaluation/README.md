@@ -1,4 +1,4 @@
-# Duecare Gemma Content Classification Evaluation (Appendix A5 (was core #5))
+# DueCare — NGO classifier evaluation dashboard (#A05 appendix)
 
 The Agency / NGO dashboard. Form-based content submission → structured
 JSON classification with risk vectors + threshold-filterable history
@@ -102,3 +102,27 @@ python scripts/push_kaggle_demo.py --kernel content-classifier \
 
 The `--enable-gpu false` flag bypasses Kaggle's 2-GPU concurrent-session
 cap; the user toggles GPU ON in the UI before Save & Run All.
+
+---
+
+<!-- duecare:kernel-footer -->
+
+### All DueCare notebooks
+
+You are here: **#A05 appendix — NGO classifier evaluation dashboard**.
+
+- [#01 core: Migrant-worker safety playground](../01-duecare-harness-chat/README.md)
+- [#02 core: Live demo (focused walkthrough)](../02-live-demo/README.md)
+- [#A01 appendix: Stock Gemma 4 chat baseline](../A-01-chat-playground/README.md)
+- [#A02 appendix: Original 4-toggle subset playground](../A-02-chat-playground-with-grep-rag-tools/README.md)
+- [#A03 appendix: Hands-on classification sandbox](../A-03-content-classification-playground/README.md)
+- [#A04 appendix: Knowledge-builder sandbox + JSON export](../A-04-content-knowledge-builder-playground/README.md)
+- **[#A05 appendix: NGO classifier evaluation dashboard](../A-05-gemma-content-classification-evaluation/README.md)**
+- [#A06 appendix: Gemma generates evaluation prompts](../A-06-prompt-generation/README.md)
+- [#A07 appendix: Unsloth fine-tune + GGUF export pipeline](../A-07-bench-and-tune/README.md)
+- [#A08 appendix: Research graphs (CPU-only)](../A-08-research-graphs/README.md)
+- [#A09 appendix: Agentic-research chat (BYOK + Playwright)](../A-09-chat-playground-with-agentic-research/README.md)
+- [#A10 appendix: Jailbroken-Gemma comparison](../A-10-chat-playground-jailbroken-models/README.md)
+- [#A11 appendix: Grading-lift regenerator](../A-11-grading-evaluation/README.md)
+
+Index page: [`kaggle/_INDEX.md`](../_INDEX.md).

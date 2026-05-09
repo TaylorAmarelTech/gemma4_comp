@@ -240,6 +240,77 @@ def test_retract_unknown_submission_404(tmp_path) -> None:
     assert response.status_code == 404
 
 
+def test_local_kb_ingest_and_list(tmp_path, monkeypatch) -> None:
+    # Local KB lives in its own SQLite file; redirect to a tmp dir for
+    # test isolation.
+    monkeypatch.setenv("DUECARE_LOCAL_KB", str(tmp_path / "local-kb.db"))
+    monkeypatch.setenv("DUECARE_LOCAL_KB_SALT", "test-salt")
+
+    # Reload the local_kb module so the env var picks up the new path.
+    import importlib
+
+    from app import local_kb as _lk
+
+    importlib.reload(_lk)
+
+    client = TestClient(create_app(data_dir=tmp_path))
+
+    # The route binds to a LocalKB() instance created at app build time, which
+    # captured the old default. To work around without restructuring main.py,
+    # we point the binding at the same path manually.
+    from app import main as _main
+
+    _main._kb = _lk.LocalKB(_lk.DEFAULT_KB_PATH)
+
+    response = client.post(
+        "/api/local-kb/ingest",
+        json={
+            "text": "Composite recruiter case in the PHL-KWT corridor describing fee patterns and an agency named ExampleCo.",
+            "source_filename": "test-case-001.txt",
+            "corridor": "PHL-KWT",
+            "sector": "domestic-work",
+        },
+    )
+    assert response.status_code == 200
+    body = response.json()
+    assert body["case_id"].startswith("case_")
+    assert body["status"] == "processed"
+    assert body["corridor"] == "PHL-KWT"
+
+    cases = client.get("/api/local-kb/cases").json()
+    assert cases["count"] >= 1
+
+    stats = client.get("/api/local-kb/stats").json()
+    assert stats["n_cases"] >= 1
+
+
+def test_local_kb_forget(tmp_path, monkeypatch) -> None:
+    monkeypatch.setenv("DUECARE_LOCAL_KB", str(tmp_path / "local-kb-forget.db"))
+
+    import importlib
+
+    from app import local_kb as _lk
+
+    importlib.reload(_lk)
+
+    client = TestClient(create_app(data_dir=tmp_path))
+    from app import main as _main
+
+    _main._kb = _lk.LocalKB(_lk.DEFAULT_KB_PATH)
+
+    client.post(
+        "/api/local-kb/ingest",
+        json={
+            "text": "Demo case content for forget test, with at least the minimum length.",
+            "source_filename": "tmp.txt",
+        },
+    )
+    forgotten = client.post("/api/local-kb/forget").json()
+    assert forgotten["ok"] is True
+    after = client.get("/api/local-kb/stats").json()
+    assert after["n_cases"] == 0
+
+
 def test_client_submission_endpoint(tmp_path) -> None:
     client = TestClient(create_app(data_dir=tmp_path))
 

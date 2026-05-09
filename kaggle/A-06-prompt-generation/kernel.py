@@ -1,3 +1,18 @@
+# <!-- duecare:kernel-intro -->
+# DueCare — Gemma generates evaluation prompts
+# Appendix notebook #A06 of 13 in the DueCare submission.
+#
+# Gemma 4 self-generates new evaluation prompts plus 5 graded responses each (worst -> best).
+#
+# What to look for after Run All:
+#   - Each generated prompt comes with 5 anchor responses for grading calibration.
+#   - Topics are seeded by corridor + sector; outputs land in JSONL.
+#   - The grading rubric used here is the same shipped in citation-rubric@3.0.0.
+#
+# Demo path: Run All -> watch the JSONL file fill -> open a sample prompt + 5 responses to see the grading anchors.
+#
+# Full README + cross-kernel index: see the README in this folder.
+
 """
 ============================================================================
   DUECARE PROMPT GENERATION -- Kaggle notebook (paste into a single code cell)

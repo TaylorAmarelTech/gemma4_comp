@@ -1,3 +1,18 @@
+# <!-- duecare:kernel-intro -->
+# DueCare — Research graphs (CPU-only)
+# Appendix notebook #A08 of 13 in the DueCare submission.
+#
+# Six interactive Plotly charts: corridor coverage, GREP-rule density, RAG-corpus map, rubric-dim drift, etc.
+#
+# What to look for after Run All:
+#   - Hover any chart to see the underlying counts + corridor breakdown.
+#   - Each chart is reproducible from the data directory; no Gemma calls.
+#   - Useful for the hackathon writeup as evidence figures.
+#
+# Demo path: Run All -> scroll through the 6 charts -> hover any cell to read the data.
+#
+# Full README + cross-kernel index: see the README in this folder.
+
 """
 ============================================================================
   DUECARE RESEARCH GRAPHS -- Kaggle notebook (paste into a single code cell)

@@ -1,3 +1,18 @@
+# <!-- duecare:kernel-intro -->
+# DueCare — Grading-lift regenerator
+# Appendix notebook #A11 of 13 in the DueCare submission.
+#
+# Runs N prompts x 2 conditions, grades both, emits MD + JSON with provenance tuple (model, git_sha, dataset_version). The +56pp number, regenerated live.
+#
+# What to look for after Run All:
+#   - The output is a provenance-pinned report you can cite in the writeup.
+#   - Run N from 10 (smoke) up to 207 (full reference set).
+#   - Both the rule-based and LLM-based scores are recomputed live.
+#
+# Demo path: Run All -> wait for the report -> see the headline lift number with the git_sha pinned.
+#
+# Full README + cross-kernel index: see the README in this folder.
+
 """Duecare Grading Evaluation (A11)
 =====================================
 

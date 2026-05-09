@@ -1,3 +1,18 @@
+# <!-- duecare:kernel-intro -->
+# DueCare — Hands-on classification sandbox
+# Appendix notebook #A03 of 13 in the DueCare submission.
+#
+# Paste content, pick a classification schema (4 shipped), see the structured risk envelope Gemma 4 returns.
+#
+# What to look for after Run All:
+#   - The schema picker selects which fields the model populates.
+#   - JSON output is validated against the schema before display.
+#   - Failure modes (under-classified, over-classified) are explained inline.
+#
+# Demo path: Run All -> open URL -> paste a job-board post -> pick a schema -> read the classification.
+#
+# Full README + cross-kernel index: see the README in this folder.
+
 """
 ============================================================================
   DUECARE CONTENT CLASSIFICATION PLAYGROUND -- Kaggle notebook
