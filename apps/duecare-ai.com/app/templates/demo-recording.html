@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Demo recording deck · DueCare AI</title>
+<link rel="stylesheet" href="/static/styles.css" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%230E1116'/%3E%3Ctext x='16' y='21' text-anchor='middle' font-family='monospace' font-weight='700' font-size='14' fill='%23F7F6F1'%3ED%3C/text%3E%3C/svg%3E" />
+<style>
+.rec-hero { padding: 58px 0 34px; border-bottom: 1px solid var(--line); }
+.rec-hero .grid { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(280px, 0.65fr); gap: 48px; align-items: start; }
+@media (max-width: 900px) { .rec-hero .grid { grid-template-columns: 1fr; } }
+.rec-hero h1 { font-size: clamp(36px, 4.8vw, 60px); letter-spacing: -0.04em; line-height: 1.02; margin: 12px 0 0; max-width: 18ch; }
+.rec-hero .lede { margin-top: 18px; max-width: 64ch; font-size: 17px; line-height: 1.55; color: var(--ink-2); }
+.rec-card { border: 1px solid var(--line); border-radius: 14px; background: var(--paper); padding: 20px; }
+.rec-card h2 { margin: 0 0 8px; font-size: 16px; }
+.rec-card p, .rec-card li { color: var(--ink-2); font-size: 13.5px; line-height: 1.5; }
+.rec-strip { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; background: var(--paper); margin-top: 28px; }
+@media (max-width: 980px) { .rec-strip { grid-template-columns: 1fr; } }
+.rec-strip .item { padding: 18px; border-right: 1px solid var(--line); }
+.rec-strip .item:last-child { border-right: 0; }
+@media (max-width: 980px) { .rec-strip .item { border-right: 0; border-bottom: 1px solid var(--line); } .rec-strip .item:last-child { border-bottom: 0; } }
+.rec-strip .time { font-family: var(--mono); font-size: 11px; color: var(--accent-ink); text-transform: uppercase; letter-spacing: 0.08em; }
+.rec-strip h3 { font-size: 15px; margin: 8px 0 6px; }
+.rec-strip p { font-size: 12.5px; color: var(--ink-3); line-height: 1.45; }
+.rec-section { padding: 42px 0; border-bottom: 1px solid var(--line-soft); }
+.scene { display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 18px; border: 1px solid var(--line); border-radius: 14px; padding: 18px; background: var(--paper); margin-top: 14px; }
+@media (max-width: 760px) { .scene { grid-template-columns: 1fr; } }
+.scene .num { font-family: var(--mono); color: var(--accent-ink); font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; }
+.scene h3 { font-size: 20px; margin: 8px 0 8px; }
+.scene p { color: var(--ink-2); line-height: 1.55; }
+.scene .shot { border-left: 3px solid var(--accent); padding-left: 14px; color: var(--ink-2); }
+.scene .actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+.scene .actions a { border: 1px solid var(--line); border-radius: 999px; padding: 7px 10px; text-decoration: none; color: var(--ink); font-size: 12px; background: var(--paper-2); }
+.mock { border: 1px solid var(--line); border-radius: 12px; background: var(--paper-2); padding: 14px; }
+.mock .top { display: flex; justify-content: space-between; gap: 12px; font-family: var(--mono); font-size: 11px; color: var(--ink-3); border-bottom: 1px solid var(--line-soft); padding-bottom: 8px; margin-bottom: 10px; }
+.mock pre { margin: 0; white-space: pre-wrap; font-size: 12px; line-height: 1.5; color: var(--ink-2); }
+.badge-row { display: flex; gap: 6px; flex-wrap: wrap; margin: 10px 0; }
+.badge { border: 1px solid var(--line); border-radius: 999px; padding: 4px 8px; font-family: var(--mono); font-size: 10.5px; color: var(--ink-3); background: var(--paper); }
+.example-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin-top: 18px; }
+@media (max-width: 980px) { .example-grid { grid-template-columns: 1fr; } }
+.example-card { border: 1px solid var(--line); border-radius: 14px; background: var(--paper); padding: 18px; display: grid; gap: 10px; }
+.example-card .eyebrow { font-family: var(--mono); font-size: 10.5px; color: var(--accent-ink); text-transform: uppercase; letter-spacing: 0.08em; }
+.example-card h3 { margin: 0; font-size: 17px; letter-spacing: -0.01em; }
+.example-card p { margin: 0; color: var(--ink-2); font-size: 13px; line-height: 1.5; }
+.example-card ul { margin: 0; padding-left: 18px; color: var(--ink-2); font-size: 12.5px; line-height: 1.45; }
+.runbook { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+@media (max-width: 900px) { .runbook { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+{% set active_nav = "demo" %}
+{% include "_nav.html" %}
+<section class="rec-hero" data-screen-label="Demo recording · Hero"><div class="wrap"><div class="grid">
+  <div>
+    <span class="kicker">No-wait recording deck</span>
+    <h1>Five system surfaces in under three minutes.</h1>
+    <p class="lede">This page is the recording spine: it lets the video show the real DueCare architecture without waiting for model inference. The live app can still be opened in adjacent tabs, but the primary take uses cached, already-approved response examples and short screen jumps.</p>
+    <div class="rec-strip" aria-label="Demo timeline">
+      <div class="item"><span class="time">0:00-0:25</span><h3>Human stakes</h3><p>Composite worker story and privacy promise.</p></div>
+      <div class="item"><span class="time">0:25-0:55</span><h3>Private check</h3><p>On-device worker/NGO response with GREP + RAG + tools.</p></div>
+      <div class="item"><span class="time">0:55-1:25</span><h3>Multimodal intake</h3><p>Document photo and case-packet extraction.</p></div>
+      <div class="item"><span class="time">1:25-2:05</span><h3>Public hub</h3><p>Knowledge packs, submissions, and admin logs.</p></div>
+      <div class="item"><span class="time">2:05-2:55</span><h3>Training loop</h3><p>Harness traces become SFT + DPO data, then gated release.</p></div>
+    </div>
+  </div>
+  <aside class="rec-card">
+    <h2>Recording rule</h2>
+    <p>Never wait for inference in the main take. Pre-generate once, then record the cached response, the route, and the audit trail. Keep a live tab ready only as proof if the judge asks.</p>
+    <ul>
+      <li>Use composite examples only.</li>
+      <li>Say “Privacy is non-negotiable.”</li>
+      <li>Show Gemma 4 function calling and multimodal as load-bearing, not decorative.</li>
+      <li>End on NGOs/regulators sharing anonymized knowledge.</li>
+    </ul>
+  </aside>
+</div></div></section>
+
+<section class="rec-section" data-screen-label="Demo recording · Scenes"><div class="wrap">
+  <span class="kicker">Shot list</span>
+  <h2 style="margin-top:8px;">The five fast cuts</h2>
+
+  <article class="scene">
+    <div><span class="num">Scene 01 · Impact</span><h3>Composite worker risk check</h3><p>Show the worker-side claim: private, local, and actionable.</p></div>
+    <div class="mock"><div class="top"><span>cached response · worker checker</span><span>no inference wait</span></div><div class="badge-row"><span class="badge">GREP fired</span><span class="badge">RAG cited</span><span class="badge">tool draft</span></div><pre>Risk: high. The message combines recruitment-fee pressure, identity-document control, and debt leverage.
+Safe answer: do not hand over a passport or pay new fees without a written receipt and verified legal basis. Contact a trusted NGO, consulate, or labor office before replying.
+Why it matters: the model refuses to help optimize the recruiter script and instead routes the worker to safe, local resources.</pre><div class="actions"><a href="/demo">Open demo page</a><a href="/privacy-boundary">Show privacy boundary</a></div></div>
+  </article>
+
+  <article class="scene">
+    <div><span class="num">Scene 02 · Multimodal</span><h3>Document and case-packet intake</h3><p>Show Gemma 4-style document understanding as a real workflow: photo/text in, extracted facts out.</p></div>
+    <div class="mock"><div class="top"><span>cached response · document inspector</span><span>multimodal fallback safe</span></div><div class="badge-row"><span class="badge">passport clause</span><span class="badge">fee amount</span><span class="badge">timeline</span></div><pre>Extracted facts: placement fee demand; passport handover clause; wage-deduction schedule; recruiter agency reference.
+Generated packet: timeline, legal-grounding notes, questions for NGO intake, and draft complaint outline.
+Video move: show the extracted-fact table, not a spinning model call.</pre><div class="actions"><a href="/components">Show architecture</a><a href="/deployments">Show deployment modes</a></div></div>
+  </article>
+
+  <article class="scene">
+    <div><span class="num">Scene 03 · Public hub</span><h3>Knowledge packs and safe coordination</h3><p>Show that one NGO’s anonymized knowledge can help another NGO or regulator without moving case data.</p></div>
+    <div class="mock"><div class="top"><span>cached response · hub sync</span><span>pack registry</span></div><div class="badge-row"><span class="badge">4 example packs</span><span class="badge">signed versions</span><span class="badge">public-source only</span></div><pre>Pack pulled: phl-kwt-domestic@1.7.2
+Filters: ContextPack · PHL-KWT · vetted
+Update path: partner proposal → PII gate → automation triage → curator review → signed pack.</pre><div class="actions"><a href="/knowledge-packs">Open knowledge packs</a><a href="/submissions">Open review queue</a></div></div>
+  </article>
+
+  <article class="scene">
+    <div><span class="num">Scene 04 · Admin</span><h3>Troubleshoot the website during the recording</h3><p>Use the token-gated admin page to confirm submissions, updates, local-KB counts, and JSONL storage health.</p></div>
+    <div class="mock"><div class="top"><span>cached response · admin logs</span><span>token gated</span></div><div class="badge-row"><span class="badge">signals.jsonl</span><span class="badge">updates.jsonl</span><span class="badge">redacted output</span></div><pre>Admin view shows: last 50 accepted signals, update proposals, automation verdicts, file byte counts, counters, and local-KB case count.
+Safety rule: free-form payloads are suppressed and detector-class PII is redacted before display.</pre><div class="actions"><a href="/admin">Open admin dashboard</a><a href="/api/health">Check health</a></div></div>
+  </article>
+
+  <article class="scene">
+    <div><span class="num">Scene 05 · Training loop</span><h3>Harness traces become model improvement data</h3><p>Close on technical depth: SFT + DPO, with evaluation gates before release.</p></div>
+    <div class="mock"><div class="top"><span>cached response · A07 training spine</span><span>no RL claim</span></div><div class="badge-row"><span class="badge">SFT</span><span class="badge">DPO</span><span class="badge">release gate</span></div><pre>Chosen answer: Persona + GREP + RAG + Tools response.
+Rejected answer: raw Gemma answer when it misses law, safety, or citation grounding.
+Dataset: prompt, chosen, rejected, provenance, rubric grade, and gate metrics. This is preference optimization, not a fake live RL loop.</pre><div class="actions"><a href="/evaluation">Open evaluation page</a><a href="/why-gemma">Why Gemma</a></div></div>
+  </article>
+</div></section>
+
+<section class="rec-section" data-screen-label="Demo recording · Priority examples"><div class="wrap">
+  <span class="kicker">Priority examples</span>
+  <h2 style="margin-top:8px;">Hand-selected scenarios to pre-run before the final cut</h2>
+  <p style="color:var(--ink-2);max-width:72ch;line-height:1.55;margin-top:10px;">The page pulls a synthetic no-PII catalog from <code>/api/demo/priority-examples</code>. For the final video, keep these IDs and replace the fixture outputs with warmed runtime outputs from Gemma 4 + the DueCare harness so the take stays fast and real.</p>
+  <div id="priority-examples" class="example-grid" aria-live="polite">
+    <article class="example-card"><span class="eyebrow">Loading</span><h3>Fetching priority examples…</h3><p>If JavaScript is disabled, open <code>/api/demo/priority-examples</code> directly.</p></article>
+  </div>
+</div></section>
+
+<section class="rec-section" data-screen-label="Demo recording · Method"><div class="wrap">
+  <span class="kicker">Methodology</span>
+  <h2 style="margin-top:8px;">How to capture without waiting on inference</h2>
+  <div class="runbook">
+    <div class="rec-card"><h2>Primary take</h2><p>Record this deck plus the live hub pages. The cached response blocks are the spoken proof points; the live routes are the visual proof that the product exists.</p><ol><li>Open this page, <a href="/demo">/demo</a>, <a href="/knowledge-packs">/knowledge-packs</a>, <a href="/admin">/admin</a>, and <a href="/evaluation">/evaluation</a>.</li><li>Pre-load all tabs before recording.</li><li>Use hard cuts instead of waiting for network or inference.</li><li>Only show live inference as a short optional B-roll clip if it is already warm.</li></ol></div>
+    <div class="rec-card"><h2>Backup notebook</h2><p>If Kaggle is the required proof surface, mirror these same five scenes into a cached-response notebook: markdown explanation, JSON constants, and rendered tables. It should not load a model; it should cite the artifact path or API route that produced each cached response.</p><ol><li>Precompute responses once from the wheel/runtime.</li><li>Commit only synthetic/composite examples.</li><li>Run the notebook before screen capture so outputs are already visible.</li><li>Use the live app for proof, the notebook for narration pacing.</li></ol></div>
+  </div>
+</div></section>
+<script>
+function escapeHtml(value) {
+  return String(value ?? '').replace(/[&<>"]/g, ch => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;'}[ch]));
+}
+
+fetch('/api/demo/priority-examples')
+  .then(response => response.json())
+  .then(data => {
+    const target = document.getElementById('priority-examples');
+    const examples = (data.examples || []).sort((a, b) => (a.recording_priority || 99) - (b.recording_priority || 99));
+    target.innerHTML = examples.map(example => {
+      const result = example.cached_result || {};
+      const bullets = [
+        result.action ? `Action: ${result.action}` : null,
+        result.risk_grade ? `Risk: ${result.risk_grade}` : null,
+        result.video_line || null,
+      ].filter(Boolean).map(item => `<li>${escapeHtml(item)}</li>`).join('');
+      return `<article class="example-card">
+        <span class="eyebrow">${escapeHtml(example.recording_priority)} · ${escapeHtml(example.surface)}</span>
+        <h3>${escapeHtml(example.title)}</h3>
+        <p>${escapeHtml(example.audience)}</p>
+        <ul>${bullets}</ul>
+      </article>`;
+    }).join('');
+  })
+  .catch(() => {
+    document.getElementById('priority-examples').innerHTML = '<article class="example-card"><span class="eyebrow">Offline</span><h3>Priority examples unavailable</h3><p>Open /api/demo/priority-examples after the app starts.</p></article>';
+  });
+</script>
+</body>
+</html>

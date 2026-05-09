@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import json
+
 from fastapi.testclient import TestClient
 
 from app.main import create_app, detect_pii
@@ -31,6 +33,7 @@ def test_robots_and_sitemap_are_served(tmp_path) -> None:
     sitemap = client.get("/sitemap.xml")
 
     assert robots.status_code == 200
+    assert "Disallow: /admin" in robots.text
     assert "Sitemap: https://duecare-ai.com/sitemap.xml" in robots.text
     assert sitemap.status_code == 200
     assert "https://duecare-ai.com/" in sitemap.text
@@ -58,6 +61,37 @@ def test_public_website_pages_render_design_templates(tmp_path) -> None:
         assert marker in response.text, f"{path} missing marker {marker!r}"
 
 
+def test_demo_recording_and_admin_pages_render(tmp_path) -> None:
+    client = TestClient(create_app(data_dir=tmp_path))
+
+    recording = client.get("/demo-recording")
+    admin = client.get("/admin")
+
+    assert recording.status_code == 200
+    assert "Five system surfaces in under three minutes" in recording.text
+    assert "no inference wait" in recording.text
+    assert admin.status_code == 200
+    assert "Token-gated troubleshooting" in admin.text
+    assert "DUECARE_ADMIN_TOKEN" in admin.text
+
+
+def test_demo_priority_examples_are_public_and_pii_safe(tmp_path) -> None:
+    client = TestClient(create_app(data_dir=tmp_path))
+
+    response = client.get("/api/demo/priority-examples")
+
+    assert response.status_code == 200
+    payload = response.json()
+    examples = payload["examples"]
+    assert len(examples) == 6
+    surfaces = {example["surface"] for example in examples}
+    assert "platform moderation" in surfaces
+    assert "worker mobile chat and opt-in sharing" in surfaces
+    assert "research upload, graph, and anonymized factoids" in surfaces
+    assert detect_pii(json.dumps(payload)) == set()
+    assert payload["finetuning_best_practices"]["sample_data_needed"] is True
+
+
 def test_every_design_route_renders(tmp_path) -> None:
     """Every entry in PAGE_ROUTES must serve a 200 with linked CSS."""
     from app.main import PAGE_ROUTES
@@ -67,6 +101,46 @@ def test_every_design_route_renders(tmp_path) -> None:
         response = client.get(path)
         assert response.status_code == 200, f"{path} returned {response.status_code}"
         assert "/static/styles.css" in response.text, f"{path} did not link the design CSS"
+
+
+def test_admin_logs_are_token_gated_and_redacted(tmp_path, monkeypatch) -> None:
+    monkeypatch.delenv("DUECARE_ADMIN_TOKEN", raising=False)
+    monkeypatch.delenv("DUECARE_HUB_ADMIN_TOKEN", raising=False)
+    client = TestClient(create_app(data_dir=tmp_path))
+
+    disabled = client.get("/api/admin/logs")
+    assert disabled.status_code == 403
+
+    monkeypatch.setenv("DUECARE_ADMIN_TOKEN", "test-admin-token")
+    unauthorized = client.get("/api/admin/logs", headers={"X-DueCare-Admin-Token": "wrong"})
+    assert unauthorized.status_code == 401
+
+    state = client.app.state.duecare
+    state.store.append(
+        "updates.jsonl",
+        {
+            "id": "cli_demo_redaction",
+            "received_at": "2026-05-08T12:00:00+00:00",
+            "kind": "context",
+            "summary": "Demo update includes worker@example.org and +1 555 123 4567 for redaction testing.",
+            "contact_email": "worker@example.org",
+            "payload": {"free_text": "passport A1234567"},
+            "status": "needs_review",
+            "automation": {"verdict": "needs_curator_review", "intent": "pack_update"},
+        },
+    )
+
+    response = client.get("/api/admin/logs", headers={"X-DueCare-Admin-Token": "test-admin-token"})
+
+    assert response.status_code == 200
+    body = response.json()
+    rendered = json.dumps(body)
+    assert "worker@example.org" not in rendered
+    assert "+1 555 123 4567" not in rendered
+    assert "passport A1234567" not in rendered
+    assert "[REDACTED_EMAIL]" in rendered
+    assert body["updates"][0]["contact_email"] == "[REDACTED]"
+    assert body["updates"][0]["payload"] == {"suppressed": True, "keys": ["free_text"]}
 
 
 def test_use_cases_audiences_appear_in_design_order(tmp_path) -> None:
