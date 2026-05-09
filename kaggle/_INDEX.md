@@ -56,14 +56,19 @@ ready to push, gated by Kaggle's daily push rate-limit.
 
 ## Per-notebook canonical files
 
-Each submission notebook directory holds exactly four files:
+Each submission notebook directory holds these files:
 
-| File | Purpose |
-|---|---|
-| `kernel.py` | Source-of-truth Python — what runs on Kaggle |
-| `kernel-metadata.json` | Kaggle CLI metadata (slug, title, attached datasets, GPU/CPU) |
-| `notebook.ipynb` | Jupyter export jupytext-synced from `kernel.py` |
-| `README.md` | Per-notebook overview (purpose, runtime, what to look for) |
+| File | Required? | Purpose |
+|---|---|---|
+| `kernel.py` | always | Source-of-truth Python — what runs on Kaggle |
+| `kernel-metadata.json` | always | Kaggle CLI metadata (slug, title, attached datasets, GPU/CPU) |
+| `README.md` | always | Per-notebook overview (purpose, runtime, what to look for) |
+| `notebook.ipynb` | only when `kernel_type: notebook` | Jupyter export jupytext-synced from `kernel.py` |
+
+Folders with `kernel-metadata.json` set to `kernel_type: script` (e.g.
+`01-duecare-harness-chat/`) ship `kernel.py` directly to Kaggle and
+do **not** include `notebook.ipynb`. Folders with
+`kernel_type: notebook` ship both.
 
 The `wheels/` subdirectory holds the wheels uploaded as a Kaggle
 dataset attached to the notebook. The notebook installs from the
@@ -74,7 +79,7 @@ attached dataset path at startup.
 | Path | Status | Notes |
 |---|---|---|
 | `kaggle/_archive/` | archived | Pre-canonical-layout legacy; superseded |
-| `kaggle/kernels/` | research | The 76-notebook research pipeline; NOT part of the submission. Inventory: `docs/current_kaggle_notebook_state.md` |
+| `kaggle/kernels/` | research | The 77-notebook research pipeline; NOT part of the submission. Inventory: `docs/current_kaggle_notebook_state.md` |
 | `kaggle/models/` | reference | Model card YAML + HF Hub push helpers |
 | `kaggle/shared-datasets/` | reference | Shared assets pulled by multiple notebooks |
 | `kaggle/README.md` | live | Human-readable overview of the 2 core + 11 appendix submission shape |
