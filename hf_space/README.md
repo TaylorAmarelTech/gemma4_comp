@@ -24,6 +24,12 @@ tags:
 > (Gemini API by default) so the Space runs CPU-only without GPU
 > quota.
 
+> **Folder note:** this is the **Harness Chat** Space, served from
+> `hf_space/` (underscore). The sibling `hf-space/` (hyphen) folder
+> serves the **Live Demo** Space — different Space, different deploy
+> URL. See [`docs/REPO_LAYOUT.md`](../docs/REPO_LAYOUT.md) for the
+> distinction.
+
 **Live URL:** https://taylorscottamarel-duecare.hf.space (after deploy)
 
 ## Why this Space exists

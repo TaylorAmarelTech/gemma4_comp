@@ -21,6 +21,12 @@ The user-facing live URL judges click. Migrant-worker safety harness
 wrapping Gemma 4 (Persona / GREP / RAG / Tools), permanent-URL
 edition.
 
+> **Folder note:** this is the **Live Demo** Space, served from
+> `hf-space/` (hyphen). The sibling `hf_space/` (underscore) folder
+> serves the **Harness Chat** Space — different Space, different deploy
+> URL. See [`docs/REPO_LAYOUT.md`](../docs/REPO_LAYOUT.md) for the
+> distinction.
+
 > Built with Google's Gemma 4 (base model:
 > [google/gemma-4-e4b-it](https://huggingface.co/google/gemma-4-e4b-it)).
 > Used in accordance with the
