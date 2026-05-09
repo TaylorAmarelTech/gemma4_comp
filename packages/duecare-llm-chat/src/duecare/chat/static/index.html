@@ -480,10 +480,10 @@ header.bar .badge.loaded .dot {
 .compare-delta-pos { background: rgba(16,185,129,0.15); color: #10b981; }
 .compare-delta-neg { background: rgba(239,68,68,0.15); color: #ef4444; }
 .compare-delta-zero { background: rgba(148,163,184,0.18); color: #94a3b8; }
-.modal[data-layer="persona"] { border-top: 4px solid #a855f7; }
-.modal[data-layer="grep"]    { border-top: 4px solid #ef4444; }
-.modal[data-layer="rag"]     { border-top: 4px solid #3b82f6; }
-.modal[data-layer="tools"]   { border-top: 4px solid #10b981; }
+.modal[data-layer="persona"] { --modal-layer-accent: var(--accent-persona); border-top: 4px solid var(--modal-layer-accent); }
+.modal[data-layer="grep"]    { --modal-layer-accent: var(--accent-grep);    border-top: 4px solid var(--modal-layer-accent); }
+.modal[data-layer="rag"]     { --modal-layer-accent: var(--accent-rag);     border-top: 4px solid var(--modal-layer-accent); }
+.modal[data-layer="tools"]   { --modal-layer-accent: var(--accent-tools);   border-top: 4px solid var(--modal-layer-accent); }
 .modal-header {
   display: flex; justify-content: space-between; align-items: center;
   padding: 16px 20px; border-bottom: 1px solid var(--border);
@@ -499,10 +499,13 @@ header.bar .badge.loaded .dot {
   border-radius: 999px; letter-spacing: 0.06em;
   text-transform: uppercase; vertical-align: middle;
 }
-.modal[data-layer="persona"] .layer-pill { background: rgba(168,85,247,0.15); color: #a855f7; }
-.modal[data-layer="grep"]    .layer-pill { background: rgba(239,68,68,0.15);  color: #ef4444; }
-.modal[data-layer="rag"]     .layer-pill { background: rgba(59,130,246,0.15); color: #3b82f6; }
-.modal[data-layer="tools"]   .layer-pill { background: rgba(16,185,129,0.15); color: #10b981; }
+.modal[data-layer="persona"] .layer-pill,
+.modal[data-layer="grep"] .layer-pill,
+.modal[data-layer="rag"] .layer-pill,
+.modal[data-layer="tools"] .layer-pill {
+  background: color-mix(in srgb, var(--modal-layer-accent) 15%, transparent);
+  color: var(--modal-layer-accent);
+}
 .modal-close {
   background: transparent; border: 0;
   color: var(--muted); cursor: pointer;
@@ -556,7 +559,7 @@ header.bar .badge.loaded .dot {
   resize: vertical;
 }
 .modal-persona-textarea:focus {
-  outline: 2px solid #a855f7; border-color: #a855f7;
+  outline: 2px solid var(--accent-persona); border-color: var(--accent-persona);
 }
 .modal-btn {
   padding: 8px 16px; border-radius: 8px; border: 0; cursor: pointer;
@@ -759,12 +762,12 @@ header.bar .badge.loaded .dot {
           <div style="font-size:13px; font-weight:600; margin-top:6px; line-height:1.3;">Pick a model</div>
           <div style="font-size:11.5px; color:var(--muted); margin-top:4px; line-height:1.4;">E2B for speed, 31B for depth.</div>
         </div>
-        <div onclick="document.querySelector('.harness-tiles').scrollIntoView({behavior:'smooth', block:'start'})" style="cursor:pointer; padding:14px 12px; border:1px solid var(--border, #334155); border-radius:8px; background:rgba(168,85,247,0.05); transition:border-color .15s, transform .12s;" onmouseover="this.style.borderColor='#a855f7'; this.style.transform='translateY(-1px)'" onmouseout="this.style.borderColor='var(--border, #334155)'; this.style.transform='translateY(0)'">
+        <div onclick="document.querySelector('.harness-tiles').scrollIntoView({behavior:'smooth', block:'start'})" style="cursor:pointer; padding:14px 12px; border:1px solid var(--border, #334155); border-radius:8px; background:color-mix(in srgb, var(--accent-grep) 8%, transparent); transition:border-color .15s, transform .12s;" onmouseover="this.style.borderColor='var(--accent-grep)'; this.style.transform='translateY(-1px)'" onmouseout="this.style.borderColor='var(--border, #334155)'; this.style.transform='translateY(0)'">
           <div style="font-family:ui-monospace, SFMono-Regular, Menlo, monospace; font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:0.08em;">Step 02</div>
           <div style="font-size:13px; font-weight:600; margin-top:6px; line-height:1.3;">Flip a layer</div>
           <div style="font-size:11.5px; color:var(--muted); margin-top:4px; line-height:1.4;">Toggle GREP, RAG, Tools to see what each adds.</div>
         </div>
-        <div onclick="document.getElementById('input').focus()" style="cursor:pointer; padding:14px 12px; border:1px solid var(--border, #334155); border-radius:8px; background:rgba(16,185,129,0.05); transition:border-color .15s, transform .12s;" onmouseover="this.style.borderColor='#10b981'; this.style.transform='translateY(-1px)'" onmouseout="this.style.borderColor='var(--border, #334155)'; this.style.transform='translateY(0)'">
+        <div onclick="document.getElementById('input').focus()" style="cursor:pointer; padding:14px 12px; border:1px solid var(--border, #334155); border-radius:8px; background:color-mix(in srgb, var(--accent-tools) 8%, transparent); transition:border-color .15s, transform .12s;" onmouseover="this.style.borderColor='var(--accent-tools)'; this.style.transform='translateY(-1px)'" onmouseout="this.style.borderColor='var(--border, #334155)'; this.style.transform='translateY(0)'">
           <div style="font-family:ui-monospace, SFMono-Regular, Menlo, monospace; font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:0.08em;">Step 03</div>
           <div style="font-size:13px; font-weight:600; margin-top:6px; line-height:1.3;">Send a prompt</div>
           <div style="font-size:11.5px; color:var(--muted); margin-top:4px; line-height:1.4;">Type below or click an example.</div>
@@ -1034,7 +1037,7 @@ function updatePersonaTileBadge() {
       small.id = 'persona-active-name';
       small.style.marginTop = '6px';
       small.style.fontSize = '11px';
-      small.style.color = '#a855f7';
+      small.style.color = 'var(--accent-persona)';
       small.style.fontWeight = '600';
       desc.appendChild(small);
       nameEl = small;
@@ -2972,8 +2975,8 @@ async function renderPersonaLibrary(editingName = null) {
         ? !store.activePersonaName
         : (store.activePersonaName === p.name);
     const editing = editingName === p.name;
-    const borderColor = isActive ? '#a855f7' : 'var(--border)';
-    const bg = isActive ? 'rgba(168,85,247,0.06)' : 'var(--bg)';
+    const borderColor = isActive ? 'var(--accent-persona)' : 'var(--border)';
+    const bg = isActive ? 'color-mix(in srgb, var(--accent-persona) 8%, var(--bg))' : 'var(--bg)';
     let kindBadge = '';
     if (p.isBuiltIn) {
       kindBadge = ' <span style="font-weight:400; color:var(--muted); font-size:11px;">(built-in)</span>';
@@ -2982,7 +2985,7 @@ async function renderPersonaLibrary(editingName = null) {
     }
     html += `<div style="margin-bottom:12px; padding:12px 14px; background:${bg}; border:1px solid ${borderColor}; border-radius:8px;">`;
     html += `<div style="display:flex; align-items:center; justify-content:space-between; gap:8px; flex-wrap:wrap;">`;
-    html += `<div style="font-weight:700; color:#a855f7; font-size:14px;">${escapeHtml(p.name)}${kindBadge}${isActive ? ' <span class="severity-pill" style="background:#a855f7; color:#fff;">ACTIVE</span>' : ''}</div>`;
+    html += `<div style="font-weight:700; color:var(--accent-persona); font-size:14px;">${escapeHtml(p.name)}${kindBadge}${isActive ? ' <span class="severity-pill" style="background:var(--accent-persona); color:#fff;">ACTIVE</span>' : ''}</div>`;
     html += `<div style="display:flex; gap:6px; flex-wrap:wrap;">`;
     if (!isActive) {
       html += `<button class="modal-btn secondary" style="padding:4px 10px; font-size:11px;" onclick="usePersona(${attrJson(p.name)}, ${p.isBuiltIn})">Use</button>`;
@@ -3330,7 +3333,14 @@ async function importDocsFromFiles(fileList) {
 // This IS the "what does the harness DO" demo.
 // ---------------------------------------------------------------------------
 const PIPELINE_LAYER_ORDER = ['persona', 'grep', 'rag', 'import', 'tools', 'online'];
-const PIPELINE_LAYER_COLOR = {persona:'#a855f7', grep:'#ef4444', rag:'#3b82f6', import:'#06b6d4', tools:'#10b981', online:'#f59e0b'};
+const PIPELINE_LAYER_COLOR = {
+  persona: 'var(--accent-persona)',
+  grep: 'var(--accent-grep)',
+  rag: 'var(--accent-rag)',
+  import: 'var(--accent-imports)',
+  tools: 'var(--accent-tools)',
+  online: 'var(--accent-online)',
+};
 const PIPELINE_LAYER_LABEL = {persona:'PERSONA', grep:'GREP', rag:'RAG', import:'IMPORT', tools:'TOOLS', online:'ONLINE'};
 const PIPELINE_LAYER_ROLE = {
   persona: 'prepends an expert role / framework knowledge / response policy',
@@ -3374,7 +3384,7 @@ function _pipelineArrow(opts) {
 
 function _renderLayerBody(layer, t) {
   if (layer === 'persona' && t.text_preview) {
-    return `<div style="padding:10px 12px; background:rgba(168,85,247,0.06); border-radius:6px; font-size:11.5px; color:#cbd5e1; line-height:1.5; white-space:pre-wrap; font-style:italic; max-height:180px; overflow-y:auto;">${escapeHtml(t.text_preview)}</div>`;
+    return `<div style="padding:10px 12px; background:color-mix(in srgb, var(--accent-persona) 8%, transparent); border-radius:6px; font-size:11.5px; color:#cbd5e1; line-height:1.5; white-space:pre-wrap; font-style:italic; max-height:180px; overflow-y:auto;">${escapeHtml(t.text_preview)}</div>`;
   }
   if (layer === 'grep' && t.hits && t.hits.length) {
     return t.hits.map(h => {
@@ -3391,7 +3401,7 @@ function _renderLayerBody(layer, t) {
   if (layer === 'rag' && t.docs && t.docs.length) {
     let header = '';
     if (t.reranked) {
-      header += `<div style="margin-bottom:6px; padding:5px 8px; background:rgba(168,85,247,0.08); border-left:3px solid #a855f7; border-radius:3px; font-size:11px; color:#a855f7; font-weight:600;">↻ Reranked by cross-encoder</div>`;
+      header += `<div style="margin-bottom:6px; padding:5px 8px; background:color-mix(in srgb, var(--accent-rag) 8%, transparent); border-left:3px solid var(--accent-rag); border-radius:3px; font-size:11px; color:var(--accent-rag); font-weight:600;">↻ Reranked by cross-encoder</div>`;
     }
     const docsHtml = t.docs.map(d => `
       <div style="margin-bottom:8px; padding:8px 10px; background:var(--bg); border-radius:6px;">
@@ -3606,13 +3616,13 @@ function openPipelineModal(messageIdx) {
       </tr>`;
     }).join('');
     cards.push(_pipelineCard({
-      step: stepNum++, color: '#a855f7', title: 'RETRIEVAL PATH TRACE',
+      step: stepNum++, color: 'var(--accent-rag)', title: 'RETRIEVAL PATH TRACE',
       subtitle: `${pathTraceStages.length} retrieval-stage event(s) recorded — full BM25→dense→RRF→rerank→graph→parent decision chain`,
       body: `
         <div style="font-size:11px; color:var(--muted); margin-bottom:8px;">Each row is one retrieval-pipeline stage. Sequence reads top-to-bottom in execution order.</div>
         <table style="width:100%; border-collapse:collapse; font-size:11px;">
           <thead>
-            <tr style="background:rgba(168,85,247,0.06);">
+            <tr style="background:color-mix(in srgb, var(--accent-rag) 8%, transparent);">
               <th style="text-align:left; padding:5px 8px; color:var(--muted); font-size:10px; text-transform:uppercase; letter-spacing:0.4px;">Layer</th>
               <th style="text-align:left; padding:5px 8px; color:var(--muted); font-size:10px; text-transform:uppercase;">Stage</th>
               <th style="text-align:right; padding:5px 8px; color:var(--muted); font-size:10px; text-transform:uppercase;">In</th>
@@ -5662,8 +5672,15 @@ function renderGradeChips(chips, idx) {
 function renderHarnessTrace(trace) {
   if (!trace) return '';
   const layers = ['persona', 'grep', 'rag', 'import', 'tools', 'online'];
-  const colors = {persona:'#a855f7', grep:'#ef4444', rag:'#3b82f6', tools:'#10b981', online:'#f59e0b'};
-  const labels = {persona:'Persona', grep:'GREP', rag:'RAG', tools:'Tools', online:'Online'};
+  const colors = {
+    persona: 'var(--accent-persona)',
+    grep: 'var(--accent-grep)',
+    rag: 'var(--accent-rag)',
+    import: 'var(--accent-imports)',
+    tools: 'var(--accent-tools)',
+    online: 'var(--accent-online)',
+  };
+  const labels = {persona:'Persona', grep:'GREP', rag:'RAG', import:'Import', tools:'Tools', online:'Online'};
   const blocks = [];
   for (const k of layers) {
     const t = trace[k];
@@ -5672,7 +5689,7 @@ function renderHarnessTrace(trace) {
     const color = colors[k];
     let detail = '';
     if (k === 'persona' && t.text_preview) {
-      detail = `<div style="margin:6px 0 0 0; padding:8px 10px; background:rgba(168,85,247,0.06); border-radius:4px; font-size:11.5px; color:#cbd5e1; font-style:italic;">${escapeHtml(t.text_preview)}</div>`;
+      detail = `<div style="margin:6px 0 0 0; padding:8px 10px; background:color-mix(in srgb, var(--accent-persona) 8%, transparent); border-radius:4px; font-size:11.5px; color:#cbd5e1; font-style:italic;">${escapeHtml(t.text_preview)}</div>`;
     } else if (k === 'grep' && t.hits && t.hits.length) {
       detail = '<ul style="margin:6px 0 0 18px; padding:0;">' +
         t.hits.map(h => `<li><b>${escapeHtml(h.rule)}</b> [${escapeHtml(h.severity||'?')}] — ${escapeHtml(h.citation||'')}<br><code style="color:#94a3b8; font-size:11.5px;">${escapeHtml(h.match_excerpt||'')}</code></li>`).join('') +
@@ -5821,12 +5838,12 @@ function renderChat() {
 // spinning indicator and its own elapsed-time counter.
 const STEP_COLOR = {
   resolve: '#94a3b8',
-  persona: '#a855f7',
-  grep:    '#ef4444',
-  rag:     '#3b82f6',
-  import:  '#06b6d4',
-  tools:   '#10b981',
-  online:  '#f59e0b',
+  persona: 'var(--accent-persona)',
+  grep:    'var(--accent-grep)',
+  rag:     'var(--accent-rag)',
+  import:  'var(--accent-imports)',
+  tools:   'var(--accent-tools)',
+  online:  'var(--accent-online)',
   model:   '#fbbf24',
 };
 function renderStepProgress(m) {
@@ -5842,12 +5859,12 @@ function renderStepProgress(m) {
       statusBadge = '';
       summaryText = '<span style="color:var(--muted); font-style:italic; font-size:11px;">waiting…</span>';
     } else if (step.status === 'running') {
-      icon = `<span style="display:inline-block; width:14px; height:14px; border:2px solid ${color}33; border-top-color:${color}; border-radius:50%; vertical-align:middle; animation:dc-spin 0.8s linear infinite;"></span>`;
+      icon = `<span style="display:inline-block; width:14px; height:14px; border:2px solid color-mix(in srgb, ${color} 20%, transparent); border-top-color:${color}; border-radius:50%; vertical-align:middle; animation:dc-spin 0.8s linear infinite;"></span>`;
       statusBadge = `<span style="background:${color}; color:#fff; font-size:9.5px; font-weight:700; padding:2px 7px; border-radius:8px; text-transform:uppercase; letter-spacing:0.4px;">running</span>`;
       summaryText = '<span style="color:var(--ink); font-size:11px;">in progress…</span>';
     } else if (step.status === 'complete' || step.status === 'noop') {
       icon = `<span style="display:inline-block; width:14px; height:14px; background:${color}; border-radius:50%; vertical-align:middle; color:#fff; font-size:10px; font-weight:700; text-align:center; line-height:14px;">✓</span>`;
-      statusBadge = `<span style="background:${color}22; color:${color}; font-size:9.5px; font-weight:700; padding:2px 7px; border-radius:8px; text-transform:uppercase; letter-spacing:0.4px;">${step.status === 'noop' ? 'no-op' : 'done'}</span>`;
+      statusBadge = `<span style="background:color-mix(in srgb, ${color} 13%, transparent); color:${color}; font-size:9.5px; font-weight:700; padding:2px 7px; border-radius:8px; text-transform:uppercase; letter-spacing:0.4px;">${step.status === 'noop' ? 'no-op' : 'done'}</span>`;
       const ms = step.elapsed_ms || 0;
       const tStr = ms < 1000 ? `${ms} ms` : `${(ms/1000).toFixed(1)} s`;
       summaryText = `<span style="color:var(--ink); font-size:11px;">${escapeHtml(step.summary || '')}</span> <span style="color:var(--muted); font-size:11px;">· ${tStr}</span>`;
