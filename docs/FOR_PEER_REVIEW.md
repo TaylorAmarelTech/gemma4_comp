@@ -296,8 +296,9 @@ transformation byte-for-byte.
 ## What this submission is NOT claiming
 
 - We did **not** build a 12-agent autonomous swarm. We built a
-  toggleable harness with 5 layers (Persona / GREP / RAG / Tools / Online).
-- We did **not** publish 76 notebooks as the submission. The 76-notebook
+  toggleable harness with 6 layers (Persona / GREP / RAG / Tools /
+  Online / Imports).
+- We did **not** publish 77 notebooks as the submission. The 77-notebook
   research pipeline lives in `kaggle/kernels/` for reproducibility but
   the **submission is the 2 core + 11 appendix notebooks listed above**.
 - We are **not** claiming a fine-tuned Gemma 4 model is published at
