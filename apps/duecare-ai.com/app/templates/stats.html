@@ -10,10 +10,13 @@
 .st-hero .top { display: flex; justify-content: space-between; align-items: end; gap: 24px; flex-wrap: wrap; }
 .st-hero .updated { font-family: var(--mono); font-size: 12px; color: var(--ink-3); display: flex; gap: 18px; }
 .st-hero .updated b { color: var(--accent-ink); font-weight: 600; }
-.st-strip { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.st-strip-wrap { padding: 0 32px; max-width: 1200px; margin: 0 auto; }
+.st-strip { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; border: 1px solid var(--line); border-radius: 12px; background: var(--paper); overflow: hidden; }
 @media (max-width: 720px) { .st-strip { grid-template-columns: repeat(2, 1fr); } }
-.st-strip .cell { padding: 22px 24px; border-right: 1px solid var(--line); }
+.st-strip .cell { padding: 22px 24px; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); }
 .st-strip .cell:last-child { border-right: none; }
+.st-strip .cell:nth-last-child(-n+1) { border-bottom: none; }
+@media (min-width: 721px) { .st-strip .cell:nth-child(n+1) { border-bottom: none; } .st-strip .cell:nth-child(4n) { border-right: none; } }
 .st-strip .lbl { font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.10em; color: var(--ink-3); text-transform: uppercase; }
 .st-strip .val { font-size: 32px; letter-spacing: -0.025em; margin-top: 6px; }
 .st-strip .delta { font-family: var(--mono); font-size: 11.5px; color: var(--accent-ink); margin-top: 2px; }
@@ -57,8 +60,11 @@
 .st-timeline .ev .when { font-family: var(--mono); font-size: 11px; color: var(--ink-3); }
 .st-timeline .ev h4 { margin: 2px 0 0; font-size: 14.5px; letter-spacing: -0.01em; }
 .st-timeline .ev p { margin: 4px 0 0; font-size: 13px; line-height: 1.5; color: var(--ink-2); }
-.st-audit { font-family: var(--mono); font-size: 12px; line-height: 1.6; background: oklch(0.16 0.005 60); color: oklch(0.88 0.01 60); border-radius: 12px; padding: 22px 26px; max-height: 460px; overflow: auto; }
-.st-audit .row { display: grid; grid-template-columns: 132px 80px 1fr 80px; gap: 14px; padding: 6px 0; border-bottom: 1px solid oklch(0.24 0.005 60); }
+.st-audit { font-family: var(--mono); font-size: 12px; line-height: 1.6; background: oklch(0.16 0.005 60); color: oklch(0.88 0.01 60); border-radius: 12px; padding: 18px 22px; max-height: 460px; overflow: auto; }
+.st-audit .row { display: grid; grid-template-columns: 130px 160px minmax(0, 1fr) 150px; gap: 24px; padding: 8px 0; border-bottom: 1px solid oklch(0.24 0.005 60); align-items: baseline; }
+.st-audit .row > span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.st-audit .row .obj { white-space: normal; word-break: break-word; }
+@media (max-width: 720px) { .st-audit .row { grid-template-columns: 1fr; gap: 4px; padding: 10px 0; } .st-audit .row > span { white-space: normal; } }
 .st-audit .row:last-child { border-bottom: none; }
 .st-audit .ts { color: oklch(0.62 0.05 60); }
 .st-audit .verb { color: oklch(0.78 0.13 90); }
@@ -70,19 +76,8 @@
 @keyframes pulse { 0%,100% { opacity: 0.5; } 50% { opacity: 1; } }
 </style>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%230E1116'/%3E%3Ctext x='16' y='21' text-anchor='middle' font-family='monospace' font-weight='700' font-size='14' fill='%23F7F6F1'%3ED%3C/text%3E%3C/svg%3E" />
-</head><body><nav class="nav">
-  <div class="nav-inner">
-    <a href="/" class="brand"><span class="brand-mark">D</span> DueCare AI</a>
-    <div class="nav-links">
-      <a href="/demo">Demo</a>
-      <a href="/use-cases">Use cases</a>
-      <a href="/hub">Hub</a>
-      <a href="/docs">Docs</a>
-      <a href="/stats" class="on">Stats</a>
-    </div>
-    <a href="/login?next=/contribute" class="nav-cta">Get involved <span aria-hidden="true">&rarr;</span></a>
-  </div>
-</nav>
+</head><body>{% set active_nav = "stats" %}
+{% include "_nav.html" %}
 <section class="st-hero" data-screen-label="Stats &middot; Hero"><div class="wrap">
 <div class="top">
 <div>
@@ -90,16 +85,16 @@
 <h1>What the hub holds. What it has done. Always replayable.</h1>
 <p class="lede">Everything on this page is computed from the same public audit feed any partner can pull. Aggregates respect the k&ge;30 floor. Nothing here references a worker, a case, or a private channel.</p>
 </div>
-<div class="updated"><span>Updated <b>2026-04-22 14:02 UTC</b></span><span>Audit root <b>4f7c&hellip;9a21</b></span></div>
+<div class="updated"><span>Updated <b>2026-04-22 14:02 UTC</b></span></div>
 </div>
 </div></section>
 
-<section class="st-strip" data-screen-label="Stats &middot; Headline"><div class="cell"><div class="lbl">Signed packs</div><div class="val">42</div><div class="delta">&uarr; 6 in last 90d</div></div><div class="cell"><div class="lbl">Tools in registry</div><div class="val">17</div><div class="delta">&uarr; 2 in last 90d</div></div><div class="cell"><div class="lbl">Coarse signals (90d)</div><div class="val">14,208</div><div class="delta">k&ge;30 floor enforced</div></div><div class="cell"><div class="lbl">Audit events (all-time)</div><div class="val">3.1M</div><div class="delta">append-only</div></div></section>
+<section data-screen-label="Stats &middot; Headline"><div class="st-strip-wrap"><div class="st-strip"><div class="cell"><div class="lbl">Vetted packs</div><div class="val">42</div><div class="delta">&uarr; 6 in last 90d</div></div><div class="cell"><div class="lbl">Tools in registry</div><div class="val">17</div><div class="delta">&uarr; 2 in last 90d</div></div><div class="cell"><div class="lbl">Anonymized signals (90d)</div><div class="val">14,208</div><div class="delta">k&ge;30 floor enforced</div></div><div class="cell"><div class="lbl">History feed events</div><div class="val">3.1M</div><div class="delta">nothing overwritten</div></div></div></div></section>
 
 <section class="st-section" data-screen-label="Stats &middot; Growth"><div class="wrap">
-<div class="head"><div><span class="ix">01 &middot; What the hub holds, over time</span><h2>Knowledge packs and tools, week by week.</h2></div><p class="summary">Each release is curator-signed. Each step on these lines corresponds to a row in the audit feed.</p></div>
+<div class="head"><div><span class="ix">01 &middot; What the hub holds, over time</span><h2>Knowledge packs and tools, week by week.</h2></div><p class="summary">Each release is curator-vetted. Each step on these lines corresponds to a row in the audit feed.</p></div>
 <div class="st-row2">
-<div class="st-card"><div class="h"><h3>Cumulative pack versions</h3><span class="meta">52 weeks</span></div><p class="sub">Counts every signed pack release across all corridors. Major + minor + patch.</p><svg viewBox="0 0 420 164" preserveAspectRatio="none">
+<div class="st-card"><div class="h"><h3>Cumulative pack versions</h3><span class="meta">52 weeks</span></div><p class="sub">Counts every vetted pack release across all corridors. Major + minor + patch.</p><svg viewBox="0 0 420 164" preserveAspectRatio="none">
     <g class="grid"><line x1="0" y1="35" x2="420" y2="35"/><line x1="0" y1="70" x2="420" y2="70"/><line x1="0" y1="105" x2="420" y2="105"/></g>
     <path d="M0.0,111.3 L8.2,111.3 L16.5,107.7 L24.7,104.1 L32.9,100.5 L41.2,96.9 L49.4,93.3 L57.6,93.3 L65.9,89.7 L74.1,89.7 L82.4,86.2 L90.6,86.2 L98.8,86.2 L107.1,86.2 L115.3,82.6 L123.5,82.6 L131.8,82.6 L140.0,79.0 L148.2,79.0 L156.5,75.4 L164.7,75.4 L172.9,71.8 L181.2,68.2 L189.4,64.6 L197.6,61.0 L205.9,57.4 L214.1,53.8 L222.4,50.3 L230.6,46.7 L238.8,43.1 L247.1,39.5 L255.3,39.5 L263.5,35.9 L271.8,35.9 L280.0,32.3 L288.2,32.3 L296.5,32.3 L304.7,28.7 L312.9,28.7 L321.2,28.7 L329.4,28.7 L337.6,25.1 L345.9,25.1 L354.1,21.5 L362.4,21.5 L370.6,17.9 L378.8,14.4 L387.1,10.8 L395.3,10.8 L403.5,7.2 L411.8,3.6 L420.0,0.0 L420,140 L0,140 Z" fill="oklch(0.45 0.13 45)" opacity="0.12"/>
     <path d="M0.0,111.3 L8.2,111.3 L16.5,107.7 L24.7,104.1 L32.9,100.5 L41.2,96.9 L49.4,93.3 L57.6,93.3 L65.9,89.7 L74.1,89.7 L82.4,86.2 L90.6,86.2 L98.8,86.2 L107.1,86.2 L115.3,82.6 L123.5,82.6 L131.8,82.6 L140.0,79.0 L148.2,79.0 L156.5,75.4 L164.7,75.4 L172.9,71.8 L181.2,68.2 L189.4,64.6 L197.6,61.0 L205.9,57.4 L214.1,53.8 L222.4,50.3 L230.6,46.7 L238.8,43.1 L247.1,39.5 L255.3,39.5 L263.5,35.9 L271.8,35.9 L280.0,32.3 L288.2,32.3 L296.5,32.3 L304.7,28.7 L312.9,28.7 L321.2,28.7 L329.4,28.7 L337.6,25.1 L345.9,25.1 L354.1,21.5 L362.4,21.5 L370.6,17.9 L378.8,14.4 L387.1,10.8 L395.3,10.8 L403.5,7.2 L411.8,3.6 L420.0,0.0" fill="none" stroke="oklch(0.45 0.13 45)" stroke-width="2"/>
@@ -115,14 +110,14 @@
 </div></section>
 
 <section class="st-section" data-screen-label="Stats &middot; Signals"><div class="wrap">
-<div class="head"><div><span class="ix">02 &middot; Coarse signals, by corridor</span><h2>Opt-in coarse signals, k-anonymity floored.</h2></div><p class="summary">Stacked weekly counts across the four highest-volume corridors. Slices below k=30 are not shown; they appear in the audit feed as suppressed rows.</p></div>
+<div class="head"><div><span class="ix">02 &middot; Anonymized signals, by corridor</span><h2>Opt-in anonymized signals, k-anonymity floored.</h2></div><p class="summary">Stacked weekly counts across the four highest-volume corridors. Slices below k=30 are not shown; they appear in the audit feed as suppressed rows.</p></div>
 <div class="st-row2">
 <div class="st-card"><div class="h"><h3>Signals received per week</h3><span class="meta">last 12 weeks</span></div><svg viewBox="0 0 420 204" preserveAspectRatio="none">
     <g class="grid"><line x1="40" y1="45" x2="420" y2="45"/><line x1="40" y1="90" x2="420" y2="90"/><line x1="40" y1="135" x2="420" y2="135"/><line x1="40" y1="180" x2="420" y2="180"/></g>
     <rect x="40" y="163.7802197802198" width="27.666666666666668" height="16.21978021978022" fill="oklch(0.55 0.13 30)"/><rect x="40" y="137.27472527472528" width="27.666666666666668" height="26.505494505494507" fill="oklch(0.60 0.10 60)"/><rect x="40" y="119.47252747252745" width="27.666666666666668" height="17.802197802197803" fill="oklch(0.45 0.10 200)"/><rect x="40" y="89.01098901098901" width="27.666666666666668" height="30.461538461538463" fill="oklch(0.50 0.10 130)"/><rect x="71.66666666666667" y="144.7912087912088" width="27.666666666666668" height="35.20879120879121" fill="oklch(0.55 0.13 30)"/><rect x="71.66666666666667" y="104.83516483516483" width="27.666666666666668" height="39.956043956043956" fill="oklch(0.60 0.10 60)"/><rect x="71.66666666666667" y="85.84615384615384" width="27.666666666666668" height="18.98901098901099" fill="oklch(0.45 0.10 200)"/><rect x="71.66666666666667" y="51.03296703296702" width="27.666666666666668" height="34.81318681318682" fill="oklch(0.50 0.10 130)"/><rect x="103.33333333333334" y="161.01098901098902" width="27.666666666666668" height="18.98901098901099" fill="oklch(0.55 0.13 30)"/><rect x="103.33333333333334" y="134.90109890109892" width="27.666666666666668" height="26.109890109890113" fill="oklch(0.60 0.10 60)"/><rect x="103.33333333333334" y="101.67032967032966" width="27.666666666666668" height="33.23076923076923" fill="oklch(0.45 0.10 200)"/><rect x="103.33333333333334" y="66.85714285714285" width="27.666666666666668" height="34.81318681318682" fill="oklch(0.50 0.10 130)"/><rect x="135" y="145.58241758241758" width="27.666666666666668" height="34.417582417582416" fill="oklch(0.55 0.13 30)"/><rect x="135" y="119.07692307692307" width="27.666666666666668" height="26.505494505494507" fill="oklch(0.60 0.10 60)"/><rect x="135" y="97.71428571428572" width="27.666666666666668" height="21.36263736263736" fill="oklch(0.45 0.10 200)"/><rect x="135" y="77.93406593406594" width="27.666666666666668" height="19.78021978021978" fill="oklch(0.50 0.10 130)"/><rect x="166.66666666666669" y="152.7032967032967" width="27.666666666666668" height="27.296703296703296" fill="oklch(0.55 0.13 30)"/><rect x="166.66666666666669" y="120.26373626373626" width="27.666666666666668" height="32.43956043956044" fill="oklch(0.60 0.10 60)"/><rect x="166.66666666666669" y="82.28571428571428" width="27.666666666666668" height="37.97802197802198" fill="oklch(0.45 0.10 200)"/><rect x="166.66666666666669" y="38.76923076923076" width="27.666666666666668" height="43.51648351648352" fill="oklch(0.50 0.10 130)"/><rect x="198.33333333333334" y="144.39560439560438" width="27.666666666666668" height="35.604395604395606" fill="oklch(0.55 0.13 30)"/><rect x="198.33333333333334" y="117.89010989010987" width="27.666666666666668" height="26.505494505494507" fill="oklch(0.60 0.10 60)"/><rect x="198.33333333333334" y="78.72527472527472" width="27.666666666666668" height="39.16483516483517" fill="oklch(0.45 0.10 200)"/><rect x="198.33333333333334" y="36.39560439560439" width="27.666666666666668" height="42.32967032967033" fill="oklch(0.50 0.10 130)"/><rect x="230" y="156.65934065934067" width="27.666666666666668" height="23.340659340659343" fill="oklch(0.55 0.13 30)"/><rect x="230" y="132.92307692307693" width="27.666666666666668" height="23.736263736263737" fill="oklch(0.60 0.10 60)"/><rect x="230" y="100.08791208791207" width="27.666666666666668" height="32.83516483516483" fill="oklch(0.45 0.10 200)"/><rect x="230" y="63.69230769230769" width="27.666666666666668" height="36.395604395604394" fill="oklch(0.50 0.10 130)"/><rect x="261.6666666666667" y="144.7912087912088" width="27.666666666666668" height="35.20879120879121" fill="oklch(0.55 0.13 30)"/><rect x="261.6666666666667" y="98.9010989010989" width="27.666666666666668" height="45.89010989010988" fill="oklch(0.60 0.10 60)"/><rect x="261.6666666666667" y="74.76923076923077" width="27.666666666666668" height="24.13186813186813" fill="oklch(0.45 0.10 200)"/><rect x="261.6666666666667" y="43.120879120879124" width="27.666666666666668" height="31.64835164835165" fill="oklch(0.50 0.10 130)"/><rect x="293.33333333333337" y="150.72527472527472" width="27.666666666666668" height="29.274725274725277" fill="oklch(0.55 0.13 30)"/><rect x="293.33333333333337" y="109.18681318681317" width="27.666666666666668" height="41.53846153846154" fill="oklch(0.60 0.10 60)"/><rect x="293.33333333333337" y="79.12087912087912" width="27.666666666666668" height="30.065934065934066" fill="oklch(0.45 0.10 200)"/><rect x="293.33333333333337" y="43.91208791208791" width="27.666666666666668" height="35.20879120879121" fill="oklch(0.50 0.10 130)"/><rect x="325" y="136.0879120879121" width="27.666666666666668" height="43.91208791208791" fill="oklch(0.55 0.13 30)"/><rect x="325" y="104.04395604395604" width="27.666666666666668" height="32.043956043956044" fill="oklch(0.60 0.10 60)"/><rect x="325" y="71.20879120879121" width="27.666666666666668" height="32.83516483516483" fill="oklch(0.45 0.10 200)"/><rect x="325" y="31.64835164835165" width="27.666666666666668" height="39.56043956043956" fill="oklch(0.50 0.10 130)"/><rect x="356.6666666666667" y="131.73626373626374" width="27.666666666666668" height="48.26373626373626" fill="oklch(0.55 0.13 30)"/><rect x="356.6666666666667" y="83.47252747252747" width="27.666666666666668" height="48.26373626373626" fill="oklch(0.60 0.10 60)"/><rect x="356.6666666666667" y="37.58241758241759" width="27.666666666666668" height="45.89010989010988" fill="oklch(0.45 0.10 200)"/><rect x="356.6666666666667" y="5.142857142857139" width="27.666666666666668" height="32.43956043956044" fill="oklch(0.50 0.10 130)"/><rect x="388.33333333333337" y="149.93406593406593" width="27.666666666666668" height="30.065934065934066" fill="oklch(0.55 0.13 30)"/><rect x="388.33333333333337" y="102.85714285714285" width="27.666666666666668" height="47.07692307692308" fill="oklch(0.60 0.10 60)"/><rect x="388.33333333333337" y="50.637362637362635" width="27.666666666666668" height="52.219780219780226" fill="oklch(0.45 0.10 200)"/><rect x="388.33333333333337" y="-7.105427357601002e-15" width="27.666666666666668" height="50.637362637362635" fill="oklch(0.50 0.10 130)"/>
     <g class="axis"><text x="0" y="49">341</text><text x="0" y="94">228</text><text x="0" y="139">114</text><text x="0" y="184">0</text><text x="40" y="198">12w ago</text><text x="390" y="198">today</text></g>
   </svg><div class="legend"><span><i style="background:oklch(0.55 0.13 30);"></i>NPL→QAT</span><span><i style="background:oklch(0.60 0.10 60);"></i>BGD→SAU</span><span><i style="background:oklch(0.45 0.10 200);"></i>IDN→HKG</span><span><i style="background:oklch(0.50 0.10 130);"></i>PHL→KWT</span></div></div>
-<div class="st-card"><div class="h"><h3>By corridor &middot; latest week</h3><span class="meta">2026-W16</span></div><p class="sub">Per-corridor coarse-signal volume in the latest reporting week, with a sparkline of the last 12.</p>
+<div class="st-card"><div class="h"><h3>By corridor &middot; latest week</h3><span class="meta">2026-W16</span></div><p class="sub">Per-corridor anonymized-signal volume in the latest reporting week, with a sparkline of the last 12.</p>
 <div style="margin-top:14px;">
 <div class="st-corridor"><span class="name">NPL &rarr; QAT</span><span class="pack">construction</span><span class="k">k=412</span><span class="spark"><svg viewBox="0 0 120 24"><path d="M0.0,22.0 L10.9,17.2 L21.8,24.0 L32.7,18.8 L43.6,14.0 L54.5,16.0 L65.5,10.0 L76.4,12.0 L87.3,9.2 L98.2,6.0 L109.1,2.8 L120.0,0.0"/></svg></span></div>
 <div class="st-corridor"><span class="name">BGD &rarr; SAU</span><span class="pack">domestic</span><span class="k">k=308</span><span class="spark"><svg viewBox="0 0 120 24"><path d="M0.0,21.5 L10.9,18.0 L21.8,24.0 L32.7,16.5 L43.6,13.0 L54.5,15.0 L65.5,10.0 L76.4,8.0 L87.3,4.0 L98.2,6.5 L109.1,3.0 L120.0,0.0"/></svg></span></div>
@@ -159,7 +154,7 @@
 </div></section>
 
 <section class="st-section" data-screen-label="Stats &middot; Releases"><div class="wrap">
-<div class="head"><div><span class="ix">04 &middot; Curator-signed releases</span><h2>Every key rotation. Every signed release.</h2></div><p class="summary">Timeline of signing-key rotations and the releases they cover. Old keys remain in the public log.</p></div>
+<div class="head"><div><span class="ix">04 &middot; Curator-vetted releases</span><h2>Every key rotation. Every signed release.</h2></div><p class="summary">Timeline of signing-key rotations and the releases they cover. Old keys remain in the public log.</p></div>
 <div class="st-timeline">
 <div class="ev"><span class="when">2026-04-12 &middot; 09:14 UTC</span><h4>Signed release &middot; <code>npl-qat-construction@1.4.0</code></h4><p>Material change: revised host-country fee cap. Reviewed by curator key <code>k.maharjan</code>. Alert sent.</p></div>
 <div class="ev"><span class="when">2026-03-28 &middot; 14:02 UTC</span><h4>Signed release &middot; <code>bgd-sau-domestic@2.1.0</code></h4><p>Advisory: passport-handling clause clarified. Curator key <code>r.haque</code>.</p></div>
@@ -204,10 +199,5 @@
 </div>
 <p style="font-size:13px;color:var(--ink-3);margin-top:14px;max-width:64ch;">Anyone can replay this feed against a fresh pack pull and reproduce every advisory the harness has ever surfaced.</p>
 </div></section>
-<footer><div class="wrap"><div class="foot-grid">
-<div><a href="/" class="brand"><span class="brand-mark">D</span> DueCare AI</a><p class="muted" style="font-size:14px;max-width:38ch;margin-top:8px;">Public-interest AI infrastructure for migrant-worker safety. <a href="/mission" style="color:inherit;text-decoration:underline;">Read the mission &rarr;</a></p></div>
-<div><h4>Hub</h4><ul><li><a href="/hub">Overview</a></li><li><a href="/knowledge-packs">Knowledge packs</a></li><li><a href="/tools-registry">Tools registry</a></li><li><a href="/research-monitor">Research monitor</a></li></ul></div>
-<div><h4>Docs</h4><ul><li><a href="/docs">Overview</a></li><li><a href="/technical-docs">Schemas</a></li><li><a href="/components">Architecture</a></li><li><a href="/why-gemma">Why Gemma 4</a></li><li><a href="/evaluation">Eval &amp; retraining</a></li><li><a href="/harness">Safety harness</a></li><li><a href="/setup">Setup guides</a></li><li><a href="/privacy-boundary">Privacy boundary</a></li></ul></div>
-<div><h4>Get involved</h4><ul><li><a href="/submit-information">Submit info</a></li><li><a href="/newsletter">Newsletter</a></li><li><a href="/email-feedback">Email feedback</a></li><li><a href="/alerts">Alerts archive</a></li><li><a href="/contribute">Contribute</a></li></ul></div>
-<div><h4>Verify</h4><ul><li><a href="/stats">Stats &amp; audit</a></li><li><a href="/dashboard">Live data</a></li><li><a href="/mission">Mission</a></li><li><a href="/contact">Contact</a></li></ul></div>
-</div><div class="foot-bottom"><span>&copy; 2026 DueCare AI</span><span>v0.4 &middot; public hub draft</span></div></div></footer></body></html>
+{% include "_footer.html" %}
+</body></html>

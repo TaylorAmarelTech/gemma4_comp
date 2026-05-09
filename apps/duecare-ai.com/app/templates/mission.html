@@ -51,23 +51,12 @@
 .ms-close .actions { margin-top: 36px; display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
 </style>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%230E1116'/%3E%3Ctext x='16' y='21' text-anchor='middle' font-family='monospace' font-weight='700' font-size='14' fill='%23F7F6F1'%3ED%3C/text%3E%3C/svg%3E" />
-</head><body><nav class="nav">
-  <div class="nav-inner">
-    <a href="/" class="brand"><span class="brand-mark">D</span> DueCare AI</a>
-    <div class="nav-links">
-      <a href="/demo">Demo</a>
-      <a href="/use-cases">Use cases</a>
-      <a href="/hub">Hub</a>
-      <a href="/docs">Docs</a>
-      <a href="/stats">Stats</a>
-    </div>
-    <a href="/login?next=/contribute" class="nav-cta">Get involved <span aria-hidden="true">&rarr;</span></a>
-  </div>
-</nav>
+</head><body>{% set active_nav = "mission" %}
+{% include "_nav.html" %}
 <section class="ms-hero" data-screen-label="Mission &middot; Hero"><div class="wrap">
 <span class="kicker">/mission</span>
 <h1>Better safety guidance without centralizing private case data.</h1>
-<p class="lede">DueCare AI exists to help workers, trusted organizations, platforms, regulators, and researchers recognize exploitation risks earlier, act with better information, and improve shared safety knowledge &mdash; without centralizing raw private case data.</p>
+<p class="lede">DueCare AI exists to help workers, trusted organizations, platforms, regulators, and researchers recognize exploitation risks earlier, act with better information, and improve shared safety knowledge. without centralizing raw private case data.</p>
 </div></section>
 
 <section class="ms-section" data-screen-label="Mission &middot; Problem"><div class="wrap">
@@ -75,13 +64,25 @@
 <h2>Risky recruitment looks different in every channel.</h2>
 <div class="body">
 <p>It hides in job posts, in chat threads on a recruiter&rsquo;s phone, in fee receipts, in a contract clause that contradicts a labour ministry circular published last week. The signal is real but it is fragmented across posts, chats, documents, fees, threats, and shifting laws across many corridors.</p>
-<p>The institutions that could act &mdash; platforms, NGOs, regulators, embassies, courts &mdash; each see a slice. Workers, who carry the most context, have the least bandwidth, the slowest connection, and the highest cost of being wrong.</p>
-<p>The pattern is clear: useful safety knowledge already exists, in public sources, in casework experience, in academic research. What&rsquo;s missing is the connective tissue that makes that knowledge available at the moment a worker, a caseworker, or a moderator needs it &mdash; without funnelling private cases into one centralized warehouse.</p>
+<p>The institutions that could act. platforms, NGOs, regulators, embassies, courts. each see a slice. Workers, who carry the most context, have the least bandwidth, the slowest connection, and the highest cost of being wrong.</p>
+<p>The pattern is clear: useful safety knowledge already exists, in public sources, in casework experience, in academic research. What&rsquo;s missing is the connective tissue that makes that knowledge available at the moment a worker, a caseworker, or a moderator needs it. without funnelling private cases into one centralized warehouse.</p>
+</div>
+</div></section>
+
+<section class="ms-section" data-screen-label="Mission &middot; Capability gap"><div class="wrap">
+<span class="ix">02 &middot; Why a general model alone falls short</span>
+<h2>Where AI is sharpest, and where this domain still falls through.</h2>
+<div class="body">
+<p>A useful rule of thumb for where AI gets dramatically better, fast:</p>
+<p style="font-family:var(--mono);font-size:14.5px;background:var(--paper-2);border:1px solid var(--line);border-radius:8px;padding:14px 18px;margin-top:12px;line-height:1.5;">capability spike &asymp; verifiability &times; training attention &times; data coverage &times; economic value</p>
+<p style="margin-top:14px;">Migrant worker exploitation scores low on every factor. Outcomes are hard to verify (workers go silent, cases close years later, and definitions vary by jurisdiction). Training corpora rarely emphasize labour law, recruitment fees, or corridor-specific scams. Public data is thin and scattered across regulators, NGOs, and court filings. The economic incentive to optimize a frontier model for this domain is small relative to coding or search.</p>
+<p>The result: stock models give plausible-sounding answers that are wrong in load-bearing ways. They miss the cited statute. They under-estimate corridor risk. They invent NGO contacts. They paraphrase a recruiter euphemism instead of flagging it.</p>
+<p>Until inherent capability arrives, the gap has to be closed by structure: deterministic <strong>grep</strong> rules that fire before the model speaks, <strong>retrieval</strong> against vetted corridor packs, <strong>tool calls</strong> that ground every claim in a verified source, and a <strong>safety harness</strong> that refuses to answer when it cannot cite. Gemma 4 was chosen because it ships with native tool-calling and is small enough to run on a worker&rsquo;s phone, which is what makes the harness practical.</p>
 </div>
 </div></section>
 
 <section class="ms-section" data-screen-label="Mission &middot; Mission"><div class="wrap">
-<span class="ix">02 &middot; The mission</span>
+<span class="ix">03 &middot; The mission</span>
 <h2>Make trustworthy safety guidance easier to run, audit, and improve.</h2>
 <div class="body">
 <p>DueCare publishes signed knowledge packs, a tools registry, evaluation suites, and a small AI safety harness. Anyone can run them. Everyone can verify them. The whole system fails closed when it can&rsquo;t cite a public source.</p>
@@ -90,19 +91,19 @@
 </div></section>
 
 <section class="ms-section" data-screen-label="Mission &middot; What we do"><div class="wrap">
-<span class="ix">03 &middot; What DueCare does</span>
+<span class="ix">04 &middot; What DueCare does</span>
 <h2>Five concrete jobs.</h2>
 <div class="ms-do">
-<article><span class="tag">01</span><h4>Finds risk signals</h4><p>Detects fee-request patterns, passport-handling clauses, identity-mismatch hints, and other coarse signals across job posts, chat snippets, and contract text.</p></article>
+<article><span class="tag">01</span><h4>Finds risk signals</h4><p>Detects fee-request patterns, passport-handling clauses, identity-mismatch hints, and other anonymized signals across job posts, chat snippets, and contract text.</p></article>
 <article><span class="tag">02</span><h4>Grounds responses</h4><p>Every claim is anchored to a signed knowledge pack with a public-source citation and a date. No source, no claim.</p></article>
 <article><span class="tag">03</span><h4>Protects privacy</h4><p>Raw worker context stays at the edge. The hub never receives names, narratives, or document images.</p></article>
-<article><span class="tag">04</span><h4>Improves shared knowledge</h4><p>Reviewers and partners feed verified updates back through a public review queue with a curator-signed release pipeline.</p></article>
+<article><span class="tag">04</span><h4>Improves shared knowledge</h4><p>Reviewers and partners feed verified updates back through a public review queue with a curator-vetted release pipeline.</p></article>
 <article><span class="tag">05</span><h4>Proves behaviour</h4><p>Reproducible eval suites, append-only audit feeds, and a transparency log let anyone replay what the system said and why.</p></article>
 </div>
 </div></section>
 
 <section class="ms-section" data-screen-label="Mission &middot; What we don't"><div class="wrap">
-<span class="ix">04 &middot; What DueCare does not do</span>
+<span class="ix">05 &middot; What DueCare does not do</span>
 <h2>Six lines we won&rsquo;t cross.</h2>
 <div class="ms-dont">
 <article><span class="tag">Limit 01</span><h4>Does not replace caseworkers, lawyers, or regulators</h4><p>It surfaces information and drafts. Decisions and adjudication remain with humans inside accountable institutions.</p></article>
@@ -115,37 +116,37 @@
 </div></section>
 
 <section class="ms-section" data-screen-label="Mission &middot; Five pillars"><div class="wrap">
-<span class="ix">05 &middot; Five pillars</span>
+<span class="ix">06 &middot; Five pillars</span>
 <h2>One harness. Five places it lives.</h2>
 <div class="ms-pillars">
 <article><span class="num">01</span><h4>Platform safety</h4><p>Job-board moderation runs grep rules + corridor packs at edit time. Postings are screened before they reach workers.</p></article>
-<article><span class="num">02</span><h4>NGO &amp; regulator</h4><p>Caseworker copilots draft cited briefings; regulator dashboards see corridor-level coarse trends. Cases stay local.</p></article>
+<article><span class="num">02</span><h4>NGO &amp; regulator</h4><p>Caseworker copilots draft cited briefings; regulator dashboards see corridor-level anonymized trends. Cases stay local.</p></article>
 <article><span class="num">03</span><h4>Migrant worker chat</h4><p>An on-device sibling app answers in the worker&rsquo;s language, on their phone, even offline.</p></article>
 <article><span class="num">04</span><h4>Academic research</h4><p>Versioned eval packs and reproducible benchmarks for researchers studying labour-market safety.</p></article>
-<article><span class="num">05</span><h4>Host / Hub / Global Server</h4><p>A small public hub holds signed packs, tools, and coarse signals. Three jobs. Append-only. Auditable.</p></article>
+<article><span class="num">05</span><h4>Host / Hub / Global Server</h4><p>A small public hub holds vetted packs, tools, and anonymized signals. Three jobs. Append-only. Auditable.</p></article>
 </div>
 </div></section>
 
 <section class="ms-section" data-screen-label="Mission &middot; Story"><div class="wrap">
-<span class="ix">06 &middot; A composite worker story</span>
+<span class="ix">07 &middot; A composite worker story</span>
 <h2>What this looks like for one person.</h2>
 <div class="ms-story">
 <div class="avatar">M</div>
 <div>
 <span class="label">Composite character &middot; not a real person</span>
 <h3>Maria, 28, considering a domestic-work contract overseas.</h3>
-<p>A recruiter sends Maria a contract over chat and a list of fees. She opens DueCare on her phone. The app reads the contract <em>locally</em> &mdash; nothing is uploaded. It flags two clauses that contradict her source-country labour ministry&rsquo;s most recent circular and one fee that exceeds the corridor&rsquo;s legal cap.</p>
-<p>Each flag links to the public source, with the date. The app drafts a list of questions Maria can ask the recruiter and a list of verified contacts at her embassy and at a partner NGO &mdash; not a single one of which DueCare contacts on her behalf.</p>
-<p>If Maria opts in, an anonymous coarse signal &mdash; <code>fee_excess</code> on this corridor, this week &mdash; is contributed to the public hub. If thirty other workers see the same pattern, it shows up on a regulator&rsquo;s dashboard as a corridor-level trend, with no path back to Maria.</p>
+<p>A recruiter sends Maria a contract over chat and a list of fees. She opens DueCare on her phone. The app reads the contract <em>locally</em>. nothing is uploaded. It flags two clauses that contradict her source-country labour ministry&rsquo;s most recent circular and one fee that exceeds the corridor&rsquo;s legal cap.</p>
+<p>Each flag links to the public source, with the date. The app drafts a list of questions Maria can ask the recruiter and a list of verified contacts at her embassy and at a partner NGO. not a single one of which DueCare contacts on her behalf.</p>
+<p>If Maria opts in, an anonymous anonymized signal. <code>fee_excess</code> on this corridor, this week. is contributed to the public hub. If thirty other workers see the same pattern, it shows up on a regulator&rsquo;s dashboard as a corridor-level trend, with no path back to Maria.</p>
 </div>
 </div>
 </div></section>
 
 <section class="ms-section" data-screen-label="Mission &middot; Ecosystem"><div class="wrap">
-<span class="ix">07 &middot; Partner ecosystem</span>
+<span class="ix">08 &middot; Partner ecosystem</span>
 <h2>Designed to complement institutions that already do this work.</h2>
 <div class="body">
-<p>DueCare is not affiliated with the institutions below. It is built so that NGOs, embassies, labour ministries, and academic centres can use signed packs and the harness to amplify what they already do &mdash; not to be replaced by it.</p>
+<p>DueCare is not affiliated with the institutions below. It is built so that NGOs, embassies, labour ministries, and academic centres can use vetted packs and the harness to amplify what they already do. not to be replaced by it.</p>
 </div>
 <div class="ms-eco">
 <h4>Institutions whose public work the system is designed to complement</h4>
@@ -162,7 +163,7 @@
 </div></section>
 
 <section class="ms-promise" data-screen-label="Mission &middot; Privacy promise"><div class="wrap">
-<span class="ix">08 &middot; The privacy promise</span>
+<span class="ix">09 &middot; The privacy promise</span>
 <h2>Privacy is non-negotiable.</h2>
 <div class="pledges">
 <p>No raw case intake. Ever.</p>
@@ -173,7 +174,7 @@
 </div></section>
 
 <section class="ms-close" data-screen-label="Mission &middot; Close"><div class="wrap">
-<span class="ix" style="font-family:var(--mono);font-size:11px;letter-spacing:0.12em;color:var(--ink-3);text-transform:uppercase;">09 &middot; Closing</span>
+<span class="ix" style="font-family:var(--mono);font-size:11px;letter-spacing:0.12em;color:var(--ink-3);text-transform:uppercase;">10 &middot; Closing</span>
 <h2>DueCare is reusable safety infrastructure, not one chatbot.</h2>
 <div class="actions">
 <a href="/demo" class="btn primary">See the demo &rarr;</a>
@@ -181,10 +182,5 @@
 <a href="/docs" class="btn">Read the docs</a>
 </div>
 </div></section>
-<footer><div class="wrap"><div class="foot-grid">
-<div><a href="/" class="brand"><span class="brand-mark">D</span> DueCare AI</a><p class="muted" style="font-size:14px;max-width:38ch;margin-top:8px;">Public-interest AI infrastructure for migrant-worker safety. <a href="/mission" style="color:inherit;text-decoration:underline;">Read the mission &rarr;</a></p></div>
-<div><h4>Hub</h4><ul><li><a href="/hub">Overview</a></li><li><a href="/knowledge-packs">Knowledge packs</a></li><li><a href="/tools-registry">Tools registry</a></li><li><a href="/research-monitor">Research monitor</a></li></ul></div>
-<div><h4>Docs</h4><ul><li><a href="/docs">Overview</a></li><li><a href="/technical-docs">Schemas</a></li><li><a href="/components">Architecture</a></li><li><a href="/why-gemma">Why Gemma 4</a></li><li><a href="/evaluation">Eval &amp; retraining</a></li><li><a href="/harness">Safety harness</a></li><li><a href="/setup">Setup guides</a></li><li><a href="/privacy-boundary">Privacy boundary</a></li></ul></div>
-<div><h4>Get involved</h4><ul><li><a href="/submit-information">Submit info</a></li><li><a href="/newsletter">Newsletter</a></li><li><a href="/email-feedback">Email feedback</a></li><li><a href="/alerts">Alerts archive</a></li><li><a href="/contribute">Contribute</a></li></ul></div>
-<div><h4>Verify</h4><ul><li><a href="/stats">Stats &amp; audit</a></li><li><a href="/dashboard">Live data</a></li><li><a href="/mission">Mission</a></li><li><a href="/contact">Contact</a></li></ul></div>
-</div><div class="foot-bottom"><span>&copy; 2026 DueCare AI</span><span>v0.4 &middot; public hub draft</span></div></div></footer></body></html>
+{% include "_footer.html" %}
+</body></html>

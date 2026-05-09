@@ -162,20 +162,8 @@
 </head>
 <body>
 
-<nav class="nav">
-  <div class="nav-inner">
-    <a href="/" class="brand"><span class="brand-mark">D</span> DueCare AI</a>
-    <div class="nav-links">
-      <a href="/demo">Demo</a>
-      <a href="/use-cases">Use cases</a>
-      <a href="/hub">Hub</a>
-      <a href="/docs" class="on">Docs</a>
-      <a href="/stats">Stats</a>
-    </div>
-    <a href="/login?next=/contribute" class="nav-cta">Get involved <span aria-hidden="true">&rarr;</span></a>
-  </div>
-</nav>
-
+{% set active_nav = "docs" %}
+{% include "_nav.html" %}
 <section class="page-intro first" data-screen-label="Architecture · Intro">
   <div class="wrap">
     <span class="kicker">/components · architecture &amp; status</span>
@@ -198,16 +186,16 @@
         <div class="on-page">
           <h4>On this page</h4>
           <ul>
-            <li><a href="#map">01 — Component map</a></li>
-            <li><a href="#flow">02 — Data flow &amp; privacy boundary</a></li>
-            <li><a href="#status">03 — Status table</a></li>
-            <li><a href="#contracts">04 — Public contracts</a></li>
+            <li><a href="#map">01. Component map</a></li>
+            <li><a href="#flow">02. Data flow &amp; privacy boundary</a></li>
+            <li><a href="#status">03. Status table</a></li>
+            <li><a href="#contracts">04. Public contracts</a></li>
           </ul>
         </div>
       </aside>
 
       <div>
-        <span class="label" id="map">01 — Component map</span>
+        <span class="label" id="map">01. Component map</span>
         <h2 style="margin-top: 8px; margin-bottom: 24px;">Three lanes, one boundary.</h2>
 
         <div class="arch-board">
@@ -247,7 +235,7 @@
 
           <!-- BOUNDARY -->
           <div class="boundary-band">
-            <span>↑ Privacy boundary — only anonymized signals cross ↑</span>
+            <span>↑ Privacy boundary. only anonymized signals cross ↑</span>
             <span>k-anon ≥ 30 · no PII · audit-logged</span>
           </div>
 
@@ -262,7 +250,7 @@
                 <span class="pill proto"><span class="dot"></span>Prototype</span>
                 <div class="id">04 · exchange</div>
                 <div class="name">Anonymized Exchange</div>
-                <div class="desc">Coarse-pattern signal queue with k-anon floor. Off by default per deployment.</div>
+                <div class="desc">Anonymized-pattern signal queue with k-anon floor. Off by default per deployment.</div>
               </div>
               <div class="arch-node proto">
                 <span class="pill proto"><span class="dot"></span>Prototype</span>
@@ -289,7 +277,7 @@
           <div class="lane">
             <div class="ll">
               <h4>Deployments · partners</h4>
-              <p>Read signed packs back. Never write upstream identifiable data.</p>
+              <p>Read vetted packs back. Never write upstream identifiable data.</p>
             </div>
             <div class="row">
               <div class="arch-node road">
@@ -302,7 +290,7 @@
                 <span class="pill"><span class="dot"></span>Read-only</span>
                 <div class="id">— · ngo</div>
                 <div class="name">NGO copilot pull</div>
-                <div class="desc">Caseworker app pulls signed pack; runs Duecare locally on a triage laptop.</div>
+                <div class="desc">Caseworker app pulls vetted pack; runs Duecare locally on a triage laptop.</div>
               </div>
               <div class="arch-node">
                 <span class="pill"><span class="dot"></span>Read-only</span>
@@ -327,7 +315,7 @@
 
 <section data-screen-label="Architecture · Flow">
   <div class="wrap">
-    <span class="label" id="flow">02 — Data flow &amp; privacy boundary</span>
+    <span class="label" id="flow">02. Data flow &amp; privacy boundary</span>
     <h2 style="margin: 8px 0 24px;">What crosses, what stays.</h2>
 
     <div class="dataflow">
@@ -350,7 +338,7 @@
         <div class="flow-cell hub">
           <span class="pill" style="margin-bottom: 8px;"><span class="dot"></span>Hub</span>
           <h4>Anonymized Exchange</h4>
-          <p class="desc">Receives only coarse patterns. Stores nothing else.</p>
+          <p class="desc">Receives only anonymized patterns. Stores nothing else.</p>
           <div class="what">
             <span>+ pattern_id (e.g. fee_request)</span>
             <span>+ corridor (e.g. qa-np)</span>
@@ -360,7 +348,7 @@
           </div>
         </div>
         <div class="flow-arrow">
-          <span>← signed pack</span>
+          <span>← vetted pack</span>
           <div class="line"></div>
           <span>versioned</span>
         </div>
@@ -387,7 +375,7 @@
 
 <section data-screen-label="Architecture · Status">
   <div class="wrap">
-    <span class="label" id="status">03 — Status table</span>
+    <span class="label" id="status">03. Status table</span>
     <h2 style="margin: 8px 0 24px;">No vapor. Every claim is checkable.</h2>
 
     <div class="status-table">
@@ -418,15 +406,15 @@
 
 <section data-screen-label="Architecture · Contracts">
   <div class="wrap">
-    <span class="label" id="contracts">04 — Public contracts</span>
+    <span class="label" id="contracts">04. Public contracts</span>
     <h2 style="margin: 8px 0 24px;">What the hub promises in code.</h2>
 
     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
       <div class="card">
         <span class="label">Hub never accepts</span>
         <ul style="list-style: none; padding: 0; margin: 16px 0 0; display: flex; flex-direction: column; gap: 8px; font-family: var(--mono); font-size: 13px;">
-          <li>× POST /cases — endpoint does not exist</li>
-          <li>× POST /messages — endpoint does not exist</li>
+          <li>× POST /cases. endpoint does not exist</li>
+          <li>× POST /messages. endpoint does not exist</li>
           <li>× any field with name, phone, id, photo</li>
           <li>× any free-text field longer than 64 chars</li>
         </ul>
@@ -435,22 +423,15 @@
         <span class="label">Hub does accept</span>
         <ul style="list-style: none; padding: 0; margin: 16px 0 0; display: flex; flex-direction: column; gap: 8px; font-family: var(--mono); font-size: 13px;">
           <li>✓ POST /signal { pattern, corridor, sector }</li>
-          <li>✓ GET  /pack/&#123;corridor&#125; — signed pack</li>
-          <li>✓ GET  /trends — aggregate, k-anon ≥ 30</li>
-          <li>✓ GET  /docs — OpenAPI spec</li>
+          <li>✓ GET  /pack/&#123;corridor&#125;. vetted pack</li>
+          <li>✓ GET  /trends. aggregate, k-anon ≥ 30</li>
+          <li>✓ GET  /docs. OpenAPI spec</li>
         </ul>
       </div>
     </div>
   </div>
 </section>
 
-<footer><div class="wrap"><div class="foot-grid">
-<div><a href="/" class="brand"><span class="brand-mark">D</span> DueCare AI</a><p class="muted" style="font-size:14px;max-width:38ch;margin-top:8px;">Public-interest AI infrastructure for migrant-worker safety. <a href="/mission" style="color:inherit;text-decoration:underline;">Read the mission &rarr;</a></p></div>
-<div><h4>Hub</h4><ul><li><a href="/hub">Overview</a></li><li><a href="/knowledge-packs">Knowledge packs</a></li><li><a href="/tools-registry">Tools registry</a></li><li><a href="/research-monitor">Research monitor</a></li></ul></div>
-<div><h4>Docs</h4><ul><li><a href="/docs">Overview</a></li><li><a href="/technical-docs">Schemas</a></li><li><a href="/components">Architecture</a></li><li><a href="/why-gemma">Why Gemma 4</a></li><li><a href="/evaluation">Eval &amp; retraining</a></li><li><a href="/harness">Safety harness</a></li><li><a href="/setup">Setup guides</a></li><li><a href="/privacy-boundary">Privacy boundary</a></li></ul></div>
-<div><h4>Get involved</h4><ul><li><a href="/submit-information">Submit info</a></li><li><a href="/newsletter">Newsletter</a></li><li><a href="/email-feedback">Email feedback</a></li><li><a href="/alerts">Alerts archive</a></li><li><a href="/contribute">Contribute</a></li></ul></div>
-<div><h4>Verify</h4><ul><li><a href="/stats">Stats &amp; audit</a></li><li><a href="/dashboard">Live data</a></li><li><a href="/mission">Mission</a></li><li><a href="/contact">Contact</a></li></ul></div>
-</div><div class="foot-bottom"><span>&copy; 2026 DueCare AI</span><span>v0.4 &middot; public hub draft</span></div></div></footer>
-
+{% include "_footer.html" %}
 </body>
 </html>

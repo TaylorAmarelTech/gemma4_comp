@@ -259,22 +259,8 @@
 </head>
 <body>
 
-<nav class="nav">
-  <div class="nav-inner">
-    <a href="/" class="brand"><span class="brand-mark">D</span> DueCare AI</a>
-    <div class="nav-links">
-      <a href="/demo">Demo</a>
-      <a href="/use-cases">Use cases</a>
-      <a href="/hub" class="on">Hub</a>
-      <a href="/docs">Docs</a>
-      <a href="/stats">Stats</a>
-    </div>
-    <a href="/login?next=/contribute" class="nav-cta">Get involved <span aria-hidden="true">&rarr;</span></a>
-  </div>
-</nav>
-
-
-
+{% set active_nav = "hub" %}
+{% include "_nav.html" %}
 <!-- ============== HERO ============== -->
 <section class="hub-hero" data-screen-label="Hub · Intro">
   <div class="wrap">
@@ -284,7 +270,7 @@
         <span class="kicker">/hub · the public coordination layer</span>
         <h1>The DueCare Hub is the public spine that everyone runs against.</h1>
         <p class="lede">The hub is a small, public, append-only service. It signs and serves
-          context packs, holds the global registry of grep rules and tools, accepts coarse
+          context packs, holds the global registry of grep rules and tools, accepts anonymized
           opt-in signals from partner deployments, and exposes a live audit feed. It does
           not see worker messages, names, or case content; those stay on the partner side.</p>
       </div>
@@ -310,22 +296,22 @@
         <span class="ix">01 · What the hub is</span>
         <h2>A small, append-only public service. Not a database of cases.</h2>
       </div>
-      <p class="summary">The hub holds public source material, signed pack manifests, the
-        registry of grep rules and tools, and a coarse trend rollup. It is intentionally
+      <p class="summary">The hub holds public source material, vetted pack manifests, the
+        registry of grep rules and tools, and an anonymized trend rollup. It is intentionally
         narrow: anything that could identify a worker or case is rejected at the schema
         boundary before it ever touches storage.</p>
     </div>
 
     <div class="hub-facts">
       <div class="cell">
-        <span class="lbl">Footprint</span>
-        <span class="val">1<span class="unit">postgres</span> · 1<span class="unit">object store</span></span>
-        <span class="sub">Public reads served by CDN. No user-data table exists.</span>
+        <span class="lbl">What it serves</span>
+        <span class="val">Public, vetted knowledge</span>
+        <span class="sub">No user-data table exists. Nothing about a worker or case lives here.</span>
       </div>
       <div class="cell">
-        <span class="lbl">Append-only</span>
-        <span class="val">No edits, no deletes</span>
-        <span class="sub">Every pack version, rule, and signal lands as an immutable row.</span>
+        <span class="lbl">History</span>
+        <span class="val">Nothing is overwritten</span>
+        <span class="sub">Every pack and rule keeps every prior version. Corrections ship as new versions.</span>
       </div>
       <div class="cell">
         <span class="lbl">Reads</span>
@@ -334,7 +320,7 @@
       </div>
       <div class="cell">
         <span class="lbl">Writes</span>
-        <span class="val">Curator-signed</span>
+        <span class="val">Curator-vetted</span>
         <span class="sub">Pack and rule writes require a curator key. Signal writes require a deployment key.</span>
       </div>
     </div>
@@ -357,7 +343,7 @@
     <div class="hub-fac">
       <article class="card">
         <span class="role">Job 01</span>
-        <h3>Distribute signed context packs</h3>
+        <h3>Distribute vetted context packs</h3>
         <p>Versioned bundles of public source material (laws, advisories, embassy notices)
           scoped to a corridor and frozen at a known date.</p>
         <ul>
@@ -383,7 +369,7 @@
 
       <article class="card">
         <span class="role">Job 03</span>
-        <h3>Aggregate coarse opt-in signals</h3>
+        <h3>Aggregate anonymized opt-in signals</h3>
         <p>Partner deployments may post anonymized pattern counts (e.g.
           <code>fee_request</code> per corridor, per week) so curators can see trends and
           regulators can act on them.</p>
@@ -398,58 +384,53 @@
   </div>
 </section>
 
-<!-- ============== 03 Architecture ============== -->
-<section id="hub-arch" class="hub-section" data-screen-label="Hub · Architecture">
+<!-- ============== 03 What the hub gives you ============== -->
+<section id="hub-arch" class="hub-section" data-screen-label="Hub · What it gives you">
   <div class="wrap">
     <div class="head">
       <div>
-        <span class="ix">03 · How the hub is set up</span>
-        <h2>Public CDN in front. Postgres and object store behind.</h2>
+        <span class="ix">03 · What the hub gives you</span>
+        <h2>Vetted knowledge in. Verifiable answers out.</h2>
       </div>
-      <p class="summary">The architecture is deliberately ordinary. Most reads are static
-        files served from a CDN. Writes go through a small signing service and land in two
-        stores. There is no user-content database because no user content is accepted.</p>
+      <p class="summary">Four things any deployment can rely on. Read access is open and unauthenticated; everything you pull is curator-vetted, every version stays available, and nothing about a worker is ever stored. Implementation details live in <a href="/docs">/docs</a>.</p>
     </div>
 
     <div class="hub-arch">
       <div class="row">
         <div class="col">
-          <span class="lbl">Layer 01 · Edge</span>
-          <p class="name">Public CDN</p>
+          <span class="lbl">For deployers</span>
+          <p class="name">Pull a knowledge pack</p>
         </div>
         <div class="col">
-          <p class="desc">Serves pack files, rule and tool registries, and rollup JSON to
-            anyone, unauthenticated. Files are addressed by content hash so caches are safe.</p>
+          <p class="desc">Download any version of any corridor pack as a single file. Pin it by version, verify it against the public curator key, ship updates on your own schedule.</p>
         </div>
         <div class="col">
-          <span class="lbl">Endpoints</span>
-          <p class="hint">cdn.duecare-ai.com<br/><code>/packs/&lt;hash&gt;</code><br/><code>/rules/&lt;version&gt;</code></p>
-        </div>
-      </div>
-
-      <div class="row">
-        <div class="col">
-          <span class="lbl">Layer 02 · API</span>
-          <p class="name">Hub service</p>
-        </div>
-        <div class="col">
-          <p class="desc">A small Go service. Verifies signing keys, validates schemas, writes to
-            the stores below. Rejects anything resembling a case payload at the boundary.</p>
-        </div>
-        <div class="col">
-          <span class="lbl">Endpoints</span>
-          <p class="hint">api.duecare-ai.com<br/><code>POST /signals</code><br/><code>POST /packs</code></p>
+          <span class="lbl">Try it</span>
+          <p class="hint"><code>duecare pull phl-kwt-domestic@1.7.2</code></p>
         </div>
       </div>
 
       <div class="row">
         <div class="col">
-          <span class="lbl">Layer 03 · Signing</span>
-          <p class="name">Curator key service</p>
+          <span class="lbl">For partners</span>
+          <p class="name">Send an anonymized usage signal</p>
         </div>
         <div class="col">
-          <p class="desc">Holds the curator signing keys. Each pack and rule version is signed
-            before publish. Verifiable client-side against the public key.</p>
+          <p class="desc">Tell the hub which pattern fired and in which corridor, after your local anonymizer redacts everything else. Used for trends and research, never to identify a worker.</p>
+        </div>
+        <div class="col">
+          <span class="lbl">Privacy floor</span>
+          <p class="hint">k-anonymity ≥ 30. Aggregate only. No times, no contacts, no text.</p>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col">
+          <span class="lbl">For everyone</span>
+          <p class="name">Verify any release</p>
+        </div>
+        <div class="col">
+          <p class="desc">Every pack and rule carries a public signature. Run one command and your client tells you whether the file came from the curator or someone in the middle.</p>
         </div>
         <div class="col">
           <span class="lbl">Verify</span>
@@ -459,16 +440,15 @@
 
       <div class="row">
         <div class="col">
-          <span class="lbl">Layer 04 · Storage</span>
-          <p class="name">Postgres + object store</p>
+          <span class="lbl">For auditors</span>
+          <p class="name">Replay any decision</p>
         </div>
         <div class="col">
-          <p class="desc">Postgres holds registries and signal rollups (no PII columns
-            exist). Object store holds pack files. Both append-only by policy.</p>
+          <p class="desc">Every version of every pack stays available forever. Pin a release by hash, point a fresh runtime at it, get the same answer the harness gave six months ago.</p>
         </div>
         <div class="col">
-          <span class="lbl">Schema</span>
-          <p class="hint"><code>packs · rules · tools · signals</code></p>
+          <span class="lbl">Why</span>
+          <p class="hint">No deletes, no overwrites. Corrections ship as new versions.</p>
         </div>
       </div>
 
@@ -496,20 +476,18 @@
     <div class="head">
       <div>
         <span class="ix">04 · How to integrate with the hub</span>
-        <h2>Pull packs. Verify. Optionally post coarse signals.</h2>
+        <h2>Pull packs. Verify them. Optionally share usage trends.</h2>
       </div>
-      <p class="summary">Most integrations are read-only: pull a pack by manifest, verify the
-        signature, run locally. Partners who want to contribute trend data add one extra
-        step: post coarse signals through the anonymizer.</p>
+      <p class="summary">Most integrations are read-only: pull a pack, verify it, run locally. Partners who want to contribute trend data add one extra step: share an anonymized usage signal so the field can study which patterns are firing where.</p>
     </div>
 
     <div class="hub-int">
       <div class="nav-col" role="tablist" aria-label="Integration paths">
         <button class="on" data-pane="p-pull"><span class="n">01</span> Pull a pack</button>
-        <button data-pane="p-verify"><span class="n">02</span> Verify signature</button>
-        <button data-pane="p-signal"><span class="n">03</span> Post a coarse signal</button>
+        <button data-pane="p-verify"><span class="n">02</span> Verify it</button>
+        <button data-pane="p-signal"><span class="n">03</span> Share a usage signal</button>
         <button data-pane="p-rules"><span class="n">04</span> Pull rules &amp; tools</button>
-        <button data-pane="p-audit"><span class="n">05</span> Replay audit</button>
+        <button data-pane="p-audit"><span class="n">05</span> Replay history</button>
       </div>
 
       <div class="panes">
@@ -539,7 +517,7 @@ openssl pkeyutl -verify \
         </div>
 
         <div class="pane" id="p-signal">
-          <h4>Post a coarse, opt-in signal</h4>
+          <h4>Send an anonymized opt-in signal</h4>
           <p>Signals are aggregate counts. Free text, identifiers, and case content are rejected at the schema boundary. Below k≥30, the rollup never publishes.</p>
 <pre>POST /signals
 {
@@ -599,8 +577,8 @@ curl https://cdn.duecare-ai.com/tools/2026.05.06.json</pre>
       <div class="item">
         <span class="num">03</span>
         <div>
-          <h4>Append-only by default</h4>
-          <p>Packs, rules, tools, and signals all land as immutable rows. Corrections ship as new versions; old rows stay.</p>
+          <h4>Nothing is overwritten</h4>
+          <p>Every pack, rule, and tool keeps every prior version. Corrections ship as new versions; the old ones stay available so a six-month-old advisory can still be reproduced.</p>
         </div>
       </div>
       <div class="item">
@@ -620,8 +598,8 @@ curl https://cdn.duecare-ai.com/tools/2026.05.06.json</pre>
       <div class="item">
         <span class="num">06</span>
         <div>
-          <h4>Audit before access</h4>
-          <p>Every write emits an audit row before the corresponding read becomes resolvable. The feed leads the cache.</p>
+          <h4>You can replay every release</h4>
+          <p>Every change shows up in the public history feed before anyone can read the result. Pin a release to a hash, point a fresh runtime at it, get the exact same answer the harness gave at the time.</p>
         </div>
       </div>
     </div>
@@ -639,14 +617,7 @@ curl https://cdn.duecare-ai.com/tools/2026.05.06.json</pre>
   </div>
 </section>
 
-<footer><div class="wrap"><div class="foot-grid">
-<div><a href="/" class="brand"><span class="brand-mark">D</span> DueCare AI</a><p class="muted" style="font-size:14px;max-width:38ch;margin-top:8px;">Public-interest AI infrastructure for migrant-worker safety. <a href="/mission" style="color:inherit;text-decoration:underline;">Read the mission &rarr;</a></p></div>
-<div><h4>Hub</h4><ul><li><a href="/hub">Overview</a></li><li><a href="/knowledge-packs">Knowledge packs</a></li><li><a href="/tools-registry">Tools registry</a></li><li><a href="/research-monitor">Research monitor</a></li></ul></div>
-<div><h4>Docs</h4><ul><li><a href="/docs">Overview</a></li><li><a href="/technical-docs">Schemas</a></li><li><a href="/components">Architecture</a></li><li><a href="/why-gemma">Why Gemma 4</a></li><li><a href="/evaluation">Eval &amp; retraining</a></li><li><a href="/harness">Safety harness</a></li><li><a href="/setup">Setup guides</a></li><li><a href="/privacy-boundary">Privacy boundary</a></li></ul></div>
-<div><h4>Get involved</h4><ul><li><a href="/submit-information">Submit info</a></li><li><a href="/newsletter">Newsletter</a></li><li><a href="/email-feedback">Email feedback</a></li><li><a href="/alerts">Alerts archive</a></li><li><a href="/contribute">Contribute</a></li></ul></div>
-<div><h4>Verify</h4><ul><li><a href="/stats">Stats &amp; audit</a></li><li><a href="/dashboard">Live data</a></li><li><a href="/mission">Mission</a></li><li><a href="/contact">Contact</a></li></ul></div>
-</div><div class="foot-bottom"><span>&copy; 2026 DueCare AI</span><span>v0.4 &middot; public hub draft</span></div></div></footer>
-
+{% include "_footer.html" %}
 <script>
 document.querySelectorAll('.hub-int .nav-col button').forEach(btn => {
   btn.addEventListener('click', () => {
