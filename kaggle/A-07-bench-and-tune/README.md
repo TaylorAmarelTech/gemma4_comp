@@ -50,6 +50,26 @@ End-to-end pipeline: stock benchmark → SFT (LoRA on harness-distilled
 prompt/response pairs) → DPO (chosen=harness-on, rejected=harness-off)
 → re-benchmark → GGUF Q8_0 export → HF Hub push.
 
+## Training data spine
+
+Yes: the Persona + GREP + RAG + Tools harness traces are intended to
+become training data, but through SFT + DPO-style preference
+optimization rather than an online RL loop.
+
+| Source | Used for | Shape | Privacy gate |
+|---|---|---|---|
+| Harness-distilled traces | SFT | bare prompt → cited harness answer | public/composite/anonymized only |
+| Raw Gemma vs harness-on answers | DPO | prompt + chosen + rejected | same prompt allowlist as SFT |
+| A06 generated graded responses | SFT or DPO | prompt + 0-4 response ladder | synthetic/composite rows |
+| A11 grading lift outputs | Candidate mining | OFF/ON responses + grades | benchmark prompts only |
+
+The notebook writes `/kaggle/working/sft_dataset.jsonl` in chat format
+and `/kaggle/working/dpo_dataset.jsonl` as preference pairs. This is the
+training answer to the "can RAG + GREP + persona responses become
+reinforcement data?" question: treat them as supervised and preference
+data first. Only call it RL if a later notebook adds PPO/GRPO or another
+online reward-optimization step.
+
 ## Wheels included (6)
 
 `duecare-llm-core`, `duecare-llm-models`, `duecare-llm-domains`,
