@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Privacy boundary · Duecare AI</title><link rel="stylesheet" href="/static/styles.css"/>
+<title>Privacy boundary · DueCare AI</title><link rel="stylesheet" href="/static/styles.css"/>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%230E1116'/%3E%3Ctext x='16' y='21' text-anchor='middle' font-family='monospace' font-weight='700' font-size='14' fill='%23F7F6F1'%3ED%3C/text%3E%3C/svg%3E"/>
 </head><body>
 {% include "_nav.html" %}
@@ -20,7 +20,7 @@ the rules below, treat it as a bug report. The boundary is enforced in code, not
 <tr><td>Names · IDs · contacts</td><td>Always</td><td>Never</td><td>No PII columns exist on any public hub table.</td></tr>
 <tr><td>Anonymized pattern_id (e.g. <code>fee_request</code>)</td><td>Originates locally</td><td>Yes. opt-in</td><td>Per-turn opt-in. K-anon ≥ 30 floor or rejected.</td></tr>
 <tr><td>Corridor / sector buckets</td><td>Originates locally</td><td>Yes. anonymized only</td><td>Anonymized buckets only; no time-of-day precision.</td></tr>
-<tr><td>Public-source URLs</td><td>—</td><td>Yes (intended)</td><td>Reviewed by curators before signing.</td></tr>
+<tr><td>Public-source URLs</td><td>—</td><td>Yes (intended)</td><td>Reviewed by curators before publication.</td></tr>
 <tr><td>Pack version + pull-time</td><td>—</td><td>Yes (audit)</td><td>For reproducibility of the audit log.</td></tr>
 <tr><td>Outbound emails / reports</td><td>—</td><td>Never auto-sent</td><td>No automated outbound channel exists. Human signs every artifact.</td></tr>
 </tbody></table>

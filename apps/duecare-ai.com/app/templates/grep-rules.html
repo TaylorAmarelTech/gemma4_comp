@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Safety rules · Duecare AI</title>
+<title>Safety rules · DueCare AI</title>
 <link rel="stylesheet" href="/static/styles.css" />
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%230E1116'/%3E%3Ctext x='16' y='21' text-anchor='middle' font-family='monospace' font-weight='700' font-size='14' fill='%23F7F6F1'%3ED%3C/text%3E%3C/svg%3E" />
 <style>
@@ -216,7 +216,7 @@
         <div class="pipe-step">
           <div class="num">03 · Inject</div>
           <h4>Grounded context attached</h4>
-          <p class="desc">The runtime pulls signed corridor pack snippets matching the fired tags, and constrains the model to cite them.</p>
+          <p class="desc">The runtime pulls vetted corridor pack snippets matching the fired tags, and constrains the model to cite them.</p>
           <div class="inject-box">
 <span class="cmt"># injected into system prompt</span><br/>
 <span class="key">corridor</span>: <span class="str">qa-np v2026.05.06</span><br/>
@@ -385,7 +385,7 @@
         <span class="pill privacy" style="margin-bottom: 16px;"><span class="dot"></span>Privacy boundary</span>
         <h2 style="font-size: 32px; max-width: 22ch;">The grep layer is local, always.</h2>
         <p>No grep rule fires on the hub. No matched text, classification result, or
-          confidence score is ever sent upstream. The only thing that can. optionally —
+          confidence score is ever sent upstream. The only thing that can. optionally
           cross the boundary is a anonymized aggregated <em>pattern_id × corridor × sector</em>
           tuple, after the anonymizer gate.</p>
         <p style="margin-top: 8px;"><strong>Privacy is non-negotiable.</strong></p>

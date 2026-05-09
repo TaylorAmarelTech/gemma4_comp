@@ -1,0 +1,287 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>OpenClaw &middot; DueCare AI</title>
+<link rel="stylesheet" href="/static/styles.css" />
+<link rel="stylesheet" href="/static/hub-pages.css" />
+<style>
+  .oc-hero { padding: 56px 0 36px; border-bottom: 1px solid var(--line); }
+  .oc-hero .grid {
+    display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(280px, 1fr);
+    gap: 56px; align-items: start;
+  }
+  @media (max-width: 920px) { .oc-hero .grid { grid-template-columns: 1fr; gap: 32px; } }
+  .oc-hero h1 { font-size: clamp(36px, 4.4vw, 56px); letter-spacing: -0.025em; line-height: 1.05; margin: 14px 0 0; max-width: 22ch; font-weight: 500; }
+  .oc-hero .lede { margin-top: 18px; font-size: 17px; line-height: 1.55; color: var(--ink-2); max-width: 56ch; }
+  .oc-hero .toc { border: 1px solid var(--line); border-radius: 12px; background: var(--paper-2); padding: 18px 20px; }
+  .oc-hero .toc h3 { font-family: var(--mono); font-size: 11px; font-weight: 600; color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.10em; margin: 0 0 12px; }
+  .oc-hero .toc ol { list-style: none; padding: 0; margin: 0; counter-reset: t; }
+  .oc-hero .toc ol li { counter-increment: t; border-top: 1px solid var(--line-soft); }
+  .oc-hero .toc ol li:first-child { border-top: none; }
+  .oc-hero .toc ol li a { display: grid; grid-template-columns: 28px 1fr 16px; gap: 10px; align-items: center; padding: 10px 0; font-size: 14px; color: var(--ink-1); text-decoration: none; }
+  .oc-hero .toc ol li a::before { content: counter(t, decimal-leading-zero); font-family: var(--mono); font-size: 11px; color: var(--ink-3); }
+  .oc-hero .toc ol li a:hover { color: var(--accent-ink); }
+
+  .oc-section { padding: 56px 0; border-bottom: 1px solid var(--line-soft); }
+  .oc-section .head { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 32px; align-items: end; margin-bottom: 28px; }
+  @media (max-width: 720px) { .oc-section .head { grid-template-columns: 1fr; } }
+  .oc-section .ix { font-family: var(--mono); font-size: 11px; letter-spacing: 0.12em; color: var(--ink-3); text-transform: uppercase; }
+  .oc-section h2 { font-size: clamp(26px, 2.8vw, 36px); letter-spacing: -0.02em; line-height: 1.15; margin: 8px 0 0; max-width: 22ch; font-weight: 500; }
+  .oc-section .summary { font-size: 14.5px; line-height: 1.6; color: var(--ink-2); max-width: 48ch; }
+
+  .oc-jobs { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+  @media (max-width: 920px) { .oc-jobs { grid-template-columns: 1fr; } }
+  .oc-job { border: 1px solid var(--line); border-radius: 12px; background: var(--paper); padding: 24px; display: flex; flex-direction: column; gap: 12px; }
+  .oc-job .num { font-family: var(--mono); font-size: 11px; color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.10em; }
+  .oc-job h3 { margin: 0; font-size: 18px; letter-spacing: -0.012em; line-height: 1.25; }
+  .oc-job p { margin: 0; font-size: 14px; color: var(--ink-2); line-height: 1.55; }
+  .oc-job ul { margin: 6px 0 0; padding-left: 18px; font-size: 13.5px; color: var(--ink-2); display: flex; flex-direction: column; gap: 4px; }
+
+  .oc-flow { border: 1px solid var(--line); border-radius: 12px; background: var(--paper); overflow: hidden; }
+  .oc-flow .step { display: grid; grid-template-columns: 100px 1fr; gap: 24px; padding: 18px 22px; border-top: 1px solid var(--line-soft); align-items: start; }
+  .oc-flow .step:first-child { border-top: none; }
+  .oc-flow .step .num { font-family: var(--mono); font-size: 11px; color: var(--ink-3); padding-top: 2px; }
+  .oc-flow .step h4 { margin: 0; font-size: 16px; letter-spacing: -0.012em; }
+  .oc-flow .step p { margin: 4px 0 0; font-size: 13.5px; color: var(--ink-2); line-height: 1.55; }
+  .oc-flow .step.boundary { background: var(--ember-soft); }
+  .oc-flow .step.boundary .num { color: oklch(0.40 0.12 45); }
+
+  .oc-model { border: 1px solid var(--line); border-radius: 14px; background: var(--paper); padding: 28px 32px; display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 32px; align-items: start; }
+  @media (max-width: 720px) { .oc-model { grid-template-columns: 1fr; } }
+  .oc-model h3 { margin: 0; font-size: 18px; letter-spacing: -0.012em; }
+  .oc-model p { margin: 8px 0 0; font-size: 14px; color: var(--ink-2); line-height: 1.6; }
+  .oc-model .opt { display: flex; flex-direction: column; gap: 10px; font-size: 13.5px; color: var(--ink-2); }
+  .oc-model .opt .row { display: grid; grid-template-columns: 130px 1fr; gap: 14px; padding: 8px 0; border-top: 1px solid var(--line-soft); align-items: baseline; }
+  .oc-model .opt .row:first-child { border-top: none; padding-top: 0; }
+  .oc-model .opt .row b { font-family: var(--mono); font-size: 11.5px; color: var(--ink); font-weight: 500; }
+
+  .oc-callout { margin-top: 28px; border: 1px solid var(--line); border-radius: 14px; background: var(--ink); color: var(--paper); padding: 28px 32px; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 28px; align-items: center; }
+  @media (max-width: 720px) { .oc-callout { grid-template-columns: 1fr; } }
+  .oc-callout h3 { color: var(--paper); margin: 0; font-size: 18px; letter-spacing: -0.012em; }
+  .oc-callout p { color: oklch(0.85 0.02 200); margin: 8px 0 0; max-width: 52ch; line-height: 1.55; font-size: 14px; }
+  .oc-callout .btn.primary { background: var(--paper); color: var(--ink); }
+</style>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%230E1116'/%3E%3Ctext x='16' y='21' text-anchor='middle' font-family='monospace' font-weight='700' font-size='14' fill='%23F7F6F1'%3ED%3C/text%3E%3C/svg%3E" />
+</head>
+<body>
+{% include "_nav.html" %}
+
+<section class="oc-hero" data-screen-label="OpenClaw &middot; Hero">
+  <div class="wrap">
+    <div class="grid">
+      <div>
+        <span class="kicker">/openclaw &middot; the hub-side LLM engine</span>
+        <h1>OpenClaw is the QB of the information system.</h1>
+        <p class="lede">One small LLM service on the hub does four jobs: it vets every public-source proposal for PII and content safety, extracts a structured pack draft from free text, drafts the email DueCare sends when curators need expert input, and processes inbound replies through the same boundary scan. Nothing OpenClaw decides is final. A human curator signs off before any vetted pack ships.</p>
+      </div>
+      <nav class="toc" aria-label="Sections on this page">
+        <h3>On this page</h3>
+        <ol>
+          <li><a href="#jobs"><span>Four jobs, one engine</span></a></li>
+          <li><a href="#flow"><span>How a submission flows through</span></a></li>
+          <li><a href="#email"><span>Stakeholder email loop</span></a></li>
+          <li><a href="#model"><span>Which model runs OpenClaw</span></a></li>
+          <li><a href="#api"><span>API surface</span></a></li>
+        </ol>
+      </nav>
+    </div>
+  </div>
+</section>
+
+<!-- ============== 01 Jobs ============== -->
+<section id="jobs" class="oc-section">
+  <div class="wrap">
+    <div class="head">
+      <div>
+        <span class="ix">01 &middot; Four jobs, one engine</span>
+        <h2>Vet, extract, draft, vet again.</h2>
+      </div>
+      <p class="summary">Today the hub used to call this engine four different things: Sentinel for the crawler, OpenCrawl for the API, the research monitor for the page, the email gateway for inbound replies. They are one engine. We call it OpenClaw.</p>
+    </div>
+
+    <div class="oc-jobs">
+      <div class="oc-job">
+        <span class="num">Job 01 &middot; Submission vetting</span>
+        <h3>Decide whether a public-source proposal can advance.</h3>
+        <p>Every submission, whether typed into the website form or scraped by the public-source crawler, runs through the same content-safety + PII + intent triage. The verdict is one of <code>accept</code>, <code>needs_curator_review</code>, or <code>reject</code>. The reasons go to the curator alongside the proposal.</p>
+        <ul>
+          <li>Detects raw worker case content the regex filter misses.</li>
+          <li>Flags prompt-injection attempts hidden in payload text.</li>
+          <li>Catches operational advice that should never become a pack.</li>
+          <li>Conservative by default. Anything ambiguous goes to a human.</li>
+        </ul>
+      </div>
+
+      <div class="oc-job">
+        <span class="num">Job 02 &middot; Pack templating</span>
+        <h3>Turn free text into a structured pack draft.</h3>
+        <p>A submission usually arrives as prose plus a public URL. OpenClaw extracts the jurisdiction, the corridor (when stated), the cited URLs, and a JSON payload the curator can paste into a pack manifest with minor edits. Confidence score attached so low-confidence drafts get more curator attention.</p>
+        <ul>
+          <li>Pulls a draft <code>payload_json</code> the curator can edit.</li>
+          <li>Lifts cited URLs into a <code>cited_urls</code> field.</li>
+          <li>Suggests jurisdiction and corridor when the text supports it.</li>
+          <li>Always optional. The curator can ignore the draft.</li>
+        </ul>
+      </div>
+
+      <div class="oc-job">
+        <span class="num">Job 03 &middot; Outbound solicitation</span>
+        <h3>Draft the emails curators send to subscribed experts.</h3>
+        <p>Subscribers to the expert-request mailing list get periodic asks like "do you have a recent fee cap for this corridor?". OpenClaw drafts those emails so curators only have to review and send. The draft names the topic, asks one clear question, and includes a one-click reply link.</p>
+        <ul>
+          <li>One topic per email. No marketing tone, no obligation.</li>
+          <li>Curator reviews and edits before send. Nothing auto-sends.</li>
+          <li>Reply links route through the inbound-email vetting loop.</li>
+          <li>Volume cap: ~one email per subscriber per month.</li>
+        </ul>
+      </div>
+
+      <div class="oc-job">
+        <span class="num">Job 04 &middot; Inbound vetting</span>
+        <h3>Process email replies through the same boundary.</h3>
+        <p>When a subscriber replies, the email gateway POSTs the body to the hub. OpenClaw runs the same PII + safety scan as a website submission, classifies the intent (verification, new information, regulatory change, or unclear), and extracts whatever public-source facts it can. The curator sees the structured result, not raw email.</p>
+        <ul>
+          <li>Auto-rejects auto-replies and unsubscribe messages.</li>
+          <li>Same rejection rules as the website form. No special path.</li>
+          <li>Extracted facts become a candidate pack diff for review.</li>
+          <li>Sender address never enters a public pack.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============== 02 Submission flow ============== -->
+<section id="flow" class="oc-section">
+  <div class="wrap">
+    <div class="head">
+      <div>
+        <span class="ix">02 &middot; Submission flow</span>
+        <h2>Same five steps, regardless of where the proposal came from.</h2>
+      </div>
+      <p class="summary">Whether a submission landed via the website form, the OpenClaw scraper finding a regulator update, or an inbound email reply, it follows the same path before anything ships.</p>
+    </div>
+
+    <div class="oc-flow">
+      <div class="step">
+        <span class="num">Step 01</span>
+        <div><h4>Intake</h4><p>Form POST, scraped public source, or inbound email payload arrives at the hub.</p></div>
+      </div>
+      <div class="step boundary">
+        <span class="num">Step 02 &middot; boundary</span>
+        <div><h4>Edge regex filter</h4><p>Cheap, deterministic. Rejects emails, phone numbers, ID-like strings, and free text over the size cap before any LLM call runs.</p></div>
+      </div>
+      <div class="step boundary">
+        <span class="num">Step 03 &middot; OpenClaw</span>
+        <div><h4>LLM evaluator</h4><p>OpenClaw classifies intent, scans for prompt injection and operational advice, surfaces PII the regex missed, and writes the structured pack draft.</p></div>
+      </div>
+      <div class="step">
+        <span class="num">Step 04</span>
+        <div><h4>Curator review</h4><p>A human curator reads the OpenClaw verdict, the original text, and the draft. They edit, accept, or reject. Their decision is the source of truth.</p></div>
+      </div>
+      <div class="step">
+        <span class="num">Step 05</span>
+        <div><h4>Vetted pack release</h4><p>The curator vets the pack, the manifest references the previous version (nothing is overwritten), and clients pull the new version on their next sync.</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============== 03 Email loop ============== -->
+<section id="email" class="oc-section">
+  <div class="wrap">
+    <div class="head">
+      <div>
+        <span class="ix">03 &middot; Stakeholder email loop</span>
+        <h2>How experts get asked, and how their replies come back.</h2>
+      </div>
+      <p class="summary">The mailing list at <a href="/newsletter">/newsletter</a> is the public side of this loop. The OpenClaw inbound endpoint is the reply side.</p>
+    </div>
+
+    <div class="oc-flow">
+      <div class="step">
+        <span class="num">Step A</span>
+        <div><h4>Curator queues a topic</h4><p>"Need verification of the 2026 PHL placement fee cap." OpenClaw drafts the email body, names the corridor, asks one question, includes a reply link.</p></div>
+      </div>
+      <div class="step">
+        <span class="num">Step B</span>
+        <div><h4>Curator reviews and sends</h4><p>The draft is editable. Nothing sends without a human click. The send goes through the email provider; the hub never stores the recipient list.</p></div>
+      </div>
+      <div class="step">
+        <span class="num">Step C</span>
+        <div><h4>Subscriber replies</h4><p>The reply hits the email gateway. The provider POSTs subject + body + sender domain to <code>POST /api/hub/openclaw/inbound-email</code> on the hub.</p></div>
+      </div>
+      <div class="step boundary">
+        <span class="num">Step D &middot; boundary</span>
+        <div><h4>OpenClaw vets the reply</h4><p>Same rules as a website submission. Auto-replies are dropped. PII triggers reject. Intent gets classified. Public-source facts get extracted.</p></div>
+      </div>
+      <div class="step">
+        <span class="num">Step E</span>
+        <div><h4>Curator reviews structured result</h4><p>Curator sees the OpenClaw summary + extracted facts, not the raw email. If accepted, the result becomes a candidate pack diff that re-enters the standard review pipeline above.</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============== 04 Model choice ============== -->
+<section id="model" class="oc-section">
+  <div class="wrap">
+    <div class="head">
+      <div>
+        <span class="ix">04 &middot; Which model runs OpenClaw</span>
+        <h2>Could be Gemma 4. Currently a cloud API.</h2>
+      </div>
+      <p class="summary">OpenClaw could run on a self-hosted Gemma 4 instance for screening, PII review, and the templating step. For this submission it routes to a cloud API to keep the public hub CPU-only and avoid provisioning a GPU for a demo.</p>
+    </div>
+
+    <div class="oc-model">
+      <div>
+        <h3>Provider configured by env var. First one set wins.</h3>
+        <p>OpenClaw resolves a provider at request time, makes a single synchronous call, and falls back to a deterministic regex-only verdict if no provider is reachable. The fallback is conservative: anything ambiguous routes to <code>needs_curator_review</code>. The hub never blocks because a model is down.</p>
+        <p>Switching providers is one env var. The interface OpenClaw uses is OpenAI-chat-compatible across all four supported routes.</p>
+      </div>
+      <div class="opt">
+        <div class="row"><b>OpenRouter</b><span><code>OPENCLAW_OPENROUTER_KEY</code> &middot; any chat model on OpenRouter</span></div>
+        <div class="row"><b>Mistral API</b><span><code>OPENCLAW_MISTRAL_KEY</code> &middot; default <code>mistral-small-latest</code></span></div>
+        <div class="row"><b>OpenAI</b><span><code>OPENCLAW_OPENAI_KEY</code> &middot; default <code>gpt-4o-mini</code></span></div>
+        <div class="row"><b>Self-hosted Gemma 4</b><span><code>OPENCLAW_OLLAMA_BASE_URL</code> &middot; default model <code>gemma2:2b</code> (swap to a Gemma 4 tag once available)</span></div>
+        <div class="row"><b>None</b><span>Regex-only fallback. Every record routes to a curator. No silent acceptance.</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============== 05 API ============== -->
+<section id="api" class="oc-section">
+  <div class="wrap">
+    <div class="head">
+      <div>
+        <span class="ix">05 &middot; API surface</span>
+        <h2>Two endpoints today.</h2>
+      </div>
+      <p class="summary">Anything OpenClaw decides is logged with the model name and the verdict reasons so curators can audit and replay.</p>
+    </div>
+
+    <div class="hp-endpoints">
+      <div class="row"><span class="mono">METHOD</span><span class="mono">PATH</span><span class="mono">PURPOSE</span><span class="mono">CALLS OPENCLAW</span></div>
+      <div class="row"><code>POST</code><code>/api/hub/opencrawl/updates</code><span class="desc">Public-source proposal intake. Used by the website form and the OpenClaw scraper.</span><code>yes</code></div>
+      <div class="row"><code>POST</code><code>/api/hub/openclaw/inbound-email</code><span class="desc">Email-gateway webhook for replies to expert-request emails.</span><code>yes</code></div>
+      <div class="row"><code>POST</code><code>/api/hub/signals</code><span class="desc">Anonymized usage signals. Edge regex only; no LLM call.</span><code>no</code></div>
+      <div class="row"><code>GET</code><code>/api/hub/opencrawl/updates</code><span class="desc">List the queue of proposals (curator UI reads this).</span><code>no</code></div>
+    </div>
+
+    <div class="oc-callout">
+      <div>
+        <h3>OpenClaw has hard limits on purpose.</h3>
+        <p>It never publishes. It never auto-sends email. It never accepts raw worker case content. Every action it takes is logged with the model name and reasons so a curator (or you, reviewing months later) can replay why a proposal was accepted, rejected, or routed for review.</p>
+      </div>
+      <a href="/contribute" class="btn primary">Submit a proposal &rarr;</a>
+    </div>
+  </div>
+</section>
+
+{% include "_footer.html" %}
+</body>
+</html>

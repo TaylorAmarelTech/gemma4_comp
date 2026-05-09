@@ -12,7 +12,6 @@ from __future__ import annotations
 import hashlib
 import json
 import os
-import re
 import uuid
 from collections import Counter
 from datetime import UTC, datetime
@@ -27,6 +26,8 @@ from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel, ConfigDict, Field, HttpUrl, field_validator
 
 from . import __version__
+from . import openclaw
+from .pii import detect_pii
 
 SignalSource = Literal[
     "ngo_case_intake",
@@ -46,18 +47,6 @@ PackKind = Literal[
     "jurisdictions",
 ]
 UpdateStatus = Literal["proposed", "needs_review", "approved", "rejected"]
-
-_EMAIL_RE = re.compile(r"\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b", re.IGNORECASE)
-_PHONE_RE = re.compile(r"(?<!\d)(?:\+?\d[\d\s().-]{7,}\d)(?!\d)")
-_PASSPORT_RE = re.compile(
-    r"\b(?:passport|visa|national\s+id|id\s+number)[:#\s-]*[A-Z0-9-]{5,}\b",
-    re.IGNORECASE,
-)
-_ADDRESS_RE = re.compile(
-    r"\b\d{1,6}\s+[A-Za-z0-9.'-]+\s+"
-    r"(?:street|st\.?|road|rd\.?|avenue|ave\.?|lane|ln\.?|drive|dr\.?)\b",
-    re.IGNORECASE,
-)
 
 APP_DIR = Path(__file__).resolve().parent
 TEMPLATES_DIR = APP_DIR / "templates"
@@ -88,6 +77,7 @@ PAGE_ROUTES: dict[str, str] = {
     "/login": "login.html",
     "/mission": "mission.html",
     "/newsletter": "newsletter.html",
+    "/openclaw": "openclaw.html",
     "/packages": "packages.html",
     "/packages-detail": "packages-detail.html",
     "/partners": "partners.html",
@@ -299,6 +289,32 @@ class UpdateReceipt(BaseModel):
     accepted: bool
     status: UpdateStatus
     message: str
+    openclaw_verdict: str | None = None
+    openclaw_intent: str | None = None
+    openclaw_model: str | None = None
+
+
+class InboundEmailIn(BaseModel):
+    """Inbound email payload from the email gateway (Mailgun-style webhook)."""
+
+    sender_domain: str = Field(min_length=2, max_length=120)
+    subject: str = Field(min_length=1, max_length=400)
+    body: str = Field(min_length=1, max_length=20000)
+    received_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
+    in_reply_to: str | None = Field(default=None, max_length=200)
+
+
+class InboundEmailReceipt(BaseModel):
+    """Receipt returned after vetting an inbound email."""
+
+    id: str
+    accepted: bool
+    verdict: str
+    intent: str
+    summary: str
+    extracted_facts: list[str]
+    pii_findings: list[str]
+    model: str
 
 
 class AggregateTrend(BaseModel):
@@ -315,20 +331,6 @@ class AppState(BaseModel):
 
     started_at: datetime
     store: FileHubStore
-
-
-def detect_pii(text: str) -> set[str]:
-    """Return PII detector labels found in text."""
-    findings: set[str] = set()
-    if _EMAIL_RE.search(text):
-        findings.add("email")
-    if _PHONE_RE.search(text):
-        findings.add("phone")
-    if _PASSPORT_RE.search(text):
-        findings.add("identity_document")
-    if _ADDRESS_RE.search(text):
-        findings.add("street_address")
-    return findings
 
 
 def default_data_dir() -> Path:
@@ -398,7 +400,7 @@ def create_app(*, data_dir: Path | None = None) -> FastAPI:
     application = FastAPI(
         title="Duecare AI Hub",
         description=(
-            "Public coordination hub for anonymized migrant-worker safety signals, signed knowledge packs, "
+            "Public coordination hub for anonymized migrant-worker safety signals, vetted knowledge packs, "
             "public-source update proposals, and evaluation metadata. Privacy is non-negotiable."
         ),
         version=__version__,
@@ -502,31 +504,94 @@ def create_app(*, data_dir: Path | None = None) -> FastAPI:
         tags=["updates"],
     )
     async def submit_opencrawl_update(request: Request, body: OpenCrawlUpdateIn) -> UpdateReceipt:
+        # OpenClaw's edge filter runs alongside the schema-level PII regex so we
+        # never store an update that the LLM evaluator outright rejects.
         findings = detect_pii(body.change_summary)
         if findings:
             raise HTTPException(
                 status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
                 detail="Update rejected because the summary appears to contain raw PII.",
             )
+        verdict = openclaw.evaluate_submission(body.change_summary, kind="context")
+        if verdict.verdict == "reject":
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail=f"OpenClaw rejected this update: {'; '.join(verdict.reasons) or 'policy violation'}.",
+            )
         state = _state(request)
         proposal = UpdateProposalRecord(
             **body.model_dump(),
             id=f"upd_{uuid.uuid4().hex[:12]}",
-            status="proposed",
+            status="proposed" if verdict.verdict == "needs_curator_review" else "needs_review",
             received_at=datetime.now(UTC),
         )
-        state.store.append("updates.jsonl", proposal.model_dump(mode="json"))
+        record = proposal.model_dump(mode="json")
+        record["openclaw"] = {
+            "verdict": verdict.verdict,
+            "intent": verdict.intent,
+            "reasons": verdict.reasons,
+            "safety_findings": verdict.safety_findings,
+            "model": verdict.model,
+        }
+        state.store.append("updates.jsonl", record)
         return UpdateReceipt(
             id=proposal.id,
             accepted=True,
             status=proposal.status,
             message="Accepted as a proposed update. A curator must approve before any pack changes.",
+            openclaw_verdict=verdict.verdict,
+            openclaw_intent=verdict.intent,
+            openclaw_model=verdict.model,
         )
 
     @application.get("/api/hub/opencrawl/updates", response_model=list[UpdateProposalRecord], tags=["updates"])
     async def list_opencrawl_updates(request: Request) -> list[UpdateProposalRecord]:
         state = _state(request)
         return [UpdateProposalRecord.model_validate(record) for record in state.store.read_all("updates.jsonl")]
+
+    @application.post(
+        "/api/hub/openclaw/inbound-email",
+        response_model=InboundEmailReceipt,
+        status_code=status.HTTP_202_ACCEPTED,
+        tags=["openclaw"],
+    )
+    async def submit_inbound_email(request: Request, body: InboundEmailIn) -> InboundEmailReceipt:
+        """Email-gateway webhook: an expert replied to a solicitation.
+
+        OpenClaw classifies intent + extracts public-source facts from the
+        body. The structured record lands in inbound.jsonl for curator
+        review; nothing auto-publishes.
+        """
+        verdict = openclaw.vet_inbound_email(body.subject, body.body, body.sender_domain)
+        state = _state(request)
+        record_id = f"inb_{uuid.uuid4().hex[:12]}"
+        record = {
+            "id": record_id,
+            "received_at": body.received_at.isoformat(),
+            "sender_domain": body.sender_domain,
+            "subject": body.subject,
+            "body_sha256": _sha256_text(body.body),
+            "in_reply_to": body.in_reply_to,
+            "openclaw": {
+                "verdict": verdict.verdict,
+                "intent": verdict.intent,
+                "summary": verdict.summary,
+                "extracted_facts": verdict.extracted_facts,
+                "pii_findings": verdict.pii_findings,
+                "model": verdict.model,
+            },
+        }
+        state.store.append("updates.jsonl", record)
+        return InboundEmailReceipt(
+            id=record_id,
+            accepted=verdict.verdict != "reject",
+            verdict=verdict.verdict,
+            intent=verdict.intent,
+            summary=verdict.summary,
+            extracted_facts=verdict.extracted_facts,
+            pii_findings=verdict.pii_findings,
+            model=verdict.model,
+        )
 
     def _render(template_name: str, request: Request) -> HTMLResponse:
         return templates.TemplateResponse(request, template_name, {"version": __version__})
