@@ -84,37 +84,38 @@
 
 <section data-screen-label="Setup · Tracks">
   <div class="wrap">
-    <div class="role-grid" id="roles">
-      <div class="role-card on" data-role="plat">
+    <h2 class="sr-only">Choose your setup track</h2>
+    <div class="role-grid" id="roles" role="tablist" aria-label="Setup tracks">
+      <button class="role-card on" type="button" role="tab" aria-selected="true" aria-controls="track-details" data-role="plat">
         <span class="glyph">01</span>
-        <h4>Platform safety</h4>
-        <p>Job-post screening with grep rules + corridor packs. Aggregate flag-rates only.</p>
-      </div>
-      <div class="role-card" data-role="ngo">
+        <span class="role-title">Platform safety</span>
+        <span class="role-desc">Job-post screening with grep rules + corridor packs. Aggregate flag-rates only.</span>
+      </button>
+      <button class="role-card" type="button" role="tab" aria-selected="false" aria-controls="track-details" data-role="ngo">
         <span class="glyph">02</span>
-        <h4>NGO &amp; regulator</h4>
-        <p>Caseworker copilot + regulator trend dashboard. Cases stay with the role that owns them.</p>
-      </div>
-      <div class="role-card" data-role="worker">
+        <span class="role-title">NGO &amp; regulator</span>
+        <span class="role-desc">Caseworker copilot + regulator trend dashboard. Cases stay with the role that owns them.</span>
+      </button>
+      <button class="role-card" type="button" role="tab" aria-selected="false" aria-controls="track-details" data-role="worker">
         <span class="glyph">03</span>
-        <h4>Migrant worker chat</h4>
-        <p>On-device sibling app. Pasted messages and chat history never leave the phone.</p>
-      </div>
-      <div class="role-card" data-role="research">
+        <span class="role-title">Migrant worker chat</span>
+        <span class="role-desc">On-device sibling app. Pasted messages and chat history never leave the phone.</span>
+      </button>
+      <button class="role-card" type="button" role="tab" aria-selected="false" aria-controls="track-details" data-role="research">
         <span class="glyph">04</span>
-        <h4>Academic research</h4>
-        <p>Cite-able pack hashes, evaluation packs, benchmark notebooks, rubric proposals.</p>
-      </div>
-      <div class="role-card" data-role="dev">
+        <span class="role-title">Academic research</span>
+        <span class="role-desc">Cite-able pack hashes, evaluation packs, benchmark notebooks, rubric proposals.</span>
+      </button>
+      <button class="role-card" type="button" role="tab" aria-selected="false" aria-controls="track-details" data-role="dev">
         <span class="glyph">D</span>
-        <h4>Developer</h4>
-        <p>API endpoints, manifests, client snippets, version pinning.</p>
-      </div>
+        <span class="role-title">Developer</span>
+        <span class="role-desc">API endpoints, manifests, client snippets, version pinning.</span>
+      </button>
     </div>
   </div>
 </section>
 
-<section data-screen-label="Setup · Steps">
+<section data-screen-label="Setup · Steps" id="track-details">
   <div class="wrap" style="display:grid;grid-template-columns:1fr 320px;gap:40px;align-items:start;">
     <div>
       <div class="section-head" style="grid-template-columns:1fr;margin-bottom:24px;">
@@ -236,7 +237,9 @@ const tracks = {
 };
 function selectTrack(role) {
   document.querySelectorAll('.role-card').forEach(x => {
-    x.classList.toggle('on', x.dataset.role === role);
+    const selected = x.dataset.role === role;
+    x.classList.toggle('on', selected);
+    x.setAttribute('aria-selected', selected ? 'true' : 'false');
   });
   const t = tracks[role];
   if (t) {

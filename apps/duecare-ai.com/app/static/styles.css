@@ -57,8 +57,23 @@ body {
 
 a { color: inherit; text-decoration: none; }
 a:hover { color: var(--accent-ink); }
+a:focus-visible, button:focus-visible, [tabindex]:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
 img, svg { display: block; max-width: 100%; }
 hr { border: 0; border-top: 1px solid var(--line); margin: 0; }
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
 
 /* ---------- Layout ---------- */
 .wrap { max-width: 1200px; margin: 0 auto; padding: 0 32px; }
@@ -548,6 +563,8 @@ table.std tr:hover td { background: var(--paper-2); }
   cursor: pointer; transition: border-color .15s ease, box-shadow .15s ease;
   display: flex; flex-direction: column; gap: 10px;
   position: relative;
+  appearance: none;
+  width: 100%; color: inherit; font: inherit; text-align: left;
 }
 .role-card:hover { border-color: var(--ink-3); box-shadow: var(--shadow-1); }
 .role-card.on { border-color: var(--ink); box-shadow: 0 0 0 3px var(--paper-2); }
@@ -557,8 +574,8 @@ table.std tr:hover td { background: var(--paper-2); }
   display: grid; place-items: center;
   font-family: var(--mono); font-size: 12px; font-weight: 600; color: var(--accent-ink);
 }
-.role-card h4 { font-size: 15px; }
-.role-card p { font-size: 12.5px; color: var(--ink-3); line-height: 1.45; }
+.role-card .role-title { font-size: 15px; font-weight: 600; letter-spacing: -0.005em; }
+.role-card .role-desc { font-size: 12.5px; color: var(--ink-3); line-height: 1.45; }
 
 /* ---------- Tab strip ---------- */
 .tabstrip {
