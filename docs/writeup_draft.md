@@ -18,7 +18,7 @@
 > a California jury applied in March 2026 to find Meta and Google
 > negligent for defective platform design.
 >
-> **Status as of 2026-05-08 (v0.14.7):**
+> **Status as of 2026-05-08 (v0.14.8 polish pass):**
 > 6 toggleable harness layers (Persona, GREP, RAG, Imports, Tools,
 > Online with optional deep-fetch), 587 example prompts across 8
 > audience buckets (model_capability / enterprise_moderation /
@@ -34,8 +34,13 @@
 > SVG export + standalone full-screen page at `/static/rag-graph.html`)
 > + retrieval path-trace card**. **All 12 curator-block JSON files**
 > still ship in the wheel for stakeholder PRs without code change.
+> Public hub now includes server automation, a canonical knowledge-object
+> schema, a real pack registry with 4 example packs, a reference hub
+> client with `DUECARE_HUB_URL`, `/api/hub/client/submission`,
+> `/api/hub/automation/inbound-email`, `/api/local-kb/*`, and a
+> local-KB page for operator-owned case graphs.
 >
-> **LLM-judge model choice (v0.13.0–v0.14.7):** the LLM-Based grading
+> **LLM-judge model choice (v0.13.0–v0.14.8):** the LLM-Based grading
 > mode uses the SAME Gemma loaded for chat. The chat package treats
 > the chat model and the LLM-judge model as independently-configurable
 > hooks (the `evaluator_call` parameter on `create_app`), but on
@@ -53,8 +58,8 @@
 > The hook stays as documented architecture; the in-process
 > self-grade is what the live demo runs.
 >
-> **Word count:** 1,490 / 1,500 cap. Tightening pass complete
-> against current v0.14.7 numbers (`scripts/v141_word_count.py`).
+> **Word count:** maintained under the 1,500-word cap by
+> `scripts/v141_word_count.py`.
 
 ---
 
@@ -129,12 +134,12 @@ green / amber) the user clicks ON or OFF per message:
   warning; treated as candidate evidence, not ground truth.
 
 **Grading: 4 modes, 46 dimensions, use-case-aware weighting.**
-Universal (deterministic, ~2s) checks all 46 dimensions including
+Rule-Based (deterministic, ~2s) checks all 46 dimensions including
 two harm-axis dims — `operational_information_provided` (catches
 "refusal preamble + operational steps anyway") and
-`harm_enablement_check`. Expert (legacy per-category). **Evaluator**
+`harm_enablement_check`. Expert (legacy per-category). **LLM-Based**
 (LLM-as-judge) sends the response back to Gemma with one focused
-yes/no per dimension. **Combined** blends Universal + Evaluator
+yes/no per dimension. **Combined** blends Rule-Based + LLM-Based
 50/50 with a disagreement panel. Auto-grade chips render inline
 below every response.
 
@@ -230,17 +235,17 @@ intake.
 
 Two surfaces. The **Kaggle live demo** ([kaggle.com/code/taylorsamarel/duecare-harness-chat](https://www.kaggle.com/code/taylorsamarel/duecare-harness-chat))
 proves technical depth. The **public hub** at [duecare-ai.com](https://duecare-ai.com)
-proves platform infrastructure: knowledge-pack registry, anonymized
-signal intake, continuous-update proposals. Four canonical use cases:
+proves platform infrastructure: schema-backed pack registry, anonymized
+signal intake, server automation, local-KB scaffold. Four use cases:
 **Platform Safety**, **NGO / Regulators**, **Migrant Worker Chat**, and
 **Academic Research** — OFWs are a demo persona, not the product category.
 
 **Components:** (1) **Runtime** — Gemma 4. (2) **Harness** —
 161 GREP, 46-doc RAG, 5 tools, 26-entry contacts, audit trace.
-(3) **Exchange** — signed-pack distribution at duecare-ai.com.
-(4) **Eval** — 46-dim rubric v3.10 + 65-test adversarial.
+(3) **Exchange** — vetted-pack registry + sync at duecare-ai.com.
+(4) **Evaluation** — 46-dim rubric v3.10 + 65-test adversarial.
 (5) **Trainer** — Unsloth LoRA → GGUF / LiteRT in `A-07-bench-and-tune`.
-(6) **Sentinel** — continuous-update crawler proposing RAG / GREP /
+(6) **Server automation** — public-source crawler proposing RAG / GREP /
 contact updates. (7) **Channels** (roadmap) — NGO Messenger / WhatsApp.
 (8) **Mobile** — Duecare Journey v0.9.0 sibling: MediaPipe Gemma 4
 + LiteRT, 20 corridors. Full: [`product_definition.md`](product_definition.md).
