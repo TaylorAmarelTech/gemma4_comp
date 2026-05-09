@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>DueCare Hub · DueCare AI</title>
+<link rel="stylesheet" href="/static/styles.css" />
+<link rel="stylesheet" href="/static/hub-pages.css" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%230E1116'/%3E%3Ctext x='16' y='21' text-anchor='middle' font-family='monospace' font-weight='700' font-size='14' fill='%23F7F6F1'%3ED%3C/text%3E%3C/svg%3E" />
+<style>
+  /* ---------- Hero ---------- */
+  .hub-hero { padding: 56px 0 36px; }
+  .hub-hero .grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+    gap: 56px; align-items: start;
+  }
+  @media (max-width: 920px) { .hub-hero .grid { grid-template-columns: 1fr; gap: 24px; } }
+  .hub-hero h1 {
+    font-size: clamp(34px, 3.8vw, 48px);
+    letter-spacing: -0.02em; line-height: 1.05;
+    margin: 12px 0 0; max-width: 18ch;
+  }
+  .hub-hero .lede {
+    margin-top: 20px; font-size: 17px; line-height: 1.55;
+    color: var(--ink-2); max-width: 56ch;
+  }
+
+  .hub-hero .toc {
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: var(--paper);
+    padding: 18px 20px;
+  }
+  .hub-hero .toc h3 {
+    font-family: var(--mono); font-size: 11px;
+    color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.10em;
+    margin: 0 0 14px;
+  }
+  .hub-hero .toc ol {
+    list-style: none; margin: 0; padding: 0;
+    display: flex; flex-direction: column; gap: 4px;
+    counter-reset: hbstep;
+  }
+  .hub-hero .toc ol li { counter-increment: hbstep; }
+  .hub-hero .toc ol li a {
+    display: grid; grid-template-columns: 32px 1fr auto;
+    gap: 12px; align-items: baseline;
+    padding: 10px 0;
+    border-top: 1px solid var(--line-soft);
+    font-size: 14.5px; color: var(--ink);
+    text-decoration: none; line-height: 1.3;
+  }
+  .hub-hero .toc ol li:first-child a { border-top: 0; }
+  .hub-hero .toc ol li a::before {
+    content: counter(hbstep, decimal-leading-zero);
+    font-family: var(--mono); font-size: 11px;
+    color: var(--ink-3); letter-spacing: 0.08em;
+  }
+  .hub-hero .toc ol li a .arrow {
+    font-family: var(--mono); font-size: 12px; color: var(--ink-3);
+  }
+  .hub-hero .toc ol li a:hover { color: var(--accent-ink); }
+
+  /* ---------- Section frame ---------- */
+  .hub-section { padding: 56px 0; border-top: 1px solid var(--line); }
+  .hub-section .head {
+    display: grid;
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+    gap: 56px; align-items: end;
+    margin-bottom: 32px;
+  }
+  @media (max-width: 920px) { .hub-section .head { grid-template-columns: 1fr; gap: 12px; } }
+  .hub-section .head .ix {
+    font-family: var(--mono); font-size: 11px;
+    color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.10em;
+  }
+  .hub-section .head h2 {
+    font-size: clamp(28px, 3vw, 40px);
+    letter-spacing: -0.018em; margin: 8px 0 0;
+    line-height: 1.1;
+  }
+  .hub-section .head .summary {
+    font-size: 16px; color: var(--ink-2); line-height: 1.6;
+    margin: 0; max-width: 52ch;
+  }
+
+  /* ---------- 01 What it is: facts strip ---------- */
+  .hub-facts {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 0;
+    border: 1px solid var(--line); border-radius: 14px;
+    background: var(--paper);
+    overflow: hidden;
+  }
+  @media (max-width: 920px) { .hub-facts { grid-template-columns: repeat(2, 1fr); } }
+  .hub-facts .cell {
+    padding: 22px 24px;
+    border-right: 1px solid var(--line-soft);
+    display: flex; flex-direction: column; gap: 8px;
+  }
+  .hub-facts .cell:last-child { border-right: 0; }
+  @media (max-width: 920px) {
+    .hub-facts .cell:nth-child(2) { border-right: 0; }
+    .hub-facts .cell:nth-child(-n+2) { border-bottom: 1px solid var(--line-soft); }
+  }
+  .hub-facts .lbl {
+    font-family: var(--mono); font-size: 11px;
+    color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.08em;
+  }
+  .hub-facts .val {
+    font-size: 22px; letter-spacing: -0.012em; line-height: 1.15;
+  }
+  .hub-facts .val .unit { font-size: 13px; color: var(--ink-3); margin-left: 4px; font-family: var(--mono); }
+  .hub-facts .sub {
+    font-size: 12.5px; color: var(--ink-3); line-height: 1.45;
+  }
+
+  /* ---------- 02 Facilitates: 3-up cards ---------- */
+  .hub-fac { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+  @media (max-width: 1040px) { .hub-fac { grid-template-columns: 1fr; } }
+  .hub-fac .card {
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    background: var(--paper);
+    padding: 22px 24px 20px;
+    display: flex; flex-direction: column; gap: 14px;
+  }
+  .hub-fac .card .role {
+    font-family: var(--mono); font-size: 11px;
+    text-transform: uppercase; letter-spacing: 0.10em; color: var(--ink-3);
+  }
+  .hub-fac .card h3 {
+    margin: 0; font-size: 21px; letter-spacing: -0.014em;
+  }
+  .hub-fac .card p { margin: 0; font-size: 14.5px; color: var(--ink-2); line-height: 1.6; }
+  .hub-fac .card ul {
+    margin: 0; padding: 0; list-style: none;
+    display: flex; flex-direction: column; gap: 6px;
+    font-size: 13px; color: var(--ink-3); line-height: 1.5;
+  }
+  .hub-fac .card ul li { display: grid; grid-template-columns: 12px 1fr; gap: 8px; }
+  .hub-fac .card ul li::before { content: "·"; color: var(--ink-4); font-weight: 700; }
+  .hub-fac .card .foot {
+    margin-top: auto;
+    border-top: 1px solid var(--line-soft);
+    padding-top: 12px;
+    font-family: var(--mono); font-size: 12px;
+  }
+  .hub-fac .card .foot a { color: var(--ink); border-bottom: 1px dashed var(--ink-3); }
+  .hub-fac .card .foot a:hover { color: var(--accent-ink); border-bottom-color: var(--accent); }
+
+  /* ---------- 03 Architecture: stacked rows ---------- */
+  .hub-arch {
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    background: var(--paper);
+    overflow: hidden;
+  }
+  .hub-arch .row {
+    display: grid;
+    grid-template-columns: 220px 1fr 220px;
+    border-top: 1px solid var(--line-soft);
+  }
+  .hub-arch .row:first-child { border-top: 0; }
+  @media (max-width: 920px) { .hub-arch .row { grid-template-columns: 1fr; } }
+  .hub-arch .row .col {
+    padding: 22px 24px;
+    border-right: 1px solid var(--line-soft);
+  }
+  .hub-arch .row .col:last-child { border-right: 0; }
+  @media (max-width: 920px) { .hub-arch .row .col { border-right: 0; border-bottom: 1px solid var(--line-soft); } }
+  .hub-arch .row .col .lbl {
+    font-family: var(--mono); font-size: 11px;
+    color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.08em;
+    margin-bottom: 8px; display: block;
+  }
+  .hub-arch .row .col .name { font-size: 16px; letter-spacing: -0.012em; margin: 0; }
+  .hub-arch .row .col .desc { font-size: 13.5px; color: var(--ink-2); line-height: 1.6; margin: 6px 0 0; }
+  .hub-arch .row .col .hint { font-size: 12px; color: var(--ink-3); font-family: var(--mono); }
+  .hub-arch .row .col code { font-family: var(--mono); font-size: 12.5px; background: var(--paper-2); padding: 2px 6px; border-radius: 4px; border: 1px solid var(--line-soft); }
+
+  /* ---------- 04 Integrate: tabbed code blocks ---------- */
+  .hub-int {
+    display: grid; grid-template-columns: 280px 1fr; gap: 32px; align-items: start;
+  }
+  @media (max-width: 920px) { .hub-int { grid-template-columns: 1fr; gap: 16px; } }
+  .hub-int .nav-col {
+    border: 1px solid var(--line); border-radius: 12px;
+    background: var(--paper);
+    padding: 8px;
+  }
+  .hub-int .nav-col button {
+    appearance: none; border: 0; background: transparent;
+    width: 100%; text-align: left;
+    padding: 12px 14px; border-radius: 8px;
+    font: inherit; color: var(--ink-2);
+    cursor: pointer;
+    display: grid; grid-template-columns: 28px 1fr; gap: 10px; align-items: baseline;
+  }
+  .hub-int .nav-col button .n { font-family: var(--mono); font-size: 11px; color: var(--ink-3); }
+  .hub-int .nav-col button:hover { background: var(--paper-2); }
+  .hub-int .nav-col button.on { background: var(--ink); color: var(--paper); }
+  .hub-int .nav-col button.on .n { color: var(--paper-2); }
+
+  .hub-int .panes { min-width: 0; }
+  .hub-int .pane { display: none; }
+  .hub-int .pane.on { display: block; }
+  .hub-int .pane h4 {
+    margin: 0 0 8px; font-size: 18px; letter-spacing: -0.012em;
+  }
+  .hub-int .pane p { margin: 0 0 16px; font-size: 14.5px; color: var(--ink-2); line-height: 1.6; max-width: 64ch; }
+  .hub-int .pane pre {
+    margin: 0;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: var(--ink);
+    color: var(--paper);
+    padding: 18px 20px;
+    font-family: var(--mono); font-size: 12.5px; line-height: 1.65;
+    overflow-x: auto;
+  }
+  .hub-int .pane pre .c { color: #888; }
+  .hub-int .pane pre .k { color: #c8a8ff; }
+  .hub-int .pane pre .s { color: #ffd28a; }
+
+  /* ---------- 05 Operate: principles list ---------- */
+  .hub-ops {
+    display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px;
+  }
+  @media (max-width: 920px) { .hub-ops { grid-template-columns: 1fr; } }
+  .hub-ops .item {
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: var(--paper);
+    padding: 18px 22px;
+    display: grid; grid-template-columns: auto 1fr; gap: 14px; align-items: start;
+  }
+  .hub-ops .item .num {
+    font-family: var(--mono); font-size: 11px; color: var(--ink-3); letter-spacing: 0.08em;
+    padding-top: 3px;
+  }
+  .hub-ops .item h4 { margin: 0 0 4px; font-size: 16px; letter-spacing: -0.01em; }
+  .hub-ops .item p { margin: 0; font-size: 13.5px; color: var(--ink-2); line-height: 1.55; }
+
+  /* ---------- CTA strip ---------- */
+  .hub-cta {
+    margin-top: 16px;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    background: var(--paper-2);
+    padding: 28px 32px;
+    display: grid; grid-template-columns: 1fr auto; gap: 24px; align-items: center;
+  }
+  @media (max-width: 720px) { .hub-cta { grid-template-columns: 1fr; } }
+  .hub-cta h3 { margin: 0; font-size: 22px; letter-spacing: -0.014em; }
+  .hub-cta p { margin: 6px 0 0; font-size: 14.5px; color: var(--ink-2); max-width: 56ch; }
+  .hub-cta .actions { display: flex; gap: 10px; align-items: center; }
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="/" class="brand"><span class="brand-mark">D</span> DueCare AI</a>
+    <div class="nav-links">
+      <a href="/demo">Demo</a>
+      <a href="/use-cases">Use cases</a>
+      <a href="/hub" class="on">Hub</a>
+      <a href="/docs">Docs</a>
+      <a href="/stats">Stats</a>
+    </div>
+    <a href="/login?next=/contribute" class="nav-cta">Get involved <span aria-hidden="true">&rarr;</span></a>
+  </div>
+</nav>
+
+
+
+<!-- ============== HERO ============== -->
+<section class="hub-hero" data-screen-label="Hub · Intro">
+  <div class="wrap">
+    <div class="crumbs"><a href="/">Home</a><span class="sep">/</span><span>DueCare Hub</span></div>
+    <div class="grid">
+      <div>
+        <span class="kicker">/hub · the public coordination layer</span>
+        <h1>The DueCare Hub is the public spine that everyone runs against.</h1>
+        <p class="lede">The hub is a small, public, append-only service. It signs and serves
+          context packs, holds the global registry of grep rules and tools, accepts coarse
+          opt-in signals from partner deployments, and exposes a live audit feed. It does
+          not see worker messages, names, or case content; those stay on the partner side.</p>
+      </div>
+      <nav class="toc" aria-label="Hub sections on this page">
+        <h3>On this page</h3>
+        <ol>
+          <li><a href="#hub-what"><span>What the hub is</span><span class="arrow">→</span></a></li>
+          <li><a href="#hub-fac"><span>What the hub facilitates</span><span class="arrow">→</span></a></li>
+          <li><a href="#hub-arch"><span>How the hub is set up</span><span class="arrow">→</span></a></li>
+          <li><a href="#hub-int"><span>How to integrate</span><span class="arrow">→</span></a></li>
+          <li><a href="#hub-ops"><span>How the hub is run</span><span class="arrow">→</span></a></li>
+        </ol>
+      </nav>
+    </div>
+  </div>
+</section>
+
+<!-- ============== 01 What ============== -->
+<section id="hub-what" class="hub-section" data-screen-label="Hub · What it is">
+  <div class="wrap">
+    <div class="head">
+      <div>
+        <span class="ix">01 · What the hub is</span>
+        <h2>A small, append-only public service. Not a database of cases.</h2>
+      </div>
+      <p class="summary">The hub holds public source material, signed pack manifests, the
+        registry of grep rules and tools, and a coarse trend rollup. It is intentionally
+        narrow: anything that could identify a worker or case is rejected at the schema
+        boundary before it ever touches storage.</p>
+    </div>
+
+    <div class="hub-facts">
+      <div class="cell">
+        <span class="lbl">Footprint</span>
+        <span class="val">1<span class="unit">postgres</span> · 1<span class="unit">object store</span></span>
+        <span class="sub">Public reads served by CDN. No user-data table exists.</span>
+      </div>
+      <div class="cell">
+        <span class="lbl">Append-only</span>
+        <span class="val">No edits, no deletes</span>
+        <span class="sub">Every pack version, rule, and signal lands as an immutable row.</span>
+      </div>
+      <div class="cell">
+        <span class="lbl">Reads</span>
+        <span class="val">Public · unauthenticated</span>
+        <span class="sub">Anyone can pull packs, manifests, rules, and rollups by hash.</span>
+      </div>
+      <div class="cell">
+        <span class="lbl">Writes</span>
+        <span class="val">Curator-signed</span>
+        <span class="sub">Pack and rule writes require a curator key. Signal writes require a deployment key.</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============== 02 Facilitates ============== -->
+<section id="hub-fac" class="hub-section" data-screen-label="Hub · Facilitates">
+  <div class="wrap">
+    <div class="head">
+      <div>
+        <span class="ix">02 · What the hub facilitates</span>
+        <h2>Three jobs, no more.</h2>
+      </div>
+      <p class="summary">If a feature can't be expressed as one of these three jobs, it does
+        not belong on the hub. New behavior moves into the harness or stays in the partner
+        deployment instead.</p>
+    </div>
+
+    <div class="hub-fac">
+      <article class="card">
+        <span class="role">Job 01</span>
+        <h3>Distribute signed context packs</h3>
+        <p>Versioned bundles of public source material (laws, advisories, embassy notices)
+          scoped to a corridor and frozen at a known date.</p>
+        <ul>
+          <li>Pack manifest: corridor, jurisdiction, version, hash, signer</li>
+          <li>Diff review on every pack before signing</li>
+          <li>Pin a version; reproduce the same answer later</li>
+        </ul>
+        <div class="foot"><a href="/context">→ /context</a></div>
+      </article>
+
+      <article class="card">
+        <span class="role">Job 02</span>
+        <h3>Hold the global rule and tool registry</h3>
+        <p>The grep rules every harness deployment runs, plus the catalog of tools
+          deployments may call. One source of truth, mirrored on pull.</p>
+        <ul>
+          <li>Rule: id, scope, severity, citation, version</li>
+          <li>Tool: name, schema, allowed callers, version</li>
+          <li>Public diff log; review queue for proposed changes</li>
+        </ul>
+        <div class="foot"><a href="/grep-rules">→ /grep-rules</a> · <a href="/tools">/tools</a></div>
+      </article>
+
+      <article class="card">
+        <span class="role">Job 03</span>
+        <h3>Aggregate coarse opt-in signals</h3>
+        <p>Partner deployments may post anonymized pattern counts (e.g.
+          <code>fee_request</code> per corridor, per week) so curators can see trends and
+          regulators can act on them.</p>
+        <ul>
+          <li>Schema rejects free text, names, IDs, contracts</li>
+          <li>K-anonymity floor (k≥30) before any rollup is published</li>
+          <li>Opt-in per deployment; revocable per signal type</li>
+        </ul>
+        <div class="foot"><a href="/dashboard">→ Live hub data</a></div>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ============== 03 Architecture ============== -->
+<section id="hub-arch" class="hub-section" data-screen-label="Hub · Architecture">
+  <div class="wrap">
+    <div class="head">
+      <div>
+        <span class="ix">03 · How the hub is set up</span>
+        <h2>Public CDN in front. Postgres and object store behind.</h2>
+      </div>
+      <p class="summary">The architecture is deliberately ordinary. Most reads are static
+        files served from a CDN. Writes go through a small signing service and land in two
+        stores. There is no user-content database because no user content is accepted.</p>
+    </div>
+
+    <div class="hub-arch">
+      <div class="row">
+        <div class="col">
+          <span class="lbl">Layer 01 · Edge</span>
+          <p class="name">Public CDN</p>
+        </div>
+        <div class="col">
+          <p class="desc">Serves pack files, rule and tool registries, and rollup JSON to
+            anyone, unauthenticated. Files are addressed by content hash so caches are safe.</p>
+        </div>
+        <div class="col">
+          <span class="lbl">Endpoints</span>
+          <p class="hint">cdn.duecare-ai.com<br/><code>/packs/&lt;hash&gt;</code><br/><code>/rules/&lt;version&gt;</code></p>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col">
+          <span class="lbl">Layer 02 · API</span>
+          <p class="name">Hub service</p>
+        </div>
+        <div class="col">
+          <p class="desc">A small Go service. Verifies signing keys, validates schemas, writes to
+            the stores below. Rejects anything resembling a case payload at the boundary.</p>
+        </div>
+        <div class="col">
+          <span class="lbl">Endpoints</span>
+          <p class="hint">api.duecare-ai.com<br/><code>POST /signals</code><br/><code>POST /packs</code></p>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col">
+          <span class="lbl">Layer 03 · Signing</span>
+          <p class="name">Curator key service</p>
+        </div>
+        <div class="col">
+          <p class="desc">Holds the curator signing keys. Each pack and rule version is signed
+            before publish. Verifiable client-side against the public key.</p>
+        </div>
+        <div class="col">
+          <span class="lbl">Verify</span>
+          <p class="hint"><code>duecare verify pack.json</code></p>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col">
+          <span class="lbl">Layer 04 · Storage</span>
+          <p class="name">Postgres + object store</p>
+        </div>
+        <div class="col">
+          <p class="desc">Postgres holds registries and signal rollups (no PII columns
+            exist). Object store holds pack files. Both append-only by policy.</p>
+        </div>
+        <div class="col">
+          <span class="lbl">Schema</span>
+          <p class="hint"><code>packs · rules · tools · signals</code></p>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col">
+          <span class="lbl">Layer 05 · Audit</span>
+          <p class="name">Public audit feed</p>
+        </div>
+        <div class="col">
+          <p class="desc">Every write produces an audit row exposed on a public feed. Anyone
+            can replay the feed and reproduce the current state of the hub.</p>
+        </div>
+        <div class="col">
+          <span class="lbl">Feed</span>
+          <p class="hint"><code>/audit/stream.ndjson</code></p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============== 04 Integrate ============== -->
+<section id="hub-int" class="hub-section" data-screen-label="Hub · Integrate">
+  <div class="wrap">
+    <div class="head">
+      <div>
+        <span class="ix">04 · How to integrate with the hub</span>
+        <h2>Pull packs. Verify. Optionally post coarse signals.</h2>
+      </div>
+      <p class="summary">Most integrations are read-only: pull a pack by manifest, verify the
+        signature, run locally. Partners who want to contribute trend data add one extra
+        step: post coarse signals through the anonymizer.</p>
+    </div>
+
+    <div class="hub-int">
+      <div class="nav-col" role="tablist" aria-label="Integration paths">
+        <button class="on" data-pane="p-pull"><span class="n">01</span> Pull a pack</button>
+        <button data-pane="p-verify"><span class="n">02</span> Verify signature</button>
+        <button data-pane="p-signal"><span class="n">03</span> Post a coarse signal</button>
+        <button data-pane="p-rules"><span class="n">04</span> Pull rules &amp; tools</button>
+        <button data-pane="p-audit"><span class="n">05</span> Replay audit</button>
+      </div>
+
+      <div class="panes">
+        <div class="pane on" id="p-pull">
+          <h4>Pull a corridor pack by manifest</h4>
+          <p>Resolve the latest manifest for a corridor, then download the pack body by content hash. Files are immutable, so any cache or mirror is safe.</p>
+<pre><span class="c"># resolve latest manifest</span>
+curl https://api.duecare-ai.com/packs/qa-np/latest <span class="c"># →</span>
+{ <span class="k">"version"</span>: <span class="s">"2026.05.06"</span>,
+  <span class="k">"hash"</span>: <span class="s">"sha256:9ab3…"</span>,
+  <span class="k">"signer"</span>: <span class="s">"curator/duecare-1"</span> }
+
+<span class="c"># pull the pack body</span>
+curl -O https://cdn.duecare-ai.com/packs/sha256:9ab3…</pre>
+        </div>
+
+        <div class="pane" id="p-verify">
+          <h4>Verify the curator signature</h4>
+          <p>Use the CLI or any standard ed25519 verifier. Verification is offline once you have the public key.</p>
+<pre><span class="c"># one-shot</span>
+duecare verify pack.json --key curator-1.pub
+
+<span class="c"># or the underlying primitive</span>
+openssl pkeyutl -verify \
+  -pubin -inkey curator-1.pub \
+  -sigfile pack.sig -in pack.json</pre>
+        </div>
+
+        <div class="pane" id="p-signal">
+          <h4>Post a coarse, opt-in signal</h4>
+          <p>Signals are aggregate counts. Free text, identifiers, and case content are rejected at the schema boundary. Below k≥30, the rollup never publishes.</p>
+<pre>POST /signals
+{
+  <span class="k">"deployment_id"</span>: <span class="s">"ngo-helpdesk-bd"</span>,
+  <span class="k">"corridor"</span>: <span class="s">"qa-np"</span>,
+  <span class="k">"week"</span>: <span class="s">"2026-W19"</span>,
+  <span class="k">"pattern"</span>: <span class="s">"fee_request"</span>,
+  <span class="k">"count"</span>: 42
+}</pre>
+        </div>
+
+        <div class="pane" id="p-rules">
+          <h4>Pull the rule and tool registry</h4>
+          <p>One file per registry, addressed by version. Mirror locally and pin in your runtime config.</p>
+<pre>curl https://cdn.duecare-ai.com/rules/2026.05.06.json
+curl https://cdn.duecare-ai.com/tools/2026.05.06.json</pre>
+        </div>
+
+        <div class="pane" id="p-audit">
+          <h4>Replay the public audit stream</h4>
+          <p>Append-only NDJSON. Tail it, or fetch by date range. Every hub state change is reproducible from this feed alone.</p>
+<pre>curl https://api.duecare-ai.com/audit/stream.ndjson \
+  | jq -c <span class="s">'select(.kind=="pack.publish")'</span></pre>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============== 05 Operate ============== -->
+<section id="hub-ops" class="hub-section" data-screen-label="Hub · Operate">
+  <div class="wrap">
+    <div class="head">
+      <div>
+        <span class="ix">05 · How the hub is run</span>
+        <h2>Five operating rules. Every one is enforceable.</h2>
+      </div>
+      <p class="summary">These are not values; they are constraints in code. If a pull request
+        tries to add behavior that breaks one of them, the hub does not ship it.</p>
+    </div>
+
+    <div class="hub-ops">
+      <div class="item">
+        <span class="num">01</span>
+        <div>
+          <h4>Public source only</h4>
+          <p>Every pack input is a public document with a citable URL. Curator review is recorded on the diff that brings it in.</p>
+        </div>
+      </div>
+      <div class="item">
+        <span class="num">02</span>
+        <div>
+          <h4>No PII column</h4>
+          <p>The Postgres schema has no name, message, contact, ID, or employer field. There is nothing for a misconfigured client to populate.</p>
+        </div>
+      </div>
+      <div class="item">
+        <span class="num">03</span>
+        <div>
+          <h4>Append-only by default</h4>
+          <p>Packs, rules, tools, and signals all land as immutable rows. Corrections ship as new versions; old rows stay.</p>
+        </div>
+      </div>
+      <div class="item">
+        <span class="num">04</span>
+        <div>
+          <h4>K-anonymity floor on rollups</h4>
+          <p>Trend slices below k≥30 are not published. The floor is applied before any aggregate leaves the storage layer.</p>
+        </div>
+      </div>
+      <div class="item">
+        <span class="num">05</span>
+        <div>
+          <h4>Curator key rotation</h4>
+          <p>Signing keys rotate on a fixed schedule. Old keys are revoked but remain in the public log so historical packs stay verifiable.</p>
+        </div>
+      </div>
+      <div class="item">
+        <span class="num">06</span>
+        <div>
+          <h4>Audit before access</h4>
+          <p>Every write emits an audit row before the corresponding read becomes resolvable. The feed leads the cache.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="hub-cta">
+      <div>
+        <h3>Ready to integrate?</h3>
+        <p>Start with the API client guide for pulling packs and verifying signatures, or read the safe-use checklist for partner deployments.</p>
+      </div>
+      <div class="actions">
+        <a class="btn primary" href="/client-connect">API client guide →</a>
+        <a class="btn ghost" href="/setup">Setup tracks</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer><div class="wrap"><div class="foot-grid">
+<div><a href="/" class="brand"><span class="brand-mark">D</span> DueCare AI</a><p class="muted" style="font-size:14px;max-width:38ch;margin-top:8px;">Public-interest AI infrastructure for migrant-worker safety. <a href="/mission" style="color:inherit;text-decoration:underline;">Read the mission &rarr;</a></p></div>
+<div><h4>Hub</h4><ul><li><a href="/hub">Overview</a></li><li><a href="/knowledge-packs">Knowledge packs</a></li><li><a href="/tools-registry">Tools registry</a></li><li><a href="/research-monitor">Research monitor</a></li></ul></div>
+<div><h4>Docs</h4><ul><li><a href="/docs">Overview</a></li><li><a href="/technical-docs">Schemas</a></li><li><a href="/components">Architecture</a></li><li><a href="/why-gemma">Why Gemma 4</a></li><li><a href="/evaluation">Eval &amp; retraining</a></li><li><a href="/harness">Safety harness</a></li><li><a href="/setup">Setup guides</a></li><li><a href="/privacy-boundary">Privacy boundary</a></li></ul></div>
+<div><h4>Get involved</h4><ul><li><a href="/submit-information">Submit info</a></li><li><a href="/newsletter">Newsletter</a></li><li><a href="/email-feedback">Email feedback</a></li><li><a href="/alerts">Alerts archive</a></li><li><a href="/contribute">Contribute</a></li></ul></div>
+<div><h4>Verify</h4><ul><li><a href="/stats">Stats &amp; audit</a></li><li><a href="/dashboard">Live data</a></li><li><a href="/mission">Mission</a></li><li><a href="/contact">Contact</a></li></ul></div>
+</div><div class="foot-bottom"><span>&copy; 2026 DueCare AI</span><span>v0.4 &middot; public hub draft</span></div></div></footer>
+
+<script>
+document.querySelectorAll('.hub-int .nav-col button').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.hub-int .nav-col button').forEach(b => b.classList.remove('on'));
+    document.querySelectorAll('.hub-int .pane').forEach(p => p.classList.remove('on'));
+    btn.classList.add('on');
+    const pane = document.getElementById(btn.dataset.pane);
+    if (pane) pane.classList.add('on');
+  });
+});
+</script>
+</body>
+</html>

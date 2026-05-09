@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8" /><meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Alerts archive &middot; DueCare AI</title>
+<link rel="stylesheet" href="/static/styles.css" /><link rel="stylesheet" href="/static/hub-pages.css" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%230E1116'/%3E%3Ctext x='16' y='21' text-anchor='middle' font-family='monospace' font-weight='700' font-size='14' fill='%23F7F6F1'%3ED%3C/text%3E%3C/svg%3E" />
+</head><body><nav class="nav">
+  <div class="nav-inner">
+    <a href="/" class="brand"><span class="brand-mark">D</span> DueCare AI</a>
+    <div class="nav-links">
+      <a href="/demo">Demo</a>
+      <a href="/use-cases">Use cases</a>
+      <a href="/hub">Hub</a>
+      <a href="/docs">Docs</a>
+      <a href="/stats">Stats</a>
+    </div>
+    <a href="/login?next=/contribute" class="nav-cta">Get involved <span aria-hidden="true">&rarr;</span></a>
+  </div>
+</nav>
+<section class="hp-hero" data-screen-label="Hub &middot; Alerts archive"><div class="wrap">
+<div class="crumbs"><a href="/">Home</a><span class="sep">/</span><a href="/hub">DueCare Hub</a><span class="sep">/</span><span>Alerts archive</span></div>
+<span class="kicker">/alerts &middot; every alert ever sent, with reasoning</span>
+<h1>Alerts are rare. Every one is preserved with its reasoning.</h1>
+<p class="lede">An alert is the only outbound channel the hub uses, and it is sent only when a corridor pack ships a material change. The archive lists every alert ever sent, the trigger, the affected pack version, and the reviewing curator.</p></div></section>
+
+<section class="hp-section" data-screen-label="Alerts &middot; Filter"><div class="wrap">
+<div class="hp-altbar">
+<label>Corridor <select><option>All</option><option>NPL &rarr; QAT</option><option>BGD &rarr; SAU</option><option>IDN &rarr; HKG</option><option>PHL &rarr; KWT</option></select></label>
+<label>Severity <select><option>All</option><option>Material</option><option>Advisory</option><option>Informational</option></select></label>
+<label>Year <select><option>All</option><option>2026</option><option>2025</option></select></label>
+<span class="count">7 alerts archived</span>
+</div>
+<div class="hp-alerts">
+<article class="alert"><div class="head"><span class="hp-pill ok">Material</span><span class="when">2026-04-12 &middot; 09:14 UTC</span></div><h3>QAT recruitment fee cap revised &mdash; pack <code>npl-qat-construction@1.4.0</code></h3><p>Host-country labour ministry published a revised fee cap on 2026-04-10. Pack updated; alert sent to subscribers with the &ldquo;Pack updates&rdquo; topic.</p><dl class="meta"><dt>Trigger</dt><dd>opencrawl proposal #4172, approved</dd><dt>Reviewed by</dt><dd>curator key <code>k.maharjan</code></dd><dt>Sources</dt><dd>1 government, 1 NGO</dd></dl></article>
+<article class="alert"><div class="head"><span class="hp-pill draft">Advisory</span><span class="when">2026-03-28 &middot; 14:02 UTC</span></div><h3>BGD &rarr; SAU passport handling clause changed &mdash; pack <code>bgd-sau-domestic@2.1.0</code></h3><p>Source-country labour-ministry advisory clarified the passport-handling clause; advisory text now cites the new clause id.</p><dl class="meta"><dt>Trigger</dt><dd>opencrawl proposal #4150</dd><dt>Reviewed by</dt><dd>curator key <code>r.haque</code></dd><dt>Sources</dt><dd>1 government</dd></dl></article>
+<article class="alert"><div class="head"><span class="hp-pill ok">Material</span><span class="when">2026-02-19 &middot; 06:48 UTC</span></div><h3>IDN &rarr; HKG agency licensing rules updated &mdash; pack <code>idn-hkg-domestic@3.0.0</code></h3><p>Pack bumped to 3.x: agency licensing taxonomy changed enough to be a breaking diff. Migration notes in pack changelog.</p><dl class="meta"><dt>Trigger</dt><dd>opencrawl proposals #4081 &middot; #4082</dd><dt>Reviewed by</dt><dd>curator key <code>m.tan</code></dd><dt>Sources</dt><dd>2 government, 1 court ruling</dd></dl></article>
+<article class="alert"><div class="head"><span class="hp-pill draft">Advisory</span><span class="when">2026-01-31 &middot; 11:23 UTC</span></div><h3>PHL &rarr; KWT contact list refresh &mdash; pack <code>phl-kwt-domestic@1.7.2</code></h3><p>Embassy hotline number updated. Patch release; no schema change.</p><dl class="meta"><dt>Trigger</dt><dd>partner submission, allow-listed NGO</dd><dt>Reviewed by</dt><dd>curator key <code>a.santos</code></dd><dt>Sources</dt><dd>1 embassy</dd></dl></article>
+<article class="alert"><div class="head"><span class="hp-pill">Informational</span><span class="when">2025-12-04 &middot; 16:51 UTC</span></div><h3>New tool published: <code>employer.lookup_license</code> v1.0</h3><p>New host-country licensing lookup tool added to the registry. Adopts schema; no breaking change to existing tools.</p><dl class="meta"><dt>Trigger</dt><dd>tool registry release</dd><dt>Reviewed by</dt><dd>curator key <code>k.maharjan</code></dd><dt>Sources</dt><dd>n/a</dd></dl></article>
+<article class="alert"><div class="head"><span class="hp-pill ok">Material</span><span class="when">2025-10-22 &middot; 08:09 UTC</span></div><h3>NPL &rarr; QAT salary protection notice &mdash; pack <code>npl-qat-construction@1.3.0</code></h3><p>New WPS notice issued; advisory text updated to reflect the new monitoring requirements.</p><dl class="meta"><dt>Trigger</dt><dd>opencrawl proposal #3914</dd><dt>Reviewed by</dt><dd>curator key <code>k.maharjan</code></dd><dt>Sources</dt><dd>1 government</dd></dl></article>
+<article class="alert"><div class="head"><span class="hp-pill">Informational</span><span class="when">2025-09-08 &middot; 12:37 UTC</span></div><h3>Hub key rotation completed &mdash; new signing key published</h3><p>Routine rotation of the hub&rsquo;s curator signing root. Old key remains in the public log; historical packs continue to verify.</p><dl class="meta"><dt>Trigger</dt><dd>scheduled rotation</dd><dt>Reviewed by</dt><dd>governance committee</dd><dt>Sources</dt><dd>n/a</dd></dl></article>
+</div></div></section>
+
+<section class="hp-section" data-screen-label="Alerts &middot; Subscribe"><div class="wrap">
+<div class="hp-callout">
+<div><span class="ix">Want alerts when they happen?</span><h2>Subscribe by email. Pick the &ldquo;Alert&rdquo; topic.</h2><p>Alerts are the rarest thing the hub sends. Most subscribers see one or two a quarter for the corridors they follow.</p></div>
+<a href="/newsletter" class="btn primary">Go to newsletter <span aria-hidden="true">&rarr;</span></a>
+</div></div></section>
+<footer><div class="wrap"><div class="foot-grid">
+<div><a href="/" class="brand"><span class="brand-mark">D</span> DueCare AI</a><p class="muted" style="font-size:14px;max-width:38ch;margin-top:8px;">Public-interest AI infrastructure for migrant-worker safety. <a href="/mission" style="color:inherit;text-decoration:underline;">Read the mission &rarr;</a></p></div>
+<div><h4>Hub</h4><ul><li><a href="/hub">Overview</a></li><li><a href="/knowledge-packs">Knowledge packs</a></li><li><a href="/tools-registry">Tools registry</a></li><li><a href="/research-monitor">Research monitor</a></li></ul></div>
+<div><h4>Docs</h4><ul><li><a href="/docs">Overview</a></li><li><a href="/technical-docs">Schemas</a></li><li><a href="/components">Architecture</a></li><li><a href="/why-gemma">Why Gemma 4</a></li><li><a href="/evaluation">Eval &amp; retraining</a></li><li><a href="/harness">Safety harness</a></li><li><a href="/setup">Setup guides</a></li><li><a href="/privacy-boundary">Privacy boundary</a></li></ul></div>
+<div><h4>Get involved</h4><ul><li><a href="/submit-information">Submit info</a></li><li><a href="/newsletter">Newsletter</a></li><li><a href="/email-feedback">Email feedback</a></li><li><a href="/alerts">Alerts archive</a></li><li><a href="/contribute">Contribute</a></li></ul></div>
+<div><h4>Verify</h4><ul><li><a href="/stats">Stats &amp; audit</a></li><li><a href="/dashboard">Live data</a></li><li><a href="/mission">Mission</a></li><li><a href="/contact">Contact</a></li></ul></div>
+</div><div class="foot-bottom"><span>&copy; 2026 DueCare AI</span><span>v0.4 &middot; public hub draft</span></div></div></footer></body></html>

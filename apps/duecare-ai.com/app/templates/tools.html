@@ -1,0 +1,455 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Tools · Duecare AI</title>
+<link rel="stylesheet" href="/static/styles.css" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%230E1116'/%3E%3Ctext x='16' y='21' text-anchor='middle' font-family='monospace' font-weight='700' font-size='14' fill='%23F7F6F1'%3ED%3C/text%3E%3C/svg%3E" />
+<style>
+.page-intro { padding: 72px 0 32px; border-top: 0; }
+.page-intro h1 { font-size: clamp(36px, 4.4vw, 56px); margin-top: 16px; max-width: 18ch; }
+.page-intro .lede { margin-top: 24px; }
+
+.draft-banner {
+  display: inline-flex; align-items: center; gap: 10px;
+  margin-top: 24px;
+  padding: 8px 14px;
+  border: 1px dashed oklch(0.78 0.06 45);
+  background: var(--ember-soft);
+  border-radius: 999px;
+  font-family: var(--mono); font-size: 11.5px;
+  color: oklch(0.42 0.10 45); text-transform: uppercase; letter-spacing: 0.08em;
+}
+.draft-banner::before {
+  content: ""; width: 8px; height: 8px; border-radius: 50%;
+  background: var(--ember);
+}
+
+.tools-grid {
+  display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px;
+}
+@media (max-width: 920px) { .tools-grid { grid-template-columns: 1fr; } }
+.tool {
+  border: 1px solid var(--line); border-radius: 14px;
+  background: var(--paper);
+  overflow: hidden;
+  display: flex; flex-direction: column;
+}
+.tool-head {
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--line);
+  display: flex; justify-content: space-between; align-items: start; gap: 16px;
+}
+.tool-head h3 { font-size: 18px; letter-spacing: -0.012em; }
+.tool-head .role {
+  font-family: var(--mono); font-size: 10.5px;
+  color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.08em;
+  margin-top: 4px;
+}
+.tool-head .num {
+  font-family: var(--mono); font-size: 10.5px;
+  color: var(--ink-3); border: 1px solid var(--line);
+  padding: 3px 7px; border-radius: 4px;
+}
+.tool-body { padding: 20px 24px; flex: 1; display: flex; flex-direction: column; gap: 14px; }
+
+/* shared visual chrome */
+.tool-screen {
+  border: 1px solid var(--line); border-radius: 8px;
+  background: var(--paper-2);
+  padding: 14px;
+  font-size: 13px;
+}
+.tool-foot {
+  padding: 14px 24px;
+  border-top: 1px solid var(--line);
+  font-family: var(--mono); font-size: 11px; color: var(--ink-3);
+  display: flex; justify-content: space-between; align-items: center;
+  background: var(--paper-2);
+}
+.tool-foot .draft-only {
+  display: inline-flex; align-items: center; gap: 6px;
+  color: oklch(0.42 0.10 45);
+}
+.tool-foot .draft-only::before {
+  content: ""; width: 6px; height: 6px; background: var(--ember); border-radius: 50%;
+}
+.tool .field {
+  display: flex; flex-direction: column; gap: 6px;
+}
+.tool .field label {
+  font-family: var(--mono); font-size: 10.5px; color: var(--ink-3);
+  text-transform: uppercase; letter-spacing: 0.08em;
+}
+.tool .field input, .tool .field select {
+  font-family: var(--sans); font-size: 13px;
+  padding: 8px 10px;
+  border: 1px solid var(--line); border-radius: 6px;
+  background: var(--paper); color: var(--ink);
+}
+.tool .field .read {
+  font-family: var(--mono); font-size: 12px;
+  padding: 8px 10px;
+  border: 1px solid var(--line); border-radius: 6px;
+  background: var(--paper); color: var(--ink-2);
+}
+
+.kv { display: grid; grid-template-columns: 110px 1fr; gap: 12px; font-family: var(--mono); font-size: 12px; }
+.kv .k { color: var(--ink-3); }
+.kv .v { color: var(--ink); }
+.kv .v.good { color: var(--accent-ink); }
+.kv .v.warn { color: oklch(0.50 0.13 45); }
+
+.row-tags { display: flex; flex-wrap: wrap; gap: 4px; }
+.row-tags span {
+  font-family: var(--mono); font-size: 10.5px; padding: 2px 6px;
+  border: 1px solid var(--line); border-radius: 3px; color: var(--ink-3);
+  background: var(--paper);
+}
+.row-tags span.hit { color: var(--accent-ink); border-color: oklch(0.85 0.05 195); background: var(--accent-soft); }
+
+/* draft text body */
+.draft-text {
+  font-family: var(--sans); font-size: 13.5px; line-height: 1.55;
+  background: var(--paper);
+  border: 1px solid var(--line); border-radius: 6px;
+  padding: 14px;
+  color: var(--ink-2);
+  white-space: pre-wrap;
+}
+.draft-text .placeholder { color: var(--ink-3); background: var(--paper-2); padding: 0 4px; border-radius: 3px; font-family: var(--mono); font-size: 12px; }
+.draft-text .citation { font-family: var(--mono); font-size: 11px; color: var(--ink-3); }
+
+.diff {
+  font-family: var(--mono); font-size: 12px; line-height: 1.65;
+  background: var(--paper);
+  border: 1px solid var(--line); border-radius: 6px;
+  overflow: hidden;
+}
+.diff .ln { padding: 1px 12px; display: grid; grid-template-columns: 28px 1fr; gap: 12px; }
+.diff .ln .gut { color: var(--ink-4); user-select: none; text-align: right; }
+.diff .ln.add { background: oklch(0.96 0.04 155); color: oklch(0.30 0.10 155); }
+.diff .ln.add .gut { color: oklch(0.50 0.10 155); }
+.diff .ln.rem { background: oklch(0.96 0.04 30); color: oklch(0.36 0.12 30); }
+.diff .ln.rem .gut { color: oklch(0.50 0.12 30); }
+.diff .ln.ctx { color: var(--ink-3); }
+
+.gate-rows { display: flex; flex-direction: column; gap: 6px; }
+.gate-row {
+  display: grid; grid-template-columns: 16px 1fr auto; gap: 10px;
+  font-family: var(--mono); font-size: 12px;
+  padding: 6px 10px;
+  border: 1px solid var(--line); border-radius: 6px;
+  background: var(--paper);
+  align-items: center;
+}
+.gate-row.pass { border-color: oklch(0.85 0.05 155); background: oklch(0.97 0.02 155); }
+.gate-row.block { border-color: oklch(0.85 0.05 45); background: var(--ember-soft); }
+.gate-row .icon { font-weight: 700; }
+.gate-row.pass .icon { color: var(--good); }
+.gate-row.block .icon { color: oklch(0.50 0.13 45); }
+.gate-row .meta { color: var(--ink-3); font-size: 10.5px; }
+
+.contact-list { display: flex; flex-direction: column; gap: 6px; }
+.contact-row {
+  display: grid; grid-template-columns: 1fr auto; gap: 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--line); border-radius: 6px;
+  background: var(--paper);
+  font-size: 13px;
+}
+.contact-row .name { font-weight: 600; }
+.contact-row .meta { font-family: var(--mono); font-size: 11px; color: var(--ink-3); margin-top: 2px; }
+.contact-row .copy { font-family: var(--mono); font-size: 11px; color: var(--ink-3);
+  border: 1px solid var(--line); padding: 2px 8px; border-radius: 4px; }
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="/" class="brand"><span class="brand-mark">D</span> DueCare AI</a>
+    <div class="nav-links">
+      <a href="/demo">Demo</a>
+      <a href="/use-cases">Use cases</a>
+      <a href="/hub">Hub</a>
+      <a href="/docs" class="on">Docs</a>
+      <a href="/stats">Stats</a>
+    </div>
+    <a href="/login?next=/contribute" class="nav-cta">Get involved <span aria-hidden="true">&rarr;</span></a>
+  </div>
+</nav>
+
+<section class="page-intro first" data-screen-label="Tools · Intro">
+  <div class="wrap">
+    <span class="kicker">/tools · the verbs Duecare can perform locally</span>
+    <h1>Six tools. All local. All draft-only.</h1>
+    <p class="lede">Tools are the small, focused capabilities the runtime can invoke
+      during a turn. Each one runs on the user's device, returns a draft, and
+      <strong>never takes action on the user's behalf</strong>.</p>
+    <span class="draft-banner">Duecare drafts; the user or trusted caseworker decides.</span>
+  </div>
+</section>
+
+<section data-screen-label="Tools · Grid">
+  <div class="wrap">
+    <div class="tools-grid">
+
+      <!-- 01 Fee checker -->
+      <div class="tool">
+        <div class="tool-head">
+          <div>
+            <h3>Fee checker</h3>
+            <div class="role">For workers · pre-departure</div>
+          </div>
+          <span class="num">tool · 01</span>
+        </div>
+        <div class="tool-body">
+          <p class="muted" style="font-size: 13.5px;">Compares an offered or requested
+            recruitment fee against the legal cap for the corridor and sector.
+            Draws on the corridor pack — never on a private database.</p>
+
+          <div class="tool-screen">
+            <div class="kv">
+              <div class="k">corridor</div><div class="v">qa-np · Qatar ← Nepal</div>
+              <div class="k">sector</div><div class="v">construction</div>
+              <div class="k">offered fee</div><div class="v">120,000 NPR</div>
+              <div class="k">legal cap</div><div class="v good">0 NPR (worker-paid prohibited)</div>
+              <div class="k">delta</div><div class="v warn">+120,000 NPR over cap</div>
+              <div class="k">cite</div><div class="v"><span class="row-tags"><span class="hit">pack/qa-np §3.2</span><span class="hit">ILO C181</span></span></div>
+            </div>
+          </div>
+        </div>
+        <div class="tool-foot">
+          <span>local · ~12 ms</span>
+          <span class="draft-only">Draft only · no submission</span>
+        </div>
+      </div>
+
+      <!-- 02 Complaint draft builder -->
+      <div class="tool">
+        <div class="tool-head">
+          <div>
+            <h3>Complaint draft builder</h3>
+            <div class="role">For NGOs · caseworker copilot</div>
+          </div>
+          <span class="num">tool · 02</span>
+        </div>
+        <div class="tool-body">
+          <p class="muted" style="font-size: 13.5px;">Drafts a structured complaint with
+            cited rule references. Fields are placeholders; the caseworker fills,
+            verifies, and decides whether and where to submit.</p>
+          <div class="tool-screen">
+            <div class="draft-text">To: <span class="placeholder">{recipient_authority}</span>
+Re: Recruitment violation — corridor qa-np
+
+Per pack/qa-np §3.2 (recruitment fees prohibited) and §3.7
+(passport retention prohibited), the patterns described match
+two violations. Cited evidence:
+
+  · Worker-paid fee request <span class="citation">[R-104]</span>
+  · Passport retention demand <span class="citation">[R-211]</span>
+
+Requested action: <span class="placeholder">{caseworker_decides}</span>
+Filed by: <span class="placeholder">{caseworker_name}</span></div>
+          </div>
+        </div>
+        <div class="tool-foot">
+          <span>local · 1 turn</span>
+          <span class="draft-only">Draft only · no auto-send</span>
+        </div>
+      </div>
+
+      <!-- 03 Contact router -->
+      <div class="tool">
+        <div class="tool-head">
+          <div>
+            <h3>Contact router</h3>
+            <div class="role">For workers &amp; NGOs · referral</div>
+          </div>
+          <span class="num">tool · 03</span>
+        </div>
+        <div class="tool-body">
+          <p class="muted" style="font-size: 13.5px;">Surfaces verified, public
+            organizations relevant to the corridor and the violation pattern.
+            Duecare never contacts these organizations on the user's behalf.</p>
+          <div class="contact-list">
+            <div class="contact-row">
+              <div>
+                <div class="name">Foreign Employment Board</div>
+                <div class="meta">government · np · pre-departure complaints</div>
+              </div>
+              <span class="copy">↗ public registry</span>
+            </div>
+            <div class="contact-row">
+              <div>
+                <div class="name">Migrant-Forum NGO Network</div>
+                <div class="meta">ngo · regional · caseworker support</div>
+              </div>
+              <span class="copy">↗ public registry</span>
+            </div>
+            <div class="contact-row">
+              <div>
+                <div class="name">ILO Country Office · Doha</div>
+                <div class="meta">intergov · qa · arrival violations</div>
+              </div>
+              <span class="copy">↗ public registry</span>
+            </div>
+          </div>
+        </div>
+        <div class="tool-foot">
+          <span>local · public registry only</span>
+          <span class="draft-only">Surfaced — never auto-contacted</span>
+        </div>
+      </div>
+
+      <!-- 04 Citation verifier -->
+      <div class="tool">
+        <div class="tool-head">
+          <div>
+            <h3>Citation verifier</h3>
+            <div class="role">For reviewers · faithfulness</div>
+          </div>
+          <span class="num">tool · 04</span>
+        </div>
+        <div class="tool-body">
+          <p class="muted" style="font-size: 13.5px;">Confirms that every claim in a
+            Duecare draft is grounded in a passage from the signed corridor pack —
+            and rejects unsupported claims before the user ever sees them.</p>
+          <div class="tool-screen">
+            <div class="gate-rows">
+              <div class="gate-row pass">
+                <span class="icon">✓</span>
+                <div>claim · "worker-paid fees are prohibited"<div class="meta">→ pack/qa-np §3.2 line 14</div></div>
+                <span class="meta">grounded</span>
+              </div>
+              <div class="gate-row pass">
+                <span class="icon">✓</span>
+                <div>claim · "passport retention is prohibited"<div class="meta">→ pack/qa-np §3.7 line 02</div></div>
+                <span class="meta">grounded</span>
+              </div>
+              <div class="gate-row block">
+                <span class="icon">×</span>
+                <div>claim · "you can sue the recruiter"<div class="meta">→ no source · refused as legal counsel</div></div>
+                <span class="meta">rejected</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="tool-foot">
+          <span>local · runs on every draft</span>
+          <span class="draft-only">Blocking · never optional</span>
+        </div>
+      </div>
+
+      <!-- 05 Anonymization gate -->
+      <div class="tool">
+        <div class="tool-head">
+          <div>
+            <h3>Anonymizer · bidirectional gate</h3>
+            <div class="role">Outbound: pre-signal · Inbound: pre-pack</div>
+          </div>
+          <span class="num">tool · 05</span>
+        </div>
+        <div class="tool-body">
+          <p class="muted" style="font-size: 13.5px;">The single chokepoint in both
+            directions. <strong>Outbound:</strong> strips PII and enforces the k-anon
+            floor on anything a deployment chooses to send. <strong>Inbound:</strong>
+            scrubs scraped public sources — advisories, registries, regulator pages —
+            before any text enters a signed pack. Audit-logged either way.</p>
+          <div class="tool-screen">
+            <div class="gate-rows">
+              <div class="gate-row pass">
+                <span class="icon">✓</span>
+                <div>pattern_id · <strong>fee_request</strong><div class="meta">coarse · public registry</div></div>
+                <span class="meta">accepted</span>
+              </div>
+              <div class="gate-row pass">
+                <span class="icon">✓</span>
+                <div>corridor · <strong>qa-np</strong><div class="meta">k-anon = 487 · ≥ 30 floor</div></div>
+                <span class="meta">accepted</span>
+              </div>
+              <div class="gate-row block">
+                <span class="icon">×</span>
+                <div>field · <strong>name = "Maya"</strong><div class="meta">→ PII pattern · stripped at gate</div></div>
+                <span class="meta">stripped</span>
+              </div>
+              <div class="gate-row block">
+                <span class="icon">×</span>
+                <div>field · <strong>raw_text = "120,000 NPR before flight"</strong><div class="meta">→ free-text &gt; 64 chars · rejected</div></div>
+                <span class="meta">rejected</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="tool-foot">
+          <span>only place data crosses — in either direction</span>
+          <span class="draft-only">Audit-logged · public schema</span>
+        </div>
+      </div>
+
+      <!-- 06 Pack diff reviewer -->
+      <div class="tool">
+        <div class="tool-head">
+          <div>
+            <h3>Pack diff reviewer</h3>
+            <div class="role">For curators · before signing</div>
+          </div>
+          <span class="num">tool · 06</span>
+        </div>
+        <div class="tool-body">
+          <p class="muted" style="font-size: 13.5px;">When Sentinel proposes a pack
+            update, the curator reviews the diff in plain text — no automation
+            signs a pack on the curator's behalf.</p>
+          <div class="diff">
+            <div class="ln ctx"><span class="gut">12</span><span>§3.2 · Recruitment fees</span></div>
+            <div class="ln rem"><span class="gut">13−</span><span>"Recruitment fees may not exceed two months wages."</span></div>
+            <div class="ln add"><span class="gut">13+</span><span>"Worker-paid recruitment fees are prohibited."</span></div>
+            <div class="ln add"><span class="gut">14+</span><span>"Source: gov.qa labor ministry circular 2026-04."</span></div>
+            <div class="ln ctx"><span class="gut">15</span><span>§3.3 · Contract substitution</span></div>
+          </div>
+        </div>
+        <div class="tool-foot">
+          <span>curator console · /context</span>
+          <span class="draft-only">Human signature required</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<section data-screen-label="Tools · Boundary">
+  <div class="wrap">
+    <div class="privacy-band" style="grid-template-columns: 1.4fr 1fr;">
+      <div>
+        <span class="pill privacy" style="margin-bottom: 16px;"><span class="dot"></span>Tool boundary</span>
+        <h2 style="font-size: 32px; max-width: 22ch;">No tool sends, files, calls, or reports.</h2>
+        <p>Every Duecare tool returns a draft, a check, or a routing suggestion.
+          None of them <em>act</em>. The product surface always ends at a draft
+          for the user or caseworker to decide on.</p>
+        <p style="margin-top: 8px;"><strong>Privacy is non-negotiable.</strong></p>
+      </div>
+      <div class="privacy-rules">
+        <div class="rule"><span class="x">×</span><span class="label">Auto-email or auto-SMS</span></div>
+        <div class="rule"><span class="x">×</span><span class="label">Auto-filing of complaints with any authority</span></div>
+        <div class="rule"><span class="x">×</span><span class="label">Calls to emergency services</span></div>
+        <div class="rule"><span class="x">×</span><span class="label">Background submission to a “central case system”</span></div>
+        <div class="rule ok"><span class="x">✓</span><span class="label">Drafts the user can edit, save, or discard</span></div>
+        <div class="rule ok"><span class="x">✓</span><span class="label">Public registry references for next steps</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer><div class="wrap"><div class="foot-grid">
+<div><a href="/" class="brand"><span class="brand-mark">D</span> DueCare AI</a><p class="muted" style="font-size:14px;max-width:38ch;margin-top:8px;">Public-interest AI infrastructure for migrant-worker safety. <a href="/mission" style="color:inherit;text-decoration:underline;">Read the mission &rarr;</a></p></div>
+<div><h4>Hub</h4><ul><li><a href="/hub">Overview</a></li><li><a href="/knowledge-packs">Knowledge packs</a></li><li><a href="/tools-registry">Tools registry</a></li><li><a href="/research-monitor">Research monitor</a></li></ul></div>
+<div><h4>Docs</h4><ul><li><a href="/docs">Overview</a></li><li><a href="/technical-docs">Schemas</a></li><li><a href="/components">Architecture</a></li><li><a href="/why-gemma">Why Gemma 4</a></li><li><a href="/evaluation">Eval &amp; retraining</a></li><li><a href="/harness">Safety harness</a></li><li><a href="/setup">Setup guides</a></li><li><a href="/privacy-boundary">Privacy boundary</a></li></ul></div>
+<div><h4>Get involved</h4><ul><li><a href="/submit-information">Submit info</a></li><li><a href="/newsletter">Newsletter</a></li><li><a href="/email-feedback">Email feedback</a></li><li><a href="/alerts">Alerts archive</a></li><li><a href="/contribute">Contribute</a></li></ul></div>
+<div><h4>Verify</h4><ul><li><a href="/stats">Stats &amp; audit</a></li><li><a href="/dashboard">Live data</a></li><li><a href="/mission">Mission</a></li><li><a href="/contact">Contact</a></li></ul></div>
+</div><div class="foot-bottom"><span>&copy; 2026 DueCare AI</span><span>v0.4 &middot; public hub draft</span></div></div></footer>
+
+</body>
+</html>

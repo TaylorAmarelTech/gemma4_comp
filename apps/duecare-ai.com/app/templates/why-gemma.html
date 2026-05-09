@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8" /><meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Why Gemma 4 &middot; DueCare AI</title>
+<link rel="stylesheet" href="/static/styles.css" /><link rel="stylesheet" href="/static/hub-pages.css" />
+<style>
+.wg-spec { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+@media (max-width: 720px) { .wg-spec { grid-template-columns: repeat(2, 1fr); } }
+.wg-spec .cell { padding: 22px 24px; border-right: 1px solid var(--line); }
+.wg-spec .cell:last-child { border-right: none; }
+.wg-spec .lbl { font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.10em; color: var(--ink-3); text-transform: uppercase; }
+.wg-spec .val { font-size: 22px; letter-spacing: -0.015em; margin-top: 6px; }
+.wg-spec .sub { font-size: 12.5px; color: var(--ink-3); margin-top: 2px; }
+.wg-compare table { width: 100%; border-collapse: collapse; font-size: 14px; margin-top: 22px; }
+.wg-compare th, .wg-compare td { text-align: left; padding: 12px 14px; border-bottom: 1px solid var(--line-soft); vertical-align: top; }
+.wg-compare th { font-family: var(--mono); font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-3); font-weight: 500; }
+.wg-compare tr.us td { background: oklch(0.98 0.015 60); }
+.wg-compare .ok { color: oklch(0.40 0.10 150); }
+.wg-compare .no { color: oklch(0.50 0.13 30); }
+.wg-compare .meh { color: var(--ink-3); }
+</style>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%230E1116'/%3E%3Ctext x='16' y='21' text-anchor='middle' font-family='monospace' font-weight='700' font-size='14' fill='%23F7F6F1'%3ED%3C/text%3E%3C/svg%3E" />
+</head><body><nav class="nav">
+  <div class="nav-inner">
+    <a href="/" class="brand"><span class="brand-mark">D</span> DueCare AI</a>
+    <div class="nav-links">
+      <a href="/demo">Demo</a>
+      <a href="/use-cases">Use cases</a>
+      <a href="/hub">Hub</a>
+      <a href="/docs" class="on">Docs</a>
+      <a href="/stats">Stats</a>
+    </div>
+    <a href="/login?next=/contribute" class="nav-cta">Get involved <span aria-hidden="true">&rarr;</span></a>
+  </div>
+</nav>
+<section class="hp-hero" data-screen-label="Docs &middot; Why Gemma 4"><div class="wrap">
+<div class="crumbs"><a href="/">Home</a><span class="sep">/</span><a href="/docs">Docs</a><span class="sep">/</span><span>Why Gemma 4</span></div>
+<span class="kicker">/why-gemma &middot; model-choice rationale</span>
+<h1>Why DueCare runs on Gemma 4.</h1>
+<p class="lede">DueCare is shared infrastructure that has to run cheaply at NGOs and on workers&rsquo; phones, behave well in many corridors and many languages, and be inspectable end-to-end. Gemma 4 is the only family that lets us hit all four bars at once.</p></div></section>
+
+<section class="wg-spec" data-screen-label="Gemma &middot; Spec strip"><div class="cell"><div class="lbl">Open weights</div><div class="val">Yes</div><div class="sub">Apache-2.0-style terms; redistributable.</div></div><div class="cell"><div class="lbl">Inference cost</div><div class="val">~10&times; cheaper</div><div class="sub">vs. equivalently-tuned closed APIs.</div></div><div class="cell"><div class="lbl">Native tool calling</div><div class="val">Built-in</div><div class="sub">Structured tool-call format from base.</div></div><div class="cell"><div class="lbl">On-device</div><div class="val">Yes</div><div class="sub">Quantized 2B fits a low-spec phone.</div></div></section>
+
+<section class="hp-section" data-screen-label="Gemma &middot; Reasons"><div class="wrap">
+<div class="head"><div><span class="ix">01 &middot; Five reasons</span><h2>Why this family, specifically.</h2></div><p class="summary">Each reason maps to something concrete a partner or worker actually feels.</p></div>
+<div class="hp-grid-2">
+<article class="hp-card"><span class="role">Reason 01</span><h3>Open weights are a privacy primitive</h3><p>Open weights mean an NGO can run DueCare on its own server. A worker can run the small variant on their own phone. Closed APIs cannot do this. With Gemma 4, raw casework never has to leave the building, and worker chats never have to leave the device. The privacy boundary stops being a promise we make and becomes a fact you can verify by reading the deployment.</p></article>
+<article class="hp-card"><span class="role">Reason 02</span><h3>Cheap inference makes the math work</h3><p>Per-token cost on Gemma 4 is roughly an order of magnitude cheaper than equivalently-tuned closed APIs at the sizes DueCare uses. Most users of DueCare are NGOs and labour-ministry teams &mdash; their tooling budget is small. Cheap inference is what makes &ldquo;run the harness on every job post&rdquo; or &ldquo;answer every worker question with a cited draft&rdquo; affordable in real life.</p></article>
+<article class="hp-card"><span class="role">Reason 03</span><h3>Native tool calling, not bolt-on</h3><p>Gemma 4 emits a structured tool-call format out of the base model. The harness uses it directly &mdash; it is how grep-rule outputs, knowledge-pack lookups, and license-registry checks get composed into a single answer. That removes a whole category of brittle prompt-engineering between the model and the tools.</p></article>
+<article class="hp-card"><span class="role">Reason 04</span><h3>Open weights are fine-tunable</h3><p>The harness ships base packs for general behaviour and per-corridor LoRA adapters for the language and idioms a corridor actually uses. A closed API would force us to ship the union of all corridors to every user. With Gemma 4 we can ship a small Tagalog-domestic adapter to PHL&rarr;KWT and a Bengali-construction adapter to BGD&rarr;SAU, on top of the same shared base.</p></article>
+<article class="hp-card"><span class="role">Reason 05</span><h3>On-device is the worker chat unlock</h3><p>The 2B-class quantized variant runs at conversational speed on a low-spec phone, without a network. That makes the worker app possible at all: a labourer at a recruitment office can paste a contract clause into the app, get a cited draft response, and never upload a single byte. Without an open-weights, on-device-capable model, this product cannot exist in the form we believe in.</p></article>
+<article class="hp-card"><span class="role">Reason 06</span><h3>Inspectable end-to-end</h3><p>Researchers can reproduce our evals against the same weights we ran. They can replay an audit feed, pull the same pack version, run it through the same model, and see whether the answer matches. With a closed API, &ldquo;reproducible&rdquo; degrades to &ldquo;snapshot of someone else&rsquo;s output&rdquo;.</p></article>
+</div></div></section>
+
+<section class="hp-section wg-compare" data-screen-label="Gemma &middot; Compare"><div class="wrap">
+<div class="head"><div><span class="ix">02 &middot; Versus alternatives</span><h2>What we considered.</h2></div><p class="summary">Each row is something DueCare needs. The Gemma 4 column is what we pay; the others are what we&rsquo;d give up.</p></div>
+<table>
+<thead><tr><th>What we need</th><th>Gemma 4</th><th>Closed frontier API</th><th>Older small open model</th></tr></thead>
+<tbody>
+<tr class="us"><td>Open weights, redistributable</td><td class="ok">Yes</td><td class="no">No</td><td class="ok">Often yes</td></tr>
+<tr class="us"><td>On-device, low-spec phone</td><td class="ok">2B quantized fits</td><td class="no">N/A &mdash; cloud-only</td><td class="meh">Sometimes &mdash; quality drops</td></tr>
+<tr class="us"><td>Inference cost at NGO scale</td><td class="ok">~10&times; cheaper</td><td class="no">Order of magnitude higher</td><td class="ok">Cheap, but capability gap</td></tr>
+<tr class="us"><td>Native tool-call format</td><td class="ok">Built-in</td><td class="ok">Yes (proprietary)</td><td class="meh">Bolt-on, brittle</td></tr>
+<tr class="us"><td>Fine-tune per corridor</td><td class="ok">LoRA adapters; supported</td><td class="no">Limited; closed pipeline</td><td class="ok">Yes &mdash; but starts further behind</td></tr>
+<tr class="us"><td>Multilingual coverage of corridors</td><td class="ok">Strong on target languages</td><td class="ok">Strong, opaque</td><td class="meh">Spotty; needs heavy adapter work</td></tr>
+<tr class="us"><td>Reviewer can reproduce outputs</td><td class="ok">Yes &mdash; same weights</td><td class="no">Snapshots only</td><td class="ok">Yes</td></tr>
+<tr class="us"><td>Vendor-lock risk</td><td class="ok">None</td><td class="no">High</td><td class="ok">None</td></tr>
+</tbody></table>
+</div></section>
+
+<section class="hp-section" data-screen-label="Gemma &middot; What we add"><div class="wrap">
+<div class="head"><div><span class="ix">03 &middot; What DueCare adds on top</span><h2>The base model is a starting point, not the product.</h2></div><p class="summary">Gemma 4 is the substrate. The harness, knowledge packs, tools, evals, and corridor adapters are what make it useful.</p></div>
+<div class="hp-grid-3">
+<article class="hp-card"><span class="role">Layer 01</span><h3>Knowledge packs</h3><p>Signed corridor knowledge with public-source citations. The model never claims a fact a pack can&rsquo;t cite.</p></article>
+<article class="hp-card"><span class="role">Layer 02</span><h3>Grep rules</h3><p>Cheap deterministic detectors that run before the model. Catch obvious patterns without an inference call.</p></article>
+<article class="hp-card"><span class="role">Layer 03</span><h3>Tools registry</h3><p>Allow-listed lookups (license registers, embassy contacts) called via Gemma 4&rsquo;s native tool-call format.</p></article>
+<article class="hp-card"><span class="role">Layer 04</span><h3>Corridor adapters</h3><p>Small LoRA adapters per corridor + sector, layered on top of the same base weights.</p></article>
+<article class="hp-card"><span class="role">Layer 05</span><h3>Evaluation suite</h3><p>Reproducible eval packs &mdash; reviewers run the harness against pinned pack versions and replay outputs.</p></article>
+<article class="hp-card"><span class="role">Layer 06</span><h3>Safety harness</h3><p>Refusal logic, citation enforcement, audit emission. Gemma 4 doesn&rsquo;t do this on its own; the harness does.</p></article>
+</div></div></section>
+
+<section class="hp-section" data-screen-label="Gemma &middot; CTA"><div class="wrap">
+<div class="hp-callout">
+<div><span class="ix">04 &middot; What this means in practice</span><h2>Run DueCare on your laptop. On your phone. On your NGO&rsquo;s tiny VM.</h2><p>The same harness, the same packs, the same audit feed &mdash; on infrastructure you control.</p></div>
+<a href="/setup" class="btn primary">Setup guides &rarr;</a>
+</div></div></section>
+<footer><div class="wrap"><div class="foot-grid">
+<div><a href="/" class="brand"><span class="brand-mark">D</span> DueCare AI</a><p class="muted" style="font-size:14px;max-width:38ch;margin-top:8px;">Public-interest AI infrastructure for migrant-worker safety. <a href="/mission" style="color:inherit;text-decoration:underline;">Read the mission &rarr;</a></p></div>
+<div><h4>Hub</h4><ul><li><a href="/hub">Overview</a></li><li><a href="/knowledge-packs">Knowledge packs</a></li><li><a href="/tools-registry">Tools registry</a></li><li><a href="/research-monitor">Research monitor</a></li></ul></div>
+<div><h4>Docs</h4><ul><li><a href="/docs">Overview</a></li><li><a href="/technical-docs">Schemas</a></li><li><a href="/components">Architecture</a></li><li><a href="/why-gemma">Why Gemma 4</a></li><li><a href="/evaluation">Eval &amp; retraining</a></li><li><a href="/harness">Safety harness</a></li><li><a href="/setup">Setup guides</a></li><li><a href="/privacy-boundary">Privacy boundary</a></li></ul></div>
+<div><h4>Get involved</h4><ul><li><a href="/submit-information">Submit info</a></li><li><a href="/newsletter">Newsletter</a></li><li><a href="/email-feedback">Email feedback</a></li><li><a href="/alerts">Alerts archive</a></li><li><a href="/contribute">Contribute</a></li></ul></div>
+<div><h4>Verify</h4><ul><li><a href="/stats">Stats &amp; audit</a></li><li><a href="/dashboard">Live data</a></li><li><a href="/mission">Mission</a></li><li><a href="/contact">Contact</a></li></ul></div>
+</div><div class="foot-bottom"><span>&copy; 2026 DueCare AI</span><span>v0.4 &middot; public hub draft</span></div></div></footer></body></html>

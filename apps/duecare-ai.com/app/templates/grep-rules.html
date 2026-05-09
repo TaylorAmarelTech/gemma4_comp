@@ -1,0 +1,425 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Safety rules · Duecare AI</title>
+<link rel="stylesheet" href="/static/styles.css" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%230E1116'/%3E%3Ctext x='16' y='21' text-anchor='middle' font-family='monospace' font-weight='700' font-size='14' fill='%23F7F6F1'%3ED%3C/text%3E%3C/svg%3E" />
+<style>
+.page-intro { padding: 72px 0 32px; border-top: 0; }
+.page-intro h1 { font-size: clamp(36px, 4.4vw, 56px); margin-top: 16px; max-width: 18ch; }
+.page-intro .lede { margin-top: 24px; }
+
+/* paste → fire → inject → answer pipeline */
+.pipeline {
+  border: 1px solid var(--line); border-radius: 16px;
+  background: var(--paper);
+  padding: 32px;
+}
+.pipe-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
+  gap: 0;
+}
+@media (max-width: 920px) { .pipe-grid { grid-template-columns: 1fr; } }
+.pipe-step {
+  position: relative;
+  padding: 24px 28px;
+  border-right: 1px dashed var(--line);
+  display: flex; flex-direction: column; gap: 12px;
+}
+.pipe-step:last-child { border-right: 0; }
+@media (max-width: 920px) { .pipe-step { border-right: 0; border-bottom: 1px dashed var(--line); } }
+.pipe-step .num {
+  font-family: var(--mono); font-size: 11px; color: var(--ink-3);
+  text-transform: uppercase; letter-spacing: 0.08em;
+}
+.pipe-step h4 { font-size: 16px; }
+.pipe-step .desc { font-size: 13px; color: var(--ink-3); }
+
+.paste-box {
+  font-family: var(--mono); font-size: 12px; line-height: 1.55;
+  padding: 12px 14px;
+  background: var(--paper-2);
+  border: 1px solid var(--line); border-radius: 8px;
+  color: var(--ink-2);
+}
+.paste-box mark.f1 { background: oklch(0.94 0.06 80); color: oklch(0.30 0.10 80); padding: 1px 3px; border-radius: 3px; font-weight: 600; }
+.paste-box mark.f2 { background: oklch(0.94 0.04 195); color: oklch(0.30 0.07 195); padding: 1px 3px; border-radius: 3px; font-weight: 600; }
+.paste-box mark.f3 { background: oklch(0.93 0.06 45); color: oklch(0.35 0.12 45); padding: 1px 3px; border-radius: 3px; font-weight: 600; }
+
+.fire-list { display: flex; flex-direction: column; gap: 6px; }
+.fire-row {
+  display: grid; grid-template-columns: 14px 1fr;
+  gap: 8px; padding: 8px 10px;
+  border: 1px solid var(--line); border-radius: 6px;
+  background: var(--paper);
+  font-family: var(--mono); font-size: 11.5px;
+  align-items: center;
+}
+.fire-row .dot { width: 8px; height: 8px; border-radius: 2px; }
+.fire-row .dot.f1 { background: oklch(0.65 0.12 80); }
+.fire-row .dot.f2 { background: oklch(0.55 0.10 195); }
+.fire-row .dot.f3 { background: oklch(0.58 0.13 45); }
+.fire-row .meta { color: var(--ink-3); font-size: 10.5px; margin-top: 2px; }
+
+.inject-box {
+  font-family: var(--mono); font-size: 11.5px; line-height: 1.55;
+  padding: 12px 14px;
+  background: var(--paper-2);
+  border: 1px solid var(--line); border-radius: 8px;
+  color: var(--ink-3);
+}
+.inject-box .key { color: var(--ink); }
+.inject-box .str { color: var(--accent-ink); }
+.inject-box .cmt { color: var(--ink-4); font-style: italic; }
+
+.answer-card {
+  border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px;
+  background: var(--paper);
+  font-size: 13px; line-height: 1.55;
+}
+.answer-card .meta {
+  font-family: var(--mono); font-size: 10.5px; color: var(--ink-3);
+  text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px;
+}
+.answer-card .citation {
+  display: inline-flex; gap: 4px; align-items: center;
+  font-family: var(--mono); font-size: 10.5px; color: var(--ink-3);
+  border: 1px solid var(--line); border-radius: 3px; padding: 1px 5px;
+  margin-right: 4px;
+}
+
+/* Categories */
+.cat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+@media (max-width: 920px) { .cat-grid { grid-template-columns: 1fr; } }
+.cat-card {
+  border: 1px solid var(--line); border-radius: 12px; padding: 24px;
+  background: var(--paper); display: flex; flex-direction: column; gap: 16px;
+}
+.cat-card .cap {
+  display: inline-flex; gap: 8px; align-items: center;
+  font-family: var(--mono); font-size: 11px; color: var(--ink-3);
+  text-transform: uppercase; letter-spacing: 0.08em;
+}
+.cat-card .cap .swatch { width: 10px; height: 10px; border-radius: 2px; }
+.cat-card h3 { font-size: 18px; }
+.cat-card .desc { font-size: 13.5px; color: var(--ink-2); }
+.cat-card .rules-list {
+  display: flex; flex-direction: column; gap: 6px;
+  border-top: 1px dashed var(--line); padding-top: 12px;
+}
+.rule-row {
+  display: grid; grid-template-columns: 1fr auto;
+  gap: 12px; padding: 8px 0;
+  font-family: var(--mono); font-size: 12px;
+  border-bottom: 1px dashed var(--line-soft);
+}
+.rule-row:last-child { border-bottom: 0; }
+.rule-row .id { color: var(--ink-3); }
+.rule-row .desc { color: var(--ink-2); }
+.cat-card .count {
+  font-family: var(--mono); font-size: 11px; color: var(--ink-3);
+  border: 1px solid var(--line); border-radius: 999px; padding: 2px 8px;
+  background: var(--paper);
+}
+.cat-card .head-row { display: flex; justify-content: space-between; align-items: center; }
+
+/* code sample */
+.code-block {
+  border: 1px solid var(--line); border-radius: 12px;
+  background: var(--paper);
+  overflow: hidden;
+}
+.code-block .head {
+  background: var(--paper-2);
+  padding: 10px 16px;
+  font-family: var(--mono); font-size: 11px; color: var(--ink-3);
+  text-transform: uppercase; letter-spacing: 0.08em;
+  border-bottom: 1px solid var(--line);
+  display: flex; justify-content: space-between;
+}
+.code-block pre {
+  margin: 0; padding: 24px;
+  font-family: var(--mono); font-size: 13px; line-height: 1.65;
+  color: var(--ink-2); overflow-x: auto;
+}
+.code-block .key { color: oklch(0.40 0.10 280); }
+.code-block .str { color: var(--accent-ink); }
+.code-block .cmt { color: var(--ink-4); font-style: italic; }
+.code-block .num { color: oklch(0.45 0.12 30); }
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="/" class="brand"><span class="brand-mark">D</span> DueCare AI</a>
+    <div class="nav-links">
+      <a href="/demo">Demo</a>
+      <a href="/use-cases">Use cases</a>
+      <a href="/hub">Hub</a>
+      <a href="/docs" class="on">Docs</a>
+      <a href="/stats">Stats</a>
+    </div>
+    <a href="/login?next=/contribute" class="nav-cta">Get involved <span aria-hidden="true">&rarr;</span></a>
+  </div>
+</nav>
+
+<section class="page-intro first" data-screen-label="Grep rules · Intro">
+  <div class="wrap">
+    <span class="kicker">/grep-rules · deterministic safety layer</span>
+    <h1>Rules fire <em>before</em> the model speaks.</h1>
+    <p class="lede">Grep rules are a deterministic layer that runs over user input
+      <strong>locally</strong>, before Gemma 4 sees it. They classify what's in the
+      message, attach grounded context, and constrain the answer surface.
+      Nothing about this layer touches the public hub.</p>
+  </div>
+</section>
+
+<section data-screen-label="Grep rules · Pipeline">
+  <div class="wrap">
+    <div class="section-head">
+      <div>
+        <span class="label">01 · How a single turn works</span>
+        <h2 style="margin-top: 12px;">Paste → rules fire → context injected → grounded answer.</h2>
+      </div>
+      <p class="meta">Every turn passes through the same four stages. The diagram below
+        is annotated against a labeled composite worker message.</p>
+    </div>
+
+    <div class="pipeline">
+      <div class="pipe-grid">
+
+        <!-- Step 1 -->
+        <div class="pipe-step">
+          <div class="num">01 · Paste</div>
+          <h4>User input arrives locally</h4>
+          <p class="desc">A worker, caseworker, or moderator pastes raw text into the local Duecare runtime. Nothing leaves the device.</p>
+          <div class="paste-box">
+            Recruiter: pay <mark class="f1">120,000 NPR</mark> before flight. We <mark class="f2">keep your passport</mark> until you sign. Job is <mark class="f3">construction in Doha</mark>, 6-day weeks.
+          </div>
+          <p class="muted" style="font-size: 11.5px; font-family: var(--mono);">→ stored locally, never transmitted</p>
+        </div>
+
+        <!-- Step 2 -->
+        <div class="pipe-step">
+          <div class="num">02 · Fire</div>
+          <h4>Grep rules classify in &lt;1 ms</h4>
+          <p class="desc">Pattern rules + small classifiers tag the message. Each tag is a citation handle for the next step.</p>
+          <div class="fire-list">
+            <div class="fire-row"><span class="dot f1"></span>
+              <div><strong>fee_request</strong> · matched “120,000 NPR before flight”
+                <div class="meta">rule R-104 · confidence 0.97</div></div>
+            </div>
+            <div class="fire-row"><span class="dot f2"></span>
+              <div><strong>passport_handover</strong> · matched “keep your passport”
+                <div class="meta">rule R-211 · confidence 0.99</div></div>
+            </div>
+            <div class="fire-row"><span class="dot f3"></span>
+              <div><strong>corridor:qa-np</strong> · matched “Doha … flight”
+                <div class="meta">rule R-061 · context</div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 3 -->
+        <div class="pipe-step">
+          <div class="num">03 · Inject</div>
+          <h4>Grounded context attached</h4>
+          <p class="desc">The runtime pulls signed corridor pack snippets matching the fired tags, and constrains the model to cite them.</p>
+          <div class="inject-box">
+<span class="cmt"># injected into system prompt</span><br/>
+<span class="key">corridor</span>: <span class="str">qa-np v2026.05.06</span><br/>
+<span class="key">rules_fired</span>: [<span class="str">fee_request</span>,<br/>&nbsp;&nbsp;<span class="str">passport_handover</span>]<br/>
+<span class="key">cite_from</span>: [<span class="str">pack/qa-np §3.2</span>,<br/>&nbsp;&nbsp;<span class="str">ILO C181</span>]<br/>
+<span class="key">refuse_if</span>: <span class="str">"legal counsel"</span><br/>
+<span class="key">draft_only</span>: <span class="str">true</span>
+          </div>
+        </div>
+
+        <!-- Step 4 -->
+        <div class="pipe-step">
+          <div class="num">04 · Answer</div>
+          <h4>Gemma 4 responds, grounded</h4>
+          <p class="desc">The model writes a draft using the injected context. Citations are required; refusal phrases are honored.</p>
+          <div class="answer-card">
+            <div class="meta">Duecare draft · grounded</div>
+            Two patterns in this message look like recruitment violations under your corridor pack: <strong>worker-paid fees</strong> and <strong>passport retention</strong>. Both are prohibited under the Qatar–Nepal corridor rules.
+            <div style="margin-top: 8px;">
+              <span class="citation">↗ pack/qa-np §3.2</span>
+              <span class="citation">↗ ILO C181</span>
+            </div>
+            <div style="margin-top: 8px; color: var(--ink-3); font-style: italic; font-size: 12px;">
+              Draft only. Duecare drafts; the user or trusted caseworker decides.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section data-screen-label="Grep rules · Categories">
+  <div class="wrap">
+    <div class="section-head">
+      <div>
+        <span class="label">02 · Rule categories</span>
+        <h2 style="margin-top: 12px;">Four families. 217 rules.</h2>
+      </div>
+      <p class="meta">Rules are versioned alongside the corridor packs they cite.
+        Each rule has a public ID, a deterministic match, and a required citation.</p>
+    </div>
+
+    <div class="cat-grid">
+
+      <div class="cat-card">
+        <div class="head-row">
+          <span class="cap"><span class="swatch" style="background: oklch(0.65 0.12 80);"></span>Recruitment</span>
+          <span class="count">76 rules</span>
+        </div>
+        <h3>Fees, contracts, identity documents.</h3>
+        <p class="desc">Catches the most common pre-departure violations: worker-paid fees, contract substitution, passport retention, identity-document handover.</p>
+        <div class="rules-list">
+          <div class="rule-row"><span class="id">R-104</span><span class="desc">fee_request</span></div>
+          <div class="rule-row"><span class="id">R-128</span><span class="desc">contract_substitution</span></div>
+          <div class="rule-row"><span class="id">R-211</span><span class="desc">passport_handover</span></div>
+          <div class="rule-row"><span class="id">R-219</span><span class="desc">id_card_retention</span></div>
+          <div class="rule-row"><span class="id">R-235</span><span class="desc">deceptive_role_label</span></div>
+        </div>
+      </div>
+
+      <div class="cat-card">
+        <div class="head-row">
+          <span class="cap"><span class="swatch" style="background: oklch(0.55 0.10 195);"></span>Workplace</span>
+          <span class="count">58 rules</span>
+        </div>
+        <h3>Wage, hours, conditions.</h3>
+        <p class="desc">In-country patterns: unpaid overtime, withheld wages, hours beyond legal cap, denial of rest day, dormitory conditions.</p>
+        <div class="rules-list">
+          <div class="rule-row"><span class="id">R-302</span><span class="desc">withheld_wages</span></div>
+          <div class="rule-row"><span class="id">R-318</span><span class="desc">overtime_unpaid</span></div>
+          <div class="rule-row"><span class="id">R-322</span><span class="desc">hours_above_cap</span></div>
+          <div class="rule-row"><span class="id">R-340</span><span class="desc">rest_day_denied</span></div>
+          <div class="rule-row"><span class="id">R-355</span><span class="desc">dorm_conditions</span></div>
+        </div>
+      </div>
+
+      <div class="cat-card">
+        <div class="head-row">
+          <span class="cap"><span class="swatch" style="background: oklch(0.58 0.13 45);"></span>Coercion</span>
+          <span class="count">44 rules</span>
+        </div>
+        <h3>Patterns indicating force or threat.</h3>
+        <p class="desc">Highest-priority signals. When fired, the runtime widens citation scope and biases output toward referral language — never auto-action.</p>
+        <div class="rules-list">
+          <div class="rule-row"><span class="id">R-401</span><span class="desc">movement_restriction</span></div>
+          <div class="rule-row"><span class="id">R-414</span><span class="desc">debt_bondage_signal</span></div>
+          <div class="rule-row"><span class="id">R-422</span><span class="desc">threat_of_deportation</span></div>
+          <div class="rule-row"><span class="id">R-431</span><span class="desc">communications_blocked</span></div>
+        </div>
+      </div>
+
+      <div class="cat-card">
+        <div class="head-row">
+          <span class="cap"><span class="swatch" style="background: oklch(0.45 0.10 280);"></span>Anti-jailbreak</span>
+          <span class="count">39 rules</span>
+        </div>
+        <h3>Keep the model on topic and honest.</h3>
+        <p class="desc">Refuse legal counsel framing, reject auto-report requests, keep generation within the cited pack scope.</p>
+        <div class="rules-list">
+          <div class="rule-row"><span class="id">J-501</span><span class="desc">legal_counsel_refusal</span></div>
+          <div class="rule-row"><span class="id">J-512</span><span class="desc">auto_report_refusal</span></div>
+          <div class="rule-row"><span class="id">J-520</span><span class="desc">out_of_pack_refusal</span></div>
+          <div class="rule-row"><span class="id">J-538</span><span class="desc">role_impersonation</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section data-screen-label="Grep rules · Code">
+  <div class="wrap">
+    <div class="section-head">
+      <div>
+        <span class="label">03 · Anatomy of a rule</span>
+        <h2 style="margin-top: 12px;">Every rule is one auditable file.</h2>
+      </div>
+      <p class="meta">Rules are TOML files in the public repo. Pattern, scope, citations,
+        confidence threshold, and required model behavior — all in one place.</p>
+    </div>
+
+    <div class="code-block">
+      <div class="head">
+        <span>rules/recruitment/R-211.passport_handover.toml</span>
+        <span>↗ open in GitHub</span>
+      </div>
+<pre><span class="cmt"># R-211 · passport_handover</span>
+<span class="cmt"># Catches recruiter or employer language indicating the worker</span>
+<span class="cmt"># must surrender their passport. Prohibited under most receiving</span>
+<span class="cmt"># jurisdictions and ILO C181.</span>
+
+<span class="key">id</span> = <span class="str">"R-211"</span>
+<span class="key">family</span> = <span class="str">"recruitment"</span>
+<span class="key">version</span> = <span class="str">"2026.05.06"</span>
+
+<span class="key">match.any</span> = [
+  <span class="str">"keep your passport"</span>,
+  <span class="str">"hold (your |the )?passport"</span>,
+  <span class="str">"hand over (your )?passport"</span>,
+  <span class="str">"surrender passport"</span>,
+]
+<span class="key">match.confidence_floor</span> = <span class="num">0.85</span>
+
+<span class="key">scope</span> = [<span class="str">"corridor:*"</span>]   <span class="cmt"># applies to all corridors</span>
+<span class="key">cite_from</span> = [
+  <span class="str">"pack/&lt;corridor&gt;.recruitment"</span>,
+  <span class="str">"ilo/C181"</span>,
+]
+
+<span class="key">required_in_answer</span> = [
+  <span class="str">"draft_only"</span>,
+  <span class="str">"caseworker_handoff_option"</span>,
+]
+<span class="key">refuses</span> = [
+  <span class="str">"legal_counsel"</span>,
+  <span class="str">"auto_report"</span>,
+]</pre>
+    </div>
+  </div>
+</section>
+
+<section data-screen-label="Grep rules · Boundary">
+  <div class="wrap">
+    <div class="privacy-band" style="grid-template-columns: 1.4fr 1fr;">
+      <div>
+        <span class="pill privacy" style="margin-bottom: 16px;"><span class="dot"></span>Privacy boundary</span>
+        <h2 style="font-size: 32px; max-width: 22ch;">The grep layer is local, always.</h2>
+        <p>No grep rule fires on the hub. No matched text, classification result, or
+          confidence score is ever sent upstream. The only thing that can — optionally —
+          cross the boundary is a coarse aggregated <em>pattern_id × corridor × sector</em>
+          tuple, after the anonymizer gate.</p>
+        <p style="margin-top: 8px;"><strong>Privacy is non-negotiable.</strong></p>
+      </div>
+      <div class="privacy-rules">
+        <div class="rule"><span class="x">×</span><span class="label">Matched message text crosses the boundary</span></div>
+        <div class="rule"><span class="x">×</span><span class="label">Per-user confidence scores are stored centrally</span></div>
+        <div class="rule"><span class="x">×</span><span class="label">Rules are pulled from a private hub registry</span></div>
+        <div class="rule ok"><span class="x">✓</span><span class="label">Rules ship with the public open-source release</span></div>
+        <div class="rule ok"><span class="x">✓</span><span class="label">Tuples cross only above k-anon ≥ 30</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer><div class="wrap"><div class="foot-grid">
+<div><a href="/" class="brand"><span class="brand-mark">D</span> DueCare AI</a><p class="muted" style="font-size:14px;max-width:38ch;margin-top:8px;">Public-interest AI infrastructure for migrant-worker safety. <a href="/mission" style="color:inherit;text-decoration:underline;">Read the mission &rarr;</a></p></div>
+<div><h4>Hub</h4><ul><li><a href="/hub">Overview</a></li><li><a href="/knowledge-packs">Knowledge packs</a></li><li><a href="/tools-registry">Tools registry</a></li><li><a href="/research-monitor">Research monitor</a></li></ul></div>
+<div><h4>Docs</h4><ul><li><a href="/docs">Overview</a></li><li><a href="/technical-docs">Schemas</a></li><li><a href="/components">Architecture</a></li><li><a href="/why-gemma">Why Gemma 4</a></li><li><a href="/evaluation">Eval &amp; retraining</a></li><li><a href="/harness">Safety harness</a></li><li><a href="/setup">Setup guides</a></li><li><a href="/privacy-boundary">Privacy boundary</a></li></ul></div>
+<div><h4>Get involved</h4><ul><li><a href="/submit-information">Submit info</a></li><li><a href="/newsletter">Newsletter</a></li><li><a href="/email-feedback">Email feedback</a></li><li><a href="/alerts">Alerts archive</a></li><li><a href="/contribute">Contribute</a></li></ul></div>
+<div><h4>Verify</h4><ul><li><a href="/stats">Stats &amp; audit</a></li><li><a href="/dashboard">Live data</a></li><li><a href="/mission">Mission</a></li><li><a href="/contact">Contact</a></li></ul></div>
+</div><div class="foot-bottom"><span>&copy; 2026 DueCare AI</span><span>v0.4 &middot; public hub draft</span></div></div></footer>
+
+</body>
+</html>

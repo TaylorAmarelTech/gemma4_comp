@@ -3,6 +3,8 @@
 The service is intentionally CPU-only. It does not load Gemma 4. It provides
 anonymized signal intake, public-source update proposals, knowledge-pack
 metadata, and aggregate trend counters for the public duecare-ai.com website.
+The marketing surface is rendered from Jinja templates exported by
+claude.ai/design and lives under app/templates/ + app/static/.
 """
 
 from __future__ import annotations
@@ -11,7 +13,6 @@ import hashlib
 import json
 import os
 import re
-import time
 import uuid
 from collections import Counter
 from datetime import UTC, datetime
@@ -21,10 +22,11 @@ from typing import Literal
 from fastapi import FastAPI, HTTPException, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse, Response
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel, ConfigDict, Field, HttpUrl, field_validator
 
 from . import __version__
-from .site_content import components_html, context_html, grep_rules_html, home_html, tools_html, use_cases_html
 
 SignalSource = Literal[
     "ngo_case_intake",
@@ -56,6 +58,54 @@ _ADDRESS_RE = re.compile(
     r"(?:street|st\.?|road|rd\.?|avenue|ave\.?|lane|ln\.?|drive|dr\.?)\b",
     re.IGNORECASE,
 )
+
+APP_DIR = Path(__file__).resolve().parent
+TEMPLATES_DIR = APP_DIR / "templates"
+STATIC_DIR = APP_DIR / "static"
+
+# Every clean URL on the public site maps to a template file in app/templates/.
+# The slug ("/" or "/foo") is the route; the value is the template filename.
+# Add a row here when a new design page lands and it will route automatically.
+PAGE_ROUTES: dict[str, str] = {
+    "/": "index.html",
+    "/alerts": "alerts.html",
+    "/client-connect": "client-connect.html",
+    "/components": "components.html",
+    "/contact": "contact.html",
+    "/context": "context.html",
+    "/contribute": "contribute.html",
+    "/dashboard": "dashboard.html",
+    "/demo": "demo.html",
+    "/deployments": "deployments.html",
+    "/docs": "docs.html",
+    "/email-feedback": "email-feedback.html",
+    "/evaluation": "evaluation.html",
+    "/grep-rules": "grep-rules.html",
+    "/harness": "harness.html",
+    "/hub": "hub.html",
+    "/intelligence": "intelligence.html",
+    "/knowledge-packs": "knowledge-packs.html",
+    "/login": "login.html",
+    "/mission": "mission.html",
+    "/newsletter": "newsletter.html",
+    "/packages": "packages.html",
+    "/packages-detail": "packages-detail.html",
+    "/partners": "partners.html",
+    "/privacy": "privacy.html",
+    "/privacy-boundary": "privacy-boundary.html",
+    "/research-monitor": "research-monitor.html",
+    "/sentinel": "sentinel.html",
+    "/setup": "setup.html",
+    "/stats": "stats.html",
+    "/submissions": "submissions.html",
+    "/submit-information": "submit-information.html",
+    "/technical-docs": "technical-docs.html",
+    "/tools": "tools.html",
+    "/tools-registry": "tools-registry.html",
+    "/use-cases": "use-cases.html",
+    "/volunteer": "volunteer.html",
+    "/why-gemma": "why-gemma.html",
+}
 
 
 class FileHubStore:
@@ -352,7 +402,7 @@ def create_app(*, data_dir: Path | None = None) -> FastAPI:
             "public-source update proposals, and evaluation metadata. Privacy is non-negotiable."
         ),
         version=__version__,
-        docs_url="/docs",
+        docs_url="/api-docs",
         redoc_url="/redoc",
     )
     application.add_middleware(
@@ -363,6 +413,9 @@ def create_app(*, data_dir: Path | None = None) -> FastAPI:
         allow_headers=["*"],
     )
     application.state.duecare = AppState(started_at=datetime.now(UTC), store=store)
+
+    application.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
+    templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
 
     @application.get("/api/health", response_model=HealthStatus, tags=["system"])
     async def api_health(request: Request) -> HealthStatus:
@@ -475,33 +528,24 @@ def create_app(*, data_dir: Path | None = None) -> FastAPI:
         state = _state(request)
         return [UpdateProposalRecord.model_validate(record) for record in state.store.read_all("updates.jsonl")]
 
-    @application.get("/", response_class=HTMLResponse, tags=["ui"])
-    async def index() -> str:
-        return home_html()
+    def _render(template_name: str, request: Request) -> HTMLResponse:
+        return templates.TemplateResponse(request, template_name, {"version": __version__})
 
-    @application.get("/dashboard", response_class=HTMLResponse, tags=["ui"])
-    async def dashboard() -> str:
-        return _index_html()
+    def _make_route(template_name: str):
+        async def _handler(request: Request) -> HTMLResponse:
+            return _render(template_name, request)
 
-    @application.get("/components", response_class=HTMLResponse, tags=["ui"])
-    async def components_page() -> str:
-        return components_html()
+        return _handler
 
-    @application.get("/grep-rules", response_class=HTMLResponse, tags=["ui"])
-    async def grep_rules_page() -> str:
-        return grep_rules_html()
-
-    @application.get("/tools", response_class=HTMLResponse, tags=["ui"])
-    async def tools_page() -> str:
-        return tools_html()
-
-    @application.get("/context", response_class=HTMLResponse, tags=["ui"])
-    async def context_page() -> str:
-        return context_html()
-
-    @application.get("/use-cases", response_class=HTMLResponse, tags=["ui"])
-    async def use_cases_page() -> str:
-        return use_cases_html()
+    for path, template_name in PAGE_ROUTES.items():
+        application.add_api_route(
+            path,
+            _make_route(template_name),
+            response_class=HTMLResponse,
+            tags=["ui"],
+            name=f"page::{template_name}",
+            include_in_schema=False,
+        )
 
     @application.get("/robots.txt", response_class=Response, tags=["ui"])
     async def robots_txt() -> Response:
@@ -524,24 +568,19 @@ Sitemap: https://duecare-ai.com/sitemap.xml
 
 def _sitemap_xml() -> str:
     today = datetime.now(UTC).date().isoformat()
-    urls = [
-        "https://duecare-ai.com/",
-        "https://duecare-ai.com/components",
-        "https://duecare-ai.com/use-cases",
-        "https://duecare-ai.com/grep-rules",
-        "https://duecare-ai.com/tools",
-        "https://duecare-ai.com/context",
-        "https://duecare-ai.com/dashboard",
-        "https://duecare-ai.com/docs",
-        "https://duecare-ai.com/redoc",
-        "https://duecare-ai.com/api/hub/knowledge-packs",
-    ]
+    urls = [f"https://duecare-ai.com{path}" if path != "/" else "https://duecare-ai.com/" for path in PAGE_ROUTES]
+    urls.extend(
+        [
+            "https://duecare-ai.com/api-docs",
+            "https://duecare-ai.com/api/hub/knowledge-packs",
+        ]
+    )
     entries = "\n".join(
         f"""  <url>
     <loc>{url}</loc>
     <lastmod>{today}</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>{'1.0' if url.endswith('/') else '0.7'}</priority>
+    <changefreq>weekly</changefreq>
+    <priority>{'1.0' if url.endswith('//') or url.rstrip('/') == 'https://duecare-ai.com' else '0.7'}</priority>
   </url>"""
         for url in urls
     )
@@ -549,203 +588,6 @@ def _sitemap_xml() -> str:
 <urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">
 {entries}
 </urlset>
-"""
-
-
-def _index_html() -> str:
-    now = int(time.time())
-    return f"""
-<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Duecare AI — Migrant-worker safety hub</title>
-  <style>
-    :root {{
-      --bg: #0f172a;
-      --panel: #111827;
-      --panel-2: #172033;
-      --muted: #94a3b8;
-      --text: #f8fafc;
-      --blue: #3b82f6;
-      --green: #10b981;
-      --amber: #f59e0b;
-      --red: #ef4444;
-      --line: rgba(148, 163, 184, 0.25);
-      --soft: rgba(59,130,246,.12);
-    }}
-    * {{ box-sizing: border-box; }}
-    body {{ margin: 0; font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: radial-gradient(circle at top left, rgba(59,130,246,.24), transparent 30%), var(--bg); color: var(--text); }}
-    main {{ max-width: 1180px; margin: 0 auto; padding: 42px 20px 72px; }}
-    .hero {{ border: 1px solid var(--line); background: linear-gradient(135deg, rgba(59,130,246,.22), rgba(16,185,129,.13)); border-radius: 28px; padding: 32px; box-shadow: 0 24px 80px rgba(0,0,0,.24); }}
-    h1 {{ font-size: clamp(2.3rem, 5vw, 4.6rem); line-height: .95; margin: 0 0 16px; letter-spacing: -.06em; }}
-    h2 {{ margin: 38px 0 14px; font-size: 1.55rem; }}
-    h3 {{ margin: 0 0 10px; }}
-    p {{ color: #cbd5e1; line-height: 1.65; }}
-    label {{ display:block; color:#dbeafe; font-size:13px; font-weight:700; margin: 12px 0 6px; }}
-    input, select, textarea {{ width:100%; border:1px solid var(--line); border-radius:12px; padding:11px 12px; color:var(--text); background:#0b1220; font:inherit; }}
-    textarea {{ min-height: 110px; resize: vertical; }}
-    button {{ border: 0; border-radius: 999px; background: linear-gradient(135deg, var(--blue), var(--green)); color:white; padding: 11px 16px; font-weight: 800; cursor:pointer; margin-top: 12px; }}
-    button.secondary {{ background: rgba(148,163,184,.16); color:#dbeafe; border:1px solid var(--line); }}
-    code {{ color: #bfdbfe; }}
-    a {{ color: #93c5fd; }}
-    .row {{ display:flex; gap: 10px; flex-wrap: wrap; align-items:center; }}
-    .grid {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; margin-top: 18px; }}
-    .two {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px; }}
-    .card {{ border: 1px solid var(--line); background: rgba(17,24,39,.82); border-radius: 20px; padding: 18px; }}
-    .stat {{ font-size: 2rem; font-weight: 900; line-height: 1; }}
-    .tag {{ display: inline-block; padding: 5px 10px; border-radius: 999px; background: rgba(59,130,246,.18); color: #bfdbfe; font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; }}
-    .ok {{ color: var(--green); font-weight: 900; }}
-    .warn {{ color: var(--amber); font-weight: 900; }}
-    .danger {{ color: #fca5a5; font-weight: 900; }}
-    .muted {{ color: var(--muted); }}
-    .output {{ white-space: pre-wrap; border:1px solid var(--line); background:#0b1220; border-radius:12px; padding:12px; min-height: 56px; color:#dbeafe; overflow-wrap:anywhere; }}
-    .footer {{ color: var(--muted); margin-top: 34px; font-size: 13px; }}
-  </style>
-</head>
-<body>
-<main>
-  <section class="hero">
-    <span class="tag">Duecare AI public hub</span>
-    <h1>Centralized knowledge. Decentralized privacy.</h1>
-    <p>
-      Duecare AI is a coordination hub for anonymized migrant-worker safety signals, signed knowledge packs,
-      OpenClaw/OpenCrawl-style public-source updates, prompt/evaluation manifests, and NGO/government deployment pathways.
-    </p>
-    <p><strong>Privacy is non-negotiable.</strong> This hub accepts aggregate or anonymized signals only. Raw case details stay local with the worker, NGO, regulator, or platform unless explicitly consented and redacted.</p>
-    <div class="row">
-      <a href="/docs">OpenAPI docs</a>
-      <a href="/api/hub/status">Status JSON</a>
-      <a href="/api/hub/knowledge-packs">Knowledge packs</a>
-    </div>
-  </section>
-
-  <h2>Live status</h2>
-  <div class="grid">
-    <div class="card"><span class="tag">Signals</span><p class="stat" id="signalCount">—</p><p>Anonymized pattern signals accepted.</p></div>
-    <div class="card"><span class="tag">Updates</span><p class="stat" id="updateCount">—</p><p>Public-source updates pending curator review.</p></div>
-    <div class="card"><span class="tag">Privacy mode</span><p class="stat" style="font-size:1.15rem" id="privacyMode">—</p><p>No raw case intake. PII checks run before storage.</p></div>
-    <div class="card"><span class="tag">Runtime</span><p class="stat" id="uptime">—</p><p>CPU-only hub. Gemma 4 runs elsewhere.</p></div>
-  </div>
-
-  <h2>What this proves</h2>
-  <div class="grid">
-    <div class="card"><span class="tag">Exchange</span><p>Partners can contribute anonymized patterns, contacts, RAG documents, prompts, and evaluation results without uploading raw cases.</p></div>
-    <div class="card"><span class="tag">Sentinel</span><p>OpenClaw/OpenCrawl-style crawlers can propose law, contact, and complaint-channel updates for human curator review.</p></div>
-    <div class="card"><span class="tag">Trainer</span><p>Approved signals and evaluation failures become candidates for Gemma 4 adaptation through a separate PII-gated training pipeline.</p></div>
-    <div class="card"><span class="tag">Channels</span><p>NGO/government Messenger, WhatsApp, SMS, and web-chat bots can pull verified knowledge packs and draft complaint handoffs.</p></div>
-  </div>
-
-  <h2>Try the privacy-preserving flow</h2>
-  <div class="two">
-    <form class="card" id="signalForm">
-      <h3>Submit synthetic anonymized signal</h3>
-      <p class="muted">This simulates an NGO/platform sending an aggregate pattern. Do not enter names, phone numbers, emails, addresses, or case IDs.</p>
-      <label>Source</label>
-      <select name="source"><option>synthetic_demo</option><option>ngo_case_intake</option><option>government_regulator</option><option>platform_moderation</option><option>research_evaluation</option><option>worker_mobile_opt_in</option></select>
-      <label>Jurisdiction</label>
-      <input name="jurisdiction" value="Philippines / Hong Kong" />
-      <label>Corridor</label>
-      <input name="corridor" value="PH-HK domestic work" />
-      <label>Risk tags, comma-separated</label>
-      <input name="risk_tags" value="recruitment_fee, document_retention, coercive_contract" />
-      <label>Pattern summary</label>
-      <textarea name="summary">Synthetic aggregate pattern: multiple domestic-work recruitment ads describe high placement fees, unclear deductions, and document-handling pressure. No person-specific facts are included.</textarea>
-      <button type="submit">Submit anonymized signal</button>
-      <pre class="output" id="signalOutput">Waiting…</pre>
-    </form>
-
-    <form class="card" id="updateForm">
-      <h3>Submit OpenCrawl update proposal</h3>
-      <p class="muted">This simulates a public-source crawler proposing a knowledge-pack update. A curator must approve before any pack changes.</p>
-      <label>Source name</label>
-      <input name="source_name" value="Synthetic public regulator page" />
-      <label>Source URL</label>
-      <input name="source_url" value="https://example.org/public-advisory" />
-      <label>Pack kind</label>
-      <select name="proposed_pack_kind"><option>contacts</option><option>rag_docs</option><option>grep_rules</option><option>rubrics</option><option>examples</option><option>tools</option><option>jurisdictions</option></select>
-      <label>Jurisdiction</label>
-      <input name="jurisdiction" value="Hong Kong" />
-      <label>Change summary</label>
-      <textarea name="change_summary">Synthetic public-source update: a regulator advisory page appears to clarify complaint-routing language for migrant domestic workers. Curator review is required before release.</textarea>
-      <button type="submit">Submit update proposal</button>
-      <pre class="output" id="updateOutput">Waiting…</pre>
-    </form>
-  </div>
-
-  <h2>Aggregate trends</h2>
-  <div class="card">
-    <button class="secondary" onclick="refreshAll()">Refresh dashboard</button>
-    <pre class="output" id="trendOutput">Loading…</pre>
-  </div>
-
-  <h2>Live API surface</h2>
-  <div class="card">
-    <p><span class="ok">GET</span> <code>/api/health</code> — Render health check with file-store verification</p>
-    <p><span class="ok">GET</span> <code>/api/hub/status</code> — service health, counters, and privacy mode</p>
-    <p><span class="ok">GET</span> <code>/api/hub/knowledge-packs</code> — discoverable Duecare pack metadata</p>
-    <p><span class="warn">POST</span> <code>/api/hub/signals</code> — submit anonymized pattern signals only</p>
-    <p><span class="warn">POST</span> <code>/api/hub/opencrawl/updates</code> — submit public-source update proposals</p>
-    <p><span class="ok">GET</span> <code>/docs</code> — OpenAPI documentation</p>
-  </div>
-
-  <p class="footer">Build timestamp marker: {now}. Duecare drafts; the user or trusted caseworker decides.</p>
-</main>
-<script>
-  const toJson = async (response) => {{
-    const text = await response.text();
-    try {{ return JSON.stringify(JSON.parse(text), null, 2); }} catch {{ return text; }}
-  }};
-  const splitList = (value) => value.split(',').map((item) => item.trim()).filter(Boolean);
-  async function refreshAll() {{
-    const status = await fetch('/api/hub/status').then((r) => r.json());
-    document.getElementById('signalCount').textContent = status.signal_count;
-    document.getElementById('updateCount').textContent = status.update_proposal_count;
-    document.getElementById('privacyMode').textContent = status.privacy_mode.replaceAll('_', ' ');
-    document.getElementById('uptime').textContent = Math.max(1, Math.round(status.uptime_seconds / 60)) + ' min';
-    const trends = await fetch('/api/hub/trends').then((r) => r.json());
-    document.getElementById('trendOutput').textContent = trends.length ? JSON.stringify(trends, null, 2) : 'No aggregate trends yet. Submit a synthetic signal above.';
-  }}
-  document.getElementById('signalForm').addEventListener('submit', async (event) => {{
-    event.preventDefault();
-    const form = new FormData(event.currentTarget);
-    const body = {{
-      source: form.get('source'),
-      jurisdiction: form.get('jurisdiction'),
-      corridor: form.get('corridor'),
-      language: 'English',
-      risk_tags: splitList(form.get('risk_tags')),
-      summary: form.get('summary'),
-      evidence_hashes: ['sha256:synthetic-demo-pattern-001'],
-      consent_basis: 'synthetic_demo',
-      pack_version: '0.14.x'
-    }};
-    const response = await fetch('/api/hub/signals', {{ method: 'POST', headers: {{ 'Content-Type': 'application/json' }}, body: JSON.stringify(body) }});
-    document.getElementById('signalOutput').textContent = await toJson(response);
-    await refreshAll();
-  }});
-  document.getElementById('updateForm').addEventListener('submit', async (event) => {{
-    event.preventDefault();
-    const form = new FormData(event.currentTarget);
-    const body = {{
-      source_name: form.get('source_name'),
-      source_url: form.get('source_url'),
-      proposed_pack_kind: form.get('proposed_pack_kind'),
-      jurisdiction: form.get('jurisdiction'),
-      change_summary: form.get('change_summary'),
-      extracted_public_facts: ['Synthetic public-source update; curator review required.'],
-      content_hash: 'synthetic-public-hash-001',
-      crawler_version: 'opencrawl-demo/0.1'
-    }};
-    const response = await fetch('/api/hub/opencrawl/updates', {{ method: 'POST', headers: {{ 'Content-Type': 'application/json' }}, body: JSON.stringify(body) }});
-    document.getElementById('updateOutput').textContent = await toJson(response);
-    await refreshAll();
-  }});
-  refreshAll();
-</script>
-</body>
-</html>
 """
 
 

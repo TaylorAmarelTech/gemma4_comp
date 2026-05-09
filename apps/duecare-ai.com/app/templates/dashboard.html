@@ -1,0 +1,510 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Live hub · Duecare AI</title>
+<link rel="stylesheet" href="/static/styles.css" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%230E1116'/%3E%3Ctext x='16' y='21' text-anchor='middle' font-family='monospace' font-weight='700' font-size='14' fill='%23F7F6F1'%3ED%3C/text%3E%3C/svg%3E" />
+<style>
+.page-intro { padding: 56px 0 24px; border-top: 0; }
+.page-intro h1 { font-size: clamp(34px, 4.2vw, 52px); margin-top: 16px; max-width: 22ch; }
+.page-intro .lede { margin-top: 20px; }
+
+.subordinate-banner {
+  display: flex; gap: 16px; align-items: start;
+  padding: 16px 20px; margin-top: 28px;
+  border: 1px solid var(--line); border-radius: 10px;
+  background: var(--paper-2);
+}
+.subordinate-banner .icon {
+  width: 28px; height: 28px; border-radius: 6px;
+  background: var(--ink); color: var(--paper);
+  display: grid; place-items: center;
+  font-family: var(--mono); font-size: 13px; font-weight: 600;
+  flex-shrink: 0;
+}
+.subordinate-banner h4 { font-size: 14px; margin-bottom: 4px; }
+.subordinate-banner p { font-size: 13.5px; color: var(--ink-3); max-width: 80ch; }
+.subordinate-banner a { color: var(--ink); border-bottom: 1px dashed var(--ink-3); }
+
+/* Controls */
+.dash-controls {
+  display: flex; gap: 12px; flex-wrap: wrap; align-items: center;
+  padding-bottom: 24px; border-bottom: 1px solid var(--line-soft);
+  margin-bottom: 32px;
+}
+.tab-row {
+  display: flex; padding: 4px;
+  border: 1px solid var(--line); border-radius: 999px;
+  background: var(--paper); gap: 0;
+}
+.tab-row button {
+  font-family: var(--sans); font-size: 13px;
+  padding: 6px 14px; border: 0; background: transparent; color: var(--ink-3);
+  border-radius: 999px; cursor: pointer;
+}
+.tab-row button.on { background: var(--ink); color: var(--paper); }
+.dash-spacer { flex: 1; }
+.live-pill {
+  display: inline-flex; gap: 8px; align-items: center;
+  padding: 5px 12px;
+  border: 1px solid oklch(0.85 0.05 195);
+  background: var(--accent-soft);
+  border-radius: 999px;
+  font-family: var(--mono); font-size: 11.5px; color: var(--accent-ink);
+  text-transform: uppercase; letter-spacing: 0.06em;
+}
+.live-pill .dot {
+  width: 8px; height: 8px; border-radius: 50%; background: var(--accent);
+  box-shadow: 0 0 0 4px oklch(0.85 0.05 195 / 0.6);
+  animation: pulse 1.6s ease-in-out infinite;
+}
+@keyframes pulse {
+  0%, 100% { box-shadow: 0 0 0 0 oklch(0.85 0.05 195 / 0.7); }
+  50%      { box-shadow: 0 0 0 6px oklch(0.85 0.05 195 / 0); }
+}
+
+/* KPIs */
+.kpi-grid {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px;
+  margin-bottom: 24px;
+}
+@media (max-width: 920px) { .kpi-grid { grid-template-columns: repeat(2, 1fr); } }
+.kpi {
+  border: 1px solid var(--line); border-radius: 12px; padding: 18px 20px;
+  background: var(--paper);
+  display: flex; flex-direction: column; gap: 10px;
+  position: relative;
+}
+.kpi .lab {
+  font-family: var(--mono); font-size: 10.5px; color: var(--ink-3);
+  text-transform: uppercase; letter-spacing: 0.08em;
+}
+.kpi .val {
+  font-family: var(--sans); font-size: 30px; font-weight: 600; letter-spacing: -0.025em;
+  line-height: 1;
+}
+.kpi .delta {
+  font-family: var(--mono); font-size: 11.5px;
+  display: inline-flex; gap: 4px;
+}
+.kpi .delta.up { color: var(--good); }
+.kpi .delta.down { color: oklch(0.50 0.13 30); }
+.kpi .delta.flat { color: var(--ink-3); }
+.kpi .spark { height: 28px; margin-top: 4px; }
+
+/* Two-col main */
+.dash-grid {
+  display: grid; grid-template-columns: 1.2fr 1fr; gap: 16px;
+  margin-bottom: 16px;
+}
+@media (max-width: 920px) { .dash-grid { grid-template-columns: 1fr; } }
+.panel {
+  border: 1px solid var(--line); border-radius: 12px;
+  background: var(--paper); overflow: hidden;
+}
+.panel-head {
+  padding: 14px 18px; border-bottom: 1px solid var(--line);
+  background: var(--paper);
+  display: flex; justify-content: space-between; align-items: center;
+}
+.panel-head h3 { font-size: 14px; font-weight: 600; letter-spacing: -0.01em; }
+.panel-head .meta { font-family: var(--mono); font-size: 11px; color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.06em; }
+.panel-body { padding: 18px; }
+
+/* Signal volume chart (tiny SVG bar chart) */
+.bar-chart {
+  display: grid; grid-template-columns: repeat(28, 1fr);
+  gap: 3px; height: 140px; align-items: end;
+  padding-bottom: 24px; border-bottom: 1px dashed var(--line);
+  position: relative;
+}
+.bar-chart .bar {
+  background: var(--paper-3); border-radius: 2px 2px 0 0;
+  position: relative;
+}
+.bar-chart .bar.lo { background: oklch(0.85 0.04 195); }
+.bar-chart .bar.md { background: oklch(0.70 0.07 195); }
+.bar-chart .bar.hi { background: var(--accent); }
+.bar-chart .x-axis {
+  position: absolute; bottom: 4px; left: 0; right: 0;
+  display: flex; justify-content: space-between;
+  font-family: var(--mono); font-size: 10px; color: var(--ink-4);
+}
+
+.legend-line {
+  display: flex; gap: 18px; margin-top: 14px; flex-wrap: wrap;
+  font-family: var(--mono); font-size: 11px; color: var(--ink-3);
+}
+.legend-line span { display: inline-flex; align-items: center; gap: 6px; }
+.legend-line i { width: 10px; height: 10px; border-radius: 2px; display: inline-block; }
+.legend-line i.lo { background: oklch(0.85 0.04 195); }
+.legend-line i.md { background: oklch(0.70 0.07 195); }
+.legend-line i.hi { background: var(--accent); }
+
+/* Corridor heatmap */
+.heat {
+  display: grid; grid-template-columns: 100px repeat(7, 1fr); gap: 2px;
+}
+.heat .col-head {
+  font-family: var(--mono); font-size: 10px; color: var(--ink-3);
+  text-transform: uppercase; letter-spacing: 0.06em; padding: 4px;
+  text-align: center;
+}
+.heat .row-head {
+  font-family: var(--mono); font-size: 11px; color: var(--ink-2);
+  padding: 6px 8px;
+  display: flex; align-items: center;
+}
+.heat .cell {
+  height: 24px; border-radius: 2px;
+  background: var(--paper-2);
+  font-family: var(--mono); font-size: 9px;
+  display: grid; place-items: center; color: var(--ink-3);
+}
+.heat .cell[data-h="0"] { background: var(--paper-2); }
+.heat .cell[data-h="1"] { background: oklch(0.95 0.02 195); }
+.heat .cell[data-h="2"] { background: oklch(0.88 0.04 195); }
+.heat .cell[data-h="3"] { background: oklch(0.78 0.06 195); color: oklch(0.30 0.07 195); }
+.heat .cell[data-h="4"] { background: oklch(0.62 0.10 195); color: var(--paper); }
+.heat .cell[data-h="5"] { background: oklch(0.45 0.12 195); color: var(--paper); }
+
+/* Pack registry */
+.pack-table { font-size: 13px; }
+.pack-table .pkg { font-family: var(--mono); font-size: 12px; color: var(--ink-2); }
+.pack-table .signed-by { font-family: var(--mono); font-size: 11px; color: var(--ink-3); }
+
+/* Curator queue */
+.queue { display: flex; flex-direction: column; gap: 8px; }
+.queue-item {
+  border: 1px solid var(--line); border-radius: 8px; padding: 14px 16px;
+  display: grid; grid-template-columns: 1fr auto; gap: 12px; align-items: center;
+  background: var(--paper);
+}
+.queue-item h4 { font-size: 13.5px; font-weight: 600; letter-spacing: -0.01em; margin-bottom: 4px; }
+.queue-item .meta { font-family: var(--mono); font-size: 11px; color: var(--ink-3); }
+.queue-item .acts { display: flex; gap: 6px; }
+.queue-item .btn-mini {
+  font-family: var(--mono); font-size: 11px; padding: 4px 10px;
+  border: 1px solid var(--line); border-radius: 4px; background: var(--paper); color: var(--ink-2);
+  cursor: pointer;
+}
+.queue-item .btn-mini:hover { border-color: var(--ink); color: var(--ink); }
+.queue-item .btn-mini.primary { background: var(--ink); border-color: var(--ink); color: var(--paper); }
+
+/* Audit log */
+.log {
+  font-family: var(--mono); font-size: 12px; line-height: 1.7;
+  color: var(--ink-2);
+  background: var(--paper); padding: 0;
+  max-height: 320px; overflow-y: auto;
+}
+.log .row {
+  display: grid; grid-template-columns: 90px 70px 1fr;
+  gap: 12px; padding: 6px 16px;
+  border-bottom: 1px dashed var(--line-soft);
+}
+.log .row:last-child { border-bottom: 0; }
+.log .ts { color: var(--ink-3); }
+.log .ev { color: var(--ink); }
+.log .ev.ok { color: var(--accent-ink); }
+.log .ev.warn { color: oklch(0.50 0.10 80); }
+.log .ev.deny { color: oklch(0.50 0.13 30); }
+.log .msg { color: var(--ink-2); }
+
+/* Boundary footer of dashboard */
+.dash-foot {
+  margin-top: 32px;
+  padding: 20px 24px;
+  border: 1px dashed oklch(0.78 0.06 45);
+  background: var(--ember-soft);
+  border-radius: 12px;
+  display: grid; grid-template-columns: auto 1fr auto; gap: 20px; align-items: center;
+}
+.dash-foot .icon {
+  width: 32px; height: 32px; border-radius: 6px;
+  background: oklch(0.50 0.13 45); color: var(--paper);
+  display: grid; place-items: center;
+  font-family: var(--mono); font-size: 14px; font-weight: 600;
+}
+.dash-foot p { font-size: 14px; color: oklch(0.30 0.10 45); }
+.dash-foot .mono { color: oklch(0.42 0.10 45); font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; }
+@media (max-width: 760px) { .dash-foot { grid-template-columns: auto 1fr; } }
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="/" class="brand"><span class="brand-mark">D</span> DueCare AI</a>
+    <div class="nav-links">
+      <a href="/demo">Demo</a>
+      <a href="/use-cases">Use cases</a>
+      <a href="/hub">Hub</a>
+      <a href="/docs">Docs</a>
+      <a href="/stats" class="on">Stats</a>
+    </div>
+    <a href="/login?next=/contribute" class="nav-cta">Get involved <span aria-hidden="true">&rarr;</span></a>
+  </div>
+</nav>
+
+<section class="page-intro first" data-screen-label="Dashboard · Intro">
+  <div class="wrap">
+    <span class="kicker">/dashboard · live hub operations · public read-only view</span>
+    <h1>The live hub. Not the model chat UI.</h1>
+    <p class="lede">This is what the public hub actually does: receives anonymized
+      signals, watches public sources, queues curator review, and signs corridor
+      packs. None of these surfaces show worker messages or model conversations —
+      because the hub never receives them.</p>
+
+    <div class="subordinate-banner">
+      <span class="icon">i</span>
+      <div>
+        <h4>Looking for the model demo?</h4>
+        <p>The grounded answer demo runs in the <a href="#">Kaggle harness notebook</a>
+          and on local Duecare deployments. The dashboard below is the
+          <strong>coordinator</strong> — pack signing, signal aggregation,
+          source watcher status. <a href="/use-cases">See architecture →</a></p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="tight" data-screen-label="Dashboard · Body">
+  <div class="wrap">
+    <div class="dash-controls">
+      <div class="tab-row">
+        <button class="on">Operations</button>
+        <button>Pack registry</button>
+        <button>Audit log</button>
+        <button>API health</button>
+      </div>
+      <div class="dash-spacer"></div>
+      <span class="callout-strip mono"><span class="dot"></span>Public read-only view</span>
+      <span class="live-pill"><span class="dot"></span>Live · 26s ago</span>
+    </div>
+
+    <!-- KPIs -->
+    <div class="kpi-grid">
+      <div class="kpi">
+        <span class="lab">Anonymized signals · 7d</span>
+        <span class="val">14,326</span>
+        <span class="delta up">▲ 8.1% vs prior 7d</span>
+        <svg class="spark" viewBox="0 0 100 28" preserveAspectRatio="none">
+          <polyline points="0,18 8,16 16,17 24,14 32,15 40,12 48,13 56,10 64,11 72,8 80,9 88,6 96,7 100,5"
+            fill="none" stroke="oklch(0.52 0.08 195)" stroke-width="1.5"/>
+        </svg>
+      </div>
+      <div class="kpi">
+        <span class="lab">Signed packs · live</span>
+        <span class="val">8</span>
+        <span class="delta flat">0 new this week</span>
+        <svg class="spark" viewBox="0 0 100 28" preserveAspectRatio="none">
+          <polyline points="0,18 20,18 20,12 60,12 60,8 100,8" fill="none" stroke="var(--ink-3)" stroke-width="1.5"/>
+        </svg>
+      </div>
+      <div class="kpi">
+        <span class="lab">Curator queue · pending</span>
+        <span class="val">12</span>
+        <span class="delta up">▲ 3 new proposals</span>
+        <svg class="spark" viewBox="0 0 100 28" preserveAspectRatio="none">
+          <polyline points="0,20 14,18 28,16 42,18 56,14 70,12 84,8 100,6" fill="none" stroke="oklch(0.52 0.08 195)" stroke-width="1.5"/>
+        </svg>
+      </div>
+      <div class="kpi">
+        <span class="lab">PII rejections · 7d</span>
+        <span class="val">317</span>
+        <span class="delta down">▼ 4.2% vs prior 7d</span>
+        <svg class="spark" viewBox="0 0 100 28" preserveAspectRatio="none">
+          <polyline points="0,8 12,10 24,9 36,12 48,11 60,14 72,15 84,18 100,20" fill="none" stroke="oklch(0.55 0.10 30)" stroke-width="1.5"/>
+        </svg>
+      </div>
+    </div>
+
+    <!-- Charts row -->
+    <div class="dash-grid">
+      <div class="panel">
+        <div class="panel-head">
+          <h3>Signal volume · hourly · last 28 hours</h3>
+          <span class="meta">all corridors · post-anonymizer-gate</span>
+        </div>
+        <div class="panel-body">
+          <div class="bar-chart">
+            <div class="bar lo" style="height: 30%"></div>
+            <div class="bar lo" style="height: 24%"></div>
+            <div class="bar lo" style="height: 18%"></div>
+            <div class="bar lo" style="height: 12%"></div>
+            <div class="bar lo" style="height: 22%"></div>
+            <div class="bar md" style="height: 38%"></div>
+            <div class="bar md" style="height: 52%"></div>
+            <div class="bar md" style="height: 64%"></div>
+            <div class="bar hi" style="height: 78%"></div>
+            <div class="bar hi" style="height: 86%"></div>
+            <div class="bar hi" style="height: 92%"></div>
+            <div class="bar hi" style="height: 88%"></div>
+            <div class="bar md" style="height: 70%"></div>
+            <div class="bar md" style="height: 62%"></div>
+            <div class="bar md" style="height: 58%"></div>
+            <div class="bar md" style="height: 54%"></div>
+            <div class="bar md" style="height: 60%"></div>
+            <div class="bar md" style="height: 56%"></div>
+            <div class="bar md" style="height: 64%"></div>
+            <div class="bar md" style="height: 70%"></div>
+            <div class="bar hi" style="height: 78%"></div>
+            <div class="bar hi" style="height: 84%"></div>
+            <div class="bar hi" style="height: 80%"></div>
+            <div class="bar md" style="height: 62%"></div>
+            <div class="bar md" style="height: 50%"></div>
+            <div class="bar lo" style="height: 38%"></div>
+            <div class="bar lo" style="height: 30%"></div>
+            <div class="bar lo" style="height: 24%"></div>
+          </div>
+          <div class="legend-line">
+            <span><i class="lo"></i>&lt; 200 / hr</span>
+            <span><i class="md"></i>200–800 / hr</span>
+            <span><i class="hi"></i>&gt; 800 / hr</span>
+            <span style="margin-left: auto;">x-axis: hours UTC · 28 → now</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <h3>Corridor × rule-family heatmap</h3>
+          <span class="meta">last 7d · k-anon ≥ 30</span>
+        </div>
+        <div class="panel-body">
+          <div class="heat">
+            <div></div>
+            <div class="col-head">Recruit</div>
+            <div class="col-head">Wage</div>
+            <div class="col-head">Hours</div>
+            <div class="col-head">Doc</div>
+            <div class="col-head">Coerce</div>
+            <div class="col-head">Cond.</div>
+            <div class="col-head">Grieve</div>
+            <!-- rows -->
+            <div class="row-head">qa-np</div>
+            <div class="cell" data-h="5">5</div><div class="cell" data-h="3">3</div><div class="cell" data-h="2">2</div><div class="cell" data-h="4">4</div><div class="cell" data-h="3">3</div><div class="cell" data-h="2">2</div><div class="cell" data-h="1">1</div>
+            <div class="row-head">sa-bd</div>
+            <div class="cell" data-h="4">4</div><div class="cell" data-h="4">4</div><div class="cell" data-h="3">3</div><div class="cell" data-h="3">3</div><div class="cell" data-h="2">2</div><div class="cell" data-h="3">3</div><div class="cell" data-h="1">1</div>
+            <div class="row-head">ae-ph</div>
+            <div class="cell" data-h="3">3</div><div class="cell" data-h="2">2</div><div class="cell" data-h="2">2</div><div class="cell" data-h="3">3</div><div class="cell" data-h="1">1</div><div class="cell" data-h="2">2</div><div class="cell" data-h="2">2</div>
+            <div class="row-head">my-id</div>
+            <div class="cell" data-h="4">4</div><div class="cell" data-h="3">3</div><div class="cell" data-h="3">3</div><div class="cell" data-h="2">2</div><div class="cell" data-h="2">2</div><div class="cell" data-h="3">3</div><div class="cell" data-h="1">1</div>
+            <div class="row-head">sg-mm</div>
+            <div class="cell" data-h="2">2</div><div class="cell" data-h="2">2</div><div class="cell" data-h="1">1</div><div class="cell" data-h="1">1</div><div class="cell" data-h="0">·</div><div class="cell" data-h="1">1</div><div class="cell" data-h="0">·</div>
+            <div class="row-head">kr-vn</div>
+            <div class="cell" data-h="2">2</div><div class="cell" data-h="3">3</div><div class="cell" data-h="2">2</div><div class="cell" data-h="1">1</div><div class="cell" data-h="0">·</div><div class="cell" data-h="2">2</div><div class="cell" data-h="1">1</div>
+          </div>
+          <p class="muted" style="font-size: 11.5px; margin-top: 16px; font-family: var(--mono);">
+            Cell intensity = relative signal volume after anonymization.
+            No cell exposes individual cases; values shown are bucketed deciles.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Curator queue + Audit log -->
+    <div class="dash-grid">
+      <div class="panel">
+        <div class="panel-head">
+          <h3>Curator queue · pack-update proposals</h3>
+          <span class="meta">12 pending · oldest 14h ago</span>
+        </div>
+        <div class="panel-body">
+          <div class="queue">
+            <div class="queue-item">
+              <div>
+                <h4>pack/qa-np · §3.7 · passport retention scope expanded</h4>
+                <span class="meta">sentinel-04 · 2026-05-08 09:14 UTC · src.gov.qa.labor</span>
+              </div>
+              <div class="acts">
+                <button class="btn-mini">View diff</button>
+                <a class="btn-mini primary" href="/login">Sign in to review</a>
+              </div>
+            </div>
+            <div class="queue-item">
+              <div>
+                <h4>pack/sa-bd · §4.2 · monthly wage index updated</h4>
+                <span class="meta">sentinel-02 · 2026-05-08 06:47 UTC · src.gov.sa.hrsd</span>
+              </div>
+              <div class="acts">
+                <button class="btn-mini">View diff</button>
+                <a class="btn-mini primary" href="/login">Sign in to review</a>
+              </div>
+            </div>
+            <div class="queue-item">
+              <div>
+                <h4>pack/ae-ph · §6.1 · grievance pathway URL change</h4>
+                <span class="meta">sentinel-04 · 2026-05-07 23:02 UTC · src.gov.ph.poea</span>
+              </div>
+              <div class="acts">
+                <button class="btn-mini">View diff</button>
+                <a class="btn-mini primary" href="/login">Sign in to review</a>
+              </div>
+            </div>
+            <div class="queue-item">
+              <div>
+                <h4>jurisdiction/ilo · C189 cross-link added to recruit pack family</h4>
+                <span class="meta">sentinel-01 · 2026-05-07 18:33 UTC · src.ilo.c189</span>
+              </div>
+              <div class="acts">
+                <button class="btn-mini">View diff</button>
+                <a class="btn-mini primary" href="/login">Sign in to review</a>
+              </div>
+            </div>
+          </div>
+          <p class="muted" style="font-size: 12px; font-family: var(--mono); margin-top: 14px;">
+            ▸ Anyone can view the diffs. Only curators with signed keys can promote.
+          </p>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <h3>Audit log · last 14 events</h3>
+          <span class="meta">public · append-only · /audit</span>
+        </div>
+        <div class="log">
+          <div class="row"><span class="ts">12:48:14</span><span class="ev ok">SIGN</span><span class="msg">pack/qa-np@2026.05.06 promoted by curator-04</span></div>
+          <div class="row"><span class="ts">12:47:02</span><span class="ev">SIG</span><span class="msg">signal accepted · fee_request × qa-np × construction</span></div>
+          <div class="row"><span class="ts">12:46:58</span><span class="ev deny">DENY</span><span class="msg">PII pattern at gate · field=name · stripped</span></div>
+          <div class="row"><span class="ts">12:46:51</span><span class="ev">SIG</span><span class="msg">signal accepted · withheld_wages × sa-bd × construction</span></div>
+          <div class="row"><span class="ts">12:46:32</span><span class="ev deny">DENY</span><span class="msg">free-text &gt; 64 chars · rejected at gate</span></div>
+          <div class="row"><span class="ts">12:46:17</span><span class="ev">SIG</span><span class="msg">signal accepted · passport_handover × qa-np × construction</span></div>
+          <div class="row"><span class="ts">12:45:50</span><span class="ev warn">PROP</span><span class="msg">sentinel proposed pack/sa-bd §4.2 update — queued</span></div>
+          <div class="row"><span class="ts">12:45:13</span><span class="ev">SIG</span><span class="msg">signal accepted · overtime_unpaid × my-id × plantation</span></div>
+          <div class="row"><span class="ts">12:44:56</span><span class="ev ok">PULL</span><span class="msg">pack/ae-ph@2026.05.01 fetched by partner.ngo.mfa</span></div>
+          <div class="row"><span class="ts">12:44:32</span><span class="ev">SIG</span><span class="msg">signal accepted · contract_substitution × qa-np × service</span></div>
+          <div class="row"><span class="ts">12:44:08</span><span class="ev deny">DENY</span><span class="msg">k-anon &lt; 30 · signal deferred</span></div>
+          <div class="row"><span class="ts">12:43:51</span><span class="ev ok">SIGN</span><span class="msg">pack/kr-vn@2026.04.30 promoted by curator-02</span></div>
+          <div class="row"><span class="ts">12:43:22</span><span class="ev">SIG</span><span class="msg">signal accepted · rest_day_denied × my-id × manufacturing</span></div>
+          <div class="row"><span class="ts">12:42:59</span><span class="ev deny">DENY</span><span class="msg">PII pattern at gate · field=phone · stripped</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Boundary reminder -->
+    <div class="dash-foot">
+      <span class="icon">×</span>
+      <div>
+        <p class="mono" style="margin-bottom: 4px;">Privacy boundary · what this dashboard cannot show</p>
+        <p>Worker messages, model chat transcripts, individual case files, names, phone numbers, employer identities. The hub does not store these — there is nothing here to display, even with a sign-in.</p>
+      </div>
+      <a class="btn btn-ghost" href="/#privacy">Read privacy boundary →</a>
+    </div>
+  </div>
+</section>
+
+<footer><div class="wrap"><div class="foot-grid">
+<div><a href="/" class="brand"><span class="brand-mark">D</span> DueCare AI</a><p class="muted" style="font-size:14px;max-width:38ch;margin-top:8px;">Public-interest AI infrastructure for migrant-worker safety. <a href="/mission" style="color:inherit;text-decoration:underline;">Read the mission &rarr;</a></p></div>
+<div><h4>Hub</h4><ul><li><a href="/hub">Overview</a></li><li><a href="/knowledge-packs">Knowledge packs</a></li><li><a href="/tools-registry">Tools registry</a></li><li><a href="/research-monitor">Research monitor</a></li></ul></div>
+<div><h4>Docs</h4><ul><li><a href="/docs">Overview</a></li><li><a href="/technical-docs">Schemas</a></li><li><a href="/components">Architecture</a></li><li><a href="/why-gemma">Why Gemma 4</a></li><li><a href="/evaluation">Eval &amp; retraining</a></li><li><a href="/harness">Safety harness</a></li><li><a href="/setup">Setup guides</a></li><li><a href="/privacy-boundary">Privacy boundary</a></li></ul></div>
+<div><h4>Get involved</h4><ul><li><a href="/submit-information">Submit info</a></li><li><a href="/newsletter">Newsletter</a></li><li><a href="/email-feedback">Email feedback</a></li><li><a href="/alerts">Alerts archive</a></li><li><a href="/contribute">Contribute</a></li></ul></div>
+<div><h4>Verify</h4><ul><li><a href="/stats">Stats &amp; audit</a></li><li><a href="/dashboard">Live data</a></li><li><a href="/mission">Mission</a></li><li><a href="/contact">Contact</a></li></ul></div>
+</div><div class="foot-bottom"><span>&copy; 2026 DueCare AI</span><span>v0.4 &middot; public hub draft</span></div></div></footer>
+
+</body>
+</html>

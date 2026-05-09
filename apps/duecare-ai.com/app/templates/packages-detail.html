@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>corridor/qa-np · Duecare AI</title>
+<link rel="stylesheet" href="/static/styles.css" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%230E1116'/%3E%3Ctext x='16' y='21' text-anchor='middle' font-family='monospace' font-weight='700' font-size='14' fill='%23F7F6F1'%3ED%3C/text%3E%3C/svg%3E" />
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="/" class="brand"><span class="brand-mark">D</span> DueCare AI</a>
+    <div class="nav-links">
+      <a href="/demo">Demo</a>
+      <a href="/use-cases">Use cases</a>
+      <a href="/hub">Hub</a>
+      <a href="/docs" class="on">Docs</a>
+      <a href="/stats">Stats</a>
+    </div>
+    <a href="/login?next=/contribute" class="nav-cta">Get involved <span aria-hidden="true">&rarr;</span></a>
+  </div>
+</nav>
+
+<section class="page-intro first" data-screen-label="Pack detail">
+  <div class="wrap">
+    <div class="crumbs">
+      <a href="/">Home</a><span class="sep">/</span>
+      <a href="/packages">Packages</a><span class="sep">/</span>
+      <span>corridor/qa-np</span>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr auto;gap:32px;align-items:end;margin-top:8px;">
+      <div>
+        <span class="kicker">corridor pack · v3.2.1</span>
+        <h1 style="margin-top:14px;">Qatar ↔ Nepal corridor</h1>
+        <p class="lede">Recruitment-fee rules, KAFALA references, public advisories,
+          and a curated contact directory. Used as RAG context by the local Duecare
+          harness when caseworkers operate in this corridor.</p>
+        <div class="row" style="margin-top:18px;">
+          <span class="badge verified">Verified · curator-04 signed 2026-05-04</span>
+          <span class="badge no-pii">contains_raw_pii: false</span>
+          <span class="badge">CC-BY-SA 4.0</span>
+          <span class="badge version">sha 7c3f…a91d</span>
+        </div>
+      </div>
+      <div class="row" style="gap:8px;">
+        <a href="#" class="btn btn-ghost">View on GitHub</a>
+        <a href="#" class="btn">Pull pack <span class="arrow">→</span></a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="tight" data-screen-label="Pack detail · Body">
+  <div class="wrap" style="display:grid;grid-template-columns:1fr 320px;gap:48px;align-items:start;">
+    <div>
+      <div class="tabstrip">
+        <button class="on">Overview</button>
+        <button>Manifest</button>
+        <button>Changelog</button>
+        <button>Provenance</button>
+        <button>Used by</button>
+      </div>
+
+      <h3 style="margin-bottom:10px;">What this pack contains</h3>
+      <p class="muted" style="font-size:15px;max-width:62ch;">A signed bundle of public-source corridor knowledge. No worker case data.
+        No identifying employer or recruiter records. Where laws or advisories are
+        cited, the original public URL is preserved.</p>
+
+      <div class="results-grid" style="margin-top:24px;">
+        <div class="card">
+          <div class="meta-line"><span><b>Sections</b> 14</span><span><b>Pages</b> 86</span></div>
+          <h4 style="margin-top:8px;">Corridor rules &amp; advisories</h4>
+          <p style="font-size:13.5px;color:var(--ink-2);margin-top:8px;">Fee caps, contract-substitution warnings, working-hours regulations, wage-protection-system references.</p>
+        </div>
+        <div class="card">
+          <div class="meta-line"><span><b>Entries</b> 64</span><span><b>Re-checked</b> weekly</span></div>
+          <h4 style="margin-top:8px;">Public contact registry</h4>
+          <p style="font-size:13.5px;color:var(--ink-2);margin-top:8px;">Vetted NGO, embassy, hotline, and labour-court listings. URL-checked, never worker contact data.</p>
+        </div>
+        <div class="card">
+          <div class="meta-line"><span><b>Tags</b> 22</span><span><b>Pattern IDs</b> 31</span></div>
+          <h4 style="margin-top:8px;">Risk-tag taxonomy</h4>
+          <p style="font-size:13.5px;color:var(--ink-2);margin-top:8px;">Coarse pattern_id strings used by aggregate hub telemetry — no free text leaves devices.</p>
+        </div>
+        <div class="card">
+          <div class="meta-line"><span><b>Sources</b> 38</span><span><b>Languages</b> EN/NP</span></div>
+          <h4 style="margin-top:8px;">Public-source citations</h4>
+          <p style="font-size:13.5px;color:var(--ink-2);margin-top:8px;">Every claim points back to a public URL. Reviewed by curators on each promotion.</p>
+        </div>
+      </div>
+
+      <h3 style="margin-top:48px;margin-bottom:14px;">Pull command</h3>
+      <div class="code-block">
+        <div class="code-bar"><span>shell</span><button class="copy" onclick="copyBlock(this)">Copy</button></div>
+<pre><span class="tok-fn">duecare</span> packs pull <span class="tok-s">"corridor/qa-np@3.2.1"</span>
+<span class="tok-fn">duecare</span> packs verify <span class="tok-s">"corridor/qa-np"</span>
+<span class="tok-c"># sha must match: 7c3f3a8d5e4b8f1c9d2a3b4c5d6e7f8901a2b3c4 …a91d</span></pre>
+      </div>
+
+      <h3 style="margin-top:32px;margin-bottom:14px;">Manifest</h3>
+      <div class="code-block">
+        <div class="code-bar"><span>corridor/qa-np · manifest.json</span><button class="copy" onclick="copyBlock(this)">Copy</button></div>
+<pre>{
+  <span class="tok-p">"id"</span>: <span class="tok-s">"corridor/qa-np"</span>,
+  <span class="tok-p">"kind"</span>: <span class="tok-s">"corridor"</span>,
+  <span class="tok-p">"version"</span>: <span class="tok-s">"3.2.1"</span>,
+  <span class="tok-p">"status"</span>: <span class="tok-s">"verified"</span>,
+  <span class="tok-p">"jurisdiction"</span>: [<span class="tok-s">"qa"</span>, <span class="tok-s">"np"</span>],
+  <span class="tok-p">"corridors"</span>: [<span class="tok-s">"qa-np"</span>],
+  <span class="tok-p">"sectors"</span>: [<span class="tok-s">"construction"</span>, <span class="tok-s">"hospitality"</span>],
+  <span class="tok-p">"risk_tags"</span>: [<span class="tok-s">"recruitment_fee"</span>, <span class="tok-s">"passport_retention"</span>, <span class="tok-s">"wage_deduction"</span>],
+  <span class="tok-p">"maintainer"</span>: <span class="tok-s">"duecare-curators"</span>,
+  <span class="tok-p">"contains_raw_pii"</span>: <span class="tok-k">false</span>,
+  <span class="tok-p">"checksum"</span>: <span class="tok-s">"sha256:7c3f…a91d"</span>,
+  <span class="tok-p">"signed_by"</span>: <span class="tok-s">"curator-04"</span>,
+  <span class="tok-p">"signed_at"</span>: <span class="tok-s">"2026-05-04T11:42:09Z"</span>,
+  <span class="tok-p">"download_url"</span>: <span class="tok-s">"/api/packages/corridor/qa-np/download"</span>,
+  <span class="tok-p">"license"</span>: <span class="tok-s">"CC-BY-SA-4.0"</span>
+}</pre>
+      </div>
+
+      <h3 style="margin-top:48px;margin-bottom:14px;">Changelog</h3>
+      <div class="card" style="padding:0;">
+        <table class="std" style="margin:0;">
+          <thead><tr><th>Version</th><th>Signed</th><th>Curator</th><th>Notes</th></tr></thead>
+          <tbody>
+            <tr><td><b>3.2.1</b></td><td>2026-05-04</td><td>curator-04</td><td>Added two MoFA advisories; refreshed two NGO contact URLs.</td></tr>
+            <tr><td>3.2.0</td><td>2026-04-21</td><td>curator-02</td><td>Replaced recruitment-fee section with WPS-aligned references.</td></tr>
+            <tr><td>3.1.4</td><td>2026-03-30</td><td>curator-04</td><td>URL re-check pass; 3 dead links removed.</td></tr>
+            <tr><td>3.1.0</td><td>2026-02-12</td><td>curator-01</td><td>Added Nepali-language section; reviewed by volunteer-031.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <aside style="display:flex;flex-direction:column;gap:14px;">
+      <div class="rail">
+        <span class="cap">PII guarantee</span>
+        <h4>contains_raw_pii: false</h4>
+        <p>Public packages never carry worker, employer, or platform-user identifying
+          information. The hub's schema rejects those fields at the edge.</p>
+      </div>
+      <div class="card">
+        <span class="label">Provenance</span>
+        <h4 style="margin-top:8px;">38 public sources</h4>
+        <p class="muted" style="font-size:13px;margin-top:6px;">Government advisories, ILO references, public NGO publications, and recruitment-authority registries. Every claim cites the public URL.</p>
+        <a href="#" style="font-family:var(--mono);font-size:12px;border-bottom:1px dashed var(--ink-3);margin-top:10px;display:inline-block;">View source list →</a>
+      </div>
+      <div class="card">
+        <span class="label">Used by</span>
+        <h4 style="margin-top:8px;">3 tools · 2 grep packs</h4>
+        <ul style="margin-top:8px;list-style:none;padding:0;display:flex;flex-direction:column;gap:6px;font-size:13.5px;">
+          <li><a href="#"><code>tools/complaint-draft</code></a></li>
+          <li><a href="#"><code>tools/contact-router</code></a></li>
+          <li><a href="#"><code>tools/fee-checker</code></a></li>
+          <li><a href="#"><code>grep-rules/recruitment</code></a></li>
+        </ul>
+      </div>
+      <div class="card">
+        <span class="label">Reproduce</span>
+        <h4 style="margin-top:8px;">Re-run the eval</h4>
+        <p class="muted" style="font-size:13px;margin-top:6px;">Run the public benchmark notebook to confirm scores against this pack version.</p>
+        <a href="#" class="btn btn-ghost" style="margin-top:10px;">Open Kaggle notebook</a>
+      </div>
+    </aside>
+  </div>
+</section>
+
+<footer><div class="wrap"><div class="foot-grid">
+<div><a href="/" class="brand"><span class="brand-mark">D</span> DueCare AI</a><p class="muted" style="font-size:14px;max-width:38ch;margin-top:8px;">Public-interest AI infrastructure for migrant-worker safety. <a href="/mission" style="color:inherit;text-decoration:underline;">Read the mission &rarr;</a></p></div>
+<div><h4>Hub</h4><ul><li><a href="/hub">Overview</a></li><li><a href="/knowledge-packs">Knowledge packs</a></li><li><a href="/tools-registry">Tools registry</a></li><li><a href="/research-monitor">Research monitor</a></li></ul></div>
+<div><h4>Docs</h4><ul><li><a href="/docs">Overview</a></li><li><a href="/technical-docs">Schemas</a></li><li><a href="/components">Architecture</a></li><li><a href="/why-gemma">Why Gemma 4</a></li><li><a href="/evaluation">Eval &amp; retraining</a></li><li><a href="/harness">Safety harness</a></li><li><a href="/setup">Setup guides</a></li><li><a href="/privacy-boundary">Privacy boundary</a></li></ul></div>
+<div><h4>Get involved</h4><ul><li><a href="/submit-information">Submit info</a></li><li><a href="/newsletter">Newsletter</a></li><li><a href="/email-feedback">Email feedback</a></li><li><a href="/alerts">Alerts archive</a></li><li><a href="/contribute">Contribute</a></li></ul></div>
+<div><h4>Verify</h4><ul><li><a href="/stats">Stats &amp; audit</a></li><li><a href="/dashboard">Live data</a></li><li><a href="/mission">Mission</a></li><li><a href="/contact">Contact</a></li></ul></div>
+</div><div class="foot-bottom"><span>&copy; 2026 DueCare AI</span><span>v0.4 &middot; public hub draft</span></div></div></footer>
+
+<script>
+function copyBlock(btn){const t=btn.closest('.code-block').querySelector('pre').innerText;navigator.clipboard.writeText(t);btn.textContent="Copied";btn.classList.add('ok');setTimeout(()=>{btn.textContent="Copy";btn.classList.remove('ok')},1400);}
+document.querySelectorAll('.tabstrip button').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('.tabstrip button').forEach(x=>x.classList.remove('on'));b.classList.add('on');}));
+</script>
+
+</body>
+</html>

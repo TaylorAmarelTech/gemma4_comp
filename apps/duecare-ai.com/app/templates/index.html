@@ -1,0 +1,665 @@
+<!doctype html>
+<html lang="en" style="scroll-behavior: smooth;">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Duecare AI · AI infrastructure to combat migrant-worker exploitation</title>
+<link rel="stylesheet" href="/static/styles.css" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%230E1116'/%3E%3Ctext x='16' y='21' text-anchor='middle' font-family='monospace' font-weight='700' font-size='14' fill='%23F7F6F1'%3ED%3C/text%3E%3C/svg%3E" />
+<style>
+  /* ---------- Page-specific ---------- */
+
+  /* Hero */
+  .hero { padding: 32px 0 56px; border-top: 0; }
+  .hero-top {
+    display: grid;
+    grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+    gap: 56px;
+    align-items: center;
+    margin-bottom: 48px;
+  }
+  @media (max-width: 960px) { .hero-top { grid-template-columns: 1fr; gap: 32px; } }
+  .hero-text { display: flex; flex-direction: column; }
+  /* Hero video card on the right */
+  .hero-video {
+    position: relative;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    overflow: hidden;
+    background: var(--ink);
+    aspect-ratio: 16 / 9;
+    display: block;
+    color: var(--paper);
+    text-decoration: none;
+  }
+  .hero-video .hv-bg {
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(ellipse at 28% 35%, oklch(0.32 0.05 195 / 0.55), transparent 55%),
+      radial-gradient(ellipse at 78% 70%, oklch(0.30 0.08 45 / 0.35), transparent 55%),
+      linear-gradient(180deg, oklch(0.18 0.02 220) 0%, oklch(0.10 0.01 220) 100%);
+  }
+  .hero-video .hv-grid {
+    position: absolute; inset: 0; opacity: 0.18;
+    background-image:
+      linear-gradient(transparent 31px, rgba(255,255,255,0.5) 31px, rgba(255,255,255,0.5) 32px, transparent 32px),
+      linear-gradient(90deg, transparent 31px, rgba(255,255,255,0.5) 31px, rgba(255,255,255,0.5) 32px, transparent 32px);
+    background-size: 32px 32px;
+  }
+  .hero-video .hv-meta {
+    position: absolute; top: 14px; left: 16px; right: 16px;
+    display: flex; justify-content: space-between; align-items: center;
+    font-family: var(--mono); font-size: 11px;
+    text-transform: uppercase; letter-spacing: 0.10em;
+    color: oklch(0.85 0.02 200);
+  }
+  .hero-video .hv-meta .dot {
+    display: inline-block; width: 6px; height: 6px;
+    border-radius: 50%; background: oklch(0.72 0.16 30);
+    margin-right: 6px; vertical-align: middle;
+    animation: hv-pulse 2.4s ease-in-out infinite;
+  }
+  @keyframes hv-pulse {
+    0%, 100% { opacity: 0.4; }
+    50% { opacity: 1; }
+  }
+  .hero-video .hv-center {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 14px;
+    text-align: center;
+  }
+  .hero-video .hv-play {
+    width: 64px; height: 64px;
+    border-radius: 50%;
+    background: var(--paper);
+    color: var(--ink);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px;
+    transition: transform 0.18s ease, background 0.18s ease;
+  }
+  .hero-video:hover .hv-play { transform: scale(1.06); background: oklch(0.96 0.02 195); }
+  .hero-video .hv-title {
+    font-family: var(--sans);
+    font-size: 17px;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+    max-width: 80%;
+  }
+  .hero-video .hv-foot {
+    position: absolute; bottom: 14px; left: 16px; right: 16px;
+    display: flex; justify-content: space-between; align-items: center;
+    font-family: var(--mono); font-size: 11px;
+    text-transform: uppercase; letter-spacing: 0.10em;
+    color: oklch(0.78 0.02 200);
+  }
+  .hero-video .hv-foot .right {
+    display: inline-flex; align-items: center; gap: 6px;
+    color: var(--paper);
+  }
+  .hero h1 {
+    font-size: clamp(36px, 4.0vw, 52px);
+    letter-spacing: -0.02em; line-height: 1.05;
+    margin: 14px 0 0;
+  }
+  .hero h1 .accent { color: var(--accent-ink); }
+  .hero .lede { margin-top: 24px; font-size: 19px; color: var(--ink-2); line-height: 1.55; }
+  .hero .for-line {
+    margin-top: 22px;
+    display: flex; flex-wrap: wrap; gap: 8px 14px;
+    font-family: var(--mono); font-size: 12px;
+    color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.08em;
+  }
+  .hero .for-line .lbl { color: var(--ink); }
+  .hero .for-line .sep { color: var(--ink-4); }
+  .hero .ctas {
+    display: flex; gap: 12px; flex-wrap: wrap; margin-top: 32px;
+  }
+
+  /* 2x2 use-case grid above the fold */
+  .hero-uses {
+    display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px;
+  }
+  @media (max-width: 880px) { .hero-uses { grid-template-columns: 1fr; } }
+  .uc {
+    border: 1px solid var(--line); border-radius: 14px;
+    background: var(--paper);
+    padding: 22px 24px;
+    display: flex; flex-direction: column; gap: 10px;
+    min-height: 180px;
+    transition: border-color .15s ease, transform .15s ease;
+    text-decoration: none; color: inherit;
+  }
+  .uc:hover { border-color: var(--ink-3); transform: translateY(-2px); }
+  .uc .uc-head {
+    display: flex; justify-content: space-between; align-items: baseline; gap: 12px;
+    font-family: var(--mono); font-size: 11px;
+    color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.10em;
+  }
+  .uc .uc-head .num { color: var(--ink); font-weight: 600; }
+  .uc h3 {
+    margin: 0; font-size: 20px; letter-spacing: -0.014em; line-height: 1.25;
+  }
+  .uc .uc-who { font-size: 13px; color: var(--ink-3); margin: 0; }
+  .uc .uc-body { font-size: 14px; color: var(--ink-2); line-height: 1.55; margin: 0; flex: 1; }
+  .uc .uc-link {
+    margin-top: auto; font-family: var(--mono); font-size: 12px;
+    color: var(--ink); border-bottom: 1px dashed var(--ink-3); width: max-content;
+  }
+  .uc:hover .uc-link { color: var(--accent-ink); border-bottom-color: var(--accent); }
+
+  .uc.uc-wide {
+    grid-column: 1 / -1;
+    margin-top: 14px;
+    display: grid;
+    grid-template-columns: 1fr 280px;
+    gap: 32px;
+    align-items: start;
+    min-height: 0;
+  }
+  @media (max-width: 880px) { .uc.uc-wide { grid-template-columns: 1fr; gap: 16px; } }
+  .uc.uc-wide .uc-head { grid-column: 1 / -1; }
+  .uc.uc-wide h3 { font-size: 24px; margin-bottom: 10px; }
+  .uc.uc-wide .uc-wide-body { display: flex; flex-direction: column; gap: 8px; }
+  .uc.uc-wide .uc-wide-list {
+    list-style: none; padding: 0; margin: 0;
+    display: flex; flex-direction: column; gap: 8px;
+    font-size: 13px; color: var(--ink-3);
+    border-left: 1px solid var(--line); padding-left: 18px;
+  }
+  .uc.uc-wide .uc-link { grid-column: 1 / -1; margin-top: 12px; }
+
+
+  /* Section: scenario */
+  .scenario {
+    display: grid; grid-template-columns: 1.05fr 1fr; gap: 0;
+    border: 1px solid var(--line); border-radius: 14px; overflow: hidden;
+    background: var(--paper);
+  }
+  @media (max-width: 920px) { .scenario { grid-template-columns: 1fr; } }
+  .scenario .left {
+    padding: 32px; background: var(--paper-2);
+    border-right: 1px solid var(--line);
+  }
+  @media (max-width: 920px) { .scenario .left { border-right: 0; border-bottom: 1px solid var(--line); } }
+  .scenario .right { padding: 32px; }
+  .scenario h3 { margin-bottom: 8px; }
+  .composite-tag {
+    display: inline-flex; gap: 6px; align-items: center;
+    font-family: var(--mono); font-size: 10px;
+    padding: 3px 8px; border-radius: 999px;
+    background: var(--paper); border: 1px solid var(--line);
+    color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.08em;
+    margin-bottom: 16px;
+  }
+  .composite-tag::before { content: ""; width: 6px; height: 6px; background: var(--ink-3); border-radius: 50%; }
+  .msg-bubble {
+    background: var(--paper); border: 1px solid var(--line); border-radius: 10px;
+    padding: 12px 14px; font-size: 14px; line-height: 1.5; max-width: 90%;
+  }
+  .msg-meta {
+    font-family: var(--mono); font-size: 11px; color: var(--ink-3);
+    margin-top: 6px;
+  }
+  .msg-stream { display: flex; flex-direction: column; gap: 14px; margin-top: 16px; }
+  .scenario .right ol {
+    list-style: none; counter-reset: step; padding: 0; margin: 0;
+    display: flex; flex-direction: column; gap: 16px;
+  }
+  .scenario .right li {
+    counter-increment: step;
+    display: grid; grid-template-columns: 28px 1fr; gap: 14px;
+    padding-left: 0;
+  }
+  .scenario .right li::before {
+    content: counter(step, decimal-leading-zero);
+    font-family: var(--mono); font-size: 11px; color: var(--ink-3);
+    border: 1px solid var(--line); border-radius: 4px;
+    width: 28px; height: 22px; display: grid; place-items: center;
+    background: var(--paper);
+  }
+  .scenario .right li .step-title { font-weight: 600; font-size: 14px; }
+  .scenario .right li .step-body { font-size: 13.5px; color: var(--ink-2); margin-top: 2px; }
+
+  /* System diagram */
+  .sysdiagram {
+    border: 1px solid var(--line); border-radius: 14px;
+    padding: 48px;
+    background:
+      linear-gradient(transparent 23px, var(--line-soft) 23px, var(--line-soft) 24px, transparent 24px),
+      linear-gradient(90deg, transparent 23px, var(--line-soft) 23px, var(--line-soft) 24px, transparent 24px),
+      var(--paper);
+    background-size: 24px 24px;
+    position: relative;
+    overflow: hidden;
+  }
+  .sysdiagram-grid {
+    display: grid; grid-template-columns: 1fr 1.1fr 1fr; gap: 48px;
+    position: relative;
+  }
+  @media (max-width: 920px) { .sysdiagram-grid { grid-template-columns: 1fr; gap: 24px; } }
+  .sys-col h4 {
+    font-family: var(--mono); font-size: 11px; font-weight: 500;
+    text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-3);
+    margin-bottom: 14px;
+  }
+  .sys-col .group { display: flex; flex-direction: column; gap: 10px; }
+  .sys-col.local { border: 1px dashed oklch(0.78 0.06 195); padding: 16px; border-radius: 12px; background: oklch(0.97 0.02 195); position: relative; }
+  .sys-col.local::after {
+    content: "LOCAL · raw details stay here";
+    position: absolute; top: -10px; left: 16px;
+    background: oklch(0.97 0.02 195);
+    padding: 0 8px;
+    font-family: var(--mono); font-size: 10px; color: var(--accent-ink);
+    text-transform: uppercase; letter-spacing: 0.08em;
+    border: 1px dashed oklch(0.78 0.06 195); border-radius: 4px;
+  }
+  .sys-col.hub { border: 1px solid var(--ink); padding: 16px; border-radius: 12px; background: var(--paper); position: relative; }
+  .sys-col.hub::after {
+    content: "PUBLIC HUB · anonymized signals only";
+    position: absolute; top: -10px; left: 16px;
+    background: var(--paper);
+    padding: 0 8px;
+    font-family: var(--mono); font-size: 10px; color: var(--ink);
+    text-transform: uppercase; letter-spacing: 0.08em;
+    border: 1px solid var(--ink); border-radius: 4px;
+  }
+  .sys-col.deploy { border: 1px dashed var(--paper-3); padding: 16px; border-radius: 12px; background: var(--paper-2); position: relative; }
+  .sys-col.deploy::after {
+    content: "LOCAL DEPLOYMENTS";
+    position: absolute; top: -10px; left: 16px;
+    background: var(--paper-2);
+    padding: 0 8px;
+    font-family: var(--mono); font-size: 10px; color: var(--ink-3);
+    text-transform: uppercase; letter-spacing: 0.08em;
+    border: 1px dashed var(--paper-3); border-radius: 4px;
+  }
+  .sys-arrow {
+    text-align: center; font-family: var(--mono); font-size: 11px; color: var(--ink-3);
+    margin: 8px 0;
+  }
+  .sys-flow {
+    display: grid; grid-template-columns: auto 1fr auto 1fr auto;
+    align-items: center; gap: 16px;
+    margin-top: 28px; padding-top: 24px; border-top: 1px dashed var(--line);
+  }
+  .sys-flow .step { font-family: var(--mono); font-size: 11px; color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.06em; text-align: center; }
+  .sys-flow svg { color: var(--ink-3); }
+  .sys-flow .arrow-text { font-family: var(--mono); font-size: 10px; color: var(--ink-4); text-align: center; padding: 0 8px; }
+
+  /* Eight component map */
+  .components-board {
+    border: 1px solid var(--line); border-radius: 14px; padding: 32px;
+    background: var(--paper);
+  }
+  .comp-row {
+    display: grid; grid-template-columns: 140px 1fr; gap: 24px; padding: 20px 0;
+    border-bottom: 1px solid var(--line-soft);
+  }
+  .comp-row:last-child { border-bottom: 0; }
+  .comp-row .left h4 { font-family: var(--mono); font-size: 11px; font-weight: 500;
+    text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-3); margin-bottom: 6px; }
+  .comp-row .left p { font-size: 12px; color: var(--ink-3); }
+  .comp-grid {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px;
+  }
+  @media (max-width: 920px) { .comp-grid { grid-template-columns: repeat(2, 1fr); } }
+  .comp-card {
+    border: 1px solid var(--line); border-radius: 10px; padding: 16px;
+    background: var(--paper); position: relative;
+    display: flex; flex-direction: column; gap: 6px;
+    transition: border-color .15s ease, transform .15s ease;
+  }
+  .comp-card:hover { border-color: var(--ink-3); }
+  .comp-card.live { border-color: oklch(0.80 0.06 195); background: oklch(0.97 0.015 195); }
+  .comp-card.proto { border-style: dashed; }
+  .comp-card.road { background: var(--paper-2); border-style: dotted; }
+  .comp-card .num {
+    font-family: var(--mono); font-size: 11px; color: var(--ink-3);
+    margin-bottom: 0;
+    display: flex; justify-content: space-between; align-items: center; gap: 8px;
+  }
+  .comp-card .ttl { font-weight: 600; font-size: 14px; letter-spacing: -0.01em; margin-top: 4px; }
+  .comp-card .desc { font-size: 12.5px; color: var(--ink-3); margin-top: 4px; line-height: 1.4; }
+  .comp-card .pill { display: none; }
+
+  /* Verify cards */
+  .verify-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; }
+  @media (max-width: 920px) { .verify-grid { grid-template-columns: repeat(2, 1fr); } }
+  .verify-card {
+    border: 1px solid var(--line); border-radius: 10px;
+    padding: 20px;
+    background: var(--paper);
+    display: flex; flex-direction: column; gap: 8px;
+    transition: border-color .15s ease;
+  }
+  .verify-card:hover { border-color: var(--ink); }
+  .verify-card .icon {
+    width: 28px; height: 28px;
+    border: 1px solid var(--line); border-radius: 6px;
+    display: grid; place-items: center;
+    font-family: var(--mono); font-size: 12px; font-weight: 600;
+    color: var(--ink-2); margin-bottom: 8px;
+  }
+  .verify-card h4 { font-size: 14px; }
+  .verify-card .desc { font-size: 12.5px; color: var(--ink-3); margin-top: 0; flex: 1; }
+  .verify-card .link { font-family: var(--mono); font-size: 11px; color: var(--ink-3); margin-top: 12px; }
+  .verify-card:hover .link { color: var(--ink); }
+
+  /* Privacy boundary */
+  .privacy-band {
+    border: 1px solid oklch(0.80 0.06 45);
+    border-radius: 16px;
+    background:
+      radial-gradient(70% 130% at 100% 0%, oklch(0.95 0.05 45) 0%, transparent 60%),
+      var(--ember-soft);
+    padding: 56px;
+    display: grid; grid-template-columns: 1.1fr 1fr; gap: 48px; align-items: center;
+  }
+  @media (max-width: 920px) { .privacy-band { grid-template-columns: 1fr; padding: 36px; } }
+  .privacy-band h2 { color: oklch(0.32 0.10 45); margin-bottom: 16px; max-width: 14ch; }
+  .privacy-band p { color: oklch(0.30 0.06 45); font-size: 16px; margin-bottom: 12px; }
+  .privacy-band .quote {
+    font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em;
+    color: oklch(0.40 0.10 45); margin-bottom: 20px;
+  }
+  .privacy-rules {
+    display: flex; flex-direction: column; gap: 10px;
+    border-left: 2px solid oklch(0.80 0.06 45);
+    padding-left: 20px;
+  }
+  .privacy-rules .rule { display: grid; grid-template-columns: 16px 1fr; gap: 10px; align-items: start; }
+  .privacy-rules .rule .x { font-family: var(--mono); color: oklch(0.50 0.13 45); font-weight: 600; }
+  .privacy-rules .rule .label { color: oklch(0.32 0.10 45); font-size: 14px; font-family: var(--sans); text-transform: none; letter-spacing: 0; }
+  .privacy-rules .rule.ok .x { color: var(--accent-ink); }
+
+  /* Use cases grid */
+  .use-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+  @media (max-width: 760px) { .use-grid { grid-template-columns: 1fr; } }
+  .use-card {
+    border: 1px solid var(--line); border-radius: 12px;
+    padding: 24px; background: var(--paper);
+    display: flex; flex-direction: column; gap: 16px;
+  }
+  .use-card .h {
+    display: flex; justify-content: space-between; align-items: start; gap: 16px;
+  }
+  .use-card h3 { letter-spacing: -0.012em; }
+  .use-card .role { font-family: var(--mono); font-size: 11px; color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.08em; }
+  .use-card .body { color: var(--ink-2); font-size: 14px; }
+  .use-card .lanes {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 0;
+    border: 1px solid var(--line); border-radius: 8px;
+    overflow: hidden; font-size: 12.5px;
+  }
+  .use-card .lane { padding: 12px 14px; }
+  .use-card .lane.local { background: oklch(0.97 0.015 195); border-right: 1px solid var(--line); }
+  .use-card .lane .lab {
+    font-family: var(--mono); font-size: 10px; color: var(--ink-3);
+    text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px;
+  }
+  .use-card .lane.local .lab { color: var(--accent-ink); }
+
+  /* CTA band */
+  .cta-band h2 { max-width: 18ch; margin-bottom: 12px; }
+  .cta-band .lede { margin-bottom: 0; font-size: 16px; }
+  .cta-band .ctas { display: flex; gap: 12px; justify-content: flex-end; flex-wrap: wrap; }
+  @media (max-width: 760px) { .cta-band .ctas { justify-content: flex-start; } }
+
+</style>
+</head>
+<body>
+
+<!-- ============== NAV ============== -->
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="/" class="brand"><span class="brand-mark">D</span> DueCare AI</a>
+    <div class="nav-links">
+      <a href="/demo">Demo</a>
+      <a href="/use-cases">Use cases</a>
+      <a href="/hub">Hub</a>
+      <a href="/docs">Docs</a>
+      <a href="/stats">Stats</a>
+    </div>
+    <a href="/login?next=/contribute" class="nav-cta">Get involved <span aria-hidden="true">&rarr;</span></a>
+  </div>
+</nav>
+
+<!-- ============== HERO ============== -->
+<section class="hero first" data-screen-label="01 Hero">
+  <div class="wrap">
+    <div class="hero-top">
+      <div class="hero-text">
+        <span class="kicker">/duecare · a research project on worker-safety AI</span>
+        <h1>AI infrastructure to <span class="accent">combat migrant-worker exploitation.</span></h1>
+        <p class="lede">DueCare is open-source software that helps platforms,
+          NGOs, regulators, and researchers spot recruitment fraud, illegal fees,
+          passport retention, and contract substitution before they harm workers.
+          It runs locally, cites public laws and advisories, and never ingests raw
+          worker cases.</p>
+        <div class="for-line">
+          <span class="lbl">Who it's for:</span>
+          <span>Platforms</span><span class="sep">/</span>
+          <span>NGOs</span><span class="sep">/</span>
+          <span>Regulators</span><span class="sep">/</span>
+          <span>Researchers</span>
+        </div>
+        <div class="ctas">
+          <a class="btn" href="/demo">▸ Watch the demo <span class="arrow">→</span></a>
+          <a class="btn btn-ghost" href="/use-cases">See use cases</a>
+          <a class="btn btn-ghost" href="/harness">Inside the harness</a>
+        </div>
+      </div>
+
+      <a class="hero-video" href="/demo" aria-label="Watch the DueCare walkthrough">
+        <div class="hv-bg"></div>
+        <div class="hv-grid"></div>
+        <div class="hv-meta">
+          <span><span class="dot"></span>Walkthrough</span>
+          <span>~6 min</span>
+        </div>
+        <div class="hv-center">
+          <div class="hv-play" aria-hidden="true">▶</div>
+          <div class="hv-title">A guided tour of DueCare, end to end.</div>
+        </div>
+        <div class="hv-foot">
+          <span>/duecare/demo</span>
+          <span class="right">Play <span aria-hidden="true">→</span></span>
+        </div>
+      </a>
+    </div>
+
+    <div class="hero-uses">
+      <a class="uc" href="#u1">
+        <div class="uc-head"><span class="num">01</span><span>For platforms</span></div>
+        <h3>Screen exploitative user-generated content, at scale.</h3>
+        <p class="uc-who">Major social platforms (Facebook, Instagram, TikTok), recruitment marketplaces, T&amp;S teams.</p>
+        <p class="uc-body">Detect illegal fees, contract substitution, passport retention, deceptive ads, and other exploitative UGC patterns. The system flags and explains; your existing review pipeline acts.</p>
+        <span class="uc-link">→ read more</span>
+      </a>
+      <a class="uc" href="#u2">
+        <div class="uc-head"><span class="num">02</span><span>For NGOs &amp; regulators</span></div>
+        <h3>Speed up case intake and triage.</h3>
+        <p class="uc-who">Caseworkers, labor regulators, embassies.</p>
+        <p class="uc-body">Run on the caseworker's own device. Surface the relevant laws and advisories, draft replies and complaint forms, and flag patterns across cases, without case data leaving local machines.</p>
+        <span class="uc-link">→ read more</span>
+      </a>
+      <a class="uc" href="#u3">
+        <div class="uc-head"><span class="num">03</span><span>For workers</span></div>
+        <h3>Plain-language answers about a corridor.</h3>
+        <p class="uc-who">Migrant workers, community channels, partner-hosted endpoints.</p>
+        <p class="uc-body">Answer questions about fees, contracts, passports, and rights in the worker's own language. The system never files complaints or instructs action; it points to verified resources and trusted caseworkers.</p>
+        <span class="uc-link">→ read more</span>
+      </a>
+      <a class="uc" href="#u4">
+        <div class="uc-head"><span class="num">04</span><span>For researchers</span></div>
+        <h3>Cite-able research on corridors, trends, and policy.</h3>
+        <p class="uc-who">Academic researchers, policy analysts, journalists.</p>
+        <p class="uc-body">Study corridor risk, exploitation trends, and policy impact using version-pinned packs and an anonymized signal stream. Run the harness on Gemma 4; cite a hash; re-run months later.</p>
+        <span class="uc-link">→ read more</span>
+      </a>
+    </div>
+
+    <a class="uc uc-wide" href="#u5">
+      <div class="uc-head">
+        <span class="num">05</span>
+        <span>Modular runtime · custom integrations</span>
+      </div>
+      <div class="uc-wide-body">
+        <h3>Drop the runtime into your own product or channel.</h3>
+        <p class="uc-body">A containerized runtime with a small, well-defined API. Wire it into a Messenger or WhatsApp bot, a moderator console, an internal case-management system, or a sibling app. You own the channel; we provide the harness, the rule packs, and the model layer.</p>
+      </div>
+      <ul class="uc-wide-list">
+        <li>FB Messenger / WhatsApp adapter</li>
+        <li>Custom moderator dashboards</li>
+        <li>Case-management plug-ins</li>
+        <li>On-prem deployments</li>
+      </ul>
+      <span class="uc-link">→ integration paths</span>
+    </a>
+  </div>
+</section>
+
+
+
+
+<!-- ============== USE-CASES CTA ============== -->
+<style>
+  .use-cases-cta {
+    padding: 24px 0 64px;
+  }
+  .use-cases-cta .ucc-card {
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    background: var(--paper);
+    padding: 28px 32px;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 24px; align-items: center;
+  }
+  @media (max-width: 720px) {
+    .use-cases-cta .ucc-card { grid-template-columns: 1fr; }
+  }
+  .use-cases-cta .ucc-card .lbl {
+    font-family: var(--mono); font-size: 11px; color: var(--ink-3);
+    text-transform: uppercase; letter-spacing: 0.10em;
+  }
+  .use-cases-cta .ucc-card h3 {
+    margin: 8px 0 6px; font-size: 22px; letter-spacing: -0.014em;
+  }
+  .use-cases-cta .ucc-card p {
+    margin: 0; color: var(--ink-3); font-size: 14.5px; line-height: 1.55;
+    max-width: 60ch;
+  }
+  .use-cases-cta .ucc-card .btn { white-space: nowrap; }
+</style>
+<section class="use-cases-cta" data-screen-label="Homepage · Use cases CTA">
+  <div class="wrap">
+    <div class="ucc-card">
+      <div>
+        <span class="lbl">/ use cases</span>
+        <h3>See the full set of use cases &amp; deployments.</h3>
+        <p>Reference scenarios for platforms, NGOs, regulators, researchers, and integration partners — with the deployment architecture for each one in a single place.</p>
+      </div>
+      <a class="btn" href="/use-cases">View use cases <span class="arrow">→</span></a>
+    </div>
+  </div>
+</section>
+
+<!-- ============== FOOTER ============== -->
+
+<!-- ============ HOMEPAGE USE-CASE DETAILS ============ -->
+<style>
+  .uc-detail { padding: 72px 0; border-top: 1px solid var(--line); }
+  .uc-detail .ix { font-family: var(--mono); font-size: 11px; color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.10em; }
+  .uc-detail h2 { font-size: clamp(28px, 3vw, 40px); letter-spacing: -0.018em; margin: 8px 0 16px; }
+  .uc-detail p.lede { font-size: 17px; color: var(--ink-2); line-height: 1.6; margin: 0 0 24px; }
+  .uc-detail .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-top: 24px; }
+  @media (max-width: 760px) { .uc-detail .grid { grid-template-columns: 1fr; } }
+  .uc-detail .pt { border: 1px solid var(--line); border-radius: 12px; padding: 18px 22px; background: var(--paper); }
+  .uc-detail .pt h4 { margin: 0 0 6px; font-size: 14px; font-family: var(--mono); text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-3); font-weight: 600; }
+  .uc-detail .pt p { margin: 0; font-size: 14.5px; color: var(--ink-1); line-height: 1.55; }
+  .uc-detail .more { margin-top: 24px; font-family: var(--mono); font-size: 13px; color: var(--ink); border-bottom: 1px dashed var(--ink-3); width: max-content; display: inline-block; }
+  .uc-detail .more:hover { color: var(--accent-ink); border-bottom-color: var(--accent); }
+</style>
+<section id="u1" class="uc-detail">
+  <div class="wrap">
+    <span class="ix">01 · For platforms</span>
+    <h2>Screen exploitative user-generated content, at scale.</h2>
+    <p class="lede">Major social platforms and recruitment marketplaces face a constant stream of posts, ads, listings, and messages — some of which target migrant workers with illegal fees, deceptive offers, or unsafe employers. The DueCare runtime classifies and explains UGC against curated corridor packs, returning a risk score and a suggested action your existing enforcement pipeline can act on.</p>
+    <div class="grid">
+      <div class="pt"><h4>What it detects</h4><p>Illegal recruitment fees, contract substitution, passport retention requests, deceptive job ads, sham agencies, and other exploitative UGC patterns.</p></div>
+      <div class="pt"><h4>What it returns</h4><p>A per-item risk score with a suggested action: hold, redline, escalate to human review, or notify the relevant authority.</p></div>
+      <div class="pt"><h4>Where it runs</h4><p>Inside the platform's own VPC, on a self-hosted GPU. No user content leaves the platform environment.</p></div>
+      <div class="pt"><h4>What it does not do</h4><p>It does not auto-enforce. The platform's existing trust &amp; safety pipeline decides what action to take.</p></div>
+    </div>
+    <a class="more" href="/use-cases">→ See the platform deployment architecture</a>
+  </div>
+</section>
+<section id="u2" class="uc-detail">
+  <div class="wrap">
+    <span class="ix">02 · For NGOs &amp; regulators</span>
+    <h2>Speed up case intake and triage.</h2>
+    <p class="lede">Caseworkers and labor regulators handle complex situations under time pressure. Running on the caseworker's own device, Duecare surfaces relevant laws and advisories, drafts replies and complaint forms, and flags patterns across recent cases.</p>
+    <div class="grid">
+      <div class="pt"><h4>How it helps intake</h4><p>Pulls the right corridor pack sections automatically; suggests follow-up questions; pre-fills complaint or referral forms with citations.</p></div>
+      <div class="pt"><h4>How it helps triage</h4><p>Flags patterns across recent local cases (e.g. a recurring fee scheme) without those cases ever leaving the device.</p></div>
+      <div class="pt"><h4>Where it runs</h4><p>On the caseworker's laptop or workstation. No case data leaves local machines.</p></div>
+      <div class="pt"><h4>What it does not do</h4><p>It does not file complaints, contact employers, or take any external action on the worker's behalf.</p></div>
+    </div>
+    <a class="more" href="/use-cases">→ See the NGO deployment architecture</a>
+  </div>
+</section>
+<section id="u3" class="uc-detail">
+  <div class="wrap">
+    <span class="ix">03 · For workers</span>
+    <h2>Local mobile help. On the worker&rsquo;s phone. In their language.</h2>
+    <p class="lede">Migrant workers need answers <em>now</em>, on the device they already have, in the language they actually speak. The DueCare worker app runs an on-device model with cached corridor packs &mdash; it works on a low-spec phone with no signal, never uploads pasted contracts or chats, and points the worker to verified resources rather than acting on their behalf.</p>
+    <div class="grid">
+      <div class="pt"><h4>How workers reach it</h4><p>Through a partner-operated channel: an NGO chatbot, a government information line, or a sibling worker app.</p></div>
+      <div class="pt"><h4>What it answers</h4><p>Questions about typical fees, legal contract terms, passport retention rules, and where to seek verified help in this corridor.</p></div>
+      <div class="pt"><h4>Where it runs</h4><p>On a partner-hosted GPU endpoint. The partner controls the channel and audit trail.</p></div>
+      <div class="pt"><h4>What it does not do</h4><p>It will not file complaints, instruct action, or replace a verified caseworker. Drafted answers always point to verified humans.</p></div>
+    </div>
+    <a class="more" href="/use-cases">→ See the chatbot deployment architecture</a>
+  </div>
+</section>
+<section id="u4" class="uc-detail">
+  <div class="wrap">
+    <span class="ix">04 · For researchers</span>
+    <h2>Cite-able research on corridors, trends, and policy.</h2>
+    <p class="lede">Academic researchers, policy analysts, and journalists study migration corridors, exploitation trends, recruitment-market dynamics, and policy impact. DueCare gives them version-pinned packs, an anonymized signal stream, and a reproducible harness on Gemma 4 — so claims about how a corridor is moving, or how a policy change landed, can be cited and re-run months later.</p>
+    <div class="grid">
+      <div class="pt"><h4>What it supports</h4><p>Corridor risk analysis, longitudinal trend tracking (fees, contract substitution, recruiter networks), policy-impact studies, and reproducible model evaluations.</p></div>
+      <div class="pt"><h4>What is reproducible</h4><p>Pack version (cryptographic hash), eval prompts, rubric, model artifact, runtime configuration — plus the anonymized signal aggregates queried at a point in time.</p></div>
+      <div class="pt"><h4>Where it runs</h4><p>Locally on Gemma 4 or in a cloud notebook. Researchers control their own environment; the harness reads only public packs and aggregate signals.</p></div>
+      <div class="pt"><h4>What it does not do</h4><p>It exposes no individual workers, employers, or cases. Aggregates are k-anonymized; raw case data never leaves local deployments.</p></div>
+    </div>
+    <a class="more" href="/use-cases">→ See the research deployment architecture</a>
+  </div>
+</section>
+<section id="u5" class="uc-detail">
+  <div class="wrap">
+    <span class="ix">05 · Modular runtime</span>
+    <h2>Drop the runtime into your own product or channel.</h2>
+    <p class="lede">The runtime is a containerized service with a small, well-defined API. Wire it into a Messenger or WhatsApp bot, a moderator console, an internal case-management system, or a sibling app. You own the channel; we provide the harness, the rule packs, and the model layer.</p>
+    <div class="grid">
+      <div class="pt"><h4>Channel adapters</h4><p>FB Messenger, WhatsApp Business, Telegram, custom web chat, voice IVR. Adapter handles channel-specific transport; the runtime stays the same.</p></div>
+      <div class="pt"><h4>Console integrations</h4><p>Custom moderator dashboards, in-house case-management plug-ins, audit log exporters.</p></div>
+      <div class="pt"><h4>Deployment shape</h4><p>On-prem, in your VPC, or partner-hosted. Containerized; runs on standard GPU hardware.</p></div>
+      <div class="pt"><h4>What we provide</h4><p>The runtime image, the harness configuration, the rule pack catalog, and an API client. You provide the channel.</p></div>
+    </div>
+    <a class="more" href="/use-cases">→ See all deployment paths</a>
+  </div>
+</section>
+
+<footer><div class="wrap"><div class="foot-grid">
+<div><a href="/" class="brand"><span class="brand-mark">D</span> DueCare AI</a><p class="muted" style="font-size:14px;max-width:38ch;margin-top:8px;">Public-interest AI infrastructure for migrant-worker safety. <a href="/mission" style="color:inherit;text-decoration:underline;">Read the mission &rarr;</a></p></div>
+<div><h4>Hub</h4><ul><li><a href="/hub">Overview</a></li><li><a href="/knowledge-packs">Knowledge packs</a></li><li><a href="/tools-registry">Tools registry</a></li><li><a href="/research-monitor">Research monitor</a></li></ul></div>
+<div><h4>Docs</h4><ul><li><a href="/docs">Overview</a></li><li><a href="/technical-docs">Schemas</a></li><li><a href="/components">Architecture</a></li><li><a href="/why-gemma">Why Gemma 4</a></li><li><a href="/evaluation">Eval &amp; retraining</a></li><li><a href="/harness">Safety harness</a></li><li><a href="/setup">Setup guides</a></li><li><a href="/privacy-boundary">Privacy boundary</a></li></ul></div>
+<div><h4>Get involved</h4><ul><li><a href="/submit-information">Submit info</a></li><li><a href="/newsletter">Newsletter</a></li><li><a href="/email-feedback">Email feedback</a></li><li><a href="/alerts">Alerts archive</a></li><li><a href="/contribute">Contribute</a></li></ul></div>
+<div><h4>Verify</h4><ul><li><a href="/stats">Stats &amp; audit</a></li><li><a href="/dashboard">Live data</a></li><li><a href="/mission">Mission</a></li><li><a href="/contact">Contact</a></li></ul></div>
+</div><div class="foot-bottom"><span>&copy; 2026 DueCare AI</span><span>v0.4 &middot; public hub draft</span></div></div></footer>
+
+</body>
+</html>

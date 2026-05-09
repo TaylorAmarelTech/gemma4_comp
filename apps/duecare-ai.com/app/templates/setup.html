@@ -1,0 +1,277 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Setup · Duecare AI</title>
+<link rel="stylesheet" href="/static/styles.css" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%230E1116'/%3E%3Ctext x='16' y='21' text-anchor='middle' font-family='monospace' font-weight='700' font-size='14' fill='%23F7F6F1'%3ED%3C/text%3E%3C/svg%3E" />
+<style>
+  .setup-hero .grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+    gap: 56px; align-items: start;
+  }
+  @media (max-width: 920px) { .setup-hero .grid { grid-template-columns: 1fr; gap: 24px; } }
+  .setup-hero .toc {
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: var(--paper);
+    padding: 18px 20px;
+    margin-top: 28px;
+  }
+  .setup-hero .toc h3 {
+    font-family: var(--mono); font-size: 11px;
+    color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.10em;
+    margin: 0 0 14px;
+  }
+  .setup-hero .toc ol {
+    list-style: none; margin: 0; padding: 0;
+    display: flex; flex-direction: column; gap: 4px;
+    counter-reset: sstep;
+  }
+  .setup-hero .toc ol li { counter-increment: sstep; }
+  .setup-hero .toc ol li a {
+    display: grid; grid-template-columns: 32px 1fr auto;
+    gap: 12px; align-items: baseline;
+    padding: 10px 0;
+    border-top: 1px solid var(--line-soft);
+    font-size: 14.5px; color: var(--ink);
+    text-decoration: none; line-height: 1.3;
+    cursor: pointer;
+  }
+  .setup-hero .toc ol li:first-child a { border-top: 0; }
+  .setup-hero .toc ol li a::before {
+    content: counter(sstep, decimal-leading-zero);
+    font-family: var(--mono); font-size: 11px;
+    color: var(--ink-3); letter-spacing: 0.08em;
+  }
+  .setup-hero .toc ol li a .arrow {
+    font-family: var(--mono); font-size: 12px; color: var(--ink-3);
+  }
+  .setup-hero .toc ol li a:hover { color: var(--accent-ink); }
+  .setup-hero .toc ol li a:hover .arrow { color: var(--accent-ink); }
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="/" class="brand"><span class="brand-mark">D</span> DueCare AI</a>
+    <div class="nav-links">
+      <a href="/demo">Demo</a>
+      <a href="/use-cases">Use cases</a>
+      <a href="/hub">Hub</a>
+      <a href="/docs" class="on">Docs</a>
+      <a href="/stats">Stats</a>
+    </div>
+    <a href="/login?next=/contribute" class="nav-cta">Get involved <span aria-hidden="true">&rarr;</span></a>
+  </div>
+</nav>
+
+<section class="page-intro first setup-hero" data-screen-label="Setup · Intro">
+  <div class="wrap">
+    <div class="crumbs"><a href="/">Home</a><span class="sep">/</span><span>Setup</span></div>
+    <div class="grid">
+      <div>
+        <span class="kicker">/setup · choose your track</span>
+        <h1>Get started in the right lane.</h1>
+        <p class="lede">Five tracks. Different inputs, different outputs, identical privacy
+          contract. Pick your role to see the exact commands, packages, and safe-use
+          checklist for your deployment.</p>
+      </div>
+      <nav class="toc" aria-label="Setup tracks on this page">
+        <h3>On this page</h3>
+        <ol>
+          <li><a href="#roles" data-track="plat"><span>Platform safety</span><span class="arrow">→</span></a></li>
+          <li><a href="#roles" data-track="ngo"><span>NGO &amp; regulator</span><span class="arrow">→</span></a></li>
+          <li><a href="#roles" data-track="worker"><span>Migrant worker chat</span><span class="arrow">→</span></a></li>
+          <li><a href="#roles" data-track="research"><span>Academic research</span><span class="arrow">→</span></a></li>
+          <li><a href="#roles" data-track="dev"><span>Developer</span><span class="arrow">→</span></a></li>
+        </ol>
+      </nav>
+    </div>
+  </div>
+</section>
+
+<section data-screen-label="Setup · Tracks">
+  <div class="wrap">
+    <div class="role-grid" id="roles">
+      <div class="role-card on" data-role="plat">
+        <span class="glyph">01</span>
+        <h4>Platform safety</h4>
+        <p>Job-post screening with grep rules + corridor packs. Aggregate flag-rates only.</p>
+      </div>
+      <div class="role-card" data-role="ngo">
+        <span class="glyph">02</span>
+        <h4>NGO &amp; regulator</h4>
+        <p>Caseworker copilot + regulator trend dashboard. Cases stay with the role that owns them.</p>
+      </div>
+      <div class="role-card" data-role="worker">
+        <span class="glyph">03</span>
+        <h4>Migrant worker chat</h4>
+        <p>On-device sibling app. Pasted messages and chat history never leave the phone.</p>
+      </div>
+      <div class="role-card" data-role="research">
+        <span class="glyph">04</span>
+        <h4>Academic research</h4>
+        <p>Cite-able pack hashes, eval packs, benchmark notebooks, rubric proposals.</p>
+      </div>
+      <div class="role-card" data-role="dev">
+        <span class="glyph">D</span>
+        <h4>Developer</h4>
+        <p>API endpoints, manifests, client snippets, version pinning.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section data-screen-label="Setup · Steps">
+  <div class="wrap" style="display:grid;grid-template-columns:1fr 320px;gap:40px;align-items:start;">
+    <div>
+      <div class="section-head" style="grid-template-columns:1fr;margin-bottom:24px;">
+        <div>
+          <span class="label">Setup track</span>
+          <h2 id="trackTitle" style="margin-top:8px;">NGO / caseworker</h2>
+          <p class="muted" id="trackLede" style="margin-top:8px;font-size:15px;">Run Duecare locally. Pull signed corridor packs, draft complaints with citations, route to verified contacts. Never upload case content.</p>
+        </div>
+      </div>
+
+      <div class="stepper" style="--steps:4;">
+        <div class="step">
+          <span class="num">Read the safe-use checklist</span>
+          <h4>Confirm what stays local</h4>
+          <p>Worker messages, names, IDs, employer details, decision logs — all stay on your device. The hub never accepts these fields.</p>
+        </div>
+        <div class="step">
+          <span class="num">Install the local runtime</span>
+          <h4>One command, no cloud account</h4>
+          <p>Single binary or pip package. Runs the Gemma 4 + Duecare Harness on a partner laptop. Air-gap-friendly.</p>
+        </div>
+        <div class="step">
+          <span class="num">Pull signed packs</span>
+          <h4>Corridor + jurisdiction context</h4>
+          <p>Pull the corridor packs you need (e.g. <code>qa-np</code>, <code>sa-id</code>). Verify checksums before using.</p>
+        </div>
+        <div class="step">
+          <span class="num">Optional: register as partner</span>
+          <h4>Deployment ID + audit feed</h4>
+          <p>Register your org's deployment ID for pull-history audit. Caseworker work continues to run locally.</p>
+        </div>
+      </div>
+
+      <h3 style="margin-top:48px;margin-bottom:14px;font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:var(--ink-3);">Local install</h3>
+      <div class="code-block">
+        <div class="code-bar">
+          <span>shell · macOS / Linux</span>
+          <button class="copy" onclick="copyBlock(this)">Copy</button>
+        </div>
+<pre><span class="tok-c"># pull and verify the latest signed runtime</span>
+<span class="tok-fn">curl</span> -fsSL https://duecare-ai.com/install.sh | <span class="tok-fn">sh</span>
+
+<span class="tok-c"># pull the corridor pack you need (signed; verifies checksum)</span>
+<span class="tok-fn">duecare</span> packs pull <span class="tok-s">"corridor/qa-np@latest"</span>
+<span class="tok-fn">duecare</span> packs verify <span class="tok-s">"corridor/qa-np"</span>
+
+<span class="tok-c"># run the local harness; no network required after pull</span>
+<span class="tok-fn">duecare</span> harness run --offline --pack corridor/qa-np</pre>
+      </div>
+
+      <h3 style="margin-top:32px;margin-bottom:14px;font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:var(--ink-3);">Pull the contact &amp; tools packs</h3>
+      <div class="code-block">
+        <div class="code-bar"><span>shell</span><button class="copy" onclick="copyBlock(this)">Copy</button></div>
+<pre><span class="tok-fn">duecare</span> packs pull <span class="tok-s">"contacts/qa-np"</span>
+<span class="tok-fn">duecare</span> packs pull <span class="tok-s">"tools/complaint-draft@1.4"</span>
+<span class="tok-fn">duecare</span> packs pull <span class="tok-s">"grep-rules/recruitment@stable"</span></pre>
+      </div>
+    </div>
+
+    <aside style="display:flex;flex-direction:column;gap:16px;">
+      <div class="rail">
+        <span class="cap">Hard contract</span>
+        <h4>What leaves vs. what stays local</h4>
+        <ul style="margin-top:10px;">
+          <li><strong>Stays local:</strong> case content, names, contacts, messages, decisions.</li>
+          <li><strong>May cross (anonymized, k≥30, opt-in):</strong> coarse pattern_id, corridor, sector.</li>
+          <li><strong>Hub never accepts:</strong> raw text fields. Schema rejects them at the edge.</li>
+        </ul>
+      </div>
+      <div class="card">
+        <span class="label">Need help</span>
+        <h4 style="margin-top:8px;">Office hours</h4>
+        <p style="font-size:13.5px;color:var(--ink-2);margin-top:8px;">Weekly partner office hours for caseworkers and tech leads.</p>
+        <a href="/contact" class="btn btn-ghost" style="margin-top:14px;">Contact program team <span class="arrow">→</span></a>
+      </div>
+      <div class="card">
+        <span class="label">Verify install</span>
+        <h4 style="margin-top:8px;">Reproduce the eval</h4>
+        <p style="font-size:13.5px;color:var(--ink-2);margin-top:8px;">Run the public harness on Kaggle to confirm your local results match.</p>
+        <div class="row" style="margin-top:12px;">
+          <a href="#" class="badge verified">Kaggle</a>
+          <a href="#" class="badge">GitHub</a>
+          <a href="/docs" class="badge">API docs</a>
+        </div>
+      </div>
+    </aside>
+  </div>
+</section>
+
+<section data-screen-label="Setup · Boundary table">
+  <div class="wrap">
+    <span class="label">Boundary, in plain language</span>
+    <h2 style="margin-top:8px;max-width:24ch;">What leaves your system. What stays local.</h2>
+    <table class="std" style="margin-top:32px;">
+      <thead>
+        <tr><th>Item</th><th>Origin</th><th>Public hub</th><th>Why</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Worker message text</td><td>Worker / caseworker device</td><td>Never crosses</td><td>Hub schema rejects free-text case fields.</td></tr>
+        <tr><td>Names · IDs · contact info</td><td>Worker / caseworker device</td><td>Never crosses</td><td>No PII column exists on any hub table.</td></tr>
+        <tr><td>Employer name / contract photo</td><td>Worker / caseworker device</td><td>Never crosses</td><td>Same as above. Identification by edge filter.</td></tr>
+        <tr><td>Coarse pattern_id (e.g. <code>fee_request</code>)</td><td>Local model + grep</td><td>May cross — opt-in</td><td>Aggregated only. K-anon ≥ 30 floor.</td></tr>
+        <tr><td>Corridor + sector</td><td>Local config</td><td>May cross — opt-in</td><td>Coarse buckets only. Used for trend rollups.</td></tr>
+        <tr><td>Pack version + pull-time</td><td>Local config</td><td>May cross</td><td>Audit reproducibility for curators.</td></tr>
+        <tr><td>Public-source URLs</td><td>You</td><td>Crosses (intended)</td><td>Public sources. Reviewed by curator.</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<footer><div class="wrap"><div class="foot-grid">
+<div><a href="/" class="brand"><span class="brand-mark">D</span> DueCare AI</a><p class="muted" style="font-size:14px;max-width:38ch;margin-top:8px;">Public-interest AI infrastructure for migrant-worker safety. <a href="/mission" style="color:inherit;text-decoration:underline;">Read the mission &rarr;</a></p></div>
+<div><h4>Hub</h4><ul><li><a href="/hub">Overview</a></li><li><a href="/knowledge-packs">Knowledge packs</a></li><li><a href="/tools-registry">Tools registry</a></li><li><a href="/research-monitor">Research monitor</a></li></ul></div>
+<div><h4>Docs</h4><ul><li><a href="/docs">Overview</a></li><li><a href="/technical-docs">Schemas</a></li><li><a href="/components">Architecture</a></li><li><a href="/why-gemma">Why Gemma 4</a></li><li><a href="/evaluation">Eval &amp; retraining</a></li><li><a href="/harness">Safety harness</a></li><li><a href="/setup">Setup guides</a></li><li><a href="/privacy-boundary">Privacy boundary</a></li></ul></div>
+<div><h4>Get involved</h4><ul><li><a href="/submit-information">Submit info</a></li><li><a href="/newsletter">Newsletter</a></li><li><a href="/email-feedback">Email feedback</a></li><li><a href="/alerts">Alerts archive</a></li><li><a href="/contribute">Contribute</a></li></ul></div>
+<div><h4>Verify</h4><ul><li><a href="/stats">Stats &amp; audit</a></li><li><a href="/dashboard">Live data</a></li><li><a href="/mission">Mission</a></li><li><a href="/contact">Contact</a></li></ul></div>
+</div><div class="foot-bottom"><span>&copy; 2026 DueCare AI</span><span>v0.4 &middot; public hub draft</span></div></div></footer>
+
+<script>
+const tracks = {
+  plat:    { title: "01 · Platform safety",     lede: "Run grep rules + corridor packs against job-post copy at edit time. Aggregate flag rates may cross through the anonymizer — listing content never does." },
+  ngo:     { title: "02 · NGO & regulator",      lede: "Caseworkers triage with cited drafts; regulators see corridor-level trends. Cases, complainant identity, and inspection findings stay with the role that owns them." },
+  worker:  { title: "03 · Migrant worker chat", lede: "The mobile sibling runs Gemma 4 on-device. Pasted recruiter messages, names, contracts, and chat history never leave the phone. Optional opt-in coarse signals only." },
+  research:{ title: "04 · Academic research",   lede: "Pull eval packs, run benchmark notebooks on Kaggle/GitHub, cite versions by hash, and submit prompt or rubric proposals to the public review queue." },
+  dev:     { title: "· Developer",             lede: "Pull signed packs by manifest, pin versions, verify checksums. The API only serves knowledge — it does not accept raw cases." }
+};
+function selectTrack(role) {
+  document.querySelectorAll('.role-card').forEach(x => {
+    x.classList.toggle('on', x.dataset.role === role);
+  });
+  const t = tracks[role];
+  if (t) {
+    document.getElementById('trackTitle').textContent = t.title;
+    document.getElementById('trackLede').textContent = t.lede;
+  }
+}
+document.querySelectorAll('.role-card').forEach(c => c.addEventListener('click', () => selectTrack(c.dataset.role)));
+document.querySelectorAll('.setup-hero .toc a[data-track]').forEach(a => a.addEventListener('click', () => selectTrack(a.dataset.track)));
+function copyBlock(btn) {
+  const txt = btn.closest('.code-block').querySelector('pre').innerText;
+  navigator.clipboard.writeText(txt);
+  btn.textContent = "Copied"; btn.classList.add('ok');
+  setTimeout(() => { btn.textContent = "Copy"; btn.classList.remove('ok'); }, 1400);
+}
+</script>
+
+</body>
+</html>

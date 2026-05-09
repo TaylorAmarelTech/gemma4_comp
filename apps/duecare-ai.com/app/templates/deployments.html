@@ -1,0 +1,913 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Deployments · Duecare AI</title>
+<link rel="stylesheet" href="/static/styles.css" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%230E1116'/%3E%3Ctext x='16' y='21' text-anchor='middle' font-family='monospace' font-weight='700' font-size='14' fill='%23F7F6F1'%3ED%3C/text%3E%3C/svg%3E" />
+<style>
+  /* ============== Deployments page ============== */
+
+  .dep-intro { padding: 64px 0 32px; }
+  .dep-intro h1 {
+    font-size: clamp(36px, 4.4vw, 56px);
+    margin: 16px 0 0; letter-spacing: -0.02em; max-width: 22ch;
+  }
+  .dep-intro h1 .accent { color: var(--accent-ink); }
+  .dep-intro .lede {
+    margin-top: 24px;
+    font-size: 18px; color: var(--ink-2); line-height: 1.55;
+  }
+
+  /* ---------- compare strip ---------- */
+  .compare-strip {
+    margin-top: 32px;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+  }
+  @media (max-width: 1080px) { .compare-strip { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 600px)  { .compare-strip { grid-template-columns: 1fr; } }
+  .compare-card {
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: var(--paper);
+    padding: 16px;
+    display: flex; flex-direction: column; gap: 6px;
+    min-height: 124px;
+    text-decoration: none; color: inherit;
+    transition: border-color .12s ease, transform .12s ease;
+  }
+  .compare-card:hover { border-color: var(--ink-3); transform: translateY(-1px); }
+  .compare-card .ix {
+    font-family: var(--mono); font-size: 10.5px;
+    color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.10em;
+  }
+  .compare-card .ttl {
+    font-size: 14px; font-weight: 600; letter-spacing: -0.01em;
+    word-wrap: break-word;
+  }
+  .compare-card .where {
+    font-family: var(--mono); font-size: 11px; color: var(--ink-3); margin-top: auto;
+  }
+
+  /* ---------- deployment section ---------- */
+  .dep-section {
+    border-top: 1px solid var(--line);
+    padding: 64px 0;
+  }
+  .dep-section .dep-head {
+    display: grid;
+    grid-template-columns: 64px 1fr;
+    gap: 24px;
+    margin-bottom: 32px;
+    align-items: start;
+  }
+  @media (max-width: 720px) { .dep-section .dep-head { grid-template-columns: 1fr; gap: 12px; } }
+  .dep-section .dep-head .num {
+    font-family: var(--mono); font-size: 13px; font-weight: 600;
+    color: var(--ink-3);
+    border: 1px solid var(--line);
+    padding: 8px 0;
+    text-align: center;
+    border-radius: 8px;
+    background: var(--paper);
+    height: max-content;
+  }
+  .dep-section .dep-head h2 {
+    margin: 0 0 8px;
+    font-size: clamp(26px, 2.6vw, 34px);
+    letter-spacing: -0.018em;
+  }
+  .dep-section .dep-head p {
+    margin: 0;
+    font-size: 16px; color: var(--ink-2); line-height: 1.6;
+  }
+  .dep-section .dep-head .meta-row {
+    margin-top: 18px;
+    display: grid; grid-template-columns: max-content 1fr; column-gap: 14px; row-gap: 6px;
+    font-size: 13.5px; line-height: 1.5;
+  }
+  .dep-section .dep-head .meta-row dt {
+    font-family: var(--mono); font-size: 11px;
+    color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.08em;
+    align-self: center;
+  }
+  .dep-section .dep-head .meta-row dd {
+    margin: 0; color: var(--ink-1);
+  }
+  .dep-section .dep-head .meta-row dd strong { font-weight: 600; }
+  @media (max-width: 720px) {
+    .dep-section .dep-head .meta-row { grid-template-columns: 1fr; row-gap: 2px; }
+    .dep-section .dep-head .meta-row dd { margin-bottom: 8px; }
+  }
+
+  /* ---------- diagram ---------- */
+  .diagram {
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    background: var(--paper);
+    padding: 28px;
+    overflow: hidden;
+    background-image:
+      linear-gradient(transparent 23px, var(--line-soft) 23px, var(--line-soft) 24px, transparent 24px),
+      linear-gradient(90deg, transparent 23px, var(--line-soft) 23px, var(--line-soft) 24px, transparent 24px);
+    background-size: 24px 24px;
+  }
+  /* enforce consistent vertical rhythm between every diagram block */
+  .diagram > * + * { margin-top: 20px; }
+
+  .flow {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 8px;
+    align-items: stretch;
+  }
+  @media (max-width: 1100px) {
+    .flow { grid-template-columns: 1fr; gap: 14px; }
+  }
+
+  /* node — base */
+  .node {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 16px;
+    display: flex; flex-direction: column; gap: 6px;
+    min-height: 140px;
+    grid-column: span 2;
+    min-width: 0;
+  }
+  .node .role {
+    font-family: var(--mono); font-size: 10px;
+    text-transform: uppercase; letter-spacing: 0.10em;
+    color: var(--ink-4);
+  }
+  .node .name {
+    font-size: 14px; font-weight: 600; letter-spacing: -0.01em;
+    line-height: 1.3;
+    color: var(--ink);
+    word-wrap: break-word;
+  }
+  .node .sub {
+    font-size: 12px; color: var(--ink-3); line-height: 1.45;
+  }
+  .node.input  { background: var(--paper-2); }
+  .node.runtime { background: oklch(0.97 0.015 195); border-color: oklch(0.80 0.06 195); }
+  .node.runtime .role { color: var(--accent-ink); }
+  .node.boundary { background: var(--ember-soft); border-color: oklch(0.78 0.06 45); }
+  .node.boundary .role { color: oklch(0.42 0.10 45); }
+  .node.output { background: var(--paper); border-color: var(--ink-3); }
+  .node.dataset { background: var(--paper-2); border-style: dashed; }
+  /* external = off-device / outside the runtime perimeter — soft gray, not black */
+  .node.external { background: var(--paper-3); border-color: var(--ink-4); border-style: dashed; }
+  .node.external .role { color: var(--ink-3); }
+  .node.external .sub { color: var(--ink-2); }
+
+  /* arrow column */
+  .arrow {
+    grid-column: span 1;
+    display: grid; place-items: center;
+    color: var(--ink-3);
+    font-family: var(--mono); font-size: 11px;
+    min-height: 24px;
+  }
+  .arrow svg {
+    display: block; color: var(--ink-3);
+    width: 22px; height: 22px;
+    transition: transform .12s ease;
+  }
+  /* on narrow viewports the grid collapses to one column —
+     rotate the arrow so it points down instead of right */
+  @media (max-width: 1100px) {
+    .arrow { padding: 4px 0; }
+    .arrow svg { transform: rotate(90deg); }
+  }
+
+  /* second-row sub-block under runtime node — used to expose internal pieces */
+  .runtime-detail {
+    border: 1px dashed var(--line);
+    border-radius: 10px;
+    padding: 16px;
+    background: var(--paper);
+  }
+  .runtime-detail h4 {
+    margin: 0 0 10px;
+    font-family: var(--mono); font-size: 11px;
+    text-transform: uppercase; letter-spacing: 0.10em;
+    color: var(--ink-3); font-weight: 500;
+  }
+  .runtime-detail .pieces {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+  }
+  @media (max-width: 720px) { .runtime-detail .pieces { grid-template-columns: repeat(2, 1fr); } }
+  .runtime-detail .piece {
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 8px 10px;
+    background: var(--paper-2);
+    font-size: 12px;
+    line-height: 1.4;
+  }
+  .runtime-detail .piece .lbl {
+    display: block;
+    font-family: var(--mono); font-size: 9.5px;
+    text-transform: uppercase; letter-spacing: 0.10em;
+    color: var(--ink-4); margin-bottom: 2px;
+  }
+
+  /* boundary band overlay */
+  .boundary-note {
+    padding: 10px 14px;
+    border: 1px dashed oklch(0.78 0.06 45);
+    background: var(--ember-soft);
+    border-radius: 8px;
+    font-family: var(--mono); font-size: 11px;
+    color: oklch(0.42 0.10 45);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .boundary-note::before {
+    content: ""; width: 8px; height: 8px; border-radius: 50%;
+    background: var(--ember); flex-shrink: 0;
+  }
+
+  /* what leaves / stays panel */
+  .leaves-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  @media (max-width: 720px) { .leaves-grid { grid-template-columns: 1fr; } }
+  .leaves-card {
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 16px;
+    background: var(--paper);
+  }
+  .leaves-card h4 {
+    margin: 0 0 8px;
+    font-family: var(--mono); font-size: 11px;
+    text-transform: uppercase; letter-spacing: 0.10em;
+    color: var(--ink-3); font-weight: 500;
+  }
+  .leaves-card ul {
+    margin: 0; padding: 0; list-style: none;
+    display: flex; flex-direction: column; gap: 6px;
+    font-size: 13px; color: var(--ink-2); line-height: 1.5;
+  }
+  .leaves-card ul li {
+    display: grid; grid-template-columns: 16px 1fr; gap: 8px;
+    align-items: baseline;
+  }
+  .leaves-card.stays ul li::before { content: "✓"; color: var(--good); font-weight: 700; }
+  .leaves-card.leaves ul li::before { content: "→"; color: var(--accent-ink); font-weight: 700; }
+  .leaves-card.never ul li::before { content: "×"; color: oklch(0.42 0.10 45); font-weight: 700; }
+
+  /* ---------- cost section ---------- */
+  .cost-section {
+    border-top: 1px solid var(--line);
+    background: var(--paper-2);
+    padding: 64px 0;
+  }
+  .cost-section h2 {
+    font-size: clamp(28px, 2.8vw, 36px);
+    letter-spacing: -0.018em; margin: 0 0 12px;
+  }
+  .cost-section .lede {
+    margin: 0 0 8px;
+    font-size: 16px; color: var(--ink-2); line-height: 1.6;
+  }
+  .cost-section .caveat {
+    margin: 16px 0 0;
+    font-size: 12px; color: var(--ink-3);
+    font-family: var(--mono);
+    line-height: 1.7;
+    padding: 14px 18px; border: 1px dashed var(--line);
+    border-radius: 8px; background: var(--paper);
+  }
+
+  .cost-table-wrap {
+    margin-top: 24px;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    background: var(--paper);
+    overflow: hidden;
+  }
+  .cost-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13.5px;
+  }
+  .cost-table th, .cost-table td {
+    text-align: left; padding: 12px 16px;
+    border-bottom: 1px solid var(--line-soft);
+    vertical-align: top;
+  }
+  .cost-table thead th {
+    background: var(--paper-2);
+    font-family: var(--mono); font-size: 11px;
+    text-transform: uppercase; letter-spacing: 0.08em;
+    color: var(--ink-3); font-weight: 500;
+    border-bottom: 1px solid var(--line);
+  }
+  .cost-table tbody tr:last-child td { border-bottom: 0; }
+  .cost-table .opt-name { font-weight: 600; letter-spacing: -0.01em; }
+  .cost-table .opt-name .sub {
+    display: block; font-family: var(--mono); font-size: 10.5px;
+    color: var(--ink-3); font-weight: 400; margin-top: 2px;
+    text-transform: uppercase; letter-spacing: 0.08em;
+  }
+  .cost-table .num {
+    font-family: var(--mono); font-size: 13px; color: var(--ink);
+    white-space: nowrap;
+  }
+  .cost-table .num small {
+    display: block; font-size: 10px; color: var(--ink-3);
+    margin-top: 2px; letter-spacing: 0.06em; text-transform: uppercase;
+  }
+  .cost-table tr.duecare {
+    background: oklch(0.97 0.015 195);
+  }
+  .cost-table tr.duecare td:first-child { border-left: 3px solid var(--accent); }
+
+  .cost-takeaway {
+    margin-top: 20px;
+    padding: 16px 18px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: var(--paper);
+    font-size: 14px;
+    color: var(--ink-2); line-height: 1.55;
+  }
+  .cost-takeaway strong { color: var(--ink); }
+  .cost-takeaway .placeholder-tag {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-family: var(--mono); font-size: 10.5px;
+    text-transform: uppercase; letter-spacing: 0.10em;
+    color: var(--ink-3);
+    background: var(--paper-2);
+    border: 1px solid var(--line);
+    padding: 4px 10px; border-radius: 4px;
+    margin-right: 8px;
+  }
+  .cost-takeaway .placeholder-tag::before {
+    content: ""; width: 6px; height: 6px; border-radius: 50%;
+    background: var(--ink-4);
+  }
+
+  /* ---------- tuning section ---------- */
+  .tuning-section {
+    border-top: 1px solid var(--line);
+    padding: 64px 0;
+  }
+  .tuning-section h2 {
+    font-size: clamp(26px, 2.6vw, 34px);
+    letter-spacing: -0.018em; margin: 0 0 12px;
+  }
+  .tuning-section .lede {
+    margin: 0 0 24px;
+    font-size: 16px; color: var(--ink-2); line-height: 1.6;
+  }
+  .tuning-pipeline {
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 28px;
+    background-image:
+      linear-gradient(transparent 23px, var(--line-soft) 23px, var(--line-soft) 24px, transparent 24px),
+      linear-gradient(90deg, transparent 23px, var(--line-soft) 23px, var(--line-soft) 24px, transparent 24px);
+    background-size: 24px 24px;
+    background-color: var(--paper);
+  }
+  .tuning-pipeline .flow .node { min-height: 120px; }
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="/" class="brand"><span class="brand-mark">D</span> DueCare AI</a>
+    <div class="nav-links">
+      <a href="/demo">Demo</a>
+      <a href="/use-cases">Use cases</a>
+      <a href="/hub">Hub</a>
+      <a href="/docs" class="on">Docs</a>
+      <a href="/stats">Stats</a>
+    </div>
+    <a href="/login?next=/contribute" class="nav-cta">Get involved <span aria-hidden="true">&rarr;</span></a>
+  </div>
+</nav>
+
+<!-- INTRO -->
+<section class="dep-intro" data-screen-label="Deploy · Intro">
+  <div class="wrap">
+    <span class="kicker">/deployments · reference architectures</span>
+    <h1>One system, <span class="accent">four ways to deploy it.</span></h1>
+    <p class="lede">There is no single architecture diagram that covers every
+      use case honestly. Each context — enterprise platform moderation, NGO
+      caseworker support, anonymized data sharing, public chatbot — has
+      different inputs, different privacy boundaries, and different things
+      that can or cannot leave the runtime. This page documents each one
+      separately, plus a note on how the underlying model is tuned.</p>
+
+    <div class="compare-strip">
+      <a class="compare-card" href="#dep-1">
+        <span class="ix">Deployment 01</span>
+        <span class="ttl">Enterprise platform moderation</span>
+        <span class="where">Runs in customer infra · own data plane</span>
+      </a>
+      <a class="compare-card" href="#dep-2">
+        <span class="ix">Deployment 02</span>
+        <span class="ttl">NGO caseworker implementation</span>
+        <span class="where">Runs on caseworker device · no data leaves</span>
+      </a>
+      <a class="compare-card" href="#dep-3">
+        <span class="ix">Deployment 03</span>
+        <span class="ttl">NGO with anonymized data sharing</span>
+        <span class="where">Local + opt-in anonymized signal queue</span>
+      </a>
+      <a class="compare-card" href="#dep-4">
+        <span class="ix">Deployment 04</span>
+        <span class="ttl">Chatbot endpoint</span>
+        <span class="where">Hosted endpoint · channel adapter</span>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ============ DEPLOYMENT 01 ============ -->
+<section class="dep-section" id="dep-1" data-screen-label="Deploy · 01 Enterprise">
+  <div class="wrap">
+    <div class="dep-head">
+      <div class="num">01</div>
+      <div>
+        <h2>Enterprise platform moderation</h2>
+        <p>A platform that already handles user-generated content runs the
+          Duecare runtime inside its own data plane. The runtime classifies
+          and explains content against a curated rule set; the platform's
+          existing systems decide what to do with the result.</p>
+        <dl class="meta-row">
+          <dt>Where it runs</dt><dd>Platform VPC, on a self-hosted GPU.</dd>
+          <dt>What's exposed</dt><dd>Nothing leaves the platform environment.</dd>
+          <dt>What it returns</dt><dd>A risk score and a suggested action (delete, escalate, notify). The platform's enforcement systems make the call.</dd>
+        </dl>
+      </div>
+    </div>
+
+    <div class="diagram">
+      <div class="flow">
+        <div class="node input">
+          <span class="role">Input</span>
+          <span class="name">Platform content stream</span>
+          <span class="sub">Messages, posts, listings, attachments — flowing through the platform's existing pipeline.</span>
+        </div>
+        <div class="arrow"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 10h14m0 0l-5-5m5 5l-5 5"/></svg></div>
+        <div class="node runtime">
+          <span class="role">Runtime · in platform VPC</span>
+          <span class="name">Duecare moderation runtime</span>
+          <span class="sub">Model + safety guidance + rule packs. Classifies, explains, and cites.</span>
+        </div>
+        <div class="arrow"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 10h14m0 0l-5-5m5 5l-5 5"/></svg></div>
+        <div class="node output">
+          <span class="role">Output</span>
+          <span class="name">Risk score + suggested action</span>
+          <span class="sub">A per-item risk score plus a suggested action (e.g. delete, escalate to review, notify reporting authority). The platform's existing systems decide what to enforce.</span>
+        </div>
+      </div>
+
+      <div class="runtime-detail">
+        <h4>Inside the runtime (platform VPC)</h4>
+        <div class="pieces">
+          <div class="piece"><span class="lbl">Model</span>Gemma 4 — local inference</div>
+          <div class="piece"><span class="lbl">Guidance</span>Persona, GREP rules, RAG</div>
+          <div class="piece"><span class="lbl">Packs</span>Platform-specific rule packs</div>
+          <div class="piece"><span class="lbl">Tests</span>Quality testing on every pack update</div>
+        </div>
+      </div>
+
+      <div class="boundary-note">No content leaves the platform environment. The runtime never calls back to Duecare.</div>
+
+      <div class="leaves-grid">
+        <div class="leaves-card stays">
+          <h4>Stays on platform side</h4>
+          <ul>
+            <li>All user-generated content</li>
+            <li>All risk scores &amp; suggested actions</li>
+            <li>All audit logs</li>
+          </ul>
+        </div>
+        <div class="leaves-card never">
+          <h4>Never leaves</h4>
+          <ul>
+            <li>Raw posts, messages, or attachments</li>
+            <li>User identifiers</li>
+            <li>Enforcement decisions</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ DEPLOYMENT 02 ============ -->
+<section class="dep-section" id="dep-2" data-screen-label="Deploy · 02 NGO">
+  <div class="wrap">
+    <div class="dep-head">
+      <div class="num">02</div>
+      <div>
+        <h2>NGO caseworker implementation</h2>
+        <p>An NGO caseworker runs the Duecare runtime on their own laptop
+          or workstation. They paste, type, or summarize a situation and the
+          system produces a cited draft against the relevant signed knowledge
+          packs. No case content leaves the device.</p>
+        <dl class="meta-row">
+          <dt>Where it runs</dt><dd>The caseworker's own laptop or workstation (local GPU recommended).</dd>
+          <dt>What's exposed</dt><dd>Nothing leaves the device.</dd>
+          <dt>What it returns</dt><dd>A cited draft for the caseworker to review.</dd>
+        </dl>
+      </div>
+    </div>
+
+    <div class="diagram">
+      <div class="flow">
+        <div class="node input">
+          <span class="role">Input</span>
+          <span class="name">Caseworker UI on device</span>
+          <span class="sub">Caseworker types or summarizes a situation. No upload.</span>
+        </div>
+        <div class="arrow"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 10h14m0 0l-5-5m5 5l-5 5"/></svg></div>
+        <div class="node runtime">
+          <span class="role">Runtime · on device</span>
+          <span class="name">Duecare local runtime</span>
+          <span class="sub">Model + guidance + signed packs. All inference is local.</span>
+        </div>
+        <div class="arrow"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 10h14m0 0l-5-5m5 5l-5 5"/></svg></div>
+        <div class="node output">
+          <span class="role">Output</span>
+          <span class="name">Cited draft for caseworker</span>
+          <span class="sub">A draft answer with public-source citations + pack version stamp. Caseworker decides.</span>
+        </div>
+      </div>
+
+      <div class="runtime-detail">
+        <h4>Inside the runtime (caseworker's device)</h4>
+        <div class="pieces">
+          <div class="piece"><span class="lbl">Model</span>Gemma 4 — local inference</div>
+          <div class="piece"><span class="lbl">Guidance</span>Persona, GREP rules, RAG</div>
+          <div class="piece"><span class="lbl">Packs</span>Signed corridor &amp; jurisdiction packs</div>
+          <div class="piece"><span class="lbl">Updates</span>Pack pulls only — no case push</div>
+        </div>
+      </div>
+
+      <div class="boundary-note">No case content ever leaves the device. Pack updates are pulled in, signed, and one-way.</div>
+
+      <div class="leaves-grid">
+        <div class="leaves-card stays">
+          <h4>Stays on device</h4>
+          <ul>
+            <li>Anything the caseworker types</li>
+            <li>All drafts, edits, and decisions</li>
+            <li>All local logs</li>
+          </ul>
+        </div>
+        <div class="leaves-card never">
+          <h4>Never leaves</h4>
+          <ul>
+            <li>Worker / claimant identifying details</li>
+            <li>Free-text case content</li>
+            <li>Anything that could re-identify a person</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ DEPLOYMENT 03 ============ -->
+<section class="dep-section" id="dep-3" data-screen-label="Deploy · 03 NGO+Sharing">
+  <div class="wrap">
+    <div class="dep-head">
+      <div class="num">03</div>
+      <div>
+        <h2>NGO implementation with anonymized data sharing</h2>
+        <p>An NGO that runs Duecare locally (as in deployment 02) and
+          additionally opts in to contributing anonymized
+          signals — coarse patterns, not cases — to a shared insights
+          server. The local anonymization module is the gate; only k-anonymous,
+          identifier-stripped signals can leave the device.</p>
+        <dl class="meta-row">
+          <dt>Where it runs</dt><dd>On-device runtime, plus an opt-in signal channel to a shared insights server.</dd>
+          <dt>What's exposed</dt><dd>Only k-anonymous, identifier-stripped signals — never case content.</dd>
+          <dt>What it returns</dt><dd>The same local draft as deployment 02; sharing is purely additive.</dd>
+        </dl>
+      </div>
+    </div>
+
+    <div class="diagram">
+      <div class="flow">
+        <div class="node input">
+          <span class="role">Input</span>
+          <span class="name">Caseworker UI on device</span>
+          <span class="sub">Caseworker types the situation locally; nothing leaves the device unprompted.</span>
+        </div>
+        <div class="arrow"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 10h14m0 0l-5-5m5 5l-5 5"/></svg></div>
+        <div class="node runtime">
+          <span class="role">Runtime · on device</span>
+          <span class="name">Duecare local runtime</span>
+          <span class="sub">Same model + guidance + packs. Produces draft.</span>
+        </div>
+        <div class="arrow"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 10h14m0 0l-5-5m5 5l-5 5"/></svg></div>
+        <div class="node output">
+          <span class="role">Output</span>
+          <span class="name">Cited draft for caseworker</span>
+          <span class="sub">Local draft with rule citations. The caseworker decides what to do with it.</span>
+        </div>
+      </div>
+
+      <!-- second flow row: anonymized side-channel -->
+      <div style="margin-top: 28px;">
+        <div style="font-family: var(--mono); font-size: 11px; color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.10em; margin-bottom: 12px;">Opt-in anonymized side-channel</div>
+        <div class="flow">
+          <div class="node runtime">
+            <span class="role">Same runtime · on device</span>
+            <span class="name">Duecare local runtime</span>
+            <span class="sub">Identifies coarse patterns (e.g. fee anomaly type X in jurisdiction Y).</span>
+          </div>
+          <div class="arrow"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 10h14m0 0l-5-5m5 5l-5 5"/></svg></div>
+          <div class="node boundary">
+            <span class="role">Privacy gate · on device</span>
+            <span class="name">Local anonymization module</span>
+            <span class="sub">Strips identifiers, enforces k-anonymity floor, drops anything that fails.</span>
+          </div>
+          <div class="arrow"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 10h14m0 0l-5-5m5 5l-5 5"/></svg></div>
+          <div class="node external">
+            <span class="role">Off-device</span>
+            <span class="name">Shared insights server</span>
+            <span class="sub">Aggregated, anonymized signals only. No raw cases.</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="boundary-note">Opt-in. Only signals that pass the local anonymization module ever leave the device.</div>
+
+      <div class="leaves-grid">
+        <div class="leaves-card leaves">
+          <h4>What may leave (opt-in only)</h4>
+          <ul>
+            <li>Coarse pattern type (no free text)</li>
+            <li>Jurisdiction-level location (no precise location)</li>
+            <li>K-anonymous bucket counts</li>
+          </ul>
+        </div>
+        <div class="leaves-card never">
+          <h4>Never leaves — even with opt-in</h4>
+          <ul>
+            <li>Worker / claimant names or IDs</li>
+            <li>Employer or recruiter names</li>
+            <li>Free-text case descriptions</li>
+            <li>Anything that fails the k-anonymity floor</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ DEPLOYMENT 04 ============ -->
+<section class="dep-section" id="dep-4" data-screen-label="Deploy · 04 Chatbot">
+  <div class="wrap">
+    <div class="dep-head">
+      <div class="num">04</div>
+      <div>
+        <h2>Chatbot endpoint</h2>
+        <p>For partners that want to expose Duecare through an existing chat
+          surface (a regulator hotline web widget, a partner-operated
+          messenger bot, or a labor-rights helpline). The endpoint is hosted
+          on a GPU-enabled server; the channel adapter handles the chat
+          surface. The system still drafts; the partner still decides.</p>
+        <dl class="meta-row">
+          <dt>Where it runs</dt><dd>A partner-hosted endpoint with a channel adapter (e.g. WhatsApp, web).</dd>
+          <dt>What's exposed</dt><dd>The hosted endpoint sees inbound questions; raw case intake is not accepted.</dd>
+          <dt>What it returns</dt><dd>A drafted response; the partner still decides what to send.</dd>
+        </dl>
+      </div>
+    </div>
+
+    <div class="diagram">
+      <div class="flow">
+        <div class="node external">
+          <span class="role">External channel</span>
+          <span class="name">Partner chat surface</span>
+          <span class="sub">Web widget, messenger app, or partner-operated chatbot.</span>
+        </div>
+        <div class="arrow"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 10h14m0 0l-5-5m5 5l-5 5"/></svg></div>
+        <div class="node input">
+          <span class="role">Adapter · partner side</span>
+          <span class="name">Channel adapter</span>
+          <span class="sub">Normalizes message in/out. Strips channel-specific identifiers before forwarding.</span>
+        </div>
+        <div class="arrow"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 10h14m0 0l-5-5m5 5l-5 5"/></svg></div>
+        <div class="node runtime">
+          <span class="role">Runtime · partner-hosted GPU</span>
+          <span class="name">Duecare endpoint</span>
+          <span class="sub">Same runtime as 01–03. Drafts cited replies. Returns through adapter.</span>
+        </div>
+      </div>
+
+      <div class="runtime-detail">
+        <h4>Endpoint posture</h4>
+        <div class="pieces">
+          <div class="piece"><span class="lbl">Auth</span>Partner-issued tokens · per-channel</div>
+          <div class="piece"><span class="lbl">Logs</span>Hashed inputs · drop after retention window</div>
+          <div class="piece"><span class="lbl">Rate</span>Per-channel quotas · partner controls</div>
+          <div class="piece"><span class="lbl">Refusal</span>Out-of-scope &amp; no-pack cases handled explicitly</div>
+        </div>
+      </div>
+
+      <div class="boundary-note">Endpoint refuses raw case intake. Free-text identifiers are stripped at the adapter.</div>
+
+      <div class="leaves-grid">
+        <div class="leaves-card stays">
+          <h4>Handled at endpoint</h4>
+          <ul>
+            <li>Cited drafts based on signed packs</li>
+            <li>Out-of-scope refusals with reason</li>
+            <li>Pack-version stamps on every reply</li>
+          </ul>
+        </div>
+        <div class="leaves-card never">
+          <h4>Endpoint will not do</h4>
+          <ul>
+            <li>File complaints, send messages, or call services</li>
+            <li>Store raw user messages past retention</li>
+            <li>Answer without a relevant signed pack</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ COST COMPARISON ============ -->
+<section class="cost-section" id="cost" data-screen-label="Deploy · Cost">
+  <div class="wrap">
+    <h2>Cost-per-token (estimates) for platform safety implementations</h2>
+    <p class="lede">An order-of-magnitude comparison of the per-million-token
+      cost of using a hosted commercial LLM API versus running Duecare's
+      self-hosted Gemma 4 runtime for a moderation-style workload. Numbers
+      are placeholders pending our own benchmark — see caveat below.</p>
+
+    <div class="cost-table-wrap">
+      <table class="cost-table">
+        <thead>
+          <tr>
+            <th>Option</th>
+            <th>Input cost</th>
+            <th>Output cost</th>
+            <th>Privacy posture</th>
+            <th>Latency profile</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>
+              <span class="opt-name">Frontier hosted API
+                <span class="sub">e.g. top-tier commercial chat model</span>
+              </span>
+            </td>
+            <td><span class="num">~$3–15<small>/1M tokens (in)</small></span></td>
+            <td><span class="num">~$10–60<small>/1M tokens (out)</small></span></td>
+            <td>Data leaves customer perimeter unless contractual carve-outs</td>
+            <td>Network round-trip · subject to provider</td>
+          </tr>
+          <tr>
+            <td>
+              <span class="opt-name">Mid-tier hosted API
+                <span class="sub">e.g. general-purpose hosted SLM</span>
+              </span>
+            </td>
+            <td><span class="num">~$0.50–2<small>/1M tokens (in)</small></span></td>
+            <td><span class="num">~$1.50–8<small>/1M tokens (out)</small></span></td>
+            <td>Varies by tier and contract</td>
+            <td>Network round-trip · usually faster</td>
+          </tr>
+          <tr class="duecare">
+            <td>
+              <span class="opt-name">Duecare · self-hosted Gemma 4
+                <span class="sub">customer / partner GPU · in-VPC</span>
+              </span>
+            </td>
+            <td><span class="num">~$0.05–0.30<small>/1M tokens (amortized)</small></span></td>
+            <td><span class="num">~$0.05–0.30<small>/1M tokens (amortized)</small></span></td>
+            <td>Stays in customer / partner environment</td>
+            <td>Local inference · no external round-trip</td>
+          </tr>
+          <tr>
+            <td>
+              <span class="opt-name">Duecare · on-device
+                <span class="sub">caseworker laptop / workstation</span>
+              </span>
+            </td>
+            <td colspan="2"><span class="num">Marginal cost ≈ device electricity<small>/per request</small></span></td>
+            <td>No network egress for inference</td>
+            <td>Bound by device capability</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="cost-takeaway">
+      <strong>Why this matters for platform safety:</strong> moderation
+      workloads are high-throughput. At platform-scale token volumes, the
+      gap between a hosted API and a self-hosted small model compounds
+      quickly — and an in-VPC deployment removes the privacy carve-outs
+      that hosted APIs require for sensitive content streams.
+    </div>
+
+    <p class="caveat">
+      Caveat — these ranges are illustrative, not authoritative. Hosted
+      API prices change frequently and vary by tier, region, and contract.
+      Self-hosted amortized cost depends heavily on GPU choice, batch size,
+      utilization, and electricity. We will publish a benchmark with
+      specific assumptions, request shapes, and measured throughput
+      alongside the v1 release; this section will be updated to reflect
+      that. Treat the numbers above as orientation, not quotation.
+    </p>
+  </div>
+</section>
+
+<!-- ============ MODEL TUNING ============ -->
+<section class="tuning-section" id="tuning" data-screen-label="Deploy · Tuning">
+  <div class="wrap">
+    <h2>How the model is tuned (and when it's not)</h2>
+    <p class="lede">For most deployments, no fine-tuning is required — the
+      base Gemma 4 model is steered by the safety guidance layer (persona,
+      GREP rules, RAG over signed packs). Fine-tuning is reserved for
+      cases where the safety guidance layer cannot reach acceptable
+      behavior on its own, and is always followed by the full quality
+      testing framework.</p>
+
+    <div class="tuning-pipeline">
+      <div class="flow">
+        <div class="node input">
+          <span class="role">Input · public only</span>
+          <span class="name">Curated public material</span>
+          <span class="sub">Laws, advisories, judgments — passed through the local anonymization module before training.</span>
+        </div>
+        <div class="arrow"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 10h14m0 0l-5-5m5 5l-5 5"/></svg></div>
+        <div class="node dataset">
+          <span class="role">Dataset</span>
+          <span class="name">Tuning corpus</span>
+          <span class="sub">Versioned. Public-source only. Reviewed before release.</span>
+        </div>
+        <div class="arrow"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 10h14m0 0l-5-5m5 5l-5 5"/></svg></div>
+        <div class="node runtime">
+          <span class="role">Module</span>
+          <span class="name">Fine-tuning module</span>
+          <span class="sub">Targeted updates · LoRA-style adapters or full fine-tune depending on goal.</span>
+        </div>
+      </div>
+
+      <div class="flow" style="margin-top: 12px;">
+        <div class="node runtime">
+          <span class="role">Module</span>
+          <span class="name">Fine-tuning module</span>
+          <span class="sub">Reads the curated corpus, applies tuning recipe, emits a candidate model artifact.</span>
+        </div>
+        <div class="arrow"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 10h14m0 0l-5-5m5 5l-5 5"/></svg></div>
+        <div class="node">
+          <span class="role">Gate</span>
+          <span class="name">Quality testing framework</span>
+          <span class="sub">Behavioural + regression evals · LLM-judge spot-checks · refusal coverage.</span>
+        </div>
+        <div class="arrow"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 10h14m0 0l-5-5m5 5l-5 5"/></svg></div>
+        <div class="node output">
+          <span class="role">Artifact</span>
+          <span class="name">Signed model artifact</span>
+          <span class="sub">Versioned. Pinned to a pack range it was tested against. Distributable.</span>
+        </div>
+      </div>
+
+      <div class="boundary-note">No worker case data is ever used for tuning. Tuning corpora are public-source only.</div>
+    </div>
+
+    <p style="margin-top: 16px; font-size: 13px; color: var(--ink-3); font-family: var(--mono); line-height: 1.6;">
+      ▸ Default posture: <strong style="color: var(--ink);">no fine-tuning</strong>. The safety guidance layer is the first lever; fine-tuning is the last.
+    </p>
+  </div>
+</section>
+
+<footer><div class="wrap"><div class="foot-grid">
+<div><a href="/" class="brand"><span class="brand-mark">D</span> DueCare AI</a><p class="muted" style="font-size:14px;max-width:38ch;margin-top:8px;">Public-interest AI infrastructure for migrant-worker safety. <a href="/mission" style="color:inherit;text-decoration:underline;">Read the mission &rarr;</a></p></div>
+<div><h4>Hub</h4><ul><li><a href="/hub">Overview</a></li><li><a href="/knowledge-packs">Knowledge packs</a></li><li><a href="/tools-registry">Tools registry</a></li><li><a href="/research-monitor">Research monitor</a></li></ul></div>
+<div><h4>Docs</h4><ul><li><a href="/docs">Overview</a></li><li><a href="/technical-docs">Schemas</a></li><li><a href="/components">Architecture</a></li><li><a href="/why-gemma">Why Gemma 4</a></li><li><a href="/evaluation">Eval &amp; retraining</a></li><li><a href="/harness">Safety harness</a></li><li><a href="/setup">Setup guides</a></li><li><a href="/privacy-boundary">Privacy boundary</a></li></ul></div>
+<div><h4>Get involved</h4><ul><li><a href="/submit-information">Submit info</a></li><li><a href="/newsletter">Newsletter</a></li><li><a href="/email-feedback">Email feedback</a></li><li><a href="/alerts">Alerts archive</a></li><li><a href="/contribute">Contribute</a></li></ul></div>
+<div><h4>Verify</h4><ul><li><a href="/stats">Stats &amp; audit</a></li><li><a href="/dashboard">Live data</a></li><li><a href="/mission">Mission</a></li><li><a href="/contact">Contact</a></li></ul></div>
+</div><div class="foot-bottom"><span>&copy; 2026 DueCare AI</span><span>v0.4 &middot; public hub draft</span></div></div></footer>
+
+</body>
+</html>
