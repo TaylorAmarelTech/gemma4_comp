@@ -194,7 +194,7 @@ def test_bundled_multilingual_showcase_prompts_present() -> None:
     bundled in EXAMPLE_PROMPTS."""
     h = _load_harness()
     ml_ids = {e["id"] for e in h.EXAMPLE_PROMPTS
-                 if e.get("category") == "multilingual_showcase"}
+                 if e.get("category") == "multilingual_capability"}
     expected = {"ml_tagalog_worker_passport",
                   "ml_indonesian_worker_help",
                   "ml_arabic_worker_kafeel",
