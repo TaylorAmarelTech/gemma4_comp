@@ -19,9 +19,14 @@
 .ms-hero .toc ol li a:hover { color: var(--accent-ink); }
 .ms-hero .toc ol li a .arrow { color: var(--ink-3); font-size: 14px; text-align: right; }
 .ms-section { padding: 56px 0; border-bottom: 1px solid var(--line-soft); }
+.ms-section > .wrap { display: grid; grid-template-columns: minmax(220px, 0.44fr) minmax(0, 1fr); column-gap: clamp(32px, 5vw, 72px); align-items: start; }
+.ms-section > .wrap > .ix { grid-column: 1; grid-row: 1; }
+.ms-section > .wrap > h2 { grid-column: 1; grid-row: 2; }
+.ms-section > .wrap > :not(.ix):not(h2) { grid-column: 2; }
+.ms-section > .wrap > :nth-child(3) { grid-row: 2; margin-top: 0; }
 .ms-section .ix { font-family: var(--mono); font-size: 11px; letter-spacing: 0.12em; color: var(--ink-3); text-transform: uppercase; }
 .ms-section h2 { font-size: clamp(28px, 3vw, 40px); letter-spacing: -0.02em; line-height: 1.1; margin: 12px 0 0; max-width: 22ch; font-weight: 500; }
-.ms-section .body { margin-top: 24px; font-size: 17px; line-height: 1.65; color: var(--ink-2); max-width: 64ch; }
+.ms-section .body { margin-top: 24px; font-size: 17px; line-height: 1.65; color: var(--ink-2); max-width: 72ch; }
 .ms-section .body p + p { margin-top: 14px; }
 .ms-do, .ms-dont { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; margin-top: 32px; }
 .ms-do article, .ms-dont article { border: 1px solid var(--line); border-radius: 10px; padding: 22px; background: var(--paper); }
@@ -58,6 +63,11 @@
 .ms-close { padding: 88px 0; text-align: center; }
 .ms-close h2 { font-size: clamp(34px, 4vw, 52px); letter-spacing: -0.025em; line-height: 1.1; max-width: 22ch; margin: 0 auto; font-weight: 500; }
 .ms-close .actions { margin-top: 36px; display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+@media (max-width: 860px) {
+	.ms-section > .wrap { display: block; }
+	.ms-section > .wrap > :nth-child(3) { margin-top: 24px; }
+	.ms-do, .ms-dont, .ms-pillars, .ms-story, .ms-eco { margin-top: 28px; }
+}
 </style>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%230E1116'/%3E%3Ctext x='16' y='21' text-anchor='middle' font-family='monospace' font-weight='700' font-size='14' fill='%23F7F6F1'%3ED%3C/text%3E%3C/svg%3E" />
 </head><body>{% set active_nav = "mission" %}
@@ -67,9 +77,9 @@
 <div>
 <span class="kicker">/mission</span>
 <h1>Better safety guidance without centralizing private case data.</h1>
-<p class="lede">DueCare AI exists to help workers, trusted organizations, platforms, regulators, and researchers recognize exploitation risks earlier, act with better information, and improve shared safety knowledge, without centralizing raw private case data.</p>
+<p class="lede">DueCare AI exists to help workers, trusted organizations, platforms, regulators, and researchers recognize exploitation risks earlier, act with better information, and share safety knowledge across institutions, without centralizing raw private case data.</p>
 </div>
-<nav class="toc" aria-label="Sections on this page">
+<nav class="toc hero-toc" aria-label="Sections on this page">
 <h3>On this page</h3>
 <ol>
 <li><a href="#problem"><span>The problem</span><span class="arrow">&rarr;</span></a></li>
@@ -93,6 +103,7 @@
 <div class="body">
 <p>It hides in job posts, in chat threads on a recruiter&rsquo;s phone, in fee receipts, in a contract clause that contradicts a labour ministry circular published last week. The signal is real but it is fragmented across posts, chats, documents, fees, threats, and shifting laws across many corridors.</p>
 <p>The institutions that could act. platforms, NGOs, regulators, embassies, courts. each see a slice. Workers, who carry the most context, have the least bandwidth, the slowest connection, and the highest cost of being wrong.</p>
+<p>NGOs face the same fragmentation. One organization may see a fee pattern in shelter intake, another may see the same recruiter language in a hotline transcript, while a regulator only needs the anonymized corridor-level trend. Today those signals are hard to share safely, quickly, and with enough provenance for another institution to trust them.</p>
 <p>The pattern is clear: useful safety knowledge already exists, in public sources, in casework experience, in academic research. What&rsquo;s missing is the connective tissue that makes that knowledge available at the moment a worker, a caseworker, or a moderator needs it. without funnelling private cases into one centralized warehouse.</p>
 </div>
 </div></section>
@@ -115,18 +126,20 @@
 <div class="body">
 <p>DueCare publishes vetted knowledge packs, a tools registry, evaluation suites, and a small AI safety harness. Anyone can run them. Everyone can verify them. The whole system fails closed when it can&rsquo;t cite a public source.</p>
 <p>The mission isn&rsquo;t a single product. It&rsquo;s shared infrastructure: a thin public hub that holds reviewed knowledge, paired with private deployments at the edges where worker context lives.</p>
+<p>That infrastructure also gives NGOs a safer way to coordinate with each other and with regulators. Share vetted public sources, pattern labels, contact updates, and anonymized corridor trends. not raw case files, names, documents, or narratives.</p>
 </div>
 </div></section>
 
 <section id="what-we-do" class="ms-section" data-screen-label="Mission &middot; What we do"><div class="wrap">
 <span class="ix">04 &middot; What DueCare does</span>
-<h2>Five concrete jobs.</h2>
+<h2>Six concrete jobs.</h2>
 <div class="ms-do">
 <article><span class="tag">01</span><h4>Finds risk signals</h4><p>Detects fee-request patterns, passport-handling clauses, identity-mismatch hints, and other anonymized signals across job posts, chat snippets, and contract text.</p></article>
 <article><span class="tag">02</span><h4>Grounds responses</h4><p>Every claim is anchored to a vetted knowledge pack with a public-source citation and a date. No source, no claim.</p></article>
 <article><span class="tag">03</span><h4>Protects privacy</h4><p>Raw worker context stays at the edge. The hub never receives names, narratives, or document images.</p></article>
-<article><span class="tag">04</span><h4>Improves shared knowledge</h4><p>Reviewers and partners feed verified updates back through a public review queue with a curator-vetted release pipeline.</p></article>
-<article><span class="tag">05</span><h4>Proves behaviour</h4><p>Reproducible evaluation suites, append-only audit feeds, and a transparency log let anyone replay what the system said and why.</p></article>
+<article><span class="tag">04</span><h4>Enables safe sharing</h4><p>NGOs can exchange vetted patterns and source updates, and regulators can receive anonymized corridor-level signals without receiving private case details.</p></article>
+<article><span class="tag">05</span><h4>Improves shared knowledge</h4><p>Reviewers and partners feed verified updates back through a public review queue with a curator-vetted release pipeline.</p></article>
+<article><span class="tag">06</span><h4>Proves behaviour</h4><p>Reproducible evaluation suites, append-only audit feeds, and a transparency log let anyone replay what the system said and why.</p></article>
 </div>
 </div></section>
 
@@ -148,7 +161,7 @@
 <h2>One harness. Five places it lives.</h2>
 <div class="ms-pillars">
 <article><span class="num">01</span><h4>Platform safety</h4><p>Job-board moderation runs grep rules + corridor packs at edit time. Postings are screened before they reach workers.</p></article>
-<article><span class="num">02</span><h4>NGO &amp; regulator</h4><p>Caseworker copilots draft cited briefings; regulator dashboards see corridor-level anonymized trends. Cases stay local.</p></article>
+<article><span class="num">02</span><h4>NGO &amp; regulator</h4><p>Caseworker copilots draft cited briefings; NGOs share vetted patterns; regulator dashboards see corridor-level anonymized trends. Cases stay local.</p></article>
 <article><span class="num">03</span><h4>Migrant worker chat</h4><p>An on-device sibling app answers in the worker&rsquo;s language, on their phone, even offline.</p></article>
 <article><span class="num">04</span><h4>Academic research</h4><p>Versioned evaluation packs and reproducible benchmarks for researchers studying labour-market safety.</p></article>
 <article><span class="num">05</span><h4>Host / Hub / Global Server</h4><p>A small public hub holds vetted packs, tools, and anonymized signals. Three jobs. Append-only. Auditable.</p></article>

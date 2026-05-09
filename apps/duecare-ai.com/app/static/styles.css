@@ -340,6 +340,65 @@ table.std tr:hover td { background: var(--paper-2); }
 .page-intro .crumbs a { color: var(--ink-3); border-bottom: 1px dashed var(--ink-4); }
 .page-intro .crumbs span.sep { color: var(--ink-4); }
 
+/* ---------- Shared hero table-of-contents card ---------- */
+nav.hero-toc.toc {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--paper);
+  padding: 18px 20px;
+  margin-top: 0;
+}
+nav.hero-toc.toc h3 {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--ink-3);
+  text-transform: uppercase;
+  letter-spacing: 0.10em;
+  margin: 0 0 14px;
+}
+nav.hero-toc.toc ol {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  counter-reset: hero-toc;
+}
+nav.hero-toc.toc ol li {
+  counter-increment: hero-toc;
+  border-top: 0;
+}
+nav.hero-toc.toc ol li a {
+  display: grid;
+  grid-template-columns: 32px minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: baseline;
+  padding: 10px 0;
+  border-top: 1px solid var(--line-soft);
+  font-size: 14.5px;
+  color: var(--ink);
+  text-decoration: none;
+  line-height: 1.3;
+}
+nav.hero-toc.toc ol li:first-child a { border-top: 0; }
+nav.hero-toc.toc ol li a::before {
+  content: counter(hero-toc, decimal-leading-zero);
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--ink-3);
+  letter-spacing: 0.08em;
+}
+nav.hero-toc.toc ol li a .arrow {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--ink-3);
+  text-align: right;
+}
+nav.hero-toc.toc ol li a:hover { color: var(--accent-ink); }
+nav.hero-toc.toc ol li a:hover .arrow { color: var(--accent-ink); }
+
 /* ---------- Status & version badges ---------- */
 .badge {
   display: inline-flex; align-items: center; gap: 6px;
