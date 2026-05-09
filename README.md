@@ -581,6 +581,12 @@ Secrets (API keys) come from environment variables only — see
 
 ## Repository layout
 
+> See [`docs/REPO_LAYOUT.md`](./docs/REPO_LAYOUT.md) for a one-screen
+> map of every top-level directory — including supporting
+> infrastructure (`infra/`, `deployment/`, `configs/`), data folders,
+> archived snapshots, and hidden dev-only paths. The sketch below
+> highlights the most important entries.
+
 ```
 gemma4_comp/
 ├── packages/                     # 17 PyPI packages (workspace members)
