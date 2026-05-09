@@ -119,10 +119,10 @@ Full inventory is auto-generated at
 |---|---|
 | DueCare LLM Wheels (legacy meta) | `taylorsamarel/duecare-llm-wheels` |
 | DueCare Trafficking Prompts | `taylorsamarel/duecare-trafficking-prompts` |
-| Per-notebook wheels datasets (×11) | `taylorsamarel/duecare-<purpose>-wheels` |
+| Per-notebook wheels datasets (×13) | `taylorsamarel/duecare-<purpose>-wheels` |
 
-Per-notebook datasets cover all 11 submission notebooks (6 core +
-5 appendix). The legacy meta dataset is being retired post-hackathon
+Per-notebook datasets cover all 13 submission notebooks (2 core +
+11 appendix). The legacy meta dataset is being retired post-hackathon
 in favor of the per-notebook split.
 
 ## Android sibling repo status (2026-05-02)

@@ -330,7 +330,7 @@ python scripts/build_notebook_100.py              # Gemma Exploration (GPU T4)
 python scripts/build_notebook_140_evaluation_mechanics.py
 python scripts/build_notebook_210_oss_model_comparison.py
 # After edits, run the repo-wide gate:
-python scripts/validate_notebooks.py              # 76 notebooks must pass
+python scripts/validate_notebooks.py              # 77 research notebooks must pass
 ```
 
 ## Hackathon requirements checklist

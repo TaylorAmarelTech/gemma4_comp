@@ -117,7 +117,7 @@ model, tokenizer = FastModel.from_pretrained(
   prompts produces fresh numbers — those don't go in this table because
   they aren't reproducible. The live-demo Kaggle URL is itself the
   reproducibility artifact for those.
-- **Numbers from the 76-notebook research pipeline that aren't headline.**
+- **Numbers from the 77-notebook research pipeline that aren't headline.**
   Each notebook prints its own per-run summary; they're tracked but not
   in this top-level table.
 - **Skunkworks (jailbreak) numbers.** Those live in

@@ -7,9 +7,9 @@ files here are bundles built from those packages, plus the kernel
 sources judges open in Kaggle.
 
 > **Quick reference:** [`kaggle/_INDEX.md`](./_INDEX.md) is the
-> machine-readable roster of all 11 submission notebooks with file
-> + wheel + publish status per row. Refresh whenever a notebook is
-> added, removed, or pushed to Kaggle.
+> machine-readable roster of all 13 submission notebooks (2 core + 11
+> appendix) with file + wheel + publish status per row. Refresh
+> whenever a notebook is added, removed, or pushed to Kaggle.
 
 ## Submission shape: 2 core + 11 appendix
 
