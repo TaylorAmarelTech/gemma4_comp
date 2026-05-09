@@ -27,7 +27,7 @@ from notebook_hardening_utils import harden_notebook
 
 ROOT = Path(__file__).resolve().parent.parent
 KERNEL_DIR = ROOT / "kaggle" / "kernels" / "duecare_270_gemma_generations"
-NB_DIR = ROOT / "notebooks"
+NB_DIR = ROOT / "legacy_notebooks"
 SLUG = "taylorsamarel/duecare-270-gemma-generations"
 TITLE = "270: DueCare Gemma 2 vs 3 vs 4 Safety Gap"
 WHEELS_DATASET = "taylorsamarel/duecare-llm-wheels"

@@ -12,7 +12,7 @@ private/
 #       what it needs; the Kaggle wheel datasets are not part of
 #       the runtime image) ----
 kaggle/
-notebooks/
+legacy_notebooks/
 skunkworks/
 
 # ---- Documentation + research outputs ----

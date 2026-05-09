@@ -1,4 +1,4 @@
-"""Sync `notebooks/` from the authoritative Kaggle kernel sources."""
+"""Sync `legacy_notebooks/` from the authoritative Kaggle kernel sources."""
 
 from __future__ import annotations
 

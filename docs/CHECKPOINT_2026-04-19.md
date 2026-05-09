@@ -210,7 +210,7 @@ gemma4_comp/
 ├── src/demo/                   FastAPI dashboard + demo app (live, 16 files)
 ├── configs/duecare/domains/    3 shipped domain packs (YAML + JSONL)
 ├── kaggle/kernels/             76 kernel directories (metadata + .ipynb)
-├── notebooks/                  76 local .ipynb mirrors
+├── legacy_notebooks/           76 legacy local .ipynb mirrors
 ├── scripts/                    127 Python files (builders, validators, utilities)
 │   ├── build_notebook_NNN_*.py   per-notebook builders
 │   ├── build_index_notebook.py   shared orchestrator (000 Index)

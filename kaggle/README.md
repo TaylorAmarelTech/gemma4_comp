@@ -67,7 +67,7 @@ Cross-notebook datasets that aren't bundled into one folder:
 - [`kernels/`](./kernels/) — the **76-notebook research pipeline**
   (separate from the 2 core + 11 appendix hackathon submissions above).
   Each subfolder is one Kaggle kernel with its own metadata + .ipynb.
-  Built from `notebooks/*.ipynb` via `python scripts/build_notebook_*.py`.
+  Built from `legacy_notebooks/*.ipynb` via `python scripts/build_notebook_*.py`.
 - [`models/`](./models/) — Kaggle Models artifacts (model cards +
   metadata for the fine-tuned weights).
 - [`_archive/`](./_archive/) — legacy kernel sources we no longer

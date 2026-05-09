@@ -14,7 +14,7 @@ from notebook_hardening_utils import INSTALL_PACKAGES, harden_notebook
 from _public_slugs import PUBLIC_SLUG_OVERRIDES
 
 ROOT = Path(__file__).resolve().parent.parent
-NB_DIR = ROOT / "notebooks"
+NB_DIR = ROOT / "legacy_notebooks"
 KAGGLE_KERNELS = ROOT / "kaggle" / "kernels"
 WHEELS_DATASET = "taylorsamarel/duecare-llm-wheels"
 KEYWORDS = ["gemma", "safety", "evaluation", "summary"]

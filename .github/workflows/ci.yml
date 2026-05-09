@@ -257,10 +257,10 @@ jobs:
 
       - name: Execute each notebook
         run: |
-          for nb in notebooks/01_quickstart.ipynb \
-                    notebooks/02_cross_domain_proof.ipynb \
-                    notebooks/03_agent_swarm_deep_dive.ipynb \
-                    notebooks/04_submission_walkthrough.ipynb; do
+          for nb in legacy_notebooks/010_quickstart.ipynb \
+                    legacy_notebooks/200_cross_domain_proof.ipynb \
+                    legacy_notebooks/500_agent_swarm_deep_dive.ipynb \
+                    legacy_notebooks/610_submission_walkthrough.ipynb; do
             echo "::group::Executing $nb"
             uv run jupyter nbconvert --to notebook --execute --inplace "$nb"
             echo "::endgroup::"

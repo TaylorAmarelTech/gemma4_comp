@@ -550,11 +550,11 @@ Latest full run:
 
 ## Demo notebook
 
-`notebooks/010_quickstart.ipynb` is the local mirror of the numbered
+`legacy_notebooks/010_quickstart.ipynb` is the legacy local mirror of the numbered
 quickstart notebook and is the best place to exercise the public
 DueCare package surface from a clean install.
 
-`notebooks/610_submission_walkthrough.ipynb` is the local mirror of the
+`legacy_notebooks/610_submission_walkthrough.ipynb` is the legacy local mirror of the
 Kaggle submission walkthrough and is the shortest path from install to
 report-generation.
 
@@ -611,7 +611,7 @@ gemma4_comp/
 ├── configs/duecare/              # YAML configuration (models, workflows, domains)
 ├── docs/                         # architecture, component docs, writeup, video script
 │   └── components/               # per-package component docs
-├── notebooks/                    # canonical .ipynb sources for the 76-notebook pipeline
+├── legacy_notebooks/             # legacy local .ipynb mirrors for the 76-notebook pipeline
 ├── scripts/                      # implementation + maintenance scripts
 ├── tests/                        # integration tests
 ├── pyproject.toml                # uv workspace root

@@ -47,7 +47,7 @@
    `duecare_100_gemma_exploration`, `duecare_600_results_dashboard`,
    `duecare_620_demo_api_endpoint_tour`, `strm_01_prompt_test_generation`).
    - **Fixed:** copied each `kaggle/kernels/<n>/<n>.ipynb` to its
-     matching mirror in `notebooks/` or `skunkworks/notebooks/`.
+    matching mirror in `legacy_notebooks/` or `skunkworks/notebooks/`.
    - **Re-verify command:** `python scripts/validate_notebooks.py`
 
 3. **11 broken intra-doc markdown links.**
@@ -232,7 +232,7 @@ print(f'classifier_examples: {len(json.loads((b/\"_classifier_examples.json\").r
   `considerations/` paths
 - `docs/containers.md` — broken cross-repo link replaced with sibling
   repo URL
-- `notebooks/{000,100,600,620}*.ipynb` + `skunkworks/notebooks/strm_01*.ipynb`
+- `legacy_notebooks/{000,100,600,620}*.ipynb` + `skunkworks/notebooks/strm_01*.ipynb`
   — restored from kernel sources
 - `mkdocs.yml` — added 4 readiness docs to Submission nav
 - `CHANGELOG.md` — Unreleased entry for readiness suite + Android v0.9

@@ -381,25 +381,17 @@ cd packages/duecare-llm-core && python -m build
 
 ## Demo notebook
 
-A runnable demonstration of every public surface of `duecare-llm-core`
-lives at [`notebooks/duecare_llm_core_demo.ipynb`](../../notebooks/duecare_llm_core_demo.ipynb).
-
-- **22 cells** (12 code, 10 markdown)
-- Covers enums, schemas, protocols, registry, provenance, and all three
-  observability helpers (logging, metrics, audit)
-- Closes with an **end-to-end mini flow** that builds a reproducible run
-  record exactly the way the DueCare workflow runner will at Phase 1
-- **All 12 code cells verified to execute successfully** against the
-  installed wheel
+The old package-surface demo has been superseded by the public quickstart
+mirror at [`legacy_notebooks/010_quickstart.ipynb`](../../legacy_notebooks/010_quickstart.ipynb).
+Use that notebook when you want to exercise the published DueCare package
+surface from a clean install while keeping the current Kaggle submission
+folder focused on the 2 core + appendix deliverables.
 
 Open it in Jupyter, JupyterLab, Colab, Kaggle Notebooks, or VS Code:
 
 ```bash
-jupyter notebook notebooks/duecare_llm_core_demo.ipynb
+jupyter notebook legacy_notebooks/010_quickstart.ipynb
 ```
-
-On Kaggle, the first cell's `!pip install` is commented out until the
-package is published to PyPI. After publication, un-comment it.
 
 ---
 
