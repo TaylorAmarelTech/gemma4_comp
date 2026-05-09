@@ -3,73 +3,51 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Duecare — Harness inspector</title>
+  <title>Safety layers · DueCare</title>
+  <link rel="stylesheet" href="/static/_chrome.css" />
   <style>
-    :root {
-      --ink: #e2e8f0; --muted: #94a3b8; --bg: #0f172a; --panel: #1e293b;
-      --border: #334155; --accent: #7c3aed; --highlight: #fbbf24;
-      --green: #10b981; --red: #ef4444; --blue: #3b82f6; --amber: #f59e0b;
-    }
-    * { box-sizing: border-box; }
-    html, body { margin: 0; padding: 0; background: var(--bg); color: var(--ink);
-                  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-                               Helvetica, Arial, sans-serif; min-height: 100vh; }
-    header { padding: 18px 24px; background: var(--panel); border-bottom: 1px solid var(--border); }
-    header h1 { margin: 0; font-size: 18px; font-weight: 700; color: var(--accent); }
-    header .sub { font-size: 12px; color: var(--muted); margin-top: 4px; }
-    .container { max-width: 1100px; margin: 0 auto; padding: 24px; }
-    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-             gap: 16px; margin-top: 24px; }
-    .card { background: var(--panel); border: 1px solid var(--border); border-radius: 8px;
-             padding: 18px; transition: border-color 0.15s; cursor: pointer;
-             text-decoration: none; color: var(--ink); display: block; }
-    .card:hover { border-color: var(--accent); }
-    .card .badge { display: inline-block; padding: 2px 8px; border-radius: 10px;
-                    font-size: 10px; font-weight: 700; letter-spacing: 0.5px;
-                    text-transform: uppercase; }
-    .card .badge.persona { background: rgba(168,85,247,0.18); color: #a855f7; border: 1px solid #a855f7; }
-    .card .badge.grep { background: rgba(239,68,68,0.18); color: #ef4444; border: 1px solid #ef4444; }
-    .card .badge.rag { background: rgba(59,130,246,0.18); color: #3b82f6; border: 1px solid #3b82f6; }
-    .card .badge.tools { background: rgba(16,185,129,0.18); color: #10b981; border: 1px solid #10b981; }
-    .card .badge.online { background: rgba(245,158,11,0.18); color: #f59e0b; border: 1px solid #f59e0b; }
-    .card h3 { margin: 10px 0 6px; font-size: 16px; }
-    .card .count { font-size: 28px; font-weight: 700; color: var(--accent); margin: 6px 0; }
-    .card .desc { font-size: 12px; color: var(--muted); line-height: 1.5; }
-    .card .open { color: var(--accent); font-size: 11px; font-weight: 600; margin-top: 10px; display: inline-block; }
+    :root { --accent: var(--accent-civic-teal); }
     .err { color: var(--red); padding: 18px; background: rgba(239,68,68,0.08);
             border: 1px solid var(--red); border-radius: 6px; }
-    .help { font-size: 11px; color: var(--muted); margin-top: 24px; padding-top: 18px;
-             border-top: 1px solid var(--border); line-height: 1.6; }
-    code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-            background: rgba(124,58,237,0.18); padding: 1px 6px; border-radius: 3px; font-size: 11px; }
   </style>
 </head>
 <body>
-  <header>
-    <h1>Duecare — Harness inspector</h1>
-    <div class="sub">Browse every component of the safety harness. Each card is a dedicated viewer.</div>
+  <header class="dc-chrome-header">
+    <a href="/" class="brand"><span class="brand-mark">D</span>DueCare<span class="brand-tag">wheel</span></a>
+    <div>
+      <h1>Safety layers</h1>
+      <div class="sub">Six configurable safety layers. Click any card to view its catalog.</div>
+    </div>
+    <a href="/" style="font-family: var(--mono); font-size: 12px; color: var(--muted);">← Back to chat</a>
   </header>
-  <div class="container">
-    <div id="grid" class="grid"></div>
-    <div class="help">
-      Direct API endpoints — call from the Kaggle kernel or curl:
+  <nav class="dc-chrome-nav" aria-label="Cross-page nav">
+    <a href="/static/harness.html" class="on">Catalog</a>
+    <a href="/static/persona.html">Persona</a>
+    <a href="/static/grep-rules.html">GREP rules</a>
+    <a href="/static/rag-corpus.html">RAG corpus</a>
+    <a href="/static/tools.html">Tools</a>
+    <a href="/static/online.html">Online</a>
+    <a href="/static/grep-tester.html">Live GREP tester</a>
+    <a href="/static/rag-graph.html">Citation graph</a>
+    <a href="/static/search.html">Cross-layer search</a>
+    <a href="/static/hotlines.html">Hotlines</a>
+  </nav>
+  <div class="dc-chrome-container">
+    <div id="grid" class="dc-chrome-grid"></div>
+    <div class="dc-chrome-help">
+      <h4>Direct API endpoints — call from a Kaggle kernel or curl</h4>
       <ul>
-        <li><code>GET /api/version</code> — chat-package + rubric version + per-layer counts</li>
-        <li><code>GET /api/health-check</code> — wired layers + model info</li>
-        <li><code>GET /api/harness-catalog/{persona|grep|rag|tools|online}</code> — raw catalog JSON</li>
-        <li><code>GET /api/rag/graph</code> — corpus + 46-edge citation graph (force-directed view)</li>
-        <li><code>GET /api/governance</code> — list of curator-block JSON files</li>
-        <li><code>GET /api/governance/&lt;name&gt;</code> — raw curator JSON for a single block</li>
+        <li><code>GET /api/version</code> · chat-package + rubric version + per-layer counts</li>
+        <li><code>GET /api/health-check</code> · wired layers + model info</li>
+        <li><code>GET /api/harness-catalog/{persona|grep|rag|tools|online}</code> · raw catalog JSON</li>
+        <li><code>GET /api/rag/graph</code> · corpus + 46-edge citation graph (force-directed view)</li>
+        <li><code>GET /api/governance</code> · list of curator-block JSON files</li>
+        <li><code>GET /api/governance/&lt;name&gt;</code> · raw curator JSON for a single block</li>
       </ul>
     </div>
   </div>
   <script>
-    // v0.14.5: card list is derived from /api/brand (layers + extras)
-    // so adding a new viewer page or renaming a layer is a one-file
-    // edit in _brand.py — no harness.html change needed.
-    function titleCase(s) {
-      return s.charAt(0) + s.slice(1).toLowerCase();
-    }
+    function titleCase(s) { return s.charAt(0) + s.slice(1).toLowerCase(); }
     function escapeHtml(s) {
       return String(s == null ? "" : s).replace(/[&<>"']/g, c =>
         ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -81,45 +59,35 @@
         const r = await fetch("/api/brand", {cache: "no-store"});
         if (r.ok) {
           const d = await r.json();
-          // Formal layers come first.
           for (const l of (d.layers || [])) {
             cards.push({
-              key:         l.key,
-              label:       (l.label || l.key).toUpperCase(),
-              href:        l.viewer_path || `/static/${l.key}.html`,
-              desc:        l.short_desc || l.description || "",
-              isLayer:     true,
+              key: l.key,
+              label: (l.label || l.key).toUpperCase(),
+              href: l.viewer_path || `/static/${l.key}.html`,
+              desc: l.short_desc || l.description || "",
+              isLayer: true,
             });
           }
-          // Extras (RAG graph, live tester, search, hotlines)
-          // are part of the same /api/brand response now.
           for (const x of (d.extras || [])) {
             cards.push({
-              key:         x.key,
-              label:       (x.label || x.key).toUpperCase(),
-              href:        x.viewer_path,
-              desc:        x.short_desc,
-              isLayer:     false,
+              key: x.key,
+              label: (x.label || x.key).toUpperCase(),
+              href: x.viewer_path,
+              desc: x.short_desc,
+              isLayer: false,
             });
           }
         }
       } catch (_) {}
-      // Defensive fallback if /api/brand fails.
       if (!cards.length) {
         cards = [
-          {key: "persona", label: "PERSONA", href: "/static/persona.html",
-           desc: "System-prompt library."},
-          {key: "grep",    label: "GREP",    href: "/static/grep-rules.html",
-           desc: "Regex rules."},
-          {key: "rag",     label: "RAG",     href: "/static/rag-corpus.html",
-           desc: "Legal-corpus docs."},
-          {key: "tools",   label: "TOOLS",   href: "/static/tools.html",
-           desc: "Function-calling lookups."},
-          {key: "online",  label: "ONLINE",  href: "/static/online.html",
-           desc: "Live web search."},
+          {key: "persona", label: "PERSONA", href: "/static/persona.html", desc: "System-prompt library."},
+          {key: "grep",    label: "GREP",    href: "/static/grep-rules.html", desc: "Regex rules."},
+          {key: "rag",     label: "RAG",     href: "/static/rag-corpus.html", desc: "Legal-corpus docs."},
+          {key: "tools",   label: "TOOLS",   href: "/static/tools.html", desc: "Function-calling lookups."},
+          {key: "online",  label: "ONLINE",  href: "/static/online.html", desc: "Live web search."},
         ];
       }
-      // Resolve live counts for each card.
       const counts = {};
       await Promise.all(cards.map(async (c) => {
         try {
@@ -131,7 +99,6 @@
           }
         } catch (_) {}
       }));
-      // Special handling: RAG GRAPH card shows edges count from /api/rag/graph.
       try {
         const r = await fetch("/api/rag/graph", {cache: "no-store"});
         if (r.ok) {
@@ -140,8 +107,8 @@
         }
       } catch (_) {}
       grid.innerHTML = cards.map(c => `
-        <a href="${escapeHtml(c.href)}" class="card" target="_blank">
-          <span class="badge ${escapeHtml(c.key)}">${escapeHtml(c.label)}</span>
+        <a href="${escapeHtml(c.href)}" class="dc-chrome-card" target="_blank">
+          <span class="dc-badge ${escapeHtml(c.key)}">${escapeHtml(c.label)}</span>
           <h3>${c.label === "RAG GRAPH" ? "Citation graph" : escapeHtml(titleCase(c.label))}</h3>
           <div class="count">${counts[c.label] != null ? escapeHtml(String(counts[c.label])) : "—"}</div>
           <div class="desc">${escapeHtml(c.desc)}</div>

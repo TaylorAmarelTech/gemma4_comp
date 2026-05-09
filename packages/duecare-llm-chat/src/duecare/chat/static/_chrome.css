@@ -1,0 +1,269 @@
+/* =============================================================
+   Duecare wheel — shared chrome for the static viewer pages.
+
+   Goal: visual coherence across the 11 pages without forcing a
+   light theme on what is a working chat playground. The
+   typography (Inter + JetBrains Mono) matches the duecare-ai.com
+   website so the wheel reads as the same product.
+
+   Per-page accent color stays as ``--accent`` set in the page's
+   own ``<style>`` block (kept for now), so badges + active-state
+   still differ. Everything else lives here.
+   ============================================================= */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+:root {
+  /* Color tokens (dark playground default; pages may override --accent). */
+  --ink: #e2e8f0;
+  --ink-2: #cbd5e1;
+  --muted: #94a3b8;
+  --muted-2: #64748b;
+  --bg: #0f172a;
+  --bg-2: #131c30;
+  --panel: #1e293b;
+  --panel-2: #233149;
+  --border: #334155;
+  --border-soft: #2a3a55;
+  --highlight: #fbbf24;
+
+  /* Layer accent palette (also used as semantic colors). */
+  --accent: #3b82f6;        /* default accent if a page doesn't override */
+  --accent-civic-teal: #14b8a6;
+  --accent-ember: #f97316;
+  --accent-persona: #a855f7;
+  --accent-grep: #ef4444;
+  --accent-rag: #3b82f6;
+  --accent-tools: #10b981;
+  --accent-online: #f59e0b;
+  --accent-imports: #06b6d4;
+
+  /* Status colors. */
+  --green: #10b981;
+  --red: #ef4444;
+  --blue: #3b82f6;
+  --amber: #f59e0b;
+
+  /* Typography. */
+  --sans: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  /* Spacing scale (kept compact for dense playground UIs). */
+  --s1: 4px; --s2: 8px; --s3: 12px; --s4: 16px; --s5: 20px;
+  --s6: 24px; --s7: 32px; --s8: 48px; --s9: 64px;
+
+  /* Radii. */
+  --r-sm: 4px; --r-md: 6px; --r-lg: 10px; --r-xl: 14px;
+
+  /* Shadow. */
+  --shadow-1: 0 1px 0 rgba(0,0,0,0.2), 0 4px 12px rgba(0,0,0,0.20);
+}
+
+* { box-sizing: border-box; }
+html, body {
+  margin: 0; padding: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: 14px;
+  line-height: 1.55;
+  font-feature-settings: "ss01", "cv11";
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+code, .mono {
+  font-family: var(--mono);
+  font-size: 12px;
+  background: rgba(255,255,255,0.04);
+  padding: 1px 6px;
+  border-radius: 3px;
+}
+
+/* ---------- Shared header ---------- */
+.dc-chrome-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 24px;
+  background: var(--panel);
+  border-bottom: 1px solid var(--border);
+}
+.dc-chrome-header .brand {
+  display: flex; align-items: center; gap: 10px;
+  font-family: var(--sans); font-weight: 600; font-size: 15px;
+  color: var(--ink); text-decoration: none; letter-spacing: -0.005em;
+}
+.dc-chrome-header .brand-mark {
+  width: 22px; height: 22px;
+  display: grid; place-items: center;
+  background: var(--ink); color: var(--bg);
+  border-radius: 4px;
+  font-family: var(--mono); font-size: 11px; font-weight: 600;
+}
+.dc-chrome-header .brand-tag {
+  font-family: var(--mono); font-size: 10.5px; font-weight: 500;
+  color: var(--muted); padding: 3px 8px; border: 1px solid var(--border);
+  border-radius: 3px; margin-left: 4px; text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.dc-chrome-header h1 {
+  margin: 0; font-size: 16px; font-weight: 600;
+  color: var(--ink); letter-spacing: -0.01em;
+}
+.dc-chrome-header h1 .accent { color: var(--accent); }
+.dc-chrome-header .sub {
+  font-size: 12px; color: var(--muted); margin-top: 2px;
+}
+
+/* ---------- Cross-page nav row (chips) ---------- */
+.dc-chrome-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 10px 24px;
+  background: var(--bg-2);
+  border-bottom: 1px solid var(--border-soft);
+  font-family: var(--sans);
+  font-size: 12.5px;
+}
+.dc-chrome-nav a {
+  color: var(--muted);
+  text-decoration: none;
+  padding: 5px 10px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
+}
+.dc-chrome-nav a:hover {
+  color: var(--ink);
+  background: var(--panel);
+  text-decoration: none;
+}
+.dc-chrome-nav a.on {
+  color: var(--ink);
+  background: var(--panel);
+  border-color: var(--border);
+}
+.dc-chrome-nav .sep {
+  color: var(--muted-2);
+  padding: 5px 0;
+}
+
+/* ---------- Container ---------- */
+.dc-chrome-container {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 24px;
+}
+.dc-chrome-container > h2 {
+  font-size: 18px; font-weight: 600;
+  margin: 0 0 8px; letter-spacing: -0.01em;
+}
+.dc-chrome-container > .lede {
+  font-size: 14px; color: var(--muted); margin: 0 0 24px;
+  max-width: 64ch; line-height: 1.6;
+}
+
+/* ---------- Card grid pattern ---------- */
+.dc-chrome-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 14px;
+  margin-top: 20px;
+}
+.dc-chrome-card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  padding: 18px;
+  transition: border-color 0.15s, transform 0.12s, box-shadow 0.15s;
+  text-decoration: none;
+  color: var(--ink);
+  display: block;
+}
+.dc-chrome-card:hover {
+  border-color: var(--accent);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-1);
+  text-decoration: none;
+}
+.dc-chrome-card h3 {
+  margin: 10px 0 6px;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+.dc-chrome-card .count {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--accent);
+  margin: 6px 0;
+  line-height: 1;
+}
+.dc-chrome-card .desc {
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+.dc-chrome-card .open {
+  color: var(--accent);
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 500;
+  margin-top: 10px;
+  display: inline-block;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+/* ---------- Layer-color badge utility ---------- */
+.dc-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.dc-badge.persona { background: rgba(168,85,247,0.18); color: #c4a8ff; border: 1px solid #a855f7; }
+.dc-badge.grep    { background: rgba(239,68,68,0.18);  color: #ffadad; border: 1px solid #ef4444; }
+.dc-badge.rag     { background: rgba(59,130,246,0.18); color: #b6d3ff; border: 1px solid #3b82f6; }
+.dc-badge.tools   { background: rgba(16,185,129,0.18); color: #a8e6c4; border: 1px solid #10b981; }
+.dc-badge.online  { background: rgba(245,158,11,0.18); color: #ffd591; border: 1px solid #f59e0b; }
+.dc-badge.imports { background: rgba(6,182,212,0.18);  color: #99e6f0; border: 1px solid #06b6d4; }
+
+/* ---------- Help / footer ---------- */
+.dc-chrome-help {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 32px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border);
+  line-height: 1.6;
+}
+.dc-chrome-help h4 {
+  font-family: var(--mono); font-size: 11px; font-weight: 500;
+  text-transform: uppercase; letter-spacing: 0.08em;
+  color: var(--muted-2); margin: 0 0 8px;
+}
+.dc-chrome-help ul {
+  list-style: none; padding: 0; margin: 0;
+  display: flex; flex-direction: column; gap: 6px;
+}
+
+/* ---------- Errors ---------- */
+.dc-chrome-err {
+  color: #fca5a5;
+  padding: 14px 18px;
+  background: rgba(239,68,68,0.08);
+  border: 1px solid var(--red);
+  border-radius: var(--r-md);
+  font-size: 13px;
+}

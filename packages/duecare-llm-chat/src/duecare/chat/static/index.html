@@ -3,7 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Duecare Gemma Chat</title>
+<title>Migrant-worker safety playground · DueCare</title>
+  <link rel="stylesheet" href="/static/_chrome.css" />
 <style>
 :root {
   --bg: #0f172a;        --panel: #1e293b;       --panel2: #334155;
@@ -723,7 +724,7 @@ header.bar .badge.loaded .dot {
 <div class="shell">
 
   <header class="bar">
-    <h1><span class="accent">Duecare</span> · Gemma 4 Chat</h1>
+    <h1><span class="accent">DueCare</span> · Migrant-worker safety chat</h1>
     <button id="about-btn"
             onclick="openAboutModal()"
             title="Getting started + what each layer does"
@@ -1532,7 +1533,7 @@ function openAboutModal() {
       <p style="margin-top:0;">
         Duecare is a Gemma 4 safety harness for migrant-worker recruitment
         and trafficking cases. This page is the live demo: one Gemma 4
-        variant + 5 optional safety layers + 4 grading modes.
+        variant + 6 optional safety layers + 4 grading modes.
       </p>
 
       <h4 style="margin:18px 0 6px; font-size:14px; color:var(--accent);">
@@ -1679,7 +1680,7 @@ async function probeHarness() {
       tile.dataset.wired = wired ? 'true' : 'false';
       tile.dataset.enabled = 'false';
       const state = document.getElementById(`state-${layer}`);
-      state.textContent = wired ? 'OFF' : 'NOT WIRED';
+      state.textContent = wired ? 'Off' : 'Not enabled here';
       // Add or remove the explanatory tooltip on un-wired tiles.
       if (!wired && notWiredHints[layer]) {
         tile.title = notWiredHints[layer];
