@@ -1,3 +1,18 @@
+# <!-- duecare:kernel-intro -->
+# DueCare — Knowledge-builder sandbox + JSON export
+# Appendix notebook #A04 of 13 in the DueCare submission.
+#
+# Build a structured knowledge object from free-text input. Exports JSON ready for the hub's pack format.
+#
+# What to look for after Run All:
+#   - The form mirrors the schema.org-style pack envelope.
+#   - Export downloads a candidate ContextPack that a curator can vet.
+#   - The PII gate runs before any export.
+#
+# Demo path: Run All -> open URL -> paste a public-source advisory -> review the extracted JSON -> export.
+#
+# Full README + cross-kernel index: see the README in this folder.
+
 """
 ============================================================================
   DUECARE CONTENT KNOWLEDGE BUILDER PLAYGROUND -- Kaggle notebook

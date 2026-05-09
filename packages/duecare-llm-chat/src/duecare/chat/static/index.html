@@ -771,6 +771,31 @@ header.bar .badge.loaded .dot {
         New here? Click <button onclick="openAboutModal()" style="background:none; border:0; color:var(--accent); padding:0; cursor:pointer; font-size:12px; text-decoration:underline;">About</button> in the top bar
         for what each layer does and how to read a grade.
       </p>
+      <!-- 4-card demo path. Same flow as the About modal, surfaced inline so
+           a first-time judge sees it without hunting for the toolbar button. -->
+      <div class="demo-path-cards" style="display:grid; grid-template-columns:repeat(4, 1fr); gap:10px; margin:18px auto 6px; max-width:760px;">
+        <div onclick="openModelPickerFromUI()" style="cursor:pointer; padding:14px 12px; border:1px solid var(--border, #334155); border-radius:8px; background:rgba(59,130,246,0.05); transition:border-color .15s, transform .12s;" onmouseover="this.style.borderColor='var(--accent)'; this.style.transform='translateY(-1px)'" onmouseout="this.style.borderColor='var(--border, #334155)'; this.style.transform='translateY(0)'">
+          <div style="font-family:ui-monospace, SFMono-Regular, Menlo, monospace; font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:0.08em;">Step 01</div>
+          <div style="font-size:13px; font-weight:600; margin-top:6px; line-height:1.3;">Pick a model</div>
+          <div style="font-size:11.5px; color:var(--muted); margin-top:4px; line-height:1.4;">E2B for speed, 31B for depth.</div>
+        </div>
+        <div onclick="document.querySelector('.harness-tiles').scrollIntoView({behavior:'smooth', block:'start'})" style="cursor:pointer; padding:14px 12px; border:1px solid var(--border, #334155); border-radius:8px; background:rgba(168,85,247,0.05); transition:border-color .15s, transform .12s;" onmouseover="this.style.borderColor='#a855f7'; this.style.transform='translateY(-1px)'" onmouseout="this.style.borderColor='var(--border, #334155)'; this.style.transform='translateY(0)'">
+          <div style="font-family:ui-monospace, SFMono-Regular, Menlo, monospace; font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:0.08em;">Step 02</div>
+          <div style="font-size:13px; font-weight:600; margin-top:6px; line-height:1.3;">Flip a layer</div>
+          <div style="font-size:11.5px; color:var(--muted); margin-top:4px; line-height:1.4;">Toggle GREP, RAG, Tools to see what each adds.</div>
+        </div>
+        <div onclick="document.getElementById('input').focus()" style="cursor:pointer; padding:14px 12px; border:1px solid var(--border, #334155); border-radius:8px; background:rgba(16,185,129,0.05); transition:border-color .15s, transform .12s;" onmouseover="this.style.borderColor='#10b981'; this.style.transform='translateY(-1px)'" onmouseout="this.style.borderColor='var(--border, #334155)'; this.style.transform='translateY(0)'">
+          <div style="font-family:ui-monospace, SFMono-Regular, Menlo, monospace; font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:0.08em;">Step 03</div>
+          <div style="font-size:13px; font-weight:600; margin-top:6px; line-height:1.3;">Send a prompt</div>
+          <div style="font-size:11.5px; color:var(--muted); margin-top:4px; line-height:1.4;">Type below or click an example.</div>
+        </div>
+        <div onclick="if(typeof switchToCompareTab==='function'){switchToCompareTab()}else{alert('Send a message first; the Compare tab needs a baseline.')}" style="cursor:pointer; padding:14px 12px; border:1px solid #f59e0b; border-radius:8px; background:rgba(245,158,11,0.08); transition:border-color .15s, transform .12s; position:relative;" onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform='translateY(0)'">
+          <div style="position:absolute; top:6px; right:8px; font-size:10px; color:#f59e0b; font-weight:700;">★ best for judges</div>
+          <div style="font-family:ui-monospace, SFMono-Regular, Menlo, monospace; font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:0.08em;">Step 04</div>
+          <div style="font-size:13px; font-weight:600; margin-top:6px; line-height:1.3;">Compare two configs</div>
+          <div style="font-size:11.5px; color:var(--muted); margin-top:4px; line-height:1.4;">Same prompt, harness on vs off, side by side.</div>
+        </div>
+      </div>
       <div class="hints" id="empty-hints">
         <!-- populated by populateEmptyHints() from /api/examples -->
       </div>

@@ -1,4 +1,4 @@
-# Duecare harness chat — unified core notebook
+# DueCare — Migrant-worker safety playground (#01 core)
 
 > **The single configurable Duecare playground.** Every harness layer,
 > every Gemma 4 variant, every grading mode visible from one URL.
@@ -175,3 +175,27 @@ regenerator). See `docs/FOR_PEER_REVIEW.md` for the full submission roster.
   ~30-90s for E4B, several minutes for 31B
 - **Cold-boot timeout** → the unsloth-stack install can take 90s on
   a fresh Kaggle worker; subsequent restarts skip via marker file
+
+---
+
+<!-- duecare:kernel-footer -->
+
+### All DueCare notebooks
+
+You are here: **#01 core — Migrant-worker safety playground**.
+
+- **[#01 core: Migrant-worker safety playground](../01-duecare-harness-chat/README.md)**
+- [#02 core: Live demo (focused walkthrough)](../02-live-demo/README.md)
+- [#A01 appendix: Stock Gemma 4 chat baseline](../A-01-chat-playground/README.md)
+- [#A02 appendix: Original 4-toggle subset playground](../A-02-chat-playground-with-grep-rag-tools/README.md)
+- [#A03 appendix: Hands-on classification sandbox](../A-03-content-classification-playground/README.md)
+- [#A04 appendix: Knowledge-builder sandbox + JSON export](../A-04-content-knowledge-builder-playground/README.md)
+- [#A05 appendix: NGO classifier evaluation dashboard](../A-05-gemma-content-classification-evaluation/README.md)
+- [#A06 appendix: Gemma generates evaluation prompts](../A-06-prompt-generation/README.md)
+- [#A07 appendix: Unsloth fine-tune + GGUF export pipeline](../A-07-bench-and-tune/README.md)
+- [#A08 appendix: Research graphs (CPU-only)](../A-08-research-graphs/README.md)
+- [#A09 appendix: Agentic-research chat (BYOK + Playwright)](../A-09-chat-playground-with-agentic-research/README.md)
+- [#A10 appendix: Jailbroken-Gemma comparison](../A-10-chat-playground-jailbroken-models/README.md)
+- [#A11 appendix: Grading-lift regenerator](../A-11-grading-evaluation/README.md)
+
+Index page: [`kaggle/_INDEX.md`](../_INDEX.md).

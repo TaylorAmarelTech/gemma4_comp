@@ -1,3 +1,18 @@
+# <!-- duecare:kernel-intro -->
+# DueCare — Jailbroken-Gemma comparison
+# Appendix notebook #A10 of 13 in the DueCare submission.
+#
+# Loads abliterated / cracked Gemma 4 variants. Proves the harness still works when the model's refusals are gone.
+#
+# What to look for after Run All:
+#   - The same harness runs on a refusal-ablated Gemma 4 31B variant.
+#   - GREP + RAG + tool-call grounding compensate for the missing safety tuning.
+#   - The grading panel shows the lift on adversarial prompts even against a jailbroken model.
+#
+# Demo path: Run All -> pick a jailbroken variant in the picker -> ask the same adversarial prompts as kernel 01.
+#
+# Full README + cross-kernel index: see the README in this folder.
+
 """
 ============================================================================
   DUECARE CHAT PLAYGROUND — JAILBROKEN MODELS — Kaggle notebook

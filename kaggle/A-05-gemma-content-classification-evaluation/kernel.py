@@ -1,3 +1,18 @@
+# <!-- duecare:kernel-intro -->
+# DueCare — NGO classifier evaluation dashboard
+# Appendix notebook #A05 of 13 in the DueCare submission.
+#
+# Risk-vector scorecard + intake queue view. The NGO-side moderation surface.
+#
+# What to look for after Run All:
+#   - The dashboard groups flagged content by corridor + risk vector.
+#   - Each row shows the GREP rule(s) that fired and the rubric score.
+#   - Click any row to drill into the full classification trace.
+#
+# Demo path: Run All -> open URL -> browse the synthetic queue -> drill into one flagged item.
+#
+# Full README + cross-kernel index: see the README in this folder.
+
 """
 ============================================================================
   DUECARE CONTENT CLASSIFIER  --  Kaggle notebook (paste in single cell)

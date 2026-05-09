@@ -1,3 +1,18 @@
+# <!-- duecare:kernel-intro -->
+# DueCare — Live demo (focused walkthrough)
+# Core notebook #02 of 13 in the DueCare submission.
+#
+# The polished demo URL judges land on. Same harness, scripted demo path, +56pp lift baked in.
+#
+# What to look for after Run All:
+#   - The opening shows stock Gemma vs the harnessed answer, side by side.
+#   - The retrieval-path trace card explains why the cited source was used.
+#   - The grading panel shows the rubric breakdown for the visible answer.
+#
+# Demo path: Run All -> open the live URL -> watch the scripted prompt sequence walk through the 6-layer story.
+#
+# Full README + cross-kernel index: see the README in this folder.
+
 """
 ============================================================================
   DUECARE LIVE DEMO -- Kaggle notebook (paste into a single code cell)

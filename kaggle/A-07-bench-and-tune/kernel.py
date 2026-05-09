@@ -1,3 +1,18 @@
+# <!-- duecare:kernel-intro -->
+# DueCare — Unsloth fine-tune + GGUF export pipeline
+# Appendix notebook #A07 of 13 in the DueCare submission.
+#
+# End-to-end SFT + DPO + GGUF Q8_0 + HF Hub push. The training pipeline behind the harness.
+#
+# What to look for after Run All:
+#   - SFT runs on the curated training set with the same anonymizer gate.
+#   - DPO uses the 5-grade prompt set from kernel A-06 as preference pairs.
+#   - GGUF export is the same path used for the LiteRT mobile build.
+#
+# Demo path: Run All on a T4 -> watch the SFT curve -> see the GGUF artifact -> push to HF Hub (BYO token).
+#
+# Full README + cross-kernel index: see the README in this folder.
+
 """
 ============================================================================
   DUECARE BENCH & TUNE -- Kaggle notebook (paste into a single code cell)

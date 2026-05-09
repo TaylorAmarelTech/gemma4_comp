@@ -1,3 +1,18 @@
+# <!-- duecare:kernel-intro -->
+# DueCare — Original 4-toggle subset playground
+# Appendix notebook #A02 of 13 in the DueCare submission.
+#
+# The pre-omni subset: GREP + RAG + Tools + Imports as toggleable layers (no Persona, no Online).
+#
+# What to look for after Run All:
+#   - Same chat surface as kernel 01 with 4 toggles instead of 6.
+#   - Useful for showing how each layer contributes incrementally.
+#   - The compare view shows GREP-only vs GREP+RAG side-by-side.
+#
+# Demo path: Run All -> open URL -> toggle layers one at a time on the same prompt to isolate contributions.
+#
+# Full README + cross-kernel index: see the README in this folder.
+
 """
 ============================================================================
   DUECARE CHAT PLAYGROUND with GREP/RAG/Tools  --  Kaggle notebook
