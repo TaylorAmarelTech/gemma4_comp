@@ -257,50 +257,22 @@ header.bar .badge.loaded .dot {
   color: var(--muted); margin-top: 3px; line-height: 1.4;
 }
 
-/* Per-layer accent colors -- matches the renderHarnessTrace palette */
-.harness-tile.persona .harness-tile-name { color: #a855f7; }
-.harness-tile.grep .harness-tile-name { color: #ef4444; }
-.harness-tile.rag  .harness-tile-name { color: #3b82f6; }
-.harness-tile.tools .harness-tile-name { color: #10b981; }
-.harness-tile.online .harness-tile-name { color: #f59e0b; }
-.harness-tile.import .harness-tile-name { color: #06b6d4; }
+/* Per-layer accent colors -- backed by the shared _chrome.css palette */
+.harness-tile.persona { --layer-accent: var(--accent-persona); }
+.harness-tile.grep { --layer-accent: var(--accent-grep); }
+.harness-tile.rag  { --layer-accent: var(--accent-rag); }
+.harness-tile.tools { --layer-accent: var(--accent-tools); }
+.harness-tile.online { --layer-accent: var(--accent-online); }
+.harness-tile.import { --layer-accent: var(--accent-imports); }
+.harness-tile .harness-tile-name { color: var(--layer-accent, var(--accent)); }
 
 /* Active state: filled background + matching state pill */
-.harness-tile.persona[data-enabled="true"] {
-  border-color: #a855f7; background: rgba(168, 85, 247, 0.08);
+.harness-tile[data-enabled="true"] {
+  border-color: var(--layer-accent, var(--accent));
+  background: color-mix(in srgb, var(--layer-accent, var(--accent)) 12%, transparent);
 }
-.harness-tile.persona[data-enabled="true"] .harness-tile-state {
-  background: #a855f7; color: #fff;
-}
-.harness-tile.grep[data-enabled="true"] {
-  border-color: #ef4444; background: rgba(239, 68, 68, 0.08);
-}
-.harness-tile.grep[data-enabled="true"] .harness-tile-state {
-  background: #ef4444; color: #fff;
-}
-.harness-tile.rag[data-enabled="true"] {
-  border-color: #3b82f6; background: rgba(59, 130, 246, 0.08);
-}
-.harness-tile.rag[data-enabled="true"] .harness-tile-state {
-  background: #3b82f6; color: #fff;
-}
-.harness-tile.tools[data-enabled="true"] {
-  border-color: #10b981; background: rgba(16, 185, 129, 0.08);
-}
-.harness-tile.tools[data-enabled="true"] .harness-tile-state {
-  background: #10b981; color: #fff;
-}
-.harness-tile.online[data-enabled="true"] {
-  border-color: #f59e0b; background: rgba(245, 158, 11, 0.08);
-}
-.harness-tile.online[data-enabled="true"] .harness-tile-state {
-  background: #f59e0b; color: #fff;
-}
-.harness-tile.import[data-enabled="true"] {
-  border-color: #06b6d4; background: rgba(6, 182, 212, 0.08);
-}
-.harness-tile.import[data-enabled="true"] .harness-tile-state {
-  background: #06b6d4; color: #fff;
+.harness-tile[data-enabled="true"] .harness-tile-state {
+  background: var(--layer-accent, var(--accent)); color: #fff;
 }
 
 /* ---- Self-contained model picker (auto-shows on first load when no

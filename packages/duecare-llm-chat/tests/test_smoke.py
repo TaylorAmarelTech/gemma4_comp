@@ -28,24 +28,12 @@ def _load_harness_module():
 
 
 def test_harness_loads_with_expected_counts() -> None:
-    """v3.17 counts. GREP jumped 49→111 with 9 categories (H–P)
-    plus digital-era fee and document-control additions:
-    sector-specific labour abuse, kafala extended mechanisms,
-    cross-border financial flows, employer abuse patterns, document
-    fraud, recruiter sales tactics, recovery-suppression and
-    repatriation barriers, additional corridors (Lebanon-internal /
-    Libya transit / Iraq KRG / Cyprus North / Taiwan caregiver),
-    and platform/digital recruitment (online platforms, deepfake
-    interviews, encrypted-platform coercion, offshore shell HR,
-    cam-studio sextortion). RAG adds digital-fee and side-letter docs.
-    Classifier examples 46→51: 5 multimodal additions (TikTok
-    recruitment, Telegram money mule, cam-studio contract,
-    backdated contract, two-contract side-by-side)."""
+    """Current wheel harness counts stay pinned for demo reproducibility."""
     h = _load_harness_module()
-    assert len(h.GREP_RULES) == 111
-    assert len(h.RAG_CORPUS) == 35
+    assert len(h.GREP_RULES) == 161
+    assert len(h.RAG_CORPUS) == 46
     assert len(h._TOOL_DISPATCH) == 5
-    assert len(h.EXAMPLE_PROMPTS) == 413
+    assert len(h.EXAMPLE_PROMPTS) == 587
     assert len(h.RUBRICS_5TIER) == 207
     assert len(h.RUBRICS_REQUIRED) == 6
     assert len(h.CLASSIFIER_EXAMPLES) == 54
