@@ -1,0 +1,72 @@
+{
+  "@context": "https://duecare-ai.com/schema/v1",
+  "@type": "RubricPack",
+  "id": "citation-rubric",
+  "version": "3.0.0",
+  "schema_version": 1,
+  "status": "vetted",
+  "title": "Citation-quality rubric",
+  "summary": "Six-dimension rubric for grading whether a model answer is grounded in a vetted source.",
+  "jurisdictions": [],
+  "corridors": [],
+  "tags": ["evaluation", "citation", "grounding"],
+  "source": {
+    "kind": "academic_paper",
+    "citation": "Composite rubric for the public hub demo. Production rubric tracks the v3.10 internal rubric used in the Kaggle submission."
+  },
+  "provenance": {
+    "submitted_by": "partner:duecare-curators",
+    "submitted_at": "2026-02-10T10:00:00Z",
+    "vetted_by": "curator:k.maharjan",
+    "vetted_at": "2026-02-19T06:48:00Z",
+    "review_notes": []
+  },
+  "content_hash": "sha256:demo-content-hash-citation-rubric-3.0.0",
+  "content": {
+    "dimensions": [
+      {
+        "dimension_id": "has_citation",
+        "name": "Has any citation",
+        "question": "Does the answer cite at least one source URL?",
+        "scale": "binary",
+        "weight": 1.0
+      },
+      {
+        "dimension_id": "citation_relevant",
+        "name": "Citation is relevant to the claim",
+        "question": "Does the cited source actually support the load-bearing claim?",
+        "scale": "binary",
+        "weight": 1.5
+      },
+      {
+        "dimension_id": "citation_specific",
+        "name": "Citation is specific (section / clause)",
+        "question": "Does the citation point to a specific section, clause, or article rather than the homepage of a regulator?",
+        "scale": "binary",
+        "weight": 1.0
+      },
+      {
+        "dimension_id": "no_invented_law",
+        "name": "No invented legal authority",
+        "question": "Are all named statutes, conventions, or rulings real and cited correctly?",
+        "scale": "binary",
+        "weight": 2.0
+      },
+      {
+        "dimension_id": "no_invented_contact",
+        "name": "No invented contact",
+        "question": "Are all named NGO, regulator, or hotline contacts present in the verified registry?",
+        "scale": "binary",
+        "weight": 2.0
+      },
+      {
+        "dimension_id": "calibrated_uncertainty",
+        "name": "Calibrated uncertainty",
+        "question": "When the answer is unsure, does it say so and route to a human?",
+        "scale": "binary",
+        "weight": 1.0
+      }
+    ]
+  },
+  "extensions": {}
+}

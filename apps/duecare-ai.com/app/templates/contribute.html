@@ -453,7 +453,72 @@ document.querySelectorAll('.ct-type[data-track]').forEach(c => c.addEventListene
   document.getElementById('formSub').textContent = t.s;
   document.getElementById('form').scrollIntoView({ behavior: 'smooth', block: 'start' });
 }));
-function submitForm(e){e.preventDefault();alert("Proposal queued. You'll see it in /submissions as 'proposed' once the PII scan finishes.");return false;}
+async function submitForm(event){
+  event.preventDefault();
+  const form = event.currentTarget;
+  // The selected proposal type lives on whichever .ct-type card has class "on".
+  const onCard = document.querySelector('.ct-type.on[data-track]');
+  const kind = onCard ? onCard.dataset.track : 'context';
+  // The form labels are anonymous (no name= attribute), so read by label text.
+  const fieldByLabel = (label) => {
+    for (const lbl of form.querySelectorAll('label')) {
+      const text = lbl.textContent.trim();
+      if (text.startsWith(label)) {
+        const sibling = lbl.parentElement.querySelector('input, select, textarea');
+        if (sibling && sibling.value !== undefined) return sibling.value.trim();
+      }
+    }
+    return '';
+  };
+  const summary = fieldByLabel('Short summary') || fieldByLabel('Proposed payload') || '';
+  if (!summary || summary.length < 10) {
+    alert('Please provide a short summary (at least 10 characters) before sending.');
+    return false;
+  }
+  const consentPublic = document.getElementById('c2').checked;
+  if (!consentPublic) {
+    alert('Please confirm you are submitting public-source material before sending.');
+    return false;
+  }
+  const body = {
+    kind: kind,
+    deployment_id: 'website-form',
+    organization: fieldByLabel('Organization name') || null,
+    contact_email: fieldByLabel('Contact email') || null,
+    jurisdiction: fieldByLabel('Country / jurisdiction') || null,
+    corridor: fieldByLabel('Corridor (optional)') || null,
+    public_source_url: fieldByLabel('Public-source URL') || null,
+    summary: summary,
+    payload: {raw_text: fieldByLabel('Proposed payload') || ''},
+    consent_public_proposal: consentPublic,
+    contact_publication_consent: document.getElementById('c3').checked,
+  };
+  Object.keys(body).forEach((key) => {
+    if (body[key] === null || body[key] === '') delete body[key];
+  });
+  try {
+    const response = await fetch('/api/hub/client/submission', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(body),
+    });
+    const data = await response.json();
+    if (response.ok) {
+      alert(
+        'Submission accepted as ' + data.status + '.\n' +
+        'Tracking id: ' + data.id + '\n' +
+        'Server automation verdict: ' + data.automation_verdict +
+        ' (' + data.automation_model + ').'
+      );
+      form.reset();
+    } else {
+      alert('Server rejected the submission: ' + (data.detail || response.status));
+    }
+  } catch (err) {
+    alert('Network error sending the submission: ' + err.message);
+  }
+  return false;
+}
 </script>
 </body>
 </html>
