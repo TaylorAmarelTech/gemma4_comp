@@ -396,11 +396,11 @@
     <span class="kicker">Reference architectures</span>
     <h1>One system, <span class="accent">four ways to deploy it.</span></h1>
     <p class="lede">There is no single architecture diagram that covers every
-      use case honestly. Each context. enterprise platform moderation, NGO
-      caseworker support, anonymized data sharing, public chatbot. has
-      different inputs, different privacy boundaries, and different things
-      that can or cannot leave the runtime. This page documents each one
-      separately, plus a note on how the underlying model is tuned.</p>
+      use case honestly. Enterprise platform moderation, NGO caseworker
+      support, anonymized data sharing, and public chatbot deployments each
+      have different inputs, privacy boundaries, and rules for what can or
+      cannot leave the runtime. This page documents each one separately,
+      plus a note on how the underlying model is tuned.</p>
 
     <div class="compare-strip">
       <a class="compare-card" href="#dep-1">
@@ -451,7 +451,7 @@
         <div class="node input">
           <span class="role">Input</span>
           <span class="name">Platform content stream</span>
-          <span class="sub">Messages, posts, listings, attachments. flowing through the platform's existing pipeline.</span>
+          <span class="sub">Messages, posts, listings, and attachments flowing through the platform's existing pipeline.</span>
         </div>
         <div class="arrow"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 10h14m0 0l-5-5m5 5l-5 5"/></svg></div>
         <div class="node runtime">
@@ -470,7 +470,7 @@
       <div class="runtime-detail">
         <h4>Inside the runtime (platform VPC)</h4>
         <div class="pieces">
-          <div class="piece"><span class="lbl">Model</span>Gemma 4. local inference</div>
+          <div class="piece"><span class="lbl">Model</span>Gemma 4, local inference</div>
           <div class="piece"><span class="lbl">Guidance</span>Persona, GREP rules, RAG</div>
           <div class="piece"><span class="lbl">Packs</span>Platform-specific rule packs</div>
           <div class="piece"><span class="lbl">Tests</span>Quality testing on every pack update</div>
@@ -544,10 +544,10 @@
       <div class="runtime-detail">
         <h4>Inside the runtime (caseworker's device)</h4>
         <div class="pieces">
-          <div class="piece"><span class="lbl">Model</span>Gemma 4. local inference</div>
+          <div class="piece"><span class="lbl">Model</span>Gemma 4, local inference</div>
           <div class="piece"><span class="lbl">Guidance</span>Persona, GREP rules, RAG</div>
           <div class="piece"><span class="lbl">Packs</span>Signed corridor &amp; jurisdiction packs</div>
-          <div class="piece"><span class="lbl">Updates</span>Pack pulls only. no case push</div>
+          <div class="piece"><span class="lbl">Updates</span>Pack pulls only; no case push</div>
         </div>
       </div>
 
@@ -582,14 +582,13 @@
       <div class="num">03</div>
       <div>
         <h2>NGO implementation with anonymized data sharing</h2>
-        <p>An NGO that runs Duecare locally (as in deployment 02) and
-          additionally opts in to contributing anonymized
-          signals. anonymized patterns, not cases. to a shared insights
-          server. The local anonymization module is the gate; only k-anonymous,
-          identifier-stripped signals can leave the device.</p>
+        <p>An NGO that runs DueCare locally (as in deployment 02) can also
+          opt in to contributing anonymized patterns, not cases, to a shared
+          insights server. The local anonymization module is the gate; only
+          k-anonymous, identifier-stripped signals can leave the device.</p>
         <dl class="meta-row">
           <dt>Where it runs</dt><dd>On-device runtime, plus an opt-in signal channel to a shared insights server.</dd>
-          <dt>What's exposed</dt><dd>Only k-anonymous, identifier-stripped signals. never case content.</dd>
+          <dt>What's exposed</dt><dd>Only k-anonymous, identifier-stripped signals; never case content.</dd>
           <dt>What it returns</dt><dd>The same local draft as deployment 02; sharing is purely additive.</dd>
         </dl>
       </div>
@@ -652,7 +651,7 @@
           </ul>
         </div>
         <div class="leaves-card never">
-          <h4>Never leaves. even with opt-in</h4>
+          <h4>Never leaves, even with opt-in</h4>
           <ul>
             <li>Worker / claimant names or IDs</li>
             <li>Employer or recruiter names</li>
@@ -674,7 +673,7 @@
         <h2>Chatbot endpoint</h2>
         <p>For partners that want to expose Duecare through an existing chat
           surface (a regulator hotline web widget, a partner-operated
-          messenger bot, or a labor-rights helpline). The endpoint is hosted
+          messenger bot, or a labour-rights helpline). The endpoint is hosted
           on a GPU-enabled server; the channel adapter handles the chat
           surface. The system still drafts; the partner still decides.</p>
         <dl class="meta-row">
