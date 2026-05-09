@@ -411,26 +411,13 @@
 <body>
 
 <!-- ============== NAV ============== -->
-<nav class="nav">
-  <div class="nav-inner">
-    <a href="/" class="brand"><span class="brand-mark">D</span> DueCare AI</a>
-    <div class="nav-links">
-      <a href="/demo">Demo</a>
-      <a href="/use-cases">Use cases</a>
-      <a href="/hub">Hub</a>
-      <a href="/docs">Docs</a>
-      <a href="/stats">Stats</a>
-    </div>
-    <a href="/login?next=/contribute" class="nav-cta">Get involved <span aria-hidden="true">&rarr;</span></a>
-  </div>
-</nav>
-
+{% include "_nav.html" %}
 <!-- ============== HERO ============== -->
 <section class="hero first" data-screen-label="01 Hero">
   <div class="wrap">
     <div class="hero-top">
       <div class="hero-text">
-        <span class="kicker">/duecare · a research project on worker-safety AI</span>
+        <span class="kicker">/duecare · a research project on migrant worker safety AI</span>
         <h1>AI infrastructure to <span class="accent">combat migrant-worker exploitation.</span></h1>
         <p class="lede">DueCare is open-source software that helps platforms,
           NGOs, regulators, and researchers spot recruitment fraud, illegal fees,
@@ -440,8 +427,8 @@
         <div class="for-line">
           <span class="lbl">Who it's for:</span>
           <span>Platforms</span><span class="sep">/</span>
-          <span>NGOs</span><span class="sep">/</span>
-          <span>Regulators</span><span class="sep">/</span>
+          <span>NGOs &amp; regulators</span><span class="sep">/</span>
+          <span>Migrant workers</span><span class="sep">/</span>
           <span>Researchers</span>
         </div>
         <div class="ctas">
@@ -559,7 +546,7 @@
       <div>
         <span class="lbl">/ use cases</span>
         <h3>See the full set of use cases &amp; deployments.</h3>
-        <p>Reference scenarios for platforms, NGOs, regulators, researchers, and integration partners — with the deployment architecture for each one in a single place.</p>
+        <p>Reference scenarios for platforms, NGOs, regulators, researchers, and integration partners. with the deployment architecture for each one in a single place.</p>
       </div>
       <a class="btn" href="/use-cases">View use cases <span class="arrow">→</span></a>
     </div>
@@ -586,7 +573,7 @@
   <div class="wrap">
     <span class="ix">01 · For platforms</span>
     <h2>Screen exploitative user-generated content, at scale.</h2>
-    <p class="lede">Major social platforms and recruitment marketplaces face a constant stream of posts, ads, listings, and messages — some of which target migrant workers with illegal fees, deceptive offers, or unsafe employers. The DueCare runtime classifies and explains UGC against curated corridor packs, returning a risk score and a suggested action your existing enforcement pipeline can act on.</p>
+    <p class="lede">Major social platforms and recruitment marketplaces face a constant stream of posts, ads, listings, and messages. some of which target migrant workers with illegal fees, deceptive offers, or unsafe employers. The DueCare runtime classifies and explains UGC against curated corridor packs, returning a risk score and a suggested action your existing enforcement pipeline can act on.</p>
     <div class="grid">
       <div class="pt"><h4>What it detects</h4><p>Illegal recruitment fees, contract substitution, passport retention requests, deceptive job ads, sham agencies, and other exploitative UGC patterns.</p></div>
       <div class="pt"><h4>What it returns</h4><p>A per-item risk score with a suggested action: hold, redline, escalate to human review, or notify the relevant authority.</p></div>
@@ -614,7 +601,7 @@
   <div class="wrap">
     <span class="ix">03 · For workers</span>
     <h2>Local mobile help. On the worker&rsquo;s phone. In their language.</h2>
-    <p class="lede">Migrant workers need answers <em>now</em>, on the device they already have, in the language they actually speak. The DueCare worker app runs an on-device model with cached corridor packs &mdash; it works on a low-spec phone with no signal, never uploads pasted contracts or chats, and points the worker to verified resources rather than acting on their behalf.</p>
+    <p class="lede">Migrant workers need answers <em>now</em>, on the device they already have, in the language they actually speak. The DueCare worker app runs an on-device model with cached corridor packs. it works on a low-spec phone with no signal, never uploads pasted contracts or chats, and points the worker to verified resources rather than acting on their behalf.</p>
     <div class="grid">
       <div class="pt"><h4>How workers reach it</h4><p>Through a partner-operated channel: an NGO chatbot, a government information line, or a sibling worker app.</p></div>
       <div class="pt"><h4>What it answers</h4><p>Questions about typical fees, legal contract terms, passport retention rules, and where to seek verified help in this corridor.</p></div>
@@ -628,10 +615,10 @@
   <div class="wrap">
     <span class="ix">04 · For researchers</span>
     <h2>Cite-able research on corridors, trends, and policy.</h2>
-    <p class="lede">Academic researchers, policy analysts, and journalists study migration corridors, exploitation trends, recruitment-market dynamics, and policy impact. DueCare gives them version-pinned packs, an anonymized signal stream, and a reproducible harness on Gemma 4 — so claims about how a corridor is moving, or how a policy change landed, can be cited and re-run months later.</p>
+    <p class="lede">Academic researchers, policy analysts, and journalists study migration corridors, exploitation trends, recruitment-market dynamics, and policy impact. DueCare gives them version-pinned packs, an anonymized signal stream, and a reproducible harness on Gemma 4. so claims about how a corridor is moving, or how a policy change landed, can be cited and re-run months later.</p>
     <div class="grid">
       <div class="pt"><h4>What it supports</h4><p>Corridor risk analysis, longitudinal trend tracking (fees, contract substitution, recruiter networks), policy-impact studies, and reproducible model evaluations.</p></div>
-      <div class="pt"><h4>What is reproducible</h4><p>Pack version (cryptographic hash), eval prompts, rubric, model artifact, runtime configuration — plus the anonymized signal aggregates queried at a point in time.</p></div>
+      <div class="pt"><h4>What is reproducible</h4><p>Pack version (cryptographic hash), eval prompts, rubric, model artifact, runtime configuration. plus the anonymized signal aggregates queried at a point in time.</p></div>
       <div class="pt"><h4>Where it runs</h4><p>Locally on Gemma 4 or in a cloud notebook. Researchers control their own environment; the harness reads only public packs and aggregate signals.</p></div>
       <div class="pt"><h4>What it does not do</h4><p>It exposes no individual workers, employers, or cases. Aggregates are k-anonymized; raw case data never leaves local deployments.</p></div>
     </div>
@@ -653,13 +640,6 @@
   </div>
 </section>
 
-<footer><div class="wrap"><div class="foot-grid">
-<div><a href="/" class="brand"><span class="brand-mark">D</span> DueCare AI</a><p class="muted" style="font-size:14px;max-width:38ch;margin-top:8px;">Public-interest AI infrastructure for migrant-worker safety. <a href="/mission" style="color:inherit;text-decoration:underline;">Read the mission &rarr;</a></p></div>
-<div><h4>Hub</h4><ul><li><a href="/hub">Overview</a></li><li><a href="/knowledge-packs">Knowledge packs</a></li><li><a href="/tools-registry">Tools registry</a></li><li><a href="/research-monitor">Research monitor</a></li></ul></div>
-<div><h4>Docs</h4><ul><li><a href="/docs">Overview</a></li><li><a href="/technical-docs">Schemas</a></li><li><a href="/components">Architecture</a></li><li><a href="/why-gemma">Why Gemma 4</a></li><li><a href="/evaluation">Eval &amp; retraining</a></li><li><a href="/harness">Safety harness</a></li><li><a href="/setup">Setup guides</a></li><li><a href="/privacy-boundary">Privacy boundary</a></li></ul></div>
-<div><h4>Get involved</h4><ul><li><a href="/submit-information">Submit info</a></li><li><a href="/newsletter">Newsletter</a></li><li><a href="/email-feedback">Email feedback</a></li><li><a href="/alerts">Alerts archive</a></li><li><a href="/contribute">Contribute</a></li></ul></div>
-<div><h4>Verify</h4><ul><li><a href="/stats">Stats &amp; audit</a></li><li><a href="/dashboard">Live data</a></li><li><a href="/mission">Mission</a></li><li><a href="/contact">Contact</a></li></ul></div>
-</div><div class="foot-bottom"><span>&copy; 2026 DueCare AI</span><span>v0.4 &middot; public hub draft</span></div></div></footer>
-
+{% include "_footer.html" %}
 </body>
 </html>

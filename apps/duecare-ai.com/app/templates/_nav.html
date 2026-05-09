@@ -1,0 +1,14 @@
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="/" class="brand"><span class="brand-mark">D</span> DueCare AI</a>
+    <div class="nav-links">
+      <a href="/mission"{% if active_nav == "mission" %} class="on"{% endif %}>Mission</a>
+      <a href="/demo"{% if active_nav == "demo" %} class="on"{% endif %}>Demo</a>
+      <a href="/use-cases"{% if active_nav == "use-cases" %} class="on"{% endif %}>Use cases</a>
+      <a href="/hub"{% if active_nav == "hub" %} class="on"{% endif %}>Hub</a>
+      <a href="/docs"{% if active_nav == "docs" %} class="on"{% endif %}>Docs</a>
+      <a href="/stats"{% if active_nav == "stats" %} class="on"{% endif %}>Stats</a>
+    </div>
+    <a href="/contribute" class="nav-cta">Get involved <span aria-hidden="true">&rarr;</span></a>
+  </div>
+</nav>

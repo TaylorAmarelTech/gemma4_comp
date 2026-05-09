@@ -57,22 +57,9 @@
   .docs-callout .btn.primary { background: var(--paper); color: var(--ink); }
 </style>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%230E1116'/%3E%3Ctext x='16' y='21' text-anchor='middle' font-family='monospace' font-weight='700' font-size='14' fill='%23F7F6F1'%3ED%3C/text%3E%3C/svg%3E" />
-</head><body><nav class="nav">
-  <div class="nav-inner">
-    <a href="/" class="brand"><span class="brand-mark">D</span> DueCare AI</a>
-    <div class="nav-links">
-      <a href="/demo">Demo</a>
-      <a href="/use-cases">Use cases</a>
-      <a href="/hub">Hub</a>
-      <a href="/docs" class="on">Docs</a>
-      <a href="/stats">Stats</a>
-    </div>
-    <a href="/login?next=/contribute" class="nav-cta">Get involved <span aria-hidden="true">&rarr;</span></a>
-  </div>
-</nav>
-
+</head><body>{% set active_nav = "docs" %}
+{% include "_nav.html" %}
 <section class="docs-hero" data-screen-label="Docs · Hero"><div class="wrap">
-  <div class="crumbs"><a href="/">Home</a><span class="sep">/</span><span>Docs</span></div>
   <div class="grid">
     <div>
       <span class="kicker">/docs · technical reference</span>
@@ -142,7 +129,7 @@
       <h3>Fine-tuning</h3>
       <p class="body">Per-corridor LoRA adapters: how they are trained, where they live, how they are pinned to a base model and a pack range.</p>
       <ul class="preview">
-        <li>LoRA-only — base weights are frozen</li>
+        <li>LoRA-only. base weights are frozen</li>
         <li>Trained on public + composite data</li>
         <li>Quarterly cadence; emergency hotfix path</li>
         <li>Adapter hash referenced per response</li>
@@ -167,13 +154,13 @@
 <section id="hub" class="docs-section" data-screen-label="Docs · Hub system"><div class="wrap">
   <div class="head">
     <div><span class="ix">02 · Hub / host system</span><h2>What we run, in the open.</h2></div>
-    <p class="summary">The append-only public hub: signed packs, the tools registry, anonymized signals, and the audit feed. Everything here is curator-signed and reproducible from public inputs.</p>
+    <p class="summary">The append-only public hub: vetted packs, the tools registry, anonymized signals, and the audit feed. Everything here is curator-vetted and reproducible from public inputs.</p>
   </div>
   <div class="docs-grid">
     <a class="docs-card" href="/technical-docs">
       <span class="role">Reference</span>
       <h3>Schemas</h3>
-      <p class="body">Canonical JSON schemas. Inline reference — view, copy, validate against your own payloads in the browser.</p>
+      <p class="body">Canonical JSON schemas. Inline reference. view, copy, validate against your own payloads in the browser.</p>
       <ul class="preview">
         <li>knowledge_pack.schema.json</li>
         <li>tools_registry.schema.json</li>
@@ -187,7 +174,7 @@
     <a class="docs-card" href="/components">
       <span class="role">System</span>
       <h3>Architecture</h3>
-      <p class="body">How the eight components fit together — what crosses the boundary and what stays on which side.</p>
+      <p class="body">How the eight components fit together. what crosses the boundary and what stays on which side.</p>
       <ul class="preview">
         <li>Local: harness · packs · tools</li>
         <li>Boundary: anonymizer · k-anon</li>
@@ -228,7 +215,7 @@
 <section id="internal" class="docs-section" data-screen-label="Docs · Internal"><div class="wrap">
   <div class="head">
     <div><span class="ix">03 · Internal subsystems</span><h2>Working pieces, in detail.</h2></div>
-    <p class="summary">Reference pages the architecture overview links into — not entry points. Open these when a section above sends you here.</p>
+    <p class="summary">Reference pages the architecture overview links into. not entry points. Open these when a section above sends you here.</p>
   </div>
   <div class="docs-grid">
     <a class="docs-card" href="/grep-rules">
@@ -275,16 +262,11 @@
     <div>
       <span class="ix">04 · Reproduce a release</span>
       <h2>Pull a pack. Verify the signature. Run the eval.</h2>
-      <p>Every signed pack release is reproducible from public inputs alone. The reproduce script lives in <code>/tools/reproduce</code>; it pulls the pack at a given hash, validates the curator signature, and re-runs the six eval suites against a clean Gemma 4 build. Same hash → same answer, every time.</p>
+      <p>Every vetted pack release is reproducible from public inputs alone. The reproduce script lives in <code>/tools/reproduce</code>; it pulls the pack at a given hash, validates the curator signature, and re-runs the six eval suites against a clean Gemma 4 build. Same hash → same answer, every time.</p>
     </div>
     <a href="/harness" class="btn primary">See the harness &rarr;</a>
   </div>
 </div></section>
 
-<footer><div class="wrap"><div class="foot-grid">
-<div><a href="/" class="brand"><span class="brand-mark">D</span> DueCare AI</a><p class="muted" style="font-size:14px;max-width:38ch;margin-top:8px;">Public-interest AI infrastructure for migrant-worker safety. <a href="/mission" style="color:inherit;text-decoration:underline;">Read the mission &rarr;</a></p></div>
-<div><h4>Hub</h4><ul><li><a href="/hub">Overview</a></li><li><a href="/knowledge-packs">Knowledge packs</a></li><li><a href="/tools-registry">Tools registry</a></li><li><a href="/research-monitor">Research monitor</a></li></ul></div>
-<div><h4>Docs</h4><ul><li><a href="/docs">Overview</a></li><li><a href="/setup">Setup guides</a></li><li><a href="/harness">Safety harness</a></li><li><a href="/why-gemma">Why Gemma 4</a></li><li><a href="/evaluation">Fine-tuning &amp; eval</a></li><li><a href="/technical-docs">Schemas</a></li><li><a href="/components">Architecture</a></li><li><a href="/privacy-boundary">Privacy boundary</a></li><li><a href="/evaluation">Evaluation</a></li></ul></div>
-<div><h4>Get involved</h4><ul><li><a href="/submit-information">Submit info</a></li><li><a href="/newsletter">Newsletter</a></li><li><a href="/email-feedback">Email feedback</a></li><li><a href="/alerts">Alerts archive</a></li><li><a href="/contribute">Contribute</a></li></ul></div>
-<div><h4>Verify</h4><ul><li><a href="/stats">Stats &amp; audit</a></li><li><a href="/dashboard">Live data</a></li><li><a href="/mission">Mission</a></li><li><a href="/contact">Contact</a></li></ul></div>
-</div><div class="foot-bottom"><span>&copy; 2026 DueCare AI</span><span>v0.4 &middot; public hub draft</span></div></div></footer></body></html>
+{% include "_footer.html" %}
+</body></html>

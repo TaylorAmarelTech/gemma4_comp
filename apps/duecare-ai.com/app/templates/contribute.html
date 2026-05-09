@@ -8,27 +8,14 @@
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%230E1116'/%3E%3Ctext x='16' y='21' text-anchor='middle' font-family='monospace' font-weight='700' font-size='14' fill='%23F7F6F1'%3ED%3C/text%3E%3C/svg%3E" />
 </head>
 <body>
-<nav class="nav">
-  <div class="nav-inner">
-    <a href="/" class="brand"><span class="brand-mark">D</span> DueCare AI</a>
-    <div class="nav-links">
-      <a href="/demo">Demo</a>
-      <a href="/use-cases">Use cases</a>
-      <a href="/hub">Hub</a>
-      <a href="/docs">Docs</a>
-      <a href="/stats">Stats</a>
-    </div>
-    <a href="/login?next=/contribute" class="nav-cta">Get involved <span aria-hidden="true">&rarr;</span></a>
-  </div>
-</nav>
-
+{% include "_nav.html" %}
 <section class="page-intro first" data-screen-label="Contribute · Intro">
   <div class="wrap">
     <div class="crumbs"><a href="/">Home</a><span class="sep">/</span><span>Contribute</span></div>
     <span class="kicker">/contribute · public-source proposals only</span>
     <h1>Improve the public knowledge. Keep cases out.</h1>
     <p class="lede">All contributions are public-source proposals. They start as <code>proposed</code>,
-      go through PII scan and curator review, and only then become signed packs.
+      go through PII scan and curator review, and only then become vetted packs.
       The form below will block obvious case content before submission.</p>
   </div>
 </section>
@@ -41,7 +28,7 @@
       <div class="stage"><span class="lab">Step 01</span><h5>Submit proposal</h5><p>Public-source URL, summary, jurisdiction. No raw case content.</p><div class="arrow-r"></div></div>
       <div class="stage boundary"><span class="lab">Step 02 · boundary</span><h5>Automated PII scan</h5><p>Edge filter rejects emails, phones, ID-like strings, and free-text case content.</p><div class="arrow-r"></div></div>
       <div class="stage"><span class="lab">Step 03</span><h5>Curator review</h5><p>Signed-in curator inspects the proposed diff against the public source.</p><div class="arrow-r"></div></div>
-      <div class="stage"><span class="lab">Step 04</span><h5>Signed pack</h5><p>Curator signs; checksum updated; manifest references previous version.</p><div class="arrow-r"></div></div>
+      <div class="stage"><span class="lab">Step 04</span><h5>Vetted pack</h5><p>Curator signs; checksum updated; manifest references previous version.</p><div class="arrow-r"></div></div>
       <div class="stage"><span class="lab">Step 05</span><h5>Client sync</h5><p>Local deployments pull the new signed version on next sync.</p></div>
     </div>
   </div>
@@ -56,7 +43,7 @@
       <div class="role-card on" data-track="context"><span class="glyph">C</span><h4>Context update</h4><p>Public advisory, jurisdiction rule, or corridor reference.</p></div>
       <div class="role-card" data-track="grep"><span class="glyph">R</span><h4>Grep rule</h4><p>Deterministic safety rule with target false-positive ≤ 2%.</p></div>
       <div class="role-card" data-track="tool"><span class="glyph">T</span><h4>Tool proposal</h4><p>Local-only tool spec with safety boundary + draft-only behavior.</p></div>
-      <div class="role-card" data-track="contact"><span class="glyph">D</span><h4>Contact directory</h4><p>Verified NGO / regulator / hotline update — public registries only.</p></div>
+      <div class="role-card" data-track="contact"><span class="glyph">D</span><h4>Contact directory</h4><p>Verified NGO / regulator / hotline update. public registries only.</p></div>
       <div class="role-card" data-track="rubric"><span class="glyph">U</span><h4>Rubric</h4><p>Eval rubric for grading model answers.</p></div>
       <div class="role-card" data-track="prompt"><span class="glyph">P</span><h4>Eval prompt</h4><p>Composite-only evaluation prompt (no real PII).</p></div>
       <div class="role-card" data-track="partner"><span class="glyph">N</span><h4>Partner sign-up</h4><p>NGO / regulator / researcher partner registration.</p></div>
@@ -122,33 +109,26 @@
       <div class="card">
         <span class="label">Privacy promise</span>
         <h4 style="margin-top:8px;">Privacy is non-negotiable.</h4>
-        <p class="muted" style="font-size:13px;margin-top:6px;">If your contribution is a draft on behalf of a worker, run it through the local Duecare instead — case content stays on your device, and you keep control of every artifact.</p>
+        <p class="muted" style="font-size:13px;margin-top:6px;">If your contribution is a draft on behalf of a worker, run it through the local Duecare instead. case content stays on your device, and you keep control of every artifact.</p>
         <a href="/setup" style="font-family:var(--mono);font-size:12px;border-bottom:1px dashed var(--ink-3);margin-top:10px;display:inline-block;">Local setup →</a>
       </div>
       <div class="card">
         <span class="label">After you submit</span>
         <h4 style="margin-top:8px;">Track your proposal</h4>
-        <p class="muted" style="font-size:13px;margin-top:6px;">All proposals are visible publicly at <code>/submissions</code> with current review status — no PII, only metadata.</p>
+        <p class="muted" style="font-size:13px;margin-top:6px;">All proposals are visible publicly at <code>/submissions</code> with current review status. no PII, only metadata.</p>
         <a href="/submissions" class="btn btn-ghost" style="margin-top:10px;">Browse submissions →</a>
       </div>
     </aside>
   </div>
 </section>
 
-<footer><div class="wrap"><div class="foot-grid">
-<div><a href="/" class="brand"><span class="brand-mark">D</span> DueCare AI</a><p class="muted" style="font-size:14px;max-width:38ch;margin-top:8px;">Public-interest AI infrastructure for migrant-worker safety. <a href="/mission" style="color:inherit;text-decoration:underline;">Read the mission &rarr;</a></p></div>
-<div><h4>Hub</h4><ul><li><a href="/hub">Overview</a></li><li><a href="/knowledge-packs">Knowledge packs</a></li><li><a href="/tools-registry">Tools registry</a></li><li><a href="/research-monitor">Research monitor</a></li></ul></div>
-<div><h4>Docs</h4><ul><li><a href="/docs">Overview</a></li><li><a href="/technical-docs">Schemas</a></li><li><a href="/components">Architecture</a></li><li><a href="/why-gemma">Why Gemma 4</a></li><li><a href="/evaluation">Eval &amp; retraining</a></li><li><a href="/harness">Safety harness</a></li><li><a href="/setup">Setup guides</a></li><li><a href="/privacy-boundary">Privacy boundary</a></li></ul></div>
-<div><h4>Get involved</h4><ul><li><a href="/submit-information">Submit info</a></li><li><a href="/newsletter">Newsletter</a></li><li><a href="/email-feedback">Email feedback</a></li><li><a href="/alerts">Alerts archive</a></li><li><a href="/contribute">Contribute</a></li></ul></div>
-<div><h4>Verify</h4><ul><li><a href="/stats">Stats &amp; audit</a></li><li><a href="/dashboard">Live data</a></li><li><a href="/mission">Mission</a></li><li><a href="/contact">Contact</a></li></ul></div>
-</div><div class="foot-bottom"><span>&copy; 2026 DueCare AI</span><span>v0.4 &middot; public hub draft</span></div></div></footer>
-
+{% include "_footer.html" %}
 <script>
 const tracks = {
   context: {t:"Public-source context update", s:"Add a new public-source advisory, jurisdiction rule, or corridor reference. The hub will scan and queue your proposal."},
   grep:    {t:"Grep rule proposal", s:"Propose a deterministic safety rule. Provide regex/heuristic, cited rationale, and target false-positive rate ≤ 2%."},
   tool:    {t:"Tool proposal", s:"Propose a local-only tool. Specify inputs, outputs, safety boundary, and confirm draft-only behavior."},
-  contact: {t:"Verified contact update", s:"Add or update a vetted NGO / regulator / hotline contact in a public registry. Public URLs only — never worker contacts."},
+  contact: {t:"Verified contact update", s:"Add or update a vetted NGO / regulator / hotline contact in a public registry. Public URLs only. never worker contacts."},
   rubric:  {t:"Eval rubric proposal", s:"Propose a rubric for grading model answers (grounding, citation, refusal correctness)."},
   prompt:  {t:"Evaluation prompt proposal", s:"Propose a composite-only evaluation prompt. Real PII is rejected by the scanner."},
   partner: {t:"Partner organization sign-up", s:"Register your NGO / regulator / research org as a Duecare partner. Get a deployment ID."},

@@ -128,7 +128,7 @@
     .flow { grid-template-columns: 1fr; gap: 14px; }
   }
 
-  /* node — base */
+  /* node. base */
   .node {
     background: var(--paper);
     border: 1px solid var(--line);
@@ -160,7 +160,7 @@
   .node.boundary .role { color: oklch(0.42 0.10 45); }
   .node.output { background: var(--paper); border-color: var(--ink-3); }
   .node.dataset { background: var(--paper-2); border-style: dashed; }
-  /* external = off-device / outside the runtime perimeter — soft gray, not black */
+  /* external = off-device / outside the runtime perimeter. soft gray, not black */
   .node.external { background: var(--paper-3); border-color: var(--ink-4); border-style: dashed; }
   .node.external .role { color: var(--ink-3); }
   .node.external .sub { color: var(--ink-2); }
@@ -185,7 +185,7 @@
     .arrow svg { transform: rotate(90deg); }
   }
 
-  /* second-row sub-block under runtime node — used to expose internal pieces */
+  /* second-row sub-block under runtime node. used to expose internal pieces */
   .runtime-detail {
     border: 1px dashed var(--line);
     border-radius: 10px;
@@ -388,28 +388,16 @@
 </head>
 <body>
 
-<nav class="nav">
-  <div class="nav-inner">
-    <a href="/" class="brand"><span class="brand-mark">D</span> DueCare AI</a>
-    <div class="nav-links">
-      <a href="/demo">Demo</a>
-      <a href="/use-cases">Use cases</a>
-      <a href="/hub">Hub</a>
-      <a href="/docs" class="on">Docs</a>
-      <a href="/stats">Stats</a>
-    </div>
-    <a href="/login?next=/contribute" class="nav-cta">Get involved <span aria-hidden="true">&rarr;</span></a>
-  </div>
-</nav>
-
+{% set active_nav = "docs" %}
+{% include "_nav.html" %}
 <!-- INTRO -->
 <section class="dep-intro" data-screen-label="Deploy · Intro">
   <div class="wrap">
     <span class="kicker">/deployments · reference architectures</span>
     <h1>One system, <span class="accent">four ways to deploy it.</span></h1>
     <p class="lede">There is no single architecture diagram that covers every
-      use case honestly. Each context — enterprise platform moderation, NGO
-      caseworker support, anonymized data sharing, public chatbot — has
+      use case honestly. Each context. enterprise platform moderation, NGO
+      caseworker support, anonymized data sharing, public chatbot. has
       different inputs, different privacy boundaries, and different things
       that can or cannot leave the runtime. This page documents each one
       separately, plus a note on how the underlying model is tuned.</p>
@@ -463,7 +451,7 @@
         <div class="node input">
           <span class="role">Input</span>
           <span class="name">Platform content stream</span>
-          <span class="sub">Messages, posts, listings, attachments — flowing through the platform's existing pipeline.</span>
+          <span class="sub">Messages, posts, listings, attachments. flowing through the platform's existing pipeline.</span>
         </div>
         <div class="arrow"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 10h14m0 0l-5-5m5 5l-5 5"/></svg></div>
         <div class="node runtime">
@@ -482,7 +470,7 @@
       <div class="runtime-detail">
         <h4>Inside the runtime (platform VPC)</h4>
         <div class="pieces">
-          <div class="piece"><span class="lbl">Model</span>Gemma 4 — local inference</div>
+          <div class="piece"><span class="lbl">Model</span>Gemma 4. local inference</div>
           <div class="piece"><span class="lbl">Guidance</span>Persona, GREP rules, RAG</div>
           <div class="piece"><span class="lbl">Packs</span>Platform-specific rule packs</div>
           <div class="piece"><span class="lbl">Tests</span>Quality testing on every pack update</div>
@@ -543,7 +531,7 @@
         <div class="node runtime">
           <span class="role">Runtime · on device</span>
           <span class="name">Duecare local runtime</span>
-          <span class="sub">Model + guidance + signed packs. All inference is local.</span>
+          <span class="sub">Model + guidance + vetted packs. All inference is local.</span>
         </div>
         <div class="arrow"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 10h14m0 0l-5-5m5 5l-5 5"/></svg></div>
         <div class="node output">
@@ -556,10 +544,10 @@
       <div class="runtime-detail">
         <h4>Inside the runtime (caseworker's device)</h4>
         <div class="pieces">
-          <div class="piece"><span class="lbl">Model</span>Gemma 4 — local inference</div>
+          <div class="piece"><span class="lbl">Model</span>Gemma 4. local inference</div>
           <div class="piece"><span class="lbl">Guidance</span>Persona, GREP rules, RAG</div>
           <div class="piece"><span class="lbl">Packs</span>Signed corridor &amp; jurisdiction packs</div>
-          <div class="piece"><span class="lbl">Updates</span>Pack pulls only — no case push</div>
+          <div class="piece"><span class="lbl">Updates</span>Pack pulls only. no case push</div>
         </div>
       </div>
 
@@ -596,12 +584,12 @@
         <h2>NGO implementation with anonymized data sharing</h2>
         <p>An NGO that runs Duecare locally (as in deployment 02) and
           additionally opts in to contributing anonymized
-          signals — coarse patterns, not cases — to a shared insights
+          signals. anonymized patterns, not cases. to a shared insights
           server. The local anonymization module is the gate; only k-anonymous,
           identifier-stripped signals can leave the device.</p>
         <dl class="meta-row">
           <dt>Where it runs</dt><dd>On-device runtime, plus an opt-in signal channel to a shared insights server.</dd>
-          <dt>What's exposed</dt><dd>Only k-anonymous, identifier-stripped signals — never case content.</dd>
+          <dt>What's exposed</dt><dd>Only k-anonymous, identifier-stripped signals. never case content.</dd>
           <dt>What it returns</dt><dd>The same local draft as deployment 02; sharing is purely additive.</dd>
         </dl>
       </div>
@@ -635,7 +623,7 @@
           <div class="node runtime">
             <span class="role">Same runtime · on device</span>
             <span class="name">Duecare local runtime</span>
-            <span class="sub">Identifies coarse patterns (e.g. fee anomaly type X in jurisdiction Y).</span>
+            <span class="sub">Identifies anonymized patterns (e.g. fee anomaly type X in jurisdiction Y).</span>
           </div>
           <div class="arrow"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 10h14m0 0l-5-5m5 5l-5 5"/></svg></div>
           <div class="node boundary">
@@ -658,13 +646,13 @@
         <div class="leaves-card leaves">
           <h4>What may leave (opt-in only)</h4>
           <ul>
-            <li>Coarse pattern type (no free text)</li>
+            <li>Anonymized pattern type (no free text)</li>
             <li>Jurisdiction-level location (no precise location)</li>
             <li>K-anonymous bucket counts</li>
           </ul>
         </div>
         <div class="leaves-card never">
-          <h4>Never leaves — even with opt-in</h4>
+          <h4>Never leaves. even with opt-in</h4>
           <ul>
             <li>Worker / claimant names or IDs</li>
             <li>Employer or recruiter names</li>
@@ -734,7 +722,7 @@
         <div class="leaves-card stays">
           <h4>Handled at endpoint</h4>
           <ul>
-            <li>Cited drafts based on signed packs</li>
+            <li>Cited drafts based on vetted packs</li>
             <li>Out-of-scope refusals with reason</li>
             <li>Pack-version stamps on every reply</li>
           </ul>
@@ -744,7 +732,7 @@
           <ul>
             <li>File complaints, send messages, or call services</li>
             <li>Store raw user messages past retention</li>
-            <li>Answer without a relevant signed pack</li>
+            <li>Answer without a relevant vetted pack</li>
           </ul>
         </div>
       </div>
@@ -759,7 +747,7 @@
     <p class="lede">An order-of-magnitude comparison of the per-million-token
       cost of using a hosted commercial LLM API versus running Duecare's
       self-hosted Gemma 4 runtime for a moderation-style workload. Numbers
-      are placeholders pending our own benchmark — see caveat below.</p>
+      are placeholders pending our own benchmark. see caveat below.</p>
 
     <div class="cost-table-wrap">
       <table class="cost-table">
@@ -824,12 +812,12 @@
       <strong>Why this matters for platform safety:</strong> moderation
       workloads are high-throughput. At platform-scale token volumes, the
       gap between a hosted API and a self-hosted small model compounds
-      quickly — and an in-VPC deployment removes the privacy carve-outs
+      quickly. and an in-VPC deployment removes the privacy carve-outs
       that hosted APIs require for sensitive content streams.
     </div>
 
     <p class="caveat">
-      Caveat — these ranges are illustrative, not authoritative. Hosted
+      Caveat. these ranges are illustrative, not authoritative. Hosted
       API prices change frequently and vary by tier, region, and contract.
       Self-hosted amortized cost depends heavily on GPU choice, batch size,
       utilization, and electricity. We will publish a benchmark with
@@ -844,9 +832,9 @@
 <section class="tuning-section" id="tuning" data-screen-label="Deploy · Tuning">
   <div class="wrap">
     <h2>How the model is tuned (and when it's not)</h2>
-    <p class="lede">For most deployments, no fine-tuning is required — the
+    <p class="lede">For most deployments, no fine-tuning is required. the
       base Gemma 4 model is steered by the safety guidance layer (persona,
-      GREP rules, RAG over signed packs). Fine-tuning is reserved for
+      GREP rules, RAG over vetted packs). Fine-tuning is reserved for
       cases where the safety guidance layer cannot reach acceptable
       behavior on its own, and is always followed by the full quality
       testing framework.</p>
@@ -856,7 +844,7 @@
         <div class="node input">
           <span class="role">Input · public only</span>
           <span class="name">Curated public material</span>
-          <span class="sub">Laws, advisories, judgments — passed through the local anonymization module before training.</span>
+          <span class="sub">Laws, advisories, judgments. passed through the local anonymization module before training.</span>
         </div>
         <div class="arrow"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 10h14m0 0l-5-5m5 5l-5 5"/></svg></div>
         <div class="node dataset">
@@ -901,13 +889,6 @@
   </div>
 </section>
 
-<footer><div class="wrap"><div class="foot-grid">
-<div><a href="/" class="brand"><span class="brand-mark">D</span> DueCare AI</a><p class="muted" style="font-size:14px;max-width:38ch;margin-top:8px;">Public-interest AI infrastructure for migrant-worker safety. <a href="/mission" style="color:inherit;text-decoration:underline;">Read the mission &rarr;</a></p></div>
-<div><h4>Hub</h4><ul><li><a href="/hub">Overview</a></li><li><a href="/knowledge-packs">Knowledge packs</a></li><li><a href="/tools-registry">Tools registry</a></li><li><a href="/research-monitor">Research monitor</a></li></ul></div>
-<div><h4>Docs</h4><ul><li><a href="/docs">Overview</a></li><li><a href="/technical-docs">Schemas</a></li><li><a href="/components">Architecture</a></li><li><a href="/why-gemma">Why Gemma 4</a></li><li><a href="/evaluation">Eval &amp; retraining</a></li><li><a href="/harness">Safety harness</a></li><li><a href="/setup">Setup guides</a></li><li><a href="/privacy-boundary">Privacy boundary</a></li></ul></div>
-<div><h4>Get involved</h4><ul><li><a href="/submit-information">Submit info</a></li><li><a href="/newsletter">Newsletter</a></li><li><a href="/email-feedback">Email feedback</a></li><li><a href="/alerts">Alerts archive</a></li><li><a href="/contribute">Contribute</a></li></ul></div>
-<div><h4>Verify</h4><ul><li><a href="/stats">Stats &amp; audit</a></li><li><a href="/dashboard">Live data</a></li><li><a href="/mission">Mission</a></li><li><a href="/contact">Contact</a></li></ul></div>
-</div><div class="foot-bottom"><span>&copy; 2026 DueCare AI</span><span>v0.4 &middot; public hub draft</span></div></div></footer>
-
+{% include "_footer.html" %}
 </body>
 </html>

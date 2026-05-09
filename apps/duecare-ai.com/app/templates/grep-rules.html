@@ -153,20 +153,8 @@
 </head>
 <body>
 
-<nav class="nav">
-  <div class="nav-inner">
-    <a href="/" class="brand"><span class="brand-mark">D</span> DueCare AI</a>
-    <div class="nav-links">
-      <a href="/demo">Demo</a>
-      <a href="/use-cases">Use cases</a>
-      <a href="/hub">Hub</a>
-      <a href="/docs" class="on">Docs</a>
-      <a href="/stats">Stats</a>
-    </div>
-    <a href="/login?next=/contribute" class="nav-cta">Get involved <span aria-hidden="true">&rarr;</span></a>
-  </div>
-</nav>
-
+{% set active_nav = "docs" %}
+{% include "_nav.html" %}
 <section class="page-intro first" data-screen-label="Grep rules · Intro">
   <div class="wrap">
     <span class="kicker">/grep-rules · deterministic safety layer</span>
@@ -312,7 +300,7 @@
           <span class="count">44 rules</span>
         </div>
         <h3>Patterns indicating force or threat.</h3>
-        <p class="desc">Highest-priority signals. When fired, the runtime widens citation scope and biases output toward referral language — never auto-action.</p>
+        <p class="desc">Highest-priority signals. When fired, the runtime widens citation scope and biases output toward referral language. never auto-action.</p>
         <div class="rules-list">
           <div class="rule-row"><span class="id">R-401</span><span class="desc">movement_restriction</span></div>
           <div class="rule-row"><span class="id">R-414</span><span class="desc">debt_bondage_signal</span></div>
@@ -347,7 +335,7 @@
         <h2 style="margin-top: 12px;">Every rule is one auditable file.</h2>
       </div>
       <p class="meta">Rules are TOML files in the public repo. Pattern, scope, citations,
-        confidence threshold, and required model behavior — all in one place.</p>
+        confidence threshold, and required model behavior. all in one place.</p>
     </div>
 
     <div class="code-block">
@@ -397,8 +385,8 @@
         <span class="pill privacy" style="margin-bottom: 16px;"><span class="dot"></span>Privacy boundary</span>
         <h2 style="font-size: 32px; max-width: 22ch;">The grep layer is local, always.</h2>
         <p>No grep rule fires on the hub. No matched text, classification result, or
-          confidence score is ever sent upstream. The only thing that can — optionally —
-          cross the boundary is a coarse aggregated <em>pattern_id × corridor × sector</em>
+          confidence score is ever sent upstream. The only thing that can. optionally —
+          cross the boundary is a anonymized aggregated <em>pattern_id × corridor × sector</em>
           tuple, after the anonymizer gate.</p>
         <p style="margin-top: 8px;"><strong>Privacy is non-negotiable.</strong></p>
       </div>
@@ -413,13 +401,6 @@
   </div>
 </section>
 
-<footer><div class="wrap"><div class="foot-grid">
-<div><a href="/" class="brand"><span class="brand-mark">D</span> DueCare AI</a><p class="muted" style="font-size:14px;max-width:38ch;margin-top:8px;">Public-interest AI infrastructure for migrant-worker safety. <a href="/mission" style="color:inherit;text-decoration:underline;">Read the mission &rarr;</a></p></div>
-<div><h4>Hub</h4><ul><li><a href="/hub">Overview</a></li><li><a href="/knowledge-packs">Knowledge packs</a></li><li><a href="/tools-registry">Tools registry</a></li><li><a href="/research-monitor">Research monitor</a></li></ul></div>
-<div><h4>Docs</h4><ul><li><a href="/docs">Overview</a></li><li><a href="/technical-docs">Schemas</a></li><li><a href="/components">Architecture</a></li><li><a href="/why-gemma">Why Gemma 4</a></li><li><a href="/evaluation">Eval &amp; retraining</a></li><li><a href="/harness">Safety harness</a></li><li><a href="/setup">Setup guides</a></li><li><a href="/privacy-boundary">Privacy boundary</a></li></ul></div>
-<div><h4>Get involved</h4><ul><li><a href="/submit-information">Submit info</a></li><li><a href="/newsletter">Newsletter</a></li><li><a href="/email-feedback">Email feedback</a></li><li><a href="/alerts">Alerts archive</a></li><li><a href="/contribute">Contribute</a></li></ul></div>
-<div><h4>Verify</h4><ul><li><a href="/stats">Stats &amp; audit</a></li><li><a href="/dashboard">Live data</a></li><li><a href="/mission">Mission</a></li><li><a href="/contact">Contact</a></li></ul></div>
-</div><div class="foot-bottom"><span>&copy; 2026 DueCare AI</span><span>v0.4 &middot; public hub draft</span></div></div></footer>
-
+{% include "_footer.html" %}
 </body>
 </html>
