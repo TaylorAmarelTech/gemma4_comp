@@ -199,7 +199,7 @@
           "automation drafts a concise review request",
           "stakeholder replies with public-source correction",
           "curator approves the diff",
-          "signed pack version is published",
+          "vetted pack version is published",
           "workers and NGOs pull the updated pack"
         ],
         "tool_call_plan": ["stakeholder_email.draft", "reply_intent.classify", "pack_diff.prepare", "release_gate.verify"],
