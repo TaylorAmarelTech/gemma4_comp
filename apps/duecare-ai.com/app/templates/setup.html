@@ -51,6 +51,31 @@
   }
   .setup-hero .toc ol li a:hover { color: var(--accent-ink); }
   .setup-hero .toc ol li a:hover .arrow { color: var(--accent-ink); }
+  .track-panel[hidden] { display: none; }
+  .track-panel {
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    background: var(--paper);
+    padding: 24px;
+    margin-top: 20px;
+  }
+  .track-panel .outcome {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--accent-ink);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 8px;
+  }
+  .track-panel .lane-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 14px 0 0;
+  }
+  .track-panel .lane-links a {
+    text-decoration: none;
+  }
 </style>
 </head>
 <body>
@@ -63,18 +88,19 @@
       <div>
         <span class="kicker">Choose your track</span>
         <h1>Get started in the right lane.</h1>
-        <p class="lede">Five tracks. Different inputs, different outputs, identical privacy
-          contract. Pick your role to see the exact commands, packages, and safe-use
-          checklist for your deployment.</p>
+        <p class="lede">DueCare has three jobs: prevent exploitation before it spreads,
+          assist victims and at-risk workers, and help stakeholders understand what is
+          happening and why. Pick the lane that matches your role to see the setup path,
+          docs, and first smoke check.</p>
       </div>
       <nav class="toc hero-toc" aria-label="Setup tracks on this page">
         <h3>On this page</h3>
         <ol>
           <li><a href="#roles" data-track="plat"><span>Platform safety</span><span class="arrow">→</span></a></li>
           <li><a href="#roles" data-track="ngo"><span>NGO &amp; regulator</span><span class="arrow">→</span></a></li>
-          <li><a href="#roles" data-track="worker"><span>Migrant worker chat</span><span class="arrow">→</span></a></li>
-          <li><a href="#roles" data-track="research"><span>Academic research</span><span class="arrow">→</span></a></li>
-          <li><a href="#roles" data-track="dev"><span>Developer</span><span class="arrow">→</span></a></li>
+          <li><a href="#roles" data-track="worker"><span>Individual worker / mobile</span><span class="arrow">→</span></a></li>
+          <li><a href="#roles" data-track="research"><span>Researcher</span><span class="arrow">→</span></a></li>
+          <li><a href="#roles" data-track="dev"><span>Developer / integration partner</span><span class="arrow">→</span></a></li>
         </ol>
       </nav>
     </div>
@@ -97,18 +123,18 @@
       </button>
       <button class="role-card" type="button" role="tab" aria-selected="false" aria-controls="track-details" data-role="worker">
         <span class="glyph">03</span>
-        <span class="role-title">Migrant worker chat</span>
-        <span class="role-desc">On-device sibling app. Pasted messages and chat history never leave the phone.</span>
+        <span class="role-title">Individual worker / mobile</span>
+        <span class="role-desc">On-device sibling app for guidance, journaling, evidence organization, and safety planning.</span>
       </button>
       <button class="role-card" type="button" role="tab" aria-selected="false" aria-controls="track-details" data-role="research">
         <span class="glyph">04</span>
-        <span class="role-title">Academic research</span>
-        <span class="role-desc">Cite-able pack hashes, evaluation packs, benchmark notebooks, rubric proposals.</span>
+        <span class="role-title">Researcher</span>
+        <span class="role-desc">Cite-able pack hashes, evaluation packs, benchmark notebooks, trend signals, and rubric proposals.</span>
       </button>
       <button class="role-card" type="button" role="tab" aria-selected="false" aria-controls="track-details" data-role="dev">
-        <span class="glyph">D</span>
-        <span class="role-title">Developer</span>
-        <span class="role-desc">API endpoints, manifests, client snippets, version pinning.</span>
+        <span class="glyph">05</span>
+        <span class="role-title">Developer / integration partner</span>
+        <span class="role-desc">API endpoints, pack registry, client snippets, version pinning, and custom integrations.</span>
       </button>
     </div>
   </div>
@@ -120,68 +146,145 @@
       <div class="section-head" style="grid-template-columns:1fr;margin-bottom:24px;">
         <div>
           <span class="label">Setup track</span>
-          <h2 id="trackTitle" style="margin-top:8px;">NGO / caseworker</h2>
-          <p class="muted" id="trackLede" style="margin-top:8px;font-size:15px;">Run Duecare locally. Pull vetted corridor packs, draft complaints with citations, route to verified contacts. Never upload case content.</p>
+          <h2 id="trackTitle" style="margin-top:8px;">01 · Platform safety</h2>
+          <p class="muted" id="trackLede" style="margin-top:8px;font-size:15px;">Prevention lane: screen recruitment and platform content before harm spreads, then hand explained risk signals to your existing review workflow.</p>
         </div>
       </div>
 
-      <div class="stepper" style="--steps:4;">
-        <div class="step">
-          <span class="num">Read the safe-use checklist</span>
-          <h4>Confirm what stays local</h4>
-          <p>Worker messages, names, IDs, employer details, decision logs. all stay on your device. The hub never accepts these fields.</p>
+      <div class="track-panel" data-panel="plat">
+        <div class="outcome">Outcome · prevent exploitation before it spreads</div>
+        <h3>Platform safety setup</h3>
+        <p class="muted" style="margin-top:8px;">Use the classifier and rule packs before harmful recruitment content reaches workers. Your moderation queue decides what action to take.</p>
+        <div class="stepper" style="--steps:3;margin-top:20px;">
+          <div class="step"><span class="num">Run the stack</span><h4>Start local services</h4><p>Use the repo lifecycle target for the chat and classifier services.</p></div>
+          <div class="step"><span class="num">Connect review flow</span><h4>Post content to the classifier API</h4><p>Use the enterprise API guide for the structured risk envelope.</p></div>
+          <div class="step"><span class="num">Escalate internally</span><h4>Moderators stay in control</h4><p>DueCare flags and explains; your existing trust-and-safety workflow acts.</p></div>
         </div>
-        <div class="step">
-          <span class="num">Install the local runtime</span>
-          <h4>One command, no cloud account</h4>
-          <p>Single binary or pip package. Runs the Gemma 4 + Duecare Harness on a partner laptop. Air-gap-friendly.</p>
+        <div class="code-block" style="margin-top:20px;">
+          <div class="code-bar"><span>shell · platform pilot</span><button class="copy" onclick="copyBlock(this)">Copy</button></div>
+<pre><span class="tok-fn">git</span> clone https://github.com/TaylorAmarelTech/gemma4_comp
+<span class="tok-fn">cd</span> gemma4_comp
+<span class="tok-fn">make</span> demo
+<span class="tok-fn">make</span> doctor
+
+<span class="tok-c"># API shape: POST /api/classifier/evaluate</span>
+<span class="tok-c"># See docs/deployment_enterprise.md before wiring production traffic.</span></pre>
         </div>
-        <div class="step">
-          <span class="num">Pull vetted packs</span>
-          <h4>Corridor + jurisdiction context</h4>
-          <p>Pull the corridor packs you need (e.g. <code>qa-np</code>, <code>sa-id</code>). Verify checksums before using.</p>
-        </div>
-        <div class="step">
-          <span class="num">Optional: register as partner</span>
-          <h4>Deployment ID + audit feed</h4>
-          <p>Register your org's deployment ID for pull-history audit. Caseworker work continues to run locally.</p>
+        <div class="lane-links">
+          <a class="badge" href="/client-connect">Client connect</a>
+          <a class="badge" href="https://github.com/TaylorAmarelTech/gemma4_comp/blob/master/docs/deployment_enterprise.md">Enterprise API guide</a>
+          <a class="badge" href="https://github.com/TaylorAmarelTech/gemma4_comp/blob/master/docs/scenarios/enterprise_pilot.md">Platform pilot scenario</a>
         </div>
       </div>
 
-      <h3 style="margin-top:48px;margin-bottom:14px;font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:var(--ink-3);">Local install</h3>
-      <div class="code-block">
-        <div class="code-bar">
-          <span>shell · macOS / Linux</span>
-          <button class="copy" onclick="copyBlock(this)">Copy</button>
+      <div class="track-panel" data-panel="ngo" hidden>
+        <div class="outcome">Outcome · assist victims and at-risk workers</div>
+        <h3>NGO &amp; regulator setup</h3>
+        <p class="muted" style="margin-top:8px;">Run DueCare on an office edge box for case intake, triage, document bundles, referrals, and regulator pattern review.</p>
+        <div class="stepper" style="--steps:3;margin-top:20px;">
+          <div class="step"><span class="num">Install edge box</span><h4>Mac mini, NUC, or office PC</h4><p>The edge example includes Docker Compose, mDNS, backup, and caseworker onboarding.</p></div>
+          <div class="step"><span class="num">Open on LAN</span><h4>Use duecare.local</h4><p>Caseworkers use office browsers or Android phones connected to the office model endpoint.</p></div>
+          <div class="step"><span class="num">Operate safely</span><h4>Back up and review</h4><p>Use doctor and backup targets before pilots with real case teams.</p></div>
         </div>
-<pre><span class="tok-c"># pull and verify the latest vetted runtime</span>
-<span class="tok-fn">curl</span> -fsSL https://duecare-ai.com/install.sh | <span class="tok-fn">sh</span>
+        <div class="code-block" style="margin-top:20px;">
+          <div class="code-bar"><span>shell · NGO office edge</span><button class="copy" onclick="copyBlock(this)">Copy</button></div>
+<pre><span class="tok-fn">git</span> clone https://github.com/TaylorAmarelTech/gemma4_comp
+<span class="tok-fn">cd</span> gemma4_comp/examples/deployment/ngo-office-edge
+<span class="tok-fn">make</span> setup
+<span class="tok-fn">make</span> doctor
 
-<span class="tok-c"># pull the corridor pack you need (signed; verifies checksum)</span>
-<span class="tok-fn">duecare</span> packs pull <span class="tok-s">"corridor/qa-np@latest"</span>
-<span class="tok-fn">duecare</span> packs verify <span class="tok-s">"corridor/qa-np"</span>
-
-<span class="tok-c"># run the local harness; no network required after pull</span>
-<span class="tok-fn">duecare</span> harness run --offline --pack corridor/qa-np</pre>
+<span class="tok-c"># Caseworkers open the office endpoint:</span>
+http://duecare.local</pre>
+        </div>
+        <div class="lane-links">
+          <a class="badge" href="https://github.com/TaylorAmarelTech/gemma4_comp/blob/master/docs/scenarios/ngo-office-deployment.md">NGO office guide</a>
+          <a class="badge" href="https://github.com/TaylorAmarelTech/gemma4_comp/blob/master/examples/deployment/ngo-office-edge/README.md">Edge-box example</a>
+          <a class="badge" href="https://github.com/TaylorAmarelTech/gemma4_comp/blob/master/docs/scenarios/caseworker_workflow.md">Caseworker workflow</a>
+        </div>
       </div>
 
-      <h3 style="margin-top:32px;margin-bottom:14px;font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:var(--ink-3);">Pull the contact &amp; tools packs</h3>
-      <div class="code-block">
-        <div class="code-bar"><span>shell</span><button class="copy" onclick="copyBlock(this)">Copy</button></div>
-<pre><span class="tok-fn">duecare</span> packs pull <span class="tok-s">"contacts/qa-np"</span>
-<span class="tok-fn">duecare</span> packs pull <span class="tok-s">"tools/complaint-draft@1.4"</span>
-<span class="tok-fn">duecare</span> packs pull <span class="tok-s">"grep-rules/recruitment@stable"</span></pre>
+      <div class="track-panel" data-panel="worker" hidden>
+        <div class="outcome">Outcome · assist victims and at-risk workers</div>
+        <h3>Individual worker / mobile setup</h3>
+        <p class="muted" style="margin-top:8px;">Install DueCare Journey for plain-language guidance, journaling, evidence organization, and reports the worker chooses whether to share.</p>
+        <div class="stepper" style="--steps:3;margin-top:20px;">
+          <div class="step"><span class="num">Install APK</span><h4>No Play Store account required</h4><p>Download the latest Android release from the sibling app repository.</p></div>
+          <div class="step"><span class="num">First launch</span><h4>Choose journey + corridor</h4><p>The app asks for migration stage and corridor, then downloads the model on Wi-Fi.</p></div>
+          <div class="step"><span class="num">Use reports</span><h4>Worker chooses what to share</h4><p>Journal, advice, and reports are designed for worker-controlled sharing with trusted helpers.</p></div>
+        </div>
+        <div class="code-block" style="margin-top:20px;">
+          <div class="code-bar"><span>Android · latest APK</span><button class="copy" onclick="copyBlock(this)">Copy</button></div>
+<pre><span class="tok-c"># Open this on the Android phone:</span>
+https://github.com/TaylorAmarelTech/duecare-journey-android/releases
+
+<span class="tok-c"># Current documented APK:</span>
+duecare-journey-v0.9.0-twenty-corridors-new-rules.apk</pre>
+        </div>
+        <div class="lane-links">
+          <a class="badge" href="https://github.com/TaylorAmarelTech/gemma4_comp/blob/master/docs/scenarios/worker-self-help.md">Worker self-help guide</a>
+          <a class="badge" href="https://github.com/TaylorAmarelTech/gemma4_comp/blob/master/docs/architecture/duecare_mobile.md">Mobile architecture</a>
+          <a class="badge" href="https://github.com/TaylorAmarelTech/duecare-journey-android/releases">Android releases</a>
+        </div>
+      </div>
+
+      <div class="track-panel" data-panel="research" hidden>
+        <div class="outcome">Outcome · understand what is happening and why</div>
+        <h3>Researcher setup</h3>
+        <p class="muted" style="margin-top:8px;">Use the Kaggle notebooks, reproducibility docs, pack hashes, and validator scripts to study patterns and verify the submission.</p>
+        <div class="stepper" style="--steps:3;margin-top:20px;">
+          <div class="step"><span class="num">Start on Kaggle</span><h4>Open the core notebooks</h4><p>Judges start with the omni harness chat, then the focused live demo.</p></div>
+          <div class="step"><span class="num">Reproduce locally</span><h4>Run tests and validators</h4><p>Use the repo validator for notebook and evidence-surface checks.</p></div>
+          <div class="step"><span class="num">Cite provenance</span><h4>Pin versions</h4><p>Reports and notebooks should cite model, git SHA, and dataset/version inputs.</p></div>
+        </div>
+        <div class="code-block" style="margin-top:20px;">
+          <div class="code-bar"><span>shell · local verification</span><button class="copy" onclick="copyBlock(this)">Copy</button></div>
+<pre><span class="tok-fn">git</span> clone https://github.com/TaylorAmarelTech/gemma4_comp
+<span class="tok-fn">cd</span> gemma4_comp
+<span class="tok-fn">make</span> test
+<span class="tok-fn">python</span> scripts/validate_notebooks.py</pre>
+        </div>
+        <div class="lane-links">
+          <a class="badge" href="https://www.kaggle.com/code/taylorsamarel/duecare-harness-chat">Core Kaggle notebook</a>
+          <a class="badge" href="https://github.com/TaylorAmarelTech/gemma4_comp/blob/master/docs/FOR_PEER_REVIEW.md">Peer review guide</a>
+          <a class="badge" href="https://github.com/TaylorAmarelTech/gemma4_comp/blob/master/docs/REPO_LAYOUT.md">Repo layout</a>
+        </div>
+      </div>
+
+      <div class="track-panel" data-panel="dev" hidden>
+        <div class="outcome">Outcome · build across prevention, assistance, or understanding</div>
+        <h3>Developer / integration partner setup</h3>
+        <p class="muted" style="margin-top:8px;">Pull verified packs, pin versions, submit public-source improvements, or embed DueCare in your own app or workflow.</p>
+        <div class="stepper" style="--steps:3;margin-top:20px;">
+          <div class="step"><span class="num">List packs</span><h4>Use the public hub API</h4><p>Start with the live pack registry endpoint, then fetch a pinned version.</p></div>
+          <div class="step"><span class="num">Build locally</span><h4>Use examples and packages</h4><p>Choose Docker, package install, or source checkout depending on integration depth.</p></div>
+          <div class="step"><span class="num">Propose updates</span><h4>Send public-source proposals</h4><p>Use client submission endpoints for vetted public facts, not private case content.</p></div>
+        </div>
+        <div class="code-block" style="margin-top:20px;">
+          <div class="code-bar"><span>shell · public pack API</span><button class="copy" onclick="copyBlock(this)">Copy</button></div>
+<pre><span class="tok-fn">curl</span> -fsSL <span class="tok-s">"https://duecare-ai.com/api/hub/packs?latest_only=true"</span> \
+  -H <span class="tok-s">"accept: application/json"</span>
+
+<span class="tok-fn">curl</span> -fsSL https://duecare-ai.com/api/hub/packs/phl-kwt-domestic \
+  -H <span class="tok-s">"accept: application/json"</span>
+
+<span class="tok-c"># See /client-connect for POST /api/hub/client/submission.</span></pre>
+        </div>
+        <div class="lane-links">
+          <a class="badge" href="/client-connect">Client connect</a>
+          <a class="badge" href="https://github.com/TaylorAmarelTech/gemma4_comp/blob/master/docs/install.md">Install guide</a>
+          <a class="badge" href="https://github.com/TaylorAmarelTech/gemma4_comp/blob/master/examples/deployment/README.md">Deployment examples</a>
+        </div>
       </div>
     </div>
 
     <aside style="display:flex;flex-direction:column;gap:16px;">
       <div class="rail">
-        <span class="cap">Hard contract</span>
-        <h4>What leaves vs. what stays local</h4>
+        <span class="cap">Three outcomes</span>
+        <h4>Why the lanes exist</h4>
         <ul style="margin-top:10px;">
-          <li><strong>Stays local:</strong> case content, names, contacts, messages, decisions.</li>
-          <li><strong>May cross (anonymized, k≥30, opt-in):</strong> anonymized pattern_id, corridor, sector.</li>
-          <li><strong>Hub never accepts:</strong> raw text fields. Schema rejects them at the edge.</li>
+          <li><strong>Prevent:</strong> moderation and classifier paths stop risky content earlier.</li>
+          <li><strong>Assist:</strong> NGO, regulator, and mobile paths help workers and case teams.</li>
+          <li><strong>Understand:</strong> research paths explain who, what, where, when, and why.</li>
         </ul>
       </div>
       <div class="card">
@@ -195,8 +298,8 @@
         <h4 style="margin-top:8px;">Reproduce the eval</h4>
         <p style="font-size:13.5px;color:var(--ink-2);margin-top:8px;">Run the public harness on Kaggle to confirm your local results match.</p>
         <div class="row" style="margin-top:12px;">
-          <a href="#" class="badge verified">Kaggle</a>
-          <a href="#" class="badge">GitHub</a>
+          <a href="https://www.kaggle.com/code/taylorsamarel/duecare-harness-chat" class="badge verified">Kaggle</a>
+          <a href="https://github.com/TaylorAmarelTech/gemma4_comp" class="badge">GitHub</a>
           <a href="/docs" class="badge">API docs</a>
         </div>
       </div>
@@ -228,11 +331,11 @@
 {% include "_footer.html" %}
 <script>
 const tracks = {
-  plat:    { title: "01 · Platform safety",     lede: "Run grep rules + corridor packs against job-post copy at edit time. Aggregate flag rates may cross through the anonymizer. listing content never does." },
-  ngo:     { title: "02 · NGO & regulator",      lede: "Caseworkers triage with cited drafts; regulators see corridor-level trends. Cases, complainant identity, and inspection findings stay with the role that owns them." },
-  worker:  { title: "03 · Migrant worker chat", lede: "The mobile sibling runs Gemma 4 on-device. Pasted recruiter messages, names, contracts, and chat history never leave the phone. Optional opt-in anonymized signals only." },
-  research:{ title: "04 · Academic research",   lede: "Pull evaluation packs, run benchmark notebooks on Kaggle/GitHub, cite versions by hash, and submit prompt or rubric proposals to the public review queue." },
-  dev:     { title: "· Developer",             lede: "Pull vetted packs by manifest, pin versions, verify checksums. The API only serves knowledge. it does not accept raw cases." }
+  plat:     { title: "01 · Platform safety", lede: "Prevention lane: screen recruitment and platform content before harm spreads, then hand explained risk signals to your existing review workflow." },
+  ngo:      { title: "02 · NGO & regulator", lede: "Assistance lane: run case intake, triage, document preparation, referrals, and regulator pattern review on infrastructure your team controls." },
+  worker:   { title: "03 · Individual worker / mobile", lede: "Assistance lane: install the Android app for worker-controlled guidance, journaling, evidence organization, and safety planning." },
+  research: { title: "04 · Researcher", lede: "Understanding lane: use notebooks, packs, trend signals, and provenance records to explain what is happening and why." },
+  dev:      { title: "05 · Developer / integration partner", lede: "Cross-cutting lane: embed DueCare into your own prevention, assistance, or research workflow through APIs, packs, Docker, and examples." }
 };
 function selectTrack(role) {
   document.querySelectorAll('.role-card').forEach(x => {
@@ -245,6 +348,9 @@ function selectTrack(role) {
     document.getElementById('trackTitle').textContent = t.title;
     document.getElementById('trackLede').textContent = t.lede;
   }
+  document.querySelectorAll('.track-panel').forEach(panel => {
+    panel.hidden = panel.dataset.panel !== role;
+  });
 }
 document.querySelectorAll('.role-card').forEach(c => c.addEventListener('click', () => selectTrack(c.dataset.role)));
 document.querySelectorAll('.setup-hero .toc a[data-track]').forEach(a => a.addEventListener('click', () => selectTrack(a.dataset.track)));
