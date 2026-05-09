@@ -35,4 +35,12 @@ def detect_pii(text: str) -> set[str]:
     return findings
 
 
-__all__ = ["detect_pii"]
+def redact_pii(text: str) -> str:
+    """Replace detector-class PII with stable redaction tokens."""
+    redacted = _EMAIL_RE.sub("[REDACTED_EMAIL]", text)
+    redacted = _PHONE_RE.sub("[REDACTED_PHONE]", redacted)
+    redacted = _PASSPORT_RE.sub("[REDACTED_ID_DOCUMENT]", redacted)
+    return _ADDRESS_RE.sub("[REDACTED_STREET_ADDRESS]", redacted)
+
+
+__all__ = ["detect_pii", "redact_pii"]

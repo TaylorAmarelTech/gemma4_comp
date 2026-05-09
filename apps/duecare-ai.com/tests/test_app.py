@@ -284,6 +284,41 @@ def test_local_kb_ingest_and_list(tmp_path, monkeypatch) -> None:
     assert stats["n_cases"] >= 1
 
 
+def test_local_kb_redacts_pii_from_stored_summary(tmp_path, monkeypatch) -> None:
+    monkeypatch.setenv("DUECARE_LOCAL_KB", str(tmp_path / "local-kb-redact.db"))
+    monkeypatch.setenv("DUECARE_LOCAL_KB_SALT", "test-salt")
+
+    import importlib
+
+    from app import local_kb as _lk
+
+    importlib.reload(_lk)
+
+    client = TestClient(create_app(data_dir=tmp_path))
+    from app import main as _main
+
+    _main._kb = _lk.LocalKB(_lk.DEFAULT_KB_PATH)
+
+    response = client.post(
+        "/api/local-kb/ingest",
+        json={
+            "text": "Composite worker wrote worker@example.org and +1 555 123 4567 in a demo case about an agency named ExampleCo.",
+            "source_filename": "worker@example.org.txt",
+        },
+    )
+
+    assert response.status_code == 200
+    body = response.json()
+    assert "worker@example.org" not in body["summary"]
+    assert "+1 555 123 4567" not in body["summary"]
+    assert "[REDACTED_EMAIL]" in body["summary"]
+    assert "[REDACTED_PHONE]" in body["summary"]
+
+    stored = client.get(f"/api/local-kb/cases/{body['case_id']}").json()
+    assert "worker@example.org" not in stored["summary"]
+    assert stored["source_filename"] == "[REDACTED_EMAIL]"
+
+
 def test_local_kb_forget(tmp_path, monkeypatch) -> None:
     monkeypatch.setenv("DUECARE_LOCAL_KB", str(tmp_path / "local-kb-forget.db"))
 
