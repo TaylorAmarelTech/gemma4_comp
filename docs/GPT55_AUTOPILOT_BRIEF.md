@@ -18,10 +18,26 @@ stop. Do not rely on memory, summaries, or assumptions.
 
 ---
 
-## 1. Mission and rubric (the only thing that earns points)
+## 1. Mission, core outcomes, and rubric (the only thing that earns points)
 
-DueCare AI exists to **help migrant workers** across **five user
-lanes**. Every change must advance at least one of:
+DueCare AI exists to **help migrant workers and the institutions around
+them** through three core outcomes:
+
+1. **Prevent exploitation before it spreads** — help platforms,
+   recruitment marketplaces, and organizations detect illicit recruitment,
+   coercion, scams, illegal-fee language, document-retention pressure, and
+   other exploitation patterns earlier.
+2. **Assist victims and at-risk workers** — help NGO, government, and
+   mobile workflows intake cases, organize evidence, guide workers, draft
+   safer responses, prepare referral paths, and support case teams.
+3. **Understand what is happening and why** — help researchers,
+   regulators, advocates, journalists, and partners see the who, what,
+   where, when, and why behind exploitation patterns through notebooks,
+   knowledge packs, trend signals, provenance, and shared analysis.
+
+The five website lanes are complementary setup and navigation paths under
+those outcomes, not a competing top-level story. Every change must advance
+at least one of:
 
 1. **Impact & Vision (40 pts)** — the path from this code to better
    outcomes for migrant workers must become more concrete and more
@@ -41,7 +57,20 @@ it**. Do not chase tidiness for its own sake.
 
 ---
 
-## 2. The five lanes (canonical taxonomy — preserve everywhere)
+## 2. Three outcomes + five lanes (canonical taxonomy — preserve everywhere)
+
+The project pitch, README introduction, homepage hero, demo narration, and
+mission statement should lead with the **three core outcomes** above. The
+website setup flow and docs navigation should then route users through the
+**five lanes** below.
+
+| Lane | Main outcome | Role |
+|---|---|---|
+| **Platform safety** | Prevention | Stop suspicious recruitment, scams, coercion, and illicit coordination earlier. |
+| **NGO & regulator** | Assistance | Intake, triage, case-building, referrals, and enforcement support. |
+| **Individual worker / mobile** | Assistance | Give workers direct guidance, journaling, evidence organization, and safety planning. |
+| **Researcher** | Understanding | Explain patterns, evaluate models, and publish reproducible findings. |
+| **Developer / integration partner** | Cross-cutting | Build custom deployments for prevention, assistance, or research. |
 
 The public website is the alignment anchor. The five lanes, in this
 exact order, in this exact wording:
@@ -55,7 +84,10 @@ exact order, in this exact wording:
 | 05 | **Developer / integration partner** | Teams embedding into WhatsApp, Messenger, dashboards, internal tools | API client, pack registry, Docker | Pulls verified packs; proposes; never pushes raw cases |
 
 **Do not collapse this to two lanes.** NGO and mobile are not the
-whole product — they're two of five equally first-class lanes.
+whole product — they're two of five equally first-class lanes. Also do
+not replace the three-outcome pitch with a five-lane list in the hero;
+the outcomes explain why DueCare exists, and the lanes explain who uses
+it and how they start.
 
 Anchor surfaces (when these disagree about lane shape, fix the doc to
 match the website, not the other way):
@@ -72,9 +104,9 @@ selector.
 
 ---
 
-## 3. Privacy framing (concrete, not slogan)
+## 3. Data-boundary framing (supporting detail, not headline)
 
-Privacy is **one supporting boundary**, not the headline. The user
+Privacy and data handling are **supporting boundaries**, not the headline. The user
 explicitly rejected slogan-style framing
 (`feedback_no_privacy_emphasis.md` in memory). Stop using
 "Privacy is non-negotiable" as a tagline; reframe as concrete data
