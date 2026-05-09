@@ -1,9 +1,19 @@
 # Duecare — Notebook Index
 
-> Single-page reference for all 11 submission notebooks. For the full
-> 30-second / 2-minute / 5-minute verification paths, see
-> [`FOR_PEER_REVIEW.md`](./FOR_PEER_REVIEW.md). For the complete writeup, see
-> [`writeup_draft.md`](./writeup_draft.md).
+> Single-page reference for all 13 submission notebooks (2 core + 11
+> appendix). For the full 30-second / 2-minute / 5-minute verification
+> paths, see [`FOR_PEER_REVIEW.md`](./FOR_PEER_REVIEW.md). For the
+> complete writeup, see [`writeup_draft.md`](./writeup_draft.md).
+>
+> **Canonical mapping authority:** the "Submission shape" block right
+> below is the source of truth. The per-notebook detail sections
+> further down preserve their **original April-2026 section numbering**
+> (when the project briefly used a 6-core / 5-appendix split before
+> the 2-core / 11-appendix re-numbering). The notebook *folder* names
+> are correct; the section *header numbers* are historical. Use the
+> Submission shape block above, [`kaggle/_INDEX.md`](../kaggle/_INDEX.md),
+> or [`kaggle/README.md`](../kaggle/README.md) for the canonical
+> mapping when in doubt.
 
 ---
 

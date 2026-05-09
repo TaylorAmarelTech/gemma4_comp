@@ -602,16 +602,26 @@ gemma4_comp/
 │   ├── duecare-llm-cli/          # the `duecare` CLI
 │   └── duecare-llm/              # meta package (pulls in all 16 above)
 ├── kaggle/                       # Kaggle deliverables (per-notebook bundles)
-│   ├── live-demo/                # Notebook 1: kernel.py + wheels/*.whl
-│   ├── bench-and-tune/           # Notebook 2: kernel.py (TBD) + wheels/*.whl
-│   ├── gemma-chat/               # Notebook 3: kernel.py + wheels/*.whl
+│   ├── 01-duecare-harness-chat/  # CORE #01: omni playground (script kernel)
+│   ├── 02-live-demo/             # CORE #02: focused live URL
+│   ├── A-01-chat-playground/     # appendix: stock Gemma 4 baseline (no harness)
+│   ├── A-02-chat-playground-with-grep-rag-tools/  # appendix: 4-toggle subset
+│   ├── A-03-content-classification-playground/    # appendix: classifier sandbox
+│   ├── A-04-content-knowledge-builder-playground/ # appendix: KB builder
+│   ├── A-05-gemma-content-classification-evaluation/  # appendix: NGO dashboard
+│   ├── A-06-prompt-generation/   # appendix: Gemma generates eval prompts
+│   ├── A-07-bench-and-tune/      # appendix: Unsloth SFT/DPO/GGUF/HF Hub
+│   ├── A-08-research-graphs/     # appendix: 6 Plotly charts
+│   ├── A-09-chat-playground-with-agentic-research/  # appendix: Playwright BYOK
+│   ├── A-10-chat-playground-jailbroken-models/      # appendix: abliterated proof
+│   ├── A-11-grading-evaluation/  # appendix: lift regenerator
 │   ├── shared-datasets/          # cross-notebook: trafficking-prompts, eval-results
-│   ├── kernels/                  # the 76-notebook research pipeline (separate)
+│   ├── kernels/                  # the 77-notebook research pipeline (separate)
 │   └── models/                   # Kaggle Models artifacts
 ├── configs/duecare/              # YAML configuration (models, workflows, domains)
 ├── docs/                         # architecture, component docs, writeup, video script
 │   └── components/               # per-package component docs
-├── legacy_notebooks/             # legacy local .ipynb mirrors for the 76-notebook pipeline
+├── legacy_notebooks/             # legacy local .ipynb mirrors for the 77-notebook pipeline
 ├── scripts/                      # implementation + maintenance scripts
 ├── tests/                        # integration tests
 ├── pyproject.toml                # uv workspace root

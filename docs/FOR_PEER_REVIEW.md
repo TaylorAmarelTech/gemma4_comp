@@ -39,7 +39,7 @@ pre-stages the refund-claim packet.
 
 Same harness powers a **chat playground** for individual workers and
 a **structured-output classifier** for NGO triage dashboards. Ships
-as **2 core public Kaggle notebooks + 9 appendix notebooks** + **17
+as **2 core public Kaggle notebooks + 11 appendix notebooks** + **17
 PyPI packages** + an **on-device Android companion** (Duecare
 Journey v0.9.0 — MediaPipe Gemma 4 E2B/E4B, encrypted SQLCipher journal,
 11 ILO indicator detectors, **20 corridor profiles** (Asia + GCC + LATAM
