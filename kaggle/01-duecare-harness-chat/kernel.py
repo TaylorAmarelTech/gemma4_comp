@@ -43,9 +43,9 @@
       Online       optional agentic web search via Playwright / Brave
                      (BYOK API key) with httpx deep-fetch and
                      DuckDuckGo HTML fallback
-      Grade        4 modes (Universal / Expert / Deep / Combined) --
-                     Universal = 46-dim multi-signal grader (rubric
-                     v3.10), Evaluator = LLM-evaluator sending response
+      Grade        4 modes (Rule-Based / LLM-Based / Combined / Expert) --
+             Rule-Based = 46-dim multi-signal grader (rubric
+             v3.10), LLM-Based = LLM evaluator sending response
                      back to the loaded model with one yes/no question
                      per applicable dimension (the academic literature
                      calls this 'LLM-as-judge')
@@ -120,7 +120,7 @@ GEMMA_MAX_SEQ_LEN   = int(os.environ.get("GEMMA_MAX_SEQ_LEN", "32768"))
 
 # Online search (optional). The chat UI surfaces an "Online" toggle when
 # this is True; when False the toggle is hidden and online_search_call
-# is not wired into the harness.
+# is not enabled in the harness.
 ENABLE_ONLINE_SEARCH = os.environ.get("ENABLE_ONLINE_SEARCH", "1") == "1"
 
 # Cloud-route credentials (only read for matching cloud-* variants)

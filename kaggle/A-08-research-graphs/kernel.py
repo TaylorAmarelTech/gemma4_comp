@@ -26,7 +26,7 @@
   charts from the bundled harness data (161 GREP rules, 46 RAG docs,
   4 corridor fee caps, 16 fee-camouflage labels, 11 ILO indicators,
   4 NGO intake hotlines, 587 example prompts) and from any
-  benchmark / classifier outputs in the attached eval-results dataset.
+    benchmark / classifier outputs in the attached evaluation-results dataset.
 
   Charts produced:
 
@@ -40,7 +40,7 @@
 
     3. PER-CATEGORY BENCHMARK BARS -- stock vs fine-tuned pass rates
        across the 11 prompt categories. Reads from the attached
-       eval-results dataset; gracefully skips if no benchmark runs
+    evaluation-results dataset; gracefully skips if no benchmark runs
        are present.
 
     4. FEE CAMOUFLAGE HEATMAP -- co-occurrence of the 16 known fee-

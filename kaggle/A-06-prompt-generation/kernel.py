@@ -25,10 +25,10 @@
   What it does (per CLAUDE.md A4 -- Prompt Generator):
 
     [Step 1] Load source material:
-             - The 5 trafficking-prompts YAML rubrics (scenarios + pass/fail
-               indicators for each criterion)
-             - Optional: any extracted facts from the A3 Document Processor
-               (placeholder; not wired in yet)
+                         - The 5 trafficking-prompts YAML rubrics (scenarios + pass/fail
+                             indicators for each criterion)
+                         - Optional: any extracted facts from the A3 Document Processor
+                             (prototype path; not enabled in this appendix)
     [Step 2] Use Gemma 4 to generate NEW evaluation prompts in the same
              shape as the bundled smoke_25.jsonl rows:
                  {id, category, locale, text, expected_verdict,

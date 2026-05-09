@@ -2,7 +2,7 @@
 
 Side-by-side rubric evaluation: runs N curated prompts through Gemma 4
 twice each — once with the harness OFF, once with full harness ON
-(Persona + GREP + RAG + Tools) — and grades both with the universal
+(Persona + GREP + RAG + Tools) — and grades both with the Rule-Based
 v2 grader. Produces the falsifiable headline lift number with
 per-prompt + per-dimension detail.
 
@@ -17,7 +17,7 @@ per-prompt + per-dimension detail.
 
 ## Headline metrics it computes
 
-- Mean rubric score (universal v3.10): OFF vs ON, delta in percentage
+- Mean rubric score (Rule-Based v3.10): OFF vs ON, delta in percentage
   points
 - Per-dimension status change across the test set (improved / same
   / regressed)
@@ -55,7 +55,7 @@ to run a different subset.
 Every report includes a provenance tuple
 `(model_name, git_sha, dataset_version)`. Re-run from the same git
 SHA + dataset version to reproduce the numbers exactly. The
-universal grader is deterministic (keyword + regex matching); only
+Rule-Based grader is deterministic (keyword + regex matching); only
 Gemma generation has stochasticity (controlled by `temperature` and
 `top_p` in the kernel).
 

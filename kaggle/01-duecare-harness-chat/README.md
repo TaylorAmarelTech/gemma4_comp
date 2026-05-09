@@ -14,7 +14,7 @@
 3. **Pick a model**. E2B/E4B usually load in under a minute; 26B-A4B
    and 31B can take 5-10+ minutes on a first HuggingFace download.
    Keep the picker open and use **View logs** to see live loader phases.
-4. **Verify the harness loaded** with `curl https://<your-url>/api/brand` (v0.14.2+) or `/api/health-check`. Expected counts: **161 GREP rules, 46 RAG docs (across 27 jurisdiction groups), 5 tools, 46-dim rubric v3.10, 46 evaluator questions, 587 example prompts across 8 audience buckets**, and all wired layers set true. The new `Harness ↗` button in the top bar opens dedicated viewers for each layer (`/static/harness.html` index → grep-rules / rag-corpus / rag-graph / tools / online / persona).
+4. **Verify the safety layers loaded** with `curl https://<your-url>/api/brand` (v0.14.2+) or `/api/health-check`. Expected counts: **161 GREP rules, 46 RAG docs (across 27 jurisdiction groups), 5 tools, 46-dim rubric v3.10, 46 evaluator questions, 587 example prompts across 8 audience buckets**, and all enabled layers set true. The new `Safety layers ↗` button in the top bar opens dedicated viewers for each layer (`/static/harness.html` index → grep-rules / rag-corpus / rag-graph / tools / online / persona).
 5. **Click any of the 5 colored buttons** in the empty-state. They map to the 5 high-impact demo prompt categories:
    - 🟢 **Headline lift** — the 5-indicator compound case (PHP+HK)
    - 🔴 **Jailbreak** — DAN persona attempt
@@ -31,13 +31,13 @@
    **RETRIEVAL PATH TRACE** card surfaces the multi-stage retrieval
    decision (BM25 → optional rerank → graph expansion → parent expansion).
 8. **Click `Grade`** on any response. 4 modes:
-   - **Universal** (fast, deterministic, ~2s) — 46-dimension
+   - **Rule-Based** (fast, deterministic, ~2s) — 46-dimension
      multi-signal grader (rubric v3.10) with citation grounding check
    - **Expert** (legacy per-category) — for backwards compatibility
-   - **Deep** (LLM-as-judge, ~30-90s) — sends response back to the
+   - **LLM-Based** (LLM-as-judge, ~30-90s) — sends response back to the
      loaded Gemma with one yes/no question per dimension; pulls
      evidence quotes from the response itself
-   - **Combined** (Universal + Deep, ~30-90s) — blended 50/50 with
+   - **Combined** (Rule + LLM, ~30-90s) — blended 50/50 with
      a disagreement panel showing dimensions where the two graders
      see different evidence (the high-information cases)
 
@@ -134,11 +134,11 @@ safe enough for judges to test live:
 | 1:15 | Picker auto-enters chat when ready | Chat UI loads with empty state showing 5 colored quick-action buttons |
 | 1:30 | Click 🟢 "Headline lift" → toggle ALL 6 layers ON → Send | Response cites ILO C029 §1, POEA MC 14-2017, HK Cap. 57 §32, MfMW HK +852-2522-8264 |
 | 2:30 | Click `▸ View pipeline` on the response | Latency bar shows per-layer ms; cards show GREP hits + RAG docs + tool results + online results |
-| 3:30 | Click `Grade` → switch to **Combined** | Universal score + Judge score + agreement % + disagreement table |
-| 4:30 | Click `Harness ↗` in top bar | Opens `/static/harness.html` — 6 layer cards with live counts; click any to drill into the dedicated viewer |
+| 3:30 | Click `Grade` → switch to **Combined** | Rule-Based score + LLM-Based score + agreement % + disagreement table |
+| 4:30 | Click `Safety layers ↗` in top bar | Opens `/static/harness.html` — 6 layer cards with live counts; click any to drill into the dedicated viewer |
 | 6:00 | Click 🔴 "Jailbreak" → toggle ALL 6 layers OFF → Send | Should refuse but vaguely (this is baseline Gemma) |
 | 7:00 | Same prompt with all 6 layers ON | Refuses with citations + hotlines |
-| 8:00 | Click `Grade` → **Deep** mode | LLM-judge sends 46 questions back to Gemma; per-dimension verdicts with evidence quotes from the response |
+| 8:00 | Click `Grade` → **LLM-Based** mode | LLM judge sends 46 questions back to Gemma; per-dimension verdicts with evidence quotes from the response |
 | 10:00 | `curl https://<url>/api/brand` | Returns chat package version + 6-layer metadata + live counts (161 GREP / 46 RAG / 46 dims) |
 
 ## Submission context
@@ -150,7 +150,7 @@ This is **core notebook #1** of 2:
 - **#2** `duecare-live-demo` — focused, scripted demonstration of the
   +56.5pp lift thesis
 
-The other 9 notebooks are appendix (specialised playgrounds, research
+The other 11 notebooks are appendix (specialised playgrounds, research
 graphs, agentic web research, jailbroken-models proof, lift
 regenerator). See `docs/FOR_PEER_REVIEW.md` for the full submission roster.
 
