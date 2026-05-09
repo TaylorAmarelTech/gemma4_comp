@@ -26,7 +26,7 @@ from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel, ConfigDict, Field, HttpUrl, field_validator
 
 from . import __version__
-from . import openclaw
+from . import automation
 from .pii import detect_pii
 
 SignalSource = Literal[
@@ -77,7 +77,7 @@ PAGE_ROUTES: dict[str, str] = {
     "/login": "login.html",
     "/mission": "mission.html",
     "/newsletter": "newsletter.html",
-    "/openclaw": "openclaw.html",
+    "/server-automation": "server-automation.html",
     "/packages": "packages.html",
     "/packages-detail": "packages-detail.html",
     "/partners": "partners.html",
@@ -252,7 +252,7 @@ class SignalReceipt(BaseModel):
 
 
 class OpenCrawlUpdateIn(BaseModel):
-    """OpenClaw/OpenCrawl-style public-source update proposal."""
+    """Public-source update proposal (form post or crawler payload)."""
 
     source_name: str = Field(min_length=2, max_length=120)
     source_url: HttpUrl
@@ -289,9 +289,9 @@ class UpdateReceipt(BaseModel):
     accepted: bool
     status: UpdateStatus
     message: str
-    openclaw_verdict: str | None = None
-    openclaw_intent: str | None = None
-    openclaw_model: str | None = None
+    automation_verdict: str | None = None
+    automation_intent: str | None = None
+    automation_model: str | None = None
 
 
 class InboundEmailIn(BaseModel):
@@ -504,19 +504,19 @@ def create_app(*, data_dir: Path | None = None) -> FastAPI:
         tags=["updates"],
     )
     async def submit_opencrawl_update(request: Request, body: OpenCrawlUpdateIn) -> UpdateReceipt:
-        # OpenClaw's edge filter runs alongside the schema-level PII regex so we
-        # never store an update that the LLM evaluator outright rejects.
+        # The automation's edge filter runs alongside the schema-level PII
+        # regex so we never store an update that the LLM evaluator rejects.
         findings = detect_pii(body.change_summary)
         if findings:
             raise HTTPException(
                 status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
                 detail="Update rejected because the summary appears to contain raw PII.",
             )
-        verdict = openclaw.evaluate_submission(body.change_summary, kind="context")
+        verdict = automation.evaluate_submission(body.change_summary, kind="context")
         if verdict.verdict == "reject":
             raise HTTPException(
                 status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-                detail=f"OpenClaw rejected this update: {'; '.join(verdict.reasons) or 'policy violation'}.",
+                detail=f"Server automation rejected this update: {'; '.join(verdict.reasons) or 'policy violation'}.",
             )
         state = _state(request)
         proposal = UpdateProposalRecord(
@@ -526,7 +526,7 @@ def create_app(*, data_dir: Path | None = None) -> FastAPI:
             received_at=datetime.now(UTC),
         )
         record = proposal.model_dump(mode="json")
-        record["openclaw"] = {
+        record["automation"] = {
             "verdict": verdict.verdict,
             "intent": verdict.intent,
             "reasons": verdict.reasons,
@@ -539,9 +539,9 @@ def create_app(*, data_dir: Path | None = None) -> FastAPI:
             accepted=True,
             status=proposal.status,
             message="Accepted as a proposed update. A curator must approve before any pack changes.",
-            openclaw_verdict=verdict.verdict,
-            openclaw_intent=verdict.intent,
-            openclaw_model=verdict.model,
+            automation_verdict=verdict.verdict,
+            automation_intent=verdict.intent,
+            automation_model=verdict.model,
         )
 
     @application.get("/api/hub/opencrawl/updates", response_model=list[UpdateProposalRecord], tags=["updates"])
@@ -550,19 +550,19 @@ def create_app(*, data_dir: Path | None = None) -> FastAPI:
         return [UpdateProposalRecord.model_validate(record) for record in state.store.read_all("updates.jsonl")]
 
     @application.post(
-        "/api/hub/openclaw/inbound-email",
+        "/api/hub/automation/inbound-email",
         response_model=InboundEmailReceipt,
         status_code=status.HTTP_202_ACCEPTED,
-        tags=["openclaw"],
+        tags=["automation"],
     )
     async def submit_inbound_email(request: Request, body: InboundEmailIn) -> InboundEmailReceipt:
         """Email-gateway webhook: an expert replied to a solicitation.
 
-        OpenClaw classifies intent + extracts public-source facts from the
-        body. The structured record lands in inbound.jsonl for curator
-        review; nothing auto-publishes.
+        The server automation classifies intent + extracts public-source
+        facts from the body. The structured record lands in updates.jsonl
+        for curator review; nothing auto-publishes.
         """
-        verdict = openclaw.vet_inbound_email(body.subject, body.body, body.sender_domain)
+        verdict = automation.vet_inbound_email(body.subject, body.body, body.sender_domain)
         state = _state(request)
         record_id = f"inb_{uuid.uuid4().hex[:12]}"
         record = {
@@ -572,7 +572,7 @@ def create_app(*, data_dir: Path | None = None) -> FastAPI:
             "subject": body.subject,
             "body_sha256": _sha256_text(body.body),
             "in_reply_to": body.in_reply_to,
-            "openclaw": {
+            "automation": {
                 "verdict": verdict.verdict,
                 "intent": verdict.intent,
                 "summary": verdict.summary,
@@ -611,6 +611,16 @@ def create_app(*, data_dir: Path | None = None) -> FastAPI:
             name=f"page::{template_name}",
             include_in_schema=False,
         )
+
+    @application.get("/openclaw", include_in_schema=False)
+    async def openclaw_redirect() -> Response:
+        # Legacy URL kept for any external link that still points to /openclaw.
+        return Response(status_code=307, headers={"location": "/server-automation"})
+
+    @application.post("/api/hub/openclaw/inbound-email", include_in_schema=False)
+    async def openclaw_inbound_redirect() -> Response:
+        # Legacy API path; new clients should call /api/hub/automation/inbound-email.
+        return Response(status_code=308, headers={"location": "/api/hub/automation/inbound-email"})
 
     @application.get("/robots.txt", response_class=Response, tags=["ui"])
     async def robots_txt() -> Response:
