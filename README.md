@@ -4,12 +4,15 @@
 > 📓 **Kaggle submission:** [kaggle.com/code/taylorsamarel/duecare-harness-chat](https://www.kaggle.com/code/taylorsamarel/duecare-harness-chat) ·
 > 📦 **Source:** this repo (MIT)
 >
-> **Duecare is a private AI safety platform for migrant-worker
-> protection: tuned Gemma 4 models, grounded safety harnesses,
-> reproducible evaluation, continuously updated knowledge, NGO /
-> government chatbots, and worker-facing mobile assistance.** Four
-> canonical use cases: **Platform Safety**, **NGO / Regulators**,
-> **Migrant Worker Chat**, and **Academic Research**.
+> **Duecare is Gemma 4-powered safety infrastructure for migrant-worker
+> protection.** It does three things: **prevents exploitation before it
+> spreads** through platform and organization moderation; **assists victims
+> and at-risk workers** through NGO/government intake and the worker mobile
+> app; and **helps stakeholders understand what is happening and why**
+> through research notebooks, knowledge packs, trend signals, and shared
+> analysis. The public product is organized into five setup lanes:
+> **Platform safety**, **NGO & regulator**, **Individual worker / mobile**,
+> **Researcher**, and **Developer / integration partner**.
 > **Core platform pieces:** Gemma 4 Model Layer · Safety Guidance Layer ·
 > Knowledge Packs · Quality Testing Framework · Central Knowledge Server ·
 > Local Anonymization · Information Submission · Public Information Research ·
@@ -84,33 +87,39 @@
 > **Stretch — Android (LiteRT track):** [`docs/android_app_architecture.md`](./docs/android_app_architecture.md) — Duecare Journey, the on-device companion. v1 architecture published here; **APK skeleton + GitHub Actions APK build pipeline live in the sibling repo `duecare-journey-android/`** (separated so Android tooling doesn't collide with the Python research workflow). v1 MVP build lands week of 2026-05-19.
 > **Provenance:** [`RESULTS.md`](./RESULTS.md) — every metric pinned to `(git_sha, dataset_version, model_revision)`.
 >
-> **Three deployment modes:**
+> **Three headline benefits shown in the demo:**
 >
-> - **Worker-side / local** — chat playground on Kaggle free T4 or your own GPU; get back ILO citations + corridor fee caps + NGO hotlines. Setup: [`docs/deployment_local.md`](./docs/deployment_local.md).
-> - **Agency / NGO dashboard** — form-based content submission → structured JSON risk envelope (Core #5).
-> - **Enterprise integration** — `POST /api/classifier/evaluate` from your existing service. Dockerized API: [`docs/deployment_enterprise.md`](./docs/deployment_enterprise.md).
->
-> No data leaves the device. Privacy is non-negotiable.
+> - **Prevent exploitation before it spreads** — platform and marketplace moderation with explained risk envelopes. Setup: [`docs/deployment_enterprise.md`](./docs/deployment_enterprise.md).
+> - **Assist victims and at-risk workers** — NGO/regulator intake plus worker-facing mobile workflows. Setup: [`docs/scenarios/ngo-office-deployment.md`](./docs/scenarios/ngo-office-deployment.md) and [`docs/scenarios/worker-self-help.md`](./docs/scenarios/worker-self-help.md).
+> - **Understand what is happening and why** — reproducible Kaggle notebooks, knowledge packs, trend signals, and provenance. Start with [`docs/FOR_KAGGLE_JUDGES.md`](./docs/FOR_KAGGLE_JUDGES.md).
 
 ---
+
+## Start here by role
+
+| Lane | You are | Read first |
+|---|---|---|
+| 01 Platform safety | A trust & safety team or recruitment marketplace integrating moderation | [`docs/scenarios/enterprise_pilot.md`](./docs/scenarios/enterprise_pilot.md) · [`docs/scenarios/recruiter-self-audit.md`](./docs/scenarios/recruiter-self-audit.md) · [`docs/deployment_enterprise.md`](./docs/deployment_enterprise.md) |
+| 02 NGO & regulator | An NGO caseworker, legal aid organization, regulator, or embassy desk | [`docs/scenarios/ngo-office-deployment.md`](./docs/scenarios/ngo-office-deployment.md) · [`examples/deployment/ngo-office-edge/README.md`](./examples/deployment/ngo-office-edge/README.md) |
+| 03 Individual worker / mobile | A migrant worker, peer supporter, or community helper using the Android app | [`docs/scenarios/worker-self-help.md`](./docs/scenarios/worker-self-help.md) · [`docs/architecture/duecare_mobile.md`](./docs/architecture/duecare_mobile.md) · [`docs/android_app_architecture.md`](./docs/android_app_architecture.md) |
+| 04 Researcher | An academic, journalist, policy analyst, or Kaggle judge | [`docs/FOR_KAGGLE_JUDGES.md`](./docs/FOR_KAGGLE_JUDGES.md) · [`docs/FOR_PEER_REVIEW.md`](./docs/FOR_PEER_REVIEW.md) · [`docs/scenarios/researcher-analysis.md`](./docs/scenarios/researcher-analysis.md) · [`kaggle/01-duecare-harness-chat/README.md`](./kaggle/01-duecare-harness-chat/README.md) |
+| 05 Developer / integration partner | A team embedding DueCare into your own product, bot, dashboard, or internal workflow | [`docs/install.md`](./docs/install.md) · [`docs/embedding_guide.md`](./docs/embedding_guide.md) · [`packages/duecare-llm/README.md`](./packages/duecare-llm/README.md) · [`apps/duecare-ai.com/app/templates/client-connect.html`](./apps/duecare-ai.com/app/templates/client-connect.html) |
 
 ## Why this exists
 
 Frontier LLMs fail predictably on **migrant-worker trafficking**
 scenarios — documented in the author's prior
 [OpenAI gpt-oss-20b Red-Teaming Challenge writeup](https://www.kaggle.com/competitions/openai-gpt-oss-20b-red-teaming/writeups/llm-complicity-in-modern-slavery-from-native-blind).
-The organizations that most need to evaluate LLMs for these scenarios —
-frontline NGOs, Gulf/Southeast-Asia recruitment regulators, labor
-ministries, ILO field offices — **cannot send sensitive case data to
-frontier APIs**. They need a local evaluator that runs on a laptop.
+The people and institutions closest to the harm need practical tools:
+platforms need earlier moderation signals, frontline NGOs and regulators
+need faster case intake and evidence organization, workers need guidance
+they control, and researchers need reproducible ways to explain patterns.
 
-> "A community where privacy is non-negotiable."
-> — _Gemma 4 Good Hackathon problem statement_
-
-Duecare is that evaluator. And because it's built as a **universal**
-safety harness, the same infrastructure applies to tax evasion, money
-laundering, medical misinformation, and any other safety domain that
-can describe itself with a taxonomy, an evidence base, and a rubric.
+Duecare is that shared harness. Because it is built as a **universal**
+safety and evidence framework, the same architecture can also evaluate
+tax evasion, money laundering, medical misinformation, and any other
+safety domain that can describe itself with a taxonomy, evidence base,
+and rubric.
 
 ## What ships
 
@@ -213,8 +222,8 @@ compliance crosswalk, threat model, vendor questionnaire) at
 - [**Try in 2 minutes**](./docs/try_in_2_minutes.md) — fastest path
   per persona, no install required for most options
 - [**Ecosystem overview**](./docs/ecosystem_overview.md) — how the
-  4 user layers (worker → NGO → researcher → enterprise) compose
-  around one harness, with Mermaid diagrams
+  3 outcomes and 5 setup lanes compose around one harness, with
+  Mermaid diagrams
 - [**Maria's case end-to-end**](./docs/marias_case_end_to_end.md)
   — composite case traced through every layer of the ecosystem
   (writeup + video + pitch material)
