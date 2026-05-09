@@ -232,6 +232,7 @@ def test_pack_registry_list_and_filter(tmp_path) -> None:
     assert all_packs["count"] >= 4
     kinds = {pack["@type"] for pack in all_packs["packs"]}
     assert {"ContextPack", "GrepRulePack", "ContactPack", "RubricPack"} <= kinds
+    assert "fees" in all_packs["available_tags"]
 
     grep_only = client.get("/api/hub/packs?kind=GrepRulePack").json()
     assert grep_only["count"] >= 1
@@ -239,6 +240,10 @@ def test_pack_registry_list_and_filter(tmp_path) -> None:
 
     phl_only = client.get("/api/hub/packs?jurisdiction=PHL").json()
     assert any(pack["id"] == "phl-kwt-domestic" for pack in phl_only["packs"])
+
+    fee_packs = client.get("/api/hub/packs?tag=fees").json()
+    assert fee_packs["count"] >= 1
+    assert all("fees" in pack["tags"] for pack in fee_packs["packs"])
 
 
 def test_pack_registry_get_latest_and_pin(tmp_path) -> None:

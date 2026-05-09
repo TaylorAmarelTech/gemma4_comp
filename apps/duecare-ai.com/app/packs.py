@@ -249,6 +249,13 @@ def known_jurisdictions() -> list[str]:
     return sorted(seen)
 
 
+def known_tags() -> list[str]:
+    seen: set[str] = set()
+    for entry in _INDEX:
+        seen.update(entry.tags)
+    return sorted(seen)
+
+
 __all__ = [
     "PACKS_DIR",
     "PackKind",
@@ -257,6 +264,7 @@ __all__ = [
     "known_corridors",
     "known_jurisdictions",
     "known_kinds",
+    "known_tags",
     "list_packs",
     "list_versions",
     "reload",

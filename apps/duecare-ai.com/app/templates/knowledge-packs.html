@@ -44,13 +44,16 @@
           <div id="filter-jurisdiction" class="filter-options"><p class="muted">Loading jurisdictions...</p></div>
         </div>
         <div class="filter-group">
+          <h5>Tag</h5>
+          <div id="filter-tag" class="filter-options"><p class="muted">Loading tags...</p></div>
+        </div>
+        <div class="filter-group">
           <h5>Status</h5>
           <div id="filter-status" class="filter-options">
-            <label><input type="radio" name="status" value="" checked /> Any status</label>
-            <label><input type="radio" name="status" value="vetted" /> Vetted</label>
-            <label><input type="radio" name="status" value="needs_review" /> Needs review</label>
-            <label><input type="radio" name="status" value="proposed" /> Proposed</label>
-            <label><input type="radio" name="status" value="deprecated" /> Deprecated</label>
+            <label><input type="checkbox" name="status" value="vetted" /> Vetted</label>
+            <label><input type="checkbox" name="status" value="needs_review" /> Needs review</label>
+            <label><input type="checkbox" name="status" value="proposed" /> Proposed</label>
+            <label><input type="checkbox" name="status" value="deprecated" /> Deprecated</label>
           </div>
         </div>
         <button type="button" class="btn btn-ghost" id="clear-pack-filters">Clear filters</button>
@@ -130,6 +133,7 @@ const packState = {
   kind: '',
   corridor: '',
   jurisdiction: '',
+  tag: '',
   status: '',
 };
 
@@ -145,12 +149,18 @@ function labelFromPackType(value) {
 
 function renderFilterOptions(containerId, name, values) {
   const el = document.getElementById(containerId);
-  const options = [`<label><input type="radio" name="${name}" value="" ${packState[name] ? '' : 'checked'} /> Any</label>`]
-    .concat((values || []).map((value) => {
+  const options = (values || [])
+    .map((value) => {
       const checked = packState[name] === value ? 'checked' : '';
-      return `<label><input type="radio" name="${name}" value="${escapeHtml(value)}" ${checked} /> ${escapeHtml(labelFromPackType(value))}</label>`;
-    }));
-  el.innerHTML = options.join('');
+      return `<label><input type="checkbox" name="${name}" value="${escapeHtml(value)}" ${checked} /> ${escapeHtml(labelFromPackType(value))}</label>`;
+    });
+  el.innerHTML = options.length ? options.join('') : '<p class="muted">No options published yet.</p>';
+}
+
+function syncCheckboxGroup(name) {
+  document.querySelectorAll(`input[name="${name}"]`).forEach((input) => {
+    input.checked = input.value === packState[name];
+  });
 }
 
 function badgeClass(status) {
@@ -196,6 +206,7 @@ function packQuery() {
   if (packState.kind) params.set('kind', packState.kind);
   if (packState.corridor) params.set('corridor', packState.corridor);
   if (packState.jurisdiction) params.set('jurisdiction', packState.jurisdiction);
+  if (packState.tag) params.set('tag', packState.tag);
   if (packState.status) params.set('status_', packState.status);
   return params.toString();
 }
@@ -215,6 +226,8 @@ async function loadPacks() {
   renderFilterOptions('filter-kind', 'kind', payload.available_kinds || []);
   renderFilterOptions('filter-corridor', 'corridor', payload.available_corridors || []);
   renderFilterOptions('filter-jurisdiction', 'jurisdiction', payload.available_jurisdictions || []);
+  renderFilterOptions('filter-tag', 'tag', payload.available_tags || []);
+  syncCheckboxGroup('status');
   const packs = payload.packs || [];
   summary.innerHTML = `<b style="color:var(--ink);font-weight:600;">${packs.length} pack${packs.length === 1 ? '' : 's'}</b> · filtered from live API`;
   results.innerHTML = packs.length
@@ -225,8 +238,9 @@ async function loadPacks() {
 document.addEventListener('change', (event) => {
   const target = event.target;
   if (!(target instanceof HTMLInputElement)) return;
-  if (!['kind', 'corridor', 'jurisdiction', 'status'].includes(target.name)) return;
-  packState[target.name] = target.value;
+  if (!['kind', 'corridor', 'jurisdiction', 'tag', 'status'].includes(target.name)) return;
+  packState[target.name] = target.checked ? target.value : '';
+  syncCheckboxGroup(target.name);
   loadPacks();
 });
 
@@ -234,6 +248,7 @@ document.getElementById('clear-pack-filters').addEventListener('click', () => {
   packState.kind = '';
   packState.corridor = '';
   packState.jurisdiction = '';
+  packState.tag = '';
   packState.status = '';
   loadPacks();
 });
