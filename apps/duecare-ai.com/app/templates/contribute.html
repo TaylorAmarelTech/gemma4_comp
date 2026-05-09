@@ -3,143 +3,455 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Contribute · Duecare AI</title>
+<title>Contribute · DueCare AI</title>
 <link rel="stylesheet" href="/static/styles.css" />
+<style>
+  /* ---------- Hero with TOC ---------- */
+  .ct-hero { padding: 56px 0 36px; border-bottom: 1px solid var(--line); }
+  .ct-hero .grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.4fr) minmax(280px, 1fr);
+    gap: 56px; align-items: start;
+  }
+  @media (max-width: 920px) { .ct-hero .grid { grid-template-columns: 1fr; gap: 32px; } }
+  .ct-hero h1 {
+    font-size: clamp(36px, 4.4vw, 56px);
+    letter-spacing: -0.025em; line-height: 1.05;
+    margin: 14px 0 0; max-width: 22ch; font-weight: 500;
+  }
+  .ct-hero .lede {
+    margin-top: 18px; font-size: 17px; line-height: 1.55;
+    color: var(--ink-2); max-width: 56ch;
+  }
+  .ct-hero .toc {
+    border: 1px solid var(--line); border-radius: 12px;
+    background: var(--paper-2); padding: 18px 20px;
+  }
+  .ct-hero .toc h3 {
+    font-family: var(--mono); font-size: 11px; font-weight: 600;
+    color: var(--ink-3); text-transform: uppercase;
+    letter-spacing: 0.10em; margin: 0 0 12px;
+  }
+  .ct-hero .toc ol {
+    list-style: none; padding: 0; margin: 0; counter-reset: t;
+  }
+  .ct-hero .toc ol li {
+    counter-increment: t; border-top: 1px solid var(--line-soft);
+  }
+  .ct-hero .toc ol li:first-child { border-top: none; }
+  .ct-hero .toc ol li a {
+    display: grid; grid-template-columns: 28px 1fr 16px;
+    gap: 10px; align-items: center; padding: 10px 0;
+    font-size: 14px; color: var(--ink-1); text-decoration: none;
+  }
+  .ct-hero .toc ol li a::before {
+    content: counter(t, decimal-leading-zero);
+    font-family: var(--mono); font-size: 11px; color: var(--ink-3);
+  }
+  .ct-hero .toc ol li a:hover { color: var(--accent-ink); }
+  .ct-hero .toc ol li a .arrow { color: var(--ink-3); font-size: 14px; text-align: right; }
+  .ct-hero .toc ol li a:hover .arrow { color: var(--accent-ink); }
+
+  /* ---------- Section heading ---------- */
+  .ct-section { padding: 56px 0; border-bottom: 1px solid var(--line-soft); }
+  .ct-section .head {
+    display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+    gap: 32px; align-items: end; margin-bottom: 28px;
+  }
+  @media (max-width: 720px) { .ct-section .head { grid-template-columns: 1fr; } }
+  .ct-section .ix {
+    font-family: var(--mono); font-size: 11px; letter-spacing: 0.12em;
+    color: var(--ink-3); text-transform: uppercase;
+  }
+  .ct-section h2 {
+    font-size: clamp(26px, 2.8vw, 36px); letter-spacing: -0.02em;
+    line-height: 1.15; margin: 8px 0 0; max-width: 22ch; font-weight: 500;
+  }
+  .ct-section .summary {
+    font-size: 14.5px; line-height: 1.6; color: var(--ink-2); max-width: 48ch;
+  }
+
+  /* ---------- Three pathways ---------- */
+  .pathways { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  @media (max-width: 920px) { .pathways { grid-template-columns: 1fr; } }
+  .pathway {
+    border: 1px solid var(--line); border-radius: 12px;
+    background: var(--paper); padding: 24px;
+    display: flex; flex-direction: column; gap: 12px;
+    color: inherit; text-decoration: none;
+    transition: border-color .15s ease, transform .12s ease, box-shadow .15s ease;
+  }
+  .pathway:hover { border-color: var(--ink); transform: translateY(-2px); box-shadow: var(--shadow-2); color: inherit; }
+  .pathway .role {
+    font-family: var(--mono); font-size: 10.5px;
+    color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.10em;
+  }
+  .pathway h3 { margin: 0; font-size: 18px; letter-spacing: -0.012em; line-height: 1.25; }
+  .pathway p { margin: 0; font-size: 14px; color: var(--ink-2); line-height: 1.55; flex: 1; }
+  .pathway .open {
+    margin-top: 4px; font-family: var(--mono); font-size: 12px;
+    color: var(--ink); display: inline-flex; gap: 6px; align-items: center;
+  }
+  .pathway:hover .open { color: var(--accent-ink); }
+  .pathway .open .arrow { transition: transform .15s ease; }
+  .pathway:hover .open .arrow { transform: translateX(3px); }
+
+  /* ---------- Proposal-type groups ---------- */
+  .ct-group { margin-top: 24px; }
+  .ct-group + .ct-group { margin-top: 32px; }
+  .ct-group h4 {
+    font-family: var(--mono); font-size: 11px; font-weight: 600;
+    color: var(--ink); text-transform: uppercase; letter-spacing: 0.10em;
+    margin: 0 0 14px; padding-bottom: 8px;
+    border-bottom: 1px solid var(--line);
+  }
+  .ct-types {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;
+  }
+  @media (max-width: 920px) { .ct-types { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 540px) { .ct-types { grid-template-columns: 1fr; } }
+  .ct-type {
+    border: 1px solid var(--line); border-radius: 10px;
+    padding: 18px 20px; background: var(--paper);
+    display: flex; flex-direction: column; gap: 8px; cursor: pointer;
+    transition: border-color .15s ease, box-shadow .15s ease;
+  }
+  .ct-type:hover { border-color: var(--ink-3); box-shadow: var(--shadow-1); }
+  .ct-type.on { border-color: var(--ink); box-shadow: 0 0 0 3px var(--paper-2); }
+  .ct-type .tag {
+    font-family: var(--mono); font-size: 10px; font-weight: 500;
+    color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.10em;
+  }
+  .ct-type h5 { margin: 0; font-size: 15px; line-height: 1.25; letter-spacing: -0.01em; }
+  .ct-type p { margin: 0; font-size: 13px; color: var(--ink-3); line-height: 1.5; }
+
+  /* ---------- Form layout ---------- */
+  .ct-form-wrap { display: grid; grid-template-columns: 1fr 320px; gap: 48px; align-items: start; }
+  @media (max-width: 920px) { .ct-form-wrap { grid-template-columns: 1fr; } }
+  .ct-form-wrap aside { display: flex; flex-direction: column; gap: 14px; position: sticky; top: 80px; }
+  @media (max-width: 920px) { .ct-form-wrap aside { position: static; } }
+
+  /* ---------- Newsletter callout ---------- */
+  .ct-newsletter {
+    border: 1px solid var(--line); border-radius: 14px;
+    background:
+      radial-gradient(60% 100% at 0% 0%, oklch(0.96 0.03 195) 0%, transparent 60%),
+      var(--paper);
+    padding: 32px 36px;
+    display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+    gap: 36px; align-items: center;
+  }
+  @media (max-width: 720px) { .ct-newsletter { grid-template-columns: 1fr; padding: 24px; } }
+  .ct-newsletter h3 { font-size: 22px; margin: 8px 0 6px; letter-spacing: -0.014em; }
+  .ct-newsletter p { font-size: 14.5px; color: var(--ink-2); line-height: 1.55; margin: 0; }
+  .ct-newsletter form { display: flex; flex-direction: column; gap: 10px; }
+  .ct-newsletter input[type="email"] {
+    padding: 12px 14px; border: 1px solid var(--line); border-radius: 8px;
+    background: var(--paper-2); font: inherit; color: var(--ink);
+  }
+  .ct-newsletter input[type="email"]:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .ct-newsletter .help { font-size: 12px; color: var(--ink-3); }
+</style>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%230E1116'/%3E%3Ctext x='16' y='21' text-anchor='middle' font-family='monospace' font-weight='700' font-size='14' fill='%23F7F6F1'%3ED%3C/text%3E%3C/svg%3E" />
 </head>
 <body>
 {% include "_nav.html" %}
-<section class="page-intro first" data-screen-label="Contribute · Intro">
+
+<section class="ct-hero" data-screen-label="Contribute · Hero">
   <div class="wrap">
-    <div class="crumbs"><a href="/">Home</a><span class="sep">/</span><span>Contribute</span></div>
-    <span class="kicker">/contribute · public-source proposals only</span>
-    <h1>Improve the public knowledge. Keep cases out.</h1>
-    <p class="lede">All contributions are public-source proposals. They start as <code>proposed</code>,
-      go through PII scan and curator review, and only then become vetted packs.
-      The form below will block obvious case content before submission.</p>
+    <div class="grid">
+      <div>
+        <span class="kicker">/contribute · public-source proposals only</span>
+        <h1>Improve the public knowledge. Keep cases out.</h1>
+        <p class="lede">Three ways to help: subscribe to expert requests, propose updates here on the site, or contribute from inside your local DueCare deployment. Every contribution is a public-source proposal. It starts as <code>proposed</code>, runs through automated PII screening and curator review, then becomes a vetted pack any deployment can pull.</p>
+      </div>
+      <nav class="toc" aria-label="Sections on this page">
+        <h3>On this page</h3>
+        <ol>
+          <li><a href="#pathways"><span>Three ways to contribute</span><span class="arrow">→</span></a></li>
+          <li><a href="#pipeline"><span>Review pipeline</span><span class="arrow">→</span></a></li>
+          <li><a href="#types"><span>Proposal types</span><span class="arrow">→</span></a></li>
+          <li><a href="#form"><span>Submit a proposal</span><span class="arrow">→</span></a></li>
+          <li><a href="#newsletter"><span>Subscribe to expert requests</span><span class="arrow">→</span></a></li>
+        </ol>
+      </nav>
+    </div>
   </div>
 </section>
 
-<section data-screen-label="Contribute · Pipeline">
+<!-- ============== 01 Three pathways ============== -->
+<section id="pathways" class="ct-section" data-screen-label="Contribute · Pathways">
   <div class="wrap">
-    <span class="label">Review pipeline</span>
-    <h2 style="margin-top:8px;max-width:24ch;">Submit → scan → review → sign → sync.</h2>
-    <div class="pipeline" style="margin-top:32px;">
+    <div class="head">
+      <div>
+        <span class="ix">01 · Three ways to contribute</span>
+        <h2>Pick the route that fits your time and access.</h2>
+      </div>
+      <p class="summary">All three feed the same review pipeline. The difference is who initiates the ask and where the work happens.</p>
+    </div>
+
+    <div class="pathways">
+      <a class="pathway" href="#newsletter">
+        <span class="role">Pathway 01 · we ask, you reply</span>
+        <h3>Subscribe to expert requests</h3>
+        <p>Curators periodically send a focused ask: a fee cap to verify in your jurisdiction, an NGO contact to confirm, a recruiter pattern to label. You reply when you have time and direct knowledge. Lowest-effort way to be useful.</p>
+        <span class="open">Subscribe <span class="arrow">→</span></span>
+      </a>
+      <a class="pathway" href="#types">
+        <span class="role">Pathway 02 · proactive, here</span>
+        <h3>Propose an update on the website</h3>
+        <p>Use the form below to submit a public-source advisory, a corridor reference, a grep rule, an NGO contact, or any of the other proposal types. Best when you already have a public source in hand.</p>
+        <span class="open">Pick a type <span class="arrow">→</span></span>
+      </a>
+      <a class="pathway" href="/setup">
+        <span class="role">Pathway 03 · proactive, in-app</span>
+        <h3>Contribute from your local DueCare</h3>
+        <p>Already running the harness? The local client can package an anonymized proposal, run it through your own privacy gate, and submit it without the case material ever leaving your device.</p>
+        <span class="open">Local setup <span class="arrow">→</span></span>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ============== 02 Review pipeline ============== -->
+<section id="pipeline" class="ct-section" data-screen-label="Contribute · Pipeline">
+  <div class="wrap">
+    <div class="head">
+      <div>
+        <span class="ix">02 · Review pipeline</span>
+        <h2>Submit, scan, review, vet, sync.</h2>
+      </div>
+      <p class="summary">Same five steps for every proposal regardless of pathway. Anything that smells like raw case content is rejected at step 02 before a curator even sees it.</p>
+    </div>
+    <div class="pipeline">
       <div class="stage"><span class="lab">Step 01</span><h5>Submit proposal</h5><p>Public-source URL, summary, jurisdiction. No raw case content.</p><div class="arrow-r"></div></div>
       <div class="stage boundary"><span class="lab">Step 02 · boundary</span><h5>Automated PII scan</h5><p>Edge filter rejects emails, phones, ID-like strings, and free-text case content.</p><div class="arrow-r"></div></div>
-      <div class="stage"><span class="lab">Step 03</span><h5>Curator review</h5><p>Signed-in curator inspects the proposed diff against the public source.</p><div class="arrow-r"></div></div>
-      <div class="stage"><span class="lab">Step 04</span><h5>Vetted pack</h5><p>Curator signs; checksum updated; manifest references previous version.</p><div class="arrow-r"></div></div>
-      <div class="stage"><span class="lab">Step 05</span><h5>Client sync</h5><p>Local deployments pull the new signed version on next sync.</p></div>
+      <div class="stage"><span class="lab">Step 03</span><h5>Curator review</h5><p>A signed-in curator inspects the proposed change against the public source.</p><div class="arrow-r"></div></div>
+      <div class="stage"><span class="lab">Step 04</span><h5>Vetted pack</h5><p>Curator vets and signs. The checksum updates. The manifest references the previous version so nothing is overwritten.</p><div class="arrow-r"></div></div>
+      <div class="stage"><span class="lab">Step 05</span><h5>Client sync</h5><p>Local deployments pull the new vetted version on their next sync.</p></div>
     </div>
   </div>
 </section>
 
-<section data-screen-label="Contribute · Tracks">
+<!-- ============== 03 Proposal types ============== -->
+<section id="types" class="ct-section" data-screen-label="Contribute · Types">
   <div class="wrap">
-    <span class="label">Choose a contribution track</span>
-    <h2 style="margin-top:8px;">Seven public proposal types.</h2>
+    <div class="head">
+      <div>
+        <span class="ix">03 · Proposal types</span>
+        <h2>What can be proposed.</h2>
+      </div>
+      <p class="summary">Eight standard types covering knowledge, network, and a "something else" path for anything that does not fit. Pick one to load the matching form below; you can always switch.</p>
+    </div>
 
-    <div class="role-grid" id="tracks" style="grid-template-columns:repeat(4,1fr);margin-top:32px;">
-      <div class="role-card on" data-track="context"><span class="glyph">C</span><h4>Context update</h4><p>Public advisory, jurisdiction rule, or corridor reference.</p></div>
-      <div class="role-card" data-track="grep"><span class="glyph">R</span><h4>Grep rule</h4><p>Deterministic safety rule with target false-positive ≤ 2%.</p></div>
-      <div class="role-card" data-track="tool"><span class="glyph">T</span><h4>Tool proposal</h4><p>Local-only tool spec with safety boundary + draft-only behavior.</p></div>
-      <div class="role-card" data-track="contact"><span class="glyph">D</span><h4>Contact directory</h4><p>Verified NGO / regulator / hotline update. public registries only.</p></div>
-      <div class="role-card" data-track="rubric"><span class="glyph">U</span><h4>Rubric</h4><p>Eval rubric for grading model answers.</p></div>
-      <div class="role-card" data-track="prompt"><span class="glyph">P</span><h4>Eval prompt</h4><p>Composite-only evaluation prompt (no real PII).</p></div>
-      <div class="role-card" data-track="partner"><span class="glyph">N</span><h4>Partner sign-up</h4><p>NGO / regulator / researcher partner registration.</p></div>
-      <div class="role-card" data-track="volunteer"><span class="glyph">V</span><h4>Volunteer reviewer</h4><p>Help rank model answers and verify public URLs.</p></div>
+    <div class="ct-group">
+      <h4>Improve the knowledge</h4>
+      <div class="ct-types" id="tracks-knowledge">
+        <div class="ct-type on" data-track="context">
+          <span class="tag">Public reference</span>
+          <h5>Context update</h5>
+          <p>A public advisory, jurisdiction rule, or corridor reference. The most common contribution.</p>
+        </div>
+        <div class="ct-type" data-track="grep">
+          <span class="tag">Detection rule</span>
+          <h5>Grep rule</h5>
+          <p>A deterministic safety rule that fires before the model speaks. Target false-positive rate &le; 2%.</p>
+        </div>
+        <div class="ct-type" data-track="tool">
+          <span class="tag">Tool spec</span>
+          <h5>Tool proposal</h5>
+          <p>A local-only tool with a defined safety boundary. Draft-only output by default.</p>
+        </div>
+        <div class="ct-type" data-track="contact">
+          <span class="tag">Directory entry</span>
+          <h5>Contact directory</h5>
+          <p>A verified NGO, regulator, or hotline. Public registries only, never worker contacts.</p>
+        </div>
+        <div class="ct-type" data-track="rubric">
+          <span class="tag">Eval criterion</span>
+          <h5>Rubric</h5>
+          <p>A scoring rubric used to grade model answers (grounding, citation, refusal correctness).</p>
+        </div>
+        <div class="ct-type" data-track="prompt">
+          <span class="tag">Eval prompt</span>
+          <h5>Evaluation prompt</h5>
+          <p>A composite-only evaluation prompt. Real PII is rejected by the scanner.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="ct-group">
+      <h4>Join the network</h4>
+      <div class="ct-types" id="tracks-network">
+        <div class="ct-type" data-track="partner">
+          <span class="tag">Sign up</span>
+          <h5>Partner organization</h5>
+          <p>NGO, regulator, ministry, or research institution. Get a deployment ID and a curator contact.</p>
+        </div>
+        <div class="ct-type" data-track="volunteer">
+          <span class="tag">Sign up</span>
+          <h5>Volunteer reviewer</h5>
+          <p>Help rank model answers, verify public URLs, and cross-check curator decisions.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="ct-group">
+      <h4>Something else?</h4>
+      <div class="ct-types">
+        <div class="ct-type" data-track="custom">
+          <span class="tag">Open request</span>
+          <h5>Custom proposal</h5>
+          <p>Domain expertise, a corridor we have not covered, an integration idea, a regulatory change. The form will route the message to the right curator.</p>
+        </div>
+        <a class="ct-type" href="/contact" style="color:inherit;text-decoration:none;">
+          <span class="tag">Direct line</span>
+          <h5>Email a curator</h5>
+          <p>For sensitive partnership conversations or anything that should not start as a public proposal.</p>
+        </a>
+      </div>
     </div>
   </div>
 </section>
 
-<section data-screen-label="Contribute · Form">
-  <div class="wrap" style="display:grid;grid-template-columns:1fr 320px;gap:48px;align-items:start;">
-    <form onsubmit="return submitForm(event)">
-      <h3 id="formTitle">Public-source context update</h3>
-      <p class="muted" id="formSub" style="font-size:14px;margin-top:6px;margin-bottom:24px;">Add a new public-source advisory, jurisdiction rule, or corridor reference. The hub will scan and queue your proposal.</p>
+<!-- ============== 04 Form ============== -->
+<section id="form" class="ct-section" data-screen-label="Contribute · Form">
+  <div class="wrap">
+    <div class="head">
+      <div>
+        <span class="ix">04 · Submit a proposal</span>
+        <h2>The form below adapts to the type you picked.</h2>
+      </div>
+      <p class="summary">Fill what you know. Fields you leave blank stay blank in the proposal. Real PII is filtered at the boundary before storage.</p>
+    </div>
 
-      <div class="form-grid">
-        <div class="field"><label>Organization name</label><input type="text" placeholder="Migrant-Forum Asia" /></div>
-        <div class="field"><label>Your role</label>
-          <select><option>NGO caseworker</option><option>Researcher</option><option>Regulator</option><option>Platform safety</option><option>Volunteer</option></select>
+    <div class="ct-form-wrap">
+      <form onsubmit="return submitForm(event)">
+        <h3 id="formTitle">Public-source context update</h3>
+        <p class="muted" id="formSub" style="font-size:14px;margin-top:6px;margin-bottom:24px;">Add a new public-source advisory, jurisdiction rule, or corridor reference. The hub will scan and queue your proposal.</p>
+
+        <div class="form-grid">
+          <div class="field"><label>Organization name</label><input type="text" placeholder="Migrant-Forum Asia" /></div>
+          <div class="field"><label>Your role</label>
+            <select><option>NGO caseworker</option><option>Researcher</option><option>Regulator</option><option>Platform safety</option><option>Volunteer</option></select>
+          </div>
+          <div class="field"><label>Public website</label><input type="url" placeholder="https://partner.org" /></div>
+          <div class="field"><label>Contact email</label><input type="email" placeholder="techlead@partner.org" /><div class="help">Used only for proposal status updates. Stored separately from public packs.</div></div>
+          <div class="field"><label>Country / jurisdiction</label><input type="text" placeholder="QA · NP · sa-id …" /></div>
+          <div class="field"><label>Corridor (optional) <span class="opt">if known</span></label><input type="text" placeholder="qa-np" /></div>
+          <div class="field full"><label>Public-source URL <span class="opt">required for most types</span></label><input type="url" placeholder="https://gov.example/advisory/2026-04" /><div class="help">Linked content will be re-fetched at review time.</div></div>
+          <div class="field full"><label>Short summary</label><textarea placeholder="What public fact does this update introduce or correct?"></textarea></div>
+          <div class="field full"><label>Proposed payload <span class="opt">JSON or markdown</span></label><textarea placeholder='{ "section": "fees.cap", "value": "…", "citation": "https://…" }' style="font-family:var(--mono);font-size:13px;min-height:140px;"></textarea><div class="help">The hub rejects payloads containing likely case content (emails, phone numbers, ID-like strings).</div></div>
         </div>
-        <div class="field"><label>Public website</label><input type="url" placeholder="https://partner.org" /></div>
-        <div class="field"><label>Contact email</label><input type="email" placeholder="techlead@partner.org" /><div class="help">Used only for proposal status updates. Stored separately from public packs.</div></div>
-        <div class="field"><label>Country / jurisdiction</label><input type="text" placeholder="QA · NP · sa-id …" /></div>
-        <div class="field"><label>Corridor (optional) <span class="opt">if known</span></label><input type="text" placeholder="qa-np" /></div>
-        <div class="field full"><label>Public-source URL <span class="opt">required</span></label><input type="url" placeholder="https://gov.example/advisory/2026-04" /><div class="help">Must be a publicly reachable URL. Linked content will be re-fetched at review time.</div></div>
-        <div class="field full"><label>Short summary</label><textarea placeholder="What public fact does this update introduce or correct?"></textarea></div>
-        <div class="field full"><label>Proposed payload <span class="opt">JSON or markdown</span></label><textarea placeholder='{ "section": "fees.cap", "value": "…", "citation": "https://…" }' style="font-family:var(--mono);font-size:13px;min-height:140px;"></textarea><div class="help">Hub will reject this submission if the payload contains likely case content (emails, phone numbers, ID-like strings).</div></div>
-      </div>
 
-      <div class="consent" style="margin-top:18px;">
-        <input type="checkbox" id="c1" />
-        <label for="c1">I confirm this submission contains <strong>no worker case details</strong>, no message text, no IDs, and no contact information for individuals.</label>
-      </div>
-      <div class="consent required" style="margin-top:8px;">
-        <input type="checkbox" id="c2" />
-        <label for="c2"><strong>Required.</strong> I am submitting public-source material only. I understand this will start as <code>proposed</code> and be reviewed by a curator before any client receives it.</label>
-      </div>
-      <div class="consent" style="margin-top:8px;">
-        <input type="checkbox" id="c3" />
-        <label for="c3">Duecare may contact me at the email above for review questions about this proposal. (Optional.)</label>
-      </div>
-
-      <div class="row" style="margin-top:24px;justify-content:space-between;">
-        <span class="muted" style="font-size:13px;">Submission ID will appear at <code>/submissions</code> after PII scan.</span>
-        <div class="row" style="gap:8px;">
-          <button type="button" class="btn btn-ghost">Save draft</button>
-          <button type="submit" class="btn">Submit proposal <span class="arrow">→</span></button>
+        <div class="consent" style="margin-top:18px;">
+          <input type="checkbox" id="c1" />
+          <label for="c1">I confirm this submission contains <strong>no worker case details</strong>, no message text, no IDs, and no contact information for individuals.</label>
         </div>
-      </div>
-    </form>
+        <div class="consent required" style="margin-top:8px;">
+          <input type="checkbox" id="c2" />
+          <label for="c2"><strong>Required.</strong> I am submitting public-source material only. I understand this will start as <code>proposed</code> and be reviewed by a curator before any client receives it.</label>
+        </div>
+        <div class="consent" style="margin-top:8px;">
+          <input type="checkbox" id="c3" />
+          <label for="c3">DueCare may contact me at the email above for review questions about this proposal. (Optional.)</label>
+        </div>
 
-    <aside style="display:flex;flex-direction:column;gap:14px;position:sticky;top:80px;">
-      <div class="rail">
-        <span class="cap">PII scanner</span>
-        <h4>Edge filter rules</h4>
-        <p>Submissions are auto-rejected if they contain:</p>
-        <ul>
-          <li>Email or phone-number patterns in free text</li>
-          <li>ID-like strings (passport, NID, work-permit)</li>
-          <li>Likely worker / employer names paired with case verbs</li>
-          <li>Free-text fields longer than 800 characters</li>
-        </ul>
+        <div class="row" style="margin-top:24px;justify-content:space-between;">
+          <span class="muted" style="font-size:13px;">Submission ID will appear at <code>/submissions</code> after PII scan.</span>
+          <div class="row" style="gap:8px;">
+            <button type="button" class="btn btn-ghost">Save draft</button>
+            <button type="submit" class="btn">Submit proposal <span class="arrow">→</span></button>
+          </div>
+        </div>
+      </form>
+
+      <aside>
+        <div class="rail">
+          <span class="cap">PII scanner</span>
+          <h4>What gets blocked</h4>
+          <p>The edge filter auto-rejects submissions that contain:</p>
+          <ul>
+            <li>Email or phone-number patterns in free text</li>
+            <li>ID-like strings (passport, NID, work-permit)</li>
+            <li>Likely worker or employer names paired with case verbs</li>
+            <li>Free-text fields longer than 800 characters</li>
+          </ul>
+        </div>
+        <div class="card">
+          <span class="label">Privacy promise</span>
+          <h4 style="margin-top:8px;">Privacy is non-negotiable.</h4>
+          <p class="muted" style="font-size:13px;margin-top:6px;">If your contribution is a draft on behalf of a worker, run it through the local DueCare instead. The case content stays on your device, and you keep control of every artifact.</p>
+          <a href="/setup" style="font-family:var(--mono);font-size:12px;border-bottom:1px dashed var(--ink-3);margin-top:10px;display:inline-block;">Local setup &rarr;</a>
+        </div>
+        <div class="card">
+          <span class="label">After you submit</span>
+          <h4 style="margin-top:8px;">Track your proposal</h4>
+          <p class="muted" style="font-size:13px;margin-top:6px;">All proposals are visible publicly at <code>/submissions</code> with current review status. Metadata only, no PII.</p>
+          <a href="/submissions" class="btn btn-ghost" style="margin-top:10px;">Browse submissions &rarr;</a>
+        </div>
+      </aside>
+    </div>
+  </div>
+</section>
+
+<!-- ============== 05 Newsletter ============== -->
+<section id="newsletter" class="ct-section" data-screen-label="Contribute · Newsletter">
+  <div class="wrap">
+    <div class="head">
+      <div>
+        <span class="ix">05 · Subscribe to expert requests</span>
+        <h2>We email when we need a specific kind of help.</h2>
       </div>
-      <div class="card">
-        <span class="label">Privacy promise</span>
-        <h4 style="margin-top:8px;">Privacy is non-negotiable.</h4>
-        <p class="muted" style="font-size:13px;margin-top:6px;">If your contribution is a draft on behalf of a worker, run it through the local Duecare instead. case content stays on your device, and you keep control of every artifact.</p>
-        <a href="/setup" style="font-family:var(--mono);font-size:12px;border-bottom:1px dashed var(--ink-3);margin-top:10px;display:inline-block;">Local setup →</a>
+      <p class="summary">A low-volume mailing list for domain experts. Curators send a focused ask when they need verification or local knowledge: a fee cap, a regulatory cite, an NGO contact, a recruiter euphemism. You reply if you can; you ignore if you cannot.</p>
+    </div>
+
+    <div class="ct-newsletter">
+      <div>
+        <span class="kicker">/newsletter · expert solicitation</span>
+        <h3>Get the next ask in your inbox.</h3>
+        <p>About one email per month. Each one names a corridor or a topic and a specific question. Reply with what you know. The reply itself runs through the same boundary scan as a website submission.</p>
       </div>
-      <div class="card">
-        <span class="label">After you submit</span>
-        <h4 style="margin-top:8px;">Track your proposal</h4>
-        <p class="muted" style="font-size:13px;margin-top:6px;">All proposals are visible publicly at <code>/submissions</code> with current review status. no PII, only metadata.</p>
-        <a href="/submissions" class="btn btn-ghost" style="margin-top:10px;">Browse submissions →</a>
-      </div>
-    </aside>
+      <form onsubmit="return false;" aria-label="Newsletter sign-up">
+        <input type="email" required placeholder="you@institution.org" />
+        <select aria-label="Areas of expertise">
+          <option>All corridors</option>
+          <option>South Asia → Gulf</option>
+          <option>Southeast Asia → East Asia</option>
+          <option>Central America → North America</option>
+          <option>Recruitment-fee patterns</option>
+          <option>Contract substitution</option>
+          <option>Regulatory updates</option>
+          <option>NGO contact verification</option>
+        </select>
+        <button type="submit" class="btn">Subscribe to expert requests <span class="arrow">&rarr;</span></button>
+        <span class="help">One-click unsubscribe in every email. No tracking pixels. Address is held only by the email provider, never copied into the public hub.</span>
+      </form>
+    </div>
   </div>
 </section>
 
 {% include "_footer.html" %}
 <script>
 const tracks = {
-  context: {t:"Public-source context update", s:"Add a new public-source advisory, jurisdiction rule, or corridor reference. The hub will scan and queue your proposal."},
-  grep:    {t:"Grep rule proposal", s:"Propose a deterministic safety rule. Provide regex/heuristic, cited rationale, and target false-positive rate ≤ 2%."},
-  tool:    {t:"Tool proposal", s:"Propose a local-only tool. Specify inputs, outputs, safety boundary, and confirm draft-only behavior."},
-  contact: {t:"Verified contact update", s:"Add or update a vetted NGO / regulator / hotline contact in a public registry. Public URLs only. never worker contacts."},
-  rubric:  {t:"Eval rubric proposal", s:"Propose a rubric for grading model answers (grounding, citation, refusal correctness)."},
-  prompt:  {t:"Evaluation prompt proposal", s:"Propose a composite-only evaluation prompt. Real PII is rejected by the scanner."},
-  partner: {t:"Partner organization sign-up", s:"Register your NGO / regulator / research org as a Duecare partner. Get a deployment ID."},
-  volunteer:{t:"Volunteer reviewer sign-up", s:"Help rank model answers, verify public URLs, and review grep rule false-positives."}
+  context:   {t:"Public-source context update",     s:"Add a new public-source advisory, jurisdiction rule, or corridor reference. The hub will scan and queue your proposal."},
+  grep:      {t:"Grep rule proposal",               s:"Propose a deterministic safety rule. Provide regex or heuristic, cited rationale, and target false-positive rate ≤ 2%."},
+  tool:      {t:"Tool proposal",                    s:"Propose a local-only tool. Specify inputs, outputs, the safety boundary, and confirm draft-only behavior."},
+  contact:   {t:"Verified contact update",          s:"Add or update a vetted NGO, regulator, or hotline contact in a public registry. Public URLs only, never worker contacts."},
+  rubric:    {t:"Eval rubric proposal",             s:"Propose a scoring rubric used to grade model answers (grounding, citation, refusal correctness)."},
+  prompt:    {t:"Evaluation prompt proposal",       s:"Propose a composite-only evaluation prompt. Real PII is rejected by the scanner."},
+  partner:   {t:"Partner organization sign-up",     s:"Register your NGO, regulator, ministry, or research org as a DueCare partner. You will get a deployment ID and a curator contact."},
+  volunteer: {t:"Volunteer reviewer sign-up",       s:"Help rank model answers, verify public URLs, and cross-check grep-rule false positives."},
+  custom:    {t:"Custom proposal",                  s:"Anything that does not fit the standard tracks. Domain expertise, a new corridor, an integration idea, a regulatory change. Tell us what and why."}
 };
-document.querySelectorAll('#tracks .role-card').forEach(c => c.addEventListener('click', () => {
-  document.querySelectorAll('#tracks .role-card').forEach(x => x.classList.remove('on'));
+document.querySelectorAll('.ct-type[data-track]').forEach(c => c.addEventListener('click', () => {
+  document.querySelectorAll('.ct-type').forEach(x => x.classList.remove('on'));
   c.classList.add('on');
   const t = tracks[c.dataset.track];
+  if (!t) return;
   document.getElementById('formTitle').textContent = t.t;
   document.getElementById('formSub').textContent = t.s;
+  document.getElementById('form').scrollIntoView({ behavior: 'smooth', block: 'start' });
 }));
 function submitForm(e){e.preventDefault();alert("Proposal queued. You'll see it in /submissions as 'proposed' once the PII scan finishes.");return false;}
 </script>

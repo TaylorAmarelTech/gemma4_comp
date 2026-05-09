@@ -41,14 +41,14 @@
 <div class="step"><h4>Collect</h4><p>Pull public-source updates from the research monitor. Pull reviewed partner submissions. Pull eval-pack proposals from researchers.</p></div>
 <div class="step"><h4>Curate</h4><p>Curators review proposals, attach citations, and shape pack-diffs or new eval cases.</p></div>
 <div class="step"><h4>Train</h4><p>Optional: train a corridor LoRA adapter on the curated dataset. Base Gemma 4 weights never change.</p></div>
-<div class="step"><h4>Eval</h4><p>Run the regression suite + new cases against the candidate adapter / pack. Compare to last signed release.</p></div>
+<div class="step"><h4>Eval</h4><p>Run the regression suite + new cases against the candidate adapter / pack. Compare to last vetted release.</p></div>
 <div class="step"><h4>Sign</h4><p>If eval passes, curator key signs the pack and / or adapter. Old keys remain in the public log.</p></div>
 <div class="step"><h4>Publish</h4><p>Append-only release to the hub. Audit row emitted. Subscribers on the &ldquo;Pack updates&rdquo; topic notified.</p></div>
 </div>
 </div></section>
 
 <section class="hp-section" data-screen-label="Eval &middot; Latest run"><div class="wrap">
-<div class="head"><div><span class="ix">02 &middot; Latest eval run</span><h2>Pack: <code>npl-qat-construction@1.4.0-rc1</code></h2></div><p class="summary">Compared against last signed release <code>1.3.0</code>. Run on Gemma 4 base + corridor adapter <code>npl-qat-cons.lora@0.7.1</code>.</p></div>
+<div class="head"><div><span class="ix">02 &middot; Latest eval run</span><h2>Pack: <code>npl-qat-construction@1.4.0-rc1</code></h2></div><p class="summary">Compared against last vetted release <code>1.3.0</code>. Run on Gemma 4 base + corridor adapter <code>npl-qat-cons.lora@0.7.1</code>.</p></div>
 <div class="ev-metrics">
 <div class="m"><div class="lbl">Citation accuracy</div><div class="val">98.2%</div><div class="sub">+1.4pp vs 1.3.0</div></div>
 <div class="m"><div class="lbl">Refusal correctness</div><div class="val">99.1%</div><div class="sub">flat vs 1.3.0</div></div>
