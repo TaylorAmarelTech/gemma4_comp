@@ -288,6 +288,21 @@
   </div>
 </section>
 
+<!-- ============== Glossary ============== -->
+<section data-screen-label="Hub · Glossary">
+  <div class="wrap">
+    <div style="border: 1px solid var(--line); border-radius: 14px; background: var(--paper-2); padding: 24px 28px; margin-top: 24px;">
+      <span class="label" style="display:block;margin-bottom:10px;">One-line glossary</span>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 18px; font-size: 14px; line-height: 1.55; color: var(--ink-2);">
+        <div><strong>Knowledge pack</strong>: the artifact. A versioned, downloadable bundle the hub serves.</div>
+        <div><strong>Corridor pack</strong>: a knowledge pack scoped to one migration corridor (e.g. PHL-KWT).</div>
+        <div><strong>Context pack</strong>: a knowledge pack when retrieval is loading it into a model prompt.</div>
+        <div><strong>Vetted pack</strong>: any knowledge pack a curator has approved. The default for client pulls.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
 <!-- ============== 01 What ============== -->
 <section id="hub-what" class="hub-section" data-screen-label="Hub · What it is">
   <div class="wrap">
@@ -483,64 +498,116 @@
 
     <div class="hub-int">
       <div class="nav-col" role="tablist" aria-label="Integration paths">
-        <button class="on" data-pane="p-pull"><span class="n">01</span> Pull a pack</button>
-        <button data-pane="p-verify"><span class="n">02</span> Verify it</button>
-        <button data-pane="p-signal"><span class="n">03</span> Share a usage signal</button>
-        <button data-pane="p-rules"><span class="n">04</span> Pull rules &amp; tools</button>
-        <button data-pane="p-audit"><span class="n">05</span> Replay history</button>
+        <button class="on" data-pane="p-pull" role="tab" aria-selected="true"><span class="n">01</span> Pull a pack</button>
+        <button data-pane="p-filter" role="tab" aria-selected="false"><span class="n">02</span> Filter the registry</button>
+        <button data-pane="p-pin" role="tab" aria-selected="false"><span class="n">03</span> Pin a version</button>
+        <button data-pane="p-sync" role="tab" aria-selected="false"><span class="n">04</span> Auto-sync updates</button>
+        <button data-pane="p-signal" role="tab" aria-selected="false"><span class="n">05</span> Share a usage signal</button>
+        <button data-pane="p-optout" role="tab" aria-selected="false"><span class="n">06</span> Opt out of signals</button>
+        <button data-pane="p-submit" role="tab" aria-selected="false"><span class="n">07</span> Submit a proposal</button>
+        <button data-pane="p-retract" role="tab" aria-selected="false"><span class="n">08</span> Retract a submission</button>
       </div>
 
       <div class="panes">
-        <div class="pane on" id="p-pull">
-          <h4>Pull a corridor pack by manifest</h4>
-          <p>Resolve the latest manifest for a corridor, then download the pack body by content hash. Files are immutable, so any cache or mirror is safe.</p>
-<pre><span class="c"># resolve latest manifest</span>
-curl https://api.duecare-ai.com/packs/qa-np/latest <span class="c"># →</span>
-{ <span class="k">"version"</span>: <span class="s">"2026.05.06"</span>,
-  <span class="k">"hash"</span>: <span class="s">"sha256:9ab3…"</span>,
-  <span class="k">"signer"</span>: <span class="s">"curator/duecare-1"</span> }
-
-<span class="c"># pull the pack body</span>
-curl -O https://cdn.duecare-ai.com/packs/sha256:9ab3…</pre>
+        <div class="pane on" id="p-pull" role="tabpanel">
+          <h4>Pull the latest version of a pack</h4>
+          <p>Resolve the latest version of any corridor pack by id. The body is JSON; mirror it locally and your runtime stays offline-capable.</p>
+<pre><span class="c"># latest version of the PHL→KWT corridor pack</span>
+curl https://gemma4-comp.onrender.com/api/hub/packs/phl-kwt-domestic
+</pre>
         </div>
 
-        <div class="pane" id="p-verify">
-          <h4>Verify the curator signature</h4>
-          <p>Use the CLI or any standard ed25519 verifier. Verification is offline once you have the public key.</p>
-<pre><span class="c"># one-shot</span>
-duecare verify pack.json --key curator-1.pub
+        <div class="pane" id="p-filter" role="tabpanel">
+          <h4>Filter the registry by characteristic</h4>
+          <p>Combine any of <code>kind</code>, <code>jurisdiction</code>, <code>corridor</code>, <code>tag</code>, <code>status_</code>. The response also lists the discoverable values for each filter so a UI can populate dropdowns.</p>
+<pre><span class="c"># every grep-rule pack vetted for any jurisdiction</span>
+curl "https://gemma4-comp.onrender.com/api/hub/packs?kind=GrepRulePack&amp;status_=vetted"
 
-<span class="c"># or the underlying primitive</span>
-openssl pkeyutl -verify \
-  -pubin -inkey curator-1.pub \
-  -sigfile pack.sig -in pack.json</pre>
+<span class="c"># every pack tagged 'fees' for the Philippines</span>
+curl "https://gemma4-comp.onrender.com/api/hub/packs?tag=fees&amp;jurisdiction=PHL"
+</pre>
         </div>
 
-        <div class="pane" id="p-signal">
-          <h4>Send an anonymized opt-in signal</h4>
-          <p>Signals are aggregate counts. Free text, identifiers, and case content are rejected at the schema boundary. Below k≥30, the rollup never publishes.</p>
-<pre>POST /signals
-{
-  <span class="k">"deployment_id"</span>: <span class="s">"ngo-helpdesk-bd"</span>,
-  <span class="k">"corridor"</span>: <span class="s">"qa-np"</span>,
-  <span class="k">"week"</span>: <span class="s">"2026-W19"</span>,
-  <span class="k">"pattern"</span>: <span class="s">"fee_request"</span>,
-  <span class="k">"count"</span>: 42
-}</pre>
+        <div class="pane" id="p-pin" role="tabpanel">
+          <h4>Pin a specific version for reproducibility</h4>
+          <p>List every known version, then pin the one you want. The pinned URL is stable forever; nothing is overwritten.</p>
+<pre><span class="c"># every version of a pack</span>
+curl https://gemma4-comp.onrender.com/api/hub/packs/phl-kwt-domestic/versions
+
+<span class="c"># pull a specific version</span>
+curl https://gemma4-comp.onrender.com/api/hub/packs/phl-kwt-domestic/1.7.2
+</pre>
         </div>
 
-        <div class="pane" id="p-rules">
-          <h4>Pull the rule and tool registry</h4>
-          <p>One file per registry, addressed by version. Mirror locally and pin in your runtime config.</p>
-<pre>curl https://cdn.duecare-ai.com/rules/2026.05.06.json
-curl https://cdn.duecare-ai.com/tools/2026.05.06.json</pre>
+        <div class="pane" id="p-sync" role="tabpanel">
+          <h4>Auto-sync only what changed</h4>
+          <p>Tell the hub the timestamp of your last successful sync. The response lists every vetted pack vetted after that and gives you the next cursor.</p>
+<pre><span class="c"># first sync (no cursor): list every vetted pack</span>
+curl https://gemma4-comp.onrender.com/api/hub/sync
+
+<span class="c"># subsequent sync: pass the next_cursor from the previous response</span>
+curl "https://gemma4-comp.onrender.com/api/hub/sync?since=2026-04-12T09:14:00%2B00:00"
+</pre>
+          <p class="muted" style="margin-top: 12px; font-size: 13px;">
+            Recommended: poll every 6 hours from a cron and atomic-swap the pack file on disk only when the hash differs.
+          </p>
         </div>
 
-        <div class="pane" id="p-audit">
-          <h4>Replay the public audit stream</h4>
-          <p>Append-only NDJSON. Tail it, or fetch by date range. Every hub state change is reproducible from this feed alone.</p>
-<pre>curl https://api.duecare-ai.com/audit/stream.ndjson \
-  | jq -c <span class="s">'select(.kind=="pack.publish")'</span></pre>
+        <div class="pane" id="p-signal" role="tabpanel">
+          <h4>Send an anonymized usage signal</h4>
+          <p>Aggregate counts only. Free text, identifiers, and case content are rejected at the schema boundary. The hub re-checks for PII even after your local anonymizer runs.</p>
+<pre>curl -X POST https://gemma4-comp.onrender.com/api/hub/signals \
+  -H 'content-type: application/json' \
+  -d '{
+    "source": "ngo_case_intake",
+    "jurisdiction": "Hong Kong",
+    "corridor": "PH-HK domestic work",
+    "risk_tags": ["recruitment_fee", "passport_retention"],
+    "summary": "Aggregate pattern: high recruitment fees plus passport-retention requests in this corridor this month.",
+    "consent_basis": "explicit_opt_in"
+  }'
+</pre>
+        </div>
+
+        <div class="pane" id="p-optout" role="tabpanel">
+          <h4>Opt out of sending signals</h4>
+          <p>Three levels of opt-out, from least to most restrictive. None of them require you to call the hub; you control the runtime config.</p>
+          <ol style="font-size: 14px; line-height: 1.6; padding-left: 20px; margin: 12px 0;">
+            <li><strong>Per turn.</strong> Default. The runtime asks the operator before sending any signal. Operator clicks no, nothing leaves the device.</li>
+            <li><strong>Per corridor.</strong> Set <code>signals.disabled_corridors = ["PHL-KWT"]</code> in your runtime config. Anything matching that corridor is never proposed for sending.</li>
+            <li><strong>Per deployment.</strong> Set <code>signals.enabled = false</code> in your runtime config. The hub never receives a signal from this deployment, period. Pulls keep working.</li>
+          </ol>
+          <p class="muted" style="font-size: 13px;">There is no "force send" override. Local config wins.</p>
+        </div>
+
+        <div class="pane" id="p-submit" role="tabpanel">
+          <h4>Submit a public-source proposal</h4>
+          <p>Same endpoint the website's contribute form posts to. The server-side automation triages the summary; the curator queue is shared. <code>kind</code> picks the proposal type.</p>
+<pre>curl -X POST https://gemma4-comp.onrender.com/api/hub/client/submission \
+  -H 'content-type: application/json' \
+  -d '{
+    "kind": "context",
+    "deployment_id": "ngo-helpdesk-bd",
+    "organization": "Migrant Forum BD",
+    "jurisdiction": "BGD",
+    "corridor": "BGD-SAU",
+    "public_source_url": "https://example.gov/bd-sau-advisory-2026",
+    "summary": "New regulator advisory clarifies the placement-fee cap for the BGD-SAU domestic corridor.",
+    "consent_public_proposal": true
+  }'
+</pre>
+        </div>
+
+        <div class="pane" id="p-retract" role="tabpanel">
+          <h4>Retract a submission before vetting</h4>
+          <p>Only succeeds while the submission is still <code>proposed</code> or <code>needs_review</code>. Once a curator approves or rejects, the record is immutable.</p>
+<pre>curl -X POST https://gemma4-comp.onrender.com/api/hub/client/submission/retract \
+  -H 'content-type: application/json' \
+  -d '{
+    "submission_id": "cli_abc123def456",
+    "reason": "operator changed their mind after submitting"
+  }'
+</pre>
         </div>
       </div>
     </div>
