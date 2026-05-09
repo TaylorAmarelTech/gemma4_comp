@@ -1,0 +1,322 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Sign in · Duecare AI</title>
+<link rel="stylesheet" href="/static/styles.css" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%230E1116'/%3E%3Ctext x='16' y='21' text-anchor='middle' font-family='monospace' font-weight='700' font-size='14' fill='%23F7F6F1'%3ED%3C/text%3E%3C/svg%3E" />
+<style>
+body { background: var(--paper-2); }
+.auth-wrap {
+  min-height: 100vh;
+  display: grid; grid-template-columns: 1fr 1fr;
+}
+@media (max-width: 920px) { .auth-wrap { grid-template-columns: 1fr; } }
+.auth-side {
+  background: var(--ink); color: var(--paper);
+  padding: 56px;
+  display: flex; flex-direction: column; justify-content: space-between;
+  position: relative; overflow: hidden;
+}
+.auth-side::before {
+  content: ""; position: absolute; inset: 0;
+  background:
+    radial-gradient(50% 80% at 0% 100%, oklch(0.30 0.07 195 / 0.6) 0%, transparent 60%),
+    radial-gradient(40% 60% at 100% 0%, oklch(0.30 0.10 45 / 0.3) 0%, transparent 60%);
+  pointer-events: none;
+}
+.auth-side > * { position: relative; }
+.auth-side .brand { color: var(--paper); font-size: 16px; }
+.auth-side .brand-mark { background: var(--paper); color: var(--ink); }
+.auth-side h1 {
+  font-size: 38px; line-height: 1.1; max-width: 18ch;
+  margin-top: 64px; letter-spacing: -0.025em;
+  color: var(--paper);
+}
+.auth-side .lede {
+  color: oklch(0.85 0.01 200); font-size: 16px; line-height: 1.55; max-width: 44ch;
+  margin-top: 24px;
+}
+.auth-bullets {
+  margin-top: 32px;
+  display: flex; flex-direction: column; gap: 14px;
+  font-family: var(--mono); font-size: 12px; color: oklch(0.78 0.01 200);
+  text-transform: uppercase; letter-spacing: 0.06em;
+}
+.auth-bullets span { display: flex; gap: 10px; align-items: center; }
+.auth-bullets span::before {
+  content: ""; width: 8px; height: 8px; border-radius: 2px;
+  background: oklch(0.62 0.10 195);
+}
+.auth-side .foot {
+  font-family: var(--mono); font-size: 11px; color: oklch(0.65 0.01 200);
+  display: flex; gap: 16px; flex-wrap: wrap;
+}
+.auth-side .foot a { color: oklch(0.85 0.01 200); }
+
+.auth-main {
+  background: var(--paper);
+  padding: 56px;
+  display: flex; flex-direction: column; justify-content: center;
+}
+.auth-card {
+  max-width: 440px; margin: 0 auto; width: 100%;
+}
+.auth-card .top {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 32px;
+}
+.auth-card .top a { font-family: var(--mono); font-size: 12px; color: var(--ink-3); }
+.auth-card h2 { font-size: 28px; margin-bottom: 8px; }
+.auth-card .sub { color: var(--ink-3); font-size: 14px; margin-bottom: 28px; }
+
+.role-tabs {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px;
+  padding: 4px; border: 1px solid var(--line); border-radius: 10px;
+  background: var(--paper-2); margin-bottom: 24px;
+}
+.role-tabs button {
+  font-family: var(--sans); font-size: 13px; font-weight: 500;
+  padding: 10px 12px; border: 0; background: transparent; color: var(--ink-3);
+  border-radius: 7px; cursor: pointer;
+  display: flex; flex-direction: column; gap: 2px; align-items: center;
+}
+.role-tabs button .lab { font-family: var(--mono); font-size: 10px; color: inherit; text-transform: uppercase; letter-spacing: 0.06em; }
+.role-tabs button.on { background: var(--paper); box-shadow: var(--shadow-1); color: var(--ink); }
+.role-tabs button.on .lab { color: var(--accent-ink); }
+
+.field-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
+.field-group label {
+  font-family: var(--mono); font-size: 11px; font-weight: 500;
+  color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.08em;
+  display: flex; justify-content: space-between;
+}
+.field-group label .hint { color: var(--ink-4); text-transform: none; letter-spacing: 0; font-family: var(--sans); font-size: 11px; }
+.field-group input, .field-group select, .field-group textarea {
+  font-family: var(--sans); font-size: 14px;
+  padding: 11px 14px;
+  border: 1px solid var(--line); border-radius: 8px;
+  background: var(--paper); color: var(--ink);
+  transition: border-color .15s ease, box-shadow .15s ease;
+}
+.field-group input:focus, .field-group select:focus {
+  outline: 0; border-color: var(--accent);
+  box-shadow: 0 0 0 4px oklch(0.85 0.05 195 / 0.3);
+}
+.field-group .input-wrap { position: relative; }
+.field-group .input-wrap .key {
+  position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
+  font-family: var(--mono); font-size: 11px; color: var(--ink-3);
+  border: 1px solid var(--line); padding: 2px 6px; border-radius: 4px;
+  background: var(--paper-2);
+}
+
+.divider {
+  display: grid; grid-template-columns: 1fr auto 1fr; gap: 12px;
+  align-items: center; margin: 18px 0;
+  font-family: var(--mono); font-size: 11px; color: var(--ink-4);
+  text-transform: uppercase; letter-spacing: 0.08em;
+}
+.divider::before, .divider::after { content: ""; height: 1px; background: var(--line); }
+
+.sso-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 18px; }
+.sso-btn {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  padding: 10px; border: 1px solid var(--line); border-radius: 8px;
+  background: var(--paper); color: var(--ink-2);
+  font-family: var(--sans); font-size: 13px; cursor: pointer;
+}
+.sso-btn:hover { border-color: var(--ink-3); color: var(--ink); }
+
+.checkbox-row { display: flex; align-items: center; gap: 8px; margin-bottom: 20px; font-size: 13px; color: var(--ink-2); }
+.checkbox-row input { accent-color: var(--ink); }
+.checkbox-row .right { margin-left: auto; font-size: 12.5px; }
+.checkbox-row .right a { color: var(--ink); border-bottom: 1px dashed var(--ink-3); }
+
+.btn-full { width: 100%; justify-content: center; }
+
+.notice {
+  margin-top: 24px; padding: 14px 16px;
+  border: 1px dashed oklch(0.78 0.06 45);
+  background: var(--ember-soft); border-radius: 10px;
+  font-size: 13px; color: oklch(0.32 0.10 45);
+}
+.notice strong { color: oklch(0.30 0.13 45); }
+.notice .mono { font-family: var(--mono); font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: oklch(0.42 0.10 45); display: block; margin-bottom: 4px; }
+
+.role-pane { display: none; }
+.role-pane.on { display: block; }
+.field-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+@media (max-width: 540px) { .field-2col { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+
+<div class="auth-wrap">
+  <aside class="auth-side">
+    <a href="/" class="brand">
+      <span class="brand-mark">D</span> Duecare AI
+    </a>
+
+    <div>
+      <h1>The hub never sees your case data. Sign-in is for curators and partners only.</h1>
+      <p class="lede">Worker and caseworker work happens locally on the user's device.
+        This sign-in screen is for the small set of people who promote pack updates,
+        register partner deployments, or pull aggregate trend reports.</p>
+
+      <div class="auth-bullets">
+        <span>SSO via partner organization or hardware key</span>
+        <span>Every signature is logged in the public audit feed</span>
+        <span>No password resets via email — recovery is in-person</span>
+      </div>
+    </div>
+
+    <div class="foot">
+      <span>© 2026 Duecare AI</span>
+      <a href="/privacy">Privacy boundary</a>
+      <a href="/contact">Contact</a>
+      <a href="/docs">API docs</a>
+    </div>
+  </aside>
+
+  <main class="auth-main">
+    <div class="auth-card">
+      <div class="top">
+        <a href="/">← Back to site</a>
+        <a href="/contact">Need access? Request →</a>
+      </div>
+
+      <h2>Sign in</h2>
+      <p class="sub">Choose your role to see the correct authentication method.</p>
+
+      <div class="role-tabs" role="tablist">
+        <button class="on" data-role="curator">
+          <span>Curator</span><span class="lab">pack signing</span>
+        </button>
+        <button data-role="partner">
+          <span>Partner NGO</span><span class="lab">deploy &amp; pull</span>
+        </button>
+        <button data-role="regulator">
+          <span>Regulator</span><span class="lab">trend dashboard</span>
+        </button>
+      </div>
+
+      <!-- Curator pane -->
+      <div class="role-pane on" data-pane="curator">
+        <div class="field-group">
+          <label>Curator handle <span class="hint">issued by program lead</span></label>
+          <input type="text" placeholder="curator-04" autocomplete="off" />
+        </div>
+        <div class="field-group">
+          <label>Hardware-key challenge</label>
+          <div class="input-wrap">
+            <input type="text" placeholder="Tap your security key…" />
+            <span class="key">YubiKey</span>
+          </div>
+        </div>
+        <div class="checkbox-row">
+          <input type="checkbox" id="rk" />
+          <label for="rk">Trust this workstation for 8 hours</label>
+          <span class="right"><a href="#">Lost key?</a></span>
+        </div>
+        <button class="btn btn-full">Sign in &amp; review queue <span class="arrow">→</span></button>
+
+        <div class="divider">or</div>
+        <div class="sso-row">
+          <button class="sso-btn">⌥ Partner SSO</button>
+          <button class="sso-btn">⏺ One-time recovery</button>
+        </div>
+
+        <div class="notice">
+          <span class="mono">What signing does</span>
+          <strong>Curators promote pack-update diffs.</strong> Every promotion is logged
+          to the public audit feed at <code>/audit</code> with the curator handle and
+          hardware-key fingerprint. Curators cannot view worker case data — none exists.
+        </div>
+      </div>
+
+      <!-- Partner pane -->
+      <div class="role-pane" data-pane="partner">
+        <div class="field-group">
+          <label>Partner organization</label>
+          <select>
+            <option>Migrant-Forum Asia · ngo</option>
+            <option>Solidarity Center · ngo</option>
+            <option>HRW Labour Programme · ngo</option>
+            <option>Anti-Slavery International · ngo</option>
+            <option>— other (request access) —</option>
+          </select>
+        </div>
+        <div class="field-2col">
+          <div class="field-group">
+            <label>Email</label>
+            <input type="email" placeholder="caseworker@partner.org" />
+          </div>
+          <div class="field-group">
+            <label>Workstation ID</label>
+            <input type="text" placeholder="ws-…" />
+          </div>
+        </div>
+        <div class="field-group">
+          <label>One-time code <span class="hint">sent to your partner's tech lead</span></label>
+          <input type="text" placeholder="6-digit code" maxlength="6" />
+        </div>
+        <button class="btn btn-full">Continue → pack pull console</button>
+
+        <div class="notice">
+          <span class="mono">Partner privileges</span>
+          Partners can <strong>pull signed packs</strong>, register deployment IDs, and
+          view their own pull-history. Partners cannot upload case data, contact
+          information, or message text — the hub does not accept those fields.
+        </div>
+      </div>
+
+      <!-- Regulator pane -->
+      <div class="role-pane" data-pane="regulator">
+        <div class="field-group">
+          <label>Government / agency</label>
+          <input type="text" placeholder="e.g. Ministry of Labour · NP" />
+        </div>
+        <div class="field-2col">
+          <div class="field-group">
+            <label>Official email</label>
+            <input type="email" placeholder="name@ministry.gov.np" />
+          </div>
+          <div class="field-group">
+            <label>Credential ID</label>
+            <input type="text" placeholder="issued at onboarding" />
+          </div>
+        </div>
+        <div class="checkbox-row">
+          <input type="checkbox" id="rs" checked disabled />
+          <label for="rs">I understand this dashboard shows aggregate trends only — no case data</label>
+        </div>
+        <button class="btn btn-full">Open trend dashboard</button>
+
+        <div class="notice">
+          <span class="mono">What regulators see</span>
+          Aggregate corridor- and sector-level signal trends, gated to a k-anon floor
+          of 30. <strong>No identifying information about individual workers, employers,
+          or specific cases is available — by design and in code.</strong>
+        </div>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<script>
+  // Plain JS role switcher
+  const tabs = document.querySelectorAll('.role-tabs button');
+  const panes = document.querySelectorAll('.role-pane');
+  tabs.forEach(t => t.addEventListener('click', () => {
+    tabs.forEach(x => x.classList.remove('on'));
+    t.classList.add('on');
+    const r = t.dataset.role;
+    panes.forEach(p => p.classList.toggle('on', p.dataset.pane === r));
+  }));
+</script>
+
+</body>
+</html>

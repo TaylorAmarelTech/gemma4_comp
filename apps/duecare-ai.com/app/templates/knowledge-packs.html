@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Knowledge packs &middot; DueCare AI</title>
+<link rel="stylesheet" href="/static/styles.css" />
+<link rel="stylesheet" href="/static/hub-pages.css" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%230E1116'/%3E%3Ctext x='16' y='21' text-anchor='middle' font-family='monospace' font-weight='700' font-size='14' fill='%23F7F6F1'%3ED%3C/text%3E%3C/svg%3E" />
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="/" class="brand"><span class="brand-mark">D</span> DueCare AI</a>
+    <div class="nav-links">
+      <a href="/demo">Demo</a>
+      <a href="/use-cases">Use cases</a>
+      <a href="/hub" class="on">Hub</a>
+      <a href="/docs">Docs</a>
+      <a href="/stats">Stats</a>
+    </div>
+    <a href="/login?next=/contribute" class="nav-cta">Get involved <span aria-hidden="true">&rarr;</span></a>
+  </div>
+</nav>
+
+
+
+
+<section class="hp-hero" data-screen-label="Hub &middot; Knowledge packs">
+  <div class="wrap">
+    <div class="crumbs"><a href="/">Home</a><span class="sep">/</span><a href="/hub">DueCare Hub</a><span class="sep">/</span><span>Knowledge packs</span></div>
+    <span class="kicker">/knowledge-packs &middot; the public registry</span>
+    <h1>Versioned bundles of public source material, signed by curators.</h1>
+    <p class="lede">A pack is the unit of knowledge the harness cites against. Every pack is
+      addressed by content hash, scoped to a corridor and jurisdiction, and frozen at a
+      known date. Pull by manifest; verify by signature; pin by version.</p>
+  </div>
+</section>
+
+<section class="hp-section" data-screen-label="Packs &middot; Registry">
+  <div class="wrap">
+    <div class="head">
+      <div><span class="ix">01 &middot; Registry</span><h2>Current packs</h2></div>
+      <p class="summary">Every published pack with its corridor, version, and signing status. Click a row to see manifest details and pull instructions.</p>
+    </div>
+    <div class="hp-list">
+      <div class="row"><div class="col">Pack</div><div class="col">Description</div><div class="col">Version</div><div class="col">Status</div></div>
+      <div class="row"><div class="name">Qatar &harr; Nepal corridor<span class="id">qa-np &middot; sha256:9ab3&hellip;</span></div><div class="desc">Recruitment fees, contract substitution rules, embassy advisories, MoL hotlines.</div><div><code>2026.05.06</code></div><div><span class="hp-pill ok">Signed</span></div></div>
+      <div class="row"><div class="name">Saudi Arabia &harr; Indonesia<span class="id">sa-id &middot; sha256:51e7&hellip;</span></div><div class="desc">Domestic-worker protections, Musaned platform terms, repatriation channels.</div><div><code>2026.04.22</code></div><div><span class="hp-pill ok">Signed</span></div></div>
+      <div class="row"><div class="name">UAE &harr; Bangladesh<span class="id">ae-bd &middot; sha256:a14c&hellip;</span></div><div class="desc">Labour-law amendments, Wage Protection System rules, BMET advisories.</div><div><code>2026.05.01</code></div><div><span class="hp-pill ok">Signed</span></div></div>
+      <div class="row"><div class="name">Singapore &harr; Philippines<span class="id">sg-ph &middot; sha256:7d22&hellip;</span></div><div class="desc">Domestic helper contracts, MOM advisories, POEA advisories, FDW levy rules.</div><div><code>2026.04.15</code></div><div><span class="hp-pill ok">Signed</span></div></div>
+      <div class="row"><div class="name">Malaysia &harr; Nepal<span class="id">my-np &middot; pending</span></div><div class="desc">Levy reforms, accommodation standards, source-country embassy contacts.</div><div><code>draft-2026.05</code></div><div><span class="hp-pill warn">Review</span></div></div>
+      <div class="row"><div class="name">Korea &harr; Vietnam<span class="id">kr-vn &middot; pending</span></div><div class="desc">EPS programme rules, contract terms, return reintegration advisories.</div><div><code>draft-2026.04</code></div><div><span class="hp-pill draft">Draft</span></div></div>
+    </div>
+  </div>
+</section>
+
+<section class="hp-section" data-screen-label="Packs &middot; Manifest">
+  <div class="wrap">
+    <div class="head">
+      <div><span class="ix">02 &middot; Manifest schema</span><h2>What a pack manifest holds.</h2></div>
+      <p class="summary">The manifest is the only thing a client needs to verify and pin a pack. Pack bodies are large; manifests are tiny and signed.</p>
+    </div>
+    <div class="hp-schema">
+      <div class="row"><div class="col">Field</div><div class="col">Type</div><div class="col">Description</div></div>
+      <div class="row"><code>pack_id</code><span class="type">string</span><span class="desc">Corridor slug, e.g. <code>qa-np</code>.</span></div>
+      <div class="row"><code>version</code><span class="type">date</span><span class="desc">Calendar version. Once published, never edited.</span></div>
+      <div class="row"><code>hash</code><span class="type">sha256</span><span class="desc">Content hash of the pack body. Used to address the body in the CDN.</span></div>
+      <div class="row"><code>signer</code><span class="type">curator-key</span><span class="desc">Curator key id that signed this manifest.</span></div>
+      <div class="row"><code>sources</code><span class="type">URL[]</span><span class="desc">Public source URLs whose extracted facts are inside the pack.</span></div>
+      <div class="row"><code>compatible_with</code><span class="type">semver-range</span><span class="desc">Harness versions that can consume this pack.</span></div>
+      <div class="row"><code>privacy_status</code><span class="type">enum</span><span class="desc">Always <code>public-source-only</code>; refused otherwise.</span></div>
+    </div>
+  </div>
+</section>
+
+<section class="hp-section" data-screen-label="Packs &middot; Lifecycle">
+  <div class="wrap">
+    <div class="head">
+      <div><span class="ix">03 &middot; Lifecycle</span><h2>From public source to signed pack.</h2></div>
+      <p class="summary">A pack is never edited in place. Corrections ship as new versions; old versions stay verifiable so historical answers stay reproducible.</p>
+    </div>
+    <div class="hp-flow">
+      <div class="step"><span class="num">01</span><div><h4>Public source observed</h4><p>A curator, partner, or research-monitor crawler finds a public document worth indexing.</p></div></div>
+      <div class="step"><span class="num">02</span><div><h4>Extracted facts proposed</h4><p>Facts and citations are extracted into a draft pack diff. The original URL and source hash are recorded.</p></div></div>
+      <div class="step"><span class="num">03</span><div><h4>Privacy gate</h4><p>The diff is checked: no PII, no private case content, no scraped private channels. Reject otherwise.</p></div></div>
+      <div class="step"><span class="num">04</span><div><h4>Curator review</h4><p>A human curator reviews the diff. Approve, request changes, or reject with reason.</p></div></div>
+      <div class="step"><span class="num">05</span><div><h4>Quality testing</h4><p>The proposed version runs through the regression suite. Failing rules block publication.</p></div></div>
+      <div class="step"><span class="num">06</span><div><h4>Sign &amp; publish</h4><p>Manifest is signed with the curator key and published. CDN serves the new body.</p></div></div>
+      <div class="step"><span class="num">07</span><div><h4>Clients pull</h4><p>Local and partner deployments pull the new manifest, verify the signature, and switch on success.</p></div></div>
+    </div>
+  </div>
+</section>
+
+<section class="hp-section" data-screen-label="Packs &middot; Pull">
+  <div class="wrap">
+    <div class="head">
+      <div><span class="ix">04 &middot; Pull a pack</span><h2>Two calls. One verification step.</h2></div>
+      <p class="summary">Resolve manifest, download body, verify signature against the curator public key. Mirror locally and pin in your runtime config.</p>
+    </div>
+    <pre class="hp-code"><span class="c"># 1. resolve latest manifest for a corridor</span>
+curl https://api.duecare-ai.com/packs/qa-np/latest
+
+<span class="c"># 2. pull the pack body by content hash</span>
+curl -O https://cdn.duecare-ai.com/packs/sha256:9ab3&hellip;
+
+<span class="c"># 3. verify the curator signature</span>
+duecare verify pack.json --key curator-1.pub</pre>
+  </div>
+</section>
+
+
+<footer><div class="wrap"><div class="foot-grid">
+<div><a href="/" class="brand"><span class="brand-mark">D</span> DueCare AI</a><p class="muted" style="font-size:14px;max-width:38ch;margin-top:8px;">Public-interest AI infrastructure for migrant-worker safety. <a href="/mission" style="color:inherit;text-decoration:underline;">Read the mission &rarr;</a></p></div>
+<div><h4>Hub</h4><ul><li><a href="/hub">Overview</a></li><li><a href="/knowledge-packs">Knowledge packs</a></li><li><a href="/tools-registry">Tools registry</a></li><li><a href="/research-monitor">Research monitor</a></li></ul></div>
+<div><h4>Docs</h4><ul><li><a href="/docs">Overview</a></li><li><a href="/technical-docs">Schemas</a></li><li><a href="/components">Architecture</a></li><li><a href="/why-gemma">Why Gemma 4</a></li><li><a href="/evaluation">Eval &amp; retraining</a></li><li><a href="/harness">Safety harness</a></li><li><a href="/setup">Setup guides</a></li><li><a href="/privacy-boundary">Privacy boundary</a></li></ul></div>
+<div><h4>Get involved</h4><ul><li><a href="/submit-information">Submit info</a></li><li><a href="/newsletter">Newsletter</a></li><li><a href="/email-feedback">Email feedback</a></li><li><a href="/alerts">Alerts archive</a></li><li><a href="/contribute">Contribute</a></li></ul></div>
+<div><h4>Verify</h4><ul><li><a href="/stats">Stats &amp; audit</a></li><li><a href="/dashboard">Live data</a></li><li><a href="/mission">Mission</a></li><li><a href="/contact">Contact</a></li></ul></div>
+</div><div class="foot-bottom"><span>&copy; 2026 DueCare AI</span><span>v0.4 &middot; public hub draft</span></div></div></footer>
+</body>
+</html>

@@ -1,0 +1,331 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Packages · Duecare AI</title>
+<link rel="stylesheet" href="/static/styles.css" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%230E1116'/%3E%3Ctext x='16' y='21' text-anchor='middle' font-family='monospace' font-weight='700' font-size='14' fill='%23F7F6F1'%3ED%3C/text%3E%3C/svg%3E" />
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="/" class="brand"><span class="brand-mark">D</span> DueCare AI</a>
+    <div class="nav-links">
+      <a href="/demo">Demo</a>
+      <a href="/use-cases">Use cases</a>
+      <a href="/hub">Hub</a>
+      <a href="/docs" class="on">Docs</a>
+      <a href="/stats">Stats</a>
+    </div>
+    <a href="/login?next=/contribute" class="nav-cta">Get involved <span aria-hidden="true">&rarr;</span></a>
+  </div>
+</nav>
+
+<section class="page-intro first" data-screen-label="Packages · Intro">
+  <div class="wrap">
+    <div class="crumbs"><a href="/">Home</a><span class="sep">/</span><span>Packages</span></div>
+    <span class="kicker">/packages · signed knowledge assets</span>
+    <h1>Browse, verify, and pull signed packs.</h1>
+    <p class="lede">Every pack is a versioned, hash-verified bundle of public-source
+      knowledge. Curators sign promotions; clients verify before use. <strong>Contains
+      raw PII: false</strong> — by schema, on every public package.</p>
+  </div>
+</section>
+
+<section class="tight" style="padding-top:0;border-top:0;" data-screen-label="Packages · Browser">
+  <div class="wrap">
+
+    <div class="search-input" style="margin-bottom:24px;">
+      <span style="color:var(--ink-4);">⌕</span>
+      <input type="text" placeholder="Search packs by id, corridor, jurisdiction…" />
+      <span class="key">⌘ K</span>
+    </div>
+
+    <div class="browser" style="padding-top:0;">
+      <aside class="filters">
+        <div class="filter-group">
+          <h5>Pack kind</h5>
+          <label><input type="checkbox" checked /> Corridor context <span class="count">14</span></label>
+          <label><input type="checkbox" checked /> Grep rules <span class="count">9</span></label>
+          <label><input type="checkbox" checked /> Contacts directory <span class="count">11</span></label>
+          <label><input type="checkbox" /> Tools <span class="count">6</span></label>
+          <label><input type="checkbox" /> Rubrics <span class="count">4</span></label>
+          <label><input type="checkbox" /> Eval prompts <span class="count">7</span></label>
+          <label><input type="checkbox" /> Jurisdiction map <span class="count">3</span></label>
+          <label><input type="checkbox" /> Adapter cards <span class="count">2</span></label>
+        </div>
+
+        <div class="filter-group">
+          <h5>Corridor</h5>
+          <label><input type="checkbox" checked /> qa-np · Qatar ↔ Nepal <span class="count">7</span></label>
+          <label><input type="checkbox" /> sa-id · KSA ↔ Indonesia <span class="count">5</span></label>
+          <label><input type="checkbox" /> ae-bd · UAE ↔ Bangladesh <span class="count">6</span></label>
+          <label><input type="checkbox" /> sg-mm · Singapore ↔ Myanmar <span class="count">3</span></label>
+          <label><input type="checkbox" /> kr-vn · Korea ↔ Vietnam <span class="count">2</span></label>
+        </div>
+
+        <div class="filter-group">
+          <h5>Sector</h5>
+          <label><input type="checkbox" /> Construction <span class="count">11</span></label>
+          <label><input type="checkbox" /> Domestic work <span class="count">8</span></label>
+          <label><input type="checkbox" /> Hospitality <span class="count">5</span></label>
+          <label><input type="checkbox" /> Agriculture <span class="count">3</span></label>
+        </div>
+
+        <div class="filter-group">
+          <h5>Status</h5>
+          <label><input type="checkbox" checked /> Verified <span class="count">28</span></label>
+          <label><input type="checkbox" /> Proposed <span class="count">14</span></label>
+          <label><input type="checkbox" /> Deprecated <span class="count">3</span></label>
+        </div>
+
+        <div class="rail" style="margin-top:8px;">
+          <span class="cap">Privacy invariant</span>
+          <p>Public packages never contain raw worker case data, contact records,
+            or message text. Schema enforces <code>contains_raw_pii: false</code>
+            on every public manifest.</p>
+        </div>
+      </aside>
+
+      <div>
+        <div class="results-bar">
+          <span><b style="color:var(--ink);font-weight:600;">42 packs</b> · 28 verified, 14 proposed</span>
+          <div class="sort">
+            <span>Sort</span>
+            <select>
+              <option>Last reviewed</option>
+              <option>Recently signed</option>
+              <option>A → Z by id</option>
+              <option>Most pulled</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="results-grid">
+
+          <a href="/packages-detail" class="asset">
+            <div class="asset-top">
+              <div>
+                <div class="asset-id">corridor/qa-np</div>
+                <div class="asset-title" style="margin-top:4px;">Qatar ↔ Nepal corridor pack</div>
+              </div>
+              <div class="asset-badges">
+                <span class="badge verified">Verified</span>
+                <span class="badge version">v3.2.1</span>
+              </div>
+            </div>
+            <div class="asset-summary">Recruitment-fee rules, KAFALA references, public advisories,
+              and contact directory for the QA-NP corridor. Cited by complaint-draft
+              and contact-router tools.</div>
+            <div class="asset-meta">
+              <span><b>Maintainer</b> Duecare curators</span>
+              <span><b>Reviewed</b> 2026-05-04</span>
+              <span><b>PII</b> false</span>
+              <span><b>Sha</b> 7c3f…a91d</span>
+            </div>
+          </a>
+
+          <a href="/packages-detail" class="asset">
+            <div class="asset-top">
+              <div>
+                <div class="asset-id">grep-rules/recruitment</div>
+                <div class="asset-title" style="margin-top:4px;">Recruitment-fee deterministic rules</div>
+              </div>
+              <div class="asset-badges">
+                <span class="badge verified">Verified</span>
+                <span class="badge version">v1.8</span>
+              </div>
+            </div>
+            <div class="asset-summary">Deterministic regex/heuristic layer that fires before the model
+              answers. Catches passport-retention requests, fee phrasings, off-contract
+              hours patterns. Editable by curators only.</div>
+            <div class="asset-meta">
+              <span><b>Maintainer</b> Curator-04</span>
+              <span><b>Rules</b> 187</span>
+              <span><b>Reviewed</b> 2026-05-02</span>
+            </div>
+          </a>
+
+          <a href="/packages-detail" class="asset">
+            <div class="asset-top">
+              <div>
+                <div class="asset-id">contacts/qa-np</div>
+                <div class="asset-title" style="margin-top:4px;">QA-NP verified contact directory</div>
+              </div>
+              <div class="asset-badges">
+                <span class="badge verified">Verified</span>
+                <span class="badge version">v2.0</span>
+              </div>
+            </div>
+            <div class="asset-summary">Vetted NGO, embassy, hotline, and labour-court contacts for the
+              corridor. URLs re-checked weekly. No worker contacts here — this is the
+              registry workers may be routed <em>to</em>.</div>
+            <div class="asset-meta">
+              <span><b>Entries</b> 64</span>
+              <span><b>Reviewed</b> 2026-05-06</span>
+              <span><b>License</b> CC-BY-SA 4.0</span>
+            </div>
+          </a>
+
+          <a href="/packages-detail" class="asset">
+            <div class="asset-top">
+              <div>
+                <div class="asset-id">corridor/sa-id</div>
+                <div class="asset-title" style="margin-top:4px;">KSA ↔ Indonesia corridor pack</div>
+              </div>
+              <div class="asset-badges">
+                <span class="badge proposed">Proposed</span>
+                <span class="badge version">v0.9</span>
+              </div>
+            </div>
+            <div class="asset-summary">Domestic-work focused corridor pack. Awaiting curator review of two
+              public-advisory updates before promotion to verified.</div>
+            <div class="asset-meta">
+              <span><b>Submitted by</b> Solidarity Center</span>
+              <span><b>Pending review</b> 2 items</span>
+              <span><b>Queue</b> /submissions</span>
+            </div>
+          </a>
+
+          <a href="/packages-detail" class="asset">
+            <div class="asset-top">
+              <div>
+                <div class="asset-id">tools/complaint-draft</div>
+                <div class="asset-title" style="margin-top:4px;">Complaint draft builder</div>
+              </div>
+              <div class="asset-badges">
+                <span class="badge verified">Verified</span>
+                <span class="badge draft-only">Draft only</span>
+                <span class="badge version">v1.4</span>
+              </div>
+            </div>
+            <div class="asset-summary">Generates a citation-grounded complaint draft with placeholders for
+              names and dates. Never auto-fills PII. Never sends. The user or
+              caseworker signs the artifact.</div>
+            <div class="asset-meta">
+              <span><b>Outputs</b> Markdown</span>
+              <span><b>Boundary</b> Local-only</span>
+              <span><b>Reviewed</b> 2026-04-29</span>
+            </div>
+          </a>
+
+          <a href="/packages-detail" class="asset">
+            <div class="asset-top">
+              <div>
+                <div class="asset-id">corridor/ae-bd</div>
+                <div class="asset-title" style="margin-top:4px;">UAE ↔ Bangladesh corridor pack</div>
+              </div>
+              <div class="asset-badges">
+                <span class="badge verified">Verified</span>
+                <span class="badge version">v2.5</span>
+              </div>
+            </div>
+            <div class="asset-summary">Construction-sector focused. Includes wage-protection-system
+              references and public registry of accredited recruitment agencies.</div>
+            <div class="asset-meta">
+              <span><b>Reviewed</b> 2026-04-21</span>
+              <span><b>Maintainer</b> Migrant-Forum Asia</span>
+              <span><b>PII</b> false</span>
+            </div>
+          </a>
+
+          <a href="/packages-detail" class="asset">
+            <div class="asset-top">
+              <div>
+                <div class="asset-id">eval/prompts-2026q2</div>
+                <div class="asset-title" style="margin-top:4px;">Q2 evaluation prompt set</div>
+              </div>
+              <div class="asset-badges">
+                <span class="badge verified">Verified</span>
+                <span class="badge version">v1.0</span>
+              </div>
+            </div>
+            <div class="asset-summary">Composite-only evaluation prompts and rubric for grading model
+              answers across recruitment-fee, fee-deduction, and complaint-routing tasks.</div>
+            <div class="asset-meta">
+              <span><b>Items</b> 240</span>
+              <span><b>License</b> CC-BY 4.0</span>
+              <span><b>Reviewed</b> 2026-05-03</span>
+            </div>
+          </a>
+
+          <a href="/packages-detail" class="asset">
+            <div class="asset-top">
+              <div>
+                <div class="asset-id">grep-rules/passport-retention</div>
+                <div class="asset-title" style="margin-top:4px;">Passport-retention rule set</div>
+              </div>
+              <div class="asset-badges">
+                <span class="badge proposed">Proposed</span>
+                <span class="badge version">v0.3</span>
+              </div>
+            </div>
+            <div class="asset-summary">New deterministic rules for catching passport-retention phrasings
+              across English, Bahasa, Nepali, and Bangla. Awaiting volunteer-review
+              false-positive sign-off.</div>
+            <div class="asset-meta">
+              <span><b>Submitted by</b> volunteer-117</span>
+              <span><b>FP rate</b> 2.1% (target ≤2%)</span>
+            </div>
+          </a>
+
+          <a href="/packages-detail" class="asset">
+            <div class="asset-top">
+              <div>
+                <div class="asset-id">jurisdiction/np</div>
+                <div class="asset-title" style="margin-top:4px;">Nepal jurisdiction map</div>
+              </div>
+              <div class="asset-badges">
+                <span class="badge verified">Verified</span>
+                <span class="badge version">v1.2</span>
+              </div>
+            </div>
+            <div class="asset-summary">Public registry of relevant labour ministries, recruitment
+              authorities, and complaint routes. URLs and citations only.</div>
+            <div class="asset-meta">
+              <span><b>Sources</b> 18 public docs</span>
+              <span><b>Reviewed</b> 2026-04-15</span>
+            </div>
+          </a>
+
+          <a href="/packages-detail" class="asset">
+            <div class="asset-top">
+              <div>
+                <div class="asset-id">rubric/safety-grader</div>
+                <div class="asset-title" style="margin-top:4px;">Safety-grader rubric</div>
+              </div>
+              <div class="asset-badges">
+                <span class="badge verified">Verified</span>
+                <span class="badge version">v0.7</span>
+              </div>
+            </div>
+            <div class="asset-summary">Rubric for ranking pairs of model answers on grounding, citation
+              completeness, and avoidance of unsafe over-promising.</div>
+            <div class="asset-meta">
+              <span><b>Used by</b> /volunteer queue</span>
+              <span><b>Reviewed</b> 2026-04-30</span>
+            </div>
+          </a>
+
+        </div>
+
+        <div style="margin-top:32px;display:flex;justify-content:center;">
+          <button class="btn btn-ghost">Load more packs <span class="arrow">→</span></button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer><div class="wrap"><div class="foot-grid">
+<div><a href="/" class="brand"><span class="brand-mark">D</span> DueCare AI</a><p class="muted" style="font-size:14px;max-width:38ch;margin-top:8px;">Public-interest AI infrastructure for migrant-worker safety. <a href="/mission" style="color:inherit;text-decoration:underline;">Read the mission &rarr;</a></p></div>
+<div><h4>Hub</h4><ul><li><a href="/hub">Overview</a></li><li><a href="/knowledge-packs">Knowledge packs</a></li><li><a href="/tools-registry">Tools registry</a></li><li><a href="/research-monitor">Research monitor</a></li></ul></div>
+<div><h4>Docs</h4><ul><li><a href="/docs">Overview</a></li><li><a href="/technical-docs">Schemas</a></li><li><a href="/components">Architecture</a></li><li><a href="/why-gemma">Why Gemma 4</a></li><li><a href="/evaluation">Eval &amp; retraining</a></li><li><a href="/harness">Safety harness</a></li><li><a href="/setup">Setup guides</a></li><li><a href="/privacy-boundary">Privacy boundary</a></li></ul></div>
+<div><h4>Get involved</h4><ul><li><a href="/submit-information">Submit info</a></li><li><a href="/newsletter">Newsletter</a></li><li><a href="/email-feedback">Email feedback</a></li><li><a href="/alerts">Alerts archive</a></li><li><a href="/contribute">Contribute</a></li></ul></div>
+<div><h4>Verify</h4><ul><li><a href="/stats">Stats &amp; audit</a></li><li><a href="/dashboard">Live data</a></li><li><a href="/mission">Mission</a></li><li><a href="/contact">Contact</a></li></ul></div>
+</div><div class="foot-bottom"><span>&copy; 2026 DueCare AI</span><span>v0.4 &middot; public hub draft</span></div></div></footer>
+
+</body>
+</html>

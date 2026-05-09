@@ -1,0 +1,444 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Demo · DueCare-AI.com</title>
+<link rel="stylesheet" href="/static/styles.css" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%230E1116'/%3E%3Ctext x='16' y='21' text-anchor='middle' font-family='monospace' font-weight='700' font-size='14' fill='%23F7F6F1'%3ED%3C/text%3E%3C/svg%3E" />
+<style>
+  /* ============ HERO: VIDEO FRONT AND CENTER ============ */
+  .demo-hero {
+    padding: 28px 0 48px;
+  }
+  .demo-hero .head {
+    display: flex; flex-wrap: wrap; align-items: end;
+    justify-content: space-between; gap: 16px;
+    margin-bottom: 20px;
+  }
+  .demo-hero h1 {
+    font-size: clamp(28px, 3.2vw, 40px);
+    letter-spacing: -0.018em; line-height: 1.1;
+    margin: 8px 0 0;
+  }
+  .demo-hero .sub {
+    margin: 8px 0 0; max-width: 64ch;
+    color: var(--ink-2); font-size: 16px; line-height: 1.55;
+  }
+  .demo-hero .head .meta {
+    font-family: var(--mono); font-size: 11.5px;
+    color: var(--ink-3); text-transform: uppercase;
+    letter-spacing: 0.08em;
+    display: flex; gap: 14px; flex-wrap: wrap;
+    align-items: center;
+  }
+  .demo-hero .head .meta span { display: inline-flex; gap: 6px; align-items: center; }
+  .demo-hero .head .meta span::before {
+    content: ""; width: 6px; height: 6px; background: var(--ink-4);
+    border-radius: 50%;
+  }
+
+  /* The video frame itself */
+  .video-frame {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    background: #0E1116;
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 1px 0 rgba(14,17,22,0.04), 0 18px 40px -22px rgba(14,17,22,0.18);
+  }
+  .video-frame iframe,
+  .video-frame video {
+    position: absolute; inset: 0;
+    width: 100%; height: 100%;
+    border: 0; display: block;
+  }
+  .video-placeholder {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 18px; color: rgba(247,246,241,0.85);
+    text-align: center; padding: 24px;
+    background:
+      radial-gradient(60% 50% at 50% 40%, rgba(217,119,87,0.10) 0%, transparent 60%),
+      linear-gradient(180deg, #14181F 0%, #0E1116 100%);
+  }
+  .video-placeholder .play-ring {
+    width: 80px; height: 80px; border-radius: 50%;
+    background: rgba(247,246,241,0.06);
+    border: 1px solid rgba(247,246,241,0.18);
+    display: grid; place-items: center;
+  }
+  .video-placeholder .play-ring svg { color: rgba(247,246,241,0.95); }
+  .video-placeholder .lbl {
+    font-family: var(--mono); font-size: 11px;
+    color: rgba(247,246,241,0.55);
+    text-transform: uppercase; letter-spacing: 0.10em;
+  }
+  .video-placeholder .ttl {
+    font-size: 22px; letter-spacing: -0.014em;
+    color: rgba(247,246,241,0.92);
+    max-width: 30ch;
+  }
+  .video-placeholder .note {
+    font-family: var(--mono); font-size: 11px;
+    color: rgba(247,246,241,0.45);
+    border: 1px dashed rgba(247,246,241,0.20);
+    padding: 6px 12px; border-radius: 4px;
+  }
+
+  /* Chapters strip below the video */
+  .chapters-strip {
+    margin-top: 20px;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: var(--paper);
+    overflow: hidden;
+  }
+  .chapters-strip .ch-head {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--line-soft);
+    background: var(--paper-2);
+    font-family: var(--mono); font-size: 11px;
+    color: var(--ink-3); text-transform: uppercase;
+    letter-spacing: 0.10em;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .chapters-list {
+    list-style: none; margin: 0; padding: 0;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  @media (max-width: 760px) { .chapters-list { grid-template-columns: 1fr; } }
+  .chapters-list li {
+    padding: 12px 16px;
+    border-top: 1px solid var(--line-soft);
+    border-right: 1px solid var(--line-soft);
+    display: grid;
+    grid-template-columns: 56px 1fr auto;
+    gap: 12px; align-items: center;
+    font-size: 13.5px;
+  }
+  .chapters-list li:nth-child(2n) { border-right: 0; }
+  .chapters-list li:nth-child(-n+1) { border-top: 0; }
+  @media (min-width: 761px) {
+    .chapters-list li:nth-child(-n+2) { border-top: 0; }
+  }
+  .chapters-list .ts {
+    font-family: var(--mono); font-size: 11.5px;
+    color: var(--ink-3);
+  }
+  .chapters-list .ttl { font-weight: 500; letter-spacing: -0.005em; }
+  .chapters-list .num {
+    font-family: var(--mono); font-size: 10.5px;
+    color: var(--ink-3); letter-spacing: 0.10em;
+  }
+
+  /* ============ NOTEBOOKS / REPRO BELOW ============ */
+  .repro {
+    border-top: 1px solid var(--line);
+    padding: 56px 0;
+    background: var(--paper-2);
+  }
+  .repro .lead {
+    display: flex; flex-direction: column;
+    gap: 8px; max-width: 64ch; margin-bottom: 28px;
+  }
+  .repro h2 {
+    font-size: 24px; letter-spacing: -0.014em; margin: 0;
+  }
+  .repro .lead p {
+    margin: 0; color: var(--ink-3); font-size: 14.5px; line-height: 1.55;
+  }
+  .repro-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+  }
+  @media (max-width: 880px) { .repro-grid { grid-template-columns: 1fr; } }
+  .repro-card {
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    background: var(--paper);
+    overflow: hidden;
+    display: flex; flex-direction: column;
+  }
+  .repro-card .head {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--line-soft);
+    display: flex; gap: 10px;
+    justify-content: space-between; align-items: baseline;
+    flex-wrap: wrap;
+  }
+  .repro-card .head .num {
+    font-family: var(--mono); font-size: 11px;
+    color: var(--ink-3); letter-spacing: 0.10em;
+    text-transform: uppercase;
+  }
+  .repro-card .head .level {
+    font-family: var(--mono); font-size: 10.5px;
+    color: var(--ink-3); border: 1px solid var(--line);
+    padding: 3px 8px; border-radius: 4px;
+  }
+  .code-preview {
+    background: #0E1116; color: oklch(0.85 0.02 195);
+    font-family: var(--mono); font-size: 12.5px;
+    padding: 18px 20px; line-height: 1.65;
+    aspect-ratio: 16 / 5;
+    overflow: hidden;
+    display: flex; flex-direction: column; justify-content: center;
+    border-bottom: 1px solid var(--line-soft);
+  }
+  .code-preview .ln { display: block; white-space: pre-wrap; word-break: break-word; }
+  .code-preview .ln .c { color: oklch(0.55 0.04 80); }
+  .code-preview .ln .k { color: oklch(0.78 0.10 45); }
+  .code-preview .ln .s { color: oklch(0.80 0.08 145); }
+  .repro-card .body {
+    padding: 20px;
+    display: flex; flex-direction: column; gap: 12px;
+    flex: 1;
+  }
+  .repro-card h3 {
+    margin: 0; font-size: 18px; letter-spacing: -0.012em;
+  }
+  .repro-card .desc { margin: 0; font-size: 14px; color: var(--ink-2); line-height: 1.55; }
+  .repro-card .meta-list {
+    margin: 0; padding: 0; list-style: none;
+    display: flex; flex-direction: column; gap: 7px;
+    font-family: var(--mono); font-size: 11.5px;
+    color: var(--ink-3);
+  }
+  .repro-card .meta-list li {
+    display: grid; grid-template-columns: 14px 1fr; gap: 8px;
+  }
+  .repro-card .meta-list li::before {
+    content: "▸"; color: var(--accent-ink);
+  }
+  .repro-card .foot {
+    padding: 14px 20px;
+    border-top: 1px solid var(--line-soft);
+    background: var(--paper-2);
+    display: flex; justify-content: space-between;
+    align-items: center; gap: 16px; flex-wrap: wrap;
+    font-family: var(--mono); font-size: 12px;
+  }
+  .repro-card .foot a {
+    color: var(--ink); border-bottom: 1px dashed var(--ink-3);
+    word-break: break-word;
+  }
+  .repro-card .foot a:hover { color: var(--accent-ink); border-bottom-color: var(--accent); }
+  .repro-card .foot .est { color: var(--ink-3); }
+
+  /* Honest note */
+  .why-no-host {
+    margin-top: 28px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: var(--paper);
+    padding: 14px 18px;
+    display: flex; gap: 12px; align-items: flex-start;
+  }
+  .why-no-host .icon {
+    flex-shrink: 0;
+    width: 22px; height: 22px; border-radius: 4px;
+    background: var(--ink); color: var(--paper);
+    display: grid; place-items: center;
+    font-family: var(--mono); font-size: 11px; font-weight: 600;
+  }
+  .why-no-host p { margin: 0; font-size: 13.5px; color: var(--ink-2); line-height: 1.55; }
+
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="/" class="brand"><span class="brand-mark">D</span> DueCare AI</a>
+    <div class="nav-links">
+      <a href="/demo" class="on">Demo</a>
+      <a href="/use-cases">Use cases</a>
+      <a href="/hub">Hub</a>
+      <a href="/docs">Docs</a>
+      <a href="/stats">Stats</a>
+    </div>
+    <a href="/login?next=/contribute" class="nav-cta">Get involved <span aria-hidden="true">&rarr;</span></a>
+  </div>
+</nav>
+
+<!-- ============ HERO: VIDEO FRONT AND CENTER ============ -->
+<section class="demo-hero" data-screen-label="Demo · Video">
+  <div class="wrap">
+    <div class="head">
+      <div>
+        <span class="kicker">/demo · recorded walkthrough</span>
+        <h1>How DueCare works, in one walkthrough.</h1>
+        <p class="sub">A guided tour of the problem, the system, and a worked
+          example. No setup required, just press play.</p>
+      </div>
+      <div class="meta">
+        <span>~6 min</span>
+        <span>EN captions</span>
+        <span>Composite scenarios only</span>
+      </div>
+    </div>
+
+    <div class="video-frame">
+      <!-- When the recording is published, replace the placeholder div with:
+           <iframe src="https://www.youtube.com/embed/VIDEO_ID" allowfullscreen></iframe>
+           or <video src="assets/walkthrough.mp4" controls poster="..."></video>
+      -->
+      <div class="video-placeholder">
+        <div class="play-ring">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+        </div>
+        <div class="lbl">Recorded walkthrough</div>
+        <div class="ttl">DueCare end-to-end in ~6 minutes.</div>
+        <div class="note">Embed link added when the recording is published</div>
+      </div>
+    </div>
+
+    <div class="chapters-strip">
+      <div class="ch-head">
+        <span>Chapters</span>
+        <span>Approximate</span>
+      </div>
+      <ol class="chapters-list">
+        <li>
+          <span class="num">01</span>
+          <span class="ttl">The problem we're addressing</span>
+          <span class="ts">00:00</span>
+        </li>
+        <li>
+          <span class="num">02</span>
+          <span class="ttl">Design constraints we chose</span>
+          <span class="ts">00:45</span>
+        </li>
+        <li>
+          <span class="num">03</span>
+          <span class="ttl">System overview &amp; harness</span>
+          <span class="ts">01:30</span>
+        </li>
+        <li>
+          <span class="num">04</span>
+          <span class="ttl">Worked example, end to end</span>
+          <span class="ts">02:30</span>
+        </li>
+        <li>
+          <span class="num">05</span>
+          <span class="ttl">How it integrates with partners</span>
+          <span class="ts">04:30</span>
+        </li>
+        <li>
+          <span class="num">06</span>
+          <span class="ttl">Open questions &amp; what's next</span>
+          <span class="ts">05:30</span>
+        </li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+<!-- ============ NOTEBOOKS / REPRO BELOW ============ -->
+<section class="repro" data-screen-label="Demo · Reproduce">
+  <div class="wrap">
+    <div class="lead">
+      <span class="kicker">/demo · reproduce it yourself</span>
+      <h2>Run the same pipeline yourself.</h2>
+      <p>The walkthrough above is the fastest path. If you'd rather see
+        the code execute, fork the public notebook or clone the repository.
+        Both run the same harness.</p>
+    </div>
+
+    <div class="repro-grid">
+
+      <!-- Notebook -->
+      <div class="repro-card">
+        <div class="head">
+          <span class="num">01 · Notebook</span>
+          <span class="level">In-browser GPU</span>
+        </div>
+        <div class="code-preview">
+          <span class="ln"><span class="c"># Open the notebook</span></span>
+          <span class="ln"><span class="c"># File → Copy &amp; Edit</span></span>
+          <span class="ln"><span class="c"># Settings → Accelerator → GPU</span></span>
+          <span class="ln">&nbsp;</span>
+          <span class="ln"><span class="k">!pip</span> install duecare</span>
+          <span class="ln"><span class="k">from</span> duecare <span class="k">import</span> Runtime</span>
+          <span class="ln">rt = Runtime.load(<span class="s">"default"</span>)</span>
+          <span class="ln">rt.run(<span class="s">"&lt;your scenario&gt;"</span>)</span>
+        </div>
+        <div class="body">
+          <h3>Public reproducible notebook</h3>
+          <p class="desc">A fork-and-run notebook with the runtime wired
+            to a free in-browser GPU. Modify the prompts, swap rule packs,
+            and inspect the harness output cell by cell.</p>
+          <ul class="meta-list">
+            <li>Free GPU runtime (subject to host quotas)</li>
+            <li>Same pipeline shown in the video</li>
+            <li>Logged outputs &amp; pack versions visible inline</li>
+          </ul>
+        </div>
+        <div class="foot">
+          <a href="#">↗ Open notebook</a>
+          <span class="est">~10 min to first run</span>
+        </div>
+      </div>
+
+      <!-- Source -->
+      <div class="repro-card">
+        <div class="head">
+          <span class="num">02 · Source</span>
+          <span class="level">Your hardware</span>
+        </div>
+        <div class="code-preview">
+          <span class="ln"><span class="c"># Clone the public repo</span></span>
+          <span class="ln">git clone https://github.com/&lt;org&gt;/duecare</span>
+          <span class="ln">cd duecare</span>
+          <span class="ln">&nbsp;</span>
+          <span class="ln"><span class="c"># Install &amp; pull a default pack</span></span>
+          <span class="ln">make install</span>
+          <span class="ln">make pack-default</span>
+          <span class="ln">&nbsp;</span>
+          <span class="ln"><span class="c"># Run a scenario</span></span>
+          <span class="ln">duecare run --scenario examples/&lt;file&gt;</span>
+        </div>
+        <div class="body">
+          <h3>Source repository</h3>
+          <p class="desc">If you have GPU access (workstation, lab, or
+            cloud), the README walks you through install, default pack
+            download, and running an example end to end.</p>
+          <ul class="meta-list">
+            <li>GPU recommended for inference</li>
+            <li>Public packs ship as samples</li>
+            <li>Issues &amp; discussions open for feedback</li>
+          </ul>
+        </div>
+        <div class="foot">
+          <a href="#">↗ View on source repo</a>
+          <span class="est">~30 min for first install</span>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="why-no-host">
+      <div class="icon">i</div>
+      <p>The runtime requires a GPU for inference, so we don't host a
+        public 24/7 endpoint. The video above is the easiest way to see
+        the system in action; the notebook and source let you run it.</p>
+    </div>
+  </div>
+</section>
+
+<footer><div class="wrap"><div class="foot-grid">
+<div><a href="/" class="brand"><span class="brand-mark">D</span> DueCare AI</a><p class="muted" style="font-size:14px;max-width:38ch;margin-top:8px;">Public-interest AI infrastructure for migrant-worker safety. <a href="/mission" style="color:inherit;text-decoration:underline;">Read the mission &rarr;</a></p></div>
+<div><h4>Hub</h4><ul><li><a href="/hub">Overview</a></li><li><a href="/knowledge-packs">Knowledge packs</a></li><li><a href="/tools-registry">Tools registry</a></li><li><a href="/research-monitor">Research monitor</a></li></ul></div>
+<div><h4>Docs</h4><ul><li><a href="/docs">Overview</a></li><li><a href="/technical-docs">Schemas</a></li><li><a href="/components">Architecture</a></li><li><a href="/why-gemma">Why Gemma 4</a></li><li><a href="/evaluation">Eval &amp; retraining</a></li><li><a href="/harness">Safety harness</a></li><li><a href="/setup">Setup guides</a></li><li><a href="/privacy-boundary">Privacy boundary</a></li></ul></div>
+<div><h4>Get involved</h4><ul><li><a href="/submit-information">Submit info</a></li><li><a href="/newsletter">Newsletter</a></li><li><a href="/email-feedback">Email feedback</a></li><li><a href="/alerts">Alerts archive</a></li><li><a href="/contribute">Contribute</a></li></ul></div>
+<div><h4>Verify</h4><ul><li><a href="/stats">Stats &amp; audit</a></li><li><a href="/dashboard">Live data</a></li><li><a href="/mission">Mission</a></li><li><a href="/contact">Contact</a></li></ul></div>
+</div><div class="foot-bottom"><span>&copy; 2026 DueCare AI</span><span>v0.4 &middot; public hub draft</span></div></div></footer>
+
+</body>
+</html>

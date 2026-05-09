@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Submit information &middot; DueCare AI</title>
+<link rel="stylesheet" href="/static/styles.css" />
+<link rel="stylesheet" href="/static/hub-pages.css" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%230E1116'/%3E%3Ctext x='16' y='21' text-anchor='middle' font-family='monospace' font-weight='700' font-size='14' fill='%23F7F6F1'%3ED%3C/text%3E%3C/svg%3E" />
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="/" class="brand"><span class="brand-mark">D</span> DueCare AI</a>
+    <div class="nav-links">
+      <a href="/demo">Demo</a>
+      <a href="/use-cases">Use cases</a>
+      <a href="/hub">Hub</a>
+      <a href="/docs">Docs</a>
+      <a href="/stats">Stats</a>
+    </div>
+    <a href="/login?next=/contribute" class="nav-cta">Get involved <span aria-hidden="true">&rarr;</span></a>
+  </div>
+</nav>
+
+
+
+
+<section class="hp-hero" data-screen-label="Hub &middot; Submit">
+  <div class="wrap">
+    <div class="crumbs"><a href="/">Home</a><span class="sep">/</span><a href="/hub">DueCare Hub</a><span class="sep">/</span><span>Submit information</span></div>
+    <span class="kicker">/submit-information &middot; what is safe to share</span>
+    <h1>Share information safely. The hub will reject the rest at the boundary.</h1>
+    <p class="lede">The hub accepts a small list of safe object types. Anything that could
+      identify a worker, employer, or case is refused at the schema gate before storage.
+      If you have a case to report, please use the verified hotlines listed in the relevant
+      pack instead.</p>
+  </div>
+</section>
+
+<section class="hp-section" data-screen-label="Submit &middot; Allowed">
+  <div class="wrap">
+    <div class="head">
+      <div><span class="ix">01 &middot; What you may submit</span><h2>Public, aggregate, anonymized.</h2></div>
+      <p class="summary">All submissions go through curator review before they affect any pack, tool, or contact.</p>
+    </div>
+    <div class="hp-grid-2">
+      <div class="hp-allow">
+        <div class="head">Allowed</div>
+        <ul>
+          <li>Public-source URL update (law, advisory, embassy notice)</li>
+          <li>Anonymized pattern observation (e.g. <code>fee_request</code> trend)</li>
+          <li>Aggregate trend count for a corridor or week</li>
+          <li>Contact / hotline freshness update</li>
+          <li>Tool suggestion with input/output schema</li>
+          <li>Response ranking on a synthetic prompt</li>
+          <li>Knowledge-pack correction with citation</li>
+          <li>Synthetic demo example for the eval suite</li>
+          <li>Signed partner proposal (registered curator key)</li>
+        </ul>
+      </div>
+      <div class="hp-deny">
+        <div class="head">Refused at the boundary</div>
+        <ul>
+          <li>Raw worker chat or message text</li>
+          <li>Personal case narrative</li>
+          <li>Phone numbers, emails, social handles</li>
+          <li>Passport, visa, national ID, private case ID</li>
+          <li>Home addresses</li>
+          <li>Unredacted document images</li>
+          <li>Private accusations against a named person or employer</li>
+          <li>Anything resembling legal counsel sought or given</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="hp-section" data-screen-label="Submit &middot; Flow">
+  <div class="wrap">
+    <div class="head">
+      <div><span class="ix">02 &middot; What happens to a submission</span><h2>Privacy gate. Curator review. Maybe a pack diff.</h2></div>
+      <p class="summary">Every submission is treated as untrusted text until the privacy gate clears it. Nothing is published automatically.</p>
+    </div>
+    <div class="hp-flow">
+      <div class="step"><span class="num">01</span><div><h4>Schema check</h4><p>Submission must match one of the allowed object types. Free text outside declared fields is dropped.</p></div></div>
+      <div class="step"><span class="num">02</span><div><h4>Privacy gate</h4><p>PII detector scans every text field. If it triggers, the submission is rejected with a reason; nothing is stored.</p></div></div>
+      <div class="step"><span class="num">03</span><div><h4>Quarantine if uncertain</h4><p>Borderline submissions land in a quarantine queue, never the public store.</p></div></div>
+      <div class="step"><span class="num">04</span><div><h4>Curator review</h4><p>A human curator reviews accepted submissions and decides what they become: pack diff, tool proposal, contact update, eval candidate.</p></div></div>
+      <div class="step"><span class="num">05</span><div><h4>Quality testing</h4><p>If a submission becomes a pack diff, it runs through the regression suite before anything is signed.</p></div></div>
+      <div class="step"><span class="num">06</span><div><h4>Receipt to submitter</h4><p>The submitter receives a structured receipt with the review state. No identifying details about reviewers leave the hub.</p></div></div>
+    </div>
+  </div>
+</section>
+
+<section class="hp-section" data-screen-label="Submit &middot; Channels">
+  <div class="wrap">
+    <div class="head">
+      <div><span class="ix">03 &middot; Channels</span><h2>How to submit.</h2></div>
+      <p class="summary">No accounts. Three channels: API for partners, email for everyone, web form for one-off submissions.</p>
+    </div>
+    <div class="hp-grid-3">
+      <article class="hp-card"><span class="role">Channel 01</span><h3>Partner API</h3><p>Signed partners post structured objects to <code>POST /api/hub/signals</code> or <code>POST /api/hub/opencrawl/updates</code>. Reviewed by curators on the same queue as everything else.</p></article>
+      <article class="hp-card"><span class="role">Channel 02</span><h3>Email</h3><p>Reply to a newsletter question, or write to <code>submissions@duecare-ai.com</code>. Replies are passed through the privacy gate before any human or model reads structured fields.</p></article>
+      <article class="hp-card"><span class="role">Channel 03</span><h3>Web form</h3><p>One-off submissions through a lightweight form with strict object types. No free-text catch-all field exists.</p></article>
+    </div>
+  </div>
+</section>
+
+
+<footer><div class="wrap"><div class="foot-grid">
+<div><a href="/" class="brand"><span class="brand-mark">D</span> DueCare AI</a><p class="muted" style="font-size:14px;max-width:38ch;margin-top:8px;">Public-interest AI infrastructure for migrant-worker safety. <a href="/mission" style="color:inherit;text-decoration:underline;">Read the mission &rarr;</a></p></div>
+<div><h4>Hub</h4><ul><li><a href="/hub">Overview</a></li><li><a href="/knowledge-packs">Knowledge packs</a></li><li><a href="/tools-registry">Tools registry</a></li><li><a href="/research-monitor">Research monitor</a></li></ul></div>
+<div><h4>Docs</h4><ul><li><a href="/docs">Overview</a></li><li><a href="/technical-docs">Schemas</a></li><li><a href="/components">Architecture</a></li><li><a href="/why-gemma">Why Gemma 4</a></li><li><a href="/evaluation">Eval &amp; retraining</a></li><li><a href="/harness">Safety harness</a></li><li><a href="/setup">Setup guides</a></li><li><a href="/privacy-boundary">Privacy boundary</a></li></ul></div>
+<div><h4>Get involved</h4><ul><li><a href="/submit-information">Submit info</a></li><li><a href="/newsletter">Newsletter</a></li><li><a href="/email-feedback">Email feedback</a></li><li><a href="/alerts">Alerts archive</a></li><li><a href="/contribute">Contribute</a></li></ul></div>
+<div><h4>Verify</h4><ul><li><a href="/stats">Stats &amp; audit</a></li><li><a href="/dashboard">Live data</a></li><li><a href="/mission">Mission</a></li><li><a href="/contact">Contact</a></li></ul></div>
+</div><div class="foot-bottom"><span>&copy; 2026 DueCare AI</span><span>v0.4 &middot; public hub draft</span></div></div></footer>
+</body>
+</html>

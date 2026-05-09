@@ -38,33 +38,49 @@ def test_robots_and_sitemap_are_served(tmp_path) -> None:
     assert "https://duecare-ai.com/grep-rules" in sitemap.text
 
 
-def test_public_website_pages_explain_project(tmp_path) -> None:
+def test_public_website_pages_render_design_templates(tmp_path) -> None:
     client = TestClient(create_app(data_dir=tmp_path))
 
     expected = {
-        "/": "Centralized knowledge. Decentralized privacy.",
-        "/components": "Plain-language components",
-        "/grep-rules": "Deterministic rules before generation.",
-        "/tools": "Tools draft; humans decide.",
-        "/context": "Context organized by corridor and jurisdiction.",
-        "/use-cases": "Four use cases, one privacy rule.",
-        "/dashboard": "Try the privacy-preserving flow",
+        "/": "AI infrastructure to",
+        "/components": "The full system, with honest labels.",
+        "/grep-rules": "Rules fire <em>before</em> the model speaks.",
+        "/tools": "Six tools. All local. All draft-only.",
+        "/context": "Knowledge moves. Cases don't.",
+        "/use-cases": "Five ways teams put DueCare to work.",
+        "/dashboard": "The live hub. Not the model chat UI.",
     }
 
     for path, marker in expected.items():
         response = client.get(path)
 
-        assert response.status_code == 200
-        assert marker in response.text
+        assert response.status_code == 200, f"{path} returned {response.status_code}"
+        assert marker in response.text, f"{path} missing marker {marker!r}"
 
 
-def test_use_cases_follow_canonical_order(tmp_path) -> None:
+def test_every_design_route_renders(tmp_path) -> None:
+    """Every entry in PAGE_ROUTES must serve a 200 with linked CSS."""
+    from app.main import PAGE_ROUTES
+
+    client = TestClient(create_app(data_dir=tmp_path))
+    for path in PAGE_ROUTES:
+        response = client.get(path)
+        assert response.status_code == 200, f"{path} returned {response.status_code}"
+        assert "/static/styles.css" in response.text, f"{path} did not link the design CSS"
+
+
+def test_use_cases_audiences_appear_in_design_order(tmp_path) -> None:
     client = TestClient(create_app(data_dir=tmp_path))
 
     response = client.get("/use-cases")
 
     assert response.status_code == 200
-    ordered = ["Platform Safety", "NGO / Regulators", "Migrant Worker Chat", "Academic Research"]
+    ordered = [
+        "Platform safety screening",
+        "NGO &amp; regulator copilot",
+        "Migrant worker chat",
+        "Academic research",
+    ]
     positions = [response.text.index(name) for name in ordered]
     assert positions == sorted(positions)
 

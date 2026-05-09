@@ -1,5 +1,11 @@
 # Claude Designer prompt for duecare-ai.com
 
+> If Claude Designer starts producing overlapping, fragile, over-styled,
+> or worker-chat-only pages, use the stricter conservative prompt in
+> [CLAUDE_CONSERVATIVE_DESIGN_PROMPT.md](CLAUDE_CONSERVATIVE_DESIGN_PROMPT.md)
+> instead. That prompt is now the preferred brief for production-facing
+> website work.
+
 Copy/paste this prompt into Claude Designer.
 
 ---

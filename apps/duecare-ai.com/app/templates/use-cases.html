@@ -1,0 +1,939 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Use cases · DueCare-AI</title>
+<link rel="stylesheet" href="/static/styles.css" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%230E1116'/%3E%3Ctext x='16' y='21' text-anchor='middle' font-family='monospace' font-weight='700' font-size='14' fill='%23F7F6F1'%3ED%3C/text%3E%3C/svg%3E" />
+<style>
+  /* ---------- Hero ---------- */
+  .uc-hero { padding: 56px 0 36px; }
+  .uc-hero .grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+    gap: 56px; align-items: end;
+  }
+  @media (max-width: 920px) {
+    .uc-hero .grid { grid-template-columns: 1fr; gap: 24px; }
+  }
+  .uc-hero h1 {
+    font-size: clamp(36px, 4.2vw, 52px);
+    letter-spacing: -0.02em; line-height: 1.05;
+    margin: 12px 0 0; max-width: 18ch;
+  }
+  .uc-hero .lede {
+    margin-top: 20px; font-size: 17px; line-height: 1.55;
+    color: var(--ink-2); max-width: 56ch;
+  }
+  .uc-hero .toc {
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: var(--paper);
+    padding: 18px 20px;
+  }
+  .uc-hero .toc h3 {
+    font-family: var(--mono); font-size: 11px;
+    color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.10em;
+    margin: 0 0 14px;
+  }
+  .uc-hero .toc ol {
+    list-style: none; margin: 0; padding: 0;
+    display: flex; flex-direction: column; gap: 4px;
+    counter-reset: ucstep;
+  }
+  .uc-hero .toc ol li { counter-increment: ucstep; }
+  .uc-hero .toc ol li a {
+    display: grid; grid-template-columns: 32px 1fr auto;
+    gap: 12px; align-items: baseline;
+    padding: 10px 0;
+    border-top: 1px solid var(--line-soft);
+    font-size: 14.5px; color: var(--ink);
+    text-decoration: none; line-height: 1.3;
+  }
+  .uc-hero .toc ol li:first-child a { border-top: 0; }
+  .uc-hero .toc ol li a::before {
+    content: counter(ucstep, decimal-leading-zero);
+    font-family: var(--mono); font-size: 11px;
+    color: var(--ink-3); letter-spacing: 0.08em;
+  }
+  .uc-hero .toc ol li a .arrow {
+    font-family: var(--mono); font-size: 12px; color: var(--ink-3);
+  }
+  .uc-hero .toc ol li a:hover { color: var(--accent-ink); }
+  .uc-hero .toc ol li a:hover .arrow { color: var(--accent-ink); }
+
+  /* ---------- Use case section ---------- */
+  .uc-section { padding: 48px 0; border-top: 1px solid var(--line); }
+
+  .uc-section .head {
+    display: grid;
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+    gap: 56px; align-items: end;
+    margin-bottom: 32px;
+  }
+  @media (max-width: 920px) { .uc-section .head { grid-template-columns: 1fr; gap: 12px; } }
+  .uc-section .head .ix {
+    font-family: var(--mono); font-size: 11px;
+    color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.10em;
+  }
+  .uc-section .head h2 {
+    font-size: clamp(28px, 3vw, 40px);
+    letter-spacing: -0.018em; margin: 8px 0 0;
+    line-height: 1.1;
+  }
+  .uc-section .head .summary {
+    font-size: 16px; color: var(--ink-2); line-height: 1.6;
+    margin: 0; max-width: 52ch;
+  }
+
+  /* Body grid: what it does (2 col) + audience strip */
+  .uc-body {
+    display: grid;
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+    gap: 24px; align-items: stretch;
+  }
+  .uc-body > * { height: 100%; }
+  @media (max-width: 920px) { .uc-body { grid-template-columns: 1fr; } }
+
+  .what-card {
+    border: 1px solid var(--line); border-radius: 14px;
+    background: var(--paper);
+    padding: 28px 32px;
+    display: flex; flex-direction: column; gap: 22px;
+  }
+  .what-card .label {
+    font-family: var(--mono); font-size: 11px;
+    color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.10em;
+  }
+  .what-card .what-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 22px;
+  }
+  @media (max-width: 720px) { .what-card .what-grid { grid-template-columns: 1fr; } }
+  .what-card .what-col h4 {
+    font-family: var(--mono); font-size: 11px;
+    color: var(--ink); text-transform: uppercase; letter-spacing: 0.10em;
+    margin: 0 0 10px;
+  }
+  .what-card ul {
+    list-style: none; padding: 0; margin: 0;
+    display: flex; flex-direction: column; gap: 8px;
+    font-size: 14px; color: var(--ink-1); line-height: 1.5;
+  }
+  .what-card ul li {
+    display: grid; grid-template-columns: 16px 1fr; gap: 8px;
+    align-items: baseline;
+  }
+  .what-card ul li::before {
+    content: ""; width: 6px; height: 6px;
+    background: var(--accent); border-radius: 1px;
+    transform: translateY(2px);
+  }
+
+  .audience {
+    border: 1px solid var(--line); border-radius: 14px;
+    background: var(--paper-2);
+    padding: 24px 26px;
+    display: flex; flex-direction: column; gap: 18px;
+  }
+  .audience .label {
+    font-family: var(--mono); font-size: 11px;
+    color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.10em;
+  }
+  .audience .who { display: flex; flex-direction: column; gap: 4px; }
+  .audience .who h4 {
+    font-family: var(--mono); font-size: 11px;
+    color: var(--ink); text-transform: uppercase; letter-spacing: 0.10em;
+    margin: 0;
+  }
+  .audience .who p { margin: 0; font-size: 14px; color: var(--ink-2); line-height: 1.55; }
+  .audience .stack { display: flex; flex-wrap: wrap; gap: 6px; }
+  .audience .chip {
+    font-family: var(--mono); font-size: 11px;
+    border: 1px solid var(--line); background: var(--paper);
+    padding: 4px 8px; border-radius: 4px; color: var(--ink-2);
+  }
+
+  /* Architecture accordion */
+  .arch-acc {
+    margin-top: 18px;
+    border: 1px solid var(--line); border-radius: 12px;
+    background: var(--paper);
+    overflow: hidden;
+  }
+  .arch-acc summary {
+    list-style: none;
+    cursor: pointer;
+    padding: 16px 24px;
+    display: flex; justify-content: space-between; align-items: center;
+    font-family: var(--mono); font-size: 12px;
+    color: var(--ink); text-transform: uppercase; letter-spacing: 0.10em;
+  }
+  .arch-acc summary::-webkit-details-marker { display: none; }
+  .arch-acc summary .caret {
+    font-family: var(--mono); font-size: 12px; color: var(--ink-3);
+    transition: transform 0.18s ease;
+  }
+  .arch-acc[open] summary .caret { transform: rotate(90deg); }
+  .arch-acc[open] summary { border-bottom: 1px solid var(--line); }
+  .arch-acc summary:hover { background: var(--paper-2); }
+  .arch-content { padding: 28px; }
+
+  /* Architecture diagram — vertical stepper */
+  .arch-flow {
+    display: flex; flex-direction: column;
+    gap: 0;
+  }
+  .arch-node {
+    border: 1px solid var(--line); border-radius: 10px;
+    background: var(--paper);
+    padding: 20px 22px;
+    display: grid;
+    grid-template-columns: 240px 1fr;
+    gap: 28px;
+    align-items: start;
+  }
+  @media (max-width: 720px) {
+    .arch-node { grid-template-columns: 1fr; gap: 14px; padding: 18px; }
+  }
+  .arch-node .node-head { display: flex; flex-direction: column; gap: 8px; }
+  .arch-node .node-body { display: flex; flex-direction: column; gap: 10px; }
+  .arch-node.local { background: oklch(0.97 0.015 195); border-color: oklch(0.85 0.04 195); }
+  .arch-node.boundary { background: oklch(0.97 0.025 60); border-color: oklch(0.85 0.06 60); }
+  .arch-node.hub { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+  .arch-node .step {
+    font-family: var(--mono); font-size: 10.5px;
+    color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.10em;
+  }
+  .arch-node.hub .step { color: oklch(0.78 0.02 200); }
+  .arch-node h5 { margin: 0; font-size: 17px; letter-spacing: -0.01em; line-height: 1.25; }
+  .arch-node .node-note {
+    margin: 0; font-size: 13px; line-height: 1.55;
+    color: var(--ink-2);
+  }
+  .arch-node.hub .node-note { color: oklch(0.85 0.02 200); }
+  .arch-node ul {
+    list-style: none; padding: 0; margin: 0;
+    display: flex; flex-direction: column; gap: 7px;
+    font-family: var(--mono); font-size: 12px;
+    color: var(--ink-2);
+  }
+  .arch-node.hub ul { color: oklch(0.85 0.02 200); }
+  .arch-node ul li { display: grid; grid-template-columns: 10px 1fr; gap: 8px; }
+  .arch-node ul li::before {
+    content: "▸"; color: var(--ink-3); font-size: 10px;
+  }
+  .arch-node.hub ul li::before { color: oklch(0.78 0.02 200); }
+
+  /* Connector between nodes */
+  .arch-conn {
+    display: grid;
+    grid-template-columns: 240px 1fr;
+    gap: 28px;
+    padding: 0 22px;
+    align-items: center;
+    min-height: 44px;
+  }
+  @media (max-width: 720px) { .arch-conn { grid-template-columns: 1fr; padding: 0; } }
+  .arch-conn .rail {
+    display: flex; align-items: center; justify-content: center;
+    height: 100%;
+  }
+  .arch-conn .rail::before {
+    content: ""; width: 1px; height: 100%;
+    background: var(--line);
+  }
+  .arch-conn .label {
+    font-family: var(--mono); font-size: 11px;
+    color: var(--ink-3); text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 6px 0;
+  }
+  .arch-conn .label::before { content: "↓  "; color: var(--ink-3); }
+
+  .arch-foot {
+    margin-top: 18px;
+    padding-top: 18px;
+    border-top: 1px solid var(--line-soft);
+    display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12px;
+    font-family: var(--mono); font-size: 11px;
+    color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.08em;
+  }
+  .arch-foot .ok { color: var(--accent-ink); }
+  .arch-foot .ok::before { content: "✓ "; }
+
+  /* Custom use case section variant */
+  .uc-section.custom .what-card { background: var(--paper-2); }
+  .uc-section.custom .arch-acc summary { background: var(--paper-2); }
+
+  /* Closing strip */
+  .closing-strip {
+    border-top: 1px solid var(--line);
+    background: var(--paper-2);
+    padding: 56px 0;
+  }
+  .closing-strip .grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+    gap: 32px; align-items: center;
+  }
+  @media (max-width: 760px) { .closing-strip .grid { grid-template-columns: 1fr; } }
+  .closing-strip h2 {
+    margin: 0; font-size: 28px; letter-spacing: -0.014em; max-width: 22ch;
+  }
+  .closing-strip p { margin: 8px 0 0; font-size: 15px; color: var(--ink-3); max-width: 56ch; }
+  .closing-strip .ctas { display: flex; gap: 12px; flex-wrap: wrap; justify-content: flex-end; }
+  @media (max-width: 760px) { .closing-strip .ctas { justify-content: flex-start; } }
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="/" class="brand"><span class="brand-mark">D</span> DueCare AI</a>
+    <div class="nav-links">
+      <a href="/demo">Demo</a>
+      <a href="/use-cases" class="on">Use cases</a>
+      <a href="/hub">Hub</a>
+      <a href="/docs">Docs</a>
+      <a href="/stats">Stats</a>
+    </div>
+    <a href="/login?next=/contribute" class="nav-cta">Get involved <span aria-hidden="true">&rarr;</span></a>
+  </div>
+</nav>
+
+<!-- ============== HERO ============== -->
+<section class="uc-hero first" data-screen-label="Use cases · Intro">
+  <div class="wrap">
+    <div class="grid">
+      <div>
+        <span class="kicker">/use-cases · what DueCare does, for whom</span>
+        <h1>Five ways teams put DueCare to work.</h1>
+        <p class="lede">DueCare runs the same harness for every audience — what
+          changes is the channel, the questions, and what the system hands back.
+          Each section below covers what it does, who benefits, and includes
+          a deployment architecture you can expand inline.</p>
+      </div>
+
+      <nav class="toc" aria-label="Use cases on this page">
+        <h3>On this page</h3>
+        <ol>
+          <li><a href="#uc-platform"><span>Platform safety screening</span><span class="arrow">→</span></a></li>
+          <li><a href="#uc-ngo"><span>NGO &amp; regulator copilot</span><span class="arrow">→</span></a></li>
+          <li><a href="#uc-worker"><span>Migrant worker chat</span><span class="arrow">→</span></a></li>
+          <li><a href="#uc-research"><span>Academic research</span><span class="arrow">→</span></a></li>
+          <li><a href="#uc-custom"><span>Custom integration</span><span class="arrow">→</span></a></li>
+        </ol>
+      </nav>
+    </div>
+  </div>
+</section>
+
+
+<!-- ============== 01 PLATFORM SAFETY ============== -->
+<section id="uc-platform" class="uc-section" data-screen-label="UC · Platform safety">
+  <div class="wrap">
+    <div class="head">
+      <div>
+        <span class="ix">01 · Platform safety screening</span>
+        <h2>Catch exploitative user-generated content before a worker sees it.</h2>
+      </div>
+      <p class="summary">A pre-publish screening layer for major social platforms,
+        recruitment marketplaces, and other UGC surfaces. It reads posts, listings,
+        messages, and ads against corridor-specific rules and returns a flag,
+        a cited reason, and a suggested edit the trust &amp; safety team can act on.</p>
+    </div>
+
+    <div class="uc-body">
+      <div class="what-card">
+        <span class="label">What it does</span>
+        <div class="what-grid">
+          <div class="what-col">
+            <h4>Capabilities</h4>
+            <ul>
+              <li>Detects exploitative UGC: illegal recruitment fees, passport retention, contract substitution, deceptive job ads, sham agencies</li>
+              <li>Identifies recurring patterns across posts, accounts, employers, and corridors</li>
+              <li>Flags borderline content for human review with cited reasoning</li>
+              <li>Risk-scores complex migration-exploitation patterns</li>
+              <li>Suggests redline edits so a post or listing meets corridor rules</li>
+              <li>Returns a versioned pack reference for audit trails</li>
+            </ul>
+          </div>
+          <div class="what-col">
+            <h4>Why it helps</h4>
+            <ul>
+              <li>Cuts manual T&amp;S review load with explainable, cite-able flags</li>
+              <li>Catches exploitation pre-publish, not post-incident</li>
+              <li>Standardizes enforcement across geographies + languages</li>
+              <li>Audit-ready: every flag tied to a signed pack version</li>
+              <li>Local model — no user content leaves the platform</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <aside class="audience">
+        <span class="label">Who it's for</span>
+        <div class="who">
+          <h4>Primary users</h4>
+          <p>Major social-media platforms (Facebook, Instagram, TikTok, X), recruitment marketplaces, and any UGC surface where exploitative content reaches workers.</p>
+        </div>
+        <div class="who">
+          <h4>Beneficiaries</h4>
+          <p>Migrant workers who never see the exploitative post or listing because it was redlined or held before publish.</p>
+        </div>
+        <div class="stack">
+          <span class="chip">Local model</span>
+          <span class="chip">Grep rules</span>
+          <span class="chip">Suggested-edit tool</span>
+          <span class="chip">Outbound anonymizer</span>
+        </div>
+      </aside>
+    </div>
+
+    <details class="arch-acc">
+      <summary><span>▸ Deployment architecture</span><span class="caret">›</span></summary>
+      <div class="arch-content">
+        <div class="arch-flow">
+          <div class="arch-node local">
+            <div class="node-head">
+              <span class="step">Stays local · with platform</span>
+              <h5>Platform infrastructure</h5>
+            </div>
+            <div class="node-body">
+              <ul>
+              <li>Listing copy, employer identity</li>
+              <li>Trust &amp; safety decisions, audit logs</li>
+              <li>Takedown / edit-request comms</li>
+            </ul>
+            </div>
+          </div>
+          <div class="arch-conn"><div class="rail"></div><span class="label">via anonymizer</span></div>
+          <div class="arch-node boundary">
+            <div class="node-head">
+              <span class="step">May cross — through anonymizer</span>
+              <h5>Coarse signals only</h5>
+            </div>
+            <div class="node-body">
+              <ul>
+              <li>Aggregate flag-rate per corridor + rule</li>
+              <li>Pack-version + rule-version fired</li>
+              <li>No employer · no listing · no PII</li>
+            </ul>
+            </div>
+          </div>
+          <div class="arch-conn"><div class="rail"></div><span class="label">signed packs</span></div>
+          <div class="arch-node hub">
+            <div class="node-head">
+              <span class="step">Public hub returns</span>
+              <h5>Pre-publish verdict</h5>
+            </div>
+            <div class="node-body">
+              <ul>
+              <li>Flag with cited rule + section</li>
+              <li>Suggested redline edit</li>
+              <li>Versioned pack reference</li>
+            </ul>
+            </div>
+          </div>
+        </div>
+        <div class="arch-foot">
+          <span>Local model · grep rules · suggested-edit tool · anonymizer (outbound)</span>
+          <span class="ok">Suggestion only — platform decides every action</span>
+        </div>
+      </div>
+    </details>
+  </div>
+</section>
+
+
+<!-- ============== 02 NGO & REGULATOR ============== -->
+<section id="uc-ngo" class="uc-section" data-screen-label="UC · NGO + Regulator">
+  <div class="wrap">
+    <div class="head">
+      <div>
+        <span class="ix">02 · NGO &amp; regulator copilot</span>
+        <h2>Speed up case intake and corridor inspection.</h2>
+      </div>
+      <p class="summary">Runs on a caseworker or inspector's own machine.
+        Surfaces relevant law, drafts replies and complaint forms, and gives
+        regulators a corridor-level view for inspection planning — without
+        case data ever crossing the boundary.</p>
+    </div>
+
+    <div class="uc-body">
+      <div class="what-card">
+        <span class="label">What it does</span>
+        <div class="what-grid">
+          <div class="what-col">
+            <h4>Capabilities</h4>
+            <ul>
+              <li>Drafts caseworker replies grounded in cited corridor packs</li>
+              <li>Builds complaint forms from a worker statement</li>
+              <li>Generates triage checklists per case type</li>
+              <li>Produces sector + corridor heatmaps for inspection planning</li>
+              <li>Pack-diff alerts when relevant law changes upstream</li>
+            </ul>
+          </div>
+          <div class="what-col">
+            <h4>Why it helps</h4>
+            <ul>
+              <li>Cuts time-to-first-draft on every case</li>
+              <li>Aligns drafts to current law without manual lookup</li>
+              <li>Reduces staff burden during seasonal intake spikes</li>
+              <li>Aggregate trends inform inspection without exposing complainants</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <aside class="audience">
+        <span class="label">Who it's for</span>
+        <div class="who">
+          <h4>Primary users</h4>
+          <p>NGO caseworkers, labor regulators, embassy-attaché desks, ministry inspection units.</p>
+        </div>
+        <div class="who">
+          <h4>Beneficiaries</h4>
+          <p>Migrant workers whose cases get faster, better-grounded responses; corridor enforcement that targets active patterns.</p>
+        </div>
+        <div class="stack">
+          <span class="chip">Local model</span>
+          <span class="chip">Pack inspector</span>
+          <span class="chip">Complaint draft builder</span>
+          <span class="chip">Trends API</span>
+        </div>
+      </aside>
+    </div>
+
+    <details class="arch-acc">
+      <summary><span>▸ Deployment architecture</span><span class="caret">›</span></summary>
+      <div class="arch-content">
+        <div class="arch-flow">
+          <div class="arch-node local">
+            <div class="node-head">
+              <span class="step">Stays local · NGO / ministry</span>
+              <h5>Caseworker desktop</h5>
+            </div>
+            <div class="node-body">
+              <ul>
+              <li>Case files &amp; worker PII</li>
+              <li>Communications transcripts, field notes</li>
+              <li>Inspection findings, enforcement decisions</li>
+            </ul>
+            </div>
+          </div>
+          <div class="arch-conn"><div class="rail"></div><span class="label">opt-in only</span></div>
+          <div class="arch-node boundary">
+            <div class="node-head">
+              <span class="step">May cross — k-anon ≥ 30</span>
+              <h5>Coarse trends only</h5>
+            </div>
+            <div class="node-body">
+              <ul>
+              <li>Corridor-level signal trends</li>
+              <li>Pack-version usage telemetry</li>
+              <li>No individuals · no employers · no cases</li>
+            </ul>
+            </div>
+          </div>
+          <div class="arch-conn"><div class="rail"></div><span class="label">signed packs</span></div>
+          <div class="arch-node hub">
+            <div class="node-head">
+              <span class="step">Public hub returns</span>
+              <h5>Drafts &amp; trends</h5>
+            </div>
+            <div class="node-body">
+              <ul>
+              <li>Caseworker: cited drafts, triage</li>
+              <li>Regulator: read-only heatmap</li>
+              <li>Pack-diff alerts on law changes</li>
+            </ul>
+            </div>
+          </div>
+        </div>
+        <div class="arch-foot">
+          <span>Local model · pack inspector · complaint draft builder · trends API</span>
+          <span class="ok">Caseworker signs every outgoing artifact</span>
+        </div>
+      </div>
+    </details>
+  </div>
+</section>
+
+
+<!-- ============== 03 WORKER CHAT ============== -->
+<section id="uc-worker" class="uc-section" data-screen-label="UC · Worker chat">
+  <div class="wrap">
+    <div class="head">
+      <div>
+        <span class="ix">03 · Migrant worker chat</span>
+        <h2>Local mobile help. Runs on the worker&rsquo;s phone, online or off.</h2>
+      </div>
+      <p class="summary">An on-device sibling of the harness. Cached corridor packs, in-language answers, no upload. Runs on a low-spec mobile in low-bandwidth conditions and falls back to fully offline when there is no signal.</p>
+    </div>
+
+    <div class="uc-body">
+      <div class="what-card">
+        <span class="label">What it does</span>
+        <div class="what-grid">
+          <div class="what-col">
+            <h4>Capabilities</h4>
+            <ul>
+              <li>Reads a recruiter / employer message and explains rule fires</li>
+              <li>Cites the relevant corridor-pack section + ILO reference</li>
+              <li>Drafts a question to ask a verified caseworker (never auto-sent)</li>
+              <li>Lists registered, corridor-relevant organizations to contact</li>
+              <li>Available in the worker's primary language</li>
+            </ul>
+          </div>
+          <div class="what-col">
+            <h4>Why it helps</h4>
+            <ul>
+              <li>Workers learn what's legitimate vs. exploitative in seconds</li>
+              <li>Pointers to real caseworkers, not anonymous tip lines</li>
+              <li>On-device — chats never leave the phone</li>
+              <li>Lowers the barrier to seeking help</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <aside class="audience">
+        <span class="label">Who it's for</span>
+        <div class="who">
+          <h4>Primary users</h4>
+          <p>Migrant workers, prospective workers in pre-departure programs, community channels and partner-hosted endpoints.</p>
+        </div>
+        <div class="who">
+          <h4>Beneficiaries</h4>
+          <p>Workers and their families, plus the caseworker network that receives clearer, more specific incoming questions.</p>
+        </div>
+        <div class="stack">
+          <span class="chip">On-device model</span>
+          <span class="chip">Grep rules</span>
+          <span class="chip">QA-NP pack</span>
+          <span class="chip">Outbound anonymizer (opt-in)</span>
+        </div>
+      </aside>
+    </div>
+
+    <details class="arch-acc">
+      <summary><span>▸ Deployment architecture</span><span class="caret">›</span></summary>
+      <div class="arch-content">
+        <div class="arch-flow">
+          <div class="arch-node local">
+            <div class="node-head">
+              <span class="step">Stays local · on the phone</span>
+              <h5>Worker device</h5>
+            </div>
+            <div class="node-body">
+              <ul>
+              <li>Recruiter messages (pasted in)</li>
+              <li>Worker name, phone, ID, contracts</li>
+              <li>Full chat history with DueCare</li>
+            </ul>
+            </div>
+          </div>
+          <div class="arch-conn"><div class="rail"></div><span class="label">opt-in per turn</span></div>
+          <div class="arch-node boundary">
+            <div class="node-head">
+              <span class="step">May cross — k-anon ≥ 30</span>
+              <h5>Pattern IDs only</h5>
+            </div>
+            <div class="node-body">
+              <ul>
+              <li>Coarse pattern_id (e.g. fee_request)</li>
+              <li>Corridor + sector buckets only</li>
+              <li>No message text · no contact · no time</li>
+            </ul>
+            </div>
+          </div>
+          <div class="arch-conn"><div class="rail"></div><span class="label">signed packs</span></div>
+          <div class="arch-node hub">
+            <div class="node-head">
+              <span class="step">Public hub returns</span>
+              <h5>Cited reading + draft</h5>
+            </div>
+            <div class="node-body">
+              <ul>
+              <li>Plain-language rule explanation</li>
+              <li>Corridor-pack section + ILO ref</li>
+              <li>Draft question, verified caseworker list</li>
+            </ul>
+            </div>
+          </div>
+        </div>
+        <div class="arch-foot">
+          <span>On-device model · grep rules · pack/qa-np · anonymizer (outbound, opt-in)</span>
+          <span class="ok">Draft only — user decides whether and where to share</span>
+        </div>
+      </div>
+    </details>
+  </div>
+</section>
+
+
+<!-- ============== 04 RESEARCH ============== -->
+<section id="uc-research" class="uc-section" data-screen-label="UC · Research">
+  <div class="wrap">
+    <div class="head">
+      <div>
+        <span class="ix">04 · Academic research</span>
+        <h2>Cite-able research on corridors, trends, and policy.</h2>
+      </div>
+      <p class="summary">For researchers, policy analysts, and journalists who
+        study migration corridors, exploitation trends, recruitment-market
+        dynamics, and policy impact. Pin a corridor pack at a hash, query the
+        anonymized signal stream, and run the harness on Gemma 4 —
+        every result is reproducible months later.</p>
+    </div>
+
+    <div class="uc-body">
+      <div class="what-card">
+        <span class="label">What it does</span>
+        <div class="what-grid">
+          <div class="what-col">
+            <h4>Capabilities</h4>
+            <ul>
+              <li>Studies corridor risk patterns using version-pinned packs and anonymized aggregate signals</li>
+              <li>Tracks exploitation trends over time — fee inflation, contract substitution, recruiter network shifts</li>
+              <li>Measures policy impact: pack-diffs against signal changes after a regulation lands</li>
+              <li>Runs the harness + rubric on Gemma 4 for reproducible model evaluations</li>
+              <li>Submits prompts &amp; rubric proposals to the public review queue</li>
+              <li>Rejects real PII at the inbound scanner — composite scenarios only</li>
+            </ul>
+          </div>
+          <div class="what-col">
+            <h4>Why it helps</h4>
+            <ul>
+              <li>Reproducible across labs and time, with stable hashed references</li>
+              <li>Anonymized signals + harness enable corridor and policy research without raw case data</li>
+              <li>Comparable results as packs, rules, and rubrics evolve</li>
+              <li>Removes ambiguity from policy and corridor analysis</li>
+              <li>Lowers cost of entry — no expensive infrastructure or data deals</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <aside class="audience">
+        <span class="label">Who it's for</span>
+        <div class="who">
+          <h4>Primary users</h4>
+          <p>Academic researchers, policy analysts, investigative journalists, think-tank evaluators, IGO research desks.</p>
+        </div>
+        <div class="who">
+          <h4>Beneficiaries</h4>
+          <p>The whole field — better measurement of corridor risk, exploitation trends, and policy impact, with results anyone can cite and re-run.</p>
+        </div>
+        <div class="stack">
+          <span class="chip">Anonymized signals</span>
+          <span class="chip">Eval harness</span>
+          <span class="chip">Pack manifest</span>
+          <span class="chip">Local Gemma 4</span>
+        </div>
+      </aside>
+    </div>
+
+    <details class="arch-acc">
+      <summary><span>▸ Deployment architecture</span><span class="caret">›</span></summary>
+      <div class="arch-content">
+        <div class="arch-flow">
+          <div class="arch-node local">
+            <div class="node-head">
+              <span class="step">Stays local · institution</span>
+              <h5>Lab workstation</h5>
+            </div>
+            <div class="node-body">
+              <ul>
+              <li>Subject data, IRB-controlled material</li>
+              <li>Institutional records &amp; correspondence</li>
+              <li>Working notebooks &amp; intermediate runs</li>
+            </ul>
+            </div>
+          </div>
+          <div class="arch-conn"><div class="rail"></div><span class="label">via inbound scanner</span></div>
+          <div class="arch-node boundary">
+            <div class="node-head">
+              <span class="step">Boundary · scrubbed</span>
+              <h5>Public sources only</h5>
+            </div>
+            <div class="node-body">
+              <ul>
+              <li>Versioned eval packs + rubrics</li>
+              <li>Public-source corridor packs (scrubbed)</li>
+              <li>Submitted proposals → review queue</li>
+            </ul>
+            </div>
+          </div>
+          <div class="arch-conn"><div class="rail"></div><span class="label">cite-able hash</span></div>
+          <div class="arch-node hub">
+            <div class="node-head">
+              <span class="step">Public hub returns</span>
+              <h5>Cite-able results</h5>
+            </div>
+            <div class="node-body">
+              <ul>
+              <li>Pack hash for reproducibility</li>
+              <li>Composite-only eval prompts</li>
+              <li>Runnable on Kaggle / GitHub / local</li>
+            </ul>
+            </div>
+          </div>
+        </div>
+        <div class="arch-foot">
+          <span>Local model · eval harness · rubric runner · pack manifest</span>
+          <span class="ok">Cite the hash — proposals enter the public review queue</span>
+        </div>
+      </div>
+    </details>
+  </div>
+</section>
+
+
+<!-- ============== 05 CUSTOM ============== -->
+<section id="uc-custom" class="uc-section custom" data-screen-label="UC · Custom">
+  <div class="wrap">
+    <div class="head">
+      <div>
+        <span class="ix">05 · Custom integration</span>
+        <h2>Drop the runtime into your own product or channel.</h2>
+      </div>
+      <p class="summary">DueCare ships as a containerized runtime with a small,
+        well-defined API. Wire it into a Messenger or WhatsApp adapter, a
+        moderator console, an internal case-management system, or a sibling
+        app — you own the channel, we provide the harness, packs, and model
+        layer.</p>
+    </div>
+
+    <div class="uc-body">
+      <div class="what-card">
+        <span class="label">What it does</span>
+        <div class="what-grid">
+          <div class="what-col">
+            <h4>Capabilities</h4>
+            <ul>
+              <li>Containerized runtime image with the full DueCare harness</li>
+              <li>Stable HTTP API for screen / explain / draft / cite endpoints</li>
+              <li>Pack catalog you pin per environment</li>
+              <li>Streaming responses + per-turn telemetry hooks</li>
+              <li>Optional bring-your-own model layer (vetted open-weights)</li>
+            </ul>
+          </div>
+          <div class="what-col">
+            <h4>Why it helps</h4>
+            <ul>
+              <li>Use DueCare inside the channel your audience already uses</li>
+              <li>Keep your existing data model and access controls</li>
+              <li>On-prem or private-cloud; no traffic to a vendor SaaS</li>
+              <li>Same signed packs as every other deployment</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <aside class="audience">
+        <span class="label">Who it's for</span>
+        <div class="who">
+          <h4>Primary users</h4>
+          <p>Engineering teams at platforms, NGOs, ministries, and partner orgs building bespoke worker-facing or operator tools.</p>
+        </div>
+        <div class="who">
+          <h4>Beneficiaries</h4>
+          <p>End users of those products — workers using familiar messaging apps, moderators inside their existing console, caseworkers in their case-management system.</p>
+        </div>
+        <div class="stack">
+          <span class="chip">Container image</span>
+          <span class="chip">HTTP API</span>
+          <span class="chip">Channel adapters</span>
+          <span class="chip">On-prem / private cloud</span>
+        </div>
+      </aside>
+    </div>
+
+    <details class="arch-acc">
+      <summary><span>▸ Deployment architecture</span><span class="caret">›</span></summary>
+      <div class="arch-content">
+        <div class="arch-flow">
+          <div class="arch-node local">
+            <div class="node-head">
+              <span class="step">Your environment</span>
+              <h5>Partner infrastructure</h5>
+            </div>
+            <div class="node-body">
+              <ul>
+              <li>User identity &amp; channel state</li>
+              <li>Product database &amp; access controls</li>
+              <li>Compliance / audit logs</li>
+            </ul>
+            </div>
+          </div>
+          <div class="arch-conn"><div class="rail"></div><span class="label">HTTP API</span></div>
+          <div class="arch-node boundary">
+            <div class="node-head">
+              <span class="step">DueCare runtime container</span>
+              <h5>Self-contained</h5>
+            </div>
+            <div class="node-body">
+              <ul>
+              <li>Local model + harness</li>
+              <li>Pinned pack catalog</li>
+              <li>Outbound anonymizer at egress</li>
+            </ul>
+            </div>
+          </div>
+          <div class="arch-conn"><div class="rail"></div><span class="label">signed packs</span></div>
+          <div class="arch-node hub">
+            <div class="node-head">
+              <span class="step">Public hub</span>
+              <h5>Pack distribution</h5>
+            </div>
+            <div class="node-body">
+              <ul>
+              <li>Pinned pack downloads</li>
+              <li>Pack-diff notifications on update</li>
+              <li>Optional aggregate telemetry</li>
+            </ul>
+            </div>
+          </div>
+        </div>
+        <div class="arch-foot">
+          <span>Container image · HTTP API · channel adapters · pinned packs</span>
+          <span class="ok">You own the channel — we provide the harness</span>
+        </div>
+      </div>
+    </details>
+  </div>
+</section>
+
+
+<!-- ============== CLOSING ============== -->
+<section class="closing-strip" data-screen-label="UC · Closing">
+  <div class="wrap">
+    <div class="grid">
+      <div>
+        <h2>Need a use case that isn't on this page?</h2>
+        <p>The runtime is open-source and the API is small. If you're working
+          on something corridor-adjacent and want to talk it through, the
+          contribute page has the intake.</p>
+      </div>
+      <div class="ctas">
+        <a class="btn" href="/contribute">Contribute a corridor <span class="arrow">→</span></a>
+        <a class="btn btn-ghost" href="/demo">Watch the demo</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<footer><div class="wrap"><div class="foot-grid">
+<div><a href="/" class="brand"><span class="brand-mark">D</span> DueCare AI</a><p class="muted" style="font-size:14px;max-width:38ch;margin-top:8px;">Public-interest AI infrastructure for migrant-worker safety. <a href="/mission" style="color:inherit;text-decoration:underline;">Read the mission &rarr;</a></p></div>
+<div><h4>Hub</h4><ul><li><a href="/hub">Overview</a></li><li><a href="/knowledge-packs">Knowledge packs</a></li><li><a href="/tools-registry">Tools registry</a></li><li><a href="/research-monitor">Research monitor</a></li></ul></div>
+<div><h4>Docs</h4><ul><li><a href="/docs">Overview</a></li><li><a href="/technical-docs">Schemas</a></li><li><a href="/components">Architecture</a></li><li><a href="/why-gemma">Why Gemma 4</a></li><li><a href="/evaluation">Eval &amp; retraining</a></li><li><a href="/harness">Safety harness</a></li><li><a href="/setup">Setup guides</a></li><li><a href="/privacy-boundary">Privacy boundary</a></li></ul></div>
+<div><h4>Get involved</h4><ul><li><a href="/submit-information">Submit info</a></li><li><a href="/newsletter">Newsletter</a></li><li><a href="/email-feedback">Email feedback</a></li><li><a href="/alerts">Alerts archive</a></li><li><a href="/contribute">Contribute</a></li></ul></div>
+<div><h4>Verify</h4><ul><li><a href="/stats">Stats &amp; audit</a></li><li><a href="/dashboard">Live data</a></li><li><a href="/mission">Mission</a></li><li><a href="/contact">Contact</a></li></ul></div>
+</div><div class="foot-bottom"><span>&copy; 2026 DueCare AI</span><span>v0.4 &middot; public hub draft</span></div></div></footer>
+
+</body>
+</html>

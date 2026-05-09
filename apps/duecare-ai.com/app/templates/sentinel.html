@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Sentinel · Duecare AI</title>
+<link rel="stylesheet" href="/static/styles.css" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%230E1116'/%3E%3Ctext x='16' y='21' text-anchor='middle' font-family='monospace' font-weight='700' font-size='14' fill='%23F7F6F1'%3ED%3C/text%3E%3C/svg%3E" />
+</head>
+<body>
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="/" class="brand"><span class="brand-mark">D</span> DueCare AI</a>
+    <div class="nav-links">
+      <a href="/demo">Demo</a>
+      <a href="/use-cases">Use cases</a>
+      <a href="/hub">Hub</a>
+      <a href="/docs" class="on">Docs</a>
+      <a href="/stats">Stats</a>
+    </div>
+    <a href="/login?next=/contribute" class="nav-cta">Get involved <span aria-hidden="true">&rarr;</span></a>
+  </div>
+</nav>
+
+<section class="page-intro first" data-screen-label="Sentinel · Intro">
+  <div class="wrap">
+    <div class="crumbs"><a href="/">Home</a><span class="sep">/</span><a href="/intelligence">Intelligence</a><span class="sep">/</span><span>Sentinel</span></div>
+    <span class="kicker">/sentinel · public-source crawl proposals</span>
+    <h1>Propose a public-source crawl. Curators review the diff.</h1>
+    <p class="lede">Sentinel turns a public URL into a proposed pack diff. It does not
+      auto-publish, does not auto-merge, and never crawls private endpoints.
+      Every output is a draft for human review.</p>
+    <div class="row" style="margin-top:24px;">
+      <span class="badge proposed">Prototype</span>
+      <span class="badge draft-only">Draft only · curator must sign</span>
+      <span class="badge">Public URLs only</span>
+    </div>
+  </div>
+</section>
+
+<section data-screen-label="Sentinel · Pipeline">
+  <div class="wrap">
+    <span class="label">Crawl pipeline</span>
+    <h2 style="margin-top:8px;max-width:24ch;">URL → fetch → extract facts → diff → curator.</h2>
+    <div class="pipeline" style="margin-top:32px;">
+      <div class="stage"><span class="lab">01</span><h5>Public source</h5><p>Government advisory, ILO/HRW publication, or NGO public report.</p><div class="arrow-r"></div></div>
+      <div class="stage"><span class="lab">02</span><h5>Crawl proposal</h5><p>Submitter records URL, jurisdiction, pack kind, and reason.</p><div class="arrow-r"></div></div>
+      <div class="stage"><span class="lab">03</span><h5>Extract public facts</h5><p>Sentinel pulls a small set of structured facts and a content hash.</p><div class="arrow-r"></div></div>
+      <div class="stage"><span class="lab">04</span><h5>Proposed diff</h5><p>Diff is queued against the current pack version.</p><div class="arrow-r"></div></div>
+      <div class="stage boundary"><span class="lab">05 · gate</span><h5>Curator review</h5><p>Signed-in curator inspects diff vs source. Only signed packs sync to clients.</p></div>
+    </div>
+  </div>
+</section>
+
+<section data-screen-label="Sentinel · Form">
+  <div class="wrap" style="display:grid;grid-template-columns:1fr 320px;gap:48px;align-items:start;">
+    <form onsubmit="event.preventDefault();alert('Crawl proposal queued at /submissions');">
+      <h3>Submit a crawl request</h3>
+      <p class="muted" style="font-size:14px;margin-top:6px;margin-bottom:24px;">
+        Sentinel only fetches publicly reachable URLs. It does not log in, scrape
+        rate-limited APIs, or follow links across domains.
+      </p>
+
+      <div class="form-grid">
+        <div class="field"><label>Crawl name</label><input type="text" placeholder="MoFA wage-protection advisory · 2026-04" /></div>
+        <div class="field"><label>Pack kind</label>
+          <select><option>corridor</option><option>contacts</option><option>grep-rules</option><option>rubric</option><option>tools</option></select>
+        </div>
+        <div class="field full"><label>Target URL</label><input type="url" placeholder="https://gov.example/advisory/2026-04" /><div class="help">Must be publicly reachable. Sentinel fetches once and stores a content hash.</div></div>
+        <div class="field"><label>Jurisdiction</label><input type="text" placeholder="qa" /></div>
+        <div class="field"><label>Corridor</label><input type="text" placeholder="qa-np" /></div>
+        <div class="field full"><label>Reason for crawl</label><textarea placeholder="Why does this update belong in the pack?"></textarea></div>
+        <div class="field full"><label>Expected public facts <span class="opt">comma-separated</span></label><input type="text" placeholder="fee_cap, wage_protection_system, contact_office_url" /></div>
+        <div class="field"><label>Submitter org</label><input type="text" placeholder="Migrant-Forum Asia" /></div>
+        <div class="field"><label>Contact email</label><input type="email" placeholder="techlead@partner.org" /></div>
+      </div>
+
+      <div class="consent required" style="margin-top:18px;">
+        <input type="checkbox" />
+        <label><strong>Required.</strong> The target URL is publicly reachable. I will not request crawls of password-protected, rate-limited, or non-public endpoints. I am submitting <strong>no worker case data</strong> in this proposal.</label>
+      </div>
+
+      <div class="row" style="margin-top:24px;justify-content:flex-end;gap:8px;">
+        <button type="button" class="btn btn-ghost">Save draft</button>
+        <button type="submit" class="btn">Queue crawl request <span class="arrow">→</span></button>
+      </div>
+    </form>
+
+    <aside style="display:flex;flex-direction:column;gap:14px;position:sticky;top:80px;">
+      <div class="rail">
+        <span class="cap">Hard limits</span>
+        <h4>What Sentinel will not do</h4>
+        <ul>
+          <li>Crawl behind logins or rate-limits</li>
+          <li>Follow links across domains</li>
+          <li>Auto-publish without curator signature</li>
+          <li>Accept any worker, employer, or platform-user content</li>
+        </ul>
+      </div>
+      <div class="card">
+        <span class="label">Status board</span>
+        <h4 style="margin-top:8px;">Live queue</h4>
+        <ul style="list-style:none;padding:0;margin:8px 0 0;font-size:13px;display:flex;flex-direction:column;gap:8px;">
+          <li class="row" style="justify-content:space-between;"><span>req-2034 · qa-np</span><span class="badge proposed">Queued</span></li>
+          <li class="row" style="justify-content:space-between;"><span>req-2031 · sa-id</span><span class="badge curator">In review</span></li>
+          <li class="row" style="justify-content:space-between;"><span>req-2027 · ae-bd</span><span class="badge verified">Signed</span></li>
+        </ul>
+        <a href="/submissions" style="font-family:var(--mono);font-size:12px;border-bottom:1px dashed var(--ink-3);margin-top:10px;display:inline-block;">All submissions →</a>
+      </div>
+    </aside>
+  </div>
+</section>
+
+<footer><div class="wrap"><div class="foot-grid">
+<div><a href="/" class="brand"><span class="brand-mark">D</span> DueCare AI</a><p class="muted" style="font-size:14px;max-width:38ch;margin-top:8px;">Public-interest AI infrastructure for migrant-worker safety. <a href="/mission" style="color:inherit;text-decoration:underline;">Read the mission &rarr;</a></p></div>
+<div><h4>Hub</h4><ul><li><a href="/hub">Overview</a></li><li><a href="/knowledge-packs">Knowledge packs</a></li><li><a href="/tools-registry">Tools registry</a></li><li><a href="/research-monitor">Research monitor</a></li></ul></div>
+<div><h4>Docs</h4><ul><li><a href="/docs">Overview</a></li><li><a href="/technical-docs">Schemas</a></li><li><a href="/components">Architecture</a></li><li><a href="/why-gemma">Why Gemma 4</a></li><li><a href="/evaluation">Eval &amp; retraining</a></li><li><a href="/harness">Safety harness</a></li><li><a href="/setup">Setup guides</a></li><li><a href="/privacy-boundary">Privacy boundary</a></li></ul></div>
+<div><h4>Get involved</h4><ul><li><a href="/submit-information">Submit info</a></li><li><a href="/newsletter">Newsletter</a></li><li><a href="/email-feedback">Email feedback</a></li><li><a href="/alerts">Alerts archive</a></li><li><a href="/contribute">Contribute</a></li></ul></div>
+<div><h4>Verify</h4><ul><li><a href="/stats">Stats &amp; audit</a></li><li><a href="/dashboard">Live data</a></li><li><a href="/mission">Mission</a></li><li><a href="/contact">Contact</a></li></ul></div>
+</div><div class="foot-bottom"><span>&copy; 2026 DueCare AI</span><span>v0.4 &middot; public hub draft</span></div></div></footer>
+</body>
+</html>

@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Client connect · Duecare AI</title>
+<link rel="stylesheet" href="/static/styles.css" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%230E1116'/%3E%3Ctext x='16' y='21' text-anchor='middle' font-family='monospace' font-weight='700' font-size='14' fill='%23F7F6F1'%3ED%3C/text%3E%3C/svg%3E" />
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="/" class="brand"><span class="brand-mark">D</span> DueCare AI</a>
+    <div class="nav-links">
+      <a href="/demo">Demo</a>
+      <a href="/use-cases">Use cases</a>
+      <a href="/hub">Hub</a>
+      <a href="/docs" class="on">Docs</a>
+      <a href="/stats">Stats</a>
+    </div>
+    <a href="/login?next=/contribute" class="nav-cta">Get involved <span aria-hidden="true">&rarr;</span></a>
+  </div>
+</nav>
+
+<section class="page-intro first" data-screen-label="Client connect · Intro">
+  <div class="wrap">
+    <div class="crumbs"><a href="/">Home</a><span class="sep">/</span><span>Client connect</span></div>
+    <span class="kicker">/client-connect · API client setup</span>
+    <h1>Pull verified knowledge. Never push raw cases.</h1>
+    <p class="lede">The hub serves signed packs and accepts proposals. It does not accept
+      worker case content. The schema rejects free-text case fields at the edge —
+      every endpoint below is read-only or proposal-only.</p>
+    <div class="row" style="margin-top:24px;">
+      <span class="badge no-pii">contains_raw_pii: false on every public response</span>
+      <span class="badge draft-only">No auto-reporting · no auto-emails</span>
+    </div>
+  </div>
+</section>
+
+<section data-screen-label="Client connect · Flow">
+  <div class="wrap">
+    <span class="label">Pull / propose flow</span>
+    <h2 style="margin-top:8px;max-width:24ch;">Local system ↔ public hub.</h2>
+
+    <div class="pipeline" style="margin-top:32px;grid-template-columns:repeat(4,1fr);">
+      <div class="stage"><span class="lab">Step 01</span><h5>List packs</h5><p>GET /api/packages — see verified + proposed packs and their checksums.</p><div class="arrow-r"></div></div>
+      <div class="stage"><span class="lab">Step 02</span><h5>Verify manifest</h5><p>GET /api/packages/{id}/manifest — fetch the signed manifest. Verify sha + signer.</p><div class="arrow-r"></div></div>
+      <div class="stage"><span class="lab">Step 03</span><h5>Pull bundle</h5><p>GET /api/packages/{id}/download — download the signed bundle. Verify against manifest.</p><div class="arrow-r"></div></div>
+      <div class="stage"><span class="lab">Step 04</span><h5>Run locally</h5><p>Use the bundle as RAG / grep / contact context for your local Duecare run. No callbacks.</p></div>
+    </div>
+  </div>
+</section>
+
+<section data-screen-label="Client connect · Endpoints">
+  <div class="wrap" style="display:grid;grid-template-columns:1fr 320px;gap:48px;align-items:start;">
+    <div>
+      <div class="tabstrip">
+        <button class="on">curl</button>
+        <button>Python</button>
+        <button>Verify checksum</button>
+        <button>Submit proposal</button>
+        <button>Anonymized signal</button>
+      </div>
+
+      <h3 style="margin-bottom:14px;font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:var(--ink-3);">List packs</h3>
+      <div class="code-block">
+        <div class="code-bar"><span>GET /api/packages</span><button class="copy" onclick="copyBlock(this)">Copy</button></div>
+<pre><span class="tok-fn">curl</span> -fsSL https://duecare-ai.com/api/packages \
+  -H <span class="tok-s">"accept: application/json"</span> \
+  -H <span class="tok-s">"x-deployment-id: ws-ngo-04"</span></pre>
+      </div>
+
+      <h3 style="margin-top:32px;margin-bottom:14px;font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:var(--ink-3);">Pull a corridor pack</h3>
+      <div class="code-block">
+        <div class="code-bar"><span>GET /api/packages/corridor/qa-np/download</span><button class="copy" onclick="copyBlock(this)">Copy</button></div>
+<pre><span class="tok-fn">curl</span> -fsSL https://duecare-ai.com/api/packages/corridor/qa-np/download \
+  -o corridor-qa-np-3.2.1.tar.zst
+
+<span class="tok-c"># verify the checksum</span>
+shasum -a 256 corridor-qa-np-3.2.1.tar.zst
+<span class="tok-c"># expected: 7c3f3a8d5e4b8f1c9d2a3b4c5d6e7f8901a2b3c4 …a91d</span></pre>
+      </div>
+
+      <h3 style="margin-top:32px;margin-bottom:14px;font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:var(--ink-3);">Pull tools / contacts / grep / rubric</h3>
+      <div class="code-block">
+        <div class="code-bar"><span>shell</span><button class="copy" onclick="copyBlock(this)">Copy</button></div>
+<pre><span class="tok-fn">curl</span> -fsSL .../api/packages/tools/complaint-draft/manifest
+<span class="tok-fn">curl</span> -fsSL .../api/packages/contacts/qa-np/manifest
+<span class="tok-fn">curl</span> -fsSL .../api/packages/grep-rules/recruitment/manifest
+<span class="tok-fn">curl</span> -fsSL .../api/packages/rubric/safety-grader/manifest</pre>
+      </div>
+
+      <h3 style="margin-top:32px;margin-bottom:14px;font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:var(--ink-3);">Submit a public-source update proposal</h3>
+      <div class="code-block">
+        <div class="code-bar"><span>POST /api/contributions</span><button class="copy" onclick="copyBlock(this)">Copy</button></div>
+<pre><span class="tok-fn">curl</span> -fsSL https://duecare-ai.com/api/contributions \
+  -X POST -H <span class="tok-s">"content-type: application/json"</span> \
+  -d <span class="tok-s">'{
+    "type": "context",
+    "submitter_role": "ngo",
+    "organization": "Migrant-Forum Asia",
+    "contact_email": "techlead@partner.org",
+    "jurisdiction": "qa",
+    "corridor": "qa-np",
+    "summary": "MoFA wage-protection advisory 2026-04",
+    "public_source_url": "https://...gov/advisory/2026-04",
+    "consent": true,
+    "no_raw_case": true
+  }'</span></pre>
+      </div>
+      <p class="muted" style="font-size:13px;margin-top:8px;">Proposals always start as <code>status: "proposed"</code>.
+        Curators promote after review. The hub will <strong>reject</strong> any submission whose payload
+        contains likely worker-case fields (emails, phone numbers, ID-like strings in free text).</p>
+
+      <h3 style="margin-top:32px;margin-bottom:14px;font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:var(--ink-3);">Submit anonymized aggregate signal</h3>
+      <div class="code-block">
+        <div class="code-bar"><span>POST /api/signals/aggregate</span><button class="copy" onclick="copyBlock(this)">Copy</button></div>
+<pre>{
+  <span class="tok-p">"deployment_id"</span>: <span class="tok-s">"ws-ngo-04"</span>,
+  <span class="tok-p">"corridor"</span>: <span class="tok-s">"qa-np"</span>,
+  <span class="tok-p">"sector"</span>: <span class="tok-s">"construction"</span>,
+  <span class="tok-p">"pattern_id"</span>: <span class="tok-s">"fee_request"</span>,
+  <span class="tok-p">"k_anon_floor"</span>: <span class="tok-k">30</span>,
+  <span class="tok-p">"period"</span>: <span class="tok-s">"2026-W18"</span>,
+  <span class="tok-p">"count"</span>: <span class="tok-k">42</span>
+}</pre>
+      </div>
+      <p class="muted" style="font-size:13px;margin-top:8px;">Schema rejects any free-text fields. Edge filter further suppresses
+        submissions that fail the k-anon floor of 30. Opt-in per partner.</p>
+
+      <h3 style="margin-top:32px;margin-bottom:14px;font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:var(--ink-3);">Python client</h3>
+      <div class="code-block">
+        <div class="code-bar"><span>duecare_client.py</span><button class="copy" onclick="copyBlock(this)">Copy</button></div>
+<pre><span class="tok-k">from</span> duecare <span class="tok-k">import</span> Client
+
+c = Client(deployment_id=<span class="tok-s">"ws-ngo-04"</span>)
+
+<span class="tok-c"># list, verify, and pull</span>
+packs = c.<span class="tok-fn">list_packs</span>(corridor=<span class="tok-s">"qa-np"</span>, status=<span class="tok-s">"verified"</span>)
+mf    = c.<span class="tok-fn">manifest</span>(<span class="tok-s">"corridor/qa-np"</span>)
+<span class="tok-k">assert</span> mf.signer == <span class="tok-s">"curator-04"</span>
+bundle = c.<span class="tok-fn">pull</span>(<span class="tok-s">"corridor/qa-np@3.2.1"</span>)
+<span class="tok-k">assert</span> bundle.<span class="tok-fn">verify</span>()  <span class="tok-c"># sha256 match</span>
+
+<span class="tok-c"># IMPORTANT: never call .submit_case() — it does not exist on the public client</span></pre>
+      </div>
+    </div>
+
+    <aside style="display:flex;flex-direction:column;gap:14px;position:sticky;top:80px;">
+      <div class="rail">
+        <span class="cap">Pre-flight checklist</span>
+        <h4>Before you call any endpoint</h4>
+        <ul>
+          <li>No worker case content in payload</li>
+          <li>No emails, phones, or IDs in free-text</li>
+          <li>Pin <code>?version=…</code> for reproducibility</li>
+          <li>Verify checksum after every pull</li>
+          <li>Aggregate signal opt-in respected per turn</li>
+        </ul>
+      </div>
+      <div class="card">
+        <span class="label">Versioning</span>
+        <h4 style="margin-top:8px;">Semver + signed</h4>
+        <p class="muted" style="font-size:13px;margin-top:6px;">All packs follow <code>major.minor.patch</code>. Curator signs every promotion. Manifests reference the previous version's sha for chain auditing.</p>
+      </div>
+      <div class="card">
+        <span class="label">Endpoints</span>
+        <h4 style="margin-top:8px;">Read-only by default</h4>
+        <ul style="list-style:none;padding:0;margin:8px 0 0;font-size:13px;display:flex;flex-direction:column;gap:6px;">
+          <li><code>GET /api/packages</code></li>
+          <li><code>GET /api/packages/{id}</code></li>
+          <li><code>GET /api/packages/{id}/manifest</code></li>
+          <li><code>GET /api/packages/{id}/download</code></li>
+          <li><code>POST /api/contributions</code> · proposal only</li>
+          <li><code>POST /api/signals/aggregate</code> · k≥30</li>
+          <li><code>POST /api/sentinel/crawl-requests</code></li>
+        </ul>
+      </div>
+      <div class="card">
+        <span class="label">Auth</span>
+        <h4 style="margin-top:8px;">Public reads, signed writes</h4>
+        <p class="muted" style="font-size:13px;margin-top:6px;">All GET endpoints are public. Proposal/signal POSTs require an issued deployment ID. Curator signing requires a hardware key.</p>
+        <a href="/login" class="btn btn-ghost" style="margin-top:10px;">Curator sign-in →</a>
+      </div>
+    </aside>
+  </div>
+</section>
+
+<footer><div class="wrap"><div class="foot-grid">
+<div><a href="/" class="brand"><span class="brand-mark">D</span> DueCare AI</a><p class="muted" style="font-size:14px;max-width:38ch;margin-top:8px;">Public-interest AI infrastructure for migrant-worker safety. <a href="/mission" style="color:inherit;text-decoration:underline;">Read the mission &rarr;</a></p></div>
+<div><h4>Hub</h4><ul><li><a href="/hub">Overview</a></li><li><a href="/knowledge-packs">Knowledge packs</a></li><li><a href="/tools-registry">Tools registry</a></li><li><a href="/research-monitor">Research monitor</a></li></ul></div>
+<div><h4>Docs</h4><ul><li><a href="/docs">Overview</a></li><li><a href="/technical-docs">Schemas</a></li><li><a href="/components">Architecture</a></li><li><a href="/why-gemma">Why Gemma 4</a></li><li><a href="/evaluation">Eval &amp; retraining</a></li><li><a href="/harness">Safety harness</a></li><li><a href="/setup">Setup guides</a></li><li><a href="/privacy-boundary">Privacy boundary</a></li></ul></div>
+<div><h4>Get involved</h4><ul><li><a href="/submit-information">Submit info</a></li><li><a href="/newsletter">Newsletter</a></li><li><a href="/email-feedback">Email feedback</a></li><li><a href="/alerts">Alerts archive</a></li><li><a href="/contribute">Contribute</a></li></ul></div>
+<div><h4>Verify</h4><ul><li><a href="/stats">Stats &amp; audit</a></li><li><a href="/dashboard">Live data</a></li><li><a href="/mission">Mission</a></li><li><a href="/contact">Contact</a></li></ul></div>
+</div><div class="foot-bottom"><span>&copy; 2026 DueCare AI</span><span>v0.4 &middot; public hub draft</span></div></div></footer>
+
+<script>
+function copyBlock(b){const t=b.closest('.code-block').querySelector('pre').innerText;navigator.clipboard.writeText(t);b.textContent="Copied";b.classList.add('ok');setTimeout(()=>{b.textContent="Copy";b.classList.remove('ok')},1400);}
+document.querySelectorAll('.tabstrip button').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('.tabstrip button').forEach(x=>x.classList.remove('on'));b.classList.add('on');}));
+</script>
+
+</body>
+</html>

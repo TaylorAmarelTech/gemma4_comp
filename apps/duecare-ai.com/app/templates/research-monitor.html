@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8" /><meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Research monitor &middot; DueCare AI</title>
+<link rel="stylesheet" href="/static/styles.css" /><link rel="stylesheet" href="/static/hub-pages.css" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%230E1116'/%3E%3Ctext x='16' y='21' text-anchor='middle' font-family='monospace' font-weight='700' font-size='14' fill='%23F7F6F1'%3ED%3C/text%3E%3C/svg%3E" />
+</head><body><nav class="nav">
+  <div class="nav-inner">
+    <a href="/" class="brand"><span class="brand-mark">D</span> DueCare AI</a>
+    <div class="nav-links">
+      <a href="/demo">Demo</a>
+      <a href="/use-cases">Use cases</a>
+      <a href="/hub" class="on">Hub</a>
+      <a href="/docs">Docs</a>
+      <a href="/stats">Stats</a>
+    </div>
+    <a href="/login?next=/contribute" class="nav-cta">Get involved <span aria-hidden="true">&rarr;</span></a>
+  </div>
+</nav>
+<section class="hp-hero" data-screen-label="Hub &middot; Research monitor"><div class="wrap">
+<div class="crumbs"><a href="/">Home</a><span class="sep">/</span><a href="/hub">DueCare Hub</a><span class="sep">/</span><span>Research monitor</span></div>
+<span class="kicker">/research-monitor &middot; public-source acquisition</span>
+<h1>Public-source scraping. Proposals, never automatic truth.</h1>
+<p class="lede">The research monitor watches a curated list of public sources for changes, drafts proposed pack diffs from what it finds, and routes them to the curator review queue. Crawlers never publish; curators do.</p></div></section>
+
+<section class="hp-section" data-screen-label="RM &middot; Sources"><div class="wrap">
+<div class="head"><div><span class="ix">01 &middot; Source list</span><h2>What the monitor watches.</h2></div><p class="summary">Public, citable URLs only. No private channels, no scraping behind login walls, no third-party aggregators that strip provenance.</p></div>
+<div class="hp-grid-3">
+<article class="hp-card"><span class="role">Government</span><h3>Labour ministries &amp; consulates</h3><p>Source-country and host-country labour-ministry pages, embassy advisories, official wage-protection notices.</p></article>
+<article class="hp-card"><span class="role">Inter-governmental</span><h3>ILO, UN, IOM</h3><p>Public reports, corridor advisories, regional bilateral agreements. Cited by document id.</p></article>
+<article class="hp-card"><span class="role">NGO</span><h3>Verified advisory orgs</h3><p>Allow-listed NGO publications with public, dated advisories. Allow-list is curator-controlled.</p></article>
+<article class="hp-card"><span class="role">Court &amp; policy</span><h3>Court &amp; policy archives</h3><p>Public court rulings, policy documents, gazettes affecting recruitment or labour conditions.</p></article>
+<article class="hp-card"><span class="role">Platform</span><h3>Platform policy pages</h3><p>Recruitment-platform terms-of-service and policy pages, used to detect platform-side rule changes.</p></article>
+<article class="hp-card"><span class="role">News</span><h3>News on corridor changes</h3><p>News only as a discovery signal. The actual citation is always the underlying public document.</p></article>
+</div></div></section>
+
+<section class="hp-section" data-screen-label="RM &middot; Flow"><div class="wrap">
+<div class="head"><div><span class="ix">02 &middot; Crawler flow</span><h2>Discover, extract, propose.</h2></div><p class="summary">The crawler runs on a schedule and emits proposals. Every proposal carries a source URL, content hash, and detected change.</p></div>
+<div class="hp-flow">
+<div class="step"><span class="num">01</span><div><h4>Discovery</h4><p>Pull each allow-listed source on schedule. Compute a content hash; compare against the last seen hash.</p></div></div>
+<div class="step"><span class="num">02</span><div><h4>Change detection</h4><p>If the hash changed, run a structural diff to summarize what moved (new section, removed clause, updated number).</p></div></div>
+<div class="step"><span class="num">03</span><div><h4>Fact extraction</h4><p>The harness extracts dated, citable facts from the diff with a strict schema: claim, source URL, source hash, date.</p></div></div>
+<div class="step"><span class="num">04</span><div><h4>Privacy &amp; policy gate</h4><p>Reject if the document or extracted facts contain PII or anything resembling a private case. Only public, structural facts pass.</p></div></div>
+<div class="step"><span class="num">05</span><div><h4>Pack-diff proposal</h4><p>Approved facts become a draft pack diff against the relevant corridor pack. Status: <code>proposed</code>.</p></div></div>
+<div class="step"><span class="num">06</span><div><h4>Curator review</h4><p>Curator reviews the diff, asks for revisions or rejects, or approves. No automatic publish path exists.</p></div></div>
+<div class="step"><span class="num">07</span><div><h4>Regression run</h4><p>If approved, the new pack version runs through the test suite before signing.</p></div></div>
+</div></div></section>
+
+<section class="hp-section" data-screen-label="RM &middot; Endpoints"><div class="wrap">
+<div class="head"><div><span class="ix">03 &middot; Endpoints</span><h2>What partners can call.</h2></div><p class="summary">Partners with a curator key can submit proposals directly; everyone can read the queue and review status.</p></div>
+<div class="hp-endpoints">
+<div class="row"><div>Method</div><div>Path</div><div>Description</div><div>Auth</div></div>
+<div class="row"><code>POST</code><code>/api/hub/opencrawl/updates</code><span class="desc">Submit a public-source URL with a proposed change summary.</span><span class="hp-pill draft">Partner key</span></div>
+<div class="row"><code>GET</code><code>/api/hub/opencrawl/updates</code><span class="desc">Read the queue with status filters: proposed, in-review, approved, rejected.</span><span class="hp-pill ok">Public</span></div>
+<div class="row"><code>GET</code><code>/api/hub/opencrawl/sources</code><span class="desc">Read the allow-listed source list and last-seen hashes.</span><span class="hp-pill ok">Public</span></div>
+<div class="row"><code>GET</code><code>/api/hub/opencrawl/diff/&lt;id&gt;</code><span class="desc">Read the human-readable diff for a single proposal.</span><span class="hp-pill ok">Public</span></div>
+</div></div></section>
+<footer><div class="wrap"><div class="foot-grid">
+<div><a href="/" class="brand"><span class="brand-mark">D</span> DueCare AI</a><p class="muted" style="font-size:14px;max-width:38ch;margin-top:8px;">Public-interest AI infrastructure for migrant-worker safety. <a href="/mission" style="color:inherit;text-decoration:underline;">Read the mission &rarr;</a></p></div>
+<div><h4>Hub</h4><ul><li><a href="/hub">Overview</a></li><li><a href="/knowledge-packs">Knowledge packs</a></li><li><a href="/tools-registry">Tools registry</a></li><li><a href="/research-monitor">Research monitor</a></li></ul></div>
+<div><h4>Docs</h4><ul><li><a href="/docs">Overview</a></li><li><a href="/technical-docs">Schemas</a></li><li><a href="/components">Architecture</a></li><li><a href="/why-gemma">Why Gemma 4</a></li><li><a href="/evaluation">Eval &amp; retraining</a></li><li><a href="/harness">Safety harness</a></li><li><a href="/setup">Setup guides</a></li><li><a href="/privacy-boundary">Privacy boundary</a></li></ul></div>
+<div><h4>Get involved</h4><ul><li><a href="/submit-information">Submit info</a></li><li><a href="/newsletter">Newsletter</a></li><li><a href="/email-feedback">Email feedback</a></li><li><a href="/alerts">Alerts archive</a></li><li><a href="/contribute">Contribute</a></li></ul></div>
+<div><h4>Verify</h4><ul><li><a href="/stats">Stats &amp; audit</a></li><li><a href="/dashboard">Live data</a></li><li><a href="/mission">Mission</a></li><li><a href="/contact">Contact</a></li></ul></div>
+</div><div class="foot-bottom"><span>&copy; 2026 DueCare AI</span><span>v0.4 &middot; public hub draft</span></div></div></footer></body></html>
