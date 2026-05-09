@@ -3,13 +3,23 @@
 <title>Stats &middot; DueCare AI</title>
 <link rel="stylesheet" href="/static/styles.css" /><link rel="stylesheet" href="/static/hub-pages.css" />
 <style>
-.st-hero { padding: 64px 0 36px; border-bottom: 1px solid var(--line); }
+.st-hero { padding: 56px 0 36px; border-bottom: 1px solid var(--line); }
+.st-hero .grid { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(280px, 1fr); gap: 56px; align-items: start; }
+@media (max-width: 920px) { .st-hero .grid { grid-template-columns: 1fr; gap: 32px; } }
 .st-hero .kicker { font-family: var(--mono); font-size: 11.5px; letter-spacing: 0.10em; color: var(--ink-3); text-transform: uppercase; }
-.st-hero h1 { font-size: clamp(34px, 4vw, 52px); letter-spacing: -0.025em; line-height: 1.05; margin: 12px 0 0; max-width: 24ch; font-weight: 500; }
-.st-hero .lede { margin-top: 18px; font-size: 17px; line-height: 1.55; color: var(--ink-2); max-width: 64ch; }
-.st-hero .top { display: flex; justify-content: space-between; align-items: end; gap: 24px; flex-wrap: wrap; }
-.st-hero .updated { font-family: var(--mono); font-size: 12px; color: var(--ink-3); display: flex; gap: 18px; }
+.st-hero h1 { font-size: clamp(34px, 4vw, 52px); letter-spacing: -0.025em; line-height: 1.05; margin: 14px 0 0; max-width: 22ch; font-weight: 500; }
+.st-hero .lede { margin-top: 18px; font-size: 17px; line-height: 1.55; color: var(--ink-2); max-width: 56ch; }
+.st-hero .updated { margin-top: 18px; font-family: var(--mono); font-size: 12px; color: var(--ink-3); }
 .st-hero .updated b { color: var(--accent-ink); font-weight: 600; }
+.st-hero .toc { border: 1px solid var(--line); border-radius: 12px; background: var(--paper-2); padding: 18px 20px; }
+.st-hero .toc h3 { font-family: var(--mono); font-size: 11px; font-weight: 600; color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.10em; margin: 0 0 12px; }
+.st-hero .toc ol { list-style: none; padding: 0; margin: 0; counter-reset: t; }
+.st-hero .toc ol li { counter-increment: t; border-top: 1px solid var(--line-soft); }
+.st-hero .toc ol li:first-child { border-top: none; }
+.st-hero .toc ol li a { display: grid; grid-template-columns: 28px 1fr 16px; gap: 10px; align-items: center; padding: 10px 0; font-size: 14px; color: var(--ink-1); text-decoration: none; }
+.st-hero .toc ol li a::before { content: counter(t, decimal-leading-zero); font-family: var(--mono); font-size: 11px; color: var(--ink-3); }
+.st-hero .toc ol li a:hover { color: var(--accent-ink); }
+.st-hero .toc ol li a .arrow { color: var(--ink-3); font-size: 14px; text-align: right; }
 .st-strip-wrap { padding: 0 32px; max-width: 1200px; margin: 0 auto; }
 .st-strip { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; border: 1px solid var(--line); border-radius: 12px; background: var(--paper); overflow: hidden; }
 @media (max-width: 720px) { .st-strip { grid-template-columns: repeat(2, 1fr); } }
@@ -79,19 +89,29 @@
 </head><body>{% set active_nav = "stats" %}
 {% include "_nav.html" %}
 <section class="st-hero" data-screen-label="Stats &middot; Hero"><div class="wrap">
-<div class="top">
+<div class="grid">
 <div>
 <span class="kicker">/stats &middot; hub data, in the open</span>
 <h1>What the hub holds. What it has done. Always replayable.</h1>
 <p class="lede">Everything on this page is computed from the same public audit feed any partner can pull. Aggregates respect the k&ge;30 floor. Nothing here references a worker, a case, or a private channel.</p>
+<div class="updated">Updated <b>2026-04-22 14:02 UTC</b></div>
 </div>
-<div class="updated"><span>Updated <b>2026-04-22 14:02 UTC</b></span></div>
+<nav class="toc" aria-label="Sections on this page">
+  <h3>On this page</h3>
+  <ol>
+    <li><a href="#growth"><span>Pack growth over time</span><span class="arrow">&rarr;</span></a></li>
+    <li><a href="#signals"><span>Anonymized signals by corridor</span><span class="arrow">&rarr;</span></a></li>
+    <li><a href="#review"><span>Crawler review queue</span><span class="arrow">&rarr;</span></a></li>
+    <li><a href="#releases"><span>Curator-vetted releases</span><span class="arrow">&rarr;</span></a></li>
+    <li><a href="#audit"><span>Live history feed</span><span class="arrow">&rarr;</span></a></li>
+  </ol>
+</nav>
 </div>
 </div></section>
 
 <section data-screen-label="Stats &middot; Headline"><div class="st-strip-wrap"><div class="st-strip"><div class="cell"><div class="lbl">Vetted packs</div><div class="val">42</div><div class="delta">&uarr; 6 in last 90d</div></div><div class="cell"><div class="lbl">Tools in registry</div><div class="val">17</div><div class="delta">&uarr; 2 in last 90d</div></div><div class="cell"><div class="lbl">Anonymized signals (90d)</div><div class="val">14,208</div><div class="delta">k&ge;30 floor enforced</div></div><div class="cell"><div class="lbl">History feed events</div><div class="val">3.1M</div><div class="delta">nothing overwritten</div></div></div></div></section>
 
-<section class="st-section" data-screen-label="Stats &middot; Growth"><div class="wrap">
+<section id="growth" class="st-section" data-screen-label="Stats &middot; Growth"><div class="wrap">
 <div class="head"><div><span class="ix">01 &middot; What the hub holds, over time</span><h2>Knowledge packs and tools, week by week.</h2></div><p class="summary">Each release is curator-vetted. Each step on these lines corresponds to a row in the audit feed.</p></div>
 <div class="st-row2">
 <div class="st-card"><div class="h"><h3>Cumulative pack versions</h3><span class="meta">52 weeks</span></div><p class="sub">Counts every vetted pack release across all corridors. Major + minor + patch.</p><svg viewBox="0 0 420 164" preserveAspectRatio="none">
@@ -109,7 +129,7 @@
 </div>
 </div></section>
 
-<section class="st-section" data-screen-label="Stats &middot; Signals"><div class="wrap">
+<section id="signals" class="st-section" data-screen-label="Stats &middot; Signals"><div class="wrap">
 <div class="head"><div><span class="ix">02 &middot; Anonymized signals, by corridor</span><h2>Opt-in anonymized signals, k-anonymity floored.</h2></div><p class="summary">Stacked weekly counts across the four highest-volume corridors. Slices below k=30 are not shown; they appear in the audit feed as suppressed rows.</p></div>
 <div class="st-row2">
 <div class="st-card"><div class="h"><h3>Signals received per week</h3><span class="meta">last 12 weeks</span></div><svg viewBox="0 0 420 204" preserveAspectRatio="none">
@@ -128,7 +148,7 @@
 </div>
 </div></section>
 
-<section class="st-section" data-screen-label="Stats &middot; Review"><div class="wrap">
+<section id="review" class="st-section" data-screen-label="Stats &middot; Review"><div class="wrap">
 <div class="head"><div><span class="ix">03 &middot; Research-monitor review queue</span><h2>Crawler proposals never auto-publish.</h2></div><p class="summary">Funnel from crawler discovery through curator review to vetted release. Last 90 days.</p></div>
 <div class="st-row2">
 <div class="st-card"><div class="h"><h3>Proposal funnel</h3><span class="meta">last 90d</span></div>
@@ -153,7 +173,7 @@
 </div>
 </div></section>
 
-<section class="st-section" data-screen-label="Stats &middot; Releases"><div class="wrap">
+<section id="releases" class="st-section" data-screen-label="Stats &middot; Releases"><div class="wrap">
 <div class="head"><div><span class="ix">04 &middot; Curator-vetted releases</span><h2>Every key rotation. Every vetted release.</h2></div><p class="summary">Timeline of signing-key rotations and the releases they cover. Old keys remain in the public log.</p></div>
 <div class="st-timeline">
 <div class="ev"><span class="when">2026-04-12 &middot; 09:14 UTC</span><h4>Vetted release &middot; <code>npl-qat-construction@1.4.0</code></h4><p>Material change: revised host-country fee cap. Reviewed by curator key <code>k.maharjan</code>. Alert sent.</p></div>
@@ -164,7 +184,7 @@
 </div>
 </div></section>
 
-<section class="st-section" data-screen-label="Stats &middot; Audit feed"><div class="wrap">
+<section id="audit" class="st-section" data-screen-label="Stats &middot; Audit feed"><div class="wrap">
 <div class="head"><div><span class="ix">05 &middot; Anonymized server-action log</span><h2>Live tail of the public audit feed.</h2></div><p class="summary">Append-only, vetted in batches. No actor identifies a worker; curator keys are the only personal-ish identifier and they are public by design.</p></div>
 <div class="st-audit-head"><span class="live">live tail &middot; /api/hub/audit?stream=1</span><span style="font-family:var(--mono);font-size:12px;color:var(--ink-3);">last 28 events</span></div>
 <div class="st-audit">
