@@ -280,7 +280,7 @@ in its Phase 1 install step.
 
 ## What's NOT in this index
 
-- **The 76-notebook research pipeline** at `kaggle/kernels/` — that's the
+- **The 77-notebook research pipeline** at `kaggle/kernels/` — that's the
   experimental code that produced the rules + corpus + benchmark, not
   the submission surface. See [`docs/notebook_guide.md`](./notebook_guide.md)
   for that map.

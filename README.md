@@ -278,7 +278,7 @@ old historical `NB XX` scheme.
 
 - Full table and one-line purposes: [`docs/notebook_guide.md`](./docs/notebook_guide.md)
 - Exact kernel inventory and mirror map: [`docs/current_kaggle_notebook_state.md`](./docs/current_kaggle_notebook_state.md)
-The DueCare suite ships as 76 notebooks (76 of 76 validated locally by
+The DueCare suite ships as 77 notebooks (77 of 77 validated locally by
 `scripts/validate_notebooks.py`, 42 targeted adversarial validators green).
 The full inventory is regenerated into
 [`docs/current_kaggle_notebook_state.md`](./docs/current_kaggle_notebook_state.md)
@@ -300,7 +300,7 @@ The remaining notebooks cover the `100`-`600` bands for evaluation,
 comparison, adversarial testing, pipeline construction, fine-tuning, and
 reporting. The `000` band is now the orientation layer: index, glossary,
 and quickstart. See [`docs/notebook_guide.md`](./docs/notebook_guide.md)
-for the full 76-notebook ordered table.
+for the full 77-notebook ordered table.
 
 ## Architecture
 

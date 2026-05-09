@@ -107,7 +107,7 @@ Full inventory is auto-generated at
   restored 2026-05-02 from kernel sources).
 - The submission shape is **2 core + 11 appendix** (per the canonical
   `kaggle/<purpose>/` layout in [`docs/FOR_PEER_REVIEW.md`](FOR_PEER_REVIEW.md)).
-- The 76-notebook research arc lives in `kaggle/kernels/` and serves
+- The 77-notebook research arc lives in `kaggle/kernels/` and serves
   reproducibility for the Phase 1-3 pipeline.
 - Public live-state promotion should be checked against Kaggle at push
   time; the authoritative local inventory is
