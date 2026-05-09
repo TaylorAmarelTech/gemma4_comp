@@ -1,0 +1,233 @@
+{
+  "schema_version": "demo-priority-examples.v1",
+  "privacy_note": "All examples are synthetic composites. No names, contact details, addresses, document numbers, or raw worker narratives are included.",
+  "recording_method": "Use these examples as the no-wait recording cache. Replace fixture responses with fresh runtime outputs before the final cut when a warmed Gemma 4 runtime is available; keep the same IDs so screenshots and narration remain stable.",
+  "why_gemma": [
+    "Gemma 4 native function calling is visible in the tool_call_plan fields.",
+    "Gemma 4 multimodal understanding is visible in the platform image and document-intake scenes.",
+    "Small-enough local deployment is visible in the worker-mobile and NGO laptop scenes.",
+    "Harness traces become SFT and DPO data for the model-improvement scene."
+  ],
+  "examples": [
+    {
+      "id": "demo_platform_text_post",
+      "audience": "platform safety team",
+      "surface": "platform moderation",
+      "recording_priority": 1,
+      "input_type": "json_social_post_without_image",
+      "title": "Job post with fee and document-control signals",
+      "input": {
+        "post_id": "synthetic_post_fee_pressure_001",
+        "language": "en",
+        "corridor": "PHL-KWT",
+        "sector": "domestic_work",
+        "text": "Hiring overseas domestic workers. Applicant pays training, processing, and travel deductions from first six salaries. Passport kept by agency until deductions are complete.",
+        "attachments": []
+      },
+      "cached_result": {
+        "action": "review_before_publish",
+        "risk_grade": "high",
+        "grep_hits": ["recruitment_fee_shift", "document_retention", "wage_deduction"],
+        "rag_pack": "phl-kwt-domestic@1.7.2",
+        "tool_call_plan": ["fee_rule.lookup", "rights_pack.retrieve", "moderation_notice.draft"],
+        "safe_summary": "The post shifts recruitment costs to workers and describes identity-document control. The platform should hold publication for human review and present safer compliant-language guidance to the poster.",
+        "video_line": "A marketplace can stop risky recruitment language before it reaches workers."
+      },
+      "training_use": {
+        "sft_target": "safe_summary plus cited moderation notice",
+        "dpo_chosen": "harness response with GREP + RAG + tools",
+        "dpo_rejected": "raw answer that treats the post as ordinary hiring copy"
+      }
+    },
+    {
+      "id": "demo_platform_image_post",
+      "audience": "platform safety team",
+      "surface": "platform moderation with image",
+      "recording_priority": 2,
+      "input_type": "json_social_post_with_synthetic_image_description",
+      "title": "Flyer image repeats a risky fee claim",
+      "input": {
+        "post_id": "synthetic_post_image_fee_002",
+        "language": "en",
+        "corridor": "IDN-HKG",
+        "sector": "domestic_work",
+        "text": "Great overseas opportunity. Message the agency to reserve your placement.",
+        "image_description": "Synthetic flyer text says workers repay placement, document processing, and transport costs after arrival. The flyer also says passports are collected for safekeeping by the agency.",
+        "attachments": ["synthetic_flyer_description_only"]
+      },
+      "cached_result": {
+        "action": "escalate_to_visual_review",
+        "risk_grade": "high",
+        "multimodal_findings": ["fee_repayment_claim_in_image", "passport_collection_claim_in_image"],
+        "grep_hits": ["agency_contact_prompt"],
+        "rag_pack": "global-fee-rules@2.1.0",
+        "tool_call_plan": ["image_text.extract", "fee_rule.lookup", "platform_warning.draft"],
+        "safe_summary": "The visible flyer content carries the risk signal even though the caption is vague. The moderation decision should be based on both text and image evidence.",
+        "video_line": "This is why multimodal understanding is load-bearing: the risky claim is in the image, not just the caption."
+      },
+      "training_use": {
+        "sft_target": "multimodal risk explanation with image-grounded findings",
+        "dpo_chosen": "answer that cites image evidence and refuses unsafe optimization",
+        "dpo_rejected": "text-only answer that misses the flyer"
+      }
+    },
+    {
+      "id": "demo_ngo_case_intake",
+      "audience": "NGO caseworker",
+      "surface": "case intake and legal packet",
+      "recording_priority": 3,
+      "input_type": "synthetic_multi_document_case_bundle",
+      "title": "Case bundle becomes a reviewable intake packet",
+      "input": {
+        "bundle_id": "synthetic_case_bundle_003",
+        "documents": [
+          "recruitment chat excerpt generalized to fee and travel-deduction claims",
+          "contract clause summary describing identity-document safekeeping language",
+          "pay-record summary describing recurring deductions"
+        ],
+        "corridor": "NPL-QAT",
+        "sector": "construction"
+      },
+      "cached_result": {
+        "action": "draft_for_caseworker_review",
+        "risk_grade": "high",
+        "extracted_factoids": [
+          "recruitment costs appear shifted to the worker",
+          "identity-document control appears in contract language",
+          "wage deductions appear recurring rather than one-time"
+        ],
+        "graph_nodes": ["hashed_recruiter", "hashed_employer", "corridor:NPL-QAT", "risk:fee_request", "risk:document_control"],
+        "tool_call_plan": ["timeline.build", "legal_refs.retrieve", "complaint_outline.draft", "interrogatory_questions.draft"],
+        "safe_summary": "The caseworker sees a timeline, legal references, questions to ask next, and a draft complaint outline. No automated report is sent; the human decides.",
+        "video_line": "The NGO gets a structured packet without uploading private case material to the public hub."
+      },
+      "training_use": {
+        "sft_target": "structured intake packet with uncertainty labels",
+        "dpo_chosen": "cautious draft that asks for verification and keeps the case local",
+        "dpo_rejected": "overconfident legal conclusion or automatic reporting language"
+      }
+    },
+    {
+      "id": "demo_worker_mobile_share",
+      "audience": "worker and trusted NGO",
+      "surface": "worker mobile chat and opt-in sharing",
+      "recording_priority": 4,
+      "input_type": "mobile_chat_plus_anonymized_share_packet",
+      "title": "Worker receives local guidance and can share an anonymized signal",
+      "input": {
+        "chat_id": "synthetic_mobile_chat_004",
+        "language": "en",
+        "worker_question": "The agency says my documents will be held until deductions are paid. Is that normal?",
+        "share_toggle": "off_by_default"
+      },
+      "cached_result": {
+        "action": "advise_and_offer_opt_in_share",
+        "risk_grade": "high",
+        "worker_answer": "This may be a serious warning sign. Keep control of your identity documents when possible, avoid paying new fees without verified written authority, and contact a trusted local organization or official channel before replying.",
+        "share_packet_preview": {
+          "source": "worker_mobile_opt_in",
+          "jurisdiction": "corridor-level only",
+          "risk_tags": ["document_control", "wage_deduction"],
+          "summary": "An anonymized corridor-level pattern indicates document-control language paired with repayment pressure.",
+          "evidence_hashes": ["sha256:synthetic-mobile-chat-004"]
+        },
+        "tool_call_plan": ["rights_pack.retrieve", "contact_options.retrieve", "share_packet.build"],
+        "video_line": "Sharing is opt-in and anonymized: the worker's chat stays on the phone, while the pattern can help NGOs spot a corridor trend."
+      },
+      "training_use": {
+        "sft_target": "empathetic mobile answer plus opt-in explanation",
+        "dpo_chosen": "privacy-preserving answer that avoids auto-reporting",
+        "dpo_rejected": "answer that sends raw chat text to the hub"
+      }
+    },
+    {
+      "id": "demo_research_zip_graph",
+      "audience": "researcher or regulator",
+      "surface": "research upload, graph, and anonymized factoids",
+      "recording_priority": 5,
+      "input_type": "synthetic_zip_folder_manifest",
+      "title": "Research folder becomes a graph and vetted factoid candidates",
+      "input": {
+        "zip_manifest": [
+          "public_advisory_summary.txt",
+          "court_ruling_excerpt_public.txt",
+          "ngo_report_public_excerpt.txt",
+          "policy_change_table.csv"
+        ],
+        "jurisdictions": ["ILO", "PHL", "KWT"],
+        "processing_mode": "public_sources_only"
+      },
+      "cached_result": {
+        "action": "prepare_factoids_for_curator_review",
+        "graph_summary": {
+          "nodes": 18,
+          "edges": 27,
+          "entity_resolution": "public organization and statute names only",
+          "private_entities": "not accepted"
+        },
+        "candidate_factoids": [
+          "A public advisory clarifies recruitment-fee caps for the corridor.",
+          "A public ruling discusses identity-document retention language as a risk indicator.",
+          "A public NGO report recommends adding a complaint-channel citation."
+        ],
+        "tool_call_plan": ["zip_manifest.scan", "source_quality.score", "entity_graph.build", "factoid_candidates.extract"],
+        "video_line": "Researchers can turn public folders into graphs and candidate updates without mixing in private case files."
+      },
+      "training_use": {
+        "sft_target": "source-grounded factoid extraction with provenance",
+        "dpo_chosen": "answer that labels uncertainty and requires curator review",
+        "dpo_rejected": "answer that publishes unreviewed extracted claims"
+      }
+    },
+    {
+      "id": "demo_full_circle_vetting_loop",
+      "audience": "NGO, regulator, and curator network",
+      "surface": "email vetting and knowledge-pack release loop",
+      "recording_priority": 6,
+      "input_type": "public_factoid_to_pack_update_loop",
+      "title": "Factoid candidates become reviewed knowledge-pack updates",
+      "input": {
+        "candidate_update_id": "synthetic_factoid_loop_006",
+        "factoid": "Public-source review suggests a complaint-channel citation should be updated for the corridor pack.",
+        "stakeholder_request": "Please verify whether this public citation is current and appropriate for worker-facing guidance.",
+        "review_channels": ["curator_queue", "stakeholder_email", "pack_diff_review"]
+      },
+      "cached_result": {
+        "action": "send_for_human_vetting_then_release_pack",
+        "automation_status": "needs_curator_review",
+        "email_loop": [
+          "automation drafts a concise review request",
+          "stakeholder replies with public-source correction",
+          "curator approves the diff",
+          "signed pack version is published",
+          "workers and NGOs pull the updated pack"
+        ],
+        "tool_call_plan": ["stakeholder_email.draft", "reply_intent.classify", "pack_diff.prepare", "release_gate.verify"],
+        "video_line": "The system closes the loop: local observations and public research become vetted updates that workers can download later."
+      },
+      "training_use": {
+        "sft_target": "curator-safe review request and release note",
+        "dpo_chosen": "answer that keeps humans in the approval path",
+        "dpo_rejected": "answer that auto-publishes a factoid without verification"
+      }
+    }
+  ],
+  "finetuning_best_practices": {
+    "sample_data_needed": true,
+    "minimum_demo_dataset": "A small synthetic/composite SFT sample plus DPO pairs is enough for the video, but the real run should use the A07 train/val split and hold out the evaluation prompts.",
+    "use_harness_to_generate": "Yes. Treat harness outputs as silver data: record prompt, raw Gemma answer, GREP hits, RAG citations, tool calls, final harness answer, rubric grade, and provenance. Human/curator review or deterministic gates decide which rows become training examples.",
+    "do_not_train_on": [
+      "raw worker case narratives",
+      "private documents",
+      "names, contact details, addresses, identity numbers",
+      "evaluation holdout prompts"
+    ],
+    "train_on": [
+      "public-source legal and policy text",
+      "synthetic or composite prompts",
+      "harness-distilled safe answers",
+      "chosen-vs-rejected preference pairs",
+      "curator-approved factoid and pack-update examples"
+    ]
+  }
+}

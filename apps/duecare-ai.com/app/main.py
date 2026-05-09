@@ -12,11 +12,12 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import secrets
 import uuid
 from collections import Counter
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Literal
+from typing import Any, Literal
 
 from fastapi import FastAPI, HTTPException, Request, status
 from fastapi.middleware.cors import CORSMiddleware
@@ -29,7 +30,7 @@ from . import __version__
 from . import automation
 from . import local_kb
 from . import packs as pack_registry
-from .pii import detect_pii
+from .pii import detect_pii, redact_pii
 
 SignalSource = Literal[
     "ngo_case_intake",
@@ -53,6 +54,7 @@ UpdateStatus = Literal["proposed", "needs_review", "approved", "rejected", "retr
 APP_DIR = Path(__file__).resolve().parent
 TEMPLATES_DIR = APP_DIR / "templates"
 STATIC_DIR = APP_DIR / "static"
+DEMO_PRIORITY_EXAMPLES_PATH = APP_DIR / "data" / "demo_priority_examples.json"
 
 # Every clean URL on the public site maps to a template file in app/templates/.
 # The slug ("/" or "/foo") is the route; the value is the template filename.
@@ -67,6 +69,7 @@ PAGE_ROUTES: dict[str, str] = {
     "/contribute": "contribute.html",
     "/dashboard": "dashboard.html",
     "/demo": "demo.html",
+    "/demo-recording": "demo-recording.html",
     "/deployments": "deployments.html",
     "/docs": "docs.html",
     "/email-feedback": "email-feedback.html",
@@ -469,6 +472,78 @@ def _sha256_text(text: str) -> str:
     return hashlib.sha256(text.encode("utf-8")).hexdigest()
 
 
+ADMIN_REDACTED_KEYS = {
+    "body",
+    "contact_email",
+    "email",
+    "phone",
+    "raw_text",
+    "source_filename",
+    "text",
+}
+
+
+def _admin_token() -> str | None:
+    """Return the configured admin token, including the legacy alias."""
+    return os.environ.get("DUECARE_ADMIN_TOKEN") or os.environ.get("DUECARE_HUB_ADMIN_TOKEN")
+
+
+def _require_admin_access(request: Request) -> None:
+    """Gate the troubleshooting API behind an explicit bearer-style token."""
+    expected = _admin_token()
+    if not expected:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Admin API disabled. Set DUECARE_ADMIN_TOKEN on the deployment to enable it.",
+        )
+    provided = request.headers.get("x-duecare-admin-token") or request.query_params.get("token")
+    if not provided or not secrets.compare_digest(provided, expected):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Missing or invalid admin token.",
+        )
+
+
+def _admin_file_info(path: Path) -> dict[str, object]:
+    """Return file metadata without reading file contents."""
+    if not path.exists():
+        return {"exists": False, "bytes": 0, "updated_at": None}
+    stat = path.stat()
+    return {
+        "exists": True,
+        "bytes": stat.st_size,
+        "updated_at": datetime.fromtimestamp(stat.st_mtime, UTC).isoformat(),
+    }
+
+
+def _safe_admin_value(key: str, value: Any) -> object:
+    """Return a PII-safe projection for the admin dashboard."""
+    normalized_key = key.lower()
+    if normalized_key == "payload":
+        keys = sorted(value.keys()) if isinstance(value, dict) else []
+        return {"suppressed": True, "keys": keys}
+    if normalized_key in ADMIN_REDACTED_KEYS or normalized_key.endswith("_email"):
+        return "[REDACTED]" if value else None
+    if isinstance(value, str):
+        return redact_pii(value)
+    if isinstance(value, dict):
+        return {str(child_key): _safe_admin_value(str(child_key), child_value) for child_key, child_value in value.items()}
+    if isinstance(value, list):
+        return [_safe_admin_value(normalized_key, item) for item in value]
+    return value
+
+
+def _safe_admin_record(record: dict[str, object]) -> dict[str, object]:
+    """Return a redacted record suitable for troubleshooting display."""
+    return {key: _safe_admin_value(key, value) for key, value in record.items()}
+
+
+def _tail(records: list[dict[str, object]], limit: int) -> list[dict[str, object]]:
+    """Return newest-first records bounded to a small admin display limit."""
+    bounded_limit = max(1, min(limit, 200))
+    return list(reversed(records[-bounded_limit:]))
+
+
 def _state(request: Request) -> AppState:
     state = getattr(request.app.state, "duecare", None)
     if not isinstance(state, AppState):
@@ -520,6 +595,11 @@ def _knowledge_packs() -> list[KnowledgePackSummary]:
     ]
 
 
+def _demo_priority_examples() -> dict[str, object]:
+    """Load synthetic, no-wait demo examples for recording walkthroughs."""
+    return json.loads(DEMO_PRIORITY_EXAMPLES_PATH.read_text(encoding="utf-8"))
+
+
 def create_app(*, data_dir: Path | None = None) -> FastAPI:
     """Create the Duecare AI public hub FastAPI application."""
     store = FileHubStore((data_dir or default_data_dir()).resolve())
@@ -558,6 +638,11 @@ def create_app(*, data_dir: Path | None = None) -> FastAPI:
             storage_ok=True,
             data_dir=str(state.store.root),
         )
+
+    @application.get("/api/demo/priority-examples", tags=["demo"])
+    async def demo_priority_examples() -> dict[str, object]:
+        """Return the synthetic example catalog used by the no-wait recording deck."""
+        return _demo_priority_examples()
 
     @application.get("/healthz", response_model=HealthStatus, tags=["system"])
     async def healthz(request: Request) -> HealthStatus:
@@ -825,6 +910,11 @@ def create_app(*, data_dir: Path | None = None) -> FastAPI:
 
         return _handler
 
+    @application.get("/admin", response_class=HTMLResponse, tags=["ui"], include_in_schema=False)
+    async def admin_page(request: Request) -> HTMLResponse:
+        """Render the token-gated troubleshooting page outside the public sitemap."""
+        return _render("admin.html", request)
+
     for path, template_name in PAGE_ROUTES.items():
         application.add_api_route(
             path,
@@ -1003,6 +1093,40 @@ def create_app(*, data_dir: Path | None = None) -> FastAPI:
     async def forget_local_kb() -> dict[str, object]:
         return _kb.forget_everything()
 
+    @application.get("/api/admin/logs", tags=["admin"])
+    async def admin_logs(request: Request, limit: int = 50) -> dict[str, object]:
+        """Return token-gated, PII-redacted troubleshooting logs."""
+        _require_admin_access(request)
+        state = _state(request)
+        state.store.ensure_ready()
+        signals = state.store.read_all("signals.jsonl")
+        updates = state.store.read_all("updates.jsonl")
+        signal_count, update_count = state.store.counts()
+        return {
+            "service": "duecare-ai-hub",
+            "version": __version__,
+            "generated_at": datetime.now(UTC).isoformat(),
+            "privacy_note": (
+                "Admin output is redacted for detector-class PII. Free-form payloads are suppressed; "
+                "audit rows expose hashes, status, automation verdicts, and public-source metadata only."
+            ),
+            "storage": {
+                "root": str(state.store.root),
+                "signals": _admin_file_info(state.store.signals_path),
+                "updates": _admin_file_info(state.store.updates_path),
+                "healthcheck": _admin_file_info(state.store.health_path),
+            },
+            "counts": {
+                "signals": signal_count,
+                "updates": update_count,
+                "local_kb_cases": _kb.stats().get("n_cases", 0),
+            },
+            "counters": dict(state.store.trends()),
+            "signals": [_safe_admin_record(record) for record in _tail(signals, limit)],
+            "updates": [_safe_admin_record(record) for record in _tail(updates, limit)],
+            "local_kb": _safe_admin_value("local_kb", _kb.stats()),
+        }
+
     @application.get("/openclaw", include_in_schema=False)
     async def openclaw_redirect() -> Response:
         # Legacy URL kept for any external link that still points to /openclaw.
@@ -1026,6 +1150,7 @@ def create_app(*, data_dir: Path | None = None) -> FastAPI:
 
 def _robots_txt() -> str:
     return """User-agent: *
+Disallow: /admin
 Allow: /
 
 Sitemap: https://duecare-ai.com/sitemap.xml

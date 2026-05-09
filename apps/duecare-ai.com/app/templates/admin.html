@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Admin troubleshooting · DueCare AI</title>
+<link rel="stylesheet" href="/static/styles.css" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%230E1116'/%3E%3Ctext x='16' y='21' text-anchor='middle' font-family='monospace' font-weight='700' font-size='14' fill='%23F7F6F1'%3ED%3C/text%3E%3C/svg%3E" />
+<style>
+.admin-hero { padding: 56px 0 32px; border-bottom: 1px solid var(--line); }
+.admin-hero .grid { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(280px, 0.75fr); gap: 44px; align-items: start; }
+@media (max-width: 900px) { .admin-hero .grid { grid-template-columns: 1fr; } }
+.admin-hero h1 { font-size: clamp(34px, 4.4vw, 56px); line-height: 1.05; letter-spacing: -0.035em; margin: 12px 0 0; max-width: 22ch; }
+.admin-hero .lede { margin-top: 18px; max-width: 62ch; color: var(--ink-2); font-size: 17px; line-height: 1.55; }
+.admin-panel { border: 1px solid var(--line); border-radius: 14px; background: var(--paper); padding: 20px; }
+.admin-panel h2 { font-size: 16px; margin: 0 0 8px; }
+.admin-panel p { color: var(--ink-3); font-size: 13px; line-height: 1.5; }
+.token-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; margin-top: 14px; }
+.token-row input { width: 100%; border: 1px solid var(--line); border-radius: 9px; padding: 10px 12px; background: var(--paper-2); color: var(--ink); font-family: var(--mono); }
+.admin-button { border: 1px solid var(--ink); border-radius: 999px; padding: 10px 14px; background: var(--ink); color: var(--paper); cursor: pointer; font-family: var(--sans); font-size: 13px; }
+.admin-button.secondary { background: var(--paper); color: var(--ink); border-color: var(--line); }
+.admin-section { padding: 36px 0; border-bottom: 1px solid var(--line-soft); }
+.admin-toolbar { display: flex; gap: 10px; justify-content: space-between; align-items: center; flex-wrap: wrap; margin-bottom: 18px; }
+.admin-status { font-family: var(--mono); font-size: 12px; color: var(--ink-3); }
+.card-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+@media (max-width: 900px) { .card-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 560px) { .card-grid { grid-template-columns: 1fr; } }
+.metric-card { border: 1px solid var(--line); border-radius: 12px; background: var(--paper); padding: 18px; }
+.metric-card .label { font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.09em; text-transform: uppercase; color: var(--ink-3); }
+.metric-card .value { font-size: 30px; margin-top: 8px; letter-spacing: -0.03em; }
+.metric-card .sub { font-family: var(--mono); font-size: 11px; color: var(--ink-3); margin-top: 6px; }
+.log-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+@media (max-width: 980px) { .log-grid { grid-template-columns: 1fr; } }
+.log-panel { border: 1px solid var(--line); border-radius: 12px; background: var(--paper); overflow: hidden; }
+.log-panel header { display: flex; justify-content: space-between; gap: 12px; padding: 14px 16px; border-bottom: 1px solid var(--line); background: var(--paper-2); }
+.log-panel header h2 { margin: 0; font-size: 15px; }
+.log-panel header span { font-family: var(--mono); font-size: 11px; color: var(--ink-3); }
+.log-list { max-height: 520px; overflow: auto; }
+.log-row { display: grid; gap: 8px; padding: 13px 16px; border-bottom: 1px solid var(--line-soft); }
+.log-row:last-child { border-bottom: 0; }
+.log-row .top { display: flex; gap: 8px; align-items: baseline; justify-content: space-between; }
+.log-row .id { font-family: var(--mono); font-size: 12px; color: var(--accent-ink); }
+.log-row .stamp { font-family: var(--mono); font-size: 11px; color: var(--ink-3); white-space: nowrap; }
+.log-row .summary { color: var(--ink-2); font-size: 13px; line-height: 1.45; }
+.badges { display: flex; gap: 6px; flex-wrap: wrap; }
+.badge { display: inline-flex; border: 1px solid var(--line); border-radius: 999px; padding: 3px 8px; font-family: var(--mono); font-size: 10.5px; color: var(--ink-3); background: var(--paper-2); }
+.file-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.file-table th, .file-table td { border-bottom: 1px solid var(--line-soft); padding: 10px 8px; text-align: left; vertical-align: top; }
+.file-table th { font-family: var(--mono); font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-3); }
+.file-table td { color: var(--ink-2); }
+pre.admin-json { border: 1px solid var(--line); border-radius: 12px; background: oklch(0.16 0.005 60); color: oklch(0.90 0.01 60); padding: 16px; max-height: 360px; overflow: auto; font-size: 12px; line-height: 1.5; white-space: pre-wrap; }
+.warning { border-left: 4px solid var(--danger); background: var(--paper-2); padding: 12px 14px; border-radius: 10px; color: var(--ink-2); }
+</style>
+</head>
+<body>
+{% include "_nav.html" %}
+<section class="admin-hero" data-screen-label="Admin · Troubleshooting"><div class="wrap"><div class="grid">
+  <div>
+    <span class="kicker">Token-gated troubleshooting</span>
+    <h1>Admin logs for the hub without exposing raw case data.</h1>
+    <p class="lede">Use this page during rehearsals, deploys, and partner demos to see storage health, latest accepted signals, update proposals, automation verdicts, and local-KB counts. The API is disabled unless <code>DUECARE_ADMIN_TOKEN</code> is configured, and every returned record is redacted before display.</p>
+  </div>
+  <aside class="admin-panel" aria-label="Admin access">
+    <h2>Connect to the admin API</h2>
+    <p>Paste the deployment token for this browser session. It is stored only in <code>localStorage</code> and sent as <code>X-DueCare-Admin-Token</code>.</p>
+    <div class="token-row">
+      <input id="admin-token" type="password" autocomplete="off" placeholder="DUECARE_ADMIN_TOKEN" />
+      <button class="admin-button" id="save-token" type="button">Save</button>
+    </div>
+    <p style="margin-top:12px;">If the deployment does not set a token, the API returns 403 by design. The public site never exposes these logs anonymously.</p>
+  </aside>
+</div></div></section>
+
+<section class="admin-section" data-screen-label="Admin · Live status"><div class="wrap">
+  <div class="admin-toolbar">
+    <div><span class="kicker">Live status</span><h2 style="margin-top:8px;">Current deployment state</h2></div>
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;"><span id="admin-status" class="admin-status">Not loaded</span><button id="refresh" type="button" class="admin-button secondary">Refresh</button></div>
+  </div>
+  <div id="admin-error" class="warning" hidden></div>
+  <div id="metrics" class="card-grid" aria-live="polite"></div>
+</div></section>
+
+<section class="admin-section" data-screen-label="Admin · Logs"><div class="wrap">
+  <div class="log-grid">
+    <article class="log-panel">
+      <header><h2>Latest submissions and updates</h2><span id="updates-count">0 rows</span></header>
+      <div id="updates" class="log-list"></div>
+    </article>
+    <article class="log-panel">
+      <header><h2>Latest anonymized signals</h2><span id="signals-count">0 rows</span></header>
+      <div id="signals" class="log-list"></div>
+    </article>
+  </div>
+</div></section>
+
+<section class="admin-section" data-screen-label="Admin · Storage"><div class="wrap">
+  <div class="admin-toolbar"><div><span class="kicker">Storage and counters</span><h2 style="margin-top:8px;">What files exist, how big they are, and what counters they produce.</h2></div></div>
+  <div class="log-grid">
+    <div class="admin-panel"><h2>JSONL files</h2><table class="file-table" id="files"></table></div>
+    <div class="admin-panel"><h2>Counter snapshot</h2><pre id="counters" class="admin-json">{}</pre></div>
+  </div>
+</div></section>
+
+<script>
+const tokenInput = document.getElementById('admin-token');
+const statusEl = document.getElementById('admin-status');
+const errorEl = document.getElementById('admin-error');
+const metricsEl = document.getElementById('metrics');
+const updatesEl = document.getElementById('updates');
+const signalsEl = document.getElementById('signals');
+const filesEl = document.getElementById('files');
+const countersEl = document.getElementById('counters');
+const updatesCountEl = document.getElementById('updates-count');
+const signalsCountEl = document.getElementById('signals-count');
+
+tokenInput.value = localStorage.getItem('duecare_admin_token') || '';
+
+document.getElementById('save-token').addEventListener('click', () => {
+  localStorage.setItem('duecare_admin_token', tokenInput.value.trim());
+  loadAdmin();
+});
+document.getElementById('refresh').addEventListener('click', loadAdmin);
+
+function escapeHtml(value) {
+  return String(value ?? '').replace(/[&<>"]/g, ch => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;'}[ch]));
+}
+
+function formatBytes(bytes) {
+  const n = Number(bytes || 0);
+  if (n < 1024) return `${n} B`;
+  if (n < 1024 * 1024) return `${(n / 1024).toFixed(1)} KB`;
+  return `${(n / 1024 / 1024).toFixed(1)} MB`;
+}
+
+function metric(label, value, sub) {
+  return `<div class="metric-card"><div class="label">${escapeHtml(label)}</div><div class="value">${escapeHtml(value)}</div><div class="sub">${escapeHtml(sub)}</div></div>`;
+}
+
+function badges(values) {
+  return (values || []).slice(0, 8).map(value => `<span class="badge">${escapeHtml(value)}</span>`).join('');
+}
+
+function updateRow(row) {
+  const automation = row.automation || {};
+  const title = row.id || row.source_name || row.kind || 'update';
+  const stamp = row.received_at || row.observed_at || '';
+  const summary = row.summary || row.change_summary || automation.summary || row.subject || 'No summary recorded.';
+  const rowBadges = [row.status, row.kind || row.proposed_pack_kind, automation.verdict, automation.intent].filter(Boolean);
+  return `<div class="log-row"><div class="top"><span class="id">${escapeHtml(title)}</span><span class="stamp">${escapeHtml(stamp)}</span></div><div class="badges">${badges(rowBadges)}</div><div class="summary">${escapeHtml(summary)}</div></div>`;
+}
+
+function signalRow(row) {
+  const stamp = row.received_at || '';
+  const rowBadges = [row.source, row.jurisdiction, row.corridor, row.consent_basis].filter(Boolean);
+  return `<div class="log-row"><div class="top"><span class="id">${escapeHtml(row.id || 'signal')}</span><span class="stamp">${escapeHtml(stamp)}</span></div><div class="badges">${badges(rowBadges)}</div><div class="summary">${escapeHtml(row.summary || 'No summary recorded.')}</div></div>`;
+}
+
+function renderFiles(storage) {
+  const rows = Object.entries(storage || {}).filter(([name]) => name !== 'root').map(([name, info]) => `
+    <tr><td>${escapeHtml(name)}</td><td>${escapeHtml(info.exists)}</td><td>${formatBytes(info.bytes)}</td><td>${escapeHtml(info.updated_at || 'not created')}</td></tr>`).join('');
+  filesEl.innerHTML = `<thead><tr><th>File</th><th>Exists</th><th>Bytes</th><th>Updated</th></tr></thead><tbody>${rows}</tbody>`;
+}
+
+async function loadAdmin() {
+  errorEl.hidden = true;
+  errorEl.textContent = '';
+  statusEl.textContent = 'Loading…';
+  const token = tokenInput.value.trim() || localStorage.getItem('duecare_admin_token') || '';
+  try {
+    const response = await fetch('/api/admin/logs?limit=50', {headers: {'X-DueCare-Admin-Token': token}});
+    if (!response.ok) {
+      const body = await response.json().catch(() => ({}));
+      throw new Error(body.detail || `Admin API returned ${response.status}`);
+    }
+    const data = await response.json();
+    const counts = data.counts || {};
+    metricsEl.innerHTML = [
+      metric('Signals', counts.signals || 0, 'anonymized JSONL rows'),
+      metric('Updates', counts.updates || 0, 'submissions + crawler + email rows'),
+      metric('Local KB cases', counts.local_kb_cases || 0, 'operator-side SQLite rows'),
+      metric('Version', data.version || 'unknown', data.generated_at || 'not generated'),
+    ].join('');
+    updatesEl.innerHTML = (data.updates || []).map(updateRow).join('') || '<div class="log-row"><div class="summary">No update rows yet.</div></div>';
+    signalsEl.innerHTML = (data.signals || []).map(signalRow).join('') || '<div class="log-row"><div class="summary">No signal rows yet.</div></div>';
+    updatesCountEl.textContent = `${(data.updates || []).length} rows`;
+    signalsCountEl.textContent = `${(data.signals || []).length} rows`;
+    renderFiles(data.storage || {});
+    countersEl.textContent = JSON.stringify(data.counters || {}, null, 2);
+    statusEl.textContent = `Loaded ${new Date().toLocaleTimeString()}`;
+  } catch (error) {
+    statusEl.textContent = 'Not connected';
+    errorEl.hidden = false;
+    errorEl.textContent = error.message;
+    metricsEl.innerHTML = '';
+    updatesEl.innerHTML = '';
+    signalsEl.innerHTML = '';
+    filesEl.innerHTML = '';
+    countersEl.textContent = '{}';
+  }
+}
+
+if (tokenInput.value) loadAdmin();
+</script>
+</body>
+</html>
