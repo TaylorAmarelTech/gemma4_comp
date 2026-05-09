@@ -12,7 +12,7 @@
 ```
 2 CORE (judges evaluate first; the omni surface + the focused thesis demo)
   1. duecare-harness-chat                               ★ omni playground
-                                                          (5 toggles + 4 grade modes
+                                                          (6 toggles + 4 grade modes
                                                           + 9 model variants)
   2. duecare-live-demo                                  ★ focused live URL with
                                                           the +56.5pp lift demonstration

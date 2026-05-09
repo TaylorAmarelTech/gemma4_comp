@@ -18,8 +18,8 @@
 Stock Gemma 4 fails predictably on migrant-worker exploitation
 scenarios — it cites no ILO conventions, recognizes no camouflaged
 recruitment fees, and gives traffickers operational advice. **Duecare
-wraps Gemma 4 with five toggleable safety layers** (Persona, GREP,
-RAG, Tools, Online) plus a 4-mode grading stack (Universal /
+wraps Gemma 4 with six toggleable safety layers** (Persona, GREP,
+RAG, Tools, Online, Imports) plus a 4-mode grading stack (Universal /
 Expert / Evaluator / Combined) backed by a **21-dimension rubric**
 with two harm-axis dims, an **analog multi-lingual prompt classifier
 across 11 languages**, **auto-grade chips inline on every response**,
@@ -92,7 +92,7 @@ If you have two minutes to decide if this is real:
 
 1. **Read the writeup.** [`docs/writeup_draft.md`](./writeup_draft.md)
    (1,497 words, under the 1,500-word cap). Frames the problem (3 LLM
-   blind spots), the harness (5 layers), the notebooks (2 core + 11 appendix), and the
+   blind spots), the harness (6 layers), the notebooks (2 core + 11 appendix), and the
    deployment modes.
 
 2. **Watch the video.** Script at [`docs/video_script.md`](./video_script.md)
@@ -106,7 +106,7 @@ If you have two minutes to decide if this is real:
 3. **Click the headline notebook.**
    [Duecare Harness Chat](https://www.kaggle.com/code/taylorsamarel/duecare-harness-chat)
    (the omni playground). Run it (T4 ×2 + Internet ON + `HF_TOKEN`).
-   When the cloudflared URL appears, click. Toggle all 5 tiles ON.
+   When the cloudflared URL appears, click. Toggle all 6 tiles ON.
    Submit any example prompt. Click `▸ View pipeline` below the
    response. **That visualization is the demo.**
 

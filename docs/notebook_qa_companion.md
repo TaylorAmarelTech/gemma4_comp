@@ -320,7 +320,7 @@ viewer; ensure they at least render in the live notebook.
 
 **Test checklist:**
 - [ ] Wheels install succeeds
-- [ ] Chat surface renders with **5 toggles** (the original 4 + new
+- [ ] Chat surface renders with **6 toggles** (the original 4 + new
       "Web Research")
 - [ ] Toggling Web Research ON + asking a question that needs
       current info ("What's the latest POEA MC?") triggers a
