@@ -708,55 +708,94 @@ _DASHBOARD_HTML = """\
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>DueCare - Migrant Worker Protection</title>
 <style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
   :root {{
-    --bg: #0f1117;
-    --surface: #1a1d27;
-    --border: #2a2d3a;
-    --primary: #4f8cff;
-    --danger: #ff4f4f;
-    --warning: #ffb84f;
-    --success: #4fff8c;
-    --neutral: #8f93a2;
-    --text: #e4e6ed;
-    --text-dim: #8f93a2;
+    --paper: #F7F6F1;
+    --paper-2: #EFEDE4;
+    --paper-3: #E4E1D7;
+    --ink: #0E1116;
+    --ink-2: #2A2D34;
+    --ink-3: #5B5F68;
+    --line: #DDD8C9;
+    --line-soft: #E8E4D7;
+    --primary: oklch(0.52 0.08 195);
+    --primary-soft: oklch(0.92 0.03 195);
+    --primary-ink: oklch(0.32 0.07 195);
+    --ember: oklch(0.58 0.14 45);
+    --ember-soft: oklch(0.94 0.04 45);
+    --danger: #dc2626;
+    --warning: #b45309;
+    --success: #047857;
+    --neutral: #6b7280;
+    --text: var(--ink);
+    --text-dim: var(--ink-3);
+    --surface: #fffdf7;
+    --bg: var(--paper);
+    --border: var(--line);
+    --mono: 'JetBrains Mono', ui-monospace, Menlo, monospace;
+    --sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   }}
   * {{ margin: 0; padding: 0; box-sizing: border-box; }}
   body {{
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-family: var(--sans);
     background: var(--bg);
     color: var(--text);
     min-height: 100vh;
+    font-feature-settings: "ss01", "cv11";
+  }}
+  a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible, [tabindex]:focus-visible {{
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
   }}
   .header {{
-    background: var(--surface);
+    background: rgba(247, 246, 241, 0.96);
     border-bottom: 1px solid var(--border);
     padding: 1rem 2rem;
     display: flex;
     align-items: center;
     justify-content: space-between;
+    box-shadow: 0 1px 0 rgba(14,17,22,0.04), 0 8px 24px -20px rgba(14,17,22,0.20);
+    position: sticky;
+    top: 0;
+    z-index: 10;
   }}
-  .header h1 {{ font-size: 1.5rem; font-weight: 700; }}
+  .header h1 {{ display: flex; align-items: center; gap: 0.65rem; font-size: 1.35rem; font-weight: 700; letter-spacing: -0.02em; }}
   .header h1 span {{ color: var(--primary); }}
-  .header .meta {{ color: var(--text-dim); font-size: 0.85rem; }}
+  .brand-mark {{
+    width: 30px;
+    height: 30px;
+    display: inline-grid;
+    place-items: center;
+    border-radius: 7px;
+    background: var(--ink);
+    color: var(--paper) !important;
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+  }}
+  .header .meta {{ color: var(--text-dim); font-family: var(--mono); font-size: 0.76rem; }}
   .container {{ max-width: 960px; margin: 0 auto; padding: 2rem; }}
   .card {{
     background: var(--surface);
     border: 1px solid var(--border);
-    border-radius: 8px;
+    border-radius: 12px;
     padding: 1.5rem;
     margin-bottom: 1.5rem;
+    box-shadow: 0 1px 0 rgba(14,17,22,0.04), 0 8px 24px -18px rgba(14,17,22,0.12);
   }}
   .card h2 {{
     font-size: 1.1rem;
     margin-bottom: 1rem;
-    color: var(--primary);
+    color: var(--primary-ink);
+    letter-spacing: -0.01em;
   }}
   textarea, input[type="text"], input[type="file"] {{
     width: 100%;
     min-height: 120px;
     background: var(--bg);
     border: 1px solid var(--border);
-    border-radius: 6px;
+    border-radius: 8px;
     color: var(--text);
     padding: 0.75rem;
     font-size: 0.95rem;
@@ -764,7 +803,7 @@ _DASHBOARD_HTML = """\
     resize: vertical;
   }}
   input[type="text"], input[type="file"] {{ min-height: auto; }}
-  textarea:focus, input[type="text"]:focus, input[type="file"]:focus {{ outline: none; border-color: var(--primary); }}
+  textarea:focus, input[type="text"]:focus, input[type="file"]:focus {{ border-color: var(--primary); }}
   .row {{
     display: flex;
     gap: 1rem;
@@ -780,11 +819,12 @@ _DASHBOARD_HTML = """\
   select, button {{
     background: var(--bg);
     border: 1px solid var(--border);
-    border-radius: 6px;
+    border-radius: 8px;
     color: var(--text);
     padding: 0.5rem 1rem;
     font-size: 0.9rem;
     cursor: pointer;
+    font-family: var(--sans);
   }}
   button.primary {{
     background: var(--primary);
@@ -792,7 +832,7 @@ _DASHBOARD_HTML = """\
     border-color: var(--primary);
     font-weight: 600;
   }}
-  button.primary:hover {{ opacity: 0.9; }}
+  button.primary:hover {{ filter: brightness(0.96); transform: translateY(-1px); }}
   .result {{ display: none; }}
   .result.visible {{ display: block; }}
   .grade-badge {{
@@ -805,9 +845,9 @@ _DASHBOARD_HTML = """\
   }}
   .grade-worst {{ background: var(--danger); color: #fff; }}
   .grade-bad {{ background: #ff6b4f; color: #fff; }}
-  .grade-neutral {{ background: var(--warning); color: #1a1d27; }}
-  .grade-good {{ background: var(--success); color: #1a1d27; }}
-  .grade-best {{ background: #2dd4bf; color: #1a1d27; }}
+  .grade-neutral {{ background: var(--warning); color: #fff; }}
+  .grade-good {{ background: var(--success); color: #fff; }}
+  .grade-best {{ background: var(--primary); color: #fff; }}
   .action-badge {{
     display: inline-block;
     padding: 0.25rem 0.75rem;
@@ -819,8 +859,8 @@ _DASHBOARD_HTML = """\
   }}
   .action-block {{ background: var(--danger); color: #fff; }}
   .action-review {{ background: #ff6b4f; color: #fff; }}
-  .action-warn {{ background: var(--warning); color: #1a1d27; }}
-  .action-pass {{ background: var(--success); color: #1a1d27; }}
+  .action-warn {{ background: var(--warning); color: #fff; }}
+  .action-pass {{ background: var(--success); color: #fff; }}
   .score-bar {{
     height: 8px;
     background: var(--border);
@@ -834,7 +874,7 @@ _DASHBOARD_HTML = """\
     transition: width 0.5s ease;
   }}
   .warning-box {{
-    background: rgba(255, 79, 79, 0.1);
+    background: color-mix(in srgb, var(--ember-soft) 70%, transparent);
     border: 1px solid var(--danger);
     border-radius: 6px;
     padding: 1rem;
@@ -913,7 +953,7 @@ _DASHBOARD_HTML = """\
 </head>
 <body>
 <div class="header">
-  <h1><span>DueCare</span> Migrant Worker Protection</h1>
+  <h1><span class="brand-mark" aria-hidden="true">DC</span><span>DueCare</span> Migrant Worker Protection</h1>
   <div class="meta">v{version} | {n_rubrics} rubrics loaded | {total_analyses} analyses | uptime {uptime}s</div>
 </div>
 

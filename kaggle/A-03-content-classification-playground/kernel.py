@@ -571,47 +571,51 @@ _PAGE_HTML = """<!doctype html><html><head>
 <meta charset="utf-8">
 <title>Duecare Content Classification Playground</title>
 <style>
-  body { font-family: -apple-system, system-ui, sans-serif;
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+  :root { --paper:#F7F6F1; --paper2:#EFEDE4; --ink:#0E1116; --ink2:#2A2D34; --ink3:#5B5F68; --line:#DDD8C9; --accent:oklch(0.52 0.08 195); --accentInk:oklch(0.32 0.07 195); --accentSoft:oklch(0.92 0.03 195); --ember:oklch(0.58 0.14 45); --mono:'JetBrains Mono',ui-monospace,Menlo,monospace; --sans:'Inter',-apple-system,BlinkMacSystemFont,sans-serif; }
+  * { box-sizing: border-box; }
+  body { font-family: var(--sans);
          max-width: 1100px; margin: 30px auto; padding: 0 24px;
-         color: #1f2937; background: #f8fafc; }
-  h1 { color: #1e40af; letter-spacing: -0.02em; margin: 0 0 6px; }
-  .sub { color: #6b7280; margin: 0 0 24px; line-height: 1.5; }
-  .card { background: white; border: 1px solid #e5e7eb;
-          border-radius: 12px; padding: 18px; margin-bottom: 14px; }
+     color: var(--ink); background: var(--paper); }
+  h1 { color: var(--ink); letter-spacing: -0.02em; margin: 0 0 6px; display:flex; align-items:center; gap:10px; }
+  .brand-mark { width:30px; height:30px; display:inline-grid; place-items:center; border-radius:7px; background:var(--ink); color:var(--paper); font-family:var(--mono); font-size:11px; font-weight:700; letter-spacing:.04em; }
+  .sub { color: var(--ink3); margin: 0 0 24px; line-height: 1.5; }
+  .card { background: #fffdf7; border: 1px solid var(--line);
+      border-radius: 12px; padding: 18px; margin-bottom: 14px; box-shadow:0 1px 0 rgba(14,17,22,.04),0 8px 24px -18px rgba(14,17,22,.12); }
   label { display: block; font-weight: 600; font-size: 13px;
-          color: #1f2937; margin-bottom: 6px; }
-  textarea { width: 100%; min-height: 120px; font-family: ui-monospace,
-             SFMono-Regular, Menlo, Consolas, monospace; font-size: 13px;
-             padding: 10px; border: 1px solid #d1d5db; border-radius: 8px;
+      color: var(--ink2); margin-bottom: 6px; }
+  textarea { width: 100%; min-height: 120px; font-family: var(--mono); font-size: 13px;
+         padding: 10px; border: 1px solid var(--line); border-radius: 8px;
              box-sizing: border-box; resize: vertical; }
   select, input[type=number] {
-             padding: 8px 10px; border: 1px solid #d1d5db;
+         padding: 8px 10px; border: 1px solid var(--line);
              border-radius: 8px; font-size: 13px; }
-  button { background: #1e40af; color: white; padding: 10px 18px;
+  button { background: var(--accent); color: white; padding: 10px 18px;
            border: none; border-radius: 8px; font-weight: 600;
-           font-size: 14px; cursor: pointer; }
-  button:hover { background: #1e3a8a; }
+       font-size: 14px; cursor: pointer; font-family:var(--sans); }
+  button:hover { filter: brightness(.96); transform: translateY(-1px); }
   button:disabled { background: #9ca3af; cursor: not-allowed; }
+  button:focus-visible, textarea:focus-visible, select:focus-visible, input:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
   .row { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
-  .pill { display: inline-block; background: #ddd6fe; color: #5b21b6;
+  .pill { display: inline-block; background: var(--accentSoft); color: var(--accentInk);
           padding: 2px 9px; border-radius: 999px; font-size: 11px;
-          font-weight: 600; margin-left: 6px; }
+      font-weight: 700; margin-left: 6px; font-family:var(--mono); text-transform:uppercase; letter-spacing:.04em; }
   .col-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-  .panel { background: #f8fafc; border: 1px solid #e5e7eb;
+  .panel { background: var(--paper2); border: 1px solid var(--line);
            border-radius: 8px; padding: 12px; }
-  .panel h3 { margin: 0 0 8px; font-size: 13px; color: #6b7280;
+  .panel h3 { margin: 0 0 8px; font-size: 13px; color: var(--ink3);
               text-transform: uppercase; letter-spacing: 0.05em;
               font-weight: 700; }
-  pre { background: #1f2937; color: #f9fafb; padding: 12px;
+  pre { background: #101820; color: #f9fafb; padding: 12px;
         border-radius: 8px; overflow-x: auto; font-size: 12px;
         line-height: 1.5; max-height: 380px; overflow-y: auto; }
-  .meta { color: #6b7280; font-size: 12px; margin-top: 8px; }
+  .meta { color: var(--ink3); font-size: 12px; margin-top: 8px; }
   .err { color: #b91c1c; font-weight: 600; }
   .ok  { color: #047857; font-weight: 600; }
   details summary { cursor: pointer; font-weight: 600; padding: 6px 0; }
 </style></head><body>
 
-<h1>Duecare Content Classification Playground <span class="pill">CORE · Hands-on</span></h1>
+<h1><span class="brand-mark" aria-hidden="true">DC</span><span>DueCare Content Classification Playground <span class="pill">CORE · Hands-on</span></span></h1>
 <p class="sub">
   Paste content, pick a schema, classify. See the merged prompt Gemma
   receives, the raw response, the parsed JSON envelope, and elapsed time.
