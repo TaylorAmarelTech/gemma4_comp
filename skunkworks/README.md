@@ -37,8 +37,8 @@ NOT the safety-harness story we tell judges. The harness is about
 
 ## What's NOT in here
 
-- The 3 hackathon notebooks (in [`../kaggle/`](../kaggle/))
-- The 60-ish core research notebooks for the 76-notebook pipeline
+- The 13 competition notebooks (2 core + 11 appendix, in [`../kaggle/`](../kaggle/))
+- The core research notebooks for the 77-notebook research pipeline
   (in [`../legacy_notebooks/`](../legacy_notebooks/))
 - Legacy / discontinued code (in [`../_archive/`](../_archive/))
 
