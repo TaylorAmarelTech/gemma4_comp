@@ -70,7 +70,7 @@
       <div>
         <span class="kicker">Operator-side case database</span>
         <h1>Your local case knowledge base.</h1>
-        <p class="lede">Drop in case files. The runtime classifies each one, extracts entities, builds a graph, and writes everything to a SQLite file under <code>~/.duecare/local-kb/cases.db</code>. Nothing leaves the machine until you click "share aggregates" and walk through the anonymization preview.</p>
+        <p class="lede">Drop in case files. The runtime classifies each one, extracts entities, builds a graph, and writes a local SQLite file. Detector-class PII is redacted from summaries and entity names are salted hashes. Nothing leaves the machine until you click "share aggregates" and walk through the anonymization preview.</p>
       </div>
       <nav class="toc hero-toc" aria-label="Sections on this page">
         <h3>On this page</h3>
@@ -118,7 +118,7 @@
       <div class="field"><label>Source filename</label><input type="text" id="filename" placeholder="case-001.txt" required /></div>
       <div class="field"><label>Corridor (optional, e.g. PHL-KWT)</label><input type="text" id="corridor" placeholder="PHL-KWT" /></div>
       <div class="field"><label>Sector (optional, e.g. domestic-work)</label><input type="text" id="sector" placeholder="domestic-work" /></div>
-      <div class="field"><label>Case text</label><textarea id="text" placeholder="Paste the file's text here. Anonymizer runs over it; entity extractor pulls recruiters/employers it can find; corridor regex looks for PHL-KWT-style hints. Real PII is detected and tagged in the output." required></textarea></div>
+      <div class="field"><label>Case text</label><textarea id="text" placeholder="Paste demo or approved local text here. The local pipeline detects detector-class PII, redacts it from stored summaries, hashes extracted entity names, and keeps the full workflow on this machine." required></textarea></div>
       <div class="actions">
         <button type="submit" class="btn">Ingest into local KB &rarr;</button>
         <span class="help">Local-only. Nothing is sent to the hub.</span>
@@ -150,7 +150,7 @@
         <span class="ix">04 &middot; Share aggregates (optional)</span>
         <h2>One click; preview before send.</h2>
       </div>
-      <p class="summary">When you do choose to share aggregates from the local KB, the payload runs through the same three-stage anonymization pipeline as the contribute form. You see the exact JSON before anything leaves the machine.</p>
+      <p class="summary">When you choose to share aggregates from the local KB, only trend counts and anonymized pattern summaries are eligible. The payload runs through the same three-stage anonymization pipeline as the contribute form. You see the exact JSON before anything leaves the machine.</p>
     </div>
     <p style="margin-top:12px;"><a class="btn btn-ghost" href="/static/anonymization-preview.html">Open anonymization preview &rarr;</a></p>
   </div>
@@ -166,7 +166,7 @@
     </div>
     <div class="lk-rail">
       <h4>What gets stored locally</h4>
-      <p>Case text and the regex-found entity names are stored in <code>~/.duecare/local-kb/cases.db</code>. Entity names are <strong>hashed with a per-deployment salt</strong>; the raw name never lands in the file. The salt is in your environment (<code>DUECARE_LOCAL_KB_SALT</code>). Lose the salt and the names are unrecoverable even with the file.</p>
+      <p>The local KB stores a redacted summary excerpt, detector labels, source metadata, relationship edges, and hashed entity names in the operator-side SQLite file. Entity names are <strong>hashed with a per-deployment salt</strong>; the raw name never lands in the entity table. The salt is in your environment (<code>DUECARE_LOCAL_KB_SALT</code>). Lose the salt and the names are unrecoverable even with the file.</p>
       <p style="margin-top:10px;">When you want to wipe everything, click below. There is no "soft delete"; the rows are gone.</p>
       <div style="margin-top:14px;">
         <button class="btn" onclick="forgetEverything()" style="background: oklch(0.55 0.18 30); border-color: oklch(0.55 0.18 30);">Forget everything &rarr;</button>

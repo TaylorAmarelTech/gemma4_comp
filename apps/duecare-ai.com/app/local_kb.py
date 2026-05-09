@@ -17,9 +17,9 @@ This module is a minimum-viable scaffold:
 - Heuristic classifier + entity extractor (regex; LLM hooks ready)
 - Lookup, list, and graph helpers for the viewer pages
 
-Anonymization is the caller's responsibility. The schema only stores
-``name_hash`` for entities, never the raw name; the operator keeps
-the salt locally.
+Callers still decide what may be ingested, but this module redacts
+detector-class PII from stored summaries and stores ``name_hash`` for
+entities, never the raw entity name. The operator keeps the salt locally.
 """
 
 from __future__ import annotations
@@ -35,7 +35,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any, Iterable, Iterator, Literal
 
-from .pii import detect_pii
+from .pii import detect_pii, redact_pii
 
 DEFAULT_KB_PATH = Path(os.environ.get("DUECARE_LOCAL_KB", ".duecare/local-kb/cases.db")).resolve()
 DEFAULT_SALT = os.environ.get("DUECARE_LOCAL_KB_SALT", "local-kb-default-salt")
@@ -136,9 +136,10 @@ class LocalKB:
         self.ensure_ready()
 
         case_id = f"case_{uuid.uuid4().hex[:16]}"
-        summary = text.strip()[:600]
+        summary = redact_pii(text.strip())[:600]
         summary_hash = hashlib.sha256(summary.encode("utf-8")).hexdigest()
         pii_findings = sorted(detect_pii(text))
+        source_filename = redact_pii(source_filename)
 
         # Try to detect a corridor from the text if the caller didn't supply one.
         if corridor is None:
