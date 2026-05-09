@@ -8,15 +8,15 @@
 <style>
 :root {
   --bg: #0f172a;        --panel: #1e293b;       --panel2: #334155;
-  --ink: #f1f5f9;       --muted: #94a3b8;       --accent: #3b82f6;
-  --user: #1d4ed8;      --bot: #1e293b;         --border: #475569;
+  --ink: #f1f5f9;       --muted: #94a3b8;       --accent: var(--site-accent);
+  --user: var(--site-accent-ink); --bot: #1e293b; --border: #475569;
   --good: #10b981;      --warn: #f59e0b;        --bad: #ef4444;
 }
 * { box-sizing: border-box; }
 html, body {
   margin: 0; padding: 0; height: 100vh;
   background: var(--bg); color: var(--ink);
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  font-family: var(--sans);
   font-size: 15px; line-height: 1.5;
 }
 .shell {
@@ -25,18 +25,23 @@ html, body {
 }
 header.bar {
   display: flex; align-items: center; gap: 16px;
-  padding: 12px 20px; background: var(--panel);
-  border-bottom: 1px solid var(--border);
+  padding: 12px 20px; background: var(--site-paper);
+  color: var(--site-ink);
+  border-bottom: 1px solid var(--site-line);
+  box-shadow: 0 1px 0 rgba(14,17,22,0.04), 0 8px 24px -20px rgba(14,17,22,0.20);
 }
 header.bar h1 {
   margin: 0; font-size: 18px; font-weight: 700;
   letter-spacing: -0.01em;
+  display: flex; align-items: center; gap: 10px;
+  color: var(--site-ink);
 }
 header.bar h1 .accent { color: var(--accent); }
 header.bar .badge {
   margin-left: auto; padding: 6px 12px; border-radius: 999px;
-  background: var(--panel2); color: var(--muted);
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  background: var(--site-paper-2); color: var(--site-ink-3);
+  border: 1px solid var(--site-line);
+  font-family: var(--mono);
   font-size: 11.5px; display: flex; align-items: center; gap: 8px;
 }
 header.bar .badge .dot {
@@ -46,6 +51,8 @@ header.bar .badge.loaded .dot {
   background: var(--good);
   animation: dc-pulse 2s ease-in-out infinite;
 }
+.toolbar-actions { display: flex; align-items: center; gap: 6px; margin-left: auto; }
+.toolbar-actions + .badge { margin-left: 0; }
 @keyframes dc-pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
 
 .chat {
@@ -696,23 +703,24 @@ header.bar .badge.loaded .dot {
 <div class="shell">
 
   <header class="bar">
-    <h1><span class="accent">DueCare</span> · Migrant-worker safety chat</h1>
+    <h1><span class="dc-brand-mark" aria-hidden="true">DC</span><span><span class="accent">DueCare</span> · Migrant-worker safety chat</span></h1>
     <button id="about-btn"
+            class="dc-toolbar-button"
             onclick="openAboutModal()"
-            title="Getting started + what each layer does"
-            style="background:transparent; border:1px solid var(--border); color:var(--muted); padding:5px 12px; border-radius:8px; font-size:12px; cursor:pointer; font-weight:500;">
+            title="Getting started + what each layer does">
       About
     </button>
     <button id="compare-btn"
+            class="dc-toolbar-button"
             onclick="openCompareModal()"
-            title="A/B compare — same prompt, two harness configs, side-by-side grades"
-            style="background:transparent; border:1px solid var(--border); color:var(--muted); padding:5px 12px; border-radius:8px; font-size:12px; cursor:pointer; font-weight:500; margin-left:6px;">
+            title="A/B compare — same prompt, two harness configs, side-by-side grades">
       Compare
     </button>
     <a id="inspector-btn"
+       class="dc-toolbar-button"
        href="/static/harness.html" target="_blank"
        title="Browse every harness layer — GREP rules, RAG corpus, citation graph, tools, online providers, personas"
-       style="background:transparent; border:1px solid var(--border); color:var(--muted); padding:5px 12px; border-radius:8px; font-size:12px; cursor:pointer; font-weight:500; margin-left:6px; text-decoration:none; display:inline-flex; align-items:center;">
+       style="text-decoration:none; display:inline-flex; align-items:center;">
       Harness ↗
     </a>
     <div class="badge" id="badge"

@@ -1,10 +1,10 @@
 /* =============================================================
    Duecare wheel — shared chrome for the static viewer pages.
 
-   Goal: visual coherence across the 11 pages without forcing a
-   light theme on what is a working chat playground. The
-   typography (Inter + JetBrains Mono) matches the duecare-ai.com
-   website so the wheel reads as the same product.
+  Goal: visual coherence across the Cloudflare-served notebook apps
+  without forcing the dense chat playground into a low-contrast light
+  console. Product chrome uses the public duecare-ai.com warm-paper
+  civic-tech theme; operator canvases can stay dark for readability.
 
    Per-page accent color stays as ``--accent`` set in the page's
    own ``<style>`` block (kept for now), so badges + active-state
@@ -14,6 +14,24 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
 :root {
+  /* Public-site product tokens. Keep these aligned with
+     apps/duecare-ai.com/app/static/styles.css. Use the --site-* names
+     here so dense operator pages can continue to use --bg/--panel for
+     their dark work area without losing the public brand language. */
+  --site-paper: #F7F6F1;
+  --site-paper-2: #EFEDE4;
+  --site-paper-3: #E4E1D7;
+  --site-ink: #0E1116;
+  --site-ink-2: #2A2D34;
+  --site-ink-3: #5B5F68;
+  --site-line: #DDD8C9;
+  --site-line-soft: #E8E4D7;
+  --site-accent: oklch(0.52 0.08 195);
+  --site-accent-soft: oklch(0.92 0.03 195);
+  --site-accent-ink: oklch(0.32 0.07 195);
+  --site-ember: oklch(0.58 0.14 45);
+  --site-ember-soft: oklch(0.94 0.04 45);
+
   /* Color tokens (dark playground default; pages may override --accent). */
   --ink: #e2e8f0;
   --ink-2: #cbd5e1;
@@ -33,10 +51,10 @@
      varying shades of civic teal so the user has a mnemonic:
         warm tone = something about the user's voice or data
         cool tone = something that grounds the model in vetted sources */
-  --accent: #3b82f6;        /* default accent if a page doesn't override */
+  --accent: var(--site-accent);  /* default accent if a page doesn't override */
   --accent-civic-teal: #14b8a6;
-  --accent-ember: #f97316;
-  --accent-persona: #f97316;     /* ember - shapes the model's voice */
+  --accent-ember: var(--site-ember);
+  --accent-persona: var(--site-ember);  /* ember - shapes the model's voice */
   --accent-imports: #fb923c;     /* ember-light - operator's own evidence */
   --accent-grep:    #14b8a6;     /* civic-teal - deterministic verification */
   --accent-rag:     #3b82f6;     /* blue-teal - vetted-source grounding */
@@ -79,6 +97,15 @@ html, body {
 
 a { color: var(--accent); text-decoration: none; }
 a:hover { text-decoration: underline; }
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
 
 code, .mono {
   font-family: var(--mono);
@@ -95,34 +122,107 @@ code, .mono {
   justify-content: space-between;
   gap: 16px;
   padding: 14px 24px;
-  background: var(--panel);
-  border-bottom: 1px solid var(--border);
+  background: var(--site-paper);
+  color: var(--site-ink);
+  border-bottom: 1px solid var(--site-line);
+  box-shadow: 0 1px 0 rgba(14,17,22,0.04), 0 8px 24px -20px rgba(14,17,22,0.20);
 }
 .dc-chrome-header .brand {
   display: flex; align-items: center; gap: 10px;
   font-family: var(--sans); font-weight: 600; font-size: 15px;
-  color: var(--ink); text-decoration: none; letter-spacing: -0.005em;
+  color: var(--site-ink); text-decoration: none; letter-spacing: -0.005em;
 }
 .dc-chrome-header .brand-mark {
   width: 22px; height: 22px;
   display: grid; place-items: center;
-  background: var(--ink); color: var(--bg);
+  background: var(--site-ink); color: var(--site-paper);
   border-radius: 4px;
   font-family: var(--mono); font-size: 11px; font-weight: 600;
 }
 .dc-chrome-header .brand-tag {
   font-family: var(--mono); font-size: 10.5px; font-weight: 500;
-  color: var(--muted); padding: 3px 8px; border: 1px solid var(--border);
+  color: var(--site-ink-3); padding: 3px 8px; border: 1px solid var(--site-line);
   border-radius: 3px; margin-left: 4px; text-transform: uppercase;
   letter-spacing: 0.06em;
 }
 .dc-chrome-header h1 {
   margin: 0; font-size: 16px; font-weight: 600;
-  color: var(--ink); letter-spacing: -0.01em;
+  color: var(--site-ink); letter-spacing: -0.01em;
 }
 .dc-chrome-header h1 .accent { color: var(--accent); }
 .dc-chrome-header .sub {
-  font-size: 12px; color: var(--muted); margin-top: 2px;
+  font-size: 12px; color: var(--site-ink-3); margin-top: 2px;
+}
+
+/* ---------- Product chrome utilities for served notebook apps ---------- */
+.dc-brand-lockup {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--site-ink);
+}
+.dc-brand-mark {
+  width: 28px;
+  height: 28px;
+  display: inline-grid;
+  place-items: center;
+  border-radius: 7px;
+  background: var(--site-ink);
+  color: var(--site-paper);
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  line-height: 1;
+  box-shadow: inset 0 -1px 0 rgba(255,255,255,0.12);
+}
+.dc-product-kicker {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--site-ink-3);
+}
+.dc-toolbar-button,
+.dc-primary-button,
+.dc-secondary-button {
+  font-family: var(--sans);
+  border-radius: var(--r-md);
+  cursor: pointer;
+  font-weight: 650;
+  transition: border-color 0.15s, color 0.15s, background 0.15s, transform 0.12s;
+}
+.dc-toolbar-button {
+  background: transparent;
+  border: 1px solid var(--site-line);
+  color: var(--site-ink-3);
+  padding: 5px 12px;
+  font-size: 12px;
+}
+.dc-toolbar-button:hover {
+  border-color: var(--accent);
+  color: var(--site-accent-ink);
+  text-decoration: none;
+}
+.dc-primary-button {
+  background: var(--accent);
+  border: 1px solid var(--accent);
+  color: #fff;
+}
+.dc-primary-button:hover { transform: translateY(-1px); }
+.dc-secondary-button {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--ink);
+}
+.dc-secondary-button:hover { border-color: var(--accent); color: var(--ink); }
+.dc-operator-note {
+  border-left: 3px solid var(--site-ember);
+  background: color-mix(in srgb, var(--site-ember-soft) 28%, transparent);
+  color: var(--site-ink-2);
+  border-radius: 0 var(--r-md) var(--r-md) 0;
+  padding: 10px 12px;
 }
 
 /* ---------- Cross-page nav row (chips) ---------- */
@@ -131,13 +231,13 @@ code, .mono {
   flex-wrap: wrap;
   gap: 6px;
   padding: 10px 24px;
-  background: var(--bg-2);
-  border-bottom: 1px solid var(--border-soft);
+  background: var(--site-paper-2);
+  border-bottom: 1px solid var(--site-line);
   font-family: var(--sans);
   font-size: 12.5px;
 }
 .dc-chrome-nav a {
-  color: var(--muted);
+  color: var(--site-ink-3);
   text-decoration: none;
   padding: 5px 10px;
   border-radius: 999px;
@@ -145,17 +245,17 @@ code, .mono {
   transition: color 0.15s, border-color 0.15s, background 0.15s;
 }
 .dc-chrome-nav a:hover {
-  color: var(--ink);
-  background: var(--panel);
+  color: var(--site-ink);
+  background: var(--site-paper);
   text-decoration: none;
 }
 .dc-chrome-nav a.on {
-  color: var(--ink);
-  background: var(--panel);
-  border-color: var(--border);
+  color: var(--site-ink);
+  background: var(--site-paper);
+  border-color: var(--site-line);
 }
 .dc-chrome-nav .sep {
-  color: var(--muted-2);
+  color: var(--site-ink-3);
   padding: 5px 0;
 }
 

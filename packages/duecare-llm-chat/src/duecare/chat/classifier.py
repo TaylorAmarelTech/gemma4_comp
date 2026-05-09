@@ -201,6 +201,10 @@ def create_classifier_app(
     if static_dir.exists():
         app.mount("/static", StaticFiles(directory=str(static_dir)),
                     name="static")
+    shared_static_dir = Path(__file__).parent / "static"
+    if shared_static_dir.exists():
+        app.mount("/chrome", StaticFiles(directory=str(shared_static_dir)),
+                    name="chrome")
 
     @app.get("/", response_class=HTMLResponse)
     def root() -> Any:
