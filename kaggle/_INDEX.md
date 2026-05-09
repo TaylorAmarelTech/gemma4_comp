@@ -1,8 +1,30 @@
 # Kaggle notebook index — submission roster
 
-> **Generated:** 2026-05-01. Machine-readable companion to
+> **Generated:** 2026-05-09. Machine-readable companion to
 > [`kaggle/README.md`](./README.md) and [`docs/FOR_KAGGLE_JUDGES.md`](../docs/FOR_KAGGLE_JUDGES.md).
 > Every row reflects what's in this directory tree right now.
+
+## How to run a kernel without publishing to Kaggle
+
+These notebooks are **not auto-published** right now. To run any of
+the 13 locally on Kaggle yourself:
+
+1. Open <https://kaggle.com> → New Notebook (Python).
+2. Notebook settings → enable GPU (T4 is fine for E2B/E4B; 2×T4 or
+   P100 for 31B / 26B-A4B).
+3. **Add data** → search the `Wheels (dataset slug)` value from the
+   table below (e.g. `taylorsamarel/duecare-harness-chat-wheels`)
+   and attach it.
+4. **Add model** (only if the row needs Gemma 4 weights) → search
+   `google/gemma-4` and pick the variant the kernel expects.
+5. Open the matching `kernel.py` from this folder, copy its full
+   contents, paste into a single Kaggle code cell.
+6. Run All. The kernel auto-detects the attached wheels dataset
+   and installs from there.
+
+Some folders also ship a `notebook.ipynb` carrying the same source
+inside a JSON wrapper — that's a browser convenience for reading the
+kernel inline. The kernel.py file is the source of truth.
 
 ## Build status — 2 core + 11 appendix = 13 submission notebooks
 
@@ -16,7 +38,7 @@ canonical presentation order.
 
 | # | Folder | Files | Wheels (dataset slug) | Kernel slug | Publish |
 |---|---|:-:|---|---|:-:|
-| **1** | [`01-duecare-harness-chat/`](./01-duecare-harness-chat/) ★ omni playground | ✓ all 4 | `taylorsamarel/duecare-harness-chat-wheels` ✓ live | `taylorsamarel/duecare-harness-chat` | pending |
+| **1** | [`01-duecare-harness-chat/`](./01-duecare-harness-chat/) ★ omni playground | ✓ 3 (script) | `taylorsamarel/duecare-harness-chat-wheels` ✓ live | `taylorsamarel/duecare-harness-chat` | pending |
 | **2** | [`02-live-demo/`](./02-live-demo/) ★ focused live demo | ✓ all 4 | `taylorsamarel/duecare-live-demo-wheels` ✓ live | `taylorsamarel/duecare-live-demo` | live |
 | A1 | [`A-01-chat-playground/`](./A-01-chat-playground/) (baseline, harness OFF) | ✓ all 4 | `taylorsamarel/duecare-chat-playground-wheels` ✓ live | `taylorsamarel/duecare-chat-playground` | live |
 | A2 | [`A-02-chat-playground-with-grep-rag-tools/`](./A-02-chat-playground-with-grep-rag-tools/) (4-toggle harness) | ✓ all 4 | `taylorsamarel/duecare-chat-playground-with-grep-rag-tools-wheels` ✓ live | `taylorsamarel/duecare-chat-playground-with-grep-rag-tools` | live |
@@ -38,12 +60,16 @@ canonical presentation order.
 > (`taylorsamarel/duecare-harness-chat-wheels`). Don't change either
 > slug — they're already pushed and judges link to them.
 
-**Files** column legend (each row reads `kernel.py + kernel-metadata.json + notebook.ipynb + README.md`):
+**Files** column legend. Notebook kernels carry 4 source files
+(`kernel.py + kernel-metadata.json + notebook.ipynb + README.md`).
+Script kernels can ship as 3 (without `notebook.ipynb`) or 4 (with
+the optional browsing wrapper); both are valid.
 
 | Symbol | Meaning |
 |:-:|---|
-| ✓ all 4 | All 4 canonical files present |
-| partial | One or more files missing |
+| ✓ all 4 | All 4 canonical files present (notebook kernel, or script kernel + browsing wrapper) |
+| ✓ 3 (script) | Script kernel ships kernel.py + metadata + README only; no notebook.ipynb |
+| partial | One or more required files missing |
 | — | Folder doesn't exist locally |
 
 **Wheels**: each notebook ships a per-purpose `wheels/` subdirectory
@@ -63,12 +89,15 @@ Each submission notebook directory holds these files:
 | `kernel.py` | always | Source-of-truth Python — what runs on Kaggle |
 | `kernel-metadata.json` | always | Kaggle CLI metadata (slug, title, attached datasets, GPU/CPU) |
 | `README.md` | always | Per-notebook overview (purpose, runtime, what to look for) |
-| `notebook.ipynb` | only when `kernel_type: notebook` | Jupyter export jupytext-synced from `kernel.py` |
+| `notebook.ipynb` | required when `kernel_type: notebook`, optional otherwise | Jupyter wrapper carrying the same source kernel.py has, with a markdown intro cell. Useful for in-repo browsing of script kernels (e.g. A-11). |
 
-Folders with `kernel-metadata.json` set to `kernel_type: script` (e.g.
-`01-duecare-harness-chat/`) ship `kernel.py` directly to Kaggle and
-do **not** include `notebook.ipynb`. Folders with
-`kernel_type: notebook` ship both.
+Folders with `kernel-metadata.json` set to `kernel_type: script`
+ship `kernel.py` directly to Kaggle. They MAY also include a
+`notebook.ipynb` for in-repo browsing — judges who open the folder
+in Jupyter/Colab see the same source as kernel.py with a markdown
+intro on top. Currently `01-duecare-harness-chat/` ships
+kernel.py only; `A-11-grading-evaluation/` ships both. Folders with
+`kernel_type: notebook` always ship both.
 
 The `wheels/` subdirectory holds the wheels uploaded as a Kaggle
 dataset attached to the notebook. The notebook installs from the
@@ -92,9 +121,12 @@ Re-run the audit when notebooks are added, deleted, or pushed:
 # Quick audit of file completeness across all 13 numbered folders
 for d in kaggle/01-* kaggle/02-* kaggle/A-*; do
   count=$(ls -1 "$d" | grep -E "kernel.py|kernel-metadata.json|notebook.ipynb|README.md|^wheels$" | wc -l)
-  echo "$d: $count files"
+  ktype=$(grep -o '"kernel_type"[[:space:]]*:[[:space:]]*"[^"]*"' "$d/kernel-metadata.json" 2>/dev/null | head -1)
+  echo "$d: $count files ($ktype)"
 done
-# Each line should be 5 (4 files + wheels dir)
+# Notebook kernels should report 5 (4 files + wheels dir).
+# Script kernels report 4 or 5 depending on whether they ship
+# the optional notebook.ipynb wrapper. Both are valid.
 
 # Verify Kaggle live URLs (manual, not part of CI)
 python scripts/verify_kaggle_urls.py
