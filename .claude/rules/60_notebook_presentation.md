@@ -2,7 +2,7 @@
 
 > Auto-loaded by Claude Code at the project memory level. Applies to
 > every build script in `scripts/build_notebook_*.py` and every cell
-> those scripts emit into `notebooks/*.ipynb` and
+> those scripts emit into `legacy_notebooks/*.ipynb` and
 > `kaggle/kernels/*/*.ipynb`.
 
 The shared runtime helpers live in `scripts/_notebook_display.py`

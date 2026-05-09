@@ -36,7 +36,7 @@ telegram_bot, discord_bot, hf_spaces).
 inventory. Every focused prompt treats this file as ground truth.
 Do not infer kernel count, kernel ids, or mirror state from anywhere
 else. Current authoritative counts: 28 tracked Kaggle kernels, 28
-local mirror notebooks in `notebooks/`, 16 legacy directory-to-
+legacy local mirror notebooks in `legacy_notebooks/`, 16 legacy directory-to-
 code-file aliases documented in the state file, 1 extra local
 notebook (`forge_llm_core_demo.ipynb`) that is not backed by a
 Kaggle kernel.

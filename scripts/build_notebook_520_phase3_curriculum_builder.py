@@ -33,7 +33,7 @@ from _canonical_notebook import (
 from notebook_hardening_utils import harden_notebook
 
 ROOT = Path(__file__).resolve().parent.parent
-NB_DIR = ROOT / "notebooks"
+NB_DIR = ROOT / "legacy_notebooks"
 KAGGLE_KERNELS = ROOT / "kaggle" / "kernels"
 
 NB_DIR_NAME = "duecare_520_phase3_curriculum_builder"
@@ -571,7 +571,7 @@ def build():
     with open(nb_path, "w", encoding="ascii", errors="ignore") as f:
         json.dump(nb, f, indent=1, ensure_ascii=True)
 
-    # Mirror to notebooks/ so the local source-of-truth tree matches
+    # Mirror to legacy_notebooks/ so the local source-of-truth tree matches
     # 530, 540, and the rest of the build_notebook_* family.
     NB_DIR.mkdir(parents=True, exist_ok=True)
     local_nb_path = NB_DIR / NB_FILE

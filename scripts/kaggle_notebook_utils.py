@@ -16,7 +16,7 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 KERNELS_DIR = REPO_ROOT / "kaggle" / "kernels"
-NOTEBOOKS_DIR = REPO_ROOT / "notebooks"
+NOTEBOOKS_DIR = REPO_ROOT / "legacy_notebooks"
 SKUNKWORKS_NOTEBOOKS_DIR = REPO_ROOT / "skunkworks" / "notebooks"
 
 TITLE_TOKEN_OVERRIDES = {

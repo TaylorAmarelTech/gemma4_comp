@@ -161,7 +161,7 @@ Rules:
 Append:
 
 - `git mv` block for affected `kaggle/kernels/*` directories,
-  `notebooks/*` mirror files, and `scripts/build_notebook_*.py`.
+  `legacy_notebooks/*` mirror files, and `scripts/build_notebook_*.py`.
 - `kernel-metadata.json` id edits, one line per file, old to new.
 - Build-script names for any gap rows
   (`scripts/build_notebook_NNN_<slug>.py`).
@@ -194,7 +194,7 @@ Include at least one ticket for:
   into `duecare.*`.
 - Every coverage gap in section 4.
 - The 290 summary notebook.
-- The `notebooks/` local mirror resync if kernels in this band are
+- The `legacy_notebooks/` local mirror resync if kernels in this band are
   affected.
 
 ## Constraints specific to this prompt
@@ -225,7 +225,7 @@ Include at least one ticket for:
 10. `kaggle/kernels/duecare_15_ollama_cloud/15_ollama_cloud_comparison.ipynb`.
 11. `kaggle/kernels/duecare_16_mistral_family/16_mistral_family_comparison.ipynb`.
 12. `kaggle/kernels/duecare_17_openrouter_frontier/17_openrouter_frontier_comparison.ipynb`.
-13. `notebooks/forge_llm_core_demo.ipynb`, the orphan local
+13. `legacy_notebooks/forge_llm_core_demo.ipynb`, the orphan local
     notebook this prompt must resolve.
 14. `scripts/build_notebook_00.py` and one of the 07, 15, 16, 17
     build scripts for the comparison convention.

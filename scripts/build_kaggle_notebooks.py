@@ -22,7 +22,7 @@ from pathlib import Path
 from notebook_hardening_utils import harden_notebook
 
 ROOT = Path(__file__).resolve().parent.parent
-NB_DIR = ROOT / "notebooks"
+NB_DIR = ROOT / "legacy_notebooks"
 KAGGLE_KERNELS = ROOT / "kaggle" / "kernels"
 
 
@@ -1019,7 +1019,7 @@ display(HTML('<div style="margin:6px 0">' + ''.join(cards) + '</div>'))
             "source": (f"NOTEBOOK_TITLE = {nb.get('title', 'DueCare')!r}\n" + _AAG_CODE).splitlines(keepends=True),
         }
         cells_with_hero = [_hero_cell] + list(nb["cells"])
-        # Write the notebook to notebooks/
+        # Write the notebook to legacy_notebooks/
         notebook = {
             "cells": cells_with_hero,
             "metadata": NB_METADATA,

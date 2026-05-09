@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build notebooks/forge_kaggle_submission.ipynb.
+"""Build legacy_notebooks/forge_kaggle_submission.ipynb.
 
 Produces the Kaggle submission notebook - the artifact attached to the
 hackathon Writeup. Runs the cross-domain proof (trafficking + tax_evasion
@@ -16,7 +16,7 @@ import json
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-NB_PATH = ROOT / "notebooks" / "forge_kaggle_submission.ipynb"
+NB_PATH = ROOT / "legacy_notebooks" / "forge_kaggle_submission.ipynb"
 
 
 def md(source: str) -> dict:

@@ -28,7 +28,7 @@ from _canonical_notebook import (
 from notebook_hardening_utils import harden_notebook
 
 ROOT = Path(__file__).resolve().parent.parent
-NB_DIR = ROOT / "notebooks"
+NB_DIR = ROOT / "legacy_notebooks"
 KAGGLE_KERNELS = ROOT / "kaggle" / "kernels"
 
 NB_DIR_NAME = "duecare_320_supergemma_safety_gap"
@@ -784,7 +784,7 @@ def build():
     with open(nb_path, "w", encoding="utf-8") as f:
         json.dump(nb, f, indent=1, ensure_ascii=False)
 
-    # Mirror to notebooks/ so validate_notebooks.py sees matching files.
+    # Mirror to legacy_notebooks/ so validate_notebooks.py sees matching files.
     NB_DIR.mkdir(parents=True, exist_ok=True)
     local_nb_path = NB_DIR / NB_FILE
     with open(local_nb_path, "w", encoding="utf-8") as f:

@@ -39,7 +39,7 @@ NOT the safety-harness story we tell judges. The harness is about
 
 - The 3 hackathon notebooks (in [`../kaggle/`](../kaggle/))
 - The 60-ish core research notebooks for the 76-notebook pipeline
-  (in [`../notebooks/`](../notebooks/))
+  (in [`../legacy_notebooks/`](../legacy_notebooks/))
 - Legacy / discontinued code (in [`../_archive/`](../_archive/))
 
 ## Why split
@@ -50,7 +50,7 @@ a research line of its own that runs in parallel with DueCare's
 *safety-harness* story. Both are valuable. They get told separately so
 the safety-harness pitch stays focused.
 
-A judge clicking into [`../notebooks/`](../notebooks/) sees a clean
+A judge clicking into [`../legacy_notebooks/`](../legacy_notebooks/) sees a clean
 arc from baseline → comparison → adversarial → fine-tune → results.
 A reader curious about the jailbreak research path clicks into here.
 
@@ -69,5 +69,5 @@ Add a notebook here when:
 - It would dilute the core submission story if read first
 - It's interesting enough to keep tracked (otherwise → `../_archive/`)
 
-When in doubt, keep it in `../notebooks/`. Skunkworks is for things
+When in doubt, keep it in `../legacy_notebooks/`. Skunkworks is for things
 you'd happily defend in a follow-up paper, not things you're hiding.

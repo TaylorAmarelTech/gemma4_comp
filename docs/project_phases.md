@@ -121,7 +121,7 @@ For each prompt + response pair, we compute:
 2. **`reports/phase1/baseline_gemma_e4b.md`** — same for E4B
 3. **`reports/phase1/failure_taxonomy.md`** — top 10 failure modes with
    worked examples, grouped by category
-4. **`notebooks/phase1_exploration.ipynb`** — the free-form probing
+4. **`legacy_notebooks/100_gemma_exploration.ipynb`** — the free-form probing
    session, published alongside the writeup
 5. **`data/phase1/baselines.sqlite`** — all (prompt, response, grade)
    triples in a queryable DB for later phases

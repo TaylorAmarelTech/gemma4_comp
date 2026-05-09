@@ -38,7 +38,7 @@ from notebook_hardening_utils import harden_notebook
 
 
 ROOT = Path(__file__).resolve().parent.parent
-NB_DIR = ROOT / "notebooks"
+NB_DIR = ROOT / "legacy_notebooks"
 KAGGLE_KERNELS = ROOT / "kaggle" / "kernels"
 
 FILENAME = "527_uncensored_rubric_generator.ipynb"
