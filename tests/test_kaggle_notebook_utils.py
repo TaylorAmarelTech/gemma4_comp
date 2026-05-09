@@ -54,3 +54,17 @@ def test_index_builder_live_counts_exclude_planned_placeholders() -> None:
     assert _live_notebook_count() == len(LIVE_KERNEL_SLUGS)
     assert rows["400 Baseline Image Evaluation Framework"]["live"] == 0
     assert rows["500 Baseline Image Comparisons"]["live"] == 0
+
+
+def test_notebook_guide_is_generated_from_current_inventory() -> None:
+    from generate_notebook_guide import OUTPUT_PATH, render_notebook_guide
+
+    rendered = render_notebook_guide(existing_path=OUTPUT_PATH)
+    committed = OUTPUT_PATH.read_text(encoding="utf-8")
+    entries = discover_kernel_notebooks()
+
+    assert committed == rendered
+    assert "Tracked kernels: **77**" in committed
+    assert "Public-live notebooks in `kaggle_live_slug_map.json`: **49**" in committed
+    for entry in entries:
+        assert f"| `{entry.notebook_number}` | {entry.title} |" in committed
