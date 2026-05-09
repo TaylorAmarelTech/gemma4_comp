@@ -1,249 +1,529 @@
-# GPT-5.5: Go now — execute, do not re-review
+# Claude Code: Execute with evidence — no shortcuts, no partial claims
 
-> **Continuation prompt.** Paste directly into the GPT-5.5 conversation
-> after it has produced the read-only consistency report. This is
-> the instruction to **stop reviewing and start editing**.
+You are working in the `gemma4_comp` repository.
 
----
+This is not a brainstorming session. This is a careful execution session. You must think deliberately, read the current files before touching them, reason from evidence, make small focused edits, validate them, commit them, and push them. Do not summarize work you did not verify.
 
-## ACK on your two constraint calls
+## Prime directive
 
-Both flags you raised are correct and confirmed by the human:
+Use your full reasoning budget. Slow down. Be logical. Treat this like a release-hardening pass for a public hackathon submission that judges will inspect.
 
-1. **Route/model renames need backward-compatible aliases.** Yes.
-   The pattern in this repo:
-   - The OpenClaw -> server automation rename kept `GET /openclaw` as
-     a 307 redirect to `/server-automation`, and
-     `POST /api/hub/openclaw/inbound-email` as a 308 redirect to
-     `/api/hub/automation/inbound-email`. See
-     `apps/duecare-ai.com/app/main.py` near the bottom for the pattern.
-   - The `OPENCLAW_*` env vars are still read alongside the new
-     `DUECARE_AUTOMATION_*` names via the `_env()` helper in
-     `apps/duecare-ai.com/app/automation.py`. See that helper.
-   Apply the same pattern for any future rename you suggest. Never
-   break a public endpoint or env var without the alias.
+For every claim you make, you need evidence from one of:
+- a file you actually read in this session
+- command output from this session
+- a test/smoke check from this session
+- the current git diff
 
-2. **Notebook-presentation rules apply to Kaggle's saved-output
-   viewer, not to the served browser app.** Correct. The chat
-   playground at
-   `packages/duecare-llm-chat/src/duecare/chat/static/index.html`
-   is a real interactive browser app served via cloudflared. You can
-   use `display:flex`, `max-height + overflow:auto`, inline `<script>`,
-   etc., there. The `60_notebook_presentation.md` rule applies
-   specifically to HTML *embedded in `.ipynb` cells* that the Kaggle
-   saved-output viewer sanitizes.
+If you have not verified something in this session, say "not verified yet." Do not rely on old memory, previous summaries, or assumptions.
 
-Don't re-litigate either of these. Move forward.
+## Non-negotiable constraints
 
----
+- Do not edit `_reference/`.
+- Do not run Kaggle publishing commands.
+- Do not upload kernels, datasets, models, wheels, or notebooks.
+- Do not commit raw PII, case narratives, real private names, emails, phone numbers, addresses, passport/visa IDs, or raw worker data.
+- Do not break public route aliases or env aliases.
+- Preserve the OpenClaw/server-automation compatibility pattern:
+  - old routes redirect
+  - old env vars are still read
+  - new names are preferred in docs
+- Do not overwrite user or formatter changes blindly.
+- Before editing any modified file, inspect its current contents and current diff.
+- If `apps/duecare-ai.com/app/data/demo_priority_examples.json` is modified, do not touch it unless the task explicitly requires it.
+- Notebook presentation rules apply to `.ipynb` saved-output HTML, not the served browser app. Do not incorrectly remove browser-app CSS/JS just because Kaggle notebook HTML has restrictions.
+- The Render hub is a coordination layer, not hosted Gemma GPU inference.
 
-## Your mandate, restated
+## Anti-shortcut rules
 
-You have already produced the punch-list report. **Do not produce
-another report.** Your output for the next cycle is **commits**.
+You must not:
+- say "done" without tests or smoke checks
+- mark a task complete because the code "looks right"
+- edit from memory without reading the current file
+- batch unrelated fixes into one commit
+- leave uncommitted work unless handing off with a clear reason
+- push if tests are red
+- claim a page works without opening it, using a TestClient render check, or curling it locally
+- claim the live Render deploy is current unless you checked the deployed version or health output
+- claim a notebook exists unless you verified the file exists
+- claim a doc is consistent unless you grepped for stale competing terms
+- use "should," "probably," or "likely" in the final handoff for anything that should be verified
 
-Concretely: open the repo, pick the highest-priority item from
-your own punch list (or from the Tier 0 / Tier 1 list in
-`docs/GPT55_HANDOFF_EXECUTION_PROMPT.md`), edit the file, run the
-test, commit with a clear message, push to master, then pick the
-next item.
+If you cannot verify something, write exactly:
+> Not verified in this session.
 
-You stop when one of:
+## Required mental model
 
-- All Tier 0 + Tier 1 items are shipped.
-- Tests are red and you can't fix them in 2 attempts (revert + handoff
-  back to the human).
-- You hit a decision the human should make (flag + handoff back).
-- The time budget you set yourself is up (handoff back with a list of
-  what's left).
+Keep these surfaces separate:
 
-You do **not** stop because "the review is complete." The review is
-complete. Now ship the fixes.
+1. `kaggle/01-duecare-harness-chat/`
+   - Core competition notebook.
+   - Omni harness/chat playground.
+   - Judge-facing.
 
----
+2. `kaggle/02-live-demo/`
+   - Core polished product demo.
+   - Judge-facing.
 
-## Current state (as of commit `f98ad65`)
+3. `kaggle/A-01-*` through `kaggle/A-11-*`
+   - Appendix evidence notebooks.
+   - Judge-facing, but secondary.
 
-Repo HEAD is `f98ad65`. Tests are 19/19 green. The Render hub
-auto-deploys from master. The Kaggle wheels lag the source tree
-unless explicitly republished (the human owns the republish; you can
-flag the version drift but should not run `kaggle kernels push`).
+4. `kaggle/kernels/`
+   - 77-notebook research pipeline.
+   - Evidence/reproducibility, not the primary submission narrative.
 
-Files added in the most recent pushes that you may not have read yet:
+5. `legacy_notebooks/`
+   - Local mirror for the research pipeline.
+   - Not the main competition surface.
 
-- `apps/duecare-ai.com/app/schema.py` — schema.org-style hierarchy
-- `apps/duecare-ai.com/app/packs.py` — pack registry helpers
-- `apps/duecare-ai.com/app/local_kb.py` — operator-side SQLite store
-- `apps/duecare-ai.com/app/hub_client.py` — reference client protocol
-- `apps/duecare-ai.com/app/automation.py` — server-side LLM evaluator
-- `apps/duecare-ai.com/app/data/packs/*.json` — 4 example packs
+6. `skunkworks/`
+   - Experimental work.
+   - Not the main competition surface.
+
+7. `apps/duecare-ai.com/`
+   - Public Render coordination hub.
+   - CPU-only, no raw cases, no Gemma GPU inference.
+
+8. `packages/duecare-llm-chat/`
+   - Interactive browser app/wheel runtime.
+   - Browser app CSS/JS is allowed; do not apply Kaggle saved-output restrictions there.
+
+Every edit should make this separation clearer.
+
+## Rubric lens for every decision
+
+Before editing, ask:
+
+1. Does this improve Impact & Vision?
+2. Does this improve Video Pitch & Storytelling?
+3. Does this improve Technical Depth & Execution?
+4. Does it make the demo more visible, credible, or easier for judges to follow?
+5. Does it reinforce: "Privacy is non-negotiable"?
+
+If the answer is no to all five, do not do that edit.
+
+## Start-of-session commands
+
+Run these first from the repo root. Capture the outputs in your notes.
+
+```powershell
+git status --short
+git log -1 --oneline
+git branch --show-current
+```
+
+Then inspect whether user changes exist:
+
+```powershell
+git diff --name-only
+git status --short
+```
+
+If there are modified files, classify them:
+- files you must touch
+- files you must avoid
+- files that need human confirmation before touching
+
+Do not edit until this classification is clear.
+
+## Required read-before-edit files
+
+Read these current files before making the first edit:
+
+- `CLAUDE.md`
+- `.claude/rules/00_overarching_goals.md`
+- `.claude/rules/10_safety_gate.md`
+- `.claude/rules/20_code_style.md`
+- `.claude/rules/30_test_before_commit.md`
+- `.claude/rules/60_notebook_presentation.md`
+- `docs/GPT55_HANDOFF_EXECUTION_PROMPT.md`
+- `docs/GPT55_GO_NOW_FOLLOWUP.md`
+- `docs/writeup_draft.md`
+- `docs/video_script.md`
+- `docs/FOR_PEER_REVIEW.md`
+- `docs/FOR_KAGGLE_JUDGES.md`
+- `docs/notebook_index.md`
+- `docs/project_status.md`
+- `README.md`
+- `kaggle/README.md`
+- `kaggle/_INDEX.md`
+- `apps/duecare-ai.com/README.md`
+- `render.yaml`
+- `apps/duecare-ai.com/docs/RENDER.md`
+
+For any file you plan to edit, read it top to bottom first.
+
+## Required evidence matrix before editing
+
+Before making edits, create a short private working matrix in your notes with these columns:
+
+| Area | Files inspected | Current observed state | Defect/risk | Edit needed? |
+|---|---|---|---|---|
+
+Minimum rows:
+- Git state
+- Writeup
+- Kaggle core notebooks
+- Kaggle appendix notebooks
+- Kaggle/research/legacy separation
+- Render hub
+- Website templates
+- Browser wheel app
+- Tests/smoke checks
+
+Do not produce a long report to the human. This matrix is for your execution discipline. But your final handoff must reflect what you verified.
+
+## Tier 0 execution order
+
+Work top-down. Do not start Tier 1 until Tier 0 is done or blocked.
+
+### T0.1 Verify local HEAD and live deploy version
+
+Run:
+
+```powershell
+git log -1 --format="%h %s"
+```
+
+Then check the deployed health/version endpoint if available:
+
+```powershell
+curl.exe -s https://gemma4-comp.onrender.com/api/health
+curl.exe -s https://duecare-ai.com/api/health
+```
+
+If the deployed version does not expose a commit/version, say that explicitly. Do not invent a version match.
+
+If the deploy is stale, do not try to redeploy. Record it as a human/Render-dashboard issue.
+
+### T0.2 Refresh writeup_draft.md
+
+Goal:
+- Make the writeup current.
+- Keep it under 1500 words.
+- Make the story judge-facing, not internal.
+- Include the strongest current live evidence:
+  - schema hierarchy
+  - pack registry
+  - 4 example packs
+  - local KB
+  - hub client protocol
+  - server-automation rename
+  - knowledge-pack filtering if implemented
+  - 19 hub tests if still true after running them
+  - Render public coordination hub
+  - Kaggle core + appendix separation
+- Use "Privacy is non-negotiable."
+- Avoid overclaiming unpublished or unverified work.
+- Do not add raw PII.
+- Do not make the 77-notebook research pipeline sound like the main submission.
+
+Validation:
+```powershell
+python - <<'PY'
+from pathlib import Path
+text = Path("docs/writeup_draft.md").read_text(encoding="utf-8")
+words = text.split()
+print(len(words))
+raise SystemExit(0 if len(words) <= 1500 else 1)
+PY
+```
+
+Also run the relevant docs checks if present. If no docs checker exists, say so.
+
+Commit:
+- Subject: `docs: refresh competition writeup`
+- Body: explain why the writeup changed for judge clarity and current live scope.
+
+### T0.3 Build or verify `/knowledge-packs` filter UI
+
+First inspect:
+- `apps/duecare-ai.com/app/templates/knowledge-packs.html`
+- `apps/duecare-ai.com/app/templates/packages.html`
+- `apps/duecare-ai.com/app/main.py`
+- `apps/duecare-ai.com/app/packs.py`
+- `apps/duecare-ai.com/tests/test_app.py`
+
+Expected UI:
+- Filter sidebar similar to `packages.html`
+- Filter groups populated from API response metadata:
+  - `available_kinds`
+  - `available_corridors`
+  - `available_jurisdictions`
+  - tags/status if available
+- Query endpoint:
+  - `/api/hub/packs?kind=&jurisdiction=&corridor=&tag=&status_=`
+- Result cards:
+  - readable title
+  - kind
+  - jurisdiction/corridor
+  - status
+  - tags
+  - whole-card link to `/api/hub/packs/{id}`
+- Empty state:
+  - clear and helpful
+- Failure state:
+  - clear and nontechnical
+- Privacy copy:
+  - no implication that raw case data goes to Render
+
+Validation:
+```powershell
+$env:DUECARE_DATA_DIR = "$PWD\.duecare-smoke"
+python -m pytest -q apps/duecare-ai.com/tests/
+```
+
+Smoke check locally:
+```powershell
+python -m uvicorn app.main:app --app-dir apps/duecare-ai.com --host 127.0.0.1 --port 8000
+```
+
+Then verify:
+```powershell
+curl.exe -s http://127.0.0.1:8000/api/health
+curl.exe -s "http://127.0.0.1:8000/api/hub/packs"
+curl.exe -s "http://127.0.0.1:8000/api/hub/packs?kind=rag"
+```
+
+Use a browser or TestClient render check for `/knowledge-packs`.
+
+Commit:
+- Subject: `hub: add knowledge-pack filters`
+
+### T0.4 Confirm `/contribute` end-to-end
+
+Inspect:
+- `apps/duecare-ai.com/app/templates/contribute.html`
+- `apps/duecare-ai.com/app/main.py`
+- `apps/duecare-ai.com/app/storage.py` or the active store module
+- tests that cover update proposals
+
+Run local app and submit a safe synthetic public-source proposal. Use only invented/composite, non-PII text.
+
+Verify:
+- HTTP 202 response
+- JSONL line appended under the smoke data dir
+- no raw PII
+- page gives visible feedback
+
+If it already works and no code change is needed, do not commit. Record proof in handoff.
+
+If it fails, fix with a focused commit:
+- Subject: `hub: fix contribute proposal submit`
+
+## Tier 1 execution order
+
+Do not begin until Tier 0 is done or explicitly blocked.
+
+### T1.1 Heading hierarchy and accessibility sweep
+
+Inspect the files listed in `docs/GPT55_HANDOFF_EXECUTION_PROMPT.md` for T1.1.
+
+Minimum changes:
+- Add or verify global `:focus-visible`.
+- Convert clickable `div`/cards with JS navigation into semantic links or buttons.
+- Ensure heading levels do not skip from `h1` to `h3`.
+- Ensure form controls have labels.
+- Ensure buttons have accessible names.
+- Do not destroy current visual design.
+
+Validation:
+- hub tests
+- render checks for touched templates
+- manual browser smoke for at least the changed pages
+
+Commit:
+- Subject: `hub: improve template accessibility`
+
+### T1.2 Wheel `index.html` deeper chrome integration
+
+Inspect:
 - `packages/duecare-llm-chat/src/duecare/chat/static/_chrome.css`
-- `packages/duecare-llm-chat/src/duecare/chat/static/anonymization-preview.html`
-- `apps/duecare-ai.com/docs/BULK_INGEST_PLAN.md`
-- 13 kernel intros + standardized READMEs (via
-  `scripts/polish_kernels_uxbar.py`)
-- `docs/COPILOT_HANDOFF_REVIEW_PROMPT.md` (your design reference)
-- `docs/GPT55_HANDOFF_EXECUTION_PROMPT.md` (your execution contract)
-- `docs/GPT55_GO_NOW_FOLLOWUP.md` (this document)
+- `packages/duecare-llm-chat/src/duecare/chat/static/index.html`
 
-If your earlier review predates these files, **re-grep the repo
-before editing anything**. Don't suggest creating something that
-already exists.
+Goal:
+- Move per-layer accent colors from inline hardcoded hex to existing CSS variables:
+  - `var(--accent-persona)`
+  - `var(--accent-grep)`
+  - `var(--accent-rag)`
+  - `var(--accent-tools)`
+  - `var(--accent-online)`
+  - any existing equivalent variables
+- Do not rewrite layout.
+- Do not remove the inline `<style>` block.
+- Do not apply Kaggle saved-output HTML restrictions to this browser app.
 
----
+Validation:
+- grep changed file for stale hardcoded layer hex values
+- if browser app tests exist, run them
+- otherwise do a static sanity check and record no browser-app test exists
 
-## Execution order
+Commit:
+- Subject: `wheel: align playground accents with chrome`
 
-Work this list top-down. Each item is one or more commits.
+### T1.3 Apply small punch-list quick wins
 
-### Now (Tier 0)
+Only apply quick wins that are:
+- low risk
+- clearly verified
+- one concept per commit
+- directly tied to judge clarity, design consistency, or deployment clarity
 
-1. **Verify the live deploys are at `f98ad65` or newer.**
-   ```
-   git log -1 --format='%h %s'
-   curl -s https://gemma4-comp.onrender.com/api/health | jq .version
-   ```
-   If they don't match, that's a Render-dashboard issue the human
-   has to fix. Note in your handoff. Don't try to redeploy.
+Examples:
+- stale notebook count wording
+- stale "3 hackathon notebooks"
+- 76 vs 77 research pipeline wording
+- stale core/appendix labels
+- Render hub vs old Ollama Render topology confusion
+- README repo-layout drift
 
-2. **Refresh `docs/writeup_draft.md`.** Last anchored to v0.14.7.
-   Update the headline numbers and the "what's live" paragraphs to
-   reflect: schema.py, packs.py + 4 example packs, local_kb.py,
-   hub_client.py, server-automation rename, /knowledge-packs filter
-   (once you build it), 19 hub tests, etc. Cap at 1500 words.
-   Verify with `wc -w docs/writeup_draft.md`. Single commit.
+Validation:
+- grep for the stale phrase after the edit
+- run docs/notebook validation if available
+- do not edit generated docs by hand if a generator owns them
 
-3. **Build the `/knowledge-packs` filter UI.** The biggest IA gap
-   from the original audit. The API endpoint exists; the page has no
-   filter. Pattern: copy the filter sidebar from
-   `apps/duecare-ai.com/app/templates/packages.html` (260px sidebar
-   with checkbox groups). Wire the result list to
-   `/api/hub/packs?kind=&jurisdiction=&corridor=&tag=&status_=`.
-   Use `available_kinds`, `available_corridors`,
-   `available_jurisdictions` from the API response to populate the
-   filter checkboxes. Each result row should be a whole-card link
-   to `/api/hub/packs/{id}`. Single commit; smoke check by
-   loading `/knowledge-packs` against your local FastAPI run.
+Commit subjects:
+- `docs: align notebook surface wording`
+- `docs: clarify Render hub boundary`
+- `docs: separate competition and skunkworks surfaces`
 
-4. **Confirm the contribute form actually posts end-to-end.**
-   Run uvicorn, open `/contribute`, fill the form, submit, watch
-   the network tab for a 202, watch `.duecare/updates.jsonl` for a
-   new line. If it fails, fix it. If it works, no commit needed,
-   just confirm in your handoff.
+## Required baseline and validation commands
 
-### Next (Tier 1)
-
-5. **Heading hierarchy + a11y sweep.** Files listed in
-   `docs/GPT55_HANDOFF_EXECUTION_PROMPT.md` under T1.1. Add the
-   global `:focus-visible` rule. Convert `.role-card` div-with-
-   onclick to `<button>`. Standardize `<h1>` -> `<h2>` -> `<h3>` so
-   no level is skipped. One commit per file ideally; one focused
-   batch commit acceptable if changes are small.
-
-6. **Wheel `index.html` deeper chrome integration.** Move the
-   `harness-tile-row` per-layer accent colors from inline hex to
-   `var(--accent-persona)` etc. (defined in `_chrome.css`).
-   **Do not** rewrite the file's layout. **Do not** remove the
-   inline `<style>` block; the playground owns its layout.
-   Single commit.
-
-7. **Apply your own punch-list quick wins.** Read your earlier
-   review report. For every item you marked S effort: apply it.
-   One commit per finding (or one batch commit if all are pure
-   nomenclature swaps in different files via the
-   `polish_design_pass*.py` pattern).
-
-### Defer (Tier 2 — do not start unless 1-7 are done)
-
-- Local-KB ZIP/folder ingest endpoints
-- More wheel viewer pages (local-case.html, local-graph.html,
-  local-ingest.html, local-share.html)
-- Two-FastAPI Pydantic alignment between hub and wheel runtime
-- Per-viewer-page `:root` cleanup in the 11 wheel viewers
-
----
-
-## Cadence
-
-For each item above:
-
-```
-1. Read the file(s) you'll touch. Top to bottom.
-2. Run the test baseline:
-   DUECARE_DATA_DIR=/tmp/dc_smoke pytest apps/duecare-ai.com/tests/
-3. Edit.
-4. Run tests again. Fix any red BEFORE the next edit.
-5. Smoke check the surface:
-   - Hub: curl -s http://localhost:8000/api/health
-   - Templates: TestClient render check (snippet in execution prompt)
-6. Commit. Subject prefix matches surface (hub:|wheel:|kernel:|docs:|scripts:).
-   Body: 2-3 sentences explaining the WHY, not the what (diff shows what).
-7. Push to master.
-8. Move to next item.
+Before first code edit:
+```powershell
+$env:DUECARE_DATA_DIR = "$PWD\.duecare-smoke"
+python -m pytest -q apps/duecare-ai.com/tests/
 ```
 
-**Do not batch unrelated edits into one commit.** A "kernel intro
-fixes + writeup refresh + filter UI" megacommit is wrong. Three
-commits.
+After hub/app changes:
+```powershell
+$env:DUECARE_DATA_DIR = "$PWD\.duecare-smoke"
+python -m pytest -q apps/duecare-ai.com/tests/
+python -m compileall apps/duecare-ai.com/app
+```
 
-**Do not push red.** If tests fail and you can't fix them quickly,
-revert (`git checkout -- <file>`) and retry in smaller increments.
+After notebook/doc path changes:
+```powershell
+python scripts/validate_notebooks.py
+python -m pytest -q tests/test_kaggle_notebook_utils.py
+```
 
-**Do not push without running tests.** No "looks fine to me" pushes.
+After Python script changes:
+```powershell
+python -m compileall scripts
+```
 
----
+Before every commit:
+```powershell
+git diff --check
+git diff --stat
+git status --short
+```
 
-## Stop conditions and handoff format
+After every commit:
+```powershell
+git status --short
+git log -1 --oneline
+```
 
-When you stop, produce a single handoff message to the human with:
+Push only after tests pass:
+```powershell
+git push origin master
+```
+
+## Commit discipline
+
+One commit per coherent change.
+
+Good:
+- `docs: refresh competition writeup`
+- `hub: add knowledge-pack filters`
+- `hub: improve template accessibility`
+- `wheel: align playground accents with chrome`
+- `docs: align notebook surface wording`
+
+Bad:
+- `fix stuff`
+- `updates`
+- one mega-commit containing writeup, UI, notebook docs, and wheel CSS
+
+Each commit body must explain the why:
+- judge clarity
+- privacy boundary
+- Render compatibility
+- rubric alignment
+- reproducibility
+
+Do not commit unrelated modified files. If a file was already modified by the user and you did not intentionally edit it, leave it out of your commit.
+
+## Required self-check before claiming any Tier item is done
+
+For each completed item, answer internally:
+
+1. What files did I read?
+2. What exact defect did I fix?
+3. What test or smoke check proves it?
+4. What did `git diff --check` say?
+5. What commit contains it?
+6. Did I push it?
+7. Did I avoid raw PII?
+8. Did I preserve aliases/backward compatibility?
+
+If any answer is missing, the item is not done.
+
+## Stop conditions
+
+Stop and hand back if:
+- tests fail and two focused fix attempts fail
+- a route/env rename would break compatibility
+- a user-modified file must be overwritten to proceed
+- Render deploy is stale and requires dashboard intervention
+- Kaggle publishing is required
+- a decision affects repo organization in a nontrivial way, such as moving `legacy_notebooks`
+- Tier 0 and Tier 1 are complete
+- you hit your time budget
+
+If stopping due to failure, revert your partial edit unless the human explicitly asked to keep it.
+
+## Final handoff format
+
+Use exactly this structure:
 
 ```markdown
-# GPT-5.5 execution handoff #N
+# Claude Code execution handoff
 
-## Commits I pushed this session
-- <hash> <subject>
+## Commits pushed
+- `<hash>` `<subject>`
 - ...
 
 ## Tier 0 status
-- T0.1 deploys verified: <yes/partial/no, details>
-- T0.2 writeup refresh: <yes/no, word count>
-- T0.3 /knowledge-packs filter: <yes/no, screenshot or curl proof>
-- T0.4 contribute form end-to-end: <yes/no>
+- T0.1 deploy verification: <verified / stale / not exposed / blocked> — evidence:
+- T0.2 writeup refresh: <done / not done> — word count:
+- T0.3 knowledge-pack filters: <done / already present / blocked> — evidence:
+- T0.4 contribute end-to-end: <done / already working / blocked> — evidence:
 
 ## Tier 1 status
-- T1.1 a11y sweep: <files touched>
-- T1.2 wheel chrome deeper integration: <yes/partial/no>
-- T1.3 punch-list quick wins applied: <count>
+- T1.1 a11y sweep: <done / partial / not started> — files:
+- T1.2 wheel chrome integration: <done / partial / not started> — files:
+- T1.3 quick wins: <done / partial / not started> — count:
 
-## What I left for the human
-- <decision needed, with my recommendation>
+## Tests and smoke checks
+- Hub tests:
+- Notebook validation:
+- Compile checks:
+- Browser/TestClient checks:
+- Live deploy checks:
 
-## Tests
-- Hub: 19/19 green | N failed (with file:line)
-- Smoke checks I ran: <list>
+## Files intentionally not touched
+- `_reference/`
+- `apps/duecare-ai.com/app/data/demo_priority_examples.json` unless intentionally changed:
+- Tier 2 deferred items:
 
-## What I did not touch
-- <Tier 2 items deferred + why>
+## Blockers or human decisions
+- ...
+
+## Next recommended step
+- ...
 ```
 
-Stop. Hand back. Do not start Tier 2.
-
----
-
-## One more constraint
-
-You earlier flagged a privacy item where the local-KB copy fix
-strengthens the privacy claim. Apply that fix in the same session
-that touches `local_kb.py` or any `/local-kb` template. Privacy is
-load-bearing for the hackathon Impact 40 score; tightening that
-copy is one of the highest-leverage edits you can make.
-
----
-
-## Final
-
-You have one job for the next several hours: **ship Tier 0, then
-Tier 1, then hand back.** No more reviews. No more reports until you
-have something to hand back.
-
-Go.
+No vague language. No unsupported claims. If something was not verified, say so.
