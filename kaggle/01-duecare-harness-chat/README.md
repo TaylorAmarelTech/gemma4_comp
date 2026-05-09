@@ -5,6 +5,26 @@
 >
 > **Live URL** (after publish): https://www.kaggle.com/code/taylorsamarel/duecare-harness-chat
 
+## Run it on Kaggle yourself (until the live URL is back up)
+
+This folder ships as a **script kernel** (`kernel.py` only, no
+`notebook.ipynb`). To run it on Kaggle:
+
+1. <https://kaggle.com> → **New Notebook** → Python.
+2. **Notebook settings** → enable GPU (T4 single is fine for E2B/E4B;
+   T4×2 or P100 for 26B-A4B / 31B).
+3. **Add data** → search `taylorsamarel/duecare-harness-chat-wheels`
+   and attach.
+4. **Add model** → search `google/gemma-4` and attach the variant you
+   plan to load (defaults to `gemma-4-e4b-it`). You can also load via
+   HuggingFace at runtime if you set `HF_TOKEN` as a Kaggle secret.
+5. Open `kernel.py` from this folder, copy the entire file, paste into
+   a single Kaggle code cell.
+6. **Run All**. The cloudflared URL prints in the cell output before
+   the model finishes loading.
+
+Then proceed to the walkthrough below.
+
 ## Judge 5-minute walkthrough
 
 1. **Open the notebook** and click "Run All". The server starts with
