@@ -21,7 +21,7 @@ does. Runs N curated prompts through Gemma 4 twice each:
   - HARNESS OFF: raw Gemma response (no persona, no GREP, no RAG, no Tools)
   - HARNESS ON:  full harness (Persona + GREP + RAG + Tools all enabled)
 
-Grades both responses with the universal v3.6 grader (46 dimensions,
+Grades both responses with the Rule-Based v3.10 grader (46 dimensions,
 use-case-aware, citation-cross-referenced) and produces:
   - Per-prompt side-by-side comparison cards
   - Aggregate dimension-lift table
@@ -123,7 +123,7 @@ def _gemma_chat(messages: list[dict], max_new_tokens: int = 1024,
 
 def _build_harness_prompt(user_text: str) -> tuple[str, dict]:
     """Build the harness-ON merged prompt + return the trace dict so we
-    can pass it to the universal grader for signal-aware scoring."""
+    can pass it to the Rule-Based grader for signal-aware scoring."""
     grep_result = _grep_call(user_text)
     rag_result = _rag_call(user_text, top_k=5)
     tool_result = _heuristic_tool_calls(user_text)
@@ -219,7 +219,7 @@ for i, ex in enumerate(selected, 1):
     t_on = _time.time() - t0
     print(f"    ON:  {len(response_on)} chars, {t_on:.0f}s")
 
-    # Grade both with the universal v3.10 grader
+    # Grade both with the Rule-Based v3.10 grader
     lift = evaluate_lift(
         user_text,
         response_off=response_off,
@@ -287,7 +287,7 @@ print(f"  ✓ wrote {output_dir}/duecare_lift_eval.json")
 # 2. Markdown: human-readable report
 md = format_lift_report_md(
     results, aggregate,
-    title="Duecare Harness Lift Report (Universal v2 Grader)",
+    title="Duecare Harness Lift Report (Rule-Based v3.10 Grader)",
     model_name=MODEL_NAME,
     git_sha=provenance["git_sha"],
     dataset_version=provenance["dataset_version"],

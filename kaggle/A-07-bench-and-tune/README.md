@@ -24,7 +24,7 @@ attribution. Used in accordance with the
 | **Title on Kaggle** | "Duecare Bench and Tune" |
 | **Slug** | `taylorsamarel/duecare-bench-and-tune` |
 | **Wheels dataset** | `taylorsamarel/duecare-bench-and-tune-wheels` (6 wheels, ~390 KB) |
-| **Eval-results dataset** | `taylorsamarel/duecare-eval-results` (write target — per-run JSON exports of stock vs SFT vs DPO deltas) |
+| **Evaluation results dataset** | `taylorsamarel/duecare-eval-results` (write target — per-run JSON exports of stock vs SFT vs DPO deltas) |
 | **Models attached** | `google/gemma-4/Transformers/{e2b,e4b,26b-a4b,31b}-it/1` (all four IT variants) |
 | **GPU** | T4 ×2 (required for Unsloth fine-tune) |
 | **Internet** | ON (required for HF Hub push of fine-tuned weights) |
