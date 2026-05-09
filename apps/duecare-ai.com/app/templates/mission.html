@@ -3,13 +3,22 @@
 <title>Mission &middot; DueCare AI</title>
 <link rel="stylesheet" href="/static/styles.css" /><link rel="stylesheet" href="/static/hub-pages.css" />
 <style>
-.ms-hero { padding: 80px 0 48px; border-bottom: 1px solid var(--line); background: var(--paper); }
-.ms-hero .wrap { max-width: 980px; }
+.ms-hero { padding: 56px 0 36px; border-bottom: 1px solid var(--line); background: var(--paper); }
+.ms-hero .grid { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(280px, 1fr); gap: 56px; align-items: start; }
+@media (max-width: 920px) { .ms-hero .grid { grid-template-columns: 1fr; gap: 32px; } }
 .ms-hero .kicker { font-family: var(--mono); font-size: 11.5px; letter-spacing: 0.10em; color: var(--ink-3); text-transform: uppercase; }
-.ms-hero h1 { font-size: clamp(40px, 5vw, 64px); letter-spacing: -0.025em; line-height: 1.02; margin: 14px 0 0; max-width: 22ch; font-weight: 500; }
-.ms-hero .lede { margin-top: 22px; font-size: 19px; line-height: 1.55; color: var(--ink-2); max-width: 60ch; }
-.ms-section { padding: 72px 0; border-bottom: 1px solid var(--line-soft); }
-.ms-section .wrap { max-width: 980px; }
+.ms-hero h1 { font-size: clamp(36px, 4.4vw, 56px); letter-spacing: -0.025em; line-height: 1.05; margin: 14px 0 0; max-width: 22ch; font-weight: 500; }
+.ms-hero .lede { margin-top: 18px; font-size: 17px; line-height: 1.55; color: var(--ink-2); max-width: 56ch; }
+.ms-hero .toc { border: 1px solid var(--line); border-radius: 12px; background: var(--paper-2); padding: 18px 20px; }
+.ms-hero .toc h3 { font-family: var(--mono); font-size: 11px; font-weight: 600; color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.10em; margin: 0 0 12px; }
+.ms-hero .toc ol { list-style: none; padding: 0; margin: 0; counter-reset: t; }
+.ms-hero .toc ol li { counter-increment: t; border-top: 1px solid var(--line-soft); }
+.ms-hero .toc ol li:first-child { border-top: none; }
+.ms-hero .toc ol li a { display: grid; grid-template-columns: 28px 1fr 16px; gap: 10px; align-items: center; padding: 10px 0; font-size: 14px; color: var(--ink-1); text-decoration: none; }
+.ms-hero .toc ol li a::before { content: counter(t, decimal-leading-zero); font-family: var(--mono); font-size: 11px; color: var(--ink-3); }
+.ms-hero .toc ol li a:hover { color: var(--accent-ink); }
+.ms-hero .toc ol li a .arrow { color: var(--ink-3); font-size: 14px; text-align: right; }
+.ms-section { padding: 56px 0; border-bottom: 1px solid var(--line-soft); }
 .ms-section .ix { font-family: var(--mono); font-size: 11px; letter-spacing: 0.12em; color: var(--ink-3); text-transform: uppercase; }
 .ms-section h2 { font-size: clamp(28px, 3vw, 40px); letter-spacing: -0.02em; line-height: 1.1; margin: 12px 0 0; max-width: 22ch; font-weight: 500; }
 .ms-section .body { margin-top: 24px; font-size: 17px; line-height: 1.65; color: var(--ink-2); max-width: 64ch; }
@@ -54,12 +63,31 @@
 </head><body>{% set active_nav = "mission" %}
 {% include "_nav.html" %}
 <section class="ms-hero" data-screen-label="Mission &middot; Hero"><div class="wrap">
+<div class="grid">
+<div>
 <span class="kicker">/mission</span>
 <h1>Better safety guidance without centralizing private case data.</h1>
-<p class="lede">DueCare AI exists to help workers, trusted organizations, platforms, regulators, and researchers recognize exploitation risks earlier, act with better information, and improve shared safety knowledge. without centralizing raw private case data.</p>
+<p class="lede">DueCare AI exists to help workers, trusted organizations, platforms, regulators, and researchers recognize exploitation risks earlier, act with better information, and improve shared safety knowledge, without centralizing raw private case data.</p>
+</div>
+<nav class="toc" aria-label="Sections on this page">
+<h3>On this page</h3>
+<ol>
+<li><a href="#problem"><span>The problem</span><span class="arrow">&rarr;</span></a></li>
+<li><a href="#capability-gap"><span>Why a general model alone falls short</span><span class="arrow">&rarr;</span></a></li>
+<li><a href="#mission"><span>The mission</span><span class="arrow">&rarr;</span></a></li>
+<li><a href="#what-we-do"><span>What DueCare does</span><span class="arrow">&rarr;</span></a></li>
+<li><a href="#what-we-dont"><span>What DueCare does not do</span><span class="arrow">&rarr;</span></a></li>
+<li><a href="#pillars"><span>Five pillars</span><span class="arrow">&rarr;</span></a></li>
+<li><a href="#story"><span>A composite worker story</span><span class="arrow">&rarr;</span></a></li>
+<li><a href="#partners"><span>Partner ecosystem</span><span class="arrow">&rarr;</span></a></li>
+<li><a href="#privacy"><span>The privacy promise</span><span class="arrow">&rarr;</span></a></li>
+<li><a href="#close"><span>Closing</span><span class="arrow">&rarr;</span></a></li>
+</ol>
+</nav>
+</div>
 </div></section>
 
-<section class="ms-section" data-screen-label="Mission &middot; Problem"><div class="wrap">
+<section id="problem" class="ms-section" data-screen-label="Mission &middot; Problem"><div class="wrap">
 <span class="ix">01 &middot; The problem</span>
 <h2>Risky recruitment looks different in every channel.</h2>
 <div class="body">
@@ -69,7 +97,7 @@
 </div>
 </div></section>
 
-<section class="ms-section" data-screen-label="Mission &middot; Capability gap"><div class="wrap">
+<section id="capability-gap" class="ms-section" data-screen-label="Mission &middot; Capability gap"><div class="wrap">
 <span class="ix">02 &middot; Why a general model alone falls short</span>
 <h2>Where AI is sharpest, and where this domain still falls through.</h2>
 <div class="body">
@@ -81,7 +109,7 @@
 </div>
 </div></section>
 
-<section class="ms-section" data-screen-label="Mission &middot; Mission"><div class="wrap">
+<section id="mission" class="ms-section" data-screen-label="Mission &middot; Mission"><div class="wrap">
 <span class="ix">03 &middot; The mission</span>
 <h2>Make trustworthy safety guidance easier to run, audit, and improve.</h2>
 <div class="body">
@@ -90,7 +118,7 @@
 </div>
 </div></section>
 
-<section class="ms-section" data-screen-label="Mission &middot; What we do"><div class="wrap">
+<section id="what-we-do" class="ms-section" data-screen-label="Mission &middot; What we do"><div class="wrap">
 <span class="ix">04 &middot; What DueCare does</span>
 <h2>Five concrete jobs.</h2>
 <div class="ms-do">
@@ -102,7 +130,7 @@
 </div>
 </div></section>
 
-<section class="ms-section" data-screen-label="Mission &middot; What we don't"><div class="wrap">
+<section id="what-we-dont" class="ms-section" data-screen-label="Mission &middot; What we don't"><div class="wrap">
 <span class="ix">05 &middot; What DueCare does not do</span>
 <h2>Six lines we won&rsquo;t cross.</h2>
 <div class="ms-dont">
@@ -115,7 +143,7 @@
 </div>
 </div></section>
 
-<section class="ms-section" data-screen-label="Mission &middot; Five pillars"><div class="wrap">
+<section id="pillars" class="ms-section" data-screen-label="Mission &middot; Five pillars"><div class="wrap">
 <span class="ix">06 &middot; Five pillars</span>
 <h2>One harness. Five places it lives.</h2>
 <div class="ms-pillars">
@@ -127,7 +155,7 @@
 </div>
 </div></section>
 
-<section class="ms-section" data-screen-label="Mission &middot; Story"><div class="wrap">
+<section id="story" class="ms-section" data-screen-label="Mission &middot; Story"><div class="wrap">
 <span class="ix">07 &middot; A composite worker story</span>
 <h2>What this looks like for one person.</h2>
 <div class="ms-story">
@@ -142,7 +170,7 @@
 </div>
 </div></section>
 
-<section class="ms-section" data-screen-label="Mission &middot; Ecosystem"><div class="wrap">
+<section id="partners" class="ms-section" data-screen-label="Mission &middot; Ecosystem"><div class="wrap">
 <span class="ix">08 &middot; Partner ecosystem</span>
 <h2>Designed to complement institutions that already do this work.</h2>
 <div class="body">
@@ -162,7 +190,7 @@
 </div>
 </div></section>
 
-<section class="ms-promise" data-screen-label="Mission &middot; Privacy promise"><div class="wrap">
+<section id="privacy" class="ms-promise" data-screen-label="Mission &middot; Privacy promise"><div class="wrap">
 <span class="ix">09 &middot; The privacy promise</span>
 <h2>Privacy is non-negotiable.</h2>
 <div class="pledges">
@@ -173,7 +201,7 @@
 </div>
 </div></section>
 
-<section class="ms-close" data-screen-label="Mission &middot; Close"><div class="wrap">
+<section id="close" class="ms-close" data-screen-label="Mission &middot; Close"><div class="wrap">
 <span class="ix" style="font-family:var(--mono);font-size:11px;letter-spacing:0.12em;color:var(--ink-3);text-transform:uppercase;">10 &middot; Closing</span>
 <h2>DueCare is reusable safety infrastructure, not one chatbot.</h2>
 <div class="actions">
