@@ -1,14 +1,36 @@
-# Bench-and-Tune Walkthrough — A2 notebook on Kaggle T4×2
+# Bench-and-Tune Walkthrough — A07 notebook on Kaggle T4×2
 
 > Step-by-step guide for running `kaggle/A-07-bench-and-tune/kernel.py`
 > end-to-end. This is the Special Tech Track Unsloth angle ($10k
 > bonus): smoke benchmark stock Gemma 4 → Unsloth SFT (LoRA) → DPO
 > → re-benchmark → GGUF export → HF Hub push.
 >
-> **Time budget: ~3-4 hours on Kaggle T4×2** (most spent on Phase 5
-> SFT + Phase 8 re-benchmark). **Cost: 0** if you stay within Kaggle's
+> **Time budget:** ~30-50 minutes for the smoke path, or ~3-4 hours for
+> a larger `full_207` + 1,000-example run. Most time is Phase 5 SFT,
+> Phase 7 DPO, and Phase 8 re-benchmark. **Cost: 0** if you stay within Kaggle's
 > free GPU quota. Outputs the
 > `Duecare-Gemma-4-E4B-it-SafetyJudge-v0.1.0` model on HF Hub.
+
+## Short answer: yes, the harness traces are training data
+
+The repository already has the fine-tuning notebook: `A-07-bench-and-tune`.
+It is not pure RLHF. The safer, reproducible path is:
+
+1. **SFT distillation.** Run prompts through Persona + GREP + RAG + Tools,
+  then train Gemma 4 LoRA on the harness-grounded answer. The bare user
+  prompt is the training input; the cited harness answer is the target.
+2. **Preference optimization.** Pair the harness-on answer as `chosen`
+  against the raw Gemma answer as `rejected`, then run DPO on top of SFT.
+  This gives the same practical benefit the user described as
+  "reinforcement" without needing an online reward loop.
+3. **Evaluation gate.** Re-run stock vs. SFT vs. DPO with the same benchmark
+  and publish only if the adapter beats stock without increasing PII,
+  hallucination, or unsafe-help rates.
+
+Do not train on raw worker chats. Eligible rows are public-source,
+synthetic, composite, or anonymized partner-reviewed examples with
+provenance. The local runtime can generate candidates, but the anonymizer
+and curator gate decide whether they are training data.
 
 ## Prerequisites
 
@@ -28,9 +50,9 @@
 | 1 | Verify environment (CUDA, VRAM, Unsloth version) | 30 sec | banner with VRAM allocated/reserved |
 | 2 | Load Gemma 4 via Unsloth FastModel | 2-3 min | model + tokenizer in memory |
 | 3 | Stock benchmark (baseline before SFT) | 8-15 min | `/kaggle/working/bench_stock.json` |
-| 4 | Build SFT training data from harness-distilled or A1-generated pairs | 2-5 min | `/kaggle/working/sft_train.jsonl` |
+| 4 | Build SFT training data from harness-distilled or A06-generated pairs | 2-5 min | `/kaggle/working/sft_dataset.jsonl` |
 | 5 | SFT (LoRA on Gemma 4) | 60-90 min | `/kaggle/working/duecare_sft_lora/adapter_model.safetensors` |
-| 6 | Build DPO preference pairs | 1-3 min | `/kaggle/working/dpo_pairs.jsonl` |
+| 6 | Build DPO preference pairs | 1-3 min | `/kaggle/working/dpo_dataset.jsonl` |
 | 7 | DPO (preference-tuning on top of SFT) | 30-60 min | `/kaggle/working/duecare_dpo_lora/adapter_model.safetensors` |
 | 8 | Re-benchmark fine-tuned model | 8-15 min | `/kaggle/working/bench_ft.json` |
 | 9 | GGUF Q8_0 export (for llama.cpp / Ollama distribution) | 8-15 min | `/kaggle/working/duecare_gguf/Duecare-Gemma-4-E4B-it-SafetyJudge-v0.1.0.Q8_0.gguf` |
