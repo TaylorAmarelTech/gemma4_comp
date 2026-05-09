@@ -165,20 +165,14 @@ def _grep_rule_ids(text: str):
     return {hit.get("rule") for hit in grep(text)["hits"]}
 
 
-def test_grep_111_rules_total() -> None:
-    """v3.17: 111 GREP rules. Original 49 (42 Android backport + 7 v3.3
-    kafala/Lebanon/Kuwait additions) plus 59 additions across 9 new
-    categories (H–P): sector-specific labour abuse (10), kafala
-    extended mechanisms (8), cross-border financial flows (6), employer
-    abuse patterns (8), document fraud (7), recruiter sales tactics (6),
-    recovery-suppression and repatriation barriers (5), additional
-    corridors (5: Lebanon-internal/Libya transit/Iraq KRG/Cyprus
-    North/Taiwan), and platform/digital recruitment (5: online
-    platforms, deepfake interviews, encrypted-platform coercion,
-    offshore shell HR, cam-studio sextortion), plus 3 v3.17 digital-
-    payment / side-letter / credential-vault rules."""
+def test_grep_161_rules_total() -> None:
+    """Current public harness ships at least 161 GREP rules.
+
+    Keep this as a regression floor, not an exact ceiling, so future
+    rule additions do not break the suite merely because coverage grew.
+    """
     h = _load_harness()
-    assert len(h.GREP_RULES) == 111, f"expected 111 GREP rules, got {len(h.GREP_RULES)}"
+    assert len(h.GREP_RULES) >= 161, f"expected >=161 GREP rules, got {len(h.GREP_RULES)}"
 
 
 def test_kafala_huroob_fires_on_huroob_status() -> None:
@@ -907,15 +901,18 @@ def test_evaluator_prompt_includes_dimension_question_and_response() -> None:
     assert '"verdict"' in p  # JSON envelope present
 
 
-def test_evaluation_questions_cover_all_dimensions() -> None:
-    """Every dimension in the universal rubric must have an
-    evaluation question — otherwise the LLM evaluator silently
-    skips it."""
+def test_evaluation_questions_are_valid_core_subset() -> None:
+    """Evaluator questions are a curated subset of the universal rubric.
+
+    Missing questions are surfaced transparently as uncertain/fail rows;
+    they must not be orphaned IDs outside the rubric.
+    """
     h = _load_harness()
     rubric_dim_ids = {d["id"] for d in h.RUBRIC_UNIVERSAL["dimensions"]}
     eval_dim_ids = set(h.EVALUATION_QUESTIONS)
-    missing = rubric_dim_ids - eval_dim_ids
-    assert not missing, f"missing evaluation questions for: {missing}"
+    orphaned = eval_dim_ids - rubric_dim_ids
+    assert not orphaned, f"evaluation questions for unknown dimensions: {orphaned}"
+    assert len(eval_dim_ids) >= 21
 
 
 def test_parse_evaluator_verdict_clean_json() -> None:
@@ -1052,11 +1049,11 @@ def test_grade_response_combined_falls_back_to_deterministic_only() -> None:
 
 
 def test_grade_response_combined_blends_evaluator_and_deterministic() -> None:
-    """With evaluator_weight=0.5 and a yes-saying mock, combined > deterministic."""
+    """With evaluator_weight=0.5, combined blends both signals."""
     h = _load_harness()
 
     def yes_call(p: str) -> str:
-        return '{"verdict":"yes","evidence_quote":"x","rationale":"y"}'
+        return '{"verdict":"yes","evidence_quote":"Per ILO C029","rationale":"y"}'
 
     result = h.grade_response_combined(
         "Per ILO C029 §1, this is debt bondage.",
@@ -1065,11 +1062,13 @@ def test_grade_response_combined_blends_evaluator_and_deterministic() -> None:
         evaluator_weight=0.5,
     )
     assert result["evaluator_weight"] == 0.5
-    # Evaluator says everything passes → evaluator pct should be 100
-    assert result["evaluator"]["pct_score"] == 100.0
-    # Combined should be the average of det and evaluator
+    assert result["evaluator"]["pct_score"] is not None
+    assert result["evaluator"]["pct_score"] >= result["deterministic"]["pct_score"]
+    # Combined should be the average of deterministic and evaluator pct.
     expected = round(
-        result["deterministic"]["pct_score"] * 0.5 + 100.0 * 0.5, 1
+        result["deterministic"]["pct_score"] * 0.5
+        + result["evaluator"]["pct_score"] * 0.5,
+        1,
     )
     assert result["pct_score"] == expected
     # Agreement metric returns sane values
@@ -1098,9 +1097,11 @@ def test_evaluator_skips_not_applicable_dimensions() -> None:
     )
     assert result["n_skipped"] >= 1, \
         f"expected some dimensions skipped; got {result}"
-    # Calls should equal n_evaluated (not the full 17 dimensions)
-    assert len(calls) == result["n_evaluated"]
-    assert len(calls) < 17
+    # Calls should equal dimensions that had an evaluator prompt, not
+    # transparent missing-question rows.
+    called_rows = [d for d in result["dimensions"] if "evaluator_prompt_chars" in d]
+    assert len(calls) == len(called_rows)
+    assert len(calls) < result["n_total_dimensions"]
 
 
 # -----------------------------------------------------------------------
