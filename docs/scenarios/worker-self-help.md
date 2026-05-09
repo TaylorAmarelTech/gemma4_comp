@@ -171,9 +171,11 @@ Bahasa Indonesia, Bahasa Malaysia, Nepali, Bangla, Hindi, Urdu,
 Tamil, Sinhala, Arabic, Vietnamese, Khmer, Thai, Burmese, Mandarin,
 Cantonese, Korean, Japanese.
 
-The app's interface labels are English-only for now (v0.8 will
-add multi-language UI). You can chat in your own language; the
-buttons stay in English.
+The app's interface is partially localized in v0.9.0 (English,
+Tagalog, Bahasa Indonesia, Nepali, and Arabic are documented in the
+mobile architecture notes; Urdu, Bengali, Hindi, Vietnamese, Sinhala,
+and Tamil remain roadmap). You can chat in your own language even
+when some buttons stay in English.
 
 ## What to do if the recruiter sees the app on your phone
 

@@ -41,9 +41,9 @@ one of the other two paths — Ollama doesn't run our FastAPI app.
 
 ## Path 2 — Kaggle kernel.py on your local GPU (recommended for full demo)
 
-Best for "I want the same chat playground / classifier that judges see,
-with all four toggle layers, the Pipeline modal, the history queue —
-running on my own GPU."
+Best for "I want the same core chat playground / classifier that judges
+see, with all six harness layers (Persona / GREP / RAG / Tools / Online /
+Imports), the Pipeline modal, the history queue — running on my own GPU."
 
 ### Prerequisites
 
@@ -81,9 +81,9 @@ uv pip install --system \
 # 5. Set HF token
 export HF_TOKEN=hf_yourtokenhere
 
-# 6. Run the chat playground locally (the same kernel.py from the
-#    chat-playground-with-grep-rag-tools Kaggle notebook)
-python kaggle/chat-playground-with-grep-rag-tools/kernel.py
+# 6. Run the core 6-layer chat playground locally (the same script
+#    kernel used by the duecare-harness-chat Kaggle notebook)
+python kaggle/01-duecare-harness-chat/kernel.py
 ```
 
 The kernel will:
@@ -102,7 +102,7 @@ View pipeline modal, Persona library, custom rule additions.
 ### To run the **classifier** instead
 
 ```bash
-python kaggle/gemma-content-classification-evaluation/kernel.py
+python kaggle/A-05-gemma-content-classification-evaluation/kernel.py
 ```
 
 Same setup; serves the form-based classifier UI on port 8080.
@@ -165,7 +165,7 @@ app = create_app(
     gemma_call=gemma_call,
     model_info={"loaded": True, "name": "gemma-4-e4b-it",
                   "display": "Gemma 4 E4B (local)"},
-    **default_harness(),  # all 4 layers wired
+    **default_harness(),  # all six harness layers wired
 )
 
 uvicorn.run(app, host="0.0.0.0", port=8080)
