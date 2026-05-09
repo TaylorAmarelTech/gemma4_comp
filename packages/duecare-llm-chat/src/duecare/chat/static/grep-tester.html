@@ -149,7 +149,7 @@
         document.getElementById('s-med').textContent = sev.medium || 0;
         document.getElementById('s-lat').textContent = (d.elapsed_ms || 0) + 'ms';
         if (!d.wired) {
-          hitsDiv.innerHTML = '<div class="empty" style="color:#ef4444;">GREP layer not wired by the kernel. Set grep_call=... when calling create_app().</div>';
+          hitsDiv.innerHTML = '<div class="empty" style="color:#ef4444;">GREP layer is not enabled in this kernel. Set grep_call=... when calling create_app().</div>';
           return;
         }
         if (!d.hits || d.hits.length === 0) {

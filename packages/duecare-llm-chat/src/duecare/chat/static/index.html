@@ -836,7 +836,7 @@ header.bar .badge.loaded .dot {
     <div class="harness-tiles" id="harness-tiles">
       <div class="harness-tiles-header">
         <h3>Safety harness</h3>
-        <span class="hint">Click a card to toggle · Greyed = not wired</span>
+        <span class="hint">Click a card to toggle · Greyed = not enabled here</span>
         <div style="margin-left:auto; display:flex; gap:6px;">
           <button onclick="toggleAllHarness(true)"
                   style="background:transparent; border:1px solid var(--border); color:var(--muted); padding:3px 10px; border-radius:5px; font-size:10.5px; cursor:pointer; font-weight:500;"
@@ -1675,7 +1675,7 @@ function openAboutModal() {
 }
 
 // One-time probe: ask the server which harness layers are wired so
-// the UI marks each tile as clickable (wired) or greyed-out (not wired).
+// the UI marks each tile as clickable (enabled) or greyed-out (not enabled here).
 // All three tiles are ALWAYS shown when at least one is wired -- gives
 // the user a clear picture of what's available + what's coming.
 async function probeHarness() {
@@ -1686,7 +1686,7 @@ async function probeHarness() {
     const anyWired = info.persona || info.grep || info.rag || info.tools || info.online;
     if (!anyWired) return;  // raw chat -- keep tile row hidden
     document.getElementById('harness-tiles').style.display = 'grid';
-    // When a tile is NOT wired, give the user a tooltip explaining
+    // When a tile is not enabled here, give the user a tooltip explaining
     // why so they don't poke a dead button without feedback.
     const notWiredHints = {
       persona: 'Kernel did not configure a default persona. Wire `persona_default` in create_app() or paste your own via the persona library.',
@@ -2709,7 +2709,7 @@ async function openLayerModal(layer) {
             <ol style="margin:4px 0 6px 22px; padding:0; font-size:11.5px;">
               <li><b>Structural chunking</b> — markdown headers (#, ##) and statute markers (Article N, § N) become section boundaries. 50-token overlap on paragraph boundaries so a sentence that straddles two chunks still surfaces in both.</li>
               <li><b>BM25 lexical retrieval</b> — TF-IDF dot product over chunk tokens. Deterministic, ~1 ms per query. No neural embeddings.</li>
-              <li><b>Optional cross-encoder rerank</b> — when the kernel wires <code>rerank_call</code> (e.g. <code>mxbai-rerank-xsmall-v1</code>, ~70 MB CPU model), top-50 BM25 candidates get reordered by semantic relevance to the query. Falls back to BM25 order if not wired or on error.</li>
+              <li><b>Optional cross-encoder rerank</b> — when the kernel enables <code>rerank_call</code> (e.g. <code>mxbai-rerank-xsmall-v1</code>, ~70 MB CPU model), top-50 BM25 candidates get reordered by semantic relevance to the query. Falls back to BM25 order if not enabled or on error.</li>
               <li><b>Curated citation lookup</b> — a hand-curated graph of ~30 cross-reference edges (amend / mirror / supplement / sister-protocol relations) surfaces "see also" entries when a primary doc is retrieved. Helps the model reach for the parent statute or supplementing protocol it would otherwise miss.</li>
             </ol>
           </div>
@@ -3575,8 +3575,8 @@ function openPipelineModal(messageIdx) {
     const isWired = t.wired;
     let status, statusColor, body, dim;
     if (!isWired) {
-      status = 'not wired'; statusColor = 'rgba(148,163,184,0.18)'; dim = true;
-      body = `<div style="color:var(--muted); font-size:11.5px; font-style:italic;">This kernel does not wire ${PIPELINE_LAYER_LABEL[layer]}.</div>`;
+      status = 'not enabled here'; statusColor = 'rgba(148,163,184,0.18)'; dim = true;
+      body = `<div style="color:var(--muted); font-size:11.5px; font-style:italic;">This kernel does not enable ${PIPELINE_LAYER_LABEL[layer]}.</div>`;
     } else if (!isEnabled) {
       status = 'skipped'; statusColor = 'rgba(148,163,184,0.18)'; dim = true;
       body = `<div style="color:var(--muted); font-size:11.5px; font-style:italic;">Toggle was OFF for this message — layer was bypassed.</div>`;
@@ -3738,7 +3738,7 @@ function openPipelineModal(messageIdx) {
 // Serialize the full pipeline trace for the message at the given idx
 // into a Markdown blob that round-trips cleanly through copy/paste,
 // GitHub issue bodies, and chat. Includes the user input, every
-// layer's output (or its skipped/not-wired status), the final merged
+// layer's output (or its skipped/not-enabled status), the final merged
 // prompt verbatim, and the Gemma response.
 function _serializePipelineMarkdown(messageIdx) {
   const m = messages[messageIdx];
@@ -3769,7 +3769,7 @@ function _serializePipelineMarkdown(messageIdx) {
     const label = PIPELINE_LAYER_LABEL[layer];
     const glyph = STEP_GLYPHS[n - 1] || `Step ${n}`;
     if (!lt.wired) {
-      md += `## ${glyph} ${label} — not wired\n\n`;
+      md += `## ${glyph} ${label} — not enabled here\n\n`;
     } else if (!lt.enabled) {
       md += `## ${glyph} ${label} — skipped (toggle was OFF)\n\n`;
     } else {
@@ -4383,7 +4383,7 @@ async function _renderOnlineBackendPanel() {
   };
   const ddgWired = cfg.kernel_ddg_wired
     ? '<span style="color:#10b981;">DuckDuckGo HTML scrape wired (kernel-supplied, no key required)</span>'
-    : '<span style="color:#f59e0b;">DDG fallback NOT wired in this kernel — Brave / Tavily key strongly recommended</span>';
+    : '<span style="color:#f59e0b;">DuckDuckGo fallback is not enabled in this kernel — Brave / Tavily key strongly recommended</span>';
   const _badge = (ok, msg) => (ok === true)
     ? '<span style="background:#10b98122; color:#10b981; font-size:10px; font-weight:700; padding:2px 7px; border-radius:8px; text-transform:uppercase;">tested OK</span>'
     : (ok === false)
@@ -4512,7 +4512,7 @@ async function _saveOnlineBackend() {
     await _renderOnlineBackendPanel();
     // The Online tile's "wired" status changes the moment any keyed
     // backend (Brave or Tavily) is saved. Re-run probeHarness so the
-    // tile flips from NOT WIRED to OFF immediately.
+    // tile flips from not enabled to OFF immediately.
     try { await probeHarness(); } catch (e) {}
   } catch (e) {
     alert('Save failed: ' + (e.message || e));
@@ -5877,8 +5877,8 @@ function renderStepProgress(m) {
       summaryText = '<span style="color:var(--muted); font-style:italic; font-size:11px;">toggle was OFF</span>';
     } else if (step.status === 'not_wired') {
       icon = `<span style="display:inline-block; width:14px; height:14px; border:2px dashed var(--border); border-radius:50%; vertical-align:middle;"></span>`;
-      statusBadge = `<span style="background:rgba(148,163,184,0.18); color:#94a3b8; font-size:9.5px; font-weight:700; padding:2px 7px; border-radius:8px; text-transform:uppercase; letter-spacing:0.4px;">not wired</span>`;
-      summaryText = '<span style="color:var(--muted); font-style:italic; font-size:11px;">kernel did not wire this layer</span>';
+      statusBadge = `<span style="background:rgba(148,163,184,0.18); color:#94a3b8; font-size:9.5px; font-weight:700; padding:2px 7px; border-radius:8px; text-transform:uppercase; letter-spacing:0.4px;">not enabled</span>`;
+      summaryText = '<span style="color:var(--muted); font-style:italic; font-size:11px;">kernel did not enable this layer</span>';
     } else {
       icon = `<span style="display:inline-block; width:14px; height:14px; background:#ef4444; border-radius:50%; vertical-align:middle; color:#fff; font-size:10px; font-weight:700; text-align:center; line-height:14px;">!</span>`;
       statusBadge = '';
