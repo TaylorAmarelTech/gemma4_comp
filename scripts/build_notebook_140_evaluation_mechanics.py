@@ -280,14 +280,14 @@ worst_text = _extract_grade_text(selected['graded_responses'].get('worst', ''))
 
 print(f'Prompt source:    {PROMPT_SOURCE}')
 print(f'Prompt id:        {selected.get(\"id\", \"?\")}')
-print(f'Prompt text:      {selected[\"text\"][:120]}...')
+print(f'Prompt text:      {selected[\"text\"]}')
 print(f'Grades available: {available_grades}')
 print()
 print('-- BEST reference (score 100 anchor) --')
-print(best_text[:240] + ('...' if len(best_text) > 240 else ''))
+print(best_text)
 print()
 print('-- WORST reference (score 0 anchor) --')
-print(worst_text[:240] + ('...' if len(worst_text) > 240 else ''))
+print(worst_text)
 """
 
 
@@ -334,7 +334,7 @@ CANDIDATES = {
 
 for name, text in CANDIDATES.items():
     print(f'-- Candidate: {name} --')
-    print(text[:200] + ('...' if len(text) > 200 else ''))
+    print(text)
     print()
 """
 

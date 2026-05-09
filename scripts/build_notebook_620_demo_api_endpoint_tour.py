@@ -1208,7 +1208,8 @@ if CLIENT_AVAILABLE:
         payload = resp.json()
         print(f'[LIVE TestClient] status={resp.status_code}')
         print(json.dumps({k: payload.get(k) for k in ('query', 'n_entries', 'n_retrieved')}, indent=2))
-        print('context preview:', (payload.get('context') or '')[:300])
+        print('context full:')
+        print(payload.get('context') or '')
     except Exception as exc:
         print(f'[LIVE call failed: {exc.__class__.__name__}] Scripted sample below:')
         print(json.dumps(RAG_SAMPLE_RESPONSE, indent=2))

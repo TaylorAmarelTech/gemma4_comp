@@ -356,7 +356,7 @@ print()
 print(f'{"id":<14}{"category":<26}  prompt')
 print('-' * 120)
 for p in input_prompts:
-    print(f'{str(p["id"])[:12]:<14}{str(p["category"])[:24]:<26}  {p["prompt"][:80]}')
+    print(f'{str(p["id"]):<18}{str(p["category"]):<32}  {p["prompt"]}')
 '''
 
 

@@ -562,8 +562,8 @@ print()
 for p in MEDICAL_SEED_PROMPTS[:3]:
     print(f'--- {p["id"]} / {p["category"]} ---')
     print(f'text:   {p["text"]}')
-    print(f'worst:  {p["graded_responses"]["worst"][:100]}...')
-    print(f'best:   {p["graded_responses"]["best"][:100]}...')
+    print(f'worst:  {p["graded_responses"]["worst"]}')
+    print(f'best:   {p["graded_responses"]["best"]}')
     print()
 """
 
