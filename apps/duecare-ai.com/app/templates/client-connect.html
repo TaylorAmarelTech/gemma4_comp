@@ -14,14 +14,14 @@
 <section class="page-intro first" data-screen-label="Client connect · Intro">
   <div class="wrap">
     <div class="crumbs"><a href="/">Home</a><span class="sep">/</span><span>Client connect</span></div>
-    <span class="kicker">API client setup</span>
-    <h1>Pull verified knowledge. Never push raw cases.</h1>
-    <p class="lede">The hub serves vetted packs and accepts proposals. It does not accept
-      worker case content. The schema rejects free-text case fields at the edge.
-      every endpoint below is read-only or proposal-only.</p>
+    <span class="kicker">Lane 05 · Developer / integration partner</span>
+    <h1>Build prevention, assistance, or research workflows on live hub APIs.</h1>
+    <p class="lede">Use these endpoints to list vetted packs, pin versions, submit
+      public-source updates, or share anonymized aggregate signals. The public hub is
+      for shared knowledge and pattern signals, not private case handling.</p>
     <div class="row" style="margin-top:24px;">
-      <span class="badge no-pii">contains_raw_pii: false on every public response</span>
-      <span class="badge draft-only">No auto-reporting · no auto-emails</span>
+      <span class="badge no-pii">Developer lane · cross-cutting integration</span>
+      <span class="badge draft-only">Public-source proposals · anonymized signals</span>
     </div>
   </div>
 </section>
@@ -32,9 +32,9 @@
     <h2 style="margin-top:8px;max-width:24ch;">Local system ↔ public hub.</h2>
 
     <div class="pipeline" style="margin-top:32px;grid-template-columns:repeat(4,1fr);">
-      <div class="stage"><span class="lab">Step 01</span><h5>List packs</h5><p>GET /api/packages. see verified + proposed packs and their checksums.</p><div class="arrow-r"></div></div>
-      <div class="stage"><span class="lab">Step 02</span><h5>Verify manifest</h5><p>GET /api/packages/{id}/manifest. fetch the signed manifest. Verify sha + signer.</p><div class="arrow-r"></div></div>
-      <div class="stage"><span class="lab">Step 03</span><h5>Pull bundle</h5><p>GET /api/packages/{id}/download. download the signed bundle. Verify against manifest.</p><div class="arrow-r"></div></div>
+      <div class="stage"><span class="lab">Step 01</span><h5>List packs</h5><p>GET /api/hub/packs. Filter by kind, status, jurisdiction, corridor, or tag.</p><div class="arrow-r"></div></div>
+      <div class="stage"><span class="lab">Step 02</span><h5>Pin version</h5><p>GET /api/hub/packs/{pack_id}/versions, then fetch the exact version you use.</p><div class="arrow-r"></div></div>
+      <div class="stage"><span class="lab">Step 03</span><h5>Consume JSON</h5><p>No download endpoint exists. Clients consume the pack body returned by the pinned API response.</p><div class="arrow-r"></div></div>
       <div class="stage"><span class="lab">Step 04</span><h5>Run locally</h5><p>Use the bundle as RAG / grep / contact context for your local Duecare run. No callbacks.</p></div>
     </div>
   </div>
@@ -53,48 +53,49 @@
 
       <h3 style="margin-bottom:14px;font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:var(--ink-3);">List packs</h3>
       <div class="code-block">
-        <div class="code-bar"><span>GET /api/packages</span><button class="copy" onclick="copyBlock(this)">Copy</button></div>
-<pre><span class="tok-fn">curl</span> -fsSL https://duecare-ai.com/api/packages \
+        <div class="code-bar"><span>GET /api/hub/packs</span><button class="copy" onclick="copyBlock(this)">Copy</button></div>
+<pre><span class="tok-fn">curl</span> -fsSL <span class="tok-s">"https://duecare-ai.com/api/hub/packs?latest_only=true"</span> \
   -H <span class="tok-s">"accept: application/json"</span> \
   -H <span class="tok-s">"x-deployment-id: ws-ngo-04"</span></pre>
       </div>
 
-      <h3 style="margin-top:32px;margin-bottom:14px;font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:var(--ink-3);">Pull a corridor pack</h3>
+      <h3 style="margin-top:32px;margin-bottom:14px;font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:var(--ink-3);">Fetch a pinned pack version</h3>
       <div class="code-block">
-        <div class="code-bar"><span>GET /api/packages/corridor/qa-np/download</span><button class="copy" onclick="copyBlock(this)">Copy</button></div>
-<pre><span class="tok-fn">curl</span> -fsSL https://duecare-ai.com/api/packages/corridor/qa-np/download \
-  -o corridor-qa-np-3.2.1.tar.zst
+        <div class="code-bar"><span>GET /api/hub/packs/{pack_id}/{version}</span><button class="copy" onclick="copyBlock(this)">Copy</button></div>
+<pre><span class="tok-c"># discover versions, newest first</span>
+<span class="tok-fn">curl</span> -fsSL https://duecare-ai.com/api/hub/packs/phl-kwt-domestic/versions \
+  -H <span class="tok-s">"accept: application/json"</span>
 
-<span class="tok-c"># verify the checksum</span>
-shasum -a 256 corridor-qa-np-3.2.1.tar.zst
-<span class="tok-c"># expected: 7c3f3a8d5e4b8f1c9d2a3b4c5d6e7f8901a2b3c4 …a91d</span></pre>
+<span class="tok-c"># pin the exact version consumed by your runtime</span>
+<span class="tok-fn">curl</span> -fsSL https://duecare-ai.com/api/hub/packs/phl-kwt-domestic/1.7.2 \
+  -H <span class="tok-s">"accept: application/json"</span></pre>
       </div>
 
-      <h3 style="margin-top:32px;margin-bottom:14px;font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:var(--ink-3);">Pull tools / contacts / grep / rubric</h3>
+      <h3 style="margin-top:32px;margin-bottom:14px;font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:var(--ink-3);">Filter tools / contacts / grep / rubric packs</h3>
       <div class="code-block">
         <div class="code-bar"><span>shell</span><button class="copy" onclick="copyBlock(this)">Copy</button></div>
-<pre><span class="tok-fn">curl</span> -fsSL .../api/packages/tools/complaint-draft/manifest
-<span class="tok-fn">curl</span> -fsSL .../api/packages/contacts/qa-np/manifest
-<span class="tok-fn">curl</span> -fsSL .../api/packages/grep-rules/recruitment/manifest
-<span class="tok-fn">curl</span> -fsSL .../api/packages/rubric/safety-grader/manifest</pre>
+<pre><span class="tok-fn">curl</span> -fsSL <span class="tok-s">"https://duecare-ai.com/api/hub/packs?kind=ContactPack"</span>
+<span class="tok-fn">curl</span> -fsSL <span class="tok-s">"https://duecare-ai.com/api/hub/packs?kind=GrepRulePack&amp;tag=fees"</span>
+<span class="tok-fn">curl</span> -fsSL <span class="tok-s">"https://duecare-ai.com/api/hub/packs?kind=RubricPack"</span>
+<span class="tok-fn">curl</span> -fsSL <span class="tok-s">"https://duecare-ai.com/api/hub/sync"</span></pre>
       </div>
 
       <h3 style="margin-top:32px;margin-bottom:14px;font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:var(--ink-3);">Submit a public-source update proposal</h3>
       <div class="code-block">
-        <div class="code-bar"><span>POST /api/contributions</span><button class="copy" onclick="copyBlock(this)">Copy</button></div>
-<pre><span class="tok-fn">curl</span> -fsSL https://duecare-ai.com/api/contributions \
+        <div class="code-bar"><span>POST /api/hub/client/submission</span><button class="copy" onclick="copyBlock(this)">Copy</button></div>
+<pre><span class="tok-fn">curl</span> -fsSL https://duecare-ai.com/api/hub/client/submission \
   -X POST -H <span class="tok-s">"content-type: application/json"</span> \
   -d <span class="tok-s">'{
-    "type": "context",
-    "submitter_role": "ngo",
-    "organization": "Migrant-Forum Asia",
-    "contact_email": "techlead@partner.org",
-    "jurisdiction": "qa",
-    "corridor": "qa-np",
-    "summary": "MoFA wage-protection advisory 2026-04",
+    "kind": "context",
+    "deployment_id": "partner-demo-04",
+    "organization": "Example partner deployment",
+    "jurisdiction": "PHL",
+    "corridor": "PHL-KWT",
+    "summary": "Public advisory update about recruitment-fee rules for the PHL-KWT corridor.",
     "public_source_url": "https://...gov/advisory/2026-04",
-    "consent": true,
-    "no_raw_case": true
+    "payload": {"source_type": "public_advisory"},
+    "consent_public_proposal": true,
+    "contact_publication_consent": false
   }'</span></pre>
       </div>
       <p class="muted" style="font-size:13px;margin-top:8px;">Proposals always start as <code>status: "proposed"</code>.
@@ -103,35 +104,40 @@ shasum -a 256 corridor-qa-np-3.2.1.tar.zst
 
       <h3 style="margin-top:32px;margin-bottom:14px;font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:var(--ink-3);">Submit anonymized aggregate signal</h3>
       <div class="code-block">
-        <div class="code-bar"><span>POST /api/signals/aggregate</span><button class="copy" onclick="copyBlock(this)">Copy</button></div>
+        <div class="code-bar"><span>POST /api/hub/signals</span><button class="copy" onclick="copyBlock(this)">Copy</button></div>
 <pre>{
-  <span class="tok-p">"deployment_id"</span>: <span class="tok-s">"ws-ngo-04"</span>,
-  <span class="tok-p">"corridor"</span>: <span class="tok-s">"qa-np"</span>,
-  <span class="tok-p">"sector"</span>: <span class="tok-s">"construction"</span>,
-  <span class="tok-p">"pattern_id"</span>: <span class="tok-s">"fee_request"</span>,
-  <span class="tok-p">"k_anon_floor"</span>: <span class="tok-k">30</span>,
-  <span class="tok-p">"period"</span>: <span class="tok-s">"2026-W18"</span>,
-  <span class="tok-p">"count"</span>: <span class="tok-k">42</span>
+  <span class="tok-p">"source"</span>: <span class="tok-s">"worker_mobile_opt_in"</span>,
+  <span class="tok-p">"jurisdiction"</span>: <span class="tok-s">"PHL"</span>,
+  <span class="tok-p">"corridor"</span>: <span class="tok-s">"PHL-KWT"</span>,
+  <span class="tok-p">"risk_tags"</span>: [<span class="tok-s">"fee_request"</span>, <span class="tok-s">"document_retention"</span>],
+  <span class="tok-p">"summary"</span>: <span class="tok-s">"Partner observed an increase in fee-request patterns across anonymized PHL-KWT intake buckets."</span>,
+  <span class="tok-p">"evidence_hashes"</span>: [<span class="tok-s">"sha256:example-aggregate-bucket"</span>],
+  <span class="tok-p">"consent_basis"</span>: <span class="tok-s">"aggregate_only"</span>,
+  <span class="tok-p">"pack_version"</span>: <span class="tok-s">"phl-kwt-domestic@1.7.2"</span>
 }</pre>
       </div>
-      <p class="muted" style="font-size:13px;margin-top:8px;">Schema rejects any free-text fields. Edge filter further suppresses
-        submissions that fail the k-anon floor of 30. Opt-in per partner.</p>
+      <p class="muted" style="font-size:13px;margin-top:8px;">Schema accepts a pattern summary and hashes, not private case narratives. Keep the summary about a pattern, not a person.</p>
 
       <h3 style="margin-top:32px;margin-bottom:14px;font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:var(--ink-3);">Python client</h3>
       <div class="code-block">
         <div class="code-bar"><span>duecare_client.py</span><button class="copy" onclick="copyBlock(this)">Copy</button></div>
-<pre><span class="tok-k">from</span> duecare <span class="tok-k">import</span> Client
+<pre><span class="tok-k">import</span> requests
 
-c = Client(deployment_id=<span class="tok-s">"ws-ngo-04"</span>)
+BASE = <span class="tok-s">"https://duecare-ai.com"</span>
 
-<span class="tok-c"># list, verify, and pull</span>
-packs = c.<span class="tok-fn">list_packs</span>(corridor=<span class="tok-s">"qa-np"</span>, status=<span class="tok-s">"verified"</span>)
-mf    = c.<span class="tok-fn">manifest</span>(<span class="tok-s">"corridor/qa-np"</span>)
-<span class="tok-k">assert</span> mf.signer == <span class="tok-s">"curator-04"</span>
-bundle = c.<span class="tok-fn">pull</span>(<span class="tok-s">"corridor/qa-np@3.2.1"</span>)
-<span class="tok-k">assert</span> bundle.<span class="tok-fn">verify</span>()  <span class="tok-c"># sha256 match</span>
+packs = requests.<span class="tok-fn">get</span>(
+  <span class="tok-s">f"{BASE}/api/hub/packs"</span>,
+  params={<span class="tok-s">"latest_only"</span>: <span class="tok-k">True</span>, <span class="tok-s">"corridor"</span>: <span class="tok-s">"PHL-KWT"</span>},
+  timeout=30,
+).<span class="tok-fn">json</span>()
 
-<span class="tok-c"># IMPORTANT: never call .submit_case(). it does not exist on the public client</span></pre>
+pack = requests.<span class="tok-fn">get</span>(
+  <span class="tok-s">f"{BASE}/api/hub/packs/phl-kwt-domestic/1.7.2"</span>,
+  timeout=30,
+).<span class="tok-fn">json</span>()
+
+<span class="tok-k">assert</span> pack[<span class="tok-s">"id"</span>] == <span class="tok-s">"phl-kwt-domestic"</span>
+<span class="tok-c"># Keep private case content in your own system; hub APIs are for packs and proposals.</span></pre>
       </div>
     </div>
 
@@ -156,19 +162,19 @@ bundle = c.<span class="tok-fn">pull</span>(<span class="tok-s">"corridor/qa-np@
         <span class="label">Endpoints</span>
         <h4 style="margin-top:8px;">Read-only by default</h4>
         <ul style="list-style:none;padding:0;margin:8px 0 0;font-size:13px;display:flex;flex-direction:column;gap:6px;">
-          <li><code>GET /api/packages</code></li>
-          <li><code>GET /api/packages/{id}</code></li>
-          <li><code>GET /api/packages/{id}/manifest</code></li>
-          <li><code>GET /api/packages/{id}/download</code></li>
-          <li><code>POST /api/contributions</code> · proposal only</li>
-          <li><code>POST /api/signals/aggregate</code> · k≥30</li>
-          <li><code>POST /api/sentinel/crawl-requests</code></li>
+          <li><code>GET /api/hub/packs</code></li>
+          <li><code>GET /api/hub/packs/{pack_id}</code></li>
+          <li><code>GET /api/hub/packs/{pack_id}/versions</code></li>
+          <li><code>GET /api/hub/packs/{pack_id}/{version}</code></li>
+          <li><code>GET /api/hub/sync</code></li>
+          <li><code>POST /api/hub/client/submission</code> · proposal only</li>
+          <li><code>POST /api/hub/signals</code> · aggregate/pattern signal</li>
         </ul>
       </div>
       <div class="card">
         <span class="label">Auth</span>
-        <h4 style="margin-top:8px;">Public reads, signed writes</h4>
-        <p class="muted" style="font-size:13px;margin-top:6px;">All GET endpoints are public. Proposal/signal POSTs require an issued deployment ID. Curator signing requires a hardware key.</p>
+        <h4 style="margin-top:8px;">Public reads, reviewed writes</h4>
+        <p class="muted" style="font-size:13px;margin-top:6px;">GET endpoints are public. Proposal and signal POSTs enter a review queue; curator approval is required before any vetted pack changes.</p>
         <a href="/login" class="btn btn-ghost" style="margin-top:10px;">Curator sign-in →</a>
       </div>
     </aside>
