@@ -16,10 +16,10 @@
   <div class="wrap">
     <div class="crumbs"><a href="/">Home</a><span class="sep">/</span><a href="/hub">DueCare Hub</a><span class="sep">/</span><span>Knowledge packs</span></div>
     <span class="kicker">/knowledge-packs &middot; the public registry</span>
-    <h1>Versioned bundles of public source material, signed by curators.</h1>
+    <h1>Versioned bundles of public source material, vetted by curators.</h1>
     <p class="lede">A pack is the unit of knowledge the harness cites against. Every pack is
       addressed by content hash, scoped to a corridor and jurisdiction, and frozen at a
-      known date. Pull by manifest; verify by signature; pin by version.</p>
+      known date. Filter by kind, corridor, jurisdiction, or status; pin by version.</p>
   </div>
 </section>
 
@@ -27,16 +27,46 @@
   <div class="wrap">
     <div class="head">
       <div><span class="ix">01 &middot; Registry</span><h2>Current packs</h2></div>
-      <p class="summary">Every published pack with its corridor, version, and signing status. Click a row to see manifest details and pull instructions.</p>
+      <p class="summary">Every published pack with its corridor, version, and review status. Click a result to open its JSON envelope and pull instructions.</p>
     </div>
-    <div class="hp-list">
-      <div class="row"><div class="col">Pack</div><div class="col">Description</div><div class="col">Version</div><div class="col">Status</div></div>
-      <div class="row"><div class="name">Qatar &harr; Nepal corridor<span class="id">qa-np &middot; sha256:9ab3&hellip;</span></div><div class="desc">Recruitment fees, contract substitution rules, embassy advisories, MoL hotlines.</div><div><code>2026.05.06</code></div><div><span class="hp-pill ok">Vetted</span></div></div>
-      <div class="row"><div class="name">Saudi Arabia &harr; Indonesia<span class="id">sa-id &middot; sha256:51e7&hellip;</span></div><div class="desc">Domestic-worker protections, Musaned platform terms, repatriation channels.</div><div><code>2026.04.22</code></div><div><span class="hp-pill ok">Vetted</span></div></div>
-      <div class="row"><div class="name">UAE &harr; Bangladesh<span class="id">ae-bd &middot; sha256:a14c&hellip;</span></div><div class="desc">Labour-law amendments, Wage Protection System rules, BMET advisories.</div><div><code>2026.05.01</code></div><div><span class="hp-pill ok">Vetted</span></div></div>
-      <div class="row"><div class="name">Singapore &harr; Philippines<span class="id">sg-ph &middot; sha256:7d22&hellip;</span></div><div class="desc">Domestic helper contracts, MOM advisories, POEA advisories, FDW levy rules.</div><div><code>2026.04.15</code></div><div><span class="hp-pill ok">Vetted</span></div></div>
-      <div class="row"><div class="name">Malaysia &harr; Nepal<span class="id">my-np &middot; pending</span></div><div class="desc">Levy reforms, accommodation standards, source-country embassy contacts.</div><div><code>draft-2026.05</code></div><div><span class="hp-pill warn">Review</span></div></div>
-      <div class="row"><div class="name">Korea &harr; Vietnam<span class="id">kr-vn &middot; pending</span></div><div class="desc">EPS programme rules, contract terms, return reintegration advisories.</div><div><code>draft-2026.04</code></div><div><span class="hp-pill draft">Draft</span></div></div>
+    <div class="browser" style="padding-top:0;">
+      <aside class="filters" aria-label="Knowledge-pack filters">
+        <div class="filter-group">
+          <h5>Pack kind</h5>
+          <div id="filter-kind" class="filter-options"><p class="muted">Loading kinds...</p></div>
+        </div>
+        <div class="filter-group">
+          <h5>Corridor</h5>
+          <div id="filter-corridor" class="filter-options"><p class="muted">Loading corridors...</p></div>
+        </div>
+        <div class="filter-group">
+          <h5>Jurisdiction</h5>
+          <div id="filter-jurisdiction" class="filter-options"><p class="muted">Loading jurisdictions...</p></div>
+        </div>
+        <div class="filter-group">
+          <h5>Status</h5>
+          <div id="filter-status" class="filter-options">
+            <label><input type="radio" name="status" value="" checked /> Any status</label>
+            <label><input type="radio" name="status" value="vetted" /> Vetted</label>
+            <label><input type="radio" name="status" value="needs_review" /> Needs review</label>
+            <label><input type="radio" name="status" value="proposed" /> Proposed</label>
+            <label><input type="radio" name="status" value="deprecated" /> Deprecated</label>
+          </div>
+        </div>
+        <button type="button" class="btn btn-ghost" id="clear-pack-filters">Clear filters</button>
+        <div class="rail" style="margin-top:16px;">
+          <span class="cap">Privacy invariant</span>
+          <p>Public packs contain public-source facts and anonymized patterns only. No raw worker case data belongs in the registry.</p>
+        </div>
+      </aside>
+
+      <div>
+        <div class="results-bar">
+          <span id="pack-results-summary"><b style="color:var(--ink);font-weight:600;">Loading packs</b></span>
+          <div class="sort"><span>API</span><code>/api/hub/packs</code></div>
+        </div>
+        <div class="results-grid" id="pack-results" aria-live="polite"></div>
+      </div>
     </div>
   </div>
 </section>
@@ -45,14 +75,14 @@
   <div class="wrap">
     <div class="head">
       <div><span class="ix">02 &middot; Manifest schema</span><h2>What a pack manifest holds.</h2></div>
-      <p class="summary">The manifest is the only thing a client needs to verify and pin a pack. Pack bodies are large; manifests are tiny and signed.</p>
+      <p class="summary">The manifest is the only thing a client needs to verify and pin a pack. Pack bodies are large; manifests are tiny and hash-addressed.</p>
     </div>
     <div class="hp-schema">
       <div class="row"><div class="col">Field</div><div class="col">Type</div><div class="col">Description</div></div>
       <div class="row"><code>pack_id</code><span class="type">string</span><span class="desc">Corridor slug, e.g. <code>qa-np</code>.</span></div>
       <div class="row"><code>version</code><span class="type">date</span><span class="desc">Calendar version. Once published, never edited.</span></div>
       <div class="row"><code>hash</code><span class="type">sha256</span><span class="desc">Content hash of the pack body. Used to address the body in the CDN.</span></div>
-      <div class="row"><code>signer</code><span class="type">curator-key</span><span class="desc">Curator key id that signed this manifest.</span></div>
+      <div class="row"><code>reviewer</code><span class="type">curator-key</span><span class="desc">Curator key id that approved this manifest.</span></div>
       <div class="row"><code>sources</code><span class="type">URL[]</span><span class="desc">Public source URLs whose extracted facts are inside the pack.</span></div>
       <div class="row"><code>compatible_with</code><span class="type">semver-range</span><span class="desc">Harness versions that can consume this pack.</span></div>
       <div class="row"><code>privacy_status</code><span class="type">enum</span><span class="desc">Always <code>public-source-only</code>; refused otherwise.</span></div>
@@ -72,7 +102,7 @@
       <div class="step"><span class="num">03</span><div><h4>Privacy gate</h4><p>The diff is checked: no PII, no private case content, no scraped private channels. Reject otherwise.</p></div></div>
       <div class="step"><span class="num">04</span><div><h4>Curator review</h4><p>A human curator reviews the diff. Approve, request changes, or reject with reason.</p></div></div>
       <div class="step"><span class="num">05</span><div><h4>Quality testing</h4><p>The proposed version runs through the regression suite. Failing rules block publication.</p></div></div>
-      <div class="step"><span class="num">06</span><div><h4>Sign &amp; publish</h4><p>Manifest is signed with the curator key and published. CDN serves the new body.</p></div></div>
+      <div class="step"><span class="num">06</span><div><h4>Approve &amp; publish</h4><p>Manifest is approved with the curator key and published. CDN serves the new body.</p></div></div>
       <div class="step"><span class="num">07</span><div><h4>Clients pull</h4><p>Local and partner deployments pull the new manifest, verify the signature, and switch on success.</p></div></div>
     </div>
   </div>
@@ -94,6 +124,122 @@ curl -O https://cdn.duecare-ai.com/packs/sha256:9ab3&hellip;
 duecare verify pack.json --key curator-1.pub</pre>
   </div>
 </section>
+
+<script>
+const packState = {
+  kind: '',
+  corridor: '',
+  jurisdiction: '',
+  status: '',
+};
+
+function escapeHtml(value) {
+  return String(value ?? '').replace(/[&<>"']/g, (ch) => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+  }[ch]));
+}
+
+function labelFromPackType(value) {
+  return String(value || '').replace(/Pack$/, ' pack').replace(/([a-z])([A-Z])/g, '$1 $2');
+}
+
+function renderFilterOptions(containerId, name, values) {
+  const el = document.getElementById(containerId);
+  const options = [`<label><input type="radio" name="${name}" value="" ${packState[name] ? '' : 'checked'} /> Any</label>`]
+    .concat((values || []).map((value) => {
+      const checked = packState[name] === value ? 'checked' : '';
+      return `<label><input type="radio" name="${name}" value="${escapeHtml(value)}" ${checked} /> ${escapeHtml(labelFromPackType(value))}</label>`;
+    }));
+  el.innerHTML = options.join('');
+}
+
+function badgeClass(status) {
+  if (status === 'vetted') return 'verified';
+  if (status === 'needs_review') return 'draft';
+  if (status === 'deprecated') return 'proposed';
+  return 'version';
+}
+
+function renderPackCard(pack) {
+  const id = escapeHtml(pack.id);
+  const type = escapeHtml(labelFromPackType(pack['@type']));
+  const status = escapeHtml(pack.status || 'proposed');
+  const corridors = (pack.corridors || []).join(', ') || 'global';
+  const jurisdictions = (pack.jurisdictions || []).join(', ') || 'multi-jurisdiction';
+  const tags = (pack.tags || []).slice(0, 4).join(', ') || 'no tags';
+  const hash = String(pack.content_hash || '').replace(/^sha256:/, 'sha256:');
+  const hashShort = hash.length > 22 ? `${hash.slice(0, 18)}...` : hash;
+  return `
+    <a href="/api/hub/packs/${encodeURIComponent(pack.id)}" class="asset">
+      <div class="asset-top">
+        <div>
+          <div class="asset-id">${type} / ${id}</div>
+          <div class="asset-title" style="margin-top:4px;">${escapeHtml(pack.title || pack.id)}</div>
+        </div>
+        <div class="asset-badges">
+          <span class="badge ${badgeClass(pack.status)}">${status.replace('_', ' ')}</span>
+          <span class="badge version">v${escapeHtml(pack.version)}</span>
+        </div>
+      </div>
+      <div class="asset-summary">${escapeHtml(pack.summary || 'No summary supplied.')}</div>
+      <div class="asset-meta">
+        <span><b>Corridor</b> ${escapeHtml(corridors)}</span>
+        <span><b>Jurisdiction</b> ${escapeHtml(jurisdictions)}</span>
+        <span><b>Tags</b> ${escapeHtml(tags)}</span>
+        <span><b>Hash</b> ${escapeHtml(hashShort)}</span>
+      </div>
+    </a>`;
+}
+
+function packQuery() {
+  const params = new URLSearchParams();
+  if (packState.kind) params.set('kind', packState.kind);
+  if (packState.corridor) params.set('corridor', packState.corridor);
+  if (packState.jurisdiction) params.set('jurisdiction', packState.jurisdiction);
+  if (packState.status) params.set('status_', packState.status);
+  return params.toString();
+}
+
+async function loadPacks() {
+  const results = document.getElementById('pack-results');
+  const summary = document.getElementById('pack-results-summary');
+  results.innerHTML = '<p class="muted">Loading packs from the live registry...</p>';
+  const query = packQuery();
+  const response = await fetch(`/api/hub/packs${query ? `?${query}` : ''}`);
+  if (!response.ok) {
+    results.innerHTML = `<p class="muted">Pack registry returned HTTP ${response.status}.</p>`;
+    summary.innerHTML = '<b style="color:var(--ink);font-weight:600;">Registry unavailable</b>';
+    return;
+  }
+  const payload = await response.json();
+  renderFilterOptions('filter-kind', 'kind', payload.available_kinds || []);
+  renderFilterOptions('filter-corridor', 'corridor', payload.available_corridors || []);
+  renderFilterOptions('filter-jurisdiction', 'jurisdiction', payload.available_jurisdictions || []);
+  const packs = payload.packs || [];
+  summary.innerHTML = `<b style="color:var(--ink);font-weight:600;">${packs.length} pack${packs.length === 1 ? '' : 's'}</b> · filtered from live API`;
+  results.innerHTML = packs.length
+    ? packs.map(renderPackCard).join('')
+    : '<p class="muted">No packs match these filters. Clear filters or choose a broader corridor.</p>';
+}
+
+document.addEventListener('change', (event) => {
+  const target = event.target;
+  if (!(target instanceof HTMLInputElement)) return;
+  if (!['kind', 'corridor', 'jurisdiction', 'status'].includes(target.name)) return;
+  packState[target.name] = target.value;
+  loadPacks();
+});
+
+document.getElementById('clear-pack-filters').addEventListener('click', () => {
+  packState.kind = '';
+  packState.corridor = '';
+  packState.jurisdiction = '';
+  packState.status = '';
+  loadPacks();
+});
+
+loadPacks();
+</script>
 
 
 {% include "_footer.html" %}
