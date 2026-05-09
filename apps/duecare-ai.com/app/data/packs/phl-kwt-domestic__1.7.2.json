@@ -1,0 +1,53 @@
+{
+  "@context": "https://duecare-ai.com/schema/v1",
+  "@type": "ContextPack",
+  "id": "phl-kwt-domestic",
+  "version": "1.7.2",
+  "schema_version": 1,
+  "status": "vetted",
+  "title": "Philippines to Kuwait domestic-work corridor",
+  "summary": "Public-source reference for the PHL to KWT domestic-work corridor: legal placement-fee cap, contract-substitution patterns, and verified complaint channels.",
+  "jurisdictions": ["PHL", "KWT"],
+  "corridors": ["PHL-KWT"],
+  "tags": ["domestic-work", "fees", "contracts", "passport-handling"],
+  "source": {
+    "kind": "regulator_publication",
+    "url": "https://example.gov/phl-kwt-domestic-2026",
+    "fetched_at": "2026-04-10T12:00:00Z",
+    "citation": "Composite citation for the public hub demo. Replace with the live regulator URL before partner use."
+  },
+  "provenance": {
+    "submitted_by": "automation:public_source_crawler",
+    "submitted_at": "2026-04-10T12:00:00Z",
+    "vetted_by": "curator:k.maharjan",
+    "vetted_at": "2026-04-12T09:14:00Z",
+    "review_notes": [
+      "Cross-checked the placement-fee cap against the source-country bilateral agreement.",
+      "Removed one citation that pointed to an expired regulator URL."
+    ]
+  },
+  "content_hash": "sha256:demo-content-hash-phl-kwt-1.7.2",
+  "content": {
+    "sections": [
+      {
+        "heading": "Legal placement-fee cap",
+        "body": "Workers travelling on this corridor for domestic work are not legally required to pay a placement fee to a private recruiter beyond the regulated cap. The host-country employer covers the recruitment cost under the bilateral agreement. Any fee request above the cap is treated as a recruitment-fee violation.",
+        "citations": ["https://example.gov/phl-kwt-domestic-2026"],
+        "last_verified_at": "2026-04-10T12:00:00Z"
+      },
+      {
+        "heading": "Contract-substitution patterns",
+        "body": "Common substitution patterns: a worker signs a model contract before departure, then is asked to sign a second contract on arrival with reduced wages, longer hours, or a different employer. The second contract is generally not enforceable in either jurisdiction; the model contract remains the reference.",
+        "citations": ["https://example.gov/phl-kwt-domestic-2026"],
+        "last_verified_at": "2026-04-10T12:00:00Z"
+      },
+      {
+        "heading": "Passport handling",
+        "body": "Employers may not lawfully retain a worker's passport. Workers should keep their passport in their own possession. If an employer or agency retains it, that is an indicator of forced-labour risk and grounds for a complaint to the regulator.",
+        "citations": ["https://example.gov/phl-kwt-domestic-2026"],
+        "last_verified_at": "2026-04-10T12:00:00Z"
+      }
+    ]
+  },
+  "extensions": {}
+}

@@ -149,3 +149,140 @@ def test_accepts_opencrawl_update_as_proposal(tmp_path) -> None:
     assert response.json()["status"] == "proposed"
     updates = client.get("/api/hub/opencrawl/updates").json()
     assert len(updates) == 1
+
+
+def test_pack_registry_list_and_filter(tmp_path) -> None:
+    client = TestClient(create_app(data_dir=tmp_path))
+
+    all_packs = client.get("/api/hub/packs").json()
+    assert all_packs["count"] >= 4
+    kinds = {pack["@type"] for pack in all_packs["packs"]}
+    assert {"ContextPack", "GrepRulePack", "ContactPack", "RubricPack"} <= kinds
+
+    grep_only = client.get("/api/hub/packs?kind=GrepRulePack").json()
+    assert grep_only["count"] >= 1
+    assert all(pack["@type"] == "GrepRulePack" for pack in grep_only["packs"])
+
+    phl_only = client.get("/api/hub/packs?jurisdiction=PHL").json()
+    assert any(pack["id"] == "phl-kwt-domestic" for pack in phl_only["packs"])
+
+
+def test_pack_registry_get_latest_and_pin(tmp_path) -> None:
+    client = TestClient(create_app(data_dir=tmp_path))
+
+    latest = client.get("/api/hub/packs/phl-kwt-domestic").json()
+    assert latest["id"] == "phl-kwt-domestic"
+    assert latest["@type"] == "ContextPack"
+    assert "content" in latest
+
+    pinned = client.get("/api/hub/packs/phl-kwt-domestic/1.7.2").json()
+    assert pinned["version"] == "1.7.2"
+
+    versions = client.get("/api/hub/packs/phl-kwt-domestic/versions").json()
+    assert versions["count"] >= 1
+
+    missing = client.get("/api/hub/packs/does-not-exist")
+    assert missing.status_code == 404
+
+
+def test_pack_registry_sync(tmp_path) -> None:
+    from urllib.parse import quote
+
+    client = TestClient(create_app(data_dir=tmp_path))
+
+    full = client.get("/api/hub/sync").json()
+    assert full["count"] >= 4
+    assert full["next_cursor"] is not None
+
+    # The cursor contains a `+` for the timezone offset; URL-encode it so
+    # the query parser doesn't strip it to a space.
+    delta = client.get(f"/api/hub/sync?since={quote(full['next_cursor'], safe='')}").json()
+    assert delta["count"] == 0
+
+
+def test_retract_unvetted_submission(tmp_path) -> None:
+    client = TestClient(create_app(data_dir=tmp_path))
+
+    posted = client.post(
+        "/api/hub/client/submission",
+        json={
+            "kind": "context",
+            "summary": "Public-source advisory describes a fee cap update for the test corridor.",
+            "consent_public_proposal": True,
+        },
+    ).json()
+    submission_id = posted["id"]
+
+    retract = client.post(
+        "/api/hub/client/submission/retract",
+        json={"submission_id": submission_id, "reason": "operator changed their mind"},
+    )
+    assert retract.status_code == 200
+    payload = retract.json()
+    assert payload["retracted"] is True
+    assert payload["new_status"] == "retracted"
+
+    # A second retract attempt finds the record but blocks because it is no
+    # longer in proposed / needs_review status.
+    second = client.post(
+        "/api/hub/client/submission/retract",
+        json={"submission_id": submission_id},
+    )
+    assert second.status_code == 409
+
+
+def test_retract_unknown_submission_404(tmp_path) -> None:
+    client = TestClient(create_app(data_dir=tmp_path))
+    response = client.post(
+        "/api/hub/client/submission/retract",
+        json={"submission_id": "cli_not_a_real_id"},
+    )
+    assert response.status_code == 404
+
+
+def test_client_submission_endpoint(tmp_path) -> None:
+    client = TestClient(create_app(data_dir=tmp_path))
+
+    response = client.post(
+        "/api/hub/client/submission",
+        json={
+            "kind": "context",
+            "deployment_id": "test-suite",
+            "organization": "Test NGO",
+            "summary": "Public-source update on placement-fee cap for the demo corridor; please review.",
+            "consent_public_proposal": True,
+        },
+    )
+    assert response.status_code == 202
+    payload = response.json()
+    assert payload["accepted"] is True
+    assert payload["status"] in {"proposed", "needs_review"}
+    assert payload["automation_verdict"] in {"accept", "needs_curator_review"}
+
+
+def test_client_submission_rejects_pii(tmp_path) -> None:
+    client = TestClient(create_app(data_dir=tmp_path))
+
+    response = client.post(
+        "/api/hub/client/submission",
+        json={
+            "kind": "context",
+            "summary": "Worker email is alice@example.org and they reported the issue.",
+            "consent_public_proposal": True,
+        },
+    )
+    assert response.status_code == 422
+
+
+def test_client_submission_requires_consent(tmp_path) -> None:
+    client = TestClient(create_app(data_dir=tmp_path))
+
+    response = client.post(
+        "/api/hub/client/submission",
+        json={
+            "kind": "context",
+            "summary": "Public-source advisory describes a regulator clarification on fees.",
+            "consent_public_proposal": False,
+        },
+    )
+    assert response.status_code == 422

@@ -1,0 +1,60 @@
+{
+  "@context": "https://duecare-ai.com/schema/v1",
+  "@type": "ContactPack",
+  "id": "global-contacts",
+  "version": "1.4.0",
+  "schema_version": 1,
+  "status": "vetted",
+  "title": "Verified migrant-worker contacts",
+  "summary": "Public NGO, regulator, and embassy contact registry. Composite for the demo; production entries are curator-verified per quarter.",
+  "jurisdictions": ["PHL", "KWT", "BGD", "SAU", "NPL", "QAT", "IDN", "HKG"],
+  "corridors": [],
+  "tags": ["contacts", "complaint-channels", "verified"],
+  "source": {
+    "kind": "partner_curated",
+    "citation": "Composite for the public hub demo. Real entries map to public regulator + NGO websites."
+  },
+  "provenance": {
+    "submitted_by": "partner:duecare-curators",
+    "submitted_at": "2026-04-01T09:00:00Z",
+    "vetted_by": "curator:m.tan",
+    "vetted_at": "2026-04-05T11:30:00Z",
+    "review_notes": [
+      "Verified each web URL returns a 200 within the last 30 days.",
+      "No personal phone numbers; only published institutional lines."
+    ]
+  },
+  "content_hash": "sha256:demo-content-hash-global-contacts-1.4.0",
+  "content": {
+    "contacts": [
+      {
+        "contact_id": "ph-poea",
+        "name": "Department of Migrant Workers (Philippines, formerly POEA)",
+        "role": "regulator",
+        "web_url": "https://example.gov/ph-dmw",
+        "languages": ["en", "tl"],
+        "jurisdictions": ["PHL"],
+        "last_verified_at": "2026-04-05T11:30:00Z"
+      },
+      {
+        "contact_id": "kw-mohr",
+        "name": "Public Authority of Manpower (Kuwait)",
+        "role": "regulator",
+        "web_url": "https://example.gov/kw-pam",
+        "languages": ["ar", "en"],
+        "jurisdictions": ["KWT"],
+        "last_verified_at": "2026-04-05T11:30:00Z"
+      },
+      {
+        "contact_id": "ngo-mfmw-hk",
+        "name": "Mission for Migrant Workers (Hong Kong, composite)",
+        "role": "ngo",
+        "web_url": "https://example.org/mfmw",
+        "languages": ["en", "zh", "tl", "id"],
+        "jurisdictions": ["HKG"],
+        "last_verified_at": "2026-04-05T11:30:00Z"
+      }
+    ]
+  },
+  "extensions": {}
+}

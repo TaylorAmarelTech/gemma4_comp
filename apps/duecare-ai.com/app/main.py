@@ -27,6 +27,7 @@ from pydantic import BaseModel, ConfigDict, Field, HttpUrl, field_validator
 
 from . import __version__
 from . import automation
+from . import packs as pack_registry
 from .pii import detect_pii
 
 SignalSource = Literal[
@@ -46,7 +47,7 @@ PackKind = Literal[
     "tools",
     "jurisdictions",
 ]
-UpdateStatus = Literal["proposed", "needs_review", "approved", "rejected"]
+UpdateStatus = Literal["proposed", "needs_review", "approved", "rejected", "retracted"]
 
 APP_DIR = Path(__file__).resolve().parent
 TEMPLATES_DIR = APP_DIR / "templates"
@@ -120,6 +121,38 @@ class FileHubStore:
         with path.open("a", encoding="utf-8") as handle:
             handle.write(json.dumps(payload, sort_keys=True, separators=(",", ":")))
             handle.write("\n")
+
+    def update_by_id(
+        self,
+        filename: Literal["signals.jsonl", "updates.jsonl"],
+        record_id: str,
+        mutate: object,
+    ) -> dict[str, object] | None:
+        """Find a record by id and rewrite it in-place via ``mutate(record)``.
+
+        ``mutate`` is a callable that receives the existing dict and returns
+        the new dict (or the same dict mutated). Returns the new record on
+        success, or ``None`` if no matching id was found. The whole file is
+        rewritten; for the hackathon-scale store this is fine.
+        """
+        path = self.root / filename
+        if not path.exists():
+            return None
+        records = self.read_all(filename)
+        updated: dict[str, object] | None = None
+        for index, record in enumerate(records):
+            if record.get("id") == record_id:
+                new_record = mutate(record)  # type: ignore[operator]
+                records[index] = new_record
+                updated = new_record
+                break
+        if updated is None:
+            return None
+        with path.open("w", encoding="utf-8") as handle:
+            for record in records:
+                handle.write(json.dumps(record, sort_keys=True, separators=(",", ":")))
+                handle.write("\n")
+        return updated
 
     def read_all(self, filename: Literal["signals.jsonl", "updates.jsonl"]) -> list[dict[str, object]]:
         """Read every valid JSON object from a JSONL file."""
@@ -317,6 +350,89 @@ class InboundEmailReceipt(BaseModel):
     model: str
 
 
+ClientSubmissionKind = Literal[
+    "context",
+    "grep",
+    "tool",
+    "contact",
+    "rubric",
+    "prompt",
+    "partner",
+    "volunteer",
+    "custom",
+]
+
+
+class ClientSubmissionIn(BaseModel):
+    """A submission from a deployed client (or the website's contribute form).
+
+    Generic envelope: pick a ``kind`` to say what you are proposing, and
+    drop the structured payload in ``payload``. The server-side automation
+    triages ``summary`` for safety + PII; ``payload`` rides through to the
+    curator queue verbatim. No raw worker case content allowed in either.
+    """
+
+    kind: ClientSubmissionKind
+    deployment_id: str | None = Field(
+        default=None,
+        max_length=80,
+        description="Opaque partner-assigned identifier; appears in audit only.",
+    )
+    organization: str | None = Field(default=None, max_length=160)
+    contact_email: str | None = Field(default=None, max_length=200)
+    jurisdiction: str | None = Field(default=None, max_length=80)
+    corridor: str | None = Field(default=None, max_length=120)
+    public_source_url: HttpUrl | None = None
+    summary: str = Field(min_length=10, max_length=2000)
+    payload: dict[str, object] = Field(default_factory=dict)
+    consent_public_proposal: bool = Field(
+        default=True,
+        description="Required True. Anything submitted here can be a public proposal.",
+    )
+    contact_publication_consent: bool = Field(
+        default=False,
+        description="If True, contact_email may be published in pack manifest.",
+    )
+
+    @field_validator("summary")
+    @classmethod
+    def _reject_pii_in_summary(cls, value: str) -> str:
+        findings = detect_pii(value)
+        if findings:
+            labels = ", ".join(sorted(findings))
+            raise ValueError(f"summary appears to contain prohibited PII: {labels}")
+        return value
+
+
+class ClientSubmissionReceipt(BaseModel):
+    """Receipt returned after a client submission."""
+
+    id: str
+    accepted: bool
+    status: UpdateStatus
+    automation_verdict: str
+    automation_intent: str
+    automation_model: str
+    message: str
+
+
+class RetractRequestIn(BaseModel):
+    """Body for the retract endpoint. Must echo the submission id for safety."""
+
+    submission_id: str = Field(min_length=4, max_length=40)
+    deployment_id: str | None = Field(default=None, max_length=80)
+    reason: str | None = Field(default=None, max_length=400)
+
+
+class RetractReceipt(BaseModel):
+    """Receipt returned after a retract attempt."""
+
+    id: str
+    retracted: bool
+    new_status: UpdateStatus
+    message: str
+
+
 class AggregateTrend(BaseModel):
     """Simple anonymized aggregate trend for the hub dashboard."""
 
@@ -457,6 +573,102 @@ def create_app(*, data_dir: Path | None = None) -> FastAPI:
     )
     async def list_knowledge_packs() -> list[KnowledgePackSummary]:
         return _knowledge_packs()
+
+    # ---- Pack registry (real downloadable content) ---------------------
+
+    @application.get("/api/hub/packs", tags=["knowledge-packs"])
+    async def list_packs(
+        kind: str | None = None,
+        status_: str | None = None,
+        jurisdiction: str | None = None,
+        corridor: str | None = None,
+        tag: str | None = None,
+        latest_only: bool = True,
+    ) -> dict[str, object]:
+        """Filtered pack list. Returns the latest version of each match by default.
+
+        Filters compose: pass any subset of ``kind`` (ContextPack /
+        GrepRulePack / ToolPack / ContactPack / RubricPack / EvalPromptPack
+        / TrainingExamplePack), ``status_`` (vetted / proposed /
+        needs_review / deprecated), ``jurisdiction`` (ISO code), ``corridor``
+        (e.g. ``PHL-KWT``), ``tag``. Set ``latest_only=false`` to get every
+        version that matches.
+        """
+        bodies = pack_registry.list_packs(
+            kind=kind,
+            status=status_,
+            jurisdiction=jurisdiction,
+            corridor=corridor,
+            tag=tag,
+            latest_only=latest_only,
+        )
+        return {
+            "count": len(bodies),
+            "filters": {
+                "kind": kind,
+                "status": status_,
+                "jurisdiction": jurisdiction,
+                "corridor": corridor,
+                "tag": tag,
+                "latest_only": latest_only,
+            },
+            "available_kinds": pack_registry.known_kinds(),
+            "available_corridors": pack_registry.known_corridors(),
+            "available_jurisdictions": pack_registry.known_jurisdictions(),
+            "packs": bodies,
+        }
+
+    @application.get("/api/hub/packs/{pack_id}", tags=["knowledge-packs"])
+    async def get_latest_pack(pack_id: str) -> dict[str, object]:
+        """Resolve the latest version of a pack by id."""
+        body = pack_registry.get_pack(pack_id)
+        if body is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"No pack with id '{pack_id}' is registered.",
+            )
+        return body
+
+    @application.get("/api/hub/packs/{pack_id}/versions", tags=["knowledge-packs"])
+    async def list_pack_versions(pack_id: str) -> dict[str, object]:
+        """List every known version of a pack (newest first)."""
+        versions = pack_registry.list_versions(pack_id)
+        if not versions:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"No pack with id '{pack_id}' is registered.",
+            )
+        return {"id": pack_id, "count": len(versions), "versions": versions}
+
+    @application.get("/api/hub/packs/{pack_id}/{version}", tags=["knowledge-packs"])
+    async def get_pinned_pack(pack_id: str, version: str) -> dict[str, object]:
+        """Resolve a specific version of a pack. Pin this in production."""
+        body = pack_registry.get_pack(pack_id, version)
+        if body is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Pack '{pack_id}' has no version '{version}'.",
+            )
+        return body
+
+    @application.get("/api/hub/sync", tags=["knowledge-packs"])
+    async def sync_packs(since: str | None = None) -> dict[str, object]:
+        """Incremental sync: list every vetted pack vetted after ``since``.
+
+        ``since`` is an ISO-8601 timestamp. Use the ``next_cursor`` value
+        from a previous response as the next ``since`` to get only the
+        deltas. ``since=None`` returns every vetted pack.
+        """
+        cursor: datetime | None = None
+        if since:
+            try:
+                cursor = datetime.fromisoformat(since.replace("Z", "+00:00"))
+            except ValueError as exc:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=f"Invalid ISO timestamp for `since`: {exc}",
+                ) from exc
+        return pack_registry.sync_since(cursor)
 
     @application.post(
         "/api/hub/signals",
@@ -610,6 +822,128 @@ def create_app(*, data_dir: Path | None = None) -> FastAPI:
             tags=["ui"],
             name=f"page::{template_name}",
             include_in_schema=False,
+        )
+
+    @application.post(
+        "/api/hub/client/submission",
+        response_model=ClientSubmissionReceipt,
+        status_code=status.HTTP_202_ACCEPTED,
+        tags=["client"],
+    )
+    async def submit_client(request: Request, body: ClientSubmissionIn) -> ClientSubmissionReceipt:
+        """Generic deployment-side submission endpoint.
+
+        The website's /contribute form posts here. A deployed DueCare
+        client posts here from inside the runtime when an operator
+        accepts a "share this update" prompt. Server-side automation runs
+        the same content-safety + PII triage either way; the curator
+        queue is shared.
+        """
+        if not body.consent_public_proposal:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail="consent_public_proposal must be True; the hub only accepts public proposals.",
+            )
+        verdict = automation.evaluate_submission(body.summary, kind=body.kind)
+        if verdict.verdict == "reject":
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail=f"Server automation rejected this submission: {'; '.join(verdict.reasons) or 'policy violation'}.",
+            )
+        state = _state(request)
+        record_id = f"cli_{uuid.uuid4().hex[:12]}"
+        proposal_status: UpdateStatus = (
+            "needs_review" if verdict.verdict == "needs_curator_review" else "proposed"
+        )
+        record = {
+            "id": record_id,
+            "received_at": datetime.now(UTC).isoformat(),
+            "kind": body.kind,
+            "deployment_id": body.deployment_id,
+            "organization": body.organization,
+            "jurisdiction": body.jurisdiction,
+            "corridor": body.corridor,
+            "public_source_url": str(body.public_source_url) if body.public_source_url else None,
+            "summary": body.summary,
+            "payload": body.payload,
+            "status": proposal_status,
+            "contact_email": body.contact_email if body.contact_publication_consent else None,
+            "contact_publication_consent": body.contact_publication_consent,
+            "automation": {
+                "verdict": verdict.verdict,
+                "intent": verdict.intent,
+                "reasons": verdict.reasons,
+                "safety_findings": verdict.safety_findings,
+                "model": verdict.model,
+            },
+        }
+        state.store.append("updates.jsonl", record)
+        return ClientSubmissionReceipt(
+            id=record_id,
+            accepted=True,
+            status=proposal_status,
+            automation_verdict=verdict.verdict,
+            automation_intent=verdict.intent,
+            automation_model=verdict.model,
+            message=(
+                "Accepted as a proposed submission. A curator will review before "
+                "any vetted pack is updated. Track at /submissions."
+            ),
+        )
+
+    @application.post(
+        "/api/hub/client/submission/retract",
+        response_model=RetractReceipt,
+        status_code=status.HTTP_200_OK,
+        tags=["client"],
+    )
+    async def retract_submission(request: Request, body: RetractRequestIn) -> RetractReceipt:
+        """Retract an unvetted submission.
+
+        Only succeeds while the submission is still ``proposed`` or
+        ``needs_review``. Once a curator has approved or rejected it, the
+        record is immutable. Wheel-side clients call this when the
+        operator clicks "Cancel my submission" before a curator has
+        reviewed.
+        """
+        state = _state(request)
+
+        def _mutate(record: dict[str, object]) -> dict[str, object]:
+            current_status = record.get("status")
+            if current_status not in {"proposed", "needs_review"}:
+                # Marker so the route can detect "found but not retractable".
+                record["__retract_blocked__"] = current_status
+                return record
+            record["status"] = "retracted"
+            record["retracted_at"] = datetime.now(UTC).isoformat()
+            if body.deployment_id:
+                record["retracted_by"] = body.deployment_id
+            if body.reason:
+                record["retracted_reason"] = body.reason
+            return record
+
+        updated = state.store.update_by_id("updates.jsonl", body.submission_id, _mutate)
+        if updated is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"No submission with id '{body.submission_id}' was found.",
+            )
+        if "__retract_blocked__" in updated:
+            blocked_status = updated.pop("__retract_blocked__")
+            # Re-rewrite the file without the marker so storage stays clean.
+            state.store.update_by_id("updates.jsonl", body.submission_id, lambda rec: rec)
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail=(
+                    f"Submission '{body.submission_id}' is in status '{blocked_status}' "
+                    "and can no longer be retracted by the client."
+                ),
+            )
+        return RetractReceipt(
+            id=body.submission_id,
+            retracted=True,
+            new_status="retracted",
+            message="Submission retracted. It will not be reviewed or published.",
         )
 
     @application.get("/openclaw", include_in_schema=False)

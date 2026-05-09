@@ -1,0 +1,62 @@
+{
+  "@context": "https://duecare-ai.com/schema/v1",
+  "@type": "GrepRulePack",
+  "id": "global-fee-rules",
+  "version": "2.1.0",
+  "schema_version": 1,
+  "status": "vetted",
+  "title": "Global recruitment-fee detection rules",
+  "summary": "Deterministic regex rules that match common recruitment-fee request patterns across corridors. Fires before the model speaks.",
+  "jurisdictions": [],
+  "corridors": [],
+  "tags": ["fees", "deterministic", "fail-closed"],
+  "source": {
+    "kind": "partner_curated",
+    "citation": "Composite ruleset for the public hub demo. Each production rule is curator-vetted with a citation."
+  },
+  "provenance": {
+    "submitted_by": "partner:duecare-curators",
+    "submitted_at": "2026-03-20T08:00:00Z",
+    "vetted_by": "curator:r.haque",
+    "vetted_at": "2026-03-28T14:02:00Z",
+    "review_notes": [
+      "Reviewed false-positive rate on a 2400-message sample; observed 1.4 percent."
+    ]
+  },
+  "content_hash": "sha256:demo-content-hash-global-fee-rules-2.1.0",
+  "content": {
+    "rules": [
+      {
+        "rule_id": "fee_request_explicit",
+        "pattern": "(?:placement|processing|agency|service)\\s+fee\\s+(?:of|is|will be)\\s+\\$?\\d",
+        "flags": ["i"],
+        "fires_for": "warn",
+        "label": "Explicit placement-fee request",
+        "rationale": "Catches verbatim placement-fee asks. Most actionable when paired with corridor context.",
+        "target_false_positive_rate": 0.02,
+        "citations": []
+      },
+      {
+        "rule_id": "fee_via_loan",
+        "pattern": "loan\\s+(?:from|with|through)\\s+(?:the\\s+)?(?:agency|recruiter|broker)",
+        "flags": ["i"],
+        "fires_for": "warn",
+        "label": "Recruitment-fee via informal loan",
+        "rationale": "Loan-from-agency is a common workaround when explicit fees are illegal.",
+        "target_false_positive_rate": 0.03,
+        "citations": []
+      },
+      {
+        "rule_id": "passport_retention",
+        "pattern": "(?:keep|hold|retain|store)\\s+(?:your\\s+)?passport",
+        "flags": ["i"],
+        "fires_for": "warn",
+        "label": "Passport-retention request",
+        "rationale": "Direct retention requests. Production rule should pair with employer/recruiter context.",
+        "target_false_positive_rate": 0.02,
+        "citations": []
+      }
+    ]
+  },
+  "extensions": {}
+}
