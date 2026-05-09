@@ -241,7 +241,7 @@ def _tracked_notebook_count() -> int:
 
 
 def _live_notebook_count() -> int:
-    return len(TRACKED_NOTEBOOK_IDS)
+    return len(LIVE_KERNEL_SLUGS)
 
 
 def _section_count() -> int:
@@ -265,8 +265,8 @@ TRACKED_NOTEBOOK_IDS = set(LOCAL_KERNEL_SLUGS)
 def _coverage_rows() -> list[dict[str, int | str]]:
     rows: list[dict[str, int | str]] = []
     for phase in PHASES:
-        notebook_ids = [nb["id"].split()[0] for nb in phase["notebooks"]]
-        first_id = notebook_ids[0]
+        notebook_ids = [nb["id"] for nb in phase["notebooks"]]
+        first_id = notebook_ids[0].split()[0]
         label_suffix = phase["label"].replace(" and ", " & ")
         rows.append(
             {
@@ -430,9 +430,9 @@ def _header_markdown() -> str:
             "A section-by-section navigation map, three recommended reading routes for judges and adopters, direct links to the public repository and judges guide, and a reliable handoff into the fastest proof notebooks."
         ),
         prerequisites_html=(
-            "CPU-only. No model loading, no API keys, and no attached datasets required. Open linked Kaggle notebooks in new tabs as needed."
+            "CPU-only. No model loading, no API keys, and no user-provided datasets required. The hidden setup cell only verifies the pinned DueCare package from PyPI or the attached wheel dataset. Open linked Kaggle notebooks in new tabs as needed."
         ),
-        runtime_html="Under 5 seconds. Static navigation notebook only.",
+        runtime_html="Under 5 seconds after dependency verification. Static navigation notebook only.",
         pipeline_html=(
             "Start of the suite. Judge fast path: "
             f"<a href='{_public_url('010', 'duecare-010-quickstart')}'>010</a> -> "
