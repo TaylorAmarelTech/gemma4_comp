@@ -340,13 +340,13 @@ header.bar .badge.loaded .dot {
   width: 100%;
 }
 .picker-vcard:hover {
-  background: #334155; border-color: #60a5fa;
+  background: #334155; border-color: #4c7a8a;
   transform: translateY(-1px);
 }
 .picker-vcard.disabled { opacity: 0.45; cursor: not-allowed; transform: none !important; }
 .picker-vcard.loading {
-  opacity: 1; border-color: #60a5fa;
-  background: rgba(59, 130, 246, 0.18);
+  opacity: 1; border-color: #4c7a8a;
+  background: rgba(76, 122, 138, 0.18);
   box-shadow: 0 0 0 1px rgba(96, 165, 250, 0.35) inset;
 }
 .picker-vcard.loaded {
@@ -355,7 +355,7 @@ header.bar .badge.loaded .dot {
 }
 .picker-vcard .vt { color: #f1f5f9; font-weight: 700; font-size: 14px; margin-bottom: 4px; }
 .picker-vcard .vsz { color: #94a3b8; font-size: 11px; }
-.picker-vcard .vfit { color: #60a5fa; font-size: 11px; margin-top: 4px; font-weight: 600; }
+.picker-vcard .vfit { color: #4c7a8a; font-size: 11px; margin-top: 4px; font-weight: 600; }
 .picker-vcard .veta {
   color: #cbd5e1; font-size: 10.5px; margin-top: 4px;
   padding-top: 4px; border-top: 1px dashed rgba(100, 116, 139, 0.4);
@@ -403,7 +403,7 @@ header.bar .badge.loaded .dot {
   cursor: pointer;
 }
 .picker-actions button:hover {
-  border-color: #60a5fa; color: #93c5fd;
+  border-color: #4c7a8a; color: #93c5fd;
 }
 .picker-logs {
   display: none;
@@ -422,7 +422,7 @@ header.bar .badge.loaded .dot {
 .picker-spinner {
   display: inline-block; width: 14px; height: 14px;
   border: 2px solid rgba(96, 165, 250, 0.3);
-  border-top-color: #60a5fa;
+  border-top-color: #4c7a8a;
   border-radius: 50%;
   animation: pickerspin 0.8s linear infinite;
   vertical-align: middle; margin-right: 8px;
@@ -462,7 +462,7 @@ header.bar .badge.loaded .dot {
   border-radius: 8px;
   padding: 12px 14px;
 }
-.compare-variant.side-a { border-left: 3px solid #3b82f6; }
+.compare-variant.side-a { border-left: 3px solid #4c7a8a; }
 .compare-variant.side-b { border-left: 3px solid #10b981; }
 .compare-toggle-row {
   display: flex; align-items: center; gap: 6px;
@@ -548,7 +548,7 @@ header.bar .badge.loaded .dot {
 }
 .modal-body .severity-critical { background: rgba(239,68,68,0.2); color: #ef4444; }
 .modal-body .severity-high     { background: rgba(245,158,11,0.2); color: #f59e0b; }
-.modal-body .severity-medium   { background: rgba(59,130,246,0.2); color: #3b82f6; }
+.modal-body .severity-medium   { background: rgba(76,122,138,0.2); color: #4c7a8a; }
 .modal-body .severity-info     { background: rgba(148,163,184,0.2); color: var(--muted); }
 .modal-persona-textarea {
   width: 100%; min-height: 320px; max-height: 60vh;
@@ -1565,7 +1565,7 @@ function openAboutModal() {
         <li><b>Persona</b> — expert anti-trafficking system prompt</li>
         <li><b style="color:#ef4444;">GREP</b> — <span data-brand-count="n_grep_rules">…</span> regex rules
             (ILO indicators, statutes, recruiter tactics)</li>
-        <li><b style="color:#3b82f6;">RAG</b> — <span data-brand-count="n_rag_docs">…</span>-doc bundled corpus
+        <li><b style="color:#4c7a8a;">RAG</b> — <span data-brand-count="n_rag_docs">…</span>-doc bundled corpus
             (ILO conventions, POEA/BP2MI circulars, HK statutes,
             NGO briefs)</li>
         <li><b style="color:#10b981;">Tools</b> — 5 lookup functions
@@ -1786,7 +1786,7 @@ async function _fetchExamples() {
 }
 
 const DIFFICULTY_COLORS = {
-  basic: '#10b981', medium: '#3b82f6', hard: '#f59e0b', expert: '#ef4444',
+  basic: '#10b981', medium: '#4c7a8a', hard: '#f59e0b', expert: '#ef4444',
 };
 
 const CATEGORY_LABELS = {
@@ -1860,11 +1860,11 @@ const CATEGORY_COLORS = {
   jailbreak_resistance:         '#ef4444',
   online_search_demo:           '#f59e0b',
   model_comparison_demo:        '#a855f7',
-  social_engineering:           '#3b82f6',
+  social_engineering:           '#4c7a8a',
   prompt_injection_amplification: '#dc2626',
   multilingual_capability:      '#06b6d4',
   // enterprise_moderation bucket — blue family
-  recruitment_ad_review:        '#3b82f6',
+  recruitment_ad_review:        '#4c7a8a',
   marketplace_listing_review:   '#2563eb',
   group_chat_signal:            '#1d4ed8',
   user_complaint_triage:        '#0ea5e9',
@@ -1919,7 +1919,7 @@ const BUCKET_DESCRIPTIONS = {
 };
 const BUCKET_COLORS = {
   model_capability:      '#a855f7',  // purple — adversarial probe
-  enterprise_moderation: '#3b82f6',  // blue — operations
+  enterprise_moderation: '#4c7a8a',  // blue — operations
   ngo_intake:            '#10b981',  // green — service delivery
   individual_query:      '#f59e0b',  // amber — direct ask
   research:              '#06b6d4',  // cyan — analysis
@@ -1943,7 +1943,7 @@ async function populateEmptyHints() {
     {id: 'jb_dan_recruiter',         label: 'Jailbreak: DAN persona attempt',                        color: '#ef4444'},
     {id: 'online_recent_enforcement', label: 'Online: recent POEA enforcement query',                color: '#f59e0b'},
     {id: 'compare_complex_multi_jurisdiction', label: 'Compare PH/SG/Saudi protections (multi-jurisdiction)', color: '#a855f7'},
-    {id: 'social_eng_humanitarian_framing',    label: 'Social-eng: humanitarian framing trap',        color: '#3b82f6'},
+    {id: 'social_eng_humanitarian_framing',    label: 'Social-eng: humanitarian framing trap',        color: '#4c7a8a'},
   ];
   const picks = curatedPicks.map(f => ({
     ...f, ex: examples.find(e => e.id === f.id),
@@ -1998,7 +1998,7 @@ async function populateEmptyHints() {
         ${multilingualPicks.map(p => `<button onclick="useExample(${attrJson(p.id)})"
             title="${escapeHtml(p.ex.translation_en || '')}\n\n${escapeHtml(p.ex.text)}"
             style="padding:6px 12px; font-size:12px; background:var(--bg); border:1px solid var(--border); color:var(--ink); border-radius:6px; cursor:pointer;">
-            <span style="display:inline-block; padding:1px 5px; background:#3b82f6; color:white; font-size:10px; font-weight:700; border-radius:3px; margin-right:5px;">${p.flag}</span>${p.name}
+            <span style="display:inline-block; padding:1px 5px; background:#4c7a8a; color:white; font-size:10px; font-weight:700; border-radius:3px; margin-right:5px;">${p.flag}</span>${p.name}
         </button>`).join('')}
       </div>
     </div>`;
@@ -2685,8 +2685,8 @@ async function openLayerModal(layer) {
       setTimeout(() => _renderRetrievalConfigPanel(), 0);
       setTimeout(() => _renderRagGraphViewer(), 0);
       html += `
-        <div style="background:rgba(59,130,246,0.06); border-left:3px solid #3b82f6; padding:10px 12px; margin-bottom:14px; border-radius:4px; font-size:12px; line-height:1.55; color:var(--ink);">
-          <div style="font-weight:700; color:#3b82f6; margin-bottom:6px;">How retrieval works in this layer (v0.6.0)</div>
+        <div style="background:rgba(59,130,246,0.06); border-left:3px solid #4c7a8a; padding:10px 12px; margin-bottom:14px; border-radius:4px; font-size:12px; line-height:1.55; color:var(--ink);">
+          <div style="font-weight:700; color:#4c7a8a; margin-bottom:6px;">How retrieval works in this layer (v0.6.0)</div>
           <div style="margin-bottom:6px;">
             <b>Pipeline (4 stages):</b>
             <ol style="margin:4px 0 6px 22px; padding:0; font-size:11.5px;">
@@ -3412,8 +3412,8 @@ function _renderLayerBody(layer, t) {
     let citationsHtml = '';
     if (t.citations && t.citations.length) {
       citationsHtml = `
-        <div style="margin-top:10px; padding:8px 10px; background:rgba(59,130,246,0.05); border-left:3px solid #3b82f6; border-radius:4px;">
-          <div style="font-weight:700; font-size:11.5px; color:#3b82f6; margin-bottom:4px;">Curated cross-references (${t.citations.length})</div>
+        <div style="margin-top:10px; padding:8px 10px; background:rgba(59,130,246,0.05); border-left:3px solid #4c7a8a; border-radius:4px;">
+          <div style="font-weight:700; font-size:11.5px; color:#4c7a8a; margin-bottom:4px;">Curated cross-references (${t.citations.length})</div>
           ${t.citations.slice(0, 8).map(c => {
             const rel = (c.relation || 'related_to').replace(/_/g, ' ');
             // Render direction explicitly: 'out' edges put the retrieved
@@ -3473,7 +3473,7 @@ function _renderLayerBody(layer, t) {
       headerParts.push(`<div style="color:var(--muted); font-size:11px; padding:6px 10px; background:var(--bg); border-radius:4px; margin-top:4px;"><b>Snippet-only mode</b> — Gemma sees the search snippets but not the page bodies. Enable <i>Deep-fetch</i> in the Online tile's <b>View &amp; Configure</b> panel to fetch + parse + GREP each page.</div>`);
     }
     if (t.answer) {
-      headerParts.push(`<div style="color:#cbd5e1; font-size:11.5px; padding:6px 10px; background:rgba(59,130,246,0.06); border-left:3px solid #3b82f6; border-radius:4px; margin-top:4px;"><b>Search-engine summary:</b> ${escapeHtml(t.answer)}</div>`);
+      headerParts.push(`<div style="color:#cbd5e1; font-size:11.5px; padding:6px 10px; background:rgba(59,130,246,0.06); border-left:3px solid #4c7a8a; border-radius:4px; margin-top:4px;"><b>Search-engine summary:</b> ${escapeHtml(t.answer)}</div>`);
     }
     // Index fetched pages by rank for quick lookup when rendering each result row.
     const pageByRank = {};
@@ -3551,7 +3551,7 @@ function openPipelineModal(messageIdx) {
   const cards = [];
   // Step 1 — User input
   cards.push(_pipelineCard({
-    step: 1, color: '#3b82f6', title: 'USER INPUT',
+    step: 1, color: '#4c7a8a', title: 'USER INPUT',
     subtitle: `${userText.length} chars · raw text the user typed`,
     body: `<pre style="background:var(--bg); padding:10px 12px; border-radius:6px; font-size:11.5px; color:#cbd5e1; white-space:pre-wrap; word-wrap:break-word; max-height:220px; overflow-y:auto; margin:0;">${escapeHtml(userText)}</pre>`,
   }));
@@ -3601,7 +3601,7 @@ function openPipelineModal(messageIdx) {
     const stageRows = pathTraceStages.map(s => {
       const color = PIPELINE_LAYER_COLOR[s._layer] || '#94a3b8';
       const stageColor = ({
-        bm25: '#3b82f6', dense: '#a855f7', rrf: '#10b981',
+        bm25: '#4c7a8a', dense: '#a855f7', rrf: '#10b981',
         rerank: '#f59e0b', graph: '#06b6d4', parent_expand: '#ec4899',
         parent_group: '#ec4899', snippet_assemble: '#94a3b8',
         dense_fail: '#ef4444', rrf_fail: '#ef4444',
@@ -4158,7 +4158,7 @@ async function openGradeModal(messageIdx) {
       pill: 'most thorough',
       eta: '~30-90s',
       desc: 'Runs both graders and blends the score 50/50, with a disagreement panel highlighting dimensions where the two signals diverge.',
-      pillColor: '#3b82f6',
+      pillColor: '#4c7a8a',
       enabled: _gradeDeepAvailable,
     },
   ];
@@ -4217,7 +4217,7 @@ async function openGradeModal(messageIdx) {
       <div style="margin-top:10px; font-size:11.5px; line-height:1.55; color:var(--ink);">
         <div style="margin-bottom:8px;"><strong style="color:#10b981;">Rule-Based</strong> walks the response through 21 deterministic rubric dimensions. For each dim, it scans for keyword clusters, regex patterns, statute references, and structural markers (numbered lists, refusal language, citation formats). Each dim resolves to <code>PASS / PARTIAL / FAIL / N/A</code> with explicit hits + misses. No LLM is called — this is the same scorer used in the +56pp benchmark. Click <em>▸ How to PASS this</em> on any FAIL/PARTIAL row in the result table to see what the rule was looking for.</div>
         <div style="margin-bottom:8px;"><strong style="color:#a855f7;">LLM-Based</strong> sends the response back to the loaded Gemma <em>once per applicable dimension</em> (~3-7s each on 31B). Each call asks a single yes/no question shaped like <em>"Does the response cite a specific ILO Convention by number? Be strict."</em> The model answers in a JSON envelope <code>{verdict, evidence_quote, rationale}</code>. The chat package verifies the evidence quote actually appears in the response (defense against hallucinated quotes) and demotes <code>yes</code> to <code>partial</code> when the quote is fabricated. <em>Click ▸ Inspect evaluator prompt + raw model response on any dim row to see exactly what was asked and what the model said.</em></div>
-        <div><strong style="color:#3b82f6;">Combined (Rule + LLM)</strong> runs both passes and blends 50/50. The disagreement panel surfaces dimensions where the two graders diverge — usually a sign that the LLM caught a paraphrased citation the keyword scanner missed, OR that the keyword scanner matched on a literal phrase that the LLM correctly rejected as out of context. Worth a manual look at each disagreement row.</div>
+        <div><strong style="color:#4c7a8a;">Combined (Rule + LLM)</strong> runs both passes and blends 50/50. The disagreement panel surfaces dimensions where the two graders diverge — usually a sign that the LLM caught a paraphrased citation the keyword scanner missed, OR that the keyword scanner matched on a literal phrase that the LLM correctly rejected as out of context. Worth a manual look at each disagreement row.</div>
         <div style="margin-top:10px; padding-top:10px; border-top:1px dashed var(--border);">
           <strong style="color:#a855f7;">Which model grades?</strong> The <em>same Gemma instance loaded for chat</em> also grades — the on-device self-grade pattern. This keeps the demo private + reproducible (no network call, no second model load).
           <div style="margin-top:6px; padding:6px 8px; background:rgba(245,158,11,0.08); border-left:2px solid #f59e0b; border-radius:3px; font-size:11px;">
@@ -4746,7 +4746,7 @@ async function _streamGradeRun(url, body, pane, mode) {
           </div>
         </div>
         <div style="height:8px; background:rgba(100,116,139,0.18); border-radius:4px; overflow:hidden; margin-bottom:14px;">
-          <div style="height:100%; width:${pct}%; background:linear-gradient(90deg, #3b82f6, #a855f7); transition:width 0.3s ease;"></div>
+          <div style="height:100%; width:${pct}%; background:linear-gradient(90deg, #4c7a8a, #a855f7); transition:width 0.3s ease;"></div>
         </div>
         ${detPanel}
         <div style="margin-top:12px; font-size:11.5px; color:var(--muted); font-weight:600; text-transform:uppercase; letter-spacing:0.4px;">
@@ -5043,7 +5043,7 @@ function _renderUniversalGradeResult(g) {
     const cc = g.citation_check || {};
     const intentBadges = (p.intents || []).map((i, idx) => {
       const isPrimary = i === p.primary_intent;
-      const colors = {refusal:'#ef4444', education:'#3b82f6', referral:'#10b981', analytical:'#a855f7', evasion:'#f59e0b'};
+      const colors = {refusal:'#ef4444', education:'#4c7a8a', referral:'#10b981', analytical:'#a855f7', evasion:'#f59e0b'};
       const c = colors[i] || '#94a3b8';
       return `<span style="background:${c}${isPrimary ? '' : '40'}; color:${isPrimary ? '#fff' : c}; padding:2px 8px; border-radius:3px; font-weight:${isPrimary ? '700' : '500'}; font-size:10.5px; margin-right:4px;">${isPrimary ? '★ ' : ''}${escapeHtml(i)}</span>`;
     }).join('');
@@ -5076,7 +5076,7 @@ function _renderUniversalGradeResult(g) {
         ${p.numeric_claims && p.numeric_claims.length ? `
         <div style="font-size:11.5px;">
           <span style="color:var(--muted);">Numeric claims (${p.n_numeric}):</span>
-          ${p.numeric_claims.map(n => `<code style="background:rgba(59,130,246,0.12); color:#60a5fa; padding:1px 5px; border-radius:3px; margin-right:3px; font-size:10.5px;">${escapeHtml(n)}</code>`).join('')}
+          ${p.numeric_claims.map(n => `<code style="background:rgba(59,130,246,0.12); color:#4c7a8a; padding:1px 5px; border-radius:3px; margin-right:3px; font-size:10.5px;">${escapeHtml(n)}</code>`).join('')}
         </div>` : ''}
       </div>
     `;
@@ -5136,7 +5136,7 @@ function _renderUniversalGradeResult(g) {
     </div>
     <div style="font-size:11px; color:var(--muted); margin-bottom:10px;">
       Detected signals: ${g.signals.grep_fired ? '<span style="color:#ef4444; font-weight:600;">GREP fired</span>' : 'no GREP'}
-      · ${g.signals.rag_fired ? '<span style="color:#3b82f6; font-weight:600;">RAG retrieved</span>' : 'no RAG'}
+      · ${g.signals.rag_fired ? '<span style="color:#4c7a8a; font-weight:600;">RAG retrieved</span>' : 'no RAG'}
       · ${g.signals.response_refuses ? '<span style="color:#10b981; font-weight:600;">response refuses</span>' : 'response does not refuse'}
     </div>
   `;
@@ -5216,7 +5216,7 @@ function _renderGradeResult(g) {
       ★ Best-fit rubric for this prompt type (<code>${escapeHtml(g.prompt_category)}</code>) — score is meaningful.
     </div>`;
   } else if (g.relevance === 'cross_cutting') {
-    relevanceBanner = `<div style="background:rgba(59,130,246,0.10); border:1px solid rgba(59,130,246,0.35); color:#60a5fa; padding:8px 12px; border-radius:6px; margin-bottom:14px; font-size:12px;">
+    relevanceBanner = `<div style="background:rgba(59,130,246,0.10); border:1px solid rgba(59,130,246,0.35); color:#4c7a8a; padding:8px 12px; border-radius:6px; margin-bottom:14px; font-size:12px;">
       This rubric applies to <b>every</b> prompt type — it scores legal-citation quality regardless of what the prompt asked.
     </div>`;
   }
@@ -5940,7 +5940,7 @@ async function _renderRetrievalConfigPanel() {
   const radio = (name, val, label, desc, current) => {
     const checked = current === val ? 'checked' : '';
     const active  = current === val;
-    return `<label style="display:flex; gap:8px; padding:6px 8px; border:1px solid ${active ? '#3b82f6' : 'var(--border)'}; border-radius:5px; cursor:pointer; ${active ? 'background:rgba(59,130,246,0.06);' : 'background:var(--bg);'}">
+    return `<label style="display:flex; gap:8px; padding:6px 8px; border:1px solid ${active ? '#4c7a8a' : 'var(--border)'}; border-radius:5px; cursor:pointer; ${active ? 'background:rgba(59,130,246,0.06);' : 'background:var(--bg);'}">
       <input type="radio" name="${name}" value="${val}" ${checked} onchange="_retrievalConfigSet('${name}', '${val}')" style="margin-top:2px;">
       <span><b style="font-size:11.5px; color:var(--ink);">${escapeHtml(label)}</b><br><span style="font-size:10.5px; color:var(--muted);">${escapeHtml(desc)}</span></span>
     </label>`;
@@ -6543,7 +6543,7 @@ function _renderComparePanel() {
 
 function _renderCompareVariantConfig(side, toggles) {
   const sideUp = side.toUpperCase();
-  const accentColor = side === 'a' ? '#3b82f6' : '#10b981';
+  const accentColor = side === 'a' ? '#4c7a8a' : '#10b981';
   const presetSelect = `
     <select onchange="_compareApplyPreset('${side}', this.value); this.value='';"
             style="margin-bottom:8px; padding:6px 8px; background:var(--bg); color:var(--ink); border:1px solid var(--border); border-radius:4px; font-size:11.5px; width:100%;">
@@ -6910,7 +6910,7 @@ function _renderCompareResults(r) {
     <div class="compare-grid" style="margin-bottom:14px;">
       <div class="compare-variant side-a">
         <div style="font-size:10px; color:var(--muted); text-transform:uppercase; font-weight:700;">Variant A · ${escapeHtml(_compareTogglesSummary(A.toggles))}</div>
-        <div style="font-size:32px; font-weight:700; color:#3b82f6; margin:4px 0;">${sA != null ? sA.toFixed(1) + '%' : 'n/a'}</div>
+        <div style="font-size:32px; font-weight:700; color:#4c7a8a; margin:4px 0;">${sA != null ? sA.toFixed(1) + '%' : 'n/a'}</div>
         <div style="font-size:11px; color:var(--muted);">${(A.response || '').length} chars · chat ${(A.chat_ms/1000).toFixed(1)}s · grade ${(A.grade_ms/1000).toFixed(1)}s</div>
       </div>
       <div class="compare-variant side-b">
@@ -6928,7 +6928,7 @@ function _renderCompareResults(r) {
     <details style="margin-bottom:14px;">
       <summary style="cursor:pointer; font-weight:700; font-size:12.5px; color:var(--ink); padding:6px 0; user-select:none;">▸ Harness pipeline (both sides)</summary>
       <div class="compare-grid" style="margin-top:8px;">
-        <div class="compare-variant side-a"><div style="font-weight:700; font-size:11px; color:#3b82f6; margin-bottom:6px;">Variant A pipeline</div>${tracePreview(A.trace)}</div>
+        <div class="compare-variant side-a"><div style="font-weight:700; font-size:11px; color:#4c7a8a; margin-bottom:6px;">Variant A pipeline</div>${tracePreview(A.trace)}</div>
         <div class="compare-variant side-b"><div style="font-weight:700; font-size:11px; color:#10b981; margin-bottom:6px;">Variant B pipeline</div>${tracePreview(B.trace)}</div>
       </div>
     </details>
@@ -6936,7 +6936,7 @@ function _renderCompareResults(r) {
     <details open style="margin-bottom:14px;">
       <summary style="cursor:pointer; font-weight:700; font-size:12.5px; color:var(--ink); padding:6px 0; user-select:none;">▸ Responses (full text, both sides)</summary>
       <div class="compare-grid" style="margin-top:8px;">
-        <div class="compare-variant side-a"><div style="font-weight:700; font-size:11px; color:#3b82f6; margin-bottom:6px;">Variant A response</div><pre style="margin:0; max-height:420px; overflow-y:auto; white-space:pre-wrap; word-wrap:break-word; font-family:ui-monospace,monospace; font-size:11px; color:#cbd5e1; line-height:1.5;">${escapeHtml(A.response || '')}</pre></div>
+        <div class="compare-variant side-a"><div style="font-weight:700; font-size:11px; color:#4c7a8a; margin-bottom:6px;">Variant A response</div><pre style="margin:0; max-height:420px; overflow-y:auto; white-space:pre-wrap; word-wrap:break-word; font-family:ui-monospace,monospace; font-size:11px; color:#cbd5e1; line-height:1.5;">${escapeHtml(A.response || '')}</pre></div>
         <div class="compare-variant side-b"><div style="font-weight:700; font-size:11px; color:#10b981; margin-bottom:6px;">Variant B response</div><pre style="margin:0; max-height:420px; overflow-y:auto; white-space:pre-wrap; word-wrap:break-word; font-family:ui-monospace,monospace; font-size:11px; color:#cbd5e1; line-height:1.5;">${escapeHtml(B.response || '')}</pre></div>
       </div>
     </details>
@@ -6948,7 +6948,7 @@ function _renderCompareResults(r) {
           <thead>
             <tr style="background:var(--bg);">
               <th style="text-align:left; padding:6px 8px; color:var(--muted); font-size:10.5px; text-transform:uppercase; letter-spacing:0.4px;">Dimension</th>
-              <th style="text-align:center; padding:6px 8px; color:#3b82f6; font-size:10.5px; text-transform:uppercase; letter-spacing:0.4px;">A</th>
+              <th style="text-align:center; padding:6px 8px; color:#4c7a8a; font-size:10.5px; text-transform:uppercase; letter-spacing:0.4px;">A</th>
               <th style="text-align:center; padding:6px 8px; color:#10b981; font-size:10.5px; text-transform:uppercase; letter-spacing:0.4px;">B</th>
               <th style="text-align:center; padding:6px 8px; color:var(--muted); font-size:10.5px; text-transform:uppercase; letter-spacing:0.4px;">Δ</th>
             </tr>
