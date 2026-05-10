@@ -1,9 +1,10 @@
 # Notebook presentation — Kaggle-safe styling and output rules
 
 > Auto-loaded by Claude Code at the project memory level. Applies to
-> every build script in `scripts/build_notebook_*.py` and every cell
-> those scripts emit into `legacy_notebooks/*.ipynb` and
-> `kaggle/kernels/*/*.ipynb`.
+> every build script in `scripts/build_notebook_*.py` and every active
+> Kaggle kernel notebook under `kaggle/kernels/*/*.ipynb`. Optional
+> local mirrors may be regenerated under root-level `legacy_notebooks/`,
+> but that folder is gitignored and not part of default review scope.
 
 The shared runtime helpers live in `scripts/_notebook_display.py`
 (use `DISPLAY_BOOTSTRAP` at the top of any cell that needs them). The
@@ -88,11 +89,11 @@ introduce new colors:
 
 | Role | Hex | Use |
 |---|---|---|
-| primary | `#4c78a8` | primary bars, main CTA links |
+| primary | `#4c7a8a` | primary bars, main CTA links |
 | success | `#10b981` | refusals, passing cases, kept rows |
 | warning | `#f59e0b` | partial-match, "neutral" band |
 | danger  | `#ef4444` | harmful content, enables-harm flag, dropped rows |
-| info    | `#3b82f6` | informational banners, neutral callouts |
+| info    | `#4c7a8a` | informational banners, neutral callouts |
 | muted   | `#6b7280` | secondary text, category tags |
 
 Background pairs (`bg_success`, `bg_warning`, `bg_danger`, `bg_info`)
