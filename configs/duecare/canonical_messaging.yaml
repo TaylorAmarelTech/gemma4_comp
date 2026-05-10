@@ -1,0 +1,112 @@
+schema_version: 1
+status: "canonical source for public messaging, lane names, component labels, and concrete data-handling copy"
+change_rule: >-
+  If a change alters the three outcomes, five lanes, public component names,
+  stale-count expectations, or sensitive-data wording, update this file first,
+  then update the affected rendered surfaces and run scripts/validate_public_messaging.py.
+
+outcomes:
+  - label: "Prevent exploitation before it spreads"
+    summary: "Help organizations and platforms stop illicit recruitment, scams, coercion, and related exploitation patterns earlier."
+  - label: "Assist victims and at-risk workers"
+    summary: "Support NGO, government, and worker-controlled workflows with grounded intake, routing, mobile guidance, and safer drafting."
+  - label: "Understand what is happening and why"
+    summary: "Help stakeholders map the who, what, where, when, and why through reproducible evidence, notebooks, packs, and trend signals."
+
+lanes:
+  - id: "01"
+    slug: "plat"
+    label: "Platform safety"
+    outcome: "Prevention"
+    summary: "Stop suspicious recruitment, scams, coercion, and illicit coordination earlier."
+  - id: "02"
+    slug: "ngo"
+    label: "NGO & regulator"
+    outcome: "Assistance"
+    summary: "Intake, triage, case-building, referrals, and enforcement support."
+  - id: "03"
+    slug: "worker"
+    label: "Individual worker / mobile"
+    outcome: "Assistance"
+    summary: "Give workers direct guidance, journaling, evidence organization, and safety planning."
+  - id: "04"
+    slug: "research"
+    label: "Researcher"
+    outcome: "Understanding"
+    summary: "Explain patterns, evaluate models, and publish reproducible findings."
+  - id: "05"
+    slug: "dev"
+    label: "Developer / integration partner"
+    outcome: "Cross-cutting"
+    summary: "Build custom deployments for prevention, assistance, or research."
+
+public_component_names:
+  public_source_crawler: "Public Information Research Monitor"
+  server_automation: "server automation"
+  vetted_pack: "vetted pack"
+  central_knowledge_server: "Central Knowledge Server"
+  local_anonymization_module: "Local Anonymization Module"
+
+legacy_names_allowed_only_for_compatibility:
+  - "OpenClaw"
+  - "OpenCrawl"
+  - "Sentinel"
+
+current_counts:
+  submission_kaggle_kernels: "13 submission Kaggle kernels"
+  submission_kernel_shape: "2 core + 11 appendix"
+  research_pipeline: "77-notebook research pipeline"
+  grep_rules: "161 GREP rules"
+  rag_docs: "46 RAG docs"
+  tools: "5 tools"
+  prompts: "587 prompts"
+  five_tier_rubrics: "207 5-tier rubrics"
+  required_rubrics: "6 required rubrics"
+  classifier_examples: "54 classifier examples"
+  universal_rubric_dimensions: "46 universal rubric dimensions"
+  llm_eval_questions: "21 LLM eval questions"
+
+data_handling:
+  public_label: "Sensitive data handling"
+  legacy_route_kept_for_compatibility: "/privacy-boundary"
+  rule: >-
+    Do not use shorthand labels as the explanation. Use full sentences that
+    name where data stays, what local Gemma 4 anonymization does, what the
+    server checks again, and what the public hub stores.
+  avoid_as_visible_copy:
+    - "Privacy is non-negotiable"
+    - "privacy boundary"
+    - "data boundary"
+    - "data-boundary"
+    - "privacy gate"
+    - "Centralized knowledge. Decentralized privacy."
+  preferred_sentences:
+    - "Raw worker chats, case files, IDs, contact details, and private documents stay on the worker device or trusted NGO hardware unless an authorized user explicitly creates a sanitized submission."
+    - "Sensitive PII is anonymized by the local Gemma 4 workflow before anything is submitted to the public hub."
+    - "The server runs a second PII detector that rejects raw-PII submissions before storage and redacts detector-class PII in admin/debug views."
+    - "The public hub stores public-source facts, vetted pack metadata, anonymized aggregate signals, hash receipts, and consented contact metadata — not raw case narratives, phone numbers, passports, addresses, or private documents."
+
+validation:
+  forbidden_phrase_globs:
+    - "README.md"
+    - "docs/writeup_draft.md"
+    - "docs/video_script.md"
+    - "apps/duecare-ai.com/app/templates/*.html"
+  lane_order_files:
+    - "README.md"
+    - "docs/GPT55_AUTOPILOT_BRIEF.md"
+    - "docs/canonical_use_cases_and_components.md"
+    - "apps/duecare-ai.com/app/templates/setup.html"
+    - "apps/duecare-ai.com/app/templates/use-cases.html"
+  required_substrings:
+    "docs/GPT55_AUTOPILOT_BRIEF.md":
+      - "configs/duecare/canonical_messaging.yaml"
+      - "Sensitive PII is anonymized by the local Gemma 4 workflow"
+      - "The server runs a second PII detector that rejects raw-PII submissions"
+    "docs/canonical_use_cases_and_components.md":
+      - "configs/duecare/canonical_messaging.yaml"
+      - "Sensitive PII is anonymized by the local Gemma 4 workflow before anything is submitted to the public hub."
+    "apps/duecare-ai.com/app/templates/privacy-boundary.html":
+      - "Sensitive data handling"
+      - "Local Gemma 4 anonymization workflow"
+      - "server runs a second PII detector"

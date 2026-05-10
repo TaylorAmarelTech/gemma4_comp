@@ -104,43 +104,66 @@ selector.
 
 ---
 
-## 3. Data-boundary framing (supporting detail, not headline)
+## 3. Canonical messaging source + concrete sensitive-data wording
 
-Privacy and data handling are **supporting boundaries**, not the headline. The user
-explicitly rejected slogan-style framing
-(`feedback_no_privacy_emphasis.md` in memory). Stop using
-"Privacy is non-negotiable" as a tagline; reframe as concrete data
-rules:
+Canonical wording is no longer something to hand-edit from memory in ten
+places. The machine-readable source of truth is
+[`configs/duecare/canonical_messaging.yaml`](../configs/duecare/canonical_messaging.yaml).
+The human-readable guide is
+[`docs/canonical_use_cases_and_components.md`](./canonical_use_cases_and_components.md).
 
-- The mobile app stores worker data on-device.
-- The NGO edge box stores case files on NGO hardware.
-- The public hub never receives either.
-- Public artifacts (Kaggle, HF Hub, Render, GitHub) contain only
-  synthetic, public, anonymized, or consented data.
-- Audit logs store hashes, never plaintext.
+If a change touches the three outcomes, five lanes, public component names,
+current counts, or sensitive-data handling language:
 
-When you mention privacy, mention it where it's load-bearing — in the
-setup-page boundary table, in the client-connect "what crosses"
-diagram, in the worker-app onboarding. Not as a recurring slogan.
+1. Update `configs/duecare/canonical_messaging.yaml` first.
+2. Update only the rendered surfaces that actually need the change.
+3. Run `c:/Users/amare/OneDrive/Documents/gemma4_comp/.venv/Scripts/python.exe scripts/validate_public_messaging.py`.
+4. If the validator fails, fix the rendered surface or the canonical file;
+   do not bypass the check with a one-off exception unless Taylor approves it.
+
+Privacy and data handling are **supporting mechanics**, not the headline. The
+user explicitly rejected slogan-style framing. Do not write vague labels and
+expect them to carry meaning. Avoid labels like "privacy boundary", "data
+boundary", or "privacy gate" as standalone explanation. Use full sentences
+that say what happens:
+
+- Raw worker chats, case files, IDs, contact details, and private documents
+  stay on the worker device or trusted NGO hardware unless an authorized user
+  explicitly creates a sanitized submission.
+- Sensitive PII is anonymized by the local Gemma 4 workflow before anything is
+  submitted to the public hub.
+- The server runs a second PII detector that rejects raw-PII submissions before
+  storage and redacts detector-class PII in admin/debug views.
+- The public hub stores public-source facts, vetted pack metadata, anonymized
+  aggregate signals, hash receipts, and consented contact metadata — not raw
+  case narratives, phone numbers, passports, addresses, or private documents.
+
+When you mention sensitive data, mention it where it is load-bearing — in the
+setup-page "what crosses" table, client-connect flow, worker-app onboarding,
+submit-information flow, and the `/privacy-boundary` compatibility route whose
+visible label is **Sensitive data handling**. Not as a recurring slogan.
 
 ---
 
 ## 4. Current pushed state (do not redo)
 
-Verified on 2026-05-09 with `git status --short; git log --oneline -8`:
-the working tree was clean and `HEAD == origin/master == b560409`.
+At the start of this refresh on 2026-05-09,
+`git status --short; git log --oneline -5` showed
+`HEAD == origin/master == ceb45a0`. Re-check before editing because Claude
+Code may still be running in another terminal and untracked files may be
+other-agent work.
 
 Recent pushed commits, newest first:
 
 ```
+ceb45a0 hub: replace "privacy is non-negotiable" headlines with concrete boundary language
+ad3d5ea hub: tag four pages with the right active_nav
+d77fb10 docs: refresh Claude autopilot handoff
 b560409 docs: rebalance messaging around outcomes
 b6aa82e docs: align active surfaces with five lanes
 32c0d40 notebooks: tag kernels with website lane labels
 2fbce61 tests: refresh chat harness expectations
 c9612fb wheel: align modal layer accents with chrome variables
-5f42ddb docs: refresh onboarding setup details
-d152dba docs: add role-based onboarding entry to README
-6ae3259 hub: align client-connect endpoints with live API
 ```
 
 Earlier pushed prep work also remains valid:
@@ -172,8 +195,9 @@ on these old results for new edits.
 
 ## 5. What's in flight now
 
-Nothing is intentionally in flight. The last verified state was a clean
-worktree at `b560409`. Start every session with:
+Do not assume the worktree is clean. The last verified pushed state before
+this brief update was `ceb45a0`, and this file may itself be superseded by a
+newer commit. Start every session with:
 
 ```powershell
 git status --short; git log --oneline -8
@@ -185,23 +209,37 @@ overwrite them casually.
 
 ## 5A. Next recommended work for Claude Code
 
-Start with **Tier 2 UI/UX consistency** unless Taylor gives a more
-specific task.
+Start with **canonical messaging consolidation and concrete sensitive-data
+copy** if Taylor mentions copy drift, source-of-truth drift, privacy wording,
+or unclear data handling. Otherwise continue **Tier 2 UI/UX consistency**.
 
 Recommended order:
 
-1. **Hub navigation + footer route audit** — read `app/main.py`,
+1. **Canonical public messaging check** — read
+  `configs/duecare/canonical_messaging.yaml`,
+  `docs/canonical_use_cases_and_components.md`, and any surface you intend to
+  edit. Do not change lane names, counts, component labels, or sensitive-data
+  sentences in one file only.
+2. **Concrete sensitive-data copy pass** — replace visible vague labels with
+  full sentences that name local Gemma 4 anonymization, server-side PII
+  rejection/redaction, and what the hub actually stores. Keep the
+  `/privacy-boundary` route for compatibility, but visible copy should say
+  "Sensitive data handling" or an equally concrete phrase.
+3. **Run the messaging validator** —
+  `c:/Users/amare/OneDrive/Documents/gemma4_comp/.venv/Scripts/python.exe scripts/validate_public_messaging.py`.
+4. **Hub navigation + footer route audit** — read `app/main.py`,
   `_nav.html`, `_footer.html`, and templates. Verify every nav/footer
   link resolves with `TestClient`; fix dead links or wrong
   `active_nav` values. This directly improves judge navigation.
-2. **Heading + accessibility sweep** — inspect templates for obvious
+5. **Heading + accessibility sweep** — inspect templates for obvious
   h1→h3 skips, unlabeled form controls, clickable `div`s, and buttons
   without accessible names. Keep fixes small and visible.
-3. **Active-surface drift grep** — scan active public docs/templates,
+6. **Active-surface drift grep** — scan active public docs/templates,
   excluding frozen/checkpoint/history docs, for stale old-use-case
   labels, stale counts, `OpenClaw`/`OpenCrawl`/`Sentinel` as public
-  product names, and `signed pack` where `vetted pack` is intended.
-4. **Tier 3 judge polish** — if Tier 2 is clean, refresh
+  product names, vague sensitive-data labels, and `signed pack` where
+  `vetted pack` is intended.
+7. **Tier 3 judge polish** — if Tier 2 is clean, refresh
   `docs/writeup_draft.md`, `docs/video_script.md`,
   `docs/FOR_PEER_REVIEW.md`, and `docs/FOR_KAGGLE_JUDGES.md` only
   where fresh verification shows drift.
@@ -210,6 +248,8 @@ Good next commit subjects:
 
 - `hub: tighten navigation and footer consistency`
 - `hub: improve template heading accessibility`
+- `docs: centralize public messaging contract`
+- `hub: clarify sensitive data handling copy`
 - `docs: refresh judge-facing handoff wording`
 - `docs: align video script with final outcomes`
 
@@ -715,16 +755,23 @@ For Python script changes:
 $PY -m compileall scripts
 ```
 
+For public messaging / lane / sensitive-data wording changes:
+
+```bash
+$PY scripts/validate_public_messaging.py
+```
+
 For docs-only changes:
 
 ```bash
 git diff --check
 ```
 
-After any docs edits affecting lane / count / setup wording, drift grep:
+After any docs edits affecting lane / count / setup wording, run the messaging
+validator above and then drift grep:
 
 ```bash
-grep -REn "6 core \+ 5|all 11 submission notebooks|3 hackathon notebooks|76-notebook|duecare packs pull|duecare packs verify|duecare harness run|signed pack|OpenClaw" \
+grep -REn "6 core \+ 5|all 11 submission notebooks|3 hackathon notebooks|76-notebook|duecare packs pull|duecare packs verify|duecare harness run|signed pack|OpenClaw|privacy boundary|data boundary|privacy gate" \
   README.md docs kaggle apps/duecare-ai.com/app/templates skunkworks 2>/dev/null
 ```
 

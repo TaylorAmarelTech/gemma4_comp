@@ -9,7 +9,7 @@
 <div class="crumbs"><a href="/">Home</a><span class="sep">/</span><a href="/hub">DueCare Hub</a><span class="sep">/</span><span>Newsletter</span></div>
 <span class="kicker">Email-only engagement model</span>
 <h1>No accounts. Subscribe by email. Reply if you want to contribute.</h1>
-<p class="lede">DueCare deliberately has no community account system. Engagement is by email: subscribe, receive periodic question prompts and reviewed digests, reply when a question intersects your work. Replies are processed through the privacy gate before any human or model reads structured fields.</p></div></section>
+<p class="lede">DueCare deliberately has no community account system. Engagement is by email: subscribe, receive periodic question prompts and reviewed digests, reply when a question intersects your work. Replies pass through a server-side PII detector before any structured fields are stored or reviewed.</p></div></section>
 
 <section class="hp-section" data-screen-label="Newsletter &middot; Subscribe"><div class="wrap">
 <div class="head"><div><span class="ix">01 &middot; Subscribe</span><h2>Pick your topics. Confirm by email.</h2></div><p class="summary">Double opt-in. Topic preferences are stored at the email provider, not on the hub. Unsubscribe is one click in every email.</p></div>
@@ -23,7 +23,7 @@
 <label class="opt"><input type="checkbox" /><span><strong>Trend rollups</strong><br/><span style="color:var(--ink-3);font-size:12.5px;">Anonymized, k-floored corridor trends.</span></span></label>
 <label class="opt"><input type="checkbox" /><span><strong>Governance</strong><br/><span style="color:var(--ink-3);font-size:12.5px;">Policy, key rotation, audit notes.</span></span></label>
 </div></div>
-<p class="note">DueCare uses a third-party email provider for subscriber storage. Your email is never written to the hub&rsquo;s database. Replies and clicks pass through the privacy gate before structured fields are extracted. <strong>Do not include case content, names, or contact details in replies.</strong></p>
+<p class="note">DueCare uses a third-party email provider for subscriber storage. Your email is never written to the hub&rsquo;s database. Replies and clicks pass through a server-side PII detector before structured fields are extracted. <strong>Do not include case content, names, or contact details in replies.</strong></p>
 <div class="actions"><button class="btn primary" type="submit">Send confirmation email</button><span class="success" hidden style="font-size:13px;color:var(--accent-ink);">Check your inbox to confirm.</span></div>
 </form></div></section>
 
@@ -36,10 +36,10 @@
 </div></div></section>
 
 <section class="hp-section" data-screen-label="Newsletter &middot; Reply flow"><div class="wrap">
-<div class="head"><div><span class="ix">03 &middot; What happens to a reply</span><h2>Privacy gate, structured extraction, curator review.</h2></div><p class="summary">No human or model sees a reply&rsquo;s structured form until the privacy gate clears it.</p></div>
+<div class="head"><div><span class="ix">03 &middot; What happens to a reply</span><h2>PII check, structured extraction, curator review.</h2></div><p class="summary">No human or model sees a reply&rsquo;s structured form until the server-side PII detector clears it.</p></div>
 <div class="hp-flow">
 <div class="step"><span class="num">01</span><div><h4>Inbound webhook</h4><p>Email provider posts the reply to the hub&rsquo;s inbound webhook. Raw email is held in the provider, not the hub.</p></div></div>
-<div class="step"><span class="num">02</span><div><h4>Privacy gate</h4><p>PII detector scans the reply. Anything resembling a case narrative is dropped and the submitter is told why.</p></div></div>
+<div class="step"><span class="num">02</span><div><h4>PII check</h4><p>The server-side PII detector scans the reply. Anything resembling a case narrative is dropped and the submitter is told why.</p></div></div>
 <div class="step"><span class="num">03</span><div><h4>LLM extraction</h4><p>The harness extracts a structured object that matches one of the safe submission types (URL update, observation, ranking, etc.).</p></div></div>
 <div class="step"><span class="num">04</span><div><h4>Curator review</h4><p>A human curator reviews the structured object. Approve, edit, reject, or hold for more info.</p></div></div>
 <div class="step"><span class="num">05</span><div><h4>Outcome</h4><p>Approved objects become pack diffs, contact updates, or eval candidates. The submitter receives a structured receipt.</p></div></div>

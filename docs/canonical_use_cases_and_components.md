@@ -1,7 +1,10 @@
 # Canonical outcomes, lanes, and plain-language component architecture
 
-> Status: canonical language guide for the website, writeup, video, notebooks, and public docs.
-> Rule: lead mission/demo/intro copy with the three outcomes; use the five lanes in this exact order everywhere.
+> Status: human-readable companion to the machine-readable public messaging
+> contract at [`configs/duecare/canonical_messaging.yaml`](../configs/duecare/canonical_messaging.yaml).
+> Rule: change the config first when outcomes, lanes, component names,
+> counts, or sensitive-data wording change; then update rendered docs and run
+> `scripts/validate_public_messaging.py`.
 
 ## 1. Three outcomes
 
@@ -124,9 +127,14 @@ Examples of information objects:
 - `ToolDefinition`: tool name, inputs, outputs, safety boundary, display text.
 - `ResponseRanking`: prompt, candidate responses, stakeholder ranking from worst to best.
 
-### Group C — Privacy and submission
+### Group C — Sensitive data handling and submission
 
-These components are the privacy boundary. Raw worker details must not cross into the central public hub.
+Do not explain this area with a shorthand label. Use full sentences:
+
+- Raw worker chats, case files, IDs, contact details, and private documents stay on the worker device or trusted NGO hardware unless an authorized user explicitly creates a sanitized submission.
+- Sensitive PII is anonymized by the local Gemma 4 workflow before anything is submitted to the public hub.
+- The server runs a second PII detector that rejects raw-PII submissions before storage and redacts detector-class PII in admin/debug views.
+- The public hub stores public-source facts, vetted pack metadata, anonymized aggregate signals, hash receipts, and consented contact metadata — not raw case narratives, phone numbers, passports, addresses, or private documents.
 
 | Plain-language component | Technical nickname | What it does | What it displays | Communicates with |
 |---|---|---|---|---|
@@ -135,7 +143,7 @@ These components are the privacy boundary. Raw worker details must not cross int
 
 Hard rule:
 
-> The public server receives anonymized signals and public-source facts, not raw worker chats, phone numbers, addresses, passports, or personal case narratives.
+> The public server receives anonymized signals, public-source facts, vetted pack metadata, hash receipts, and consented contact metadata — not raw worker chats, phone numbers, addresses, passports, private documents, or personal case narratives.
 
 ### Group D — Central server, public website, and shared intelligence
 

@@ -382,13 +382,13 @@
   <div class="wrap">
     <div class="privacy-band" style="grid-template-columns: 1.4fr 1fr;">
       <div>
-        <span class="pill privacy" style="margin-bottom: 16px;"><span class="dot"></span>Privacy boundary</span>
+        <span class="pill privacy" style="margin-bottom: 16px;"><span class="dot"></span>Sensitive data handling</span>
         <h2 style="font-size: 32px; max-width: 22ch;">The grep layer is local, always.</h2>
         <p>No grep rule fires on the hub. No matched text, classification result, or
           confidence score is ever sent upstream. The only thing that can. optionally
-          cross the boundary is a anonymized aggregated <em>pattern_id × corridor × sector</em>
-          tuple, after the anonymizer gate.</p>
-        <p style="margin-top: 8px;"><strong>The grep layer never crosses the boundary.</strong></p>
+          be submitted is an anonymized aggregate <em>pattern_id × corridor × sector</em>
+          tuple, after local Gemma 4 anonymization and the server-side PII detector.</p>
+        <p style="margin-top: 8px;"><strong>The grep layer never sends matched text to the public hub.</strong></p>
       </div>
       <div class="privacy-rules">
         <div class="rule"><span class="x">×</span><span class="label">Matched message text crosses the boundary</span></div>

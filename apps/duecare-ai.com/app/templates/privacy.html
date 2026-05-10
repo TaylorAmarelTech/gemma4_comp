@@ -1,24 +1,23 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Privacy boundary · DueCare AI</title><link rel="stylesheet" href="/static/styles.css"/>
+<title>Sensitive data handling · DueCare AI</title><link rel="stylesheet" href="/static/styles.css"/>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%230E1116'/%3E%3Ctext x='16' y='21' text-anchor='middle' font-family='monospace' font-weight='700' font-size='14' fill='%23F7F6F1'%3ED%3C/text%3E%3C/svg%3E"/>
 </head><body>
 {% set active_nav = "hub" %}
 {% include "_nav.html" %}
 <section class="page-intro first"><div class="wrap">
-<div class="crumbs"><a href="/">Home</a><span class="sep">/</span><span>Privacy boundary</span></div>
-<span class="kicker privacy" style="color:oklch(0.40 0.12 45);"><span style="background:var(--ember);"></span>privacy boundary</span>
+<div class="crumbs"><a href="/">Home</a><span class="sep">/</span><span>Sensitive data handling</span></div>
+<span class="kicker privacy" style="color:oklch(0.40 0.12 45);"><span style="background:var(--ember);"></span>sensitive data handling</span>
 <h1 style="max-width:18ch;">The hub does not receive raw cases.</h1>
-<p class="lede">This page is the contract. If anything Duecare ships ever appears to violate
-the rules below, treat it as a bug report. The boundary is enforced in code, not in copy.</p>
+<p class="lede">This page is the contract. Raw worker chats, case files, IDs, contact details, and private documents stay on the worker device or trusted NGO hardware unless an authorized user creates a sanitized submission. Sensitive PII is anonymized by the local Gemma 4 workflow before anything is submitted; the server runs a second PII detector before storage or display.</p>
 </div></section>
 
 <section><div class="wrap">
 <table class="std">
 <thead><tr><th>Category</th><th>Stays local</th><th>May cross hub</th><th>Enforcement</th></tr></thead>
 <tbody>
-<tr><td>Worker case content</td><td>Always</td><td>Never</td><td>Schema rejects free-text case fields. Edge filter scans payloads.</td></tr>
-<tr><td>Names · IDs · contacts</td><td>Always</td><td>Never</td><td>No PII columns exist on any public hub table.</td></tr>
+<tr><td>Worker case content</td><td>Always</td><td>Never</td><td>Local Gemma 4 anonymization must happen before submission; server schemas reject raw case fields.</td></tr>
+<tr><td>Worker names · IDs · contacts</td><td>Always</td><td>Never</td><td>Server-side PII detector rejects identifier-shaped strings before storage.</td></tr>
 <tr><td>Anonymized pattern_id (e.g. <code>fee_request</code>)</td><td>Originates locally</td><td>Yes. opt-in</td><td>Per-turn opt-in. K-anon ≥ 30 floor or rejected.</td></tr>
 <tr><td>Corridor / sector buckets</td><td>Originates locally</td><td>Yes. anonymized only</td><td>Anonymized buckets only; no time-of-day precision.</td></tr>
 <tr><td>Public-source URLs</td><td>—</td><td>Yes (intended)</td><td>Reviewed by curators before publication.</td></tr>
@@ -30,7 +29,7 @@ the rules below, treat it as a bug report. The boundary is enforced in code, not
 <div class="rail"><span class="cap">Hard rule 01</span><h4>No raw case intake.</h4><p>The hub has no endpoint that accepts worker case content. None will be added.</p></div>
 <div class="rail"><span class="cap">Hard rule 02</span><h4>No auto-reporting.</h4><p>Duecare drafts; the user or trusted caseworker decides. The hub does not send messages on anyone's behalf.</p></div>
 <div class="rail"><span class="cap">Hard rule 03</span><h4>No legal counsel.</h4><p>Duecare is not a law firm, an emergency response service, or an official complaint authority. It cites public sources and routes to verified contacts.</p></div>
-<div class="rail"><span class="cap">Hard rule 04</span><h4>No surprise telemetry.</h4><p>Aggregate signals are opt-in per partner and per turn. The default for new deployments is off.</p></div>
+<div class="rail"><span class="cap">Hard rule 04</span><h4>Second server-side PII pass.</h4><p>The server rejects raw-PII submissions before storage and redacts detector-class PII in admin/debug views.</p></div>
 </div>
 </div></section>
 
