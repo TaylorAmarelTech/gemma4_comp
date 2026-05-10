@@ -1,5 +1,13 @@
 # duecare-llm-research-tools
 
+<!-- audit-allow-file:drift
+reason: documents the actual class name (OpenClawTool) and the literal
+env-var names (OPENCLAW_*) that this package exposes. Renaming the
+class/env vars is queued separately; until then the README has to
+refer to them by their real names.
+-->
+
+
 External-research tools the Duecare harness can call. Used by the
 reactive trigger pipeline (`Stage 5d`) to fetch additional context
 that the local pipeline doesn't have:

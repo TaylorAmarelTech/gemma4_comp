@@ -111,3 +111,6 @@ _work/
 # Persists to a Render disk in production; never commit local copies.
 .duecare/
 apps/duecare-ai.com/.duecare/
+
+# Local audit / TestClient smoke directory created by validate_public_surface.py
+.duecare-smoke/

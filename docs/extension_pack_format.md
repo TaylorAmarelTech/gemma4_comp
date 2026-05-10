@@ -282,7 +282,7 @@ to the worker before they accept the merge.
   worker to install each pack explicitly.
 - **Replay protection.** `expires_at` + per-version monotonic
   ordering prevents an attacker from serving a stale-but-validly-
-  signed pack to override a fix.
+  vetted pack to override a fix.
 
 ## Lifecycle / governance
 

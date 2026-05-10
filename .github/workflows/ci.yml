@@ -101,6 +101,48 @@ jobs:
           python scripts/prompt_corpus.py stats
           python scripts/prompt_corpus.py export-by-category
 
+  validate-public-surface:
+    name: public-surface audit (drift, route 200s, lane order, kaggle lane labels)
+    runs-on: ubuntu-latest
+    # Non-blocking initially: surface findings as a job summary so we
+    # can iterate on signal/noise. Promote to blocking by removing
+    # `continue-on-error: true` once consistently green.
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install hub deps (FastAPI + Pydantic)
+        run: |
+          python -m pip install --no-cache-dir --upgrade pip
+          python -m pip install --no-cache-dir -e apps/duecare-ai.com
+      - name: Run public-surface audit
+        id: audit
+        run: |
+          set +e
+          python scripts/validate_public_surface.py | tee /tmp/audit.txt
+          echo "exit=$?" >> "$GITHUB_OUTPUT"
+      - name: Job summary
+        if: always()
+        run: |
+          {
+            echo "## Public-surface audit"
+            echo ""
+            echo '```'
+            cat /tmp/audit.txt
+            echo '```'
+            echo ""
+            echo "Convention + allowlist syntax: see [\`docs/AUDIT.md\`](../tree/${{ github.sha }}/docs/AUDIT.md)."
+          } >> "$GITHUB_STEP_SUMMARY"
+      - name: Fail step if audit had findings
+        if: steps.audit.outputs.exit != '0'
+        run: |
+          echo "::warning::public-surface audit reported findings — see job summary"
+          # not failing the job (continue-on-error: true on the job)
+          exit 0
+
   harness-smoke:
     name: harness smoke (counts at thresholds)
     runs-on: ubuntu-latest

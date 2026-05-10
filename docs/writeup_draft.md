@@ -37,6 +37,7 @@ DueCare has two product surfaces.
 
 Each response can be scored by deterministic rules, Gemma-as-judge, or a combined mode across 46 safety dimensions. The point is visible technical depth: users can see which rule fired, which document was retrieved, which tool returned a value, and how the score changed when layers are toggled.
 
+<!-- audit-allow:drift  reason: explicitly documents the OpenClaw -> server automation rename and backward-compat policy -->
 **The public hub** is the coordination layer at duecare-ai.com. It serves a schema-backed knowledge-object hierarchy, a real pack registry with four example packs, public pack APIs, server-side automation for public-source update triage, a reference `hub_client.py`, and token-gated redacted admin logs. Legacy OpenClaw aliases remain as redirects and env-var fallbacks, but the public language is now server automation. Render deployment uses one FastAPI Docker service plus a persistent disk; raw worker case content stays in worker-controlled or tenant-controlled deployments.
 
 ## 3. Why Gemma 4 matters
