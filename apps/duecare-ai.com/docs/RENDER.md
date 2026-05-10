@@ -14,20 +14,20 @@ Render Web Service (Docker, FastAPI)
 Talks to:
   ├── public browsers
   ├── partner systems posting anonymized signals
-  ├── OpenClaw/OpenCrawl-style public-source crawlers
+   ├── public-source crawler jobs
   └── curator workflows that review proposed pack changes
 ```
 
-## OpenClaw-style backend fit
+## Server-automation backend fit
 
-The OpenClaw/PathNav backend kit works for DueCare on Render because the
+The lightweight PathNav-style backend pattern works for DueCare on Render because the
 runtime assumptions match: one Docker web service, a persistent disk, a
 public health endpoint, file-backed JSONL state, and optional server-side
 automation inside the same FastAPI process. DueCare should not lift the full
 71-route surface. It only needs the kit patterns that protect the public
 coordination layer without weakening the privacy boundary.
 
-| OpenClaw pattern | DueCare status on Render |
+| Backend pattern | DueCare status on Render |
 |---|---|
 | Storage abstraction | Implemented as `FileHubStore` writing append-only JSONL under `DUECARE_DATA_DIR`; Render disk mounts at `/app/.duecare`. |
 | Health probe | Implemented at `/api/health`; Render health check should point there. |
@@ -46,7 +46,7 @@ coordination layer without weakening the privacy boundary.
    The hub is a single-instance Render service with a mounted volume at `/app/.duecare`. It stores append-only JSONL files for anonymized signals and public-source update proposals.
 
 2. **One process, no worker service yet.**
-   This version has no recurring jobs. A future inline worker can run freshness checks for public contact URLs without adding another service. If added, keep the OpenClaw shape: one idempotent tick endpoint, a heartbeat endpoint, a persisted queue, and token-gated cron access.
+   This version has no recurring jobs. A future inline worker can run freshness checks for public contact URLs without adding another service. If added, keep the server-automation shape: one idempotent tick endpoint, a heartbeat endpoint, a persisted queue, and token-gated cron access.
 
 3. **Inline server automation only for public-source triage.**
    The Render service can call a configured text model through `automation.py` to classify public-source update proposals. It must never run raw worker chats or case narratives through a hosted provider.

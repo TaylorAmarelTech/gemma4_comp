@@ -78,9 +78,10 @@ GET  /api/contacts             — directory with corridor / country / category 
 GET  /api/governance{,/<name>} — curator-block index + raw JSON
 ```
 
-## What it serves to each canonical use case
+## What it serves to each canonical lane
 
-- **Platform Safety:** moderation risk trace via `/api/grade` + per-message `▸ View pipeline` audit.
-- **NGO / Regulators:** case-intake console (the chat surface) + classifier surface + 26-entry contacts + `/static/hotlines.html`.
-- **Migrant Worker Chat:** 11-language analog classifier + 5 colored quick-action buttons + Imports for evidence attach.
-- **Academic Research:** 46-dim universal rubric + `/api/grade-deep` LLM-judge + reproducibility notebooks.
+- **Platform safety:** moderation risk trace via `/api/grade` + per-message `▸ View pipeline` audit.
+- **NGO & regulator:** case-intake console (the chat surface) + classifier surface + 26-entry contacts + `/static/hotlines.html`.
+- **Individual worker / mobile:** 11-language analog classifier + 5 colored quick-action buttons + Imports for evidence attach.
+- **Researcher:** 46-dim universal rubric + `/api/grade-deep` LLM-judge + reproducibility notebooks.
+- **Developer / integration partner:** API endpoints, schema contracts, and trace payloads for embedding the harness in custom products.

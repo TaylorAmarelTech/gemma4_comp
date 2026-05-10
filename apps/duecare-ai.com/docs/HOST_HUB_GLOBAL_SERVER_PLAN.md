@@ -58,7 +58,7 @@ Knowledge Packs include:
 - evaluation rubrics;
 - approved training/evaluation examples.
 
-The hub does not need to store every heavy artifact directly. It can publish signed metadata that points to GitHub releases, Kaggle datasets, Hugging Face artifacts, object storage, or package versions.
+The hub does not need to store every heavy artifact directly. It can publish versioned metadata that points to GitHub releases, Kaggle datasets, Hugging Face artifacts, object storage, or package versions.
 
 Each pack should display:
 
@@ -140,7 +140,7 @@ Allowed submission types:
 - knowledge-pack correction;
 - user-generated Knowledge Pack proposal;
 - synthetic demo example;
-- signed partner proposal.
+- registered partner proposal.
 
 Disallowed submission types:
 
@@ -187,7 +187,7 @@ User-generated pack proposal
   -> content-attack and prompt-injection scan
   -> human curator review
   -> Quality Testing Framework regression check
-  -> signed downloadable pack or rejection
+  -> vetted downloadable pack or rejection
 ```
 
 The LLM evaluator should check for:
@@ -257,7 +257,7 @@ Public source found
   -> Knowledge Formatter proposal
   -> curator review
   -> Quality Testing Framework regression check
-  -> signed Knowledge Pack update
+  -> vetted Knowledge Pack update
 ```
 
 ### 9. Maintains curator and review queues
@@ -286,7 +286,7 @@ Distribution methods:
 
 - pack registry page;
 - API endpoints;
-- signed manifests;
+- versioned manifests;
 - changelog pages;
 - newsletter / alert digest;
 - webhook notifications;
@@ -316,7 +316,7 @@ The LLM can draft and process the engagement loop, but it should not be the fina
 LLM-supported tasks:
 
 - draft newsletter questions from pack gaps, new public-source updates, and evaluation failures;
-- adapt questions for Platform Safety, NGO / Regulators, Migrant Worker Chat partners, Academic Research, and Hub/Host operators;
+- adapt questions for Platform safety, NGO & regulator, Individual worker / mobile, Researcher, Developer / integration partner, and hub operators;
 - classify inbound replies into allowed information-object types;
 - detect likely raw case material or PII and quarantine it;
 - summarize safe observations;
@@ -365,15 +365,15 @@ These pages make the Host / Hub / Global Server understandable for judges and pa
 | Route | Page | Purpose | Primary content |
 |---|---|---|---|
 | `/hub` | Duecare Hub overview | Explains the hosted server and why it exists. | Centralized knowledge / decentralized privacy; what the hub does; what it never stores; flow diagram; links to APIs and registries. |
-| `/mission` | Mission statement | Explains the human purpose, five pillars, privacy promise, and what Duecare does not do. | Mission statement, problem framing, five-pillar overview, composite character, privacy promise, partner ecosystem wording. |
+| `/mission` | Mission statement | Explains the human purpose, three outcomes, five lanes, privacy boundary, and what Duecare does not do. | Mission statement, problem framing, five-lane overview, composite character, privacy boundary, partner ecosystem wording. |
 | `/knowledge-packs` | Knowledge Pack registry | Shows packs as first-class hosted assets. | Pack cards, versions, status, source types, privacy status, pull instructions, changelog links. |
 | `/shared-packs` | User-generated shared packs | Clearly labels community/user-generated packs and shows safety review status before download. | User-generated content labels, LLM evaluation summary, curator status, source/provenance notes, optional public contributor contact metadata. |
 | `/tools-registry` | Tool registry | Shows hosted/importable tools. | Tool cards, input/output schemas, local-vs-hub boundary, safety notes, example payloads. |
 | `/submit-information` | Share information safely | Explains and implements safe submission categories. | Public-source URL form; anonymized pattern form; contact update form; response ranking form; no-raw-case consent gate. |
-| `/research-monitor` | Public Information Research Monitor | Explains knowledge acquisition from public sources. | Source categories, crawler/proposal flow, freshness checks, human review, OpenClaw/OpenCrawl proposal examples. |
+| `/research-monitor` | Public Information Research Monitor | Explains knowledge acquisition from public sources. | Source categories, crawler/proposal flow, freshness checks, human review, public-source crawler proposal examples. |
 | `/privacy-boundary` | Hub privacy boundary | Makes the trust boundary explicit. | Outbound anonymization, inbound anonymization, disallowed data, hash receipts, review states. |
 | `/newsletter` | Email newsletter and questions | Accountless subscription page for stakeholder engagement. | Email-only subscription, consent language, topic choices, question examples, unsubscribe promise, no-raw-case warning. |
-| `/technical-docs` | Technical documentation and templates | Documents implementation templates, OpenClaw/OpenCrawl proposal shape, pack lifecycle, tool schemas, API quick reference, and safe feedback processing. | Template catalog, scraper proposal fields, Knowledge Pack lifecycle, tool schemas, email feedback flow, privacy table, live/prototype/roadmap labels. |
+| `/technical-docs` | Technical documentation and templates | Documents implementation templates, public-source crawler proposal shape, pack lifecycle, tool schemas, API quick reference, and safe feedback processing. | Template catalog, scraper proposal fields, Knowledge Pack lifecycle, tool schemas, email feedback flow, privacy table, live/prototype/roadmap labels. |
 
 ### P1 — partner and maintainer workflows
 
@@ -443,7 +443,7 @@ Add four plain cards:
 4. **Evaluate content attacks** — run user-generated pack proposals through an LLM safety evaluator, content-attack scan, and curator review.
 5. **Review before release** — route submissions through privacy and curator gates.
 6. **Ask better questions by email** — send targeted newsletter questions and process replies into safe review objects.
-7. **Distribute improvements** — ship signed pack updates, alerts, tests, and training candidates.
+7. **Distribute improvements** — ship vetted pack updates, alerts, tests, and training candidates.
 
 ## API and data model expansion
 
@@ -511,7 +511,7 @@ The hub should appear in the video as the shared intelligence layer:
 8. A user-generated shared pack proposal is labeled as user-generated and routed through the LLM content-safety evaluator.
 9. A public-source update is proposed through the Research Monitor.
 10. A curator approves a pack diff.
-11. A signed Knowledge Pack update becomes available to every deployment.
+11. A vetted Knowledge Pack update becomes available to every deployment.
 
 This makes the hub visible without pretending it is a full case-management system.
 

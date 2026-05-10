@@ -42,7 +42,7 @@
           <li>Response ranking on a synthetic prompt</li>
           <li>Knowledge-pack correction with citation</li>
           <li>Synthetic demo example for the evaluation suite</li>
-          <li>Signed partner proposal (registered curator key)</li>
+          <li>Registered partner proposal (curator-reviewed)</li>
         </ul>
       </div>
       <div class="hp-deny">
@@ -73,7 +73,7 @@
       <div class="step"><span class="num">02</span><div><h3>Privacy gate</h3><p>PII detector scans every text field. If it triggers, the submission is rejected with a reason; nothing is stored.</p></div></div>
       <div class="step"><span class="num">03</span><div><h3>Quarantine if uncertain</h3><p>Borderline submissions land in a quarantine queue, never the public store.</p></div></div>
       <div class="step"><span class="num">04</span><div><h3>Curator review</h3><p>A human curator reviews accepted submissions and decides what they become: pack diff, tool proposal, contact update, eval candidate.</p></div></div>
-      <div class="step"><span class="num">05</span><div><h3>Quality testing</h3><p>If a submission becomes a pack diff, it runs through the regression suite before anything is signed.</p></div></div>
+      <div class="step"><span class="num">05</span><div><h3>Quality testing</h3><p>If a submission becomes a pack diff, it runs through the regression suite before anything is published.</p></div></div>
       <div class="step"><span class="num">06</span><div><h3>Receipt to submitter</h3><p>The submitter receives a structured receipt with the review state. No identifying details about reviewers leave the hub.</p></div></div>
     </div>
   </div>
@@ -86,7 +86,7 @@
       <p class="summary">No accounts. Three channels: API for partners, email for everyone, web form for one-off submissions.</p>
     </div>
     <div class="hp-grid-3">
-      <article class="hp-card"><span class="role">Channel 01</span><h3>Partner API</h3><p>Signed partners post structured objects to <code>POST /api/hub/signals</code> or <code>POST /api/hub/opencrawl/updates</code>. Reviewed by curators on the same queue as everything else.</p></article>
+      <article class="hp-card"><span class="role">Channel 01</span><h3>Partner API</h3><p>Registered partners post structured objects to <code>POST /api/hub/signals</code> or <code>POST /api/hub/opencrawl/updates</code>. Reviewed by curators on the same queue as everything else.</p></article>
       <article class="hp-card"><span class="role">Channel 02</span><h3>Email</h3><p>Reply to a newsletter question, or write to <code>submissions@duecare-ai.com</code>. Replies are passed through the privacy gate before any human or model reads structured fields.</p></article>
       <article class="hp-card"><span class="role">Channel 03</span><h3>Web form</h3><p>One-off submissions through a lightweight form with strict object types. No free-text catch-all field exists.</p></article>
     </div>

@@ -29,7 +29,7 @@ The monorepo root `render.yaml` is the authoritative Render blueprint.
 - Accepts anonymized or aggregate safety-pattern signals.
 - Rejects obvious raw PII in free-text summaries.
 - Lists Duecare knowledge-pack metadata for RAG, GREP, contacts, rubrics, examples, tools, and jurisdictions.
-- Accepts OpenClaw/OpenCrawl-style public-source update proposals for curator review.
+- Accepts public-source crawler-style update proposals for curator review.
 - Persists signals and proposals to a Render persistent disk using JSONL files.
 - Exposes public OpenAPI docs at `/docs`.
 
@@ -133,4 +133,4 @@ No API keys are required for the initial public hub.
 - Kaggle proves the Gemma 4 model + harness behavior.
 - `duecare-ai.com` proves the public coordination layer.
 - Local/mobile deployments keep sensitive cases private.
-- The hub only exchanges anonymized patterns, public-source proposals, prompts, evaluation manifests, and signed knowledge-pack metadata.
+- The hub only exchanges anonymized patterns, public-source proposals, prompts, evaluation manifests, and vetted knowledge-pack metadata.

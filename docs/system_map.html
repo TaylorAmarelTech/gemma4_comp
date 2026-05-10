@@ -123,7 +123,7 @@
   }
   .core-flow {
     display: grid;
-    grid-template-columns: 1fr auto 1fr auto 1fr auto 1fr;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
     gap: 0.5rem;
     align-items: center;
     padding: 0.75rem;
@@ -216,11 +216,11 @@
 
 <div class="stats">
   <div class="stat"><span class="stat-num">14</span><span class="stat-label">User personas</span></div>
-  <div class="stat"><span class="stat-num">12</span><span class="stat-label">Kaggle notebooks</span></div>
+  <div class="stat"><span class="stat-num">13</span><span class="stat-label">Kaggle notebooks</span></div>
   <div class="stat"><span class="stat-num">17</span><span class="stat-label">PyPI packages</span></div>
   <div class="stat"><span class="stat-num">5</span><span class="stat-label">Deployment topologies</span></div>
-  <div class="stat"><span class="stat-num">42</span><span class="stat-label">GREP rules</span></div>
-  <div class="stat"><span class="stat-num">26</span><span class="stat-label">RAG docs</span></div>
+  <div class="stat"><span class="stat-num">161</span><span class="stat-label">GREP rules</span></div>
+  <div class="stat"><span class="stat-num">46</span><span class="stat-label">RAG docs</span></div>
   <div class="stat"><span class="stat-num">20</span><span class="stat-label">Migration corridors</span></div>
   <div class="stat"><span class="stat-num">11</span><span class="stat-label">ILO indicators</span></div>
   <div class="stat"><span class="stat-num">+56.5pp</span><span class="stat-label">Mean harness lift</span></div>
@@ -229,7 +229,7 @@
 <div class="legend">
   <div class="legend-item"><span class="swatch user"></span> Users / Personas</div>
   <div class="legend-item"><span class="swatch surface"></span> Product Surfaces</div>
-  <div class="legend-item"><span class="swatch notebook"></span> Kaggle Notebooks (6 core + 5 appendix)</div>
+  <div class="legend-item"><span class="swatch notebook"></span> Kaggle Notebooks (2 core + 11 appendix)</div>
   <div class="legend-item"><span class="swatch pkg"></span> PyPI Packages (17)</div>
   <div class="legend-item"><span class="swatch topology"></span> Deployment Topologies (5)</div>
 </div>
@@ -324,78 +324,81 @@
   </div>
 </div>
 
-<!-- LAYER 3: 4-LAYER HARNESS -->
+<!-- LAYER 3: 6-LAYER HARNESS -->
 <div class="layer">
-  <h2 class="layer-title">Layer 3 · The 5-layer harness (Persona &rarr; GREP &rarr; RAG &rarr; Tools &rarr; Online)</h2>
+  <h2 class="layer-title">Layer 3 · The 6-layer harness (Persona &rarr; Imports &rarr; GREP &rarr; RAG &rarr; Tools &rarr; Online)</h2>
   <div class="core-flow">
     <div class="flow-step"><strong>① Persona</strong>40-yr expert<br>system prompt</div>
-    <div class="arrow">→</div>
-    <div class="flow-step"><strong>② GREP</strong>42 regex KB<br>+ citations</div>
-    <div class="arrow">→</div>
-    <div class="flow-step"><strong>③ RAG</strong>BM25 over<br>26 docs</div>
-    <div class="arrow">→</div>
-    <div class="flow-step"><strong>④ Tools</strong>4 function<br>calls (Gemma 4)</div>
+    <div class="flow-step"><strong>② Imports</strong>domain pack<br>examples + rubrics</div>
+    <div class="flow-step"><strong>③ GREP</strong>161 regex KB<br>+ citations</div>
+    <div class="flow-step"><strong>④ RAG</strong>BM25 over<br>46 docs</div>
+    <div class="flow-step"><strong>⑤ Tools</strong>5 function<br>calls (Gemma 4)</div>
+    <div class="flow-step"><strong>⑥ Online</strong>fresh public<br>source checks</div>
   </div>
   <div style="text-align: center; color: var(--muted); font-size: 0.8125rem;">
-    Output: 7-card pipeline modal · ① user input → ② persona → ③ GREP hits → ④ RAG docs → ⑤ tool calls → ⑥ FINAL MERGED PROMPT → ⑦ Gemma response
+    Output: trace view · user input → six layer contributions → FINAL MERGED PROMPT → Gemma response
   </div>
 </div>
 
 <!-- LAYER 4: KAGGLE NOTEBOOKS -->
 <div class="layer">
-  <h2 class="layer-title">Layer 4 · Kaggle notebooks (6 core + 5 appendix)</h2>
+  <h2 class="layer-title">Layer 4 · Kaggle notebooks (2 core + 11 appendix)</h2>
   <div style="font-size: 0.8125rem; color: var(--muted); margin-bottom: 0.625rem;">CORE (walk in order)</div>
   <div class="grid cols-3">
     <div class="node notebook" data-type="notebook" data-id="nb1">
-      <div class="node-title">1. chat-playground</div>
-      <div class="node-sub">Raw Gemma 4 baseline (NO harness)</div>
+      <div class="node-title">01. duecare-harness-chat</div>
+      <div class="node-sub">All 6 layers · all grading modes · model picker</div>
     </div>
     <div class="node notebook" data-type="notebook" data-id="nb2">
-      <div class="node-title">2. chat-playground-with-grep-rag-tools</div>
-      <div class="node-sub">⭐ The headline demo · 4 toggles + Pipeline modal</div>
-    </div>
-    <div class="node notebook" data-type="notebook" data-id="nb3">
-      <div class="node-title">3. content-classification-playground</div>
-      <div class="node-sub">4-schema JSON sandbox</div>
-    </div>
-    <div class="node notebook" data-type="notebook" data-id="nb4">
-      <div class="node-title">4. content-knowledge-builder-playground</div>
-      <div class="node-sub">Add custom GREP/RAG, test what fires</div>
-    </div>
-    <div class="node notebook" data-type="notebook" data-id="nb5">
-      <div class="node-title">5. gemma-content-classification-evaluation</div>
-      <div class="node-sub">NGO dashboard with risk vectors</div>
-    </div>
-    <div class="node notebook" data-type="notebook" data-id="nb6">
-      <div class="node-title">6. live-demo</div>
-      <div class="node-sub">⭐ Polished product · 22-slide deck + Workbench</div>
+      <div class="node-title">02. live-demo</div>
+      <div class="node-sub">⭐ Polished product · scripted walkthrough</div>
     </div>
   </div>
   <div style="font-size: 0.8125rem; color: var(--muted); margin: 1rem 0 0.625rem 0;">APPENDIX (extension + research)</div>
   <div class="grid cols-3">
     <div class="node notebook" data-type="notebook" data-id="a1">
-      <div class="node-title">A1. prompt-generation</div>
-      <div class="node-sub">Gemma 4 generates new prompts</div>
+      <div class="node-title">A1. chat-playground</div>
+      <div class="node-sub">Stock Gemma 4 baseline (NO harness)</div>
     </div>
     <div class="node notebook" data-type="notebook" data-id="a2">
-      <div class="node-title">A2. bench-and-tune</div>
-      <div class="node-sub">Unsloth SFT + DPO + GGUF + HF push</div>
+      <div class="node-title">A2. chat-playground-with-grep-rag-tools</div>
+      <div class="node-sub">Original 4-toggle subset playground</div>
     </div>
     <div class="node notebook" data-type="notebook" data-id="a3">
-      <div class="node-title">A3. research-graphs</div>
-      <div class="node-sub">6 Plotly charts (CPU-only)</div>
+      <div class="node-title">A3. content-classification-playground</div>
+      <div class="node-sub">4-schema JSON sandbox</div>
     </div>
     <div class="node notebook" data-type="notebook" data-id="a4">
-      <div class="node-title">A4. chat-playground-with-agentic-research</div>
-      <div class="node-sub">5th toggle: agentic web search</div>
+      <div class="node-title">A4. content-knowledge-builder-playground</div>
+      <div class="node-sub">Knowledge-builder sandbox + JSON export</div>
     </div>
     <div class="node notebook" data-type="notebook" data-id="a5">
-      <div class="node-title">A5. chat-playground-jailbroken-models</div>
-      <div class="node-sub">⭐ Strongest "real" proof · abliterated Gemma 4</div>
+      <div class="node-title">A5. gemma-content-classification-evaluation</div>
+      <div class="node-sub">NGO classifier evaluation dashboard</div>
     </div>
     <div class="node notebook" data-type="notebook" data-id="a6">
-      <div class="node-title">A6. grading-evaluation</div>
-      <div class="node-sub">⭐ Live lift regenerator · v3 grader · OFF vs ON</div>
+      <div class="node-title">A6. prompt-generation</div>
+      <div class="node-sub">Gemma 4 generates evaluation prompts</div>
+    </div>
+    <div class="node notebook" data-type="notebook" data-id="a7">
+      <div class="node-title">A7. bench-and-tune</div>
+      <div class="node-sub">Unsloth fine-tune + GGUF export pipeline</div>
+    </div>
+    <div class="node notebook" data-type="notebook" data-id="a8">
+      <div class="node-title">A8. research-graphs</div>
+      <div class="node-sub">6 Plotly charts (CPU-only)</div>
+    </div>
+    <div class="node notebook" data-type="notebook" data-id="a9">
+      <div class="node-title">A9. chat-playground-with-agentic-research</div>
+      <div class="node-sub">Deeper Online layer · BYOK + Playwright</div>
+    </div>
+    <div class="node notebook" data-type="notebook" data-id="a10">
+      <div class="node-title">A10. chat-playground-jailbroken-models</div>
+      <div class="node-sub">⭐ Harness on abliterated Gemma 4 variants</div>
+    </div>
+    <div class="node notebook" data-type="notebook" data-id="a11">
+      <div class="node-title">A11. grading-evaluation</div>
+      <div class="node-sub">⭐ Live lift regenerator · OFF vs ON</div>
     </div>
   </div>
 </div>
@@ -407,7 +410,7 @@
     <div class="node pkg" data-type="pkg" data-id="meta"><div class="node-title">duecare-llm</div><div class="node-sub">meta · installs all</div></div>
     <div class="node pkg" data-type="pkg" data-id="core"><div class="node-title">duecare-llm-core</div><div class="node-sub">Pydantic schemas · contracts</div></div>
     <div class="node pkg" data-type="pkg" data-id="models"><div class="node-title">duecare-llm-models</div><div class="node-sub">8 model adapters</div></div>
-    <div class="node pkg" data-type="pkg" data-id="chat"><div class="node-title">duecare-llm-chat</div><div class="node-sub">⭐ Harness · 42 GREP + 26 RAG</div></div>
+    <div class="node pkg" data-type="pkg" data-id="chat"><div class="node-title">duecare-llm-chat</div><div class="node-sub">⭐ Harness · 161 GREP + 46 RAG</div></div>
     <div class="node pkg" data-type="pkg" data-id="domains"><div class="node-title">duecare-llm-domains</div><div class="node-sub">Pack loader · 3 packs</div></div>
     <div class="node pkg" data-type="pkg" data-id="tasks"><div class="node-title">duecare-llm-tasks</div><div class="node-sub">9 capability tests</div></div>
     <div class="node pkg" data-type="pkg" data-id="benchmark"><div class="node-title">duecare-llm-benchmark</div><div class="node-sub">Smoke + comparison runner</div></div>
@@ -568,23 +571,24 @@ const DETAILS = {
   'dashboard': { title: 'Live demo / Reports', body: '<h3>Notebook 6: live-demo</h3><p>Polished product with 22-slide deck + audit Workbench. Combines classification + knowledge-building.</p>' },
   'api': { title: 'FastAPI server', body: '<h3>What it is</h3><p>Multi-tenant FastAPI surface with token meter, rate limit, /metrics, OTel auto-instrumentation.</p><h3>Package</h3><p>duecare-llm-server (6.2 MB wheel)</p>' },
   // NOTEBOOKS
-  'nb1': { title: '1. duecare-chat-playground', body: '<h3>Purpose</h3><p>Raw Gemma 4 chat — NO harness. Baseline for the comparison story.</p><h3>Wheels</h3><p>core + models + chat</p><h3><a href="https://www.kaggle.com/code/taylorsamarel/duecare-gemma-chat-playground">Open on Kaggle →</a></h3>' },
-  'nb2': { title: '2. chat-playground-with-grep-rag-tools', body: '<h3>⭐ The headline demo</h3><p>Same chat UI + 4 toggle tiles + multi-persona library + 394-prompt examples + per-response Pipeline modal.</p><h3><a href="https://www.kaggle.com/code/taylorsamarel/duecare-gemma-chat-playground-grep-rag-tools">Open on Kaggle →</a></h3>' },
-  'nb3': { title: '3. content-classification-playground', body: '<h3>Purpose</h3><p>Hands-on classification sandbox: 4 schemas (single-label / multi-label / risk-vector / custom).</p><h3><a href="https://www.kaggle.com/code/taylorsamarel/duecare-content-classification-playground">Open on Kaggle →</a></h3>' },
-  'nb4': { title: '4. content-knowledge-builder-playground', body: '<h3>Purpose</h3><p>Add custom GREP rules + RAG docs; test what fires; export full JSON.</p><h3><a href="https://www.kaggle.com/code/taylorsamarel/duecare-content-knowledge-builder-playground">Open on Kaggle →</a></h3>' },
-  'nb5': { title: '5. gemma-content-classification-evaluation', body: '<h3>Purpose</h3><p>Polished Agency / NGO dashboard: form-based content submission → structured JSON with risk vectors + threshold-filterable history queue.</p><h3><a href="https://www.kaggle.com/code/taylorsamarel/duecare-gemma-content-classification-evaluation">Open on Kaggle →</a></h3>' },
-  'nb6': { title: '6. live-demo', body: '<h3>⭐ The user-facing live URL</h3><p>Full safety-harness pipeline + 22-slide deck + audit Workbench. Combines classification + knowledge-building into one polished product.</p><h3><a href="https://www.kaggle.com/code/taylorsamarel/duecare-live-demo">Open on Kaggle →</a></h3>' },
-  'a1': { title: 'A1. prompt-generation', body: '<h3>Purpose</h3><p>Use Gemma 4 to generate new evaluation prompts + 5 graded response examples per prompt (worst → best). Output feeds A2.</p>' },
-  'a2': { title: 'A2. bench-and-tune', body: '<h3>Purpose</h3><p>Smoke benchmark on stock Gemma 4 → Unsloth SFT (LoRA) → DPO → re-benchmark → GGUF Q8_0 export → HF Hub push.</p><h3>Status</h3><p>Pending T4×2 run on Kaggle.</p>' },
-  'a3': { title: 'A3. research-graphs', body: '<h3>Purpose</h3><p>6 Plotly charts: entity graph, corridor Sankey, per-category benchmark bars, fee-camouflage heatmap, ILO indicator hits, RAG corpus sunburst. CPU-only, ~30 sec.</p>' },
-  'a4': { title: 'A4. chat-playground-with-agentic-research', body: '<h3>Purpose</h3><p>Same chat UI as #2 + 5th toggle for agentic web research using DuckDuckGo + httpx + Wikipedia. All open-source, no API keys.</p>' },
-  'a5': { title: 'A5. chat-playground-jailbroken-models', body: '<h3>⭐ Strongest "real, not faked" proof</h3><p>Same chat UI as #2 + 4-toggle harness, but loads an abliterated/cracked Gemma 4 variant (default: dealignai/Gemma-4-31B-JANG_4M-CRACK). Demonstrates the harness still produces safe outputs even when the base model has had its refusals ablated.</p>' },
-  'a6': { title: 'A6. grading-evaluation', body: '<h3>⭐ Live lift regenerator</h3><p>Dedicated rubric-evaluation notebook. Runs N prompts through Gemma 4 twice (harness OFF vs ON), grades both with the universal v3 grader (15 cross-prompt dimensions, intent-aware reweighting, 106-source citation cross-reference, section-number verification, semantic phrase clusters), and emits a markdown + JSON report with provenance tuple. THE falsifiable +56.5pp number, regenerated from a git SHA.</p><h3><a href="https://www.kaggle.com/code/taylorsamarel/duecare-grading-evaluation">Open on Kaggle →</a></h3>' },
+  'nb1': { title: '01. duecare-harness-chat', body: '<h3>Core notebook #01</h3><p>All six safety layers, all four grading modes, all nine Gemma 4 variants, and the configurable model picker in one script kernel.</p><h3>Demo path</h3><p>Run All → cloudflared URL prints → pick a model → click any example prompt.</p>' },
+  'nb2': { title: '02. live-demo', body: '<h3>Core notebook #02</h3><p>The polished demo URL judges land on. It shows stock Gemma vs harnessed answers, retrieval-path traces, and rubric breakdowns.</p>' },
+  'a1': { title: 'A1. chat-playground', body: '<h3>Purpose</h3><p>Stock Gemma 4 baseline. No GREP, no RAG, no tools, no online search. Use it as the contrast for the harnessed kernels.</p>' },
+  'a2': { title: 'A2. chat-playground-with-grep-rag-tools', body: '<h3>Purpose</h3><p>The original four-toggle subset: GREP, RAG, Tools, and Imports. Useful for isolating incremental layer contributions.</p>' },
+  'a3': { title: 'A3. content-classification-playground', body: '<h3>Purpose</h3><p>Hands-on classification sandbox: paste content, pick one of four shipped schemas, and validate the structured risk envelope.</p>' },
+  'a4': { title: 'A4. content-knowledge-builder-playground', body: '<h3>Purpose</h3><p>Build a structured knowledge object from free-text input. Exports JSON ready for the hub pack format after the PII gate runs.</p>' },
+  'a5': { title: 'A5. gemma-content-classification-evaluation', body: '<h3>Purpose</h3><p>NGO classifier evaluation dashboard with risk-vector scorecards, intake queue view, and drill-down classification traces.</p>' },
+  'a6': { title: 'A6. prompt-generation', body: '<h3>Purpose</h3><p>Gemma 4 self-generates new evaluation prompts plus five graded responses per prompt (worst → best) for grading calibration.</p>' },
+  'a7': { title: 'A7. bench-and-tune', body: '<h3>Purpose</h3><p>End-to-end Unsloth SFT + DPO + GGUF export + Hugging Face push, using the same anonymizer-gated training path.</p>' },
+  'a8': { title: 'A8. research-graphs', body: '<h3>Purpose</h3><p>Six CPU-only Plotly charts for corridor coverage, GREP-rule density, RAG-corpus maps, rubric drift, and writeup evidence figures.</p>' },
+  'a9': { title: 'A9. chat-playground-with-agentic-research', body: '<h3>Purpose</h3><p>The deeper Online layer. Real-browser agentic search via Playwright plus BYO API key for live public-source grounding.</p>' },
+  'a10': { title: 'A10. chat-playground-jailbroken-models', body: '<h3>⭐ Real, not faked proof</h3><p>Runs the same harness on refusal-ablated Gemma 4 variants to show that GREP, RAG, tools, and grounding compensate even when base-model refusals are gone.</p>' },
+  'a11': { title: 'A11. grading-evaluation', body: '<h3>⭐ Live lift regenerator</h3><p>Runs prompts with harness OFF vs ON, grades both, and emits the provenance-pinned report that regenerates the headline lift number.</p>' },
   // PACKAGES
   'meta': { title: 'duecare-llm (meta)', body: '<p><code>pip install duecare-llm</code> installs all 16 sub-packages + the duecare CLI.</p>' },
   'core': { title: 'duecare-llm-core', body: '<p>12 Pydantic schemas, Protocol contracts, Registry, Provenance. Foundation for every other package.</p>' },
   'models': { title: 'duecare-llm-models', body: '<p>8 model adapters (Ollama, Transformers, llama.cpp, MediaPipe, OpenAI-compat, HF Inference, Gemini, Groq).</p>' },
-  'chat': { title: 'duecare-llm-chat ⭐', body: '<p><strong>The 4-layer harness lives here.</strong> 42 GREP rules + 26 RAG docs + 4 tools + 407 prompts prompts + 207 5-tier rubrics + 6 required-rubric categories + 46 classifier examples + chat app + classifier app.</p>' },
+  'chat': { title: 'duecare-llm-chat ⭐', body: '<p><strong>The 6-layer harness lives here.</strong> 161 GREP rules + 46 RAG docs + 5 tools + 587 example prompts + 207 5-tier rubrics + 6 required-rubric categories + 54 classifier examples + chat app + classifier app.</p>' },
   'domains': { title: 'duecare-llm-domains', body: '<p>Domain pack loader, 3 domain packs (trafficking, tax_evasion, financial_crime), document pipeline.</p>' },
   'tasks': { title: 'duecare-llm-tasks', body: '<p>9 capability tests, 15 generators, 7 evaluators.</p>' },
   'benchmark': { title: 'duecare-llm-benchmark', body: '<p>Smoke benchmark + harness-OFF/ON comparison runner. Generates the harness lift numbers.</p>' },

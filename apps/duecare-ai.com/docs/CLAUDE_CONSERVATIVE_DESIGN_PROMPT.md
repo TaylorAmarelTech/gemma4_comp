@@ -70,32 +70,43 @@ Routes that should remain valid:
 
 Do not remove existing API endpoints.
 
-## Canonical use cases
+## Canonical outcomes and lanes
 
-Use exactly these four use cases, in this exact order, everywhere:
+Lead introductions, demos, and mission copy with the three outcomes:
 
-1. **Platform Safety**
-2. **NGO / Regulators**
-3. **Migrant Worker Chat**
-4. **Academic Research**
+1. **Prevent exploitation before it spreads** — help organizations and platforms stop illicit recruitment activity through screening and review support.
+2. **Assist victims and at-risk workers** — support NGO, government, and worker-controlled workflows with grounded intake, routing, and mobile guidance.
+3. **Understand what is happening and why** — help researchers and stakeholders map the who, what, where, when, and why through reproducible evidence.
 
-Do not reorder them. Do not replace them with older labels such as "worker-side", "enterprise", "social platforms", or "researchers" in top-level navigation, homepage cards, diagrams, demo chapters, or summaries.
+Use exactly these five lanes, in this exact order, for navigation, setup paths, homepage cards, diagrams, demo chapters, and summaries:
 
-### Platform Safety
+1. **Platform safety**
+2. **NGO & regulator**
+3. **Individual worker / mobile**
+4. **Researcher**
+5. **Developer / integration partner**
+
+Do not reorder them. Do not replace them with older labels such as "worker-side", "enterprise", "social platforms", "Migrant Worker Chat", "Academic Research", or "Host / Hub / Global Server" in public lane lists.
+
+### Platform safety
 
 Trust and safety teams at social media companies, job platforms, marketplaces, and recruitment boards. They screen risky recruitment posts, ads, messages, recruiter profiles, and scam patterns.
 
-### NGO / Regulators
+### NGO & regulator
 
 NGOs, caseworkers, legal-aid groups, consulates, labor ministries, labor inspectors, regulators, and authorized enforcement partners. They triage messages/documents, route people to trusted help, draft complaints, and update corridor-specific knowledge.
 
-### Migrant Worker Chat
+### Individual worker / mobile
 
-Migrant workers and prospective migrant workers using a trusted chat, mobile, web, or local tool. OFWs are one demo persona, not the whole category. They privately check suspicious job offers, contracts, recruiter messages, fee demands, document retention, and threats.
+Migrant workers and prospective migrant workers using a trusted mobile, chat, web, or local tool. OFWs are one demo persona, not the whole category. They privately check suspicious job offers, contracts, recruiter messages, fee demands, document retention, and threats.
 
-### Academic Research
+### Researcher
 
-Academic researchers, public-interest researchers, evaluators, auditors, Kaggle judges, and model-safety teams. They reproduce prompts, evaluate model behavior, compare interventions, and verify claims from source artifacts.
+Academic researchers, public-interest researchers, evaluators, auditors, Kaggle judges, model-safety teams, journalists, and policy analysts. They reproduce prompts, evaluate model behavior, compare interventions, and verify claims from source artifacts.
+
+### Developer / integration partner
+
+Developers, technical partners, IT teams, and integration owners embedding Duecare into platform moderation tools, NGO systems, mobile clients, dashboards, or custom workflows. They need APIs, Docker, packs, schemas, and examples.
 
 ## Plain-language technical components
 
@@ -106,9 +117,9 @@ Use these public component names. Avoid unclear labels like Runtime, Harness, Ev
 3. **Knowledge Packs** — versioned bundles of GREP data, RAG documents, contacts, tools, corridor fees, regulations, examples, and policies.
 4. **Quality Testing Framework** — tests model and guidance behavior with text prompts, image prompts, rule-based scoring, LLM-based judging, and regression checks.
 5. **Local Anonymization Module** — runs locally or inside a trusted tenant to convert sensitive content into anonymized information objects.
-6. **Information Submission Module** — sends only anonymized objects, public-source updates, aggregate counts, or signed pack proposals to the central server.
+6. **Information Submission Module** — sends only anonymized objects, public-source updates, aggregate counts, or vetted pack proposals to the central server.
 7. **Central Knowledge Server** — powers duecare-ai.com, review queues, pack metadata, public pages, and API docs.
-8. **Public Information Research Monitor** — uses public-source tools such as OpenClaw to find updated laws, advisories, trends, negative news, and policy changes.
+8. **Public Information Research Monitor** — uses public-source tools such as automated crawlers to find updated laws, advisories, trends, negative news, and policy changes.
 9. **Knowledge Formatter** — converts scraped public content or stakeholder submissions into validated knowledge objects and pack updates.
 10. **Stakeholder Engagement Module** — asks subscribers to rank responses, provide observations, suggest useful tools, and submit new public information.
 11. **Stakeholder Response Formatter** — converts survey answers and feedback into structured information objects or reviewable proposals.
@@ -222,7 +233,7 @@ Recommended order:
 
 1. **Hero**
    - H1: `Centralized knowledge. Decentralized privacy.`
-   - One plain-language sentence: Duecare uses Gemma 4, safety guidance, knowledge packs, and testing to help Platform Safety, NGO / Regulators, Migrant Worker Chat, and Academic Research without centralizing raw case data.
+   - One plain-language sentence: Duecare uses Gemma 4, safety guidance, knowledge packs, and testing to help Platform safety, NGO & regulator, Individual worker / mobile, Researcher, and Developer / integration partner workflows without centralizing raw case data.
    - CTAs: `Watch demo`, `Explore setup`, `View live hub`.
    - Trust line: `No raw case intake · Draft-only handoff · Anonymized/public-source updates only`.
 
@@ -238,11 +249,12 @@ Recommended order:
    - Central Knowledge Server coordinates reviewed updates.
    - Quality Testing and Fine-Tuning improve behavior safely.
 
-4. **Four use cases**
-   - Platform Safety
-   - NGO / Regulators
-   - Migrant Worker Chat
-   - Academic Research
+4. **Five lanes**
+   - Platform safety
+   - NGO & regulator
+   - Individual worker / mobile
+   - Researcher
+   - Developer / integration partner
 
 5. **Component overview**
    - Use simple cards or a table, not a complex overlapping diagram.
@@ -269,13 +281,14 @@ Create a conservative demo page with a video embed area and chapter list. The vi
 Required demo chapters:
 
 1. **Problem statement** — risky recruitment content, private worker data, changing rules, and why normal chatbots are not enough.
-2. **Platform Safety** — screen a recruitment post/ad/message, show risk trace and reviewer support.
-3. **NGO / Regulators** — show grounded draft guidance, contact routing, and complaint-channel context.
-4. **Migrant Worker Chat** — show private local/chat guidance for a suspicious message or document, with no raw hub submission.
-5. **Academic Research** — show reproducible prompts, scoring, model comparison, and provenance.
-6. **Central Knowledge Server** — show anonymized submission, public-source update proposal, pack metadata, and live hub health.
-7. **Privacy boundary** — show outbound anonymization and inbound anonymization for submissions/scraping.
-8. **Solution close** — one shared core, four use cases, no raw case intake, draft-only handoff.
+2. **Platform safety** — screen a recruitment post/ad/message, show risk trace and reviewer support.
+3. **NGO & regulator** — show grounded draft guidance, contact routing, and complaint-channel context.
+4. **Individual worker / mobile** — show private local/mobile guidance for a suspicious message or document, with no raw hub submission.
+5. **Researcher** — show reproducible prompts, scoring, model comparison, and provenance.
+6. **Developer / integration partner** — show the setup path, APIs, packs, Docker/runtime shape, and integration hooks.
+7. **Central Knowledge Server** — show anonymized submission, public-source update proposal, pack metadata, and live hub health.
+8. **Data boundary** — show outbound anonymization and inbound anonymization for submissions/scraping.
+9. **Solution close** — one shared core, three outcomes, five lanes, no raw case intake, draft-only handoff.
 
 Demo page layout:
 
@@ -313,7 +326,7 @@ No overlay badges. Put the status below the heading or in a normal inline row.
 
 ### `/use-cases`
 
-Use exactly four large cards in the canonical order. Each card answers:
+Use exactly five large cards in the canonical lane order. Each card answers:
 
 - who uses it;
 - what they provide;
@@ -359,7 +372,7 @@ Do not invite raw stories. Ask for:
 
 ### `/intelligence` or `/sentinel`
 
-Use the term **Public Information Research Monitor**. Explain that OpenClaw-style tools search public sources, propose updates, and require curator review. Do not imply the crawler scrapes private chats or social accounts without permission.
+Use the term **Public Information Research Monitor**. Explain that public-source crawler tools search public sources, propose updates, and require curator review. Do not imply the crawler scrapes private chats or social accounts without permission.
 
 ## Copy tone
 
@@ -369,8 +382,8 @@ Use conservative, precise language:
 - "risk signal" instead of "proof";
 - "public-source update proposal" instead of "verified fact" until reviewed;
 - "authorized partner" instead of broad "law enforcement";
-- "Migrant Worker Chat" instead of "worker-side";
-- "Platform Safety" instead of "enterprise";
+- "Individual worker / mobile" instead of "worker-side";
+- "Platform safety" instead of "enterprise";
 - "Quality Testing Framework" instead of "Eval";
 - "Safety Guidance Layer" instead of "Harness" on public pages.
 
@@ -402,7 +415,7 @@ Before claiming completion, run or describe checks for:
 - forms have no-raw-case consent checkboxes;
 - use cases appear in canonical order;
 - required privacy phrases appear;
-- demo page covers all four use cases and the central server, not only a worker question.
+- demo page covers all three outcomes, all five lanes, and the central server, not only a worker question.
 
 ## Output requested
 

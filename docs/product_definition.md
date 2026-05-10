@@ -6,15 +6,17 @@
 > rubrics, privacy-preserving knowledge exchange, continuous law /
 > contact intelligence, institution-deployed chatbot channels, and
 > worker-facing mobile assistance so platform safety teams, NGOs,
-> regulators, migrant workers, and academic researchers can detect
-> exploitation risk and route people toward trusted help.**
+> regulators, individual workers, researchers, and integration partners
+> can prevent exploitation, assist victims and at-risk workers, and
+> understand what is happening and why.**
 
 Shorter:
 
 > **Duecare is a private AI safety platform for migrant-worker
 > protection: tuned Gemma 4 models, grounded safety harnesses,
 > reproducible evaluation, continuously updated knowledge,
-> NGO / government chatbots, and worker-facing mobile assistance.**
+> NGO / government workflows, worker-facing mobile assistance, and
+> developer integration paths.**
 
 This is **not** an OFW-specific product. Filipino overseas workers are
 one important population (and the demo persona for the Kaggle
@@ -23,39 +25,50 @@ globally**.
 
 ---
 
-## Canonical four use cases
+## Canonical three outcomes and five lanes
 
-Use this exact order everywhere in the repository, website, video,
+Lead mission/demo/intro copy with the three outcomes:
+
+1. **Prevent exploitation before it spreads.**
+2. **Assist victims and at-risk workers.**
+3. **Understand what is happening and why.**
+
+Use this exact lane order everywhere in the repository, website, video,
 writeup, and notebooks when summarizing Duecare audiences:
 
 Plain-language component naming and communication flow are maintained
 in [`canonical_use_cases_and_components.md`](canonical_use_cases_and_components.md).
 
-1. **Platform Safety** — social media companies, job platforms, and
+1. **Platform safety** — social media companies, job platforms, and
         marketplaces need scalable detection of exploitative recruitment
         content. Surface: moderation API, risk scoring, reviewer dashboard,
         policy audit trace, anonymized pattern signals.
-2. **NGO / Regulators** — NGOs, government bodies, consulates, and
+2. **NGO & regulator** — NGOs, government bodies, consulates, and
         labor regulators need case intake, triage, referral, and grounded
         summaries. Surface: case-intake console, contact routing, report
-        drafts, audit/export, signed knowledge-pack updates.
-3. **Migrant Worker Chat** — migrant workers need private help
+        drafts, audit/export, vetted knowledge-pack updates.
+3. **Individual worker / mobile** — migrant workers need private help
         understanding suspicious offers, messages, documents, and recruiter
         pressure. Surface: mobile app, private checker, offline support,
         official contacts, localized rights guidance.
-4. **Academic Research** — academic researchers, evaluators, Kaggle
+4. **Researcher** — academic researchers, evaluators, Kaggle
         judges, and auditors need reproducible safety benchmarks and model
         evaluation. Surface: evaluation harness, rubrics, notebooks, model
         comparison, domain packs.
+5. **Developer / integration partner** — developers, technical partners,
+        and IT teams need APIs, Docker, pack schemas, examples, and client
+        snippets. Surface: setup guides, endpoints, package installs,
+        integration templates, and validation commands.
 
 Older phrases map to the canonical names as follows:
 
 | Older phrase | Canonical phrase |
 |---|---|
-| Social platforms, enterprise moderation, job marketplaces | **Platform Safety** |
-| NGOs, government bodies, consulates, regulators | **NGO / Regulators** |
-| Mobile/private checker, worker-facing app | **Migrant Worker Chat** |
-| Researchers, evaluators, Kaggle judges, reproducibility | **Academic Research** |
+| Social platforms, enterprise moderation, job marketplaces | **Platform safety** |
+| NGOs, government bodies, consulates, regulators | **NGO & regulator** |
+| Mobile/private checker, worker-facing app | **Individual worker / mobile** |
+| Researchers, evaluators, Kaggle judges, reproducibility | **Researcher** |
+| Developers, IT teams, custom integrations | **Developer / integration partner** |
 
 OFWs are a demo persona. Migrant workers globally is the category.
 
@@ -84,14 +97,14 @@ Duecare Platform
 Older internal names map to these public names: Runtime means Gemma 4
 Model Layer; Harness means Safety Guidance Layer; Eval means Quality
 Testing Framework; Exchange means Central Knowledge Server plus
-Information Submission; Trainer means Fine-Tuning Module; Sentinel
-means Public Information Research Monitor; Channels means Channel and
+Information Submission; Sentinel means Public Information Research
+Monitor; Trainer means Fine-Tuning Module; Channels means Channel and
 Deployment Package.
 
 The **live core** for the Kaggle submission is Gemma 4 Model Layer +
 Safety Guidance Layer + Knowledge Packs + Quality Testing Framework
 (partial). Fine-Tuning is the appendix-notebook prototype. The mobile
-app is a sibling-repo proof for Migrant Worker Chat. The central server,
+app is a sibling-repo proof for Individual worker / mobile. The central server,
 research monitor, stakeholder engagement, newsletter, and channel
 deployment modules are prototype / roadmap targets — their absence does
 not block the live demo.
@@ -258,14 +271,14 @@ auditable, policy-controlled behavior. A judge or auditor inspects
 every layer regardless of which model loaded. Full architecture:
 [`architecture/duecare_trainer.md`](architecture/duecare_trainer.md).
 
-### 6. Duecare Sentinel — continuous-update agent + server
+### 6. Public Information Research Monitor — continuous-update agent + server
 
 **Hub scaffolded; autonomous crawler is roadmap.** The
 proposal-intake endpoint lives at
 `POST /api/hub/opencrawl/updates` on the public hub
 ([duecare-ai.com](https://duecare-ai.com), code at
-[`apps/duecare-ai.com/`](../apps/duecare-ai.com/)) for OpenClaw /
-OpenCrawl-style public-source proposals. The autonomous crawler that
+[`apps/duecare-ai.com/`](../apps/duecare-ai.com/)) for public-source
+crawler-style proposals. The autonomous crawler that
 *fills* that endpoint with continuously-discovered candidates is
 post-hackathon. When built, the crawler tracks laws, regulations,
 public reports, NGO guidance, platform abuse patterns, and partner
@@ -275,10 +288,10 @@ corpus, rubrics, contacts, and evaluation sets.
 **Agent functions:** law / regulation tracker · NGO / stakeholder
 tracker · contact verifier (flags stale phone / email / form URLs) ·
 RAG proposer · GREP proposer · rubric proposer · research-pack
-builder · release manager (builds signed versioned packs after
+builder · release manager (builds vetted versioned packs after
 approval).
 
-**Human-in-the-loop is mandatory.** Sentinel never auto-updates
+**Human-in-the-loop is mandatory.** The research monitor never auto-updates
 production safety behavior:
 
 ```text
@@ -292,7 +305,7 @@ human curator review
         ↓
 Quality Testing Framework regression suite
         ↓
-signed pack release
+vetted pack release
         ↓
 clients pull update
 ```
@@ -337,7 +350,7 @@ intake page (IFRC / IOM / IJM / Polaris / etc.).
 knowledge (ILO, Palermo, common indicators) + jurisdiction
 knowledge (local laws, complaint procedures) + institution
 knowledge (FAQ, intake scripts, escalation rules, human handoff
-contacts) + live updates from Sentinel via signed Exchange packs.
+contacts) + live updates from the research monitor via vetted Exchange packs.
 
 **Complaint-mechanism boundary** is the same as the chat package
 and Mobile: explain options, identify likely contacts, prepare a
@@ -398,18 +411,18 @@ The mobile app's framing line:
 
 ---
 
-## How the four canonical use cases map to the eight components
+## How the five canonical lanes map to the eight components
 
-| Component | Platform Safety | NGO / Regulators | Migrant Worker Chat | Academic Research |
-|---|---|---|---|---|
-| Runtime | classify / explain posts | summarize cases | private explanations | compare models |
-| Harness | moderation risk trace | intake triage | warning signs | inspectable pipeline |
-| Exchange | share anonymized abuse patterns | submit field signals | receive updated packs | publish domain packs |
-| Eval | policy QA / model QA | quality control | hidden safety guard | primary tool |
-| Trainer | moderation adapter | agency-specific adapter | smaller local model | tuned model studies |
-| Sentinel | track new scam patterns | update laws / contacts | keeps app current | benchmark updates |
-| Channels | future platform notices | primary deployment | Messenger / WhatsApp help | study artifact |
-| Mobile | not primary | referral companion | primary worker-owned app | deployment study |
+| Component | Platform safety | NGO & regulator | Individual worker / mobile | Researcher | Developer / integration partner |
+|---|---|---|---|---|---|
+| Runtime | classify / explain posts | summarize cases | private explanations | compare models | embed model service |
+| Harness | moderation risk trace | intake triage | warning signs | inspectable pipeline | reusable API layer |
+| Exchange | share anonymized abuse patterns | submit field signals | receive updated packs | publish domain packs | integrate safe submissions |
+| Eval | policy QA / model QA | quality control | hidden safety guard | primary tool | regression gate |
+| Trainer | moderation adapter | agency-specific adapter | smaller local model | tuned model studies | BYO adapter path |
+| Research monitor | track new scam patterns | update laws / contacts | keeps app current | benchmark updates | public-source proposal API |
+| Channels | platform notices | primary deployment | Messenger / WhatsApp help | study artifact | integration target |
+| Mobile | not primary | referral companion | primary worker-owned app | deployment study | app integration pattern |
 
 Every component serves multiple audiences.
 
@@ -420,7 +433,7 @@ Every component serves multiple audiences.
 1. **Models do not own truth.** Gemma generates and reasons; it does
    not invent laws, contacts, or policy. Trusted data comes from RAG
    packs, contact packs, rule packs, and reviewed proposals.
-2. **The update agent proposes; humans approve.** Sentinel does not
+2. **The update agent proposes; humans approve.** The research monitor does not
    silently mutate production safety behavior.
 3. **Raw cases stay local.** Exchange shares anonymized signals, not
    raw worker narratives.
@@ -428,8 +441,8 @@ Every component serves multiple audiences.
    not model output.
 5. **Evaluation gates every update.** New rules / docs / rubrics
    run through regression tests before release.
-6. **Mobile app consumes signed packs.** The app pulls versioned,
-   signed, offline-compatible safety packs.
+6. **Mobile app consumes vetted packs.** The app pulls versioned,
+   offline-compatible safety packs.
 
 ---
 
@@ -440,11 +453,11 @@ Every component serves multiple audiences.
                  laws, regulations, NGO docs, contacts, case learnings
                                              │
                                              ▼
-                         Continuous Update Agent + Server  (Sentinel)
+                         Public Information Research Monitor
                   crawl → propose → validate → human review → release
                                              │
                                              ▼
-                              Signed Duecare Knowledge Packs
+                              Vetted Duecare Knowledge Packs
                RAG docs | GREP rules | contacts | rubrics | eval prompts
                                              │
         ┌────────────────────────────────────┼────────────────────────────────────┐
@@ -458,7 +471,7 @@ Every component serves multiple audiences.
                                              │
                       ┌──────────────────────┼──────────────────────┐
                       ▼                      ▼                      ▼
-              Platform Safety          NGO / Regulators          Migrant Worker Chat
+              Platform safety          NGO & regulator       Individual worker / mobile
                                              │
                                              ▼
                                      Quality Testing Framework
@@ -491,10 +504,10 @@ Module** prototype shipped as the A-07 appendix notebook.
 
 ### Roadmap
 
-- **Central Knowledge Server and Information Submission** — privacy-preserving signed-pack distribution. Today's bridge: curator-block PRs reviewed by humans.
+- **Central Knowledge Server and Information Submission** — privacy-preserving vetted-pack distribution. Today's bridge: curator-block PRs reviewed by humans.
 - **Public Information Research Monitor** — continuous public-source update server. Today's bridge: `scripts/v141_validate_contacts.py` is a read-only HEAD-pinger seed.
 - **Channel and Deployment Package** — Messenger / WhatsApp / web / SMS / embassy-portal adapters. Today's bridge: the chat package's FastAPI surface is the substrate; no live channel deployment.
-- **Migrant Worker Chat mobile app** v1.0 — Duecare Journey v0.9.0 ships today; v1.0 consumes signed packs, expands multimodal screenshot scanner, expands corridor coverage.
+- **Individual worker / mobile app** v1.0 — Duecare Journey v0.9.0 ships today; v1.0 consumes vetted packs, expands multimodal screenshot scanner, expands corridor coverage.
 
 This is a strong "real now + scalable vision" story: **functional
 core today, credible platform vision tomorrow.** The Kaggle submission

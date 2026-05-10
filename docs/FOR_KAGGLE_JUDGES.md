@@ -14,16 +14,17 @@ proves technical depth — Gemma 4 + the 6-toggle harness running
 end-to-end — and the **public hub** at
 [duecare-ai.com](https://duecare-ai.com) proves platform
 infrastructure: knowledge-pack registry, anonymized signal intake,
-OpenCrawl-style continuous-update proposals. Code for the hub is in
+public-source continuous-update proposals. Code for the hub is in
 this repo at [`apps/duecare-ai.com/`](../apps/duecare-ai.com/) and
 deploys to Render via the repo-root `render.yaml`. The Kaggle
 submission ships the **live core** — Runtime + Harness + Eval
 (partial) + Contacts — plus a **prototype Trainer** in the A-07
-appendix notebook. The full platform has eight components (see
-[`docs/product_definition.md`](product_definition.md)): Exchange and
-Sentinel are **hub-scaffolded** (their proposal-intake and
-signal-intake endpoints exist on the live hub — the autonomous
-crawler and signed-pack format behind them are post-hackathon);
+appendix notebook. The full platform is described by the public
+component map (see [`docs/product_definition.md`](product_definition.md)):
+Exchange and the Public Information Research Monitor are
+**hub-scaffolded**. Their proposal-intake and signal-intake endpoints
+exist on the live hub; the autonomous crawler and vetted-pack format
+behind them are post-hackathon.
 Channels is documented but post-hackathon.
 
 The harness wraps Gemma 4 with retrieval (BM25 + optional hybrid
@@ -31,14 +32,15 @@ dense-retrieval), structural document chunking, 161 hand-curated
 trafficking-pattern rules, a 46-doc RAG corpus + 46-edge citation
 graph, and a 4-mode grading stack — turning stock Gemma into a
 domain-specialised LLM safety judge for migrant-worker trafficking
-scenarios. The four canonical use cases are **(1) Platform Safety,
-(2) NGO / Regulators, (3) Migrant Worker Chat, (4) Academic
-Research**. OFWs are a demo persona, not the product category. Built
-specifically for partners who **cannot
-send sensitive case data to frontier APIs** (privacy, regulatory,
-employer-monitored-device contexts), shipping as on-device GGUF
-(llama.cpp) and LiteRT alongside a live hosted demo and the public
-hub.
+scenarios. The five canonical lanes are **(1) Platform safety,
+(2) NGO & regulator, (3) Individual worker / mobile, (4) Researcher,
+and (5) Developer / integration partner**. Those five lanes support
+three outcomes: prevent exploitation before it spreads, assist victims
+and at-risk workers, and help stakeholders understand what is happening
+and why. OFWs are a demo persona, not the product category. Built
+specifically for partners who cannot send sensitive case data to
+frontier APIs, shipping as on-device GGUF (llama.cpp) and LiteRT
+alongside a live hosted demo and the public hub.
 
 ## Where to verify each claim
 
@@ -56,7 +58,7 @@ hub.
 | **Path tracing** — every retrieval-pipeline stage logged | `app.py:_path_trace_record` + chat UI's "RETRIEVAL PATH TRACE" card |
 | **A/B Compare tab** — same prompt, two harness configurations, side-by-side grades | `kaggle/01-duecare-harness-chat/kernel.py` live; UI button next to "About" |
 | **License + attribution** — every bundled asset, every model, every third-party reference | `LICENSES.md` |
-| **Public hub** — knowledge-pack registry + anonymized signal intake + OpenCrawl proposal intake | [duecare-ai.com](https://duecare-ai.com) (code at [`apps/duecare-ai.com/`](../apps/duecare-ai.com/), deployed via repo-root `render.yaml`) |
+| **Public hub** — knowledge-pack registry + anonymized signal intake + public-source proposal intake | [duecare-ai.com](https://duecare-ai.com) (code at [`apps/duecare-ai.com/`](../apps/duecare-ai.com/), deployed via repo-root `render.yaml`) |
 | **Hub API surface** — `GET /api/hub/knowledge-packs`, `POST /api/hub/signals`, `POST /api/hub/opencrawl/updates`, `GET /api/hub/trends`, `GET /api/hub/status`, `GET /api/health` | [duecare-ai.com/docs](https://duecare-ai.com/docs) (FastAPI auto-generated OpenAPI) |
 | **Live demo URL** | (set after deployment — see `docs/USER_TODO.md` step 6) |
 | **Live YouTube video** | (set after recording — see `docs/USER_TODO.md` step 8) |

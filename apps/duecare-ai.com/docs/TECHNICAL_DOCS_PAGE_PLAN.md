@@ -17,7 +17,7 @@ The public website currently explains the story, use cases, tools, context, and 
 - user-generated Knowledge Pack labeling and safety review;
 - GREP rule format;
 - RAG document format;
-- OpenClaw / OpenCrawl public-source scraping;
+- public-source crawler proposal intake;
 - LLM content-safety evaluation for shared content;
 - public-source update proposals;
 - anonymized signal payloads;
@@ -85,21 +85,21 @@ Local / tenant deployment
   -> Curator Review
   -> Knowledge Formatter
   -> Quality Testing Framework
-  -> Signed Knowledge Pack
+  -> Vetted Knowledge Pack
   -> Local / tenant deployments pull updates
 ```
 
 Add a second public-source flow:
 
 ```text
-OpenClaw / OpenCrawl public-source scraper
+Public-source crawler
   -> Public-source update proposal
   -> PII / policy check
   -> Knowledge Formatter
   -> Curator Review
   -> Pack diff
   -> Regression tests
-  -> Signed pack release
+  -> Vetted pack release
 ```
 
 ### 3. Template catalog
@@ -121,7 +121,7 @@ Create cards or a table for each standard template.
 | `ContentSafetyEvaluation` | LLM evaluator result for prompt injection, content attacks, PII, harmful claims, and source risk. | LLM evaluator + reviewer | Yes as review metadata. |
 | `TrainingCandidate` | Approved anonymized example eligible for eval/fine-tuning review. | Curated object | Yes only after approval and provenance gate. |
 
-### 4. OpenClaw / OpenCrawl scraping section
+### 4. Public-source crawler proposal section
 
 This section should be prominent because it explains knowledge acquisition.
 
@@ -244,7 +244,7 @@ User-generated pack proposal
   -> prompt-injection / content-attack scan
   -> human curator review
   -> Quality Testing Framework regression run
-  -> signed downloadable pack or rejection
+  -> vetted downloadable pack or rejection
 ```
 
 The LLM content-safety evaluator should check for:
@@ -406,11 +406,11 @@ Minimum implementation checklist:
 - nav/footer link;
 - page header;
 - template catalog;
-- OpenClaw/OpenCrawl proposal section;
+- public-source crawler proposal section;
 - API quick reference;
 - Knowledge Pack lifecycle;
 - user-generated pack safety gate;
 - email feedback processing;
 - privacy table;
 - live/prototype/roadmap labels;
-- tests asserting the page contains `OpenClaw`, `KnowledgePackManifest`, `ToolDefinition`, `ResponseRanking`, `User-generated content`, `LLM content-safety evaluator`, and `No raw case intake`.
+- tests asserting the page contains `public-source crawler`, `KnowledgePackManifest`, `ToolDefinition`, `ResponseRanking`, `User-generated content`, `LLM content-safety evaluator`, and `No raw case intake`.

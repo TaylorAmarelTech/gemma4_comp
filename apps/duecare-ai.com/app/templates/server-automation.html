@@ -98,7 +98,7 @@
         <span class="ix">01 &middot; Four jobs, one engine</span>
         <h2>Vet, extract, draft, vet again.</h2>
       </div>
-      <p class="summary">Today the hub used to call this engine four different things: Sentinel for the crawler, OpenCrawl for the API, the research monitor for the page, the email gateway for inbound replies. They are one engine. We call it server automation.</p>
+      <p class="summary">The hub now treats crawler proposals, API submissions, research-monitor drafts, and inbound expert replies as one bounded engine: server automation.</p>
     </div>
 
     <div class="oc-jobs">
@@ -243,10 +243,10 @@
         <p>Switching providers is one env var. The interface the module uses is OpenAI-chat-compatible across all four supported routes.</p>
       </div>
       <div class="opt">
-        <div class="row"><b>OpenRouter</b><span><code>OPENCLAW_OPENROUTER_KEY</code> &middot; any chat model on OpenRouter</span></div>
-        <div class="row"><b>Mistral API</b><span><code>OPENCLAW_MISTRAL_KEY</code> &middot; default <code>mistral-small-latest</code></span></div>
-        <div class="row"><b>OpenAI</b><span><code>OPENCLAW_OPENAI_KEY</code> &middot; default <code>gpt-4o-mini</code></span></div>
-        <div class="row"><b>Self-hosted Gemma 4</b><span><code>OPENCLAW_OLLAMA_BASE_URL</code> &middot; default model <code>gemma2:2b</code> (swap to a Gemma 4 tag once available)</span></div>
+        <div class="row"><b>OpenRouter</b><span><code>DUECARE_AUTOMATION_OPENROUTER_KEY</code> &middot; any chat model on OpenRouter</span></div>
+        <div class="row"><b>Mistral API</b><span><code>DUECARE_AUTOMATION_MISTRAL_KEY</code> &middot; default <code>mistral-small-latest</code></span></div>
+        <div class="row"><b>OpenAI</b><span><code>DUECARE_AUTOMATION_OPENAI_KEY</code> &middot; default <code>gpt-4o-mini</code></span></div>
+        <div class="row"><b>Self-hosted Gemma 4</b><span><code>DUECARE_AUTOMATION_OLLAMA_BASE_URL</code> &middot; default model <code>gemma2:2b</code> (swap to a Gemma 4 tag once available)</span></div>
         <div class="row"><b>None</b><span>Regex-only fallback. Every record routes to a curator. No silent acceptance.</span></div>
       </div>
     </div>
@@ -265,7 +265,7 @@
     </div>
 
     <div class="hp-endpoints">
-      <div class="row"><span class="mono">METHOD</span><span class="mono">PATH</span><span class="mono">PURPOSE</span><span class="mono">CALLS OPENCLAW</span></div>
+      <div class="row"><span class="mono">METHOD</span><span class="mono">PATH</span><span class="mono">PURPOSE</span><span class="mono">CALLS AUTOMATION</span></div>
       <div class="row"><code>POST</code><code>/api/hub/opencrawl/updates</code><span class="desc">Public-source proposal intake. Used by the website form and the public-source scraper.</span><code>yes</code></div>
       <div class="row"><code>POST</code><code>/api/hub/automation/inbound-email</code><span class="desc">Email-gateway webhook for replies to expert-request emails.</span><code>yes</code></div>
       <div class="row"><code>POST</code><code>/api/hub/signals</code><span class="desc">Anonymized usage signals. Edge regex only; no LLM call.</span><code>no</code></div>

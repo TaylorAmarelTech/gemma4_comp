@@ -18,7 +18,7 @@ Duecare AI is a Gemma 4 Good Hackathon project for migrant-worker safety. It com
 
 1. A Kaggle Gemma 4 harness that demonstrates grounded safety behavior.
 2. A public website/hub at `duecare-ai.com` that explains the project and coordinates anonymized updates.
-3. Future Platform Safety, NGO / Regulators, Migrant Worker Chat, and Academic Research deployments that share one consistent privacy boundary.
+3. Future Platform safety, NGO & regulator, Individual worker / mobile, Researcher, and Developer / integration partner deployments that share one consistent data boundary.
 
 Core message:
 
@@ -119,8 +119,8 @@ Suggested sections:
    - Show how Duecare helps without sending her private message to the public hub.
 
 3. **System diagram**
-   A beautiful four-part visual:
-   - Platform Safety; NGO / Regulators; Migrant Worker Chat; Academic Research
+   A beautiful five-lane visual:
+   - Platform safety; NGO & regulator; Individual worker / mobile; Researcher; Developer / integration partner
    - Local Gemma 4 + Safety Guidance Layer
    - Duecare AI public hub
    - Curated knowledge packs back to local deployments
@@ -133,7 +133,7 @@ Suggested sections:
    - Harness — Live
    - Eval — Live
    - Exchange — Prototype
-   - Sentinel — Prototype
+   - Public Information Research Monitor — Prototype
    - Trainer — Prototype
    - Channels — Roadmap
    - Mobile — Sibling project
@@ -155,11 +155,12 @@ Suggested sections:
    - Complaint flows are draft-only; users/caseworkers send.
 
 7. **Use cases**
-   Four cards:
-   - Platform Safety
-   - NGO / Regulators
-   - Migrant Worker Chat
-   - Academic Research
+   Five cards:
+   - Platform safety
+   - NGO & regulator
+   - Individual worker / mobile
+   - Researcher
+   - Developer / integration partner
 
 8. **Footer**
    Links to components, use cases, GREP rules, tools, context, dashboard, API.
@@ -205,7 +206,7 @@ Make RAG/context concrete.
 Include:
 
 - Corridor cards: Philippines → Hong Kong, Indonesia → Gulf, Nepal → Malaysia, Bangladesh → Singapore, Global maritime, online ads
-- Diagram: public source → Sentinel proposal → curator review → signed pack → local deployment
+- Diagram: public source → proposal → curator review → vetted pack → local deployment
 - Make context feel like a curated knowledge graph, not a text list
 
 ### `/use-cases`
@@ -214,7 +215,7 @@ Make this accessible to non-technical judges.
 
 Include:
 
-- Scenario cards in the canonical order: Platform Safety, NGO / Regulators, Migrant Worker Chat, Academic Research
+- Scenario cards in the canonical order: Platform safety, NGO & regulator, Individual worker / mobile, Researcher, Developer / integration partner
 - Each card should answer: who uses it, what they paste/provide, where data stays, what Duecare returns
 
 ### `/dashboard`

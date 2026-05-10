@@ -1,11 +1,11 @@
-# Duecare Sentinel — continuous-update agent + server
+# Public Information Research Monitor — continuous-update agent + server
 
 **Status: Proposal-intake endpoint live at [duecare-ai.com](https://duecare-ai.com); autonomous crawler is roadmap.**
 
 The proposal-ingestion shape lives in this repo at
 [`apps/duecare-ai.com/`](../../apps/duecare-ai.com/) and exposes
-`POST /api/hub/opencrawl/updates` for OpenClaw / OpenCrawl-style
-public-source proposals. The autonomous crawler that *fills* that
+`POST /api/hub/opencrawl/updates` for public-source crawler-style
+proposals. The autonomous crawler that *fills* that
 endpoint with continuously-discovered candidates is post-hackathon.
 
 A continuously-updating safety-intelligence server that tracks laws,
@@ -15,7 +15,7 @@ rules, RAG corpus, rubrics, contacts, and evaluation sets.
 
 ## Why the human-in-the-loop is mandatory
 
-Sentinel must **never** silently mutate production safety behavior.
+The research monitor must **never** silently mutate production safety behavior.
 A wrong rule that auto-deploys could:
 
 - Misclassify legitimate recruitment posts (false positives)
@@ -37,9 +37,9 @@ automated validation
         ↓
 human curator review
         ↓
-evaluation regression suite (Duecare Eval)
+evaluation regression suite (Duecare Quality Testing Framework)
         ↓
-signed pack release (Duecare Exchange)
+vetted pack release (Duecare Exchange)
         ↓
 clients pull update
 ```
@@ -57,7 +57,7 @@ Even with the agent fully built, the **release** step is humans. Only.
 | GREP proposer | Suggests new detection phrases from public / partner signals |
 | Rubric proposer | Suggests new evaluation dimensions or indicators |
 | Research-pack builder | Produces benchmark / evaluation updates |
-| Release manager | Builds signed versioned packs after approval |
+| Release manager | Builds vetted versioned packs after approval |
 
 ## Tiered access (matches Exchange)
 
@@ -71,18 +71,18 @@ Even with the agent fully built, the **release** step is humans. Only.
 
 ## Today's bridge
 
-Until Sentinel ships, contact freshness is checked by
+Until the research monitor ships, contact freshness is checked by
 `scripts/v141_validate_contacts.py` — a read-only HEAD-request
 validator that pings `web_url` and `web_form_url` for every entry
 in `_contacts.json` and flags non-2xx responses. It does **not**
 email anyone or call any phone numbers; humans verify those.
 
-## What Sentinel does NOT do
+## What the research monitor does NOT do
 
 - **No auto-publishing.** A finding becomes a proposal becomes a PR
-  becomes a human review becomes an Eval gate becomes a signed pack.
-  Sentinel is not allowed to skip steps.
-- **No raw case ingestion.** Sentinel pulls from public sources
+        becomes a human review becomes an evaluation gate becomes a vetted pack.
+        The monitor is not allowed to skip steps.
+- **No raw case ingestion.** The monitor pulls from public sources
   (regulator websites, NGO reports, news). Worker chats and case
   data stay local — that's Exchange's domain with explicit consent.
 - **No outbound calls / emails on a user's behalf.** Same boundary

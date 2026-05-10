@@ -152,8 +152,9 @@ def test_use_cases_audiences_appear_in_design_order(tmp_path) -> None:
     ordered = [
         "Platform safety screening",
         "NGO &amp; regulator copilot",
-        "Migrant worker chat",
-        "Academic research",
+        "Individual worker / mobile",
+        "Researcher",
+        "Developer / integration partner",
     ]
     positions = [response.text.index(name) for name in ordered]
     assert positions == sorted(positions)
