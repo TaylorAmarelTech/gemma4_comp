@@ -1,4 +1,6 @@
 # DueCare — Live demo (focused walkthrough) (#02 core)
+<!-- duecare:lane-label -->
+> **Serves lanes:** 01 Platform safety · 02 NGO & regulator · 03 Individual worker / mobile · 04 Researcher · 05 Developer / integration partner
 
 The user-facing live URL judges click. FastAPI server + cloudflared
 quick-tunnel + 22-slide deck + Workbench. Runs the **full Duecare
@@ -75,9 +77,9 @@ upload (not from `dist/`), so the live-demo bundle stays curated.
 ## What this notebook is NOT
 
 - **Not the science write-up.** Methodology + benchmark + Unsloth SFT/DPO
-  live in [`../bench-and-tune/`](../bench-and-tune/).
+   live in [`../A-07-bench-and-tune/`](../A-07-bench-and-tune/README.md).
 - **Not a chat playground.** A pure Gemma 4 chat UI (no harness) lives
-  in [`../chat-playground/`](../chat-playground/).
+   in [`../A-01-chat-playground/`](../A-01-chat-playground/README.md).
 
 ---
 

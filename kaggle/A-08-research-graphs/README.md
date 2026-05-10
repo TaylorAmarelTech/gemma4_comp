@@ -1,4 +1,6 @@
 # DueCare — Research graphs (CPU-only) (#A08 appendix)
+<!-- duecare:lane-label -->
+> **Serves lanes:** 04 Researcher
 
 Appendix-style notebook (third). **Not** part of the core deployment
 flow — this is a visualization + research playground for judges, NGO

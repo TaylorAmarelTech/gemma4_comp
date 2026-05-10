@@ -1,4 +1,6 @@
 # DueCare — Grading-lift regenerator (#A11 appendix)
+<!-- duecare:lane-label -->
+> **Serves lanes:** 04 Researcher
 
 Side-by-side rubric evaluation: runs N curated prompts through Gemma 4
 twice each — once with the harness OFF, once with full harness ON

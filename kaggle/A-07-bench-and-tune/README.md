@@ -1,4 +1,6 @@
 # DueCare — Unsloth fine-tune + GGUF export pipeline (#A07 appendix)
+<!-- duecare:lane-label -->
+> **Serves lanes:** 04 Researcher · 05 Developer / integration partner
 
 Appendix-style notebook. **Not** part of the core deployment flow —
 this is the methodology / science piece for advanced users who want
@@ -7,7 +9,7 @@ Gemma 4) → Unsloth SFT (LoRA on harness-distilled prompt/response
 pairs) → DPO (chosen=harness-on, rejected=raw Gemma) → GGUF export →
 HF Hub push of the fine-tuned weights.
 
-Pairs with the [`prompt-generation`](../prompt-generation/) appendix
+Pairs with the [`prompt-generation`](../A-06-prompt-generation/README.md) appendix
 notebook (which produces the SFT/DPO training data) to form the
 "extend Duecare to your own domain" workflow.
 

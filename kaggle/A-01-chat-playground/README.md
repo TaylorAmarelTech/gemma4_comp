@@ -1,4 +1,6 @@
 # DueCare — Stock Gemma 4 chat baseline (#A01 appendix)
+<!-- duecare:lane-label -->
+> **Serves lanes:** 04 Researcher
 
 A **raw** Gemma 4 chat playground. NOT the safety harness — no
 moderation pipeline, no audit trail, no GREP/RAG/Tools toggles.
@@ -8,9 +10,9 @@ Cloudflared tunnel like the live demo.
 
 This notebook exists so a judge can see how raw Gemma 4 responds to
 exploitation/trafficking prompts **without** the safety harness — the
-baseline for comparison against [Core Notebook 2: Chat Playground with
-GREP+RAG+Tools](../chat-playground-with-grep-rag-tools/), which adds
-the toggleable safety layers.
+baseline for comparison against the full [core harness playground](../01-duecare-harness-chat/README.md)
+and the [4-toggle appendix playground](../A-02-chat-playground-with-grep-rag-tools/README.md),
+which add the toggleable safety layers.
 
 Built with Google's Gemma 4 (base model:
 [google/gemma-4-e4b-it](https://huggingface.co/google/gemma-4-e4b-it)
@@ -62,9 +64,9 @@ python scripts/push_kaggle_demo.py --kernel chat-playground --skip-kernel
 
 ## What this notebook is NOT
 
-- **Not the safety harness.** Live demo with the full pipeline lives in [`../live-demo/`](../live-demo/).
-- **Not the methodology.** Benchmark + fine-tune lives in [`../bench-and-tune/`](../bench-and-tune/).
-- **Not a teaching tool.** The toggleable harness layers are in [`../chat-playground-with-grep-rag-tools/`](../chat-playground-with-grep-rag-tools/).
+- **Not the safety harness.** Live demo with the full pipeline lives in [`../02-live-demo/`](../02-live-demo/README.md).
+- **Not the methodology.** Benchmark + fine-tune lives in [`../A-07-bench-and-tune/`](../A-07-bench-and-tune/README.md).
+- **Not a teaching tool.** The toggleable harness layers are in [`../A-02-chat-playground-with-grep-rag-tools/`](../A-02-chat-playground-with-grep-rag-tools/README.md).
 
 ---
 

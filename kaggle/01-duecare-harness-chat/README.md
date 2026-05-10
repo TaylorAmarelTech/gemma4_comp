@@ -1,4 +1,6 @@
 # DueCare — Migrant-worker safety playground (#01 core)
+<!-- duecare:lane-label -->
+> **Serves lanes:** 02 NGO & regulator · 04 Researcher · 05 Developer / integration partner
 
 > **The single configurable Duecare playground.** Every harness layer,
 > every Gemma 4 variant, every grading mode visible from one URL.
@@ -34,7 +36,7 @@ Then proceed to the walkthrough below.
 3. **Pick a model**. E2B/E4B usually load in under a minute; 26B-A4B
    and 31B can take 5-10+ minutes on a first HuggingFace download.
    Keep the picker open and use **View logs** to see live loader phases.
-4. **Verify the safety layers loaded** with `curl https://<your-url>/api/brand` (v0.14.2+) or `/api/health-check`. Expected counts: **161 GREP rules, 46 RAG docs (across 27 jurisdiction groups), 5 tools, 46-dim rubric v3.10, 46 evaluator questions, 587 example prompts across 8 audience buckets**, and all enabled layers set true. The new `Safety layers ↗` button in the top bar opens dedicated viewers for each layer (`/static/harness.html` index → grep-rules / rag-corpus / rag-graph / tools / online / persona).
+4. **Verify the safety layers loaded** with `curl https://<your-url>/api/brand` (v0.14.2+) or `/api/health-check`. Expected counts: **161 GREP rules, 46 RAG docs (across 27 jurisdiction groups), 5 tools, 46-dim rubric v3.10, 21 configured evaluator questions, 587 example prompts across 8 audience buckets**, and all enabled layers set true. The new `Safety layers ↗` button in the top bar opens dedicated viewers for each layer (`/static/harness.html` index → grep-rules / rag-corpus / rag-graph / tools / online / persona).
 5. **Click any of the 5 colored buttons** in the empty-state. They map to the 5 high-impact demo prompt categories:
    - 🟢 **Headline lift** — the 5-indicator compound case (PHP+HK)
    - 🔴 **Jailbreak** — DAN persona attempt
@@ -110,10 +112,11 @@ Full variant list (9 supported):
   variant → wire harness → start FastAPI + cloudflared
 - `wheels/` — duecare-llm-chat / -core / -models (bundled into the
   Kaggle dataset `taylorsamarel/duecare-harness-chat-wheels`)
-- `notebook.ipynb` — single-cell wrapper around `kernel.py`
+- `notebook.ipynb` — intentionally not committed for this script kernel;
+  paste `kernel.py` into Kaggle as described above
 
 All harness CONTENT (161 GREP rules, 46 RAG docs, 5 tools, 46-dim
-rubric, 46 LLM-judge questions) lives in the chat package wheel —
+rubric, 21 configured LLM-judge questions) lives in the chat package wheel —
 not in `kernel.py`. Bumping the dataset version updates everything;
 the kernel.py doesn't need to change.
 
@@ -158,7 +161,7 @@ safe enough for judges to test live:
 | 4:30 | Click `Safety layers ↗` in top bar | Opens `/static/harness.html` — 6 layer cards with live counts; click any to drill into the dedicated viewer |
 | 6:00 | Click 🔴 "Jailbreak" → toggle ALL 6 layers OFF → Send | Should refuse but vaguely (this is baseline Gemma) |
 | 7:00 | Same prompt with all 6 layers ON | Refuses with citations + hotlines |
-| 8:00 | Click `Grade` → **LLM-Based** mode | LLM judge sends 46 questions back to Gemma; per-dimension verdicts with evidence quotes from the response |
+| 8:00 | Click `Grade` → **LLM-Based** mode | LLM judge sends the configured evaluator questions back to Gemma; per-dimension verdicts include evidence quotes from the response |
 | 10:00 | `curl https://<url>/api/brand` | Returns chat package version + 6-layer metadata + live counts (161 GREP / 46 RAG / 46 dims) |
 
 ## Submission context
@@ -190,7 +193,7 @@ regenerator). See `docs/FOR_PEER_REVIEW.md` for the full submission roster.
 - **Online layer returns no results** → DuckDuckGo HTML can rate-
   limit; for Brave Search / Playwright agentic search use appendix A9
   (`duecare-chat-playground-with-agentic-research`)
-- **Combined-mode grade is slow** → it's running up to 46 LLM-judge calls
+- **Combined-mode grade is slow** → it's running up to 21 configured LLM-judge calls
   against the loaded model (one per applicable rubric dimension);
   ~30-90s for E4B, several minutes for 31B
 - **Cold-boot timeout** → the unsloth-stack install can take 90s on

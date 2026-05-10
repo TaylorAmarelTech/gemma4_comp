@@ -1,4 +1,6 @@
 # DueCare — Agentic-research chat (BYOK + Playwright) (#A09 appendix)
+<!-- duecare:lane-label -->
+> **Serves lanes:** 04 Researcher · 05 Developer / integration partner
 
 **Proof-of-concept.** Same chat playground as
 `chat-playground-with-grep-rag-tools`, with a **fifth toggle tile**
@@ -105,7 +107,7 @@ exactly what queries left the box (by hash, not content).
 - Adds ~10 sec latency per agentic turn (vs ~2 sec for GREP/RAG/Tools-only)
 - Requires Internet ON (the other 4 chat toggles work offline)
 - Doesn't replace the bundled harness; it *supplements* it
-- The live-demo (#6) doesn't depend on this — judges can verify the
+- The live demo (#02) doesn't depend on this — judges can verify the
   full submission without ever loading this kernel
 
 This is a **proof** that agentic web research integrates cleanly with
