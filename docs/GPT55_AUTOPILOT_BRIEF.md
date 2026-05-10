@@ -125,63 +125,107 @@ diagram, in the worker-app onboarding. Not as a recurring slogan.
 
 ---
 
-## 4. What's already done (do not redo)
+## 4. Current pushed state (do not redo)
 
-The 5 commits below are on `master`, pushed to GitHub:
+Verified on 2026-05-09 with `git status --short; git log --oneline -8`:
+the working tree was clean and `HEAD == origin/master == b560409`.
+
+Recent pushed commits, newest first:
 
 ```
-4fb792f docs: align active surface counts to 13 competition + 77 research
-fb1e275 docs(kaggle): correct _INDEX file-count claims and add manual-run flow
-5819095 docs: cross-link REPO_LAYOUT and disambiguate hf_space vs hf-space
-86e0000 docs: add REPO_LAYOUT one-screen map of every top-level dir
-7a783f7 docs: replace GPT55_GO_NOW_FOLLOWUP with anti-shortcut execution prompt
+b560409 docs: rebalance messaging around outcomes
+b6aa82e docs: align active surfaces with five lanes
+32c0d40 notebooks: tag kernels with website lane labels
+2fbce61 tests: refresh chat harness expectations
+c9612fb wheel: align modal layer accents with chrome variables
+5f42ddb docs: refresh onboarding setup details
+d152dba docs: add role-based onboarding entry to README
+6ae3259 hub: align client-connect endpoints with live API
 ```
 
-Specifically:
+Earlier pushed prep work also remains valid:
 
-- `kaggle/_INDEX.md` row 1 now reads **"✓ 3 (script)"** and the
-  legend explains that script kernels can ship 3 or 4 files.
-  **Do not** generate `notebook.ipynb` for `01-duecare-harness-chat/`
-  — the user explicitly chose to leave it as a script kernel and
-  document the copy-paste flow instead.
-- All active docs now read `13 submission notebooks` (2 core + 11
-  appendix) and `77-notebook research pipeline`. Frozen artifacts
-  (`docs/adr/004-*.md`, dated `CHECKPOINT_*.md`, `_archive/*`) were
-  intentionally **not** edited — those are point-in-time snapshots.
+- `kaggle/_INDEX.md` documents the script-kernel shape for
+  `01-duecare-harness-chat/`. **Do not** generate `notebook.ipynb`
+  for that folder unless Taylor explicitly reverses the decision.
+- Active public docs have been swept toward `13 submission notebooks`
+  (2 core + 11 appendix) and the `77-notebook research pipeline`.
+  Frozen artifacts (`docs/adr/004-*.md`, dated `CHECKPOINT_*.md`,
+  `_archive/*`) were intentionally not edited.
 - `docs/REPO_LAYOUT.md` exists and is linked from the README's
-  Repository-layout section. Don't recreate it; extend it if needed.
-- `hf_space/README.md` and `hf-space/README.md` carry "folder note"
-  blocks disambiguating the underscore vs hyphen sibling.
+  Repository-layout section. Extend it only if a real navigation gap
+  remains.
+- `hf_space/README.md` and `hf-space/README.md` disambiguate the
+  underscore vs hyphen sibling.
+
+Recent validation evidence recorded in commit messages / terminal output:
+
+- Hub tests: `23 passed, 1 warning` after website/taxonomy edits.
+- Hub app compile: `python -m compileall apps/duecare-ai.com/app` passed.
+- Docs whitespace: `git diff --check` passed, with only LF→CRLF warnings.
+- Writeup word count after outcome-message refresh: `1136` words.
+
+Re-run the narrow validation slice for any files you touch; do not rely
+on these old results for new edits.
 
 ---
 
-## 5. What's in flight (pick up here)
+## 5. What's in flight now
 
-The previous session was working through 8 commits, C1–C8. **C1 and
-C2 are committed and pushed.** **C3 has uncommitted changes in the
-working tree.**
+Nothing is intentionally in flight. The last verified state was a clean
+worktree at `b560409`. Start every session with:
 
-Working-tree state at handoff:
-
-```
-M apps/duecare-ai.com/app/templates/_nav.html       # added "Get started" → /setup
-M apps/duecare-ai.com/app/templates/index.html      # added /setup CTA next to /demo
-M apps/duecare-ai.com/app/templates/setup.html      # active_nav = "setup"
+```powershell
+git status --short; git log --oneline -8
 ```
 
-Run `git diff` first to see what landed. Verify the changes are
-faithful to the five-lane model before continuing.
+If the worktree is dirty, treat the dirty files as user/other-agent
+changes until proven otherwise. Read them before editing and do not
+overwrite them casually.
+
+## 5A. Next recommended work for Claude Code
+
+Start with **Tier 2 UI/UX consistency** unless Taylor gives a more
+specific task.
+
+Recommended order:
+
+1. **Hub navigation + footer route audit** — read `app/main.py`,
+  `_nav.html`, `_footer.html`, and templates. Verify every nav/footer
+  link resolves with `TestClient`; fix dead links or wrong
+  `active_nav` values. This directly improves judge navigation.
+2. **Heading + accessibility sweep** — inspect templates for obvious
+  h1→h3 skips, unlabeled form controls, clickable `div`s, and buttons
+  without accessible names. Keep fixes small and visible.
+3. **Active-surface drift grep** — scan active public docs/templates,
+  excluding frozen/checkpoint/history docs, for stale old-use-case
+  labels, stale counts, `OpenClaw`/`OpenCrawl`/`Sentinel` as public
+  product names, and `signed pack` where `vetted pack` is intended.
+4. **Tier 3 judge polish** — if Tier 2 is clean, refresh
+  `docs/writeup_draft.md`, `docs/video_script.md`,
+  `docs/FOR_PEER_REVIEW.md`, and `docs/FOR_KAGGLE_JUDGES.md` only
+  where fresh verification shows drift.
+
+Good next commit subjects:
+
+- `hub: tighten navigation and footer consistency`
+- `hub: improve template heading accessibility`
+- `docs: refresh judge-facing handoff wording`
+- `docs: align video script with final outcomes`
 
 ---
 
-## 6. Tier 0 — finish the in-flight 8-commit polish pass
+## 6. Tier 0 — completed; retain for audit only
 
-Do these in order. One coherent commit per group. Do not batch
-unrelated changes.
+Do **not** rerun these items unless fresh inspection shows a regression.
+They were completed and pushed across commits `6ae3259`, `d152dba`,
+`5f42ddb`, `c9612fb`, and surrounding hub/docs commits. This section is
+kept so a future agent understands the acceptance criteria behind the
+existing changes.
 
-### T0.C3 — Surface /setup onboarding (in working tree, not yet committed)
+### T0.C3 — Surface /setup onboarding (done)
 
-**State:** edits applied, tests not yet run.
+**State:** completed and pushed. Criteria below are retained for audit.
 
 **Acceptance:**
 
@@ -225,15 +269,9 @@ print('OK')
 
 **Commit:** `hub: surface /setup onboarding`
 
-### T0.C4 — Make setup.html commands concrete for all 5 lanes
+### T0.C4 — Make setup.html commands concrete for all 5 lanes (done)
 
-**State:** `setup.html` currently has only one set of code blocks
-(NGO-flavored) shown statically. The five role tabs (`plat`, `ngo`,
-`worker`, `research`, `dev`) only swap the title + lede — they do
-not swap the install commands. The NGO-flavored commands include
-unverified `duecare packs pull`, `duecare packs verify`,
-`duecare harness run`, and `https://duecare-ai.com/install.sh` (none
-of those scripts exist; verify with `Glob` for `scripts/install.*`).
+**State:** completed and pushed. Criteria below are retained for audit.
 
 **Do not** delete the existing 5-card role selector — it's the
 canonical lane structure.
@@ -274,11 +312,10 @@ canonical lane structure.
 
 **Commit:** `hub: make setup tracks concrete for all five lanes`
 
-### T0.C5 — Fix client-connect.html API drift
+### T0.C5 — Fix client-connect.html API drift (done)
 
-**State:** `client-connect.html` uses stale endpoints
-(`/api/packages`, `/api/packages/{id}`, `/api/contributions`,
-`/api/signals/aggregate`). Live routes (verified in `main.py`):
+**State:** completed and pushed. Live routes verified in `main.py` at
+the time of the fix:
 
 | Stale | Current |
 |---|---|
@@ -312,11 +349,9 @@ confirm the documented JSON shape matches reality.
 
 **Commit:** `hub: align client-connect endpoints with live API`
 
-### T0.C6 — Add "Start here by role" 5-lane block to README.md
+### T0.C6 — Add "Start here by role" 5-lane block to README.md (done)
 
-**State:** README.md has personas scattered through the doc but no
-top-of-file role-based onboarding block. Add one — short, above the
-long package inventory.
+**State:** completed and pushed. Criteria below are retained for audit.
 
 **Acceptance:** A new section (subhead `## Start here by role`)
 within the first 250 lines of README, with five lanes in this exact
@@ -343,9 +378,9 @@ real doc or omit that link rather than promising a 404.
 
 **Commit:** `docs: add role-based onboarding entry to README`
 
-### T0.C7 — Refresh mobile + install drift
+### T0.C7 — Refresh mobile + install drift (done)
 
-**State (verified earlier this session, may have shifted; re-verify):**
+**State:** completed and pushed. Original drift targets were:
 
 - `docs/scenarios/worker-self-help.md` references "v0.8 will add..."
   language while the repo describes v0.9.0 as live. Update to v0.9
@@ -367,9 +402,10 @@ and call it out in the handoff rather than guessing.
 
 **Commit:** `docs: refresh onboarding setup details`
 
-### T0.C8 — Wheel modal accent color cleanup
+### T0.C8 — Wheel modal accent color cleanup (done)
 
-**State:** `packages/duecare-llm-chat/src/duecare/chat/static/_chrome.css`
+**State:** completed and pushed. Original target:
+`packages/duecare-llm-chat/src/duecare/chat/static/_chrome.css`
 defines layer accent variables:
 
 ```
@@ -402,14 +438,16 @@ sanity check the file renders (Python `pathlib.Path(...).read_text()`
 
 ---
 
-## 7. Tier 1 — notebook ↔ website alignment sweep
+## 7. Tier 1 — mostly completed; use only if notebook files change
 
-Once Tier 0 is done, the headline ask: make the 13 Kaggle notebooks
-align with the website's lane taxonomy and visual language.
+The 13 Kaggle README lane labels were added and pushed in `32c0d40`.
+If you touch a Kaggle README or `scripts/polish_kernels_uxbar.py`, rerun
+the generator and notebook validators. Otherwise, do not redo this sweep.
 
-### T1.1 — Lane labels on each notebook
+### T1.1 — Lane labels on each notebook (done)
 
-For each of the 13 notebook folders under `kaggle/`, the README's
+Completed in `32c0d40`. If labels drift later, the target remains:
+for each of the 13 notebook folders under `kaggle/`, the README's
 top-level header should declare which lane (or lanes) the notebook
 serves, in the website's wording. Example (don't redesign — augment):
 
@@ -447,7 +485,7 @@ notebook's actual content tells a different story.
 
 **Commit:** `notebooks: tag each kernel with website lane labels`
 
-### T1.2 — Notebook intro consistency via polish_kernels_uxbar.py
+### T1.2 — Notebook intro consistency via polish_kernels_uxbar.py (done unless README changes)
 
 `scripts/polish_kernels_uxbar.py` is the canonical mechanism that
 inserts the top-of-file markdown intro and standardizes the README
@@ -511,7 +549,7 @@ color in a header).
 
 ---
 
-## 8. Tier 2 — UI/UX consistency sweep across hub + wheel + notebooks
+## 8. Tier 2 — start here next
 
 These are smaller polish items. Pick whichever rises to the top by
 judge-impact, not by tidiness.
@@ -559,7 +597,7 @@ flex layouts or scripts from this surface.
 
 ---
 
-## 9. Tier 3 — judge polish (only if Tier 0–2 are complete)
+## 9. Tier 3 — judge polish (after Tier 2 or on explicit request)
 
 ### T3.1 — Writeup refresh
 
