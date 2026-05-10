@@ -52,8 +52,9 @@
     - GPU: NOT REQUIRED for the builder UI. The TEST tab uses Gemma 4
       to compose harness pre-context but the rule/RAG/tool firing logic
       is pure Python.
-    - Internet: ON (cloudflared tunnel)
-    - Wheels dataset: duecare-content-knowledge-builder-playground-wheels
+    - Internet: ON (for GitHub bootstrap + cloudflared tunnel)
+    - Optional datasets (fallback only):
+        duecare-content-knowledge-builder-playground-wheels
     - Secrets: HF_TOKEN (only for the optional Gemma test in TEST tab)
 
   Built with Google's Gemma 4. Used in accordance with the Gemma Terms of Use.
@@ -98,30 +99,66 @@ GEMMA_HF_REPO_VARIANT = (
 # PHASE 1 -- minimal install (server deps + duecare wheels)
 # ===========================================================================
 def install_deps() -> int:
+    """Install DueCare packages + server deps with GitHub bootstrap fallback."""
     print("=" * 76)
-    print("[phase 1] installing server deps + duecare wheels")
+    print("[phase 1] installing duecare packages (GitHub → wheels fallback)")
     print("=" * 76)
+
+    # Server deps (always needed; FastAPI playground)
     cmd = [sys.executable, "-m", "pip", "install", "--quiet",
            "--no-input", "--disable-pip-version-check",
            "fastapi>=0.115", "uvicorn>=0.30", "pydantic>=2.0"]
     subprocess.run(cmd, capture_output=True, text=True)
+
+    # Method 1: Try GitHub bootstrap (no dataset required)
+    try:
+        print("  → trying GitHub bootstrap (github.com/TaylorAmarelTech/gemma4_comp)")
+        import urllib.request
+        bootstrap_url = "https://raw.githubusercontent.com/TaylorAmarelTech/gemma4_comp/master/scripts/_notebook_bootstrap.py"
+        with urllib.request.urlopen(bootstrap_url, timeout=10) as response:
+            bootstrap_code = response.read().decode('utf-8')
+
+        # Execute bootstrap with error capture
+        import io, contextlib
+        output_buffer = io.StringIO()
+        with contextlib.redirect_stdout(output_buffer):
+            exec(bootstrap_code, {'__name__': '__main__'})
+
+        output = output_buffer.getvalue()
+        if "✓" in output and "duecare" in output.lower():
+            print("  ✓ GitHub bootstrap successful")
+            return 1  # Success
+        else:
+            raise Exception("Bootstrap didn't complete successfully")
+
+    except Exception as e:
+        print(f"  ✗ GitHub bootstrap failed: {str(e)[:100]}...")
+        print("  → falling back to local wheels")
+
+    # Method 2: Fallback to wheels dataset (original logic)
     if not Path("/kaggle/input").exists():
+        print("  (not in Kaggle; no wheels available)")
         return 0
+
     wheels = sorted(p for p in Path("/kaggle/input").rglob("*.whl")
                     if "duecare" in p.name.lower())
-    print(f"  found {len(wheels)} duecare wheel(s)")
+    print(f"  → found {len(wheels)} duecare wheel(s)")
+
     if wheels:
         cmd = [sys.executable, "-m", "pip", "install", "--quiet",
                "--no-input", "--disable-pip-version-check",
                *[str(w) for w in wheels]]
         proc = subprocess.run(cmd, capture_output=True, text=True)
         if proc.returncode == 0:
-            print(f"  installed {len(wheels)} wheels")
+            print(f"  ✓ installed {len(wheels)} wheels")
             for mod in list(sys.modules):
                 if mod == "duecare" or mod.startswith("duecare."):
                     del sys.modules[mod]
         else:
             print(f"  wheel install FAILED: {proc.stderr[-300:]}")
+    else:
+        print("  (no wheels found; continuing without DueCare packages)")
+
     return len(wheels)
 
 

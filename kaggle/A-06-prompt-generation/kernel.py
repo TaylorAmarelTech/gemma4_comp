@@ -47,9 +47,10 @@
 
   Requirements:
     - GPU: T4 x1 minimum (E4B-it default; works on T4 single)
-    - Internet: ON
-    - Wheels dataset: duecare-prompt-generation-wheels (3 wheels)
-    - Trafficking-prompts dataset: duecare-trafficking-prompts (5 YAML rubrics)
+    - Internet: ON (for GitHub bootstrap)
+    - Optional datasets (fallback only):
+        duecare-prompt-generation-wheels (3 wheels)
+        duecare-trafficking-prompts (5 YAML rubrics)
     - Secrets: HF_TOKEN
 
   Expected runtime on T4 + E4B-it:
@@ -58,10 +59,10 @@
     -----------------------------------------------------
     TOTAL                                         ~50-75 min
 
-  STATUS: PLACEHOLDER. The Phase 0 install + wheel install + model load
-  paths are real. The two LLM-driven steps (generation, grading) are
-  scaffolded but use simple templates -- replace with your own prompt
-  patterns for production use.
+    STATUS: PROTOTYPE APPENDIX. The Phase 0 install + wheel install +
+    model load paths are real. The two LLM-driven steps (generation,
+    grading) use deliberately simple starter templates so research users
+    can replace them with domain-specific prompt patterns.
 
 ============================================================================
 """

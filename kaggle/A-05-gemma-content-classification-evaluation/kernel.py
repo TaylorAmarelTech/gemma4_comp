@@ -49,8 +49,8 @@
 
   Requires:
     - GPU T4 x2 (default 31b-it); single T4 fine for E2B/E4B
-    - Internet ON
-    - Datasets attached:
+    - Internet ON (for GitHub bootstrap)
+    - Optional datasets (fallback only):
         taylorsamarel/duecare-gemma-content-classification-evaluation-wheels (3 wheels)
         google/gemma-4 (any IT variant)
     - HF_TOKEN OPTIONAL
@@ -263,18 +263,51 @@ if _need_unsloth_stack():
 
 
 print("\n" + "=" * 76)
-print(f"[1/5] installing duecare wheels from /kaggle/input/{DATASET_SLUG}")
+print(f"[1/5] installing duecare packages (GitHub → wheels fallback)")
 print("=" * 76)
 
 
 def install_chat_wheels() -> int:
+    """Try GitHub bootstrap first, fallback to local wheels if that fails."""
+
+    # Method 1: Try GitHub bootstrap (no dataset required)
+    try:
+        print("  → trying GitHub bootstrap (github.com/TaylorAmarelTech/gemma4_comp)")
+        import urllib.request
+        bootstrap_url = "https://raw.githubusercontent.com/TaylorAmarelTech/gemma4_comp/master/scripts/_notebook_bootstrap.py"
+        with urllib.request.urlopen(bootstrap_url, timeout=10) as response:
+            bootstrap_code = response.read().decode('utf-8')
+
+        # Execute bootstrap with error capture
+        import io, contextlib
+        output_buffer = io.StringIO()
+        with contextlib.redirect_stdout(output_buffer):
+            exec(bootstrap_code, {'__name__': '__main__'})
+
+        output = output_buffer.getvalue()
+        if "✓" in output and "duecare" in output.lower():
+            print("  ✓ GitHub bootstrap successful")
+            return 1  # Success
+        else:
+            raise Exception("Bootstrap didn't complete successfully")
+
+    except Exception as e:
+        print(f"  ✗ GitHub bootstrap failed: {str(e)[:100]}...")
+        print("  → falling back to local wheels")
+
+    # Method 2: Fallback to wheels dataset (original logic)
     if not Path("/kaggle/input").exists():
+        print("  (not in Kaggle; skipping wheel install)")
         return 0
+
     found = sorted(p for p in Path("/kaggle/input").rglob("*.whl")
                     if "duecare" in p.name.lower())
     if not found:
-        raise SystemExit(f"No duecare *.whl files. "
-                          f"Add Data -> taylorsamarel/{DATASET_SLUG}.")
+        raise SystemExit(
+            f"GitHub bootstrap failed AND no wheels found in /kaggle/input. "
+            f"Enable internet OR attach dataset: taylorsamarel/{DATASET_SLUG}")
+
+    print(f"  → found {len(found)} wheel(s), installing...")
     cmd = [sys.executable, "-m", "pip", "install", "--quiet", "--no-input",
             "--disable-pip-version-check", *[str(p) for p in found]]
     proc = subprocess.run(cmd, capture_output=True, text=True)
