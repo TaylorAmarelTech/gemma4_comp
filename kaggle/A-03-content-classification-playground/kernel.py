@@ -194,18 +194,18 @@ _CLOUDFLARED_PROC: dict = {"p": None}
 _SHUTDOWN_BUTTON_SNIPPET = """
 <style>
   #_dc-shutdown-btn { position: fixed; top: 12px; right: 12px; z-index: 99999;
-    background: #dc2626; color: white; padding: 8px 14px;
+    background: oklch(0.58 0.14 45); color: white; padding: 8px 14px;
     border-radius: 8px; font-family: -apple-system,system-ui,sans-serif;
     font-weight: 700; font-size: 12px; cursor: pointer; border: none;
     box-shadow: 0 2px 8px rgba(0,0,0,0.18); }
-  #_dc-shutdown-btn:hover { background: #991b1b; }
+  #_dc-shutdown-btn:hover { background: oklch(0.50 0.16 45); }
 </style>
 <button id="_dc-shutdown-btn" onclick="
   if(!confirm('Shut down Duecare?')) return;
   fetch('/api/shutdown',{method:'POST'}).then(()=>{
     document.body.innerHTML=
       '<div style=\"padding:60px;text-align:center;font-family:system-ui\">'+
-      '<h1 style=\"color:#047857\">Shutting down\u2026</h1>'+
+      '<h1 style=\"color:oklch(0.55 0.10 155)\">Shutting down\u2026</h1>'+
       '<p style=\"color:#6b7280\">You can close this tab.</p></div>';
   });
 ">\u23FB Shutdown</button>
@@ -239,11 +239,11 @@ def _attach_shutdown(app, hide_harness_tiles: bool = False) -> None:
             "align-items:center;justify-content:center;min-height:100vh;"
             "margin:0}.box{background:white;border:1px solid #e5e7eb;"
             "border-radius:14px;padding:40px 50px;text-align:center;"
-            "max-width:480px}h1{color:#dc2626;margin:0 0 14px}"
+            "max-width:480px}h1{color:oklch(0.58 0.14 45);margin:0 0 14px}"
             "p{color:#6b7280;line-height:1.6;margin:0 0 24px}"
-            "button{background:#dc2626;color:white;padding:12px 28px;"
+            "button{background:oklch(0.58 0.14 45);color:white;padding:12px 28px;"
             "border:none;border-radius:10px;font-weight:700;font-size:15px;"
-            "cursor:pointer}button:hover{background:#991b1b}"
+            "cursor:pointer}button:hover{background:oklch(0.50 0.16 45)}"
             ".meta{color:#6b7280;font-size:12px;margin-top:18px}"
             "</style></head><body><div class='box'>"
             "<h1>Shut down Duecare?</h1>"
@@ -256,7 +256,7 @@ def _attach_shutdown(app, hide_harness_tiles: bool = False) -> None:
             "document.getElementById('status').textContent='shutting down...';"
             "try{await fetch('/api/shutdown',{method:'POST'});"
             "document.querySelector('.box').innerHTML="
-            "\"<h1 style='color:#047857'>Shutting down</h1>\"+"
+            "\"<h1 style='color:oklch(0.55 0.10 155)'>Shutting down</h1>\"+"
             "\"<p>You can close this tab. The Kaggle cell will exit shortly.</p>\";"
             "}catch(e){document.getElementById('status').textContent='error: '+e.message;}}"
             "</script></body></html>")
@@ -611,7 +611,7 @@ _PAGE_HTML = """<!doctype html><html><head>
         line-height: 1.5; max-height: 380px; overflow-y: auto; }
   .meta { color: var(--ink3); font-size: 12px; margin-top: 8px; }
   .err { color: #b91c1c; font-weight: 600; }
-  .ok  { color: #047857; font-weight: 600; }
+  .ok  { color: oklch(0.55 0.10 155); font-weight: 600; }
   details summary { cursor: pointer; font-weight: 600; padding: 6px 0; }
 </style></head><body>
 

@@ -514,9 +514,10 @@ def chart_ilo_indicator_hits(harness: dict) -> Path:
         return OUTPUT_DIR / "05_ilo_hits.html"
 
     fig = go.Figure()
-    palette = ["#3b82f6", "#10b981", "#f59e0b", "#ef4444", "#a855f7",
-               "#ec4899", "#14b8a6", "#f97316", "#84cc16", "#6366f1",
-               "#06b6d4", "#d946ef"]
+    # Civic-tech color palette from design tokens
+    palette = ["oklch(0.52 0.08 195)", "oklch(0.55 0.10 155)", "oklch(0.65 0.10 80)",
+               "oklch(0.58 0.14 45)", "#a855f7", "#ec4899", "#14b8a6", "#f97316",
+               "#84cc16", "#6366f1", "#06b6d4", "#d946ef"]
     for i, ind in enumerate(inds):
         ys = [by_cat_ind[c].get(ind, 0) for c in cats]
         fig.add_trace(go.Bar(name=ind, x=cats, y=ys,
