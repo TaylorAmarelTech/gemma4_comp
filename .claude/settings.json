@@ -8,6 +8,7 @@
     "allow": [
       "Bash(.venv/Scripts/python.exe scripts/validate_public_surface.py)",
       "Bash(.venv/Scripts/python.exe scripts/validate_public_surface.py --json)",
+      "Bash(.venv/Scripts/python.exe scripts/validate_public_messaging.py)",
       "Bash(.venv/Scripts/python.exe scripts/validate_notebooks.py)",
       "Bash(.venv/Scripts/python.exe scripts/verify.py)",
       "Bash(.venv/Scripts/python.exe -m compileall -q apps/duecare-ai.com/app)",
@@ -20,7 +21,11 @@
       "Bash(npx tsc)",
       "Bash(npx tsc --noEmit)",
       "Bash(pre-commit run --all-files)",
-      "Bash(pre-commit run public-surface-audit --hook-stage pre-push)"
+      "Bash(pre-commit run public-surface-audit --hook-stage pre-push)",
+      "Bash(pre-commit run public-surface-audit --hook-stage pre-push --all-files)",
+      "Bash(pre-commit run canonical-messaging --hook-stage pre-push)",
+      "Bash(pre-commit run canonical-messaging --hook-stage pre-push --all-files)",
+      "Bash(pre-commit run notebook-validator --hook-stage pre-push --all-files)"
     ]
   }
 }

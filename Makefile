@@ -136,11 +136,15 @@ serve-classifier:  ## Run the classifier locally (port 8081)
 verify:  ## Smoke-check installation: harness imports + counts above thresholds
 	python scripts/verify.py
 
-audit:  ## Public-surface audit: drift + route 200s + lane order + Kaggle lane labels
+audit:  ## Public-surface audit: drift + route 200s + lane order + Kaggle lane labels + canonical messaging
 	python scripts/validate_public_surface.py
+	@echo "--- canonical messaging ---"
+	python scripts/validate_public_messaging.py
 
-verify-all:  ## Full pre-push gate: audit + hub tests + harness smoke + notebook validate
+verify-all:  ## Full pre-push gate: audit + messaging + hub tests + harness smoke + notebook validate
 	python scripts/validate_public_surface.py
+	@echo "--- canonical messaging ---"
+	python scripts/validate_public_messaging.py
 	@echo "--- hub tests ---"
 	DUECARE_DATA_DIR="$$PWD/.duecare-smoke" python -m pytest -q apps/duecare-ai.com/tests/
 	@echo "--- compileall hub ---"

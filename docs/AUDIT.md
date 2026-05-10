@@ -1,3 +1,12 @@
+<!-- audit-allow-file:drift
+reason: this doc literally enumerates the drift terms the audit looks
+for (OpenClaw, signed pack, 76-notebook, "Privacy is non-negotiable",
+6 core + 5, etc.). Without this marker the audit recursively flags
+its own documentation. The header-only marker placement (within the
+first 12 lines) means body code blocks that show marker syntax can't
+accidentally opt out of unrelated files.
+-->
+
 # Public-surface audit
 
 `scripts/validate_public_surface.py` is a single command that gates
