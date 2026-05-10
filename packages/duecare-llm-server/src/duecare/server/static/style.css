@@ -1,9 +1,9 @@
 :root {
-  --primary: #4c78a8;
+  --primary: #4c7a8a;
   --success: #10b981;
   --warning: #f59e0b;
   --danger:  #ef4444;
-  --info:    #3b82f6;
+  --info:    #4c7a8a;
   --muted:   #6b7280;
   --bg:      #f8fafc;
   --card:    #ffffff;
@@ -240,7 +240,7 @@ textarea:focus-visible, select:focus-visible,
 }
 .dc-progress > div {
   height: 100%; width: 0%;
-  background: linear-gradient(90deg, var(--primary), #60a5fa);
+  background: linear-gradient(90deg, var(--primary), #4c7a8a);
   transition: width 200ms linear;
 }
 .dc-progress.indeterminate > div {
