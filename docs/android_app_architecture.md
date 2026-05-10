@@ -364,7 +364,7 @@ The privacy posture is therefore stricter than typical consumer apps:
 | Impact & Vision (40 pts) | "In your pocket" reaches a meaningfully larger audience than "on your laptop." Workers in domestic-help corridors typically own a phone but not a personal laptop. The journal/evidence packet meets them where the harm actually happens. |
 | Video Pitch (30 pts) | Mobile-on-physical-phone footage is dramatically more compelling than a desktop chat. The "tap, type, see ILO citation, generate PDF" flow is filmable in 30 seconds. |
 | Technical Depth (30 pts) | LiteRT integration is one of the named Special Technology Tracks. AI Edge Torch + INT8 quant + NNAPI delegation + on-device encryption + journal-context injection in the chat is real engineering, not vaporware. |
-| Privacy posture | The "Privacy is non-negotiable" claim from the writeup lands hardest in a context where even the harness can't be subpoena'd. |
+| Data-boundary posture | The Android app makes the local-first promise concrete: raw messages, notes, and evidence stay on the device unless the worker chooses to export them. |
 
 ---
 

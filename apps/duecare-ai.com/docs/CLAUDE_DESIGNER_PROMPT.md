@@ -22,11 +22,7 @@ Duecare AI is a Gemma 4 Good Hackathon project for migrant-worker safety. It com
 
 Core message:
 
-> Centralized knowledge. Decentralized privacy.
-
-Required phrase:
-
-> Privacy is non-negotiable.
+> Prevent exploitation. Assist workers. Understand the pattern.
 
 Operational boundary:
 
@@ -71,7 +67,7 @@ Replace the current plain dashboard-looking design with a premium, memorable hac
 The site should feel like:
 
 - Public-interest AI infrastructure
-- Privacy-first civic technology
+- Data-boundary-aware civic technology
 - Modern research/NGO tooling
 - Serious enough for regulators, clear enough for a 3-minute demo video
 
@@ -96,7 +92,7 @@ Avoid:
 Recommended direction:
 
 - Background: warm off-white or very dark navy with subtle gradient sections. Choose one coherent direction.
-- Accent colors: blue/teal/emerald for trust and privacy; amber for caution; red only for risk indicators.
+- Accent colors: blue/teal/emerald for trust and evidence; amber for caution; red only for risk indicators.
 - Typography: strong editorial headline, readable body. Use system fonts unless you can propose a safe no-build alternative.
 - Shapes: soft cards, thin borders, gentle glows, timeline/flow diagrams.
 - Diagrams should be visible on screen in the video without requiring scrolling.
@@ -108,7 +104,7 @@ Design the homepage as a narrative landing page, not a dashboard.
 Suggested sections:
 
 1. **Hero**
-   - Headline: `Centralized knowledge. Decentralized privacy.`
+   - Headline: `Prevent exploitation. Assist workers. Understand the pattern.`
    - Subheadline explaining Gemma 4 + Duecare in one sentence.
    - CTA buttons: `Explore architecture`, `Open live demo`, `View API`
    - Trust/safety badge: `No raw case intake · Anonymized signals only · Gemma 4 harness`
@@ -148,10 +144,10 @@ Suggested sections:
    - Live dashboard
    - Model/evaluation writeup
 
-6. **Privacy boundary**
+6. **Data boundary**
    Strong callout:
-   - `Privacy is non-negotiable.`
-   - Public hub accepts anonymized patterns only.
+   - Raw chats and case files stay with workers or tenant deployments.
+   - Public hub accepts anonymized patterns, public-source facts, and vetted pack metadata only.
    - Complaint flows are draft-only; users/caseworkers send.
 
 7. **Use cases**
@@ -275,4 +271,4 @@ Provide:
 6. If possible, provide implementation-ready HTML/CSS patterns compatible with the current no-build FastAPI setup.
 7. Prioritize changes that can ship before the 2026-05-18 hackathon deadline.
 
-Remember: this website exists to support the video and public judging. It must make the project feel real, humane, technically deep, and privacy-preserving within the first 10 seconds.
+Remember: this website exists to support the video and public judging. It must make the project feel real, humane, technically deep, and focused on preventing exploitation, assisting workers, and explaining patterns within the first 10 seconds.

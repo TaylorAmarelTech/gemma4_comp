@@ -1,4 +1,4 @@
-# Host / Hub / Global Server website plan
+# Duecare Hub / public coordination server website plan
 
 This document describes the missing public website section for the hosted Duecare service: the main server that coordinates shared knowledge, tools, packs, public-source research, stakeholder submissions, and partner updates without centralizing raw worker case data.
 
@@ -10,15 +10,13 @@ Use these names consistently:
 
 - **Public name:** Duecare Hub
 - **Architecture name:** Central Knowledge Server
-- **Deployment name:** Host / Hub / Global Server
+- **Deployment name:** Duecare Hub / public coordination server
 
 Do not describe the hub as a raw case-management system, emergency reporting portal, or live legal-advice server. It is coordination infrastructure.
 
 Core framing:
 
-> Centralized knowledge. Decentralized privacy.
-
-> Privacy is non-negotiable.
+> Centralized knowledge. Decentralized data boundaries.
 
 > Duecare drafts; the user or trusted caseworker decides.
 
@@ -360,7 +358,7 @@ The website should explicitly show that Quality Testing gates pack updates and F
 
 ### P0 — minimum public hub story
 
-These pages make the Host / Hub / Global Server understandable for judges and partners.
+These pages make the Duecare Hub / public coordination server understandable for judges and partners.
 
 | Route | Page | Purpose | Primary content |
 |---|---|---|---|

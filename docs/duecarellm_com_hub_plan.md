@@ -24,7 +24,7 @@ The Render hub should run:
 - static landing page;
 - OpenAPI docs;
 - anonymized-signal intake;
-- OpenClaw/OpenCrawl-style update proposal intake;
+- public-source update proposal intake;
 - knowledge-pack registry;
 - aggregate trend counters;
 - links to Kaggle, GitHub, HF Hub, docs, and the live chat demo.
@@ -39,20 +39,20 @@ It should not run:
 
 ## 3. Current scaffold
 
-The initial scaffold is now in:
+The current hub scaffold is now in:
 
-- [src/hub/app.py](../src/hub/app.py)
-- [deployment/render/Dockerfile](../deployment/render/Dockerfile)
-- [deployment/render/render.yaml](../deployment/render/render.yaml)
-- [deployment/render/README.md](../deployment/render/README.md)
-- [tests/unit/test_hub_app.py](../tests/unit/test_hub_app.py)
+- [apps/duecare-ai.com/app/main.py](../apps/duecare-ai.com/app/main.py)
+- [apps/duecare-ai.com/app/templates/](../apps/duecare-ai.com/app/templates/)
+- [apps/duecare-ai.com/tests/test_app.py](../apps/duecare-ai.com/tests/test_app.py)
+- [render.yaml](../render.yaml)
+- [apps/duecare-ai.com/docs/RENDER.md](../apps/duecare-ai.com/docs/RENDER.md)
 
 ## 4. Demo flow for the video
 
 Use a 12-second clip:
 
 1. Open `duecare-ai.com`.
-2. Show the headline: **Centralized knowledge. Decentralized privacy.**
+2. Show the headline: **Prevent exploitation. Assist workers. Understand the pattern.**
 3. Open `/docs` and show endpoints:
    - `/api/hub/signals`
    - `/api/hub/opencrawl/updates`
@@ -63,21 +63,21 @@ Use a 12-second clip:
 
 Voiceover line:
 
-> The notebook is not a toy. Duecare also has a public hub where partners can contribute anonymized patterns, public-source updates, prompts, and evaluations. Raw cases stay local. Privacy is non-negotiable.
+> The notebook is not a toy. Duecare also has a public hub where partners can contribute anonymized patterns, public-source updates, prompts, and evaluations. Raw worker chats stay on the phone or tenant hardware unless a worker or partner explicitly shares a safe object.
 
-## 5. OpenClaw/OpenCrawl communication pattern
+## 5. Public-source crawler communication pattern
 
 The crawler/update agent should never mutate production directly.
 
 ```text
-OpenClaw/OpenCrawl crawler
+Public-source crawler
   → fetch public source
   → hash content
   → summarize public change
   → POST /api/hub/opencrawl/updates
   → status = proposed
   → curator reviews
-  → signed knowledge-pack diff
+  → vetted knowledge-pack diff
   → eval gate
   → release
 ```
@@ -93,7 +93,7 @@ Public-source update payload:
   "change_summary": "Public-source crawler observed that a regulator complaint page changed its service hours and should be reviewed by a curator.",
   "extracted_public_facts": ["Service hours changed on the public page."],
   "content_hash": "abc123demo",
-  "crawler_version": "opencrawl-demo-v0"
+  "crawler_version": "public-source-demo-v0"
 }
 ```
 
@@ -145,7 +145,7 @@ Rejected signal examples:
 | Synthetic signal submit form | visible hub demo | 1 hr |
 | Trend cards on homepage | visual proof of aggregate intelligence | 1 hr |
 | Knowledge-pack cards | shows RAG/GREP/contacts/rubrics as products | 1 hr |
-| OpenCrawl update demo form | proves continuous update loop | 1 hr |
+| Public-source update demo form | proves continuous update loop | 1 hr |
 | Domain DNS + HTTPS | makes it real | 30-60 min plus DNS propagation |
 
 ### P1 — useful after deadline or if ahead
@@ -154,7 +154,7 @@ Rejected signal examples:
 |---|---|---|
 | SQLite persistence | survive restarts | half-day |
 | Admin review queue | curator workflow | 1 day |
-| Signed pack download endpoint | real Exchange foundation | 1 day |
+| Vetted pack manifest endpoint | real Exchange foundation | 1 day |
 | Contact freshness checker integration | real Sentinel foundation | half-day |
 | Basic auth for partner submission | avoid public spam | half-day |
 | Rate limiting | public safety | half-day |
@@ -166,7 +166,7 @@ Rejected signal examples:
 | Multi-tenant partner accounts | NGO/government deployments | multi-day |
 | Messenger/WhatsApp production webhooks | Duecare Channels | multi-day |
 | Training job orchestration | Duecare Trainer | multi-day |
-| Signed knowledge-pack marketplace | Duecare Exchange | multi-week |
+| Vetted knowledge-pack marketplace | Duecare Exchange | multi-week |
 | Full caseworker dashboard | NGO workflow | multi-week |
 
 ## 8. DNS and Render checklist
@@ -194,7 +194,7 @@ Rejected signal examples:
 | Render CPU cannot run model | do not run model on Render; link to Kaggle/HF/local runtime |
 | Hub appears fake | expose live OpenAPI endpoints and accept synthetic demo payloads |
 | Scope creep | hub is coordination plane, not full production backend |
-| OpenCrawl updates corrupt data | proposal-only, curator approval required |
+| Public-source updates corrupt data | proposal-only, curator approval required |
 
 ## 10. Prize framing
 
@@ -206,4 +206,4 @@ The 50K story should be:
 
 One-line video framing:
 
-> Duecare is not just a notebook. It is a privacy-preserving safety network: local Gemma 4 where sensitive data lives, and a public hub where only anonymized patterns, verified knowledge packs, prompts, and evaluations flow back.
+> Duecare is not just a notebook. It is safety infrastructure: local Gemma 4 where sensitive data lives, and a public hub where only anonymized patterns, verified knowledge packs, prompts, and evaluations flow back.

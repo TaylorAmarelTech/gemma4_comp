@@ -170,7 +170,7 @@ v3.16 expansion to 161 rules is purely additive (no rules removed)
 so the lift is expected to remain at-or-above these floors. Re-run
 the A6 `duecare-grading-evaluation` notebook to refresh.
 
-## Privacy is non-negotiable
+## Sensitive data stays local
 
 - **By default, nothing leaves your machine** beyond the one-time AI model download.
 - **No telemetry.** No analytics. No phone-home. The maintainer doesn't operate any service your data passes through.

@@ -338,7 +338,7 @@ neighborhood with source URLs and per-item differentiation. Highlights:
 | Thing | Path |
 |---|---|
 | Source code (17 packages) | [`packages/duecare-llm-*/`](../packages/) |
-| Five Kaggle notebooks | [`kaggle/<notebook>/kernel.py`](../kaggle/) |
+| 13 submission Kaggle kernels | [`kaggle/<notebook>/kernel.py`](../kaggle/) |
 | The harness module (rules, corpus, tools, examples) | [`packages/duecare-llm-chat/src/duecare/chat/harness/__init__.py`](../packages/duecare-llm-chat/src/duecare/chat/harness/__init__.py) |
 | Chat app + classifier app | [`packages/duecare-llm-chat/src/duecare/chat/app.py`](../packages/duecare-llm-chat/src/duecare/chat/app.py), [`classifier.py`](../packages/duecare-llm-chat/src/duecare/chat/classifier.py) |
 | Writeup | [`docs/writeup_draft.md`](./writeup_draft.md) |
@@ -350,4 +350,4 @@ neighborhood with source URLs and per-item differentiation. Highlights:
 
 ---
 
-> **Privacy is non-negotiable. So the harness runs on your laptop.**
+> **Local Gemma 4 handles sensitive material where it lives; the public hub receives only safe signals and vetted knowledge updates.**

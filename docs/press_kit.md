@@ -90,7 +90,7 @@ These are reproducible per `(git_sha, dataset_version, model_revision)`
   PH-SA, NP-SA, BD-SA, ID-SG + MX-US, VE-CO, GH-LB, NG-LB,
   SY-DE, UA-PL)
 - **17** PyPI packages, all MIT-licensed
-- **6 + 5** published Kaggle notebooks (core + appendix)
+- **13** submission Kaggle notebooks (2 core + 11 appendix) plus a 77-notebook research pipeline
 - **194** unit tests passing across the harness packages
 
 ## Quotes available for use
@@ -100,10 +100,7 @@ These are reproducible per `(git_sha, dataset_version, model_revision)`
 > The harness encodes 30 hours of expert hand-grading into a
 > tool a caseworker can use in 10 seconds." — Taylor Amarel
 
-> "Privacy is non-negotiable in this domain. If a worker's
-> recruiter sees the app on their phone, they should be able to
-> tap one button and erase everything. That panic-wipe primitive
-> is more important than any feature." — Taylor Amarel
+> "Sensitive material should stay where the worker or trusted organization controls it. If a worker's recruiter sees the app on their phone, they should be able to tap one button and erase everything. That panic-wipe primitive is more important than any feature." — Taylor Amarel
 
 > "We're not trying to replace lawyers or regulators. We're
 > trying to make the legal landscape faster to navigate so the
