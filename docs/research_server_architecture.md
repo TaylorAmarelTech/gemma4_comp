@@ -2,7 +2,7 @@
 
 > **Status (2026-05-01):** architecture only. Implementation is a
 > 2-4 week post-hackathon project. The pull-based update server +
-> signed pack format (`docs/extension_pack_format.md`) is what apps
+> vetted pack format (`docs/extension_pack_format.md`) is what apps
 > actually consume; this doc describes the upstream pipeline that
 > generates those packs from continuously-changing real-world data.
 >
@@ -65,7 +65,7 @@ and publishes signed extension packs to the registry.
    │                                  │   token)           │          │
    │                                  └────────┬───────────┘          │
    └───────────────────────────────────────────┼──────────────────────┘
-                                                ▼ signed pack
+                                                ▼ vetted pack
                                  ┌──────────────────────────┐
                                  │  Update server           │
                                  │  (GitHub Pages —         │

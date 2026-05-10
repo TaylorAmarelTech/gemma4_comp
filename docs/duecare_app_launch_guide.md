@@ -33,7 +33,7 @@
        | duecare-llm-  |   | duecare-llm-      |   | duecare-llm-          |
        | research-     |-->| server (FastAPI)  |<--| cli (`duecare ...`)   |
        | tools         |   | + 4-card homepage |   +-----------------------+
-       | (OpenClaw)    |   | + cloudflared/    |
+       | (server auto) |   | + cloudflared/    |
        +---------------+   |   ngrok tunnel    |
                            +-------------------+
                                      |
@@ -51,7 +51,7 @@
 | `duecare-llm-evidence-db` | Persistent DuckDB schema for entities / edges / findings / tool-call cache | `EvidenceStore.open()` |
 | `duecare-llm-engine` | Subprocess wrapper around the multimodal pipeline | `Engine().process_folder(cfg)` |
 | `duecare-llm-nl2sql` | NL question → SQL with safety guard + template fallback | `Translator(store).answer(q)` |
-| `duecare-llm-research-tools` | OpenClaw + pluggable research tools with PII filter | `OpenClawTool.from_env()` |
+| `duecare-llm-research-tools` | Server-automation + pluggable research tools with PII filter | `OpenClawTool.from_env()` <!-- audit-allow:drift literal class name --> |
 | `duecare-llm-server` | FastAPI server, 4-card homepage, cloudflared/ngrok tunnel | `duecare serve` |
 | `duecare-llm-cli` | Single `duecare` CLI binding it all together | `duecare --help` |
 
@@ -128,7 +128,7 @@ Visit that URL on your laptop to see the 4-card homepage.
 | 0:10–0:55 | Individual | Paste coercion message → severity 9, hotline shown | "Maria's phone, no cloud, no leak" |
 | 0:55–2:25 | Knowledge | Type *"How many complaints does Pacific Coast Manpower have?"* → table appears + entity graph beneath | "Same engine — investigator's view" |
 | 2:25–2:50 | Enterprise | Paste suspicious job post → BLOCK badge + statute citation | "And the platforms" |
-| 2:50–3:00 | Settings | Show OpenClaw configured, public URL, run history | Close on named NGOs |
+| 2:50–3:00 | Settings | Show server automation configured, public URL, run history | Close on named NGOs |
 
 ## Use-case coverage
 
@@ -149,8 +149,8 @@ All env vars (also visible in `/settings`):
 | `DUECARE_DB` | `duecare.duckdb` | Evidence-store connection string |
 | `DUECARE_PIPELINE_OUT` | `./multimodal_v1_output` | Where the pipeline writes JSONs |
 | `DUECARE_PIPELINE_SCRIPT` | `raw_python/gemma4_docling_gliner_graph_v1.py` | Pipeline script path |
-| `OPENCLAW_API_KEY` | (unset) | OpenClaw API key |
-| `OPENCLAW_BASE_URL` | `https://api.openclaw.io/v1` | OpenClaw base URL |
+| `OPENCLAW_API_KEY` | (unset) | API key for the OpenClaw research-tool integration <!-- audit-allow:drift literal env var name --> |
+| `OPENCLAW_BASE_URL` | `https://api.openclaw.io/v1` | Base URL for the OpenClaw research-tool integration <!-- audit-allow:drift literal env var name --> |
 | `OPENCLAW_MODE` | `online` | `online` or `mock` |
 | `NGROK_AUTHTOKEN` | (unset) | Required only if `--tunnel ngrok` |
 
