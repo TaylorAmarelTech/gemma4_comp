@@ -121,3 +121,5 @@ apps/duecare-ai.com/.duecare/
 # See harness.toml for the policy SSOT.
 .claude-plugin/
 .harness/
+.claude/memory/
+.claude/state/

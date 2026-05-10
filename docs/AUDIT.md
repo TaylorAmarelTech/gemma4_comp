@@ -72,9 +72,10 @@ Inside an env-var table row, append it as a trailing HTML comment:
 
 ### Per-file
 
-Add `audit-allow-file:drift` anywhere in the file (typically near the
-top in a comment) when an entire doc is intrinsically about the
-deprecated term:
+Add `audit-allow-file:drift` as an HTML comment within the first 12
+lines of the file when an entire doc is intrinsically about the
+deprecated term. Body examples and prose mentions are ignored, so docs
+that explain this syntax do not accidentally opt out:
 
 ```markdown
 <!-- audit-allow-file:drift

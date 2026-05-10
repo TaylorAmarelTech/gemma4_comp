@@ -157,6 +157,20 @@ _ALLOW_FILE = "audit-allow-file:drift"  # whole-file opt-out marker
 # This stops documentation files (e.g. docs/AUDIT.md) that explain the
 # marker syntax in a body code block from accidentally opting out.
 _ALLOW_FILE_HEADER_LINES = 12
+_ALLOW_FILE_COMMENT_RE = re.compile(r"^\s*<!--\s*audit-allow-file:drift\b")
+
+
+def _has_file_allow(text: str) -> bool:
+    """Return True only for a real whole-file opt-out marker."""
+    in_fence = False
+    for line in text.splitlines()[:_ALLOW_FILE_HEADER_LINES]:
+        stripped = line.lstrip()
+        if stripped.startswith(("```", "~~~")):
+            in_fence = not in_fence
+            continue
+        if not in_fence and _ALLOW_FILE_COMMENT_RE.search(line):
+            return True
+    return False
 
 
 def check_drift_terms() -> CheckResult:
@@ -171,11 +185,9 @@ def check_drift_terms() -> CheckResult:
         except (UnicodeDecodeError, OSError):
             continue
         rel = str(path.relative_to(ROOT)).replace("\\", "/")
-        # Whole-file opt-out only counts when the marker is in the
-        # file's header — not anywhere in the body (which would
-        # accidentally include docs that document the marker syntax).
-        header = "\n".join(text.splitlines()[:_ALLOW_FILE_HEADER_LINES])
-        if _ALLOW_FILE in header:
+        # Whole-file opt-out only counts when the marker is an HTML
+        # comment in the file's header — not prose or body code blocks.
+        if _has_file_allow(text):
             skipped_files.append(rel)
             continue
         lines = text.splitlines()
