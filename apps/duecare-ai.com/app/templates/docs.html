@@ -62,7 +62,7 @@
     <div>
       <span class="kicker">Technical reference</span>
       <h1>Documentation for engineers, integrators, and reviewers.</h1>
-      <p class="lede">Two surfaces sit on either side of the privacy boundary: the <strong>local runtime</strong> deployed inside your platform, NGO, or workstation; and the <strong>hub</strong> we host. Every card below opens its canonical page.</p>
+      <p class="lede">Two surfaces handle data differently: the <strong>local runtime</strong> deployed inside your platform, NGO, or workstation processes sensitive material, while the <strong>hub</strong> we host accepts only public-source facts, vetted pack metadata, anonymized aggregate signals, hash receipts, and consented contact metadata. Every card below opens its canonical page.</p>
     </div>
     <nav class="toc hero-toc" aria-label="Sections on this page">
       <h3>On this page</h3>
@@ -93,7 +93,7 @@
 <section id="local" class="docs-section" data-screen-label="Docs · Local runtime"><div class="wrap">
   <div class="head">
     <div><span class="ix">01 · Local runtime</span><h2>What runs inside your deployment.</h2></div>
-    <p class="summary">The harness, model, and packs that live on the platform's own infrastructure or the caseworker's own laptop. No content under your control crosses the boundary.</p>
+    <p class="summary">The harness, model, and packs that live on the platform's own infrastructure or the caseworker's own laptop. Raw chats, case files, IDs, and private documents stay there unless an authorized user creates a sanitized submission.</p>
   </div>
   <div class="docs-grid">
     <a class="docs-card" href="/setup">
@@ -186,10 +186,10 @@
     <a class="docs-card" href="/components">
       <span class="role">System</span>
       <h3>Architecture</h3>
-      <p class="body">How the eight components fit together. what crosses the boundary and what stays on which side.</p>
+      <p class="body">How the eight components fit together: what stays local, what is anonymized, and what the hub is allowed to store.</p>
       <ul class="preview">
         <li>Local: harness · packs · tools</li>
-        <li>Boundary: anonymizer · k-anon</li>
+        <li>PII handling: local anonymizer · server detector · k-anon</li>
         <li>Hub: signing · registry · audit · monitor</li>
       </ul>
       <div class="foot"><span>spans both</span><span class="open">Open <span class="arrow">→</span></span></div>
@@ -197,12 +197,12 @@
 
     <a class="docs-card" href="/privacy-boundary">
       <span class="role">Contract</span>
-      <h3>Privacy boundary</h3>
-      <p class="body">The contract: three hard rules, the boundary table, and the six mechanisms that enforce it.</p>
+      <h3>Sensitive data handling</h3>
+      <p class="body">The contract: what stays local, how local Gemma 4 anonymization works before submission, and how the server rejects or redacts PII before storage and display.</p>
       <ul class="preview">
         <li>Three hard rules</li>
-        <li>Boundary table (what can / can't cross)</li>
-        <li>Six enforcement mechanisms</li>
+        <li>What may cross the hub</li>
+        <li>Local and server-side PII checks</li>
       </ul>
       <div class="foot"><span>hub-enforced</span><span class="open">Open <span class="arrow">→</span></span></div>
     </a>
@@ -214,7 +214,7 @@
       <ul class="preview">
         <li>Citation suite</li>
         <li>Refusal suite</li>
-        <li>PII / boundary suite</li>
+        <li>PII / data-flow suite</li>
         <li>Tool-call suite</li>
         <li>Translation suite</li>
         <li>Reasoning suite</li>

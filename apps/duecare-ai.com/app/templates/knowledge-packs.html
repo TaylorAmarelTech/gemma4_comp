@@ -102,7 +102,7 @@
     <div class="hp-flow">
       <div class="step"><span class="num">01</span><div><h4>Public source observed</h4><p>A curator, partner, or research-monitor crawler finds a public document worth indexing.</p></div></div>
       <div class="step"><span class="num">02</span><div><h4>Extracted facts proposed</h4><p>Facts and citations are extracted into a draft pack diff. The original URL and source hash are recorded.</p></div></div>
-      <div class="step"><span class="num">03</span><div><h4>Privacy gate</h4><p>The diff is checked: no PII, no private case content, no scraped private channels. Reject otherwise.</p></div></div>
+      <div class="step"><span class="num">03</span><div><h4>PII and private-content check</h4><p>The diff is checked: no PII, no private case content, no scraped private channels. Reject otherwise.</p></div></div>
       <div class="step"><span class="num">04</span><div><h4>Curator review</h4><p>A human curator reviews the diff. Approve, request changes, or reject with reason.</p></div></div>
       <div class="step"><span class="num">05</span><div><h4>Quality testing</h4><p>The proposed version runs through the regression suite. Failing rules block publication.</p></div></div>
       <div class="step"><span class="num">06</span><div><h4>Approve &amp; publish</h4><p>Manifest is approved with the curator key and published. CDN serves the new body.</p></div></div>

@@ -10,7 +10,7 @@
 <div class="crumbs"><a href="/">Home</a><span class="sep">/</span><a href="/docs">Docs</a><span class="sep">/</span><span>Schemas</span></div>
 <span class="kicker">Canonical JSON schemas</span>
 <h1>Schemas. The shape of every object the hub publishes.</h1>
-<p class="lede">This page is schemas only. Architecture lives in <a href="/components">/components</a>. Privacy enforcement lives in <a href="/privacy-boundary">/privacy-boundary</a>. The threat model lives in <a href="/harness">/harness</a>. This page won&rsquo;t duplicate them.</p></div></section>
+<p class="lede">This page is schemas only. Architecture lives in <a href="/components">/components</a>. Sensitive-data handling lives in <a href="/privacy-boundary">/privacy-boundary</a>. The threat model lives in <a href="/harness">/harness</a>. This page won&rsquo;t duplicate them.</p></div></section>
 
 <section class="hp-section" data-screen-label="Schemas &middot; Pack"><div class="wrap">
 <div class="head"><div><span class="ix">01 &middot; Knowledge-pack schema</span><h2><code>pack@1</code></h2></div><p class="summary">Manifest, claims, citations, eval cases, signing block. Versioned with semver. Older versions remain pullable.</p></div>
@@ -100,7 +100,7 @@
 </div></section>
 
 <section class="hp-section" data-screen-label="Schemas &middot; Feedback"><div class="wrap">
-<div class="head"><div><span class="ix">05 &middot; Feedback receipt</span><h2><code>feedback@1</code></h2></div><p class="summary">Returned from the email gateway after the privacy gate clears an inbound message.</p></div>
+<div class="head"><div><span class="ix">05 &middot; Feedback receipt</span><h2><code>feedback@1</code></h2></div><p class="summary">Returned from the email gateway after the server-side PII detector clears an inbound message.</p></div>
 <pre class="hp-code"><code>{
   "$schema": "https://duecare-ai.com/schema/feedback/1.json",
   "ticket_id": "tk-2026-04-22-0091",

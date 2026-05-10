@@ -168,7 +168,7 @@
   <div class="wrap">
     <span class="kicker">Architecture &amp; status</span>
     <h1>The full system, with honest labels.</h1>
-    <p class="lede">Eight components, one privacy boundary, three honest status colors:
+    <p class="lede">Eight components, one explicit sensitive-data contract, three honest status colors:
       <strong>live in production</strong>, <strong>working prototype</strong>, and <strong>roadmap</strong>.
       What's green here is what judges can verify today.</p>
     <div style="margin-top: 32px;" class="legend">
@@ -187,7 +187,7 @@
           <h4>On this page</h4>
           <ul>
             <li><a href="#map">01. Component map</a></li>
-            <li><a href="#flow">02. Data flow &amp; privacy boundary</a></li>
+            <li><a href="#flow">02. Data flow &amp; PII handling</a></li>
             <li><a href="#status">03. Status table</a></li>
             <li><a href="#contracts">04. Public contracts</a></li>
           </ul>
@@ -196,7 +196,7 @@
 
       <div>
         <span class="label" id="map">01. Component map</span>
-        <h2 style="margin-top: 8px; margin-bottom: 24px;">Three lanes, one boundary.</h2>
+        <h2 style="margin-top: 8px; margin-bottom: 24px;">Three lanes, one explicit data flow.</h2>
 
         <div class="arch-board">
           <!-- Local lane -->
@@ -235,7 +235,7 @@
 
           <!-- BOUNDARY -->
           <div class="boundary-band">
-            <span>↑ Privacy boundary. only anonymized signals cross ↑</span>
+            <span>↑ Local Gemma 4 anonymization; only sanitized signals cross ↑</span>
             <span>k-anon ≥ 30 · no PII · audit-logged</span>
           </div>
 
@@ -267,8 +267,8 @@
               <div class="arch-node">
                 <span class="pill"><span class="dot"></span>Hub</span>
                 <div class="id">— · gate</div>
-                <div class="name">Anonymizer Gate · bidirectional</div>
-                <div class="desc">Single chokepoint in both directions: outbound strips PII + enforces k-anon; inbound scrubs scraped public sources before they enter any pack. Audit-logged either way.</div>
+                <div class="name">PII review gate · bidirectional</div>
+                <div class="desc">Local Gemma 4 anonymizes before submission; the server detector rejects raw PII, enforces k-anon, and scrubs public-source proposals before they enter any pack. Audit-logged either way.</div>
               </div>
             </div>
           </div>
@@ -315,7 +315,7 @@
 
 <section data-screen-label="Architecture · Flow">
   <div class="wrap">
-    <span class="label" id="flow">02. Data flow &amp; privacy boundary</span>
+    <span class="label" id="flow">02. Data flow &amp; PII handling</span>
     <h2 style="margin: 8px 0 24px;">What crosses, what stays.</h2>
 
     <div class="dataflow">
@@ -365,9 +365,9 @@
       </div>
 
       <p class="muted" style="font-size: 13.5px; margin-top: 24px; max-width: 70ch;">
-        The dashed line on the left is the only privacy boundary in the system.
-        Everything to the left of it stays on the user's hardware. Everything to the right of it
-        is publicly auditable. There is no third zone.
+        Raw worker chats, case files, IDs, contact details, and private documents stay on the
+        user's hardware. Sensitive PII is anonymized by the local Gemma 4 workflow before anything
+        is submitted; the server runs a second PII detector before storage or display.
       </p>
     </div>
   </div>

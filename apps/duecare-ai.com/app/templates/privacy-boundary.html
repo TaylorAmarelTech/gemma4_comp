@@ -1,15 +1,15 @@
 <!DOCTYPE html>
 <html lang="en"><head><meta charset="utf-8" /><meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Privacy boundary &middot; DueCare AI</title>
+<title>Sensitive data handling &middot; DueCare AI</title>
 <link rel="stylesheet" href="/static/styles.css" /><link rel="stylesheet" href="/static/hub-pages.css" />
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%230E1116'/%3E%3Ctext x='16' y='21' text-anchor='middle' font-family='monospace' font-weight='700' font-size='14' fill='%23F7F6F1'%3ED%3C/text%3E%3C/svg%3E" />
 </head><body>{% set active_nav = "hub" %}
 {% include "_nav.html" %}
-<section class="hp-hero" data-screen-label="Hub &middot; Privacy boundary"><div class="wrap">
-<div class="crumbs"><a href="/">Home</a><span class="sep">/</span><a href="/hub">DueCare Hub</a><span class="sep">/</span><span>Privacy boundary</span></div>
-<span class="kicker" style="color:oklch(0.42 0.13 45);">Privacy boundary</span>
+<section class="hp-hero" data-screen-label="Hub &middot; Sensitive data handling"><div class="wrap">
+<div class="crumbs"><a href="/">Home</a><span class="sep">/</span><a href="/hub">DueCare Hub</a><span class="sep">/</span><span>Sensitive data handling</span></div>
+<span class="kicker" style="color:oklch(0.42 0.13 45);">Sensitive data handling</span>
 <h1>The hub does not receive raw cases. The hub does not act on anyone&rsquo;s behalf.</h1>
-<p class="lede">This page is the contract. The boundary is enforced in code, not in copy. If anything DueCare ships ever appears to violate the rules below, treat it as a bug report.</p></div></section>
+<p class="lede">This page is the contract. Raw worker chats, case files, IDs, contact details, and private documents stay on the worker device or trusted NGO hardware unless an authorized user creates a sanitized submission. Sensitive PII is anonymized by the local Gemma 4 workflow before anything is submitted; the server runs a second PII detector before storage or display.</p></div></section>
 
 <section class="hp-section" data-screen-label="Privacy &middot; Hard rules"><div class="wrap">
 <div class="head"><div><span class="ix">01 &middot; Hard rules</span><h2>Three things the hub will never do.</h2></div><p class="summary">These are constraints in code. A pull request that breaks one of them does not ship.</p></div>
@@ -20,30 +20,31 @@
 </div></div></section>
 
 <section class="hp-section" data-screen-label="Privacy &middot; Boundary table"><div class="wrap">
-<div class="head"><div><span class="ix">02 &middot; What stays. What may cross.</span><h2>The boundary, line by line.</h2></div><p class="summary">Each row is a category of data and what the hub does with it. Enforcement column names the mechanism.</p></div>
+<div class="head"><div><span class="ix">02 &middot; What stays. What may cross.</span><h2>The data flow, line by line.</h2></div><p class="summary">Each row is a category of data and what the hub does with it. The enforcement column names the concrete local or server-side mechanism.</p></div>
 <table class="std">
 <thead><tr><th>Category</th><th>Stays local</th><th>May cross hub</th><th>Enforcement</th></tr></thead>
 <tbody>
-<tr><td>Worker case content</td><td>Always</td><td>Never</td><td>Schema rejects free-text case fields. Edge filter scans payloads.</td></tr>
-<tr><td>Names &middot; IDs &middot; contacts</td><td>Always</td><td>Never</td><td>No PII columns exist on any public hub table.</td></tr>
+<tr><td>Worker case content</td><td>Always</td><td>Never</td><td>Local Gemma 4 anonymization must happen before submission; server schemas reject raw case fields.</td></tr>
+<tr><td>Worker names &middot; IDs &middot; contacts</td><td>Always</td><td>Never</td><td>Server-side PII detector rejects identifier-shaped strings before storage.</td></tr>
 <tr><td>Document images</td><td>Always</td><td>Never</td><td>Object store rejects user-uploaded images. Pack assets are public-source only.</td></tr>
 <tr><td>Anonymized pattern_id (e.g. <code>fee_request</code>)</td><td>Originates locally</td><td>Yes. opt-in</td><td>Per-deployment opt-in. K-anon &ge; 30 floor or rejected.</td></tr>
 <tr><td>Corridor / sector buckets</td><td>Originates locally</td><td>Yes. anonymized only</td><td>Anonymized buckets only; no time-of-day precision.</td></tr>
 <tr><td>Public-source URLs</td><td>&mdash;</td><td>Yes (intended)</td><td>Reviewed by curators before publication.</td></tr>
 <tr><td>Pack version + pull-time</td><td>&mdash;</td><td>Yes (audit)</td><td>For reproducibility of the audit log.</td></tr>
 <tr><td>Subscriber emails</td><td>&mdash;</td><td>In email provider only</td><td>Stored in the third-party email provider. The hub never logs raw addresses.</td></tr>
+<tr><td>Consented contributor contact</td><td>Optional</td><td>Only with explicit publication consent</td><td>Used for proposal follow-up; detector-class PII is redacted in admin/debug views.</td></tr>
 <tr><td>Outbound emails / reports</td><td>&mdash;</td><td>Never auto-sent</td><td>No automated outbound channel exists. A human signs every artifact.</td></tr>
 </tbody></table></div></section>
 
 <section class="hp-section" data-screen-label="Privacy &middot; Mechanisms"><div class="wrap">
-<div class="head"><div><span class="ix">03 &middot; Where the boundary lives</span><h2>Six mechanisms, all visible.</h2></div><p class="summary">Each mechanism is testable; each fails closed.</p></div>
+<div class="head"><div><span class="ix">03 &middot; Where enforcement happens</span><h2>Six mechanisms, all visible.</h2></div><p class="summary">Each mechanism is testable; each fails closed.</p></div>
 <div class="hp-grid-2">
-<article class="hp-card"><span class="role">Mechanism 01</span><h3>Schema with no PII columns</h3><p>The Postgres schema literally has no name, message, contact, ID, or employer field. There is nothing for a misconfigured client to populate.</p></article>
-<article class="hp-card"><span class="role">Mechanism 02</span><h3>Edge filter on every payload</h3><p>The API gateway scans every inbound payload for identifier-shaped strings. Matches are rejected before the request reaches the application.</p></article>
+<article class="hp-card"><span class="role">Mechanism 01</span><h3>Local Gemma 4 anonymization workflow</h3><p>Sensitive PII is anonymized by the local Gemma 4 workflow before anything is submitted to the public hub.</p></article>
+<article class="hp-card"><span class="role">Mechanism 02</span><h3>Server-side PII detector</h3><p>The server runs a second PII detector that rejects raw-PII submissions before storage and redacts detector-class PII in admin/debug views.</p></article>
 <article class="hp-card"><span class="role">Mechanism 03</span><h3>K-anonymity floor on rollups</h3><p>Trend slices below k&ge;30 are not published. The floor is applied before any aggregate leaves the storage layer.</p></article>
 <article class="hp-card"><span class="role">Mechanism 04</span><h3>Append-only storage</h3><p>Packs, rules, tools, and signals all land as immutable rows. Corrections ship as new versions; nothing is silently rewritten.</p></article>
 <article class="hp-card"><span class="role">Mechanism 05</span><h3>Public audit feed</h3><p>Every write emits an audit row before the corresponding read becomes resolvable. Anyone can replay the feed.</p></article>
-<article class="hp-card"><span class="role">Mechanism 06</span><h3>Curator-vetted releases</h3><p>Every pack and rule version is signed by a curator key. Verifiable client-side. Old keys remain in the public log so historical packs stay verifiable.</p></article>
+<article class="hp-card"><span class="role">Mechanism 06</span><h3>Curator-vetted releases</h3><p>Every pack and rule version is approved by a curator, content-hashed, and published with immutable metadata so historical packs stay verifiable.</p></article>
 </div></div></section>
 {% include "_footer.html" %}
 </body></html>
