@@ -1,0 +1,141 @@
+# Harness v4 (Hokage) project policy for gemma4_comp.
+#
+# Read by the Chachamaru127/claude-code-harness plugin's Go hook engine
+# at session start. Defines the runtime safety policies + verb-skill
+# defaults this repo wants enforced when Claude Code is active.
+#
+# This file is the SSOT — do NOT hand-edit `.claude-plugin/settings.json`
+# (Hokage regenerates it from this file via `harness sync`, and the
+# plugin's self-protection denies direct edits to that path).
+#
+# We intentionally do NOT generate `.claude-plugin/plugin.json` from
+# this file — gemma4_comp is a hackathon submission, not a Claude Code
+# plugin marketplace.
+
+[project]
+name = "gemma4_comp"
+version = "0.1.0"
+description = "DueCare AI — Gemma 4-powered safety infrastructure for migrant-worker protection (Gemma 4 Good Hackathon submission)."
+homepage = "https://duecare-ai.com"
+repository = "https://github.com/TaylorAmarelTech/gemma4_comp"
+license = "MIT"
+keywords = ["gemma-4", "safety", "migrant-workers", "trafficking", "hackathon"]
+
+[project.author]
+name = "Taylor Amarel"
+url = "https://github.com/TaylorAmarelTech"
+
+[env]
+# Scrub Anthropic-internal env vars from subprocess invocations so
+# `python scripts/...` calls don't inherit secrets.
+CLAUDE_CODE_SUBPROCESS_ENV_SCRUB = "1"
+# Force UTF-8 in Python subprocesses so the audit script's box-draw
+# output renders consistently across Windows (cp1252) and *nix.
+PYTHONIOENCODING = "utf-8"
+# Hub TestClient smoke directory (matches .gitignore).
+DUECARE_DATA_DIR = ".duecare-smoke"
+
+[safety.permissions]
+# Direct push to master/main is explicitly user-confirmed. We DO push
+# to master regularly (Render auto-deploy from master), but Claude Code
+# should ask each time so a hook accident can't deploy.
+protectedBranchPush = "ask"
+
+deny = [
+  # Privilege escalation: never on a hackathon laptop.
+  "Bash(sudo:*)",
+  # Recursive deletes: ask only, never deny — too many legitimate uses
+  # (e.g. `rm -rf .pytest_cache`). Listed under `ask` instead.
+  # Legacy DB shells we don't ship (no Postgres / MySQL / Mongo here).
+  "Bash(psql:*)",
+  "Bash(mysql:*)",
+  "Bash(mongod:*)",
+  "Bash(mongo:*)",
+  # Secrets at rest — never read.
+  "Read(./.env)",
+  "Read(./.env.*)",
+  "Read(./secrets/**)",
+  "Read(**/*.pem)",
+  "Read(**/*.key)",
+  "Read(**/*id_rsa*)",
+  "Read(**/*id_ed25519*)",
+  "Read(**/.aws/**)",
+  "Read(**/.ssh/**)",
+  "Read(**/.npmrc)",
+  # Author's proprietary benchmark — gitignored, never read.
+  "Read(./_reference/**)",
+  "Read(./raw_python/**)",
+  "Read(./evidence_raw/**)",
+]
+
+ask = [
+  # Recursive deletes — pause before nuking files.
+  "Bash(rm -r:*)",
+  "Bash(rm -rf:*)",
+  "Bash(rm -fr:*)",
+  # History-rewriting git operations.
+  "Bash(git reset --hard:*)",
+  "Bash(git push -f:*)",
+  "Bash(git push --force:*)",
+  "Bash(git push --force-with-lease:*)",
+  "Bash(git clean -f:*)",
+  "Bash(git clean -fdx:*)",
+  "Bash(git clean -fx:*)",
+  "Bash(git rebase:*)",
+  # Package installs change the dev environment.
+  "Bash(pip install:*)",
+  "Bash(pip uninstall:*)",
+  "Bash(npm install:*)",
+  "Bash(npm exec:*)",
+  "Bash(npx:*)",
+  "Bash(uv pip install:*)",
+  "Bash(uv sync:*)",
+  # Publishing — explicit user authorization required EVERY time.
+  "Bash(kaggle kernels push:*)",
+  "Bash(kaggle datasets create:*)",
+  "Bash(kaggle datasets version:*)",
+  "Bash(huggingface-cli upload:*)",
+  "Bash(huggingface-cli repo create:*)",
+]
+
+[safety.sandbox]
+# Don't fail if the sandbox isn't available (Windows + WSL setups
+# vary). The deny/ask lists above provide the real safety floor.
+failIfUnavailable = false
+
+[safety.sandbox.network]
+# Cloud-metadata + paste-site exfil endpoints — never accessible.
+deniedDomains = [
+  "169.254.169.254",
+  "metadata.google.internal",
+  "metadata.azure.com",
+  "pastebin.com",
+  "transfer.sh",
+  "0x0.st",
+  "paste.ee",
+  "termbin.com",
+  "ix.io",
+]
+
+[safety.sandbox.filesystem]
+denyRead = [
+  ".env",
+  ".env.*",
+  "!.env.example",
+  "secrets/**",
+  "**/*.pem",
+  "**/*.key",
+  "**/*id_rsa*",
+  "**/*id_ed25519*",
+  "**/.aws/**",
+  "**/.ssh/**",
+  # Author's proprietary content (also gitignored).
+  "_reference/**",
+  "raw_python/**",
+  "evidence_raw/**",
+]
+allowRead = [
+  ".env.example",
+  ".env.sample",
+  "config/public-*",
+]

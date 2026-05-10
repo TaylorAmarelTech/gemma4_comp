@@ -114,3 +114,10 @@ apps/duecare-ai.com/.duecare/
 
 # Local audit / TestClient smoke directory created by validate_public_surface.py
 .duecare-smoke/
+
+# Hokage harness machine-local artifacts. The harness.toml at the repo
+# root is the source-of-truth (committed); .claude-plugin/ + .harness/
+# are regenerated locally by `harness sync` and shouldn't be tracked.
+# See harness.toml for the policy SSOT.
+.claude-plugin/
+.harness/
