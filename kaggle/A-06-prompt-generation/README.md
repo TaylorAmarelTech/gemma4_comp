@@ -1,4 +1,6 @@
 # DueCare — Gemma generates evaluation prompts (#A06 appendix)
+<!-- duecare:lane-label -->
+> **Serves lanes:** 04 Researcher
 
 Appendix-style notebook. **Not** part of the core deployment flow —
 this is the data-pipeline tool advanced users invoke when they want

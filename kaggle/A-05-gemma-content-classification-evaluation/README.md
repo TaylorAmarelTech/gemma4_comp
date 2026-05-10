@@ -1,4 +1,6 @@
 # DueCare — NGO classifier evaluation dashboard (#A05 appendix)
+<!-- duecare:lane-label -->
+> **Serves lanes:** 02 NGO & regulator
 
 The Agency / NGO dashboard. Form-based content submission → structured
 JSON classification with risk vectors + threshold-filterable history

@@ -1,4 +1,6 @@
 # DueCare — Hands-on classification sandbox (#A03 appendix)
+<!-- duecare:lane-label -->
+> **Serves lanes:** 01 Platform safety · 02 NGO & regulator
 
 The HANDS-ON sandbox where judges learn HOW Duecare classifies content
 **before** they see the polished live-demo. Pairs with

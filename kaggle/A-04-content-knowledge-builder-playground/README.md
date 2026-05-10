@@ -1,4 +1,6 @@
 # DueCare — Knowledge-builder sandbox + JSON export (#A04 appendix)
+<!-- duecare:lane-label -->
+> **Serves lanes:** 02 NGO & regulator · 05 Developer / integration partner
 
 The HANDS-ON sandbox for **building** Duecare's knowledge base.
 Pairs with `content-classification-playground`; both are

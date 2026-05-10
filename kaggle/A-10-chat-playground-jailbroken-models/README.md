@@ -1,6 +1,8 @@
 # DueCare — Jailbroken-Gemma comparison (#A10 appendix)
+<!-- duecare:lane-label -->
+> **Serves lanes:** 04 Researcher
 
-**Same chat UI as core notebook 2 (chat-playground-with-grep-rag-tools)**
+**Same chat UI as appendix notebook A02 (chat-playground-with-grep-rag-tools)**
 — same 4 toggle tiles (Persona / GREP / RAG / Tools), same Pipeline
 modal, same Persona library — but loads an **abliterated, cracked, or
 uncensored Gemma 4 variant** instead of Google's stock instruct model.

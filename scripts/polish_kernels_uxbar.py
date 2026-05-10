@@ -6,7 +6,9 @@ For each kernel:
    intro (script) so a judge sees a clear "what this is, what to look
    for, demo path" before the first code line.
 2. Standardise the README h1 to ``Duecare - <title> (#01 core | #A1 appendix)``.
-3. Append a shared cross-kernel nav footer to every README so the 13
+3. Insert a visible "Serves lanes" line under the h1 using the public
+    website's five-lane taxonomy.
+4. Append a shared cross-kernel nav footer to every README so the 13
    feel like a series, with prev / next / index links.
 
 Idempotent: each transform looks for its own marker and skips if it
@@ -22,6 +24,7 @@ from pathlib import Path
 KAGGLE_ROOT = Path(__file__).resolve().parent.parent / "kaggle"
 
 INTRO_MARKER = "<!-- duecare:kernel-intro -->"
+LANE_MARKER = "<!-- duecare:lane-label -->"
 FOOTER_MARKER = "<!-- duecare:kernel-footer -->"
 
 
@@ -33,6 +36,7 @@ KERNELS: list[dict[str, object]] = [
         "kind": "core",
         "n": 1,
         "title": "Migrant-worker safety playground",
+        "lanes": ["02 NGO & regulator", "04 Researcher", "05 Developer / integration partner"],
         "lede": "All 6 safety layers, all 4 grading modes, all 9 Gemma 4 variants. One configurable URL.",
         "look_for": [
             "Pick a Gemma 4 variant in the picker overlay (start with E2B for speed).",
@@ -46,6 +50,13 @@ KERNELS: list[dict[str, object]] = [
         "kind": "core",
         "n": 2,
         "title": "Live demo (focused walkthrough)",
+        "lanes": [
+            "01 Platform safety",
+            "02 NGO & regulator",
+            "03 Individual worker / mobile",
+            "04 Researcher",
+            "05 Developer / integration partner",
+        ],
         "lede": "The polished demo URL judges land on. Same harness, scripted demo path, +56pp lift baked in.",
         "look_for": [
             "The opening shows stock Gemma vs the harnessed answer, side by side.",
@@ -59,6 +70,7 @@ KERNELS: list[dict[str, object]] = [
         "kind": "appendix",
         "n": 1,
         "title": "Stock Gemma 4 chat baseline",
+        "lanes": ["04 Researcher"],
         "lede": "The before-the-harness baseline. No GREP, no RAG, no tools, no online. Pure stock Gemma 4.",
         "look_for": [
             "Stock Gemma's answer to a recruitment-fee question shows zero ILO citations.",
@@ -72,6 +84,7 @@ KERNELS: list[dict[str, object]] = [
         "kind": "appendix",
         "n": 2,
         "title": "Original 4-toggle subset playground",
+        "lanes": ["04 Researcher"],
         "lede": "The pre-omni subset: GREP + RAG + Tools + Imports as toggleable layers (no Persona, no Online).",
         "look_for": [
             "Same chat surface as kernel 01 with 4 toggles instead of 6.",
@@ -85,6 +98,7 @@ KERNELS: list[dict[str, object]] = [
         "kind": "appendix",
         "n": 3,
         "title": "Hands-on classification sandbox",
+        "lanes": ["01 Platform safety", "02 NGO & regulator"],
         "lede": "Paste content, pick a classification schema (4 shipped), see the structured risk envelope Gemma 4 returns.",
         "look_for": [
             "The schema picker selects which fields the model populates.",
@@ -98,6 +112,7 @@ KERNELS: list[dict[str, object]] = [
         "kind": "appendix",
         "n": 4,
         "title": "Knowledge-builder sandbox + JSON export",
+        "lanes": ["02 NGO & regulator", "05 Developer / integration partner"],
         "lede": "Build a structured knowledge object from free-text input. Exports JSON ready for the hub's pack format.",
         "look_for": [
             "The form mirrors the schema.org-style pack envelope.",
@@ -111,6 +126,7 @@ KERNELS: list[dict[str, object]] = [
         "kind": "appendix",
         "n": 5,
         "title": "NGO classifier evaluation dashboard",
+        "lanes": ["02 NGO & regulator"],
         "lede": "Risk-vector scorecard + intake queue view. The NGO-side moderation surface.",
         "look_for": [
             "The dashboard groups flagged content by corridor + risk vector.",
@@ -124,6 +140,7 @@ KERNELS: list[dict[str, object]] = [
         "kind": "appendix",
         "n": 6,
         "title": "Gemma generates evaluation prompts",
+        "lanes": ["04 Researcher"],
         "lede": "Gemma 4 self-generates new evaluation prompts plus 5 graded responses each (worst -> best).",
         "look_for": [
             "Each generated prompt comes with 5 anchor responses for grading calibration.",
@@ -137,6 +154,7 @@ KERNELS: list[dict[str, object]] = [
         "kind": "appendix",
         "n": 7,
         "title": "Unsloth fine-tune + GGUF export pipeline",
+        "lanes": ["04 Researcher", "05 Developer / integration partner"],
         "lede": "End-to-end SFT + DPO + GGUF Q8_0 + HF Hub push. The training pipeline behind the harness.",
         "look_for": [
             "SFT runs on the curated training set with the same anonymizer gate.",
@@ -150,6 +168,7 @@ KERNELS: list[dict[str, object]] = [
         "kind": "appendix",
         "n": 8,
         "title": "Research graphs (CPU-only)",
+        "lanes": ["04 Researcher"],
         "lede": "Six interactive Plotly charts: corridor coverage, GREP-rule density, RAG-corpus map, rubric-dim drift, etc.",
         "look_for": [
             "Hover any chart to see the underlying counts + corridor breakdown.",
@@ -163,6 +182,7 @@ KERNELS: list[dict[str, object]] = [
         "kind": "appendix",
         "n": 9,
         "title": "Agentic-research chat (BYOK + Playwright)",
+        "lanes": ["04 Researcher", "05 Developer / integration partner"],
         "lede": "The deeper Online layer. Real-browser agentic search via Playwright + BYO API key for live web grounding.",
         "look_for": [
             "Watch the agent open multiple pages in headless Playwright.",
@@ -176,6 +196,7 @@ KERNELS: list[dict[str, object]] = [
         "kind": "appendix",
         "n": 10,
         "title": "Jailbroken-Gemma comparison",
+        "lanes": ["04 Researcher"],
         "lede": "Loads abliterated / cracked Gemma 4 variants. Proves the harness still works when the model's refusals are gone.",
         "look_for": [
             "The same harness runs on a refusal-ablated Gemma 4 31B variant.",
@@ -189,6 +210,7 @@ KERNELS: list[dict[str, object]] = [
         "kind": "appendix",
         "n": 11,
         "title": "Grading-lift regenerator",
+        "lanes": ["04 Researcher"],
         "lede": "Runs N prompts x 2 conditions, grades both, emits MD + JSON with provenance tuple (model, git_sha, dataset_version). The +56pp number, regenerated live.",
         "look_for": [
             "The output is a provenance-pinned report you can cite in the writeup.",
@@ -297,6 +319,40 @@ def standardize_readme_h1(readme_path: Path, entry: dict[str, object]) -> bool:
     return True
 
 
+def render_lane_label(entry: dict[str, object]) -> str:
+    """Return the canonical visible lane label for one kernel README."""
+    lanes = " · ".join(str(lane) for lane in entry.get("lanes", []))
+    return f"{LANE_MARKER}\n> **Serves lanes:** {lanes}\n"
+
+
+def insert_or_replace_lane_label(readme_path: Path, entry: dict[str, object]) -> bool:
+    """Place the lane label immediately below the README h1."""
+    text = readme_path.read_text(encoding="utf-8")
+    lane_label = render_lane_label(entry)
+    if LANE_MARKER in text:
+        pattern = re.compile(
+            rf"{re.escape(LANE_MARKER)}\n> \*\*Serves lanes:\*\* [^\n]*(?:\n|$)"
+        )
+        new_text = pattern.sub(lane_label, text, count=1)
+        if new_text == text:
+            return False
+        readme_path.write_text(new_text, encoding="utf-8")
+        return True
+
+    lines = text.splitlines(keepends=True)
+    for index, line in enumerate(lines):
+        if line.startswith("# "):
+            tail = lines[index + 1:]
+            if tail and not tail[0].strip():
+                tail = tail[1:]
+            new_lines = lines[:index + 1] + [lane_label, "\n"] + tail
+            readme_path.write_text("".join(new_lines), encoding="utf-8")
+            return True
+
+    readme_path.write_text(lane_label + "\n" + text, encoding="utf-8")
+    return True
+
+
 def render_footer(current: dict[str, object]) -> str:
     """Build the shared cross-kernel footer with prev/next/index nav."""
     rows: list[str] = []
@@ -331,7 +387,7 @@ def append_or_replace_footer(readme_path: Path, footer: str) -> bool:
 
 
 def main() -> int:
-    edited = {"intros": 0, "h1s": 0, "footers": 0}
+    edited = {"intros": 0, "h1s": 0, "lane_labels": 0, "footers": 0}
     for entry in KERNELS:
         folder = KAGGLE_ROOT / str(entry["folder"])
         if not folder.is_dir():
@@ -358,6 +414,9 @@ def main() -> int:
             if standardize_readme_h1(readme, entry):
                 edited["h1s"] += 1
                 print(f"H1    {entry['folder']}")
+            if insert_or_replace_lane_label(readme, entry):
+                edited["lane_labels"] += 1
+                print(f"LANE  {entry['folder']}")
             if append_or_replace_footer(readme, render_footer(entry)):
                 edited["footers"] += 1
                 print(f"FOOT  {entry['folder']}")
@@ -366,6 +425,7 @@ def main() -> int:
         "\nDone. "
         f"Inserted {edited['intros']} kernel intros, "
         f"standardized {edited['h1s']} README h1s, "
+        f"updated {edited['lane_labels']} lane labels, "
         f"refreshed {edited['footers']} footers."
     )
     return 0

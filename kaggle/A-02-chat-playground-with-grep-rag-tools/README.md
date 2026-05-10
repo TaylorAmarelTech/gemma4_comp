@@ -1,4 +1,6 @@
 # DueCare — Original 4-toggle subset playground (#A02 appendix)
+<!-- duecare:lane-label -->
+> **Serves lanes:** 04 Researcher
 
 Same chat UI as `chat-playground`, but with **toggle checkboxes for the
 safety-harness layers**. Lets a judge see — interactively, in a
@@ -25,7 +27,7 @@ and other IT variants). Used in accordance with the
 
 ## What the harness layers do
 
-The chat backend exposes 3 toggleable safety layers. Each is independent — toggle any combination on/off per message.
+The chat backend exposes 4 toggleable safety layers. Each is independent — toggle any combination on/off per message.
 
 ### GREP (Phase 1 — shipping now)
 
@@ -51,18 +53,23 @@ The chat backend exposes 3 toggleable safety layers. Each is independent — tog
 
 When GREP is **on**, every fired rule is prepended to Gemma's context as a system message naming the rule, the citation (e.g. `ILO C181 Art. 7`, `POEA MC 14-2017`, `HK Employment Ord §32`), and a brief indicator description.
 
-### RAG (Phase 2 — stub for now)
+### RAG
 
-Will retrieve the top-K relevant docs from the Duecare evidence corpus (full-text ILO C029/C181/C095/C189, POEA Memo Circulars, BP2MI regulations, HK statutes, IJM/Polaris case briefs) and inject as grounding context. Currently exposes the toggle but returns empty results.
+Retrieves top-K relevant docs from the Duecare evidence corpus (ILO conventions, POEA Memo Circulars, BP2MI regulations, HK statutes, IJM/Polaris case briefs) and injects them as grounding context.
 
-### Tools (Phase 3 — stub for now)
+### Tools
 
-Will expose 4 functions to Gemma via native function calling:
+Exposes 5 lookup functions to Gemma via the harness tool layer:
 
 - `lookup_corridor_fee_cap(origin, destination, sector)` — controlling statute + max permissible fee
 - `lookup_fee_camouflage(label, jurisdiction)` — what the label is commonly used to disguise
 - `lookup_ilo_indicator(scenario)` — matching forced-labor indicators
 - `lookup_ngo_intake(corridor, language)` — hotline + intake URL
+- `lookup_ilo_convention(convention_id)` — convention summary + core obligations
+
+### Imports
+
+Adds user-supplied text snippets or uploaded documents to the prompt as local authoritative context for that run.
 
 ## What "good" looks like (the demo)
 
@@ -88,7 +95,7 @@ Send the textbook prompt:
    - Dataset: `taylorsamarel/duecare-chat-playground-with-grep-rag-tools-wheels`
 3. Replace the single code cell with the contents of [`kernel.py`](./kernel.py) (CTRL+A → paste).
 4. **Save Version → Save & Run All**.
-5. When the cloudflared URL appears, open it. Bottom of the chat composer has a "Safety harness" row with the GREP toggle. RAG and Tools are hidden until Phase 2/3 wires them.
+5. When the cloudflared URL appears, open it. Bottom of the chat composer has a "Safety harness" row with the GREP, RAG, Tools, and Imports toggles.
 
 ### B. Script-driven push
 
@@ -102,9 +109,9 @@ python scripts/push_kaggle_demo.py --kernel chat-playground-with-grep-rag-tools 
 
 ## What this notebook is NOT
 
-- Not the full safety-harness production app — that's [`../live-demo/`](../live-demo/).
-- Not a benchmark / training notebook — that's [`../bench-and-tune/`](../bench-and-tune/).
-- Not raw Gemma chat — that's [`../chat-playground/`](../chat-playground/).
+- Not the full safety-harness production app — that's [`../02-live-demo/`](../02-live-demo/README.md).
+- Not a benchmark / training notebook — that's [`../A-07-bench-and-tune/`](../A-07-bench-and-tune/README.md).
+- Not raw Gemma chat — that's [`../A-01-chat-playground/`](../A-01-chat-playground/README.md).
 
 ---
 
