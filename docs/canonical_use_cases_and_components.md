@@ -1,11 +1,17 @@
-# Canonical use cases and plain-language component architecture
+# Canonical outcomes, lanes, and plain-language component architecture
 
 > Status: canonical language guide for the website, writeup, video, notebooks, and public docs.
-> Rule: use the four use cases in this exact order everywhere.
+> Rule: lead mission/demo/intro copy with the three outcomes; use the five lanes in this exact order everywhere.
 
-## 1. Exact users / use cases
+## 1. Three outcomes
 
-### 1. Platform Safety
+1. **Prevent exploitation before it spreads** — help organizations and platforms stop illicit recruitment activity through screening and review support.
+2. **Assist victims and at-risk workers** — support NGO, government, and worker-controlled workflows with grounded intake, routing, and mobile guidance.
+3. **Understand what is happening and why** — help researchers and stakeholders map the who, what, where, when, and why through reproducible evidence.
+
+## 2. Exact users / lanes
+
+### 1. Platform safety
 
 **Who:** Trust and safety teams at social media companies, job platforms, marketplaces, recruitment boards, and other services where risky recruitment content appears.
 
@@ -13,9 +19,9 @@
 
 **What Duecare does for them:** Scores content for risk, explains why a post was flagged, shows which rules and sources were used, routes high-risk items to reviewers, and shares only anonymized pattern signals with the central hub.
 
-**Public-facing wording:** "Platform Safety teams use Duecare to screen risky recruitment content, support reviewers, and share anonymized abuse patterns without exposing private messages."
+**Public-facing wording:** "Platform safety teams use Duecare to screen risky recruitment content, support reviewers, and share anonymized abuse patterns without exposing private messages."
 
-### 2. NGO / Regulators
+### 2. NGO & regulator
 
 **Who:** NGOs, caseworkers, legal-aid groups, consulates, labor ministries, labor inspectors, regulators, and authorized enforcement partners.
 
@@ -23,19 +29,19 @@
 
 **What Duecare does for them:** Provides grounded drafts, contact routing, complaint-channel context, jurisdiction and corridor facts, case summaries, and knowledge-pack update tools. Duecare drafts; a trusted human decides.
 
-**Public-facing wording:** "NGOs and regulators use Duecare to turn complex messages, documents, and public rules into reviewable guidance, referrals, and draft complaint materials."
+**Public-facing wording:** "NGO & regulator users use Duecare to turn complex messages, documents, and public rules into reviewable guidance, referrals, and draft complaint materials."
 
-### 3. Migrant Worker Chat
+### 3. Individual worker / mobile
 
 **Who:** Migrant workers and prospective migrant workers using a trusted chat, mobile, web, or local tool. OFWs are one demo persona, not the only audience.
 
 **What they need:** Private, plain-language help understanding suspicious job offers, contracts, recruiter messages, fee demands, document retention, threats, and next steps.
 
-**What Duecare does for them:** Runs a private or trusted chat experience that checks risks, explains warning signs, cites relevant contacts or rights information, and avoids sending raw messages to the public hub. Privacy is non-negotiable.
+**What Duecare does for them:** Runs a private or trusted mobile/chat experience that checks risks, explains warning signs, cites relevant contacts or rights information, and avoids sending raw messages to the public hub.
 
-**Public-facing wording:** "Migrant Worker Chat helps a worker understand a suspicious message or document privately, with localized warning signs and trusted next-step resources."
+**Public-facing wording:** "Individual worker / mobile users use Duecare to understand suspicious messages or documents privately, with localized warning signs and trusted next-step resources."
 
-### 4. Academic Research
+### 4. Researcher
 
 **Who:** Academic researchers, public-interest researchers, evaluators, auditors, Kaggle judges, and model-safety teams studying reproducible behavior.
 
@@ -43,28 +49,40 @@
 
 **What Duecare does for them:** Provides benchmark prompts, response rubrics, rule-based and LLM-based evaluation, notebook outputs, model cards, and versioned knowledge packs.
 
-**Public-facing wording:** "Academic Research users use Duecare to reproduce model behavior, compare safety interventions, and audit every claim from source artifacts."
+**Public-facing wording:** "Researchers use Duecare to reproduce model behavior, compare safety interventions, and audit every claim from source artifacts."
 
-## 2. Language rules
+### 5. Developer / integration partner
+
+**Who:** Developers, technical partners, IT teams, and integration owners embedding Duecare into moderation tools, NGO systems, mobile clients, dashboards, or custom workflows.
+
+**What they need:** APIs, Docker/runtime paths, pack schemas, client snippets, version pinning, integration examples, and local validation commands.
+
+**What Duecare does for them:** Provides the runtime, APIs, knowledge-pack registry, submission endpoints, setup guides, and reusable components needed to embed Duecare inside their own channels.
+
+**Public-facing wording:** "Developer / integration partners use Duecare to embed the harness, packs, APIs, and examples into their own prevention, assistance, or research workflows."
+
+## 3. Language rules
 
 Use these names exactly:
 
-1. Platform Safety
-2. NGO / Regulators
-3. Migrant Worker Chat
-4. Academic Research
+1. Platform safety
+2. NGO & regulator
+3. Individual worker / mobile
+4. Researcher
+5. Developer / integration partner
 
 Avoid using these as top-level user labels:
 
-- "social platforms" as a standalone label; use **Platform Safety**.
-- "enterprise" as a top-level audience; say **Platform Safety deployment** if the customer is a platform.
-- "worker-side" as a top-level use case; use **Migrant Worker Chat**.
-- "researchers" alone in summary lists; use **Academic Research**.
-- "NGO dashboard" alone when regulators are included; use **NGO / Regulators**.
+- "social platforms" as a standalone label; use **Platform safety**.
+- "enterprise" as a top-level audience; say **Platform safety deployment** if the customer is a platform.
+- "worker-side" as a top-level lane; use **Individual worker / mobile**.
+- "researchers" alone in summary lists; use **Researcher**.
+- "NGO dashboard" alone when regulators are included; use **NGO & regulator**.
+- "custom integration" alone as a lane; use **Developer / integration partner**.
 
 Technical nicknames such as Runtime, Harness, Eval, and Exchange can remain internal package names, but public pages should use plain-language component names.
 
-## 3. Technical components, grouped by what they do
+## 4. Technical components, grouped by what they do
 
 ### Group A — Private decision-support experience
 
@@ -113,7 +131,7 @@ These components are the privacy boundary. Raw worker details must not cross int
 | Plain-language component | Technical nickname | What it does | What it displays | Communicates with |
 |---|---|---|---|---|
 | Local Anonymization Module | Anonymizer | Runs locally or inside a trusted tenant. It asks Gemma 4 and deterministic detectors to convert sensitive content into structured, anonymized information objects. | Redaction summary, blocked PII categories, sanitized object preview, local hash receipt. | Safety Guidance Layer; Information Objects; Information Submission Module. |
-| Information Submission Module | Submitter | Sends only anonymized objects, public-source updates, aggregate counts, or signed pack proposals to the central server. | Consent checkbox, submission payload preview, receipt ID, review status. | Local Anonymization Module; Central Knowledge Server. |
+| Information Submission Module | Submitter | Sends only anonymized objects, public-source updates, aggregate counts, or vetted pack proposals to the central server. | Consent checkbox, submission payload preview, receipt ID, review status. | Local Anonymization Module; Central Knowledge Server. |
 
 Hard rule:
 
@@ -126,7 +144,7 @@ These components run on the hosted duecare-ai.com service or an institution-owne
 | Plain-language component | Technical nickname | What it does | What it displays | Communicates with |
 |---|---|---|---|---|
 | Central Knowledge Server | duecare-ai.com hub | Receives anonymized submissions, stores review queues, publishes pack metadata, and serves website/API pages. | Public homepage, use-case pages, API docs, pack registry, anonymized trend summaries, review queue. | Information Submission Module; Knowledge Packs; Newsletter Module; Stakeholder Engagement Module. |
-| Public Information Research Monitor | Research module / OpenClaw runner | Searches public sources for new laws, advisories, trends, negative news, platform policies, and other relevant public facts. | Source list, crawler status, extracted public facts, proposed updates, freshness warnings. | Online search tools; Knowledge Formatter; Central Knowledge Server. |
+| Public Information Research Monitor | Public-source crawler | Searches public sources for new laws, advisories, trends, negative news, platform policies, and other relevant public facts. | Source list, crawler status, extracted public facts, proposed updates, freshness warnings. | Online search tools; Knowledge Formatter; Central Knowledge Server. |
 | Newsletter and Alert Module | Digest sender | Proactively summarizes reviewed anonymized patterns and public facts for subscribed NGOs, regulators, researchers, and authorized partners. | Subscriber settings, digest preview, topic filters, send log. | Central Knowledge Server; Knowledge Packs; Stakeholder Engagement Module. |
 | Stakeholder Engagement Module | Feedback collector | Contacts subscribers on a regular cadence to ask for response rankings, new observations, useful tools, and updated public information. | Survey prompts, ranking forms, observation forms, participation status. | Newsletter Module; Stakeholder Response Formatter; Central Knowledge Server. |
 | Stakeholder Response Formatter | Feedback standardizer | Converts stakeholder survey answers into structured information objects or reviewable knowledge proposals. | Sanitized response summary, extracted fields, target template, validation issues. | Stakeholder Engagement Module; Knowledge Formatter; Central Knowledge Server. |
@@ -140,7 +158,7 @@ These components decide whether a change is safe and whether a tuned model is go
 | Quality Testing Framework | Eval | Tests model and safety-layer behavior with example prompts, image prompts, rule-based scoring, LLM-based judging, regression checks, and model comparisons. | Scorecards, pass/fail gates, worst-to-best examples, model comparison tables, provenance. | Gemma 4 Model Layer; Safety Guidance Layer; Knowledge Packs; Fine-Tuning Module. |
 | Fine-Tuning Module | Trainer | Fine-tunes or adapts Gemma 4 using approved, anonymized, provenance-tracked examples and stakeholder rankings. | Dataset manifest, training run status, evaluation gate result, model card, release artifact links. | Quality Testing Framework; Anonymization Module; Gemma 4 Model Layer; Knowledge Packs. |
 
-## 4. How the components communicate
+## 5. How the components communicate
 
 ### Local or tenant deployment path
 
@@ -200,7 +218,7 @@ Approved anonymized examples + response rankings
   -> Channel and Deployment Package can opt in to the new model
 ```
 
-## 5. Demos are separate from technical components
+## 6. Demos are separate from technical components
 
 Demos are proof surfaces. They combine components for a judge, partner, or stakeholder. They are not the architecture itself.
 
@@ -208,22 +226,24 @@ Demos are proof surfaces. They combine components for a judge, partner, or stake
 |---|---|---|
 | Kaggle chat playground | Gemma 4 plus Safety Guidance Layer behavior is visible and reproducible. | Gemma 4 Model Layer; Safety Guidance Layer; Knowledge Packs; Quality Testing Framework. |
 | duecare-ai.com website | Central coordination, public story, pack registry, anonymized signal intake, and API docs exist. | Central Knowledge Server; Information Submission Module; Knowledge Packs; use-case pages. |
-| Platform Safety demo | A platform can screen recruitment content before workers see it. | Channel and Deployment Package; Safety Guidance Layer; Quality Testing Framework. |
-| NGO / Regulators demo | A caseworker or regulator can turn messages/documents into grounded, reviewable drafts. | Channel and Deployment Package; Safety Guidance Layer; Contacts; Knowledge Packs. |
-| Migrant Worker Chat demo | A worker can privately check a message or document and see trusted next steps. | Gemma 4 Model Layer; Safety Guidance Layer; Local Anonymization Module; mobile/local package. |
-| Academic Research demo | A researcher can rerun prompts, compare outputs, and verify claims. | Quality Testing Framework; Knowledge Packs; Gemma 4 Model Layer; Fine-Tuning Module. |
+| Platform safety demo | A platform can screen recruitment content before workers see it. | Channel and Deployment Package; Safety Guidance Layer; Quality Testing Framework. |
+| NGO & regulator demo | A caseworker or regulator can turn messages/documents into grounded, reviewable drafts. | Channel and Deployment Package; Safety Guidance Layer; Contacts; Knowledge Packs. |
+| Individual worker / mobile demo | A worker can privately check a message or document and see trusted next steps. | Gemma 4 Model Layer; Safety Guidance Layer; Local Anonymization Module; mobile/local package. |
+| Researcher demo | A researcher can rerun prompts, compare outputs, and verify claims. | Quality Testing Framework; Knowledge Packs; Gemma 4 Model Layer; Fine-Tuning Module. |
+| Developer / integration partner demo | A technical team can embed Duecare into its own product or workflow. | Channel and Deployment Package; APIs; Knowledge Packs; Central Knowledge Server. |
 
-## 6. Suggested website page names
+## 7. Suggested website page names
 
-- `/platform-safety` — Platform Safety setup and integration.
-- `/ngo-regulators` — NGO / Regulators setup and trust boundary.
-- `/migrant-worker-chat` — private chat and mobile guidance flow.
-- `/academic-research` — reproducibility, prompts, notebooks, and model comparisons.
+- `/platform-safety` — Platform safety setup and integration.
+- `/ngo-regulators` — NGO & regulator setup and trust boundary.
+- `/individual-worker-mobile` — private chat and mobile guidance flow.
+- `/researcher` — reproducibility, prompts, notebooks, and model comparisons.
+- `/developers` — API, Docker, pack, schema, and integration-partner setup.
 - `/knowledge-packs` — pack registry, templates, pull instructions.
 - `/submit-information` — anonymized submission flow and consent boundary.
-- `/research-monitor` — public-source research and OpenClaw-style update proposals.
+- `/research-monitor` — public-source research and crawler-style update proposals.
 - `/stakeholder-engagement` — response ranking, observations, and subscriber feedback.
 
-## 7. One-sentence architecture summary
+## 8. One-sentence architecture summary
 
-Duecare combines Gemma 4, a safety guidance layer, versioned knowledge packs, privacy-preserving submissions, public-source research, stakeholder feedback, testing, and fine-tuning so Platform Safety, NGO / Regulators, Migrant Worker Chat, and Academic Research can use the same trusted core without centralizing raw worker data.
+Duecare combines Gemma 4, a safety guidance layer, versioned knowledge packs, privacy-preserving submissions, public-source research, stakeholder feedback, testing, and fine-tuning so Platform safety, NGO & regulator, Individual worker / mobile, Researcher, and Developer / integration partner lanes can use the same trusted core without centralizing raw worker data.

@@ -563,7 +563,7 @@ def _knowledge_packs() -> list[KnowledgePackSummary]:
             version="0.14.x",
             description="Public ILO, Palermo, corridor, and pattern-brief context for grounded Gemma 4 answers.",
             status="live",
-            update_channel="Sentinel proposals then curator review",
+            update_channel="Public-source proposals then curator review",
         ),
         KnowledgePackSummary(
             id="duecare-grep-rules-v0",
@@ -572,7 +572,7 @@ def _knowledge_packs() -> list[KnowledgePackSummary]:
             version="0.14.x",
             description="Deterministic indicators for fees, document retention, debt pressure, evasion, and jailbreak attempts.",
             status="live",
-            update_channel="Partner PR or Sentinel proposal",
+            update_channel="Partner PR or public-source proposal",
         ),
         KnowledgePackSummary(
             id="duecare-contacts-v0",

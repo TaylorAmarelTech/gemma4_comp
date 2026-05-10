@@ -3,19 +3,19 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Sentinel · DueCare AI</title>
+<title>Public Information Research Monitor · DueCare AI</title>
 <link rel="stylesheet" href="/static/styles.css" />
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%230E1116'/%3E%3Ctext x='16' y='21' text-anchor='middle' font-family='monospace' font-weight='700' font-size='14' fill='%23F7F6F1'%3ED%3C/text%3E%3C/svg%3E" />
 </head>
 <body>
 {% set active_nav = "docs" %}
 {% include "_nav.html" %}
-<section class="page-intro first" data-screen-label="Sentinel · Intro">
+<section class="page-intro first" data-screen-label="Research monitor · Intro">
   <div class="wrap">
     <div class="crumbs"><a href="/">Home</a><span class="sep">/</span><a href="/intelligence">Intelligence</a><span class="sep">/</span><span>Public-source crawler</span></div>
     <span class="kicker">Public-source crawl proposals</span>
     <h1>Propose a public-source crawl. Curators review the diff.</h1>
-    <p class="lede">Sentinel turns a public URL into a proposed pack diff. It does not
+    <p class="lede">The public information research monitor turns a public URL into a proposed pack diff. It does not
       auto-publish, does not auto-merge, and never crawls private endpoints.
       Every output is a draft for human review.</p>
     <div class="row" style="margin-top:24px;">
@@ -26,26 +26,26 @@
   </div>
 </section>
 
-<section data-screen-label="Sentinel · Pipeline">
+<section data-screen-label="Research monitor · Pipeline">
   <div class="wrap">
     <span class="label">Crawl pipeline</span>
     <h2 style="margin-top:8px;max-width:24ch;">URL → fetch → extract facts → diff → curator.</h2>
     <div class="pipeline" style="margin-top:32px;">
       <div class="stage"><span class="lab">01</span><h5>Public source</h5><p>Government advisory, ILO/HRW publication, or NGO public report.</p><div class="arrow-r"></div></div>
       <div class="stage"><span class="lab">02</span><h5>Crawl proposal</h5><p>Submitter records URL, jurisdiction, pack kind, and reason.</p><div class="arrow-r"></div></div>
-      <div class="stage"><span class="lab">03</span><h5>Extract public facts</h5><p>Sentinel pulls a small set of structured facts and a content hash.</p><div class="arrow-r"></div></div>
+      <div class="stage"><span class="lab">03</span><h5>Extract public facts</h5><p>The monitor pulls a small set of structured facts and a content hash.</p><div class="arrow-r"></div></div>
       <div class="stage"><span class="lab">04</span><h5>Proposed diff</h5><p>Diff is queued against the current pack version.</p><div class="arrow-r"></div></div>
       <div class="stage boundary"><span class="lab">05 · gate</span><h5>Curator review</h5><p>A signed-in curator inspects diff vs source. Only vetted packs sync to clients.</p></div>
     </div>
   </div>
 </section>
 
-<section data-screen-label="Sentinel · Form">
+<section data-screen-label="Research monitor · Form">
   <div class="wrap" style="display:grid;grid-template-columns:1fr 320px;gap:48px;align-items:start;">
     <form onsubmit="event.preventDefault();alert('Crawl proposal queued at /submissions');">
       <h3>Submit a crawl request</h3>
       <p class="muted" style="font-size:14px;margin-top:6px;margin-bottom:24px;">
-        Sentinel only fetches publicly reachable URLs. It does not log in, scrape
+        The monitor only fetches publicly reachable URLs. It does not log in, scrape
         rate-limited APIs, or follow links across domains.
       </p>
 
@@ -54,7 +54,7 @@
         <div class="field"><label>Pack kind</label>
           <select><option>corridor</option><option>contacts</option><option>grep-rules</option><option>rubric</option><option>tools</option></select>
         </div>
-        <div class="field full"><label>Target URL</label><input type="url" placeholder="https://gov.example/advisory/2026-04" /><div class="help">Must be publicly reachable. Sentinel fetches once and stores a content hash.</div></div>
+        <div class="field full"><label>Target URL</label><input type="url" placeholder="https://gov.example/advisory/2026-04" /><div class="help">Must be publicly reachable. The monitor fetches once and stores a content hash.</div></div>
         <div class="field"><label>Jurisdiction</label><input type="text" placeholder="qa" /></div>
         <div class="field"><label>Corridor</label><input type="text" placeholder="qa-np" /></div>
         <div class="field full"><label>Reason for crawl</label><textarea placeholder="Why does this update belong in the pack?"></textarea></div>
@@ -77,7 +77,7 @@
     <aside style="display:flex;flex-direction:column;gap:14px;position:sticky;top:80px;">
       <div class="rail">
         <span class="cap">Hard limits</span>
-        <h4>What Sentinel will not do</h4>
+        <h4>What the monitor will not do</h4>
         <ul>
           <li>Crawl behind logins or rate-limits</li>
           <li>Follow links across domains</li>

@@ -63,13 +63,13 @@ local harness update
 - No raw worker chats by default.
 - All submissions have provenance.
 - Every update has contributor type + review status.
-- Every published pack is versioned and signed.
+- Every published pack is versioned, vetted, and integrity-checked.
 - Clients can pin versions.
 - Sensitive cases stay local unless explicitly consented and anonymized.
 
 ## Pack format (planned)
 
-Each signed pack is a tar/zip with:
+Each vetted pack is a tar/zip with:
 
 ```
 duecare-pack-<name>-<version>.tar.gz

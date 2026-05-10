@@ -33,17 +33,23 @@ Recommended primary tagline:
 
 > Centralized knowledge. Decentralized privacy.
 
-## Five-pillar framing
+## Three outcomes and five-lane framing
 
-The mission page should introduce the five website-facing pillars in this order:
+The mission page should lead with the three outcomes:
 
-1. **Platform Safety** — help platforms screen risky recruitment posts, ads, messages, and recruiter patterns before harm spreads.
-2. **NGO / Regulators** — help trusted organizations and public agencies triage information, route people to complaint channels, and draft reviewable guidance.
-3. **Migrant Worker Chat** — help workers privately understand suspicious offers, contracts, fees, threats, and document-retention risks.
-4. **Academic Research** — help researchers and judges reproduce prompts, evaluations, model behavior, and pack provenance.
-5. **Host / Hub / Global Server** — maintain shared Knowledge Packs, tool definitions, public-source updates, safe feedback loops, and signed releases without receiving raw cases.
+1. **Prevent exploitation before it spreads** — help organizations and platforms stop illicit recruitment activity through screening and review support.
+2. **Assist victims and at-risk workers** — support NGO, government, and worker-controlled workflows with grounded intake, routing, and mobile guidance.
+3. **Understand what is happening and why** — help researchers and stakeholders map the who, what, where, when, and why through reproducible evidence.
 
-This page can explain that the first four pillars are user-facing deployment modes, while the fifth is the shared coordination layer that helps all of them improve.
+It should also introduce the five website-facing lanes in this order:
+
+1. **Platform safety** — help platforms screen risky recruitment posts, ads, messages, and recruiter patterns before harm spreads.
+2. **NGO & regulator** — help trusted organizations and public agencies triage information, route people to complaint channels, and draft reviewable guidance.
+3. **Individual worker / mobile** — help workers privately understand suspicious offers, contracts, fees, threats, and document-retention risks.
+4. **Researcher** — help researchers and judges reproduce prompts, evaluations, model behavior, and pack provenance.
+5. **Developer / integration partner** — help teams embed Duecare into moderation tools, NGO systems, mobile apps, dashboards, and custom workflows.
+
+This page can explain that the five lanes are the public navigation model, while the Duecare Hub is the shared coordination layer that helps all of them improve.
 
 ## Required safety language
 
@@ -75,7 +81,7 @@ Lead:
 
 Primary CTAs:
 
-- See the five pillars — `/use-cases`
+- See the five lanes — `/use-cases`
 - Explore the hub — `/hub`
 - Read technical docs — `/technical-docs`
 
@@ -124,29 +130,29 @@ Use a clear card or table:
 | treat scraped public data as automatic truth | it creates proposals that require review. |
 | claim to prevent trafficking by itself | it supports earlier recognition, safer routing, and better shared knowledge. |
 
-### 6. Five pillars
+### 6. Five lanes
 
-Use the five-pillar order:
+Use the five-lane order:
 
 #### Platform Safety
 
 Platforms can screen recruitment posts, ads, direct messages, and recruiter patterns, then route high-risk content to reviewers and share only anonymized trend signals.
 
-#### NGO / Regulators
+#### NGO & regulator
 
 Trusted organizations can use grounded drafts, complaint-channel context, contact routing, and public-source Knowledge Packs while keeping sensitive case details in their own systems.
 
-#### Migrant Worker Chat
+#### Individual worker / mobile
 
 Workers can privately check suspicious offers, fees, contracts, threats, and document-retention requests through a local, mobile, web, or trusted chat experience.
 
-#### Academic Research
+#### Researcher
 
 Researchers and judges can reproduce prompts, compare model behavior, inspect scorecards, and verify claims from source artifacts.
 
-#### Host / Hub / Global Server
+#### Developer / integration partner
 
-The Duecare Hub maintains shared metadata, Knowledge Packs, tools, public-source update proposals, email feedback workflows, review queues, and signed releases so every deployment can improve without centralizing raw private data.
+Developers and technical partners can embed Duecare into moderation tools, NGO systems, mobile apps, dashboards, and custom workflows through APIs, Docker, packs, schemas, and examples.
 
 ### 7. Human story section
 
@@ -170,7 +176,7 @@ Safe wording:
 
 Recommended copy:
 
-> Privacy is non-negotiable. The hub is for shared knowledge, not raw case intake. Local and trusted deployments may process sensitive messages or documents, but the central server should receive only public-source facts, aggregate counts, anonymized pattern signals, reviewed feedback, signed pack metadata, and approved examples.
+> Privacy is non-negotiable. The hub is for shared knowledge, not raw case intake. Local and trusted deployments may process sensitive messages or documents, but the central server should receive only public-source facts, aggregate counts, anonymized pattern signals, reviewed feedback, vetted pack metadata, and approved examples.
 
 Include the bidirectional privacy gate:
 
@@ -183,7 +189,7 @@ Inbound: public/source/submission -> privacy check -> structured object -> revie
 
 Recommended copy:
 
-> Duecare's mission is not to make one chatbot. It is to build reusable safety infrastructure: a way for Gemma 4 deployments to stay grounded, private, testable, and continuously improved across Platform Safety, NGO / Regulators, Migrant Worker Chat, Academic Research, and the shared Host / Hub / Global Server.
+> Duecare's mission is not to make one chatbot. It is to build reusable safety infrastructure: a way for Gemma 4 deployments to stay grounded, private, testable, and continuously improved across Platform safety, NGO & regulator, Individual worker / mobile, Researcher, and Developer / integration partner lanes.
 
 ## Navigation placement
 
@@ -206,12 +212,12 @@ If top nav is crowded, put Mission in the first footer column and link it from t
 - Add nav or homepage CTA link.
 - Add footer link.
 - Include the four required privacy phrases.
-- Include five-pillar framing.
+- Include three outcomes and five-lane framing.
 - Include a clearly labeled composite character.
 - Include what Duecare does not do.
 - Include partner ecosystem wording without claiming partnerships.
 - Include links to `/use-cases`, `/hub`, `/technical-docs`, `/privacy-boundary`, and `/demo`.
-- Add tests asserting the page contains `Mission`, `Privacy is non-negotiable`, `No raw case intake`, `Host / Hub / Global Server`, and `composite`.
+- Add tests asserting the page contains `Mission`, `Privacy is non-negotiable`, `No raw case intake`, `Developer / integration partner`, and `composite`.
 
 ## Tone rules
 

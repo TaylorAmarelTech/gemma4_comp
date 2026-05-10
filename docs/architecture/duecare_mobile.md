@@ -61,7 +61,7 @@ docs, rubrics, contacts, and personas. The Mobile app is a
 the point in time when the Android codegen was run. Future versions
 either:
 
-1. Pull updated subsets via the Exchange protocol (signed packs
+1. Pull updated subsets via the Exchange protocol (vetted packs
    delivered as APK in-app updates), or
 2. Continue receiving codegen-mirrored snapshots when the Android
    wheel is rebuilt.
