@@ -22,20 +22,34 @@ self-contained and does not depend on execution order.
 from __future__ import annotations
 
 
-PALETTE = {
-    "primary":   "#4c78a8",
-    "success":   "#10b981",
-    "warning":   "#f59e0b",
-    "danger":    "#ef4444",
-    "info":      "#3b82f6",
-    "muted":     "#6b7280",
-    "surface":   "#fafbfc",
-    "surface_2": "#f6f8fa",
-    "bg_success":"#ecfdf5",
-    "bg_warning":"#fffbeb",
-    "bg_danger": "#fef2f2",
-    "bg_info":   "#eff6ff",
-}
+# Load design tokens from centralized configuration
+try:
+    import sys
+    import os
+    from pathlib import Path
+
+    # Add scripts directory to path to enable relative imports
+    scripts_dir = Path(__file__).parent
+    if str(scripts_dir) not in sys.path:
+        sys.path.insert(0, str(scripts_dir))
+
+    from _design_tokens import PALETTE
+except (ImportError, FileNotFoundError):
+    # Fallback to hardcoded civic-tech colors if design tokens not available
+    PALETTE = {
+        "primary":   "oklch(0.52 0.08 195)",  # civic teal
+        "success":   "oklch(0.55 0.10 155)",  # good green
+        "warning":   "oklch(0.65 0.10 80)",   # warn orange
+        "danger":    "oklch(0.58 0.14 45)",   # ember red
+        "info":      "oklch(0.52 0.08 195)",  # civic teal
+        "muted":     "#8A8E97",               # ink_4
+        "surface":   "#F7F6F1",               # paper
+        "surface_2": "#EFEDE4",               # paper_2
+        "bg_success":"oklch(0.95 0.02 155)",  # tinted good
+        "bg_warning":"oklch(0.96 0.02 80)",   # tinted warn
+        "bg_danger": "oklch(0.94 0.04 45)",   # ember soft
+        "bg_info":   "oklch(0.92 0.03 195)",  # accent soft
+    }
 
 
 # ---- Runtime helpers embedded at the top of every consuming cell -----------
@@ -53,13 +67,13 @@ import html as _dc_html
 import pandas as pd
 from IPython.display import HTML, Markdown, display
 
-# Palette mirrors the HEADER_TABLE colors across the suite.
+# Palette now matches the DueCare civic-tech design system
 _DC_PALETTE = {
-    "primary": "#4c78a8", "success": "#10b981", "warning": "#f59e0b",
-    "danger":  "#ef4444", "info":    "#3b82f6", "muted":   "#6b7280",
-    "surface": "#fafbfc", "surface_2": "#f6f8fa",
-    "bg_success": "#ecfdf5", "bg_warning": "#fffbeb", "bg_danger": "#fef2f2",
-    "bg_info":    "#eff6ff",
+    "primary": "oklch(0.52 0.08 195)", "success": "oklch(0.55 0.10 155)", "warning": "oklch(0.65 0.10 80)",
+    "danger":  "oklch(0.58 0.14 45)", "info":    "oklch(0.52 0.08 195)", "muted":   "#8A8E97",
+    "surface": "#F7F6F1", "surface_2": "#EFEDE4",
+    "bg_success": "oklch(0.95 0.02 155)", "bg_warning": "oklch(0.96 0.02 80)",
+    "bg_danger": "oklch(0.94 0.04 45)", "bg_info": "oklch(0.92 0.03 195)",
 }
 
 def show_callout(text, kind="info", title=None):

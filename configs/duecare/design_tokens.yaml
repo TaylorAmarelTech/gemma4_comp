@@ -1,0 +1,116 @@
+# DueCare Design System Tokens
+# Single source of truth for visual primitives across website and notebooks
+# Philosophy: "civic-tech research lab" - warm, authoritative, accessible
+
+colors:
+  # Surface palette (warm paper background system)
+  surface:
+    paper: "#F7F6F1"      # Primary background
+    paper_2: "#EFEDE4"    # Secondary backgrounds
+    paper_3: "#E4E1D7"    # Tertiary backgrounds
+
+  # Text palette (warm ink on paper)
+  text:
+    ink: "#0E1116"        # Primary text
+    ink_2: "#2A2D34"      # Secondary text
+    ink_3: "#5B5F68"      # Muted text
+    ink_4: "#8A8E97"      # Placeholder text
+
+  # Lines and borders
+  border:
+    line: "#DDD8C9"       # Standard borders
+    line_soft: "#E8E4D7"  # Subtle borders
+
+  # Brand accent (civic teal)
+  accent:
+    primary: "oklch(0.52 0.08 195)"      # Main civic teal
+    soft: "oklch(0.92 0.03 195)"         # Background tint
+    ink: "oklch(0.32 0.07 195)"          # Dark variant for text
+
+  # Privacy boundary (ember - use sparingly)
+  ember:
+    primary: "oklch(0.58 0.14 45)"       # Privacy indicators only
+    soft: "oklch(0.94 0.04 45)"          # Background tint
+
+  # Semantic colors
+  semantic:
+    good: "oklch(0.55 0.10 155)"         # Success states
+    warn: "oklch(0.65 0.10 80)"          # Warning states
+
+    # For backwards compatibility with existing notebooks
+    success: "oklch(0.55 0.10 155)"      # Maps to good
+    danger: "oklch(0.58 0.14 45)"        # Maps to ember
+    info: "oklch(0.52 0.08 195)"         # Maps to accent
+    warning: "oklch(0.65 0.10 80)"       # Maps to warn
+
+typography:
+  families:
+    sans: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif"
+    mono: "'JetBrains Mono', ui-monospace, Menlo, monospace"
+
+  # Font feature settings for Inter
+  features: '"ss01", "cv11"'
+
+  sizes:
+    # Base scale (16px = 1rem)
+    base: "16px"
+    small: "14px"
+    large: "18px"
+    xl: "24px"
+
+  weights:
+    light: 300
+    regular: 400
+    medium: 500
+    semibold: 600
+    bold: 700
+
+spacing:
+  # Systematic scale for consistent rhythm
+  s1: "4px"
+  s2: "8px"
+  s3: "12px"
+  s4: "16px"
+  s5: "24px"
+  s6: "32px"
+  s7: "48px"
+  s8: "64px"
+  s9: "96px"
+  s10: "128px"
+
+radii:
+  small: "4px"
+  medium: "8px"
+  large: "12px"
+
+shadows:
+  # Subtle shadows matching civic-tech aesthetic
+  level_1: "0 1px 0 rgba(14,17,22,0.04), 0 1px 2px rgba(14,17,22,0.04)"
+  level_2: "0 1px 0 rgba(14,17,22,0.04), 0 8px 24px -12px rgba(14,17,22,0.10)"
+
+# Notebook-specific mappings for backwards compatibility
+notebook_palette:
+  # Maps new civic-tech colors to existing PALETTE keys
+  primary: "oklch(0.52 0.08 195)"        # accent.primary (civic teal)
+  success: "oklch(0.55 0.10 155)"        # semantic.good
+  warning: "oklch(0.65 0.10 80)"         # semantic.warn
+  danger: "oklch(0.58 0.14 45)"          # ember.primary (privacy boundary)
+  info: "oklch(0.52 0.08 195)"           # accent.primary
+  muted: "#8A8E97"                       # text.ink_4
+  surface: "#F7F6F1"                     # surface.paper
+  surface_2: "#EFEDE4"                   # surface.paper_2
+
+  # Background variants with proper opacity
+  bg_success: "oklch(0.95 0.02 155)"     # Tinted version of good
+  bg_warning: "oklch(0.96 0.02 80)"      # Tinted version of warn
+  bg_danger: "oklch(0.94 0.04 45)"       # ember.soft
+  bg_info: "oklch(0.92 0.03 195)"        # accent.soft
+
+# Design principles for reference
+principles:
+  - "Warm paper/ink instead of stark white/black"
+  - "Civic teal as primary accent, ember only for privacy boundaries"
+  - "Systematic spacing scale prevents arbitrary values"
+  - "Typography stack prioritizes Inter for UI, JetBrains Mono for code"
+  - "Subtle shadows and rounded corners maintain approachable feeling"
+  - "High contrast for accessibility while preserving warmth"

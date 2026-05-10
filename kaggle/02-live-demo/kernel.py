@@ -15,19 +15,40 @@
 
 """
 ============================================================================
-  DUECARE LIVE DEMO -- Kaggle notebook (paste into a single code cell)
+  DUECARE LIVE DEMO -- Self-bootstrapping notebook
 ============================================================================
 
-  Self-bootstrapping. Auto-detects environment, installs only what's
-  missing, picks the best Gemma 4 config for the available VRAM, falls
-  back to heuristic mode if anything goes wrong.
+  🖥️ RUNNING ON KAGGLE:
+    Setup Required (in notebook settings):
+    1. Set Accelerator → GPU T4 x2 (recommended) or T4/P100/A100
+    2. Set Internet → ON
+    3. Click "Run All" - everything else is automatic!
 
-  Requires:
-    - GPU (T4 x2 recommended; works with any T4 / P100 / A100 too)
-    - Internet ON
-    - The duecare-live-demo-wheels Kaggle Dataset attached (auto-detected)
-    - HF_TOKEN OPTIONAL (only if you want to download Gemma from HF
-      Hub instead of an attached Kaggle Models entry)
+    ✅ NO MANUAL STEPS: No dataset linking, no "Add Data" requirements
+
+  🏠 RUNNING LOCALLY:
+    System Requirements:
+    - Python 3.11+
+    - CUDA-capable GPU (8GB+ VRAM recommended)
+    - 16GB+ system RAM
+    - Internet connection
+
+    Setup:
+    pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
+    # Then run this notebook - DueCare will auto-install from GitHub
+
+  ☁️ RUNNING ON COLAB/CLOUD:
+    - Enable GPU runtime (T4/V100/A100)
+    - Runtime → Change runtime type → Hardware accelerator → GPU
+    - Run notebook - auto-detects environment and installs dependencies
+
+  📦 INSTALLATION STRATEGY (automatic):
+    1. GitHub Release Assets (fastest, most reliable)
+    2. GitHub Repository Install (pinned commit, development)
+    3. Local wheel fallback (for repository-adjacent environments)
+
+  🔑 OPTIONAL:
+    - HF_TOKEN: Only needed for HF Hub model downloads (vs Kaggle Models)
 ============================================================================
 """
 from __future__ import annotations
@@ -49,7 +70,10 @@ from typing import Any, Callable, Optional
 # ---------------------------------------------------------------------------
 # CONFIG -- edit these for your run
 # ---------------------------------------------------------------------------
-DATASET_SLUG = "duecare-live-demo-wheels"
+# DueCare package installation from GitHub
+DUECARE_VERSION = "0.1.0"
+GITHUB_REPO = "TaylorAmarelTech/gemma4_comp"
+PINNED_COMMIT = "6da0e04bae38bcd75abd3d8c178cc80c183f4f41"  # Pinned for reproducibility
 
 # ===== Model selection =====================================================
 # Pick which Gemma 4 to serve. The kernel will fall back to heuristic-only
@@ -208,7 +232,7 @@ def _install_unsloth_stack_inline() -> bool:
     We do it all in one cell by being strict about import order:
       stdlib only at top of file
       -> Phase 0 install via subprocess (no Python imports)
-      -> install_duecare_wheels (subprocess, no torch import)
+      -> install_duecare_packages (subprocess, no torch import)
       -> SKIP force_upgrade_hf_stack (it imports transformers)
       -> load_gemma_unsloth -> first torch import = clean
 
@@ -483,14 +507,14 @@ def force_upgrade_hf_stack(verbose: bool = True) -> dict[str, str]:
       config.json -> transformers_version: '5.5.0.dev0'
     Kaggle's preinstalled stable transformers (5.0.0) DROPPED gemma4
     recognition. PyPI's latest stable also doesn't have it. The model
-    requires transformers >= 5.5.0.dev0, which is only available from
-    git main or as a pre-release.
+    requires transformers >= 5.5.0.dev0, which is available from
+    pre-release builds or immutable release tags.
 
     Strategy:
       [attempt 1] pip install --pre --upgrade transformers>=5.5.0.dev
                   (gets the latest dev/rc with gemma4 support)
-      [attempt 2] pip install git+https://github.com/huggingface/transformers
-                  (installs absolute latest from main branch)
+    [attempt 2] pip install git+https://github.com/huggingface/transformers.git@v5.5.0
+            (immutable tag fallback; never installs from a moving branch)
       [attempt 3] last resort: --force-reinstall the older pin so at
                   least text-only on other models works"""
 
@@ -550,13 +574,15 @@ def force_upgrade_hf_stack(verbose: bool = True) -> dict[str, str]:
                 print(f"    {k:24s} {val}")
         return {"hf_stack": "ok-pre", **v}
 
-    # ---- Attempt 2: install from git main
+    # ---- Attempt 2: install from an immutable release tag
+    transformers_git_ref = "v5.5.0"
+    transformers_git_url = "git+https://github.com/huggingface/transformers.git@v5.5.0"
     if verbose:
-        print(f"  [attempt 2] pip install transformers from git main "
-              f"(latest dev with gemma4 support) ...")
+        print(f"  [attempt 2] pip install transformers from immutable "
+              f"git tag {transformers_git_ref} ...")
     cmd2 = [sys.executable, "-m", "pip", "install", "--quiet",
             "--upgrade", "--disable-pip-version-check", "--no-input",
-            "git+https://github.com/huggingface/transformers.git",
+            transformers_git_url,
             "accelerate>=1.0", "sentencepiece", "safetensors",
             "bitsandbytes>=0.43.0"]
     proc2 = subprocess.run(cmd2, capture_output=True, text=True,
@@ -568,10 +594,11 @@ def force_upgrade_hf_stack(verbose: bool = True) -> dict[str, str]:
     if _supports_gemma4():
         v = _versions()
         if verbose:
-            print(f"  ✓ transformers supports Gemma 4 via git main install")
+            print(f"  ✓ transformers supports Gemma 4 via "
+                  f"{transformers_git_ref} install")
             for k, val in v.items():
                 print(f"    {k:24s} {val}")
-        return {"hf_stack": "ok-git", **v}
+        return {"hf_stack": f"ok-git-{transformers_git_ref}", **v}
 
     # ---- Attempt 3: fall back to the older 4.57 pin (won't load Gemma 4
     # but the kernel can still run in heuristic mode)
@@ -616,47 +643,226 @@ def install_optional_deps(verbose: bool = True) -> dict[str, str]:
     return {"optional": f"FAILED: {proc.stderr[-200:]}"}
 
 
-def install_duecare_wheels(verbose: bool = True) -> tuple[list[Path], dict]:
-    """Find duecare wheels in /kaggle/input/** and pip-install them.
-    Returns (wheel_paths, install_status_per_wheel)."""
-    if not Path("/kaggle/input").exists():
-        return [], {}
-    found = sorted(p for p in Path("/kaggle/input").rglob("*.whl")
-                    if "duecare" in p.name.lower())
-    if verbose:
-        print(f"  found {len(found)} duecare wheel(s)")
-    if not found:
-        return found, {}
-    cmd = [sys.executable, "-m", "pip", "install", "--quiet", "--no-input",
-           "--disable-pip-version-check", *[str(p) for p in found]]
-    proc = subprocess.run(cmd, capture_output=True, text=True)
-    status = {}
-    if proc.returncode == 0:
-        for w in found:
-            status[w.name] = "installed"
-        if verbose:
-            print(f"  ✓ installed {len(found)} duecare wheels")
+# Package installation order (dependencies first)
+PACKAGE_INSTALL_ORDER = [
+    "duecare-llm-core",
+    "duecare-llm-models",
+    "duecare-llm-domains",
+    "duecare-llm-tasks",
+    "duecare-llm-evidence-db",
+    "duecare-llm-engine",
+    "duecare-llm-server",
+    "duecare-llm-cli",
+]
+
+# Demo mode package subset (core functionality only)
+DEMO_PACKAGES = [
+    "duecare-llm-core",
+    "duecare-llm-models",
+    "duecare-llm-domains",
+    "duecare-llm-tasks",
+    "duecare-llm-server"
+]
+
+
+def log_step(message: str, level: str = "INFO") -> None:
+    """Log installation steps with clear formatting."""
+    prefix = {
+        "INFO": "📦",
+        "SUCCESS": "✅",
+        "ERROR": "❌",
+        "WARNING": "⚠️",
+        "DEBUG": "🔍"
+    }.get(level, "ℹ️")
+    print(f"{prefix} {message}")
+
+
+def run_pip_command(args: list[str], timeout: int = 300) -> tuple[bool, str, str]:
+    """Run pip command with logging and error handling."""
+    cmd = [sys.executable, "-m", "pip"] + args
+    log_step(f"Running: {' '.join(cmd)}", "DEBUG")
+
+    try:
+        result = subprocess.run(
+            cmd,
+            capture_output=True,
+            text=True,
+            timeout=timeout,
+            check=False
+        )
+        return result.returncode == 0, result.stdout, result.stderr
+    except subprocess.TimeoutExpired:
+        return False, "", f"Command timed out after {timeout}s"
+    except Exception as e:
+        return False, "", str(e)
+
+
+def try_github_release_install(package: str) -> bool:
+    """Try installing from GitHub release assets."""
+    wheel_name = package.replace("-", "_") + f"-{DUECARE_VERSION}-py3-none-any.whl"
+    release_url = f"https://github.com/{GITHUB_REPO}/releases/download/v{DUECARE_VERSION}/{wheel_name}"
+
+    log_step(f"Trying GitHub release for {package}...")
+    success, stdout, stderr = run_pip_command(["install", release_url])
+
+    if success:
+        log_step(f"Installed {package} from GitHub release", "SUCCESS")
+        return True
     else:
-        if verbose:
-            print(f"  bulk install failed; trying one at a time")
-        for w in found:
-            single = subprocess.run(
-                [sys.executable, "-m", "pip", "install", "--quiet",
-                 "--no-input", "--disable-pip-version-check", str(w)],
-                capture_output=True, text=True)
-            status[w.name] = ("installed (retry)"
-                                if single.returncode == 0
-                                else f"FAILED: {single.stderr[:120]}")
-            if verbose:
-                sym = "✓" if single.returncode == 0 else "✗"
-                print(f"  {sym} {w.name}")
+        log_step(f"GitHub release failed for {package}: {stderr[:100]}...", "WARNING")
+        return False
+
+
+def try_github_repo_install(package: str) -> bool:
+    """Try installing from GitHub repository (pinned commit)."""
+    repo_url = f"git+https://github.com/{GITHUB_REPO}.git@{PINNED_COMMIT}#subdirectory=packages/{package}"
+
+    log_step(f"Trying GitHub repository for {package}...")
+    success, stdout, stderr = run_pip_command(["install", repo_url])
+
+    if success:
+        log_step(f"Installed {package} from GitHub repo", "SUCCESS")
+        return True
+    else:
+        log_step(f"GitHub repo failed for {package}: {stderr[:100]}...", "WARNING")
+        return False
+
+
+def try_local_wheel_install(package: str) -> bool:
+    """Try installing from local wheel (if running in repository)."""
+    # Look for wheel in dist directory
+    possible_paths = [
+        Path(f"packages/{package}/dist"),
+        Path(f"dist"),
+        Path(f"wheels/{package}"),
+    ]
+
+    for wheel_dir in possible_paths:
+        if wheel_dir.exists():
+            wheel_files = list(wheel_dir.glob(f"{package.replace('-', '_')}-*.whl"))
+            if wheel_files:
+                wheel_path = wheel_files[0]  # Use newest
+                log_step(f"Trying local wheel for {package}: {wheel_path}")
+                success, stdout, stderr = run_pip_command(["install", str(wheel_path)])
+
+                if success:
+                    log_step(f"Installed {package} from local wheel", "SUCCESS")
+                    return True
+                else:
+                    log_step(f"Local wheel failed for {package}: {stderr[:100]}...", "WARNING")
+
+    return False
+
+
+def install_package_with_fallback(package: str) -> bool:
+    """Install a single package using multi-tier strategy."""
+    log_step(f"Installing {package}...")
+
+    # Tier 1: GitHub Release Assets
+    if try_github_release_install(package):
+        return True
+
+    # Tier 2: GitHub Repository Install
+    if try_github_repo_install(package):
+        return True
+
+    # Tier 3: Local Wheel (for development)
+    if try_local_wheel_install(package):
+        return True
+
+    log_step(f"All installation methods failed for {package}", "ERROR")
+    return False
+
+
+def check_package_installed(package: str) -> bool:
+    """Check if package is already installed."""
+    try:
+        import_name = package.replace("-", ".").replace("llm.", "")
+        if import_name.startswith("duecare."):
+            module_name = import_name
+        else:
+            module_name = f"duecare.{import_name.split('.')[-1]}"
+
+        __import__(module_name)
+        log_step(f"{package} already installed", "SUCCESS")
+        return True
+    except ImportError:
+        return False
+
+
+def install_system_dependencies() -> None:
+    """Install system dependencies that DueCare needs."""
+    dependencies = [
+        "requests>=2.31.0",
+        "pydantic>=2.0.0",
+        "fastapi>=0.100.0",
+        "uvicorn>=0.23.0",
+        "python-multipart>=0.0.6",
+        "jinja2>=3.1.0",
+        "aiofiles>=23.0.0",
+    ]
+
+    log_step("Installing system dependencies...")
+    for dep in dependencies:
+        success, _, stderr = run_pip_command(["install", dep])
+        if not success:
+            log_step(f"Warning: Failed to install {dep}: {stderr[:50]}...", "WARNING")
+
+
+def install_duecare_packages(verbose: bool = True) -> tuple[list[str], dict]:
+    """
+    Install DueCare packages using multi-tier GitHub strategy.
+    Returns (successful_packages, install_status_per_package)
+    """
+    log_step(f"🚀 DueCare Bootstrap - demo mode", "INFO")
+    log_step(f"Repository: {GITHUB_REPO}", "INFO")
+    log_step(f"Version: {DUECARE_VERSION}", "INFO")
+    log_step(f"Commit: {PINNED_COMMIT}", "INFO")
+
+    # Install system dependencies first
+    install_system_dependencies()
+
+    # Use demo package subset for notebook
+    packages = DEMO_PACKAGES
+
+    successful_packages = []
+    install_status = {}
+
+    for package in packages:
+        # Skip if already installed
+        if check_package_installed(package):
+            successful_packages.append(package)
+            install_status[package] = "already_installed"
+            continue
+
+        # Try multi-tier installation
+        if install_package_with_fallback(package):
+            successful_packages.append(package)
+            install_status[package] = "installed"
+        else:
+            install_status[package] = "failed"
+
     # Drop already-imported duecare/transformers from sys.modules so the
     # newly-installed versions take effect.
     for mod in list(sys.modules):
         if (mod == "duecare" or mod.startswith("duecare.")
                 or mod == "transformers" or mod.startswith("transformers.")):
             del sys.modules[mod]
-    return found, status
+
+    # Summary
+    total_packages = len(packages)
+    successful_count = len(successful_packages)
+    log_step(f"Installation complete: {successful_count}/{total_packages} packages",
+             "SUCCESS" if successful_count == total_packages else "WARNING")
+
+    if successful_count < total_packages:
+        failed = [p for p in packages if p not in successful_packages]
+        log_step(f"Failed packages: {', '.join(failed)}", "ERROR")
+        log_step("Some packages failed - notebook may have limited functionality", "WARNING")
+    else:
+        log_step("All packages installed successfully! 🎉", "SUCCESS")
+
+    return successful_packages, install_status
 
 
 @dataclass
@@ -1491,12 +1697,12 @@ print("=" * 76)
 env = detect_environment()
 print(env.summary())
 print()
-print("=== installing duecare wheels ===")
-wheels, wheel_status = install_duecare_wheels()
-if not wheels:
+print("=== installing duecare packages ===")
+packages, package_status = install_duecare_packages()
+if not packages:
     raise SystemExit(
-        "No duecare *.whl files in /kaggle/input. "
-        "Add Data -> Datasets -> taylorsamarel/duecare-live-demo-wheels.")
+        "Failed to install any DueCare packages from GitHub. "
+        "Check internet connection and repository access.")
 
 print()
 if _HANCHEN_STACK_INSTALLED:
@@ -1537,18 +1743,18 @@ _CLOUDFLARED_PROC: dict = {"p": None}
 _SHUTDOWN_BUTTON_SNIPPET = """
 <style>
   #_dc-shutdown-btn { position: fixed; top: 12px; right: 12px; z-index: 99999;
-    background: #dc2626; color: white; padding: 8px 14px;
+    background: oklch(0.58 0.14 45); color: white; padding: 8px 14px;
     border-radius: 8px; font-family: -apple-system,system-ui,sans-serif;
     font-weight: 700; font-size: 12px; cursor: pointer; border: none;
     box-shadow: 0 2px 8px rgba(0,0,0,0.18); }
-  #_dc-shutdown-btn:hover { background: #991b1b; }
+  #_dc-shutdown-btn:hover { background: oklch(0.50 0.16 45); }
 </style>
 <button id="_dc-shutdown-btn" onclick="
   if(!confirm('Shut down Duecare?')) return;
   fetch('/api/shutdown',{method:'POST'}).then(()=>{
     document.body.innerHTML=
       '<div style=\"padding:60px;text-align:center;font-family:system-ui\">'+
-      '<h1 style=\"color:#047857\">Shutting down\u2026</h1>'+
+      '<h1 style=\"color:oklch(0.55 0.10 155)\">Shutting down\u2026</h1>'+
       '<p style=\"color:#6b7280\">You can close this tab.</p></div>';
   });
 ">\u23FB Shutdown</button>
@@ -1582,11 +1788,11 @@ def _attach_shutdown(app, hide_harness_tiles: bool = False) -> None:
             "align-items:center;justify-content:center;min-height:100vh;"
             "margin:0}.box{background:white;border:1px solid #e5e7eb;"
             "border-radius:14px;padding:40px 50px;text-align:center;"
-            "max-width:480px}h1{color:#dc2626;margin:0 0 14px}"
+            "max-width:480px}h1{color:oklch(0.58 0.14 45);margin:0 0 14px}"
             "p{color:#6b7280;line-height:1.6;margin:0 0 24px}"
-            "button{background:#dc2626;color:white;padding:12px 28px;"
+            "button{background:oklch(0.58 0.14 45);color:white;padding:12px 28px;"
             "border:none;border-radius:10px;font-weight:700;font-size:15px;"
-            "cursor:pointer}button:hover{background:#991b1b}"
+            "cursor:pointer}button:hover{background:oklch(0.50 0.16 45)}"
             ".meta{color:#6b7280;font-size:12px;margin-top:18px}"
             "</style></head><body><div class='box'>"
             "<h1>Shut down Duecare?</h1>"
@@ -1599,7 +1805,7 @@ def _attach_shutdown(app, hide_harness_tiles: bool = False) -> None:
             "document.getElementById('status').textContent='shutting down...';"
             "try{await fetch('/api/shutdown',{method:'POST'});"
             "document.querySelector('.box').innerHTML="
-            "\"<h1 style='color:#047857'>Shutting down</h1>\"+"
+            "\"<h1 style='color:oklch(0.55 0.10 155)'>Shutting down</h1>\"+"
             "\"<p>You can close this tab. The Kaggle cell will exit shortly.</p>\";"
             "}catch(e){document.getElementById('status').textContent='error: '+e.message;}}"
             "</script></body></html>")
