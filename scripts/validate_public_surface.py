@@ -152,23 +152,32 @@ def _walk_active() -> Iterable[Path]:
 
 _ALLOW_TOKEN = "audit-allow:drift"  # opt-out marker; see docs/AUDIT.md
 _ALLOW_FILE = "audit-allow-file:drift"  # whole-file opt-out marker
+# Whole-file opt-out only honored when the marker appears in the first
+# N lines — typically as a top-of-file HTML comment with a reason.
+# This stops documentation files (e.g. docs/AUDIT.md) that explain the
+# marker syntax in a body code block from accidentally opting out.
+_ALLOW_FILE_HEADER_LINES = 12
 
 
 def check_drift_terms() -> CheckResult:
     result = CheckResult(name="drift_terms")
     compiled = [(re.compile(p, re.MULTILINE), label, suggest) for p, label, suggest in DRIFT_TERMS]
     files_scanned = 0
-    files_skipped = 0
+    skipped_files: list[str] = []
     for path in _walk_active():
         files_scanned += 1
         try:
             text = path.read_text(encoding="utf-8")
         except (UnicodeDecodeError, OSError):
             continue
-        if _ALLOW_FILE in text:
-            files_skipped += 1
-            continue
         rel = str(path.relative_to(ROOT)).replace("\\", "/")
+        # Whole-file opt-out only counts when the marker is in the
+        # file's header — not anywhere in the body (which would
+        # accidentally include docs that document the marker syntax).
+        header = "\n".join(text.splitlines()[:_ALLOW_FILE_HEADER_LINES])
+        if _ALLOW_FILE in header:
+            skipped_files.append(rel)
+            continue
         lines = text.splitlines()
         for line_idx, line in enumerate(lines, start=1):
             # Suppress if the matching line OR the line directly above
@@ -189,8 +198,11 @@ def check_drift_terms() -> CheckResult:
                         )
                     )
     result.info.append(
-        f"Scanned {files_scanned} active files ({files_skipped} skipped via {_ALLOW_FILE} marker)."
+        f"Scanned {files_scanned} active files ({len(skipped_files)} skipped via {_ALLOW_FILE} marker)."
     )
+    if skipped_files:
+        for rel in sorted(skipped_files):
+            result.info.append(f"  skipped: {rel}")
     return result
 
 

@@ -71,8 +71,19 @@ repos:
         language: system
         stages: [pre-push]
         pass_filenames: false
+        always_run: true
         # Hub deps must be importable; pre-push runs in the dev
         # environment where they are.
+
+      - id: canonical-messaging
+        name: canonical messaging contract (configs/duecare/canonical_messaging.yaml)
+        entry: python scripts/validate_public_messaging.py
+        language: system
+        stages: [pre-push]
+        pass_filenames: false
+        always_run: true
+        # Drift gate for the messaging YAML SSOT — judge-facing surfaces
+        # must still match the canonical outcomes / lanes / counts.
 
       - id: notebook-validator
         name: notebook validator (77 research notebooks must parse)
