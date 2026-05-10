@@ -29,7 +29,7 @@ This is not fake: the cached snippets must be generated from the real runtime or
 3. `/knowledge-packs` — public pack registry and filters.
 4. `/admin` — token-gated troubleshooting view for the recording operator.
 5. `/evaluation` — SFT + DPO training spine.
-6. `/privacy-boundary` — backup tab for the phrase: “Privacy is non-negotiable.”
+6. `/privacy-boundary` — backup tab for the concrete data-boundary explanation.
 
 ## Cached-response notebook fallback
 
@@ -51,7 +51,7 @@ The canonical synthetic example set now lives at `/api/demo/priority-examples` a
 3. NGO case intake and legal-packet drafting,
 4. worker mobile chat with opt-in anonymized sharing,
 5. research ZIP/folder graph extraction and factoid candidates,
-6. full-circle stakeholder email vetting to signed pack release.
+6. full-circle stakeholder email vetting to vetted pack release.
 
 For the final cut, keep those IDs stable and replace fixture results with warmed Gemma 4 + DueCare harness outputs. That gives the video real model outputs without forcing the screen recording to wait for inference.
 

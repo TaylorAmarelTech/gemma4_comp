@@ -16,14 +16,14 @@
 > | 3 | **Duecare Exchange** — privacy-preserving knowledge sharing | Roadmap |
 > | 4 | **Duecare Eval** — rubrics + benchmarks + regression gate | Partial |
 > | 5 | **Duecare Trainer** — model adaptation pipeline | Prototype (`A-07-bench-and-tune`) |
-> | 6 | **Duecare Sentinel** — continuous-update agent + server | Roadmap |
+> | 6 | **Public Information Research Monitor** — continuous-update agent + server | Roadmap |
 > | 7 | **Duecare Channels** — NGO / gov chatbot integrations | Roadmap |
 > | 8 | **Duecare Mobile** — worker-facing Android app | Live (sibling repo) |
 >
 > Per-component overviews: [`docs/architecture/`](architecture/).
 > Canonical product definition: [`docs/product_definition.md`](product_definition.md).
 >
-> The live demo runs without Trainer / Channels / Sentinel /
+> The live demo runs without Trainer / Channels / Research Monitor /
 > Exchange present — those are non-load-bearing for the hackathon
 > submission. The sections below are the **server-internals view**
 > of components #1, #2, and #4 (the live core).

@@ -1,10 +1,10 @@
 # Kaggle Writeup — DueCare
 
-> **Title:** DueCare — private Gemma 4 safety infrastructure for migrant-worker protection
+> **Title:** DueCare — Gemma 4 safety infrastructure for migrant-worker protection
 >
 > **Track:** Safety & Trust. Special Technology alignment: Gemma 4, Unsloth, llama.cpp / LiteRT deployment path.
 >
-> **One-line claim:** DueCare turns Gemma 4 into a private, grounded safety judge and deployment toolkit for NGOs, regulators, platforms, and workers who cannot send sensitive case data to frontier APIs. **Privacy is non-negotiable.**
+> **One-line claim:** DueCare turns Gemma 4 into grounded safety infrastructure that helps platforms prevent exploitation, helps NGOs and workers act on safer guidance, and helps researchers understand what is happening and why — while keeping raw cases out of the public hub.
 >
 > **Status as of 2026-05-08:** 6 harness layers, 161 GREP rules, 46-doc RAG corpus, 46-edge citation graph, 46-dimension grader, 587 example prompts, 65-test adversarial validation suite, 49 public-live Kaggle notebooks, 77 tracked notebook kernels, 23 public-hub tests, 4 example knowledge packs, token-gated admin logs, server automation, operator-side local KB, Cloudflare demo app styling aligned to the public website.
 >
@@ -37,7 +37,7 @@ DueCare has two product surfaces.
 
 Each response can be scored by deterministic rules, Gemma-as-judge, or a combined mode across 46 safety dimensions. The point is visible technical depth: users can see which rule fired, which document was retrieved, which tool returned a value, and how the score changed when layers are toggled.
 
-**The public hub** is the coordination layer at duecare-ai.com. It serves a schema-backed knowledge-object hierarchy, a real pack registry with four example packs, public pack APIs, server-side automation for public-source update triage, a reference `hub_client.py`, and token-gated redacted admin logs. Legacy OpenClaw aliases remain as redirects and env-var fallbacks, but the public language is now server automation. Render deployment uses one FastAPI Docker service plus a persistent disk; no raw worker case content belongs there.
+**The public hub** is the coordination layer at duecare-ai.com. It serves a schema-backed knowledge-object hierarchy, a real pack registry with four example packs, public pack APIs, server-side automation for public-source update triage, a reference `hub_client.py`, and token-gated redacted admin logs. Legacy OpenClaw aliases remain as redirects and env-var fallbacks, but the public language is now server automation. Render deployment uses one FastAPI Docker service plus a persistent disk; raw worker case content stays in worker-controlled or tenant-controlled deployments.
 
 ## 3. Why Gemma 4 matters
 

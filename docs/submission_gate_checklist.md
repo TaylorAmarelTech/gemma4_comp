@@ -153,8 +153,9 @@ The 11 to verify:
       `marias_case_end_to_end.md`
 - [ ] The video closes with a named NGO (Polaris / IJM / ECPAT /
       POEA / BP2MI / HRD Nepal) — verifies real-world impact
-- [ ] The phrase "privacy is non-negotiable" appears in the voice-over
-      (per `00_overarching_goals.md` rule 5)
+- [ ] The voice-over states the concrete data boundary: raw worker
+      content stays local unless explicitly shared, while safe signals
+      and vetted knowledge updates can flow through the public hub
 - [ ] Gemma 4 is attributed by name in voice-over OR on screen
 - [ ] At least one of {function calling, multimodal} is shown as
       load-bearing, not decorative

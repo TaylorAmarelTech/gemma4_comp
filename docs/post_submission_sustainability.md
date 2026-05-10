@@ -165,8 +165,8 @@ The next 180 days: **ship Duecare v1.0.**
 These are the project's "can't break this" commitments through every
 post-submission decision:
 
-1. **Privacy is non-negotiable.** Same phrase from the rules. No PII
-   in git, logs, artifacts, federation, model weights — ever.
+1. **No raw PII in shared systems.** No PII in git, logs, artifacts,
+  federation, model weights — ever.
 2. **MIT license + public source.** No commercial fork happens without
    the same code being upstream. No proprietary closed extensions.
 3. **NGOs come first.** When commercial enterprise interest conflicts

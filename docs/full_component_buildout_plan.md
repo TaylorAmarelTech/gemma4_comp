@@ -6,18 +6,25 @@
 
 ## 0. North star
 
-Duecare should become a Gemma 4-powered safety infrastructure platform for migrant-worker protection. The platform should serve the four canonical use cases, always in this order:
+Duecare should become a Gemma 4-powered safety infrastructure platform for migrant-worker protection. The platform should serve three outcomes:
 
-1. **Platform Safety** — social media companies, job platforms, and marketplaces detecting exploitative recruitment and scam patterns.
-2. **NGO / Regulators** — NGOs, governments, consulates, and regulators triaging complaints, advising workers, and routing cases.
-3. **Migrant Worker Chat** — migrant workers getting private, localized, grounded guidance.
-4. **Academic Research** — academic researchers and evaluators benchmarking models, policies, and intervention quality.
+1. **Prevent exploitation before it spreads** — help platforms, recruitment marketplaces, and organizations detect illicit recruitment, coercion, scams, illegal-fee language, document-retention pressure, and other exploitation patterns earlier.
+2. **Assist victims and at-risk workers** — help NGO, government, and mobile workflows intake cases, organize evidence, guide workers, draft safer responses, prepare referral paths, and support case teams.
+3. **Understand what is happening and why** — help researchers, regulators, advocates, journalists, and partners see the who, what, where, when, and why behind exploitation patterns through notebooks, knowledge packs, trend signals, provenance, and shared analysis.
+
+Those outcomes route through five canonical lanes, always in this order:
+
+1. **Platform safety** — social media companies, job platforms, and marketplaces detecting exploitative recruitment and scam patterns.
+2. **NGO & regulator** — NGOs, governments, consulates, and regulators triaging complaints, advising workers, and routing cases.
+3. **Individual worker / mobile** — migrant workers getting private, localized, grounded guidance.
+4. **Researcher** — researchers, evaluators, journalists, and judges benchmarking models, policies, and intervention quality.
+5. **Developer / integration partner** — teams embedding Duecare into WhatsApp, Messenger, dashboards, internal tools, or custom deployments.
 
 The system must preserve three invariants:
 
-- **Privacy is non-negotiable.** Raw worker data must not be centralized or used for training without explicit consent, anonymization, and provenance.
+- **Data boundaries are explicit.** Raw worker data must not be centralized or used for training without explicit consent, anonymization, and provenance.
 - **Gemma 4 is load-bearing.** Function calling, multimodal understanding, local/runtime deployment, and fine-tuning should be core to the architecture.
-- **Deterministic safety stays outside the model.** Gemma reasons and explains; the harness, contacts, rubrics, and signed knowledge packs supply auditable control.
+- **Deterministic safety stays outside the model.** Gemma reasons and explains; the harness, contacts, rubrics, and vetted knowledge packs supply auditable control.
 
 ---
 
@@ -29,7 +36,7 @@ The system must preserve three invariants:
 | 2 | Safety harness | Duecare Harness | chat/harness package | Live core |
 | 3 | Evaluation framework | Duecare Eval | tasks/eval package | Live core |
 | 4 | Knowledge exchange / safety harness connections | Duecare Exchange | core + publishing | Platform foundation |
-| 5 | Continuous update agent + server | Duecare Sentinel | agents + workflows | Platform foundation |
+| 5 | Continuous update agent + server | Public Information Research Monitor | agents + workflows | Platform foundation |
 | 6 | Retraining / adaptation module | Duecare Trainer | models + publishing | Prototype to production |
 | 7 | NGO/government chatbot channels | Duecare Channels | chat + deployment | Prototype to production |
 | 8 | Worker mobile app | Duecare Mobile | mobile sibling app | Companion product |
@@ -38,11 +45,11 @@ Canonical flow:
 
 ```text
 Sources and partner updates
-  → Sentinel proposes updates
+  → Public Information Research Monitor proposes updates
   → human/curator review
-  → signed knowledge packs
+  → vetted knowledge packs
   → Runtime + Harness + Eval consume packs
-  → Platform Safety, NGO / Regulators, Migrant Worker Chat, and Academic Research use the same core
+  → Platform safety, NGO & regulator, Individual worker / mobile, Researcher, and Developer / integration partner use the same core
   → Trainer learns from approved anonymized failures and releases adapters
 ```
 
@@ -67,10 +74,10 @@ Recommended sequencing:
 | Phase | Goal | Components touched | Why first |
 |---|---|---|---|
 | A | stabilize core contracts | Runtime, Harness, Eval | prevents drift before expanding |
-| B | externalize knowledge packs | Harness, Exchange, Sentinel | makes RAG/GREP/contacts maintainable |
+| B | externalize knowledge packs | Harness, Exchange, Research Monitor | makes RAG/GREP/contacts maintainable |
 | C | build Trainer MVP | Trainer, Eval, Publishing | proves Gemma 4 adaptation story |
 | D | build Channels MVP | Channels, Harness, Contacts | highest real-world NGO/government value |
-| E | build Sentinel service | Sentinel, Exchange | keeps laws/contacts/current docs fresh |
+| E | build Research Monitor service | Research Monitor, Exchange | keeps laws/contacts/current docs fresh |
 | F | build production integration paths | Mobile, enterprise adapters, research workflows | expands from demo to product |
 
 ---
@@ -162,7 +169,7 @@ Provide deterministic, auditable safety scaffolding around Gemma 4: persona, GRE
 
 - Move `RAG_CORPUS` into a curator-block JSON file.
 - Move `GREP_RULES` into a curator-block JSON file with regex validation.
-- Add signed knowledge-pack loading.
+- Add vetted knowledge-pack loading with integrity checks.
 - Add tenant-specific overlays: global pack + country pack + NGO/government pack.
 - Add per-session harness state instead of global `app.state` recent hits.
 
@@ -232,7 +239,7 @@ Evaluate model outputs, harnessed responses, chatbot behavior, fine-tuned adapte
 
 ### Purpose
 
-Let trusted stakeholders share privacy-preserving safety knowledge without sharing raw cases: signed rules, RAG docs, contact updates, aggregate trend signals, hashes, and anonymized examples.
+Let trusted stakeholders share privacy-preserving safety knowledge without sharing raw cases: vetted rules, RAG docs, contact updates, aggregate trend signals, hashes, and anonymized examples.
 
 ### Owns
 
@@ -260,7 +267,7 @@ Let trusted stakeholders share privacy-preserving safety knowledge without shari
 
 ### Production deliverables
 
-- Signed pack distribution.
+- Vetted, integrity-checked pack distribution.
 - Partner contribution PR template.
 - Conflict resolution when two packs update the same contact/doc/rule.
 - Pack compatibility matrix by Duecare version.
@@ -276,11 +283,11 @@ Let trusted stakeholders share privacy-preserving safety knowledge without shari
 
 ---
 
-## 7. Component 5 — Duecare Sentinel
+## 7. Component 5 — Public Information Research Monitor
 
 ### Purpose
 
-Continuously track public changes in laws, regulations, agency pages, complaint forms, hotline/contact pages, scam patterns, and NGO guidance, then propose update packs for human review.
+Continuously track public changes in laws, regulations, agency pages, complaint forms, hotline/contact pages, scam patterns, and NGO guidance, then propose update packs for human review. Internally this component can still use the `sentinel` package/module name, but public docs should describe it as the Public Information Research Monitor.
 
 ### Owns
 
@@ -302,7 +309,7 @@ Continuously track public changes in laws, regulations, agency pages, complaint 
 ### MVP deliverables
 
 - `sources.yaml` for public URLs and contact pages.
-- `sentinel check` command that fetches pages and flags changed hashes or 404s.
+- Planned `research-monitor check` command that fetches pages and flags changed hashes or 404s.
 - A generated `proposed_updates.json` file for curator review.
 - Contact freshness report for `_contacts.json`.
 
@@ -313,7 +320,7 @@ Continuously track public changes in laws, regulations, agency pages, complaint 
 - Automatic diff summaries.
 - Watchlists by jurisdiction/corridor.
 - RAG doc update suggestions.
-- Signed release after approval.
+- Vetted release after approval.
 
 ### Tests
 
@@ -555,9 +562,9 @@ These contracts let all components grow without coupling.
 
 | Schema | Used by | Purpose |
 |---|---|---|
-| `KnowledgePackManifest` | Harness, Exchange, Sentinel, Channels, Mobile | signed pack metadata |
-| `KnowledgePackDiff` | Sentinel, Exchange | proposed update review |
-| `ContactRecord` | Harness, Channels, Mobile, Sentinel | verified routing info |
+| `KnowledgePackManifest` | Harness, Exchange, Research Monitor, Channels, Mobile | vetted pack metadata and integrity fields |
+| `KnowledgePackDiff` | Research Monitor, Exchange | proposed update review |
+| `ContactRecord` | Harness, Channels, Mobile, Research Monitor | verified routing info |
 | `ComplaintDraft` | Harness, Channels, Mobile | draft-only complaint flow |
 | `HarnessTrace` | Harness, Eval, Channels | auditable layer outputs |
 | `EvaluationRun` | Eval, Trainer | reproducible benchmark result |
@@ -678,7 +685,7 @@ Acceptance criteria:
 - logs are redacted;
 - channel can call the same harness as the Kaggle app.
 
-### Milestone 6 — Duecare Sentinel MVP
+### Milestone 6 — Public Information Research Monitor MVP
 
 Effort: 3-5 days
 
@@ -692,9 +699,9 @@ Deliverables:
 
 Acceptance criteria:
 
-- Sentinel can flag a changed public page without mutating production;
+- Research Monitor can flag a changed public page without mutating production;
 - proposed updates are reviewable by a human;
-- no raw private data enters Sentinel.
+- no raw private data enters the Research Monitor.
 
 ### Milestone 7 — Duecare Exchange MVP
 
@@ -728,7 +735,7 @@ Deliverables:
 
 Acceptance criteria:
 
-- mobile can consume signed packs;
+- mobile can consume vetted packs;
 - raw worker content stays local unless explicitly exported;
 - mobile path does not depend on Kaggle or central servers.
 
@@ -746,7 +753,7 @@ packages/
   duecare-llm-models/        # runtime adapters + trainer integration points
   duecare-llm-chat/          # harness chat UI + local demo + web chat
   duecare-llm-tasks/         # evaluation suites
-  duecare-llm-agents/        # Sentinel/update agents
+  duecare-llm-agents/        # Research Monitor/update agents
   duecare-llm-workflows/     # DAGs for update/train/eval workflows
   duecare-llm-publishing/    # HF/Kaggle/model cards/knowledge pack publishing
   duecare-llm-channels/      # optional future package for Messenger/WhatsApp/etc.
@@ -759,7 +766,7 @@ Do not split `channels` or `trainer` into new packages until their contracts set
 
 ## 14. Build order by use-case value
 
-### 1. Platform Safety
+### 1. Platform safety
 
 1. Runtime + Harness.
 2. Platform moderation adapter in Trainer.
@@ -768,17 +775,17 @@ Do not split `channels` or `trainer` into new packages until their contracts set
 5. Evaluation reports.
 6. Privacy-preserving trend exchange.
 
-### 2. NGO / Regulators
+### 2. NGO & regulator
 
 1. Contacts + complaint draft flow.
 2. Tenant RAG packs.
 3. Web-chat channel.
 4. Caseworker handoff.
 5. Messenger/WhatsApp adapters.
-6. Sentinel contact/law freshness checks.
+6. Research Monitor contact/law freshness checks.
 7. Trainer for case-intake adapter.
 
-### 3. Migrant Worker Chat
+### 3. Individual worker / mobile
 
 1. Mobile/local privacy design.
 2. Worker-advisor adapter.
@@ -786,7 +793,7 @@ Do not split `channels` or `trainer` into new packages until their contracts set
 4. Screenshot/document review.
 5. Consent-based handoff.
 
-### 4. Academic Research
+### 4. Researcher
 
 1. Eval manifests and reproducible runs.
 2. Stock vs harnessed vs tuned comparisons.
@@ -818,7 +825,7 @@ Component-specific hard stops:
 | Harness | do not hallucinate contacts or statutes |
 | Eval | do not count unreproducible numbers as results |
 | Exchange | do not accept packs with raw PII |
-| Sentinel | do not auto-apply updates without review |
+| Research Monitor | do not auto-apply updates without review |
 | Trainer | do not train on raw or unapproved cases |
 | Channels | do not auto-send complaints or store chats silently |
 | Mobile | do not transmit worker data without consent |
@@ -855,9 +862,9 @@ Build in this order:
 2. knowledge-pack validation and import/export;
 3. Trainer MVP;
 4. Channels web-chat MVP;
-5. Sentinel MVP;
+5. Research Monitor MVP;
 6. Messenger/WhatsApp/SMS adapters;
-7. signed pack distribution;
+7. vetted pack distribution;
 8. mobile offline pack/runtime path;
 9. enterprise moderation API;
 10. production deployment/security hardening.
@@ -869,13 +876,13 @@ Build in this order:
 | Component | MVP done when... | Production done when... |
 |---|---|---|
 | Runtime | mock + local + Kaggle model calls share a protocol | model capabilities, logs, exports, fallback, and sanitizer are standardized |
-| Harness | layers are inspectable and contacts are first-class | RAG/GREP/contacts/tools are signed curator packs with per-session state |
+| Harness | layers are inspectable and contacts are first-class | RAG/GREP/contacts/tools are vetted curator packs with per-session state |
 | Eval | one command validates counts/endpoints/rubrics | every model/pack release has reproducible eval manifests |
-| Exchange | packs can be validated and diffed locally | partners can publish signed packs with CI and compatibility checks |
-| Sentinel | public URL/contact changes produce proposals | scheduled review/release workflow keeps packs current |
+| Exchange | packs can be validated and diffed locally | partners can publish vetted packs with CI and compatibility checks |
+| Research Monitor | public URL/contact changes produce proposals | scheduled review/release workflow keeps packs current |
 | Trainer | tiny LoRA/dry-run path proves contracts | approved adapters ship with model cards, exports, and regression gates |
 | Channels | web-chat tenant works with draft-only complaint flow | Messenger/WhatsApp/SMS/web channels support human handoff and tenant packs |
-| Mobile | design and pack contract are ready | offline/private worker assistant consumes signed packs safely |
+| Mobile | design and pack contract are ready | offline/private worker assistant consumes vetted packs safely |
 
 ---
 
@@ -887,7 +894,7 @@ Build in this order:
 4. Add `ContactRecord`, `ComplaintDraft`, `TenantConfig`, and `KnowledgePackManifest` draft schemas.
 5. Add a no-network dry-run path for Trainer.
 6. Add a web-chat Channels prototype that calls the existing harness without changing the Kaggle app.
-7. Add Sentinel contact freshness checks for `_contacts.json`.
+7. Add Research Monitor contact freshness checks for `_contacts.json`.
 8. Add an Exchange pack validator that scans for PII and schema errors.
 
 The safe implementation rule is:

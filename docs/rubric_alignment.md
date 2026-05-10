@@ -84,10 +84,11 @@ to Phase 4.**
 > "A classroom with spotty internet, a medical site far from a data
 > center, or a community where privacy is non-negotiable."
 
-"A community where privacy is non-negotiable" is **exactly our angle** —
-frontline NGOs, recruitment regulators, labor ministries that cannot send
-sensitive case data to cloud APIs. Say this *in those words* in the video
-and writeup.
+The useful angle is the concrete deployment boundary behind that rule:
+frontline NGOs, recruitment regulators, labor ministries, and workers
+cannot casually send sensitive case data to cloud APIs. Show the local
+Gemma 4 path and the public hub boundary instead of relying on slogan
+repetition.
 
 ### 1.6 Five Impact Track areas — we're squarely in Safety & Trust
 > "Safety & Trust: Pioneer frameworks for transparency and reliability,
@@ -147,8 +148,8 @@ sets of artifacts.
   refuse to exploit victim imagery, but this means we have no emotional
   visuals)
 - ❌ No "one moment that makes judges stop" — no single unforgettable beat
-- ❌ The "privacy is non-negotiable" framing from the rules is not called
-  out verbatim
+- ❌ The concrete data-boundary framing is not yet visible enough in
+  the video
 
 **Points left on the table: ~8-10**
 
@@ -157,9 +158,9 @@ sets of artifacts.
    abstract but "Maria, 24, Filipino domestic worker in Jeddah, whose
    employer holds her passport and charges her for food." Judges remember
    names and faces.
-2. **Use the exact rules phrase**: "a community where privacy is
-   non-negotiable." That's a direct keyword match to what the judges
-   wrote.
+2. **Show the data boundary**: worker / NGO content stays local while
+  safe signals, public-source facts, and vetted knowledge updates can
+  flow through the public hub.
 3. **Show the comparison page live in the video** (stock Gemma vs. our
    enhanced Gemma on a real scenario) — that's the "wow moment."
 4. **Close the video with a specific, named NGO** that could deploy this
@@ -259,7 +260,7 @@ sets of artifacts.
 | 2 | **Native function calling** | ~3 | 1 day | ★★★★★ |
 | 3 | **Human-named story lead** in video | ~3 | 2 hours | ★★★★★ |
 | 4 | **Stock-vs-enhanced comparison page** captured in video | ~3 | 4 hours | ★★★★★ |
-| 5 | **"Privacy is non-negotiable"** rule-phrase match | ~2 | 10 minutes | ★★★★★ |
+| 5 | **Concrete data-boundary line** in video and writeup | ~2 | 10 minutes | ★★★★★ |
 | 6 | **Human narrator** (not TTS) | ~2 | 0.5 days | ★★★★☆ |
 | 7 | **Shot-level storyboard** | ~2 | 0.5 days | ★★★★☆ |
 | 8 | **Named NGO deployment call-out** | ~1 | 10 minutes | ★★★★★ |
@@ -388,16 +389,15 @@ the fine-tune worked. Shown live in the video, it's both "wow" and
 **Cost:** 4 hours of recording + editing. Zero code cost (the page is
 already planned in Phase 4).
 
-### 4.5 Use "privacy is non-negotiable" verbatim
+### 4.5 Use concrete data-boundary language
 
-**What:** The rules use this exact phrase. The video and writeup should
-too.
+**What:** The video and writeup should make the boundary visible without
+making privacy the whole product story.
 
 Draft line for the video (in the motivation beat):
-> "This is a space where privacy is non-negotiable. NGOs cannot send
-> survivor statements to the cloud. Recruitment regulators cannot route
-> classified complaints through an API. They need a tool that runs on
-> a laptop. And until today, they had nothing."
+> "A worker's message stays on the phone. An NGO case file stays on
+> NGO hardware. The public hub receives only safe signals and vetted
+> knowledge updates. That boundary is why local Gemma 4 matters."
 
 **Cost:** 10 minutes to insert. Near-zero effort, near-maximal alignment
 with the judges' own language.
@@ -563,7 +563,7 @@ panel is Glenn Cameron + Kristen Quan + Gusthema + Ian Ballantyne):
    `project_phases.md` section 4 and scaffold
 3. **Create public GitHub repo** for the project and push current state
 4. **Rewrite video script opening** with the named character (Maria)
-   and the "privacy is non-negotiable" verbatim phrase
+  and a concrete data-boundary line
 5. **Add cover image to the week-5 deliverables checklist**
 6. **Add rubric keyword audit** as a writeup deliverable check
 7. **Plan the shot-level storyboard** as a week-5 task

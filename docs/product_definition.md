@@ -169,7 +169,7 @@ via the repo-root `render.yaml`. The hub exposes
 `POST /api/hub/signals` (anonymized pattern-signal intake with a
 raw-PII rejector), `GET /api/hub/knowledge-packs` (knowledge-pack
 metadata listing), `GET /api/hub/trends` (aggregate counters), and
-`GET /api/hub/status`. The signed-pack format + partner-discoverable
+`GET /api/hub/status`. The vetted-pack format + partner-discoverable
 index are roadmap; the *shape* of the proposal-and-distribution
 surface is live so partners can review the contract before
 participating.
@@ -196,7 +196,7 @@ redacted signal / aggregate pattern / hashed provenance
   ↓ explicit partner opt-in
 Central Knowledge Server
   ↓ human + automated validation
-signed knowledge pack
+vetted knowledge pack
   ↓ pulled by clients
 local harness update
 ```
@@ -204,7 +204,7 @@ local harness update
 **Sharing-protocol invariants:** no raw PII · no raw worker chats by
 default · all submissions have provenance · every update has
 contributor type + review status · every published pack is versioned
-and signed · clients can pin versions · sensitive cases stay local
+and integrity-checked · clients can pin versions · sensitive cases stay local
 unless explicitly consented and anonymized.
 
 > **Local cases create anonymized signals; public / verified sources
@@ -360,8 +360,8 @@ contact info / pretending-to-give-legal-advice are all banned by
 default. Canonical safety phrase used in every channel's
 session-start banner:
 
-> **Duecare drafts; the user or trusted caseworker decides.
-> Privacy is non-negotiable.**
+> **Duecare drafts; the user or trusted caseworker decides. Raw chats
+> stay with the worker or tenant unless explicit consent allows a handoff.**
 
 **Submission disclosure.** The Kaggle submission does NOT ship
 Channels. Auto-deploying on Messenger / WhatsApp without partner

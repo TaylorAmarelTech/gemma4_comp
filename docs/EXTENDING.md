@@ -400,6 +400,6 @@ What may change in minor versions:
 - **Examples:** the 8 registered models, 12 agents, 9 tasks, and 3
   domain packs in the repo are all working references.
 
-**Privacy is non-negotiable.** Every extension point preserves the
-on-device invariant. If your extension requires a cloud API, make it
-opt-in and clearly documented.
+**Preserve the data boundary.** Every extension point preserves the
+on-device invariant by default. If your extension requires a cloud API,
+make it opt-in and clearly documented.

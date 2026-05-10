@@ -77,8 +77,8 @@ NGO / government chatbot tenant
 
 Combined with the **global Duecare knowledge** (ILO conventions,
 Palermo Protocol, common indicators) plus the **continuously
-updated intelligence** delivered by Duecare Sentinel via signed
-Exchange packs.
+updated intelligence** delivered by the Public Information Research
+Monitor through vetted Exchange packs.
 
 ## Complaint-mechanism boundary
 
@@ -104,8 +104,8 @@ Exchange packs.
 
 Canonical safety phrase, used in every channel's session-start banner:
 
-> **Duecare drafts; the user or trusted caseworker decides.
-> Privacy is non-negotiable.**
+> **Duecare drafts; the user or trusted caseworker decides. Raw chats
+> stay with the tenant unless explicit consent allows a handoff.**
 
 ## Architecture sketch
 
@@ -142,8 +142,8 @@ Worker on Messenger / WhatsApp / web / SMS
 - Model training (that's Trainer / component #5)
 - Global laws database (that's RAG via Harness / Exchange)
 - Rubrics (that's Eval / component #4)
-- Raw source crawling (that's Sentinel / component #6)
-- Official contact verification (Sentinel proposes; humans verify)
+- Raw source crawling (that's the Research Monitor / component #6)
+- Official contact verification (the Research Monitor proposes; humans verify)
 
 Channels' job is **session management + tenant config + channel
 adapters + safety UX**. Everything that makes a response correct
@@ -162,7 +162,7 @@ A live Channels deployment requires:
 1. A named NGO / government tenant who owns the bot.
 2. A tenant knowledge pack (FAQ + complaint forms + contacts + handoff).
 3. Platform business-account approval (Meta Business / Twilio / etc.).
-4. Eval pass + Sentinel pack pinning.
+4. Eval pass + vetted pack pinning.
 5. Disclosed safety boundaries in the session-start banner.
 
 None of those happen at hackathon time.

@@ -16,7 +16,7 @@ The site should feel like:
 
 - a serious public-interest technology project;
 - a clear documentation/product website;
-- privacy-first civic infrastructure;
+- data-boundary-aware civic infrastructure;
 - credible enough for regulators and NGOs;
 - simple enough to work in a 3-minute video.
 
@@ -127,13 +127,13 @@ Use these public component names. Avoid unclear labels like Runtime, Harness, Ev
 13. **Fine-Tuning Module** — adapts Gemma 4 using approved, anonymized, provenance-tracked examples and stakeholder rankings.
 14. **Channel and Deployment Package** — packages models, guidance layer, knowledge packs, config UI, API endpoint, and webhook service for real deployments.
 
-## Required safety and privacy language
+## Required safety and data-boundary language
 
-Use these exact phrases in the hero, privacy section, and tools/submission areas:
+Use these concepts in the hero, data-boundary section, and tools/submission areas. Do not turn privacy into the recurring headline; make the three outcomes and five lanes the main story.
 
-> Centralized knowledge. Decentralized privacy.
+> Centralized knowledge. Decentralized data boundaries.
 
-> Privacy is non-negotiable.
+> Raw worker chats stay on-device or inside trusted tenant deployments unless explicit consent allows a handoff.
 
 > Duecare drafts; the user or trusted caseworker decides.
 
@@ -202,7 +202,7 @@ Use the same page grammar everywhere:
    - No more than 3-4 cards per row on desktop
    - One column on mobile
 
-3. **Privacy boundary callout**
+3. **Data-boundary callout**
    - Always clear about no raw case intake
    - Always explicit about draft-only handoff
 
@@ -232,7 +232,7 @@ The homepage must explain the whole project, not just a worker chat example.
 Recommended order:
 
 1. **Hero**
-   - H1: `Centralized knowledge. Decentralized privacy.`
+   - H1: `Prevent exploitation. Assist workers. Understand the pattern.`
    - One plain-language sentence: Duecare uses Gemma 4, safety guidance, knowledge packs, and testing to help Platform safety, NGO & regulator, Individual worker / mobile, Researcher, and Developer / integration partner workflows without centralizing raw case data.
    - CTAs: `Watch demo`, `Explore setup`, `View live hub`.
    - Trust line: `No raw case intake · Draft-only handoff · Anonymized/public-source updates only`.

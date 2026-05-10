@@ -17,7 +17,7 @@
 - ✅ Helm chart with HPA + PDB + NetworkPolicy
 - ✅ 13-platform cloud deploy cookbook
 - ✅ All 17 PyPI wheels built locally
-- ✅ 6 + 5 Kaggle notebook source code complete + tested locally
+- ✅ 13 submission Kaggle notebook source code complete + tested locally
 - ✅ Press kit, comparison-vs-alternatives, FAQ, CHANGELOG, CITATION.cff
 - ✅ Tagalog + Spanish drafts of worker-self-help.md
 - ✅ Cross-NGO trends federation design + privacy contract

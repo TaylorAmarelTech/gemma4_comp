@@ -67,7 +67,7 @@ Pick 4-5 to demo on screen — not all of them in 3 minutes:
 | Synthetic evidence | 20 CC0 images + 13 structured-post JSONs |
 | Hotlines directory | **26 entries** (regulators / NGOs / embassies / hotlines) |
 | Static viewer pages | **11** under `/static/` (harness landing + 10 per-layer) |
-| Platform components | **8** (Runtime, Harness, Exchange, Eval, Trainer, Sentinel, Channels, Mobile) |
+| Platform components | **8** (Runtime, Harness, Exchange, Eval, Trainer, Research Monitor, Channels, Mobile) |
 
 These all read from `_brand.py` via `/api/brand`. If a number on the
 screen recording disagrees with this table, **the recording is stale**
@@ -317,11 +317,11 @@ lines of serif:
 **Voiceover (on-camera narrator, 8 sec):**
 
 > *"Kaggle proves the safety engine. **duecare-ai.com** proves Duecare
-> is shared infrastructure: a public hub where NGOs, regulators, and
-> researchers exchange anonymized signals and signed knowledge packs.
-> Local Gemma 4 where sensitive data lives. Public hub where only
-> verified patterns flow back. Privacy is non-negotiable. So the
-> harness runs on your laptop."*
+> is shared infrastructure: a public hub where platforms, NGOs,
+> regulators, workers, researchers, and developers connect through
+> vetted knowledge packs and safe signals. Local Gemma 4 where
+> sensitive data lives. Public hub where only verified patterns flow
+> back."*
 
 **Production note.** The two-URL split visually reinforces the
 "engine + network" dichotomy. Hold the end card for the full 8
@@ -380,7 +380,7 @@ Fade to black. Music fades.
       → markdown intake doc visible (sibling repo `duecare-journey-android` v0.9.0)
 - [ ] End card with URLs
 
-**Voiceover word count:** ~310 words across the new beats. At 100
+**Voiceover word count:** ~300 words across the new beats. At 100
 wpm that's 3:06 — slightly over the 2:50 cap. Trim 15–20 words from
 the demo beat (1:18–1:42) if needed. The platform-framing close at
 2:42 is non-negotiable: that's the line that names Trainer +
@@ -402,6 +402,6 @@ expectations.
 
 ## The one sentence that has to land
 
-> ***"Privacy is non-negotiable. So the harness runs on your laptop."***
+> ***"Duecare helps prevent exploitation, assist workers, and explain what is happening — with local Gemma 4 where sensitive data lives."***
 
 Everything else is support.

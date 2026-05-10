@@ -10,9 +10,11 @@
 
 Duecare wraps Gemma 4 with a 6-layer safety harness (Persona / GREP /
 RAG / Imports / Tools / Online) that turns stock model output into
-NGO-grade trafficking detection. Built for NGOs, regulators, and
-labour ministries who cannot send sensitive case data to frontier APIs
-— privacy is non-negotiable, so the harness runs on your laptop.
+migrant-worker safety infrastructure: prevention for platforms,
+assistance for NGOs and workers, and reproducible understanding for
+researchers. Sensitive case data stays in worker-controlled or
+tenant-controlled deployments; the public hub receives only safe
+signals, public-source updates, and vetted pack metadata.
 
 The same harness powers a worker-side companion (Duecare Journey,
 Android, MediaPipe Gemma 4 + LiteRT) with one north star: inform AND
@@ -66,12 +68,12 @@ negligent for defective platform design.
 
 ## Suggested title (≤ 100 chars)
 
-Recommended: `Duecare — A Privacy-First Safety Harness for Gemma 4 (Anti-Trafficking)`
+Recommended: `Duecare — Gemma 4 Safety Infrastructure for Migrant Workers`
 (64 chars)
 
 Alternates:
 - `Duecare: Turn Gemma 4 Into an NGO-Grade Trafficking Detector` (60 chars)
-- `Privacy is Non-Negotiable — Duecare Safety Harness for Gemma 4` (62 chars)
+- `Duecare: Local Gemma 4 Safety Guidance for Migrant Workers` (61 chars)
 
 ## Tags (paste into YouTube tag field)
 
@@ -90,7 +92,7 @@ Three-up split (composited single frame):
 - RIGHT: the Android APK Reports tab with intake-doc preview
 
 Single-line overlay across the bottom:
-**"Privacy is non-negotiable. So the harness runs on your laptop."**
+**"Prevent exploitation. Assist workers. Understand the pattern."**
 
 ## End screen + cards
 

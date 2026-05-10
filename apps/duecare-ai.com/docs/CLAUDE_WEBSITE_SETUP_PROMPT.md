@@ -21,8 +21,8 @@ Repository and deployment facts:
 
 Product framing:
 
-- Headline: Centralized knowledge. Decentralized privacy.
-- Core rule: Duecare drafts; the user or trusted caseworker decides. Privacy is non-negotiable.
+- Headline: Prevent exploitation. Assist workers. Understand the pattern.
+- Core rule: Duecare drafts; the user or trusted caseworker decides. Raw chats and case files stay with workers or tenant deployments unless explicit consent allows a handoff.
 - The hub is a coordination plane, not a raw case-management system.
 - The hub must never collect raw worker case details, passport numbers, phone numbers, emails, home addresses, or other PII.
 - Render does not run Gemma 4 inference. Gemma 4 runs in Kaggle, local Ollama/llama.cpp, HF Spaces, NGO edge boxes, or mobile LiteRT.
@@ -64,7 +64,7 @@ The video is the product. Prioritize visible, reliable, demo-ready changes over 
 
 Preferred near-term work:
 
-- Improve homepage copy and visual hierarchy around the four-part story: Kaggle proves model behavior; duecare-ai.com coordinates knowledge; local/mobile keeps cases private; NGOs/regulators curate updates.
+- Improve homepage copy and visual hierarchy around the three-outcome story: prevent exploitation through platform safety, assist workers through NGO/regulator and mobile workflows, and understand patterns through research and shared knowledge.
 - Add a clear Deployment Status / Live Demo panel with health, storage mode, privacy mode, and endpoint links.
 - Add links to GitHub, Kaggle notebooks, writeup, and API docs once URLs are final.
 - Add robots.txt/sitemap consistency if needed.

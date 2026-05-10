@@ -140,9 +140,10 @@ Worker sees suspicious message / job posting / contract
     └─────────────────────────────────┘
 ```
 
-**Key design constraint:** Privacy is non-negotiable. The worker's text
-never leaves their device. Gemma 4 E2B (via LiteRT or llama.cpp) runs
-entirely locally. This is the core value proposition for the hackathon.
+**Key design constraint:** the worker's text never leaves their device
+unless they explicitly choose to share it. Gemma 4 E2B (via LiteRT or
+llama.cpp) runs entirely locally, so the worker can get guidance without
+uploading raw case content to the public hub.
 
 **Multilingual support:** Workers from the Philippines, Bangladesh,
 Nepal, Indonesia, Ethiopia speak different languages. Gemma 4's

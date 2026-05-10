@@ -18,20 +18,20 @@ Duecare AI exists to help workers, trusted organizations, platforms, regulators,
 
 ## Short mission statement
 
-> Duecare AI turns Gemma 4 into privacy-preserving safety infrastructure for migrant-worker protection. It helps people and institutions identify risky recruitment patterns, ground responses in public rules and trusted knowledge, draft safer next steps, and share reviewed improvements through a central hub without exposing raw worker messages or private case files.
+> Duecare AI turns Gemma 4 into safety infrastructure for migrant-worker protection. It helps people and institutions identify risky recruitment patterns, ground responses in public rules and trusted knowledge, draft safer next steps, and share reviewed improvements through a central hub without exposing raw worker messages or private case files.
 
 ## Compact tagline options
 
 Use one primary tagline, not all of them.
 
-1. **Centralized knowledge. Decentralized privacy.**
+1. **Prevent exploitation. Assist workers. Understand the pattern.**
 2. **Better safety guidance without raw case intake.**
 3. **Shared intelligence for migrant-worker protection. Private data stays local.**
 4. **Gemma 4 safety infrastructure for workers, reviewers, regulators, and researchers.**
 
 Recommended primary tagline:
 
-> Centralized knowledge. Decentralized privacy.
+> Prevent exploitation. Assist workers. Understand the pattern.
 
 ## Three outcomes and five-lane framing
 
@@ -51,17 +51,17 @@ It should also introduce the five website-facing lanes in this order:
 
 This page can explain that the five lanes are the public navigation model, while the Duecare Hub is the shared coordination layer that helps all of them improve.
 
-## Required safety language
+## Required safety and data-boundary language
 
-Use these exact phrases:
+Use these concepts without making privacy the main headline:
 
-> Privacy is non-negotiable.
+> Raw worker chats and case files stay with workers or trusted deployments unless explicit consent allows a handoff.
 
 > No raw case intake.
 
 > Duecare drafts; the user or trusted caseworker decides.
 
-> Centralized knowledge. Decentralized privacy.
+> The central hub is for shared knowledge, not raw case intake.
 
 ## Page structure
 
@@ -172,11 +172,11 @@ Safe wording:
 
 > The ecosystem is designed to complement the work of public-interest and worker-protection institutions such as Polaris, IJM, ECPAT, POEA, BP2MI, HRD Nepal, consulates, labor ministries, and local NGOs. Duecare does not replace these organizations; it helps make guidance, routing, and shared knowledge safer and more reproducible.
 
-### 9. Privacy promise
+### 9. Data-boundary promise
 
 Recommended copy:
 
-> Privacy is non-negotiable. The hub is for shared knowledge, not raw case intake. Local and trusted deployments may process sensitive messages or documents, but the central server should receive only public-source facts, aggregate counts, anonymized pattern signals, reviewed feedback, vetted pack metadata, and approved examples.
+> The hub is for shared knowledge, not raw case intake. Local and trusted deployments may process sensitive messages or documents, but the central server should receive only public-source facts, aggregate counts, anonymized pattern signals, reviewed feedback, vetted pack metadata, and approved examples.
 
 Include the bidirectional privacy gate:
 
@@ -211,13 +211,13 @@ If top nav is crowded, put Mission in the first footer column and link it from t
 - Add route `/mission`.
 - Add nav or homepage CTA link.
 - Add footer link.
-- Include the four required privacy phrases.
+- Include the required data-boundary concepts.
 - Include three outcomes and five-lane framing.
 - Include a clearly labeled composite character.
 - Include what Duecare does not do.
 - Include partner ecosystem wording without claiming partnerships.
 - Include links to `/use-cases`, `/hub`, `/technical-docs`, `/privacy-boundary`, and `/demo`.
-- Add tests asserting the page contains `Mission`, `Privacy is non-negotiable`, `No raw case intake`, `Developer / integration partner`, and `composite`.
+- Add tests asserting the page contains `Mission`, `No raw case intake`, `Developer / integration partner`, `raw worker chats`, and `composite`.
 
 ## Tone rules
 
