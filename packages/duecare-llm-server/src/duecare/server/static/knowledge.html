@@ -214,8 +214,8 @@ const COLOR_MAP = {
   "person":              "#4c78a8",
   "person_or_org":       "#4c78a8",
   "organization":        "#4c78a8",
-  "recruitment_agency":  "#3b82f6",
-  "employer":            "#3b82f6",
+  "recruitment_agency":  "#4c7a8a",
+  "employer":            "#4c7a8a",
   "phone":               "#ef4444",
   "email":               "#f59e0b",
   "financial_account":   "#10b981",
@@ -347,10 +347,10 @@ async function loadGraph() {
       { selector: 'edge',
         style: {
           'line-color': el => el.data('relation') === 'co_occur'
-            ? '#cbd5e1' : '#3b82f6',
+            ? '#cbd5e1' : '#4c7a8a',
           'width': el => 1 + 3 * Math.log2(1 + (el.data('docCount') || 1)),
           'curve-style': 'bezier',
-          'target-arrow-color': '#3b82f6',
+          'target-arrow-color': '#4c7a8a',
           'target-arrow-shape': el => el.data('relation') !== 'co_occur'
             ? 'triangle' : 'none',
           'arrow-scale': 1.2,
