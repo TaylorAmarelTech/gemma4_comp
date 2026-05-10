@@ -41,9 +41,8 @@
 
   Requires:
     - GPU T4 x2 (default 31b-it); single T4 fine for E2B/E4B
-    - Internet ON (for GitHub bootstrap)
-    - Optional datasets (fallback only):
-        taylorsamarel/duecare-chat-playground-with-grep-rag-tools-wheels
+    - Internet ON (for GitHub package installation)
+    - Optional datasets:
         google/gemma-4 (any variant; auto-detected)
     - HF_TOKEN OPTIONAL
 ============================================================================
@@ -152,60 +151,34 @@ print("=" * 76)
 
 
 def install_chat_wheels() -> int:
-    """Try GitHub bootstrap first, fallback to local wheels if that fails."""
+    """Install DueCare packages directly from GitHub with robust logging."""
 
-    # Method 1: Try GitHub bootstrap (no dataset required)
+    print("  → installing from GitHub (github.com/TaylorAmarelTech/gemma4_comp)")
+    print("  → downloading bootstrap script...")
+
     try:
-        print("  → trying GitHub bootstrap (github.com/TaylorAmarelTech/gemma4_comp)")
         import urllib.request
         bootstrap_url = "https://raw.githubusercontent.com/TaylorAmarelTech/gemma4_comp/master/scripts/_notebook_bootstrap.py"
-        with urllib.request.urlopen(bootstrap_url, timeout=10) as response:
+
+        start_time = time.time()
+        with urllib.request.urlopen(bootstrap_url, timeout=30) as response:
             bootstrap_code = response.read().decode('utf-8')
 
-        # Execute bootstrap with error capture
-        import io, contextlib
-        output_buffer = io.StringIO()
-        with contextlib.redirect_stdout(output_buffer):
-            exec(bootstrap_code, {'__name__': '__main__'})
+        print(f"  → bootstrap script downloaded ({time.time() - start_time:.1f}s)")
+        print("  → executing installation...")
 
-        output = output_buffer.getvalue()
-        if "✓" in output and "duecare" in output.lower():
-            print("  ✓ GitHub bootstrap successful")
-            return 1  # Success
-        else:
-            raise Exception("Bootstrap didn't complete successfully")
+        # Execute bootstrap with detailed progress
+        start_time = time.time()
+        exec(bootstrap_code, {'__name__': '__main__'})
+
+        print(f"  ✓ GitHub installation completed ({time.time() - start_time:.1f}s)")
+        return 1
 
     except Exception as e:
-        print(f"  ✗ GitHub bootstrap failed: {str(e)[:100]}...")
-        print("  → falling back to local wheels")
-
-    # Method 2: Fallback to wheels dataset (original logic)
-    if not Path("/kaggle/input").exists():
-        print("  (not in Kaggle; skipping wheel install)")
-        return 0
-
-    found = sorted(p for p in Path("/kaggle/input").rglob("*.whl")
-                    if "duecare" in p.name.lower())
-    if not found:
-        raise SystemExit(
-            f"GitHub bootstrap failed AND no wheels found in /kaggle/input. "
-            f"Enable internet OR attach dataset: taylorsamarel/{DATASET_SLUG}")
-
-    print(f"  → found {len(found)} wheel(s), installing...")
-    cmd = [sys.executable, "-m", "pip", "install", "--quiet", "--no-input",
-            "--disable-pip-version-check", *[str(p) for p in found]]
-    proc = subprocess.run(cmd, capture_output=True, text=True)
-    if proc.returncode != 0:
-        print(f"  bulk install failed: {proc.stderr[-300:]}")
-        for w in found:
-            single = subprocess.run(
-                [sys.executable, "-m", "pip", "install", "--quiet",
-                 "--no-input", "--disable-pip-version-check", str(w)],
-                capture_output=True, text=True)
-            sym = "✓" if single.returncode == 0 else "✗"
-            print(f"  {sym} {w.name}")
-    print(f"  ✓ installed {len(found)} duecare wheels")
-    return len(found)
+        print(f"  ✗ GitHub installation failed: {str(e)}")
+        print("  → Please ensure Internet is ON in Kaggle notebook settings")
+        print("  → Then restart the kernel and try again")
+        raise SystemExit("DueCare installation failed - internet connection required")
 
 
 install_chat_wheels()
