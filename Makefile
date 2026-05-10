@@ -1,5 +1,5 @@
 .PHONY: install install-uv install-pip dev test test-stress adversarial cleanroom \
-        build lint serve serve-chat serve-classifier verify reproduce \
+        build lint serve serve-chat serve-classifier verify audit verify-all reproduce \
         demo demo-with-monitoring demo-with-auth doctor backup backup-light \
         docker docker-build docker-up docker-down docker-logs docker-up-auth \
         docker-dev docker-dev-up docker-dev-down docker-dev-shell docker-dev-test \
@@ -135,6 +135,21 @@ serve-classifier:  ## Run the classifier locally (port 8081)
 # ── Verify + Reproduce ───────────────────────────────────────────
 verify:  ## Smoke-check installation: harness imports + counts above thresholds
 	python scripts/verify.py
+
+audit:  ## Public-surface audit: drift + route 200s + lane order + Kaggle lane labels
+	python scripts/validate_public_surface.py
+
+verify-all:  ## Full pre-push gate: audit + hub tests + harness smoke + notebook validate
+	python scripts/validate_public_surface.py
+	@echo "--- hub tests ---"
+	DUECARE_DATA_DIR="$$PWD/.duecare-smoke" python -m pytest -q apps/duecare-ai.com/tests/
+	@echo "--- compileall hub ---"
+	python -m compileall -q apps/duecare-ai.com/app
+	@echo "--- harness smoke ---"
+	python scripts/verify.py
+	@echo "--- notebook validator ---"
+	python scripts/validate_notebooks.py
+	@echo "verify-all: PASS"
 
 reproduce:  ## Reproduce all submission claims end-to-end (~5 min)
 	bash scripts/reproduce.sh
