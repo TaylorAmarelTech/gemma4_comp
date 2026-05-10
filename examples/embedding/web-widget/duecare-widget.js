@@ -78,7 +78,7 @@
         const isDark = opts.theme === 'dark';
         const palette = isDark ? {
             bg: '#0f172a', surface: '#1e293b', surfaceAlt: '#334155',
-            text: '#e2e8f0', muted: '#94a3b8', accent: '#60a5fa',
+            text: '#e2e8f0', muted: '#94a3b8', accent: '#4c7a8a',
             userBubble: '#1e3a8a', userBubbleText: '#dbeafe',
             asstBubble: '#334155', asstBubbleText: '#e2e8f0',
             border: '#334155',
