@@ -1,0 +1,84 @@
+# Pre-commit hooks. Install once with:
+#
+#   pip install pre-commit
+#   pre-commit install
+#   pre-commit install --hook-type pre-push
+#
+# Then every `git commit` runs the fast checks below; every `git push`
+# additionally runs the full public-surface audit. Pre-commit is the
+# canonical safety net `.claude/rules/10_safety_gate.md` refers to —
+# this file makes that intent enforceable on a developer's machine.
+#
+# Skip with `--no-verify` only in genuine emergencies (per
+# anti-shortcut rules) — CI re-runs the same gates.
+
+minimum_pre_commit_version: "3.5.0"
+
+repos:
+  # ------------------------------------------------------------------
+  # Whitespace + trailing-newline + merge-conflict + obvious junk
+  # ------------------------------------------------------------------
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: trailing-whitespace
+        # Skip Markdown so intentional double-space line breaks survive.
+        exclude: \.(md)$
+      - id: end-of-file-fixer
+      - id: check-yaml
+        args: [--allow-multiple-documents]
+      - id: check-toml
+      - id: check-json
+        # Notebook files are JSON but live under .ipynb; check those
+        # via validate_notebooks.py instead so we don't reject
+        # legitimate output cells.
+        exclude: \.ipynb$
+      - id: check-added-large-files
+        args: [--maxkb=2000]
+      - id: check-merge-conflict
+      - id: detect-private-key
+
+  # ------------------------------------------------------------------
+  # Secret + PII scan (the gitleaks pre-commit hook the safety rule
+  # has been pointing at).
+  # ------------------------------------------------------------------
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.18.4
+    hooks:
+      - id: gitleaks
+
+  # ------------------------------------------------------------------
+  # Python lint (only on Python files actually touched in this commit).
+  # ------------------------------------------------------------------
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.6.9
+    hooks:
+      - id: ruff
+        args: [--fix]
+        # Don't lint generated builders or kernel.py paste-bundles.
+        exclude: ^(scripts/build_notebook_.*\.py|kaggle/.*/kernel\.py|legacy_notebooks/|_archive/)
+
+  # ------------------------------------------------------------------
+  # Local audit: scripts/validate_public_surface.py.
+  # Runs on pre-push (not pre-commit) so ordinary single-file commits
+  # stay fast; the gate fires before the changes leave the laptop.
+  # ------------------------------------------------------------------
+  - repo: local
+    hooks:
+      - id: public-surface-audit
+        name: public-surface audit (drift / routes / lanes / kaggle labels)
+        entry: python scripts/validate_public_surface.py
+        language: system
+        stages: [pre-push]
+        pass_filenames: false
+        # Hub deps must be importable; pre-push runs in the dev
+        # environment where they are.
+
+      - id: notebook-validator
+        name: notebook validator (77 research notebooks must parse)
+        entry: python scripts/validate_notebooks.py
+        language: system
+        stages: [pre-push]
+        pass_filenames: false
+        # Only fire when notebooks or builders changed.
+        files: ^(legacy_notebooks/|kaggle/|scripts/build_notebook_|scripts/validate_notebooks\.py)
