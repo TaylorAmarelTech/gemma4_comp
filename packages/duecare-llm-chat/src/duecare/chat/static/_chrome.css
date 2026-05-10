@@ -57,7 +57,7 @@
   --accent-persona: var(--site-ember);  /* ember - shapes the model's voice */
   --accent-imports: #fb923c;     /* ember-light - operator's own evidence */
   --accent-grep:    #14b8a6;     /* civic-teal - deterministic verification */
-  --accent-rag:     #3b82f6;     /* blue-teal - vetted-source grounding */
+  --accent-rag:     #4c7a8a;     /* civic-teal - vetted-source grounding */
   --accent-tools:   #10b981;     /* green-teal - external verification calls */
   --accent-online:  #06b6d4;     /* cyan-teal - live web verification */
 
