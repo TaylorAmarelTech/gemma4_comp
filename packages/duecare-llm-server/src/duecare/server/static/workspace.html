@@ -370,7 +370,7 @@
 }
 .dc-progress > div {
   height: 100%; width: 0%;
-  background: linear-gradient(90deg, var(--primary), #60a5fa);
+  background: linear-gradient(90deg, var(--primary), #4c7a8a);
   transition: width 200ms linear;
 }
 .dc-progress.indeterminate > div { width: 30%; animation: dc-indet 1.4s ease-in-out infinite; }
@@ -394,7 +394,7 @@
   background: var(--border); border: 2px solid var(--card);
 }
 .dc-trace-step.s-ok::before { background: #10b981; }
-.dc-trace-step.s-running::before { background: #3b82f6; animation: dc-pulse 1.4s ease-in-out infinite; }
+.dc-trace-step.s-running::before { background: #4c7a8a; animation: dc-pulse 1.4s ease-in-out infinite; }
 .dc-trace-step.s-fail::before { background: #ef4444; }
 .dc-trace-step.s-skip::before { background: #94a3b8; }
 .dc-trace-step.s-fallback::before { background: #f59e0b; }
@@ -412,7 +412,7 @@
 .dc-trace-step .t-name { font-weight: 600; }
 .dc-trace-step .t-detail { color: var(--muted); margin-top: 2px; font-size: 11px; word-break: break-word; }
 .dc-callout {
-  background: #eff6ff; border-left: 4px solid #3b82f6;
+  background: #eff6ff; border-left: 4px solid #4c7a8a;
   padding: 12px 16px; border-radius: 6px; margin-bottom: 8px;
 }
 .dc-kb-hit {
@@ -901,8 +901,8 @@ async function pollBenchmark() {
   const sm = s.summary || {};
   document.getElementById('bench-summary').innerHTML =
     summaryTile('Pass rate', sm.pass_rate != null ? (sm.pass_rate*100).toFixed(0)+'%' : '-', '#10b981') +
-    summaryTile('Verdict acc', sm.verdict_acc != null ? (sm.verdict_acc*100).toFixed(0)+'%' : '-', '#3b82f6') +
-    summaryTile('Severity acc', sm.severity_acc != null ? (sm.severity_acc*100).toFixed(0)+'%' : '-', '#3b82f6') +
+    summaryTile('Verdict acc', sm.verdict_acc != null ? (sm.verdict_acc*100).toFixed(0)+'%' : '-', '#4c7a8a') +
+    summaryTile('Severity acc', sm.severity_acc != null ? (sm.severity_acc*100).toFixed(0)+'%' : '-', '#4c7a8a') +
     summaryTile('Close (incl over-cautious)', sm.close_rate != null ? (sm.close_rate*100).toFixed(0)+'%' : '-', '#f59e0b') +
     summaryTile('Signal recall', sm.signal_recall != null ? (sm.signal_recall*100).toFixed(0)+'%' : '-', '#5b21b6') +
     summaryTile('Done', `${done}/${total}`, '#6b7280');
