@@ -28,7 +28,7 @@ from importlib.metadata import PackageNotFoundError, version as _pkg_version
 PRODUCT_NAME = "Duecare"
 PRODUCT_TAGLINE = "Exercising due care in LLM safety design"
 PRIVACY_PROMISE = (
-    "Privacy is non-negotiable. So the harness runs on your laptop."
+    "Raw worker chats, IDs, contact details, and private documents stay local unless an authorized user creates a sanitized submission."
 )
 NAMED_FOR = (
     "Cal. Civ. Code §1714(a) — the duty-of-care standard a California "
@@ -124,7 +124,7 @@ LAYERS: dict[str, HarnessLayer] = {
     "rag": HarnessLayer(
         key="rag",
         label="RAG",
-        color="#3b82f6",
+        color="#4c7a8a",
         short_desc="BM25 retrieval over the curated legal corpus.",
         description=(
             "BM25 (+ optional dense + RRF fusion) over a curated "
@@ -204,7 +204,7 @@ LAYER_ORDER: tuple[str, ...] = ("persona", "grep", "rag", "imports", "tools", "o
 SEVERITY_PALETTE: dict[str, str] = {
     "critical": "#ef4444",
     "high":     "#f59e0b",
-    "medium":   "#3b82f6",
+    "medium":   "#4c7a8a",
     "low":      "#94a3b8",
     "info":     "#94a3b8",
 }
