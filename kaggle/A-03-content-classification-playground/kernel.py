@@ -523,9 +523,29 @@ def _build_user_message(schema: str, content: str,
 def build_app():
     from fastapi import FastAPI, Request
     from fastapi.responses import HTMLResponse, JSONResponse
+    from fastapi.staticfiles import StaticFiles
     from pydantic import BaseModel
 
     app = FastAPI(title="Duecare Content Classification Playground")
+
+    # Mount the chat-package static dir at /wb-static/ so this appendix
+    # kernel can pull the workbench design tokens (_chrome.css), nav
+    # loader (_nav.js), and Logs page from the same source as the main
+    # workbench. The kernel's own pages live at / and reference
+    # /wb-static/_chrome.css for visual consistency with notebook #01.
+    try:
+        from duecare.chat._dc_log import set_kernel_id, dc_log
+        set_kernel_id("a-03-content-classification")
+        dc_log("kernel.start", "classification playground starting")
+        from pathlib import Path as _Path
+        import duecare.chat as _chat_pkg
+        _wb_static = _Path(_chat_pkg.__file__).parent / "static"
+        if _wb_static.exists():
+            app.mount("/wb-static",
+                      StaticFiles(directory=str(_wb_static)),
+                      name="wb-static")
+    except Exception as _e:
+        print(f"[wb] could not mount workbench static: {_e}")
 
     class ClassifyRequest(BaseModel):
         schema: str = "single_label"

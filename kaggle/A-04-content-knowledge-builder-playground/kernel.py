@@ -500,9 +500,27 @@ STATE = {
 def build_app():
     from fastapi import FastAPI, HTTPException
     from fastapi.responses import HTMLResponse
+    from fastapi.staticfiles import StaticFiles
     from pydantic import BaseModel
 
     app = FastAPI(title="Duecare Content Knowledge Builder Playground")
+
+    # Mount the chat-package static dir at /wb-static/ so this appendix
+    # kernel can pull workbench design tokens, nav loader, and Logs
+    # page from the same source as the main workbench.
+    try:
+        from duecare.chat._dc_log import set_kernel_id, dc_log
+        set_kernel_id("a-04-knowledge-builder")
+        dc_log("kernel.start", "knowledge-builder playground starting")
+        from pathlib import Path as _Path
+        import duecare.chat as _chat_pkg
+        _wb_static = _Path(_chat_pkg.__file__).parent / "static"
+        if _wb_static.exists():
+            app.mount("/wb-static",
+                      StaticFiles(directory=str(_wb_static)),
+                      name="wb-static")
+    except Exception as _e:
+        print(f"[wb] could not mount workbench static: {_e}")
 
     class GrepRule(BaseModel):
         rule: str
