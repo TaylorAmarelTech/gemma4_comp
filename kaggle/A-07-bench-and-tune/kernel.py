@@ -1256,8 +1256,10 @@ def main() -> dict:
     print("=" * 76)
     print(json.dumps(eval_results.get("deltas", {}), indent=2))
 
-    # Workbench-consistent UI: launch the minimal shell so this notebook
-    # has the same nav / Logs / Tools experience as the main workbench.
+    # Workbench-consistent UI: launch the minimal shell with a training
+    # dashboard as homepage so judges see the full SFT→DPO→GGUF→HF
+    # pipeline with phase-by-phase status, stock-vs-finetuned metrics,
+    # and export options.
     try:
         from duecare.chat._dc_log import dc_log, set_kernel_id
         set_kernel_id("a-07-bench-and-tune")
@@ -1265,6 +1267,219 @@ def main() -> dict:
                eval_results_path=EVAL_RESULTS_JSON,
                n_phases=len(eval_results.get("phases", {})))
         from duecare.chat.kernel_shell import build_minimal_shell
+        from fastapi.responses import JSONResponse, PlainTextResponse
+
+        def _build_bench_dashboard_html(er: dict) -> str:
+            import html as _html
+
+            phases = er.get("phases", {}) or {}
+            deltas = er.get("deltas", {}) or {}
+            stock = phases.get("benchmark_stock", {}).get("aggregate", {}) or {}
+            ft    = phases.get("benchmark_ft",    {}).get("aggregate", {}) or {}
+
+            # Pipeline flow: 9 ordered phases. Each phase shows ✓ / × / —
+            phase_flow = [
+                ("load",              "Load",         "Load Gemma 4 + adapters"),
+                ("benchmark_stock",   "Bench (stock)", "Baseline rubric eval on raw Gemma"),
+                ("sft_dataset",       "SFT dataset",  "Build curated chat-format SFT split"),
+                ("sft",               "SFT train",    "Unsloth LoRA supervised fine-tune"),
+                ("dpo_dataset",       "DPO dataset",  "Build preference pairs from rubric grades"),
+                ("dpo",               "DPO train",    "Direct preference optimization"),
+                ("benchmark_ft",      "Bench (FT)",   "Rerun rubric eval on fine-tuned model"),
+                ("gguf",              "GGUF export",  "Merge LoRA → llama.cpp GGUF Q8_0"),
+                ("hf_push",           "HF Hub push",  "Publish merged weights + GGUF + model card"),
+            ]
+            steps_html = []
+            for i, (key, label, blurb) in enumerate(phase_flow):
+                p = phases.get(key, {})
+                ok = p.get("ok", None)
+                if not p:
+                    state = "skip"; mark = "—"
+                elif ok is False:
+                    state = "fail"; mark = "×"
+                else:
+                    state = "ok";   mark = "✓"
+                steps_html.append(f"""
+        <div class="phase-step phase-{state}">
+          <div class="phase-num">{i+1:02d}</div>
+          <div class="phase-mark" aria-hidden="true">{mark}</div>
+          <div class="phase-body">
+            <div class="phase-label">{_html.escape(label)}</div>
+            <div class="phase-blurb">{_html.escape(blurb)}</div>
+          </div>
+        </div>""")
+            steps_block = "".join(steps_html)
+
+            # KPI cards from deltas
+            def _kpi(label, value, sub=""):
+                return (f'<div class="kpi"><div class="kpi-label">{_html.escape(label)}</div>'
+                        f'<div class="kpi-val">{_html.escape(str(value))}</div>'
+                        + (f'<div class="kpi-sub">{_html.escape(sub)}</div>' if sub else '')
+                        + '</div>')
+
+            def _fmt_delta(k):
+                if k not in deltas:
+                    return None
+                v = deltas[k]
+                try:
+                    return f"{float(v):+.2f}"
+                except Exception:
+                    return str(v)
+
+            kpis = []
+            mean_lift = _fmt_delta("mean_pct_score") or _fmt_delta("mean_lift_pp") or "—"
+            kpis.append(_kpi("Mean rubric lift", f"{mean_lift} pp",
+                             f"stock {stock.get('mean_pct_score','?')}% → ft {ft.get('mean_pct_score','?')}%"))
+            cit_d = _fmt_delta("mean_citations") or "—"
+            kpis.append(_kpi("Citations Δ", cit_d,
+                             f"stock {stock.get('mean_citations','?')} → ft {ft.get('mean_citations','?')} per response"))
+            g_d = _fmt_delta("mean_grounding") or "—"
+            kpis.append(_kpi("Grounding Δ", f"{g_d} pp",
+                             f"stock {stock.get('mean_grounding','?')}% → ft {ft.get('mean_grounding','?')}%"))
+            kpis.append(_kpi("Phases run",
+                             f"{sum(1 for p in phases.values() if p)} / {len(phase_flow)}",
+                             er.get("completed_at", "")))
+            kpis_html = "".join(kpis)
+
+            # Per-phase detail table (collapsed JSON)
+            import json as _json
+            phase_rows = []
+            for key, label, _ in phase_flow:
+                if key not in phases:
+                    continue
+                body = _json.dumps(phases[key], indent=2, default=str)
+                if len(body) > 1200:
+                    body = body[:1200] + "\n...(truncated; use /api/eval-results for full JSON)..."
+                phase_rows.append(f"""
+          <details class="phase-detail">
+            <summary>{_html.escape(label)}<span class="phase-key">.{_html.escape(key)}</span></summary>
+            <pre>{_html.escape(body)}</pre>
+          </details>""")
+            details_block = "".join(phase_rows) or '<div class="phase-empty">No phase results captured.</div>'
+
+            return f"""<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Bench & tune dashboard · A-07 · DueCare</title>
+  <link rel="stylesheet" href="/static/_chrome.css">
+  <link rel="stylesheet" href="/static/showcase.css">
+  <script src="/static/_nav.js" defer></script>
+  <style>
+    .wrap {{ max-width: 1180px; margin: 0 auto; padding: 28px 24px 48px; }}
+    .crumbs {{ font-family: var(--mono); font-size: 11px; color: var(--ink-3);
+               text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px; }}
+    h1 {{ margin: 0 0 6px; color: var(--ink); letter-spacing: -0.02em; font-size: 28px; }}
+    .lede {{ color: var(--ink-3); margin: 0 0 22px; line-height: 1.55; font-size: 14px; max-width: 820px; }}
+    .hero {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; margin-bottom: 26px; }}
+    .kpi {{ background: #fffdf7; border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px;
+            box-shadow: 0 1px 0 rgba(14,17,22,.04), 0 8px 24px -18px rgba(14,17,22,.12); }}
+    .kpi-label {{ font-family: var(--mono); font-size: 10px; color: var(--ink-3);
+                  text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px; }}
+    .kpi-val {{ font-size: 22px; font-weight: 600; color: var(--ink);
+                font-variant-numeric: tabular-nums; line-height: 1.2; }}
+    .kpi-sub {{ font-size: 11.5px; color: var(--ink-3); margin-top: 4px; font-family: var(--mono); }}
+    .panel {{ background: #fffdf7; border: 1px solid var(--line); border-radius: 12px;
+              padding: 20px 22px; margin-bottom: 20px;
+              box-shadow: 0 1px 0 rgba(14,17,22,.04), 0 8px 24px -18px rgba(14,17,22,.12); }}
+    .panel h2 {{ margin: 0 0 14px; font-size: 11px; color: var(--ink-3);
+                 text-transform: uppercase; letter-spacing: 0.08em; font-family: var(--mono); font-weight: 500; }}
+    .phase-pipeline {{ display: grid; grid-template-columns: repeat(9, 1fr); gap: 6px; }}
+    @media (max-width: 1100px) {{ .phase-pipeline {{ grid-template-columns: repeat(3, 1fr); }} }}
+    .phase-step {{ background: var(--paper); border: 1px solid var(--line); border-radius: 10px;
+                   padding: 12px 10px; min-height: 110px; position: relative; }}
+    .phase-step.phase-ok    {{ border-color: var(--good); }}
+    .phase-step.phase-fail  {{ border-color: var(--ember); }}
+    .phase-step.phase-skip  {{ opacity: 0.45; border-style: dashed; }}
+    .phase-num {{ font-family: var(--mono); font-size: 10px; color: var(--ink-3);
+                  text-transform: uppercase; letter-spacing: 0.08em; }}
+    .phase-mark {{ position: absolute; top: 10px; right: 12px; font-size: 16px; font-weight: 700;
+                   color: var(--ink-3); font-family: var(--mono); }}
+    .phase-step.phase-ok .phase-mark   {{ color: var(--good); }}
+    .phase-step.phase-fail .phase-mark {{ color: var(--ember); }}
+    .phase-label {{ font-weight: 600; font-size: 13px; color: var(--ink); margin-top: 8px; letter-spacing: -0.005em; }}
+    .phase-blurb {{ font-size: 11px; color: var(--ink-3); margin-top: 4px; line-height: 1.45; }}
+    .phase-detail {{ margin-bottom: 6px; }}
+    .phase-detail summary {{ cursor: pointer; padding: 8px 10px; background: var(--paper-2);
+                              border: 1px solid var(--line-soft); border-radius: 8px;
+                              font-size: 13px; color: var(--ink); }}
+    .phase-detail .phase-key {{ font-family: var(--mono); font-size: 11px; color: var(--ink-4); margin-left: 8px; }}
+    .phase-detail pre {{ background: var(--ink); color: var(--paper); padding: 14px 16px;
+                          border-radius: 0 0 8px 8px; font-size: 12px; line-height: 1.55;
+                          overflow-x: auto; margin: 0; }}
+    .phase-empty {{ color: var(--ink-4); font-style: italic; padding: 14px; text-align: center; }}
+    .exports {{ display: flex; gap: 10px; flex-wrap: wrap; }}
+    .exports a {{ display: inline-flex; align-items: center; gap: 6px;
+                  padding: 8px 14px; border-radius: 8px; text-decoration: none;
+                  font-size: 13px; font-weight: 500; background: var(--ink);
+                  color: var(--paper); font-family: var(--sans); }}
+    .exports a.ghost {{ background: var(--paper-2); color: var(--ink-2); border: 1px solid var(--line); }}
+    .exports a:hover {{ filter: brightness(.96); }}
+  </style>
+</head>
+<body data-nav="researcher">
+<div class="wrap">
+  <div class="crumbs">Notebook · a-07-bench-and-tune</div>
+  <h1>Unsloth fine-tune pipeline — phase status + benchmark deltas</h1>
+  <p class="lede">
+    End-to-end Gemma 4 LoRA fine-tune via Unsloth, then DPO, then GGUF
+    export for llama.cpp / LiteRT, then Hugging Face Hub publish. Every
+    phase is independently inspected below with full JSON; benchmark
+    deltas show the lift the fine-tune actually produced relative to
+    stock Gemma.
+  </p>
+
+  <section class="hero">{kpis_html}</section>
+
+  <section class="panel">
+    <h2>Phase pipeline</h2>
+    <div class="phase-pipeline">{steps_block}</div>
+  </section>
+
+  <section class="panel">
+    <h2>Per-phase details</h2>
+    {details_block}
+  </section>
+
+  <section class="panel">
+    <h2>Export</h2>
+    <div class="exports">
+      <a href="/artifact/eval_results.json" download>eval_results.json</a>
+      <a href="/api/eval-results" class="ghost" target="_blank">Raw via API</a>
+      <a href="/export/phases.csv" class="ghost" download>CSV (per-phase status)</a>
+      <a href="/summary" class="ghost">Kernel summary</a>
+      <a href="/static/logs.html" class="ghost">Logs →</a>
+    </div>
+  </section>
+</div>
+</body>
+</html>"""
+
+        dashboard_html = _build_bench_dashboard_html(eval_results)
+
+        def _api_eval_results():
+            return JSONResponse(eval_results)
+
+        def _export_phases_csv():
+            import io, csv
+            buf = io.StringIO()
+            w = csv.writer(buf)
+            w.writerow(["phase", "ok", "summary"])
+            for k, v in (eval_results.get("phases", {}) or {}).items():
+                ok = v.get("ok") if isinstance(v, dict) else None
+                summary_s = ""
+                if isinstance(v, dict):
+                    keys = [kk for kk in v.keys() if kk != "ok"]
+                    summary_s = ", ".join(f"{kk}={v[kk]}"
+                                          for kk in keys[:3])[:200]
+                w.writerow([k, "" if ok is None else ok, summary_s])
+            return PlainTextResponse(
+                buf.getvalue(), media_type="text/csv",
+                headers={"Content-Disposition":
+                         "attachment; filename=duecare_bench_phases.csv"},
+            )
+
         deltas = eval_results.get("deltas", {}) or {}
         summary = {
             "title": "Bench and tune (Unsloth fine-tune + GGUF export)",
@@ -1287,7 +1502,9 @@ def main() -> dict:
                  "https://www.kaggle.com/code/taylorsamarel/duecare-exploration-workbench"),
             ],
             "next_steps": [
-                "Download eval_results.json from /artifact/eval_results.json.",
+                "Full phase status + deltas on the homepage at /.",
+                "Per-phase JSON via /api/eval-results.",
+                "CSV via /export/phases.csv.",
                 "Open the Logs tab for the live training event stream.",
             ],
         }
@@ -1295,6 +1512,11 @@ def main() -> dict:
         app, url = build_minimal_shell(
             summary=summary, kernel_id="a-07-bench-and-tune",
             port=int(_os.environ.get("DC_PORT", "8080")),
+            homepage_html=dashboard_html,
+            extra_routes={
+                "/api/eval-results":  ("GET", _api_eval_results),
+                "/export/phases.csv": ("GET", _export_phases_csv),
+            },
         )
         if url:
             print(f"[workbench] {url}")

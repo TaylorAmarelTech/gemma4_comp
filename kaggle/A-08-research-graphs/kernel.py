@@ -693,16 +693,185 @@ def main() -> None:
     except Exception:
         pass
 
-    # Workbench-consistent UI: launch the minimal shell + cloudflared so
-    # a judge gets the same nav / Logs / Tools experience as the main
-    # workbench. The shell mounts the chat-package static so the workbench
-    # top-nav appears on every page.
+    # Workbench-consistent UI: launch the minimal shell + cloudflared with
+    # an inline-chart dashboard as the homepage so judges see all 6
+    # research graphs without hunting through artifact links.
     try:
         from duecare.chat.kernel_shell import build_minimal_shell
+        from fastapi.responses import JSONResponse
+
         chart_artifacts = [
             {"name": f"research_graphs/{c.name}", "path": str(c)}
             for c in charts if c and c.exists()
         ]
+
+        # Per-chart metadata for the inline-iframe dashboard.
+        CHART_META = [
+            ("entity_graph",
+             "Entity graph",
+             "Force-directed view of every entity (jurisdiction × statute × NGO × indicator) the harness knows about. Drag nodes; hover for citation context."),
+            ("corridor_sankey",
+             "Corridor flow (Sankey)",
+             "Recruitment-flow Sankey of source-country → destination-country across the harness's tracked corridors. Width is corridor weight."),
+            ("benchmark_bars",
+             "Benchmark deltas",
+             "Per-domain harness lift relative to stock Gemma. Bars are mean rubric-score delta in percentage points."),
+            ("fee_camouflage_heatmap",
+             "Fee-camouflage heatmap",
+             "Heatmap of the GREP rule book's fee-camouflage label coverage by corridor. Darker cell = more distinct labels seen."),
+            ("ilo_indicator_hits",
+             "ILO indicator hits",
+             "Histogram of ILO forced-labour indicator detections across the bundled prompt corpus. Used by the rubric to verify grounding."),
+            ("rag_corpus_sunburst",
+             "RAG corpus sunburst",
+             "Drill-in sunburst of the 46-doc RAG corpus by source family. Outer ring is individual documents; inner ring is publisher family."),
+        ]
+
+        # Match the chart objects up with the meta list by stem suffix.
+        chart_by_kind = {}
+        for c in charts:
+            if c and c.exists():
+                # File names look like "01_entity_graph.html"; match suffix
+                stem = c.stem.split("_", 1)[1] if "_" in c.stem else c.stem
+                chart_by_kind[stem] = c
+
+        # Render the dashboard HTML.
+        def _build_dashboard() -> str:
+            import html as _html
+            panels = []
+            for kind, title, blurb in CHART_META:
+                c = chart_by_kind.get(kind)
+                if not c:
+                    panels.append(
+                        f'<section class="chart-panel">'
+                        f'<header class="chart-head"><h2>{_html.escape(title)}</h2>'
+                        f'<div class="chart-desc">{_html.escape(blurb)}</div></header>'
+                        f'<div class="chart-missing">Chart not rendered for this kernel run.</div>'
+                        f'</section>')
+                    continue
+                src = f"/artifact/research_graphs/{c.name}"
+                kb = c.stat().st_size // 1024
+                panels.append(f"""
+        <section class="chart-panel">
+          <header class="chart-head">
+            <div>
+              <h2>{_html.escape(title)}</h2>
+              <div class="chart-desc">{_html.escape(blurb)}</div>
+            </div>
+            <div class="chart-meta">
+              <span class="kb">{kb} KB</span>
+              <a class="chart-action" href="{src}" target="_blank" rel="noopener">Open ↗</a>
+              <a class="chart-action" href="{src}" download>Download</a>
+            </div>
+          </header>
+          <div class="chart-frame-wrap">
+            <iframe class="chart-frame" loading="lazy" src="{src}"
+                    title="{_html.escape(title)}"></iframe>
+          </div>
+        </section>""")
+            panels_html = "".join(panels)
+
+            n_grep = len(HARNESS.get("grep_rules", []))
+            n_rag  = len(HARNESS.get("rag_corpus", []))
+            n_ent  = len(HARNESS.get("entities", []))
+
+            return f"""<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Research graphs · A-08 · DueCare</title>
+  <link rel="stylesheet" href="/static/_chrome.css">
+  <link rel="stylesheet" href="/static/showcase.css">
+  <script src="/static/_nav.js" defer></script>
+  <style>
+    .wrap {{ max-width: 1240px; margin: 0 auto; padding: 28px 24px 48px; }}
+    .crumbs {{ font-family: var(--mono); font-size: 11px; color: var(--ink-3);
+               text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px; }}
+    h1 {{ margin: 0 0 6px; color: var(--ink); letter-spacing: -0.02em; font-size: 28px; }}
+    .lede {{ color: var(--ink-3); margin: 0 0 22px; line-height: 1.55; font-size: 14px; max-width: 820px; }}
+    .stats {{ display: flex; gap: 18px; flex-wrap: wrap; margin-bottom: 26px;
+              font-family: var(--mono); font-size: 12px; color: var(--ink-3); }}
+    .stats b {{ color: var(--ink); font-weight: 600; }}
+    .exports {{ display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 26px; }}
+    .exports a {{ display: inline-flex; align-items: center; gap: 6px;
+                  padding: 8px 14px; border-radius: 8px;
+                  text-decoration: none; font-size: 13px; font-weight: 500;
+                  background: var(--paper-2); color: var(--ink-2);
+                  border: 1px solid var(--line); font-family: var(--sans); }}
+    .exports a.primary {{ background: var(--ink); color: var(--paper); border-color: var(--ink); }}
+    .exports a:hover {{ filter: brightness(.96); }}
+    .chart-panel {{ background: #fffdf7; border: 1px solid var(--line);
+                    border-radius: 12px; padding: 0; margin-bottom: 22px;
+                    box-shadow: 0 1px 0 rgba(14,17,22,.04), 0 8px 24px -18px rgba(14,17,22,.12);
+                    overflow: hidden; }}
+    .chart-head {{ padding: 16px 20px; display: flex; gap: 18px; justify-content: space-between;
+                   align-items: flex-start; border-bottom: 1px solid var(--line-soft);
+                   background: var(--paper); }}
+    .chart-head h2 {{ margin: 0 0 4px; font-size: 14px; color: var(--ink); font-weight: 600; letter-spacing: -0.01em; }}
+    .chart-desc {{ font-size: 12.5px; color: var(--ink-3); line-height: 1.55; max-width: 720px; }}
+    .chart-meta {{ display: flex; gap: 10px; align-items: center; flex-shrink: 0; }}
+    .chart-meta .kb {{ font-family: var(--mono); font-size: 11px; color: var(--ink-3); }}
+    .chart-meta .chart-action {{ font-family: var(--mono); font-size: 11px;
+                                  color: var(--accent-ink); text-decoration: none;
+                                  padding: 4px 10px; border-radius: 6px;
+                                  background: var(--accent-soft); }}
+    .chart-meta .chart-action:hover {{ filter: brightness(.96); }}
+    .chart-frame-wrap {{ background: var(--paper); padding: 0; }}
+    .chart-frame {{ width: 100%; height: 620px; border: 0; display: block; background: #fff; }}
+    .chart-missing {{ padding: 40px; text-align: center; color: var(--ink-4); font-style: italic; }}
+  </style>
+</head>
+<body data-nav="researcher">
+<div class="wrap">
+  <div class="crumbs">Notebook · a-08-research-graphs</div>
+  <h1>Six research visualizations over the live harness</h1>
+  <p class="lede">
+    CPU-only Plotly + NetworkX charts rendered from the bundled DueCare
+    harness data (no GPU, no model load). Each chart is independently
+    interactive — drag, hover, drill in. Use the export buttons below
+    for raw HTML or open any chart in its own tab.
+  </p>
+
+  <div class="stats">
+    <span>Charts: <b>{n_charts}</b></span>
+    <span>Entities: <b>{n_ent}</b></span>
+    <span>GREP rules: <b>{n_grep}</b></span>
+    <span>RAG docs: <b>{n_rag}</b></span>
+  </div>
+
+  <div class="exports">
+    <a class="primary" href="/artifact/research_graphs/index.html" target="_blank">Open static index ↗</a>
+    <a href="/summary">Kernel summary</a>
+    <a href="/static/logs.html">Logs →</a>
+    <a href="/static/all-tools.html">All workbench tools →</a>
+  </div>
+
+  {panels_html}
+</div>
+</body>
+</html>"""
+
+        dashboard_html = _build_dashboard()
+
+        def _api_charts():
+            return JSONResponse({
+                "n_charts": n_charts,
+                "harness_counts": {
+                    "entities": len(HARNESS.get("entities", [])),
+                    "grep_rules": len(HARNESS.get("grep_rules", [])),
+                    "rag_corpus": len(HARNESS.get("rag_corpus", [])),
+                },
+                "charts": [
+                    {
+                        "kind": kind, "title": title, "blurb": blurb,
+                        "url": (f"/artifact/research_graphs/{chart_by_kind[kind].name}"
+                                if kind in chart_by_kind else None),
+                    }
+                    for kind, title, blurb in CHART_META
+                ],
+            })
+
         summary = {
             "title": "Research graphs",
             "audience": "researcher",
@@ -723,13 +892,16 @@ def main() -> None:
                  "https://www.kaggle.com/code/taylorsamarel/duecare-exploration-workbench"),
             ],
             "next_steps": [
-                "Open /artifact/research_graphs/index.html for the full index.",
-                "Open the Logs tab to see the rendering event stream.",
+                "All 6 charts are inline on the homepage at /.",
+                "Per-chart raw HTML at /artifact/research_graphs/*.html.",
+                "JSON of chart metadata at /api/charts.",
             ],
         }
         app, url = build_minimal_shell(
             summary=summary, kernel_id="a-08-research-graphs",
             port=int(os.environ.get("DC_PORT", "8080")),
+            homepage_html=dashboard_html,
+            extra_routes={"/api/charts": ("GET", _api_charts)},
         )
         if url:
             print(f"[workbench] {url}")

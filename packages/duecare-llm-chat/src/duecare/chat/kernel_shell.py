@@ -207,6 +207,8 @@ def build_minimal_shell(
     artifact_root: Path = Path("/kaggle/working"),
     tunnel: bool = True,
     background: bool = True,
+    homepage_html: Optional[str] = None,
+    extra_routes: Optional[dict] = None,
 ) -> tuple[Any, Optional[str]]:
     """Build + (optionally) launch a minimal workbench-shell FastAPI app
     for a notebook-only kernel.
@@ -218,6 +220,24 @@ def build_minimal_shell(
     The caller is responsible for emitting ``dc_log()`` events around
     its own compute work; this helper only serves the resulting summary
     + the standard /api/dc-logs endpoints + the workbench static.
+
+    Parameters
+    ----------
+    summary
+        Required. The summary dict rendered when ``homepage_html`` is
+        not supplied. See the module docstring for shape.
+    homepage_html
+        Optional. A pre-rendered HTML string for ``GET /``. When
+        supplied, replaces the default summary rendering and lets the
+        caller embed visualizations, dashboards, inline charts, or
+        custom interaction. The shared workbench shell remains active
+        because the HTML can still link ``/static/_chrome.css`` and
+        ``/static/_nav.js``. The default summary view stays reachable
+        at ``/summary`` for the Tools menu.
+    extra_routes
+        Optional. Dict mapping path → ``(method, handler)`` for adding
+        kernel-specific routes (e.g. ``{"/api/lift": ("GET", h)}``).
+        Handlers are normal FastAPI handler callables.
     """
     from fastapi import FastAPI, HTTPException
     from fastapi.responses import HTMLResponse, FileResponse
@@ -234,6 +254,12 @@ def build_minimal_shell(
 
     @app.get("/", response_class=HTMLResponse)
     def index() -> str:
+        if homepage_html:
+            return homepage_html
+        return _render_summary_html(summary, kid)
+
+    @app.get("/summary", response_class=HTMLResponse)
+    def summary_page() -> str:
         return _render_summary_html(summary, kid)
 
     @app.get("/healthz")
@@ -287,6 +313,17 @@ def build_minimal_shell(
             "kernel": kid, "kind": "minimal-shell",
             "counts": {}, "layers": [], "extras": [],
         }
+
+    # Caller-supplied routes (e.g. /api/lift, /api/charts, /export/csv).
+    # Path → (method, handler-callable). Wired AFTER the built-in routes
+    # so the standard endpoints can't be silently overridden by accident.
+    if extra_routes:
+        for path, spec in extra_routes.items():
+            try:
+                method, handler = spec
+            except Exception:
+                continue
+            app.add_api_route(path, handler, methods=[method.upper()])
 
     url: Optional[str] = None
     if background:

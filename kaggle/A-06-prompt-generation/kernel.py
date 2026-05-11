@@ -656,14 +656,280 @@ def main() -> dict:
     print(f"[done] log -> {GENERATION_LOG}")
     print("=" * 76)
 
-    # Workbench-consistent UI: launch the minimal shell so this notebook
-    # has the same nav / Logs / Tools experience as the main workbench.
+    # Workbench-consistent UI: launch the minimal shell with a corpus
+    # browser as homepage so judges can browse the freshly generated
+    # prompts (filterable by category + locale) and download as JSONL
+    # or CSV directly.
     try:
         from duecare.chat._dc_log import dc_log, set_kernel_id
         set_kernel_id("a-06-prompt-generation")
         dc_log("kernel.complete", f"prompts generated; log at {GENERATION_LOG}",
                log_path=GENERATION_LOG)
         from duecare.chat.kernel_shell import build_minimal_shell
+        from fastapi.responses import JSONResponse, PlainTextResponse
+
+        # Load the JSONL outputs in memory for the browser.
+        def _load_jsonl(path: str) -> list:
+            p = Path(path)
+            if not p.exists():
+                return []
+            rows = []
+            for line in p.open(encoding="utf-8"):
+                line = line.strip()
+                if not line:
+                    continue
+                try:
+                    rows.append(json.loads(line))
+                except Exception:
+                    continue
+            return rows
+
+        prompt_rows = _load_jsonl(GENERATED_PROMPTS_OUT)
+        graded_rows = _load_jsonl(GRADED_RESPONSES_OUT)
+        graded_by_id = {g.get("id"): g for g in graded_rows if isinstance(g, dict)}
+
+        def _build_corpus_browser_html() -> str:
+            import html as _html
+
+            n_prompts = len(prompt_rows)
+            n_graded  = len(graded_rows)
+            cats   = sorted({str(r.get("category", "")) for r in prompt_rows if r.get("category")})
+            locales = sorted({str(r.get("locale", ""))  for r in prompt_rows if r.get("locale")})
+
+            rows_html = []
+            for r in prompt_rows:
+                rid    = _html.escape(str(r.get("id", "")))
+                cat    = _html.escape(str(r.get("category", "")))
+                loc    = _html.escape(str(r.get("locale", "")))
+                text   = _html.escape(str(r.get("text", "")))
+                ver    = _html.escape(str(r.get("expected_verdict", "")))
+                sigs   = ", ".join(_html.escape(str(s)) for s in
+                                   (r.get("expected_signals") or [])[:3])
+                # Graded response (if grading ran)
+                g = graded_by_id.get(r.get("id"))
+                grade_html = ""
+                if isinstance(g, dict) and g.get("response"):
+                    score = g.get("grade", {}).get("pct_score", "?")
+                    resp  = _html.escape(str(g.get("response", "")))
+                    grade_html = (
+                        f'<div class="grade"><span class="grade-pct">{score}%</span> '
+                        f'<details><summary>view response</summary>'
+                        f'<pre class="response-body">{resp}</pre></details></div>'
+                    )
+                # URL-encoded for the chat deep-link
+                from urllib.parse import quote as _quote
+                chat_link = (
+                    "https://www.kaggle.com/code/taylorsamarel/"
+                    "duecare-exploration-workbench?prompt="
+                    f"{_quote(str(r.get('text', '')))}&audience=researcher"
+                )
+                rows_html.append(f"""
+        <tr data-cat="{cat}" data-loc="{loc}" data-ver="{ver}">
+          <td class="cell-id">{rid}</td>
+          <td><span class="pill pill-cat">{cat}</span> <span class="pill pill-loc">{loc}</span></td>
+          <td class="cell-text">
+            <details>
+              <summary>{text[:140]}{('…' if len(text) > 140 else '')}</summary>
+              <div class="full-text">{text}</div>
+              {grade_html}
+            </details>
+            <div class="cell-meta">verdict: <code>{ver}</code> · signals: <code>{sigs}</code></div>
+          </td>
+          <td class="cell-actions">
+            <a href="{chat_link}" target="_blank" rel="noopener">Open in chat ↗</a>
+          </td>
+        </tr>""")
+            tbody = "".join(rows_html) or (
+                '<tr><td colspan="4" class="empty-row">No prompts generated yet — '
+                'set <code>RUN_GENERATE_PROMPTS=1</code> and re-run.</td></tr>'
+            )
+            cat_opts = "".join(f'<option value="{_html.escape(c)}">{_html.escape(c)}</option>' for c in cats)
+            loc_opts = "".join(f'<option value="{_html.escape(l)}">{_html.escape(l)}</option>' for l in locales)
+
+            return f"""<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Prompt corpus browser · A-06 · DueCare</title>
+  <link rel="stylesheet" href="/static/_chrome.css">
+  <link rel="stylesheet" href="/static/showcase.css">
+  <script src="/static/_nav.js" defer></script>
+  <style>
+    .wrap {{ max-width: 1240px; margin: 0 auto; padding: 28px 24px 48px; }}
+    .crumbs {{ font-family: var(--mono); font-size: 11px; color: var(--ink-3);
+               text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px; }}
+    h1 {{ margin: 0 0 6px; color: var(--ink); letter-spacing: -0.02em; font-size: 28px; }}
+    .lede {{ color: var(--ink-3); margin: 0 0 22px; line-height: 1.55; font-size: 14px; max-width: 820px; }}
+    .stats {{ display: flex; gap: 18px; flex-wrap: wrap; margin-bottom: 22px;
+              font-family: var(--mono); font-size: 12px; color: var(--ink-3); }}
+    .stats b {{ color: var(--ink); font-weight: 600; }}
+    .toolbar {{ display: flex; gap: 12px; flex-wrap: wrap; align-items: center;
+                margin-bottom: 18px; padding: 12px 14px; background: var(--paper-2);
+                border: 1px solid var(--line); border-radius: 10px; }}
+    .toolbar label {{ font-family: var(--mono); font-size: 11px; color: var(--ink-3);
+                       text-transform: uppercase; letter-spacing: 0.06em; }}
+    .toolbar select, .toolbar input {{ padding: 6px 10px; border: 1px solid var(--line);
+                                        border-radius: 6px; background: var(--paper);
+                                        color: var(--ink); font-family: var(--sans); font-size: 13px; }}
+    .panel {{ background: #fffdf7; border: 1px solid var(--line); border-radius: 12px;
+              padding: 0; margin-bottom: 20px; overflow: hidden;
+              box-shadow: 0 1px 0 rgba(14,17,22,.04), 0 8px 24px -18px rgba(14,17,22,.12); }}
+    table {{ width: 100%; border-collapse: collapse; font-size: 13px; }}
+    th {{ text-align: left; padding: 10px 14px; background: var(--paper-2);
+          color: var(--ink-3); font-weight: 500; font-size: 11px;
+          text-transform: uppercase; letter-spacing: 0.06em; font-family: var(--mono);
+          border-bottom: 1px solid var(--line); position: sticky; top: 0; }}
+    td {{ padding: 12px 14px; border-bottom: 1px solid var(--line-soft); vertical-align: top; }}
+    .cell-id {{ font-family: var(--mono); font-size: 12px; color: var(--ink-2); white-space: nowrap; }}
+    .cell-text details {{ cursor: pointer; }}
+    .cell-text summary {{ color: var(--ink); font-size: 13.5px; line-height: 1.5; }}
+    .cell-text .full-text {{ margin-top: 8px; padding: 10px 12px; background: var(--paper-2);
+                              border-radius: 6px; line-height: 1.55; }}
+    .cell-meta {{ margin-top: 6px; font-family: var(--mono); font-size: 11px; color: var(--ink-3); }}
+    .cell-meta code {{ background: var(--paper-2); color: var(--ink-2); padding: 1px 5px;
+                        border-radius: 4px; border: 1px solid var(--line-soft); }}
+    .cell-actions a {{ font-family: var(--mono); font-size: 11px; color: var(--accent-ink);
+                        text-decoration: none; padding: 4px 10px; border-radius: 6px;
+                        background: var(--accent-soft); white-space: nowrap; }}
+    .pill {{ display: inline-block; padding: 2px 8px; border-radius: 999px;
+             font-family: var(--mono); font-size: 10px; font-weight: 600;
+             text-transform: uppercase; letter-spacing: 0.06em; }}
+    .pill-cat {{ background: var(--accent-soft); color: var(--accent-ink); }}
+    .pill-loc {{ background: var(--paper-3); color: var(--ink-3); margin-left: 4px; }}
+    .grade {{ margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--line-soft);
+              font-family: var(--mono); font-size: 11px; color: var(--ink-3); }}
+    .grade-pct {{ display: inline-block; background: var(--good); color: var(--paper);
+                  padding: 2px 8px; border-radius: 999px; font-weight: 700; margin-right: 8px; }}
+    .response-body {{ background: var(--ink); color: var(--paper); padding: 12px 14px;
+                       border-radius: 6px; line-height: 1.55; font-size: 12px;
+                       white-space: pre-wrap; word-wrap: break-word; margin: 8px 0 0; }}
+    .empty-row {{ text-align: center; color: var(--ink-4); font-style: italic; padding: 30px; }}
+    .empty-row code {{ background: var(--paper-2); padding: 1px 5px; border-radius: 4px; }}
+    .exports {{ display: flex; gap: 10px; flex-wrap: wrap; padding: 14px 16px; }}
+    .exports a {{ display: inline-flex; align-items: center; gap: 6px;
+                  padding: 8px 14px; border-radius: 8px; text-decoration: none;
+                  font-size: 13px; font-weight: 500; background: var(--ink);
+                  color: var(--paper); font-family: var(--sans); }}
+    .exports a.ghost {{ background: var(--paper-2); color: var(--ink-2); border: 1px solid var(--line); }}
+  </style>
+</head>
+<body data-nav="researcher">
+<div class="wrap">
+  <div class="crumbs">Notebook · a-06-prompt-generation</div>
+  <h1>Generated prompt corpus — Gemma 4 producing new evaluation prompts</h1>
+  <p class="lede">
+    Each row is a prompt Gemma generated from a seed scenario. Filter
+    by category / locale, expand any row for the full prompt text + the
+    graded response (if grading ran), or "Open in chat" to load the
+    prompt into the main workbench. Export as JSONL or CSV.
+  </p>
+
+  <div class="stats">
+    <span>Prompts: <b>{n_prompts}</b></span>
+    <span>Graded: <b>{n_graded}</b></span>
+    <span>Categories: <b>{len(cats)}</b></span>
+    <span>Locales: <b>{len(locales)}</b></span>
+  </div>
+
+  <div class="toolbar">
+    <label for="filter-q">Search</label>
+    <input id="filter-q" type="search" placeholder="Filter by text…" style="min-width:240px;">
+    <label for="filter-cat">Category</label>
+    <select id="filter-cat"><option value="">All</option>{cat_opts}</select>
+    <label for="filter-loc">Locale</label>
+    <select id="filter-loc"><option value="">All</option>{loc_opts}</select>
+    <span style="flex:1;"></span>
+    <span id="filter-count" style="font-family:var(--mono); font-size:11px; color:var(--ink-3);"></span>
+  </div>
+
+  <div class="panel">
+    <table id="corpus-table">
+      <thead>
+        <tr><th>ID</th><th>Tags</th><th>Text</th><th></th></tr>
+      </thead>
+      <tbody>{tbody}</tbody>
+    </table>
+  </div>
+
+  <div class="panel">
+    <div class="exports">
+      <a href="/artifact/generated_prompts.jsonl" download>JSONL (prompts)</a>
+      <a href="/artifact/graded_responses.jsonl" class="ghost" download>JSONL (graded)</a>
+      <a href="/export/prompts.csv" class="ghost" download>CSV (per-row)</a>
+      <a href="/api/prompts" class="ghost" target="_blank">Raw via API</a>
+      <a href="/artifact/generation_log.json" class="ghost" download>generation_log.json</a>
+      <a href="/summary" class="ghost">Kernel summary</a>
+      <a href="/static/logs.html" class="ghost">Logs →</a>
+    </div>
+  </div>
+</div>
+
+<script>
+(function() {{
+  const q   = document.getElementById('filter-q');
+  const fc  = document.getElementById('filter-cat');
+  const fl  = document.getElementById('filter-loc');
+  const fct = document.getElementById('filter-count');
+  const rows = Array.from(document.querySelectorAll('#corpus-table tbody tr[data-cat]'));
+  const total = rows.length;
+  function apply() {{
+    const qs = (q.value || '').toLowerCase().trim();
+    const cs = fc.value, ls = fl.value;
+    let shown = 0;
+    rows.forEach(tr => {{
+      const cat = tr.dataset.cat || '', loc = tr.dataset.loc || '';
+      const txt = tr.textContent.toLowerCase();
+      const ok =
+        (!cs || cat === cs) &&
+        (!ls || loc === ls) &&
+        (!qs || txt.includes(qs));
+      tr.style.display = ok ? '' : 'none';
+      if (ok) shown++;
+    }});
+    fct.textContent = 'showing ' + shown + ' / ' + total;
+  }}
+  q.addEventListener('input', apply);
+  fc.addEventListener('change', apply);
+  fl.addEventListener('change', apply);
+  apply();
+}})();
+</script>
+</body>
+</html>"""
+
+        dashboard_html = _build_corpus_browser_html()
+
+        def _api_prompts():
+            return JSONResponse({
+                "n_prompts": len(prompt_rows),
+                "n_graded":  len(graded_rows),
+                "prompts":   prompt_rows,
+                "graded":    graded_rows,
+            })
+
+        def _export_prompts_csv():
+            import io, csv
+            buf = io.StringIO()
+            w = csv.writer(buf)
+            w.writerow(["id", "category", "locale", "expected_verdict",
+                        "expected_severity_min", "expected_signals", "text"])
+            for r in prompt_rows:
+                w.writerow([
+                    r.get("id", ""),
+                    r.get("category", ""),
+                    r.get("locale", ""),
+                    r.get("expected_verdict", ""),
+                    r.get("expected_severity_min", ""),
+                    "|".join(str(s) for s in (r.get("expected_signals") or [])),
+                    r.get("text", ""),
+                ])
+            return PlainTextResponse(
+                buf.getvalue(), media_type="text/csv",
+                headers={"Content-Disposition":
+                         "attachment; filename=duecare_generated_prompts.csv"},
+            )
+
         summary = {
             "title": "Prompt generation",
             "audience": "researcher",
@@ -671,18 +937,23 @@ def main() -> dict:
                      "harness. The full per-phase log is at "
                      f"{GENERATION_LOG}."),
             "results": [
+                {"label": "Prompts generated", "value": len(prompt_rows)},
+                {"label": "Graded responses",  "value": len(graded_rows)},
                 {"label": "Phases run", "value": len(log.get("phases", {}))},
                 {"label": "Completed",  "value": log.get("completed_at", "?")},
             ],
             "artifacts": [
-                {"name": "generation_log.json", "path": GENERATION_LOG},
+                {"name": "generated_prompts.jsonl", "path": GENERATED_PROMPTS_OUT},
+                {"name": "graded_responses.jsonl",  "path": GRADED_RESPONSES_OUT},
+                {"name": "generation_log.json",     "path": GENERATION_LOG},
             ],
             "links": [
                 ("Workbench (full)",
                  "https://www.kaggle.com/code/taylorsamarel/duecare-exploration-workbench"),
             ],
             "next_steps": [
-                "Download generation_log.json from /artifact/generation_log.json.",
+                "Browse + filter the generated corpus on the homepage at /.",
+                "Download JSONL / CSV / generation_log via the export buttons.",
                 "Open the Logs tab for the live event stream.",
             ],
         }
@@ -690,6 +961,11 @@ def main() -> dict:
         app, url = build_minimal_shell(
             summary=summary, kernel_id="a-06-prompt-generation",
             port=int(_os.environ.get("DC_PORT", "8080")),
+            homepage_html=dashboard_html,
+            extra_routes={
+                "/api/prompts":        ("GET", _api_prompts),
+                "/export/prompts.csv": ("GET", _export_prompts_csv),
+            },
         )
         if url:
             print(f"[workbench] {url}")
