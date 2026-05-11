@@ -69,7 +69,9 @@ from __future__ import annotations
 
 import json
 import subprocess
+import os
 import sys
+import time
 from collections import Counter, defaultdict
 from pathlib import Path
 from typing import Any
@@ -656,6 +658,16 @@ def main() -> None:
     if not HARNESS:
         print("[main] no harness data loaded; cannot render charts")
         sys.exit(1)
+
+    # Standardised JSON-Lines logging: identify this kernel and announce start.
+    try:
+        from duecare.chat._dc_log import dc_log, set_kernel_id
+        set_kernel_id("a-08-research-graphs")
+        dc_log("kernel.start", "rendering research charts")
+    except Exception:
+        def dc_log(*a, **kw):  # type: ignore[no-redef]
+            return None
+
     charts = [
         chart_entity_graph(HARNESS),
         chart_corridor_sankey(HARNESS),
@@ -665,8 +677,11 @@ def main() -> None:
         chart_rag_corpus_sunburst(HARNESS),
     ]
     idx = write_index(charts)
+    n_charts = len([c for c in charts if c])
+    dc_log("kernel.charts.rendered", f"{n_charts} charts written",
+           n_charts=n_charts, index_path=str(idx))
     print("=" * 76)
-    print(f"[done] {len([c for c in charts if c])} chart(s) written to {OUTPUT_DIR}")
+    print(f"[done] {n_charts} chart(s) written to {OUTPUT_DIR}")
     print(f"  open: {idx}")
     print("=" * 76)
     # Show inline in the Kaggle notebook if IPython available
@@ -677,6 +692,52 @@ def main() -> None:
                 display(IFrame(src=str(c), width="100%", height="600"))
     except Exception:
         pass
+
+    # Workbench-consistent UI: launch the minimal shell + cloudflared so
+    # a judge gets the same nav / Logs / Tools experience as the main
+    # workbench. The shell mounts the chat-package static so the workbench
+    # top-nav appears on every page.
+    try:
+        from duecare.chat.kernel_shell import build_minimal_shell
+        chart_artifacts = [
+            {"name": f"research_graphs/{c.name}", "path": str(c)}
+            for c in charts if c and c.exists()
+        ]
+        summary = {
+            "title": "Research graphs",
+            "audience": "researcher",
+            "lede": ("Six CPU-only research visualizations over the live harness: "
+                     "entity graph, corridor Sankey, benchmark bars, fee-camouflage "
+                     "heatmap, ILO indicator hits, and a RAG-corpus sunburst."),
+            "results": [
+                {"label": "Charts rendered", "value": n_charts},
+                {"label": "Entities",        "value": len(HARNESS.get("entities", []))},
+                {"label": "GREP rules",      "value": len(HARNESS.get("grep_rules", []))},
+                {"label": "RAG docs",        "value": len(HARNESS.get("rag_corpus", []))},
+            ],
+            "artifacts": chart_artifacts + [
+                {"name": "research_graphs/index.html", "path": str(idx)},
+            ],
+            "links": [
+                ("Workbench (full)",
+                 "https://www.kaggle.com/code/taylorsamarel/duecare-exploration-workbench"),
+            ],
+            "next_steps": [
+                "Open /artifact/research_graphs/index.html for the full index.",
+                "Open the Logs tab to see the rendering event stream.",
+            ],
+        }
+        app, url = build_minimal_shell(
+            summary=summary, kernel_id="a-08-research-graphs",
+            port=int(os.environ.get("DC_PORT", "8080")),
+        )
+        if url:
+            print(f"[workbench] {url}")
+        # Block forever so cloudflared stays up while the kernel cell sits.
+        while True:
+            time.sleep(60)
+    except Exception as e:
+        print(f"[workbench] minimal-shell unavailable: {e}")
 
 
 if __name__ == "__main__":
