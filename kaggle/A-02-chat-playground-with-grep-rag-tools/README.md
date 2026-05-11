@@ -2,6 +2,19 @@
 <!-- duecare:lane-label -->
 > **Serves lanes:** 04 Researcher
 
+<!-- duecare:judge-quick-path -->
+
+## Judge quick path
+
+| Section | This notebook |
+|---|---|
+| **Lede** | Interactive harness-ablation playground that shows exactly what GREP, RAG, and function-calling tools add to raw Gemma 4. |
+| **What it does** | Keeps the chat UI familiar while adding four toggleable safety layers and pipeline evidence for each response. |
+| **Demo path** | Run the kernel, open the tunnel, send a recruitment-risk prompt, then toggle one harness layer at a time. |
+| **Audience** | Researcher. |
+| **Outputs** | Layer-by-layer response deltas, fired-rule evidence, retrieved-source context, tool outputs, and traceable chat turns. |
+| **Cross-links** | Use the quick links at the bottom for the full workbench, live demo, grading-lift appendix, and public website. |
+
 Same chat UI as `chat-playground`, but with **toggle checkboxes for the
 safety-harness layers**. Lets a judge see — interactively, in a
 30-second clip — exactly what GREP / RAG / Tools add to a raw Gemma 4
@@ -29,7 +42,7 @@ and other IT variants). Used in accordance with the
 
 The chat backend exposes 4 toggleable safety layers. Each is independent — toggle any combination on/off per message.
 
-### GREP (Phase 1 — shipping now)
+### GREP (Phase 1 — available now)
 
 161 regex / pattern rules covering 16 categories:
 
@@ -105,13 +118,24 @@ python scripts/push_kaggle_demo.py --kernel chat-playground-with-grep-rag-tools 
 
 ## Wheels included (3)
 
-`duecare-llm-core`, `duecare-llm-models`, `duecare-llm-chat` (the chat package now ships the toggle UI + harness wiring; no new package needed).
+`duecare-llm-core`, `duecare-llm-models`, `duecare-llm-chat` (the chat package now includes the toggle UI + harness wiring; no new package needed).
 
 ## What this notebook is NOT
 
 - Not the full safety-harness production app — that's [`../02-live-demo/`](../02-live-demo/README.md).
 - Not a benchmark / training notebook — that's [`../A-07-bench-and-tune/`](../A-07-bench-and-tune/README.md).
 - Not raw Gemma chat — that's [`../A-01-chat-playground/`](../A-01-chat-playground/README.md).
+
+---
+
+<!-- duecare:quick-cross-links -->
+
+### Quick cross-links
+
+- **Core workbench:** [#01 core: Migrant-worker safety playground](../01-duecare-exploration-workbench/README.md).
+- **Focused live demo:** [#02 core: Live demo](../02-live-demo/README.md).
+- **Natural next appendix:** [#A11 appendix: Grading-lift regenerator](../A-11-grading-evaluation/README.md).
+- **Public website:** [duecare-ai.com](https://duecare-ai.com).
 
 ---
 
@@ -136,3 +160,12 @@ You are here: **#A02 appendix — Original 4-toggle subset playground**.
 - [#A11 appendix: Grading-lift regenerator](../A-11-grading-evaluation/README.md)
 
 Index page: [`kaggle/_INDEX.md`](../_INDEX.md).
+
+---
+
+## Cross-links
+
+- **[DueCare Exploration Workbench (#01)](https://www.kaggle.com/code/taylorsamarel/duecare-exploration-workbench)** -- the full chat playground with all 6 harness layers, 9-variant model picker, 4 grading modes, A/B compare, and every visualization in one place.
+- **[Live demo (#02)](https://www.kaggle.com/code/taylorsamarel/duecare-live-demo)** -- focused public-hub walkthrough demonstrating the +56.5pp lift on a curated set of compound-indicator prompts.
+- **[Next step -> DueCare Exploration Workbench (#01)](https://www.kaggle.com/code/taylorsamarel/duecare-exploration-workbench)** -- open the full 6-toggle workbench with model picker and 4 grading modes.
+- **[Public hub: duecare-ai.com](https://duecare-ai.com)** -- knowledge-pack registry, anonymized signal intake, public-source proposal intake, and the 5-lane audience showcase.

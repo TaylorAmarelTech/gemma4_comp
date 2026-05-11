@@ -2,6 +2,19 @@
 <!-- duecare:lane-label -->
 > **Serves lanes:** 04 Researcher
 
+<!-- duecare:judge-quick-path -->
+
+## Judge quick path
+
+| Section | This notebook |
+|---|---|
+| **Lede** | Falsifiable harness-lift regenerator that reruns prompts with the harness off and on, then grades the delta. |
+| **What it does** | Produces per-prompt and per-dimension scorecards for stock Gemma versus full DueCare runtime layers. |
+| **Demo path** | Run a small prompt set, open the lift dashboard, scan the KPI cards, and download the JSON/Markdown/CSV artifacts. |
+| **Audience** | Researcher. |
+| **Outputs** | `duecare_lift_eval.json`, `duecare_lift_eval.md`, CSV export, inline report, and dashboard scorecards. |
+| **Cross-links** | Use the quick links at the bottom for the full workbench, live demo, fine-tune pipeline, and public website. |
+
 Side-by-side rubric evaluation: runs N curated prompts through Gemma 4
 twice each — once with the harness OFF, once with full harness ON
 (Persona + GREP + RAG + Tools) — and grades both with the Rule-Based
@@ -106,6 +119,17 @@ an automated evaluator, not an interactive notebook UI.
 
 ---
 
+<!-- duecare:quick-cross-links -->
+
+### Quick cross-links
+
+- **Core workbench:** [#01 core: Migrant-worker safety playground](../01-duecare-exploration-workbench/README.md).
+- **Focused live demo:** [#02 core: Live demo](../02-live-demo/README.md).
+- **Natural next appendix:** [#A07 appendix: Fine-tune + GGUF pipeline](../A-07-bench-and-tune/README.md).
+- **Public website:** [duecare-ai.com](https://duecare-ai.com).
+
+---
+
 <!-- duecare:kernel-footer -->
 
 ### All DueCare notebooks
@@ -127,3 +151,12 @@ You are here: **#A11 appendix — Grading-lift regenerator**.
 - **[#A11 appendix: Grading-lift regenerator](../A-11-grading-evaluation/README.md)**
 
 Index page: [`kaggle/_INDEX.md`](../_INDEX.md).
+
+---
+
+## Cross-links
+
+- **[DueCare Exploration Workbench (#01)](https://www.kaggle.com/code/taylorsamarel/duecare-exploration-workbench)** -- the full chat playground with all 6 harness layers, 9-variant model picker, 4 grading modes, A/B compare, and every visualization in one place.
+- **[Live demo (#02)](https://www.kaggle.com/code/taylorsamarel/duecare-live-demo)** -- focused public-hub walkthrough demonstrating the +56.5pp lift on a curated set of compound-indicator prompts.
+- **[Next step -> DueCare Exploration Workbench (#01)](https://www.kaggle.com/code/taylorsamarel/duecare-exploration-workbench)** -- open the live workbench Grade panel to score any prompt + response interactively.
+- **[Public hub: duecare-ai.com](https://duecare-ai.com)** -- knowledge-pack registry, anonymized signal intake, public-source proposal intake, and the 5-lane audience showcase.

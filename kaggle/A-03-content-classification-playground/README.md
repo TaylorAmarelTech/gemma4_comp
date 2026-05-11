@@ -2,6 +2,19 @@
 <!-- duecare:lane-label -->
 > **Serves lanes:** 01 Platform safety · 02 NGO & regulator
 
+<!-- duecare:judge-quick-path -->
+
+## Judge quick path
+
+| Section | This notebook |
+|---|---|
+| **Lede** | Hands-on classification sandbox for understanding how Gemma 4 turns risky posts, chats, and documents into structured safety labels. |
+| **What it does** | Shows the merged prompt, raw response, parsed JSON envelope, parse errors, and latency for four schema modes. |
+| **Demo path** | Paste a synthetic recruitment post, choose a schema mode, classify it, and inspect the raw and parsed outputs side by side. |
+| **Audience** | Platform safety and NGO & regulator. |
+| **Outputs** | Structured category, tag, risk-vector, or custom-schema JSON plus parsing diagnostics. |
+| **Cross-links** | Use the quick links at the bottom for the full workbench, live demo, knowledge-builder sandbox, and public website. |
+
 The HANDS-ON sandbox where judges learn HOW Duecare classifies content
 **before** they see the polished live-demo. Pairs with
 `content-knowledge-builder-playground` (the knowledge-base sandbox);
@@ -41,7 +54,7 @@ and other IT variants). Used in accordance with the
 2. **multi_label** — any subset of a configurable tag set. Returns
    `{tags, confidences, rationale}`.
 3. **risk_vector** — per-dimension magnitude scores (the same shape
-   the NGO dashboard uses). Returns `{vectors, overall_risk,
+   the NGO & regulator classifier uses). Returns `{vectors, overall_risk,
    recommended_action}`.
 4. **custom** — paste your own JSON Schema, get strict-JSON output.
    Useful for evaluating Gemma 4's structured-output capability on
@@ -75,6 +88,17 @@ uploaded: `duecare-llm-core`, `duecare-llm-models`, `duecare-llm-chat`.
 
 ---
 
+<!-- duecare:quick-cross-links -->
+
+### Quick cross-links
+
+- **Core workbench:** [#01 core: Migrant-worker safety playground](../01-duecare-exploration-workbench/README.md).
+- **Focused live demo:** [#02 core: Live demo](../02-live-demo/README.md).
+- **Natural next appendix:** [#A04 appendix: Knowledge-builder sandbox](../A-04-content-knowledge-builder-playground/README.md).
+- **Public website:** [duecare-ai.com](https://duecare-ai.com).
+
+---
+
 <!-- duecare:kernel-footer -->
 
 ### All DueCare notebooks
@@ -96,3 +120,12 @@ You are here: **#A03 appendix — Hands-on classification sandbox**.
 - [#A11 appendix: Grading-lift regenerator](../A-11-grading-evaluation/README.md)
 
 Index page: [`kaggle/_INDEX.md`](../_INDEX.md).
+
+---
+
+## Cross-links
+
+- **[DueCare Exploration Workbench (#01)](https://www.kaggle.com/code/taylorsamarel/duecare-exploration-workbench)** -- the full chat playground with all 6 harness layers, 9-variant model picker, 4 grading modes, A/B compare, and every visualization in one place.
+- **[Live demo (#02)](https://www.kaggle.com/code/taylorsamarel/duecare-live-demo)** -- focused public-hub walkthrough demonstrating the +56.5pp lift on a curated set of compound-indicator prompts.
+- **[Next step -> A-05 NGO classifier evaluation](https://www.kaggle.com/code/taylorsamarel/duecare-gemma-content-classification-evaluation)** -- run the classifier across an NGO triage dashboard with risk vectors.
+- **[Public hub: duecare-ai.com](https://duecare-ai.com)** -- knowledge-pack registry, anonymized signal intake, public-source proposal intake, and the 5-lane audience showcase.

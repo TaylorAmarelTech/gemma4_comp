@@ -2,6 +2,19 @@
 <!-- duecare:lane-label -->
 > **Serves lanes:** 04 Researcher
 
+<!-- duecare:judge-quick-path -->
+
+## Judge quick path
+
+| Section | This notebook |
+|---|---|
+| **Lede** | CPU-only visual research notebook for inspecting DueCare's entity graph, corridors, benchmark patterns, and RAG evidence. |
+| **What it does** | Renders six Plotly views with open/download actions while reusing the warm-paper DueCare visual system. |
+| **Demo path** | Run the notebook, open the chart dashboard, skim the six cards, and open the graph or Sankey view full screen. |
+| **Audience** | Researcher. |
+| **Outputs** | Six interactive HTML charts, chart metadata API, and downloadable visualization artifacts. |
+| **Cross-links** | Use the quick links at the bottom for the full workbench, live demo, grading-lift appendix, and public website. |
+
 Appendix-style notebook (third). **Not** part of the core deployment
 flow — this is a visualization + research playground for judges, NGO
 partners, and researchers who want to inspect the harness data and
@@ -90,6 +103,17 @@ same minimal subset as the prompt-generation kernel.
 
 ---
 
+<!-- duecare:quick-cross-links -->
+
+### Quick cross-links
+
+- **Core workbench:** [#01 core: Migrant-worker safety playground](../01-duecare-exploration-workbench/README.md).
+- **Focused live demo:** [#02 core: Live demo](../02-live-demo/README.md).
+- **Natural next appendix:** [#A11 appendix: Grading-lift regenerator](../A-11-grading-evaluation/README.md).
+- **Public website:** [duecare-ai.com](https://duecare-ai.com).
+
+---
+
 <!-- duecare:kernel-footer -->
 
 ### All DueCare notebooks
@@ -111,3 +135,12 @@ You are here: **#A08 appendix — Research graphs (CPU-only)**.
 - [#A11 appendix: Grading-lift regenerator](../A-11-grading-evaluation/README.md)
 
 Index page: [`kaggle/_INDEX.md`](../_INDEX.md).
+
+---
+
+## Cross-links
+
+- **[DueCare Exploration Workbench (#01)](https://www.kaggle.com/code/taylorsamarel/duecare-exploration-workbench)** -- the full chat playground with all 6 harness layers, 9-variant model picker, 4 grading modes, A/B compare, and every visualization in one place.
+- **[Live demo (#02)](https://www.kaggle.com/code/taylorsamarel/duecare-live-demo)** -- focused public-hub walkthrough demonstrating the +56.5pp lift on a curated set of compound-indicator prompts.
+- **[Next step -> A-11 grading-evaluation](https://www.kaggle.com/code/taylorsamarel/duecare-grading-evaluation)** -- see the per-dimension lift behind the corridor + RAG charts you just explored.
+- **[Public hub: duecare-ai.com](https://duecare-ai.com)** -- knowledge-pack registry, anonymized signal intake, public-source proposal intake, and the 5-lane audience showcase.
