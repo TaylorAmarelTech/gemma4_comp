@@ -68,10 +68,11 @@
     .preset:hover { border-color: var(--ink-3); background: var(--paper-2); }
     @media (max-width: 800px) { .grid { grid-template-columns: 1fr; } }
   </style>
+  <script src="/static/_nav.js" defer></script>
 </head>
-<body>
+<body data-nav="layers">
   <header>
-    <a href="/static/harness.html" class="back">← All layers</a>
+    
     <h1>Live GREP tester</h1>
     <div class="sub">Paste any text. See which of the <span data-brand-count="n_grep_rules">161</span> rules fire — no LLM call required.</div>
   </header>

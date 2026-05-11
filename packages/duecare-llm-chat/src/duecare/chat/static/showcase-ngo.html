@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>NGO &amp; regulator — DueCare Workbench</title>
+  <link rel="stylesheet" href="/static/_chrome.css">
+  <link rel="stylesheet" href="/static/showcase.css">
+  <script src="/static/_nav.js" defer></script>
+</head>
+<body data-nav="ngo">
+<main class="showcase">
+  <div class="crumbs">Showcase · For NGO &amp; regulator caseworkers</div>
+  <h1>Turn intake messages and case files into reviewable, citable drafts.</h1>
+  <p class="lede">
+    Caseworkers, legal-aid groups, consulates, labor inspectors, and regulators
+    use the workbench to triage messages and documents, find trusted contacts,
+    draft complaint materials with corridor-specific knowledge, and update the
+    knowledge pack from new evidence. DueCare drafts; a trusted human decides.
+  </p>
+
+  <div class="cta-row">
+    <a class="cta cta-primary" href="/?audience=ngo">Open the playground →</a>
+    <a class="cta cta-ghost" href="/static/hotlines.html">Browse hotlines →</a>
+  </div>
+
+  <section class="section">
+    <h2>Try a sample intake (click to send)</h2>
+    <div class="demo-prompts">
+      <button class="demo-prompt" type="button"
+              onclick="window.location.href='/?prompt=' + encodeURIComponent(this.dataset.prompt)"
+              data-prompt="A Filipina domestic worker in Hong Kong has had her passport held by her employer for 18 months. She paid PHP 50,000 to her recruiter in Manila. Draft a 1-paragraph case summary plus the most relevant ILO conventions and the right HK regulator + Manila consulate hotline.">
+        <span class="tag">Intake summary</span>
+        <span class="text">PH→HK passport-retention case; need ILO citations + HK regulator + PH consulate contact.</span>
+      </button>
+      <button class="demo-prompt" type="button"
+              onclick="window.location.href='/?prompt=' + encodeURIComponent(this.dataset.prompt)"
+              data-prompt="A worker in UAE was deducted USD 5,000 for 'training and visa fees' before deployment. Cite the relevant POEA / DMW circulars + ILO C181 articles, and tell me the right NGO referral path.">
+        <span class="tag">Fee dispute</span>
+        <span class="text">PH→UAE pre-departure fee scam; need POEA circulars + NGO referral.</span>
+      </button>
+      <button class="demo-prompt" type="button"
+              onclick="window.location.href='/?prompt=' + encodeURIComponent(this.dataset.prompt)"
+              data-prompt="A Nepalese construction worker in Saudi Arabia hasn't been paid for 4 months. His employer threatens to cancel his iqama if he complains. Draft a complaint letter naming the relevant Nepali Ministry of Labour office + Saudi GAZT route, and cite the kafala-related rights he has.">
+        <span class="tag">Complaint draft</span>
+        <span class="text">NP→KSA wage theft + kafala threat; need Nepal labour ministry + Saudi GAZT routing + draft letter.</span>
+      </button>
+    </div>
+  </section>
+
+  <section class="section">
+    <h2>Tools for this lane</h2>
+    <div class="tools-row">
+      <a class="tool-card" href="/static/hotlines.html">
+        <div class="name">Hotlines directory</div>
+        <div class="desc">NGO, regulator, embassy, and ILO contacts with click-to-call and click-to-email.</div>
+      </a>
+      <a class="tool-card" href="/static/anonymization-preview.html">
+        <div class="name">Anonymize before sharing</div>
+        <div class="desc">See exactly what would be sent to the public hub from a sanitized case.</div>
+      </a>
+      <a class="tool-card" href="/static/rag-corpus.html">
+        <div class="name">Browse the legal corpus</div>
+        <div class="desc">46 source documents (ILO, POEA, BP2MI, HK statutes, Nepal FEA, Saudi labour law).</div>
+      </a>
+      <a class="tool-card" href="/static/all-tools.html">
+        <div class="name">All tools →</div>
+        <div class="desc">The full workbench tools index.</div>
+      </a>
+    </div>
+  </section>
+</main>
+</body>
+</html>
