@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Individual worker — DueCare Workbench</title>
+  <link rel="stylesheet" href="/static/_chrome.css">
+  <link rel="stylesheet" href="/static/showcase.css">
+  <script src="/static/_nav.js" defer></script>
+</head>
+<body data-nav="worker">
+<main class="showcase">
+  <div class="crumbs">Showcase · For workers checking a message privately</div>
+  <h1>Check a suspicious offer or contract before you act on it.</h1>
+  <p class="lede">
+    Migrant workers and prospective workers can use the workbench to privately
+    check job offers, contracts, recruiter messages, and fee demands. The
+    on-device Gemma model + the harness explain warning signs in plain
+    language and point to the right hotline for your corridor — without
+    sending your message to a remote server.
+  </p>
+
+  <div class="note">
+    <strong>Privacy boundary:</strong> messages typed here stay on the kernel
+    running this URL. Nothing is sent to the public hub unless you explicitly
+    use the <a href="/static/anonymization-preview.html" style="color:inherit;">Anonymize</a>
+    page and click submit.
+  </div>
+
+  <div class="cta-row">
+    <a class="cta cta-primary" href="/?audience=worker">Open the playground →</a>
+    <a class="cta cta-ghost" href="/static/hotlines.html">Find my hotline →</a>
+  </div>
+
+  <section class="section">
+    <h2>Try checking a sample message (click to send)</h2>
+    <div class="demo-prompts">
+      <button class="demo-prompt" type="button"
+              onclick="window.location.href='/?prompt=' + encodeURIComponent(this.dataset.prompt)"
+              data-prompt="My recruiter says I need to pay PHP 50,000 for 'training and documentation' before deployment to Hong Kong as a domestic worker. Is this fee legal? What should I check before paying?">
+        <span class="tag">Fee check</span>
+        <span class="text">PH→HK domestic worker placement-fee question — is the amount legal?</span>
+      </button>
+      <button class="demo-prompt" type="button"
+              onclick="window.location.href='/?prompt=' + encodeURIComponent(this.dataset.prompt)"
+              data-prompt="My future employer in Saudi Arabia said they will hold my passport for 'safekeeping' during my contract. Is this normal? What are my rights?">
+        <span class="tag">Passport question</span>
+        <span class="text">PH→KSA passport-retention question — is this allowed?</span>
+      </button>
+      <button class="demo-prompt" type="button"
+              onclick="window.location.href='/?prompt=' + encodeURIComponent(this.dataset.prompt)"
+              data-prompt="A WhatsApp recruiter offered me a USD 28,400 'salary advance loan' from his partner lender, with monthly deductions from my Hong Kong salary for 21 months. Is this a normal arrangement?">
+        <span class="tag">Loan offer</span>
+        <span class="text">Recruiter-linked salary-advance loan — debt-bondage warning signs.</span>
+      </button>
+    </div>
+  </section>
+
+  <section class="section">
+    <h2>Tools for workers</h2>
+    <div class="tools-row">
+      <a class="tool-card" href="/static/hotlines.html">
+        <div class="name">Hotlines directory</div>
+        <div class="desc">Click-to-call NGO and embassy contacts for your corridor and language.</div>
+      </a>
+      <a class="tool-card" href="/static/anonymization-preview.html">
+        <div class="name">Anonymize my message</div>
+        <div class="desc">Before sharing your case with anyone, preview what gets sent + what stays on this device.</div>
+      </a>
+      <a class="tool-card" href="/static/grep-tester.html">
+        <div class="name">Test text against the rule book</div>
+        <div class="desc">Paste any recruiter message — see which trafficking-pattern rules fire and why.</div>
+      </a>
+      <a class="tool-card" href="/static/all-tools.html">
+        <div class="name">All tools →</div>
+        <div class="desc">The full workbench tools index.</div>
+      </a>
+    </div>
+  </section>
+</main>
+</body>
+</html>

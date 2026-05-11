@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Platform safety — DueCare Workbench</title>
+  <link rel="stylesheet" href="/static/_chrome.css">
+  <link rel="stylesheet" href="/static/showcase.css">
+  <script src="/static/_nav.js" defer></script>
+</head>
+<body data-nav="platform">
+<main class="showcase">
+  <div class="crumbs">Showcase · For Platform safety teams</div>
+  <h1>Screen risky recruitment content before workers see it.</h1>
+  <p class="lede">
+    Trust &amp; safety teams at social platforms, job boards, and marketplaces
+    use the DueCare harness to score recruitment posts and direct messages,
+    explain why each item was flagged, and route high-risk items to reviewers —
+    while sharing only anonymized abuse patterns back to the public hub.
+  </p>
+
+  <div class="cta-row">
+    <a class="cta cta-primary" href="/?audience=platform">Open the playground →</a>
+    <a class="cta cta-ghost" href="/classifier">Single-content classifier →</a>
+  </div>
+
+  <section class="section">
+    <h2>Try a sample post (click to send)</h2>
+    <div class="demo-prompts">
+      <button class="demo-prompt" type="button"
+              onclick="window.location.href='/?prompt=' + encodeURIComponent(this.dataset.prompt)"
+              data-prompt="Score this recruitment post: 'URGENT: Hiring 50 domestic workers for Saudi Arabia. NO experience needed. Pay PHP 50,000 placement fee, get HKD 28,400 salary advance from our partner lender. Apply via WhatsApp +63...'">
+        <span class="tag">Recruitment ad</span>
+        <span class="text">High-fee Saudi domestic-worker post with paid-recruiter pattern + linked salary-advance lender.</span>
+      </button>
+      <button class="demo-prompt" type="button"
+              onclick="window.location.href='/?prompt=' + encodeURIComponent(this.dataset.prompt)"
+              data-prompt="Score this recruiter DM: 'Hi sister, my agency in Kuwait pays Filipina maids USD 800/month. We hold passports for safekeeping during contract. Interview today via video?'">
+        <span class="tag">Recruiter DM</span>
+        <span class="text">Direct message with passport-retention red flag and salary anchoring above POEA cap.</span>
+      </button>
+      <button class="demo-prompt" type="button"
+              onclick="window.location.href='/?prompt=' + encodeURIComponent(this.dataset.prompt)"
+              data-prompt="Score this group post: 'Anyone tried Al Khalifa Manpower Agency Manila? They want PHP 80,000 deposit refundable after 6 months work in UAE.'">
+        <span class="tag">Forum post</span>
+        <span class="text">Worker-to-worker thread mentioning a likely-unlicensed agency + refundable-deposit scam pattern.</span>
+      </button>
+    </div>
+  </section>
+
+  <section class="section">
+    <h2>Tools for this lane</h2>
+    <div class="tools-row">
+      <a class="tool-card" href="/classifier">
+        <div class="name">Classify</div>
+        <div class="desc">Score a single content item, get the recommended action + per-rule explanation.</div>
+      </a>
+      <a class="tool-card" href="/static/grep-tester.html">
+        <div class="name">Live GREP tester</div>
+        <div class="desc">Paste any text, see which of the 161 deterministic rules fire — no LLM call.</div>
+      </a>
+      <a class="tool-card" href="/static/anonymization-preview.html">
+        <div class="name">Anonymization preview</div>
+        <div class="desc">See what gets shared with the public hub before sending an aggregate signal.</div>
+      </a>
+      <a class="tool-card" href="/static/all-tools.html">
+        <div class="name">All tools →</div>
+        <div class="desc">The full workbench tools index.</div>
+      </a>
+    </div>
+  </section>
+</main>
+</body>
+</html>
