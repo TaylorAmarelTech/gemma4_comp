@@ -1,21 +1,26 @@
 # <!-- duecare:kernel-intro -->
-# DueCare — Migrant-worker safety playground
+# DueCare Exploration Workbench
 # Core notebook #01 of 13 in the DueCare submission.
 #
-# All 6 safety layers, all 4 grading modes, all 9 Gemma 4 variants. One configurable URL.
+# Unified workbench surface for every audience and every harness capability:
+#   - 5 audience showcase pages (Platform safety / NGO & regulator / Worker /
+#     Researcher / Developer) with curated sample prompts per lane.
+#   - Free-form chat playground with all 6 safety layers, 4 grading modes,
+#     and 9 Gemma 4 variants on the home page.
+#   - Layer transparency: 161 GREP rules / 46 RAG docs / 5 tools, each
+#     browsable with its own viewer page under /static/harness.html.
+#   - Anonymization preview, hotlines directory, cross-layer search, and a
+#     full Tools index at /static/all-tools.html — all behind one nav bar.
 #
-# What to look for after Run All:
-#   - Pick a Gemma 4 variant in the picker overlay (start with E2B for speed).
-#   - Flip layer toggles below the input to see what each adds.
-#   - Click Compare to run the same prompt with two harness configs side-by-side.
-#
-# Demo path: Run All -> cloudflared URL prints -> pick a model -> click any of the example prompt buttons.
+# Demo path: Run All -> cloudflared URL prints -> pick a model -> click any
+# of the 5 audience tabs in the top nav to land on a curated lane demo, or
+# stay on the home page for free-form chat.
 #
 # Full README + cross-kernel index: see the README in this folder.
 
 """
 ============================================================================
-  DUECARE HARNESS CHAT  --  unified Kaggle notebook (single core)
+  DUECARE EXPLORATION WORKBENCH  --  unified Kaggle notebook (core #01)
   (paste into a single code cell)
 ============================================================================
 
