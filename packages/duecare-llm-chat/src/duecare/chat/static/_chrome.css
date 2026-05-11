@@ -1,102 +1,123 @@
 /* =============================================================
-   Duecare wheel — shared chrome for the static viewer pages.
+   DueCare chat — shared chrome (LIGHT civic-tech theme)
 
-  Goal: visual coherence across the Cloudflare-served notebook apps
-  without forcing the dense chat playground into a low-contrast light
-  console. Product chrome uses the public duecare-ai.com warm-paper
-  civic-tech theme; operator canvases can stay dark for readability.
+   Source of truth: apps/duecare-ai.com/app/static/styles.css
 
-   Per-page accent color stays as ``--accent`` set in the page's
-   own ``<style>`` block (kept for now), so badges + active-state
-   still differ. Everything else lives here.
+   Visual system: civic-tech research lab
+   - Warm paper backgrounds (#F7F6F1)
+   - Dark ink text (#0E1116)
+   - Inter (UI) + JetBrains Mono (labels)
+   - Civic teal accent (oklch 0.52 0.08 195) used sparingly
+   - Ember (oklch 0.58 0.14 45) ONLY for privacy boundary
    ============================================================= */
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
 :root {
-  /* Public-site product tokens. Keep these aligned with
-     apps/duecare-ai.com/app/static/styles.css. Use the --site-* names
-     here so dense operator pages can continue to use --bg/--panel for
-     their dark work area without losing the public brand language. */
-  --site-paper: #F7F6F1;
-  --site-paper-2: #EFEDE4;
-  --site-paper-3: #E4E1D7;
-  --site-ink: #0E1116;
-  --site-ink-2: #2A2D34;
-  --site-ink-3: #5B5F68;
-  --site-line: #DDD8C9;
-  --site-line-soft: #E8E4D7;
-  --site-accent: oklch(0.52 0.08 195);
-  --site-accent-soft: oklch(0.92 0.03 195);
-  --site-accent-ink: oklch(0.32 0.07 195);
-  --site-ember: oklch(0.58 0.14 45);
-  --site-ember-soft: oklch(0.94 0.04 45);
+  /* ---------- Color palette ---------- */
+  /* Paper (backgrounds) */
+  --paper:        #F7F6F1;
+  --paper-2:      #EFEDE4;
+  --paper-3:      #E4E1D7;
 
-  /* Color tokens (dark playground default; pages may override --accent). */
-  --ink: #e2e8f0;
-  --ink-2: #cbd5e1;
-  --muted: #94a3b8;
-  --muted-2: #64748b;
-  --bg: #0f172a;
-  --bg-2: #131c30;
-  --panel: #1e293b;
-  --panel-2: #233149;
-  --border: #334155;
-  --border-soft: #2a3a55;
-  --highlight: #fbbf24;
+  /* Ink (text) */
+  --ink:          #0E1116;
+  --ink-2:        #2A2D34;
+  --ink-3:        #5B5F68;
+  --ink-4:        #8A8E97;
 
-  /* Layer accent palette + semantic mapping.
-     Privacy-bearing layers (Persona, Imports) carry ember.
-     Verification-bearing layers (GREP, RAG, Tools, Online) carry
-     varying shades of civic teal so the user has a mnemonic:
-        warm tone = something about the user's voice or data
-        cool tone = something that grounds the model in vetted sources */
-  --accent: var(--site-accent);  /* default accent if a page doesn't override */
-  --accent-civic-teal: #14b8a6;
-  --accent-ember: var(--site-ember);
-  --accent-persona: var(--site-ember);  /* ember - shapes the model's voice */
-  --accent-imports: #fb923c;     /* ember-light - operator's own evidence */
-  --accent-grep:    #14b8a6;     /* civic-teal - deterministic verification */
-  --accent-rag:     #4c7a8a;     /* civic-teal - vetted-source grounding */
-  --accent-tools:   #10b981;     /* green-teal - external verification calls */
-  --accent-online:  #06b6d4;     /* cyan-teal - live web verification */
+  /* Lines */
+  --line:         #DDD8C9;
+  --line-soft:    #E8E4D7;
 
-  /* Status colors. */
-  --green: #10b981;
-  --red: #ef4444;
-  --blue: #3b82f6;
-  --amber: #f59e0b;
+  /* Accent (civic teal) */
+  --accent:       oklch(0.52 0.08 195);
+  --accent-soft:  oklch(0.92 0.03 195);
+  --accent-ink:   oklch(0.32 0.07 195);
 
-  /* Typography. */
+  /* Ember (privacy boundary ONLY) */
+  --ember:        oklch(0.58 0.14 45);
+  --ember-soft:   oklch(0.94 0.04 45);
+
+  /* Semantic */
+  --good:         oklch(0.55 0.10 155);
+  --warn:         oklch(0.65 0.10 80);
+
+  /* Legacy aliases for compatibility with operator pages still
+     referencing the old --bg/--panel/--border tokens. Map them onto
+     the light paper palette so dark theme leakage stays bounded. */
+  --bg:           var(--paper);
+  --bg-2:         var(--paper-2);
+  --panel:        var(--paper);
+  --panel-2:      var(--paper-2);
+  --border:       var(--line);
+  --border-soft:  var(--line-soft);
+  --muted:        var(--ink-3);
+  --muted-2:      var(--ink-4);
+  --highlight:    oklch(0.65 0.10 80);
+
+  /* Site-prefixed aliases (kept for templates that reference them) */
+  --site-paper:        var(--paper);
+  --site-paper-2:      var(--paper-2);
+  --site-paper-3:      var(--paper-3);
+  --site-ink:          var(--ink);
+  --site-ink-2:        var(--ink-2);
+  --site-ink-3:        var(--ink-3);
+  --site-line:         var(--line);
+  --site-line-soft:    var(--line-soft);
+  --site-accent:       var(--accent);
+  --site-accent-soft:  var(--accent-soft);
+  --site-accent-ink:   var(--accent-ink);
+  --site-ember:        var(--ember);
+  --site-ember-soft:   var(--ember-soft);
+
+  /* Layer accent palette — kept for badge differentiation, but
+     muted toward the civic-tech aesthetic. Privacy = ember,
+     verification = teal/ink variations. */
+  --accent-persona: var(--ember);
+  --accent-imports: oklch(0.62 0.12 45);
+  --accent-grep:    oklch(0.52 0.08 195);
+  --accent-rag:     oklch(0.45 0.06 220);
+  --accent-tools:   oklch(0.55 0.10 155);
+  --accent-online:  oklch(0.52 0.08 220);
+
+  /* Status colors (use sparingly) */
+  --green: var(--good);
+  --red:   var(--ember);
+  --blue:  var(--accent);
+  --amber: var(--warn);
+
+  /* Typography */
   --sans: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   --mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
 
-  /* Spacing scale (kept compact for dense playground UIs). */
+  /* Spacing scale */
   --s1: 4px; --s2: 8px; --s3: 12px; --s4: 16px; --s5: 20px;
   --s6: 24px; --s7: 32px; --s8: 48px; --s9: 64px;
 
-  /* Radii. */
+  /* Radii */
   --r-sm: 4px; --r-md: 6px; --r-lg: 10px; --r-xl: 14px;
 
-  /* Shadow. */
-  --shadow-1: 0 1px 0 rgba(0,0,0,0.2), 0 4px 12px rgba(0,0,0,0.20);
+  /* Shadow (very subtle, matches duecare-ai.com) */
+  --shadow-1: 0 1px 0 rgba(14,17,22,0.04), 0 1px 2px rgba(14,17,22,0.04);
+  --shadow-2: 0 1px 0 rgba(14,17,22,0.04), 0 8px 24px -12px rgba(14,17,22,0.10);
 }
 
 * { box-sizing: border-box; }
 html, body {
   margin: 0; padding: 0;
-  background: var(--bg);
+  background: var(--paper);
   color: var(--ink);
   font-family: var(--sans);
-  font-size: 14px;
+  font-size: 15px;
   line-height: 1.55;
   font-feature-settings: "ss01", "cv11";
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
 }
 
-a { color: var(--accent); text-decoration: none; }
-a:hover { text-decoration: underline; }
+a { color: var(--ink); text-decoration: none; }
+a:hover { color: var(--accent-ink); }
 a:focus-visible,
 button:focus-visible,
 input:focus-visible,
@@ -109,10 +130,12 @@ textarea:focus-visible,
 
 code, .mono {
   font-family: var(--mono);
-  font-size: 12px;
-  background: rgba(255,255,255,0.04);
+  font-size: 13px;
+  background: var(--paper-2);
   padding: 1px 6px;
-  border-radius: 3px;
+  border-radius: 4px;
+  border: 1px solid var(--line-soft);
+  color: var(--ink-2);
 }
 
 /* ---------- Shared header ---------- */
@@ -122,44 +145,43 @@ code, .mono {
   justify-content: space-between;
   gap: 16px;
   padding: 14px 24px;
-  background: var(--site-paper);
-  color: var(--site-ink);
-  border-bottom: 1px solid var(--site-line);
-  box-shadow: 0 1px 0 rgba(14,17,22,0.04), 0 8px 24px -20px rgba(14,17,22,0.20);
+  background: var(--paper);
+  color: var(--ink);
+  border-bottom: 1px solid var(--line-soft);
 }
 .dc-chrome-header .brand {
   display: flex; align-items: center; gap: 10px;
   font-family: var(--sans); font-weight: 600; font-size: 15px;
-  color: var(--site-ink); text-decoration: none; letter-spacing: -0.005em;
+  color: var(--ink); text-decoration: none; letter-spacing: -0.005em;
 }
 .dc-chrome-header .brand-mark {
   width: 22px; height: 22px;
   display: grid; place-items: center;
-  background: var(--site-ink); color: var(--site-paper);
+  background: var(--ink); color: var(--paper);
   border-radius: 4px;
   font-family: var(--mono); font-size: 11px; font-weight: 600;
 }
 .dc-chrome-header .brand-tag {
   font-family: var(--mono); font-size: 10.5px; font-weight: 500;
-  color: var(--site-ink-3); padding: 3px 8px; border: 1px solid var(--site-line);
+  color: var(--ink-3); padding: 3px 8px; border: 1px solid var(--line);
   border-radius: 3px; margin-left: 4px; text-transform: uppercase;
   letter-spacing: 0.06em;
 }
 .dc-chrome-header h1 {
   margin: 0; font-size: 16px; font-weight: 600;
-  color: var(--site-ink); letter-spacing: -0.01em;
+  color: var(--ink); letter-spacing: -0.01em;
 }
-.dc-chrome-header h1 .accent { color: var(--accent); }
+.dc-chrome-header h1 .accent { color: var(--accent-ink); }
 .dc-chrome-header .sub {
-  font-size: 12px; color: var(--site-ink-3); margin-top: 2px;
+  font-size: 12px; color: var(--ink-3); margin-top: 2px;
 }
 
-/* ---------- Product chrome utilities for served notebook apps ---------- */
+/* ---------- Brand utilities ---------- */
 .dc-brand-lockup {
   display: inline-flex;
   align-items: center;
   gap: 10px;
-  color: var(--site-ink);
+  color: var(--ink);
 }
 .dc-brand-mark {
   width: 28px;
@@ -167,14 +189,13 @@ code, .mono {
   display: inline-grid;
   place-items: center;
   border-radius: 7px;
-  background: var(--site-ink);
-  color: var(--site-paper);
+  background: var(--ink);
+  color: var(--paper);
   font-family: var(--mono);
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.04em;
   line-height: 1;
-  box-shadow: inset 0 -1px 0 rgba(255,255,255,0.12);
 }
 .dc-product-kicker {
   font-family: var(--mono);
@@ -182,145 +203,160 @@ code, .mono {
   font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--site-ink-3);
+  color: var(--ink-3);
 }
+
+/* ---------- Buttons ---------- */
 .dc-toolbar-button,
 .dc-primary-button,
 .dc-secondary-button {
   font-family: var(--sans);
   border-radius: var(--r-md);
   cursor: pointer;
-  font-weight: 650;
+  font-weight: 500;
   transition: border-color 0.15s, color 0.15s, background 0.15s, transform 0.12s;
 }
 .dc-toolbar-button {
-  background: transparent;
-  border: 1px solid var(--site-line);
-  color: var(--site-ink-3);
-  padding: 5px 12px;
-  font-size: 12px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  color: var(--ink-2);
+  padding: 6px 12px;
+  font-size: 13px;
 }
 .dc-toolbar-button:hover {
-  border-color: var(--accent);
-  color: var(--site-accent-ink);
+  border-color: var(--ink-3);
+  color: var(--ink);
+  background: var(--paper-2);
   text-decoration: none;
 }
 .dc-primary-button {
-  background: var(--accent);
-  border: 1px solid var(--accent);
-  color: #fff;
+  background: var(--ink);
+  border: 1px solid var(--ink);
+  color: var(--paper);
+  padding: 8px 16px;
+  font-size: 14px;
 }
-.dc-primary-button:hover { transform: translateY(-1px); }
+.dc-primary-button:hover {
+  background: #1a1d24;
+  color: var(--paper);
+}
 .dc-secondary-button {
   background: transparent;
-  border: 1px solid var(--border);
+  border: 1px solid var(--line);
   color: var(--ink);
+  padding: 8px 16px;
+  font-size: 14px;
 }
-.dc-secondary-button:hover { border-color: var(--accent); color: var(--ink); }
+.dc-secondary-button:hover {
+  border-color: var(--ink-3);
+  background: var(--paper-2);
+}
+
+/* ---------- Operator note (privacy boundary) ---------- */
 .dc-operator-note {
-  border-left: 3px solid var(--site-ember);
-  background: color-mix(in srgb, var(--site-ember-soft) 28%, transparent);
-  color: var(--site-ink-2);
+  border-left: 3px solid var(--ember);
+  background: var(--ember-soft);
+  color: oklch(0.32 0.10 45);
   border-radius: 0 var(--r-md) var(--r-md) 0;
   padding: 10px 12px;
 }
 
-/* ---------- Cross-page nav row (chips) ---------- */
+/* ---------- Cross-page nav row ---------- */
 .dc-chrome-nav {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
   padding: 10px 24px;
-  background: var(--site-paper-2);
-  border-bottom: 1px solid var(--site-line);
+  background: var(--paper);
+  border-bottom: 1px solid var(--line-soft);
   font-family: var(--sans);
-  font-size: 12.5px;
+  font-size: 13px;
 }
 .dc-chrome-nav a {
-  color: var(--site-ink-3);
+  color: var(--ink-2);
   text-decoration: none;
-  padding: 5px 10px;
-  border-radius: 999px;
+  padding: 6px 10px;
+  border-radius: 6px;
   border: 1px solid transparent;
   transition: color 0.15s, border-color 0.15s, background 0.15s;
 }
 .dc-chrome-nav a:hover {
-  color: var(--site-ink);
-  background: var(--site-paper);
+  color: var(--ink);
+  background: var(--paper-2);
   text-decoration: none;
 }
 .dc-chrome-nav a.on {
-  color: var(--site-ink);
-  background: var(--site-paper);
-  border-color: var(--site-line);
+  color: var(--ink);
+  background: var(--paper-2);
 }
 .dc-chrome-nav .sep {
-  color: var(--site-ink-3);
+  color: var(--ink-4);
   padding: 5px 0;
 }
 
 /* ---------- Container ---------- */
 .dc-chrome-container {
-  max-width: 1100px;
+  max-width: 1200px;
   margin: 0 auto;
-  padding: 24px;
+  padding: 32px;
 }
 .dc-chrome-container > h2 {
-  font-size: 18px; font-weight: 600;
-  margin: 0 0 8px; letter-spacing: -0.01em;
+  font-size: 28px; font-weight: 600;
+  margin: 0 0 12px; letter-spacing: -0.022em;
+  color: var(--ink);
 }
 .dc-chrome-container > .lede {
-  font-size: 14px; color: var(--muted); margin: 0 0 24px;
-  max-width: 64ch; line-height: 1.6;
+  font-size: 17px; color: var(--ink-2); margin: 0 0 32px;
+  max-width: 64ch; line-height: 1.55;
 }
 
 /* ---------- Card grid pattern ---------- */
 .dc-chrome-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 14px;
-  margin-top: 20px;
+  gap: 16px;
+  margin-top: 24px;
 }
 .dc-chrome-card {
-  background: var(--panel);
-  border: 1px solid var(--border);
+  background: var(--paper);
+  border: 1px solid var(--line);
   border-radius: var(--r-lg);
-  padding: 18px;
-  transition: border-color 0.15s, transform 0.12s, box-shadow 0.15s;
+  padding: 24px;
+  transition: border-color 0.15s, box-shadow 0.15s;
   text-decoration: none;
   color: var(--ink);
   display: block;
 }
 .dc-chrome-card:hover {
-  border-color: var(--accent);
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-1);
+  border-color: var(--ink-3);
+  box-shadow: var(--shadow-2);
   text-decoration: none;
 }
 .dc-chrome-card h3 {
   margin: 10px 0 6px;
-  font-size: 15px;
+  font-size: 17px;
   font-weight: 600;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.012em;
+  color: var(--ink);
 }
 .dc-chrome-card .count {
   font-size: 28px;
-  font-weight: 700;
-  color: var(--accent);
+  font-weight: 600;
+  color: var(--ink);
   margin: 6px 0;
   line-height: 1;
 }
 .dc-chrome-card .desc {
-  font-size: 13px;
-  color: var(--muted);
+  font-size: 13.5px;
+  color: var(--ink-3);
   line-height: 1.5;
 }
 .dc-chrome-card .open {
-  color: var(--accent);
+  color: var(--accent-ink);
   font-family: var(--mono);
   font-size: 11px;
   font-weight: 500;
-  margin-top: 10px;
+  margin-top: 12px;
   display: inline-block;
   text-transform: uppercase;
   letter-spacing: 0.06em;
@@ -329,48 +365,66 @@ code, .mono {
 /* ---------- Layer-color badge utility ---------- */
 .dc-badge {
   display: inline-block;
-  padding: 2px 8px;
-  border-radius: 999px;
+  padding: 3px 8px;
+  border-radius: 4px;
   font-family: var(--mono);
-  font-size: 10px;
-  font-weight: 600;
+  font-size: 10.5px;
+  font-weight: 500;
   letter-spacing: 0.06em;
   text-transform: uppercase;
+  border: 1px solid var(--line);
+  background: var(--paper);
+  color: var(--ink-3);
 }
-/* Privacy-bearing layers: ember-warm */
-.dc-badge.persona { background: rgba(249,115,22,0.18); color: #ffc599; border: 1px solid var(--accent-persona); }
-.dc-badge.imports { background: rgba(251,146,60,0.18); color: #ffd6b3; border: 1px solid var(--accent-imports); }
-/* Verification-bearing layers: teal-cool */
-.dc-badge.grep    { background: rgba(20,184,166,0.18); color: #99e6db; border: 1px solid var(--accent-grep); }
-.dc-badge.rag     { background: rgba(59,130,246,0.18); color: #b6d3ff; border: 1px solid var(--accent-rag); }
-.dc-badge.tools   { background: rgba(16,185,129,0.18); color: #a8e6c4; border: 1px solid var(--accent-tools); }
-.dc-badge.online  { background: rgba(6,182,212,0.18);  color: #99e6f0; border: 1px solid var(--accent-online); }
+/* Privacy-bearing layers: ember */
+.dc-badge.persona { background: var(--ember-soft); color: oklch(0.40 0.12 45); border-color: oklch(0.85 0.06 45); }
+.dc-badge.imports { background: var(--ember-soft); color: oklch(0.40 0.12 45); border-color: oklch(0.85 0.06 45); }
+/* Verification-bearing layers: civic teal */
+.dc-badge.grep    { background: var(--accent-soft); color: var(--accent-ink); border-color: oklch(0.85 0.05 195); }
+.dc-badge.rag     { background: var(--accent-soft); color: var(--accent-ink); border-color: oklch(0.85 0.05 195); }
+.dc-badge.tools   { background: oklch(0.95 0.03 155); color: oklch(0.32 0.10 155); border-color: oklch(0.85 0.06 155); }
+.dc-badge.online  { background: var(--accent-soft); color: var(--accent-ink); border-color: oklch(0.85 0.05 195); }
 
 /* ---------- Help / footer ---------- */
 .dc-chrome-help {
-  font-size: 12px;
-  color: var(--muted);
+  font-size: 13px;
+  color: var(--ink-3);
   margin-top: 32px;
-  padding-top: 20px;
-  border-top: 1px solid var(--border);
+  padding-top: 24px;
+  border-top: 1px solid var(--line-soft);
   line-height: 1.6;
 }
 .dc-chrome-help h4 {
   font-family: var(--mono); font-size: 11px; font-weight: 500;
   text-transform: uppercase; letter-spacing: 0.08em;
-  color: var(--muted-2); margin: 0 0 8px;
+  color: var(--ink-3); margin: 0 0 8px;
 }
 .dc-chrome-help ul {
   list-style: none; padding: 0; margin: 0;
   display: flex; flex-direction: column; gap: 6px;
 }
 
-/* ---------- Errors ---------- */
+/* ---------- Errors (use ember for warnings, not red) ---------- */
 .dc-chrome-err {
-  color: #fca5a5;
+  color: oklch(0.32 0.13 45);
   padding: 14px 18px;
-  background: rgba(239,68,68,0.08);
-  border: 1px solid var(--red);
+  background: var(--ember-soft);
+  border: 1px dashed oklch(0.78 0.06 45);
   border-radius: var(--r-md);
-  font-size: 13px;
+  font-size: 13.5px;
 }
+
+/* ---------- Status pills (matches duecare-ai.com) ---------- */
+.pill {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-family: var(--mono); font-size: 11px; font-weight: 500;
+  padding: 3px 8px; border-radius: 999px;
+  border: 1px solid var(--line);
+  color: var(--ink-3); background: var(--paper);
+  text-transform: uppercase; letter-spacing: 0.06em;
+}
+.pill .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--ink-3); }
+.pill.live { color: var(--accent-ink); border-color: oklch(0.85 0.05 195); background: var(--accent-soft); }
+.pill.live .dot { background: var(--accent); }
+.pill.privacy { color: oklch(0.40 0.12 45); border-color: oklch(0.85 0.06 45); background: var(--ember-soft); }
+.pill.privacy .dot { background: var(--ember); }

@@ -6,8 +6,6 @@
   <title>Anonymization preview · DueCare</title>
   <link rel="stylesheet" href="/static/_chrome.css" />
   <style>
-    :root { --accent: var(--accent-ember); }
-
     .ap-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -17,24 +15,25 @@
     @media (max-width: 920px) { .ap-grid { grid-template-columns: 1fr; } }
 
     .ap-pane {
-      background: var(--panel);
-      border: 1px solid var(--border);
-      border-radius: var(--r-lg);
-      padding: 18px;
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 22px;
       display: flex;
       flex-direction: column;
-      gap: 10px;
+      gap: 12px;
       min-height: 320px;
     }
-    .ap-pane.local { border-left: 3px solid var(--accent-ember); }
-    .ap-pane.boundary { border-left: 3px solid var(--accent-civic-teal); }
-    .ap-pane.outbound { border-left: 3px solid var(--accent-rag); }
+    .ap-pane.local { border-left: 3px solid var(--ember); }
+    .ap-pane.boundary { border-left: 3px solid var(--accent); }
+    .ap-pane.outbound { border-left: 3px solid var(--ink-3); }
 
     .ap-pane h3 {
       margin: 0;
-      font-size: 14px;
+      font-size: 16px;
       font-weight: 600;
-      letter-spacing: -0.01em;
+      letter-spacing: -0.012em;
+      color: var(--ink);
       display: flex;
       align-items: center;
       gap: 8px;
@@ -42,7 +41,7 @@
     .ap-pane .lab {
       font-family: var(--mono);
       font-size: 10.5px;
-      color: var(--muted);
+      color: var(--ink-3);
       text-transform: uppercase;
       letter-spacing: 0.08em;
     }
@@ -54,34 +53,35 @@
       margin-right: 6px;
       vertical-align: middle;
     }
-    .ap-pane.local .lab::before { background: var(--accent-ember); }
-    .ap-pane.boundary .lab::before { background: var(--accent-civic-teal); }
-    .ap-pane.outbound .lab::before { background: var(--accent-rag); }
+    .ap-pane.local .lab::before { background: var(--ember); }
+    .ap-pane.boundary .lab::before { background: var(--accent); }
+    .ap-pane.outbound .lab::before { background: var(--ink-3); }
 
     textarea {
       flex: 1;
       min-height: 220px;
-      border: 1px solid var(--border);
-      background: var(--bg);
+      border: 1px solid var(--line);
+      background: var(--paper);
       color: var(--ink);
-      border-radius: var(--r-md);
+      border-radius: 8px;
       padding: 12px;
       font-family: var(--sans);
       font-size: 13.5px;
       line-height: 1.55;
       resize: vertical;
     }
-    textarea:focus { outline: 2px solid var(--accent); }
+    textarea:focus { outline: 0; border-color: var(--accent);
+      box-shadow: 0 0 0 4px oklch(0.85 0.05 195 / 0.3); }
 
     pre {
       flex: 1;
       min-height: 220px;
       max-height: 420px;
       margin: 0;
-      border: 1px solid var(--border);
-      background: var(--bg);
-      color: var(--ink);
-      border-radius: var(--r-md);
+      border: 1px solid var(--line);
+      background: var(--paper-2);
+      color: var(--ink-2);
+      border-radius: 8px;
       padding: 12px;
       font-family: var(--mono);
       font-size: 12px;
@@ -97,87 +97,90 @@
       align-items: center;
       flex-wrap: wrap;
       padding: 16px 0;
-      border-bottom: 1px solid var(--border-soft);
+      border-bottom: 1px solid var(--line-soft);
       margin-bottom: 4px;
     }
     .ap-controls input, .ap-controls select {
-      padding: 7px 10px;
+      padding: 7px 11px;
       font-size: 13px;
-      border: 1px solid var(--border);
-      background: var(--bg);
+      border: 1px solid var(--line);
+      background: var(--paper);
       color: var(--ink);
-      border-radius: var(--r-md);
+      border-radius: 6px;
       font-family: var(--sans);
     }
+    .ap-controls input:focus, .ap-controls select:focus { outline: 0; border-color: var(--accent);
+      box-shadow: 0 0 0 4px oklch(0.85 0.05 195 / 0.3); }
 
     button.primary {
-      background: var(--accent-civic-teal);
-      color: var(--bg);
-      border: 1px solid var(--accent-civic-teal);
+      background: var(--ink);
+      color: var(--paper);
+      border: 1px solid var(--ink);
       padding: 8px 16px;
-      border-radius: var(--r-md);
+      border-radius: 6px;
       font-family: var(--sans);
-      font-size: 13px;
-      font-weight: 600;
+      font-size: 14px;
+      font-weight: 500;
       cursor: pointer;
     }
-    button.primary:hover { background: #0fa191; }
+    button.primary:hover { background: #1a1d24; }
     button.primary:disabled { opacity: 0.4; cursor: not-allowed; }
     button.ghost {
-      background: transparent;
-      color: var(--muted);
-      border: 1px solid var(--border);
+      background: var(--paper);
+      color: var(--ink);
+      border: 1px solid var(--line);
       padding: 8px 14px;
-      border-radius: var(--r-md);
+      border-radius: 6px;
       font-family: var(--sans);
-      font-size: 13px;
+      font-size: 14px;
       cursor: pointer;
     }
-    button.ghost:hover { color: var(--ink); border-color: var(--ink); }
+    button.ghost:hover { background: var(--paper-2); border-color: var(--ink-3); }
 
     .ap-stage-info {
-      font-size: 12.5px;
-      color: var(--muted);
+      font-size: 13px;
+      color: var(--ink-3);
       line-height: 1.55;
     }
     .ap-stage-info strong { color: var(--ink); }
 
     .ap-pii-tag {
       display: inline-block;
-      padding: 2px 8px;
+      padding: 3px 8px;
       margin: 2px 4px 2px 0;
-      border-radius: 999px;
+      border-radius: 4px;
       font-family: var(--mono);
       font-size: 10.5px;
-      background: rgba(249, 115, 22, 0.15);
-      color: #ffc599;
-      border: 1px solid var(--accent-ember);
+      background: var(--ember-soft);
+      color: oklch(0.40 0.13 45);
+      border: 1px solid oklch(0.85 0.06 45);
+      text-transform: uppercase; letter-spacing: 0.06em;
     }
 
     .ap-status {
-      padding: 12px 14px;
-      border-radius: var(--r-md);
+      padding: 14px 16px;
+      border-radius: 8px;
       font-size: 13.5px;
       line-height: 1.5;
       display: none;
     }
-    .ap-status.ok    { background: rgba(16,185,129,0.10); color: #99e6c4; border: 1px solid var(--green); display: block; }
-    .ap-status.warn  { background: rgba(245,158,11,0.10); color: #ffd591; border: 1px solid var(--amber); display: block; }
-    .ap-status.err   { background: rgba(239,68,68,0.10);  color: #ffadad; border: 1px solid var(--red);   display: block; }
+    .ap-status.ok    { background: oklch(0.95 0.03 155); color: oklch(0.32 0.10 155); border: 1px solid oklch(0.85 0.06 155); display: block; }
+    .ap-status.warn  { background: oklch(0.96 0.03 80); color: oklch(0.40 0.10 80); border: 1px solid oklch(0.85 0.06 80); display: block; }
+    .ap-status.err   { background: var(--ember-soft); color: oklch(0.40 0.13 45); border: 1px dashed oklch(0.78 0.06 45); display: block; }
 
     .ap-cta-band {
       margin-top: 24px;
-      padding: 18px 22px;
-      background: var(--panel);
-      border: 1px solid var(--border);
-      border-radius: var(--r-lg);
+      padding: 22px 26px;
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: 14px;
       display: flex;
       justify-content: space-between;
       align-items: center;
       gap: 18px;
       flex-wrap: wrap;
     }
-    .ap-cta-band .label-block { font-size: 13.5px; color: var(--muted); }
+    .ap-cta-band .label-block { font-size: 13.5px; color: var(--ink-3); }
     .ap-cta-band .label-block strong { color: var(--ink); }
   </style>
 </head>
@@ -188,7 +191,7 @@
       <h1>Anonymization preview</h1>
       <div class="sub">Paste text, see exactly what would be sent to the public hub before you send it.</div>
     </div>
-    <a href="/" style="font-family: var(--mono); font-size: 12px; color: var(--muted);">← Back to chat</a>
+    <a href="/" style="font-family: var(--mono); font-size: 12px; color: var(--ink-3);">← Back to chat</a>
   </header>
 
   <nav class="dc-chrome-nav" aria-label="Cross-page nav">

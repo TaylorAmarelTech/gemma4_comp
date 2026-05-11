@@ -6,44 +6,41 @@
   <title>Online layer · DueCare</title>
   <link rel="stylesheet" href="/static/_chrome.css" />
   <style>
-    :root {
-      --ink: #e2e8f0; --muted: #94a3b8; --bg: #0f172a; --panel: #1e293b;
-      --border: #334155; --accent: #f59e0b;
-    }
     * { box-sizing: border-box; }
-    html, body { margin: 0; padding: 0; background: var(--bg); color: var(--ink);
-                  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-                               Helvetica, Arial, sans-serif; }
-    header { padding: 14px 20px; background: var(--panel); border-bottom: 1px solid var(--border);
+    header { padding: 14px 24px; background: var(--paper); border-bottom: 1px solid var(--line-soft);
               display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
-    header h1 { margin: 0; font-size: 16px; color: var(--accent); }
-    .sub { font-size: 12px; color: var(--muted); flex: 1; }
-    .container { padding: 18px 24px; max-width: 900px; margin: 0 auto; line-height: 1.6; }
-    section { background: var(--panel); border: 1px solid var(--border); border-radius: 6px;
-               padding: 18px; margin-bottom: 18px; }
-    section h2 { margin: 0 0 10px; font-size: 14px; color: var(--accent); }
-    .provider { padding: 12px 14px; border: 1px solid var(--border); border-radius: 5px;
-                 margin-bottom: 10px; }
-    .provider .name { font-weight: 600; color: var(--accent); }
-    .provider .desc { font-size: 12px; color: var(--muted); margin-top: 4px; }
-    .provider .config { font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-                         font-size: 11px; color: var(--ink); margin-top: 6px;
-                         background: rgba(245,158,11,0.08); padding: 4px 8px; border-radius: 3px;
-                         display: inline-block; }
-    .badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 10px;
-              font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-left: 8px; }
-    .badge.active { background: rgba(16,185,129,0.18); color: #10b981; border: 1px solid #10b981; }
-    .badge.fallback { background: rgba(148,163,184,0.18); color: var(--muted); border: 1px solid var(--muted); }
-    .badge.byok { background: rgba(168,85,247,0.18); color: #a855f7; border: 1px solid #a855f7; }
-    .note { font-size: 12px; color: var(--muted); padding: 12px;
-             background: rgba(245,158,11,0.06); border-left: 3px solid var(--accent);
-             border-radius: 0 4px 4px 0; margin-top: 12px; }
-    code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-            background: rgba(245,158,11,0.12); color: var(--accent);
-            padding: 1px 5px; border-radius: 3px; font-size: 11px; }
-    a.back { color: var(--muted); font-size: 11px; text-decoration: none; }
-    a.back:hover { color: var(--accent); }
-    .err { color: #ef4444; }
+    header h1 { margin: 0; font-size: 16px; color: var(--ink); font-weight: 600; letter-spacing: -0.01em; }
+    .sub { font-size: 13px; color: var(--ink-3); flex: 1; }
+    .container { padding: 32px; max-width: 920px; margin: 0 auto; line-height: 1.6; }
+    section { background: var(--paper); border: 1px solid var(--line); border-radius: 12px;
+               padding: 24px; margin-bottom: 18px; }
+    section h2 { margin: 0 0 14px; font-size: 11px; color: var(--ink-3);
+                  text-transform: uppercase; letter-spacing: 0.08em; font-family: var(--mono);
+                  font-weight: 500; }
+    .provider { padding: 14px 16px; border: 1px solid var(--line); border-radius: 8px;
+                 margin-bottom: 10px; background: var(--paper); }
+    .provider .name { font-weight: 600; color: var(--ink); font-size: 14px; }
+    .provider .desc { font-size: 13px; color: var(--ink-3); margin-top: 5px; line-height: 1.5; }
+    .provider .config { font-family: var(--mono);
+                         font-size: 12px; color: var(--ink-2); margin-top: 8px;
+                         background: var(--paper-2); padding: 5px 9px; border-radius: 4px;
+                         display: inline-block; border: 1px solid var(--line-soft); }
+    .badge { display: inline-block; padding: 3px 8px; border-radius: 4px; font-size: 10.5px;
+              font-weight: 500; text-transform: uppercase; letter-spacing: 0.06em; margin-left: 8px;
+              font-family: var(--mono); }
+    .badge.active { background: oklch(0.95 0.03 155); color: oklch(0.32 0.10 155); border: 1px solid oklch(0.85 0.06 155); }
+    .badge.fallback { background: var(--paper-2); color: var(--ink-3); border: 1px solid var(--line); }
+    .badge.byok { background: var(--ember-soft); color: oklch(0.40 0.13 45); border: 1px solid oklch(0.85 0.06 45); }
+    .note { font-size: 13px; color: var(--ink-2); padding: 14px 16px;
+             background: var(--accent-soft); border-left: 3px solid var(--accent);
+             border-radius: 0 8px 8px 0; margin-top: 14px; line-height: 1.6; }
+    code { font-family: var(--mono);
+            background: var(--paper-2); color: var(--ink-2);
+            padding: 2px 6px; border-radius: 4px; font-size: 12px;
+            border: 1px solid var(--line-soft); }
+    a.back { color: var(--ink-3); font-size: 12px; text-decoration: none; font-family: var(--mono); }
+    a.back:hover { color: var(--accent-ink); }
+    .err { color: oklch(0.40 0.13 45); padding: 14px; }
   </style>
 </head>
 <body>
@@ -92,7 +89,7 @@
 
     <section>
       <h2>How the Online layer is wired in the harness</h2>
-      <p style="font-size:12px; color:var(--muted);">
+      <p style="font-size:13px; color:var(--ink-2); line-height:1.6;">
         When the Online toggle is ON, the kernel passes <code>online_search_call=...</code>
         into <code>create_app()</code>. This callable receives the user prompt and a
         budget, returns a list of result objects with <code>url</code>,
@@ -100,7 +97,7 @@
         The chat-package wraps each result with the cross-check warning before
         prepending to the Gemma context.
       </p>
-      <p style="font-size:12px; color:var(--muted);">
+      <p style="font-size:13px; color:var(--ink-2); line-height:1.6;">
         The pipeline modal's per-layer card shows: provider used, query terms,
         result count, deep-fetch URLs, and total bytes added to the prompt.
       </p>

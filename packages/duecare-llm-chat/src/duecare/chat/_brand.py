@@ -198,15 +198,16 @@ LAYER_ORDER: tuple[str, ...] = ("persona", "grep", "rag", "imports", "tools", "o
 # ---------------------------------------------------------------------------
 # Centralised here so /static/grep-rules.html, /static/grep-tester.html,
 # /static/search.html, and index.html all read the same hex codes.
-# Currently the static pages still inline these — but exposing them
-# via /api/brand lets a future P1 change make them CSS variables in
-# one place.
+# Aligned with the duecare-ai.com civic-tech research lab palette
+# (apps/duecare-ai.com/app/static/styles.css). These are the dark accent
+# variants used inside light tinted backgrounds so the severity badges
+# read against warm paper without visual noise.
 SEVERITY_PALETTE: dict[str, str] = {
-    "critical": "#ef4444",
-    "high":     "#f59e0b",
-    "medium":   "#4c7a8a",
-    "low":      "#94a3b8",
-    "info":     "#94a3b8",
+    "critical": "#a83019",  # ember-ink (oklch 0.40 0.13 45)
+    "high":     "#7d5a14",  # warn-ink (oklch 0.40 0.10 80)
+    "medium":   "#2f5563",  # accent-ink (oklch 0.32 0.07 195) — civic teal dark
+    "low":      "#5B5F68",  # ink-3 (muted)
+    "info":     "#5B5F68",  # ink-3 (muted)
 }
 
 

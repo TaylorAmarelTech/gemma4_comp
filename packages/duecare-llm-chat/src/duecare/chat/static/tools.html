@@ -6,39 +6,36 @@
   <title>Tools layer · DueCare</title>
   <link rel="stylesheet" href="/static/_chrome.css" />
   <style>
-    :root {
-      --ink: #e2e8f0; --muted: #94a3b8; --bg: #0f172a; --panel: #1e293b;
-      --border: #334155; --accent: #10b981;
-    }
     * { box-sizing: border-box; }
-    html, body { margin: 0; padding: 0; background: var(--bg); color: var(--ink);
-                  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-                               Helvetica, Arial, sans-serif; }
-    header { padding: 14px 20px; background: var(--panel); border-bottom: 1px solid var(--border);
+    header { padding: 14px 24px; background: var(--paper); border-bottom: 1px solid var(--line-soft);
               display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
-    header h1 { margin: 0; font-size: 16px; color: var(--accent); }
-    .sub { font-size: 12px; color: var(--muted); flex: 1; }
-    .container { padding: 18px 24px; max-width: 1100px; margin: 0 auto; }
-    section { background: var(--panel); border: 1px solid var(--border); border-radius: 6px;
-               padding: 18px; margin-bottom: 18px; }
-    section h2 { margin: 0 0 12px; font-size: 14px; color: var(--accent); }
-    .tool { padding: 10px 0; border-bottom: 1px dashed var(--border); }
+    header h1 { margin: 0; font-size: 16px; color: var(--ink); font-weight: 600; letter-spacing: -0.01em; }
+    .sub { font-size: 13px; color: var(--ink-3); flex: 1; }
+    .container { padding: 32px; max-width: 1200px; margin: 0 auto; }
+    section { background: var(--paper); border: 1px solid var(--line); border-radius: 12px;
+               padding: 24px; margin-bottom: 18px; }
+    section h2 { margin: 0 0 14px; font-size: 11px; color: var(--ink-3);
+                  text-transform: uppercase; letter-spacing: 0.08em; font-family: var(--mono);
+                  font-weight: 500; }
+    .tool { padding: 12px 0; border-bottom: 1px solid var(--line-soft); }
     .tool:last-child { border-bottom: 0; }
-    .tool .name { font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-                   font-weight: 600; color: var(--accent); }
-    .tool .desc { font-size: 12px; color: var(--muted); margin-top: 2px; }
-    table { width: 100%; border-collapse: collapse; font-size: 11.5px; margin-top: 8px; }
-    th { text-align: left; padding: 6px 8px; background: rgba(124,58,237,0.06);
-          border-bottom: 1px solid var(--border); font-weight: 600; color: var(--muted);
-          font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.4px; }
-    td { padding: 6px 8px; border-bottom: 1px solid var(--border); vertical-align: top; }
-    code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-            background: rgba(16,185,129,0.12); color: var(--accent);
-            padding: 1px 5px; border-radius: 3px; font-size: 11px; }
-    .empty { color: var(--muted); font-style: italic; padding: 8px 0; font-size: 11px; }
-    a.back { color: var(--muted); font-size: 11px; text-decoration: none; }
-    a.back:hover { color: var(--accent); }
-    .err { color: #ef4444; padding: 14px; }
+    .tool .name { font-family: var(--mono);
+                   font-weight: 600; color: var(--ink); font-size: 13.5px; }
+    .tool .desc { font-size: 13px; color: var(--ink-3); margin-top: 4px; line-height: 1.5; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 10px;
+             border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+    th { text-align: left; padding: 10px 12px; background: var(--paper-2);
+          border-bottom: 1px solid var(--line); font-weight: 500; color: var(--ink-3);
+          font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; font-family: var(--mono); }
+    td { padding: 10px 12px; border-bottom: 1px solid var(--line-soft); vertical-align: top; color: var(--ink-2); }
+    code { font-family: var(--mono);
+            background: var(--paper-2); color: var(--ink-2);
+            padding: 2px 6px; border-radius: 4px; font-size: 12px;
+            border: 1px solid var(--line-soft); }
+    .empty { color: var(--ink-4); font-style: italic; padding: 8px 0; font-size: 12px; }
+    a.back { color: var(--ink-3); font-size: 12px; text-decoration: none; font-family: var(--mono); }
+    a.back:hover { color: var(--accent-ink); }
+    .err { color: oklch(0.40 0.13 45); padding: 14px; }
   </style>
 </head>
 <body>
@@ -70,7 +67,7 @@
       const entries = Object.entries(obj);
       if (!entries.length) return "";
       return `<section>
-        <h2>${escapeHtml(title)} <span style="color:var(--muted); font-weight:400; font-size:11px;">(${entries.length})</span></h2>
+        <h2>${escapeHtml(title)} <span style="color:var(--ink-3); font-weight:400; font-size:11px; font-family:var(--mono);">(${entries.length})</span></h2>
         <table>
           <thead><tr><th>Key</th><th>Value</th></tr></thead>
           <tbody>
@@ -89,7 +86,7 @@
           <ul>${arr.map(x => `<li>${escapeHtml(String(x))}</li>`).join("")}</ul></section>`;
       }
       return `<section>
-        <h2>${escapeHtml(title)} <span style="color:var(--muted); font-weight:400; font-size:11px;">(${arr.length})</span></h2>
+        <h2>${escapeHtml(title)} <span style="color:var(--ink-3); font-weight:400; font-size:11px; font-family:var(--mono);">(${arr.length})</span></h2>
         <table>
           <thead><tr>${cols.map(c => `<th>${escapeHtml(c)}</th>`).join("")}</tr></thead>
           <tbody>
@@ -114,7 +111,7 @@
       const tables = d.tables || {};
       let html = `
         <section>
-          <h2>Function-calling tools <span style="color:var(--muted); font-weight:400; font-size:11px;">(${tools.length})</span></h2>
+          <h2>Function-calling tools <span style="color:var(--ink-3); font-weight:400; font-size:11px; font-family:var(--mono);">(${tools.length})</span></h2>
           ${tools.map(t => `
             <div class="tool">
               <div class="name">${escapeHtml(t.name)}</div>
