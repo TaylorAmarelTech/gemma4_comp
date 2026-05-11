@@ -7,67 +7,69 @@
   <link rel="stylesheet" href="/static/_chrome.css" />
   <style>
     :root {
-      --ink: #e2e8f0; --muted: #94a3b8; --bg: #0f172a; --panel: #1e293b;
-      --border: #334155; --accent: #ef4444; --highlight: #fbbf24;
+      --highlight: oklch(0.65 0.10 80);
     }
     * { box-sizing: border-box; }
-    html, body { margin: 0; padding: 0; background: var(--bg); color: var(--ink);
-                  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-                               Helvetica, Arial, sans-serif; }
-    header { padding: 12px 18px; background: var(--panel); border-bottom: 1px solid var(--border);
+    header { padding: 14px 24px; background: var(--paper); border-bottom: 1px solid var(--line-soft);
               display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
-    header h1 { margin: 0; font-size: 16px; color: var(--accent); }
-    .sub { font-size: 12px; color: var(--muted); flex: 1; }
+    header h1 { margin: 0; font-size: 16px; color: var(--ink); font-weight: 600; letter-spacing: -0.01em; }
+    .sub { font-size: 13px; color: var(--ink-3); flex: 1; }
     .toolbar { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
-    input, select { padding: 6px 10px; font-size: 12px; border: 1px solid var(--border);
-                     background: var(--bg); color: var(--ink); border-radius: 4px; }
-    .container { padding: 14px 18px; max-width: 1400px; margin: 0 auto; }
-    table { width: 100%; border-collapse: collapse; font-size: 12px; }
-    th { text-align: left; padding: 10px 8px; background: var(--panel);
-          border-bottom: 2px solid var(--border); position: sticky; top: 0; z-index: 1;
-          cursor: pointer; user-select: none; }
-    th:hover { color: var(--accent); }
-    td { padding: 10px 8px; border-bottom: 1px solid var(--border); vertical-align: top; }
+    input, select { padding: 7px 11px; font-size: 13px; border: 1px solid var(--line);
+                     background: var(--paper); color: var(--ink); border-radius: 6px;
+                     font-family: var(--sans); }
+    input:focus, select:focus { outline: 0; border-color: var(--accent);
+                box-shadow: 0 0 0 4px oklch(0.85 0.05 195 / 0.3); }
+    .container { padding: 24px 32px; max-width: 1400px; margin: 0 auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 13.5px; background: var(--paper);
+             border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+    th { text-align: left; padding: 12px 14px; background: var(--paper-2);
+          border-bottom: 1px solid var(--line); position: sticky; top: 0; z-index: 1;
+          cursor: pointer; user-select: none; font-family: var(--mono); font-size: 11px;
+          font-weight: 500; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-3); }
+    th:hover { color: var(--ink); }
+    td { padding: 12px 14px; border-bottom: 1px solid var(--line-soft); vertical-align: top; }
     tr.row { cursor: pointer; }
-    tr.row:hover td { background: rgba(124,58,237,0.05); }
-    tr.expanded td { background: rgba(124,58,237,0.08); }
-    .severity { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 10px;
-                 font-weight: 600; text-transform: uppercase; }
-    .severity.critical { background: rgba(239,68,68,0.18); color: #ef4444; border: 1px solid #ef4444; }
-    .severity.high     { background: rgba(245,158,11,0.18); color: #f59e0b; border: 1px solid #f59e0b; }
-    .severity.medium   { background: rgba(59,130,246,0.18); color: #3b82f6; border: 1px solid #3b82f6; }
-    .severity.low      { background: rgba(148,163,184,0.18); color: var(--muted); border: 1px solid var(--muted); }
-    .citation { font-size: 11px; color: var(--muted); }
-    .indicator { font-size: 11.5px; max-width: 460px; line-height: 1.5; }
-    .rule { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-weight: 600;
-             color: var(--accent); white-space: nowrap; }
-    .fire-count { text-align: right; font-weight: 600; min-width: 50px; }
-    .fire-count.hot { color: var(--highlight); }
-    .fire-count.zero { color: var(--muted); font-weight: 400; }
-    .patterns-row td { background: rgba(0,0,0,0.25); padding: 14px; border-bottom: 1px solid var(--border); }
-    .patterns-row pre { margin: 0; font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-                         font-size: 11px; color: #93c5fd; white-space: pre-wrap;
+    tr.row:hover td { background: var(--paper-2); }
+    tr.expanded td { background: var(--paper-2); }
+    .severity { display: inline-block; padding: 3px 8px; border-radius: 4px; font-size: 10.5px;
+                 font-weight: 500; text-transform: uppercase; letter-spacing: 0.06em; font-family: var(--mono); }
+    .severity.critical { background: var(--ember-soft); color: oklch(0.40 0.13 45); border: 1px solid oklch(0.85 0.06 45); }
+    .severity.high     { background: oklch(0.96 0.03 80); color: oklch(0.40 0.10 80); border: 1px solid oklch(0.85 0.06 80); }
+    .severity.medium   { background: var(--accent-soft); color: var(--accent-ink); border: 1px solid oklch(0.85 0.05 195); }
+    .severity.low      { background: var(--paper-2); color: var(--ink-3); border: 1px solid var(--line); }
+    .citation { font-size: 12px; color: var(--ink-3); }
+    .indicator { font-size: 13px; max-width: 460px; line-height: 1.5; color: var(--ink-2); }
+    .rule { font-family: var(--mono); font-weight: 600;
+             color: var(--ink); white-space: nowrap; font-size: 12.5px; }
+    .fire-count { text-align: right; font-weight: 600; min-width: 50px; font-family: var(--mono); }
+    .fire-count.hot { color: var(--accent-ink); }
+    .fire-count.zero { color: var(--ink-4); font-weight: 400; }
+    .patterns-row td { background: var(--paper-3); padding: 16px; border-bottom: 1px solid var(--line); }
+    .patterns-row pre { margin: 0; font-family: var(--mono);
+                         font-size: 12px; color: var(--ink-2); white-space: pre-wrap;
                          word-break: break-all; line-height: 1.6; }
-    .patterns-row .label { color: var(--muted); font-size: 10.5px; text-transform: uppercase;
-                            letter-spacing: 0.5px; margin-bottom: 6px; }
-    a.back { color: var(--muted); font-size: 11px; text-decoration: none; }
-    a.back:hover { color: var(--accent); }
-    .err { color: #ef4444; padding: 14px; }
+    .patterns-row .label { color: var(--ink-3); font-size: 10.5px; text-transform: uppercase;
+                            letter-spacing: 0.08em; margin-bottom: 8px; font-family: var(--mono); }
+    a.back { color: var(--ink-3); font-size: 12px; text-decoration: none; font-family: var(--mono); }
+    a.back:hover { color: var(--accent-ink); }
+    .err { color: oklch(0.40 0.13 45); padding: 14px; }
 
     /* Category histogram */
-    .histogram { padding: 10px 18px; background: rgba(239,68,68,0.04);
-                  border-bottom: 1px solid var(--border); display: flex;
-                  gap: 4px; align-items: flex-end; min-height: 70px; flex-wrap: wrap; }
+    .histogram { padding: 14px 24px; background: var(--paper-2);
+                  border-bottom: 1px solid var(--line-soft); display: flex;
+                  gap: 4px; align-items: flex-end; min-height: 80px; flex-wrap: wrap; }
     .bar { display: flex; flex-direction: column; align-items: center; gap: 3px;
-            cursor: pointer; user-select: none; min-width: 24px; }
-    .bar:hover .bar-fill { filter: brightness(1.4); }
-    .bar.active .bar-fill { box-shadow: 0 0 0 1.5px var(--highlight); }
+            cursor: pointer; user-select: none; min-width: 28px; }
+    .bar:hover .bar-fill { background: var(--accent-ink); }
+    .bar.active .bar-fill { background: var(--ink); }
     .bar .bar-fill { width: 100%; background: var(--accent); border-radius: 2px 2px 0 0;
-                      min-height: 2px; }
-    .bar .bar-label { font-size: 9px; color: var(--muted); transform: rotate(-45deg);
+                      min-height: 2px; opacity: 0.7; }
+    .bar:hover .bar-fill, .bar.active .bar-fill { opacity: 1; }
+    .bar .bar-label { font-size: 10px; color: var(--ink-3); transform: rotate(-45deg);
                        transform-origin: top right; white-space: nowrap; margin-top: 8px;
-                       line-height: 1; }
-    .bar .bar-count { font-size: 10px; color: var(--accent); font-weight: 700; }
+                       line-height: 1; font-family: var(--mono); }
+    .bar .bar-count { font-size: 10.5px; color: var(--ink); font-weight: 600; font-family: var(--mono); }
 </head>
 <body>
   <header>

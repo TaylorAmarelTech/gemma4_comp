@@ -81,20 +81,57 @@ existing `HEADER_TABLE` pattern already used across the suite:
   `text-align`, `white-space: pre-wrap`, `line-height`.
 - `<a href="...">` internal anchors for tables of contents.
 
-## Palette
+## Palette (matches duecare-ai.com civic-tech research lab aesthetic)
 
-Use the palette defined in `scripts/_notebook_display.py` and
-`HEADER_TABLE` (already used across the 000-189 notebooks). Do not
-introduce new colors:
+Source of truth: `apps/duecare-ai.com/app/static/styles.css` and
+`configs/duecare/design_tokens.yaml`. The notebook helpers in
+`scripts/_notebook_display.py` consume this palette; do not introduce
+new colors.
+
+**Surfaces (warm paper backgrounds):**
 
 | Role | Hex | Use |
 |---|---|---|
-| primary | `#4c7a8a` | primary bars, main CTA links |
-| success | `#10b981` | refusals, passing cases, kept rows |
-| warning | `#f59e0b` | partial-match, "neutral" band |
-| danger  | `#ef4444` | harmful content, enables-harm flag, dropped rows |
-| info    | `#4c7a8a` | informational banners, neutral callouts |
-| muted   | `#6b7280` | secondary text, category tags |
+| paper      | `#F7F6F1` | Primary background |
+| paper-2    | `#EFEDE4` | Secondary backgrounds, cards |
+| paper-3    | `#E4E1D7` | Tertiary backgrounds |
+
+**Text (dark ink):**
+
+| Role | Hex | Use |
+|---|---|---|
+| ink   | `#0E1116` | Primary text, headings |
+| ink-2 | `#2A2D34` | Secondary text |
+| ink-3 | `#5B5F68` | Muted text, captions |
+| ink-4 | `#8A8E97` | Placeholder text |
+
+**Accents (sparingly):**
+
+| Role | OKLCH | Use |
+|---|---|---|
+| accent       | `oklch(0.52 0.08 195)` | Civic teal — subtle accent, dot indicators, focus rings |
+| accent-soft  | `oklch(0.92 0.03 195)` | Tinted background for accent areas |
+| accent-ink   | `oklch(0.32 0.07 195)` | Dark variant for accent text on light bg |
+| ember        | `oklch(0.58 0.14 45)`  | **Privacy boundary ONLY** — never decorative |
+| ember-soft   | `oklch(0.94 0.04 45)`  | Tinted background for privacy-bearing areas |
+| good         | `oklch(0.55 0.10 155)` | Success states, refusals, passing cases |
+| warn         | `oklch(0.65 0.10 80)`  | Warning, partial-match, neutral band |
+
+**Lines:**
+
+| Role | Hex | Use |
+|---|---|---|
+| line       | `#DDD8C9` | Standard borders |
+| line-soft  | `#E8E4D7` | Subtle separators |
+
+**Typography:** Inter (UI) + JetBrains Mono (labels, code, monospace).
+Defined as `--sans` and `--mono` in `_chrome.css`.
+
+**Aesthetic principles:**
+- LIGHT theme — warm paper/ink, NOT dark mode
+- Subtle shadows, thin borders, rounded corners (4-12px radii)
+- Civic teal as restrained accent, not as primary color
+- Ember reserved exclusively for privacy boundary indicators
 
 Background pairs (`bg_success`, `bg_warning`, `bg_danger`, `bg_info`)
 are light-tinted versions meant to pair with the same-name accent on a

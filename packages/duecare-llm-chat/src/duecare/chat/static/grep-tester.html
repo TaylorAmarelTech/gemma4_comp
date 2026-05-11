@@ -7,67 +7,65 @@
   <link rel="stylesheet" href="/static/_chrome.css" />
   <style>
     :root {
-      --ink: #e2e8f0; --muted: #94a3b8; --bg: #0f172a; --panel: #1e293b;
-      --border: #334155; --accent: #ef4444; --highlight: #fbbf24;
-      --green: #10b981;
+      --accent: var(--ember);
+      --highlight: oklch(0.65 0.10 80);
     }
     * { box-sizing: border-box; }
-    html, body { margin: 0; padding: 0; background: var(--bg); color: var(--ink);
-                  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-                               Helvetica, Arial, sans-serif; min-height: 100vh; }
-    header { padding: 12px 18px; background: var(--panel); border-bottom: 1px solid var(--border);
+    html, body { min-height: 100vh; }
+    header { padding: 14px 24px; background: var(--paper); border-bottom: 1px solid var(--line-soft);
               display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
-    header h1 { margin: 0; font-size: 16px; color: var(--accent); }
-    .sub { font-size: 12px; color: var(--muted); flex: 1; }
-    .container { padding: 16px 20px; max-width: 1100px; margin: 0 auto; }
+    header h1 { margin: 0; font-size: 16px; color: var(--ink); font-weight: 600; letter-spacing: -0.01em; }
+    .sub { font-size: 13px; color: var(--ink-3); flex: 1; }
+    .container { padding: 24px 32px; max-width: 1200px; margin: 0 auto; }
     .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; min-height: 60vh; }
-    .pane { background: var(--panel); border: 1px solid var(--border); border-radius: 6px;
-             padding: 16px; }
-    .pane h2 { margin: 0 0 10px; font-size: 13px; color: var(--accent);
-                text-transform: uppercase; letter-spacing: 0.5px; }
-    textarea { width: 100%; min-height: 280px; padding: 12px; font-family: ui-monospace,
-                SFMono-Regular, Menlo, monospace; font-size: 12.5px; line-height: 1.6;
-                border: 1px solid var(--border); background: var(--bg); color: var(--ink);
-                border-radius: 4px; resize: vertical; }
-    .toolbar { margin-top: 10px; display: flex; gap: 8px; align-items: center;
+    .pane { background: var(--paper); border: 1px solid var(--line); border-radius: 12px;
+             padding: 22px; }
+    .pane h2 { margin: 0 0 12px; font-family: var(--mono); font-size: 11px; color: var(--ink-3);
+                text-transform: uppercase; letter-spacing: 0.08em; font-weight: 500; }
+    textarea { width: 100%; min-height: 280px; padding: 12px; font-family: var(--mono);
+                font-size: 13px; line-height: 1.6;
+                border: 1px solid var(--line); background: var(--paper); color: var(--ink);
+                border-radius: 8px; resize: vertical; }
+    textarea:focus { outline: 0; border-color: var(--accent);
+                box-shadow: 0 0 0 4px oklch(0.85 0.05 195 / 0.3); }
+    .toolbar { margin-top: 12px; display: flex; gap: 8px; align-items: center;
                 flex-wrap: wrap; }
-    button { padding: 8px 18px; font-size: 13px; border: 1px solid var(--accent);
-              background: var(--accent); color: #fff; border-radius: 4px; cursor: pointer;
-              font-weight: 600; }
-    button:hover { background: #dc2626; }
-    button.secondary { background: var(--bg); color: var(--ink); border-color: var(--border); font-weight: 500; }
-    button.secondary:hover { background: var(--panel); }
-    .hint { font-size: 11px; color: var(--muted); }
-    .stats { display: flex; gap: 16px; flex-wrap: wrap; padding: 10px 14px;
-              background: rgba(239,68,68,0.08); border-radius: 6px;
-              margin-bottom: 14px; font-size: 12px; }
-    .stat .label { color: var(--muted); font-size: 10px; text-transform: uppercase;
-                    letter-spacing: 0.5px; }
-    .stat .value { font-weight: 700; color: var(--accent); font-size: 18px; }
-    .hit { padding: 12px; border-bottom: 1px solid var(--border); }
+    button { padding: 9px 16px; font-size: 14px; border: 1px solid var(--ink);
+              background: var(--ink); color: var(--paper); border-radius: 6px; cursor: pointer;
+              font-weight: 500; font-family: var(--sans); }
+    button:hover { background: #1a1d24; }
+    button.secondary { background: var(--paper); color: var(--ink); border-color: var(--line); font-weight: 500; }
+    button.secondary:hover { background: var(--paper-2); border-color: var(--ink-3); }
+    .hint { font-size: 12px; color: var(--ink-4); }
+    .stats { display: flex; gap: 24px; flex-wrap: wrap; padding: 14px 18px;
+              background: var(--paper-2); border: 1px solid var(--line-soft); border-radius: 8px;
+              margin-bottom: 16px; font-size: 13px; }
+    .stat .label { color: var(--ink-3); font-size: 10.5px; text-transform: uppercase;
+                    letter-spacing: 0.08em; font-family: var(--mono); }
+    .stat .value { font-weight: 600; color: var(--ink); font-size: 20px; }
+    .hit { padding: 14px 0; border-bottom: 1px solid var(--line-soft); }
     .hit:last-child { border-bottom: 0; }
     .hit .head { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
-    .hit .name { font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-                  font-weight: 700; color: var(--accent); }
-    .severity { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 10px;
-                 font-weight: 600; text-transform: uppercase; }
-    .severity.critical { background: rgba(239,68,68,0.18); color: #ef4444; border: 1px solid #ef4444; }
-    .severity.high     { background: rgba(245,158,11,0.18); color: #f59e0b; border: 1px solid #f59e0b; }
-    .severity.medium   { background: rgba(59,130,246,0.18); color: #3b82f6; border: 1px solid #3b82f6; }
-    .severity.low      { background: rgba(148,163,184,0.18); color: var(--muted); border: 1px solid var(--muted); }
-    .hit .citation { font-size: 11.5px; color: var(--muted); margin-top: 4px; }
-    .hit .indicator { font-size: 11.5px; color: #cbd5e1; margin-top: 4px; line-height: 1.5; }
-    .hit .match { font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-                   font-size: 11px; color: #fbbf24; background: rgba(251,191,36,0.06);
-                   padding: 4px 8px; border-radius: 3px; margin-top: 6px;
-                   display: inline-block; word-break: break-all; }
-    .empty { color: var(--muted); padding: 30px 14px; text-align: center; font-style: italic; }
-    .clean { color: var(--green); padding: 30px 14px; text-align: center; font-weight: 600; }
-    a.back { color: var(--muted); font-size: 11px; text-decoration: none; }
-    a.back:hover { color: var(--accent); }
-    .preset { padding: 5px 10px; font-size: 11px; border: 1px solid var(--border);
-               background: var(--bg); color: var(--ink); border-radius: 12px; cursor: pointer; }
-    .preset:hover { border-color: var(--accent); }
+    .hit .name { font-family: var(--mono); font-weight: 600; color: var(--ink); font-size: 13px; }
+    .severity { display: inline-block; padding: 3px 8px; border-radius: 4px; font-size: 10.5px;
+                 font-weight: 500; text-transform: uppercase; letter-spacing: 0.06em; font-family: var(--mono); }
+    .severity.critical { background: var(--ember-soft); color: oklch(0.40 0.13 45); border: 1px solid oklch(0.85 0.06 45); }
+    .severity.high     { background: oklch(0.96 0.03 80); color: oklch(0.40 0.10 80); border: 1px solid oklch(0.85 0.06 80); }
+    .severity.medium   { background: var(--accent-soft); color: var(--accent-ink); border: 1px solid oklch(0.85 0.05 195); }
+    .severity.low      { background: var(--paper-2); color: var(--ink-3); border: 1px solid var(--line); }
+    .hit .citation { font-size: 12px; color: var(--ink-3); margin-top: 4px; }
+    .hit .indicator { font-size: 13px; color: var(--ink-2); margin-top: 4px; line-height: 1.5; }
+    .hit .match { font-family: var(--mono);
+                   font-size: 11.5px; color: var(--ink-2); background: oklch(0.95 0.04 80);
+                   padding: 4px 8px; border-radius: 4px; margin-top: 6px;
+                   display: inline-block; word-break: break-all; border: 1px solid oklch(0.88 0.04 80); }
+    .empty { color: var(--ink-3); padding: 30px 14px; text-align: center; font-style: italic; }
+    .clean { color: oklch(0.32 0.10 155); padding: 30px 14px; text-align: center; font-weight: 600; }
+    a.back { color: var(--ink-3); font-size: 12px; text-decoration: none; font-family: var(--mono); }
+    a.back:hover { color: var(--accent-ink); }
+    .preset { padding: 6px 12px; font-size: 12px; border: 1px solid var(--line);
+               background: var(--paper); color: var(--ink-2); border-radius: 999px; cursor: pointer; }
+    .preset:hover { border-color: var(--ink-3); background: var(--paper-2); }
     @media (max-width: 800px) { .grid { grid-template-columns: 1fr; } }
   </style>
 </head>
@@ -99,10 +97,10 @@
         <h2>2. Rules that fired</h2>
         <div class="stats" id="stats">
           <div class="stat"><div class="label">Rules fired</div><div class="value" id="s-fired">—</div></div>
-          <div class="stat"><div class="label">Critical</div><div class="value" id="s-crit" style="color:#ef4444;">—</div></div>
-          <div class="stat"><div class="label">High</div><div class="value" id="s-high" style="color:#f59e0b;">—</div></div>
-          <div class="stat"><div class="label">Medium</div><div class="value" id="s-med" style="color:#3b82f6;">—</div></div>
-          <div class="stat"><div class="label">Latency</div><div class="value" id="s-lat" style="color:var(--muted);">—</div></div>
+          <div class="stat"><div class="label">Critical</div><div class="value" id="s-crit" style="color:oklch(0.40 0.13 45);">—</div></div>
+          <div class="stat"><div class="label">High</div><div class="value" id="s-high" style="color:oklch(0.40 0.10 80);">—</div></div>
+          <div class="stat"><div class="label">Medium</div><div class="value" id="s-med" style="color:var(--accent-ink);">—</div></div>
+          <div class="stat"><div class="label">Latency</div><div class="value" id="s-lat" style="color:var(--ink-3);">—</div></div>
         </div>
         <div id="hits">
           <div class="empty">Click <strong>▶ Run GREP</strong> to see which rules match.</div>
@@ -149,7 +147,7 @@
         document.getElementById('s-med').textContent = sev.medium || 0;
         document.getElementById('s-lat').textContent = (d.elapsed_ms || 0) + 'ms';
         if (!d.wired) {
-          hitsDiv.innerHTML = '<div class="empty" style="color:#ef4444;">GREP layer is not enabled in this kernel. Set grep_call=... when calling create_app().</div>';
+          hitsDiv.innerHTML = '<div class="empty" style="color:oklch(0.40 0.13 45);">GREP layer is not enabled in this kernel. Set grep_call=... when calling create_app().</div>';
           return;
         }
         if (!d.hits || d.hits.length === 0) {
@@ -171,7 +169,7 @@
           </div>
         `).join('');
       } catch (e) {
-        hitsDiv.innerHTML = `<div class="empty" style="color:#ef4444;">Error: ${escapeHtml(e.message)}</div>`;
+        hitsDiv.innerHTML = `<div class="empty" style="color:oklch(0.40 0.13 45);">Error: ${escapeHtml(e.message)}</div>`;
       }
     }
     // Allow Cmd/Ctrl+Enter to run.
