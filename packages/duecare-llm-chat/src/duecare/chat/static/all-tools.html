@@ -44,7 +44,7 @@
       </a>
       <a class="tool-card" href="/static/grade.html">
         <div class="name">Grade a response</div>
-        <div class="desc">Paste prompt + response → 4-mode grade panel (rule-based / LLM-judge / combined). Coming soon.</div>
+        <div class="desc">Paste prompt + response → 3-mode grade panel (rule-based / LLM-judge / combined). 46-dim rubric v3.10 with per-dimension scorecard.</div>
       </a>
     </div>
   </section>
@@ -104,7 +104,7 @@
       </a>
       <a class="tool-card" href="/static/import.html">
         <div class="name">Knowledge import</div>
-        <div class="desc">Upload your own documents (folder/zip), search them with BM25. Coming soon.</div>
+        <div class="desc">Drag-drop documents (.txt/.md/.json/.csv/.pdf/.zip) into the in-kernel BM25 retrieval pool. List + delete imported docs. Never leaves the kernel.</div>
       </a>
     </div>
   </section>
@@ -114,15 +114,15 @@
     <div class="tool-grid">
       <a class="tool-card" href="/static/models.html">
         <div class="name">Models</div>
-        <div class="desc">Available variants, currently loaded model, GPU memory, load logs. Coming soon.</div>
+        <div class="desc">All 9 Gemma 4 variants, the currently-loaded model, GPU memory, live load-phase logs. Load any variant without restarting the kernel.</div>
       </a>
       <a class="tool-card" href="/static/logs.html">
         <div class="name">Logs &amp; audit trail</div>
-        <div class="desc">Pipeline traces + governance log + API activity. Coming soon.</div>
+        <div class="desc">Standardized JSON-Lines events from every kernel — filter by level / kind prefix / layer. Auto-refreshes every 2 seconds.</div>
       </a>
       <a class="tool-card" href="/static/settings.html">
         <div class="name">Settings</div>
-        <div class="desc">Retrieval config (BM25/rerank/parent-expand) + online providers + variant pin. Coming soon.</div>
+        <div class="desc">Retrieval config (BM25/dense/RRF + parent-expand + embed-cache reset) and online search backend (Brave/Tavily/DDG/Wikipedia + BYOK keys + live test).</div>
       </a>
       <a class="tool-card" href="/api/version" target="_blank">
         <div class="name">Raw /api/version</div>

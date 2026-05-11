@@ -1,0 +1,309 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Settings — DueCare Workbench</title>
+  <link rel="stylesheet" href="/static/_chrome.css">
+  <link rel="stylesheet" href="/static/showcase.css">
+  <script src="/static/_nav.js" defer></script>
+  <style>
+    .panel {
+      background: var(--paper); border: 1px solid var(--line);
+      border-radius: 12px; padding: 22px; margin-bottom: 18px;
+    }
+    .panel h2 {
+      font-family: var(--mono); font-size: 11px; color: var(--ink-3);
+      text-transform: uppercase; letter-spacing: 0.08em; font-weight: 500;
+      margin: 0 0 14px;
+    }
+    .panel p { color: var(--ink-3); font-size: 13px; line-height: 1.55; margin: 0 0 16px; }
+    .grid {
+      display: grid; grid-template-columns: 1fr;
+      gap: 14px; margin-bottom: 14px;
+    }
+    @media (min-width: 700px) { .grid { grid-template-columns: 1fr 1fr; } }
+    label { display: block; color: var(--ink-2); font-size: 13px; margin-bottom: 6px; }
+    label span {
+      font-family: var(--mono); font-size: 10.5px; color: var(--ink-3);
+      text-transform: uppercase; letter-spacing: 0.06em;
+    }
+    input[type=text], input[type=number], input[type=password], select {
+      width: 100%; padding: 9px 12px; border: 1px solid var(--line);
+      border-radius: 6px; background: var(--paper); color: var(--ink);
+      font-family: var(--sans); font-size: 14px;
+    }
+    input:focus, select:focus { outline: 0; border-color: var(--accent);
+      box-shadow: 0 0 0 4px oklch(0.85 0.05 195 / 0.3); }
+    .check-row label { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; }
+    .actions { display: flex; gap: 10px; margin-top: 12px; flex-wrap: wrap; }
+    .btn {
+      padding: 9px 16px; border-radius: 8px; border: 1px solid var(--ink);
+      background: var(--ink); color: var(--paper); cursor: pointer;
+      font-weight: 500; font-size: 14px; font-family: var(--sans);
+    }
+    .btn:hover { background: #1a1d24; }
+    .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .btn.ghost { background: var(--paper); color: var(--ink); }
+    .btn.ghost:hover { background: var(--paper-2); }
+    .wired-pill {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 3px 9px; border-radius: 999px;
+      font-family: var(--mono); font-size: 10.5px;
+      text-transform: uppercase; letter-spacing: 0.06em;
+      border: 1px solid var(--line); background: var(--paper); color: var(--ink-3);
+      margin-right: 6px;
+    }
+    .wired-pill.on  { background: oklch(0.95 0.03 155); color: oklch(0.32 0.10 155); border-color: oklch(0.85 0.06 155); }
+    .wired-pill.off { background: var(--paper-2); color: var(--ink-3); }
+    .flash {
+      padding: 10px 12px; border-radius: 6px; font-size: 13px;
+      margin-top: 12px;
+    }
+    .flash.ok  { background: oklch(0.95 0.03 155); color: oklch(0.32 0.10 155);
+                  border-left: 3px solid oklch(0.32 0.10 155); }
+    .flash.err { background: var(--ember-soft); color: oklch(0.40 0.13 45);
+                  border-left: 3px solid oklch(0.78 0.06 45); }
+    .json-dump {
+      background: var(--paper-2); border: 1px solid var(--line);
+      border-radius: 8px; padding: 12px; font-family: var(--mono);
+      font-size: 12px; color: var(--ink-2); white-space: pre-wrap;
+      word-break: break-word; max-height: 240px; overflow: auto;
+    }
+  </style>
+</head>
+<body data-nav="settings">
+<main class="showcase">
+  <div class="crumbs">Workbench tool · System &amp; observability</div>
+  <h1>Settings</h1>
+  <p class="lede">
+    Tune retrieval (BM25 / rerank / parent-expand) and online-search
+    (Brave / Tavily / DuckDuckGo / Wikipedia) without restarting the
+    kernel. Changes apply to the next chat turn.
+  </p>
+
+  <section class="panel">
+    <h2>Retrieval (RAG)</h2>
+    <p>Knobs for the BM25 retriever, optional cross-encoder rerank,
+       parent-document expansion, and embed-cache reset. Backed by
+       <code>/api/retrieval/config</code>.</p>
+    <div id="ret-status" style="margin-bottom: 14px;"></div>
+    <div class="grid">
+      <div>
+        <label>Mode <span>bm25 / dense / rrf</span></label>
+        <select id="ret-mode">
+          <option value="bm25">bm25</option>
+          <option value="dense">dense</option>
+          <option value="rrf">rrf (reciprocal-rank fusion)</option>
+        </select>
+      </div>
+      <div>
+        <label>Top K <span>docs returned per query</span></label>
+        <input type="number" id="ret-topk" min="1" max="20" value="5">
+      </div>
+      <div>
+        <label>Parent expand <span>chunk / section / off</span></label>
+        <select id="ret-parent">
+          <option value="off">off</option>
+          <option value="section">section</option>
+          <option value="chunk">chunk</option>
+        </select>
+      </div>
+      <div>
+        <label>Parent max chars <span>character cap</span></label>
+        <input type="number" id="ret-parent-max" min="200" max="20000" value="2400">
+      </div>
+    </div>
+    <div class="actions">
+      <button class="btn"       type="button" onclick="saveRetrieval()">Save retrieval config</button>
+      <button class="btn ghost" type="button" onclick="loadRetrieval()">Reload</button>
+      <button class="btn ghost" type="button" onclick="clearEmbedCache()">Clear embed cache</button>
+    </div>
+    <div id="ret-flash"></div>
+    <details style="margin-top:14px;">
+      <summary style="cursor:pointer; font-family: var(--mono); font-size: 11px; color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.06em;">▸ Raw config JSON</summary>
+      <div class="json-dump" id="ret-dump" style="margin-top: 8px;">—</div>
+    </details>
+  </section>
+
+  <section class="panel">
+    <h2>Online search</h2>
+    <p>Choose the web-search backend and supply BYOK keys.
+       <code>/api/online/config</code> reads + writes; <code>/api/online/test</code>
+       runs a one-shot probe with the current config.</p>
+    <div id="online-status" style="margin-bottom: 14px;"></div>
+    <div class="grid">
+      <div>
+        <label>Backend <span>auto / brave / tavily / ddg / wikipedia</span></label>
+        <select id="online-backend">
+          <option value="auto">auto (prefers Brave then Tavily then DDG)</option>
+          <option value="brave">brave</option>
+          <option value="tavily">tavily</option>
+          <option value="ddg">duckduckgo</option>
+          <option value="wikipedia">wikipedia</option>
+        </select>
+      </div>
+      <div>
+        <label>Top N <span>results to fetch</span></label>
+        <input type="number" id="online-topn" min="1" max="10" value="5">
+      </div>
+      <div>
+        <label>Brave API key <span>BYOK</span></label>
+        <input type="password" id="online-brave" placeholder="sk-...">
+      </div>
+      <div>
+        <label>Tavily API key <span>BYOK</span></label>
+        <input type="password" id="online-tavily" placeholder="tvly-...">
+      </div>
+      <div class="check-row" style="grid-column: 1 / -1;">
+        <label><input type="checkbox" id="online-fetch"> Deep-fetch top results (httpx)</label>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="btn"       type="button" onclick="saveOnline()">Save online config</button>
+      <button class="btn ghost" type="button" onclick="loadOnline()">Reload</button>
+      <button class="btn ghost" type="button" onclick="testOnline()">Test query</button>
+    </div>
+    <div id="online-flash"></div>
+    <div id="online-test-out" style="margin-top: 12px;"></div>
+    <details style="margin-top:14px;">
+      <summary style="cursor:pointer; font-family: var(--mono); font-size: 11px; color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.06em;">▸ Raw config JSON</summary>
+      <div class="json-dump" id="online-dump" style="margin-top: 8px;">—</div>
+    </details>
+  </section>
+
+  <section class="panel">
+    <h2>Need more?</h2>
+    <p>The chat shell exposes additional knobs (per-layer toggles, model
+       variant, grader mode) inline next to the composer.
+       The <a href="/static/models.html">Models</a> page handles GPU loads.
+       The <a href="/static/logs.html">Logs</a> page surfaces every event
+       emitted via <code>dc_log()</code>.
+       The <a href="/static/all-tools.html">All tools</a> index lists every
+       workbench surface.</p>
+  </section>
+</main>
+
+<script>
+  function escapeHtml(s) {
+    return String(s == null ? "" : s).replace(/[&<>"']/g, c =>
+      ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+  function flash(elId, msg, ok) {
+    const el = document.getElementById(elId);
+    el.innerHTML = `<div class="flash ${ok ? "ok" : "err"}">${escapeHtml(msg)}</div>`;
+    setTimeout(() => { el.innerHTML = ""; }, 4000);
+  }
+
+  async function loadRetrieval() {
+    try {
+      const r = await fetch("/api/retrieval/config", {cache: "no-store"});
+      const d = await r.json();
+      document.getElementById("ret-mode").value = d.mode || "bm25";
+      document.getElementById("ret-topk").value = d.top_k || 5;
+      document.getElementById("ret-parent").value = d.parent_expand || "off";
+      document.getElementById("ret-parent-max").value = d.parent_expand_max_chars || 2400;
+      document.getElementById("ret-status").innerHTML = `
+        <span class="wired-pill ${d.rerank_wired ? "on" : "off"}">rerank: ${d.rerank_wired ? "wired" : "not wired"}</span>
+        <span class="wired-pill ${d.embed_wired  ? "on" : "off"}">embed: ${d.embed_wired  ? "wired" : "not wired"}</span>
+      `;
+      document.getElementById("ret-dump").textContent = JSON.stringify(d, null, 2);
+    } catch (e) {
+      flash("ret-flash", `Load failed: ${e && e.message || e}`, false);
+    }
+  }
+  async function saveRetrieval() {
+    const body = {
+      mode: document.getElementById("ret-mode").value,
+      top_k: parseInt(document.getElementById("ret-topk").value, 10),
+      parent_expand: document.getElementById("ret-parent").value,
+      parent_expand_max_chars: parseInt(document.getElementById("ret-parent-max").value, 10),
+    };
+    try {
+      const r = await fetch("/api/retrieval/config", {
+        method: "POST", headers: {"content-type": "application/json"},
+        body: JSON.stringify(body),
+      });
+      if (!r.ok) { flash("ret-flash", `HTTP ${r.status}`, false); return; }
+      flash("ret-flash", "Retrieval config saved.", true);
+      loadRetrieval();
+    } catch (e) {
+      flash("ret-flash", `Save failed: ${e && e.message || e}`, false);
+    }
+  }
+  async function clearEmbedCache() {
+    if (!window.confirm("Clear embed cache? Next dense/rrf retrieval will re-embed.")) return;
+    try {
+      await fetch("/api/retrieval/embed-cache/clear", {method: "POST"});
+      flash("ret-flash", "Embed cache cleared.", true);
+    } catch (e) {
+      flash("ret-flash", `Clear failed: ${e && e.message || e}`, false);
+    }
+  }
+
+  async function loadOnline() {
+    try {
+      const r = await fetch("/api/online/config", {cache: "no-store"});
+      const d = await r.json();
+      document.getElementById("online-backend").value = d.backend || "auto";
+      document.getElementById("online-topn").value = d.top_n || 5;
+      document.getElementById("online-brave").value = d.brave_api_key ? "(set)" : "";
+      document.getElementById("online-tavily").value = d.tavily_api_key ? "(set)" : "";
+      document.getElementById("online-fetch").checked = !!d.fetch_pages;
+      document.getElementById("online-status").innerHTML = `
+        <span class="wired-pill ${d.brave_api_key  ? "on" : "off"}">brave: ${d.brave_api_key  ? "key set" : "no key"}</span>
+        <span class="wired-pill ${d.tavily_api_key ? "on" : "off"}">tavily: ${d.tavily_api_key ? "key set" : "no key"}</span>
+        <span class="wired-pill ${d.fetch_pages    ? "on" : "off"}">deep-fetch: ${d.fetch_pages ? "on" : "off"}</span>
+      `;
+      document.getElementById("online-dump").textContent = JSON.stringify(d, null, 2);
+    } catch (e) {
+      flash("online-flash", `Load failed: ${e && e.message || e}`, false);
+    }
+  }
+  async function saveOnline() {
+    const body = {
+      backend: document.getElementById("online-backend").value,
+      top_n: parseInt(document.getElementById("online-topn").value, 10),
+      fetch_pages: document.getElementById("online-fetch").checked,
+    };
+    const brave  = document.getElementById("online-brave").value.trim();
+    const tavily = document.getElementById("online-tavily").value.trim();
+    if (brave  && brave  !== "(set)") body.brave_api_key  = brave;
+    if (tavily && tavily !== "(set)") body.tavily_api_key = tavily;
+    try {
+      const r = await fetch("/api/online/config", {
+        method: "POST", headers: {"content-type": "application/json"},
+        body: JSON.stringify(body),
+      });
+      if (!r.ok) { flash("online-flash", `HTTP ${r.status}`, false); return; }
+      flash("online-flash", "Online config saved.", true);
+      loadOnline();
+    } catch (e) {
+      flash("online-flash", `Save failed: ${e && e.message || e}`, false);
+    }
+  }
+  async function testOnline() {
+    const out = document.getElementById("online-test-out");
+    out.innerHTML = `<div class="flash" style="background:var(--paper-2); color:var(--ink-2);">Running test query… (this hits the configured backend)</div>`;
+    try {
+      const r = await fetch("/api/online/test", {
+        method: "POST", headers: {"content-type": "application/json"},
+        body: JSON.stringify({query: "POEA placement fee Philippines domestic worker"}),
+      });
+      const d = await r.json();
+      const results = d.results || [];
+      if (!results.length) {
+        out.innerHTML = `<div class="flash err">No results — backend may be unreachable or rate-limited.</div>`;
+        return;
+      }
+      out.innerHTML = `<div class="json-dump">${escapeHtml(JSON.stringify(results.slice(0, 3), null, 2))}</div>`;
+    } catch (e) {
+      out.innerHTML = `<div class="flash err">${escapeHtml(e && e.message || e)}</div>`;
+    }
+  }
+
+  loadRetrieval();
+  loadOnline();
+</script>
+</body>
+</html>

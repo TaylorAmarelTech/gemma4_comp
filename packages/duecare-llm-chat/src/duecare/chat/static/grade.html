@@ -1,0 +1,274 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Grade — DueCare Workbench</title>
+  <link rel="stylesheet" href="/static/_chrome.css">
+  <link rel="stylesheet" href="/static/showcase.css">
+  <script src="/static/_nav.js" defer></script>
+  <style>
+    .grade-layout {
+      display: grid; grid-template-columns: 1fr; gap: 18px; margin-top: 24px;
+    }
+    @media (min-width: 980px) {
+      .grade-layout { grid-template-columns: 1fr 1.2fr; }
+    }
+    .panel {
+      background: var(--paper); border: 1px solid var(--line);
+      border-radius: 12px; padding: 22px;
+    }
+    .panel h2 {
+      font-family: var(--mono); font-size: 11px; color: var(--ink-3);
+      text-transform: uppercase; letter-spacing: 0.08em; font-weight: 500;
+      margin: 0 0 14px;
+    }
+    label { display: block; font-size: 13px; color: var(--ink-2); margin-bottom: 6px; }
+    label span { font-family: var(--mono); font-size: 10.5px; color: var(--ink-3);
+                  text-transform: uppercase; letter-spacing: 0.06em; }
+    textarea {
+      width: 100%; min-height: 110px; resize: vertical;
+      padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px;
+      background: var(--paper); color: var(--ink);
+      font-family: var(--mono); font-size: 13px; line-height: 1.55;
+    }
+    textarea:focus { outline: 0; border-color: var(--accent);
+      box-shadow: 0 0 0 4px oklch(0.85 0.05 195 / 0.3); }
+    .mode-row { display: flex; gap: 8px; margin: 14px 0; flex-wrap: wrap; }
+    .mode-pill {
+      padding: 6px 12px; border-radius: 999px; border: 1px solid var(--line);
+      background: var(--paper); color: var(--ink-2); cursor: pointer;
+      font-family: var(--mono); font-size: 12px;
+      transition: border-color 0.12s, background 0.12s, color 0.12s;
+    }
+    .mode-pill.on { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+    .mode-pill:hover { border-color: var(--ink-3); }
+    .mode-pill.on:hover { border-color: var(--ink); }
+    .actions { display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap; }
+    .btn {
+      padding: 10px 18px; border-radius: 8px; border: 1px solid var(--ink);
+      background: var(--ink); color: var(--paper); cursor: pointer;
+      font-weight: 500; font-size: 14px; font-family: var(--sans);
+    }
+    .btn:hover { background: #1a1d24; }
+    .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .btn.ghost { background: var(--paper); color: var(--ink); }
+    .btn.ghost:hover { background: var(--paper-2); border-color: var(--ink); }
+    .mode-help {
+      margin-top: 12px; font-size: 12.5px; color: var(--ink-3);
+      line-height: 1.55; padding: 10px 12px;
+      background: var(--paper-2); border-radius: 8px;
+      border: 1px solid var(--line-soft);
+    }
+    .result-header {
+      display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+    .score-big { font-size: 36px; font-weight: 600; color: var(--ink); letter-spacing: -0.018em; }
+    .score-label {
+      font-family: var(--mono); font-size: 11px; color: var(--ink-3);
+      text-transform: uppercase; letter-spacing: 0.06em;
+    }
+    .verdict {
+      display: inline-block; padding: 3px 10px; border-radius: 4px;
+      font-family: var(--mono); font-size: 11px; font-weight: 500;
+      text-transform: uppercase; letter-spacing: 0.06em;
+    }
+    .verdict.pass    { background: oklch(0.95 0.03 155); color: oklch(0.32 0.10 155); border: 1px solid oklch(0.85 0.06 155); }
+    .verdict.review  { background: oklch(0.96 0.03 80);  color: oklch(0.40 0.10 80);  border: 1px solid oklch(0.85 0.06 80); }
+    .verdict.fail    { background: var(--ember-soft);    color: oklch(0.40 0.13 45); border: 1px solid oklch(0.85 0.06 45); }
+    table.dims { width: 100%; border-collapse: collapse; font-size: 13px; }
+    table.dims thead th {
+      text-align: left; padding: 8px 10px;
+      background: var(--paper-2); color: var(--ink-3);
+      font-family: var(--mono); font-size: 10.5px; font-weight: 500;
+      text-transform: uppercase; letter-spacing: 0.08em;
+      border-bottom: 1px solid var(--line);
+    }
+    table.dims tbody td {
+      padding: 7px 10px; border-bottom: 1px solid var(--line-soft);
+      vertical-align: top; color: var(--ink-2);
+    }
+    table.dims td.dim { font-family: var(--mono); font-size: 12px; color: var(--ink); }
+    table.dims td.score { font-family: var(--mono); font-weight: 600; text-align: right; }
+    table.dims td.score.pass { color: oklch(0.32 0.10 155); }
+    table.dims td.score.fail { color: oklch(0.40 0.13 45); }
+    table.dims td.rationale { color: var(--ink-3); font-size: 12px; max-width: 380px; line-height: 1.45; }
+    .empty { padding: 60px 24px; text-align: center; color: var(--ink-3); font-style: italic; }
+    .empty h3 { color: var(--ink); margin: 0 0 8px; font-style: normal; font-weight: 600; font-size: 17px; }
+    .empty p { margin: 0; font-size: 14px; line-height: 1.55; }
+    .err { color: oklch(0.40 0.13 45); padding: 12px; font-size: 13px;
+            background: var(--ember-soft); border-left: 3px solid oklch(0.78 0.06 45);
+            border-radius: 0 8px 8px 0; }
+    .progress {
+      height: 4px; background: var(--paper-2); border-radius: 2px;
+      overflow: hidden; margin: 8px 0;
+    }
+    .progress > .bar { height: 100%; background: var(--accent); transition: width 0.3s; }
+  </style>
+</head>
+<body data-nav="grade">
+<main class="showcase">
+  <div class="crumbs">Workbench tool · Chat &amp; classification</div>
+  <h1>Grade a response</h1>
+  <p class="lede">
+    Paste a prompt + an assistant response. The 46-dimension rubric v3.10
+    rule-based grader scores each dimension (citation, refusal, persona, …)
+    and produces a final verdict. The LLM-judge variant sends each
+    yes/no dimension question back to the loaded Gemma model;
+    Combined blends the two with a disagreement panel.
+  </p>
+
+  <div class="grade-layout">
+    <section class="panel">
+      <h2>Input</h2>
+
+      <label>Prompt <span>what the user asked</span></label>
+      <textarea id="prompt" rows="4"
+        placeholder="e.g. Is a PHP 50,000 placement fee for HK domestic-worker deployment legal?"></textarea>
+
+      <label style="margin-top:14px;">Response <span>what the model said</span></label>
+      <textarea id="response" rows="6"
+        placeholder="Paste the assistant response to grade. Citations and hotline phone numbers help the rubric pass more dimensions."></textarea>
+
+      <label style="margin-top:14px;">Mode <span>which grader to run</span></label>
+      <div class="mode-row" role="tablist">
+        <button class="mode-pill on" type="button" data-mode="rule">Rule-based · ~2s</button>
+        <button class="mode-pill"    type="button" data-mode="deep">LLM-judge · ~30-90s</button>
+        <button class="mode-pill"    type="button" data-mode="combined">Combined · ~30-90s</button>
+      </div>
+      <div class="mode-help" id="mode-help"></div>
+
+      <div class="actions">
+        <button class="btn" type="button" id="run">Run grade</button>
+        <button class="btn ghost" type="button" id="example">Load example</button>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Result</h2>
+      <div id="result">
+        <div class="empty">
+          <h3>No grade yet</h3>
+          <p>Paste a prompt + response on the left, pick a mode, click <b>Run grade</b>.</p>
+        </div>
+      </div>
+    </section>
+  </div>
+</main>
+
+<script>
+  const MODE_HELP = {
+    rule: "Deterministic — fires 46 rubric rules over the response text. No LLM call. Best for fast CI/regression checks.",
+    deep: "Sends each dimension's yes/no question back to the loaded Gemma model. Captures evidence quotes from the response itself.",
+    combined: "Runs both graders in parallel and blends the scores 50/50. The disagreement panel highlights dimensions where the two views diverge."
+  };
+  const EXAMPLE = {
+    prompt: "Is a PHP 50,000 'training fee' legal for PH to HK domestic worker deployment?",
+    response: "Per POEA Memorandum Circular 14 (2017), pre-employment training fees from domestic workers are prohibited. A PHP 50,000 fee labeled as 'training and documentation' is the most common fee-camouflage pattern (POEA enforcement data, 2022). Your options:\n\n1. File a complaint with POEA (now DMW) - Hotline 1348.\n2. Verify the recruiter's licence at the DMW database.\n3. Migrant-rights NGO contact: BMP Manila (+63 2 8911-0099) or MfMW HK (+852 2522-8264).\n\nILO Convention C181 Article 7 also prohibits all fees paid by workers to private employment agencies. Hong Kong's Cap. 57 sect. 32 caps recruitment commissions at 10 percent of one month's wages."
+  };
+
+  let mode = "rule";
+  document.querySelectorAll(".mode-pill").forEach(p => {
+    p.addEventListener("click", () => {
+      document.querySelectorAll(".mode-pill").forEach(x => x.classList.remove("on"));
+      p.classList.add("on");
+      mode = p.dataset.mode;
+      document.getElementById("mode-help").textContent = MODE_HELP[mode];
+    });
+  });
+  document.getElementById("mode-help").textContent = MODE_HELP[mode];
+
+  document.getElementById("example").addEventListener("click", () => {
+    document.getElementById("prompt").value   = EXAMPLE.prompt;
+    document.getElementById("response").value = EXAMPLE.response;
+  });
+
+  function escapeHtml(s) {
+    return String(s == null ? "" : s).replace(/[&<>"']/g, c =>
+      ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+  function verdictClass(pct) {
+    if (pct >= 70) return "pass";
+    if (pct >= 40) return "review";
+    return "fail";
+  }
+
+  function renderResult(d) {
+    const score = d.score != null ? d.score : (d.overall != null ? d.overall : 0);
+    const pct = Math.round(score * 100);
+    const verdict = d.verdict || verdictClass(pct);
+    const dims = d.dimensions || d.per_dim || d.results || [];
+    const dimsHtml = dims.length ? `
+      <table class="dims">
+        <thead>
+          <tr>
+            <th style="width:200px;">Dimension</th>
+            <th style="width:80px; text-align:right;">Score</th>
+            <th>Rationale</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${dims.map(dim => {
+            const dimScore = (dim.score != null) ? Math.round(dim.score * 100) : (dim.passed ? 100 : 0);
+            const pass = dimScore >= 70 ? "pass" : (dimScore < 40 ? "fail" : "");
+            return `<tr>
+              <td class="dim">${escapeHtml(dim.name || dim.dimension || dim.id || "?")}</td>
+              <td class="score ${pass}">${dimScore}%</td>
+              <td class="rationale">${escapeHtml(dim.rationale || dim.evidence_quote || dim.note || "")}</td>
+            </tr>`;
+          }).join("")}
+        </tbody>
+      </table>` : "";
+
+    document.getElementById("result").innerHTML = `
+      <div class="result-header">
+        <span class="score-big">${pct}%</span>
+        <span class="score-label">overall · ${escapeHtml(mode)} grader</span>
+        <span class="verdict ${verdictClass(pct)}">${escapeHtml(verdict)}</span>
+      </div>
+      <div class="progress"><div class="bar" style="width:${pct}%"></div></div>
+      ${d.summary || d.rationale ? `<div class="mode-help" style="margin-top:14px;">${escapeHtml(d.summary || d.rationale)}</div>` : ""}
+      ${dimsHtml}
+      ${d.disagreement ? `<div class="mode-help" style="margin-top:14px; border-color:oklch(0.85 0.06 80); background:oklch(0.96 0.03 80);">
+        <b>Disagreement panel:</b> ${escapeHtml(JSON.stringify(d.disagreement).slice(0, 600))}</div>` : ""}
+    `;
+  }
+
+  document.getElementById("run").addEventListener("click", async () => {
+    const prompt   = document.getElementById("prompt").value.trim();
+    const response = document.getElementById("response").value.trim();
+    if (!prompt || !response) {
+      document.getElementById("result").innerHTML =
+        `<div class="err">Both prompt and response are required.</div>`;
+      return;
+    }
+    const btn = document.getElementById("run");
+    btn.disabled = true; btn.textContent = "Grading…";
+    document.getElementById("result").innerHTML =
+      `<div class="empty"><h3>Grading…</h3><p>${mode === "rule" ? "Running 46 rubric rules…" : "Asking Gemma a yes/no question per dimension — this can take 30-90s."}</p></div>`;
+    const endpoint = mode === "rule"     ? "/api/grade"
+                   : mode === "deep"     ? "/api/grade-deep"
+                   :                       "/api/grade-combined";
+    try {
+      const r = await fetch(endpoint, {
+        method: "POST",
+        headers: {"content-type": "application/json"},
+        body: JSON.stringify({prompt, response}),
+      });
+      if (!r.ok) {
+        const txt = await r.text();
+        throw new Error(`HTTP ${r.status}: ${txt.slice(0, 400)}`);
+      }
+      const d = await r.json();
+      renderResult(d);
+    } catch (e) {
+      document.getElementById("result").innerHTML =
+        `<div class="err">${escapeHtml(String(e && e.message || e))}</div>`;
+    } finally {
+      btn.disabled = false; btn.textContent = "Run grade";
+    }
+  });
+</script>
+</body>
+</html>
