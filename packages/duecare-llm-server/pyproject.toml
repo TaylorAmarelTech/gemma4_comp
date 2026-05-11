@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "duecare-llm-server"
-version = "0.1.0"
+version = "0.1.1"
 description = "FastAPI server exposing the Duecare engine + evidence DB. Card-style homepage with four sub-apps (Enterprise compliance, Individual chatbot, Knowledge / NGO insights, Settings). Built-in cloudflared / ngrok tunnel for Kaggle-hosted demos."
 readme = "README.md"
 license = {text = "MIT"}
