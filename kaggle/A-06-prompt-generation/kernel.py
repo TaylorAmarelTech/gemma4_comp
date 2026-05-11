@@ -655,6 +655,48 @@ def main() -> dict:
     print("=" * 76)
     print(f"[done] log -> {GENERATION_LOG}")
     print("=" * 76)
+
+    # Workbench-consistent UI: launch the minimal shell so this notebook
+    # has the same nav / Logs / Tools experience as the main workbench.
+    try:
+        from duecare.chat._dc_log import dc_log, set_kernel_id
+        set_kernel_id("a-06-prompt-generation")
+        dc_log("kernel.complete", f"prompts generated; log at {GENERATION_LOG}",
+               log_path=GENERATION_LOG)
+        from duecare.chat.kernel_shell import build_minimal_shell
+        summary = {
+            "title": "Prompt generation",
+            "audience": "researcher",
+            "lede": ("Gemma generates new evaluation prompts from the live "
+                     "harness. The full per-phase log is at "
+                     f"{GENERATION_LOG}."),
+            "results": [
+                {"label": "Phases run", "value": len(log.get("phases", {}))},
+                {"label": "Completed",  "value": log.get("completed_at", "?")},
+            ],
+            "artifacts": [
+                {"name": "generation_log.json", "path": GENERATION_LOG},
+            ],
+            "links": [
+                ("Workbench (full)",
+                 "https://www.kaggle.com/code/taylorsamarel/duecare-exploration-workbench"),
+            ],
+            "next_steps": [
+                "Download generation_log.json from /artifact/generation_log.json.",
+                "Open the Logs tab for the live event stream.",
+            ],
+        }
+        import os as _os
+        app, url = build_minimal_shell(
+            summary=summary, kernel_id="a-06-prompt-generation",
+            port=int(_os.environ.get("DC_PORT", "8080")),
+        )
+        if url:
+            print(f"[workbench] {url}")
+        while True:
+            time.sleep(60)
+    except Exception as e:
+        print(f"[workbench] minimal-shell unavailable: {e}")
     return log
 
 
