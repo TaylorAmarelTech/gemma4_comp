@@ -39,7 +39,7 @@
       <code>GET /api/queue/status/{id}</code>.
     </p>
     <div id="conversation" style="border:1px solid var(--border); border-radius:8px;
-          padding:14px; background:#fafafa; min-height:220px; max-height:520px;
+          padding:14px; background:var(--paper-2); min-height:220px; max-height:520px;
           overflow:auto; margin-bottom:14px">
       <p style="color:var(--muted); font-size:13px; margin:0">
         (no messages yet — type a prompt below)
@@ -47,7 +47,7 @@
     </div>
 
     <div id="progress-panel" style="display:none; margin-bottom:12px;
-          padding:10px; background:#f8fafc; border-radius:6px;
+          padding:10px; background:var(--paper-2); border-radius:6px;
           border:1px solid var(--border)">
       <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:6px">
         <span id="progress-state" class="dc-badge">submitting…</span>
@@ -84,21 +84,21 @@
   margin-bottom: 14px; padding: 10px 14px; border-radius: 8px;
   border: 1px solid var(--border); white-space: pre-wrap;
 }
-.dc-msg.user { background: #eff6ff; border-color: #93c5fd; }
+.dc-msg.user { background: var(--accent-soft); border-color: #93c5fd; }
 .dc-msg.gemma { background: #ffffff; }
-.dc-msg.error { background: #fef2f2; border-color: #fca5a5; color: #991b1b; }
+.dc-msg.error { background: var(--ember-soft); border-color: #fca5a5; color: oklch(0.40 0.13 45); }
 .dc-msg .role { font-size: 11px; font-weight: 700; color: var(--muted);
                  text-transform: uppercase; margin-bottom: 4px; }
 .dc-msg .meta { font-size: 11px; color: var(--muted); margin-top: 6px; }
-.dc-msg .meta code { font-family: monospace; background: #f8fafc; padding: 1px 4px;
+.dc-msg .meta code { font-family: monospace; background: var(--paper-2); padding: 1px 4px;
                       border-radius: 3px; }
 .dc-progress {
-  width: 100%; height: 8px; background: #f1f5f9;
+  width: 100%; height: 8px; background: var(--paper-2);
   border-radius: 4px; overflow: hidden; border: 1px solid var(--border);
 }
 .dc-progress > div {
   height: 100%; width: 0%;
-  background: linear-gradient(90deg, var(--primary), #60a5fa);
+  background: linear-gradient(90deg, var(--primary), var(--accent-ink));
   transition: width 200ms linear;
 }
 .dc-progress.indeterminate > div {
@@ -109,10 +109,10 @@
   0% { transform: translateX(-100%); }
   100% { transform: translateX(400%); }
 }
-.dc-state-pending  { background: #fffbeb; color: #92400e; }
-.dc-state-running  { background: #dbeafe; color: #1e40af; }
-.dc-state-completed { background: #d1fae5; color: #065f46; }
-.dc-state-failed   { background: #fee2e2; color: #991b1b; }
+.dc-state-pending  { background: oklch(0.96 0.03 80); color: oklch(0.40 0.10 80); }
+.dc-state-running  { background: var(--accent-soft); color: var(--accent-ink); }
+.dc-state-completed { background: oklch(0.95 0.03 155); color: oklch(0.32 0.10 155); }
+.dc-state-failed   { background: var(--ember-soft); color: oklch(0.40 0.13 45); }
 </style>
 <script>
 function usePrompt(p) {

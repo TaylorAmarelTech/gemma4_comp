@@ -94,11 +94,11 @@
   display: flex; flex-wrap: wrap; gap: 8px;
 }
 .dc-qpills .pill {
-  background: #f8fafc; border: 1px solid var(--border);
+  background: var(--paper-2); border: 1px solid var(--border);
   border-radius: 999px; padding: 6px 14px; cursor: pointer;
   font-size: 13px; transition: border-color 100ms;
 }
-.dc-qpills .pill:hover { border-color: var(--primary); background:#eff6ff; }
+.dc-qpills .pill:hover { border-color: var(--primary); background:var(--accent-soft); }
 .dc-graph-controls {
   display: flex; gap: 8px; align-items: center; flex-wrap: wrap;
   margin-bottom: 10px;
@@ -160,7 +160,7 @@ async function ask() {
   document.getElementById('sql').innerText = j.sql || '(no SQL)';
   if (j.error) {
     document.getElementById('answer').innerHTML =
-      `<span class="dc-pill" style="background:#fef2f2;color:#991b1b">error</span> ${j.error}`;
+      `<span class="dc-pill" style="background:var(--ember-soft);color:oklch(0.40 0.13 45)">error</span> ${j.error}`;
     return;
   }
   if (!j.rows || !j.rows.length) {
@@ -211,22 +211,22 @@ async function loadActors() {
 }
 
 const COLOR_MAP = {
-  "person":              "#4c78a8",
-  "person_or_org":       "#4c78a8",
-  "organization":        "#4c78a8",
+  "person":              "var(--accent)",
+  "person_or_org":       "var(--accent)",
+  "organization":        "var(--accent)",
   "recruitment_agency":  "#4c7a8a",
   "employer":            "#4c7a8a",
   "phone":               "#ef4444",
   "email":               "#f59e0b",
   "financial_account":   "#10b981",
   "money":               "#10b981",
-  "address":             "#6b7280",
-  "location":            "#6b7280",
-  "passport_number":     "#a78bfa",
-  "id_number":           "#a78bfa",
-  "case_bundle":         "#dc2626",
+  "address":             "var(--ink-3)",
+  "location":            "var(--ink-3)",
+  "passport_number":     "var(--accent-ink)",
+  "id_number":           "var(--accent-ink)",
+  "case_bundle":         "oklch(0.40 0.13 45)",
 };
-function _typeColor(t) { return COLOR_MAP[t] || '#6b7280'; }
+function _typeColor(t) { return COLOR_MAP[t] || 'var(--ink-3)'; }
 
 let _cy = null;
 let _activeTypes = new Set();
@@ -321,7 +321,7 @@ async function loadGraph() {
         style: {
           'background-color': el => _typeColor(el.data('etype')),
           'label': 'data(label)',
-          'color': '#111827',
+          'color': 'var(--ink)',
           'font-size': 10,
           'text-valign': 'bottom',
           'text-halign': 'center',
@@ -333,7 +333,7 @@ async function loadGraph() {
           'text-max-width': 120,
           'text-wrap': 'wrap',
           'border-width': el => Math.min(4, (el.data('sevMax') || 0) / 3),
-          'border-color': '#dc2626',
+          'border-color': 'oklch(0.40 0.13 45)',
           'width':  el => 12 + 32 * Math.sqrt((el.data('docCount') || 1) / maxDoc),
           'height': el => 12 + 32 * Math.sqrt((el.data('docCount') || 1) / maxDoc),
         }
@@ -347,7 +347,7 @@ async function loadGraph() {
       { selector: 'edge',
         style: {
           'line-color': el => el.data('relation') === 'co_occur'
-            ? '#cbd5e1' : '#4c7a8a',
+            ? 'var(--ink-3)' : '#4c7a8a',
           'width': el => 1 + 3 * Math.log2(1 + (el.data('docCount') || 1)),
           'curve-style': 'bezier',
           'target-arrow-color': '#4c7a8a',

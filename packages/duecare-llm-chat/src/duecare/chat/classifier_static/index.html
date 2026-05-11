@@ -7,10 +7,12 @@
 <link rel="stylesheet" href="/chrome/_chrome.css">
 <style>
 :root {
-  --bg: #0f172a;        --panel: #1e293b;       --panel2: #334155;
-  --ink: #f1f5f9;       --muted: #94a3b8;       --accent: var(--site-accent);
-  --user: var(--site-accent-ink); --bot: #1e293b; --border: #475569;
-  --good: #10b981;      --warn: #f59e0b;        --bad: #ef4444;
+  /* Light civic-tech research lab theme — matches duecare-ai.com.
+     Source of truth: apps/duecare-ai.com/app/static/styles.css */
+  --bg: #F7F6F1;        --panel: #F7F6F1;       --panel2: #EFEDE4;
+  --ink: #0E1116;       --muted: #5B5F68;       --accent: oklch(0.52 0.08 195);
+  --user: #0E1116;      --bot: #F7F6F1;         --border: #DDD8C9;
+  --good: oklch(0.55 0.10 155); --warn: oklch(0.65 0.10 80); --bad: oklch(0.58 0.14 45);
 }
 * { box-sizing: border-box; }
 html, body {
@@ -86,7 +88,7 @@ header.bar .badge.loaded .dot { background: var(--good); }
 .btn {
   padding: 9px 18px; border-radius: 8px; border: 0; cursor: pointer;
   font-weight: 600; font-size: 14px;
-  background: var(--accent); color: #fff;
+  background: var(--accent); color: var(--paper);
   font-family: var(--sans);
 }
 .btn:disabled { opacity: 0.5; cursor: not-allowed; }
@@ -136,7 +138,7 @@ header.bar .badge.loaded .dot { background: var(--good); }
   border-color: var(--layer-accent, var(--accent));
   background: color-mix(in srgb, var(--layer-accent, var(--accent)) 10%, transparent);
 }
-.harness-tile[data-enabled="true"] .harness-tile-state { background: var(--layer-accent, var(--accent)); color: #fff; }
+.harness-tile[data-enabled="true"] .harness-tile-state { background: var(--layer-accent, var(--accent)); color: var(--paper); }
 
 /* RESULT card */
 .result-card {
@@ -147,7 +149,7 @@ header.bar .badge.loaded .dot { background: var(--good); }
 .result-card[data-action="urgent_safety_referral"],
 .result-card[data-action="escalate_to_regulator"] { border-color: #ef4444; }
 .result-card[data-action="escalate_to_ngo"] { border-color: #f59e0b; }
-.result-card[data-action="review"] { border-color: #3b82f6; }
+.result-card[data-action="review"] { border-color: var(--accent-ink); }
 .result-card[data-action="log_only"],
 .result-card[data-action="allow"] { border-color: #10b981; }
 .result-header {
@@ -163,7 +165,7 @@ header.bar .badge.loaded .dot { background: var(--good); }
   white-space: nowrap;
 }
 .action-allow,         .action-log_only           { background: rgba(16,185,129,0.18); color: #10b981; }
-.action-review                                     { background: rgba(59,130,246,0.18); color: #3b82f6; }
+.action-review                                     { background: var(--accent-soft); color: var(--accent-ink); }
 .action-escalate_to_ngo                           { background: rgba(245,158,11,0.18); color: #f59e0b; }
 .action-escalate_to_regulator,
 .action-urgent_safety_referral                    { background: rgba(239,68,68,0.18); color: #ef4444; }
@@ -188,7 +190,7 @@ header.bar .badge.loaded .dot { background: var(--good); }
   margin-top: 10px; padding: 10px 12px;
   background: rgba(255,255,255,0.03);
   border-left: 2px solid var(--accent);
-  border-radius: 4px; font-size: 12.5px; color: #cbd5e1;
+  border-radius: 4px; font-size: 12.5px; color: var(--ink-2);
   line-height: 1.55;
 }
 
@@ -213,7 +215,7 @@ header.bar .badge.loaded .dot { background: var(--good); }
 }
 .vector-evidence {
   grid-column: 1 / -1; margin-top: 2px; padding-left: 8px;
-  font-size: 11.5px; color: #94a3b8; line-height: 1.4;
+  font-size: 11.5px; color: var(--muted); line-height: 1.4;
   border-left: 2px solid var(--border);
 }
 
@@ -258,7 +260,7 @@ header.bar .badge.loaded .dot { background: var(--good); }
   margin-top: 8px; max-height: 240px; overflow-y: auto;
   padding: 8px 10px; background: rgba(0,0,0,0.3); border-radius: 6px;
   font-family: ui-monospace, monospace; font-size: 11px;
-  color: #cbd5e1; white-space: pre-wrap; word-wrap: break-word;
+  color: var(--ink-2); white-space: pre-wrap; word-wrap: break-word;
   display: none;
 }
 .raw-json.show { display: block; }
@@ -591,7 +593,7 @@ async function runClassification() {
 function _riskColor(v) {
   if (v >= 0.75) return '#ef4444';
   if (v >= 0.5)  return '#f59e0b';
-  if (v >= 0.25) return '#3b82f6';
+  if (v >= 0.25) return '#2f5563';
   return '#10b981';
 }
 function _riskLabel(v) {
@@ -623,7 +625,7 @@ function renderResult(entry) {
   html += `<div class="result-header">`;
   html += `<div>`;
   html += `<div class="result-classification">${escapeHtml(p.classification_label || p.classification || '(unclassified)')}</div>`;
-  html += `<div style="font-size:11.5px; color:var(--muted); margin-top:3px; font-family:ui-monospace,monospace;">${escapeHtml(p.classification || '')}</div>`;
+  html += `<div style="font-size:11.5px; color:var(--muted); margin-top:3px; font-family:var(--mono);">${escapeHtml(p.classification || '')}</div>`;
   html += `</div>`;
   html += `<span class="result-action-pill action-${escapeHtml(action)}">${escapeHtml(action.replace(/_/g, ' '))}</span>`;
   html += `</div>`;
@@ -635,7 +637,7 @@ function renderResult(entry) {
   html += `</div>`;
   html += `<div class="risk-score-row">`;
   html += `<div style="font-size:11.5px; color:var(--muted); min-width:80px;">confidence</div>`;
-  html += `<div class="risk-bar"><div class="risk-bar-fill" style="width:${(conf*100).toFixed(0)}%; background:#3b82f6;"></div></div>`;
+  html += `<div class="risk-bar"><div class="risk-bar-fill" style="width:${(conf*100).toFixed(0)}%; background:#2f5563;"></div></div>`;
   html += `<div class="risk-bar-label">${conf.toFixed(2)}</div>`;
   html += `</div>`;
   // Rationale
@@ -785,13 +787,13 @@ const CATEGORY_ORDER = [
   'borderline_ambiguous', 'off_topic',
 ];
 const CATEGORY_COLOR = {
-  recruitment_post:     '#3b82f6',
+  recruitment_post:     '#2f5563',
   document_receipt:     '#f59e0b',
-  document_letter:      '#a855f7',
+  document_letter:      '#2f5563',
   document_report:      '#ef4444',
   narrative:            '#10b981',
   compliance_query:     '#06b6d4',
-  borderline_ambiguous: '#94a3b8',
+  borderline_ambiguous: '#5B5F68',
   off_topic:            '#64748b',
 };
 
@@ -813,7 +815,7 @@ async function openExamplesModal() {
   let html = `<p style="color:var(--muted); margin-top:0; font-size:12px;">${examples.length} curated example items spanning recruitment ads, documents, narratives, police reports, compliance queries, borderline cases, and off-topic content. Items with a 📄 icon include a synthetic SVG mockup of the document type so you can demo Gemma's multimodal classification (text + image). Click any card to load it into the form.</p>`;
   for (const cat of CATEGORY_ORDER) {
     if (!byCat[cat]) continue;
-    const color = CATEGORY_COLOR[cat] || '#94a3b8';
+    const color = CATEGORY_COLOR[cat] || '#5B5F68';
     html += `<div style="margin:18px 0 10px 0; padding-top:14px; border-top:1px solid var(--border);">`;
     html += `<div style="font-size:11.5px; font-weight:700; color:${color}; letter-spacing:0.06em; text-transform:uppercase; margin-bottom:8px;">${escapeHtml(CATEGORY_LABEL[cat] || cat)} (${byCat[cat].length})</div>`;
     for (const ex of byCat[cat]) {
@@ -826,8 +828,8 @@ async function openExamplesModal() {
       html += `<div style="flex:1; min-width:0;">`;
       html += `<div style="font-weight:700; font-size:13px; color:var(--ink);">${hasImage ? '📄 ' : ''}${escapeHtml(ex.label)}</div>`;
       const preview = ex.content.length > 220 ? ex.content.slice(0, 220) + '…' : ex.content;
-      html += `<div style="font-size:11.5px; color:#cbd5e1; margin-top:6px; line-height:1.5; white-space:pre-wrap; word-wrap:break-word;">${escapeHtml(preview)}</div>`;
-      html += `<div style="margin-top:6px; font-size:10.5px; color:var(--muted); font-family:ui-monospace,monospace;">${escapeHtml(ex.id)}</div>`;
+      html += `<div style="font-size:11.5px; color:var(--ink-2); margin-top:6px; line-height:1.5; white-space:pre-wrap; word-wrap:break-word;">${escapeHtml(preview)}</div>`;
+      html += `<div style="margin-top:6px; font-size:10.5px; color:var(--muted); font-family:var(--mono);">${escapeHtml(ex.id)}</div>`;
       html += `</div></div></div>`;
     }
     html += `</div>`;
@@ -874,7 +876,7 @@ async function useClassifierExample(id) {
 // Pipeline modal (reuses same arrow-flow as the chat playground)
 // ---------------------------------------------------------------------------
 const PIPELINE_LAYER_ORDER = ['persona', 'grep', 'rag', 'tools'];
-const PIPELINE_LAYER_COLOR = {persona:'#a855f7', grep:'#ef4444', rag:'#3b82f6', tools:'#10b981'};
+const PIPELINE_LAYER_COLOR = {persona:'#2f5563', grep:'#ef4444', rag:'#2f5563', tools:'#10b981'};
 const PIPELINE_LAYER_LABEL = {persona:'PERSONA', grep:'GREP', rag:'RAG', tools:'TOOLS'};
 const PIPELINE_LAYER_ROLE = {
   persona: 'prepends an expert role / framework knowledge / response policy',
@@ -906,26 +908,26 @@ function _parrow(label) {
 }
 function _renderLayerBody(layer, t) {
   if (layer === 'persona' && t.text_preview) {
-    return `<div style="padding:10px 12px; background:rgba(168,85,247,0.06); border-radius:6px; font-size:11.5px; color:#cbd5e1; white-space:pre-wrap; font-style:italic; max-height:180px; overflow-y:auto;">${escapeHtml(t.text_preview)}</div>`;
+    return `<div style="padding:10px 12px; background:var(--accent-soft); border-radius:6px; font-size:11.5px; color:var(--ink-2); white-space:pre-wrap; font-style:italic; max-height:180px; overflow-y:auto;">${escapeHtml(t.text_preview)}</div>`;
   }
   if (layer === 'grep' && t.hits?.length) {
     return t.hits.map(h => `<div style="margin-bottom:8px; padding:8px 10px; background:var(--bg); border-radius:6px;">
-      <div style="font-family:ui-monospace,monospace; font-size:12px; font-weight:600;">${escapeHtml(h.rule)} <span style="color:var(--muted); font-size:10.5px; font-weight:400;">[${escapeHtml(h.severity || '')}]</span></div>
+      <div style="font-family:var(--mono); font-size:12px; font-weight:600;">${escapeHtml(h.rule)} <span style="color:var(--muted); font-size:10.5px; font-weight:400;">[${escapeHtml(h.severity || '')}]</span></div>
       <div style="color:var(--muted); font-size:11px; margin-top:3px;">${escapeHtml(h.citation || '')}</div>
-      <div style="color:#cbd5e1; font-size:11.5px; margin-top:4px;">${escapeHtml(h.indicator || '')}</div>
+      <div style="color:var(--ink-2); font-size:11.5px; margin-top:4px;">${escapeHtml(h.indicator || '')}</div>
     </div>`).join('');
   }
   if (layer === 'rag' && t.docs?.length) {
     return t.docs.map(d => `<div style="margin-bottom:8px; padding:8px 10px; background:var(--bg); border-radius:6px;">
       <div style="font-weight:600; font-size:12px;">${escapeHtml(d.title || '?')} <span style="color:var(--muted); font-size:11px; font-weight:400;">score=${d.score}</span></div>
       <div style="color:var(--muted); font-size:11px; margin-top:3px;">${escapeHtml(d.source || '')}</div>
-      <div style="color:#cbd5e1; font-size:11.5px; margin-top:4px; max-height:120px; overflow-y:auto;">${escapeHtml(d.snippet || '')}</div>
+      <div style="color:var(--ink-2); font-size:11.5px; margin-top:4px; max-height:120px; overflow-y:auto;">${escapeHtml(d.snippet || '')}</div>
     </div>`).join('');
   }
   if (layer === 'tools' && t.tool_calls?.length) {
     return t.tool_calls.map(c => `<div style="margin-bottom:8px; padding:8px 10px; background:var(--bg); border-radius:6px;">
-      <div style="font-family:ui-monospace,monospace; font-size:12px; font-weight:600; color:#10b981;">${escapeHtml(c.name)}(${escapeHtml(JSON.stringify(c.args))})</div>
-      <pre style="color:#cbd5e1; font-size:11px; margin:5px 0 0 0; white-space:pre-wrap; word-wrap:break-word; font-family:ui-monospace,monospace; max-height:160px; overflow-y:auto;">${escapeHtml(JSON.stringify(c.result, null, 2))}</pre>
+      <div style="font-family:var(--mono); font-size:12px; font-weight:600; color:#10b981;">${escapeHtml(c.name)}(${escapeHtml(JSON.stringify(c.args))})</div>
+      <pre style="color:var(--ink-2); font-size:11px; margin:5px 0 0 0; white-space:pre-wrap; word-wrap:break-word; font-family:var(--mono); max-height:160px; overflow-y:auto;">${escapeHtml(JSON.stringify(c.result, null, 2))}</pre>
     </div>`).join('');
   }
   return '<div style="color:var(--muted); font-size:11.5px; font-style:italic;">no output</div>';
@@ -937,9 +939,9 @@ function openPipelineModal(ts) {
   const trace = entry.harness_trace;
   const finalText = trace._final_user_text || entry.content;
   const cards = [];
-  cards.push(_pcard({step: 1, color: '#3b82f6', title: 'CONTENT INPUT',
+  cards.push(_pcard({step: 1, color: '#2f5563', title: 'CONTENT INPUT',
     subtitle: `${entry.content.length} chars · raw text submitted for classification`,
-    body: `<pre style="background:var(--bg); padding:10px; border-radius:6px; font-size:11.5px; color:#cbd5e1; white-space:pre-wrap; word-wrap:break-word; max-height:220px; overflow-y:auto; margin:0;">${escapeHtml(entry.content)}</pre>`}));
+    body: `<pre style="background:var(--bg); padding:10px; border-radius:6px; font-size:11.5px; color:var(--ink-2); white-space:pre-wrap; word-wrap:break-word; max-height:220px; overflow-y:auto; margin:0;">${escapeHtml(entry.content)}</pre>`}));
   let n = 2;
   for (const layer of PIPELINE_LAYER_ORDER) {
     const t = trace[layer];
@@ -954,10 +956,10 @@ function openPipelineModal(ts) {
   }
   cards.push(_pcard({step: n++, color: '#f59e0b', title: 'FINAL MERGED PROMPT',
     subtitle: `${finalText.length} chars · what Gemma actually saw`,
-    body: `<pre style="background:var(--bg); padding:10px; border-radius:6px; font-size:11.5px; color:#cbd5e1; white-space:pre-wrap; word-wrap:break-word; max-height:340px; overflow-y:auto; margin:0;">${escapeHtml(finalText)}</pre>`}));
+    body: `<pre style="background:var(--bg); padding:10px; border-radius:6px; font-size:11.5px; color:var(--ink-2); white-space:pre-wrap; word-wrap:break-word; max-height:340px; overflow-y:auto; margin:0;">${escapeHtml(finalText)}</pre>`}));
   cards.push(_pcard({step: n++, color: '#10b981', title: 'CLASSIFIER OUTPUT (JSON)',
     subtitle: `${entry.elapsed_ms}ms generation time`,
-    body: `<pre style="background:var(--bg); padding:10px; border-radius:6px; font-size:11.5px; color:#cbd5e1; white-space:pre-wrap; word-wrap:break-word; max-height:300px; overflow-y:auto; margin:0;">${escapeHtml(JSON.stringify(entry.parsed, null, 2) || entry.raw)}</pre>`}));
+    body: `<pre style="background:var(--bg); padding:10px; border-radius:6px; font-size:11.5px; color:var(--ink-2); white-space:pre-wrap; word-wrap:break-word; max-height:300px; overflow-y:auto; margin:0;">${escapeHtml(JSON.stringify(entry.parsed, null, 2) || entry.raw)}</pre>`}));
   const arrows = ['sent through pipeline', 'persona prepended', 'GREP findings prepended', 'RAG context injected', 'tool results injected', 'sent to Gemma'];
   let html = `<p style="color:var(--muted); margin-top:0; font-size:12px;">Trace of how this content flowed through the safety harness — from raw input, through each enabled layer, into the final prompt Gemma received, and out as the structured classification.</p>`;
   for (let i = 0; i < cards.length; i++) {

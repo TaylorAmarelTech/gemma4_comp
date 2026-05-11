@@ -70,7 +70,7 @@ def generate_chat_viewer(
     grades_json = json.dumps(["best", "good", "neutral", "bad", "worst"])
 
     grade_colors = {
-        "best": "#10b981", "good": "#22c55e",
+        "best": "#10b981", "good": "oklch(0.32 0.10 155)",
         "neutral": "#eab308", "bad": "#f97316", "worst": "#ef4444",
         "error": "#6b7280", "unknown": "#6b7280",
     }
@@ -81,7 +81,7 @@ def generate_chat_viewer(
         count = grades.get(g, 0)
         pct = (count / n * 100) if n else 0
         color = grade_colors.get(g, "#888")
-        grade_bars_html += f'<div style="display:flex;align-items:center;margin:2px 0;"><span style="width:60px;color:{color};font-weight:bold">{g}</span><div style="flex:1;background:#1e293b;border-radius:3px;height:20px;overflow:hidden"><div style="width:{pct}%;background:{color};height:100%;display:flex;align-items:center;padding-left:6px;color:#fff;font-size:11px">{count} ({pct:.0f}%)</div></div></div>'
+        grade_bars_html += f'<div style="display:flex;align-items:center;margin:2px 0;"><span style="width:60px;color:{color};font-weight:bold">{g}</span><div style="flex:1;background:var(--paper);border-radius:3px;height:20px;overflow:hidden"><div style="width:{pct}%;background:{color};height:100%;display:flex;align-items:center;padding-left:6px;color:#fff;font-size:11px">{count} ({pct:.0f}%)</div></div></div>'
 
     return f"""<!DOCTYPE html>
 <html lang="en">
@@ -89,37 +89,46 @@ def generate_chat_viewer(
 <meta charset="utf-8">
 <title>{title}</title>
 <style>
+:root {{
+  /* Light civic-tech research lab theme — matches duecare-ai.com */
+  --bg: #F7F6F1; --paper: #F7F6F1; --paper-2: #EFEDE4;
+  --ink: #0E1116; --ink-2: #2A2D34; --ink-3: #5B5F68;
+  --muted: #5B5F68; --border: #DDD8C9; --line-soft: #E8E4D7;
+  --accent: oklch(0.52 0.08 195);
+  --accent-soft: oklch(0.92 0.03 195);
+  --accent-ink: oklch(0.32 0.07 195);
+}}
 * {{ margin: 0; padding: 0; box-sizing: border-box; }}
-body {{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0f172a; color: #e2e8f0; }}
-.header {{ background: #1e293b; padding: 20px 24px; border-bottom: 1px solid #334155; }}
-.header h1 {{ font-size: 20px; color: #f1f5f9; }}
-.header .subtitle {{ color: #94a3b8; font-size: 13px; margin-top: 4px; }}
-.stats {{ display: flex; gap: 16px; padding: 16px 24px; background: #1e293b; border-bottom: 1px solid #334155; }}
+body {{ font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--ink-2); }}
+.header {{ background: var(--paper); padding: 20px 24px; border-bottom: 1px solid var(--border); }}
+.header h1 {{ font-size: 20px; color: var(--ink); }}
+.header .subtitle {{ color: var(--muted); font-size: 13px; margin-top: 4px; }}
+.stats {{ display: flex; gap: 16px; padding: 16px 24px; background: var(--paper); border-bottom: 1px solid var(--border); }}
 .stat {{ text-align: center; padding: 8px 16px; }}
-.stat-value {{ font-size: 24px; font-weight: bold; color: #f1f5f9; }}
-.stat-label {{ font-size: 11px; color: #64748b; }}
-.controls {{ display: flex; gap: 12px; padding: 12px 24px; background: #0f172a; border-bottom: 1px solid #1e293b; flex-wrap: wrap; align-items: center; }}
-.controls input, .controls select {{ background: #1e293b; border: 1px solid #334155; color: #e2e8f0; padding: 6px 10px; border-radius: 4px; font-size: 13px; }}
+.stat-value {{ font-size: 24px; font-weight: bold; color: var(--ink); }}
+.stat-label {{ font-size: 11px; color: var(--muted); }}
+.controls {{ display: flex; gap: 12px; padding: 12px 24px; background: var(--bg); border-bottom: 1px solid var(--paper); flex-wrap: wrap; align-items: center; }}
+.controls input, .controls select {{ background: var(--paper); border: 1px solid var(--border); color: var(--ink-2); padding: 6px 10px; border-radius: 4px; font-size: 13px; }}
 .controls input {{ flex: 1; min-width: 200px; }}
 .controls select {{ min-width: 120px; }}
 .results {{ padding: 0 24px 24px; }}
-.result-card {{ background: #1e293b; border-radius: 8px; margin-top: 12px; overflow: hidden; border: 1px solid #334155; }}
+.result-card {{ background: var(--paper); border-radius: 8px; margin-top: 12px; overflow: hidden; border: 1px solid var(--border); }}
 .result-header {{ display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; cursor: pointer; }}
-.result-header:hover {{ background: #334155; }}
-.result-id {{ font-weight: bold; color: #94a3b8; font-size: 13px; }}
-.result-category {{ color: #64748b; font-size: 12px; }}
+.result-header:hover {{ background: var(--border); }}
+.result-id {{ font-weight: bold; color: var(--muted); font-size: 13px; }}
+.result-category {{ color: var(--muted); font-size: 12px; }}
 .grade-badge {{ padding: 2px 10px; border-radius: 12px; font-size: 12px; font-weight: bold; color: #fff; }}
-.score-bar {{ width: 80px; height: 6px; background: #334155; border-radius: 3px; overflow: hidden; display: inline-block; vertical-align: middle; margin-left: 8px; }}
+.score-bar {{ width: 80px; height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; display: inline-block; vertical-align: middle; margin-left: 8px; }}
 .score-fill {{ height: 100%; border-radius: 3px; }}
 .result-body {{ padding: 0 16px 16px; display: none; }}
 .result-body.open {{ display: block; }}
-.prompt-text {{ background: #0f172a; padding: 12px; border-radius: 6px; margin: 8px 0; font-size: 13px; line-height: 1.5; white-space: pre-wrap; border-left: 3px solid #3b82f6; }}
-.response-text {{ background: #0f172a; padding: 12px; border-radius: 6px; margin: 8px 0; font-size: 13px; line-height: 1.5; white-space: pre-wrap; border-left: 3px solid #22c55e; }}
+.prompt-text {{ background: var(--bg); padding: 12px; border-radius: 6px; margin: 8px 0; font-size: 13px; line-height: 1.5; white-space: pre-wrap; border-left: 3px solid var(--accent); }}
+.response-text {{ background: var(--bg); padding: 12px; border-radius: 6px; margin: 8px 0; font-size: 13px; line-height: 1.5; white-space: pre-wrap; border-left: 3px solid oklch(0.32 0.10 155); }}
 .meta {{ display: flex; gap: 16px; flex-wrap: wrap; margin-top: 8px; }}
-.meta-item {{ font-size: 12px; color: #94a3b8; }}
-.meta-item strong {{ color: #e2e8f0; }}
+.meta-item {{ font-size: 12px; color: var(--muted); }}
+.meta-item strong {{ color: var(--ink-2); }}
 .grade-dist {{ padding: 12px 24px; }}
-.footer {{ padding: 16px 24px; border-top: 1px solid #334155; color: #64748b; font-size: 12px; text-align: center; }}
+.footer {{ padding: 16px 24px; border-top: 1px solid var(--border); color: var(--muted); font-size: 12px; text-align: center; }}
 </style>
 </head>
 <body>
@@ -137,7 +146,7 @@ body {{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; 
 </div>
 
 <div class="grade-dist">
-    <strong style="color:#94a3b8;font-size:12px">Grade Distribution</strong>
+    <strong style="color:var(--muted);font-size:12px">Grade Distribution</strong>
     {grade_bars_html}
 </div>
 
@@ -162,7 +171,7 @@ body {{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; 
 <div class="results" id="results"></div>
 
 <div class="footer">
-    Generated by <strong>DueCare</strong> — Privacy is non-negotiable. So the lab runs on your machine.<br>
+    Generated by <strong>DueCare</strong> — raw case data stays on the machine running the lab.<br>
     Organizations: Polaris Project | International Justice Mission | POEA | IOM | ECPAT | BP2MI
 </div>
 
@@ -186,14 +195,14 @@ function renderResults(data) {{
                 </div>
                 <div>
                     <span class="grade-badge" style="background:${{color}}">${{r.grade}}</span>
-                    <span style="color:#94a3b8;font-size:13px;margin-left:8px">${{(r.score||0).toFixed(3)}}</span>
+                    <span style="color:var(--muted);font-size:13px;margin-left:8px">${{(r.score||0).toFixed(3)}}</span>
                     <span class="score-bar"><span class="score-fill" style="width:${{scorePct}}%;background:${{color}}"></span></span>
                 </div>
             </div>
             <div class="result-body">
-                <div style="color:#3b82f6;font-size:11px;margin-bottom:4px">PROMPT</div>
+                <div style="color:var(--accent);font-size:11px;margin-bottom:4px">PROMPT</div>
                 <div class="prompt-text">${{(r.text || r.prompt || '(no prompt text)').substring(0,500)}}</div>
-                <div style="color:#22c55e;font-size:11px;margin-bottom:4px">RESPONSE</div>
+                <div style="color:oklch(0.32 0.10 155);font-size:11px;margin-bottom:4px">RESPONSE</div>
                 <div class="response-text">${{(r.response_preview || r.response || '(no response)').substring(0,500)}}</div>
                 <div class="meta">
                     ${{r.failure_mode ? '<div class="meta-item"><strong>Failure Mode:</strong> '+r.failure_mode+'</div>' : ''}}
@@ -206,7 +215,7 @@ function renderResults(data) {{
         container.appendChild(card);
     }});
     document.querySelector('.controls').insertAdjacentHTML('beforeend',
-        '<span style="color:#64748b;font-size:12px;margin-left:auto">Showing '+data.length+'/'+ALL_RESULTS.length+'</span>');
+        '<span style="color:var(--muted);font-size:12px;margin-left:auto">Showing '+data.length+'/'+ALL_RESULTS.length+'</span>');
 }}
 
 function filterResults() {{

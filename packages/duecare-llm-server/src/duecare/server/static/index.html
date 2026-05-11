@@ -33,17 +33,17 @@
       </div>
       <ul class="dc-home-users" aria-label="Built for (use case 1)">
         <li>
-          <div class="dc-user-icon" style="background:#dbeafe;color:#1e40af">⚡</div>
+          <div class="dc-user-icon" style="background:var(--accent-soft);color:var(--accent-ink)">⚡</div>
           <div class="dc-user-name">Social-media platforms</div>
           <div class="dc-user-desc">Moderation queues, transparency reporting under CA AB 587 and Texas HB 20, defective-design-doctrine risk reduction.</div>
         </li>
         <li>
-          <div class="dc-user-icon" style="background:#fef2f2;color:#991b1b">⚖</div>
+          <div class="dc-user-icon" style="background:var(--ember-soft);color:oklch(0.40 0.13 45)">⚖</div>
           <div class="dc-user-name">Government &amp; regulators</div>
           <div class="dc-user-desc">License verification and statute enforcement at DOL, BP2MI, MOM, MOHRE, FET. Real-time license, hotline, and statute lookup.</div>
         </li>
         <li>
-          <div class="dc-user-icon" style="background:#f5f3ff;color:#5b21b6">🔬</div>
+          <div class="dc-user-icon" style="background:var(--accent-soft);color:var(--accent-ink)">🔬</div>
           <div class="dc-user-name">Researchers</div>
           <div class="dc-user-desc">Auditable harness for benchmarking, fine-tuning new models, longitudinal pattern studies across corridors and platforms.</div>
         </li>
@@ -58,17 +58,17 @@
       </div>
       <ul class="dc-home-users" aria-label="Built for (use case 2)">
         <li>
-          <div class="dc-user-icon" style="background:#fef3c7;color:#92400e">🛡</div>
+          <div class="dc-user-icon" style="background:oklch(0.96 0.03 80);color:oklch(0.40 0.10 80)">🛡</div>
           <div class="dc-user-name">NGOs &amp; hotlines</div>
           <div class="dc-user-desc">Bulk case triage, cross-case intelligence, modus-operandi recognition, predatory-actor identification, jurisdictional referral. Polaris, IJM, ECPAT, HRD Nepal, Verité.</div>
         </li>
         <li>
-          <div class="dc-user-icon" style="background:#ecfdf5;color:#065f46">👤</div>
+          <div class="dc-user-icon" style="background:oklch(0.95 0.03 155);color:oklch(0.32 0.10 155)">👤</div>
           <div class="dc-user-name">Individuals</div>
           <div class="dc-user-desc">Workers, families, recruiters self-checking a suspicious offer, message, or contract. Locale-aware advice plus the right hotline number.</div>
         </li>
         <li>
-          <div class="dc-user-icon" style="background:#fef2f2;color:#991b1b">⚖️</div>
+          <div class="dc-user-icon" style="background:var(--ember-soft);color:oklch(0.40 0.13 45)">⚖️</div>
           <div class="dc-user-name">Lawyers &amp; journalists</div>
           <div class="dc-user-desc">Pro-bono attorneys and investigative reporters analysing case files, contract evidence, and complaint letters for litigation, exposure, or victim representation.</div>
         </li>
@@ -109,7 +109,7 @@ body.dc-home-min header.dc-nav { display: none !important; }
 body.dc-home-min {
   min-height: 100vh; margin: 0;
   display: flex; flex-direction: column;
-  background: linear-gradient(135deg, #f8fafc 0%, #eff6ff 60%, #f5f3ff 100%);
+  background: linear-gradient(135deg, var(--paper-2) 0%, var(--accent-soft) 60%, var(--accent-soft) 100%);
 }
 .dc-home-main {
   flex: 1;
@@ -122,7 +122,7 @@ body.dc-home-min {
 .dc-home-brand {
   margin: 0; font-size: 48px; font-weight: 800;
   letter-spacing: -0.03em; color: var(--ink);
-  background: linear-gradient(135deg, var(--primary) 0%, #1e40af 100%);
+  background: linear-gradient(135deg, var(--primary) 0%, var(--accent-ink) 100%);
   -webkit-background-clip: text; background-clip: text;
   -webkit-text-fill-color: transparent;
   line-height: 1;
@@ -159,8 +159,8 @@ body.dc-home-min {
   text-transform: uppercase; letter-spacing: 0.08em;
   padding: 3px 9px; border-radius: 999px;
 }
-.dc-uc-tag-blue  { background: #dbeafe; color: #1e40af; }
-.dc-uc-tag-amber { background: #fef3c7; color: #92400e; }
+.dc-uc-tag-blue  { background: var(--accent-soft); color: var(--accent-ink); }
+.dc-uc-tag-amber { background: oklch(0.96 0.03 80); color: oklch(0.40 0.10 80); }
 .dc-uc-title {
   margin: 6px 0 4px 0; font-size: 16px; font-weight: 700;
   color: var(--ink); letter-spacing: -0.01em; line-height: 1.25;
@@ -222,8 +222,8 @@ body.dc-home-min {
   box-shadow: 0 10px 24px rgba(76, 120, 168, 0.16);
 }
 .dc-home-card-primary {
-  background: linear-gradient(135deg, #ffffff 0%, #eff6ff 100%);
-  border-color: #ddd6fe;
+  background: linear-gradient(135deg, #ffffff 0%, var(--accent-soft) 100%);
+  border-color: oklch(0.85 0.05 195);
 }
 .dc-home-card-icon {
   width: 42px; height: 42px; border-radius: 11px;
@@ -232,7 +232,7 @@ body.dc-home-min {
   font-size: 20px; font-weight: 700; margin-bottom: 12px;
 }
 .dc-home-card-primary .dc-home-card-icon {
-  background: linear-gradient(135deg, var(--primary), #1e40af);
+  background: linear-gradient(135deg, var(--primary), var(--accent-ink));
 }
 .dc-home-card h3 {
   margin: 0 0 6px 0; font-size: 18px; color: var(--ink);
