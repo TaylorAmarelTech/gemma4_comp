@@ -2683,6 +2683,16 @@ def create_app(
             raise
         except Exception as e:  # noqa: BLE001 -- surface to client
             raise HTTPException(500, f"grading failed: {e}") from e
+        try:
+            from duecare.chat._dc_log import dc_log as _dc
+            _score = None
+            if isinstance(result, dict):
+                _score = result.get("score") or result.get("overall")
+            _dc("grade.run", f"mode={mode}",
+                mode=mode, score=_score,
+                response_chars=len(req.response_text or ""))
+        except Exception:
+            pass
         return result
 
     def _evaluator_model_call(prompt_str: str, *, max_new_tokens: int,
@@ -3174,6 +3184,15 @@ def create_app(
                 added.append({"id": doc_id, "title": filename,
                                "size_bytes": len(text)})
 
+        try:
+            from duecare.chat._dc_log import dc_log as _dc
+            _dc("import.upload",
+                f"{len(added)} added, {len(skipped)} skipped",
+                n_added=len(added), n_skipped=len(skipped),
+                n_total=len(_IMPORT_STORE),
+                total_bytes=_import_total_bytes())
+        except Exception:
+            pass
         return {
             "added":       added,
             "skipped":     skipped,
@@ -4473,6 +4492,21 @@ def create_app(
                 state["response"]      = response_text
                 state["elapsed_ms"]    = model_ms
                 state["harness_trace"] = harness["trace"]
+                try:
+                    from duecare.chat._dc_log import dc_log as _dc
+                    _trace = harness.get("trace") or []
+                    _layers = []
+                    for _t in _trace:
+                        if isinstance(_t, dict):
+                            _ln = _t.get("layer") or _t.get("name")
+                            if _ln: _layers.append(_ln)
+                    _dc("chat.reply",
+                        f"{len(response_text)} chars in {model_ms}ms",
+                        elapsed_ms=int(model_ms),
+                        response_chars=len(response_text),
+                        layers_fired=_layers)
+                except Exception:
+                    pass
                 progress_q.put_nowait({
                     "type":          "complete",
                     "response":      response_text,
