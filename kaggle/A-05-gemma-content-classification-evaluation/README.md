@@ -2,7 +2,20 @@
 <!-- duecare:lane-label -->
 > **Serves lanes:** 02 NGO & regulator
 
-The Agency / NGO dashboard. Form-based content submission → structured
+<!-- duecare:judge-quick-path -->
+
+## Judge quick path
+
+| Section | This notebook |
+|---|---|
+| **Lede** | Polished NGO & regulator classifier dashboard for triaging submitted text into risk vectors and recommended actions. |
+| **What it does** | Runs the form-based classifier with Persona, GREP, RAG, and Tools controls, then stores results in a threshold-filterable history queue. |
+| **Demo path** | Paste a synthetic recruitment message, classify it, open the pipeline modal, and filter the history by risk threshold. |
+| **Audience** | NGO & regulator. |
+| **Outputs** | JSON classification envelope, risk vectors, recommended action, history queue, and pipeline evidence. |
+| **Cross-links** | Use the quick links at the bottom for the full workbench, live demo, grading-lift appendix, and public website. |
+
+The NGO & regulator classifier. Form-based content submission → structured
 JSON classification with risk vectors + threshold-filterable history
 queue + pipeline modal. Same toggleable Persona / GREP / RAG / Tools
 harness layers as the chat playground.
@@ -75,7 +88,7 @@ gemma-content-classification-evaluation/
 
 ## Bundled examples (16)
 
-The classifier ships with 16 example items judges can click to load:
+The classifier includes 16 example items judges can click to load:
 
 - 10 text-only (recruitment posts, employer letters, narratives)
 - 6 with embedded SVG document mockups (Facebook recruitment post,
@@ -90,7 +103,7 @@ plain text.
 
 `duecare-llm-core`, `duecare-llm-models`, `duecare-llm-chat`.
 
-The classifier is a single-file FastAPI app shipped inside
+The classifier is a single-file FastAPI app included inside
 `duecare-llm-chat` (`duecare/chat/classifier.py` +
 `classifier_static/`). No additional dependencies beyond the chat
 playground stack.
@@ -104,6 +117,17 @@ python scripts/push_kaggle_demo.py --kernel content-classifier \
 
 The `--enable-gpu false` flag bypasses Kaggle's 2-GPU concurrent-session
 cap; the user toggles GPU ON in the UI before Save & Run All.
+
+---
+
+<!-- duecare:quick-cross-links -->
+
+### Quick cross-links
+
+- **Core workbench:** [#01 core: Migrant-worker safety playground](../01-duecare-exploration-workbench/README.md).
+- **Focused live demo:** [#02 core: Live demo](../02-live-demo/README.md).
+- **Natural next appendix:** [#A11 appendix: Grading-lift regenerator](../A-11-grading-evaluation/README.md).
+- **Public website:** [duecare-ai.com](https://duecare-ai.com).
 
 ---
 
@@ -128,3 +152,12 @@ You are here: **#A05 appendix — NGO classifier evaluation dashboard**.
 - [#A11 appendix: Grading-lift regenerator](../A-11-grading-evaluation/README.md)
 
 Index page: [`kaggle/_INDEX.md`](../_INDEX.md).
+
+---
+
+## Cross-links
+
+- **[DueCare Exploration Workbench (#01)](https://www.kaggle.com/code/taylorsamarel/duecare-exploration-workbench)** -- the full chat playground with all 6 harness layers, 9-variant model picker, 4 grading modes, A/B compare, and every visualization in one place.
+- **[Live demo (#02)](https://www.kaggle.com/code/taylorsamarel/duecare-live-demo)** -- focused public-hub walkthrough demonstrating the +56.5pp lift on a curated set of compound-indicator prompts.
+- **[Next step -> A-04 content knowledge builder](https://www.kaggle.com/code/taylorsamarel/duecare-content-knowledge-builder-playground)** -- build your own knowledge base and re-run the classifier with it.
+- **[Public hub: duecare-ai.com](https://duecare-ai.com)** -- knowledge-pack registry, anonymized signal intake, public-source proposal intake, and the 5-lane audience showcase.

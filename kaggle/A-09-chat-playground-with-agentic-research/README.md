@@ -2,6 +2,19 @@
 <!-- duecare:lane-label -->
 > **Serves lanes:** 04 Researcher · 05 Developer / integration partner
 
+<!-- duecare:judge-quick-path -->
+
+## Judge quick path
+
+| Section | This notebook |
+|---|---|
+| **Lede** | Agentic-research proof of concept that adds on-demand web context to the same DueCare chat harness. |
+| **What it does** | Adds a fifth research toggle, routes search through browser or BYOK providers, and keeps PII filtering plus audit logging in the loop. |
+| **Demo path** | Run the chat, enable Agentic Research, ask for a public-source update, and inspect the full research step trace. |
+| **Audience** | Researcher and Developer / integration partner. |
+| **Outputs** | Chat response, web-search result summaries, full agent step trace, PII-gate findings, and audit events. |
+| **Cross-links** | Use the quick links at the bottom for the full workbench, live demo, 4-toggle harness playground, and public website. |
+
 **Proof-of-concept.** Same chat playground as
 `chat-playground-with-grep-rag-tools`, with a **fifth toggle tile**
 for agentic web research. Demonstrates that GREP / RAG / Tools can
@@ -138,6 +151,17 @@ are pulled in transitively via the chat package's deps.
 
 ---
 
+<!-- duecare:quick-cross-links -->
+
+### Quick cross-links
+
+- **Core workbench:** [#01 core: Migrant-worker safety playground](../01-duecare-exploration-workbench/README.md).
+- **Focused live demo:** [#02 core: Live demo](../02-live-demo/README.md).
+- **Natural next appendix:** [#A02 appendix: 4-toggle harness playground](../A-02-chat-playground-with-grep-rag-tools/README.md).
+- **Public website:** [duecare-ai.com](https://duecare-ai.com).
+
+---
+
 <!-- duecare:kernel-footer -->
 
 ### All DueCare notebooks
@@ -159,3 +183,12 @@ You are here: **#A09 appendix — Agentic-research chat (BYOK + Playwright)**.
 - [#A11 appendix: Grading-lift regenerator](../A-11-grading-evaluation/README.md)
 
 Index page: [`kaggle/_INDEX.md`](../_INDEX.md).
+
+---
+
+## Cross-links
+
+- **[DueCare Exploration Workbench (#01)](https://www.kaggle.com/code/taylorsamarel/duecare-exploration-workbench)** -- the full chat playground with all 6 harness layers, 9-variant model picker, 4 grading modes, A/B compare, and every visualization in one place.
+- **[Live demo (#02)](https://www.kaggle.com/code/taylorsamarel/duecare-live-demo)** -- focused public-hub walkthrough demonstrating the +56.5pp lift on a curated set of compound-indicator prompts.
+- **[Next step -> DueCare Exploration Workbench (#01)](https://www.kaggle.com/code/taylorsamarel/duecare-exploration-workbench)** -- use the same agentic-research path as a layer inside the full workbench.
+- **[Public hub: duecare-ai.com](https://duecare-ai.com)** -- knowledge-pack registry, anonymized signal intake, public-source proposal intake, and the 5-lane audience showcase.

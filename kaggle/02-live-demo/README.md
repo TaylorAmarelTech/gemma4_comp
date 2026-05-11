@@ -2,6 +2,19 @@
 <!-- duecare:lane-label -->
 > **Serves lanes:** 01 Platform safety · 02 NGO & regulator · 03 Individual worker / mobile · 04 Researcher · 05 Developer / integration partner
 
+<!-- duecare:judge-quick-path -->
+
+## Judge quick path
+
+| Section | This notebook |
+|---|---|
+| **Lede** | Focused live demonstration for judges, using the same DueCare workbench shell and public-hub story as the recorded video. |
+| **What it does** | Runs the FastAPI server, the 22-slide walkthrough, and the full safety-harness pipeline from prescan through Gemma 4 verdict and audit trail. |
+| **Demo path** | Run the kernel, open the cloudflared URL, and follow the deck from the human scenario into the live workbench and hub views. |
+| **Audience** | Platform safety, NGO & regulator, Individual worker, Researcher, and Developer / integration partner. |
+| **Outputs** | Live demo page, Workbench pages, response evidence, public-hub routes, and audit-trail views. |
+| **Cross-links** | Use the quick links at the bottom for the full workbench, grading appendix, and public website. |
+
 The user-facing live URL judges click. FastAPI server + cloudflared
 quick-tunnel + 22-slide deck + Workbench. Runs the **full Duecare
 safety-harness pipeline**: heuristic prescan → GREP knowledge base
@@ -83,6 +96,17 @@ upload (not from `dist/`), so the live-demo bundle stays curated.
 
 ---
 
+<!-- duecare:quick-cross-links -->
+
+### Quick cross-links
+
+- **Core workbench:** [#01 core: Migrant-worker safety playground](../01-duecare-exploration-workbench/README.md).
+- **Focused live demo:** this notebook.
+- **Natural next appendix:** [#A11 appendix: Grading-lift regenerator](../A-11-grading-evaluation/README.md).
+- **Public website:** [duecare-ai.com](https://duecare-ai.com).
+
+---
+
 <!-- duecare:kernel-footer -->
 
 ### All DueCare notebooks
@@ -104,3 +128,12 @@ You are here: **#02 core — Live demo (focused walkthrough)**.
 - [#A11 appendix: Grading-lift regenerator](../A-11-grading-evaluation/README.md)
 
 Index page: [`kaggle/_INDEX.md`](../_INDEX.md).
+
+---
+
+## Cross-links
+
+- **[DueCare Exploration Workbench (#01)](https://www.kaggle.com/code/taylorsamarel/duecare-exploration-workbench)** -- the full chat playground with all 6 harness layers, 9-variant model picker, 4 grading modes, A/B compare, and every visualization in one place.
+- **[Live demo (#02)](https://www.kaggle.com/code/taylorsamarel/duecare-live-demo)** -- focused public-hub walkthrough demonstrating the +56.5pp lift on a curated set of compound-indicator prompts.
+- **[Next step -> DueCare Exploration Workbench (#01)](https://www.kaggle.com/code/taylorsamarel/duecare-exploration-workbench)** -- open the full chat playground with all 6 harness layers and 9 model variants.
+- **[Public hub: duecare-ai.com](https://duecare-ai.com)** -- knowledge-pack registry, anonymized signal intake, public-source proposal intake, and the 5-lane audience showcase.

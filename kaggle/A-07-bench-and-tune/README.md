@@ -2,6 +2,19 @@
 <!-- duecare:lane-label -->
 > **Serves lanes:** 04 Researcher · 05 Developer / integration partner
 
+<!-- duecare:judge-quick-path -->
+
+## Judge quick path
+
+| Section | This notebook |
+|---|---|
+| **Lede** | Methodology notebook showing how DueCare turns harness traces into SFT/DPO data, fine-tuned weights, and GGUF export artifacts. |
+| **What it does** | Runs a smoke benchmark, prepares SFT and DPO pairs, fine-tunes Gemma 4 with Unsloth, exports GGUF, and prepares HF Hub outputs. |
+| **Demo path** | Review the pipeline dashboard, confirm each phase status, and inspect the per-phase JSON details before any long GPU run. |
+| **Audience** | Researcher and Developer / integration partner. |
+| **Outputs** | Training data, evaluation deltas, LoRA/fine-tuned artifacts, GGUF export path, and HF Hub metadata. |
+| **Cross-links** | Use the quick links at the bottom for the full workbench, live demo, grading-lift appendix, and public website. |
+
 Appendix-style notebook. **Not** part of the core deployment flow —
 this is the methodology / science piece for advanced users who want
 to fine-tune Gemma 4 on their own corpus. Smoke benchmark (stock
@@ -115,6 +128,17 @@ python scripts/push_kaggle_demo.py --kernel bench-and-tune \
 
 ---
 
+<!-- duecare:quick-cross-links -->
+
+### Quick cross-links
+
+- **Core workbench:** [#01 core: Migrant-worker safety playground](../01-duecare-exploration-workbench/README.md).
+- **Focused live demo:** [#02 core: Live demo](../02-live-demo/README.md).
+- **Natural next appendix:** [#A11 appendix: Grading-lift regenerator](../A-11-grading-evaluation/README.md).
+- **Public website:** [duecare-ai.com](https://duecare-ai.com).
+
+---
+
 <!-- duecare:kernel-footer -->
 
 ### All DueCare notebooks
@@ -136,3 +160,12 @@ You are here: **#A07 appendix — Unsloth fine-tune + GGUF export pipeline**.
 - [#A11 appendix: Grading-lift regenerator](../A-11-grading-evaluation/README.md)
 
 Index page: [`kaggle/_INDEX.md`](../_INDEX.md).
+
+---
+
+## Cross-links
+
+- **[DueCare Exploration Workbench (#01)](https://www.kaggle.com/code/taylorsamarel/duecare-exploration-workbench)** -- the full chat playground with all 6 harness layers, 9-variant model picker, 4 grading modes, A/B compare, and every visualization in one place.
+- **[Live demo (#02)](https://www.kaggle.com/code/taylorsamarel/duecare-live-demo)** -- focused public-hub walkthrough demonstrating the +56.5pp lift on a curated set of compound-indicator prompts.
+- **[Next step -> A-11 grading-evaluation](https://www.kaggle.com/code/taylorsamarel/duecare-grading-evaluation)** -- verify your fine-tune lift against the same 46-dim rubric the headline uses.
+- **[Public hub: duecare-ai.com](https://duecare-ai.com)** -- knowledge-pack registry, anonymized signal intake, public-source proposal intake, and the 5-lane audience showcase.

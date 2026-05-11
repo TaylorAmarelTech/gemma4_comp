@@ -2,6 +2,19 @@
 <!-- duecare:lane-label -->
 > **Serves lanes:** 04 Researcher
 
+<!-- duecare:judge-quick-path -->
+
+## Judge quick path
+
+| Section | This notebook |
+|---|---|
+| **Lede** | Research pipeline notebook for growing the evaluation corpus with Gemma 4-generated prompts and graded responses. |
+| **What it does** | Turns seed rubrics into prompt candidates, graded response ladders, and exportable training/evaluation data. |
+| **Demo path** | Run the generator on a small sample, open the corpus browser, filter prompts, and inspect the full graded response text. |
+| **Audience** | Researcher. |
+| **Outputs** | JSONL prompt corpus, graded-response examples, downloadable CSV, and corpus-browser dashboard. |
+| **Cross-links** | Use the quick links at the bottom for the full workbench, live demo, fine-tune pipeline, and public website. |
+
 Appendix-style notebook. **Not** part of the core deployment flow —
 this is the data-pipeline tool advanced users invoke when they want
 to grow the evaluation corpus beyond the bundled 587 prompts and
@@ -104,6 +117,17 @@ kernel and wheel dataset manually.
 
 ---
 
+<!-- duecare:quick-cross-links -->
+
+### Quick cross-links
+
+- **Core workbench:** [#01 core: Migrant-worker safety playground](../01-duecare-exploration-workbench/README.md).
+- **Focused live demo:** [#02 core: Live demo](../02-live-demo/README.md).
+- **Natural next appendix:** [#A07 appendix: Fine-tune + GGUF pipeline](../A-07-bench-and-tune/README.md).
+- **Public website:** [duecare-ai.com](https://duecare-ai.com).
+
+---
+
 <!-- duecare:kernel-footer -->
 
 ### All DueCare notebooks
@@ -125,3 +149,12 @@ You are here: **#A06 appendix — Gemma generates evaluation prompts**.
 - [#A11 appendix: Grading-lift regenerator](../A-11-grading-evaluation/README.md)
 
 Index page: [`kaggle/_INDEX.md`](../_INDEX.md).
+
+---
+
+## Cross-links
+
+- **[DueCare Exploration Workbench (#01)](https://www.kaggle.com/code/taylorsamarel/duecare-exploration-workbench)** -- the full chat playground with all 6 harness layers, 9-variant model picker, 4 grading modes, A/B compare, and every visualization in one place.
+- **[Live demo (#02)](https://www.kaggle.com/code/taylorsamarel/duecare-live-demo)** -- focused public-hub walkthrough demonstrating the +56.5pp lift on a curated set of compound-indicator prompts.
+- **[Next step -> A-07 bench-and-tune](https://www.kaggle.com/code/taylorsamarel/duecare-bench-and-tune)** -- train Gemma 4 on the prompts you just generated and verify the lift.
+- **[Public hub: duecare-ai.com](https://duecare-ai.com)** -- knowledge-pack registry, anonymized signal intake, public-source proposal intake, and the 5-lane audience showcase.
