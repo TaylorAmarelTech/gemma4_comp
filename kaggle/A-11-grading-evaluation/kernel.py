@@ -305,8 +305,253 @@ except ImportError:
 
 print("\nDone. Re-run with DUECARE_EVAL_PROMPT_IDS=traf_001,textbook_loan_68pct to test other subsets.")
 
-# Workbench-consistent UI: launch the minimal shell so this notebook has the
-# same nav / Logs / Tools experience as the main exploration workbench.
+# ===========================================================================
+# Dashboard: the +XXpp lift visualization
+# ===========================================================================
+def _build_lift_dashboard_html(
+    results: list, aggregate: dict, provenance: dict,
+    output_dir: str, kernel_id: str,
+) -> str:
+    """Render the A-11 lift dashboard as inline HTML.
+    Pulls /static/_chrome.css + /static/_nav.js for workbench consistency.
+    Embeds a side-by-side per-prompt table with bar visualizations,
+    headline hero KPIs, and download buttons for JSON / MD / CSV.
+    """
+    import html as _html
+
+    n = aggregate.get("n", 0) if aggregate else 0
+    mean_off = aggregate.get("mean_pct_off", 0) if aggregate else 0
+    mean_on  = aggregate.get("mean_pct_on", 0) if aggregate else 0
+    lift_pp  = aggregate.get("mean_lift_pp", 0) if aggregate else 0
+    n_helped    = aggregate.get("n_helped", 0)    if aggregate else 0
+    n_unchanged = aggregate.get("n_unchanged", 0) if aggregate else 0
+    n_hurt      = aggregate.get("n_hurt", 0)      if aggregate else 0
+    cit_off = aggregate.get("mean_citations_off", 0) if aggregate else 0
+    cit_on  = aggregate.get("mean_citations_on", 0)  if aggregate else 0
+    g_off   = aggregate.get("mean_grounding_off", 0) if aggregate else 0
+    g_on    = aggregate.get("mean_grounding_on", 0)  if aggregate else 0
+
+    lift_color = ("var(--good)" if lift_pp >= 5 else
+                  ("var(--warn)" if lift_pp >= 0 else "var(--ember)"))
+
+    rows = []
+    for r in (results or []):
+        pid     = _html.escape(str(r.get("prompt_id", "?")))
+        cat     = _html.escape(str(r.get("prompt_category", "")))
+        s_off   = float(r.get("grade_off", {}).get("pct_score", 0))
+        s_on    = float(r.get("grade_on",  {}).get("pct_score", 0))
+        d_pp    = float(r.get("lift", {}).get("pct_score_delta", s_on - s_off))
+        verdict = "helped" if d_pp >= 5 else ("hurt" if d_pp <= -5 else "unchanged")
+        v_color = {"helped":"var(--good)","hurt":"var(--ember)","unchanged":"var(--ink-3)"}[verdict]
+        rows.append(f"""
+        <tr>
+          <td style="font-family:var(--mono); font-size:12px; color:var(--ink-2);">{pid}</td>
+          <td style="font-size:12px; color:var(--ink-3);">{cat}</td>
+          <td style="text-align:right; font-variant-numeric: tabular-nums;">
+            <div style="font-size:13px; color:var(--ink-2);">{s_off:.1f}%</div>
+            <div style="height:6px; background:var(--paper-3); border-radius:4px; margin-top:4px; overflow:hidden;">
+              <div style="height:100%; width:{max(0,min(100,s_off)):.1f}%; background:var(--ink-3);"></div>
+            </div>
+          </td>
+          <td style="text-align:right; font-variant-numeric: tabular-nums;">
+            <div style="font-size:13px; color:var(--ink);">{s_on:.1f}%</div>
+            <div style="height:6px; background:var(--paper-3); border-radius:4px; margin-top:4px; overflow:hidden;">
+              <div style="height:100%; width:{max(0,min(100,s_on)):.1f}%; background:var(--accent);"></div>
+            </div>
+          </td>
+          <td style="text-align:right; font-family:var(--mono); font-size:13px; color:{v_color}; font-weight:600;">
+            {d_pp:+.1f} pp
+          </td>
+          <td style="text-align:center; font-size:11px; color:{v_color}; text-transform:uppercase; letter-spacing:.04em; font-family:var(--mono); font-weight:600;">
+            {verdict}
+          </td>
+        </tr>""")
+    rows_html = "".join(rows) if rows else (
+        '<tr><td colspan="6" style="text-align:center; color:var(--ink-4); '
+        'padding:30px; font-style:italic;">No results yet — re-run the cell.</td></tr>'
+    )
+
+    model = _html.escape(str(provenance.get("model_name", "?")))
+    sha   = _html.escape(str(provenance.get("git_sha", "unknown"))[:12])
+    dsv   = _html.escape(str(provenance.get("dataset_version", "unknown")))
+    grader = _html.escape(str(provenance.get("grader_version", "?")))
+    harness_v = _html.escape(str(provenance.get("harness_version", "?")))
+
+    return f"""<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Lift dashboard · A-11 grading-evaluation · DueCare</title>
+  <link rel="stylesheet" href="/static/_chrome.css">
+  <link rel="stylesheet" href="/static/showcase.css">
+  <script src="/static/_nav.js" defer></script>
+  <style>
+    .wrap {{ max-width: 1180px; margin: 0 auto; padding: 28px 24px 48px; }}
+    .crumbs {{ font-family: var(--mono); font-size: 11px; color: var(--ink-3);
+               text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px; }}
+    h1 {{ margin: 0 0 6px; color: var(--ink); letter-spacing: -0.02em; font-size: 28px; }}
+    .lede {{ color: var(--ink-3); margin: 0 0 22px; line-height: 1.55; font-size: 14px; max-width: 780px; }}
+    .hero {{ display: grid; grid-template-columns: 1.6fr 1fr 1fr 1fr; gap: 14px; margin-bottom: 26px; }}
+    @media (max-width: 880px) {{ .hero {{ grid-template-columns: 1fr 1fr; }} }}
+    .kpi {{ background: #fffdf7; border: 1px solid var(--line);
+            border-radius: 12px; padding: 16px 18px;
+            box-shadow: 0 1px 0 rgba(14,17,22,.04), 0 8px 24px -18px rgba(14,17,22,.12); }}
+    .kpi-label {{ font-family: var(--mono); font-size: 10px; color: var(--ink-3);
+                  text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px; }}
+    .kpi-val {{ font-size: 32px; font-weight: 600; color: var(--ink);
+                font-variant-numeric: tabular-nums; line-height: 1.15; letter-spacing: -0.02em; }}
+    .kpi-sub {{ font-size: 12px; color: var(--ink-3); margin-top: 4px; }}
+    .kpi.headline .kpi-val {{ color: {lift_color}; font-size: 40px; }}
+    .winloss {{ display:flex; height: 8px; border-radius: 4px; overflow: hidden;
+                margin-top: 8px; background: var(--paper-3); }}
+    .winloss .seg-helped {{ background: var(--good); }}
+    .winloss .seg-unchanged {{ background: var(--ink-4); }}
+    .winloss .seg-hurt {{ background: var(--ember); }}
+    .panel {{ background: #fffdf7; border: 1px solid var(--line);
+              border-radius: 12px; padding: 20px 22px; margin-bottom: 20px;
+              box-shadow: 0 1px 0 rgba(14,17,22,.04), 0 8px 24px -18px rgba(14,17,22,.12); }}
+    .panel h2 {{ margin: 0 0 14px; font-size: 11px; color: var(--ink-3);
+                 text-transform: uppercase; letter-spacing: 0.08em; font-family: var(--mono); font-weight: 500; }}
+    table {{ width: 100%; border-collapse: collapse; font-size: 13px; }}
+    th {{ text-align: left; padding: 8px 10px; background: var(--paper-2);
+          color: var(--ink-3); font-weight: 500; font-size: 11px;
+          text-transform: uppercase; letter-spacing: 0.06em; font-family: var(--mono);
+          border-bottom: 1px solid var(--line); }}
+    th.num {{ text-align: right; }}
+    td {{ padding: 10px; border-bottom: 1px solid var(--line-soft); vertical-align: middle; }}
+    .exports {{ display: flex; gap: 10px; flex-wrap: wrap; }}
+    .exports a {{ display: inline-flex; align-items: center; gap: 6px;
+                  padding: 8px 14px; border-radius: 8px;
+                  text-decoration: none; font-size: 13px; font-weight: 500;
+                  background: var(--ink); color: var(--paper); font-family: var(--sans); }}
+    .exports a.ghost {{ background: var(--paper-2); color: var(--ink-2);
+                        border: 1px solid var(--line); }}
+    .exports a:hover {{ filter: brightness(.96); }}
+    .prov {{ font-family: var(--mono); font-size: 11px; color: var(--ink-3); line-height: 1.7; }}
+    .prov code {{ background: var(--paper-2); color: var(--ink-2); padding: 1px 6px;
+                  border-radius: 4px; border: 1px solid var(--line-soft); font-size: 11px; }}
+  </style>
+</head>
+<body data-nav="researcher">
+<div class="wrap">
+  <div class="crumbs">Notebook · {_html.escape(kernel_id)}</div>
+  <h1>Harness lift — {n} prompts, two conditions, 46-dim rubric v3.10</h1>
+  <p class="lede">
+    Each prompt runs twice: once against raw Gemma (no persona / GREP / RAG /
+    tools), once with the full harness. Both responses are graded by the
+    rule-based v3.10 rubric. The headline number is the mean per-prompt
+    score delta, and every per-row score is independently reproducible from
+    the provenance tuple at the bottom.
+  </p>
+
+  <section class="hero">
+    <div class="kpi headline">
+      <div class="kpi-label">Mean lift</div>
+      <div class="kpi-val">{lift_pp:+.1f} pp</div>
+      <div class="kpi-sub">across {n} prompts · rule-based v3.10</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Score before / after</div>
+      <div class="kpi-val">{mean_off:.0f}% <span style="color:var(--ink-3); font-size:18px; font-weight:400;">→</span> {mean_on:.0f}%</div>
+      <div class="kpi-sub">stock Gemma → full harness</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Win / unchanged / hurt</div>
+      <div class="kpi-val" style="font-size:24px;">{n_helped} / {n_unchanged} / {n_hurt}</div>
+      <div class="winloss" aria-label="win-loss segment">
+        <div class="seg-helped"    style="flex:{max(1,n_helped)};"></div>
+        <div class="seg-unchanged" style="flex:{max(1,n_unchanged)};"></div>
+        <div class="seg-hurt"      style="flex:{max(1,n_hurt)};"></div>
+      </div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Grounding lift</div>
+      <div class="kpi-val">{g_off:.0f}% <span style="color:var(--ink-3); font-size:18px; font-weight:400;">→</span> {g_on:.0f}%</div>
+      <div class="kpi-sub">citations: {cit_off:.1f} → {cit_on:.1f} per response</div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2>Per-prompt scorecard</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Prompt</th>
+          <th>Category</th>
+          <th class="num">Stock %</th>
+          <th class="num">Harness %</th>
+          <th class="num">Δ</th>
+          <th style="text-align:center;">Verdict</th>
+        </tr>
+      </thead>
+      <tbody>{rows_html}</tbody>
+    </table>
+  </section>
+
+  <section class="panel">
+    <h2>Export</h2>
+    <div class="exports">
+      <a href="/artifact/duecare_lift_eval.json" download>JSON (full per-prompt detail)</a>
+      <a href="/artifact/duecare_lift_eval.md" class="ghost" download>Markdown report</a>
+      <a href="/export/lift.csv" class="ghost" download>CSV (per-row scores)</a>
+      <a href="/api/lift" class="ghost" target="_blank">Raw JSON via API</a>
+      <a href="/summary" class="ghost">Kernel summary</a>
+      <a href="/static/logs.html" class="ghost">Logs →</a>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2>Provenance</h2>
+    <div class="prov">
+      Model: <code>{model}</code><br>
+      Git SHA: <code>{sha}</code> · Dataset: <code>{dsv}</code><br>
+      Harness: <code>{harness_v}</code> · Grader: <code>{grader}</code><br>
+      Output dir: <code>{_html.escape(str(output_dir))}</code>
+    </div>
+  </section>
+</div>
+</body>
+</html>"""
+
+
+def _build_lift_csv(results: list, aggregate: dict) -> str:
+    """Stream-friendly CSV of the per-prompt scores."""
+    import io, csv
+    buf = io.StringIO()
+    w = csv.writer(buf)
+    w.writerow([
+        "prompt_id", "category",
+        "pct_off", "pct_on", "pct_delta",
+        "citations_off", "citations_on",
+        "grounding_off", "grounding_on",
+        "elapsed_off_s", "elapsed_on_s",
+        "verdict",
+    ])
+    for r in (results or []):
+        d = float(r.get("lift", {}).get("pct_score_delta", 0))
+        verdict = "helped" if d >= 5 else ("hurt" if d <= -5 else "unchanged")
+        w.writerow([
+            r.get("prompt_id", ""),
+            r.get("prompt_category", ""),
+            r.get("grade_off", {}).get("pct_score", 0),
+            r.get("grade_on",  {}).get("pct_score", 0),
+            r.get("lift", {}).get("pct_score_delta", 0),
+            r.get("grade_off", {}).get("citations", 0),
+            r.get("grade_on",  {}).get("citations", 0),
+            r.get("grade_off", {}).get("grounding_pct", 0),
+            r.get("grade_on",  {}).get("grounding_pct", 0),
+            r.get("elapsed_off_s", ""),
+            r.get("elapsed_on_s", ""),
+            verdict,
+        ])
+    return buf.getvalue()
+
+
+# Workbench-consistent UI: launch the minimal shell with the lift dashboard
+# as the homepage so judges see the headline lift number + per-prompt
+# scorecard + export options + provenance tuple immediately on opening
+# the cloudflared URL.
 try:
     import os as _os
     import time as _time
@@ -314,8 +559,29 @@ try:
     set_kernel_id("a-11-grading-evaluation")
     dc_log("kernel.complete", "lift evaluation complete",
            output_dir=str(output_dir),
-           n_prompts=len(results) if results else 0)
+           n_prompts=len(results) if results else 0,
+           mean_lift_pp=(aggregate or {}).get("mean_lift_pp"))
     from duecare.chat.kernel_shell import build_minimal_shell
+    from fastapi.responses import PlainTextResponse, JSONResponse
+
+    dashboard_html = _build_lift_dashboard_html(
+        results=results, aggregate=aggregate, provenance=provenance,
+        output_dir=output_dir, kernel_id="a-11-grading-evaluation",
+    )
+
+    def _api_lift():
+        return JSONResponse({
+            "provenance": provenance, "aggregate": aggregate, "results": results,
+        })
+
+    def _export_lift_csv():
+        csv_text = _build_lift_csv(results, aggregate)
+        return PlainTextResponse(
+            csv_text, media_type="text/csv",
+            headers={"Content-Disposition":
+                     "attachment; filename=duecare_lift_eval.csv"},
+        )
+
     n_results = len(results) if results else 0
     summary = {
         "title": "Grading-lift evaluation (46-dim rubric v3.10)",
@@ -325,8 +591,9 @@ try:
                  "full harness on the curated 5-indicator compound prompt set."),
         "results": [
             {"label": "Prompts evaluated", "value": n_results},
-            {"label": "Model",             "value": MODEL_NAME},
-            {"label": "Aggregate",         "value": str(aggregate)[:80] if aggregate else "?"},
+            {"label": "Mean lift",
+             "value": f"{(aggregate or {}).get('mean_lift_pp', 0):+.1f} pp"},
+            {"label": "Model", "value": MODEL_NAME},
         ],
         "artifacts": [
             {"name": "duecare_lift_eval.json",
@@ -339,13 +606,19 @@ try:
              "https://www.kaggle.com/code/taylorsamarel/duecare-exploration-workbench"),
         ],
         "next_steps": [
-            "Download duecare_lift_eval.json from /artifact/duecare_lift_eval.json.",
+            "Headline lift + per-prompt table is the homepage at /.",
+            "Download CSV via /export/lift.csv, JSON via /artifact/, MD via /artifact/.",
             "Open the Logs tab for the per-prompt grading event stream.",
         ],
     }
     app, url = build_minimal_shell(
         summary=summary, kernel_id="a-11-grading-evaluation",
         port=int(_os.environ.get("DC_PORT", "8080")),
+        homepage_html=dashboard_html,
+        extra_routes={
+            "/api/lift":       ("GET", _api_lift),
+            "/export/lift.csv": ("GET", _export_lift_csv),
+        },
     )
     if url:
         print(f"[workbench] {url}")
