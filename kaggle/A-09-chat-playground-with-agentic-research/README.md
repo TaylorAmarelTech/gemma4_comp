@@ -15,10 +15,10 @@ Used in accordance with the
 
 | Field | Value |
 |---|---|
-| **Kaggle URL** | https://www.kaggle.com/code/taylorsamarel/duecare-chat-playground-with-agentic-research *(TBD)* |
+| **Kaggle URL** | https://www.kaggle.com/code/taylorsamarel/duecare-chat-playground-with-agentic-research *(manual publication pending)* |
 | **Title** | "Duecare Chat Playground with Agentic Research" |
 | **Slug** | `taylorsamarel/duecare-chat-playground-with-agentic-research` |
-| **Wheels dataset** | `taylorsamarel/duecare-chat-playground-with-agentic-research-wheels` *(TBD)* |
+| **Wheels dataset** | `taylorsamarel/duecare-chat-playground-with-agentic-research-wheels` *(local wheels present; manual dataset publication pending)* |
 | **Models attached** | `google/gemma-4/Transformers/{e2b,e4b,26b-a4b,31b}-it/1` |
 | **GPU** | T4 ×2 (default E4B-it; works on single T4) |
 | **Internet** | **REQUIRED** (the agentic loop calls the web) |
@@ -144,7 +144,7 @@ are pulled in transitively via the chat package's deps.
 
 You are here: **#A09 appendix — Agentic-research chat (BYOK + Playwright)**.
 
-- [#01 core: Migrant-worker safety playground](../01-duecare-harness-chat/README.md)
+- [#01 core: Migrant-worker safety playground](../01-duecare-exploration-workbench/README.md)
 - [#02 core: Live demo (focused walkthrough)](../02-live-demo/README.md)
 - [#A01 appendix: Stock Gemma 4 chat baseline](../A-01-chat-playground/README.md)
 - [#A02 appendix: Original 4-toggle subset playground](../A-02-chat-playground-with-grep-rag-tools/README.md)

@@ -29,7 +29,7 @@ kernel inline. The kernel.py file is the source of truth.
 ## Build status — 2 core + 11 appendix = 13 submission notebooks
 
 **Submission shape (2026-05-05):** judges land on the unified
-`01-duecare-harness-chat` notebook to see every capability surface,
+`01-duecare-exploration-workbench` notebook to see every capability surface,
 then proceed to `02-live-demo` for the focused thesis demonstration.
 The 11 specialised notebooks (A1–A11) remain as appendix for depth
 signal. Folder names use the `01-` / `02-` / `A-01-` ... `A-11-`
@@ -38,7 +38,7 @@ canonical presentation order.
 
 | # | Folder | Files | Wheels (dataset slug) | Kernel slug | Publish |
 |---|---|:-:|---|---|:-:|
-| **1** | [`01-duecare-harness-chat/`](./01-duecare-harness-chat/) ★ omni playground | ✓ 3 (script) | `taylorsamarel/duecare-harness-chat-wheels` ✓ live | `taylorsamarel/duecare-harness-chat` | pending |
+| **1** | [`01-duecare-exploration-workbench/`](./01-duecare-exploration-workbench/) ★ omni playground | ✓ 3 (script) | `taylorsamarel/duecare-harness-chat-wheels` ✓ live | `taylorsamarel/duecare-harness-chat` | pending |
 | **2** | [`02-live-demo/`](./02-live-demo/) ★ focused live demo | ✓ all 4 | `taylorsamarel/duecare-live-demo-wheels` ✓ live | `taylorsamarel/duecare-live-demo` | live |
 | A1 | [`A-01-chat-playground/`](./A-01-chat-playground/) (baseline, harness OFF) | ✓ all 4 | `taylorsamarel/duecare-chat-playground-wheels` ✓ live | `taylorsamarel/duecare-chat-playground` | live |
 | A2 | [`A-02-chat-playground-with-grep-rag-tools/`](./A-02-chat-playground-with-grep-rag-tools/) (4-toggle harness) | ✓ all 4 | `taylorsamarel/duecare-chat-playground-with-grep-rag-tools-wheels` ✓ live | `taylorsamarel/duecare-chat-playground-with-grep-rag-tools` | live |
@@ -52,7 +52,7 @@ canonical presentation order.
 | A10 | [`A-10-chat-playground-jailbroken-models/`](./A-10-chat-playground-jailbroken-models/) (abliterated baselines) | ✓ all 4 | `taylorsamarel/duecare-chat-playground-jailbroken-models-wheels` ✓ live | `taylorsamarel/duecare-chat-playground-jailbroken-models` | pending |
 | A11 | [`A-11-grading-evaluation/`](./A-11-grading-evaluation/) (lift regenerator) | ✓ all 4 | `taylorsamarel/duecare-grading-evaluation-wheels` ✓ live | `taylorsamarel/duecare-grading-evaluation` | pending |
 
-> **Note on slugs vs folders.** The folder name (`01-duecare-harness-chat/`)
+> **Note on slugs vs folders.** The folder name (`01-duecare-exploration-workbench/`)
 > is local-organization only — Kaggle never sees it. The Kaggle
 > kernel slug (`taylorsamarel/duecare-harness-chat`) is set by the
 > `id` field inside `kernel-metadata.json` and is what appears in
@@ -95,7 +95,7 @@ Folders with `kernel-metadata.json` set to `kernel_type: script`
 ship `kernel.py` directly to Kaggle. They MAY also include a
 `notebook.ipynb` for in-repo browsing — judges who open the folder
 in Jupyter/Colab see the same source as kernel.py with a markdown
-intro on top. Currently `01-duecare-harness-chat/` ships
+intro on top. Currently `01-duecare-exploration-workbench/` ships
 kernel.py only; `A-11-grading-evaluation/` ships both. Folders with
 `kernel_type: notebook` always ship both.
 

@@ -49,7 +49,7 @@ py -3.10 scripts/v141_smoke_all_endpoints.py
 py -3.10 scripts/v141_word_count.py
 # All three must pass before pushing.
 
-cd kaggle/01-duecare-harness-chat/wheels
+cd kaggle/01-duecare-exploration-workbench/wheels
 kaggle datasets version -m "v0.14.7: 8-component platform framing (Runtime/Harness/Exchange/Eval/Trainer/Sentinel/Channels/Mobile) + deployment self-audit gate + sanitizer for Gemma 4 thinking-channel artifacts + 26-entry hotlines directory + live GREP tester + cross-layer search + RAG retrieval overlay + GREP fire-count leaderboard + 11 dedicated viewer pages — see docs/release_checklist_v0_14_5.md for the full verification checklist"
 
 # Then for each appendix wheel folder you want bumped:
@@ -60,7 +60,7 @@ kaggle datasets version -m "v0.14.7 wheel sync"
 
 Then on Kaggle:
 
-- [ ] Restart `01-duecare-harness-chat` from the Kaggle UI so the new
+- [ ] Restart `01-duecare-exploration-workbench` from the Kaggle UI so the new
       wheel actually loads.
 - [ ] **Critical:** scroll the notebook stdout for the `DUECARE
       SELF-AUDIT · chat-package 0.14.7` banner with all minimums met.

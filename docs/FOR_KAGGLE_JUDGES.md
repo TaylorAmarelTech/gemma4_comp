@@ -39,8 +39,15 @@ three outcomes: prevent exploitation before it spreads, assist victims
 and at-risk workers, and help stakeholders understand what is happening
 and why. OFWs are a demo persona, not the product category. Built
 specifically for partners who cannot send sensitive case data to
-frontier APIs, shipping as on-device GGUF (llama.cpp) and LiteRT
-alongside a live hosted demo and the public hub.
+frontier APIs, with validated local/demo surfaces now and on-device
+GGUF (llama.cpp) plus LiteRT deployment paths tracked for the edge
+story.
+
+**Notebook status note:** the final judge-facing path is **13 notebooks**
+(2 core + 11 appendix). The two core notebooks are the primary live
+entry points; appendix notebooks are transparently marked live or
+`publish pending` in the table below until Taylor completes the manual
+Kaggle UI publish steps.
 
 ## Where to verify each claim
 
@@ -56,7 +63,7 @@ alongside a live hosted demo and the public hub.
 | **`evaluator_call` hook for separating LLM-judge model from chat model** (v0.13.0; abliterated / frontier / larger-Gemma patterns supported, Kaggle-default in-process self-grade due to VRAM) | `packages/duecare-llm-chat/src/duecare/chat/app.py:_evaluator_model_call` |
 | **Hybrid retrieval** — BM25 + optional dense + RRF fusion, with reranker hook | `app.py:_hybrid_fuse_with_dense` + `kernel_helpers/embedding.py` |
 | **Path tracing** — every retrieval-pipeline stage logged | `app.py:_path_trace_record` + chat UI's "RETRIEVAL PATH TRACE" card |
-| **A/B Compare tab** — same prompt, two harness configurations, side-by-side grades | `kaggle/01-duecare-harness-chat/kernel.py` live; UI button next to "About" |
+| **A/B Compare tab** — same prompt, two harness configurations, side-by-side grades | `kaggle/01-duecare-exploration-workbench/kernel.py` live; UI button next to "About" |
 | **License + attribution** — every bundled asset, every model, every third-party reference | `LICENSES.md` |
 | **Public hub** — knowledge-pack registry + anonymized signal intake + public-source proposal intake | [duecare-ai.com](https://duecare-ai.com) (code at [`apps/duecare-ai.com/`](../apps/duecare-ai.com/), deployed via repo-root `render.yaml`) |
 | **Hub API surface** — `GET /api/hub/knowledge-packs`, `POST /api/hub/signals`, `POST /api/hub/opencrawl/updates`, `GET /api/hub/trends`, `GET /api/hub/status`, `GET /api/health` | [duecare-ai.com/docs](https://duecare-ai.com/docs) (FastAPI auto-generated OpenAPI) |
@@ -170,7 +177,7 @@ app = create_app(
   phone-number prefixes. See `LICENSES.md` for the synthetic-
   disclaimer.
 - It does not claim to detect every trafficking pattern in the world.
-  161 GREP rules + 46 RAG docs + 26 citation edges cover the major
+   161 GREP rules + 46 RAG docs + 46 citation edges cover the major
   documented vectors well, but new patterns appear weekly — the
   curator-block JSON pattern lets stakeholders contribute updates
   without a code change.

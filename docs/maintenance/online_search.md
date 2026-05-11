@@ -36,7 +36,7 @@ care which provider implements it.
 | **Playwright agentic** | Free | No (browser only) | Real-browser scraping. Slow (~10s) but bypasses bot detection. Used in A-09 appendix. |
 | **Custom URL fetch** | Free | No | Direct httpx GET on a URL the user supplies |
 
-The bundled order in `kaggle/01-duecare-harness-chat/kernel.py`:
+The bundled order in `kaggle/01-duecare-exploration-workbench/kernel.py`:
 
 1. Try Tavily if `TAVILY_API_KEY` set
 2. Try Brave if `BRAVE_API_KEY` set

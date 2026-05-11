@@ -20,10 +20,10 @@ Hub). Used in accordance with the
 
 | Field | Value |
 |---|---|
-| **Kaggle URL** | https://www.kaggle.com/code/taylorsamarel/duecare-chat-playground-jailbroken-models *(TBD — kernel needs creation)* |
+| **Kaggle URL** | https://www.kaggle.com/code/taylorsamarel/duecare-chat-playground-jailbroken-models *(manual publication pending)* |
 | **Title on Kaggle** | "Duecare Chat Playground Jailbroken Models" |
 | **Slug** | `taylorsamarel/duecare-chat-playground-jailbroken-models` |
-| **Wheels dataset** | `taylorsamarel/duecare-chat-playground-jailbroken-models-wheels` *(TBD — needs upload)* |
+| **Wheels dataset** | `taylorsamarel/duecare-chat-playground-jailbroken-models-wheels` *(local wheels present; manual dataset publication pending)* |
 | **Models attached** | NONE (HF Hub download per JAILBROKEN_MODEL config) |
 | **GPU** | T4 ×2 (default 31B variant; smaller variants run on a single T4) |
 | **Internet** | ON (HF Hub download + cloudflared) |
@@ -73,7 +73,7 @@ chat-playground-jailbroken-models/
 ├── notebook.ipynb         ← built artifact
 ├── kernel-metadata.json   ← Kaggle kernel config
 ├── README.md              ← this file
-└── wheels/                ← dataset-metadata.json (3 wheels TBD)
+└── wheels/                ← dataset-metadata.json + local wheels for manual Kaggle upload
 ```
 
 ## Status
@@ -84,7 +84,7 @@ as `live-demo/kernel.py`. Same shutdown infrastructure as the other
 `/api/shutdown` POST). Yellow "JAILBROKEN MODEL LOADED — refusals
 ablated" banner (top-left) reminds the user this isn't a normal
 playground. Wheels dataset
-(`duecare-chat-playground-jailbroken-models-wheels`) needs upload.
+(`duecare-chat-playground-jailbroken-models-wheels`) is staged locally for Taylor's manual Kaggle upload.
 
 ---
 
@@ -94,7 +94,7 @@ playground. Wheels dataset
 
 You are here: **#A10 appendix — Jailbroken-Gemma comparison**.
 
-- [#01 core: Migrant-worker safety playground](../01-duecare-harness-chat/README.md)
+- [#01 core: Migrant-worker safety playground](../01-duecare-exploration-workbench/README.md)
 - [#02 core: Live demo (focused walkthrough)](../02-live-demo/README.md)
 - [#A01 appendix: Stock Gemma 4 chat baseline](../A-01-chat-playground/README.md)
 - [#A02 appendix: Original 4-toggle subset playground](../A-02-chat-playground-with-grep-rag-tools/README.md)

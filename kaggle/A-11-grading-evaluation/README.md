@@ -8,6 +8,16 @@ twice each — once with the harness OFF, once with full harness ON
 v2 grader. Produces the falsifiable headline lift number with
 per-prompt + per-dimension detail.
 
+| Field | Value |
+|---|---|
+| **Status** | Appendix evaluation kernel; public-ready metadata; manual Kaggle publication only |
+| **Kernel type** | Script kernel by design (`kernel.py` is the source of truth) |
+| **Kaggle URL** | https://www.kaggle.com/code/taylorsamarel/duecare-grading-evaluation |
+| **Wheels dataset** | `taylorsamarel/duecare-grading-evaluation-wheels` |
+| **Models attached** | Gemma 4 E2B / E4B / 26B-A4B / 31B metadata declared; kernel can also download by `DUECARE_MODEL_NAME` with `HF_TOKEN` |
+| **GPU** | T4 |
+| **Internet** | Required for runtime model download when not using attached weights |
+
 ## What it produces
 
 1. **`duecare_lift_eval.json`** — full per-prompt detail (responses,
@@ -76,6 +86,24 @@ EVALUATION harness. Compare with:
 
 https://www.kaggle.com/code/taylorsamarel/duecare-grading-evaluation
 
+## Files in this folder
+
+```text
+grading-evaluation/
+├── kernel.py            ← source-of-truth script kernel
+├── notebook.ipynb       ← browsing wrapper generated from the script
+├── kernel-metadata.json ← Kaggle metadata; public-ready, script kernel
+├── README.md            ← this file
+└── wheels/              ← local wheels for manual Kaggle dataset upload
+```
+
+## Publishing
+
+Do not auto-publish this kernel. Taylor performs the final Kaggle UI / CLI
+push manually after checking the public links and attached wheel dataset.
+This README intentionally documents the script-kernel shape because A-11 is
+an automated evaluator, not an interactive notebook UI.
+
 ---
 
 <!-- duecare:kernel-footer -->
@@ -84,7 +112,7 @@ https://www.kaggle.com/code/taylorsamarel/duecare-grading-evaluation
 
 You are here: **#A11 appendix — Grading-lift regenerator**.
 
-- [#01 core: Migrant-worker safety playground](../01-duecare-harness-chat/README.md)
+- [#01 core: Migrant-worker safety playground](../01-duecare-exploration-workbench/README.md)
 - [#02 core: Live demo (focused walkthrough)](../02-live-demo/README.md)
 - [#A01 appendix: Stock Gemma 4 chat baseline](../A-01-chat-playground/README.md)
 - [#A02 appendix: Original 4-toggle subset playground](../A-02-chat-playground-with-grep-rag-tools/README.md)

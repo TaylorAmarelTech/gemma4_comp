@@ -81,8 +81,8 @@ Two of the five explicit Gemma 4 selling points are missing. **Add both
 to Phase 4.**
 
 ### 1.5 Preferred use-case contexts from the rules
-> "A classroom with spotty internet, a medical site far from a data
-> center, or a community where privacy is non-negotiable."
+> A low-resource or sensitive-data setting where raw case content cannot
+> be sent casually to cloud APIs.
 
 The useful angle is the concrete deployment boundary behind that rule:
 frontline NGOs, recruitment regulators, labor ministries, and workers
@@ -649,14 +649,14 @@ polish"), due start of week 5.**
 | What we claim | Where it's proven |
 |---|---|
 | Real-world problem (281M migrants, 28M in forced labor, $236B trade) | `docs/writeup_draft.md §1` |
-| Inform-AND-document north star | `docs/writeup_draft.md §1a`; demoed in 01-duecare-harness-chat |
+| Inform-AND-document north star | `docs/writeup_draft.md §1a`; demoed in 01-duecare-exploration-workbench |
 | Worker may refuse → harm prevented; pay anyway → journal pre-stages refund claim | `duecare-journey-android` v0.9 RefundClaim auto-draft |
 
 ### Safety & Trust Track ($10K)
 
 | What we claim | Where it's proven |
 |---|---|
-| 5-layer safety harness with toggleable measurement | 01-duecare-harness-chat (`/api/harness-info`) |
+| 5-layer safety harness with toggleable measurement | 01-duecare-exploration-workbench (`/api/harness-info`) |
 | 46-dim universal grader, use-case-aware weighting | `RUBRIC_UNIVERSAL["dimensions"]` count = 21; `tests/test_harness_v3_6.py` |
 | Two harm-axis dims (operational_information_provided + harm_enablement_check) | `_rubric_universal.json`; `tests/test_harness_v3_6.py` 5 cases |
 | LLM evaluator with evidence-grounding check | `grade_response_via_evaluator()`; M1 fix in `grading_system_audit.md` |
@@ -669,7 +669,7 @@ polish"), due start of week 5.**
 
 | What we claim | Status |
 |---|---|
-| Unsloth FastModel loader for 4 on-device variants | ✅ `kaggle/01-duecare-harness-chat/kernel.py` |
+| Unsloth FastModel loader for 4 on-device variants | ✅ `kaggle/01-duecare-exploration-workbench/kernel.py` |
 | LoRA SFT on harness-distilled pairs | ✅ A-07 bench-and-tune notebook |
 | DPO on 5-grade response examples | ✅ A-07 bench-and-tune notebook |
 | GGUF Q8_0 export for llama.cpp | ✅ A-07 bench-and-tune notebook |

@@ -40,8 +40,8 @@
 > same harness pre-stages the refund claim. Harm reduction, not
 > paternalism. Fully offline.
 >
-> **74,567 prompts. 6 weighted rubrics. 66 evaluation criteria.
-> One CLI command. On your laptop or in your pocket.**
+> **74,567 repo-config prompts. 6 weighted rubrics. 66 evaluation criteria.
+> Reproducible CLI and notebook surfaces. On your laptop or in your pocket.**
 >
 > **Built for the [Gemma 4 Good Hackathon](https://www.kaggle.com/competitions/gemma-4-good-hackathon).**
 > Gemma 4 is DueCare's first published benchmark.
@@ -97,12 +97,14 @@
 
 ## Start here by role
 
+📋 **[Setup Requirements](docs/SETUP_REQUIREMENTS.md)** — GPU, environment setup, and dependencies for all platforms
+
 | Lane | You are | Read first |
 |---|---|---|
 | 01 Platform safety | A trust & safety team or recruitment marketplace integrating moderation | [`docs/scenarios/enterprise_pilot.md`](./docs/scenarios/enterprise_pilot.md) · [`docs/scenarios/recruiter-self-audit.md`](./docs/scenarios/recruiter-self-audit.md) · [`docs/deployment_enterprise.md`](./docs/deployment_enterprise.md) |
 | 02 NGO & regulator | An NGO caseworker, legal aid organization, regulator, or embassy desk | [`docs/scenarios/ngo-office-deployment.md`](./docs/scenarios/ngo-office-deployment.md) · [`examples/deployment/ngo-office-edge/README.md`](./examples/deployment/ngo-office-edge/README.md) |
 | 03 Individual worker / mobile | A migrant worker, peer supporter, or community helper using the Android app | [`docs/scenarios/worker-self-help.md`](./docs/scenarios/worker-self-help.md) · [`docs/architecture/duecare_mobile.md`](./docs/architecture/duecare_mobile.md) · [`docs/android_app_architecture.md`](./docs/android_app_architecture.md) |
-| 04 Researcher | An academic, journalist, policy analyst, or Kaggle judge | [`docs/FOR_KAGGLE_JUDGES.md`](./docs/FOR_KAGGLE_JUDGES.md) · [`docs/FOR_PEER_REVIEW.md`](./docs/FOR_PEER_REVIEW.md) · [`docs/scenarios/researcher-analysis.md`](./docs/scenarios/researcher-analysis.md) · [`kaggle/01-duecare-harness-chat/README.md`](./kaggle/01-duecare-harness-chat/README.md) |
+| 04 Researcher | An academic, journalist, policy analyst, or Kaggle judge | [`docs/FOR_KAGGLE_JUDGES.md`](./docs/FOR_KAGGLE_JUDGES.md) · [`docs/FOR_PEER_REVIEW.md`](./docs/FOR_PEER_REVIEW.md) · [`docs/scenarios/researcher-analysis.md`](./docs/scenarios/researcher-analysis.md) · [`kaggle/01-duecare-exploration-workbench/README.md`](./kaggle/01-duecare-exploration-workbench/README.md) |
 | 05 Developer / integration partner | A team embedding DueCare into your own product, bot, dashboard, or internal workflow | [`docs/install.md`](./docs/install.md) · [`docs/embedding_guide.md`](./docs/embedding_guide.md) · [`packages/duecare-llm/README.md`](./packages/duecare-llm/README.md) · [`apps/duecare-ai.com/app/templates/client-connect.html`](./apps/duecare-ai.com/app/templates/client-connect.html) |
 
 ## Why this exists
@@ -245,7 +247,24 @@ compliance crosswalk, threat model, vendor questionnaire) at
 Open the notebook, set Accelerator to **GPU T4 x2**, and run:
 - [100 — Gemma Exploration](https://www.kaggle.com/code/taylorsamarel/duecare-gemma-exploration) — real Gemma inference + scoring
 
-### Run a workflow
+### Run the validated local CLI bootstrap
+
+The clean install path currently smoke-tested from local wheels is:
+
+```bash
+pip install duecare-llm-cli
+duecare init
+duecare demo-stage
+duecare serve --port 8080
+```
+
+### Run a workflow with the meta package
+
+The `duecare-llm` meta-package exposes the workflow-oriented CLI. Its
+lightweight discovery path and an end-to-end `rapid_probe` workflow were
+smoke-tested from local wheels against a local OpenAI-compatible backend.
+Real Gemma/Ollama/API runs still require the selected target-model backend
+to be installed and configured.
 
 ```bash
 # Trafficking domain, rapid smoke-test workflow
@@ -493,15 +512,20 @@ When Gemma 5 ships, that's the entire integration cost: one YAML row.
 Duecare ships three domain packs out of the box, demonstrating that the
 architecture is **genuinely domain-agnostic**:
 
-| Pack | Seed prompts | Evidence items | Categories | Taxonomy dimensions |
+| Pack | Seed prompts in repo config | Evidence items | Categories | Taxonomy dimensions |
 |---|---|---|---|---|
 | `trafficking` | 74,567 | 10 | 5 | sector, corridor, ILO indicator, attack category, difficulty |
 | `tax_evasion` | 4 | 4 | 4 | scheme type, jurisdiction, FATF indicator, sophistication |
 | `financial_crime` | 3 | 3 | 4 | laundering stage, typology, FATF indicator, jurisdiction |
 
-All three use the same `FileDomainPack` implementation. All three work
-with the same `duecare run` command. All three are hot-swappable at the
-CLI.
+The full trafficking prompt corpus lives in
+`configs/duecare/domains/trafficking/seed_prompts.jsonl`; the PyPI
+domain wheel bundles a lightweight sample so installs stay small.
+
+All three use the same `FileDomainPack` implementation. All three are
+discoverable through the meta-package CLI (`duecare domains list`) and
+are hot-swappable in the workflow runner once a target-model backend is
+installed.
 
 ## Model support (the comparison field)
 
@@ -557,15 +581,16 @@ Latest full run:
 ========================= 194 passed in 42.3s =========================
 ```
 
-## Demo notebook
+## Demo notebooks
 
-`legacy_notebooks/010_quickstart.ipynb` is the legacy local mirror of the numbered
-quickstart notebook and is the best place to exercise the public
-DueCare package surface from a clean install.
+The active notebook sources live under `kaggle/`. For the 77-notebook
+research pipeline, use the per-kernel bundles in `kaggle/kernels/*/`.
+For the final hackathon submission path, use the 2 core + 11 appendix
+folders listed in `kaggle/_INDEX.md`.
 
-`legacy_notebooks/610_submission_walkthrough.ipynb` is the legacy local mirror of the
-Kaggle submission walkthrough and is the shortest path from install to
-report-generation.
+The old `legacy_notebooks/` and `skunkworks/` root folders have been
+archived under `_archive/legacy-research-2026-05-09/` and are not part
+of the default review, validation, or submission workflow.
 
 ## Configuration
 
@@ -617,7 +642,7 @@ gemma4_comp/
 │   ├── duecare-llm-cli/          # the `duecare` CLI
 │   └── duecare-llm/              # meta package (pulls in all 16 above)
 ├── kaggle/                       # Kaggle deliverables (per-notebook bundles)
-│   ├── 01-duecare-harness-chat/  # CORE #01: omni playground (script kernel)
+│   ├── 01-duecare-exploration-workbench/  # CORE #01: omni playground (script kernel)
 │   ├── 02-live-demo/             # CORE #02: focused live URL
 │   ├── A-01-chat-playground/     # appendix: stock Gemma 4 baseline (no harness)
 │   ├── A-02-chat-playground-with-grep-rag-tools/  # appendix: 4-toggle subset
@@ -636,7 +661,7 @@ gemma4_comp/
 ├── configs/duecare/              # YAML configuration (models, workflows, domains)
 ├── docs/                         # architecture, component docs, writeup, video script
 │   └── components/               # per-package component docs
-├── legacy_notebooks/             # legacy local .ipynb mirrors for the 77-notebook pipeline
+├── _archive/                     # archived legacy notebooks/skunkworks + superseded snapshots
 ├── scripts/                      # implementation + maintenance scripts
 ├── tests/                        # integration tests
 ├── pyproject.toml                # uv workspace root
@@ -652,6 +677,22 @@ gemma4_comp/
 ## License
 
 MIT. See [`LICENSE`](./LICENSE).
+
+## Third Party Attribution
+
+This project builds upon excellent open source software. Key dependencies include:
+
+- **FastAPI** (MIT) - Web framework for the demo application
+- **Pydantic** (MIT) - Data validation and settings management
+- **Transformers** (Apache 2.0) - Hugging Face model adapters
+- **Unsloth** (Apache 2.0) - Fine-tuning framework
+- **PyTorch** (BSD-3-Clause) - Deep learning framework
+- **Uvicorn** (BSD-3-Clause) - ASGI server
+- **Jinja2** (BSD-3-Clause) - Template engine
+- **Requests** (Apache 2.0) - HTTP library
+- **Gemma** (Custom License) - Google's language model family
+
+For complete licensing information, see [`THIRD_PARTY_LICENSES.md`](./THIRD_PARTY_LICENSES.md).
 
 ## Citation
 

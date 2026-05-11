@@ -1,6 +1,6 @@
 # Duecare Runtime — Gemma 4 model layer
 
-**Status: Built.** Lives in `kaggle/01-duecare-harness-chat/kernel.py`
+**Status: Built.** Lives in `kaggle/01-duecare-exploration-workbench/kernel.py`
 + `packages/duecare-llm-chat/src/duecare/chat/_model_output.py`.
 
 ## Responsibilities
