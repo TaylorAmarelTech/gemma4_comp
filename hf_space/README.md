@@ -34,7 +34,7 @@ tags:
 
 ## Why this Space exists
 
-The Kaggle notebooks (`01-duecare-harness-chat`, `02-live-demo`,
+The Kaggle notebooks (`01-duecare-exploration-workbench`, `02-live-demo`,
 appendix) are the primary submission deliverable; they showcase
 the full on-device Gemma 4 inference path with the 5-layer harness.
 However, Kaggle kernels are **session-bound** — the cloudflared URL

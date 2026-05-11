@@ -9,10 +9,10 @@ benchmark results visually.
 
 | Field | Value |
 |---|---|
-| **Kaggle URL** | https://www.kaggle.com/code/taylorsamarel/duecare-research-graphs *(TBD — kernel created 2026-04-29; not yet pushed)* |
+| **Kaggle URL** | https://www.kaggle.com/code/taylorsamarel/duecare-research-graphs *(manual publication pending)* |
 | **Title on Kaggle** | "Duecare Research Graphs" |
 | **Slug** | `taylorsamarel/duecare-research-graphs` |
-| **Wheels dataset** | `taylorsamarel/duecare-research-graphs-wheels` *(TBD — needs upload)* |
+| **Wheels dataset** | `taylorsamarel/duecare-research-graphs-wheels` *(local wheels present; manual dataset publication pending)* |
 | **Optional dataset** | `taylorsamarel/duecare-eval-results` (for chart 3) |
 | **Models attached** | NONE (pure visualization) |
 | **GPU** | NOT required |
@@ -75,7 +75,7 @@ research-graphs/
 ├── notebook.ipynb       ← built artifact
 ├── kernel-metadata.json ← Kaggle kernel config
 ├── README.md            ← this file
-└── wheels/              ← dataset-metadata.json (3 wheels TBD)
+└── wheels/              ← dataset-metadata.json + local wheels for manual Kaggle upload
 ```
 
 ## Status
@@ -96,7 +96,7 @@ same minimal subset as the prompt-generation kernel.
 
 You are here: **#A08 appendix — Research graphs (CPU-only)**.
 
-- [#01 core: Migrant-worker safety playground](../01-duecare-harness-chat/README.md)
+- [#01 core: Migrant-worker safety playground](../01-duecare-exploration-workbench/README.md)
 - [#02 core: Live demo (focused walkthrough)](../02-live-demo/README.md)
 - [#A01 appendix: Stock Gemma 4 chat baseline](../A-01-chat-playground/README.md)
 - [#A02 appendix: Original 4-toggle subset playground](../A-02-chat-playground-with-grep-rag-tools/README.md)

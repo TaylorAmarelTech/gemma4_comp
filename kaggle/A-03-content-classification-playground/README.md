@@ -14,10 +14,10 @@ and other IT variants). Used in accordance with the
 
 | Field | Value |
 |---|---|
-| **Kaggle URL** | https://www.kaggle.com/code/taylorsamarel/duecare-content-classification-playground *(TBD)* |
+| **Kaggle URL** | https://www.kaggle.com/code/taylorsamarel/duecare-content-classification-playground *(manual publication pending)* |
 | **Title on Kaggle** | "Duecare Content Classification Playground" |
 | **Slug** | `taylorsamarel/duecare-content-classification-playground` |
-| **Wheels dataset** | `taylorsamarel/duecare-content-classification-playground-wheels` *(TBD)* |
+| **Wheels dataset** | `taylorsamarel/duecare-content-classification-playground-wheels` *(local wheels present; manual dataset publication pending)* |
 | **Models attached** | `google/gemma-4/Transformers/{e2b,e4b,26b-a4b,31b}-it/1` |
 | **GPU** | T4 ×2 (default E4B-it; switchable to E2B for CPU-fast) |
 | **Internet** | ON (cloudflared tunnel + HF Hub) |
@@ -62,7 +62,7 @@ content-classification-playground/
 ├── notebook.ipynb       ← built artifact
 ├── kernel-metadata.json ← Kaggle kernel config
 ├── README.md            ← this file
-└── wheels/              ← dataset-metadata.json (3 wheels TBD: core, models, chat)
+└── wheels/              ← dataset-metadata.json + local wheels for manual Kaggle upload
 ```
 
 ## Status
@@ -81,7 +81,7 @@ uploaded: `duecare-llm-core`, `duecare-llm-models`, `duecare-llm-chat`.
 
 You are here: **#A03 appendix — Hands-on classification sandbox**.
 
-- [#01 core: Migrant-worker safety playground](../01-duecare-harness-chat/README.md)
+- [#01 core: Migrant-worker safety playground](../01-duecare-exploration-workbench/README.md)
 - [#02 core: Live demo (focused walkthrough)](../02-live-demo/README.md)
 - [#A01 appendix: Stock Gemma 4 chat baseline](../A-01-chat-playground/README.md)
 - [#A02 appendix: Original 4-toggle subset playground](../A-02-chat-playground-with-grep-rag-tools/README.md)

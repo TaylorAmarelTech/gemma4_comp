@@ -15,7 +15,7 @@ and other IT variants). Used in accordance with the
 
 | Field | Value |
 |---|---|
-| **Kaggle URL** | https://www.kaggle.com/code/taylorsamarel/duecare-chat-playground-with-grep-rag-tools (TBD — kernel not yet pushed) |
+| **Kaggle URL** | https://www.kaggle.com/code/taylorsamarel/duecare-chat-playground-with-grep-rag-tools *(manual publication pending)* |
 | **Title on Kaggle** | "Duecare Chat Playground with GREP RAG Tools" |
 | **Slug** | `taylorsamarel/duecare-chat-playground-with-grep-rag-tools` |
 | **Wheels dataset** | `taylorsamarel/duecare-chat-playground-with-grep-rag-tools-wheels` (3 wheels, ~165 KB) |
@@ -121,7 +121,7 @@ python scripts/push_kaggle_demo.py --kernel chat-playground-with-grep-rag-tools 
 
 You are here: **#A02 appendix — Original 4-toggle subset playground**.
 
-- [#01 core: Migrant-worker safety playground](../01-duecare-harness-chat/README.md)
+- [#01 core: Migrant-worker safety playground](../01-duecare-exploration-workbench/README.md)
 - [#02 core: Live demo (focused walkthrough)](../02-live-demo/README.md)
 - [#A01 appendix: Stock Gemma 4 chat baseline](../A-01-chat-playground/README.md)
 - **[#A02 appendix: Original 4-toggle subset playground](../A-02-chat-playground-with-grep-rag-tools/README.md)**

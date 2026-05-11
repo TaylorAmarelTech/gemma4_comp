@@ -24,7 +24,7 @@
 
 | # | Step | Expected | Actual |
 |---|---|---|---|
-| 2.1 | `cd kaggle/01-duecare-harness-chat/wheels && kaggle datasets version -m "v0.14.7: ..."` | New dataset version published | ☐ |
+| 2.1 | `cd kaggle/01-duecare-exploration-workbench/wheels && kaggle datasets version -m "v0.14.7: ..."` | New dataset version published | ☐ |
 | 2.2 | Open notebook editor at https://www.kaggle.com/code/taylorsamarel/duecare-harness-chat/edit | Latest dataset attached | ☐ |
 | 2.3 | Click **Run All** | First cell runs install + self-audit | ☐ |
 | 2.4 | Inspect notebook stdout for self-audit banner | Banner reads "DUECARE SELF-AUDIT · chat-package 0.14.7" with all minimums met | ☐ |

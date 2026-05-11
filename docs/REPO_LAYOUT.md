@@ -13,7 +13,7 @@
 | [`kaggle/`](../kaggle/) | Everything that gets shipped to kaggle.com — 2 core + 11 appendix submission notebooks (numbered `01-`, `02-`, `A-01-`..`A-11-`), per-folder wheels, datasets, and the 77-notebook research-pipeline mirror under `kaggle/kernels/`. Source of truth: [`kaggle/_INDEX.md`](../kaggle/_INDEX.md). | Live |
 | [`hf_space/`](../hf_space/) | Hugging Face Space for the **Harness Chat** Space. CPU-only (cloud-Gemini API). Separate from `hf-space/`. | Live |
 | [`hf-space/`](../hf-space/) | Hugging Face Space for the **Live Demo** Space. CPU-only. Separate from `hf_space/`. The naming convention (underscore vs hyphen) is unfortunate; both are real and serve different demo URLs. | Live |
-| [`docs/`](../docs/) | Submission writeup + video script + judge guides + per-component design docs + handoff prompts. The single most important judge-facing path here is `docs/FOR_PEER_REVIEW.md`. | Live |
+| [`docs/`](../docs/) | Submission writeup + video script + judge guides + per-component design docs + cleanup/readiness notes. The single most important judge-facing path here is `docs/FOR_PEER_REVIEW.md`. Old handoff and prompt-ladder docs are archived under `_archive/cleanup-2026-05-10/`. | Live |
 | [`render.yaml`](../render.yaml) | Repo-root Render Blueprint. Render reads this to deploy `apps/duecare-ai.com/` from `master` on every push. | Live |
 
 ## Supporting infrastructure
@@ -21,7 +21,7 @@
 | Path | Purpose |
 |---|---|
 | [`infra/`](../infra/) | Multi-cloud deployment recipes (AKS / AWS / Azure / EKS / Fly / GCP / GKE / Helm) for self-hosting the hub or the wheel runtime. Each subfolder is one cloud target. |
-| [`deployment/`](../deployment/) | Channel-specific deployment helpers (Discord bot, Telegram bot, browser extension). Roadmap features. |
+| [`deployment/`](../deployment/) | Validated private compose support files plus channel-specific helpers (Discord bot, Telegram bot, browser extension). Roadmap features must stay labeled unless freshly validated. |
 | [`configs/`](../configs/) | YAML configuration: model registry, workflows, domain packs (trafficking + tax_evasion + financial_crime). |
 | [`scripts/`](../scripts/) | Implementation + maintenance scripts (notebook builders, polish passes, validators). 200+ files; run individually as needed. |
 | [`tests/`](../tests/) | Repo-wide integration tests (notebook utilities, kaggle-folder layout, etc.). Per-package unit tests live inside each `packages/duecare-llm-*/tests/`. |
@@ -34,7 +34,7 @@
 | Path | Purpose |
 |---|---|
 | [`data/`](../data/) | Curated public-source corpora, multimodal test sets, generated training data. Some subdirs are gitignored (raw / processed / interim). 1657 tracked files. |
-| [`examples/`](../examples/) | Standalone example notebooks + scripts users can run to exercise the API. |
+| [`examples/`](../examples/) | Runnable deployment and embedding examples. Start with [`examples/README.md`](../examples/README.md). |
 | `_reference/` | **Gitignored.** The author's proprietary 21K-test trafficking benchmark + framework. Do not commit. |
 | `evidence_raw/` | **Gitignored.** Raw evidence assets that have not been redacted yet. |
 
@@ -42,9 +42,9 @@
 
 | Path | Purpose |
 |---|---|
-| [`legacy_notebooks/`](../legacy_notebooks/) | Local `.ipynb` mirrors of the 77-notebook research pipeline. Renamed from `notebooks/` in May 2026 to make the secondary status explicit. |
-| [`skunkworks/`](../skunkworks/) | Experimental notebooks and proofs-of-concept that aren't part of the submission surface. |
+| [`_archive/legacy-research-2026-05-09/`](../_archive/legacy-research-2026-05-09/) | Archived legacy local notebook mirrors plus skunkworks experiments. Out of default review scope; restore only for historical context, provenance checks, or migration work. |
 | [`_archive/`](../_archive/) | Dated snapshots of superseded folders (`data_generated_2026-04/`, `docs_2026-04/`, `hub_first_pass_2026-05/`, `legacy_src/`, `notebooks_2026-04/`, `reports_2026-04/`, `scripts_one_off_2026-04/`, `tests_2026-04/`). Frozen for audit; do not modify. |
+| [`_archive/cleanup-2026-05-10/`](../_archive/cleanup-2026-05-10/) | Non-destructive cleanup archive for stale HF Spaces deployment notes and old handoff prompts moved out of active docs. |
 | `dist/`, `build/` | **Gitignored.** Build artifacts. |
 | `release/duecare_demo_v1/` | An older release artifact bundle. Likely stale; review before next push. |
 | `raw_python/` | **Gitignored.** Per-component source files Kaggle deliverables are built from. Contains hardcoded API keys. |
@@ -84,8 +84,8 @@
 
 ## Where to start, by role
 
-- **Hackathon judge / first-time visitor**: [`README.md`](../README.md) → [`docs/FOR_PEER_REVIEW.md`](./FOR_PEER_REVIEW.md) → live demo at [gemma4-comp.onrender.com](https://gemma4-comp.onrender.com) → core Kaggle notebooks at [`kaggle/01-duecare-harness-chat/`](../kaggle/01-duecare-harness-chat/) and [`kaggle/02-live-demo/`](../kaggle/02-live-demo/).
+- **Hackathon judge / first-time visitor**: [`README.md`](../README.md) → [`docs/FOR_PEER_REVIEW.md`](./FOR_PEER_REVIEW.md) → live demo at [gemma4-comp.onrender.com](https://gemma4-comp.onrender.com) → core Kaggle notebooks at [`kaggle/01-duecare-exploration-workbench/`](../kaggle/01-duecare-exploration-workbench/) and [`kaggle/02-live-demo/`](../kaggle/02-live-demo/).
 - **Developer integrating the API**: [`docs/FOR_KAGGLE_JUDGES.md`](./FOR_KAGGLE_JUDGES.md) → [`apps/duecare-ai.com/app/main.py`](../apps/duecare-ai.com/app/main.py) → [`apps/duecare-ai.com/app/hub_client.py`](../apps/duecare-ai.com/app/hub_client.py) (reference client protocol).
 - **Wheel re-user**: `pip install duecare-llm` → [`packages/duecare-llm/`](../packages/duecare-llm/) (meta package) → individual sub-packages.
 - **Operator running their own hub**: [`apps/duecare-ai.com/README.md`](../apps/duecare-ai.com/README.md) + [`apps/duecare-ai.com/docs/RENDER.md`](../apps/duecare-ai.com/docs/RENDER.md) + [`infra/`](../infra/) for non-Render targets.
-- **AI assistant picking up the project**: [`CLAUDE.md`](../CLAUDE.md) + [`.claude/rules/*.md`](../.claude/rules/) + [`docs/COPILOT_HANDOFF_REVIEW_PROMPT.md`](./COPILOT_HANDOFF_REVIEW_PROMPT.md) + [`docs/GPT55_HANDOFF_EXECUTION_PROMPT.md`](./GPT55_HANDOFF_EXECUTION_PROMPT.md).
+- **AI assistant picking up the project**: [`CLAUDE.md`](../CLAUDE.md) + [`.claude/rules/*.md`](../.claude/rules/) + current root continuation prompts when present. Historical handoff prompts live in `_archive/cleanup-2026-05-10/docs_handoff_prompts/`.

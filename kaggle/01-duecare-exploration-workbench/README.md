@@ -207,7 +207,7 @@ regenerator). See `docs/FOR_PEER_REVIEW.md` for the full submission roster.
 
 You are here: **#01 core — Migrant-worker safety playground**.
 
-- **[#01 core: Migrant-worker safety playground](../01-duecare-harness-chat/README.md)**
+- **[#01 core: Migrant-worker safety playground](../01-duecare-exploration-workbench/README.md)**
 - [#02 core: Live demo (focused walkthrough)](../02-live-demo/README.md)
 - [#A01 appendix: Stock Gemma 4 chat baseline](../A-01-chat-playground/README.md)
 - [#A02 appendix: Original 4-toggle subset playground](../A-02-chat-playground-with-grep-rag-tools/README.md)

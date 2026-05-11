@@ -362,7 +362,7 @@ perceived quality lift.
 
 ### Naming
 
-- Folder: `kaggle/01-duecare-harness-chat/` → `kaggle/01-duecare-workbench/`
+- Folder: `kaggle/01-duecare-exploration-workbench/` → `kaggle/01-duecare-workbench/`
 - Kaggle slug: `taylorsamarel/duecare-harness-chat` → `taylorsamarel/duecare-workbench`
 - README title: "Migrant-worker safety playground" → "DueCare Workbench"
 - Sub-title: "Verify every safety layer, every grading mode, every audience flow, every API endpoint — from one URL"

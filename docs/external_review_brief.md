@@ -58,7 +58,7 @@ gemma4_comp/                                 -- monorepo, uv workspace
 │   │   │       └── search.html      ★ NEW (v0.14.3)
 │   ├── duecare-llm-domains/, -tasks/, -agents/, -workflows/, -publishing/, -llm/ (meta)
 ├── kaggle/
-│   ├── 01-duecare-harness-chat/             -- THE submission core notebook
+│   ├── 01-duecare-exploration-workbench/             -- THE submission core notebook
 │   │   ├── kernel.py                        (~1,700 lines — orchestrator: install wheels → load model → wire harness → start FastAPI + cloudflared)
 │   │   ├── notebook.ipynb                   -- single-cell wrapper
 │   │   ├── README.md

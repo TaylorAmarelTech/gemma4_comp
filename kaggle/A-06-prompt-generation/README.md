@@ -10,10 +10,10 @@ their own domain (medical misinformation, financial fraud, etc.).
 
 | Field | Value |
 |---|---|
-| **Kaggle URL** | https://www.kaggle.com/code/taylorsamarel/duecare-prompt-generation *(TBD — kernel created 2026-04-29; not yet pushed)* |
+| **Kaggle URL** | https://www.kaggle.com/code/taylorsamarel/duecare-prompt-generation *(manual publication pending)* |
 | **Title on Kaggle** | "Duecare Prompt Generation" |
 | **Slug** | `taylorsamarel/duecare-prompt-generation` |
-| **Wheels dataset** | `taylorsamarel/duecare-prompt-generation-wheels` *(TBD — needs upload)* |
+| **Wheels dataset** | `taylorsamarel/duecare-prompt-generation-wheels` *(local wheels present; manual dataset publication pending)* |
 | **Trafficking-prompts dataset** | `taylorsamarel/duecare-trafficking-prompts` (5 YAML rubrics — seed material) |
 | **Models attached** | `google/gemma-4/Transformers/{e2b,e4b}-it/1` |
 | **GPU** | T4 ×1 minimum (E4B-it default) |
@@ -86,23 +86,21 @@ prompt-generation/
 ├── notebook.ipynb       ← built artifact
 ├── kernel-metadata.json ← Kaggle kernel config
 ├── README.md            ← this file
-└── wheels/              ← TBD (3 wheels: core, models, benchmark)
+└── wheels/              ← local wheels for Kaggle dataset upload
 ```
 
 ## Status
 
-**PLACEHOLDER (2026-04-29).** The Phase 0 install + wheel install +
-Gemma load paths are real and follow the same pattern as
+**Prototype appendix (2026-05-10).** The Phase 0 install + wheel
+install + Gemma load paths are real and follow the same pattern as
 `bench-and-tune` and `live-demo`. The two LLM-driven steps
-(generation, grading) use simple templates — production users
-should replace `PROMPT_GENERATION_TEMPLATE` and
-`_grading_template` with their own patterns optimized for their
-domain.
+(generation, grading) use deliberately simple starter templates —
+research users should replace `PROMPT_GENERATION_TEMPLATE` and
+`_grading_template` with patterns optimized for their domain.
 
-The wheels dataset (`duecare-prompt-generation-wheels`) is not
-yet uploaded; it should bundle the same 3 wheels as
-`gemma-content-classification-evaluation` plus `duecare-llm-benchmark`
-for the smoke_25 row shape utilities.
+The local wheels are present in this folder for the manual Kaggle
+dataset publication step. Do not auto-push them; Taylor publishes the
+kernel and wheel dataset manually.
 
 ---
 
@@ -112,7 +110,7 @@ for the smoke_25 row shape utilities.
 
 You are here: **#A06 appendix — Gemma generates evaluation prompts**.
 
-- [#01 core: Migrant-worker safety playground](../01-duecare-harness-chat/README.md)
+- [#01 core: Migrant-worker safety playground](../01-duecare-exploration-workbench/README.md)
 - [#02 core: Live demo (focused walkthrough)](../02-live-demo/README.md)
 - [#A01 appendix: Stock Gemma 4 chat baseline](../A-01-chat-playground/README.md)
 - [#A02 appendix: Original 4-toggle subset playground](../A-02-chat-playground-with-grep-rag-tools/README.md)
