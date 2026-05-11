@@ -1,0 +1,276 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Import — DueCare Workbench</title>
+  <link rel="stylesheet" href="/static/_chrome.css">
+  <link rel="stylesheet" href="/static/showcase.css">
+  <script src="/static/_nav.js" defer></script>
+  <style>
+    .import-layout {
+      display: grid; grid-template-columns: 1fr; gap: 18px; margin-top: 24px;
+    }
+    @media (min-width: 980px) {
+      .import-layout { grid-template-columns: 380px 1fr; }
+    }
+    .panel {
+      background: var(--paper); border: 1px solid var(--line);
+      border-radius: 12px; padding: 22px;
+    }
+    .panel h2 {
+      font-family: var(--mono); font-size: 11px; color: var(--ink-3);
+      text-transform: uppercase; letter-spacing: 0.08em; font-weight: 500;
+      margin: 0 0 14px;
+    }
+    .drop {
+      border: 2px dashed var(--line); border-radius: 12px;
+      padding: 32px 22px; text-align: center; cursor: pointer;
+      background: var(--paper); transition: border-color 0.15s, background 0.15s;
+    }
+    .drop.over { border-color: var(--accent); background: var(--accent-soft); }
+    .drop .hint { color: var(--ink-3); font-size: 13px; line-height: 1.55; }
+    .drop strong { color: var(--ink); }
+    input[type=file] { display: none; }
+    label, input[type=text], textarea {
+      font-family: var(--sans); font-size: 13px; color: var(--ink);
+    }
+    label { display: block; color: var(--ink-2); margin: 12px 0 6px; }
+    label span {
+      font-family: var(--mono); font-size: 10.5px; color: var(--ink-3);
+      text-transform: uppercase; letter-spacing: 0.06em;
+    }
+    input[type=text], textarea {
+      width: 100%; padding: 10px 12px; border: 1px solid var(--line);
+      border-radius: 8px; background: var(--paper); color: var(--ink);
+    }
+    input[type=text]:focus, textarea:focus {
+      outline: 0; border-color: var(--accent);
+      box-shadow: 0 0 0 4px oklch(0.85 0.05 195 / 0.3);
+    }
+    textarea { font-family: var(--mono); font-size: 12.5px; line-height: 1.55; resize: vertical; }
+    .actions { display: flex; gap: 10px; margin-top: 12px; flex-wrap: wrap; }
+    .btn {
+      padding: 9px 16px; border-radius: 8px; border: 1px solid var(--ink);
+      background: var(--ink); color: var(--paper); cursor: pointer;
+      font-weight: 500; font-size: 14px; font-family: var(--sans);
+    }
+    .btn:hover { background: #1a1d24; }
+    .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .btn.ghost { background: var(--paper); color: var(--ink); }
+    .btn.ghost:hover { background: var(--paper-2); }
+    .btn.danger { background: var(--paper); color: oklch(0.40 0.13 45); border-color: oklch(0.78 0.06 45); }
+    .btn.danger:hover { background: var(--ember-soft); }
+    table.imports { width: 100%; border-collapse: collapse; font-size: 13px; }
+    table.imports thead th {
+      text-align: left; padding: 8px 10px;
+      background: var(--paper-2); color: var(--ink-3);
+      font-family: var(--mono); font-size: 10.5px; font-weight: 500;
+      text-transform: uppercase; letter-spacing: 0.08em;
+      border-bottom: 1px solid var(--line);
+    }
+    table.imports tbody td {
+      padding: 9px 10px; border-bottom: 1px solid var(--line-soft);
+      vertical-align: top; color: var(--ink-2);
+    }
+    table.imports td.title { color: var(--ink); font-weight: 600; }
+    table.imports td.id { font-family: var(--mono); font-size: 11.5px; color: var(--ink-3); }
+    table.imports td.meta { font-family: var(--mono); font-size: 11.5px; color: var(--ink-3); white-space: nowrap; }
+    table.imports button.row-del {
+      padding: 4px 10px; font-size: 11.5px; border-radius: 6px;
+      border: 1px solid var(--line); background: var(--paper); cursor: pointer;
+      color: var(--ink-3); font-family: var(--mono);
+    }
+    table.imports button.row-del:hover { color: oklch(0.40 0.13 45); border-color: oklch(0.78 0.06 45); background: var(--ember-soft); }
+    .empty { padding: 40px 16px; text-align: center; color: var(--ink-3); font-style: italic; }
+    .empty h3 { color: var(--ink); margin: 0 0 6px; font-style: normal; font-weight: 600; }
+    .err { color: oklch(0.40 0.13 45); padding: 12px; font-size: 13px;
+            background: var(--ember-soft); border-left: 3px solid oklch(0.78 0.06 45);
+            border-radius: 0 8px 8px 0; margin-top: 12px; }
+    .ok-flash {
+      color: oklch(0.32 0.10 155); padding: 10px 12px;
+      background: oklch(0.95 0.03 155); border-left: 3px solid oklch(0.32 0.10 155);
+      border-radius: 0 8px 8px 0; margin-top: 12px; font-size: 13px;
+    }
+    .stat-row {
+      display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 12px;
+      font-family: var(--mono); font-size: 12.5px; color: var(--ink-2);
+    }
+    .stat-row span { padding: 4px 10px; border-radius: 999px; background: var(--paper-2); border: 1px solid var(--line); }
+  </style>
+</head>
+<body data-nav="import">
+<main class="showcase">
+  <div class="crumbs">Workbench tool · Worker &amp; NGO utilities</div>
+  <h1>Import knowledge</h1>
+  <p class="lede">
+    Drop your own documents (contracts, NGO briefs, case files, screenshots
+    saved as <code>.txt</code> or <code>.md</code>) into the in-kernel BM25
+    retrieval pool. Everything stays on the kernel running this URL — no
+    upload to the public hub unless you explicitly use the
+    <a href="/static/anonymization-preview.html">Anonymize</a> page.
+  </p>
+
+  <div class="import-layout">
+    <section class="panel">
+      <h2>Add content</h2>
+
+      <div class="drop" id="drop" onclick="document.getElementById('file').click()">
+        <div class="hint"><strong>Drop a file</strong> or click to choose<br>
+          .txt · .md · .json · .csv · .pdf (small) · zip of any of these</div>
+      </div>
+      <input type="file" id="file" multiple>
+
+      <div style="margin-top:18px; padding-top:18px; border-top: 1px solid var(--line-soft);">
+        <label>Or paste a snippet
+          <span>title + body inline</span></label>
+        <input type="text" id="snip-title"  placeholder="Title (e.g. 'My recruiter's WhatsApp')">
+        <input type="text" id="snip-source" placeholder="Source / URL (optional)"  style="margin-top:8px;">
+        <textarea id="snip-body" rows="6" placeholder="Paste the text here…" style="margin-top:8px;"></textarea>
+        <div class="actions">
+          <button class="btn" type="button" onclick="addSnippet()">Add snippet</button>
+        </div>
+      </div>
+
+      <div id="form-flash"></div>
+    </section>
+
+    <section class="panel">
+      <h2>Imported documents</h2>
+      <div class="stat-row" id="stats"><span>Loading…</span></div>
+      <div id="docs-table">
+        <div class="empty">
+          <h3>No documents yet</h3>
+          <p>Drop a file or paste a snippet on the left.</p>
+        </div>
+      </div>
+      <div class="actions" style="margin-top:18px;">
+        <button class="btn ghost"  type="button" onclick="refresh()">Refresh</button>
+        <button class="btn danger" type="button" onclick="clearAll()">Clear all</button>
+      </div>
+    </section>
+  </div>
+</main>
+
+<script>
+  function escapeHtml(s) {
+    return String(s == null ? "" : s).replace(/[&<>"']/g, c =>
+      ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+  function fmtBytes(n) {
+    if (n == null) return "—";
+    if (n < 1024) return n + "B";
+    if (n < 1e6) return Math.round(n/1024) + "KB";
+    return (n/1e6).toFixed(1) + "MB";
+  }
+  function flash(msg, ok) {
+    const el = document.getElementById("form-flash");
+    el.innerHTML = `<div class="${ok ? "ok-flash" : "err"}">${escapeHtml(msg)}</div>`;
+    setTimeout(() => { el.innerHTML = ""; }, 4000);
+  }
+
+  async function refresh() {
+    try {
+      const r = await fetch("/api/import/list", {cache: "no-store"});
+      const d = await r.json();
+      const docs = d.docs || [];
+      document.getElementById("stats").innerHTML = `
+        <span>${docs.length} document${docs.length === 1 ? "" : "s"}</span>
+        <span>${docs.reduce((s, x) => s + (x.n_chunks || 0), 0)} chunks</span>
+        <span>${fmtBytes(docs.reduce((s, x) => s + (x.char_count || 0), 0))} text</span>
+      `;
+      if (!docs.length) {
+        document.getElementById("docs-table").innerHTML =
+          `<div class="empty"><h3>No documents yet</h3><p>Drop a file or paste a snippet on the left.</p></div>`;
+        return;
+      }
+      document.getElementById("docs-table").innerHTML = `
+        <table class="imports">
+          <thead><tr>
+            <th>Title</th><th>Source</th>
+            <th style="text-align:right;">Chunks</th>
+            <th style="text-align:right;">Size</th>
+            <th></th>
+          </tr></thead>
+          <tbody>
+            ${docs.map(x => `<tr>
+              <td class="title">${escapeHtml(x.title || x.id || "?")}<div class="id">${escapeHtml(x.id || "")}</div></td>
+              <td>${escapeHtml(x.source || "—")}</td>
+              <td class="meta" style="text-align:right;">${x.n_chunks || 0}</td>
+              <td class="meta" style="text-align:right;">${fmtBytes(x.char_count || 0)}</td>
+              <td><button class="row-del" onclick="delDoc('${escapeHtml(x.id)}')">delete</button></td>
+            </tr>`).join("")}
+          </tbody>
+        </table>`;
+    } catch (e) {
+      document.getElementById("docs-table").innerHTML =
+        `<div class="err">Could not list documents: ${escapeHtml(String(e && e.message || e))}</div>`;
+    }
+  }
+
+  async function uploadFile(file) {
+    const fd = new FormData();
+    fd.append("file", file, file.name);
+    try {
+      const r = await fetch("/api/import/upload", {method: "POST", body: fd});
+      if (!r.ok) {
+        const t = await r.text();
+        flash(`Upload failed (HTTP ${r.status}): ${t.slice(0, 200)}`, false);
+        return;
+      }
+      const d = await r.json();
+      flash(`Uploaded ${d.title || file.name}: ${d.n_chunks || "?"} chunk(s).`, true);
+      refresh();
+    } catch (e) {
+      flash(`Upload error: ${e && e.message || e}`, false);
+    }
+  }
+
+  async function addSnippet() {
+    const title  = document.getElementById("snip-title").value.trim();
+    const source = document.getElementById("snip-source").value.trim();
+    const text   = document.getElementById("snip-body").value.trim();
+    if (!title || !text) { flash("Title and body are both required.", false); return; }
+    try {
+      const r = await fetch("/api/import/snippet", {
+        method: "POST", headers: {"content-type": "application/json"},
+        body: JSON.stringify({title, source, text}),
+      });
+      if (!r.ok) { flash(`Snippet failed (HTTP ${r.status})`, false); return; }
+      flash("Snippet added.", true);
+      document.getElementById("snip-title").value = "";
+      document.getElementById("snip-source").value = "";
+      document.getElementById("snip-body").value = "";
+      refresh();
+    } catch (e) {
+      flash(`Snippet error: ${e && e.message || e}`, false);
+    }
+  }
+
+  async function delDoc(id) {
+    if (!window.confirm(`Delete ${id}? This removes the doc from BM25 retrieval immediately.`)) return;
+    await fetch(`/api/import/${encodeURIComponent(id)}`, {method: "DELETE"});
+    refresh();
+  }
+  async function clearAll() {
+    if (!window.confirm("Clear ALL imported documents? This is not undoable.")) return;
+    await fetch("/api/import", {method: "DELETE"});
+    refresh();
+  }
+
+  const drop = document.getElementById("drop");
+  drop.addEventListener("dragover", e => { e.preventDefault(); drop.classList.add("over"); });
+  drop.addEventListener("dragleave", e => { drop.classList.remove("over"); });
+  drop.addEventListener("drop", e => {
+    e.preventDefault(); drop.classList.remove("over");
+    for (const f of e.dataTransfer.files || []) uploadFile(f);
+  });
+  document.getElementById("file").addEventListener("change", e => {
+    for (const f of e.target.files || []) uploadFile(f);
+    e.target.value = "";
+  });
+
+  refresh();
+</script>
+</body>
+</html>

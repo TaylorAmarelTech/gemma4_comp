@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Models — DueCare Workbench</title>
+  <link rel="stylesheet" href="/static/_chrome.css">
+  <link rel="stylesheet" href="/static/showcase.css">
+  <script src="/static/_nav.js" defer></script>
+  <style>
+    .models-row {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 12px; margin-top: 16px;
+    }
+    .model-card {
+      background: var(--paper); border: 1px solid var(--line);
+      border-radius: 12px; padding: 18px;
+    }
+    .model-card.loaded { border-color: var(--good); box-shadow: 0 0 0 1px var(--good) inset; }
+    .model-card.loading { border-color: var(--accent); }
+    .model-card .name { font-weight: 600; font-size: 15px; color: var(--ink); }
+    .model-card .id { font-family: var(--mono); font-size: 11.5px; color: var(--ink-3); margin-top: 4px; word-break: break-all; }
+    .model-card .meta { font-size: 12.5px; color: var(--ink-3); margin-top: 10px; line-height: 1.5; }
+    .model-card .badges { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
+    .badge {
+      font-family: var(--mono); font-size: 10.5px; padding: 2px 7px;
+      border-radius: 4px; border: 1px solid var(--line);
+      text-transform: uppercase; letter-spacing: 0.06em;
+      color: var(--ink-3); background: var(--paper);
+    }
+    .badge.loaded { background: oklch(0.95 0.03 155); color: oklch(0.32 0.10 155); border-color: oklch(0.85 0.06 155); }
+    .badge.gpu { background: var(--accent-soft); color: var(--accent-ink); border-color: oklch(0.85 0.05 195); }
+    .badge.cloud { background: oklch(0.96 0.03 80); color: oklch(0.40 0.10 80); border-color: oklch(0.85 0.06 80); }
+    .panel {
+      background: var(--paper); border: 1px solid var(--line);
+      border-radius: 12px; padding: 22px; margin-top: 24px;
+    }
+    .panel h2 {
+      font-family: var(--mono); font-size: 11px; color: var(--ink-3);
+      text-transform: uppercase; letter-spacing: 0.08em; font-weight: 500;
+      margin: 0 0 14px;
+    }
+    .logs {
+      max-height: 360px; overflow: auto;
+      background: var(--paper-2); border: 1px solid var(--line);
+      border-radius: 8px; padding: 12px;
+      font-family: var(--mono); font-size: 12px; color: var(--ink-2);
+      white-space: pre-wrap;
+    }
+    .stat-row {
+      display: flex; gap: 16px; flex-wrap: wrap;
+      font-family: var(--mono); font-size: 12.5px; color: var(--ink-2);
+      padding: 12px 14px; background: var(--paper-2);
+      border: 1px solid var(--line-soft); border-radius: 8px;
+    }
+    .stat-row .label { color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.06em; font-size: 10.5px; margin-right: 5px; }
+  </style>
+</head>
+<body data-nav="models">
+<main class="showcase">
+  <div class="crumbs">Workbench tool · System &amp; observability</div>
+  <h1>Models</h1>
+  <p class="lede">
+    The 9 Gemma 4 variants the workbench can load, the currently-resident
+    model, and the live load-phase log stream. Loading a variant from this
+    page calls <code>/api/load-model</code> just like the picker overlay
+    on the chat home page.
+  </p>
+
+  <div class="panel">
+    <h2>Currently loaded</h2>
+    <div class="stat-row" id="status">Loading…</div>
+  </div>
+
+  <div class="panel">
+    <h2>Available variants</h2>
+    <div class="models-row" id="models-row"></div>
+  </div>
+
+  <div class="panel">
+    <h2>Load log (live)</h2>
+    <div class="logs" id="logs">Polling /api/load-model/logs…</div>
+  </div>
+</main>
+
+<script>
+  const VARIANTS = [
+    {key: "e2b-it",          name: "Gemma 4 E2B-it",        hf: "unsloth/gemma-4-E2B-it",          hw: "single T4 — fastest" , badges: ["gpu"]},
+    {key: "e4b-it",          name: "Gemma 4 E4B-it",        hf: "unsloth/gemma-4-E4B-it",          hw: "single T4 — default" , badges: ["gpu"]},
+    {key: "26b-a4b-it",      name: "Gemma 4 26B-A4B-it",    hf: "unsloth/gemma-4-26B-A4B-it",      hw: "T4x2 (4-bit) — MoE"  , badges: ["gpu"]},
+    {key: "31b-it",          name: "Gemma 4 31B-it",        hf: "unsloth/gemma-4-31B-it",          hw: "T4x2 (4-bit) — flagship", badges: ["gpu"]},
+    {key: "jailbroken-31b",  name: "Gemma 4 31B JANG_4M-CRACK", hf: "dealignai/Gemma-4-31B-JANG_4M-CRACK", hw: "T4x2 — abliterated", badges: ["gpu"]},
+    {key: "jailbroken-e4b",  name: "Gemma 4 E4B abliterated", hf: "mlabonne/Gemma-4-E4B-it-abliterated", hw: "single T4 — abliterated", badges: ["gpu"]},
+    {key: "cloud-gemini",    name: "Gemini 1.5 Flash (cloud)", hf: "—",                            hw: "CPU only — needs GEMINI_API_KEY", badges: ["cloud"]},
+    {key: "cloud-openai",    name: "OpenAI-compatible (cloud)", hf: "—",                            hw: "CPU only — needs OPENAI_*",     badges: ["cloud"]},
+    {key: "cloud-ollama",    name: "Ollama (cloud)",         hf: "—",                            hw: "CPU only — needs OLLAMA_HOST",   badges: ["cloud"]},
+  ];
+
+  function escapeHtml(s) {
+    return String(s == null ? "" : s).replace(/[&<>"']/g, c =>
+      ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+  function fmtBytes(n) {
+    if (n == null) return "—";
+    if (n < 1e6) return Math.round(n/1024) + "KB";
+    if (n < 1e9) return (n/1e6).toFixed(0) + "MB";
+    return (n/1e9).toFixed(1) + "GB";
+  }
+
+  async function refreshStatus() {
+    let info = {};
+    try {
+      const r = await fetch("/api/model-info", {cache: "no-store"});
+      if (r.ok) info = await r.json();
+    } catch (_) {}
+    let load = {};
+    try {
+      const r = await fetch("/api/load-model/status", {cache: "no-store"});
+      if (r.ok) load = await r.json();
+    } catch (_) {}
+
+    const cur = info.display || info.name || info.variant || "(no model loaded)";
+    const loaded = !!(info.loaded !== false && !/no model/i.test(cur));
+    const phase = load.phase || (loaded ? "ready" : "idle");
+    const gpu  = info.gpu_memory_bytes != null ? fmtBytes(info.gpu_memory_bytes) :
+                 (info.gpu_memory_mb != null ? info.gpu_memory_mb + "MB" :
+                 (info.device || "—"));
+
+    document.getElementById("status").innerHTML = `
+      <span><span class="label">Model</span>${escapeHtml(cur)}</span>
+      <span><span class="label">State</span>${escapeHtml(phase)}</span>
+      <span><span class="label">GPU</span>${escapeHtml(gpu)}</span>
+      ${load.eta ? `<span><span class="label">ETA</span>${escapeHtml(load.eta)}</span>` : ""}
+      ${load.last_log ? `<span><span class="label">Last</span>${escapeHtml(load.last_log)}</span>` : ""}
+    `;
+
+    document.getElementById("models-row").innerHTML = VARIANTS.map(v => {
+      const isLoaded  = loaded && new RegExp(v.key.replace(/-/g, "[- ]?"), "i").test(cur);
+      const isLoading = load.active_model && String(load.active_model).includes(v.key);
+      const cls = isLoaded ? "loaded" : (isLoading ? "loading" : "");
+      const badges = v.badges.map(b => `<span class="badge ${b}">${b}</span>`).join("");
+      const stateBadge = isLoaded ? `<span class="badge loaded">loaded</span>` :
+                        (isLoading ? `<span class="badge">loading…</span>` : "");
+      return `<div class="model-card ${cls}">
+        <div class="name">${escapeHtml(v.name)}</div>
+        <div class="id">${escapeHtml(v.hf)}</div>
+        <div class="meta">${escapeHtml(v.hw)}</div>
+        <div class="badges">${stateBadge}${badges}</div>
+        <div style="margin-top:12px;">
+          <button class="cta cta-${isLoaded ? "ghost" : "primary"}"
+                  style="padding:6px 12px; font-size:12.5px;"
+                  ${isLoaded || isLoading ? "disabled" : ""}
+                  onclick="loadModel('${escapeHtml(v.key)}')">
+            ${isLoaded ? "Loaded ✓" : (isLoading ? "Loading…" : "Load")}
+          </button>
+        </div>
+      </div>`;
+    }).join("");
+  }
+
+  async function refreshLogs() {
+    try {
+      const r = await fetch("/api/load-model/logs", {cache: "no-store"});
+      if (!r.ok) return;
+      const d = await r.json();
+      const lines = (d.events || []).slice(-200).map(e =>
+        `[${e.ts || ""}] ${e.phase ? "(" + e.phase + ") " : ""}${e.severity || "info"}: ${e.message || ""}`);
+      const el = document.getElementById("logs");
+      if (lines.length === 0) {
+        el.textContent = "(no load events yet — pick a variant above to start a load)";
+        return;
+      }
+      const wasBottom = el.scrollTop + el.clientHeight >= el.scrollHeight - 10;
+      el.textContent = lines.join("\n");
+      if (wasBottom) el.scrollTop = el.scrollHeight;
+    } catch (_) {}
+  }
+
+  async function loadModel(variant) {
+    if (!window.confirm(`Load ${variant}? GPU loads are not cancellable; the page will poll for progress.`)) return;
+    try {
+      const r = await fetch("/api/load-model", {
+        method: "POST",
+        headers: {"content-type": "application/json"},
+        body: JSON.stringify({variant}),
+      });
+      if (!r.ok) {
+        const t = await r.text();
+        alert(`load failed: HTTP ${r.status}\n${t.slice(0, 300)}`);
+      }
+    } catch (e) {
+      alert("load failed: " + (e && e.message || e));
+    }
+    refreshStatus(); refreshLogs();
+  }
+
+  refreshStatus(); refreshLogs();
+  setInterval(refreshStatus, 4000);
+  setInterval(refreshLogs,   2000);
+</script>
+</body>
+</html>

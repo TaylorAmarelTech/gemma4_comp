@@ -304,3 +304,52 @@ except ImportError:
     print(md)
 
 print("\nDone. Re-run with DUECARE_EVAL_PROMPT_IDS=traf_001,textbook_loan_68pct to test other subsets.")
+
+# Workbench-consistent UI: launch the minimal shell so this notebook has the
+# same nav / Logs / Tools experience as the main exploration workbench.
+try:
+    import os as _os
+    import time as _time
+    from duecare.chat._dc_log import dc_log, set_kernel_id
+    set_kernel_id("a-11-grading-evaluation")
+    dc_log("kernel.complete", "lift evaluation complete",
+           output_dir=str(output_dir),
+           n_prompts=len(results) if results else 0)
+    from duecare.chat.kernel_shell import build_minimal_shell
+    n_results = len(results) if results else 0
+    summary = {
+        "title": "Grading-lift evaluation (46-dim rubric v3.10)",
+        "audience": "researcher",
+        "lede": ("Regenerate the headline harness-lift number using the 46-dim "
+                 "rule-based grader v3.10. Compares baseline Gemma against the "
+                 "full harness on the curated 5-indicator compound prompt set."),
+        "results": [
+            {"label": "Prompts evaluated", "value": n_results},
+            {"label": "Model",             "value": MODEL_NAME},
+            {"label": "Aggregate",         "value": str(aggregate)[:80] if aggregate else "?"},
+        ],
+        "artifacts": [
+            {"name": "duecare_lift_eval.json",
+             "path": f"{output_dir}/duecare_lift_eval.json"},
+            {"name": "duecare_lift_eval.md",
+             "path": f"{output_dir}/duecare_lift_eval.md"},
+        ],
+        "links": [
+            ("Workbench (full)",
+             "https://www.kaggle.com/code/taylorsamarel/duecare-exploration-workbench"),
+        ],
+        "next_steps": [
+            "Download duecare_lift_eval.json from /artifact/duecare_lift_eval.json.",
+            "Open the Logs tab for the per-prompt grading event stream.",
+        ],
+    }
+    app, url = build_minimal_shell(
+        summary=summary, kernel_id="a-11-grading-evaluation",
+        port=int(_os.environ.get("DC_PORT", "8080")),
+    )
+    if url:
+        print(f"[workbench] {url}")
+    while True:
+        _time.sleep(60)
+except Exception as _e:
+    print(f"[workbench] minimal-shell unavailable: {_e}")

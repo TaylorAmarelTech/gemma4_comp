@@ -1255,6 +1255,53 @@ def main() -> dict:
     print(f"[done] eval results -> {EVAL_RESULTS_JSON}")
     print("=" * 76)
     print(json.dumps(eval_results.get("deltas", {}), indent=2))
+
+    # Workbench-consistent UI: launch the minimal shell so this notebook
+    # has the same nav / Logs / Tools experience as the main workbench.
+    try:
+        from duecare.chat._dc_log import dc_log, set_kernel_id
+        set_kernel_id("a-07-bench-and-tune")
+        dc_log("kernel.complete", f"fine-tune complete; results at {EVAL_RESULTS_JSON}",
+               eval_results_path=EVAL_RESULTS_JSON,
+               n_phases=len(eval_results.get("phases", {})))
+        from duecare.chat.kernel_shell import build_minimal_shell
+        deltas = eval_results.get("deltas", {}) or {}
+        summary = {
+            "title": "Bench and tune (Unsloth fine-tune + GGUF export)",
+            "audience": "researcher",
+            "lede": ("End-to-end Unsloth LoRA fine-tune + GGUF export pipeline. "
+                     "Phases: dataset build → training → eval → GGUF conversion → "
+                     "HF push. Full per-phase results below."),
+            "results": [
+                {"label": "Phases run", "value": len(eval_results.get("phases", {}))},
+                {"label": "Completed",  "value": eval_results.get("completed_at", "?")},
+            ] + [
+                {"label": k.replace('_', ' '), "value": v}
+                for k, v in list(deltas.items())[:4]
+            ],
+            "artifacts": [
+                {"name": "eval_results.json", "path": EVAL_RESULTS_JSON},
+            ],
+            "links": [
+                ("Workbench (full)",
+                 "https://www.kaggle.com/code/taylorsamarel/duecare-exploration-workbench"),
+            ],
+            "next_steps": [
+                "Download eval_results.json from /artifact/eval_results.json.",
+                "Open the Logs tab for the live training event stream.",
+            ],
+        }
+        import os as _os
+        app, url = build_minimal_shell(
+            summary=summary, kernel_id="a-07-bench-and-tune",
+            port=int(_os.environ.get("DC_PORT", "8080")),
+        )
+        if url:
+            print(f"[workbench] {url}")
+        while True:
+            time.sleep(60)
+    except Exception as e:
+        print(f"[workbench] minimal-shell unavailable: {e}")
     return eval_results
 
 
