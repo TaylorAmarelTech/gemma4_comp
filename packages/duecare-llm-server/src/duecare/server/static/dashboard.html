@@ -75,15 +75,15 @@
   gap: 12px;
 }
 .dc-stat {
-  background: #f8fafc; border: 1px solid var(--border);
+  background: var(--paper-2); border: 1px solid var(--border);
   border-radius: 8px; padding: 14px;
 }
 .dc-stat .num { font-size: 24px; font-weight: 700; color: var(--primary); }
 .dc-stat .lbl { font-size: 12px; color: var(--muted); margin-top: 4px; }
-.dc-state-pending  { background: #fffbeb; color: #92400e; }
-.dc-state-running  { background: #dbeafe; color: #1e40af; }
-.dc-state-completed { background: #d1fae5; color: #065f46; }
-.dc-state-failed   { background: #fee2e2; color: #991b1b; }
+.dc-state-pending  { background: oklch(0.96 0.03 80); color: oklch(0.40 0.10 80); }
+.dc-state-running  { background: var(--accent-soft); color: var(--accent-ink); }
+.dc-state-completed { background: oklch(0.95 0.03 155); color: oklch(0.32 0.10 155); }
+.dc-state-failed   { background: var(--ember-soft); color: oklch(0.40 0.13 45); }
 .dc-qrow {
   display: grid; grid-template-columns: 110px 110px 100px 80px 1fr;
   gap: 10px; padding: 6px 0; border-bottom: 1px solid var(--border);
@@ -135,7 +135,7 @@ async function refresh() {
     datasets: [{
       label: 'Findings',
       data: trigs.map(t => t.n),
-      backgroundColor: ['#4c78a8', '#10b981', '#f59e0b', '#ef4444', '#a78bfa', '#3b82f6'],
+      backgroundColor: ['var(--accent)', '#10b981', '#f59e0b', '#ef4444', 'var(--accent-ink)', 'var(--accent)'],
     }],
   };
   if (trigChart) {
@@ -154,9 +154,9 @@ async function refresh() {
     labels: ents.map(e => e.etype),
     datasets: [{
       data: ents.map(e => e.n),
-      backgroundColor: ['#4c78a8', '#10b981', '#f59e0b', '#ef4444',
-                         '#a78bfa', '#3b82f6', '#dc2626', '#6b7280',
-                         '#94a3b8', '#0ea5e9'],
+      backgroundColor: ['var(--accent)', '#10b981', '#f59e0b', '#ef4444',
+                         'var(--accent-ink)', 'var(--accent)', 'oklch(0.40 0.13 45)', 'var(--ink-3)',
+                         'var(--ink-3)', '#0ea5e9'],
     }],
   };
   if (entChart) {
@@ -175,7 +175,7 @@ async function refresh() {
     datasets: [{
       label: 'Findings',
       data: bundles.map(b => b.n_findings),
-      backgroundColor: '#4c78a8',
+      backgroundColor: 'var(--accent)',
     }, {
       label: 'Max severity',
       data: bundles.map(b => b.max_sev),
@@ -249,7 +249,7 @@ async function refreshLiveTasks() {
         preview = '(result available)';
       }
     } else if (t.error) {
-      preview = `<span style="color:#991b1b">ERR: ${t.error.slice(0, 100)}</span>`;
+      preview = `<span style="color:oklch(0.40 0.13 45)">ERR: ${t.error.slice(0, 100)}</span>`;
     } else if (t.status === 'running') {
       preview = '⟳ processing on ' + (t.gpu ? 'GPU' : 'CPU') + ' worker';
     } else if (t.status === 'pending') {

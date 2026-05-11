@@ -63,7 +63,7 @@
       </label>
       <label><input type="checkbox" id="auto-refresh" checked> auto-refresh</label>
       <button class="dc-btn secondary" onclick="loadLogs()">Refresh now</button>
-      <button class="dc-btn secondary" onclick="clearLogs()" style="background:#fee2e2;color:#991b1b">Clear buffer</button>
+      <button class="dc-btn secondary" onclick="clearLogs()" style="background:var(--ember-soft);color:oklch(0.40 0.13 45)">Clear buffer</button>
       <button class="dc-btn secondary" onclick="downloadJson()">Download JSON</button>
     </div>
     <div id="logs"></div>
@@ -72,7 +72,7 @@
 </main>
 <style>
 .dc-stat-mini {
-  background: #f8fafc; border: 1px solid var(--border);
+  background: var(--paper-2); border: 1px solid var(--border);
   border-radius: 6px; padding: 6px 12px; font-size: 12px;
 }
 .dc-stat-mini .num { font-weight: 700; color: var(--primary); }
@@ -87,16 +87,16 @@
 .dc-log-row.head { font-weight: 700; color: var(--muted); }
 .dc-log-row .lvl { padding: 2px 6px; border-radius: 3px; text-align: center;
                     font-weight: 600; font-size: 11px; }
-.dc-log-row .lvl-info  { background: #eff6ff; color: #1e40af; }
-.dc-log-row .lvl-warn  { background: #fffbeb; color: #92400e; }
-.dc-log-row .lvl-error { background: #fef2f2; color: #991b1b; }
-.dc-log-row .lvl-debug { background: #f1f5f9; color: var(--muted); }
+.dc-log-row .lvl-info  { background: var(--accent-soft); color: var(--accent-ink); }
+.dc-log-row .lvl-warn  { background: oklch(0.96 0.03 80); color: oklch(0.40 0.10 80); }
+.dc-log-row .lvl-error { background: var(--ember-soft); color: oklch(0.40 0.13 45); }
+.dc-log-row .lvl-debug { background: var(--paper-2); color: var(--muted); }
 .dc-log-row .src { color: var(--muted); }
 .dc-log-row .event-name { font-weight: 600; }
 .dc-log-row .fields { color: var(--muted); white-space: pre-wrap; word-break: break-word; }
-.dc-log-row .fields code { background: #f8fafc; padding: 1px 4px; border-radius: 3px; font-size: 11px; }
-.dc-log-row .traceback { color: #991b1b; font-size: 11px; white-space: pre-wrap;
-                          background: #fef2f2; padding: 6px; border-radius: 4px;
+.dc-log-row .fields code { background: var(--paper-2); padding: 1px 4px; border-radius: 3px; font-size: 11px; }
+.dc-log-row .traceback { color: oklch(0.40 0.13 45); font-size: 11px; white-space: pre-wrap;
+                          background: var(--ember-soft); padding: 6px; border-radius: 4px;
                           margin-top: 4px; max-height: 200px; overflow: auto; }
 </style>
 <script>

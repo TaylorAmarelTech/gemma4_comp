@@ -75,19 +75,22 @@
         }, options || {});
 
         const messages = [];
+        // Light civic-tech theme matches duecare-ai.com.
+        // The "dark" mode is preserved as an opt-in for embedders who
+        // want the legacy slate-blue look on a dark host page.
         const isDark = opts.theme === 'dark';
         const palette = isDark ? {
-            bg: '#0f172a', surface: '#1e293b', surfaceAlt: '#334155',
-            text: '#e2e8f0', muted: '#94a3b8', accent: '#4c7a8a',
-            userBubble: '#1e3a8a', userBubbleText: '#dbeafe',
-            asstBubble: '#334155', asstBubbleText: '#e2e8f0',
-            border: '#334155',
+            bg: '#0E1116', surface: '#1A1D24', surfaceAlt: '#2A2D34',
+            text: '#F7F6F1', muted: '#8A8E97', accent: '#4c7a8a',
+            userBubble: '#F7F6F1', userBubbleText: '#0E1116',
+            asstBubble: '#1A1D24', asstBubbleText: '#F7F6F1',
+            border: '#2A2D34',
         } : {
-            bg: '#ffffff', surface: '#f8fafc', surfaceAlt: '#f1f5f9',
-            text: '#0f172a', muted: '#64748b', accent: '#2563eb',
-            userBubble: '#dbeafe', userBubbleText: '#1e3a8a',
-            asstBubble: '#f1f5f9', asstBubbleText: '#0f172a',
-            border: '#e2e8f0',
+            bg: '#F7F6F1', surface: '#F7F6F1', surfaceAlt: '#EFEDE4',
+            text: '#0E1116', muted: '#5B5F68', accent: '#2f5563',
+            userBubble: '#0E1116', userBubbleText: '#F7F6F1',
+            asstBubble: '#F7F6F1', asstBubbleText: '#0E1116',
+            border: '#DDD8C9',
         };
 
         // Layout
@@ -96,7 +99,7 @@
             flexDirection: 'column',
             background: palette.bg,
             color: palette.text,
-            fontFamily: 'system-ui, -apple-system, "Segoe UI", Roboto, sans-serif',
+            fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
             border: `1px solid ${palette.border}`,
             borderRadius: '12px',
             overflow: 'hidden',

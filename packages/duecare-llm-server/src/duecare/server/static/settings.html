@@ -113,7 +113,7 @@
 }
 .dc-tabpanel { padding: 6px 0; }
 .dc-config-row {
-  background: #f8fafc; border: 1px solid var(--border);
+  background: var(--paper-2); border: 1px solid var(--border);
   border-radius: 6px; padding: 10px 14px; margin-bottom: 8px;
   font-size: 13px;
 }
@@ -125,9 +125,9 @@
 .dc-config-row .meta code {
   background: #ffffff; padding: 1px 6px; border-radius: 3px;
 }
-.dc-tier-critical    { background: #fef2f2; color: #991b1b; padding: 2px 8px; border-radius: 3px; font-size: 11px; }
-.dc-tier-strong      { background: #fffbeb; color: #92400e; padding: 2px 8px; border-radius: 3px; font-size: 11px; }
-.dc-tier-legitimate  { background: #ecfdf5; color: #065f46; padding: 2px 8px; border-radius: 3px; font-size: 11px; }
+.dc-tier-critical    { background: var(--ember-soft); color: oklch(0.40 0.13 45); padding: 2px 8px; border-radius: 3px; font-size: 11px; }
+.dc-tier-strong      { background: oklch(0.96 0.03 80); color: oklch(0.40 0.10 80); padding: 2px 8px; border-radius: 3px; font-size: 11px; }
+.dc-tier-legitimate  { background: oklch(0.95 0.03 155); color: oklch(0.32 0.10 155); padding: 2px 8px; border-radius: 3px; font-size: 11px; }
 </style>
 <script>
 async function status() {
@@ -323,13 +323,13 @@ async function loadSchema() {
   if (j.total_rows != null) html += ` · <b>${j.total_rows}</b> total rows`;
   html += `</p>`;
   if (j.error) {
-    html += `<p style="color:#991b1b">${j.error}</p>`;
+    html += `<p style="color:oklch(0.40 0.13 45)">${j.error}</p>`;
   }
   html += '<table class="dc-table"><thead><tr>' +
     '<th>table</th><th>row count</th></tr></thead><tbody>';
   for (const t of (j.tables||[])) {
     const rc = t.row_count != null ? t.row_count :
-                `<i style="color:#991b1b">${t.error||'-'}</i>`;
+                `<i style="color:oklch(0.40 0.13 45)">${t.error||'-'}</i>`;
     html += `<tr><td><code>${t.name}</code></td><td>${rc}</td></tr>`;
   }
   html += '</tbody></table>';

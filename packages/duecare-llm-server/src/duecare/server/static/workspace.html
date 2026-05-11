@@ -365,7 +365,7 @@
 .dc-tabpanel { padding: 6px 0; }
 .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-top: 12px; }
 .dc-progress {
-  width: 100%; height: 10px; background: #f1f5f9;
+  width: 100%; height: 10px; background: var(--paper-2);
   border-radius: 5px; overflow: hidden; border: 1px solid var(--border);
 }
 .dc-progress > div {
@@ -375,10 +375,10 @@
 }
 .dc-progress.indeterminate > div { width: 30%; animation: dc-indet 1.4s ease-in-out infinite; }
 @keyframes dc-indet { 0% { transform: translateX(-100%); } 100% { transform: translateX(400%); } }
-.dc-state-pending  { background: #fffbeb; color: #92400e; }
-.dc-state-running  { background: #dbeafe; color: #1e40af; }
-.dc-state-completed { background: #d1fae5; color: #065f46; }
-.dc-state-failed   { background: #fee2e2; color: #991b1b; }
+.dc-state-pending  { background: oklch(0.96 0.03 80); color: oklch(0.40 0.10 80); }
+.dc-state-running  { background: var(--accent-soft); color: var(--accent-ink); }
+.dc-state-completed { background: oklch(0.95 0.03 155); color: oklch(0.32 0.10 155); }
+.dc-state-failed   { background: var(--ember-soft); color: oklch(0.40 0.13 45); }
 .dc-trace-flow {
   display: flex; flex-direction: column; gap: 6px;
   border-left: 2px solid var(--border); padding-left: 14px;
@@ -396,7 +396,7 @@
 .dc-trace-step.s-ok::before { background: #10b981; }
 .dc-trace-step.s-running::before { background: #4c7a8a; animation: dc-pulse 1.4s ease-in-out infinite; }
 .dc-trace-step.s-fail::before { background: #ef4444; }
-.dc-trace-step.s-skip::before { background: #94a3b8; }
+.dc-trace-step.s-skip::before { background: var(--ink-3); }
 .dc-trace-step.s-fallback::before { background: #f59e0b; }
 @keyframes dc-pulse { 0%,100% {opacity: 1;} 50% {opacity: 0.4;} }
 .dc-trace-step .t-time { font-family: monospace; color: var(--muted); font-size: 11px; }
@@ -404,33 +404,33 @@
   font-size: 10px; padding: 1px 6px; border-radius: 3px;
   text-transform: uppercase; font-weight: 700; text-align: center;
 }
-.dc-trace-step.s-ok .t-tag { background: #d1fae5; color: #065f46; }
-.dc-trace-step.s-running .t-tag { background: #dbeafe; color: #1e40af; }
-.dc-trace-step.s-fail .t-tag { background: #fee2e2; color: #991b1b; }
-.dc-trace-step.s-skip .t-tag { background: #f1f5f9; color: var(--muted); }
-.dc-trace-step.s-fallback .t-tag { background: #fef3c7; color: #92400e; }
+.dc-trace-step.s-ok .t-tag { background: oklch(0.95 0.03 155); color: oklch(0.32 0.10 155); }
+.dc-trace-step.s-running .t-tag { background: var(--accent-soft); color: var(--accent-ink); }
+.dc-trace-step.s-fail .t-tag { background: var(--ember-soft); color: oklch(0.40 0.13 45); }
+.dc-trace-step.s-skip .t-tag { background: var(--paper-2); color: var(--muted); }
+.dc-trace-step.s-fallback .t-tag { background: oklch(0.96 0.03 80); color: oklch(0.40 0.10 80); }
 .dc-trace-step .t-name { font-weight: 600; }
 .dc-trace-step .t-detail { color: var(--muted); margin-top: 2px; font-size: 11px; word-break: break-word; }
 .dc-callout {
-  background: #eff6ff; border-left: 4px solid #4c7a8a;
+  background: var(--accent-soft); border-left: 4px solid #4c7a8a;
   padding: 12px 16px; border-radius: 6px; margin-bottom: 8px;
 }
 .dc-kb-hit {
-  background: #f8fafc; border: 1px solid var(--border);
+  background: var(--paper-2); border: 1px solid var(--border);
   border-radius: 6px; padding: 8px 12px; margin-bottom: 6px; font-size: 12px;
 }
 .dc-kb-hit .id { font-family: monospace; color: var(--primary); font-weight: 600; }
 .dc-tool-call {
-  display: inline-block; background: #eff6ff; color: #1e40af;
+  display: inline-block; background: var(--accent-soft); color: var(--accent-ink);
   border-radius: 4px; padding: 2px 8px; margin: 2px 4px 2px 0;
   font-size: 11px; font-family: monospace;
 }
 .dc-template-card {
-  background: #f8fafc; border: 1px solid var(--border);
+  background: var(--paper-2); border: 1px solid var(--border);
   border-radius: 8px; padding: 14px 16px; margin-bottom: 10px;
   cursor: pointer; transition: border-color 120ms;
 }
-.dc-template-card:hover { border-color: var(--primary); background: #eff6ff; }
+.dc-template-card:hover { border-color: var(--primary); background: var(--accent-soft); }
 .dc-template-card .t-title { font-weight: 600; }
 .dc-template-card .t-loc {
   font-size: 11px; color: var(--muted); margin-left: 8px;
@@ -443,7 +443,7 @@
   border: 1px solid var(--border);
 }
 .dc-stat-mini {
-  background: #f8fafc; border: 1px solid var(--border);
+  background: var(--paper-2); border: 1px solid var(--border);
   border-radius: 6px; padding: 8px 14px; font-size: 12px; min-width: 80px;
 }
 .dc-stat-mini .num { font-weight: 700; color: var(--primary); font-size: 20px; }
@@ -786,7 +786,7 @@ function renderRunVerdict(result, taskType) {
   if (!result) return;
   // Build verdict block (and append the suggested-complaint-template hint)
   const sct = result.suggested_complaint_template;
-  const sctHtml = sct ? `<div style="margin-top:10px;background:#eff6ff;` +
+  const sctHtml = sct ? `<div style="margin-top:10px;background:var(--accent-soft);` +
     `padding:8px 12px;border-radius:6px;font-size:13px;border-left:3px solid var(--primary)">` +
     `<b>Next step:</b> use template <code>${sct.slug}</code> — ${sct.reason} ` +
     `&nbsp;<a href="#" onclick="document.querySelector('.dc-tab[data-tab=complaints]').click();` +
@@ -904,8 +904,8 @@ async function pollBenchmark() {
     summaryTile('Verdict acc', sm.verdict_acc != null ? (sm.verdict_acc*100).toFixed(0)+'%' : '-', '#4c7a8a') +
     summaryTile('Severity acc', sm.severity_acc != null ? (sm.severity_acc*100).toFixed(0)+'%' : '-', '#4c7a8a') +
     summaryTile('Close (incl over-cautious)', sm.close_rate != null ? (sm.close_rate*100).toFixed(0)+'%' : '-', '#f59e0b') +
-    summaryTile('Signal recall', sm.signal_recall != null ? (sm.signal_recall*100).toFixed(0)+'%' : '-', '#5b21b6') +
-    summaryTile('Done', `${done}/${total}`, '#6b7280');
+    summaryTile('Signal recall', sm.signal_recall != null ? (sm.signal_recall*100).toFixed(0)+'%' : '-', 'var(--accent-ink)') +
+    summaryTile('Done', `${done}/${total}`, 'var(--ink-3)');
 
   // Confusion grid
   const conf = sm.confusion || {};
@@ -920,7 +920,7 @@ async function pollBenchmark() {
     Object.entries(cats).map(([cat, b]) =>
       `<div style="display:flex;align-items:center;gap:8px;margin:2px 0">
         <span style="min-width:200px;font-family:monospace">${cat}</span>
-        <div style="flex:1;background:#f1f5f9;height:8px;border-radius:4px;overflow:hidden">
+        <div style="flex:1;background:var(--paper-2);height:8px;border-radius:4px;overflow:hidden">
           <div style="width:${(b.pass_rate*100).toFixed(0)}%;background:#10b981;height:100%"></div>
         </div>
         <span style="font-family:monospace;color:var(--muted)">${b.pass}/${b.n}</span>
@@ -957,7 +957,7 @@ function benchRowHtml(r) {
   const sev = r.got_severity != null ? r.got_severity :
               (r.result?.severity || '-');
   const sevExp = r.expected_severity_min || 0;
-  return `<div style="border-left:3px solid ${color};padding:6px 12px;margin:4px 0;background:#fafafa;border-radius:4px;font-size:12px">
+  return `<div style="border-left:3px solid ${color};padding:6px 12px;margin:4px 0;background:var(--paper-2);border-radius:4px;font-size:12px">
     <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
       <code style="color:${color};font-weight:700">${r.id}</code>
       <span style="color:var(--muted)">${r.category || ''}</span>
@@ -1086,7 +1086,7 @@ async function renderComplaint() {
   const meta = `<b>${_ctRendered.title}</b> · ${_ctRendered.template_chars} chars · ` +
                   `${_ctRendered.used_fields.length} field(s) filled` +
                   (_ctRendered.missing_fields.length
-                    ? ` · <span style="color:#991b1b">${_ctRendered.missing_fields.length} field(s) still as {placeholders}: ${_ctRendered.missing_fields.join(', ')}</span>`
+                    ? ` · <span style="color:oklch(0.40 0.13 45)">${_ctRendered.missing_fields.length} field(s) still as {placeholders}: ${_ctRendered.missing_fields.join(', ')}</span>`
                     : '');
   document.getElementById('ct-output-meta').innerHTML = meta;
   document.getElementById('ct-output-body').innerText = _ctRendered.body;
