@@ -625,38 +625,39 @@ def build_app():
 _PAGE_HTML = """<!doctype html><html><head>
 <meta charset="utf-8">
 <title>Duecare Content Classification Playground</title>
+<link rel="stylesheet" href="/wb-static/_chrome.css">
+<script src="/wb-static/_nav.js" defer></script>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
-  :root { --paper:#F7F6F1; --paper2:#EFEDE4; --ink:#0E1116; --ink2:#2A2D34; --ink3:#5B5F68; --line:#DDD8C9; --accent:oklch(0.52 0.08 195); --accentInk:oklch(0.32 0.07 195); --accentSoft:oklch(0.92 0.03 195); --ember:oklch(0.58 0.14 45); --mono:'JetBrains Mono',ui-monospace,Menlo,monospace; --sans:'Inter',-apple-system,BlinkMacSystemFont,sans-serif; }
-  * { box-sizing: border-box; }
-  body { font-family: var(--sans);
-         max-width: 1100px; margin: 30px auto; padding: 0 24px;
-     color: var(--ink); background: var(--paper); }
+  /* Page-specific layout. Design tokens (--paper, --ink, --accent, --mono,
+     --sans, --line, etc.) come from /wb-static/_chrome.css — the same
+     source of truth as notebook #01 (the Exploration Workbench). */
+  .page-wrap { max-width: 1100px; margin: 30px auto; padding: 0 24px; }
   h1 { color: var(--ink); letter-spacing: -0.02em; margin: 0 0 6px; display:flex; align-items:center; gap:10px; }
   .brand-mark { width:30px; height:30px; display:inline-grid; place-items:center; border-radius:7px; background:var(--ink); color:var(--paper); font-family:var(--mono); font-size:11px; font-weight:700; letter-spacing:.04em; }
   .sub { color: var(--ink3); margin: 0 0 24px; line-height: 1.5; }
   .card { background: #fffdf7; border: 1px solid var(--line);
-      border-radius: 12px; padding: 18px; margin-bottom: 14px; box-shadow:0 1px 0 rgba(14,17,22,.04),0 8px 24px -18px rgba(14,17,22,.12); }
+      border-radius: 12px; padding: 18px; margin-bottom: 14px;
+      box-shadow:0 1px 0 rgba(14,17,22,.04),0 8px 24px -18px rgba(14,17,22,.12); }
   label { display: block; font-weight: 600; font-size: 13px;
       color: var(--ink2); margin-bottom: 6px; }
   textarea { width: 100%; min-height: 120px; font-family: var(--mono); font-size: 13px;
          padding: 10px; border: 1px solid var(--line); border-radius: 8px;
-             box-sizing: border-box; resize: vertical; }
+             box-sizing: border-box; resize: vertical; background: #fff; color: var(--ink); }
   select, input[type=number] {
          padding: 8px 10px; border: 1px solid var(--line);
-             border-radius: 8px; font-size: 13px; }
-  button { background: var(--accent); color: white; padding: 10px 18px;
+             border-radius: 8px; font-size: 13px; background: #fff; color: var(--ink); }
+  button.primary { background: var(--accent); color: white; padding: 10px 18px;
            border: none; border-radius: 8px; font-weight: 600;
        font-size: 14px; cursor: pointer; font-family:var(--sans); }
-  button:hover { filter: brightness(.96); transform: translateY(-1px); }
-  button:disabled { background: #9ca3af; cursor: not-allowed; }
-  button:focus-visible, textarea:focus-visible, select:focus-visible, input:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
+  button.primary:hover { filter: brightness(.96); transform: translateY(-1px); }
+  button.primary:disabled { background: #9ca3af; cursor: not-allowed; }
+  button.primary:focus-visible, textarea:focus-visible, select:focus-visible, input:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
   .row { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
-  .pill { display: inline-block; background: var(--accentSoft); color: var(--accentInk);
+  .pill { display: inline-block; background: var(--accentSoft, oklch(0.92 0.03 195)); color: var(--accentInk, oklch(0.32 0.07 195));
           padding: 2px 9px; border-radius: 999px; font-size: 11px;
       font-weight: 700; margin-left: 6px; font-family:var(--mono); text-transform:uppercase; letter-spacing:.04em; }
   .col-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-  .panel { background: var(--paper2); border: 1px solid var(--line);
+  .panel { background: var(--paper2, #EFEDE4); border: 1px solid var(--line);
            border-radius: 8px; padding: 12px; }
   .panel h3 { margin: 0 0 8px; font-size: 13px; color: var(--ink3);
               text-transform: uppercase; letter-spacing: 0.05em;
@@ -668,9 +669,11 @@ _PAGE_HTML = """<!doctype html><html><head>
   .err { color: #b91c1c; font-weight: 600; }
   .ok  { color: oklch(0.55 0.10 155); font-weight: 600; }
   details summary { cursor: pointer; font-weight: 600; padding: 6px 0; }
-</style></head><body>
+  @media (max-width: 720px) { .col-grid { grid-template-columns: 1fr; } }
+</style></head><body data-nav="tools">
 
-<h1><span class="brand-mark" aria-hidden="true">DC</span><span>DueCare Content Classification Playground <span class="pill">CORE · Hands-on</span></span></h1>
+<div class="page-wrap">
+<h1><span class="brand-mark" aria-hidden="true">DC</span><span>Content Classification Playground <span class="pill">A-03 · Hands-on</span></span></h1>
 <p class="sub">
   Paste content, pick a schema, classify. See the merged prompt Gemma
   receives, the raw response, the parsed JSON envelope, and elapsed time.
@@ -706,14 +709,14 @@ _PAGE_HTML = """<!doctype html><html><head>
               placeholder='For custom schema mode: paste your JSON Schema. For other modes: a JSON array of label strings to override the defaults.'></textarea>
   </details>
   <div style="margin-top: 14px">
-    <button onclick="doClassify()">Classify</button>
+    <button class="primary" onclick="doClassify()">Classify</button>
     <span id="status" class="meta"></span>
   </div>
 </div>
 
 <div id="result" style="display: none">
   <div class="card">
-    <h3 style="margin: 0 0 8px; font-size: 13px; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 700">Parsed envelope</h3>
+    <h3 style="margin: 0 0 8px; font-size: 13px; color: var(--ink3); text-transform: uppercase; letter-spacing: 0.05em; font-weight: 700">Parsed envelope</h3>
     <pre id="parsed"></pre>
     <div id="parse_err" class="err meta"></div>
   </div>
@@ -777,6 +780,7 @@ async function doClassify() {
   }
 }
 </script>
+</div>
 </body></html>"""
 
 

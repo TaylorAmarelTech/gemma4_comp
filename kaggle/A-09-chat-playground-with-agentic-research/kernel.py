@@ -1180,57 +1180,85 @@ def chat(req: ChatRequest) -> dict:
 _PAGE_HTML = """<!doctype html><html><head>
 <meta charset="utf-8">
 <title>Duecare Chat with Agentic Research</title>
+<link rel="stylesheet" href="/wb-static/_chrome.css">
+<script src="/wb-static/_nav.js" defer></script>
 <style>
-  body { font-family: -apple-system, system-ui, sans-serif;
-         max-width: 1180px; margin: 24px auto; padding: 0 24px;
-         color: #1f2937; background: #f8fafc; }
-  h1 { color: #1e40af; letter-spacing: -0.02em; margin: 0 0 4px; }
-  .sub { color: #6b7280; font-size: 13px; margin: 0 0 16px; }
-  .badge { display: inline-block; background: #fef3c7; color: #92400e;
+  /* Design tokens (--paper, --ink, --accent, --mono, --line, ...) come
+     from /wb-static/_chrome.css — the same source of truth as
+     notebook #01 Exploration Workbench. Page-specific layout below. */
+  .page-wrap { max-width: 1180px; margin: 24px auto; padding: 0 24px; }
+  h1 { color: var(--ink); letter-spacing: -0.02em; margin: 0 0 4px;
+       display:flex; align-items:center; gap:10px; }
+  .brand-mark { width:30px; height:30px; display:inline-grid;
+                place-items:center; border-radius:7px; background:var(--ink);
+                color:var(--paper); font-family:var(--mono); font-size:11px;
+                font-weight:700; letter-spacing:.04em; }
+  .sub { color: var(--ink3); font-size: 13px; margin: 0 0 16px; line-height: 1.5; }
+  .badge { display: inline-block; background: var(--accentSoft, oklch(0.92 0.03 195));
+           color: var(--accentInk, oklch(0.32 0.07 195));
            padding: 2px 9px; border-radius: 999px; font-size: 11px;
-           font-weight: 700; margin-left: 6px; }
+           font-weight: 700; margin-left: 6px; font-family: var(--mono);
+           text-transform: uppercase; letter-spacing: .04em; }
   .layout { display: grid; grid-template-columns: 2fr 1fr; gap: 16px; }
+  @media (max-width: 900px) { .layout { grid-template-columns: 1fr; } }
   .col { display: flex; flex-direction: column; gap: 12px; }
-  .card { background: white; border: 1px solid #e5e7eb;
-          border-radius: 12px; padding: 14px; }
+  .card { background: #fffdf7; border: 1px solid var(--line);
+          border-radius: 12px; padding: 14px;
+          box-shadow:0 1px 0 rgba(14,17,22,.04),0 8px 24px -18px rgba(14,17,22,.12); }
   .conv { min-height: 320px; max-height: 540px; overflow-y: auto;
-          background: white; border: 1px solid #e5e7eb;
+          background: #fffdf7; border: 1px solid var(--line);
           border-radius: 12px; padding: 14px; }
   .turn { margin-bottom: 14px; }
-  .turn-user { color: #1e40af; font-weight: 700; font-size: 12px;
-               margin-bottom: 4px; }
-  .turn-assistant { color: #047857; font-weight: 700; font-size: 12px;
-                    margin-bottom: 4px; }
-  .turn-body { white-space: pre-wrap; line-height: 1.5; font-size: 14px; }
-  textarea { width: 100%; min-height: 60px; font-family: ui-monospace,
-             Menlo, Consolas, monospace; font-size: 13px;
-             padding: 10px; border: 1px solid #d1d5db; border-radius: 8px;
-             box-sizing: border-box; resize: vertical; }
-  button { background: #1e40af; color: white; padding: 9px 16px;
+  .turn-user { color: var(--accentInk, oklch(0.32 0.07 195)); font-weight: 700; font-size: 12px;
+               margin-bottom: 4px; text-transform: uppercase; letter-spacing: .05em;
+               font-family: var(--mono); }
+  .turn-assistant { color: var(--ink); font-weight: 700; font-size: 12px;
+                    margin-bottom: 4px; text-transform: uppercase; letter-spacing: .05em;
+                    font-family: var(--mono); }
+  .turn-body { white-space: pre-wrap; line-height: 1.5; font-size: 14px; color: var(--ink); }
+  textarea { width: 100%; min-height: 60px; font-family: var(--mono); font-size: 13px;
+             padding: 10px; border: 1px solid var(--line); border-radius: 8px;
+             box-sizing: border-box; resize: vertical; background: #fff; color: var(--ink); }
+  button.primary { background: var(--accent); color: white; padding: 9px 16px;
            border: none; border-radius: 8px; font-weight: 600;
-           font-size: 13px; cursor: pointer; }
-  button:hover { background: #1e3a8a; }
-  button:disabled { background: #9ca3af; cursor: not-allowed; }
+           font-size: 13px; cursor: pointer; font-family: var(--sans); }
+  button.primary:hover { filter: brightness(.96); transform: translateY(-1px); }
+  button.primary:disabled { background: #9ca3af; cursor: not-allowed; }
+  button.primary:focus-visible, textarea:focus-visible, input:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
   .tiles { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
-  .tile { padding: 10px 12px; border: 2px solid #e5e7eb; border-radius: 10px;
-          background: #f9fafb; cursor: pointer; transition: all 0.15s;
-          text-align: center; }
+  @media (max-width: 720px) { .tiles { grid-template-columns: repeat(2, 1fr); } }
+  .tile { padding: 10px 12px; border: 2px solid var(--line); border-radius: 10px;
+          background: var(--paper2, #EFEDE4); cursor: pointer; transition: all 0.15s;
+          text-align: center; color: var(--ink); }
   .tile.on { background: var(--c); border-color: var(--c); color: white; }
   .tile-title { font-weight: 700; font-size: 12px; margin-bottom: 2px; }
   .tile-desc { font-size: 10px; opacity: 0.85; line-height: 1.3; }
-  pre { background: #1f2937; color: #f9fafb; padding: 10px;
+  pre { background: #101820; color: #f9fafb; padding: 10px;
         border-radius: 8px; overflow-x: auto; font-size: 11px;
         line-height: 1.4; max-height: 400px; overflow-y: auto;
         white-space: pre-wrap; word-wrap: break-word; }
-  .meta { color: #6b7280; font-size: 11px; margin-top: 6px; }
-  .agent-step { background: #f1f5f9; padding: 8px 10px; border-radius: 6px;
-                margin-bottom: 6px; font-size: 11px; line-height: 1.4; }
-  .agent-step .tool { font-weight: 700; color: #1e40af; }
-  h3 { margin: 0 0 6px; font-size: 13px; color: #6b7280;
+  .meta { color: var(--ink3); font-size: 11px; margin-top: 6px; }
+  .agent-step { background: var(--paper2, #EFEDE4); padding: 8px 10px;
+                border-radius: 6px; margin-bottom: 6px; font-size: 11px;
+                line-height: 1.4; color: var(--ink); }
+  .agent-step .tool { font-weight: 700; color: var(--accentInk, oklch(0.32 0.07 195)); }
+  h3 { margin: 0 0 6px; font-size: 13px; color: var(--ink3);
        text-transform: uppercase; letter-spacing: 0.05em; font-weight: 700; }
-</style></head><body>
+  /* Privacy callout — uses ember accent per duecare-ai.com convention. */
+  .privacy-bar { background: oklch(0.96 0.04 45);
+                 border: 1px solid oklch(0.78 0.10 45);
+                 padding: 10px 14px; display: flex; gap: 18px;
+                 align-items: center; margin-bottom: 10px; border-radius: 12px; }
+  .privacy-bar .ember { color: var(--ember, oklch(0.58 0.14 45)); font-weight: 700; }
+  button.utility { background: var(--ember, oklch(0.58 0.14 45)); color: white;
+                   padding: 6px 12px; font-size: 12px;
+                   border: none; border-radius: 8px; font-weight: 600;
+                   cursor: pointer; font-family: var(--sans); }
+  button.utility:hover { filter: brightness(.96); }
+</style></head><body data-nav="tools">
 
-<h1>Duecare Chat with Agentic Research <span class="badge">APPENDIX A4 · Proof-of-concept</span></h1>
+<div class="page-wrap">
+<h1><span class="brand-mark" aria-hidden="true">DC</span><span>Chat with Agentic Research <span class="badge">A-09 · Proof-of-concept</span></span></h1>
 <p class="sub">
   Same harness as chat-playground-with-grep-rag-tools, plus a fifth
   toggle for <b>Agentic Research</b>: Gemma 4 multi-step web research
@@ -1241,15 +1269,15 @@ _PAGE_HTML = """<!doctype html><html><head>
   by plaintext.
 </p>
 
-<div class="card" style="background:#fef3c7; border-color:#f59e0b; padding:10px 14px; display:flex; gap:18px; align-items:center; margin-bottom:10px">
+<div class="privacy-bar">
   <div>
-    <span style="font-weight:700; color:#92400e">🔒 PII filter ACTIVE</span>
+    <span class="ember">PII filter ACTIVE</span>
     <span class="meta" id="backend-info" style="margin-left:10px"></span>
   </div>
   <div style="flex:1"></div>
   <div>
-    <button onclick="toggleByok()" style="background:#92400e; padding:6px 12px; font-size:12px">BYOK keys</button>
-    <button onclick="loadAudit()" style="background:#92400e; padding:6px 12px; font-size:12px; margin-left:6px">Search audit</button>
+    <button class="utility" onclick="toggleByok()">BYOK keys</button>
+    <button class="utility" onclick="loadAudit()" style="margin-left:6px">Search audit</button>
   </div>
 </div>
 
@@ -1278,8 +1306,8 @@ _PAGE_HTML = """<!doctype html><html><head>
     <span class="meta">serper.dev</span>
   </div>
   <div style="margin-top:10px">
-    <button onclick="saveByok()">Save</button>
-    <button onclick="clearByok()" style="background:#dc2626">Clear all</button>
+    <button class="primary" onclick="saveByok()">Save</button>
+    <button class="primary" onclick="clearByok()" style="background:#dc2626">Clear all</button>
     <span class="meta" id="byok-status" style="margin-left:10px"></span>
   </div>
 </div>
@@ -1314,8 +1342,8 @@ _PAGE_HTML = """<!doctype html><html><head>
       </div>
       <textarea id="msg" placeholder="Type a question..."></textarea>
       <div style="margin-top: 10px; display: flex; align-items: center; gap: 8px">
-        <button id="send" onclick="send()">Send</button>
-        <button onclick="clearConv()" style="background: #6b7280">Clear</button>
+        <button class="primary" id="send" onclick="send()">Send</button>
+        <button class="primary" onclick="clearConv()" style="background: var(--ink3)">Clear</button>
         <span class="meta" id="status"></span>
       </div>
     </div>
@@ -1506,6 +1534,7 @@ async function loadAudit() {
 
 loadBackend();
 </script>
+</div>
 </body></html>"""
 
 

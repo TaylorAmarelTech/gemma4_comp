@@ -235,6 +235,29 @@ def create_app(state: Optional[ServerState] = None) -> FastAPI:
                    StaticFiles(directory=str(pipeline_out)),
                    name="pipeline")
 
+    # Cross-mount the chat-package's workbench static at /wb-static/ so
+    # the server (02-live-demo, the public hub) shares the workbench's
+    # design tokens, single-row nav, and audience showcase pages with
+    # notebook #01. Visual consistency across both packages, single
+    # source of truth (the chat-package's _chrome.css + _nav.js).
+    try:
+        import duecare.chat as _chat_pkg  # type: ignore[import-not-found]
+        _wb_static = Path(_chat_pkg.__file__).parent / "static"
+        if _wb_static.exists():
+            app.mount("/wb-static",
+                       StaticFiles(directory=str(_wb_static)),
+                       name="wb-static")
+            try:
+                from duecare.chat._dc_log import dc_log as _dc  # type: ignore[import-not-found]
+                _dc("server.boot",
+                    "workbench static mounted at /wb-static",
+                    static_dir=str(_wb_static))
+            except Exception:
+                pass
+    except Exception as _e:  # noqa: BLE001 -- chat package is optional
+        LOG_BUFFER.add("warn", "boot",
+                       f"workbench static unavailable: {_e}")
+
     # ------ Page routes ----------------------------------------------------
     @app.get("/", response_class=HTMLResponse)
     def homepage() -> Any:
