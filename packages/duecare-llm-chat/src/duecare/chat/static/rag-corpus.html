@@ -126,7 +126,7 @@
       const groups = {};
       for (const r of rows) {
         const k = r.group || "other";
-        if (!groups[k]) groups[k] = {label: r.group_label || "Other", color: r.group_color || "#94a3b8", count: 0};
+        if (!groups[k]) groups[k] = {label: r.group_label || "Other", color: r.group_color || "#5B5F68", count: 0};
         groups[k].count++;
       }
       const sorted = Object.entries(groups).sort((a, b) => b[1].count - a[1].count);

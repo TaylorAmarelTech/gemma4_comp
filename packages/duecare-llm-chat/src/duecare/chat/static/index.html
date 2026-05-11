@@ -7,10 +7,11 @@
   <link rel="stylesheet" href="/static/_chrome.css" />
 <style>
 :root {
-  /* Light civic-tech research lab theme - matches duecare-ai.com */
-  --bg: #F7F6F1;        --panel: #FFFFFF;       --panel2: #EFEDE4;
+  /* Light civic-tech research lab theme - matches duecare-ai.com.
+     Source of truth: apps/duecare-ai.com/app/static/styles.css */
+  --bg: #F7F6F1;        --panel: #F7F6F1;       --panel2: #EFEDE4;
   --ink: #0E1116;       --muted: #5B5F68;       --accent: oklch(0.52 0.08 195);
-  --user: #0E1116;      --bot: #FFFFFF;         --border: #DDD8C9;
+  --user: #0E1116;      --bot: #F7F6F1;         --border: #DDD8C9;
   --good: oklch(0.55 0.10 155); --warn: oklch(0.65 0.10 80); --bad: oklch(0.58 0.14 45);
 }
 * { box-sizing: border-box; }
@@ -454,7 +455,7 @@ header.bar .badge.loaded .dot {
 /* ---- Lightbox modal (used by all 4 tile View buttons) ---- */
 .modal-overlay {
   position: fixed; inset: 0; z-index: 1000;
-  background: rgba(0, 0, 0, 0.7);
+  background: rgba(14, 17, 22, 0.40);
   backdrop-filter: blur(2px);
   display: none;
   align-items: center; justify-content: center;
@@ -467,7 +468,7 @@ header.bar .badge.loaded .dot {
   width: 94%; max-width: 1100px;
   max-height: 92vh;
   display: flex; flex-direction: column;
-  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 25px 60px rgba(14, 17, 22, 0.18);
   overflow: hidden;
 }
 /* Grade modal gets a wider max so the per-dim table doesn't word-wrap
@@ -771,7 +772,7 @@ header.bar .badge.loaded .dot {
       and trafficking.</p>
       <div id="pick-model-cta" style="display:none; margin:18px auto 4px;">
         <button onclick="openModelPickerFromUI()"
-                style="background:var(--accent); color:#fff; border:0; padding:11px 22px; border-radius:10px; font-size:14px; font-weight:600; cursor:pointer; box-shadow:0 1px 4px rgba(59,130,246,0.3);">
+                style="background:var(--accent); color:var(--bg); border:0; padding:11px 22px; border-radius:10px; font-size:14px; font-weight:600; cursor:pointer; box-shadow:0 1px 4px rgba(14,17,22,0.12);">
           ↓ Pick a model
         </button>
         <div style="font-size:11.5px; color:var(--muted); margin-top:8px;">
@@ -785,24 +786,24 @@ header.bar .badge.loaded .dot {
       <!-- 4-card demo path. Same flow as the About modal, surfaced inline so
            a first-time judge sees it without hunting for the toolbar button. -->
       <div class="demo-path-cards" style="display:grid; grid-template-columns:repeat(4, 1fr); gap:10px; margin:18px auto 6px; max-width:760px;">
-        <div onclick="openModelPickerFromUI()" style="cursor:pointer; padding:14px 12px; border:1px solid var(--border, #334155); border-radius:8px; background:rgba(59,130,246,0.05); transition:border-color .15s, transform .12s;" onmouseover="this.style.borderColor='var(--accent)'; this.style.transform='translateY(-1px)'" onmouseout="this.style.borderColor='var(--border, #334155)'; this.style.transform='translateY(0)'">
-          <div style="font-family:ui-monospace, SFMono-Regular, Menlo, monospace; font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:0.08em;">Step 01</div>
+        <div onclick="openModelPickerFromUI()" style="cursor:pointer; padding:14px 12px; border:1px solid var(--border, #DDD8C9); border-radius:8px; background:rgba(76,122,138,0.05); transition:border-color .15s, transform .12s;" onmouseover="this.style.borderColor='var(--accent)'; this.style.transform='translateY(-1px)'" onmouseout="this.style.borderColor='var(--border, #DDD8C9)'; this.style.transform='translateY(0)'">
+          <div style="font-family:var(--mono); font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:0.08em;">Step 01</div>
           <div style="font-size:13px; font-weight:600; margin-top:6px; line-height:1.3;">Pick a model</div>
           <div style="font-size:11.5px; color:var(--muted); margin-top:4px; line-height:1.4;">E2B for speed, 31B for depth.</div>
         </div>
-        <div onclick="document.querySelector('.harness-tiles').scrollIntoView({behavior:'smooth', block:'start'})" style="cursor:pointer; padding:14px 12px; border:1px solid var(--border, #334155); border-radius:8px; background:color-mix(in srgb, var(--accent-grep) 8%, transparent); transition:border-color .15s, transform .12s;" onmouseover="this.style.borderColor='var(--accent-grep)'; this.style.transform='translateY(-1px)'" onmouseout="this.style.borderColor='var(--border, #334155)'; this.style.transform='translateY(0)'">
-          <div style="font-family:ui-monospace, SFMono-Regular, Menlo, monospace; font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:0.08em;">Step 02</div>
+        <div onclick="document.querySelector('.harness-tiles').scrollIntoView({behavior:'smooth', block:'start'})" style="cursor:pointer; padding:14px 12px; border:1px solid var(--border, #DDD8C9); border-radius:8px; background:color-mix(in srgb, var(--accent-grep) 8%, transparent); transition:border-color .15s, transform .12s;" onmouseover="this.style.borderColor='var(--accent-grep)'; this.style.transform='translateY(-1px)'" onmouseout="this.style.borderColor='var(--border, #DDD8C9)'; this.style.transform='translateY(0)'">
+          <div style="font-family:var(--mono); font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:0.08em;">Step 02</div>
           <div style="font-size:13px; font-weight:600; margin-top:6px; line-height:1.3;">Flip a layer</div>
           <div style="font-size:11.5px; color:var(--muted); margin-top:4px; line-height:1.4;">Toggle GREP, RAG, Tools to see what each adds.</div>
         </div>
-        <div onclick="document.getElementById('input').focus()" style="cursor:pointer; padding:14px 12px; border:1px solid var(--border, #334155); border-radius:8px; background:color-mix(in srgb, var(--accent-tools) 8%, transparent); transition:border-color .15s, transform .12s;" onmouseover="this.style.borderColor='var(--accent-tools)'; this.style.transform='translateY(-1px)'" onmouseout="this.style.borderColor='var(--border, #334155)'; this.style.transform='translateY(0)'">
-          <div style="font-family:ui-monospace, SFMono-Regular, Menlo, monospace; font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:0.08em;">Step 03</div>
+        <div onclick="document.getElementById('input').focus()" style="cursor:pointer; padding:14px 12px; border:1px solid var(--border, #DDD8C9); border-radius:8px; background:color-mix(in srgb, var(--accent-tools) 8%, transparent); transition:border-color .15s, transform .12s;" onmouseover="this.style.borderColor='var(--accent-tools)'; this.style.transform='translateY(-1px)'" onmouseout="this.style.borderColor='var(--border, #DDD8C9)'; this.style.transform='translateY(0)'">
+          <div style="font-family:var(--mono); font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:0.08em;">Step 03</div>
           <div style="font-size:13px; font-weight:600; margin-top:6px; line-height:1.3;">Send a prompt</div>
           <div style="font-size:11.5px; color:var(--muted); margin-top:4px; line-height:1.4;">Type below or click an example.</div>
         </div>
         <div onclick="if(typeof switchToCompareTab==='function'){switchToCompareTab()}else{alert('Send a message first; the Compare tab needs a baseline.')}" style="cursor:pointer; padding:14px 12px; border:1px solid #f59e0b; border-radius:8px; background:rgba(245,158,11,0.08); transition:border-color .15s, transform .12s; position:relative;" onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform='translateY(0)'">
           <div style="position:absolute; top:6px; right:8px; font-size:10px; color:#f59e0b; font-weight:700;">★ best for judges</div>
-          <div style="font-family:ui-monospace, SFMono-Regular, Menlo, monospace; font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:0.08em;">Step 04</div>
+          <div style="font-family:var(--mono); font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:0.08em;">Step 04</div>
           <div style="font-size:13px; font-weight:600; margin-top:6px; line-height:1.3;">Compare two configs</div>
           <div style="font-size:11.5px; color:var(--muted); margin-top:4px; line-height:1.4;">Same prompt, harness on vs off, side by side.</div>
         </div>
@@ -856,7 +857,7 @@ header.bar .badge.loaded .dot {
                   title="Enable all wired harness layers (full-stack demo)">Enable all</button>
           <button onclick="toggleAllHarness(false)"
                   style="background:transparent; border:1px solid var(--border); color:var(--muted); padding:3px 10px; border-radius:5px; font-size:10.5px; cursor:pointer; font-weight:500;"
-                  onmouseover="this.style.borderColor='#94a3b8'; this.style.color='#94a3b8'"
+                  onmouseover="this.style.borderColor='#5B5F68'; this.style.color='#5B5F68'"
                   onmouseout="this.style.borderColor='var(--border)'; this.style.color='var(--muted)'"
                   title="Disable all harness layers (raw Gemma baseline)">Disable all</button>
         </div>
@@ -1660,10 +1661,10 @@ function openAboutModal() {
         Keyboard shortcuts
       </h4>
       <ul style="margin:0; padding-left:20px; font-size:12px;">
-        <li><kbd style="background:var(--bg); border:1px solid var(--border); border-radius:3px; padding:1px 6px; font-family:ui-monospace,monospace; font-size:11px;">⌘ / Ctrl + K</kbd> — open the model picker</li>
-        <li><kbd style="background:var(--bg); border:1px solid var(--border); border-radius:3px; padding:1px 6px; font-family:ui-monospace,monospace; font-size:11px;">⌘ / Ctrl + /</kbd> — open Examples</li>
-        <li><kbd style="background:var(--bg); border:1px solid var(--border); border-radius:3px; padding:1px 6px; font-family:ui-monospace,monospace; font-size:11px;">Esc</kbd> — close any open modal</li>
-        <li><kbd style="background:var(--bg); border:1px solid var(--border); border-radius:3px; padding:1px 6px; font-family:ui-monospace,monospace; font-size:11px;">Enter</kbd> in the chat input — send (Shift+Enter for newline)</li>
+        <li><kbd style="background:var(--bg); border:1px solid var(--border); border-radius:3px; padding:1px 6px; font-family:var(--mono); font-size:11px;">⌘ / Ctrl + K</kbd> — open the model picker</li>
+        <li><kbd style="background:var(--bg); border:1px solid var(--border); border-radius:3px; padding:1px 6px; font-family:var(--mono); font-size:11px;">⌘ / Ctrl + /</kbd> — open Examples</li>
+        <li><kbd style="background:var(--bg); border:1px solid var(--border); border-radius:3px; padding:1px 6px; font-family:var(--mono); font-size:11px;">Esc</kbd> — close any open modal</li>
+        <li><kbd style="background:var(--bg); border:1px solid var(--border); border-radius:3px; padding:1px 6px; font-family:var(--mono); font-size:11px;">Enter</kbd> in the chat input — send (Shift+Enter for newline)</li>
       </ul>
 
       <p style="margin:18px 0 0; font-size:12px; color:var(--muted); border-top:1px solid var(--border); padding-top:10px;">
@@ -1887,7 +1888,7 @@ const CATEGORY_COLORS = {
   headline_lift_demo:           '#10b981',
   jailbreak_resistance:         '#ef4444',
   online_search_demo:           '#f59e0b',
-  model_comparison_demo:        '#a855f7',
+  model_comparison_demo:        '#2f5563',
   social_engineering:           '#4c7a8a',
   prompt_injection_amplification: '#dc2626',
   multilingual_capability:      '#06b6d4',
@@ -1946,13 +1947,13 @@ const BUCKET_DESCRIPTIONS = {
   regulator_audit:       'Government enforcement-side queries: license-audit packets, agency compliance review, sanctioning analysis, evidence-preservation guidance for regulator investigations. Treats the model as a research aide for a POEA / BP2MI / NEA / MoHRE / Ofcom / equivalent inspector.',
 };
 const BUCKET_COLORS = {
-  model_capability:      '#a855f7',  // purple — adversarial probe
+  model_capability:      '#2f5563',  // purple — adversarial probe
   enterprise_moderation: '#4c7a8a',  // blue — operations
   ngo_intake:            '#10b981',  // green — service delivery
   individual_query:      '#f59e0b',  // amber — direct ask
   research:              '#06b6d4',  // cyan — analysis
   image_prompts:         '#ec4899',  // pink — multimodal
-  data_intelligence:     '#7c3aed',  // violet — analyst
+  data_intelligence:     '#2f5563',  // violet — analyst
   regulator_audit:       '#dc2626',  // red — enforcement
 };
 
@@ -1970,7 +1971,7 @@ async function populateEmptyHints() {
     {id: 'headline_lift_demo',       label: 'Curated: 5-indicator compound case (PH→HK)',           color: '#10b981'},
     {id: 'jb_dan_recruiter',         label: 'Jailbreak: DAN persona attempt',                        color: '#ef4444'},
     {id: 'online_recent_enforcement', label: 'Online: recent POEA enforcement query',                color: '#f59e0b'},
-    {id: 'compare_complex_multi_jurisdiction', label: 'Compare PH/SG/Saudi protections (multi-jurisdiction)', color: '#a855f7'},
+    {id: 'compare_complex_multi_jurisdiction', label: 'Compare PH/SG/Saudi protections (multi-jurisdiction)', color: '#2f5563'},
     {id: 'social_eng_humanitarian_framing',    label: 'Social-eng: humanitarian framing trap',        color: '#4c7a8a'},
   ];
   const picks = curatedPicks.map(f => ({
@@ -2072,7 +2073,7 @@ async function useExample(id) {
   // Brief flash so the user sees the populate happened (the modal is
   // about to close, so without a visual cue the action looks invisible).
   input.style.transition = 'background 0.4s ease';
-  input.style.background = 'rgba(168, 85, 247, 0.18)';
+  input.style.background = 'rgba(47, 85, 99, 0.18)';
   setTimeout(() => { input.style.background = ''; }, 700);
   closeModal();
 }
@@ -2236,8 +2237,8 @@ const USE_CASE_LABELS = {
 function _renderUseCaseFilterRow() {
   const ucs = Object.keys(USE_CASE_LABELS);
   const chip = (key, label, active) => {
-    const bg = active ? 'rgba(168,85,247,0.18)' : 'var(--bg)';
-    const border = active ? '#a855f7' : 'var(--border)';
+    const bg = active ? 'rgba(47,85,99,0.18)' : 'var(--bg)';
+    const border = active ? '#2f5563' : 'var(--border)';
     const color = active ? '#fff' : 'var(--muted)';
     return `<button onclick="_setExamplesUseCase('${key}')" style="background:${bg}; border:1px solid ${border}; color:${color}; padding:4px 10px; border-radius:14px; font-size:11px; cursor:pointer; transition:all 0.12s ease;">${escapeHtml(label)}</button>`;
   };
@@ -2269,9 +2270,9 @@ function _renderBucketFilterRow(bucketCounts) {
     const border = active ? color : 'var(--border)';
     const ink = active ? '#fff' : 'var(--ink)';
     const desc = BUCKET_DESCRIPTIONS[key] || '';
-    return `<button onclick="_setExamplesBucket('${key}')" title="${escapeHtml(desc)}" style="background:${bg}; border:2px solid ${border}; color:${ink}; padding:7px 14px; border-radius:8px; font-size:12px; cursor:pointer; font-weight:${active ? 700 : 500}; transition:all 0.12s ease;">${escapeHtml(label)}<span style="margin-left:6px; padding:1px 6px; border-radius:8px; background:${active ? 'rgba(255,255,255,0.18)' : 'rgba(148,163,184,0.18)'}; font-size:10px; font-weight:700;">${count}</span></button>`;
+    return `<button onclick="_setExamplesBucket('${key}')" title="${escapeHtml(desc)}" style="background:${bg}; border:2px solid ${border}; color:${ink}; padding:7px 14px; border-radius:8px; font-size:12px; cursor:pointer; font-weight:${active ? 700 : 500}; transition:all 0.12s ease;">${escapeHtml(label)}<span style="margin-left:6px; padding:1px 6px; border-radius:8px; background:${active ? 'rgba(255,255,255,0.18)' : 'var(--panel2)'}; font-size:10px; font-weight:700;">${count}</span></button>`;
   };
-  let row = `<div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:10px; align-items:center; padding:10px 12px; background:rgba(148,163,184,0.06); border-radius:8px;">`;
+  let row = `<div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:10px; align-items:center; padding:10px 12px; background:var(--panel2); border-radius:8px;">`;
   row += `<span style="color:var(--muted); font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.4px; margin-right:4px;">Audience:</span>`;
   for (const b of buckets) {
     const count = bucketCounts[b] || 0;
@@ -2398,7 +2399,7 @@ async function openExamplesModal() {
     html += `
       <div class="examples-category" data-cat="${escapeHtml(cat)}" style="margin-bottom:12px; border:1px solid var(--border); border-radius:6px; border-left:4px solid ${color}; overflow:hidden; opacity:${opacity};">
         <div onclick="_toggleExamplesCategory(${attrJson(cat)})"
-             style="cursor:pointer; padding:10px 14px; background:rgba(255,255,255,0.02); display:flex; align-items:center; gap:10px; font-weight:600; user-select:none;">
+             style="cursor:pointer; padding:10px 14px; background:var(--panel2); display:flex; align-items:center; gap:10px; font-weight:600; user-select:none;">
           <span class="examples-chevron" style="display:inline-block; width:14px; transition:transform 0.15s; transform:rotate(${collapsed ? '0' : '90'}deg);">▶</span>
           <span style="color:${color}; font-size:12.5px;">${escapeHtml(label)}</span>${sparseSuffix}
           <span style="color:var(--muted); font-size:11px; margin-left:auto;">${items.length} prompt${items.length === 1 ? '' : 's'}</span>
@@ -2408,7 +2409,7 @@ async function openExamplesModal() {
     for (const ex of items) {
       const diffColor = DIFFICULTY_COLORS[ex.difficulty] || '#5B5F68';
       const indPills = (ex.ilo_indicators || []).slice(0, 3).map(ind =>
-          `<span style="display:inline-block; padding:1px 6px; border-radius:3px; background:rgba(148,163,184,0.15); color:var(--muted); font-size:10px; margin-right:4px;">${escapeHtml(ind)}</span>`
+          `<span style="display:inline-block; padding:1px 6px; border-radius:3px; background:var(--panel2); color:var(--muted); font-size:10px; margin-right:4px;">${escapeHtml(ind)}</span>`
       ).join('');
       // Truncated body for compactness (full text visible on hover via title attr).
       const bodyShort = ex.text.length > 240 ? ex.text.slice(0, 240) + '…' : ex.text;
@@ -2427,11 +2428,11 @@ async function openExamplesModal() {
         html += `<span style="color:var(--muted);">·</span>`;
       }
       if (ex.subcategory) {
-        html += `<span style="color:var(--muted); font-family:ui-monospace,monospace;">${escapeHtml(ex.subcategory)}</span>`;
+        html += `<span style="color:var(--muted); font-family:var(--mono);">${escapeHtml(ex.subcategory)}</span>`;
         html += `<span style="color:var(--muted);">·</span>`;
       }
       if (ex.corridor) {
-        html += `<span style="color:var(--muted); font-family:ui-monospace,monospace;">${escapeHtml(ex.corridor)}</span>`;
+        html += `<span style="color:var(--muted); font-family:var(--mono);">${escapeHtml(ex.corridor)}</span>`;
       }
       if (indPills) html += `<span style="margin-left:8px;">${indPills}</span>`;
       html += `<button onclick="copyExampleText(${attrJson(ex.id)}, this, event)" style="margin-left:auto; background:transparent; border:1px solid var(--border); color:var(--muted); padding:3px 10px; border-radius:6px; font-size:10.5px; cursor:pointer; font-weight:500;" onmouseover="this.style.borderColor='${color}'; this.style.color='${color}'" onmouseout="this.style.borderColor='var(--border)'; this.style.color='var(--muted)'" title="Copy prompt to clipboard">copy</button>`;
@@ -2595,7 +2596,7 @@ function _renderDocsSection(markdown) {
   // Code blocks (4-space indent)
   html = html.replace(/(?:\n {4,}.*)+/g, m => {
     const lines = m.split('\n').filter(l => l).map(l => l.replace(/^    /, ''));
-    return `\n<pre style="background:var(--bg); padding:10px 12px; border-radius:6px; font-family:ui-monospace,monospace; font-size:11px; color:var(--ink-2); margin:8px 0; overflow-x:auto;">${lines.join('\n')}</pre>`;
+    return `\n<pre style="background:var(--bg); padding:10px 12px; border-radius:6px; font-family:var(--mono); font-size:11px; color:var(--ink-2); margin:8px 0; overflow-x:auto;">${lines.join('\n')}</pre>`;
   });
   // Headings
   html = html.replace(/^# (.+)$/gm, '<h3 style="margin:18px 0 8px 0; font-size:14.5px; color:var(--ink);">$1</h3>');
@@ -2604,7 +2605,7 @@ function _renderDocsSection(markdown) {
   html = html.replace(/^- (.+)$/gm, '<li style="margin:3px 0; color:var(--ink-2); font-size:12px;">$1</li>');
   html = html.replace(/(<li[^>]*>.*?<\/li>(\n|$))+/g, m => `<ul style="margin:6px 0 10px 18px; padding:0;">${m}</ul>`);
   // Inline code
-  html = html.replace(/`([^`\n]+)`/g, '<code style="background:rgba(255,255,255,0.06); padding:1px 4px; border-radius:3px; font-family:ui-monospace,monospace; font-size:11.5px; color:#a855f7;">$1</code>');
+  html = html.replace(/`([^`\n]+)`/g, '<code style="background:var(--panel2); padding:1px 4px; border-radius:3px; font-family:var(--mono); font-size:11.5px; color:#2f5563;">$1</code>');
   // Paragraphs (double newlines)
   return `<div style="margin-top:24px; padding-top:16px; border-top:1px solid var(--border); color:var(--ink-2); font-size:12.5px; line-height:1.6;">${html}</div>`;
 }
@@ -2713,7 +2714,7 @@ async function openLayerModal(layer) {
       setTimeout(() => _renderRetrievalConfigPanel(), 0);
       setTimeout(() => _renderRagGraphViewer(), 0);
       html += `
-        <div style="background:rgba(59,130,246,0.06); border-left:3px solid #4c7a8a; padding:10px 12px; margin-bottom:14px; border-radius:4px; font-size:12px; line-height:1.55; color:var(--ink);">
+        <div style="background:rgba(76,122,138,0.06); border-left:3px solid #4c7a8a; padding:10px 12px; margin-bottom:14px; border-radius:4px; font-size:12px; line-height:1.55; color:var(--ink);">
           <div style="font-weight:700; color:#4c7a8a; margin-bottom:6px;">How retrieval works in this layer (v0.6.0)</div>
           <div style="margin-bottom:6px;">
             <b>Pipeline (4 stages):</b>
@@ -2846,7 +2847,7 @@ function renderCustomSection(layer, store) {
 
 function _renderCustomSubsection(layer, store) {
   const items = store[LAYER_CUSTOM_STORE_KEY[layer]] || [];
-  let html = `<div style="margin-top:6px; padding:14px; background:rgba(255,255,255,0.02); border:1px dashed var(--border); border-radius:8px;">`;
+  let html = `<div style="margin-top:6px; padding:14px; background:var(--panel2); border:1px dashed var(--border); border-radius:8px;">`;
   html += `<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">`;
   html += `<h4 style="margin:0; font-size:13px; color:var(--accent);">${LAYER_CUSTOM_TITLE[layer]} (${items.length})</h4>`;
   html += `<button class="modal-btn primary" style="padding:5px 12px; font-size:11.5px;" onclick="openCustomEntryForm(${attrJson(layer)})">+ Add</button>`;
@@ -2859,7 +2860,7 @@ function _renderCustomSubsection(layer, store) {
       const summary = _customEntrySummary(layer, it);
       html += `<div style="margin-top:8px; padding:8px 10px; background:var(--bg); border-radius:6px;">`;
       html += `<div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px;">`;
-      html += `<div style="font-family:ui-monospace,monospace; font-size:12px; color:var(--ink); word-break:break-word;">${escapeHtml(summary)}</div>`;
+      html += `<div style="font-family:var(--mono); font-size:12px; color:var(--ink); word-break:break-word;">${escapeHtml(summary)}</div>`;
       html += `<div style="display:flex; gap:4px; flex-shrink:0;">`;
       html += `<button class="modal-btn secondary" style="padding:3px 9px; font-size:10.5px;" onclick="openCustomEntryForm(${attrJson(layer)}, ${i})">Edit</button>`;
       html += `<button class="modal-btn secondary" style="padding:3px 9px; font-size:10.5px; color:#ef4444;" onclick="deleteCustomEntry(${attrJson(layer)}, ${i})">Del</button>`;
@@ -3013,7 +3014,7 @@ async function renderPersonaLibrary(editingName = null) {
     }
     html += `<div style="margin-bottom:12px; padding:12px 14px; background:${bg}; border:1px solid ${borderColor}; border-radius:8px;">`;
     html += `<div style="display:flex; align-items:center; justify-content:space-between; gap:8px; flex-wrap:wrap;">`;
-    html += `<div style="font-weight:700; color:var(--accent-persona); font-size:14px;">${escapeHtml(p.name)}${kindBadge}${isActive ? ' <span class="severity-pill" style="background:var(--accent-persona); color:#fff;">ACTIVE</span>' : ''}</div>`;
+    html += `<div style="font-weight:700; color:var(--accent-persona); font-size:14px;">${escapeHtml(p.name)}${kindBadge}${isActive ? ' <span class="severity-pill" style="background:var(--accent-persona); color:var(--bg);">ACTIVE</span>' : ''}</div>`;
     html += `<div style="display:flex; gap:6px; flex-wrap:wrap;">`;
     if (!isActive) {
       html += `<button class="modal-btn secondary" style="padding:4px 10px; font-size:11px;" onclick="usePersona(${attrJson(p.name)}, ${p.isBuiltIn})">Use</button>`;
@@ -3196,7 +3197,7 @@ async function renderImportLibrary(editingId = null, statusMsg = null) {
       </div>
     </div>`;
   if (statusMsg) {
-    html += `<div style="background:${statusMsg.kind === 'error' ? 'rgba(239,68,68,0.10)' : 'rgba(16,185,129,0.10)'}; color:${statusMsg.kind === 'error' ? '#fca5a5' : '#86efac'}; border-left:3px solid ${statusMsg.kind === 'error' ? '#ef4444' : '#10b981'}; padding:8px 12px; border-radius:4px; margin-bottom:12px; font-size:12px;">${escapeHtml(statusMsg.text)}</div>`;
+    html += `<div style="background:${statusMsg.kind === 'error' ? 'rgba(239,68,68,0.10)' : 'rgba(16,185,129,0.10)'}; color:${statusMsg.kind === 'error' ? '#a83019' : '#86efac'}; border-left:3px solid ${statusMsg.kind === 'error' ? '#ef4444' : '#10b981'}; padding:8px 12px; border-radius:4px; margin-bottom:12px; font-size:12px;">${escapeHtml(statusMsg.text)}</div>`;
   }
   if (!docs.length) {
     html += `<div style="color:var(--muted); font-style:italic; text-align:center; padding:30px 0;">
@@ -3220,7 +3221,7 @@ async function renderImportLibrary(editingId = null, statusMsg = null) {
     html += `</div></div>`;
     const preview = (d.preview || '').slice(0, 320);
     const ellipsis = (d.size_bytes > preview.length) ? '…' : '';
-    html += `<div style="color:var(--ink); font-size:12px; line-height:1.55; margin-top:6px; white-space:pre-wrap; max-height:120px; overflow-y:auto; padding:8px 10px; background:rgba(0,0,0,0.18); border-radius:4px;">${escapeHtml(preview)}${ellipsis}</div>`;
+    html += `<div style="color:var(--ink); font-size:12px; line-height:1.55; margin-top:6px; white-space:pre-wrap; max-height:120px; overflow-y:auto; padding:8px 10px; background:var(--panel2); border-radius:4px;">${escapeHtml(preview)}${ellipsis}</div>`;
     html += `</div>`;
   }
   body.innerHTML = html;
@@ -3385,10 +3386,10 @@ function _pipelineCard(opts) {
     <div style="position:relative; padding:14px 18px; background:var(--panel); border:1px solid var(--border); border-left:4px solid ${opts.color}; border-radius:10px;${opts.dim ? ' opacity:0.45;' : ''}">
       <div style="display:flex; justify-content:space-between; align-items:center; gap:8px;">
         <div style="display:flex; align-items:center; gap:10px;">
-          <div style="width:24px; height:24px; border-radius:50%; background:${opts.color}; color:#fff; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:12px;">${opts.step}</div>
+          <div style="width:24px; height:24px; border-radius:50%; background:${opts.color}; color:var(--bg); display:flex; align-items:center; justify-content:center; font-weight:700; font-size:12px;">${opts.step}</div>
           <div style="font-weight:700; color:${opts.color}; font-size:14px; letter-spacing:0.04em;">${escapeHtml(opts.title)}</div>
         </div>
-        ${opts.status ? `<div style="font-size:10.5px; font-weight:600; padding:3px 9px; border-radius:999px; background:${opts.statusColor || 'rgba(148,163,184,0.18)'}; color:${opts.statusBg ? '#fff' : 'var(--muted)'}; text-transform:uppercase; letter-spacing:0.05em;">${escapeHtml(opts.status)}</div>` : ''}
+        ${opts.status ? `<div style="font-size:10.5px; font-weight:600; padding:3px 9px; border-radius:999px; background:${opts.statusColor || 'var(--panel2)'}; color:${opts.statusBg ? '#fff' : 'var(--muted)'}; text-transform:uppercase; letter-spacing:0.05em;">${escapeHtml(opts.status)}</div>` : ''}
       </div>
       ${opts.subtitle ? `<div style="margin-top:4px; margin-left:34px; color:var(--muted); font-size:11.5px;">${escapeHtml(opts.subtitle)}</div>` : ''}
       ${opts.body ? `<div style="margin-top:12px; margin-left:34px;">${opts.body}</div>` : ''}
@@ -3419,10 +3420,10 @@ function _renderLayerBody(layer, t) {
       const sevClass = `severity-${h.severity || 'info'}`;
       return `
         <div style="margin-bottom:8px; padding:8px 10px; background:var(--bg); border-radius:6px;">
-          <div style="font-family:ui-monospace,monospace; font-size:12px; font-weight:600;">${escapeHtml(h.rule)}<span class="severity-pill ${sevClass}">${escapeHtml(h.severity)}</span></div>
+          <div style="font-family:var(--mono); font-size:12px; font-weight:600;">${escapeHtml(h.rule)}<span class="severity-pill ${sevClass}">${escapeHtml(h.severity)}</span></div>
           <div style="color:var(--muted); font-size:11px; margin-top:3px;">${escapeHtml(h.citation || '')}</div>
           <div style="color:var(--ink-2); font-size:11.5px; margin-top:4px; line-height:1.5;">${escapeHtml(h.indicator || '')}</div>
-          ${h.match_excerpt ? `<div style="color:var(--muted); font-size:10.5px; font-family:ui-monospace,monospace; margin-top:4px; padding:4px 6px; background:var(--panel2); border-radius:3px;">match: ${escapeHtml(h.match_excerpt)}</div>` : ''}
+          ${h.match_excerpt ? `<div style="color:var(--muted); font-size:10.5px; font-family:var(--mono); margin-top:4px; padding:4px 6px; background:var(--panel2); border-radius:3px;">match: ${escapeHtml(h.match_excerpt)}</div>` : ''}
         </div>`;
     }).join('');
   }
@@ -3440,7 +3441,7 @@ function _renderLayerBody(layer, t) {
     let citationsHtml = '';
     if (t.citations && t.citations.length) {
       citationsHtml = `
-        <div style="margin-top:10px; padding:8px 10px; background:rgba(59,130,246,0.05); border-left:3px solid #4c7a8a; border-radius:4px;">
+        <div style="margin-top:10px; padding:8px 10px; background:rgba(76,122,138,0.05); border-left:3px solid #4c7a8a; border-radius:4px;">
           <div style="font-weight:700; font-size:11.5px; color:#4c7a8a; margin-bottom:4px;">Curated cross-references (${t.citations.length})</div>
           ${t.citations.slice(0, 8).map(c => {
             const rel = (c.relation || 'related_to').replace(/_/g, ' ');
@@ -3470,8 +3471,8 @@ function _renderLayerBody(layer, t) {
   if (layer === 'tools' && t.tool_calls && t.tool_calls.length) {
     return t.tool_calls.map(c => `
       <div style="margin-bottom:8px; padding:8px 10px; background:var(--bg); border-radius:6px;">
-        <div style="font-family:ui-monospace,monospace; font-size:12px; font-weight:600; color:#10b981;">${escapeHtml(c.name)}(${escapeHtml(JSON.stringify(c.args))})</div>
-        <pre style="color:var(--ink-2); font-size:11px; margin:5px 0 0 0; white-space:pre-wrap; word-wrap:break-word; font-family:ui-monospace,monospace; max-height:160px; overflow-y:auto;">${escapeHtml(JSON.stringify(c.result, null, 2))}</pre>
+        <div style="font-family:var(--mono); font-size:12px; font-weight:600; color:#10b981;">${escapeHtml(c.name)}(${escapeHtml(JSON.stringify(c.args))})</div>
+        <pre style="color:var(--ink-2); font-size:11px; margin:5px 0 0 0; white-space:pre-wrap; word-wrap:break-word; font-family:var(--mono); max-height:160px; overflow-y:auto;">${escapeHtml(JSON.stringify(c.result, null, 2))}</pre>
       </div>`).join('');
   }
   if (layer === 'online' && t.results && t.results.length) {
@@ -3501,7 +3502,7 @@ function _renderLayerBody(layer, t) {
       headerParts.push(`<div style="color:var(--muted); font-size:11px; padding:6px 10px; background:var(--bg); border-radius:4px; margin-top:4px;"><b>Snippet-only mode</b> — Gemma sees the search snippets but not the page bodies. Enable <i>Deep-fetch</i> in the Online tile's <b>View &amp; Configure</b> panel to fetch + parse + GREP each page.</div>`);
     }
     if (t.answer) {
-      headerParts.push(`<div style="color:var(--ink-2); font-size:11.5px; padding:6px 10px; background:rgba(59,130,246,0.06); border-left:3px solid #4c7a8a; border-radius:4px; margin-top:4px;"><b>Search-engine summary:</b> ${escapeHtml(t.answer)}</div>`);
+      headerParts.push(`<div style="color:var(--ink-2); font-size:11.5px; padding:6px 10px; background:rgba(76,122,138,0.06); border-left:3px solid #4c7a8a; border-radius:4px; margin-top:4px;"><b>Search-engine summary:</b> ${escapeHtml(t.answer)}</div>`);
     }
     // Index fetched pages by rank for quick lookup when rendering each result row.
     const pageByRank = {};
@@ -3524,7 +3525,7 @@ function _renderLayerBody(layer, t) {
             ? ` · ${page.n_chunks_kept} of ${page.n_chunks_total} chunks kept`
             : '';
           const charsBadge = page.char_count
-            ? `<span style="background:${page.truncated ? 'rgba(245,158,11,0.18)' : 'rgba(148,163,184,0.18)'}; color:${page.truncated ? '#f59e0b' : '#94a3b8'}; font-size:10px; font-weight:700; padding:2px 7px; border-radius:8px; margin-left:6px;">${page.char_count.toLocaleString()} chars${chunksRatio}</span>`
+            ? `<span style="background:${page.truncated ? 'rgba(245,158,11,0.18)' : 'var(--panel2)'}; color:${page.truncated ? '#f59e0b' : '#5B5F68'}; font-size:10px; font-weight:700; padding:2px 7px; border-radius:8px; margin-left:6px;">${page.char_count.toLocaleString()} chars${chunksRatio}</span>`
             : '';
           const elapsedBadge = page.elapsed_ms
             ? `<span style="color:var(--muted); font-size:10px; margin-left:6px;">${page.elapsed_ms} ms</span>`
@@ -3533,13 +3534,13 @@ function _renderLayerBody(layer, t) {
             <details style="margin-top:6px;">
               <summary style="cursor:pointer; font-size:11.5px; color:#10b981; user-select:none;">▸ Fetched page body${charsBadge}${grepBadge}${elapsedBadge}</summary>
               <div style="margin-top:6px; padding:8px 10px; background:rgba(16,185,129,0.04); border-left:3px solid #10b981; border-radius:4px;">
-                ${text ? `<pre style="margin:0; font-size:11px; color:var(--ink-2); white-space:pre-wrap; word-wrap:break-word; max-height:280px; overflow-y:auto; font-family:ui-monospace,monospace;">${escapeHtml(text)}</pre>` : '<div style="color:var(--muted); font-size:11.5px; font-style:italic;">no text extracted</div>'}
+                ${text ? `<pre style="margin:0; font-size:11px; color:var(--ink-2); white-space:pre-wrap; word-wrap:break-word; max-height:280px; overflow-y:auto; font-family:var(--mono);">${escapeHtml(text)}</pre>` : '<div style="color:var(--muted); font-size:11.5px; font-style:italic;">no text extracted</div>'}
                 ${hits.length ? `
                   <div style="margin-top:8px; padding-top:8px; border-top:1px solid var(--border);">
                     <div style="font-weight:600; font-size:11px; color:#10b981; margin-bottom:4px;">GREP hits on this page (${hits.length})</div>
                     ${hits.slice(0, 20).map(h => `
                       <div style="margin-bottom:4px; padding:4px 6px; background:var(--bg); border-radius:3px; font-size:11px;">
-                        <span style="font-family:ui-monospace,monospace; color:#fbbf24; font-weight:600;">${escapeHtml(h.rule || '?')}</span>
+                        <span style="font-family:var(--mono); color:#fbbf24; font-weight:600;">${escapeHtml(h.rule || '?')}</span>
                         <span style="color:var(--muted);"> · ${escapeHtml(h.severity || '?')}${h.citation ? ' · ' + escapeHtml(h.citation) : ''}${h.indicator ? ' · [' + escapeHtml(h.indicator) + ']' : ''}</span>
                         <div style="color:var(--ink-2); font-size:10.5px; margin-top:2px; font-style:italic;">${escapeHtml((h.match_excerpt || '').slice(0, 200))}</div>
                       </div>`).join('')}
@@ -3554,7 +3555,7 @@ function _renderLayerBody(layer, t) {
       return `
       <div style="margin-bottom:10px; padding:8px 10px; background:var(--bg); border-radius:6px;">
         <div style="font-weight:600; font-size:12px; color:#fbbf24;">[${escapeHtml(String(r.rank || '?'))}] ${escapeHtml(r.title || '(untitled)')}</div>
-        ${r.url ? `<a href="${escapeHtml(r.url)}" target="_blank" rel="noopener" style="color:#fde68a; font-size:11px; text-decoration:underline; word-break:break-all;">${escapeHtml(r.url)}</a>` : ''}
+        ${r.url ? `<a href="${escapeHtml(r.url)}" target="_blank" rel="noopener" style="color:#7d5a14; font-size:11px; text-decoration:underline; word-break:break-all;">${escapeHtml(r.url)}</a>` : ''}
         ${blurb ? `<div style="color:var(--ink-2); font-size:11.5px; margin-top:4px; line-height:1.5;">${escapeHtml(blurb)}</div>` : ''}
         ${pageSection}
       </div>`;
@@ -3593,10 +3594,10 @@ function openPipelineModal(messageIdx) {
     const isWired = t.wired;
     let status, statusColor, body, dim;
     if (!isWired) {
-      status = 'not enabled here'; statusColor = 'rgba(148,163,184,0.18)'; dim = true;
+      status = 'not enabled here'; statusColor = 'var(--panel2)'; dim = true;
       body = `<div style="color:var(--muted); font-size:11.5px; font-style:italic;">This kernel does not enable ${PIPELINE_LAYER_LABEL[layer]}.</div>`;
     } else if (!isEnabled) {
-      status = 'skipped'; statusColor = 'rgba(148,163,184,0.18)'; dim = true;
+      status = 'skipped'; statusColor = 'var(--panel2)'; dim = true;
       body = `<div style="color:var(--muted); font-size:11.5px; font-style:italic;">Toggle was OFF for this message — layer was bypassed.</div>`;
     } else {
       status = `${t.summary || 'fired'} · ${t.elapsed_ms}ms`;
@@ -3629,9 +3630,9 @@ function openPipelineModal(messageIdx) {
     const stageRows = pathTraceStages.map(s => {
       const color = PIPELINE_LAYER_COLOR[s._layer] || '#5B5F68';
       const stageColor = ({
-        bm25: '#4c7a8a', dense: '#a855f7', rrf: '#10b981',
+        bm25: '#4c7a8a', dense: '#2f5563', rrf: '#10b981',
         rerank: '#f59e0b', graph: '#06b6d4', parent_expand: '#ec4899',
-        parent_group: '#ec4899', snippet_assemble: '#94a3b8',
+        parent_group: '#ec4899', snippet_assemble: '#5B5F68',
         dense_fail: '#ef4444', rrf_fail: '#ef4444',
       })[s.stage] || '#5B5F68';
       return `<tr>
@@ -3707,12 +3708,12 @@ function openPipelineModal(messageIdx) {
   if (layerTimings.length || gemmaMs) {
     const segments = layerTimings.map(t => {
       const pct = totalMs > 0 ? Math.max(2, (t.ms / totalMs) * 100) : 0;
-      return `<div style="background:${t.color}; height:18px; flex:0 0 ${pct.toFixed(1)}%; min-width:24px; display:flex; align-items:center; justify-content:center; color:#fff; font-size:10px; font-weight:600;" title="${t.label}: ${t.ms}ms">${t.ms < 5 ? '' : t.label.charAt(0)}</div>`;
+      return `<div style="background:${t.color}; height:18px; flex:0 0 ${pct.toFixed(1)}%; min-width:24px; display:flex; align-items:center; justify-content:center; color:var(--bg); font-size:10px; font-weight:600;" title="${t.label}: ${t.ms}ms">${t.ms < 5 ? '' : t.label.charAt(0)}</div>`;
     }).join('');
     const gemmaPct = totalMs > 0 ? Math.max(2, (gemmaMs / totalMs) * 100) : 0;
-    const gemmaSeg = gemmaMs ? `<div style="background:#10b981; height:18px; flex:0 0 ${gemmaPct.toFixed(1)}%; min-width:24px; display:flex; align-items:center; justify-content:center; color:#fff; font-size:10px; font-weight:600;" title="Gemma generation: ${gemmaMs}ms">G</div>` : '';
+    const gemmaSeg = gemmaMs ? `<div style="background:#10b981; height:18px; flex:0 0 ${gemmaPct.toFixed(1)}%; min-width:24px; display:flex; align-items:center; justify-content:center; color:var(--bg); font-size:10px; font-weight:600;" title="Gemma generation: ${gemmaMs}ms">G</div>` : '';
     const layerLabels = layerTimings.map(t =>
-      `<span style="display:inline-block; padding:2px 8px; background:${t.color}; color:#fff; border-radius:3px; font-size:10.5px; margin-right:4px;">${t.label}: ${t.ms}ms</span>`
+      `<span style="display:inline-block; padding:2px 8px; background:${t.color}; color:var(--bg); border-radius:3px; font-size:10.5px; margin-right:4px;">${t.label}: ${t.ms}ms</span>`
     ).join('');
     // v0.14.5: explicit "harness fast / Gemma slow" framing so the
     // story stays legible when Gemma generation dominates the bar.
@@ -3734,7 +3735,7 @@ function openPipelineModal(messageIdx) {
         <div style="display:flex; height:18px; border-radius:3px; overflow:hidden; gap:1px;">${segments}${gemmaSeg}</div>
         <div style="margin-top:6px; font-size:10.5px;">
           ${layerLabels}
-          ${gemmaMs ? `<span style="display:inline-block; padding:2px 8px; background:#10b981; color:#fff; border-radius:3px; font-size:10.5px;">Gemma: ${gemmaMs}ms</span>` : ''}
+          ${gemmaMs ? `<span style="display:inline-block; padding:2px 8px; background:#10b981; color:var(--bg); border-radius:3px; font-size:10.5px;">Gemma: ${gemmaMs}ms</span>` : ''}
         </div>
       </div>`;
   }
@@ -4177,7 +4178,7 @@ async function openGradeModal(messageIdx) {
       pill: 'slow',
       eta: '~30-90s',
       desc: 'Sends the response back to the loaded Gemma with one yes/no question per applicable dimension and quotes evidence. Catches paraphrased citations the rule-based grader can miss.',
-      pillColor: '#a855f7',
+      pillColor: '#2f5563',
       enabled: _gradeDeepAvailable,
     },
     {
@@ -4194,7 +4195,7 @@ async function openGradeModal(messageIdx) {
     const active = (_gradeMode === mo.id) && mo.enabled;
     const disabledStyle = mo.enabled ? '' : 'opacity:0.45; cursor:not-allowed;';
     const selectedStyle = active
-      ? `border-color:${mo.pillColor}; background:rgba(168,85,247,0.04); box-shadow:0 0 0 2px ${mo.pillColor}33;`
+      ? `border-color:${mo.pillColor}; background:rgba(47,85,99,0.04); box-shadow:0 0 0 2px ${mo.pillColor}33;`
       : 'background:var(--bg);';
     const disabledTitle = mo.enabled ? '' : 'title="LLM scoring needs gemma_call wired into the kernel."';
     return `
@@ -4211,9 +4212,9 @@ async function openGradeModal(messageIdx) {
                      color:var(--ink); font:inherit; transition:all 0.12s ease;">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
           <span style="font-weight:700; font-size:14px;">${escapeHtml(mo.title)}</span>
-          <span style="background:${mo.pillColor}; color:#fff; font-size:9.5px; font-weight:700; letter-spacing:0.4px; padding:2px 8px; border-radius:10px; text-transform:uppercase;">${escapeHtml(mo.pill)}</span>
+          <span style="background:${mo.pillColor}; color:var(--bg); font-size:9.5px; font-weight:700; letter-spacing:0.4px; padding:2px 8px; border-radius:10px; text-transform:uppercase;">${escapeHtml(mo.pill)}</span>
         </div>
-        <div style="color:var(--muted); font-size:11px; margin-bottom:8px; font-family:ui-monospace,monospace;">${escapeHtml(mo.eta)}</div>
+        <div style="color:var(--muted); font-size:11px; margin-bottom:8px; font-family:var(--mono);">${escapeHtml(mo.eta)}</div>
         <div style="color:var(--ink); font-size:11.5px; line-height:1.45;">${mo.desc}</div>
       </button>`;
   }).join('');
@@ -4244,10 +4245,10 @@ async function openGradeModal(messageIdx) {
       <summary style="cursor:pointer; font-size:12px; color:var(--ink); font-weight:600;">▸ How does scoring work?</summary>
       <div style="margin-top:10px; font-size:11.5px; line-height:1.55; color:var(--ink);">
         <div style="margin-bottom:8px;"><strong style="color:#10b981;">Rule-Based</strong> walks the response through 21 deterministic rubric dimensions. For each dim, it scans for keyword clusters, regex patterns, statute references, and structural markers (numbered lists, refusal language, citation formats). Each dim resolves to <code>PASS / PARTIAL / FAIL / N/A</code> with explicit hits + misses. No LLM is called — this is the same scorer used in the +56pp benchmark. Click <em>▸ How to PASS this</em> on any FAIL/PARTIAL row in the result table to see what the rule was looking for.</div>
-        <div style="margin-bottom:8px;"><strong style="color:#a855f7;">LLM-Based</strong> sends the response back to the loaded Gemma <em>once per applicable dimension</em> (~3-7s each on 31B). Each call asks a single yes/no question shaped like <em>"Does the response cite a specific ILO Convention by number? Be strict."</em> The model answers in a JSON envelope <code>{verdict, evidence_quote, rationale}</code>. The chat package verifies the evidence quote actually appears in the response (defense against hallucinated quotes) and demotes <code>yes</code> to <code>partial</code> when the quote is fabricated. <em>Click ▸ Inspect evaluator prompt + raw model response on any dim row to see exactly what was asked and what the model said.</em></div>
+        <div style="margin-bottom:8px;"><strong style="color:#2f5563;">LLM-Based</strong> sends the response back to the loaded Gemma <em>once per applicable dimension</em> (~3-7s each on 31B). Each call asks a single yes/no question shaped like <em>"Does the response cite a specific ILO Convention by number? Be strict."</em> The model answers in a JSON envelope <code>{verdict, evidence_quote, rationale}</code>. The chat package verifies the evidence quote actually appears in the response (defense against hallucinated quotes) and demotes <code>yes</code> to <code>partial</code> when the quote is fabricated. <em>Click ▸ Inspect evaluator prompt + raw model response on any dim row to see exactly what was asked and what the model said.</em></div>
         <div><strong style="color:#4c7a8a;">Combined (Rule + LLM)</strong> runs both passes and blends 50/50. The disagreement panel surfaces dimensions where the two graders diverge — usually a sign that the LLM caught a paraphrased citation the keyword scanner missed, OR that the keyword scanner matched on a literal phrase that the LLM correctly rejected as out of context. Worth a manual look at each disagreement row.</div>
         <div style="margin-top:10px; padding-top:10px; border-top:1px dashed var(--border);">
-          <strong style="color:#a855f7;">Which model grades?</strong> The <em>same Gemma instance loaded for chat</em> also grades — the on-device self-grade pattern. This keeps the demo private + reproducible (no network call, no second model load).
+          <strong style="color:#2f5563;">Which model grades?</strong> The <em>same Gemma instance loaded for chat</em> also grades — the on-device self-grade pattern. This keeps the demo private + reproducible (no network call, no second model load).
           <div style="margin-top:6px; padding:6px 8px; background:rgba(245,158,11,0.08); border-left:2px solid #f59e0b; border-radius:3px; font-size:11px;">
             <strong style="color:#f59e0b;">Kaggle constraint:</strong> the chat-package wheel exposes an <code>evaluator_call</code> hook in <code>create_app</code> (v0.13.0+) so a stronger judge can be wired separately — but on Kaggle a single T4 / dual-T4 already maxes VRAM with the loaded chat model, so swapping in a second judge would require unload/reload of the chat model mid-session (slow, breaks state). For this Kaggle deployment we run in-process self-grade by necessity. The hook is documented architecture for production deployments outside the Kaggle memory constraint.
           </div>
@@ -4274,7 +4275,7 @@ async function openGradeModal(messageIdx) {
     <div style="margin:14px 0 16px; display:flex; gap:10px; align-items:center; flex-wrap:wrap; padding-top:12px; border-top:1px solid var(--border);">
       <button type="button" id="grade-run-btn"
               onclick="_runGrade(${messageIdx})"
-              style="background:var(--accent); color:#fff; border:0; padding:10px 22px; border-radius:8px; font-weight:600; font-size:14px; cursor:pointer; box-shadow:0 1px 3px rgba(59,130,246,0.4);">
+              style="background:var(--accent); color:var(--bg); border:0; padding:10px 22px; border-radius:8px; font-weight:600; font-size:14px; cursor:pointer; box-shadow:0 1px 3px rgba(14,17,22,0.18);">
         Run scoring →
       </button>
       <span id="grade-run-hint" style="font-size:11.5px; color:var(--muted);">
@@ -4348,7 +4349,7 @@ function _renderGradeModeControls(messageIdx) {
       c.kind === 'cross-cut' ? '<span style="margin-left:4px; font-size:10px; color:var(--muted);">cross-cutting</span>' :
                                  '';
     return `<button onclick="_gradeSelectedCategory='${c.id}'; _runGrade(${messageIdx})"
-      style="background:${active ? 'rgba(168,85,247,0.18)' : 'var(--bg)'}; color:${active ? '#fff' : 'var(--ink)'}; border:1px solid ${active ? '#a855f7' : 'var(--border)'}; border-radius:8px; padding:6px 10px; font-size:11.5px; cursor:pointer; text-align:left;">
+      style="background:${active ? '#2f5563' : 'var(--panel)'}; color:${active ? 'var(--bg)' : 'var(--ink)'}; border:1px solid ${active ? '#2f5563' : 'var(--border)'}; border-radius:6px; padding:6px 10px; font-size:11.5px; cursor:pointer; text-align:left; font-family:var(--sans);">
       ${escapeHtml(RUBRIC_CATEGORY_LABELS[c.id] || c.id)}${kindBadge}
     </button>`;
   };
@@ -4406,7 +4407,7 @@ async function _renderOnlineBackendPanel() {
     ? '<span style="background:#10b98122; color:#10b981; font-size:10px; font-weight:700; padding:2px 7px; border-radius:8px; text-transform:uppercase;">tested OK</span>'
     : (ok === false)
     ? `<span style="background:#ef444422; color:#ef4444; font-size:10px; font-weight:700; padding:2px 7px; border-radius:8px; text-transform:uppercase;" title="${escapeHtml(msg || '')}">test failed</span>`
-    : '<span style="background:rgba(148,163,184,0.18); color:var(--muted); font-size:10px; font-weight:700; padding:2px 7px; border-radius:8px; text-transform:uppercase;">not tested</span>';
+    : '<span style="background:var(--panel2); color:var(--muted); font-size:10px; font-weight:700; padding:2px 7px; border-radius:8px; text-transform:uppercase;">not tested</span>';
   const braveBadge = _badge(cfg.brave_test_ok, cfg.brave_test_msg);
   const tavilyBadge = _badge(cfg.tavily_test_ok, cfg.tavily_test_msg);
   // Deep-fetch toggle: when on, after search returns URLs the chat
@@ -4437,7 +4438,7 @@ async function _renderOnlineBackendPanel() {
       </div>
       <div style="display:flex; gap:6px; margin-bottom:6px;">
         <input id="online-tavily-key" type="password" placeholder="${cfg.tavily_configured ? '•••• key already set — paste a new one to replace ••••' : 'tvly-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'}"
-               style="flex:1; padding:7px 10px; background:var(--bg); color:var(--ink); border:1px solid var(--border); border-radius:6px; font-size:12px; font-family:ui-monospace,monospace;">
+               style="flex:1; padding:7px 10px; background:var(--bg); color:var(--ink); border:1px solid var(--border); border-radius:6px; font-size:12px; font-family:var(--mono);">
         <button class="modal-btn primary" onclick="_saveOnlineBackend()">Save</button>
         ${cfg.tavily_configured ? '<button class="modal-btn secondary" onclick="_clearTavilyKey()" style="color:#ef4444;">Clear</button>' : ''}
       </div>
@@ -4457,7 +4458,7 @@ async function _renderOnlineBackendPanel() {
       </div>
       <div style="display:flex; gap:6px; margin-bottom:6px;">
         <input id="online-brave-key" type="password" placeholder="${cfg.brave_configured ? '•••• key already set — paste a new one to replace ••••' : 'BSAxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'}"
-               style="flex:1; padding:7px 10px; background:var(--bg); color:var(--ink); border:1px solid var(--border); border-radius:6px; font-size:12px; font-family:ui-monospace,monospace;">
+               style="flex:1; padding:7px 10px; background:var(--bg); color:var(--ink); border:1px solid var(--border); border-radius:6px; font-size:12px; font-family:var(--mono);">
         <button class="modal-btn primary" onclick="_saveOnlineBackend()">Save</button>
         ${cfg.brave_configured ? '<button class="modal-btn secondary" onclick="_clearBraveKey()" style="color:#ef4444;">Clear</button>' : ''}
       </div>
@@ -4467,7 +4468,7 @@ async function _renderOnlineBackendPanel() {
     <div style="border-top:1px solid var(--border); padding-top:12px; margin-bottom:10px;">
       <div style="font-size:12px; color:var(--ink); font-weight:600; margin-bottom:4px;">
         Deep-fetch mode
-        <span style="background:${cfg.fetch_pages ? '#10b98122' : 'rgba(148,163,184,0.18)'}; color:${cfg.fetch_pages ? '#10b981' : '#94a3b8'}; font-size:10px; font-weight:700; padding:2px 7px; border-radius:8px; text-transform:uppercase; margin-left:6px;">${cfg.fetch_pages ? 'on' : 'off'}</span>
+        <span style="background:${cfg.fetch_pages ? '#10b98122' : 'var(--panel2)'}; color:${cfg.fetch_pages ? '#10b981' : '#5B5F68'}; font-size:10px; font-weight:700; padding:2px 7px; border-radius:8px; text-transform:uppercase; margin-left:6px;">${cfg.fetch_pages ? 'on' : 'off'}</span>
       </div>
       <div style="font-size:11.5px; color:var(--muted); margin-bottom:8px; line-height:1.5;">
         After search returns URLs, fetch the top-N pages, convert HTML→markdown, run GREP rules over each page body, and prepend the parsed text + GREP hits as additional context for Gemma. Without this, the model only sees a 100-300 char snippet per result. <b>Adds 2-8 seconds per turn</b> depending on page sizes + network.
@@ -4744,12 +4745,12 @@ async function _streamGradeRun(url, body, pane, mode) {
     const pct = nTotal > 0 ? Math.round((nDone / nTotal) * 100) : 0;
     const recentDims = dimTicker.slice(-6).reverse().map(d => {
       const cmap = {yes:'#10b981', partial:'#f59e0b', no:'#ef4444',
-                    uncertain:'#a855f7', skipped:'#64748b'};
+                    uncertain:'#2f5563', skipped:'#64748b'};
       const lmap = {yes:'YES', partial:'PARTIAL', no:'NO',
                     uncertain:'?', skipped:'N/A'};
       const c = cmap[d.verdict] || '#64748b';
       return `<div style="display:flex; align-items:center; gap:8px; padding:4px 0; font-size:11.5px;">
-        <span style="background:${c}; color:#fff; padding:1px 6px; border-radius:3px; font-size:10px; font-weight:700; min-width:54px; text-align:center;">${lmap[d.verdict] || escapeHtml(d.verdict || '?')}</span>
+        <span style="background:${c}; color:var(--bg); padding:1px 6px; border-radius:3px; font-size:10px; font-weight:700; min-width:54px; text-align:center;">${lmap[d.verdict] || escapeHtml(d.verdict || '?')}</span>
         <span style="color:var(--ink);">${escapeHtml(d.name || d.id || '?')}</span>
       </div>`;
     }).join('') || '<div style="color:var(--muted); font-size:11px; font-style:italic;">waiting for the model to finish the first dimension…</div>';
@@ -4774,7 +4775,7 @@ async function _streamGradeRun(url, body, pane, mode) {
           </div>
         </div>
         <div style="height:8px; background:rgba(100,116,139,0.18); border-radius:4px; overflow:hidden; margin-bottom:14px;">
-          <div style="height:100%; width:${pct}%; background:linear-gradient(90deg, #4c7a8a, #a855f7); transition:width 0.3s ease;"></div>
+          <div style="height:100%; width:${pct}%; background:linear-gradient(90deg, #4c7a8a, #2f5563); transition:width 0.3s ease;"></div>
         </div>
         ${detPanel}
         <div style="margin-top:12px; font-size:11.5px; color:var(--muted); font-weight:600; text-transform:uppercase; letter-spacing:0.4px;">
@@ -4894,12 +4895,12 @@ function _renderEvaluatorGradeResult(g) {
   }
   const pct = g.pct_score ?? 0;
   const scoreColor = pct >= 70 ? '#10b981' : pct >= 40 ? '#f59e0b' : '#ef4444';
-  const verdictColors = {yes:'#10b981', partial:'#f59e0b', no:'#ef4444', uncertain:'#a855f7', skipped:'#64748b'};
+  const verdictColors = {yes:'#10b981', partial:'#f59e0b', no:'#ef4444', uncertain:'#2f5563', skipped:'#64748b'};
   const verdictLabels = {yes:'YES', partial:'PARTIAL', no:'NO', uncertain:'?', skipped:'N/A'};
   const rows = (g.dimensions || []).map(d => {
     const c = verdictColors[d.verdict] || '#64748b';
     const evi = d.evidence_quote
-        ? `<div style="margin-top:4px; padding:6px 10px; background:rgba(168,85,247,0.08); border-left:3px solid #a855f7; border-radius:3px; font-size:11px; font-style:italic; color:var(--ink);">"${escapeHtml(d.evidence_quote)}"</div>`
+        ? `<div style="margin-top:4px; padding:6px 10px; background:rgba(47,85,99,0.08); border-left:3px solid #2f5563; border-radius:3px; font-size:11px; font-style:italic; color:var(--ink);">"${escapeHtml(d.evidence_quote)}"</div>`
         : '';
     // Server-side ground-truth check: if the evaluator claimed an
     // evidence quote that doesn't appear in the response, surface
@@ -4917,12 +4918,12 @@ function _renderEvaluatorGradeResult(g) {
       ? `<details style="margin-top:6px;">
           <summary style="cursor:pointer; color:var(--muted); font-size:11px;">▸ Inspect evaluator prompt + raw model response</summary>
           <div style="margin-top:6px; padding:8px 10px; background:var(--panel2); border-radius:4px; font-size:11px; color:var(--ink);">
-            <div style="margin-bottom:6px;"><strong style="color:#a855f7;">Question asked:</strong> ${escapeHtml(d.evaluator_question || '(default question)')}</div>
-            ${d.evaluator_hint ? `<div style="margin-bottom:6px;"><strong style="color:#a855f7;">Hint provided to model:</strong> <em>${escapeHtml(d.evaluator_hint)}</em></div>` : ''}
-            <div style="margin-top:6px;"><strong style="color:#a855f7;">Full prompt sent (${d.evaluator_prompt_chars || 0} chars):</strong></div>
-            <pre style="margin:4px 0 6px; padding:6px 8px; background:var(--panel2); border-radius:3px; max-height:160px; overflow:auto; font-size:10.5px; font-family:ui-monospace,monospace; color:var(--ink-2); white-space:pre-wrap; word-break:break-word;">${escapeHtml(d.evaluator_prompt || '')}</pre>
-            <div><strong style="color:#a855f7;">Raw model response (${d.evaluator_response_chars || 0} chars):</strong></div>
-            <pre style="margin:4px 0 6px; padding:6px 8px; background:var(--panel2); border-radius:3px; max-height:120px; overflow:auto; font-size:10.5px; font-family:ui-monospace,monospace; color:var(--ink-2); white-space:pre-wrap; word-break:break-word;">${escapeHtml(d.evaluator_response || '')}</pre>
+            <div style="margin-bottom:6px;"><strong style="color:#2f5563;">Question asked:</strong> ${escapeHtml(d.evaluator_question || '(default question)')}</div>
+            ${d.evaluator_hint ? `<div style="margin-bottom:6px;"><strong style="color:#2f5563;">Hint provided to model:</strong> <em>${escapeHtml(d.evaluator_hint)}</em></div>` : ''}
+            <div style="margin-top:6px;"><strong style="color:#2f5563;">Full prompt sent (${d.evaluator_prompt_chars || 0} chars):</strong></div>
+            <pre style="margin:4px 0 6px; padding:6px 8px; background:var(--panel2); border-radius:3px; max-height:160px; overflow:auto; font-size:10.5px; font-family:var(--mono); color:var(--ink-2); white-space:pre-wrap; word-break:break-word;">${escapeHtml(d.evaluator_prompt || '')}</pre>
+            <div><strong style="color:#2f5563;">Raw model response (${d.evaluator_response_chars || 0} chars):</strong></div>
+            <pre style="margin:4px 0 6px; padding:6px 8px; background:var(--panel2); border-radius:3px; max-height:120px; overflow:auto; font-size:10.5px; font-family:var(--mono); color:var(--ink-2); white-space:pre-wrap; word-break:break-word;">${escapeHtml(d.evaluator_response || '')}</pre>
             <div style="margin-top:6px; color:var(--muted);">
               Parsed verdict: <strong style="color:${c};">${escapeHtml(d.verdict || '?')}</strong>
               ${d.parse_ok === false ? ' <span style="color:#ef4444;">(parse fell back to keyword scan — verdict may be unreliable)</span>' : ''}
@@ -4935,7 +4936,7 @@ function _renderEvaluatorGradeResult(g) {
       <div style="background:var(--bg); border-radius:5px; padding:10px 12px; margin-bottom:8px; border-left:4px solid ${c};">
         <div style="display:flex; justify-content:space-between; align-items:center; gap:8px;">
           <strong style="color:var(--ink); font-size:12px;">${escapeHtml(d.name)}</strong>
-          <span style="background:${c}; color:#fff; padding:2px 8px; border-radius:3px; font-size:10.5px; font-weight:700;">${verdictLabels[d.verdict] || escapeHtml(d.verdict)}</span>
+          <span style="background:${c}; color:var(--bg); padding:2px 8px; border-radius:3px; font-size:10.5px; font-weight:700;">${verdictLabels[d.verdict] || escapeHtml(d.verdict)}</span>
         </div>
         ${evi}
         ${ungrounded}
@@ -4963,16 +4964,16 @@ function _renderEvaluatorGradeResult(g) {
         <div style="font-size:11px; color:var(--muted); text-transform:uppercase;">NO</div>
         <div style="font-size:24px; font-weight:700; color:#ef4444;">${g.n_fail}</div>
       </div>
-      <div style="flex:1 1 70px; background:var(--bg); border-radius:6px; padding:12px 14px; border-left:4px solid #a855f7;">
+      <div style="flex:1 1 70px; background:var(--bg); border-radius:6px; padding:12px 14px; border-left:4px solid #2f5563;">
         <div style="font-size:11px; color:var(--muted); text-transform:uppercase;">Uncertain</div>
-        <div style="font-size:24px; font-weight:700; color:#a855f7;">${g.n_uncertain}</div>
+        <div style="font-size:24px; font-weight:700; color:#2f5563;">${g.n_uncertain}</div>
       </div>
       <div style="flex:1 1 70px; background:var(--bg); border-radius:6px; padding:12px 14px; border-left:4px solid #64748b;">
         <div style="font-size:11px; color:var(--muted); text-transform:uppercase;">N/A</div>
         <div style="font-size:24px; font-weight:700; color:#64748b;">${g.n_skipped}</div>
       </div>
     </div>
-    <div style="background:rgba(168,85,247,0.06); border-left:3px solid #a855f7; padding:8px 12px; border-radius:3px; margin-bottom:12px; font-size:11px; color:var(--muted);">
+    <div style="background:rgba(47,85,99,0.06); border-left:3px solid #2f5563; padding:8px 12px; border-radius:3px; margin-bottom:12px; font-size:11px; color:var(--muted);">
       Each verdict comes from a focused yes/no question to the loaded Gemma. Evidence quotes are pulled directly from the response — no hallucinated support.
       Mean evaluator latency: <strong>${g.evaluator_latency_ms_mean?.toFixed(0)} ms</strong> · Total: <strong>${(g.evaluator_latency_ms_total/1000).toFixed(1)} s</strong>
     </div>
@@ -4999,7 +5000,7 @@ function _renderCombinedGradeResult(g) {
     <tr>
       <td style="padding:4px 8px; border-bottom:1px solid var(--border);">${escapeHtml(d.id)}</td>
       <td style="padding:4px 8px; border-bottom:1px solid var(--border); color:var(--muted);">det: <strong>${escapeHtml(d.deterministic)}</strong></td>
-      <td style="padding:4px 8px; border-bottom:1px solid var(--border); color:#a855f7;">evaluator: <strong>${escapeHtml(d.evaluator)}</strong></td>
+      <td style="padding:4px 8px; border-bottom:1px solid var(--border); color:#2f5563;">evaluator: <strong>${escapeHtml(d.evaluator)}</strong></td>
     </tr>`).join('');
   const agreementColor = (agreement.agreement_pct ?? 0) >= 80 ? '#10b981'
                             : (agreement.agreement_pct ?? 0) >= 50 ? '#f59e0b' : '#ef4444';
@@ -5015,9 +5016,9 @@ function _renderCombinedGradeResult(g) {
         <div style="font-size:24px; font-weight:700; color:#10b981;">${detPct}%</div>
         <div style="font-size:11px; color:var(--muted); margin-top:2px;">multi-signal v3</div>
       </div>
-      <div style="flex:1 1 130px; background:var(--bg); border-radius:6px; padding:12px 14px; border-left:4px solid #a855f7;">
+      <div style="flex:1 1 130px; background:var(--bg); border-radius:6px; padding:12px 14px; border-left:4px solid #2f5563;">
         <div style="font-size:11px; color:var(--muted); text-transform:uppercase;">LLM evaluator</div>
-        <div style="font-size:24px; font-weight:700; color:#a855f7;">${evaluatorPct}%</div>
+        <div style="font-size:24px; font-weight:700; color:#2f5563;">${evaluatorPct}%</div>
         <div style="font-size:11px; color:var(--muted); margin-top:2px;">Gemma yes/no</div>
       </div>
       <div style="flex:1 1 130px; background:var(--bg); border-radius:6px; padding:12px 14px; border-left:4px solid ${agreementColor};">
@@ -5027,13 +5028,13 @@ function _renderCombinedGradeResult(g) {
       </div>
     </div>
     ${disagreementsHtml ? `
-    <div style="background:rgba(168,85,247,0.10); border-radius:5px; padding:12px 14px; margin-bottom:14px; border-left:4px solid #a855f7;">
+    <div style="background:rgba(47,85,99,0.10); border-radius:5px; padding:12px 14px; margin-bottom:14px; border-left:4px solid #2f5563;">
       <div style="font-size:13px; color:#c084fc; margin-bottom:6px; font-weight:700;">⚠ ${(agreement.disagreements || []).length} grader disagreement${(agreement.disagreements || []).length === 1 ? '' : 's'} — these are the highest-information dimensions</div>
       <div style="font-size:11.5px; color:var(--ink); margin-bottom:8px; line-height:1.5;">The deterministic grader and the LLM evaluator see different evidence on these dimensions. <strong>Often a sign the evaluator caught a paraphrased citation the keyword grader missed</strong> — or that the deterministic grader matched on a literal keyword that the LLM correctly rejected as out of context. <em>Worth a manual look at each row before trusting the combined score.</em></div>
       <div style="overflow-x:auto; -webkit-overflow-scrolling:touch;">
         <table style="width:100%; min-width:480px; font-size:11.5px; border-collapse:collapse;">
           <thead>
-            <tr style="background:rgba(168,85,247,0.05);">
+            <tr style="background:rgba(47,85,99,0.05);">
               <th style="text-align:left; padding:5px 8px; color:var(--muted); font-weight:500; font-size:10.5px; text-transform:uppercase; letter-spacing:0.4px;">Dimension</th>
               <th style="text-align:left; padding:5px 8px; color:var(--muted); font-weight:500; font-size:10.5px; text-transform:uppercase; letter-spacing:0.4px;">Deterministic</th>
               <th style="text-align:left; padding:5px 8px; color:var(--muted); font-weight:500; font-size:10.5px; text-transform:uppercase; letter-spacing:0.4px;">LLM Evaluator</th>
@@ -5071,13 +5072,13 @@ function _renderUniversalGradeResult(g) {
     const cc = g.citation_check || {};
     const intentBadges = (p.intents || []).map((i, idx) => {
       const isPrimary = i === p.primary_intent;
-      const colors = {refusal:'#ef4444', education:'#4c7a8a', referral:'#10b981', analytical:'#a855f7', evasion:'#f59e0b'};
+      const colors = {refusal:'#ef4444', education:'#4c7a8a', referral:'#10b981', analytical:'#2f5563', evasion:'#f59e0b'};
       const c = colors[i] || '#5B5F68';
       return `<span style="background:${c}${isPrimary ? '' : '40'}; color:${isPrimary ? '#fff' : c}; padding:2px 8px; border-radius:3px; font-weight:${isPrimary ? '700' : '500'}; font-size:10.5px; margin-right:4px;">${isPrimary ? '★ ' : ''}${escapeHtml(i)}</span>`;
     }).join('');
     const groundedColor = cc.grounded_pct >= 80 ? '#10b981' : cc.grounded_pct >= 50 ? '#f59e0b' : '#ef4444';
     profileHtml = `
-      <div style="background:var(--bg); border-radius:6px; padding:12px 14px; margin-bottom:14px; border-left:4px solid #a855f7;">
+      <div style="background:var(--bg); border-radius:6px; padding:12px 14px; margin-bottom:14px; border-left:4px solid #2f5563;">
         <div style="font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:6px;">Response profile (auto-detected)</div>
         <div style="margin-bottom:6px;">
           <span style="color:var(--muted); font-size:11px;">Intent:</span> ${intentBadges || '<span style="color:var(--muted); font-style:italic;">none detected</span>'}
@@ -5085,7 +5086,7 @@ function _renderUniversalGradeResult(g) {
         ${p.cited_statutes && p.cited_statutes.length ? `
         <div style="margin-bottom:6px; font-size:11.5px;">
           <span style="color:var(--muted);">Cited statutes (${p.n_citations}):</span>
-          ${p.cited_statutes.map(s => `<code style="background:rgba(168,85,247,0.12); color:#c084fc; padding:1px 5px; border-radius:3px; margin-right:3px; font-size:10.5px;">${escapeHtml(s)}</code>`).join('')}
+          ${p.cited_statutes.map(s => `<code style="background:rgba(47,85,99,0.12); color:#c084fc; padding:1px 5px; border-radius:3px; margin-right:3px; font-size:10.5px;">${escapeHtml(s)}</code>`).join('')}
         </div>
         <div style="margin-bottom:6px; font-size:11px;">
           <span style="color:var(--muted);">Citation grounding:</span>
@@ -5093,7 +5094,7 @@ function _renderUniversalGradeResult(g) {
           <span style="color:var(--muted);">in corpus</span>
           ${cc.possibly_fabricated && cc.possibly_fabricated.length ? `
             <br><span style="color:#ef4444; font-size:10.5px;">⚠ possibly fabricated:</span>
-            ${cc.possibly_fabricated.map(s => `<code style="background:rgba(239,68,68,0.15); color:#fca5a5; padding:1px 5px; border-radius:3px; margin-right:3px; font-size:10.5px;">${escapeHtml(s)}</code>`).join('')}
+            ${cc.possibly_fabricated.map(s => `<code style="background:rgba(239,68,68,0.15); color:#a83019; padding:1px 5px; border-radius:3px; margin-right:3px; font-size:10.5px;">${escapeHtml(s)}</code>`).join('')}
           ` : ''}
         </div>` : ''}
         ${p.cited_hotlines && p.cited_hotlines.length ? `
@@ -5104,7 +5105,7 @@ function _renderUniversalGradeResult(g) {
         ${p.numeric_claims && p.numeric_claims.length ? `
         <div style="font-size:11.5px;">
           <span style="color:var(--muted);">Numeric claims (${p.n_numeric}):</span>
-          ${p.numeric_claims.map(n => `<code style="background:rgba(59,130,246,0.12); color:#4c7a8a; padding:1px 5px; border-radius:3px; margin-right:3px; font-size:10.5px;">${escapeHtml(n)}</code>`).join('')}
+          ${p.numeric_claims.map(n => `<code style="background:rgba(76,122,138,0.12); color:#4c7a8a; padding:1px 5px; border-radius:3px; margin-right:3px; font-size:10.5px;">${escapeHtml(n)}</code>`).join('')}
         </div>` : ''}
       </div>
     `;
@@ -5210,9 +5211,9 @@ function _renderUniversalGradeResult(g) {
         <span style="color:var(--muted); font-size:11px;">${escapeHtml(d.description)}</span>
       </td>
       <td style="padding:6px 10px; border-bottom:1px solid var(--border); text-align:center;">
-        <span style="background:${color}; color:#fff; padding:2px 8px; border-radius:3px; font-weight:600; font-size:10.5px;">${escapeHtml(statusLabel)}</span>
+        <span style="background:${color}; color:var(--bg); padding:2px 8px; border-radius:3px; font-weight:600; font-size:10.5px;">${escapeHtml(statusLabel)}</span>
       </td>
-      <td style="padding:6px 10px; border-bottom:1px solid var(--border); color:var(--muted); font-size:10.5px; font-family:ui-monospace,monospace;">${escapeHtml(d.applicability)}</td>
+      <td style="padding:6px 10px; border-bottom:1px solid var(--border); color:var(--muted); font-size:10.5px; font-family:var(--mono);">${escapeHtml(d.applicability)}</td>
       <td style="padding:6px 10px; border-bottom:1px solid var(--border); text-align:center; color:var(--muted); font-size:11px;">${d.weight}</td>
       <td style="padding:6px 10px; border-bottom:1px solid var(--border); font-size:11px;">${hitsHtml}${passHintHtml}</td>
     </tr>`;
@@ -5244,7 +5245,7 @@ function _renderGradeResult(g) {
       ★ Best-fit rubric for this prompt type (<code>${escapeHtml(g.prompt_category)}</code>) — score is meaningful.
     </div>`;
   } else if (g.relevance === 'cross_cutting') {
-    relevanceBanner = `<div style="background:rgba(59,130,246,0.10); border:1px solid rgba(59,130,246,0.35); color:#4c7a8a; padding:8px 12px; border-radius:6px; margin-bottom:14px; font-size:12px;">
+    relevanceBanner = `<div style="background:rgba(76,122,138,0.10); border:1px solid rgba(76,122,138,0.35); color:#4c7a8a; padding:8px 12px; border-radius:6px; margin-bottom:14px; font-size:12px;">
       This rubric applies to <b>every</b> prompt type — it scores legal-citation quality regardless of what the prompt asked.
     </div>`;
   }
@@ -5306,7 +5307,7 @@ function _renderGradeResult(g) {
         <span style="color:var(--muted); font-size:11px;">${escapeHtml(c.description)}</span>
       </td>
       <td style="padding:6px 10px; border-bottom:1px solid var(--border); text-align:center;">
-        <span style="background:${color}; color:#fff; padding:2px 8px; border-radius:3px; font-weight:600; font-size:10.5px;">${escapeHtml(statusLabel)}</span>
+        <span style="background:${color}; color:var(--bg); padding:2px 8px; border-radius:3px; font-weight:600; font-size:10.5px;">${escapeHtml(statusLabel)}</span>
       </td>
       <td style="padding:6px 10px; border-bottom:1px solid var(--border); color:var(--muted); font-size:11px;">${escapeHtml(c.kind || '')}</td>
       <td style="padding:6px 10px; border-bottom:1px solid var(--border); text-align:center; color:var(--muted); font-size:11px;">${c.weight}</td>
@@ -5688,7 +5689,7 @@ function renderGradeChips(chips, idx) {
   return `<div class="grade-chips" style="margin-top:8px; display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
     <a href="#" onclick="openGradeModal(${idx}); return false;"
        style="text-decoration:none; display:inline-flex; align-items:center; gap:8px;
-              padding:4px 12px; border-radius:14px; background:${scoreColor}; color:#fff;
+              padding:4px 12px; border-radius:14px; background:${scoreColor}; color:var(--bg);
               font-size:12px; font-weight:600;"
        title="Auto rule-based score across the ${nApplicable} applicable rubric dimension${nApplicable === 1 ? '' : 's'}. Click to open the full scoring panel for LLM-based and combined scoring.">
       <span>${score}%${tenLabel} · auto rule-based</span>
@@ -5736,7 +5737,7 @@ function renderHarnessTrace(trace) {
         '</ul>';
     }
     blocks.push(
-      `<div style="border-left:3px solid ${color}; padding:8px 12px; margin:6px 0; background:rgba(255,255,255,0.02); border-radius:4px;">
+      `<div style="border-left:3px solid ${color}; padding:8px 12px; margin:6px 0; background:var(--panel2); border-radius:4px;">
          <div style="font-weight:600; color:${color}; font-size:12px;">▶ ${labels[k]} layer · ${escapeHtml(t.summary||'')} · ${t.elapsed_ms}ms</div>
          ${detail}
        </div>`);
@@ -5865,7 +5866,7 @@ function renderChat() {
 // generates. Each step is one row; the currently-running step gets a
 // spinning indicator and its own elapsed-time counter.
 const STEP_COLOR = {
-  resolve: '#94a3b8',
+  resolve: '#5B5F68',
   persona: 'var(--accent-persona)',
   grep:    'var(--accent-grep)',
   rag:     'var(--accent-rag)',
@@ -5888,24 +5889,24 @@ function renderStepProgress(m) {
       summaryText = '<span style="color:var(--muted); font-style:italic; font-size:11px;">waiting…</span>';
     } else if (step.status === 'running') {
       icon = `<span style="display:inline-block; width:14px; height:14px; border:2px solid color-mix(in srgb, ${color} 20%, transparent); border-top-color:${color}; border-radius:50%; vertical-align:middle; animation:dc-spin 0.8s linear infinite;"></span>`;
-      statusBadge = `<span style="background:${color}; color:#fff; font-size:9.5px; font-weight:700; padding:2px 7px; border-radius:8px; text-transform:uppercase; letter-spacing:0.4px;">running</span>`;
+      statusBadge = `<span style="background:${color}; color:var(--bg); font-size:9.5px; font-weight:700; padding:2px 7px; border-radius:8px; text-transform:uppercase; letter-spacing:0.4px;">running</span>`;
       summaryText = '<span style="color:var(--ink); font-size:11px;">in progress…</span>';
     } else if (step.status === 'complete' || step.status === 'noop') {
-      icon = `<span style="display:inline-block; width:14px; height:14px; background:${color}; border-radius:50%; vertical-align:middle; color:#fff; font-size:10px; font-weight:700; text-align:center; line-height:14px;">✓</span>`;
+      icon = `<span style="display:inline-block; width:14px; height:14px; background:${color}; border-radius:50%; vertical-align:middle; color:var(--bg); font-size:10px; font-weight:700; text-align:center; line-height:14px;">✓</span>`;
       statusBadge = `<span style="background:color-mix(in srgb, ${color} 13%, transparent); color:${color}; font-size:9.5px; font-weight:700; padding:2px 7px; border-radius:8px; text-transform:uppercase; letter-spacing:0.4px;">${step.status === 'noop' ? 'no-op' : 'done'}</span>`;
       const ms = step.elapsed_ms || 0;
       const tStr = ms < 1000 ? `${ms} ms` : `${(ms/1000).toFixed(1)} s`;
       summaryText = `<span style="color:var(--ink); font-size:11px;">${escapeHtml(step.summary || '')}</span> <span style="color:var(--muted); font-size:11px;">· ${tStr}</span>`;
     } else if (step.status === 'skipped') {
       icon = `<span style="display:inline-block; width:14px; height:14px; border:2px dashed var(--border); border-radius:50%; vertical-align:middle;"></span>`;
-      statusBadge = `<span style="background:rgba(148,163,184,0.18); color:var(--muted); font-size:9.5px; font-weight:700; padding:2px 7px; border-radius:8px; text-transform:uppercase; letter-spacing:0.4px;">skipped</span>`;
+      statusBadge = `<span style="background:var(--panel2); color:var(--muted); font-size:9.5px; font-weight:700; padding:2px 7px; border-radius:8px; text-transform:uppercase; letter-spacing:0.4px;">skipped</span>`;
       summaryText = '<span style="color:var(--muted); font-style:italic; font-size:11px;">toggle was OFF</span>';
     } else if (step.status === 'not_wired') {
       icon = `<span style="display:inline-block; width:14px; height:14px; border:2px dashed var(--border); border-radius:50%; vertical-align:middle;"></span>`;
-      statusBadge = `<span style="background:rgba(148,163,184,0.18); color:var(--muted); font-size:9.5px; font-weight:700; padding:2px 7px; border-radius:8px; text-transform:uppercase; letter-spacing:0.4px;">not enabled</span>`;
+      statusBadge = `<span style="background:var(--panel2); color:var(--muted); font-size:9.5px; font-weight:700; padding:2px 7px; border-radius:8px; text-transform:uppercase; letter-spacing:0.4px;">not enabled</span>`;
       summaryText = '<span style="color:var(--muted); font-style:italic; font-size:11px;">kernel did not enable this layer</span>';
     } else {
-      icon = `<span style="display:inline-block; width:14px; height:14px; background:#ef4444; border-radius:50%; vertical-align:middle; color:#fff; font-size:10px; font-weight:700; text-align:center; line-height:14px;">!</span>`;
+      icon = `<span style="display:inline-block; width:14px; height:14px; background:#ef4444; border-radius:50%; vertical-align:middle; color:var(--bg); font-size:10px; font-weight:700; text-align:center; line-height:14px;">!</span>`;
       statusBadge = '';
       summaryText = `<span style="color:#ef4444; font-size:11px;">${escapeHtml(step.summary || step.status)}</span>`;
     }
@@ -5930,7 +5931,7 @@ function renderStepProgress(m) {
     <div style="padding:4px 2px; font-family:inherit;">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
         <span style="font-size:12px; font-weight:700; color:var(--ink);">Pipeline progress</span>
-        <span style="font-size:11px; color:var(--muted); font-family:ui-monospace,monospace;">${totalElapsed}s elapsed</span>
+        <span style="font-size:11px; color:var(--muted); font-family:var(--mono);">${totalElapsed}s elapsed</span>
       </div>
       ${rows}
     </div>`;
@@ -5968,7 +5969,7 @@ async function _renderRetrievalConfigPanel() {
   const radio = (name, val, label, desc, current) => {
     const checked = current === val ? 'checked' : '';
     const active  = current === val;
-    return `<label style="display:flex; gap:8px; padding:6px 8px; border:1px solid ${active ? '#4c7a8a' : 'var(--border)'}; border-radius:5px; cursor:pointer; ${active ? 'background:rgba(59,130,246,0.06);' : 'background:var(--bg);'}">
+    return `<label style="display:flex; gap:8px; padding:6px 8px; border:1px solid ${active ? '#4c7a8a' : 'var(--border)'}; border-radius:5px; cursor:pointer; ${active ? 'background:rgba(76,122,138,0.06);' : 'background:var(--bg);'}">
       <input type="radio" name="${name}" value="${val}" ${checked} onchange="_retrievalConfigSet('${name}', '${val}')" style="margin-top:2px;">
       <span><b style="font-size:11.5px; color:var(--ink);">${escapeHtml(label)}</b><br><span style="font-size:10.5px; color:var(--muted);">${escapeHtml(desc)}</span></span>
     </label>`;
@@ -5988,10 +5989,10 @@ async function _renderRetrievalConfigPanel() {
     </label>`;
   panel.innerHTML = `
     <details open>
-      <summary style="cursor:pointer; padding:8px 12px; background:rgba(168,85,247,0.06); border-left:3px solid #a855f7; border-radius:4px; font-weight:700; color:#a855f7; user-select:none;">▸ Configure retrieval (v0.8.0 knobs)</summary>
-      <div style="padding:12px; background:rgba(168,85,247,0.03); border:1px solid rgba(168,85,247,0.2); border-radius:0 0 6px 6px; margin-top:-1px;">
+      <summary style="cursor:pointer; padding:8px 12px; background:rgba(47,85,99,0.06); border-left:3px solid #2f5563; border-radius:4px; font-weight:700; color:#2f5563; user-select:none;">▸ Configure retrieval (v0.8.0 knobs)</summary>
+      <div style="padding:12px; background:rgba(47,85,99,0.03); border:1px solid rgba(168,85,247,0.2); border-radius:0 0 6px 6px; margin-top:-1px;">
         <div style="font-size:10.5px; color:var(--muted); margin-bottom:10px; line-height:1.55;">
-          All knobs persist for the kernel session. Reranker wired: <b style="color:${cfg.rerank_wired ? '#10b981' : '#94a3b8'}">${cfg.rerank_wired ? 'yes' : 'no'}</b> · Embedder wired: <b style="color:${cfg.embed_wired ? '#10b981' : '#94a3b8'}">${cfg.embed_wired ? 'yes' : 'no'}</b>. When a hook is unwired, the corresponding mode degrades gracefully to BM25.
+          All knobs persist for the kernel session. Reranker wired: <b style="color:${cfg.rerank_wired ? '#10b981' : '#5B5F68'}">${cfg.rerank_wired ? 'yes' : 'no'}</b> · Embedder wired: <b style="color:${cfg.embed_wired ? '#10b981' : '#5B5F68'}">${cfg.embed_wired ? 'yes' : 'no'}</b>. When a hook is unwired, the corresponding mode degrades gracefully to BM25.
           ${cfg.embed_cache ? `<br><span style="margin-top:4px; display:inline-block;"><b>Embed cache:</b> ${cfg.embed_cache.size.toLocaleString()} entries, ${cfg.embed_cache.hit_rate}% hit-rate (${cfg.embed_cache.hits.toLocaleString()} hits / ${cfg.embed_cache.misses.toLocaleString()} misses) <button onclick="_clearEmbedCache()" style="margin-left:6px; background:transparent; border:1px solid var(--border); color:var(--muted); padding:2px 8px; border-radius:4px; font-size:10px; cursor:pointer;">Clear cache</button></span>` : ''}
         </div>
 
@@ -6075,10 +6076,10 @@ async function _renderRagGraphViewer() {
   }
   panel.innerHTML = `
     <details>
-      <summary style="cursor:pointer; padding:8px 12px; background:rgba(124,58,237,0.06); border-left:3px solid #7c3aed; border-radius:4px; font-weight:700; color:#7c3aed; user-select:none;">
+      <summary style="cursor:pointer; padding:8px 12px; background:rgba(47,85,99,0.06); border-left:3px solid #2f5563; border-radius:4px; font-weight:700; color:#2f5563; user-select:none;">
         ▸ Browse the corpus as a graph (${graph.meta.n_nodes} docs, ${graph.meta.n_edges} citation edges)
       </summary>
-      <div style="padding:14px; background:rgba(124,58,237,0.03); border:1px solid rgba(124,58,237,0.2); border-radius:0 0 6px 6px; margin-top:-1px;">
+      <div style="padding:14px; background:rgba(47,85,99,0.03); border:1px solid rgba(124,58,237,0.2); border-radius:0 0 6px 6px; margin-top:-1px;">
         <div style="font-size:10.5px; color:var(--muted); margin-bottom:10px; line-height:1.5;">
           Force-directed layout of the curated corpus. Arrowheads point from citation source to citation target. Nodes colored by source jurisdiction. <strong>Click any node to view its content</strong>; hover an edge to see the relation + curator note; scroll to zoom; click-drag empty space to pan; shift-click a node to pin.
         </div>
@@ -6241,7 +6242,7 @@ function _ragGraphDraw() {
         data-from="${escapeHtml(e.from)}" data-to="${escapeHtml(e.to)}"
         data-relation="${escapeHtml(e.relation)}" data-note="${escapeHtml(e.note || '')}"
         style="cursor:pointer; transition:stroke 0.15s;"
-        onmouseover="this.style.stroke='#a855f7'; this.style.strokeWidth='2'; _ragGraphHoverEdge(this);"
+        onmouseover="this.style.stroke='#2f5563'; this.style.strokeWidth='2'; _ragGraphHoverEdge(this);"
         onmouseout="this.style.stroke='${stroke}'; this.style.strokeWidth='1';" />`;
   }).join('');
   const nodesSvg = nodes.map(n => {
@@ -6273,7 +6274,7 @@ function _ragGraphDraw() {
       <defs>
         <marker id="rag-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5"
                 orient="auto-start-reverse" markerUnits="userSpaceOnUse">
-          <path d="M 0 0 L 10 5 L 0 10 z" fill="#94a3b8" />
+          <path d="M 0 0 L 10 5 L 0 10 z" fill="#5B5F68" />
         </marker>
       </defs>
       <g id="rag-graph-edges">${edgesSvg}</g>
@@ -6346,7 +6347,7 @@ function _ragGraphExportSvg() {
   clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
   // Resolve `var(--ink)` and `var(--bg)` to literals so the file is portable.
   const cs = getComputedStyle(document.body);
-  const ink = cs.getPropertyValue('--ink').trim() || '#0f172a';
+  const ink = cs.getPropertyValue('--ink').trim() || '#0E1116';
   const bg = cs.getPropertyValue('--bg').trim() || '#ffffff';
   clone.querySelectorAll('text').forEach(t => t.setAttribute('fill', ink));
   const bgRect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
@@ -6388,7 +6389,7 @@ function _ragGraphClickNode(id, evt) {
   const incident = (_ragGraphSim.edges || []).filter(e => e.from === id || e.to === id);
   const seeAlso = incident.length ? `
     <div style="margin-top:14px; padding-top:10px; border-top:1px dashed var(--border);">
-      <strong style="color:#7c3aed;">Citation edges (${incident.length}):</strong>
+      <strong style="color:#2f5563;">Citation edges (${incident.length}):</strong>
       <ul style="margin:6px 0 0 0; padding:0 0 0 16px; font-size:10.5px;">
         ${incident.slice(0, 12).map(e => {
           const arrow = e.from === id ? `→ <code>${escapeHtml(e.to)}</code>` : `← <code>${escapeHtml(e.from)}</code>`;
@@ -6551,7 +6552,7 @@ function _renderComparePanel() {
 
     <div style="display:flex; gap:8px; align-items:center; margin-bottom:14px;">
       <button onclick="runCompare()" id="compare-run-btn"
-              style="background:#f59e0b; color:#fff; border:0; padding:10px 18px; border-radius:8px; font-size:13px; font-weight:600; cursor:${s.isRunning ? 'not-allowed' : 'pointer'}; opacity:${s.isRunning ? 0.6 : 1};"
+              style="background:#f59e0b; color:var(--bg); border:0; padding:10px 18px; border-radius:8px; font-size:13px; font-weight:600; cursor:${s.isRunning ? 'not-allowed' : 'pointer'}; opacity:${s.isRunning ? 0.6 : 1};"
               ${s.isRunning ? 'disabled' : ''}>
         ${s.isRunning ? '⏳ Running…' : 'Run comparison →'}
       </button>
@@ -6874,8 +6875,8 @@ function _renderCompareResults(r) {
   const allIds = [...new Set([...Object.keys(idsByA), ...Object.keys(idsByB)])];
   const verdictRank = {PASS: 2, YES: 2, PARTIAL: 1, FAIL: 0, NO: 0, N_A: -1, NOT_APPLICABLE: -1, UNCERTAIN: 0.5};
   const verdictColor = (s) => ({PASS: '#10b981', YES: '#10b981', PARTIAL: '#f59e0b',
-                                 FAIL: '#ef4444', NO: '#ef4444', N_A: '#94a3b8',
-                                 NOT_APPLICABLE: '#94a3b8', UNCERTAIN: '#a855f7'})[s] || '#5B5F68';
+                                 FAIL: '#ef4444', NO: '#ef4444', N_A: '#5B5F68',
+                                 NOT_APPLICABLE: '#5B5F68', UNCERTAIN: '#2f5563'})[s] || '#5B5F68';
   const dimRows = allIds.map(id => {
     const dA = idsByA[id] || {};
     const dB = idsByB[id] || {};
@@ -6889,8 +6890,8 @@ function _renderCompareResults(r) {
     return `
       <tr>
         <td style="padding:5px 8px; font-size:11px; color:var(--ink);">${escapeHtml(dA.name || dB.name || id)}</td>
-        <td style="padding:5px 8px; text-align:center;"><span style="background:${verdictColor(stA)}; color:#fff; padding:1px 6px; border-radius:3px; font-size:10px; font-weight:700;">${escapeHtml(stA.replace('_', '/'))}</span></td>
-        <td style="padding:5px 8px; text-align:center;"><span style="background:${verdictColor(stB)}; color:#fff; padding:1px 6px; border-radius:3px; font-size:10px; font-weight:700;">${escapeHtml(stB.replace('_', '/'))}</span></td>
+        <td style="padding:5px 8px; text-align:center;"><span style="background:${verdictColor(stA)}; color:var(--bg); padding:1px 6px; border-radius:3px; font-size:10px; font-weight:700;">${escapeHtml(stA.replace('_', '/'))}</span></td>
+        <td style="padding:5px 8px; text-align:center;"><span style="background:${verdictColor(stB)}; color:var(--bg); padding:1px 6px; border-radius:3px; font-size:10px; font-weight:700;">${escapeHtml(stB.replace('_', '/'))}</span></td>
         <td style="padding:5px 8px; text-align:center;"><span class="compare-delta-pill ${movedCls}">${escapeHtml(movedStr)}</span></td>
       </tr>`;
   }).join('');
@@ -6916,8 +6917,8 @@ function _renderCompareResults(r) {
     : delta > 0
       ? `Variant B (${escapeHtml(_compareTogglesSummary(B.toggles))}) scored <b>${delta.toFixed(1)}pp higher</b> than Variant A. The added layers contributed positively on THIS prompt.`
       : `Variant A (${escapeHtml(_compareTogglesSummary(A.toggles))}) scored <b>${Math.abs(delta).toFixed(1)}pp higher</b> than Variant B. The added layers may have hurt rather than helped on this prompt — inspect the per-dim deltas below to see which dims regressed.`;
-  const bottomBg = delta != null && Math.abs(delta) >= 5 ? (delta > 0 ? 'rgba(16,185,129,0.06)' : 'rgba(239,68,68,0.06)') : 'rgba(148,163,184,0.06)';
-  const bottomBorder = delta != null && Math.abs(delta) >= 5 ? (delta > 0 ? '#10b981' : '#ef4444') : '#94a3b8';
+  const bottomBg = delta != null && Math.abs(delta) >= 5 ? (delta > 0 ? 'rgba(16,185,129,0.06)' : 'rgba(239,68,68,0.06)') : 'var(--panel2)';
+  const bottomBorder = delta != null && Math.abs(delta) >= 5 ? (delta > 0 ? '#10b981' : '#ef4444') : '#5B5F68';
 
   const movedCount = dimRows ? allIds.filter(id => {
     const dA = idsByA[id] || {}, dB = idsByB[id] || {};
@@ -6964,8 +6965,8 @@ function _renderCompareResults(r) {
     <details open style="margin-bottom:14px;">
       <summary style="cursor:pointer; font-weight:700; font-size:12.5px; color:var(--ink); padding:6px 0; user-select:none;">▸ Responses (full text, both sides)</summary>
       <div class="compare-grid" style="margin-top:8px;">
-        <div class="compare-variant side-a"><div style="font-weight:700; font-size:11px; color:#4c7a8a; margin-bottom:6px;">Variant A response</div><pre style="margin:0; max-height:420px; overflow-y:auto; white-space:pre-wrap; word-wrap:break-word; font-family:ui-monospace,monospace; font-size:11px; color:var(--ink-2); line-height:1.5;">${escapeHtml(A.response || '')}</pre></div>
-        <div class="compare-variant side-b"><div style="font-weight:700; font-size:11px; color:#10b981; margin-bottom:6px;">Variant B response</div><pre style="margin:0; max-height:420px; overflow-y:auto; white-space:pre-wrap; word-wrap:break-word; font-family:ui-monospace,monospace; font-size:11px; color:var(--ink-2); line-height:1.5;">${escapeHtml(B.response || '')}</pre></div>
+        <div class="compare-variant side-a"><div style="font-weight:700; font-size:11px; color:#4c7a8a; margin-bottom:6px;">Variant A response</div><pre style="margin:0; max-height:420px; overflow-y:auto; white-space:pre-wrap; word-wrap:break-word; font-family:var(--mono); font-size:11px; color:var(--ink-2); line-height:1.5;">${escapeHtml(A.response || '')}</pre></div>
+        <div class="compare-variant side-b"><div style="font-weight:700; font-size:11px; color:#10b981; margin-bottom:6px;">Variant B response</div><pre style="margin:0; max-height:420px; overflow-y:auto; white-space:pre-wrap; word-wrap:break-word; font-family:var(--mono); font-size:11px; color:var(--ink-2); line-height:1.5;">${escapeHtml(B.response || '')}</pre></div>
       </div>
     </details>
 

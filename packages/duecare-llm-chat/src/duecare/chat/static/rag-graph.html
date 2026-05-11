@@ -197,7 +197,7 @@
       const wrap = document.getElementById('svgwrap');
       if (!sim) return;
       const {nodes, edges, W, H} = sim;
-      const groupColor = (gid) => (G.groups[gid] || {}).color || '#94a3b8';
+      const groupColor = (gid) => (G.groups[gid] || {}).color || '#5B5F68';
       const q = (filt.q || '').toLowerCase().trim();
       const gFilter = filt.group || '';
       const isMatch = (n) => {
@@ -227,7 +227,7 @@
             data-from="${escapeHtml(e.from)}" data-to="${escapeHtml(e.to)}"
             data-relation="${escapeHtml(e.relation)}" data-note="${escapeHtml(e.note || '')}"
             style="cursor:pointer;"
-            onmouseover="this.style.stroke='#a855f7'; this.style.strokeWidth='2'; rgHoverEdge(this);"
+            onmouseover="this.style.stroke='#2f5563'; this.style.strokeWidth='2'; rgHoverEdge(this);"
             onmouseout="this.style.stroke='${stroke}'; this.style.strokeWidth='1.1';" />`;
       }).join('');
       const nodesSvg = nodes.map(n => {
@@ -255,7 +255,7 @@
           <defs>
             <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5"
                     orient="auto-start-reverse" markerUnits="userSpaceOnUse">
-              <path d="M 0 0 L 10 5 L 0 10 z" fill="#94a3b8" />
+              <path d="M 0 0 L 10 5 L 0 10 z" fill="#5B5F68" />
             </marker>
           </defs>
           <g>${edgesSvg}</g>
@@ -360,8 +360,8 @@
       const clone = svg.cloneNode(true);
       clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
       const cs = getComputedStyle(document.body);
-      const ink = cs.getPropertyValue('--ink').trim() || '#e2e8f0';
-      const bg = cs.getPropertyValue('--bg').trim() || '#0f172a';
+      const ink = cs.getPropertyValue('--ink').trim() || '#0E1116';
+      const bg = cs.getPropertyValue('--bg').trim() || '#F7F6F1';
       clone.querySelectorAll('text').forEach(t => t.setAttribute('fill', ink));
       const bgRect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
       bgRect.setAttribute('x', '0'); bgRect.setAttribute('y', '0');
