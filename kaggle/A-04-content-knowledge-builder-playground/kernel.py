@@ -681,24 +681,22 @@ def build_app():
 _PAGE_HTML = """<!doctype html><html><head>
 <meta charset="utf-8">
 <title>Duecare Content Knowledge Builder Playground</title>
+<link rel="stylesheet" href="/wb-static/_chrome.css">
+<script src="/wb-static/_nav.js" defer></script>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
-  :root { --paper:#F7F6F1; --paper2:#EFEDE4; --ink:#0E1116; --ink2:#2A2D34; --ink3:#5B5F68; --line:#DDD8C9; --accent:oklch(0.52 0.08 195); --accentInk:oklch(0.32 0.07 195); --accentSoft:oklch(0.92 0.03 195); --ember:oklch(0.58 0.14 45); --mono:'JetBrains Mono',ui-monospace,Menlo,monospace; --sans:'Inter',-apple-system,BlinkMacSystemFont,sans-serif; }
-  * { box-sizing: border-box; }
-  body { font-family: var(--sans);
-         max-width: 1200px; margin: 30px auto; padding: 0 24px;
-    color: var(--ink); background: var(--paper); }
+  /* Design tokens come from /wb-static/_chrome.css. Page-specific only. */
+  .page-wrap { max-width: 1200px; margin: 30px auto; padding: 0 24px; }
   h1 { color: var(--ink); letter-spacing: -0.02em; margin: 0 0 6px; display:flex; align-items:center; gap:10px; }
   .brand-mark { width:30px; height:30px; display:inline-grid; place-items:center; border-radius:7px; background:var(--ink); color:var(--paper); font-family:var(--mono); font-size:11px; font-weight:700; letter-spacing:.04em; }
   .sub { color: var(--ink3); margin: 0 0 20px; line-height: 1.5; }
-  .pill { display: inline-block; background: var(--accentSoft); color: var(--accentInk);
+  .pill { display: inline-block; background: var(--accentSoft, oklch(0.92 0.03 195)); color: var(--accentInk, oklch(0.32 0.07 195));
           padding: 2px 9px; border-radius: 999px; font-size: 11px;
      font-weight: 700; margin-left: 6px; font-family:var(--mono); text-transform:uppercase; letter-spacing:.04em; }
-  .tabs { display: flex; gap: 4px; margin-bottom: 0; border-bottom: 2px solid var(--line); }
-  .tab { padding: 10px 18px; background: var(--paper2); border: 1px solid var(--line);
+  .tabs { display: flex; gap: 4px; margin-bottom: 0; border-bottom: 2px solid var(--line); flex-wrap: wrap; }
+  .tab { padding: 10px 18px; background: var(--paper2, #EFEDE4); border: 1px solid var(--line);
          border-bottom: none; border-radius: 8px 8px 0 0; cursor: pointer;
     font-weight: 600; font-size: 13px; color: var(--ink3); }
-  .tab.active { background: #fffdf7; color: var(--accentInk); border-color: var(--line); }
+  .tab.active { background: #fffdf7; color: var(--accentInk, oklch(0.32 0.07 195)); border-color: var(--line); }
   .tab:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
   .panel { background: #fffdf7; border: 1px solid var(--line);
            border-top: none; border-radius: 0 0 12px 12px; padding: 20px;
@@ -708,19 +706,20 @@ _PAGE_HTML = """<!doctype html><html><head>
   input[type=text], textarea, select {
     width: 100%; padding: 8px 10px; border: 1px solid var(--line);
     border-radius: 8px; font-size: 13px; box-sizing: border-box;
-    font-family: var(--mono);
+    font-family: var(--mono); background: #fff; color: var(--ink);
   }
   textarea { min-height: 80px; resize: vertical; }
-  button { background: var(--accent); color: white; padding: 8px 14px;
+  button.primary, button.secondary, button.danger { color: white; padding: 8px 14px;
            border: none; border-radius: 8px; font-weight: 600;
       font-size: 13px; cursor: pointer; font-family:var(--sans); }
+  button.primary { background: var(--accent); }
   button.secondary { background: var(--ink3); }
   button.danger { background: #dc2626; }
-  button:hover { filter: brightness(.96); transform: translateY(-1px); }
-  .row { display: flex; gap: 8px; align-items: center; }
+  button.primary:hover, button.secondary:hover, button.danger:hover { filter: brightness(.96); transform: translateY(-1px); }
+  .row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
   table { width: 100%; border-collapse: collapse; font-size: 12px; }
   th, td { padding: 8px; border-bottom: 1px solid var(--line); text-align: left;
-           vertical-align: top; }
+           vertical-align: top; color: var(--ink); }
   th { color: var(--ink3); font-weight: 700; text-transform: uppercase;
        letter-spacing: 0.05em; font-size: 11px; }
   pre { background: #101820; color: #f9fafb; padding: 12px;
@@ -730,19 +729,22 @@ _PAGE_HTML = """<!doctype html><html><head>
            font-size: 10px; font-weight: 700; text-transform: uppercase; }
   .badge.high { background: #fee2e2; color: #991b1b; }
   .badge.medium { background: #fef3c7; color: #92400e; }
-  .badge.low { background: var(--accentSoft); color: var(--accentInk); }
+  .badge.low { background: var(--accentSoft, oklch(0.92 0.03 195)); color: var(--accentInk, oklch(0.32 0.07 195)); }
   .badge.critical { background: #1f2937; color: #fff; }
   .meta { color: var(--ink3); font-size: 12px; }
   .stats { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px;
            margin-bottom: 14px; }
+  @media (max-width: 800px) { .stats { grid-template-columns: repeat(3, 1fr); } }
+  @media (max-width: 480px) { .stats { grid-template-columns: repeat(2, 1fr); } }
   .stat { background: #fffdf7; border:1px solid var(--line); padding: 10px 12px; border-radius: 8px;
           text-align: center; }
-  .stat-num { font-size: 22px; font-weight: 700; color: var(--accentInk); }
+  .stat-num { font-size: 22px; font-weight: 700; color: var(--accentInk, oklch(0.32 0.07 195)); }
   .stat-label { font-size: 11px; color: var(--ink3); text-transform: uppercase;
                 font-weight: 600; }
-</style></head><body>
+</style></head><body data-nav="tools">
 
-<h1><span class="brand-mark" aria-hidden="true">DC</span><span>DueCare Content Knowledge Builder Playground <span class="pill">CORE · Hands-on</span></span></h1>
+<div class="page-wrap">
+<h1><span class="brand-mark" aria-hidden="true">DC</span><span>Content Knowledge Builder <span class="pill">A-04 · Hands-on</span></span></h1>
 <p class="sub">
   The HANDS-ON sandbox for building Duecare's knowledge base. Add or remove
   GREP regex rules, RAG documents, and lookup-table entries inline; test
@@ -785,7 +787,7 @@ _PAGE_HTML = """<!doctype html><html><head>
   <label>Indicator (what this means)</label>
   <input type="text" id="g-indicator" placeholder="Usurious lending rate exceeds statutory cap">
   <div style="margin-top:12px">
-    <button onclick="addGrep()">Add rule</button>
+    <button class="primary" onclick="addGrep()">Add rule</button>
   </div>
   <h3 style="margin-top:24px">Current GREP rules</h3>
   <table id="g-table"></table>
@@ -808,7 +810,7 @@ _PAGE_HTML = """<!doctype html><html><head>
   <label>Snippet (the chunk BM25 indexes)</label>
   <textarea id="r-snippet" placeholder="Each Member of the International Labour Organisation undertakes to suppress the use of forced or compulsory labour in all its forms within the shortest possible period..."></textarea>
   <div style="margin-top:12px">
-    <button onclick="addRag()">Add doc</button>
+    <button class="primary" onclick="addRag()">Add doc</button>
     <span class="meta">BM25 index rebuilds automatically.</span>
   </div>
   <h3 style="margin-top:24px">Current RAG corpus</h3>
@@ -830,7 +832,7 @@ _PAGE_HTML = """<!doctype html><html><head>
   <textarea id="test-text" style="min-height:120px"
             placeholder="I run an employment agency in Hong Kong charging 68% APR for placement loans. We hold worker passports for safekeeping. Salary: HKD 4630/month, 48 hours/week, 18-month contracts."></textarea>
   <div style="margin-top:10px">
-    <button onclick="runTest(false)">Fire rules + retrieve</button>
+    <button class="primary" onclick="runTest(false)">Fire rules + retrieve</button>
     <button onclick="runTest(true)" class="secondary">+ ask Gemma</button>
     <span class="meta" id="test-meta"></span>
   </div>
@@ -849,7 +851,7 @@ _PAGE_HTML = """<!doctype html><html><head>
 </div>
 
 <div class="panel" id="tab-export" style="display:none">
-  <button onclick="doExport()">Download knowledge JSON</button>
+  <button class="primary" onclick="doExport()">Download knowledge JSON</button>
   <button onclick="doImport()" class="secondary">Upload + import JSON</button>
   <button onclick="doReset()" class="danger">Reset to bundled built-ins</button>
   <input type="file" id="import-file" accept="application/json" style="display:none" onchange="handleImportFile(event)">
@@ -1060,6 +1062,7 @@ function escapeHtml(s) {
 
 loadKnowledge();
 </script>
+</div>
 </body></html>"""
 
 
