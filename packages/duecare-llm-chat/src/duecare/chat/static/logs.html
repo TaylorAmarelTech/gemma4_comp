@@ -1,0 +1,285 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Logs — DueCare Workbench</title>
+  <link rel="stylesheet" href="/static/_chrome.css">
+  <link rel="stylesheet" href="/static/showcase.css">
+  <script src="/static/_nav.js" defer></script>
+  <style>
+    .logs-controls {
+      display: flex; gap: 10px; align-items: center; flex-wrap: wrap;
+      padding: 14px 18px; background: var(--paper);
+      border: 1px solid var(--line); border-radius: 12px;
+      margin-bottom: 16px;
+    }
+    .logs-controls label {
+      font-family: var(--mono); font-size: 11px; font-weight: 500;
+      text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-3);
+      display: inline-flex; align-items: center; gap: 6px;
+    }
+    .logs-controls select, .logs-controls input {
+      padding: 6px 10px; font-size: 13px;
+      border: 1px solid var(--line); border-radius: 6px;
+      background: var(--paper); color: var(--ink);
+      font-family: var(--sans);
+    }
+    .logs-controls select:focus, .logs-controls input:focus {
+      outline: 0; border-color: var(--accent);
+      box-shadow: 0 0 0 4px oklch(0.85 0.05 195 / 0.3);
+    }
+    .logs-controls .grow { flex: 1 1 auto; }
+    .logs-controls button {
+      padding: 6px 12px; font-size: 12px; font-weight: 500;
+      border: 1px solid var(--line); border-radius: 6px;
+      background: var(--paper); color: var(--ink-2); cursor: pointer;
+      font-family: var(--sans);
+    }
+    .logs-controls button:hover { background: var(--paper-2); border-color: var(--ink-3); }
+    .logs-controls button.danger:hover {
+      background: var(--ember-soft); color: oklch(0.40 0.13 45);
+      border-color: oklch(0.78 0.06 45);
+    }
+    .logs-controls .toggle {
+      font-family: var(--mono); font-size: 11px; color: var(--ink-3);
+      display: inline-flex; align-items: center; gap: 6px;
+    }
+    .stats-row {
+      display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 16px;
+      font-family: var(--mono); font-size: 11px;
+    }
+    .stat-pill {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 4px 10px; border-radius: 999px;
+      background: var(--paper); border: 1px solid var(--line);
+      color: var(--ink-2); text-transform: uppercase; letter-spacing: 0.06em;
+    }
+    .stat-pill.lvl-info  { background: var(--accent-soft); color: var(--accent-ink); border-color: oklch(0.85 0.05 195); }
+    .stat-pill.lvl-warn  { background: oklch(0.96 0.03 80);  color: oklch(0.40 0.10 80);  border-color: oklch(0.85 0.06 80); }
+    .stat-pill.lvl-error { background: var(--ember-soft);    color: oklch(0.40 0.13 45); border-color: oklch(0.85 0.06 45); }
+    .stat-pill.lvl-debug { background: var(--paper-2); color: var(--ink-3); }
+    .logs-table-wrap {
+      background: var(--paper); border: 1px solid var(--line);
+      border-radius: 12px; overflow: hidden;
+    }
+    table.logs {
+      width: 100%; border-collapse: collapse; font-size: 13px;
+    }
+    table.logs thead th {
+      text-align: left; padding: 10px 14px;
+      background: var(--paper-2); color: var(--ink-3);
+      font-family: var(--mono); font-size: 11px; font-weight: 500;
+      text-transform: uppercase; letter-spacing: 0.08em;
+      border-bottom: 1px solid var(--line);
+      position: sticky; top: 0; z-index: 1;
+    }
+    table.logs tbody td {
+      padding: 8px 14px; border-bottom: 1px solid var(--line-soft);
+      vertical-align: top; color: var(--ink-2);
+      font-family: var(--mono); font-size: 12.5px;
+    }
+    table.logs tbody tr:hover td { background: var(--paper-2); }
+    table.logs td.ts { white-space: nowrap; color: var(--ink-3); }
+    table.logs td.lvl span {
+      display: inline-block; padding: 2px 7px; border-radius: 4px;
+      font-size: 10.5px; font-weight: 500; text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+    table.logs td.lvl span.info  { background: var(--accent-soft); color: var(--accent-ink); }
+    table.logs td.lvl span.warn  { background: oklch(0.96 0.03 80);  color: oklch(0.40 0.10 80); }
+    table.logs td.lvl span.error { background: var(--ember-soft);    color: oklch(0.40 0.13 45); }
+    table.logs td.lvl span.debug { background: var(--paper-2); color: var(--ink-3); }
+    table.logs td.kind { color: var(--ink); font-weight: 600; }
+    table.logs td.layer span {
+      display: inline-block; padding: 2px 7px; border-radius: 999px;
+      font-size: 10.5px; background: var(--paper-2); color: var(--ink-3);
+      border: 1px solid var(--line);
+    }
+    table.logs td.msg { color: var(--ink); font-family: var(--sans); }
+    table.logs td.payload { color: var(--ink-3); white-space: pre-wrap; word-break: break-word; max-width: 360px; }
+    .empty-state {
+      padding: 60px 24px; text-align: center; color: var(--ink-3);
+    }
+    .empty-state h3 { font-size: 17px; color: var(--ink); margin: 0 0 8px; font-weight: 600; }
+    .empty-state p { margin: 0; font-size: 14px; line-height: 1.55; }
+    code.path {
+      font-family: var(--mono); font-size: 12px;
+      background: var(--paper-2); padding: 2px 6px;
+      border-radius: 4px; border: 1px solid var(--line-soft); color: var(--ink-2);
+    }
+  </style>
+</head>
+<body data-nav="logs">
+<main class="showcase">
+  <div class="crumbs">Workbench tool · System &amp; observability</div>
+  <h1>Logs</h1>
+  <p class="lede">
+    Standardized JSON-Lines events emitted by every kernel via
+    <code class="path">duecare.chat._dc_log.dc_log()</code>.
+    Polls <code class="path">/api/dc-logs</code> every 2 seconds.
+    File: <code class="path" id="log-path">/kaggle/working/duecare-logs.jsonl</code>.
+  </p>
+
+  <div class="stats-row" id="stats-row">
+    <span class="stat-pill" id="stat-total">Loading…</span>
+  </div>
+
+  <div class="logs-controls">
+    <label>Tail
+      <select id="f-tail">
+        <option value="50">50</option>
+        <option value="200" selected>200</option>
+        <option value="500">500</option>
+        <option value="2000">2000</option>
+      </select>
+    </label>
+    <label>Level
+      <select id="f-level">
+        <option value="">all</option>
+        <option value="debug">debug</option>
+        <option value="info">info</option>
+        <option value="warn">warn</option>
+        <option value="error">error</option>
+      </select>
+    </label>
+    <label>Kind prefix
+      <input id="f-kind" type="text" placeholder="e.g. chat.send" style="width: 160px;">
+    </label>
+    <label>Layer
+      <select id="f-layer">
+        <option value="">any</option>
+        <option value="persona">persona</option>
+        <option value="grep">grep</option>
+        <option value="rag">rag</option>
+        <option value="tools">tools</option>
+        <option value="online">online</option>
+        <option value="import">import</option>
+      </select>
+    </label>
+    <span class="grow"></span>
+    <label class="toggle">
+      <input type="checkbox" id="f-poll" checked>
+      Auto-refresh (2s)
+    </label>
+    <button onclick="refresh()">Refresh now</button>
+    <button class="danger" onclick="clearLogs()">Clear</button>
+  </div>
+
+  <div class="logs-table-wrap">
+    <table class="logs">
+      <thead>
+        <tr>
+          <th style="width: 170px;">Time</th>
+          <th style="width: 70px;">Level</th>
+          <th style="width: 160px;">Kind</th>
+          <th style="width: 90px;">Layer</th>
+          <th>Message</th>
+          <th>Payload</th>
+        </tr>
+      </thead>
+      <tbody id="rows">
+        <tr><td colspan="6"><div class="empty-state">
+          <h3>Waiting for events…</h3>
+          <p>Run something on the workbench (chat, classify, layer probe). Events appear here within 2 seconds.</p>
+        </div></td></tr>
+      </tbody>
+    </table>
+  </div>
+</main>
+<script>
+  function escapeHtml(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, c =>
+      ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+  function fmtPayload(e) {
+    const skip = new Set(['ts', 'level', 'kernel', 'kind', 'layer', 'msg']);
+    const out = {};
+    for (const k of Object.keys(e)) if (!skip.has(k)) out[k] = e[k];
+    if (!Object.keys(out).length) return '';
+    try { return JSON.stringify(out); } catch (_) { return ''; }
+  }
+  function fmtTime(ts) {
+    if (!ts) return '';
+    return ts.replace('T', ' ').replace('Z', '');
+  }
+  async function refresh() {
+    const params = new URLSearchParams();
+    params.set('tail', document.getElementById('f-tail').value);
+    const lv = document.getElementById('f-level').value;
+    if (lv) params.set('level', lv);
+    const k = document.getElementById('f-kind').value.trim();
+    if (k) params.set('kind', k);
+    const ly = document.getElementById('f-layer').value;
+    if (ly) params.set('layer', ly);
+    try {
+      const [logsR, statsR] = await Promise.all([
+        fetch('/api/dc-logs?' + params, {cache: 'no-store'}),
+        fetch('/api/dc-logs/stats',     {cache: 'no-store'}),
+      ]);
+      const logs = await logsR.json();
+      const stats = await statsR.json();
+
+      const sParts = [`<span class="stat-pill" id="stat-total">${stats.total} events</span>`];
+      for (const [lvl, n] of Object.entries(stats.by_level || {})) {
+        sParts.push(`<span class="stat-pill lvl-${escapeHtml(lvl)}">${escapeHtml(lvl)} ${n}</span>`);
+      }
+      sParts.push(`<span class="stat-pill">kernel: ${escapeHtml(stats.kernel || '?')}</span>`);
+      document.getElementById('stats-row').innerHTML = sParts.join('');
+      document.getElementById('log-path').textContent = stats.log_path || '';
+
+      const events = (logs.events || []).slice().reverse();
+      const tbody = document.getElementById('rows');
+      if (!events.length) {
+        tbody.innerHTML = `<tr><td colspan="6"><div class="empty-state">
+          <h3>No matching events</h3>
+          <p>Loosen the filters or run something on the workbench.</p>
+        </div></td></tr>`;
+        return;
+      }
+      tbody.innerHTML = events.map(e => `
+        <tr>
+          <td class="ts">${escapeHtml(fmtTime(e.ts))}</td>
+          <td class="lvl"><span class="${escapeHtml(e.level || 'info')}">${escapeHtml(e.level || 'info')}</span></td>
+          <td class="kind">${escapeHtml(e.kind || '')}</td>
+          <td class="layer">${e.layer ? `<span>${escapeHtml(e.layer)}</span>` : ''}</td>
+          <td class="msg">${escapeHtml(e.msg || '')}</td>
+          <td class="payload">${escapeHtml(fmtPayload(e))}</td>
+        </tr>
+      `).join('');
+    } catch (err) {
+      const tbody = document.getElementById('rows');
+      tbody.innerHTML = `<tr><td colspan="6"><div class="empty-state" style="color: oklch(0.40 0.13 45);">
+        <h3>Could not fetch logs</h3>
+        <p>${escapeHtml(String(err && err.message || err))}</p>
+      </div></td></tr>`;
+    }
+  }
+  async function clearLogs() {
+    if (!window.confirm('Clear all in-memory + on-disk dc_log events?')) return;
+    try {
+      await fetch('/api/dc-logs/clear', {method: 'POST'});
+      refresh();
+    } catch (_) {}
+  }
+  for (const id of ['f-tail', 'f-level', 'f-kind', 'f-layer']) {
+    document.getElementById(id).addEventListener('change', refresh);
+    document.getElementById(id).addEventListener('input', () => {
+      clearTimeout(window._dcLogDebounce);
+      window._dcLogDebounce = setTimeout(refresh, 250);
+    });
+  }
+  let _pollTimer = null;
+  function startPoll() {
+    if (_pollTimer) return;
+    _pollTimer = setInterval(refresh, 2000);
+  }
+  function stopPoll() { if (_pollTimer) { clearInterval(_pollTimer); _pollTimer = null; } }
+  document.getElementById('f-poll').addEventListener('change', e => {
+    if (e.target.checked) startPoll(); else stopPoll();
+  });
+  refresh();
+  startPoll();
+</script>
+</body>
+</html>

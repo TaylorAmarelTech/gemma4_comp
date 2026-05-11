@@ -1672,6 +1672,40 @@ def create_app(
     def healthz() -> Any:
         return {"ok": True, "ts": time.time()}
 
+    # ----- standardized JSON-Lines logging surface -----
+    from duecare.chat._dc_log import (
+        tail as _dc_tail,
+        stats as _dc_stats,
+        clear as _dc_clear,
+    )
+
+    @app.get("/api/dc-logs")
+    def api_dc_logs(
+        tail: int = 200,
+        level: Optional[str] = None,
+        kind: Optional[str] = None,
+        layer: Optional[str] = None,
+    ) -> Any:
+        """Return the most recent dc_log events with optional filtering.
+
+        Backs the Logs page in the workbench shell. Reads from the
+        in-memory ring (RING_SIZE events, default 1024) so this is
+        cheap to poll. ``tail`` caps the return size; ``level`` /
+        ``kind`` (prefix match) / ``layer`` filter the result.
+        """
+        n = max(1, min(int(tail or 200), 2000))
+        events = _dc_tail(n=n, level=level, kind_prefix=kind, layer=layer)
+        return {"events": events, "n": len(events)}
+
+    @app.get("/api/dc-logs/stats")
+    def api_dc_logs_stats() -> Any:
+        return _dc_stats()
+
+    @app.post("/api/dc-logs/clear")
+    def api_dc_logs_clear() -> Any:
+        dropped = _dc_clear()
+        return {"ok": True, "dropped": dropped}
+
     @app.get("/api/version")
     def api_version() -> Any:
         """Unified version stamp for one-call audit. Returns the chat
@@ -2229,6 +2263,14 @@ def create_app(
         for h in hits:
             s = (h.get("severity") if isinstance(h, dict) else "") or "unknown"
             by_sev[s] = by_sev.get(s, 0) + 1
+        try:
+            from duecare.chat._dc_log import dc_log as _dc
+            _dc("grep.test", f"{len(hits)} of {len(GREP_RULES)} rules fired",
+                layer="grep", n_hits=len(hits), text_chars=len(text),
+                elapsed_ms=int(gr.get("elapsed_ms", 0)),
+                by_severity=by_sev)
+        except Exception:
+            pass
         return {
             "wired":          True,
             "text_chars":     len(text),
@@ -4331,6 +4373,21 @@ def create_app(
         its output is prepended to the conversation as a system-style
         message AND surfaced in the response payload as
         `harness_trace` for the UI to render."""
+        # Standardised JSON-Lines logging: every chat send emits one event.
+        try:
+            from duecare.chat._dc_log import dc_log as _dc
+            _last_msg = ""
+            for _m in (req.messages or []):
+                if isinstance(_m, dict) and _m.get("role") == "user":
+                    for _c in _m.get("content") or []:
+                        if isinstance(_c, dict) and _c.get("type") == "text":
+                            _last_msg = (_c.get("text") or "")[:120]
+            _dc("chat.send", _last_msg or "(no text)",
+                toggles=dict(req.toggles or {}),
+                n_messages=len(req.messages or []))
+        except Exception:
+            pass
+
         gc = app.state.gemma_call
         if gc is None:
             raise HTTPException(503,
