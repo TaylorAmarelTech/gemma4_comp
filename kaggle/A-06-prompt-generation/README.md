@@ -15,6 +15,7 @@
 | **What it does** | Turns seed rubrics into prompt candidates, graded response ladders, composite anonymization cases, and exportable training/evaluation data. |
 | **Demo path** | Run the generator on a small sample, open the printed Cloudflare workbench URL, filter prompts, inspect Worst/Bad/Neutral/Good/Best graded responses, and download the A7 bundle ZIP. |
 | **Audience** | Researcher. |
+| **Inputs** | Optional duecare-trafficking-prompts dataset (built-in fallback if not attached) + Gemma 4 IT variant. |
 | **Outputs** | Safety prompt JSONL, graded-response JSONL, anonymization case/gold JSONLs, downloadable CSV, and corpus-browser dashboard. |
 | **Cross-links** | Use the quick links at the bottom for the full workbench, live demo, fine-tune pipeline, and public website. |
 

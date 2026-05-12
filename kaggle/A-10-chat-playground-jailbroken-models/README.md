@@ -15,6 +15,7 @@
 | **What it does** | Runs the familiar 4-toggle chat UI against configured abliterated, cracked, or uncensored Gemma-family variants. |
 | **Demo path** | Load a supported variant, send the same adversarial prompt with harness layers on, and compare behavior with the stock baseline. |
 | **Audience** | Researcher. |
+| **Inputs** | Multiple Gemma 4 variants attached (incl. abliterated / cracked variants); one variant selected per run via env var. |
 | **Outputs** | Jailbroken-model responses, harness-layer traces, and adversarial comparison evidence. |
 | **Cross-links** | Use the quick links at the bottom for the full workbench, live demo, grading-lift appendix, and public website. |
 
