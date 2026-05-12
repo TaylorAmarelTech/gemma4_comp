@@ -9,6 +9,19 @@
 > live links. This doc defines what those artifacts must look like so
 > A-03 / A-08 can consume any A-01 / A-02 / A-06 / A-07 run.
 
+> **Scope note (2026-05-12).** This file is the *batch-runner-family*
+> spec for A-01 / A-02 / A-03 / A-06 / A-07 / A-08. The broader contract
+> covering every appendix kernel (A-01 .. A-20 + main notebook 03) plus
+> the website handoff shapes lives in
+> [`docs/data_primitives.md`](data_primitives.md). The shared writer /
+> reader / validator helpers live in
+> [`duecare.appendix_primitives`](../packages/duecare-llm-chat/src/duecare/appendix_primitives/).
+> Static enforcement runs via the `bundle_envelope_v1` check inside
+> [`scripts/validate_public_surface.py`](../scripts/validate_public_surface.py).
+> If you are designing a NEW kernel artifact, start from
+> `data_primitives.md` -- this file is kept for the batch-runner family
+> historical contract.
+
 ## Three artifacts per run
 
 Every batch-runner kernel (A-01, A-02, A-06, A-07) emits **three files**
