@@ -1,4 +1,7 @@
 # DueCare — Hands-on classification sandbox (#A03 appendix)
+
+> AI infrastructure to combat migrant-worker exploitation. This appendix: structured risk classifications a platform trust-and-safety pipeline can act on.
+
 <!-- duecare:lane-label -->
 > **Serves lanes:** 01 Platform safety · 02 NGO & regulator
 

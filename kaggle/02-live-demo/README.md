@@ -1,4 +1,7 @@
 # DueCare — Live demo (focused walkthrough) (#02 core)
+
+> AI infrastructure to combat migrant-worker exploitation. This core kernel: focused product walkthrough proving the +56.5pp lift judges will see in the video.
+
 <!-- duecare:lane-label -->
 > **Serves lanes:** 01 Platform safety · 02 NGO & regulator · 03 Individual worker · 04 Researcher · 05 Developer / integration partner
 

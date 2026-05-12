@@ -1,4 +1,7 @@
 # DueCare — Jailbroken-Gemma comparison (#A10 appendix)
+
+> AI infrastructure to combat migrant-worker exploitation. This appendix: proves safety lives in the runtime, not the weights, by harnessing abliterated Gemma variants.
+
 <!-- duecare:lane-label -->
 > **Serves lanes:** 04 Researcher
 

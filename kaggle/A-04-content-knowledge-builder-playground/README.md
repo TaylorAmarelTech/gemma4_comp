@@ -1,4 +1,7 @@
 # DueCare — Knowledge-builder sandbox + JSON export (#A04 appendix)
+
+> AI infrastructure to combat migrant-worker exploitation. This appendix: turns public-source facts into Knowledge Pack proposals reusable downstream.
+
 <!-- duecare:lane-label -->
 > **Serves lanes:** 02 NGO & regulator · 05 Developer / integration partner
 

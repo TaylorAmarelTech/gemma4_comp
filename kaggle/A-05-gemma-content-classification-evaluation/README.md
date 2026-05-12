@@ -1,4 +1,7 @@
 # DueCare — NGO classifier evaluation dashboard (#A05 appendix)
+
+> AI infrastructure to combat migrant-worker exploitation. This appendix: NGO and regulator triage dashboard. DueCare drafts; the caseworker decides.
+
 <!-- duecare:lane-label -->
 > **Serves lanes:** 02 NGO & regulator
 
