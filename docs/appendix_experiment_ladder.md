@@ -113,6 +113,40 @@ A-11 PII fine-tune + evaluation  — train + benchmark PrivacyRedactor LoRA
 
 The 11-slot canonical ladder is now FULLY BUILT.
 
+## Website-aligned extension slots (A-12 through A-20)
+
+After a full website-vs-kernel coverage audit (16+ template pages
+under `apps/duecare-ai.com/app/templates/`), six additional slots
+were identified to close the gap between what the website
+advertises and what the appendix kernels demonstrate. Two more
+(A-19 / A-20) are queued for follow-up.
+
+| Slot | Folder | Purpose | Status |
+|---|---|---|---|
+| A-12 | `kaggle/A-13-multimodal-document-analyzer/` | Gemma 4 vision: contract/passport photo -> risk envelope (rubric anchor for Gemma 4 unique features) | kernel + metadata + README |
+| A-13 | `kaggle/A-14-on-device-export/` | LoRA merge -> GGUF + LiteRT (Special Tech Tracks) | folder + README only; kernel pending |
+| A-14 | `kaggle/A-15-ugc-batch-moderator/` | CSV/JSONL of posts -> risk scores + actions (Lane 01) | folder + README only; kernel pending |
+| A-15 | `kaggle/A-16-ngo-local-kb/` | Case-file ingestion + entity graph + salted-hash + SQLite (Lane 02) | folder + README only; kernel pending |
+| A-16 | `kaggle/A-17-knowledge-pack-builder/` | Build + sign + verify versioned corridor packs (Lane 04 / 05) | folder + README only; kernel pending |
+| A-17 | `kaggle/A-18-sentinel-research-monitor/` | URL/submission -> public-info crawl -> proposed pack diff (search/submit flow) | folder pending |
+| A-18 | `kaggle/A-18-demo-replay/` | **Zero-inference video recording kernel** (5 lanes x 4 scenes; presentation mode shipped, setup + slides modes queued) | kernel + metadata + README (presentation mode) |
+| A-19 | `kaggle/A-19-multilingual-demo/` | Same prompts in EN/TL/NE/BN/ID (Gemma 4 multilingual unique feature) | not yet started |
+| A-20 | `kaggle/A-20-privacy-boundary/` | "What stays local vs what gets submitted" trust visualization | not yet started |
+
+## Hackathon rubric mapping
+
+Per `.claude/rules/00_overarching_goals.md`:
+
+- **Impact & Vision (40 pts)** — covered by A-04 / A-05 (the model
+  improvement story), A-12 (multimodal worker-side angle), A-13
+  (on-device worker reach), A-15 (NGO operational impact), A-18
+  (the video that shows all of this).
+- **Video Pitch (30 pts)** — A-18 demo replay is the load-bearing
+  kernel. Setup + slides modes are the next-priority upgrade.
+- **Technical Depth (30 pts)** — A-09 abliterated test ladders,
+  A-12 multimodal vision, A-13 GGUF + LiteRT export are the
+  rubric-required Gemma 4 unique-features anchors.
+
 ### Folder-slot mapping (transition state until cleanup pass)
 
 While the kernel.py contents now reflect the canonical ladder
