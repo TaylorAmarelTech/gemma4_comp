@@ -421,6 +421,45 @@ def chart_corridor_sankey(harness: dict) -> Path:
 # ===========================================================================
 # CHART 3 -- benchmark per-category bars (stock vs fine-tuned)
 # ===========================================================================
+def _write_chart3_placeholder(reason: str) -> Path:
+    """Write a styled placeholder HTML to the chart 3 slot.
+
+    Used when /kaggle/input/duecare-eval-results isn't attached or
+    doesn't contain the expected aggregate JSONs. Keeps the chart
+    grid intact and tells the reader what's missing instead of
+    silently dropping the slot.
+    """
+    out = OUTPUT_DIR / "03_benchmark_bars.html"
+    html = f"""<!doctype html><html><head>
+<meta charset="utf-8"><title>Chart 3 -- benchmark bars (data missing)</title>
+<style>
+  body {{ font-family: -apple-system, system-ui, sans-serif;
+         max-width: 760px; margin: 60px auto; padding: 0 20px;
+         color: {INK}; background: {PAPER}; line-height: 1.6; }}
+  h1 {{ color: {ACCENT}; letter-spacing: -0.02em; }}
+  .card {{ background: {PAPER_2}; padding: 24px 32px; border-radius: 12px;
+          border: 1px solid {LINE}; margin-top: 24px; }}
+  code {{ background: {PAPER}; padding: 2px 8px; border-radius: 4px;
+         font-size: 13px; border: 1px solid {LINE}; }}
+  .label {{ color: {INK_3}; font-size: 12px; text-transform: uppercase;
+            letter-spacing: 0.05em; font-weight: 600; }}
+</style></head><body>
+<h1>Chart 3 -- per-category benchmark bars</h1>
+<div class="card">
+  <div class="label">Why this chart is empty</div>
+  <p>{reason}</p>
+  <div class="label">How to populate it</div>
+  <p>Run <code>A-07-bench-and-tune</code> end-to-end, then attach its
+     <code>eval_results</code> output as a Kaggle Dataset under the slug
+     <code>duecare-eval-results</code> and re-run A-08. The chart will
+     render stock vs fine-tuned pass-rate bars per category.</p>
+</div>
+</body></html>"""
+    out.write_text(html, encoding="utf-8")
+    print(f"  -> {out}  [placeholder: {reason}]")
+    return out
+
+
 def chart_benchmark_bars() -> Path | None:
     """Read /kaggle/input/duecare-eval-results/* if present and render
     per-category pass-rate bars stock vs fine-tuned."""
@@ -432,8 +471,11 @@ def chart_benchmark_bars() -> Path | None:
             eval_dir = cand
             break
     if eval_dir is None:
-        print("  no eval-results dir found; skipping chart 3")
-        return None
+        return _write_chart3_placeholder(
+            "No /kaggle/input/duecare-eval-results dataset attached and "
+            "/kaggle/working/ is empty. Run A-07 first or attach its "
+            "eval_results bundle."
+        )
 
     stock = None
     ft = None
@@ -450,16 +492,22 @@ def chart_benchmark_bars() -> Path | None:
             except Exception:
                 continue
     if stock is None and ft is None:
-        print("  no stock/fine_tuned aggregate JSONs found; skipping chart 3")
-        return None
+        return _write_chart3_placeholder(
+            "Eval-results dir was attached but contained no "
+            "*_aggregate.json files. Re-run A-07 so it emits the "
+            "expected aggregate-JSON files."
+        )
 
     cats = sorted(set(
         list((stock or {}).get("by_category", {}).keys()) +
         list((ft or {}).get("by_category", {}).keys())
     ))
     if not cats:
-        print("  no per-category data; skipping chart 3")
-        return None
+        return _write_chart3_placeholder(
+            "Aggregate JSONs were loaded but lacked a per-category "
+            "breakdown. Check that A-07 produced "
+            "by_category.<category>.pass_rate fields."
+        )
 
     stock_rates = [((stock or {}).get("by_category", {})
                      .get(c, {}).get("pass_rate", 0) or 0)
