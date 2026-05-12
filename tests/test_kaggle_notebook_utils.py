@@ -16,30 +16,40 @@ from kaggle_notebook_utils import discover_kernel_notebooks, render_inventory_ma
 
 def test_discover_kernel_notebooks_finds_current_inventory() -> None:
     entries = discover_kernel_notebooks()
+    expected_count = len(
+        list((REPO_ROOT / "kaggle" / "kernels").glob("*/kernel-metadata.json"))
+    )
 
-    assert len(entries) == 77
-    assert all(entry.mirror_path is not None for entry in entries)
-    assert any(entry.dir_name == "duecare_000_index" for entry in entries)
-    assert any(entry.dir_name == "duecare_005_glossary" for entry in entries)
-    assert any(entry.code_file == "270_gemma_generations.ipynb" for entry in entries)
-    assert any(entry.dir_name == "strm_01_prompt_test_generation" for entry in entries)
+    assert len(entries) == expected_count
+    assert expected_count >= 9
+    assert all((entry.dir_path / entry.code_file).exists() for entry in entries)
+    assert any(entry.dir_name == "duecare_010_quickstart" for entry in entries)
+    assert any(entry.dir_name == "duecare_695_custom_domain_adoption" for entry in entries)
+    assert any(entry.code_file == "610_submission_walkthrough.ipynb" for entry in entries)
     assert all(
-        entry.notebook_number == "strm"
-        or (entry.notebook_number.isdigit() and len(entry.notebook_number) == 3)
+        entry.notebook_number.isdigit() and len(entry.notebook_number) == 3
         for entry in entries
     )
-    assert all(entry.kaggle_url.startswith("https://www.kaggle.com/code/taylorsamarel/") for entry in entries)
+    assert all(
+        entry.kaggle_url.startswith("https://www.kaggle.com/code/taylorsamarel/")
+        for entry in entries
+    )
 
 
 def test_render_inventory_markdown_reports_extra_local_notebook() -> None:
-    markdown = render_inventory_markdown(discover_kernel_notebooks())
+    entries = discover_kernel_notebooks()
+    markdown = render_inventory_markdown(entries)
 
-    assert "Tracked Kaggle kernels: 77" in markdown
-    assert "Local mirror notebooks: 77" in markdown
-    assert "Missing local mirrors: 0" in markdown
+    assert f"Tracked Kaggle kernels: {len(entries)}" in markdown
+    assert "Optional local/archive mirror notebooks:" in markdown
+    assert "Kernels without optional mirrors:" in markdown
     assert "Title/id slug divergences:" in markdown
-    assert "strm_01_prompt_test_generation" in markdown
-    assert "| Kernel directory | Notebook ID | Kaggle id | Metadata title | Code file | Local mirror | Live URL |" in markdown
+    assert "duecare_010_quickstart" in markdown
+    assert "duecare_695_custom_domain_adoption" in markdown
+    assert (
+        "| Kernel directory | Notebook ID | Kaggle id | Metadata title | "
+        "Code file | Optional mirror | Live URL |"
+    ) in markdown
 
 
 def test_index_builder_live_counts_exclude_planned_placeholders() -> None:
@@ -64,7 +74,7 @@ def test_notebook_guide_is_generated_from_current_inventory() -> None:
     entries = discover_kernel_notebooks()
 
     assert committed == rendered
-    assert "Tracked kernels: **77**" in committed
-    assert "Public-live notebooks in `kaggle_live_slug_map.json`: **49**" in committed
+    assert f"Tracked kernels: **{len(entries)}**" in committed
+    assert "Public-live notebooks in `kaggle_live_slug_map.json`:" in committed
     for entry in entries:
         assert f"| `{entry.notebook_number}` | {entry.title} |" in committed

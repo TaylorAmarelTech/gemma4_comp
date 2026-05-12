@@ -63,7 +63,7 @@ class TestReportGenerator:
         assert "DueCare" in html
         assert "test-model" in html
         assert "0.60" in html or "0.6" in html
-        assert "Privacy is non-negotiable" in html
+        assert "raw case data stays" in html.lower()
 
     def test_report_includes_all_sections(self):
         findings = {

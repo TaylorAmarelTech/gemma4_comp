@@ -85,23 +85,56 @@ _CLOUDFLARED_PROC: dict = {"p": None}
 
 _SHUTDOWN_BUTTON_SNIPPET = """
 <style>
-  #_dc-shutdown-btn { position: fixed; top: 12px; right: 12px; z-index: 99999;
-    background: #dc2626; color: white; padding: 8px 14px;
+  #_dc-shutdown-btn {
+    position: fixed; bottom: 14px; right: 14px; z-index: 99999;
+    background: oklch(0.58 0.14 45); color: white; padding: 8px 14px;
     border-radius: 8px; font-family: -apple-system,system-ui,sans-serif;
     font-weight: 700; font-size: 12px; cursor: pointer; border: none;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.18); }
-  #_dc-shutdown-btn:hover { background: #991b1b; }
+    box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+  }
+  #_dc-shutdown-btn:hover { background: oklch(0.50 0.16 45); }
+  #_dc-shutdown-btn:focus-visible { outline: 3px solid white; outline-offset: 2px; }
+  #_dc-shutdown-btn[aria-disabled="true"] { cursor: wait; opacity: 0.82; }
+  #_dc-shutdown-status {
+    position: fixed; bottom: 58px; right: 14px; z-index: 99999;
+    max-width: min(320px, calc(100vw - 28px)); padding: 10px 12px;
+    background: #f8fafc; color: #1f2937; border: 1px solid #e5e7eb;
+    border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.16);
+    font-family: -apple-system,system-ui,sans-serif; font-size: 12px;
+  }
+  #_dc-shutdown-status[hidden] { display: none; }
+  @media (max-width: 640px) {
+    #_dc-shutdown-btn { left: 12px; right: 12px; bottom: 12px; width: calc(100% - 24px); }
+    #_dc-shutdown-status { left: 12px; right: 12px; bottom: 58px; max-width: none; }
+  }
 </style>
-<button id="_dc-shutdown-btn" onclick="
-  if(!confirm('Shut down Duecare?')) return;
-  fetch('/api/shutdown',{method:'POST'}).then(()=>{
-    document.body.innerHTML=
-      '<div style=\"padding:60px;text-align:center;font-family:system-ui\">'+
-      '<h1 style=\"color:#047857\">Shutting down\u2026</h1>'+
-      '<p style=\"color:#6b7280\">You can close this tab.</p></div>';
+<button id="_dc-shutdown-btn" type="button" aria-label="Shutdown DueCare server">Shutdown</button>
+<div id="_dc-shutdown-status" role="status" aria-live="polite" hidden></div>
+<script>
+(function() {
+  var btn = document.getElementById('_dc-shutdown-btn');
+  var status = document.getElementById('_dc-shutdown-status');
+  if (!btn || !status) return;
+  function showStatus(message) {
+    status.textContent = message;
+    status.hidden = false;
+  }
+  btn.addEventListener('click', function() {
+    if (btn.getAttribute('aria-disabled') === 'true') return;
+    if (!confirm('Shut down DueCare?')) return;
+    btn.setAttribute('aria-disabled', 'true');
+    btn.textContent = 'Stopping...';
+    showStatus('Shutting down. You can close this tab after the Kaggle cell exits.');
+    fetch('/api/shutdown', {method: 'POST'}).catch(function(error) {
+      btn.removeAttribute('aria-disabled');
+      btn.textContent = 'Shutdown';
+      showStatus('Shutdown request failed: ' + error.message);
+    });
   });
-">\u23FB Shutdown</button>
+})();
+</script>
 """
+
 
 _HIDE_HARNESS_TILES_SNIPPET = """
 <style>
@@ -125,7 +158,7 @@ def _attach_shutdown(app, hide_harness_tiles: bool = False) -> None:
     def _shutdown_page():
         html = (
             "<!doctype html><html><head><meta charset='utf-8'>"
-            "<title>Shut down Duecare</title><style>"
+            "<title>Shut down DueCare</title><style>"
             "body{font-family:-apple-system,system-ui,sans-serif;"
             "background:#f8fafc;color:#1f2937;display:flex;"
             "align-items:center;justify-content:center;min-height:100vh;"
@@ -138,7 +171,7 @@ def _attach_shutdown(app, hide_harness_tiles: bool = False) -> None:
             "cursor:pointer}button:hover{background:#991b1b}"
             ".meta{color:#6b7280;font-size:12px;margin-top:18px}"
             "</style></head><body><div class='box'>"
-            "<h1>Shut down Duecare?</h1>"
+            "<h1>Shut down DueCare?</h1>"
             "<p>Stops the FastAPI server, closes the browser session "
             "(if any), terminates the cloudflared tunnel, and exits "
             "the Kaggle cell. Re-run the cell to restart.</p>"
@@ -274,7 +307,7 @@ def install_chat_wheels() -> int:
     try:
         print("  → trying GitHub bootstrap (github.com/TaylorAmarelTech/gemma4_comp)")
         import urllib.request
-        bootstrap_url = "https://raw.githubusercontent.com/TaylorAmarelTech/gemma4_comp/master/scripts/_notebook_bootstrap.py"
+        bootstrap_url = "https://raw.githubusercontent.com/TaylorAmarelTech/gemma4_comp/3e3ff9e3684903a66441b1ec4b143de25e7ded3e/scripts/_notebook_bootstrap.py"
         with urllib.request.urlopen(bootstrap_url, timeout=10) as response:
             bootstrap_code = response.read().decode('utf-8')
 

@@ -22,7 +22,7 @@
   APPENDIX A5. Same chat UI as chat-playground-with-grep-rag-tools (4
   harness toggles: Persona / GREP / RAG / Tools), but loads an
   abliterated / cracked / uncensored Gemma 4 variant instead of the
-  stock instruct model. Demonstrates that the Duecare safety harness
+  stock instruct model. Demonstrates that the DueCare safety harness
   STILL transforms outputs even against intentionally-uncensored
   models -- the safety isn't in the weights, it's in the runtime.
 
@@ -206,27 +206,60 @@ _CLOUDFLARED_PROC: dict = {"p": None}
 
 _SHUTDOWN_BUTTON_SNIPPET = """
 <style>
-  #_dc-shutdown-btn { position: fixed; top: 12px; right: 12px; z-index: 99999;
-    background: #dc2626; color: white; padding: 8px 14px;
+  #_dc-shutdown-btn {
+    position: fixed; bottom: 14px; right: 14px; z-index: 99999;
+    background: oklch(0.58 0.14 45); color: white; padding: 8px 14px;
     border-radius: 8px; font-family: -apple-system,system-ui,sans-serif;
     font-weight: 700; font-size: 12px; cursor: pointer; border: none;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.18); }
-  #_dc-shutdown-btn:hover { background: #991b1b; }
+    box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+  }
+  #_dc-shutdown-btn:hover { background: oklch(0.50 0.16 45); }
+  #_dc-shutdown-btn:focus-visible { outline: 3px solid white; outline-offset: 2px; }
+  #_dc-shutdown-btn[aria-disabled="true"] { cursor: wait; opacity: 0.82; }
+  #_dc-shutdown-status {
+    position: fixed; bottom: 58px; right: 14px; z-index: 99999;
+    max-width: min(320px, calc(100vw - 28px)); padding: 10px 12px;
+    background: #f8fafc; color: #1f2937; border: 1px solid #e5e7eb;
+    border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.16);
+    font-family: -apple-system,system-ui,sans-serif; font-size: 12px;
+  }
+  #_dc-shutdown-status[hidden] { display: none; }
   #_dc-jailbroken-warn { position: fixed; top: 12px; left: 12px; z-index: 99999;
     background: #fbbf24; color: #78350f; padding: 6px 12px; border-radius: 8px;
     font-family: -apple-system,system-ui,sans-serif; font-weight: 700;
     font-size: 11px; box-shadow: 0 2px 6px rgba(0,0,0,0.15); }
+  @media (max-width: 640px) {
+    #_dc-shutdown-btn { left: 12px; right: 12px; bottom: 12px; width: calc(100% - 24px); }
+    #_dc-shutdown-status { left: 12px; right: 12px; bottom: 58px; max-width: none; }
+    #_dc-jailbroken-warn { left: 12px; right: 12px; text-align: center; }
+  }
 </style>
-<div id="_dc-jailbroken-warn">JAILBROKEN MODEL LOADED — refusals ablated</div>
-<button id="_dc-shutdown-btn" onclick="
-  if(!confirm('Shut down Duecare?')) return;
-  fetch('/api/shutdown',{method:'POST'}).then(()=>{
-    document.body.innerHTML=
-      '<div style=\\\"padding:60px;text-align:center;font-family:system-ui\\\">'+
-      '<h1 style=\\\"color:#047857\\\">Shutting down\\u2026</h1>'+
-      '<p style=\\\"color:#6b7280\\\">You can close this tab.</p></div>';
+<div id="_dc-jailbroken-warn" role="status">Jailbroken model loaded: refusals ablated</div>
+<button id="_dc-shutdown-btn" type="button" aria-label="Shutdown DueCare server">Shutdown</button>
+<div id="_dc-shutdown-status" role="status" aria-live="polite" hidden></div>
+<script>
+(function() {
+  var btn = document.getElementById('_dc-shutdown-btn');
+  var status = document.getElementById('_dc-shutdown-status');
+  if (!btn || !status) return;
+  function showStatus(message) {
+    status.textContent = message;
+    status.hidden = false;
+  }
+  btn.addEventListener('click', function() {
+    if (btn.getAttribute('aria-disabled') === 'true') return;
+    if (!confirm('Shut down DueCare?')) return;
+    btn.setAttribute('aria-disabled', 'true');
+    btn.textContent = 'Stopping...';
+    showStatus('Shutting down. You can close this tab after the Kaggle cell exits.');
+    fetch('/api/shutdown', {method: 'POST'}).catch(function(error) {
+      btn.removeAttribute('aria-disabled');
+      btn.textContent = 'Shutdown';
+      showStatus('Shutdown request failed: ' + error.message);
+    });
   });
-">\\u23FB Shutdown</button>
+})();
+</script>
 """
 
 
@@ -446,7 +479,7 @@ def _attach_shutdown(app) -> None:
     def _shutdown_page():
         html = (
             "<!doctype html><html><head><meta charset='utf-8'>"
-            "<title>Shut down Duecare</title><style>"
+            "<title>Shut down DueCare</title><style>"
             "body{font-family:-apple-system,system-ui,sans-serif;"
             "background:#f8fafc;color:#1f2937;display:flex;"
             "align-items:center;justify-content:center;min-height:100vh;"
@@ -459,7 +492,7 @@ def _attach_shutdown(app) -> None:
             "cursor:pointer}button:hover{background:#991b1b}"
             ".meta{color:#6b7280;font-size:12px;margin-top:18px}"
             "</style></head><body><div class='box'>"
-            "<h1>Shut down Duecare?</h1>"
+            "<h1>Shut down DueCare?</h1>"
             "<p>Stops the FastAPI server, terminates the cloudflared "
             "tunnel, and exits the Kaggle cell. Re-run the cell to restart.</p>"
             "<button onclick='doShutdown()'>Confirm shutdown</button>"
@@ -680,7 +713,7 @@ _attach_shutdown(app)
 print(f"  harness loaded: {len(GREP_RULES)} GREP rules, "
       f"{len(RAG_CORPUS)} RAG docs, {len(_TOOL_DISPATCH)} tools")
 print(f"  ✓ Online toggle = OFF (jailbroken kernel does not wire "
-      f"online_search_call — use duecare-harness-chat for the live "
+  f"online_search_call — use duecare-exploration-workbench for the live "
       f"web search demo)")
 
 

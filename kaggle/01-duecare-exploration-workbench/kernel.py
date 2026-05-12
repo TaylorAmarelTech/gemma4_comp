@@ -24,7 +24,7 @@
   (paste into a single code cell)
 ============================================================================
 
-  THE one-notebook configurable Duecare interface. Everything in the
+  THE one-notebook configurable DueCare interface. Everything in the
   submission visible here:
 
       Persona      expert anti-trafficking persona prepended to context
@@ -116,7 +116,7 @@ DATASET_SLUG = "duecare-harness-chat-wheels"
 GEMMA_MODEL_VARIANT = os.environ.get("GEMMA_MODEL_VARIANT", "e4b-it")
 GEMMA_LOAD_IN_4BIT  = os.environ.get("GEMMA_LOAD_IN_4BIT", "1") == "1"
 GEMMA_DEVICE_MAP    = "auto"
-# 32768 (not 8192) because the omni notebook ships all 5 harness
+# 32768 (not 8192) because the omni notebook contains all 5 harness
 # layers. With Persona + GREP + RAG + Tools + Online ON, the merged
 # prompt is ~13k chars (≈10-12k tokens) — overflows 8192. Gemma 4's
 # native context window is 128K so 32k is well within capability.
@@ -239,9 +239,9 @@ def install_chat_wheels() -> int:
     print(f"  → timestamp: {time.strftime('%H:%M:%S')}")
     start_total = time.time()
 
-    # Competition strategy: Pin to specific release tag for reproducibility
+    # Competition strategy: Pin to specific release artifacts for reproducibility.
     VERSION = "0.1.0"
-    COMMIT_SHA = "master"  # Fixed: repository uses 'master' branch, not 'main'
+    COMMIT_SHA = "3e3ff9e"
 
     # Method 1: GitHub Release Wheels (fastest when available)
     try:
@@ -424,13 +424,13 @@ def install_chat_wheels() -> int:
         print(f"  • Wheels error: {str(wheel_error)[:200]}...")
         print()
         print("  POSSIBLE CAUSES:")
-        print("  • Repository branch 'main' doesn't exist (try 'master')")
+        print(f"  • Pinned source ref {COMMIT_SHA} is unavailable or unreachable")
         print("  • Git authentication issues")
         print("  • Wheel version incompatibility")
         print()
         print("  MANUAL FIXES:")
-        print("  1. Try different branch:")
-        print("     !pip install git+https://github.com/TaylorAmarelTech/gemma4_comp.git@master#subdirectory=packages/duecare-llm-core")
+        print("  1. Re-run the pinned source install:")
+        print(f"     !pip install git+https://github.com/TaylorAmarelTech/gemma4_comp.git@{COMMIT_SHA}#subdirectory=packages/duecare-llm-core")
         print("  2. Check repository structure:")
         print("     Visit: https://github.com/TaylorAmarelTech/gemma4_comp")
         print("  3. Verify wheels are compatible:")
@@ -632,14 +632,14 @@ _SHUTDOWN_BUTTON_SNIPPET = """
     font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   }
 </style>
-<div id="_dc-shutdown-overlay" role="dialog" aria-modal="true" aria-live="polite">
+<div id="_dc-shutdown-overlay" role="dialog" aria-modal="true" aria-live="polite" tabindex="-1" aria-labelledby="_dc-shutdown-title">
   <div class="box">
     <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
          stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"
          aria-hidden="true">
       <polyline points="20 6 9 17 4 12"></polyline>
     </svg>
-    <h1>Server stopped</h1>
+    <h1 id="_dc-shutdown-title">Server stopped</h1>
     <p>The FastAPI server is down and the Kaggle cell will exit shortly.</p>
     <p class="meta">You can close this tab.</p>
   </div>
@@ -647,7 +647,7 @@ _SHUTDOWN_BUTTON_SNIPPET = """
 <template id="_dc-shutdown-tpl">
   <button class="dc-shutdown-pill" type="button" data-state="idle"
           title="Stop the FastAPI server and exit the Kaggle cell"
-          aria-label="Shutdown Duecare server">
+          aria-label="Shutdown DueCare server">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
          stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
          aria-hidden="true">
@@ -690,6 +690,7 @@ _SHUTDOWN_BUTTON_SNIPPET = """
         setTimeout(function() {
           setState('done', 'Stopped');
           overlay.classList.add('show');
+          overlay.focus();
         }, 350);
       } else {
         setState('confirming', 'Click again to confirm');
@@ -1042,7 +1043,7 @@ def _attach_shutdown(app, hide_harness_tiles: bool = False) -> None:
     def _shutdown_page():
         html = (
             "<!doctype html><html><head><meta charset='utf-8'>"
-            "<title>Shut down Duecare</title><style>"
+            "<title>Shut down DueCare</title><style>"
             "body{font-family:-apple-system,system-ui,sans-serif;"
             "background:#f8fafc;color:#1f2937;display:flex;"
             "align-items:center;justify-content:center;min-height:100vh;"
@@ -1055,7 +1056,7 @@ def _attach_shutdown(app, hide_harness_tiles: bool = False) -> None:
             "cursor:pointer}button:hover{background:oklch(0.50 0.16 45)}"
             ".meta{color:#6b7280;font-size:12px;margin-top:18px}"
             "</style></head><body><div class='box'>"
-            "<h1>Shut down Duecare?</h1>"
+            "<h1>Shut down DueCare?</h1>"
             "<p>Stops the FastAPI server, closes the browser session "
             "(if any), terminates the cloudflared tunnel, and exits "
             "the Kaggle cell. Re-run the cell to restart.</p>"
@@ -1754,7 +1755,7 @@ if ENABLE_ONLINE_SEARCH:
             req = _urlreq.Request(
                 url,
                 headers={"User-Agent": ("Mozilla/5.0 (compatible; "
-                                          "DuecareHarness/1.0)")},
+                                          "DueCareHarness/1.0)")},
             )
             with _urlreq.urlopen(req, timeout=15) as resp:
                 html = resp.read().decode("utf-8", errors="ignore")

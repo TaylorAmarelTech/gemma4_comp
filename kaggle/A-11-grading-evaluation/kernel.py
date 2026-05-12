@@ -1,19 +1,19 @@
 # <!-- duecare:kernel-intro -->
-# DueCare — Grading-lift regenerator
+# DueCare — Runtime harness-lift regenerator
 # Appendix notebook #A11 of 13 in the DueCare submission.
 #
-# Runs N prompts x 2 conditions, grades both, emits MD + JSON with provenance tuple (model, git_sha, dataset_version). The +56pp number, regenerated live.
+# Runs N prompts x 2 runtime conditions with the same weights, grades both, emits MD + JSON with provenance tuple (model, git_sha, dataset_version). The +56pp number, regenerated live.
 #
 # What to look for after Run All:
 #   - The output is a provenance-pinned report you can cite in the writeup.
 #   - Run N from 10 (smoke) up to 207 (full reference set).
-#   - Both the rule-based and LLM-based scores are recomputed live.
+#   - Harness OFF vs ON is recomputed live; this is not the fine-tuned-model benchmark.
 #
 # Demo path: Run All -> wait for the report -> see the headline lift number with the git_sha pinned.
 #
 # Full README + cross-kernel index: see the README in this folder.
 
-"""Duecare Grading Evaluation (A11)
+"""DueCare Grading Evaluation (A11)
 =====================================
 
 Side-by-side rubric evaluation showing what the safety harness ACTUALLY
@@ -36,6 +36,10 @@ git repo.
 NOT a chat playground -- this is the EVALUATION notebook. The chat
 playgrounds (#1, #2) are interactive; this one runs a fixed evaluation
 suite end-to-end and produces the harness-lift report.
+
+NOT a fine-tuned-model benchmark. A-07 owns stock-vs-SafetyJudge-adapter
+evaluation in eval_results.json. A-11 holds weights constant and measures
+runtime layers OFF versus ON.
 
 This is the falsifiable +56.5pp number, regenerated from a git SHA.
 """
@@ -89,7 +93,7 @@ model = AutoModelForCausalLM.from_pretrained(
 model.eval()
 print(f"  Loaded {MODEL_NAME} on cuda")
 
-print("[4/6] loading Duecare harness")
+print("[4/6] loading DueCare harness")
 from duecare.chat.harness import (
     EXAMPLE_PROMPTS, GREP_RULES, RAG_CORPUS, _TOOL_DISPATCH,
     DEFAULT_PERSONA,
@@ -287,7 +291,7 @@ print(f"  ✓ wrote {output_dir}/duecare_lift_eval.json")
 # 2. Markdown: human-readable report
 md = format_lift_report_md(
     results, aggregate,
-    title="Duecare Harness Lift Report (Rule-Based v3.10 Grader)",
+    title="DueCare Harness Lift Report (Rule-Based v3.10 Grader)",
     model_name=MODEL_NAME,
     git_sha=provenance["git_sha"],
     dataset_version=provenance["dataset_version"],
@@ -481,7 +485,7 @@ def _build_lift_dashboard_html(
           <th>Category</th>
           <th class="num">Stock %</th>
           <th class="num">Harness %</th>
-          <th class="num">Δ</th>
+          <th class="num">Î”</th>
           <th style="text-align:center;">Verdict</th>
         </tr>
       </thead>

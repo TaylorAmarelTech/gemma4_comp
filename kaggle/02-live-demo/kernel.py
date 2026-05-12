@@ -18,7 +18,7 @@
   DUECARE LIVE DEMO -- Self-bootstrapping notebook
 ============================================================================
 
-  🖥️ RUNNING ON KAGGLE:
+    RUNNING ON KAGGLE:
     Setup Required (in notebook settings):
     1. Set Accelerator → GPU T4 x2 (recommended) or T4/P100/A100
     2. Set Internet → ON
@@ -26,7 +26,7 @@
 
     ✅ NO MANUAL STEPS: No dataset linking, no "Add Data" requirements
 
-  🏠 RUNNING LOCALLY:
+    RUNNING LOCALLY:
     System Requirements:
     - Python 3.11+
     - CUDA-capable GPU (8GB+ VRAM recommended)
@@ -37,7 +37,7 @@
     pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
     # Then run this notebook - DueCare will auto-install from GitHub
 
-  ☁️ RUNNING ON COLAB/CLOUD:
+    RUNNING ON COLAB/CLOUD:
     - Enable GPU runtime (T4/V100/A100)
     - Runtime → Change runtime type → Hardware accelerator → GPU
     - Run notebook - auto-detects environment and installs dependencies
@@ -156,18 +156,18 @@ GGUF_OUTPUT_DIR      = "/kaggle/working/duecare_gguf"
 # Requires HF_TOKEN (set as a Kaggle secret named HF_TOKEN, OR set
 # directly here as an env var). Repo will be created if it doesn't
 # exist. Naming convention follows the Gemma attribution rules:
-#   <user>/Duecare-Gemma-4-<size>-<purpose>-v<version>-GGUF
+#   <user>/duecare-gemma-4-<size>-<purpose>-v<version>-GGUF
 GGUF_PUSH_TO_HUB     = False
-GGUF_HF_REPO         = ""            # e.g. "taylorscottamarel/Duecare-Gemma-4-E4B-it-SafetyJudge-v0.1.0-GGUF"
+GGUF_HF_REPO         = ""            # e.g. "taylorscottamarel/duecare-gemma-4-E4B-it-SafetyJudge-v0.1.0-GGUF"
 
 
 # ============================================================================
 # HF Hub naming convention for any fine-tuned variants you publish:
-#   Pattern: <user>/Duecare-Gemma-4-<size>-<purpose>-v<version>
+#   Pattern: <user>/duecare-gemma-4-<size>-<purpose>-v<version>
 #   Examples:
-#     taylorscottamarel/Duecare-Gemma-4-E4B-it-SafetyJudge-v0.1.0
-#     taylorscottamarel/Duecare-Gemma-4-31B-it-SafetyJudge-v0.1.0
-#     taylorscottamarel/Duecare-Gemma-4-E4B-it-SafetyJudge-DPO-v0.1.0
+#     taylorscottamarel/duecare-gemma-4-E4B-it-SafetyJudge-v0.1.0
+#     taylorscottamarel/duecare-gemma-4-31B-it-SafetyJudge-v0.1.0
+#     taylorscottamarel/duecare-gemma-4-E4B-it-SafetyJudge-DPO-v0.1.0
 #
 # Model card MUST include a "Built with Google's Gemma 4" attribution
 # and link to https://huggingface.co/google/gemma-4-e4b-it (or the
@@ -184,7 +184,7 @@ os.environ["DUECARE_MODEL_NAME"] = (
 # ===========================================================================
 # PHASE 0 -- Pre-install Hanchen's Unsloth stack BEFORE anything imports
 # torch / transformers. Required for big variants (31B, 26B-A4B) since the
-# default Kaggle env ships an older transformers + torch that conflict
+# default Kaggle env includes older transformers + torch versions that conflict
 # with Unsloth's compiled extensions. Once installed, Python must be
 # restarted before the new torch C-extensions can be imported -- you
 # CANNOT swap a running torch in-process. So:
@@ -670,10 +670,10 @@ def log_step(message: str, level: str = "INFO") -> None:
     prefix = {
         "INFO": "📦",
         "SUCCESS": "✅",
-        "ERROR": "❌",
-        "WARNING": "⚠️",
-        "DEBUG": "🔍"
-    }.get(level, "ℹ️")
+        "ERROR": "ERROR",
+        "WARNING": "WARNING",
+        "DEBUG": "DEBUG"
+    }.get(level, "INFO")
     print(f"{prefix} {message}")
 
 
@@ -1380,7 +1380,7 @@ def load_gemma_smart(env: Env, model_id: str = GEMMA_MODEL,
     # =====================================================================
     def _try_path(path: str) -> Optional[LoadedModel]:
         if verbose:
-            print(f"  ╔══ trying model path: {path}")
+            print(f"  === trying model path: {path}")
 
         # ---- STAGE A: Multimodal (AutoProcessor + AutoModelForImageTextToText)
         if verbose:
@@ -1639,13 +1639,13 @@ def load_gemma_smart(env: Env, model_id: str = GEMMA_MODEL,
         if result is not None:
             return result
         if verbose:
-            print(f"  ╚══ path failed: {cp}; trying next...\n")
+            print(f"  --- path failed: {cp}; trying next...\n")
 
     # =====================================================================
     # LAST RESORT: try a different transformers version
     # =====================================================================
     if verbose:
-        print(f"  ╔══ LAST RESORT: trying transformers==4.56.1")
+        print(f"  === LAST RESORT: trying transformers==4.56.1")
     proc = subprocess.run(
         [sys.executable, "-m", "pip", "install", "--quiet", "--upgrade",
          "--force-reinstall", "--disable-pip-version-check", "--no-input",
@@ -1684,7 +1684,7 @@ def load_gemma_smart(env: Env, model_id: str = GEMMA_MODEL,
                   f"{proc.stderr[-200:]}")
 
     if verbose:
-        print(f"  ╚══ ALL Gemma load attempts exhausted; HEURISTIC mode")
+        print(f"  --- ALL Gemma load attempts exhausted; HEURISTIC mode")
     return None
 
 
@@ -1742,23 +1742,56 @@ _CLOUDFLARED_PROC: dict = {"p": None}
 
 _SHUTDOWN_BUTTON_SNIPPET = """
 <style>
-  #_dc-shutdown-btn { position: fixed; top: 12px; right: 12px; z-index: 99999;
+  #_dc-shutdown-btn {
+    position: fixed; bottom: 14px; right: 14px; z-index: 99999;
     background: oklch(0.58 0.14 45); color: white; padding: 8px 14px;
     border-radius: 8px; font-family: -apple-system,system-ui,sans-serif;
     font-weight: 700; font-size: 12px; cursor: pointer; border: none;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.18); }
+    box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+  }
   #_dc-shutdown-btn:hover { background: oklch(0.50 0.16 45); }
+  #_dc-shutdown-btn:focus-visible { outline: 3px solid white; outline-offset: 2px; }
+  #_dc-shutdown-btn[aria-disabled="true"] { cursor: wait; opacity: 0.82; }
+  #_dc-shutdown-status {
+    position: fixed; bottom: 58px; right: 14px; z-index: 99999;
+    max-width: min(320px, calc(100vw - 28px)); padding: 10px 12px;
+    background: #f8fafc; color: #1f2937; border: 1px solid #e5e7eb;
+    border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.16);
+    font-family: -apple-system,system-ui,sans-serif; font-size: 12px;
+  }
+  #_dc-shutdown-status[hidden] { display: none; }
+  @media (max-width: 640px) {
+    #_dc-shutdown-btn { left: 12px; right: 12px; bottom: 12px; width: calc(100% - 24px); }
+    #_dc-shutdown-status { left: 12px; right: 12px; bottom: 58px; max-width: none; }
+  }
 </style>
-<button id="_dc-shutdown-btn" onclick="
-  if(!confirm('Shut down Duecare?')) return;
-  fetch('/api/shutdown',{method:'POST'}).then(()=>{
-    document.body.innerHTML=
-      '<div style=\"padding:60px;text-align:center;font-family:system-ui\">'+
-      '<h1 style=\"color:oklch(0.55 0.10 155)\">Shutting down\u2026</h1>'+
-      '<p style=\"color:#6b7280\">You can close this tab.</p></div>';
+<button id="_dc-shutdown-btn" type="button" aria-label="Shutdown DueCare server">Shutdown</button>
+<div id="_dc-shutdown-status" role="status" aria-live="polite" hidden></div>
+<script>
+(function() {
+  var btn = document.getElementById('_dc-shutdown-btn');
+  var status = document.getElementById('_dc-shutdown-status');
+  if (!btn || !status) return;
+  function showStatus(message) {
+    status.textContent = message;
+    status.hidden = false;
+  }
+  btn.addEventListener('click', function() {
+    if (btn.getAttribute('aria-disabled') === 'true') return;
+    if (!confirm('Shut down DueCare?')) return;
+    btn.setAttribute('aria-disabled', 'true');
+    btn.textContent = 'Stopping...';
+    showStatus('Shutting down. You can close this tab after the Kaggle cell exits.');
+    fetch('/api/shutdown', {method: 'POST'}).catch(function(error) {
+      btn.removeAttribute('aria-disabled');
+      btn.textContent = 'Shutdown';
+      showStatus('Shutdown request failed: ' + error.message);
+    });
   });
-">\u23FB Shutdown</button>
+})();
+</script>
 """
+
 
 _HIDE_HARNESS_TILES_SNIPPET = """
 <style>
@@ -1782,7 +1815,7 @@ def _attach_shutdown(app, hide_harness_tiles: bool = False) -> None:
     def _shutdown_page():
         html = (
             "<!doctype html><html><head><meta charset='utf-8'>"
-            "<title>Shut down Duecare</title><style>"
+            "<title>Shut down DueCare</title><style>"
             "body{font-family:-apple-system,system-ui,sans-serif;"
             "background:#f8fafc;color:#1f2937;display:flex;"
             "align-items:center;justify-content:center;min-height:100vh;"
@@ -1795,7 +1828,7 @@ def _attach_shutdown(app, hide_harness_tiles: bool = False) -> None:
             "cursor:pointer}button:hover{background:oklch(0.50 0.16 45)}"
             ".meta{color:#6b7280;font-size:12px;margin-top:18px}"
             "</style></head><body><div class='box'>"
-            "<h1>Shut down Duecare?</h1>"
+            "<h1>Shut down DueCare?</h1>"
             "<p>Stops the FastAPI server, closes the browser session "
             "(if any), terminates the cloudflared tunnel, and exits "
             "the Kaggle cell. Re-run the cell to restart.</p>"
@@ -1937,9 +1970,9 @@ sample_rows = [{
     ("manila_recruitment_001", "recruitment_offer.md",
      "recruitment_contract",
      [{"id": 1, "type": "recruitment_agency",
-       "name": "Pacific Coast Manpower"},
+             "name": "a recruitment agency (composite)"},
       {"id": 2, "type": "money", "name": "USD 1500"},
-      {"id": 3, "type": "phone", "name": "+635550123456 7"},
+            {"id": 3, "type": "phone", "name": "[REDACTED-PHONE]"},
       {"id": 4, "type": "person_or_org", "name": "Maria Santos (composite)"}],
      [{"trigger": "fee_detected", "type": "illegal_fee_flag",
        "fee_value": "USD 1500",
@@ -1948,17 +1981,17 @@ sample_rows = [{
     ("manila_recruitment_001", "employment_contract.md",
      "employment_contract",
      [{"id": 1, "type": "recruitment_agency",
-       "name": "Pacific Coast Manpower"},
+             "name": "a recruitment agency (composite)"},
       {"id": 2, "type": "employer",
-       "name": "Al-Rashid Household Services"},
-      {"id": 3, "type": "passport_number", "name": "AB1234567"}], []),
+             "name": "a household-services employer"},
+            {"id": 3, "type": "passport_number", "name": "[REDACTED-PASSPORT-A]"}], []),
     ("hk_complaint_003", "complaint_letter.md",
      "complaint_letter",
      [{"id": 1, "type": "person_or_org", "name": "Sita Tamang (composite)"},
       {"id": 2, "type": "organization",
-       "name": "Hong Kong City Credit Management Group"},
+        "name": "a city credit lender"},
       {"id": 3, "type": "money", "name": "HKD 25000"},
-      {"id": 4, "type": "passport_number", "name": "NP9876543"}],
+          {"id": 4, "type": "passport_number", "name": "[REDACTED-PASSPORT-B]"}],
      [{"trigger": "passport_held_by_employer",
        "type": "forced_labor_indicator",
        "ilo_indicator": "ILO C029 retention of identity documents",
@@ -1971,37 +2004,36 @@ sample_graph = {
     "n_documents": 6, "n_entities": 6, "n_edges": 4, "n_communities": 2,
     "bad_actor_candidates": [
         {"type": "recruitment_agency",
-         "value": "pacific coast manpower",
-         "raw_values": ["Pacific Coast Manpower Inc.",
-                         "Pacific Coast Manpower"],
+         "value": "recruitment agency composite",
+         "raw_values": ["a recruitment agency (composite)"],
          "doc_count": 5, "co_occurrence_degree": 4, "severity_max": 8},
         {"type": "organization",
-         "value": "hong kong city credit management group",
-         "raw_values": ["Hong Kong City Credit Management Group Inc."],
+         "value": "city credit lender",
+         "raw_values": ["a city credit lender"],
          "doc_count": 2, "co_occurrence_degree": 3, "severity_max": 9},
         {"type": "money", "value": "usd 1500",
          "raw_values": ["USD 1500"], "doc_count": 3,
          "co_occurrence_degree": 1, "severity_max": 8},
-        {"type": "phone", "value": "635550123456 7",
-         "raw_values": ["+63-555-0123-4567"],
+        {"type": "phone", "value": "[REDACTED-PHONE]",
+         "raw_values": ["[REDACTED-PHONE]"],
          "doc_count": 2, "co_occurrence_degree": 1, "severity_max": 0},
     ],
     "top_edges": [
         {"a_type": "recruitment_agency",
-         "a_value": "pacific coast manpower",
+         "a_value": "recruitment agency composite",
          "b_type": "money", "b_value": "usd 1500",
          "relation_type": "charged_fee_to",
          "doc_count": 3, "confidence": 0.85,
          "source": "gemma_extracted",
          "evidence": "USD 1500 placement fee"},
         {"a_type": "recruitment_agency",
-         "a_value": "pacific coast manpower",
+         "a_value": "recruitment agency composite",
          "b_type": "organization",
-         "b_value": "hong kong city credit management group",
+         "b_value": "city credit lender",
          "relation_type": "referred_to",
          "doc_count": 2, "confidence": 0.70,
          "source": "gemma_pairwise",
-         "evidence": "recruited via Pacific Coast"},
+         "evidence": "recruited via the composite agency"},
     ],
 }
 Path(PIPELINE_OUT).joinpath("entity_graph.json").write_text(
