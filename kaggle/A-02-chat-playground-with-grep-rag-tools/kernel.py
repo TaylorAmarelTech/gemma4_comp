@@ -64,7 +64,7 @@ from typing import Any, Optional
 # ---------------------------------------------------------------------------
 # CONFIG
 # ---------------------------------------------------------------------------
-DATASET_SLUG = "duecare-chat-playground-with-grep-rag-tools-wheels"
+# DEPRECATED 2026-05-11 (GitHub-only): DATASET_SLUG = "duecare-chat-playground-with-grep-rag-tools-wheels"
 
 # Pick which Gemma 4 to load. All 4 instruct variants supported via
 # Unsloth FastModel (Daniel Hanchen's reference recipe).
@@ -146,7 +146,7 @@ if _need_unsloth_stack():
 # 1. Install duecare wheels (chat = UI + harness content)
 # ===========================================================================
 print("\n" + "=" * 76)
-print(f"[1/5] installing duecare packages (GitHub → wheels fallback)")
+print(f"[1/5] installing duecare packages (GitHub-only)")
 print("=" * 76)
 
 

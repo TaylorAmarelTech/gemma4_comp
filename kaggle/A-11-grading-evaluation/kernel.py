@@ -47,24 +47,70 @@ This is the falsifiable +56.5pp number, regenerated from a git SHA.
 # pip install Hanchen's pinned recipe (do not change)
 print("[1/6] installing duecare-grading-evaluation wheels")
 import subprocess as _sp, sys as _sys, os as _os, json as _json, time as _time
-WHEELS_DIR = "/kaggle/input/duecare-grading-evaluation-wheels"
-if not _os.path.isdir(WHEELS_DIR):
-    # Fallback for local testing
-    import pathlib as _pl
-    candidate = _pl.Path(__file__).parent / "wheels"
-    if candidate.is_dir():
-        WHEELS_DIR = str(candidate)
-_sp.check_call([_sys.executable, "-m", "pip", "install", "--quiet",
-                "--no-index", "--find-links", WHEELS_DIR,
-                "duecare-llm-core", "duecare-llm-models", "duecare-llm-chat"])
-print("[2/6] installing inference stack (Hanchen recipe)")
-_sp.check_call([_sys.executable, "-m", "pip", "install", "--quiet",
-                "transformers>=5.5.0", "torch", "accelerate"])
+# ===========================================================================
+# DueCare from GitHub (no Kaggle wheel datasets)
+# ===========================================================================
+# Policy 2026-05-11: all DueCare packages install directly from GitHub.
+# No attached `*-wheels` Kaggle dataset is required. Two-tier strategy:
+#   1. GitHub Release wheels at /releases/download/v{VERSION}/
+#   2. GitHub source install via git+https://...@<sha>#subdirectory=...
+# Notebook 01's install_chat_wheels() is the canonical reference.
+DUECARE_VERSION    = "0.1.0"
+DUECARE_REPO       = "TaylorAmarelTech/gemma4_comp"
+DUECARE_COMMIT_SHA = "419ebe0"
+DUECARE_PACKAGES   = ["duecare-llm-chat"]   # pulls in core for harness data
 
-# Reset modules so the freshly-installed packages take precedence
-for _mod in list(_sys.modules.keys()):
-    if _mod.startswith(("duecare", "transformers", "torch")):
-        del _sys.modules[_mod]
+
+def install_duecare_from_github() -> bool:
+    """Install DueCare packages from GitHub. Wheels-free, judge-transparent.
+    Tier 1: GitHub Release wheels. Tier 2: git+https source-install.
+    """
+    print("=" * 76)
+    print("[install] DueCare packages from GitHub (no Kaggle wheel datasets)")
+    print("=" * 76)
+    base_url = f"https://github.com/{DUECARE_REPO}/releases/download/v{DUECARE_VERSION}"
+    success = 0
+    for i, pkg in enumerate(DUECARE_PACKAGES, 1):
+        wheel_name = f"{pkg.replace('-', '_')}-{DUECARE_VERSION}-py3-none-any.whl"
+        url = f"{base_url}/{wheel_name}"
+        print(f"  > [{i}/{len(DUECARE_PACKAGES)}] release wheel: {wheel_name}")
+        cmd = [sys.executable, "-m", "pip", "install", "--no-input",
+               "--disable-pip-version-check", "--timeout=60", url]
+        proc = subprocess.run(cmd, capture_output=True, text=True, timeout=90)
+        if proc.returncode == 0:
+            success += 1
+            print(f"  + installed {pkg} from release v{DUECARE_VERSION}")
+        else:
+            tail = (proc.stderr or "")[-200:]
+            if "404" in tail or "Not Found" in tail:
+                print(f"  - release wheel not found, falling back to source install")
+                break
+            print(f"  - {pkg} release wheel failed: {tail}")
+    if success == len(DUECARE_PACKAGES):
+        for mod in list(sys.modules):
+            if mod == "duecare" or mod.startswith("duecare."):
+                del sys.modules[mod]
+        return True
+    git_pkgs = [
+        f"git+https://github.com/{DUECARE_REPO}.git@{DUECARE_COMMIT_SHA}"
+        f"#subdirectory=packages/{p}"
+        for p in DUECARE_PACKAGES
+    ]
+    print(f"  > source install @ {DUECARE_COMMIT_SHA} ({len(git_pkgs)} pkg)")
+    cmd = [sys.executable, "-m", "pip", "install", "--no-input",
+           "--disable-pip-version-check", "--timeout=300", *git_pkgs]
+    proc = subprocess.run(cmd, capture_output=True, text=True, timeout=420)
+    if proc.returncode == 0:
+        for mod in list(sys.modules):
+            if mod == "duecare" or mod.startswith("duecare."):
+                del sys.modules[mod]
+        print(f"  + source install ok @ {DUECARE_COMMIT_SHA}")
+        return True
+    raise SystemExit(f"DueCare GitHub install failed: {(proc.stderr or '')[-300:]}")
+
+
+print("[1/6] installing duecare from GitHub (no wheel dataset)")
+install_duecare_from_github()
 
 print("[3/6] loading Gemma 4 E4B")
 import torch

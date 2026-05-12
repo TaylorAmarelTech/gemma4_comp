@@ -75,7 +75,7 @@ from typing import Any, Optional
 # ---------------------------------------------------------------------------
 # CONFIG
 # ---------------------------------------------------------------------------
-DATASET_SLUG = "duecare-chat-playground-jailbroken-models-wheels"
+# DEPRECATED 2026-05-11 (GitHub-only): DATASET_SLUG = "duecare-chat-playground-jailbroken-models-wheels"
 
 # Pick ONE jailbroken variant to load. The kernel uses Unsloth FastModel
 # uniformly for all of these (same loader as live-demo's stock 31B).
@@ -161,35 +161,70 @@ if _need_unsloth_stack() and not _UNSLOTH_MARKER.exists():
 # 1. Install duecare wheels
 # ===========================================================================
 print("\n" + "=" * 76)
-print(f"[1/5] installing duecare wheels from /kaggle/input/{DATASET_SLUG}")
-print("=" * 76)
+# ===========================================================================
+# DueCare from GitHub (no Kaggle wheel datasets)
+# ===========================================================================
+# Policy 2026-05-11: all DueCare packages install directly from GitHub.
+# No attached `*-wheels` Kaggle dataset is required. Two-tier strategy:
+#   1. GitHub Release wheels at /releases/download/v{VERSION}/
+#   2. GitHub source install via git+https://...@<sha>#subdirectory=...
+# Notebook 01's install_chat_wheels() is the canonical reference.
+DUECARE_VERSION    = "0.1.0"
+DUECARE_REPO       = "TaylorAmarelTech/gemma4_comp"
+DUECARE_COMMIT_SHA = "419ebe0"
+DUECARE_PACKAGES   = ["duecare-llm-chat"]   # pulls in core for harness data
 
 
-def install_chat_wheels() -> int:
-    if not Path("/kaggle/input").exists():
-        return 0
-    found = sorted(p for p in Path("/kaggle/input").rglob("*.whl")
-                    if "duecare" in p.name.lower())
-    if not found:
-        raise SystemExit(
-            f"No duecare *.whl files in /kaggle/input. "
-            f"Add Data -> Datasets -> taylorsamarel/{DATASET_SLUG}.")
-    cmd = [sys.executable, "-m", "pip", "install", "--quiet", "--no-input",
-           "--disable-pip-version-check", *[str(p) for p in found]]
-    proc = subprocess.run(cmd, capture_output=True, text=True)
-    if proc.returncode != 0:
-        for w in found:
-            single = subprocess.run(
-                [sys.executable, "-m", "pip", "install", "--quiet",
-                 "--no-input", "--disable-pip-version-check", str(w)],
-                capture_output=True, text=True)
-            sym = "OK" if single.returncode == 0 else "FAIL"
-            print(f"  {sym} {w.name}")
-    print(f"  installed {len(found)} duecare wheels")
-    return len(found)
+def install_duecare_from_github() -> bool:
+    """Install DueCare packages from GitHub. Wheels-free, judge-transparent.
+    Tier 1: GitHub Release wheels. Tier 2: git+https source-install.
+    """
+    print("=" * 76)
+    print("[install] DueCare packages from GitHub (no Kaggle wheel datasets)")
+    print("=" * 76)
+    base_url = f"https://github.com/{DUECARE_REPO}/releases/download/v{DUECARE_VERSION}"
+    success = 0
+    for i, pkg in enumerate(DUECARE_PACKAGES, 1):
+        wheel_name = f"{pkg.replace('-', '_')}-{DUECARE_VERSION}-py3-none-any.whl"
+        url = f"{base_url}/{wheel_name}"
+        print(f"  > [{i}/{len(DUECARE_PACKAGES)}] release wheel: {wheel_name}")
+        cmd = [sys.executable, "-m", "pip", "install", "--no-input",
+               "--disable-pip-version-check", "--timeout=60", url]
+        proc = subprocess.run(cmd, capture_output=True, text=True, timeout=90)
+        if proc.returncode == 0:
+            success += 1
+            print(f"  + installed {pkg} from release v{DUECARE_VERSION}")
+        else:
+            tail = (proc.stderr or "")[-200:]
+            if "404" in tail or "Not Found" in tail:
+                print(f"  - release wheel not found, falling back to source install")
+                break
+            print(f"  - {pkg} release wheel failed: {tail}")
+    if success == len(DUECARE_PACKAGES):
+        for mod in list(sys.modules):
+            if mod == "duecare" or mod.startswith("duecare."):
+                del sys.modules[mod]
+        return True
+    git_pkgs = [
+        f"git+https://github.com/{DUECARE_REPO}.git@{DUECARE_COMMIT_SHA}"
+        f"#subdirectory=packages/{p}"
+        for p in DUECARE_PACKAGES
+    ]
+    print(f"  > source install @ {DUECARE_COMMIT_SHA} ({len(git_pkgs)} pkg)")
+    cmd = [sys.executable, "-m", "pip", "install", "--no-input",
+           "--disable-pip-version-check", "--timeout=300", *git_pkgs]
+    proc = subprocess.run(cmd, capture_output=True, text=True, timeout=420)
+    if proc.returncode == 0:
+        for mod in list(sys.modules):
+            if mod == "duecare" or mod.startswith("duecare."):
+                del sys.modules[mod]
+        print(f"  + source install ok @ {DUECARE_COMMIT_SHA}")
+        return True
+    raise SystemExit(f"DueCare GitHub install failed: {(proc.stderr or '')[-300:]}")
 
 
-install_chat_wheels()
+print("[1/5] installing duecare from GitHub (no wheel dataset)")
+install_duecare_from_github()
 subprocess.run([sys.executable, "-m", "pip", "install", "--quiet",
                 "--upgrade", "--no-input",
                 "fastapi>=0.115.0", "uvicorn>=0.30.0"],

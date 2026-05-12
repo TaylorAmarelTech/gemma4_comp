@@ -74,7 +74,7 @@ from typing import Any, Optional
 # ===========================================================================
 # CONFIG
 # ===========================================================================
-DATASET_SLUG          = "duecare-content-classification-playground-wheels"
+# DEPRECATED 2026-05-11 (GitHub-only): DATASET_SLUG          = "duecare-content-classification-playground-wheels"
 GEMMA_MODEL_VARIANT   = "e4b-it"        # "e2b-it" | "e4b-it" | "26b-a4b-it" | "31b-it"
 GEMMA_LOAD_IN_4BIT    = True
 GEMMA_MAX_SEQ_LEN     = 8192
@@ -147,9 +147,9 @@ if _need_unsloth():
 # PHASE 1 -- duecare wheels + minimal server deps
 # ===========================================================================
 def install_deps() -> int:
-    """Install DueCare packages + server deps with GitHub bootstrap fallback."""
+    """Install DueCare packages from GitHub. No Kaggle wheel datasets."""
     print("=" * 76)
-    print("[phase 1] installing duecare packages (GitHub → wheels fallback)")
+    print("[phase 1] installing duecare packages (GitHub-only)")
     print("=" * 76)
 
     # Server deps (always needed; FastAPI playground)
@@ -181,35 +181,11 @@ def install_deps() -> int:
 
     except Exception as e:
         print(f"  ✗ GitHub bootstrap failed: {str(e)[:100]}...")
-        print("  → falling back to local wheels")
+        print("  → GitHub install failed - no fallback (wheels removed 2026-05-11)")
 
-    # Method 2: Fallback to wheels dataset (original logic)
-    if not Path("/kaggle/input").exists():
-        print("  (not in Kaggle; no wheels available)")
-        return 0
-
-    wheels = sorted(p for p in Path("/kaggle/input").rglob("*.whl")
-                    if "duecare" in p.name.lower())
-    print(f"  → found {len(wheels)} duecare wheel(s)")
-
-    if wheels:
-        cmd = [sys.executable, "-m", "pip", "install", "--quiet",
-               "--no-input", "--disable-pip-version-check",
-               *[str(w) for w in wheels]]
-        proc = subprocess.run(cmd, capture_output=True, text=True)
-        if proc.returncode == 0:
-            print(f"  ✓ installed {len(wheels)} wheels")
-            for mod in list(sys.modules):
-                if mod == "duecare" or mod.startswith("duecare."):
-                    del sys.modules[mod]
-        else:
-            print(f"  wheel install FAILED: {proc.stderr[-300:]}")
-    else:
-        print("  (no wheels found; continuing without DueCare packages)")
-
-    return len(wheels)
-
-
+    # Wheels fallback removed 2026-05-11 (GitHub-only policy).
+    # If GitHub bootstrap fails, fail loud rather than silently install nothing.
+    raise SystemExit("DueCare GitHub install failed - check Internet=ON in Kaggle settings")
 N_WHEELS = install_deps()
 
 
