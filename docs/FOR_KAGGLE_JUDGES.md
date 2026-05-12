@@ -5,6 +5,11 @@
 > spelunk the repo to verify any claim — every claim below points to
 > a specific file, kernel, or live URL.
 
+> **In a hurry?** See [`docs/user_walkthrough.md`](user_walkthrough.md)
+> for the 3-minute zero-inference path (4 kernels, no GPU, no waiting
+> on token generation) plus the 15-minute and 60-minute deeper-dive
+> paths. Same path the submission video was recorded against.
+
 ## What it is, in one paragraph
 
 **Duecare is a Gemma 4-powered safety infrastructure platform for
