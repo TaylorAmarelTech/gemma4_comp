@@ -35,6 +35,15 @@ Notebook wrappers are archived under
 [`../_archive/kaggle-notebook-previews-2026-05-11/`](../_archive/kaggle-notebook-previews-2026-05-11/).
 The active submission folders intentionally keep `kernel.py` as the only runnable source.
 
+**Canonical appendix structure (2026-05-11 lock-in):** the 11
+appendix slots A-01…A-11 form a reproducible end-to-end
+model-improvement pipeline. **Before editing any
+`kaggle/A-*/kernel.py`**, read
+[`../docs/appendix_experiment_ladder.md`](../docs/appendix_experiment_ladder.md)
+for the slot definitions, hard rules, and build status. The
+cross-kernel artifact contract that A-03 / A-08 consume is in
+[`../docs/appendix_artifact_schema.md`](../docs/appendix_artifact_schema.md).
+
 ## Build status — 2 core + 11 appendix = 13 submission kernels
 
 **Submission shape (2026-05-05):** judges land on the unified

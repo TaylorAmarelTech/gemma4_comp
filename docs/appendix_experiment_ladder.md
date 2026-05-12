@@ -1,0 +1,171 @@
+# Canonical appendix experiment ladder (locked 2026-05-11)
+
+> **Source-of-truth for the 11 appendix kernels.** Per Taylor's
+> 2026-05-11 directive, the appendices form a reproducible
+> end-to-end model-improvement pipeline rather than a loose
+> collection of playgrounds. **Do not regress this structure** —
+> any future relabeling, reordering, or slot-merge must come from
+> Taylor in writing.
+>
+> Companion doc: [`appendix_artifact_schema.md`](appendix_artifact_schema.md)
+> defines the cross-kernel JSON/JSONL/ZIP handoff format that A-03 and
+> A-08 consume from A-01/A-02/A-06/A-07.
+
+## Hard rules — every appendix kernel
+
+These are non-negotiable. Validate every new or edited appendix
+kernel against this list before committing.
+
+1. **GitHub-only install.** No attached Kaggle `*-wheels` datasets.
+   Two-tier: GitHub Release wheels first, then
+   `git+https://...@<sha>#subdirectory=packages/<pkg>` as fallback.
+   Canonical reference implementation:
+   `kaggle/A-08-research-graphs/kernel.py` →
+   `install_duecare_from_github()`. Pin commit SHA (immutable),
+   never use moving refs like `main` / `master` / `HEAD`.
+2. **One model loaded per kernel run.** Cross-kernel handoff happens
+   through downloadable artifacts + Kaggle Add Data, never live
+   notebook-to-notebook links.
+3. **Model picker.** Every kernel supports `GEMMA_MODEL_VARIANT` env
+   override across `e2b-it / e4b-it / 26b-a4b-it / 31b-it`. Default
+   to the smallest variant that runs the kernel's compute (typically
+   `e2b-it` for smoke; `e4b-it` for production).
+4. **Workbench shell UI.** Every kernel ends by calling
+   `build_minimal_shell()` from `duecare.chat.kernel_shell` to serve
+   a summary page with download links + dc_log streaming +
+   cloudflared public URL.
+5. **Artifact schema.** Batch runners emit the v1.0 contract from
+   [`appendix_artifact_schema.md`](appendix_artifact_schema.md):
+   `<run_id>_results.json` + `_run.jsonl` + `_metadata.json` +
+   `_bundle.zip`. Run-ID format:
+   `{kernel_short}_{model_variant}_{model_kind}_{iso_ts}`
+   (e.g. `a01_e2b-it_stock_2026-05-11T14-32-08Z`).
+6. **No `.ipynb` in active tree.** Source-of-truth is `kernel.py`.
+   Notebook previews live only under
+   `_archive/kaggle-notebook-previews-2026-05-11/`. Taylor copies
+   `kernel.py` text into Kaggle manually.
+7. **dc_log instrumentation.** Wire `set_kernel_id()` + `dc_log()`
+   for batch start / progress / error / done events so the
+   workbench Logs page shows live status.
+
+## The 11 appendix slots (canonical order)
+
+```
+A-01 Stock baseline runner       — model picker, library prompts,
+                                    harness OFF, emit bundle
+A-02 Harnessed runner            — same model + library prompts,
+                                    harness ON (persona+GREP+RAG+tools),
+                                    emit bundle with harness_trace
+A-03 Upload + compare            — accept A-01 + A-02 bundles, run
+                                    new harness evaluator + legacy
+                                    evaluator, render lift visuals,
+                                    emit comparison report
+A-04 Synthetic data generator    — Gemma 4 + harness produces
+                                    SafetyJudge + PrivacyRedactor
+                                    training material
+                                    (worst/bad/neutral/good/best ladders)
+A-05 Fine-tune trainer           — Unsloth LoRA on A-04 JSONL,
+                                    push adapter to HF Hub
+A-06 New-model baseline runner   — A-01 logic, but loads the LoRA
+                                    adapter from A-05
+A-07 New-model harnessed runner  — A-02 logic, but loads the LoRA
+                                    adapter from A-05
+A-08 New-model comparison        — A-03 logic, but compares A-06 + A-07
+                                    bundles (or stock-vs-finetuned)
+A-09 Abliterated test generator  — abliterated/cracked Gemma → develop
+                                    legacy adversarial tests with
+                                    WORST/BAD/NEUTRAL/GOOD/BEST examples
+A-10 PII synthetic data generator — composite intake + gold redaction
+                                     plans for PrivacyRedactor adapter
+A-11 PII fine-tune + evaluation  — train + benchmark PrivacyRedactor LoRA
+                                    behind deterministic PII gates
+```
+
+## Build status (live as of 2026-05-11; update on each commit)
+
+- A-01 batch baseline runner — committed `13a4240`
+- A-02 batch harnessed runner — committed `f4b21c0`
+- A-03 upload + compare — not yet built
+- A-04 synthetic data generator — exists as A-06
+  prompt-generation, needs slot move + harness wiring update
+- A-05 fine-tune trainer — exists as A-07 bench-and-tune,
+  needs slot move + JSONL ingestion from A-04
+- A-06/A-07/A-08 new-model variants — not yet built
+- A-09 abliterated test generator — exists as A-10
+  jailbroken-models, needs slot move + ladder generator
+- A-10/A-11 PII track — not yet built (current A-11
+  grading-evaluation is the runtime-harness lift regenerator,
+  will need repurpose)
+
+## Folder rename policy
+
+When physically moving a slot (e.g. current
+`kaggle/A-06-prompt-generation/` →
+`kaggle/A-04-synthetic-data-generator/`): **adjust, don't delete**.
+Use `git mv` so history is preserved. The old folder path may stay
+empty until the next folder rebuild — do not `rm -rf` historical
+kernel folders without Taylor's explicit approval.
+
+## Cross-kernel artifact handoff
+
+A-03 and A-08 consume bundles from A-01/A-02/A-06/A-07 via the v1.0
+schema. Reviewers and demo viewers should never see "live link to
+A-01 output" — only `Add Data → A-01 bundle dataset` followed by an
+upload UI inside A-03/A-08. See
+[`appendix_artifact_schema.md`](appendix_artifact_schema.md) for the
+full contract.
+
+## Reference implementations to study before edits
+
+- **Install pattern (GitHub-only):**
+  `kaggle/A-08-research-graphs/kernel.py` →
+  `install_duecare_from_github()`
+- **Batch baseline runner:** `kaggle/A-01-chat-playground/kernel.py`
+  (after commit `13a4240`)
+- **Batch harnessed runner:**
+  `kaggle/A-02-chat-playground-with-grep-rag-tools/kernel.py`
+  (after commit `f4b21c0`)
+- **Workbench shell + summary UI:**
+  `packages/duecare-llm-chat/src/duecare/chat/kernel_shell.py` →
+  `build_minimal_shell()`
+- **Test prompt library:**
+  `packages/duecare-llm-chat/src/duecare/chat/harness/_examples.json`
+  (587 corridor-grounded synthetic prompts)
+
+## Anti-patterns to reject
+
+- Creating `.ipynb` files in `kaggle/*/` (preview wrappers belong
+  only in `_archive/kaggle-notebook-previews-2026-05-11/`).
+- Adding `DATASET_SLUG = "duecare-...-wheels"` constants without the
+  `# DEPRECATED 2026-05-11 (GitHub-only)` prefix.
+- Walking `Path("/kaggle/input").rglob("*.whl")` for DueCare packages.
+  Model weights still attach via `model_sources` in
+  `kernel-metadata.json`; only the **DueCare package wheels** go via
+  GitHub.
+- Loading two models in a single kernel run (Kaggle T4 16GB GPU
+  memory budget).
+- Live cross-kernel links ("notebook A links directly to notebook
+  B's output"). Use Add Data + bundle uploads instead.
+- Using moving git refs (`main`, `master`, `HEAD`) in any pinned URL.
+  Always pin to an immutable commit SHA, tag, or release version.
+
+## How agents should use this doc
+
+When a new Claude Code session opens, the auto-loaded `CLAUDE.md`
+already references the conservative-pass checkpoint and the
+13-folder-but-flexible roster. **Before editing any
+`kaggle/A-*/kernel.py` file**, read this doc to confirm:
+
+1. Which slot the kernel currently occupies in the canonical ladder
+   (status section above).
+2. Which reference implementation matches the slot's pattern
+   (baseline runner / harnessed runner / upload+compare /
+   synth data / trainer).
+3. Which hard rules apply (all 7 always apply).
+4. Whether the slot needs a folder rename (use `git mv` only with
+   Taylor's approval).
+
+Then make the edit, run validation (AST parse + public-surface
+audit), and commit with a message that updates the build status
+section above to flip the relevant pending slot to committed with
+the new commit SHA.
