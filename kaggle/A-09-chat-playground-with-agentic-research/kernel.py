@@ -1,222 +1,110 @@
 # <!-- duecare:kernel-intro -->
-# DueCare — Agentic-research chat (BYOK + Playwright)
-# Appendix notebook #A09 of 13 in the DueCare submission.
+# DueCare — PII synthetic data generator (composite intake + gold redaction plans)
+# Appendix notebook #A10 of 13 in the DueCare submission.
 #
-# The deeper Online layer. Real-browser agentic search via Playwright + BYO API key for live web grounding.
+# Generates 100% SYNTHETIC composite worker-intake notes (fake names,
+# passports, phones, addresses, employers) with paired gold redaction
+# plans. Output JSONL ready for the A-11 PrivacyRedactor LoRA trainer.
+# No real worker PII ever flows through this kernel.
 #
 # What to look for after Run All:
-#   - Watch the agent open multiple pages in headless Playwright.
-#   - Citations are pulled from the rendered DOM, not just the URL.
-#   - The grading panel shows whether the cited URL actually supports the claim.
+#   - Open the printed cloudflared URL; summary + download links.
+#   - Per-scenario coverage shown (recruitment fraud, fee bondage,
+#     passport retention, salary withholding, etc.).
+#   - JSONL + bundle.zip + metadata.json land in /kaggle/working/.
 #
-# Demo path: Run All -> add your API key -> ask a corridor question that needs fresh data -> watch the agent work.
+# Demo path: Run All -> bundle.zip downloads -> attach to A-11 for
+# the PrivacyRedactor adapter training.
 #
 # Full README + cross-kernel index: see the README in this folder.
 
 """
 ============================================================================
-  DUECARE CHAT PLAYGROUND with AGENTIC RESEARCH -- Kaggle notebook
+  DUECARE A-10 PII SYNTHETIC DATA GENERATOR -- Kaggle notebook
 ============================================================================
 
-  APPENDIX A4. Proof-of-concept: agentic web research as a FIFTH harness
-  layer alongside Persona / GREP / RAG / Tools.
+  Per Taylor's 2026-05-11 experiment-ladder spec, A-10 produces
+  synthetic training material for the PrivacyRedactor adapter that
+  A-11 trains. Two paired tracks per composite:
 
-  Same chat UI conceptually as chat-playground-with-grep-rag-tools, but
-  with FIVE toggle tiles instead of four. The new tile:
+    composite_text   the synthetic intake note (with fake PII)
+    redacted_text    the expected redacted output the model should
+                       produce
+    redactions[]     spans + labels marking exactly what was removed
 
-      Agentic   Gemma 4 multi-step web research loop. When ON, before
-                 Gemma generates the chat response, an inner loop runs:
-                   step 1 -- Gemma decides whether the query needs the web
-                   step 2 -- if yes, picks a tool: web_search, web_fetch,
-                              wikipedia
-                   step 3 -- Gemma reads the result, decides next action
-                              or "done"
-                   loop until done OR step-limit (default 5)
-                 The findings are appended to the pre-context Gemma sees
-                 alongside GREP hits + RAG docs + Tool results.
+  All PII values are FAKE -- generated from Faker-style template
+  tables. No real worker name, passport, phone, or address ever flows
+  through this kernel. The Anonymizer agent (per
+  .claude/rules/10_safety_gate.md) is enforced by construction:
+  every PII slot is a template fill from a constrained pool.
 
-  The three open-source tools (no API keys required):
+  Output: v1.0 bundle to /kaggle/working
+    <run_id>_pii_composite.json    full payload (composites + gold)
+    <run_id>_pii_composite.jsonl   streaming variant
+    <run_id>_pii_gold.jsonl        gold redaction plans only
+    <run_id>_metadata.json         config + summary
+    <run_id>_bundle.zip            manifest + all of the above
 
-      web_search   DuckDuckGo HTML scrape
-      web_fetch    httpx + trafilatura (Markdown extraction)
-      wikipedia    Wikipedia REST API (free, no key)
+  Run-ID format: a10_pii_synth_{iso_ts}
 
-  All three live in duecare-llm-research-tools. All three pass through
-  the existing PIIFilter before any network call -- the same hard gate
-  that protects the in-house tools.
+  Requirements:
+    - GPU: NOT required (template-based; zero model load)
+    - Internet: ON (GitHub package install only; generation is offline)
+    - Wheels dataset: none (GitHub-only install per 2026-05-11 policy)
 
-  Why this is APPENDIX:
-    - Adds ~10 sec latency per agentic turn
-    - Requires Internet ON (the other notebooks are happy offline)
-    - Demonstrates the *concept* of "agentic research" before judges
-      see it integrated into the live-demo
-    - Standalone proof; not required for end-user deployment
+  Expected runtime: ~30s install + ~5s per 100 composites generated.
 
-  Requires:
-    - GPU T4 x2 (default e4b-it; works on single T4 too)
-    - Internet ON (mandatory for agentic loop)
-    - Datasets attached:
-        taylorsamarel/duecare-chat-playground-with-agentic-research-wheels
-        google/gemma-4 (any IT variant)
-    - HF_TOKEN OPTIONAL
-
-  Built with Google's Gemma 4. Used in accordance with the Gemma Terms
-  of Use (https://ai.google.dev/gemma/terms).
+  Built with Google's Gemma 4. Used in accordance with the Gemma Terms of Use.
 ============================================================================
 """
 from __future__ import annotations
 
+import hashlib
 import json
 import os
+import random
 import re
 import subprocess
 import sys
 import threading
 import time
-from dataclasses import dataclass
+import zipfile
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Optional
 
 
-# ---------------------------------------------------------------------------
+# ===========================================================================
 # CONFIG
-# ---------------------------------------------------------------------------
-# DEPRECATED 2026-05-11 (GitHub-only): DATASET_SLUG = "duecare-chat-playground-with-agentic-research-wheels"
-
-GEMMA_MODEL_VARIANT = "e4b-it"          # "e2b-it" | "e4b-it" | "26b-a4b-it" | "31b-it"
-GEMMA_LOAD_IN_4BIT  = True
-GEMMA_DEVICE_MAP    = "auto"
-GEMMA_MAX_SEQ_LEN   = 8192
-
-PORT   = 8080
+# ===========================================================================
+PORT = 8080
 TUNNEL = "cloudflared"
+OUTPUT_DIR = Path("/kaggle/working")
+OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
-# Agentic loop config
-AGENT_MAX_STEPS    = 5      # max tool calls per agentic turn
-AGENT_STEP_TIMEOUT = 30     # seconds per Gemma decision
-AGENT_FETCH_CHARS  = 6000   # chars to keep per fetched page
-
-# Trafilatura is optional (better extraction). Falls back to regex strip.
-INSTALL_TRAFILATURA = True
-
-# Playwright for the real-browser path (no API keys for major search
-# engines). Adds ~400 MB of Chromium download but lets the agent
-# actually navigate brave.com / duckduckgo.com / ecosia.org via real
-# browser UIs instead of paid APIs. Set to False if you prefer the
-# DDG HTML scrape fallback only.
-INSTALL_PLAYWRIGHT = True
-
-GEMMA_HF_REPO_VARIANT = (
-    GEMMA_MODEL_VARIANT
-    .replace("e2b-it", "E2B-it").replace("e4b-it", "E4B-it")
-    .replace("26b-a4b-it", "26B-A4B-it").replace("31b-it", "31B-it"))
+N_COMPOSITES = int(os.environ.get("DUECARE_N_PII_COMPOSITES", "200"))
+RANDOM_SEED = int(os.environ.get("DUECARE_PII_SEED", "20260511"))
 
 
 # ===========================================================================
-# Inline persona (mirror of duecare.chat.app.DEFAULT_PERSONA)
+# PHASE 1 -- install DueCare from GitHub (no Kaggle wheel datasets)
 # ===========================================================================
-DUECARE_PERSONA = (
-    "You are an international anti-trafficking in persons and modern-day "
-    "slavery expert with 40 years of dedicated experience combating human "
-    "exploitation, illicit recruitment, debt bondage, and labour abuses. "
-    "You hold deep, current knowledge of ILO conventions (C029/C181/C189), "
-    "national recruitment statutes (POEA MCs, BP2MI Reg, Nepal FEA, HK "
-    "Employment Ord., HK Money Lenders Ord.), corridor fee caps, fee "
-    "camouflage tactics, and NGO partner organisations (POEA, BP2MI, "
-    "Polaris, IJM, ECPAT, Mission for Migrant Workers HK). When the user "
-    "describes a scenario: identify red flags, cite ILO + national "
-    "statutes by section, name the controlling fee cap if a corridor is "
-    "involved, refer the user to the appropriate NGO/regulator hotline. "
-    "DO NOT provide operational optimization advice for any scheme "
-    "containing trafficking indicators."
-)
-
-
-# ===========================================================================
-# PHASE 0 -- Hanchen's Unsloth stack (only for big variants)
-# ===========================================================================
-_UNSLOTH_MARKER = Path("/tmp/.duecare_agentic_unsloth_v1_done")
-
-
-def _need_unsloth() -> bool:
-    # Every on-device variant uses Unsloth's FastModel loader.
-    return GEMMA_MODEL_VARIANT not in ("cloud-gemini", "cloud-openai", "cloud-ollama")
-
-
-def _install_unsloth() -> bool:
-    print("=" * 76)
-    print("[phase 0] installing Hanchen's Unsloth Gemma 4 stack")
-    print("=" * 76)
-    try:
-        import numpy as _np_v, PIL as _pil_v
-        np_pin = f"numpy=={_np_v.__version__}"
-        pil_pin = f"pillow=={_pil_v.__version__}"
-    except Exception:
-        np_pin, pil_pin = "numpy", "pillow"
-    if subprocess.run(["uv", "--version"], capture_output=True).returncode == 0:
-        installer = ["uv", "pip", "install", "-qqq", "--system"]
-    else:
-        installer = [sys.executable, "-m", "pip", "install",
-                     "-q", "--no-input", "--disable-pip-version-check"]
-    cmd = installer + [
-        "torch>=2.8.0", "triton>=3.4.0", np_pin, pil_pin,
-        "torchvision", "bitsandbytes",
-        "unsloth", "unsloth_zoo>=2026.4.6",
-        "transformers==5.5.0", "torchcodec", "timm",
-    ]
-    t0 = time.time()
-    proc = subprocess.run(cmd, capture_output=True, text=True)
-    if proc.returncode != 0:
-        print(f"  install FAILED: {proc.stderr[-600:]}")
-        return False
-    print(f"  installed in {time.time()-t0:.0f}s")
-    try:
-        _UNSLOTH_MARKER.write_text(json.dumps(
-            {"variant": GEMMA_MODEL_VARIANT,
-             "installed_at": time.strftime("%Y-%m-%dT%H:%M:%S")}, indent=2))
-    except Exception:
-        pass
-    return True
-
-
-if _need_unsloth() and not _UNSLOTH_MARKER.exists():
-    if not _install_unsloth():
-        sys.exit("[phase 0] aborting -- Unsloth stack install failed")
-
-
-# ===========================================================================
-# PHASE 1 -- duecare wheels + server deps + trafilatura
-# ===========================================================================
-print("=" * 76)
-print("[phase 1] installing wheels + server deps + trafilatura")
-print("=" * 76)
-
-
-# ===========================================================================
-# DueCare from GitHub (no Kaggle wheel datasets)
-# ===========================================================================
-# Policy 2026-05-11: all DueCare packages install directly from GitHub.
-# No attached `*-wheels` Kaggle dataset is required. Two-tier strategy:
-#   1. GitHub Release wheels at /releases/download/v{VERSION}/
-#   2. GitHub source install via git+https://...@<sha>#subdirectory=...
-# Notebook 01's install_chat_wheels() is the canonical reference.
 DUECARE_VERSION    = "0.1.0"
 DUECARE_REPO       = "TaylorAmarelTech/gemma4_comp"
-DUECARE_COMMIT_SHA = "419ebe0"
-DUECARE_PACKAGES   = ["duecare-llm-chat"]   # pulls in core for harness data
+DUECARE_COMMIT_SHA = "cd864a8"
+DUECARE_PACKAGES   = ["duecare-llm-chat"]
 
 
 def install_duecare_from_github() -> bool:
-    """Install DueCare packages from GitHub. Wheels-free, judge-transparent.
-    Tier 1: GitHub Release wheels. Tier 2: git+https source-install.
-    """
     print("=" * 76)
     print("[install] DueCare packages from GitHub (no Kaggle wheel datasets)")
     print("=" * 76)
-    base_url = f"https://github.com/{DUECARE_REPO}/releases/download/v{DUECARE_VERSION}"
+    base_url = (f"https://github.com/{DUECARE_REPO}/releases/download/"
+                f"v{DUECARE_VERSION}")
     success = 0
     for i, pkg in enumerate(DUECARE_PACKAGES, 1):
-        wheel_name = f"{pkg.replace('-', '_')}-{DUECARE_VERSION}-py3-none-any.whl"
+        wheel_name = (f"{pkg.replace('-', '_')}-{DUECARE_VERSION}"
+                      f"-py3-none-any.whl")
         url = f"{base_url}/{wheel_name}"
         print(f"  > [{i}/{len(DUECARE_PACKAGES)}] release wheel: {wheel_name}")
         cmd = [sys.executable, "-m", "pip", "install", "--no-input",
@@ -228,7 +116,7 @@ def install_duecare_from_github() -> bool:
         else:
             tail = (proc.stderr or "")[-200:]
             if "404" in tail or "Not Found" in tail:
-                print(f"  - release wheel not found, falling back to source install")
+                print(f"  - release wheel not found, falling back to source")
                 break
             print(f"  - {pkg} release wheel failed: {tail}")
     if success == len(DUECARE_PACKAGES):
@@ -241,7 +129,7 @@ def install_duecare_from_github() -> bool:
         f"#subdirectory=packages/{p}"
         for p in DUECARE_PACKAGES
     ]
-    print(f"  > source install @ {DUECARE_COMMIT_SHA} ({len(git_pkgs)} pkg)")
+    print(f"  > source install @ {DUECARE_COMMIT_SHA}")
     cmd = [sys.executable, "-m", "pip", "install", "--no-input",
            "--disable-pip-version-check", "--timeout=300", *git_pkgs]
     proc = subprocess.run(cmd, capture_output=True, text=True, timeout=420)
@@ -251,1471 +139,554 @@ def install_duecare_from_github() -> bool:
                 del sys.modules[mod]
         print(f"  + source install ok @ {DUECARE_COMMIT_SHA}")
         return True
-    raise SystemExit(f"DueCare GitHub install failed: {(proc.stderr or '')[-300:]}")
-
-def install_wheels() -> int:
-    """Install DueCare packages from GitHub. No Kaggle wheel datasets."""
-    return 1 if install_duecare_from_github() else 0
+    raise SystemExit(
+        f"DueCare GitHub install failed: {(proc.stderr or '')[-300:]}")
 
 
-install_wheels()
-extras = ["fastapi>=0.115.0", "uvicorn>=0.30.0"]
-if INSTALL_TRAFILATURA:
-    extras.append("trafilatura>=1.12")
-if INSTALL_PLAYWRIGHT:
-    extras.append("playwright>=1.48")
+print("\n" + "=" * 76)
+print("[1/4] installing DueCare from GitHub")
+print("=" * 76)
+install_duecare_from_github()
 subprocess.run([sys.executable, "-m", "pip", "install", "--quiet",
-                "--no-input", "--disable-pip-version-check", *extras],
-                capture_output=True, text=True)
-print(f"  installed: {' '.join(extras)}")
+                  "--no-input", "--disable-pip-version-check",
+                  "fastapi>=0.115.0", "uvicorn>=0.30.0",
+                  "python-multipart>=0.0.9"],
+                  capture_output=True, text=True)
 
-# Playwright needs Chromium downloaded once. Skip --with-deps on Kaggle
-# (no apt root); Chromium includes what it needs in its userland tarball.
-if INSTALL_PLAYWRIGHT:
-    print("  installing Chromium for Playwright (one-time, ~150 MB)...")
-    cf_t0 = time.time()
-    proc = subprocess.run(
-        [sys.executable, "-m", "playwright", "install", "chromium"],
-        capture_output=True, text=True, timeout=600)
-    if proc.returncode == 0:
-        print(f"  ✓ Chromium installed in {time.time()-cf_t0:.0f}s")
-    else:
-        print(f"  WARN: Chromium install failed ({proc.returncode}): "
-              f"{proc.stderr[-300:]}. Browser tool will be unavailable; "
-              f"agent will fall back to DDG HTML scrape.")
 
-
-
-# ===========================================================================
-# CLEAN SHUTDOWN -- /api/shutdown POST + /shutdown GET + floating button.
-# Users can:
-#   (1) click the floating "Shutdown" button in the top-right of the UI
-#   (2) open <public-url>/shutdown for a full confirmation page
-#   (3) POST /api/shutdown directly (curl, etc.)
-# All three signal the main loop to exit; cleanup runs after.
-# ===========================================================================
-import threading as _shutdown_threading
-_SHUTDOWN_EVENT = _shutdown_threading.Event()
-_CLOUDFLARED_PROC: dict = {"p": None}
-
-
-_SHUTDOWN_BUTTON_SNIPPET = """
-<style>
-  #_dc-shutdown-btn {
-    position: fixed; bottom: 14px; right: 14px; z-index: 99999;
-    background: oklch(0.58 0.14 45); color: white; padding: 8px 14px;
-    border-radius: 8px; font-family: -apple-system,system-ui,sans-serif;
-    font-weight: 700; font-size: 12px; cursor: pointer; border: none;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.18);
-  }
-  #_dc-shutdown-btn:hover { background: oklch(0.50 0.16 45); }
-  #_dc-shutdown-btn:focus-visible { outline: 3px solid white; outline-offset: 2px; }
-  #_dc-shutdown-btn[aria-disabled="true"] { cursor: wait; opacity: 0.82; }
-  #_dc-shutdown-status {
-    position: fixed; bottom: 58px; right: 14px; z-index: 99999;
-    max-width: min(320px, calc(100vw - 28px)); padding: 10px 12px;
-    background: #f8fafc; color: #1f2937; border: 1px solid #e5e7eb;
-    border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.16);
-    font-family: -apple-system,system-ui,sans-serif; font-size: 12px;
-  }
-  #_dc-shutdown-status[hidden] { display: none; }
-  @media (max-width: 640px) {
-    #_dc-shutdown-btn { left: 12px; right: 12px; bottom: 12px; width: calc(100% - 24px); }
-    #_dc-shutdown-status { left: 12px; right: 12px; bottom: 58px; max-width: none; }
-  }
-</style>
-<button id="_dc-shutdown-btn" type="button" aria-label="Shutdown DueCare server">Shutdown</button>
-<div id="_dc-shutdown-status" role="status" aria-live="polite" hidden></div>
-<script>
-(function() {
-  var btn = document.getElementById('_dc-shutdown-btn');
-  var status = document.getElementById('_dc-shutdown-status');
-  if (!btn || !status) return;
-  function showStatus(message) {
-    status.textContent = message;
-    status.hidden = false;
-  }
-  btn.addEventListener('click', function() {
-    if (btn.getAttribute('aria-disabled') === 'true') return;
-    if (!confirm('Shut down DueCare?')) return;
-    btn.setAttribute('aria-disabled', 'true');
-    btn.textContent = 'Stopping...';
-    showStatus('Shutting down. You can close this tab after the Kaggle cell exits.');
-    fetch('/api/shutdown', {method: 'POST'}).catch(function(error) {
-      btn.removeAttribute('aria-disabled');
-      btn.textContent = 'Shutdown';
-      showStatus('Shutdown request failed: ' + error.message);
-    });
-  });
-})();
-</script>
-"""
-
-
-_HIDE_HARNESS_TILES_SNIPPET = """
-<style>
-  #harness-tiles, [id^='tile-'], .harness-tile { display: none !important; }
-</style>
-"""
-
-
-# ---------------------------------------------------------------------------
-# COMPACT-LAYOUT OVERRIDE
-# Default chat UI puts the safety-harness panel + sliders inside the
-# composer, eating ~250px of vertical space and pushing the textarea
-# near the top of the viewport. This override:
-#   - Compacts each harness tile (smaller padding, smaller font, hides
-#     description by default)
-#   - Hides the temp/top_p/top_k/max-token sliders behind a ▸ Settings
-#     toggle (rarely changed; not worth the always-visible footprint)
-#   - Adds Expand / Collapse buttons to the harness-tiles header so the
-#     user can bring back the full descriptions when they want depth,
-#     or hide the harness panel entirely to maximize the chat area.
-# Persists user choice in localStorage so reloads remember the layout.
-# ---------------------------------------------------------------------------
-_COMPACT_LAYOUT_SNIPPET = """
-<style id="_dc-compact-layout">
-  /* Compact harness tiles -------------------------------------- */
-  .harness-tiles {
-    padding: 8px 10px !important;
-    margin-top: 8px !important;
-    gap: 6px !important;
-    grid-template-columns: repeat(5, 1fr) !important;
-  }
-  .harness-tiles-header {
-    margin-bottom: 4px !important;
-  }
-  .harness-tiles-header h3 {
-    font-size: 11px !important;
-  }
-  .harness-tiles-header .hint {
-    font-size: 10.5px !important;
-  }
-  .harness-tile {
-    padding: 6px 9px !important;
-    gap: 3px !important;
-  }
-  .harness-tile-name {
-    font-size: 12.5px !important;
-    line-height: 1.2 !important;
-  }
-  .harness-tile-state {
-    font-size: 9px !important;
-    padding: 2px 6px !important;
-  }
-  /* Description + catalog hidden by default; shown when .show-details */
-  .harness-tile-desc, .harness-catalog-link {
-    display: none !important;
-  }
-  .harness-tiles.show-details .harness-tile-desc,
-  .harness-tiles.show-details .harness-catalog-link {
-    display: block !important;
-  }
-  /* Hide tiles entirely when .collapsed */
-  .harness-tiles.collapsed .harness-tile,
-  .harness-tiles.collapsed .harness-catalog {
-    display: none !important;
-  }
-  /* Show the toggle bar even when collapsed */
-  .harness-tiles.collapsed {
-    grid-template-columns: 1fr !important;
-    padding: 4px 10px !important;
-  }
-
-  /* Compact composer -------------------------------------------- */
-  .composer {
-    padding: 8px 12px !important;
-  }
-  .composer textarea {
-    min-height: 38px !important;
-    max-height: 160px !important;
-    padding: 8px 10px !important;
-    font-size: 14px !important;
-  }
-  .composer .pending-images {
-    margin-bottom: 4px !important;
-  }
-  /* Sliders hidden by default; shown when body.show-controls */
-  .composer .controls {
-    display: none !important;
-    font-size: 11px !important;
-    padding: 6px 0 0 0 !important;
-  }
-  body.show-controls .composer .controls {
-    display: flex !important;
-    gap: 12px !important;
-    align-items: center !important;
-    flex-wrap: wrap !important;
-  }
-  .composer .controls input[type=range] { width: 60px !important; }
-  .composer .controls input[type=number] { width: 56px !important; }
-
-  /* Layout toolbar (Expand / Collapse / Settings) ------------- */
-  .dc-layout-toolbar {
-    display: flex; gap: 6px; align-items: center;
-    margin-left: auto;
-  }
-  .dc-layout-toolbar button {
-    background: transparent;
-    border: 1px solid var(--border);
-    color: var(--muted);
-    padding: 3px 8px;
-    border-radius: 5px;
-    font-size: 10.5px;
-    cursor: pointer;
-    font-weight: 500;
-    line-height: 1.2;
-  }
-  .dc-layout-toolbar button:hover {
-    border-color: var(--accent);
-    color: var(--accent);
-  }
-  .dc-layout-toolbar button.on {
-    background: rgba(96, 165, 250, 0.12);
-    border-color: var(--accent);
-    color: var(--accent);
-  }
-</style>
-<script>
-(function() {
-  function inject() {
-    var hdr = document.querySelector('.harness-tiles-header');
-    var tiles = document.getElementById('harness-tiles');
-    if (!hdr || !tiles) {
-      // chat UI not yet hydrated; retry
-      setTimeout(inject, 300);
-      return;
-    }
-    if (document.querySelector('.dc-layout-toolbar')) return;  // already mounted
-
-    // Restore saved layout state from localStorage
-    var ls = window.localStorage;
-    var details = ls.getItem('dc-show-details') === '1';
-    var hidden  = ls.getItem('dc-harness-hidden') === '1';
-    var ctrls   = ls.getItem('dc-show-controls') === '1';
-    if (details) tiles.classList.add('show-details');
-    if (hidden)  tiles.classList.add('collapsed');
-    if (ctrls)   document.body.classList.add('show-controls');
-
-    var bar = document.createElement('div');
-    bar.className = 'dc-layout-toolbar';
-
-    var btnDetails = document.createElement('button');
-    btnDetails.type = 'button';
-    btnDetails.textContent = details ? 'Hide details' : 'Show details';
-    if (details) btnDetails.classList.add('on');
-    btnDetails.title = 'Show / hide the description on each harness tile';
-    btnDetails.addEventListener('click', function() {
-      var on = !tiles.classList.contains('show-details');
-      tiles.classList.toggle('show-details', on);
-      btnDetails.textContent = on ? 'Hide details' : 'Show details';
-      btnDetails.classList.toggle('on', on);
-      ls.setItem('dc-show-details', on ? '1' : '0');
-    });
-
-    var btnHide = document.createElement('button');
-    btnHide.type = 'button';
-    btnHide.textContent = hidden ? 'Show harness' : 'Hide harness';
-    if (hidden) btnHide.classList.add('on');
-    btnHide.title = 'Hide / show the entire safety-harness toggle panel to maximize chat area';
-    btnHide.addEventListener('click', function() {
-      var on = !tiles.classList.contains('collapsed');
-      tiles.classList.toggle('collapsed', on);
-      btnHide.textContent = on ? 'Show harness' : 'Hide harness';
-      btnHide.classList.toggle('on', on);
-      ls.setItem('dc-harness-hidden', on ? '1' : '0');
-    });
-
-    var btnControls = document.createElement('button');
-    btnControls.type = 'button';
-    btnControls.textContent = ctrls ? 'Hide controls' : 'Show controls';
-    if (ctrls) btnControls.classList.add('on');
-    btnControls.title = 'Show / hide the temp / top_p / top_k / max-tokens sliders';
-    btnControls.addEventListener('click', function() {
-      var on = !document.body.classList.contains('show-controls');
-      document.body.classList.toggle('show-controls', on);
-      btnControls.textContent = on ? 'Hide controls' : 'Show controls';
-      btnControls.classList.toggle('on', on);
-      ls.setItem('dc-show-controls', on ? '1' : '0');
-    });
-
-    bar.appendChild(btnDetails);
-    bar.appendChild(btnControls);
-    bar.appendChild(btnHide);
-
-    // Insert after the existing Enable-all/Disable-all buttons that
-    // already live with style="margin-left:auto" — we steal that
-    // margin-left by inserting our toolbar AFTER it (last child of
-    // the header, so flex-wrap places ours on the right edge).
-    hdr.appendChild(bar);
-  }
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', inject);
-  } else {
-    inject();
-  }
-})();
-</script>
-"""
-
-
-def _attach_shutdown(app, hide_harness_tiles: bool = False) -> None:
-    """Bolt /api/shutdown + /shutdown + floating button onto any FastAPI app."""
-    from fastapi.responses import HTMLResponse, JSONResponse
-    from starlette.middleware.base import BaseHTTPMiddleware
-
-    def _api_shutdown():
-        _shutdown_threading.Thread(
-            target=lambda: (time.sleep(0.5), _SHUTDOWN_EVENT.set()),
-            daemon=True, name="shutdown-fire").start()
-        return JSONResponse({"shutting_down": True,
-                             "message": "Cell will exit within ~5 seconds."})
-
-    def _shutdown_page():
-        html = (
-            "<!doctype html><html><head><meta charset='utf-8'>"
-            "<title>Shut down DueCare</title><style>"
-            "body{font-family:-apple-system,system-ui,sans-serif;"
-            "background:#f8fafc;color:#1f2937;display:flex;"
-            "align-items:center;justify-content:center;min-height:100vh;"
-            "margin:0}.box{background:white;border:1px solid #e5e7eb;"
-            "border-radius:14px;padding:40px 50px;text-align:center;"
-            "max-width:480px}h1{color:#dc2626;margin:0 0 14px}"
-            "p{color:#6b7280;line-height:1.6;margin:0 0 24px}"
-            "button{background:#dc2626;color:white;padding:12px 28px;"
-            "border:none;border-radius:10px;font-weight:700;font-size:15px;"
-            "cursor:pointer}button:hover{background:#991b1b}"
-            ".meta{color:#6b7280;font-size:12px;margin-top:18px}"
-            "</style></head><body><div class='box'>"
-            "<h1>Shut down DueCare?</h1>"
-            "<p>Stops the FastAPI server, closes the browser session "
-            "(if any), terminates the cloudflared tunnel, and exits "
-            "the Kaggle cell. Re-run the cell to restart.</p>"
-            "<button onclick='doShutdown()'>Confirm shutdown</button>"
-            "<div class='meta' id='status'></div></div>"
-            "<script>async function doShutdown(){"
-            "document.getElementById('status').textContent='shutting down...';"
-            "try{await fetch('/api/shutdown',{method:'POST'});"
-            "document.querySelector('.box').innerHTML="
-            "\"<h1 style='color:#047857'>Shutting down</h1>\"+"
-            "\"<p>You can close this tab. The Kaggle cell will exit shortly.</p>\";"
-            "}catch(e){document.getElementById('status').textContent='error: '+e.message;}}"
-            "</script></body></html>")
-        return HTMLResponse(html)
-
-    app.add_api_route("/api/shutdown", _api_shutdown, methods=["POST"])
-    app.add_api_route("/shutdown", _shutdown_page, methods=["GET"])
-
-    # Inject the floating shutdown button into the main page via middleware.
-    # Filters: only path "/" + content-type text/html. Streaming endpoints
-    # like /api/chat (SSE / JSON) pass through untouched.
-    extras = _COMPACT_LAYOUT_SNIPPET + _SHUTDOWN_BUTTON_SNIPPET
-    if hide_harness_tiles:
-        extras = _HIDE_HARNESS_TILES_SNIPPET + extras
-
-    class _UIInjector(BaseHTTPMiddleware):
-        async def dispatch(self, request, call_next):
-            response = await call_next(request)
-            if request.url.path != "/":
-                return response
-            ct = response.headers.get("content-type", "")
-            if not ct.startswith("text/html"):
-                return response
-            chunks = []
-            async for c in response.body_iterator:
-                chunks.append(c)
-            try:
-                html = b"".join(chunks).decode("utf-8")
-            except UnicodeDecodeError:
-                return response
-            if "</body>" in html:
-                html = html.replace("</body>", extras + "</body>", 1)
-            else:
-                html = html + extras
-            new_headers = {k: v for k, v in response.headers.items()
-                           if k.lower() != "content-length"}
-            return HTMLResponse(html,
-                                status_code=response.status_code,
-                                headers=new_headers)
-
-    app.add_middleware(_UIInjector)
-
-# ===========================================================================
-# PHASE 2 -- Load Gemma 4
-# ===========================================================================
-print("=" * 76)
-print(f"[phase 2] loading Gemma 4 ({GEMMA_MODEL_VARIANT})")
-print("=" * 76)
-
-
-@dataclass
-class LoadedModel:
-    model: Any
-    tokenizer: Any
-    variant: str
-    backend_call: Any
-
-
-def load_gemma() -> Optional[LoadedModel]:
-    try:
-        out = subprocess.run(
-            ["nvidia-smi", "--query-gpu=name,memory.total",
-             "--format=csv,noheader,nounits"],
-            capture_output=True, text=True, timeout=5)
-        if out.returncode != 0 or not out.stdout.strip():
-            print("  no GPU detected")
-            return None
-        lines = [l.strip() for l in out.stdout.strip().split("\n") if l.strip()]
-        gpu_count = len(lines)
-        print(f"  GPU: {lines[0].split(',')[0].strip()} x{gpu_count}")
-    except Exception as e:
-        print(f"  nvidia-smi failed: {e}")
-        return None
-
-    if not os.environ.get("HF_TOKEN"):
-        try:
-            from kaggle_secrets import UserSecretsClient   # type: ignore
-            for label in ("HF_TOKEN", "HUGGINGFACE_TOKEN"):
-                try:
-                    tok = UserSecretsClient().get_secret(label)
-                    if tok:
-                        os.environ["HF_TOKEN"] = tok.strip()
-                        break
-                except Exception:
-                    continue
-        except Exception:
-            pass
-
-    import torch
-    if _need_unsloth():
-        try:
-            from unsloth import FastModel
-            from unsloth.chat_templates import get_chat_template
-        except Exception as e:
-            print(f"  unsloth import FAILED: {e}")
-            return None
-        repo = f"unsloth/gemma-4-{GEMMA_HF_REPO_VARIANT}"
-        device_map = "balanced" if (gpu_count >= 2) else "auto"
-        try:
-            model, tokenizer = FastModel.from_pretrained(
-                model_name=repo, dtype=None,
-                max_seq_length=GEMMA_MAX_SEQ_LEN,
-                load_in_4bit=GEMMA_LOAD_IN_4BIT,
-                full_finetuning=False, device_map=device_map)
-        except Exception as e:
-            print(f"  FastModel failed: {e}")
-            return None
-        try:
-            tokenizer = get_chat_template(tokenizer,
-                                           chat_template="gemma-4-thinking")
-        except Exception:
-            pass
-    else:
-        try:
-            from transformers import AutoTokenizer, AutoModelForCausalLM
-        except Exception as e:
-            print(f"  transformers import failed: {e}")
-            return None
-        repo = f"google/gemma-4-{GEMMA_MODEL_VARIANT}"
-        try:
-            tokenizer = AutoTokenizer.from_pretrained(repo)
-            model = AutoModelForCausalLM.from_pretrained(
-                repo, device_map="auto",
-                torch_dtype=torch.bfloat16,
-                load_in_4bit=GEMMA_LOAD_IN_4BIT)
-        except Exception as e:
-            print(f"  transformers load failed: {e}")
-            return None
-
-    def _gemma(messages, max_new_tokens=512, temperature=0.7,
-               top_p=0.95, top_k=64):
-        inputs = tokenizer.apply_chat_template(
-            messages, add_generation_prompt=True,
-            tokenize=True, return_dict=True, return_tensors="pt").to("cuda")
-        with torch.inference_mode():
-            out = model.generate(
-                **inputs, max_new_tokens=max_new_tokens, use_cache=True,
-                temperature=temperature, top_p=top_p, top_k=top_k,
-                pad_token_id=tokenizer.eos_token_id)
-        text = tokenizer.batch_decode(out)[0]
-        if "<|turn>model" in text:
-            text = text.split("<|turn>model", 1)[1]
-        if "<channel|>" in text:
-            text = text.split("<channel|>", 1)[1]
-        text = text.split("<turn|>", 1)[0]
-        return text.replace("<bos>", "").replace("<eos>", "").strip()
-
-    return LoadedModel(model=model, tokenizer=tokenizer,
-                       variant=GEMMA_MODEL_VARIANT,
-                       backend_call=_gemma)
-
-
-LOADED = load_gemma()
-if LOADED is None:
-    sys.exit("[phase 2] could not load Gemma -- aborting")
-GEMMA = LOADED.backend_call
-print(f"  loaded.")
-
-
-# ===========================================================================
-# PHASE 3 -- Wire harness primitives + research tools
-# ===========================================================================
-print("=" * 76)
-print("[phase 3] wiring harness + research tools")
-print("=" * 76)
-
-from duecare.chat.harness import (
-    default_harness, GREP_RULES, RAG_CORPUS, _TOOL_DISPATCH,
-)
-from duecare.research_tools import (
-    WebFetchTool, WikipediaTool, PIIFilter,
-    FastWebSearchTool, BrowserTool, get_recent_audit,
-)
-
-HARNESS = default_harness()
-GREP_FN  = HARNESS["grep_call"]
-RAG_FN   = HARNESS["rag_call"]
-TOOLS_FN = HARNESS["tools_call"]
-print(f"  harness: GREP={len(GREP_RULES)} RAG={len(RAG_CORPUS)} "
-      f"Tools={len(_TOOL_DISPATCH)}")
-
-# PII filter -- HARD GATE. Every outbound web query passes through this
-# BEFORE the network call. Composite victim names and synthetic bad-actor
-# organizations are explicitly NOT in the allow_org_names list.
-PII = PIIFilter(allow_org_names=[
-  "ILO",
-  "POEA",
-  "BP2MI",
-  "IJM",
-  "Polaris Project",
-])
-
-# BYOK architecture: NO API keys are read from env or Kaggle Secrets at
-# startup. The user pastes keys into the BYOK panel in the UI; those
-# keys are stored in their browser localStorage and sent on each
-# /api/chat request as a `byok_keys` dict. The dispatcher routes:
-#
-#   byok_keys.tavily   -> Tavily API (free 1k/mo)
-#   byok_keys.brave    -> Brave Search API (free 2k/mo)
-#   byok_keys.serper   -> Serper / Google (paid)
-#   no keys            -> BrowserTool (Playwright real browser via
-#                          brave.com / duckduckgo.com / ecosia.org)
-#                          OR DDG HTML scrape (last resort)
-#
-# Every call passes through PIIFilter first; every search is audit-logged
-# (sha256 of query, never plaintext).
-SEARCH  = FastWebSearchTool(pii_filter=PII, max_results=5,
-                              prefer_browser_fallback=True)
-BROWSER = BrowserTool(pii_filter=PII)
-FETCH   = WebFetchTool(pii_filter=PII, max_chars=AGENT_FETCH_CHARS)
-WIKI    = WikipediaTool(pii_filter=PII)
-print(f"  research tools wired:")
-print(f"    fast_web_search  (BYOK dispatcher; per-call key from request)")
-print(f"    browser          (Playwright real browser; "
-      f"available={BROWSER.available})")
-print(f"    web_fetch        (httpx + trafilatura)")
-print(f"    wikipedia        (REST API, no key)")
-print(f"  all PII-filtered + audit-logged")
-
-
-# ===========================================================================
-# Agentic loop
-# ===========================================================================
-def _make_agent_tools(byok_keys: Optional[dict] = None) -> dict:
-    """Build the per-turn tool dispatch with BYOK keys baked in.
-    byok_keys is a dict like {'tavily':'...', 'brave':'...', ...} from
-    the user's BYOK panel. Empty dict -> no-key paths only."""
-    bk = byok_keys or {}
-    backend_desc = FastWebSearchTool.describe_backend(bk)
-    return {
-        "web_search": {
-            "callable": lambda **kw: SEARCH.search(byok_keys=bk, **kw),
-            "schema": {
-                "name": "web_search",
-                "description": (f"Web search ({backend_desc['note']}). "
-                                f"Use when you need to find URLs about "
-                                f"a topic. Returns title + URL + snippet."),
-                "params": {"query": "str (required)",
-                           "max_results": "int (default 5)"},
-            },
-        },
-        "browser_open": {
-            "callable": lambda **kw: BROWSER.navigate(**kw),
-            "schema": {
-                "name": "browser_open",
-                "description": ("Open a URL in the headless browser "
-                                "(Playwright). Use to LOAD a page; pair "
-                                "with browser_extract or browser_links."),
-                "params": {"url": "str (required, http(s)://)"},
-            },
-        },
-        "browser_extract": {
-            "callable": lambda **kw: BROWSER.extract_text(**kw),
-            "schema": {
-                "name": "browser_extract",
-                "description": ("Extract text from the currently-open "
-                                "browser page. Optionally scope to a CSS "
-                                "selector."),
-                "params": {"selector": "str (optional CSS selector)",
-                           "max_chars": "int (default 8000)"},
-            },
-        },
-        "browser_links": {
-            "callable": lambda **kw: BROWSER.get_links(**kw),
-            "schema": {
-                "name": "browser_links",
-                "description": ("Return all <a href> links on the "
-                                "currently-open browser page."),
-                "params": {"max_links": "int (default 50)"},
-            },
-        },
-        "web_fetch": {
-            "callable": lambda **kw: FETCH.fetch(**kw),
-            "schema": {
-                "name": "web_fetch",
-                "description": ("Fetch a single URL and extract its main "
-                                "content as Markdown via trafilatura "
-                                "(no browser needed; faster than browser_open "
-                                "for simple HTML pages)."),
-                "params": {"url": "str (required, http(s)://)"},
-            },
-        },
-        "wikipedia": {
-            "callable": lambda **kw: WIKI.lookup(**kw),
-            "schema": {
-                "name": "wikipedia",
-                "description": ("Look up a Wikipedia article by title. "
-                                "Best for stable legal/historical "
-                                "references (ILO conventions, statutes, "
-                                "treaties)."),
-                "params": {"title": "str (required)"},
-            },
-        },
-    }
-
-
-# Default tool palette (no BYOK keys; for startup logs)
-AGENT_TOOLS = _make_agent_tools()
-
-
-_AGENT_DECISION_PROMPT = """\
-You are a research assistant for a migrant-worker safety expert. The
-user has asked a question. Decide whether to search the web for
-context, and if so, which tool to call.
-
-Available tools:
-{tools}
-
-Past research steps (in order):
-{past_steps}
-
-User question:
-{user_question}
-
-Respond with ONE of these strict-JSON formats and nothing else:
-
-If you have enough info to answer (or further search won't help):
-{{"action": "done", "reason": "<short why>"}}
-
-If you want to call a tool:
-{{"action": "tool", "tool": "<name>", "args": {{"<arg>": "<val>", ...}}, "reason": "<short why>"}}
-"""
-
-
-def _format_tool_schemas(tool_dict: Optional[dict] = None) -> str:
-    tools = tool_dict or AGENT_TOOLS
-    lines = []
-    for t in tools.values():
-        s = t["schema"]
-        params = ", ".join(f"{k}: {v}" for k, v in s["params"].items())
-        lines.append(f"  - {s['name']}({params}) -- {s['description']}")
-    return "\n".join(lines)
-
-
-def _format_past_steps(steps: list) -> str:
-    if not steps:
-        return "  (no past steps)"
-    out = []
-    for i, s in enumerate(steps, 1):
-        out.append(f"  [{i}] called {s['tool']} with {s['args']}")
-        # Summarize the result
-        result_summary = s.get("result_summary") or ""
-        out.append(f"      -> {result_summary}")
-    return "\n".join(out)
-
-
-def _parse_decision(text: str) -> dict:
-    """Best-effort JSON parse. Strip markdown fences if present."""
-    t = text.strip()
-    if t.startswith("```"):
-        t = t.split("\n", 1)[1] if "\n" in t else t
-        if t.endswith("```"):
-            t = t.rsplit("```", 1)[0]
-        t = t.strip()
-    if t.startswith("json"):
-        t = t[4:].strip()
-    # Find first { ... } block
-    m = re.search(r"\{.*\}", t, re.DOTALL)
-    if m:
-        t = m.group(0)
-    try:
-        return json.loads(t)
-    except json.JSONDecodeError:
-        return {"action": "done", "reason": f"could not parse: {text[:120]}"}
-
-
-def run_agent(user_question: str,
-              byok_keys: Optional[dict] = None) -> dict:
-    """Multi-step agentic loop. Gemma decides search/fetch/wiki/done.
-    byok_keys is the per-request BYOK dict from the UI panel."""
-    tools = _make_agent_tools(byok_keys=byok_keys)
-    steps = []
-    findings = []
-    for step_idx in range(AGENT_MAX_STEPS):
-        prompt = _AGENT_DECISION_PROMPT.format(
-            tools=_format_tool_schemas(tools),
-            past_steps=_format_past_steps(steps),
-            user_question=user_question,
-        )
-        msgs = [
-            {"role": "system",
-             "content": [{"type": "text",
-                          "text": "You output ONLY the requested JSON. "
-                                  "No preamble, no markdown."}]},
-            {"role": "user", "content": [{"type": "text", "text": prompt}]},
-        ]
-        try:
-            raw = GEMMA(msgs, max_new_tokens=200, temperature=0.3)
-        except Exception as e:
-            steps.append({"step": step_idx + 1, "error": f"gemma decide: {e}"})
-            break
-        decision = _parse_decision(raw)
-        action = decision.get("action", "done")
-        if action == "done":
-            steps.append({"step": step_idx + 1, "action": "done",
-                          "reason": decision.get("reason", "")})
-            break
-        tool_name = decision.get("tool", "")
-        args = decision.get("args", {}) or {}
-        tool = tools.get(tool_name)
-        if tool is None:
-            steps.append({"step": step_idx + 1,
-                          "action": "error",
-                          "error": f"unknown tool: {tool_name}",
-                          "raw_decision": raw[:200]})
-            break
-        # Run the tool
-        try:
-            result = tool["callable"](**args)
-        except Exception as e:
-            steps.append({"step": step_idx + 1, "tool": tool_name,
-                          "args": args, "error": str(e)})
-            break
-
-        # Summarize the result for the next step's context
-        if not result.success:
-            result_summary = f"ERROR: {result.error}"
-        else:
-            if tool_name == "web_search":
-                items = result.items[:5]
-                result_summary = (
-                    f"{len(items)} results. " +
-                  "; ".join(f"[{i+1}] {it['title']} ({it['url']})"
-                              for i, it in enumerate(items)))
-            elif tool_name == "web_fetch":
-                if result.items:
-                    item = result.items[0]
-                    result_summary = (
-                        f"{item.get('title', '?')[:80]}: "
-                        f"{item.get('text', '')[:300]}")
-                else:
-                    result_summary = "(empty)"
-            elif tool_name == "wikipedia":
-                if result.items:
-                    item = result.items[0]
-                    result_summary = (
-                        f"{item.get('title', '?')}: "
-                        f"{item.get('extract', '')[:300]}")
-                else:
-                    result_summary = "(no article)"
-            else:
-                result_summary = result.summary or "(no summary)"
-
-        steps.append({
-            "step":           step_idx + 1,
-            "action":         "tool",
-            "tool":           tool_name,
-            "args":           args,
-            "reason":         decision.get("reason", ""),
-            "result_summary": result_summary,
-            "success":        result.success,
-        })
-        # Save the full result to findings for inclusion in pre-context
-        if result.success:
-            findings.append({
-                "tool":  tool_name,
-                "args":  args,
-                "items": result.items,
-            })
-    return {"steps": steps, "findings": findings}
-
-
-def format_agent_findings(agent_out: dict) -> str:
-    """Compose the agent findings into a pre-context block Gemma will read."""
-    if not agent_out.get("findings"):
-        return ""
-    lines = ["=== AGENTIC RESEARCH FINDINGS ==="]
-    for f in agent_out["findings"]:
-        tool = f["tool"]
-        args = f["args"]
-        items = f["items"]
-        if tool == "web_search":
-            lines.append(f"[search] {args.get('query', '')!r}:")
-            for it in items[:3]:
-                lines.append(f"  - {it.get('title', '?')[:80]}")
-                lines.append(f"    {it.get('url', '')}")
-                lines.append(f"    {it.get('snippet', '')[:200]}")
-        elif tool == "web_fetch":
-            for it in items[:1]:
-                lines.append(f"[fetched] {it.get('url', '')}")
-                lines.append(f"  title: {it.get('title', '')[:120]}")
-                text = it.get("text", "")[:1500]
-                lines.append(f"  excerpt:\n  {text}")
-        elif tool == "wikipedia":
-            for it in items[:1]:
-                lines.append(f"[wikipedia] {it.get('title', '')}")
-                lines.append(f"  {it.get('extract', '')[:1200]}")
-    return "\n".join(lines)
-
-
-# ===========================================================================
-# FastAPI app + UI
-# ===========================================================================
-print("=" * 76)
-print("[phase 4] launching FastAPI server")
-print("=" * 76)
-
-from fastapi import FastAPI
-from fastapi.responses import HTMLResponse
-from pydantic import BaseModel
-import uvicorn
-
-app = FastAPI(title="DueCare Chat with Agentic Research")
-_attach_shutdown(app)
-
-# Mount the chat-package static dir at /wb-static/ so this appendix
-# kernel can pull workbench design tokens, nav loader, and Logs
-# page from the same source as the main workbench.
 try:
-    from fastapi.staticfiles import StaticFiles as _StaticFiles
-    from duecare.chat._dc_log import set_kernel_id, dc_log
-    set_kernel_id("a-09-agentic-research")
-    dc_log("kernel.start", "agentic-research playground starting")
-    from pathlib import Path as _Path
-    import duecare.chat as _chat_pkg
-    _wb_static = _Path(_chat_pkg.__file__).parent / "static"
-    if _wb_static.exists():
-        app.mount("/wb-static",
-                  _StaticFiles(directory=str(_wb_static)),
-                  name="wb-static")
-except Exception as _e:
-    print(f"[wb] could not mount workbench static: {_e}")
+    from duecare.chat._dc_log import dc_log, set_kernel_id
+    set_kernel_id("a-10-pii-synth-data-generator")
+except Exception:
+    def dc_log(*a, **kw): return None  # type: ignore[no-redef]
+    def set_kernel_id(*a, **kw): return None  # type: ignore[no-redef]
 
 
-class ChatRequest(BaseModel):
-    message: str
-    history: list = []          # [{role, content}, ...]
-    persona_on: bool = True
-    grep_on: bool = True
-    rag_on: bool = True
-    tools_on: bool = True
-    agentic_on: bool = True
-    max_new_tokens: int = 1024
-    # BYOK -- bring-your-own-key. Any subset; empty dict = no-key paths only.
-    byok_keys: dict = {}
+# ===========================================================================
+# 2. SYNTHETIC PII POOLS (template values; never real worker data)
+# ===========================================================================
+_FIRST_NAMES_PH = ["Maria", "Ana", "Rosario", "Liza", "Jocelyn",
+                    "Catherine", "Genevieve", "Marisol", "Cristina",
+                    "Imelda"]
+_FIRST_NAMES_NP = ["Sita", "Bishnu", "Kamala", "Sunita", "Saraswati",
+                    "Laxmi", "Maya", "Parbati", "Ramila", "Ganga"]
+_FIRST_NAMES_BD = ["Rahima", "Sultana", "Shahnaz", "Nasreen", "Salma",
+                    "Rokeya", "Khaleda", "Jahanara", "Hosne", "Marium"]
+_FIRST_NAMES_ID = ["Siti", "Ratna", "Endang", "Tuti", "Wati",
+                    "Yanti", "Suryani", "Rini", "Lestari", "Indah"]
+
+_LAST_NAMES_PH = ["Santos", "Cruz", "Bautista", "Reyes", "Garcia",
+                   "Mendoza", "Ramirez", "Diaz", "Castro", "Aquino"]
+_LAST_NAMES_NP = ["Tamang", "Gurung", "Sherpa", "Magar", "Rai",
+                   "Limbu", "Khadka", "Adhikari", "Pokharel", "Bhandari"]
+_LAST_NAMES_BD = ["Begum", "Akhter", "Khatun", "Rahman", "Hossain",
+                   "Islam", "Ahmed", "Sultana", "Khanam", "Chowdhury"]
+_LAST_NAMES_ID = ["Wati", "Sari", "Lestari", "Rahayu", "Putri",
+                   "Setiawan", "Pratiwi", "Anggraini", "Hasanah", "Maharani"]
+
+_CORRIDORS = {
+    "PH-HK":   {"first": _FIRST_NAMES_PH, "last": _LAST_NAMES_PH,
+                  "origin": "Manila", "dest": "Hong Kong",
+                  "phone_cc": "+63",  "passport_prefix": "EB"},
+    "PH-UAE":  {"first": _FIRST_NAMES_PH, "last": _LAST_NAMES_PH,
+                  "origin": "Cebu",   "dest": "Dubai",
+                  "phone_cc": "+63",  "passport_prefix": "EC"},
+    "NP-Gulf": {"first": _FIRST_NAMES_NP, "last": _LAST_NAMES_NP,
+                  "origin": "Kathmandu", "dest": "Doha",
+                  "phone_cc": "+977", "passport_prefix": "PA"},
+    "BD-Gulf": {"first": _FIRST_NAMES_BD, "last": _LAST_NAMES_BD,
+                  "origin": "Dhaka",  "dest": "Riyadh",
+                  "phone_cc": "+880", "passport_prefix": "BX"},
+    "ID-HK":   {"first": _FIRST_NAMES_ID, "last": _LAST_NAMES_ID,
+                  "origin": "Surabaya", "dest": "Hong Kong",
+                  "phone_cc": "+62",  "passport_prefix": "AC"},
+}
+
+_RECRUITER_NAMES = [
+    "Bright Horizon Manpower Services Inc.",
+    "Pacific Path Workforce Solutions",
+    "Gulf Bridge Employment Co.",
+    "Sunrise Domestic Placement Agency",
+    "Star Cross Recruitment Pte Ltd",
+    "Trans-Asia Career Services",
+    "Crescent Moon Manpower Agency",
+    "Eastern Light Personnel Co.",
+    "Golden Gate Workforce Bureau",
+    "New Hope Employment Solutions",
+]
+_EMPLOYER_NAMES = [
+    "Sterling House Services",
+    "Royal Family Estate",
+    "Madame Wong Household",
+    "Al Rashid Family",
+    "Bin Saeed Domestic",
+    "Chen Household Group",
+    "Khaled Family Estate",
+    "Lim Residence",
+    "Mansour Household",
+    "Tan Family Service",
+]
+
+_DEST_STREETS = {
+    "Hong Kong": ["Nathan Road", "Hennessy Avenue", "Queen's Way",
+                    "King's Lane", "Central Plaza Road"],
+    "Dubai":     ["Sheikh Zayed Road", "Al Wasl Lane", "Marina Drive",
+                    "Jumeirah Beach Road", "Garhoud Avenue"],
+    "Doha":      ["Corniche Promenade", "Al Sadd Street",
+                    "Education City Boulevard", "West Bay Lane",
+                    "Pearl Marina"],
+    "Riyadh":    ["King Fahd Road", "Olaya Street", "Tahlia Avenue",
+                    "Al Malaz Lane", "Diplomatic Quarter"],
+}
 
 
-@app.get("/")
-def index() -> HTMLResponse:
-    return HTMLResponse(_PAGE_HTML)
+def _synth_value(rnd: random.Random, kind: str, corridor: dict) -> str:
+    if kind == "FIRST_NAME":
+        return rnd.choice(corridor["first"])
+    if kind == "LAST_NAME":
+        return rnd.choice(corridor["last"])
+    if kind == "FULL_NAME" or kind == "NAME":
+        return f"{rnd.choice(corridor['first'])} {rnd.choice(corridor['last'])}"
+    if kind == "PASSPORT":
+        return f"{corridor['passport_prefix']}{rnd.randint(1000000, 9999999)}"
+    if kind == "PHONE":
+        digits = rnd.randint(100000000, 999999999)
+        return f"{corridor['phone_cc']}{digits}"
+    if kind == "EMAIL":
+        first = rnd.choice(corridor["first"]).lower()
+        last = rnd.choice(corridor["last"]).lower()
+        domain = rnd.choice(["gmail.com", "yahoo.com", "outlook.com",
+                              "hotmail.com"])
+        return f"{first}.{last}{rnd.randint(11, 99)}@{domain}"
+    if kind == "ADDRESS":
+        street_pool = _DEST_STREETS.get(corridor["dest"],
+                                          ["Central Avenue"])
+        return (f"{rnd.randint(1, 250)} {rnd.choice(street_pool)}, "
+                f"{corridor['dest']}")
+    if kind == "RECRUITER":
+        return rnd.choice(_RECRUITER_NAMES)
+    if kind == "EMPLOYER":
+        return rnd.choice(_EMPLOYER_NAMES)
+    if kind == "DOB":
+        return (f"{rnd.randint(1985, 2002):04d}-"
+                f"{rnd.randint(1, 12):02d}-{rnd.randint(1, 28):02d}")
+    if kind == "AMOUNT_USD":
+        return f"USD {rnd.randint(800, 12000)}"
+    return f"<{kind}>"
 
 
-@app.get("/healthz")
-def healthz() -> dict:
-    return {"ok": True, "model": GEMMA_MODEL_VARIANT}
+# ===========================================================================
+# 3. SCENARIO TEMPLATES (10 corridors-aware intake-note shapes)
+# ===========================================================================
+_SCENARIOS = [
+    {
+        "id": "recruitment_fee_overcharge",
+        "category": "fee_bondage",
+        "template": (
+            "My name is {NAME} and I came from {ORIGIN} to {DEST}. "
+            "I work as a domestic helper for {EMPLOYER}. The recruiter "
+            "{RECRUITER} took {AMOUNT_USD} in fees -- way more than what "
+            "the law allows. They took my passport ({PASSPORT}) too. "
+            "If you need to call me, my number is {PHONE}, but my employer "
+            "checks. Email me at {EMAIL} instead. I live at {ADDRESS}."
+        ),
+    },
+    {
+        "id": "passport_confiscation",
+        "category": "document_retention",
+        "template": (
+            "I am {NAME}, born {DOB}. My passport number is {PASSPORT}. "
+            "When I arrived from {ORIGIN}, my employer {EMPLOYER} took "
+            "the passport on day one and won't return it. The recruiter "
+            "({RECRUITER}) said this is normal. My phone is {PHONE} "
+            "but I can only answer at night."
+        ),
+    },
+    {
+        "id": "salary_withholding",
+        "category": "wage_theft",
+        "template": (
+            "Hi, I'm {NAME}. I have been working for {EMPLOYER} in {DEST} "
+            "for 8 months. They have not paid me a single salary -- they "
+            "say the {AMOUNT_USD} I owe the recruiter {RECRUITER} comes "
+            "out first. My passport ({PASSPORT}) is with them. Please "
+            "contact me at {EMAIL} or {PHONE} only when safe."
+        ),
+    },
+    {
+        "id": "isolation_and_movement",
+        "category": "isolation",
+        "template": (
+            "{NAME} here. I live at {ADDRESS} working for {EMPLOYER}. "
+            "I am not allowed to leave the building. My phone {PHONE} is "
+            "monitored; the only safe way is email at {EMAIL}. Recruiter "
+            "{RECRUITER} arranged everything from {ORIGIN}. They took "
+            "the passport ({PASSPORT}) when I landed in {DEST}."
+        ),
+    },
+    {
+        "id": "contract_substitution",
+        "category": "contract_fraud",
+        "template": (
+            "My name is {NAME}, born {DOB}. The contract I signed in "
+            "{ORIGIN} promised {AMOUNT_USD} per month working in an "
+            "office. When I arrived in {DEST}, the employer {EMPLOYER} "
+            "made me sign a different contract for domestic work, half "
+            "the salary. Recruiter {RECRUITER} disappeared. My passport "
+            "is {PASSPORT}. Reach me at {PHONE} between 9-10 pm only."
+        ),
+    },
+    {
+        "id": "physical_abuse_report",
+        "category": "abuse",
+        "template": (
+            "I am {NAME}, working for {EMPLOYER} at {ADDRESS}. The "
+            "madame hits me when I am slow. I came from {ORIGIN}. The "
+            "recruiter was {RECRUITER}. Passport {PASSPORT} is locked "
+            "in the safe. My family in {ORIGIN} can be reached at "
+            "{PHONE}; please don't tell my employer you talked to me. "
+            "Email is safer: {EMAIL}."
+        ),
+    },
+    {
+        "id": "deceptive_recruitment_offer",
+        "category": "recruitment_fraud",
+        "template": (
+            "{NAME} from {ORIGIN}. The agency {RECRUITER} promised me a "
+            "shop assistant job in {DEST}. They asked for {AMOUNT_USD} "
+            "and my passport ({PASSPORT}) for 'processing'. Now they "
+            "won't return either. My phone is {PHONE}. I haven't even "
+            "left {ORIGIN} yet -- please advise."
+        ),
+    },
+    {
+        "id": "debt_bondage_recurring",
+        "category": "debt_bondage",
+        "template": (
+            "Name: {NAME}. Passport: {PASSPORT}. Born {DOB}. "
+            "Recruiter {RECRUITER} loaned me {AMOUNT_USD} for the trip "
+            "from {ORIGIN} to {DEST}. The interest doubles every month. "
+            "Employer {EMPLOYER} deducts everything from my salary so I "
+            "have nothing. Address: {ADDRESS}. Phone: {PHONE}. "
+            "Email: {EMAIL}."
+        ),
+    },
+    {
+        "id": "sexual_harassment_disclosure",
+        "category": "harassment",
+        "template": (
+            "I'm {NAME} working for {EMPLOYER} in {DEST}. The son keeps "
+            "coming into my room at night. I'm scared. Recruiter "
+            "{RECRUITER} won't help. My passport is {PASSPORT}. I came "
+            "from {ORIGIN}. Phone {PHONE} -- DON'T call during the day. "
+            "Email {EMAIL}. I live at {ADDRESS}."
+        ),
+    },
+    {
+        "id": "trafficking_indicators_combo",
+        "category": "trafficking_combo",
+        "template": (
+            "{NAME}, {DOB}. Passport {PASSPORT} (held by employer). "
+            "Recruiter: {RECRUITER}. Employer: {EMPLOYER}. Address: "
+            "{ADDRESS}. Phone: {PHONE} (monitored). Email: {EMAIL}. "
+            "Came from {ORIGIN} to {DEST}, paid {AMOUNT_USD} in fees. "
+            "Multiple ILO indicators: passport retention, debt bondage, "
+            "isolation, contract substitution. Need urgent help."
+        ),
+    },
+]
 
 
-class BackendProbeRequest(BaseModel):
-    byok_keys: dict = {}
+# ===========================================================================
+# 4. COMPOSITE GENERATOR (template fill + redaction plan)
+# ===========================================================================
+_PLACEHOLDER_RE = re.compile(r"\{([A-Z_]+)\}")
+_PLACEHOLDER_TO_LABEL = {
+    "NAME":       "PERSON",
+    "FULL_NAME":  "PERSON",
+    "FIRST_NAME": "PERSON",
+    "LAST_NAME":  "PERSON",
+    "PASSPORT":   "PASSPORT",
+    "PHONE":      "PHONE",
+    "EMAIL":      "EMAIL",
+    "ADDRESS":    "ADDRESS",
+    "RECRUITER":  "RECRUITER",
+    "EMPLOYER":   "EMPLOYER",
+    "DOB":        "DOB",
+    "AMOUNT_USD": "AMOUNT_USD",
+    "ORIGIN":     "ORIGIN_CITY",
+    "DEST":       "DEST_CITY",
+}
+_GENERALIZABLE = {"ORIGIN_CITY", "DEST_CITY"}
 
 
-@app.post("/api/backends")
-def backends(req: BackendProbeRequest) -> dict:
-    """Tell the UI which backend would be picked given the user's
-    current BYOK keys. Called whenever the user types/clears a key in
-    the BYOK panel so the active-backend label updates live."""
-    info = FastWebSearchTool.describe_backend(req.byok_keys)
+def _hash_short(s: str) -> str:
+    return hashlib.sha256(s.encode("utf-8")).hexdigest()[:16]
+
+
+def _render_composite(rnd: random.Random, scenario: dict) -> dict:
+    corridor_name = rnd.choice(list(_CORRIDORS.keys()))
+    corridor = _CORRIDORS[corridor_name]
+    template = scenario["template"]
+    composite_parts: list[str] = []
+    redacted_parts: list[str] = []
+    redactions: list[dict] = []
+    cursor_composite = 0
+    last_end = 0
+    for m in _PLACEHOLDER_RE.finditer(template):
+        ph_kind = m.group(1)
+        if ph_kind == "ORIGIN":
+            value = corridor["origin"]
+            label = "ORIGIN_CITY"
+        elif ph_kind == "DEST":
+            value = corridor["dest"]
+            label = "DEST_CITY"
+        else:
+            label = _PLACEHOLDER_TO_LABEL.get(ph_kind, ph_kind)
+            value = _synth_value(rnd, ph_kind, corridor)
+        literal = template[last_end:m.start()]
+        composite_parts.append(literal)
+        redacted_parts.append(literal)
+        cursor_composite += len(literal)
+        span_start = cursor_composite
+        composite_parts.append(value)
+        cursor_composite += len(value)
+        if label in _GENERALIZABLE:
+            country = {
+                "Manila": "the Philippines", "Cebu": "the Philippines",
+                "Kathmandu": "Nepal", "Dhaka": "Bangladesh",
+                "Surabaya": "Indonesia", "Hong Kong": "Hong Kong SAR",
+                "Dubai": "the UAE", "Doha": "Qatar",
+                "Riyadh": "Saudi Arabia",
+            }.get(value, value)
+            redacted_repr = (f"a city in {country}"
+                              if label == "ORIGIN_CITY" else country)
+            redacted_parts.append(redacted_repr)
+        else:
+            redacted_parts.append(f"[{label}]")
+        redactions.append({
+            "start": span_start,
+            "end": cursor_composite,
+            "label": label,
+            "sha256_original": _hash_short(value),
+        })
+        last_end = m.end()
+    composite_parts.append(template[last_end:])
+    redacted_parts.append(template[last_end:])
+    composite_text = "".join(composite_parts)
+    redacted_text = "".join(redacted_parts)
+    pii_categories = sorted({r["label"] for r in redactions})
     return {
-        "active":     info["backend"],
-        "kind":       info["kind"],          # "byok-api" | "no-key"
-        "note":       info["note"],
-        "pii_filter": "active",
-        "audit_log":  str(Path("/kaggle/working/duecare_search_audit.jsonl")),
-        "browser_available": BROWSER.available,
-    }
-
-
-@app.get("/api/audit")
-def audit(limit: int = 20) -> dict:
-    """Recent search audit entries. Plaintext queries NOT included --
-    only sha256 hashes + metadata."""
-    return {"recent": get_recent_audit(limit=limit)}
-
-
-@app.post("/api/chat")
-def chat(req: ChatRequest) -> dict:
-    pre_blocks = []
-    grep_hits = []
-    rag_docs = []
-    tool_calls = []
-    agent = {"steps": [], "findings": []}
-
-    if req.grep_on:
-        grep_out = GREP_FN(req.message)
-        grep_hits = grep_out.get("hits", [])
-        if grep_hits:
-            pre_blocks.append("=== GREP HITS ===\n" + "\n".join(
-                f"- [{h.get('severity', '?').upper()}] {h.get('rule')}: "
-                f"{h.get('citation', '')}" for h in grep_hits[:6]))
-
-    if req.rag_on:
-        rag_out = RAG_FN(req.message, top_k=3)
-        rag_docs = rag_out.get("docs", [])
-        if rag_docs:
-            pre_blocks.append("=== RAG DOCS ===\n" + "\n".join(
-                f"- [{d.get('id')}] {d.get('title', '')[:80]} "
-                f"({d.get('source', '')[:40]})\n  "
-                f"{(d.get('snippet') or '')[:200]}"
-                for d in rag_docs[:3]))
-
-    if req.tools_on:
-        try:
-            t_out = TOOLS_FN([{"role": "user",
-                               "content": [{"type": "text",
-                                            "text": req.message}]}])
-            tool_calls = t_out.get("tool_calls", [])
-            if tool_calls:
-                pre_blocks.append("=== TOOL RESULTS ===\n" + "\n".join(
-                    f"- {tc.get('name')}({tc.get('args')}) -> "
-                    f"{json.dumps(tc.get('result'))[:300]}"
-                    for tc in tool_calls[:4]))
-        except Exception as e:
-            tool_calls = []
-
-    if req.agentic_on:
-        agent = run_agent(req.message, byok_keys=req.byok_keys)
-        agent_block = format_agent_findings(agent)
-        if agent_block:
-            pre_blocks.append(agent_block)
-
-    pre_context = "\n\n".join(pre_blocks)
-    final_user = (f"{pre_context}\n\n=== USER MESSAGE ===\n{req.message}"
-                  if pre_context else req.message)
-
-    # Compose Gemma messages
-    messages = []
-    if req.persona_on:
-        messages.append({"role": "system",
-                         "content": [{"type": "text", "text": DUECARE_PERSONA}]})
-    for h in req.history[-6:]:   # last 3 turns
-        if h.get("role") in ("user", "assistant") and h.get("content"):
-            messages.append({"role": h["role"],
-                             "content": [{"type": "text", "text": h["content"]}]})
-    messages.append({"role": "user",
-                     "content": [{"type": "text", "text": final_user}]})
-
-    t0 = time.time()
-    try:
-        response = GEMMA(messages, max_new_tokens=req.max_new_tokens,
-                          temperature=0.7)
-    except Exception as e:
-        return {"error": f"gemma generation failed: {e}"}
-    elapsed_ms = int((time.time() - t0) * 1000)
-
-    return {
-        "response":      response,
-        "merged_prompt": final_user,
-        "grep_hits":     grep_hits,
-        "rag_docs":      rag_docs,
-        "tool_calls":    tool_calls,
-        "agent":         agent,
-        "elapsed_ms":    elapsed_ms,
-        "model":         GEMMA_MODEL_VARIANT,
+        "composite_id": _hash_short(composite_text)[:12],
+        "scenario": scenario["id"],
+        "scenario_category": scenario["category"],
+        "corridor": corridor_name,
+        "composite_text": composite_text,
+        "redacted_text": redacted_text,
+        "redactions": redactions,
+        "pii_categories": pii_categories,
+        "n_redactions": len(redactions),
     }
 
 
 # ===========================================================================
-# UI -- single HTML page with 5 toggle tiles
-# ===========================================================================
-_PAGE_HTML = """<!doctype html><html><head>
-<meta charset="utf-8">
-<title>DueCare Chat with Agentic Research</title>
-<link rel="stylesheet" href="/wb-static/_chrome.css">
-<script src="/wb-static/_nav.js" defer></script>
-<style>
-  /* Design tokens (--paper, --ink, --accent, --mono, --line, ...) come
-     from /wb-static/_chrome.css — the same source of truth as
-     notebook #01 Exploration Workbench. Page-specific layout below. */
-  .page-wrap { max-width: 1180px; margin: 24px auto; padding: 0 24px; }
-  h1 { color: var(--ink); letter-spacing: -0.02em; margin: 0 0 4px;
-       display:flex; align-items:center; gap:10px; }
-  .brand-mark { width:30px; height:30px; display:inline-grid;
-                place-items:center; border-radius:7px; background:var(--ink);
-                color:var(--paper); font-family:var(--mono); font-size:11px;
-                font-weight:700; letter-spacing:.04em; }
-  .sub { color: var(--ink3); font-size: 13px; margin: 0 0 16px; line-height: 1.5; }
-  .badge { display: inline-block; background: var(--accentSoft, oklch(0.92 0.03 195));
-           color: var(--accentInk, oklch(0.32 0.07 195));
-           padding: 2px 9px; border-radius: 999px; font-size: 11px;
-           font-weight: 700; margin-left: 6px; font-family: var(--mono);
-           text-transform: uppercase; letter-spacing: .04em; }
-  .layout { display: grid; grid-template-columns: 2fr 1fr; gap: 16px; }
-  @media (max-width: 900px) { .layout { grid-template-columns: 1fr; } }
-  .col { display: flex; flex-direction: column; gap: 12px; }
-  .card { background: #fffdf7; border: 1px solid var(--line);
-          border-radius: 12px; padding: 14px;
-          box-shadow:0 1px 0 rgba(14,17,22,.04),0 8px 24px -18px rgba(14,17,22,.12); }
-  .conv { min-height: 320px; max-height: 540px; overflow-y: auto;
-          background: #fffdf7; border: 1px solid var(--line);
-          border-radius: 12px; padding: 14px; }
-  .turn { margin-bottom: 14px; }
-  .turn-user { color: var(--accentInk, oklch(0.32 0.07 195)); font-weight: 700; font-size: 12px;
-               margin-bottom: 4px; text-transform: uppercase; letter-spacing: .05em;
-               font-family: var(--mono); }
-  .turn-assistant { color: var(--ink); font-weight: 700; font-size: 12px;
-                    margin-bottom: 4px; text-transform: uppercase; letter-spacing: .05em;
-                    font-family: var(--mono); }
-  .turn-body { white-space: pre-wrap; line-height: 1.5; font-size: 14px; color: var(--ink); }
-  textarea { width: 100%; min-height: 60px; font-family: var(--mono); font-size: 13px;
-             padding: 10px; border: 1px solid var(--line); border-radius: 8px;
-             box-sizing: border-box; resize: vertical; background: #fff; color: var(--ink); }
-  button.primary { background: var(--accent); color: white; padding: 9px 16px;
-           border: none; border-radius: 8px; font-weight: 600;
-           font-size: 13px; cursor: pointer; font-family: var(--sans); }
-  button.primary:hover { filter: brightness(.96); transform: translateY(-1px); }
-  button.primary:disabled { background: #9ca3af; cursor: not-allowed; }
-  button.primary:focus-visible, textarea:focus-visible, input:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
-  .tiles { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
-  @media (max-width: 720px) { .tiles { grid-template-columns: repeat(2, 1fr); } }
-  .tile { padding: 10px 12px; border: 2px solid var(--line); border-radius: 10px;
-          background: var(--paper2, #EFEDE4); cursor: pointer; transition: all 0.15s;
-          text-align: center; color: var(--ink); }
-  .tile.on { background: var(--c); border-color: var(--c); color: white; }
-  .tile-title { font-weight: 700; font-size: 12px; margin-bottom: 2px; }
-  .tile-desc { font-size: 10px; opacity: 0.85; line-height: 1.3; }
-  pre { background: #101820; color: #f9fafb; padding: 10px;
-        border-radius: 8px; overflow-x: auto; font-size: 11px;
-        line-height: 1.4; max-height: 400px; overflow-y: auto;
-        white-space: pre-wrap; word-wrap: break-word; }
-  .meta { color: var(--ink3); font-size: 11px; margin-top: 6px; }
-  .agent-step { background: var(--paper2, #EFEDE4); padding: 8px 10px;
-                border-radius: 6px; margin-bottom: 6px; font-size: 11px;
-                line-height: 1.4; color: var(--ink); }
-  .agent-step .tool { font-weight: 700; color: var(--accentInk, oklch(0.32 0.07 195)); }
-  h3 { margin: 0 0 6px; font-size: 13px; color: var(--ink3);
-       text-transform: uppercase; letter-spacing: 0.05em; font-weight: 700; }
-  /* Privacy callout — uses ember accent per duecare-ai.com convention. */
-  .privacy-bar { background: oklch(0.96 0.04 45);
-                 border: 1px solid oklch(0.78 0.10 45);
-                 padding: 10px 14px; display: flex; gap: 18px;
-                 align-items: center; margin-bottom: 10px; border-radius: 12px; }
-  .privacy-bar .ember { color: var(--ember, oklch(0.58 0.14 45)); font-weight: 700; }
-  button.utility { background: var(--ember, oklch(0.58 0.14 45)); color: white;
-                   padding: 6px 12px; font-size: 12px;
-                   border: none; border-radius: 8px; font-weight: 600;
-                   cursor: pointer; font-family: var(--sans); }
-  button.utility:hover { filter: brightness(.96); }
-</style></head><body data-nav="tools">
-
-<div class="page-wrap">
-<h1><span class="brand-mark" aria-hidden="true">DC</span><span>Chat with Agentic Research <span class="badge">A-09 · Proof-of-concept</span></span></h1>
-<p class="sub">
-  Same harness as chat-playground-with-grep-rag-tools, plus a fifth
-  toggle for <b>Agentic Research</b>: Gemma 4 multi-step web research
-  loop. Default (no keys) uses a real headless browser (Playwright) to
-  search brave.com / duckduckgo.com / ecosia.org. <b>Bring your own
-  optional API keys</b> below for faster paths. Every outbound query
-  passes through the PII filter; queries are audit-logged by hash, never
-  by plaintext.
-</p>
-
-<div class="privacy-bar">
-  <div>
-    <span class="ember">PII filter ACTIVE</span>
-    <span class="meta" id="backend-info" style="margin-left:10px"></span>
-  </div>
-  <div style="flex:1"></div>
-  <div>
-    <button class="utility" onclick="toggleByok()">BYOK keys</button>
-    <button class="utility" onclick="loadAudit()" style="margin-left:6px">Search audit</button>
-  </div>
-</div>
-
-<div class="card" id="byok-panel" style="display:none; margin-bottom:14px; background:#f8fafc; border-color:#3b82f6">
-  <h3 style="margin:0 0 6px; font-size:13px; color:#1e40af; text-transform:uppercase; letter-spacing:0.05em; font-weight:700">
-    Bring Your Own Key (optional · stored only in your browser)
-  </h3>
-  <p style="margin:0 0 10px; font-size:12px; color:#6b7280; line-height:1.5">
-    Paste any of these to use the API-backed fast path instead of the
-    real-browser default. Keys are saved in localStorage on YOUR
-    device and sent on each chat request — never persisted server-side.
-    Leave blank to use the no-key browser fallback (slower but no
-    third-party).
-  </p>
-  <div style="display:grid; grid-template-columns: 200px 1fr 220px; gap:8px; align-items:center; margin-bottom:6px">
-    <label style="margin:0; font-size:12px"><b>Tavily</b> <span class="meta">(free 1k/mo)</span></label>
-    <input type="password" id="byok-tavily" placeholder="tvly-..." style="font-family: ui-monospace, Menlo, Consolas, monospace; font-size:12px; padding:6px; border:1px solid #d1d5db; border-radius:6px">
-    <span class="meta">app.tavily.com</span>
-
-    <label style="margin:0; font-size:12px"><b>Brave Search</b> <span class="meta">(free 2k/mo, CC)</span></label>
-    <input type="password" id="byok-brave" placeholder="BSA..." style="font-family: ui-monospace, Menlo, Consolas, monospace; font-size:12px; padding:6px; border:1px solid #d1d5db; border-radius:6px">
-    <span class="meta">api.search.brave.com</span>
-
-    <label style="margin:0; font-size:12px"><b>Serper</b> <span class="meta">(paid Google wrap)</span></label>
-    <input type="password" id="byok-serper" placeholder="..." style="font-family: ui-monospace, Menlo, Consolas, monospace; font-size:12px; padding:6px; border:1px solid #d1d5db; border-radius:6px">
-    <span class="meta">serper.dev</span>
-  </div>
-  <div style="margin-top:10px">
-    <button class="primary" onclick="saveByok()">Save</button>
-    <button class="primary" onclick="clearByok()" style="background:#dc2626">Clear all</button>
-    <span class="meta" id="byok-status" style="margin-left:10px"></span>
-  </div>
-</div>
-
-<div class="layout">
-  <div class="col">
-    <div class="conv" id="conv">
-      <div class="meta">No messages yet. Try: "What is the current POEA fee cap for HK domestic workers?" or "What does ILO C189 say about overtime?" — the agentic loop will fetch fresh context.</div>
-    </div>
-    <div class="card">
-      <div class="tiles">
-        <div class="tile on" data-key="persona" style="--c: #7c3aed">
-          <div class="tile-title">Persona</div>
-          <div class="tile-desc">40-yr expert</div>
-        </div>
-        <div class="tile on" data-key="grep" style="--c: #dc2626">
-          <div class="tile-title">GREP</div>
-          <div class="tile-desc">161 rules</div>
-        </div>
-        <div class="tile on" data-key="rag" style="--c: #2563eb">
-          <div class="tile-title">RAG</div>
-          <div class="tile-desc">33 docs</div>
-        </div>
-        <div class="tile on" data-key="tools" style="--c: #16a34a">
-          <div class="tile-title">Tools</div>
-          <div class="tile-desc">5 lookups</div>
-        </div>
-        <div class="tile on" data-key="agentic" style="--c: #f59e0b">
-          <div class="tile-title">Agentic</div>
-          <div class="tile-desc">Web search</div>
-        </div>
-      </div>
-      <textarea id="msg" placeholder="Type a question..."></textarea>
-      <div style="margin-top: 10px; display: flex; align-items: center; gap: 8px">
-        <button class="primary" id="send" onclick="send()">Send</button>
-        <button class="primary" onclick="clearConv()" style="background: var(--ink3)">Clear</button>
-        <span class="meta" id="status"></span>
-      </div>
-    </div>
-  </div>
-
-  <div class="col">
-    <div class="card">
-      <h3>Agent steps (last turn)</h3>
-      <div id="agent-steps">
-        <div class="meta">Send a message with Agentic ON to see the loop.</div>
-      </div>
-    </div>
-    <div class="card">
-      <h3>Merged prompt (last turn)</h3>
-      <pre id="merged">(none yet)</pre>
-    </div>
-  </div>
-</div>
-
-<script>
-const conv = document.getElementById('conv');
-let history = [];
-
-document.querySelectorAll('.tile').forEach(t => {
-  t.addEventListener('click', () => t.classList.toggle('on'));
-});
-
-function getToggles() {
-  const on = {};
-  document.querySelectorAll('.tile').forEach(t => {
-    on[t.dataset.key] = t.classList.contains('on');
-  });
-  return on;
-}
-
-function escapeHtml(s) {
-  return String(s).replace(/[&<>"']/g, m => ({
-    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
-}
-
-function appendTurn(role, body) {
-  const div = document.createElement('div');
-  div.className = 'turn';
-  div.innerHTML = `<div class="turn-${role}">${role.toUpperCase()}</div>` +
-                  `<div class="turn-body">${escapeHtml(body)}</div>`;
-  conv.appendChild(div);
-  conv.scrollTop = conv.scrollHeight;
-}
-
-function renderAgent(agent) {
-  const el = document.getElementById('agent-steps');
-  if (!agent || !agent.steps || agent.steps.length === 0) {
-    el.innerHTML = '<div class="meta">No agent steps (Agentic was OFF, or Gemma chose "done" immediately).</div>';
-    return;
-  }
-  el.innerHTML = agent.steps.map(s => {
-    if (s.action === 'done') {
-      return `<div class="agent-step"><b>step ${s.step}</b>: <span class="tool">DONE</span> — ${escapeHtml(s.reason || '')}</div>`;
-    }
-    if (s.action === 'tool') {
-      return `<div class="agent-step"><b>step ${s.step}</b>: <span class="tool">${escapeHtml(s.tool)}</span>(${escapeHtml(JSON.stringify(s.args))})<br><span class="meta">${escapeHtml(s.reason || '')}</span><br><i>${escapeHtml(String(s.result_summary || ''))}</i></div>`;
-    }
-    return `<div class="agent-step"><b>step ${s.step}</b>: ${escapeHtml(JSON.stringify(s))}</div>`;
-  }).join('');
-}
-
-async function send() {
-  const msgEl = document.getElementById('msg');
-  const text = msgEl.value.trim();
-  if (!text) return;
-  const status = document.getElementById('status');
-  const sendBtn = document.getElementById('send');
-  sendBtn.disabled = true;
-  status.textContent = ' thinking...';
-  appendTurn('user', text);
-  msgEl.value = '';
-  const tog = getToggles();
-  const body = {
-    message: text, history: history,
-    persona_on: tog.persona, grep_on: tog.grep, rag_on: tog.rag,
-    tools_on: tog.tools, agentic_on: tog.agentic,
-    max_new_tokens: 1024,
-    byok_keys: getByokKeys(),
-  };
-  try {
-    const r = await fetch('/api/chat', {
-      method: 'POST', headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify(body),
-    });
-    const data = await r.json();
-    if (data.error) {
-      appendTurn('assistant', '[ERROR] ' + data.error);
-    } else {
-      appendTurn('assistant', data.response);
-      history.push({role: 'user', content: text});
-      history.push({role: 'assistant', content: data.response});
-      renderAgent(data.agent);
-      document.getElementById('merged').textContent = data.merged_prompt;
-      status.textContent = ` ${data.elapsed_ms} ms`;
-    }
-  } catch (e) {
-    appendTurn('assistant', '[ERROR] ' + e.message);
-  }
-  sendBtn.disabled = false;
-}
-
-function clearConv() {
-  history = [];
-  conv.innerHTML = '<div class="meta">Cleared.</div>';
-  document.getElementById('agent-steps').innerHTML = '<div class="meta">Send a message with Agentic ON to see the loop.</div>';
-  document.getElementById('merged').textContent = '(none yet)';
-}
-
-document.getElementById('msg').addEventListener('keydown', e => {
-  if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
-    e.preventDefault(); send();
-  }
-});
-
-// ===== BYOK panel =====
-function getByokKeys() {
-  const out = {};
-  for (const k of ['tavily', 'brave', 'serper']) {
-    const v = localStorage.getItem('duecare_byok_' + k);
-    if (v && v.trim()) out[k] = v.trim();
-  }
-  return out;
-}
-
-function saveByok() {
-  for (const k of ['tavily', 'brave', 'serper']) {
-    const v = document.getElementById('byok-' + k).value.trim();
-    if (v) localStorage.setItem('duecare_byok_' + k, v);
-    else   localStorage.removeItem('duecare_byok_' + k);
-  }
-  document.getElementById('byok-status').textContent = ' saved.';
-  loadBackend();
-  setTimeout(() => document.getElementById('byok-status').textContent = '',
-              2000);
-}
-
-function clearByok() {
-  for (const k of ['tavily', 'brave', 'serper']) {
-    localStorage.removeItem('duecare_byok_' + k);
-    document.getElementById('byok-' + k).value = '';
-  }
-  document.getElementById('byok-status').textContent = ' cleared.';
-  loadBackend();
-}
-
-function loadByokIntoPanel() {
-  for (const k of ['tavily', 'brave', 'serper']) {
-    const v = localStorage.getItem('duecare_byok_' + k);
-    if (v) document.getElementById('byok-' + k).value = v;
-  }
-}
-
-function toggleByok() {
-  const p = document.getElementById('byok-panel');
-  p.style.display = (p.style.display === 'none') ? 'block' : 'none';
-  if (p.style.display === 'block') loadByokIntoPanel();
-}
-
-async function loadBackend() {
-  try {
-    const r = await fetch('/api/backends', {
-      method: 'POST', headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({byok_keys: getByokKeys()}),
-    });
-    const d = await r.json();
-    const browserNote = d.browser_available ? ' · browser ✓' : ' · browser ✗';
-    document.getElementById('backend-info').textContent =
-      `· Active: ${d.active} (${d.kind})${browserNote}  · ${d.note}`;
-  } catch (e) {}
-}
-
-async function loadAudit() {
-  const r = await fetch('/api/audit?limit=30');
-  const d = await r.json();
-  const lines = d.recent.map(e =>
-    `${e.ts}  [${e.backend}]  q=${e.query_sha256.slice(0,16)}...  `
-    + `len=${e.query_len}  results=${e.result_count}  `
-    + (e.pii_blocked ? 'PII-BLOCKED' : 'sent') +
-    (e.error ? ` ERR=${e.error.slice(0,80)}` : ''));
-  alert('SEARCH AUDIT (most recent 30)\\n\\n' +
-        (lines.length ? lines.join('\\n') : '(no entries yet)'));
-}
-
-loadBackend();
-</script>
-</div>
-</body></html>"""
-
-
-def _server() -> None:
-    uvicorn.run(app, host="0.0.0.0", port=PORT, log_level="warning")
-
-
-threading.Thread(target=_server, daemon=True,
-                 name="duecare-agentic").start()
-time.sleep(2.0)
-
-
-# ===========================================================================
-# PHASE 5 -- cloudflared tunnel
-# ===========================================================================
-print("=" * 76)
-print(f"[phase 5] opening {TUNNEL} tunnel")
-print("=" * 76)
-
-
-def open_tunnel() -> str:
-    if TUNNEL == "none":
-        return f"http://localhost:{PORT}"
-    import shutil as _shutil, urllib.request as _urlreq, stat as _stat
-    cf_bin = _shutil.which("cloudflared")
-    if cf_bin is None:
-        cf_bin = "/tmp/cloudflared"
-        if not os.path.exists(cf_bin):
-            print("  downloading cloudflared...")
-            try:
-                _urlreq.urlretrieve(
-                    "https://github.com/cloudflare/cloudflared/releases/"
-                    "latest/download/cloudflared-linux-amd64", cf_bin)
-                os.chmod(cf_bin,
-                         _stat.S_IRWXU | _stat.S_IXGRP | _stat.S_IXOTH)
-            except Exception as e:
-                print(f"  download failed: {e}")
-                return f"http://localhost:{PORT}"
-    proc = subprocess.Popen(
-        [cf_bin, "tunnel", "--url", f"http://localhost:{PORT}"],
-        stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-        text=True, bufsize=1)
-    _CLOUDFLARED_PROC['p'] = proc
-    public_url = f"http://localhost:{PORT}"
-    t0 = time.time()
-    while time.time() - t0 < 60:
-        line = proc.stdout.readline()
-        if not line:
-            time.sleep(0.1); continue
-        if "trycloudflare.com" in line:
-            m = re.search(r"https://[a-z0-9\-]+\.trycloudflare\.com", line)
-            if m:
-                public_url = m.group(0); break
-    # Drain stdout daemon
-    threading.Thread(target=lambda: [None for _ in proc.stdout],
-                     daemon=True).start()
-    return public_url
-
-
-PUBLIC_URL = open_tunnel()
-
-
-# ===========================================================================
-# Done
+# 5. RUN GENERATION
 # ===========================================================================
 print("\n" + "=" * 76)
-print("DUECARE CHAT WITH AGENTIC RESEARCH IS LIVE")
-print("=" * 76)
-print(f"\n  open this URL on your laptop:")
-print(f"\n      {PUBLIC_URL}\n")
-print(f"  toggles:  Persona / GREP / RAG / Tools / Agentic")
-print(f"  agent:    web_search (DuckDuckGo) + web_fetch (httpx+trafilatura)")
-print(f"            + wikipedia (REST API). All open-source, no API keys.")
-print(f"  loop:     up to {AGENT_MAX_STEPS} steps, "
-      f"{AGENT_FETCH_CHARS} chars per fetched page")
-print(f"  privacy:  every web call passes through PIIFilter first")
-print(f"\n  stop the demo by interrupting this cell.\n")
+print(f"[2/4] generating {N_COMPOSITES} synthetic PII composites")
 print("=" * 76)
 
+_rnd = random.Random(RANDOM_SEED)
+_run_ts = time.strftime("%Y-%m-%dT%H-%M-%SZ", time.gmtime())
+RUN_ID = f"a10_pii_synth_{_run_ts}"
+COMPOSITE_PATH = OUTPUT_DIR / f"{RUN_ID}_pii_composite.json"
+COMPOSITE_JSONL = OUTPUT_DIR / f"{RUN_ID}_pii_composite.jsonl"
+GOLD_JSONL = OUTPUT_DIR / f"{RUN_ID}_pii_gold.jsonl"
+METADATA_PATH = OUTPUT_DIR / f"{RUN_ID}_metadata.json"
+BUNDLE_PATH = OUTPUT_DIR / f"{RUN_ID}_bundle.zip"
+print(f"  run_id: {RUN_ID}")
+
+_t0 = time.time()
+dc_log("a10.synth.start", "PII synth generation beginning",
+        run_id=RUN_ID, n_composites=N_COMPOSITES)
+
+_composites: list[dict] = []
+with COMPOSITE_JSONL.open("w", encoding="utf-8") as _comp_fh, \
+     GOLD_JSONL.open("w", encoding="utf-8") as _gold_fh:
+    for _i in range(N_COMPOSITES):
+        _scenario = _rnd.choice(_SCENARIOS)
+        _row = _render_composite(_rnd, _scenario)
+        _composites.append(_row)
+        _comp_fh.write(json.dumps(_row, ensure_ascii=False) + "\n")
+        _gold_fh.write(json.dumps({
+            "composite_id": _row["composite_id"],
+            "messages": [
+                {"role": "system", "content":
+                 "You are a privacy-redaction assistant. Given an "
+                 "intake note, return the same text with PII spans "
+                 "replaced by [LABEL] tags. Generalize city names to "
+                 "their country. Preserve everything else verbatim."},
+                {"role": "user", "content": _row["composite_text"]},
+                {"role": "assistant", "content": _row["redacted_text"]},
+            ],
+            "redactions": _row["redactions"],
+        }, ensure_ascii=False) + "\n")
+        if (_i + 1) % 50 == 0:
+            print(f"  generated {_i + 1}/{N_COMPOSITES}")
+            dc_log("a10.synth.progress", f"{_i + 1}/{N_COMPOSITES}",
+                    completed=_i + 1, total=N_COMPOSITES)
+
+_dur = time.time() - _t0
+print(f"\n  generated {len(_composites)} composites in {_dur:.1f}s")
+
+_summary = {
+    "n_composites":   len(_composites),
+    "n_scenarios":    len({c["scenario"] for c in _composites}),
+    "n_corridors":    len({c["corridor"] for c in _composites}),
+    "rows_per_scenario": {
+        s["id"]: sum(1 for c in _composites if c["scenario"] == s["id"])
+        for s in _SCENARIOS
+    },
+    "rows_per_corridor": {
+        cn: sum(1 for c in _composites if c["corridor"] == cn)
+        for cn in _CORRIDORS
+    },
+    "mean_redactions_per_composite": round(
+        sum(c["n_redactions"] for c in _composites) /
+        max(1, len(_composites)), 2),
+    "duration_s": round(_dur, 2),
+}
+
+_payload = {
+    "schema_version": "1.0",
+    "kernel_id": "a-10-pii-synth-data-generator",
+    "run_id": RUN_ID,
+    "config": {
+        "n_composites": N_COMPOSITES,
+        "random_seed": RANDOM_SEED,
+        "scenario_count": len(_SCENARIOS),
+        "corridor_count": len(_CORRIDORS),
+        "pii_categories": sorted(set(_PLACEHOLDER_TO_LABEL.values())),
+        "generalizable_labels": sorted(_GENERALIZABLE),
+    },
+    "metadata": {
+        "started_at": time.strftime(
+            "%Y-%m-%dT%H:%M:%SZ", time.gmtime(_t0)),
+        "completed_at": time.strftime(
+            "%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+        "duration_s": round(_dur, 1),
+        "kaggle_kernel_id": "a-10-pii-synth-data-generator",
+        "host": "kaggle" if Path("/kaggle").exists() else "local",
+    },
+    "summary": _summary,
+    "results": _composites,
+}
+COMPOSITE_PATH.write_text(
+    json.dumps(_payload, indent=2, ensure_ascii=False), encoding="utf-8")
+METADATA_PATH.write_text(
+    json.dumps({k: v for k, v in _payload.items() if k != "results"},
+                indent=2, ensure_ascii=False), encoding="utf-8")
+print(f"  + {COMPOSITE_PATH.name}")
+print(f"  + {COMPOSITE_JSONL.name}")
+print(f"  + {GOLD_JSONL.name}")
+print(f"  + {METADATA_PATH.name}")
+
+with zipfile.ZipFile(BUNDLE_PATH, "w", zipfile.ZIP_DEFLATED) as _z:
+    _z.writestr("manifest.json", json.dumps({
+        "schema_version": "1.0",
+        "run_id": RUN_ID,
+        "kernel_id": "a-10-pii-synth-data-generator",
+        "files": ["pii_composite.json", "pii_composite.jsonl",
+                   "pii_gold.jsonl", "metadata.json"],
+    }, indent=2))
+    _z.write(COMPOSITE_PATH, "pii_composite.json")
+    _z.write(COMPOSITE_JSONL, "pii_composite.jsonl")
+    _z.write(GOLD_JSONL, "pii_gold.jsonl")
+    _z.write(METADATA_PATH, "metadata.json")
+print(f"  + {BUNDLE_PATH.name} "
+      f"({BUNDLE_PATH.stat().st_size // 1024} KB)")
+
+dc_log("a10.synth.done",
+        f"PII synth complete ({len(_composites)} composites)",
+        run_id=RUN_ID, n_composites=len(_composites),
+        duration_s=int(_dur))
+
+
+# ===========================================================================
+# 6. WORKBENCH SHELL UI
+# ===========================================================================
+print("\n" + "=" * 76)
+print("[3/4] launching summary UI (workbench shell)")
+print("=" * 76)
+
+_SHUTDOWN_EVENT = threading.Event()
+_CLOUDFLARED_PROC: dict = {"p": None}
+
 try:
+    from duecare.chat.kernel_shell import build_minimal_shell
+    summary_payload = {
+        "title": (f"A-10 PII synthetic data run "
+                   f"({len(_composites)} composites)"),
+        "audience": "researcher",
+        "lede": ("Generated synthetic intake notes with fake PII (names, "
+                  "passports, phones, addresses, employers) paired with "
+                  "gold redaction plans. Output JSONL is ready for the "
+                  "A-11 PrivacyRedactor LoRA trainer. No real worker "
+                  "data flowed through this kernel."),
+        "results": [
+            {"label": "Composites", "value": str(len(_composites))},
+            {"label": "Scenarios",  "value": str(len(_SCENARIOS))},
+            {"label": "Corridors",  "value": str(len(_CORRIDORS))},
+            {"label": "Mean redactions/composite",
+             "value": str(_summary["mean_redactions_per_composite"])},
+            {"label": "Wall time", "value": f"{_dur:.1f}s"},
+        ],
+        "artifacts": [
+            {"name": BUNDLE_PATH.name,    "path": str(BUNDLE_PATH)},
+            {"name": COMPOSITE_PATH.name, "path": str(COMPOSITE_PATH)},
+            {"name": COMPOSITE_JSONL.name, "path": str(COMPOSITE_JSONL)},
+            {"name": GOLD_JSONL.name,     "path": str(GOLD_JSONL)},
+            {"name": METADATA_PATH.name,  "path": str(METADATA_PATH)},
+        ],
+        "links": [
+            ("Workbench (full)",
+              "https://www.kaggle.com/code/taylorsamarel/duecare-exploration-workbench"),
+            ("Experiment ladder spec",
+              "https://github.com/TaylorAmarelTech/gemma4_comp/blob/master/docs/appendix_experiment_ladder.md"),
+        ],
+        "next_steps": [
+            f"Download {BUNDLE_PATH.name} from /artifact/{BUNDLE_PATH.name}.",
+            "Publish the bundle as a Kaggle Dataset (or attach via Add "
+            "Data) so A-11 can ingest the gold JSONL for LoRA training.",
+            "For larger corpora, set DUECARE_N_PII_COMPOSITES=2000 "
+            "and an alternative DUECARE_PII_SEED for a fresh run.",
+        ],
+    }
+    app, public_url = build_minimal_shell(
+        summary=summary_payload,
+        kernel_id="a-10-pii-synth-data-generator",
+        port=PORT,
+    )
+    if public_url:
+        print(f"  ok UI available at {public_url}")
+    print("\n" + "=" * 76)
+    print("[4/4] A-10 PII SYNTH RUN COMPLETE")
+    print("=" * 76)
+    if public_url:
+        print(f"\n   UI:     {public_url}")
+    print(f"   bundle: /kaggle/working/{BUNDLE_PATH.name}\n")
+    print("=" * 76)
     while not _SHUTDOWN_EVENT.is_set():
         time.sleep(1)
 except KeyboardInterrupt:
     print("\n  interrupted -- shutting down")
+except Exception as e:
+    print(f"  shell unavailable: {type(e).__name__}: {e}")
 
-# Cleanup on shutdown
 print("\n  shutting down cleanly...")
 try:
     if _CLOUDFLARED_PROC.get("p"):
         _CLOUDFLARED_PROC["p"].terminate()
-        try:
-            _CLOUDFLARED_PROC["p"].wait(timeout=5)
-        except Exception:
-            _CLOUDFLARED_PROC["p"].kill()
-        print("  cloudflared tunnel closed")
-except Exception as _e:
-    print(f"  cloudflared close: {_e}")
-try:
-    from duecare.research_tools.browser_tool import shutdown as _browser_shutdown
-    _browser_shutdown()
-    print("  browser session closed (if any)")
 except Exception:
     pass
 print("  shutdown complete -- cell exiting.\n")
