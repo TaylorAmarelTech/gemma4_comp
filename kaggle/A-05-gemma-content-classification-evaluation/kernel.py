@@ -227,7 +227,7 @@ def _attach_shutdown(app, hide_harness_tiles: bool = False) -> None:
 
 
 
-DATASET_SLUG = "duecare-gemma-content-classification-evaluation-wheels"
+# DEPRECATED 2026-05-11 (GitHub-only): DATASET_SLUG = "duecare-gemma-content-classification-evaluation-wheels"
 GEMMA_MODEL_VARIANT = "31b-it"
 GEMMA_LOAD_IN_4BIT  = True
 GEMMA_DEVICE_MAP    = "auto"
@@ -296,7 +296,7 @@ if _need_unsloth_stack():
 
 
 print("\n" + "=" * 76)
-print(f"[1/5] installing duecare packages (GitHub → wheels fallback)")
+print(f"[1/5] installing duecare packages (GitHub-only)")
 print("=" * 76)
 
 
@@ -326,28 +326,10 @@ def install_chat_wheels() -> int:
 
     except Exception as e:
         print(f"  ✗ GitHub bootstrap failed: {str(e)[:100]}...")
-        print("  → falling back to local wheels")
+        print("  → GitHub install failed - no fallback (wheels removed 2026-05-11)")
 
-    # Method 2: Fallback to wheels dataset (original logic)
-    if not Path("/kaggle/input").exists():
-        print("  (not in Kaggle; skipping wheel install)")
-        return 0
-
-    found = sorted(p for p in Path("/kaggle/input").rglob("*.whl")
-                    if "duecare" in p.name.lower())
-    if not found:
-        raise SystemExit(
-            f"GitHub bootstrap failed AND no wheels found in /kaggle/input. "
-            f"Enable internet OR attach dataset: taylorsamarel/{DATASET_SLUG}")
-
-    print(f"  → found {len(found)} wheel(s), installing...")
-    cmd = [sys.executable, "-m", "pip", "install", "--quiet", "--no-input",
-            "--disable-pip-version-check", *[str(p) for p in found]]
-    proc = subprocess.run(cmd, capture_output=True, text=True)
-    if proc.returncode != 0:
-        print(f"  bulk install failed: {proc.stderr[-300:]}")
-    print(f"  ✓ installed {len(found)} duecare wheels")
-    return len(found)
+    # Wheels fallback removed 2026-05-11 (GitHub-only policy).
+    raise SystemExit("DueCare GitHub install failed - check Internet=ON in Kaggle settings")
 
 
 install_chat_wheels()
