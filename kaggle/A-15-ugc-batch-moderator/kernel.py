@@ -346,7 +346,8 @@ def _flush():
             "kaggle_kernel_id": "a-14-ugc-batch-moderator",
             "host": "kaggle" if Path("/kaggle").exists() else "local",
         },
-        "aggregate": _aggregate(),
+        "summary": _aggregate(),
+        "aggregate": _aggregate(),    # legacy alias; canonical key is 'summary' (data_primitives.md 1.1)
         "results": RESULTS,
     }
     RESULTS_PATH.write_text(json.dumps(payload, indent=2,

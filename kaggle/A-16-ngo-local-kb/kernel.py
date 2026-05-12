@@ -224,6 +224,7 @@ def ingest_case(case_id: str, content: str) -> dict:
         "n_entities": len(entities),
         "entities": entities,
         "ingested_at": ingested_at,
+        "error": None,    # canonical PerRow.error (data_primitives.md 1.5)
     }
 
 
@@ -300,8 +301,10 @@ def _flush():
                 "%Y-%m-%dT%H:%M:%SZ", time.gmtime(_session_t0)),
             "host": "kaggle" if Path("/kaggle").exists() else "local",
         },
-        "aggregate": aggregate_preview(),
-        "ingested": INGESTED_LOG,
+        "summary": aggregate_preview(),
+        "aggregate": aggregate_preview(),  # legacy alias (data_primitives.md 1.1)
+        "results": INGESTED_LOG,
+        "ingested": INGESTED_LOG,           # legacy alias for results
     }
     RESULTS_PATH.write_text(json.dumps(payload, indent=2,
                                           ensure_ascii=False),
