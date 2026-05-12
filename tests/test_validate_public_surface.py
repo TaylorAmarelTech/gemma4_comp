@@ -110,3 +110,189 @@ def test_file_allow_marker_ignores_non_comment_header_text() -> None:
     )
 
     assert not validator._has_file_allow(text)
+
+
+# ---- bundle_envelope_v1 helper: _line_or_above_has_allow -------------------
+
+def test_line_allow_inline_match() -> None:
+    validator = _load_validator()
+    lines = [
+        'payload = {',
+        '    "aggregate": agg,  # audit-allow:drift -- phase result',
+        '}',
+    ]
+    assert validator._line_or_above_has_allow(lines, 2)
+
+
+def test_line_allow_directly_above_match() -> None:
+    validator = _load_validator()
+    lines = [
+        '# audit-allow:drift -- legacy compat shim',
+        '"aggregate": agg,',
+    ]
+    assert validator._line_or_above_has_allow(lines, 2)
+
+
+def test_line_allow_two_above_is_rejected() -> None:
+    validator = _load_validator()
+    lines = [
+        '# audit-allow:drift -- explanation',
+        '# (continuation comment)',
+        '"aggregate": agg,',
+    ]
+    assert not validator._line_or_above_has_allow(lines, 3)
+
+
+def test_line_allow_out_of_range() -> None:
+    validator = _load_validator()
+    lines = ['"aggregate": agg,']
+    assert not validator._line_or_above_has_allow(lines, 0)
+    assert not validator._line_or_above_has_allow(lines, 5)
+
+
+# ---- check_bundle_envelope_v1 -- end-to-end --------------------------------
+
+def _setup_fake_kaggle(
+    tmp_path: Path,
+    validator: ModuleType,
+    monkeypatch,
+) -> Path:
+    """Wire validator.ROOT + validator.KAGGLE to a clean tmp tree.
+
+    Returns the KAGGLE dir that subsequent _write_fake_kernel calls
+    should plant kernels under.
+    """
+    kaggle_dir = tmp_path / "kaggle"
+    kaggle_dir.mkdir(parents=True, exist_ok=True)
+    monkeypatch.setattr(validator, "ROOT", tmp_path)
+    monkeypatch.setattr(validator, "KAGGLE", kaggle_dir)
+    return kaggle_dir
+
+
+def _write_fake_kernel(folder: Path, body: str) -> None:
+    folder.mkdir(parents=True, exist_ok=True)
+    (folder / "kernel.py").write_text(body, encoding="utf-8")
+
+
+def test_bundle_envelope_clean_kernel(tmp_path: Path, monkeypatch) -> None:
+    validator = _load_validator()
+    kaggle = _setup_fake_kaggle(tmp_path, validator, monkeypatch)
+    _write_fake_kernel(
+        kaggle / "A-99-clean",
+        '\n'.join([
+            'payload = {',
+            '    "schema_version": "1.0",',
+            '    "kernel_id": "a-99-clean",',
+            '    "run_id": "a99_clean_2026-05-12T19-30-00Z",',
+            '    "summary": {"n_results": 1},',
+            '    "results": [],',
+            '}',
+        ]),
+    )
+    result = validator.check_bundle_envelope_v1()
+    assert result.ok, result.findings
+
+
+def test_bundle_envelope_detects_custom_schema_version(
+    tmp_path: Path, monkeypatch,
+) -> None:
+    validator = _load_validator()
+    kaggle = _setup_fake_kaggle(tmp_path, validator, monkeypatch)
+    _write_fake_kernel(
+        kaggle / "A-99-bad-schema",
+        '\n'.join([
+            'payload = {',
+            '    "schema_version": "duecare.custom.v9",',
+            '}',
+        ]),
+    )
+    result = validator.check_bundle_envelope_v1()
+    assert any(
+        f.rule == "bundle_envelope_v1.schema_version"
+        for f in result.findings
+    )
+
+
+def test_bundle_envelope_detects_aggregate_only(
+    tmp_path: Path, monkeypatch,
+) -> None:
+    validator = _load_validator()
+    kaggle = _setup_fake_kaggle(tmp_path, validator, monkeypatch)
+    _write_fake_kernel(
+        kaggle / "A-99-aggregate-only",
+        '\n'.join([
+            'payload = {',
+            '    "kernel_id": "a-99",',
+            '    "aggregate": {"n": 0},',
+            '    "results": [],',
+            '}',
+        ]),
+    )
+    result = validator.check_bundle_envelope_v1()
+    assert any(
+        f.rule == "bundle_envelope_v1.aggregate"
+        for f in result.findings
+    )
+
+
+def test_bundle_envelope_accepts_canonical_plus_alias(
+    tmp_path: Path, monkeypatch,
+) -> None:
+    """Rollover state: BOTH canonical + legacy alias present is fine."""
+    validator = _load_validator()
+    kaggle = _setup_fake_kaggle(tmp_path, validator, monkeypatch)
+    _write_fake_kernel(
+        kaggle / "A-99-rollover",
+        '\n'.join([
+            'payload = {',
+            '    "schema_version": "1.0",',
+            '    "summary": {"n": 0},',
+            '    "aggregate": {"n": 0},',
+            '    "results": [],',
+            '    "proposals": [],',
+            '}',
+        ]),
+    )
+    result = validator.check_bundle_envelope_v1()
+    assert result.ok, result.findings
+
+
+def test_bundle_envelope_detects_legacy_results_aliases(
+    tmp_path: Path, monkeypatch,
+) -> None:
+    validator = _load_validator()
+    kaggle = _setup_fake_kaggle(tmp_path, validator, monkeypatch)
+    _write_fake_kernel(
+        kaggle / "A-99-proposals-only",
+        '\n'.join([
+            'payload = {',
+            '    "kernel_id": "a-99",',
+            '    "summary": {},',
+            '    "proposals": [],',
+            '}',
+        ]),
+    )
+    result = validator.check_bundle_envelope_v1()
+    assert any(
+        f.rule == "bundle_envelope_v1.results_alt"
+        for f in result.findings
+    )
+
+
+def test_bundle_envelope_honors_inline_allow_marker(
+    tmp_path: Path, monkeypatch,
+) -> None:
+    """An audit-allow:drift inline marker suppresses the finding."""
+    validator = _load_validator()
+    kaggle = _setup_fake_kaggle(tmp_path, validator, monkeypatch)
+    _write_fake_kernel(
+        kaggle / "A-99-allow-marker",
+        '\n'.join([
+            'payload = {',
+            '    "kernel_id": "a-99",',
+            '    "aggregate": {"n": 0},  # audit-allow:drift -- phase key',
+            '}',
+        ]),
+    )
+    result = validator.check_bundle_envelope_v1()
+    assert result.ok, result.findings

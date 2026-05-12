@@ -13,6 +13,22 @@
 > `docs/data_compatibility_plan.md` (the unification refactor
 > checklist).
 
+## 0. Scope: two contracts, intentionally distinct
+
+DueCare has **two** schema contracts. Do not confuse them:
+
+| Contract | Location | Shape | Used by |
+|---|---|---|---|
+| **BundleEnvelope v1.0** | `duecare.appendix_primitives.envelopes` | `schema_version: "1.0"` (string) + `kernel_id`, `run_id`, `summary`, `results[]` | Every `kaggle/*/kernel.py` that writes JSON to `/kaggle/working/` |
+| **KnowledgeObject envelope** | `apps/duecare-ai.com/app/schema.py` | `schema_version: 1` (integer) + `@type`, `id`, `version`, `provenance`, `content`, `extensions{}` | The website's pack-vetting workflow (ContextPack, GrepRulePack, ToolPack, ContactPack, RubricPack, EvalPromptPack, TrainingExamplePack, Submission, Run) |
+
+The rest of this document describes the **BundleEnvelope contract
+only**. The website's `KnowledgeObject` envelope is a separate
+JSON-LD-style schema for vetted knowledge artifacts; see
+`apps/duecare-ai.com/app/schema.py` for that contract. The audit
+check `bundle_envelope_v1` only scans `kaggle/*/kernel.py`, never
+the website surface.
+
 ## 1. The 7 canonical primitives
 
 ### 1.1 BundleEnvelope (top-level wrapper)
