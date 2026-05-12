@@ -17,6 +17,7 @@ from duecare.appendix_primitives.envelopes import (
     HarnessTrace,
     PerRow,
 )
+from duecare.appendix_primitives.helpers import sha256_of_file
 from duecare.appendix_primitives.ids import make_run_id
 from duecare.appendix_primitives.io import read_v1_bundle, write_v1_bundle
 
@@ -31,6 +32,7 @@ __all__ = [
     "PerRow",
     "make_run_id",
     "read_v1_bundle",
+    "sha256_of_file",
     "validate_canonical",
     "write_v1_bundle",
 ]

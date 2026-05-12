@@ -356,6 +356,18 @@ def _flush():
     META_PATH.write_text(json.dumps(
         {k: v for k, v in payload.items() if k != "results"},
         indent=2, ensure_ascii=False), encoding="utf-8")
+    # Streaming JSONL companion (data_primitives.md section 1.7) --
+    # one PerRow per line, prefixed with envelope metadata so each
+    # line is self-describing for jq / pandas read_json(lines=True).
+    with JSONL_PATH.open("w", encoding="utf-8") as _fh:
+        for _row in RESULTS:
+            _line = {
+                "schema_version": "1.0",
+                "run_id": RUN_ID,
+                "kernel_id": "a-14-ugc-batch-moderator",
+                **_row,
+            }
+            _fh.write(json.dumps(_line, ensure_ascii=False) + "\n")
     with zipfile.ZipFile(BUNDLE_PATH, "w", zipfile.ZIP_DEFLATED) as _z:
         _z.writestr("manifest.json", json.dumps({
             "schema_version": "1.0",
@@ -367,6 +379,9 @@ def _flush():
         _z.write(META_PATH, "metadata.json")
 
 
+# JSONL_PATH is populated during _flush() above. Touch as a safety
+# net so an early dashboard hit (before any rows have been scored)
+# doesn't 404 on the eventual zip-extract path.
 JSONL_PATH.touch(exist_ok=True)
 
 
