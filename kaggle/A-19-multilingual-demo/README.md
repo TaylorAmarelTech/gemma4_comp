@@ -42,8 +42,10 @@ on the website.
 
 To `/kaggle/working/`:
 
-- `a19_multilingual_demo.json` — full payload with languages dict
-- `a19_multilingual_bundle.zip` — manifest + above
+- `<RUN>_multilingual_demo.json` — full payload with languages dict
+- `<RUN>_bundle.zip` — manifest + above
+- `RUN_ID` format: `a19_multilingual_{ts}`
+  (e.g., `a19_multilingual_2026-05-12T19-30-00Z`)
 
 ## Where this slot lives
 
