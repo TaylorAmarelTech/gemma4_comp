@@ -18,7 +18,7 @@
   DUECARE GEMMA CHAT  --  Kaggle notebook (paste into a single code cell)
 ============================================================================
 
-  PURE Gemma 4 chat playground. NOT the Duecare safety harness.
+  PURE Gemma 4 chat playground. NOT the DueCare safety harness.
   No moderation pipeline, no audit trail, no evidence DB, no slideshow,
   no benchmark tab. Just:
 
@@ -152,7 +152,7 @@ def install_chat_wheels() -> int:
     print("  → installing from GitHub (github.com/TaylorAmarelTech/gemma4_comp)")
     try:
         import urllib.request
-        bootstrap_url = "https://raw.githubusercontent.com/TaylorAmarelTech/gemma4_comp/master/scripts/_notebook_bootstrap.py"
+        bootstrap_url = "https://raw.githubusercontent.com/TaylorAmarelTech/gemma4_comp/3e3ff9e3684903a66441b1ec4b143de25e7ded3e/scripts/_notebook_bootstrap.py"
         with urllib.request.urlopen(bootstrap_url, timeout=15) as response:
             bootstrap_code = response.read().decode('utf-8')
 
@@ -297,14 +297,14 @@ _SHUTDOWN_BUTTON_SNIPPET = """
     font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   }
 </style>
-<div id="_dc-shutdown-overlay" role="dialog" aria-modal="true" aria-live="polite">
+<div id="_dc-shutdown-overlay" role="dialog" aria-modal="true" aria-live="polite" tabindex="-1" aria-labelledby="_dc-shutdown-title">
   <div class="box">
     <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
          stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"
          aria-hidden="true">
       <polyline points="20 6 9 17 4 12"></polyline>
     </svg>
-    <h1>Server stopped</h1>
+    <h1 id="_dc-shutdown-title">Server stopped</h1>
     <p>The FastAPI server is down and the Kaggle cell will exit shortly.</p>
     <p class="meta">You can close this tab.</p>
   </div>
@@ -312,7 +312,7 @@ _SHUTDOWN_BUTTON_SNIPPET = """
 <template id="_dc-shutdown-tpl">
   <button class="dc-shutdown-pill" type="button" data-state="idle"
           title="Stop the FastAPI server and exit the Kaggle cell"
-          aria-label="Shutdown Duecare server">
+          aria-label="Shutdown DueCare server">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
          stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
          aria-hidden="true">
@@ -355,6 +355,7 @@ _SHUTDOWN_BUTTON_SNIPPET = """
         setTimeout(function() {
           setState('done', 'Stopped');
           overlay.classList.add('show');
+          overlay.focus();
         }, 350);
       } else {
         setState('confirming', 'Click again to confirm');
@@ -481,7 +482,7 @@ def _attach_shutdown(app, hide_harness_tiles: bool = False) -> None:
     def _shutdown_page():
         html = (
             "<!doctype html><html><head><meta charset='utf-8'>"
-            "<title>Shut down Duecare</title><style>"
+            "<title>Shut down DueCare</title><style>"
             "body{font-family:-apple-system,system-ui,sans-serif;"
             "background:#f8fafc;color:#1f2937;display:flex;"
             "align-items:center;justify-content:center;min-height:100vh;"
@@ -494,7 +495,7 @@ def _attach_shutdown(app, hide_harness_tiles: bool = False) -> None:
             "cursor:pointer}button:hover{background:oklch(0.50 0.16 45)}"
             ".meta{color:#6b7280;font-size:12px;margin-top:18px}"
             "</style></head><body><div class='box'>"
-            "<h1>Shut down Duecare?</h1>"
+            "<h1>Shut down DueCare?</h1>"
             "<p>Stops the FastAPI server, closes the browser session "
             "(if any), terminates the cloudflared tunnel, and exits "
             "the Kaggle cell. Re-run the cell to restart.</p>"
@@ -736,7 +737,7 @@ model_info = {
 from duecare.chat.harness import grade_response, RUBRICS_REQUIRED
 
 # v0.8.1: optional reranker + cached embedder. Same one-line pattern
-# every Duecare chat kernel uses. Toggle via ENABLE_RERANKER /
+# every DueCare chat kernel uses. Toggle via ENABLE_RERANKER /
 # ENABLE_EMBEDDER env vars; falls back silently when transformers
 # unavailable.
 try:
@@ -792,7 +793,7 @@ if TUNNEL != "none":
     try:
         # Note: duecare-llm-server is NOT in this notebook's wheel set;
         # we do a minimal cloudflared launch inline. Kaggle minimal
-        # images don't ship cloudflared, so download the linux-amd64
+        # images don't include cloudflared, so download the linux-amd64
         # release binary on demand (~30 MB, ~5 s).
         import shutil as _shutil, urllib.request as _urlreq, stat as _stat
         cf_bin = _shutil.which("cloudflared")

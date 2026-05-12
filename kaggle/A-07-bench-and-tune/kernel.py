@@ -1,27 +1,39 @@
 # <!-- duecare:kernel-intro -->
-# DueCare — Unsloth fine-tune + GGUF export pipeline
+# DueCare — Adapter training + new-model benchmark
 # Appendix notebook #A07 of 13 in the DueCare submission.
 #
-# End-to-end SFT + DPO + GGUF Q8_0 + HF Hub push. The training pipeline behind the harness.
+# End-to-end SafetyJudge SFT + DPO + stock-vs-fine-tuned benchmark + GGUF + HF Hub push.
 #
 # What to look for after Run All:
-#   - SFT runs on the curated training set with the same anonymizer gate.
-#   - DPO uses the 5-grade prompt set from kernel A-06 as preference pairs.
-#   - GGUF export is the same path used for the LiteRT mobile build.
+#   - A-06 handoff bundles are loaded from attached Kaggle datasets, not notebook links.
+#   - SFT/DPO train a SafetyJudge adapter, while PrivacyRedactor data remains a separate adapter track.
+#   - eval_results.json is the stock-vs-fine-tuned model benchmark artifact.
 #
-# Demo path: Run All on a T4 -> watch the SFT curve -> see the GGUF artifact -> push to HF Hub (BYO token).
+# Demo path: Run All on a T4 -> watch stock benchmark -> train adapter -> re-benchmark -> see eval_results.json and GGUF artifact.
 #
 # Full README + cross-kernel index: see the README in this folder.
 
 """
 ============================================================================
-  DUECARE BENCH & TUNE -- Kaggle notebook (paste into a single code cell)
+    DUECARE ADAPTER TRAINING -- Kaggle notebook (paste into a single code cell)
 ============================================================================
 
-  The science / methodology piece. Stock smoke benchmark -> Unsloth SFT
-  (LoRA on harness-distilled prompt/response pairs) -> DPO (chosen =
-  harness-on, rejected = harness-off) -> re-benchmark -> GGUF export ->
-  HF Hub push.
+    The science / methodology piece. Stock smoke benchmark -> Unsloth SFT
+    (LoRA on A-06 or harness-distilled prompt/response pairs) -> DPO
+    (chosen = BEST/harness-on, rejected = harmful/incomplete/raw) ->
+    re-benchmark the fine-tuned SafetyJudge adapter -> GGUF export -> HF
+    Hub push.
+
+    Kaggle memory rule: this notebook loads only one model into memory for
+    a run. Synthetic data generation happens upstream in A-06; A-07 reads
+    A-06 bundles attached through Kaggle Add Data. Run A-06 multiple times
+    (stock_harness_teacher, abliterated_adversary, human_curated_review),
+    attach all output datasets here, and A-07 merges the JSONLs by manifest.
+
+    Model layout: one Gemma 4 backbone, two routed DueCare adapters. This
+    kernel trains/benchmarks the SafetyJudge adapter by default. A-06 also
+    produces PrivacyRedactor anonymization rows for a separate adapter/eval
+    track; do not blend privacy-redaction rows into the SafetyJudge adapter.
 
   Phases (each can be toggled via the CONFIG block below):
     Phase 0  Install Hanchen's Unsloth stack (required for fine-tune)
@@ -58,13 +70,17 @@
 from __future__ import annotations
 
 import json
+import hashlib
 import os
+import re
+import shutil
 import subprocess
 import sys
 import time
 import traceback
+import zipfile
 from dataclasses import dataclass, field
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from typing import Any, Optional
 
 
@@ -96,6 +112,31 @@ RUN_DPO             = True       # Phase 7  (requires Phase 5 to have produced a
 RUN_BENCHMARK_FT    = True       # Phase 8 -- post-fine-tune eval
 RUN_GGUF_EXPORT     = True       # Phase 9
 RUN_HF_PUSH         = True       # Phase 10 -- requires HF_TOKEN with write scope
+USE_A06_GENERATED_DATA = True    # Prefer attached A-06 bundles/JSONLs before fallback
+
+# A-06 artifacts should arrive as Kaggle datasets via Add Data. Direct
+# notebook-to-notebook links are intentionally avoided because they are brittle
+# and hard to reproduce in public Kaggle runs.
+A06_ARTIFACT_SEARCH_ROOTS = ["/kaggle/input", "/kaggle/working/a06_uploaded_bundles"]
+A06_BUNDLE_NAME = "duecare_a06_to_a07_bundle.zip"
+A06_EXTRACT_DIR = "/kaggle/working/a06_attached_bundles"
+A06_UPLOAD_DIR = "/kaggle/working/a06_uploaded_bundles"
+ALLOWED_GENERATION_PROFILES = {
+    "stock_harness_teacher",
+    "abliterated_adversary",
+    "human_curated_review",
+    "unknown",
+}
+TRUSTED_BEST_PROFILES = {"stock_harness_teacher", "human_curated_review"}
+MAX_A06_JSONL_ROWS = 20_000
+MAX_A06_TEXT_CHARS = 20_000
+MAX_A06_ZIP_BYTES = 200_000_000
+MAX_A06_JSONL_BYTES = 200_000_000
+MAX_A06_JSONL_LINE_CHARS = 200_000
+MAX_A06_MEMBER_BYTES = 100_000_000
+MAX_A06_UNCOMPRESSED_BYTES = 500_000_000
+MAX_A06_UPLOAD_FILES = 8
+STRICT_A06_CHECKSUM_VALIDATION = True
 
 # ===== SFT hyperparameters ===================================================
 # Dataset size: cap to keep T4 runs short. The harness can generate as
@@ -130,12 +171,14 @@ GGUF_OUTPUT_DIR    = "/kaggle/working/duecare_gguf"
 
 # ===== HF Hub push ===========================================================
 # Per reference_kaggle_naming_convention memory + Gemma attribution rules:
-#   <user>/Duecare-Gemma-4-<size>-<purpose>-v<version>[-suffix]
-HF_REPO_SFT  = (f"taylorscottamarel/Duecare-Gemma-4-"
+#   <user>/duecare-gemma-4-<size>-<purpose>-v<version>[-suffix]
+HF_REPO_SFT  = (f"taylorscottamarel/duecare-gemma-4-"
                 f"{GEMMA_HF_REPO_VARIANT}-SafetyJudge-v0.1.0")
-HF_REPO_DPO  = (f"taylorscottamarel/Duecare-Gemma-4-"
+HF_REPO_DPO  = (f"taylorscottamarel/duecare-gemma-4-"
                 f"{GEMMA_HF_REPO_VARIANT}-SafetyJudge-DPO-v0.1.0")
-HF_REPO_GGUF = (f"taylorscottamarel/Duecare-Gemma-4-"
+HF_REPO_PRIVACY = (f"taylorscottamarel/duecare-gemma-4-"
+                   f"{GEMMA_HF_REPO_VARIANT}-PrivacyRedactor-v0.1.0")
+HF_REPO_GGUF = (f"taylorscottamarel/duecare-gemma-4-"
                 f"{GEMMA_HF_REPO_VARIANT}-SafetyJudge-v0.1.0-GGUF")
 
 # ===== Output =================================================================
@@ -462,7 +505,7 @@ def run_benchmark(loaded: LoadedModel, label: str) -> dict:
 
     gemma_call = make_gemma_call(loaded)
 
-    # Heuristic verdict mapper -- we don't run the full Duecare engine here;
+    # Heuristic verdict mapper -- we don't run the full DueCare engine here;
     # we use Gemma's response text to derive verdict + severity by simple
     # signal matching. The same scoring rubric runs against both stock and
     # fine-tuned outputs, so the delta is meaningful.
@@ -538,6 +581,386 @@ def run_benchmark(loaded: LoadedModel, label: str) -> dict:
 # ===========================================================================
 # PHASE 4 -- Build SFT dataset (harness-distilled chat pairs)
 # ===========================================================================
+_A06_PREPARED_ROOTS: list[Path] = []
+
+
+def _sha256_file(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as fh:
+        for chunk in iter(lambda: fh.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def _clean_text(value: Any, *, limit: int = MAX_A06_TEXT_CHARS) -> str:
+    text = str(value or "")[:limit]
+    return "".join(ch for ch in text if ch in "\n\r\t" or ord(ch) >= 32)
+
+
+def _clean_profile(value: Any) -> str:
+    raw = str(value or "unknown").strip().lower()
+    cleaned = re.sub(r"[^a-z0-9_\-]", "_", raw)[:64]
+    return cleaned if cleaned in ALLOWED_GENERATION_PROFILES else "unknown"
+
+
+def _contains_raw_pii(text: str) -> bool:
+    if re.search(r"\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b", text, flags=re.IGNORECASE):
+        return True
+    if re.search(r"\b(?:\+?\d[\s().-]?){9,}\b", text):
+        return True
+    if re.search(r"\b(?:passport|visa|national id|bank account)\s*[:#-]?\s*[A-Z0-9-]{5,}\b", text, flags=re.IGNORECASE):
+        return True
+    return False
+
+
+def _safe_extract_zip(bundle_path: Path, target: Path) -> None:
+    """Extract a ZIP only if every member stays under the target directory."""
+    target_root = target.resolve()
+    with zipfile.ZipFile(bundle_path) as zf:
+        planned: list[tuple[zipfile.ZipInfo, Path]] = []
+        seen_targets: set[Path] = set()
+        total_uncompressed = 0
+        for member in zf.infolist():
+            if member.is_dir():
+                continue
+            member_name = member.filename.replace("\\", "/")
+            member_path = PurePosixPath(member_name)
+            member_mode = (member.external_attr >> 16) & 0o170000
+            if not member_path.parts or member_path.name in {"", "."}:
+                raise ValueError("A-06 bundle contains an empty path")
+            if member_path.is_absolute() or ".." in member_path.parts:
+                raise ValueError("A-06 bundle contains an unsafe path")
+            if member_mode == 0o120000:
+                raise ValueError("A-06 bundle contains a symlink")
+            if member.file_size > MAX_A06_MEMBER_BYTES:
+                raise ValueError("A-06 bundle member is too large")
+            total_uncompressed += int(member.file_size or 0)
+            if total_uncompressed > MAX_A06_UNCOMPRESSED_BYTES:
+                raise ValueError("A-06 bundle uncompressed size is too large")
+            member_target = (target / Path(*member_path.parts)).resolve()
+            if target_root not in (member_target, *member_target.parents):
+                raise ValueError("A-06 bundle contains an unsafe path")
+            if member_target in seen_targets:
+                raise ValueError("A-06 bundle contains duplicate output paths")
+            seen_targets.add(member_target)
+            planned.append((member, member_target))
+        for member, member_target in planned:
+            member_target.parent.mkdir(parents=True, exist_ok=True)
+            with zf.open(member) as source, member_target.open("wb") as destination:
+                shutil.copyfileobj(source, destination, length=1024 * 1024)
+
+
+def _verify_manifest_artifact_checksums(root: Path, manifest: dict) -> list[str]:
+    """Return checksum warnings for files listed in an A-06 handoff manifest."""
+    warnings: list[str] = []
+    for artifact in manifest.get("artifacts", []) or []:
+        if not isinstance(artifact, dict):
+            continue
+        name = str(artifact.get("name") or "")
+        expected = str(artifact.get("sha256") or "")
+        if not name or not expected:
+            continue
+        target = root / name
+        if not target.exists() or not target.is_file():
+            warnings.append(f"missing:{name}")
+            continue
+        actual = _sha256_file(target)
+        if actual != expected:
+            warnings.append(f"sha256-mismatch:{name}")
+    return warnings
+
+
+def _load_manifest_file(path: Path) -> Optional[dict]:
+    try:
+        manifest = json.loads(path.read_text(encoding="utf-8"))
+    except Exception:
+        return None
+    if not isinstance(manifest, dict):
+        return None
+    profile = _clean_profile(manifest.get("generation_profile"))
+    return {
+        "schema_version": str(manifest.get("schema_version") or ""),
+        "producer_notebook": str(manifest.get("producer_notebook") or ""),
+        "consumer_notebook": str(manifest.get("consumer_notebook") or ""),
+        "generation_profile": profile,
+        "generator_model_variant": _clean_text(manifest.get("generator_model_variant"), limit=80),
+        "one_model_per_kaggle_run": bool(manifest.get("one_model_per_kaggle_run")),
+        "artifacts": manifest.get("artifacts", []) if isinstance(manifest.get("artifacts"), list) else [],
+        "_a06_source_path": str(path),
+    }
+
+
+def _sanitize_a06_row(row: dict, source_path: Path) -> Optional[dict]:
+    try:
+        grade = int(row.get("grade", -1))
+    except Exception:
+        return None
+    if grade < 0 or grade > 4:
+        return None
+    prompt_text = _clean_text(row.get("prompt_text"))
+    response = _clean_text(row.get("response"))
+    if not prompt_text or not response:
+        return None
+    if _contains_raw_pii(prompt_text) or _contains_raw_pii(response):
+        return None
+    return {
+        "prompt_id": _clean_text(row.get("prompt_id"), limit=200),
+        "prompt_text": prompt_text,
+        "category": _clean_text(row.get("category") or "uncategorized", limit=160),
+        "grade": grade,
+        "grade_label": _clean_text(row.get("grade_label"), limit=40).upper(),
+        "rating_label": _clean_text(row.get("rating_label"), limit=40).upper(),
+        "response": response,
+        "generation_profile": _clean_profile(row.get("generation_profile")),
+        "generator_model_variant": _clean_text(row.get("generator_model_variant"), limit=80),
+        "_a06_source_path": str(source_path),
+    }
+
+
+def _prepare_a06_artifact_roots() -> list[Path]:
+    """Return roots containing A-06 handoff files, extracting ZIP bundles once."""
+    global _A06_PREPARED_ROOTS
+    if _A06_PREPARED_ROOTS:
+        return _A06_PREPARED_ROOTS
+
+    roots: list[Path] = []
+    for root_name in A06_ARTIFACT_SEARCH_ROOTS:
+        root = Path(root_name)
+        if root.exists():
+            roots.append(root)
+    Path(A06_UPLOAD_DIR).mkdir(parents=True, exist_ok=True)
+
+    extract_root = Path(A06_EXTRACT_DIR)
+    extract_root.mkdir(parents=True, exist_ok=True)
+    bundle_paths: list[Path] = []
+    for root in roots:
+        direct = root / A06_BUNDLE_NAME
+        if direct.exists():
+            bundle_paths.append(direct)
+        try:
+            for candidate in root.rglob("*.zip"):
+                name = candidate.name.lower()
+                if name == A06_BUNDLE_NAME or any(token in name for token in ("a06", "duecare", "bundle")):
+                    try:
+                        if candidate.stat().st_size <= MAX_A06_ZIP_BYTES:
+                            bundle_paths.append(candidate)
+                    except Exception:
+                        continue
+        except Exception:
+            continue
+
+    seen_bundles: set[str] = set()
+    extracted_roots: list[Path] = []
+    for index, bundle_path in enumerate(bundle_paths, 1):
+        key = str(bundle_path.resolve()) if bundle_path.exists() else str(bundle_path)
+        if key in seen_bundles:
+            continue
+        seen_bundles.add(key)
+        target = extract_root / f"bundle_{index:02d}_{bundle_path.parent.name}"
+        target.mkdir(parents=True, exist_ok=True)
+        try:
+            _safe_extract_zip(bundle_path, target)
+            extracted_roots.append(target)
+            print(f"  extracted A-06 bundle {bundle_path} -> {target}")
+        except Exception as e:
+            print(f"  could not extract A-06 bundle {bundle_path}: {type(e).__name__}")
+
+    _A06_PREPARED_ROOTS = roots + extracted_roots
+    return _A06_PREPARED_ROOTS
+
+
+def _find_a06_artifacts(filename: str) -> list[Path]:
+    """Find all matching A-06 artifacts in attached datasets and bundles."""
+    if not USE_A06_GENERATED_DATA:
+        return []
+
+    paths: list[Path] = []
+    seen: set[str] = set()
+    for root in _prepare_a06_artifact_roots():
+        candidates = []
+        direct = root / filename
+        if direct.exists():
+            candidates.append(direct)
+        try:
+            candidates.extend(root.rglob(filename))
+        except Exception:
+            pass
+        for candidate in candidates:
+            key = str(candidate.resolve()) if candidate.exists() else str(candidate)
+            if key in seen:
+                continue
+            seen.add(key)
+            paths.append(candidate)
+    return paths
+
+
+def _load_jsonl_rows(path: Path) -> list[dict]:
+    rows: list[dict] = []
+    try:
+        if path.stat().st_size > MAX_A06_JSONL_BYTES:
+            print(f"  skipping oversized A-06 JSONL: {path}")
+            return rows
+    except Exception:
+        return rows
+    for index, line in enumerate(path.open(encoding="utf-8"), 1):
+        if index > MAX_A06_JSONL_ROWS:
+            print(f"  row cap reached for {path}; using first {MAX_A06_JSONL_ROWS}")
+            break
+        if len(line) > MAX_A06_JSONL_LINE_CHARS:
+            continue
+        line = line.strip()
+        if not line:
+            continue
+        try:
+            row = json.loads(line)
+        except Exception:
+            continue
+        if isinstance(row, dict):
+            clean_row = _sanitize_a06_row(row, path)
+            if clean_row is not None:
+                rows.append(clean_row)
+    return rows
+
+
+def _load_a06_manifests(*, strict: bool = STRICT_A06_CHECKSUM_VALIDATION) -> list[dict]:
+    manifests: list[dict] = []
+    for path in _find_a06_artifacts("duecare_a06_to_a07_manifest.json"):
+        manifest = _load_manifest_file(path)
+        if manifest is None:
+            continue
+        warnings = _verify_manifest_artifact_checksums(path.parent, manifest)
+        if warnings:
+            manifest["checksum_warnings"] = warnings
+            manifest["_trust_status"] = "untrusted"
+            print(f"  A-06 manifest checksum warnings for {path}: {warnings}")
+            if strict:
+                raise ValueError("A-06 bundle integrity check failed")
+        else:
+            manifest["_trust_status"] = "verified"
+        manifests.append(manifest)
+    return manifests
+
+
+def _load_a06_graded_rows() -> tuple[list[dict], list[dict]]:
+    manifests = _load_a06_manifests()
+    paths = _find_a06_artifacts("graded_responses.jsonl")
+    if not paths:
+        print("  A-06 graded_responses.jsonl not found; using harness-distilled fallback")
+        return [], manifests
+
+    rows: list[dict] = []
+    for path in paths:
+        path_rows = _load_jsonl_rows(path)
+        rows.extend(path_rows)
+        print(f"  loaded {len(path_rows)} A-06 graded response rows from {path}")
+    profiles = sorted({str(row.get("generation_profile", "unknown")) for row in rows})
+    print(f"  merged {len(rows)} A-06 graded rows across profiles: {profiles}")
+    return rows, manifests
+
+
+def _grade_value(row: dict) -> int:
+    try:
+        return int(row.get("grade", -1))
+    except Exception:
+        return -1
+
+
+def _is_best_row(row: dict) -> bool:
+    label = str(row.get("grade_label", "")).upper()
+    rating = str(row.get("rating_label", "")).upper()
+    return label == "BEST" or rating == "BEST" or _grade_value(row) >= 4
+
+
+def _is_rejected_row(row: dict) -> bool:
+    label = str(row.get("grade_label", "")).upper()
+    rating = str(row.get("rating_label", "")).upper()
+    return label in {"HARMFUL", "INCOMPLETE"} or rating in {"WORST", "BAD"} or _grade_value(row) in {0, 1}
+
+
+def _trusted_for_best(row: dict) -> bool:
+    return str(row.get("generation_profile", "unknown")) in TRUSTED_BEST_PROFILES
+
+
+def _write_a06_sft_dataset(rows: list[dict], manifests: list[dict], out_path: Path) -> Path:
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    n_written = 0
+    with out_path.open("w", encoding="utf-8") as fh:
+        for row in rows:
+            if not _is_best_row(row) or not _trusted_for_best(row):
+                continue
+            prompt = str(row.get("prompt_text") or "").strip()
+            response = str(row.get("response") or "").strip()
+            if not prompt or len(response) < 40:
+                continue
+            example = {
+                "messages": [
+                    {"role": "system", "content": DUECARE_PERSONA},
+                    {"role": "user", "content": prompt},
+                    {"role": "assistant", "content": response},
+                ],
+                "metadata": {
+                    "source": "a06_generated_graded_responses",
+                    "source_path": row.get("_a06_source_path"),
+                    "prompt_id": row.get("prompt_id"),
+                    "category": row.get("category") or "uncategorized",
+                    "grade": row.get("grade"),
+                    "grade_label": row.get("grade_label"),
+                    "rating_label": row.get("rating_label"),
+                    "generation_profile": row.get("generation_profile", "unknown"),
+                    "manifest_count": len(manifests),
+                },
+            }
+            fh.write(json.dumps(example, ensure_ascii=False) + "\n")
+            n_written += 1
+            if n_written >= SFT_MAX_EXAMPLES:
+                break
+    print(f"  wrote {n_written} A-06 SFT examples to {out_path}")
+    return out_path
+
+
+def _write_a06_dpo_dataset(rows: list[dict], manifests: list[dict], out_path: Path) -> Path:
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    by_prompt: dict[str, list[dict]] = {}
+    for row in rows:
+        prompt = str(row.get("prompt_text") or "").strip()
+        if not prompt:
+            continue
+        key = prompt
+        by_prompt.setdefault(key, []).append(row)
+
+    n_written = 0
+    with out_path.open("w", encoding="utf-8") as fh:
+        for group in by_prompt.values():
+            chosen_rows = [r for r in group if _is_best_row(r) and _trusted_for_best(r)]
+            rejected_rows = [r for r in group if _is_rejected_row(r)]
+            if not chosen_rows or not rejected_rows:
+                continue
+            chosen = max(chosen_rows, key=_grade_value)
+            rejected = min(rejected_rows, key=_grade_value)
+            prompt = str(chosen.get("prompt_text") or "").strip()
+            chosen_text = str(chosen.get("response") or "").strip()
+            rejected_text = str(rejected.get("response") or "").strip()
+            if not prompt or len(chosen_text) < 40 or len(rejected_text) < 30:
+                continue
+            fh.write(json.dumps({
+                "prompt": prompt,
+                "chosen": chosen_text,
+                "rejected": rejected_text,
+                "category": chosen.get("category") or "uncategorized",
+                "source": "a06_generated_graded_responses",
+                "chosen_profile": chosen.get("generation_profile", "unknown"),
+                "rejected_profile": rejected.get("generation_profile", "unknown"),
+                "chosen_rating": chosen.get("rating_label"),
+                "rejected_rating": rejected.get("rating_label"),
+                "manifest_count": len(manifests),
+            }, ensure_ascii=False) + "\n")
+            n_written += 1
+            if n_written >= DPO_MAX_PAIRS:
+                break
+    print(f"  wrote {n_written} A-06 DPO pairs to {out_path}")
+    return out_path
+
+
 def build_sft_dataset(loaded: LoadedModel) -> Path:
     """Generate (prompt, harness-cited response) chat pairs.
 
@@ -553,6 +976,14 @@ def build_sft_dataset(loaded: LoadedModel) -> Path:
     print("=" * 76)
     print("[phase 4] building SFT dataset (harness-distilled)")
     print("=" * 76)
+
+    a06_rows, a06_manifests = _load_a06_graded_rows()
+    if a06_rows:
+        a06_path = _write_a06_sft_dataset(
+            a06_rows, a06_manifests, Path("/kaggle/working/sft_dataset.jsonl"))
+        if a06_path.exists() and a06_path.stat().st_size > 100:
+            return a06_path
+        print("  A-06 rows did not produce enough SFT data; using fallback")
 
     try:
         from duecare.chat.harness import EXAMPLE_PROMPTS, default_harness
@@ -790,6 +1221,14 @@ def build_dpo_dataset(loaded: LoadedModel) -> Path:
     print("=" * 76)
     print("[phase 6] building DPO preference pairs")
     print("=" * 76)
+
+    a06_rows, a06_manifests = _load_a06_graded_rows()
+    if a06_rows:
+        a06_path = _write_a06_dpo_dataset(
+            a06_rows, a06_manifests, Path("/kaggle/working/dpo_dataset.jsonl"))
+        if a06_path.exists() and a06_path.stat().st_size > 100:
+            return a06_path
+        print("  A-06 rows did not produce enough DPO pairs; using fallback")
 
     try:
         from duecare.chat.harness import EXAMPLE_PROMPTS, default_harness
@@ -1034,19 +1473,19 @@ def _model_card(repo: str, kind: str) -> str:
         f"# {repo.split('/')[-1]}\n\n"
         f"**Built with Google's Gemma 4** (base model: "
         f"[google/gemma-4-{GEMMA_MODEL_VARIANT}]({base})).\n\n"
-        f"This is a {kind} adapter fine-tuned by [Duecare]"
+        f"This is a {kind} adapter fine-tuned by [DueCare]"
         f"(https://github.com/TaylorAmarelTech/gemma4_comp) for the "
         f"2026 Gemma 4 Good Hackathon. The adapter teaches Gemma 4 to "
         f"cite ILO conventions, national recruitment statutes, and "
         f"migrant-worker NGO referrals when prompted with exploitation "
-        f"scenarios -- internalizing the behavior the runtime Duecare "
+        f"scenarios -- internalizing the behavior the runtime DueCare "
         f"safety harness produces via Persona+GREP+RAG+Tools layers.\n\n"
         f"## Training\n\n"
         f"- Base: `google/gemma-4-{GEMMA_MODEL_VARIANT}`\n"
         f"- LoRA: r={SFT_LORA_R}, alpha={SFT_LORA_ALPHA}, "
         f"dropout={SFT_LORA_DROPOUT}\n"
         f"- Distillation source: 200 prompt/response pairs synthesized "
-        f"by running the Duecare safety harness over the public 204-prompt "
+        f"by running the DueCare safety harness over the public 204-prompt "
         f"`EXAMPLE_PROMPTS` set\n"
         f"- DPO preference pairs: 100 pairs where `chosen` = harness-on, "
         f"`rejected` = raw Gemma 4\n\n"
@@ -1093,7 +1532,7 @@ def push_to_hf(adapter_dir: str, repo: str, kind: str) -> bool:
             folder_path=adapter_dir,
             repo_id=repo,
             repo_type="model",
-            commit_message=f"Duecare {kind} v0.1.0 (Gemma 4 hackathon submission)",
+            commit_message=f"DueCare {kind} v0.1.0 (Gemma 4 hackathon submission)",
             token=os.environ["HF_TOKEN"],
         )
         print(f"  pushed to https://huggingface.co/{repo}")
@@ -1128,7 +1567,7 @@ def push_gguf_to_hf(gguf_dir: Path, repo: str) -> bool:
             folder_path=str(gguf_dir),
             repo_id=repo,
             repo_type="model",
-            commit_message=f"Duecare {GGUF_QUANTIZATION} GGUF v0.1.0",
+            commit_message=f"DueCare {GGUF_QUANTIZATION} GGUF v0.1.0",
             token=os.environ["HF_TOKEN"],
         )
         print(f"  pushed to https://huggingface.co/{repo}")
@@ -1153,6 +1592,12 @@ def main() -> dict:
             "sft_num_epochs": SFT_NUM_EPOCHS,
             "dpo_max_pairs": DPO_MAX_PAIRS,
             "dpo_num_epochs": DPO_NUM_EPOCHS,
+            "one_model_per_kaggle_run": True,
+            "use_a06_generated_data": USE_A06_GENERATED_DATA,
+            "a06_bundle_name": A06_BUNDLE_NAME,
+            "a06_search_roots": A06_ARTIFACT_SEARCH_ROOTS,
+            "a06_upload_dir": A06_UPLOAD_DIR,
+            "trusted_best_profiles": sorted(TRUSTED_BEST_PROFILES),
         },
         "phases": {},
     }
@@ -1267,6 +1712,7 @@ def main() -> dict:
                eval_results_path=EVAL_RESULTS_JSON,
                n_phases=len(eval_results.get("phases", {})))
         from duecare.chat.kernel_shell import build_minimal_shell
+        from fastapi import File, HTTPException, UploadFile
         from fastapi.responses import JSONResponse, PlainTextResponse
 
         def _build_bench_dashboard_html(er: dict) -> str:
@@ -1331,10 +1777,10 @@ def main() -> dict:
             kpis.append(_kpi("Mean rubric lift", f"{mean_lift} pp",
                              f"stock {stock.get('mean_pct_score','?')}% → ft {ft.get('mean_pct_score','?')}%"))
             cit_d = _fmt_delta("mean_citations") or "—"
-            kpis.append(_kpi("Citations Δ", cit_d,
+            kpis.append(_kpi("Citations delta", cit_d,
                              f"stock {stock.get('mean_citations','?')} → ft {ft.get('mean_citations','?')} per response"))
             g_d = _fmt_delta("mean_grounding") or "—"
-            kpis.append(_kpi("Grounding Δ", f"{g_d} pp",
+            kpis.append(_kpi("Grounding delta", f"{g_d} pp",
                              f"stock {stock.get('mean_grounding','?')}% → ft {ft.get('mean_grounding','?')}%"))
             kpis.append(_kpi("Phases run",
                              f"{sum(1 for p in phases.values() if p)} / {len(phase_flow)}",
@@ -1416,6 +1862,17 @@ def main() -> dict:
                   color: var(--paper); font-family: var(--sans); }}
     .exports a.ghost {{ background: var(--paper-2); color: var(--ink-2); border: 1px solid var(--line); }}
     .exports a:hover {{ filter: brightness(.96); }}
+        .handoff {{ font-size: 13px; color: var(--ink-2); line-height: 1.55; }}
+        .handoff ol {{ margin: 10px 0 12px 18px; padding: 0; }}
+        .handoff li {{ margin: 4px 0; }}
+        .handoff code {{ background: var(--paper-2); border: 1px solid var(--line-soft);
+                                         border-radius: 4px; padding: 1px 5px; font-family: var(--mono); font-size: 11px; }}
+        .upload-grid {{ display: grid; grid-template-columns: minmax(240px, 1fr) auto; gap: 10px; align-items: center; margin-top: 12px; }}
+        .upload-grid input {{ border: 1px dashed var(--line); background: var(--paper); border-radius: 8px; padding: 10px; font-size: 13px; }}
+        .upload-grid button {{ border: 0; border-radius: 8px; background: var(--ink); color: var(--paper);
+                                                     padding: 10px 14px; font-weight: 600; cursor: pointer; }}
+        .upload-status {{ margin-top: 10px; font-family: var(--mono); font-size: 11px; color: var(--ink-3); white-space: pre-wrap; }}
+        @media (max-width: 760px) {{ .upload-grid {{ grid-template-columns: 1fr; }} }}
   </style>
 </head>
 <body data-nav="researcher">
@@ -1431,6 +1888,27 @@ def main() -> dict:
   </p>
 
   <section class="hero">{kpis_html}</section>
+
+    <section class="panel handoff">
+        <h2>A-06 bundle handoff</h2>
+        <p>
+            Open the Cloudflare URL printed by A-06 after Run All, download one or more
+            <code>duecare_a06_to_a07_bundle.zip</code> files, then bring them here.
+            The most reproducible Kaggle path is <b>Add Data before Run All</b> so A-07 trains on attached bundles from the start.
+        </p>
+        <ol>
+            <li>Run A-06 with <code>stock_harness_teacher</code>; download its bundle ZIP.</li>
+            <li>Run A-06 again with <code>abliterated_adversary</code> for adversarial negatives; download that ZIP too.</li>
+            <li>Attach both ZIPs as Kaggle datasets to A-07, or upload them below and rerun A-07 in the same session.</li>
+            <li>A-07 trusts Best labels only from stock/human-reviewed profiles; abliterated rows are kept for Bad/Worst contrast and stress tests.</li>
+        </ol>
+        <p><b>Trust warning:</b> only attach or upload A-06 bundles from runs you control. Untrusted training bundles can poison the adapter even when their ZIP structure is safe.</p>
+        <form id="a06-upload" class="upload-grid">
+            <input id="a06-files" name="files" type="file" multiple accept=".zip,.json,.jsonl">
+            <button type="submit">Upload A-06 artifacts</button>
+        </form>
+        <div id="a06-upload-status" class="upload-status">Upload staging path: {_html.escape(A06_UPLOAD_DIR)}. Uploaded files affect training after rerun.</div>
+    </section>
 
   <section class="panel">
     <h2>Phase pipeline</h2>
@@ -1453,6 +1931,45 @@ def main() -> dict:
     </div>
   </section>
 </div>
+<script>
+(function() {{
+    const form = document.getElementById('a06-upload');
+    const input = document.getElementById('a06-files');
+    const status = document.getElementById('a06-upload-status');
+    async function refreshArtifacts() {{
+        try {{
+            const res = await fetch('/api/a06-artifacts');
+            const data = await res.json();
+            const profiles = (data.manifests || []).map(m => m.generation_profile || 'unknown');
+            const trust = (data.manifests || []).map(m => m._trust_status || 'unknown');
+            status.textContent = `Attached/staged manifests: ${{data.manifests.length}} · profiles: ${{profiles.join(', ') || 'none'}} · trust: ${{trust.join(', ') || 'none'}}\n${{data.note}}`;
+        }} catch (err) {{
+            status.textContent = 'Could not list A-06 artifacts yet.';
+        }}
+    }}
+    form.addEventListener('submit', async (event) => {{
+        event.preventDefault();
+        const files = Array.from(input.files || []);
+        if (!files.length) {{
+            status.textContent = 'Choose one or more A-06 ZIP/JSONL/JSON artifacts first.';
+            return;
+        }}
+        const body = new FormData();
+        files.forEach(file => body.append('files', file));
+        status.textContent = 'Uploading A-06 artifacts...';
+        try {{
+            const res = await fetch('/api/a06-upload', {{ method: 'POST', body }});
+            const data = await res.json();
+            if (!res.ok) {{ throw new Error(data.detail || 'upload failed'); }}
+            status.textContent = `${{data.saved.length}} file(s) staged. ${{data.next_step}}`;
+            await refreshArtifacts();
+        }} catch (err) {{
+            status.textContent = `Upload failed: ${{err.message || err}}`;
+        }}
+    }});
+    refreshArtifacts();
+}})();
+</script>
 </body>
 </html>"""
 
@@ -1460,6 +1977,73 @@ def main() -> dict:
 
         def _api_eval_results():
             return JSONResponse(eval_results)
+
+        def _api_a06_artifacts():
+            manifests = _load_a06_manifests(strict=False)
+            prompt_paths = [str(path) for path in _find_a06_artifacts("generated_prompts.jsonl")]
+            graded_paths = [str(path) for path in _find_a06_artifacts("graded_responses.jsonl")]
+            privacy_paths = [str(path) for path in _find_a06_artifacts("anonymization_cases.jsonl")]
+            return JSONResponse({
+                "search_roots": [str(root) for root in _prepare_a06_artifact_roots()],
+                "upload_dir": A06_UPLOAD_DIR,
+                "manifests": manifests,
+                "generated_prompts": prompt_paths,
+                "graded_responses": graded_paths,
+                "anonymization_cases": privacy_paths,
+                "note": (
+                    "Upload staging is visible immediately, but training phases already ran. "
+                    "Rerun A-07 to train on newly uploaded bundles."
+                ),
+            })
+
+        async def _api_upload_a06_bundles(files: list[UploadFile] = File(...)):
+            if not files:
+                raise HTTPException(400, "No files supplied")
+            if len(files) > MAX_A06_UPLOAD_FILES:
+                raise HTTPException(400, f"Upload at most {MAX_A06_UPLOAD_FILES} files at once")
+
+            upload_root = Path(A06_UPLOAD_DIR)
+            upload_root.mkdir(parents=True, exist_ok=True)
+            saved: list[dict] = []
+            for upload in files:
+                raw_name = upload.filename or "a06_artifact"
+                safe_name = re.sub(r"[^A-Za-z0-9._-]", "_", Path(raw_name).name)[:180]
+                suffix = Path(safe_name).suffix.lower()
+                if suffix not in {".zip", ".jsonl", ".json"}:
+                    raise HTTPException(400, f"Unsupported file type: {safe_name}")
+                content = await upload.read(MAX_A06_ZIP_BYTES + 1)
+                if len(content) > MAX_A06_ZIP_BYTES:
+                    raise HTTPException(413, f"File too large: {safe_name}")
+                if not content:
+                    raise HTTPException(400, f"Empty file: {safe_name}")
+                target = upload_root / safe_name
+                target.write_bytes(content)
+                record = {
+                    "name": safe_name,
+                    "bytes": len(content),
+                    "sha256": hashlib.sha256(content).hexdigest(),
+                    "path": str(target),
+                    "extracted": False,
+                }
+                if suffix == ".zip":
+                    extract_target = upload_root / f"extracted_{target.stem}"
+                    extract_target.mkdir(parents=True, exist_ok=True)
+                    try:
+                        _safe_extract_zip(target, extract_target)
+                    except Exception as exc:
+                        target.unlink(missing_ok=True)
+                        raise HTTPException(400, f"Unsafe or invalid ZIP: {safe_name}") from exc
+                    record["extracted"] = True
+                    record["extract_path"] = str(extract_target)
+                saved.append(record)
+
+            global _A06_PREPARED_ROOTS
+            _A06_PREPARED_ROOTS = []
+            return JSONResponse({
+                "ok": True,
+                "saved": saved,
+                "next_step": "Rerun A-07 so dataset build/training consumes the uploaded bundles.",
+            })
 
         def _export_phases_csv():
             import io, csv
@@ -1515,6 +2099,8 @@ def main() -> dict:
             homepage_html=dashboard_html,
             extra_routes={
                 "/api/eval-results":  ("GET", _api_eval_results),
+                "/api/a06-artifacts": ("GET", _api_a06_artifacts),
+                "/api/a06-upload":    ("POST", _api_upload_a06_bundles),
                 "/export/phases.csv": ("GET", _export_phases_csv),
             },
         )

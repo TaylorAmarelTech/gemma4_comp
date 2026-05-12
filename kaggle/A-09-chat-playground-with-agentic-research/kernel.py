@@ -224,7 +224,7 @@ subprocess.run([sys.executable, "-m", "pip", "install", "--quiet",
 print(f"  installed: {' '.join(extras)}")
 
 # Playwright needs Chromium downloaded once. Skip --with-deps on Kaggle
-# (no apt root); Chromium ships with what it needs in its userland tarball.
+# (no apt root); Chromium includes what it needs in its userland tarball.
 if INSTALL_PLAYWRIGHT:
     print("  installing Chromium for Playwright (one-time, ~150 MB)...")
     cf_t0 = time.time()
@@ -255,23 +255,56 @@ _CLOUDFLARED_PROC: dict = {"p": None}
 
 _SHUTDOWN_BUTTON_SNIPPET = """
 <style>
-  #_dc-shutdown-btn { position: fixed; top: 12px; right: 12px; z-index: 99999;
-    background: #dc2626; color: white; padding: 8px 14px;
+  #_dc-shutdown-btn {
+    position: fixed; bottom: 14px; right: 14px; z-index: 99999;
+    background: oklch(0.58 0.14 45); color: white; padding: 8px 14px;
     border-radius: 8px; font-family: -apple-system,system-ui,sans-serif;
     font-weight: 700; font-size: 12px; cursor: pointer; border: none;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.18); }
-  #_dc-shutdown-btn:hover { background: #991b1b; }
+    box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+  }
+  #_dc-shutdown-btn:hover { background: oklch(0.50 0.16 45); }
+  #_dc-shutdown-btn:focus-visible { outline: 3px solid white; outline-offset: 2px; }
+  #_dc-shutdown-btn[aria-disabled="true"] { cursor: wait; opacity: 0.82; }
+  #_dc-shutdown-status {
+    position: fixed; bottom: 58px; right: 14px; z-index: 99999;
+    max-width: min(320px, calc(100vw - 28px)); padding: 10px 12px;
+    background: #f8fafc; color: #1f2937; border: 1px solid #e5e7eb;
+    border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.16);
+    font-family: -apple-system,system-ui,sans-serif; font-size: 12px;
+  }
+  #_dc-shutdown-status[hidden] { display: none; }
+  @media (max-width: 640px) {
+    #_dc-shutdown-btn { left: 12px; right: 12px; bottom: 12px; width: calc(100% - 24px); }
+    #_dc-shutdown-status { left: 12px; right: 12px; bottom: 58px; max-width: none; }
+  }
 </style>
-<button id="_dc-shutdown-btn" onclick="
-  if(!confirm('Shut down Duecare?')) return;
-  fetch('/api/shutdown',{method:'POST'}).then(()=>{
-    document.body.innerHTML=
-      '<div style=\"padding:60px;text-align:center;font-family:system-ui\">'+
-      '<h1 style=\"color:#047857\">Shutting down\u2026</h1>'+
-      '<p style=\"color:#6b7280\">You can close this tab.</p></div>';
+<button id="_dc-shutdown-btn" type="button" aria-label="Shutdown DueCare server">Shutdown</button>
+<div id="_dc-shutdown-status" role="status" aria-live="polite" hidden></div>
+<script>
+(function() {
+  var btn = document.getElementById('_dc-shutdown-btn');
+  var status = document.getElementById('_dc-shutdown-status');
+  if (!btn || !status) return;
+  function showStatus(message) {
+    status.textContent = message;
+    status.hidden = false;
+  }
+  btn.addEventListener('click', function() {
+    if (btn.getAttribute('aria-disabled') === 'true') return;
+    if (!confirm('Shut down DueCare?')) return;
+    btn.setAttribute('aria-disabled', 'true');
+    btn.textContent = 'Stopping...';
+    showStatus('Shutting down. You can close this tab after the Kaggle cell exits.');
+    fetch('/api/shutdown', {method: 'POST'}).catch(function(error) {
+      btn.removeAttribute('aria-disabled');
+      btn.textContent = 'Shutdown';
+      showStatus('Shutdown request failed: ' + error.message);
+    });
   });
-">\u23FB Shutdown</button>
+})();
+</script>
 """
+
 
 _HIDE_HARNESS_TILES_SNIPPET = """
 <style>
@@ -495,7 +528,7 @@ def _attach_shutdown(app, hide_harness_tiles: bool = False) -> None:
     def _shutdown_page():
         html = (
             "<!doctype html><html><head><meta charset='utf-8'>"
-            "<title>Shut down Duecare</title><style>"
+            "<title>Shut down DueCare</title><style>"
             "body{font-family:-apple-system,system-ui,sans-serif;"
             "background:#f8fafc;color:#1f2937;display:flex;"
             "align-items:center;justify-content:center;min-height:100vh;"
@@ -508,7 +541,7 @@ def _attach_shutdown(app, hide_harness_tiles: bool = False) -> None:
             "cursor:pointer}button:hover{background:#991b1b}"
             ".meta{color:#6b7280;font-size:12px;margin-top:18px}"
             "</style></head><body><div class='box'>"
-            "<h1>Shut down Duecare?</h1>"
+            "<h1>Shut down DueCare?</h1>"
             "<p>Stops the FastAPI server, closes the browser session "
             "(if any), terminates the cloudflared tunnel, and exits "
             "the Kaggle cell. Re-run the cell to restart.</p>"
@@ -701,13 +734,14 @@ print(f"  harness: GREP={len(GREP_RULES)} RAG={len(RAG_CORPUS)} "
       f"Tools={len(_TOOL_DISPATCH)}")
 
 # PII filter -- HARD GATE. Every outbound web query passes through this
-# BEFORE the network call. Composite victim names are explicitly NOT in
-# the allow_org_names list -- only public agency names that look like
-# person names (per the existing PIIFilter heuristic).
+# BEFORE the network call. Composite victim names and synthetic bad-actor
+# organizations are explicitly NOT in the allow_org_names list.
 PII = PIIFilter(allow_org_names=[
-    "Pacific Coast Manpower",
-    "Hong Kong City Credit Management Group",
-    "Al-Rashid Household Services",   # public composite agency names only
+  "ILO",
+  "POEA",
+  "BP2MI",
+  "IJM",
+  "Polaris Project",
 ])
 
 # BYOK architecture: NO API keys are read from env or Kaggle Secrets at
@@ -859,7 +893,7 @@ def _format_past_steps(steps: list) -> str:
     for i, s in enumerate(steps, 1):
         out.append(f"  [{i}] called {s['tool']} with {s['args']}")
         # Summarize the result
-        result_summary = (s.get("result_summary") or "")[:240]
+        result_summary = s.get("result_summary") or ""
         out.append(f"      -> {result_summary}")
     return "\n".join(out)
 
@@ -940,7 +974,7 @@ def run_agent(user_question: str,
                 items = result.items[:5]
                 result_summary = (
                     f"{len(items)} results. " +
-                    "; ".join(f"[{i+1}] {it['title'][:60]} ({it['url'][:60]})"
+                  "; ".join(f"[{i+1}] {it['title']} ({it['url']})"
                               for i, it in enumerate(items)))
             elif tool_name == "web_fetch":
                 if result.items:
@@ -1020,7 +1054,7 @@ from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
 import uvicorn
 
-app = FastAPI(title="Duecare Chat with Agentic Research")
+app = FastAPI(title="DueCare Chat with Agentic Research")
 _attach_shutdown(app)
 
 # Mount the chat-package static dir at /wb-static/ so this appendix
@@ -1179,7 +1213,7 @@ def chat(req: ChatRequest) -> dict:
 # ===========================================================================
 _PAGE_HTML = """<!doctype html><html><head>
 <meta charset="utf-8">
-<title>Duecare Chat with Agentic Research</title>
+<title>DueCare Chat with Agentic Research</title>
 <link rel="stylesheet" href="/wb-static/_chrome.css">
 <script src="/wb-static/_nav.js" defer></script>
 <style>
@@ -1404,7 +1438,7 @@ function renderAgent(agent) {
       return `<div class="agent-step"><b>step ${s.step}</b>: <span class="tool">DONE</span> — ${escapeHtml(s.reason || '')}</div>`;
     }
     if (s.action === 'tool') {
-      return `<div class="agent-step"><b>step ${s.step}</b>: <span class="tool">${escapeHtml(s.tool)}</span>(${escapeHtml(JSON.stringify(s.args))})<br><span class="meta">${escapeHtml(s.reason || '')}</span><br><i>${escapeHtml(String(s.result_summary || '').slice(0, 240))}</i></div>`;
+      return `<div class="agent-step"><b>step ${s.step}</b>: <span class="tool">${escapeHtml(s.tool)}</span>(${escapeHtml(JSON.stringify(s.args))})<br><span class="meta">${escapeHtml(s.reason || '')}</span><br><i>${escapeHtml(String(s.result_summary || ''))}</i></div>`;
     }
     return `<div class="agent-step"><b>step ${s.step}</b>: ${escapeHtml(JSON.stringify(s))}</div>`;
   }).join('');

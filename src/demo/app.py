@@ -101,7 +101,7 @@ app = FastAPI(
     description=(
         "On-device LLM safety evaluator for migrant worker protection. "
         "Scores text against trafficking rubrics using Gemma 4-based "
-        "weighted criteria. Privacy is non-negotiable."
+      "weighted criteria. Raw case data stays local unless an authorized user creates a sanitized submission."
     ),
     version=_VERSION,
     lifespan=_lifespan,
@@ -1060,7 +1060,7 @@ _DASHBOARD_HTML = """\
 </div>
 
 <div class="tagline">
-  DueCare &mdash; Privacy is non-negotiable. Powered by Gemma 4.<br>
+  DueCare &mdash; raw case data stays local. Powered by Gemma 4.<br>
   Built for the Gemma 4 Good Hackathon by Taylor Amarel.
 </div>
 

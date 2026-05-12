@@ -68,10 +68,10 @@ class TestDryRun:
         assert f"# push-notebooks ({tracked} kernels)" in result.stdout
         assert result.stdout.count("kernels push") == tracked
         for kernel in (
-            "duecare_000_index",
-            "duecare_100_gemma_exploration",
-            "duecare_430_rubric_evaluation",
-            "duecare_600_results_dashboard",
+            "duecare_010_quickstart",
+            "duecare_200_cross_domain_proof",
+            "duecare_610_submission_walkthrough",
+            "duecare_695_custom_domain_adoption",
         ):
             assert kernel in result.stdout, f"missing kernel {kernel} in dry-run output"
 
@@ -94,11 +94,11 @@ class TestDryRun:
         assert f"# push-notebooks ({_tracked_kernel_count()} kernels)" in result.stdout
 
     def test_push_notebooks_dry_run_limit_and_ids(self):
-        result = _run("--dry-run", "push-notebooks", "--ids", "000", "600", "--limit", "1")
+        result = _run("--dry-run", "push-notebooks", "--ids", "010", "610", "--limit", "1")
         assert result.returncode == 0, result.stderr
         assert "# push-notebooks (1 kernels)" in result.stdout
-        assert "duecare_000_index" in result.stdout
-        assert "duecare_600_results_dashboard" not in result.stdout
+        assert "duecare_010_quickstart" in result.stdout
+        assert "duecare_610_submission_walkthrough" not in result.stdout
 
     def test_status_notebooks_without_creds_fails_fast(self, tmp_path: Path):
         result = _run(
