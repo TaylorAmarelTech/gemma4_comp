@@ -41,8 +41,8 @@ def test_homepage_renders() -> None:
         client = TestClient(app)
         r = client.get("/")
         assert r.status_code == 200
-        # The home page mentions Duecare
-        assert b"Duecare" in r.content
+        # The home page mentions DueCare; casing varies across branded surfaces.
+        assert b"duecare" in r.content.lower()
 
 
 def test_workspace_page_renders() -> None:

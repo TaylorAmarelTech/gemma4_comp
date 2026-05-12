@@ -92,6 +92,97 @@ def test_demo_priority_examples_are_public_and_pii_safe(tmp_path) -> None:
     assert payload["finetuning_best_practices"]["sample_data_needed"] is True
 
 
+def test_hub_tools_manifest_is_gemma_callable_and_read_only(tmp_path) -> None:
+    client = TestClient(create_app(data_dir=tmp_path))
+
+    response = client.get("/api/hub/tools/manifest")
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["orchestration_model"].startswith("Local or Kaggle-hosted Gemma 4")
+    tools = payload["tools"]
+    assert tools
+
+    expected_tools = {
+        "get_hub_status",
+        "list_pack_summaries",
+        "list_packs",
+        "get_pack_details",
+        "list_pack_versions",
+        "sync_packs",
+        "get_aggregate_trends",
+    }
+    assert {tool["name"] for tool in tools} == expected_tools
+
+    for tool in tools:
+        assert tool["method"] == "GET"
+        assert tool["safety_level"] == "read_only_public"
+        assert tool["parameters"]["type"] == "object"
+        assert "properties" in tool["parameters"]
+        assert "required" in tool["parameters"]
+        assert tool["examples"]
+
+
+def test_hub_tools_manifest_excludes_sensitive_or_write_tools(tmp_path) -> None:
+    client = TestClient(create_app(data_dir=tmp_path))
+
+    payload = client.get("/api/hub/tools/manifest").json()
+    rendered = json.dumps(payload).lower()
+    tool_names = {tool["name"] for tool in payload["tools"]}
+
+    forbidden_tool_name_parts = {
+        "admin",
+        "email",
+        "forget",
+        "ingest",
+        "local_kb",
+        "retract",
+        "signal",
+        "submit",
+        "update",
+    }
+    for name in tool_names:
+        for forbidden in forbidden_tool_name_parts:
+            assert forbidden not in name
+
+    assert "/api/admin" not in rendered
+    assert "/api/local-kb" not in rendered
+    assert "/api/hub/client/submission" not in rendered
+    assert "/api/hub/signals" not in rendered
+    assert "/api/hub/opencrawl/updates" not in rendered
+    assert "/api/hub/automation/inbound-email" not in rendered
+
+
+def test_hub_tools_manifest_parameters_do_not_require_pii(tmp_path) -> None:
+    client = TestClient(create_app(data_dir=tmp_path))
+
+    payload = client.get("/api/hub/tools/manifest").json()
+    pii_parameter_fragments = {
+        "address",
+        "body",
+        "contact",
+        "email",
+        "name",
+        "passport",
+        "phone",
+        "raw",
+    }
+
+    for tool in payload["tools"]:
+        properties = tool["parameters"]["properties"]
+        for parameter_name in properties:
+            for fragment in pii_parameter_fragments:
+                assert fragment not in parameter_name.lower(), (
+                    f"Tool {tool['name']} exposes PII-like parameter {parameter_name}"
+                )
+
+    list_packs = next(tool for tool in payload["tools"] if tool["name"] == "list_packs")
+    params = list_packs["parameters"]["properties"]
+    assert {"kind", "status", "jurisdiction", "corridor", "tag", "latest_only"} <= set(params)
+    assert params["latest_only"]["type"] == "boolean"
+    assert list_packs["parameters"]["required"] == []
+
+
 def test_every_design_route_renders(tmp_path) -> None:
     """Every entry in PAGE_ROUTES must serve a 200 with linked CSS."""
     from app.main import PAGE_ROUTES
@@ -263,6 +354,10 @@ def test_pack_registry_get_latest_and_pin(tmp_path) -> None:
 
     missing = client.get("/api/hub/packs/does-not-exist")
     assert missing.status_code == 404
+
+    invalid = client.get("/api/hub/packs/InvalidPackId")
+    assert invalid.status_code == 400
+    assert "pack_id" in invalid.json()["detail"]
 
 
 def test_pack_registry_sync(tmp_path) -> None:
@@ -444,6 +539,255 @@ def test_client_submission_endpoint(tmp_path) -> None:
     assert payload["accepted"] is True
     assert payload["status"] in {"proposed", "needs_review"}
     assert payload["automation_verdict"] in {"accept", "needs_curator_review"}
+
+
+def test_client_submission_accepts_labeling_envelope(tmp_path) -> None:
+    client = TestClient(create_app(data_dir=tmp_path))
+
+    response = client.post(
+        "/api/hub/client/submission",
+        json={
+            "kind": "context",
+            "deployment_id": "test-suite",
+            "summary": "Public-source update on placement-fee cap for the demo corridor; please review.",
+            "visibility": "aggregate_only",
+            "attribution_mode": "pseudonymous_deployment",
+            "submitter": {
+                "tenant_id_hash": "sha256:test-tenant",
+                "public_attribution": False,
+            },
+            "labels": [
+                {
+                    "key": "region",
+                    "value": "Southeast Asia",
+                    "source": "manual_submitter",
+                    "confidence": 1.0,
+                    "public_safe": True,
+                },
+                {
+                    "key": "corridor",
+                    "value": "PHL-KWT",
+                    "source": "local_model_suggested",
+                    "confidence": 0.82,
+                    "public_safe": False,
+                },
+            ],
+            "consent": {
+                "share_sanitized_object": True,
+                "share_aggregate_trends": True,
+                "allow_recontact": False,
+                "allow_training_use": False,
+                "allow_public_display": False,
+            },
+            "consent_public_proposal": True,
+        },
+    )
+
+    assert response.status_code == 202
+    receipt = response.json()
+    record = client.app.state.duecare.store.read_all("updates.jsonl")[-1]
+    assert receipt["accepted"] is True
+    assert "tenant_id_hash" not in json.dumps(receipt)
+    assert record["visibility"] == "aggregate_only"
+    assert record["attribution_mode"] == "pseudonymous_deployment"
+    assert record["submitter"]["tenant_id_hash"] == "sha256:test-tenant"
+    assert record["submitter"]["public_attribution"] is False
+    assert [label["source"] for label in record["labels"]] == ["manual_submitter", "local_model_suggested"]
+    assert record["consent"]["allow_training_use"] is False
+    assert record["consent"]["allow_public_display"] is False
+
+
+def test_anonymous_submission_rejects_attribution_fields(tmp_path) -> None:
+    client = TestClient(create_app(data_dir=tmp_path))
+
+    response = client.post(
+        "/api/hub/client/submission",
+        json={
+            "kind": "context",
+            "summary": "Anonymous public-source update on a regulator clarification.",
+            "visibility": "private_review",
+            "attribution_mode": "anonymous",
+            "submitter": {
+                "organization_registry_id": "ngo-001",
+                "display_name": "Example NGO",
+                "public_attribution": True,
+            },
+            "consent_public_proposal": True,
+        },
+    )
+
+    assert response.status_code == 422
+    assert "anonymous" in str(response.json()["detail"]).lower()
+
+
+def test_local_only_and_public_visibility_constraints(tmp_path) -> None:
+    client = TestClient(create_app(data_dir=tmp_path))
+
+    local_only = client.post(
+        "/api/hub/client/submission",
+        json={
+            "kind": "context",
+            "summary": "This object should remain local and must not reach the hub.",
+            "visibility": "local_only",
+            "attribution_mode": "anonymous",
+            "consent_public_proposal": True,
+        },
+    )
+    assert local_only.status_code == 422
+
+    public_without_consent = client.post(
+        "/api/hub/client/submission",
+        json={
+            "kind": "context",
+            "summary": "Public pack proposal without explicit display consent.",
+            "visibility": "pack_public",
+            "attribution_mode": "anonymous",
+            "consent": {"allow_public_display": False},
+            "consent_public_proposal": True,
+        },
+    )
+    assert public_without_consent.status_code == 422
+
+
+def test_client_submission_rejects_recursive_payload_pii(tmp_path) -> None:
+    client = TestClient(create_app(data_dir=tmp_path))
+
+    response = client.post(
+        "/api/hub/client/submission",
+        json={
+            "kind": "custom",
+            "summary": "Public-source update with unsafe nested payload content.",
+            "visibility": "private_review",
+            "attribution_mode": "anonymous",
+            "payload": {
+                "nested": {
+                    "contact": "worker@example.org",
+                    "phone": "+1 555 123 4567",
+                },
+                "passport_ref": "A1234567",
+            },
+            "consent_public_proposal": True,
+        },
+    )
+
+    assert response.status_code == 422
+    assert "pii" in str(response.json()["detail"]).lower()
+
+
+def test_client_submission_rejects_payload_pii_in_keys(tmp_path) -> None:
+    client = TestClient(create_app(data_dir=tmp_path))
+
+    response = client.post(
+        "/api/hub/client/submission",
+        json={
+            "kind": "custom",
+            "summary": "Public-source update with unsafe payload key content.",
+            "visibility": "private_review",
+            "attribution_mode": "anonymous",
+            "payload": {
+                "worker@example.org": "reported public-source recruitment terms",
+            },
+            "consent_public_proposal": True,
+        },
+    )
+
+    assert response.status_code == 422
+    assert "pii" in str(response.json()["detail"]).lower()
+
+
+def test_client_submission_rejects_too_deep_payload(tmp_path) -> None:
+    client = TestClient(create_app(data_dir=tmp_path))
+    nested: dict[str, object] = {"leaf": "public-source pack candidate"}
+    for _ in range(25):
+        nested = {"nested": nested}
+
+    response = client.post(
+        "/api/hub/client/submission",
+        json={
+            "kind": "custom",
+            "summary": "Public-source update with excessive nested payload depth for validation.",
+            "visibility": "private_review",
+            "attribution_mode": "anonymous",
+            "payload": nested,
+            "consent_public_proposal": True,
+        },
+    )
+
+    assert response.status_code == 422
+    assert "nesting" in str(response.json()["detail"]).lower()
+
+
+def test_client_submission_rejects_oversized_payload(tmp_path) -> None:
+    client = TestClient(create_app(data_dir=tmp_path))
+
+    response = client.post(
+        "/api/hub/client/submission",
+        json={
+            "kind": "custom",
+            "summary": "Public-source update with an oversized payload for validation.",
+            "visibility": "private_review",
+            "attribution_mode": "anonymous",
+            "payload": {"public_context": "x" * 101_000},
+            "consent_public_proposal": True,
+        },
+    )
+
+    assert response.status_code == 422
+    assert "payload exceeds" in str(response.json()["detail"]).lower()
+
+
+def test_contact_email_validation_and_publication_consent(tmp_path) -> None:
+    client = TestClient(create_app(data_dir=tmp_path))
+
+    invalid = client.post(
+        "/api/hub/client/submission",
+        json={
+            "kind": "partner",
+            "summary": "Partner proposal with malformed contact metadata.",
+            "visibility": "private_review",
+            "attribution_mode": "organization_tagged",
+            "organization": "Example NGO",
+            "contact_email": "not-an-email",
+            "consent_public_proposal": True,
+        },
+    )
+    assert invalid.status_code == 422
+
+    private_contact = client.post(
+        "/api/hub/client/submission",
+        json={
+            "kind": "partner",
+            "summary": "Partner proposal with private contact metadata.",
+            "visibility": "private_review",
+            "attribution_mode": "organization_tagged",
+            "organization": "Example NGO",
+            "contact_email": "private@example.org",
+            "contact_publication_consent": False,
+            "consent_public_proposal": True,
+        },
+    )
+    assert private_contact.status_code == 202
+    private_record = client.app.state.duecare.store.read_all("updates.jsonl")[-1]
+    assert private_record["contact_email"] is None
+    assert private_record["contact_email_sha256"]
+
+    public_contact = client.post(
+        "/api/hub/client/submission",
+        json={
+            "kind": "partner",
+            "summary": "Partner proposal with consented public contact metadata.",
+            "visibility": "pack_public",
+            "attribution_mode": "organization_tagged",
+            "organization": "Example NGO",
+            "contact_email": "public@example.org",
+            "contact_publication_consent": True,
+            "consent": {"allow_public_display": True},
+            "consent_public_proposal": True,
+        },
+    )
+    assert public_contact.status_code == 202
+    public_record = client.app.state.duecare.store.read_all("updates.jsonl")[-1]
+    assert public_record["contact_email"] == "public@example.org"
 
 
 def test_client_submission_rejects_pii(tmp_path) -> None:
