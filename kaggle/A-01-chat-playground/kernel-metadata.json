@@ -1,15 +1,13 @@
 {
   "id": "taylorsamarel/duecare-chat-playground",
-  "title": "Duecare Chat Playground",
-  "code_file": "notebook.ipynb",
+  "title": "DueCare Chat Playground",
+  "code_file": "kernel.py",
   "language": "python",
-  "kernel_type": "notebook",
-  "is_private": true,
+  "kernel_type": "script",
+  "is_private": false,
   "enable_gpu": true,
   "enable_internet": true,
-  "dataset_sources": [
-    "taylorsamarel/duecare-chat-playground-wheels"
-  ],
+  "dataset_sources": [],
   "competition_sources": [],
   "kernel_sources": [],
   "model_sources": [

@@ -1,14 +1,13 @@
 {
   "id": "taylorsamarel/duecare-prompt-generation",
-  "title": "Duecare Prompt Generation",
-  "code_file": "notebook.ipynb",
+  "title": "DueCare Prompt Generation",
+  "code_file": "kernel.py",
   "language": "python",
-  "kernel_type": "notebook",
-  "is_private": true,
+  "kernel_type": "script",
+  "is_private": false,
   "enable_gpu": true,
   "enable_internet": true,
   "dataset_sources": [
-    "taylorsamarel/duecare-prompt-generation-wheels",
     "taylorsamarel/duecare-trafficking-prompts"
   ],
   "competition_sources": [],

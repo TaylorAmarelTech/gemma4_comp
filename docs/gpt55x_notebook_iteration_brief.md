@@ -1,8 +1,14 @@
-# DueCare Kaggle Notebooks — Iteration Brief for GPT 5.5x
+# DueCare Kaggle Kernels — Iteration Brief for GPT 5.5x
+
+> **Current workflow correction (2026-05-11).** The active submission is
+> kernel-first, not notebook-first. Treat `kaggle/*/kernel.py` plus each
+> folder `README.md` as source. Do not create, regenerate, or edit `.ipynb`
+> files in active Kaggle folders; historical wrappers live under
+> `_archive/kaggle-notebook-previews-2026-05-11/`.
 
 > **Self-contained brief.** Paste this whole document into GPT 5.5x. No
 > external file fetches required. Goal: **iterate and improve** all 13
-> Kaggle notebooks toward production polish suitable for the 3-minute
+> Kaggle script kernels toward production polish suitable for the 3-minute
 > hackathon screen-recording video. Output concrete edits / diffs /
 > file contents, not just recommendations.
 
@@ -11,7 +17,7 @@
 ## 0. Read this first
 
 Today is **2026-05-11**. The Gemma 4 Good Hackathon submission is due
-**2026-05-18** — T-7 days. The submission publishes **13 Kaggle notebook folders**
+**2026-05-18** — T-7 days. The submission publishes **13 Kaggle kernel folders**
 plus a public website plus a writeup plus a 3-minute video.
 
 **The video is a screen recording of the live product**, not slides or
@@ -22,7 +28,7 @@ time + GPU quota + cloudflared session continuity).
 Your job is **not to redesign from scratch**. The visual system, audience
 lanes, shell primitives, dashboards, and dc_log standard are all in
 place and proven. Your job is to **find every remaining friction point**
-across all 13 notebooks, propose specific edits, and where appropriate
+across all 13 kernels, propose specific edits, and where appropriate
 output the actual code/HTML to apply.
 
 Baseline when this brief was drafted: **commit `3e3ff9e`** on `master`.
@@ -33,16 +39,16 @@ remain **`duecare-llm-chat 0.16.0`** (kernel-shell `homepage_html` +
 (`/wb-static/` cross-mount) unless `pyproject.toml` says otherwise.
 
 **2026-05-11 checkpoint:** a conservative first pass has already landed.
-Do not redo it or reintroduce stale inventory assumptions. Current active
-`kaggle/kernels/*` inventory is **9 kernels** (see
-`docs/current_kaggle_notebook_state.md`), while the judge-facing root
+Do not redo it or reintroduce stale inventory assumptions. The former
+`kaggle/kernels/*` inventory is archived under
+`_archive/kaggle-notebook-previews-2026-05-11/`, while the judge-facing root
 submission remains **13 folders** under `kaggle/`. The pass pinned the 01
 workbench Git fallback, added install-policy regression tests for moving Git
-refs, normalized existing preview-notebook cell metadata, redacted visible
+refs, normalized historical preview metadata, redacted visible
 demo sample identifiers, aligned A-08 sample chart colors to the design
 tokens, and removed A-09 displayed `result_summary` truncation. Validation
-passed for targeted Kaggle tests, 9-kernel notebook parsing, and the public
-surface audit. If `kaggle/01-duecare-harness-chat/kernel.py` appears in an
+passed for targeted Kaggle tests and the public surface audit. If
+`kaggle/01-duecare-harness-chat/kernel.py` appears in an
 agent report, verify the filesystem first; as of this checkpoint it does not
 exist and is not tracked.
 
@@ -53,12 +59,69 @@ exist and is not tracked.
 This brief was prepared in two phases. **Phase 1 has already landed
 on `master`.** You're picking up Phase 2.
 
+### 2026-05-11 direction update — make the appendices an experiment ladder
+
+Taylor's latest preference is that the appendix sequence should read less
+like a loose collection of playgrounds and more like a reproducible model
+improvement pipeline. The current A-01 purpose is **raw interactive Gemma 4
+chat with the DueCare harness off**. That is useful as a visual baseline, but
+it is not yet the stronger batch-evaluation kernel Taylor wants: selected
+Gemma 4 model -> shared prompt library -> harness off -> downloadable results
+and metadata.
+
+Target appendix flow to evaluate against during Phase 2:
+
+1. **Appendix 01 — Stock Gemma 4 baseline runner.** User selects any Gemma 4
+  model, runs the shared test-prompt library with the harness off, and
+  downloads raw model responses plus run metadata.
+2. **Appendix 02 — Harnessed Gemma 4 runner.** User selects the same Gemma 4
+  model, runs the same shared prompt library with the DueCare harness on,
+  and downloads harnessed responses plus trace metadata.
+3. **Appendix 03 — Baseline vs harness comparison.** User uploads A-01 and
+  A-02 artifacts. The kernel runs both the new harness evaluator and the
+  legacy harness evaluator, then renders comparison visuals and exports the
+  evaluation package.
+4. **Appendix 04 — Synthetic training-data generator.** Gemma 4 + harness
+  generates synthetic SafetyJudge training/test prompts and graded response
+  ladders using `WORST`, `BAD`, `NEUTRAL`, `GOOD`, `BEST` labels.
+5. **Appendix 05 — Synthetic-data fine-tune.** Trains a new Gemma 4 adapter or
+  model from the A-04 synthetic training data, with small-model settings for
+  quick validation and larger-model settings for final runs.
+6. **Appendix 06 — Fine-tuned model baseline runner.** Same job as A-01, but
+  using the newly trained model or adapter.
+7. **Appendix 07 — Fine-tuned model harnessed runner.** Same job as A-02, but
+  using the newly trained model or adapter plus harness.
+8. **Appendix 08 — Fine-tuned comparison.** Same job as A-03, but comparing
+  fine-tuned off/on artifacts and showing stock-vs-fine-tuned deltas.
+9. **Appendix 09 — Abliterated adversary data generator.** Uses abliterated or
+  less-aligned Gemma variants to develop harder legacy tests and response
+  ladders with Worst/Bad/Neutral/Good/Best semantic examples. These rows are
+  adversarial/evaluation material, not trusted Best-label SFT rows unless
+  reviewed.
+10. **Appendix 10+ — Privacy/PII fine-tuning track.** Dedicated kernels for
+  generating synthetic/composite anonymization cases, training a Gemma 4
+  PrivacyRedactor adapter, and evaluating leakage prevention behind
+  deterministic PII gates.
+
+Constraints for this ladder:
+
+- Every runner should allow a Gemma 4 model selection, but default to the
+  smallest viable Gemma 4 model for smoke tests to protect Kaggle memory and
+  time.
+- Every kernel should assume **one loaded model per run**. Cross-kernel
+  handoff happens through downloadable JSONL/JSON/ZIP artifacts and Kaggle Add
+  Data, not live kernel links.
+- Do not physically add or rename kernels until Taylor approves the roster
+  change. First review task: map the current 13 kernels onto this target
+  ladder, mark which current kernels already satisfy the target, and list
+  which ones need reframing, merging, or replacement.
+
 ### Phase 1 — completed (do not redo these)
 
 Verify against the commit log if you doubt any item, but don't propose
 them again as "edits":
 
-- **Workbench shell unified across 5 surfaces.** Notebook #01
+- **Workbench shell unified across 5 surfaces.** Kernel #01
   (chat-shell), #02 live-demo (server-shell with `/wb-static/`
   cross-mount), A-03 / A-04 / A-09 (custom-FastAPI kernels pulling
   `/wb-static/_chrome.css` + `/wb-static/_nav.js`), plus A-01 / A-02
@@ -70,7 +133,7 @@ them again as "edits":
 - **`build_minimal_shell()` extended** with `homepage_html` +
   `extra_routes` kwargs (backward-compatible). Default summary view
   stays at `/summary` for the Tools menu.
-- **4 bespoke dashboards live** for the notebook-only kernels:
+- **4 bespoke dashboards live** for the kernel-rendered dashboards:
   A-11 lift dashboard, A-08 inline Plotly viewer, A-07 9-phase
   training pipeline, A-06 corpus browser. Each exports JSON + CSV +
   domain-specific routes (`/api/lift`, `/api/charts`,
@@ -85,17 +148,18 @@ them again as "edits":
   header block** — uniform 14-line summary at the top with the demo
   path and what-to-look-for-after-Run-All.
 - **Cross-link footer added to all 13 READMEs.** Standard 4-link
-  block: workbench → live-demo → notebook-specific "next step"
+  block: workbench → live-demo → kernel-specific "next step"
   sibling → public website. The "next step" choice is curated per
-  notebook to drive a 5-minute judge journey (A-07 → A-11 to verify
-  your fine-tune; A-06 → A-07 to train on what you generated; etc.).
+  kernel to drive a 5-minute judge journey. Treat A-06 → A-07 as the
+  synthetic-data → adapter-training path. Treat A-11 as runtime harness
+  OFF/ON lift only; it does **not** verify fine-tuned-model lift.
 - **28 docs / 40 references renamed** `01-duecare-harness-chat` →
   `01-duecare-exploration-workbench` across active markdown (READMEs,
   FOR_KAGGLE_JUDGES, REPO_LAYOUT, kaggle/_INDEX, etc.). `_archive/`
   left untouched.
 - **First-pass conservative polish (also landed)**: pinned the 01
   workbench Git fallback, added install-policy regression tests for
-  moving Git refs, normalized preview-notebook cell metadata, redacted
+  moving Git refs, normalized historical preview metadata, redacted
   visible demo sample identifiers, aligned A-08 sample chart colors
   to the design tokens, and removed A-09 displayed `result_summary`
   truncation.
@@ -108,20 +172,55 @@ them again as "edits":
 These are deliberately deferred because they need your judgment, are
 higher-effort, or are stylistic preferences worth a second pair of eyes:
 
-1. **"DueCare" vs "Duecare" capitalization.** Mixed across the repo
+1. **HIGHEST PRIORITY — convert all 11 wheel-loading kernels to
+   GitHub-only install.** Policy as of 2026-05-11: **all DueCare
+   packages must install directly from GitHub. No attached Kaggle
+   `*-wheels` datasets.** Notebook 01 (`kaggle/01-duecare-exploration-
+   workbench/kernel.py` — function `install_chat_wheels()`) is the
+   canonical reference. The pattern is two-tier:
+     - **Method 1:** GitHub Release wheels at
+       `https://github.com/TaylorAmarelTech/gemma4_comp/releases/download/v{VERSION}/{wheel_name}`.
+     - **Method 2 (fallback):** GitHub source install via
+       `git+https://github.com/TaylorAmarelTech/gemma4_comp.git@{COMMIT_SHA}#subdirectory=packages/{package}`.
+
+   What's already done by Phase 1: every `kernel-metadata.json` has had
+   its `*-wheels` slug stripped from `dataset_sources` (13/13). The
+   `_INDEX.md` "How to run" docs now say "enable Internet" instead of
+   "Add data → wheels dataset".
+
+   What's NOT done and is your job: rewrite the install function in
+   each of the 11 kernels that still walk `/kaggle/input/**/*.whl`:
+   A-01, A-02, A-03, A-04, A-05, A-06, A-07, A-08, A-09, A-10, A-11.
+   For each kernel:
+     - Remove the `DATASET_SLUG = "...-wheels"` constant.
+     - Remove any `Path("/kaggle/input").rglob("*.whl")` discovery.
+     - Remove any "Add Data → datasets → ..." error messages.
+     - Replace the install function body with notebook 01's two-tier
+       pattern, parameterized by the package list this kernel needs.
+     - Most kernels need only `["duecare-llm-chat"]` (it transitively
+       pulls in `duecare-llm-core`). A-07 also needs models for
+       fine-tuning. A-11 explicitly imports core + models + chat.
+     - Bump the pinned `COMMIT_SHA` to whatever the latest master
+       SHA is when you run.
+   Note: physical `kaggle/*/wheels/` directories can stay — they're
+   harmless leftovers. Don't delete them as part of this pass; Taylor
+   will sweep them separately. Just stop referencing them from the
+   kernel.py install code.
+
+2. **"DueCare" vs "Duecare" capitalization.** Mixed across the repo
    (22 vs 43 in `apps/`, 8 vs 8 in workbench static, 1 of 13 kernel
    titles is "DueCare", 12 are "Duecare"). The public-website nav
    says "DueCare AI" (CamelCase). Recommend a canonical pick and
    output the full replacement set as a single batch edit.
 
-2. **Per-notebook polish review (Layer A in §16 below).** For each of
+2. **Per-kernel polish review (Layer A in §16 below).** For each of
    the 13, output the top 5 concrete edits with file:line precision.
    Cover the empty/loading/error states each kernel hits before the
    model loads — those are camera-on moments.
 
 3. **README skeleton uniformity.** Each README has a different last
    pre-cross-links section (Troubleshooting / Status / Publishing /
-   Publishing options / What this notebook is NOT). Propose the
+  Publishing options / What this kernel is NOT). Propose the
    canonical 6-section skeleton (Lede, What it does, Demo path,
    Audience, Outputs, Cross-links) and output the gap-fill edits.
 
@@ -129,7 +228,7 @@ higher-effort, or are stylistic preferences worth a second pair of eyes:
    what does a judge see in the first 800 pixels before scrolling?
    Audit the 5 chat-shell kernels (01, A-01, A-02, A-10), the
    server-shell kernel (02), the 3 custom-FastAPI kernels (A-03, A-04,
-   A-09), and the 4 notebook-only dashboards (A-06, A-07, A-08, A-11).
+  A-09), and the 4 kernel-rendered dashboards (A-06, A-07, A-08, A-11).
 
 5. **Status strip API shape consistency.** Every served-UI kernel
    should return the same fields from `/api/version` + `/api/model-info`
@@ -154,9 +253,12 @@ higher-effort, or are stylistic preferences worth a second pair of eyes:
 - **Do not modify `_chrome.css`, `_nav.html`, `_nav.js`, `showcase.css`,
   or `_dc_log.py`.** These are source-of-truth primitives. If you find
   a bug or alignment gap there, raise it as a sidebar item under Layer
-  B (cross-notebook), not as a per-notebook edit.
-- **Do not create new Kaggle notebooks** for the submission. The 13 are
-  the submission set. Composition-only changes.
+  B (cross-kernel), not as a per-kernel edit.
+- **Do not create `.ipynb` notebooks by default.** The 13 active folders are the
+  script-kernel submission set. Composition-only changes unless Taylor explicitly
+  approves a split. For the current training story, keep two tracks inside
+  A-06/A-07 rather than adding A-12: SafetyJudge anti-exploitation data and
+  PrivacyRedactor anonymization data.
 - **Do not publish, push, or upload anything to Kaggle.** Taylor handles
   that manually (see §15). Local edits only.
 - **Do not touch `_archive/`, root `legacy_notebooks/`, or `skunkworks/`.**
@@ -177,7 +279,7 @@ jurisdictions + 5 function-calling tools + an optional online-search
 layer, so the model produces grounded, citable, audience-appropriate
 responses about labor recruitment, fee scams, passport retention, debt
 bondage, and corridor-specific legal protections. The Kaggle submission
-contains **2 core + 11 appendix = 13 notebooks** — all visible to judges.
+contains **2 core + 11 appendix = 13 script kernels** — all visible to judges.
 Each has a `kernel.py` (script kernel source) and a `README.md`. The
 team has unified them under a shared workbench shell built around three
 primitives (`_chrome.css`, `_nav.js`, `dc_log`) plus four bespoke
@@ -267,12 +369,12 @@ gemma4_comp/
 │           ├── app.py                          ← FastAPI app + /wb-static/ cross-mount
 │           └── static/                         ← server-specific homepage assets
 └── kaggle/
-    ├── 01-duecare-exploration-workbench/      ← CORE notebook #1
+    ├── 01-duecare-exploration-workbench/      <- CORE kernel #1
     │   ├── kernel.py
     │   ├── kernel-metadata.json
     │   ├── README.md
     │   └── wheels/                             ← duecare-llm-chat-0.16.0.whl + deps
-    ├── 02-live-demo/                          ← CORE notebook #2
+    ├── 02-live-demo/                          <- CORE kernel #2
     ├── A-01-chat-playground/                  ← appendix
     ├── A-02-chat-playground-with-grep-rag-tools/
     ├── A-03-content-classification-playground/
@@ -292,7 +394,7 @@ gemma4_comp/
 
 The public website (https://duecare-ai.com) is the canonical aesthetic.
 The chat package's `_chrome.css` and server package's `style.css` both
-import the same tokens. Every notebook UI must match.
+import the same tokens. Every kernel UI must match.
 
 **Aesthetic direction:** civic-tech research lab. Warm paper backgrounds,
 not stark white. Dark ink text, not gray-on-gray. Civic teal accent used
@@ -425,7 +527,7 @@ tail=200&level=warn&kind=grep&layer=rag`. Available endpoints:
 Both the server package (02-live-demo) and the three custom-FastAPI
 appendix kernels (A-03, A-04, A-09) mount the chat package's static
 directory at `/wb-static/` so they can pull `_chrome.css`, `_nav.js`,
-and the audience showcase pages from the same source as notebook #01.
+and the audience showcase pages from the same source as kernel #01.
 
 Pattern:
 
@@ -447,9 +549,9 @@ Then in the served HTML:
 
 ---
 
-## 8. The `build_minimal_shell()` helper (notebook-only kernels)
+## 8. The `build_minimal_shell()` helper (kernel-rendered dashboards)
 
-For notebooks that compute outputs without needing the full chat playground
+For kernels that compute outputs without needing the full chat playground
 (A-05, A-06, A-07, A-08, A-11), `build_minimal_shell()` gives them a
 workbench-consistent web UI with one call.
 
@@ -505,19 +607,30 @@ iframes with per-chart Open ↗ / Download. Routes: `/api/charts`.
 
 ### 9.3 A-07 training pipeline (`kaggle/A-07-bench-and-tune/kernel.py`)
 
-9-phase pipeline visualization (Load → bench-stock → SFT-dataset → SFT
-→ DPO-dataset → DPO → bench-FT → GGUF → HF-push) with per-phase ✓/×/—
-status, rubric-lift KPI cards, per-phase JSON detail collapses.
+Adapter-training visualization for one Gemma 4 backbone with routed
+DueCare adapters. Default path is SafetyJudge: Load → bench-stock →
+SFT-dataset → SFT → DPO-dataset → DPO → bench-FT → GGUF → HF-push.
+A-06 generated graded responses should be consumed first when attached;
+harness-distilled prompts are the fallback. PrivacyRedactor rows from A-06
+stay on a separate anonymization adapter/eval track and should not be
+blended into the SafetyJudge adapter. The stock-vs-fine-tuned benchmark
+artifact is A-07's `eval_results.json`, not A-11.
 Routes: `/api/eval-results`, `/export/phases.csv`.
 
 ### 9.4 A-06 corpus browser (`kaggle/A-06-prompt-generation/kernel.py`)
 
-Filterable table (category / locale / search) over freshly generated
-prompts. Expandable rows for full text + graded response. Per-row "Open
-in chat" deep-link. Routes: `/api/prompts`, `/export/prompts.csv`.
+Two-track synthetic data generator. SafetyJudge track: filterable table
+(category / locale / search) over freshly generated prompts with full
+graded response ladders. PrivacyRedactor track: composite anonymization
+cases plus gold redaction-plan JSONLs for a separate privacy adapter/eval
+path. Each Kaggle run loads one model; diversity comes from multiple A-06
+runs with separate profiles (`stock_harness_teacher`,
+`abliterated_adversary`, `human_curated_review`) and manifests attached to
+A-07 through Kaggle Add Data. Per-row "Open in chat" deep-link. Routes:
+`/api/prompts`, `/export/prompts.csv`.
 
 **These four dashboards are the reference pattern for any future
-notebook-only visualization.** Their HTML is inline in each kernel.py
+kernel-rendered visualization.** Their HTML is inline in each kernel.py
 and links `/static/_chrome.css` + `/static/_nav.js`.
 
 ---
@@ -554,7 +667,7 @@ Existing curated-prompt examples (each grounded in real corridors):
 
 ---
 
-## 11. The 13 notebooks (current architecture pattern + state)
+## 11. The 13 kernels (current architecture pattern + state)
 
 | # | Folder | Pattern | Dashboard | Audience |
 |---|---|---|---|---|
@@ -565,12 +678,12 @@ Existing curated-prompt examples (each grounded in real corridors):
 | A-03 | `A-03-content-classification-playground` | custom-FastAPI (uses `/wb-static/`) | custom classifier page | platform |
 | A-04 | `A-04-content-knowledge-builder-playground` | custom-FastAPI (uses `/wb-static/`) | custom KB-builder page | developer |
 | A-05 | `A-05-gemma-content-classification-evaluation` | classifier (`from duecare.chat import create_classifier_app`) | NGO & regulator dashboard | ngo |
-| A-06 | `A-06-prompt-generation` | notebook-only (`build_minimal_shell` + `homepage_html`) | corpus browser | researcher |
-| A-07 | `A-07-bench-and-tune` | notebook-only | training pipeline | researcher |
-| A-08 | `A-08-research-graphs` | notebook-only | inline Plotly viewer | researcher |
+| A-06 | `A-06-prompt-generation` | kernel-rendered (`build_minimal_shell` + `homepage_html`) | corpus browser | researcher |
+| A-07 | `A-07-bench-and-tune` | kernel-rendered | training pipeline | researcher |
+| A-08 | `A-08-research-graphs` | kernel-rendered | inline Plotly viewer | researcher |
 | A-09 | `A-09-chat-playground-with-agentic-research` | custom-FastAPI (uses `/wb-static/`) | custom agentic-chat page | researcher |
 | A-10 | `A-10-chat-playground-jailbroken-models` | chat-shell | workbench homepage | researcher |
-| A-11 | `A-11-grading-evaluation` | notebook-only | lift dashboard | researcher |
+| A-11 | `A-11-grading-evaluation` | kernel-rendered | lift dashboard | researcher |
 
 **Each `kernel-metadata.json` IDs match the folder name** (e.g.
 `taylorsamarel/duecare-exploration-workbench`).
@@ -644,15 +757,15 @@ These are derived from `.claude/rules/*.md` plus durable user feedback.
 - **BEST tier is mixed-case bold, not ALL-CAPS.** `**Legal Violations:**`
   not `LEGAL VIOLATIONS:`.
 
-### Kaggle viewer compatibility (notebook outputs only)
+### Kaggle viewer compatibility (archived notebook outputs only)
 - **No `display: flex` / `flex-wrap`** — gets stripped. Use
   `pandas.Styler` tables instead.
 - **No `max-height: ...; overflow: auto`** — overflow gets stripped,
   produces unscrollable giant blocks. Render full-height.
-- **No `<script>` tags in notebook outputs** — stripped. Use Plotly's
+- **No `<script>` tags in archived notebook outputs** — stripped. Use Plotly's
   safe JS injection path for interactivity.
 - **No `position: fixed|absolute|sticky`** — stripped.
-- **No external stylesheets in notebook outputs** — use inline `style=`
+- **No external stylesheets in archived notebook outputs** — use inline `style=`
   only.
 
 ### Web UI (served pages, not notebooks)
@@ -682,8 +795,8 @@ These are derived from `.claude/rules/*.md` plus durable user feedback.
 # Public-surface audit (must show 4/4 OK, 0 findings)
 .venv/Scripts/python.exe scripts/validate_public_surface.py
 
-# Notebook structural validator (active generated/research kernels must parse)
-.venv/Scripts/python.exe scripts/validate_notebooks.py
+# Root metadata validator (active submission folders must be script kernels)
+.venv/Scripts/python.exe -c "import json, pathlib; bad=[]; [bad.append(str(p)) for p in pathlib.Path('kaggle').glob('*/kernel-metadata.json') if json.loads(p.read_text()).get('code_file') != 'kernel.py' or json.loads(p.read_text()).get('kernel_type') != 'script']; assert not bad, bad"
 
 # Package test suite (must exit 0 — meta-pkg CLI test fails without
 # editable installs, that's expected)
@@ -705,17 +818,16 @@ The audit script checks four invariants:
 
 ---
 
-## 15. Kaggle publish + notebook source-of-truth conventions
+## 15. Kaggle publish + kernel source-of-truth conventions
 
 - **Source of truth is `kernel.py`**, not the `.ipynb` mirror.
-- **`.ipynb` files are preview artifacts** generated by builder scripts
-  under `scripts/build_notebook_*.py`. Regenerate only when the source
-  changed and the preview must stay in sync. Do not create net-new
-  notebooks for the submission without explicit user approval.
+- **`.ipynb` files are archived preview artifacts.** Do not regenerate or
+  edit them in active Kaggle folders. Historical wrappers live under
+  `_archive/kaggle-notebook-previews-2026-05-11/`.
 - **Bootstrap installs must be reproducible.** Prefer attached Kaggle
   wheel datasets first, pinned PyPI packages second, and immutable
   GitHub release/tag/commit URLs only as a fallback. Never install from
-  a moving branch such as `main` in a judge-facing notebook.
+  a moving branch such as `main` in a judge-facing kernel.
 - **Kaggle publishing is manual.** Default agent behavior: edit source +
   validate locally + prepare paste-ready text + leave the final Kaggle
   UI step (copy/paste, Save & Run, publish) to the user.
@@ -746,9 +858,9 @@ they regressed.
 
 Return four layers of output.
 
-#### Layer A — Per-notebook polish edits (13 sections)
+#### Layer A — Per-kernel polish edits (13 sections)
 
-For each of the 13 notebooks, output:
+For each of the 13 kernels, output:
 
 1. **Audience match.** Which lane primarily? Is that clear in the README's
    first 200 words and the kernel's homepage above-the-fold?
@@ -766,9 +878,9 @@ For each of the 13 notebooks, output:
 4. **Demo-recording readiness.** Score 1-5 (where 5 = no friction during
    the 3-min recording). If <5, list the specific friction.
 
-#### Layer B — Cross-notebook consistency edits
+#### Layer B — Cross-kernel consistency edits
 
-Output specific changes that align the 13 notebooks as a series:
+Output specific changes that align the 13 kernels as a series:
 
 1. **README skeleton.** Propose a uniform 6-section skeleton (Lede,
    What it does, Demo path, Audience, Outputs, Cross-links) that every
@@ -885,7 +997,7 @@ should cite the file path and approximate line number.
 | Tools index | `packages/duecare-llm-chat/src/duecare/chat/static/all-tools.html` |
 | Minimal-shell helper | `packages/duecare-llm-chat/src/duecare/chat/kernel_shell.py` |
 | dc_log primitive | `packages/duecare-llm-chat/src/duecare/chat/_dc_log.py` |
-| 13 notebook folders | `kaggle/01-...`, `kaggle/02-...`, `kaggle/A-01-...` through `kaggle/A-11-...` |
+| 13 kernel folders | `kaggle/01-...`, `kaggle/02-...`, `kaggle/A-01-...` through `kaggle/A-11-...` |
 | 4 bespoke dashboards | `kaggle/A-06/07/08/11/kernel.py` (search `_build_*_dashboard_html`) |
 | Audit script | `scripts/validate_public_surface.py` |
 | Judge-facing entry | `docs/FOR_KAGGLE_JUDGES.md` |
@@ -899,7 +1011,7 @@ should cite the file path and approximate line number.
 ## 20. Why this matters for the score
 
 The hackathon rubric weights **Impact & Vision (40)** + **Video Pitch
-& Storytelling (30)** + **Technical Depth & Execution (30)**. Notebook
+& Storytelling (30)** + **Technical Depth & Execution (30)**. Kernel
 UX maps to all three:
 
 - A judge who lands on the workbench and immediately understands "I'm

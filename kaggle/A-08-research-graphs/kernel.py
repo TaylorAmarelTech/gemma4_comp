@@ -80,49 +80,111 @@ from typing import Any
 # ===========================================================================
 # CONFIG
 # ===========================================================================
-DATASET_SLUG = "duecare-research-graphs-wheels"
-EVAL_RESULTS_SLUG = "duecare-eval-results"   # optional
+# DATASET_SLUG removed 2026-05-11 — kernel installs duecare packages
+# directly from GitHub (see install_duecare_from_github below).
+EVAL_RESULTS_SLUG = "duecare-eval-results"   # optional non-wheel dataset
 OUTPUT_DIR = Path("/kaggle/working/research_graphs")
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
+PAPER = "#F7F6F1"
+PAPER_2 = "#EFEDE4"
+INK = "#0E1116"
+INK_3 = "#5B5F68"
+LINE = "#DDD8C9"
+ACCENT = "#4C7A8A"
+GOOD = "#3E8C65"
+WARN = "#A97935"
+EMBER = "#A85F2D"
+DANGER = "#9E3F3F"
+MUTED = "#8A8E97"
+PURPLE = "#7661A3"
+TEAL = "#4E8C82"
+
 
 # ===========================================================================
-# PHASE 1 -- install only what we need (Plotly + NetworkX + duecare wheels)
+# PHASE 1 -- install dependencies + DueCare from GitHub (no Kaggle wheels)
 # ===========================================================================
+# Policy 2026-05-11: all DueCare packages install directly from GitHub.
+# No attached `*-wheels` Kaggle dataset is required. Two-tier strategy:
+#   1. GitHub Release wheels at /releases/download/v{VERSION}/
+#   2. GitHub source install via git+https://...@<sha>#subdirectory=...
+# Notebook 01's install_chat_wheels() is the canonical reference.
+DUECARE_VERSION    = "0.1.0"
+DUECARE_REPO       = "TaylorAmarelTech/gemma4_comp"
+DUECARE_COMMIT_SHA = "fd13ab9"
+DUECARE_PACKAGES   = ["duecare-llm-chat"]   # pulls in core for harness data
+
+
 def install_deps() -> None:
     print("=" * 76)
-    print("[phase 1] installing dependencies")
+    print("[phase 1] installing chart dependencies")
     print("=" * 76)
     deps = ["plotly>=5.20.0", "networkx>=3.2", "pandas>=2.0", "numpy>=1.26"]
     cmd = [sys.executable, "-m", "pip", "install", "--quiet", "--no-input",
            "--disable-pip-version-check", *deps]
     proc = subprocess.run(cmd, capture_output=True, text=True)
     if proc.returncode != 0:
-        print(f"  WARN: dep install non-zero ({proc.returncode}): {proc.stderr[-300:]}")
+        print(f"  WARN: chart-deps install non-zero ({proc.returncode}): "
+              f"{proc.stderr[-300:]}")
     else:
         print(f"  installed: {' '.join(deps)}")
 
-    # duecare wheels
-    if not Path("/kaggle/input").exists():
-        print("  /kaggle/input absent; assume local dev")
-        return
-    wheels = sorted(p for p in Path("/kaggle/input").rglob("*.whl")
-                    if "duecare" in p.name.lower())
-    print(f"  found {len(wheels)} duecare wheel(s)")
-    if wheels:
-        cmd = [sys.executable, "-m", "pip", "install", "--quiet", "--no-input",
-               "--disable-pip-version-check", *[str(w) for w in wheels]]
-        proc = subprocess.run(cmd, capture_output=True, text=True)
+
+def install_duecare_from_github() -> bool:
+    """Install DueCare packages from GitHub. Wheels-free, judge-transparent.
+    Tier 1: GitHub Release wheels. Tier 2: git+https source-install.
+    """
+    print("=" * 76)
+    print("[install] DueCare packages from GitHub (no Kaggle wheel datasets)")
+    print("=" * 76)
+
+    # Tier 1: GitHub Release wheels
+    base_url = f"https://github.com/{DUECARE_REPO}/releases/download/v{DUECARE_VERSION}"
+    success = 0
+    for i, pkg in enumerate(DUECARE_PACKAGES, 1):
+        wheel_name = f"{pkg.replace('-', '_')}-{DUECARE_VERSION}-py3-none-any.whl"
+        url = f"{base_url}/{wheel_name}"
+        print(f"  > [{i}/{len(DUECARE_PACKAGES)}] release wheel: {wheel_name}")
+        cmd = [sys.executable, "-m", "pip", "install", "--no-input",
+               "--disable-pip-version-check", "--timeout=60", url]
+        proc = subprocess.run(cmd, capture_output=True, text=True, timeout=90)
         if proc.returncode == 0:
-            print(f"  installed {len(wheels)} duecare wheels")
-            for mod in list(sys.modules):
-                if mod == "duecare" or mod.startswith("duecare."):
-                    del sys.modules[mod]
+            success += 1
+            print(f"  + installed {pkg} from release v{DUECARE_VERSION}")
         else:
-            print(f"  duecare wheel install FAILED: {proc.stderr[-300:]}")
+            tail = (proc.stderr or "")[-200:]
+            if "404" in tail or "Not Found" in tail:
+                print(f"  - release wheel not found, falling back to source install")
+                break
+            print(f"  - {pkg} release wheel failed: {tail}")
+    if success == len(DUECARE_PACKAGES):
+        for mod in list(sys.modules):
+            if mod == "duecare" or mod.startswith("duecare."):
+                del sys.modules[mod]
+        return True
+
+    # Tier 2: git+https source install (pinned commit)
+    git_pkgs = [
+        f"git+https://github.com/{DUECARE_REPO}.git@{DUECARE_COMMIT_SHA}"
+        f"#subdirectory=packages/{p}"
+        for p in DUECARE_PACKAGES
+    ]
+    print(f"  > source install @ {DUECARE_COMMIT_SHA} ({len(git_pkgs)} pkg)")
+    cmd = [sys.executable, "-m", "pip", "install", "--no-input",
+           "--disable-pip-version-check", "--timeout=300", *git_pkgs]
+    proc = subprocess.run(cmd, capture_output=True, text=True, timeout=420)
+    if proc.returncode == 0:
+        for mod in list(sys.modules):
+            if mod == "duecare" or mod.startswith("duecare."):
+                del sys.modules[mod]
+        print(f"  + source install ok @ {DUECARE_COMMIT_SHA}")
+        return True
+    print(f"  - source install FAILED: {(proc.stderr or '')[-300:]}")
+    return False
 
 
 install_deps()
+install_duecare_from_github()
 
 
 # ===========================================================================
@@ -185,18 +247,18 @@ def chart_entity_graph(harness: dict) -> Path:
     # Hardcoded sample corpus entities (mirrors the live-demo's
     # pre-loaded evidence DB for reproducibility without ingest).
     nodes = [
-        ("Pacific Coast Manpower",     "recruitment_agency", 5, "#ef4444"),
-        ("Al-Rashid Household Services", "employer",         3, "#f59e0b"),
-        ("Hong Kong City Credit Mgmt", "lender",             2, "#dc2626"),
-        ("USD 1500 placement fee",     "money",              3, "#3b82f6"),
-        ("HKD 25000 loan",             "money",              2, "#3b82f6"),
-        ("AB1234567 (passport)",       "passport_id",        2, "#6b7280"),
-        ("NP9876543 (passport)",       "passport_id",        2, "#6b7280"),
-        ("Maria Santos (composite)",   "victim",             2, "#10b981"),
-        ("Sita Tamang (composite)",    "victim",             2, "#10b981"),
-        ("ILO C029 indicator: passport retention", "indicator", 4, "#a855f7"),
-        ("HK Money Lenders Ord §24",   "statute",            2, "#a855f7"),
-        ("PH RA 8042 §6(a)",           "statute",            1, "#a855f7"),
+        ("a recruitment agency (composite)", "recruitment_agency", 5, DANGER),
+        ("a household-services employer", "employer",        3, EMBER),
+        ("a city credit lender",       "lender",             2, WARN),
+        ("USD 1500 placement fee",     "money",              3, ACCENT),
+        ("HKD 25000 loan",             "money",              2, ACCENT),
+        ("[REDACTED-PASSPORT-A]",      "passport_id",        2, MUTED),
+        ("[REDACTED-PASSPORT-B]",      "passport_id",        2, MUTED),
+        ("Maria Santos (composite)",   "victim",             2, GOOD),
+        ("Sita Tamang (composite)",    "victim",             2, GOOD),
+        ("ILO C029 indicator: passport retention", "indicator", 4, PURPLE),
+        ("HK Money Lenders Ord §24",   "statute",            2, PURPLE),
+        ("PH RA 8042 §6(a)",           "statute",            1, PURPLE),
     ]
     edges = [
         (0, 3, "charged_fee"),
@@ -230,7 +292,7 @@ def chart_entity_graph(harness: dict) -> Path:
         edge_y.extend([y0, y1, None])
     edge_trace = go.Scatter(
         x=edge_x, y=edge_y, mode="lines",
-        line=dict(width=1.2, color="#9ca3af"),
+        line=dict(width=1.2, color=MUTED),
         hoverinfo="none", showlegend=False)
 
     # Node traces -- one per kind for color legend
@@ -250,7 +312,7 @@ def chart_entity_graph(harness: dict) -> Path:
             text=text, textposition="top center",
             textfont=dict(size=10),
             marker=dict(size=sizes, color=color,
-                        line=dict(color="white", width=2)),
+                        line=dict(color=PAPER, width=2)),
             name=kind.replace("_", " ").title(),
             hovertemplate="<b>%{text}</b><br>type: " + kind + "<extra></extra>",
         ))
@@ -258,13 +320,13 @@ def chart_entity_graph(harness: dict) -> Path:
     fig = go.Figure(data=[edge_trace, *node_traces])
     fig.update_layout(
         title=("<b>Entity graph from sample corpus</b><br>"
-               "<span style='font-size:11px;color:#6b7280'>"
+             "<span style='font-size:11px;color:#5B5F68'>"
                "Recruiters, employers, money flows, passport retention "
                "incidents, victim cases (composite), and the ILO/national "
                "statutes each violated</span>"),
         showlegend=True, hovermode="closest",
         margin=dict(t=80, l=20, r=20, b=20),
-        plot_bgcolor="#f8fafc", paper_bgcolor="white",
+        plot_bgcolor=PAPER, paper_bgcolor=PAPER,
         xaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
         yaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
         height=600,
@@ -329,22 +391,22 @@ def chart_corridor_sankey(harness: dict) -> Path:
     fig = go.Figure(go.Sankey(
         node=dict(
             label=sorted(labels_set),
-            color=[("#3b82f6" if any(c.lower() in lbl.lower()
+            color=[(ACCENT if any(c.lower() in lbl.lower()
                                       for c in ("Hong Kong", "Saudi", "Qatar",
                                                  "UAE", "Kuwait"))
-                    else "#10b981")
+                    else GOOD)
                    for lbl in sorted(labels_set)],
             pad=20, thickness=20,
         ),
         link=dict(
             source=sources, target=targets, value=values,
             label=edge_labels,
-            color="rgba(76, 120, 168, 0.35)",
+            color="rgba(76, 122, 138, 0.35)",
         ),
     ))
     fig.update_layout(
         title=("<b>Migration corridors with controlling fee-cap statutes</b><br>"
-               "<span style='font-size:11px;color:#6b7280'>"
+             "<span style='font-size:11px;color:#5B5F68'>"
                "Hover an edge to see the corridor's controlling fee cap "
                "and the statute that imposes it. Origin countries (green) "
                "to destinations (blue).</span>"),
@@ -409,18 +471,18 @@ def chart_benchmark_bars() -> Path | None:
     fig = go.Figure()
     fig.add_trace(go.Bar(
         x=cats, y=stock_rates, name="Stock Gemma 4",
-        marker_color="#9ca3af",
+        marker_color=MUTED,
         text=[f"{r:.0%}" for r in stock_rates],
         textposition="outside",
     ))
     fig.add_trace(go.Bar(
-        x=cats, y=ft_rates, name="Fine-tuned (Duecare SFT+DPO)",
-        marker_color="#10b981",
+        x=cats, y=ft_rates, name="Fine-tuned (DueCare SFT+DPO)",
+        marker_color=GOOD,
         text=[f"{r:.0%}" for r in ft_rates],
         textposition="outside",
     ))
     fig.update_layout(
-        title="<b>Per-category benchmark pass-rate: stock vs Duecare fine-tune</b>",
+        title="<b>Per-category benchmark pass-rate: stock vs DueCare fine-tune</b>",
         barmode="group", height=520, margin=dict(t=80, l=60, r=20, b=120),
         xaxis=dict(tickangle=-30),
         yaxis=dict(title="pass rate", tickformat=".0%", range=[0, 1.1]),
@@ -460,7 +522,7 @@ def chart_fee_camouflage_heatmap(harness: dict) -> Path:
 
     fig = go.Figure(go.Heatmap(
         z=mat, x=labels, y=labels,
-        colorscale=[[0, "#f8fafc"], [0.5, "#fbbf24"], [1, "#dc2626"]],
+        colorscale=[[0, PAPER_2], [0.5, WARN], [1, DANGER]],
         hovertemplate="<b>%{y}</b> + <b>%{x}</b><br>"
                        "co-occurs in %{z} prompts<extra></extra>",
         showscale=True,
@@ -468,7 +530,7 @@ def chart_fee_camouflage_heatmap(harness: dict) -> Path:
     ))
     fig.update_layout(
         title=("<b>Fee-camouflage label co-occurrence</b><br>"
-               "<span style='font-size:11px;color:#6b7280'>"
+             "<span style='font-size:11px;color:#5B5F68'>"
                "Which prohibited fee labels appear together in the 204 "
                "example prompts. Diagonal shows self-occurrence.</span>"),
         height=600, margin=dict(t=80, l=140, r=80, b=140),
@@ -517,9 +579,8 @@ def chart_ilo_indicator_hits(harness: dict) -> Path:
 
     fig = go.Figure()
     # Civic-tech color palette from design tokens
-    palette = ["oklch(0.52 0.08 195)", "oklch(0.55 0.10 155)", "oklch(0.65 0.10 80)",
-               "oklch(0.58 0.14 45)", "#a855f7", "#ec4899", "#14b8a6", "#f97316",
-               "#84cc16", "#6366f1", "#06b6d4", "#d946ef"]
+    palette = [ACCENT, GOOD, WARN, EMBER, PURPLE, TEAL,
+               "#6F7C45", "#6A7AA0", "#8C6F57", "#557D7B"]
     for i, ind in enumerate(inds):
         ys = [by_cat_ind[c].get(ind, 0) for c in cats]
         fig.add_trace(go.Bar(name=ind, x=cats, y=ys,
@@ -527,7 +588,7 @@ def chart_ilo_indicator_hits(harness: dict) -> Path:
     fig.update_layout(
         barmode="stack",
         title=("<b>ILO indicator hit counts per prompt category</b><br>"
-               "<span style='font-size:11px;color:#6b7280'>"
+             "<span style='font-size:11px;color:#5B5F68'>"
                "Which of the 11 ILO indicators of forced labour are "
                "matched in the 587 example prompts, broken down by "
                "category.</span>"),
@@ -598,7 +659,7 @@ def chart_rag_corpus_sunburst(harness: dict) -> Path:
     ))
     fig.update_layout(
         title=("<b>RAG corpus structure (33 documents)</b><br>"
-               "<span style='font-size:11px;color:#6b7280'>"
+             "<span style='font-size:11px;color:#5B5F68'>"
                "Click a slice to drill in. Outer ring: individual "
                "documents. Inner ring: source family.</span>"),
         height=600, margin=dict(t=80, l=20, r=20, b=20),
@@ -621,30 +682,30 @@ def write_index(charts: list[Path]) -> Path:
             continue
         title = c.stem.split("_", 1)[1].replace("_", " ").title()
         rows.append(
-            f'<li><a href="{c.name}" style="color:#1e40af;font-weight:600;'
+            f'<li><a href="{c.name}" style="color:{ACCENT};font-weight:600;'
             f'text-decoration:none">{title}</a> '
-            f'<span style="color:#6b7280;font-size:12px">'
+            f'<span style="color:{INK_3};font-size:12px">'
             f'({c.stat().st_size // 1024} KB)</span></li>')
     html = f"""<!doctype html><html><head>
-<meta charset="utf-8"><title>Duecare Research Graphs</title>
+<meta charset="utf-8"><title>DueCare Research Graphs</title>
 <style>
   body {{ font-family: -apple-system, system-ui, sans-serif;
          max-width: 760px; margin: 40px auto; padding: 0 20px;
-         color: #1f2937; background: #f8fafc; }}
-  h1 {{ color: #1e40af; letter-spacing: -0.02em; }}
-  ul {{ background: white; padding: 24px 40px; border-radius: 12px;
-        border: 1px solid #e5e7eb; line-height: 2; }}
-  .badge {{ display: inline-block; background: #ddd6fe; color: #5b21b6;
+       color: {INK}; background: {PAPER}; }}
+  h1 {{ color: {ACCENT}; letter-spacing: -0.02em; }}
+  ul {{ background: {PAPER_2}; padding: 24px 40px; border-radius: 12px;
+      border: 1px solid {LINE}; line-height: 2; }}
+  .badge {{ display: inline-block; background: {PAPER_2}; color: {ACCENT};
             padding: 2px 8px; border-radius: 999px; font-size: 11px;
             font-weight: 600; margin-left: 8px; }}
 </style></head><body>
-<h1>Duecare Research Graphs <span class="badge">Appendix · Visualization</span></h1>
-<p style="color:#6b7280;line-height:1.6">
-  Six interactive Plotly charts rendered from the bundled Duecare
+<h1>DueCare Research Graphs <span class="badge">Appendix · Visualization</span></h1>
+<p style="color:{INK_3};line-height:1.6">
+  Six interactive Plotly charts rendered from the bundled DueCare
   harness data. Click any link to open the chart in a new view.
 </p>
 <ul>{''.join(rows)}</ul>
-<p style="color:#6b7280;font-size:12px;margin-top:30px">
+<p style="color:{INK_3};font-size:12px;margin-top:30px">
   Built with Google's Gemma 4 ecosystem. Charts use Plotly + NetworkX
   on CPU only — no GPU or model load required.
 </p>
