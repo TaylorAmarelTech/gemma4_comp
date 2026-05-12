@@ -126,6 +126,62 @@ DUECARE_API_TOKEN = ""        # non-empty -> require auth on /api/*
 DUECARE_DB = "/kaggle/working/duecare.duckdb"
 PIPELINE_OUT = "/kaggle/working/multimodal_v1_output"
 
+# ===== Telemetry =============================================================
+# Inline minimal dc_log stub. 02-live-demo installs duecare-llm-core /
+# models / server / cli but NOT duecare-llm-chat (where the canonical
+# _dc_log module lives), so we provide a schema-compatible local
+# implementation that writes JSON Lines to stderr + the canonical
+# /kaggle/working/duecare-logs.jsonl. Same on-disk format as the chat
+# kernels' dc_log, so a shared Kaggle session's Logs UI sees both.
+import json as _dc_json
+import sys as _dc_sys
+from datetime import datetime as _dc_datetime, timezone as _dc_tz
+from pathlib import Path as _DcPath
+
+_DC_KERNEL_ID = "02-live-demo"
+_DC_LOG_PATH = _DcPath(os.environ.get(
+    "DC_LOG_PATH", "/kaggle/working/duecare-logs.jsonl"))
+
+
+def set_kernel_id(kernel_id: str) -> None:
+    """Set the default kernel identifier baked into every dc_log event."""
+    global _DC_KERNEL_ID
+    _DC_KERNEL_ID = kernel_id
+
+
+def dc_log(kind: str, msg: str = "", *, level: str = "info",
+           layer: str | None = None, **payload) -> dict:
+    """Emit one JSON Lines log event (matches duecare.chat._dc_log schema)."""
+    now = _dc_datetime.now(_dc_tz.utc)
+    ts = now.strftime("%Y-%m-%dT%H:%M:%S.") + f"{now.microsecond // 1000:03d}Z"
+    event: dict = {"ts": ts, "level": level, "kernel": _DC_KERNEL_ID,
+                    "kind": kind}
+    if layer is not None:
+        event["layer"] = layer
+    if msg:
+        event["msg"] = msg
+    event.update(payload)
+    try:
+        line = _dc_json.dumps(event, ensure_ascii=False, default=str)
+    except (TypeError, ValueError):
+        line = _dc_json.dumps({**event, "msg": "(non-serializable)"},
+                                ensure_ascii=False)
+    try:
+        print(line, file=_dc_sys.stderr, flush=True)
+    except Exception:
+        pass
+    try:
+        _DC_LOG_PATH.parent.mkdir(parents=True, exist_ok=True)
+        with _DC_LOG_PATH.open("a", encoding="utf-8") as _fh:
+            _fh.write(line + "\n")
+    except Exception:
+        pass
+    return event
+
+
+set_kernel_id("02-live-demo")
+dc_log("kernel.start", "live demo loading")
+
 # ===== Benchmark =============================================================
 # If True, runs the bundled smoke benchmark (~25 prompts) on startup
 # right after the server is healthy, prints the aggregate score, and
