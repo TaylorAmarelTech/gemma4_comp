@@ -16,6 +16,7 @@
 | **Demo path** | Load a supported variant, send the same adversarial prompt with harness layers on, and compare behavior with the stock baseline. |
 | **Audience** | Researcher. |
 | **Inputs** | Multiple Gemma 4 variants attached (incl. abliterated / cracked variants); one variant selected per run via env var. |
+| **Gemma 4 features** | Side-by-side Gemma 4 IT vs abliterated / cracked variants; lift claim survives the worst-case adversary. |
 | **Outputs** | Jailbroken-model responses, harness-layer traces, and adversarial comparison evidence. |
 | **Cross-links** | Use the quick links at the bottom for the full workbench, live demo, grading-lift appendix, and public website. |
 

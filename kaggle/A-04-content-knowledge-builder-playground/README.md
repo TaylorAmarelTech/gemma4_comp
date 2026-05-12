@@ -16,6 +16,7 @@
 | **Demo path** | Open the builder, fill the tabs with synthetic or public-source facts, run optional Gemma testing, and export JSON. |
 | **Audience** | NGO & regulator and Developer / integration partner. |
 | **Inputs** | Gemma 4 IT variant + the bundled DueCare corpus (knowledge-pack rules and example prompts). |
+| **Gemma 4 features** | Long-context document grounding: loads the bundled DueCare corpus into a single Gemma 4 context window without retrieval (128K window in practice). |
 | **Outputs** | Validated knowledge-block JSON, optional Gemma test output, and reusable configuration material. |
 | **Cross-links** | Use the quick links at the bottom for the full workbench, live demo, classifier dashboard, and public website. |
 

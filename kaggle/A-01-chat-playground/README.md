@@ -16,6 +16,7 @@
 | **Demo path** | Run the chat, send the same exploitation prompt used in the harness notebooks, and compare the raw response to A-02 or A-11. |
 | **Audience** | Researcher. |
 | **Inputs** | Gemma 4 IT variant chosen at runtime (e2b-it / e4b-it / 26b-a4b-it / 31b-it). No upstream bundle. |
+| **Gemma 4 features** | Raw Gemma 4 IT (E2B / E4B / 26B-A4B / 31B) without any harness layer; this is the control case the lift claims are measured against. |
 | **Outputs** | Stock Gemma 4 chat responses and a clean baseline for later harness-lift comparison. |
 | **Cross-links** | Use the quick links at the bottom for the full workbench, live demo, 4-toggle harness playground, and public website. |
 

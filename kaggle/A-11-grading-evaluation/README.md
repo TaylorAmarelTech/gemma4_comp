@@ -16,6 +16,7 @@
 | **Demo path** | Run a small prompt set, open the lift dashboard, scan the KPI cards, and download the JSON/Markdown/CSV artifacts. |
 | **Audience** | Researcher. |
 | **Inputs** | Bundle ZIPs from A-06 and A-07 attached via Add Data OR uploaded directly via the /api/upload-bundle web form. |
+| **Gemma 4 features** | Runtime harness OFF/ON lift on held-constant Gemma 4 weights -- isolates the harness contribution from any fine-tune effect. |
 | **Outputs** | `duecare_lift_eval.json`, `duecare_lift_eval.md`, CSV export, inline report, and dashboard scorecards. |
 | **Cross-links** | Use the quick links at the bottom for the full workbench, live demo, fine-tune pipeline, and public website. |
 

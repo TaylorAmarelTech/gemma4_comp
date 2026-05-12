@@ -16,6 +16,7 @@
 | **Demo path** | Run the chat, enable Agentic Research, ask for a public-source update, and inspect the full research step trace. |
 | **Audience** | Researcher and Developer / integration partner. |
 | **Inputs** | Gemma 4 IT variant + optional BYOK keys for OpenRouter / Mistral / Anthropic (Playwright agentic search). |
+| **Gemma 4 features** | Gemma 4 native function calling + Playwright tools (BYOK keys). Tool use against real-world web search rather than a closed sandbox. |
 | **Outputs** | Chat response, web-search result summaries, full agent step trace, PII-gate findings, and audit events. |
 | **Cross-links** | Use the quick links at the bottom for the full workbench, live demo, 4-toggle harness playground, and public website. |
 
