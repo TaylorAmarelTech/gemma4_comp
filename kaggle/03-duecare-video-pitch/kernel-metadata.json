@@ -1,0 +1,16 @@
+{
+  "id": "taylorsamarel/duecare-video-pitch",
+  "title": "DueCare Video Pitch (slides + scripted demo + setup)",
+  "code_file": "kernel.py",
+  "language": "python",
+  "kernel_type": "script",
+  "is_private": false,
+  "enable_gpu": false,
+  "enable_internet": true,
+  "dataset_sources": [],
+  "competition_sources": [],
+  "kernel_sources": [],
+  "model_sources": [],
+  "docker_image_pinning_type": "original",
+  "keywords": []
+}
