@@ -850,7 +850,8 @@ def write_handoff_bundle(log: dict) -> tuple[Path, Path]:
         },
     ]
     manifest = {
-        "schema_version": "duecare.a04_handoff.v1",
+        "schema_version": "1.0",
+        "handoff_kind": "synth_data_to_trainer",
         "created_at": time.strftime("%Y-%m-%dT%H:%M:%S"),
         "producer_notebook": "A-04-synthetic-data-generator",
         "consumer_notebook": "A-05-fine-tune-trainer",

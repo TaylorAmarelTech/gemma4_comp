@@ -234,15 +234,16 @@ BUNDLE_PATH = OUTPUT_DIR / f"{RUN_ID}_bundle.zip"
 
 def _flush_bundle():
     with zipfile.ZipFile(BUNDLE_PATH, "w", zipfile.ZIP_DEFLATED) as _z:
+        _rows = [{"slug": b["manifest"]["slug"],
+                   "version": b["manifest"]["version"],
+                   "manifest_hash": b["manifest"]["manifest_hash"]}
+                  for b in BUILT]
         _z.writestr("manifest.json", json.dumps({
             "schema_version": "1.0",
             "kernel_id": "a-16-knowledge-pack-builder",
             "run_id": RUN_ID,
-            "packs_built": [{"slug": b["manifest"]["slug"],
-                              "version": b["manifest"]["version"],
-                              "manifest_hash":
-                                  b["manifest"]["manifest_hash"]}
-                             for b in BUILT],
+            "results": _rows,
+            "packs_built": _rows,    # legacy alias (data_primitives.md 1.1)
         }, indent=2))
         for b in BUILT:
             mp = Path(b["manifest_path"])

@@ -204,8 +204,13 @@ MULTILINGUAL_DEMO = {
         "demonstrations)."),
 }
 
-RESULTS_PATH = OUTPUT_DIR / "a19_multilingual_demo.json"
-BUNDLE_PATH = OUTPUT_DIR / "a19_multilingual_bundle.zip"
+# Canonical RunID per docs/data_primitives.md so multiple recordings
+# don't collide.
+_run_ts = time.strftime("%Y-%m-%dT%H-%M-%SZ", time.gmtime())
+RUN_ID = f"a19_multilingual_{_run_ts}"
+MULTILINGUAL_DEMO["run_id"] = RUN_ID
+RESULTS_PATH = OUTPUT_DIR / f"{RUN_ID}_multilingual_demo.json"
+BUNDLE_PATH = OUTPUT_DIR / f"{RUN_ID}_bundle.zip"
 RESULTS_PATH.write_text(json.dumps(MULTILINGUAL_DEMO, indent=2,
                                        ensure_ascii=False),
                             encoding="utf-8")
@@ -301,8 +306,8 @@ def _render_html(payload: dict) -> str:
         + r"""
   </div>
   <p class="dl">Download:
-    <a href="/artifact/a19_multilingual_bundle.zip">
-    a19_multilingual_bundle.zip</a></p>
+    <a href="/artifact/""" + BUNDLE_PATH.name + r"""">""" + (
+        BUNDLE_PATH.name) + r"""</a></p>
 </div>
 <script>
 function show(lang){

@@ -368,7 +368,8 @@ def run_comparison() -> dict:
         "n_paired":       len(paired),
         "n_graded":       len(lift_results),
         "warnings":       warnings,
-        "aggregate":      aggregate,
+        "summary":        aggregate,
+        "aggregate":      aggregate,    # legacy alias; canonical key is 'summary' (data_primitives.md 1.1)
         "results":        lift_results,
         "elapsed_s":      round(elapsed, 1),
         "completed_at":   time.strftime("%Y-%m-%dT%H:%M:%SZ",

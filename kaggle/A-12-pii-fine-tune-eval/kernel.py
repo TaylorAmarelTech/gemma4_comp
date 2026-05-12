@@ -602,8 +602,13 @@ _eval_payload = {
         "host":             "kaggle" if Path("/kaggle").exists() else "local",
         "training_loss":    float(_train_stats.training_loss),
     },
-    "aggregate": _aggregate,
-    "results": {
+    "summary": _aggregate,
+    "aggregate": _aggregate,    # legacy alias (data_primitives.md 1.1)
+    "results": (
+        [{**r, "condition": "fine_tuned"} for r in _finetuned_rows]
+        + [{**r, "condition": "stock"}      for r in _stock_rows]
+    ),
+    "results_by_condition": {        # legacy nested view; canonical is flat
         "fine_tuned": _finetuned_rows,
         "stock":      _stock_rows,
     },

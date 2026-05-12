@@ -183,8 +183,13 @@ DEMO_PAYLOAD = {
     "local_state": LOCAL_STATE,
     "aggregate_state_what_would_leave": AGGREGATE_STATE,
 }
-RESULTS_PATH = OUTPUT_DIR / "a20_privacy_boundary_demo.json"
-BUNDLE_PATH = OUTPUT_DIR / "a20_privacy_boundary_bundle.zip"
+# Canonical RunID per docs/data_primitives.md so multiple recordings
+# don't collide.
+_run_ts = time.strftime("%Y-%m-%dT%H-%M-%SZ", time.gmtime())
+RUN_ID = f"a20_privacy_{_run_ts}"
+DEMO_PAYLOAD["run_id"] = RUN_ID
+RESULTS_PATH = OUTPUT_DIR / f"{RUN_ID}_privacy_boundary_demo.json"
+BUNDLE_PATH = OUTPUT_DIR / f"{RUN_ID}_bundle.zip"
 RESULTS_PATH.write_text(json.dumps(DEMO_PAYLOAD, indent=2,
                                        ensure_ascii=False),
                             encoding="utf-8")
@@ -325,8 +330,8 @@ def _render_html(payload: dict) -> str:
 
   <p style="text-align:center;color:#5B5F68;font-size:13px;
             margin-top:14px">
-    Download: <a href="/artifact/a20_privacy_boundary_bundle.zip">
-    a20_privacy_boundary_bundle.zip</a>
+    Download: <a href="/artifact/""" + BUNDLE_PATH.name + r"""">""" + (
+        BUNDLE_PATH.name) + r"""</a>
   </p>
 </div></body></html>"""
     )

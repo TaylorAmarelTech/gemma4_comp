@@ -486,6 +486,7 @@ def _render_composite(rnd: random.Random, scenario: dict) -> dict:
         "redactions": redactions,
         "pii_categories": pii_categories,
         "n_redactions": len(redactions),
+        "error": None,    # canonical PerRow.error (data_primitives.md 1.5)
     }
 
 

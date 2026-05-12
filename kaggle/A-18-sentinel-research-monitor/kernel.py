@@ -292,7 +292,8 @@ def _flush():
                 for v in ("approve", "review", "reject")
             },
         },
-        "proposals": PROPOSALS,
+        "results": PROPOSALS,
+        "proposals": PROPOSALS,    # legacy alias (data_primitives.md 1.1)
     }
     RESULTS_PATH.write_text(json.dumps(payload, indent=2,
                                           ensure_ascii=False),
