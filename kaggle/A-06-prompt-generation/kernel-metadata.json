@@ -1,6 +1,6 @@
 {
   "id": "taylorsamarel/duecare-prompt-generation",
-  "title": "DueCare Prompt Generation",
+  "title": "DueCare A-04 Synthetic Data Generator",
   "code_file": "kernel.py",
   "language": "python",
   "kernel_type": "script",
