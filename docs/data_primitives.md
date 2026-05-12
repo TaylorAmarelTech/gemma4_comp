@@ -224,53 +224,67 @@ A-05 ingests A-04; A-11 ingests A-10).
 Filename convention: `<RUN_ID>_bundle.zip`. Fixed-name bundles
 like `a19_multilingual_bundle.zip` are drift.
 
-## 2. Per-kernel artifact inventory
+## 2. Per-kernel artifact inventory (post-Tier 1+2 state)
+
+Top-level keys shown as `canonical (+ legacy alias)` where the
+kernel emits both during rollover. Legacy aliases will be removed
+in a post-submission migration to `write_v1_bundle()`.
 
 | Kernel | RunID format | Bundle name | Top-level keys | Per-row key | `error` field |
 |---|---|---|---|---|---|
 | A-01 baseline | `a01_{variant}_stock_{ts}` | `<RUN>_bundle.zip` | `summary` + `results[]` | `prompt_id` | yes |
 | A-02 harnessed | `a02_{variant}_stock_{ts}` | `<RUN>_bundle.zip` | `summary` + `results[]` | `prompt_id` | yes |
-| A-03 compare | `a03_compare_{variant}_{ts}` | `<RUN>_bundle.zip` | `aggregate` + `results[]` | `prompt_id` | yes |
-| A-04 synth data | (custom handoff) | `duecare_a04_to_a05_bundle.zip` | `safety` + `privacy` tracks | n/a | no |
+| A-03 compare | `a03_compare_{variant}_{ts}` | `<RUN>_bundle.zip` | `summary` (+ legacy `aggregate`) + `results[]` | `prompt_id` | yes |
+| A-04 synth data | (custom handoff) | `duecare_a04_to_a05_bundle.zip` | `schema_version: "1.0"` + `handoff_kind: "synth_data_to_trainer"` + `safety` + `privacy` tracks | n/a | no |
 | A-05 trainer | (consumes A-04) | HF adapter dir + bench JSON | tracked separately | n/a | n/a |
 | A-06 new-model baseline | `a06_{variant}_{adapter}_{ts}` | `<RUN>_bundle.zip` | `summary` + `results[]` | `prompt_id` | yes |
 | A-07 new-model harnessed | `a07_{variant}_{adapter}_{ts}` | `<RUN>_bundle.zip` | `summary` + `results[]` | `prompt_id` | yes |
-| A-08 new-model compare | `a08_compare_{variant}_{ts}` | `<RUN>_bundle.zip` | `aggregate` + `results[]` | `prompt_id` | yes |
+| A-08 new-model compare | `a08_compare_{variant}_{ts}` | `<RUN>_bundle.zip` | `summary` (+ legacy `aggregate`) + `results[]` | `prompt_id` | yes |
 | A-09 abliterated ladder | `a09_{variant}_abliterated_{ts}` | `<RUN>_bundle.zip` | `summary` + `results[]` | `prompt_id` | yes |
-| A-10 PII synth | `a10_pii_synth_{ts}` | `<RUN>_bundle.zip` | `summary` + `results[]` | `composite_id` | no |
-| A-11 PII fine-tune | `a11_pii_finetune_{variant}_{ts}` | `<RUN>_bundle.zip` | `aggregate` + `results.{fine_tuned[], stock[]}` | `composite_id` | no |
+| A-10 PII synth | `a10_pii_synth_{ts}` | `<RUN>_bundle.zip` | `summary` + `results[]` (composite rows now carry `error: null`) | `composite_id` | yes |
+| A-11 PII fine-tune | `a11_pii_finetune_{variant}_{ts}` | `<RUN>_bundle.zip` | `summary` (+ legacy `aggregate`) + flat `results[]` with `condition` (+ legacy `results_by_condition.{fine_tuned, stock}`) | `composite_id` | no |
 | A-12 multimodal | `a12_multimodal_{variant}_{ts}` | `<RUN>_bundle.zip` | `summary` + `results[]` | `upload_id` | yes |
 | A-13 export | `a13_export_{variant}_{adapter}_{ts}` | `<RUN>_bundle.zip` | manifest only (`gguf_files`, `litert_files`) | n/a | no |
-| A-14 UGC moderator | `a14_ugc_{variant}_{ts}` | `<RUN>_bundle.zip` | `aggregate` + `results[]` | `post_id` | yes |
-| A-15 NGO local-KB | `a15_local_kb_{ts}` | `<RUN>_bundle.zip` | `aggregate` + `ingested[]` | `case_id` | no |
-| A-16 pack builder | `a16_pack_session_{ts}` | `<RUN>_bundle.zip` | `packs_built[]` | `slug + version` | per-doc only |
-| A-17 sentinel | `a17_sentinel_{ts}` | `<RUN>_bundle.zip` | `summary` + `proposals[]` | `diff_id` | yes (`ok=false`) |
+| A-14 UGC moderator | `a14_ugc_{variant}_{ts}` | `<RUN>_bundle.zip` | `summary` (+ legacy `aggregate`) + `results[]` | `post_id` | yes |
+| A-15 NGO local-KB | `a15_local_kb_{ts}` | `<RUN>_bundle.zip` | `summary` (+ legacy `aggregate`) + `results[]` (+ legacy `ingested[]`); rows carry `error: null` | `case_id` | yes |
+| A-16 pack builder | `a16_pack_session_{ts}` | `<RUN>_bundle.zip` | `summary` + `results[]` (+ legacy `packs_built[]`) | `slug + version` | per-doc only |
+| A-17 sentinel | `a17_sentinel_{ts}` | `<RUN>_bundle.zip` | `summary` + `results[]` (+ legacy `proposals[]`) | `diff_id` | yes (`ok=false`) |
 | A-18 demo replay | (no run_id; static) | (n/a — no writes) | inline `DEMO_SCRIPT` | `scene_id` | n/a |
-| A-19 multilingual | (no run_id) | `a19_multilingual_bundle.zip` | inline `MULTILINGUAL_DEMO` | n/a | n/a |
-| A-20 privacy boundary | (no run_id) | `a20_privacy_boundary_bundle.zip` | inline `DEMO_PAYLOAD` | n/a | n/a |
+| A-19 multilingual | `a19_multilingual_{ts}` | `<RUN>_bundle.zip` | inline `MULTILINGUAL_DEMO` (run_id-tagged) | n/a | n/a |
+| A-20 privacy boundary | `a20_privacy_{ts}` | `<RUN>_bundle.zip` | inline `DEMO_PAYLOAD` (run_id-tagged) | n/a | n/a |
 | 03 video pitch | (`demo_script_authored.json` in setup mode) | n/a | inline `DEMO_SCRIPT` | `scene_id` | n/a |
 
-## 3. Drift table
+## 3. Drift table (historical -- all entries RESOLVED in 2026-05-12 rollover)
 
-| Kernel | Drift | Severity | Suggested fix |
+Every entry below shipped a fix on 2026-05-12. The "Resolution"
+column points at the commit that landed the change. Legacy aliases
+remain emitted alongside canonical keys during the rollover so
+existing readers continue to work.
+
+| Kernel | Drift | Severity | Resolution |
 |---|---|---|---|
-| A-04 | `schema_version: "duecare.a04_handoff.v1"` (custom value) | MEDIUM | Use `"1.0"`; move handoff identifier to `handoff_kind: "synth_data_to_trainer"` |
-| A-04 | Tracks nested as `safety` + `privacy` instead of flat `results[]` with `track` field per row | LOW | Optional flatten; A-05 trainer parses current shape |
-| A-11 | `results.{fine_tuned[], stock[]}` instead of flat `results[]` with `condition` field | LOW | Flatten to `results[]` with `row.condition in ("fine_tuned", "stock")` |
-| A-13 | No `results[]`; only `gguf_files[]` + `litert_files[]` | LOW | Acceptable — export kernels emit asset manifests, not per-prompt results |
-| A-14 | `aggregate` instead of canonical `summary` | LOW | Rename `aggregate` -> `summary` |
-| A-15 | `aggregate` + `ingested[]` instead of `summary` + `results[]` | LOW | Rename to canonical pair |
-| A-16 | `packs_built[]` instead of `results[]` | LOW | Rename to `results[]` |
-| A-17 | `proposals[]` instead of `results[]` + uses `ok=false` as error sentinel | LOW | Rename to `results[]`; add explicit `error` field for the ok=false case |
-| A-19 | No RunID; fixed bundle name | MEDIUM | Add `RUN_ID = f"a19_multilingual_{ts}"`; bundle becomes `<RUN>_bundle.zip` |
-| A-20 | No RunID; fixed bundle name | MEDIUM | Same as A-19 |
-| A-15 | No `error` field on `ingested[]` rows | LOW | Add `error: null` default |
-| A-10 | No `error` field on composite rows | LOW | Add `error: null` default |
-| A-18 / 03 | No artifact emit (replay-only) | none | Acceptable — these are static demo surfaces; setup-mode `demo_script_authored.json` already follows the inline `DEMO_SCRIPT` schema |
+| A-04 | `schema_version: "duecare.a04_handoff.v1"` (custom value) | MEDIUM | DONE in `c0e6f64` -- now `"1.0"` + `handoff_kind: "synth_data_to_trainer"` |
+| A-04 | Tracks nested as `safety` + `privacy` (not flat `results[]`) | LOW | Accepted as-is -- A-05 trainer parses the nested shape; flatten deferred |
+| A-11 | `results.{fine_tuned[], stock[]}` instead of flat | LOW | DONE in `c0e6f64` -- flat `results[]` with `condition`; nested kept as `results_by_condition` |
+| A-13 | No `results[]`; only `gguf_files[]` + `litert_files[]` | LOW | Accepted -- export kernels emit asset manifests, not per-prompt results |
+| A-14 | `aggregate` instead of canonical `summary` | LOW | DONE in `c0e6f64` -- canonical `summary` emitted alongside legacy `aggregate` |
+| A-15 | `aggregate` + `ingested[]` instead of canonical pair | LOW | DONE in `c0e6f64` -- canonical pair emitted alongside legacy aliases |
+| A-16 | `packs_built[]` instead of `results[]` | LOW | DONE in `c0e6f64` -- canonical `results[]` alongside legacy `packs_built[]` |
+| A-17 | `proposals[]` instead of `results[]` | LOW | DONE in `c0e6f64` -- canonical `results[]` alongside legacy `proposals[]` |
+| A-19 | No RunID; fixed bundle name | MEDIUM | DONE in `c0e6f64` -- `RUN_ID = f"a19_multilingual_{ts}"`; bundle now `<RUN>_bundle.zip` |
+| A-20 | No RunID; fixed bundle name | MEDIUM | DONE in `c0e6f64` -- `RUN_ID = f"a20_privacy_{ts}"`; bundle now `<RUN>_bundle.zip` |
+| A-15 | No `error` field on `ingested[]` rows | LOW | DONE in `c0e6f64` -- rows carry `error: null` default |
+| A-10 | No `error` field on composite rows | LOW | DONE in `c0e6f64` -- composite rows carry `error: null` default |
+| A-18 / 03 | No artifact emit (replay-only) | none | Accepted -- static demo surfaces; setup-mode `demo_script_authored.json` follows the inline `DEMO_SCRIPT` schema |
 
-**Total fixes:** 1 MEDIUM (A-04 schema_version), 2 MEDIUM (A-19 /
-A-20 RunID + bundle name), 8 LOW (renames). None blocks
-correctness; all are consistency improvements.
+**Resolution summary:** 11 of 13 drift entries fixed in commit
+`c0e6f64` via the legacy-alias rollover pattern (emit BOTH
+canonical + legacy alias side-by-side). 2 entries (A-04 nested
+tracks, A-13 manifest-only) deliberately accepted as-is. The
+shared helper module (`duecare.appendix_primitives`, commit
+`9be6b74`) and the static audit check
+(`bundle_envelope_v1`, commit `9be6b74`) prevent regressions
+going forward.
 
 ## 4. Website handoff shapes
 
