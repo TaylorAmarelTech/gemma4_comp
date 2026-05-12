@@ -1,13 +1,22 @@
 # Kaggle kernel index — submission roster
 
-> **Generated:** 2026-05-11. Machine-readable companion to
-> [`kaggle/README.md`](./README.md) and [`docs/FOR_KAGGLE_JUDGES.md`](../docs/FOR_KAGGLE_JUDGES.md).
+> **Generated:** 2026-05-11. Last refreshed: 2026-05-12.
+> Machine-readable companion to
+> [`kaggle/README.md`](./README.md) and
+> [`docs/FOR_KAGGLE_JUDGES.md`](../docs/FOR_KAGGLE_JUDGES.md).
 > Every row reflects what's in this directory tree right now.
+
+> **Roster expansion (2026-05-12):** the original "2 core + 11
+> appendix = 13" lock-in expanded with website-extension slots
+> (A-12 .. A-20) and a new main `03-duecare-video-pitch` notebook.
+> The 23-row table below is the current truth. See
+> [`docs/appendix_experiment_ladder.md`](../docs/appendix_experiment_ladder.md)
+> for the slot definitions including the website-aligned extensions.
 
 ## How to run a kernel without publishing to Kaggle
 
 These kernels are **not auto-published** right now. To run any of
-the 13 locally on Kaggle yourself:
+the 23 locally on Kaggle yourself:
 
 1. Open <https://kaggle.com> → New Notebook (Python) in the Kaggle UI.
 2. Kernel settings → enable GPU (T4 is fine for E2B/E4B; 2×T4 or
@@ -90,6 +99,17 @@ rubric labels (`HARMFUL` to `BEST`) and the review labels (`WORST`, `BAD`,
 | A9 | [`A-09-chat-playground-with-agentic-research/`](./A-09-chat-playground-with-agentic-research/) (Playwright web search) | ✓ kernel | `taylorsamarel/duecare-chat-playground-with-agentic-research-wheels` ✓ live | `taylorsamarel/duecare-chat-playground-with-agentic-research` | pending |
 | A10 | [`A-10-chat-playground-jailbroken-models/`](./A-10-chat-playground-jailbroken-models/) (abliterated baselines) | ✓ kernel | `taylorsamarel/duecare-chat-playground-jailbroken-models-wheels` ✓ live | `taylorsamarel/duecare-chat-playground-jailbroken-models` | pending |
 | A11 | [`A-11-grading-evaluation/`](./A-11-grading-evaluation/) (runtime harness lift regenerator) | ✓ kernel | `taylorsamarel/duecare-grading-evaluation-wheels` ✓ live | `taylorsamarel/duecare-grading-evaluation` | pending |
+| **3** | [`03-duecare-video-pitch/`](./03-duecare-video-pitch/) ★ in-app slides + setup mode + presenter remote | ✓ kernel | (GitHub install only) | `taylorsamarel/duecare-video-pitch` | pending |
+| A12 | [`A-12-pii-fine-tune-eval/`](./A-12-pii-fine-tune-eval/) (PrivacyRedactor LoRA fine-tune + eval) | ✓ kernel | (GitHub install only) | `taylorsamarel/duecare-pii-fine-tune-eval` | pending |
+| A13 | [`A-13-multimodal-document-analyzer/`](./A-13-multimodal-document-analyzer/) (image + document analyzer) | ✓ kernel | (GitHub install only) | `taylorsamarel/duecare-multimodal-document-analyzer` | pending |
+| A14 | [`A-14-on-device-export/`](./A-14-on-device-export/) (LoRA merge -> GGUF + LiteRT) | ✓ kernel | (GitHub install only) | `taylorsamarel/duecare-on-device-export` | pending |
+| A15 | [`A-15-ugc-batch-moderator/`](./A-15-ugc-batch-moderator/) (Lane 01 platform-safety batch moderation) | ✓ kernel | (GitHub install only) | `taylorsamarel/duecare-ugc-batch-moderator` | pending |
+| A16 | [`A-16-ngo-local-kb/`](./A-16-ngo-local-kb/) (Lane 02 NGO local-KB + salted-hash entity store) | ✓ kernel | (GitHub install only) | `taylorsamarel/duecare-ngo-local-kb` | pending |
+| A17 | [`A-17-knowledge-pack-builder/`](./A-17-knowledge-pack-builder/) (versioned pack builder + verifier) | ✓ kernel | (GitHub install only) | `taylorsamarel/duecare-knowledge-pack-builder` | pending |
+| A18a | [`A-18-demo-replay/`](./A-18-demo-replay/) (static demo replay, no inference) | ✓ kernel | (GitHub install only) | `taylorsamarel/duecare-demo-replay` | pending |
+| A18b | [`A-18-sentinel-research-monitor/`](./A-18-sentinel-research-monitor/) (sentinel pack-diff monitor) | ✓ kernel | (GitHub install only) | `taylorsamarel/duecare-sentinel-research-monitor` | pending |
+| A19 | [`A-19-multilingual-demo/`](./A-19-multilingual-demo/) (5-language scenario playback) | ✓ kernel | (GitHub install only) | `taylorsamarel/duecare-multilingual-demo` | pending |
+| A20 | [`A-20-privacy-boundary/`](./A-20-privacy-boundary/) (raw-vs-redacted visualization) | ✓ kernel | (GitHub install only) | `taylorsamarel/duecare-privacy-boundary` | pending |
 
 > **Note on slugs vs folders.** The folder name (`01-duecare-exploration-workbench/`)
 > is local organization. The Kaggle kernel slug is set by the `id` field
