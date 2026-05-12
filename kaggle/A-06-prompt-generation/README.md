@@ -1,4 +1,7 @@
 # DueCare — Two-track synthetic data generator (#A06 appendix)
+
+> AI infrastructure to combat migrant-worker exploitation. This appendix: synthetic training material for both anti-exploitation reasoning and PII redaction.
+
 <!-- duecare:lane-label -->
 > **Serves lanes:** 04 Researcher
 
@@ -50,7 +53,7 @@ Used in accordance with the
 
 ## Why "appendix"
 
-Three of the five core notebooks (chat-playground, chat-playground-with-grep-rag-tools,
+The 2 core + 11 appendix kernels (chat-playground, chat-playground-with-grep-rag-tools,
 gemma-content-classification-evaluation) are everything an end user
 needs for deployment. The live-demo notebook is the user-facing live
 URL judges click. **Bench-and-tune and prompt-generation are tools

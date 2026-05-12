@@ -1,4 +1,7 @@
 # DueCare — Agentic-research chat (BYOK + Playwright) (#A09 appendix)
+
+> AI infrastructure to combat migrant-worker exploitation. This appendix: functional preview of the Public Information Research Monitor on the public site.
+
 <!-- duecare:lane-label -->
 > **Serves lanes:** 04 Researcher · 05 Developer / integration partner
 

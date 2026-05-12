@@ -1,4 +1,7 @@
 # DueCare — Migrant-worker safety playground (#01 core)
+
+> AI infrastructure to combat migrant-worker exploitation. This core kernel: every safety layer, every Gemma 4 variant, every grading mode in one workbench.
+
 <!-- duecare:lane-label -->
 > **Serves lanes:** 02 NGO & regulator · 04 Researcher · 05 Developer / integration partner
 

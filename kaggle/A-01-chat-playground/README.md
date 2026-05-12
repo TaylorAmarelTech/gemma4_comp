@@ -1,4 +1,7 @@
 # DueCare — Stock Gemma 4 chat baseline (#A01 appendix)
+
+> AI infrastructure to combat migrant-worker exploitation. This appendix: stock Gemma 4 baseline so the harness lift is reproducible from a clean comparator.
+
 <!-- duecare:lane-label -->
 > **Serves lanes:** 04 Researcher
 

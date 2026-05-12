@@ -1,4 +1,7 @@
 # DueCare — Research graphs (CPU-only) (#A08 appendix)
+
+> AI infrastructure to combat migrant-worker exploitation. This appendix: visual research over corridors, GREP rules, RAG evidence, and benchmark deltas.
+
 <!-- duecare:lane-label -->
 > **Serves lanes:** 04 Researcher
 
@@ -15,7 +18,7 @@
 | **Outputs** | Six interactive HTML charts, chart metadata API, and downloadable visualization artifacts. |
 | **Cross-links** | Use the quick links at the bottom for the full workbench, live demo, grading-lift appendix, and public website. |
 
-Appendix-style notebook (third). **Not** part of the core deployment
+Appendix-style notebook . **Not** part of the core deployment
 flow — this is a visualization + research playground for judges, NGO
 partners, and researchers who want to inspect the harness data and
 benchmark results visually.
@@ -41,7 +44,7 @@ Used in accordance with the
 
 ## Why "appendix"
 
-The four core notebooks deliver everything an end user needs for
+The 2 core + 11 appendix kernels deliver everything an end user needs for
 deployment. The two earlier appendix notebooks
 (`prompt-generation`, `bench-and-tune`) extend the system with new
 prompts and a fine-tuned model. This third appendix notebook

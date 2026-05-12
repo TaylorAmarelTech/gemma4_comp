@@ -1,4 +1,7 @@
 # DueCare — Runtime harness-lift regenerator (#A11 appendix)
+
+> AI infrastructure to combat migrant-worker exploitation. This appendix: regenerates the +56.5pp harness-lift number from a git SHA. Falsifiable proof.
+
 <!-- duecare:lane-label -->
 > **Serves lanes:** 04 Researcher
 

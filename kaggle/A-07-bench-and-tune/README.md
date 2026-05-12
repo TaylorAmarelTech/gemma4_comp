@@ -1,4 +1,7 @@
 # DueCare — Adapter training + new-model benchmark (#A07 appendix)
+
+> AI infrastructure to combat migrant-worker exploitation. This appendix: turns synthetic data into task-specific Gemma 4 LoRA adapters with falsifiable metrics.
+
 <!-- duecare:lane-label -->
 > **Serves lanes:** 04 Researcher · 05 Developer / integration partner
 

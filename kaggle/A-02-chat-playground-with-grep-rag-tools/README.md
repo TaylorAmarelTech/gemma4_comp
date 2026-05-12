@@ -1,4 +1,7 @@
 # DueCare — Harness ablation runner (#A02 appendix)
+
+> AI infrastructure to combat migrant-worker exploitation. This appendix: harness-on/off ablation surfaces persona, GREP, RAG, and tools as load-bearing layers.
+
 <!-- duecare:lane-label -->
 > **Serves lanes:** 04 Researcher
 
