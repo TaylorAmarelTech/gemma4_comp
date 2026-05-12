@@ -16,6 +16,12 @@ Bundles the audits that have caught real defects this hackathon:
    "Privacy is non-negotiable." as a headline tagline (saved
    feedback: it should be a concrete data rule in plain English,
    not a slogan)
+6. **Bundle envelope v1** — every kaggle/*/kernel.py that emits a
+   JSON payload should use the canonical v1.0 BundleEnvelope shape
+   from docs/data_primitives.md (schema_version='1.0', 'summary'
+   and 'results' as the top-level keys, no legacy-only field
+   names). Kernels emitting BOTH canonical + legacy alias
+   (Tier-1+2 rollover state) pass this check.
 
 Exits 0 if every check passes, 1 otherwise. On failure, prints
 a structured report grouped by check.
@@ -341,6 +347,127 @@ def check_kaggle_lane_labels() -> CheckResult:
     return result
 
 
+# --- Check 5: bundle envelope v1 conformance --------------------------------
+
+# A v1.0 BundleEnvelope (docs/data_primitives.md section 1.1) uses
+# schema_version='1.0' and the canonical 'summary' + 'results' top-
+# level keys. Kernels emitting BOTH canonical + legacy alias side-by-
+# side (Tier-1+2 rollover state) pass — only legacy-ONLY emissions
+# fail. The check is regex-based on kernel.py text; it does not
+# import the kernel.
+_CUSTOM_SCHEMA_VERSION_RE = re.compile(
+    r'"schema_version"\s*:\s*"(?!1\.0")[^"]+"'
+)
+_AGGREGATE_FIELD_RE = re.compile(r'"aggregate"\s*:')
+_SUMMARY_FIELD_RE = re.compile(r'"summary"\s*:')
+_RESULTS_FIELD_RE = re.compile(r'"results"\s*:')
+_LEGACY_RESULTS_FIELD_NAMES: tuple[str, ...] = (
+    "ingested", "proposals", "packs_built",
+)
+
+
+def _line_or_above_has_allow(lines: list[str], line_idx_1based: int) -> bool:
+    """Return True if line N (1-based) or line N-1 carries _ALLOW_TOKEN."""
+    if line_idx_1based < 1 or line_idx_1based > len(lines):
+        return False
+    if _ALLOW_TOKEN in lines[line_idx_1based - 1]:
+        return True
+    if line_idx_1based >= 2 and _ALLOW_TOKEN in lines[line_idx_1based - 2]:
+        return True
+    return False
+
+
+def check_bundle_envelope_v1() -> CheckResult:
+    """Scan each kaggle/*/kernel.py for v1.0 BundleEnvelope drift.
+
+    Honors the same ``audit-allow:drift`` inline / above-line marker
+    as check_drift_terms, so a kernel using a flagged key for a
+    non-envelope purpose can opt out at the source line with a
+    one-sentence justification.
+    """
+    result = CheckResult(name="bundle_envelope_v1")
+    kernels = sorted(KAGGLE.glob("*/kernel.py"))
+    result.info.append(
+        f"Inspected {len(kernels)} kernel.py files for v1.0 envelope shape."
+    )
+    for kp in kernels:
+        rel = str(kp.relative_to(ROOT)).replace("\\", "/")
+        try:
+            text = kp.read_text(encoding="utf-8")
+        except (UnicodeDecodeError, OSError):
+            continue
+        lines = text.splitlines()
+
+        # Drift 1: custom schema_version strings (not the literal "1.0")
+        for m in _CUSTOM_SCHEMA_VERSION_RE.finditer(text):
+            line_idx = text[: m.start()].count("\n") + 1
+            if _line_or_above_has_allow(lines, line_idx):
+                continue
+            result.findings.append(
+                Finding(
+                    file=rel,
+                    line=line_idx,
+                    rule="bundle_envelope_v1.schema_version",
+                    snippet=m.group(0)[:120],
+                    suggestion=(
+                        "use schema_version: '1.0' "
+                        "(move semantic identifier to a separate field "
+                        "like 'handoff_kind')"
+                    ),
+                )
+            )
+
+        # Drift 2: 'aggregate' field used WITHOUT canonical 'summary' alongside
+        if _AGGREGATE_FIELD_RE.search(text) and not _SUMMARY_FIELD_RE.search(text):
+            agg_line_idx = next(
+                (i for i, ln in enumerate(lines, start=1)
+                 if _AGGREGATE_FIELD_RE.search(ln)),
+                0,
+            )
+            if not _line_or_above_has_allow(lines, agg_line_idx):
+                result.findings.append(
+                    Finding(
+                        file=rel,
+                        line=agg_line_idx,
+                        rule="bundle_envelope_v1.aggregate",
+                        snippet='emits "aggregate" with no "summary" alongside',
+                        suggestion=(
+                            "rename to 'summary' "
+                            "(or emit BOTH during rollover)"
+                        ),
+                    )
+                )
+
+        # Drift 3: legacy results-array name WITHOUT canonical 'results' alongside
+        if not _RESULTS_FIELD_RE.search(text):
+            for alias in _LEGACY_RESULTS_FIELD_NAMES:
+                alias_re = re.compile(rf'"{alias}"\s*:')
+                if alias_re.search(text):
+                    alias_line_idx = next(
+                        (i for i, ln in enumerate(lines, start=1)
+                         if alias_re.search(ln)),
+                        0,
+                    )
+                    if _line_or_above_has_allow(lines, alias_line_idx):
+                        continue
+                    result.findings.append(
+                        Finding(
+                            file=rel,
+                            line=alias_line_idx,
+                            rule="bundle_envelope_v1.results_alt",
+                            snippet=(
+                                f'emits "{alias}" with no '
+                                f'"results" alongside'
+                            ),
+                            suggestion=(
+                                f"rename '{alias}[]' to 'results[]' "
+                                "(or emit BOTH during rollover)"
+                            ),
+                        )
+                    )
+    return result
+
+
 # --- Reporting ---------------------------------------------------------------
 
 def render_text(checks: list[CheckResult]) -> str:
@@ -406,7 +533,13 @@ def main() -> int:
         "--skip",
         action="append",
         default=[],
-        choices=["drift_terms", "hub_routes_200", "five_lane_order", "kaggle_lane_labels"],
+        choices=[
+            "drift_terms",
+            "hub_routes_200",
+            "five_lane_order",
+            "kaggle_lane_labels",
+            "bundle_envelope_v1",
+        ],
         help="skip a check (repeatable)",
     )
     args = parser.parse_args()
@@ -416,6 +549,7 @@ def main() -> int:
         ("hub_routes_200", check_routes_200),
         ("five_lane_order", check_lane_order),
         ("kaggle_lane_labels", check_kaggle_lane_labels),
+        ("bundle_envelope_v1", check_bundle_envelope_v1),
     ]
     checks = [run() for name, run in runners if name not in args.skip]
 

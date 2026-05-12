@@ -601,8 +601,11 @@ def run_benchmark(loaded: LoadedModel, label: str) -> dict:
     (out_dir / f"{label}_rows.jsonl").write_text(
         "\n".join(json.dumps(r, ensure_ascii=False, default=str) for r in scored),
         encoding="utf-8")
+    # "aggregate" here is a phase-result dict key (read later as
+    # phases.benchmark_*.aggregate), NOT a v1.0 BundleEnvelope
+    # top-level field. A-07 does not emit a v1.0 envelope.
     return {"label": label, "elapsed_sec": elapsed, "n_rows": len(scored),
-            "aggregate": agg}
+            "aggregate": agg}  # audit-allow:drift -- phase-result key
 
 
 # ===========================================================================
