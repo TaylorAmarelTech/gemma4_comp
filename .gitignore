@@ -21,10 +21,24 @@ env/
 ENV/
 .env
 .env.local
+.env.enterprise
+.env.enterprise.local
 
 # Jupyter
 .ipynb_checkpoints/
 *.ipynb_checkpoints
+
+# Judge-facing Kaggle bundles are script kernels. Taylor copies kernel.py
+# into Kaggle manually; do not track root submission notebook wrappers.
+kaggle/*/notebook.ipynb
+kaggle/kernels/
+kaggle/kernels/**/*.ipynb
+
+# Archived legacy notebook mirrors and skunkworks experiments now live under
+# _archive/legacy-research-2026-05-09/ or outside this repo. Keep root copies
+# out of the active submission workspace unless explicitly restored.
+legacy_notebooks/
+skunkworks/
 
 # IDE / editors
 .vscode/
@@ -34,6 +48,11 @@ ENV/
 *~
 .DS_Store
 Thumbs.db
+
+# Local AI-agent state. Keep .claude/rules tracked, but never commit
+# transient session logs or nested app-local agent state.
+.claude/sessions/
+apps/**/.claude/
 
 # Models, weights, checkpoints (too large for git; publish via HF Hub)
 *.bin
