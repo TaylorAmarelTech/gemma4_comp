@@ -9338,10 +9338,10 @@ quality number.
 The Online layer is intentionally **kernel-supplied**, not bundled
 in the wheel. Different notebooks wire different backends:
 
-- `kaggle/duecare-harness-chat/kernel.py`: DuckDuckGo HTML scraper
+- `kaggle/01-duecare-exploration-workbench/kernel.py`: DuckDuckGo HTML scraper
   (no API key, ~1s latency, best-effort regex parse — returns []
   on parse failure rather than crashing).
-- `kaggle/chat-playground-with-agentic-research/kernel.py`: full
+- `kaggle/A-09-chat-playground-with-agentic-research/kernel.py`: full
   Playwright multi-step agentic loop (BYOK for Brave Search, Bing,
   DuckDuckGo). Higher fidelity, ~5-15s per query.
 

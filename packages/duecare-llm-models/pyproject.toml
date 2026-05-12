@@ -47,7 +47,7 @@ llama-cpp = [
     "llama-cpp-python>=0.3.0",
 ]
 ollama = [
-    "ollama>=0.4.0",
+    "httpx>=0.27.0",
 ]
 openai = [
     "openai>=1.50.0",

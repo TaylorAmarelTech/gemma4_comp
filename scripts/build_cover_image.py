@@ -5,7 +5,7 @@ Design goals:
 - Title "DueCare" dominant and legible at thumbnail size
 - Subtitle explains the project in one line
 - Four headline stats as the visual bed
-- "Privacy is non-negotiable" — the rules-matching tagline
+- Concrete sensitive-data handling — the subtitle should explain where raw case data stays
 - No migrant-worker imagery; safe for global audience
 - Readable at 150x84 thumbnail
 """
@@ -120,7 +120,7 @@ def build() -> Path:
     # --- Tagline (bottom, italic, dim)
     tag_y = H - 80
     draw.text((title_x, tag_y),
-              "\u201CPrivacy is non-negotiable.\u201D",
+              "Raw case data stays local.",
               font=tag_font, fill=TEXT)
     draw.text((title_x, tag_y + 35),
               "Gemma 4 Good Hackathon \u2022 github.com/TaylorAmarelTech/gemma4_comp",

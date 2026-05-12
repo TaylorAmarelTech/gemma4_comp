@@ -92,7 +92,7 @@ def _build_embed(data: dict[str, Any]) -> discord.Embed:
             lines.append(" — ".join(bits))
         embed.add_field(name="Help", value="\n".join(lines), inline=False)
 
-    embed.set_footer(text="Privacy is non-negotiable. Analyzed on-device.")
+    embed.set_footer(text="Analyzed by this deployment; no third-party analytics.")
     return embed
 
 

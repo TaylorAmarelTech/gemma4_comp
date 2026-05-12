@@ -8,7 +8,7 @@ success / failure / rate-limit per slug.
 
 USAGE
     python scripts/push_v316_wheels.py              # push all 13
-    python scripts/push_v316_wheels.py duecare-harness-chat live-demo
+    python scripts/push_v316_wheels.py 01-duecare-exploration-workbench 02-live-demo
                                                     # push only listed
     python scripts/push_v316_wheels.py --dry-run    # show what would push
 
@@ -40,7 +40,7 @@ KAGGLE_DIR = REPO_ROOT / "kaggle"
 # `ls kaggle/` listing reads in the canonical presentation order.
 NOTEBOOKS = [
     # 2 CORE
-    "01-duecare-harness-chat",         # ★ omni playground
+    "01-duecare-exploration-workbench", # ★ omni playground
     "02-live-demo",                     # ★ focused thesis demo
     # 11 APPENDIX
     "A-01-chat-playground",

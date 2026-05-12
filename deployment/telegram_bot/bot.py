@@ -45,8 +45,8 @@ GREETING_EN = (
     "clause, or chat conversation. I will tell you whether it looks "
     "exploitative, which ILO conventions it may violate, and whom you "
     "can call for help.\n\n"
-    "Privacy is non-negotiable. Nothing you send leaves the server you "
-    "are talking to."
+    "Your message is processed by this bot deployment. This demo does "
+    "not send your text to third-party analytics."
 )
 GREETING_TL = (
     "Hello po. Ako si DueCare.\n\n"
@@ -142,7 +142,7 @@ def _format_result(data: dict, lang: str) -> str:
             lines.append(" — ".join(bits))
 
     footer = (
-        "_Privacy is non-negotiable. Your message was analyzed on-device._"
+        "_Analyzed by this deployment; no third-party analytics._"
         if lang == "en"
         else
         "_Hindi ibinabahagi ang mensahe mo sa third party._"

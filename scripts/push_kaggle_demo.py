@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build the .ipynb, version the wheels dataset, push the kernel.
+"""Version the wheels dataset, then push the script kernel.
 
 Uses Kaggle's REST API directly via stdlib urllib so no working pip is
 required. Authenticates with the KAGGLE_API_TOKEN env var (Bearer
@@ -8,10 +8,7 @@ token).
 from __future__ import annotations
 
 import argparse
-import base64
-import io
 import json
-import mimetypes
 import os
 import sys
 import time
@@ -51,57 +48,6 @@ def _api(method: str, path: str, *, body=None, headers=None,
             return r.status, r.read()
     except urllib.error.HTTPError as e:
         return e.code, e.read()
-
-
-# ---------------------------------------------------------------------------
-# Convert kaggle/<notebook>/kernel.py -> .ipynb (single huge cell)
-# ---------------------------------------------------------------------------
-def build_ipynb(py_path: Path, out_path: Path,
-                  markdown_intro: str | None = None) -> Path:
-    """Build the .ipynb. CRITICAL: Kaggle's /kernels/push silently
-    discards `source` if it's a list of lines (the standard nbformat).
-    Source must be a single string."""
-    src = py_path.read_text(encoding="utf-8")
-    md = markdown_intro or (
-        "# Duecare notebook\n\n"
-        "Single cell that installs the wheels, loads Gemma 4, and "
-        "launches the application.\n\n"
-        "**Requires:** GPU T4 (or better), Internet ON, `HF_TOKEN` "
-        "Kaggle Secret, and the wheels dataset declared in "
-        "kernel-metadata.json attached."
-    )
-    nb = {
-        "cells": [
-            {
-                "cell_type": "markdown",
-                "metadata": {},
-                "source": md,
-            },
-            {
-                "cell_type": "code",
-                "execution_count": None,
-                "metadata": {"trusted": True},
-                "outputs": [],
-                "source": src,
-            },
-        ],
-        "metadata": {
-            "kernelspec": {
-                "name": "python3",
-                "display_name": "Python 3",
-                "language": "python",
-            },
-            "language_info": {
-                "name": "python",
-                "version": "3.11",
-            },
-        },
-        "nbformat": 4,
-        "nbformat_minor": 5,
-    }
-    out_path.parent.mkdir(parents=True, exist_ok=True)
-    out_path.write_text(json.dumps(nb, indent=1), encoding="utf-8")
-    return out_path
 
 
 # ---------------------------------------------------------------------------
@@ -184,7 +130,7 @@ def version_dataset(owner: str, slug: str, file_paths: list[Path],
 
 
 # ---------------------------------------------------------------------------
-# Kernel push (multipart-shaped: metadata + ipynb in one POST)
+# Kernel push (metadata + kernel.py source in one POST)
 # ---------------------------------------------------------------------------
 def _normalize_data_source_slugs(values: list, key: str) -> list[str]:
     """Kaggle's /kernels/pull returns dataset/model sources as objects
@@ -208,7 +154,7 @@ def _normalize_data_source_slugs(values: list, key: str) -> list[str]:
 
 def push_kernel(kernel_dir: Path,
                   preserve_attached: bool = True) -> dict:
-    """Push a kernel directory containing kernel-metadata.json + .ipynb.
+    """Push a kernel directory containing kernel-metadata.json + kernel.py.
 
     When `preserve_attached` is True, fetch the existing kernel's
     attached datasets/models/competitions/kernels via /kernels/pull
@@ -276,13 +222,13 @@ def push_kernel(kernel_dir: Path,
 
     # `id` is a numeric kernel id (for updates); for first push pass null
     # and Kaggle assigns one. DO NOT pass `slug` -- Kaggle derives it
-    # from the title. The notebook body MUST be in the `text` field;
+    # from the title. The script body MUST be in the `text` field;
     # `kernelBody` is silently discarded.
     payload = {
         "id": existing_id,
         "newTitle": meta.get("title"),
         "language": meta.get("language", "python"),
-        "kernelType": meta.get("kernel_type", "notebook"),
+        "kernelType": meta.get("kernel_type", "script"),
         "isPrivate": str(meta.get("is_private", "true")).lower() == "true",
         "enableGpu": str(meta.get("enable_gpu", "false")).lower() == "true",
         "enableTpu": False,
@@ -320,115 +266,104 @@ _DEFAULT_GEMMA4_MODELS = [
 
 _KERNEL_PRESETS = {
     "demo": {
-        "notebook_dir": "kaggle/live-demo",
+        "notebook_dir": "kaggle/02-live-demo",
         "kernel_py": "kernel.py",
-        "ipynb_name": "notebook.ipynb",
         "slug": "duecare-live-demo",
-        "title": "Duecare Live Demo",
+        "title": "DueCare Live Demo",
         "wheels_dataset_slug": "duecare-live-demo-wheels",
         "wheels_dir": "wheels",
         "model_sources": _DEFAULT_GEMMA4_MODELS,
     },
     "chat-playground": {
-        "notebook_dir": "kaggle/chat-playground",
+        "notebook_dir": "kaggle/A-01-chat-playground",
         "kernel_py": "kernel.py",
-        "ipynb_name": "notebook.ipynb",
         "slug": "duecare-chat-playground",
-        "title": "Duecare Chat Playground",
+        "title": "DueCare Chat Playground",
         "wheels_dataset_slug": "duecare-chat-playground-wheels",
         "wheels_dir": "wheels",
         "model_sources": _DEFAULT_GEMMA4_MODELS,
     },
     "bench-and-tune": {
-        "notebook_dir": "kaggle/bench-and-tune",
+        "notebook_dir": "kaggle/A-07-bench-and-tune",
         "kernel_py": "kernel.py",
-        "ipynb_name": "notebook.ipynb",
         "slug": "duecare-bench-and-tune",
         # Title MUST derive to the slug above when lowercased + spaces->hyphens
-        # (per feedback_kaggle_slug_derivation memory). "Duecare Bench and Tune"
+        # (per feedback_kaggle_slug_derivation memory). "DueCare Bench and Tune"
         # -> "duecare-bench-and-tune". The "&" form would derive to a
         # different slug and break the existence check.
-        "title": "Duecare Bench and Tune",
+        "title": "DueCare Bench and Tune",
         "wheels_dataset_slug": "duecare-bench-and-tune-wheels",
         "wheels_dir": "wheels",
         "model_sources": _DEFAULT_GEMMA4_MODELS,
     },
     "chat-playground-with-grep-rag-tools": {
-        "notebook_dir": "kaggle/chat-playground-with-grep-rag-tools",
+        "notebook_dir": "kaggle/A-02-chat-playground-with-grep-rag-tools",
         "kernel_py": "kernel.py",
-        "ipynb_name": "notebook.ipynb",
         "slug": "duecare-chat-playground-with-grep-rag-tools",
-        "title": "Duecare Chat Playground with GREP RAG Tools",
+        "title": "DueCare Chat Playground with GREP RAG Tools",
         "wheels_dataset_slug": "duecare-chat-playground-with-grep-rag-tools-wheels",
         "wheels_dir": "wheels",
         "model_sources": _DEFAULT_GEMMA4_MODELS,
     },
     "content-classifier": {
-        "notebook_dir": "kaggle/gemma-content-classification-evaluation",
+        "notebook_dir": "kaggle/A-05-gemma-content-classification-evaluation",
         "kernel_py": "kernel.py",
-        "ipynb_name": "notebook.ipynb",
         "slug": "duecare-gemma-content-classification-evaluation",
-        "title": "Duecare Gemma Content Classification Evaluation",
+        "title": "DueCare Gemma Content Classification Evaluation",
         "wheels_dataset_slug": "duecare-gemma-content-classification-evaluation-wheels",
         "wheels_dir": "wheels",
         "model_sources": _DEFAULT_GEMMA4_MODELS,
     },
     "prompt-generation": {
-        "notebook_dir": "kaggle/prompt-generation",
+        "notebook_dir": "kaggle/A-06-prompt-generation",
         "kernel_py": "kernel.py",
-        "ipynb_name": "notebook.ipynb",
         "slug": "duecare-prompt-generation",
-        "title": "Duecare Prompt Generation",
+        "title": "DueCare Prompt Generation",
         "wheels_dataset_slug": "duecare-prompt-generation-wheels",
         "wheels_dir": "wheels",
         "model_sources": _DEFAULT_GEMMA4_MODELS,
     },
     "research-graphs": {
-        "notebook_dir": "kaggle/research-graphs",
+        "notebook_dir": "kaggle/A-08-research-graphs",
         "kernel_py": "kernel.py",
-        "ipynb_name": "notebook.ipynb",
         "slug": "duecare-research-graphs",
-        "title": "Duecare Research Graphs",
+        "title": "DueCare Research Graphs",
         "wheels_dataset_slug": "duecare-research-graphs-wheels",
         "wheels_dir": "wheels",
         "model_sources": [],   # pure visualization, no model attached
     },
     "content-classification-playground": {
-        "notebook_dir": "kaggle/content-classification-playground",
+        "notebook_dir": "kaggle/A-03-content-classification-playground",
         "kernel_py": "kernel.py",
-        "ipynb_name": "notebook.ipynb",
         "slug": "duecare-content-classification-playground",
-        "title": "Duecare Content Classification Playground",
+        "title": "DueCare Content Classification Playground",
         "wheels_dataset_slug": "duecare-content-classification-playground-wheels",
         "wheels_dir": "wheels",
         "model_sources": _DEFAULT_GEMMA4_MODELS,
     },
     "content-knowledge-builder-playground": {
-        "notebook_dir": "kaggle/content-knowledge-builder-playground",
+        "notebook_dir": "kaggle/A-04-content-knowledge-builder-playground",
         "kernel_py": "kernel.py",
-        "ipynb_name": "notebook.ipynb",
         "slug": "duecare-content-knowledge-builder-playground",
-        "title": "Duecare Content Knowledge Builder Playground",
+        "title": "DueCare Content Knowledge Builder Playground",
         "wheels_dataset_slug": "duecare-content-knowledge-builder-playground-wheels",
         "wheels_dir": "wheels",
         "model_sources": _DEFAULT_GEMMA4_MODELS[:2],  # only E4B + E2B
     },
     "chat-playground-with-agentic-research": {
-        "notebook_dir": "kaggle/chat-playground-with-agentic-research",
+        "notebook_dir": "kaggle/A-09-chat-playground-with-agentic-research",
         "kernel_py": "kernel.py",
-        "ipynb_name": "notebook.ipynb",
         "slug": "duecare-chat-playground-with-agentic-research",
-        "title": "Duecare Chat Playground with Agentic Research",
+        "title": "DueCare Chat Playground with Agentic Research",
         "wheels_dataset_slug": "duecare-chat-playground-with-agentic-research-wheels",
         "wheels_dir": "wheels",
         "model_sources": _DEFAULT_GEMMA4_MODELS,
     },
     "chat-playground-jailbroken-models": {
-        "notebook_dir": "kaggle/chat-playground-jailbroken-models",
+        "notebook_dir": "kaggle/A-10-chat-playground-jailbroken-models",
         "kernel_py": "kernel.py",
-        "ipynb_name": "notebook.ipynb",
         "slug": "duecare-chat-playground-jailbroken-models",
-        "title": "Duecare Chat Playground Jailbroken Models",
+        "title": "DueCare Chat Playground Jailbroken Models",
         "wheels_dataset_slug": "duecare-chat-playground-jailbroken-models-wheels",
         "wheels_dir": "wheels",
         "model_sources": [],   # HF Hub download per JAILBROKEN_MODEL config
@@ -464,31 +399,21 @@ def main() -> int:
     wheels_dir = notebook_dir / preset["wheels_dir"]
     wheels_slug = preset["wheels_dataset_slug"]
 
-    # 1. Build the .ipynb from the python kernel source.
+    # 1. Validate the python kernel source.
     py_path = notebook_dir / preset["kernel_py"]
-    nb_path = notebook_dir / preset["ipynb_name"]
     if not py_path.exists():
         print(f"[1] kernel source not found: {py_path.relative_to(root)}")
         return 1
-    print(f"[1] building notebook -> {nb_path.relative_to(root)}")
-    md_intro = (
-        f"# {preset['title']}\n\n"
-        f"Single cell that installs the wheels, loads Gemma 4, and "
-        f"launches the application.\n\n"
-        f"**Requires:** GPU T4 (or better), Internet ON, `HF_TOKEN` "
-        f"Kaggle Secret, the `{USERNAME}/{wheels_slug}` dataset "
-        f"attached."
-    )
-    build_ipynb(py_path, nb_path, markdown_intro=md_intro)
+    print(f"[1] using script kernel -> {py_path.relative_to(root)}")
 
-    # 2. Write kernel-metadata.json (in the same dir as the .ipynb).
-    kernel_dir = nb_path.parent
+    # 2. Write kernel-metadata.json (in the same dir as kernel.py).
+    kernel_dir = py_path.parent
     kernel_meta = {
         "id": f"{USERNAME}/{slug}",
         "title": preset["title"],
-        "code_file": nb_path.name,
+        "code_file": py_path.name,
         "language": "python",
-        "kernel_type": "notebook",
+        "kernel_type": "script",
         "is_private": "true",
         "enable_gpu": args.enable_gpu,
         "enable_internet": "true",
@@ -504,8 +429,8 @@ def main() -> int:
     print(f"[2] wrote kernel-metadata.json "
           f"(id={kernel_meta['id']}, gpu={kernel_meta['enable_gpu']})")
 
-    # 3. Version the wheels dataset (or skip). Each notebook bundles
-    # its own subset of wheels under kaggle/<notebook>/wheels/, so the
+    # 3. Version the wheels dataset (or skip). Each kernel bundles
+    # its own subset of wheels under kaggle/<kernel>/wheels/, so the
     # upload pulls from there rather than the shared root /dist.
     if not args.skip_dataset:
         wheels = sorted(wheels_dir.glob("*.whl"))

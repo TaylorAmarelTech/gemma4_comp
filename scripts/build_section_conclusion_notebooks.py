@@ -279,7 +279,7 @@ SECTIONS = [
         ),
         "key_points": [
             "The suite now separates implementation-heavy surfaces from plain-English application notebooks, so judges can see both what ships and how it is built.",
-            "Privacy is non-negotiable, so on-device and public API can coexist only when the boundary around case data is explicit, even for document bundles and case timelines.",
+            "On-device runtime and the public API can coexist only when raw case data stays local and any shared submissions go through explicit PII checks, even for document bundles and case timelines.",
             "The deployment-application notebooks make the five product claims explicit, while 610, 620, and 650 remain the deeper implementation companions.",
         ],
         "next_section": "(end of suite)",

@@ -1448,8 +1448,7 @@ NB12_CELLS = [
         "- **Deduplication:** No near-identical prompts (first 100 chars match)\n"
         "- **Quality threshold:** Minimum length, coherent text, proper formatting\n"
         "\n"
-        "This is the same PII gate that protects the entire DueCare pipeline.\n"
-        "Privacy is non-negotiable.\n"
+        "This is the same PII check that protects the entire DueCare pipeline: raw identifiers are rejected before prompts enter shared artifacts.\n"
     ),
 
     code(
@@ -1540,7 +1539,7 @@ NB12_CELLS = [
         "Polaris Project: it tests models the way adversaries actually attack\n"
         "them, not the way benchmarks wish they would.\n"
         "\n"
-        "**Privacy is non-negotiable. The entire factory runs on-device.**\n"
+        "**The entire factory can run on-device; generated prompts should use synthetic or composite data.**\n"
     ),
 ]
 
@@ -1890,9 +1889,8 @@ NB13_CELLS = [
         "national regulation (RA 10022, POEA rules), and direct input from\n"
         "frontline organizations (Polaris Project, IJM, IOM, ECPAT).\n"
         "\n"
-        "**Privacy is non-negotiable. Every evaluation runs entirely on-device.**\n"
-        "Sensitive case data never leaves the machine. That is the promise\n"
-        "DueCare makes to the NGOs, regulators, and workers it serves.\n"
+        "**Every evaluation can run on-device.**\n"
+        "Sensitive case data should stay local or in tenant-controlled environments. That is the promise DueCare makes to the NGOs, regulators, and workers it serves.\n"
     ),
 ]
 
@@ -1913,7 +1911,7 @@ def write_nb(filename, cells, kernel_dir, slug, title, gpu=False,
         "    '<div style=\"background:linear-gradient(135deg,#1e3a8a 0%,#4c78a8 100%);color:white;padding:20px 24px;border-radius:8px;margin:8px 0;font-family:system-ui,-apple-system,sans-serif\">'\n"
         "    '<div style=\"font-size:10px;font-weight:600;letter-spacing:0.14em;opacity:0.8;text-transform:uppercase\">DueCare - Gemma 4 Good Hackathon</div>'\n"
         "    f'<div style=\"font-size:24px;font-weight:700;margin:4px 0 0 0\">{NOTEBOOK_TITLE}</div>'\n"
-        "    '<div style=\"font-size:13px;opacity:0.92;margin-top:4px\">Fine-tuned Gemma 4 as an on-device safety judge. Privacy is non-negotiable.</div></div>'\n"
+        "    '<div style=\"font-size:13px;opacity:0.92;margin-top:4px\">Fine-tuned Gemma 4 as an on-device safety judge; raw case data stays local.</div></div>'\n"
         "))\n"
         "\n"
         "_P = {\"primary\":\"#4c78a8\",\"success\":\"#10b981\",\"info\":\"#3b82f6\",\"warning\":\"#f59e0b\",\"muted\":\"#6b7280\",\n"

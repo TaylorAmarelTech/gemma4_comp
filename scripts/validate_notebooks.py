@@ -20,7 +20,7 @@ def _source_text(cell: dict) -> str:
     return str(source)
 
 
-def _validate_entry(entry, *, cpu_only: bool) -> list[str]:
+def _validate_entry(entry, *, cpu_only: bool, require_mirrors: bool) -> list[str]:
     errors: list[str] = []
     meta_path = entry.dir_path / "kernel-metadata.json"
     meta = json.loads(meta_path.read_text(encoding="utf-8"))
@@ -58,9 +58,9 @@ def _validate_entry(entry, *, cpu_only: bool) -> list[str]:
     if last_cell.get("cell_type") != "code" or "print(" not in last_cell_text:
         errors.append("Notebook is missing the final summary code cell")
 
-    if entry.mirror_path is None:
+    if entry.mirror_path is None and require_mirrors:
         errors.append("Notebook mirror is missing")
-    elif kernel_nb_path.read_bytes() != entry.mirror_path.read_bytes():
+    elif entry.mirror_path is not None and kernel_nb_path.read_bytes() != entry.mirror_path.read_bytes():
         errors.append("Kernel notebook and local mirror differ")
 
     return errors
@@ -69,12 +69,21 @@ def _validate_entry(entry, *, cpu_only: bool) -> list[str]:
 def main() -> int:
     parser = argparse.ArgumentParser(description="Validate tracked notebook JSON without execution.")
     parser.add_argument("--cpu-only", action="store_true", help="Validate only notebooks with enable_gpu=false.")
+    parser.add_argument(
+        "--require-mirrors",
+        action="store_true",
+        help="Fail when optional legacy/skunkworks mirror notebooks are missing.",
+    )
     args = parser.parse_args()
 
     failed = 0
     validated = 0
     for entry in discover_kernel_notebooks():
-        entry_errors = _validate_entry(entry, cpu_only=args.cpu_only)
+        entry_errors = _validate_entry(
+            entry,
+            cpu_only=args.cpu_only,
+            require_mirrors=args.require_mirrors,
+        )
         if args.cpu_only:
             meta = json.loads((entry.dir_path / "kernel-metadata.json").read_text(encoding="utf-8"))
             if meta.get("enable_gpu"):

@@ -2,10 +2,10 @@
 
 For each kernel:
 
-1. Insert a top-of-file markdown intro (notebook) or comment-block
-   intro (script) so a judge sees a clear "what this is, what to look
+1. Insert a top-of-file comment-block intro in each script kernel so a
+    judge sees a clear "what this is, what to look
    for, demo path" before the first code line.
-2. Standardise the README h1 to ``Duecare - <title> (#01 core | #A1 appendix)``.
+2. Standardise the README h1 to ``DueCare - <title> (#01 core | #A1 appendix)``.
 3. Insert a visible "Serves lanes" line under the h1 using the public
     website's five-lane taxonomy.
 4. Append a shared cross-kernel nav footer to every README so the 13
@@ -17,7 +17,6 @@ already ran.
 
 from __future__ import annotations
 
-import json
 import re
 from pathlib import Path
 
@@ -32,7 +31,7 @@ FOOTER_MARKER = "<!-- duecare:kernel-footer -->"
 # kind: "core-NN" or "appendix-NN"
 KERNELS: list[dict[str, object]] = [
     {
-        "folder": "01-duecare-harness-chat",
+        "folder": "01-duecare-exploration-workbench",
         "kind": "core",
         "n": 1,
         "title": "Migrant-worker safety playground",
@@ -83,13 +82,13 @@ KERNELS: list[dict[str, object]] = [
         "folder": "A-02-chat-playground-with-grep-rag-tools",
         "kind": "appendix",
         "n": 2,
-        "title": "Original 4-toggle subset playground",
+        "title": "Harness ablation runner",
         "lanes": ["04 Researcher"],
-        "lede": "The pre-omni subset: GREP + RAG + Tools + Imports as toggleable layers (no Persona, no Online).",
+        "lede": "Compact ablation companion: GREP + RAG + Tools + Imports as toggleable layers while the model and prompt stay constant.",
         "look_for": [
-            "Same chat surface as kernel 01 with 4 toggles instead of 6.",
-            "Useful for showing how each layer contributes incrementally.",
-            "The compare view shows GREP-only vs GREP+RAG side-by-side.",
+            "Same chat surface as the stock baseline, now with four harness toggles.",
+            "Layer-by-layer response changes as GREP, RAG, Tools, and Imports are enabled.",
+            "Pipeline evidence shows which rules, documents, and lookups shaped the response.",
         ],
         "demo_path": "Run All -> open URL -> toggle layers one at a time on the same prompt to isolate contributions.",
     },
@@ -139,29 +138,29 @@ KERNELS: list[dict[str, object]] = [
         "folder": "A-06-prompt-generation",
         "kind": "appendix",
         "n": 6,
-        "title": "Gemma generates evaluation prompts",
+        "title": "Two-track synthetic data generator",
         "lanes": ["04 Researcher"],
-        "lede": "Gemma 4 self-generates new evaluation prompts plus 5 graded responses each (worst -> best).",
+        "lede": "Generates synthetic SafetyJudge training/evaluation prompts and PrivacyRedactor composite anonymization cases in separate tracks.",
         "look_for": [
-            "Each generated prompt comes with 5 anchor responses for grading calibration.",
-            "Topics are seeded by corridor + sector; outputs land in JSONL.",
-            "The grading rubric used here is the same shipped in citation-rubric@3.0.0.",
+            "Safety rows include graded response anchors for calibration.",
+            "Privacy rows include composite intake notes and gold redaction plans.",
+            "Outputs land in JSONL plus the A-07 handoff bundle.",
         ],
-        "demo_path": "Run All -> watch the JSONL file fill -> open a sample prompt + 5 responses to see the grading anchors.",
+        "demo_path": "Run All -> watch the JSONLs fill -> open samples to see SafetyJudge anchors and PrivacyRedactor gold rows.",
     },
     {
         "folder": "A-07-bench-and-tune",
         "kind": "appendix",
         "n": 7,
-        "title": "Unsloth fine-tune + GGUF export pipeline",
+        "title": "Adapter training + new-model benchmark",
         "lanes": ["04 Researcher", "05 Developer / integration partner"],
-        "lede": "End-to-end SFT + DPO + GGUF Q8_0 + HF Hub push. The training pipeline behind the harness.",
+        "lede": "SafetyJudge adapter pipeline: load A-06 bundles, benchmark stock Gemma 4, train SFT/DPO adapters, re-benchmark, and export GGUF/HF Hub artifacts.",
         "look_for": [
-            "SFT runs on the curated training set with the same anonymizer gate.",
-            "DPO uses the 5-grade prompt set from kernel A-06 as preference pairs.",
-            "GGUF export is the same path used for the LiteRT mobile build.",
+            "A-06 handoff bundles are loaded from attached Kaggle datasets, not live notebook links.",
+            "SFT/DPO train a SafetyJudge adapter; PrivacyRedactor data remains a separate adapter/eval track.",
+            "eval_results.json is the stock-vs-fine-tuned benchmark artifact.",
         ],
-        "demo_path": "Run All on a T4 -> watch the SFT curve -> see the GGUF artifact -> push to HF Hub (BYO token).",
+        "demo_path": "Run All on a T4 -> watch stock benchmark -> train adapter -> re-benchmark -> see eval_results.json and GGUF artifact.",
     },
     {
         "folder": "A-08-research-graphs",
@@ -209,42 +208,29 @@ KERNELS: list[dict[str, object]] = [
         "folder": "A-11-grading-evaluation",
         "kind": "appendix",
         "n": 11,
-        "title": "Grading-lift regenerator",
+        "title": "Runtime harness-lift regenerator",
         "lanes": ["04 Researcher"],
-        "lede": "Runs N prompts x 2 conditions, grades both, emits MD + JSON with provenance tuple (model, git_sha, dataset_version). The +56pp number, regenerated live.",
+        "lede": "Recomputes the harness OFF vs ON lift with the same Gemma 4 weights, then emits provenance-pinned JSON, Markdown, and CSV artifacts.",
         "look_for": [
             "The output is a provenance-pinned report you can cite in the writeup.",
             "Run N from 10 (smoke) up to 207 (full reference set).",
-            "Both the rule-based and LLM-based scores are recomputed live.",
+            "Harness OFF vs ON is recomputed live; this is not the fine-tuned-model benchmark.",
         ],
-        "demo_path": "Run All -> wait for the report -> see the headline lift number with the git_sha pinned.",
+        "demo_path": "Run All -> wait for the report -> see the headline lift number with the git SHA pinned.",
     },
 ]
 
 
 def kernel_label(entry: dict[str, object]) -> str:
     if entry["kind"] == "core":
-        return f"Core notebook #{entry['n']:02d}"
-    return f"Appendix notebook #A{int(entry['n']):02d}"
+        return f"Core kernel #{entry['n']:02d}"
+    return f"Appendix kernel #A{int(entry['n']):02d}"
 
 
 def kernel_short_id(entry: dict[str, object]) -> str:
     if entry["kind"] == "core":
         return f"#{int(entry['n']):02d} core"
     return f"#A{int(entry['n']):02d} appendix"
-
-
-def render_intro_markdown(entry: dict[str, object]) -> str:
-    look_for = "\n".join(f"- {bullet}" for bullet in entry["look_for"])
-    return (
-        f"{INTRO_MARKER}\n\n"
-        f"## DueCare — {entry['title']}\n\n"
-        f"_{kernel_label(entry)} of 13 in the DueCare submission._\n\n"
-        f"> {entry['lede']}\n\n"
-        f"**What to look for after Run All:**\n\n{look_for}\n\n"
-        f"**Demo path:** {entry['demo_path']}\n\n"
-        f"Full README + cross-kernel index: see the README in this folder.\n"
-    )
 
 
 def render_intro_python_comment(entry: dict[str, object]) -> str:
@@ -264,33 +250,6 @@ def render_intro_python_comment(entry: dict[str, object]) -> str:
         f"# Full README + cross-kernel index: see the README in this folder.\n"
         f"\n"
     )
-
-
-def insert_notebook_intro(notebook_path: Path, intro_md: str) -> bool:
-    """Insert a markdown cell at the top of the notebook if not already present."""
-    try:
-        data = json.loads(notebook_path.read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError):
-        return False
-    cells = data.get("cells", [])
-    for cell in cells:
-        if cell.get("cell_type") == "markdown" and INTRO_MARKER in "".join(cell.get("source", [])):
-            return False  # already present
-    new_cell = {
-        "cell_type": "markdown",
-        "metadata": {},
-        "source": [line + "\n" for line in intro_md.splitlines()],
-    }
-    # Drop trailing newline on the last source line so the cell renders cleanly.
-    if new_cell["source"]:
-        new_cell["source"][-1] = new_cell["source"][-1].rstrip("\n")
-    cells.insert(0, new_cell)
-    data["cells"] = cells
-    notebook_path.write_text(
-        json.dumps(data, indent=1, ensure_ascii=False) + "\n",
-        encoding="utf-8",
-    )
-    return True
 
 
 def insert_script_intro(script_path: Path, intro_comment: str) -> bool:
@@ -364,7 +323,7 @@ def render_footer(current: dict[str, object]) -> str:
     body = "\n".join(rows)
     return (
         f"\n\n---\n\n{FOOTER_MARKER}\n\n"
-        f"### All DueCare notebooks\n\n"
+        f"### All DueCare kernels\n\n"
         f"You are here: **{kernel_short_id(current)} — {current['title']}**.\n\n"
         f"{body}\n\n"
         f"Index page: [`kaggle/_INDEX.md`](../_INDEX.md).\n"
@@ -394,17 +353,12 @@ def main() -> int:
             print(f"SKIP {entry['folder']}: folder not found")
             continue
 
-        notebook = folder / "notebook.ipynb"
         script = folder / "kernel.py"
         readme = folder / "README.md"
 
-        # Add intro to whichever surface(s) exist. Some kernels ship both
-        # a kernel.py (what Kaggle executes) and a notebook.ipynb (what
-        # judges open in their browser); both should carry the same intro.
-        if notebook.is_file():
-            if insert_notebook_intro(notebook, render_intro_markdown(entry)):
-                edited["intros"] += 1
-                print(f"INTRO {entry['folder']} (notebook)")
+        # Add intro to kernel.py only. The judge-facing submission is a
+        # copy/paste script-kernel workflow; root notebook wrappers are
+        # intentionally not tracked.
         if script.is_file():
             if insert_script_intro(script, render_intro_python_comment(entry)):
                 edited["intros"] += 1

@@ -6,8 +6,8 @@ produced by prepare_training_data.py and fine-tunes Gemma 4 using
 Unsloth's 2x faster LoRA implementation.
 
 Prerequisites:
-    pip install "unsloth[colab-new] @ git+https://github.com/unslothai/unsloth.git"
-    pip install --no-deps trl peft accelerate bitsandbytes
+    pip install "unsloth" "unsloth_zoo>=2026.4.6" "transformers==5.5.0"
+    pip install --no-deps trl peft accelerate bitsandbytes torchcodec timm
 
 Usage:
     # On a GPU with 16GB+ VRAM (Kaggle T4 x2, Colab A100, local 3090+)
@@ -56,8 +56,8 @@ def main(argv: list[str] | None = None) -> int:
     except ImportError:
         print("ERROR: Unsloth not installed.")
         print("Install with:")
-        print('  pip install "unsloth[colab-new] @ git+https://github.com/unslothai/unsloth.git"')
-        print("  pip install --no-deps trl peft accelerate bitsandbytes")
+        print('  pip install "unsloth" "unsloth_zoo>=2026.4.6" "transformers==5.5.0"')
+        print("  pip install --no-deps trl peft accelerate bitsandbytes torchcodec timm")
         return 1
 
     from datasets import Dataset

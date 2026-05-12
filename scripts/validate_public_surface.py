@@ -54,7 +54,6 @@ ACTIVE_GLOBS: tuple[str, ...] = (
     "kaggle/**/README.md",
     "kaggle/_INDEX.md",
     "apps/duecare-ai.com/app/templates/*.html",
-    "skunkworks/README.md",
     "packages/*/README.md",
 )
 
@@ -64,9 +63,6 @@ EXCLUDE_PATTERNS: tuple[str, ...] = (
     "_archive/",
     "_reference/",
     "docs/adr/",
-    "docs/CHECKPOINT_",
-    "docs/GPT55_",
-    "docs/COPILOT_HANDOFF_REVIEW_PROMPT.md",
     "docs/duecare_adversarial_audit.md",  # frozen audit
     "docs/REPO_LAYOUT.md",                # documents the rename
     "docs/notes/",

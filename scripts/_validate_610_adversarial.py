@@ -108,9 +108,9 @@ def main() -> None:
         fail("cross-domain proof is missing the shipped-pack summary line")
     ok("cross-domain proof covers the three shipped packs")
 
-    if "Privacy is non-negotiable" not in all_text:
-        fail("missing required 'Privacy is non-negotiable' phrase")
-    ok("required privacy phrase present")
+    if "Raw case data stays on the deployer's machine" not in all_text:
+        fail("missing required concrete raw-case-data handling phrase")
+    ok("concrete raw-case-data handling phrase present")
 
     for org in ("Polaris Project", "IJM", "ECPAT", "POEA", "BP2MI", "HRD Nepal"):
         if org not in all_text:
