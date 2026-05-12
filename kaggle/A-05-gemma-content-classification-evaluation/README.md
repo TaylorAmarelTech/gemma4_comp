@@ -15,6 +15,7 @@
 | **What it does** | Runs the form-based classifier with Persona, GREP, RAG, and Tools controls, then stores results in a threshold-filterable history queue. |
 | **Demo path** | Paste a synthetic recruitment message, classify it, open the pipeline modal, and filter the history by risk threshold. |
 | **Audience** | NGO & regulator. |
+| **Inputs** | Gemma 4 IT variant + the bundled DueCare corpus for batch classification scoring. |
 | **Outputs** | JSON classification envelope, risk vectors, recommended action, history queue, and pipeline evidence. |
 | **Cross-links** | Use the quick links at the bottom for the full workbench, live demo, grading-lift appendix, and public website. |
 

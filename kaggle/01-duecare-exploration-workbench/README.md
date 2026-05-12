@@ -15,6 +15,7 @@
 | **What it does** | Starts the full workbench, lets judges toggle Persona / GREP / RAG / Tools / Grading, and shows response evidence with pipeline traces. |
 | **Demo path** | Run `kernel.py`, open the cloudflared URL, select a fast Gemma 4 variant, and follow the 5-minute walkthrough below. |
 | **Audience** | NGO & regulator, Researcher, and Developer / integration partner. |
+| **Inputs** | 9-variant Gemma 4 model picker (E2B / E4B / 26B-A4B / 31B IT + abliterated variants) attached as Kaggle Models; bundled trafficking-prompts library. |
 | **Outputs** | Live chat responses, A/B comparisons, retrieval traces, grading evidence, and `dc_log` events. |
 | **Cross-links** | Continue to the focused live demo and appendix notebooks from the quick links at the bottom. |
 

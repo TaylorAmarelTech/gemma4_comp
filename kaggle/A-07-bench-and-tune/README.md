@@ -15,6 +15,7 @@
 | **What it does** | Runs a stock benchmark, prepares SFT and DPO pairs, fine-tunes a SafetyJudge adapter, re-benchmarks the fine-tuned model, exports GGUF, and prepares HF Hub outputs. |
 | **Demo path** | Attach A6 bundles with Add Data, run the pipeline, open the printed Cloudflare dashboard, review phase status, and use the A6 upload panel to stage multiple ZIP/JSONL artifacts for rerun. |
 | **Audience** | Researcher and Developer / integration partner. |
+| **Inputs** | One or more A-06 bundle ZIPs attached via Add Data OR uploaded via the homepage A-06 panel + Gemma 4 IT base model + HF_TOKEN secret. |
 | **Outputs** | Training data, stock-vs-fine-tuned evaluation deltas, SafetyJudge LoRA/fine-tuned artifacts, GGUF export path, PrivacyRedactor data pointers, and HF Hub metadata. |
 | **Cross-links** | Use the quick links at the bottom for the full workbench, live demo, grading-lift appendix, and public website. |
 

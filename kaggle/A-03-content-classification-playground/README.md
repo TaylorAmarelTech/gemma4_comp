@@ -15,6 +15,7 @@
 | **What it does** | Shows the merged prompt, raw response, parsed JSON envelope, parse errors, and latency for four schema modes. |
 | **Demo path** | Paste a synthetic recruitment post, choose a schema mode, classify it, and inspect the raw and parsed outputs side by side. |
 | **Audience** | Platform safety and NGO & regulator. |
+| **Inputs** | Bundle ZIPs from A-01 and A-02 attached via Add Data OR uploaded directly via the /api/upload-bundle web form. |
 | **Outputs** | Structured category, tag, risk-vector, or custom-schema JSON plus parsing diagnostics. |
 | **Cross-links** | Use the quick links at the bottom for the full workbench, live demo, knowledge-builder sandbox, and public website. |
 

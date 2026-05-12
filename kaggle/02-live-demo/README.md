@@ -15,6 +15,7 @@
 | **What it does** | Runs the FastAPI server, the 22-slide walkthrough, and the full safety-harness pipeline from prescan through Gemma 4 verdict and audit trail. |
 | **Demo path** | Run the kernel, open the cloudflared URL, and follow the deck from the human scenario into the live workbench and hub views. |
 | **Audience** | Platform safety, NGO & regulator, Individual worker, Researcher, and Developer / integration partner. |
+| **Inputs** | Gemma 4 IT variant (e4b-it default) + the bundled v3.16 harness corpus. No external data attachments required. |
 | **Outputs** | Live demo page, Workbench pages, response evidence, public-hub routes, and audit-trail views. |
 | **Cross-links** | Use the quick links at the bottom for the full workbench, grading appendix, and public website. |
 

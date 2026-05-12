@@ -15,6 +15,7 @@
 | **What it does** | Adds a fifth research toggle, routes search through browser or BYOK providers, and keeps PII filtering plus audit logging in the loop. |
 | **Demo path** | Run the chat, enable Agentic Research, ask for a public-source update, and inspect the full research step trace. |
 | **Audience** | Researcher and Developer / integration partner. |
+| **Inputs** | Gemma 4 IT variant + optional BYOK keys for OpenRouter / Mistral / Anthropic (Playwright agentic search). |
 | **Outputs** | Chat response, web-search result summaries, full agent step trace, PII-gate findings, and audit events. |
 | **Cross-links** | Use the quick links at the bottom for the full workbench, live demo, 4-toggle harness playground, and public website. |
 

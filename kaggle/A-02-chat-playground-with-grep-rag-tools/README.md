@@ -15,6 +15,7 @@
 | **What it does** | Keeps the chat UI familiar while adding four toggleable safety layers and pipeline evidence for each response. |
 | **Demo path** | Run the kernel, open the tunnel, send a recruitment-risk prompt, then toggle one harness layer at a time. |
 | **Audience** | Researcher. |
+| **Inputs** | Same Gemma 4 IT variants as A-01 plus the Persona / GREP / RAG / Tools toggles in the side panel. |
 | **Outputs** | Layer-by-layer response deltas, fired-rule evidence, retrieved-source context, tool outputs, and traceable chat turns. |
 | **Cross-links** | Use the quick links at the bottom for the full workbench, live demo, grading-lift appendix, and public website. |
 
