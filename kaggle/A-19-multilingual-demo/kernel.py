@@ -204,20 +204,61 @@ MULTILINGUAL_DEMO = {
         "demonstrations)."),
 }
 
-# Canonical RunID per docs/data_primitives.md so multiple recordings
-# don't collide.
-_run_ts = time.strftime("%Y-%m-%dT%H-%M-%SZ", time.gmtime())
-RUN_ID = f"a19_multilingual_{_run_ts}"
-MULTILINGUAL_DEMO["run_id"] = RUN_ID
-RESULTS_PATH = OUTPUT_DIR / f"{RUN_ID}_multilingual_demo.json"
-BUNDLE_PATH = OUTPUT_DIR / f"{RUN_ID}_bundle.zip"
-RESULTS_PATH.write_text(json.dumps(MULTILINGUAL_DEMO, indent=2,
-                                       ensure_ascii=False),
-                            encoding="utf-8")
-with zipfile.ZipFile(BUNDLE_PATH, "w", zipfile.ZIP_DEFLATED) as _z:
-    _z.write(RESULTS_PATH, "multilingual_demo.json")
-print(f"  + {RESULTS_PATH.name}")
-print(f"  + {BUNDLE_PATH.name}")
+# Canonical bundle emission via the shared helper module. Reference
+# implementation of duecare.appendix_primitives.write_v1_bundle() so
+# future kernels can crib the pattern from a small clear example.
+# Per docs/data_primitives.md section 1.7 the bundle contains 4 files:
+# results.json + run.jsonl + metadata.json + manifest.json (all in
+# <RUN>_bundle.zip). Defensive ImportError fallback so older
+# duecare-llm-chat versions without appendix_primitives still emit
+# the legacy 2-file form rather than failing the kernel.
+try:
+    from duecare.appendix_primitives import (
+        BundleEnvelope, PerRow, make_run_id, write_v1_bundle,
+    )
+    RUN_ID = make_run_id("a19", "multilingual")
+    MULTILINGUAL_DEMO["run_id"] = RUN_ID
+    _shared_citations = MULTILINGUAL_DEMO.get("shared_citations", [])
+    _per_row = [
+        PerRow(
+            row_id=_lang_code,
+            prompt_text=_lang_data["prompt"],
+            response=_lang_data["response"],
+            citations=list(_shared_citations),
+        )
+        for _lang_code, _lang_data in MULTILINGUAL_DEMO["languages"].items()
+    ]
+    _envelope = BundleEnvelope(
+        kernel_id="a-19-multilingual-demo",
+        run_id=RUN_ID,
+        config={"n_languages": len(_per_row)},
+        metadata={
+            "shared_citations": _shared_citations,
+            "rubric_anchor": MULTILINGUAL_DEMO.get("rubric_anchor", ""),
+        },
+        summary={"n_languages": len(_per_row)},
+        results=_per_row,
+    )
+    _paths = write_v1_bundle(_envelope, OUTPUT_DIR)
+    RESULTS_PATH = _paths["results_json"]
+    BUNDLE_PATH = _paths["bundle_zip"]
+    print(f"  + {_paths['results_json'].name}")
+    print(f"  + {_paths['run_jsonl'].name}")
+    print(f"  + {_paths['metadata_json'].name}")
+    print(f"  + {_paths['bundle_zip'].name}")
+except ImportError:
+    _run_ts = time.strftime("%Y-%m-%dT%H-%M-%SZ", time.gmtime())
+    RUN_ID = f"a19_multilingual_{_run_ts}"
+    MULTILINGUAL_DEMO["run_id"] = RUN_ID
+    RESULTS_PATH = OUTPUT_DIR / f"{RUN_ID}_multilingual_demo.json"
+    BUNDLE_PATH = OUTPUT_DIR / f"{RUN_ID}_bundle.zip"
+    RESULTS_PATH.write_text(json.dumps(MULTILINGUAL_DEMO, indent=2,
+                                           ensure_ascii=False),
+                                encoding="utf-8")
+    with zipfile.ZipFile(BUNDLE_PATH, "w", zipfile.ZIP_DEFLATED) as _z:
+        _z.write(RESULTS_PATH, "multilingual_demo.json")
+    print(f"  + {RESULTS_PATH.name}")
+    print(f"  + {BUNDLE_PATH.name}")
 
 try:
     from duecare.chat._dc_log import set_kernel_id

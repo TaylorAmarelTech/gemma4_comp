@@ -40,12 +40,24 @@ on the website.
 
 ## Outputs
 
-To `/kaggle/working/`:
+To `/kaggle/working/`, via `duecare.appendix_primitives.write_v1_bundle()`
+(this kernel is the reference implementation):
 
-- `<RUN>_multilingual_demo.json` — full payload with languages dict
-- `<RUN>_bundle.zip` — manifest + above
+- `<RUN>_results.json` — v1.0 BundleEnvelope: `{schema_version,
+  kernel_id, run_id, config, metadata, summary, results[]}`
+- `<RUN>_run.jsonl` — one PerRow per language (EN / TL / NE /
+  BN / ID), each line self-describing with envelope metadata
+- `<RUN>_metadata.json` — envelope minus `results[]` (for thin
+  index reads)
+- `<RUN>_bundle.zip` — all three above + `manifest.json` with
+  sha256 checksums per file
 - `RUN_ID` format: `a19_multilingual_{ts}`
   (e.g., `a19_multilingual_2026-05-12T19-30-00Z`)
+
+On older `duecare-llm-chat` versions without the
+`appendix_primitives` module, the kernel falls back to the legacy
+2-file form: `<RUN>_multilingual_demo.json` + `<RUN>_bundle.zip`
+(with the JSON only, no streaming JSONL or metadata.json).
 
 ## Where this slot lives
 
