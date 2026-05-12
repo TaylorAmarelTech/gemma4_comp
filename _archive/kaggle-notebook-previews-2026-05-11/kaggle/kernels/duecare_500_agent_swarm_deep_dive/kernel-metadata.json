@@ -1,24 +1,25 @@
 {
   "id": "taylorsamarel/duecare-500-agent-swarm-deep-dive",
-  "title": "DueCare 500 Agent Swarm Deep Dive",
+  "title": "500: DueCare 12-Agent Gemma 4 Safety Swarm",
   "code_file": "500_agent_swarm_deep_dive.ipynb",
   "language": "python",
   "kernel_type": "notebook",
   "is_private": false,
   "enable_gpu": false,
-  "enable_tpu": false,
   "enable_internet": true,
+  "enable_tpu": false,
   "dataset_sources": [
     "taylorsamarel/duecare-llm-wheels"
   ],
   "competition_sources": [
     "gemma-4-good-hackathon"
   ],
-  "kernel_sources": [],
   "keywords": [
-    "agent",
-    "fine-tuning",
-    "unsloth",
-    "lora"
-  ]
+    "gemma",
+    "agents",
+    "swarm",
+    "function-calling",
+    "orchestration"
+  ],
+  "kernel_sources": []
 }

@@ -1,6 +1,6 @@
 {
   "id": "taylorsamarel/duecare-cross-domain-proof",
-  "title": "DueCare 200 Cross Domain Proof",
+  "title": "200: DueCare Cross-Domain Proof",
   "code_file": "200_cross_domain_proof.ipynb",
   "language": "python",
   "kernel_type": "notebook",
@@ -9,7 +9,8 @@
   "enable_tpu": false,
   "enable_internet": true,
   "dataset_sources": [
-    "taylorsamarel/duecare-llm-wheels"
+    "taylorsamarel/duecare-llm-wheels",
+    "taylorsamarel/duecare-trafficking-prompts"
   ],
   "competition_sources": [
     "gemma-4-good-hackathon"
