@@ -1,30 +1,43 @@
 # <!-- duecare:kernel-intro -->
-# DueCare — Jailbroken-Gemma comparison
-# Appendix notebook #A10 of 13 in the DueCare submission.
+# DueCare — Abliterated test generator (worst/bad/neutral/good/best ladders)
+# Appendix notebook #A09 of 13 in the DueCare submission.
 #
-# Loads abliterated / cracked Gemma 4 variants. Proves the harness still works when the model's refusals are gone.
+# Loads abliterated / cracked Gemma 4 variants and uses them to GENERATE
+# adversarial test ladders for A-04's training corpus. The same chat
+# playground UI is also live so the model can be probed manually.
 #
 # What to look for after Run All:
-#   - The same harness runs on a refusal-ablated Gemma 4 31B variant.
-#   - GREP + RAG + tool-call grounding compensate for the missing safety tuning.
-#   - The grading panel shows the lift on adversarial prompts even against a jailbroken model.
+#   - The chat UI runs on a refusal-ablated Gemma 4 variant; ask the
+#     same adversarial prompts as A-02 to see the runtime delta.
+#   - The harness still grounds responses with GREP + RAG + tools even
+#     when the underlying model's refusal training has been ablated.
+#   - Generated ladders can be exported and consumed by A-04's
+#     synthetic-data corpus for adversarial-aware fine-tuning.
 #
-# Demo path: Run All -> pick a jailbroken variant in the picker -> ask the same adversarial prompts as kernel 01.
+# Demo path: Run All -> pick an abliterated variant -> compare runtime
+# harness OFF/ON on adversarial prompts -> export ladder.
 #
 # Full README + cross-kernel index: see the README in this folder.
 
 """
 ============================================================================
-  DUECARE CHAT PLAYGROUND — JAILBROKEN MODELS — Kaggle notebook
+  DUECARE A-09 ABLITERATED TEST GENERATOR -- Kaggle notebook
   (paste into a single code cell)
 ============================================================================
 
-  APPENDIX A5. Same chat UI as chat-playground-with-grep-rag-tools (4
-  harness toggles: Persona / GREP / RAG / Tools), but loads an
-  abliterated / cracked / uncensored Gemma 4 variant instead of the
-  stock instruct model. Demonstrates that the DueCare safety harness
-  STILL transforms outputs even against intentionally-uncensored
-  models -- the safety isn't in the weights, it's in the runtime.
+  Per Taylor's 2026-05-11 experiment-ladder spec, A-09 uses an
+  abliterated / cracked / uncensored Gemma 4 variant in two ways:
+
+    1) Manual probing surface: same chat UI as A-02 (4 harness toggles:
+       Persona / GREP / RAG / Tools). Demonstrates that the DueCare
+       safety harness STILL transforms outputs even against
+       intentionally-uncensored models -- the safety isn't in the
+       weights, it's in the runtime.
+    2) Adversarial test ladder generator: feeds the seed library into
+       the abliterated model with 5 different prompt frames and
+       captures WORST / BAD / NEUTRAL / GOOD / BEST graded responses
+       for use as adversarial training material in A-04's synthetic
+       data corpus (and downstream A-05 fine-tune).
 
   Default model: dealignai/Gemma-4-31B-JANG_4M-CRACK (the 31B
   "cracked" variant the project's research kernels 185-189 already
