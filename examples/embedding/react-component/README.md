@@ -34,7 +34,7 @@ export default function Page() {
 | `toggles` | object | `{persona:false, grep:true, rag:true, tools:true}` | Which harness layers per message |
 | `personaText` | string \| undefined | undefined | Override kernel persona |
 | `placeholder` | string | "Ask about a fee..." | Composer placeholder |
-| `suggestedPrompts` | string[] | 3 OFW defaults | Initial-state suggestions |
+| `suggestedPrompts` | string[] | 3 Individual worker defaults | Initial-state suggestions |
 | `maxNewTokens` | number | 1024 | Generation cap |
 | `theme` | `'light' \| 'dark'` | `'light'` | Color scheme |
 | `onResponse` | (text: string) => void | undefined | Fired on each Gemma response |

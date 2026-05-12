@@ -37,7 +37,7 @@ are fixable within the deadline.
 | 3 | content-classification-playground | Complete (publish pending) | A | A | A | Push to Kaggle by 2026-05-15 |
 | 4 | content-knowledge-builder-playground | Complete (publish pending) | A | A | A | Push to Kaggle by 2026-05-15 |
 | 5 | gemma-content-classification-evaluation (NGO dashboard) | Complete | A | A | A | Live |
-| 6 | live-demo (1,951-line polished product + 22-slide deck) | Complete | **A** | **A+** | **A** | Verify wheels dataset on Kaggle |
+| 6 | live-demo (1,951-line polished product + guided walkthrough) | Complete | **A** | **A+** | **A** | Verify wheels dataset on Kaggle |
 
 ### Appendix Kaggle notebooks (5) — extension + research
 

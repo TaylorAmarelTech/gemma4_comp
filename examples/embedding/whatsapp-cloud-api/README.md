@@ -107,7 +107,7 @@ incoming messages. Safe by default.
 - Test number: free, 5 numbers cap, 250 service conversations/24hrs
 - Verified number: $0.005-0.10 per conversation depending on country
   + category (utility / authentication / marketing / service)
-- For a 100-OFW-user pilot at MfMW HK: ~$5-30/month
+- For a 100-worker pilot at MfMW HK: ~$5-30/month
 
 ## License
 

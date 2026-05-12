@@ -2,14 +2,27 @@
 <!-- duecare:lane-label -->
 > **Serves lanes:** 02 NGO & regulator · 04 Researcher · 05 Developer / integration partner
 
-> **The single configurable Duecare playground.** Every harness layer,
+<!-- duecare:judge-quick-path -->
+
+## Judge quick path
+
+| Section | This notebook |
+|---|---|
+| **Lede** | Unified workbench that exposes every Gemma 4 variant, harness layer, grading mode, and audit view from one Kaggle URL. |
+| **What it does** | Starts the full workbench, lets judges toggle Persona / GREP / RAG / Tools / Grading, and shows response evidence with pipeline traces. |
+| **Demo path** | Run `kernel.py`, open the cloudflared URL, select a fast Gemma 4 variant, and follow the 5-minute walkthrough below. |
+| **Audience** | NGO & regulator, Researcher, and Developer / integration partner. |
+| **Outputs** | Live chat responses, A/B comparisons, retrieval traces, grading evidence, and `dc_log` events. |
+| **Cross-links** | Continue to the focused live demo and appendix notebooks from the quick links at the bottom. |
+
+> **The single configurable DueCare playground.** Every harness layer,
 > every Gemma 4 variant, every grading mode visible from one URL.
 >
-> **Live URL** (after publish): https://www.kaggle.com/code/taylorsamarel/duecare-harness-chat
+> **Live URL** (manual Kaggle publication target): https://www.kaggle.com/code/taylorsamarel/duecare-exploration-workbench
 
-## Run it on Kaggle yourself (until the live URL is back up)
+## Run it on Kaggle yourself
 
-This folder ships as a **script kernel** (`kernel.py` only, no
+This folder publishes as a **script kernel** (`kernel.py` only, no
 `notebook.ipynb`). To run it on Kaggle:
 
 1. <https://kaggle.com> → **New Notebook** → Python.
@@ -112,8 +125,7 @@ Full variant list (9 supported):
   variant → wire harness → start FastAPI + cloudflared
 - `wheels/` — duecare-llm-chat / -core / -models (bundled into the
   Kaggle dataset `taylorsamarel/duecare-harness-chat-wheels`)
-- `notebook.ipynb` — intentionally not committed for this script kernel;
-  paste `kernel.py` into Kaggle as described above
+- `notebook.ipynb` — archived preview wrapper; paste `kernel.py` into Kaggle as described above
 
 All harness CONTENT (161 GREP rules, 46 RAG docs, 5 tools, 46-dim
 rubric, 21 configured LLM-judge questions) lives in the chat package wheel —
@@ -168,7 +180,7 @@ safe enough for judges to test live:
 
 This is **core notebook #1** of 2:
 
-- **#1** `duecare-harness-chat` (this notebook) — flip every toggle,
+- **#1** `duecare-exploration-workbench` (this notebook) — flip every toggle,
   switch every model
 - **#2** `duecare-live-demo` — focused, scripted demonstration of the
   +56.5pp lift thesis
@@ -201,24 +213,44 @@ regenerator). See `docs/FOR_PEER_REVIEW.md` for the full submission roster.
 
 ---
 
+<!-- duecare:quick-cross-links -->
+
+### Quick cross-links
+
+- **Core workbench:** this notebook.
+- **Focused live demo:** [#02 core: Live demo](../02-live-demo/README.md).
+- **Natural next appendix:** [#A02 appendix: 4-toggle harness playground](../A-02-chat-playground-with-grep-rag-tools/README.md).
+- **Public website:** [duecare-ai.com](https://duecare-ai.com).
+
+---
+
 <!-- duecare:kernel-footer -->
 
-### All DueCare notebooks
+### All DueCare kernels
 
 You are here: **#01 core — Migrant-worker safety playground**.
 
 - **[#01 core: Migrant-worker safety playground](../01-duecare-exploration-workbench/README.md)**
 - [#02 core: Live demo (focused walkthrough)](../02-live-demo/README.md)
 - [#A01 appendix: Stock Gemma 4 chat baseline](../A-01-chat-playground/README.md)
-- [#A02 appendix: Original 4-toggle subset playground](../A-02-chat-playground-with-grep-rag-tools/README.md)
+- [#A02 appendix: Harness ablation runner](../A-02-chat-playground-with-grep-rag-tools/README.md)
 - [#A03 appendix: Hands-on classification sandbox](../A-03-content-classification-playground/README.md)
 - [#A04 appendix: Knowledge-builder sandbox + JSON export](../A-04-content-knowledge-builder-playground/README.md)
 - [#A05 appendix: NGO classifier evaluation dashboard](../A-05-gemma-content-classification-evaluation/README.md)
-- [#A06 appendix: Gemma generates evaluation prompts](../A-06-prompt-generation/README.md)
-- [#A07 appendix: Unsloth fine-tune + GGUF export pipeline](../A-07-bench-and-tune/README.md)
+- [#A06 appendix: Two-track synthetic data generator](../A-06-prompt-generation/README.md)
+- [#A07 appendix: Adapter training + new-model benchmark](../A-07-bench-and-tune/README.md)
 - [#A08 appendix: Research graphs (CPU-only)](../A-08-research-graphs/README.md)
 - [#A09 appendix: Agentic-research chat (BYOK + Playwright)](../A-09-chat-playground-with-agentic-research/README.md)
 - [#A10 appendix: Jailbroken-Gemma comparison](../A-10-chat-playground-jailbroken-models/README.md)
-- [#A11 appendix: Grading-lift regenerator](../A-11-grading-evaluation/README.md)
+- [#A11 appendix: Runtime harness-lift regenerator](../A-11-grading-evaluation/README.md)
 
 Index page: [`kaggle/_INDEX.md`](../_INDEX.md).
+
+---
+
+## Cross-links
+
+- **[DueCare Exploration Workbench (#01)](https://www.kaggle.com/code/taylorsamarel/duecare-exploration-workbench)** — the full chat playground with all 6 harness layers, 9-variant model picker, 4 grading modes, A/B compare, and every visualization in one place.
+- **[Live demo (#02)](https://www.kaggle.com/code/taylorsamarel/duecare-live-demo)** — focused public-hub walkthrough demonstrating the +56.5pp lift on a curated set of compound-indicator prompts.
+- **[Next step → A-11 grading-evaluation](https://www.kaggle.com/code/taylorsamarel/duecare-grading-evaluation)** — regenerate the headline +56.5pp lift number live from a git SHA.
+- **[Public hub: duecare-ai.com](https://duecare-ai.com)** — knowledge-pack registry, anonymized signal intake, public-source proposal intake, and the 5-lane audience showcase.

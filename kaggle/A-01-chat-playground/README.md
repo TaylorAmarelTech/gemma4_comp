@@ -34,8 +34,8 @@ and other IT variants). Used in accordance with the
 
 | Field | Value |
 |---|---|
-| **Kaggle URL** | https://www.kaggle.com/code/taylorsamarel/duecare-gemma-chat-playground |
-| **Title on Kaggle** | "Duecare Chat Playground" |
+| **Kaggle URL** | https://www.kaggle.com/code/taylorsamarel/duecare-chat-playground |
+| **Title on Kaggle** | "DueCare Chat Playground" |
 | **Slug** | `taylorsamarel/duecare-chat-playground` |
 | **Wheels dataset** | `taylorsamarel/duecare-chat-playground-wheels` (3 wheels, ~160 KB) |
 | **Models attached** | `google/gemma-4/Transformers/{e2b,e4b,26b-a4b,31b}-it/1` (all four IT variants) |
@@ -61,7 +61,7 @@ chat-playground/
 
 ### A. Paste-into-Kaggle (preferred)
 
-1. Open https://www.kaggle.com/code/taylorsamarel/duecare-gemma-chat-playground (create with title `Duecare Chat Playground` if it doesn't exist).
+1. Open https://www.kaggle.com/code/taylorsamarel/duecare-chat-playground (create with title `DueCare Chat Playground` if it doesn't exist).
 2. Side panel: GPU T4 ×2 · Internet ON · `HF_TOKEN` Secret · all 4 Gemma 4 models · `taylorsamarel/duecare-chat-playground-wheels` dataset.
 3. Replace the single code cell with the contents of [`kernel.py`](./kernel.py) (CTRL+A → paste).
 4. **Save Version → Save & Run All**.
@@ -96,23 +96,23 @@ python scripts/push_kaggle_demo.py --kernel chat-playground --skip-kernel
 
 <!-- duecare:kernel-footer -->
 
-### All DueCare notebooks
+### All DueCare kernels
 
 You are here: **#A01 appendix — Stock Gemma 4 chat baseline**.
 
 - [#01 core: Migrant-worker safety playground](../01-duecare-exploration-workbench/README.md)
 - [#02 core: Live demo (focused walkthrough)](../02-live-demo/README.md)
 - **[#A01 appendix: Stock Gemma 4 chat baseline](../A-01-chat-playground/README.md)**
-- [#A02 appendix: Original 4-toggle subset playground](../A-02-chat-playground-with-grep-rag-tools/README.md)
+- [#A02 appendix: Harness ablation runner](../A-02-chat-playground-with-grep-rag-tools/README.md)
 - [#A03 appendix: Hands-on classification sandbox](../A-03-content-classification-playground/README.md)
 - [#A04 appendix: Knowledge-builder sandbox + JSON export](../A-04-content-knowledge-builder-playground/README.md)
 - [#A05 appendix: NGO classifier evaluation dashboard](../A-05-gemma-content-classification-evaluation/README.md)
-- [#A06 appendix: Gemma generates evaluation prompts](../A-06-prompt-generation/README.md)
-- [#A07 appendix: Unsloth fine-tune + GGUF export pipeline](../A-07-bench-and-tune/README.md)
+- [#A06 appendix: Two-track synthetic data generator](../A-06-prompt-generation/README.md)
+- [#A07 appendix: Adapter training + new-model benchmark](../A-07-bench-and-tune/README.md)
 - [#A08 appendix: Research graphs (CPU-only)](../A-08-research-graphs/README.md)
 - [#A09 appendix: Agentic-research chat (BYOK + Playwright)](../A-09-chat-playground-with-agentic-research/README.md)
 - [#A10 appendix: Jailbroken-Gemma comparison](../A-10-chat-playground-jailbroken-models/README.md)
-- [#A11 appendix: Grading-lift regenerator](../A-11-grading-evaluation/README.md)
+- [#A11 appendix: Runtime harness-lift regenerator](../A-11-grading-evaluation/README.md)
 
 Index page: [`kaggle/_INDEX.md`](../_INDEX.md).
 

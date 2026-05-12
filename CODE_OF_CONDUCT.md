@@ -22,9 +22,9 @@ notebooks, the chat playground) we expect:
 - **No real PII.** Never paste a real worker's name, passport number,
   phone, address, employer name (unless the employer is in the
   public court record), or case identifier. Use composites.
-- **Privacy is non-negotiable.** No telemetry, no usage tracking,
-  no "send a small log line back" — even for debugging. If you need
-  to reproduce a bug, work from a synthetic example.
+- **No telemetry or raw debugging logs.** Do not add usage tracking or
+  "send a small log line back" behavior — even for debugging. If you
+  need to reproduce a bug, work from a synthetic example.
 
 ## Unacceptable
 
@@ -62,4 +62,4 @@ audience.
 
 ---
 
-> *"Privacy is non-negotiable. So the harness runs on your laptop."*
+> *"Raw worker chats, IDs, contact details, and private documents stay with the worker or trusted caseworker unless an authorized user creates a sanitized submission."*

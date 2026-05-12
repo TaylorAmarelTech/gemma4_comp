@@ -3,12 +3,12 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Chat with Gemma 4 — Duecare</title>
+  <title>Chat with Gemma 4 — DueCare</title>
   <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
 <header class="dc-nav">
-  <h1>Duecare<span class="tag"> · Gemma 4 chat (debug)</span></h1>
+  <h1>DueCare<span class="tag"> · Gemma 4 chat (debug)</span></h1>
   <nav>
     <a href="/">Home</a>
     <a href="/demo">Demo</a>
@@ -16,7 +16,7 @@
     <a href="/architecture">Architecture</a>
     <a href="/background">Background</a>
     <a href="/evidence">Evidence</a>
-    <a href="/enterprise">Enterprise</a>
+    <a href="/enterprise">Platform safety</a>
     <a href="/individual">Individual</a>
     <a href="/knowledge">Knowledge</a>
     <a href="/dashboard">Dashboard</a>
@@ -32,7 +32,7 @@
     <h3>Bare-bones Gemma 4 chat</h3>
     <p class="dc-sub" style="font-size:13px;margin-bottom:10px">
       Direct prompt → Gemma loop, routed through the <b>same task
-      queue</b> as Enterprise / Individual. Use this to verify the
+      queue</b> as Platform safety / Individual worker. Use this to verify the
       UI → queue → GPU worker → Gemma → response path end-to-end.
       <br>Each message: submitted via <code>POST /api/queue/submit</code>
       with <code>task_type: "chat"</code>, polled via
@@ -50,7 +50,7 @@
           padding:10px; background:var(--paper-2); border-radius:6px;
           border:1px solid var(--border)">
       <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:6px">
-        <span id="progress-state" class="dc-badge">submitting…</span>
+        <span id="progress-state" class="dc-badge" role="status" aria-live="polite">submitting…</span>
         <span id="progress-id" style="font-family:monospace; font-size:11px; color:var(--muted)"></span>
         <span id="progress-worker" style="font-size:11px; color:var(--muted)"></span>
         <span id="progress-elapsed" style="font-size:11px; color:var(--muted)"></span>
@@ -74,7 +74,7 @@
       <button class="dc-btn secondary" onclick="usePrompt('Is it legal for a Philippine recruitment agency to charge a placement fee equal to two months of salary? Answer yes or no plus one sentence.')">PH fee legal?</button>
       <button class="dc-btn secondary" onclick="usePrompt('A Filipino domestic worker in Hong Kong has had her passport held by her employer for 18 months. Name the most relevant ILO convention and one sentence on why.')">PH→HK passport</button>
       <button class="dc-btn secondary" onclick="usePrompt('Write a 2-sentence warning to a Nepalese worker who is being asked to pay USD 5000 to a recruiter for a Saudi job.')">Nepali worker warning</button>
-      <button class="dc-btn secondary" onclick="document.getElementById('conversation').innerHTML = '<p style=color:var(--muted);font-size:13px;margin:0>(cleared)</p>'">Clear conversation</button>
+      <button class="dc-btn secondary" id="clear-conversation" type="button">Clear conversation</button>
     </div>
   </div>
 
@@ -119,6 +119,18 @@ function usePrompt(p) {
   document.getElementById('prompt').value = p;
 }
 
+function clearConversation() {
+  const conv = document.getElementById('conversation');
+  conv.textContent = '';
+  const cleared = document.createElement('p');
+  cleared.style.cssText = 'color:var(--muted);font-size:13px;margin:0';
+  cleared.textContent = '(cleared)';
+  conv.appendChild(cleared);
+}
+
+document.getElementById('clear-conversation')
+  .addEventListener('click', clearConversation);
+
 function _setState(state, label) {
   const s = document.getElementById('progress-state');
   s.className = 'dc-badge dc-state-' + state;
@@ -138,9 +150,32 @@ function _appendMsg(role, text, meta) {
   }
   const div = document.createElement('div');
   div.className = 'dc-msg ' + role;
-  let html = `<div class="role">${role}</div><div>${text}</div>`;
-  if (meta) html += `<div class="meta">${meta}</div>`;
-  div.innerHTML = html;
+
+  const roleEl = document.createElement('div');
+  roleEl.className = 'role';
+  roleEl.textContent = role;
+  div.appendChild(roleEl);
+
+  const textEl = document.createElement('div');
+  textEl.textContent = text;
+  div.appendChild(textEl);
+
+  if (meta && meta.length) {
+    const metaEl = document.createElement('div');
+    metaEl.className = 'meta';
+    meta.forEach((part, index) => {
+      if (index > 0) metaEl.appendChild(document.createTextNode(' · '));
+      if (part.code) {
+        metaEl.appendChild(document.createTextNode(part.label || ''));
+        const code = document.createElement('code');
+        code.textContent = part.value;
+        metaEl.appendChild(code);
+      } else {
+        metaEl.appendChild(document.createTextNode(part.text || ''));
+      }
+    });
+    div.appendChild(metaEl);
+  }
   conv.appendChild(div);
   conv.scrollTop = conv.scrollHeight;
 }
@@ -227,11 +262,13 @@ async function send() {
     _appendMsg('error', result.error);
     return;
   }
-  const meta = `mode=<code>${result.mode||'?'}</code> ` +
-                `· prompt=${result.prompt_chars||0} chars` +
-                ` · response=${result.response_chars||0} chars` +
-                ` · gemma_elapsed=${result.elapsed_seconds||0}s` +
-                ` · task_id=<code>${submitJ.task_id}</code>`;
+  const meta = [
+    {label: 'mode=', value: result.mode || '?', code: true},
+    {text: `prompt=${result.prompt_chars || 0} chars`},
+    {text: `response=${result.response_chars || 0} chars`},
+    {text: `gemma_elapsed=${result.elapsed_seconds || 0}s`},
+    {label: 'task_id=', value: String(submitJ.task_id), code: true},
+  ];
   _appendMsg('gemma', result.response || '(empty response)', meta);
 }
 

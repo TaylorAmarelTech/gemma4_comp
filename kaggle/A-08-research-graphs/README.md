@@ -22,10 +22,10 @@ benchmark results visually.
 
 | Field | Value |
 |---|---|
-| **Kaggle URL** | https://www.kaggle.com/code/taylorsamarel/duecare-research-graphs *(manual publication pending)* |
-| **Title on Kaggle** | "Duecare Research Graphs" |
+| **Kaggle URL** | https://www.kaggle.com/code/taylorsamarel/duecare-research-graphs *(manual Kaggle publication target)* |
+| **Title on Kaggle** | "DueCare Research Graphs" |
 | **Slug** | `taylorsamarel/duecare-research-graphs` |
-| **Wheels dataset** | `taylorsamarel/duecare-research-graphs-wheels` *(local wheels present; manual dataset publication pending)* |
+| **Wheels dataset** | `taylorsamarel/duecare-research-graphs-wheels` *(local wheels present; create/update dataset during manual Kaggle publish)* |
 | **Optional dataset** | `taylorsamarel/duecare-eval-results` (for chart 3) |
 | **Models attached** | NONE (pure visualization) |
 | **GPU** | NOT required |
@@ -45,7 +45,7 @@ The four core notebooks deliver everything an end user needs for
 deployment. The two earlier appendix notebooks
 (`prompt-generation`, `bench-and-tune`) extend the system with new
 prompts and a fine-tuned model. This third appendix notebook
-visualizes what Duecare *already knows* — the 161 GREP rules, the
+visualizes what DueCare *already knows* — the 161 GREP rules, the
 46-doc RAG corpus + 46-edge citation graph, the 7 corridor fee caps,
 the 16+ fee-camouflage labels, the 11 ILO indicators, the 4 NGO intake
 hotlines, and the 587 example prompts across 8 audience buckets — so
@@ -85,7 +85,6 @@ inlines each chart in the Kaggle notebook output via `IPython.display`.
 ```
 research-graphs/
 ├── kernel.py            ← source-of-truth (paste into Kaggle)
-├── notebook.ipynb       ← built artifact
 ├── kernel-metadata.json ← Kaggle kernel config
 ├── README.md            ← this file
 └── wheels/              ← dataset-metadata.json + local wheels for manual Kaggle upload
@@ -93,8 +92,8 @@ research-graphs/
 
 ## Status
 
-**Built 2026-04-29.** All 6 chart functions are real (no
-placeholders). Charts 1, 2, 4, 5, 6 render from the bundled harness
+**Built 2026-04-29.** All 6 chart functions are implemented. Charts
+1, 2, 4, 5, 6 render from the bundled harness
 data; chart 3 is conditional on the `duecare-eval-results` dataset
 being attached. The wheels dataset
 (`duecare-research-graphs-wheels`) needs 3 wheels:
@@ -109,30 +108,30 @@ same minimal subset as the prompt-generation kernel.
 
 - **Core workbench:** [#01 core: Migrant-worker safety playground](../01-duecare-exploration-workbench/README.md).
 - **Focused live demo:** [#02 core: Live demo](../02-live-demo/README.md).
-- **Natural next appendix:** [#A11 appendix: Grading-lift regenerator](../A-11-grading-evaluation/README.md).
+- **Natural next appendix:** [#A11 appendix: Runtime harness-lift regenerator](../A-11-grading-evaluation/README.md).
 - **Public website:** [duecare-ai.com](https://duecare-ai.com).
 
 ---
 
 <!-- duecare:kernel-footer -->
 
-### All DueCare notebooks
+### All DueCare kernels
 
 You are here: **#A08 appendix — Research graphs (CPU-only)**.
 
 - [#01 core: Migrant-worker safety playground](../01-duecare-exploration-workbench/README.md)
 - [#02 core: Live demo (focused walkthrough)](../02-live-demo/README.md)
 - [#A01 appendix: Stock Gemma 4 chat baseline](../A-01-chat-playground/README.md)
-- [#A02 appendix: Original 4-toggle subset playground](../A-02-chat-playground-with-grep-rag-tools/README.md)
+- [#A02 appendix: Harness ablation runner](../A-02-chat-playground-with-grep-rag-tools/README.md)
 - [#A03 appendix: Hands-on classification sandbox](../A-03-content-classification-playground/README.md)
 - [#A04 appendix: Knowledge-builder sandbox + JSON export](../A-04-content-knowledge-builder-playground/README.md)
 - [#A05 appendix: NGO classifier evaluation dashboard](../A-05-gemma-content-classification-evaluation/README.md)
-- [#A06 appendix: Gemma generates evaluation prompts](../A-06-prompt-generation/README.md)
-- [#A07 appendix: Unsloth fine-tune + GGUF export pipeline](../A-07-bench-and-tune/README.md)
+- [#A06 appendix: Two-track synthetic data generator](../A-06-prompt-generation/README.md)
+- [#A07 appendix: Adapter training + new-model benchmark](../A-07-bench-and-tune/README.md)
 - **[#A08 appendix: Research graphs (CPU-only)](../A-08-research-graphs/README.md)**
 - [#A09 appendix: Agentic-research chat (BYOK + Playwright)](../A-09-chat-playground-with-agentic-research/README.md)
 - [#A10 appendix: Jailbroken-Gemma comparison](../A-10-chat-playground-jailbroken-models/README.md)
-- [#A11 appendix: Grading-lift regenerator](../A-11-grading-evaluation/README.md)
+- [#A11 appendix: Runtime harness-lift regenerator](../A-11-grading-evaluation/README.md)
 
 Index page: [`kaggle/_INDEX.md`](../_INDEX.md).
 

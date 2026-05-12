@@ -136,7 +136,7 @@ source chain.
 ### D. Delivery Pipeline (publishing + demo)
 
 ```
-[D1] Kaggle Publisher   → Push notebooks, datasets, models via CLI
+[D1] Kaggle Publisher   → Manual copy/paste workflow for kernels + wheels
 [D2] HF Hub Publisher   → Upload weights + model cards
 [D3] Demo App           → FastAPI web app for live evaluation
 [D4] Video Materials    → Script, screenshots, demo recordings
@@ -151,7 +151,9 @@ source chain.
 2. **Worker-Side Tool** — browser extension, WhatsApp bot, or mobile
    app that runs Gemma 4 entirely on-device via LiteRT. Workers paste
    suspicious messages and get localized legal info + hotline numbers.
-   Privacy is non-negotiable — no data leaves the phone.
+   Raw worker chats, IDs, contact details, and private documents stay
+   on the worker device unless the worker explicitly creates a sanitized
+   submission.
 3. **Agency/NGO Dashboard** — FastAPI + web UI for batch evaluation,
    compliance monitoring, model comparison, and regulatory reporting.
    Agencies can fine-tune Gemma 4 on their specific regulations.
@@ -218,6 +220,7 @@ gemma4_comp/
 │   └── framework/                      <- llm-safety-framework-public (copied 2026-04-11)
 │
 ├── _archive/                           <- legacy / superseded files
+│   ├── legacy-research-2026-05-09/     <- archived legacy notebooks + skunkworks
 │   └── legacy_src/                     <- pre-Duecare flat scaffolds (kept for reference)
 │       ├── src/                        <- 627 modules, 29.8K LOC
 │       │   ├── research/agents/        <- 12 autonomous agents + coordinator
@@ -257,6 +260,114 @@ gemma4_comp/
 └── copy_framework.py         <- populates _reference/framework/ from framework source
 ```
 
+## Archive and context hygiene
+
+The final hackathon project should stay focused on the active submission
+surface: `apps/`, `packages/`, `kaggle/` submission folders, `configs/`,
+`scripts/`, `docs/`, `deployment/`, `src/demo/`, and `tests/`.
+
+Archived material is intentionally out of the default review scope:
+
+- `_archive/legacy-research-2026-05-09/legacy_notebooks/` contains the
+   old 77-notebook research-pipeline mirrors.
+- `_archive/legacy-research-2026-05-09/skunkworks/` contains exploratory
+   jailbreak / proof-of-concept notebooks.
+- `_archive/legacy_src/` contains pre-DueCare scaffolding.
+
+Do **not** read, review, lint, validate, regenerate, or summarize these
+archive folders unless the user explicitly asks for historical context,
+restore work, provenance checks, or migration work. They are not part of
+the active Kaggle submission path. Treat the 2 core + 11 appendix folders
+under `kaggle/` as the active kernel sources; `kaggle/kernels/*` notebook
+mirrors are archived.
+
+Some older builder scripts may recreate root-level `legacy_notebooks/`
+or `skunkworks/` as optional local mirrors. Those root folders are
+gitignored convenience artifacts, not active submission sources. Do not
+re-add them to git unless Taylor explicitly requests a restore/migration.
+
+## Kaggle publication workflow
+
+Kaggle publishing is manual by default. Do **not** create new Kaggle
+notebooks, push kernels, publish datasets/models, or rewrite Kaggle links
+automatically unless Taylor explicitly asks for that action.
+
+Kaggle notebook generation is archived. Do **not** create `.ipynb` notebooks
+for the judge-facing submission by default. The source of truth for Kaggle
+bundles is the folder README plus `kernel.py`; Taylor copies `kernel.py` into
+Kaggle manually for showcasing and publication. Any historical `.ipynb` wrapper
+belongs under `_archive/kaggle-notebook-previews-2026-05-11/`, not in active
+`kaggle/*/` folders.
+
+Builder scripts under `scripts/build_notebook_*.py` are historical research
+helpers unless Taylor explicitly asks for a preview rebuild. They must not
+write root submission `.ipynb` files.
+
+Every Kaggle bundle that remains in the submission must be runnable from a
+clear bootstrap path instead of hidden local state. The first executable cells
+or top-of-file setup block should:
+
+1. State required Kaggle settings up front: accelerator, internet, attached
+   datasets/model sources, and secrets such as `HF_TOKEN`.
+2. Fail fast with a helpful message if the required GPU/secret/dataset is
+   missing. If a sample/offline fallback exists, it must be clearly labeled in
+   the output and opening markdown so it is never mistaken for live inference.
+3. Install DueCare from a reproducible source in this preference order:
+   attached Kaggle wheel dataset first; pinned PyPI packages when published;
+   immutable GitHub release wheel URLs or commit-pinned source archives only
+   as a fallback. Do not install from a moving branch such as `main` for a
+   judge-facing kernel.
+4. Validate imports and print the resolved DueCare version/source before any
+   model load or demo output.
+5. Never require `_reference/`, local `.venv`, root-level legacy mirrors, or
+   untracked files to make a public kernel run.
+
+Default agent behavior:
+
+1. Edit source files and kernel bundles locally only.
+2. Run validators and dry-runs (public-surface audits, root metadata checks,
+   and Kaggle dry-run checks) to prove readiness.
+3. Prepare paste-ready kernel text, metadata, and link checklists.
+4. Leave the final Kaggle UI steps to Taylor: manual copy/paste into
+    Kaggle, manual save/run/publish, then manual link updates after the
+    public URLs exist.
+
+Only run real Kaggle push/publish commands after an explicit user request
+that says to publish/push/upload. When in doubt, run dry-run/status only.
+
+## Kaggle notebook polish checkpoint (2026-05-11)
+
+Current active Kaggle state is deliberately smaller than the older archived
+research suite:
+
+- The former generated/research kernel inventory under `kaggle/kernels/*` is
+   archived with its notebook wrappers under
+   `_archive/kaggle-notebook-previews-2026-05-11/`. Older 52/74/77-kernel
+   notes are historical unless Taylor explicitly asks for restore or migration work.
+- The judge-facing submission folders under `kaggle/` remain **13 folders**:
+   2 core kernels plus A-01 through A-11. Their `kernel.py` and `README.md`
+   files are the source of truth; notebook wrappers are archived under
+   `_archive/kaggle-notebook-previews-2026-05-11/`.
+- A conservative first polish pass has already fixed reproducible bootstrap
+   drift, notebook preview cell metadata, visible demo PII placeholders, A-08
+   design-token drift, and A-09 displayed-result truncation.
+- `tests/test_kaggle_install_policy.py` now rejects judge-facing Git installs
+   and Git ref assignments that use moving refs such as `main`, `master`, or
+   `HEAD`. Keep attached wheels, pinned PyPI, or immutable Git refs only.
+- If a reviewer or subagent reports `kaggle/01-duecare-harness-chat/kernel.py`,
+   treat it as stale context first. As of this checkpoint, that path does not
+   exist and is not tracked by git.
+- Latest validation after the conservative pass: targeted Kaggle install and
+   utility tests passed, active notebook files were archived, root Kaggle
+   metadata points to script kernels, and `scripts/validate_public_surface.py`
+   reported 0 findings.
+
+Next safe pass for Claude Code: continue conservative review of the 13
+judge-facing `kaggle/*/README.md` files for the uniform six-section skeleton
+and cross-link block, then inspect above-the-fold served UI copy for canonical
+audience clarity. Do not broaden into archived notebooks, broad redesigns, or
+Kaggle publish actions without explicit Taylor approval.
+
 ## Project memory
 
 Project memory for Claude Code sessions is at:
@@ -292,8 +403,8 @@ Files of note:
    headline quality number.
 3. **Deployment target priority**: llama.cpp desktop is the current
    runtime target (600/610 results dashboard, submission walkthrough).
-   LiteRT mobile is the next target; tracked as a deployment-applications
-   notebook (670 Private Client-Side Checker).
+   LiteRT mobile is the next target; the archived deployment-application
+   mirror was 670 Private Client-Side Checker.
 4. **Video hosting**: public YouTube under Taylor's channel.
 
 ## Useful commands
@@ -310,27 +421,19 @@ python scripts/extract_benchmark_prompts.py   # 74K+ prompts → seed_prompts.js
 
 # ── Build and test ──
 make test                                     # run the 194-test suite (22 files under packages/ + 16 under tests/)
-make build                                    # rebuild all 8 wheels
+make build                                    # rebuild all 17 workspace wheels
 make adversarial                              # adversarial validation + stress test
 make cleanroom                                # clean-room install test
 
-# ── Kaggle publishing ──
+# ── Kaggle validation / dry-run only by default ──
 python scripts/publish_kaggle.py auth-check
-python scripts/publish_kaggle.py push-notebooks
+python scripts/publish_kaggle.py --dry-run push-notebooks
 python scripts/publish_kaggle.py status-notebooks
 
-# ── Generate notebooks ──
-# Every notebook has its own scripts/build_notebook_NNN_*.py builder.
-# The three shared orchestrators are:
-python scripts/build_index_notebook.py            # 000 Index
-python scripts/build_notebook_005_glossary.py     # 005 Glossary and Reading Map
-python scripts/build_section_conclusion_notebooks.py  # 099/199/299/.../899 conclusions
-# Any individual notebook:
-python scripts/build_notebook_100.py              # Gemma Exploration (GPU T4)
-python scripts/build_notebook_140_evaluation_mechanics.py
-python scripts/build_notebook_210_oss_model_comparison.py
-# After edits, run the repo-wide gate:
-python scripts/validate_notebooks.py              # 77 research notebooks must pass
+# ── Notebook previews are archived; active submission is kernel.py only ──
+# Do not create root submission notebooks by default. Use kernel.py and
+# folder README as the Kaggle copy/paste source. Historical previews live
+# under _archive/kaggle-notebook-previews-2026-05-11/.
 ```
 
 ## Hackathon requirements checklist

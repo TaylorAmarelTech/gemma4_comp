@@ -11,7 +11,7 @@
 > **v3.14 update (2026-05-04, T-14):** since round 3 the harness
 > grew significantly. Current snapshot:
 >
-> - **Submission shape:** 2 core (`duecare-harness-chat` omni
+> - **Submission shape:** 2 core (`duecare-exploration-workbench` omni
 >   playground + `duecare-live-demo`) + 11 appendix
 > - **Harness layers:** 6 (Persona / GREP **161 rules** / RAG
 >   **46 docs** + 46-edge citation graph / Imports / Tools
@@ -23,7 +23,7 @@
 > - **Model selector:** 9 Gemma 4 variants (E2B / E4B / 26B-A4B /
 >   31B / 2 abliterated jailbroken / 3 cloud BYOK routes)
 > - **Tests:** 92 chat-package tests (added 18 anti-jailbreak smoke)
-> - **Wheels datasets:** 11 (added `duecare-harness-chat-wheels`)
+> - **Wheels datasets:** 11 (kept compatibility slug `duecare-harness-chat-wheels`)
 > - **Bundled prompts:** 407 (added 13 judge-impact prompts in 5
 >   new categories pinned to top of the Examples modal)
 > - **PII redaction (v3.7):** 506 harvested files removed from git

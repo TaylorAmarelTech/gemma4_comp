@@ -1,19 +1,22 @@
-# Duecare — Notebook Index
+# Duecare — Kaggle Kernel Index
 
-> Single-page reference for all 13 submission notebooks (2 core + 11
+> Single-page reference for all 13 submission kernels (2 core + 11
 > appendix). For the full 30-second / 2-minute / 5-minute verification
 > paths, see [`FOR_PEER_REVIEW.md`](./FOR_PEER_REVIEW.md). For the
 > complete writeup, see [`writeup_draft.md`](./writeup_draft.md).
 >
 > **Canonical mapping authority:** the "Submission shape" block right
-> below is the source of truth. The per-notebook detail sections
+> below is the source of truth. The per-kernel detail sections
 > further down preserve their **original April-2026 section numbering**
 > (when the project briefly used a 6-core / 5-appendix split before
-> the 2-core / 11-appendix re-numbering). The notebook *folder* names
+> the 2-core / 11-appendix re-numbering). The kernel *folder* names
 > are correct; the section *header numbers* are historical. Use the
 > Submission shape block above, [`kaggle/_INDEX.md`](../kaggle/_INDEX.md),
 > or [`kaggle/README.md`](../kaggle/README.md) for the canonical
 > mapping when in doubt.
+>
+> Active source is `kernel.py`, not `.ipynb`. Historical notebook wrappers
+> have been archived under `_archive/kaggle-notebook-previews-2026-05-11/`.
 
 ---
 
@@ -21,7 +24,7 @@
 
 ```
 2 CORE (judges evaluate first; the omni surface + the focused thesis demo)
-  1. duecare-harness-chat                               ★ omni playground
+  1. duecare-exploration-workbench                      ★ omni playground
                                                           (6 toggles + 4 grade modes
                                                           + 9 model variants)
   2. duecare-live-demo                                  ★ focused live URL with
@@ -29,28 +32,28 @@
 
 11 APPENDIX (specialised playgrounds, research, fine-tune, lift regen)
   A1. duecare-chat-playground                           raw Gemma 4 baseline (no harness)
-  A2. duecare-chat-playground-with-grep-rag-tools       4-toggle subset of the omni notebook
+  A2. duecare-chat-playground-with-grep-rag-tools       harness ablation runner
   A3. duecare-content-classification-playground         classification sandbox
   A4. duecare-content-knowledge-builder-playground      knowledge-base builder
   A5. duecare-gemma-content-classification-evaluation   NGO/agency dashboard
-  A6. duecare-prompt-generation                         generate new prompts
-  A7. duecare-bench-and-tune                            SFT/DPO/GGUF/HF Hub (Unsloth)
+  A6. duecare-prompt-generation                         two-track synthetic data generator
+  A7. duecare-bench-and-tune                            adapter training + new-model benchmark
   A8. duecare-research-graphs                           6 Plotly charts
   A9. duecare-chat-playground-with-agentic-research     Playwright + DuckDuckGo + Wikipedia
   A10. duecare-chat-playground-jailbroken-models        abliterated-model proof
-  A11. duecare-grading-evaluation                       lift regenerator with provenance tuple
+  A11. duecare-grading-evaluation                       runtime harness-lift regenerator
 ```
 
 ---
 
-## Core notebooks
+## Kernel Detail Sections
 
 ### 1. `duecare-chat-playground` — *raw Gemma 4 baseline*
 
 | | |
 |---|---|
 | Folder | [`kaggle/A-01-chat-playground/`](../kaggle/A-01-chat-playground/) |
-| Notebook URL | https://www.kaggle.com/code/taylorsamarel/duecare-gemma-chat-playground |
+| Notebook URL | https://www.kaggle.com/code/taylorsamarel/duecare-chat-playground |
 | Wheels | `taylorsamarel/duecare-chat-playground-wheels` ✓ live |
 | LOC | 611 |
 | GPU | T4 ×2 (default 31B; E2B/E4B run on single T4) |
@@ -112,7 +115,7 @@ inspect lookup tables, test what fires on a sample text, export the
 full knowledge JSON. Works WITHOUT a GPU — perfect for downstream NGO
 partners extending Duecare to their corridor / domain on a laptop.
 
-### 5. `duecare-gemma-content-classification-evaluation` — *NGO/agency dashboard*
+### 5. `duecare-gemma-content-classification-evaluation` — *NGO & regulator scorecard*
 
 | | |
 |---|---|
@@ -122,7 +125,7 @@ partners extending Duecare to their corridor / domain on a laptop.
 | LOC | 526 |
 | GPU | T4 ×2 |
 
-The polished Agency / NGO dashboard. Form-based content submission
+The polished NGO & regulator evaluation surface. Form-based content submission
 (text + optional document image — passport scan, fee receipt, complaint
 form) → structured JSON classification with risk vectors +
 threshold-filterable history queue + per-response Pipeline modal.
@@ -141,15 +144,13 @@ exercising Gemma 4's multimodal path).
 
 The polished deployed product. Full safety-harness pipeline (heuristic
 prescan → GREP → RAG → tools → Gemma 4 verdict → audit trail) +
-**22-slide deck** at `/overview` (with 7 appendices: Knowledge base,
-Retrieval mechanism, Tool catalog, Tool call orchestration, Heuristic
-taxonomy, Extensibility, Credits) + **Workbench** for paste-your-own-data
+guided walkthrough at `/overview` + **Workbench** for paste-your-own-data
 + **Benchmark tab** with the bundled smoke_25 set + GGUF export option
-for the llama.cpp track. Combines #3 + #4 in one polished surface.
+for the llama.cpp track.
 
 ---
 
-## Appendix notebooks
+## Appendix Kernels
 
 ### A1. `duecare-prompt-generation` — *generate new evaluation prompts*
 
@@ -269,17 +270,17 @@ in its Phase 1 install step.
 
 ---
 
-## Three deployment modes (cross-cuts the notebooks)
+## Three Deployment Modes (Cross-Cuts The Kernels)
 
-| Mode | Audience | Notebooks | Doc |
+| Mode | Audience | Kernels | Doc |
 |---|---|---|---|
-| Worker-side (local laptop) | individual workers / families | Core #2, #3, A4 | [`deployment_local.md`](./deployment_local.md) |
-| Agency / NGO dashboard | NGO triage officers, hotlines | Core #5 | (in #5 notebook README) |
-| Enterprise (Dockerized API) | platform integrations | (uses the chat package's `create_classifier_app` directly) | [`deployment_enterprise.md`](./deployment_enterprise.md) |
+| Individual worker (local laptop) | individual workers / families | Core #2, #3, A4 | [`deployment_local.md`](./deployment_local.md) |
+| NGO & regulator | NGO triage officers, hotlines, labor inspectors | Core #5 | (in #5 kernel README) |
+| Platform safety API (Dockerized API) | platform integrations | (uses the chat package's `create_classifier_app` directly) | [`deployment_enterprise.md`](./deployment_enterprise.md) |
 
 ---
 
-## Companion artifacts (not Kaggle notebooks, but referenced from the writeup)
+## Companion artifacts (not Kaggle kernels, but referenced from the writeup)
 
 | Artifact | Path | What it shows |
 |---|---|---|
@@ -290,10 +291,9 @@ in its Phase 1 install step.
 
 ## What's NOT in this index
 
-- **The 77-notebook research pipeline** at `kaggle/kernels/` — that's the
-  experimental code that produced the rules + corpus + benchmark, not
-  the submission surface. See [`docs/notebook_guide.md`](./notebook_guide.md)
-  for that map.
+- **The former generated/research notebook mirrors** — these are archived under
+  [`_archive/kaggle-notebook-previews-2026-05-11/`](../_archive/kaggle-notebook-previews-2026-05-11/), not part of the active submission surface.
+  Older 52/74/77-kernel maps are historical archive context.
 - **The 17 PyPI packages** at `packages/duecare-llm-*/` — see the
   package READMEs and [`docs/architecture.md`](./architecture.md).
 - **HF Hub fine-tunes** under `taylorscottamarel/Duecare-Gemma-4-*` —

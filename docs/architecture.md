@@ -47,8 +47,8 @@
 > OpenAI-compat / Ollama).
 >
 > **2 core + 11 appendix submission**: judges land on
-> `duecare-harness-chat` (omni playground) → `duecare-live-demo`
-> (focused thesis demo). The 9 specialised playgrounds are appendix.
+> `duecare-exploration-workbench` (omni playground) -> `duecare-live-demo`
+> (focused thesis demo). The 11 specialised notebooks are appendix.
 >
 > **`/api/health-check`** smoke endpoint returns wired layers +
 > grade modes + harness counts + model info in one shot.

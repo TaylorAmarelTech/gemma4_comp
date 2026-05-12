@@ -15,7 +15,7 @@
 | **Outputs** | Validated knowledge-block JSON, optional Gemma test output, and reusable configuration material. |
 | **Cross-links** | Use the quick links at the bottom for the full workbench, live demo, classifier dashboard, and public website. |
 
-The HANDS-ON sandbox for **building** Duecare's knowledge base.
+The HANDS-ON sandbox for **building** DueCare's knowledge base.
 Pairs with `content-classification-playground`; both are
 prerequisites for understanding what the polished `live-demo`
 notebook does. The live-demo bundles classification AND
@@ -30,10 +30,10 @@ and other IT variants). Used in accordance with the
 
 | Field | Value |
 |---|---|
-| **Kaggle URL** | https://www.kaggle.com/code/taylorsamarel/duecare-content-knowledge-builder-playground *(manual publication pending)* |
-| **Title on Kaggle** | "Duecare Content Knowledge Builder Playground" |
+| **Kaggle URL** | https://www.kaggle.com/code/taylorsamarel/duecare-content-knowledge-builder-playground *(manual Kaggle publication target)* |
+| **Title on Kaggle** | "DueCare Content Knowledge Builder Playground" |
 | **Slug** | `taylorsamarel/duecare-content-knowledge-builder-playground` |
-| **Wheels dataset** | `taylorsamarel/duecare-content-knowledge-builder-playground-wheels` *(local wheels present; manual dataset publication pending)* |
+| **Wheels dataset** | `taylorsamarel/duecare-content-knowledge-builder-playground-wheels` *(local wheels present; create/update dataset during manual Kaggle publish)* |
 | **Models attached** | `google/gemma-4/Transformers/{e2b,e4b}-it/1` (optional) |
 | **GPU** | NOT REQUIRED for the builder UI; GPU only needed if user clicks "ask Gemma" in the Test tab |
 | **Internet** | ON (cloudflared tunnel) |
@@ -62,8 +62,9 @@ and other IT variants). Used in accordance with the
    automatically. Each doc has id, title, source, snippet (the
    chunk indexed).
 3. **Tools (lookups)** — read-only view of the corridor fee caps,
-   fee camouflage labels, and NGO intake hotlines. Edit via Export →
-   modify JSON → Import (UI-driven editing for these is a placeholder).
+   fee camouflage labels, and NGO intake hotlines. To update them,
+   use Export → modify JSON → Import so the notebook keeps a clear
+   audit trail for the edited knowledge pack.
 4. **Test** — paste a sample text, see what fires across your
    edited knowledge base: GREP hits, RAG retrievals, the merged
    pre-context Gemma would receive. Optional "ask Gemma" button
@@ -77,7 +78,7 @@ and other IT variants). Used in accordance with the
 The builder logic is **pure Python** (regex matching + BM25 over
 small corpora). The notebook works WITHOUT a GPU and WITHOUT loading
 any LLM — perfect for downstream NGO partners who want to extend
-Duecare for their corridor / domain on their laptop. Set
+DueCare for their corridor / domain on their laptop. Set
 `ENABLE_GEMMA = False` at the top of the kernel to skip Gemma loading
 entirely; the Test tab will still show GREP hits + RAG retrievals.
 
@@ -86,7 +87,6 @@ entirely; the Test tab will still show GREP hits + RAG retrievals.
 ```
 content-knowledge-builder-playground/
 ├── kernel.py            ← source-of-truth (paste into Kaggle)
-├── notebook.ipynb       ← built artifact
 ├── kernel-metadata.json ← Kaggle kernel config
 ├── README.md            ← this file
 └── wheels/              ← dataset-metadata.json + local wheels for manual Kaggle upload
@@ -115,23 +115,23 @@ wheels uploaded: `duecare-llm-core`, `duecare-llm-models`,
 
 <!-- duecare:kernel-footer -->
 
-### All DueCare notebooks
+### All DueCare kernels
 
 You are here: **#A04 appendix — Knowledge-builder sandbox + JSON export**.
 
 - [#01 core: Migrant-worker safety playground](../01-duecare-exploration-workbench/README.md)
 - [#02 core: Live demo (focused walkthrough)](../02-live-demo/README.md)
 - [#A01 appendix: Stock Gemma 4 chat baseline](../A-01-chat-playground/README.md)
-- [#A02 appendix: Original 4-toggle subset playground](../A-02-chat-playground-with-grep-rag-tools/README.md)
+- [#A02 appendix: Harness ablation runner](../A-02-chat-playground-with-grep-rag-tools/README.md)
 - [#A03 appendix: Hands-on classification sandbox](../A-03-content-classification-playground/README.md)
 - **[#A04 appendix: Knowledge-builder sandbox + JSON export](../A-04-content-knowledge-builder-playground/README.md)**
 - [#A05 appendix: NGO classifier evaluation dashboard](../A-05-gemma-content-classification-evaluation/README.md)
-- [#A06 appendix: Gemma generates evaluation prompts](../A-06-prompt-generation/README.md)
-- [#A07 appendix: Unsloth fine-tune + GGUF export pipeline](../A-07-bench-and-tune/README.md)
+- [#A06 appendix: Two-track synthetic data generator](../A-06-prompt-generation/README.md)
+- [#A07 appendix: Adapter training + new-model benchmark](../A-07-bench-and-tune/README.md)
 - [#A08 appendix: Research graphs (CPU-only)](../A-08-research-graphs/README.md)
 - [#A09 appendix: Agentic-research chat (BYOK + Playwright)](../A-09-chat-playground-with-agentic-research/README.md)
 - [#A10 appendix: Jailbroken-Gemma comparison](../A-10-chat-playground-jailbroken-models/README.md)
-- [#A11 appendix: Grading-lift regenerator](../A-11-grading-evaluation/README.md)
+- [#A11 appendix: Runtime harness-lift regenerator](../A-11-grading-evaluation/README.md)
 
 Index page: [`kaggle/_INDEX.md`](../_INDEX.md).
 

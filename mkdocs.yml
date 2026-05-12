@@ -112,6 +112,7 @@ nav:
   - Get started:
       - Try in 2 minutes: try_in_2_minutes.md
       - Pick a deployment shape: deployment_topologies.md
+      - Launch packaging options: launch_packaging_options.md
       - Pick a Gemma 4 variant: gemma4_model_guide.md
       - Local install: deployment_local.md
       - Cloud deploy (13 platforms): cloud_deployment.md
@@ -156,9 +157,11 @@ nav:
       - Project status: project_status.md
       - Notebook QA companion: notebook_qa_companion.md
       - Bench-and-tune readiness: bench_and_tune_readiness.md
+      - Repo cleanup review: repo_cleanup_review_2026-05-10.md
   - Architecture:
       - Overview: architecture.md
       - Deployment topologies: deployment_topologies.md
+      - Submission labeling policy: submission_labeling_policy.md
       - Embedding guide: embedding_guide.md
       - Notebook guide: notebook_guide.md
       - Decision records:
@@ -186,5 +189,6 @@ nav:
       - FAQ: FAQ.md
   - Research:
       - Harness lift report: harness_lift_report.md
+      - Kaggle benchmark plan: kaggle_benchmark_plan.md
       - Project phases: project_phases.md
       - Cloud deployment: cloud_deployment.md

@@ -314,10 +314,10 @@ jobs:
 
       - name: Execute each notebook
         run: |
-          for nb in legacy_notebooks/010_quickstart.ipynb \
-                    legacy_notebooks/200_cross_domain_proof.ipynb \
-                    legacy_notebooks/500_agent_swarm_deep_dive.ipynb \
-                    legacy_notebooks/610_submission_walkthrough.ipynb; do
+          for nb in kaggle/kernels/duecare_010_quickstart/010_quickstart.ipynb \
+                    kaggle/kernels/duecare_200_cross_domain_proof/200_cross_domain_proof.ipynb \
+                    kaggle/kernels/duecare_500_agent_swarm_deep_dive/500_agent_swarm_deep_dive.ipynb \
+                    kaggle/kernels/duecare_610_submission_walkthrough/610_submission_walkthrough.ipynb; do
             echo "::group::Executing $nb"
             uv run jupyter nbconvert --to notebook --execute --inplace "$nb"
             echo "::endgroup::"

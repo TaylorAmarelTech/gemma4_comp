@@ -13,8 +13,8 @@ body:
     id: where
     attributes:
       label: Where did this happen?
-      description: e.g. "Kaggle 01-duecare-harness-chat", "HF Space", "local dev", "Android v0.9.0 APK"
-      placeholder: Kaggle 01-duecare-harness-chat
+      description: e.g. "Kaggle 01-duecare-exploration-workbench", "HF Space", "local dev", "Android v0.9.0 APK"
+      placeholder: Kaggle 01-duecare-exploration-workbench
     validations:
       required: true
 

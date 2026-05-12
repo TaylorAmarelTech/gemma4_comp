@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Demo · Duecare</title>
+  <title>Demo · DueCare</title>
   <link rel="stylesheet" href="/static/style.css">
 </head>
 <body class="dc-slideshow">
@@ -408,7 +408,7 @@ body.dc-slideshow header.dc-nav { display: none !important; }
   border-radius: 8px; border: 1px solid var(--border);
 }
 
-/* Social-media platform grid */
+/* Platform safety grid */
 .dc-platform-grid {
   display: grid; grid-template-columns: repeat(3, 1fr);
   gap: 12px; margin: 22px 0;
@@ -760,7 +760,7 @@ const ALL_SLIDES = [
     body: `
 <div class="dc-title-sub-card">
 <p style="margin:0;font-size:16px;line-height:1.55;color:var(--ink)">
-Duecare flags exploitation and abuse patterns through two
+DueCare flags exploitation and abuse patterns through two
 complementary modes. The same multi-stage pipeline (heuristic
 prescan, regex and RAG knowledge base, deterministic domain
 tools, Gemma 4 verdict) serves both, and writes every step of
@@ -771,13 +771,13 @@ the reasoning to an audit trail any reviewer can inspect.
   <section class="dc-title-uc">
     <div class="dc-title-uc-head">
       <span class="dc-uc-tag dc-uc-tag-blue">Use case 1</span>
-      <h2>Enterprise evaluation of internet content</h2>
+      <h2>Platform safety evaluation of internet content</h2>
       <p>Real-time moderation of social posts, recruiter ads, marketplace
         listings, comments, and platform messaging at scale.</p>
     </div>
     <div class="dc-title-aud-row">
       <div class="dc-aud"><div class="dc-aud-icon" style="background:var(--accent-soft);color:var(--accent-ink)">⚡</div>
-        <div class="dc-aud-name">Social-media platforms</div>
+        <div class="dc-aud-name">Platform safety teams</div>
         <div class="dc-aud-desc">Moderation queues, CA AB 587 / Texas HB 20 transparency reports.</div></div>
       <div class="dc-aud"><div class="dc-aud-icon" style="background:var(--ember-soft);color:oklch(0.40 0.13 45)">⚖</div>
         <div class="dc-aud-name">Government &amp; regulators</div>
@@ -797,13 +797,13 @@ the reasoning to an audit trail any reviewer can inspect.
     </div>
     <div class="dc-title-aud-row">
       <div class="dc-aud"><div class="dc-aud-icon" style="background:oklch(0.96 0.03 80);color:oklch(0.40 0.10 80)">🛡</div>
-        <div class="dc-aud-name">NGOs &amp; hotlines</div>
+        <div class="dc-aud-name">NGO &amp; regulator teams</div>
         <div class="dc-aud-desc">Bulk case triage, cross-case intelligence, MO recognition. Polaris, IJM, ECPAT, HRD Nepal.</div></div>
       <div class="dc-aud"><div class="dc-aud-icon" style="background:oklch(0.95 0.03 155);color:oklch(0.32 0.10 155)">👤</div>
-        <div class="dc-aud-name">Individuals</div>
+        <div class="dc-aud-name">Individual workers</div>
         <div class="dc-aud-desc">Workers and families self-checking a suspicious offer or message.</div></div>
       <div class="dc-aud"><div class="dc-aud-icon" style="background:var(--ember-soft);color:oklch(0.40 0.13 45)">⚖️</div>
-        <div class="dc-aud-name">Lawyers &amp; journalists</div>
+        <div class="dc-aud-name">Legal-aid researchers</div>
         <div class="dc-aud-desc">Pro-bono attorneys and investigative reporters analysing case files for litigation or exposure.</div></div>
     </div>
   </section>
@@ -993,7 +993,7 @@ pipelines.
 <div class="dc-callout">
 <b>Implication:</b> "we ran the post through a model and it
 said PASS" is not enough. Regulators want the evidence chain.
-Plaintiffs' lawyers want it too. Duecare's traced pipeline (every
+Plaintiffs' lawyers want it too. DueCare's traced pipeline (every
 KB hit, every tool call, every heuristic match recorded) is
 designed for exactly that audit trail.
 </div>`
@@ -1011,7 +1011,7 @@ designed for exactly that audit trail.
     body: `
 <p style="font-size:17px;color:var(--muted);max-width:980px;margin-top:0;margin-bottom:18px">
 Each tile is a redacted, public-record post that fits one of the
-patterns Duecare is tuned to catch. Faces blurred, names and
+patterns DueCare is tuned to catch. Faces blurred, names and
 identifying details stripped. The exploitation pattern stays
 visible; the individual stays anonymous. Click any tile to see
 the larger view with the source note.
@@ -1075,7 +1075,7 @@ the larger view with the source note.
 </div>
 <div class="dc-callout success" style="margin-top:auto">
 <b>Two deployment modes, one architecture.</b>
-&nbsp;&nbsp;<b>Enterprise:</b> ~100 verdicts/min on a single A100,
+&nbsp;&nbsp;<b>Platform safety:</b> ~100 verdicts/min on a single A100,
 roughly zero per-call cost after deploy, audit-trail-friendly under
 CA AB 587.
 &nbsp;&nbsp;<b>Local / on-device:</b> E2B/E4B 4-bit in 2-6GB VRAM,
@@ -1099,7 +1099,7 @@ Gemma 4 is the right starting point but no general LLM ships with
 the ground truth an operator needs: specific statute numbers, fee
 caps, licence status, jurisdictional hotlines, predatory-actor
 registries. That information must come from somewhere deterministic.
-Duecare layers four pre-LLM stages around Gemma so it has the
+DueCare layers four pre-LLM stages around Gemma so it has the
 right facts when it answers.
 </p>
 <div class="dc-enhance-grid">
@@ -1151,7 +1151,7 @@ the full pipeline laid out end to end.
     autoSec: 16,
     body: `
 <p>
-Every input to Duecare runs through this exact sequence. The
+Every input to DueCare runs through this exact sequence. The
 trace timeline you'll see on the example slides is generated
 live by these stages.
 </p>
@@ -1240,7 +1240,7 @@ suggested_complaint_template. Every field is auditable.
     onlyMode: 'picker',
     body: `
 <p style="font-size:15px;color:var(--muted);margin-top:6px">
-Each scenario is a real-world pattern Duecare is tuned to catch.
+Each scenario is a real-world pattern DueCare is tuned to catch.
 Click any card to run it through the pipeline; you can navigate
 between scenarios from there or come back here.
 </p>
@@ -1269,7 +1269,7 @@ between scenarios from there or come back here.
   <button class="dc-picker-card" onclick="gotoSlideById('ex_doxxing')">
     <div class="dc-pick-tag" style="background:var(--ember-soft);color:oklch(0.40 0.13 45)">Online debt-shaming / doxxing</div>
     <div class="dc-pick-title">Predatory-lender Facebook page publishes a "wanted poster"</div>
-    <div class="dc-pick-desc">A composite OFW is named, photographed, and shamed
+    <div class="dc-pick-desc">A composite Filipino worker is named, photographed, and shamed
       across multiple lender pages for an alleged overdue loan.</div>
     <div class="dc-pick-meta">expected: BLOCK · severity 10/10 · 5 tools fire</div>
   </button>
@@ -1296,28 +1296,28 @@ on the home page.
 </p>
 <div class="dc-picker-grid">
   <a class="dc-picker-card" href="/queue">
-    <div class="dc-pick-tag" style="background:var(--accent-soft);color:var(--accent-ink)">Social-media platform</div>
+    <div class="dc-pick-tag" style="background:var(--accent-soft);color:var(--accent-ink)">Platform safety</div>
     <div class="dc-pick-title">Live moderation queue</div>
     <div class="dc-pick-desc">Watch incoming items as they're triaged
       by the pipeline. PASS / REVIEW / BLOCK with full trace.</div>
     <div class="dc-pick-meta">→ open /queue</div>
   </a>
   <a class="dc-picker-card" href="/enterprise">
-    <div class="dc-pick-tag" style="background:var(--accent-soft);color:var(--accent-ink)">Social-media platform</div>
+    <div class="dc-pick-tag" style="background:var(--accent-soft);color:var(--accent-ink)">Platform safety</div>
     <div class="dc-pick-title">Bulk content-moderation classifier</div>
     <div class="dc-pick-desc">Submit single posts or batches; get
       verdict, severity, KB hits, suggested complaint template.</div>
     <div class="dc-pick-meta">→ open /enterprise</div>
   </a>
   <a class="dc-picker-card" href="/individual">
-    <div class="dc-pick-tag" style="background:oklch(0.95 0.03 155);color:oklch(0.32 0.10 155)">Individual</div>
+    <div class="dc-pick-tag" style="background:oklch(0.95 0.03 155);color:oklch(0.32 0.10 155)">Individual worker</div>
     <div class="dc-pick-title">Worker / family self-check chatbot</div>
     <div class="dc-pick-desc">Plain-language Q&amp;A for someone
       checking a suspicious offer. Locale-aware hotlines.</div>
     <div class="dc-pick-meta">→ open /individual</div>
   </a>
   <a class="dc-picker-card" href="/knowledge">
-    <div class="dc-pick-tag" style="background:var(--ember-soft);color:oklch(0.40 0.13 45)">Government / regulator</div>
+    <div class="dc-pick-tag" style="background:var(--ember-soft);color:oklch(0.40 0.13 45)">NGO &amp; regulator</div>
     <div class="dc-pick-title">NL-to-SQL over the case database</div>
     <div class="dc-pick-desc">Ask "show all cases involving lender X"
       or "agencies flagged in the last 30 days" in plain English.</div>
@@ -1438,18 +1438,18 @@ on the home page.
     locale: 'ph',
     task_type: 'moderate',
     text: 'WANTED: LENDING BANK BASED IN HONG KONG IS LOOKING FOR ' +
-            'THIS OFW [composite name] FOR BANK FRAUD/ESTAFA CASE FOR ' +
+            'THIS FILIPINO WORKER [composite name] FOR BANK FRAUD/ESTAFA CASE FOR ' +
             'ISSUING A PHIL. PASSPORT AS A COLLATERAL AND WENT HIDING ' +
-            'AFTER RECEIVING THE LOAN. ASAP PAY UR OVERDUES. Tag this ' +
-            'OFW. Share until found. Posted by: Bank Hongkong page.',
+            'AFTER RECEIVING THE LOAN. ASAP PAY UR OVERDUES. Tag this person. ' +
+            'Share until found. Posted by: Bank Hongkong page.',
     expected: 'BLOCK · severity 10/10',
     explain: [
       ['What\'s happening', 'A predatory-lender Facebook page publicly ' +
-        'posts a "wanted poster" naming an OFW with passport photo + ' +
+        'posts a "wanted poster" naming a Filipino worker with passport photo + ' +
         'personal details. Pattern documented on Bank Hongkong, Yoursun ' +
         'Caretaker, [anonymized FB page B] pages.'],
       ['Five tools fire at once', 'check_social_media_harassment matches ' +
-        '"WANTED:" + "ASAP PAY" + "Tag this OFW". check_doxxing_indicators ' +
+        '"WANTED:" + "ASAP PAY" + "Tag this person". check_doxxing_indicators ' +
         'flags HIGH risk. check_debt_harassment detects HARASSMENT. ' +
         'check_predatory_lender matches "Bank Hongkong" (+3 severity). ' +
         'identify_ilo_indicators flags ILO C029 #2 (intimidation) + #4 ' +
@@ -1513,7 +1513,7 @@ taxonomy in more detail.
   <div class="dc-qa">
     <div class="dc-qa-q">Where does the worker's data live?</div>
     <div class="dc-qa-a">Wherever the operator chooses. The same
-      pipeline runs as an enterprise cloud service, on a single GPU
+      pipeline runs as a platform-safety cloud service, on a single GPU
       at an NGO office, or on a phone via LiteRT. Inputs do not
       leave the deployment unless the operator wires them out.
     </div>
@@ -1536,7 +1536,7 @@ taxonomy in more detail.
   </div>
   <div class="dc-qa">
     <div class="dc-qa-q">What's the difference vs. a general LLM chatbot?</div>
-    <div class="dc-qa-a">A chatbot answers questions. Duecare returns
+    <div class="dc-qa-a">A chatbot answers questions. DueCare returns
       a verdict, severity, evidence chain, and the next operational
       step (hotline, complaint template, agency referral). Built for
       operators, not for conversation.
@@ -1897,7 +1897,7 @@ LLM call.
     id: 'appendix_extensibility',
     tag: 'Appendix F',
     tagBg: 'var(--accent-soft)', tagFg: 'var(--accent-ink)',
-    title: 'Appendix F. Extending Duecare.',
+    title: 'Appendix F. Extending DueCare.',
     autoSec: 18,
     body: `
 <p style="font-size:16px;margin-top:0;color:var(--muted)">
@@ -1983,7 +1983,7 @@ the <code>ToolResult</code> shape and the KB passage schema.
     autoSec: 22,
     body: `
 <p style="font-size:15px;margin-top:0;color:var(--muted)">
-Duecare stands on a lot of open-source shoulders. Every component
+DueCare stands on a lot of open-source shoulders. Every component
 listed here is used under its original licence; nothing has been
 forked or modified beyond standard configuration.
 </p>
@@ -2047,7 +2047,7 @@ forked or modified beyond standard configuration.
     <h3>Reference notebooks</h3>
     <ul>
       <li><b>Daniel Hanchen — Gemma 4 31B Unsloth</b><br>
-        The exact install + FastModel.from_pretrained recipe Duecare follows for 2xT4 31B inference.<br>
+        The exact install + FastModel.from_pretrained recipe DueCare follows for 2xT4 31B inference.<br>
         <a href="https://www.kaggle.com/code/danielhanchen/gemma4-31b-unsloth" target="_blank" rel="noopener noreferrer">kaggle.com/code/danielhanchen/gemma4-31b-unsloth</a></li>
       <li><b>Unsloth Gemma 4 notebooks</b> — text / vision / audio<br>
         <a href="https://github.com/unslothai/notebooks#gemma-4-notebooks" target="_blank" rel="noopener noreferrer">github.com/unslothai/notebooks#gemma-4-notebooks</a></li>
@@ -2081,7 +2081,7 @@ forked or modified beyond standard configuration.
 
 <div class="dc-callout success" style="margin-top:auto">
 <b>Licences:</b> Gemma 4 weights = Apache 2.0 (Google).
-Duecare code = MIT.
+DueCare code = MIT.
 Every dependency above is OSS-licence-compatible. The full
 machine-readable credit list also lives at
 <a href="/credits">/credits</a>.
@@ -2099,7 +2099,7 @@ machine-readable credit list also lives at
     autoSec: 18,
     body: `
 <p style="margin-top:0">
-Duecare is designed to deploy directly into the workflows of every
+DueCare is designed to deploy directly into the workflows of every
 stakeholder in the human-exploitation-detection ecosystem.
 </p>
 <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;margin:18px 0">
@@ -2447,10 +2447,17 @@ async function loadSlideEvidence() {
     ...items.filter(it => it.id.startsWith('imgur_')),
     ...items.filter(it => /_f02$/.test(it.id)),
   ].slice(0, 9);
-  grid.innerHTML = picks.map(it =>
-    `<a href="/evidence" style="display:block">` +
-    `<img src="/static/evidence/${it.filename}" alt="${it.title}">` +
-    `</a>`).join('');
+  grid.textContent = '';
+  for (const it of picks) {
+    const link = document.createElement('a');
+    link.href = '/evidence';
+    link.style.display = 'block';
+    const img = document.createElement('img');
+    img.src = `/static/evidence/${it.filename}`;
+    img.alt = it.title || 'redacted';
+    link.appendChild(img);
+    grid.appendChild(link);
+  }
 }
 
 async function loadProblemPhotos() {
@@ -2466,14 +2473,21 @@ async function loadProblemPhotos() {
       'font-size:13px">(no evidence available)</div>';
     return;
   }
-  grid.innerHTML = picks.map(it =>
-    `<button type="button" class="dc-evidence-thumb" ` +
-    `onclick="openLightbox('${it.id}')" ` +
-    `style="background:none;border:0;padding:0;cursor:pointer">` +
-    `<img src="/static/evidence/${it.filename}" alt="${it.title || 'redacted'}" ` +
-    `loading="lazy" style="width:100%;aspect-ratio:1/1;object-fit:cover;` +
-    `border-radius:8px;border:1px solid var(--border)">` +
-    `</button>`).join('');
+  grid.textContent = '';
+  for (const it of picks) {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'dc-evidence-thumb';
+    button.style.cssText = 'background:none;border:0;padding:0;cursor:pointer';
+    button.addEventListener('click', () => openLightbox(it.id));
+    const img = document.createElement('img');
+    img.src = `/static/evidence/${it.filename}`;
+    img.alt = it.title || 'redacted';
+    img.loading = 'lazy';
+    img.style.cssText = 'width:100%;aspect-ratio:1/1;object-fit:cover;border-radius:8px;border:1px solid var(--border)';
+    button.appendChild(img);
+    grid.appendChild(button);
+  }
 }
 
 async function loadChannelShots() {
@@ -2498,8 +2512,12 @@ async function loadChannelShots() {
       el.innerHTML = '<div class="dc-ch-shot-loading">(no sample available)</div>';
       continue;
     }
-    el.innerHTML = `<img src="/static/evidence/${ch.item.filename}" ` +
-      `alt="${ch.item.title || 'redacted'}" loading="lazy">`;
+    el.textContent = '';
+    const img = document.createElement('img');
+    img.src = `/static/evidence/${ch.item.filename}`;
+    img.alt = ch.item.title || 'redacted';
+    img.loading = 'lazy';
+    el.appendChild(img);
     el.classList.add('dc-evidence-thumb');
     el.onclick = () => openLightbox(ch.item.id);
   }
@@ -2546,24 +2564,38 @@ async function loadNotOkayPhotos() {
     {match: /drive_fb_(jan_2020|worst_agency|agency_list|honour|good_hope|ample)/i, tag: 'Recruitment fraud / blacklist'},
   ];
   const usedIds = new Set();
-  const html = picks.map(p => {
+  grid.textContent = '';
+  for (const p of picks) {
     let it = items.find(x =>
       !usedIds.has(x.id) &&
       (p.match.test(x.id) || p.match.test(x.filename || '')));
     // Fallback: any unused FB lender item, then any unused image item.
     if (!it) it = items.find(x => !usedIds.has(x.id) && /drive_fb_/.test(x.filename || ''));
     if (!it) it = items.find(x => !usedIds.has(x.id));
-    if (!it) return '';
+    if (!it) continue;
     usedIds.add(it.id);
-    return `<button type="button" class="dc-not-okay-tile dc-evidence-thumb" ` +
-      `onclick="openLightbox('${it.id}')" ` +
-      `style="background:none;border:1px solid var(--border);padding:0;` +
-      `cursor:pointer;text-align:left;font-family:inherit">` +
-      `<img src="/static/evidence/${it.filename}" alt="${it.title || p.tag}" loading="lazy">` +
-      `<div class="dc-not-okay-caption">${p.tag}</div></button>`;
-  }).filter(Boolean).join('');
-  grid.innerHTML = html || '<div style="grid-column:1/-1;color:var(--muted);' +
-    'font-size:13px;text-align:center;padding:40px">(no evidence available)</div>';
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'dc-not-okay-tile dc-evidence-thumb';
+    button.style.cssText = 'background:none;border:1px solid var(--border);padding:0;cursor:pointer;text-align:left;font-family:inherit';
+    button.addEventListener('click', () => openLightbox(it.id));
+    const img = document.createElement('img');
+    img.src = `/static/evidence/${it.filename}`;
+    img.alt = it.title || p.tag;
+    img.loading = 'lazy';
+    const caption = document.createElement('div');
+    caption.className = 'dc-not-okay-caption';
+    caption.textContent = p.tag;
+    button.appendChild(img);
+    button.appendChild(caption);
+    grid.appendChild(button);
+  }
+  if (!grid.children.length) {
+    const empty = document.createElement('div');
+    empty.style.cssText = 'grid-column:1/-1;color:var(--muted);font-size:13px;text-align:center;padding:40px';
+    empty.textContent = '(no evidence available)';
+    grid.appendChild(empty);
+  }
 }
 
 // ===== Navigation =====

@@ -45,7 +45,7 @@ Submission for the Gemma 4 Good Hackathon — Safety & Trust track.
 • Kaggle notebooks (2 core + 11 appendix):
   https://www.kaggle.com/taylorsamarel/code
 • Live demo (omni playground):
-  https://www.kaggle.com/code/taylorsamarel/duecare-harness-chat
+  https://www.kaggle.com/code/taylorsamarel/duecare-exploration-workbench
 • Android APK (Duecare Journey, on-device LiteRT):
   https://github.com/TaylorAmarelTech/duecare-journey-android/releases
 • Writeup: https://github.com/TaylorAmarelTech/gemma4_comp/blob/master/docs/writeup_draft.md

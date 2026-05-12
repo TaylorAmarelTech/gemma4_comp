@@ -103,7 +103,7 @@ submission.
 | H4 | [Post-submission sustainability](../post_submission_sustainability.md) | T+7 → T+365 plan with 8 non-negotiable principles |
 | H5 | [2-week submission plan](../two_week_submission_plan.md) | T-16 to T-0 day-by-day |
 | H6 | [Notebook QA companion](../notebook_qa_companion.md) | Per-notebook test checklist for all 11 |
-| H7 | [Bench-and-tune readiness](../bench_and_tune_readiness.md) | A2 fine-tune pre-flight + run-time monitoring + post-run verification |
+| H7 | [Bench-and-tune readiness](../bench_and_tune_readiness.md) | A7 adapter-training pre-flight + run-time monitoring + post-run verification |
 | H8 | [Cross-NGO trends federation](../cross_ngo_trends_federation.md) | Privacy-preserving aggregation protocol design |
 | H9 | [Smoke test report 2026-05-02](../smoke_test_report_2026-05-02.md) | 24 categories tested, all pass, 5 fixes applied |
 

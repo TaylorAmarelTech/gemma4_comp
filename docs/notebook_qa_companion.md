@@ -191,14 +191,14 @@ in this notebook's kernel.
 
 ### 6. `live-demo` ⭐ POLISHED PRODUCT
 
-**Purpose**: the user-facing combined product. 22-slide deck +
+**Purpose**: the user-facing combined product. Guided walkthrough +
 full pipeline + audit Workbench. **THE notebook judges click for
 "the deployed thing."**
 
 **Test checklist:**
 - [ ] Wheels install succeeds (this is the biggest install — give
       it 30 sec)
-- [ ] **22-slide deck** renders (check each slide loads + has
+- [ ] **Guided walkthrough** renders (check each section loads + has
       readable text + no broken images)
 - [ ] **Full safety-harness pipeline** is callable end-to-end (chat
       + classify + research + pipeline + audit)

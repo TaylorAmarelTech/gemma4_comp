@@ -54,7 +54,7 @@ For the Android on-device app (`duecare-journey-android` sibling
 repo), the LiteRT-converted variant is `gemma-4-e2b-it.task` (~1.5 GB
 INT8). Conversion path: `google/gemma-4-e2b-it` → AI Edge Torch →
 `.task` bundle. Conversion happens once per model release in the
-`kaggle/bench-and-tune/` notebook; the result is published to HF Hub.
+`kaggle/A-07-bench-and-tune/` notebook; the result is published to HF Hub.
 
 ## Container runtimes
 

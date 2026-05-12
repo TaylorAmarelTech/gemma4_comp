@@ -396,7 +396,7 @@
     <span class="kicker">Reference architectures</span>
     <h1>One system, <span class="accent">four ways to deploy it.</span></h1>
     <p class="lede">There is no single architecture diagram that covers every
-      use case honestly. Enterprise platform moderation, NGO caseworker
+      use case honestly. Platform safety moderation, NGO caseworker
       support, anonymized data sharing, and public chatbot deployments each
       have different inputs, privacy boundaries, and rules for what can or
       cannot leave the runtime. This page documents each one separately,
@@ -405,7 +405,7 @@
     <div class="compare-strip">
       <a class="compare-card" href="#dep-1">
         <span class="ix">Deployment 01</span>
-        <span class="ttl">Enterprise platform moderation</span>
+        <span class="ttl">Platform safety moderation</span>
         <span class="where">Runs in customer infra · own data plane</span>
       </a>
       <a class="compare-card" href="#dep-2">
@@ -428,14 +428,14 @@
 </section>
 
 <!-- ============ DEPLOYMENT 01 ============ -->
-<section class="dep-section" id="dep-1" data-screen-label="Deploy · 01 Enterprise">
+<section class="dep-section" id="dep-1" data-screen-label="Deploy · 01 Platform safety">
   <div class="wrap">
     <div class="dep-head">
       <div class="num">01</div>
       <div>
-        <h2>Enterprise platform moderation</h2>
+        <h2>Platform safety moderation</h2>
         <p>A platform that already handles user-generated content runs the
-          Duecare runtime inside its own data plane. The runtime classifies
+          DueCare runtime inside its own data plane. The runtime classifies
           and explains content against a curated rule set; the platform's
           existing systems decide what to do with the result.</p>
         <dl class="meta-row">
@@ -456,7 +456,7 @@
         <div class="arrow"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 10h14m0 0l-5-5m5 5l-5 5"/></svg></div>
         <div class="node runtime">
           <span class="role">Runtime · in platform VPC</span>
-          <span class="name">Duecare moderation runtime</span>
+          <span class="name">DueCare moderation runtime</span>
           <span class="sub">Model + safety guidance + rule packs. Classifies, explains, and cites.</span>
         </div>
         <div class="arrow"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 10h14m0 0l-5-5m5 5l-5 5"/></svg></div>
@@ -477,7 +477,7 @@
         </div>
       </div>
 
-      <div class="boundary-note">No content leaves the platform environment. The runtime never calls back to Duecare.</div>
+      <div class="boundary-note">No content leaves the platform environment. The runtime never calls back to DueCare.</div>
 
       <div class="leaves-grid">
         <div class="leaves-card stays">
@@ -508,7 +508,7 @@
       <div class="num">02</div>
       <div>
         <h2>NGO caseworker implementation</h2>
-        <p>An NGO caseworker runs the Duecare runtime on their own laptop
+        <p>An NGO caseworker runs the DueCare runtime on their own laptop
           or workstation. They paste, type, or summarize a situation and the
           system produces a cited draft against the relevant signed knowledge
           packs. No case content leaves the device.</p>
@@ -530,7 +530,7 @@
         <div class="arrow"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 10h14m0 0l-5-5m5 5l-5 5"/></svg></div>
         <div class="node runtime">
           <span class="role">Runtime · on device</span>
-          <span class="name">Duecare local runtime</span>
+          <span class="name">DueCare local runtime</span>
           <span class="sub">Model + guidance + vetted packs. All inference is local.</span>
         </div>
         <div class="arrow"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 10h14m0 0l-5-5m5 5l-5 5"/></svg></div>
@@ -604,7 +604,7 @@
         <div class="arrow"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 10h14m0 0l-5-5m5 5l-5 5"/></svg></div>
         <div class="node runtime">
           <span class="role">Runtime · on device</span>
-          <span class="name">Duecare local runtime</span>
+          <span class="name">DueCare local runtime</span>
           <span class="sub">Same model + guidance + packs. Produces draft.</span>
         </div>
         <div class="arrow"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 10h14m0 0l-5-5m5 5l-5 5"/></svg></div>
@@ -621,7 +621,7 @@
         <div class="flow">
           <div class="node runtime">
             <span class="role">Same runtime · on device</span>
-            <span class="name">Duecare local runtime</span>
+            <span class="name">DueCare local runtime</span>
             <span class="sub">Identifies anonymized patterns (e.g. fee anomaly type X in jurisdiction Y).</span>
           </div>
           <div class="arrow"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 10h14m0 0l-5-5m5 5l-5 5"/></svg></div>
@@ -671,7 +671,7 @@
       <div class="num">04</div>
       <div>
         <h2>Chatbot endpoint</h2>
-        <p>For partners that want to expose Duecare through an existing chat
+        <p>For partners that want to expose DueCare through an existing chat
           surface (a regulator hotline web widget, a partner-operated
           messenger bot, or a labour-rights helpline). The endpoint is hosted
           on a GPU-enabled server; the channel adapter handles the chat
@@ -700,7 +700,7 @@
         <div class="arrow"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 10h14m0 0l-5-5m5 5l-5 5"/></svg></div>
         <div class="node runtime">
           <span class="role">Runtime · partner-hosted GPU</span>
-          <span class="name">Duecare endpoint</span>
+          <span class="name">DueCare endpoint</span>
           <span class="sub">Same runtime as 01–03. Drafts cited replies. Returns through adapter.</span>
         </div>
       </div>
@@ -744,7 +744,7 @@
   <div class="wrap">
     <h2>Cost-per-token (estimates) for platform safety implementations</h2>
     <p class="lede">An order-of-magnitude comparison of the per-million-token
-      cost of using a hosted commercial LLM API versus running Duecare's
+      cost of using a hosted commercial LLM API versus running DueCare's
       self-hosted Gemma 4 runtime for a moderation-style workload. Numbers
       are placeholders pending our own benchmark. see caveat below.</p>
 
@@ -784,7 +784,7 @@
           </tr>
           <tr class="duecare">
             <td>
-              <span class="opt-name">Duecare · self-hosted Gemma 4
+              <span class="opt-name">DueCare · self-hosted Gemma 4
                 <span class="sub">customer / partner GPU · in-VPC</span>
               </span>
             </td>
@@ -795,7 +795,7 @@
           </tr>
           <tr>
             <td>
-              <span class="opt-name">Duecare · on-device
+              <span class="opt-name">DueCare · on-device
                 <span class="sub">caseworker laptop / workstation</span>
               </span>
             </td>

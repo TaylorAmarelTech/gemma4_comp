@@ -3,13 +3,15 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Dashboard — Duecare</title>
+  <title>Dashboard — DueCare</title>
   <link rel="stylesheet" href="/static/style.css">
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"
+      integrity="sha384-e6nUZLBkQ86NJ6TVVKAeSaK8jWa3NhkYWZFomE39AvDbQWeie9PlQqM3pmYW5d1g"
+      crossorigin="anonymous"></script>
 </head>
 <body>
 <header class="dc-nav">
-  <h1>Duecare<span class="tag"> · dashboard</span></h1>
+  <h1>DueCare<span class="tag"> · dashboard</span></h1>
   <nav>
     <a href="/">Home</a>
     <a href="/demo">Demo</a>
@@ -17,7 +19,7 @@
     <a href="/architecture">Architecture</a>
     <a href="/background">Background</a>
     <a href="/evidence">Evidence</a>
-    <a href="/enterprise">Enterprise</a>
+    <a href="/enterprise">Platform safety</a>
     <a href="/individual">Individual</a>
     <a href="/knowledge">Knowledge</a>
     <a href="/dashboard" class="active">Dashboard</a>
@@ -39,17 +41,17 @@
 
   <div class="dc-panel">
     <h3>Findings by trigger</h3>
-    <canvas id="trigChart" height="200"></canvas>
+    <canvas id="trigChart" height="200" aria-label="Bar chart showing findings grouped by trigger type"></canvas>
   </div>
 
   <div class="dc-panel">
     <h3>Entities by type</h3>
-    <canvas id="entChart" height="200"></canvas>
+    <canvas id="entChart" height="200" aria-label="Bar chart showing entities grouped by entity type"></canvas>
   </div>
 
   <div class="dc-panel">
     <h3>Findings per case bundle</h3>
-    <canvas id="bundleChart" height="200"></canvas>
+    <canvas id="bundleChart" height="200" aria-label="Bar chart showing findings grouped by case bundle"></canvas>
   </div>
 
   <div class="dc-panel">
@@ -60,7 +62,7 @@
   <div class="dc-panel">
     <h3>Live tasks (last 20)</h3>
     <p class="dc-sub" style="font-size:13px;margin-bottom:10px">
-      Every submit-and-poll job from /enterprise and /individual lands
+      Every submit-and-poll job from Platform safety and Individual worker lands
       here. Watch BLOCK / REVIEW / PASS verdicts arrive as Gemma
       finishes each one. Refreshes every 2 seconds.
     </p>
@@ -92,6 +94,14 @@
 .dc-qrow.head { font-weight: 600; color: var(--muted); }
 .dc-qrow code { font-family: monospace; font-size: 11px; }
 .dc-qrow .row-running { animation: dc-pulse 1.4s ease-in-out infinite; }
+@media (max-width: 640px) {
+  .dc-qrow { grid-template-columns: 1fr; gap: 4px; padding: 10px 0; }
+  .dc-qrow.head { display: none; }
+  .dc-qrow span, .dc-qrow code { min-width: 0; overflow-wrap: anywhere; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .dc-qrow .row-running { animation: none; }
+}
 @keyframes dc-pulse {
   0%, 100% { opacity: 1; }
   50%      { opacity: 0.55; }
@@ -99,6 +109,15 @@
 </style>
 <script>
 let trigChart, entChart, bundleChart;
+
+function escapeHtml(value) {
+  return String(value == null ? '' : value).replace(/[&<>"']/g, ch =>
+    ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+}
+
+function safeClass(value) {
+  return String(value == null ? '' : value).replace(/[^a-z0-9_-]/gi, '');
+}
 
 async function refresh() {
   let s;
@@ -121,10 +140,10 @@ async function refresh() {
   ];
   let html = '';
   for (const [k, lbl] of cells) {
-    html += `<div class="dc-stat"><div class="num">${s[k] ?? 0}</div>` +
+    html += `<div class="dc-stat"><div class="num">${escapeHtml(s[k] ?? 0)}</div>` +
             `<div class="lbl">${lbl}</div></div>`;
   }
-  html += `<div class="dc-stat"><div class="num">${s.mode || '?'}</div>` +
+  html += `<div class="dc-stat"><div class="num">${escapeHtml(s.mode || '?')}</div>` +
           `<div class="lbl">Mode</div></div>`;
   document.getElementById('stats').innerHTML = html;
 
@@ -197,7 +216,7 @@ async function refresh() {
   let qhtml = '<table class="dc-table"><thead><tr>' +
     '<th>Status</th><th>Count</th></tr></thead><tbody>';
   for (const k of ['pending','running','completed','failed']) {
-    qhtml += `<tr><td>${k}</td><td>${bs[k] || 0}</td></tr>`;
+    qhtml += `<tr><td>${escapeHtml(k)}</td><td>${bs[k] || 0}</td></tr>`;
   }
   qhtml += `<tr><td>GPU queue size</td><td>${tq.gpu_qsize || 0}</td></tr>`;
   qhtml += `<tr><td>CPU queue size</td><td>${tq.cpu_qsize || 0}</td></tr>`;
@@ -216,7 +235,7 @@ async function refreshLiveTasks() {
   }
   if (!rows.length) {
     document.getElementById('live-tasks').innerText =
-      'No tasks submitted yet. Try /enterprise or /individual.';
+      'No tasks submitted yet. Try Platform safety or Individual worker.';
     return;
   }
   let html = '<div class="dc-qrow head">' +
@@ -224,7 +243,8 @@ async function refreshLiveTasks() {
     '<span>runtime</span><span>verdict / preview</span></div>';
   const now = new Date();
   for (const t of rows) {
-    const cls = 'dc-state-' + t.status;
+    const status = String(t.status || 'unknown');
+    const cls = 'dc-state-' + safeClass(status);
     let rt = '-';
     if (t.runtime_seconds != null) {
       rt = t.runtime_seconds.toFixed(1) + 's';
@@ -235,21 +255,23 @@ async function refreshLiveTasks() {
     let preview = '';
     if (t.result && typeof t.result === 'object') {
       if (t.result.verdict) {
-        const v = t.result.verdict.toUpperCase();
+        const verdict = String(t.result.verdict || '');
+        const v = escapeHtml(verdict.toUpperCase());
+        const verdictClass = safeClass(verdict);
         const sev = t.result.severity != null ? t.result.severity : '?';
-        preview = `<span class="dc-badge ${t.result.verdict}">${v}</span> sev ${sev}/10`;
+        preview = `<span class="dc-badge ${verdictClass}">${v}</span> sev ${escapeHtml(sev)}/10`;
         if (t.result.reasoning) {
-          preview += ` · ${t.result.reasoning.slice(0, 100)}`;
+          preview += ` · ${escapeHtml(String(t.result.reasoning).slice(0, 100))}`;
         }
       } else if (t.result.advice) {
-        preview = (t.result.advice || '').slice(0, 100);
+        preview = escapeHtml(String(t.result.advice || '').slice(0, 100));
       } else if (t.result.method) {
-        preview = `${t.result.method} (${t.result.row_count || 0} rows)`;
+        preview = `${escapeHtml(t.result.method)} (${t.result.row_count || 0} rows)`;
       } else {
         preview = '(result available)';
       }
     } else if (t.error) {
-      preview = `<span style="color:oklch(0.40 0.13 45)">ERR: ${t.error.slice(0, 100)}</span>`;
+      preview = `<span style="color:oklch(0.40 0.13 45)">ERR: ${escapeHtml(String(t.error).slice(0, 100))}</span>`;
     } else if (t.status === 'running') {
       preview = '⟳ processing on ' + (t.gpu ? 'GPU' : 'CPU') + ' worker';
     } else if (t.status === 'pending') {
@@ -257,10 +279,10 @@ async function refreshLiveTasks() {
     }
     const rowCls = t.status === 'running' ? 'row-running' : '';
     html += `<div class="dc-qrow ${rowCls}">` +
-      `<code>${t.task_id.replace('task_','')}</code>` +
-      `<span>${t.task_type}${t.gpu ? ' (GPU)' : ''}</span>` +
-      `<span class="dc-badge ${cls}">${t.status}</span>` +
-      `<span>${rt}</span>` +
+      `<code>${escapeHtml(String(t.task_id || '').replace('task_',''))}</code>` +
+      `<span>${escapeHtml(t.task_type)}${t.gpu ? ' (GPU)' : ''}</span>` +
+      `<span class="dc-badge ${cls}">${escapeHtml(status)}</span>` +
+      `<span>${escapeHtml(rt)}</span>` +
       `<span>${preview}</span></div>`;
   }
   document.getElementById('live-tasks').innerHTML = html;

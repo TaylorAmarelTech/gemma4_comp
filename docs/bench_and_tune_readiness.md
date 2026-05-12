@@ -1,7 +1,7 @@
-# Bench-and-tune (A2) readiness checklist
+# Bench-and-tune (A7) readiness checklist
 
 > **When to use this doc.** When your Kaggle GPU quota resets and
-> you're about to run the `bench-and-tune` notebook (A2) on T4×2.
+> you're about to run the `bench-and-tune` notebook (A7) on T4×2.
 > Walk through the checklist beforehand; it surfaces issues you
 > can fix before burning compute.
 >
@@ -19,7 +19,7 @@ version pins:
 
 ```bash
 # Locally
-ls kaggle/bench-and-tune/wheels/ | grep -E "unsloth|transformers|flash"
+ls kaggle/A-07-bench-and-tune/wheels/ | grep -E "unsloth|transformers|flash"
 # Expect:
 #   unsloth-2024.X.X-py3-none-any.whl
 #   transformers-4.46.X-py3-none-any.whl
@@ -30,11 +30,11 @@ If the wheels are stale or the version pins don't match Kaggle's
 current CUDA / Python (3.11 typically), rebuild:
 
 ```bash
-python scripts/build_kaggle_wheels.py --notebook bench-and-tune
+python scripts/build_kaggle_wheels.py --notebook A-07-bench-and-tune
 ```
 
 Then re-push the wheels dataset to Kaggle. **Do NOT skip this step
-— Unsloth + flash-attn versioning is the most common A2 failure mode.**
+— Unsloth + flash-attn versioning is the most common A7 failure mode.**
 
 ### 2. Verify the smoke_25 dataset is in the wheels
 
@@ -43,19 +43,19 @@ pairs for DPO. Both should be embedded in the wheels (not separate
 attached datasets).
 
 ```bash
-unzip -l kaggle/bench-and-tune/wheels/duecare_llm_benchmark-*.whl | grep -E "smoke_25|dpo_pairs"
+unzip -l kaggle/A-07-bench-and-tune/wheels/duecare_llm_benchmark-*.whl | grep -E "smoke_25|dpo_pairs"
 # Expect 2-4 files
 ```
 
 If missing, rebuild the benchmark wheel:
 
 ```bash
-python -m build --wheel --outdir kaggle/bench-and-tune/wheels packages/duecare-llm-benchmark
+python -m build --wheel --outdir kaggle/A-07-bench-and-tune/wheels packages/duecare-llm-benchmark
 ```
 
 ### 3. Confirm HF token is configured for the push step
 
-The A2 notebook's final cell pushes the fine-tuned weights to
+The A7 notebook's final cell pushes the fine-tuned weights to
 `taylorscottamarel/Duecare-Gemma-4-E4B-it-SafetyJudge-v0.1.0`.
 
 In Kaggle:
@@ -103,7 +103,7 @@ Kaggle's T4×2 instance has:
 - ~75 GB ephemeral disk
 - 9-hour hard runtime cap
 
-A2's expected footprint:
+A7's expected footprint:
 - Stock Gemma 4 E4B: ~3.5 GB on disk, ~12 GB GPU at FP16
 - Unsloth LoRA training: ~2 GB extra GPU
 - DPO step: ~2 GB extra GPU
@@ -228,7 +228,7 @@ Push the bench-and-tune notebook itself to Kaggle (it was
 
 Plan B (still legitimate for the submission):
 
-- Document A2 as "scheduled post-hackathon" honestly in
+- Document A7 as "scheduled post-hackathon" honestly in
   RESULTS.md + writeup_draft.md
 - The harness-lift report (already complete, +56.5pp on 207
   prompts) is the stronger headline number
@@ -240,13 +240,13 @@ This is honest and judge-acceptable. The harness's value doesn't
 depend on the fine-tune; the fine-tune is incremental on top of
 the harness.
 
-## After A2 lands
+## After A7 lands
 
 Once weights are live + RESULTS.md is updated:
 
-- Update `kaggle/_INDEX.md` to mark A2 as "live"
+- Update `kaggle/_INDEX.md` to mark A7 as "live"
 - Update `docs/FOR_PEER_REVIEW.md` to remove the "publish pending +
-  T4×2 run pending" markers from A2
+  T4×2 run pending" markers from A7
 - Update the fine-tune row in `docs/rubric_evaluation_v07.md`
 - Update the press kit's "Headline numbers" section if the
   fine-tune lift is publishable
@@ -255,7 +255,7 @@ Once weights are live + RESULTS.md is updated:
 
 ## Adjacent reads
 
-- [`docs/notebook_qa_companion.md`](notebook_qa_companion.md) — per-notebook test checklists (A2 is one of them)
+- [`docs/notebook_qa_companion.md`](notebook_qa_companion.md) — per-notebook test checklists (A7 is one of them)
 - [`docs/two_week_submission_plan.md`](two_week_submission_plan.md) — when this happens in the schedule
 - [`docs/harness_lift_report.md`](harness_lift_report.md) — the baseline numbers to compare against
 - [`RESULTS.md`](https://github.com/TaylorAmarelTech/gemma4_comp/blob/master/RESULTS.md) — the table to update

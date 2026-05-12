@@ -9,8 +9,8 @@
 | Path | Purpose | Status |
 |---|---|---|
 | [`apps/duecare-ai.com/`](../apps/duecare-ai.com/) | The public coordination hub. FastAPI + Jinja templates. CPU-only, no Gemma inference. Renders + serves the website at [duecare-ai.com](https://duecare-ai.com) (currently [gemma4-comp.onrender.com](https://gemma4-comp.onrender.com)) via Render auto-deploy from `master`. | Live |
-| [`packages/`](../packages/) | 17 PyPI packages under the `duecare` namespace (PEP 420). The *source of truth* for the wheel that Kaggle notebooks install. Each subfolder is one publishable package. The chat playground lives at `packages/duecare-llm-chat/`. | Live |
-| [`kaggle/`](../kaggle/) | Everything that gets shipped to kaggle.com — 2 core + 11 appendix submission notebooks (numbered `01-`, `02-`, `A-01-`..`A-11-`), per-folder wheels, datasets, and the 77-notebook research-pipeline mirror under `kaggle/kernels/`. Source of truth: [`kaggle/_INDEX.md`](../kaggle/_INDEX.md). | Live |
+| [`packages/`](../packages/) | 17 PyPI packages under the `duecare` namespace (PEP 420). The *source of truth* for the wheels that Kaggle script kernels install. Each subfolder is one publishable package. The chat playground lives at `packages/duecare-llm-chat/`. | Live |
+| [`kaggle/`](../kaggle/) | Everything prepared for manual Kaggle publication — 2 core + 11 appendix script-kernel folders (numbered `01-`, `02-`, `A-01-`..`A-11-`), per-folder wheels, datasets, and root metadata. Former generated/research notebook mirrors now live under `_archive/kaggle-notebook-previews-2026-05-11/`; older 52/74/77-kernel notes are historical archive context. Source of truth: [`kaggle/_INDEX.md`](../kaggle/_INDEX.md). | Live |
 | [`hf_space/`](../hf_space/) | Hugging Face Space for the **Harness Chat** Space. CPU-only (cloud-Gemini API). Separate from `hf-space/`. | Live |
 | [`hf-space/`](../hf-space/) | Hugging Face Space for the **Live Demo** Space. CPU-only. Separate from `hf_space/`. The naming convention (underscore vs hyphen) is unfortunate; both are real and serve different demo URLs. | Live |
 | [`docs/`](../docs/) | Submission writeup + video script + judge guides + per-component design docs + cleanup/readiness notes. The single most important judge-facing path here is `docs/FOR_PEER_REVIEW.md`. Old handoff and prompt-ladder docs are archived under `_archive/cleanup-2026-05-10/`. | Live |
@@ -84,7 +84,7 @@
 
 ## Where to start, by role
 
-- **Hackathon judge / first-time visitor**: [`README.md`](../README.md) → [`docs/FOR_PEER_REVIEW.md`](./FOR_PEER_REVIEW.md) → live demo at [gemma4-comp.onrender.com](https://gemma4-comp.onrender.com) → core Kaggle notebooks at [`kaggle/01-duecare-exploration-workbench/`](../kaggle/01-duecare-exploration-workbench/) and [`kaggle/02-live-demo/`](../kaggle/02-live-demo/).
+- **Hackathon judge / first-time visitor**: [`README.md`](../README.md) → [`docs/FOR_PEER_REVIEW.md`](./FOR_PEER_REVIEW.md) → live demo at [gemma4-comp.onrender.com](https://gemma4-comp.onrender.com) → core Kaggle script kernels at [`kaggle/01-duecare-exploration-workbench/`](../kaggle/01-duecare-exploration-workbench/) and [`kaggle/02-live-demo/`](../kaggle/02-live-demo/).
 - **Developer integrating the API**: [`docs/FOR_KAGGLE_JUDGES.md`](./FOR_KAGGLE_JUDGES.md) → [`apps/duecare-ai.com/app/main.py`](../apps/duecare-ai.com/app/main.py) → [`apps/duecare-ai.com/app/hub_client.py`](../apps/duecare-ai.com/app/hub_client.py) (reference client protocol).
 - **Wheel re-user**: `pip install duecare-llm` → [`packages/duecare-llm/`](../packages/duecare-llm/) (meta package) → individual sub-packages.
 - **Operator running their own hub**: [`apps/duecare-ai.com/README.md`](../apps/duecare-ai.com/README.md) + [`apps/duecare-ai.com/docs/RENDER.md`](../apps/duecare-ai.com/docs/RENDER.md) + [`infra/`](../infra/) for non-Render targets.

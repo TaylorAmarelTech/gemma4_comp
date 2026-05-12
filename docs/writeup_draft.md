@@ -6,7 +6,7 @@
 >
 > **One-line claim:** DueCare turns Gemma 4 into grounded safety infrastructure that helps platforms prevent exploitation, helps NGOs and workers act on safer guidance, and helps researchers understand what is happening and why — while keeping raw cases out of the public hub.
 >
-> **Status as of 2026-05-08:** 6 harness layers, 161 GREP rules, 46-doc RAG corpus, 46-edge citation graph, 46-dimension grader, 587 example prompts, 65-test adversarial validation suite, 49 public-live Kaggle notebooks, 77 tracked notebook kernels, 23 public-hub tests, 4 example knowledge packs, token-gated admin logs, server automation, operator-side local KB, Cloudflare demo app styling aligned to the public website.
+> **Status as of 2026-05-11:** final judge-facing submission path is 13 Kaggle script-kernel folders (2 core + 11 appendix); generated/research notebook mirrors and older 52/74/77-kernel notes are archived historical context. The harness currently has 6 layers, 161 GREP rules, a 46-doc RAG corpus, a 46-edge citation graph, a 46-dimension grader, 587 example prompts, a 65-test adversarial validation suite, 28 public-hub tests, 4 example knowledge packs, token-gated admin logs, server automation, operator-side local KB, and Cloudflare demo app styling aligned to the public website.
 >
 > **Word count:** checked by `scripts/v141_word_count.py`; counted body remains under Kaggle's 1,500-word cap.
 
@@ -20,7 +20,7 @@ Stock LLMs can miss coercion when abuse is hidden in ordinary recruitment langua
 
 Migrant workers often ask for help with messages, contracts, receipts, or recruitment ads that may contain exploitation indicators. The hard part is not only answering the question. It is answering safely, citing the right corridor law, avoiding victim-blaming, refusing to optimize recruiter abuse, and preserving a useful evidence trail.
 
-The common cloud-LLM workflow breaks the trust model. NGOs, labour ministries, and worker advocates may hold case files with names, contact details, identity documents, employer information, medical records, and retaliation risks. Sending those to a frontier API is often unacceptable. DueCare is built around that constraint: worker-side and NGO-side analysis runs locally; the public hub only receives public-source updates, vetted pack metadata, and anonymized aggregate signals.
+The common cloud-LLM workflow breaks the trust model. NGOs, labour ministries, and worker advocates may hold case files with names, contact details, identity documents, employer information, medical records, and retaliation risks. Sending those to a frontier API is often unacceptable. DueCare is built around that constraint: Individual worker and NGO & regulator analysis runs locally; the public hub only receives public-source updates, vetted pack metadata, and anonymized aggregate signals.
 
 ## 2. What DueCare does
 
@@ -38,7 +38,7 @@ DueCare has two product surfaces.
 Each response can be scored by deterministic rules, Gemma-as-judge, or a combined mode across 46 safety dimensions. The point is visible technical depth: users can see which rule fired, which document was retrieved, which tool returned a value, and how the score changed when layers are toggled.
 
 <!-- audit-allow:drift  reason: explicitly documents the OpenClaw -> server automation rename and backward-compat policy -->
-**The public hub** is the coordination layer at duecare-ai.com. It serves a schema-backed knowledge-object hierarchy, a real pack registry with four example packs, public pack APIs, server-side automation for public-source update triage, a reference `hub_client.py`, and token-gated redacted admin logs. Legacy OpenClaw aliases remain as redirects and env-var fallbacks, but the public language is now server automation. Render deployment uses one FastAPI Docker service plus a persistent disk; raw worker case content stays in worker-controlled or tenant-controlled deployments.
+**The public hub** is the coordination layer at duecare-ai.com. It serves a schema-backed knowledge-object hierarchy, a real pack registry with four example packs, public pack APIs, server-side automation for public-source update triage, a reference `hub_client.py`, and token-gated redacted admin logs. Client submissions carry explicit visibility, attribution, submitter, label-source, and consent fields: anonymous remains anonymous unless a client deliberately selects pseudonymous, organization-tagged, verified-organization, public-source, or public-display modes. Legacy OpenClaw aliases remain as redirects and env-var fallbacks, but the public language is now server automation. Render deployment uses one FastAPI Docker service plus a persistent disk; raw worker case content stays in worker-controlled or tenant-controlled deployments.
 
 ## 3. Why Gemma 4 matters
 
@@ -48,18 +48,17 @@ Gemma 4's features are load-bearing, not decorative.
 
 **Multimodal understanding** powers document and screenshot workflows. The demo accepts recruitment flyers, contract images, and evidence screenshots, then routes findings through the same rubric and safety trace as text.
 
-**Local deployment** is the impact story. The same architecture can run through Kaggle, a laptop, llama.cpp/GGUF, or LiteRT-style mobile packaging. The worker or NGO keeps sensitive material on-device while still benefiting from Gemma 4 reasoning and grounded public knowledge.
+**Local deployment** is the impact story. The validated paths today are Kaggle and laptop execution; llama.cpp/GGUF and LiteRT-style mobile packaging are explicit export targets for the same privacy-preserving architecture. The worker or NGO keeps sensitive material on-device while still benefiting from Gemma 4 reasoning and grounded public knowledge.
 
 ## 4. Evidence and notebooks
 
-The notebook suite is intentionally broad because judges can verify different claims without trusting a video. There are 77 tracked Kaggle kernels and 49 public-live notebooks in the current guide. The priority path is:
+The kernel suite is intentionally broad because judges can verify different claims without trusting a video. The final submission path is 13 Kaggle script-kernel folders (2 core + 11 appendix). Generated/research notebook mirrors are archived historical context, not a separate required reading path. The priority path is:
 
-1. **000 / 005 / 010:** index, glossary, and five-minute package smoke test.
-2. **100 / 102 / 140:** stock Gemma baselines and evaluation mechanics.
-3. **200-270:** cross-domain proof and model comparisons.
-4. **300-460:** adversarial resistance, function calling, multimodal, judge grading, conversation testing, rubric generation, citation verification.
-5. **520 / 525 / 527 / 530 / 540:** fine-tuning curriculum, uncensored five-grade response generation, rubric generation, Unsloth LoRA training, and fine-tune delta visualization.
-6. **600 / 610 / 620 / 650:** results dashboard, submission walkthrough, API endpoint tour, and custom-domain adoption.
+1. **01 exploration workbench:** full Gemma 4 harness with model picker, layer toggles, traces, and A/B comparison.
+2. **02 live demo:** focused screen-recording surface plus public-hub story.
+3. **A-01 / A-02 / A-10:** raw Gemma, harness ablation, and jailbroken-model comparison.
+4. **A-03 / A-04 / A-05:** classification, knowledge-building, and NGO & regulator dashboard.
+5. **A-06 / A-07 / A-08 / A-09 / A-11:** prompt generation, Unsloth fine-tune pipeline, research graphs, agentic research, and lift regeneration.
 
 The fine-tuning story is explicit: supervised fine-tuning uses curated public, synthetic, composite, or anonymized data; raw worker chats and raw case files are excluded. Preference optimization is framed as DPO-style response ranking, not vague reinforcement learning. Every headline number should be reproducible from a git SHA, dataset version, and notebook artifact.
 
@@ -67,7 +66,7 @@ The fine-tuning story is explicit: supervised fine-tuning uses curated public, s
 
 - **Code:** MIT monorepo with Python packages, FastAPI apps, notebook builders, tests, and generated inventory docs.
 - **Public hub:** health, status, pack registry, anonymized signal intake, public-source update proposals, client submission / retract endpoints, local-KB API, admin redaction, robots and sitemap.
-- **Notebook apps:** primary chat, classifier, live demo dashboard, content classification playground, and knowledge-builder playground now share the DueCare website's fonts, brand mark, focus states, card language, and civic-teal controls while preserving dark operator workspaces where useful.
+- **Notebook apps:** primary chat, classifier, live demo dashboard, content classification playground, and knowledge-builder playground now share the DueCare website's fonts, brand mark, focus states, card language, and civic-teal controls while preserving high-contrast operator workspaces where useful.
 - **Tests:** hub routes, pack registry, admin redaction, PII rejection, notebook inventory, guide generation, and chat smoke tests are covered.
 
 ## 6. Impact

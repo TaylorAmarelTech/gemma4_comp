@@ -116,8 +116,8 @@ The harness does the heavy lifting on legal-citation quality (see
 builds, a JNI bridge, and per-architecture binaries. LiteRT is
 first-class on Android with NNAPI delegation and AI Edge Torch
 conversion, and is what the Special Technology Track rewards. We
-keep llama.cpp for desktop deployment (already published in
-`kaggle/bench-and-tune/`).
+keep llama.cpp for desktop deployment (tracked in
+`kaggle/A-07-bench-and-tune/`).
 
 ### Layer 2 — Journal (Room + SQLCipher)
 

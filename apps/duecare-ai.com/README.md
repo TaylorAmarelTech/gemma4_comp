@@ -1,6 +1,6 @@
 # Duecare AI public hub
 
-**Centralized knowledge. Decentralized privacy.**
+**Public coordination for safer DueCare deployments.**
 
 This is the public website and coordination service for **duecare-ai.com**. It is intentionally lightweight and CPU-only: it does **not** load Gemma 4 directly. Kaggle/local/edge deployments run Gemma 4; this hub coordinates anonymized updates around it.
 
@@ -28,18 +28,22 @@ The monorepo root `render.yaml` is the authoritative Render blueprint.
 
 - Accepts anonymized or aggregate safety-pattern signals.
 - Rejects obvious raw PII in free-text summaries.
+- Accepts client submissions with explicit visibility, attribution, label-source, and consent controls.
 - Lists Duecare knowledge-pack metadata for RAG, GREP, contacts, rubrics, examples, tools, and jurisdictions.
 - Accepts public-source crawler-style update proposals for curator review.
+- Supports an operator-side local knowledge-base API for files that should stay tenant-local.
 - Persists signals and proposals to a Render persistent disk using JSONL files.
 - Exposes public OpenAPI docs at `/docs`.
 
-## Safety boundary
+## Sensitive data handling
 
 Do **not** use this service as a raw case-management system. Raw worker cases stay local with workers, NGOs, regulators, platforms, or trusted caseworkers unless explicit consent and anonymization gates are in place.
 
-Canonical rule:
+Canonical data rule:
 
-> Duecare drafts; the user or trusted caseworker decides. Privacy is non-negotiable.
+> Raw worker chats, case files, IDs, contact details, and private documents stay on the worker device or trusted NGO hardware unless an authorized user explicitly creates a sanitized submission. Sensitive PII is anonymized by the local Gemma 4 workflow before anything is submitted to the public hub. The server runs a second PII detector that rejects raw-PII submissions before storage and redacts detector-class PII in admin/debug views.
+
+Submission metadata is client-controlled. Anonymous submissions cannot include organization or submitter-attribution fields, and `local_only` objects are rejected because they should never leave the client. Automatic labels may be stored as suggestions with source and confidence metadata, but they do not silently upgrade an anonymous submission into an attributed one.
 
 ## API surface
 
@@ -59,6 +63,12 @@ GET  /api/hub/trends           Aggregate trend counters
 POST /api/hub/signals          Anonymized pattern signal intake
 POST /api/hub/opencrawl/updates Public-source update proposal intake
 GET  /api/hub/opencrawl/updates Curator review feed
+POST /api/hub/client/submissions Sanitized client submission intake with label/consent envelope
+POST /api/hub/client/retractions Retraction request intake
+GET  /api/local-kb/entries     Operator-side local KB entries
+POST /api/local-kb/entries     Operator-side local KB insert
+DELETE /api/local-kb/entries/{entry_id} Operator-side local KB delete
+GET  /api/admin/logs           Token-gated redacted operational logs
 GET  /docs                     OpenAPI docs
 ```
 
@@ -78,6 +88,16 @@ Then open http://127.0.0.1:8000.
 ```bash
 python -m pytest -q
 ```
+
+## Local smoke test
+
+After starting the app, verify the core public routes and API contracts:
+
+```bash
+python scripts/smoke_duecare_ai.py --base-url http://127.0.0.1:8000
+```
+
+The smoke script checks health, status, knowledge packs, trends, public pages, CORS preflight behavior, and negative privacy cases.
 
 ## Render deployment
 
@@ -110,6 +130,7 @@ DUECARE_PRIVACY_MODE=anonymized_signals_only_no_raw_pii
 DUECARE_STORAGE=file
 DUECARE_DATA_DIR=/app/.duecare
 PORT=10000
+DUECARE_CORS_ALLOW_ORIGINS=https://duecare-ai.com,https://www.duecare-ai.com
 ```
 
 No API keys are required for the initial public hub.

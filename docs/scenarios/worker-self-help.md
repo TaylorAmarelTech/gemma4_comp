@@ -1,4 +1,4 @@
-# OFW / migrant worker — self-help on your own phone
+# Individual worker — self-help on your own phone
 
 > **Persona.** You're a migrant worker — Filipino, Indonesian,
 > Nepali, Bangladeshi, or any other corridor. A recruiter is

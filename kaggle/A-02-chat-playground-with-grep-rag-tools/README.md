@@ -1,4 +1,4 @@
-# DueCare — Original 4-toggle subset playground (#A02 appendix)
+# DueCare — Harness ablation runner (#A02 appendix)
 <!-- duecare:lane-label -->
 > **Serves lanes:** 04 Researcher
 
@@ -16,10 +16,10 @@
 | **Cross-links** | Use the quick links at the bottom for the full workbench, live demo, grading-lift appendix, and public website. |
 
 Same chat UI as `chat-playground`, but with **toggle checkboxes for the
-safety-harness layers**. Lets a judge see — interactively, in a
-30-second clip — exactly what GREP / RAG / Tools add to a raw Gemma 4
-response. The defining demo for the rubric: "watch what happens when I
-turn on GREP."
+safety-harness layers**. Lets a judge see, interactively, exactly what
+GREP / RAG / Tools / Imports add to a raw Gemma 4 response while keeping
+the model and prompt constant. Use it as the compact ablation companion
+to the full six-layer workbench.
 
 Built with Google's Gemma 4 (base model:
 [google/gemma-4-e4b-it](https://huggingface.co/google/gemma-4-e4b-it)
@@ -28,8 +28,8 @@ and other IT variants). Used in accordance with the
 
 | Field | Value |
 |---|---|
-| **Kaggle URL** | https://www.kaggle.com/code/taylorsamarel/duecare-chat-playground-with-grep-rag-tools *(manual publication pending)* |
-| **Title on Kaggle** | "Duecare Chat Playground with GREP RAG Tools" |
+| **Kaggle URL** | https://www.kaggle.com/code/taylorsamarel/duecare-chat-playground-with-grep-rag-tools *(manual Kaggle publication target)* |
+| **Title on Kaggle** | "DueCare Chat Playground with GREP RAG Tools" |
 | **Slug** | `taylorsamarel/duecare-chat-playground-with-grep-rag-tools` |
 | **Wheels dataset** | `taylorsamarel/duecare-chat-playground-with-grep-rag-tools-wheels` (3 wheels, ~165 KB) |
 | **Models attached** | `google/gemma-4/Transformers/{e2b,e4b,26b-a4b,31b}-it/1` (all four IT variants) |
@@ -68,7 +68,7 @@ When GREP is **on**, every fired rule is prepended to Gemma's context as a syste
 
 ### RAG
 
-Retrieves top-K relevant docs from the Duecare evidence corpus (ILO conventions, POEA Memo Circulars, BP2MI regulations, HK statutes, IJM/Polaris case briefs) and injects them as grounding context.
+Retrieves top-K relevant docs from the DueCare evidence corpus (ILO conventions, POEA Memo Circulars, BP2MI regulations, HK statutes, IJM/Polaris case briefs) and injects them as grounding context.
 
 ### Tools
 
@@ -101,7 +101,7 @@ Send the textbook prompt:
 
 ### A. Paste-into-Kaggle (preferred)
 
-1. Open https://www.kaggle.com/code/taylorsamarel/duecare-chat-playground-with-grep-rag-tools (create with title `Duecare Chat Playground with GREP RAG Tools` if it doesn't exist).
+1. Open https://www.kaggle.com/code/taylorsamarel/duecare-chat-playground-with-grep-rag-tools (create with title `DueCare Chat Playground with GREP RAG Tools` if it doesn't exist).
 2. Side panel attachments:
    - GPU T4 ×2 · Internet ON · `HF_TOKEN` Secret
    - Models: all four `google/gemma-4/Transformers/{e2b,e4b,26b-a4b,31b}-it/1`
@@ -134,30 +134,30 @@ python scripts/push_kaggle_demo.py --kernel chat-playground-with-grep-rag-tools 
 
 - **Core workbench:** [#01 core: Migrant-worker safety playground](../01-duecare-exploration-workbench/README.md).
 - **Focused live demo:** [#02 core: Live demo](../02-live-demo/README.md).
-- **Natural next appendix:** [#A11 appendix: Grading-lift regenerator](../A-11-grading-evaluation/README.md).
+- **Natural next appendix:** [#A11 appendix: Runtime harness-lift regenerator](../A-11-grading-evaluation/README.md).
 - **Public website:** [duecare-ai.com](https://duecare-ai.com).
 
 ---
 
 <!-- duecare:kernel-footer -->
 
-### All DueCare notebooks
+### All DueCare kernels
 
-You are here: **#A02 appendix — Original 4-toggle subset playground**.
+You are here: **#A02 appendix — Harness ablation runner**.
 
 - [#01 core: Migrant-worker safety playground](../01-duecare-exploration-workbench/README.md)
 - [#02 core: Live demo (focused walkthrough)](../02-live-demo/README.md)
 - [#A01 appendix: Stock Gemma 4 chat baseline](../A-01-chat-playground/README.md)
-- **[#A02 appendix: Original 4-toggle subset playground](../A-02-chat-playground-with-grep-rag-tools/README.md)**
+- **[#A02 appendix: Harness ablation runner](../A-02-chat-playground-with-grep-rag-tools/README.md)**
 - [#A03 appendix: Hands-on classification sandbox](../A-03-content-classification-playground/README.md)
 - [#A04 appendix: Knowledge-builder sandbox + JSON export](../A-04-content-knowledge-builder-playground/README.md)
 - [#A05 appendix: NGO classifier evaluation dashboard](../A-05-gemma-content-classification-evaluation/README.md)
-- [#A06 appendix: Gemma generates evaluation prompts](../A-06-prompt-generation/README.md)
-- [#A07 appendix: Unsloth fine-tune + GGUF export pipeline](../A-07-bench-and-tune/README.md)
+- [#A06 appendix: Two-track synthetic data generator](../A-06-prompt-generation/README.md)
+- [#A07 appendix: Adapter training + new-model benchmark](../A-07-bench-and-tune/README.md)
 - [#A08 appendix: Research graphs (CPU-only)](../A-08-research-graphs/README.md)
 - [#A09 appendix: Agentic-research chat (BYOK + Playwright)](../A-09-chat-playground-with-agentic-research/README.md)
 - [#A10 appendix: Jailbroken-Gemma comparison](../A-10-chat-playground-jailbroken-models/README.md)
-- [#A11 appendix: Grading-lift regenerator](../A-11-grading-evaluation/README.md)
+- [#A11 appendix: Runtime harness-lift regenerator](../A-11-grading-evaluation/README.md)
 
 Index page: [`kaggle/_INDEX.md`](../_INDEX.md).
 
