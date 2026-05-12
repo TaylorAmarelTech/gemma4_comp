@@ -54,6 +54,116 @@ Implement the `Agent` Protocol, register it, optionally expose as a
 tool to the Gemma 4 Coordinator. The existing 12 agents are the
 templates.
 
+### "I want to add a new Kaggle kernel"
+
+The 23-folder Kaggle roster has hardened conventions across the
+session of 2026-05-12. Follow these to avoid drift:
+
+**1. Folder layout.** Place under `kaggle/<slot>-<short-purpose>/`
+with these files:
+
+```
+kaggle/A-21-my-new-thing/
+├── kernel.py                ← source-of-truth (pasted into Kaggle)
+├── kernel-metadata.json     ← Kaggle CLI metadata
+├── README.md                ← documentation (see below)
+└── wheels/                  ← optional; per-kernel pip wheels
+```
+
+**2. Bundle output (if your kernel emits JSON).** Use the shared
+helper instead of hand-rolling:
+
+```python
+from duecare.appendix_primitives import (
+    BundleEnvelope, PerRow, make_run_id, write_v1_bundle,
+)
+
+run_id = make_run_id("a21", "my_purpose", GEMMA_VARIANT)
+env = BundleEnvelope(
+    kernel_id="a-21-my-new-thing",
+    run_id=run_id,
+    config={"model_variant": GEMMA_VARIANT},
+    metadata={"started_at": iso_utc_now()},
+    summary={"n_results": len(rows)},
+    results=[PerRow(...) for r in rows],
+)
+paths = write_v1_bundle(env, Path("/kaggle/working"))
+# paths = {results_json, run_jsonl, metadata_json, bundle_zip, manifest}
+```
+
+The full v1.0 envelope shape is in
+[`docs/data_primitives.md`](docs/data_primitives.md).
+
+**3. README sections (required).** Every kernel README must carry:
+
+- `<!-- duecare:lane-label -->` HTML comment + a `> **Serves lanes:** ...`
+  line (the public-surface audit's `kaggle_lane_labels` check
+  enforces this).
+- `<!-- duecare:judge-quick-path -->` HTML comment + a "Judge quick
+  path" table with at minimum these rows:
+  `| **Lede** | ... |`
+  `| **What it does** | ... |`
+  `| **Demo path** | ... |`
+  `| **Audience** | ... |`
+  `| **Inputs** | ... |`           *(session 2026-05-12 standard)*
+  `| **Gemma 4 features** | ... |` *(session 2026-05-12 standard)*
+  `| **Outputs** | ... |`
+  `| **Cross-links** | ... |`
+
+  See any of `kaggle/01-..02/` or `kaggle/A-01..A-11/README.md`
+  for examples.
+
+- `## What it does / ## Pipeline / ## Inputs / ## Outputs /
+  ## Where this slot lives` -- canonical Markdown headers for the
+  longer-form documentation. Pattern in
+  `kaggle/A-19-multilingual-demo/README.md`.
+
+**4. Audit + validation.** Before opening a PR:
+
+```bash
+.venv/Scripts/python.exe scripts/validate_public_surface.py
+# Expects 5 checks / 0 findings.
+```
+
+Any new `kernel.py` is automatically swept by the
+`bundle_envelope_v1` check for schema-version drift, missing
+`summary`, and legacy results-array names. To opt out of a flag
+that's a non-envelope use of a flagged key, add an
+`audit-allow:drift` inline marker on the source line with a
+one-sentence justification:
+
+```python
+"aggregate": _phase_summary  # audit-allow:drift -- phase-result key, not v1.0 envelope
+```
+
+**5. Index registration.** Add a row to
+[`kaggle/_INDEX.md`](kaggle/_INDEX.md) so the 23-folder roster
+stays current.
+
+**6. Optional: register the kernel in
+[`docs/gemma4_feature_showcase.md`](docs/gemma4_feature_showcase.md)**
+if it exercises a specific Gemma 4 capability (function calling,
+multimodal, multilingual, on-device, long-context, etc.) so the
+30-pt Technical Depth mapping stays current.
+
+**7. Telemetry.** Wire `dc_log` from `duecare.chat._dc_log` at
+kernel start so the kernel emits structured events. Pattern:
+
+```python
+try:
+    from duecare.chat._dc_log import dc_log, set_kernel_id
+    set_kernel_id("a-21-my-new-thing")
+    dc_log("kernel.start", "my new kernel loading")
+except Exception:
+    def dc_log(*a, **kw):  # type: ignore[no-redef]
+        return None
+```
+
+For the slot-numbering convention and the experiment-ladder
+relationships (which kernel produces inputs for which downstream
+kernel), see
+[`docs/appendix_experiment_ladder.md`](docs/appendix_experiment_ladder.md).
+
 ## Development setup
 
 ```bash
