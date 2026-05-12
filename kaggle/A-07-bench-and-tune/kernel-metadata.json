@@ -1,6 +1,6 @@
 {
   "id": "taylorsamarel/duecare-bench-and-tune",
-  "title": "DueCare Bench and Tune",
+  "title": "DueCare A-05 Fine-tune Trainer",
   "code_file": "kernel.py",
   "language": "python",
   "kernel_type": "script",
