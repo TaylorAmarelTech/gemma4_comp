@@ -377,6 +377,89 @@ def _line_or_above_has_allow(lines: list[str], line_idx_1based: int) -> bool:
     return False
 
 
+# Kernels that build a bundle.zip + manifest.json today but omit the
+# per-file sha256 checksum map. Grandfathered as of 2026-05-12 so the
+# audit's green baseline isn't broken; each one can either adopt the
+# duecare.appendix_primitives helpers (which include checksums by
+# default) or add an `audit-allow:drift -- <reason>` marker on the
+# manifest dict literal in their kernel.py. New kernels written after
+# this commit MUST include checksums or join this list with a
+# documented reason.
+_MANIFEST_CHECKSUM_GRANDFATHERED: frozenset[str] = frozenset({
+    "kaggle/A-09-chat-playground-with-agentic-research/kernel.py",
+    "kaggle/A-10-chat-playground-jailbroken-models/kernel.py",
+    "kaggle/A-12-pii-fine-tune-eval/kernel.py",
+    "kaggle/A-13-multimodal-document-analyzer/kernel.py",
+    "kaggle/A-14-on-device-export/kernel.py",
+    "kaggle/A-15-ugc-batch-moderator/kernel.py",
+    "kaggle/A-16-ngo-local-kb/kernel.py",
+    "kaggle/A-17-knowledge-pack-builder/kernel.py",
+    "kaggle/A-18-sentinel-research-monitor/kernel.py",
+})
+
+
+def check_bundle_envelope_manifest_checksums() -> CheckResult:
+    """Flag kernels that build bundle.zip + manifest.json without checksums.
+
+    Tier-5 standardization (post-Tier 1-4): every kernel that ships
+    a `manifest.json` inside `<RUN>_bundle.zip` should also carry the
+    canonical `checksums: {filename: sha256_hex, ...}` map so a
+    downstream consumer can verify integrity without re-reading the
+    full payload. The `duecare.appendix_primitives.write_v1_bundle`
+    helper produces this map automatically.
+
+    Honors:
+      - the inline ``audit-allow:drift`` marker (line or line-above)
+      - the file-level grandfathered list
+        ``_MANIFEST_CHECKSUM_GRANDFATHERED`` for the 9 kernels that
+        existed pre-Tier-5
+    """
+    result = CheckResult(name="bundle_envelope_manifest_checksums")
+    kernels = sorted(KAGGLE.glob("*/kernel.py"))
+    result.info.append(
+        f"Inspected {len(kernels)} kernel.py files for manifest checksum map. "
+        f"{len(_MANIFEST_CHECKSUM_GRANDFATHERED)} kernels grandfathered."
+    )
+    manifest_writestr_re = re.compile(
+        r'writestr\(\s*[\'"]manifest\.json[\'"]', re.DOTALL
+    )
+    checksums_key_re = re.compile(r'[\'"]checksums[\'"]\s*:')
+    for kp in kernels:
+        rel = str(kp.relative_to(ROOT)).replace("\\", "/")
+        try:
+            text = kp.read_text(encoding="utf-8")
+        except (UnicodeDecodeError, OSError):
+            continue
+        if rel in _MANIFEST_CHECKSUM_GRANDFATHERED:
+            continue
+        if not manifest_writestr_re.search(text):
+            continue
+        if checksums_key_re.search(text):
+            continue
+        m = manifest_writestr_re.search(text)
+        line_idx = text[: m.start()].count("\n") + 1 if m else 0
+        lines = text.splitlines()
+        if _line_or_above_has_allow(lines, line_idx):
+            continue
+        result.findings.append(
+            Finding(
+                file=rel,
+                line=line_idx,
+                rule="bundle_envelope_v1.manifest_checksums",
+                snippet='manifest.json written without "checksums" map',
+                suggestion=(
+                    "use duecare.appendix_primitives.write_v1_bundle "
+                    "(emits checksums automatically) OR add a "
+                    "'\"checksums\": {filename: sha256_hex, ...}' entry "
+                    "to the manifest dict OR add this folder to "
+                    "_MANIFEST_CHECKSUM_GRANDFATHERED with a documented "
+                    "reason"
+                ),
+            )
+        )
+    return result
+
+
 def check_bundle_envelope_v1() -> CheckResult:
     """Scan each kaggle/*/kernel.py for v1.0 BundleEnvelope drift.
 
@@ -539,6 +622,7 @@ def main() -> int:
             "five_lane_order",
             "kaggle_lane_labels",
             "bundle_envelope_v1",
+            "bundle_envelope_manifest_checksums",
         ],
         help="skip a check (repeatable)",
     )
@@ -550,6 +634,8 @@ def main() -> int:
         ("five_lane_order", check_lane_order),
         ("kaggle_lane_labels", check_kaggle_lane_labels),
         ("bundle_envelope_v1", check_bundle_envelope_v1),
+        ("bundle_envelope_manifest_checksums",
+         check_bundle_envelope_manifest_checksums),
     ]
     checks = [run() for name, run in runners if name not in args.skip]
 

@@ -296,3 +296,102 @@ def test_bundle_envelope_honors_inline_allow_marker(
     )
     result = validator.check_bundle_envelope_v1()
     assert result.ok, result.findings
+
+
+# ---- check_bundle_envelope_manifest_checksums ------------------------------
+
+def test_manifest_checksums_clean_kernel(tmp_path: Path, monkeypatch) -> None:
+    """Kernel with both manifest.json AND checksums map -- no finding."""
+    validator = _load_validator()
+    kaggle = _setup_fake_kaggle(tmp_path, validator, monkeypatch)
+    monkeypatch.setattr(
+        validator, "_MANIFEST_CHECKSUM_GRANDFATHERED", frozenset()
+    )
+    _write_fake_kernel(
+        kaggle / "A-99-clean",
+        '\n'.join([
+            'import zipfile, json',
+            'with zipfile.ZipFile("/tmp/out.zip", "w") as z:',
+            '    z.writestr("manifest.json", json.dumps({',
+            '        "schema_version": "1.0",',
+            '        "checksums": {"results.json": "abc123"},',
+            '    }))',
+        ]),
+    )
+    result = validator.check_bundle_envelope_manifest_checksums()
+    assert result.ok, result.findings
+
+
+def test_manifest_checksums_flags_missing_map(
+    tmp_path: Path, monkeypatch,
+) -> None:
+    """Kernel writing manifest.json without a checksums map is flagged."""
+    validator = _load_validator()
+    kaggle = _setup_fake_kaggle(tmp_path, validator, monkeypatch)
+    monkeypatch.setattr(
+        validator, "_MANIFEST_CHECKSUM_GRANDFATHERED", frozenset()
+    )
+    _write_fake_kernel(
+        kaggle / "A-99-no-checksums",
+        '\n'.join([
+            'import zipfile, json',
+            'with zipfile.ZipFile("/tmp/out.zip", "w") as z:',
+            '    z.writestr("manifest.json", json.dumps({',
+            '        "schema_version": "1.0",',
+            '        "kernel_id": "a-99",',
+            '    }))',
+        ]),
+    )
+    result = validator.check_bundle_envelope_manifest_checksums()
+    assert any(
+        f.rule == "bundle_envelope_v1.manifest_checksums"
+        for f in result.findings
+    )
+
+
+def test_manifest_checksums_skips_grandfathered(
+    tmp_path: Path, monkeypatch,
+) -> None:
+    """Folders on the grandfathered list are skipped even when drifted."""
+    validator = _load_validator()
+    kaggle = _setup_fake_kaggle(tmp_path, validator, monkeypatch)
+    _write_fake_kernel(
+        kaggle / "A-99-grandfathered",
+        '\n'.join([
+            'import zipfile, json',
+            'with zipfile.ZipFile("/tmp/out.zip", "w") as z:',
+            '    z.writestr("manifest.json", json.dumps({',
+            '        "schema_version": "1.0",',
+            '    }))',
+        ]),
+    )
+    monkeypatch.setattr(
+        validator, "_MANIFEST_CHECKSUM_GRANDFATHERED",
+        frozenset({"kaggle/A-99-grandfathered/kernel.py"}),
+    )
+    result = validator.check_bundle_envelope_manifest_checksums()
+    assert result.ok, result.findings
+
+
+def test_manifest_checksums_honors_inline_allow_marker(
+    tmp_path: Path, monkeypatch,
+) -> None:
+    """An audit-allow:drift comment near the writestr suppresses the find."""
+    validator = _load_validator()
+    kaggle = _setup_fake_kaggle(tmp_path, validator, monkeypatch)
+    monkeypatch.setattr(
+        validator, "_MANIFEST_CHECKSUM_GRANDFATHERED", frozenset()
+    )
+    _write_fake_kernel(
+        kaggle / "A-99-allow",
+        '\n'.join([
+            'import zipfile, json',
+            'with zipfile.ZipFile("/tmp/out.zip", "w") as z:',
+            '    # audit-allow:drift -- export-asset manifest, not v1.0 bundle',
+            '    z.writestr("manifest.json", json.dumps({',
+            '        "schema_version": "1.0",',
+            '    }))',
+        ]),
+    )
+    result = validator.check_bundle_envelope_manifest_checksums()
+    assert result.ok, result.findings
