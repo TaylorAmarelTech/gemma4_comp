@@ -1525,6 +1525,17 @@ from duecare.chat import create_app
 from duecare.chat.harness import (
     default_harness, GREP_RULES, RAG_CORPUS, _TOOL_DISPATCH,
 )
+# Telemetry hook -- canonical structured logging across all DueCare
+# kernels. Defensive try/except so older duecare-llm-chat versions
+# without _dc_log degrade to a no-op stub rather than failing the
+# kernel boot.
+try:
+    from duecare.chat._dc_log import dc_log, set_kernel_id
+    set_kernel_id("01-duecare-exploration-workbench")
+    dc_log("kernel.start", "exploration workbench loading")
+except Exception:
+    def dc_log(*a, **kw):  # type: ignore[no-redef]
+        return None
 import uvicorn
 from fastapi import Body
 from fastapi.responses import JSONResponse
