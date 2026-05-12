@@ -388,6 +388,16 @@ class Scenario:
     fail_indicators: list[str]
 
 
+# Records what load_rubrics() actually found at /kaggle/input. Surfaced on
+# the dashboard so judges can see whether the trafficking-prompts dataset
+# was attached or whether the kernel fell back to built-in seeds.
+_INPUT_DISCOVERY: dict[str, object] = {
+    "rubric_dir": None,
+    "scenario_count": 0,
+    "fallback": False,
+}
+
+
 def load_rubrics() -> list[Scenario]:
     """Load the 5 trafficking-prompts YAMLs and flatten them into per-criterion
     scenarios. Each scenario becomes the SEED for a generated prompt."""
@@ -418,9 +428,15 @@ def load_rubrics() -> list[Scenario]:
                 break
     if rubric_dir is None:
         print("  no trafficking-prompts dataset found; using built-in fallback")
-        return _fallback_scenarios()
+        fb = _fallback_scenarios()
+        _INPUT_DISCOVERY["rubric_dir"] = None
+        _INPUT_DISCOVERY["scenario_count"] = len(fb)
+        _INPUT_DISCOVERY["fallback"] = True
+        return fb
 
     print(f"  rubric dir: {rubric_dir}")
+    _INPUT_DISCOVERY["rubric_dir"] = str(rubric_dir)
+    _INPUT_DISCOVERY["fallback"] = False
     scenarios: list[Scenario] = []
     for yml_path in sorted(rubric_dir.glob("*.yaml")):
         try:
@@ -444,6 +460,7 @@ def load_rubrics() -> list[Scenario]:
                 pass_indicators=[], fail_indicators=[]))
     print(f"  loaded {len(scenarios)} seed scenarios across "
           f"{len(set(s.rubric for s in scenarios))} rubrics")
+    _INPUT_DISCOVERY["scenario_count"] = len(scenarios)
     return scenarios
 
 
@@ -1311,6 +1328,13 @@ def main() -> dict:
                 {"label": "Profile", "value": GENERATION_PROFILE},
                 {"label": "Phases run", "value": len(log.get("phases", {}))},
                 {"label": "Completed",  "value": log.get("completed_at", "?")},
+                {"label": "Rubric input dataset", "value": (
+                    f"{_INPUT_DISCOVERY['rubric_dir']} "
+                    f"({_INPUT_DISCOVERY['scenario_count']} scenarios)"
+                ) if not _INPUT_DISCOVERY["fallback"] else (
+                    f"(built-in fallback, "
+                    f"{_INPUT_DISCOVERY['scenario_count']} seeds)"
+                )},
             ],
             "artifacts": [
                 {"name": "generated_prompts.jsonl", "path": GENERATED_PROMPTS_OUT},

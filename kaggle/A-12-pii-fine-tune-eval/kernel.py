@@ -668,6 +668,12 @@ try:
             {"label": "Lift",
              "value": f"{_aggregate['lift']['label_f1_pp']:+.3f}"},
             {"label": "Train wall time", "value": f"{_train_dur:.0f}s"},
+            {"label": "Gold JSONL sources",
+             "value": (
+                 f"{len(_gold_paths)} file(s): "
+                 + ", ".join(p.name for p in _gold_paths[:3])
+                 + (" ..." if len(_gold_paths) > 3 else "")
+             ) if _gold_paths else "none"},
         ],
         "artifacts": [
             {"name": BUNDLE_PATH.name, "path": str(BUNDLE_PATH)},
