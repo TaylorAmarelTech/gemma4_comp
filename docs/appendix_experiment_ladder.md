@@ -92,9 +92,12 @@ A-11 PII fine-tune + evaluation  — train + benchmark PrivacyRedactor LoRA
   (lives in `kaggle/A-06-prompt-generation/`; folder rename pending)
 - A-05 fine-tune trainer — committed `ec49ca9`
   (lives in `kaggle/A-07-bench-and-tune/`; folder rename pending)
-- A-06 new-model baseline runner — not yet built
-- A-07 new-model harnessed runner — not yet built
-- A-08 new-model comparison — not yet built
+- A-06 new-model baseline runner — committed `20db869`
+  (lives in `kaggle/A-04-content-knowledge-builder-playground/`)
+- A-07 new-model harnessed runner — committed `7c371ad`
+  (lives in `kaggle/A-05-gemma-content-classification-evaluation/`)
+- A-08 new-model comparison — committed (this batch)
+  (lives in `kaggle/A-11-grading-evaluation/`)
 - A-09 abliterated test generator — exists as A-10
   jailbroken-models, needs slot move + ladder generator
 - A-10 PII synth data generator — not yet built
