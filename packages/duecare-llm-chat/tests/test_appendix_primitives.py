@@ -20,6 +20,7 @@ from duecare.appendix_primitives import (
     PerRow,
     make_run_id,
     read_v1_bundle,
+    sha256_of_file,
     validate_canonical,
     write_v1_bundle,
 )
@@ -300,3 +301,37 @@ def test_write_v1_bundle_creates_missing_dir(tmp_path: Path) -> None:
     paths = write_v1_bundle(env, nested)
     assert nested.is_dir()
     assert paths["bundle_zip"].is_file()
+
+
+# ---- sha256_of_file --------------------------------------------------------
+
+def test_sha256_of_file_matches_known_digest(tmp_path: Path) -> None:
+    """Digest for b'hello world\\n' is well-known."""
+    f = tmp_path / "hello.txt"
+    f.write_bytes(b"hello world\n")
+    expected = (
+        "a948904f2f0f479b8f8197694b30184b"
+        "0d2ed1c1cd2a1ec0fb85d299a192a447"
+    )
+    assert sha256_of_file(f) == expected
+
+
+def test_sha256_of_file_chunked_read_matches(tmp_path: Path) -> None:
+    """Chunk size doesn't affect the digest (file > 8 KB chunks)."""
+    f = tmp_path / "big.bin"
+    f.write_bytes(b"x" * 32768)  # 4 chunks at default 8 KB
+    a = sha256_of_file(f)
+    b = sha256_of_file(f, chunk_size=1024)  # forces 32 chunks
+    assert a == b
+    assert len(a) == 64  # hex sha256 is 64 chars
+
+
+def test_sha256_of_file_empty_file(tmp_path: Path) -> None:
+    f = tmp_path / "empty.bin"
+    f.write_bytes(b"")
+    # Empty-content sha256 hex digest
+    expected = (
+        "e3b0c44298fc1c149afbf4c8996fb924"
+        "27ae41e4649b934ca495991b7852b855"
+    )
+    assert sha256_of_file(f) == expected
