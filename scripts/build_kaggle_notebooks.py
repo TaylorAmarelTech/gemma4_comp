@@ -857,7 +857,7 @@ SUBMISSION_CELLS = [
         "\n"
         "Named deployers are not hypothetical: Polaris Project, IJM, ECPAT, POEA, BP2MI, and HRD Nepal are exactly the kind of organizations this package is built for.\n"
         "\n"
-        "**Privacy is non-negotiable. So the lab runs on your machine.**\n"
+        "**Raw case data stays on the deployer's machine; the public hub receives only sanitized submissions.**\n"
     ),
 
     md(
@@ -987,7 +987,7 @@ display(HTML(
     \'\'\'<div style="background:linear-gradient(135deg,#1e3a8a 0%,#4c78a8 100%);color:white;padding:20px 24px;border-radius:8px;margin:8px 0;font-family:system-ui,-apple-system,sans-serif">\'\'\'
     \'\'\'<div style="font-size:10px;font-weight:600;letter-spacing:0.14em;opacity:0.8;text-transform:uppercase">DueCare - Gemma 4 Good Hackathon</div>\'\'\'
     f\'\'\'<div style="font-size:24px;font-weight:700;margin:4px 0 0 0">{NOTEBOOK_TITLE}</div>\'\'\'
-    \'\'\'<div style="font-size:13px;opacity:0.92;margin-top:4px">Fine-tuned Gemma 4 as an on-device safety judge. Privacy is non-negotiable.</div></div>\'\'\'
+    \'\'\'<div style="font-size:13px;opacity:0.92;margin-top:4px">Fine-tuned Gemma 4 as an on-device safety judge; raw case data stays local.</div></div>\'\'\'
 ))
 
 _P = {"primary":"#4c78a8","success":"#10b981","info":"#3b82f6","warning":"#f59e0b","muted":"#6b7280",

@@ -20,7 +20,7 @@ Per notebook, the checks enforce:
   opener (both pulled from `PREV_NOTEBOOK` and the SECTIONS list in
   the shared builder).
 - `Recap` and `Key takeaways` headings.
-- No `Privacy is non-negotiable` phrase (reserved for 610/899 prose).
+- No stale privacy-slogan phrase.
 - No `| | |` markdown pseudo-table.
 - Exactly one install cell.
 - A terminal `print(...)` cell that names the next-section starting
@@ -151,10 +151,9 @@ def _run_for(section: dict) -> None:
     if "## Key takeaways" not in all_md and "Key points" not in all_md and "Key takeaways" not in all_md:
         _fail(nnn, "missing 'Key takeaways' / 'Key points' block")
 
-    # 899 is the only conclusion where "Privacy is non-negotiable" is allowed
-    # as the suite-closing framing phrase. Every other conclusion must omit it.
+    # Conclusions should use concrete sensitive-data wording instead of slogans.
     if nnn != "899" and "Privacy is non-negotiable" in all_text:
-        _fail(nnn, "'Privacy is non-negotiable' should only appear in 610/899")
+        _fail(nnn, "stale privacy slogan should not appear in conclusion notebooks")
 
     if "| | |" in all_md:
         _fail(nnn, "pre-canonical '| | |' markdown pseudo-table present")

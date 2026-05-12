@@ -63,20 +63,22 @@ SLUG_OVERRIDES = {
         "taylorsamarel/duecare-gemma-chat-playground-grep-rag-tools",
 }
 
-# The 11 submission notebooks live at kaggle/<purpose>/ (NOT under
-# kaggle/kernels/). Probed alongside the research arc.
+# The 13 judge-facing submission notebooks live at numbered kaggle/*/
+# folders (NOT under kaggle/kernels/). Probed alongside the research arc.
 SUBMISSION_FOLDERS = (
-    "chat-playground",
-    "chat-playground-with-grep-rag-tools",
-    "content-classification-playground",
-    "content-knowledge-builder-playground",
-    "gemma-content-classification-evaluation",
-    "live-demo",
-    "prompt-generation",
-    "bench-and-tune",
-    "research-graphs",
-    "chat-playground-with-agentic-research",
-    "chat-playground-jailbroken-models",
+    "01-duecare-exploration-workbench",
+    "02-live-demo",
+    "A-01-chat-playground",
+    "A-02-chat-playground-with-grep-rag-tools",
+    "A-03-content-classification-playground",
+    "A-04-content-knowledge-builder-playground",
+    "A-05-gemma-content-classification-evaluation",
+    "A-06-prompt-generation",
+    "A-07-bench-and-tune",
+    "A-08-research-graphs",
+    "A-09-chat-playground-with-agentic-research",
+    "A-10-chat-playground-jailbroken-models",
+    "A-11-grading-evaluation",
 )
 
 

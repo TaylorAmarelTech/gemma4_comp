@@ -114,7 +114,7 @@ HEADER = f"""# 530: DueCare Phase 3 Unsloth Fine-Tune
 
 **This is where the DueCare improvement claim becomes a trained artifact instead of a promise.** The notebook takes the curriculum emitted by [520 Phase 3 Curriculum Builder]({URL_520}), fine-tunes Gemma 4 E4B with Unsloth LoRA on Kaggle GPU, exports deployable artifacts for llama.cpp, and leaves a manifest that tells the downstream notebooks exactly what still needs to be re-scored for the public before/after visuals.
 
-The trained artifact has one job: when **Maria**, a Filipino domestic worker in Jeddah whose employer holds her passport and demands placement-fee repayment, pastes her recruiter's message into a worker-side tool, the model running on her laptop or on the local Polaris / IJM / ECPAT / POEA / BP2MI / HRD Nepal / IOM intake terminal answers with the right ILO citation, the right hotline, and the right next step. **Privacy is non-negotiable.** The lab runs on the deployer's machine.
+The trained artifact has one job: when **Maria**, a Filipino domestic worker in Jeddah whose employer holds her passport and demands placement-fee repayment, pastes her recruiter's message into a worker-side tool, the model running on her laptop or on the local Polaris / IJM / ECPAT / POEA / BP2MI / HRD Nepal / IOM intake terminal answers with the right ILO citation, the right hotline, and the right next step. The lab runs on the deployer's machine and does not upload raw case data.
 
 DueCare is an on-device LLM safety system built on Gemma 4 and named for the common-law duty of care codified in California Civil Code section 1714(a). In the suite arc, 520 converts measured failures into corrected training pairs, this notebook turns those pairs into weights, and [540 Fine-tune Delta Visualizer]({URL_540}) and [600 Results Dashboard]({URL_600}) turn the resulting score deltas into judge-facing proof.
 
@@ -151,14 +151,14 @@ STACK_INTRO = """---
 
 ## 1. Install DueCare and verify the GPU runtime
 
-The first code cell is injected by the hardening layer and pins the DueCare package version. The second injected cell verifies that Kaggle actually gave the notebook a GPU runtime. The dedicated Unsloth install happens in the next cell because it needs the CUDA-specific xformers wheel and the GitHub-backed Kaggle extra."""
+The first code cell is injected by the hardening layer and pins the DueCare package version. The second injected cell verifies that Kaggle actually gave the notebook a GPU runtime. The dedicated Unsloth install happens in the next cell because it needs the CUDA-specific xformers wheel and a separately validated training stack."""
 
 
 UNSLOTH_INTRO = """---
 
 ## 2. Install Unsloth and the training stack
 
-Use the official Kaggle path from Unsloth: install the CUDA-matched <code>xformers</code> wheel first, then install <code>unsloth[kaggle-new]</code> from GitHub HEAD so Gemma 4 support is current. This cell is intentionally separate from the pinned DueCare install because it has a different failure mode and a different package source."""
+Install the CUDA-matched <code>xformers</code> wheel first, then install the Gemma 4 training stack from PyPI packages. This cell is intentionally separate from the pinned DueCare install because it has a different failure mode and a different package source. It deliberately avoids installing from a moving GitHub branch; if PyPI compatibility breaks, attach a vetted wheel dataset or update this notebook to an immutable release asset / commit-pinned archive."""
 
 
 UNSLOTH_INSTALL = """import os
@@ -180,13 +180,17 @@ subprocess.check_call([
     '-q',
 ])
 
-print('Installing Unsloth Kaggle stack from GitHub HEAD...')
+print('Installing Unsloth Kaggle stack from PyPI packages...')
 subprocess.check_call([
     sys.executable,
     '-m',
     'pip',
     'install',
-    'unsloth[kaggle-new] @ git+https://github.com/unslothai/unsloth.git',
+    'unsloth',
+    'unsloth_zoo>=2026.4.6',
+    'transformers==5.5.0',
+    'torchcodec',
+    'timm',
     '-q',
 ])
 

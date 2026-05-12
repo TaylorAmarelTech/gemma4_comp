@@ -124,11 +124,30 @@ def render_notebook_guide(*, existing_path: Path = OUTPUT_PATH) -> str:
     draft_count = len(entries) - live_count
 
     lines: list[str] = []
-    lines.append("# DueCare Notebook Guide")
+    lines.append("# DueCare Kaggle Kernel Guide")
     lines.append("")
     lines.append(
         "`docs/current_kaggle_notebook_state.md` is the authoritative tracked-kernel inventory. "
         "This guide is the human-readable purpose map and review queue generated from the same metadata plus `scripts/kaggle_live_slug_map.json` for public live status."
+    )
+    lines.append("")
+    lines.append("## Notebook artifact policy")
+    lines.append("")
+    lines.append(
+        "Do not create `.ipynb` notebooks for the judge-facing submission by default. "
+        "Treat `kernel.py` plus the folder README as the source of truth. "
+        "Historical notebook wrappers live under `_archive/kaggle-notebook-previews-2026-05-11/`; "
+        "do not recreate them in active `kaggle/*/` folders unless Taylor explicitly asks."
+    )
+    lines.append("")
+    lines.append(
+        "Every judge-facing Kaggle bundle must make its own bootstrap path explicit: "
+        "print required Kaggle settings, fail fast on missing GPU/secrets/datasets/model "
+        "sources, install DueCare from attached Kaggle wheels first, then pinned PyPI, "
+        "then immutable GitHub release assets or commit-pinned archives only as a fallback, "
+        "and print the resolved DueCare version before loading Gemma 4. Never rely on "
+        "`_reference/`, local `.venv`, root-level legacy mirrors, untracked files, or "
+        "a moving GitHub branch such as `main`."
     )
     lines.append("")
     lines.append("## Review order")

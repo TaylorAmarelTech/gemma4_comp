@@ -136,7 +136,7 @@ DueCare is an on-device LLM safety system built on Gemma 4 and named for the com
   </tbody>
 </table>
 
-**Privacy is non-negotiable. The canonical run stays on-device and writes a local findings artifact.**
+**The canonical run stays on-device, writes a local findings artifact, and does not upload raw case data.**
 
 ### Table of contents
 

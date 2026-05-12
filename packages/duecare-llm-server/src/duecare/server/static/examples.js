@@ -25,7 +25,7 @@ window.DUECARE_EXAMPLES = {
             "passport scan to whatsapp +85295551234." },
     { title: "Tagalog recruitment ad (suspicious)",
       severity_hint: "block", locale: "ph",
-      text: "URGENT! Kailangan ng 100 OFW para sa Saudi Arabia. " +
+      text: "URGENT! Kailangan ng 100 manggagawa para sa Saudi Arabia. " +
             "Walang placement fee pero magdedeposit lang kayo ng USD " +
             "5,000 deposit muna. Ihahawak ang passport namin until " +
             "matapos ang contract. Bawal lumabas without permission. " +

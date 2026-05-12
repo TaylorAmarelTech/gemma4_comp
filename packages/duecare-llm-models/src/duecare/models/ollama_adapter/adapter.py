@@ -16,9 +16,8 @@ from __future__ import annotations
 
 import base64
 import json
+import threading
 from typing import Any
-
-import httpx
 
 from duecare.core.enums import Capability
 from duecare.core.schemas import (
@@ -43,6 +42,18 @@ _FIELD_DONE_REASON = "done_reason"
 _FIELD_PROMPT_EVAL_COUNT = "prompt_eval_count"
 _FIELD_EVAL_COUNT = "eval_count"
 _FIELD_EMBEDDING = "embedding"
+
+
+def _load_httpx() -> Any:
+    """Import httpx only when the Ollama adapter is actually used."""
+    try:
+        import httpx
+    except ImportError as exc:
+        raise ImportError(
+            "OllamaModel requires the optional Ollama HTTP dependency. "
+            "Install with: pip install 'duecare-llm-models[ollama]'"
+        ) from exc
+    return httpx
 
 
 @model_registry.register("ollama")
@@ -85,19 +96,23 @@ class OllamaModel(ModelAdapterBase):
             Capability.FUNCTION_CALLING,
             Capability.VISION,
         }
-        self._client: httpx.Client | None = None
+        self._client: Any | None = None
+        self._client_lock = threading.Lock()
 
     # ------------------------------------------------------------------
     # HTTP helpers
     # ------------------------------------------------------------------
 
-    def _get_client(self) -> httpx.Client:
+    def _get_client(self) -> Any:
         """Return or lazily create the httpx client."""
         if self._client is None:
-            self._client = httpx.Client(
-                base_url=self.host,
-                timeout=httpx.Timeout(self.timeout, connect=10.0),
-            )
+            with self._client_lock:
+                if self._client is None:
+                    httpx = _load_httpx()
+                    self._client = httpx.Client(
+                        base_url=self.host,
+                        timeout=httpx.Timeout(self.timeout, connect=10.0),
+                    )
         return self._client
 
     def _post(self, path: str, body: dict[str, Any]) -> dict[str, Any]:
@@ -115,6 +130,7 @@ class OllamaModel(ModelAdapterBase):
             TimeoutError: Request exceeded the configured timeout.
             RuntimeError: Ollama returned an HTTP error.
         """
+        httpx = _load_httpx()
         client = self._get_client()
         try:
             resp = client.post(path, json=body)
@@ -142,6 +158,7 @@ class OllamaModel(ModelAdapterBase):
 
     def _get(self, path: str) -> dict[str, Any]:
         """GET from the Ollama API."""
+        httpx = _load_httpx()
         client = self._get_client()
         try:
             resp = client.get(path)
@@ -390,6 +407,7 @@ class OllamaModel(ModelAdapterBase):
         name = model_name or self.model_id
         log.info("ollama pulling model", model=name)
         # /api/pull streams progress; use a longer timeout.
+        httpx = _load_httpx()
         client = self._get_client()
         try:
             resp = client.post(
@@ -407,9 +425,13 @@ class OllamaModel(ModelAdapterBase):
 
     def close(self) -> None:
         """Close the underlying httpx client."""
-        if self._client is not None:
-            self._client.close()
-            self._client = None
+        with self._client_lock:
+            if self._client is not None:
+                self._client.close()
+                self._client = None
 
     def __del__(self) -> None:
-        self.close()
+        try:
+            self.close()
+        except Exception:
+            return

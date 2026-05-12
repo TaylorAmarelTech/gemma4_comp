@@ -309,7 +309,7 @@ This notebook defines the project vocabulary and maps each term back to the note
 
 005 is the vocabulary surface. It does not re-list the sections or the suite map. It answers a different question: **what does this name mean**, and **which notebook is the canonical demonstration**. Term first, notebook second. Eight thematic groups scan top to bottom: project framing, notation, data and grading, prompt engineering, evaluation, orchestration and training, export and deployment, safety and domain.
 
-**Privacy is non-negotiable** is the project's load-bearing invariant: raw migrant-worker case data never leaves the deployment boundary. Every term on this page maps back to a notebook that either enforces that boundary (Anonymizer, AgentSupervisor, the on-device GGUF runtime) or proves the model still meets its safety rubric while doing so. The named partners who would deploy DueCare against this guarantee — Polaris, IJM, ECPAT, POEA, BP2MI, HRD Nepal, IOM — appear in the Solution Surfaces section.
+Raw migrant-worker case data stays local unless an authorized user creates a sanitized submission. Every term on this page maps back to a notebook that either enforces that rule (Anonymizer, AgentSupervisor, the on-device GGUF runtime) or proves the model still meets its safety rubric while doing so. The named partners who would deploy DueCare against this guarantee — Polaris, IJM, ECPAT, POEA, BP2MI, HRD Nepal, IOM — appear in the Solution Surfaces section.
 
 This notebook is CPU-only by design. Gemma 4 inference starts in [100 Gemma Exploration]({URL_100}) on a T4 GPU.
 """

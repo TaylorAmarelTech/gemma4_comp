@@ -31,7 +31,7 @@ TITLE_TOKEN_OVERRIDES = {
 
 @dataclass(frozen=True)
 class KaggleNotebook:
-    """One Kaggle kernel plus its local metadata and mirror state."""
+    """One Kaggle kernel plus its local metadata and optional archive mirror."""
 
     dir_path: Path
     kernel_id: str
@@ -105,18 +105,20 @@ def load_kernel_metadata(dir_path: Path) -> dict:
 
 def discover_kernel_notebooks(
     kernels_dir: Path = KERNELS_DIR,
-    notebooks_dir: Path = NOTEBOOKS_DIR,
+    notebooks_dir: Path | None = NOTEBOOKS_DIR,
     skunkworks_dir: Path | None = SKUNKWORKS_NOTEBOOKS_DIR,
 ) -> list[KaggleNotebook]:
     """Return every tracked Kaggle kernel discovered from metadata files.
 
-    Mirror lookup checks `notebooks_dir` first, then `skunkworks_dir`
-    so notebooks moved out of the core 60-ish into the skunkworks
-    research bucket still validate."""
+    Kaggle kernel directories are authoritative. Legacy and skunkworks
+    notebooks are optional archive mirrors; when those folders have been
+    moved out of the repo, entries simply report `mirror_path=None`."""
     entries: list[KaggleNotebook] = []
-    mirror_dirs: list[Path] = [notebooks_dir]
-    if skunkworks_dir is not None:
-        mirror_dirs.append(skunkworks_dir)
+    mirror_dirs = [
+        candidate
+        for candidate in (notebooks_dir, skunkworks_dir)
+        if candidate is not None and candidate.exists()
+    ]
     for dir_path in sorted(child for child in kernels_dir.iterdir() if child.is_dir()):
         meta_path = dir_path / "kernel-metadata.json"
         if not meta_path.exists():
@@ -170,15 +172,17 @@ def render_inventory_markdown(entries: list[KaggleNotebook]) -> str:
     lines.append("## Summary")
     lines.append("")
     lines.append(f"- Tracked Kaggle kernels: {len(entries)}")
-    lines.append(f"- Local mirror notebooks: {len(mirrored)}")
-    lines.append(f"- Missing local mirrors: {len(missing_mirrors)}")
+    lines.append(f"- Optional local/archive mirror notebooks: {len(mirrored)}")
+    lines.append(f"- Kernels without optional mirrors: {len(missing_mirrors)}")
     lines.append(f"- Legacy directory/code-file aliases: {len(legacy_aliases)}")
     lines.append(f"- Title/id slug divergences: {len(title_divergences)}")
     lines.append(f"- Extra local notebooks not backed by a kernel: {len(extra_local_notebooks)}")
     lines.append("")
 
     if missing_mirrors:
-        lines.append("## Missing Local Mirrors")
+        lines.append("## Kernels Without Optional Mirrors")
+        lines.append("")
+        lines.append("These are informational only. The authoritative notebook source is the Kaggle kernel folder.")
         lines.append("")
         for entry in missing_mirrors:
             lines.append(
@@ -217,10 +221,10 @@ def render_inventory_markdown(entries: list[KaggleNotebook]) -> str:
 
     lines.append("## Inventory")
     lines.append("")
-    lines.append("| Kernel directory | Notebook ID | Kaggle id | Metadata title | Code file | Local mirror | Live URL |")
+    lines.append("| Kernel directory | Notebook ID | Kaggle id | Metadata title | Code file | Optional mirror | Live URL |")
     lines.append("|---|---|---|---|---|---|---|")
     for entry in entries:
-        mirror_value = entry.mirror_path.name if entry.mirror_path else "missing"
+        mirror_value = entry.mirror_path.name if entry.mirror_path else "not maintained here"
         lines.append(
             f"| `{entry.dir_name}` | `{entry.notebook_number}` | `{entry.kernel_id}` | `{entry.title}` | `{entry.code_file}` | `{mirror_value}` | `{entry.kaggle_url}` |"
         )

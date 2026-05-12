@@ -12,10 +12,10 @@ each file in the wheels folder as a blob, then creates a new dataset
 version referencing those blobs.
 
 Run:
-    python scripts/push_kaggle_dataset_version_direct.py kaggle/chat-playground/wheels/ \\
+    python scripts/push_kaggle_dataset_version_direct.py kaggle/A-01-chat-playground/wheels/ \\
         --notes "42 GREP rules"
 
-Or push all 9 chat-bundling wheels datasets:
+Or push all chat-bundling wheels datasets:
     python scripts/push_kaggle_dataset_version_direct.py --all
 """
 
@@ -177,27 +177,26 @@ def push_version(folder: pathlib.Path, notes: str) -> bool:
     return True
 
 
-# The 11 notebooks that bundle the chat wheel and need a re-push
-# (duecare-harness-chat = unified core, added 2026-05-04)
+# The 11 notebooks that bundle the chat wheel and need a re-push.
 CHAT_BUNDLING = (
-    "duecare-harness-chat",   # NEW unified core (2026-05-04)
-    "chat-playground",
-    "chat-playground-with-grep-rag-tools",
-    "content-classification-playground",
-    "content-knowledge-builder-playground",
-    "gemma-content-classification-evaluation",
-    "prompt-generation",
-    "research-graphs",
-    "chat-playground-with-agentic-research",
-    "chat-playground-jailbroken-models",
-    "grading-evaluation",
+    "01-duecare-exploration-workbench",
+    "A-01-chat-playground",
+    "A-02-chat-playground-with-grep-rag-tools",
+    "A-03-content-classification-playground",
+    "A-04-content-knowledge-builder-playground",
+    "A-05-gemma-content-classification-evaluation",
+    "A-06-prompt-generation",
+    "A-08-research-graphs",
+    "A-09-chat-playground-with-agentic-research",
+    "A-10-chat-playground-jailbroken-models",
+    "A-11-grading-evaluation",
 )
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("folder", nargs="?", help="Path to a kaggle/<notebook>/wheels/ folder")
-    parser.add_argument("--all", action="store_true", help="Push all 9 chat-bundling wheels datasets")
+    parser.add_argument("--all", action="store_true", help="Push all chat-bundling wheels datasets")
     parser.add_argument("--notes", default="42 GREP rules (was 37): kafala-huroob, H-2A/H-2B, fishing-vessel, smuggler-fee, domestic-locked-in")
     args = parser.parse_args()
 

@@ -69,7 +69,7 @@ def default_optional_hooks(*,
                          **default_harness())
 
     Each hook is opt-in via env var (defaults match the primary
-    01-duecare-harness-chat kernel — reranker ON, embedder OFF since
+    01-duecare-exploration-workbench kernel — reranker ON, embedder OFF since
     embed adds 80 MB and most kernels stay on pure BM25 retrieval).
 
     Args:

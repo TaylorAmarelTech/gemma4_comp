@@ -29,7 +29,7 @@ from pathlib import Path
 
 REPO = Path(__file__).resolve().parent.parent
 CHAT_SRC = REPO / "packages" / "duecare-llm-chat" / "src"
-WHEEL_NAME = "duecare_llm_chat-0.1.0-py3-none-any.whl"
+WHEEL_GLOB = "duecare_llm_chat-*-py3-none-any.whl"
 
 
 def _hash_b64(data: bytes) -> str:
@@ -153,8 +153,11 @@ def main() -> int:
                             print(f"  WARNING expected 49 GREP rules, got {count}")
                         break
 
-    # Find every chat wheel under kaggle/
-    wheels = sorted((REPO / "kaggle").rglob(WHEEL_NAME))
+    # Find every chat wheel under kaggle/ regardless of the current
+    # attached-wheel version. The source package has moved through several
+    # versions; the helper's job is to keep the already-attached wheel files
+    # synchronized without requiring a package-version bump.
+    wheels = sorted((REPO / "kaggle").rglob(WHEEL_GLOB))
     if args.target:
         wheels = [w for w in wheels if w.parent.parent.name in args.target]
     print(f"\nFound {len(wheels)} chat wheel(s) to rebuild:")

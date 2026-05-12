@@ -15,6 +15,7 @@ import argparse
 import shutil
 import subprocess
 import sys
+import zipfile
 from pathlib import Path
 
 
@@ -22,6 +23,8 @@ from pathlib import Path
 # in their pyproject.toml; we install/build dependencies first.
 DEFAULT_BUILD_ORDER = [
     "duecare-llm-core",
+    "duecare-llm-benchmark",
+    "duecare-llm-chat",
     "duecare-llm-evidence-db",
     "duecare-llm-engine",
     "duecare-llm-nl2sql",
@@ -37,6 +40,14 @@ DEFAULT_BUILD_ORDER = [
     "duecare-llm-publishing",
     "duecare-llm",
 ]
+
+CRITICAL_WHEEL_CONTENTS = {
+    "duecare-llm-domains": [
+        "duecare/domains/_data/financial_crime/card.yaml",
+        "duecare/domains/_data/tax_evasion/card.yaml",
+        "duecare/domains/_data/trafficking/card.yaml",
+    ],
+}
 
 
 def _have(cmd: str) -> bool:
@@ -62,6 +73,43 @@ def build_one(pkg_dir: Path, dist_dir: Path,
     if no_isolation:
         cmd.append("--no-isolation")
     return _run(cmd, cwd=pkg_dir)
+
+
+def _wheel_prefix(package_name: str) -> str:
+    return package_name.replace("-", "_") + "-"
+
+
+def _latest_wheel(dist_dir: Path, package_name: str) -> Path | None:
+    matches = list(dist_dir.glob(f"{_wheel_prefix(package_name)}*.whl"))
+    if not matches:
+        return None
+    return max(matches, key=lambda path: path.stat().st_mtime)
+
+
+def verify_wheel_contents(dist_dir: Path, targets: list[str]) -> list[str]:
+    failed: list[str] = []
+    for package_name, expected_paths in CRITICAL_WHEEL_CONTENTS.items():
+        if package_name not in targets:
+            continue
+        wheel_path = _latest_wheel(dist_dir, package_name)
+        if wheel_path is None:
+            print(f"  [verify] {package_name}: wheel not found")
+            failed.append(package_name)
+            continue
+        with zipfile.ZipFile(wheel_path) as archive:
+            names = archive.namelist()
+        missing = [path for path in expected_paths if path not in names]
+        duplicates = sorted({name for name in names if names.count(name) > 1})
+        if missing or duplicates:
+            print(f"  [verify] {wheel_path.name}: FAILED")
+            if missing:
+                print(f"    missing: {missing}")
+            if duplicates:
+                print(f"    duplicate entries: {duplicates[:10]}")
+            failed.append(package_name)
+            continue
+        print(f"  [verify] {wheel_path.name}: critical contents OK")
+    return failed
 
 
 def main() -> int:
@@ -110,8 +158,13 @@ def main() -> int:
         size_kb = w.stat().st_size // 1024
         print(f"    {w.name}  ({size_kb} KB)")
 
+    verify_failed = verify_wheel_contents(dist_dir, targets)
+
     if failed:
         print(f"\n  FAILED: {failed}")
+        return 1
+    if verify_failed:
+        print(f"\n  FAILED verification: {verify_failed}")
         return 1
     print(f"\n  done. {len(list(dist_dir.glob('*.whl')))} wheels in {dist_dir}")
     return 0
