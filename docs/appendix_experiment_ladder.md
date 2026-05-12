@@ -98,15 +98,20 @@ A-11 PII fine-tune + evaluation  — train + benchmark PrivacyRedactor LoRA
   (lives in `kaggle/A-05-gemma-content-classification-evaluation/`)
 - A-08 new-model comparison — committed (this batch)
   (lives in `kaggle/A-11-grading-evaluation/`)
-- A-09 abliterated test generator — committed `7197600`
-  (rename pass only — kernel-id + title + header updated; lives in
-  `kaggle/A-10-chat-playground-jailbroken-models/`; batch
-  WORST/BAD/NEUTRAL/GOOD/BEST ladder generator is the follow-up)
-- A-10 PII synth data generator — DEFERRED to follow-up session
-  (target folder: `kaggle/A-09-chat-playground-with-agentic-research/`;
-  net-new build mirroring A-04's structure but for PrivacyRedactor)
-- A-11 PII fine-tune + evaluation — DEFERRED to follow-up session
-  (net-new build; no remaining legacy slot — will need a new folder)
+- A-09 abliterated test generator — committed `7197600` (rename) +
+  `cd864a8` (batch ladder generator). Activate the
+  WORST/BAD/NEUTRAL/GOOD/BEST 5-frame ladder mode by setting
+  `DUECARE_LADDER_MODE=1`. Lives in
+  `kaggle/A-10-chat-playground-jailbroken-models/`.
+- A-10 PII synth data generator — committed `dc6a93a`. Lives in
+  `kaggle/A-09-chat-playground-with-agentic-research/`.
+  Template-based; 100% synthetic PII; CPU-only.
+- A-11 PII fine-tune + evaluation — committed in this batch. Lives
+  in NEW folder `kaggle/A-12-pii-fine-tune-eval/` (no legacy slot
+  available; folder created per Taylor's "if we need more notebooks
+  we can create more appendix" directive).
+
+The 11-slot canonical ladder is now FULLY BUILT.
 
 ### Folder-slot mapping (transition state until cleanup pass)
 
