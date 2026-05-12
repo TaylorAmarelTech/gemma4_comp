@@ -7,7 +7,7 @@
 # What to look for after Run All:
 #   - Safety rows: each generated prompt comes with 5 anchor responses for grading calibration.
 #   - Privacy rows: composite intake notes come with gold redaction plans, no raw PII.
-#   - Outputs land in JSONL for A-07 adapter training/evaluation.
+#   - Outputs land in JSONL for A-05 adapter training/evaluation.
 #
 # Demo path: Run All -> watch the JSONLs fill -> open samples to see SafetyJudge anchors and PrivacyRedactor gold rows.
 #
@@ -48,7 +48,7 @@
              The privacy rows are separate from the SafetyJudge adapter.
 
     [Step 5] Save all JSONLs under /kaggle/working/. Attach the output
-             dataset to A-07; A-07 consumes safety JSONLs first and keeps
+             dataset to A-05; A-05 consumes safety JSONLs first and keeps
              privacy rows as a separate adapter/evaluation track.
 
   Requirements:
@@ -111,9 +111,9 @@ N_PROMPTS_TO_GENERATE = 50          # cap to keep runtime predictable
 N_ANONYMIZATION_CASES = 30          # synthetic/composite privacy rows
 RANDOM_SEED           = 17
 
-# Keep each Kaggle run to one loaded model. To diversify data, run A-06
+# Keep each Kaggle run to one loaded model. To diversify data, run A-04
 # multiple times with different profiles, publish each /kaggle/working bundle
-# as a Kaggle Dataset, then attach those datasets to A-07 via Add Data.
+# as a Kaggle Dataset, then attach those datasets to A-05 via Add Data.
 GENERATION_PROFILE = os.environ.get(
     "DUECARE_GENERATION_PROFILE", "stock_harness_teacher")
 GENERATION_PROFILE_NOTES = {
@@ -137,8 +137,8 @@ GENERATED_PROMPTS_OUT = "/kaggle/working/generated_prompts.jsonl"
 GRADED_RESPONSES_OUT  = "/kaggle/working/graded_responses.jsonl"
 ANONYMIZATION_CASES_OUT = "/kaggle/working/anonymization_cases.jsonl"
 ANONYMIZATION_GOLD_OUT  = "/kaggle/working/anonymization_gold.jsonl"
-HANDOFF_MANIFEST_OUT = "/kaggle/working/duecare_a06_to_a07_manifest.json"
-HANDOFF_BUNDLE_OUT = "/kaggle/working/duecare_a06_to_a07_bundle.zip"
+HANDOFF_MANIFEST_OUT = "/kaggle/working/duecare_a04_to_a05_manifest.json"
+HANDOFF_BUNDLE_OUT = "/kaggle/working/duecare_a04_to_a05_bundle.zip"
 GENERATION_LOG        = "/kaggle/working/generation_log.json"
 
 
@@ -804,7 +804,7 @@ def _sha256_file(path: str) -> str:
 
 
 def write_handoff_bundle(log: dict) -> tuple[Path, Path]:
-    """Write the A-06 -> A-07 manifest and ZIP bundle for Add Data handoff."""
+    """Write the A-04 -> A-05 manifest and ZIP bundle for Add Data handoff."""
     manifest_path = Path(HANDOFF_MANIFEST_OUT)
     bundle_path = Path(HANDOFF_BUNDLE_OUT)
     artifacts = [
@@ -814,7 +814,7 @@ def write_handoff_bundle(log: dict) -> tuple[Path, Path]:
             "rows": _count_jsonl_rows(GENERATED_PROMPTS_OUT),
             "sha256": _sha256_file(GENERATED_PROMPTS_OUT),
             "track": "safety_generation",
-            "used_by": "A-07 SafetyJudge SFT/DPO",
+            "used_by": "A-05 SafetyJudge SFT/DPO",
         },
         {
             "name": "graded_responses.jsonl",
@@ -822,7 +822,7 @@ def write_handoff_bundle(log: dict) -> tuple[Path, Path]:
             "rows": _count_jsonl_rows(GRADED_RESPONSES_OUT),
             "sha256": _sha256_file(GRADED_RESPONSES_OUT),
             "track": "safety_generation",
-            "used_by": "A-07 SafetyJudge SFT/DPO",
+            "used_by": "A-05 SafetyJudge SFT/DPO",
         },
         {
             "name": "anonymization_cases.jsonl",
@@ -850,13 +850,13 @@ def write_handoff_bundle(log: dict) -> tuple[Path, Path]:
         },
     ]
     manifest = {
-        "schema_version": "duecare.a06_handoff.v1",
+        "schema_version": "duecare.a04_handoff.v1",
         "created_at": time.strftime("%Y-%m-%dT%H:%M:%S"),
-        "producer_notebook": "A-06-prompt-generation",
-        "consumer_notebook": "A-07-bench-and-tune",
+        "producer_notebook": "A-04-synthetic-data-generator",
+        "consumer_notebook": "A-05-fine-tune-trainer",
         "handoff_method": (
-            "Download duecare_a06_to_a07_bundle.zip or publish /kaggle/working "
-            "as a Kaggle Dataset, then attach it to A-07 with Add Data."
+            "Download duecare_a04_to_a05_bundle.zip or publish /kaggle/working "
+            "as a Kaggle Dataset, then attach it to A-05 with Add Data."
         ),
         "one_model_per_kaggle_run": True,
         "generation_profile": GENERATION_PROFILE,
@@ -967,7 +967,7 @@ def main() -> dict:
     log["handoff"] = {
         "manifest": str(manifest_path),
         "bundle": str(bundle_path),
-        "method": "Publish or attach this bundle as a Kaggle Dataset for A-07.",
+        "method": "Publish or attach this bundle as a Kaggle Dataset for A-05.",
     }
     Path(GENERATION_LOG).write_text(
         json.dumps(log, indent=2, default=str), encoding="utf-8")
@@ -982,7 +982,7 @@ def main() -> dict:
     # or CSV directly.
     try:
         from duecare.chat._dc_log import dc_log, set_kernel_id
-        set_kernel_id("a-06-prompt-generation")
+        set_kernel_id("a-04-synthetic-data-generator")
         dc_log("kernel.complete", f"prompts generated; log at {GENERATION_LOG}",
                log_path=GENERATION_LOG)
         from duecare.chat.kernel_shell import build_minimal_shell
@@ -1089,7 +1089,7 @@ def main() -> dict:
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Prompt corpus browser · A-06 · DueCare</title>
+  <title>Prompt corpus browser · A-04 · DueCare</title>
   <link rel="stylesheet" href="/static/_chrome.css">
   <link rel="stylesheet" href="/static/showcase.css">
   <script src="/static/_nav.js" defer></script>
@@ -1159,7 +1159,7 @@ def main() -> dict:
 </head>
 <body data-nav="researcher">
 <div class="wrap">
-  <div class="crumbs">Notebook · a-06-prompt-generation</div>
+  <div class="crumbs">Notebook · a-04-synthetic-data-generator</div>
   <h1>Generated prompt corpus — Gemma 4 producing new evaluation prompts</h1>
   <p class="lede">
     Each SafetyJudge row is a prompt Gemma generated from a seed scenario.
@@ -1204,8 +1204,8 @@ def main() -> dict:
       <a href="/artifact/graded_responses.jsonl" class="ghost" download>JSONL (graded)</a>
             <a href="/artifact/anonymization_cases.jsonl" class="ghost" download>JSONL (privacy cases)</a>
             <a href="/artifact/anonymization_gold.jsonl" class="ghost" download>JSONL (privacy gold)</a>
-            <a href="/artifact/duecare_a06_to_a07_manifest.json" class="ghost" download>Handoff manifest</a>
-            <a href="/artifact/duecare_a06_to_a07_bundle.zip" class="ghost" download>A-07 bundle ZIP</a>
+            <a href="/artifact/duecare_a04_to_a05_manifest.json" class="ghost" download>Handoff manifest</a>
+            <a href="/artifact/duecare_a04_to_a05_bundle.zip" class="ghost" download>A-05 bundle ZIP</a>
       <a href="/export/prompts.csv" class="ghost" download>CSV (per-row)</a>
       <a href="/api/prompts" class="ghost" target="_blank">Raw via API</a>
       <a href="/artifact/generation_log.json" class="ghost" download>generation_log.json</a>
@@ -1214,14 +1214,14 @@ def main() -> dict:
     </div>
         <div class="handoff">
             <b>Cloudflare handoff path.</b> After Run All prints <code>[workbench] https://...</code>, open that public URL.
-            Download <code>A-07 bundle ZIP</code> and optionally <code>Handoff manifest</code>. For diverse data, run A-06 once
+            Download <code>A-05 bundle ZIP</code> and optionally <code>Handoff manifest</code>. For diverse data, run A-04 once
             with <code>stock_harness_teacher</code> and again with <code>abliterated_adversary</code>, then attach both bundle datasets
-            to A-07 or upload both ZIPs in A-07's dashboard.
+            to A-05 or upload both ZIPs in A-05's dashboard.
             <ol>
                 <li>Open the printed Cloudflare URL in a browser.</li>
-                <li>Download <code>duecare_a06_to_a07_bundle.zip</code>.</li>
-                <li>Publish it as a Kaggle Dataset or keep it ready for A-07's upload panel.</li>
-                <li>In A-07, attach multiple bundles with Add Data or upload multiple ZIPs, then rerun A-07.</li>
+                <li>Download <code>duecare_a04_to_a05_bundle.zip</code>.</li>
+                <li>Publish it as a Kaggle Dataset or keep it ready for A-05's upload panel.</li>
+                <li>In A-05, attach multiple bundles with Add Data or upload multiple ZIPs, then rerun A-05.</li>
             </ol>
         </div>
   </div>
@@ -1316,8 +1316,8 @@ def main() -> dict:
                 {"name": "graded_responses.jsonl",  "path": GRADED_RESPONSES_OUT},
                 {"name": "anonymization_cases.jsonl", "path": ANONYMIZATION_CASES_OUT},
                 {"name": "anonymization_gold.jsonl", "path": ANONYMIZATION_GOLD_OUT},
-                {"name": "duecare_a06_to_a07_manifest.json", "path": HANDOFF_MANIFEST_OUT},
-                {"name": "duecare_a06_to_a07_bundle.zip", "path": HANDOFF_BUNDLE_OUT},
+                {"name": "duecare_a04_to_a05_manifest.json", "path": HANDOFF_MANIFEST_OUT},
+                {"name": "duecare_a04_to_a05_bundle.zip", "path": HANDOFF_BUNDLE_OUT},
                 {"name": "generation_log.json",     "path": GENERATION_LOG},
             ],
             "links": [
@@ -1332,7 +1332,7 @@ def main() -> dict:
         }
         import os as _os
         app, url = build_minimal_shell(
-            summary=summary, kernel_id="a-06-prompt-generation",
+            summary=summary, kernel_id="a-04-synthetic-data-generator",
             port=int(_os.environ.get("DC_PORT", "8080")),
             homepage_html=dashboard_html,
             extra_routes={
