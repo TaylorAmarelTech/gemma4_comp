@@ -1,6 +1,6 @@
 {
   "id": "taylorsamarel/duecare-gemma-content-classification-evaluation",
-  "title": "DueCare Gemma Content Classification Evaluation",
+  "title": "DueCare A-07 Fine-tuned + Harnessed Runner",
   "code_file": "kernel.py",
   "language": "python",
   "kernel_type": "script",
