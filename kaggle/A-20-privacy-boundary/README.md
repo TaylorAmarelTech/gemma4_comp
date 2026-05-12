@@ -33,11 +33,13 @@ local-only and outside-the-machine drawn explicitly.
 
 To `/kaggle/working/`:
 
-- `a20_privacy_boundary_demo.json` — the side-by-side state with
+- `<RUN>_privacy_boundary_demo.json` — the side-by-side state with
   fields `local_state.{raw_intake, redacted_intake, entities[]}` +
   `aggregate_state_what_would_leave.{period_days, n_cases,
   entity_label_counts, repeat_hashes, note}`
-- `a20_privacy_boundary_bundle.zip` — manifest + above
+- `<RUN>_bundle.zip` — manifest + above
+- `RUN_ID` format: `a20_privacy_{ts}`
+  (e.g., `a20_privacy_2026-05-12T19-30-00Z`)
 
 ## Where this slot lives
 
