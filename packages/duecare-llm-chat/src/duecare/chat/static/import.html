@@ -198,10 +198,13 @@
               <td>${escapeHtml(x.source || "—")}</td>
               <td class="meta" style="text-align:right;">${x.n_chunks || 0}</td>
               <td class="meta" style="text-align:right;">${fmtBytes(x.char_count || 0)}</td>
-              <td><button class="row-del" onclick="delDoc('${escapeHtml(x.id)}')">delete</button></td>
+              <td><button class="row-del" type="button" data-doc-id="${escapeHtml(x.id || "")}">delete</button></td>
             </tr>`).join("")}
           </tbody>
         </table>`;
+      document.querySelectorAll("#docs-table .row-del").forEach(button => {
+        button.addEventListener("click", () => delDoc(button.dataset.docId || ""));
+      });
     } catch (e) {
       document.getElementById("docs-table").innerHTML =
         `<div class="err">Could not list documents: ${escapeHtml(String(e && e.message || e))}</div>`;

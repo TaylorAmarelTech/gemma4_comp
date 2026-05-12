@@ -22,7 +22,7 @@ rule + RAG doc + tool call fired.
 
 (Two-minute version. The full demo is the
 [duecare-live-demo](https://www.kaggle.com/code/taylorsamarel/duecare-live-demo)
-notebook — 22-slide deck + audit Workbench + classifier dashboard.)
+notebook — guided walkthrough + audit Workbench + classifier dashboard.)
 
 ## You're a migrant worker (OFW / domestic helper / etc.)
 

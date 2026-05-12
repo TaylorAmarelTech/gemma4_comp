@@ -47,4 +47,4 @@ Contributors who report security bugs are credited in `RESULTS.md`
 
 ---
 
-> *"Privacy is non-negotiable. So the harness runs on your laptop."*
+> *"Raw worker chats, IDs, contact details, and private documents stay with the worker or trusted caseworker unless an authorized user creates a sanitized submission."*

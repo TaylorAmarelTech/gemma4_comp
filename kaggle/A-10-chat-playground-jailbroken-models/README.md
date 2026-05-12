@@ -20,7 +20,7 @@
 modal, same Persona library — but loads an **abliterated, cracked, or
 uncensored Gemma 4 variant** instead of Google's stock instruct model.
 
-The point: demonstrate that the Duecare safety harness still works
+The point: demonstrate that the DueCare safety harness still works
 even when the underlying model has had its refusal directions
 ablated. The safety isn't in the weights — it's in the runtime
 (GREP/RAG/Tools fire BEFORE Gemma sees the prompt; persona is
@@ -33,10 +33,10 @@ Hub). Used in accordance with the
 
 | Field | Value |
 |---|---|
-| **Kaggle URL** | https://www.kaggle.com/code/taylorsamarel/duecare-chat-playground-jailbroken-models *(manual publication pending)* |
-| **Title on Kaggle** | "Duecare Chat Playground Jailbroken Models" |
+| **Kaggle URL** | https://www.kaggle.com/code/taylorsamarel/duecare-chat-playground-jailbroken-models *(manual Kaggle publication target)* |
+| **Title on Kaggle** | "DueCare Chat Playground Jailbroken Models" |
 | **Slug** | `taylorsamarel/duecare-chat-playground-jailbroken-models` |
-| **Wheels dataset** | `taylorsamarel/duecare-chat-playground-jailbroken-models-wheels` *(local wheels present; manual dataset publication pending)* |
+| **Wheels dataset** | `taylorsamarel/duecare-chat-playground-jailbroken-models-wheels` *(local wheels present; create/update dataset during manual Kaggle publish)* |
 | **Models attached** | NONE (HF Hub download per JAILBROKEN_MODEL config) |
 | **GPU** | T4 ×2 (default 31B variant; smaller variants run on a single T4) |
 | **Internet** | ON (HF Hub download + cloudflared) |
@@ -66,7 +66,7 @@ Gemma 4. Verify each repo's license and terms before re-publishing.
 
 1. Load a model that has been INTENTIONALLY uncensored (refusal
    directions ablated)
-2. Toggle the Duecare harness OFF — observe that the model now responds
+2. Toggle the DueCare harness OFF — observe that the model now responds
    to exploitation/trafficking scenarios with operational advice (no
    refusal, because we ablated it)
 3. Toggle the harness ON — observe that the SAME model now produces
@@ -83,7 +83,6 @@ harness works on a HOSTILE input model.
 ```
 chat-playground-jailbroken-models/
 ├── kernel.py              ← source-of-truth (paste into Kaggle)
-├── notebook.ipynb         ← built artifact
 ├── kernel-metadata.json   ← Kaggle kernel config
 ├── README.md              ← this file
 └── wheels/                ← dataset-metadata.json + local wheels for manual Kaggle upload
@@ -107,30 +106,30 @@ playground. Wheels dataset
 
 - **Core workbench:** [#01 core: Migrant-worker safety playground](../01-duecare-exploration-workbench/README.md).
 - **Focused live demo:** [#02 core: Live demo](../02-live-demo/README.md).
-- **Natural next appendix:** [#A11 appendix: Grading-lift regenerator](../A-11-grading-evaluation/README.md).
+- **Natural next appendix:** [#A11 appendix: Runtime harness-lift regenerator](../A-11-grading-evaluation/README.md).
 - **Public website:** [duecare-ai.com](https://duecare-ai.com).
 
 ---
 
 <!-- duecare:kernel-footer -->
 
-### All DueCare notebooks
+### All DueCare kernels
 
 You are here: **#A10 appendix — Jailbroken-Gemma comparison**.
 
 - [#01 core: Migrant-worker safety playground](../01-duecare-exploration-workbench/README.md)
 - [#02 core: Live demo (focused walkthrough)](../02-live-demo/README.md)
 - [#A01 appendix: Stock Gemma 4 chat baseline](../A-01-chat-playground/README.md)
-- [#A02 appendix: Original 4-toggle subset playground](../A-02-chat-playground-with-grep-rag-tools/README.md)
+- [#A02 appendix: Harness ablation runner](../A-02-chat-playground-with-grep-rag-tools/README.md)
 - [#A03 appendix: Hands-on classification sandbox](../A-03-content-classification-playground/README.md)
 - [#A04 appendix: Knowledge-builder sandbox + JSON export](../A-04-content-knowledge-builder-playground/README.md)
 - [#A05 appendix: NGO classifier evaluation dashboard](../A-05-gemma-content-classification-evaluation/README.md)
-- [#A06 appendix: Gemma generates evaluation prompts](../A-06-prompt-generation/README.md)
-- [#A07 appendix: Unsloth fine-tune + GGUF export pipeline](../A-07-bench-and-tune/README.md)
+- [#A06 appendix: Two-track synthetic data generator](../A-06-prompt-generation/README.md)
+- [#A07 appendix: Adapter training + new-model benchmark](../A-07-bench-and-tune/README.md)
 - [#A08 appendix: Research graphs (CPU-only)](../A-08-research-graphs/README.md)
 - [#A09 appendix: Agentic-research chat (BYOK + Playwright)](../A-09-chat-playground-with-agentic-research/README.md)
 - **[#A10 appendix: Jailbroken-Gemma comparison](../A-10-chat-playground-jailbroken-models/README.md)**
-- [#A11 appendix: Grading-lift regenerator](../A-11-grading-evaluation/README.md)
+- [#A11 appendix: Runtime harness-lift regenerator](../A-11-grading-evaluation/README.md)
 
 Index page: [`kaggle/_INDEX.md`](../_INDEX.md).
 

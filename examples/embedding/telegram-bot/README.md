@@ -1,6 +1,6 @@
 # Duecare Telegram bot
 
-Wraps the Duecare REST API as a Telegram bot. OFWs use Telegram
+Wraps the Duecare REST API as a Telegram bot. Individual workers use Telegram
 heavily across the PH→HK and ID→HK corridors — this is the highest-
 leverage messaging integration.
 

@@ -1,16 +1,19 @@
-# Notebook presentation — Kaggle-safe styling and output rules
+# Archived notebook presentation — Kaggle-safe styling and output rules
 
 > Auto-loaded by Claude Code at the project memory level. Applies to
-> every build script in `scripts/build_notebook_*.py` and every active
-> Kaggle kernel notebook under `kaggle/kernels/*/*.ipynb`. Optional
-> local mirrors may be regenerated under root-level `legacy_notebooks/`,
-> but that folder is gitignored and not part of default review scope.
+> historical notebook rebuilds only. The active judge-facing submission
+> is kernel-first: `kaggle/*/kernel.py` plus the folder README. Do not
+> create or restore `.ipynb` files in active `kaggle/*/` or
+> `kaggle/kernels/*/` folders unless Taylor explicitly asks for historical
+> recovery or preview work. Archived wrappers live under
+> `_archive/kaggle-notebook-previews-2026-05-11/`.
 
 The shared runtime helpers live in `scripts/_notebook_display.py`
 (use `DISPLAY_BOOTSTRAP` at the top of any cell that needs them). The
 rules below are the presentation contract those helpers implement.
 Follow them verbatim or patch both the rule and the helper at the same
-time.
+time. For active submission work, polish the `kernel.py` display output
+directly and keep notebooks out of the active tree.
 
 ## Hard rules
 

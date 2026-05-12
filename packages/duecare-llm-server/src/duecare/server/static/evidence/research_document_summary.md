@@ -15,7 +15,7 @@ reports under the Coordinating Harm + Bullying community-standards categories.
 Evidence corpus: Facebook Posts · News Articles · Previous Cases & Binders.
 
 ### (ii) Facilitating human trafficking & money laundering through its platform
-Operational thesis: predatory lending pages targeting OFWs use Facebook as
+Operational thesis: predatory lending pages targeting Filipino workers use Facebook as
 their distribution and harassment channel (recruitment, public shaming, and
 remittance coordination), and Facebook's monetisation of these pages amounts
 to facilitation. Evidence corpus: Facebook Posts · News Articles · Previous
@@ -34,12 +34,12 @@ Articles · Other.
 Hong Kong's PDPO + the 2021 anti-doxxing amendment criminalise publication
 of personal data with intent to cause harm. Maximum penalty: HKD 1M + 5
 years' imprisonment. Pages such as "Bank Hongkong" and "Yoursun Caretaker"
-publishing OFW passport photos + full names + alleged debt status fall
+publishing Filipino worker passport photos + full names + alleged debt status fall
 squarely within the doxxing offence as defined.
 
 ### Financial Laws
 HK Money Lenders Ordinance Cap. 163 — 48% APR statutory cap on personal
-loans. Loans to OFW domestic helpers exceeding this cap are presumptively
+loans. Loans to migrant domestic helpers exceeding this cap are presumptively
 extortionate. Cross-references to AMLO (Cap. 615) for cross-border
 collection patterns.
 

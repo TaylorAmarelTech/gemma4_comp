@@ -1,6 +1,6 @@
 # ADR-004: 6 core + 5 appendix submission shape (vs single-mega-notebook)
 
-- **Status:** Accepted
+- **Status:** Superseded by [ADR-006](./006-two-plus-eleven-notebook-shape.md)
 - **Date:** 2026-04-20
 - **Deciders:** Taylor Amarel
 

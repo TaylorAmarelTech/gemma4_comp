@@ -21,7 +21,7 @@ What it does:
 
 1. Detects OS + arch + Python version (needs Python 3.11+ — installs from python.org if missing).
 2. Creates a `.venv` in the current dir.
-3. `pip install duecare-llm` (the meta package; pulls in the worker-side stack).
+3. `pip install duecare-llm` (the meta package; pulls in the Individual worker stack).
 4. Runs `python scripts/verify.py` — confirms 161 GREP rules, 46 RAG docs, 5 tools, 587 prompts, 207 5-tier rubrics, 6 required-rubric categories, 54 classifier examples, 46 universal-rubric dimensions, and 21 LLM-eval questions all import cleanly.
 5. Prints next-step commands.
 

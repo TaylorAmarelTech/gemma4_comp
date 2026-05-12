@@ -131,12 +131,15 @@
       wrap.innerHTML = sorted.map(([cat, n]) => {
         const h = Math.round(50 * n / max) + 4;
         const active = cat === filt.category;
-        return `<div class="bar ${active ? "active" : ""}" onclick="setCategory('${escapeHtml(cat)}')" title="${escapeHtml(cat)}: ${n} rule${n === 1 ? "" : "s"}">
+        return `<div class="bar ${active ? "active" : ""}" data-category="${escapeHtml(cat)}" title="${escapeHtml(cat)}: ${n} rule${n === 1 ? "" : "s"}">
           <div class="bar-count">${n}</div>
           <div class="bar-fill" style="height:${h}px;"></div>
           <div class="bar-label">${escapeHtml(cat.length > 18 ? cat.slice(0, 16) + "…" : cat)}</div>
         </div>`;
       }).join("");
+      wrap.querySelectorAll(".bar").forEach(el => {
+        el.addEventListener("click", () => setCategory(el.dataset.category || ""));
+      });
     }
     function setCategory(c) {
       filt.category = (filt.category === c) ? "" : c;
@@ -218,7 +221,7 @@
           </td></tr>
         ` : "";
         return `
-          <tr class="row ${expanded ? "expanded" : ""}" onclick="toggleRow('${escapeHtml(r.rule)}')">
+          <tr class="row ${expanded ? "expanded" : ""}" data-rule="${escapeHtml(r.rule)}" tabindex="0">
             <td class="rule">${escapeHtml(r.rule)}</td>
             <td><span class="severity ${escapeHtml(r.severity)}">${escapeHtml(r.severity)}</span></td>
             <td class="citation">${escapeHtml(r.citation)}</td>
@@ -231,6 +234,16 @@
       }).join("");
       document.getElementById("tbody").innerHTML = html ||
         `<tr><td colspan="6" class="err" style="border:0;">No matches.</td></tr>`;
+      document.querySelectorAll("#tbody tr.row[data-rule]").forEach(row => {
+        const open = () => toggleRow(row.dataset.rule || "");
+        row.addEventListener("click", open);
+        row.addEventListener("keydown", event => {
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            open();
+          }
+        });
+      });
       const fired = rows.filter(r => (r.fire_count || 0) > 0).length;
       document.getElementById("stats").textContent =
         `${visible.length} of ${rows.length} rules · ${fired} fired this session`;

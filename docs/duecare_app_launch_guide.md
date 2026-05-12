@@ -134,9 +134,9 @@ Visit that URL on your laptop to see the 4-card homepage.
 
 | Use case | Surface | Backend modules |
 |---|---|---|
-| 1. Enterprise content moderation | `/enterprise` | server.heuristics + Gemma + statute lookup |
-| 2. Individual / NGO worker education | `/individual` | server.heuristics + Gemma + locale-aware hotlines |
-| 3. NGO investigation suite | `/knowledge` | engine + evidence-db + nl2sql + research-tools |
+| 1. Platform safety moderation | `/enterprise` | server.heuristics + Gemma + statute lookup |
+| 2. Individual worker education | `/individual` | server.heuristics + Gemma + locale-aware hotlines |
+| 3. NGO & regulator investigation suite | `/knowledge` | engine + evidence-db + nl2sql + research-tools |
 | 4. Settings / control plane | `/settings` | every module's config surface |
 | 5. Programmatic / agent API | `/api/*` | every module via REST |
 

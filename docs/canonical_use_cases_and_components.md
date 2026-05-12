@@ -36,7 +36,7 @@
 
 ### 3. Individual worker / mobile
 
-**Who:** Migrant workers and prospective migrant workers using a trusted chat, mobile, web, or local tool. OFWs are one demo persona, not the only audience.
+**Who:** Migrant workers and prospective migrant workers using a trusted chat, mobile, web, or local tool. Filipino overseas workers are one demo persona, not the only audience.
 
 **What they need:** Private, plain-language help understanding suspicious job offers, contracts, recruiter messages, fee demands, document retention, threats, and next steps.
 
@@ -87,6 +87,8 @@ Technical nicknames such as Runtime, Harness, Eval, and Exchange can remain inte
 
 ## 4. Technical components, grouped by what they do
 
+Implementation-status note: this page is the canonical public vocabulary and target component map, not a release inventory. Validated current state is tracked in [PACKAGE_INVENTORY.md](PACKAGE_INVENTORY.md) and [SUBMISSION_READINESS_AUDIT.md](SUBMISSION_READINESS_AUDIT.md). Components marked as target or planned must not be described as live in the writeup or video until their code path and validation evidence exist.
+
 ### Group A — Private decision-support experience
 
 These components run in a local, tenant-owned, or trusted deployment. They are what users experience when they ask Duecare to review a post, message, document, or case bundle.
@@ -115,11 +117,11 @@ These components define what Duecare knows and how that knowledge travels betwee
 | Plain-language component | Technical nickname | What it does | What it displays | Communicates with |
 |---|---|---|---|---|
 | Knowledge Packs | Pack registry | Versioned bundles of GREP data, RAG documents, contacts, defined tools, corridor fees, regulations, examples, and policies. | Pack name, version, jurisdiction, source list, change log, download/pull instructions. | Safety Guidance Layer; Quality Testing Framework; Central Knowledge Server. |
-| Knowledge Format Templates | Schemas | Defines the standard shapes for RAG entries, GREP rules, tools, contacts, fee tables, law updates, case observations, and response rankings. | Template documentation, required fields, examples, validation errors. | Knowledge Formatter; Anonymization Module; Stakeholder Response Formatter. |
-| Information Objects | Filled templates | Actual structured facts, observations, fee records, regulation updates, public-source findings, or stakeholder response rankings. | Object type, sanitized summary, source/provenance, review status. | Anonymization Module; Information Submission Module; Central Knowledge Server. |
-| Knowledge Formatter | Standardizer | Converts scraped public content or submitted observations into validated knowledge objects and pack updates. | Side-by-side raw public text, extracted fields, confidence, proposed pack diff. | Research Monitor; Stakeholder Response Formatter; Central Knowledge Server. |
+| Knowledge Format Templates | Schemas (target) | Defines the standard shapes for RAG entries, GREP rules, tools, contacts, fee tables, law updates, case observations, and response rankings. | Template documentation, required fields, examples, validation errors. | Knowledge Formatter; Anonymization Module; Stakeholder Response Formatter. |
+| Information Objects | Filled templates (target) | Actual structured facts, observations, fee records, regulation updates, public-source findings, or stakeholder response rankings. | Object type, sanitized summary, source/provenance, review status. | Anonymization Module; Information Submission Module; Central Knowledge Server. |
+| Knowledge Formatter | Standardizer (planned) | Converts scraped public content or submitted observations into validated knowledge objects and pack updates. | Side-by-side raw public text, extracted fields, confidence, proposed pack diff. | Research Monitor; Stakeholder Response Formatter; Central Knowledge Server. |
 
-Examples of information objects:
+Target examples of information objects. These are naming targets for schemas and UI copy; do not treat every name below as an implemented Pydantic model yet:
 
 - `CorridorFeeRecord`: allowed fees, prohibited fees, jurisdiction, source, effective date.
 - `RegulationUpdate`: law or policy change, source URL, affected corridor, review status.
@@ -138,8 +140,10 @@ Do not explain this area with a shorthand label. Use full sentences:
 
 | Plain-language component | Technical nickname | What it does | What it displays | Communicates with |
 |---|---|---|---|---|
-| Local Anonymization Module | Anonymizer | Runs locally or inside a trusted tenant. It asks Gemma 4 and deterministic detectors to convert sensitive content into structured, anonymized information objects. | Redaction summary, blocked PII categories, sanitized object preview, local hash receipt. | Safety Guidance Layer; Information Objects; Information Submission Module. |
-| Information Submission Module | Submitter | Sends only anonymized objects, public-source updates, aggregate counts, or vetted pack proposals to the central server. | Consent checkbox, submission payload preview, receipt ID, review status. | Local Anonymization Module; Central Knowledge Server. |
+| Local Anonymization Module | Anonymizer (implemented agent pattern) | Runs locally or inside a trusted tenant. It asks Gemma 4 and deterministic detectors to convert sensitive content into structured, anonymized information objects. | Redaction summary, blocked PII categories, sanitized object preview, local hash receipt. | Safety Guidance Layer; Information Objects; Information Submission Module. |
+| Information Submission Module | Submitter (target; hub submission endpoint is prototype) | Sends only anonymized objects, public-source updates, aggregate counts, or vetted pack proposals to the central server. | Consent checkbox, submission payload preview, receipt ID, review status. | Local Anonymization Module; Central Knowledge Server. |
+
+Submission metadata should be controlled by the client. A sanitized object can be anonymous, pseudonymous, organization-tagged, verified-organization-tagged, region-tagged, corridor-tagged, or aggregate-only depending on consent and deployment policy. Manual labels have priority; local Gemma 4 and deterministic detectors can suggest labels such as region, corridor, sector, or language, but automatic detection must never silently upgrade an anonymous submission into an attributed one. See [submission_labeling_policy.md](submission_labeling_policy.md) for the metadata envelope, visibility states, and public-display guardrails.
 
 Hard rule:
 
@@ -151,11 +155,11 @@ These components run on the hosted duecare-ai.com service or an institution-owne
 
 | Plain-language component | Technical nickname | What it does | What it displays | Communicates with |
 |---|---|---|---|---|
-| Central Knowledge Server | duecare-ai.com hub | Receives anonymized submissions, stores review queues, publishes pack metadata, and serves website/API pages. | Public homepage, use-case pages, API docs, pack registry, anonymized trend summaries, review queue. | Information Submission Module; Knowledge Packs; Newsletter Module; Stakeholder Engagement Module. |
-| Public Information Research Monitor | Public-source crawler | Searches public sources for new laws, advisories, trends, negative news, platform policies, and other relevant public facts. | Source list, crawler status, extracted public facts, proposed updates, freshness warnings. | Online search tools; Knowledge Formatter; Central Knowledge Server. |
-| Newsletter and Alert Module | Digest sender | Proactively summarizes reviewed anonymized patterns and public facts for subscribed NGOs, regulators, researchers, and authorized partners. | Subscriber settings, digest preview, topic filters, send log. | Central Knowledge Server; Knowledge Packs; Stakeholder Engagement Module. |
-| Stakeholder Engagement Module | Feedback collector | Contacts subscribers on a regular cadence to ask for response rankings, new observations, useful tools, and updated public information. | Survey prompts, ranking forms, observation forms, participation status. | Newsletter Module; Stakeholder Response Formatter; Central Knowledge Server. |
-| Stakeholder Response Formatter | Feedback standardizer | Converts stakeholder survey answers into structured information objects or reviewable knowledge proposals. | Sanitized response summary, extracted fields, target template, validation issues. | Stakeholder Engagement Module; Knowledge Formatter; Central Knowledge Server. |
+| Central Knowledge Server | duecare-ai.com hub (prototype/live docs and API surface) | Receives anonymized submissions, stores review queues, publishes pack metadata, and serves website/API pages. | Public homepage, use-case pages, API docs, pack registry, anonymized trend summaries, review queue. | Information Submission Module; Knowledge Packs; Newsletter Module; Stakeholder Engagement Module. |
+| Public Information Research Monitor | Public-source crawler (target) | Searches public sources for new laws, advisories, trends, negative news, platform policies, and other relevant public facts. | Source list, crawler status, extracted public facts, proposed updates, freshness warnings. | Online search tools; Knowledge Formatter; Central Knowledge Server. |
+| Newsletter and Alert Module | Digest sender (planned) | Proactively summarizes reviewed anonymized patterns and public facts for subscribed NGOs, regulators, researchers, and authorized partners. | Subscriber settings, digest preview, topic filters, send log. | Central Knowledge Server; Knowledge Packs; Stakeholder Engagement Module. |
+| Stakeholder Engagement Module | Feedback collector (planned) | Contacts subscribers on a regular cadence to ask for response rankings, new observations, useful tools, and updated public information. | Survey prompts, ranking forms, observation forms, participation status. | Newsletter Module; Stakeholder Response Formatter; Central Knowledge Server. |
+| Stakeholder Response Formatter | Feedback standardizer (planned) | Converts stakeholder survey answers into structured information objects or reviewable knowledge proposals. | Sanitized response summary, extracted fields, target template, validation issues. | Stakeholder Engagement Module; Knowledge Formatter; Central Knowledge Server. |
 
 ### Group E — Testing, training, and model improvement
 

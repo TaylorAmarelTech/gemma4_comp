@@ -120,6 +120,6 @@ huggingface-cli upload taylorscottamarel/duecare . --repo-type=space
 ## See also
 
 - **Source code:** [github.com/TaylorAmarelTech/gemma4_comp](https://github.com/TaylorAmarelTech/gemma4_comp)
-- **Full on-device demo:** [Kaggle: duecare-harness-chat](https://www.kaggle.com/code/taylorsamarel/duecare-harness-chat)
+- **Full on-device demo:** [Kaggle: duecare-exploration-workbench](https://www.kaggle.com/code/taylorsamarel/duecare-exploration-workbench)
 - **Architecture:** [docs/component_diagram.md](https://github.com/TaylorAmarelTech/gemma4_comp/blob/master/docs/component_diagram.md)
 - **Peer review walkthrough:** [docs/FOR_PEER_REVIEW.md](https://github.com/TaylorAmarelTech/gemma4_comp/blob/master/docs/FOR_PEER_REVIEW.md)

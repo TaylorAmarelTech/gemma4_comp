@@ -90,7 +90,7 @@ attested.
 | Repudiation | Model returned X but app logs Y | App logs the exact response bytes + prompt hash; cross-checkable with model server's own logs (`OLLAMA_DEBUG=1`) | Low |
 | Information disclosure | Prompts leak into the model server's logs / on-disk cache | Ollama doesn't persist prompts by default; `OTEL_LOGS_EXPORTER=none` if extra cautious; the harness's `attributes/scrub` processor hashes `prompt`/`response`/`user_id` before they reach the OTel trace store | Low |
 | DoS | Model server runs out of GPU memory and OOM-kills | HPA on the chat tier handles spikes; healthcheck on Ollama; alert `OllamaDown` | Low |
-| EoP | Prompt-injection makes Gemma exfiltrate data via tool calls | Tool calls in the harness are deterministic (no agentic loop in core 6); A4 (`chat-playground-with-agentic-research`) is opt-in + sandboxed (DuckDuckGo + URL-fetch only, no shell) | **Medium** — requires explicit opt-in; defended by tool allowlist + PIIFilter on outbound queries |
+| EoP | Prompt-injection makes Gemma exfiltrate data via tool calls | Tool calls in the core workbench are deterministic; A9 (`chat-playground-with-agentic-research`) is opt-in + sandboxed (DuckDuckGo + URL-fetch only, no shell) | **Medium** — requires explicit opt-in; defended by tool allowlist + PIIFilter on outbound queries |
 
 ## STRIDE — Boundary 4: Workload pool → 3rd-party APIs (only if cloud routing on)
 

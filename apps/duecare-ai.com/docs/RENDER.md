@@ -25,7 +25,7 @@ runtime assumptions match: one Docker web service, a persistent disk, a
 public health endpoint, file-backed JSONL state, and optional server-side
 automation inside the same FastAPI process. DueCare should not lift the full
 71-route surface. It only needs the kit patterns that protect the public
-coordination layer without weakening the privacy boundary.
+coordination layer without accepting raw case content.
 
 | Backend pattern | DueCare status on Render |
 |---|---|

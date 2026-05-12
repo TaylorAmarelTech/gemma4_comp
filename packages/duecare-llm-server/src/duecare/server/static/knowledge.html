@@ -3,17 +3,25 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Knowledge insights — Duecare</title>
+  <title>Knowledge insights — DueCare</title>
   <link rel="stylesheet" href="/static/style.css">
   <script src="/static/examples.js"></script>
-  <script src="https://unpkg.com/cytoscape@3.30.0/dist/cytoscape.min.js"></script>
-  <script src="https://unpkg.com/layout-base@2.0.1/layout-base.js"></script>
-  <script src="https://unpkg.com/cose-base@2.2.0/cose-base.js"></script>
-  <script src="https://unpkg.com/cytoscape-cose-bilkent@4.1.0/cytoscape-cose-bilkent.js"></script>
+    <script src="https://unpkg.com/cytoscape@3.30.0/dist/cytoscape.min.js"
+      integrity="sha384-kpMsYllYzyaWU69Piok08rPNktpnjqAoDMdB00fjqUkEk3lkuUbSuwJ+oXrjvN6B"
+      crossorigin="anonymous"></script>
+    <script src="https://unpkg.com/layout-base@2.0.1/layout-base.js"
+      integrity="sha384-5E2lB9AIGE6LRCnOOSTnZRlYZFZ01iMeN2fw97Z1r4Z/kXALxKw2AC+ZzQqoeDsG"
+      crossorigin="anonymous"></script>
+    <script src="https://unpkg.com/cose-base@2.2.0/cose-base.js"
+      integrity="sha384-RswRBkrMsPUYpJLbZ1CVA08zbNzAkykE2oGJTujBwfjWNdfxv2WVjLJNqv1LhAOp"
+      crossorigin="anonymous"></script>
+    <script src="https://unpkg.com/cytoscape-cose-bilkent@4.1.0/cytoscape-cose-bilkent.js"
+      integrity="sha384-CUkVnmwscI7lsYn26xHp4BmwwUaqCgfQlIkPoERUBcg8k0xFypHQjzlS8RuYuooO"
+      crossorigin="anonymous"></script>
 </head>
 <body>
 <header class="dc-nav">
-  <h1>Duecare<span class="tag"> · NGO knowledge insights</span></h1>
+  <h1>DueCare<span class="tag"> · NGO knowledge insights</span></h1>
   <nav>
     <a href="/">Home</a>
     <a href="/demo">Demo</a>
@@ -21,7 +29,7 @@
     <a href="/architecture">Architecture</a>
     <a href="/background">Background</a>
     <a href="/evidence">Evidence</a>
-    <a href="/enterprise">Enterprise</a>
+    <a href="/enterprise">Platform safety</a>
     <a href="/individual">Individual</a>
     <a href="/knowledge" class="active">Knowledge</a>
     <a href="/dashboard">Dashboard</a>
@@ -133,16 +141,26 @@
 .dc-graph-info .close {
   position: absolute; top: 8px; right: 12px; cursor: pointer;
   color: var(--muted); font-size: 18px; line-height: 1;
+  background: transparent; border: 0; padding: 0;
 }
 </style>
 <script>
+function escapeHtml(value) {
+  return String(value == null ? '' : value).replace(/[&<>"']/g, ch =>
+    ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+}
+
 function loadExampleQuestions() {
   const qs = window.DUECARE_EXAMPLES.knowledge || [];
-  let html = '';
+  const wrap = document.getElementById('example-questions');
+  wrap.textContent = '';
   for (const q of qs) {
-    html += `<div class="pill" onclick="useQuestion(${JSON.stringify(q).replace(/"/g,'&quot;')})">${q}</div>`;
+    const pill = document.createElement('div');
+    pill.className = 'pill';
+    pill.textContent = q;
+    pill.addEventListener('click', () => useQuestion(q));
+    wrap.appendChild(pill);
   }
-  document.getElementById('example-questions').innerHTML = html;
 }
 function useQuestion(q) {
   document.getElementById('q').value = q;
@@ -160,24 +178,24 @@ async function ask() {
   document.getElementById('sql').innerText = j.sql || '(no SQL)';
   if (j.error) {
     document.getElementById('answer').innerHTML =
-      `<span class="dc-pill" style="background:var(--ember-soft);color:oklch(0.40 0.13 45)">error</span> ${j.error}`;
+      `<span class="dc-pill" style="background:var(--ember-soft);color:oklch(0.40 0.13 45)">error</span> ${escapeHtml(j.error)}`;
     return;
   }
   if (!j.rows || !j.rows.length) {
     document.getElementById('answer').innerHTML =
-      `<p>No matching rows. (method: ${j.method}${j.template_name ? ', template: '+j.template_name : ''})</p>`;
+      `<p>No matching rows. (method: ${escapeHtml(j.method)}${j.template_name ? ', template: '+escapeHtml(j.template_name) : ''})</p>`;
     return;
   }
   const cols = Object.keys(j.rows[0]);
-  let html = `<p style="color:var(--muted);font-size:13px">method: ${j.method}` +
-             (j.template_name ? `, template: <code>${j.template_name}</code>` : '') +
+  let html = `<p style="color:var(--muted);font-size:13px">method: ${escapeHtml(j.method)}` +
+             (j.template_name ? `, template: <code>${escapeHtml(j.template_name)}</code>` : '') +
              `, ${j.row_count} row(s)</p>`;
   html += '<table class="dc-table"><thead><tr>';
-  for (const c of cols) html += `<th>${c}</th>`;
+  for (const c of cols) html += `<th>${escapeHtml(c)}</th>`;
   html += '</tr></thead><tbody>';
   for (const row of j.rows) {
     html += '<tr>';
-    for (const c of cols) html += `<td>${row[c] === null ? '' : row[c]}</td>`;
+    for (const c of cols) html += `<td>${escapeHtml(row[c] === null ? '' : row[c])}</td>`;
     html += '</tr>';
   }
   html += '</tbody></table>';
@@ -199,7 +217,7 @@ async function loadActors() {
     for (const r of rows) {
       const sev = r.severity_max || 0;
       const cls = sev >= 7 ? 'severity-high' : sev >= 4 ? 'severity-med' : 'severity-low';
-      html += `<tr><td>${r.etype||''}</td><td>${r.canonical_name||''}</td>` +
+      html += `<tr><td>${escapeHtml(r.etype || '')}</td><td>${escapeHtml(r.canonical_name || '')}</td>` +
               `<td>${r.doc_count||0}</td>` +
               `<td><span class="dc-badge ${cls}">${sev}</span></td></tr>`;
     }
@@ -296,14 +314,18 @@ async function loadGraph() {
 
   // Render legend chips
   const legend = document.getElementById('graph-legend');
-  let lh = '';
+  legend.replaceChildren();
   for (const [t, n] of Object.entries(typeCounts).sort(
         (a,b) => b[1] - a[1])) {
-    lh += `<span class="chip" data-type="${t}" ` +
-      `style="background:${_typeColor(t)}; color:#fff" ` +
-      `onclick="toggleType('${t}', this)">${t} (${n})</span>`;
+    const chip = document.createElement('span');
+    chip.className = 'chip';
+    chip.dataset.type = t;
+    chip.style.background = _typeColor(t);
+    chip.style.color = '#fff';
+    chip.textContent = `${t} (${n})`;
+    chip.addEventListener('click', () => toggleType(t, chip));
+    legend.appendChild(chip);
   }
-  legend.innerHTML = lh;
 
   document.getElementById('graph-meta').innerText =
     `${elements.filter(el => el.data && el.data.etype).length} entities, ` +
@@ -381,15 +403,15 @@ async function loadGraph() {
 function _showInfo(node) {
   const d = node.data();
   const box = document.getElementById('graph-info');
-  let html = `<span class="close" onclick="_hideInfo()">×</span>` +
-    `<h4 style="color:${_typeColor(d.etype)}">${d.label}</h4>` +
+  let html = `<button type="button" class="close" id="graph-info-close" aria-label="Close details">x</button>` +
+    `<h4 style="color:${_typeColor(d.etype)}">${escapeHtml(d.label)}</h4>` +
     `<dl>` +
-    `<dt>Type</dt><dd>${d.etype}</dd>` +
+    `<dt>Type</dt><dd>${escapeHtml(d.etype)}</dd>` +
     `<dt>Document count</dt><dd>${d.docCount || 0}</dd>` +
     `<dt>Max severity</dt><dd>${d.sevMax || 0} / 10</dd>`;
   if (d.cooccurDeg) html += `<dt>Co-occurrence degree</dt><dd>${d.cooccurDeg}</dd>`;
   if (d.rawValues && d.rawValues.length) {
-    html += `<dt>Raw values</dt><dd>${d.rawValues.map(v=>'<code>'+v+'</code>').join('<br>')}</dd>`;
+    html += `<dt>Raw values</dt><dd>${d.rawValues.map(v=>'<code>'+escapeHtml(v)+'</code>').join('<br>')}</dd>`;
   }
   // Connected nodes/edges
   const incoming = node.connectedEdges();
@@ -398,14 +420,15 @@ function _showInfo(node) {
     incoming.forEach(e => {
       const other = e.connectedNodes().not(node).first();
       html += `<div style="margin-top:4px">` +
-        `<small style="color:var(--muted)">${e.data('relation')}</small> ` +
-        `→ <code>${other.data('label')}</code>` +
+        `<small style="color:var(--muted)">${escapeHtml(e.data('relation'))}</small> ` +
+        `→ <code>${escapeHtml(other.data('label'))}</code>` +
         ` <small>(${e.data('docCount')} docs)</small></div>`;
     });
     html += `</dd>`;
   }
   html += `</dl>`;
   box.innerHTML = html;
+  document.getElementById('graph-info-close').addEventListener('click', _hideInfo);
   box.style.display = 'block';
 }
 function _hideInfo() {

@@ -341,6 +341,9 @@ sibling repo.
 - [`docs/deployment_local.md`](./deployment_local.md) — three local
   paths (Ollama / Kaggle kernel / pip install) — alternatives to the
   Docker Compose example for Topology A.
+- [`docs/launch_packaging_options.md`](./launch_packaging_options.md) —
+  non-Docker launch packaging options: `pipx`, offline wheelhouses,
+  EC2 AMIs, marketplace images, and desktop launchers.
 - [`docs/deployment_enterprise.md`](./deployment_enterprise.md) —
   enterprise-specific concerns (SSO, audit log, RBAC) — companion to
   Topology C in regulated environments.

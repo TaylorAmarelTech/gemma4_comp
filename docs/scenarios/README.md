@@ -7,7 +7,7 @@
 
 | You are... | Read |
 |---|---|
-| **OFW / migrant worker** wanting it on your phone for self-protection | [`worker-self-help.md`](./worker-self-help.md) (English) · [Tagalog draft](./translations/worker-self-help.tl.md) · [Spanish draft](./translations/worker-self-help.es.md) |
+| **Individual worker** wanting it on your phone for self-protection | [`worker-self-help.md`](./worker-self-help.md) (English) · [Tagalog draft](./translations/worker-self-help.tl.md) · [Spanish draft](./translations/worker-self-help.es.md) |
 | **Caseworker** at an NGO that already deployed Duecare | [`caseworker_workflow.md`](./caseworker_workflow.md) |
 | **NGO director** running an office of 1-20 caseworkers | [`ngo-office-deployment.md`](./ngo-office-deployment.md) |
 | **Legal aid lawyer** preparing a case from intake | [`lawyer-evidence-prep.md`](./lawyer-evidence-prep.md) |
@@ -27,7 +27,7 @@
 
 | Topology | Personas that fit |
 |---|---|
-| Topology D (on-device only) — Android app | OFW / migrant worker |
+| Topology D (on-device only) — Android app | Individual worker |
 | Topology B (NGO-office edge) — Mac mini / NUC on the LAN | NGO director, caseworker, legal aid lawyer, recruitment-agency compliance officer, regulator (small unit) |
 | Topology C (server + thin clients) — cloud / k8s | IT director, chief architect, VP of Engineering, CTO, regulator (national-scale) |
 | Topology A (single-component local) | Individual researcher, solo developer |
@@ -37,7 +37,7 @@
 
 | Persona | Hardware / cloud | One-time | Monthly | Year-1 staff time |
 |---|---|---:|---:|---|
-| OFW | Android phone (existing) | $0 | $0 | n/a |
+| Individual worker | Android phone (existing) | $0 | $0 | n/a |
 | Caseworker | uses NGO's deployment | $0 | $0 | n/a |
 | NGO director | Mac mini M2 | $250-800 | $0-25 | ~30 min/wk |
 | Legal aid lawyer | NGO's deployment OR own Mac mini | $0-800 | $0-25 | ~30 min/wk |

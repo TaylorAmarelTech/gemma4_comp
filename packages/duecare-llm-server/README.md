@@ -5,9 +5,9 @@ card-style homepage with four surfaces:
 
 | Card | Surface | Path |
 |---|---|---|
-| Enterprise compliance | content moderation queue + classifier | `/enterprise` |
-| Individual chatbot | worker / family education chatbot | `/individual` |
-| Knowledge insights | NGO graph + NL Q&A over evidence DB | `/knowledge` |
+| Platform safety | content moderation queue + classifier | `/enterprise` |
+| Individual worker | worker / family education chatbot | `/individual` |
+| NGO & regulator insights | graph + NL Q&A over evidence DB | `/knowledge` |
 | Settings | DB + engine + tunnel config | `/settings` |
 
 ## Launch (local)

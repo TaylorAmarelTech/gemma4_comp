@@ -3,12 +3,12 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Background & literature — Duecare</title>
+  <title>Background & literature — DueCare</title>
   <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
 <header class="dc-nav">
-  <h1>Duecare<span class="tag"> · background &amp; literature</span></h1>
+  <h1>DueCare<span class="tag"> · background &amp; literature</span></h1>
   <nav>
     <a href="/">Home</a>
     <a href="/demo">Demo</a>
@@ -16,7 +16,7 @@
     <a href="/architecture">Architecture</a>
     <a href="/background" class="active">Background</a>
     <a href="/evidence">Evidence</a>
-    <a href="/enterprise">Enterprise</a>
+    <a href="/enterprise">Platform safety</a>
     <a href="/individual">Individual</a>
     <a href="/knowledge">Knowledge</a>
     <a href="/dashboard">Dashboard</a>
@@ -31,7 +31,7 @@
   <h2 class="dc-h2">Background, literature & ethical framework</h2>
   <p class="dc-sub">
     Why human exploitation and abuse warrants a dedicated tool, what
-    prior work exists, what gap Duecare fills, and how the system
+    prior work exists, what gap DueCare fills, and how the system
     should and should not be deployed.
   </p>
 
@@ -81,7 +81,7 @@
       + <b>means</b> (force, fraud, coercion, abuse of vulnerability,
       debt bondage, document retention) + <b>purpose</b> (exploitation,
       including forced labour). All three elements must be present.
-      Duecare's heuristic + KB targets the <b>means</b> element because
+      DueCare's heuristic + KB targets the <b>means</b> element because
       that's where the language patterns are most identifiable in
       recruitment ads, chats, and contracts.
     </p>
@@ -89,7 +89,7 @@
     <h4>The 11 ILO indicators of forced labour</h4>
     <p>
       The <a href="https://www.ilo.org/global/topics/forced-labour/publications/WCMS_203832/lang--en/index.htm" target="_blank" rel="noopener noreferrer">ILO Indicators of Forced Labour (2012)</a>
-      framework lists 11 operational indicators. Duecare's
+      framework lists 11 operational indicators. DueCare's
       <code>identify_ilo_indicators</code> tool maps free-form input to
       these via curated regex:
     </p>
@@ -111,7 +111,7 @@
     <p>
       The four indicators above in <b>bold</b> are the most common
       patterns in recruitment-stage ads and chats — they're the ones
-      Duecare's prescan is tuned for.
+      DueCare's prescan is tuned for.
     </p>
   </div>
 
@@ -176,13 +176,13 @@
       </tbody>
     </table>
 
-    <h4>The specific gap Duecare fills</h4>
+    <h4>The specific gap DueCare fills</h4>
     <p>
       <b>A multilingual, real-time pre-filter that understands
       forced-labour and exploitation language patterns AND can cite
       the specific statute / convention / hotline a reviewer needs to
       act on it.</b> Open-weight (Gemma 4 + Apache 2.0), Apache-2.0
-      runtime, deployment-mode-flexible (enterprise GPU batch or
+      runtime, deployment-mode-flexible (platform-safety GPU batch or
       consumer / mobile via LiteRT), and built so that every verdict
       is auditable.
     </p>
@@ -198,7 +198,7 @@
       <b>Lewis et al., "Retrieval-Augmented Generation for
       Knowledge-Intensive NLP Tasks"</b>, NeurIPS 2020
       (<a href="https://arxiv.org/abs/2005.11401" target="_blank" rel="noopener noreferrer">arXiv:2005.11401</a>).
-      Duecare's stage 3 is a small-corpus instantiation:
+      DueCare's stage 3 is a small-corpus instantiation:
       <code>sentence-transformers/all-MiniLM-L6-v2</code> over 27 KB
       passages, top-K cosine. The KB is small because the legal
       vocabulary for trafficking is finite (statutes, conventions,
@@ -215,7 +215,7 @@
       (<a href="https://arxiv.org/abs/2302.04761" target="_blank" rel="noopener noreferrer">arXiv:2302.04761</a>).
       Gemma 4 ships native function-calling support in its chat template,
       so the path from prompt → tool call → result → final answer is
-      single-model. Duecare's stage 4 demonstrates this with 7 deterministic
+      single-model. DueCare's stage 4 demonstrates this with 7 deterministic
       tools (statute lookup, hotline, agency licence verification, fee-cap
       calculator, ILO indicator matcher, embassy lookup, known-actor search).
     </p>
@@ -227,9 +227,9 @@
       (<a href="https://github.com/ggerganov/llama.cpp" target="_blank" rel="noopener noreferrer">github.com/ggerganov/llama.cpp</a>)
       and the GGUF + 4-bit quantization stack. Google's <b>LiteRT
       (formerly TFLite)</b> extends this to mobile with CPU + NNAPI +
-      GPU delegates. Duecare targets the full spectrum: the FastAPI
+      GPU delegates. DueCare targets the full spectrum: the FastAPI
       server uses the transformers library with bitsandbytes 4-bit
-      quantization (~5.5 GB VRAM on a Kaggle T4) for enterprise + GPU
+      quantization (~5.5 GB VRAM on a Kaggle T4) for platform-safety GPU
       batch; the consumer path runs on a single GPU; the mobile path
       targets LiteRT for sub-1 GB inference. The same KB, tools, and
       audit-trail format are shared across all three.
@@ -239,7 +239,7 @@
     <p>
       Migrant workers communicate in Tagalog, Bahasa Indonesia, Hindi,
       Bengali, Sinhala, Nepali, Urdu, Vietnamese, and Burmese — many of
-      which are low-resource for English-trained models. Duecare's
+      which are low-resource for English-trained models. DueCare's
       embedding model (MiniLM) covers these to a working degree because
       it was trained on the parallel <i>OPUS</i> + <i>FLORES-200</i>
       corpora. Gemma 4 itself is multilingual via its training mix.
@@ -259,7 +259,7 @@
       Labour-trafficking detection (recruitment-fee fraud, kafala-system
       abuse) is comparatively underserved in the literature; the
       operational frameworks come from ILO, IOM, and Verité reports
-      rather than peer-reviewed papers. Duecare positions itself in
+      rather than peer-reviewed papers. DueCare positions itself in
       that operational gap.
     </p>
 
@@ -301,7 +301,7 @@
         Gemma 4's chat template
         accepts a <code>tools</code> list parameter and emits structured
         tool-call JSON in a multi-turn loop. This is the substrate of
-        Duecare's stage 4 — for the demo we use deterministic tool
+        DueCare's stage 4 — for the demo we use deterministic tool
         calls for reproducibility, but the agentic path is one bool
         flag away (see <code>raw_python/gemma4_*_v1.py</code> for the
         full Gemma-driven tool-calling agent loop).</li>
@@ -321,7 +321,7 @@
   <div class="dc-panel">
     <h3>5. Data-handling framework</h3>
     <p>
-      Duecare can be deployed in any of three modes (enterprise GPU
+      DueCare can be deployed in any of three modes (platform-safety GPU
       batch, single-operator on a workstation, or on-device via LiteRT)
       — and the data-handling rules below apply <b>regardless of the
       deployment mode</b>. The threat model isn't curiosity; it's
@@ -340,7 +340,7 @@
     <p>The architectural commitments that follow:</p>
     <ol>
       <li><b>Operator-controlled inference.</b> Every Gemma 4 forward
-        pass runs on hardware the operator chooses (enterprise GPU,
+        pass runs on hardware the operator chooses (platform-safety GPU,
         single workstation, or mobile device). The default deployment
         does not send worker text to any external API.</li>
       <li><b>No logging of inputs.</b> The structured event log
@@ -366,7 +366,7 @@
   <div class="dc-panel">
     <h3>6. Limitations and ethical use</h3>
 
-    <h4>What Duecare is not</h4>
+    <h4>What DueCare is not</h4>
     <ul>
       <li><b>Not a replacement for a human caseworker.</b> Every BLOCK
         / REVIEW verdict is a triage signal, not a final determination.
@@ -403,7 +403,7 @@
 
     <h4>Recommended deployment posture</h4>
     <p>
-      Duecare should be deployed as a <b>pre-filter to a human-review
+      DueCare should be deployed as a <b>pre-filter to a human-review
       queue</b>, not as an automatic enforcement engine. The output of
       a moderate run is structured evidence designed to make a human's
       review faster and better-informed — citation, hotline, embassy
@@ -417,7 +417,7 @@
   <div class="dc-panel">
     <h3>7. Named NGO partners and the operational ecosystem</h3>
     <p>
-      Duecare is designed to interoperate with the existing
+      DueCare is designed to interoperate with the existing
       anti-trafficking ecosystem. The hotline lookups, embassy
       database, and KB passages all reference the operational entities
       below. None are project sponsors; they are the field this work
@@ -425,10 +425,10 @@
     </p>
 
     <table class="dc-lit-table">
-      <thead><tr><th>Partner</th><th>Role</th><th>Where Duecare touches them</th></tr></thead>
+      <thead><tr><th>Partner</th><th>Role</th><th>Where DueCare touches them</th></tr></thead>
       <tbody>
         <tr><td><b>POEA / DMW</b> (Philippines)</td>
-            <td>Government regulator + complaint registry for OFW recruitment</td>
+            <td>Government regulator + complaint registry for Filipino worker recruitment</td>
             <td><code>check_agency_license</code>; <code>lookup_hotline("ph")</code> → 1343</td></tr>
         <tr><td><b>BP2MI</b> (Indonesia)</td>
             <td>Indonesian migrant worker placement agency</td>

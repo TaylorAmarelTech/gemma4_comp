@@ -381,16 +381,16 @@ cd packages/duecare-llm-core && python -m build
 
 ## Demo notebook
 
-The old package-surface demo has been superseded by the public quickstart
-mirror at [`legacy_notebooks/010_quickstart.ipynb`](../../legacy_notebooks/010_quickstart.ipynb).
+The package-surface demo is now maintained in the active Kaggle kernel tree at
+[`kaggle/kernels/duecare_010_quickstart/010_quickstart.ipynb`](../../kaggle/kernels/duecare_010_quickstart/010_quickstart.ipynb).
 Use that notebook when you want to exercise the published DueCare package
-surface from a clean install while keeping the current Kaggle submission
-folder focused on the 2 core + appendix deliverables.
+surface from a clean install while keeping root-level legacy notebook mirrors
+out of the active submission workspace.
 
 Open it in Jupyter, JupyterLab, Colab, Kaggle Notebooks, or VS Code:
 
 ```bash
-jupyter notebook legacy_notebooks/010_quickstart.ipynb
+jupyter notebook kaggle/kernels/duecare_010_quickstart/010_quickstart.ipynb
 ```
 
 ---

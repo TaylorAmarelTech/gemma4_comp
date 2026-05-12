@@ -49,9 +49,10 @@ verified by the code + writeup.
    multimodal Scout agent taking document photos as input), not
    demo-only showpieces.
 
-5. **"Privacy is non-negotiable"** is the exact phrase from the rules.
-   Use it verbatim in the video and writeup. It directly frames our
-   migrant-worker-NGO angle.
+5. **Concrete sensitive-data handling must be visible.** Do not use
+  privacy slogans as shorthand. Say where raw worker chats, IDs,
+  contact details, and private documents stay; say what local Gemma 4
+  anonymization does; say what the public hub stores.
 
 6. **Cross-domain proof (trafficking + tax_evasion + financial_crime)
    is evidence of generalization.** One command across three domain

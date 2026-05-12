@@ -53,9 +53,10 @@ legacy_names_allowed_only_for_compatibility:
   - "Sentinel"
 
 current_counts:
-  submission_kaggle_kernels: "13 submission Kaggle kernels"
+  verified_source: "Verified 2026-05-11 from the 13 judge-facing kaggle/* folders, current kaggle/kernels/* metadata, packages/duecare-llm-chat/src/duecare/chat/harness/, and bundled JSON assets."
+  submission_kaggle_kernels: "13 judge-facing Kaggle folders"
   submission_kernel_shape: "2 core + 11 appendix"
-  research_pipeline: "77-notebook research pipeline"
+  research_pipeline: "9 generated/research kernels under kaggle/kernels/*; older 52/74/77-kernel notes are archived historical context"
   grep_rules: "161 GREP rules"
   rag_docs: "46 RAG docs"
   tools: "5 tools"
@@ -89,20 +90,21 @@ data_handling:
 validation:
   forbidden_phrase_globs:
     - "README.md"
+    - "CODE_OF_CONDUCT.md"
     - "docs/writeup_draft.md"
     - "docs/video_script.md"
+    - "apps/duecare-ai.com/README.md"
+    - "apps/duecare-ai.com/app/main.py"
     - "apps/duecare-ai.com/app/templates/*.html"
+    - "kaggle/kernels/**/*.ipynb"
+    - "deployment/telegram_bot/*.py"
+    - "deployment/discord_bot/*.py"
   lane_order_files:
     - "README.md"
-    - "docs/GPT55_AUTOPILOT_BRIEF.md"
     - "docs/canonical_use_cases_and_components.md"
     - "apps/duecare-ai.com/app/templates/setup.html"
     - "apps/duecare-ai.com/app/templates/use-cases.html"
   required_substrings:
-    "docs/GPT55_AUTOPILOT_BRIEF.md":
-      - "configs/duecare/canonical_messaging.yaml"
-      - "Sensitive PII is anonymized by the local Gemma 4 workflow"
-      - "The server runs a second PII detector that rejects raw-PII submissions"
     "docs/canonical_use_cases_and_components.md":
       - "configs/duecare/canonical_messaging.yaml"
       - "Sensitive PII is anonymized by the local Gemma 4 workflow before anything is submitted to the public hub."

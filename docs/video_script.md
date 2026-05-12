@@ -141,7 +141,7 @@ Annotations pop up:
 
 ### 0:35–1:42 — The demo (67 seconds)
 
-**Visual:** Cut to the **duecare-harness-chat notebook** — the unified
+**Visual:** Cut to the **duecare-exploration-workbench notebook** — the unified
 omni playground. Same 68%-loan prompt is pasted. **All six toggle
 tiles** are visible at the bottom: Persona (purple), GREP (red),
 RAG (blue), Imports (teal), Tools (green), Online (amber). Cursor
@@ -255,7 +255,7 @@ citations.
 > *"Workers don't always type in English. The classifier handles
 > eleven languages — same prompt shape, same recognition. And the
 > harness holds when the prompt is a jailbreak. The 65-test
-> adversarial suite ships with the wheel."*
+> adversarial suite is included with the wheel."*
 
 ### 2:20–2:32 — Hotlines directory + the safety boundary (12 seconds)
 
@@ -308,7 +308,7 @@ lines of serif:
 > **Duecare**
 > *Gemma 4-powered safety infrastructure for migrant-worker protection.*
 >
-> Live demo: kaggle.com/code/taylorsamarel/duecare-harness-chat
+> Live demo: kaggle.com/code/taylorsamarel/duecare-exploration-workbench
 > Platform hub: **duecare-ai.com**
 > Code: github.com/TaylorAmarelTech/gemma4_comp · MIT
 > APK: github.com/TaylorAmarelTech/duecare-journey-android
@@ -351,7 +351,7 @@ Fade to black. Music fades.
       (no personal data)
 - [ ] Screen recording: stock Gemma 4 31B response to the 68%-loan
       prompt (the failure-mode baseline — `kaggle/A-01-chat-playground/`)
-- [ ] Screen recording: `duecare-harness-chat`, cursor clicking each
+- [ ] Screen recording: `duecare-exploration-workbench`, cursor clicking each
       of **6 toggles** (Persona / GREP / RAG / Imports / Tools /
       Online) ON in sequence, then sending the 68%-loan prompt
 - [ ] Screen recording: `▸ View pipeline` modal — header reads

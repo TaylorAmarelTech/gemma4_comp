@@ -78,21 +78,23 @@ For each of the 11 notebooks (2 core + 11 appendix):
 - [ ] The output cells are saved (the saved-output viewer shows results,
       not "Run this notebook to see output")
 
-The 11 to verify:
+The 13 to verify:
 
 | # | Notebook | URL |
 |---|---|---|
-| 1 | duecare-chat-playground | https://www.kaggle.com/code/taylorsamarel/duecare-gemma-chat-playground |
-| 2 | duecare-chat-playground-with-grep-rag-tools | https://www.kaggle.com/code/taylorsamarel/duecare-chat-playground-with-grep-rag-tools |
-| 3 | duecare-content-classification-playground | https://www.kaggle.com/code/taylorsamarel/duecare-content-classification-playground |
-| 4 | duecare-content-knowledge-builder-playground | https://www.kaggle.com/code/taylorsamarel/duecare-content-knowledge-builder-playground |
-| 5 | duecare-gemma-content-classification-evaluation | https://www.kaggle.com/code/taylorsamarel/duecare-gemma-content-classification-evaluation |
-| 6 | duecare-live-demo | https://www.kaggle.com/code/taylorsamarel/duecare-live-demo |
-| A1 | duecare-prompt-generation | https://www.kaggle.com/code/taylorsamarel/duecare-prompt-generation |
-| A2 | duecare-bench-and-tune | https://www.kaggle.com/code/taylorsamarel/duecare-bench-and-tune |
-| A3 | duecare-research-graphs | https://www.kaggle.com/code/taylorsamarel/duecare-research-graphs |
-| A4 | duecare-chat-playground-with-agentic-research | https://www.kaggle.com/code/taylorsamarel/duecare-chat-playground-with-agentic-research |
-| A5 | duecare-chat-playground-jailbroken-models | https://www.kaggle.com/code/taylorsamarel/duecare-chat-playground-jailbroken-models |
+| 1 | duecare-exploration-workbench | https://www.kaggle.com/code/taylorsamarel/duecare-exploration-workbench |
+| 2 | duecare-live-demo | https://www.kaggle.com/code/taylorsamarel/duecare-live-demo |
+| A1 | duecare-chat-playground | https://www.kaggle.com/code/taylorsamarel/duecare-chat-playground |
+| A2 | duecare-chat-playground-with-grep-rag-tools | https://www.kaggle.com/code/taylorsamarel/duecare-chat-playground-with-grep-rag-tools |
+| A3 | duecare-content-classification-playground | https://www.kaggle.com/code/taylorsamarel/duecare-content-classification-playground |
+| A4 | duecare-content-knowledge-builder-playground | https://www.kaggle.com/code/taylorsamarel/duecare-content-knowledge-builder-playground |
+| A5 | duecare-gemma-content-classification-evaluation | https://www.kaggle.com/code/taylorsamarel/duecare-gemma-content-classification-evaluation |
+| A6 | duecare-prompt-generation | https://www.kaggle.com/code/taylorsamarel/duecare-prompt-generation |
+| A7 | duecare-bench-and-tune | https://www.kaggle.com/code/taylorsamarel/duecare-bench-and-tune |
+| A8 | duecare-research-graphs | https://www.kaggle.com/code/taylorsamarel/duecare-research-graphs |
+| A9 | duecare-chat-playground-with-agentic-research | https://www.kaggle.com/code/taylorsamarel/duecare-chat-playground-with-agentic-research |
+| A10 | duecare-chat-playground-jailbroken-models | https://www.kaggle.com/code/taylorsamarel/duecare-chat-playground-jailbroken-models |
+| A11 | duecare-grading-evaluation | https://www.kaggle.com/code/taylorsamarel/duecare-grading-evaluation |
 
 > ⚠️ **Per memory:** Kaggle derives slugs from notebook titles, not
 > metadata. If a slug 404s, it's likely renamed locally vs the live

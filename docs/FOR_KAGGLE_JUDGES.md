@@ -9,7 +9,7 @@
 
 **Duecare is a Gemma 4-powered safety infrastructure platform for
 migrant-worker protection.** This submission has **two surfaces**:
-the **Kaggle live demo** ([kaggle.com/code/taylorsamarel/duecare-harness-chat](https://www.kaggle.com/code/taylorsamarel/duecare-harness-chat))
+the **Kaggle exploration workbench** ([kaggle.com/code/taylorsamarel/duecare-exploration-workbench](https://www.kaggle.com/code/taylorsamarel/duecare-exploration-workbench))
 proves technical depth — Gemma 4 + the 6-toggle harness running
 end-to-end — and the **public hub** at
 [duecare-ai.com](https://duecare-ai.com) proves platform
@@ -37,7 +37,8 @@ scenarios. The five canonical lanes are **(1) Platform safety,
 and (5) Developer / integration partner**. Those five lanes support
 three outcomes: prevent exploitation before it spreads, assist victims
 and at-risk workers, and help stakeholders understand what is happening
-and why. OFWs are a demo persona, not the product category. Built
+and why. Filipino overseas workers are one demo persona, not the product
+category. Built
 specifically for partners who cannot send sensitive case data to
 frontier APIs, with validated local/demo surfaces now and on-device
 GGUF (llama.cpp) plus LiteRT deployment paths tracked for the edge
@@ -85,7 +86,7 @@ Kaggle UI publish steps.
 | **Impact Track → Safety & Trust** | Core concept is LLM safety for the most vulnerable migrant-worker populations. The harness directly targets known trafficking-detection failure modes. | The 50-prompt adversarial suite + the harness-on-vs-harness-off A/B comparison. |
 | **Special Tech → Unsloth** | Fine-tune is via Unsloth + LoRA on Gemma 4 E4B. Weights published to HF Hub. | `kaggle/A-07-bench-and-tune/kernel.py` + HF model card |
 | **Special Tech → llama.cpp** | Fine-tuned weights exported as GGUF for desktop deployment. | bench-and-tune export step + llama-cpp smoke-test |
-| **Special Tech → LiteRT** *(if track exists)* | LiteRT conversion for mobile/edge — operationally critical for the worker-side use case where the worker's device is monitored by the operator/employer. | LiteRT export step (deferred to post-fine-tune) |
+| **Special Tech → LiteRT** *(if track exists)* | LiteRT conversion for mobile/edge — operationally critical for the Individual worker use case where the worker's device is monitored by the operator/employer. | LiteRT export step (deferred to post-fine-tune) |
 | **Main Track** | Pursued in parallel; depends on overall execution + video. | All of the above bundled. |
 
 ## Five-minute walkthrough (post-deploy)
@@ -142,7 +143,7 @@ in the Kaggle session:
 
 1. **Frontier judge** (GPT-4 / Claude 3.5 / Gemini 1.5 Pro) — gold-
    standard accuracy via API. The chat model stays on-device for the
-   privacy-preserving worker-side use case; the judge runs separately,
+   privacy-preserving Individual worker use case; the judge runs separately,
    the G-Eval / MT-Bench / Auto-J methodology. Network requirement
    means it doesn't fit the on-device-only Kaggle exercise.
 2. **Abliterated Gemma** (e.g. `dealignai/Gemma-4-31B-JANG_4M-CRACK`)

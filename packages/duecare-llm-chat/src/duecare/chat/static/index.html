@@ -775,7 +775,7 @@ header.bar .badge.loaded .dot {
 
   <div class="chat" id="chat">
     <div class="empty" id="empty">
-      <h2>Duecare harness chat</h2>
+      <h2>DueCare harness chat</h2>
       <p style="font-size:14px;">Pick a Gemma 4 variant, flip the safety
       layers below, and ask anything about migrant-worker recruitment
       and trafficking.</p>
@@ -1577,7 +1577,7 @@ function openAboutModal() {
   const body = `
     <div style="font-size:13.5px; line-height:1.6; color:var(--ink);">
       <p style="margin-top:0;">
-        Duecare is a Gemma 4 safety harness for migrant-worker recruitment
+        DueCare is a Gemma 4 safety harness for migrant-worker recruitment
         and trafficking cases. This page is the live demo: one Gemma 4
         variant + 6 optional safety layers + 4 grading modes.
       </p>
@@ -1657,9 +1657,9 @@ function openAboutModal() {
       </h4>
       <p style="margin:0;">
         <b>▸ Examples</b> in the composer opens <span data-brand-text="counts.n_examples">587</span> curated prompts
-        organised across 8 audience buckets (model_capability,
-        enterprise_moderation, ngo_intake, individual_query, research,
-        image_prompts, data_intelligence, regulator_audit). The five
+        organised across 8 audience buckets (model capability,
+        Platform safety, NGO &amp; regulator, Individual worker, Researcher,
+        image prompts, data intelligence, regulator audit). The five
         highlighted at the top cover curated cases, jailbreak resistance,
         online-search behaviour, multi-jurisdiction comparison, and
         social-engineering pretexts. A multi-lingual sample row
@@ -1685,13 +1685,13 @@ function openAboutModal() {
   // Reuse the existing modal chrome (lightbox overlay + Esc-to-close).
   document.getElementById('modal-body').innerHTML = body;
   if (typeof _setModalChrome === 'function') {
-    _setModalChrome('about', 'Getting started · About Duecare', '');
+    _setModalChrome('about', 'Getting started · About DueCare', '');
   } else {
     // Fallback: if the helper hasn't loaded yet, just show the modal.
     const ov = document.getElementById('modal-overlay');
     if (ov) ov.style.display = 'flex';
     const ttl = document.getElementById('modal-title');
-    if (ttl) ttl.textContent = 'Getting started · About Duecare';
+    if (ttl) ttl.textContent = 'Getting started · About DueCare';
   }
 }
 
@@ -1711,7 +1711,7 @@ async function probeHarness() {
     // why so they don't poke a dead button without feedback.
     const notWiredHints = {
       persona: 'Kernel did not configure a default persona. Wire `persona_default` in create_app() or paste your own via the persona library.',
-      grep:    'Kernel did not pass a grep_call into create_app(). The 01-duecare-harness-chat kernel wires this by default; older kernels may not.',
+      grep:    'Kernel did not pass a grep_call into create_app(). The 01-duecare-exploration-workbench kernel wires this by default; older kernels may not.',
       rag:     'Kernel did not pass a rag_call into create_app(). RAG retrieval over the bundled corpus needs the kernel to wire it.',
       tools:   'Kernel did not pass a tools_call into create_app(). Lookup tools (corridor caps, fee labels, NGO hotlines) need the kernel to wire them.',
       online:  'Neither the kernel\'s online_search_call nor a Brave Search API key is configured. Click ▸ View on this tile to paste a free Brave key.',
@@ -1968,8 +1968,8 @@ const CATEGORY_COLORS = {
 // top-level filter; categories are second-level structure inside.
 const BUCKET_LABELS = {
   model_capability:      'Model capability / stress-test',
-  enterprise_moderation: 'Enterprise content moderation',
-  ngo_intake:            'NGO case intake',
+  enterprise_moderation: 'Platform safety content review',
+  ngo_intake:            'NGO & regulator case intake',
   individual_query:      'Query from individual',
   research:              'Research / journalism',
   image_prompts:         'Image prompts (multimodal)',
@@ -1978,7 +1978,7 @@ const BUCKET_LABELS = {
 };
 const BUCKET_DESCRIPTIONS = {
   model_capability:      'Adversarial prompts that stress-test specific model capabilities — jailbreak resistance, jurisdictional reasoning, fee-camouflage detection, multi-lingual coverage. NOT meant as "good user" prompts; they probe failure modes.',
-  enterprise_moderation: 'Realistic content-moderation tasks: classify a recruitment ad, triage a user-complaint ticket, decide on a marketplace listing, walk a moderator through a policy edge case.',
+  enterprise_moderation: 'Realistic platform-safety tasks: classify a recruitment ad, triage a user-complaint ticket, decide on a marketplace listing, walk a moderator through a policy edge case.',
   ngo_intake:            'A caseworker / advocate / shelter intake worker triaging a real case, drafting a refund claim, planning evidence preservation, or briefing a regulator.',
   individual_query:      'A worker, family member, or prospective migrant talking directly to the model in their own voice — no legal framing, the model has to infer the legal posture.',
   research:              'Academic, journalistic, or policy queries that synthesize across statutes, compare regimes, evaluate methodology, or plan investigative reporting.',
@@ -2709,7 +2709,7 @@ async function openLayerModal(layer) {
         <h4 style="margin-top:18px;">Live test</h4>
         <div style="display:flex; gap:8px; align-items:center;">
           <input id="online-test-q" type="text"
-                 placeholder="POEA complaint procedure for OFW in Hong Kong"
+                 placeholder="Recruitment complaint procedure for a Filipino worker in Hong Kong"
                  style="flex:1; padding:6px 8px; background:var(--bg); color:var(--ink); border:1px solid var(--border); border-radius:4px;">
           <button class="modal-btn primary" onclick="_runOnlineSearchTest()">Search</button>
         </div>
@@ -3810,7 +3810,7 @@ function _serializePipelineMarkdown(messageIdx) {
   const respText = m.content.filter(c => c.type === 'text').map(c => c.text).join('\n');
   const finalPrompt = t._final_user_text || userText;
   const ts = new Date().toISOString();
-  let md = `# Duecare pipeline trace\n\n`;
+  let md = `# DueCare pipeline trace\n\n`;
   md += `_Captured ${ts}_\n\n`;
   md += `Model: ${m._meta || '(unknown)'}\n\n`;
   md += `---\n\n`;
@@ -3993,7 +3993,7 @@ function _serializeGradeMarkdown(g) {
   if (!g || typeof g !== 'object') return '';
   const ts = new Date().toISOString();
   const mode = g.mode || 'unknown';
-  let md = '# Duecare grade evaluation\n\n';
+  let md = '# DueCare grade evaluation\n\n';
   md += `_Captured ${ts} · mode: **${mode}**_\n\n`;
   // Combined: render deterministic + evaluator side by side
   if (mode === 'combined') {
@@ -7035,7 +7035,7 @@ function _copyCompareMarkdown() {
   const sA = _compareExtractScore(A.grade);
   const sB = _compareExtractScore(B.grade);
   const delta = (sA != null && sB != null) ? (sB - sA) : null;
-  let md = `# Duecare A/B harness comparison\n\n_Captured ${r.ts}_\n\n`;
+  let md = `# DueCare A/B harness comparison\n\n_Captured ${r.ts}_\n\n`;
   md += `## Prompt\n\n\`\`\`\n${r.prompt}\n\`\`\`\n\n`;
   md += `## Configuration\n\n| | Variant A | Variant B |\n|---|---|---|\n`;
   md += `| Harness layers | ${_compareTogglesSummary(A.toggles)} | ${_compareTogglesSummary(B.toggles)} |\n`;

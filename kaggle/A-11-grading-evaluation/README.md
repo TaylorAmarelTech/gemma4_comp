@@ -1,4 +1,4 @@
-# DueCare — Grading-lift regenerator (#A11 appendix)
+# DueCare — Runtime harness-lift regenerator (#A11 appendix)
 <!-- duecare:lane-label -->
 > **Serves lanes:** 04 Researcher
 
@@ -9,17 +9,23 @@
 | Section | This notebook |
 |---|---|
 | **Lede** | Falsifiable harness-lift regenerator that reruns prompts with the harness off and on, then grades the delta. |
-| **What it does** | Produces per-prompt and per-dimension scorecards for stock Gemma versus full DueCare runtime layers. |
+| **What it does** | Produces per-prompt and per-dimension scorecards for the same Gemma weights with DueCare runtime layers off versus on. |
 | **Demo path** | Run a small prompt set, open the lift dashboard, scan the KPI cards, and download the JSON/Markdown/CSV artifacts. |
 | **Audience** | Researcher. |
 | **Outputs** | `duecare_lift_eval.json`, `duecare_lift_eval.md`, CSV export, inline report, and dashboard scorecards. |
 | **Cross-links** | Use the quick links at the bottom for the full workbench, live demo, fine-tune pipeline, and public website. |
 
-Side-by-side rubric evaluation: runs N curated prompts through Gemma 4
-twice each — once with the harness OFF, once with full harness ON
-(Persona + GREP + RAG + Tools) — and grades both with the Rule-Based
-v2 grader. Produces the falsifiable headline lift number with
+Side-by-side rubric evaluation: runs N curated prompts through the same
+Gemma 4 weights twice each — once with the harness OFF, once with full
+harness ON (Persona + GREP + RAG + Tools) — and grades both with the
+Rule-Based v2 grader. Produces the falsifiable headline lift number with
 per-prompt + per-dimension detail.
+
+This notebook **does not train a model** and **does not compare stock
+weights against fine-tuned weights**. For stock-vs-SafetyJudge-adapter
+benchmarking, use A7 and its `eval_results.json`. A11 answers a different
+question: how much the runtime harness helps when weights are held
+constant.
 
 | Field | Value |
 |---|---|
@@ -104,7 +110,6 @@ https://www.kaggle.com/code/taylorsamarel/duecare-grading-evaluation
 ```text
 grading-evaluation/
 ├── kernel.py            ← source-of-truth script kernel
-├── notebook.ipynb       ← browsing wrapper generated from the script
 ├── kernel-metadata.json ← Kaggle metadata; public-ready, script kernel
 ├── README.md            ← this file
 └── wheels/              ← local wheels for manual Kaggle dataset upload
@@ -125,30 +130,30 @@ an automated evaluator, not an interactive notebook UI.
 
 - **Core workbench:** [#01 core: Migrant-worker safety playground](../01-duecare-exploration-workbench/README.md).
 - **Focused live demo:** [#02 core: Live demo](../02-live-demo/README.md).
-- **Natural next appendix:** [#A07 appendix: Fine-tune + GGUF pipeline](../A-07-bench-and-tune/README.md).
+- **Natural next appendix:** [#A07 appendix: Adapter training + new-model benchmark](../A-07-bench-and-tune/README.md).
 - **Public website:** [duecare-ai.com](https://duecare-ai.com).
 
 ---
 
 <!-- duecare:kernel-footer -->
 
-### All DueCare notebooks
+### All DueCare kernels
 
-You are here: **#A11 appendix — Grading-lift regenerator**.
+You are here: **#A11 appendix — Runtime harness-lift regenerator**.
 
 - [#01 core: Migrant-worker safety playground](../01-duecare-exploration-workbench/README.md)
 - [#02 core: Live demo (focused walkthrough)](../02-live-demo/README.md)
 - [#A01 appendix: Stock Gemma 4 chat baseline](../A-01-chat-playground/README.md)
-- [#A02 appendix: Original 4-toggle subset playground](../A-02-chat-playground-with-grep-rag-tools/README.md)
+- [#A02 appendix: Harness ablation runner](../A-02-chat-playground-with-grep-rag-tools/README.md)
 - [#A03 appendix: Hands-on classification sandbox](../A-03-content-classification-playground/README.md)
 - [#A04 appendix: Knowledge-builder sandbox + JSON export](../A-04-content-knowledge-builder-playground/README.md)
 - [#A05 appendix: NGO classifier evaluation dashboard](../A-05-gemma-content-classification-evaluation/README.md)
-- [#A06 appendix: Gemma generates evaluation prompts](../A-06-prompt-generation/README.md)
-- [#A07 appendix: Unsloth fine-tune + GGUF export pipeline](../A-07-bench-and-tune/README.md)
+- [#A06 appendix: Two-track synthetic data generator](../A-06-prompt-generation/README.md)
+- [#A07 appendix: Adapter training + new-model benchmark](../A-07-bench-and-tune/README.md)
 - [#A08 appendix: Research graphs (CPU-only)](../A-08-research-graphs/README.md)
 - [#A09 appendix: Agentic-research chat (BYOK + Playwright)](../A-09-chat-playground-with-agentic-research/README.md)
 - [#A10 appendix: Jailbroken-Gemma comparison](../A-10-chat-playground-jailbroken-models/README.md)
-- **[#A11 appendix: Grading-lift regenerator](../A-11-grading-evaluation/README.md)**
+- **[#A11 appendix: Runtime harness-lift regenerator](../A-11-grading-evaluation/README.md)**
 
 Index page: [`kaggle/_INDEX.md`](../_INDEX.md).
 

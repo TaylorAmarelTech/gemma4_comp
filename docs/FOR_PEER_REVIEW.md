@@ -104,7 +104,7 @@ If you have two minutes to decide if this is real:
    on the `▸ View pipeline` modal scrolling through 7 cards.
 
 3. **Click the headline notebook.**
-   [Duecare Harness Chat](https://www.kaggle.com/code/taylorsamarel/duecare-harness-chat)
+   [DueCare Exploration Workbench](https://www.kaggle.com/code/taylorsamarel/duecare-exploration-workbench)
    (the omni playground). Run it (T4 ×2 + Internet ON + `HF_TOKEN`).
    When the cloudflared URL appears, click. Toggle all 6 tiles ON.
    Submit any example prompt. Click `▸ View pipeline` below the
@@ -141,8 +141,8 @@ demonstration with the headline +56.5pp lift number.
 
 | # | Notebook | Wheels dataset | Purpose |
 |---|---|---|---|
-| **1** | [duecare-harness-chat](https://www.kaggle.com/code/taylorsamarel/duecare-harness-chat) *(publish pending)* | `duecare-harness-chat-wheels` ✓ live | **The omni playground.** Single configurable interface with all 6 harness layers (Persona / GREP 161 rules / RAG 46 docs / Tools 5 lookups / Online live web search) + 4-mode grader (Universal / Expert / Deep / Combined) + **Gemma 4 model selector**: pick from 9 variants (E2B / E4B / 26B-A4B / 31B / 2 jailbroken / 3 cloud BYOK routes). Judges flip toggles, change models, and see the harness work end-to-end across the whole capability surface. |
-| **2** | [duecare-live-demo](https://www.kaggle.com/code/taylorsamarel/duecare-live-demo) | `duecare-live-demo-wheels` ✓ live | **The user-facing live URL.** Full safety-harness pipeline + 22-slide deck + audit Workbench. The polished, scripted live demonstration of the +56.5pp lift thesis. |
+| **1** | [duecare-exploration-workbench](https://www.kaggle.com/code/taylorsamarel/duecare-exploration-workbench) *(publish pending)* | `duecare-harness-chat-wheels` ✓ live | **The omni playground.** Single configurable interface with all 6 harness layers (Persona / GREP 161 rules / RAG 46 docs / Tools 5 lookups / Online live web search) + 4-mode grader (Universal / Expert / Deep / Combined) + **Gemma 4 model selector**: pick from 9 variants (E2B / E4B / 26B-A4B / 31B / 2 jailbroken / 3 cloud BYOK routes). Judges flip toggles, change models, and see the harness work end-to-end across the whole capability surface. |
+| **2** | [duecare-live-demo](https://www.kaggle.com/code/taylorsamarel/duecare-live-demo) | `duecare-live-demo-wheels` ✓ live | **The user-facing live URL.** Full safety-harness pipeline + guided walkthrough + audit Workbench. The polished, scripted live demonstration of the +56.5pp lift thesis. |
 
 ### Appendix (11 notebooks — specialised + research)
 
@@ -224,13 +224,13 @@ For judges who want to know which notebook to open for which claim:
 
 | Notebook | Single-line purpose | What to click | Expected output |
 |---|---|---|---|
-| `duecare-harness-chat` ★ | The omni surface — every capability in one place | Toggle all 5 tiles ON, send the textbook 68%-loan prompt | Response transforms from generic to citation-rich; click Pipeline modal for 7-card trace |
+| `duecare-exploration-workbench` ★ | The omni surface — every capability in one place | Toggle all 6 tiles ON, send the textbook 68%-loan prompt | Response transforms from generic to citation-rich; click Pipeline modal for the trace |
 | `duecare-live-demo` ★ | The polished thesis demo with the headline lift | Open `/` (4-card homepage); send prompt to `/individual` | Classification card with risk score, ILO indicator hits, NGO referrals |
 | `chat-playground` (A1) | Baseline raw Gemma 4 (harness OFF) — the failure mode | Send the 68%-loan prompt | "5 cash flow strategies" / "tripartite payment agreement" — the trafficker's playbook |
-| `chat-playground-with-grep-rag-tools` (A2) | 4-toggle subset (no Online) — the original demo notebook | Toggle each tile ON one at a time, observe response transform per tile | Citation density grows monotonically with each toggle |
+| `chat-playground-with-grep-rag-tools` (A2) | Harness ablation runner for GREP, RAG, Tools, and Imports | Toggle each tile ON one at a time, observe response transform per tile | Citation density and trace evidence grow as layers are enabled |
 | `chat-playground-jailbroken-models` (A5) | **The "real not faked" proof.** Same harness on an abliterated Gemma 4 (refusal layer ablated by the model author) | Send the 68%-loan prompt | Harness still produces safe + cited output despite ablated base model |
 | `chat-playground-with-agentic-research` (A4) | Live web search proof of concept — Playwright + DuckDuckGo + Wikipedia | Toggle web-research ON, ask about a recent ILO development | Multi-step research loop with grounded citation |
-| `content-classification-playground` (A3) | NGO-side classifier (structured-output mode) — same harness, different surface | Click any Examples-modal entry, click Classify | Classification card with risk vectors, recommended action pill, NGO referrals |
+| `content-classification-playground` (A3) | NGO & regulator classifier (structured-output mode) — same harness, different surface | Click any Examples-modal entry, click Classify | Classification card with risk vectors, recommended action pill, NGO referrals |
 | `content-knowledge-builder-playground` (A4) | Build new RAG documents from web sources or pasted text | Paste a recent ILO press release | New RAG entry with extracted citations + paraphrased snippet |
 | `gemma-content-classification-evaluation` (A5) | Side-by-side OFF/ON evaluation across the bundled 16 cases | Run all → see per-case OFF/ON delta | Aggregate lift number + per-case markdown table |
 | `prompt-generation` (A1 appendix) | Gemma 4 generates new evaluation prompts + 5 graded responses each | Set N=10, click Run | 10 new prompts × 5 graded examples written to JSON |
@@ -263,7 +263,7 @@ For judges who want to know which notebook to open for which claim:
 
 The shortest reproducible test:
 
-1. Open [duecare-chat-playground](https://www.kaggle.com/code/taylorsamarel/duecare-gemma-chat-playground)
+1. Open [duecare-chat-playground](https://www.kaggle.com/code/taylorsamarel/duecare-chat-playground)
    (raw Gemma).
 2. Click `▸ Examples` → load any "Textbook compound scenarios" prompt
    (the 68%-loan or 18%-loan example).
@@ -286,9 +286,9 @@ transformation byte-for-byte.
 
 | Mode | Doc | Use case |
 |---|---|---|
-| Worker-side (Kaggle / local laptop) | [`docs/deployment_local.md`](./deployment_local.md) | Migrant worker pastes recruiter message, gets back ILO citations + corridor fee caps + NGO hotlines. No data leaves the device. |
-| Agency / NGO dashboard | The classifier notebook (#5 above) | Intake officer triages 500 cases via structured JSON + risk vectors + threshold-filterable history. |
-| Enterprise integration (Dockerized API) | [`docs/deployment_enterprise.md`](./deployment_enterprise.md) | `POST /api/classifier/evaluate` from your existing service. Customizable per-team rules / docs / corridor caps. |
+| Individual worker (Kaggle / local laptop) | [`docs/deployment_local.md`](./deployment_local.md) | Migrant worker pastes recruiter message, gets back ILO citations + corridor fee caps + NGO hotlines. No data leaves the device. |
+| NGO & regulator | The classifier notebook (#5 above) | Intake officer triages 500 cases via structured JSON + risk vectors + threshold-filterable history. |
+| Platform safety API (Dockerized API) | [`docs/deployment_enterprise.md`](./deployment_enterprise.md) | `POST /api/classifier/evaluate` from an existing service. Customizable per-team rules / docs / corridor caps. |
 | **Android (v0.9.0 shipped)** | [`docs/android_app_architecture.md`](./android_app_architecture.md) (this repo) + [`duecare-journey-android/`](../../duecare-journey-android/) (sibling repo) | **Duecare Journey** v0.9.0 — fully on-device Gemma 4 via MediaPipe (six variants selectable: E2B/E4B INT4/INT8, Gemma 3 1B, Gemma 2 2B legacy, each with mirror-fallback URLs) + cloud Gemma routing as fallback (Ollama / OpenAI-compat / HF Inference) + SQLCipher-encrypted journal + 11 ILO indicator detectors + **20 corridor profiles** (Asia → GCC, Asia → Asia, LATAM, West Africa → Lebanon kafala, refugee routes Syria→Germany / Ukraine→Poland) with statute lookups + **161 GREP rules** (incl. kafala-huroob-absconder, H2A-H2B-fee-violation, fishing-vessel-debt-confinement) + 10-question guided intake wizard + structured Add-Fee dialog with auto-LegalAssessment + RefundClaim drafting + image picker for evidence attach + Reports tab generating shareable NGO intake document. APK is at the [latest release](https://github.com/TaylorAmarelTech/duecare-journey-android/releases). The architecture lives here for judges to read alongside the Python research; the buildable Gradle project + GitHub Actions APK-build pipeline live in the sibling repo. |
 
 ---
@@ -298,9 +298,10 @@ transformation byte-for-byte.
 - We did **not** build a 12-agent autonomous swarm. We built a
   toggleable harness with 6 layers (Persona / GREP / RAG / Tools /
   Online / Imports).
-- We did **not** publish 77 notebooks as the submission. The 77-notebook
-  research pipeline lives in `kaggle/kernels/` for reproducibility but
-  the **submission is the 2 core + 11 appendix notebooks listed above**.
+- We did **not** publish 77 notebooks as the submission. The current
+   generated/research inventory under `kaggle/kernels/` is 9 kernels; older
+   52/74/77-kernel notes are historical archive context. The **submission is
+   the 2 core + 11 appendix folders listed above**.
 - We are **not** claiming a fine-tuned Gemma 4 model is published at
   submission time. The bench-and-tune notebook (#2) is the planned
   Unsloth SFT/DPO + GGUF + HF Hub push — status TBD by the 2026-05-18

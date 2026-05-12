@@ -71,7 +71,7 @@ If you want continued doc work between now and submission:
 |---|---|---|
 | **T-16 (today, 5/2)** | This planning doc + the QA companion + the ecosystem overview + Maria narrative | All shipped |
 | **T-15 (5/3)** | Test notebook 1 (chat-playground) + 2 (chat-playground-with-grep-rag-tools — the headline) | Both confirmed runnable on Kaggle; #2 polished |
-| **T-14 (5/4)** | Test #5 (NGO dashboard) + #6 (live-demo) | Both confirmed; live-demo has the full 22-slide deck working |
+| **T-14 (5/4)** | Test #5 (NGO dashboard) + #6 (live-demo) | Both confirmed; live-demo has the guided walkthrough working |
 | **T-13 (5/5)** | Test #3 + #4 (sandbox notebooks) | Both confirmed |
 | **T-12 (5/6)** | Test A4 + A5 (agentic research + jailbroken comparison) | Both confirmed |
 | **T-11 (5/7)** | Test A1 + A3 (prompt generation + research graphs) | Both confirmed |
@@ -186,7 +186,7 @@ The 3 things that move the projection most:
 
 1. **Ship the video** (+25 points on the realistic estimate)
 2. **Push notebooks 3-6 + A1, A3-A5** to Kaggle (+5 points)
-3. **Run A2 fine-tune successfully** (+3-5 points)
+3. **Run A7 fine-tune successfully** (+3-5 points)
 
 ## What to NOT do in the final 2 weeks
 

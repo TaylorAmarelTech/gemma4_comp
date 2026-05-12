@@ -59,4 +59,4 @@ against the four known drift categories:
 
 - [`docs/AUDIT.md`](../../docs/AUDIT.md) — convention + allowlist syntax
 - [`scripts/validate_public_surface.py`](../../scripts/validate_public_surface.py) — audit logic
-- [`docs/GPT55_AUTOPILOT_BRIEF.md`](../../docs/GPT55_AUTOPILOT_BRIEF.md) — broader project conventions
+- [`CLAUDE.md`](../../CLAUDE.md) and [`.claude/rules/`](../rules/) — current project conventions

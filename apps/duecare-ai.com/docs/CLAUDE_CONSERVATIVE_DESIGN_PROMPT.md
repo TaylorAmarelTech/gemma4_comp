@@ -98,7 +98,7 @@ NGOs, caseworkers, legal-aid groups, consulates, labor ministries, labor inspect
 
 ### Individual worker / mobile
 
-Migrant workers and prospective migrant workers using a trusted mobile, chat, web, or local tool. OFWs are one demo persona, not the whole category. They privately check suspicious job offers, contracts, recruiter messages, fee demands, document retention, and threats.
+Migrant workers and prospective migrant workers using a trusted mobile, chat, web, or local tool. Filipino overseas workers are one demo persona, not the whole category. They privately check suspicious job offers, contracts, recruiter messages, fee demands, document retention, and threats.
 
 ### Researcher
 

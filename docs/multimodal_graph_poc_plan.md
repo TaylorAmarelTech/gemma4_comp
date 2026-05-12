@@ -312,7 +312,7 @@ poc_outputs/
 - Refactoring the baseline into the `duecare-llm-*` package layout. POCs stay in `raw_python/` next to the existing baseline; integration into packages is a separate decision after POC results land.
 - Replacing the existing pipeline wholesale. Every POC is comparison material until the data says swap.
 - Building a unified runner that orchestrates all POCs together. Each is its own paste-into-Kaggle cell.
-- LiteRT mobile export, GGUF export, fine-tuning, or anything in the Phase 3 spine — those live in NB 525/527/530 and are tracked in `docs/CHECKPOINT_2026-04-19.md`.
+- LiteRT mobile export, GGUF export, fine-tuning, or anything in the Phase 3 spine — those live in NB 525/527/530 and are tracked in current Kaggle/readiness docs. The older checkpoint reference now lives in `_archive/cleanup-2026-05-10/docs_stale_planning/`.
 
 ## 11. One-line summary
 

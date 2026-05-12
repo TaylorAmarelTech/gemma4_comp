@@ -206,7 +206,7 @@ Run before every wheel push:
 # Check the generated wheel doesn't ship anything new
 python -c "
 import zipfile, re
-with zipfile.ZipFile('kaggle/chat-playground/wheels/duecare_llm_chat-0.1.0-py3-none-any.whl') as z:
+with zipfile.ZipFile('kaggle/A-01-chat-playground/wheels/duecare_llm_chat-0.1.0-py3-none-any.whl') as z:
     for n in z.namelist():
         if n.endswith(('.json', '.py', '.html')):
             content = z.read(n).decode('utf-8', errors='ignore')

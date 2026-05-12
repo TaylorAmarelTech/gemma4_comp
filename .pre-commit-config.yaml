@@ -86,10 +86,10 @@ repos:
         # must still match the canonical outcomes / lanes / counts.
 
       - id: notebook-validator
-        name: notebook validator (77 research notebooks must parse)
+        name: notebook validator (active Kaggle kernels must parse)
         entry: python scripts/validate_notebooks.py
         language: system
         stages: [pre-push]
         pass_filenames: false
         # Only fire when notebooks or builders changed.
-        files: ^(legacy_notebooks/|kaggle/|scripts/build_notebook_|scripts/validate_notebooks\.py)
+        files: ^(kaggle/|scripts/build_notebook_|scripts/validate_notebooks\.py|scripts/kaggle_notebook_utils\.py)

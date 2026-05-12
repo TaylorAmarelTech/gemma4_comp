@@ -12,7 +12,7 @@ Three claims:
 
 1. **Stock Gemma 4 fails predictably** on migrant-worker
    trafficking prompts (no ILO citations, gives traffickers advice).
-2. **A 6-layer harness — privacy-non-negotiable, on-device — fixes
+2. **A 6-layer harness with local-first privacy boundaries fixes
    it** with a +56.5pp lift on a 12-criterion legal-citation rubric.
 3. **The grader is itself adversarially defended** with a 4-mode
    stack (deterministic + LLM-as-judge + combined).
@@ -24,7 +24,7 @@ Three claims:
 Open two browser tabs:
 
 **Tab A — the omni playground (where you'll spend most of the time):**
-> https://www.kaggle.com/code/taylorsamarel/duecare-harness-chat
+> https://www.kaggle.com/code/taylorsamarel/duecare-exploration-workbench
 
 **Tab B — the focused live demo (the headline number):**
 > https://www.kaggle.com/code/taylorsamarel/duecare-live-demo

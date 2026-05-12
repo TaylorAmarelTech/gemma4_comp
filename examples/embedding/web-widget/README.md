@@ -35,7 +35,7 @@ python -m http.server 9000
 | `personaText` | `null` | Override the kernel-default persona |
 | `theme` | `'light'` | `'light'` or `'dark'` |
 | `placeholder` | "Ask about a fee..." | Composer placeholder |
-| `suggestedPrompts` | 3 default OFW prompts | Shown in empty state; click to send |
+| `suggestedPrompts` | 3 default Individual worker prompts | Shown in empty state; click to send |
 | `maxNewTokens` | 1024 | Generation cap |
 | `onResponse(msg)` | null | Callback fired on each Gemma response |
 | `onError(err)` | null | Callback fired on any error |

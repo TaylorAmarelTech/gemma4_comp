@@ -36,7 +36,7 @@
 2. **8 of 11 notebooks not yet pushed to Kaggle** (-3 to -5 points).
    Source code complete + tested locally; pushing is rate-limited at
    ~5–10/day. User-only action (Kaggle CLI auth on user's machine).
-3. **A2 fine-tune has not been run on Kaggle T4×2** (-3 to -5 points
+3. **A7 fine-tune has not been run on Kaggle T4×2** (-3 to -5 points
    on Tech Depth, +2 to +5 on Impact when the HF Hub model card lands).
    Pre-flight checklist at
    [`docs/bench_and_tune_readiness.md`](bench_and_tune_readiness.md).
@@ -59,27 +59,29 @@ The grading scale across this dashboard:
 | **C** | Present but weak. Likely loses some points. |
 | **D / F** | Absent or broken. Lose-point territory. |
 
-### Submission surface (the 11 Kaggle notebooks)
+### Submission surface (the 13 Kaggle notebooks)
 
 Detailed per-notebook plan in
 [`docs/notebook_qa_companion.md`](notebook_qa_companion.md).
 
 | # | Notebook | Local | Pushed | Kaggle URL verified | Grade |
 |---|---|:-:|:-:|:-:|:-:|
-| 1 | chat-playground | ✅ | ✅ | needs re-verify | A |
-| 2 | chat-playground-with-grep-rag-tools | ✅ | ✅ | needs re-verify | **A+** |
-| 3 | content-classification-playground | ✅ | ⏳ | — | A |
-| 4 | content-knowledge-builder-playground | ✅ | ⏳ | — | A |
-| 5 | gemma-content-classification-evaluation | ✅ | ⏳ | — | A |
-| 6 | live-demo (1,951-line + 22-slide deck) | ✅ | ✅ | needs re-verify | **A+** |
-| A1 | prompt-generation | ✅ | ⏳ | — | B |
-| A2 | bench-and-tune (Unsloth SFT + DPO + GGUF + HF push) | ✅ | ⏳ | — | A (will become A+ when run on T4×2) |
-| A3 | research-graphs (6 Plotly charts) | ✅ kernel.py + .ipynb + wheels built | ⏳ | — | B |
-| A4 | chat-playground-with-agentic-research | ✅ | ⏳ | — | A |
-| A5 | chat-playground-jailbroken-models | ✅ | ⏳ | — | **A+** |
+| 1 | duecare-exploration-workbench | ✅ | ⏳ | pending | **A+** |
+| 2 | live-demo (guided walkthrough + Workbench) | ✅ | ✅ | needs re-verify | **A+** |
+| A1 | chat-playground (stock Gemma 4 baseline) | ✅ | ✅ | needs re-verify | A |
+| A2 | chat-playground-with-grep-rag-tools (harness ablation runner) | ✅ | ✅ | needs re-verify | **A+** |
+| A3 | content-classification-playground | ✅ | ⏳ | — | A |
+| A4 | content-knowledge-builder-playground | ✅ | ⏳ | — | A |
+| A5 | gemma-content-classification-evaluation | ✅ | ⏳ | — | A |
+| A6 | prompt-generation (two-track synthetic data generator) | ✅ | ⏳ | — | B |
+| A7 | bench-and-tune (SafetyJudge adapter training + GGUF + HF push) | ✅ | ⏳ | — | A (will become A+ when run on T4×2) |
+| A8 | research-graphs (6 Plotly charts) | ✅ kernel.py + wheels built | ⏳ | — | B |
+| A9 | chat-playground-with-agentic-research | ✅ | ⏳ | — | A |
+| A10 | chat-playground-jailbroken-models | ✅ | ⏳ | — | **A+** |
+| A11 | grading-evaluation (runtime harness-lift regenerator) | ✅ | ⏳ | — | **A+** |
 
-**Action:** Push 8 remaining notebooks across 4 days; run A2 on T4×2
-once GPU quota resets. (A3 kernel build verified 2026-05-02.)
+**Action:** Push remaining kernels across 4 days; run A7 on T4×2
+once GPU quota resets. (A8 kernel build verified 2026-05-02.)
 
 ### Code packages (17 PyPI wheels)
 
@@ -351,7 +353,7 @@ SHA + a dataset version.
 |---|---|---|---|
 | Video doesn't get recorded by 5/18 | Medium | -25 pts | Script locked; user knows the script + record window |
 | Notebook push hits Kaggle daily rate-limit, misses 8th notebook | Medium | -2 pts | Plan spreads pushes across 4 days; every notebook works locally regardless |
-| A2 fine-tune fails on T4×2 (OOM / timeout) | Medium | -3 pts | Plan B in `bench_and_tune_readiness.md` is "ship the harness without the fine-tune number; the harness is the headline" |
+| A7 fine-tune fails on T4×2 (OOM / timeout) | Medium | -3 pts | Plan B in `bench_and_tune_readiness.md` is "ship the harness without the fine-tune number; the harness is the headline" |
 | Live HF Space goes down during judging | Low | -3 pts | 6+5 notebooks + Android APK + `make demo` all serve as fallback |
 | A judge runs `make demo` and it fails on their machine | Low | -3 pts | Tested on 2 different OSes; `make doctor` produces actionable error messages |
 | Notebook URL slug mismatch (per memory: kaggle derives slug from title) | Low | -1 pt | Slugs verified post-push via `verify_kaggle_urls.py` |
