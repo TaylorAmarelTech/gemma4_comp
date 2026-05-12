@@ -812,131 +812,408 @@ print("\n" + "=" * 76)
 print("[3/5] launching chat server (Persona + GREP + RAG + Tools wired)")
 print("=" * 76)
 
-from duecare.chat import create_app
+# A-02 rebuilt 2026-05-11 as the batch HARNESSED runner per Taylor's
+# experiment-ladder directive. Mirrors A-01 but with persona + GREP +
+# RAG + tools wired into every prompt's pre-context. Emits the same
+# v1.0 artifact schema (docs/appendix_artifact_schema.md) so A-03 can
+# pair this bundle with A-01's stock baseline bundle for the lift
+# comparison.
 from duecare.chat.harness import (
-    default_harness, GREP_RULES, RAG_CORPUS, _TOOL_DISPATCH,
+    EXAMPLE_PROMPTS, GREP_RULES, RAG_CORPUS, _TOOL_DISPATCH,
+    DEFAULT_PERSONA, _grep_call, _rag_call, _heuristic_tool_calls,
 )
-import uvicorn
 
-model_info = {
-    "loaded": True, "name": loaded.name, "size_b": loaded.size_b,
-    "quantization": loaded.quantization, "device": loaded.device,
-    "display": f"{loaded.name} · {loaded.size_b:.1f}B · "
-                f"{loaded.quantization}",
-}
-
-# All 4 layers (Persona / GREP / RAG / Tools) wired in one line.
-# The chat package's DEFAULT_PERSONA is used unless overridden.
-# v0.8.1: optional reranker + cached embedder via the shared helper.
+# dc_log integration so the workbench Logs page shows progress live.
 try:
-    from duecare.chat.kernel_helpers import default_optional_hooks
-    _hooks = {k: v for k, v in default_optional_hooks().items() if v is not None}
+    from duecare.chat._dc_log import dc_log, set_kernel_id
+    set_kernel_id("a-02-harnessed-runner")
 except Exception:
-    _hooks = {}
-app = create_app(
-    gemma_call=loaded.backend,
-    model_info=model_info,
-    **default_harness(),
-    **_hooks,
-)
-_attach_shutdown(app)
+    def dc_log(*a, **kw): return None  # type: ignore[no-redef]
+    def set_kernel_id(*a, **kw): return None  # type: ignore[no-redef]
 
-print(f"  ✓ harness loaded: {len(GREP_RULES)} GREP rules, "
+print(f"  harness loaded: {len(GREP_RULES)} GREP rules, "
       f"{len(RAG_CORPUS)} RAG docs, {len(_TOOL_DISPATCH)} tools")
 
+# Subset for smoke runs (same defaults as A-01 to keep paired runs
+# comparable). Override via env DUECARE_N_PROMPTS.
+_DEFAULT_N = {"e2b-it": 25, "e4b-it": 100,
+              "26b-a4b-it": 200, "31b-it": 200}
+_n_prompts = int(os.environ.get(
+    "DUECARE_N_PROMPTS", _DEFAULT_N.get(GEMMA_MODEL_VARIANT, 25)))
+_n_prompts = max(1, min(_n_prompts, len(EXAMPLE_PROMPTS)))
+_prompts_subset = EXAMPLE_PROMPTS[:_n_prompts]
+print(f"  prompt library: {len(EXAMPLE_PROMPTS)} total, running first {_n_prompts}")
 
-def _server_thread():
-    uvicorn.run(app, host="0.0.0.0", port=PORT, log_level="warning")
+
+def _git_sha_safe() -> str:
+    return os.environ.get("DUECARE_GIT_SHA", "unknown")
 
 
-server_t = threading.Thread(target=_server_thread, daemon=True,
-                              name="duecare-toggle-server")
-server_t.start()
-print(f"  server thread started on 0.0.0.0:{PORT}")
-time.sleep(2.0)
+def _iso_utc(t: float) -> str:
+    return time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(t))
 
 
-# ===========================================================================
-# 4. Cloudflared tunnel (auto-download if not on PATH)
-# ===========================================================================
-print("\n" + "=" * 76)
-print(f"[4/5] opening {TUNNEL} tunnel")
-print("=" * 76)
+def _run_id() -> str:
+    ts = time.strftime("%Y-%m-%dT%H-%M-%SZ", time.gmtime())
+    return f"a02_{GEMMA_MODEL_VARIANT}_stock_{ts}"
 
-public_url = f"http://localhost:{PORT}"
-if TUNNEL != "none":
+
+RUN_ID = _run_id()
+OUTPUT_DIR = Path("/kaggle/working")
+OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+RESULTS_PATH = OUTPUT_DIR / f"{RUN_ID}_results.json"
+JSONL_PATH = OUTPUT_DIR / f"{RUN_ID}_run.jsonl"
+METADATA_PATH = OUTPUT_DIR / f"{RUN_ID}_metadata.json"
+BUNDLE_PATH = OUTPUT_DIR / f"{RUN_ID}_bundle.zip"
+
+print(f"  run_id: {RUN_ID}")
+
+
+def _pkg_version(name: str) -> str:
     try:
-        import shutil as _shutil, urllib.request as _urlreq, stat as _stat
-        cf_bin = _shutil.which("cloudflared")
-        if cf_bin is None:
-            cf_bin = "/tmp/cloudflared"
-            if not os.path.exists(cf_bin):
-                print(f"  cloudflared not on PATH -- downloading ...")
-                _url = ("https://github.com/cloudflare/cloudflared/"
-                         "releases/latest/download/cloudflared-linux-amd64")
-                _urlreq.urlretrieve(_url, cf_bin)
-                os.chmod(cf_bin, _stat.S_IRWXU | _stat.S_IXGRP
-                                  | _stat.S_IXOTH)
-                print(f"  ✓ downloaded "
-                      f"{os.path.getsize(cf_bin)//1_000_000} MB to {cf_bin}")
-        proc = subprocess.Popen(
-            [cf_bin, "tunnel", "--url", f"http://localhost:{PORT}"],
-            stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-            text=True, bufsize=1)
-        _CLOUDFLARED_PROC['p'] = proc
+        import importlib.metadata
+        return importlib.metadata.version(name)
+    except Exception:
+        return "unknown"
+
+
+_GPU_INFO = _detect_gpu()
+_RUN_METADATA = {
+    "started_at": _iso_utc(time.time()),
+    "completed_at": None,
+    "duration_s": None,
+    "git_sha": _git_sha_safe(),
+    "duecare_chat_version": _pkg_version("duecare-llm-chat"),
+    "torch_version": _pkg_version("torch"),
+    "transformers_version": _pkg_version("transformers"),
+    "gpu_name": _GPU_INFO.get("name", ""),
+    "gpu_memory_total_mb": int(_GPU_INFO.get("vram_gb", 0) * 1024),
+    "gpu_memory_peak_mb": 0,
+    "kaggle_kernel_id": "a-02-harnessed-runner",
+    "host": "kaggle" if Path("/kaggle").exists() else "local",
+}
+
+_RUN_CONFIG = {
+    "model_variant": GEMMA_MODEL_VARIANT,
+    "model_path": loaded.name,
+    "model_kind": "stock",
+    "adapter_path": None,
+    "harness_enabled": True,
+    "harness_layers": ["persona", "grep", "rag", "tools"],
+    "max_new_tokens": 512,
+    "temperature": 0.7,
+    "top_p": 0.95,
+    "n_prompts": _n_prompts,
+    "prompt_filter": None,
+}
+
+
+def _build_harness_prompt(user_text: str) -> tuple[str, dict]:
+    """Return (merged_prompt_with_harness_context, trace_dict)
+    matching the docs/appendix_artifact_schema.md harness_trace shape."""
+    t0_grep = time.time()
+    grep_result = _grep_call(user_text)
+    grep_ms = (time.time() - t0_grep) * 1000
+
+    t0_rag = time.time()
+    rag_result = _rag_call(user_text, top_k=5)
+    rag_ms = (time.time() - t0_rag) * 1000
+
+    t0_tools = time.time()
+    tool_result = _heuristic_tool_calls(user_text)
+    tools_ms = (time.time() - t0_tools) * 1000
+
+    parts = [
+        "[DUECARE SAFETY HARNESS — pre-context for the assistant.]\n",
+        f"## DUECARE PERSONA\n\n{DEFAULT_PERSONA}\n",
+    ]
+    if grep_result.get("hits"):
+        parts.append("## SAFETY HARNESS — GREP layer fired\n")
+        for h in grep_result["hits"]:
+            parts.append(f"- **{h['rule']}** [{h.get('severity', 'info')}] — "
+                         f"{h.get('citation', '')}")
+            parts.append(f"  match: '{h.get('match_excerpt', '')[:200]}'")
+    if rag_result.get("docs"):
+        parts.append("\n## SAFETY HARNESS — RAG layer retrieved\n")
+        for d in rag_result["docs"]:
+            parts.append(f"### {d.get('title', '?')}  ({d.get('source', '')})")
+            parts.append(d.get("snippet", "")[:600])
+    if tool_result.get("tool_calls"):
+        parts.append("\n## SAFETY HARNESS — Tools layer\n")
+        for c in tool_result["tool_calls"]:
+            parts.append(f"- `{c['name']}({c.get('args', {})})` "
+                         f"-> {json.dumps(c.get('result'), default=str)[:400]}")
+    parts.append("\n---\n\nUSER QUESTION:\n\n" + user_text)
+    merged = "\n".join(parts)
+
+    trace = {
+        "persona": {
+            "enabled": True,
+            "system_prompt_chars": len(DEFAULT_PERSONA),
+        },
+        "grep": {
+            "enabled": True,
+            "rules_evaluated": len(GREP_RULES),
+            "rules_fired": [
+                {
+                    "rule_id": h.get("rule", ""),
+                    "category": h.get("category", ""),
+                    "severity": h.get("severity", "info"),
+                    "match_text": (h.get("match_excerpt", "") or "")[:200],
+                }
+                for h in grep_result.get("hits", [])
+            ],
+            "elapsed_ms": round(grep_ms, 1),
+        },
+        "rag": {
+            "enabled": True,
+            "top_k": 5,
+            "docs_retrieved": [
+                {
+                    "doc_id": d.get("id", d.get("title", "")[:30]),
+                    "score": float(d.get("score", 0.0)),
+                    "title": d.get("title", ""),
+                }
+                for d in rag_result.get("docs", [])
+            ],
+            "elapsed_ms": round(rag_ms, 1),
+        },
+        "tools": {
+            "enabled": True,
+            "tools_called": [
+                {
+                    "tool": c.get("name", ""),
+                    "args": c.get("args", {}),
+                    "result": c.get("result"),
+                }
+                for c in tool_result.get("tool_calls", [])
+            ],
+            "elapsed_ms": round(tools_ms, 1),
+        },
+        "online": {"enabled": False, "queries": []},
+        "merged_prompt_chars": len(merged),
+    }
+    return merged, trace
+
+
+def _gemma_chat_one_with_harness(prompt_text: str) -> tuple[str, int, int, dict]:
+    """Run one prompt with the full DueCare harness wrapped around it.
+    Returns (response_text, tokens_in, tokens_out, harness_trace)."""
+    merged, trace = _build_harness_prompt(prompt_text)
+    messages = [{"role": "user", "content": merged}]
+    response = loaded.backend(messages, max_new_tokens=512,
+                                temperature=0.7, top_p=0.95)
+    tokens_in = len(loaded.tokenizer.encode(merged)) if loaded.tokenizer else 0
+    tokens_out = len(loaded.tokenizer.encode(response)) if loaded.tokenizer else 0
+    return response, tokens_in, tokens_out, trace
+
+
+# Run the batch. Stream JSONL as we go so a crash mid-run still leaves
+# usable rows on disk.
+_results: list[dict] = []
+_n_failed = 0
+_t_total_start = time.time()
+print(f"\n  starting harnessed batch ({_n_prompts} prompts) ...")
+dc_log("a02.batch.start", "harnessed batch beginning",
+       run_id=RUN_ID, n_prompts=_n_prompts)
+
+with JSONL_PATH.open("w", encoding="utf-8") as jsonl_fh:
+    for idx, prompt_row in enumerate(_prompts_subset, 1):
+        pid = prompt_row.get("id", f"prompt_{idx:04d}")
+        ptext = prompt_row.get("text", "")
+        prompt_meta = {
+            k: prompt_row.get(k) for k in
+            ("category", "subcategory", "sector", "corridor",
+             "difficulty", "ilo_indicators", "bucket")
+            if prompt_row.get(k) is not None
+        }
         t0 = time.time()
-        while time.time() - t0 < 60:
-            line = proc.stdout.readline()
-            if not line:
-                time.sleep(0.1); continue
-            print(f"  [tunnel] {line.rstrip()}")
-            if "trycloudflare.com" in line:
-                m = re.search(r"https://[a-z0-9\-]+\.trycloudflare\.com", line)
-                if m:
-                    public_url = m.group(0)
-                    print(f"  ✓ tunnel ready: {public_url}")
-                    break
-        # Drain cloudflared stdout in a daemon thread so the OS pipe
-        # buffer never fills (otherwise cloudflared blocks on write
-        # and the tunnel 1033s within minutes).
-        def _drain_stdout(p=proc):
-            try:
-                for _ in p.stdout: pass
-            except Exception: pass
-        threading.Thread(target=_drain_stdout, daemon=True,
-                          name="cloudflared-stdout-drain").start()
-    except Exception as e:
-        print(f"  tunnel error: {type(e).__name__}: {e}")
+        try:
+            response, tokens_in, tokens_out, trace = _gemma_chat_one_with_harness(ptext)
+            elapsed = time.time() - t0
+            row = {
+                "prompt_id": pid,
+                "prompt_text": ptext,
+                "prompt_metadata": prompt_meta,
+                "response": response,
+                "elapsed_s": round(elapsed, 2),
+                "tokens_in": tokens_in,
+                "tokens_out": tokens_out,
+                "harness_trace": trace,
+                "error": None,
+            }
+            n_grep = len(trace["grep"]["rules_fired"])
+            n_rag = len(trace["rag"]["docs_retrieved"])
+            n_tools = len(trace["tools"]["tools_called"])
+            print(f"  [{idx:3d}/{_n_prompts}] {pid:40s} {elapsed:5.1f}s "
+                  f"GREP={n_grep} RAG={n_rag} TOOLS={n_tools}")
+        except Exception as e:
+            elapsed = time.time() - t0
+            _n_failed += 1
+            row = {
+                "prompt_id": pid,
+                "prompt_text": ptext,
+                "prompt_metadata": prompt_meta,
+                "response": "",
+                "elapsed_s": round(elapsed, 2),
+                "tokens_in": 0,
+                "tokens_out": 0,
+                "harness_trace": None,
+                "error": f"{type(e).__name__}: {str(e)[:300]}",
+            }
+            print(f"  [{idx:3d}/{_n_prompts}] {pid:40s} FAILED "
+                  f"{type(e).__name__}: {str(e)[:80]}")
+            dc_log("a02.batch.error", "prompt failed",
+                   level="error", prompt_id=pid, err=str(e)[:200])
+        _results.append(row)
+        jsonl_fh.write(json.dumps({
+            "schema_version": "1.0",
+            "run_id": RUN_ID,
+            "kernel_id": "a-02-harnessed-runner",
+            "ts": _iso_utc(time.time()),
+            **row,
+        }, ensure_ascii=False) + "\n")
+        jsonl_fh.flush()
+        if idx % 5 == 0:
+            dc_log("a02.batch.progress", f"{idx}/{_n_prompts} done",
+                   completed=idx, total=_n_prompts)
+
+_t_total = time.time() - _t_total_start
+_n_completed = len(_results) - _n_failed
+_RUN_METADATA["completed_at"] = _iso_utc(time.time())
+_RUN_METADATA["duration_s"] = round(_t_total, 1)
+print(f"\n  harnessed batch complete: {_n_completed}/{len(_results)} ok, "
+      f"{_n_failed} failed, {_t_total:.1f}s total")
+
+_summary = {
+    "n_completed": _n_completed,
+    "n_failed": _n_failed,
+    "mean_elapsed_s": round(sum(r["elapsed_s"] for r in _results) / max(1, len(_results)), 2),
+    "mean_tokens_in": int(sum(r["tokens_in"] for r in _results) / max(1, len(_results))),
+    "mean_tokens_out": int(sum(r["tokens_out"] for r in _results) / max(1, len(_results))),
+    "total_tokens_in": sum(r["tokens_in"] for r in _results),
+    "total_tokens_out": sum(r["tokens_out"] for r in _results),
+}
+
+_FULL = {
+    "schema_version": "1.0",
+    "kernel_id": "a-02-harnessed-runner",
+    "run_id": RUN_ID,
+    "config": _RUN_CONFIG,
+    "metadata": _RUN_METADATA,
+    "summary": _summary,
+    "results": _results,
+}
+RESULTS_PATH.write_text(json.dumps(_FULL, indent=2, ensure_ascii=False),
+                          encoding="utf-8")
+_METADATA_ONLY = {k: v for k, v in _FULL.items() if k != "results"}
+METADATA_PATH.write_text(json.dumps(_METADATA_ONLY, indent=2, ensure_ascii=False),
+                           encoding="utf-8")
+print(f"  ✓ wrote {RESULTS_PATH.name}")
+print(f"  ✓ wrote {JSONL_PATH.name}")
+print(f"  ✓ wrote {METADATA_PATH.name}")
+
+import zipfile, hashlib
+
+def _sha256_of(p: Path) -> str:
+    h = hashlib.sha256()
+    with p.open("rb") as fh:
+        for chunk in iter(lambda: fh.read(8192), b""):
+            h.update(chunk)
+    return h.hexdigest()
+
+
+_manifest = {
+    "schema_version": "1.0",
+    "run_id": RUN_ID,
+    "kernel_id": "a-02-harnessed-runner",
+    "files": ["results.json", "run.jsonl", "metadata.json"],
+    "checksums": {
+        "results.json": _sha256_of(RESULTS_PATH),
+        "run.jsonl": _sha256_of(JSONL_PATH),
+        "metadata.json": _sha256_of(METADATA_PATH),
+    },
+}
+with zipfile.ZipFile(BUNDLE_PATH, "w", zipfile.ZIP_DEFLATED) as zf:
+    zf.writestr("manifest.json", json.dumps(_manifest, indent=2))
+    zf.write(RESULTS_PATH, "results.json")
+    zf.write(JSONL_PATH, "run.jsonl")
+    zf.write(METADATA_PATH, "metadata.json")
+print(f"  ✓ wrote {BUNDLE_PATH.name} ({BUNDLE_PATH.stat().st_size // 1024} KB)")
+
+dc_log("a02.batch.done", f"harnessed batch complete ({_n_completed} ok, "
+       f"{_n_failed} failed, {_t_total:.0f}s)", run_id=RUN_ID,
+       n_completed=_n_completed, duration_s=int(_t_total))
 
 
 # ===========================================================================
-# 5. Print URL prominently and block
+# 4. Summary UI via the workbench minimal-shell
 # ===========================================================================
 print("\n" + "=" * 76)
-print("[5/5] DUECARE CHAT PLAYGROUND with GREP/RAG/Tools is LIVE")
-print("=" * 76)
-print(f"\n   open this URL on your laptop:")
-print(f"\n       {public_url}\n")
-print(f"   model:    {loaded.name}  ·  {loaded.size_b:.1f}B  ·  "
-      f"{loaded.quantization}")
-print(f"   device:   {loaded.device}")
-print(f"   harness:  Persona + GREP ({len(GREP_RULES)} rules) + "
-      f"RAG ({len(RAG_CORPUS)} docs) + Tools ({len(_TOOL_DISPATCH)} fns)")
-print(f"\n   In the chat UI, scroll to the bottom of the composer to find")
-print(f"   4 colored tile cards: Persona (purple) / GREP (red) / "
-      f"RAG (blue) / Tools (green).")
-print(f"   Click a tile to toggle it ON/OFF for the next message.")
-print(f"   Click '▸ view' on each tile to inspect the catalog.")
-print(f"\n   stop the playground by interrupting this cell.\n")
+print("[4/5] launching summary UI (workbench shell)")
 print("=" * 76)
 
 try:
+    from duecare.chat.kernel_shell import build_minimal_shell
+    summary_payload = {
+        "title": "A-02 harnessed batch run (Persona + GREP + RAG + Tools)",
+        "audience": "researcher",
+        "lede": ("Stock Gemma 4 wrapped with the full DueCare harness "
+                 "(persona + 161 GREP rules + 46-doc RAG corpus + 5 "
+                 "function-calling tools) ran the canonical test prompt "
+                 "library. Pair this artifact bundle with A-01's stock "
+                 "baseline run (same model_variant), then upload both "
+                 "to A-03 for the side-by-side lift comparison."),
+        "results": [
+            {"label": "Model",   "value": f"{loaded.name} · {GEMMA_MODEL_VARIANT}"},
+            {"label": "Harness", "value": f"persona + GREP({len(GREP_RULES)}) + RAG({len(RAG_CORPUS)}) + tools({len(_TOOL_DISPATCH)})"},
+            {"label": "Prompts", "value": f"{_n_completed} ok / {_n_failed} failed"},
+            {"label": "Wall time", "value": f"{_t_total:.0f}s"},
+            {"label": "Tokens in/out", "value": f"{_summary['total_tokens_in']:,} / {_summary['total_tokens_out']:,}"},
+        ],
+        "artifacts": [
+            {"name": BUNDLE_PATH.name,   "path": str(BUNDLE_PATH)},
+            {"name": RESULTS_PATH.name,  "path": str(RESULTS_PATH)},
+            {"name": JSONL_PATH.name,    "path": str(JSONL_PATH)},
+            {"name": METADATA_PATH.name, "path": str(METADATA_PATH)},
+        ],
+        "links": [
+            ("Workbench (full)",
+             "https://www.kaggle.com/code/taylorsamarel/duecare-exploration-workbench"),
+            ("Artifact schema spec",
+             "https://github.com/TaylorAmarelTech/gemma4_comp/blob/master/docs/appendix_artifact_schema.md"),
+        ],
+        "next_steps": [
+            f"Download {BUNDLE_PATH.name} from /artifact/{BUNDLE_PATH.name}.",
+            f"Run A-01 with model_variant={GEMMA_MODEL_VARIANT} for the paired stock baseline.",
+            "Upload both bundles to A-03 for the side-by-side lift comparison.",
+        ],
+    }
+    app, public_url = build_minimal_shell(
+        summary=summary_payload,
+        kernel_id="a-02-harnessed-runner",
+        port=PORT,
+    )
+    if public_url:
+        print(f"  ✓ UI available at {public_url}")
+    print("\n" + "=" * 76)
+    print("[5/5] A-02 HARNESSED RUN COMPLETE")
+    print("=" * 76)
+    print(f"\n   {_n_completed}/{_n_prompts} prompts ok in {_t_total:.0f}s")
+    print(f"   bundle: /kaggle/working/{BUNDLE_PATH.name}")
+    if public_url:
+        print(f"   UI:     {public_url}")
+    print(f"\n   Next: run A-01 with model_variant={GEMMA_MODEL_VARIANT} "
+          f"to produce the paired stock baseline.\n")
+    print("=" * 76)
     while not _SHUTDOWN_EVENT.is_set():
         time.sleep(1)
 except KeyboardInterrupt:
     print("\n  interrupted -- shutting down")
+except Exception as e:
+    print(f"  shell unavailable: {type(e).__name__}: {e}")
 
-# Cleanup on shutdown
+# Cleanup on shutdown.
 print("\n  shutting down cleanly...")
 try:
     if _CLOUDFLARED_PROC.get("p"):
@@ -948,10 +1225,4 @@ try:
         print("  cloudflared tunnel closed")
 except Exception as _e:
     print(f"  cloudflared close: {_e}")
-try:
-    from duecare.research_tools.browser_tool import shutdown as _browser_shutdown
-    _browser_shutdown()
-    print("  browser session closed (if any)")
-except Exception:
-    pass
 print("  shutdown complete -- cell exiting.\n")
