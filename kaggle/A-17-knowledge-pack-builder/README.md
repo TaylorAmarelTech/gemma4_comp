@@ -8,7 +8,7 @@
 Builds versioned, content-hashed knowledge packs from public-source
 URLs and files. Each pack carries a `manifest.json` with curator
 metadata + a sha256 hash over content. A verifier step simulates
-the researcher pull-and-verify path so judges can see end-to-end
+the researcher pull-and-verify path so a reviewer can see end-to-end
 reproducibility.
 
 Closes the "researcher reproducibility" gap — the website's
@@ -46,7 +46,7 @@ To `/kaggle/working/`:
   `slug + version` as the primary key plus the pack `content_hash`.
 - `<RUN>_results.json` / `<RUN>_run.jsonl` / `<RUN>_metadata.json`
 - `<pack_slug>-v<version>.tar.gz` — one per built pack (the
-  judge-pullable artifact)
+  reviewer-pullable artifact)
 - `RUN_ID` format: `a16_pack_session_{ts}`
   (e.g., `a16_pack_session_2026-05-12T19-30-00Z`)
 
