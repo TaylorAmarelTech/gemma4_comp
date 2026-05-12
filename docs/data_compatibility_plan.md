@@ -537,3 +537,38 @@ locally before each push:
 **Single rule of thumb:** if a kernel emits JSON and is not on
 the canonical path, an entry MUST exist here describing the fix.
 No silent drift.
+
+## Status (2026-05-12)
+
+All four tiers landed in `master` on 2026-05-12.
+
+| Tier | Commit | Status | Artifacts |
+|---|---|---|---|
+| 1 | `c0e6f64` | DONE | A-04 schema_version normalized; A-19 / A-20 RunIDs added |
+| 2 | `c0e6f64` | DONE | 4x aggregate -> summary aliases; 3x results[]-rename aliases; 2x error:null defaults; A-11 flatten |
+| 3 | `9be6b74` | DONE | `duecare.appendix_primitives` module shipped (0.17.0) + 20 unit tests |
+| 4 | `9be6b74` | DONE | `check_bundle_envelope_v1` registered in `scripts/validate_public_surface.py` |
+
+The Tier-3 module exports:
+
+```python
+from duecare.appendix_primitives import (
+    BundleEnvelope, PerRow, HarnessTrace,
+    HarnessGrep, HarnessRag, HarnessTools,
+    HarnessOnline, HarnessPersona,
+    make_run_id, write_v1_bundle, read_v1_bundle,
+    validate_canonical,
+)
+```
+
+The Tier-4 check (`bundle_envelope_v1`) honors the existing
+`audit-allow:drift` inline / above-line marker so a kernel using a
+flagged key for a non-envelope purpose can opt out with a one-line
+justification. Current example: `kaggle/A-07-bench-and-tune/kernel.py`
+uses `"aggregate"` as a phase-result dict key, never a v1.0 envelope
+field.
+
+Open follow-up (post-submission): one-at-a-time migration of the 11
+fixed kernels from Tier-1+2 legacy-alias rollover state to using
+`write_v1_bundle()` directly. The legacy aliases stay in place until
+each kernel migrates.
