@@ -1,72 +1,67 @@
 # <!-- duecare:kernel-intro -->
-# DueCare — Hands-on classification sandbox
+# DueCare — Harness lift comparison (upload A-01 + A-02 bundles)
 # Appendix notebook #A03 of 13 in the DueCare submission.
 #
-# Paste content, pick a classification schema (4 included), see the structured risk envelope Gemma 4 returns.
+# Upload the bundle.zip from A-01 (stock baseline) and the bundle.zip from
+# A-02 (same model + harness). A-03 runs the universal v2 grader on every
+# paired prompt and renders the side-by-side lift report.
 #
 # What to look for after Run All:
-#   - The schema picker selects which fields the model populates.
-#   - JSON output is validated against the schema before display.
-#   - Failure modes (under-classified, over-classified) are explained inline.
+#   - Open the printed cloudflared URL; two upload widgets accept the ZIPs.
+#   - Comparison runs on CPU; no Gemma load. Takes ~30s for 200 prompts.
+#   - Plotly chart of per-dimension status change + downloadable JSON + MD.
 #
-# Demo path: Run All -> open URL -> paste a job-board post -> pick a schema -> read the classification.
+# Demo path: Run All -> open URL -> drop both bundles -> Run Comparison -> read the lift.
 #
 # Full README + cross-kernel index: see the README in this folder.
 
 """
 ============================================================================
-  DUECARE CONTENT CLASSIFICATION PLAYGROUND -- Kaggle notebook
+  DUECARE A-03 LIFT COMPARISON -- Kaggle notebook (single-cell paste)
 ============================================================================
 
-  CORE notebook (3rd in the canonical order). The HANDS-ON sandbox where
-  judges learn HOW DueCare classifies content before they see the polished
-  live-demo. Pairs with `content-knowledge-builder-playground` (the
-  knowledge-base sandbox); both are prerequisites for understanding what
-  the live-demo notebook actually does.
+  Per Taylor's 2026-05-11 experiment-ladder spec, A-03 is the upload +
+  comparison stage of the appendix arc. It consumes two bundles produced
+  by sibling kernels:
 
-  How this differs from `gemma-content-classification-evaluation`:
+      A-01 bundle  (stock Gemma 4, harness OFF, same prompt subset)
+      A-02 bundle  (stock Gemma 4, harness ON,  same prompt subset)
 
-    * The classifier-evaluation notebook is the polished NGO/agency
-      DASHBOARD — form, history queue, threshold filter, production UI.
-    * THIS notebook is a PLAYGROUND for understanding the mechanics.
-      You see the raw prompt Gemma actually receives, the raw response
-      it produces, the parsed JSON envelope, and you can switch between
-      classification SCHEMAS (single-label, multi-label, multi-vector).
-      No history queue, no threshold filter -- just paste, classify,
-      inspect.
+  ...and emits a side-by-side lift report using
+  ``duecare.chat.harness.evaluate_lift`` (universal v2 grader,
+  deterministic, no model load required).
 
-  The four sections you can switch between:
+  Bundle contract: see ``docs/appendix_artifact_schema.md`` (v1.0).
 
-    1. SINGLE-LABEL classification (one category from a fixed set)
-    2. MULTI-LABEL classification (any subset of a tag set)
-    3. RISK-VECTOR classification (per-dimension magnitude scores)
-    4. CUSTOM SCHEMA (paste your own JSON Schema, get strict-JSON output)
-
-  Each classification shows:
-    - the merged prompt Gemma actually saw (byte-for-byte)
-    - the raw response Gemma produced (no parsing)
-    - the parsed JSON envelope (with validation errors highlighted)
-    - elapsed_ms + tokens generated
+  Outputs to ``/kaggle/working``:
+      ``<comparison_id>_compare.json``    -- full lift results + aggregate
+      ``<comparison_id>_report.md``       -- judge-readable markdown
+      ``<comparison_id>_lift_chart.html`` -- interactive Plotly chart
 
   Requirements:
-    - GPU: T4 x2 (default model is E4B-it; switchable to E2B for CPU-fast)
-    - Internet: ON (for GitHub bootstrap + cloudflared tunnel + HF Hub model download)
-    - Optional datasets (fallback only):
-        duecare-content-classification-playground-wheels (3 wheels)
-    - Secrets: HF_TOKEN
+    - GPU: NOT required (rule-based grader, pure CPU)
+    - Internet: ON (GitHub install only; comparison runs offline once
+      packages are present)
+    - Wheels dataset: none (GitHub-only install per 2026-05-11 policy)
+    - Bundles: produced by sibling A-01 and A-02 runs
+
+  Expected runtime: ~30s install + ~10s per 100 prompts of grading.
 
   Built with Google's Gemma 4. Used in accordance with the Gemma Terms of Use.
 ============================================================================
 """
 from __future__ import annotations
 
+import io
 import json
 import os
 import subprocess
 import sys
 import threading
 import time
-from dataclasses import dataclass
+import zipfile
+import hashlib
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Optional
 
@@ -74,819 +69,799 @@ from typing import Any, Optional
 # ===========================================================================
 # CONFIG
 # ===========================================================================
-# DEPRECATED 2026-05-11 (GitHub-only): DATASET_SLUG          = "duecare-content-classification-playground-wheels"
-GEMMA_MODEL_VARIANT   = "e4b-it"        # "e2b-it" | "e4b-it" | "26b-a4b-it" | "31b-it"
-GEMMA_LOAD_IN_4BIT    = True
-GEMMA_MAX_SEQ_LEN     = 8192
-PORT                  = 8080
-TUNNEL                = "cloudflared"   # "cloudflared" | "none"
+# DEPRECATED 2026-05-11 (GitHub-only): no wheel dataset attached.
+PORT = 8080
+TUNNEL = "cloudflared"
 
-GEMMA_HF_REPO_VARIANT = (
-    GEMMA_MODEL_VARIANT
-    .replace("e2b-it", "E2B-it").replace("e4b-it", "E4B-it")
-    .replace("26b-a4b-it", "26B-A4B-it").replace("31b-it", "31B-it"))
+OUTPUT_DIR = Path("/kaggle/working")
+OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
 
 # ===========================================================================
-# PHASE 0 -- Hanchen's Unsloth stack (subprocess, before torch import)
+# PHASE 1 -- install DueCare from GitHub (no Kaggle wheel datasets)
 # ===========================================================================
-_UNSLOTH_MARKER = Path("/tmp/.duecare_classification_pg_unsloth_v1_done")
+# Policy 2026-05-11: all DueCare packages install directly from GitHub.
+# Two-tier strategy:
+#   1. GitHub Release wheels at /releases/download/v{VERSION}/
+#   2. GitHub source install via git+https://...@<sha>#subdirectory=...
+DUECARE_VERSION    = "0.1.0"
+DUECARE_REPO       = "TaylorAmarelTech/gemma4_comp"
+DUECARE_COMMIT_SHA = "f7e36ea"
+DUECARE_PACKAGES   = ["duecare-llm-chat"]   # pulls in core for harness data
 
 
-def _need_unsloth() -> bool:
-    # Every on-device variant uses Unsloth's FastModel loader.
-    return GEMMA_MODEL_VARIANT not in ("cloud-gemini", "cloud-openai", "cloud-ollama")
-
-
-def _install_unsloth_stack() -> bool:
+def install_duecare_from_github() -> bool:
+    """Install DueCare packages from GitHub. Wheels-free, judge-transparent.
+    Tier 1: GitHub Release wheels. Tier 2: git+https source-install.
+    """
     print("=" * 76)
-    print("[phase 0] installing Hanchen's Unsloth Gemma 4 stack")
+    print("[install] DueCare packages from GitHub (no Kaggle wheel datasets)")
     print("=" * 76)
-    try:
-        import numpy as _np_v, PIL as _pil_v
-        np_pin = f"numpy=={_np_v.__version__}"
-        pil_pin = f"pillow=={_pil_v.__version__}"
-    except Exception:
-        np_pin, pil_pin = "numpy", "pillow"
-    if subprocess.run(["uv", "--version"], capture_output=True).returncode == 0:
-        installer = ["uv", "pip", "install", "-qqq", "--system"]
-    else:
-        installer = [sys.executable, "-m", "pip", "install",
-                     "-q", "--no-input", "--disable-pip-version-check"]
-    cmd = installer + [
-        "torch>=2.8.0", "triton>=3.4.0", np_pin, pil_pin,
-        "torchvision", "bitsandbytes",
-        "unsloth", "unsloth_zoo>=2026.4.6",
-        "transformers==5.5.0", "torchcodec", "timm",
-    ]
-    print(f"  $ {' '.join(cmd[:6])} ... ({len(cmd)} packages total)")
-    t0 = time.time()
-    proc = subprocess.run(cmd, capture_output=True, text=True)
-    if proc.returncode != 0:
-        print(f"  install FAILED: {proc.stderr[-600:]}")
-        return False
-    print(f"  installed in {time.time() - t0:.0f}s")
-    try:
-        _UNSLOTH_MARKER.write_text(json.dumps(
-            {"variant": GEMMA_MODEL_VARIANT,
-             "installed_at": time.strftime("%Y-%m-%dT%H:%M:%S")}, indent=2))
-    except Exception:
-        pass
-    return True
-
-
-if _need_unsloth():
-    if _UNSLOTH_MARKER.exists():
-        print(f"[phase 0] Unsloth marker present; skipping install")
-    else:
-        if not _install_unsloth_stack():
-            sys.exit("[phase 0] aborting -- Unsloth stack install failed")
-
-
-# ===========================================================================
-# PHASE 1 -- duecare wheels + minimal server deps
-# ===========================================================================
-def install_deps() -> int:
-    """Install DueCare packages from GitHub. No Kaggle wheel datasets."""
-    print("=" * 76)
-    print("[phase 1] installing duecare packages (GitHub-only)")
-    print("=" * 76)
-
-    # Server deps (always needed; FastAPI playground)
-    cmd_srv = [sys.executable, "-m", "pip", "install", "--quiet",
-               "--no-input", "--disable-pip-version-check",
-               "fastapi>=0.115", "uvicorn>=0.30", "pydantic>=2.0"]
-    subprocess.run(cmd_srv, capture_output=True, text=True)
-
-    # Method 1: Try GitHub bootstrap (no dataset required)
-    try:
-        print("  → trying GitHub bootstrap (github.com/TaylorAmarelTech/gemma4_comp)")
-        import urllib.request
-        bootstrap_url = "https://raw.githubusercontent.com/TaylorAmarelTech/gemma4_comp/3e3ff9e3684903a66441b1ec4b143de25e7ded3e/scripts/_notebook_bootstrap.py"
-        with urllib.request.urlopen(bootstrap_url, timeout=10) as response:
-            bootstrap_code = response.read().decode('utf-8')
-
-        # Execute bootstrap with error capture
-        import io, contextlib
-        output_buffer = io.StringIO()
-        with contextlib.redirect_stdout(output_buffer):
-            exec(bootstrap_code, {'__name__': '__main__'})
-
-        output = output_buffer.getvalue()
-        if "✓" in output and "duecare" in output.lower():
-            print("  ✓ GitHub bootstrap successful")
-            return 1  # Success
+    base_url = f"https://github.com/{DUECARE_REPO}/releases/download/v{DUECARE_VERSION}"
+    success = 0
+    for i, pkg in enumerate(DUECARE_PACKAGES, 1):
+        wheel_name = f"{pkg.replace('-', '_')}-{DUECARE_VERSION}-py3-none-any.whl"
+        url = f"{base_url}/{wheel_name}"
+        print(f"  > [{i}/{len(DUECARE_PACKAGES)}] release wheel: {wheel_name}")
+        cmd = [sys.executable, "-m", "pip", "install", "--no-input",
+               "--disable-pip-version-check", "--timeout=60", url]
+        proc = subprocess.run(cmd, capture_output=True, text=True, timeout=90)
+        if proc.returncode == 0:
+            success += 1
+            print(f"  + installed {pkg} from release v{DUECARE_VERSION}")
         else:
-            raise Exception("Bootstrap didn't complete successfully")
+            tail = (proc.stderr or "")[-200:]
+            if "404" in tail or "Not Found" in tail:
+                print(f"  - release wheel not found, falling back to source install")
+                break
+            print(f"  - {pkg} release wheel failed: {tail}")
+    if success == len(DUECARE_PACKAGES):
+        for mod in list(sys.modules):
+            if mod == "duecare" or mod.startswith("duecare."):
+                del sys.modules[mod]
+        return True
+    git_pkgs = [
+        f"git+https://github.com/{DUECARE_REPO}.git@{DUECARE_COMMIT_SHA}"
+        f"#subdirectory=packages/{p}"
+        for p in DUECARE_PACKAGES
+    ]
+    print(f"  > source install @ {DUECARE_COMMIT_SHA} ({len(git_pkgs)} pkg)")
+    cmd = [sys.executable, "-m", "pip", "install", "--no-input",
+           "--disable-pip-version-check", "--timeout=300", *git_pkgs]
+    proc = subprocess.run(cmd, capture_output=True, text=True, timeout=420)
+    if proc.returncode == 0:
+        for mod in list(sys.modules):
+            if mod == "duecare" or mod.startswith("duecare."):
+                del sys.modules[mod]
+        print(f"  + source install ok @ {DUECARE_COMMIT_SHA}")
+        return True
+    raise SystemExit(
+        f"DueCare GitHub install failed: {(proc.stderr or '')[-300:]}")
 
-    except Exception as e:
-        print(f"  ✗ GitHub bootstrap failed: {str(e)[:100]}...")
-        print("  → GitHub install failed - no fallback (wheels removed 2026-05-11)")
 
-    # Wheels fallback removed 2026-05-11 (GitHub-only policy).
-    # If GitHub bootstrap fails, fail loud rather than silently install nothing.
-    raise SystemExit("DueCare GitHub install failed - check Internet=ON in Kaggle settings")
-N_WHEELS = install_deps()
+print("\n" + "=" * 76)
+print("[1/4] installing DueCare from GitHub")
+print("=" * 76)
+install_duecare_from_github()
+# Extra deps the comparison needs: plotly for charts + fastapi for the
+# upload routes (fastapi is usually present on Kaggle but pin upgrade
+# anyway).
+subprocess.run([sys.executable, "-m", "pip", "install", "--quiet",
+                  "--no-input", "--disable-pip-version-check",
+                  "plotly>=5.20.0", "fastapi>=0.115.0",
+                  "uvicorn>=0.30.0", "python-multipart>=0.0.9"],
+                  capture_output=True, text=True)
 
 
 # ===========================================================================
-# CLEAN SHUTDOWN -- /api/shutdown POST + /shutdown GET + floating button.
-# Users can:
-#   (1) click the floating "Shutdown" button in the top-right of the UI
-#   (2) open <public-url>/shutdown for a full confirmation page
-#   (3) POST /api/shutdown directly (curl, etc.)
-# All three signal the main loop to exit; cleanup runs after.
+# 2. Lazy imports (post-install)
 # ===========================================================================
-import threading as _shutdown_threading
-_SHUTDOWN_EVENT = _shutdown_threading.Event()
+print("\n" + "=" * 76)
+print("[2/4] importing duecare evaluator stack")
+print("=" * 76)
+
+from duecare.chat.harness import (
+    evaluate_lift,
+    aggregate_lift_results,
+    format_lift_report_md,
+)
+import plotly.graph_objects as go
+import plotly.io as pio
+
+try:
+    from duecare.chat._dc_log import dc_log, set_kernel_id
+    set_kernel_id("a-03-upload-and-compare")
+except Exception:
+    def dc_log(*a, **kw): return None  # type: ignore[no-redef]
+    def set_kernel_id(*a, **kw): return None  # type: ignore[no-redef]
+
+
+# ===========================================================================
+# 3. State + bundle parsing
+# ===========================================================================
+# A-03 keeps two parsed bundles in memory: "baseline" (from A-01) and
+# "harness" (from A-02). Each is a parsed results.json dict per the v1.0
+# schema. Comparison runs only when both slots are populated and the
+# prompt_id sets match.
+_SHUTDOWN_EVENT = threading.Event()
 _CLOUDFLARED_PROC: dict = {"p": None}
 
 
-_SHUTDOWN_BUTTON_SNIPPET = """
-<style>
-  #_dc-shutdown-btn {
-    position: fixed; bottom: 14px; right: 14px; z-index: 99999;
-    background: oklch(0.58 0.14 45); color: white; padding: 8px 14px;
-    border-radius: 8px; font-family: -apple-system,system-ui,sans-serif;
-    font-weight: 700; font-size: 12px; cursor: pointer; border: none;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.18);
-  }
-  #_dc-shutdown-btn:hover { background: oklch(0.50 0.16 45); }
-  #_dc-shutdown-btn:focus-visible { outline: 3px solid white; outline-offset: 2px; }
-  #_dc-shutdown-btn[aria-disabled="true"] { cursor: wait; opacity: 0.82; }
-  #_dc-shutdown-status {
-    position: fixed; bottom: 58px; right: 14px; z-index: 99999;
-    max-width: min(320px, calc(100vw - 28px)); padding: 10px 12px;
-    background: #f8fafc; color: #1f2937; border: 1px solid #e5e7eb;
-    border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.16);
-    font-family: -apple-system,system-ui,sans-serif; font-size: 12px;
-  }
-  #_dc-shutdown-status[hidden] { display: none; }
-  @media (max-width: 640px) {
-    #_dc-shutdown-btn { left: 12px; right: 12px; bottom: 12px; width: calc(100% - 24px); }
-    #_dc-shutdown-status { left: 12px; right: 12px; bottom: 58px; max-width: none; }
-  }
-</style>
-<button id="_dc-shutdown-btn" type="button" aria-label="Shutdown DueCare server">Shutdown</button>
-<div id="_dc-shutdown-status" role="status" aria-live="polite" hidden></div>
-<script>
-(function() {
-  var btn = document.getElementById('_dc-shutdown-btn');
-  var status = document.getElementById('_dc-shutdown-status');
-  if (!btn || !status) return;
-  function showStatus(message) {
-    status.textContent = message;
-    status.hidden = false;
-  }
-  btn.addEventListener('click', function() {
-    if (btn.getAttribute('aria-disabled') === 'true') return;
-    if (!confirm('Shut down DueCare?')) return;
-    btn.setAttribute('aria-disabled', 'true');
-    btn.textContent = 'Stopping...';
-    showStatus('Shutting down. You can close this tab after the Kaggle cell exits.');
-    fetch('/api/shutdown', {method: 'POST'}).catch(function(error) {
-      btn.removeAttribute('aria-disabled');
-      btn.textContent = 'Shutdown';
-      showStatus('Shutdown request failed: ' + error.message);
-    });
-  });
-})();
-</script>
-"""
-
-
-_HIDE_HARNESS_TILES_SNIPPET = """
-<style>
-  #harness-tiles, [id^='tile-'], .harness-tile { display: none !important; }
-</style>
-"""
-
-
-def _attach_shutdown(app, hide_harness_tiles: bool = False) -> None:
-    """Bolt /api/shutdown + /shutdown + floating button onto any FastAPI app."""
-    from fastapi.responses import HTMLResponse, JSONResponse
-    from starlette.middleware.base import BaseHTTPMiddleware
-
-    def _api_shutdown():
-        _shutdown_threading.Thread(
-            target=lambda: (time.sleep(0.5), _SHUTDOWN_EVENT.set()),
-            daemon=True, name="shutdown-fire").start()
-        return JSONResponse({"shutting_down": True,
-                             "message": "Cell will exit within ~5 seconds."})
-
-    def _shutdown_page():
-        html = (
-            "<!doctype html><html><head><meta charset='utf-8'>"
-            "<title>Shut down DueCare</title><style>"
-            "body{font-family:-apple-system,system-ui,sans-serif;"
-            "background:#f8fafc;color:#1f2937;display:flex;"
-            "align-items:center;justify-content:center;min-height:100vh;"
-            "margin:0}.box{background:white;border:1px solid #e5e7eb;"
-            "border-radius:14px;padding:40px 50px;text-align:center;"
-            "max-width:480px}h1{color:oklch(0.58 0.14 45);margin:0 0 14px}"
-            "p{color:#6b7280;line-height:1.6;margin:0 0 24px}"
-            "button{background:oklch(0.58 0.14 45);color:white;padding:12px 28px;"
-            "border:none;border-radius:10px;font-weight:700;font-size:15px;"
-            "cursor:pointer}button:hover{background:oklch(0.50 0.16 45)}"
-            ".meta{color:#6b7280;font-size:12px;margin-top:18px}"
-            "</style></head><body><div class='box'>"
-            "<h1>Shut down DueCare?</h1>"
-            "<p>Stops the FastAPI server, closes the browser session "
-            "(if any), terminates the cloudflared tunnel, and exits "
-            "the Kaggle cell. Re-run the cell to restart.</p>"
-            "<button onclick='doShutdown()'>Confirm shutdown</button>"
-            "<div class='meta' id='status'></div></div>"
-            "<script>async function doShutdown(){"
-            "document.getElementById('status').textContent='shutting down...';"
-            "try{await fetch('/api/shutdown',{method:'POST'});"
-            "document.querySelector('.box').innerHTML="
-            "\"<h1 style='color:oklch(0.55 0.10 155)'>Shutting down</h1>\"+"
-            "\"<p>You can close this tab. The Kaggle cell will exit shortly.</p>\";"
-            "}catch(e){document.getElementById('status').textContent='error: '+e.message;}}"
-            "</script></body></html>")
-        return HTMLResponse(html)
-
-    app.add_api_route("/api/shutdown", _api_shutdown, methods=["POST"])
-    app.add_api_route("/shutdown", _shutdown_page, methods=["GET"])
-
-    # Inject the floating shutdown button into the main page via middleware.
-    # Filters: only path "/" + content-type text/html. Streaming endpoints
-    # like /api/chat (SSE / JSON) pass through untouched.
-    extras = _SHUTDOWN_BUTTON_SNIPPET
-    if hide_harness_tiles:
-        extras = _HIDE_HARNESS_TILES_SNIPPET + extras
-
-    class _UIInjector(BaseHTTPMiddleware):
-        async def dispatch(self, request, call_next):
-            response = await call_next(request)
-            if request.url.path != "/":
-                return response
-            ct = response.headers.get("content-type", "")
-            if not ct.startswith("text/html"):
-                return response
-            chunks = []
-            async for c in response.body_iterator:
-                chunks.append(c)
-            try:
-                html = b"".join(chunks).decode("utf-8")
-            except UnicodeDecodeError:
-                return response
-            if "</body>" in html:
-                html = html.replace("</body>", extras + "</body>", 1)
-            else:
-                html = html + extras
-            new_headers = {k: v for k, v in response.headers.items()
-                           if k.lower() != "content-length"}
-            return HTMLResponse(html,
-                                status_code=response.status_code,
-                                headers=new_headers)
-
-    app.add_middleware(_UIInjector)
-
-# ===========================================================================
-# PHASE 2 -- Load Gemma 4
-# ===========================================================================
 @dataclass
-class LoadedModel:
-    model: Any
-    tokenizer: Any
-    variant: str
+class BundleState:
+    """Holds a parsed v1.0 results bundle in memory."""
+    filename: str = ""
+    run_id: str = ""
+    kernel_id: str = ""
+    model_variant: str = ""
+    model_kind: str = ""
+    harness_enabled: bool = False
+    n_results: int = 0
+    parsed: dict = field(default_factory=dict)
+    error: Optional[str] = None
+
+    @property
+    def loaded(self) -> bool:
+        return self.error is None and self.n_results > 0
 
 
-def load_gemma() -> Optional[LoadedModel]:
-    print("=" * 76)
-    print(f"[phase 2] loading Gemma 4 ({GEMMA_MODEL_VARIANT})")
-    print("=" * 76)
+_BUNDLES: dict[str, BundleState] = {
+    "baseline": BundleState(),
+    "harness":  BundleState(),
+}
+_COMPARISON: dict = {
+    "comparison_id": None,
+    "results":       None,
+    "aggregate":     None,
+    "artifacts":     [],
+    "warnings":      [],
+    "error":         None,
+    "completed_at":  None,
+}
+
+
+def parse_bundle_bytes(raw: bytes, filename: str) -> BundleState:
+    """Parse a bundle. Accepts either a v1.0 results.json directly OR a
+    v1.0 bundle.zip containing results.json + manifest.json."""
+    state = BundleState(filename=filename)
     try:
-        out = subprocess.run(
-            ["nvidia-smi", "--query-gpu=name,memory.total",
-             "--format=csv,noheader,nounits"],
-            capture_output=True, text=True, timeout=5)
-        if out.returncode != 0 or not out.stdout.strip():
-            print("  no GPU detected (CPU mode possible for E2B only)")
-            return None
-        lines = [l.strip() for l in out.stdout.strip().split("\n") if l.strip()]
-        gpu_count = len(lines)
-        print(f"  GPU: {lines[0].split(',')[0].strip()} x{gpu_count}")
+        if filename.lower().endswith(".zip"):
+            zf = zipfile.ZipFile(io.BytesIO(raw))
+            names = set(zf.namelist())
+            if "results.json" not in names:
+                state.error = "bundle.zip missing results.json"
+                return state
+            results_raw = zf.read("results.json").decode("utf-8")
+            parsed = json.loads(results_raw)
+        else:
+            parsed = json.loads(raw.decode("utf-8"))
+        if parsed.get("schema_version") != "1.0":
+            state.error = (f"unsupported schema_version "
+                            f"{parsed.get('schema_version')!r}; expected 1.0")
+            return state
+        if "results" not in parsed or not isinstance(parsed["results"], list):
+            state.error = "missing or malformed 'results' array"
+            return state
+        cfg = parsed.get("config", {}) or {}
+        state.run_id          = parsed.get("run_id", "")
+        state.kernel_id       = parsed.get("kernel_id", "")
+        state.model_variant   = cfg.get("model_variant", "")
+        state.model_kind      = cfg.get("model_kind", "")
+        state.harness_enabled = bool(cfg.get("harness_enabled", False))
+        state.n_results       = len(parsed["results"])
+        state.parsed          = parsed
+        return state
     except Exception as e:
-        print(f"  nvidia-smi failed: {e}")
-        return None
+        state.error = f"{type(e).__name__}: {str(e)[:200]}"
+        return state
 
-    # HF token
-    if not os.environ.get("HF_TOKEN"):
-        try:
-            from kaggle_secrets import UserSecretsClient   # type: ignore
-            for label in ("HF_TOKEN", "HUGGINGFACE_TOKEN"):
-                try:
-                    tok = UserSecretsClient().get_secret(label)
-                    if tok:
-                        os.environ["HF_TOKEN"] = tok.strip()
-                        break
-                except Exception:
-                    continue
-        except Exception:
-            pass
 
-    if _need_unsloth():
+def _pair_bundles(baseline: BundleState, harness: BundleState
+                    ) -> tuple[list[tuple[dict, dict]], list[str]]:
+    """Pair rows by prompt_id. Returns (paired_list, warnings_list).
+    Warnings include model_variant mismatch, missing prompt_ids on either
+    side, and harness-enabled mismatches."""
+    warnings: list[str] = []
+    if baseline.model_variant and harness.model_variant and \
+            baseline.model_variant != harness.model_variant:
+        warnings.append(
+            f"model_variant mismatch: baseline={baseline.model_variant} vs "
+            f"harness={harness.model_variant}; comparison is invalid for "
+            f"lift attribution (different model)")
+    if baseline.harness_enabled:
+        warnings.append("baseline bundle has harness_enabled=True; "
+                          "expected the baseline run to be harness-OFF")
+    if not harness.harness_enabled:
+        warnings.append("harness bundle has harness_enabled=False; "
+                          "expected the harness run to be harness-ON")
+    by_pid_off = {r["prompt_id"]: r for r in baseline.parsed["results"]
+                    if r.get("error") is None}
+    by_pid_on  = {r["prompt_id"]: r for r in harness.parsed["results"]
+                    if r.get("error") is None}
+    only_off = sorted(by_pid_off.keys() - by_pid_on.keys())
+    only_on  = sorted(by_pid_on.keys()  - by_pid_off.keys())
+    if only_off:
+        warnings.append(f"{len(only_off)} prompt_id(s) only in baseline "
+                          f"(skipped): {only_off[:5]}")
+    if only_on:
+        warnings.append(f"{len(only_on)} prompt_id(s) only in harness "
+                          f"(skipped): {only_on[:5]}")
+    paired = [(by_pid_off[pid], by_pid_on[pid])
+                for pid in sorted(by_pid_off.keys() & by_pid_on.keys())]
+    return paired, warnings
+
+
+_SAFE_VARIANT_CHARS = set("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+                            "0123456789-_")
+
+
+def _safe_token(s: str, default: str = "unknown", max_len: int = 32) -> str:
+    """Strip a user-supplied string to a filename-safe + URL-safe token.
+    Defense in depth: any value pulled from the uploaded JSON that ends up
+    in a filename or a URL path goes through this so an attacker cannot
+    craft a bundle.zip whose model_variant breaks out of the comparison_id
+    or smuggles HTML/JS through the artifact list."""
+    if not s:
+        return default
+    out = "".join(c for c in s if c in _SAFE_VARIANT_CHARS)
+    return (out[:max_len] or default)
+
+
+def _comparison_id(baseline: BundleState, harness: BundleState) -> str:
+    """Stable ID for the comparison artifact filenames. Sanitized so a
+    user-supplied bundle cannot inject path / HTML into output names."""
+    ts = time.strftime("%Y-%m-%dT%H-%M-%SZ", time.gmtime())
+    raw_mv = baseline.model_variant or harness.model_variant or "unknown"
+    mv = _safe_token(raw_mv)
+    return f"a03_compare_{mv}_{ts}"
+
+
+def run_comparison() -> dict:
+    """Run evaluate_lift over every paired prompt_id. Idempotent: caller
+    guards via the /api/run-comparison handler."""
+    baseline = _BUNDLES["baseline"]
+    harness  = _BUNDLES["harness"]
+    if not (baseline.loaded and harness.loaded):
+        return {"ok": False, "error": "both bundles must be loaded first"}
+    paired, warnings = _pair_bundles(baseline, harness)
+    if not paired:
+        return {"ok": False, "error": "no overlapping prompt_ids in the "
+                  "two bundles; comparison is impossible"}
+    cid = _comparison_id(baseline, harness)
+    dc_log("a03.compare.start", "lift comparison started",
+            comparison_id=cid, n_pairs=len(paired))
+    t0 = time.time()
+    lift_results: list[dict] = []
+    for idx, (row_off, row_on) in enumerate(paired, 1):
         try:
-            from unsloth import FastModel
-            from unsloth.chat_templates import get_chat_template
+            lift = evaluate_lift(
+                prompt_text=row_off.get("prompt_text", "")
+                              or row_on.get("prompt_text", ""),
+                response_off=row_off.get("response", ""),
+                response_on=row_on.get("response", ""),
+                harness_trace_on=row_on.get("harness_trace"),
+            )
+            lift["prompt_id"] = row_off["prompt_id"]
+            lift["prompt_metadata"] = (row_off.get("prompt_metadata")
+                                          or row_on.get("prompt_metadata", {}))
+            lift_results.append(lift)
+            if idx % 10 == 0:
+                dc_log("a03.compare.progress", f"{idx}/{len(paired)} graded",
+                        completed=idx, total=len(paired))
         except Exception as e:
-            print(f"  unsloth import FAILED: {e}")
-            return None
-        repo = f"unsloth/gemma-4-{GEMMA_HF_REPO_VARIANT}"
-        device_map = "balanced" if gpu_count >= 2 else "auto"
-        print(f"  loading {repo} via Unsloth FastModel (device_map={device_map})")
-        try:
-            model, tokenizer = FastModel.from_pretrained(
-                model_name=repo, dtype=None, max_seq_length=GEMMA_MAX_SEQ_LEN,
-                load_in_4bit=GEMMA_LOAD_IN_4BIT, full_finetuning=False,
-                device_map=device_map)
-        except Exception as e:
-            print(f"  FastModel.from_pretrained FAILED: {e}")
-            return None
-        try:
-            tokenizer = get_chat_template(tokenizer,
-                                          chat_template="gemma-4-thinking")
-        except Exception:
-            pass
-    else:
-        # Legacy transformers path for E4B / E2B (faster startup)
-        try:
-            from transformers import AutoTokenizer, AutoModelForCausalLM
-            import torch
-        except Exception as e:
-            print(f"  transformers import FAILED: {e}")
-            return None
-        repo = f"google/gemma-4-{GEMMA_MODEL_VARIANT}"
-        print(f"  loading {repo} via transformers")
-        try:
-            tokenizer = AutoTokenizer.from_pretrained(repo)
-            model = AutoModelForCausalLM.from_pretrained(
-                repo, device_map="auto",
-                torch_dtype=torch.bfloat16,
-                load_in_4bit=GEMMA_LOAD_IN_4BIT)
-        except Exception as e:
-            print(f"  transformers load FAILED: {e}")
-            return None
-
-    print(f"  loaded.")
-    return LoadedModel(model=model, tokenizer=tokenizer,
-                       variant=GEMMA_MODEL_VARIANT)
-
-
-LOADED = load_gemma()
-
-
-# ===========================================================================
-# Gemma call
-# ===========================================================================
-def make_gemma_call(loaded: LoadedModel):
-    import torch
-
-    def _call(messages: list, max_new_tokens: int = 1024,
-              temperature: float = 0.3) -> str:
-        inputs = loaded.tokenizer.apply_chat_template(
-            messages, add_generation_prompt=True,
-            tokenize=True, return_dict=True, return_tensors="pt",
-        ).to("cuda")
-        with torch.inference_mode():
-            out = loaded.model.generate(
-                **inputs, max_new_tokens=max_new_tokens, use_cache=True,
-                temperature=temperature, top_p=0.95, top_k=64,
-                pad_token_id=loaded.tokenizer.eos_token_id)
-        text = loaded.tokenizer.batch_decode(out)[0]
-        if "<|turn>model" in text:
-            text = text.split("<|turn>model", 1)[1]
-        if "<channel|>" in text:
-            text = text.split("<channel|>", 1)[1]
-        text = text.split("<turn|>", 1)[0]
-        return text.replace("<bos>", "").replace("<eos>", "").strip()
-    return _call
+            dc_log("a03.compare.error", "evaluate_lift failed",
+                    level="error", prompt_id=row_off.get("prompt_id"),
+                    err=str(e)[:200])
+    elapsed = time.time() - t0
+    aggregate = aggregate_lift_results(lift_results)
+    # Emit artifacts.
+    compare_path = OUTPUT_DIR / f"{cid}_compare.json"
+    report_path  = OUTPUT_DIR / f"{cid}_report.md"
+    chart_path   = OUTPUT_DIR / f"{cid}_lift_chart.html"
+    compare_payload = {
+        "schema_version": "1.0",
+        "kernel_id":      "a-03-upload-and-compare",
+        "comparison_id":  cid,
+        "baseline_run_id":  baseline.run_id,
+        "harness_run_id":   harness.run_id,
+        "model_variant":  baseline.model_variant or harness.model_variant,
+        "n_paired":       len(paired),
+        "n_graded":       len(lift_results),
+        "warnings":       warnings,
+        "aggregate":      aggregate,
+        "results":        lift_results,
+        "elapsed_s":      round(elapsed, 1),
+        "completed_at":   time.strftime("%Y-%m-%dT%H:%M:%SZ",
+                                          time.gmtime()),
+    }
+    compare_path.write_text(
+        json.dumps(compare_payload, indent=2, ensure_ascii=False),
+        encoding="utf-8")
+    report_md = format_lift_report_md(
+        lift_results, aggregate,
+        title=f"DueCare lift comparison - {cid}",
+        model_name=(baseline.model_variant or harness.model_variant
+                    or "unknown"),
+        git_sha=baseline.parsed.get("metadata", {}).get("git_sha", "?"),
+        dataset_version=(f"baseline={baseline.run_id} vs "
+                            f"harness={harness.run_id}"),
+    )
+    report_path.write_text(report_md, encoding="utf-8")
+    chart_html = render_lift_chart(aggregate)
+    chart_path.write_text(chart_html, encoding="utf-8")
+    artifacts = [
+        {"name": compare_path.name, "path": str(compare_path)},
+        {"name": report_path.name,  "path": str(report_path)},
+        {"name": chart_path.name,   "path": str(chart_path)},
+    ]
+    _COMPARISON.update({
+        "comparison_id": cid,
+        "results":       lift_results,
+        "aggregate":     aggregate,
+        "artifacts":     artifacts,
+        "warnings":      warnings,
+        "error":         None,
+        "completed_at":  compare_payload["completed_at"],
+    })
+    dc_log("a03.compare.done",
+            f"lift complete: mean lift +{aggregate.get('mean_lift_pp', 0)}pp "
+            f"on {aggregate.get('n', 0)} prompts",
+            comparison_id=cid, mean_lift_pp=aggregate.get("mean_lift_pp"))
+    return {"ok": True, "comparison_id": cid,
+            "n_paired": len(paired), "n_graded": len(lift_results),
+            "aggregate": aggregate, "warnings": warnings,
+            "artifacts": artifacts, "elapsed_s": round(elapsed, 1)}
 
 
 # ===========================================================================
-# Classification schemas (the 4 schema modes the playground exposes)
+# 4. Plotly lift chart -- per-dimension status-change bars
 # ===========================================================================
-SCHEMA_PERSONAS = {
-    "single_label": (
-        "You are a content-safety classifier. Read the content and assign "
-        "EXACTLY ONE category from the provided set. Respond with strict "
-        "JSON only: {\"category\": \"<one>\", \"confidence\": <0..1>, "
-        "\"rationale\": \"<one sentence>\"}."
-    ),
-    "multi_label": (
-        "You are a content-safety classifier. Read the content and assign "
-        "ANY SUBSET of the provided tag set that applies. Respond with "
-        "strict JSON: {\"tags\": [\"<tag>\", ...], \"confidences\": "
-        "{\"<tag>\": <0..1>}, \"rationale\": \"<one sentence>\"}."
-    ),
-    "risk_vector": (
-        "You are a migrant-worker safety analyst. Read the content and "
-        "score it on each dimension. Respond with strict JSON: "
-        "{\"vectors\": [{\"dimension\": \"<name>\", \"magnitude\": <0..1>, "
-        "\"evidence\": \"<short quote>\"}], \"overall_risk\": <0..1>, "
-        "\"recommended_action\": \"<allow|log|review|escalate>\"}."
-    ),
-    "custom": (
-        "You are a strict-JSON output engine. Read the content and produce "
-        "output that conforms exactly to the JSON Schema provided in the "
-        "user message. Output JSON only -- no preamble."
-    ),
-}
 
-DEFAULT_LABEL_SETS = {
-    "single_label": [
-        "predatory_recruitment", "debt_bondage", "passport_retention",
-        "wage_violation", "fee_violation", "trafficking_pattern",
-        "legitimate_recruitment", "unrelated",
-    ],
-    "multi_label": [
-        "ilo_indicator", "fee_violation", "passport_retention",
-        "wage_withholding", "freedom_of_movement", "deception",
-        "abuse_of_vulnerability", "isolation",
-    ],
-    "risk_vector": [
-        "ilo_forced_labor_indicators", "fee_violation",
-        "wage_protection_violation", "freedom_of_movement_restriction",
-        "document_retention", "deception_at_recruitment",
-    ],
-}
+PAPER   = "#F7F6F1"
+PAPER_2 = "#EFEDE4"
+INK     = "#0E1116"
+INK_3   = "#5B5F68"
+LINE    = "#DDD8C9"
+ACCENT  = "#4C7A8A"   # civic teal
+GOOD    = "#3E8C65"
+WARN    = "#A97935"
+DANGER  = "#9E3F3F"
 
 
-def _build_user_message(schema: str, content: str,
-                        label_set: Optional[list] = None,
-                        custom_schema: Optional[str] = None) -> str:
-    if schema == "custom" and custom_schema:
-        return (f"JSON SCHEMA the response must conform to:\n"
-                f"{custom_schema}\n\n"
-                f"=== CONTENT ===\n{content}")
-    labels = label_set or DEFAULT_LABEL_SETS.get(schema, [])
-    return (f"=== AVAILABLE LABELS ===\n{json.dumps(labels)}\n\n"
-            f"=== CONTENT TO CLASSIFY ===\n{content}")
-
-
-# ===========================================================================
-# FastAPI playground app
-# ===========================================================================
-def build_app():
-    from fastapi import FastAPI, Request
-    from fastapi.responses import HTMLResponse, JSONResponse
-    from fastapi.staticfiles import StaticFiles
-    from pydantic import BaseModel
-
-    app = FastAPI(title="DueCare Content Classification Playground")
-
-    # Mount the chat-package static dir at /wb-static/ so this appendix
-    # kernel can pull the workbench design tokens (_chrome.css), nav
-    # loader (_nav.js), and Logs page from the same source as the main
-    # workbench. The kernel's own pages live at / and reference
-    # /wb-static/_chrome.css for visual consistency with notebook #01.
-    try:
-        from duecare.chat._dc_log import set_kernel_id, dc_log
-        set_kernel_id("a-03-content-classification")
-        dc_log("kernel.start", "classification playground starting")
-        from pathlib import Path as _Path
-        import duecare.chat as _chat_pkg
-        _wb_static = _Path(_chat_pkg.__file__).parent / "static"
-        if _wb_static.exists():
-            app.mount("/wb-static",
-                      StaticFiles(directory=str(_wb_static)),
-                      name="wb-static")
-    except Exception as _e:
-        print(f"[wb] could not mount workbench static: {_e}")
-
-    class ClassifyRequest(BaseModel):
-        schema: str = "single_label"
-        content: str
-        label_set: Optional[list] = None
-        custom_schema: Optional[str] = None
-        max_new_tokens: int = 1024
-        temperature: float = 0.3
-
-    @app.get("/", response_class=HTMLResponse)
-    def index() -> str:
-        return _PAGE_HTML
-
-    @app.get("/healthz")
-    def healthz() -> dict:
-        return {"ok": True, "model_loaded": LOADED is not None}
-
-    @app.get("/api/schemas")
-    def schemas() -> dict:
-        return {
-            "schemas": list(SCHEMA_PERSONAS.keys()),
-            "default_label_sets": DEFAULT_LABEL_SETS,
-            "personas": SCHEMA_PERSONAS,
-        }
-
-    @app.post("/api/classify")
-    def classify(req: ClassifyRequest) -> dict:
-        if LOADED is None:
-            return {"error": "model not loaded"}
-        persona = SCHEMA_PERSONAS.get(req.schema, SCHEMA_PERSONAS["single_label"])
-        user_text = _build_user_message(
-            req.schema, req.content,
-            label_set=req.label_set, custom_schema=req.custom_schema)
-        messages = [
-            {"role": "system",
-             "content": [{"type": "text", "text": persona}]},
-            {"role": "user",
-             "content": [{"type": "text", "text": user_text}]},
-        ]
-        gemma = make_gemma_call(LOADED)
-        t0 = time.time()
-        raw = gemma(messages, max_new_tokens=req.max_new_tokens,
-                    temperature=req.temperature)
-        elapsed_ms = int((time.time() - t0) * 1000)
-        # Parse JSON best-effort
-        parsed = None
-        parse_error = None
-        try:
-            # Strip markdown code fences if present
-            txt = raw.strip()
-            if txt.startswith("```"):
-                txt = txt.split("\n", 1)[1] if "\n" in txt else txt
-                if txt.endswith("```"):
-                    txt = txt.rsplit("```", 1)[0]
-                txt = txt.strip()
-            if txt.startswith("json"):
-                txt = txt[4:].strip()
-            parsed = json.loads(txt)
-        except Exception as e:
-            parse_error = f"{type(e).__name__}: {e}"
-        return {
-            "merged_prompt": persona + "\n\n" + user_text,
-            "raw_response": raw,
-            "parsed": parsed,
-            "parse_error": parse_error,
-            "elapsed_ms": elapsed_ms,
-            "schema": req.schema,
-            "model": GEMMA_MODEL_VARIANT,
-        }
-
-    return app
+def render_lift_chart(aggregate: dict) -> str:
+    """Render a Plotly bar chart of per-dimension status change. Returns
+    a standalone HTML string (includes plotly.js inline so it works
+    without a CDN)."""
+    if not aggregate or "per_dimension" not in aggregate:
+        return "<p>No lift data available.</p>"
+    dim_stats = aggregate["per_dimension"]
+    # Sort by improved-count descending so the wins lead the chart.
+    rows = sorted(dim_stats.items(),
+                    key=lambda kv: -kv[1].get("improved", 0))
+    names      = [ds["name"] for _, ds in rows]
+    improved   = [ds.get("improved", 0)  for _, ds in rows]
+    same       = [ds.get("same", 0)      for _, ds in rows]
+    regressed  = [ds.get("regressed", 0) for _, ds in rows]
+    fig = go.Figure()
+    fig.add_trace(go.Bar(name="Improved (harness wins)",
+                          y=names, x=improved, orientation="h",
+                          marker_color=GOOD,
+                          hovertemplate="%{y}<br>Improved: %{x}<extra></extra>"))
+    fig.add_trace(go.Bar(name="Same",
+                          y=names, x=same, orientation="h",
+                          marker_color=INK_3,
+                          hovertemplate="%{y}<br>Same: %{x}<extra></extra>"))
+    fig.add_trace(go.Bar(name="Regressed (harness loses)",
+                          y=names, x=regressed, orientation="h",
+                          marker_color=DANGER,
+                          hovertemplate="%{y}<br>Regressed: %{x}<extra></extra>"))
+    fig.update_layout(
+        title=dict(
+            text=(f"Per-dimension lift  ·  mean +{aggregate.get('mean_lift_pp', 0)} pp  "
+                    f"on {aggregate.get('n', 0)} prompts"),
+            font=dict(family="-apple-system, BlinkMacSystemFont, sans-serif",
+                      size=18, color=INK)),
+        barmode="stack",
+        paper_bgcolor=PAPER, plot_bgcolor=PAPER_2,
+        font=dict(family="-apple-system, BlinkMacSystemFont, sans-serif",
+                  color=INK_3),
+        legend=dict(orientation="h", yanchor="bottom", y=1.02,
+                    xanchor="right", x=1),
+        margin=dict(l=240, r=30, t=80, b=40),
+        height=max(360, 40 * len(names) + 120),
+        xaxis=dict(gridcolor=LINE, zeroline=False),
+        yaxis=dict(gridcolor=LINE, autorange="reversed"),
+    )
+    return pio.to_html(fig, include_plotlyjs="inline", full_html=True)
 
 
 # ===========================================================================
-# UI (single HTML page; no external deps)
+# 5. Homepage HTML + extra_routes (upload + run comparison + state)
 # ===========================================================================
-_PAGE_HTML = """<!doctype html><html><head>
+INDEX_HTML = r"""<!doctype html>
+<html lang="en">
+<head>
 <meta charset="utf-8">
-<title>DueCare Content Classification Playground</title>
-<link rel="stylesheet" href="/wb-static/_chrome.css">
-<script src="/wb-static/_nav.js" defer></script>
+<title>DueCare A-03 . Lift comparison</title>
+<link rel="stylesheet" href="/static/_chrome.css">
 <style>
-  /* Page-specific layout. Design tokens (--paper, --ink, --accent, --mono,
-     --sans, --line, etc.) come from /wb-static/_chrome.css — the same
-     source of truth as notebook #01 (the Exploration Workbench). */
-  .page-wrap { max-width: 1100px; margin: 30px auto; padding: 0 24px; }
-  h1 { color: var(--ink); letter-spacing: -0.02em; margin: 0 0 6px; display:flex; align-items:center; gap:10px; }
-  .brand-mark { width:30px; height:30px; display:inline-grid; place-items:center; border-radius:7px; background:var(--ink); color:var(--paper); font-family:var(--mono); font-size:11px; font-weight:700; letter-spacing:.04em; }
-  .sub { color: var(--ink3); margin: 0 0 24px; line-height: 1.5; }
-  .card { background: #fffdf7; border: 1px solid var(--line);
-      border-radius: 12px; padding: 18px; margin-bottom: 14px;
-      box-shadow:0 1px 0 rgba(14,17,22,.04),0 8px 24px -18px rgba(14,17,22,.12); }
-  label { display: block; font-weight: 600; font-size: 13px;
-      color: var(--ink2); margin-bottom: 6px; }
-  textarea { width: 100%; min-height: 120px; font-family: var(--mono); font-size: 13px;
-         padding: 10px; border: 1px solid var(--line); border-radius: 8px;
-             box-sizing: border-box; resize: vertical; background: #fff; color: var(--ink); }
-  select, input[type=number] {
-         padding: 8px 10px; border: 1px solid var(--line);
-             border-radius: 8px; font-size: 13px; background: #fff; color: var(--ink); }
-  button.primary { background: var(--accent); color: white; padding: 10px 18px;
-           border: none; border-radius: 8px; font-weight: 600;
-       font-size: 14px; cursor: pointer; font-family:var(--sans); }
-  button.primary:hover { filter: brightness(.96); transform: translateY(-1px); }
-  button.primary:disabled { background: #9ca3af; cursor: not-allowed; }
-  button.primary:focus-visible, textarea:focus-visible, select:focus-visible, input:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
-  .row { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
-  .pill { display: inline-block; background: var(--accentSoft, oklch(0.92 0.03 195)); color: var(--accentInk, oklch(0.32 0.07 195));
-          padding: 2px 9px; border-radius: 999px; font-size: 11px;
-      font-weight: 700; margin-left: 6px; font-family:var(--mono); text-transform:uppercase; letter-spacing:.04em; }
-  .col-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-  .panel { background: var(--paper2, #EFEDE4); border: 1px solid var(--line);
-           border-radius: 8px; padding: 12px; }
-  .panel h3 { margin: 0 0 8px; font-size: 13px; color: var(--ink3);
-              text-transform: uppercase; letter-spacing: 0.05em;
-              font-weight: 700; }
-  pre { background: #101820; color: #f9fafb; padding: 12px;
-        border-radius: 8px; overflow-x: auto; font-size: 12px;
-        line-height: 1.5; max-height: 380px; overflow-y: auto; }
-  .meta { color: var(--ink3); font-size: 12px; margin-top: 8px; }
-  .err { color: #b91c1c; font-weight: 600; }
-  .ok  { color: oklch(0.55 0.10 155); font-weight: 600; }
-  details summary { cursor: pointer; font-weight: 600; padding: 6px 0; }
-  @media (max-width: 720px) { .col-grid { grid-template-columns: 1fr; } }
-</style></head><body data-nav="tools">
+  body { background: #F7F6F1; color: #0E1116;
+         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI",
+                       system-ui, sans-serif;
+         margin: 0; padding: 0; line-height: 1.55; }
+  .page { max-width: 1080px; margin: 0 auto; padding: 32px 28px 80px; }
+  h1 { font-size: 28px; margin: 0 0 6px; font-weight: 700; }
+  .lede { color: #5B5F68; margin: 0 0 28px; max-width: 740px; }
+  .slots { display: grid; grid-template-columns: 1fr 1fr; gap: 18px;
+            margin-bottom: 22px; }
+  .slot { background: #EFEDE4; border: 1px solid #DDD8C9;
+          border-radius: 12px; padding: 18px 20px; }
+  .slot h3 { margin: 0 0 4px; font-size: 15px; letter-spacing: 0.02em; }
+  .slot .hint { color: #5B5F68; font-size: 12.5px; margin: 0 0 12px; }
+  .slot input[type=file] { width: 100%; padding: 10px;
+                            border: 1px dashed #8A8E97; border-radius: 8px;
+                            background: #F7F6F1; cursor: pointer; }
+  .slot.loaded { border-color: #3E8C65; background: #EAF2EC; }
+  .slot.error  { border-color: #9E3F3F; background: #F5E8E8; }
+  .slot pre { font-family: "JetBrains Mono", ui-monospace, monospace;
+              font-size: 11.5px; background: rgba(0,0,0,0.04);
+              padding: 8px 10px; border-radius: 6px;
+              white-space: pre-wrap; word-break: break-word;
+              margin: 8px 0 0; }
+  .actions { display: flex; gap: 12px; margin: 18px 0 28px;
+              align-items: center; }
+  button.primary { background: #0E1116; color: #F7F6F1;
+                    border: none; border-radius: 999px;
+                    padding: 11px 22px; font-size: 13.5px; font-weight: 600;
+                    cursor: pointer; letter-spacing: 0.01em; }
+  button.primary:disabled { opacity: 0.45; cursor: not-allowed; }
+  button.secondary { background: transparent; color: #0E1116;
+                      border: 1px solid #DDD8C9; border-radius: 999px;
+                      padding: 10px 18px; font-size: 13px; cursor: pointer; }
+  .panel { background: #EFEDE4; border: 1px solid #DDD8C9;
+            border-radius: 12px; padding: 18px 20px; margin: 18px 0; }
+  .panel h2 { font-size: 17px; margin: 0 0 12px; font-weight: 600; }
+  .warn-strip { background: #F8EFD8; border: 1px solid #E2C97A;
+                color: #6B4F0F; padding: 12px 16px; border-radius: 10px;
+                margin-bottom: 14px; font-size: 13px; }
+  .kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px;
+            margin: 14px 0 8px; }
+  .kpi { background: #F7F6F1; border: 1px solid #DDD8C9;
+          border-radius: 10px; padding: 14px 16px; }
+  .kpi .label { color: #5B5F68; font-size: 11.5px; text-transform: uppercase;
+                  letter-spacing: 0.08em; }
+  .kpi .value { font-size: 22px; font-weight: 700; margin-top: 4px;
+                  color: #0E1116; }
+  .kpi .delta-pos { color: #3E8C65; }
+  .kpi .delta-neg { color: #9E3F3F; }
+  iframe.chart { width: 100%; height: 620px; border: none;
+                  background: #F7F6F1; border-radius: 10px; }
+  ul.dl { margin: 6px 0 0; padding: 0; list-style: none; }
+  ul.dl li { padding: 4px 0; }
+  ul.dl a { color: #0E1116; text-decoration: underline;
+            text-underline-offset: 3px; }
+  .meta { color: #5B5F68; font-size: 12.5px; }
+</style>
+</head>
+<body>
+<div class="page">
+  <h1>DueCare A-03 . Lift comparison</h1>
+  <p class="lede">
+    Upload the <code>bundle.zip</code> produced by A-01 (stock baseline,
+    harness OFF) and the <code>bundle.zip</code> produced by A-02 (same
+    model, harness ON). A-03 pairs results by <code>prompt_id</code> and
+    runs the universal v2 grader to compute per-dimension lift. No model
+    load required.
+  </p>
 
-<div class="page-wrap">
-<h1><span class="brand-mark" aria-hidden="true">DC</span><span>Content Classification Playground <span class="pill">A-03 · Hands-on</span></span></h1>
-<p class="sub">
-  Paste content, pick a schema, classify. See the merged prompt Gemma
-  receives, the raw response, the parsed JSON envelope, and elapsed time.
-  Lighter than the NGO classifier dashboard — designed for understanding
-  the mechanics, not for production triage.
-</p>
-
-<div class="card">
-  <div class="row" style="margin-bottom: 12px">
-    <div>
-      <label>Schema</label>
-      <select id="schema">
-        <option value="single_label">single_label — exactly one category</option>
-        <option value="multi_label">multi_label — any subset of tags</option>
-        <option value="risk_vector">risk_vector — per-dimension scores</option>
-        <option value="custom">custom — your own JSON schema</option>
-      </select>
+  <div class="slots">
+    <div class="slot" id="slot-baseline">
+      <h3>1. Baseline bundle (A-01 . harness OFF)</h3>
+      <p class="hint">Drop the <code>a01_*_bundle.zip</code> here.</p>
+      <input type="file" accept=".zip,.json"
+              onchange="uploadBundle('baseline', this.files[0])">
+      <pre id="state-baseline">not loaded</pre>
     </div>
-    <div>
-      <label>Max tokens</label>
-      <input type="number" id="max_tokens" value="1024" min="128" max="4096" style="width: 100px">
-    </div>
-    <div>
-      <label>Temperature</label>
-      <input type="number" id="temperature" value="0.3" min="0" max="2" step="0.1" style="width: 80px">
+    <div class="slot" id="slot-harness">
+      <h3>2. Harness bundle (A-02 . harness ON)</h3>
+      <p class="hint">Drop the <code>a02_*_bundle.zip</code> here.</p>
+      <input type="file" accept=".zip,.json"
+              onchange="uploadBundle('harness', this.files[0])">
+      <pre id="state-harness">not loaded</pre>
     </div>
   </div>
-  <label>Content</label>
-  <textarea id="content" placeholder="Paste a recruitment post, a contract excerpt, a WhatsApp chat, a complaint letter, or any other text you want classified."></textarea>
-  <details style="margin-top: 10px">
-    <summary>Custom label set / JSON Schema (optional)</summary>
-    <textarea id="custom" style="margin-top: 8px; min-height: 80px"
-              placeholder='For custom schema mode: paste your JSON Schema. For other modes: a JSON array of label strings to override the defaults.'></textarea>
-  </details>
-  <div style="margin-top: 14px">
-    <button class="primary" onclick="doClassify()">Classify</button>
-    <span id="status" class="meta"></span>
-  </div>
-</div>
 
-<div id="result" style="display: none">
-  <div class="card">
-    <h3 style="margin: 0 0 8px; font-size: 13px; color: var(--ink3); text-transform: uppercase; letter-spacing: 0.05em; font-weight: 700">Parsed envelope</h3>
-    <pre id="parsed"></pre>
-    <div id="parse_err" class="err meta"></div>
+  <div class="actions">
+    <button class="primary" id="run-btn" disabled
+            onclick="runComparison()">Run comparison</button>
+    <button class="secondary" onclick="refreshState()">Refresh state</button>
+    <span class="meta" id="run-status"></span>
   </div>
-  <div class="col-grid">
+
+  <div id="results-panel" style="display:none">
     <div class="panel">
-      <h3>Merged prompt Gemma saw</h3>
-      <pre id="merged"></pre>
+      <h2>Lift summary</h2>
+      <div id="warnings-strip"></div>
+      <div class="kpis" id="kpis"></div>
+      <ul class="dl" id="downloads"></ul>
     </div>
     <div class="panel">
-      <h3>Raw response</h3>
-      <pre id="raw"></pre>
+      <h2>Per-dimension lift</h2>
+      <iframe class="chart" id="chart-frame"></iframe>
     </div>
   </div>
-  <div class="meta" id="meta"></div>
 </div>
 
 <script>
-async function doClassify() {
-  const schema = document.getElementById('schema').value;
-  const content = document.getElementById('content').value.trim();
-  if (!content) { alert("Paste some content first."); return; }
-  const status = document.getElementById('status');
-  const customRaw = document.getElementById('custom').value.trim();
-  let label_set = null;
-  let custom_schema = null;
-  if (customRaw) {
-    if (schema === 'custom') {
-      custom_schema = customRaw;
-    } else {
-      try { label_set = JSON.parse(customRaw); } catch (e) {
-        alert("custom field is not valid JSON: " + e.message); return;
-      }
-    }
-  }
-  status.textContent = " classifying...";
-  document.getElementById('result').style.display = 'none';
-  const t0 = performance.now();
-  try {
-    const r = await fetch('/api/classify', {
-      method: 'POST', headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({
-        schema, content, label_set, custom_schema,
-        max_new_tokens: parseInt(document.getElementById('max_tokens').value),
-        temperature: parseFloat(document.getElementById('temperature').value),
-      }),
-    });
-    const data = await r.json();
-    const elapsed = Math.round(performance.now() - t0);
-    status.textContent = " done (" + elapsed + " ms client roundtrip)";
-    document.getElementById('parsed').textContent = data.parsed
-      ? JSON.stringify(data.parsed, null, 2) : '(parse failed -- see error below)';
-    document.getElementById('parse_err').textContent = data.parse_error || '';
-    document.getElementById('merged').textContent = data.merged_prompt;
-    document.getElementById('raw').textContent = data.raw_response;
-    document.getElementById('meta').textContent =
-      'schema: ' + data.schema + '  ·  model: ' + data.model +
-      '  ·  Gemma elapsed: ' + data.elapsed_ms + ' ms';
-    document.getElementById('result').style.display = 'block';
-  } catch (e) {
-    status.textContent = " error: " + e.message;
+async function refreshState() {
+  const r = await fetch('/api/comparison-state').then(r => r.json());
+  renderSlot('baseline', r.bundles.baseline);
+  renderSlot('harness',  r.bundles.harness);
+  document.getElementById('run-btn').disabled =
+    !(r.bundles.baseline.loaded && r.bundles.harness.loaded);
+  if (r.comparison && r.comparison.aggregate) {
+    renderComparison(r.comparison);
   }
 }
+
+function renderSlot(slot, st) {
+  const el = document.getElementById('slot-' + slot);
+  const pre = document.getElementById('state-' + slot);
+  el.classList.remove('loaded', 'error');
+  if (st.error) {
+    el.classList.add('error');
+    pre.textContent = 'error: ' + st.error;
+  } else if (st.loaded) {
+    el.classList.add('loaded');
+    pre.textContent =
+      'run_id: ' + st.run_id + '\n' +
+      'kernel_id: ' + st.kernel_id + '\n' +
+      'model_variant: ' + st.model_variant + '\n' +
+      'model_kind: ' + st.model_kind + '\n' +
+      'harness_enabled: ' + st.harness_enabled + '\n' +
+      'n_results: ' + st.n_results + '\n' +
+      'filename: ' + st.filename;
+  } else {
+    pre.textContent = 'not loaded';
+  }
+}
+
+async function uploadBundle(slot, file) {
+  if (!file) return;
+  const fd = new FormData();
+  fd.append('file', file);
+  document.getElementById('state-' + slot).textContent =
+    'uploading ' + file.name + ' ...';
+  const r = await fetch('/api/upload-bundle?slot=' + slot,
+                          {method: 'POST', body: fd}).then(r => r.json());
+  if (!r.ok) {
+    document.getElementById('state-' + slot).textContent =
+      'error: ' + (r.error || 'upload failed');
+    document.getElementById('slot-' + slot).classList.add('error');
+    return;
+  }
+  refreshState();
+}
+
+async function runComparison() {
+  document.getElementById('run-btn').disabled = true;
+  document.getElementById('run-status').textContent =
+    'running comparison ...';
+  const r = await fetch('/api/run-comparison', {method: 'POST'})
+                .then(r => r.json());
+  document.getElementById('run-btn').disabled = false;
+  if (!r.ok) {
+    document.getElementById('run-status').textContent =
+      'error: ' + (r.error || 'run failed');
+    return;
+  }
+  document.getElementById('run-status').textContent =
+    'comparison ok . ' + r.n_graded + '/' + r.n_paired +
+    ' prompts in ' + r.elapsed_s + 's';
+  refreshState();
+}
+
+// All renderers below build DOM nodes via createElement + textContent
+// rather than innerHTML concatenation. Bundle fields (warnings,
+// artifact names, run_ids) come from uploaded JSON and must be treated
+// as untrusted; only the static layout structure is allowed to be HTML.
+function _el(tag, cls, text) {
+  const e = document.createElement(tag);
+  if (cls) e.className = cls;
+  if (text != null) e.textContent = String(text);
+  return e;
+}
+function _kpi(label, value, cls) {
+  const el = _el('div', 'kpi');
+  el.appendChild(_el('div', 'label', label));
+  el.appendChild(_el('div', 'value' + (cls ? ' ' + cls : ''), value));
+  return el;
+}
+function renderComparison(c) {
+  document.getElementById('results-panel').style.display = 'block';
+  const a = c.aggregate || {};
+  const sign = (v) => v >= 0 ? 'delta-pos' : 'delta-neg';
+  const meanLift = a.mean_lift_pp ?? 0;
+  const meanSign = meanLift >= 0 ? '+' : '';
+  const kpis = document.getElementById('kpis');
+  kpis.replaceChildren(
+    _kpi('Mean lift', meanSign + meanLift + ' pp', sign(meanLift)),
+    _kpi('Prompts', (a.n ?? '-')),
+    _kpi('Helped / hurt', (a.n_helped ?? 0) + ' / ' + (a.n_hurt ?? 0)),
+    _kpi('Citation grounding',
+          (a.mean_grounding_off ?? 0) + '% -> ' +
+          (a.mean_grounding_on ?? 0) + '%')
+  );
+  const w = document.getElementById('warnings-strip');
+  w.replaceChildren();
+  if (c.warnings && c.warnings.length) {
+    const strip = _el('div', 'warn-strip');
+    strip.appendChild(_el('b', null, 'Warnings:'));
+    const ul = document.createElement('ul');
+    for (const msg of c.warnings) {
+      ul.appendChild(_el('li', null, msg));
+    }
+    strip.appendChild(ul);
+    w.appendChild(strip);
+  }
+  const dl = document.getElementById('downloads');
+  dl.replaceChildren();
+  for (const ar of (c.artifacts || [])) {
+    const li = document.createElement('li');
+    li.appendChild(document.createTextNode('v '));
+    const link = document.createElement('a');
+    // Safe: encodeURIComponent prevents path-escape / quote-escape.
+    link.href = '/artifact/' + encodeURIComponent(ar.name);
+    link.textContent = ar.name;   // textContent prevents HTML injection.
+    li.appendChild(link);
+    dl.appendChild(li);
+  }
+  const htmlArtifact = (c.artifacts || []).find(function(ar) {
+    return typeof ar.name === 'string' && ar.name.endsWith('.html');
+  });
+  if (htmlArtifact) {
+    document.getElementById('chart-frame').src =
+      '/artifact/' + encodeURIComponent(htmlArtifact.name);
+  }
+}
+
+// Initial fetch on page load.
+refreshState();
 </script>
-</div>
-</body></html>"""
+</body>
+</html>
+"""
+
+
+# ---------------------------------------------------------------------------
+# extra_routes for build_minimal_shell
+# ---------------------------------------------------------------------------
+
+def _bundle_state_dict(b: BundleState) -> dict:
+    return {
+        "loaded":          b.loaded,
+        "error":           b.error,
+        "filename":        b.filename,
+        "run_id":          b.run_id,
+        "kernel_id":       b.kernel_id,
+        "model_variant":   b.model_variant,
+        "model_kind":      b.model_kind,
+        "harness_enabled": b.harness_enabled,
+        "n_results":       b.n_results,
+    }
+
+
+async def handle_upload_bundle(slot: str, file):  # type: ignore[no-untyped-def]
+    """POST /api/upload-bundle?slot=<baseline|harness>"""
+    if slot not in _BUNDLES:
+        return {"ok": False, "error": f"unknown slot {slot!r}"}
+    raw = await file.read()
+    state = parse_bundle_bytes(raw, getattr(file, "filename", "bundle"))
+    _BUNDLES[slot] = state
+    dc_log("a03.upload",
+            f"{slot} bundle: {state.n_results} results"
+            if state.loaded else f"{slot} upload error",
+            slot=slot, run_id=state.run_id, n_results=state.n_results,
+            err=state.error)
+    return {"ok": state.loaded, "error": state.error,
+            "slot": slot, "state": _bundle_state_dict(state)}
+
+
+def handle_comparison_state():
+    return {
+        "bundles":    {k: _bundle_state_dict(v) for k, v in _BUNDLES.items()},
+        "comparison": _COMPARISON,
+    }
+
+
+def handle_run_comparison():
+    return run_comparison()
 
 
 # ===========================================================================
-# Launch FastAPI server + cloudflared
+# 6. Launch the workbench shell
 # ===========================================================================
-def launch_server() -> Optional[str]:
+print("\n" + "=" * 76)
+print("[3/4] launching A-03 lift-comparison UI")
+print("=" * 76)
+
+
+def _attach_extra_routes(app):
+    from fastapi import UploadFile, File, Query
+
+    @app.post("/api/upload-bundle")
+    async def _upload(file: UploadFile = File(...),
+                       slot: str = Query("baseline")):
+        return await handle_upload_bundle(slot, file)
+
+    @app.get("/api/comparison-state")
+    def _state():
+        return handle_comparison_state()
+
+    @app.post("/api/run-comparison")
+    def _run():
+        return handle_run_comparison()
+
+
+try:
+    from duecare.chat.kernel_shell import build_minimal_shell
+    summary_payload = {
+        "title": "A-03 lift comparison",
+        "audience": "researcher",
+        "lede": ("Upload the A-01 baseline bundle and the A-02 harnessed "
+                  "bundle. A-03 pairs by prompt_id, runs the universal v2 "
+                  "grader on CPU, and renders per-dimension lift + a "
+                  "downloadable comparison artifact."),
+        "results": [
+            {"label": "Stage",    "value": "compare (3/8 in experiment ladder)"},
+            {"label": "Compute",  "value": "CPU-only (no model load)"},
+            {"label": "Consumes", "value": "A-01 + A-02 bundle.zip"},
+            {"label": "Emits",    "value": "<comparison_id>_compare.json + _report.md + _lift_chart.html"},
+        ],
+        "links": [
+            ("Workbench (full)",
+              "https://www.kaggle.com/code/taylorsamarel/duecare-exploration-workbench"),
+            ("Experiment ladder spec",
+              "https://github.com/TaylorAmarelTech/gemma4_comp/blob/master/docs/appendix_experiment_ladder.md"),
+            ("Artifact schema spec",
+              "https://github.com/TaylorAmarelTech/gemma4_comp/blob/master/docs/appendix_artifact_schema.md"),
+        ],
+        "next_steps": [
+            "Drop the A-01 bundle into slot 1 (baseline, harness OFF).",
+            "Drop the A-02 bundle into slot 2 (harness ON, same model).",
+            "Click Run comparison. Download compare.json + report.md + lift_chart.html.",
+            "For the stock-vs-finetuned arc, repeat A-01 + A-02 with the LoRA model from A-05, then run A-08.",
+        ],
+    }
+    app, public_url = build_minimal_shell(
+        summary=summary_payload,
+        kernel_id="a-03-upload-and-compare",
+        port=PORT,
+        homepage_html=INDEX_HTML,
+    )
+    # Wire upload + run + state endpoints. build_minimal_shell's
+    # extra_routes hook expects (method, callable) pairs but our
+    # /api/upload-bundle handler needs FastAPI dependency injection
+    # (UploadFile), so attach via the app directly.
+    _attach_extra_routes(app)
+    if public_url:
+        print(f"  ok UI available at {public_url}")
+
+    print("\n" + "=" * 76)
+    print("[4/4] A-03 SHELL READY - awaiting bundle uploads")
     print("=" * 76)
-    print(f"[serve] starting FastAPI on 0.0.0.0:{PORT}")
+    if public_url:
+        print(f"\n   UI: {public_url}")
+        print(f"\n   Drop A-01 + A-02 bundle.zip in the two slots, then "
+              f"click Run comparison.\n")
     print("=" * 76)
-    import uvicorn
-    app = build_app()
-    _attach_shutdown(app)
-    t = threading.Thread(target=lambda: uvicorn.run(
-        app, host="0.0.0.0", port=PORT, log_level="warning"),
-        daemon=True, name="duecare-class-pg")
-    t.start()
-    time.sleep(2.0)
+    while not _SHUTDOWN_EVENT.is_set():
+        time.sleep(1)
+except KeyboardInterrupt:
+    print("\n  interrupted -- shutting down")
+except Exception as e:
+    print(f"  shell unavailable: {type(e).__name__}: {e}")
 
-    if TUNNEL != "cloudflared":
-        return f"http://localhost:{PORT}"
-
-    # cloudflared quick-tunnel
-    cf = "/usr/local/bin/cloudflared" if Path("/usr/local/bin/cloudflared").exists() else "cloudflared"
-    try:
-        subprocess.run([cf, "--version"], capture_output=True, check=True)
-    except Exception:
-        # Try to install
-        print("  cloudflared not found; installing...")
-        try:
-            subprocess.run(
-                ["wget", "-q", "-O", "/usr/local/bin/cloudflared",
-                 "https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64"],
-                check=True)
-            subprocess.run(["chmod", "+x", "/usr/local/bin/cloudflared"], check=True)
-            cf = "/usr/local/bin/cloudflared"
-        except Exception as e:
-            print(f"  cloudflared install failed: {e}")
-            return f"http://localhost:{PORT}"
-
-    proc = subprocess.Popen(
-        [cf, "tunnel", "--url", f"http://localhost:{PORT}"],
-        stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True,
-        bufsize=1)
-    # R2 fix: register the proc so the shutdown handler can terminate
-    # the cloudflared tunnel. Without this, re-running the cell spawns
-    # additional cloudflared processes until something binds.
-    _CLOUDFLARED_PROC["p"] = proc
-
-    # Daemon thread that drains stdout to prevent pipe-buffer fill (the
-    # known cloudflared 1033 root cause).
-    public_url = {"u": None}
-    def _drain():
-        for line in proc.stdout:
-            if "trycloudflare.com" in line and "https://" in line:
-                import re
-                m = re.search(r"https://[a-z0-9-]+\.trycloudflare\.com", line)
-                if m:
-                    public_url["u"] = m.group(0)
-    threading.Thread(target=_drain, daemon=True).start()
-
-    # Wait for URL up to 30 sec
-    for _ in range(60):
-        if public_url["u"]:
-            break
-        time.sleep(0.5)
-    return public_url["u"] or f"http://localhost:{PORT}"
-
-
-# ===========================================================================
-# Main
-# ===========================================================================
-if __name__ == "__main__" or True:
-    if LOADED is None:
-        print("\n" + "=" * 76)
-        print("[abort] Gemma 4 did not load. Cannot serve playground.")
-        print("=" * 76)
-    else:
-        url = launch_server()
-        print("\n" + "=" * 76)
-        print("DUECARE CONTENT CLASSIFICATION PLAYGROUND IS LIVE")
-        print("=" * 76)
-        print(f"\n  open this URL on your laptop:")
-        print(f"\n      {url}\n")
-        print(f"  schemas: single_label / multi_label / risk_vector / custom")
-        print(f"  shows:   merged prompt Gemma saw, raw response, parsed JSON")
-        print(f"  model:   {GEMMA_MODEL_VARIANT}")
-        print(f"\n  stop the demo by interrupting this cell.\n")
-        print("=" * 76)
-        # Block until shutdown signal (via /api/shutdown) or interrupt
-        try:
-            while not _SHUTDOWN_EVENT.is_set():
-                time.sleep(1)
-        except KeyboardInterrupt:
-            print("\n  interrupted -- shutting down")
-
-# Cleanup on shutdown
 print("\n  shutting down cleanly...")
 try:
     if _CLOUDFLARED_PROC.get("p"):
@@ -898,10 +873,4 @@ try:
         print("  cloudflared tunnel closed")
 except Exception as _e:
     print(f"  cloudflared close: {_e}")
-try:
-    from duecare.research_tools.browser_tool import shutdown as _browser_shutdown
-    _browser_shutdown()
-    print("  browser session closed (if any)")
-except Exception:
-    pass
 print("  shutdown complete -- cell exiting.\n")
