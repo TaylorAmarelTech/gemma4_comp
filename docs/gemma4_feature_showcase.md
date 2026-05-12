@@ -14,7 +14,7 @@
 | **Native function calling** | Structured tool-call JSON natively emitted by the model -- no glue protocol needed | A-02, A-09, A-13 |
 | **Multimodal vision** | Image-aware text generation in a single forward pass | A-13 |
 | **Multilingual reach** | 5 corridors covered without per-language fine-tune | A-19, A-13 (OCR), A-15 (UGC moderation across languages) |
-| **On-device quantization** | INT4 / Q4_K_M paths that produce real GGUF and LiteRT artifacts a judge can run on a laptop or phone | A-14, A-19 (mobile-class fallback) |
+| **On-device quantization** | INT4 / Q4_K_M paths that produce real GGUF and LiteRT artifacts a user can run on a laptop or phone | A-14, A-19 (mobile-class fallback) |
 | **Long context (128K)** | Whole-document grounding without retrieval | A-04 (knowledge builder), A-16 (NGO local-KB) |
 | **Instruction-following at small scale** | E2B + E4B variants produce high-quality outputs at sub-2 B and sub-4 B parameter counts | A-01, A-02, A-19, A-20 (all run on E2B by default) |
 | **Adapter compatibility** | LoRA fine-tune via Unsloth + PEFT merge-and-export pipeline | A-12 (PrivacyRedactor), A-07 (SafetyJudge), A-14 (export) |
@@ -55,7 +55,7 @@ each kernel collects.
 
 The hackathon rules name three Special Tech sub-tracks at $10K each.
 
-| Special Tech Track | Closed by | Concrete artifact judges can run |
+| Special Tech Track | Closed by | Concrete artifact reviewers can run |
 |---|---|---|
 | **Unsloth** | A-07 bench-and-tune (SFT + DPO); A-12 (PrivacyRedactor) | `taylorscottamarel/duecare-gemma-4-*-SafetyJudge-*` on HF Hub |
 | **llama.cpp** | A-14 on-device-export | `<RUN>_safetyjudge_q4km.gguf` (single `llama-server -m ...` away from a working chat) |
@@ -81,9 +81,10 @@ Honest gap analysis -- worth filling in a future appendix:
 
 ## How this doc is meant to be used
 
-1. Reading the writeup or watching the video, judges will check the
-   30-pt Technical Depth box by cross-referencing the per-kernel
-   capability map against this Gemma 4 feature inventory.
+1. Reading the writeup or watching the video, a reviewer or
+   first-pass viewer checks the 30-pt Technical Depth box by cross-
+   referencing the per-kernel capability map against this Gemma 4
+   feature inventory.
 2. New contributors deciding which appendix slot to extend can pick
    a capability that's under-showcased above.
 3. Future Tier-5 standardization should add a `**Gemma 4 features**`

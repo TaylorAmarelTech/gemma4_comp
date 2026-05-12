@@ -6,12 +6,12 @@
 ## What it does
 
 Takes a Gemma 4 base + a DueCare LoRA adapter (SafetyJudge or
-PrivacyRedactor) and produces real on-device artifacts a judge
+PrivacyRedactor) and produces real on-device artifacts a reviewer
 can run on a laptop or phone. Closes the Special Tech Track gaps:
 
-- **llama.cpp ($10K)** — produces a real GGUF a judge can run via
+- **llama.cpp ($10K)** — produces a real GGUF a reviewer can run via
   `llama-server`.
-- **LiteRT ($10K)** — produces a real `.tflite` a judge can run on
+- **LiteRT ($10K)** — produces a real `.tflite` a reviewer can run on
   a phone via Google AI Edge / MediaPipe.
 
 ## Pipeline
@@ -57,7 +57,7 @@ produced file.
 - **Folder path:** `kaggle/A-14-on-device-export/`
 - **Kernel ID:** `a-13-on-device-export`
 - **Upstream:** consumes adapters from A-07's HF Hub push
-- **Downstream:** GGUF files used by judge-side llama.cpp demos;
+- **Downstream:** GGUF files used by reviewer-side llama.cpp demos;
   LiteRT files used by the Android demo (`apps/duecare-android-app/`)
 
 See `docs/appendix_experiment_ladder.md` for the full ladder spec.
