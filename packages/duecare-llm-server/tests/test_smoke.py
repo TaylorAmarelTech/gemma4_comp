@@ -7,9 +7,10 @@ import pytest
 def test_server_imports() -> None:
     pytest.importorskip("fastapi")
     try:
-        from duecare.server import create_app, run_server
+        from duecare.server import ServerState, create_app, run_server
     except ImportError as e:
         pytest.skip(f"server depends on packages not installed: {e}")
+    assert ServerState is not None
     assert callable(create_app)
     assert callable(run_server)
 

@@ -12,6 +12,7 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import re
 import secrets
 import uuid
 from collections import Counter
@@ -24,7 +25,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse, Response
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
-from pydantic import BaseModel, ConfigDict, Field, HttpUrl, field_validator
+from pydantic import BaseModel, ConfigDict, Field, HttpUrl, field_validator, model_validator
 
 from . import __version__
 from . import automation
@@ -55,6 +56,9 @@ APP_DIR = Path(__file__).resolve().parent
 TEMPLATES_DIR = APP_DIR / "templates"
 STATIC_DIR = APP_DIR / "static"
 DEMO_PRIORITY_EXAMPLES_PATH = APP_DIR / "data" / "demo_priority_examples.json"
+MAX_CLIENT_PAYLOAD_BYTES = 100_000
+MAX_CLIENT_PAYLOAD_DEPTH = 20
+PACK_ID_PATTERN = re.compile(r"^[a-z0-9][a-z0-9-]{1,78}[a-z0-9]$")
 
 # Every clean URL on the public site maps to a template file in app/templates/.
 # The slug ("/" or "/foo") is the route; the value is the template filename.
@@ -366,6 +370,121 @@ ClientSubmissionKind = Literal[
     "volunteer",
     "custom",
 ]
+SubmissionVisibility = Literal[
+    "local_only",
+    "private_review",
+    "consortium_private",
+    "aggregate_only",
+    "benchmark_public",
+    "pack_public",
+]
+AttributionMode = Literal[
+    "anonymous",
+    "pseudonymous_deployment",
+    "organization_tagged",
+    "verified_organization",
+    "public_source_only",
+]
+LabelSource = Literal[
+    "manual_submitter",
+    "tenant_default",
+    "local_model_suggested",
+    "server_inferred",
+    "verified_registry",
+]
+
+
+ATTRIBUTION_LABEL_KEYS = {
+    "organization",
+    "organization_registry_id",
+    "org",
+    "submitter",
+    "tenant",
+    "tenant_id",
+    "tenant_id_hash",
+}
+
+
+class SubmitterInfo(BaseModel):
+    """Privacy-preserving submitter metadata for client-controlled labels."""
+
+    tenant_id_hash: str | None = Field(default=None, max_length=160)
+    organization_registry_id: str | None = Field(default=None, max_length=160)
+    display_name: str | None = Field(default=None, max_length=160)
+    public_attribution: bool = False
+
+
+class SubmissionLabel(BaseModel):
+    """One client-provided or machine-suggested metadata label."""
+
+    key: str = Field(min_length=1, max_length=80)
+    value: str = Field(min_length=1, max_length=240)
+    source: LabelSource
+    confidence: float = Field(ge=0.0, le=1.0)
+    public_safe: bool = False
+
+    @field_validator("key")
+    @classmethod
+    def _normalize_key(cls, value: str) -> str:
+        return value.strip().lower().replace(" ", "_")
+
+    @field_validator("value")
+    @classmethod
+    def _reject_label_pii(cls, value: str) -> str:
+        findings = detect_pii(value)
+        if findings:
+            labels = ", ".join(sorted(findings))
+            raise ValueError(f"label value appears to contain prohibited PII: {labels}")
+        return value.strip()
+
+
+class SubmissionConsent(BaseModel):
+    """Granular consent flags controlling sanitized object use."""
+
+    share_sanitized_object: bool = True
+    share_aggregate_trends: bool = True
+    allow_recontact: bool = False
+    allow_training_use: bool = False
+    allow_public_display: bool = False
+    contact_publication_consent: bool = False
+
+
+def _is_valid_email(value: str) -> bool:
+    """Return True for a simple, dependency-free email shape check."""
+    if any(char.isspace() for char in value):
+        return False
+    local, marker, domain = value.partition("@")
+    return bool(local and marker and "." in domain and not domain.startswith(".") and not domain.endswith("."))
+
+
+def _payload_pii_findings(value: object, *, path: str = "payload", depth: int = 0) -> set[str]:
+    """Recursively scan free-form payload values for detector-class PII."""
+    if depth > MAX_CLIENT_PAYLOAD_DEPTH:
+        raise ValueError(f"payload nesting exceeds maximum depth of {MAX_CLIENT_PAYLOAD_DEPTH}")
+    findings: set[str] = set()
+    if isinstance(value, str):
+        findings.update(detect_pii(value))
+        normalized_path = path.lower().replace("_", "-")
+        if value.strip() and any(token in normalized_path for token in ("passport", "visa", "national-id", "id-number")):
+            findings.add("identity_document")
+    elif isinstance(value, dict):
+        for key, child in value.items():
+            findings.update(detect_pii(str(key)))
+            findings.update(_payload_pii_findings(child, path=f"{path}.{key}", depth=depth + 1))
+    elif isinstance(value, list):
+        for index, child in enumerate(value):
+            findings.update(_payload_pii_findings(child, path=f"{path}[{index}]", depth=depth + 1))
+    return findings
+
+
+def _validate_pack_id(pack_id: str) -> str:
+    """Validate the public pack id path parameter before registry lookup."""
+    if not PACK_ID_PATTERN.fullmatch(pack_id):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="pack_id must be 3-80 lowercase letters, numbers, or hyphens and start and end with a letter or number.",
+        )
+    return pack_id
 
 
 class ClientSubmissionIn(BaseModel):
@@ -378,6 +497,11 @@ class ClientSubmissionIn(BaseModel):
     """
 
     kind: ClientSubmissionKind
+    visibility: SubmissionVisibility = Field(default="private_review")
+    attribution_mode: AttributionMode = Field(default="anonymous")
+    submitter: SubmitterInfo = Field(default_factory=SubmitterInfo)
+    labels: list[SubmissionLabel] = Field(default_factory=list, max_length=30)
+    consent: SubmissionConsent = Field(default_factory=SubmissionConsent)
     deployment_id: str | None = Field(
         default=None,
         max_length=80,
@@ -399,6 +523,22 @@ class ClientSubmissionIn(BaseModel):
         description="If True, contact_email may be published in pack manifest.",
     )
 
+    @model_validator(mode="before")
+    @classmethod
+    def _infer_legacy_attribution_mode(cls, data: object) -> object:
+        """Preserve older clients that sent organization metadata before labels."""
+        if not isinstance(data, dict) or "attribution_mode" in data:
+            return data
+        submitter = data.get("submitter")
+        has_submitter_org = isinstance(submitter, dict) and bool(
+            submitter.get("organization_registry_id") or submitter.get("display_name")
+        )
+        if data.get("organization") or has_submitter_org:
+            return {**data, "attribution_mode": "organization_tagged"}
+        if isinstance(submitter, dict) and submitter.get("tenant_id_hash"):
+            return {**data, "attribution_mode": "pseudonymous_deployment"}
+        return data
+
     @field_validator("summary")
     @classmethod
     def _reject_pii_in_summary(cls, value: str) -> str:
@@ -407,6 +547,59 @@ class ClientSubmissionIn(BaseModel):
             labels = ", ".join(sorted(findings))
             raise ValueError(f"summary appears to contain prohibited PII: {labels}")
         return value
+
+    @field_validator("contact_email")
+    @classmethod
+    def _validate_contact_email(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+        trimmed = value.strip()
+        if not _is_valid_email(trimmed):
+            raise ValueError("contact_email must be a valid email address")
+        return trimmed
+
+    @field_validator("payload")
+    @classmethod
+    def _bound_payload_size(cls, value: dict[str, object]) -> dict[str, object]:
+        serialized = json.dumps(value, sort_keys=True, separators=(",", ":"))
+        if len(serialized.encode("utf-8")) > MAX_CLIENT_PAYLOAD_BYTES:
+            raise ValueError(f"payload exceeds {MAX_CLIENT_PAYLOAD_BYTES} bytes")
+        return value
+
+    @field_validator("payload")
+    @classmethod
+    def _reject_pii_in_payload(cls, value: dict[str, object]) -> dict[str, object]:
+        findings = _payload_pii_findings(value)
+        if findings:
+            labels = ", ".join(sorted(findings))
+            raise ValueError(f"payload appears to contain prohibited PII: {labels}")
+        return value
+
+    @model_validator(mode="after")
+    def _validate_submission_envelope(self) -> "ClientSubmissionIn":
+        if self.visibility == "local_only":
+            raise ValueError("local_only objects must remain on the client and cannot be sent to the hub")
+        if self.visibility in {"benchmark_public", "pack_public"} and not self.consent.allow_public_display:
+            raise ValueError("public visibility requires consent.allow_public_display=True")
+        if self.contact_publication_consent:
+            self.consent.contact_publication_consent = True
+        if self.contact_publication_consent and not self.contact_email:
+            raise ValueError("contact_publication_consent requires contact_email")
+        if self.attribution_mode == "anonymous":
+            if self.organization:
+                raise ValueError("anonymous submissions cannot include organization metadata")
+            if self.submitter.organization_registry_id or self.submitter.display_name or self.submitter.public_attribution:
+                raise ValueError("anonymous submissions cannot include public submitter attribution")
+            attribution_labels = [label.key for label in self.labels if label.key in ATTRIBUTION_LABEL_KEYS]
+            if attribution_labels:
+                raise ValueError("anonymous submissions cannot include attribution labels")
+        if self.attribution_mode == "organization_tagged" and not (
+            self.organization or self.submitter.organization_registry_id or self.submitter.display_name
+        ):
+            raise ValueError("organization_tagged submissions require organization metadata")
+        if self.attribution_mode == "verified_organization" and not self.submitter.organization_registry_id:
+            raise ValueError("verified_organization submissions require submitter.organization_registry_id")
+        return self
 
 
 class ClientSubmissionReceipt(BaseModel):
@@ -452,6 +645,35 @@ class AggregateTrend(BaseModel):
 
     key: str
     count: int
+
+
+class HubToolExample(BaseModel):
+    """Example parameters for a Gemma 4-callable public hub tool."""
+
+    description: str
+    parameters: dict[str, object]
+
+
+class HubToolDefinition(BaseModel):
+    """Read-only public hub tool definition for local Gemma 4 orchestration."""
+
+    name: str
+    description: str
+    method: Literal["GET"]
+    path: str
+    safety_level: Literal["read_only_public"] = "read_only_public"
+    parameters: dict[str, object]
+    response_schema: dict[str, str]
+    examples: list[HubToolExample]
+
+
+class HubToolManifest(BaseModel):
+    """Allow-listed public hub tools exposed for native function calling."""
+
+    version: str
+    orchestration_model: str
+    privacy_boundary: str
+    tools: list[HubToolDefinition]
 
 
 class AppState(BaseModel):
@@ -595,6 +817,168 @@ def _knowledge_packs() -> list[KnowledgePackSummary]:
     ]
 
 
+def _object_parameters(properties: dict[str, object], required: list[str] | None = None) -> dict[str, object]:
+    """Return a JSON-schema object parameter block for a tool definition."""
+    return {
+        "type": "object",
+        "additionalProperties": False,
+        "properties": properties,
+        "required": required or [],
+    }
+
+
+def _hub_tool_manifest() -> HubToolManifest:
+    """Return the explicit allow-list Gemma 4 can use to query the hub."""
+    return HubToolManifest(
+        version=__version__,
+        orchestration_model=(
+            "Local or Kaggle-hosted Gemma 4 may call these read-only public "
+            "hub endpoints via native function calling. The Render hub does "
+            "not expose a generic executor."
+        ),
+        privacy_boundary=(
+            "Only public metadata, vetted packs, and aggregate counters are "
+            "included. Admin routes, local-KB ingest, email automation, "
+            "submissions, signals, and update writes are intentionally absent."
+        ),
+        tools=[
+            HubToolDefinition(
+                name="get_hub_status",
+                description="Read public hub version, uptime, and aggregate record counts.",
+                method="GET",
+                path="/api/hub/status",
+                parameters=_object_parameters({}),
+                response_schema={"model": "HubStatus"},
+                examples=[HubToolExample(description="Check whether the hub is live.", parameters={})],
+            ),
+            HubToolDefinition(
+                name="list_pack_summaries",
+                description="List high-level public knowledge-pack summaries for the hub landing pages.",
+                method="GET",
+                path="/api/hub/knowledge-packs",
+                parameters=_object_parameters({}),
+                response_schema={"model": "list[KnowledgePackSummary]"},
+                examples=[HubToolExample(description="Show the public pack overview.", parameters={})],
+            ),
+            HubToolDefinition(
+                name="list_packs",
+                description="Search vetted public pack bodies by kind, status, jurisdiction, corridor, or tag.",
+                method="GET",
+                path="/api/hub/packs",
+                parameters=_object_parameters(
+                    {
+                        "kind": {
+                            "type": "string",
+                            "description": "Optional pack type such as ContextPack, GrepRulePack, ToolPack, ContactPack, RubricPack, EvalPromptPack, or TrainingExamplePack.",
+                        },
+                        "status": {
+                            "type": "string",
+                            "description": "Optional pack status such as vetted, proposed, needs_review, or deprecated.",
+                        },
+                        "jurisdiction": {
+                            "type": "string",
+                            "description": "Optional ISO-style jurisdiction filter such as PHL or KWT.",
+                        },
+                        "corridor": {
+                            "type": "string",
+                            "description": "Optional migration corridor filter such as PHL-KWT.",
+                        },
+                        "tag": {
+                            "type": "string",
+                            "description": "Optional public pack tag such as fees or passport_retention.",
+                        },
+                        "latest_only": {
+                            "type": "boolean",
+                            "description": "Return only the latest matching version when true.",
+                            "default": True,
+                        },
+                    }
+                ),
+                response_schema={"model": "PackListResponse"},
+                examples=[
+                    HubToolExample(
+                        description="Find fee-related packs for the Philippines to Kuwait corridor.",
+                        parameters={"corridor": "PHL-KWT", "tag": "fees", "latest_only": True},
+                    )
+                ],
+            ),
+            HubToolDefinition(
+                name="get_pack_details",
+                description="Fetch the latest public body for a specific pack id.",
+                method="GET",
+                path="/api/hub/packs/{pack_id}",
+                parameters=_object_parameters(
+                    {
+                        "pack_id": {
+                            "type": "string",
+                            "pattern": "^[a-z0-9][a-z0-9-]{1,78}[a-z0-9]$",
+                            "description": "Public pack identifier, 3-80 lowercase letters, numbers, or hyphens, starting and ending with a letter or number; for example phl-kwt-domestic.",
+                        }
+                    },
+                    required=["pack_id"],
+                ),
+                response_schema={"model": "PackBody"},
+                examples=[
+                    HubToolExample(
+                        description="Fetch the latest Philippines to Kuwait domestic-work pack.",
+                        parameters={"pack_id": "phl-kwt-domestic"},
+                    )
+                ],
+            ),
+            HubToolDefinition(
+                name="list_pack_versions",
+                description="List public versions available for a specific pack id.",
+                method="GET",
+                path="/api/hub/packs/{pack_id}/versions",
+                parameters=_object_parameters(
+                    {
+                        "pack_id": {
+                            "type": "string",
+                            "pattern": "^[a-z0-9][a-z0-9-]{1,78}[a-z0-9]$",
+                            "description": "Public pack identifier, 3-80 lowercase letters, numbers, or hyphens, starting and ending with a letter or number; for example phl-kwt-domestic.",
+                        }
+                    },
+                    required=["pack_id"],
+                ),
+                response_schema={"model": "PackVersionList"},
+                examples=[
+                    HubToolExample(
+                        description="Check which versions can be pinned for reproducibility.",
+                        parameters={"pack_id": "phl-kwt-domestic"},
+                    )
+                ],
+            ),
+            HubToolDefinition(
+                name="sync_packs",
+                description="Read vetted public pack changes since an optional ISO-8601 cursor.",
+                method="GET",
+                path="/api/hub/sync",
+                parameters=_object_parameters(
+                    {
+                        "since": {
+                            "type": "string",
+                            "description": "Optional ISO-8601 timestamp cursor from a previous sync response.",
+                        }
+                    }
+                ),
+                response_schema={"model": "PackSyncResponse"},
+                examples=[
+                    HubToolExample(description="Initial sync of every vetted public pack.", parameters={})
+                ],
+            ),
+            HubToolDefinition(
+                name="get_aggregate_trends",
+                description="Read aggregate, anonymized trend counters from public hub records.",
+                method="GET",
+                path="/api/hub/trends",
+                parameters=_object_parameters({}),
+                response_schema={"model": "list[AggregateTrend]"},
+                examples=[HubToolExample(description="Summarize public aggregate trend counters.", parameters={})],
+            ),
+        ],
+    )
+
+
 def _demo_priority_examples() -> dict[str, object]:
     """Load synthetic, no-wait demo examples for recording walkthroughs."""
     return json.loads(DEMO_PRIORITY_EXAMPLES_PATH.read_text(encoding="utf-8"))
@@ -608,7 +992,9 @@ def create_app(*, data_dir: Path | None = None) -> FastAPI:
         title="Duecare AI Hub",
         description=(
             "Public coordination hub for anonymized migrant-worker safety signals, vetted knowledge packs, "
-            "public-source update proposals, and evaluation metadata. Privacy is non-negotiable."
+            "public-source update proposals, and evaluation metadata. Raw case content stays in "
+            "worker-controlled or tenant-controlled deployments; this hub stores anonymized signals, "
+            "public-source proposals, and metadata."
         ),
         version=__version__,
         docs_url="/api-docs",
@@ -661,6 +1047,11 @@ def create_app(*, data_dir: Path | None = None) -> FastAPI:
             update_proposal_count=update_count,
             counters=dict(state.store.trends()),
         )
+
+    @application.get("/api/hub/tools/manifest", response_model=HubToolManifest, tags=["tools"])
+    async def hub_tools_manifest() -> HubToolManifest:
+        """Return read-only public hub tools for local Gemma 4 orchestration."""
+        return _hub_tool_manifest()
 
     @application.get(
         "/api/hub/knowledge-packs",
@@ -718,6 +1109,7 @@ def create_app(*, data_dir: Path | None = None) -> FastAPI:
     @application.get("/api/hub/packs/{pack_id}", tags=["knowledge-packs"])
     async def get_latest_pack(pack_id: str) -> dict[str, object]:
         """Resolve the latest version of a pack by id."""
+        pack_id = _validate_pack_id(pack_id)
         body = pack_registry.get_pack(pack_id)
         if body is None:
             raise HTTPException(
@@ -729,6 +1121,7 @@ def create_app(*, data_dir: Path | None = None) -> FastAPI:
     @application.get("/api/hub/packs/{pack_id}/versions", tags=["knowledge-packs"])
     async def list_pack_versions(pack_id: str) -> dict[str, object]:
         """List every known version of a pack (newest first)."""
+        pack_id = _validate_pack_id(pack_id)
         versions = pack_registry.list_versions(pack_id)
         if not versions:
             raise HTTPException(
@@ -740,6 +1133,7 @@ def create_app(*, data_dir: Path | None = None) -> FastAPI:
     @application.get("/api/hub/packs/{pack_id}/{version}", tags=["knowledge-packs"])
     async def get_pinned_pack(pack_id: str, version: str) -> dict[str, object]:
         """Resolve a specific version of a pack. Pin this in production."""
+        pack_id = _validate_pack_id(pack_id)
         body = pack_registry.get_pack(pack_id, version)
         if body is None:
             raise HTTPException(
@@ -957,10 +1351,16 @@ def create_app(*, data_dir: Path | None = None) -> FastAPI:
         proposal_status: UpdateStatus = (
             "needs_review" if verdict.verdict == "needs_curator_review" else "proposed"
         )
+        contact_can_publish = body.contact_publication_consent or body.consent.contact_publication_consent
         record = {
             "id": record_id,
             "received_at": datetime.now(UTC).isoformat(),
             "kind": body.kind,
+            "visibility": body.visibility,
+            "attribution_mode": body.attribution_mode,
+            "submitter": body.submitter.model_dump(mode="json"),
+            "labels": [label.model_dump(mode="json") for label in body.labels],
+            "consent": body.consent.model_dump(mode="json"),
             "deployment_id": body.deployment_id,
             "organization": body.organization,
             "jurisdiction": body.jurisdiction,
@@ -969,8 +1369,9 @@ def create_app(*, data_dir: Path | None = None) -> FastAPI:
             "summary": body.summary,
             "payload": body.payload,
             "status": proposal_status,
-            "contact_email": body.contact_email if body.contact_publication_consent else None,
-            "contact_publication_consent": body.contact_publication_consent,
+            "contact_email": body.contact_email if contact_can_publish else None,
+            "contact_email_sha256": _sha256_text(body.contact_email) if body.contact_email and not contact_can_publish else None,
+            "contact_publication_consent": contact_can_publish,
             "automation": {
                 "verdict": verdict.verdict,
                 "intent": verdict.intent,

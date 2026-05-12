@@ -21,7 +21,7 @@ inside route handlers after a model call returns:
 The model-cost table is overridable by writing
 ``DUECARE_MODEL_COSTS_FILE=/path/to/costs.json`` — useful for keeping
 chargeback rates in sync with a procurement contract without a
-container rebuild.
+container rebuild. Override files must be JSON and at most 1 MiB.
 """
 from __future__ import annotations
 
@@ -54,6 +54,32 @@ DEFAULT_MODEL_COSTS_PER_1K: dict[str, dict[str, float]] = {
     "_default":            {"in": 0.0005, "out": 0.0015},
 }
 
+MODEL_LABEL_MAX_CHARS = 128
+MODEL_LABEL_ALLOWED_CHARS = frozenset("-_.:/@")
+MAX_COSTS_FILE_BYTES = 1_048_576
+
+
+def _safe_model_label(model: str) -> str:
+    """Normalize model names before placing them in Prometheus labels."""
+    safe = "".join(
+        char for char in str(model).strip()[:MODEL_LABEL_MAX_CHARS]
+        if char.isalnum() or char in MODEL_LABEL_ALLOWED_CHARS
+    )
+    return safe or "unknown"
+
+
+def _read_cost_override(path_value: str) -> dict[str, dict[str, float]] | None:
+    """Read a bounded JSON cost override file when configured."""
+    override_path = Path(path_value).expanduser()
+    if override_path.suffix.lower() != ".json":
+        return None
+    if override_path.stat().st_size > MAX_COSTS_FILE_BYTES:
+        return None
+    loaded = json.loads(override_path.read_text(encoding="utf-8"))
+    if isinstance(loaded, dict):
+        return loaded
+    return None
+
 
 def _load_costs() -> dict[str, dict[str, float]]:
     """Read the cost table from the env-var-pointed file if set,
@@ -62,9 +88,8 @@ def _load_costs() -> dict[str, dict[str, float]]:
     if not override:
         return DEFAULT_MODEL_COSTS_PER_1K
     try:
-        text = Path(override).read_text(encoding="utf-8")
-        loaded = json.loads(text)
-        if isinstance(loaded, dict):
+        loaded = _read_cost_override(override)
+        if loaded is not None:
             # Merge with defaults so missing models still resolve
             merged = dict(DEFAULT_MODEL_COSTS_PER_1K)
             merged.update(loaded)
@@ -101,13 +126,15 @@ def record(
 
     Safe to call with zero tokens (no-ops the counter, returns 0.0).
     """
+    tenant_label = obs.tenant_metric_label(tenant)
+    model_label = _safe_model_label(model)
     if tokens_in > 0:
         obs.model_tokens_in_total.labels(
-            tenant=tenant, model=model,
+            tenant=tenant_label, model=model_label,
         ).inc(tokens_in)
     if tokens_out > 0:
         obs.model_tokens_out_total.labels(
-            tenant=tenant, model=model,
+            tenant=tenant_label, model=model_label,
         ).inc(tokens_out)
     return estimate_cost_usd(model, tokens_in, tokens_out)
 
@@ -123,4 +150,5 @@ def set_tenant_budget(tenant: str, daily_token_budget: int) -> None:
     file (`/etc/duecare/tenants.yaml`) or after a control-plane API
     call. The current package does not include the control plane.
     """
-    obs.tenant_token_budget_daily.labels(tenant=tenant).set(daily_token_budget)
+    tenant_label = obs.tenant_metric_label(tenant)
+    obs.tenant_token_budget_daily.labels(tenant=tenant_label).set(daily_token_budget)

@@ -27,13 +27,22 @@ match the Grafana dashboard at
     duecare_tenant_token_budget_daily{tenant}
     duecare_tenant_concurrency_in_flight{tenant}
 
+Tenant labels are privacy-preserving stable hashes, not raw tenant IDs.
+Set DUECARE_METRICS_TENANT_SALT in production to prevent offline guessing
+of low-entropy tenant names.
+
 If `prometheus-client` is not installed, all counters become no-ops
 so the server still runs in lean / development environments.
 """
 from __future__ import annotations
 
+import hashlib
+import hmac
 import os
-from typing import Any, Optional
+import secrets
+from typing import Any
+
+from starlette.requests import Request
 
 try:
     from prometheus_client import (
@@ -64,6 +73,25 @@ class _NoopMetric:
     def dec(self, *_: Any, **__: Any) -> None: pass
     def observe(self, *_: Any, **__: Any) -> None: pass
     def set(self, *_: Any, **__: Any) -> None: pass
+
+
+def tenant_metric_label(tenant: str) -> str:
+    """Return a stable privacy-preserving Prometheus tenant label."""
+    tenant_value = str(tenant or "public").strip() or "public"
+    tenant_value = tenant_value[:1024]
+    salt = os.environ.get("DUECARE_METRICS_TENANT_SALT", "").strip()
+    secret = salt or os.environ.get("DUECARE_METRICS_TOKEN", "").strip()
+    secret = secret or os.environ.get("DUECARE_API_TOKEN", "").strip()
+    encoded_tenant = tenant_value.encode("utf-8", errors="ignore")
+    if secret:
+        digest = hmac.new(
+            secret.encode("utf-8", errors="ignore"),
+            encoded_tenant,
+            hashlib.sha256,
+        ).hexdigest()
+    else:
+        digest = hashlib.sha256(encoded_tenant).hexdigest()
+    return f"tenant_{digest[:12]}"
 
 
 def _counter(name: str, doc: str, labels: list[str]) -> Any:
@@ -166,7 +194,18 @@ def install_observability(app: Any) -> None:
     from fastapi import Response
 
     @app.get("/metrics", include_in_schema=False)
-    def metrics() -> Response:
+    def metrics(request: Request) -> Response:
+        metrics_token = os.environ.get("DUECARE_METRICS_TOKEN", "").strip()
+        api_token = os.environ.get("DUECARE_API_TOKEN", "").strip()
+        token = metrics_token or api_token
+        if token:
+            authorization = request.headers.get("authorization", "")
+            if not secrets.compare_digest(authorization, f"Bearer {token}"):
+                return Response(
+                    content="unauthorized\n",
+                    media_type="text/plain",
+                    status_code=401,
+                )
         return Response(
             content=generate_latest(_REGISTRY),
             media_type=CONTENT_TYPE_LATEST,

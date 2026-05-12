@@ -35,7 +35,9 @@ class RequestMetricsMiddleware(BaseHTTPMiddleware):
         request: Request,
         call_next: Callable[[Request], Awaitable[Response]],
     ) -> Response:
-        tenant = getattr(request.state, "tenant_id", "public")
+        tenant = obs.tenant_metric_label(
+            getattr(request.state, "tenant_id", "public"),
+        )
         route = request.url.path
         start = time.perf_counter()
         try:
