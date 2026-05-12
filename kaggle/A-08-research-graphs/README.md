@@ -16,6 +16,7 @@
 | **Demo path** | Run the notebook, open the chart dashboard, skim the six cards, and open the graph or Sankey view full screen. |
 | **Audience** | Researcher. |
 | **Inputs** | Optional /kaggle/input/duecare-eval-results dataset for chart 3 (placeholder rendered otherwise). CPU-only; no GPU required. |
+| **Gemma 4 features** | Cross-prompt analysis (CPU-only, no Gemma load); visualizes the harness lift + corridor distribution from earlier kernels. |
 | **Outputs** | Six interactive HTML charts, chart metadata API, and downloadable visualization artifacts. |
 | **Cross-links** | Use the quick links at the bottom for the full workbench, live demo, grading-lift appendix, and public website. |
 

@@ -16,6 +16,7 @@
 | **Demo path** | Run the kernel, open the cloudflared URL, and follow the deck from the human scenario into the live workbench and hub views. |
 | **Audience** | Platform safety, NGO & regulator, Individual worker, Researcher, and Developer / integration partner. |
 | **Inputs** | Gemma 4 IT variant (e4b-it default) + the bundled v3.16 harness corpus. No external data attachments required. |
+| **Gemma 4 features** | Instruction-following at small scale (E4B IT default) plus full harness orchestration; the +56.5pp lift on compound-indicator prompts is the headline Technical Depth claim. |
 | **Outputs** | Live demo page, Workbench pages, response evidence, public-hub routes, and audit-trail views. |
 | **Cross-links** | Use the quick links at the bottom for the full workbench, grading appendix, and public website. |
 

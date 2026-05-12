@@ -16,6 +16,7 @@
 | **Demo path** | Paste a synthetic recruitment message, classify it, open the pipeline modal, and filter the history by risk threshold. |
 | **Audience** | NGO & regulator. |
 | **Inputs** | Gemma 4 IT variant + the bundled DueCare corpus for batch classification scoring. |
+| **Gemma 4 features** | Batch evaluation at scale on E2B / E4B IT to surface the latency / cost profile NGOs would see in production. |
 | **Outputs** | JSON classification envelope, risk vectors, recommended action, history queue, and pipeline evidence. |
 | **Cross-links** | Use the quick links at the bottom for the full workbench, live demo, grading-lift appendix, and public website. |
 

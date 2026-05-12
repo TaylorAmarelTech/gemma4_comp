@@ -16,6 +16,7 @@
 | **Demo path** | Run the kernel, open the tunnel, send a recruitment-risk prompt, then toggle one harness layer at a time. |
 | **Audience** | Researcher. |
 | **Inputs** | Same Gemma 4 IT variants as A-01 plus the Persona / GREP / RAG / Tools toggles in the side panel. |
+| **Gemma 4 features** | Same Gemma 4 IT variants as A-01 plus Persona / GREP / RAG / **Tools** toggles -- the Tools layer exercises Gemma 4 native function calling. |
 | **Outputs** | Layer-by-layer response deltas, fired-rule evidence, retrieved-source context, tool outputs, and traceable chat turns. |
 | **Cross-links** | Use the quick links at the bottom for the full workbench, live demo, grading-lift appendix, and public website. |
 
