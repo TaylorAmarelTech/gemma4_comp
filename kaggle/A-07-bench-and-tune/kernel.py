@@ -5,7 +5,7 @@
 # End-to-end SafetyJudge SFT + DPO + stock-vs-fine-tuned benchmark + GGUF + HF Hub push.
 #
 # What to look for after Run All:
-#   - A-06 handoff bundles are loaded from attached Kaggle datasets, not notebook links.
+#   - A-04 handoff bundles are loaded from attached Kaggle datasets, not notebook links.
 #   - SFT/DPO train a SafetyJudge adapter, while PrivacyRedactor data remains a separate adapter track.
 #   - eval_results.json is the stock-vs-fine-tuned model benchmark artifact.
 #
@@ -19,19 +19,19 @@
 ============================================================================
 
     The science / methodology piece. Stock smoke benchmark -> Unsloth SFT
-    (LoRA on A-06 or harness-distilled prompt/response pairs) -> DPO
+    (LoRA on A-04 or harness-distilled prompt/response pairs) -> DPO
     (chosen = BEST/harness-on, rejected = harmful/incomplete/raw) ->
     re-benchmark the fine-tuned SafetyJudge adapter -> GGUF export -> HF
     Hub push.
 
     Kaggle memory rule: this notebook loads only one model into memory for
-    a run. Synthetic data generation happens upstream in A-06; A-07 reads
-    A-06 bundles attached through Kaggle Add Data. Run A-06 multiple times
+    a run. Synthetic data generation happens upstream in A-04; A-05 reads
+    A-04 bundles attached through Kaggle Add Data. Run A-04 multiple times
     (stock_harness_teacher, abliterated_adversary, human_curated_review),
-    attach all output datasets here, and A-07 merges the JSONLs by manifest.
+    attach all output datasets here, and A-05 merges the JSONLs by manifest.
 
     Model layout: one Gemma 4 backbone, two routed DueCare adapters. This
-    kernel trains/benchmarks the SafetyJudge adapter by default. A-06 also
+    kernel trains/benchmarks the SafetyJudge adapter by default. A-04 also
     produces PrivacyRedactor anonymization rows for a separate adapter/eval
     track; do not blend privacy-redaction rows into the SafetyJudge adapter.
 
@@ -112,15 +112,15 @@ RUN_DPO             = True       # Phase 7  (requires Phase 5 to have produced a
 RUN_BENCHMARK_FT    = True       # Phase 8 -- post-fine-tune eval
 RUN_GGUF_EXPORT     = True       # Phase 9
 RUN_HF_PUSH         = True       # Phase 10 -- requires HF_TOKEN with write scope
-USE_A06_GENERATED_DATA = True    # Prefer attached A-06 bundles/JSONLs before fallback
+USE_A04_GENERATED_DATA = True    # Prefer attached A-04 bundles/JSONLs before fallback
 
-# A-06 artifacts should arrive as Kaggle datasets via Add Data. Direct
+# A-04 artifacts should arrive as Kaggle datasets via Add Data. Direct
 # notebook-to-notebook links are intentionally avoided because they are brittle
 # and hard to reproduce in public Kaggle runs.
-A06_ARTIFACT_SEARCH_ROOTS = ["/kaggle/input", "/kaggle/working/a06_uploaded_bundles"]
-A06_BUNDLE_NAME = "duecare_a06_to_a07_bundle.zip"
-A06_EXTRACT_DIR = "/kaggle/working/a06_attached_bundles"
-A06_UPLOAD_DIR = "/kaggle/working/a06_uploaded_bundles"
+A04_ARTIFACT_SEARCH_ROOTS = ["/kaggle/input", "/kaggle/working/a04_uploaded_bundles"]
+A04_BUNDLE_NAME = "duecare_a04_to_a05_bundle.zip"
+A04_EXTRACT_DIR = "/kaggle/working/a04_attached_bundles"
+A04_UPLOAD_DIR = "/kaggle/working/a04_uploaded_bundles"
 ALLOWED_GENERATION_PROFILES = {
     "stock_harness_teacher",
     "abliterated_adversary",
@@ -128,15 +128,15 @@ ALLOWED_GENERATION_PROFILES = {
     "unknown",
 }
 TRUSTED_BEST_PROFILES = {"stock_harness_teacher", "human_curated_review"}
-MAX_A06_JSONL_ROWS = 20_000
-MAX_A06_TEXT_CHARS = 20_000
-MAX_A06_ZIP_BYTES = 200_000_000
-MAX_A06_JSONL_BYTES = 200_000_000
-MAX_A06_JSONL_LINE_CHARS = 200_000
-MAX_A06_MEMBER_BYTES = 100_000_000
-MAX_A06_UNCOMPRESSED_BYTES = 500_000_000
-MAX_A06_UPLOAD_FILES = 8
-STRICT_A06_CHECKSUM_VALIDATION = True
+MAX_A04_JSONL_ROWS = 20_000
+MAX_A04_TEXT_CHARS = 20_000
+MAX_A04_ZIP_BYTES = 200_000_000
+MAX_A04_JSONL_BYTES = 200_000_000
+MAX_A04_JSONL_LINE_CHARS = 200_000
+MAX_A04_MEMBER_BYTES = 100_000_000
+MAX_A04_UNCOMPRESSED_BYTES = 500_000_000
+MAX_A04_UPLOAD_FILES = 8
+STRICT_A04_CHECKSUM_VALIDATION = True
 
 # ===== SFT hyperparameters ===================================================
 # Dataset size: cap to keep T4 runs short. The harness can generate as
@@ -608,7 +608,7 @@ def run_benchmark(loaded: LoadedModel, label: str) -> dict:
 # ===========================================================================
 # PHASE 4 -- Build SFT dataset (harness-distilled chat pairs)
 # ===========================================================================
-_A06_PREPARED_ROOTS: list[Path] = []
+_A04_PREPARED_ROOTS: list[Path] = []
 
 
 def _sha256_file(path: Path) -> str:
@@ -619,7 +619,7 @@ def _sha256_file(path: Path) -> str:
     return digest.hexdigest()
 
 
-def _clean_text(value: Any, *, limit: int = MAX_A06_TEXT_CHARS) -> str:
+def _clean_text(value: Any, *, limit: int = MAX_A04_TEXT_CHARS) -> str:
     text = str(value or "")[:limit]
     return "".join(ch for ch in text if ch in "\n\r\t" or ord(ch) >= 32)
 
@@ -654,21 +654,21 @@ def _safe_extract_zip(bundle_path: Path, target: Path) -> None:
             member_path = PurePosixPath(member_name)
             member_mode = (member.external_attr >> 16) & 0o170000
             if not member_path.parts or member_path.name in {"", "."}:
-                raise ValueError("A-06 bundle contains an empty path")
+                raise ValueError("A-04 bundle contains an empty path")
             if member_path.is_absolute() or ".." in member_path.parts:
-                raise ValueError("A-06 bundle contains an unsafe path")
+                raise ValueError("A-04 bundle contains an unsafe path")
             if member_mode == 0o120000:
-                raise ValueError("A-06 bundle contains a symlink")
-            if member.file_size > MAX_A06_MEMBER_BYTES:
-                raise ValueError("A-06 bundle member is too large")
+                raise ValueError("A-04 bundle contains a symlink")
+            if member.file_size > MAX_A04_MEMBER_BYTES:
+                raise ValueError("A-04 bundle member is too large")
             total_uncompressed += int(member.file_size or 0)
-            if total_uncompressed > MAX_A06_UNCOMPRESSED_BYTES:
-                raise ValueError("A-06 bundle uncompressed size is too large")
+            if total_uncompressed > MAX_A04_UNCOMPRESSED_BYTES:
+                raise ValueError("A-04 bundle uncompressed size is too large")
             member_target = (target / Path(*member_path.parts)).resolve()
             if target_root not in (member_target, *member_target.parents):
-                raise ValueError("A-06 bundle contains an unsafe path")
+                raise ValueError("A-04 bundle contains an unsafe path")
             if member_target in seen_targets:
-                raise ValueError("A-06 bundle contains duplicate output paths")
+                raise ValueError("A-04 bundle contains duplicate output paths")
             seen_targets.add(member_target)
             planned.append((member, member_target))
         for member, member_target in planned:
@@ -678,7 +678,7 @@ def _safe_extract_zip(bundle_path: Path, target: Path) -> None:
 
 
 def _verify_manifest_artifact_checksums(root: Path, manifest: dict) -> list[str]:
-    """Return checksum warnings for files listed in an A-06 handoff manifest."""
+    """Return checksum warnings for files listed in an A-04 handoff manifest."""
     warnings: list[str] = []
     for artifact in manifest.get("artifacts", []) or []:
         if not isinstance(artifact, dict):
@@ -713,11 +713,11 @@ def _load_manifest_file(path: Path) -> Optional[dict]:
         "generator_model_variant": _clean_text(manifest.get("generator_model_variant"), limit=80),
         "one_model_per_kaggle_run": bool(manifest.get("one_model_per_kaggle_run")),
         "artifacts": manifest.get("artifacts", []) if isinstance(manifest.get("artifacts"), list) else [],
-        "_a06_source_path": str(path),
+        "_a04_source_path": str(path),
     }
 
 
-def _sanitize_a06_row(row: dict, source_path: Path) -> Optional[dict]:
+def _sanitize_a04_row(row: dict, source_path: Path) -> Optional[dict]:
     try:
         grade = int(row.get("grade", -1))
     except Exception:
@@ -740,36 +740,36 @@ def _sanitize_a06_row(row: dict, source_path: Path) -> Optional[dict]:
         "response": response,
         "generation_profile": _clean_profile(row.get("generation_profile")),
         "generator_model_variant": _clean_text(row.get("generator_model_variant"), limit=80),
-        "_a06_source_path": str(source_path),
+        "_a04_source_path": str(source_path),
     }
 
 
-def _prepare_a06_artifact_roots() -> list[Path]:
-    """Return roots containing A-06 handoff files, extracting ZIP bundles once."""
-    global _A06_PREPARED_ROOTS
-    if _A06_PREPARED_ROOTS:
-        return _A06_PREPARED_ROOTS
+def _prepare_a04_artifact_roots() -> list[Path]:
+    """Return roots containing A-04 handoff files, extracting ZIP bundles once."""
+    global _A04_PREPARED_ROOTS
+    if _A04_PREPARED_ROOTS:
+        return _A04_PREPARED_ROOTS
 
     roots: list[Path] = []
-    for root_name in A06_ARTIFACT_SEARCH_ROOTS:
+    for root_name in A04_ARTIFACT_SEARCH_ROOTS:
         root = Path(root_name)
         if root.exists():
             roots.append(root)
-    Path(A06_UPLOAD_DIR).mkdir(parents=True, exist_ok=True)
+    Path(A04_UPLOAD_DIR).mkdir(parents=True, exist_ok=True)
 
-    extract_root = Path(A06_EXTRACT_DIR)
+    extract_root = Path(A04_EXTRACT_DIR)
     extract_root.mkdir(parents=True, exist_ok=True)
     bundle_paths: list[Path] = []
     for root in roots:
-        direct = root / A06_BUNDLE_NAME
+        direct = root / A04_BUNDLE_NAME
         if direct.exists():
             bundle_paths.append(direct)
         try:
             for candidate in root.rglob("*.zip"):
                 name = candidate.name.lower()
-                if name == A06_BUNDLE_NAME or any(token in name for token in ("a06", "duecare", "bundle")):
+                if name == A04_BUNDLE_NAME or any(token in name for token in ("a04", "a06", "duecare", "bundle")):
                     try:
-                        if candidate.stat().st_size <= MAX_A06_ZIP_BYTES:
+                        if candidate.stat().st_size <= MAX_A04_ZIP_BYTES:
                             bundle_paths.append(candidate)
                     except Exception:
                         continue
@@ -788,22 +788,22 @@ def _prepare_a06_artifact_roots() -> list[Path]:
         try:
             _safe_extract_zip(bundle_path, target)
             extracted_roots.append(target)
-            print(f"  extracted A-06 bundle {bundle_path} -> {target}")
+            print(f"  extracted A-04 bundle {bundle_path} -> {target}")
         except Exception as e:
-            print(f"  could not extract A-06 bundle {bundle_path}: {type(e).__name__}")
+            print(f"  could not extract A-04 bundle {bundle_path}: {type(e).__name__}")
 
-    _A06_PREPARED_ROOTS = roots + extracted_roots
-    return _A06_PREPARED_ROOTS
+    _A04_PREPARED_ROOTS = roots + extracted_roots
+    return _A04_PREPARED_ROOTS
 
 
-def _find_a06_artifacts(filename: str) -> list[Path]:
-    """Find all matching A-06 artifacts in attached datasets and bundles."""
-    if not USE_A06_GENERATED_DATA:
+def _find_a04_artifacts(filename: str) -> list[Path]:
+    """Find all matching A-04 artifacts in attached datasets and bundles."""
+    if not USE_A04_GENERATED_DATA:
         return []
 
     paths: list[Path] = []
     seen: set[str] = set()
-    for root in _prepare_a06_artifact_roots():
+    for root in _prepare_a04_artifact_roots():
         candidates = []
         direct = root / filename
         if direct.exists():
@@ -824,16 +824,16 @@ def _find_a06_artifacts(filename: str) -> list[Path]:
 def _load_jsonl_rows(path: Path) -> list[dict]:
     rows: list[dict] = []
     try:
-        if path.stat().st_size > MAX_A06_JSONL_BYTES:
-            print(f"  skipping oversized A-06 JSONL: {path}")
+        if path.stat().st_size > MAX_A04_JSONL_BYTES:
+            print(f"  skipping oversized A-04 JSONL: {path}")
             return rows
     except Exception:
         return rows
     for index, line in enumerate(path.open(encoding="utf-8"), 1):
-        if index > MAX_A06_JSONL_ROWS:
-            print(f"  row cap reached for {path}; using first {MAX_A06_JSONL_ROWS}")
+        if index > MAX_A04_JSONL_ROWS:
+            print(f"  row cap reached for {path}; using first {MAX_A04_JSONL_ROWS}")
             break
-        if len(line) > MAX_A06_JSONL_LINE_CHARS:
+        if len(line) > MAX_A04_JSONL_LINE_CHARS:
             continue
         line = line.strip()
         if not line:
@@ -843,15 +843,15 @@ def _load_jsonl_rows(path: Path) -> list[dict]:
         except Exception:
             continue
         if isinstance(row, dict):
-            clean_row = _sanitize_a06_row(row, path)
+            clean_row = _sanitize_a04_row(row, path)
             if clean_row is not None:
                 rows.append(clean_row)
     return rows
 
 
-def _load_a06_manifests(*, strict: bool = STRICT_A06_CHECKSUM_VALIDATION) -> list[dict]:
+def _load_a04_manifests(*, strict: bool = STRICT_A04_CHECKSUM_VALIDATION) -> list[dict]:
     manifests: list[dict] = []
-    for path in _find_a06_artifacts("duecare_a06_to_a07_manifest.json"):
+    for path in _find_a04_artifacts("duecare_a04_to_a05_manifest.json"):
         manifest = _load_manifest_file(path)
         if manifest is None:
             continue
@@ -859,29 +859,29 @@ def _load_a06_manifests(*, strict: bool = STRICT_A06_CHECKSUM_VALIDATION) -> lis
         if warnings:
             manifest["checksum_warnings"] = warnings
             manifest["_trust_status"] = "untrusted"
-            print(f"  A-06 manifest checksum warnings for {path}: {warnings}")
+            print(f"  A-04 manifest checksum warnings for {path}: {warnings}")
             if strict:
-                raise ValueError("A-06 bundle integrity check failed")
+                raise ValueError("A-04 bundle integrity check failed")
         else:
             manifest["_trust_status"] = "verified"
         manifests.append(manifest)
     return manifests
 
 
-def _load_a06_graded_rows() -> tuple[list[dict], list[dict]]:
-    manifests = _load_a06_manifests()
-    paths = _find_a06_artifacts("graded_responses.jsonl")
+def _load_a04_graded_rows() -> tuple[list[dict], list[dict]]:
+    manifests = _load_a04_manifests()
+    paths = _find_a04_artifacts("graded_responses.jsonl")
     if not paths:
-        print("  A-06 graded_responses.jsonl not found; using harness-distilled fallback")
+        print("  A-04 graded_responses.jsonl not found; using harness-distilled fallback")
         return [], manifests
 
     rows: list[dict] = []
     for path in paths:
         path_rows = _load_jsonl_rows(path)
         rows.extend(path_rows)
-        print(f"  loaded {len(path_rows)} A-06 graded response rows from {path}")
+        print(f"  loaded {len(path_rows)} A-04 graded response rows from {path}")
     profiles = sorted({str(row.get("generation_profile", "unknown")) for row in rows})
-    print(f"  merged {len(rows)} A-06 graded rows across profiles: {profiles}")
+    print(f"  merged {len(rows)} A-04 graded rows across profiles: {profiles}")
     return rows, manifests
 
 
@@ -908,7 +908,7 @@ def _trusted_for_best(row: dict) -> bool:
     return str(row.get("generation_profile", "unknown")) in TRUSTED_BEST_PROFILES
 
 
-def _write_a06_sft_dataset(rows: list[dict], manifests: list[dict], out_path: Path) -> Path:
+def _write_a04_sft_dataset(rows: list[dict], manifests: list[dict], out_path: Path) -> Path:
     out_path.parent.mkdir(parents=True, exist_ok=True)
     n_written = 0
     with out_path.open("w", encoding="utf-8") as fh:
@@ -926,8 +926,8 @@ def _write_a06_sft_dataset(rows: list[dict], manifests: list[dict], out_path: Pa
                     {"role": "assistant", "content": response},
                 ],
                 "metadata": {
-                    "source": "a06_generated_graded_responses",
-                    "source_path": row.get("_a06_source_path"),
+                    "source": "a04_generated_graded_responses",
+                    "source_path": row.get("_a04_source_path"),
                     "prompt_id": row.get("prompt_id"),
                     "category": row.get("category") or "uncategorized",
                     "grade": row.get("grade"),
@@ -941,11 +941,11 @@ def _write_a06_sft_dataset(rows: list[dict], manifests: list[dict], out_path: Pa
             n_written += 1
             if n_written >= SFT_MAX_EXAMPLES:
                 break
-    print(f"  wrote {n_written} A-06 SFT examples to {out_path}")
+    print(f"  wrote {n_written} A-04 SFT examples to {out_path}")
     return out_path
 
 
-def _write_a06_dpo_dataset(rows: list[dict], manifests: list[dict], out_path: Path) -> Path:
+def _write_a04_dpo_dataset(rows: list[dict], manifests: list[dict], out_path: Path) -> Path:
     out_path.parent.mkdir(parents=True, exist_ok=True)
     by_prompt: dict[str, list[dict]] = {}
     for row in rows:
@@ -974,7 +974,7 @@ def _write_a06_dpo_dataset(rows: list[dict], manifests: list[dict], out_path: Pa
                 "chosen": chosen_text,
                 "rejected": rejected_text,
                 "category": chosen.get("category") or "uncategorized",
-                "source": "a06_generated_graded_responses",
+                "source": "a04_generated_graded_responses",
                 "chosen_profile": chosen.get("generation_profile", "unknown"),
                 "rejected_profile": rejected.get("generation_profile", "unknown"),
                 "chosen_rating": chosen.get("rating_label"),
@@ -984,7 +984,7 @@ def _write_a06_dpo_dataset(rows: list[dict], manifests: list[dict], out_path: Pa
             n_written += 1
             if n_written >= DPO_MAX_PAIRS:
                 break
-    print(f"  wrote {n_written} A-06 DPO pairs to {out_path}")
+    print(f"  wrote {n_written} A-04 DPO pairs to {out_path}")
     return out_path
 
 
@@ -1004,13 +1004,13 @@ def build_sft_dataset(loaded: LoadedModel) -> Path:
     print("[phase 4] building SFT dataset (harness-distilled)")
     print("=" * 76)
 
-    a06_rows, a06_manifests = _load_a06_graded_rows()
-    if a06_rows:
-        a06_path = _write_a06_sft_dataset(
-            a06_rows, a06_manifests, Path("/kaggle/working/sft_dataset.jsonl"))
-        if a06_path.exists() and a06_path.stat().st_size > 100:
-            return a06_path
-        print("  A-06 rows did not produce enough SFT data; using fallback")
+    a04_rows, a04_manifests = _load_a04_graded_rows()
+    if a04_rows:
+        a04_path = _write_a04_sft_dataset(
+            a04_rows, a04_manifests, Path("/kaggle/working/sft_dataset.jsonl"))
+        if a04_path.exists() and a04_path.stat().st_size > 100:
+            return a04_path
+        print("  A-04 rows did not produce enough SFT data; using fallback")
 
     try:
         from duecare.chat.harness import EXAMPLE_PROMPTS, default_harness
@@ -1249,13 +1249,13 @@ def build_dpo_dataset(loaded: LoadedModel) -> Path:
     print("[phase 6] building DPO preference pairs")
     print("=" * 76)
 
-    a06_rows, a06_manifests = _load_a06_graded_rows()
-    if a06_rows:
-        a06_path = _write_a06_dpo_dataset(
-            a06_rows, a06_manifests, Path("/kaggle/working/dpo_dataset.jsonl"))
-        if a06_path.exists() and a06_path.stat().st_size > 100:
-            return a06_path
-        print("  A-06 rows did not produce enough DPO pairs; using fallback")
+    a04_rows, a04_manifests = _load_a04_graded_rows()
+    if a04_rows:
+        a04_path = _write_a04_dpo_dataset(
+            a04_rows, a04_manifests, Path("/kaggle/working/dpo_dataset.jsonl"))
+        if a04_path.exists() and a04_path.stat().st_size > 100:
+            return a04_path
+        print("  A-04 rows did not produce enough DPO pairs; using fallback")
 
     try:
         from duecare.chat.harness import EXAMPLE_PROMPTS, default_harness
@@ -1620,10 +1620,10 @@ def main() -> dict:
             "dpo_max_pairs": DPO_MAX_PAIRS,
             "dpo_num_epochs": DPO_NUM_EPOCHS,
             "one_model_per_kaggle_run": True,
-            "use_a06_generated_data": USE_A06_GENERATED_DATA,
-            "a06_bundle_name": A06_BUNDLE_NAME,
-            "a06_search_roots": A06_ARTIFACT_SEARCH_ROOTS,
-            "a06_upload_dir": A06_UPLOAD_DIR,
+            "use_a04_generated_data": USE_A04_GENERATED_DATA,
+            "a04_bundle_name": A04_BUNDLE_NAME,
+            "a04_search_roots": A04_ARTIFACT_SEARCH_ROOTS,
+            "a04_upload_dir": A04_UPLOAD_DIR,
             "trusted_best_profiles": sorted(TRUSTED_BEST_PROFILES),
         },
         "phases": {},
@@ -1734,7 +1734,7 @@ def main() -> dict:
     # and export options.
     try:
         from duecare.chat._dc_log import dc_log, set_kernel_id
-        set_kernel_id("a-07-bench-and-tune")
+        set_kernel_id("a-05-fine-tune-trainer")
         dc_log("kernel.complete", f"fine-tune complete; results at {EVAL_RESULTS_JSON}",
                eval_results_path=EVAL_RESULTS_JSON,
                n_phases=len(eval_results.get("phases", {})))
@@ -1835,7 +1835,7 @@ def main() -> dict:
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Bench & tune dashboard · A-07 · DueCare</title>
+  <title>Bench & tune dashboard · A-05 · DueCare</title>
   <link rel="stylesheet" href="/static/_chrome.css">
   <link rel="stylesheet" href="/static/showcase.css">
   <script src="/static/_nav.js" defer></script>
@@ -1904,7 +1904,7 @@ def main() -> dict:
 </head>
 <body data-nav="researcher">
 <div class="wrap">
-  <div class="crumbs">Notebook · a-07-bench-and-tune</div>
+  <div class="crumbs">Notebook · a-05-fine-tune-trainer</div>
   <h1>Unsloth fine-tune pipeline — phase status + benchmark deltas</h1>
   <p class="lede">
     End-to-end Gemma 4 LoRA fine-tune via Unsloth, then DPO, then GGUF
@@ -1917,24 +1917,24 @@ def main() -> dict:
   <section class="hero">{kpis_html}</section>
 
     <section class="panel handoff">
-        <h2>A-06 bundle handoff</h2>
+        <h2>A-04 bundle handoff</h2>
         <p>
-            Open the Cloudflare URL printed by A-06 after Run All, download one or more
-            <code>duecare_a06_to_a07_bundle.zip</code> files, then bring them here.
-            The most reproducible Kaggle path is <b>Add Data before Run All</b> so A-07 trains on attached bundles from the start.
+            Open the Cloudflare URL printed by A-04 after Run All, download one or more
+            <code>duecare_a04_to_a05_bundle.zip</code> files, then bring them here.
+            The most reproducible Kaggle path is <b>Add Data before Run All</b> so A-05 trains on attached bundles from the start.
         </p>
         <ol>
-            <li>Run A-06 with <code>stock_harness_teacher</code>; download its bundle ZIP.</li>
-            <li>Run A-06 again with <code>abliterated_adversary</code> for adversarial negatives; download that ZIP too.</li>
-            <li>Attach both ZIPs as Kaggle datasets to A-07, or upload them below and rerun A-07 in the same session.</li>
-            <li>A-07 trusts Best labels only from stock/human-reviewed profiles; abliterated rows are kept for Bad/Worst contrast and stress tests.</li>
+            <li>Run A-04 with <code>stock_harness_teacher</code>; download its bundle ZIP.</li>
+            <li>Run A-04 again with <code>abliterated_adversary</code> for adversarial negatives; download that ZIP too.</li>
+            <li>Attach both ZIPs as Kaggle datasets to A-05, or upload them below and rerun A-05 in the same session.</li>
+            <li>A-05 trusts Best labels only from stock/human-reviewed profiles; abliterated rows are kept for Bad/Worst contrast and stress tests.</li>
         </ol>
-        <p><b>Trust warning:</b> only attach or upload A-06 bundles from runs you control. Untrusted training bundles can poison the adapter even when their ZIP structure is safe.</p>
-        <form id="a06-upload" class="upload-grid">
-            <input id="a06-files" name="files" type="file" multiple accept=".zip,.json,.jsonl">
-            <button type="submit">Upload A-06 artifacts</button>
+        <p><b>Trust warning:</b> only attach or upload A-04 bundles from runs you control. Untrusted training bundles can poison the adapter even when their ZIP structure is safe.</p>
+        <form id="a04-upload" class="upload-grid">
+            <input id="a04-files" name="files" type="file" multiple accept=".zip,.json,.jsonl">
+            <button type="submit">Upload A-04 artifacts</button>
         </form>
-        <div id="a06-upload-status" class="upload-status">Upload staging path: {_html.escape(A06_UPLOAD_DIR)}. Uploaded files affect training after rerun.</div>
+        <div id="a04-upload-status" class="upload-status">Upload staging path: {_html.escape(A04_UPLOAD_DIR)}. Uploaded files affect training after rerun.</div>
     </section>
 
   <section class="panel">
@@ -1960,32 +1960,32 @@ def main() -> dict:
 </div>
 <script>
 (function() {{
-    const form = document.getElementById('a06-upload');
-    const input = document.getElementById('a06-files');
-    const status = document.getElementById('a06-upload-status');
+    const form = document.getElementById('a04-upload');
+    const input = document.getElementById('a04-files');
+    const status = document.getElementById('a04-upload-status');
     async function refreshArtifacts() {{
         try {{
-            const res = await fetch('/api/a06-artifacts');
+            const res = await fetch('/api/a04-artifacts');
             const data = await res.json();
             const profiles = (data.manifests || []).map(m => m.generation_profile || 'unknown');
             const trust = (data.manifests || []).map(m => m._trust_status || 'unknown');
             status.textContent = `Attached/staged manifests: ${{data.manifests.length}} · profiles: ${{profiles.join(', ') || 'none'}} · trust: ${{trust.join(', ') || 'none'}}\n${{data.note}}`;
         }} catch (err) {{
-            status.textContent = 'Could not list A-06 artifacts yet.';
+            status.textContent = 'Could not list A-04 artifacts yet.';
         }}
     }}
     form.addEventListener('submit', async (event) => {{
         event.preventDefault();
         const files = Array.from(input.files || []);
         if (!files.length) {{
-            status.textContent = 'Choose one or more A-06 ZIP/JSONL/JSON artifacts first.';
+            status.textContent = 'Choose one or more A-04 ZIP/JSONL/JSON artifacts first.';
             return;
         }}
         const body = new FormData();
         files.forEach(file => body.append('files', file));
-        status.textContent = 'Uploading A-06 artifacts...';
+        status.textContent = 'Uploading A-04 artifacts...';
         try {{
-            const res = await fetch('/api/a06-upload', {{ method: 'POST', body }});
+            const res = await fetch('/api/a04-upload', {{ method: 'POST', body }});
             const data = await res.json();
             if (!res.ok) {{ throw new Error(data.detail || 'upload failed'); }}
             status.textContent = `${{data.saved.length}} file(s) staged. ${{data.next_step}}`;
@@ -2005,41 +2005,41 @@ def main() -> dict:
         def _api_eval_results():
             return JSONResponse(eval_results)
 
-        def _api_a06_artifacts():
-            manifests = _load_a06_manifests(strict=False)
-            prompt_paths = [str(path) for path in _find_a06_artifacts("generated_prompts.jsonl")]
-            graded_paths = [str(path) for path in _find_a06_artifacts("graded_responses.jsonl")]
-            privacy_paths = [str(path) for path in _find_a06_artifacts("anonymization_cases.jsonl")]
+        def _api_a04_artifacts():
+            manifests = _load_a04_manifests(strict=False)
+            prompt_paths = [str(path) for path in _find_a04_artifacts("generated_prompts.jsonl")]
+            graded_paths = [str(path) for path in _find_a04_artifacts("graded_responses.jsonl")]
+            privacy_paths = [str(path) for path in _find_a04_artifacts("anonymization_cases.jsonl")]
             return JSONResponse({
-                "search_roots": [str(root) for root in _prepare_a06_artifact_roots()],
-                "upload_dir": A06_UPLOAD_DIR,
+                "search_roots": [str(root) for root in _prepare_a04_artifact_roots()],
+                "upload_dir": A04_UPLOAD_DIR,
                 "manifests": manifests,
                 "generated_prompts": prompt_paths,
                 "graded_responses": graded_paths,
                 "anonymization_cases": privacy_paths,
                 "note": (
                     "Upload staging is visible immediately, but training phases already ran. "
-                    "Rerun A-07 to train on newly uploaded bundles."
+                    "Rerun A-05 to train on newly uploaded bundles."
                 ),
             })
 
-        async def _api_upload_a06_bundles(files: list[UploadFile] = File(...)):
+        async def _api_upload_a04_bundles(files: list[UploadFile] = File(...)):
             if not files:
                 raise HTTPException(400, "No files supplied")
-            if len(files) > MAX_A06_UPLOAD_FILES:
-                raise HTTPException(400, f"Upload at most {MAX_A06_UPLOAD_FILES} files at once")
+            if len(files) > MAX_A04_UPLOAD_FILES:
+                raise HTTPException(400, f"Upload at most {MAX_A04_UPLOAD_FILES} files at once")
 
-            upload_root = Path(A06_UPLOAD_DIR)
+            upload_root = Path(A04_UPLOAD_DIR)
             upload_root.mkdir(parents=True, exist_ok=True)
             saved: list[dict] = []
             for upload in files:
-                raw_name = upload.filename or "a06_artifact"
+                raw_name = upload.filename or "a04_artifact"
                 safe_name = re.sub(r"[^A-Za-z0-9._-]", "_", Path(raw_name).name)[:180]
                 suffix = Path(safe_name).suffix.lower()
                 if suffix not in {".zip", ".jsonl", ".json"}:
                     raise HTTPException(400, f"Unsupported file type: {safe_name}")
-                content = await upload.read(MAX_A06_ZIP_BYTES + 1)
-                if len(content) > MAX_A06_ZIP_BYTES:
+                content = await upload.read(MAX_A04_ZIP_BYTES + 1)
+                if len(content) > MAX_A04_ZIP_BYTES:
                     raise HTTPException(413, f"File too large: {safe_name}")
                 if not content:
                     raise HTTPException(400, f"Empty file: {safe_name}")
@@ -2064,12 +2064,12 @@ def main() -> dict:
                     record["extract_path"] = str(extract_target)
                 saved.append(record)
 
-            global _A06_PREPARED_ROOTS
-            _A06_PREPARED_ROOTS = []
+            global _A04_PREPARED_ROOTS
+            _A04_PREPARED_ROOTS = []
             return JSONResponse({
                 "ok": True,
                 "saved": saved,
-                "next_step": "Rerun A-07 so dataset build/training consumes the uploaded bundles.",
+                "next_step": "Rerun A-05 so dataset build/training consumes the uploaded bundles.",
             })
 
         def _export_phases_csv():
@@ -2121,13 +2121,13 @@ def main() -> dict:
         }
         import os as _os
         app, url = build_minimal_shell(
-            summary=summary, kernel_id="a-07-bench-and-tune",
+            summary=summary, kernel_id="a-05-fine-tune-trainer",
             port=int(_os.environ.get("DC_PORT", "8080")),
             homepage_html=dashboard_html,
             extra_routes={
                 "/api/eval-results":  ("GET", _api_eval_results),
-                "/api/a06-artifacts": ("GET", _api_a06_artifacts),
-                "/api/a06-upload":    ("POST", _api_upload_a06_bundles),
+                "/api/a04-artifacts": ("GET", _api_a04_artifacts),
+                "/api/a04-upload":    ("POST", _api_upload_a04_bundles),
                 "/export/phases.csv": ("GET", _export_phases_csv),
             },
         )
