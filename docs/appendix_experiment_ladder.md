@@ -85,17 +85,40 @@ A-11 PII fine-tune + evaluation  — train + benchmark PrivacyRedactor LoRA
 
 - A-01 batch baseline runner — committed `13a4240`
 - A-02 batch harnessed runner — committed `f4b21c0`
-- A-03 upload + compare — not yet built
-- A-04 synthetic data generator — exists as A-06
-  prompt-generation, needs slot move + harness wiring update
-- A-05 fine-tune trainer — exists as A-07 bench-and-tune,
-  needs slot move + JSONL ingestion from A-04
-- A-06/A-07/A-08 new-model variants — not yet built
+- A-03 upload + compare — committed `b8b7d99`
+  (lives in `kaggle/A-03-content-classification-playground/`;
+  folder rename pending separate cleanup pass)
+- A-04 synthetic data generator — committed `26aaa24`
+  (lives in `kaggle/A-06-prompt-generation/`; folder rename pending)
+- A-05 fine-tune trainer — committed `ec49ca9`
+  (lives in `kaggle/A-07-bench-and-tune/`; folder rename pending)
+- A-06 new-model baseline runner — not yet built
+- A-07 new-model harnessed runner — not yet built
+- A-08 new-model comparison — not yet built
 - A-09 abliterated test generator — exists as A-10
   jailbroken-models, needs slot move + ladder generator
-- A-10/A-11 PII track — not yet built (current A-11
-  grading-evaluation is the runtime-harness lift regenerator,
-  will need repurpose)
+- A-10 PII synth data generator — not yet built
+- A-11 PII fine-tune + evaluation — not yet built
+
+### Folder-slot mapping (transition state until cleanup pass)
+
+While the kernel.py contents now reflect the canonical ladder
+roles, the on-disk folder names still match the pre-2026-05-11
+naming. Until `git mv` rename pass, the mapping is:
+
+| Slot | Folder containing the kernel.py |
+|---|---|
+| A-01 | `kaggle/A-01-chat-playground/` |
+| A-02 | `kaggle/A-02-chat-playground-with-grep-rag-tools/` |
+| A-03 | `kaggle/A-03-content-classification-playground/` |
+| A-04 | `kaggle/A-06-prompt-generation/` |
+| A-05 | `kaggle/A-07-bench-and-tune/` |
+| A-06 | (pending) target: `kaggle/A-04-content-knowledge-builder-playground/` |
+| A-07 | (pending) target: `kaggle/A-05-gemma-content-classification-evaluation/` |
+| A-08 | (pending) target: `kaggle/A-11-grading-evaluation/` |
+| A-09 | (pending) target: `kaggle/A-10-chat-playground-jailbroken-models/` |
+| A-10 | (pending) target: `kaggle/A-09-chat-playground-with-agentic-research/` |
+| A-11 | (pending) — new folder required (no remaining legacy slot) |
 
 ## Folder rename policy
 
