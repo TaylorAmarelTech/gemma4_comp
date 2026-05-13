@@ -67,3 +67,10 @@ On older `duecare-llm-chat` versions without the
   surface; A-19 adds the language dimension).
 
 See `docs/appendix_experiment_ladder.md`.
+
+## Cross-links
+
+- **Why Gemma 4 (feature showcases):** [duecare-ai.com/why-gemma](https://duecare-ai.com/why-gemma) — multilingual reach is one of the capabilities the hub names there.
+- **BundleEnvelope schema:** [duecare-ai.com/technical-docs](https://duecare-ai.com/technical-docs) — A-19 is the **first reference implementation** of `duecare.appendix_primitives.write_v1_bundle()`.
+- **Full kernel roster:** [duecare-ai.com/kernels](https://duecare-ai.com/kernels).
+- **Public website:** [duecare-ai.com](https://duecare-ai.com).

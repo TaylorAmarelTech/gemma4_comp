@@ -835,7 +835,7 @@ DEMO_SCRIPT = {
                     "prompt": ("Reproduce the headline number from "
                                  "DueCare's hackathon writeup."),
                     "response": (
-                        "### Reproducing: \"+56.5pp lift on safety-judge "
+                        "### Reproducing: \"+56.5pp lift on safety-judging "
                         "accuracy with full harness ON\"\n\n"
                         "### Inputs (all version-pinned)\n"
                         "- Model: gemma-4-e4b-it @ unsloth/gemma-4-e4b-it-"
