@@ -1,0 +1,367 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Status -- DueCare Workbench</title>
+  <link rel="stylesheet" href="/static/_chrome.css">
+  <script src="/static/_nav.js" defer></script>
+  <script src="/static/_activity_log.js" defer></script>
+  <style>
+    .wb-page { max-width: 1180px; margin: 24px auto 60px; padding: 0 18px;
+               color: #0E1116; font-family: Inter, system-ui, sans-serif;
+               line-height: 1.55; }
+    .wb-h1 { font-size: 26px; font-weight: 700; margin: 0 0 6px; }
+    .wb-lede { font-size: 13.5px; color: #2A2D34; margin: 0 0 18px;
+               max-width: 820px; }
+    .wb-card { background: #FFF; border: 1px solid #DDD8C9; border-radius: 12px;
+               padding: 16px 18px; margin-bottom: 14px; }
+    .wb-card h2 { font-size: 15px; font-weight: 600; margin: 0 0 10px;
+                   letter-spacing: 0.01em; }
+    .wb-grid { display: grid; gap: 14px;
+               grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+    .stat-card { padding: 14px 16px; background: #FAF9F4; border: 1px solid #EFEDE4;
+                  border-radius: 10px; }
+    .stat-label { font-size: 11px; color: #5B5F68; letter-spacing: 0.05em;
+                  text-transform: uppercase; margin-bottom: 4px; font-weight: 600; }
+    .stat-value { font-size: 28px; font-weight: 700; color: oklch(0.32 0.07 195);
+                   font-variant-numeric: tabular-nums; line-height: 1.1; }
+    .stat-sub { font-size: 11.5px; color: #5B5F68; margin-top: 4px; }
+    .wb-pill { display: inline-block; padding: 2px 8px; background: #F1EFE7;
+                border-radius: 4px; font-size: 11px; color: #5B5F68;
+                font-family: 'JetBrains Mono', monospace; margin: 0 4px 4px 0; }
+    .wb-pill.ok      { background: oklch(0.92 0.06 155); color: oklch(0.32 0.07 155); }
+    .wb-pill.warn    { background: oklch(0.94 0.04 80);  color: oklch(0.34 0.07 80); }
+    .wb-pill.danger  { background: oklch(0.94 0.04 25);  color: oklch(0.34 0.07 25); }
+    .wb-btn-secondary { padding: 7px 13px; background: #FFF; color: #0E1116;
+                         border: 1px solid #DDD8C9; border-radius: 6px;
+                         font-size: 12.5px; cursor: pointer; text-decoration: none;
+                         display: inline-block; }
+    .wb-btn-primary { padding: 8px 16px; background: oklch(0.52 0.08 195);
+                       color: #FFF; border: 0; border-radius: 6px;
+                       font-size: 13px; cursor: pointer; }
+    .wb-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+    .wb-muted { color: #5B5F68; font-size: 11.5px; }
+    table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    th, td { padding: 6px 10px; border-bottom: 1px solid #EFEDE4; text-align: left;
+              vertical-align: top; }
+    thead tr { background: #F7F6F1; }
+    th { font-weight: 600; font-size: 11px; color: #5B5F68;
+          text-transform: uppercase; letter-spacing: 0.04em; }
+    code { background: #F1EFE7; padding: 1px 5px; border-radius: 3px;
+           font-size: 11.5px; font-family: 'JetBrains Mono', monospace; }
+    a { color: oklch(0.32 0.07 195); }
+    .wb-branch-row { display: flex; gap: 10px; align-items: baseline;
+                      padding: 6px 0; border-bottom: 1px dotted #EFEDE4;
+                      flex-wrap: wrap; }
+    .wb-branch-row:last-child { border-bottom: none; }
+    .wb-branch-name { font-size: 12.5px; font-weight: 600; min-width: 200px; }
+    .wb-branch-leaves { font-size: 11.5px; color: #5B5F68; }
+  </style>
+</head>
+<body data-nav="status">
+  <main class="wb-page">
+    <h1 class="wb-h1">Status &mdash; local instance health + knowledge state</h1>
+    <p class="wb-lede">
+      What this kernel knows right now. Counts come from the runtime
+      knowledge store at <code>/kaggle/working/knowledge/</code>, the
+      loaded model, the wired search backends, and your local
+      sync/import history (kept in <code>localStorage</code>; not
+      sent anywhere). Click <b>Refresh all</b> to re-query everything.
+    </p>
+
+    <div class="wb-row" style="margin-bottom: 10px;">
+      <button class="wb-btn-primary" onclick="statusRefresh()">Refresh all</button>
+      <a class="wb-btn-secondary" href="/static/sync.html">&larr; Sync</a>
+      <a class="wb-btn-secondary" href="/static/knowledge.html">Knowledge extraction &rarr;</a>
+      <a class="wb-btn-secondary" href="/static/harness.html">Layers &rarr;</a>
+      <span class="wb-muted" id="status-refreshed-at"></span>
+    </div>
+
+    <div class="wb-card">
+      <h2>At a glance</h2>
+      <div class="wb-grid">
+        <div class="stat-card">
+          <div class="stat-label">Knowledge envelopes loaded</div>
+          <div class="stat-value" id="stat-ko-total">--</div>
+          <div class="stat-sub" id="stat-ko-total-sub">across 6 branches</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Hub syncs (this device)</div>
+          <div class="stat-value" id="stat-syncs-count">--</div>
+          <div class="stat-sub" id="stat-syncs-last">last sync: never</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Manual imports (this device)</div>
+          <div class="stat-value" id="stat-imports-count">--</div>
+          <div class="stat-sub" id="stat-imports-last">last import: never</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Search backends available</div>
+          <div class="stat-value" id="stat-backends">--</div>
+          <div class="stat-sub" id="stat-backends-sub">--</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Model</div>
+          <div class="stat-value" style="font-size: 16px;" id="stat-model">--</div>
+          <div class="stat-sub" id="stat-version">--</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="wb-card">
+      <h2>Knowledge objects by branch and leaf type</h2>
+      <p class="wb-muted" style="margin: 0 0 10px;">
+        The DueCare taxonomy has <b>6 branches</b> and <b>21 leaf types</b>.
+        Every leaf type is consumed by at least one harness; counts below
+        are the persisted envelopes under
+        <code>/kaggle/working/knowledge/&lt;leaf&gt;/</code>. Synced or
+        imported envelopes hot-load into the runtime matching extras and
+        apply globally to every page on the next prompt.
+      </p>
+      <div id="branch-breakdown" class="wb-muted">Loading...</div>
+    </div>
+
+    <div class="wb-card">
+      <h2>Harness consumption + emission map</h2>
+      <p class="wb-muted" style="margin: 0 0 10px;">
+        Which harness reads which leaf types (CONSUMES) and which leaf
+        types it produces (EMITS). When you import or sync, the
+        envelopes become available to every harness that consumes that
+        leaf type &mdash; no kernel restart needed.
+      </p>
+      <table>
+        <thead>
+          <tr>
+            <th style="width: 22%;">Harness</th>
+            <th style="width: 39%;">Consumes</th>
+            <th style="width: 39%;">Emits</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><b>Chat</b> (<code>/api/chat/send</code>)</td>
+            <td>grep_rule, glob_rule, classifier_rule, heuristic_rule,
+                rag_doc, citation_edge, corridor_profile, ngo_directory,
+                persona_block, context_snippet, reasoning_step,
+                tool_definition, tool_example, tool_chain, prompt_template</td>
+            <td>fact_template (drafted answers as fact records)</td>
+          </tr>
+          <tr>
+            <td><b>Extraction</b> (<code>/api/knowledge/draft-envelope</code>)</td>
+            <td>grep_rule, rag_doc, prompt_template, fact_template</td>
+            <td>grep_rule, fact_template, context_snippet,
+                rubric_dimension, citation_edge, envelope_schema</td>
+          </tr>
+          <tr>
+            <td><b>Process Files</b> (<code>/api/process/batch</code>)</td>
+            <td>grep_rule, glob_rule, classifier_rule, heuristic_rule,
+                upload_schema, fact_template</td>
+            <td>fact_template (per-row extracted facts),
+                citation_edge (statute &harr; document)</td>
+          </tr>
+          <tr>
+            <td><b>Search</b> (<code>/api/search/client</code>)</td>
+            <td>prompt_template, persona_block</td>
+            <td>rag_doc (drafted from snippets)</td>
+          </tr>
+          <tr>
+            <td><b>Anonymization</b> (<code>/api/submit/knowledge</code>)</td>
+            <td>grep_rule (PII patterns), audit_template, submission_schema</td>
+            <td>submission_schema, audit_template</td>
+          </tr>
+          <tr>
+            <td><b>Grading</b> (<code>/api/grade*</code>)</td>
+            <td>rubric_dimension, prompt_template</td>
+            <td>audit_template (graded transcripts)</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="wb-card">
+      <h2>Search backends</h2>
+      <div id="backends-detail" class="wb-muted">checking...</div>
+    </div>
+
+    <div class="wb-card">
+      <h2>Recent activity log</h2>
+      <p class="wb-muted" style="margin: 0 0 8px;">
+        Live log of the status queries this page makes. Cleared on each Refresh.
+      </p>
+      <div id="status-log" class="dc-activity-log">
+        <div class="dc-log-idle">Loading...</div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    let _statusLog = null;
+
+    const KO_BRANCH_MAP = {
+      matching_knowledge: ['grep_rule', 'glob_rule', 'classifier_rule', 'heuristic_rule'],
+      grounding_knowledge: ['rag_doc', 'citation_edge', 'corridor_profile', 'ngo_directory'],
+      reasoning_knowledge: ['persona_block', 'context_snippet', 'reasoning_step', 'rubric_dimension'],
+      tool_knowledge: ['tool_definition', 'tool_example', 'tool_chain'],
+      input_knowledge: ['fact_template', 'upload_schema', 'prompt_template'],
+      output_knowledge: ['envelope_schema', 'audit_template', 'submission_schema'],
+    };
+
+    function statusReadLocalCounters() {
+      try {
+        const syncsCount = parseInt(localStorage.getItem('duecare:syncs-count') || '0', 10);
+        const syncsLastAt = localStorage.getItem('duecare:syncs-last-at') || '';
+        const importsCount = parseInt(localStorage.getItem('duecare:imports-count') || '0', 10);
+        const importsLastAt = localStorage.getItem('duecare:imports-last-at') || '';
+        return {syncsCount, syncsLastAt, importsCount, importsLastAt};
+      } catch (e) {
+        return {syncsCount: 0, syncsLastAt: '', importsCount: 0, importsLastAt: ''};
+      }
+    }
+
+    async function loadKnowledgeCounts() {
+      _statusLog.info('GET /api/knowledge/list');
+      const t0 = performance.now();
+      try {
+        const r = await fetch('/api/knowledge/list');
+        const dt = Math.round(performance.now() - t0);
+        if (!r.ok) {
+          _statusLog.err('HTTP ' + r.status + ' (' + dt + 'ms)');
+          return null;
+        }
+        const out = await r.json();
+        const n = (out && out.n) != null ? out.n : (out && out.objects ? out.objects.length : 0);
+        _statusLog.ok('HTTP 200 (' + dt + 'ms) n=' + n);
+        return out;
+      } catch (e) {
+        _statusLog.err('GET /api/knowledge/list failed', '' + e);
+        return null;
+      }
+    }
+    function renderKnowledgeCounts(out) {
+      if (!out) {
+        document.getElementById('stat-ko-total').textContent = '?';
+        return;
+      }
+      const objects = out.objects || [];
+      const total = out.n != null ? out.n : objects.length;
+      document.getElementById('stat-ko-total').textContent = total;
+      const byBranch = {}; const byType = {};
+      objects.forEach(o => {
+        byBranch[o.branch] = (byBranch[o.branch] || 0) + 1;
+        byType[o.type] = (byType[o.type] || 0) + 1;
+      });
+      document.getElementById('stat-ko-total-sub').textContent =
+        Object.keys(byBranch).length + ' branches with entries';
+      const host = document.getElementById('branch-breakdown');
+      while (host.firstChild) host.removeChild(host.firstChild);
+      const branches = Object.keys(KO_BRANCH_MAP);
+      branches.forEach(branch => {
+        const row = document.createElement('div'); row.className = 'wb-branch-row';
+        const name = document.createElement('div'); name.className = 'wb-branch-name';
+        name.textContent = branch + ' (' + (byBranch[branch] || 0) + ')';
+        row.appendChild(name);
+        const leaves = document.createElement('div'); leaves.className = 'wb-branch-leaves';
+        KO_BRANCH_MAP[branch].forEach(leaf => {
+          const p = document.createElement('span');
+          p.className = 'wb-pill' + ((byType[leaf] || 0) > 0 ? ' ok' : '');
+          p.textContent = leaf + ': ' + (byType[leaf] || 0);
+          leaves.appendChild(p);
+        });
+        row.appendChild(leaves);
+        host.appendChild(row);
+      });
+    }
+
+    async function loadBackends() {
+      _statusLog.info('GET /api/search/backends');
+      try {
+        const r = await fetch('/api/search/backends');
+        if (!r.ok) {
+          _statusLog.err('GET /api/search/backends HTTP ' + r.status);
+          return;
+        }
+        const b = await r.json();
+        const backends = b.backends || [];
+        const available = backends.filter(x => x.available).length;
+        document.getElementById('stat-backends').textContent = available + ' / ' + backends.length;
+        document.getElementById('stat-backends-sub').textContent =
+          (b.configured_searxng_url ? 'SearXNG wired' : 'SearXNG not wired')
+          + (available === 0 ? ' (all unavailable)' : '');
+        const host = document.getElementById('backends-detail');
+        while (host.firstChild) host.removeChild(host.firstChild);
+        backends.forEach(x => {
+          const p = document.createElement('span');
+          p.className = 'wb-pill ' + (x.available ? 'ok' : 'danger');
+          p.textContent = x.name + ': ' + (x.available ? 'available' : 'unavailable');
+          host.appendChild(p);
+        });
+        const note = document.createElement('span');
+        note.className = 'wb-muted'; note.style.marginLeft = '10px';
+        note.textContent = b.configured_searxng_url
+          ? 'DUECARE_SEARXNG_URL: ' + b.configured_searxng_url
+          : 'DUECARE_SEARXNG_URL not set';
+        host.appendChild(note);
+        _statusLog.ok('backends available=' + available + ' / ' + backends.length);
+      } catch (e) {
+        _statusLog.err('backends fetch failed', '' + e);
+      }
+    }
+
+    async function loadModelInfo() {
+      _statusLog.info('GET /api/model-info + /api/version');
+      try {
+        const [mi, vi] = await Promise.all([
+          fetch('/api/model-info').then(r => r.ok ? r.json() : null).catch(() => null),
+          fetch('/api/version').then(r => r.ok ? r.json() : null).catch(() => null),
+        ]);
+        if (mi) {
+          const name = mi.model_name || mi.name || mi.id || '(unknown model)';
+          const params = mi.params || mi.size || '';
+          document.getElementById('stat-model').textContent = name + (params ? ' (' + params + ')' : '');
+          _statusLog.ok('model=' + name);
+        } else {
+          document.getElementById('stat-model').textContent = '(no model wired)';
+          _statusLog.warn('no model wired');
+        }
+        if (vi) {
+          const v = vi.version || vi.duecare_version || vi.kernel_version || '(unknown)';
+          document.getElementById('stat-version').textContent = 'version: ' + v;
+        }
+      } catch (e) {
+        _statusLog.err('model/version fetch failed', '' + e);
+      }
+    }
+
+    function renderLocalCounters() {
+      const c = statusReadLocalCounters();
+      document.getElementById('stat-syncs-count').textContent = c.syncsCount;
+      document.getElementById('stat-syncs-last').textContent =
+        'last sync: ' + (c.syncsLastAt || 'never');
+      document.getElementById('stat-imports-count').textContent = c.importsCount;
+      document.getElementById('stat-imports-last').textContent =
+        'last import: ' + (c.importsLastAt || 'never');
+      _statusLog.info('local counters', 'syncs=' + c.syncsCount + ' imports=' + c.importsCount);
+    }
+
+    async function statusRefresh() {
+      if (_statusLog && _statusLog.clear) _statusLog.clear();
+      document.getElementById('status-refreshed-at').textContent =
+        'refreshed at ' + new Date().toLocaleTimeString();
+      renderLocalCounters();
+      await Promise.all([
+        loadKnowledgeCounts().then(renderKnowledgeCounts),
+        loadBackends(),
+        loadModelInfo(),
+      ]);
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+      _statusLog = window.dcActivityLog
+        ? window.dcActivityLog.attach('#status-log', {idlePlaceholder: 'Loading...'})
+        : null;
+      statusRefresh();
+    });
+  </script>
+</body>
+</html>
