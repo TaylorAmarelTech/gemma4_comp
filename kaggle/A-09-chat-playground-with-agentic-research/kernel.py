@@ -91,7 +91,7 @@ RANDOM_SEED = int(os.environ.get("DUECARE_PII_SEED", "20260511"))
 # ===========================================================================
 DUECARE_VERSION    = "0.1.0"
 DUECARE_REPO       = "TaylorAmarelTech/gemma4_comp"
-DUECARE_COMMIT_SHA = "cd864a8"
+DUECARE_COMMIT_SHA = "main"
 DUECARE_PACKAGES   = ["duecare-llm-chat"]
 
 

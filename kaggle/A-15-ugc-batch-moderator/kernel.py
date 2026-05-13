@@ -96,7 +96,7 @@ if not _marker.exists():
 # ===========================================================================
 DUECARE_VERSION = "0.1.0"
 DUECARE_REPO = "TaylorAmarelTech/gemma4_comp"
-DUECARE_COMMIT_SHA = "b6c446d"
+DUECARE_COMMIT_SHA = "main"
 DUECARE_PACKAGES = ["duecare-llm-chat"]
 
 
