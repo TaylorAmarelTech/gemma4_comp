@@ -3561,43 +3561,12 @@ def create_app(
                 _ONLINE_CONFIG["brave_test_at"] = time.time()
             raise HTTPException(500, msg) from e
 
-    @app.post("/api/chat/upload-image")
-    async def api_upload_image(file: UploadFile = File(...)) -> Any:
-        """Accept an image upload. Returns an opaque id the client
-        sends in subsequent chat messages as
-        {"type": "image", "image": "store://<id>"}."""
-        data = await file.read()
-        if not data:
-            raise HTTPException(400, "empty file")
-        if len(data) > 12 * 1024 * 1024:
-            raise HTTPException(413, "image too large (12 MB cap)")
-        mime = file.content_type or "image/png"
-        if not mime.startswith("image/"):
-            raise HTTPException(400, f"not an image: {mime}")
-        sid = uuid4().hex[:12]
-        # H3 (R2): atomic insert + LRU eviction. Without the lock,
-        # concurrent uploads race on `next(iter(...))` (CPython can
-        # raise on iter-during-mutation) and can pop the same key
-        # twice, letting the store grow past 50.
-        with _IMAGE_STORE_LOCK:
-            _IMAGE_STORE[sid] = (data, mime)
-            while len(_IMAGE_STORE) > 50:
-                # Evict oldest (insertion order). Snapshot keys so the
-                # iterator doesn't observe concurrent mutation.
-                oldest = next(iter(list(_IMAGE_STORE)))
-                _IMAGE_STORE.pop(oldest, None)
-        return {"id": sid, "mime": mime, "bytes": len(data)}
-
-    @app.get("/api/chat/image/{sid}")
-    def api_get_image(sid: str) -> Any:
-        # Snapshot under the lock so we can't race with eviction between
-        # the existence check and the body read.
-        with _IMAGE_STORE_LOCK:
-            item = _IMAGE_STORE.get(sid)
-        if item is None:
-            raise HTTPException(404, "image not found")
-        from fastapi.responses import Response
-        return Response(content=item[0], media_type=item[1])
+    # /api/chat/upload-image + /api/chat/image/{sid} -- delegated to the
+    # chat harness (Phase 5a). The harness reads/writes the module-level
+    # _IMAGE_STORE so the closure-based /api/chat/send below still works
+    # against the same store until Phase 5b moves it too.
+    from .harnesses import chat as _chat_harness
+    _chat_harness.register_routes(app)
 
     def _resolve_messages(raw_messages: list[dict]) -> list[dict]:
         """Walk the messages, resolve any 'store://<id>' image refs to
