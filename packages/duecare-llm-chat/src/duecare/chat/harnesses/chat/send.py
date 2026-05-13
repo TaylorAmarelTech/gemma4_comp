@@ -148,6 +148,22 @@ async def serve_chat_send(
                 "model_info":    model_info,
                 "harness_trace": harness["trace"],
             })
+            try:
+                from .._training_log import log_interaction as _log
+                _layer_trace = harness.get("trace") or {}
+                _applied = {k: {"fired": v.get("fired"), "enabled": v.get("enabled")}
+                            for k, v in _layer_trace.items()
+                            if isinstance(v, dict)}
+                _log(
+                    "chat",
+                    input_payload=raw_messages_in,
+                    output_payload=response_text,
+                    applied_layers=_applied,
+                    trace=_layer_trace,
+                    extra={"model_info": model_info, "elapsed_ms": model_ms},
+                )
+            except Exception:
+                pass
         except Exception as exc:  # noqa: BLE001
             state["error"] = f"{type(exc).__name__}: {exc}"
             progress_q.put_nowait({"type": "error", "error": state["error"]})

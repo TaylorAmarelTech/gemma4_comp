@@ -110,6 +110,24 @@ def register_routes(app: Any) -> None:
                     redacted = redacted.replace(raw, ph)
             out_texts.append(redacted)
             out_diffs.append({"n_redactions": len(redactions), "redactions": redactions})
+        try:
+            from .._training_log import log_interaction as _log
+            _log(
+                "anonymization",
+                input_payload={"n_texts": len(texts)},
+                output_payload={
+                    "n_redacted_texts": len(out_texts),
+                    "total_redactions": sum(d["n_redactions"] for d in out_diffs),
+                    "labels_seen": sorted({r["label"]
+                                          for d in out_diffs
+                                          for r in d["redactions"]}),
+                },
+                applied_layers={},
+                trace={},
+                anonymize=False,
+            )
+        except Exception:
+            pass
         return JSONResponse({"redacted": out_texts, "diffs": out_diffs})
 
     @app.post("/api/submit/knowledge")
