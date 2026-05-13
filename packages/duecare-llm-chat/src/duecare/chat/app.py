@@ -4820,6 +4820,161 @@ def create_app(
                        "local stage for that future POST."),
         })
 
+
+    # ====================================================================
+    # Phase 15 (2026-05-12): standardized KnowledgeObject endpoints.
+    # See docs/knowledge_module_schema.md for the envelope spec.
+    # ====================================================================
+
+    KO_TYPES = {"grep_rule", "rag_doc", "citation_edge", "fact_template", "context_snippet"}
+
+    def _ko_root():
+        from pathlib import Path as _Path
+        root = _Path("/kaggle/working/knowledge")
+        try:
+            root.mkdir(parents=True, exist_ok=True)
+        except Exception:
+            root = _Path(".") / ".duecare-knowledge"
+            root.mkdir(parents=True, exist_ok=True)
+        return root
+
+    def _ko_validate(env: dict) -> tuple[bool, str]:
+        import re as _re
+        if not isinstance(env, dict):
+            return False, "envelope must be a JSON object"
+        if env.get("schema_version") != "1.0":
+            return False, 'schema_version must be "1.0"'
+        ko_type = env.get("knowledge_object_type")
+        if ko_type not in KO_TYPES:
+            return False, f"knowledge_object_type must be one of {sorted(KO_TYPES)}"
+        ko_id = env.get("id")
+        if not isinstance(ko_id, str) or not ko_id.strip():
+            return False, "`id` must be a non-empty string"
+        if not _re.match(r"^[a-z0-9][a-z0-9\-_]*$", ko_id):
+            return False, "`id` must be kebab-case (lowercase + digits + hyphen/underscore)"
+        if not isinstance(env.get("content"), dict):
+            return False, "`content` must be a JSON object"
+        return True, ""
+
+    @app.post("/api/knowledge/promote")
+    async def api_knowledge_promote(request: Request) -> Any:
+        """Validate a KnowledgeObject envelope + persist it. Files become
+        immediately listable via /api/knowledge/list. The harness re-
+        digests on next kernel boot (no live hot-reload yet).
+        """
+        import json as _json
+        from datetime import datetime as _dt
+
+        try:
+            env = await request.json()
+        except Exception:
+            raise HTTPException(400, "invalid JSON body")
+        ok, err = _ko_validate(env)
+        if not ok:
+            raise HTTPException(400, err)
+
+        prov = env.setdefault("provenance", {})
+        prov.setdefault("created_at", _dt.utcnow().strftime("%Y-%m-%dT%H-%M-%SZ"))
+        prov.setdefault("created_by", "kernel-01")
+        env.setdefault("version", "v1")
+        env.setdefault("tags", [])
+        env.setdefault("extensions", {})
+
+        ko_type = env["knowledge_object_type"]
+        ko_id = env["id"]
+        root = _ko_root()
+        dest_dir = root / ko_type
+        dest_dir.mkdir(parents=True, exist_ok=True)
+        dest = dest_dir / f"{ko_id}.json"
+        try:
+            with open(dest, "w", encoding="utf-8") as f:
+                _json.dump(env, f, ensure_ascii=False, indent=2, sort_keys=True)
+        except Exception as e:
+            raise HTTPException(500, f"write failed: {e}")
+        return JSONResponse({
+            "ok": True,
+            "id": ko_id,
+            "type": ko_type,
+            "written_to": str(dest),
+            "envelope": env,
+        })
+
+    @app.get("/api/knowledge/list")
+    async def api_knowledge_list(type: Optional[str] = None) -> Any:
+        """List persisted KnowledgeObjects, optionally filtered by type."""
+        import json as _json
+        if type is not None and type not in KO_TYPES:
+            raise HTTPException(400, f"unknown type: {type}")
+        root = _ko_root()
+        out = []
+        for ko_type in (sorted(KO_TYPES) if type is None else [type]):
+            type_dir = root / ko_type
+            if not type_dir.exists():
+                continue
+            for p in sorted(type_dir.glob("*.json")):
+                try:
+                    env = _json.loads(p.read_text(encoding="utf-8"))
+                except Exception:
+                    continue
+                content = env.get("content") or {}
+                summary = ""
+                if ko_type == "grep_rule":
+                    summary = (content.get("description") or content.get("pattern") or "")[:160]
+                elif ko_type == "rag_doc":
+                    summary = (content.get("title") or "")[:160]
+                elif ko_type == "citation_edge":
+                    summary = (f"{content.get('from_statute', '?')} -> "
+                                  f"{content.get('to_statute', '?')} "
+                                  f"({content.get('relation', 'relates')})")
+                elif ko_type == "fact_template":
+                    summary = (content.get("label") or content.get("template_id") or "")[:160]
+                elif ko_type == "context_snippet":
+                    summary = (content.get("text") or "")[:160]
+                out.append({
+                    "id": env.get("id"),
+                    "type": ko_type,
+                    "version": env.get("version"),
+                    "provenance": env.get("provenance") or {},
+                    "summary": summary,
+                    "tags": env.get("tags") or [],
+                    "path": str(p),
+                })
+        return JSONResponse({"objects": out, "n": len(out)})
+
+    @app.get("/api/knowledge/export")
+    async def api_knowledge_export() -> Any:
+        """Pack all persisted KnowledgeObjects into a ZIP -- one entry
+        per artefact at `<type>/<id>.json` plus a manifest.json.
+        """
+        import io as _io, zipfile as _zipfile, json as _json
+        from datetime import datetime as _dt
+        root = _ko_root()
+        buf = _io.BytesIO()
+        with _zipfile.ZipFile(buf, "w", _zipfile.ZIP_DEFLATED) as zf:
+            for ko_type in sorted(KO_TYPES):
+                type_dir = root / ko_type
+                if not type_dir.exists():
+                    continue
+                for p in sorted(type_dir.glob("*.json")):
+                    try:
+                        zf.write(p, arcname=f"{ko_type}/{p.name}")
+                    except Exception:
+                        pass
+            manifest = {
+                "schema_version": "1.0",
+                "exported_at": _dt.utcnow().strftime("%Y-%m-%dT%H-%M-%SZ"),
+                "exporter": "kernel-01",
+            }
+            zf.writestr("manifest.json", _json.dumps(manifest, indent=2))
+        buf.seek(0)
+        return Response(
+            content=buf.read(),
+            media_type="application/zip",
+            headers={
+                "Content-Disposition": 'attachment; filename="duecare_knowledge_bundle.zip"',
+            },
+        )
+
     return app
 
 
