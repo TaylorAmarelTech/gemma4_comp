@@ -1,3 +1,11 @@
+<!-- audit-allow-file:drift
+reason: dated 2026-05-10 audit snapshot. Historical content;
+the literal phrase '2 core + 11 appendix' captures the roster
+as it stood when this audit ran. Updating it would falsify the
+frozen audit record. Use docs/SUBMISSION_READINESS_AUDIT.md or
+the canonical kaggle/_INDEX.md for the current roster.
+-->
+
 # DueCare submission surface audit — 2026-05-10
 
 Scope requested: website/server/frontend/backend and context docs; primary submission notebooks; appendix submission notebooks; writeup.

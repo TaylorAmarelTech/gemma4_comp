@@ -1,6 +1,6 @@
 # <!-- duecare:kernel-intro -->
 # DueCare — On-device export (LoRA merge -> GGUF + LiteRT)
-# Appendix notebook #A13 of 20 in the DueCare submission.
+# Appendix notebook #A14 of 24 in the DueCare submission.
 #
 # Loads Gemma 4 base + a LoRA adapter (SafetyJudge from A-05 or
 # PrivacyRedactor from A-11), merges them, quantizes to GGUF

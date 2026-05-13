@@ -46,7 +46,7 @@ Used in accordance with the
 
 ## Why "appendix"
 
-The 2 core + 11 appendix kernels deliver everything an end user needs for
+The 3 core + 24 appendix kernels deliver everything an end user needs for
 deployment. The two earlier appendix notebooks
 (`prompt-generation`, `bench-and-tune`) extend the system with new
 prompts and a fine-tuned model. This third appendix notebook

@@ -18,7 +18,7 @@
 - **Gemma 4 Good Hackathon** on Kaggle. **Submit by 2026-05-18 23:59 UTC**. As of writing it is **2026-05-08** — T-10 days.
 - Tracks targeted: Impact → Safety & Trust ($10K), Special Tech → Unsloth ($10K), Special Tech → llama.cpp / LiteRT ($10K), Main ($10K-$50K).
 - Scoring: **Impact & Vision 40 / Video Pitch 30 / Tech Depth 30**. **70 of 100 points are scored from the video.** The chat package is what judges see when they click the live demo.
-- Submission deliverables: 2 core + 11 appendix Kaggle notebooks, ≤1,500-word writeup, ≤3-min video, public GitHub repo, live public demo.
+- Submission deliverables: 3 core + 24 appendix Kaggle notebooks, ≤1,500-word writeup, ≤3-min video, public GitHub repo, live public demo.
 
 This means: **shippable beats elegant.** A refactor that takes 2 days but doesn't move the visible demo is lower priority than a 2-hour viz polish that does.
 
@@ -248,7 +248,7 @@ The author asked: *"In the tools / RAG / context, should we have some way of mai
 
 7. **What viz is missing that would be a 5-minute judge "wow"?** We added the live GREP tester and cross-layer search in v0.14.3. What about a "compare two RAG docs" diff view? A geographic corridor map? A timeline of when ILO conventions were adopted? An "adversarial probe" replay (paste a known jailbreak, see which layers caught it)?
 
-8. **The 13 Kaggle notebooks.** 1 core (the harness-chat) gets 90% of judge attention. 02-live-demo gets some. The 11 appendix notebooks are depth-of-engineering signals. Is the appendix bloat hurting more than helping? Should we cut some?
+8. **The 27 Kaggle notebooks.** 1 core (the harness-chat) gets 90% of judge attention. 02-live-demo gets some. The 24 appendix notebooks are depth-of-engineering signals. Is the appendix bloat hurting more than helping? Should we cut some?
 
 9. **The 587 example prompts across 8 audience buckets.** Does the audience-filter chip system in the chat UI's Examples modal expose them well, or is it overwhelming?
 

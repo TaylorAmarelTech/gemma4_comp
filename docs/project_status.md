@@ -105,10 +105,11 @@ Full inventory is auto-generated at
 
 - 77 notebook mirrors match 77 kernel directories locally (5 mirrors
   restored 2026-05-02 from kernel sources).
-- The submission shape is **2 core + 11 appendix** (per the canonical
+- The submission shape is **3 core + 24 appendix** (per the canonical
   `kaggle/<purpose>/` layout in [`docs/FOR_PEER_REVIEW.md`](FOR_PEER_REVIEW.md)).
-- The 77-notebook research arc lives in `kaggle/kernels/` and serves
-  reproducibility for the Phase 1-3 pipeline.
+- The legacy research-arc notebook mirrors were archived to
+  `_archive/kaggle-notebook-previews-2026-05-11/` and are not
+  part of the active submission roster.
 - Public live-state promotion should be checked against Kaggle at push
   time; the authoritative local inventory is
   `docs/current_kaggle_notebook_state.md`.
@@ -121,8 +122,8 @@ Full inventory is auto-generated at
 | DueCare Trafficking Prompts | `taylorsamarel/duecare-trafficking-prompts` |
 | Per-notebook wheels datasets (×13) | `taylorsamarel/duecare-<purpose>-wheels` |
 
-Per-notebook datasets cover all 13 submission notebooks (2 core +
-11 appendix). The legacy meta dataset is being retired post-hackathon
+Per-notebook datasets cover all 27 submission notebooks (3 core +
+24 appendix). The legacy meta dataset is being retired post-hackathon
 in favor of the per-notebook split.
 
 ## Android sibling repo status (2026-05-02)

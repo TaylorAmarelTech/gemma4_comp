@@ -19,7 +19,7 @@ layer, so the model produces grounded, citable, audience-appropriate
 responses about labor recruitment, fee scams, passport retention,
 debt bondage, and corridor-specific legal protections.
 
-The submission has **13 Kaggle notebooks**: 2 "main" (a workbench and a
+The submission has **27 Kaggle notebooks**: 2 "main" (a workbench and a
 live-demo) and 11 "appendix" (specialized playgrounds and research
 artifacts). All 13 are visible to judges. They currently do not share a
 common visual language or navigation pattern, and the design quality
@@ -263,7 +263,7 @@ Answer these systemically:
    is it OK for some to keep a more notebook-native presentation?
    Give specific criteria for "this one needs the shell" vs "this one
    doesn't."
-2. **Naming consistency.** Are the 11 appendix slugs (A-01 ... A-11)
+2. **Naming consistency.** Are the 24 appendix slugs (A-01 ... A-11)
    well-named for an audience-first nav, or should they be renamed?
    Propose a naming scheme if needed.
 3. **Cross-linking.** What's the right pattern for each appendix
@@ -281,7 +281,7 @@ Answer these systemically:
 1. **The 5-minute judge journey.** Map an ideal sequence of clicks for
    a hackathon judge with only 5 minutes. Does it start at the public
    website? At the workbench? At a specific audience page?
-2. **What to cut.** Which of the 11 appendix notebooks could be
+2. **What to cut.** Which of the 24 appendix notebooks could be
    merged, deprecated, or hidden from the main index without losing
    judge-visible value?
 3. **What's missing.** Identify any audience-task that the 13

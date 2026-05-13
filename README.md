@@ -53,9 +53,9 @@
 
 > ### 🚀 Submission state (Gemma 4 Good Hackathon, due 2026-05-18)
 >
-> **2 core + 11 appendix = 13 Kaggle folders.** Judges land on
+> **3 core + 24 appendix = 27 Kaggle folders.** Judges land on
 > the unified omni playground, then proceed to the focused live
-> demo. The 11 appendix notebooks add depth-of-engineering signal
+> demo. The 24 appendix notebooks add depth-of-engineering signal
 > without competing for the first 5 minutes.
 >
 > **Core (judges evaluate first — in this order):**
@@ -575,7 +575,7 @@ Latest full run:
 ## Demo notebooks
 
 The active notebook sources live under `kaggle/`. For the final hackathon
-submission path, use the 2 core + 11 appendix folders listed in
+submission path, use the 3 core + 24 appendix folders listed in
 `kaggle/_INDEX.md`. For supporting generated/research kernels, use the
 current 9-kernel inventory under `kaggle/kernels/*/` and
 [`docs/current_kaggle_notebook_state.md`](./docs/current_kaggle_notebook_state.md).

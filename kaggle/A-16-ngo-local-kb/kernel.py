@@ -1,6 +1,6 @@
 # <!-- duecare:kernel-intro -->
 # DueCare — NGO local-KB / case-file ingestion (Lane 02)
-# Appendix notebook #A15 of 20 in the DueCare submission.
+# Appendix notebook #A16 of 24 in the DueCare submission.
 #
 # Paste case notes; the kernel redacts PII, salt-hashes entities,
 # builds a local SQLite KB, lets a caseworker query by hash to find

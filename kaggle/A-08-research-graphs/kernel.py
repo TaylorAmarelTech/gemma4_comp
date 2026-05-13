@@ -1,6 +1,6 @@
 # <!-- duecare:kernel-intro -->
 # DueCare — Research graphs (CPU-only)
-# Appendix notebook #A08 of 13 in the DueCare submission.
+# Appendix notebook #A08 of 24 in the DueCare submission.
 #
 # Six interactive Plotly charts: corridor coverage, GREP-rule density, RAG-corpus map, rubric-dim drift, etc.
 #

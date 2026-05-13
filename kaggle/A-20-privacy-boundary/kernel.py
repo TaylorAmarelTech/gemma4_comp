@@ -1,6 +1,6 @@
 # <!-- duecare:kernel-intro -->
 # DueCare — Privacy boundary visualization (trust surface)
-# Appendix notebook #A20 of 20 in the DueCare submission.
+# Appendix notebook #A20 of 24 in the DueCare submission.
 #
 # Side-by-side: what stays on the caseworker's machine vs what
 # would leave if "Share aggregate" is clicked. Mirrors

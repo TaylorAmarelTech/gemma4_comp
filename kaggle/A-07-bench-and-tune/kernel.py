@@ -1,6 +1,6 @@
 # <!-- duecare:kernel-intro -->
 # DueCare — Adapter training + new-model benchmark
-# Appendix notebook #A07 of 13 in the DueCare submission.
+# Appendix notebook #A07 of 24 in the DueCare submission.
 #
 # End-to-end SafetyJudge SFT + DPO + stock-vs-fine-tuned benchmark + GGUF + HF Hub push.
 #

@@ -56,7 +56,7 @@ templates.
 
 ### "I want to add a new Kaggle kernel"
 
-The 23-folder Kaggle roster has hardened conventions across the
+The 27-folder Kaggle roster has hardened conventions across the
 session of 2026-05-12. Follow these to avoid drift:
 
 **1. Folder layout.** Place under `kaggle/<slot>-<short-purpose>/`
@@ -137,7 +137,7 @@ one-sentence justification:
 ```
 
 **5. Index registration.** Add a row to
-[`kaggle/_INDEX.md`](kaggle/_INDEX.md) so the 23-folder roster
+[`kaggle/_INDEX.md`](kaggle/_INDEX.md) so the 27-folder roster
 stays current.
 
 **6. Optional: register the kernel in

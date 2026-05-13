@@ -39,7 +39,7 @@ pre-stages the refund-claim packet.
 
 Same harness powers a **chat playground** for individual workers and
 a **structured-output classifier** for NGO triage dashboards. Ships
-as **2 core public Kaggle notebooks + 11 appendix notebooks** + **17
+as **2 core public Kaggle notebooks + 24 appendix notebooks** + **17
 PyPI packages** + an **on-device Android companion** (Duecare
 Journey v0.9.0 — MediaPipe Gemma 4 E2B/E4B, encrypted SQLCipher journal,
 11 ILO indicator detectors, **20 corridor profiles** (Asia + GCC + LATAM
@@ -92,7 +92,7 @@ If you have two minutes to decide if this is real:
 
 1. **Read the writeup.** [`docs/writeup_draft.md`](./writeup_draft.md)
    (1,497 words, under the 1,500-word cap). Frames the problem (3 LLM
-   blind spots), the harness (6 layers), the notebooks (3 core + 23 appendix), and the
+   blind spots), the harness (6 layers), the notebooks (3 core + 24 appendix), and the
    deployment modes.
 
 2. **Watch the video.** Script at [`docs/video_script.md`](./video_script.md)
@@ -130,7 +130,7 @@ If you have two minutes to decide if this is real:
 ## The Kaggle notebooks (the submission surface)
 
 The submission is structured as **2 core notebooks** (the omni
-playground + the focused live demo) plus **11 appendix notebooks**
+playground + the focused live demo) plus **24 appendix notebooks**
 (specialised playgrounds, research visualisation, agentic web-search,
 jailbroken-models proof, lift regenerator). Judges land on the
 **unified harness chat** to flip every toggle and see every capability
@@ -301,7 +301,7 @@ transformation byte-for-byte.
 - We did **not** publish 77 notebooks as the submission. The current
    generated/research inventory under `kaggle/kernels/` is 9 kernels; older
    52/74/77-kernel notes are historical archive context. The **submission is
-   the 3 core + 23 appendix folders listed above**.
+   the 3 core + 24 appendix folders listed above**.
 - We are **not** claiming a fine-tuned Gemma 4 model is published at
   submission time. The bench-and-tune notebook (#2) is the planned
   Unsloth SFT/DPO + GGUF + HF Hub push — status TBD by the 2026-05-18
@@ -339,7 +339,7 @@ neighborhood with source URLs and per-item differentiation. Highlights:
 | Thing | Path |
 |---|---|
 | Source code (17 packages) | [`packages/duecare-llm-*/`](../packages/) |
-| 26 submission Kaggle kernels | [`kaggle/<notebook>/kernel.py`](../kaggle/) |
+| 27 submission Kaggle kernels | [`kaggle/<notebook>/kernel.py`](../kaggle/) |
 | The harness module (rules, corpus, tools, examples) | [`packages/duecare-llm-chat/src/duecare/chat/harness/__init__.py`](../packages/duecare-llm-chat/src/duecare/chat/harness/__init__.py) |
 | Chat app + classifier app | [`packages/duecare-llm-chat/src/duecare/chat/app.py`](../packages/duecare-llm-chat/src/duecare/chat/app.py), [`classifier.py`](../packages/duecare-llm-chat/src/duecare/chat/classifier.py) |
 | Writeup | [`docs/writeup_draft.md`](./writeup_draft.md) |

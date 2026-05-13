@@ -1,6 +1,6 @@
 # <!-- duecare:kernel-intro -->
 # DueCare — Fine-tuned + harnessed runner (A-05 LoRA + Persona + GREP + RAG + Tools)
-# Appendix notebook #A07 of 13 in the DueCare submission.
+# Appendix notebook #A05 of 24 in the DueCare submission.
 #
 # Same canonical prompt library + harness ON (same 4 layers as A-02), but
 # the model has the SafetyJudge LoRA adapter from A-05 applied. Pair with
@@ -19,7 +19,7 @@
 
 """
 ============================================================================
-  DUECARE A-07 NEW-MODEL HARNESSED RUNNER -- Kaggle notebook
+  DUECARE A-05 GEMMA CONTENT CLASSIFICATION EVALUATION -- Kaggle notebook
 ============================================================================
 
   Per Taylor's 2026-05-11 experiment-ladder spec, A-07 is the

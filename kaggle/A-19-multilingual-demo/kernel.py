@@ -1,6 +1,6 @@
 # <!-- duecare:kernel-intro -->
 # DueCare — Multilingual demo (5 languages, zero inference)
-# Appendix notebook #A19 of 20 in the DueCare submission.
+# Appendix notebook #A19 of 24 in the DueCare submission.
 #
 # Same recruitment-fee scenario answered in EN / TL / NE / BN / ID.
 # Demonstrates Gemma 4's multilingual reach per the hackathon rubric.
@@ -117,8 +117,8 @@ MULTILINGUAL_DEMO = {
                 "domestic workers for placement fees.\n"
                 "2. Document everything (screenshots, receipts, agency "
                 "name) before saying anything.\n"
-                "3. Report it. POEA hotline: +63 2 8722-1144. Blas F. "
-                "Ople Center: +63 2 8833-0596."
+                "3. Report it. POEA hotline: +63-2-8722-1144. Blas F. "
+                "Ople Center: +63-2-8833-0596."
             ),
         },
         "tl": {
@@ -136,8 +136,8 @@ MULTILINGUAL_DEMO = {
                 "humihingi ng placement fee sa domestic workers.\n"
                 "2. I-dokumento lahat (screenshots, resibo, pangalan "
                 "ng ahensya) bago magsalita.\n"
-                "3. I-report. POEA hotline: +63 2 8722-1144. Blas F. "
-                "Ople Center: +63 2 8833-0596."
+                "3. I-report. POEA hotline: +63-2-8722-1144. Blas F. "
+                "Ople Center: +63-2-8833-0596."
             ),
         },
         "ne": {

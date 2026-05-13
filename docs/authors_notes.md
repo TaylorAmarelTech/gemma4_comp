@@ -149,7 +149,7 @@ weights in 2027.
 
 ## Design judgments I'm less sure about
 
-### 2 core + 11 appendix notebooks
+### 3 core + 24 appendix notebooks
 
 ADR-004 documents this decision. The alternative was "one big
 notebook that does everything," which would be more impressive at

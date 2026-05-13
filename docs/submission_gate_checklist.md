@@ -64,7 +64,7 @@ For each of the 17 packages:
 
 ## Phase 4 — Kaggle notebooks (15 min)
 
-For each of the 11 notebooks (2 core + 11 appendix):
+For each of the 11 notebooks (3 core + 24 appendix):
 
 - [ ] The notebook URL on Kaggle resolves (not 404, not "Notebook not found")
 - [ ] The notebook is **public** (not private)

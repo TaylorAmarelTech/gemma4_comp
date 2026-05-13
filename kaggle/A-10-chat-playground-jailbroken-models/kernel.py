@@ -1,6 +1,6 @@
 # <!-- duecare:kernel-intro -->
 # DueCare — Abliterated test generator (worst/bad/neutral/good/best ladders)
-# Appendix notebook #A09 of 13 in the DueCare submission.
+# Appendix notebook #A10 of 24 in the DueCare submission.
 #
 # Loads abliterated / cracked Gemma 4 variants and uses them to GENERATE
 # adversarial test ladders for A-04's training corpus. The same chat
@@ -21,7 +21,7 @@
 
 """
 ============================================================================
-  DUECARE A-09 ABLITERATED TEST GENERATOR -- Kaggle notebook
+  DUECARE A-10 CHAT PLAYGROUND JAILBROKEN MODELS -- Kaggle notebook
   (paste into a single code cell)
 ============================================================================
 

@@ -1,6 +1,6 @@
 # <!-- duecare:kernel-intro -->
 # DueCare — Sentinel / research monitor (search + submit flow)
-# Appendix notebook #A17 of 20 in the DueCare submission.
+# Appendix notebook #A18 of 24 in the DueCare submission.
 #
 # Submit a public URL or paste text; Gemma 4 + harness decides
 # whether the content yields new corridor info that should be

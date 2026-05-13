@@ -49,7 +49,7 @@ frontier APIs, with validated local/demo surfaces now and on-device
 GGUF (llama.cpp) plus LiteRT deployment paths tracked for the edge
 story.
 
-**Notebook status note:** the judge-facing roster is **26 folders** (3 core + 23 appendix as of 2026-05-12). The two core notebooks are the primary live
+**Notebook status note:** the judge-facing roster is **27 folders** (3 core + 24 appendix as of 2026-05-12). The two core notebooks are the primary live
 entry points; appendix notebooks are transparently marked live or
 `publish pending` in the table below until Taylor completes the manual
 Kaggle UI publish steps.

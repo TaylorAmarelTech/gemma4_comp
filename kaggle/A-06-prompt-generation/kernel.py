@@ -1,6 +1,6 @@
 # <!-- duecare:kernel-intro -->
 # DueCare — Two-track synthetic data generator
-# Appendix notebook #A06 of 13 in the DueCare submission.
+# Appendix notebook #A06 of 24 in the DueCare submission.
 #
 # Gemma 4 self-generates two synthetic tracks: SafetyJudge prompts + graded responses, and PrivacyRedactor anonymization cases.
 #

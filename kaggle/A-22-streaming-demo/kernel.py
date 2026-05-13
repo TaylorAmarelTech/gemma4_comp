@@ -1,6 +1,6 @@
 # <!-- duecare:kernel-intro -->
 # DueCare -- Token streaming demo (zero inference, SSE replay)
-# Appendix notebook #A22 of 22 in the DueCare submission.
+# Appendix notebook #A22 of 24 in the DueCare submission.
 #
 # Exercises Gemma 4's token-streaming capability via Server-Sent
 # Events. Pre-recorded responses are replayed at realistic

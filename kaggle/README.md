@@ -11,11 +11,11 @@ sources judges open in Kaggle.
 > appendix) with file + wheel + publish status per row. Refresh
 > whenever a kernel is added, removed, or pushed to Kaggle.
 
-## Submission shape: 2 core + 11 appendix
+## Submission shape: 3 core + 24 appendix
 
 The 2026 Gemma 4 Good Hackathon submission is structured as **2 core
 kernels** (the omni playground + the focused live demo) plus
-**11 appendix kernels** (specialised playgrounds, research
+**23 appendix kernels** (specialised playgrounds, research
 visualization, agentic-research proof-of-concept, jailbroken-models
 comparison, lift regenerator, and the Unsloth fine-tune pipeline).
 Judges land on the omni playground (#1) to see every capability,
