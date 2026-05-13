@@ -4918,9 +4918,10 @@ def create_app(
     KO_TYPES = set(KO_BRANCHES.keys())
 
     # ----- Phase 17: runtime hot-load of GREP knowledge -----------------
-    def _load_grep_extras() -> list[dict]:
+    def _load_matching_extras(kind: str) -> list[dict]:
+        """Generic loader for any matching_knowledge leaf."""
         import json as _json
-        root = _ko_root() / "grep_rule"
+        root = _ko_root() / kind
         out: list[dict] = []
         if not root.exists():
             return out
@@ -4928,26 +4929,68 @@ def create_app(
             try:
                 env = _json.loads(p.read_text(encoding="utf-8"))
                 content = env.get("content") or {}
-                rule = {
+                rule: dict = {
                     "rule_id":  content.get("rule_id") or env.get("id"),
                     "category": content.get("category") or "knowledge_extra",
                     "severity": content.get("severity") or "medium",
-                    "pattern":  content.get("pattern"),
                     "description": content.get("description") or "",
                     "source": "knowledge:extra",
                     "source_id": env.get("id"),
+                    "kind": kind,
                 }
-                if rule["pattern"] and rule["rule_id"]:
+                if kind == "grep_rule":
+                    rule["pattern"] = content.get("pattern")
+                elif kind == "glob_rule":
+                    rule["pattern"] = content.get("pattern")
+                    rule["label"] = content.get("label")
+                elif kind == "classifier_rule":
+                    rule["label"] = content.get("label")
+                    rule["model_uri"] = content.get("model_uri")
+                    rule["input_format"] = content.get("input_format") or "text"
+                    rule["threshold"] = content.get("threshold") or 0.5
+                elif kind == "heuristic_rule":
+                    rule["predicate_py"] = content.get("predicate_py")
+                if rule["rule_id"]:
                     out.append(rule)
             except Exception:
                 continue
         return out
 
+    def _load_grep_extras() -> list[dict]:
+        return _load_matching_extras("grep_rule")
+
+    def _load_glob_extras() -> list[dict]:
+        return _load_matching_extras("glob_rule")
+
+    def _load_classifier_extras() -> list[dict]:
+        return _load_matching_extras("classifier_rule")
+
+    def _load_heuristic_extras() -> list[dict]:
+        return _load_matching_extras("heuristic_rule")
+
+    def _reload_all_matching_extras() -> dict[str, int]:
+        try:
+            app.state.knowledge_extras_grep = _load_grep_extras()
+            app.state.knowledge_extras_glob = _load_glob_extras()
+            app.state.knowledge_extras_classifier = _load_classifier_extras()
+            app.state.knowledge_extras_heuristic = _load_heuristic_extras()
+        except Exception:
+            pass
+        return {
+            "grep":       len(getattr(app.state, "knowledge_extras_grep", [])),
+            "glob":       len(getattr(app.state, "knowledge_extras_glob", [])),
+            "classifier": len(getattr(app.state, "knowledge_extras_classifier", [])),
+            "heuristic":  len(getattr(app.state, "knowledge_extras_heuristic", [])),
+        }
+
     try:
         if not hasattr(app.state, "knowledge_extras_grep"):
-            app.state.knowledge_extras_grep = _load_grep_extras()
+            _reload_all_matching_extras()
     except Exception:
         app.state.knowledge_extras_grep = []
+        app.state.knowledge_extras_glob = []
+        app.state.knowledge_extras_classifier = []
+        app.state.knowledge_extras_heuristic = []
 
 
     def _ko_root():
@@ -5013,9 +5056,10 @@ def create_app(
                 _json.dump(env, f, ensure_ascii=False, indent=2, sort_keys=True)
         except Exception as e:
             raise HTTPException(500, f"write failed: {e}")
-        if ko_type == "grep_rule":
+        runtime_counts = {}
+        if KO_BRANCHES.get(ko_type) == "matching_knowledge":
             try:
-                app.state.knowledge_extras_grep = _load_grep_extras()
+                runtime_counts = _reload_all_matching_extras()
             except Exception:
                 pass
         return JSONResponse({
@@ -5025,6 +5069,7 @@ def create_app(
             "written_to": str(dest),
             "envelope": env,
             "runtime_grep_extras_loaded": len(getattr(app.state, "knowledge_extras_grep", [])),
+            "runtime_matching_extras": runtime_counts,
         })
 
     @app.get("/api/knowledge/list")
@@ -5213,14 +5258,15 @@ def create_app(
             except Exception as e:
                 rejected.append({"name": name, "reason": f"write failed: {e}"})
         try:
-            app.state.knowledge_extras_grep = _load_grep_extras()
+            runtime_counts = _reload_all_matching_extras()
         except Exception:
-            pass
+            runtime_counts = {}
         return JSONResponse({
             "ok": True,
             "imported": imported, "rejected": rejected,
             "n_imported": len(imported), "n_rejected": len(rejected),
             "runtime_grep_extras_loaded": len(getattr(app.state, "knowledge_extras_grep", [])),
+            "runtime_matching_extras": runtime_counts,
         })
 
     @app.get("/api/knowledge/{ko_type}/{ko_id}")
