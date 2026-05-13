@@ -50,6 +50,7 @@ each kernel collects.
 | A-18 sentinel-research-monitor | Diff-monitor over the pack registry | Trend signaling |
 | A-19 multilingual-demo | **Multilingual** 5-corridor scenario playback | "in their language" Lane 03 |
 | A-20 privacy-boundary | Local-vs-aggregate side-by-side | Privacy claim made concrete |
+| A-21 long-context-demo | **Long context (128K)** -- cross-statute reasoning over a 5-statute compliance corpus in a single thinking step | Closes the 128K-window demonstration gap (was on the "not yet showcased" list) |
 
 ## Where each Special Tech Track is closed
 
@@ -71,10 +72,11 @@ Honest gap analysis -- worth filling in a future appendix:
   JSON. A-02 / A-09 / A-13 each call tools individually; a future
   Coordinator demo would chain multiple tools in one Gemma 4 thinking
   step.
-- **Long-context demonstration at 128K boundary.** A-04 + A-16 use
-  long context but no kernel deliberately benchmarks at 128K.
-  Adding a "load 100-page POEA Memorandum + ask for citations across
-  the doc" demo would close this.
+- **Long-context demonstration at 128K boundary.** ~~A-04 + A-16
+  use long context but no kernel deliberately benchmarks at
+  128K.~~ **Closed by A-21 long-context-demo** -- 5-statute
+  cross-jurisdiction reasoning with 3 cached QA pairs that each
+  require correlating 2-3 statutes in a single thinking step.
 - **Streaming generation.** Gemma 4 supports token streaming; the
   workbench shell currently returns whole responses. A streaming
   demo would make the latency-on-mobile story more concrete.
