@@ -141,7 +141,7 @@ audit:  ## Public-surface audit: drift + route 200s + lane order + Kaggle lane l
 	@echo "--- canonical messaging ---"
 	python scripts/validate_public_messaging.py
 
-verify-all:  ## Full pre-push gate: audit + messaging + hub tests + harness smoke + notebook validate
+verify-all:  ## Full pre-push gate: audit + messaging + hub tests + harness smoke + notebook validate + workbench UI primitives
 	python scripts/validate_public_surface.py
 	@echo "--- canonical messaging ---"
 	python scripts/validate_public_messaging.py
@@ -153,6 +153,8 @@ verify-all:  ## Full pre-push gate: audit + messaging + hub tests + harness smok
 	python scripts/verify.py
 	@echo "--- notebook validator ---"
 	python scripts/validate_notebooks.py
+	@echo "--- workbench UI primitives ---"
+	python scripts/validate_workbench_ui.py
 	@echo "verify-all: PASS"
 
 reproduce:  ## Reproduce all submission claims end-to-end (~5 min)
