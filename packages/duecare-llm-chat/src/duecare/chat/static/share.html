@@ -50,6 +50,14 @@
   <main class="wb-page">
     <span class="wb-status-pill">Tab 05 -- Anonymization &amp; Sharing -- live</span>
     <h1 class="wb-h1">Anonymization &amp; Sharing -- review, redact, submit</h1>
+    <div class="wb-trust" style="background: oklch(0.94 0.04 45); color: oklch(0.32 0.07 45); padding: 8px 14px; border-radius: 8px; font-size: 12.5px; margin-bottom: 14px;">
+      <b>Trust boundary:</b> Steps 1-3 happen entirely inside the kernel.
+      Step 4 (Submit) is currently audited locally only -- the live HTTPS POST
+      to <code>duecare-ai.com/api/submit/facts</code> is not yet wired. The
+      audit log at <code>/kaggle/working/audit/submit_log.jsonl</code> records
+      every Step-4 click + sha256.
+    </div>
+
     <p class="wb-lede">
       Upload a ZIP, review extracted facts, anonymize, then submit. Every step
       logs the API call + response in the live activity log below so you can
