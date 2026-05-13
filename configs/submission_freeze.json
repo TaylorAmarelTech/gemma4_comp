@@ -1,0 +1,5 @@
+{
+  "frozen": false,
+  "ref": null,
+  "note": "Dev mode — kernels track main. Run scripts/freeze_kernels_for_submission.py before final submission."
+}

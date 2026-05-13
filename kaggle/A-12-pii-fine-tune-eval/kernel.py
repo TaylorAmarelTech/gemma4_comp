@@ -156,7 +156,7 @@ else:
 # ===========================================================================
 DUECARE_VERSION    = "0.1.0"
 DUECARE_REPO       = "TaylorAmarelTech/gemma4_comp"
-DUECARE_COMMIT_SHA = "dc6a93a"
+DUECARE_COMMIT_SHA = "main"
 DUECARE_PACKAGES   = ["duecare-llm-chat"]
 
 
