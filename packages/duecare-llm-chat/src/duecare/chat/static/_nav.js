@@ -150,6 +150,13 @@
         if (!nav) return;
         document.body.insertBefore(nav, document.body.firstChild);
         document.body.classList.add('dc-wb-has-nav');
+        if (!document.getElementById('dc-components-js')) {
+            var s = document.createElement('script');
+            s.id = 'dc-components-js';
+            s.src = '/static/_components.js';
+            s.defer = true;
+            document.body.appendChild(s);
+        }
         const key = document.body.getAttribute('data-nav') || '';
         activate(nav, key);
         wireShutdown();
