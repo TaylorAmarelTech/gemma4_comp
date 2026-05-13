@@ -86,6 +86,15 @@ def register_routes(app: Any) -> None:
             },
         }
 
+        # Layer composition: GREP + RAG scan of the raw text so Gemma
+        # gets enriched context. Wired layers run; missing ones are
+        # skipped silently per the compose_layers contract.
+        from .._layers import compose_layers
+        layer_out = compose_layers(
+            app, raw_text, layers=("grep", "rag"),
+        )
+        envelope["extensions"]["applied_layers"] = layer_out["trace"]
+
         gc = getattr(app.state, "gemma_call", None)
         if gc is None:
             envelope["extensions"]["fallback"] = "no model loaded; manual content required"
@@ -95,7 +104,11 @@ def register_routes(app: Any) -> None:
             sys_prompt = build_system_prompt(target_type)
             msgs = [
                 {"role": "system", "content": [{"type": "text", "text": sys_prompt}]},
-                {"role": "user", "content": [{"type": "text", "text": "Raw fact:\n" + text_to_send}]},
+                {"role": "user", "content": [{"type": "text", "text":
+                    "Raw fact:\n" + text_to_send
+                    + ("\n\nGrounding from existing knowledge:\n" + layer_out["grounding"]
+                       if layer_out["grounding"] else "")
+                }]},
             ]
             model_out = gc(msgs, max_new_tokens=512, temperature=0.2)
             response_text = model_out if isinstance(model_out, str) else (
