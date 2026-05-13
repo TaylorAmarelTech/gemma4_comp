@@ -72,6 +72,7 @@ from duecare.chat._dc_log import (
 
 __all__ = [
     "build_minimal_shell",
+    "log_kernel_interaction",
     "dc_log",
     "set_kernel_id",
 ]
@@ -198,6 +199,42 @@ def _render_summary_html(summary: dict[str, Any], kernel_id: str) -> str:
 """
 
 
+def log_kernel_interaction(
+    kernel_name: str,
+    *,
+    input_payload: Any,
+    output_payload: Any,
+    applied_layers: Optional[dict] = None,
+    trace: Optional[dict] = None,
+    anonymize: bool = True,
+    extra: Optional[dict] = None,
+) -> Optional[Path]:
+    """Per-kernel JSONL training-data emission for appendix kernels.
+
+    Delegates to ``duecare.chat.harnesses._training_log.log_interaction``
+    with ``kernel_name`` as the harness key. Same JSONL schema, same
+    anonymization gate, same ``/kaggle/working/training/<name>.jsonl``
+    convention -- a notebook-style appendix kernel does not need to
+    declare a full harness module to participate in the per-task
+    finetuning data flywheel.
+
+    Returns the JSONL path on success, ``None`` on failure (never raises).
+    """
+    try:
+        from duecare.chat.harnesses._training_log import log_interaction
+        return log_interaction(
+            kernel_name,
+            input_payload=input_payload,
+            output_payload=output_payload,
+            applied_layers=applied_layers,
+            trace=trace,
+            anonymize=anonymize,
+            extra=extra,
+        )
+    except Exception:
+        return None
+
+
 def build_minimal_shell(
     summary: dict[str, Any],
     *,
@@ -209,6 +246,7 @@ def build_minimal_shell(
     background: bool = True,
     homepage_html: Optional[str] = None,
     extra_routes: Optional[dict] = None,
+    harnesses: Optional[list] = None,
 ) -> tuple[Any, Optional[str]]:
     """Build + (optionally) launch a minimal workbench-shell FastAPI app
     for a notebook-only kernel.
@@ -238,6 +276,12 @@ def build_minimal_shell(
         Optional. Dict mapping path → ``(method, handler)`` for adding
         kernel-specific routes (e.g. ``{"/api/lift": ("GET", h)}``).
         Handlers are normal FastAPI handler callables.
+    harnesses
+        Optional. List of harness modules (from ``duecare.chat.harnesses``)
+        whose ``register_routes(app)`` is called so this minimal-shell
+        kernel inherits the full harness surface. Each harness handler
+        auto-emits per-task training-log JSONL at
+        ``/kaggle/working/training/<harness>.jsonl``.
     """
     from fastapi import FastAPI, HTTPException
     from fastapi.responses import HTMLResponse, FileResponse
@@ -251,6 +295,17 @@ def build_minimal_shell(
                   description="Minimal-shell wrapper for a notebook kernel.")
     static_dir = _resolve_static_dir()
     app.mount("/static", StaticFiles(directory=str(static_dir)), name="static")
+
+    # Optional harness registration. Each module exports register_routes(app)
+    # per the contract in @docs/harness_pattern.md. Per-task training-data
+    # JSONL is wired inside each harness handler.
+    if harnesses:
+        for _h in harnesses:
+            try:
+                _h.register_routes(app)
+            except Exception as _exc:  # noqa: BLE001
+                _hname = getattr(_h, "name", _h)
+                print(f"[harness] skipped {_hname}: {_exc}")
 
     @app.get("/", response_class=HTMLResponse)
     def index() -> str:
