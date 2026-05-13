@@ -191,6 +191,7 @@ python scripts/push_kaggle_demo.py --kernel bench-and-tune \
 - **Core workbench:** [#01 core: Migrant-worker safety playground](../01-duecare-exploration-workbench/README.md).
 - **Focused live demo:** [#02 core: Live demo](../02-live-demo/README.md).
 - **Natural next appendix:** [#A11 appendix: Runtime harness-lift regenerator](../A-11-grading-evaluation/README.md).
+- **Adapter retraining policy:** [duecare-ai.com/evaluation](https://duecare-ai.com/evaluation) -- this kernel trains the SafetyJudge adapter named there.
 - **Public website:** [duecare-ai.com](https://duecare-ai.com).
 
 ---

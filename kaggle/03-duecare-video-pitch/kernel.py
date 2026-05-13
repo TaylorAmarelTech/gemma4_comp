@@ -844,7 +844,7 @@ DEMO_SCRIPT = {
                     "prompt": ("Reproduce the headline number from "
                                  "DueCare's hackathon writeup."),
                     "response": (
-                        "### Reproducing: \"+56.5pp lift on safety-judge "
+                        "### Reproducing: \"+56.5pp lift on safety-judging "
                         "accuracy with full harness ON\"\n\n"
                         "### Inputs (all version-pinned)\n"
                         "- Model: gemma-4-e4b-it @ unsloth/gemma-4-e4b-it-"
@@ -1126,7 +1126,7 @@ SLIDES = {
                       "cites POEA MC 14-2017, mentions ILO C189, "
                       "names the Blas F. Ople Center hotline, and "
                       "refuses to send the worker into the trap.\n\n"
-                      "+56.5 percentage points on safety-judge "
+                      "+56.5 percentage points on safety-judging "
                       "accuracy."),
             "notes": ("Show the side-by-side from A-03 lift "
                        "comparison if the live demo allows."),

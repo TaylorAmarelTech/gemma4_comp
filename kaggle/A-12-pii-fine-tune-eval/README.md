@@ -52,6 +52,12 @@ To `/kaggle/working/`:
 - `<run_id>_metadata.json` — eval payload minus `results`
 - `<run_id>_bundle.zip` — manifest + eval + metadata
 
+## Cross-links
+
+- **Adapter retraining policy:** [duecare-ai.com/evaluation](https://duecare-ai.com/evaluation) — the hub's `/evaluation` section 04 names the **PrivacyRedactor** adapter this kernel trains.
+- **Full kernel roster:** [duecare-ai.com/kernels](https://duecare-ai.com/kernels).
+- **Public website:** [duecare-ai.com](https://duecare-ai.com).
+
 Run-ID format: `a11_pii_finetune_{variant}_{iso_ts}`.
 
 ## How the LoRA adapter plugs back in

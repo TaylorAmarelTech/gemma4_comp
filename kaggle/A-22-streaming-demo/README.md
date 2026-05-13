@@ -100,4 +100,6 @@ See `docs/appendix_experiment_ladder.md` for the full ladder spec.
 - **Focused live demo:** [#02 core: Live demo](../02-live-demo/README.md).
 - **Gemma 4 feature showcase:** [`docs/gemma4_feature_showcase.md`](../../docs/gemma4_feature_showcase.md).
 - **User walkthrough:** [`docs/user_walkthrough.md`](../../docs/user_walkthrough.md).
+- **Why Gemma 4 (feature showcases):** [duecare-ai.com/why-gemma](https://duecare-ai.com/why-gemma) -- this kernel demonstrates the token-streaming capability listed there.
+- **BundleEnvelope schema:** [duecare-ai.com/technical-docs](https://duecare-ai.com/technical-docs) -- canonical emit shape used by this kernel.
 - **Public website:** [duecare-ai.com](https://duecare-ai.com).
