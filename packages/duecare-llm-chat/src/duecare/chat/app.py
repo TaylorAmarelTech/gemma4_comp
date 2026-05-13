@@ -4376,196 +4376,33 @@ def create_app(
 
     @app.post("/api/chat/send")
     async def api_chat_send(req: ChatRequest) -> Any:
-        """Stream the response back via Server-Sent Events with
-        keepalive comments while the model generates. Cloudflare's
-        free tunnel idle-connection timeout is 100s; without keepalives
-        a slow 31B multimodal inference 524s. The keepalive comments
-        keep bytes flowing so the connection stays warm regardless of
-        total inference time. The generation itself remains synchronous
-        (one gemma_call -> one full response payload at the end);
-        token-level streaming is a separate enhancement.
+        """Thin wrapper that delegates to harnesses.chat.serve_chat_send.
 
-        When req.toggles enables a harness layer that's wired into
-        app.state, the layer runs BEFORE Gemma sees the messages and
-        its output is prepended to the conversation as a system-style
-        message AND surfaced in the response payload as
-        `harness_trace` for the UI to render."""
-        # Standardised JSON-Lines logging: every chat send emits one event.
-        try:
-            from duecare.chat._dc_log import dc_log as _dc
-            _last_msg = ""
-            for _m in (req.messages or []):
-                if isinstance(_m, dict) and _m.get("role") == "user":
-                    for _c in _m.get("content") or []:
-                        if isinstance(_c, dict) and _c.get("type") == "text":
-                            _last_msg = (_c.get("text") or "")[:120]
-            _dc("chat.send", _last_msg or "(no text)",
-                toggles=dict(req.toggles or {}),
-                n_messages=len(req.messages or []))
-        except Exception:
-            pass
-
+        The orchestration body (192 lines) lives in harnesses/chat/send.py.
+        We inject the closure helpers here at request time so the helpers
+        stay in their existing closure scope where they have access to
+        all the persona / layer / catalog state.
+        """
         gc = app.state.gemma_call
         if gc is None:
-            raise HTTPException(503,
+            raise HTTPException(
+                503,
                 "no gemma_call wired into the chat server. "
-                "Set app.state.gemma_call before calling /api/chat/send.")
-
-        raw_messages_in = req.messages
-        gp = req.generation
-        toggles_snapshot = req.toggles
-
-        # Worker runs both the harness and the model in sequence,
-        # emitting per-step events into `progress_q` so the SSE
-        # generator can stream them to the UI as they happen. The
-        # final {type:"complete"} event carries the response + trace.
-        progress_q: "queue.Queue[dict]" = queue.Queue()
-        state: dict[str, Any] = {}
-
-        def worker() -> None:
-            try:
-                # Stage 1: image resolution (fast -- local IO).
-                # Summary is count-aware so the trace card doesn't claim
-                # "image references resolved" on turns with no images.
-                progress_q.put_nowait({"type": "step_start", "step": "resolve"})
-                _t0 = time.time()
-                messages = _resolve_messages(raw_messages_in)
-                _n_imgs = 0
-                for _m in messages or []:
-                    if isinstance(_m, dict):
-                        for _c in _m.get("content") or []:
-                            if (isinstance(_c, dict)
-                                    and _c.get("type") in ("image", "image_url")):
-                                _n_imgs += 1
-                _resolve_summary = (
-                    f"{_n_imgs} image reference{'s' if _n_imgs != 1 else ''} resolved"
-                    if _n_imgs else "no images attached this turn"
-                )
-                progress_q.put_nowait({
-                    "type": "step_done", "step": "resolve",
-                    "elapsed_ms": int((time.time() - _t0) * 1000),
-                    "summary": _resolve_summary,
-                    "fired": _n_imgs > 0, "wired": True, "enabled": True,
-                })
-
-                # Stage 2: harness layers (each emits its own start/done)
-                harness = _run_harness(
-                    messages, toggles_snapshot,
-                    progress_callback=progress_q.put_nowait,
-                )
-                if harness["prepend_snippets"]:
-                    harness_text = (
-                        "[DUECARE SAFETY HARNESS - pre-context for the "
-                        "assistant. The user's actual question follows below "
-                        "this block. You MUST acknowledge each fired indicator "
-                        "and cite the listed statutes in your response. Do NOT "
-                        "provide operational optimization for any scenario "
-                        "matching these indicators -- name the indicators, "
-                        "cite the law, and redirect to NGO/regulator hotlines.]"
-                        "\n\n" + "\n\n".join(harness["prepend_snippets"])
-                        + "\n\n---\n\nUSER QUESTION:\n\n"
-                    )
-                    last_msg = dict(messages[-1])
-                    content = list(last_msg.get("content") or [])
-                    inserted = False
-                    for i, chunk in enumerate(content):
-                        if chunk.get("type") == "text":
-                            content[i] = {
-                                "type": "text",
-                                "text": harness_text + (chunk.get("text") or ""),
-                            }
-                            inserted = True
-                            break
-                    if not inserted:
-                        content.insert(0, {"type": "text", "text": harness_text})
-                    last_msg["content"] = content
-                    messages = messages[:-1] + [last_msg]
-
-                final_text = ""
-                for chunk in messages[-1].get("content") or []:
-                    if chunk.get("type") == "text":
-                        final_text = chunk.get("text", "")
-                        break
-                harness["trace"]["_final_user_text"] = final_text
-
-                # Stage 3: Gemma generation (the slow part; 5–60s)
-                progress_q.put_nowait({"type": "step_start", "step": "model"})
-                _t0 = time.time()
-                response_text = _call_gemma(gc, messages, gp)
-                model_ms = int((time.time() - _t0) * 1000)
-                progress_q.put_nowait({
-                    "type": "step_done", "step": "model",
-                    "elapsed_ms": model_ms,
-                    "summary": f"generated {len(response_text)} chars",
-                    "fired": True, "wired": True, "enabled": True,
-                })
-
-                state["response"]      = response_text
-                state["elapsed_ms"]    = model_ms
-                state["harness_trace"] = harness["trace"]
-                try:
-                    from duecare.chat._dc_log import dc_log as _dc
-                    _trace = harness.get("trace") or []
-                    _layers = []
-                    for _t in _trace:
-                        if isinstance(_t, dict):
-                            _ln = _t.get("layer") or _t.get("name")
-                            if _ln: _layers.append(_ln)
-                    _dc("chat.reply",
-                        f"{len(response_text)} chars in {model_ms}ms",
-                        elapsed_ms=int(model_ms),
-                        response_chars=len(response_text),
-                        layers_fired=_layers)
-                except Exception:
-                    pass
-                progress_q.put_nowait({
-                    "type":          "complete",
-                    "response":      response_text,
-                    "elapsed_ms":    model_ms,
-                    "model_info":    app.state.model_info,
-                    "harness_trace": harness["trace"],
-                })
-            except Exception as exc:  # noqa: BLE001
-                state["error"] = f"{type(exc).__name__}: {exc}"
-                progress_q.put_nowait({"type": "error", "error": state["error"]})
-
-        worker_thread = threading.Thread(target=worker, daemon=True,
-                                            name="duecare-chat-worker")
-        worker_thread.start()
-
-        async def event_stream() -> Any:
-            yield (": stream-open\n\n").encode()
-            t_start = time.time()
-            last_keepalive = t_start
-            while True:
-                try:
-                    evt = progress_q.get_nowait()
-                except queue.Empty:
-                    await asyncio.sleep(0.25)
-                    now = time.time()
-                    if now - last_keepalive >= 5.0:
-                        elapsed_s = int(now - t_start)
-                        yield (f": keepalive elapsed={elapsed_s}s\n\n").encode()
-                        last_keepalive = now
-                    if not worker_thread.is_alive() and progress_q.empty():
-                        # Worker exited without emitting complete/error.
-                        # Defensive: synthesise an error event so the UI
-                        # doesn't hang on the spinner.
-                        yield (f"data: {json.dumps({'error': 'worker exited unexpectedly'})}\n\n").encode()
-                        return
-                    continue
-                yield (f"data: {json.dumps(evt)}\n\n").encode()
-                if evt.get("type") in ("complete", "error"):
-                    return
-
-        return StreamingResponse(
-            event_stream(),
-            media_type="text/event-stream",
-            headers={
-                "Cache-Control": "no-cache, no-transform",
-                "X-Accel-Buffering": "no",
-                "Connection": "keep-alive",
-            },
+                "Set app.state.gemma_call before calling /api/chat/send.",
+            )
+        try:
+            from duecare.chat._dc_log import dc_log as _dc
+        except Exception:
+            _dc = None
+        from .harnesses.chat import serve_chat_send
+        return await serve_chat_send(
+            req,
+            gemma_call=gc,
+            model_info=app.state.model_info,
+            resolve_messages=_resolve_messages,
+            call_gemma=_call_gemma,
+            run_harness=_run_harness,
+            dc_log=_dc,
         )
 
 
