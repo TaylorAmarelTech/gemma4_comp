@@ -1,43 +1,17 @@
-"""Harness contract.
+"""Harness contract — Protocol (minimum) + BaseHarness class (opt-in helpers).
 
-Every harness module exposes the following from its ``__init__.py``:
+REQUIRED on every harness module __init__.py:
+  name: str                          canonical short name
+  applied_layers: tuple[str, ...]    subset of persona/grep/rag/tools/online
+  register_routes(app) -> None       attaches FastAPI routes (no-op OK)
 
-REQUIRED
-  name: str
-      Canonical short name (chat / process / extraction / ...).
-
-  applied_layers: tuple[str, ...]
-      Which safety layers this harness composes via _layers.compose_layers.
-      Allowed values: persona, grep, rag, tools, online. Empty tuple
-      means "by design, no safety-layer fan-out" (e.g., the anonymization
-      gate).
-
-  register_routes(app) -> None
-      Attaches this harness's FastAPI routes to ``app``. For notebook-
-      style kernels with no FastAPI surface, this can be a no-op.
-
-OPTIONAL (per-harness extensions)
-  tools.list_tools() -> list[dict]
-      Function-calling tools specific to this harness. Pulled into
-      Gemma 4's function-call layer when toggles.tools is on.
-
-  knowledge.manifest() -> dict
-      KnowledgeObject types this harness emits and consumes.
-
-  evaluation.rubric / evaluation.examples
-      Per-harness grading rubric + golden examples. A bench-and-tune
-      kernel can pick from this to run targeted evaluations.
-
-  _training_log.log_interaction(harness=..., input_payload=...,
-                                output_payload=..., applied_layers=...,
-                                trace=..., anonymize=True)
-      Per-harness JSONL training-data emission. Called from each
-      harness's handler at completion. Default-on so every interaction
-      becomes labeled training data for that specific safety task.
-
-The optional extensions enable per-harness fine-tuning data, per-harness
-evaluation runs, and per-harness tool composition without bloating the
-core contract.
+OPTIONAL (per-harness extensions):
+  consumes: tuple[str, ...]    KnowledgeObject types this harness reads
+  emits: tuple[str, ...]       KnowledgeObject types this harness writes
+  tools.list_tools()           function-calling tools
+  knowledge.manifest()         {"emits": [...], "consumes": [...]}
+  evaluation.rubric / examples per-harness grading
+  _training_log.log_interaction() per-task JSONL emission
 """
 from __future__ import annotations
 
@@ -45,7 +19,7 @@ from typing import Any, Protocol
 
 
 class HarnessBase(Protocol):
-    """Minimal contract every harness module implements."""
+    """Structural-typing contract every harness module satisfies."""
 
     name: str
     applied_layers: tuple[str, ...]
@@ -53,3 +27,62 @@ class HarnessBase(Protocol):
     def register_routes(self, app: Any) -> None:
         """Attach this harness's routes to a FastAPI app."""
         ...
+
+
+class BaseHarness:
+    """Opt-in convenience base. Subclasses set name/applied_layers/consumes/emits
+    and override register_routes(app). Inherits 3 shared helpers.
+    """
+
+    name: str = ""
+    applied_layers: tuple[str, ...] = ()
+    consumes: tuple[str, ...] = ()
+    emits: tuple[str, ...] = ()
+
+    def register_routes(self, app: Any) -> None:  # pragma: no cover
+        raise NotImplementedError(
+            f"{type(self).__name__}.register_routes must be overridden"
+        )
+
+    def emit_training_row(
+        self,
+        *,
+        input_payload: Any,
+        output_payload: Any,
+        applied_layers: dict | None = None,
+        trace: dict | None = None,
+        anonymize: bool = True,
+        extra: dict | None = None,
+    ) -> Any:
+        """Append one JSONL row to /kaggle/working/training/<name>.jsonl."""
+        try:
+            from ._training_log import log_interaction
+            return log_interaction(
+                self.name,
+                input_payload=input_payload,
+                output_payload=output_payload,
+                applied_layers=applied_layers,
+                trace=trace,
+                anonymize=anonymize,
+                extra=extra,
+            )
+        except Exception:
+            return None
+
+    def compose(
+        self,
+        app: Any,
+        text: str,
+        *,
+        layers: tuple[str, ...] | list[str] | None = None,
+    ) -> dict:
+        """Fan out safety layers; defaults to this harness's applied_layers."""
+        from ._layers import compose_layers
+        return compose_layers(
+            app, text, layers=layers or self.applied_layers,
+        )
+
+    def load_knowledge(self, app: Any, ko_type: str) -> list[dict]:
+        """Read runtime knowledge extras for one KO type."""
+        attr = f"knowledge_extras_{ko_type.replace('_rule', '')}"
+        return getattr(app.state, attr, None) or []
