@@ -112,6 +112,7 @@ rubric labels (`HARMFUL` to `BEST`) and the review labels (`WORST`, `BAD`,
 | A20 | [`A-20-privacy-boundary/`](./A-20-privacy-boundary/) (raw-vs-redacted visualization) | ✓ kernel | (GitHub install only) | `taylorsamarel/duecare-privacy-boundary` | pending |
 | A21 | [`A-21-long-context-demo/`](./A-21-long-context-demo/) (Gemma 4 128K cross-statute reasoning) | ✓ kernel | (GitHub install only) | `taylorsamarel/duecare-a-21-long-context-demo` | pending |
 | A22 | [`A-22-streaming-demo/`](./A-22-streaming-demo/) (Gemma 4 SSE token streaming at real latencies) | ✓ kernel | (GitHub install only) | `taylorsamarel/duecare-a-22-streaming-demo` | pending |
+| A23 | [`A-23-coordinator-demo/`](./A-23-coordinator-demo/) (Gemma 4 native function calling, multi-tool fan-out) | ✓ kernel | (GitHub install only) | `taylorsamarel/duecare-a-23-coordinator-demo` | pending |
 
 > **Note on slugs vs folders.** The folder name (`01-duecare-exploration-workbench/`)
 > is local organization. The Kaggle kernel slug is set by the `id` field
