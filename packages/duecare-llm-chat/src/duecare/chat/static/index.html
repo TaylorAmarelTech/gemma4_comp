@@ -6943,9 +6943,22 @@ async function runCompare() {
 }
 
 async function _compareRunChatOnce(prompt, toggles, signal) {
+  // Match the regular chat-tab token budget so a harnessed response
+  // (Persona+GREP+RAG+Tools) isn't artificially truncated mid-list,
+  // which made Variant B look WORSE than stock just because it ran
+  // out of token budget. Reported 2026-05-12 from a real comparison
+  // where stock returned 4817 chars and harnessed got cut at 762.
+  let maxNewTokens = 8192;
+  try {
+    const el = document.getElementById('maxtok');
+    if (el && el.value) {
+      const parsed = parseInt(el.value, 10);
+      if (!isNaN(parsed) && parsed > 0) maxNewTokens = parsed;
+    }
+  } catch (e) { /* ignore */ }
   const payload = {
     messages: [{role: 'user', content: [{type: 'text', text: prompt}]}],
-    generation: {temperature: 0.7, max_new_tokens: 1024},
+    generation: {temperature: 0.7, max_new_tokens: maxNewTokens},
     toggles: {
       persona:        !!toggles.persona,
       grep:           !!toggles.grep,
