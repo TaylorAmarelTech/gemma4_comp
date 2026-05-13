@@ -1,0 +1,177 @@
+"""Anonymization & Sharing harness handler.
+
+Owns:
+  - POST /api/anonymize -- batch redact PII in text array
+  - POST /api/submit/knowledge -- audit + HTTPS POST to the public hub
+  - POST /api/submit/local -- deprecated alias for submit/knowledge
+"""
+from __future__ import annotations
+
+import hashlib
+import json as _json
+from datetime import datetime as _dt
+from pathlib import Path as _Path
+from typing import Any
+
+from fastapi import HTTPException, Request
+from fastapi.responses import JSONResponse
+
+from .detector import PII_PATTERNS
+from .redactor import DEFAULT_SALT, placeholder, raw_sha256
+
+
+_DEFAULT_HUB_SUBMIT_URL = "https://gemma4-comp.onrender.com/api/submit/knowledge"
+
+
+def _audit_dir() -> _Path:
+    audit_dir = _Path("/kaggle/working/audit")
+    try:
+        audit_dir.mkdir(parents=True, exist_ok=True)
+        return audit_dir
+    except Exception:
+        pass
+    fallback = _Path(".") / ".duecare-audit"
+    fallback.mkdir(parents=True, exist_ok=True)
+    return fallback
+
+
+def _post_payload(target_url: str, payload: dict, sha: str) -> tuple[int | None, str | None, str | None, bool]:
+    headers = {
+        "Content-Type": "application/json",
+        "X-DueCare-Source": "kernel-01",
+        "X-DueCare-SHA256": sha,
+    }
+    try:
+        try:
+            import httpx as _httpx
+            with _httpx.Client(timeout=10.0, follow_redirects=True) as cli:
+                r = cli.post(target_url, json=payload, headers=headers)
+            status = int(r.status_code)
+            response = (r.text[:2000] if r.text else None)
+            return status, response, None, 200 <= status < 300
+        except ImportError:
+            import urllib.request as _req
+            import urllib.error as _err
+            req = _req.Request(
+                target_url,
+                data=_json.dumps(payload).encode("utf-8"),
+                headers=headers,
+                method="POST",
+            )
+            try:
+                with _req.urlopen(req, timeout=10.0) as resp:
+                    status = int(resp.getcode())
+                    response = resp.read(2000).decode("utf-8", errors="replace")
+                    return status, response, None, 200 <= status < 300
+            except _err.HTTPError as he:
+                status = int(he.code)
+                try:
+                    response = he.read(2000).decode("utf-8", errors="replace")
+                except Exception:
+                    response = None
+                return status, response, None, False
+            except _err.URLError as ue:
+                return None, None, f"URLError: {ue.reason}", False
+    except Exception as e:
+        return None, None, f"{type(e).__name__}: {e}", False
+
+
+def register_routes(app: Any) -> None:
+
+    @app.post("/api/anonymize")
+    async def api_anonymize(request: Request) -> Any:
+        """{texts:[...], salt:str?} -> {redacted:[...], diffs:[...]}."""
+        try:
+            body = await request.json()
+        except Exception:
+            raise HTTPException(400, "invalid JSON body")
+        texts = body.get("texts") or []
+        if not isinstance(texts, list):
+            raise HTTPException(400, "`texts` must be a list of strings")
+        salt = body.get("salt") or DEFAULT_SALT
+
+        out_texts: list[str] = []
+        out_diffs: list[dict] = []
+        for t in texts:
+            t = str(t)
+            redactions: list[dict] = []
+            redacted = t
+            for label, pat in PII_PATTERNS:
+                for m in pat.finditer(t):
+                    raw = m.group(0)
+                    ph = placeholder(label, raw, salt=salt)
+                    redactions.append({
+                        "label": label,
+                        "raw_sha256": raw_sha256(raw),
+                        "placeholder": ph,
+                        "start": m.start(),
+                        "end": m.end(),
+                    })
+                    redacted = redacted.replace(raw, ph)
+            out_texts.append(redacted)
+            out_diffs.append({"n_redactions": len(redactions), "redactions": redactions})
+        return JSONResponse({"redacted": out_texts, "diffs": out_diffs})
+
+    @app.post("/api/submit/knowledge")
+    async def api_submit_knowledge(request: Request) -> Any:
+        """Submit anonymized knowledge items with local audit + remote POST."""
+        try:
+            body = await request.json()
+        except Exception:
+            raise HTTPException(400, "invalid JSON body")
+        items = body.get("knowledge") or body.get("facts") or []
+        target_url = body.get("target_url") or _DEFAULT_HUB_SUBMIT_URL
+        if not isinstance(items, list):
+            raise HTTPException(400, "`knowledge` must be a list")
+
+        ts = _dt.utcnow().strftime("%Y-%m-%dT%H-%M-%SZ")
+        run_id = f"01_submit_{ts}"
+        payload = {"submission_id": run_id, "ts": ts, "items": items}
+        blob = _json.dumps(payload, sort_keys=True, ensure_ascii=False).encode("utf-8")
+        sha = hashlib.sha256(blob).hexdigest()
+
+        audit_path = _audit_dir() / "submit_log.jsonl"
+        remote_status, remote_response, remote_error, transmitted = _post_payload(
+            target_url, payload, sha
+        )
+
+        entry = {
+            "ts": ts,
+            "run_id": run_id,
+            "action": "submit/knowledge",
+            "target_url": target_url,
+            "n_items": len(items),
+            "sha256_blob": sha,
+            "queued": True,
+            "transmitted": transmitted,
+            "remote_status": remote_status,
+            "remote_error": remote_error,
+        }
+        try:
+            with open(audit_path, "a", encoding="utf-8") as f:
+                f.write(_json.dumps(entry) + "\n")
+        except Exception as e:
+            raise HTTPException(500, f"audit write failed: {e}")
+        return JSONResponse({
+            "ok": True,
+            "run_id": run_id,
+            "audit_path": str(audit_path),
+            "n_items": len(items),
+            "sha256_blob": sha,
+            "audit_entry": entry,
+            "transmitted": transmitted,
+            "remote_status": remote_status,
+            "remote_response": remote_response,
+            "remote_error": remote_error,
+            "note": (
+                "Knowledge transmitted." if transmitted else
+                ("Local audit written. Remote returned "
+                 + (f"HTTP {remote_status}" if remote_status else f"network error: {remote_error}")
+                 + " -- rerun when the public hub is reachable.")
+            ),
+        })
+
+    @app.post("/api/submit/local")
+    async def api_submit_local(request: Request) -> Any:
+        """Deprecated alias. Delegates to /api/submit/knowledge."""
+        return await api_submit_knowledge(request)
