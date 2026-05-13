@@ -1415,6 +1415,35 @@ When the user describes a scenario:
 If the Duecare safety harness has fired (the GREP/RAG/Tools blocks below), use that output to ground every claim. Cite the specific rule, document, or tool result by name."""
 
 
+# Module-level KnowledgeObject taxonomy. Hoisted out of create_app so the
+# harness modules under harnesses/ can import these at request time without
+# digging into closure state. Spec: docs/knowledge_module_schema.md.
+KO_BRANCHES: dict[str, str] = {
+    "grep_rule": "matching_knowledge",
+    "glob_rule": "matching_knowledge",
+    "classifier_rule": "matching_knowledge",
+    "heuristic_rule": "matching_knowledge",
+    "rag_doc": "grounding_knowledge",
+    "citation_edge": "grounding_knowledge",
+    "corridor_profile": "grounding_knowledge",
+    "ngo_directory": "grounding_knowledge",
+    "persona_block": "reasoning_knowledge",
+    "context_snippet": "reasoning_knowledge",
+    "reasoning_step": "reasoning_knowledge",
+    "rubric_dimension": "reasoning_knowledge",
+    "tool_definition": "tool_knowledge",
+    "tool_example": "tool_knowledge",
+    "tool_chain": "tool_knowledge",
+    "fact_template": "input_knowledge",
+    "upload_schema": "input_knowledge",
+    "prompt_template": "input_knowledge",
+    "envelope_schema": "output_knowledge",
+    "audit_template": "output_knowledge",
+    "submission_schema": "output_knowledge",
+}
+KO_TYPES = frozenset(KO_BRANCHES.keys())
+
+
 class GenerationParams(BaseModel):
     max_new_tokens: int = 8192
     temperature: float = 1.0
@@ -4758,31 +4787,10 @@ def create_app(
     # See docs/knowledge_module_schema.md for the envelope spec.
     # ====================================================================
 
-    # ===== Phase 18: 21-leaf KnowledgeObject taxonomy ====================
-    KO_BRANCHES: dict[str, str] = {
-        "grep_rule": "matching_knowledge",
-        "glob_rule": "matching_knowledge",
-        "classifier_rule": "matching_knowledge",
-        "heuristic_rule": "matching_knowledge",
-        "rag_doc": "grounding_knowledge",
-        "citation_edge": "grounding_knowledge",
-        "corridor_profile": "grounding_knowledge",
-        "ngo_directory": "grounding_knowledge",
-        "persona_block": "reasoning_knowledge",
-        "context_snippet": "reasoning_knowledge",
-        "reasoning_step": "reasoning_knowledge",
-        "rubric_dimension": "reasoning_knowledge",
-        "tool_definition": "tool_knowledge",
-        "tool_example": "tool_knowledge",
-        "tool_chain": "tool_knowledge",
-        "fact_template": "input_knowledge",
-        "upload_schema": "input_knowledge",
-        "prompt_template": "input_knowledge",
-        "envelope_schema": "output_knowledge",
-        "audit_template": "output_knowledge",
-        "submission_schema": "output_knowledge",
-    }
-    KO_TYPES = set(KO_BRANCHES.keys())
+    # Phase 18 taxonomy moved to module-level KO_BRANCHES / KO_TYPES so
+    # harnesses/ can import it without reaching into closure state. The
+    # inner-scope names below are kept as local aliases so the existing
+    # CRUD handlers below this point keep working without edits.
 
     # ----- Phase 17: runtime hot-load of GREP knowledge -----------------
     def _load_matching_extras(kind: str) -> list[dict]:
