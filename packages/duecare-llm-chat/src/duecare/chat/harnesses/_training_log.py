@@ -1,0 +1,107 @@
+"""Per-harness training-data logger.
+
+Each harness's handler calls ``log_interaction`` at completion. The output
+is a per-harness JSONL stream at ``/kaggle/working/training/<harness>.jsonl``
+(fallback ``./.duecare-training/<harness>.jsonl``) that doubles as
+production audit trail AND finetuning corpus.
+
+The whole point: each harness is a discrete TASK in the multi-task-learning
+sense. Logging at the harness boundary means every user interaction is
+automatically a training example for that specific safety task, labeled
+with the layer trace + applied_layers.
+
+Privacy
+-------
+By default ``anonymize=True`` runs the input/output text through PII
+regex BEFORE writing the JSONL row. The sha256 of the raw text is also
+logged so a future re-anonymization pass can re-hash and verify.
+"""
+from __future__ import annotations
+
+import hashlib
+import json
+from datetime import datetime
+from pathlib import Path
+from typing import Any
+
+
+def _training_dir() -> Path:
+    candidate = Path("/kaggle/working/training")
+    try:
+        candidate.mkdir(parents=True, exist_ok=True)
+        return candidate
+    except Exception:
+        pass
+    fallback = Path(".") / ".duecare-training"
+    fallback.mkdir(parents=True, exist_ok=True)
+    return fallback
+
+
+def _to_text(payload: Any) -> str:
+    if isinstance(payload, str):
+        return payload
+    try:
+        return json.dumps(payload, ensure_ascii=False, sort_keys=True, default=str)
+    except Exception:
+        return str(payload)
+
+
+def _anonymize(text: str) -> str:
+    """Light PII redaction. Kept in sync with anonymization/detector.py."""
+    import re
+
+    patterns = [
+        (re.compile(r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b"), "<EMAIL>"),
+        (re.compile(r"\+?\d[\d\-\s]{7,}\d"), "<PHONE>"),
+        (re.compile(r"\b[A-Z]{1,3}-?\d{6,}\b"), "<ID>"),
+        (re.compile(
+            r"\b(?:Ms\.|Mr\.|Mrs\.|Dr\.)\s+[A-Z][a-z]+(?:\s+[A-Z][a-z]+)*\b"
+        ), "<PERSON>"),
+    ]
+    out = text
+    for pat, placeholder in patterns:
+        out = pat.sub(placeholder, out)
+    return out
+
+
+def log_interaction(
+    harness: str,
+    *,
+    input_payload: Any,
+    output_payload: Any,
+    applied_layers: dict | None = None,
+    trace: dict | None = None,
+    anonymize: bool = True,
+    extra: dict | None = None,
+) -> Path | None:
+    """Append one finetuning-grade JSONL row for the given harness.
+
+    Returns the path of the JSONL file, or None when logging fails.
+    Logging never raises -- a training-log failure must not break the
+    live response path.
+    """
+    try:
+        ts = datetime.utcnow().strftime("%Y-%m-%dT%H-%M-%SZ")
+        in_text = _to_text(input_payload)
+        out_text = _to_text(output_payload)
+        in_sha = hashlib.sha256(in_text.encode("utf-8")).hexdigest()[:16]
+        out_sha = hashlib.sha256(out_text.encode("utf-8")).hexdigest()[:16]
+        row: dict[str, Any] = {
+            "ts": ts,
+            "harness": harness,
+            "input": _anonymize(in_text) if anonymize else in_text,
+            "output": _anonymize(out_text) if anonymize else out_text,
+            "input_sha256": in_sha,
+            "output_sha256": out_sha,
+            "applied_layers": applied_layers or {},
+            "trace": trace or {},
+            "anonymized": anonymize,
+        }
+        if extra:
+            row["extra"] = extra
+        path = _training_dir() / f"{harness}.jsonl"
+        with open(path, "a", encoding="utf-8") as f:
+            f.write(json.dumps(row, ensure_ascii=False) + "\n")
+        return path
+    except Exception:
+        return None
