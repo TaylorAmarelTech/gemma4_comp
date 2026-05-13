@@ -181,6 +181,68 @@ import_corpus). Verified via TestClient smoke:
 Each endpoint emits to the correct per-task JSONL stream at completion.
 
 
+## Knowledge object consumption + emission
+
+Every harness self-describes which `KnowledgeObject` types it reads and
+writes via `consumes` and `emits` tuples on its `__init__.py`. Validated
+against the 21-leaf taxonomy by `tests/test_harness_imports.py`.
+
+| Harness | consumes | emits |
+|---|---|---|
+| `chat` | grep_rule, glob_rule, classifier_rule, heuristic_rule, rag_doc, citation_edge, corridor_profile, ngo_directory, persona_block, context_snippet, reasoning_step, rubric_dimension, tool_definition, tool_example | (none) |
+| `process` | grep_rule, glob_rule, rag_doc, corridor_profile, ngo_directory, tool_definition, context_snippet | audit_template |
+| `extraction` | grep_rule, rag_doc, prompt_template, fact_template | grep_rule, glossary_term, statute_citation, indicator, fact_template, envelope_schema |
+| `anonymization` | prompt_template | audit_template, submission_schema |
+| `import_corpus` | upload_schema | context_snippet |
+
+A knowledge-pack builder kernel can pick a harness, read its `consumes`
+list, and generate targeted training data for exactly those KO types.
+
+## BaseHarness class (opt-in)
+
+`harnesses/base.py` exports both:
+
+- **`HarnessBase` Protocol** — structural typing contract (required for
+  every harness, enforced by `test_harness_imports.py`).
+- **`BaseHarness` class** — opt-in convenience base for new harnesses
+  that want shared helpers without writing them by hand.
+
+```python
+from duecare.chat.harnesses.base import BaseHarness
+
+
+class MyHarness(BaseHarness):
+    name = "my_harness"
+    applied_layers = ("grep", "rag")
+    consumes = ("grep_rule", "rag_doc", "prompt_template")
+    emits = ("envelope_schema",)
+
+    def register_routes(self, app):
+        @app.post("/api/my-endpoint")
+        async def handler(req):
+            grounding = self.compose(app, req.text)["grounding"]
+            extras = self.load_knowledge(app, "grep_rule")
+            output = ...
+            self.emit_training_row(
+                input_payload=req.text,
+                output_payload=output,
+                applied_layers={"grep": {"fired": True}},
+            )
+            return output
+
+
+harness = MyHarness()
+name = harness.name
+applied_layers = harness.applied_layers
+consumes = harness.consumes
+emits = harness.emits
+register_routes = harness.register_routes
+```
+
+The existing 5 harnesses continue as plain modules (back-compat). New
+harnesses can pick whichever style fits.
+
+
 ## Multi-rubric design review (2026-05-13)
 
 | Rubric | Result |
