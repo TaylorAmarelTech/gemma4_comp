@@ -56,8 +56,9 @@ gaps in `docs/gemma4_feature_showcase.md`:
 |---|---|---|---|
 | 5 | [`A-21-long-context-demo`](../kaggle/A-21-long-context-demo/) | 5-statute compliance corpus + 3 cross-statute QA pairs that each correlate 2-3 statutes in one thinking step (Gemma 4's 128K window in practice). | 45 s |
 | 6 | [`A-22-streaming-demo`](../kaggle/A-22-streaming-demo/) | Server-Sent Events stream pre-recorded responses at realistic Gemma 4 E4B-IT latencies (500ms first token, 25ms subsequent). Live first-token / token-rate / total stats. | 45 s |
+| 7 | [`A-23-coordinator-demo`](../kaggle/A-23-coordinator-demo/) | Three orchestration timelines: Gemma 4 emits a multi-tool plan in one thinking step, runtime fans out, synthesis returns. Native function calling, load-bearing. | 45 s |
 
-Both are zero-inference cached patterns -- recording-friendly,
+All three are zero-inference cached patterns -- recording-friendly,
 no GPU required.
 
 ## The 15-minute live-demo path

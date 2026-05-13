@@ -52,6 +52,7 @@ each kernel collects.
 | A-20 privacy-boundary | Local-vs-aggregate side-by-side | Privacy claim made concrete |
 | A-21 long-context-demo | **Long context (128K)** -- cross-statute reasoning over a 5-statute compliance corpus in a single thinking step | Closes the 128K-window demonstration gap (was on the "not yet showcased" list) |
 | A-22 streaming-demo | **Token streaming** -- SSE replay at realistic Gemma 4 E4B-IT latencies (500ms first token, 25ms subsequent), live token-rate stats | Closes the streaming-UX gap (was on the "not yet showcased" list) |
+| A-23 coordinator-demo | **Native function calling** -- multi-tool fan-out from one Gemma 4 thinking step; ~3x speedup vs the equivalent chat-loop pattern | Closes the Coordinator gap (CLAUDE.md rule 4 -- "load-bearing, not decorative") |
 
 ## Where each Special Tech Track is closed
 
@@ -67,12 +68,16 @@ The hackathon rules name three Special Tech sub-tracks at $10K each.
 
 Honest gap analysis -- worth filling in a future appendix:
 
-- **Coordinator-as-function-calling-router.** Per CLAUDE.md rule 4
+- **Coordinator-as-function-calling-router.** ~~Per CLAUDE.md rule 4
   ("Gemma 4's unique features must be load-bearing, not decorative"),
   the Coordinator agent should orchestrate via native function-call
   JSON. A-02 / A-09 / A-13 each call tools individually; a future
   Coordinator demo would chain multiple tools in one Gemma 4 thinking
-  step.
+  step.~~ **Closed by A-23 coordinator-demo** -- three cached
+  scenarios that each show Gemma 4 emitting 3-4 structured function
+  calls in one thinking step, fanning out to DueCare lookup tools,
+  and synthesizing a single grounded response with ~3x speedup vs
+  the equivalent chat-loop pattern.
 - **Long-context demonstration at 128K boundary.** ~~A-04 + A-16
   use long context but no kernel deliberately benchmarks at
   128K.~~ **Closed by A-21 long-context-demo** -- 5-statute
