@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <title>Knowledge Creation -- DueCare Workbench</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="/static/_chrome.css">
+  <script src="/static/_nav.js" defer></script>
+  <style>
+    body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+           background: #F7F6F1; color: #0E1116; margin: 0; padding: 0; }
+    .wb-page { max-width: 1120px; margin: 0 auto; padding: 24px 22px 80px; }
+    .wb-h1 { font-size: 26px; font-weight: 600; letter-spacing: -0.02em; margin: 6px 0 6px; }
+    .wb-lede { font-size: 13.5px; line-height: 1.6; color: #2A2D34; max-width: 720px;
+               margin: 0 0 22px; }
+    .wb-card { background: #FFFFFF; border: 1px solid #DDD8C9; border-radius: 12px;
+               padding: 18px 20px; margin-bottom: 14px; }
+    .wb-card h2 { font-size: 16px; font-weight: 600; margin: 0 0 8px; }
+    .wb-card p { font-size: 12.5px; line-height: 1.55; color: #2A2D34; margin: 0 0 8px; }
+    .wb-pill { display: inline-block; font-family: 'JetBrains Mono', monospace;
+               font-size: 10px; color: #2A2D34; background: #EFEDE4; border-radius: 4px;
+               padding: 2px 7px; margin-right: 6px; }
+    .wb-btn-primary {
+        background: oklch(0.52 0.08 195); color: #F7F6F1; border: 0;
+        padding: 9px 18px; border-radius: 8px; font-size: 13px; font-weight: 600;
+        cursor: pointer; text-decoration: none; display: inline-block;
+    }
+    .wb-btn-primary:disabled { opacity: 0.55; cursor: not-allowed; }
+    .wb-btn-secondary {
+        background: #EFEDE4; color: #0E1116; border: 1px solid #DDD8C9;
+        padding: 8px 14px; border-radius: 8px; font-size: 12.5px; cursor: pointer;
+        text-decoration: none; display: inline-block;
+    }
+    .wb-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center;
+              margin-top: 12px; }
+    .wb-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    @media (max-width: 760px) { .wb-grid-2 { grid-template-columns: 1fr; } }
+    .wb-muted { color: #5B5F68; font-size: 11.5px; }
+    .wb-status-pill { background: #EFEDE4; padding: 6px 12px; border-radius: 999px;
+                       font-size: 11px; color: #5B5F68; }
+    .wb-status-pill.scaffold { background: oklch(0.94 0.04 45);
+                                color: oklch(0.32 0.07 45); }
+    .wb-status-pill.ready { background: oklch(0.92 0.06 155);
+                             color: oklch(0.32 0.07 155); }
+    .wb-step {
+        display: flex; align-items: flex-start; gap: 14px; padding: 14px 16px;
+        background: #FFFFFF; border: 1px solid #DDD8C9; border-radius: 10px;
+        margin-bottom: 10px;
+    }
+    .wb-step-num { flex: 0 0 32px; width: 32px; height: 32px; border-radius: 50%;
+                    background: oklch(0.52 0.08 195); color: #F7F6F1;
+                    font-weight: 700; font-size: 13px;
+                    display: flex; align-items: center; justify-content: center; }
+    .wb-step-body { flex: 1; }
+    .wb-step h3 { margin: 0 0 4px; font-size: 14px; font-weight: 600; }
+    .wb-step p { margin: 0 0 8px; font-size: 12.5px; color: #2A2D34; line-height: 1.5; }
+    code { background: #F1EFE7; padding: 1px 5px; border-radius: 3px; font-size: 11.5px;
+           font-family: 'JetBrains Mono', monospace; }
+    a { color: oklch(0.32 0.07 195); }
+  </style>
+</head>
+<body data-nav="knowledge">
+  <main class="wb-page">
+    <span class="wb-status-pill scaffold">Tab 04 -- Knowledge Creation -- scaffold</span>
+    <h1 class="wb-h1">Knowledge Creation -- author patterns, facts, and templates</h1>
+    <p class="wb-lede">
+      Findings from <a href="/static/process.html">Process Files</a> get
+      promoted here into reusable knowledge artefacts: GREP rule candidates,
+      RAG-doc additions, citation-graph edges, and structured fact templates.
+      Each artefact starts as a draft you review before promotion.
+    </p>
+
+    <div class="wb-card">
+      <h2>Source</h2>
+      <p>
+        Load a <code>&lt;RUN_ID&gt;_process_bundle.zip</code> emitted by Process Files, or start from a blank slate.
+      </p>
+      <div class="wb-row">
+        <a class="wb-btn-secondary" href="/static/process.html">&larr; Back to Process Files</a>
+        <button class="wb-btn-secondary" type="button">Start blank</button>
+      </div>
+    </div>
+
+    <div class="wb-grid-2">
+      <div class="wb-card">
+        <h2>Candidate GREP rules</h2>
+        <p>Frequent-but-not-yet-rule patterns from the processed rows.</p>
+        <div style="height: 180px; border: 1px solid #EFEDE4; border-radius: 8px;
+             background: #FFFFFF; padding: 12px; color: #5B5F68; font-size: 12px;
+             overflow-y: auto;">
+          (candidate list renders here. Each candidate shows: pattern, support
+          count, sample row_ids, suggested category, and an Accept / Edit /
+          Reject row of buttons.)
+        </div>
+      </div>
+      <div class="wb-card">
+        <h2>Candidate RAG additions</h2>
+        <p>Documents the harness needed but couldn't find in the 46-doc corpus.</p>
+        <div style="height: 180px; border: 1px solid #EFEDE4; border-radius: 8px;
+             background: #FFFFFF; padding: 12px; color: #5B5F68; font-size: 12px;
+             overflow-y: auto;">
+          (candidate list renders here; user can paste new doc text + assign a jurisdiction tag + click Promote.)
+        </div>
+      </div>
+      <div class="wb-card">
+        <h2>Citation-graph edges</h2>
+        <p>Statute pairs that co-occurred in responses but aren't yet linked.</p>
+        <div style="height: 180px; border: 1px solid #EFEDE4; border-radius: 8px;
+             background: #FFFFFF; padding: 12px; color: #5B5F68; font-size: 12px;
+             overflow-y: auto;">
+          (candidate edges render here; user clicks Add to write the edge.)
+        </div>
+      </div>
+      <div class="wb-card">
+        <h2>Structured fact templates</h2>
+        <p>
+          Pre-defined templates the user fills out to produce submission-ready facts.
+          Templates follow the public hub's KnowledgeObject schema.
+        </p>
+        <div style="height: 180px; border: 1px solid #EFEDE4; border-radius: 8px;
+             background: #FFFFFF; padding: 12px; color: #5B5F68; font-size: 12px;
+             overflow-y: auto;">
+          (template picker + fillable form render here.)
+        </div>
+      </div>
+    </div>
+
+    <div class="wb-card">
+      <h2>Next step</h2>
+      <p>
+        Once you've authored / accepted the knowledge artefacts, head to the
+        Anonymization &amp; Sharing tab to redact PII and submit the vetted
+        facts to the public hub.
+      </p>
+      <div class="wb-row">
+        <a class="wb-btn-primary" href="/static/share.html">Continue to Anonymization &amp; Sharing &rarr;</a>
+      </div>
+    </div>
+  </main>
+</body>
+</html>
