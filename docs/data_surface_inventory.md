@@ -144,7 +144,7 @@ analyze_upload(raw, mime, q)         -> dict           # PerRow shape
 _flush_bundle()                      -> None           # rolling persist
 ```
 
-### A-13 on-device export
+### A-14 on-device export
 
 ```
 install_duecare_from_github()        -> bool
@@ -152,7 +152,7 @@ install_duecare_from_github()        -> bool
 # llama.cpp build + convert_hf_to_gguf.py subprocess
 ```
 
-### A-14 UGC moderator
+### A-15 UGC moderator
 
 ```
 _gemma_score(post_text)              -> str            # Gemma analysis
@@ -162,7 +162,7 @@ _aggregate()                         -> dict
 _flush()                             -> None
 ```
 
-### A-15 NGO local-KB
+### A-16 NGO local-KB
 
 ```
 _salted_hash(value)                  -> str
@@ -221,7 +221,7 @@ Every kernel that serves a workbench UI carries an inline
 | A-15 | `INDEX_HTML` | NGO ingestion + query + aggregate preview |
 | A-16 | `INDEX_HTML` | pack builder form + sessions + verify panel |
 | A-17 | `INDEX_HTML` | URL/text submission + verdict pills |
-| A-18 demo replay | `INDEX_HTML_TPL` | 5-lane x 4-scene replay (presentation only) |
+| A-24 demo replay | `INDEX_HTML_TPL` | 5-lane x 4-scene replay (presentation only) |
 | A-19 | `_render_html()` | 5-tab language picker |
 | A-20 | `_render_html()` | side-by-side local-vs-outside panels |
 | 03 video pitch | `INDEX_HTML_TPL` (3-mode) | tabbed Slides / Presentation / Setup |

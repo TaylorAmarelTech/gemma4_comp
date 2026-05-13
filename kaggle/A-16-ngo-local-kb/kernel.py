@@ -9,7 +9,7 @@
 
 """
 ============================================================================
-  DUECARE A-15 NGO LOCAL-KB -- Kaggle notebook
+  DUECARE A-16 NGO LOCAL-KB -- Kaggle notebook
 ============================================================================
   Lane 02 anchor. Mirrors local-kb.html + dashboard.html: drop a case
   in, get redacted record + entity hashes back, query the local KB
@@ -22,7 +22,7 @@
     <run_id>_metadata.json               config + summary
     <run_id>_bundle.zip                  manifest + above + sqlite
 
-  Run-ID format: a15_local_kb_{iso_ts}
+  Run-ID format: a16_local_kb_{iso_ts}
 
   Privacy: every PII span salt-hashed before write; raw values
   never persist. Satisfies .claude/rules/10_safety_gate.md.
@@ -109,7 +109,7 @@ subprocess.run([sys.executable, "-m", "pip", "install", "--quiet",
 
 try:
     from duecare.chat._dc_log import dc_log, set_kernel_id
-    set_kernel_id("a-15-ngo-local-kb")
+    set_kernel_id("a-16-ngo-local-kb")
 except Exception:
     def dc_log(*a, **kw): return None
     def set_kernel_id(*a, **kw): return None
@@ -277,7 +277,7 @@ def aggregate_preview(period_days: int = 90) -> dict:
 # 4. State + bundle flush + workbench shell
 # ===========================================================================
 _run_ts = time.strftime("%Y-%m-%dT%H-%M-%SZ", time.gmtime())
-RUN_ID = f"a15_local_kb_{_run_ts}"
+RUN_ID = f"a16_local_kb_{_run_ts}"
 RESULTS_PATH = OUTPUT_DIR / f"{RUN_ID}_local_kb.json"
 JSONL_PATH = OUTPUT_DIR / f"{RUN_ID}_local_kb.jsonl"
 META_PATH = OUTPUT_DIR / f"{RUN_ID}_metadata.json"
@@ -291,7 +291,7 @@ JSONL_PATH.touch(exist_ok=True)
 def _flush():
     payload = {
         "schema_version": "1.0",
-        "kernel_id": "a-15-ngo-local-kb",
+        "kernel_id": "a-16-ngo-local-kb",
         "run_id": RUN_ID,
         "config": {
             "salt_set": bool(os.environ.get("DUECARE_LOCAL_KB_SALT")),
@@ -316,7 +316,7 @@ def _flush():
         _z.writestr("manifest.json", json.dumps({
             "schema_version": "1.0",
             "run_id": RUN_ID,
-            "kernel_id": "a-15-ngo-local-kb",
+            "kernel_id": "a-16-ngo-local-kb",
         }, indent=2))
         _z.write(RESULTS_PATH, "local_kb.json")
         _z.write(JSONL_PATH, "local_kb.jsonl")
@@ -327,7 +327,7 @@ def _flush():
 
 INDEX_HTML = r"""<!doctype html>
 <html lang="en"><head><meta charset="utf-8">
-<title>DueCare A-15 . NGO local-KB</title>
+<title>DueCare A-16 . NGO local-KB</title>
 <link rel="stylesheet" href="/static/_chrome.css">
 <style>
   body{background:#F7F6F1;color:#0E1116;
@@ -365,7 +365,7 @@ INDEX_HTML = r"""<!doctype html>
   .dl a{color:#0E1116;text-decoration:underline}
 </style></head><body>
 <div class="page">
-  <h1>DueCare A-15 . NGO local-KB</h1>
+  <h1>DueCare A-16 . NGO local-KB</h1>
   <p class="lede">Paste case-intake notes. The kernel redacts PII,
     salt-hashes entities, and stores them in a local SQLite KB.
     Nothing leaves this machine until you preview &amp; click
@@ -469,7 +469,7 @@ _SHUTDOWN_EVENT = threading.Event()
 try:
     from duecare.chat.kernel_shell import build_minimal_shell
     summary_payload = {
-        "title": "A-15 NGO local-KB",
+        "title": "A-16 NGO local-KB",
         "audience": "ngo_regulator",
         "lede": ("Paste case notes; the kernel redacts PII, "
                   "salt-hashes entities, builds a local SQLite KB, "
@@ -496,7 +496,7 @@ try:
     }
     app, public_url = build_minimal_shell(
         summary=summary_payload,
-        kernel_id="a-15-ngo-local-kb",
+        kernel_id="a-16-ngo-local-kb",
         port=PORT, homepage_html=INDEX_HTML,
     )
     from fastapi import Request

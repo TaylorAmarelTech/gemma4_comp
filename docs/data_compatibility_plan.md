@@ -105,7 +105,7 @@ A-15 (NGO local-KB).
 # BEFORE
 payload = {
     "schema_version": "1.0",
-    "kernel_id": "a-14-ugc-batch-moderator",
+    "kernel_id": "a-15-ugc-batch-moderator",
     "run_id": RUN_ID,
     "config": {...},
     "metadata": {...},
@@ -116,7 +116,7 @@ payload = {
 # AFTER
 payload = {
     "schema_version": "1.0",
-    "kernel_id": "a-14-ugc-batch-moderator",
+    "kernel_id": "a-15-ugc-batch-moderator",
     "run_id": RUN_ID,
     "config": {...},
     "metadata": {...},
@@ -136,7 +136,7 @@ summary = payload.get("summary") or payload.get("aggregate") or {}
 
 Affected:
 
-- A-15 NGO local-KB: `ingested[]` -> `results[]`
+- A-16 NGO local-KB: `ingested[]` -> `results[]`
 - A-16 pack builder: `packs_built[]` -> `results[]`
 - A-17 sentinel: `proposals[]` -> `results[]`
 
@@ -321,7 +321,7 @@ def make_run_id(slot: str, purpose: str, variant: str = "",
       -> 'a01_e2b-it_stock_2026-05-12T19-30-00Z'
 
       make_run_id("a15", "local_kb")
-      -> 'a15_local_kb_2026-05-12T19-30-00Z'
+      -> 'a16_local_kb_2026-05-12T19-30-00Z'
     """
     ts = iso_ts or time.strftime("%Y-%m-%dT%H-%M-%SZ", time.gmtime())
     parts = [slot]
@@ -463,7 +463,7 @@ for r in scored:
     ))
 
 envelope = BundleEnvelope(
-    kernel_id="a-14-ugc-batch-moderator",
+    kernel_id="a-15-ugc-batch-moderator",
     run_id=RUN_ID,
     config={"model_variant": GEMMA_MODEL_VARIANT},
     metadata={...},

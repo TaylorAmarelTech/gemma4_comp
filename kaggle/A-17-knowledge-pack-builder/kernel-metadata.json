@@ -1,6 +1,6 @@
 {
-  "id": "taylorsamarel/duecare-a-16-knowledge-pack-builder",
-  "title": "DueCare A-16 Knowledge-Pack Builder + Verifier (Lane 04/05)",
+  "id": "taylorsamarel/duecare-a-17-knowledge-pack-builder",
+  "title": "DueCare A-17 Knowledge-Pack Builder + Verifier (Lane 04/05)",
   "code_file": "kernel.py",
   "language": "python",
   "kernel_type": "script",

@@ -9,7 +9,7 @@
 
 """
 ============================================================================
-  DUECARE A-13 ON-DEVICE EXPORT -- Kaggle notebook
+  DUECARE A-14 ON-DEVICE EXPORT -- Kaggle notebook
 ============================================================================
   Pipeline:
     1. Install DueCare from GitHub
@@ -27,7 +27,7 @@
     <run_id>_export_manifest.json                full manifest
     <run_id>_bundle.zip                          manifest + summary
 
-  Run-ID format: a13_export_{variant}_{adapter}_{iso_ts}
+  Run-ID format: a14_export_{variant}_{adapter}_{iso_ts}
 
   Closes Special Tech Track gaps:
     - llama.cpp ($10K) — real GGUF a judge can run on a laptop
@@ -155,7 +155,7 @@ subprocess.run([sys.executable, "-m", "pip", "install", "--quiet",
 
 try:
     from duecare.chat._dc_log import dc_log, set_kernel_id
-    set_kernel_id("a-13-on-device-export")
+    set_kernel_id("a-14-on-device-export")
 except Exception:
     def dc_log(*a, **kw): return None
     def set_kernel_id(*a, **kw): return None
@@ -284,14 +284,14 @@ if ENABLE_LITERT:
 # ===========================================================================
 print(f"\n[5/6] writing manifest + bundle")
 _run_ts = time.strftime("%Y-%m-%dT%H-%M-%SZ", time.gmtime())
-RUN_ID = (f"a13_export_{GEMMA_MODEL_VARIANT}_"
+RUN_ID = (f"a14_export_{GEMMA_MODEL_VARIANT}_"
             f"{LORA_ADAPTER_SLUG}_{_run_ts}")
 MANIFEST_PATH = OUTPUT_DIR / f"{RUN_ID}_export_manifest.json"
 BUNDLE_PATH = OUTPUT_DIR / f"{RUN_ID}_bundle.zip"
 
 _manifest = {
     "schema_version": "1.0",
-    "kernel_id": "a-13-on-device-export",
+    "kernel_id": "a-14-on-device-export",
     "run_id": RUN_ID,
     "config": {
         "base_model": _GEMMA_REPO,
@@ -305,7 +305,7 @@ _manifest = {
     "metadata": {
         "completed_at": time.strftime("%Y-%m-%dT%H:%M:%SZ",
                                         time.gmtime()),
-        "kaggle_kernel_id": "a-13-on-device-export",
+        "kaggle_kernel_id": "a-14-on-device-export",
         "host": "kaggle" if Path("/kaggle").exists() else "local",
     },
     "gguf_files": gguf_files,
@@ -334,7 +334,7 @@ try:
     for f in gguf_files + litert_files:
         artifacts.append({"name": Path(f["path"]).name, "path": f["path"]})
     summary_payload = {
-        "title": (f"A-13 on-device export "
+        "title": (f"A-14 on-device export "
                    f"({GEMMA_MODEL_VARIANT} + {LORA_ADAPTER_SLUG})"),
         "audience": "developer",
         "lede": (f"Merged {LORA_ADAPTER_SLUG} LoRA into "
@@ -364,7 +364,7 @@ try:
     }
     app, public_url = build_minimal_shell(
         summary=summary_payload,
-        kernel_id="a-13-on-device-export", port=PORT)
+        kernel_id="a-14-on-device-export", port=PORT)
     if public_url:
         print(f"  ok UI: {public_url}")
     print("\n  A-13 EXPORT COMPLETE\n")

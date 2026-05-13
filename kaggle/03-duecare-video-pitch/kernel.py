@@ -16,7 +16,7 @@
 #   s          skip current animation
 #   1..9       jump to scene/slide N
 #
-# Sibling kernel A-18 (kaggle/A-18-demo-replay/) is the appendix
+# Sibling kernel A-18 (kaggle/A-24-demo-replay/) is the appendix
 # version of this surface; 03 is the canonical main-notebook video
 # pitch judges land on.
 

@@ -32,7 +32,7 @@ hit Save & Run All; the dashboard renders in seconds.
 | Step | Kernel | What you see | Time |
 |---|---|---|---|
 | 1 | [`03-duecare-video-pitch`](../kaggle/03-duecare-video-pitch/) | In-app tabbed nav: Slides / Presentation / Setup. The same 8 slides that anchor the YouTube video. | 30 s |
-| 2 | [`A-18-demo-replay`](../kaggle/A-18-demo-replay/) | Pre-recorded harness OFF vs ON for a known compound-indicator prompt. The +56.5pp lift visible without running inference. | 30 s |
+| 2 | [`A-24-demo-replay`](../kaggle/A-24-demo-replay/) | Pre-recorded harness OFF vs ON for a known compound-indicator prompt. The +56.5pp lift visible without running inference. | 30 s |
 | 3 | [`A-19-multilingual-demo`](../kaggle/A-19-multilingual-demo/) | Same recruitment-fee scenario answered in EN / TL / NE / BN / ID. Click language tabs. | 45 s |
 | 4 | [`A-20-privacy-boundary`](../kaggle/A-20-privacy-boundary/) | Local-state vs aggregate-share state side-by-side. The "what stays on device vs what leaves" claim made concrete. | 45 s |
 

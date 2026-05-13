@@ -49,17 +49,17 @@ To `/kaggle/working/`:
 - `<RUN>_run.jsonl` — streaming per-row form
 - `<RUN>_metadata.json` — envelope minus `results[]`
 - `local_kb.sqlite` — the caseworker-queryable store
-- `RUN_ID` format: `a15_local_kb_{ts}`
-  (e.g., `a15_local_kb_2026-05-12T19-30-00Z`)
+- `RUN_ID` format: `a16_local_kb_{ts}`
+  (e.g., `a16_local_kb_2026-05-12T19-30-00Z`)
 
 The dashboard exposes `<a id="bundle-link">` populated via
 `fetch('/api/state')` once ingestion completes.
 
 ## Where this slot lives
 
-- **Canonical role:** A-15 NGO local-KB / case-file ingestion
+- **Canonical role:** A-16 NGO local-KB / case-file ingestion
 - **Folder path:** `kaggle/A-16-ngo-local-kb/`
-- **Kernel ID:** `a-15-ngo-local-kb`
+- **Kernel ID:** `a-16-ngo-local-kb`
 - **Upstream:** consumes A-11 PrivacyRedactor adapter from HF Hub
 - **Downstream:** aggregate signals feed the website's
   `/submit-information` flow (`aggregate_signal` submission kind)

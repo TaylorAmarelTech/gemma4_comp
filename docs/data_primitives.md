@@ -192,11 +192,11 @@ a02_e4b-it_stock_2026-05-12T19-30-00Z
 a03_compare_e4b-it_2026-05-12T19-45-00Z
 a06_e4b-it_safetyjudge-v1_2026-05-12T20-00-00Z
 a11_pii_finetune_e2b-it_2026-05-12T20-15-00Z
-a13_export_e2b-it_safetyjudge-v1_2026-05-12T20-30-00Z
-a14_ugc_e4b-it_2026-05-12T20-45-00Z
-a15_local_kb_2026-05-12T21-00-00Z
-a16_pack_session_2026-05-12T21-15-00Z
-a17_sentinel_2026-05-12T21-30-00Z
+a14_export_e2b-it_safetyjudge-v1_2026-05-12T20-30-00Z
+a15_ugc_e4b-it_2026-05-12T20-45-00Z
+a16_local_kb_2026-05-12T21-00-00Z
+a17_pack_session_2026-05-12T21-15-00Z
+a18_sentinel_2026-05-12T21-30-00Z
 03_video_pitch_session_2026-05-12T21-45-00Z
 ```
 
@@ -244,12 +244,12 @@ in a post-submission migration to `write_v1_bundle()`.
 | A-10 PII synth | `a10_pii_synth_{ts}` | `<RUN>_bundle.zip` | `summary` + `results[]` (composite rows now carry `error: null`) | `composite_id` | yes |
 | A-11 PII fine-tune | `a11_pii_finetune_{variant}_{ts}` | `<RUN>_bundle.zip` | `summary` (+ legacy `aggregate`) + flat `results[]` with `condition` (+ legacy `results_by_condition.{fine_tuned, stock}`) | `composite_id` | no |
 | A-12 multimodal | `a12_multimodal_{variant}_{ts}` | `<RUN>_bundle.zip` | `summary` + `results[]` | `upload_id` | yes |
-| A-13 export | `a13_export_{variant}_{adapter}_{ts}` | `<RUN>_bundle.zip` | manifest only (`gguf_files`, `litert_files`) | n/a | no |
-| A-14 UGC moderator | `a14_ugc_{variant}_{ts}` | `<RUN>_bundle.zip` | `summary` (+ legacy `aggregate`) + `results[]` | `post_id` | yes |
-| A-15 NGO local-KB | `a15_local_kb_{ts}` | `<RUN>_bundle.zip` | `summary` (+ legacy `aggregate`) + `results[]` (+ legacy `ingested[]`); rows carry `error: null` | `case_id` | yes |
-| A-16 pack builder | `a16_pack_session_{ts}` | `<RUN>_bundle.zip` | `summary` + `results[]` (+ legacy `packs_built[]`) | `slug + version` | per-doc only |
-| A-17 sentinel | `a17_sentinel_{ts}` | `<RUN>_bundle.zip` | `summary` + `results[]` (+ legacy `proposals[]`) | `diff_id` | yes (`ok=false`) |
-| A-18 demo replay | (no run_id; static) | (n/a — no writes) | inline `DEMO_SCRIPT` | `scene_id` | n/a |
+| A-13 export | `a14_export_{variant}_{adapter}_{ts}` | `<RUN>_bundle.zip` | manifest only (`gguf_files`, `litert_files`) | n/a | no |
+| A-14 UGC moderator | `a15_ugc_{variant}_{ts}` | `<RUN>_bundle.zip` | `summary` (+ legacy `aggregate`) + `results[]` | `post_id` | yes |
+| A-16 NGO local-KB | `a16_local_kb_{ts}` | `<RUN>_bundle.zip` | `summary` (+ legacy `aggregate`) + `results[]` (+ legacy `ingested[]`); rows carry `error: null` | `case_id` | yes |
+| A-16 pack builder | `a17_pack_session_{ts}` | `<RUN>_bundle.zip` | `summary` + `results[]` (+ legacy `packs_built[]`) | `slug + version` | per-doc only |
+| A-17 sentinel | `a18_sentinel_{ts}` | `<RUN>_bundle.zip` | `summary` + `results[]` (+ legacy `proposals[]`) | `diff_id` | yes (`ok=false`) |
+| A-24 demo replay | (no run_id; static) | (n/a — no writes) | inline `DEMO_SCRIPT` | `scene_id` | n/a |
 | A-19 multilingual | `a19_multilingual_{ts}` | `<RUN>_bundle.zip` | inline `MULTILINGUAL_DEMO` (run_id-tagged) | n/a | n/a |
 | A-20 privacy boundary | `a20_privacy_{ts}` | `<RUN>_bundle.zip` | inline `DEMO_PAYLOAD` (run_id-tagged) | n/a | n/a |
 | A-21 long-context | `a21_long_context_{ts}` | `<RUN>_bundle.zip` (4 canonical files via `write_v1_bundle`) | `summary` + `results[]` | `qa_id` | yes |

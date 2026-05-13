@@ -1,6 +1,6 @@
 {
-  "id": "taylorsamarel/duecare-a-13-on-device-export",
-  "title": "DueCare A-13 On-device Export (LoRA -> GGUF + LiteRT)",
+  "id": "taylorsamarel/duecare-a-14-on-device-export",
+  "title": "DueCare A-14 On-device Export (LoRA -> GGUF + LiteRT)",
   "code_file": "kernel.py",
   "language": "python",
   "kernel_type": "script",

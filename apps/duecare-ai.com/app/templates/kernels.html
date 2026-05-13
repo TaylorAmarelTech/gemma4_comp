@@ -228,15 +228,15 @@
       </div>
     </div>
     <div class="kr-card zero-inf">
-      <span class="slot">A-18a &middot; zero-inference</span>
+      <span class="slot">A-24 &middot; zero-inference</span>
       <span class="name">demo-replay</span>
       <span class="lede">Zero-inference scripted demo. Used in the submission video.</span>
       <div class="links">
-        <a class="k-link" href="https://github.com/TaylorAmarelTech/gemma4_comp/tree/master/kaggle/A-18-demo-replay" target="_blank">GitHub</a>
+        <a class="k-link" href="https://github.com/TaylorAmarelTech/gemma4_comp/tree/master/kaggle/A-24-demo-replay" target="_blank">GitHub</a>
       </div>
     </div>
     <div class="kr-card">
-      <span class="slot">A-18b &middot; sentinel</span>
+      <span class="slot">A-18 &middot; sentinel</span>
       <span class="name">sentinel-research-monitor</span>
       <span class="lede">Diff monitor over public-source feeds; proposes pack updates with reasoning trace.</span>
       <div class="links">
@@ -301,7 +301,7 @@
     <li>Every kernel folder has a <code>kernel.py</code>, a <code>README.md</code> with a "Judge quick path" table (Inputs / Gemma 4 features / Outputs rows), and a <code>kernel-metadata.json</code> for the Kaggle CLI.</li>
     <li>Every JSON-emitting kernel produces a v1.0 BundleEnvelope per <a href="https://github.com/TaylorAmarelTech/gemma4_comp/blob/master/docs/data_primitives.md">docs/data_primitives.md</a> &mdash; <code>schema_version</code> + <code>kernel_id</code> + <code>run_id</code> + <code>summary</code> + <code>results[]</code>.</li>
     <li>Four kernels (A-19, A-21, A-22, A-23) are reference implementations of <code>duecare.appendix_primitives.write_v1_bundle()</code>; the helper module ships in <code>duecare-llm-chat v0.17.0+</code>.</li>
-    <li>Seven kernels (03, A-18a, A-19, A-20, A-21, A-22, A-23) are zero-inference cached patterns &mdash; recording-friendly, no GPU required.</li>
+    <li>Seven kernels (03, A-24, A-19, A-20, A-21, A-22, A-23) are zero-inference cached patterns &mdash; recording-friendly, no GPU required.</li>
     <li>Static audit gate at <code>scripts/validate_public_surface.py</code> runs six checks (drift terms, route 200 sweep, five-lane order, kaggle lane labels, bundle envelope v1, manifest checksums) on every PR. Currently 0 findings.</li>
   </ul>
 </div>

@@ -9,7 +9,7 @@
 
 """
 ============================================================================
-  DUECARE A-17 SENTINEL / RESEARCH MONITOR -- Kaggle notebook
+  DUECARE A-18 SENTINEL / RESEARCH MONITOR -- Kaggle notebook
 ============================================================================
   Pipeline:
     1. Install DueCare + Unsloth + Gemma 4 (small variant default)
@@ -25,7 +25,7 @@
     <run_id>_metadata.json             config + summary
     <run_id>_bundle.zip                manifest + above
 
-  Run-ID format: a17_sentinel_{iso_ts}
+  Run-ID format: a18_sentinel_{iso_ts}
 
   Lane 04 / 05. Closes the search/submit gap from sentinel.html.
 
@@ -148,7 +148,7 @@ import torch
 
 try:
     from duecare.chat._dc_log import dc_log, set_kernel_id
-    set_kernel_id("a-17-sentinel-research-monitor")
+    set_kernel_id("a-18-sentinel-research-monitor")
 except Exception:
     def dc_log(*a, **kw): return None
     def set_kernel_id(*a, **kw): return None
@@ -265,7 +265,7 @@ def propose_diff(source_url: str = "", inline_text: str = "",
 # 4. State + workbench shell
 # ===========================================================================
 _run_ts = time.strftime("%Y-%m-%dT%H-%M-%SZ", time.gmtime())
-RUN_ID = f"a17_sentinel_{_run_ts}"
+RUN_ID = f"a18_sentinel_{_run_ts}"
 PROPOSALS: list[dict] = []
 RESULTS_PATH = OUTPUT_DIR / f"{RUN_ID}_proposals.json"
 JSONL_PATH = OUTPUT_DIR / f"{RUN_ID}_proposals.jsonl"
@@ -277,7 +277,7 @@ JSONL_PATH.touch(exist_ok=True)
 def _flush():
     payload = {
         "schema_version": "1.0",
-        "kernel_id": "a-17-sentinel-research-monitor",
+        "kernel_id": "a-18-sentinel-research-monitor",
         "run_id": RUN_ID,
         "config": {"model_variant": GEMMA_MODEL_VARIANT,
                    "model_path": _GEMMA_REPO,
@@ -304,7 +304,7 @@ def _flush():
     with zipfile.ZipFile(BUNDLE_PATH, "w", zipfile.ZIP_DEFLATED) as _z:
         _z.writestr("manifest.json", json.dumps({
             "schema_version": "1.0", "run_id": RUN_ID,
-            "kernel_id": "a-17-sentinel-research-monitor",
+            "kernel_id": "a-18-sentinel-research-monitor",
         }, indent=2))
         _z.write(RESULTS_PATH, "proposals.json")
         _z.write(JSONL_PATH, "proposals.jsonl")
@@ -421,7 +421,7 @@ _SHUTDOWN_EVENT = threading.Event()
 try:
     from duecare.chat.kernel_shell import build_minimal_shell
     summary_payload = {
-        "title": f"A-17 sentinel / research monitor ({GEMMA_MODEL_VARIANT})",
+        "title": f"A-18 sentinel / research monitor ({GEMMA_MODEL_VARIANT})",
         "audience": "researcher",
         "lede": ("Submit URL or paste text; harness decides whether "
                   "the content yields a pack-worthy diff. Curator "
@@ -445,7 +445,7 @@ try:
     }
     app, public_url = build_minimal_shell(
         summary=summary_payload,
-        kernel_id="a-17-sentinel-research-monitor",
+        kernel_id="a-18-sentinel-research-monitor",
         port=PORT, homepage_html=INDEX_HTML,
     )
     from fastapi import Request

@@ -9,7 +9,7 @@
 
 """
 ============================================================================
-  DUECARE A-14 UGC BATCH MODERATOR -- Kaggle notebook
+  DUECARE A-15 UGC BATCH MODERATOR -- Kaggle notebook
 ============================================================================
   Pipeline:
     1. Install DueCare + Unsloth
@@ -29,7 +29,7 @@
     <run_id>_metadata.json
     <run_id>_bundle.zip
 
-  Run-ID format: a14_ugc_{variant}_{iso_ts}
+  Run-ID format: a15_ugc_{variant}_{iso_ts}
 
   Built with Google's Gemma 4. Used in accordance with the Gemma Terms of Use.
 ============================================================================
@@ -151,7 +151,7 @@ import torch
 
 try:
     from duecare.chat._dc_log import dc_log, set_kernel_id
-    set_kernel_id("a-14-ugc-batch-moderator")
+    set_kernel_id("a-15-ugc-batch-moderator")
 except Exception:
     def dc_log(*a, **kw): return None
     def set_kernel_id(*a, **kw): return None
@@ -299,7 +299,7 @@ def parse_upload(raw: bytes, filename: str) -> list[dict]:
 # 4. State + flush
 # ===========================================================================
 _run_ts = time.strftime("%Y-%m-%dT%H-%M-%SZ", time.gmtime())
-RUN_ID = f"a14_ugc_{GEMMA_MODEL_VARIANT}_{_run_ts}"
+RUN_ID = f"a15_ugc_{GEMMA_MODEL_VARIANT}_{_run_ts}"
 RESULTS_PATH = OUTPUT_DIR / f"{RUN_ID}_ugc_moderation.json"
 JSONL_PATH = OUTPUT_DIR / f"{RUN_ID}_ugc_moderation.jsonl"
 META_PATH = OUTPUT_DIR / f"{RUN_ID}_metadata.json"
@@ -333,7 +333,7 @@ def _aggregate() -> dict:
 def _flush():
     payload = {
         "schema_version": "1.0",
-        "kernel_id": "a-14-ugc-batch-moderator",
+        "kernel_id": "a-15-ugc-batch-moderator",
         "run_id": RUN_ID,
         "config": {
             "model_variant": GEMMA_MODEL_VARIANT,
@@ -343,7 +343,7 @@ def _flush():
         "metadata": {
             "started_at": time.strftime(
                 "%Y-%m-%dT%H:%M:%SZ", time.gmtime(_session_t0)),
-            "kaggle_kernel_id": "a-14-ugc-batch-moderator",
+            "kaggle_kernel_id": "a-15-ugc-batch-moderator",
             "host": "kaggle" if Path("/kaggle").exists() else "local",
         },
         "summary": _aggregate(),
@@ -364,7 +364,7 @@ def _flush():
             _line = {
                 "schema_version": "1.0",
                 "run_id": RUN_ID,
-                "kernel_id": "a-14-ugc-batch-moderator",
+                "kernel_id": "a-15-ugc-batch-moderator",
                 **_row,
             }
             _fh.write(json.dumps(_line, ensure_ascii=False) + "\n")
@@ -372,7 +372,7 @@ def _flush():
         _z.writestr("manifest.json", json.dumps({
             "schema_version": "1.0",
             "run_id": RUN_ID,
-            "kernel_id": "a-14-ugc-batch-moderator",
+            "kernel_id": "a-15-ugc-batch-moderator",
         }, indent=2))
         _z.write(RESULTS_PATH, "ugc_moderation.json")
         _z.write(JSONL_PATH, "ugc_moderation.jsonl")
@@ -390,7 +390,7 @@ JSONL_PATH.touch(exist_ok=True)
 # ===========================================================================
 INDEX_HTML = r"""<!doctype html>
 <html lang="en"><head><meta charset="utf-8">
-<title>DueCare A-14 . UGC moderator</title>
+<title>DueCare A-15 . UGC moderator</title>
 <link rel="stylesheet" href="/static/_chrome.css">
 <style>
   body{background:#F7F6F1;color:#0E1116;
@@ -436,7 +436,7 @@ INDEX_HTML = r"""<!doctype html>
   .dl a{color:#0E1116;text-decoration:underline}
 </style></head><body>
 <div class="page">
-  <h1>DueCare A-14 . UGC batch moderator</h1>
+  <h1>DueCare A-15 . UGC batch moderator</h1>
   <p class="lede">Upload CSV (must have <code>text</code> column) or
     JSONL (each line <code>{"post_id":"...","text":"..."}</code>).
     Harness scores each post; risk envelope returned. Lane 01.</p>
@@ -521,7 +521,7 @@ _SHUTDOWN_EVENT = threading.Event()
 try:
     from duecare.chat.kernel_shell import build_minimal_shell
     summary_payload = {
-        "title": f"A-14 UGC batch moderator ({GEMMA_MODEL_VARIANT})",
+        "title": f"A-15 UGC batch moderator ({GEMMA_MODEL_VARIANT})",
         "audience": "platform_safety",
         "lede": ("Upload CSV or JSONL of posts; harness scores each "
                   "and returns risk envelopes. Lane 01."),
@@ -542,7 +542,7 @@ try:
     }
     app, public_url = build_minimal_shell(
         summary=summary_payload,
-        kernel_id="a-14-ugc-batch-moderator",
+        kernel_id="a-15-ugc-batch-moderator",
         port=PORT, homepage_html=INDEX_HTML,
     )
     from fastapi import UploadFile, File
@@ -561,7 +561,7 @@ try:
                 fh.write(json.dumps({
                     "schema_version": "1.0",
                     "run_id": RUN_ID,
-                    "kernel_id": "a-14-ugc-batch-moderator",
+                    "kernel_id": "a-15-ugc-batch-moderator",
                     **result,
                 }, ensure_ascii=False) + "\n")
                 fh.flush()

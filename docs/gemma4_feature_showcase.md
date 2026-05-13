@@ -46,7 +46,7 @@ each kernel collects.
 | A-15 ugc-batch-moderator | Multilingual platform-safety classification | Batch moderation across 5 languages |
 | A-16 ngo-local-kb | Long-context case-file ingestion + PrivacyRedactor adapter | 128K context for whole-case grounding |
 | A-17 knowledge-pack-builder | Signed pack registry mechanics | Reproducibility (researcher pull + verify) |
-| A-18 demo-replay | Zero-inference scripted demo | Video-recording surface |
+| A-24 demo-replay | Zero-inference scripted demo | Video-recording surface |
 | A-18 sentinel-research-monitor | Diff-monitor over the pack registry | Trend signaling |
 | A-19 multilingual-demo | **Multilingual** 5-corridor scenario playback | "in their language" Lane 03 |
 | A-20 privacy-boundary | Local-vs-aggregate side-by-side | Privacy claim made concrete |

@@ -72,9 +72,9 @@ authored.json is for round-trip iteration.
 
 ## Where this slot lives
 
-- **Canonical role:** A-18 demo replay (extension to the 11-slot
+- **Canonical role:** A-24 demo replay (extension to the 11-slot
   ladder; rubric anchor for Video Pitch & Storytelling)
-- **Folder path:** `kaggle/A-18-demo-replay/` (new folder; no
+- **Folder path:** `kaggle/A-24-demo-replay/` (new folder; no
   legacy slot was available)
 - **Sibling kernels referenced:**
   `kaggle/A-02-chat-playground-with-grep-rag-tools/` for the

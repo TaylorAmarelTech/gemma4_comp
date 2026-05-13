@@ -11,7 +11,7 @@
 #
 # Zero-inference mode (default): replays cached QA pairs so users
 # see the workflow without waiting for token generation. Same
-# pattern as A-19 multilingual + A-18 demo-replay.
+# pattern as A-19 multilingual + A-24 demo-replay.
 
 """
 ============================================================================

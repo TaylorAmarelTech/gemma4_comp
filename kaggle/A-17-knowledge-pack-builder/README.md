@@ -47,17 +47,17 @@ To `/kaggle/working/`:
 - `<RUN>_results.json` / `<RUN>_run.jsonl` / `<RUN>_metadata.json`
 - `<pack_slug>-v<version>.tar.gz` — one per built pack (the
   reviewer-pullable artifact)
-- `RUN_ID` format: `a16_pack_session_{ts}`
-  (e.g., `a16_pack_session_2026-05-12T19-30-00Z`)
+- `RUN_ID` format: `a17_pack_session_{ts}`
+  (e.g., `a17_pack_session_2026-05-12T19-30-00Z`)
 
 The dashboard exposes `<a id="bundle-link">` populated via
 `fetch('/api/state')` once a pack-session completes.
 
 ## Where this slot lives
 
-- **Canonical role:** A-16 knowledge-pack builder + verifier
+- **Canonical role:** A-17 knowledge-pack builder + verifier
 - **Folder path:** `kaggle/A-17-knowledge-pack-builder/`
-- **Kernel ID:** `a-16-knowledge-pack-builder`
+- **Kernel ID:** `a-17-knowledge-pack-builder`
 - **Downstream:** built packs are consumed by every harnessed
   kernel that loads packs via `duecare.publishing.packs.load(...)`.
   The pack manifest shape matches the website's `/api/packs/{slug}`
