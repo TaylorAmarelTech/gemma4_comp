@@ -6,7 +6,7 @@
 >
 > **One-line claim:** DueCare turns Gemma 4 into grounded safety infrastructure that helps platforms prevent exploitation, helps NGOs and workers act on safer guidance, and helps researchers understand what is happening and why — while keeping raw cases out of the public hub.
 >
-> **Status as of 2026-05-11:** final judge-facing submission path is 13 Kaggle script-kernel folders (3 core + 24 appendix); generated/research notebook mirrors and older 52/74/77-kernel notes are archived historical context. The harness currently has 6 layers, 161 GREP rules, a 46-doc RAG corpus, a 46-edge citation graph, a 46-dimension grader, 587 example prompts, a 65-test adversarial validation suite, 28 public-hub tests, 4 example knowledge packs, token-gated admin logs, server automation, operator-side local KB, and Cloudflare demo app styling aligned to the public website.
+> **Status as of 2026-05-12:** final reviewer-facing submission path is 27 Kaggle script-kernel folders (3 core + 24 appendix); generated/research notebook mirrors are archived historical context. The harness currently has 6 layers, 161 GREP rules, a 46-doc RAG corpus, a 46-edge citation graph, a 46-dimension grader, 587 example prompts, a 65-test adversarial validation suite, 28 public-hub tests, 4 example knowledge packs, token-gated admin logs, server automation, operator-side local KB, and Cloudflare demo app styling aligned to the public website.
 >
 > **Word count:** checked by `scripts/v141_word_count.py`; counted body remains under Kaggle's 1,500-word cap.
 

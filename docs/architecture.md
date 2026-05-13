@@ -74,8 +74,10 @@
 > - `src/forge/agents/*`     → `packages/duecare-llm-agents/src/duecare/agents/*`
 > - `src/forge/workflows/*`  → `packages/duecare-llm-workflows/src/duecare/workflows/*`
 > - `src/forge/publishing/*` → `packages/duecare-llm-publishing/src/duecare/publishing/*`
-> - `src/phases/*`           → Kaggle notebooks under `kaggle/kernels/duecare_NNN_*/`
->   plus the FastAPI demo under `src/demo/`.
+> - `src/phases/*`           → Kaggle script kernels under
+>   `kaggle/{01,02,03,A-NN}-*/` (the legacy `kaggle/kernels/duecare_NNN_*/`
+>   mirrors are archived under
+>   `_archive/kaggle-notebook-previews-2026-05-11/`).
 >
 > The component-level design decisions below are still authoritative; only
 > the concrete file paths have moved.
