@@ -12,6 +12,10 @@
 
 ---
 
+## Knowledge taxonomy
+
+DueCare classifies every reusable artefact -- regex rules, retrieval docs, citation links, persona prompts, tool definitions, fact templates, schemas -- under one canonical `KnowledgeObject` envelope (`schema_version: "1.0"`). 6 branches (matching / grounding / reasoning / tool / input / output knowledge) across 21 leaf types. One persistence convention, one runtime API (`/api/knowledge/{promote,list,import,export,taxonomy,<type>/<id>}`), one vocabulary across kernel + website + writeup + diagram. Spec: `docs/knowledge_module_schema.md`. ADR: `docs/adr/007-knowledge-object-taxonomy.md`.
+
 ## TL;DR
 
 Stock LLMs can miss coercion when abuse is hidden in ordinary recruitment language: salary deductions, document control, fee labels, contract substitution, or jurisdiction hopping. DueCare wraps Gemma 4 with deterministic rules, retrieval, function calls, multimodal inspection, and a scored evaluation harness. It does not replace an NGO caseworker or regulator. It gives them a private local assistant, reproducible evidence, and a public coordination layer that stores only anonymized signals and vetted knowledge packs.
