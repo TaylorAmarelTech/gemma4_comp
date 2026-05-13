@@ -47,6 +47,19 @@ If any of those four kernels failed to render, **the rest of the
 ladder is unlikely to render either** -- inspect their `kernel.py`
 console output for the failure and re-run.
 
+### Optional zero-inference additions (still no GPU, ~2 min more)
+
+Added 2026-05-12 with the closure of the long-context + streaming
+gaps in `docs/gemma4_feature_showcase.md`:
+
+| Step | Kernel | What you see | Time |
+|---|---|---|---|
+| 5 | [`A-21-long-context-demo`](../kaggle/A-21-long-context-demo/) | 5-statute compliance corpus + 3 cross-statute QA pairs that each correlate 2-3 statutes in one thinking step (Gemma 4's 128K window in practice). | 45 s |
+| 6 | [`A-22-streaming-demo`](../kaggle/A-22-streaming-demo/) | Server-Sent Events stream pre-recorded responses at realistic Gemma 4 E4B-IT latencies (500ms first token, 25ms subsequent). Live first-token / token-rate / total stats. | 45 s |
+
+Both are zero-inference cached patterns -- recording-friendly,
+no GPU required.
+
 ## The 15-minute live-demo path
 
 Adds two kernels that DO require inference.
