@@ -77,9 +77,17 @@
 <article class="hp-card"><span class="role">Layer 06</span><h3>Safety harness</h3><p>Refusal logic, citation enforcement, audit emission. Gemma 4 doesn&rsquo;t do this on its own; the harness does.</p></article>
 </div></div></section>
 
+<section class="hp-section" data-screen-label="Gemma &middot; Feature showcases"><div class="wrap">
+<div class="head"><div><span class="ix">05 &middot; Gemma 4 features demonstrated</span><h2>Three reference kernels that exercise the Gemma 4 capabilities the rubric names.</h2></div><p class="summary">Each is a zero-inference kernel under <code>kaggle/A-2N-*/</code> that lands the canonical 4-file v1.0 bundle via <code>duecare.appendix_primitives.write_v1_bundle()</code>. Reviewers can run all three in under three minutes with no GPU.</p></div>
+<div class="hp-grid-3">
+<article class="hp-card"><span class="role">A-21</span><h3>Long context (128K)</h3><p>Five-statute compliance corpus loaded into a single Gemma 4 context window. Three cross-statute QA pairs each correlate 2&ndash;3 statutes in one thinking step. <a href="/kernels">See kernel &rarr;</a></p></article>
+<article class="hp-card"><span class="role">A-22</span><h3>Token streaming</h3><p>Server-Sent Events replay at real Gemma 4 E4B-IT latencies (~500 ms first token, ~25 ms subsequent). Live first-token + token-rate stats. <a href="/kernels">See kernel &rarr;</a></p></article>
+<article class="hp-card"><span class="role">A-23</span><h3>Native function calling</h3><p>One Gemma 4 thinking step emits a 3&ndash;4-tool plan; runtime fans out; one synthesized response returns. ~3&times; speedup vs the chat-loop equivalent. <a href="/kernels">See kernel &rarr;</a></p></article>
+</div></div></section>
+
 <section class="hp-section" data-screen-label="Gemma &middot; CTA"><div class="wrap">
 <div class="hp-callout">
-<div><span class="ix">05 &middot; What this means in practice</span><h2>Run DueCare on your laptop. On your phone. On your NGO&rsquo;s tiny VM.</h2><p>The same harness, the same packs, the same audit feed. on infrastructure you control.</p></div>
+<div><span class="ix">06 &middot; What this means in practice</span><h2>Run DueCare on your laptop. On your phone. On your NGO&rsquo;s tiny VM.</h2><p>The same harness, the same packs, the same audit feed. on infrastructure you control.</p></div>
 <a href="/setup" class="btn primary">Setup guides &rarr;</a>
 </div></div></section>
 {% include "_footer.html" %}
