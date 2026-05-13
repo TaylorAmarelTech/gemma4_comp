@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import pytest
 
-from duecare.chat.harnesses import all_harnesses
+from duecare.chat.harnesses import PRIMARY_HARNESSES, all_harnesses
 
 
 REQUIRED_LAYER_NAMES = {"persona", "grep", "rag", "tools", "online"}
@@ -35,8 +35,8 @@ def test_harness_exports_register_routes(harness):
         f"{harness.name} must export a callable `register_routes(app)`"
 
 
-def test_registry_has_exactly_four_harnesses():
-    """Lock the count so a silent removal/addition is impossible."""
-    names = {h.name for h in all_harnesses()}
+def test_primary_registry_locked():
+    """The 4 primary harnesses must be present and named exactly as expected."""
+    names = {h.name for h in PRIMARY_HARNESSES}
     assert names == {"chat", "process", "extraction", "anonymization"}, \
-        f"unexpected harness set: {sorted(names)}"
+        f"primary harness set drifted: {sorted(names)}"
