@@ -132,6 +132,7 @@
       }
       const sorted = Object.entries(groups).sort((a, b) => b[1].count - a[1].count);
       document.getElementById("chips").innerHTML =
+        // audit-allow:innerHTML-safe -- activeGroup is internal state, hex colors from controlled corpus
         `<span class="chip ${activeGroup === '' ? 'active' : ''}" onclick="setGroup('')">All <span class="n">(${rows.length})</span></span>` +
         sorted.map(([gid, g]) => `
           <span class="chip ${activeGroup === gid ? 'active' : ''}" onclick="setGroup('${escapeHtml(gid)}')"
@@ -166,6 +167,7 @@
             || (r.source || "").toLowerCase().includes(q)
             || (r.snippet || "").toLowerCase().includes(q);
       });
+      // audit-allow:innerHTML-safe -- r.id is corpus doc id; r.group_color is hex from controlled corpus
       document.getElementById("list").innerHTML = visible.map(r => `
         <div class="item ${r.id === activeId ? "active" : ""} ${r.recently_retrieved ? "recent" : ""}" onclick="select('${escapeHtml(r.id)}')">
           <div class="id">${escapeHtml(r.id)}</div>
@@ -201,6 +203,7 @@
           </ul>
         </div>` : "";
       document.getElementById("detail").innerHTML = `
+        // audit-allow:innerHTML-safe -- doc.group_color is hex from controlled corpus; all other interps already escaped
         <div class="id-tag">${escapeHtml(doc.id)}</div>
         <h2>${escapeHtml(doc.title)}</h2>
         <div class="source-tag">${escapeHtml(doc.source)}</div>

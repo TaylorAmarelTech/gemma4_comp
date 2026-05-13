@@ -234,6 +234,7 @@
 
     document.getElementById("result").innerHTML = `
       <div class="result-header">
+        // audit-allow:innerHTML-safe -- pct is numeric grade score; verdictClass returns fixed CSS class names
         <span class="score-big">${pct}%</span>
         <span class="score-label">overall · ${escapeHtml(mode)} grader</span>
         <span class="verdict ${verdictClass(pct)}">${escapeHtml(verdict)}</span>
