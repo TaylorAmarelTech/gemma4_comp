@@ -113,9 +113,59 @@
 }</code></pre>
 </div></section>
 
+<section class="hp-section" data-screen-label="Schemas &middot; KnowledgeObject envelope"><div class="wrap">
+<div class="head"><div><span class="ix">06 &middot; KnowledgeObject base envelope</span><h2><code>KnowledgeObject@1</code> &mdash; JSON-LD shape every pack and submission descends from</h2></div><p class="summary">Defined in <a href="https://github.com/TaylorAmarelTech/gemma4_comp/blob/master/apps/duecare-ai.com/app/schema.py"><code>apps/duecare-ai.com/app/schema.py</code></a>. The schema.org-style envelope carries identity + provenance + vetting + an open <code>extensions</code> dict; subtypes (<code>ContextPack</code> / <code>GrepRulePack</code> / <code>ToolPack</code> / <code>ContactPack</code> / <code>RubricPack</code> / <code>EvalPromptPack</code> / <code>TrainingExamplePack</code>) specialize the <code>content</code> payload.</p></div>
+<pre class="hp-code"><code>{
+  "@context": "https://duecare-ai.com/schema/v1",
+  "@type": "ContextPack",
+  "id": "phl-kwt-domestic",
+  "version": "1.7.2",
+  "schema_version": 1,
+  "status": "vetted",
+  "jurisdictions": ["PHL", "KWT"],
+  "corridors": ["PHL-KWT"],
+  "tags": ["domestic-work", "fees"],
+  "source": {"kind": "public_url", "url": "https://gov.example/..."},
+  "provenance": {
+    "submitted_by": "automation:public_source_crawler",
+    "vetted_by": "curator:k.maharjan",
+    "vetted_at": "2026-04-12T09:14:00Z"
+  },
+  "content_hash": "sha256:9ab3...",
+  "content": { /* shape varies by @type */ },
+  "extensions": { "partner.policy_id": "..." }
+}</code></pre>
+<p class="hp-note">Partners can add <code>&lt;vendor&gt;.&lt;key&gt;</code> fields to <code>extensions</code> without forking the schema. Validators enforce only the core envelope.</p>
+</div></section>
+
+<section class="hp-section" data-screen-label="Schemas &middot; BundleEnvelope"><div class="wrap">
+<div class="head"><div><span class="ix">07 &middot; v1.0 BundleEnvelope</span><h2><code>bundle@1.0</code> &mdash; the Kaggle kernel emit contract</h2></div><p class="summary">Every Kaggle kernel that writes JSON to <code>/kaggle/working/</code> uses this envelope. Defined as a Pydantic v2 model in <a href="https://github.com/TaylorAmarelTech/gemma4_comp/blob/master/packages/duecare-llm-chat/src/duecare/appendix_primitives/envelopes.py"><code>duecare.appendix_primitives.envelopes</code></a>; full spec in <a href="https://github.com/TaylorAmarelTech/gemma4_comp/blob/master/docs/data_primitives.md"><code>docs/data_primitives.md</code></a>. Helper <code>write_v1_bundle()</code> emits the 4-file artifact set (<code>results.json</code> + <code>run.jsonl</code> + <code>metadata.json</code> + <code>bundle.zip</code> with sha256 checksums) in one call.</p></div>
+<pre class="hp-code"><code>{
+  "schema_version": "1.0",
+  "kernel_id": "a-19-multilingual-demo",
+  "run_id": "a19_multilingual_2026-05-12T19-30-00Z",
+  "config": {"n_languages": 5},
+  "metadata": {
+    "shared_citations": ["ILO C181", "POEA MC 14-2017 (PH)", "RA 8042 (PH)"]
+  },
+  "summary": {"n_languages": 5},
+  "results": [
+    {
+      "row_id": "TL",
+      "prompt_text": "Magkano ang placement fee para sa Hong Kong domestic worker?",
+      "response": "Walang placement fee. Sec. 3 ng POEA MC 14-2017...",
+      "elapsed_s": 0.0,
+      "citations": ["ILO C181", "POEA MC 14-2017 (PH)", "RA 8042 (PH)"],
+      "error": null
+    }
+  ]
+}</code></pre>
+<p class="hp-note">Four reference kernels (A-19 multilingual, A-21 long-context, A-22 streaming, A-23 Coordinator) use the canonical <code>write_v1_bundle()</code> path. A static audit check (<code>bundle_envelope_v1</code> in <code>scripts/validate_public_surface.py</code>) verifies every kernel.py conforms.</p>
+</div></section>
+
 <section class="hp-section" data-screen-label="Schemas &middot; Versioning"><div class="wrap">
 <div class="hp-callout">
-<div><span class="ix">06 &middot; Schema versioning</span><h2>One schema per object kind. Semver-pinned. Old versions stay resolvable.</h2><p>Schemas are published at <code>/schema/&lt;kind&gt;/&lt;major&gt;.json</code>. A new <code>major</code> ships only when a breaking change is unavoidable; old majors continue to validate historical artifacts.</p></div>
+<div><span class="ix">08 &middot; Schema versioning</span><h2>One schema per object kind. Semver-pinned. Old versions stay resolvable.</h2><p>Schemas are published at <code>/schema/&lt;kind&gt;/&lt;major&gt;.json</code>. A new <code>major</code> ships only when a breaking change is unavoidable; old majors continue to validate historical artifacts.</p></div>
 <a href="/docs" class="btn">Back to Docs &rarr;</a>
 </div></div></section>
 {% include "_footer.html" %}

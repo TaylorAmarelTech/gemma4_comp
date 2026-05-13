@@ -84,15 +84,15 @@
 </div></section>
 
 <section class="hp-section" data-screen-label="Eval &middot; Retraining"><div class="wrap">
-<div class="head"><div><span class="ix">04 &middot; Retraining policy</span><h2>What we retrain. What we don&rsquo;t. When.</h2></div><p class="summary">DueCare does not retrain Gemma 4 base weights. We train small LoRA adapters on top, per corridor, on curated public, synthetic, composite, or anonymized data. Never on raw worker chats or raw case content.</p></div>
+<div class="head"><div><span class="ix">04 &middot; Retraining policy</span><h2>What we retrain. What we don&rsquo;t. When.</h2></div><p class="summary">DueCare does not retrain Gemma 4 base weights. We train two named LoRA adapters on top &mdash; <b>SafetyJudge</b> (anti-exploitation reasoning, trained by <a href="/kernels">A-07 bench-and-tune</a> via Unsloth SFT + DPO) and <b>PrivacyRedactor</b> (PII anonymization for the local-intake path, trained by <a href="/kernels">A-12 pii-fine-tune-eval</a>). Both train on curated public, synthetic, composite, or anonymized data. Never on raw worker chats or raw case content.</p></div>
 <table class="std">
 <thead><tr><th>Layer</th><th>Retrained?</th><th>Cadence</th><th>Training data</th></tr></thead>
 <tbody>
 <tr><td>Gemma 4 base weights</td><td>No</td><td>Track upstream releases</td><td>n/a. we use Google&rsquo;s checkpoint</td></tr>
-<tr><td>Corridor adapter (LoRA)</td><td>Yes</td><td>Quarterly or on material pack change</td><td>Curated public sources + reviewed evaluation cases</td></tr>
+<tr><td><b>SafetyJudge</b> adapter (LoRA, A-07)</td><td>Yes</td><td>Quarterly or on material pack change</td><td>A-06 graded prompts + Persona+GREP+RAG+Tools traces &mdash; Unsloth SFT then DPO (harness-on chosen, raw rejected)</td></tr>
+<tr><td><b>PrivacyRedactor</b> adapter (LoRA, A-12)</td><td>Yes</td><td>On gold-data refresh from A-10</td><td>A-10 PII synthetic composite intake / redaction pairs; placeholders only, no raw PII</td></tr>
 <tr><td>Translation adapter (per language)</td><td>Yes</td><td>Twice yearly</td><td>Public bilingual corpora; partner-reviewed terminology</td></tr>
 <tr><td>Tool-call adapter</td><td>Rarely</td><td>On registry-schema bump</td><td>Synthetic tool traces; no real call data</td></tr>
-<tr><td>Preference adapter (DPO)</td><td>Yes</td><td>After SFT candidate passes smoke checks</td><td>Harness-on answer as chosen; raw Gemma answer as rejected</td></tr>
 <tr><td>Knowledge packs (data, not weights)</td><td>Continuously</td><td>As public sources change</td><td>Research monitor + reviewed partner submissions</td></tr>
 <tr><td>Worker-chat content</td><td class="warn"><b>Never</b></td><td class="warn"><b>Never</b></td><td class="warn"><b>Forbidden</b>. Raw chats stay local unless transformed into an approved, anonymized training example.</td></tr>
 </tbody></table>
