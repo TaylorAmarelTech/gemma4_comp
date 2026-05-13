@@ -4765,9 +4765,16 @@ def create_app(
             out_diffs.append({"n_redactions": len(redactions), "redactions": redactions})
         return JSONResponse({"redacted": out_texts, "diffs": out_diffs})
 
-    @app.post("/api/submit/local")
-    async def api_submit_local(request: Request) -> Any:
-        """{facts:[...], target_url:str?} -> JSONL audit + sha256."""
+    @app.post("/api/submit/knowledge")
+    async def api_submit_knowledge(request: Request) -> Any:
+        """Submit anonymized knowledge items. Does:
+          1. Write a JSONL audit entry locally.
+          2. Real HTTPS POST to target_url with 10s timeout.
+          3. Return both local audit info + remote status so the UI
+             shows exactly what happened on the wire.
+        Network / non-2xx failures do NOT raise -- they're captured
+        in the audit entry; envelope returns transmitted=false.
+        """
         import json as _json, hashlib as _hashlib
         from datetime import datetime as _dt
         from pathlib import Path as _Path
@@ -4776,14 +4783,15 @@ def create_app(
             body = await request.json()
         except Exception:
             raise HTTPException(400, "invalid JSON body")
-        facts = body.get("facts") or []
-        target_url = body.get("target_url") or "https://duecare-ai.com/api/submit/facts"
-        if not isinstance(facts, list):
-            raise HTTPException(400, "`facts` must be a list")
+        items = body.get("knowledge") or body.get("facts") or []
+        target_url = body.get("target_url") or "https://duecare-ai.com/api/submit/knowledge"
+        if not isinstance(items, list):
+            raise HTTPException(400, "`knowledge` must be a list")
 
         ts = _dt.utcnow().strftime("%Y-%m-%dT%H-%M-%SZ")
         run_id = f"01_submit_{ts}"
-        blob = _json.dumps(facts, sort_keys=True, ensure_ascii=False).encode("utf-8")
+        payload = {"submission_id": run_id, "ts": ts, "items": items}
+        blob = _json.dumps(payload, sort_keys=True, ensure_ascii=False).encode("utf-8")
         sha = _hashlib.sha256(blob).hexdigest()
 
         audit_dir = _Path("/kaggle/working/audit")
@@ -4793,15 +4801,60 @@ def create_app(
             audit_dir = _Path(".") / ".duecare-audit"
             audit_dir.mkdir(parents=True, exist_ok=True)
         audit_path = audit_dir / "submit_log.jsonl"
+
+        remote_status = None
+        remote_response = None
+        remote_error = None
+        transmitted = False
+        try:
+            try:
+                import httpx as _httpx
+                with _httpx.Client(timeout=10.0, follow_redirects=True) as cli:
+                    r = cli.post(target_url, json=payload,
+                                  headers={"Content-Type": "application/json",
+                                            "X-DueCare-Source": "kernel-01",
+                                            "X-DueCare-SHA256": sha})
+                remote_status = int(r.status_code)
+                remote_response = (r.text[:2000] if r.text else None)
+                transmitted = 200 <= remote_status < 300
+            except ImportError:
+                import urllib.request as _req
+                import urllib.error as _err
+                req = _req.Request(
+                    target_url,
+                    data=_json.dumps(payload).encode("utf-8"),
+                    headers={"Content-Type": "application/json",
+                             "X-DueCare-Source": "kernel-01",
+                             "X-DueCare-SHA256": sha},
+                    method="POST",
+                )
+                try:
+                    with _req.urlopen(req, timeout=10.0) as resp:
+                        remote_status = int(resp.getcode())
+                        remote_response = resp.read(2000).decode("utf-8", errors="replace")
+                        transmitted = 200 <= remote_status < 300
+                except _err.HTTPError as he:
+                    remote_status = int(he.code)
+                    try:
+                        remote_response = he.read(2000).decode("utf-8", errors="replace")
+                    except Exception:
+                        remote_response = None
+                except _err.URLError as ue:
+                    remote_error = f"URLError: {ue.reason}"
+        except Exception as e:
+            remote_error = f"{type(e).__name__}: {e}"
+
         entry = {
             "ts": ts,
             "run_id": run_id,
-            "action": "submit/local",
+            "action": "submit/knowledge",
             "target_url": target_url,
-            "n_facts": len(facts),
+            "n_items": len(items),
             "sha256_blob": sha,
             "queued": True,
-            "transmitted": False,
+            "transmitted": transmitted,
+            "remote_status": remote_status,
+            "remote_error": remote_error,
         }
         try:
             with open(audit_path, "a", encoding="utf-8") as f:
@@ -4812,13 +4865,25 @@ def create_app(
             "ok": True,
             "run_id": run_id,
             "audit_path": str(audit_path),
-            "n_facts": len(facts),
+            "n_items": len(items),
             "sha256_blob": sha,
             "audit_entry": entry,
-            "note": ("Facts queued locally + audited. The HTTPS submit to "
-                       "duecare-ai.com is not yet wired; this is the audited "
-                       "local stage for that future POST."),
+            "transmitted": transmitted,
+            "remote_status": remote_status,
+            "remote_response": remote_response,
+            "remote_error": remote_error,
+            "note": (
+                "Knowledge transmitted." if transmitted else
+                ("Local audit written. Remote returned "
+                 + (f"HTTP {remote_status}" if remote_status else f"network error: {remote_error}")
+                 + " -- rerun when the public hub is reachable.")
+            ),
         })
+
+    @app.post("/api/submit/local")
+    async def api_submit_local(request: Request) -> Any:
+        """Deprecated alias. Delegates to /api/submit/knowledge."""
+        return await api_submit_knowledge(request)
 
 
     # ====================================================================
@@ -4827,6 +4892,39 @@ def create_app(
     # ====================================================================
 
     KO_TYPES = {"grep_rule", "rag_doc", "citation_edge", "fact_template", "context_snippet"}
+
+    # ----- Phase 17: runtime hot-load of GREP knowledge -----------------
+    def _load_grep_extras() -> list[dict]:
+        import json as _json
+        root = _ko_root() / "grep_rule"
+        out: list[dict] = []
+        if not root.exists():
+            return out
+        for p in sorted(root.glob("*.json")):
+            try:
+                env = _json.loads(p.read_text(encoding="utf-8"))
+                content = env.get("content") or {}
+                rule = {
+                    "rule_id":  content.get("rule_id") or env.get("id"),
+                    "category": content.get("category") or "knowledge_extra",
+                    "severity": content.get("severity") or "medium",
+                    "pattern":  content.get("pattern"),
+                    "description": content.get("description") or "",
+                    "source": "knowledge:extra",
+                    "source_id": env.get("id"),
+                }
+                if rule["pattern"] and rule["rule_id"]:
+                    out.append(rule)
+            except Exception:
+                continue
+        return out
+
+    try:
+        if not hasattr(app.state, "knowledge_extras_grep"):
+            app.state.knowledge_extras_grep = _load_grep_extras()
+    except Exception:
+        app.state.knowledge_extras_grep = []
+
 
     def _ko_root():
         from pathlib import Path as _Path
@@ -4891,12 +4989,18 @@ def create_app(
                 _json.dump(env, f, ensure_ascii=False, indent=2, sort_keys=True)
         except Exception as e:
             raise HTTPException(500, f"write failed: {e}")
+        if ko_type == "grep_rule":
+            try:
+                app.state.knowledge_extras_grep = _load_grep_extras()
+            except Exception:
+                pass
         return JSONResponse({
             "ok": True,
             "id": ko_id,
             "type": ko_type,
             "written_to": str(dest),
             "envelope": env,
+            "runtime_grep_extras_loaded": len(getattr(app.state, "knowledge_extras_grep", [])),
         })
 
     @app.get("/api/knowledge/list")
@@ -5037,10 +5141,15 @@ def create_app(
                 })
             except Exception as e:
                 rejected.append({"name": name, "reason": f"write failed: {e}"})
+        try:
+            app.state.knowledge_extras_grep = _load_grep_extras()
+        except Exception:
+            pass
         return JSONResponse({
             "ok": True,
             "imported": imported, "rejected": rejected,
             "n_imported": len(imported), "n_rejected": len(rejected),
+            "runtime_grep_extras_loaded": len(getattr(app.state, "knowledge_extras_grep", [])),
         })
 
     @app.get("/api/knowledge/{ko_type}/{ko_id}")

@@ -52,8 +52,8 @@
     <h1 class="wb-h1">Anonymization &amp; Sharing -- review, redact, submit</h1>
     <div class="wb-trust" style="background: oklch(0.94 0.04 45); color: oklch(0.32 0.07 45); padding: 8px 14px; border-radius: 8px; font-size: 12.5px; margin-bottom: 14px;">
       <b>Trust boundary:</b> Steps 1-3 happen entirely inside the kernel.
-      Step 4 (Submit) is currently audited locally only -- the live HTTPS POST
-      to <code>duecare-ai.com/api/submit/facts</code> is not yet wired. The
+      Step 4 (Submit) performs a real HTTPS POST
+      to <code>duecare-ai.com/api/submit/knowledge</code> with a 10s timeout; the local audit captures the remote status + any failure reason. The
       audit log at <code>/kaggle/working/audit/submit_log.jsonl</code> records
       every Step-4 click + sha256.
     </div>
@@ -90,8 +90,8 @@
     <div class="wb-step" id="wb-step-2">
       <span class="wb-step-num">2</span>
       <div class="wb-step-body">
-        <h3>Review the extracted facts &amp; patterns</h3>
-        <p>Tick each fact you want to submit. Default: nothing checked.</p>
+        <h3>Review the extracted knowledge items &amp; patterns</h3>
+        <p>Tick each item you want to submit. Default: nothing checked.</p>
         <div style="max-height: 240px; overflow-y: auto;">
           <table>
             <thead><tr><th>submit?</th><th>row_id</th><th>indicators</th><th>chars</th><th>entities preview</th></tr></thead>
@@ -102,7 +102,7 @@
         </div>
         <div class="wb-row">
           <button class="wb-btn-primary" id="wb-step2-btn" disabled onclick="wbStep2()">Step 2: Confirm review</button>
-          <span class="wb-muted" id="wb-step2-count">0 facts selected.</span>
+          <span class="wb-muted" id="wb-step2-count">0 items selected.</span>
         </div>
       </div>
     </div>
@@ -111,7 +111,7 @@
     <div class="wb-step" id="wb-step-3">
       <span class="wb-step-num">3</span>
       <div class="wb-step-body">
-        <h3>Anonymize the selected facts</h3>
+        <h3>Anonymize the selected items</h3>
         <p>Regex pass: <span class="wb-pill">PERSON</span> <span class="wb-pill">EMAIL</span>
         <span class="wb-pill">PHONE</span> <span class="wb-pill">AMOUNT</span>
         <span class="wb-pill">ID</span>. Each match becomes a salted-hash placeholder.</p>
@@ -130,8 +130,8 @@
     <div class="wb-step" id="wb-step-4">
       <span class="wb-step-num">4</span>
       <div class="wb-step-body">
-        <h3>Submit anonymized facts to duecare-ai.com</h3>
-        <p>Target: <code>POST https://duecare-ai.com/api/submit/facts</code>. Audit log: <code>/kaggle/working/audit/submit_log.jsonl</code>.</p>
+        <h3>Submit anonymized knowledge to duecare-ai.com</h3>
+        <p>Target: <code>POST https://duecare-ai.com/api/submit/knowledge</code>. Audit log: <code>/kaggle/working/audit/submit_log.jsonl</code>.</p>
         <div class="wb-row">
           <button class="wb-btn-primary" id="wb-step4-btn" disabled onclick="wbStep4()">Step 4: Submit to duecare-ai.com</button>
         </div>
@@ -215,7 +215,7 @@
     function wbToggleFact(i, on) { if (on) wbChecked.add(i); else wbChecked.delete(i); wbUpdateStep2Btn(); }
     function wbUpdateStep2Btn() {
       const c = wbChecked.size;
-      document.getElementById('wb-step2-count').textContent = c + ' facts selected.';
+      document.getElementById('wb-step2-count').textContent = c + ' items selected.';
       document.getElementById('wb-step2-btn').disabled = c === 0;
     }
     function wbStep2() {
@@ -277,16 +277,16 @@
     async function wbStep4() {
       const btn = document.getElementById('wb-step4-btn'); btn.disabled = true; btn.textContent = 'Submitting...';
       const resultHost = document.getElementById('wb-step4-result'); resultHost.innerHTML = '';
-      const facts = (wbAnonymized && wbAnonymized.redacted || []).map((r, i) => ({
+      const knowledge = (wbAnonymized && wbAnonymized.redacted || []).map((r, i) => ({
         redacted_text: r,
         n_redactions: (wbAnonymized.diffs[i] || {}).n_redactions || 0,
       }));
-      wbLog('info', 'POST /api/submit/local', 'n_facts=' + facts.length);
+      wbLog('info', 'POST /api/submit/knowledge', 'n_items=' + knowledge.length);
       const t0 = performance.now();
       try {
-        const r = await fetch('/api/submit/local', {
+        const r = await fetch('/api/submit/knowledge', {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ facts: facts })
+          body: JSON.stringify({ knowledge: knowledge })
         });
         const dt = Math.round(performance.now() - t0);
         if (!r.ok) {
@@ -298,7 +298,7 @@
               'run_id=' + out.run_id + ' · audit=' + out.audit_path + ' · sha256=' + out.sha256_blob.slice(0, 16) + '...');
         resultHost.innerHTML =
           '<div style="background: oklch(0.92 0.06 155); color: oklch(0.32 0.07 155); padding: 12px; border-radius: 8px;">' +
-          '<b>Submission queued locally.</b><br>' +
+          '<b>Submission processed.</b><br>' +
           '<span style="font-size: 11.5px;">run_id: <code>' + out.run_id + '</code></span><br>' +
           '<span style="font-size: 11.5px;">audit_log: <code>' + out.audit_path + '</code></span><br>' +
           '<span style="font-size: 11.5px;">sha256: <code>' + out.sha256_blob + '</code></span><br>' +
