@@ -1,0 +1,19 @@
+{
+  "name": "duecare-kernel01-tests",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Playwright + a11y tests for the DueCare Exploration Workbench (kernel 01)",
+  "scripts": {
+    "test": "playwright test",
+    "test:ui": "playwright test --ui",
+    "test:smoke": "playwright test smoke",
+    "test:bugs": "playwright test ui-bugs",
+    "test:visual": "playwright test visual",
+    "test:a11y": "playwright test accessibility",
+    "report": "playwright show-report"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.47.0",
+    "@axe-core/playwright": "^4.10.0"
+  }
+}

@@ -4426,15 +4426,28 @@ def create_app(
 
         def worker() -> None:
             try:
-                # Stage 1: image resolution (fast — local IO)
+                # Stage 1: image resolution (fast -- local IO).
+                # Summary is count-aware so the trace card doesn't claim
+                # "image references resolved" on turns with no images.
                 progress_q.put_nowait({"type": "step_start", "step": "resolve"})
                 _t0 = time.time()
                 messages = _resolve_messages(raw_messages_in)
+                _n_imgs = 0
+                for _m in messages or []:
+                    if isinstance(_m, dict):
+                        for _c in _m.get("content") or []:
+                            if (isinstance(_c, dict)
+                                    and _c.get("type") in ("image", "image_url")):
+                                _n_imgs += 1
+                _resolve_summary = (
+                    f"{_n_imgs} image reference{'s' if _n_imgs != 1 else ''} resolved"
+                    if _n_imgs else "no images attached this turn"
+                )
                 progress_q.put_nowait({
                     "type": "step_done", "step": "resolve",
                     "elapsed_ms": int((time.time() - _t0) * 1000),
-                    "summary": "image references resolved",
-                    "fired": True, "wired": True, "enabled": True,
+                    "summary": _resolve_summary,
+                    "fired": _n_imgs > 0, "wired": True, "enabled": True,
                 })
 
                 # Stage 2: harness layers (each emits its own start/done)

@@ -110,6 +110,15 @@
     }
 
     function inject(html) {
+        // Idempotency guard: if a chrome partial is already mounted
+        // (because this script ran once, OR the page re-fetched the
+        // partial after a DOM swap, OR the script tag is included
+        // twice), don't duplicate it -- that produced the "two nav
+        // bars + duplicate Shutdown buttons" bug reported 2026-05-12.
+        if (document.querySelector('.dc-wb-shell')
+            || document.body.classList.contains('dc-wb-has-nav')) {
+            return;
+        }
         const tpl = document.createElement('div');
         tpl.innerHTML = html.trim();
         const nav = tpl.firstElementChild;
