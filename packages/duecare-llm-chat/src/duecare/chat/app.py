@@ -4570,6 +4570,256 @@ def create_app(
             },
         )
 
+
+    # ====================================================================
+    # Phase 14 (2026-05-12): workflow endpoints for kernel-01 tabs.
+    # Process Files / Anonymization / Submit. Knowledge promotion lands
+    # in a follow-up; for now Knowledge Creation is a frontend scaffold.
+    # ====================================================================
+
+    @app.post("/api/process/batch")
+    async def api_process_batch(request: Request) -> Any:
+        """Multipart upload -> rows -> GREP hits + entity regex -> v1.0 bundle.
+        Gemma narrative is deferred (would block batches); summary has the
+        aggregate signal for the dashboard.
+        """
+        import zipfile, csv as _csv, io as _io, json as _json
+        import re as _re
+        from datetime import datetime as _dt
+
+        form = await request.form()
+        upload = form.get("file")
+        if upload is None:
+            raise HTTPException(400, "no `file` field in multipart upload")
+        contents = await upload.read()
+        filename = getattr(upload, "filename", "uploaded") or "uploaded"
+        fname_l = filename.lower()
+
+        rows: list[dict] = []
+        try:
+            if fname_l.endswith(".zip"):
+                with zipfile.ZipFile(_io.BytesIO(contents)) as zf:
+                    for name in zf.namelist():
+                        if name.endswith("/"):
+                            continue
+                        try:
+                            txt = zf.read(name).decode("utf-8", errors="replace")
+                        except Exception:
+                            continue
+                        rows.append({"row_id": name, "text": txt, "source": filename})
+            elif fname_l.endswith(".jsonl"):
+                for i, line in enumerate(contents.decode("utf-8", errors="replace").splitlines()):
+                    line = line.strip()
+                    if not line:
+                        continue
+                    try:
+                        obj = _json.loads(line)
+                        txt = obj.get("prompt") or obj.get("text") or _json.dumps(obj)
+                    except Exception:
+                        txt = line
+                    rows.append({"row_id": f"line_{i}", "text": txt, "source": filename})
+            elif fname_l.endswith(".csv"):
+                buf = _io.StringIO(contents.decode("utf-8", errors="replace"))
+                reader = _csv.reader(buf)
+                all_rows = list(reader)
+                start = 1 if all_rows and all_rows[0] else 0
+                for i, row in enumerate(all_rows[start:]):
+                    if not row:
+                        continue
+                    rows.append({"row_id": f"row_{i}", "text": row[0], "source": filename})
+            else:
+                blob = contents.decode("utf-8", errors="replace")
+                for i, chunk in enumerate([c for c in blob.split("\n\n") if c.strip()]):
+                    rows.append({"row_id": f"chunk_{i}", "text": chunk, "source": filename})
+        except Exception as e:
+            raise HTTPException(400, f"parse failed: {e}")
+
+        ROW_CAP = 200
+        capped = rows[:ROW_CAP]
+
+        ENTITY_PATTERNS = {
+            "AMOUNT":   _re.compile(r"\b(?:PHP|HKD|USD|SGD|AED|SAR)\s*[\d,]+(?:\.\d+)?\b", _re.I),
+            "PHONE":    _re.compile(r"\+?\d[\d\-\s]{7,}\d"),
+            "EMAIL":    _re.compile(r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b"),
+            "STATUTE":  _re.compile(
+                r"\b(?:POEA\s+MC\s+\d{1,3}-\d{4}|ILO\s+C\d{2,3}|RA\s+\d{4,5}|BP2MI\s+Reg\s+\d+-\d{4})\b",
+                _re.I,
+            ),
+            "CORRIDOR": _re.compile(r"\b(PH|ID|NP|BD|VN|MM)[-\s]?(?:HK|SG|MY|UAE|SA|KSA|KW|LB|JO)\b", _re.I),
+        }
+
+        results: list[dict] = []
+        agg_grep: dict[str, int] = {}
+        agg_entity: dict[str, int] = {}
+        agg_statute: dict[str, int] = {}
+
+        for row in capped:
+            text = row["text"] or ""
+            grep_hits: list[dict] = []
+            if app.state.grep_call is not None:
+                try:
+                    try:
+                        gr = app.state.grep_call(text) or {}
+                    except TypeError:
+                        gr = app.state.grep_call(text, extra_rules=None) or {}
+                    for h in (gr.get("hits") or [])[:10]:
+                        rid = h.get("rule_id") or h.get("id") or "?"
+                        grep_hits.append({
+                            "rule_id": rid,
+                            "category": h.get("category"),
+                            "severity": h.get("severity"),
+                            "match": (h.get("match_text") or h.get("match") or "")[:120],
+                        })
+                        agg_grep[rid] = agg_grep.get(rid, 0) + 1
+                except Exception:
+                    pass
+
+            entities: dict[str, list[str]] = {}
+            for ent_label, pat in ENTITY_PATTERNS.items():
+                hits = pat.findall(text)
+                if hits:
+                    seen = list(dict.fromkeys(hits))[:8]
+                    entities[ent_label] = seen
+                    agg_entity[ent_label] = agg_entity.get(ent_label, 0) + len(seen)
+                    if ent_label == "STATUTE":
+                        for s in seen:
+                            agg_statute[s] = agg_statute.get(s, 0) + 1
+
+            results.append({
+                "row_id": row["row_id"],
+                "source": row["source"],
+                "char_count": len(text),
+                "grep_hits": grep_hits,
+                "entities": entities,
+            })
+
+        ts = _dt.utcnow().strftime("%Y-%m-%dT%H-%M-%SZ")
+        run_id = f"01_process_{ts}"
+        top_grep = sorted(agg_grep.items(), key=lambda x: -x[1])[:10]
+        top_statute = sorted(agg_statute.items(), key=lambda x: -x[1])[:10]
+        bundle = {
+            "schema_version": "1.0",
+            "kernel_id": "01-duecare-exploration-workbench",
+            "run_id": run_id,
+            "config": {"row_cap": ROW_CAP, "source": filename},
+            "metadata": {"started_at": ts, "completed_at": ts, "host": "kernel-01"},
+            "summary": {
+                "n_rows_total": len(rows),
+                "n_rows_processed": len(capped),
+                "n_grep_rules_fired": len(agg_grep),
+                "n_entities_extracted": sum(agg_entity.values()),
+                "top_grep": [{"rule_id": r, "count": c} for r, c in top_grep],
+                "top_statutes": [{"statute": s, "count": c} for s, c in top_statute],
+                "entity_totals": agg_entity,
+                "truncated": len(rows) > ROW_CAP,
+            },
+            "results": results,
+        }
+        return JSONResponse(bundle)
+
+    @app.post("/api/anonymize")
+    async def api_anonymize(request: Request) -> Any:
+        """{texts:[...], salt:str?} -> {redacted:[...], diffs:[...]}."""
+        import re as _re, hashlib as _hashlib
+
+        try:
+            body = await request.json()
+        except Exception:
+            raise HTTPException(400, "invalid JSON body")
+        texts = body.get("texts") or []
+        if not isinstance(texts, list):
+            raise HTTPException(400, "`texts` must be a list of strings")
+        salt = (body.get("salt") or "duecare-default-salt-v1")
+
+        PATTERNS = [
+            ("EMAIL",  _re.compile(r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b")),
+            ("PHONE",  _re.compile(r"\+?\d[\d\-\s]{7,}\d")),
+            ("AMOUNT", _re.compile(r"\b(?:PHP|HKD|USD|SGD|AED|SAR)\s*[\d,]+(?:\.\d+)?\b", _re.I)),
+            ("ID",     _re.compile(r"\b[A-Z]{1,3}-?\d{6,}\b")),
+            ("PERSON", _re.compile(r"\b(?:Ms\.|Mr\.|Mrs\.|Dr\.)\s+[A-Z][a-z]+(?:\s+[A-Z][a-z]+)*\b")),
+        ]
+
+        def _placeholder(label: str, raw: str) -> str:
+            h = _hashlib.sha256((salt + "::" + raw).encode("utf-8")).hexdigest()[:8]
+            return f"<{label}_{h}>"
+
+        out_texts: list[str] = []
+        out_diffs: list[dict] = []
+        for t in texts:
+            t = str(t)
+            redactions: list[dict] = []
+            redacted = t
+            for label, pat in PATTERNS:
+                for m in pat.finditer(t):
+                    raw = m.group(0)
+                    ph = _placeholder(label, raw)
+                    redactions.append({
+                        "label": label,
+                        "raw_sha256": _hashlib.sha256(raw.encode()).hexdigest(),
+                        "placeholder": ph,
+                        "start": m.start(),
+                        "end": m.end(),
+                    })
+                    redacted = redacted.replace(raw, ph)
+            out_texts.append(redacted)
+            out_diffs.append({"n_redactions": len(redactions), "redactions": redactions})
+        return JSONResponse({"redacted": out_texts, "diffs": out_diffs})
+
+    @app.post("/api/submit/local")
+    async def api_submit_local(request: Request) -> Any:
+        """{facts:[...], target_url:str?} -> JSONL audit + sha256."""
+        import json as _json, hashlib as _hashlib
+        from datetime import datetime as _dt
+        from pathlib import Path as _Path
+
+        try:
+            body = await request.json()
+        except Exception:
+            raise HTTPException(400, "invalid JSON body")
+        facts = body.get("facts") or []
+        target_url = body.get("target_url") or "https://duecare-ai.com/api/submit/facts"
+        if not isinstance(facts, list):
+            raise HTTPException(400, "`facts` must be a list")
+
+        ts = _dt.utcnow().strftime("%Y-%m-%dT%H-%M-%SZ")
+        run_id = f"01_submit_{ts}"
+        blob = _json.dumps(facts, sort_keys=True, ensure_ascii=False).encode("utf-8")
+        sha = _hashlib.sha256(blob).hexdigest()
+
+        audit_dir = _Path("/kaggle/working/audit")
+        try:
+            audit_dir.mkdir(parents=True, exist_ok=True)
+        except Exception:
+            audit_dir = _Path(".") / ".duecare-audit"
+            audit_dir.mkdir(parents=True, exist_ok=True)
+        audit_path = audit_dir / "submit_log.jsonl"
+        entry = {
+            "ts": ts,
+            "run_id": run_id,
+            "action": "submit/local",
+            "target_url": target_url,
+            "n_facts": len(facts),
+            "sha256_blob": sha,
+            "queued": True,
+            "transmitted": False,
+        }
+        try:
+            with open(audit_path, "a", encoding="utf-8") as f:
+                f.write(_json.dumps(entry) + "\n")
+        except Exception as e:
+            raise HTTPException(500, f"audit write failed: {e}")
+        return JSONResponse({
+            "ok": True,
+            "run_id": run_id,
+            "audit_path": str(audit_path),
+            "n_facts": len(facts),
+            "sha256_blob": sha,
+            "audit_entry": entry,
+            "note": ("Facts queued locally + audited. The HTTPS submit to "
+                       "duecare-ai.com is not yet wired; this is the audited "
+                       "local stage for that future POST."),
+        })
+
     return app
 
 

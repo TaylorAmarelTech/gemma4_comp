@@ -7,226 +7,309 @@
   <link rel="stylesheet" href="/static/_chrome.css">
   <script src="/static/_nav.js" defer></script>
   <style>
-    body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-           background: #F7F6F1; color: #0E1116; margin: 0; padding: 0; }
+    body { font-family: 'Inter', sans-serif; background: #F7F6F1; color: #0E1116; margin: 0; padding: 0; }
     .wb-page { max-width: 1120px; margin: 0 auto; padding: 24px 22px 80px; }
-    .wb-h1 { font-size: 26px; font-weight: 600; letter-spacing: -0.02em; margin: 6px 0 6px; }
-    .wb-lede { font-size: 13.5px; line-height: 1.6; color: #2A2D34; max-width: 720px;
-               margin: 0 0 22px; }
-    .wb-card { background: #FFFFFF; border: 1px solid #DDD8C9; border-radius: 12px;
-               padding: 18px 20px; margin-bottom: 14px; }
-    .wb-card h2 { font-size: 16px; font-weight: 600; margin: 0 0 8px; }
-    .wb-card p { font-size: 12.5px; line-height: 1.55; color: #2A2D34; margin: 0 0 8px; }
-    .wb-pill { display: inline-block; font-family: 'JetBrains Mono', monospace;
-               font-size: 10px; color: #2A2D34; background: #EFEDE4; border-radius: 4px;
-               padding: 2px 7px; margin-right: 6px; }
-    .wb-btn-primary {
-        background: oklch(0.52 0.08 195); color: #F7F6F1; border: 0;
-        padding: 9px 18px; border-radius: 8px; font-size: 13px; font-weight: 600;
-        cursor: pointer; text-decoration: none; display: inline-block;
-    }
+    .wb-h1 { font-size: 26px; font-weight: 600; margin: 6px 0 6px; }
+    .wb-lede { font-size: 13.5px; line-height: 1.6; color: #2A2D34; max-width: 720px; margin: 0 0 22px; }
+    .wb-pill { display: inline-block; font-family: 'JetBrains Mono', monospace; font-size: 10px;
+               color: #2A2D34; background: #EFEDE4; border-radius: 4px; padding: 2px 7px; margin: 0 4px 4px 0; }
+    .wb-btn-primary { background: oklch(0.52 0.08 195); color: #F7F6F1; border: 0; padding: 9px 18px;
+                       border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; }
     .wb-btn-primary:disabled { opacity: 0.55; cursor: not-allowed; }
-    .wb-btn-secondary {
-        background: #EFEDE4; color: #0E1116; border: 1px solid #DDD8C9;
-        padding: 8px 14px; border-radius: 8px; font-size: 12.5px; cursor: pointer;
-        text-decoration: none; display: inline-block;
-    }
-    .wb-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center;
-              margin-top: 12px; }
-    .wb-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-    @media (max-width: 760px) { .wb-grid-2 { grid-template-columns: 1fr; } }
-    .wb-muted { color: #5B5F68; font-size: 11.5px; }
-    .wb-status-pill { background: #EFEDE4; padding: 6px 12px; border-radius: 999px;
-                       font-size: 11px; color: #5B5F68; }
-    .wb-status-pill.scaffold { background: oklch(0.94 0.04 45);
-                                color: oklch(0.32 0.07 45); }
-    .wb-status-pill.ready { background: oklch(0.92 0.06 155);
-                             color: oklch(0.32 0.07 155); }
-    .wb-step {
-        display: flex; align-items: flex-start; gap: 14px; padding: 14px 16px;
-        background: #FFFFFF; border: 1px solid #DDD8C9; border-radius: 10px;
-        margin-bottom: 10px;
-    }
+    .wb-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-top: 12px; }
+    .wb-status-pill { background: oklch(0.92 0.06 155); color: oklch(0.32 0.07 155);
+                       padding: 6px 12px; border-radius: 999px; font-size: 11px; }
+    .wb-step { display: flex; align-items: flex-start; gap: 14px; padding: 14px 16px;
+                background: #FFF; border: 1px solid #DDD8C9; border-radius: 10px; margin-bottom: 10px; }
     .wb-step-num { flex: 0 0 32px; width: 32px; height: 32px; border-radius: 50%;
-                    background: oklch(0.52 0.08 195); color: #F7F6F1;
-                    font-weight: 700; font-size: 13px;
-                    display: flex; align-items: center; justify-content: center; }
+                    background: oklch(0.52 0.08 195); color: #F7F6F1; font-weight: 700;
+                    font-size: 13px; display: flex; align-items: center; justify-content: center; }
+    .wb-step.done .wb-step-num { background: oklch(0.55 0.10 155); }
     .wb-step-body { flex: 1; }
     .wb-step h3 { margin: 0 0 4px; font-size: 14px; font-weight: 600; }
     .wb-step p { margin: 0 0 8px; font-size: 12.5px; color: #2A2D34; line-height: 1.5; }
+    .wb-muted { color: #5B5F68; font-size: 11.5px; }
+    .wb-error { background: oklch(0.94 0.04 25); color: oklch(0.32 0.10 25);
+                 padding: 10px 12px; border-radius: 6px; font-size: 12.5px; }
+    table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid #EFEDE4; }
+    thead tr { background: #EFEDE4; }
     code { background: #F1EFE7; padding: 1px 5px; border-radius: 3px; font-size: 11.5px;
            font-family: 'JetBrains Mono', monospace; }
+    .wb-card { background: #FFF; border: 1px solid #DDD8C9; border-radius: 12px; padding: 18px 20px; margin-bottom: 14px; }
+    .wb-log { background: #0E1116; color: #E4E1D7; font-family: 'JetBrains Mono', monospace; font-size: 11px;
+               border-radius: 8px; padding: 10px 12px; max-height: 220px; overflow-y: auto; }
+    .wb-log .ts { color: #8A8E97; } .wb-log .ok { color: oklch(0.78 0.14 155); } .wb-log .err { color: oklch(0.72 0.16 25); }
+    .wb-diff-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+                     padding: 8px; border-bottom: 1px solid #EFEDE4; font-size: 12px; }
+    .wb-diff-row .raw { color: #92400e; } .wb-diff-row .redacted { color: oklch(0.32 0.07 155); }
     a { color: oklch(0.32 0.07 195); }
   </style>
 </head>
 <body data-nav="share">
   <main class="wb-page">
-    <span class="wb-status-pill scaffold">Tab 05 -- Anonymization &amp; Sharing -- scaffold</span>
+    <span class="wb-status-pill">Tab 05 -- Anonymization &amp; Sharing -- live</span>
     <h1 class="wb-h1">Anonymization &amp; Sharing -- review, redact, submit</h1>
     <p class="wb-lede">
-      Upload a ZIP of case findings (or load the output from
-      <a href="/static/knowledge.html">Knowledge Creation</a>), review the
-      auto-extracted knowledge facts and patterns, anonymize PII, then submit
-      the vetted facts to duecare-ai.com. Each button is a deliberate explicit
-      step -- nothing leaves the kernel without your click.
+      Upload a ZIP, review extracted facts, anonymize, then submit. Every step
+      logs the API call + response in the live activity log below so you can
+      see exactly what the kernel is doing. Step 4 is currently an audited
+      local stage; the live HTTPS POST to duecare-ai.com is the next wiring.
     </p>
 
-    <div class="wb-step">
+    <!-- Step 1 -->
+    <div class="wb-step" id="wb-step-1">
       <span class="wb-step-num">1</span>
       <div class="wb-step-body">
         <h3>Upload a ZIP of findings</h3>
-        <p>
-          Accepted: <span class="wb-pill">.zip</span>
-          <span class="wb-pill">.jsonl</span>
-          (output from Process Files / Knowledge Creation, or a fresh batch in the canonical envelope shape).
-        </p>
-        <div id="wb-dropzone"
-             style="border: 2px dashed #DDD8C9; border-radius: 10px;
-                    padding: 24px 18px; text-align: center; background: #FFFFFF;
-                    color: #5B5F68; font-size: 13px; cursor: pointer; margin-top: 8px;"
-             onclick="document.getElementById('wb-file-input').click()">
-          <div style="font-size: 22px; margin-bottom: 4px;" aria-hidden="true">+</div>
-          <div>Drop a bundle here or <span style="color: oklch(0.32 0.07 195); text-decoration: underline;">browse</span></div>
+        <p>Accepted: <span class="wb-pill">.zip</span> <span class="wb-pill">.jsonl</span> <span class="wb-pill">.csv</span></p>
+        <div id="wb-dropzone" onclick="document.getElementById('wb-file-input').click()"
+             style="border: 2px dashed #DDD8C9; border-radius: 10px; padding: 24px 18px;
+                    text-align: center; background: #FFF; color: #5B5F68; font-size: 13px; cursor: pointer; margin-top: 8px;">
+          <div style="font-size: 22px; margin-bottom: 4px;">+</div>
+          <div>Drop a bundle or <span style="color: oklch(0.32 0.07 195); text-decoration: underline;">browse</span></div>
         </div>
-        <input type="file" id="wb-file-input" style="display: none;"
-               accept=".zip,.jsonl" multiple onchange="wbHandleFiles(event)">
-        <div id="wb-file-list" class="wb-row" style="margin-top: 10px;"></div>
+        <input type="file" id="wb-file-input" style="display: none;" accept=".zip,.jsonl,.csv" onchange="wbHandle(event)">
+        <div id="wb-file-info" class="wb-row"></div>
         <div class="wb-row">
-          <button class="wb-btn-primary" id="wb-next-step-btn" disabled>
-            Step 1: Process uploaded files
-          </button>
+          <button class="wb-btn-primary" id="wb-step1-btn" disabled onclick="wbStep1()">Step 1: Process uploaded file</button>
         </div>
+        <div id="wb-step1-error" class="wb-error" style="display: none; margin-top: 8px;"></div>
       </div>
     </div>
 
-    <div class="wb-step">
+    <!-- Step 2 -->
+    <div class="wb-step" id="wb-step-2">
       <span class="wb-step-num">2</span>
       <div class="wb-step-body">
-        <h3>Review the extracted knowledge facts &amp; patterns</h3>
-        <p>
-          The kernel renders each fact + pattern as a row: indicator, statute(s),
-          corridor, evidence row_id(s), and a checkbox for submit-or-skip.
-          Default state: nothing checked.
-        </p>
-        <table style="width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 8px;">
-          <thead>
-            <tr style="text-align: left; background: #EFEDE4;">
-              <th style="padding: 6px 8px;">submit?</th>
-              <th style="padding: 6px 8px;">indicator</th>
-              <th style="padding: 6px 8px;">statute</th>
-              <th style="padding: 6px 8px;">corridor</th>
-              <th style="padding: 6px 8px;">raw fact (pre-anonymization)</th>
-            </tr>
-          </thead>
-          <tbody id="wb-facts-tbody">
-            <tr>
-              <td colspan="5" style="padding: 14px 8px; text-align: center; color: #5B5F68;">
-                (facts table renders here after Step 1 completes)
-              </td>
-            </tr>
-          </tbody>
-        </table>
+        <h3>Review the extracted facts &amp; patterns</h3>
+        <p>Tick each fact you want to submit. Default: nothing checked.</p>
+        <div style="max-height: 240px; overflow-y: auto;">
+          <table>
+            <thead><tr><th>submit?</th><th>row_id</th><th>indicators</th><th>chars</th><th>entities preview</th></tr></thead>
+            <tbody id="wb-facts-tbody">
+              <tr><td colspan="5" style="padding: 14px 8px; text-align: center; color: #5B5F68;">(complete Step 1 first)</td></tr>
+            </tbody>
+          </table>
+        </div>
         <div class="wb-row">
-          <button class="wb-btn-primary" id="wb-review-confirm-btn" disabled>
-            Step 2: Confirm review &rarr; anonymize next
-          </button>
+          <button class="wb-btn-primary" id="wb-step2-btn" disabled onclick="wbStep2()">Step 2: Confirm review</button>
+          <span class="wb-muted" id="wb-step2-count">0 facts selected.</span>
         </div>
       </div>
     </div>
 
-    <div class="wb-step">
+    <!-- Step 3 -->
+    <div class="wb-step" id="wb-step-3">
       <span class="wb-step-num">3</span>
       <div class="wb-step-body">
-        <h3>Anonymize selected facts</h3>
-        <p>
-          The PrivacyRedactor pass runs on each checked fact:
-          <span class="wb-pill">PERSON</span>
-          <span class="wb-pill">EMPLOYER</span>
-          <span class="wb-pill">RECRUITER</span>
-          <span class="wb-pill">AMOUNT</span>
-          <span class="wb-pill">PHONE</span>
-          <span class="wb-pill">EMAIL</span>
-          <span class="wb-pill">CASE_ID</span>
-          get salted-hash placeholders. The diff below is for explicit acknowledgement.
-        </p>
-        <div id="wb-anon-diff-host" style="border: 1px solid #EFEDE4; border-radius: 8px;
-             background: #FFFFFF; padding: 12px; color: #5B5F68; font-size: 12px;
-             margin-top: 6px; min-height: 140px;">
-          (before / after diff renders here after Step 2 confirmation)
+        <h3>Anonymize the selected facts</h3>
+        <p>Regex pass: <span class="wb-pill">PERSON</span> <span class="wb-pill">EMAIL</span>
+        <span class="wb-pill">PHONE</span> <span class="wb-pill">AMOUNT</span>
+        <span class="wb-pill">ID</span>. Each match becomes a salted-hash placeholder.</p>
+        <div id="wb-diff-host" style="background: #FFF; border: 1px solid #EFEDE4; border-radius: 8px;
+             padding: 8px; max-height: 240px; overflow-y: auto;">
+          <div class="wb-muted" style="padding: 12px; text-align: center;">(complete Step 2 first)</div>
         </div>
         <div class="wb-row">
-          <button class="wb-btn-primary" id="wb-anonymize-btn" disabled>
-            Step 3: Anonymize the checked facts
-          </button>
-          <span class="wb-muted">
-            The audit log entry includes a sha256 of every raw value plus user, time, and reason.
-          </span>
+          <button class="wb-btn-primary" id="wb-step3-btn" disabled onclick="wbStep3()">Step 3: Run anonymization</button>
         </div>
-        <p class="wb-muted" style="margin-top: 10px;">
-          Cross-link: full
-          <a href="/static/anonymization-preview.html">anonymization preview page</a>
-          for advanced inspection.
-        </p>
+        <div id="wb-step3-error" class="wb-error" style="display: none; margin-top: 8px;"></div>
       </div>
     </div>
 
-    <div class="wb-step">
+    <!-- Step 4 -->
+    <div class="wb-step" id="wb-step-4">
       <span class="wb-step-num">4</span>
       <div class="wb-step-body">
         <h3>Submit anonymized facts to duecare-ai.com</h3>
-        <p>
-          Target endpoint: <code>POST https://duecare-ai.com/api/submit/facts</code>.
-          Each fact is sent as a typed <code>KnowledgeObject</code> per the
-          public hub schema. Submission is rate-limited and logged.
-        </p>
+        <p>Target: <code>POST https://duecare-ai.com/api/submit/facts</code>. Audit log: <code>/kaggle/working/audit/submit_log.jsonl</code>.</p>
         <div class="wb-row">
-          <button class="wb-btn-primary" id="wb-submit-btn" disabled>
-            Step 4: Submit to duecare-ai.com
-          </button>
-          <span class="wb-muted">
-            Disabled until Steps 1-3 complete in order.
-          </span>
+          <button class="wb-btn-primary" id="wb-step4-btn" disabled onclick="wbStep4()">Step 4: Submit to duecare-ai.com</button>
         </div>
-        <p class="wb-muted" style="margin-top: 10px;">
-          Local audit log at <code>/kaggle/working/audit/submit_log.jsonl</code> records what was sent, when, by whom.
-        </p>
+        <div id="wb-step4-result" style="margin-top: 12px;"></div>
+      </div>
+    </div>
+
+    <!-- Activity log -->
+    <div class="wb-card">
+      <h2>Activity log <span class="wb-muted" style="font-weight: normal;">-- every API call, response, sha256, audit-log entry</span></h2>
+      <div class="wb-log" id="wb-log">
+        <div class="wb-muted">No activity yet. Click <i>Step 1</i> to begin.</div>
       </div>
     </div>
   </main>
-<script>
-  const wbFiles = [];
-  function wbHandleFiles(ev) {
-    const files = Array.from(ev.target.files || []);
-    for (const f of files) wbFiles.push(f);
-    wbRenderFileList();
-  }
-  function wbRenderFileList() {
-    const host = document.getElementById('wb-file-list');
-    if (!host) return;
-    host.innerHTML = '';
-    for (const f of wbFiles) {
-      const pill = document.createElement('span');
-      pill.className = 'wb-pill';
-      pill.textContent = f.name + ' (' + Math.round(f.size / 1024) + ' KB)';
-      host.appendChild(pill);
+
+  <script>
+    let wbFile = null, wbBundle = null, wbChecked = new Set(), wbAnonymized = null;
+    function wbLog(kind, msg, detail) {
+      const host = document.getElementById('wb-log');
+      if (host.firstChild && host.firstChild.classList && host.firstChild.classList.contains('wb-muted')) {
+        host.innerHTML = '';
+      }
+      const ts = new Date().toISOString().slice(11, 19);
+      const div = document.createElement('div');
+      const cls = kind === 'err' ? 'err' : (kind === 'ok' ? 'ok' : '');
+      div.innerHTML = '<span class="ts">[' + ts + ']</span> <span class="' + cls + '">' + msg + '</span>' +
+        (detail ? '<div style="margin-left: 18px; color: #8A8E97; font-size: 10.5px;">' + detail + '</div>' : '');
+      host.appendChild(div); host.scrollTop = host.scrollHeight;
     }
-    const next = document.getElementById('wb-next-step-btn');
-    if (next) next.disabled = wbFiles.length === 0;
-  }
-  const dz = document.getElementById('wb-dropzone');
-  if (dz) {
-    ['dragenter', 'dragover'].forEach(ev => dz.addEventListener(ev, e => {
-      e.preventDefault(); dz.style.background = '#F1EFE7';
-    }));
-    ['dragleave', 'drop'].forEach(ev => dz.addEventListener(ev, e => {
-      e.preventDefault(); dz.style.background = '#FFFFFF';
-    }));
-    dz.addEventListener('drop', e => {
-      const files = Array.from(e.dataTransfer && e.dataTransfer.files || []);
-      for (const f of files) wbFiles.push(f);
-      wbRenderFileList();
-    });
-  }
-</script>
+    function wbHandle(ev) {
+      const f = (ev.target.files || [])[0];
+      if (!f) return; wbFile = f;
+      document.getElementById('wb-file-info').innerHTML =
+        '<span class="wb-pill">' + f.name + ' (' + Math.round(f.size / 1024) + ' KB)</span>';
+      document.getElementById('wb-step1-btn').disabled = false;
+      wbLog('info', 'File attached: ' + f.name + ' (' + f.size + ' bytes)');
+    }
+    async function wbStep1() {
+      const btn = document.getElementById('wb-step1-btn'); btn.disabled = true; btn.textContent = 'Processing...';
+      document.getElementById('wb-step1-error').style.display = 'none';
+      wbLog('info', 'POST /api/process/batch', 'file=' + wbFile.name);
+      const t0 = performance.now();
+      try {
+        const fd = new FormData(); fd.append('file', wbFile);
+        const r = await fetch('/api/process/batch', { method: 'POST', body: fd });
+        const dt = Math.round(performance.now() - t0);
+        if (!r.ok) {
+          const t = await r.text(); wbLog('err', 'HTTP ' + r.status + ' (' + dt + 'ms)', t.slice(0, 200));
+          throw new Error('HTTP ' + r.status);
+        }
+        wbBundle = await r.json();
+        wbLog('ok', 'HTTP ' + r.status + ' (' + dt + 'ms)',
+              'run_id=' + wbBundle.run_id + ' · rows=' + wbBundle.summary.n_rows_processed);
+        wbRenderFacts(); document.getElementById('wb-step-1').classList.add('done');
+      } catch (e) {
+        const err = document.getElementById('wb-step1-error');
+        err.textContent = 'Step 1 failed: ' + (e && e.message || e); err.style.display = '';
+      } finally { btn.disabled = false; btn.textContent = 'Step 1: Process uploaded file'; }
+    }
+    function wbRenderFacts() {
+      wbChecked.clear();
+      const tbody = document.getElementById('wb-facts-tbody');
+      const rows = (wbBundle && wbBundle.results) || [];
+      if (!rows.length) {
+        tbody.innerHTML = '<tr><td colspan="5" style="padding:14px 8px; text-align:center; color:#5B5F68;">(no rows)</td></tr>'; return;
+      }
+      tbody.innerHTML = rows.map((r, i) =>
+        '<tr>' +
+          '<td><input type="checkbox" data-idx="' + i + '" onchange="wbToggleFact(' + i + ', this.checked)"></td>' +
+          '<td><code>' + r.row_id + '</code></td>' +
+          '<td>' + ((r.grep_hits || []).map(h => '<span class="wb-pill">' + h.rule_id + '</span>').join('') || '<span class="wb-muted">-</span>') + '</td>' +
+          '<td>' + r.char_count + '</td>' +
+          '<td style="max-width:380px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">' +
+            ((Object.entries(r.entities || {})[0] || ['', '']).join(': ')) +
+          '</td>' +
+        '</tr>'
+      ).join('');
+      wbUpdateStep2Btn();
+    }
+    function wbToggleFact(i, on) { if (on) wbChecked.add(i); else wbChecked.delete(i); wbUpdateStep2Btn(); }
+    function wbUpdateStep2Btn() {
+      const c = wbChecked.size;
+      document.getElementById('wb-step2-count').textContent = c + ' facts selected.';
+      document.getElementById('wb-step2-btn').disabled = c === 0;
+    }
+    function wbStep2() {
+      document.getElementById('wb-step-2').classList.add('done');
+      const rows = (wbBundle && wbBundle.results) || [];
+      const selected = Array.from(wbChecked).map(i => rows[i]).filter(Boolean);
+      document.getElementById('wb-diff-host').innerHTML =
+        '<div class="wb-muted" style="padding:12px;">' + selected.length + ' fact(s) staged. Click Step 3 to redact PII.</div>';
+      document.getElementById('wb-step3-btn').disabled = selected.length === 0;
+      wbLog('info', 'Step 2 confirmed', selected.length + ' facts staged for anonymization');
+    }
+    async function wbStep3() {
+      const btn = document.getElementById('wb-step3-btn'); btn.disabled = true; btn.textContent = 'Anonymizing...';
+      document.getElementById('wb-step3-error').style.display = 'none';
+      const rows = (wbBundle && wbBundle.results) || [];
+      const selected = Array.from(wbChecked).map(i => rows[i]).filter(Boolean);
+      const texts = selected.map(r => {
+        const ents = Object.entries(r.entities || {}).map(([k, v]) => k + ': ' + (v || []).join(', ')).join(' | ');
+        return 'row_id=' + r.row_id + ' source=' + (r.source || '') + ' entities=' + ents;
+      });
+      wbLog('info', 'POST /api/anonymize', 'n_texts=' + texts.length);
+      const t0 = performance.now();
+      try {
+        const r = await fetch('/api/anonymize', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ texts: texts })
+        });
+        const dt = Math.round(performance.now() - t0);
+        if (!r.ok) {
+          const tt = await r.text(); wbLog('err', 'HTTP ' + r.status + ' (' + dt + 'ms)', tt.slice(0, 200));
+          throw new Error('HTTP ' + r.status);
+        }
+        const out = await r.json();
+        const totalRed = (out.diffs || []).reduce((a, d) => a + (d.n_redactions || 0), 0);
+        wbLog('ok', 'HTTP ' + r.status + ' (' + dt + 'ms)',
+              'n_redactions_total=' + totalRed + ' · per-text=' + (out.diffs || []).map(d => d.n_redactions).join(','));
+        wbAnonymized = { selected: selected, redacted: out.redacted || [], diffs: out.diffs || [] };
+        wbRenderDiffs(); document.getElementById('wb-step-3').classList.add('done');
+        document.getElementById('wb-step4-btn').disabled = false;
+      } catch (e) {
+        const err = document.getElementById('wb-step3-error');
+        err.textContent = 'Step 3 failed: ' + (e && e.message || e); err.style.display = '';
+      } finally { btn.disabled = false; btn.textContent = 'Step 3: Run anonymization'; }
+    }
+    function wbRenderDiffs() {
+      const host = document.getElementById('wb-diff-host');
+      if (!wbAnonymized || !wbAnonymized.redacted.length) {
+        host.innerHTML = '<div class="wb-muted" style="padding:12px;">No facts to anonymize.</div>'; return;
+      }
+      host.innerHTML = wbAnonymized.redacted.map((red, i) => {
+        const raw = (wbAnonymized.selected[i] && JSON.stringify(wbAnonymized.selected[i].entities)) || '';
+        const diff = wbAnonymized.diffs[i] || {};
+        return '<div class="wb-diff-row">' +
+          '<div><b>Before</b><br><span class="raw">' + (raw || '<i>-</i>') + '</span></div>' +
+          '<div><b>After (' + (diff.n_redactions || 0) + ' redaction(s))</b><br><span class="redacted">' + red + '</span></div>' +
+          '</div>';
+      }).join('');
+    }
+    async function wbStep4() {
+      const btn = document.getElementById('wb-step4-btn'); btn.disabled = true; btn.textContent = 'Submitting...';
+      const resultHost = document.getElementById('wb-step4-result'); resultHost.innerHTML = '';
+      const facts = (wbAnonymized && wbAnonymized.redacted || []).map((r, i) => ({
+        redacted_text: r,
+        n_redactions: (wbAnonymized.diffs[i] || {}).n_redactions || 0,
+      }));
+      wbLog('info', 'POST /api/submit/local', 'n_facts=' + facts.length);
+      const t0 = performance.now();
+      try {
+        const r = await fetch('/api/submit/local', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ facts: facts })
+        });
+        const dt = Math.round(performance.now() - t0);
+        if (!r.ok) {
+          const tt = await r.text(); wbLog('err', 'HTTP ' + r.status + ' (' + dt + 'ms)', tt.slice(0, 200));
+          throw new Error('HTTP ' + r.status);
+        }
+        const out = await r.json();
+        wbLog('ok', 'HTTP ' + r.status + ' (' + dt + 'ms)',
+              'run_id=' + out.run_id + ' · audit=' + out.audit_path + ' · sha256=' + out.sha256_blob.slice(0, 16) + '...');
+        resultHost.innerHTML =
+          '<div style="background: oklch(0.92 0.06 155); color: oklch(0.32 0.07 155); padding: 12px; border-radius: 8px;">' +
+          '<b>Submission queued locally.</b><br>' +
+          '<span style="font-size: 11.5px;">run_id: <code>' + out.run_id + '</code></span><br>' +
+          '<span style="font-size: 11.5px;">audit_log: <code>' + out.audit_path + '</code></span><br>' +
+          '<span style="font-size: 11.5px;">sha256: <code>' + out.sha256_blob + '</code></span><br>' +
+          '<div style="margin-top: 6px; font-size: 11.5px;">' + (out.note || '') + '</div>' +
+          '</div>';
+        document.getElementById('wb-step-4').classList.add('done');
+      } catch (e) {
+        resultHost.innerHTML = '<div class="wb-error">Step 4 failed: ' + (e && e.message || e) + '</div>';
+      } finally { btn.disabled = false; btn.textContent = 'Step 4: Submit to duecare-ai.com'; }
+    }
+    const dz = document.getElementById('wb-dropzone');
+    if (dz) {
+      ['dragenter','dragover'].forEach(e => dz.addEventListener(e, ev => { ev.preventDefault(); dz.style.background = '#F1EFE7'; }));
+      ['dragleave','drop'].forEach(e => dz.addEventListener(e, ev => { ev.preventDefault(); dz.style.background = '#FFF'; }));
+      dz.addEventListener('drop', ev => {
+        const f = (ev.dataTransfer && ev.dataTransfer.files || [])[0];
+        if (f) { wbFile = f; wbHandle({ target: { files: [f] } }); }
+      });
+    }
+  </script>
 </body>
 </html>
