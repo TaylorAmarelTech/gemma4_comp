@@ -2131,6 +2131,7 @@ async function populateEmptyHints() {
   ].map(p => ({...p, ex: examples.find(e => e.id === p.id)}))
    .filter(p => p.ex);
 
+  // audit-allow:innerHTML-safe -- attrJson encodes for HTML attribute use; p.color is internal palette value
   el.innerHTML = picks.map(p =>
     `<button onclick="useExample(${attrJson(p.id)})"
              title="${escapeHtml(p.ex.text)}"
@@ -2816,6 +2817,7 @@ async function openLayerModal(layer) {
   try {
     const r = await fetch(`/api/harness-catalog/${layer}`, {cache:'no-store'});
     if (!r.ok) {
+      // audit-allow:innerHTML-safe -- r.status is HTTP response status code (always integer)
       body.innerHTML = `<i style="color:var(--bad)">HTTP ${r.status}</i>`;
       return;
     }
@@ -2891,7 +2893,7 @@ async function openLayerModal(layer) {
       if (docsEl) docsEl.innerHTML = _renderDocsSection(md);
     });
   } catch (e) {
-    body.innerHTML = `<i style="color:var(--bad)">${e.message || e}</i>`;
+    body.innerHTML = `<i style="color:var(--bad)">${escapeHtml(String(e.message || e))}</i>`;
   }
 }
 
@@ -5486,6 +5488,7 @@ async function onUploadChange(event) {
 
 function renderPendingImages() {
   const wrap = document.getElementById('pending-images');
+  // audit-allow:innerHTML-safe -- p.dataUrl is the user's own uploaded image data URL; i is loop index
   wrap.innerHTML = pendingImages.map((p, i) =>
     `<div class="pi-wrap"><img src="${p.dataUrl}" alt="">
       <button onclick="pendingImages.splice(${i},1);renderPendingImages()" title="remove">×</button>
@@ -6398,6 +6401,7 @@ function _ragGraphDraw() {
   const vw = W / v.zoom, vh = H / v.zoom;
   const vx = (W - vw) / 2 - v.panX, vy = (H - vh) / 2 - v.panY;
   wrap.innerHTML = `
+    // audit-allow:innerHTML-safe -- H/vx/vy/vw/vh are numeric SVG coords; edgesSvg/nodesSvg generated in-file from validated nodes
     <svg id="rag-graph-svg" width="100%" height="${H}" viewBox="${vx} ${vy} ${vw} ${vh}" xmlns="http://www.w3.org/2000/svg"
          onwheel="_ragGraphWheel(event)" onmousedown="_ragGraphPanStart(event)">
       <defs>

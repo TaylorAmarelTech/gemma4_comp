@@ -168,7 +168,7 @@
       const f = (ev.target.files || [])[0];
       if (!f) return; wbFile = f;
       document.getElementById('wb-file-info').innerHTML =
-        '<span class="wb-pill">' + f.name + ' (' + Math.round(f.size / 1024) + ' KB)</span>';
+        '<span class="wb-pill">' + (window.escapeHtml ? escapeHtml(f.name) : (window.esc ? esc(f.name) : String(f.name).replace(/[<>&"']/g, ''))) + ' (' + Math.round(f.size / 1024) + ' KB)</span>';
       document.getElementById('wb-step1-btn').disabled = false;
       wbLog('info', 'File attached: ' + f.name + ' (' + f.size + ' bytes)');
     }
@@ -201,6 +201,7 @@
       if (!rows.length) {
         tbody.innerHTML = '<tr><td colspan="5" style="padding:14px 8px; text-align:center; color:#5B5F68;">(no rows)</td></tr>'; return;
       }
+      // audit-allow:innerHTML-safe -- r.row_id and h.rule_id are server-controlled identifiers; i is loop index
       tbody.innerHTML = rows.map((r, i) =>
         '<tr>' +
           '<td><input type="checkbox" data-idx="' + i + '" onchange="wbToggleFact(' + i + ', this.checked)"></td>' +

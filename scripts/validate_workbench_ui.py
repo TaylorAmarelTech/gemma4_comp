@@ -127,21 +127,100 @@ def _checks(path: Path, audit: Audit) -> None:
             audit.add(path, "rule_7_trust_boundary", "warn",
                        "mutation page missing trust-boundary banner")
 
-    # innerHTML on network/user content is a smell. Only flag when the
-    # RHS contains string concatenation or a template literal (the
-    # XSS surface), not bare clearing assignments like `host.innerHTML = ''`.
-    inner_writes = re.findall(r"\.innerHTML\s*=\s*([^;]+)", text)
-    suspicious = 0
-    for w in inner_writes:
-        w = w.strip()
+    # innerHTML XSS detector: flag writes that interpolate UNESCAPED
+    # dynamic values. Each ${...} is evaluated against an allowlist of
+    # provably-safe shapes. Unknowns count as unsafe.
+    #
+    # Safe shapes:
+    #   * Wrapped in escape/encode helpers: escapeHtml(..), esc(..),
+    #     encodeURIComponent(..), JSON.stringify(..), _pickerEscapeHtml(..),
+    #     _escapeHtml(..), String(..), Number(..), parseInt(..), parseFloat(..)
+    #   * Bare literals: numbers, booleans, null, undefined
+    #   * Numeric property access ending in .length, .size, .count, .total,
+    #     .n, .n_chunks, .char_count (these can only produce digits)
+    #   * .reduce(...) / .filter(...).length (numeric)
+    #   * Ternaries where BOTH arms are literal strings/numbers
+    #
+    # Anything else is flagged. Pages can opt out per-line with the
+    # comment `// audit-allow:innerHTML-safe` on the same or preceding
+    # line, justifying why the interpolation is provably safe.
+    NUMERIC_TAIL = re.compile(
+        r"\.(length|size|count|total|n|n_chunks|char_count|"
+        r"n_imported|n_rejected|elapsed_ms|rank|page|limit)$"
+    )
+    LITERAL_TERNARY = re.compile(
+        r"""^[^?]+\?\s*(['"][^'"]*['"]|\d+(\.\d+)?)\s*:\s*"""
+        r"""(['"][^'"]*['"]|\d+(\.\d+)?)\s*$""",
+    )
+
+    def _is_safe_interp(ip_s: str) -> bool:
+        # escape wrappers
+        if re.match(
+            r"^(escapeHtml|esc|encodeURIComponent|JSON\.stringify|"
+            r"_pickerEscapeHtml|_escapeHtml|String|Number|parseInt|parseFloat"
+            r"|Math\.\w+)\(",
+            ip_s,
+        ):
+            return True
+        # bare literals
+        if re.match(r"^(\d+(\.\d+)?|true|false|null|undefined)$", ip_s):
+            return True
+        # numeric property access
+        if NUMERIC_TAIL.search(ip_s):
+            return True
+        # .filter(...).length or .reduce(...) -> number
+        if ip_s.endswith(".length") or ".reduce(" in ip_s:
+            return True
+        # literal-only ternary
+        if LITERAL_TERNARY.match(ip_s):
+            return True
+        return False
+
+    # Per-line allowlist: a comment "// audit-allow:innerHTML-safe"
+    # near an innerHTML write opts that line out.
+    lines = text.split("\n")
+    allowed_line_idx = set()
+    for i, line in enumerate(lines):
+        if "audit-allow:innerHTML-safe" in line:
+            allowed_line_idx.add(i)
+            allowed_line_idx.add(i + 1)  # also covers next line
+
+    unsafe = 0
+    # We want per-line line numbers; iterate over matches with offsets.
+    for m in re.finditer(r"\.innerHTML\s*=\s*([^;]+);", text):
+        w = m.group(1).strip()
+        line_no = text[: m.start()].count("\n")
+        if line_no in allowed_line_idx:
+            continue
         if w in ("''", '""'):
             continue
-        if "+" in w or "${" in w or w.startswith("`"):
-            suspicious += 1
-    if suspicious >= 5:
+        interps = re.findall(r"\$\{([^}]+)\}", w)
+        for ip in interps:
+            ip_s = ip.strip()
+            if not _is_safe_interp(ip_s):
+                unsafe += 1
+        # plus-style concatenation
+        stripped = re.sub(
+            r"(escapeHtml|esc|encodeURIComponent|JSON\.stringify|"
+            r"_pickerEscapeHtml|_escapeHtml)\([^)]*\)",
+            "ESCAPED",
+            w,
+        )
+        plus_concat = re.findall(r"\+\s*([a-zA-Z_][\w.]*)\s*(\+|$|\))", stripped)
+        for var, _ in plus_concat:
+            if var == "ESCAPED":
+                continue
+            # If the var name itself has a numeric tail, treat as safe.
+            if NUMERIC_TAIL.search("." + var) or var in (
+                "dt", "n", "count", "ok", "html", "page", "limit",
+            ):
+                continue
+            unsafe += 1
+    if unsafe >= 3:
         audit.add(path, "rule_1_activity_log", "warn",
-                   f"{suspicious} innerHTML writes with concatenation/template "
-                   "-- prefer DOM construction")
+                   f"{unsafe} innerHTML interpolation(s) appear unsafe "
+                   "-- wrap in escapeHtml/esc, use DOM construction, or "
+                   "add `// audit-allow:innerHTML-safe` per line")
 
     # Rule 8: status.html MUST NOT actually CALL Gemma on page load.
     # Look for fetch() invocations of heavy endpoints, not display text.

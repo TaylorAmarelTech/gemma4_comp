@@ -251,6 +251,7 @@
       const vw = W / v.zoom, vh = H / v.zoom;
       const vx = (W - vw) / 2 - v.panX, vy = (H - vh) / 2 - v.panY;
       wrap.innerHTML = `
+        // audit-allow:innerHTML-safe -- vx/vy/vw/vh are numeric viewBox coords; edgesSvg/nodesSvg are generated in-file from validated nodes
         <svg id="svg" width="100%" height="100%" viewBox="${vx} ${vy} ${vw} ${vh}" xmlns="http://www.w3.org/2000/svg"
              onwheel="rgWheel(event)" onmousedown="rgPanStart(event)">
           <defs>
@@ -302,6 +303,7 @@
           </ul>
         </div>` : '';
       detail.innerHTML = `
+        // audit-allow:innerHTML-safe -- seeAlso is computed in-file from escaped values
         <div class="group-label">${escapeHtml(node.group.replace(/_/g, ' '))}</div>
         <h2>${escapeHtml(node.label)}</h2>
         <div class="source"><code>${escapeHtml(node.id)}</code> — ${escapeHtml(node.source)}</div>

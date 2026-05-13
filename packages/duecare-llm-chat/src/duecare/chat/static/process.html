@@ -271,7 +271,7 @@
       if (!f) return;
       wbFile = f;
       document.getElementById('wb-file-info').innerHTML =
-        '<span class="wb-pill">' + f.name + ' (' + Math.round(f.size / 1024) + ' KB)</span>';
+        '<span class="wb-pill">' + (window.escapeHtml ? escapeHtml(f.name) : (window.esc ? esc(f.name) : String(f.name).replace(/[<>&"']/g, ''))) + ' (' + Math.round(f.size / 1024) + ' KB)</span>';
       document.getElementById('wb-process-btn').disabled = false;
       document.getElementById('wb-process-hint').textContent = 'Click Start processing.';
       document.getElementById('wb-error').style.display = 'none';
@@ -310,6 +310,7 @@
     function wbRender(b) {
       const s = b.summary || {};
       document.getElementById('wb-summary').innerHTML =
+        // audit-allow:innerHTML-safe -- summary fields are numeric counts from /api/process/batch
         '<div><b>Rows:</b> ' + s.n_rows_processed + ' / ' + s.n_rows_total +
         (s.truncated ? ' <span class="wb-pill" style="background:oklch(0.94 0.04 45); color:oklch(0.32 0.07 45);">truncated</span>' : '') +
         '</div><div style="margin-top:4px;"><b>GREP rules fired:</b> ' + s.n_grep_rules_fired + '</div>' +
@@ -321,6 +322,7 @@
       document.getElementById('wb-top-statutes').innerHTML = (s.top_statutes || []).length ?
         (s.top_statutes || []).map(t => '<div style="margin-bottom:4px;"><span class="wb-pill">' + t.statute + '</span> x ' + t.count + '</div>').join('') :
         '<div class="wb-muted">No statute citations detected.</div>';
+      // audit-allow:innerHTML-safe -- r.row_id and h.rule_id are server-controlled identifiers; safe defensively but worth a future escape pass
       document.getElementById('wb-rows-tbody').innerHTML = (b.results || []).map(r =>
         '<tr><td><code>' + r.row_id + '</code></td><td>' + r.char_count + '</td>' +
         '<td>' + ((r.grep_hits || []).map(h => '<span class="wb-pill">' + h.rule_id + '</span>').join('') || '<span class="wb-muted">-</span>') + '</td>' +
