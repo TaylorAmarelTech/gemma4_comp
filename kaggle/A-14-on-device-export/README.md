@@ -44,8 +44,8 @@ To `/kaggle/working/`:
 - `<RUN>_results.json` / `<RUN>_run.jsonl` / `<RUN>_metadata.json`
 - GGUF files (one per quantization level requested)
 - Optional `.tflite` files when LiteRT export is enabled
-- `RUN_ID` format: `a13_export_{variant}_{adapter}_{ts}`
-  (e.g., `a13_export_e4b-it_safetyjudge-v1_2026-05-12T19-30-00Z`)
+- `RUN_ID` format: `a14_export_{variant}_{adapter}_{ts}`
+  (e.g., `a14_export_e4b-it_safetyjudge-v1_2026-05-12T19-30-00Z`)
 
 The dashboard's artifact tool-card list (rendered by
 `build_minimal_shell`) provides one-click downloads for every
@@ -53,9 +53,9 @@ produced file.
 
 ## Where this slot lives
 
-- **Canonical role:** A-13 on-device export
+- **Canonical role:** A-14 on-device export
 - **Folder path:** `kaggle/A-14-on-device-export/`
-- **Kernel ID:** `a-13-on-device-export`
+- **Kernel ID:** `a-14-on-device-export`
 - **Upstream:** consumes adapters from A-07's HF Hub push
 - **Downstream:** GGUF files used by reviewer-side llama.cpp demos;
   LiteRT files used by the Android demo (`apps/duecare-android-app/`)

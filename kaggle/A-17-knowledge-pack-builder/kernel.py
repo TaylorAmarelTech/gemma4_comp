@@ -8,7 +8,7 @@
 
 """
 ============================================================================
-  DUECARE A-16 KNOWLEDGE-PACK BUILDER -- Kaggle notebook
+  DUECARE A-17 KNOWLEDGE-PACK BUILDER -- Kaggle notebook
 ============================================================================
   Pipeline:
     1. Install DueCare from GitHub (no Unsloth; CPU-only)
@@ -24,7 +24,7 @@
     <slug>-v<version>-manifest.json      sidecar manifest
     <run_id>_bundle.zip                  session manifest + sidecars
 
-  Run-ID format: a16_pack_session_{iso_ts}
+  Run-ID format: a17_pack_session_{iso_ts}
 
   Built with Google's Gemma 4. Used in accordance with the Gemma Terms of Use.
 ============================================================================
@@ -106,7 +106,7 @@ subprocess.run([sys.executable, "-m", "pip", "install", "--quiet",
 
 try:
     from duecare.chat._dc_log import dc_log, set_kernel_id
-    set_kernel_id("a-16-knowledge-pack-builder")
+    set_kernel_id("a-17-knowledge-pack-builder")
 except Exception:
     def dc_log(*a, **kw): return None
     def set_kernel_id(*a, **kw): return None
@@ -227,7 +227,7 @@ def verify_pack(tar_path: Path) -> dict:
 # 3. State + workbench shell
 # ===========================================================================
 _run_ts = time.strftime("%Y-%m-%dT%H-%M-%SZ", time.gmtime())
-RUN_ID = f"a16_pack_session_{_run_ts}"
+RUN_ID = f"a17_pack_session_{_run_ts}"
 BUILT: list[dict] = []
 BUNDLE_PATH = OUTPUT_DIR / f"{RUN_ID}_bundle.zip"
 
@@ -240,7 +240,7 @@ def _flush_bundle():
                   for b in BUILT]
         _z.writestr("manifest.json", json.dumps({
             "schema_version": "1.0",
-            "kernel_id": "a-16-knowledge-pack-builder",
+            "kernel_id": "a-17-knowledge-pack-builder",
             "run_id": RUN_ID,
             "results": _rows,
             "packs_built": _rows,    # legacy alias (data_primitives.md 1.1)
@@ -253,7 +253,7 @@ def _flush_bundle():
 
 INDEX_HTML = r"""<!doctype html>
 <html lang="en"><head><meta charset="utf-8">
-<title>DueCare A-16 . Pack builder</title>
+<title>DueCare A-17 . Pack builder</title>
 <link rel="stylesheet" href="/static/_chrome.css">
 <style>
   body{background:#F7F6F1;color:#0E1116;
@@ -290,7 +290,7 @@ INDEX_HTML = r"""<!doctype html>
   .dl a{color:#0E1116;text-decoration:underline}
 </style></head><body>
 <div class="page">
-  <h1>DueCare A-16 . Pack builder + verifier</h1>
+  <h1>DueCare A-17 . Pack builder + verifier</h1>
   <p class="lede">Build a versioned, signed corridor pack. A
     researcher can later pull and verify the manifest hash for a
     deterministic answer. Lane 04 / 05.</p>
@@ -406,7 +406,7 @@ try:
     }
     app, public_url = build_minimal_shell(
         summary=summary_payload,
-        kernel_id="a-16-knowledge-pack-builder",
+        kernel_id="a-17-knowledge-pack-builder",
         port=PORT, homepage_html=INDEX_HTML,
     )
     from fastapi import Request

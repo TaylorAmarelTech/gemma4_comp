@@ -79,7 +79,7 @@ mode displays the bundled DEMO_SCRIPT for offline editing.
 
 ## Sibling kernels
 
-- `kaggle/A-18-demo-replay/` — appendix version of the same
+- `kaggle/A-24-demo-replay/` — appendix version of the same
   surface (presentation mode only; this notebook supersedes it
   as the main video-pitch surface).
 - `kaggle/A-19-multilingual-demo/` — 5-language variant.

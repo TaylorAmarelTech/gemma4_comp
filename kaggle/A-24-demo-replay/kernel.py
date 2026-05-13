@@ -114,7 +114,7 @@ subprocess.run([sys.executable, "-m", "pip", "install", "--quiet",
 
 DEMO_SCRIPT = {
     "schema_version": "1.0",
-    "kernel_id": "a-18-demo-replay",
+    "kernel_id": "a-24-demo-replay",
     "lanes": {
         "worker": {
             "label": "Migrant worker — Lane 03",
@@ -1045,7 +1045,7 @@ print("\n[2/3] preparing replay UI")
 
 try:
     from duecare.chat._dc_log import dc_log, set_kernel_id
-    set_kernel_id("a-18-demo-replay")
+    set_kernel_id("a-24-demo-replay")
 except Exception:
     def dc_log(*a, **kw): return None
     def set_kernel_id(*a, **kw): return None
@@ -1318,7 +1318,7 @@ _SHUTDOWN_EVENT = threading.Event()
 try:
     from duecare.chat.kernel_shell import build_minimal_shell
     summary_payload = {
-        "title": "A-18 demo replay (zero-inference)",
+        "title": "A-24 demo replay (zero-inference)",
         "audience": "researcher",
         "lede": ("Pre-cached prompt/response demos with typewriter + "
                   "token-stream playback. Zero model load, zero "
@@ -1346,7 +1346,7 @@ try:
     }
     app, public_url = build_minimal_shell(
         summary=summary_payload,
-        kernel_id="a-18-demo-replay",
+        kernel_id="a-24-demo-replay",
         port=PORT, homepage_html=INDEX_HTML,
     )
     if public_url:

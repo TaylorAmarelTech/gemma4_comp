@@ -63,7 +63,7 @@ On older `duecare-llm-chat` versions without the
 
 - **Canonical role:** A-19 multilingual demo
 - **Folder path:** `kaggle/A-19-multilingual-demo/`
-- **Sibling kernel:** A-18 demo replay (also a video-recording
+- **Sibling kernel:** A-24 demo replay (also a video-recording
   surface; A-19 adds the language dimension).
 
 See `docs/appendix_experiment_ladder.md`.

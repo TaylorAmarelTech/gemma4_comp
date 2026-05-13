@@ -129,7 +129,7 @@ advertises and what the appendix kernels demonstrate. Two more
 | A-15 | `kaggle/A-16-ngo-local-kb/` | Case-file ingestion + entity graph + salted-hash + SQLite (Lane 02) | folder + README only; kernel pending |
 | A-16 | `kaggle/A-17-knowledge-pack-builder/` | Build + sign + verify versioned corridor packs (Lane 04 / 05) | folder + README only; kernel pending |
 | A-17 | `kaggle/A-18-sentinel-research-monitor/` | URL/submission -> public-info crawl -> proposed pack diff (search/submit flow) | folder pending |
-| A-18 | `kaggle/A-18-demo-replay/` | **Zero-inference video recording kernel** (5 lanes x 4 scenes; presentation mode shipped, setup + slides modes queued) | kernel + metadata + README (presentation mode) |
+| A-18 | `kaggle/A-24-demo-replay/` | **Zero-inference video recording kernel** (5 lanes x 4 scenes; presentation mode shipped, setup + slides modes queued) | kernel + metadata + README (presentation mode) |
 | A-19 | `kaggle/A-19-multilingual-demo/` | Same prompts in EN/TL/NE/BN/ID (Gemma 4 multilingual unique feature) | not yet started |
 | A-20 | `kaggle/A-20-privacy-boundary/` | "What stays local vs what gets submitted" trust visualization | not yet started |
 
@@ -141,7 +141,7 @@ Per `.claude/rules/00_overarching_goals.md`:
   improvement story), A-12 (multimodal worker-side angle), A-13
   (on-device worker reach), A-15 (NGO operational impact), A-18
   (the video that shows all of this).
-- **Video Pitch (30 pts)** — A-18 demo replay is the load-bearing
+- **Video Pitch (30 pts)** — A-24 demo replay is the load-bearing
   kernel. Setup + slides modes are the next-priority upgrade.
 - **Technical Depth (30 pts)** — A-09 abliterated test ladders,
   A-12 multimodal vision, A-13 GGUF + LiteRT export are the

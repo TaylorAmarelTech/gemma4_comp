@@ -39,7 +39,7 @@ To `/kaggle/working/`:
 - `<run_id>_metadata.json` — config + verdict counts
 - `<run_id>_bundle.zip` — manifest + above
 
-Run-ID format: `a17_sentinel_{iso_ts}`.
+Run-ID format: `a18_sentinel_{iso_ts}`.
 
 Per-proposal schema: `diff_id, target_pack, source_url,
 source_text_len, grep_rules_fired, relevance_score, harness_verdict
@@ -47,7 +47,7 @@ source_text_len, grep_rules_fired, relevance_score, harness_verdict
 
 ## Where this slot lives
 
-- **Canonical role:** A-17 sentinel / research monitor
+- **Canonical role:** A-18 sentinel / research monitor
 - **Folder path:** `kaggle/A-18-sentinel-research-monitor/`
 - **Sibling kernels:** A-16 knowledge-pack builder (consumes
   approved diffs)

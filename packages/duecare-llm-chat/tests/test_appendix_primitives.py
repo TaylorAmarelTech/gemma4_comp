@@ -36,12 +36,12 @@ def test_make_run_id_with_variant() -> None:
 
 
 def test_make_run_id_no_variant() -> None:
-    rid = make_run_id("a15", "local_kb", iso_ts="2026-05-12T19-30-00Z")
-    assert rid == "a15_local_kb_2026-05-12T19-30-00Z"
+    rid = make_run_id("a16", "local_kb", iso_ts="2026-05-12T19-30-00Z")
+    assert rid == "a16_local_kb_2026-05-12T19-30-00Z"
 
 
 def test_make_run_id_auto_ts_filename_safe() -> None:
-    rid = make_run_id("a14", "ugc")
+    rid = make_run_id("a15", "ugc")
     ts = rid.split("_")[-1]
     assert ts.endswith("Z")
     assert "T" in ts
@@ -62,8 +62,8 @@ def test_make_run_id_rejects_empty_purpose() -> None:
 
 def test_bundle_envelope_defaults() -> None:
     env = BundleEnvelope(
-        kernel_id="a-14-ugc",
-        run_id="a14_ugc_2026-05-12T19-30-00Z",
+        kernel_id="a-15-ugc",
+        run_id="a15_ugc_2026-05-12T19-30-00Z",
     )
     assert env.schema_version == "1.0"
     assert env.summary == {}
@@ -73,8 +73,8 @@ def test_bundle_envelope_defaults() -> None:
 def test_bundle_envelope_round_trip() -> None:
     rows = [PerRow(row_id="r1", prompt_text="hi", response="hello")]
     env = BundleEnvelope(
-        kernel_id="a-14-ugc",
-        run_id="a14_ugc_2026-05-12T19-30-00Z",
+        kernel_id="a-15-ugc",
+        run_id="a15_ugc_2026-05-12T19-30-00Z",
         summary={"n": 1},
         results=rows,
     )
@@ -144,8 +144,8 @@ def test_harness_grep_with_rules_fired() -> None:
 def test_validate_canonical_clean() -> None:
     payload = {
         "schema_version": "1.0",
-        "kernel_id": "a-14-ugc",
-        "run_id": "a14_ugc_2026-05-12T19-30-00Z",
+        "kernel_id": "a-15-ugc",
+        "run_id": "a15_ugc_2026-05-12T19-30-00Z",
         "config": {},
         "metadata": {},
         "summary": {"n_results": 0},
@@ -169,8 +169,8 @@ def test_validate_canonical_flags_schema_drift() -> None:
 def test_validate_canonical_flags_aggregate_only() -> None:
     payload = {
         "schema_version": "1.0",
-        "kernel_id": "a-14-ugc",
-        "run_id": "a14_ugc_2026-05-12T19-30-00Z",
+        "kernel_id": "a-15-ugc",
+        "run_id": "a15_ugc_2026-05-12T19-30-00Z",
         "config": {},
         "metadata": {},
         "aggregate": {"n_results": 0},
@@ -183,8 +183,8 @@ def test_validate_canonical_flags_aggregate_only() -> None:
 def test_validate_canonical_flags_legacy_results_key() -> None:
     payload = {
         "schema_version": "1.0",
-        "kernel_id": "a-17-sentinel",
-        "run_id": "a17_sentinel_2026-05-12T19-30-00Z",
+        "kernel_id": "a-18-sentinel-research-monitor",
+        "run_id": "a18_sentinel_2026-05-12T19-30-00Z",
         "summary": {},
         "proposals": [],
     }
@@ -196,8 +196,8 @@ def test_validate_canonical_rollover_state_is_clean() -> None:
     """Tier-1+2 rollover: BOTH canonical + alias present is OK."""
     payload = {
         "schema_version": "1.0",
-        "kernel_id": "a-14-ugc",
-        "run_id": "a14_ugc_2026-05-12T19-30-00Z",
+        "kernel_id": "a-15-ugc",
+        "run_id": "a15_ugc_2026-05-12T19-30-00Z",
         "config": {},
         "metadata": {},
         "summary": {"n_results": 0},
@@ -220,8 +220,8 @@ def test_write_v1_bundle_round_trip(tmp_path: Path) -> None:
         ),
     ]
     env = BundleEnvelope(
-        kernel_id="a-14-ugc",
-        run_id="a14_ugc_2026-05-12T19-30-00Z",
+        kernel_id="a-15-ugc",
+        run_id="a15_ugc_2026-05-12T19-30-00Z",
         summary={"n_results": 2},
         results=rows,
     )
@@ -258,15 +258,15 @@ def test_write_v1_bundle_round_trip(tmp_path: Path) -> None:
     }
 
     revived = read_v1_bundle(paths["bundle_zip"])
-    assert revived.kernel_id == "a-14-ugc"
+    assert revived.kernel_id == "a-15-ugc"
     assert len(revived.results) == 2
     assert revived.results[1].citations == ["POEA MC 14-2017"]
 
 
 def test_metadata_json_omits_results(tmp_path: Path) -> None:
     env = BundleEnvelope(
-        kernel_id="a-14-ugc",
-        run_id="a14_ugc_2026-05-12T19-30-00Z",
+        kernel_id="a-15-ugc",
+        run_id="a15_ugc_2026-05-12T19-30-00Z",
         summary={"n_results": 1},
         results=[
             PerRow(row_id="p1", prompt_text="hi", response="hello"),
@@ -278,7 +278,7 @@ def test_metadata_json_omits_results(tmp_path: Path) -> None:
     )
     assert "results" not in metadata
     assert metadata["summary"] == {"n_results": 1}
-    assert metadata["kernel_id"] == "a-14-ugc"
+    assert metadata["kernel_id"] == "a-15-ugc"
 
 
 def test_read_v1_bundle_rejects_unsupported_version(tmp_path: Path) -> None:

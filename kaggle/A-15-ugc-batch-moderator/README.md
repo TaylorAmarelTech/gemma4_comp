@@ -47,18 +47,18 @@ To `/kaggle/working/`:
 - `<RUN>_ugc_moderation.json` — full envelope payload
 - `<RUN>_run.jsonl` — streaming per-row form
 - `<RUN>_metadata.json` — envelope minus `results[]`
-- `RUN_ID` format: `a14_ugc_{variant}_{ts}`
-  (e.g., `a14_ugc_e4b-it_2026-05-12T19-30-00Z`)
+- `RUN_ID` format: `a15_ugc_{variant}_{ts}`
+  (e.g., `a15_ugc_e4b-it_2026-05-12T19-30-00Z`)
 
 The dashboard exposes `<a id="bundle-link">` populated via
 `fetch('/api/state')` once the run completes.
 
 ## Where this slot lives
 
-- **Canonical role:** A-14 UGC batch moderator
+- **Canonical role:** A-15 UGC batch moderator
 - **Folder path:** `kaggle/A-15-ugc-batch-moderator/`
-- **Kernel ID:** `a-14-ugc-batch-moderator`
-- **Downstream:** moderation queue feeds into A-15 NGO local-KB
+- **Kernel ID:** `a-15-ugc-batch-moderator`
+- **Downstream:** moderation queue feeds into A-16 NGO local-KB
   for case-file ingestion, and A-17 sentinel for trend monitoring.
 
 See `docs/appendix_experiment_ladder.md` for the full ladder spec.

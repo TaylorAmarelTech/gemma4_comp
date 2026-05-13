@@ -115,8 +115,8 @@ rubric labels (`HARMFUL` to `BEST`) and the review labels (`WORST`, `BAD`,
 | A15 | [`A-15-ugc-batch-moderator/`](./A-15-ugc-batch-moderator/) (Lane 01 platform-safety batch moderation) | ✓ kernel | (GitHub install only) | `taylorsamarel/duecare-ugc-batch-moderator` | pending |
 | A16 | [`A-16-ngo-local-kb/`](./A-16-ngo-local-kb/) (Lane 02 NGO local-KB + salted-hash entity store) | ✓ kernel | (GitHub install only) | `taylorsamarel/duecare-ngo-local-kb` | pending |
 | A17 | [`A-17-knowledge-pack-builder/`](./A-17-knowledge-pack-builder/) (versioned pack builder + verifier) | ✓ kernel | (GitHub install only) | `taylorsamarel/duecare-knowledge-pack-builder` | pending |
-| A18a | [`A-18-demo-replay/`](./A-18-demo-replay/) (static demo replay, no inference) | ✓ kernel | (GitHub install only) | `taylorsamarel/duecare-demo-replay` | pending |
-| A18b | [`A-18-sentinel-research-monitor/`](./A-18-sentinel-research-monitor/) (sentinel pack-diff monitor) | ✓ kernel | (GitHub install only) | `taylorsamarel/duecare-sentinel-research-monitor` | pending |
+| A24 | [`A-24-demo-replay/`](./A-24-demo-replay/) (static demo replay, no inference) | ✓ kernel | (GitHub install only) | `taylorsamarel/duecare-demo-replay` | pending |
+| A18 | [`A-18-sentinel-research-monitor/`](./A-18-sentinel-research-monitor/) (sentinel pack-diff monitor) | ✓ kernel | (GitHub install only) | `taylorsamarel/duecare-sentinel-research-monitor` | pending |
 | A19 | [`A-19-multilingual-demo/`](./A-19-multilingual-demo/) (5-language scenario playback) | ✓ kernel | (GitHub install only) | `taylorsamarel/duecare-multilingual-demo` | pending |
 | A20 | [`A-20-privacy-boundary/`](./A-20-privacy-boundary/) (raw-vs-redacted visualization) | ✓ kernel | (GitHub install only) | `taylorsamarel/duecare-privacy-boundary` | pending |
 | A21 | [`A-21-long-context-demo/`](./A-21-long-context-demo/) (Gemma 4 128K cross-statute reasoning) | ✓ kernel | (GitHub install only) | `taylorsamarel/duecare-a-21-long-context-demo` | pending |
