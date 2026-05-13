@@ -39,19 +39,20 @@
 </head>
 <body data-nav="sync">
   <main class="wb-page">
-    <span class="wb-status-pill">Tab 06 -- Sync -- live</span>
     <h1 class="wb-h1">Sync -- pull knowledge from the public hub into this kernel</h1>
     <div class="wb-trust">
-      <b>Trust boundary:</b> This tab makes an outbound HTTPS GET to
-      <code>duecare-ai.com</code>. Only public, pre-anonymized envelopes
-      are downloaded. Nothing on this kernel is sent to the hub by Sync.
+      <b>Trust boundary:</b> This tab makes an outbound HTTPS GET to the
+      DueCare hub (currently <code>gemma4-comp.onrender.com</code>, moving
+      to <code>duecare-ai.com</code> when the domain is wired). Only
+      public, pre-anonymized envelopes are downloaded. Nothing on this
+      kernel is sent to the hub by Sync.
     </div>
     <p class="wb-lede">
       One click to fetch the latest vetted (and optionally unvetted)
-      knowledge from <a href="https://duecare-ai.com/hub#hub-vetting">duecare-ai.com</a>,
+      knowledge from <a href="https://gemma4-comp.onrender.com/hub#hub-vetting" target="_blank">the live hub</a>,
       unpack into <code>/kaggle/working/knowledge/&lt;type&gt;/</code>, and
       refresh the runtime matching-knowledge lists so the next prompt
-      uses the new rules. Sister to the manual Import on Knowledge Creation.
+      uses the new rules. Sister to the manual Import on Knowledge Extraction.
     </p>
 
     <div class="wb-card">
@@ -79,9 +80,9 @@
     <div class="wb-card">
       <h2>Cross-links</h2>
       <div class="wb-row">
-        <a class="wb-btn-secondary" href="/static/knowledge.html">Knowledge Creation &rarr;</a>
-        <a class="wb-btn-secondary" href="https://duecare-ai.com/hub#hub-vetting" target="_blank">Vetting process</a>
-        <a class="wb-btn-secondary" href="https://duecare-ai.com/knowledge-packs" target="_blank">Hub pack registry</a>
+        <a class="wb-btn-secondary" href="/static/knowledge.html">Knowledge Extraction &rarr;</a>
+        <a class="wb-btn-secondary" href="https://gemma4-comp.onrender.com/hub#hub-vetting" target="_blank">Vetting process</a>
+        <a class="wb-btn-secondary" href="https://gemma4-comp.onrender.com/knowledge-packs" target="_blank">Hub pack registry</a>
       </div>
     </div>
   </main>

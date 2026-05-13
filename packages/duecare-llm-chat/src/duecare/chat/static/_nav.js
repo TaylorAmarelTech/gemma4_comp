@@ -79,6 +79,31 @@
         }
     }
 
+    function wireClearChat() {
+        const btn = document.getElementById('dc-wb-clearchat-btn');
+        if (!btn) return;
+        const onChat = (document.body.getAttribute('data-nav') || '') === 'chat';
+        if (!onChat) {
+            btn.hidden = true;
+            return;
+        }
+        btn.hidden = false;
+        btn.addEventListener('click', function () {
+            if (typeof window.resetChat === 'function') {
+                window.resetChat();
+                return;
+            }
+            const chat = document.getElementById('chat');
+            if (chat) {
+                const empty = chat.querySelector('.empty');
+                Array.from(chat.children).forEach(function (n) {
+                    if (n !== empty) n.remove();
+                });
+                if (empty) empty.style.display = '';
+            }
+        });
+    }
+
     function wireShutdown() {
         const btn = document.getElementById('dc-wb-shutdown-btn');
         if (!btn) return;
@@ -128,6 +153,7 @@
         const key = document.body.getAttribute('data-nav') || '';
         activate(nav, key);
         wireShutdown();
+        wireClearChat();
         refreshStatus();
         // Light polling so the status strip stays current without blowing up
         // a phone battery: every 8 seconds.

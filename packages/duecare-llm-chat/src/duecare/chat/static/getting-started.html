@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>DueCare Workbench - Getting Started</title>
+  <link rel="stylesheet" href="/static/_chrome.css">
+  <style>
+    .wb-page { max-width: 920px; margin: 24px auto 60px; padding: 0 18px; color: #0E1116;
+                font-family: Inter, system-ui, sans-serif; line-height: 1.55; }
+    .wb-h1 { font-size: 28px; font-weight: 700; margin: 0 0 12px; letter-spacing: -0.01em; }
+    .wb-lede { font-size: 15px; color: #2A2D34; margin: 0 0 24px; max-width: 700px; }
+    .wb-card { background: #FFF; border: 1px solid #DDD8C9; border-radius: 12px;
+               padding: 18px 22px; margin-bottom: 18px; box-shadow: 0 1px 2px rgba(14,17,22,0.04); }
+    .wb-card h2 { font-size: 17px; font-weight: 600; margin: 0 0 10px;
+                  color: #0E1116; letter-spacing: -0.005em; }
+    .wb-step { display: grid; grid-template-columns: 38px 1fr; gap: 14px; margin: 0 0 12px; }
+    .wb-step .n { width: 32px; height: 32px; border-radius: 50%; background: oklch(0.92 0.03 195);
+                  color: oklch(0.32 0.07 195); font-family: 'JetBrains Mono', monospace;
+                  font-size: 13px; font-weight: 700; display: flex; align-items: center;
+                  justify-content: center; }
+    .wb-step h3 { margin: 4px 0 4px; font-size: 14px; font-weight: 600; }
+    .wb-step p { margin: 0 0 4px; font-size: 12.5px; color: #2A2D34; }
+    .wb-layer-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+                     gap: 12px; margin: 6px 0 0; }
+    .wb-layer { padding: 12px 14px; border-radius: 10px; border: 1px solid #DDD8C9; background: #FAF9F4; }
+    .wb-layer h4 { margin: 0 0 4px; font-size: 13px; font-weight: 700; color: oklch(0.32 0.07 195); }
+    .wb-layer p { margin: 0; font-size: 12px; color: #2A2D34; line-height: 1.45; }
+    .wb-cta-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px; }
+    .wb-cta-row a { display: inline-flex; align-items: center; padding: 8px 14px;
+                    background: oklch(0.52 0.08 195); color: #FFF; border-radius: 6px;
+                    text-decoration: none; font-size: 13px; font-weight: 500; }
+    .wb-cta-row a.secondary { background: #FFF; color: #0E1116; border: 1px solid #DDD8C9; }
+    code { background: #F1EFE7; padding: 1px 5px; border-radius: 3px; font-size: 11.5px;
+           font-family: 'JetBrains Mono', monospace; }
+    a { color: oklch(0.32 0.07 195); }
+  </style>
+  <script src="/static/_nav.js" defer></script>
+</head>
+<body data-nav="getting-started">
+  <main class="wb-page">
+    <h1 class="wb-h1">Getting Started -- the DueCare Workbench in 3 minutes</h1>
+    <p class="wb-lede">
+      A safety harness around Gemma 4 for migrant-worker recruitment and
+      trafficking. Pick a model, flip safety layers, send a prompt, then
+      grade the response. Everything runs locally in the Kaggle kernel;
+      the public hub only receives content you anonymize and explicitly
+      submit.
+    </p>
+
+    <div class="wb-card">
+      <h2>The flow</h2>
+      <div class="wb-step"><div class="n">1</div><div><h3>Pick a model</h3><p>Gemma 4 E2B for speed, E4B for the baseline, 31B for depth. Multi-GB load -- expect 30-90 s.</p></div></div>
+      <div class="wb-step"><div class="n">2</div><div><h3>Flip safety layers</h3><p>Each layer toggles independently. Start with all off to see stock Gemma, then turn them on one at a time.</p></div></div>
+      <div class="wb-step"><div class="n">3</div><div><h3>Send a prompt</h3><p>Free-form on Chat, A/B on Harness Comparison, or batch from a ZIP on Process Files.</p></div></div>
+      <div class="wb-step"><div class="n">4</div><div><h3>Grade the response</h3><p>Deterministic rules, Gemma-as-judge, or combined mode across 46 dimensions.</p></div></div>
+    </div>
+
+    <div class="wb-card">
+      <h2>The six layers</h2>
+      <div class="wb-layer-grid">
+        <div class="wb-layer"><h4>Persona</h4><p>Anti-trafficking expert system instructions. Keeps Gemma in the right register.</p></div>
+        <div class="wb-layer"><h4>GREP</h4><p>161 deterministic regex rules covering debt bondage, document retention, fee camouflage, ILO indicators.</p></div>
+        <div class="wb-layer"><h4>RAG</h4><p>Retrieval over a 46-document public legal/NGO corpus with a 46-edge citation graph.</p></div>
+        <div class="wb-layer"><h4>Imports</h4><p>User-provided local evidence kept in-session. Files never leave the kernel unless you anonymize + submit.</p></div>
+        <div class="wb-layer"><h4>Tools</h4><p>Gemma 4 native function calls: corridor fee caps, ILO indicators, NGO intake contacts.</p></div>
+        <div class="wb-layer"><h4>Online</h4><p>Optional web search treated as candidate evidence, not ground truth. Off by default.</p></div>
+      </div>
+    </div>
+
+    <div class="wb-card">
+      <h2>Other workflows</h2>
+      <p><b>Process Files</b> -- drop a folder of case notes, scans, or chat exports. Builds a local knowledge graph you can chat against.</p>
+      <p><b>Knowledge Extraction</b> -- paste a passage; Gemma 4 drafts a standardized KnowledgeObject (rule / citation / indicator).</p>
+      <p><b>Anonymization &amp; Sharing</b> -- review extracted facts, redact, and submit to the public hub at <a href="https://gemma4-comp.onrender.com/" target="_blank">gemma4-comp.onrender.com</a> (moving to duecare-ai.com).</p>
+      <p><b>Sync</b> -- pull vetted (and optionally unvetted) knowledge from the hub into this kernel.</p>
+    </div>
+
+    <div class="wb-card">
+      <h2>Trust boundary</h2>
+      <p>Everything you upload or paste stays in <code>/kaggle/working/</code> inside the kernel. The only outbound traffic is Sync (a GET for already-public packs) and Submit on Anonymization &amp; Sharing (an explicit POST you trigger, with an audit log).</p>
+    </div>
+
+    <div class="wb-cta-row">
+      <a href="/">Start chatting</a>
+      <a href="/static/compare.html" class="secondary">Run an A/B</a>
+      <a href="/static/process.html" class="secondary">Upload a case folder</a>
+      <a href="/static/knowledge.html" class="secondary">Extract knowledge</a>
+    </div>
+  </main>
+</body>
+</html>

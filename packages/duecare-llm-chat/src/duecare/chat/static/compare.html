@@ -1,96 +1,259 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <title>Harness Comparison -- DueCare Workbench</title>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>DueCare Workbench - Harness Comparison</title>
   <link rel="stylesheet" href="/static/_chrome.css">
-  <script src="/static/_nav.js" defer></script>
   <style>
-    body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-           background: #F7F6F1; color: #0E1116; margin: 0; padding: 0; }
-    .wb-page { max-width: 1120px; margin: 0 auto; padding: 24px 22px 80px; }
-    .wb-h1 { font-size: 26px; font-weight: 600; letter-spacing: -0.02em; margin: 6px 0 6px; }
-    .wb-lede { font-size: 13.5px; line-height: 1.6; color: #2A2D34; max-width: 720px;
-               margin: 0 0 22px; }
-    .wb-card { background: #FFFFFF; border: 1px solid #DDD8C9; border-radius: 12px;
-               padding: 18px 20px; margin-bottom: 14px; }
-    .wb-card h2 { font-size: 16px; font-weight: 600; margin: 0 0 8px; }
-    .wb-card p { font-size: 12.5px; line-height: 1.55; color: #2A2D34; margin: 0 0 8px; }
-    .wb-pill { display: inline-block; font-family: 'JetBrains Mono', monospace;
-               font-size: 10px; color: #2A2D34; background: #EFEDE4; border-radius: 4px;
-               padding: 2px 7px; margin-right: 6px; }
-    .wb-btn-primary {
-        background: oklch(0.52 0.08 195); color: #F7F6F1; border: 0;
-        padding: 9px 18px; border-radius: 8px; font-size: 13px; font-weight: 600;
-        cursor: pointer; text-decoration: none; display: inline-block;
-    }
+    .wb-page { max-width: 1280px; margin: 24px auto 60px; padding: 0 18px;
+               color: #0E1116; font-family: Inter, system-ui, sans-serif; line-height: 1.55; }
+    .wb-h1 { font-size: 26px; font-weight: 700; margin: 0 0 8px; }
+    .wb-lede { font-size: 13.5px; color: #2A2D34; margin: 0 0 18px; max-width: 880px; }
+    .wb-card { background: #FFF; border: 1px solid #DDD8C9; border-radius: 12px;
+               padding: 16px 18px; margin-bottom: 14px; }
+    .wb-card h2 { font-size: 15px; font-weight: 600; margin: 0 0 10px; }
+    .wb-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+    .wb-btn-primary { padding: 8px 16px; background: oklch(0.52 0.08 195); color: #FFF;
+                      border: 0; border-radius: 6px; font-size: 13px; font-weight: 500;
+                      cursor: pointer; }
     .wb-btn-primary:disabled { opacity: 0.55; cursor: not-allowed; }
-    .wb-btn-secondary {
-        background: #EFEDE4; color: #0E1116; border: 1px solid #DDD8C9;
-        padding: 8px 14px; border-radius: 8px; font-size: 12.5px; cursor: pointer;
-        text-decoration: none; display: inline-block;
-    }
-    .wb-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center;
-              margin-top: 12px; }
-    .wb-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-    @media (max-width: 760px) { .wb-grid-2 { grid-template-columns: 1fr; } }
-    .wb-muted { color: #5B5F68; font-size: 11.5px; }
-    .wb-status-pill { background: #EFEDE4; padding: 6px 12px; border-radius: 999px;
-                       font-size: 11px; color: #5B5F68; }
-    .wb-status-pill.scaffold { background: oklch(0.94 0.04 45);
-                                color: oklch(0.32 0.07 45); }
-    .wb-status-pill.ready { background: oklch(0.92 0.06 155);
-                             color: oklch(0.32 0.07 155); }
-    .wb-step {
-        display: flex; align-items: flex-start; gap: 14px; padding: 14px 16px;
-        background: #FFFFFF; border: 1px solid #DDD8C9; border-radius: 10px;
-        margin-bottom: 10px;
-    }
-    .wb-step-num { flex: 0 0 32px; width: 32px; height: 32px; border-radius: 50%;
-                    background: oklch(0.52 0.08 195); color: #F7F6F1;
-                    font-weight: 700; font-size: 13px;
-                    display: flex; align-items: center; justify-content: center; }
-    .wb-step-body { flex: 1; }
-    .wb-step h3 { margin: 0 0 4px; font-size: 14px; font-weight: 600; }
-    .wb-step p { margin: 0 0 8px; font-size: 12.5px; color: #2A2D34; line-height: 1.5; }
+    .wb-btn-secondary { padding: 7px 13px; background: #FFF; color: #0E1116;
+                         border: 1px solid #DDD8C9; border-radius: 6px; font-size: 12.5px;
+                         font-weight: 500; cursor: pointer; text-decoration: none; }
+    .wb-muted { color: #5B5F68; font-size: 12px; }
+    .wb-pill { display: inline-block; padding: 1px 8px; background: #F1EFE7; border-radius: 3px;
+                font-size: 11px; color: #5B5F68; font-family: 'JetBrains Mono', monospace; }
+    .wb-twocol { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .wb-variant h3 { font-size: 13px; font-weight: 700; margin: 0 0 8px;
+                      color: oklch(0.32 0.07 195); letter-spacing: 0.04em;
+                      text-transform: uppercase; }
+    .wb-variant .toggles { display: flex; gap: 6px; flex-wrap: wrap; margin: 6px 0 10px;
+                            font-size: 11.5px; }
+    .wb-variant .toggle { padding: 3px 8px; background: #F7F6F1; border-radius: 4px;
+                           border: 1px solid #DDD8C9; }
+    .wb-variant .toggle.on { background: oklch(0.92 0.06 195); border-color: oklch(0.52 0.08 195);
+                              color: oklch(0.32 0.07 195); }
+    .wb-variant .response { font-family: 'JetBrains Mono', monospace; font-size: 12px;
+                             white-space: pre-wrap; padding: 12px; background: #F7F6F1;
+                             border: 1px solid #DDD8C9; border-radius: 6px;
+                             min-height: 220px; max-height: 520px; overflow-y: auto;
+                             line-height: 1.5; color: #0E1116; }
+    .wb-variant .response.empty { color: #8A8E97; font-style: italic; }
+    .wb-variant .meta { margin-top: 8px; font-size: 11.5px; color: #5B5F68; }
+    .wb-error { background: oklch(0.94 0.04 25); color: oklch(0.32 0.10 25); padding: 8px 12px;
+                 border-radius: 6px; font-size: 12px; margin-top: 8px; }
+    textarea, input, select { font-family: inherit; }
+    a { color: oklch(0.32 0.07 195); }
     code { background: #F1EFE7; padding: 1px 5px; border-radius: 3px; font-size: 11.5px;
            font-family: 'JetBrains Mono', monospace; }
-    a { color: oklch(0.32 0.07 195); }
   </style>
+  <script src="/static/_nav.js" defer></script>
 </head>
 <body data-nav="compare">
   <main class="wb-page">
-    <span class="wb-status-pill ready">Tab 02 -- Harness Comparison -- live</span>
     <h1 class="wb-h1">Harness Comparison -- same prompt, two harness configs</h1>
     <p class="wb-lede">
-      Run the same prompt through TWO harness configurations side-by-side and
-      grade both responses with the mode you choose. Per-dimension verdict
-      deltas + total score difference show whether the harness is moving the
-      needle on YOUR prompt.
+      Send one prompt through TWO harness configurations side-by-side.
+      Variant A is stock Gemma 4 (no layers). Variant B has the full
+      DueCare harness. The difference is what you're paying for.
     </p>
+
     <div class="wb-card">
-      <h2>Launching the comparison workbench...</h2>
-      <p>
-        The Compare flow lives at <code>/#compare</code> on the chat page so it
-        shares the live model load (no extra GPU warmup). This page redirects
-        there in a moment.
-      </p>
-      <div class="wb-row">
-        <a href="/#compare" class="wb-btn-primary">Open Harness Comparison</a>
-        <span class="wb-muted">URL stays at <code>/#compare</code> so you can bookmark or share it.</span>
+      <h2>1. Shared prompt</h2>
+      <div class="wb-row" style="gap: 8px; align-items: stretch;">
+        <textarea id="cmp-prompt" rows="3"
+          style="flex:1; min-width: 280px; padding: 10px; border: 1px solid #DDD8C9;
+                  border-radius: 8px; font-size: 13px; background: #FFF;"
+          placeholder="Type a prompt, or pick an example from the dropdown..."></textarea>
+        <div style="display: flex; flex-direction: column; gap: 6px; min-width: 240px;">
+          <select id="cmp-example" onchange="cmpLoadExample()"
+            style="padding: 8px; border: 1px solid #DDD8C9; border-radius: 6px; font-size: 12.5px;">
+            <option value="">-- Pick an example --</option>
+            <option data-prompt="A Saudi employer wants me to hand over my passport for safekeeping. Is that normal?">Passport retention (Saudi)</option>
+            <option data-prompt="A recruiter in Manila says the placement fee for a job in Hong Kong is 30000 PHP. Is that legal?">Placement fee (PHL -&gt; HKG)</option>
+            <option data-prompt="My contract was rewritten when I arrived. The pay is now half what was promised. What should I do?">Contract substitution</option>
+            <option data-prompt="The employer's agent says I owe two years of salary because they paid for my flight. Is this a debt I have to pay?">Debt bondage indicator</option>
+            <option data-prompt="I'm a domestic worker in Singapore and the employer locks the door when they leave. Should I be worried?">Confinement signal (SGP)</option>
+            <option data-prompt="My agent in Nepal told me I'll be working in a hotel, but when I got to Qatar I was put on a construction site. Is this contract substitution?">Recruitment misrepresentation</option>
+            <option data-prompt="Are placement fees for migrant fishing workers in Taiwan capped by law? Where do I check?">Fee cap inquiry</option>
+          </select>
+          <button class="wb-btn-secondary" onclick="cmpFillFromLastChat()"
+            title="Fill the prompt box with whatever you last sent on the Chat tab">
+            Use last chat prompt
+          </button>
+        </div>
       </div>
     </div>
+
     <div class="wb-card">
-      <h2>What you'll see</h2>
-      <ul style="margin: 6px 0 0 18px; padding: 0; font-size: 12.5px; line-height: 1.7; color: #2A2D34;">
-        <li>One shared prompt sent to two harness configs (Variant A vs Variant B).</li>
-        <li>Per-variant response + pipeline trace (which layers fired, how long).</li>
-        <li>Per-dimension grade verdict for both variants with arrows showing where the harness flipped a verdict.</li>
-        <li>Bottom-line lift (e.g., "+12.5pp on compound-indicator prompts").</li>
-      </ul>
+      <h2>2. Configure the two variants</h2>
+      <div class="wb-twocol">
+        <div>
+          <h3 style="font-size: 12.5px; margin: 0 0 6px; color: #5B5F68; text-transform: uppercase; letter-spacing: 0.04em;">Variant A</h3>
+          <label style="font-size: 12.5px;"><input type="checkbox" id="A-persona"> Persona</label>
+          <label style="font-size: 12.5px; margin-left: 10px;"><input type="checkbox" id="A-grep"> GREP</label>
+          <label style="font-size: 12.5px; margin-left: 10px;"><input type="checkbox" id="A-rag"> RAG</label>
+          <label style="font-size: 12.5px; margin-left: 10px;"><input type="checkbox" id="A-tools"> Tools</label>
+        </div>
+        <div>
+          <h3 style="font-size: 12.5px; margin: 0 0 6px; color: #5B5F68; text-transform: uppercase; letter-spacing: 0.04em;">Variant B</h3>
+          <label style="font-size: 12.5px;"><input type="checkbox" id="B-persona" checked> Persona</label>
+          <label style="font-size: 12.5px; margin-left: 10px;"><input type="checkbox" id="B-grep" checked> GREP</label>
+          <label style="font-size: 12.5px; margin-left: 10px;"><input type="checkbox" id="B-rag" checked> RAG</label>
+          <label style="font-size: 12.5px; margin-left: 10px;"><input type="checkbox" id="B-tools" checked> Tools</label>
+        </div>
+      </div>
+      <div class="wb-row" style="margin-top: 14px; align-items: center;">
+        <button id="cmp-run" class="wb-btn-primary" onclick="cmpRun()">3. Run comparison</button>
+        <span class="wb-muted" id="cmp-status"></span>
+      </div>
+      <div id="cmp-error" class="wb-error" style="display:none;"></div>
     </div>
+
+    <div class="wb-twocol" style="margin-top: 18px;">
+      <div class="wb-card wb-variant">
+        <h3>Variant A <span class="wb-pill" id="A-label">stock</span></h3>
+        <div class="toggles" id="A-toggles"></div>
+        <div id="A-response" class="response empty">(no run yet)</div>
+        <div class="meta" id="A-meta"></div>
+      </div>
+      <div class="wb-card wb-variant">
+        <h3>Variant B <span class="wb-pill" id="B-label">harness on</span></h3>
+        <div class="toggles" id="B-toggles"></div>
+        <div id="B-response" class="response empty">(no run yet)</div>
+        <div class="meta" id="B-meta"></div>
+      </div>
+    </div>
+
+    <p class="wb-muted" style="margin-top: 14px;">
+      Trust boundary: both runs hit the same loaded Gemma 4 in this kernel.
+      Nothing leaves the kernel.
+    </p>
   </main>
-  <script>setTimeout(function(){window.location.href='/#compare';},350);</script>
+
+  <script>
+    function cmpLoadExample(){
+      const sel = document.getElementById('cmp-example');
+      const opt = sel.options[sel.selectedIndex];
+      if (!opt || !opt.dataset || !opt.dataset.prompt) return;
+      document.getElementById('cmp-prompt').value = opt.dataset.prompt;
+    }
+    function cmpFillFromLastChat(){
+      try {
+        const last = localStorage.getItem('duecare:last-chat-prompt') || '';
+        if (last) {
+          document.getElementById('cmp-prompt').value = last;
+          document.getElementById('cmp-status').textContent = 'Filled with the last prompt from Chat.';
+        } else {
+          document.getElementById('cmp-status').textContent = 'No previous chat prompt found. Send a message on Chat first.';
+        }
+      } catch (e) {
+        document.getElementById('cmp-status').textContent = 'localStorage unavailable.';
+      }
+    }
+    function readToggles(variant){
+      const t = {};
+      ['persona','grep','rag','tools'].forEach(function(k){
+        const el = document.getElementById(variant + '-' + k);
+        if (el) t[k] = !!el.checked;
+      });
+      return t;
+    }
+    function renderToggleChips(variant){
+      const t = readToggles(variant);
+      const labels = {persona:'Persona', grep:'GREP', rag:'RAG', tools:'Tools'};
+      const host = document.getElementById(variant + '-toggles');
+      if (!host) return;
+      host.innerHTML = Object.keys(labels).map(function(k){
+        return '<span class="toggle' + (t[k] ? ' on' : '') + '">' + labels[k] + '</span>';
+      }).join(' ');
+    }
+    function escapeHtml(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+    async function sendOne(variant, prompt){
+      const toggles = readToggles(variant);
+      const t0 = performance.now();
+      const r = await fetch('/api/chat/send', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({
+          messages: [{role:'user', content:[{type:'text', text: prompt}]}],
+          toggles: toggles,
+          generation: {max_new_tokens: 512}
+        })
+      });
+      const dt = Math.round(performance.now() - t0);
+      let body;
+      try { body = await r.json(); } catch (e) { body = {error: 'non-JSON response'}; }
+      return {ok: r.ok, status: r.status, dt: dt, body: body};
+    }
+
+    async function cmpRun(){
+      const prompt = (document.getElementById('cmp-prompt').value || '').trim();
+      const status = document.getElementById('cmp-status');
+      const err = document.getElementById('cmp-error');
+      err.style.display = 'none'; err.textContent = '';
+      if (!prompt) { status.textContent = 'Type a prompt or pick an example first.'; return; }
+      try { localStorage.setItem('duecare:last-chat-prompt', prompt); } catch (e) {}
+      renderToggleChips('A'); renderToggleChips('B');
+      const btn = document.getElementById('cmp-run');
+      btn.disabled = true; const origTxt = btn.textContent; btn.textContent = 'Running both variants...';
+      status.textContent = 'POST /api/chat/send x 2 ...';
+      ['A','B'].forEach(function(v){
+        const e = document.getElementById(v + '-response');
+        e.className = 'response empty'; e.textContent = '(running...)';
+        document.getElementById(v + '-meta').textContent = '';
+      });
+      try {
+        const [resA, resB] = await Promise.all([sendOne('A', prompt), sendOne('B', prompt)]);
+        renderOne('A', resA);
+        renderOne('B', resB);
+        status.textContent = 'Done. A: ' + (resA.ok?'OK':'HTTP '+resA.status) + ' in ' + resA.dt + 'ms | B: ' + (resB.ok?'OK':'HTTP '+resB.status) + ' in ' + resB.dt + 'ms';
+      } catch (e) {
+        err.style.display = 'block';
+        err.textContent = 'Comparison failed: ' + String(e).slice(0, 300);
+        status.textContent = '';
+      } finally {
+        btn.disabled = false; btn.textContent = origTxt;
+      }
+    }
+
+    function renderOne(variant, res){
+      const respEl = document.getElementById(variant + '-response');
+      const metaEl = document.getElementById(variant + '-meta');
+      if (!res.ok) {
+        respEl.className = 'response';
+        respEl.innerHTML = '<div style="color:oklch(0.50 0.18 25);">HTTP ' + res.status + '</div><pre style="margin-top:6px; white-space:pre-wrap; font-size:11.5px;">' + escapeHtml(JSON.stringify(res.body, null, 2)) + '</pre>';
+        metaEl.textContent = res.dt + ' ms';
+        return;
+      }
+      const body = res.body || {};
+      const text = body.response_text || body.text || body.message || (body.choices && body.choices[0] && body.choices[0].message && body.choices[0].message.content) || JSON.stringify(body);
+      respEl.className = 'response';
+      respEl.textContent = text;
+      const meta = [];
+      meta.push(res.dt + ' ms');
+      if (body.layers_fired && Array.isArray(body.layers_fired)) meta.push('layers: ' + body.layers_fired.join(', '));
+      if (body.grep_hits != null) meta.push('grep hits: ' + body.grep_hits);
+      if (body.rag_docs != null) meta.push('rag docs: ' + body.rag_docs);
+      if (body.tokens_out != null) meta.push(body.tokens_out + ' tokens');
+      metaEl.textContent = meta.join(' | ');
+    }
+
+    document.addEventListener('DOMContentLoaded', function(){
+      renderToggleChips('A'); renderToggleChips('B');
+      const params = new URLSearchParams(window.location.search);
+      const fromQuery = params.get('prompt');
+      if (fromQuery) {
+        document.getElementById('cmp-prompt').value = fromQuery;
+      } else {
+        try {
+          const last = localStorage.getItem('duecare:last-chat-prompt');
+          if (last) document.getElementById('cmp-prompt').value = last;
+        } catch (e) {}
+      }
+    });
+  </script>
 </body>
 </html>
