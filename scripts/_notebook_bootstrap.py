@@ -31,7 +31,7 @@ from typing import Literal
 # Version and commit pinning for reproducibility
 DUECARE_VERSION = "0.1.0"
 GITHUB_REPO = "TaylorAmarelTech/gemma4_comp"
-PINNED_COMMIT = "6da0e04bae38bcd75abd3d8c178cc80c183f4f41"  # Pinned for reproducibility
+PINNED_COMMIT = "master"  # Pinned for reproducibility
 
 # Package installation order (dependencies first)
 PACKAGE_INSTALL_ORDER = [

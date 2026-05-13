@@ -158,7 +158,7 @@ def install_chat_wheels() -> int:
 
     try:
         import urllib.request
-        bootstrap_url = "https://raw.githubusercontent.com/TaylorAmarelTech/gemma4_comp/3e3ff9e3684903a66441b1ec4b143de25e7ded3e/scripts/_notebook_bootstrap.py"
+        bootstrap_url = "https://raw.githubusercontent.com/TaylorAmarelTech/gemma4_comp/master/scripts/_notebook_bootstrap.py"
 
         start_time = time.time()
         with urllib.request.urlopen(bootstrap_url, timeout=30) as response:
