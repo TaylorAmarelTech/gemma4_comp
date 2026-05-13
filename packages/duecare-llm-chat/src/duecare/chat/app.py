@@ -5284,6 +5284,180 @@ def create_app(
             raise HTTPException(500, f"parse failed: {e}")
         return JSONResponse(env)
 
+
+    @app.post("/api/knowledge/sync")
+    async def api_knowledge_sync(request: Request) -> Any:
+        """Pull the latest vetted (+ optionally unvetted) knowledge from
+        https://duecare-ai.com/api/hub/knowledge/download, unpack into
+        the local /kaggle/working/knowledge/ tree, refresh runtime
+        matching extras so the harness picks up new rules immediately.
+        """
+        import io as _io, zipfile as _zipfile, json as _json
+        try:
+            body = await request.json()
+        except Exception:
+            body = {}
+        target_url = body.get("target_url") or "https://duecare-ai.com/api/hub/knowledge/download"
+        include_unvetted = bool(body.get("include_unvetted", False))
+        full_url = target_url + ("?vetted=false" if include_unvetted else "?vetted=true")
+
+        # Fetch the ZIP from the hub
+        zip_bytes = None
+        remote_status = None
+        remote_error = None
+        try:
+            try:
+                import httpx as _httpx
+                with _httpx.Client(timeout=15.0, follow_redirects=True) as cli:
+                    r = cli.get(full_url)
+                remote_status = int(r.status_code)
+                if 200 <= remote_status < 300:
+                    zip_bytes = r.content
+            except ImportError:
+                import urllib.request as _req
+                with _req.urlopen(full_url, timeout=15.0) as resp:
+                    remote_status = int(resp.getcode())
+                    zip_bytes = resp.read()
+        except Exception as e:
+            remote_error = f"{type(e).__name__}: {e}"
+
+        if zip_bytes is None:
+            return JSONResponse({
+                "ok": False,
+                "remote_status": remote_status,
+                "remote_error": remote_error,
+                "note": "Could not reach hub knowledge download.",
+            }, status_code=502)
+
+        # Unpack into the local knowledge dir
+        root = _ko_root()
+        imported: list[dict] = []
+        rejected: list[dict] = []
+        try:
+            with _zipfile.ZipFile(_io.BytesIO(zip_bytes)) as zf:
+                for name in zf.namelist():
+                    if name == "manifest.json" or name.endswith("/"):
+                        continue
+                    parts = name.split("/")
+                    if len(parts) != 2 or not parts[1].endswith(".json"):
+                        rejected.append({"name": name, "reason": "bad path"})
+                        continue
+                    ko_type, _ = parts
+                    # Map hub-only types (knowledge_pack_summary) into the local
+                    # rag_doc dir as a graceful default; otherwise require known type.
+                    write_type = ko_type if ko_type in KO_TYPES else "rag_doc"
+                    try:
+                        env = _json.loads(zf.read(name).decode("utf-8", errors="replace"))
+                    except Exception as e:
+                        rejected.append({"name": name, "reason": f"parse: {e}"})
+                        continue
+                    # Defensive validation -- only persist if usable
+                    ok, err = _ko_validate(env) if env.get("knowledge_object_type") in KO_TYPES else (True, "")
+                    if not ok:
+                        rejected.append({"name": name, "reason": err})
+                        continue
+                    dest_dir = root / write_type
+                    dest_dir.mkdir(parents=True, exist_ok=True)
+                    dest = dest_dir / parts[1]
+                    try:
+                        with open(dest, "w", encoding="utf-8") as f:
+                            _json.dump(env, f, ensure_ascii=False, indent=2, sort_keys=True)
+                        imported.append({"type": write_type, "id": env.get("id"),
+                                            "written_to": str(dest), "from": name,
+                                            "vetted": (env.get("provenance") or {}).get("vetted", True)})
+                    except Exception as e:
+                        rejected.append({"name": name, "reason": f"write: {e}"})
+        except Exception as e:
+            return JSONResponse({
+                "ok": False, "error": f"zip unpack failed: {e}",
+                "remote_status": remote_status,
+            }, status_code=500)
+
+        try:
+            runtime_counts = _reload_all_matching_extras()
+        except Exception:
+            runtime_counts = {}
+
+        return JSONResponse({
+            "ok": True,
+            "remote_status": remote_status,
+            "target_url": full_url,
+            "n_imported": len(imported),
+            "n_rejected": len(rejected),
+            "imported": imported[:50],
+            "rejected": rejected[:50],
+            "runtime_matching_extras": runtime_counts,
+            "note": (
+                f"Synced {len(imported)} item(s) from the hub into "
+                f"/kaggle/working/knowledge/. Matching-knowledge rules "
+                f"are live for the NEXT prompt; other branches re-digest "
+                f"on next kernel boot."
+            ),
+        })
+
+    @app.post("/api/knowledge/draft-envelope")
+    async def api_knowledge_draft_envelope(request: Request) -> Any:
+        """Gemma-assisted: raw fact + target_type -> draft envelope."""
+        import json as _json, re as _re
+        from datetime import datetime as _dt
+        try:
+            body = await request.json()
+        except Exception:
+            raise HTTPException(400, "invalid JSON body")
+        raw_text = (body.get("raw_text") or "").strip()
+        target_type = body.get("target_type") or "grep_rule"
+        if target_type not in KO_TYPES:
+            raise HTTPException(400, f"unknown target_type: {target_type}")
+        if not raw_text:
+            raise HTTPException(400, "raw_text is required")
+
+        ts = _dt.utcnow().strftime("%Y-%m-%dT%H-%M-%SZ")
+        slug_base = _re.sub(r"[^a-z0-9]+", "-", raw_text.lower())[:40].strip("-") or "draft"
+        envelope = {
+            "schema_version": "1.0",
+            "knowledge_object_type": target_type,
+            "id": f"{slug_base}-draft",
+            "version": "v1-draft",
+            "provenance": {
+                "created_at": ts,
+                "created_by": "kernel-01:draft-envelope",
+            },
+            "content": {},
+            "tags": [f"branch:{KO_BRANCHES.get(target_type, 'unknown')}"],
+            "extensions": {"draft": True, "needs_review": True},
+        }
+        gc = getattr(app.state, "gemma_call", None)
+        if gc is not None:
+            sys_prompt = (
+                "You are DueCare's KnowledgeObject drafter. Given a raw fact, "
+                f"return JSON ONLY for the `content` field of a `{target_type}` "
+                "KnowledgeObject. Anonymize any PII (names, emails, phones, IDs) "
+                "with placeholders like <PERSON_a1b2c3d4>."
+            )
+            try:
+                msgs = [
+                    {"role": "system", "content": [{"type": "text", "text": sys_prompt}]},
+                    {"role": "user",   "content": [{"type": "text", "text": "Raw fact:\n" + raw_text}]},
+                ]
+                model_out = gc(msgs, max_new_tokens=512, temperature=0.2)
+                response_text = model_out if isinstance(model_out, str) else (
+                    (model_out or {}).get("text") or (model_out or {}).get("response") or ""
+                )
+                m = _re.search(r"\{[\s\S]*\}", response_text or "")
+                if m:
+                    try:
+                        content = _json.loads(m.group(0))
+                        if isinstance(content, dict):
+                            envelope["content"] = content
+                            envelope["extensions"]["gemma_drafted"] = True
+                    except Exception:
+                        envelope["extensions"]["gemma_parse_failed"] = True
+            except Exception as e:
+                envelope["extensions"]["gemma_error"] = str(e)[:200]
+        else:
+            envelope["extensions"]["fallback"] = "no model loaded; manual content required"
+        return JSONResponse({"envelope": envelope})
+
     return app
 
 

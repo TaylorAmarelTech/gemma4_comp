@@ -13,7 +13,7 @@
 
 <section class="hp-section" data-screen-label="Newsletter &middot; Subscribe"><div class="wrap">
 <div class="head"><div><span class="ix">01 &middot; Subscribe</span><h2>Pick your topics. Confirm by email.</h2></div><p class="summary">Double opt-in. Topic preferences are stored at the email provider, not on the hub. Unsubscribe is one click in every email.</p></div>
-<form class="hp-form" onsubmit="event.preventDefault(); this.querySelector('.success').hidden=false;">
+<form class="hp-form" id="nl-form" onsubmit="event.preventDefault(); nlSubscribe(event)">
 <div><label for="em">Your email</label><input id="em" type="email" placeholder="you@example.org" required /></div>
 <div><label>Topics</label><div class="topics">
 <label class="opt"><input type="checkbox" checked /><span><strong>Pack updates</strong><br/><span style="color:var(--ink-3);font-size:12.5px;">New corridor packs and signed revisions.</span></span></label>

@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <title>Sync -- DueCare Workbench</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="/static/_chrome.css">
+  <script src="/static/_nav.js" defer></script>
+  <style>
+    body { font-family: 'Inter', sans-serif; background: #F7F6F1; color: #0E1116; margin: 0; padding: 0; }
+    .wb-page { max-width: 1080px; margin: 0 auto; padding: 24px 22px 80px; }
+    .wb-h1 { font-size: 26px; font-weight: 600; margin: 6px 0 6px; }
+    .wb-lede { font-size: 13.5px; line-height: 1.6; color: #2A2D34; max-width: 760px; margin: 0 0 14px; }
+    .wb-card { background: #FFF; border: 1px solid #DDD8C9; border-radius: 12px; padding: 16px 18px; margin-bottom: 12px; }
+    .wb-card h2 { font-size: 16px; font-weight: 600; margin: 0 0 8px; }
+    .wb-pill { display: inline-block; font-family: 'JetBrains Mono', monospace; font-size: 10px;
+               color: #2A2D34; background: #EFEDE4; border-radius: 4px; padding: 2px 7px; margin: 0 4px 4px 0; }
+    .wb-btn-primary { background: oklch(0.52 0.08 195); color: #F7F6F1; border: 0; padding: 8px 14px;
+                       border-radius: 6px; font-size: 12.5px; font-weight: 600; cursor: pointer; }
+    .wb-btn-primary:disabled { opacity: 0.55; cursor: not-allowed; }
+    .wb-btn-secondary { background: #EFEDE4; color: #0E1116; border: 1px solid #DDD8C9;
+                         padding: 6px 12px; border-radius: 8px; font-size: 12px; cursor: pointer;
+                         text-decoration: none; display: inline-block; }
+    .wb-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 8px; }
+    .wb-muted { color: #5B5F68; font-size: 11.5px; }
+    .wb-status-pill { background: oklch(0.92 0.06 155); color: oklch(0.32 0.07 155);
+                       padding: 6px 12px; border-radius: 999px; font-size: 11px; }
+    .wb-trust { background: oklch(0.92 0.06 155); color: oklch(0.32 0.07 155);
+                 padding: 8px 14px; border-radius: 8px; font-size: 12.5px; margin-bottom: 14px; }
+    label { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; }
+    code { background: #F1EFE7; padding: 1px 5px; border-radius: 3px; font-size: 11.5px; font-family: 'JetBrains Mono', monospace; }
+    .wb-log { background: #0E1116; color: #E4E1D7; font-family: 'JetBrains Mono', monospace;
+               font-size: 11px; border-radius: 8px; padding: 10px 12px; max-height: 240px; overflow-y: auto; }
+    .wb-log .ts { color: #8A8E97; }
+    .wb-log .ok { color: oklch(0.78 0.14 155); }
+    .wb-log .err { color: oklch(0.72 0.16 25); }
+    a { color: oklch(0.32 0.07 195); }
+  </style>
+</head>
+<body data-nav="sync">
+  <main class="wb-page">
+    <span class="wb-status-pill">Tab 06 -- Sync -- live</span>
+    <h1 class="wb-h1">Sync -- pull knowledge from the public hub into this kernel</h1>
+    <div class="wb-trust">
+      <b>Trust boundary:</b> This tab makes an outbound HTTPS GET to
+      <code>duecare-ai.com</code>. Only public, pre-anonymized envelopes
+      are downloaded. Nothing on this kernel is sent to the hub by Sync.
+    </div>
+    <p class="wb-lede">
+      One click to fetch the latest vetted (and optionally unvetted)
+      knowledge from <a href="https://duecare-ai.com/hub#hub-vetting">duecare-ai.com</a>,
+      unpack into <code>/kaggle/working/knowledge/&lt;type&gt;/</code>, and
+      refresh the runtime matching-knowledge lists so the next prompt
+      uses the new rules. Sister to the manual Import on Knowledge Creation.
+    </p>
+
+    <div class="wb-card">
+      <h2>Sync options</h2>
+      <div class="wb-row" style="gap: 24px;">
+        <label><input type="radio" name="sync-mode" value="vetted" checked> Vetted only <span class="wb-muted">(safe default)</span></label>
+        <label><input type="radio" name="sync-mode" value="all"> Vetted + unvetted <span class="wb-muted">(research / integration)</span></label>
+      </div>
+      <div class="wb-row">
+        <button class="wb-btn-primary" id="sync-btn" onclick="runSync()">Sync from hub</button>
+        <span class="wb-muted" id="sync-status">Click to fetch + apply.</span>
+      </div>
+    </div>
+
+    <div class="wb-card">
+      <h2>Result</h2>
+      <div id="sync-result" class="wb-muted">No sync run yet.</div>
+    </div>
+
+    <div class="wb-card">
+      <h2>Activity log</h2>
+      <div class="wb-log" id="wb-log"><div class="wb-muted">Waiting...</div></div>
+    </div>
+
+    <div class="wb-card">
+      <h2>Cross-links</h2>
+      <div class="wb-row">
+        <a class="wb-btn-secondary" href="/static/knowledge.html">Knowledge Creation &rarr;</a>
+        <a class="wb-btn-secondary" href="https://duecare-ai.com/hub#hub-vetting" target="_blank">Vetting process</a>
+        <a class="wb-btn-secondary" href="https://duecare-ai.com/knowledge-packs" target="_blank">Hub pack registry</a>
+      </div>
+    </div>
+  </main>
+  <script>
+    function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);}
+    function wbLog(kind,msg,detail){
+      const host=document.getElementById('wb-log');
+      if(host.firstChild && host.firstChild.classList && host.firstChild.classList.contains('wb-muted')) host.innerHTML='';
+      const ts=new Date().toISOString().slice(11,19);
+      const cls=kind==='err'?'err':(kind==='ok'?'ok':'');
+      const div=document.createElement('div');
+      const t=document.createElement('span'); t.className='ts'; t.textContent='['+ts+'] ';
+      const m=document.createElement('span'); m.className=cls; m.textContent=msg;
+      div.appendChild(t); div.appendChild(m);
+      if(detail){
+        const d=document.createElement('div'); d.style.cssText='margin-left:18px;color:#8A8E97;font-size:10.5px;'; d.textContent=detail;
+        div.appendChild(d);
+      }
+      host.appendChild(div); host.scrollTop=host.scrollHeight;
+    }
+    async function runSync(){
+      const mode=(document.querySelector('input[name="sync-mode"]:checked')||{}).value||'vetted';
+      const includeUnvetted=(mode==='all');
+      const btn=document.getElementById('sync-btn'); btn.disabled=true; btn.textContent='Syncing...';
+      document.getElementById('sync-status').textContent='Calling /api/knowledge/sync ...';
+      wbLog('info','POST /api/knowledge/sync','include_unvetted='+includeUnvetted);
+      const t0=performance.now();
+      try{
+        const r=await fetch('/api/knowledge/sync',{
+          method:'POST',headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({include_unvetted:includeUnvetted})
+        });
+        const dt=Math.round(performance.now()-t0);
+        const out=await r.json();
+        if(!r.ok){
+          wbLog('err','HTTP '+r.status+' ('+dt+'ms)',JSON.stringify(out).slice(0,200));
+          document.getElementById('sync-result').innerHTML='<div style="color:oklch(0.50 0.18 25);">Sync failed: HTTP '+r.status+'</div>';
+          return;
+        }
+        wbLog('ok','HTTP '+r.status+' ('+dt+'ms)','imported='+out.n_imported+' rejected='+out.n_rejected+' grep_extras='+(out.runtime_matching_extras&&out.runtime_matching_extras.grep));
+        document.getElementById('sync-status').textContent='Sync complete.';
+        const r2=document.getElementById('sync-result');
+        let html='<div><b>Imported:</b> '+out.n_imported+'</div>';
+        html+='<div><b>Rejected:</b> '+out.n_rejected+'</div>';
+        if(out.runtime_matching_extras){
+          html+='<div style="margin-top:6px;"><b>Runtime matching extras (now live):</b> ';
+          html+=Object.entries(out.runtime_matching_extras).map(([k,v])=>'<span class="wb-pill">'+k+': '+v+'</span>').join('');
+          html+='</div>';
+        }
+        if(out.imported&&out.imported.length){
+          html+='<details style="margin-top:8px;"><summary class="wb-muted">imported entries</summary><ul style="margin:4px 0 0 18px;padding:0;">';
+          html+=out.imported.slice(0,30).map(e=>'<li><code>'+esc(e.type)+'/'+esc(e.id)+'</code> '+(e.vetted===false?'<span class="wb-pill" style="background:oklch(0.94 0.04 45);color:oklch(0.32 0.07 45);">unvetted</span>':'<span class="wb-pill">vetted</span>')+'</li>').join('');
+          html+='</ul></details>';
+        }
+        html+='<div class="wb-muted" style="margin-top:8px;">'+esc(out.note||'')+'</div>';
+        r2.innerHTML=html;
+      }catch(e){
+        wbLog('err','Sync failed',''+(e&&e.message||e));
+        document.getElementById('sync-result').innerHTML='<div style="color:oklch(0.50 0.18 25);">Network error: '+esc(e&&e.message||'')+'</div>';
+      }finally{
+        btn.disabled=false; btn.textContent='Sync from hub';
+      }
+    }
+  </script>
+</body>
+</html>
