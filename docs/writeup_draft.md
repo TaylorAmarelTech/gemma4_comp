@@ -52,7 +52,7 @@ Gemma 4's features are load-bearing, not decorative.
 
 ## 4. Evidence and notebooks
 
-The kernel suite is intentionally broad because judges can verify different claims without trusting a video. The final submission path is 25 Kaggle script-kernel folders (3 core + 22 appendix). Generated/research notebook mirrors are archived historical context, not a separate required reading path. The priority path is:
+The kernel suite is intentionally broad because judges can verify different claims without trusting a video. The final submission path is 26 Kaggle script-kernel folders (3 core + 23 appendix). Generated/research notebook mirrors are archived historical context, not a separate required reading path. The priority path is:
 
 1. **01 exploration workbench:** full Gemma 4 harness with model picker, layer toggles, traces, and A/B comparison.
 2. **02 live demo:** focused screen-recording surface plus public-hub story.

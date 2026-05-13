@@ -8,15 +8,18 @@
 
 > **Roster expansion (2026-05-12):** the original "2 core + 11
 > appendix = 13" lock-in expanded with website-extension slots
-> (A-12 .. A-20) and a new main `03-duecare-video-pitch` notebook.
-> The 23-row table below is the current truth. See
+> (A-12 .. A-23) plus the new main `03-duecare-video-pitch` notebook.
+> The 26-row table below is the current truth. See
 > [`docs/appendix_experiment_ladder.md`](../docs/appendix_experiment_ladder.md)
-> for the slot definitions including the website-aligned extensions.
+> for the slot definitions including the website-aligned extensions
+> and the four "not yet showcased" gaps closed by A-21 (long
+> context), A-22 (token streaming), and A-23 (Coordinator native
+> function calling).
 
 ## How to run a kernel without publishing to Kaggle
 
 These kernels are **not auto-published** right now. To run any of
-the 23 locally on Kaggle yourself:
+the 26 locally on Kaggle yourself:
 
 1. Open <https://kaggle.com> → New Notebook (Python) in the Kaggle UI.
 2. Kernel settings → enable GPU (T4 is fine for E2B/E4B; 2×T4 or
@@ -31,7 +34,7 @@ the 23 locally on Kaggle yourself:
    (release wheels first, source-install fallback) — no
    `Add data → wheels dataset` step is required.
 
-> **Policy as of 2026-05-11:** all 13 kernels install DueCare packages
+> **Policy as of 2026-05-11:** all 26 kernels install DueCare packages
 > directly from `github.com/TaylorAmarelTech/gemma4_comp` (release
 > wheels at `/releases/download/v{VERSION}/...whl` first, then
 > `git+https://...@<commit-sha>#subdirectory=packages/<pkg>` as
@@ -44,24 +47,30 @@ Notebook wrappers are archived under
 [`../_archive/kaggle-notebook-previews-2026-05-11/`](../_archive/kaggle-notebook-previews-2026-05-11/).
 The active submission folders intentionally keep `kernel.py` as the only runnable source.
 
-**Canonical appendix structure (2026-05-11 lock-in):** the 11
-appendix slots A-01…A-11 form a reproducible end-to-end
-model-improvement pipeline. **Before editing any
-`kaggle/A-*/kernel.py`**, read
+**Canonical appendix structure (2026-05-12 expansion):** the 23
+appendix slots A-01..A-23 cover the original reproducible end-to-end
+model-improvement pipeline (A-01..A-11) plus the website-aligned
+extensions (A-12..A-20) and the three Gemma 4 feature showcases
+(A-21 long-context, A-22 streaming, A-23 Coordinator). **Before
+editing any `kaggle/A-*/kernel.py`**, read
 [`../docs/appendix_experiment_ladder.md`](../docs/appendix_experiment_ladder.md)
 for the slot definitions, hard rules, and build status. The
 cross-kernel artifact contract that A-03 / A-08 consume is in
 [`../docs/appendix_artifact_schema.md`](../docs/appendix_artifact_schema.md).
 
-## Build status — 2 core + 11 appendix = 13 submission kernels
+## Build status — 3 core + 23 appendix = 26 submission kernels
 
-**Submission shape (2026-05-05):** judges land on the unified
-`01-duecare-exploration-workbench` kernel to see every capability surface,
-then proceed to `02-live-demo` for the focused thesis demonstration.
-The 11 specialised kernels (A1-A11) remain as appendix for depth
-signal. Folder names use the `01-` / `02-` / `A-01-` ... `A-11-`
-numbered prefix convention so the `ls kaggle/` listing reads in the
-canonical presentation order.
+**Submission shape (2026-05-12):** reviewers land on the unified
+`01-duecare-exploration-workbench` kernel to see every capability
+surface, then proceed to `02-live-demo` for the focused thesis
+demonstration and `03-duecare-video-pitch` for the slides + setup
+mode. The 23 specialised appendix kernels (A-01..A-23) cover the
+reproducible model-improvement pipeline (A-01..A-11), the
+website-aligned extensions (A-12..A-20), and the three zero-inference
+Gemma 4 feature showcases (A-21 long-context, A-22 streaming, A-23
+Coordinator). Folder names use the `01-` / `02-` / `03-` / `A-01-` ...
+`A-23-` numbered prefix convention so the `ls kaggle/` listing reads
+in canonical presentation order.
 
 **Training appendix path:** `A-06 Prompt Generation -> A-07 Bench and
 Tune -> A-11 Grading Evaluation` has two distinct meanings. A-06 creates
