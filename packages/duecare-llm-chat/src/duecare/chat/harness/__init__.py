@@ -1,4 +1,29 @@
-"""Default safety-harness layers for the Duecare chat playground.
+"""Legacy harness module -- ``duecare.chat.harness`` (singular).
+
+NAMING NOTE (Phase 9, 2026-05-13)
+----------------------------------
+This module is the ORIGINAL Duecare safety harness implementation:
+GREP rules, RAG corpus, Tools dispatcher, ``default_harness()``.
+
+After Phase 9 the project also has a PLURAL ``duecare.chat.harnesses``
+package -- a folder-per-module pattern where each safety surface
+(chat / process / extraction / anonymization / import_corpus / search)
+lives in its own directory with a uniform contract:
+    name + applied_layers + consumes + emits + capabilities +
+    register_routes(app) + optional tools/knowledge/evaluation/prompts.
+
+WHICH SHOULD I USE?
+
+  Existing callers (every Kaggle kernel currently) keep importing from
+  THIS module -- ``from duecare.chat.harness import default_harness,
+  GREP_RULES, RAG_CORPUS, _TOOL_DISPATCH, ...``. Backward-compatible.
+
+  NEW work (new harness surfaces, per-task training data, per-task
+  evaluation rubrics, per-task fine-tuning) should adopt the plural
+  ``duecare.chat.harnesses`` pattern instead. See
+  ``docs/harness_pattern.md`` for the contract + 10-step recipe.
+
+Default safety-harness layers for the Duecare chat playground.
 
 Ships GREP rules, RAG corpus, Tools data + dispatcher, and a
 `default_harness()` factory that returns all callables and catalogs

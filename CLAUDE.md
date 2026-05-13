@@ -157,6 +157,23 @@ Full pattern + 10-step recipe for new harnesses + multi-rubric review:
 @docs/harness_pattern.md
 
 
+### Naming convention (post-Phase 9)
+
+The word **"harness"** is used three ways. Be explicit:
+
+| Term | Refers to | Example |
+|---|---|---|
+| **harness module** | A subfolder under `harnesses/<name>/` | `chat/`, `process/`, `extraction/` |
+| **safety layer** | One callable in `applied_layers` tuple | "the GREP layer fired" |
+| **Duecare framework** | The whole safety substrate around Gemma 4 | "the Duecare safety harness wraps Gemma 4" |
+
+The legacy singular module `duecare.chat.harness` (no `s`) is the
+ORIGINAL implementation — `default_harness()`, `GREP_RULES`, `RAG_CORPUS`,
+`_TOOL_DISPATCH`. New work goes in `duecare.chat.harnesses` (with `s`).
+Both coexist; see @docs/MIGRATION_HARNESS_PATTERN.md.
+
+
+
 ## Three deployment modes (see docs/deployment_modes.md)
 
 1. **Enterprise Integration** — waterfall detection at social media /
