@@ -142,6 +142,21 @@ source chain.
 [D4] Video Materials    → Script, screenshots, demo recordings
 ```
 
+## Multi-harness architecture (2026-05-13)
+
+Every safety-bearing surface in the kernel is a **harness** -- a self-contained
+module exposing `name`, `applied_layers: tuple[str,...]`, and `register_routes(app)`.
+Four PRIMARY harnesses (chat / process / extraction / anonymization), one
+SECONDARY (import_corpus). Per-harness optional `tools.py`, `knowledge.py`,
+`evaluation.py`. Each handler calls
+`harnesses._training_log.log_interaction(...)` at completion so the harness
+boundary is also the per-task finetuning-data boundary -- one JSONL stream per
+harness at `/kaggle/working/training/<harness>.jsonl`.
+
+Full pattern + 10-step recipe for new harnesses + multi-rubric review:
+@docs/harness_pattern.md
+
+
 ## Three deployment modes (see docs/deployment_modes.md)
 
 1. **Enterprise Integration** — waterfall detection at social media /
