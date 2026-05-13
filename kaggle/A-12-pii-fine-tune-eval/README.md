@@ -1,9 +1,9 @@
-# A-11 — PrivacyRedactor LoRA fine-tune + eval
+# A-12 — PrivacyRedactor LoRA fine-tune + eval
 
 <!-- duecare:lane-label -->
 > **Serves lanes:** 04 Researcher
 
-This is appendix slot **A-11** of the canonical 11-slot
+This is appendix slot **A-12** of the canonical 24-slot
 experiment ladder defined in
 [`docs/appendix_experiment_ladder.md`](../../docs/appendix_experiment_ladder.md).
 

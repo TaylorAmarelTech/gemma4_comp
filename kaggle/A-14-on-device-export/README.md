@@ -1,4 +1,4 @@
-# A-13 — On-device export (LoRA merge -> GGUF + LiteRT)
+# A-14 — On-device export (LoRA merge -> GGUF + LiteRT)
 
 <!-- duecare:lane-label -->
 > **Serves lanes:** 03 Individual worker / mobile, 05 Developer

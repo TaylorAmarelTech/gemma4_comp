@@ -1,4 +1,4 @@
-# A-12 — Multimodal document analyzer (Gemma 4 vision)
+# A-13 — Multimodal document analyzer (Gemma 4 vision)
 
 <!-- duecare:lane-label -->
 > **Serves lanes:** 03 Individual worker / mobile, 02 NGO & regulator
@@ -61,7 +61,7 @@ Run-ID format: `a12_multimodal_{variant}_{iso_ts}`.
 ## Where this slot lives
 
 - **Canonical role:** A-12 multimodal document analyzer (extension
-  to the 11-slot ladder; rubric anchor for Gemma 4 unique features)
+  to the 24-slot ladder; rubric anchor for Gemma 4 unique features)
 - **Folder path:** `kaggle/A-13-multimodal-document-analyzer/`
   (new folder; no legacy slot was available)
 - **Sibling kernels referenced:**
