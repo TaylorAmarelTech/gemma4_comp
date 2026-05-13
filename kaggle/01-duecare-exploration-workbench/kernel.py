@@ -241,7 +241,7 @@ def install_chat_wheels() -> int:
 
     # Competition strategy: Pin to specific release artifacts for reproducibility.
     VERSION = "0.1.0"
-    COMMIT_SHA = "3e3ff9e"
+    COMMIT_SHA = "2f6f8f8"
 
     # Method 1: GitHub Release Wheels (fastest when available)
     try:
