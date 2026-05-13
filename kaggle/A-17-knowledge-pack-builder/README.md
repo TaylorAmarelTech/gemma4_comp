@@ -1,4 +1,4 @@
-# A-16 — Knowledge-pack builder + verifier
+# A-17 — Knowledge-pack builder + verifier
 
 <!-- duecare:lane-label -->
 > **Serves lanes:** 04 Researcher, 05 Developer / integration partner

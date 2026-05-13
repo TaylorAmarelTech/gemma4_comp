@@ -1,4 +1,4 @@
-# A-17 — Sentinel / research monitor (search + submit flow)
+# A-18 — Sentinel / research monitor (search + submit flow)
 
 <!-- duecare:lane-label -->
 > **Serves lanes:** 04 Researcher, 05 Developer / integration partner

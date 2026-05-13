@@ -1,4 +1,4 @@
-# A-18 — Demo replay (zero-inference video kernel)
+# A-24 — Demo replay (zero-inference video kernel)
 
 <!-- duecare:lane-label -->
 > **Serves lanes:** all (this is the recording surface for the
@@ -72,7 +72,7 @@ authored.json is for round-trip iteration.
 
 ## Where this slot lives
 
-- **Canonical role:** A-24 demo replay (extension to the 11-slot
+- **Canonical role:** A-24 demo replay (extension to the 24-slot
   ladder; rubric anchor for Video Pitch & Storytelling)
 - **Folder path:** `kaggle/A-24-demo-replay/` (new folder; no
   legacy slot was available)
