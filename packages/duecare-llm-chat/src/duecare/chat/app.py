@@ -4891,7 +4891,31 @@ def create_app(
     # See docs/knowledge_module_schema.md for the envelope spec.
     # ====================================================================
 
-    KO_TYPES = {"grep_rule", "rag_doc", "citation_edge", "fact_template", "context_snippet"}
+    # ===== Phase 18: 21-leaf KnowledgeObject taxonomy ====================
+    KO_BRANCHES: dict[str, str] = {
+        "grep_rule": "matching_knowledge",
+        "glob_rule": "matching_knowledge",
+        "classifier_rule": "matching_knowledge",
+        "heuristic_rule": "matching_knowledge",
+        "rag_doc": "grounding_knowledge",
+        "citation_edge": "grounding_knowledge",
+        "corridor_profile": "grounding_knowledge",
+        "ngo_directory": "grounding_knowledge",
+        "persona_block": "reasoning_knowledge",
+        "context_snippet": "reasoning_knowledge",
+        "reasoning_step": "reasoning_knowledge",
+        "rubric_dimension": "reasoning_knowledge",
+        "tool_definition": "tool_knowledge",
+        "tool_example": "tool_knowledge",
+        "tool_chain": "tool_knowledge",
+        "fact_template": "input_knowledge",
+        "upload_schema": "input_knowledge",
+        "prompt_template": "input_knowledge",
+        "envelope_schema": "output_knowledge",
+        "audit_template": "output_knowledge",
+        "submission_schema": "output_knowledge",
+    }
+    KO_TYPES = set(KO_BRANCHES.keys())
 
     # ----- Phase 17: runtime hot-load of GREP knowledge -----------------
     def _load_grep_extras() -> list[dict]:
@@ -5004,14 +5028,24 @@ def create_app(
         })
 
     @app.get("/api/knowledge/list")
-    async def api_knowledge_list(type: Optional[str] = None) -> Any:
-        """List persisted KnowledgeObjects, optionally filtered by type."""
+    async def api_knowledge_list(type: Optional[str] = None,
+                                   branch: Optional[str] = None) -> Any:
+        """?type= picks one leaf; ?branch= picks every leaf in a branch."""
         import json as _json
         if type is not None and type not in KO_TYPES:
             raise HTTPException(400, f"unknown type: {type}")
+        valid_branches = set(KO_BRANCHES.values())
+        if branch is not None and branch not in valid_branches:
+            raise HTTPException(400, f"unknown branch: {branch}")
+        if type is not None:
+            types_iter = [type]
+        elif branch is not None:
+            types_iter = sorted([t for t, b in KO_BRANCHES.items() if b == branch])
+        else:
+            types_iter = sorted(KO_TYPES)
         root = _ko_root()
         out = []
-        for ko_type in (sorted(KO_TYPES) if type is None else [type]):
+        for ko_type in types_iter:
             type_dir = root / ko_type
             if not type_dir.exists():
                 continue
@@ -5022,21 +5056,42 @@ def create_app(
                     continue
                 content = env.get("content") or {}
                 summary = ""
-                if ko_type == "grep_rule":
-                    summary = (content.get("description") or content.get("pattern") or "")[:160]
-                elif ko_type == "rag_doc":
-                    summary = (content.get("title") or "")[:160]
-                elif ko_type == "citation_edge":
+                _headline_keys = {
+                    "grep_rule":        ("description", "pattern"),
+                    "glob_rule":        ("description", "pattern"),
+                    "classifier_rule":  ("description", "label"),
+                    "heuristic_rule":   ("description",),
+                    "rag_doc":          ("title",),
+                    "corridor_profile": ("label", "corridor"),
+                    "ngo_directory":    ("name", "phone"),
+                    "persona_block":    ("label", "text"),
+                    "context_snippet":  ("text",),
+                    "reasoning_step":   ("label", "instruction"),
+                    "rubric_dimension": ("label", "question"),
+                    "tool_definition":  ("name", "description"),
+                    "tool_example":     ("tool_name",),
+                    "tool_chain":       ("label",),
+                    "fact_template":    ("label", "template_id"),
+                    "upload_schema":    ("label", "format"),
+                    "prompt_template":  ("label", "text"),
+                    "envelope_schema":  ("label", "version"),
+                    "audit_template":   ("label", "version"),
+                    "submission_schema":("label", "version"),
+                }
+                if ko_type == "citation_edge":
                     summary = (f"{content.get('from_statute', '?')} -> "
                                   f"{content.get('to_statute', '?')} "
                                   f"({content.get('relation', 'relates')})")
-                elif ko_type == "fact_template":
-                    summary = (content.get("label") or content.get("template_id") or "")[:160]
-                elif ko_type == "context_snippet":
-                    summary = (content.get("text") or "")[:160]
+                else:
+                    for k in _headline_keys.get(ko_type, ()):
+                        val = content.get(k)
+                        if val:
+                            summary = str(val)[:160]
+                            break
                 out.append({
                     "id": env.get("id"),
                     "type": ko_type,
+                    "branch": KO_BRANCHES.get(ko_type, "unknown"),
                     "version": env.get("version"),
                     "provenance": env.get("provenance") or {},
                     "summary": summary,
@@ -5044,6 +5099,22 @@ def create_app(
                     "path": str(p),
                 })
         return JSONResponse({"objects": out, "n": len(out)})
+
+
+    @app.get("/api/knowledge/taxonomy")
+    async def api_knowledge_taxonomy() -> Any:
+        """Return the 21-leaf / 6-branch hierarchy for UI auto-discovery."""
+        from collections import OrderedDict
+        branches: "OrderedDict[str, list[str]]" = OrderedDict()
+        for b in ("matching_knowledge", "grounding_knowledge",
+                    "reasoning_knowledge", "tool_knowledge",
+                    "input_knowledge", "output_knowledge"):
+            branches[b] = []
+        for t, b in KO_BRANCHES.items():
+            branches[b].append(t)
+        for b in branches:
+            branches[b].sort()
+        return JSONResponse({"branches": branches, "n_types": len(KO_TYPES)})
 
     @app.get("/api/knowledge/export")
     async def api_knowledge_export() -> Any:
