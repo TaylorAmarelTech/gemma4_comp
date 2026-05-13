@@ -4975,6 +4975,89 @@ def create_app(
             },
         )
 
+
+    # ====================================================================
+    # Phase 16 (2026-05-12): knowledge import + single-artefact fetch.
+    # ====================================================================
+
+    @app.post("/api/knowledge/import")
+    async def api_knowledge_import(request: Request) -> Any:
+        """Multipart ZIP -> unpack into /kaggle/working/knowledge/.
+        Entries must be `<type>/<id>.json` and validate per _ko_validate.
+        """
+        import io as _io, zipfile as _zipfile, json as _json
+
+        form = await request.form()
+        upload = form.get("file")
+        if upload is None:
+            raise HTTPException(400, "no `file` field in multipart upload")
+        contents = await upload.read()
+        try:
+            zf = _zipfile.ZipFile(_io.BytesIO(contents))
+        except Exception as e:
+            raise HTTPException(400, f"not a valid ZIP: {e}")
+
+        root = _ko_root()
+        imported: list[dict] = []
+        rejected: list[dict] = []
+        for name in zf.namelist():
+            if name == "manifest.json" or name.endswith("/"):
+                continue
+            parts = name.split("/")
+            if len(parts) != 2 or not parts[1].endswith(".json"):
+                rejected.append({"name": name, "reason": "path must be <type>/<id>.json"})
+                continue
+            ko_type, fname = parts
+            if ko_type not in KO_TYPES:
+                rejected.append({"name": name, "reason": f"unknown type: {ko_type}"})
+                continue
+            try:
+                env = _json.loads(zf.read(name).decode("utf-8", errors="replace"))
+            except Exception as e:
+                rejected.append({"name": name, "reason": f"json parse failed: {e}"})
+                continue
+            ok, err = _ko_validate(env)
+            if not ok:
+                rejected.append({"name": name, "reason": err})
+                continue
+            if env.get("knowledge_object_type") != ko_type:
+                rejected.append({"name": name,
+                                  "reason": "envelope type does not match dir: " + ko_type})
+                continue
+            ko_id = env["id"]
+            dest_dir = root / ko_type
+            dest_dir.mkdir(parents=True, exist_ok=True)
+            dest = dest_dir / f"{ko_id}.json"
+            try:
+                with open(dest, "w", encoding="utf-8") as f:
+                    _json.dump(env, f, ensure_ascii=False, indent=2, sort_keys=True)
+                imported.append({
+                    "type": ko_type, "id": ko_id,
+                    "written_to": str(dest), "from_entry": name,
+                })
+            except Exception as e:
+                rejected.append({"name": name, "reason": f"write failed: {e}"})
+        return JSONResponse({
+            "ok": True,
+            "imported": imported, "rejected": rejected,
+            "n_imported": len(imported), "n_rejected": len(rejected),
+        })
+
+    @app.get("/api/knowledge/{ko_type}/{ko_id}")
+    async def api_knowledge_get(ko_type: str, ko_id: str) -> Any:
+        """Return a single KnowledgeObject envelope for inspect."""
+        import json as _json
+        if ko_type not in KO_TYPES:
+            raise HTTPException(400, f"unknown type: {ko_type}")
+        path = _ko_root() / ko_type / f"{ko_id}.json"
+        if not path.exists():
+            raise HTTPException(404, f"not found: {ko_type}/{ko_id}")
+        try:
+            env = _json.loads(path.read_text(encoding="utf-8"))
+        except Exception as e:
+            raise HTTPException(500, f"parse failed: {e}")
+        return JSONResponse(env)
+
     return app
 
 

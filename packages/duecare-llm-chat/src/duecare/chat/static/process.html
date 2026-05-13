@@ -43,6 +43,13 @@
   <main class="wb-page">
     <span class="wb-status-pill">Tab 03 -- Process Files -- live</span>
     <h1 class="wb-h1">Process Files -- bulk exploration of a case bundle</h1>
+    <div class="wb-trust" style="background: oklch(0.92 0.06 155); color: oklch(0.32 0.07 155); padding: 8px 14px; border-radius: 8px; font-size: 12.5px; margin-bottom: 14px;">
+      <b>Trust boundary:</b> Uploaded rows are processed locally in the kernel
+      (<code>/kaggle/working/process-staging/</code>). The harness runs in-process;
+      no row is sent to any remote service. Outputs stay in the kernel until you
+      explicitly Anonymize + Submit.
+    </div>
+
     <p class="wb-lede">
       Drop a ZIP / CSV / JSONL. Each row goes through the GREP harness (161 rules)
       and a regex entity extractor (AMOUNT / PHONE / EMAIL / STATUTE / CORRIDOR).
