@@ -54,6 +54,7 @@ EXPECTED_ROUTES: set[tuple[str, str]] = {
     ("/api/chat/image/{sid}", "GET"),
     ("/api/chat/send", "POST"),
     ("/api/process/batch", "POST"),
+    ("/api/process/graph-chat", "POST"),
     ("/api/anonymize", "POST"),
     ("/api/submit/knowledge", "POST"),
     ("/api/submit/local", "POST"),

@@ -1,5 +1,8 @@
-"""Placeholder for the process harness.
+"""Process Files harness."""
+from __future__ import annotations
 
-Will own the routes currently in app.py once the extraction pattern is
-proven by the extraction harness.
-"""
+from .handler import register_routes
+
+name = "process"
+
+__all__ = ["name", "register_routes"]
