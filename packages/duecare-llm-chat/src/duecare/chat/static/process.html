@@ -6,6 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="stylesheet" href="/static/_chrome.css">
   <script src="/static/_nav.js" defer></script>
+  <script src="/static/_activity_log.js" defer></script>
   <style>
     body { font-family: 'Inter', sans-serif; background: #F7F6F1; color: #0E1116; margin: 0; padding: 0; }
     .wb-page { max-width: 1120px; margin: 0 auto; padding: 24px 22px 80px; }
@@ -88,6 +89,28 @@
         signals. The chat answers <i>"Which messages mention placement fees over
         the legal cap?"</i> with direct row pointers.
       </p>
+    </div>
+
+    <div class="wb-card" style="border-left: 4px solid oklch(0.55 0.10 155);">
+      <h2 style="margin-top:0;">First time here? Try the sample bundle</h2>
+      <p class="wb-muted" style="font-size:12px; margin:4px 0 10px;">
+        A small judge-safe ZIP (5 files, ~3 KB) with composite recruiter chats,
+        a contract excerpt with debt-bondage wording, and 5 short messages.
+        Downloads instantly, then either drag-and-drop it onto the dropzone
+        below or click "Use sample" to fill the file picker directly.
+      </p>
+      <div class="wb-row">
+        <a class="wb-btn-secondary" href="/static/samples/case_files_sample.zip"
+           download="case_files_sample.zip"
+           title="Download the synthetic case bundle (ZIP)">
+          Download sample bundle (case_files_sample.zip)
+        </a>
+        <button class="wb-btn-secondary" type="button" onclick="wbUseSample()"
+           title="Fetch the sample ZIP into the file picker so you can press Start processing">
+          Use sample (auto-fill picker)
+        </button>
+        <span class="wb-muted" id="wb-sample-status"></span>
+      </div>
     </div>
 
     <div class="wb-card">
@@ -208,6 +231,26 @@
 
   <script>
     let wbFile = null, wbBundle = null;
+    // Fetch the bundled sample ZIP, convert to a File object, and feed
+    // it into wbHandle as if the user had dropped it. The sample is
+    // shipped under /static/samples/ (built by scripts/build_static_samples.py).
+    async function wbUseSample() {
+      const statusEl = document.getElementById('wb-sample-status');
+      statusEl.textContent = 'Fetching sample...';
+      try {
+        const r = await fetch('/static/samples/case_files_sample.zip');
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        const blob = await r.blob();
+        const file = new File([blob], 'case_files_sample.zip',
+                              {type: 'application/zip'});
+        wbHandle({target: {files: [file]}});
+        statusEl.textContent = 'Sample loaded. Click Start processing.';
+        wbLog('ok', 'Sample bundle attached',
+              'case_files_sample.zip · ' + blob.size + ' bytes');
+      } catch (e) {
+        statusEl.textContent = 'Failed: ' + e;
+      }
+    }
     function wbLog(kind, msg, detail) {
       const host = document.getElementById('wb-log');
       if (!host) return;

@@ -1,0 +1,38 @@
+{
+  "schema_version": "1.0",
+  "knowledge_object_type": "grep_rule",
+  "id": "sample-passport-retention-v1",
+  "source": {
+    "kind": "composite",
+    "provenance": "duecare workbench sample bundle (judge-safe synthetic)"
+  },
+  "content": {
+    "category": "document_retention",
+    "severity": "high",
+    "pattern": "\\b(hold|keep|retain|safekeep(?:ing)?|deposit|surrender|custody)\\b[^.\\n]{0,80}\\b(passport|id|identity\\s+document|travel\\s+document)\\b",
+    "description": "Flags chat/contract text where a recruiter or employer asks the worker to hand over a passport for 'safekeeping', 'deposit', or 'custody'. ILO Forced Labour Indicator #6 (retention of identity documents). Cite POEA MC 8 s. 2017 or equivalent local rule in the model response.",
+    "test_cases": [
+      {
+        "text": "We will hold your passport for the first 90 days as a deposit.",
+        "expected": true
+      },
+      {
+        "text": "Your passport will be held by the employer for safekeeping.",
+        "expected": true
+      },
+      {
+        "text": "Please bring a photocopy of your passport for the visa.",
+        "expected": false
+      }
+    ]
+  },
+  "audit": {
+    "drafted_by": "duecare workbench sample",
+    "date": "2026-05-12",
+    "checks_passed": [
+      "pii_clean",
+      "regex_compiles",
+      "test_cases_pass"
+    ]
+  }
+}

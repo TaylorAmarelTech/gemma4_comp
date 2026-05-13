@@ -3,8 +3,10 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Workbench · Search</title>
+  <title>Workbench &middot; Search</title>
   <link rel="stylesheet" href="/static/_chrome.css">
+  <script src="/static/_nav.js" defer></script>
+  <script src="/static/_activity_log.js" defer></script>
   <style>
     .wb-page { max-width: 1120px; margin: 24px auto 60px; padding: 0 18px;
                color: #0E1116; font-family: Inter, system-ui, sans-serif; line-height: 1.55; }
@@ -18,6 +20,10 @@
                        color: #FFF; border: 0; border-radius: 6px;
                        font-size: 13px; cursor: pointer; }
     .wb-btn-primary:disabled { opacity: 0.55; cursor: not-allowed; }
+    .wb-btn-secondary { padding: 7px 13px; background: #FFF; color: #0E1116;
+                         border: 1px solid #DDD8C9; border-radius: 6px;
+                         font-size: 12.5px; cursor: pointer; text-decoration: none;
+                         display: inline-block; }
     .wb-muted { color: #5B5F68; font-size: 12px; }
     .wb-pill { display: inline-block; padding: 1px 8px; background: #F1EFE7;
                 border-radius: 3px; font-size: 11px; color: #5B5F68;
@@ -28,13 +34,20 @@
                      color: oklch(0.32 0.07 195); }
     .wb-result a { color: oklch(0.32 0.07 195); text-decoration: none; }
     .wb-result .url { color: #8A8E97; font-size: 11px; word-break: break-all; }
-    .wb-result .snippet { font-size: 12.5px; margin-top: 6px; color: #2A2D34; }
+    .wb-result .snippet { font-size: 12.5px; margin-top: 6px; color: #2A2D34;
+                            white-space: pre-wrap; }
     a { color: oklch(0.32 0.07 195); }
     label { font-size: 12.5px; }
     select, input[type=text], input[type=number] { padding: 6px 10px;
       border: 1px solid #DDD8C9; border-radius: 6px; font-size: 12.5px; }
+    .wb-draft-card { background: #FFF; border: 1px solid #DDD8C9; border-radius: 8px;
+                       padding: 10px 12px; margin-bottom: 8px; }
+    .wb-draft-card pre { background: #F7F6F1; padding: 8px 10px; border-radius: 6px;
+                          font-size: 11px; max-height: 200px; overflow-y: auto;
+                          white-space: pre-wrap; margin: 6px 0 0; }
+    code { background: #F1EFE7; padding: 1px 5px; border-radius: 3px;
+           font-size: 11.5px; font-family: 'JetBrains Mono', monospace; }
   </style>
-  <script src="/static/_nav.js" defer></script>
 </head>
 <body data-nav="search">
   <main class="wb-page">
@@ -43,12 +56,15 @@
       Calls <code>POST /api/search/client</code>. Uses SearXNG when
       configured (privacy-preserving meta-search), falls back to the
       kernel's wired Tavily/Brave/DDG. Anonymize-query strips PII
-      before the query reaches any backend. Results are tagged with
-      backend + elapsed_ms for transparency.
+      before the query reaches any backend. After results arrive,
+      use the action buttons below the results to draft knowledge
+      envelopes from each snippet, download the result set as JSON
+      or markdown, or send the set into Anonymization &amp; Sharing
+      for hub upload.
     </p>
 
     <div class="wb-card">
-      <h2>Query</h2>
+      <h2>1. Query</h2>
       <div class="wb-row" style="gap: 8px; align-items: stretch;">
         <input type="text" id="q" placeholder="Search query"
                style="flex:1; min-width:280px;"
@@ -71,71 +87,329 @@
       <div id="backends" class="wb-muted">checking...</div>
     </div>
 
-    <div id="results"></div>
+    <div class="wb-card">
+      <h2>Activity log</h2>
+      <p class="wb-muted" style="margin: 0 0 8px;">
+        Live trace of search calls, anonymization, envelope drafts,
+        and downstream actions.
+      </p>
+      <div id="search-log" class="dc-activity-log">
+        <div class="dc-log-idle">Run a search to begin.</div>
+      </div>
+    </div>
+
+    <div class="wb-card" id="results-card" style="display:none;">
+      <h2>2. Results</h2>
+      <div id="results"></div>
+      <div class="wb-row" style="margin-top:14px; gap:8px; padding-top:10px; border-top:1px solid #EFEDE4;">
+        <span class="wb-muted" style="align-self:center;">After results:</span>
+        <button class="wb-btn-secondary" id="dl-json-btn" onclick="searchDownloadResults('json')">Download results (.json)</button>
+        <button class="wb-btn-secondary" id="dl-md-btn" onclick="searchDownloadResults('md')">Download as markdown</button>
+        <button class="wb-btn-primary" id="draft-btn" onclick="searchDraftKnowledge()">Draft as knowledge objects (Gemma)</button>
+        <button class="wb-btn-secondary" id="share-btn" onclick="searchSendToShare()">Send to Anonymization &amp; Share</button>
+      </div>
+      <div id="draft-status" class="wb-muted" style="margin-top:8px;"></div>
+    </div>
+
+    <div class="wb-card" id="drafts-card" style="display:none;">
+      <h2>3. Drafted envelopes (review before saving)</h2>
+      <p class="wb-muted" style="margin: 0 0 8px;">
+        Each search result was passed to <code>/api/knowledge/draft-envelope</code>
+        with <code>target_leaf=rag_doc</code> and the kernel's
+        Anonymizer is applied first. Review each draft, then click
+        <b>Save all to local knowledge store</b> to persist them via
+        <code>/api/knowledge/promote</code>, or download as a single
+        JSON for offline review.
+      </p>
+      <div class="wb-row" style="gap:8px; margin-bottom:10px;">
+        <button class="wb-btn-primary" id="save-all-btn" onclick="searchSaveAllDrafts()">Save all to local knowledge store</button>
+        <button class="wb-btn-secondary" id="download-drafts-btn" onclick="searchDownloadDrafts()">Download drafts (.json)</button>
+        <span class="wb-muted" id="save-status"></span>
+      </div>
+      <div id="drafts-list"></div>
+    </div>
   </main>
 
   <script>
-    function escapeHtml(s) {
-      return String(s == null ? '' : s)
-        .replace(/&/g, '&amp;').replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-    }
+    // ============== State ==============
+    let _searchLog = null;
+    let _searchResults = [];   // raw results from last search
+    let _searchQuery = '';
+    let _searchBackend = '';
+    let _drafts = [];          // {url, title, envelope}
+
+    // ============== Backends + Search ==============
     async function loadBackends() {
       try {
         const r = await fetch('/api/search/backends');
         const b = await r.json();
-        document.getElementById('backends').innerHTML = (b.backends || [])
-          .map(x => '<span class="wb-pill" style="' + (x.available ? '' : 'opacity:0.5;') + '">'
-                    + escapeHtml(x.name) + ': ' + (x.available ? 'OK' : 'unavailable') + '</span>')
-          .join(' ')
-          + ' <span class="wb-muted" style="margin-left:8px;">'
-          + (b.configured_searxng_url ? 'DUECARE_SEARXNG_URL set' : 'DUECARE_SEARXNG_URL not set')
-          + '</span>';
+        const host = document.getElementById('backends');
+        while (host.firstChild) host.removeChild(host.firstChild);
+        (b.backends || []).forEach(x => {
+          const p = document.createElement('span');
+          p.className = 'wb-pill';
+          if (!x.available) p.style.opacity = '0.5';
+          p.textContent = x.name + ': ' + (x.available ? 'OK' : 'unavailable');
+          host.appendChild(p);
+          host.appendChild(document.createTextNode(' '));
+        });
+        const note = document.createElement('span');
+        note.className = 'wb-muted';
+        note.style.marginLeft = '8px';
+        note.textContent = b.configured_searxng_url
+          ? 'DUECARE_SEARXNG_URL set'
+          : 'DUECARE_SEARXNG_URL not set';
+        host.appendChild(note);
       } catch (e) {
         document.getElementById('backends').textContent = 'failed to query backends';
       }
     }
     async function runSearch() {
+      _searchLog = _searchLog || window.dcActivityLog.attach('#search-log');
+      _searchLog.clear && _searchLog.clear();
       const query = (document.getElementById('q').value || '').trim();
       if (!query) return;
       const backend = document.getElementById('backend').value || null;
       const top_n = parseInt(document.getElementById('top_n').value || '5', 10);
       const anon = document.getElementById('anon').checked;
+      _searchQuery = query;
       const btn = document.getElementById('go-btn');
       btn.disabled = true;
+      _searchLog.info('POST /api/search/client', 'q=' + query + ' top_n=' + top_n + ' backend=' + (backend || 'auto') + ' anonymize=' + anon);
+      if (anon) _searchLog.anon('anonymize_query=true (PII stripped before reaching backend)');
       document.getElementById('status').textContent = 'POST /api/search/client ...';
+      const t0 = performance.now();
       try {
         const r = await fetch('/api/search/client', {
           method: 'POST',
           headers: {'Content-Type': 'application/json'},
           body: JSON.stringify({query, top_n, backend, anonymize_query: anon}),
         });
+        const dt = Math.round(performance.now() - t0);
         const out = await r.json();
+        if (!r.ok) {
+          _searchLog.err('HTTP ' + r.status + ' (' + dt + 'ms)', JSON.stringify(out).slice(0, 200));
+          document.getElementById('status').textContent = 'HTTP ' + r.status;
+          return;
+        }
+        _searchBackend = out.backend || '';
         const note = out.note || out.error || '';
         document.getElementById('status').textContent =
           'backend=' + (out.backend || '(none)') + ' | results=' +
-          ((out.results || []).length) + ' | elapsed_ms=' + (out.elapsed_ms || '-')
+          ((out.results || []).length) + ' | elapsed_ms=' + (out.elapsed_ms || dt)
           + (note ? ' | ' + note : '');
-        renderResults(out.results || []);
+        _searchLog.ok('HTTP 200 (' + dt + 'ms) backend=' + (out.backend || '(none)')
+                       + ' results=' + ((out.results || []).length));
+        if (note) _searchLog.info('note: ' + note);
+        _searchResults = out.results || [];
+        renderResults(_searchResults);
+        document.getElementById('results-card').style.display = _searchResults.length ? '' : 'none';
       } catch (e) {
+        _searchLog.err('network failed', '' + e);
         document.getElementById('status').textContent = 'failed: ' + e;
       } finally {
         btn.disabled = false;
       }
     }
+
+    // ============== Render results (DOM-only, no innerHTML on network content) ==============
     function renderResults(rows) {
-      document.getElementById('results').innerHTML = rows.length
-        ? rows.map(r =>
-            '<div class="wb-result">'
-            + '<h3>[' + r.rank + '] <a href="' + escapeHtml(r.url) + '" target="_blank">'
-            + escapeHtml(r.title) + '</a></h3>'
-            + '<div class="url">' + escapeHtml(r.url) + '</div>'
-            + '<div class="snippet">' + escapeHtml(r.snippet) + '</div>'
-            + '</div>'
-          ).join('')
-        : '<div class="wb-muted" style="padding:20px;">no results</div>';
+      const host = document.getElementById('results');
+      while (host.firstChild) host.removeChild(host.firstChild);
+      if (!rows.length) {
+        const p = document.createElement('div'); p.className = 'wb-muted'; p.style.padding = '20px';
+        p.textContent = 'no results'; host.appendChild(p);
+        return;
+      }
+      rows.forEach(r => {
+        const card = document.createElement('div'); card.className = 'wb-result';
+        const h = document.createElement('h3');
+        const lead = document.createElement('span'); lead.textContent = '[' + (r.rank || '?') + '] ';
+        h.appendChild(lead);
+        const a = document.createElement('a');
+        a.href = String(r.url || '#'); a.target = '_blank'; a.rel = 'noopener';
+        a.textContent = String(r.title || r.url || '(untitled)');
+        h.appendChild(a);
+        card.appendChild(h);
+        const u = document.createElement('div'); u.className = 'url'; u.textContent = String(r.url || '');
+        card.appendChild(u);
+        const s = document.createElement('div'); s.className = 'snippet';
+        s.textContent = String(r.snippet || '');
+        card.appendChild(s);
+        host.appendChild(card);
+      });
     }
-    loadBackends();
+
+    // ============== Post-result actions ==============
+    function searchDownloadResults(format) {
+      if (!_searchResults.length) {
+        _searchLog && _searchLog.warn('no results to download');
+        return;
+      }
+      let blob, name;
+      if (format === 'md') {
+        const lines = ['# DueCare search results', '',
+                        '> query: ' + _searchQuery,
+                        '> backend: ' + (_searchBackend || '(none)'),
+                        '> retrieved: ' + new Date().toISOString(), ''];
+        _searchResults.forEach(r => {
+          lines.push('## [' + (r.rank || '?') + '] ' + (r.title || r.url));
+          lines.push('Source: ' + (r.url || ''));
+          lines.push('');
+          lines.push((r.snippet || '').replace(/\r?\n/g, ' '));
+          lines.push('');
+        });
+        blob = new Blob([lines.join('\n')], {type: 'text/markdown'});
+        name = 'search_results.md';
+      } else {
+        const payload = {
+          query: _searchQuery,
+          backend: _searchBackend,
+          retrieved_at: new Date().toISOString(),
+          results: _searchResults,
+        };
+        blob = new Blob([JSON.stringify(payload, null, 2)], {type: 'application/json'});
+        name = 'search_results.json';
+      }
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a'); a.href = url; a.download = name; a.click();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      _searchLog.ok('downloaded ' + name, blob.size + ' bytes');
+    }
+
+    async function searchDraftKnowledge() {
+      if (!_searchResults.length) {
+        _searchLog && _searchLog.warn('no results to draft from');
+        return;
+      }
+      const btn = document.getElementById('draft-btn');
+      btn.disabled = true;
+      document.getElementById('draft-status').textContent =
+        'Drafting ' + _searchResults.length + ' envelopes via Gemma...';
+      _drafts = [];
+      const draftsList = document.getElementById('drafts-list');
+      while (draftsList.firstChild) draftsList.removeChild(draftsList.firstChild);
+      try {
+        for (let i = 0; i < _searchResults.length; i++) {
+          const r = _searchResults[i];
+          const rawText = '# ' + (r.title || '') + '\n\n'
+            + 'Source: ' + (r.url || '') + '\n\n' + (r.snippet || '');
+          _searchLog.step('drafting envelope ' + (i + 1) + '/' + _searchResults.length, r.title || r.url);
+          try {
+            const t0 = performance.now();
+            const resp = await fetch('/api/knowledge/draft-envelope', {
+              method: 'POST',
+              headers: {'Content-Type': 'application/json'},
+              body: JSON.stringify({
+                raw_text: rawText,
+                target_leaf: 'rag_doc',
+                anonymize: true,
+              }),
+            });
+            const dt = Math.round(performance.now() - t0);
+            const out = await resp.json();
+            if (!resp.ok) {
+              _searchLog.err('draft ' + (i + 1) + ' HTTP ' + resp.status + ' (' + dt + 'ms)',
+                              JSON.stringify(out).slice(0, 200));
+              continue;
+            }
+            const env = out.envelope || out;
+            _drafts.push({url: r.url, title: r.title, envelope: env});
+            _searchLog.ok('drafted ' + (i + 1) + '/' + _searchResults.length + ' (' + dt + 'ms)');
+            const card = document.createElement('div');
+            card.className = 'wb-draft-card';
+            const h = document.createElement('div');
+            h.style.cssText = 'font-size: 13px; font-weight: 600;';
+            h.textContent = '[' + (i + 1) + '] ' + (r.title || r.url);
+            card.appendChild(h);
+            const u = document.createElement('div'); u.className = 'wb-muted'; u.textContent = r.url || '';
+            card.appendChild(u);
+            const pre = document.createElement('pre');
+            pre.textContent = JSON.stringify(env, null, 2);
+            card.appendChild(pre);
+            draftsList.appendChild(card);
+          } catch (e) {
+            _searchLog.err('draft ' + (i + 1) + ' failed', '' + e);
+          }
+        }
+        document.getElementById('drafts-card').style.display = _drafts.length ? '' : 'none';
+        document.getElementById('draft-status').textContent =
+          'Drafted ' + _drafts.length + ' / ' + _searchResults.length + '. Review below.';
+      } finally {
+        btn.disabled = false;
+      }
+    }
+
+    async function searchSaveAllDrafts() {
+      if (!_drafts.length) return;
+      const btn = document.getElementById('save-all-btn');
+      btn.disabled = true;
+      const saveStatus = document.getElementById('save-status');
+      saveStatus.textContent = 'Saving ' + _drafts.length + ' drafts...';
+      let saved = 0;
+      for (const d of _drafts) {
+        try {
+          const r = await fetch('/api/knowledge/promote', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({envelope: d.envelope}),
+          });
+          if (r.ok) {
+            saved++;
+            _searchLog.ok('promoted ' + ((d.envelope && d.envelope.id) || '(unknown id)'));
+          } else {
+            const t = await r.text();
+            _searchLog.err('promote HTTP ' + r.status, t.slice(0, 200));
+          }
+        } catch (e) {
+          _searchLog.err('promote failed', '' + e);
+        }
+      }
+      saveStatus.textContent = 'Saved ' + saved + ' / ' + _drafts.length + '.';
+      btn.disabled = false;
+    }
+
+    function searchDownloadDrafts() {
+      if (!_drafts.length) return;
+      const blob = new Blob([JSON.stringify({
+        query: _searchQuery,
+        retrieved_at: new Date().toISOString(),
+        drafts: _drafts,
+      }, null, 2)], {type: 'application/json'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a'); a.href = url; a.download = 'search_drafts.json'; a.click();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      _searchLog.ok('downloaded search_drafts.json', blob.size + ' bytes');
+    }
+
+    function searchSendToShare() {
+      if (!_searchResults.length) {
+        _searchLog && _searchLog.warn('no results to send');
+        return;
+      }
+      try {
+        sessionStorage.setItem('duecare:share-queue', JSON.stringify({
+          source: 'search',
+          query: _searchQuery,
+          backend: _searchBackend,
+          retrieved_at: new Date().toISOString(),
+          drafts: _drafts,
+          results: _searchResults,
+        }));
+        _searchLog.info('queued ' + _searchResults.length + ' results for Anonymization & Share');
+        location.href = '/static/share.html#from=search';
+      } catch (e) {
+        _searchLog.err('sessionStorage failed', '' + e);
+      }
+    }
+
+    // ============== Init ==============
+    document.addEventListener('DOMContentLoaded', function () {
+      _searchLog = window.dcActivityLog
+        ? window.dcActivityLog.attach('#search-log', {idlePlaceholder: 'Run a search to begin.'})
+        : null;
+      loadBackends();
+    });
   </script>
 </body>
 </html>

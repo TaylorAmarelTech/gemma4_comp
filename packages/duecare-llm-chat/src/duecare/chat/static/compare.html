@@ -6,10 +6,10 @@
   <title>DueCare Workbench - Harness Comparison</title>
   <link rel="stylesheet" href="/static/_chrome.css">
   <style>
-    .wb-page { max-width: 1280px; margin: 24px auto 60px; padding: 0 18px;
+    .wb-page { max-width: 1320px; margin: 24px auto 60px; padding: 0 18px;
                color: #0E1116; font-family: Inter, system-ui, sans-serif; line-height: 1.55; }
     .wb-h1 { font-size: 26px; font-weight: 700; margin: 0 0 8px; }
-    .wb-lede { font-size: 13.5px; color: #2A2D34; margin: 0 0 18px; max-width: 880px; }
+    .wb-lede { font-size: 13.5px; color: #2A2D34; margin: 0 0 18px; max-width: 940px; }
     .wb-card { background: #FFF; border: 1px solid #DDD8C9; border-radius: 12px;
                padding: 16px 18px; margin-bottom: 14px; }
     .wb-card h2 { font-size: 15px; font-weight: 600; margin: 0 0 10px; }
@@ -25,15 +25,19 @@
     .wb-pill { display: inline-block; padding: 1px 8px; background: #F1EFE7; border-radius: 3px;
                 font-size: 11px; color: #5B5F68; font-family: 'JetBrains Mono', monospace; }
     .wb-twocol { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    @media (max-width: 900px) { .wb-twocol { grid-template-columns: 1fr; } }
     .wb-variant h3 { font-size: 13px; font-weight: 700; margin: 0 0 8px;
                       color: oklch(0.32 0.07 195); letter-spacing: 0.04em;
                       text-transform: uppercase; }
     .wb-variant .toggles { display: flex; gap: 6px; flex-wrap: wrap; margin: 6px 0 10px;
                             font-size: 11.5px; }
     .wb-variant .toggle { padding: 3px 8px; background: #F7F6F1; border-radius: 4px;
-                           border: 1px solid #DDD8C9; }
+                           border: 1px solid #DDD8C9; transition: background 120ms; }
     .wb-variant .toggle.on { background: oklch(0.92 0.06 195); border-color: oklch(0.52 0.08 195);
                               color: oklch(0.32 0.07 195); }
+    .wb-variant .toggle.fired { background: oklch(0.92 0.06 155); border-color: oklch(0.55 0.10 155);
+                                 color: oklch(0.32 0.10 155); font-weight: 600; }
+    .wb-variant .toggle.skipped { opacity: 0.45; }
     .wb-variant .response { font-family: 'JetBrains Mono', monospace; font-size: 12px;
                              white-space: pre-wrap; padding: 12px; background: #F7F6F1;
                              border: 1px solid #DDD8C9; border-radius: 6px;
@@ -43,6 +47,36 @@
     .wb-variant .meta { margin-top: 8px; font-size: 11.5px; color: #5B5F68; }
     .wb-error { background: oklch(0.94 0.04 25); color: oklch(0.32 0.10 25); padding: 8px 12px;
                  border-radius: 6px; font-size: 12px; margin-top: 8px; }
+    /* Live log panel */
+    .wb-log { background: #0E1116; color: #E4E1D7; font-family: 'JetBrains Mono', monospace;
+              font-size: 11px; border-radius: 8px; padding: 10px 12px;
+              max-height: 320px; overflow-y: auto; line-height: 1.55; }
+    .wb-log .ev { margin-bottom: 3px; }
+    .wb-log .ts { color: #8A8E97; }
+    .wb-log .va { color: oklch(0.78 0.12 195); }
+    .wb-log .vb { color: oklch(0.80 0.14 80); }
+    .wb-log .step { color: #E4E1D7; }
+    .wb-log .ok { color: oklch(0.78 0.14 155); }
+    .wb-log .err { color: oklch(0.72 0.16 25); }
+    .wb-progress { display: flex; gap: 8px; margin: 8px 0 0; align-items: center;
+                    font-size: 11.5px; color: #5B5F68; flex-wrap: wrap; }
+    .wb-progress .dot { width: 8px; height: 8px; border-radius: 50%; background: #DDD8C9;
+                        display: inline-block; transition: background 200ms; }
+    .wb-progress .dot.run { background: oklch(0.68 0.18 80); animation: wb-pulse 1s ease-in-out infinite; }
+    .wb-progress .dot.done { background: oklch(0.55 0.10 155); }
+    .wb-progress .dot.err { background: oklch(0.55 0.18 25); }
+    @keyframes wb-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.45; } }
+    /* Grade panel */
+    .wb-grade { background: #FAF9F4; border: 1px solid #EFEDE4; border-radius: 8px;
+                 padding: 12px 14px; }
+    .wb-grade h3 { font-size: 13px; font-weight: 600; margin: 0 0 8px;
+                    color: oklch(0.32 0.07 195); letter-spacing: 0.04em;
+                    text-transform: uppercase; }
+    .wb-grade pre { background: #FFF; padding: 8px 10px; border-radius: 6px;
+                     border: 1px solid #DDD8C9; font-size: 11px; max-height: 280px;
+                     overflow-y: auto; white-space: pre-wrap; margin: 0; }
+    .wb-grade .score-line { font-size: 18px; font-weight: 700; margin: 4px 0 8px;
+                              color: oklch(0.32 0.07 195); }
     textarea, input, select { font-family: inherit; }
     a { color: oklch(0.32 0.07 195); }
     code { background: #F1EFE7; padding: 1px 5px; border-radius: 3px; font-size: 11.5px;
@@ -54,9 +88,13 @@
   <main class="wb-page">
     <h1 class="wb-h1">Harness Comparison -- same prompt, two harness configs</h1>
     <p class="wb-lede">
-      Send one prompt through TWO harness configurations side-by-side.
-      Variant A is stock Gemma 4 (no layers). Variant B has the full
-      DueCare harness. The difference is what you're paying for.
+      Send one prompt through TWO harness configurations and see what
+      each safety layer changes. Variant A is typically stock Gemma 4
+      (no layers); Variant B is the full DueCare harness. <b>Run order:</b>
+      both variants share the single loaded Gemma 4, so they execute
+      <i>sequentially</i> (A first, then B) -- the safety layers (Persona,
+      GREP, RAG, Tools, Online) fire <i>per variant</i> before each model
+      call. Every step streams into the activity log below in real time.
     </p>
 
     <div class="wb-card">
@@ -90,25 +128,55 @@
       <h2>2. Configure the two variants</h2>
       <div class="wb-twocol">
         <div>
-          <h3 style="font-size: 12.5px; margin: 0 0 6px; color: #5B5F68; text-transform: uppercase; letter-spacing: 0.04em;">Variant A</h3>
+          <h3 style="font-size: 12.5px; margin: 0 0 6px; color: #5B5F68; text-transform: uppercase; letter-spacing: 0.04em;">Variant A <span class="wb-pill" id="A-preset">stock</span></h3>
           <label style="font-size: 12.5px;"><input type="checkbox" id="A-persona"> Persona</label>
           <label style="font-size: 12.5px; margin-left: 10px;"><input type="checkbox" id="A-grep"> GREP</label>
           <label style="font-size: 12.5px; margin-left: 10px;"><input type="checkbox" id="A-rag"> RAG</label>
           <label style="font-size: 12.5px; margin-left: 10px;"><input type="checkbox" id="A-tools"> Tools</label>
+          <label style="font-size: 12.5px; margin-left: 10px;"><input type="checkbox" id="A-online"> Online</label>
         </div>
         <div>
-          <h3 style="font-size: 12.5px; margin: 0 0 6px; color: #5B5F68; text-transform: uppercase; letter-spacing: 0.04em;">Variant B</h3>
+          <h3 style="font-size: 12.5px; margin: 0 0 6px; color: #5B5F68; text-transform: uppercase; letter-spacing: 0.04em;">Variant B <span class="wb-pill" id="B-preset">harness on</span></h3>
           <label style="font-size: 12.5px;"><input type="checkbox" id="B-persona" checked> Persona</label>
           <label style="font-size: 12.5px; margin-left: 10px;"><input type="checkbox" id="B-grep" checked> GREP</label>
           <label style="font-size: 12.5px; margin-left: 10px;"><input type="checkbox" id="B-rag" checked> RAG</label>
           <label style="font-size: 12.5px; margin-left: 10px;"><input type="checkbox" id="B-tools" checked> Tools</label>
+          <label style="font-size: 12.5px; margin-left: 10px;"><input type="checkbox" id="B-online"> Online <span class="wb-muted">(only fires if provider is wired)</span></label>
         </div>
       </div>
-      <div class="wb-row" style="margin-top: 14px; align-items: center;">
+      <div class="wb-row" style="margin-top: 14px; gap: 6px; align-items: center;">
+        <span class="wb-muted">Presets:</span>
+        <button class="wb-btn-secondary" onclick="cmpPreset('stock_vs_full')">stock vs full</button>
+        <button class="wb-btn-secondary" onclick="cmpPreset('grep_only_vs_full')">grep-only vs full</button>
+        <button class="wb-btn-secondary" onclick="cmpPreset('with_online_vs_without')">with online vs without</button>
+      </div>
+      <div class="wb-row" style="margin-top: 12px; align-items: center;">
         <button id="cmp-run" class="wb-btn-primary" onclick="cmpRun()">3. Run comparison</button>
         <span class="wb-muted" id="cmp-status"></span>
       </div>
       <div id="cmp-error" class="wb-error" style="display:none;"></div>
+    </div>
+
+    <div class="wb-card">
+      <h2>Activity log</h2>
+      <p class="wb-muted" style="margin: 0 0 8px;">
+        Live SSE stream from <code>/api/chat/send</code>. Each layer's
+        <code>step_start</code> and <code>step_done</code> events
+        appear here as they happen, color-coded by variant. The Gemma
+        is shared, so Variant A finishes generating before Variant B
+        begins.
+      </p>
+      <div class="wb-progress">
+        <span class="dot" id="A-dot"></span>
+        <span><span class="wb-pill" style="color:oklch(0.32 0.07 195)">A</span> <span id="A-progress-text">idle</span></span>
+        <span style="margin-left: 18px;">
+          <span class="dot" id="B-dot"></span>
+          <span><span class="wb-pill" style="color:oklch(0.32 0.10 80)">B</span> <span id="B-progress-text">idle</span></span>
+        </span>
+      </div>
+      <div id="cmp-log" class="wb-log" style="margin-top: 10px;">
+        <div class="ev wb-muted">[idle] click <b>Run comparison</b> to start. Events from each safety layer will stream here in real time.</div>
+      </div>
     </div>
 
     <div class="wb-twocol" style="margin-top: 18px;">
@@ -126,131 +194,434 @@
       </div>
     </div>
 
+    <div class="wb-card" id="grade-card" style="display:none;">
+      <h2>4. Grade both responses</h2>
+      <p class="wb-muted" style="margin: 0 0 10px;">
+        Score each variant on the same rubric. Mode determines which
+        grader runs:
+        <b>deterministic</b> = rules-based (<code>/api/grade</code>, universal
+        v3 rubric);
+        <b>deep</b> = Gemma-as-judge over the loaded model
+        (<code>/api/grade-deep</code>, ~5-15 s/variant);
+        <b>combined</b> = weighted blend of both
+        (<code>/api/grade-combined</code>).
+        Higher <code>pct_score</code> is better.
+      </p>
+      <div class="wb-row" style="gap: 10px; align-items: center;">
+        <label>Mode:
+          <select id="grade-mode">
+            <option value="deterministic" selected>deterministic (fast, rules-based)</option>
+            <option value="deep">deep (Gemma judge -- slower)</option>
+            <option value="combined">combined (50/50 blend)</option>
+          </select>
+        </label>
+        <button class="wb-btn-primary" id="grade-btn" onclick="cmpGrade()">Grade both</button>
+        <span class="wb-muted" id="grade-status"></span>
+      </div>
+      <div class="wb-twocol" style="margin-top: 12px;">
+        <div class="wb-grade">
+          <h3>Variant A grade</h3>
+          <div class="score-line" id="A-grade-score">--</div>
+          <pre id="A-grade">(not graded yet)</pre>
+        </div>
+        <div class="wb-grade">
+          <h3>Variant B grade</h3>
+          <div class="score-line" id="B-grade-score">--</div>
+          <pre id="B-grade">(not graded yet)</pre>
+        </div>
+      </div>
+    </div>
+
     <p class="wb-muted" style="margin-top: 14px;">
-      Trust boundary: both runs hit the same loaded Gemma 4 in this kernel.
-      Nothing leaves the kernel.
+      Trust boundary: both runs hit the same loaded Gemma 4 in this
+      kernel. Nothing leaves the kernel (except the Online layer, if
+      enabled and wired to an internet search provider).
     </p>
   </main>
 
   <script>
-    function cmpLoadExample(){
+    // All safety layers the chat send-handler may emit step events for.
+    const LAYERS = ['persona', 'grep', 'rag', 'tools', 'online'];
+    // Steps that don't have a toggle but DO emit progress events.
+    const NON_LAYER_STEPS = ['resolve', 'import', 'model'];
+    const VARIANTS = ['A', 'B'];
+
+    // ============== UI helpers ==============
+    function cmpLoadExample() {
       const sel = document.getElementById('cmp-example');
       const opt = sel.options[sel.selectedIndex];
       if (!opt || !opt.dataset || !opt.dataset.prompt) return;
-      document.getElementById('cmp-prompt').value = opt.dataset.prompt;
+      const input = document.getElementById('cmp-prompt');
+      input.value = opt.dataset.prompt;
+      input.dispatchEvent(new Event('input', {bubbles: true}));
     }
-    function cmpFillFromLastChat(){
+    function cmpFillFromLastChat() {
       try {
         const last = localStorage.getItem('duecare:last-chat-prompt') || '';
         if (last) {
-          document.getElementById('cmp-prompt').value = last;
+          const input = document.getElementById('cmp-prompt');
+          input.value = last;
+          input.dispatchEvent(new Event('input', {bubbles: true}));
           document.getElementById('cmp-status').textContent = 'Filled with the last prompt from Chat.';
         } else {
-          document.getElementById('cmp-status').textContent = 'No previous chat prompt found. Send a message on Chat first.';
+          document.getElementById('cmp-status').textContent = 'No previous chat prompt found.';
         }
       } catch (e) {
         document.getElementById('cmp-status').textContent = 'localStorage unavailable.';
       }
     }
-    function readToggles(variant){
+    function cmpPreset(name) {
+      const presets = {
+        stock_vs_full: {
+          A: {persona: false, grep: false, rag: false, tools: false, online: false},
+          B: {persona: true,  grep: true,  rag: true,  tools: true,  online: false},
+          A_label: 'stock', B_label: 'harness on',
+        },
+        grep_only_vs_full: {
+          A: {persona: false, grep: true,  rag: false, tools: false, online: false},
+          B: {persona: true,  grep: true,  rag: true,  tools: true,  online: false},
+          A_label: 'grep only', B_label: 'harness on',
+        },
+        with_online_vs_without: {
+          A: {persona: true,  grep: true,  rag: true,  tools: true,  online: false},
+          B: {persona: true,  grep: true,  rag: true,  tools: true,  online: true},
+          A_label: 'no online', B_label: 'with online',
+        },
+      };
+      const p = presets[name]; if (!p) return;
+      for (const v of VARIANTS) {
+        for (const layer of LAYERS) {
+          const el = document.getElementById(v + '-' + layer);
+          if (el) el.checked = !!p[v][layer];
+        }
+        document.getElementById(v + '-preset').textContent = p[v + '_label'];
+        document.getElementById(v + '-label').textContent = p[v + '_label'];
+      }
+      renderToggleChips('A'); renderToggleChips('B');
+    }
+    function readToggles(variant) {
       const t = {};
-      ['persona','grep','rag','tools'].forEach(function(k){
+      LAYERS.forEach(k => {
         const el = document.getElementById(variant + '-' + k);
         if (el) t[k] = !!el.checked;
       });
       return t;
     }
-    function renderToggleChips(variant){
+    function renderToggleChips(variant) {
       const t = readToggles(variant);
-      const labels = {persona:'Persona', grep:'GREP', rag:'RAG', tools:'Tools'};
       const host = document.getElementById(variant + '-toggles');
       if (!host) return;
-      host.innerHTML = Object.keys(labels).map(function(k){
-        return '<span class="toggle' + (t[k] ? ' on' : '') + '">' + labels[k] + '</span>';
-      }).join(' ');
-    }
-    function escapeHtml(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
-
-    async function sendOne(variant, prompt){
-      const toggles = readToggles(variant);
-      const t0 = performance.now();
-      const r = await fetch('/api/chat/send', {
-        method: 'POST',
-        headers: {'Content-Type':'application/json'},
-        body: JSON.stringify({
-          messages: [{role:'user', content:[{type:'text', text: prompt}]}],
-          toggles: toggles,
-          generation: {max_new_tokens: 512}
-        })
+      while (host.firstChild) host.removeChild(host.firstChild);
+      LAYERS.forEach((k, i) => {
+        if (i > 0) host.appendChild(document.createTextNode(' '));
+        const span = document.createElement('span');
+        span.className = 'toggle' + (t[k] ? ' on' : '');
+        span.id = variant + '-chip-' + k;
+        span.textContent = k.charAt(0).toUpperCase() + k.slice(1);
+        host.appendChild(span);
       });
-      const dt = Math.round(performance.now() - t0);
-      let body;
-      try { body = await r.json(); } catch (e) { body = {error: 'non-JSON response'}; }
-      return {ok: r.ok, status: r.status, dt: dt, body: body};
+    }
+    function escapeHtml(s) {
+      return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
     }
 
-    async function cmpRun(){
+    // ============== Live log ==============
+    function logEvent(variant, kind, msg, detail) {
+      const host = document.getElementById('cmp-log');
+      // Clear the idle placeholder on first event
+      const first = host.firstChild;
+      if (first && first.classList && first.classList.contains('wb-muted')) {
+        while (host.firstChild) host.removeChild(host.firstChild);
+      }
+      const ts = new Date().toISOString().slice(11, 19);
+      const div = document.createElement('div');
+      div.className = 'ev';
+      const vClass = variant === 'A' ? 'va' : (variant === 'B' ? 'vb' : 'step');
+      const vLabel = variant ? '[' + variant + '] ' : '[--] ';
+      const kindClass = (kind === 'err' ? 'err' : (kind === 'ok' ? 'ok' : 'step'));
+      // Build via DOM nodes -- no innerHTML, no XSS surface even if msg
+      // contains markup (it shouldn't, but defence-in-depth).
+      const tsSpan = document.createElement('span');
+      tsSpan.className = 'ts'; tsSpan.textContent = '[' + ts + ']';
+      const vSpan = document.createElement('span');
+      vSpan.className = vClass; vSpan.textContent = ' ' + vLabel;
+      const mSpan = document.createElement('span');
+      mSpan.className = kindClass; mSpan.textContent = String(msg || '');
+      div.appendChild(tsSpan);
+      div.appendChild(vSpan);
+      div.appendChild(mSpan);
+      if (detail) {
+        const d = document.createElement('div');
+        d.style.cssText = 'margin-left: 26px; color:#8A8E97; font-size: 10.5px;';
+        d.textContent = String(detail).slice(0, 400);
+        div.appendChild(d);
+      }
+      host.appendChild(div);
+      host.scrollTop = host.scrollHeight;
+    }
+    function setVariantProgress(variant, state, text) {
+      const dot = document.getElementById(variant + '-dot');
+      if (dot) dot.className = 'dot ' + (state || '');
+      const txt = document.getElementById(variant + '-progress-text');
+      if (txt) txt.textContent = text || 'idle';
+    }
+    function markLayerFired(variant, layer, fired) {
+      const chip = document.getElementById(variant + '-chip-' + layer);
+      if (!chip) return;
+      chip.classList.remove('fired', 'skipped');
+      if (fired === true) chip.classList.add('fired');
+      else if (fired === false) chip.classList.add('skipped');
+    }
+
+    // ============== SSE-streamed run ==============
+    async function runOne(variant, prompt) {
+      const toggles = readToggles(variant);
+      const onLayers = Object.keys(toggles).filter(k => toggles[k]);
+      logEvent(variant, 'info',
+        'POST /api/chat/send  layers_on=[' + (onLayers.join(',') || 'none') + ']');
+      setVariantProgress(variant, 'run', 'connecting...');
+      const t0 = performance.now();
+      let r;
+      try {
+        r = await fetch('/api/chat/send', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({
+            messages: [{role: 'user', content: [{type: 'text', text: prompt}]}],
+            toggles: toggles,
+            generation: {max_new_tokens: 768},
+          }),
+        });
+      } catch (e) {
+        logEvent(variant, 'err', 'network error: ' + e);
+        setVariantProgress(variant, 'err', 'network failed');
+        return {ok: false, error: String(e)};
+      }
+      if (!r.ok) {
+        const body = await r.text();
+        logEvent(variant, 'err', 'HTTP ' + r.status, body.slice(0, 300));
+        setVariantProgress(variant, 'err', 'HTTP ' + r.status);
+        return {ok: false, status: r.status, body: body};
+      }
+      const reader = r.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+      let final = null;
+      while (true) {
+        const {value, done} = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, {stream: true});
+        // SSE frames are separated by \n\n
+        const frames = buffer.split('\n\n');
+        buffer = frames.pop() || '';
+        for (const frame of frames) {
+          // Each frame can have several "data: ..." lines plus comments
+          const line = frame.split('\n').find(l => l.startsWith('data: '));
+          if (!line) continue;
+          let evt;
+          try { evt = JSON.parse(line.substring(6)); }
+          catch (e) { continue; }
+          handleEvent(variant, evt);
+          if (evt.type === 'complete') final = evt;
+          if (evt.type === 'error') {
+            logEvent(variant, 'err', 'error: ' + (evt.error || 'unknown'));
+            setVariantProgress(variant, 'err', 'failed');
+            return {ok: false, error: evt.error};
+          }
+        }
+      }
+      const dt = Math.round(performance.now() - t0);
+      setVariantProgress(variant, 'done', 'complete in ' + dt + ' ms');
+      logEvent(variant, 'ok',
+        'complete (' + dt + ' ms wall, '
+        + (final && final.response ? final.response.length : 0) + ' chars)');
+      return {ok: true, dt: dt, final: final, prompt: prompt};
+    }
+    function handleEvent(variant, evt) {
+      if (evt.type === 'step_start') {
+        logEvent(variant, 'info', 'step ' + evt.step + ' starting');
+        setVariantProgress(variant, 'run', evt.step);
+      } else if (evt.type === 'step_done') {
+        const fired = !!evt.fired;
+        const wired = evt.wired !== false;
+        if (evt.step && LAYERS.indexOf(evt.step) >= 0) {
+          markLayerFired(variant, evt.step, fired);
+        }
+        let label = 'step ' + evt.step
+          + ' ' + (fired ? 'FIRED' : (wired ? 'no-fire' : 'not wired'))
+          + ' (' + (evt.elapsed_ms || 0) + ' ms)';
+        let detail = '';
+        if (evt.step === 'grep' && evt.hits != null) {
+          detail = 'hits=' + evt.hits + (evt.rule_ids ? ' rules=' + evt.rule_ids.join(',') : '');
+        } else if (evt.step === 'rag' && evt.docs != null) {
+          detail = 'docs=' + evt.docs;
+        } else if (evt.step === 'tools' && evt.calls != null) {
+          detail = 'tool_calls=' + JSON.stringify(evt.calls).slice(0, 160);
+        } else if (evt.step === 'online' && evt.providers) {
+          detail = 'providers=' + (Array.isArray(evt.providers) ? evt.providers.join(',') : evt.providers);
+        } else if (evt.summary) {
+          detail = String(evt.summary);
+        }
+        logEvent(variant, fired ? 'ok' : 'info', label, detail);
+      } else if (evt.type === 'complete') {
+        renderResponse(variant, evt.response || '', evt);
+      }
+    }
+    function renderResponse(variant, text, evt) {
+      const respEl = document.getElementById(variant + '-response');
+      const metaEl = document.getElementById(variant + '-meta');
+      respEl.className = 'response';
+      respEl.textContent = text || '(empty response)';
+      const meta = [];
+      meta.push((evt.elapsed_ms || 0) + ' ms (model)');
+      if (evt.harness_trace && typeof evt.harness_trace === 'object') {
+        const fired = Object.keys(evt.harness_trace).filter(k =>
+          evt.harness_trace[k] && evt.harness_trace[k].fired
+        );
+        meta.push('layers fired: ' + (fired.join(', ') || 'none'));
+      }
+      meta.push((text || '').length + ' chars');
+      metaEl.textContent = meta.join(' | ');
+    }
+
+    // ============== Top-level orchestration ==============
+    async function cmpRun() {
       const prompt = (document.getElementById('cmp-prompt').value || '').trim();
       const status = document.getElementById('cmp-status');
       const err = document.getElementById('cmp-error');
       err.style.display = 'none'; err.textContent = '';
-      if (!prompt) { status.textContent = 'Type a prompt or pick an example first.'; return; }
+      if (!prompt) {
+        status.textContent = 'Type a prompt or pick an example first.';
+        return;
+      }
       try { localStorage.setItem('duecare:last-chat-prompt', prompt); } catch (e) {}
       renderToggleChips('A'); renderToggleChips('B');
-      const btn = document.getElementById('cmp-run');
-      btn.disabled = true; const origTxt = btn.textContent; btn.textContent = 'Running both variants...';
-      status.textContent = 'POST /api/chat/send x 2 ...';
-      ['A','B'].forEach(function(v){
-        const e = document.getElementById(v + '-response');
-        e.className = 'response empty'; e.textContent = '(running...)';
+      const logHost = document.getElementById('cmp-log');
+      while (logHost.firstChild) logHost.removeChild(logHost.firstChild);
+      document.getElementById('grade-card').style.display = 'none';
+      logEvent(null, 'info', 'starting comparison; runs are SEQUENTIAL (single shared Gemma)');
+      for (const v of VARIANTS) {
+        const r = document.getElementById(v + '-response');
+        r.className = 'response empty'; r.textContent = '(queued...)';
         document.getElementById(v + '-meta').textContent = '';
-      });
+        setVariantProgress(v, '', 'queued');
+        // Reset chip "fired" badges from any prior run
+        LAYERS.forEach(L => markLayerFired(v, L, null));
+      }
+      const btn = document.getElementById('cmp-run');
+      btn.disabled = true; const origTxt = btn.textContent;
+      btn.textContent = 'Running...';
+      status.textContent = 'Running Variant A, then Variant B...';
+      window._cmpResults = {A: null, B: null, prompt: prompt};
       try {
-        const [resA, resB] = await Promise.all([sendOne('A', prompt), sendOne('B', prompt)]);
-        renderOne('A', resA);
-        renderOne('B', resB);
-        status.textContent = 'Done. A: ' + (resA.ok?'OK':'HTTP '+resA.status) + ' in ' + resA.dt + 'ms | B: ' + (resB.ok?'OK':'HTTP '+resB.status) + ' in ' + resB.dt + 'ms';
+        document.getElementById('A-response').textContent = '(running...)';
+        const resA = await runOne('A', prompt);
+        window._cmpResults.A = resA;
+        document.getElementById('B-response').textContent = '(running...)';
+        const resB = await runOne('B', prompt);
+        window._cmpResults.B = resB;
+        const sa = resA.ok ? ('OK ' + resA.dt + 'ms') : 'failed';
+        const sb = resB.ok ? ('OK ' + resB.dt + 'ms') : 'failed';
+        status.textContent = 'Done. A: ' + sa + '  |  B: ' + sb;
+        logEvent(null, 'ok', 'comparison complete: A=' + sa + ', B=' + sb);
+        if (resA.ok && resB.ok) {
+          document.getElementById('grade-card').style.display = 'block';
+        }
       } catch (e) {
         err.style.display = 'block';
         err.textContent = 'Comparison failed: ' + String(e).slice(0, 300);
         status.textContent = '';
+        logEvent(null, 'err', 'exception: ' + e);
       } finally {
         btn.disabled = false; btn.textContent = origTxt;
       }
     }
 
-    function renderOne(variant, res){
-      const respEl = document.getElementById(variant + '-response');
-      const metaEl = document.getElementById(variant + '-meta');
-      if (!res.ok) {
-        respEl.className = 'response';
-        respEl.innerHTML = '<div style="color:oklch(0.50 0.18 25);">HTTP ' + res.status + '</div><pre style="margin-top:6px; white-space:pre-wrap; font-size:11.5px;">' + escapeHtml(JSON.stringify(res.body, null, 2)) + '</pre>';
-        metaEl.textContent = res.dt + ' ms';
+    // ============== Grade panel ==============
+    async function cmpGrade() {
+      const mode = document.getElementById('grade-mode').value;
+      const status = document.getElementById('grade-status');
+      const btn = document.getElementById('grade-btn');
+      const r = window._cmpResults;
+      if (!r || !r.A || !r.B || !r.A.ok || !r.B.ok) {
+        status.textContent = 'Run both variants first.';
         return;
       }
-      const body = res.body || {};
-      const text = body.response_text || body.text || body.message || (body.choices && body.choices[0] && body.choices[0].message && body.choices[0].message.content) || JSON.stringify(body);
-      respEl.className = 'response';
-      respEl.textContent = text;
-      const meta = [];
-      meta.push(res.dt + ' ms');
-      if (body.layers_fired && Array.isArray(body.layers_fired)) meta.push('layers: ' + body.layers_fired.join(', '));
-      if (body.grep_hits != null) meta.push('grep hits: ' + body.grep_hits);
-      if (body.rag_docs != null) meta.push('rag docs: ' + body.rag_docs);
-      if (body.tokens_out != null) meta.push(body.tokens_out + ' tokens');
-      metaEl.textContent = meta.join(' | ');
+      btn.disabled = true; const origTxt = btn.textContent;
+      btn.textContent = 'Grading...';
+      const endpoints = {
+        deterministic: '/api/grade',
+        deep: '/api/grade-deep',
+        combined: '/api/grade-combined',
+      };
+      const endpoint = endpoints[mode] || '/api/grade';
+      status.textContent = 'POST ' + endpoint + ' x 2 ...';
+      logEvent(null, 'info', 'grading mode=' + mode + ' endpoint=' + endpoint);
+      function bodyFor(res) {
+        const body = {
+          response_text: (res.final && res.final.response) || '',
+          prompt_text: r.prompt,
+        };
+        if (mode === 'deterministic') body.mode = 'universal';
+        return body;
+      }
+      try {
+        const [gA, gB] = await Promise.all([
+          fetch(endpoint, {
+            method: 'POST', headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(bodyFor(r.A)),
+          }).then(async x => {
+            if (!x.ok) return {error: 'HTTP ' + x.status, body: await x.text()};
+            return x.json();
+          }),
+          fetch(endpoint, {
+            method: 'POST', headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(bodyFor(r.B)),
+          }).then(async x => {
+            if (!x.ok) return {error: 'HTTP ' + x.status, body: await x.text()};
+            return x.json();
+          }),
+        ]);
+        document.getElementById('A-grade').textContent = JSON.stringify(gA, null, 2);
+        document.getElementById('B-grade').textContent = JSON.stringify(gB, null, 2);
+        document.getElementById('A-grade-score').textContent = scoreLabel(gA);
+        document.getElementById('B-grade-score').textContent = scoreLabel(gB);
+        status.textContent = 'A=' + scoreLabel(gA) + '  |  B=' + scoreLabel(gB);
+        logEvent(null, 'ok', 'grade  A=' + scoreLabel(gA) + '  B=' + scoreLabel(gB));
+      } catch (e) {
+        status.textContent = 'grade failed: ' + e;
+        logEvent(null, 'err', 'grade exception: ' + e);
+      } finally {
+        btn.disabled = false; btn.textContent = origTxt;
+      }
+    }
+    function scoreLabel(g) {
+      if (!g || typeof g !== 'object') return '?';
+      if (g.error) return 'err';
+      if (g.pct_score != null) return Math.round(g.pct_score) + '%';
+      if (g.percent != null) return Math.round(g.percent) + '%';
+      if (g.score != null) return String(g.score);
+      if (g.combined && g.combined.pct_score != null) return Math.round(g.combined.pct_score) + '% (blend)';
+      return '?';
     }
 
-    document.addEventListener('DOMContentLoaded', function(){
+    // ============== Initial render ==============
+    document.addEventListener('DOMContentLoaded', function () {
       renderToggleChips('A'); renderToggleChips('B');
       const params = new URLSearchParams(window.location.search);
       const fromQuery = params.get('prompt');
+      const input = document.getElementById('cmp-prompt');
       if (fromQuery) {
-        document.getElementById('cmp-prompt').value = fromQuery;
+        input.value = fromQuery;
+        input.dispatchEvent(new Event('input', {bubbles: true}));
       } else {
         try {
           const last = localStorage.getItem('duecare:last-chat-prompt');
-          if (last) document.getElementById('cmp-prompt').value = last;
+          if (last) {
+            input.value = last;
+            input.dispatchEvent(new Event('input', {bubbles: true}));
+          }
         } catch (e) {}
       }
     });
