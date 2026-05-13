@@ -125,4 +125,19 @@ def register_routes(app: Any) -> None:
                     envelope["extensions"]["gemma_parse_failed"] = True
         except Exception as e:
             envelope["extensions"]["gemma_error"] = str(e)[:200]
+        try:
+            from .._training_log import log_interaction as _log
+            _log(
+                "extraction",
+                input_payload={"raw_text": raw_text, "target_type": target_type},
+                output_payload=envelope,
+                applied_layers=envelope.get("extensions", {}).get("applied_layers", {}),
+                trace={
+                    "gemma_drafted": envelope.get("extensions", {}).get("gemma_drafted", False),
+                    "parse_failed": envelope.get("extensions", {}).get("gemma_parse_failed", False),
+                },
+                anonymize=not anonymize,
+            )
+        except Exception:
+            pass
         return JSONResponse({"envelope": envelope})

@@ -159,6 +159,24 @@ def register_routes(app: Any) -> None:
             "results": results,
         }
         app.state.last_process_bundle = bundle
+        try:
+            from .._training_log import log_interaction as _log
+            _summary = bundle.get("summary") or {}
+            _log(
+                "process",
+                input_payload={"filename": filename, "n_rows": len(rows)},
+                output_payload={
+                    "run_id": bundle.get("run_id"),
+                    "n_processed": _summary.get("n_rows_processed", 0),
+                    "top_grep": _summary.get("top_grep", []),
+                    "entity_totals": _summary.get("entity_totals", {}),
+                },
+                applied_layers={"grep": {"fired": _summary.get("n_grep_rules_fired", 0) > 0}},
+                trace={"top_statutes": _summary.get("top_statutes", [])},
+                extra={"kind": "batch"},
+            )
+        except Exception:
+            pass
         return JSONResponse(bundle)
 
     @app.post("/api/process/graph-chat")
@@ -235,6 +253,18 @@ def register_routes(app: Any) -> None:
         cited_rows = cited_rows[:20]
 
         summary = bundle.get("summary") or {}
+        try:
+            from .._training_log import log_interaction as _log
+            _log(
+                "process",
+                input_payload={"question": question, "bundle_run_id": bundle.get("run_id")},
+                output_payload=response_text,
+                applied_layers=layer_out["trace"],
+                trace={"cited_rows": cited_rows, "grep_hits": summary.get("n_grep_rules_fired", 0)},
+                extra={"kind": "graph_chat"},
+            )
+        except Exception:
+            pass
         return JSONResponse({
             "answer": response_text,
             "bundle_present": True,
