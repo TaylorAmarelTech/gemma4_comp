@@ -1062,6 +1062,74 @@ def create_app(*, data_dir: Path | None = None) -> FastAPI:
     async def list_knowledge_packs() -> list[KnowledgePackSummary]:
         return _knowledge_packs()
 
+    @application.get(
+        "/api/hub/knowledge/download",
+        tags=["knowledge-packs"],
+        summary="Download anonymized knowledge bundle (ZIP)",
+    )
+    async def hub_knowledge_download(vetted: bool = True) -> Response:
+        """Stream a ZIP of public KnowledgeObject envelopes.
+
+        With ``vetted=true`` (default) only curator-approved packs are
+        included. With ``vetted=false`` proposed / needs_review packs
+        are included too, each entry carrying a ``status`` field so the
+        recipient can distinguish. All entries are pre-anonymized at
+        ingest; the hub stores no raw worker identifiers.
+        """
+        import io as _io, zipfile as _zipfile, json as _json
+        from datetime import datetime as _dt
+        packs = _knowledge_packs()
+        if vetted:
+            packs = [p for p in packs if p.status == "live"]
+        buf = _io.BytesIO()
+        with _zipfile.ZipFile(buf, "w", _zipfile.ZIP_DEFLATED) as zf:
+            for p in packs:
+                envelope = {
+                    "schema_version": "1.0",
+                    "knowledge_object_type": "knowledge_pack_summary",
+                    "id": p.id,
+                    "version": p.version,
+                    "provenance": {
+                        "created_by": "duecare-ai.com hub",
+                        "served_at": _dt.utcnow().strftime("%Y-%m-%dT%H-%M-%SZ"),
+                        "vetted": p.status == "live",
+                        "status": p.status,
+                    },
+                    "content": {
+                        "title": p.title,
+                        "kind": p.kind,
+                        "description": p.description,
+                        "update_channel": p.update_channel,
+                    },
+                    "tags": [],
+                    "extensions": {},
+                }
+                zf.writestr(f"{p.kind}/{p.id}.json",
+                              _json.dumps(envelope, indent=2, sort_keys=True))
+            manifest = {
+                "schema_version": "1.0",
+                "exported_at": _dt.utcnow().strftime("%Y-%m-%dT%H-%M-%SZ"),
+                "exporter": "duecare-ai.com/api/hub/knowledge/download",
+                "vetted_only": bool(vetted),
+                "n_entries": len(packs),
+                "anonymization_invariant": (
+                    "All entries are pre-anonymized at ingest. The hub "
+                    "stores no raw worker identifiers; PII would have "
+                    "been rejected at the schema boundary before any pack "
+                    "reached this download."
+                ),
+            }
+            zf.writestr("manifest.json", _json.dumps(manifest, indent=2))
+        buf.seek(0)
+        fname = ("duecare_knowledge_vetted.zip" if vetted
+                  else "duecare_knowledge_all.zip")
+        return Response(
+            content=buf.read(),
+            media_type="application/zip",
+            headers={"Content-Disposition": f'attachment; filename="{fname}"'},
+        )
+
+
     # ---- Pack registry (real downloadable content) ---------------------
 
     @application.get("/api/hub/packs", tags=["knowledge-packs"])

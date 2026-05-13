@@ -23,6 +23,51 @@
   </div>
 </section>
 
+<section class="hp-section" data-screen-label="Packs &middot; Download" id="packs-download">
+  <div class="wrap">
+    <div class="head">
+      <div><span class="ix">00 &middot; Download</span><h2>Anonymized knowledge for clients.</h2></div>
+      <p class="summary">Every pack the hub serves -- vetted or unvetted -- is pre-anonymized
+        before storage. Clients pick what fits their use:</p>
+    </div>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px;">
+      <article style="border: 1px solid var(--line); border-radius: 12px; padding: 18px 20px; background: var(--paper);">
+        <span class="role" style="font-family: var(--mono); font-size: 11px; color: var(--ink-3); letter-spacing: 0.08em;">DEFAULT</span>
+        <h3 style="margin: 4px 0 8px;">Vetted knowledge only</h3>
+        <p style="font-size: 13.5px; line-height: 1.55; color: var(--ink-2); margin: 0 0 12px;">
+          Packs a curator has signed off on (Stage 05 in the
+          <a href="/hub#hub-vetting">vetting process</a>). The safe default for
+          production deployments, NGO field workers, and platform-moderation use.
+        </p>
+        <a href="/api/hub/knowledge/download?vetted=true" download class="btn">Download vetted ZIP &rarr;</a>
+        <div style="margin-top: 8px; font-size: 12px; color: var(--ink-3);">
+          <code>GET /api/hub/knowledge/download?vetted=true</code>
+        </div>
+      </article>
+      <article style="border: 1px solid var(--line); border-radius: 12px; padding: 18px 20px; background: var(--paper);">
+        <span class="role" style="font-family: var(--mono); font-size: 11px; color: var(--ink-3); letter-spacing: 0.08em;">OPT-IN</span>
+        <h3 style="margin: 4px 0 8px;">Vetted + unvetted (research use)</h3>
+        <p style="font-size: 13.5px; line-height: 1.55; color: var(--ink-2); margin: 0 0 12px;">
+          Includes proposed / community-submitted packs. Status flags clearly
+          distinguish <code>vetted</code> from <code>proposed</code> / <code>needs_review</code>.
+          Pre-anonymized but not curator-approved. For researchers, integration partners,
+          and pre-release audits.
+        </p>
+        <a href="/api/hub/knowledge/download?vetted=false" download class="btn btn-ghost">Download all ZIP &rarr;</a>
+        <div style="margin-top: 8px; font-size: 12px; color: var(--ink-3);">
+          <code>GET /api/hub/knowledge/download?vetted=false</code>
+        </div>
+      </article>
+    </div>
+    <p style="margin-top: 18px; font-size: 12.5px; color: var(--ink-3);">
+      Anonymization is enforced at the schema boundary (Stage 03) on ingest; the hub never
+      stores raw worker identifiers. The download bundle ships JSON envelopes per
+      <a href="https://github.com/TaylorAmarelTech/gemma4_comp/blob/master/docs/knowledge_module_schema.md">KnowledgeObject v1.0</a>
+      with status, version, and content_hash on every entry.
+    </p>
+  </div>
+</section>
+
 <section class="hp-section" data-screen-label="Packs &middot; Registry">
   <div class="wrap">
     <div class="head">

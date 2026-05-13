@@ -293,11 +293,80 @@
     <div style="border: 1px solid var(--line); border-radius: 14px; background: var(--paper-2); padding: 24px 28px; margin-top: 24px;">
       <span class="label" style="display:block;margin-bottom:10px;">One-line glossary</span>
       <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 18px; font-size: 14px; line-height: 1.55; color: var(--ink-2);">
-        <div><strong>Knowledge pack</strong>: the artifact. A versioned, downloadable bundle the hub serves.</div>
+        <div><strong>KnowledgeObject</strong>: the canonical envelope (v1.0). Every reusable artefact ships in this shape.
+          <a href="https://github.com/TaylorAmarelTech/gemma4_comp/blob/master/docs/knowledge_module_schema.md" style="color: var(--accent-ink);">Spec &rarr;</a></div>
+        <div><strong>Knowledge pack</strong>: a versioned, downloadable bundle of KnowledgeObjects the hub serves.</div>
         <div><strong>Corridor pack</strong>: a knowledge pack scoped to one migration corridor (e.g. PHL-KWT).</div>
         <div><strong>Context pack</strong>: a knowledge pack when retrieval is loading it into a model prompt.</div>
-        <div><strong>Vetted pack</strong>: any knowledge pack a curator has approved. The default for client pulls.</div>
+        <div><strong>Vetted pack</strong>: a knowledge pack a curator has approved (see &sect; Vetting). Default for client pulls.</div>
+        <div><strong>Unvetted pack</strong>: a proposed or community-submitted pack. Pre-anonymized; downloadable with disclaimers.</div>
       </div>
+      <div style="margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--line); font-size: 13.5px; line-height: 1.55; color: var(--ink-2);">
+        <div style="font-weight: 600; color: var(--ink); margin-bottom: 6px;">KnowledgeObject taxonomy &mdash; 6 branches, 21 leaves</div>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 10px;">
+          <div><b>matching_knowledge</b> <span style="color: var(--ink-3);">grep_rule, glob_rule, classifier_rule, heuristic_rule</span></div>
+          <div><b>grounding_knowledge</b> <span style="color: var(--ink-3);">rag_doc, citation_edge, corridor_profile, ngo_directory</span></div>
+          <div><b>reasoning_knowledge</b> <span style="color: var(--ink-3);">persona_block, context_snippet, reasoning_step, rubric_dimension</span></div>
+          <div><b>tool_knowledge</b> <span style="color: var(--ink-3);">tool_definition, tool_example, tool_chain</span></div>
+          <div><b>input_knowledge</b> <span style="color: var(--ink-3);">fact_template, upload_schema, prompt_template</span></div>
+          <div><b>output_knowledge</b> <span style="color: var(--ink-3);">envelope_schema, audit_template, submission_schema</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============== Vetting process ============== -->
+<section id="hub-vetting" class="hub-section" data-screen-label="Hub &middot; Vetting process">
+  <div class="wrap">
+    <div class="head">
+      <div>
+        <span class="ix">01a &middot; Vetting process</span>
+        <h2>From proposal to vetted release. Manual today; auditable end-to-end.</h2>
+      </div>
+      <p class="summary">Every knowledge pack moves through five stages before clients pull it as
+        <i>vetted</i>. Unvetted (proposed / community-submitted) packs remain downloadable for
+        researchers and integration partners who explicitly opt in &mdash; pre-anonymized, with
+        clear status flags so a recipient never confuses a community draft with a curator-approved
+        release.</p>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin-top: 8px;">
+      <article style="border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px; background: var(--paper);">
+        <span class="role" style="font-family: var(--mono); font-size: 11px; color: var(--ink-3); letter-spacing: 0.08em;">STAGE 01 &middot; Proposed</span>
+        <h3 style="margin: 6px 0;">Submission lands</h3>
+        <p style="font-size: 13.5px; line-height: 1.5; color: var(--ink-2); margin: 0;">A kernel client (<code>POST /api/submit/knowledge</code>) or a curator opens a proposal. PII is regex-redacted client-side; the hub re-runs the same redactor server-side before write.</p>
+      </article>
+      <article style="border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px; background: var(--paper);">
+        <span class="role" style="font-family: var(--mono); font-size: 11px; color: var(--ink-3); letter-spacing: 0.08em;">STAGE 02 &middot; Schema check</span>
+        <h3 style="margin: 6px 0;">Envelope validated</h3>
+        <p style="font-size: 13.5px; line-height: 1.5; color: var(--ink-2); margin: 0;">Automated: each KnowledgeObject must validate (<code>schema_version: "1.0"</code>, recognized <code>knowledge_object_type</code>, kebab-case <code>id</code>, well-formed <code>content</code>). Failures bounce with reasons.</p>
+      </article>
+      <article style="border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px; background: var(--paper);">
+        <span class="role" style="font-family: var(--mono); font-size: 11px; color: var(--ink-3); letter-spacing: 0.08em;">STAGE 03 &middot; PII scan</span>
+        <h3 style="margin: 6px 0;">Hard gate</h3>
+        <p style="font-size: 13.5px; line-height: 1.5; color: var(--ink-2); margin: 0;">Server-side regex + entity pass for PERSON / EMAIL / PHONE / AMOUNT / ID / EMPLOYER. Any detection blocks the proposal until the submitter re-anonymizes; the audit log records a sha256 of the offending fragment, never the raw value.</p>
+      </article>
+      <article style="border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px; background: var(--paper);">
+        <span class="role" style="font-family: var(--mono); font-size: 11px; color: var(--ink-3); letter-spacing: 0.08em;">STAGE 04 &middot; Curator review</span>
+        <h3 style="margin: 6px 0;">Manual today</h3>
+        <p style="font-size: 13.5px; line-height: 1.5; color: var(--ink-2); margin: 0;">A curator reads the proposal end-to-end, checks citations, verifies corridor scope, and either accepts, requests changes, or rejects with a reason. Decisions are recorded as JSONL entries with curator key + timestamp + decision.</p>
+      </article>
+      <article style="border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px; background: var(--paper);">
+        <span class="role" style="font-family: var(--mono); font-size: 11px; color: var(--ink-3); letter-spacing: 0.08em;">STAGE 05 &middot; Vetted release</span>
+        <h3 style="margin: 6px 0;">Signed + published</h3>
+        <p style="font-size: 13.5px; line-height: 1.5; color: var(--ink-2); margin: 0;">Curator signs the content hash. The pack is published with status <code>vetted</code>. Default client pulls from <code>/api/hub/knowledge/download</code> serve only vetted entries; clients can opt in to unvetted with <code>?vetted=false</code> for research / integration.</p>
+      </article>
+    </div>
+
+    <div style="margin-top: 22px; padding: 16px 18px; border: 1px solid var(--line); border-radius: 12px; background: var(--paper-2); font-size: 13.5px; line-height: 1.55; color: var(--ink-2);">
+      <div style="font-weight: 600; color: var(--ink); margin-bottom: 6px;">Why explain a manual process</div>
+      <p style="margin: 0 0 8px;">Vetting is human-driven today and we say so publicly. An NGO caseworker or
+      compliance reviewer should know exactly which stage their submission is at, who the curators
+      are, and how to reproduce a decision. Automating Stage 04 with model-assisted review is the
+      planned upgrade; nothing about the policy changes &mdash; only the cycle time.</p>
+      <p style="margin: 0;">Anonymized aggregate signals (Stage 01 &amp; 02 outputs) flow into <a href="/stats">/stats</a>
+      so researchers can observe what the system sees without ever touching raw cases.</p>
     </div>
   </div>
 </section>
