@@ -107,9 +107,12 @@ test.describe('UI bug regressions (2026-05-12 batch)', () => {
     await page.waitForLoadState('networkidle');
     const overlay = page.locator('#modal-overlay');
     await expect(overlay).toHaveClass(/active/, { timeout: 8_000 });
-    // The chrome nav should also surface the deep-link as a utility.
-    const navLink = page.locator('a[href="/#compare"]').first();
-    await expect(navLink).toBeVisible();
+    // The page-local toolbar Compare button is the canonical entry
+    // point (chrome banner was stripped to model status + Shutdown +
+    // duecare-ai.com link only, per Taylor's "no website pages in the
+    // kernel" feedback 2026-05-12).
+    const compareBtn = page.locator('#compare-btn');
+    await expect(compareBtn).toBeVisible();
   });
 
   test('Hash deep-link: closing the compare modal clears #compare from URL', async ({ page }) => {

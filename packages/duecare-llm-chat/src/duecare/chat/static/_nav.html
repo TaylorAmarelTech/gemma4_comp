@@ -1,21 +1,25 @@
 <!--
-  DueCare Exploration Workbench — shared top chrome.
+  DueCare workbench — single pinned status banner.
 
-  Three layers, top to bottom:
-    1. Status strip — model name, package version, GPU/state, shutdown.
-       Persistent system info; not navigation.
-    2. Nav bar — brand (links home/playground) + 5 audience tabs +
-       right-aligned Tools utility link. Mirrors the duecare-ai.com
-       single-row nav pattern.
-    3. (Page content renders below this partial.)
+  This partial is intentionally minimal: one horizontal strip at the
+  very top with model state, version, GPU info, a Shutdown button,
+  and a deep-link out to duecare-ai.com. The kernel is NOT a
+  recreation of the public website, so we don't surface the 5
+  audience lane pages from here — those live at duecare-ai.com and
+  reviewers reach them via the link.
+
+  Earlier versions of this file rendered a second navigation row
+  with 5 audience tabs (Platform safety / NGO & regulator /
+  Individual worker / Researcher / Developer). Removed 2026-05-12
+  per Taylor's feedback: that row duplicated the website and
+  produced the "two horizontal nav bars" bug stacked with
+  index.html's page-local toolbar.
 
   How it loads:
     Each viewer page includes <script src="/static/_nav.js" defer></script>
     which fetches this partial and inserts it as the first child of
-    <body>. The active nav link is determined by <body data-nav="<key>">.
-    The status strip auto-populates from /api/model-info + /api/version.
-
-  Source-of-truth pattern: matches apps/duecare-ai.com/app/templates/_nav.html
+    <body>. The status strip auto-populates from /api/model-info +
+    /api/version on a light 8-second poll.
 -->
 <div class="dc-wb-shell">
 
@@ -37,6 +41,13 @@
         <span class="dc-wb-status-label">GPU</span>
         <span class="dc-wb-status-value" id="dc-wb-status-gpu">—</span>
       </span>
+      <a href="https://duecare-ai.com"
+         target="_blank"
+         rel="noopener"
+         class="dc-wb-status-item dc-wb-status-website"
+         title="Open the public DueCare hub at duecare-ai.com">
+        duecare-ai.com <span aria-hidden="true">↗</span>
+      </a>
       <button type="button" class="dc-wb-status-shutdown"
               id="dc-wb-shutdown-btn"
               title="Stop the kernel and release GPU memory"
@@ -45,40 +56,6 @@
       </button>
     </div>
   </div>
-
-  <!-- Layer 2: navigation -->
-  <nav class="dc-wb-nav" aria-label="Workbench navigation">
-    <div class="dc-wb-nav-inner">
-      <a href="/" class="dc-wb-brand" aria-label="DueCare Exploration Workbench — home / playground">
-        <span class="dc-wb-brand-mark">D</span>
-        <span class="dc-wb-brand-text">
-          <span class="dc-wb-brand-name">DueCare</span>
-          <span class="dc-wb-brand-tag">Workbench</span>
-        </span>
-      </a>
-
-      <div class="dc-wb-nav-links" id="dc-wb-nav-links">
-        <a href="/static/showcase-platform.html"   data-nav-key="platform">Platform safety</a>
-        <a href="/static/showcase-ngo.html"        data-nav-key="ngo">NGO &amp; regulator</a>
-        <a href="/static/showcase-worker.html"     data-nav-key="worker">Individual worker</a>
-        <a href="/static/showcase-researcher.html" data-nav-key="researcher">Researcher</a>
-        <a href="/static/showcase-developer.html"  data-nav-key="developer">Developer</a>
-      </div>
-
-      <a href="/#compare" class="dc-wb-nav-utility"
-         data-nav-key="compare"
-         title="A/B compare: same prompt, two harness configs, side-by-side grades"
-         >A/B Compare <span aria-hidden="true">★</span></a>
-      <a href="/static/all-tools.html" class="dc-wb-nav-utility"
-         data-nav-key="tools">Tools <span aria-hidden="true">→</span></a>
-
-      <button type="button" class="dc-wb-nav-toggle"
-              aria-label="Toggle navigation"
-              onclick="document.body.classList.toggle('dc-wb-nav-open')">
-        <span aria-hidden="true">☰</span>
-      </button>
-    </div>
-  </nav>
 
 </div>
 
