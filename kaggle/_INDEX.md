@@ -110,6 +110,7 @@ rubric labels (`HARMFUL` to `BEST`) and the review labels (`WORST`, `BAD`,
 | A18b | [`A-18-sentinel-research-monitor/`](./A-18-sentinel-research-monitor/) (sentinel pack-diff monitor) | ✓ kernel | (GitHub install only) | `taylorsamarel/duecare-sentinel-research-monitor` | pending |
 | A19 | [`A-19-multilingual-demo/`](./A-19-multilingual-demo/) (5-language scenario playback) | ✓ kernel | (GitHub install only) | `taylorsamarel/duecare-multilingual-demo` | pending |
 | A20 | [`A-20-privacy-boundary/`](./A-20-privacy-boundary/) (raw-vs-redacted visualization) | ✓ kernel | (GitHub install only) | `taylorsamarel/duecare-privacy-boundary` | pending |
+| A21 | [`A-21-long-context-demo/`](./A-21-long-context-demo/) (Gemma 4 128K cross-statute reasoning) | ✓ kernel | (GitHub install only) | `taylorsamarel/duecare-a-21-long-context-demo` | pending |
 
 > **Note on slugs vs folders.** The folder name (`01-duecare-exploration-workbench/`)
 > is local organization. The Kaggle kernel slug is set by the `id` field
