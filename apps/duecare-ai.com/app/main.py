@@ -230,6 +230,40 @@ class KnowledgeSubmissionReceipt(BaseModel):
     audit_path: str
     note: str
 
+
+# ===== Phase 22-26: curator + subscriber models ======================
+
+class CuratorDecisionIn(BaseModel):
+    decision: str = Field(..., description='"accept" | "reject" | "request_changes"')
+    reason: Optional[str] = None
+    curator_key: Optional[str] = None
+
+
+class CuratorDecisionReceipt(BaseModel):
+    ok: bool
+    submission_id: str
+    item_index: int
+    decision: str
+    promoted_to_vetted: bool
+    audit_path: str
+    note: str
+
+
+class SubscriberIn(BaseModel):
+    email: str
+    topics: list[str] = Field(default_factory=list)
+    organization: Optional[str] = None
+    role: Optional[str] = None
+    consent_to_outreach: bool = True
+
+
+class SubscriberReceipt(BaseModel):
+    ok: bool
+    subscriber_id: str
+    email_sha256: str
+    n_topics: int
+    note: str
+
 class HealthStatus(BaseModel):
     """Health status for Render and external smoke checks."""
 
@@ -1156,6 +1190,149 @@ def create_app(*, data_dir: Path | None = None) -> FastAPI:
             media_type="application/zip",
             headers={"Content-Disposition": f'attachment; filename="{fname}"'},
         )
+
+    @application.get("/api/curator/queue", tags=["curator"])
+    async def curator_queue(request: Request) -> dict:
+        """Stage 04 queue. No raw content -- only metadata + sha256."""
+        import json as _json
+        state = _state(request)
+        root = state.store.root
+        items: list[dict] = []
+        decided: set[tuple[str, int]] = set()
+        dpath = root / "curator_decisions.jsonl"
+        if dpath.exists():
+            for line in dpath.read_text(encoding="utf-8").splitlines():
+                try:
+                    d = _json.loads(line)
+                    decided.add((d.get("submission_id"), int(d.get("item_index", -1))))
+                except Exception:
+                    continue
+        spath = root / "knowledge_submissions.jsonl"
+        if spath.exists():
+            for line in spath.read_text(encoding="utf-8").splitlines():
+                try:
+                    sub = _json.loads(line)
+                except Exception:
+                    continue
+                sid = sub.get("submission_id")
+                for i, a in enumerate(sub.get("accepted", [])):
+                    items.append({
+                        "submission_id": sid,
+                        "item_index": i,
+                        "type": a.get("type"),
+                        "id": a.get("id"),
+                        "content_sha256": a.get("content_sha256"),
+                        "submitted_at": sub.get("ts"),
+                        "decision": "decided" if (sid, i) in decided else "pending",
+                    })
+        return {
+            "pending": [r for r in items if r["decision"] == "pending"],
+            "decided": [r for r in items if r["decision"] == "decided"],
+            "n_pending": sum(1 for r in items if r["decision"] == "pending"),
+            "n_decided": sum(1 for r in items if r["decision"] == "decided"),
+        }
+
+    @application.post(
+        "/api/curator/decide/{submission_id}/{item_index}",
+        response_model=CuratorDecisionReceipt,
+        tags=["curator"],
+    )
+    async def curator_decide(
+        request: Request, submission_id: str, item_index: int,
+        body: CuratorDecisionIn,
+    ) -> CuratorDecisionReceipt:
+        """Stage 04 -- curator accepts / rejects / requests changes."""
+        import json as _json, hashlib as _hashlib
+        from datetime import datetime as _dt
+        if body.decision not in {"accept", "reject", "request_changes"}:
+            raise HTTPException(400, "decision must be accept|reject|request_changes")
+        state = _state(request)
+        root = state.store.root
+        ts = _dt.utcnow().strftime("%Y-%m-%dT%H-%M-%SZ")
+        key_hash = None
+        if body.curator_key:
+            key_hash = _hashlib.sha256(body.curator_key.encode()).hexdigest()[:16]
+        entry = {
+            "ts": ts,
+            "submission_id": submission_id,
+            "item_index": item_index,
+            "decision": body.decision,
+            "reason": body.reason,
+            "curator_key_sha256_prefix": key_hash,
+        }
+        dpath = root / "curator_decisions.jsonl"
+        try:
+            with open(dpath, "a", encoding="utf-8") as f:
+                f.write(_json.dumps(entry) + "\n")
+        except Exception as e:
+            raise HTTPException(500, f"decision log write failed: {e}")
+        promoted = False
+        if body.decision == "accept":
+            vpath = root / "vetted_items.jsonl"
+            try:
+                with open(vpath, "a", encoding="utf-8") as f:
+                    f.write(_json.dumps({
+                        "promoted_at": ts,
+                        "submission_id": submission_id,
+                        "item_index": item_index,
+                    }) + "\n")
+                promoted = True
+            except Exception:
+                pass
+        return CuratorDecisionReceipt(
+            ok=True, submission_id=submission_id, item_index=item_index,
+            decision=body.decision, promoted_to_vetted=promoted,
+            audit_path=str(dpath),
+            note=(
+                "Promoted to vetted." if promoted else
+                f"Decision recorded: {body.decision}."
+            ),
+        )
+
+    @application.post(
+        "/api/newsletter/subscribe",
+        response_model=SubscriberReceipt,
+        tags=["automation"],
+    )
+    async def newsletter_subscribe(request: Request, body: SubscriberIn) -> SubscriberReceipt:
+        """OpenClaw-style subscriber intake. Raw email is queued for the
+        third-party provider; only sha256 + topics + organization persist
+        on the hub per the privacy invariant.
+        """
+        import json as _json, hashlib as _hashlib, uuid as _uuid
+        from datetime import datetime as _dt
+        if "@" not in (body.email or ""):
+            raise HTTPException(400, "invalid email")
+        state = _state(request)
+        root = state.store.root
+        ts = _dt.utcnow().strftime("%Y-%m-%dT%H-%M-%SZ")
+        sid = f"sub_{_uuid.uuid4().hex[:12]}"
+        email_sha = _hashlib.sha256(body.email.encode()).hexdigest()
+        entry = {
+            "ts": ts,
+            "subscriber_id": sid,
+            "email_sha256": email_sha,
+            "topics": body.topics,
+            "organization": body.organization,
+            "role": body.role,
+            "consent_to_outreach": bool(body.consent_to_outreach),
+        }
+        spath = root / "subscribers.jsonl"
+        try:
+            with open(spath, "a", encoding="utf-8") as f:
+                f.write(_json.dumps(entry) + "\n")
+        except Exception as e:
+            raise HTTPException(500, f"subscriber log write failed: {e}")
+        return SubscriberReceipt(
+            ok=True, subscriber_id=sid, email_sha256=email_sha,
+            n_topics=len(body.topics),
+            note=(
+                "Subscription queued. The raw email is not stored on the "
+                "hub; only the sha256 + topics + organization persist for "
+                "curator outreach planning."
+            ),
+        )
+
 
     @application.post(
         "/api/submit/knowledge",
