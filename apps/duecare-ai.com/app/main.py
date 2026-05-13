@@ -1963,6 +1963,15 @@ def create_app(*, data_dir: Path | None = None) -> FastAPI:
         return Response(content=_sitemap_xml(), media_type="application/xml; charset=utf-8")
 
     
+    # Curator admin UI (Phase 13c) — token-gated wrapper for the
+    # existing /api/curator/queue + /api/curator/decide/{...} endpoints.
+    @application.get("/curator", response_class=HTMLResponse, tags=["curator"])
+    def curator_admin_page(request: Request, token: str | None = None):
+        _require_admin_access(request)
+        return templates.TemplateResponse(request, "curator.html", {
+            "token": token or "",
+        })
+
     # Sentinel: server-side scheduled queries (Phase 12)
     from . import sentinel as _sentinel
 
