@@ -1,144 +1,141 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Cross-layer search · DueCare</title>
-  <link rel="stylesheet" href="/static/_chrome.css" />
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Workbench · Search</title>
+  <link rel="stylesheet" href="/static/_chrome.css">
   <style>
-    * { box-sizing: border-box; }
-    html, body { min-height: 100vh; }
-    header { padding: 14px 24px; background: var(--paper); border-bottom: 1px solid var(--line-soft);
-              display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
-    header h1 { margin: 0; font-size: 16px; color: var(--ink); font-weight: 600; letter-spacing: -0.01em; }
-    .sub { font-size: 13px; color: var(--ink-3); flex: 1; }
-    .container { padding: 32px; max-width: 1100px; margin: 0 auto; }
-    .search-box { width: 100%; padding: 14px 18px; font-size: 16px;
-                   border: 1px solid var(--line); background: var(--paper);
-                   color: var(--ink); border-radius: 8px;
-                   font-family: var(--sans); }
-    .search-box:focus { outline: 0; border-color: var(--accent);
-                box-shadow: 0 0 0 4px oklch(0.85 0.05 195 / 0.3); }
-    .total { font-size: 12px; color: var(--ink-3); margin-top: 8px; font-family: var(--mono); }
-    .group { margin-top: 24px; background: var(--paper); border: 1px solid var(--line);
-              border-radius: 12px; padding: 22px; }
-    .group h2 { margin: 0 0 14px; font-size: 11px; text-transform: uppercase;
-                 letter-spacing: 0.08em; display: flex; align-items: center; gap: 8px;
-                 font-family: var(--mono); color: var(--ink-3); font-weight: 500; }
-    .group h2 .count { color: var(--ink-4); font-size: 11px; font-weight: 400; }
-    .group h2 a { margin-left: auto; font-size: 11px; font-weight: 400;
-                   text-decoration: none; color: var(--accent-ink); }
-    .hit { padding: 12px 0; border-bottom: 1px solid var(--line-soft); }
-    .hit:last-child { border-bottom: 0; }
-    .hit .label { font-family: var(--mono);
-                   font-size: 13px; font-weight: 600; color: var(--ink); }
-    .hit .source { font-size: 11.5px; color: var(--ink-3); margin-top: 3px; }
-    .hit .summary { font-size: 13px; color: var(--ink-2); margin-top: 5px; line-height: 1.5; }
-    .severity { display: inline-block; padding: 2px 7px; border-radius: 4px;
-                 font-size: 10px; margin-left: 6px; font-weight: 500; text-transform: uppercase;
-                 letter-spacing: 0.06em; font-family: var(--mono); }
-    .severity.critical { background: var(--ember-soft); color: oklch(0.40 0.13 45); border: 1px solid oklch(0.85 0.06 45); }
-    .severity.high     { background: oklch(0.96 0.03 80); color: oklch(0.40 0.10 80); border: 1px solid oklch(0.85 0.06 80); }
-    .severity.medium   { background: var(--accent-soft); color: var(--accent-ink); border: 1px solid oklch(0.85 0.05 195); }
-    .severity.low      { background: var(--paper-2); color: var(--ink-3); border: 1px solid var(--line); }
-    .empty { padding: 30px; text-align: center; color: var(--ink-3); font-style: italic; }
-    a.back { color: var(--ink-3); font-size: 12px; text-decoration: none; font-family: var(--mono); }
-    a.back:hover { color: var(--accent-ink); }
-    mark { background: oklch(0.94 0.08 80); color: var(--ink); padding: 0 3px; border-radius: 2px; }
-    .examples { margin-top: 12px; display: flex; gap: 6px; flex-wrap: wrap; }
-    .example { padding: 5px 12px; font-size: 12px; border: 1px solid var(--line);
-                background: var(--paper); color: var(--ink-2); border-radius: 999px; cursor: pointer; }
-    .example:hover { border-color: var(--ink-3); background: var(--paper-2); color: var(--ink); }
+    .wb-page { max-width: 1120px; margin: 24px auto 60px; padding: 0 18px;
+               color: #0E1116; font-family: Inter, system-ui, sans-serif; line-height: 1.55; }
+    .wb-h1 { font-size: 26px; font-weight: 700; margin: 0 0 8px; }
+    .wb-lede { font-size: 13.5px; color: #2A2D34; margin: 0 0 18px; max-width: 880px; }
+    .wb-card { background: #FFF; border: 1px solid #DDD8C9; border-radius: 12px;
+               padding: 16px 18px; margin-bottom: 14px; }
+    .wb-card h2 { font-size: 15px; font-weight: 600; margin: 0 0 10px; }
+    .wb-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+    .wb-btn-primary { padding: 8px 16px; background: oklch(0.52 0.08 195);
+                       color: #FFF; border: 0; border-radius: 6px;
+                       font-size: 13px; cursor: pointer; }
+    .wb-btn-primary:disabled { opacity: 0.55; cursor: not-allowed; }
+    .wb-muted { color: #5B5F68; font-size: 12px; }
+    .wb-pill { display: inline-block; padding: 1px 8px; background: #F1EFE7;
+                border-radius: 3px; font-size: 11px; color: #5B5F68;
+                font-family: 'JetBrains Mono', monospace; }
+    .wb-result { padding: 12px 14px; background: #FAF9F4; border-radius: 8px;
+                  margin-bottom: 8px; border: 1px solid #EFEDE4; }
+    .wb-result h3 { font-size: 13px; font-weight: 600; margin: 0 0 4px;
+                     color: oklch(0.32 0.07 195); }
+    .wb-result a { color: oklch(0.32 0.07 195); text-decoration: none; }
+    .wb-result .url { color: #8A8E97; font-size: 11px; word-break: break-all; }
+    .wb-result .snippet { font-size: 12.5px; margin-top: 6px; color: #2A2D34; }
+    a { color: oklch(0.32 0.07 195); }
+    label { font-size: 12.5px; }
+    select, input[type=text], input[type=number] { padding: 6px 10px;
+      border: 1px solid #DDD8C9; border-radius: 6px; font-size: 12.5px; }
   </style>
   <script src="/static/_nav.js" defer></script>
 </head>
 <body data-nav="search">
-  <header>
-    
-    <h1>Cross-layer search</h1>
-    <div class="sub">Type any term — results from persona / GREP / RAG / tools all in one pane.</div>
-  </header>
-  <div class="container">
-    <input id="q" class="search-box" type="text" placeholder="passport, debt bondage, POEA, Cap. 57, kafala…" autofocus />
-    <div class="examples">
-      <span class="example" onclick="setQ('passport')">passport</span>
-      <span class="example" onclick="setQ('debt bondage')">debt bondage</span>
-      <span class="example" onclick="setQ('POEA')">POEA</span>
-      <span class="example" onclick="setQ('Cap. 57')">Cap. 57</span>
-      <span class="example" onclick="setQ('kafala')">kafala</span>
-      <span class="example" onclick="setQ('fee camouflage')">fee camouflage</span>
-      <span class="example" onclick="setQ('Filipina')">Filipina</span>
-      <span class="example" onclick="setQ('novation')">novation</span>
+  <main class="wb-page">
+    <h1 class="wb-h1">Search -- web search via the DueCare search harness</h1>
+    <p class="wb-lede">
+      Calls <code>POST /api/search/client</code>. Uses SearXNG when
+      configured (privacy-preserving meta-search), falls back to the
+      kernel's wired Tavily/Brave/DDG. Anonymize-query strips PII
+      before the query reaches any backend. Results are tagged with
+      backend + elapsed_ms for transparency.
+    </p>
+
+    <div class="wb-card">
+      <h2>Query</h2>
+      <div class="wb-row" style="gap: 8px; align-items: stretch;">
+        <input type="text" id="q" placeholder="Search query"
+               style="flex:1; min-width:280px;"
+               value="ILO C181 fee prohibition migrant worker">
+        <select id="backend" title="Backend selection (auto picks first available)">
+          <option value="">auto</option>
+          <option value="searxng">searxng</option>
+          <option value="legacy">legacy</option>
+        </select>
+        <input type="number" id="top_n" value="5" min="1" max="20"
+               style="width:60px;" title="top_n">
+        <label><input type="checkbox" id="anon" checked> Anonymize</label>
+        <button class="wb-btn-primary" id="go-btn" onclick="runSearch()">Search</button>
+      </div>
+      <div id="status" class="wb-muted" style="margin-top:8px;"></div>
     </div>
-    <div class="total" id="total"></div>
+
+    <div class="wb-card">
+      <h2>Backends</h2>
+      <div id="backends" class="wb-muted">checking...</div>
+    </div>
+
     <div id="results"></div>
-  </div>
+  </main>
+
   <script>
-    let lastQ = "";
     function escapeHtml(s) {
-      return String(s == null ? "" : s).replace(/[&<>"']/g, c =>
-        ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+      return String(s == null ? '' : s)
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
     }
-    function highlight(s, q) {
-      if (!q) return escapeHtml(s);
-      const esc = escapeHtml(s);
-      const re = new RegExp(`(${q.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&')})`, 'gi');
-      return esc.replace(re, '<mark>$1</mark>');
-    }
-    function setQ(q) {
-      document.getElementById("q").value = q;
-      runSearch(q);
-    }
-    async function runSearch(q) {
-      const total = document.getElementById("total");
-      const results = document.getElementById("results");
-      if (!q || !q.trim()) {
-        total.textContent = "";
-        results.innerHTML = "";
-        return;
-      }
-      lastQ = q;
+    async function loadBackends() {
       try {
-        const r = await fetch(`/api/search-all?q=${encodeURIComponent(q)}`, {cache: "no-store"});
-        if (!r.ok) throw new Error("HTTP " + r.status);
-        const d = await r.json();
-        if (d.q !== lastQ) return;  // stale response
-        total.textContent = `${d.total || 0} match${(d.total || 0) === 1 ? "" : "es"} across ${(d.groups || []).length} layer(s)`;
-        if (!d.groups || !d.groups.length) {
-          results.innerHTML = `<div class="empty">No matches for <strong>${escapeHtml(q)}</strong>.</div>`;
-          return;
-        }
-        results.innerHTML = d.groups.map(g => `
-          <div class="group">
-            <h2>
-              <span style="display:inline-block; width:10px; height:10px; border-radius:50%; background:${g.color || 'var(--muted)'};"></span>
-              ${escapeHtml(g.label)}
-              <span class="count">(${g.hits.length} of ${g.n_total})</span>
-              <a href="${escapeHtml(g.viewer)}" target="_blank" style="color:${g.color || 'var(--accent)'};">Open viewer ↗</a>
-            </h2>
-            ${g.hits.map(h => `
-              <div class="hit">
-                <div class="label">
-                  ${highlight(h.label || h.id || "", q)}
-                  ${h.severity ? `<span class="severity ${escapeHtml(h.severity)}">${escapeHtml(h.severity)}</span>` : ""}
-                </div>
-                ${h.source ? `<div class="source">${highlight(h.source, q)}</div>` : ""}
-                ${h.citation ? `<div class="source">${highlight(h.citation, q)}</div>` : ""}
-                ${h.summary ? `<div class="summary">${highlight(h.summary, q)}</div>` : ""}
-              </div>
-            `).join("")}
-          </div>
-        `).join("");
+        const r = await fetch('/api/search/backends');
+        const b = await r.json();
+        document.getElementById('backends').innerHTML = (b.backends || [])
+          .map(x => '<span class="wb-pill" style="' + (x.available ? '' : 'opacity:0.5;') + '">'
+                    + escapeHtml(x.name) + ': ' + (x.available ? 'OK' : 'unavailable') + '</span>')
+          .join(' ')
+          + ' <span class="wb-muted" style="margin-left:8px;">'
+          + (b.configured_searxng_url ? 'DUECARE_SEARXNG_URL set' : 'DUECARE_SEARXNG_URL not set')
+          + '</span>';
       } catch (e) {
-        results.innerHTML = `<div class="empty" style="color:oklch(0.40 0.13 45);">Error: ${escapeHtml(e.message)}</div>`;
+        document.getElementById('backends').textContent = 'failed to query backends';
       }
     }
-    // Debounced live search
-    let debounce = null;
-    document.getElementById("q").addEventListener("input", e => {
-      clearTimeout(debounce);
-      debounce = setTimeout(() => runSearch(e.target.value), 200);
-    });
+    async function runSearch() {
+      const query = (document.getElementById('q').value || '').trim();
+      if (!query) return;
+      const backend = document.getElementById('backend').value || null;
+      const top_n = parseInt(document.getElementById('top_n').value || '5', 10);
+      const anon = document.getElementById('anon').checked;
+      const btn = document.getElementById('go-btn');
+      btn.disabled = true;
+      document.getElementById('status').textContent = 'POST /api/search/client ...';
+      try {
+        const r = await fetch('/api/search/client', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({query, top_n, backend, anonymize_query: anon}),
+        });
+        const out = await r.json();
+        const note = out.note || out.error || '';
+        document.getElementById('status').textContent =
+          'backend=' + (out.backend || '(none)') + ' | results=' +
+          ((out.results || []).length) + ' | elapsed_ms=' + (out.elapsed_ms || '-')
+          + (note ? ' | ' + note : '');
+        renderResults(out.results || []);
+      } catch (e) {
+        document.getElementById('status').textContent = 'failed: ' + e;
+      } finally {
+        btn.disabled = false;
+      }
+    }
+    function renderResults(rows) {
+      document.getElementById('results').innerHTML = rows.length
+        ? rows.map(r =>
+            '<div class="wb-result">'
+            + '<h3>[' + r.rank + '] <a href="' + escapeHtml(r.url) + '" target="_blank">'
+            + escapeHtml(r.title) + '</a></h3>'
+            + '<div class="url">' + escapeHtml(r.url) + '</div>'
+            + '<div class="snippet">' + escapeHtml(r.snippet) + '</div>'
+            + '</div>'
+          ).join('')
+        : '<div class="wb-muted" style="padding:20px;">no results</div>';
+    }
+    loadBackends();
   </script>
 </body>
 </html>

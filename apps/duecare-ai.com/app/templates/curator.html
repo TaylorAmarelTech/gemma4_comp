@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Curator · DueCare</title>
+  <meta name="robots" content="noindex,nofollow">
+  <style>
+    body { font-family: Inter, system-ui, sans-serif; background: #F7F6F1;
+           color: #0E1116; margin: 0; padding: 32px 24px; }
+    h1 { font-size: 22px; margin: 0 0 4px; }
+    .lede { color: #5B5F68; font-size: 13px; margin: 0 0 20px; max-width: 760px; }
+    table { border-collapse: collapse; width: 100%; font-size: 12.5px; background: #FFF; }
+    th, td { border-bottom: 1px solid #EFEDE4; padding: 8px 10px;
+             text-align: left; vertical-align: top; }
+    th { background: #F1EFE7; font-weight: 600; }
+    .pill { display: inline-block; padding: 1px 7px; background: #EFEDE4;
+            border-radius: 3px; font-family: 'JetBrains Mono', monospace;
+            font-size: 11px; }
+    .pill.sentinel { background: oklch(0.92 0.06 195); color: oklch(0.32 0.10 195); }
+    .pill.public { background: oklch(0.92 0.06 80); color: oklch(0.32 0.10 80); }
+    button { padding: 5px 11px; border-radius: 4px; cursor: pointer;
+             font-size: 11.5px; border: 0; margin-right: 4px; }
+    button.accept { background: oklch(0.55 0.10 155); color: #FFF; }
+    button.reject { background: oklch(0.58 0.14 25); color: #FFF; }
+    button:disabled { opacity: 0.55; cursor: not-allowed; }
+    code { background: #F1EFE7; padding: 1px 4px; border-radius: 3px;
+           font-family: 'JetBrains Mono', monospace; font-size: 11px; }
+    .meta { color: #5B5F68; font-size: 11.5px; }
+    .summary { margin: 20px 0; padding: 12px 14px; background: #FFF;
+               border: 1px solid #DDD8C9; border-radius: 8px; font-size: 13px; }
+    .empty { padding: 20px; text-align: center; color: #5B5F68; }
+  </style>
+</head>
+<body>
+  <h1>Curator · pending submissions</h1>
+  <p class="lede">Review and decide on submissions queued for the public
+  knowledge hub. Sources include human submissions, the Sentinel
+  scheduled harvest, and partner uploads. Each accept appends to
+  <code>vetted_items.jsonl</code>, which Kernel-side <code>/api/knowledge/sync</code>
+  reads.</p>
+
+  <div class="summary">
+    <b>Status:</b>
+    <span class="pill">pending: <span id="n-pending">0</span></span>
+    <span class="pill">decided: <span id="n-decided">0</span></span>
+  </div>
+
+  <table>
+    <thead>
+      <tr><th>submission</th><th>source</th><th>type</th><th>id</th>
+          <th>watch query</th><th>submitted</th><th>action</th></tr>
+    </thead>
+    <tbody id="rows">
+      <tr><td colspan="7" class="empty">loading...</td></tr>
+    </tbody>
+  </table>
+
+  <script>
+    const TOKEN = "{{ token }}";
+
+    async function loadQueue() {
+      const r = await fetch('/api/curator/queue');
+      if (!r.ok) {
+        document.getElementById('rows').innerHTML =
+          '<tr><td colspan="7" class="empty">HTTP ' + r.status + '</td></tr>';
+        return;
+      }
+      const body = await r.json();
+      document.getElementById('n-pending').textContent = body.n_pending;
+      document.getElementById('n-decided').textContent = body.n_decided;
+      const rows = body.pending || [];
+      if (!rows.length) {
+        document.getElementById('rows').innerHTML =
+          '<tr><td colspan="7" class="empty">No pending submissions</td></tr>';
+        return;
+      }
+      document.getElementById('rows').innerHTML = rows.map(r => {
+        const isSentinel = (r.submission_id || '').startsWith('sentinel_');
+        const sourcePill = isSentinel
+          ? '<span class="pill sentinel">sentinel</span>'
+          : '<span class="pill public">public</span>';
+        return '<tr>'
+          + '<td><code>' + escapeHtml(r.submission_id || '') + '</code><br>'
+          + '<span class="meta">item ' + r.item_index + '</span></td>'
+          + '<td>' + sourcePill + '</td>'
+          + '<td><span class="pill">' + escapeHtml(r.type || '?') + '</span></td>'
+          + '<td><code>' + escapeHtml(r.id || '?') + '</code></td>'
+          + '<td class="meta">' + escapeHtml(r.watch_query || '\u2014') + '</td>'
+          + '<td class="meta">' + escapeHtml(r.submitted_at || '') + '</td>'
+          + '<td>'
+          + '<button class="accept" onclick="decide(\'' + r.submission_id
+          + '\', ' + r.item_index + ', \'accept\')">Accept</button>'
+          + '<button class="reject" onclick="decide(\'' + r.submission_id
+          + '\', ' + r.item_index + ', \'reject\')">Reject</button>'
+          + '</td>'
+          + '</tr>';
+      }).join('');
+    }
+
+    async function decide(submissionId, itemIndex, decision) {
+      const reason = decision === 'reject'
+        ? (prompt('Reason for rejection?') || 'rejected via curator UI')
+        : 'accepted via curator UI';
+      const r = await fetch(
+        '/api/curator/decide/' + submissionId + '/' + itemIndex,
+        {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({
+            decision: decision,
+            reason: reason,
+            curator_key: TOKEN,
+          }),
+        }
+      );
+      if (!r.ok) {
+        alert('decide failed: HTTP ' + r.status + ' ' + (await r.text()).slice(0, 200));
+        return;
+      }
+      const out = await r.json();
+      console.log('decided:', out);
+      loadQueue();
+    }
+
+    function escapeHtml(s) {
+      return String(s == null ? '' : s)
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    loadQueue();
+    setInterval(loadQueue, 30000);
+  </script>
+</body>
+</html>

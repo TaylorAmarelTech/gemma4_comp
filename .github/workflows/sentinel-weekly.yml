@@ -1,0 +1,32 @@
+name: sentinel-weekly
+
+# Weekly: Mondays 09:00 UTC. POST /api/sentinel/run-due is idempotent --
+# only fires watch queries whose frequency_days has elapsed -- so running
+# more often is safe. Each watch query controls its own cadence.
+
+on:
+  schedule:
+    - cron: "0 9 * * 1"
+  workflow_dispatch:  # manual trigger from the Actions tab
+
+jobs:
+  trigger:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: POST /api/sentinel/run-due
+        env:
+          HUB_URL: ${{ vars.DUECARE_HUB_URL || 'https://gemma4-comp.onrender.com' }}
+          ADMIN_TOKEN: ${{ secrets.DUECARE_ADMIN_TOKEN }}
+        run: |
+          if [ -z "$ADMIN_TOKEN" ]; then
+            echo "::warning::DUECARE_ADMIN_TOKEN secret not set; skipping."
+            exit 0
+          fi
+          echo "Hitting $HUB_URL/api/sentinel/run-due ..."
+          curl -fsS -X POST \
+            -H "X-DueCare-Admin-Token: $ADMIN_TOKEN" \
+            "$HUB_URL/api/sentinel/run-due" \
+          | tee response.json
+          echo
+          jq -r '. | "ran=\(.n_run) skipped=\(.n_skipped)"' response.json || true

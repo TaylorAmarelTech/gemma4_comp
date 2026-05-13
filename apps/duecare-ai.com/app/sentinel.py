@@ -257,6 +257,8 @@ def run_query(slug: str, *, top_n: int = 10) -> dict[str, Any]:
     if new_urls:
         _mark_seen(slug, new_urls)
 
+    curator_submission_id = _emit_to_curator_queue(slug, drafts) if drafts else None
+
     state = get_state().get(slug, {})
     n_runs = int(state.get("n_runs", 0)) + 1
     n_drafts_queued = int(state.get("n_drafts_queued", 0)) + len(drafts)
@@ -274,6 +276,7 @@ def run_query(slug: str, *, top_n: int = 10) -> dict[str, Any]:
         "ollama_used": any(
             d["draft_envelope"]["extensions"].get("ollama_synthesized") for d in drafts
         ),
+        "curator_submission_id": curator_submission_id,
     }
 
 
@@ -319,6 +322,51 @@ def recent_drafts(limit: int = 50) -> list[dict[str, Any]]:
     except Exception:
         return []
     return list(reversed(rows))[:limit]
+
+
+SUBMISSIONS_PATH = DATA_DIR / "knowledge_submissions.jsonl"
+
+
+def _emit_to_curator_queue(slug: str, drafts: list[dict[str, Any]]) -> Optional[str]:
+    """Append one curator-queue-compatible submission per Sentinel run.
+
+    Bridges Sentinel into the existing /api/curator/queue surface so
+    harvested drafts show up alongside human submissions. Returns the
+    submission_id on success, None on failure (never raises).
+    """
+    if not drafts:
+        return None
+    try:
+        ts = _utc_iso()
+        submission_id = f"sentinel_{slug}_{ts}"
+        accepted = []
+        for d in drafts:
+            env = d.get("draft_envelope") or {}
+            content_blob = json.dumps(env.get("content", {}), sort_keys=True,
+                                       ensure_ascii=False).encode("utf-8")
+            accepted.append({
+                "type": env.get("knowledge_object_type"),
+                "id": env.get("id"),
+                "content_sha256": hashlib.sha256(content_blob).hexdigest()[:16],
+                "source_url": d.get("source_url"),
+                "source_title": d.get("source_title"),
+                "watch_query": d.get("watch_query"),
+                "intent": d.get("intent"),
+                "ko_envelope": env,
+            })
+        row = {
+            "submission_id": submission_id,
+            "ts": ts,
+            "source": "sentinel:server-automated",
+            "watch_slug": slug,
+            "n_items": len(accepted),
+            "accepted": accepted,
+        }
+        with open(SUBMISSIONS_PATH, "a", encoding="utf-8") as f:
+            f.write(json.dumps(row, ensure_ascii=False) + "\n")
+        return submission_id
+    except Exception:
+        return None
 
 
 def status_summary() -> dict[str, Any]:
