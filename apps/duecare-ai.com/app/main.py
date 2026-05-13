@@ -95,7 +95,8 @@ PAGE_ROUTES: dict[str, str] = {
     "/privacy": "privacy.html",
     "/privacy-boundary": "privacy-boundary.html",
     "/research-monitor": "research-monitor.html",
-    "/sentinel": "sentinel.html",
+    # /sentinel is owned by the auth-gated handler in create_app
+    # (Phase 12) — see sentinel_admin_page below. Do not add it here.
     "/setup": "setup.html",
     "/stats": "stats.html",
     "/submissions": "submissions.html",
@@ -1960,6 +1961,44 @@ def create_app(*, data_dir: Path | None = None) -> FastAPI:
     @application.get("/sitemap.xml", response_class=Response, tags=["ui"])
     async def sitemap_xml() -> Response:
         return Response(content=_sitemap_xml(), media_type="application/xml; charset=utf-8")
+
+    
+    # Sentinel: server-side scheduled queries (Phase 12)
+    from . import sentinel as _sentinel
+
+    @application.get("/sentinel", response_class=HTMLResponse, tags=["sentinel"])
+    def sentinel_admin_page(request: Request, token: str | None = None):
+        _require_admin_access(request)
+        summary = _sentinel.status_summary()
+        return templates.TemplateResponse(request, "sentinel.html", {
+            "token": token or "",
+            "queries": summary["queries"],
+            "searxng_configured": summary["searxng_configured"],
+            "ollama_configured": summary["ollama_configured"],
+        })
+
+    @application.get("/api/sentinel/status", tags=["sentinel"])
+    def sentinel_status():
+        return _sentinel.status_summary()
+
+    @application.get("/api/sentinel/queries", tags=["sentinel"])
+    def sentinel_queries():
+        return {"queries": _sentinel.list_queries()}
+
+    @application.post("/api/sentinel/trigger/{slug}", tags=["sentinel"])
+    def sentinel_trigger(slug: str, request: Request):
+        _require_admin_access(request)
+        return _sentinel.run_query(slug)
+
+    @application.post("/api/sentinel/run-due", tags=["sentinel"])
+    def sentinel_run_due(request: Request):
+        _require_admin_access(request)
+        return _sentinel.run_due()
+
+    @application.get("/api/sentinel/drafts", tags=["sentinel"])
+    def sentinel_drafts(request: Request, limit: int = 50):
+        _require_admin_access(request)
+        return _sentinel.recent_drafts(limit=limit)
 
     return application
 
