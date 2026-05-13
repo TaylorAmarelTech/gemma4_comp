@@ -63,7 +63,7 @@ SUBSEQUENT_TOKEN_MS = int(os.environ.get("DC_SUBSEQUENT_TOKEN_MS", "25"))
 # ===========================================================================
 DUECARE_VERSION = "0.1.0"
 DUECARE_REPO = "TaylorAmarelTech/gemma4_comp"
-DUECARE_COMMIT_SHA = "main"
+DUECARE_COMMIT_SHA = "master"
 DUECARE_PACKAGES = ["duecare-llm-chat"]
 
 
