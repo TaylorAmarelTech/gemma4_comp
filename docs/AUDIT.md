@@ -21,9 +21,9 @@ the public surface against drift we've seen real cases of:
   (Platform safety → NGO & regulator → Individual worker / mobile →
   Researcher → Developer / integration partner) appears on
   `setup.html` and `use-cases.html`
-- **kaggle_lane_labels** — every `kaggle/{01,02,A-*}/README.md` carries
-  a `<!-- duecare:lane-label -->` block or `Serves lanes:` line so a
-  judge clicking from the website sees continuity
+- **kaggle_lane_labels** — every `kaggle/{01,02,03,A-*}/README.md`
+  carries a `<!-- duecare:lane-label -->` block or `Serves lanes:` line
+  so a reviewer clicking from the website sees continuity
 
 ## Run it
 
