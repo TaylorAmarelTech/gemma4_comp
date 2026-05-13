@@ -91,7 +91,7 @@
 >
 > - **Prevent exploitation before it spreads** — platform and marketplace moderation with explained risk envelopes. Setup: [`docs/deployment_enterprise.md`](./docs/deployment_enterprise.md).
 > - **Assist victims and at-risk workers** — NGO/regulator intake plus worker-facing mobile workflows. Setup: [`docs/scenarios/ngo-office-deployment.md`](./docs/scenarios/ngo-office-deployment.md) and [`docs/scenarios/worker-self-help.md`](./docs/scenarios/worker-self-help.md).
-> - **Understand what is happening and why** — reproducible Kaggle notebooks, knowledge packs, trend signals, and provenance. Start with [`docs/FOR_KAGGLE_JUDGES.md`](./docs/FOR_KAGGLE_JUDGES.md).
+> - **Understand what is happening and why** — reproducible Kaggle notebooks, knowledge packs, trend signals, and provenance. Start with [`docs/FOR_PEER_REVIEW.md`](./docs/FOR_PEER_REVIEW.md) (canonical reviewer entry) or [`docs/FOR_KAGGLE_JUDGES.md`](./docs/FOR_KAGGLE_JUDGES.md) for the hackathon-specific quick path.
 
 ---
 
@@ -104,7 +104,7 @@
 | 01 Platform safety | A trust & safety team or recruitment marketplace integrating moderation | [`docs/scenarios/enterprise_pilot.md`](./docs/scenarios/enterprise_pilot.md) · [`docs/scenarios/recruiter-self-audit.md`](./docs/scenarios/recruiter-self-audit.md) · [`docs/deployment_enterprise.md`](./docs/deployment_enterprise.md) |
 | 02 NGO & regulator | An NGO caseworker, legal aid organization, regulator, or embassy desk | [`docs/scenarios/ngo-office-deployment.md`](./docs/scenarios/ngo-office-deployment.md) · [`examples/deployment/ngo-office-edge/README.md`](./examples/deployment/ngo-office-edge/README.md) |
 | 03 Individual worker / mobile | A migrant worker, peer supporter, or community helper using the Android app | [`docs/scenarios/worker-self-help.md`](./docs/scenarios/worker-self-help.md) · [`docs/architecture/duecare_mobile.md`](./docs/architecture/duecare_mobile.md) · [`docs/android_app_architecture.md`](./docs/android_app_architecture.md) |
-| 04 Researcher | An academic, journalist, policy analyst, or Kaggle judge | [`docs/FOR_KAGGLE_JUDGES.md`](./docs/FOR_KAGGLE_JUDGES.md) · [`docs/FOR_PEER_REVIEW.md`](./docs/FOR_PEER_REVIEW.md) · [`docs/scenarios/researcher-analysis.md`](./docs/scenarios/researcher-analysis.md) · [`kaggle/01-duecare-exploration-workbench/README.md`](./kaggle/01-duecare-exploration-workbench/README.md) |
+| 04 Researcher | An academic, journalist, policy analyst, or peer reviewer | [`docs/FOR_PEER_REVIEW.md`](./docs/FOR_PEER_REVIEW.md) · [`docs/FOR_KAGGLE_JUDGES.md`](./docs/FOR_KAGGLE_JUDGES.md) · [`docs/scenarios/researcher-analysis.md`](./docs/scenarios/researcher-analysis.md) · [`kaggle/01-duecare-exploration-workbench/README.md`](./kaggle/01-duecare-exploration-workbench/README.md) |
 | 05 Developer / integration partner | A team embedding DueCare into your own product, bot, dashboard, or internal workflow | [`docs/install.md`](./docs/install.md) · [`docs/embedding_guide.md`](./docs/embedding_guide.md) · [`packages/duecare-llm/README.md`](./packages/duecare-llm/README.md) · [`apps/duecare-ai.com/app/templates/client-connect.html`](./apps/duecare-ai.com/app/templates/client-connect.html) |
 
 ## Why this exists
