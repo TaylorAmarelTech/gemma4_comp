@@ -6610,7 +6610,73 @@ function openCompareModal() {
   }
   _renderComparePanel();
   document.getElementById('modal-overlay').classList.add('active');
+  // Reflect open state in the URL so the page is bookmarkable +
+  // shareable + linkable from the video script + the website's
+  // /evaluation page. Use replaceState to avoid creating an extra
+  // history entry the user would have to back-button out of.
+  try {
+    if (window.location.hash !== '#compare') {
+      window.history.replaceState(null, '', '#compare');
+    }
+  } catch (e) { /* file:// or sandboxed iframe -- ignore */ }
 }
+
+// Deep-link: open the Compare modal automatically when the URL hash
+// is `#compare` (e.g. https://<kernel>/#compare). Non-destructive --
+// the toolbar Compare button still works the same way. This makes the
+// A/B compare flow shareable + bookmarkable without a full refactor
+// into a dedicated route. Best-practice URL pattern:
+//
+//   /                  homepage / chat playground
+//   /#compare          opens the A/B compare modal on load
+//   /static/harness.html   layer inspector landing
+//
+// Also clears the hash when the modal closes (see _wireModalCloseHash).
+(function _wireCompareHashRouter() {
+  function maybeOpenFromHash() {
+    if (window.location.hash === '#compare'
+        && typeof openCompareModal === 'function') {
+      // Defer one tick so other DOMContentLoaded handlers (model picker
+      // auto-open, chrome injection) settle first.
+      setTimeout(openCompareModal, 0);
+    }
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', maybeOpenFromHash);
+  } else {
+    maybeOpenFromHash();
+  }
+  window.addEventListener('hashchange', maybeOpenFromHash);
+})();
+
+// Clear `#compare` from the URL when the modal closes so the URL
+// doesn't lie about current state. Hooks the existing close handler
+// idempotently -- if a future close path is added, this still fires.
+(function _wireModalCloseHash() {
+  function clearCompareHash() {
+    if (window.location.hash === '#compare') {
+      try {
+        const url = window.location.pathname + window.location.search;
+        window.history.replaceState(null, '', url || '/');
+      } catch (e) { /* ignore */ }
+    }
+  }
+  const overlay = document.getElementById('modal-overlay');
+  if (overlay) {
+    // Modals are closed by toggling `.active` off; observe class
+    // changes so we don't have to monkey-patch every close path.
+    const obs = new MutationObserver(function (mutations) {
+      for (const m of mutations) {
+        if (m.type === 'attributes' && m.attributeName === 'class') {
+          if (!overlay.classList.contains('active')) {
+            clearCompareHash();
+          }
+        }
+      }
+    });
+    obs.observe(overlay, { attributes: true });
+  }
+})();
 
 function _renderComparePanel() {
   const body = document.getElementById('modal-body');

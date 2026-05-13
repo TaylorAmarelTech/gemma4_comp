@@ -98,4 +98,39 @@ test.describe('UI bug regressions (2026-05-12 batch)', () => {
     );
     expect(candidates).toBeLessThanOrEqual(1);
   });
+
+  test('Hash deep-link: /#compare auto-opens the A/B compare modal', async ({ page }) => {
+    // Added 2026-05-12: improved visibility for the Compare flow.
+    // Navigating directly to /#compare should auto-open the modal
+    // without a manual click, so the URL is shareable + bookmarkable.
+    await page.goto('/#compare');
+    await page.waitForLoadState('networkidle');
+    const overlay = page.locator('#modal-overlay');
+    await expect(overlay).toHaveClass(/active/, { timeout: 8_000 });
+    // The chrome nav should also surface the deep-link as a utility.
+    const navLink = page.locator('a[href="/#compare"]').first();
+    await expect(navLink).toBeVisible();
+  });
+
+  test('Hash deep-link: closing the compare modal clears #compare from URL', async ({ page }) => {
+    await page.goto('/#compare');
+    await page.waitForLoadState('networkidle');
+    const overlay = page.locator('#modal-overlay');
+    await expect(overlay).toHaveClass(/active/, { timeout: 8_000 });
+    // Close via the modal close button or Escape.
+    const closeBtn = page.locator(
+      '#modal-overlay [aria-label="Close"], ' +
+      '#modal-overlay button:has-text("Close"), ' +
+      '#modal-overlay button:has-text("✕")'
+    ).first();
+    if (await closeBtn.isVisible().catch(() => false)) {
+      await closeBtn.click();
+    } else {
+      await page.keyboard.press('Escape');
+    }
+    await expect(overlay).not.toHaveClass(/active/, { timeout: 4_000 });
+    await expect
+      .poll(() => page.evaluate(() => window.location.hash), { timeout: 2_000 })
+      .toBe('');
+  });
 });
