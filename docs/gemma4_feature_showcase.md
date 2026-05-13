@@ -51,6 +51,7 @@ each kernel collects.
 | A-19 multilingual-demo | **Multilingual** 5-corridor scenario playback | "in their language" Lane 03 |
 | A-20 privacy-boundary | Local-vs-aggregate side-by-side | Privacy claim made concrete |
 | A-21 long-context-demo | **Long context (128K)** -- cross-statute reasoning over a 5-statute compliance corpus in a single thinking step | Closes the 128K-window demonstration gap (was on the "not yet showcased" list) |
+| A-22 streaming-demo | **Token streaming** -- SSE replay at realistic Gemma 4 E4B-IT latencies (500ms first token, 25ms subsequent), live token-rate stats | Closes the streaming-UX gap (was on the "not yet showcased" list) |
 
 ## Where each Special Tech Track is closed
 
@@ -77,9 +78,14 @@ Honest gap analysis -- worth filling in a future appendix:
   128K.~~ **Closed by A-21 long-context-demo** -- 5-statute
   cross-jurisdiction reasoning with 3 cached QA pairs that each
   require correlating 2-3 statutes in a single thinking step.
-- **Streaming generation.** Gemma 4 supports token streaming; the
+- **Streaming generation.** ~~Gemma 4 supports token streaming; the
   workbench shell currently returns whole responses. A streaming
-  demo would make the latency-on-mobile story more concrete.
+  demo would make the latency-on-mobile story more concrete.~~
+  **Closed by A-22 streaming-demo** -- Server-Sent Events replay
+  at realistic Gemma 4 E4B-IT latencies (500ms first token,
+  25ms subsequent), with live first-token / token-rate / total
+  stats so a reviewer sees the streaming UX without waiting for
+  real inference.
 
 ## How this doc is meant to be used
 
