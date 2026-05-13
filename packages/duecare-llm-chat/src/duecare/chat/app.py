@@ -5395,68 +5395,12 @@ def create_app(
             ),
         })
 
-    @app.post("/api/knowledge/draft-envelope")
-    async def api_knowledge_draft_envelope(request: Request) -> Any:
-        """Gemma-assisted: raw fact + target_type -> draft envelope."""
-        import json as _json, re as _re
-        from datetime import datetime as _dt
-        try:
-            body = await request.json()
-        except Exception:
-            raise HTTPException(400, "invalid JSON body")
-        raw_text = (body.get("raw_text") or "").strip()
-        target_type = body.get("target_type") or "grep_rule"
-        if target_type not in KO_TYPES:
-            raise HTTPException(400, f"unknown target_type: {target_type}")
-        if not raw_text:
-            raise HTTPException(400, "raw_text is required")
-
-        ts = _dt.utcnow().strftime("%Y-%m-%dT%H-%M-%SZ")
-        slug_base = _re.sub(r"[^a-z0-9]+", "-", raw_text.lower())[:40].strip("-") or "draft"
-        envelope = {
-            "schema_version": "1.0",
-            "knowledge_object_type": target_type,
-            "id": f"{slug_base}-draft",
-            "version": "v1-draft",
-            "provenance": {
-                "created_at": ts,
-                "created_by": "kernel-01:draft-envelope",
-            },
-            "content": {},
-            "tags": [f"branch:{KO_BRANCHES.get(target_type, 'unknown')}"],
-            "extensions": {"draft": True, "needs_review": True},
-        }
-        gc = getattr(app.state, "gemma_call", None)
-        if gc is not None:
-            sys_prompt = (
-                "You are DueCare's KnowledgeObject drafter. Given a raw fact, "
-                f"return JSON ONLY for the `content` field of a `{target_type}` "
-                "KnowledgeObject. Anonymize any PII (names, emails, phones, IDs) "
-                "with placeholders like <PERSON_a1b2c3d4>."
-            )
-            try:
-                msgs = [
-                    {"role": "system", "content": [{"type": "text", "text": sys_prompt}]},
-                    {"role": "user",   "content": [{"type": "text", "text": "Raw fact:\n" + raw_text}]},
-                ]
-                model_out = gc(msgs, max_new_tokens=512, temperature=0.2)
-                response_text = model_out if isinstance(model_out, str) else (
-                    (model_out or {}).get("text") or (model_out or {}).get("response") or ""
-                )
-                m = _re.search(r"\{[\s\S]*\}", response_text or "")
-                if m:
-                    try:
-                        content = _json.loads(m.group(0))
-                        if isinstance(content, dict):
-                            envelope["content"] = content
-                            envelope["extensions"]["gemma_drafted"] = True
-                    except Exception:
-                        envelope["extensions"]["gemma_parse_failed"] = True
-            except Exception as e:
-                envelope["extensions"]["gemma_error"] = str(e)[:200]
-        else:
-            envelope["extensions"]["fallback"] = "no model loaded; manual content required"
-        return JSONResponse({"envelope": envelope})
+    # /api/knowledge/draft-envelope -- delegated to the extraction harness.
+    # The inline handler was moved into harnesses/extraction/ on 2026-05-12 so
+    # the prompt + light-anonymize step can evolve without touching app.py.
+    # The harness accepts both target_type and target_leaf (UI sends target_leaf).
+    from .harnesses import extraction as _extraction_harness
+    _extraction_harness.register_routes(app)
 
     return app
 
