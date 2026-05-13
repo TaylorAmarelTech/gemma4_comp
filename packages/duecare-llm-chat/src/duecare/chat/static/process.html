@@ -189,19 +189,8 @@
           });
           const out=await r.json();
           if(!r.ok){
-            statusEl.textContent="Graph-chat endpoint not available yet (HTTP "+r.status+"). Falling back to /api/chat/send ...";
-            const r2=await fetch("/api/chat/send",{
-              method:"POST",headers:{"Content-Type":"application/json"},
-              body:JSON.stringify({
-                messages:[{role:"user",content:[{type:"text",text:q+"\n\n(Context: answer based on the most recent bundle uploaded via Process Files. If the bundle is empty, say so.)"}]}],
-                toggles:{persona:true,grep:true,rag:true},
-                generation:{max_new_tokens:600}
-              })
-            });
-            const out2=await r2.json();
-            const text=out2.response_text||out2.text||JSON.stringify(out2);
-            ansEl.textContent=text;
-            statusEl.textContent="Answered via /api/chat/send fallback.";
+            statusEl.textContent="Graph-chat failed: HTTP "+r.status;
+            ansEl.textContent=JSON.stringify(out,null,2);
             return;
           }
           const text=out.answer||out.response_text||JSON.stringify(out);
