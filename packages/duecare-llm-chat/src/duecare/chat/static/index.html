@@ -6678,6 +6678,58 @@ function openCompareModal() {
   }
 })();
 
+// Disable the Send button when the input is empty AND no images are
+// pending. Avoids the dead click + "did it send? why no response?"
+// confusion. sendMessage() already validates and bails on empty input,
+// but the visual cue here is what makes the happy path obvious.
+(function _wireSendButtonEmptyState() {
+  function getPendingImageCount() {
+    // pendingImages is a module-scoped array on this page; defensive
+    // access avoids ReferenceError if the chat surface isn't mounted.
+    try { return Array.isArray(pendingImages) ? pendingImages.length : 0; }
+    catch (e) { return 0; }
+  }
+  function updateState() {
+    const input = document.getElementById('input');
+    const send = document.getElementById('send');
+    if (!input || !send) return;
+    // Don't fight the in-flight disabled state set by sendMessage().
+    // _chatBusy is the canonical "currently sending" flag.
+    let busy = false;
+    try { busy = !!_chatBusy; } catch (e) {}
+    if (busy) return;
+    const hasText = (input.value || '').trim().length > 0;
+    const hasImage = getPendingImageCount() > 0;
+    send.disabled = !(hasText || hasImage);
+    send.style.opacity = send.disabled ? '0.55' : '';
+    send.style.cursor = send.disabled ? 'not-allowed' : 'pointer';
+    send.title = send.disabled
+      ? 'Type a message or attach an image, then Send'
+      : 'Send message (Enter)';
+  }
+  function wireOnce() {
+    const input = document.getElementById('input');
+    if (!input) return;
+    if (input.dataset.dcSendWired === '1') return;
+    input.dataset.dcSendWired = '1';
+    input.addEventListener('input', updateState);
+    input.addEventListener('change', updateState);
+    // Also poll when pending images change (the pending-images div
+    // gets rewritten by attach/dismiss handlers; observe its DOM).
+    const pending = document.getElementById('pending-images');
+    if (pending) {
+      const obs = new MutationObserver(updateState);
+      obs.observe(pending, { childList: true });
+    }
+    updateState();
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', wireOnce);
+  } else {
+    wireOnce();
+  }
+})();
+
 function _renderComparePanel() {
   const body = document.getElementById('modal-body');
   if (!body) return;
