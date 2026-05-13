@@ -202,11 +202,17 @@ def register_routes(app: Any) -> None:
                 "fallback": "no_model_loaded",
             })
 
+        # Layer composition: GREP + RAG + Tools against the user question so
+        # the answer cites legal context, not just bundle row_ids. Wired
+        # layers run; missing ones skipped silently.
+        from .._layers import compose_layers
+        layer_out = compose_layers(app, question, layers=("grep", "rag", "tools"))
         context_block = build_context_block(bundle)
+        system_text = GRAPH_CHAT_SYSTEM_PROMPT + "\n\n" + context_block
+        if layer_out["grounding"]:
+            system_text += "\n\nAdditional grounding:\n" + layer_out["grounding"]
         msgs = [
-            {"role": "system", "content": [
-                {"type": "text", "text": GRAPH_CHAT_SYSTEM_PROMPT + "\n\n" + context_block}
-            ]},
+            {"role": "system", "content": [{"type": "text", "text": system_text}]},
             {"role": "user", "content": [{"type": "text", "text": question}]},
         ]
         try:
@@ -234,4 +240,5 @@ def register_routes(app: Any) -> None:
             "bundle_present": True,
             "cited_rows": cited_rows,
             "grep_hits": summary.get("n_grep_rules_fired", 0),
+            "applied_layers": layer_out["trace"],
         })

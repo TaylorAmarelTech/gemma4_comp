@@ -1,14 +1,9 @@
-"""Knowledge Extraction harness.
-
-Paste raw text -> Gemma 4 drafts a typed KnowledgeObject envelope.
-
-Exposes:
-  - POST /api/knowledge/draft-envelope
-"""
+"""Knowledge Extraction harness."""
 from __future__ import annotations
 
 from .handler import register_routes
 
 name = "extraction"
+applied_layers: tuple[str, ...] = ("grep", "rag")
 
-__all__ = ["name", "register_routes"]
+__all__ = ["name", "applied_layers", "register_routes"]
