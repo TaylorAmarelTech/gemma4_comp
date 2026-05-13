@@ -1,5 +1,12 @@
 # For Hackathon Judges — Verify Duecare in 5 minutes
 
+> **Canonical reviewer entry doc:** [`FOR_PEER_REVIEW.md`](FOR_PEER_REVIEW.md).
+> This page is the hackathon-specific quick path. The peer-review doc is
+> the broader verification roster aimed at any reviewer (academic,
+> journalist, policy analyst, NGO technical lead, or hackathon judge).
+> Both link to the same kernels, packs, and live surfaces; this doc
+> focuses on the 5-minute hackathon-rubric verification flow.
+
 > The Duecare submission for the Gemma 4 Good Hackathon
 > (2026-04-02 → 2026-05-18). This doc exists so you don't have to
 > spelunk the repo to verify any claim — every claim below points to
