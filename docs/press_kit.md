@@ -90,7 +90,7 @@ These are reproducible per `(git_sha, dataset_version, model_revision)`
   PH-SA, NP-SA, BD-SA, ID-SG + MX-US, VE-CO, GH-LB, NG-LB,
   SY-DE, UA-PL)
 - **17** PyPI packages, all MIT-licensed
-- **13** judge-facing Kaggle folders (2 core + 11 appendix) plus 9 generated/research kernels under `kaggle/kernels/*`
+- **13** judge-facing Kaggle folders (3 core + 24 appendix) plus 9 generated/research kernels under `kaggle/kernels/*`
 - **194** unit tests passing across the harness packages
 
 ## Quotes available for use

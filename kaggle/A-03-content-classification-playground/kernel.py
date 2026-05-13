@@ -1,6 +1,6 @@
 # <!-- duecare:kernel-intro -->
 # DueCare — Harness lift comparison (upload A-01 + A-02 bundles)
-# Appendix notebook #A03 of 13 in the DueCare submission.
+# Appendix notebook #A03 of 24 in the DueCare submission.
 #
 # Upload the bundle.zip from A-01 (stock baseline) and the bundle.zip from
 # A-02 (same model + harness). A-03 runs the universal v2 grader on every

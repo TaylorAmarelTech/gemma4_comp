@@ -58,7 +58,7 @@ for the slot definitions, hard rules, and build status. The
 cross-kernel artifact contract that A-03 / A-08 consume is in
 [`../docs/appendix_artifact_schema.md`](../docs/appendix_artifact_schema.md).
 
-## Build status — 3 core + 23 appendix = 26 submission kernels
+## Build status — 3 core + 24 appendix = 27 submission kernels
 
 **Submission shape (2026-05-12):** reviewers land on the unified
 `01-duecare-exploration-workbench` kernel to see every capability
@@ -171,10 +171,10 @@ attached dataset path at startup.
 | Path | Status | Notes |
 |---|---|---|
 | `kaggle/_archive/` | archived | Pre-canonical-layout legacy; superseded |
-| `kaggle/kernels/` | archived | Former generated/research notebook mirrors moved to `_archive/kaggle-notebook-previews-2026-05-11/`; NOT part of the 13-folder judge-facing submission. |
+| `kaggle/kernels/` | archived | Former generated/research notebook mirrors moved to `_archive/kaggle-notebook-previews-2026-05-11/`; NOT part of the 27-folder judge-facing submission. |
 | `kaggle/models/` | reference | Model card YAML + HF Hub push helpers |
 | `kaggle/shared-datasets/` | reference | Shared assets pulled by multiple kernels |
-| `kaggle/README.md` | live | Human-readable overview of the 2 core + 11 appendix submission shape |
+| `kaggle/README.md` | live | Human-readable overview of the 3 core + 24 appendix submission shape |
 
 ## How to update this file
 

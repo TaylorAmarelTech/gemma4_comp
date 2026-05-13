@@ -1,6 +1,6 @@
 # <!-- duecare:kernel-intro -->
 # DueCare — Harness ablation runner
-# Appendix notebook #A02 of 13 in the DueCare submission.
+# Appendix notebook #A02 of 24 in the DueCare submission.
 #
 # The pre-omni subset: GREP + RAG + Tools + Imports as toggleable layers (no Persona, no Online).
 #

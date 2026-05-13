@@ -80,10 +80,12 @@ EXCLUDE_PATTERNS: tuple[str, ...] = (
 
 # (pattern, human label, why it's drift, suggested replacement)
 DRIFT_TERMS: tuple[tuple[str, str, str], ...] = (
-    (r"\b6 core \+ 5\b", "stale notebook split", "use 2 core + 11 appendix = 13"),
-    (r"all 11 submission notebooks", "stale notebook count", "13 submission notebooks (2 core + 11 appendix)"),
-    (r"\b3 hackathon notebooks\b", "stale hackathon-notebook count", "13 competition notebooks"),
-    (r"\b76-notebook\b", "stale research-pipeline count", "77-notebook research pipeline"),
+    (r"\b6 core \+ 5\b", "stale notebook split", "use 3 core + 24 appendix = 27"),
+    (r"all 11 submission notebooks", "stale notebook count", "27 submission notebooks (3 core + 24 appendix)"),
+    (r"2 core \+ 11 appendix", "stale 13-kernel roster phrase", "3 core + 24 appendix = 27"),
+    (r"3 core \+ 23 appendix", "pre-Phase-1 roster phrase (missing A-24)", "3 core + 24 appendix = 27"),
+    (r"\b3 hackathon notebooks\b", "stale hackathon-notebook count", "27 competition notebooks"),
+    (r"\b7[67]-notebook\b", "stale research-pipeline count (archived)", "drop the explicit count; the legacy notebook arc is archived under _archive/"),
     (r"\bduecare packs pull\b", "unverified CLI command on a public surface", "remove or label as planned"),
     (r"\bduecare packs verify\b", "unverified CLI command on a public surface", "remove or label as planned"),
     (r"\bduecare harness run\b", "unverified CLI command on a public surface", "remove or label as planned"),
@@ -317,7 +319,8 @@ def check_lane_order() -> CheckResult:
 
 def check_kaggle_lane_labels() -> CheckResult:
     result = CheckResult(name="kaggle_lane_labels")
-    folders = sorted(KAGGLE.glob("01-*")) + sorted(KAGGLE.glob("02-*")) + sorted(KAGGLE.glob("A-*"))
+    folders = (sorted(KAGGLE.glob("01-*")) + sorted(KAGGLE.glob("02-*"))
+               + sorted(KAGGLE.glob("03-*")) + sorted(KAGGLE.glob("A-*")))
     folders = [f for f in folders if f.is_dir()]
     result.info.append(f"Inspected {len(folders)} numbered Kaggle folders.")
     for folder in folders:

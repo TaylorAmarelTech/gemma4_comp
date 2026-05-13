@@ -1,6 +1,6 @@
 # <!-- duecare:kernel-intro -->
 # DueCare — New-model lift comparison (upload A-06 + A-07 bundles)
-# Appendix notebook #A08 of 13 in the DueCare submission.
+# Appendix notebook #A11 of 24 in the DueCare submission.
 #
 # Upload the bundle.zip from A-06 (fine-tuned baseline) and the bundle.zip from
 # A-07 (same model + harness). A-03 runs the universal v2 grader on every
@@ -17,7 +17,7 @@
 
 """
 ============================================================================
-  DUECARE A-03 LIFT COMPARISON -- Kaggle notebook (single-cell paste)
+  DUECARE A-11 GRADING EVALUATION -- Kaggle notebook (single-cell paste)
 ============================================================================
 
   Per Taylor's 2026-05-11 experiment-ladder spec, A-03 is the upload +

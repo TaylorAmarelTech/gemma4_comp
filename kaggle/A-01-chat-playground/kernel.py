@@ -1,6 +1,6 @@
 # <!-- duecare:kernel-intro -->
 # DueCare — Stock Gemma 4 chat baseline
-# Appendix notebook #A01 of 13 in the DueCare submission.
+# Appendix notebook #A01 of 24 in the DueCare submission.
 #
 # The before-the-harness baseline. No GREP, no RAG, no tools, no online. Pure stock Gemma 4.
 #

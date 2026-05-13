@@ -17,7 +17,7 @@
 ## 0. Read this first
 
 Today is **2026-05-11**. The Gemma 4 Good Hackathon submission is due
-**2026-05-18** — T-7 days. The submission publishes **13 Kaggle kernel folders**
+**2026-05-18** — T-7 days. The submission publishes **27 Kaggle kernel folders**
 plus a public website plus a writeup plus a 3-minute video.
 
 **The video is a screen recording of the live product**, not slides or
@@ -279,7 +279,7 @@ jurisdictions + 5 function-calling tools + an optional online-search
 layer, so the model produces grounded, citable, audience-appropriate
 responses about labor recruitment, fee scams, passport retention, debt
 bondage, and corridor-specific legal protections. The Kaggle submission
-contains **2 core + 11 appendix = 13 script kernels** — all visible to judges.
+contains **3 core + 24 appendix = 27 script kernels** — all visible to judges.
 Each has a `kernel.py` (script kernel source) and a `README.md`. The
 team has unified them under a shared workbench shell built around three
 primitives (`_chrome.css`, `_nav.js`, `dc_log`) plus four bespoke
@@ -894,7 +894,7 @@ Output specific changes that align the 13 kernels as a series:
 4. **Status strip consistency.** Every served-UI kernel should report
    the same shape from `/api/version` + `/api/model-info`. Audit the
    13 kernels and list any inconsistencies.
-5. **Naming consistency.** The 11 appendix slugs (A-01 ... A-11) — are
+5. **Naming consistency.** The 24 appendix slugs (A-01 ... A-11) — are
    they well-ordered for the 5-minute judge journey? If a different
    ordering would tell a better story, propose it.
 

@@ -1,6 +1,6 @@
 # <!-- duecare:kernel-intro -->
 # DueCare — PrivacyRedactor LoRA fine-tune + eval
-# Appendix notebook #A11 of 13 in the DueCare submission.
+# Appendix notebook #A12 of 24 in the DueCare submission.
 #
 # Trains a Gemma 4 LoRA adapter (PrivacyRedactor) on A-10's synthetic
 # composite intake + gold redaction plans, then benchmarks stock vs
@@ -19,7 +19,7 @@
 
 """
 ============================================================================
-  DUECARE A-11 PRIVACYREDACTOR FINE-TUNE + EVAL -- Kaggle notebook
+  DUECARE A-12 PRIVACYREDACTOR FINE-TUNE + EVAL -- Kaggle notebook
 ============================================================================
 
   Per Taylor's 2026-05-11 experiment-ladder spec, A-11 trains the

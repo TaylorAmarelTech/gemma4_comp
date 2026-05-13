@@ -1,6 +1,6 @@
 # Canonical appendix experiment ladder (locked 2026-05-11)
 
-> **Source-of-truth for the 11 appendix kernels.** Per Taylor's
+> **Source-of-truth for the 24 appendix kernels.** Per Taylor's
 > 2026-05-11 directive, the appendices form a reproducible
 > end-to-end model-improvement pipeline rather than a loose
 > collection of playgrounds. **Do not regress this structure** —

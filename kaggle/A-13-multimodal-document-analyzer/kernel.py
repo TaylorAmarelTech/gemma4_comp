@@ -1,6 +1,6 @@
 # <!-- duecare:kernel-intro -->
 # DueCare — Multimodal document analyzer (Gemma 4 vision)
-# Appendix notebook #A12 of 17 in the DueCare submission.
+# Appendix notebook #A13 of 24 in the DueCare submission.
 #
 # Upload a photo of a recruitment contract, passport letter, or job
 # advertisement; Gemma 4's vision capability extracts the text,
@@ -12,7 +12,7 @@
 
 """
 ============================================================================
-  DUECARE A-12 MULTIMODAL DOCUMENT ANALYZER -- Kaggle notebook
+  DUECARE A-13 MULTIMODAL DOCUMENT ANALYZER -- Kaggle notebook
 ============================================================================
   Per the hackathon rubric requirement that Gemma 4's UNIQUE features
   (multimodal understanding) be load-bearing rather than decorative,

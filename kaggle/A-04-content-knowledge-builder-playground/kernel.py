@@ -1,6 +1,6 @@
 # <!-- duecare:kernel-intro -->
 # DueCare — Fine-tuned baseline (A-05 LoRA adapter, harness OFF)
-# Appendix notebook #A06 of 13 in the DueCare submission.
+# Appendix notebook #A04 of 24 in the DueCare submission.
 #
 # Same canonical prompt library as A-01, but the model has the SafetyJudge
 # LoRA adapter from A-05 applied. Harness OFF so the lift attribution is
@@ -20,7 +20,7 @@
 
 """
 ============================================================================
-  DUECARE A-06 NEW-MODEL BASELINE RUNNER -- Kaggle notebook
+  DUECARE A-04 CONTENT KNOWLEDGE BUILDER -- Kaggle notebook
 ============================================================================
 
   Per Taylor's 2026-05-11 experiment-ladder spec, A-06 is the

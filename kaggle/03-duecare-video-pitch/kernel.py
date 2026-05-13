@@ -16,13 +16,13 @@
 #   s          skip current animation
 #   1..9       jump to scene/slide N
 #
-# Sibling kernel A-18 (kaggle/A-24-demo-replay/) is the appendix
+# Sibling kernel A-24 (kaggle/A-24-demo-replay/) is the appendix
 # version of this surface; 03 is the canonical main-notebook video
 # pitch judges land on.
 
 """
 ============================================================================
-  DUECARE A-18 DEMO REPLAY -- Kaggle notebook
+  DUECARE 03 VIDEO PITCH -- Kaggle notebook
 ============================================================================
   How it works:
     1. Bundled DEMO_SCRIPT dict (no attached datasets needed)
@@ -153,8 +153,8 @@ DEMO_SCRIPT = {
                         "ask domestic workers for placement fees.\n"
                         "2. Document everything (screenshots, receipts, "
                         "agency name) before saying anything.\n"
-                        "3. Report it. POEA hotline: +63 2 8722-1144. "
-                        "Or use Blas F. Ople Center hotline +63 2 8833-"
+                        "3. Report it. POEA hotline: +63-2-8722-1144. "
+                        "Or use Blas F. Ople Center hotline +63-2-8833-"
                         "0596 for confidential help.\n\n"
                         "I am an AI tool, not a lawyer. The contacts "
                         "above are real people who can help."),
@@ -251,7 +251,7 @@ DEMO_SCRIPT = {
                         "3. Talk to others who used the same recruiter "
                         "and came home safely, not just the broker.\n\n"
                         "When in doubt, the Blas F. Ople Center "
-                        "(+63 2 8833-0596) gives free pre-departure "
+                        "(+63-2-8833-0596) gives free pre-departure "
                         "advice."),
                     "harness_trace": {
                         "persona": {"enabled": True},
@@ -1922,7 +1922,7 @@ try:
         return {"ok": True}
     if public_url:
         print(f"  ok UI: {public_url}")
-    print("\n  A-18 DEMO REPLAY READY -- record from your browser\n")
+    print("\n  03 VIDEO PITCH READY -- record from your browser\n")
     while not _SHUTDOWN_EVENT.is_set():
         time.sleep(1)
 except KeyboardInterrupt:

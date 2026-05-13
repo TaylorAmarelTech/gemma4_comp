@@ -55,7 +55,7 @@ Used in accordance with the
 
 ## Why "appendix"
 
-The 2 core + 11 appendix kernels (chat-playground, chat-playground-with-grep-rag-tools,
+The 3 core + 24 appendix kernels (chat-playground, chat-playground-with-grep-rag-tools,
 gemma-content-classification-evaluation) are everything an end user
 needs for deployment. The live-demo notebook is the user-facing live
 URL judges click. **Bench-and-tune and prompt-generation are tools

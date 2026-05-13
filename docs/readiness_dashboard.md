@@ -59,7 +59,7 @@ The grading scale across this dashboard:
 | **C** | Present but weak. Likely loses some points. |
 | **D / F** | Absent or broken. Lose-point territory. |
 
-### Submission surface (the 13 Kaggle notebooks)
+### Submission surface (the 27 Kaggle notebooks)
 
 Detailed per-notebook plan in
 [`docs/notebook_qa_companion.md`](notebook_qa_companion.md).

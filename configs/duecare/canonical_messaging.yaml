@@ -55,7 +55,7 @@ legacy_names_allowed_only_for_compatibility:
 current_counts:
   verified_source: "Verified 2026-05-11 from the 13 judge-facing kaggle/* folders, current kaggle/kernels/* metadata, packages/duecare-llm-chat/src/duecare/chat/harness/, and bundled JSON assets."
   submission_kaggle_kernels: "13 judge-facing Kaggle folders"
-  submission_kernel_shape: "2 core + 11 appendix"
+  submission_kernel_shape: "3 core + 24 appendix"
   research_pipeline: "9 generated/research kernels under kaggle/kernels/*; older 52/74/77-kernel notes are archived historical context"
   grep_rules: "161 GREP rules"
   rag_docs: "46 RAG docs"

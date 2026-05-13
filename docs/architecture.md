@@ -46,7 +46,7 @@
 > 31B + 2 jailbroken (abliterated) + 3 cloud BYOK (Gemini /
 > OpenAI-compat / Ollama).
 >
-> **2 core + 11 appendix submission**: judges land on
+> **3 core + 24 appendix submission**: judges land on
 > `duecare-exploration-workbench` (omni playground) -> `duecare-live-demo`
 > (focused thesis demo). The 11 specialised notebooks are appendix.
 >

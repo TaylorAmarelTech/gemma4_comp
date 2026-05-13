@@ -1,6 +1,6 @@
 # <!-- duecare:kernel-intro -->
 # DueCare -- 128K long-context demo (zero inference, cached cross-statute QA)
-# Appendix notebook #A21 of 21 in the DueCare submission.
+# Appendix notebook #A21 of 24 in the DueCare submission.
 #
 # Exercises Gemma 4's long-context (128K) capability by loading a
 # multi-statute compliance corpus (POEA MC 14-2017 + RA 8042 +

@@ -1,6 +1,6 @@
 # <!-- duecare:kernel-intro -->
 # DueCare — Demo replay (zero-inference video recording kernel)
-# Appendix notebook #A18 of 20 in the DueCare submission.
+# Appendix notebook #A24 of 24 in the DueCare submission.
 #
 # Plays a curated set of pre-generated prompt/response demos through
 # a clean chat UI with typewriter prompt + token-streaming response.
@@ -18,7 +18,7 @@
 
 """
 ============================================================================
-  DUECARE A-18 DEMO REPLAY -- Kaggle notebook
+  DUECARE A-24 DEMO REPLAY -- Kaggle notebook
 ============================================================================
   How it works:
     1. Bundled DEMO_SCRIPT dict (no attached datasets needed)
@@ -144,8 +144,8 @@ DEMO_SCRIPT = {
                         "ask domestic workers for placement fees.\n"
                         "2. Document everything (screenshots, receipts, "
                         "agency name) before saying anything.\n"
-                        "3. Report it. POEA hotline: +63 2 8722-1144. "
-                        "Or use Blas F. Ople Center hotline +63 2 8833-"
+                        "3. Report it. POEA hotline: +63-2-8722-1144. "
+                        "Or use Blas F. Ople Center hotline +63-2-8833-"
                         "0596 for confidential help.\n\n"
                         "I am an AI tool, not a lawyer. The contacts "
                         "above are real people who can help."),
@@ -242,7 +242,7 @@ DEMO_SCRIPT = {
                         "3. Talk to others who used the same recruiter "
                         "and came home safely, not just the broker.\n\n"
                         "When in doubt, the Blas F. Ople Center "
-                        "(+63 2 8833-0596) gives free pre-departure "
+                        "(+63-2-8833-0596) gives free pre-departure "
                         "advice."),
                     "harness_trace": {
                         "persona": {"enabled": True},
@@ -1351,7 +1351,7 @@ try:
     )
     if public_url:
         print(f"  ok UI: {public_url}")
-    print("\n  A-18 DEMO REPLAY READY -- record from your browser\n")
+    print("\n  A-24 DEMO REPLAY READY -- record from your browser\n")
     while not _SHUTDOWN_EVENT.is_set():
         time.sleep(1)
 except KeyboardInterrupt:

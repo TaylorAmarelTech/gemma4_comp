@@ -1,6 +1,6 @@
 # <!-- duecare:kernel-intro -->
 # DueCare — PII synthetic data generator (composite intake + gold redaction plans)
-# Appendix notebook #A10 of 13 in the DueCare submission.
+# Appendix notebook #A09 of 24 in the DueCare submission.
 #
 # Generates 100% SYNTHETIC composite worker-intake notes (fake names,
 # passports, phones, addresses, employers) with paired gold redaction
@@ -20,7 +20,7 @@
 
 """
 ============================================================================
-  DUECARE A-10 PII SYNTHETIC DATA GENERATOR -- Kaggle notebook
+  DUECARE A-09 CHAT PLAYGROUND WITH AGENTIC RESEARCH -- Kaggle notebook
 ============================================================================
 
   Per Taylor's 2026-05-11 experiment-ladder spec, A-10 produces

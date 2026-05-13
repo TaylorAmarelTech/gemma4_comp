@@ -1,6 +1,6 @@
 # <!-- duecare:kernel-intro -->
 # DueCare — Knowledge-pack builder + verifier (Lane 04/05)
-# Appendix notebook #A16 of 20 in the DueCare submission.
+# Appendix notebook #A17 of 24 in the DueCare submission.
 #
 # Build a versioned, signed corridor knowledge pack from public
 # sources. Researchers can later pull and verify the hash for a

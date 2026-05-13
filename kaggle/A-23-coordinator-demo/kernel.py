@@ -1,6 +1,6 @@
 # <!-- duecare:kernel-intro -->
 # DueCare -- Coordinator-as-function-calling-router demo (zero inference)
-# Appendix notebook #A23 of 23 in the DueCare submission.
+# Appendix notebook #A23 of 24 in the DueCare submission.
 #
 # Exercises Gemma 4's NATIVE function-calling capability as a
 # multi-tool orchestration router: in ONE thinking step, the
@@ -179,9 +179,9 @@ COORDINATOR_SCENARIOS: list[dict[str, object]] = [
             {"name": "find_hotline",
              "result": {
                  "origin_hotline": "POEA Anti-Illegal Recruitment Branch",
-                 "origin_phone": "+63 2 8722 1144",
+                 "origin_phone": "+63-2-8722-1144",
                  "destination_hotline": "Mission for Migrant Workers HK",
-                 "destination_phone": "+852 2522 8264",
+                 "destination_phone": "+852-2522-8264",
              }},
         ],
         "synthesized_response": (
@@ -191,8 +191,8 @@ COORDINATOR_SCENARIOS: list[dict[str, object]] = [
             "charge is criminal illegal recruitment under RA 8042 Sec. "
             "6(a). To report:\n\n"
             "  - POEA Anti-Illegal Recruitment Branch (Philippines): "
-            "+63 2 8722 1144\n"
-            "  - Mission for Migrant Workers Hong Kong: +852 2522 8264\n\n"
+            "+63-2-8722-1144\n"
+            "  - Mission for Migrant Workers Hong Kong: +852-2522-8264\n\n"
             "Refuse the payment. The agency's POEA license is at risk "
             "for this arrangement."
         ),

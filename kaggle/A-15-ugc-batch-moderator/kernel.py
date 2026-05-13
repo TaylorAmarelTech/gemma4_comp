@@ -1,6 +1,6 @@
 # <!-- duecare:kernel-intro -->
 # DueCare — UGC batch moderator (Lane 01)
-# Appendix notebook #A14 of 20 in the DueCare submission.
+# Appendix notebook #A15 of 24 in the DueCare submission.
 #
 # Upload a CSV or JSONL of inbound posts / ads / listings; the
 # harness scores each through Persona + GREP + RAG + Tools and

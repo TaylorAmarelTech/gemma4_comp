@@ -277,7 +277,7 @@ Archived material is intentionally out of the default review scope:
 Do **not** read, review, lint, validate, regenerate, or summarize these
 archive folders unless the user explicitly asks for historical context,
 restore work, provenance checks, or migration work. They are not part of
-the active Kaggle submission path. Treat the 3 core + 23 appendix folders
+the active Kaggle submission path. Treat the 3 core + 24 appendix folders
 under `kaggle/` as the active kernel sources; `kaggle/kernels/*` notebook
 mirrors are archived.
 
@@ -344,8 +344,8 @@ research suite:
    archived with its notebook wrappers under
    `_archive/kaggle-notebook-previews-2026-05-11/`. Older 52/74/77-kernel
    notes are historical unless Taylor explicitly asks for restore or migration work.
-- The judge-facing submission folders under `kaggle/` are **26 folders** (3 core + 23 appendix):
-   2 core kernels plus A-01 through A-11. Their `kernel.py` and `README.md`
+- The judge-facing submission folders under `kaggle/` are **27 folders** (3 core + 24 appendix):
+   3 core kernels (01 / 02 / 03) plus A-01 through A-24. Their `kernel.py` and `README.md`
    files are the source of truth; notebook wrappers are archived under
    `_archive/kaggle-notebook-previews-2026-05-11/`.
 - A conservative first polish pass has already fixed reproducible bootstrap
