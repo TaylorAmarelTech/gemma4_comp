@@ -18,7 +18,7 @@ import uuid
 from collections import Counter
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any, Literal
+from typing import Optional, Any, Literal
 
 from fastapi import FastAPI, HTTPException, Request, status
 from fastapi.middleware.cors import CORSMiddleware
@@ -201,6 +201,34 @@ class FileHubStore:
             counters[f"update_jurisdiction:{jurisdiction}"] += 1
         return counters
 
+
+
+# ===== Phase 21: knowledge submission models =================================
+
+class KnowledgeSubmissionIn(BaseModel):
+    """Inbound knowledge submission from a DueCare kernel client."""
+
+    submission_id: Optional[str] = None
+    ts: Optional[str] = None
+    items: list[dict] = Field(default_factory=list)
+
+    class Config:
+        extra = "allow"
+
+
+class KnowledgeSubmissionReceipt(BaseModel):
+    """Hub receipt for a knowledge submission."""
+
+    ok: bool
+    submission_id: str
+    n_items: int
+    n_accepted: int
+    n_rejected_schema: int
+    n_rejected_pii: int
+    sha256_blob: str
+    status: str = "proposed"
+    audit_path: str
+    note: str
 
 class HealthStatus(BaseModel):
     """Health status for Render and external smoke checks."""
@@ -1128,6 +1156,146 @@ def create_app(*, data_dir: Path | None = None) -> FastAPI:
             media_type="application/zip",
             headers={"Content-Disposition": f'attachment; filename="{fname}"'},
         )
+
+    @application.post(
+        "/api/submit/knowledge",
+        response_model=KnowledgeSubmissionReceipt,
+        tags=["knowledge-packs"],
+        summary="Receive anonymized knowledge submissions from kernel clients",
+    )
+    async def submit_knowledge(
+        request: Request, body: KnowledgeSubmissionIn,
+    ) -> KnowledgeSubmissionReceipt:
+        """Stages 01-03 of the vetting process:
+          1. Receive payload from a kernel client
+          2. Validate every KnowledgeObject envelope shape
+          3. Re-run server-side PII regex (Stage 03 hard gate)
+        Accepted items land in <state>/knowledge_submissions.jsonl with
+        status="proposed". A curator picks them up (Stage 04) and signs
+        vetted releases (Stage 05).
+        """
+        import json as _json, hashlib as _hashlib, re as _re
+        from datetime import datetime as _dt
+
+        ts = _dt.utcnow().strftime("%Y-%m-%dT%H-%M-%SZ")
+        run_id = body.submission_id or f"hub_submit_{ts}"
+        items = body.items or []
+
+        KO_TYPES_HUB = {
+            "grep_rule", "glob_rule", "classifier_rule", "heuristic_rule",
+            "rag_doc", "citation_edge", "corridor_profile", "ngo_directory",
+            "persona_block", "context_snippet", "reasoning_step", "rubric_dimension",
+            "tool_definition", "tool_example", "tool_chain",
+            "fact_template", "upload_schema", "prompt_template",
+            "envelope_schema", "audit_template", "submission_schema",
+            "knowledge_pack_summary",
+        }
+
+        PII_PATTERNS = [
+            ("EMAIL",  _re.compile(r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b")),
+            ("PHONE",  _re.compile(r"\+?\d[\d\-\s]{7,}\d")),
+            ("ID",     _re.compile(r"\b[A-Z]{1,3}-?\d{6,}\b")),
+            ("PERSON", _re.compile(r"\b(?:Ms\.|Mr\.|Mrs\.|Dr\.)\s+[A-Z][a-z]+(?:\s+[A-Z][a-z]+)*\b")),
+        ]
+
+        def _contains_pii(blob: str) -> Optional[str]:
+            for label, pat in PII_PATTERNS:
+                if pat.search(blob):
+                    return label
+            return None
+
+        accepted: list[dict] = []
+        rejected_schema: list[dict] = []
+        rejected_pii: list[dict] = []
+
+        for i, item in enumerate(items):
+            if not isinstance(item, dict):
+                rejected_schema.append({"i": i, "reason": "not a JSON object"})
+                continue
+            if item.get("schema_version") != "1.0":
+                rejected_schema.append({"i": i, "reason": 'schema_version must be "1.0"'})
+                continue
+            ko_type = item.get("knowledge_object_type")
+            if ko_type not in KO_TYPES_HUB:
+                rejected_schema.append({"i": i, "reason": f"unknown type: {ko_type}"})
+                continue
+            ko_id = item.get("id")
+            if not isinstance(ko_id, str) or not _re.match(r"^[a-z0-9][a-z0-9\-_]*$", ko_id or ""):
+                rejected_schema.append({"i": i, "reason": "id must be kebab-case non-empty"})
+                continue
+            content = item.get("content") or {}
+            if not isinstance(content, dict):
+                rejected_schema.append({"i": i, "reason": "content must be a JSON object"})
+                continue
+            blob = _json.dumps(content, ensure_ascii=False)
+            hit = _contains_pii(blob)
+            if hit:
+                rejected_pii.append({"i": i, "id": ko_id, "label": hit})
+                continue
+            accepted.append({
+                "type": ko_type,
+                "id": ko_id,
+                "content_sha256": _hashlib.sha256(blob.encode()).hexdigest(),
+            })
+
+        state = _state(request)
+        audit_dir = state.store.root
+        try:
+            audit_dir.mkdir(parents=True, exist_ok=True)
+        except Exception:
+            pass
+        audit_path = audit_dir / "knowledge_submissions.jsonl"
+
+        payload_blob = _json.dumps(
+            {"run_id": run_id, "ts": ts, "items": items},
+            sort_keys=True, ensure_ascii=False,
+        ).encode("utf-8")
+        sha = _hashlib.sha256(payload_blob).hexdigest()
+
+        entry = {
+            "ts": ts,
+            "submission_id": run_id,
+            "action": "hub/submit/knowledge",
+            "n_items": len(items),
+            "n_accepted": len(accepted),
+            "n_rejected_schema": len(rejected_schema),
+            "n_rejected_pii": len(rejected_pii),
+            "sha256_blob": sha,
+            "accepted": accepted,
+            "rejected_schema": rejected_schema,
+            "rejected_pii": rejected_pii,
+            "client_ts": body.ts,
+        }
+        try:
+            with open(audit_path, "a", encoding="utf-8") as f:
+                f.write(_json.dumps(entry) + "\n")
+        except Exception:
+            pass
+
+        note = (
+            f"Accepted {len(accepted)} of {len(items)} items into Stage 01 "
+            "(Proposed). They will be reviewed by a curator (Stage 04) before "
+            "publication as vetted (Stage 05). See /hub#hub-vetting."
+        )
+        if rejected_pii:
+            note += (
+                f" {len(rejected_pii)} item(s) rejected at the Stage 03 PII "
+                "hard gate -- re-anonymize and resubmit."
+            )
+
+        return KnowledgeSubmissionReceipt(
+            ok=True,
+            submission_id=run_id,
+            n_items=len(items),
+            n_accepted=len(accepted),
+            n_rejected_schema=len(rejected_schema),
+            n_rejected_pii=len(rejected_pii),
+            sha256_blob=sha,
+            status="proposed",
+            audit_path=str(audit_path),
+            note=note,
+        )
+
 
 
     # ---- Pack registry (real downloadable content) ---------------------
