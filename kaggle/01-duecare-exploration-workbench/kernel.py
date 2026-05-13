@@ -1,6 +1,6 @@
 # <!-- duecare:kernel-intro -->
 # DueCare Exploration Workbench
-# Core notebook #01 of 13 in the DueCare submission.
+# Core notebook #01 of 27 in the DueCare submission (3 core + 24 appendix).
 #
 # Unified workbench surface for every audience and every harness capability:
 #   - 5 audience showcase pages (Platform safety / NGO & regulator / Worker /

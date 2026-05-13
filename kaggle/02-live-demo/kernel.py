@@ -1,6 +1,6 @@
 # <!-- duecare:kernel-intro -->
 # DueCare — Live demo (focused walkthrough)
-# Core notebook #02 of 13 in the DueCare submission.
+# Core notebook #02 of 27 in the DueCare submission (3 core + 24 appendix).
 #
 # The polished demo URL judges land on. Same harness, scripted demo path, +56pp lift baked in.
 #
