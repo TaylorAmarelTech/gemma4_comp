@@ -111,6 +111,76 @@ harness boundary already labeled the task.
 - `tests/test_compose_layers.py` -- unit tests for the shared layer composer.
 - Adversarial validation: every refactor verified via TestClient smoke calls.
 
+## Cross-kernel integration (Phase 8c)
+
+The harness pattern works across **all three** server-style kernel patterns
+in `kaggle/`:
+
+| Pattern | Used by | How to opt in |
+|---|---|---|
+| `duecare.chat.create_app(**default_harness())` | 01-duecare-exploration-workbench, A-10 | **Auto-inherits** all 5 harnesses |
+| `duecare.chat.kernel_shell.build_minimal_shell(harnesses=[...])` | A-01, A-03, A-04, A-05, A-11, A-13, A-15, A-16 | Pass list of harness modules |
+| Notebook-only (no FastAPI) | A-06, A-07, A-08, A-12, A-14 | Call `log_kernel_interaction(...)` directly |
+
+### Minimal-shell kernels
+
+Appendix kernels using the minimal shell get the same harness routes by
+passing `harnesses=[...]`:
+
+```python
+from duecare.chat.kernel_shell import build_minimal_shell
+from duecare.chat.harnesses import anonymization, extraction
+
+app, url = build_minimal_shell(
+    summary={"title": "A-04 knowledge builder", ...},
+    kernel_id="a-04-content-knowledge-builder",
+    harnesses=[anonymization, extraction],  # opt-in
+)
+# /api/anonymize, /api/submit/knowledge, /api/knowledge/draft-envelope
+# now registered, with per-task training-log JSONL emission.
+```
+
+### Notebook-only kernels
+
+For appendix kernels with no FastAPI surface (data-pipeline notebooks),
+`log_kernel_interaction` lets them participate in the per-task training-data
+flywheel without declaring a full harness module:
+
+```python
+from duecare.chat.kernel_shell import log_kernel_interaction
+
+result = classify(text)
+log_kernel_interaction(
+    "a-04-content-knowledge-builder",
+    input_payload={"text": text, "task": "classify"},
+    output_payload={"label": result.label, "confidence": result.confidence},
+    applied_layers={"classifier": {"fired": True}},
+    trace={"rule_id": result.rule_id},
+)
+# -> /kaggle/working/training/a-04-content-knowledge-builder.jsonl
+# Same schema as the primary harnesses; ready for Unsloth ingestion.
+```
+
+### Verification
+
+A-10 boot-equivalent: `create_app(**default_harness())` registers all
+8 expected harness routes (chat / process / extraction / anonymization /
+import_corpus). Verified via TestClient smoke:
+
+```
+/api/chat/send                  OK
+/api/chat/upload-image          OK
+/api/process/batch              OK
+/api/process/graph-chat         OK
+/api/knowledge/draft-envelope   OK
+/api/anonymize                  OK
+/api/submit/knowledge           OK
+/api/import/upload              OK
+```
+
+Each endpoint emits to the correct per-task JSONL stream at completion.
+
+
 ## Multi-rubric design review (2026-05-13)
 
 | Rubric | Result |
