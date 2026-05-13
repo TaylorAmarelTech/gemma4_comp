@@ -241,7 +241,7 @@ def install_chat_wheels() -> int:
 
     # Competition strategy: Pin to specific release artifacts for reproducibility.
     VERSION = "0.1.0"
-    COMMIT_SHA = "main"
+    COMMIT_SHA = "master"
 
     # Method 1: GitHub Release Wheels (fastest when available)
     try:
@@ -289,6 +289,7 @@ def install_chat_wheels() -> int:
         print("  → falling back to source install...")
 
     # Method 2: GitHub Source Install (most reliable, fully transparent)
+    github_error = None
     try:
         print("  → attempting GitHub source installation...")
         print("    judge advantage: exact source code verification possible")
@@ -348,6 +349,7 @@ def install_chat_wheels() -> int:
         raise Exception("Installation timed out")
 
     except Exception as e:
+        github_error = e
         print(f"  ✗ GitHub source installation failed: {str(e)}")
         print("  → trying fallback to local wheels...")
 
@@ -420,7 +422,7 @@ def install_chat_wheels() -> int:
         print("  GitHub source failed + local wheels failed.")
         print()
         print("  DIAGNOSIS:")
-        print(f"  • GitHub error: {str(e)[:200]}...")
+        print(f"  • GitHub error: {str(github_error)[:200] if github_error else 'release path failed earlier'}...")
         print(f"  • Wheels error: {str(wheel_error)[:200]}...")
         print()
         print("  POSSIBLE CAUSES:")

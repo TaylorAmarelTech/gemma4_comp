@@ -81,20 +81,20 @@ def freeze() -> int:
 
 
 def unfreeze() -> int:
-    rewritten = _rewrite_pins("main")
+    rewritten = _rewrite_pins("master")
     FREEZE_FILE.write_text(
         json.dumps(
             {
                 "frozen": False,
                 "ref": None,
-                "note": "Dev mode — kernels track main. Run this script without --unfreeze before final submission.",
+                "note": "Dev mode — kernels track master. Run this script without --unfreeze before final submission.",
             },
             indent=2,
         )
         + "\n",
         encoding="utf-8",
     )
-    print(f"Unfrozen (dev mode). Rewrote {len(rewritten)} kernels to track main:")
+    print(f"Unfrozen (dev mode). Rewrote {len(rewritten)} kernels to track master:")
     for line in rewritten:
         print(f"  - {line}")
     return 0
@@ -105,7 +105,7 @@ def main() -> int:
     parser.add_argument(
         "--unfreeze",
         action="store_true",
-        help="Flip back to dev mode (kernels track main).",
+        help="Flip back to dev mode (kernels track master).",
     )
     args = parser.parse_args()
     return unfreeze() if args.unfreeze else freeze()

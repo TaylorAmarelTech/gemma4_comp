@@ -1,5 +1,5 @@
 {
   "frozen": false,
   "ref": null,
-  "note": "Dev mode — kernels track main. Run scripts/freeze_kernels_for_submission.py before final submission."
+  "note": "Dev mode \u2014 kernels track master. Run scripts/freeze_kernels_for_submission.py before final submission."
 }

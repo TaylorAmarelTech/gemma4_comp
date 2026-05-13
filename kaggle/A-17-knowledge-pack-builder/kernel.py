@@ -60,7 +60,7 @@ PACKS_DIR.mkdir(parents=True, exist_ok=True)
 # ===========================================================================
 DUECARE_VERSION = "0.1.0"
 DUECARE_REPO = "TaylorAmarelTech/gemma4_comp"
-DUECARE_COMMIT_SHA = "main"
+DUECARE_COMMIT_SHA = "master"
 DUECARE_PACKAGES = ["duecare-llm-chat"]
 
 
