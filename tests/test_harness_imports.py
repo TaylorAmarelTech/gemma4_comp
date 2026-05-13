@@ -67,6 +67,24 @@ def test_harness_emits_are_valid_ko_types(harness):
         )
 
 
+VALID_CAPABILITIES = {"multi_turn", "streaming", "function_calling", "multimodal"}
+
+
+@pytest.mark.parametrize("harness", all_harnesses(), ids=lambda h: h.name)
+def test_harness_capabilities_are_valid(harness):
+    """If a harness declares capabilities, every entry must be a known capability."""
+    caps = getattr(harness, "capabilities", None)
+    if caps is None:
+        return
+    assert isinstance(caps, tuple), \
+        f"{harness.name}.capabilities must be a tuple"
+    for cap in caps:
+        assert cap in VALID_CAPABILITIES, (
+            f"{harness.name}.capabilities contains unknown capability "
+            f"{cap!r}; allowed: {sorted(VALID_CAPABILITIES)}"
+        )
+
+
 def test_primary_registry_locked():
     """The 4 primary harnesses must be present and named exactly as expected."""
     names = {h.name for h in PRIMARY_HARNESSES}
