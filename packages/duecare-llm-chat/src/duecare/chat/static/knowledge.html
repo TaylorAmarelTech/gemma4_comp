@@ -7,135 +7,324 @@
   <link rel="stylesheet" href="/static/_chrome.css">
   <script src="/static/_nav.js" defer></script>
   <style>
-    body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-           background: #F7F6F1; color: #0E1116; margin: 0; padding: 0; }
-    .wb-page { max-width: 1120px; margin: 0 auto; padding: 24px 22px 80px; }
-    .wb-h1 { font-size: 26px; font-weight: 600; letter-spacing: -0.02em; margin: 6px 0 6px; }
-    .wb-lede { font-size: 13.5px; line-height: 1.6; color: #2A2D34; max-width: 720px;
-               margin: 0 0 22px; }
-    .wb-card { background: #FFFFFF; border: 1px solid #DDD8C9; border-radius: 12px;
-               padding: 18px 20px; margin-bottom: 14px; }
+    body { font-family: 'Inter', sans-serif; background: #F7F6F1; color: #0E1116; margin: 0; padding: 0; }
+    .wb-page { max-width: 1180px; margin: 0 auto; padding: 24px 22px 80px; }
+    .wb-h1 { font-size: 26px; font-weight: 600; margin: 6px 0 6px; }
+    .wb-lede { font-size: 13.5px; line-height: 1.6; color: #2A2D34; max-width: 760px; margin: 0 0 22px; }
+    .wb-card { background: #FFF; border: 1px solid #DDD8C9; border-radius: 12px; padding: 18px 20px; margin-bottom: 14px; }
     .wb-card h2 { font-size: 16px; font-weight: 600; margin: 0 0 8px; }
-    .wb-card p { font-size: 12.5px; line-height: 1.55; color: #2A2D34; margin: 0 0 8px; }
-    .wb-pill { display: inline-block; font-family: 'JetBrains Mono', monospace;
-               font-size: 10px; color: #2A2D34; background: #EFEDE4; border-radius: 4px;
-               padding: 2px 7px; margin-right: 6px; }
-    .wb-btn-primary {
-        background: oklch(0.52 0.08 195); color: #F7F6F1; border: 0;
-        padding: 9px 18px; border-radius: 8px; font-size: 13px; font-weight: 600;
-        cursor: pointer; text-decoration: none; display: inline-block;
-    }
+    .wb-pill { display: inline-block; font-family: 'JetBrains Mono', monospace; font-size: 10px;
+               color: #2A2D34; background: #EFEDE4; border-radius: 4px; padding: 2px 7px; margin: 0 4px 4px 0; }
+    .wb-btn-primary { background: oklch(0.52 0.08 195); color: #F7F6F1; border: 0; padding: 8px 14px;
+                       border-radius: 8px; font-size: 12.5px; font-weight: 600; cursor: pointer; }
     .wb-btn-primary:disabled { opacity: 0.55; cursor: not-allowed; }
-    .wb-btn-secondary {
-        background: #EFEDE4; color: #0E1116; border: 1px solid #DDD8C9;
-        padding: 8px 14px; border-radius: 8px; font-size: 12.5px; cursor: pointer;
-        text-decoration: none; display: inline-block;
-    }
-    .wb-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center;
-              margin-top: 12px; }
+    .wb-btn-secondary { background: #EFEDE4; color: #0E1116; border: 1px solid #DDD8C9;
+                         padding: 6px 12px; border-radius: 8px; font-size: 12px; cursor: pointer;
+                         text-decoration: none; display: inline-block; }
+    .wb-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 10px; }
     .wb-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
     @media (max-width: 760px) { .wb-grid-2 { grid-template-columns: 1fr; } }
     .wb-muted { color: #5B5F68; font-size: 11.5px; }
-    .wb-status-pill { background: #EFEDE4; padding: 6px 12px; border-radius: 999px;
-                       font-size: 11px; color: #5B5F68; }
-    .wb-status-pill.scaffold { background: oklch(0.94 0.04 45);
-                                color: oklch(0.32 0.07 45); }
-    .wb-status-pill.ready { background: oklch(0.92 0.06 155);
-                             color: oklch(0.32 0.07 155); }
-    .wb-step {
-        display: flex; align-items: flex-start; gap: 14px; padding: 14px 16px;
-        background: #FFFFFF; border: 1px solid #DDD8C9; border-radius: 10px;
-        margin-bottom: 10px;
+    .wb-status-pill { background: oklch(0.92 0.06 155); color: oklch(0.32 0.07 155);
+                       padding: 6px 12px; border-radius: 999px; font-size: 11px; }
+    input[type=text], textarea, select {
+      width: 100%; box-sizing: border-box; padding: 7px 9px; font-size: 12.5px;
+      font-family: inherit; line-height: 1.45;
+      background: #FFF; color: #0E1116; border: 1px solid #DDD8C9; border-radius: 6px;
     }
-    .wb-step-num { flex: 0 0 32px; width: 32px; height: 32px; border-radius: 50%;
-                    background: oklch(0.52 0.08 195); color: #F7F6F1;
-                    font-weight: 700; font-size: 13px;
-                    display: flex; align-items: center; justify-content: center; }
-    .wb-step-body { flex: 1; }
-    .wb-step h3 { margin: 0 0 4px; font-size: 14px; font-weight: 600; }
-    .wb-step p { margin: 0 0 8px; font-size: 12.5px; color: #2A2D34; line-height: 1.5; }
+    textarea { resize: vertical; min-height: 56px; }
+    label { display: block; font-size: 11px; color: #5B5F68; font-weight: 600;
+             text-transform: uppercase; letter-spacing: 0.3px; margin-top: 8px; }
     code { background: #F1EFE7; padding: 1px 5px; border-radius: 3px; font-size: 11.5px;
            font-family: 'JetBrains Mono', monospace; }
+    .wb-log { background: #0E1116; color: #E4E1D7; font-family: 'JetBrains Mono', monospace;
+               font-size: 11px; border-radius: 8px; padding: 10px 12px; max-height: 220px; overflow-y: auto; }
+    .wb-log .ts { color: #8A8E97; }
+    .wb-log .ok { color: oklch(0.78 0.14 155); }
+    .wb-log .err { color: oklch(0.72 0.16 25); }
+    .wb-roster { font-size: 12px; max-height: 240px; overflow-y: auto; }
+    .wb-roster-row { padding: 6px 8px; border-bottom: 1px solid #EFEDE4; }
+    .wb-roster-row b { color: #0E1116; font-size: 12.5px; }
+    .wb-roster-row .meta { color: #5B5F68; font-size: 10.5px; margin-top: 2px; }
     a { color: oklch(0.32 0.07 195); }
+    .wb-error { background: oklch(0.94 0.04 25); color: oklch(0.32 0.10 25);
+                 padding: 8px 10px; border-radius: 6px; font-size: 12px; margin-top: 8px; }
   </style>
 </head>
 <body data-nav="knowledge">
   <main class="wb-page">
-    <span class="wb-status-pill scaffold">Tab 04 -- Knowledge Creation -- scaffold</span>
-    <h1 class="wb-h1">Knowledge Creation -- author patterns, facts, and templates</h1>
+    <span class="wb-status-pill">Tab 04 -- Knowledge Creation -- live</span>
+    <h1 class="wb-h1">Knowledge Creation -- author standardized knowledge modules</h1>
     <p class="wb-lede">
-      Findings from <a href="/static/process.html">Process Files</a> get
-      promoted here into reusable knowledge artefacts: GREP rule candidates,
-      RAG-doc additions, citation-graph edges, and structured fact templates.
-      Each artefact starts as a draft you review before promotion.
+      Every artefact authored here ships in the canonical KnowledgeObject
+      envelope (<a href="../../docs/knowledge_module_schema.md">spec</a>).
+      Five types: GREP rule, RAG doc, citation edge, fact template, context
+      snippet. Round-trippable: persists to
+      <code>/kaggle/working/knowledge/&lt;type&gt;/&lt;id&gt;.json</code> so the
+      harness re-digests on next boot, and exports as one ZIP for sharing.
     </p>
 
+    <div class="wb-grid-2">
+
+      <div class="wb-card">
+        <h2>GREP rule</h2>
+        <p class="wb-muted">Re-digested as a regex pattern in the GREP layer.</p>
+        <label for="kog-id">id (kebab-case)</label>
+        <input type="text" id="kog-id" placeholder="e.g. ph_hk_placement_fee_zero_cap">
+        <label for="kog-category">category</label>
+        <input type="text" id="kog-category" placeholder="e.g. fee_bondage">
+        <label for="kog-severity">severity</label>
+        <select id="kog-severity"><option>low</option><option selected>medium</option><option>high</option><option>critical</option></select>
+        <label for="kog-pattern">regex pattern</label>
+        <textarea id="kog-pattern" placeholder="(?i)placement\s+fee\s*[:=]\s*(?:PHP|HKD)\s*[1-9]"></textarea>
+        <label for="kog-description">description</label>
+        <textarea id="kog-description" placeholder="What this rule detects + which corridor / statute it grounds in."></textarea>
+        <div class="wb-row">
+          <button class="wb-btn-primary" onclick="kPromoteGrep()">Promote to knowledge</button>
+        </div>
+      </div>
+
+      <div class="wb-card">
+        <h2>RAG doc</h2>
+        <p class="wb-muted">Re-digested into the BM25 + dense index.</p>
+        <label for="kor-id">id</label>
+        <input type="text" id="kor-id" placeholder="e.g. poea-mc-14-2017">
+        <label for="kor-title">title</label>
+        <input type="text" id="kor-title" placeholder="POEA Memorandum Circular 14-2017">
+        <label for="kor-jurisdiction">jurisdiction</label>
+        <input type="text" id="kor-jurisdiction" placeholder="PH">
+        <label for="kor-url">source url</label>
+        <input type="text" id="kor-url" placeholder="https://www.dmw.gov.ph/...">
+        <label for="kor-text">full text</label>
+        <textarea id="kor-text" style="min-height: 96px;" placeholder="Paste the statute / advisory text here."></textarea>
+        <div class="wb-row">
+          <button class="wb-btn-primary" onclick="kPromoteRag()">Promote to knowledge</button>
+        </div>
+      </div>
+
+      <div class="wb-card">
+        <h2>Citation edge</h2>
+        <p class="wb-muted">Adds an edge to the 46-edge citation graph.</p>
+        <label for="koc-id">id</label>
+        <input type="text" id="koc-id" placeholder="e.g. poea-mc-14-2017--ilo-c189">
+        <label for="koc-from">from_statute</label>
+        <input type="text" id="koc-from" placeholder="POEA MC 14-2017">
+        <label for="koc-to">to_statute</label>
+        <input type="text" id="koc-to" placeholder="ILO C189">
+        <label for="koc-relation">relation</label>
+        <select id="koc-relation">
+          <option>implements</option><option>supersedes</option><option selected>references</option><option>cites</option>
+        </select>
+        <label for="koc-evidence">evidence quote (optional)</label>
+        <textarea id="koc-evidence" placeholder="Direct excerpt linking the two."></textarea>
+        <div class="wb-row">
+          <button class="wb-btn-primary" onclick="kPromoteCitation()">Promote to knowledge</button>
+        </div>
+      </div>
+
+      <div class="wb-card">
+        <h2>Fact template</h2>
+        <p class="wb-muted">Structured form used on the Anonymization &amp; Sharing tab.</p>
+        <label for="kof-id">template_id</label>
+        <input type="text" id="kof-id" placeholder="e.g. fee_violation_v1">
+        <label for="kof-label">label</label>
+        <input type="text" id="kof-label" placeholder="Recruitment-fee violation">
+        <label for="kof-indicators">applies_to_indicators (comma-sep)</label>
+        <input type="text" id="kof-indicators" placeholder="fee_camouflage, fee_bondage">
+        <label for="kof-fields">fields (JSON array)</label>
+        <textarea id="kof-fields" style="min-height: 96px;" placeholder='[{"name":"corridor","type":"string","required":true}, ...]'></textarea>
+        <div class="wb-row">
+          <button class="wb-btn-primary" onclick="kPromoteFactTemplate()">Promote to knowledge</button>
+        </div>
+      </div>
+
+      <div class="wb-card" style="grid-column: 1 / -1;">
+        <h2>Context snippet</h2>
+        <p class="wb-muted">Reusable prompt-prepend text for specific corridors / indicators.</p>
+        <label for="kox-id">snippet_id</label>
+        <input type="text" id="kox-id" placeholder="e.g. ph-hk-corridor-overview">
+        <label for="kox-corridors">applies_to_corridors (comma-sep)</label>
+        <input type="text" id="kox-corridors" placeholder="PH-HK, PH-SG">
+        <label for="kox-indicators">applies_to_indicators (comma-sep)</label>
+        <input type="text" id="kox-indicators" placeholder="fee_camouflage, passport_retention">
+        <label for="kox-text">snippet text</label>
+        <textarea id="kox-text" style="min-height: 80px;" placeholder="Concise context paragraph the harness will prepend when these conditions match."></textarea>
+        <div class="wb-row">
+          <button class="wb-btn-primary" onclick="kPromoteContext()">Promote to knowledge</button>
+        </div>
+      </div>
+
+    </div>
+
     <div class="wb-card">
-      <h2>Source</h2>
-      <p>
-        Load a <code>&lt;RUN_ID&gt;_process_bundle.zip</code> emitted by Process Files, or start from a blank slate.
-      </p>
+      <h2>Currently persisted knowledge <span class="wb-muted" style="font-weight: normal;">-- live from <code>/api/knowledge/list</code></span></h2>
+      <div class="wb-row">
+        <button class="wb-btn-secondary" onclick="kRefresh()">Refresh roster</button>
+        <a class="wb-btn-secondary" href="/api/knowledge/export" download>Export all as ZIP</a>
+      </div>
+      <div id="k-roster" class="wb-roster" style="margin-top: 10px;">
+        <div class="wb-muted">Click <i>Refresh roster</i> to fetch.</div>
+      </div>
+    </div>
+
+    <div class="wb-card">
+      <h2>Activity log <span class="wb-muted" style="font-weight: normal;">-- every promote call + response is transparent</span></h2>
+      <div class="wb-log" id="wb-log">
+        <div class="wb-muted">No activity yet.</div>
+      </div>
+    </div>
+
+    <div class="wb-card">
+      <h2>Cross-links</h2>
       <div class="wb-row">
         <a class="wb-btn-secondary" href="/static/process.html">&larr; Back to Process Files</a>
-        <button class="wb-btn-secondary" type="button">Start blank</button>
-      </div>
-    </div>
-
-    <div class="wb-grid-2">
-      <div class="wb-card">
-        <h2>Candidate GREP rules</h2>
-        <p>Frequent-but-not-yet-rule patterns from the processed rows.</p>
-        <div style="height: 180px; border: 1px solid #EFEDE4; border-radius: 8px;
-             background: #FFFFFF; padding: 12px; color: #5B5F68; font-size: 12px;
-             overflow-y: auto;">
-          (candidate list renders here. Each candidate shows: pattern, support
-          count, sample row_ids, suggested category, and an Accept / Edit /
-          Reject row of buttons.)
-        </div>
-      </div>
-      <div class="wb-card">
-        <h2>Candidate RAG additions</h2>
-        <p>Documents the harness needed but couldn't find in the 46-doc corpus.</p>
-        <div style="height: 180px; border: 1px solid #EFEDE4; border-radius: 8px;
-             background: #FFFFFF; padding: 12px; color: #5B5F68; font-size: 12px;
-             overflow-y: auto;">
-          (candidate list renders here; user can paste new doc text + assign a jurisdiction tag + click Promote.)
-        </div>
-      </div>
-      <div class="wb-card">
-        <h2>Citation-graph edges</h2>
-        <p>Statute pairs that co-occurred in responses but aren't yet linked.</p>
-        <div style="height: 180px; border: 1px solid #EFEDE4; border-radius: 8px;
-             background: #FFFFFF; padding: 12px; color: #5B5F68; font-size: 12px;
-             overflow-y: auto;">
-          (candidate edges render here; user clicks Add to write the edge.)
-        </div>
-      </div>
-      <div class="wb-card">
-        <h2>Structured fact templates</h2>
-        <p>
-          Pre-defined templates the user fills out to produce submission-ready facts.
-          Templates follow the public hub's KnowledgeObject schema.
-        </p>
-        <div style="height: 180px; border: 1px solid #EFEDE4; border-radius: 8px;
-             background: #FFFFFF; padding: 12px; color: #5B5F68; font-size: 12px;
-             overflow-y: auto;">
-          (template picker + fillable form render here.)
-        </div>
-      </div>
-    </div>
-
-    <div class="wb-card">
-      <h2>Next step</h2>
-      <p>
-        Once you've authored / accepted the knowledge artefacts, head to the
-        Anonymization &amp; Sharing tab to redact PII and submit the vetted
-        facts to the public hub.
-      </p>
-      <div class="wb-row">
-        <a class="wb-btn-primary" href="/static/share.html">Continue to Anonymization &amp; Sharing &rarr;</a>
+        <a class="wb-btn-secondary" href="/static/share.html">Anonymize &amp; share &rarr;</a>
+        <a class="wb-btn-secondary" href="/static/harness.html">Layer inspector</a>
       </div>
     </div>
   </main>
+
+  <script>
+    function esc(s) {
+      return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+        return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c];
+      });
+    }
+    function v(id) { const el = document.getElementById(id); return el ? el.value.trim() : ''; }
+
+    function wbLog(kind, msg, detail) {
+      const host = document.getElementById('wb-log');
+      if (host.firstChild && host.firstChild.classList && host.firstChild.classList.contains('wb-muted')) host.innerHTML = '';
+      const ts = new Date().toISOString().slice(11, 19);
+      const cls = kind === 'err' ? 'err' : (kind === 'ok' ? 'ok' : '');
+      const div = document.createElement('div');
+      const tspan = document.createElement('span'); tspan.className = 'ts'; tspan.textContent = '[' + ts + '] ';
+      const mspan = document.createElement('span'); mspan.className = cls; mspan.textContent = msg;
+      div.appendChild(tspan); div.appendChild(mspan);
+      if (detail) {
+        const d = document.createElement('div');
+        d.style.cssText = 'margin-left:18px; color:#8A8E97; font-size:10.5px;';
+        d.textContent = detail; div.appendChild(d);
+      }
+      host.appendChild(div); host.scrollTop = host.scrollHeight;
+    }
+
+    async function kPromote(type, id, content) {
+      if (!id) { wbLog('err', 'No id supplied for ' + type, ''); return; }
+      const env = {
+        schema_version: '1.0',
+        knowledge_object_type: type,
+        id: id,
+        version: 'v1',
+        provenance: { created_at: new Date().toISOString(), created_by: 'kernel-01' },
+        content: content,
+        tags: [], extensions: {},
+      };
+      wbLog('info', 'POST /api/knowledge/promote', 'type=' + type + ' id=' + id);
+      const t0 = performance.now();
+      try {
+        const r = await fetch('/api/knowledge/promote', {
+          method: 'POST', headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify(env)
+        });
+        const dt = Math.round(performance.now() - t0);
+        if (!r.ok) {
+          const t = await r.text();
+          wbLog('err', 'HTTP ' + r.status + ' (' + dt + 'ms)', t.slice(0, 200));
+          return;
+        }
+        const out = await r.json();
+        wbLog('ok', 'HTTP ' + r.status + ' (' + dt + 'ms)',
+              'written_to=' + out.written_to + ' id=' + out.id);
+        kRefresh();
+      } catch (e) {
+        wbLog('err', 'Promote failed', '' + (e && e.message || e));
+      }
+    }
+
+    function kPromoteGrep() {
+      kPromote('grep_rule', v('kog-id'), {
+        rule_id:     v('kog-id'),
+        category:    v('kog-category'),
+        severity:    v('kog-severity'),
+        pattern:     v('kog-pattern'),
+        description: v('kog-description'),
+      });
+    }
+    function kPromoteRag() {
+      kPromote('rag_doc', v('kor-id'), {
+        title:        v('kor-title'),
+        jurisdiction: v('kor-jurisdiction'),
+        source_url:   v('kor-url'),
+        text:         v('kor-text'),
+      });
+    }
+    function kPromoteCitation() {
+      kPromote('citation_edge', v('koc-id'), {
+        from_statute:   v('koc-from'),
+        to_statute:     v('koc-to'),
+        relation:       v('koc-relation'),
+        evidence_quote: v('koc-evidence'),
+        weight:         1.0,
+      });
+    }
+    function kPromoteFactTemplate() {
+      let fields;
+      try { fields = JSON.parse(v('kof-fields') || '[]'); }
+      catch (e) { wbLog('err', 'fields JSON parse failed', e.message); return; }
+      const inds = v('kof-indicators').split(',').map(s => s.trim()).filter(Boolean);
+      kPromote('fact_template', v('kof-id'), {
+        template_id:           v('kof-id'),
+        label:                 v('kof-label'),
+        applies_to_indicators: inds,
+        fields:                fields,
+        submission_schema_url: 'https://duecare-ai.com/schema/fact/v1',
+      });
+    }
+    function kPromoteContext() {
+      const corridors = v('kox-corridors').split(',').map(s => s.trim()).filter(Boolean);
+      const indicators = v('kox-indicators').split(',').map(s => s.trim()).filter(Boolean);
+      kPromote('context_snippet', v('kox-id'), {
+        snippet_id:               v('kox-id'),
+        applies_to_corridors:     corridors,
+        applies_to_indicators:    indicators,
+        text:                     v('kox-text'),
+        max_tokens_when_prepended: 200,
+      });
+    }
+
+    async function kRefresh() {
+      const host = document.getElementById('k-roster');
+      host.innerHTML = '<div class="wb-muted">Fetching...</div>';
+      wbLog('info', 'GET /api/knowledge/list', '');
+      const t0 = performance.now();
+      try {
+        const r = await fetch('/api/knowledge/list');
+        const dt = Math.round(performance.now() - t0);
+        if (!r.ok) {
+          host.innerHTML = '<div class="wb-error">HTTP ' + r.status + '</div>';
+          wbLog('err', 'HTTP ' + r.status + ' (' + dt + 'ms)', ''); return;
+        }
+        const out = await r.json();
+        wbLog('ok', 'HTTP ' + r.status + ' (' + dt + 'ms)', 'n=' + out.n + ' objects');
+        if (!out.n) {
+          host.innerHTML = '<div class="wb-muted">No knowledge objects persisted yet.</div>'; return;
+        }
+        host.innerHTML = (out.objects || []).map(o => {
+          const tags = (o.tags || []).map(t => '<span class="wb-pill">' + esc(t) + '</span>').join('');
+          return '<div class="wb-roster-row">' +
+                 '<b>' + esc(o.id) + '</b> ' +
+                 '<span class="wb-pill">' + esc(o.type) + '</span> ' +
+                 '<span class="wb-pill">' + esc(o.version || 'v1') + '</span> ' + tags +
+                 '<div class="meta">' + esc(o.summary || '') + '</div>' +
+                 '<div class="meta"><code>' + esc(o.path || '') + '</code></div>' +
+                 '</div>';
+        }).join('');
+      } catch (e) {
+        host.innerHTML = '<div class="wb-error">' + esc(e && e.message || e) + '</div>';
+        wbLog('err', 'List failed', '' + (e && e.message || e));
+      }
+    }
+  </script>
 </body>
 </html>
