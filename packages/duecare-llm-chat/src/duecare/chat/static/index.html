@@ -2116,6 +2116,9 @@ async function useExample(id) {
   if (!ex) return;
   const input = document.getElementById('input');
   input.value = ex.text;
+  // Fire input event so the Send-button enable handler runs (programmatic
+  // .value assignment does NOT fire input/change events on its own).
+  input.dispatchEvent(new Event('input', {bubbles: true}));
   input.focus();
   // Remember the example's category so the Grade modal can suggest the
   // best-fit rubric for the response.
@@ -5394,7 +5397,11 @@ function _renderGradeResult(g) {
 }
 
 function useHint(text) {
-  document.getElementById('input').value = text;
+  const input = document.getElementById('input');
+  input.value = text;
+  // Programmatic .value doesn't fire input/change; dispatch so the Send
+  // button enable handler updates state before sendMessage() reads it.
+  input.dispatchEvent(new Event('input', {bubbles: true}));
   sendMessage();
 }
 
