@@ -95,6 +95,37 @@
 
 ---
 
+
+## Architecture — multi-harness pattern
+
+Duecare is built around **six self-describing harness modules** on the kernel
+side and **five** on the hub side. Each owns one safety task:
+
+| Side | Harness | Responsibility |
+|---|---|---|
+| Kernel | `chat` | full multimodal orchestrator (persona / grep / rag / tools / online) |
+| Kernel | `process` | bulk case-bundle analysis + graph-chat |
+| Kernel | `extraction` | drafts typed KnowledgeObject envelopes from raw text |
+| Kernel | `anonymization` | PII gate (regex-only by design — never sees raw PII through Gemma) |
+| Kernel | `import_corpus` | user-attached evidence CRUD |
+| Kernel | `search` | server + client web search via SearXNG or legacy backends |
+| Hub | `curator` | human-in-the-loop vetting queue |
+| Hub | `sentinel` | scheduled web harvest of new laws / trends / NGO advisories |
+| Hub | `submit` | knowledge-intake gateway from kernels |
+| Hub | `packs` | public pack registry |
+| Hub | `pii_anonymize` | server-side defensive PII scan |
+
+Each harness self-describes via uniform exports: `name`, `applied_layers`,
+`consumes`, `emits`, `capabilities`, `register_routes(app)`, plus optional
+`tools.py`, `knowledge.py`, `evaluation.py`, `prompts.py`.
+
+The harness boundary is also the **per-task fine-tuning data boundary**:
+every Gemma-bearing handler emits one JSONL row per call to
+`/kaggle/working/training/<harness>.jsonl`, ready for Unsloth LoRA ingestion.
+
+**Full architecture spec:** [docs/harness_pattern.md](docs/harness_pattern.md).
+**Migration note for returning contributors:** [docs/MIGRATION_HARNESS_PATTERN.md](docs/MIGRATION_HARNESS_PATTERN.md).
+
 ## Start here by role
 
 📋 **[Setup Requirements](docs/SETUP_REQUIREMENTS.md)** — GPU, environment setup, and dependencies for all platforms

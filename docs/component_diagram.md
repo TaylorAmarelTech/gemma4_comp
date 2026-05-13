@@ -5,6 +5,11 @@
 > with `system_map.md` (which is user→surface oriented). This doc
 > is **server-internals oriented**.
 
+> **Post-Phase 15 update:** The canonical architecture doc is now
+> [`docs/harness_pattern.md`](harness_pattern.md). This document
+> remains as historical context; for the current harness contract
+> + per-task training-data flow + e2e flywheel, start there.
+
 > **Platform framing:** Duecare is an eight-component platform
 > (Runtime, Harness, Exchange, Eval, Trainer, Sentinel, Channels,
 > Mobile). The diagrams below are the **server-internals view of the

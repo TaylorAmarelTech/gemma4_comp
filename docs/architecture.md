@@ -7,6 +7,11 @@
 > Audience: anyone (human or AI) picking up this project.
 > Last updated: 2026-05-08.
 
+> **Post-Phase 15 update:** The canonical architecture doc is now
+> [`docs/harness_pattern.md`](harness_pattern.md). This document
+> remains as historical context; for the current harness contract
+> + per-task training-data flow + e2e flywheel, start there.
+
 > **Eight-component platform framing (canonical as of v0.14.7):**
 >
 > | # | Component | Status |
