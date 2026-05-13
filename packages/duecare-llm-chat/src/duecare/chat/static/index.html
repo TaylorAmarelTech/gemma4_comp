@@ -743,8 +743,15 @@ header.bar .badge.loaded .dot {
 <body data-nav="chat">
 <div class="shell">
 
-  <header class="bar">
-    <h1><span class="dc-brand-mark" aria-hidden="true">DC</span><span><span class="accent">DueCare</span> · Migrant-worker safety chat</span></h1>
+  <!--
+    Page-local toolbar. The brand ("DueCare Workbench"), the 5 audience
+    nav links, and the model/version/GPU status strip are all rendered
+    by the shared chrome partial `_nav.html` (injected by `_nav.js`).
+    This bar only carries page-specific actions: About modal, Compare
+    modal, and a deep-link to the layer inspector. Avoid re-adding the
+    brand <h1> or the model badge here -- they duplicate the chrome.
+  -->
+  <header class="bar bar-toolbar" role="toolbar" aria-label="Workbench actions">
     <button id="about-btn"
             class="dc-toolbar-button"
             onclick="openAboutModal()"
@@ -764,10 +771,13 @@ header.bar .badge.loaded .dot {
        style="text-decoration:none; display:inline-flex; align-items:center;">
       Harness ↗
     </a>
+    <!-- Hidden badge: still rendered so legacy JS hooks (onBadgeClick,
+         badge-text setters in models.js) keep working without throwing.
+         Model state is now surfaced by the chrome's status strip. -->
     <div class="badge" id="badge"
          onclick="onBadgeClick()"
          title="Click to open the model picker"
-         style="cursor:pointer;">
+         style="cursor:pointer; display:none;">
       <span class="dot"></span>
       <span id="badge-text">checking…</span>
     </div>
@@ -810,9 +820,8 @@ header.bar .badge.loaded .dot {
           <div style="font-size:13px; font-weight:600; margin-top:6px; line-height:1.3;">Send a prompt</div>
           <div style="font-size:11.5px; color:var(--muted); margin-top:4px; line-height:1.4;">Type below or click an example.</div>
         </div>
-        <div onclick="if(typeof switchToCompareTab==='function'){switchToCompareTab()}else{alert('Send a message first; the Compare tab needs a baseline.')}" style="cursor:pointer; padding:14px 12px; border:1px solid #f59e0b; border-radius:8px; background:rgba(245,158,11,0.08); transition:border-color .15s, transform .12s; position:relative;" onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform='translateY(0)'">
-          <div style="position:absolute; top:6px; right:8px; font-size:10px; color:#f59e0b; font-weight:700;">★ best for judges</div>
-          <div style="font-family:var(--mono); font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:0.08em;">Step 04</div>
+        <div onclick="if(typeof switchToCompareTab==='function'){switchToCompareTab()}else{showInlineNotice('compare-needs-baseline','Send a message first — the Compare tab needs a baseline response.')}" style="cursor:pointer; padding:14px 12px; border:1px solid #f59e0b; border-radius:8px; background:rgba(245,158,11,0.08); transition:border-color .15s, transform .12s; position:relative;" onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform='translateY(0)'">
+          <div style="font-family:var(--mono); font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:0.08em;">Step 04 <span style="color:#f59e0b; margin-left:6px;">★ recommended for peer review</span></div>
           <div style="font-size:13px; font-weight:600; margin-top:6px; line-height:1.3;">Compare two configs</div>
           <div style="font-size:11.5px; color:var(--muted); margin-top:4px; line-height:1.4;">Same prompt, harness on vs off, side by side.</div>
         </div>
@@ -828,7 +837,7 @@ header.bar .badge.loaded .dot {
          image_prompts entry was loaded via the Examples modal so the
          user knows they need to attach an image. Auto-hides when an
          image is attached or the message is sent. -->
-    <div id="pending-image-hint" style="display:none; margin-bottom:8px; padding:8px 12px; background:rgba(236,72,153,0.10); border-left:3px solid #ec4899; border-radius:6px; font-size:11.5px; color:var(--ink-2); display:flex; align-items:flex-start; gap:8px;">
+    <div id="pending-image-hint" style="display:none; margin-bottom:8px; padding:8px 12px; background:rgba(236,72,153,0.10); border-left:3px solid #ec4899; border-radius:6px; font-size:11.5px; color:var(--ink-2); align-items:flex-start; gap:8px;">
       <span style="color:#ec4899; font-weight:700;">📎</span>
       <div style="flex:1;">
         <b style="color:#ec4899;">This prompt expects an image.</b>
@@ -1460,11 +1469,12 @@ function openModelPicker() {
       _pickerBuildCards(s.variants);
     }
     _pickerRenderLogs((s && s.logs) || []);
-    // If a model is already wired, give the user a Close button to bail
-    // out without picking a new one (switching mid-session restarts the
-    // Kaggle cell anyway).
+    // Always show the close button so the user can dismiss the picker
+    // any time they re-open it, even before a model has loaded.
+    // (Earlier behavior hid Close when `s.ready === false`, which left
+    // re-opens stuck with no escape — reported as a UI bug 2026-05-12.)
     const closeBtn = _pickerEl('close');
-    if (closeBtn) closeBtn.style.display = s && s.ready ? 'inline-block' : 'none';
+    if (closeBtn) closeBtn.style.display = 'inline-block';
     if (s && s.status === 'loading') {
       _pickerLoadingVariant = s.variant;
       _pickerSetCardsLoading(s.variant);
@@ -1484,6 +1494,59 @@ function openModelPicker() {
 function closeModelPicker() {
   const overlay = document.getElementById('picker-overlay');
   if (overlay) overlay.classList.remove('show');
+}
+
+// ---- showInlineNotice -----------------------------------------------------
+// Replacement for browser-native alert() in UI flows. Renders a
+// dismissible toast at the top-right of the viewport. `id` allows
+// the same call site to replace its own notice instead of stacking
+// duplicates. Auto-dismisses after `opts.timeout` ms (default 4000).
+// Pass `opts.kind = 'warn'|'info'|'error'` to tint the banner.
+function showInlineNotice(id, msg, opts) {
+  opts = opts || {};
+  const timeout = opts.timeout != null ? opts.timeout : 4000;
+  const kind = opts.kind || 'warn';
+  const palette = {
+    warn:  { border: '#f59e0b', bg: 'rgba(245,158,11,0.10)', fg: '#92400e' },
+    info:  { border: '#3b82f6', bg: 'rgba(59,130,246,0.10)', fg: '#1e3a8a' },
+    error: { border: '#ef4444', bg: 'rgba(239,68,68,0.10)',  fg: '#7f1d1d' },
+  };
+  const colors = palette[kind] || palette.warn;
+  let host = document.getElementById('inline-notice-host');
+  if (!host) {
+    host = document.createElement('div');
+    host.id = 'inline-notice-host';
+    host.style.cssText = 'position:fixed; top:14px; right:14px; z-index:9999; ' +
+      'display:flex; flex-direction:column; gap:8px; max-width:380px; pointer-events:none;';
+    document.body.appendChild(host);
+  }
+  // De-dup by id: replace prior notice with the same id.
+  const noticeId = 'inline-notice-' + (id || 'default');
+  let prior = document.getElementById(noticeId);
+  if (prior) prior.remove();
+  const el = document.createElement('div');
+  el.id = noticeId;
+  el.style.cssText = 'pointer-events:auto; background:' + colors.bg + '; ' +
+    'border-left:3px solid ' + colors.border + '; border-radius:6px; ' +
+    'padding:10px 12px; font-size:12.5px; color:' + colors.fg + '; ' +
+    'box-shadow:0 6px 18px rgba(0,0,0,0.08); display:flex; gap:8px; ' +
+    'align-items:flex-start;';
+  const span = document.createElement('span');
+  span.style.cssText = 'flex:1; line-height:1.5;';
+  span.textContent = msg;
+  const closeBtn = document.createElement('button');
+  closeBtn.type = 'button';
+  closeBtn.textContent = '✕';
+  closeBtn.title = 'Dismiss';
+  closeBtn.style.cssText = 'background:transparent; border:0; color:' + colors.fg +
+    '; cursor:pointer; font-size:13px; padding:0 4px; opacity:0.6;';
+  closeBtn.onclick = function() { el.remove(); };
+  el.appendChild(span);
+  el.appendChild(closeBtn);
+  host.appendChild(el);
+  if (timeout > 0) {
+    setTimeout(function() { if (el.parentNode) el.remove(); }, timeout);
+  }
 }
 
 function onBadgeClick() {
