@@ -3136,6 +3136,16 @@ def create_app(
     _import_corpus_harness.register_routes(app)
 
     # ---------------------------------------------------------------
+    # /api/search/* -- delegated to the search harness (Phase 11).
+    # Owns server-automated + client-triggered search across multiple
+    # backends (SearXNG + legacy app.state.online_search_call wrapper).
+    # Per-task JSONL emission to /kaggle/working/training/search.jsonl.
+    # See docs/harness_pattern.md for the contract.
+    # ---------------------------------------------------------------
+    from .harnesses import search as _search_harness
+    _search_harness.register_routes(app)
+
+    # ---------------------------------------------------------------
     # Retrieval configuration (v0.14.0).
     # ---------------------------------------------------------------
     # Central knob set for chunk size, parent-doc expansion, citation-

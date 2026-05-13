@@ -1,24 +1,21 @@
 """Harness registry.
 
-PRIMARY_HARNESSES are the 4 user-facing safety harnesses
-(chat / process / extraction / anonymization). SECONDARY_HARNESSES
-are CRUD or inspector surfaces that share the same architectural
-contract (name + applied_layers + register_routes) but are not
-themselves load-bearing safety layers.
+PRIMARY_HARNESSES are the user-named safety surfaces.
+SECONDARY_HARNESSES are CRUD / utility surfaces.
 """
 from __future__ import annotations
 
-from . import anonymization, chat, extraction, import_corpus, process
+from . import anonymization, chat, extraction, import_corpus, process, search
 
 PRIMARY_HARNESSES: tuple = (chat, process, extraction, anonymization)
-SECONDARY_HARNESSES: tuple = (import_corpus,)
+SECONDARY_HARNESSES: tuple = (import_corpus, search)
 
 __all__ = [
-    "anonymization", "chat", "extraction", "import_corpus", "process",
+    "anonymization", "chat", "extraction", "import_corpus",
+    "process", "search",
     "PRIMARY_HARNESSES", "SECONDARY_HARNESSES", "all_harnesses",
 ]
 
 
 def all_harnesses() -> list:
-    """Return every harness module known to the registry."""
     return [*PRIMARY_HARNESSES, *SECONDARY_HARNESSES]

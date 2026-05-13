@@ -66,6 +66,10 @@ EXPECTED_ROUTES: set[tuple[str, str]] = {
     ("/api/knowledge/{ko_type}/{ko_id}", "GET"),
     ("/api/knowledge/sync", "POST"),
     ("/api/knowledge/draft-envelope", "POST"),
+    # search harness (Phase 11)
+    ("/api/search/server", "POST"),
+    ("/api/search/client", "POST"),
+    ("/api/search/backends", "GET"),
 }
 
 
