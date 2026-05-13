@@ -252,6 +252,8 @@ in a post-submission migration to `write_v1_bundle()`.
 | A-18 demo replay | (no run_id; static) | (n/a — no writes) | inline `DEMO_SCRIPT` | `scene_id` | n/a |
 | A-19 multilingual | `a19_multilingual_{ts}` | `<RUN>_bundle.zip` | inline `MULTILINGUAL_DEMO` (run_id-tagged) | n/a | n/a |
 | A-20 privacy boundary | `a20_privacy_{ts}` | `<RUN>_bundle.zip` | inline `DEMO_PAYLOAD` (run_id-tagged) | n/a | n/a |
+| A-21 long-context | `a21_long_context_{ts}` | `<RUN>_bundle.zip` (4 canonical files via `write_v1_bundle`) | `summary` + `results[]` | `qa_id` | yes |
+| A-22 streaming-demo | `a22_streaming_{ts}` | `<RUN>_bundle.zip` (4 canonical files via `write_v1_bundle`) | `summary` + `results[]` | `scenario_id` | yes |
 | 03 video pitch | (`demo_script_authored.json` in setup mode) | n/a | inline `DEMO_SCRIPT` | `scene_id` | n/a |
 
 ## 3. Drift table (historical -- all entries RESOLVED in 2026-05-12 rollover)

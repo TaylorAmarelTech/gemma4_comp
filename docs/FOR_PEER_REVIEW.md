@@ -92,7 +92,7 @@ If you have two minutes to decide if this is real:
 
 1. **Read the writeup.** [`docs/writeup_draft.md`](./writeup_draft.md)
    (1,497 words, under the 1,500-word cap). Frames the problem (3 LLM
-   blind spots), the harness (6 layers), the notebooks (2 core + 11 appendix), and the
+   blind spots), the harness (6 layers), the notebooks (3 core + 22 appendix), and the
    deployment modes.
 
 2. **Watch the video.** Script at [`docs/video_script.md`](./video_script.md)
@@ -301,7 +301,7 @@ transformation byte-for-byte.
 - We did **not** publish 77 notebooks as the submission. The current
    generated/research inventory under `kaggle/kernels/` is 9 kernels; older
    52/74/77-kernel notes are historical archive context. The **submission is
-   the 2 core + 11 appendix folders listed above**.
+   the 3 core + 22 appendix folders listed above**.
 - We are **not** claiming a fine-tuned Gemma 4 model is published at
   submission time. The bench-and-tune notebook (#2) is the planned
   Unsloth SFT/DPO + GGUF + HF Hub push — status TBD by the 2026-05-18
@@ -339,7 +339,7 @@ neighborhood with source URLs and per-item differentiation. Highlights:
 | Thing | Path |
 |---|---|
 | Source code (17 packages) | [`packages/duecare-llm-*/`](../packages/) |
-| 13 submission Kaggle kernels | [`kaggle/<notebook>/kernel.py`](../kaggle/) |
+| 25 submission Kaggle kernels | [`kaggle/<notebook>/kernel.py`](../kaggle/) |
 | The harness module (rules, corpus, tools, examples) | [`packages/duecare-llm-chat/src/duecare/chat/harness/__init__.py`](../packages/duecare-llm-chat/src/duecare/chat/harness/__init__.py) |
 | Chat app + classifier app | [`packages/duecare-llm-chat/src/duecare/chat/app.py`](../packages/duecare-llm-chat/src/duecare/chat/app.py), [`classifier.py`](../packages/duecare-llm-chat/src/duecare/chat/classifier.py) |
 | Writeup | [`docs/writeup_draft.md`](./writeup_draft.md) |

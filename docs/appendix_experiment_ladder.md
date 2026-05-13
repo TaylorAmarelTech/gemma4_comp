@@ -48,7 +48,7 @@ kernel against this list before committing.
    for batch start / progress / error / done events so the
    workbench Logs page shows live status.
 
-## The 11 appendix slots (canonical order)
+## The 22 appendix slots (canonical order)
 
 ```
 A-01 Stock baseline runner       — model picker, library prompts,
