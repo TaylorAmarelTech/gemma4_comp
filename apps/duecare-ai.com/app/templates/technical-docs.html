@@ -169,4 +169,34 @@
 <a href="/docs" class="btn">Back to Docs &rarr;</a>
 </div></div></section>
 {% include "_footer.html" %}
+  <section class="hp-section" data-screen-label="KnowledgeObject taxonomy">
+    <div class="wrap">
+      <h2>KnowledgeObject taxonomy</h2>
+      <p class="lede">
+        One canonical envelope, 6 branches, 21 leaves. Every reusable
+        artefact -- regex rule, retrieval doc, citation edge, persona
+        prompt, tool definition, fact template, schema -- ships in the
+        same shape so it round-trips across kernel, hub, and export ZIP.
+      </p>
+      <div class="td-grid">
+        <div class="td-card"><b>matching_knowledge</b><br><span class="td-muted">pattern -&gt; label / indicator</span><br><code>grep_rule</code> &middot; <code>glob_rule</code> &middot; <code>classifier_rule</code> &middot; <code>heuristic_rule</code></div>
+        <div class="td-card"><b>grounding_knowledge</b><br><span class="td-muted">what's the law / norm / reference?</span><br><code>rag_doc</code> &middot; <code>citation_edge</code> &middot; <code>corridor_profile</code> &middot; <code>ngo_directory</code></div>
+        <div class="td-card"><b>reasoning_knowledge</b><br><span class="td-muted">how should the model think?</span><br><code>persona_block</code> &middot; <code>context_snippet</code> &middot; <code>reasoning_step</code> &middot; <code>rubric_dimension</code></div>
+        <div class="td-card"><b>tool_knowledge</b><br><span class="td-muted">what can the model call?</span><br><code>tool_definition</code> &middot; <code>tool_example</code> &middot; <code>tool_chain</code></div>
+        <div class="td-card"><b>input_knowledge</b><br><span class="td-muted">what should be uploaded?</span><br><code>fact_template</code> &middot; <code>upload_schema</code> &middot; <code>prompt_template</code></div>
+        <div class="td-card"><b>output_knowledge</b><br><span class="td-muted">what gets emitted?</span><br><code>envelope_schema</code> &middot; <code>audit_template</code> &middot; <code>submission_schema</code></div>
+      </div>
+      <p>
+        Canonical spec: <a href="https://github.com/TaylorAmarelTech/gemma4_comp/blob/master/docs/knowledge_module_schema.md">docs/knowledge_module_schema.md</a>.
+        Decision record: <a href="https://github.com/TaylorAmarelTech/gemma4_comp/blob/master/docs/adr/007-knowledge-object-taxonomy.md">ADR-007</a>.
+        Runtime hierarchy: <code>GET /api/knowledge/taxonomy</code> on any running kernel.
+      </p>
+      <style>
+        .td-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 12px; margin: 14px 0; }
+        .td-card { background: var(--paper-2, #EFEDE4); border: 1px solid var(--line, #DDD8C9); border-radius: 10px; padding: 12px 14px; font-size: 13px; line-height: 1.5; }
+        .td-card code { background: #FFF; padding: 1px 5px; border-radius: 3px; font-size: 11.5px; }
+        .td-muted { color: var(--ink-3, #5B5F68); font-size: 11.5px; }
+      </style>
+    </div>
+  </section>
 </body></html>
