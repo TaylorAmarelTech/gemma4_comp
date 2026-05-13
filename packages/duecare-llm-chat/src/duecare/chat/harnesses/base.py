@@ -38,6 +38,11 @@ class BaseHarness:
     applied_layers: tuple[str, ...] = ()
     consumes: tuple[str, ...] = ()
     emits: tuple[str, ...] = ()
+    capabilities: tuple[str, ...] = ()  # multi_turn, streaming, function_calling, multimodal
+
+    def supports(self, capability: str) -> bool:
+        """Return True when this harness declares the named capability."""
+        return capability in self.capabilities
 
     def register_routes(self, app: Any) -> None:  # pragma: no cover
         raise NotImplementedError(

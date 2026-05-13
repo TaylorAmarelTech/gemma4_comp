@@ -6,5 +6,6 @@ from .knowledge import CONSUMES as consumes, EMITS as emits
 
 name = "process"
 applied_layers: tuple[str, ...] = ("grep", "rag", "tools")
+capabilities: tuple[str, ...] = ()  # multi_turn scaffolded but disabled
 
-__all__ = ["name", "applied_layers", "consumes", "emits", "register_routes"]
+__all__ = ["name", "applied_layers", "capabilities", "consumes", "emits", "register_routes"]
