@@ -173,12 +173,55 @@
   </section>
 
   <section class="panel">
+    <h2>Model loading mode</h2>
+    <p>Loading a Gemma 4 fine-tune takes time (E4B around 30s,
+       larger variants 1-3 min). Loading two simultaneously can
+       OOM on a single T4 or trigger expensive cold-starts. The
+       kernel's <b>default behaviour is single-model</b>: when a
+       new model is requested, the previously loaded one is
+       unloaded first.<br><br>
+       If your environment has enough VRAM (single A100, dual T4,
+       or larger), you can opt into <b>multi-model</b> mode to keep
+       loaded models resident for instant comparison without the
+       reload penalty. Setting is per-device, stored in
+       <code>localStorage</code>.</p>
+    <div class="grid">
+      <div>
+        <label>Mode <span>single (default) / multi</span></label>
+        <select id="model-load-mode">
+          <option value="single">single -- unload previous on swap (safe default)</option>
+          <option value="multi">multi -- keep loaded models hot (needs VRAM)</option>
+        </select>
+      </div>
+      <div>
+        <label>Current state <span>localStorage</span></label>
+        <div id="model-load-mode-state" class="wired-pill on">checking...</div>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="btn" type="button" onclick="saveModelLoadMode()">Save mode</button>
+      <button class="btn ghost" type="button" onclick="resetModelLoadMode()">Reset to single</button>
+    </div>
+    <div id="model-load-mode-flash" class="flash" style="display:none;"></div>
+    <p style="margin-top: 14px; font-size: 11.5px; color: var(--ink-3);">
+      Caveats: <code>multi</code> mode does NOT increase your GPU's
+      capacity. If you load several large variants it will OOM. The
+      kernel will refuse a second concurrent load if free VRAM is
+      below a safety margin. Switch to <code>single</code> if you
+      see OOMs or slow swaps. The activity log on the Models page
+      records every load/unload with timing.
+    </p>
+  </section>
+
+  <section class="panel">
     <h2>Need more?</h2>
     <p>The chat shell exposes additional knobs (per-layer toggles, model
        variant, grader mode) inline next to the composer.
        The <a href="/static/models.html">Models</a> page handles GPU loads.
        The <a href="/static/logs.html">Logs</a> page surfaces every event
        emitted via <code>dc_log()</code>.
+       The <a href="/static/status.html">Status</a> page shows knowledge
+       counts, sync history, and harness consumption maps.
        The <a href="/static/all-tools.html">All tools</a> index lists every
        workbench surface.</p>
   </section>
@@ -302,8 +345,58 @@
     }
   }
 
+  // ============== Model loading mode (localStorage) ==============
+  function readModelLoadMode() {
+    try { return localStorage.getItem('duecare:model-load-mode') || 'single'; }
+    catch (e) { return 'single'; }
+  }
+  function renderModelLoadModeState() {
+    const mode = readModelLoadMode();
+    const sel = document.getElementById('model-load-mode');
+    if (sel) sel.value = mode;
+    const pill = document.getElementById('model-load-mode-state');
+    if (pill) {
+      pill.textContent = mode === 'multi' ? 'multi (hot)' : 'single (default)';
+      pill.className = 'wired-pill ' + (mode === 'multi' ? 'on' : 'off');
+    }
+  }
+  function _modeFlash(kind, msg) {
+    const f = document.getElementById('model-load-mode-flash');
+    if (!f) return;
+    f.style.display = 'block';
+    f.className = 'flash ' + (kind || 'ok');
+    f.textContent = msg;
+    setTimeout(() => { f.style.display = 'none'; }, 4000);
+  }
+  function saveModelLoadMode() {
+    const sel = document.getElementById('model-load-mode');
+    const mode = sel ? sel.value : 'single';
+    if (mode !== 'single' && mode !== 'multi') {
+      _modeFlash('err', 'Invalid mode: ' + mode);
+      return;
+    }
+    try {
+      localStorage.setItem('duecare:model-load-mode', mode);
+      renderModelLoadModeState();
+      _modeFlash('ok', 'Saved: model-load-mode = ' + mode
+        + (mode === 'multi' ? ' (caveat: needs VRAM; watch for OOMs)' : ''));
+    } catch (e) {
+      _modeFlash('err', 'localStorage unavailable: ' + e);
+    }
+  }
+  function resetModelLoadMode() {
+    try {
+      localStorage.setItem('duecare:model-load-mode', 'single');
+      renderModelLoadModeState();
+      _modeFlash('ok', 'Reset to single (safe default).');
+    } catch (e) {
+      _modeFlash('err', 'localStorage unavailable: ' + e);
+    }
+  }
+
   loadRetrieval();
   loadOnline();
+  renderModelLoadModeState();
 </script>
 </body>
 </html>

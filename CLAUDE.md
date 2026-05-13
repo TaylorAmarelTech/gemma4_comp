@@ -32,6 +32,7 @@ project memory level. Currently:
 - `40_forge_module_contract.md` — folder-per-module pattern
 - `50_publish_strategy.md` — GitHub + multi-package PyPI + Kaggle
 - `60_notebook_presentation.md` — Kaggle-safe styling, no-truncation, pandas Styler + Markdown over raw HTML; shared helpers in `scripts/_notebook_display.py`
+- `70_workbench_ui_primitives.md` — every page needs an activity log + status discoverability + sample artifact + trust boundary; model loading defaults to ONE model at a time (multi is opt-in via settings); shared `.dc-activity-log` CSS + `_activity_log.js` helper
 
 ## Execution phases (the 4-phase arc)
 
