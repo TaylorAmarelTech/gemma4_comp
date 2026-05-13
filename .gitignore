@@ -142,3 +142,7 @@ apps/duecare-ai.com/.duecare/
 .harness/
 .claude/memory/
 .claude/state/
+
+# Local wheel-build test artifacts (created by ad-hoc verification)
+tmp_wheel_test/
+tmp_wheel_install/
