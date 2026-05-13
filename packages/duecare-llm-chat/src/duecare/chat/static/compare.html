@@ -328,38 +328,21 @@
     }
 
     // ============== Live log ==============
-    function logEvent(variant, kind, msg, detail) {
-      const host = document.getElementById('cmp-log');
-      // Clear the idle placeholder on first event
-      const first = host.firstChild;
-      if (first && first.classList && first.classList.contains('wb-muted')) {
-        while (host.firstChild) host.removeChild(host.firstChild);
-      }
-      const ts = new Date().toISOString().slice(11, 19);
-      const div = document.createElement('div');
-      div.className = 'ev';
-      const vClass = variant === 'A' ? 'va' : (variant === 'B' ? 'vb' : 'step');
-      const vLabel = variant ? '[' + variant + '] ' : '[--] ';
-      const kindClass = (kind === 'err' ? 'err' : (kind === 'ok' ? 'ok' : 'step'));
-      // Build via DOM nodes -- no innerHTML, no XSS surface even if msg
-      // contains markup (it shouldn't, but defence-in-depth).
-      const tsSpan = document.createElement('span');
-      tsSpan.className = 'ts'; tsSpan.textContent = '[' + ts + ']';
-      const vSpan = document.createElement('span');
-      vSpan.className = vClass; vSpan.textContent = ' ' + vLabel;
-      const mSpan = document.createElement('span');
-      mSpan.className = kindClass; mSpan.textContent = String(msg || '');
-      div.appendChild(tsSpan);
-      div.appendChild(vSpan);
-      div.appendChild(mSpan);
-      if (detail) {
-        const d = document.createElement('div');
-        d.style.cssText = 'margin-left: 26px; color:#8A8E97; font-size: 10.5px;';
-        d.textContent = String(detail).slice(0, 400);
-        div.appendChild(d);
-      }
-      host.appendChild(div);
-      host.scrollTop = host.scrollHeight;
+        // Shared activity-log primitive (window.dcActivityLog). The
+    // previous bespoke logEvent() hand-rolled DOM construction with
+    // per-variant channels; we now delegate to the shared helper and
+    // call .channel() to set the variant prefix.
+    const _dcLog = (window.dcActivityLog
+                     ? window.dcActivityLog.attach('#cmp-log')
+                     : null);
+    const logEvent = (variant, kind, msg, detail) => {
+      if (!_dcLog) return;
+      _dcLog.channel(variant || null);
+      const fn = ({info: _dcLog.info, ok: _dcLog.ok, warn: _dcLog.warn,
+                    err: _dcLog.err, step: _dcLog.step,
+                    net: _dcLog.net, anon: _dcLog.anon}[kind]
+                   || _dcLog.info);
+      fn(msg, detail);
     }
     function setVariantProgress(variant, state, text) {
       const dot = document.getElementById(variant + '-dot');

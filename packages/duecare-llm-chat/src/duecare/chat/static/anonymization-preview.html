@@ -196,6 +196,13 @@
     <a href="/" style="font-family: var(--mono); font-size: 12px; color: var(--ink-3);">← Back to chat</a>
   </header>
 
+  <div class="wb-trust" style="background: oklch(0.92 0.06 155); color: oklch(0.32 0.07 155); padding: 8px 14px; border-radius: 8px; font-size: 12.5px; margin: 10px 18px;">
+    <b>Trust boundary:</b> Anonymization runs locally inside this kernel.
+    Raw text never leaves the kernel; only the redacted preview is
+    shown. PII detection is regex + NER; the audit log stores
+    <code>sha256(original)</code>, never plaintext.
+  </div>
+
   <nav class="dc-chrome-nav" aria-label="Cross-page nav">
     <a href="/static/harness.html">Catalog</a>
     <a href="/static/persona.html">Persona</a>
