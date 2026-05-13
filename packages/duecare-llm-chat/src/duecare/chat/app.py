@@ -4784,7 +4784,7 @@ def create_app(
         except Exception:
             raise HTTPException(400, "invalid JSON body")
         items = body.get("knowledge") or body.get("facts") or []
-        target_url = body.get("target_url") or "https://duecare-ai.com/api/submit/knowledge"
+        target_url = body.get("target_url") or "https://gemma4-comp.onrender.com/api/submit/knowledge"
         if not isinstance(items, list):
             raise HTTPException(400, "`knowledge` must be a list")
 
@@ -5297,7 +5297,7 @@ def create_app(
             body = await request.json()
         except Exception:
             body = {}
-        target_url = body.get("target_url") or "https://duecare-ai.com/api/hub/knowledge/download"
+        target_url = body.get("target_url") or "https://gemma4-comp.onrender.com/api/hub/knowledge/download"
         include_unvetted = bool(body.get("include_unvetted", False))
         full_url = target_url + ("?vetted=false" if include_unvetted else "?vetted=true")
 

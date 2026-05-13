@@ -743,45 +743,16 @@ header.bar .badge.loaded .dot {
 <body data-nav="chat">
 <div class="shell">
 
-  <!--
-    Page-local toolbar. The brand ("DueCare Workbench"), the 5 audience
-    nav links, and the model/version/GPU status strip are all rendered
-    by the shared chrome partial `_nav.html` (injected by `_nav.js`).
-    This bar only carries page-specific actions: About modal, Compare
-    modal, and a deep-link to the layer inspector. Avoid re-adding the
-    brand <h1> or the model badge here -- they duplicate the chrome.
-  -->
-  <header class="bar bar-toolbar" role="toolbar" aria-label="Workbench actions">
-    <button id="about-btn"
-            class="dc-toolbar-button"
-            onclick="openAboutModal()"
-            title="Getting started + what each layer does">
-      About
-    </button>
-    <button id="compare-btn"
-            class="dc-toolbar-button"
-            onclick="openCompareModal()"
-            title="A/B compare — same prompt, two harness configs, side-by-side grades">
-      Compare
-    </button>
-    <a id="inspector-btn"
-       class="dc-toolbar-button"
-       href="/static/harness.html" target="_blank"
-       title="Browse every harness layer — GREP rules, RAG corpus, citation graph, tools, online providers, personas"
-       style="text-decoration:none; display:inline-flex; align-items:center;">
-      Harness ↗
-    </a>
-    <!-- Hidden badge: still rendered so legacy JS hooks (onBadgeClick,
-         badge-text setters in models.js) keep working without throwing.
-         Model state is now surfaced by the chrome's status strip. -->
-    <div class="badge" id="badge"
-         onclick="onBadgeClick()"
-         title="Click to open the model picker"
-         style="cursor:pointer; display:none;">
-      <span class="dot"></span>
-      <span id="badge-text">checking…</span>
-    </div>
-  </header>
+  <!-- Page-local toolbar removed 2026-05-12: About, Compare, and Harness
+       now live in the chrome nav. A hidden badge stays for legacy JS
+       handlers (onBadgeClick, badge-text setters in models.js). -->
+  <div class="badge" id="badge"
+       onclick="onBadgeClick()"
+       title="Click to open the model picker"
+       style="cursor:pointer; display:none;">
+    <span class="dot"></span>
+    <span id="badge-text">checking…</span>
+  </div>
 
   <div class="chat" id="chat">
     <div class="empty" id="empty">
@@ -795,11 +766,11 @@ header.bar .badge.loaded .dot {
           ↓ Pick a model
         </button>
         <div style="font-size:11.5px; color:var(--muted); margin-top:8px;">
-          Or click <button onclick="openAboutModal()" style="background:none; border:0; color:var(--accent); padding:0; cursor:pointer; font-size:11.5px; text-decoration:underline;">About</button> for the full walkthrough.
+          Or visit <a href="/static/getting-started.html" style="color:var(--accent); font-size:11.5px; text-decoration:underline;">Getting Started</a> for the full walkthrough.
         </div>
       </div>
       <p id="empty-tip" style="font-size:12px; color:var(--muted); margin-top:14px;">
-        New here? Click <button onclick="openAboutModal()" style="background:none; border:0; color:var(--accent); padding:0; cursor:pointer; font-size:12px; text-decoration:underline;">About</button> in the top bar
+        New here? Visit <a href="/static/getting-started.html" style="color:var(--accent); font-size:12px; text-decoration:underline;">Getting Started</a> in the top bar
         for what each layer does and how to read a grade.
       </p>
       <!-- 4-card demo path. Same flow as the About modal, surfaced inline so

@@ -41,13 +41,20 @@
         <span class="dc-wb-status-label">GPU</span>
         <span class="dc-wb-status-value" id="dc-wb-status-gpu">—</span>
       </span>
-      <a href="https://duecare-ai.com"
+      <a href="https://gemma4-comp.onrender.com/"
          target="_blank"
          rel="noopener"
          class="dc-wb-status-item dc-wb-status-website"
-         title="Open the public DueCare hub at duecare-ai.com">
-        duecare-ai.com <span aria-hidden="true">↗</span>
+         title="Open the live DueCare hub (gemma4-comp.onrender.com; moving to duecare-ai.com)">
+        DueCare hub <span aria-hidden="true">↗</span>
       </a>
+      <button type="button" class="dc-wb-status-clearchat"
+              id="dc-wb-clearchat-btn"
+              title="Clear the current chat thread (chat page only)"
+              aria-label="Clear chat"
+              hidden>
+        Clear chat
+      </button>
       <button type="button" class="dc-wb-status-shutdown"
               id="dc-wb-shutdown-btn"
               title="Stop the kernel and release GPU memory"
@@ -76,18 +83,20 @@
   <nav class="dc-wb-nav" aria-label="Workbench workflows">
     <div class="dc-wb-nav-inner">
       <div class="dc-wb-nav-links" id="dc-wb-nav-links">
+        <a href="/static/getting-started.html"   data-nav-key="getting-started"
+           title="What this workbench is, what each layer does, and how to read a grade">Getting Started</a>
         <a href="/"                              data-nav-key="chat"
            title="Free-form chat against the loaded Gemma 4 model with any harness combination">Chat</a>
         <a href="/static/compare.html"           data-nav-key="compare"
            title="A/B compare: same prompt, two harness configs, side-by-side grades">Harness Comparison</a>
         <a href="/static/process.html"           data-nav-key="process"
-           title="Upload a ZIP; render entity graph, indicator ranking, and Gemma-guided narrative">Process Files</a>
+           title="Upload a ZIP/folder; build a local knowledge graph; chat against it">Process Files</a>
         <a href="/static/knowledge.html"         data-nav-key="knowledge"
-           title="Promote processed findings into GREP rules, RAG docs, citation edges, and fact templates">Knowledge Creation</a>
-        <a href="/static/sync.html"             data-nav-key="sync"
-           title="Pull vetted + unvetted knowledge from duecare-ai.com into the local kernel">Sync</a>
+           title="Paste text; Gemma 4 drafts a standardized knowledge module">Knowledge Extraction</a>
         <a href="/static/share.html"             data-nav-key="share"
-           title="Upload, review, anonymize, then submit vetted facts to duecare-ai.com">Anonymization &amp; Sharing</a>
+           title="Review, redact, and submit anonymized knowledge to the public hub">Anonymization &amp; Sharing</a>
+        <a href="/static/sync.html"              data-nav-key="sync"
+           title="Pull vetted + unvetted knowledge from the public hub into the local kernel">Sync</a>
       </div>
       <a href="/static/harness.html"             class="dc-wb-nav-utility"
          data-nav-key="harness"
