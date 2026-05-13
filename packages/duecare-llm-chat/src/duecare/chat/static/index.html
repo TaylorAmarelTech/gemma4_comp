@@ -1819,6 +1819,9 @@ probeHarness();
       const input = document.getElementById('input');
       if (input) {
         input.value = prompt;
+        // Fire input event so the Send-button enable handler (which
+        // listens on 'input'/'change') picks up the programmatic set.
+        input.dispatchEvent(new Event('input', {bubbles: true}));
         input.focus();
         // Pop the empty-state hints away once the input has content.
         const empty = document.getElementById('empty');
