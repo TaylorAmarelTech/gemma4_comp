@@ -7,187 +7,198 @@
   <link rel="stylesheet" href="/static/_chrome.css">
   <script src="/static/_nav.js" defer></script>
   <style>
-    body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-           background: #F7F6F1; color: #0E1116; margin: 0; padding: 0; }
+    body { font-family: 'Inter', sans-serif; background: #F7F6F1; color: #0E1116; margin: 0; padding: 0; }
     .wb-page { max-width: 1120px; margin: 0 auto; padding: 24px 22px 80px; }
-    .wb-h1 { font-size: 26px; font-weight: 600; letter-spacing: -0.02em; margin: 6px 0 6px; }
-    .wb-lede { font-size: 13.5px; line-height: 1.6; color: #2A2D34; max-width: 720px;
-               margin: 0 0 22px; }
-    .wb-card { background: #FFFFFF; border: 1px solid #DDD8C9; border-radius: 12px;
-               padding: 18px 20px; margin-bottom: 14px; }
+    .wb-h1 { font-size: 26px; font-weight: 600; margin: 6px 0 6px; }
+    .wb-lede { font-size: 13.5px; line-height: 1.6; color: #2A2D34; max-width: 720px; margin: 0 0 22px; }
+    .wb-card { background: #FFF; border: 1px solid #DDD8C9; border-radius: 12px; padding: 18px 20px; margin-bottom: 14px; }
     .wb-card h2 { font-size: 16px; font-weight: 600; margin: 0 0 8px; }
-    .wb-card p { font-size: 12.5px; line-height: 1.55; color: #2A2D34; margin: 0 0 8px; }
-    .wb-pill { display: inline-block; font-family: 'JetBrains Mono', monospace;
-               font-size: 10px; color: #2A2D34; background: #EFEDE4; border-radius: 4px;
-               padding: 2px 7px; margin-right: 6px; }
-    .wb-btn-primary {
-        background: oklch(0.52 0.08 195); color: #F7F6F1; border: 0;
-        padding: 9px 18px; border-radius: 8px; font-size: 13px; font-weight: 600;
-        cursor: pointer; text-decoration: none; display: inline-block;
-    }
+    .wb-pill { display: inline-block; font-family: 'JetBrains Mono', monospace; font-size: 10px; color: #2A2D34;
+               background: #EFEDE4; border-radius: 4px; padding: 2px 7px; margin: 0 6px 4px 0; }
+    .wb-btn-primary { background: oklch(0.52 0.08 195); color: #F7F6F1; border: 0; padding: 9px 18px;
+                       border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; }
     .wb-btn-primary:disabled { opacity: 0.55; cursor: not-allowed; }
-    .wb-btn-secondary {
-        background: #EFEDE4; color: #0E1116; border: 1px solid #DDD8C9;
-        padding: 8px 14px; border-radius: 8px; font-size: 12.5px; cursor: pointer;
-        text-decoration: none; display: inline-block;
-    }
-    .wb-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center;
-              margin-top: 12px; }
+    .wb-btn-secondary { background: #EFEDE4; color: #0E1116; border: 1px solid #DDD8C9; padding: 8px 14px;
+                         border-radius: 8px; font-size: 12.5px; cursor: pointer; text-decoration: none; display: inline-block; }
+    .wb-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-top: 12px; }
     .wb-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
     @media (max-width: 760px) { .wb-grid-2 { grid-template-columns: 1fr; } }
     .wb-muted { color: #5B5F68; font-size: 11.5px; }
-    .wb-status-pill { background: #EFEDE4; padding: 6px 12px; border-radius: 999px;
-                       font-size: 11px; color: #5B5F68; }
-    .wb-status-pill.scaffold { background: oklch(0.94 0.04 45);
-                                color: oklch(0.32 0.07 45); }
-    .wb-status-pill.ready { background: oklch(0.92 0.06 155);
-                             color: oklch(0.32 0.07 155); }
-    .wb-step {
-        display: flex; align-items: flex-start; gap: 14px; padding: 14px 16px;
-        background: #FFFFFF; border: 1px solid #DDD8C9; border-radius: 10px;
-        margin-bottom: 10px;
-    }
-    .wb-step-num { flex: 0 0 32px; width: 32px; height: 32px; border-radius: 50%;
-                    background: oklch(0.52 0.08 195); color: #F7F6F1;
-                    font-weight: 700; font-size: 13px;
-                    display: flex; align-items: center; justify-content: center; }
-    .wb-step-body { flex: 1; }
-    .wb-step h3 { margin: 0 0 4px; font-size: 14px; font-weight: 600; }
-    .wb-step p { margin: 0 0 8px; font-size: 12.5px; color: #2A2D34; line-height: 1.5; }
-    code { background: #F1EFE7; padding: 1px 5px; border-radius: 3px; font-size: 11.5px;
-           font-family: 'JetBrains Mono', monospace; }
+    .wb-status-pill { background: oklch(0.92 0.06 155); color: oklch(0.32 0.07 155);
+                       padding: 6px 12px; border-radius: 999px; font-size: 11px; }
+    table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid #EFEDE4; }
+    thead tr { background: #EFEDE4; }
+    code { background: #F1EFE7; padding: 1px 5px; border-radius: 3px; font-size: 11.5px; font-family: 'JetBrains Mono', monospace; }
+    .wb-error { background: oklch(0.94 0.04 25); color: oklch(0.32 0.10 25); padding: 10px 12px; border-radius: 6px; font-size: 12.5px; }
+    .wb-log { background: #0E1116; color: #E4E1D7; font-family: 'JetBrains Mono', monospace; font-size: 11px;
+               border-radius: 8px; padding: 10px 12px; max-height: 200px; overflow-y: auto; }
+    .wb-log .ts { color: #8A8E97; }
+    .wb-log .ok { color: oklch(0.78 0.14 155); }
+    .wb-log .err { color: oklch(0.72 0.16 25); }
     a { color: oklch(0.32 0.07 195); }
   </style>
 </head>
 <body data-nav="process">
   <main class="wb-page">
-    <span class="wb-status-pill scaffold">Tab 03 -- Process Files -- scaffold</span>
+    <span class="wb-status-pill">Tab 03 -- Process Files -- live</span>
     <h1 class="wb-h1">Process Files -- bulk exploration of a case bundle</h1>
     <p class="wb-lede">
-      Drop a ZIP of case notes, posts, transcripts, or ads. Each row goes through
-      the full DueCare harness; the page renders a force-directed entity graph,
-      ranked-indicator visualizations, and a Gemma-guided narrative summary.
-      Nothing leaves the kernel.
+      Drop a ZIP / CSV / JSONL. Each row goes through the GREP harness (161 rules)
+      and a regex entity extractor (AMOUNT / PHONE / EMAIL / STATUTE / CORRIDOR).
+      You see exactly which endpoint fires, the response, and the v1.0 bundle.
     </p>
 
     <div class="wb-card">
-      <h2>Step 1 -- Drop a ZIP</h2>
-      <p>
-        Accepted: <span class="wb-pill">.zip</span>
-        <span class="wb-pill">.csv</span>
-        <span class="wb-pill">.jsonl</span>
-        <span class="wb-pill">.txt</span>
-        <span class="wb-pill">.md</span>
-      </p>
-      <div id="wb-dropzone"
-           style="border: 2px dashed #DDD8C9; border-radius: 10px;
-                  padding: 36px 18px; text-align: center; background: #FFFFFF;
-                  color: #5B5F68; font-size: 13px; cursor: pointer;"
-           onclick="document.getElementById('wb-file-input').click()">
-        <div style="font-size: 24px; margin-bottom: 6px;" aria-hidden="true">+</div>
-        <div>Drop a bundle here or <span style="color: oklch(0.32 0.07 195); text-decoration: underline;">browse</span></div>
-        <div class="wb-muted" style="margin-top: 8px;">No file leaves the kernel until you click <i>Submit</i> on the Anonymization &amp; Sharing tab.</div>
+      <h2>Drop a bundle</h2>
+      <p>Accepted: <span class="wb-pill">.zip</span> <span class="wb-pill">.csv</span>
+      <span class="wb-pill">.jsonl</span> <span class="wb-pill">.txt</span></p>
+      <div id="wb-dropzone" onclick="document.getElementById('wb-file-input').click()"
+           style="border: 2px dashed #DDD8C9; border-radius: 10px; padding: 36px 18px;
+                  text-align: center; background: #FFF; color: #5B5F68; font-size: 13px; cursor: pointer;">
+        <div style="font-size: 24px; margin-bottom: 6px;">+</div>
+        <div>Drop a bundle or <span style="color: oklch(0.32 0.07 195); text-decoration: underline;">browse</span></div>
+        <div class="wb-muted" style="margin-top: 6px;">Up to 200 rows / request (excess flagged).</div>
       </div>
       <input type="file" id="wb-file-input" style="display: none;"
-             accept=".zip,.csv,.jsonl,.txt,.md" multiple
-             onchange="wbHandleFiles(event)">
-      <div id="wb-file-list" class="wb-row" style="margin-top: 12px;"></div>
+             accept=".zip,.csv,.jsonl,.txt,.md" onchange="wbHandle(event)">
+      <div id="wb-file-info" class="wb-row"></div>
       <div class="wb-row">
-        <button class="wb-btn-primary" id="wb-next-step-btn" disabled>Start processing</button>
-        <span class="wb-muted">Disabled until at least one file is attached.</span>
+        <button class="wb-btn-primary" id="wb-process-btn" disabled onclick="wbProcess()">Start processing</button>
+        <span class="wb-muted" id="wb-process-hint">Drop a file first.</span>
       </div>
+      <div id="wb-error" class="wb-error" style="display: none; margin-top: 10px;"></div>
     </div>
 
     <div class="wb-card">
-      <h2>Step 2 -- What the kernel will do</h2>
-      <ol style="margin: 6px 0 0 18px; padding: 0; font-size: 12.5px; line-height: 1.7; color: #2A2D34;">
-        <li><b>Unpack + validate</b> -- ZIPs are unpacked in <code>/kaggle/working/process-staging/</code>; each contained file becomes one row.</li>
-        <li><b>Harness pass</b> -- each row goes through Persona + GREP (161 rules) + RAG (46-doc corpus) + Tools (5 lookups).</li>
-        <li><b>Entity recognition</b> -- extract PERSON / EMPLOYER / RECRUITER / AMOUNT / CORRIDOR / STATUTE per row.</li>
-        <li><b>Gemma-guided pass</b> -- the loaded model writes a 5-sentence narrative summary and labels each sentence with its source row_id.</li>
-        <li><b>Bundle emit</b> -- canonical v1.0 envelope (<code>&lt;RUN_ID&gt;_process_bundle.zip</code>) for downstream tabs.</li>
-      </ol>
+      <h2>Activity log <span class="wb-muted" style="font-weight: normal;">-- every API call + response is transparent</span></h2>
+      <div class="wb-log" id="wb-log">
+        <div class="wb-muted">No activity yet. Click <i>Start processing</i> to begin.</div>
+      </div>
     </div>
 
-    <div class="wb-grid-2">
+    <div id="wb-results" style="display: none;">
+      <div class="wb-grid-2">
+        <div class="wb-card"><h2>Summary</h2><div id="wb-summary"></div></div>
+        <div class="wb-card"><h2>Top indicators</h2><div id="wb-top-indicators"></div></div>
+      </div>
+      <div class="wb-card"><h2>Top statutes</h2><div id="wb-top-statutes"></div></div>
       <div class="wb-card">
-        <h2>Entity connection graph (preview)</h2>
-        <p>Force-directed layout. Nodes = entities; edges = co-occurrence within a row.</p>
-        <div id="wb-graph-host" style="height: 240px; border: 1px solid #EFEDE4;
-             border-radius: 8px; background: #FFFFFF; display: flex;
-             align-items: center; justify-content: center; color: #5B5F68;
-             font-size: 12px;">
-          (graph renders here after Step 1 completes)
+        <h2>Per-row table</h2>
+        <div style="max-height: 480px; overflow-y: auto;">
+          <table id="wb-rows-table">
+            <thead><tr><th>row_id</th><th>chars</th><th>GREP hits</th><th>entities</th></tr></thead>
+            <tbody id="wb-rows-tbody"></tbody>
+          </table>
         </div>
       </div>
       <div class="wb-card">
-        <h2>Top indicators + statutes</h2>
-        <p>Top-firing GREP rules + top-cited RAG docs ranked by frequency.</p>
-        <div id="wb-rank-host" style="height: 240px; border: 1px solid #EFEDE4;
-             border-radius: 8px; background: #FFFFFF; padding: 12px; color: #5B5F68;
-             font-size: 12px; overflow-y: auto;">
-          (ranked list renders here after Step 1 completes)
+        <h2>Next steps</h2>
+        <div class="wb-row">
+          <a class="wb-btn-secondary" href="/static/knowledge.html">Promote -> Knowledge Creation</a>
+          <a class="wb-btn-secondary" href="/static/share.html">Anonymize & Share -></a>
+          <button class="wb-btn-secondary" onclick="wbDownloadBundle()">Download v1.0 bundle (JSON)</button>
         </div>
-      </div>
-    </div>
-
-    <div class="wb-card">
-      <h2>Gemma-guided narrative</h2>
-      <p>
-        Sent to the loaded model as: <i>"Summarise the following N rows in 5
-        sentences. After each sentence cite the row_id you grounded on."</i>
-      </p>
-      <div id="wb-narrative-host" style="height: 180px; border: 1px solid #EFEDE4;
-           border-radius: 8px; background: #FFFFFF; padding: 12px; color: #5B5F68;
-           font-size: 12px; overflow-y: auto;">
-        (narrative renders here; sentences hyperlink to source row_ids)
-      </div>
-    </div>
-
-    <div class="wb-card">
-      <h2>Cross-links</h2>
-      <div class="wb-row">
-        <a class="wb-btn-secondary" href="/static/rag-graph.html">Live citation graph</a>
-        <a class="wb-btn-secondary" href="/static/grep-rules.html">All 161 GREP rules</a>
-        <a class="wb-btn-secondary" href="/static/rag-corpus.html">46-doc RAG corpus</a>
-        <a class="wb-btn-secondary" href="/static/knowledge.html">Promote findings to knowledge patterns &rarr;</a>
       </div>
     </div>
   </main>
-<script>
-  const wbFiles = [];
-  function wbHandleFiles(ev) {
-    const files = Array.from(ev.target.files || []);
-    for (const f of files) wbFiles.push(f);
-    wbRenderFileList();
-  }
-  function wbRenderFileList() {
-    const host = document.getElementById('wb-file-list');
-    if (!host) return;
-    host.innerHTML = '';
-    for (const f of wbFiles) {
-      const pill = document.createElement('span');
-      pill.className = 'wb-pill';
-      pill.textContent = f.name + ' (' + Math.round(f.size / 1024) + ' KB)';
-      host.appendChild(pill);
+
+  <script>
+    let wbFile = null, wbBundle = null;
+    function wbLog(kind, msg, detail) {
+      const host = document.getElementById('wb-log');
+      if (!host) return;
+      if (host.firstChild && host.firstChild.classList && host.firstChild.classList.contains('wb-muted')) {
+        host.innerHTML = '';
+      }
+      const ts = new Date().toISOString().slice(11, 19);
+      const div = document.createElement('div');
+      const cls = kind === 'err' ? 'err' : (kind === 'ok' ? 'ok' : '');
+      div.innerHTML = '<span class="ts">[' + ts + ']</span> <span class="' + cls + '">' + msg + '</span>' +
+        (detail ? '<div style="margin-left: 18px; color: #8A8E97; font-size: 10.5px;">' + detail + '</div>' : '');
+      host.appendChild(div);
+      host.scrollTop = host.scrollHeight;
     }
-    const next = document.getElementById('wb-next-step-btn');
-    if (next) next.disabled = wbFiles.length === 0;
-  }
-  const dz = document.getElementById('wb-dropzone');
-  if (dz) {
-    ['dragenter', 'dragover'].forEach(ev => dz.addEventListener(ev, e => {
-      e.preventDefault(); dz.style.background = '#F1EFE7';
-    }));
-    ['dragleave', 'drop'].forEach(ev => dz.addEventListener(ev, e => {
-      e.preventDefault(); dz.style.background = '#FFFFFF';
-    }));
-    dz.addEventListener('drop', e => {
-      const files = Array.from(e.dataTransfer && e.dataTransfer.files || []);
-      for (const f of files) wbFiles.push(f);
-      wbRenderFileList();
-    });
-  }
-</script>
+    function wbHandle(ev) {
+      const f = (ev.target.files || [])[0];
+      if (!f) return;
+      wbFile = f;
+      document.getElementById('wb-file-info').innerHTML =
+        '<span class="wb-pill">' + f.name + ' (' + Math.round(f.size / 1024) + ' KB)</span>';
+      document.getElementById('wb-process-btn').disabled = false;
+      document.getElementById('wb-process-hint').textContent = 'Click Start processing.';
+      document.getElementById('wb-error').style.display = 'none';
+      wbLog('info', 'File attached: ' + f.name + ' (' + f.size + ' bytes)');
+    }
+    async function wbProcess() {
+      if (!wbFile) return;
+      const btn = document.getElementById('wb-process-btn');
+      btn.disabled = true; btn.textContent = 'Processing...';
+      document.getElementById('wb-error').style.display = 'none';
+      wbLog('info', 'POST /api/process/batch', 'multipart upload, file=' + wbFile.name);
+      const fd = new FormData(); fd.append('file', wbFile);
+      const t0 = performance.now();
+      try {
+        const r = await fetch('/api/process/batch', { method: 'POST', body: fd });
+        const dt = Math.round(performance.now() - t0);
+        if (!r.ok) {
+          const t = await r.text();
+          wbLog('err', 'HTTP ' + r.status + ' (' + dt + 'ms)', t.slice(0, 200));
+          throw new Error('HTTP ' + r.status);
+        }
+        wbBundle = await r.json();
+        wbLog('ok', 'HTTP ' + r.status + ' (' + dt + 'ms)',
+              'run_id=' + wbBundle.run_id + ' · rows_processed=' + wbBundle.summary.n_rows_processed +
+              ' · grep_rules_fired=' + wbBundle.summary.n_grep_rules_fired +
+              ' · entities=' + wbBundle.summary.n_entities_extracted);
+        wbRender(wbBundle);
+        document.getElementById('wb-results').style.display = '';
+      } catch (e) {
+        const err = document.getElementById('wb-error');
+        err.textContent = 'Process failed: ' + (e && e.message || e); err.style.display = '';
+      } finally {
+        btn.disabled = false; btn.textContent = 'Start processing';
+      }
+    }
+    function wbRender(b) {
+      const s = b.summary || {};
+      document.getElementById('wb-summary').innerHTML =
+        '<div><b>Rows:</b> ' + s.n_rows_processed + ' / ' + s.n_rows_total +
+        (s.truncated ? ' <span class="wb-pill" style="background:oklch(0.94 0.04 45); color:oklch(0.32 0.07 45);">truncated</span>' : '') +
+        '</div><div style="margin-top:4px;"><b>GREP rules fired:</b> ' + s.n_grep_rules_fired + '</div>' +
+        '<div style="margin-top:4px;"><b>Entities extracted:</b> ' + s.n_entities_extracted + '</div>' +
+        '<div style="margin-top:4px;"><b>RUN_ID:</b> <code>' + b.run_id + '</code></div>';
+      document.getElementById('wb-top-indicators').innerHTML = (s.top_grep || []).length ?
+        (s.top_grep || []).map(g => '<div style="margin-bottom:4px;"><span class="wb-pill">' + g.rule_id + '</span> x ' + g.count + '</div>').join('') :
+        '<div class="wb-muted">No GREP rules fired.</div>';
+      document.getElementById('wb-top-statutes').innerHTML = (s.top_statutes || []).length ?
+        (s.top_statutes || []).map(t => '<div style="margin-bottom:4px;"><span class="wb-pill">' + t.statute + '</span> x ' + t.count + '</div>').join('') :
+        '<div class="wb-muted">No statute citations detected.</div>';
+      document.getElementById('wb-rows-tbody').innerHTML = (b.results || []).map(r =>
+        '<tr><td><code>' + r.row_id + '</code></td><td>' + r.char_count + '</td>' +
+        '<td>' + ((r.grep_hits || []).map(h => '<span class="wb-pill">' + h.rule_id + '</span>').join('') || '<span class="wb-muted">-</span>') + '</td>' +
+        '<td>' + (Object.entries(r.entities || {}).length ?
+                   Object.entries(r.entities).map(([k, v]) => '<span class="wb-pill">' + k + ' x ' + v.length + '</span>').join('') :
+                   '<span class="wb-muted">-</span>') + '</td></tr>'
+      ).join('');
+    }
+    function wbDownloadBundle() {
+      if (!wbBundle) return;
+      const blob = new Blob([JSON.stringify(wbBundle, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a'); a.href = url; a.download = wbBundle.run_id + '_bundle.json'; a.click();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      wbLog('info', 'Downloaded bundle JSON', wbBundle.run_id + '_bundle.json');
+    }
+    const dz = document.getElementById('wb-dropzone');
+    if (dz) {
+      ['dragenter', 'dragover'].forEach(e => dz.addEventListener(e, ev => { ev.preventDefault(); dz.style.background = '#F1EFE7'; }));
+      ['dragleave', 'drop'].forEach(e => dz.addEventListener(e, ev => { ev.preventDefault(); dz.style.background = '#FFF'; }));
+      dz.addEventListener('drop', ev => {
+        const f = (ev.dataTransfer && ev.dataTransfer.files || [])[0];
+        if (f) { wbFile = f; wbHandle({ target: { files: [f] } }); }
+      });
+    }
+  </script>
 </body>
 </html>
