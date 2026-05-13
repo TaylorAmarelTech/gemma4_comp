@@ -1,0 +1,232 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <title>Anonymization &amp; Sharing -- DueCare Workbench</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="/static/_chrome.css">
+  <script src="/static/_nav.js" defer></script>
+  <style>
+    body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+           background: #F7F6F1; color: #0E1116; margin: 0; padding: 0; }
+    .wb-page { max-width: 1120px; margin: 0 auto; padding: 24px 22px 80px; }
+    .wb-h1 { font-size: 26px; font-weight: 600; letter-spacing: -0.02em; margin: 6px 0 6px; }
+    .wb-lede { font-size: 13.5px; line-height: 1.6; color: #2A2D34; max-width: 720px;
+               margin: 0 0 22px; }
+    .wb-card { background: #FFFFFF; border: 1px solid #DDD8C9; border-radius: 12px;
+               padding: 18px 20px; margin-bottom: 14px; }
+    .wb-card h2 { font-size: 16px; font-weight: 600; margin: 0 0 8px; }
+    .wb-card p { font-size: 12.5px; line-height: 1.55; color: #2A2D34; margin: 0 0 8px; }
+    .wb-pill { display: inline-block; font-family: 'JetBrains Mono', monospace;
+               font-size: 10px; color: #2A2D34; background: #EFEDE4; border-radius: 4px;
+               padding: 2px 7px; margin-right: 6px; }
+    .wb-btn-primary {
+        background: oklch(0.52 0.08 195); color: #F7F6F1; border: 0;
+        padding: 9px 18px; border-radius: 8px; font-size: 13px; font-weight: 600;
+        cursor: pointer; text-decoration: none; display: inline-block;
+    }
+    .wb-btn-primary:disabled { opacity: 0.55; cursor: not-allowed; }
+    .wb-btn-secondary {
+        background: #EFEDE4; color: #0E1116; border: 1px solid #DDD8C9;
+        padding: 8px 14px; border-radius: 8px; font-size: 12.5px; cursor: pointer;
+        text-decoration: none; display: inline-block;
+    }
+    .wb-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center;
+              margin-top: 12px; }
+    .wb-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    @media (max-width: 760px) { .wb-grid-2 { grid-template-columns: 1fr; } }
+    .wb-muted { color: #5B5F68; font-size: 11.5px; }
+    .wb-status-pill { background: #EFEDE4; padding: 6px 12px; border-radius: 999px;
+                       font-size: 11px; color: #5B5F68; }
+    .wb-status-pill.scaffold { background: oklch(0.94 0.04 45);
+                                color: oklch(0.32 0.07 45); }
+    .wb-status-pill.ready { background: oklch(0.92 0.06 155);
+                             color: oklch(0.32 0.07 155); }
+    .wb-step {
+        display: flex; align-items: flex-start; gap: 14px; padding: 14px 16px;
+        background: #FFFFFF; border: 1px solid #DDD8C9; border-radius: 10px;
+        margin-bottom: 10px;
+    }
+    .wb-step-num { flex: 0 0 32px; width: 32px; height: 32px; border-radius: 50%;
+                    background: oklch(0.52 0.08 195); color: #F7F6F1;
+                    font-weight: 700; font-size: 13px;
+                    display: flex; align-items: center; justify-content: center; }
+    .wb-step-body { flex: 1; }
+    .wb-step h3 { margin: 0 0 4px; font-size: 14px; font-weight: 600; }
+    .wb-step p { margin: 0 0 8px; font-size: 12.5px; color: #2A2D34; line-height: 1.5; }
+    code { background: #F1EFE7; padding: 1px 5px; border-radius: 3px; font-size: 11.5px;
+           font-family: 'JetBrains Mono', monospace; }
+    a { color: oklch(0.32 0.07 195); }
+  </style>
+</head>
+<body data-nav="share">
+  <main class="wb-page">
+    <span class="wb-status-pill scaffold">Tab 05 -- Anonymization &amp; Sharing -- scaffold</span>
+    <h1 class="wb-h1">Anonymization &amp; Sharing -- review, redact, submit</h1>
+    <p class="wb-lede">
+      Upload a ZIP of case findings (or load the output from
+      <a href="/static/knowledge.html">Knowledge Creation</a>), review the
+      auto-extracted knowledge facts and patterns, anonymize PII, then submit
+      the vetted facts to duecare-ai.com. Each button is a deliberate explicit
+      step -- nothing leaves the kernel without your click.
+    </p>
+
+    <div class="wb-step">
+      <span class="wb-step-num">1</span>
+      <div class="wb-step-body">
+        <h3>Upload a ZIP of findings</h3>
+        <p>
+          Accepted: <span class="wb-pill">.zip</span>
+          <span class="wb-pill">.jsonl</span>
+          (output from Process Files / Knowledge Creation, or a fresh batch in the canonical envelope shape).
+        </p>
+        <div id="wb-dropzone"
+             style="border: 2px dashed #DDD8C9; border-radius: 10px;
+                    padding: 24px 18px; text-align: center; background: #FFFFFF;
+                    color: #5B5F68; font-size: 13px; cursor: pointer; margin-top: 8px;"
+             onclick="document.getElementById('wb-file-input').click()">
+          <div style="font-size: 22px; margin-bottom: 4px;" aria-hidden="true">+</div>
+          <div>Drop a bundle here or <span style="color: oklch(0.32 0.07 195); text-decoration: underline;">browse</span></div>
+        </div>
+        <input type="file" id="wb-file-input" style="display: none;"
+               accept=".zip,.jsonl" multiple onchange="wbHandleFiles(event)">
+        <div id="wb-file-list" class="wb-row" style="margin-top: 10px;"></div>
+        <div class="wb-row">
+          <button class="wb-btn-primary" id="wb-next-step-btn" disabled>
+            Step 1: Process uploaded files
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="wb-step">
+      <span class="wb-step-num">2</span>
+      <div class="wb-step-body">
+        <h3>Review the extracted knowledge facts &amp; patterns</h3>
+        <p>
+          The kernel renders each fact + pattern as a row: indicator, statute(s),
+          corridor, evidence row_id(s), and a checkbox for submit-or-skip.
+          Default state: nothing checked.
+        </p>
+        <table style="width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 8px;">
+          <thead>
+            <tr style="text-align: left; background: #EFEDE4;">
+              <th style="padding: 6px 8px;">submit?</th>
+              <th style="padding: 6px 8px;">indicator</th>
+              <th style="padding: 6px 8px;">statute</th>
+              <th style="padding: 6px 8px;">corridor</th>
+              <th style="padding: 6px 8px;">raw fact (pre-anonymization)</th>
+            </tr>
+          </thead>
+          <tbody id="wb-facts-tbody">
+            <tr>
+              <td colspan="5" style="padding: 14px 8px; text-align: center; color: #5B5F68;">
+                (facts table renders here after Step 1 completes)
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="wb-row">
+          <button class="wb-btn-primary" id="wb-review-confirm-btn" disabled>
+            Step 2: Confirm review &rarr; anonymize next
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="wb-step">
+      <span class="wb-step-num">3</span>
+      <div class="wb-step-body">
+        <h3>Anonymize selected facts</h3>
+        <p>
+          The PrivacyRedactor pass runs on each checked fact:
+          <span class="wb-pill">PERSON</span>
+          <span class="wb-pill">EMPLOYER</span>
+          <span class="wb-pill">RECRUITER</span>
+          <span class="wb-pill">AMOUNT</span>
+          <span class="wb-pill">PHONE</span>
+          <span class="wb-pill">EMAIL</span>
+          <span class="wb-pill">CASE_ID</span>
+          get salted-hash placeholders. The diff below is for explicit acknowledgement.
+        </p>
+        <div id="wb-anon-diff-host" style="border: 1px solid #EFEDE4; border-radius: 8px;
+             background: #FFFFFF; padding: 12px; color: #5B5F68; font-size: 12px;
+             margin-top: 6px; min-height: 140px;">
+          (before / after diff renders here after Step 2 confirmation)
+        </div>
+        <div class="wb-row">
+          <button class="wb-btn-primary" id="wb-anonymize-btn" disabled>
+            Step 3: Anonymize the checked facts
+          </button>
+          <span class="wb-muted">
+            The audit log entry includes a sha256 of every raw value plus user, time, and reason.
+          </span>
+        </div>
+        <p class="wb-muted" style="margin-top: 10px;">
+          Cross-link: full
+          <a href="/static/anonymization-preview.html">anonymization preview page</a>
+          for advanced inspection.
+        </p>
+      </div>
+    </div>
+
+    <div class="wb-step">
+      <span class="wb-step-num">4</span>
+      <div class="wb-step-body">
+        <h3>Submit anonymized facts to duecare-ai.com</h3>
+        <p>
+          Target endpoint: <code>POST https://duecare-ai.com/api/submit/facts</code>.
+          Each fact is sent as a typed <code>KnowledgeObject</code> per the
+          public hub schema. Submission is rate-limited and logged.
+        </p>
+        <div class="wb-row">
+          <button class="wb-btn-primary" id="wb-submit-btn" disabled>
+            Step 4: Submit to duecare-ai.com
+          </button>
+          <span class="wb-muted">
+            Disabled until Steps 1-3 complete in order.
+          </span>
+        </div>
+        <p class="wb-muted" style="margin-top: 10px;">
+          Local audit log at <code>/kaggle/working/audit/submit_log.jsonl</code> records what was sent, when, by whom.
+        </p>
+      </div>
+    </div>
+  </main>
+<script>
+  const wbFiles = [];
+  function wbHandleFiles(ev) {
+    const files = Array.from(ev.target.files || []);
+    for (const f of files) wbFiles.push(f);
+    wbRenderFileList();
+  }
+  function wbRenderFileList() {
+    const host = document.getElementById('wb-file-list');
+    if (!host) return;
+    host.innerHTML = '';
+    for (const f of wbFiles) {
+      const pill = document.createElement('span');
+      pill.className = 'wb-pill';
+      pill.textContent = f.name + ' (' + Math.round(f.size / 1024) + ' KB)';
+      host.appendChild(pill);
+    }
+    const next = document.getElementById('wb-next-step-btn');
+    if (next) next.disabled = wbFiles.length === 0;
+  }
+  const dz = document.getElementById('wb-dropzone');
+  if (dz) {
+    ['dragenter', 'dragover'].forEach(ev => dz.addEventListener(ev, e => {
+      e.preventDefault(); dz.style.background = '#F1EFE7';
+    }));
+    ['dragleave', 'drop'].forEach(ev => dz.addEventListener(ev, e => {
+      e.preventDefault(); dz.style.background = '#FFFFFF';
+    }));
+    dz.addEventListener('drop', e => {
+      const files = Array.from(e.dataTransfer && e.dataTransfer.files || []);
+      for (const f of files) wbFiles.push(f);
+      wbRenderFileList();
+    });
+  }
+</script>
+</body>
+</html>

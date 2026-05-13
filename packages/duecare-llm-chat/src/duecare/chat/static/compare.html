@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <title>Harness Comparison -- DueCare Workbench</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="/static/_chrome.css">
+  <script src="/static/_nav.js" defer></script>
+  <style>
+    body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+           background: #F7F6F1; color: #0E1116; margin: 0; padding: 0; }
+    .wb-page { max-width: 1120px; margin: 0 auto; padding: 24px 22px 80px; }
+    .wb-h1 { font-size: 26px; font-weight: 600; letter-spacing: -0.02em; margin: 6px 0 6px; }
+    .wb-lede { font-size: 13.5px; line-height: 1.6; color: #2A2D34; max-width: 720px;
+               margin: 0 0 22px; }
+    .wb-card { background: #FFFFFF; border: 1px solid #DDD8C9; border-radius: 12px;
+               padding: 18px 20px; margin-bottom: 14px; }
+    .wb-card h2 { font-size: 16px; font-weight: 600; margin: 0 0 8px; }
+    .wb-card p { font-size: 12.5px; line-height: 1.55; color: #2A2D34; margin: 0 0 8px; }
+    .wb-pill { display: inline-block; font-family: 'JetBrains Mono', monospace;
+               font-size: 10px; color: #2A2D34; background: #EFEDE4; border-radius: 4px;
+               padding: 2px 7px; margin-right: 6px; }
+    .wb-btn-primary {
+        background: oklch(0.52 0.08 195); color: #F7F6F1; border: 0;
+        padding: 9px 18px; border-radius: 8px; font-size: 13px; font-weight: 600;
+        cursor: pointer; text-decoration: none; display: inline-block;
+    }
+    .wb-btn-primary:disabled { opacity: 0.55; cursor: not-allowed; }
+    .wb-btn-secondary {
+        background: #EFEDE4; color: #0E1116; border: 1px solid #DDD8C9;
+        padding: 8px 14px; border-radius: 8px; font-size: 12.5px; cursor: pointer;
+        text-decoration: none; display: inline-block;
+    }
+    .wb-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center;
+              margin-top: 12px; }
+    .wb-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    @media (max-width: 760px) { .wb-grid-2 { grid-template-columns: 1fr; } }
+    .wb-muted { color: #5B5F68; font-size: 11.5px; }
+    .wb-status-pill { background: #EFEDE4; padding: 6px 12px; border-radius: 999px;
+                       font-size: 11px; color: #5B5F68; }
+    .wb-status-pill.scaffold { background: oklch(0.94 0.04 45);
+                                color: oklch(0.32 0.07 45); }
+    .wb-status-pill.ready { background: oklch(0.92 0.06 155);
+                             color: oklch(0.32 0.07 155); }
+    .wb-step {
+        display: flex; align-items: flex-start; gap: 14px; padding: 14px 16px;
+        background: #FFFFFF; border: 1px solid #DDD8C9; border-radius: 10px;
+        margin-bottom: 10px;
+    }
+    .wb-step-num { flex: 0 0 32px; width: 32px; height: 32px; border-radius: 50%;
+                    background: oklch(0.52 0.08 195); color: #F7F6F1;
+                    font-weight: 700; font-size: 13px;
+                    display: flex; align-items: center; justify-content: center; }
+    .wb-step-body { flex: 1; }
+    .wb-step h3 { margin: 0 0 4px; font-size: 14px; font-weight: 600; }
+    .wb-step p { margin: 0 0 8px; font-size: 12.5px; color: #2A2D34; line-height: 1.5; }
+    code { background: #F1EFE7; padding: 1px 5px; border-radius: 3px; font-size: 11.5px;
+           font-family: 'JetBrains Mono', monospace; }
+    a { color: oklch(0.32 0.07 195); }
+  </style>
+</head>
+<body data-nav="compare">
+  <main class="wb-page">
+    <span class="wb-status-pill ready">Tab 02 -- Harness Comparison -- live</span>
+    <h1 class="wb-h1">Harness Comparison -- same prompt, two harness configs</h1>
+    <p class="wb-lede">
+      Run the same prompt through TWO harness configurations side-by-side and
+      grade both responses with the mode you choose. Per-dimension verdict
+      deltas + total score difference show whether the harness is moving the
+      needle on YOUR prompt.
+    </p>
+    <div class="wb-card">
+      <h2>Launching the comparison workbench...</h2>
+      <p>
+        The Compare flow lives at <code>/#compare</code> on the chat page so it
+        shares the live model load (no extra GPU warmup). This page redirects
+        there in a moment.
+      </p>
+      <div class="wb-row">
+        <a href="/#compare" class="wb-btn-primary">Open Harness Comparison</a>
+        <span class="wb-muted">URL stays at <code>/#compare</code> so you can bookmark or share it.</span>
+      </div>
+    </div>
+    <div class="wb-card">
+      <h2>What you'll see</h2>
+      <ul style="margin: 6px 0 0 18px; padding: 0; font-size: 12.5px; line-height: 1.7; color: #2A2D34;">
+        <li>One shared prompt sent to two harness configs (Variant A vs Variant B).</li>
+        <li>Per-variant response + pipeline trace (which layers fired, how long).</li>
+        <li>Per-dimension grade verdict for both variants with arrows showing where the harness flipped a verdict.</li>
+        <li>Bottom-line lift (e.g., "+12.5pp on compound-indicator prompts").</li>
+      </ul>
+    </div>
+  </main>
+  <script>setTimeout(function(){window.location.href='/#compare';},350);</script>
+</body>
+</html>
