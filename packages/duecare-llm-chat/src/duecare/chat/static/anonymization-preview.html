@@ -182,7 +182,12 @@
     }
     .ap-cta-band .label-block { font-size: 13.5px; color: var(--ink-3); }
     .ap-cta-band .label-block strong { color: var(--ink); }
-  </style>
+  
+    @media (max-width: 620px) {
+      .wb-page { padding: 0 12px !important; }
+      .wb-h1 { font-size: 22px !important; }
+    }
+</style>
   <script src="/static/_nav.js" defer></script>
   <script src="/static/_activity_log.js" defer></script>
 </head>
@@ -384,5 +389,12 @@
       }
     });
   </script>
+
+  <div class="wb-card" id="page-activity-log-card" style="margin: 14px 18px;">
+    <h3 style="font-size: 15px; font-weight: 600; margin: 0 0 8px;">Activity log</h3>
+    <div id="page-activity-log" class="dc-activity-log" role="log" aria-label="Activity log" aria-live="polite">
+      <div class="dc-log-idle">No activity yet -- interact with the page to populate.</div>
+    </div>
+  </div>
 </body>
 </html>

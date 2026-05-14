@@ -55,7 +55,12 @@
       border: 1px solid var(--line-soft); border-radius: 8px;
     }
     .stat-row .label { color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.06em; font-size: 10.5px; margin-right: 5px; }
-  </style>
+  
+    @media (max-width: 620px) {
+      .wb-page { padding: 0 12px !important; }
+      .wb-h1 { font-size: 22px !important; }
+    }
+</style>
 </head>
 <body data-nav="models">
 <main class="showcase">
@@ -83,7 +88,18 @@
     <h2>Load log (live)</h2>
     <div class="logs" id="logs">Polling /api/load-model/logs…</div>
   </div>
-</main>
+
+    <div class="wb-card" id="page-activity-log-card" style="margin-top: 14px;">
+      <h2>Activity log</h2>
+      <p class="wb-muted" style="margin: 0 0 8px;">
+        Live trace of API calls + per-step events from this page.
+      </p>
+      <div id="page-activity-log" class="dc-activity-log" role="log" aria-label="Activity log" aria-live="polite">
+        <div class="dc-log-idle">No activity yet -- interact with the page to populate.</div>
+      </div>
+    </div>
+
+  </main>
 
 <script>
   const VARIANTS = [

@@ -36,7 +36,12 @@
     .wb-log .ok { color: oklch(0.78 0.14 155); }
     .wb-log .err { color: oklch(0.72 0.16 25); }
     a { color: oklch(0.32 0.07 195); }
-  </style>
+  
+    @media (max-width: 620px) {
+      .wb-page { padding: 0 12px !important; }
+      .wb-h1 { font-size: 22px !important; }
+    }
+</style>
 </head>
 <body data-nav="sync">
   <main class="wb-page">
@@ -45,7 +50,7 @@
       <b>Trust boundary:</b> This tab makes an outbound HTTPS GET to the
       DueCare hub (currently <code>gemma4-comp.onrender.com</code>, moving
       to <code>duecare-ai.com</code> when the domain is wired). Only
-      public, pre-anonymized envelopes are downloaded. Nothing on this
+      public, pre-anonymized knowledge object (envelope) are downloaded. Nothing on this
       kernel is sent to the hub by Sync.
     </div>
     <p class="wb-lede">
@@ -126,7 +131,7 @@
     </div>
   <div class="wb-card">
       <h2>Activity log</h2>
-      <div id="wb-log" class="dc-activity-log"><div class="wb-muted">Waiting...</div></div>
+      <div id="wb-log" class="dc-activity-log" role="log" aria-label="Activity log" aria-live="polite"><div class="wb-muted">Waiting...</div></div>
     </div>
 
   </main>

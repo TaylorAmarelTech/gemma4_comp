@@ -115,7 +115,12 @@
       overflow: hidden; margin: 8px 0;
     }
     .progress > .bar { height: 100%; background: var(--accent); transition: width 0.3s; }
-  </style>
+  
+    @media (max-width: 620px) {
+      .wb-page { padding: 0 12px !important; }
+      .wb-h1 { font-size: 22px !important; }
+    }
+</style>
 </head>
 <body data-nav="grade">
 <main class="showcase">
@@ -166,7 +171,18 @@
       </div>
     </section>
   </div>
-</main>
+
+    <div class="wb-card" id="page-activity-log-card" style="margin-top: 14px;">
+      <h2>Activity log</h2>
+      <p class="wb-muted" style="margin: 0 0 8px;">
+        Live trace of API calls + per-step events from this page.
+      </p>
+      <div id="page-activity-log" class="dc-activity-log" role="log" aria-label="Activity log" aria-live="polite">
+        <div class="dc-log-idle">No activity yet -- interact with the page to populate.</div>
+      </div>
+    </div>
+
+  </main>
 
 <script>
   const MODE_HELP = {
