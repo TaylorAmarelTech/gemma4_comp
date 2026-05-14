@@ -39,6 +39,9 @@ def test_required_markup_present(client):
         'id="cmp-max-tokens"',
         'id="cmp-temperature"',
         'id="cmp-show-truncation"',
+        'id="cmp-model-card"',
+        'id="cmp-model-select"',
+        'id="cmp-model-load"',
         'id="grade-mode"',
         # variant cards
         'id="A-msgs"',
@@ -115,6 +118,8 @@ def test_helper_functions_defined(client):
         "cmpInterrupt", "refreshVariantLabels", "renderTimingSummary",
         "renderGradeBars", "cmpSendToChat", "cmpCopyShareLink",
         "cmpPreset", "cmpOpenExamples", "cmpCloseExamples",
+        "cmpRefreshModelStatus", "cmpLoadSelectedModel",
+        "cmpEnsureModelReady",
         "pipelineInit", "pipelineSetStep", "pipelineRender",
     ]:
         assert fn in text, f"function {fn} not in compare.html"

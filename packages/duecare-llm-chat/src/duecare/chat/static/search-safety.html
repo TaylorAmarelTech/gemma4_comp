@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Search Safety - DueCare Workbench</title>
+  <link rel="stylesheet" href="/static/_chrome.css">
+  <script src="/static/_nav.js" defer></script>
+  <script src="/static/_activity_log.js" defer></script>
+  <style>
+    .page { max-width: 1120px; margin: 24px auto 70px; padding: 0 18px; color: var(--ink); }
+    .panel { background: var(--paper); border: 1px solid var(--line); border-radius: 10px; padding: 18px 20px; margin-bottom: 14px; }
+    h1 { margin: 0 0 8px; font-size: 26px; letter-spacing: 0; }
+    h2 { margin: 0 0 10px; font-size: 16px; }
+    h3 { margin: 12px 0 8px; font-size: 14px; }
+    p { line-height: 1.55; }
+    .lede { color: var(--ink-2); font-size: 13.5px; margin: 0; }
+    .muted { color: var(--ink-3); font-size: 12px; }
+    .grid { display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); gap: 14px; }
+    textarea {
+      width: 100%; min-height: 155px; border: 1px solid var(--line); border-radius: 8px;
+      background: var(--paper); color: var(--ink); padding: 11px 12px;
+      font: 13px/1.5 var(--sans); resize: vertical;
+    }
+    textarea:focus { outline: 0; border-color: var(--accent); box-shadow: 0 0 0 4px oklch(0.85 0.05 195 / 0.3); }
+    .row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-top: 10px; }
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; min-height: 34px;
+      padding: 7px 13px; border-radius: 7px; border: 1px solid var(--line);
+      background: var(--paper); color: var(--ink); text-decoration: none; cursor: pointer;
+      font-size: 12.5px; font-weight: 600;
+    }
+    .btn.primary { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+    .btn:hover { border-color: var(--accent); }
+    .pill {
+      display: inline-block; padding: 2px 7px; border-radius: 999px; background: var(--paper-2);
+      border: 1px solid var(--line); font-family: var(--mono); font-size: 10.5px; color: var(--ink-2);
+    }
+    .result {
+      background: var(--paper-2); border: 1px solid var(--line-soft); border-radius: 8px;
+      padding: 12px; min-height: 90px; white-space: pre-wrap; overflow-wrap: anywhere;
+      font-family: var(--mono); font-size: 12px; line-height: 1.5;
+    }
+    .compare { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .redaction { padding: 8px 0; border-bottom: 1px solid var(--line-soft); font-size: 12px; }
+    .redaction:last-child { border-bottom: 0; }
+    code { background: var(--paper-2); border-radius: 4px; padding: 1px 5px; font-family: var(--mono); font-size: 11.5px; }
+    @media (max-width: 840px) { .grid, .compare { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body data-nav="harness">
+  <main class="page">
+    <section class="panel">
+      <h1>Search Safety Gate</h1>
+      <p class="lede">
+        Test <code>POST /api/search/sanitize</code> before any query reaches SearXNG, Tavily, Brave, DuckDuckGo, or another third-party backend.
+        Strict mode is regex-only. Rephrase mode first redacts PII and then asks Gemma 4, when loaded, to generalize the redacted query.
+      </p>
+      <div class="row">
+        <span class="pill">primary safety surface</span>
+        <span class="pill">applied_layers: none</span>
+        <span class="pill">Gemma: optional rephrase</span>
+        <a class="btn" href="/static/search.html">Open Search utility</a>
+        <a class="btn" href="/static/harness.html">Harness Workbench</a>
+      </div>
+    </section>
+
+    <section class="grid">
+      <div class="panel">
+        <h2>1. Query To Sanitize</h2>
+        <textarea id="query">Find reports about recruiter Maria Santos +63 917 555 0199 passport AB1234567 charging 4500 USD for Hong Kong domestic work</textarea>
+        <div class="row">
+          <label><input type="checkbox" id="mode-rephrase"> Ask Gemma 4 to rephrase after redaction</label>
+        </div>
+        <div class="row">
+          <button class="btn primary" type="button" onclick="runSanitize()">Sanitize query</button>
+          <button class="btn" type="button" onclick="runComparison()">Compare strict vs rephrase</button>
+          <button class="btn" type="button" onclick="useSafeExample()">Use safe example</button>
+        </div>
+        <div class="muted" id="status" style="margin-top:8px;">Checking search-safety wiring...</div>
+      </div>
+
+      <div class="panel">
+        <h2>2. Sanitized Output</h2>
+        <div class="result" id="sanitized">No run yet.</div>
+        <h3>Redactions</h3>
+        <div id="redactions" class="muted">No redactions yet.</div>
+      </div>
+    </section>
+
+    <section class="panel" id="compare-panel" style="display:none;">
+      <h2>Strict vs Gemma-Rephrased</h2>
+      <div class="compare">
+        <div>
+          <h3>Strict</h3>
+          <div class="result" id="strict-result"></div>
+        </div>
+        <div>
+          <h3>Rephrase</h3>
+          <div class="result" id="rephrase-result"></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    function esc(s) {
+      return String(s == null ? "" : s).replace(/[&<>"']/g, c =>
+        ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    }
+    function mode() {
+      return document.getElementById("mode-rephrase").checked ? "rephrase" : "strict";
+    }
+    async function loadInfo() {
+      try {
+        const r = await fetch("/api/search/safety-info", {cache: "no-store"});
+        const d = await r.json();
+        document.getElementById("status").innerHTML =
+          `Regex redaction: ${d.regex_redaction ? "on" : "off"}; Gemma rephrase: ${d.gemma_rephrase_available ? "available" : "not loaded"}; patterns: ${(d.patterns || []).map(esc).join(", ")}`;
+      } catch (err) {
+        document.getElementById("status").textContent = "Could not load safety info: " + err.message;
+      }
+    }
+    async function sanitize(query, chosenMode) {
+      const r = await fetch("/api/search/sanitize", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({query, mode: chosenMode}),
+      });
+      const d = await r.json();
+      if (!r.ok) throw new Error(d.detail || d.error || r.statusText);
+      return d;
+    }
+    function renderResult(d) {
+      document.getElementById("sanitized").textContent = d.sanitized || "";
+      const reds = d.redactions || [];
+      document.getElementById("redactions").innerHTML = reds.length ? reds.map(r => `
+        <div class="redaction">
+          <span class="pill">${esc(r.kind)}</span>
+          <code>${esc(r.replacement)}</code>
+          <span class="muted">sha256:${esc(r.original_sha256)}</span>
+        </div>
+      `).join("") : "No PII-like patterns detected.";
+      document.getElementById("status").textContent =
+        `mode=${d.mode}; blocked=${d.blocked}; rephrase_fired=${d.rephrase_fired}; rephrase_wired=${d.rephrase_wired}`;
+    }
+    async function runSanitize() {
+      const q = document.getElementById("query").value.trim();
+      if (!q) return;
+      document.getElementById("status").textContent = "Sanitizing...";
+      try {
+        renderResult(await sanitize(q, mode()));
+      } catch (err) {
+        document.getElementById("status").textContent = "Sanitize failed: " + err.message;
+      }
+    }
+    async function runComparison() {
+      const q = document.getElementById("query").value.trim();
+      if (!q) return;
+      document.getElementById("compare-panel").style.display = "block";
+      document.getElementById("strict-result").textContent = "Running strict...";
+      document.getElementById("rephrase-result").textContent = "Running rephrase...";
+      try {
+        const strict = await sanitize(q, "strict");
+        document.getElementById("strict-result").textContent = JSON.stringify(strict, null, 2);
+      } catch (err) {
+        document.getElementById("strict-result").textContent = "Strict failed: " + err.message;
+      }
+      try {
+        const rephrase = await sanitize(q, "rephrase");
+        document.getElementById("rephrase-result").textContent = JSON.stringify(rephrase, null, 2);
+      } catch (err) {
+        document.getElementById("rephrase-result").textContent = "Rephrase failed: " + err.message;
+      }
+    }
+    function useSafeExample() {
+      document.getElementById("query").value = "ILO C181 recruitment fee prohibition for migrant domestic workers";
+    }
+    loadInfo();
+  </script>
+</body>
+</html>
