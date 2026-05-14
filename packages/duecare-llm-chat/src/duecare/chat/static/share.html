@@ -16,6 +16,9 @@
     .wb-btn-primary { background: oklch(0.52 0.08 195); color: #F7F6F1; border: 0; padding: 9px 18px;
                        border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; }
     .wb-btn-primary:disabled { opacity: 0.55; cursor: not-allowed; }
+    .wb-btn-secondary { background: #FFF; color: #0E1116; border: 1px solid #DDD8C9; padding: 8px 14px;
+                         border-radius: 8px; font-size: 12.5px; font-weight: 600; cursor: pointer; }
+    .wb-btn-secondary:disabled { opacity: 0.55; cursor: not-allowed; }
     .wb-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-top: 12px; }
     .wb-status-pill { background: oklch(0.92 0.06 155); color: oklch(0.32 0.07 155);
                        padding: 6px 12px; border-radius: 999px; font-size: 11px; }
@@ -101,6 +104,8 @@
           </table>
         </div>
         <div class="wb-row">
+          <button class="wb-btn-secondary" id="wb-select-all-btn" disabled onclick="wbSetAllFacts(true)">Select all visible</button>
+          <button class="wb-btn-secondary" id="wb-clear-all-btn" disabled onclick="wbSetAllFacts(false)">Clear selection</button>
           <button class="wb-btn-primary" id="wb-step2-btn" disabled onclick="wbStep2()">Step 2: Confirm review</button>
           <span class="wb-muted" id="wb-step2-count">0 items selected.</span>
         </div>
@@ -169,11 +174,16 @@
                    || _dcLog.info);
       fn(msg, detail);
     };
+    function escapeHtml(value) {
+      return String(value == null ? '' : value).replace(/[&<>"']/g, ch => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+      })[ch]);
+    }
     function wbHandle(ev) {
       const f = (ev.target.files || [])[0];
       if (!f) return; wbFile = f;
       document.getElementById('wb-file-info').innerHTML =
-        '<span class="wb-pill">' + (window.escapeHtml ? escapeHtml(f.name) : (window.esc ? esc(f.name) : String(f.name).replace(/[<>&"']/g, ''))) + ' (' + Math.round(f.size / 1024) + ' KB)</span>';
+        '<span class="wb-pill">' + escapeHtml(f.name) + ' (' + Math.round(f.size / 1024) + ' KB)</span>';
       document.getElementById('wb-step1-btn').disabled = false;
       wbLog('info', 'File attached: ' + f.name + ' (' + f.size + ' bytes)');
     }
@@ -206,32 +216,44 @@
       if (!rows.length) {
         tbody.innerHTML = '<tr><td colspan="5" style="padding:14px 8px; text-align:center; color:#5B5F68;">(no rows)</td></tr>'; return;
       }
-      // audit-allow:innerHTML-safe -- r.row_id and h.rule_id are server-controlled identifiers; i is loop index
       tbody.innerHTML = rows.map((r, i) =>
         '<tr>' +
           '<td><input type="checkbox" data-idx="' + i + '" onchange="wbToggleFact(' + i + ', this.checked)"></td>' +
-          '<td><code>' + r.row_id + '</code></td>' +
-          '<td>' + ((r.grep_hits || []).map(h => '<span class="wb-pill">' + h.rule_id + '</span>').join('') || '<span class="wb-muted">-</span>') + '</td>' +
-          '<td>' + r.char_count + '</td>' +
+          '<td><code>' + escapeHtml(r.row_id) + '</code></td>' +
+          '<td>' + ((r.grep_hits || []).map(h => '<span class="wb-pill">' + escapeHtml(h.rule_id) + '</span>').join('') || '<span class="wb-muted">-</span>') + '</td>' +
+          '<td>' + escapeHtml(r.char_count) + '</td>' +
           '<td style="max-width:380px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">' +
-            ((Object.entries(r.entities || {})[0] || ['', '']).join(': ')) +
+            escapeHtml((Object.entries(r.entities || {})[0] || ['', '']).join(': ')) +
           '</td>' +
         '</tr>'
       ).join('');
       wbUpdateStep2Btn();
     }
     function wbToggleFact(i, on) { if (on) wbChecked.add(i); else wbChecked.delete(i); wbUpdateStep2Btn(); }
+    function wbSetAllFacts(on) {
+      const rows = (wbBundle && wbBundle.results) || [];
+      wbChecked.clear();
+      document.querySelectorAll('#wb-facts-tbody input[type=checkbox]').forEach((cb, i) => {
+        const valid = i < rows.length;
+        cb.checked = !!on && valid;
+        if (on && valid) wbChecked.add(i);
+      });
+      wbUpdateStep2Btn();
+    }
     function wbUpdateStep2Btn() {
       const c = wbChecked.size;
+      const n = ((wbBundle && wbBundle.results) || []).length;
       document.getElementById('wb-step2-count').textContent = c + ' items selected.';
       document.getElementById('wb-step2-btn').disabled = c === 0;
+      document.getElementById('wb-select-all-btn').disabled = n === 0 || c === n;
+      document.getElementById('wb-clear-all-btn').disabled = c === 0;
     }
     function wbStep2() {
       document.getElementById('wb-step-2').classList.add('done');
       const rows = (wbBundle && wbBundle.results) || [];
       const selected = Array.from(wbChecked).map(i => rows[i]).filter(Boolean);
       document.getElementById('wb-diff-host').innerHTML =
-        '<div class="wb-muted" style="padding:12px;">' + selected.length + ' fact(s) staged. Click Step 3 to redact PII.</div>';
+        '<div class="wb-muted" style="padding:12px;">' + escapeHtml(selected.length) + ' fact(s) staged. Click Step 3 to redact PII.</div>';
       document.getElementById('wb-step3-btn').disabled = selected.length === 0;
       wbLog('info', 'Step 2 confirmed', selected.length + ' facts staged for anonymization');
     }
@@ -277,8 +299,8 @@
         const raw = (wbAnonymized.selected[i] && JSON.stringify(wbAnonymized.selected[i].entities)) || '';
         const diff = wbAnonymized.diffs[i] || {};
         return '<div class="wb-diff-row">' +
-          '<div><b>Before</b><br><span class="raw">' + (raw || '<i>-</i>') + '</span></div>' +
-          '<div><b>After (' + (diff.n_redactions || 0) + ' redaction(s))</b><br><span class="redacted">' + red + '</span></div>' +
+          '<div><b>Before</b><br><span class="raw">' + (raw ? escapeHtml(raw) : '<i>-</i>') + '</span></div>' +
+          '<div><b>After (' + escapeHtml(diff.n_redactions || 0) + ' redaction(s))</b><br><span class="redacted">' + escapeHtml(red) + '</span></div>' +
           '</div>';
       }).join('');
     }
@@ -308,14 +330,14 @@
         resultHost.innerHTML =
           '<div style="background: oklch(0.92 0.06 155); color: oklch(0.32 0.07 155); padding: 12px; border-radius: 8px;">' +
           '<b>Submission processed.</b><br>' +
-          '<span style="font-size: 11.5px;">run_id: <code>' + out.run_id + '</code></span><br>' +
-          '<span style="font-size: 11.5px;">audit_log: <code>' + out.audit_path + '</code></span><br>' +
-          '<span style="font-size: 11.5px;">sha256: <code>' + out.sha256_blob + '</code></span><br>' +
-          '<div style="margin-top: 6px; font-size: 11.5px;">' + (out.note || '') + '</div>' +
+          '<span style="font-size: 11.5px;">run_id: <code>' + escapeHtml(out.run_id) + '</code></span><br>' +
+          '<span style="font-size: 11.5px;">audit_log: <code>' + escapeHtml(out.audit_path) + '</code></span><br>' +
+          '<span style="font-size: 11.5px;">sha256: <code>' + escapeHtml(out.sha256_blob) + '</code></span><br>' +
+          '<div style="margin-top: 6px; font-size: 11.5px;">' + escapeHtml(out.note || '') + '</div>' +
           '</div>';
         document.getElementById('wb-step-4').classList.add('done');
       } catch (e) {
-        resultHost.innerHTML = '<div class="wb-error">Step 4 failed: ' + (e && e.message || e) + '</div>';
+        resultHost.innerHTML = '<div class="wb-error">Step 4 failed: ' + escapeHtml(e && e.message || e) + '</div>';
       } finally { btn.disabled = false; btn.textContent = 'Step 4: Submit to hub'; }
     }
     const dz = document.getElementById('wb-dropzone');

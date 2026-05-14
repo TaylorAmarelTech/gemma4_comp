@@ -73,14 +73,27 @@ def _file_kind(row_id: str, text: str) -> str:
         return "media_image"
     if ".pdf" in hay and "requiring ocr" in hay:
         return "scanned_pdf"
+    path = str(row_id or "").replace("\\", "/").lower()
+    path_checks = (
+        ("chat_messages", ("chats/", "messages/", "whatsapp", "telegram")),
+        ("payment_history", ("payment_history/", "payments/", "receipts/")),
+        ("location_history", ("location_history/", "locations/")),
+        ("travel_history", ("travel_history/", "travel/")),
+        ("id_card", ("id_cards/", "identity/", "ids/")),
+        ("complaint", ("complaints/", "intake/")),
+        ("police_report", ("police_reports/", "reports/")),
+    )
+    for kind, needles in path_checks:
+        if any(n in path for n in needles):
+            return kind
     checks = (
         ("id_card", ("id_card", "identity card", "philippine id", "passport no")),
         ("complaint", ("complaint", "affidavit", "sworn statement")),
         ("police_report", ("police report", "incident report", "case officer")),
         ("travel_history", ("travel history", "flight", "arrival", "departure")),
         ("location_history", ("location history", "gps", "cell tower", "location ping")),
-        ("payment_history", ("payment history", "remittance", "receipt", "salary deduction")),
         ("chat_messages", ("chat", "whatsapp", "telegram", "message")),
+        ("payment_history", ("payment history", "remittance", "receipt", "salary deduction")),
         ("contract", ("contract", "employment agreement", "live-in")),
     )
     for kind, needles in checks:
@@ -92,6 +105,19 @@ def _file_kind(row_id: str, text: str) -> str:
 def _ext(name: str) -> str:
     dot = "." + (name.rsplit(".", 1)[-1].lower() if "." in name else "")
     return dot if dot != "." else ""
+
+
+def _path_metadata(name: str) -> dict[str, Any]:
+    """Return folder/path fields that often carry investigative meaning."""
+    clean = str(name or "").replace("\\", "/").strip("/")
+    parts = [p for p in clean.split("/") if p]
+    folders = parts[:-1]
+    return {
+        "source_path": clean,
+        "folders": folders,
+        "leaf_name": parts[-1] if parts else clean,
+        "folder_context": folders[-1] if folders else None,
+    }
 
 
 def _is_probably_text(name: str, data: bytes) -> bool:
@@ -121,6 +147,7 @@ def _chunk_text_rows(
     parent = parent_doc or name
     base_level = "page" if page_index is not None else "document"
     if len(clean) <= _CHUNK_CHARS * 1.2:
+        meta = _path_metadata(name)
         return [{
             "row_id": name,
             "text": clean,
@@ -129,11 +156,13 @@ def _chunk_text_rows(
             "page_index": page_index,
             "chunk_index": 0,
             "processing_level": base_level,
+            **meta,
         }]
     rows: list[dict] = []
     for idx, start in enumerate(range(0, len(clean), _CHUNK_CHARS)):
         chunk = clean[start:start + _CHUNK_CHARS]
         suffix = f"page-{page_index:03d}-chunk-{idx + 1:03d}" if page_index is not None else f"chunk-{idx + 1:03d}"
+        meta = _path_metadata(f"{parent}#{suffix}")
         rows.append({
             "row_id": f"{parent}#{suffix}",
             "text": chunk,
@@ -142,6 +171,7 @@ def _chunk_text_rows(
             "page_index": page_index,
             "chunk_index": idx,
             "processing_level": f"{base_level}_chunk",
+            **meta,
         })
     return rows
 
@@ -190,6 +220,7 @@ def _try_pdf_text_rows(name: str, data: bytes, source: str) -> list[dict]:
 def _media_row(name: str, data: bytes, source: str) -> dict:
     ext = _ext(name)
     media_type = "pdf" if ext == ".pdf" else "image"
+    meta = _path_metadata(name)
     return {
         "row_id": name,
         "text": (
@@ -205,6 +236,7 @@ def _media_row(name: str, data: bytes, source: str) -> dict:
         "media_type": media_type,
         "binary_size": len(data),
         "needs_ocr": True,
+        **meta,
     }
 
 
@@ -273,6 +305,180 @@ def _row_severity(severities: list[str]) -> str:
     return max(severities, key=lambda s: rank.get(str(s).lower(), 0))
 
 
+def _slug_id(value: str) -> str:
+    slug = _re.sub(r"[^a-z0-9]+", "_", str(value or "").lower()).strip("_")
+    return slug or "unknown"
+
+
+def _build_graph_view(
+    *,
+    doc_type_counts: dict[str, int],
+    person_rows: list[dict],
+    journey_points: list[dict],
+    risk_signal_counts: dict[str, int],
+    folder_counts: dict[str, int],
+    evidence_edges: list[dict],
+) -> dict:
+    """Compact graph contract for the Bulk File Review UI and exports.
+
+    The full bundle remains row-oriented. This graph view is deliberately
+    smaller and stable so the browser can render it without a graph library.
+    """
+    nodes: dict[str, dict] = {
+        "bundle": {
+            "id": "bundle",
+            "label": "Uploaded bundle",
+            "group": "root",
+            "count": sum(doc_type_counts.values()),
+        }
+    }
+    edges: list[dict] = []
+
+    for dtype, count in sorted(
+        doc_type_counts.items(), key=lambda kv: (-kv[1], kv[0])
+    )[:10]:
+        nid = f"doc:{_slug_id(dtype)}"
+        nodes[nid] = {
+            "id": nid,
+            "label": dtype.replace("_", " "),
+            "group": "document_type",
+            "count": count,
+        }
+        edges.append({
+            "source": "bundle",
+            "target": nid,
+            "type": "contains",
+            "weight": count,
+        })
+
+    for folder, count in sorted(
+        folder_counts.items(), key=lambda kv: (-kv[1], kv[0])
+    )[:14]:
+        nid = f"folder:{_slug_id(folder)}"
+        nodes[nid] = {
+            "id": nid,
+            "label": folder,
+            "group": "folder",
+            "count": count,
+        }
+        edges.append({
+            "source": "bundle",
+            "target": nid,
+            "type": "folder_context",
+            "weight": count,
+        })
+
+    stage_counts: dict[str, int] = {}
+    stage_critical: dict[str, int] = {}
+    for point in journey_points:
+        stage = point.get("stage") or "other_evidence"
+        stage_counts[stage] = stage_counts.get(stage, 0) + 1
+        if point.get("is_critical"):
+            stage_critical[stage] = stage_critical.get(stage, 0) + 1
+    for stage, count in sorted(
+        stage_counts.items(),
+        key=lambda kv: (_JOURNEY_STAGE_ORDER.get(kv[0], 99), kv[0]),
+    ):
+        nid = f"stage:{_slug_id(stage)}"
+        nodes[nid] = {
+            "id": nid,
+            "label": stage.replace("_", " "),
+            "group": "stage",
+            "count": count,
+            "critical": stage_critical.get(stage, 0),
+        }
+        edges.append({
+            "source": "bundle",
+            "target": nid,
+            "type": "journey_stage",
+            "weight": count,
+        })
+
+    top_signal_names = [
+        name for name, _count in sorted(
+            risk_signal_counts.items(), key=lambda kv: (-kv[1], kv[0])
+        )[:12]
+    ]
+    for signal in top_signal_names:
+        nid = f"signal:{_slug_id(signal)}"
+        nodes[nid] = {
+            "id": nid,
+            "label": signal.replace("_", " "),
+            "group": "signal",
+            "count": risk_signal_counts.get(signal, 0),
+        }
+        edges.append({
+            "source": "bundle",
+            "target": nid,
+            "type": "risk_signal",
+            "weight": risk_signal_counts.get(signal, 1),
+        })
+
+    top_people = person_rows[:18]
+    for person in top_people:
+        pid = person.get("case_id") or "UNKNOWN"
+        nid = f"person:{_slug_id(pid)}"
+        nodes[nid] = {
+            "id": nid,
+            "label": person.get("name") or pid,
+            "group": "person",
+            "case_id": pid,
+            "risk_score": person.get("risk_score", 0),
+            "documents": person.get("n_documents", 0),
+            "payments": person.get("n_payments", 0),
+        }
+        edges.append({
+            "source": "bundle",
+            "target": nid,
+            "type": "person",
+            "weight": max(1, int(person.get("n_documents") or 1)),
+        })
+        for signal in (person.get("risk_signals") or [])[:5]:
+            if signal not in top_signal_names:
+                continue
+            edges.append({
+                "source": nid,
+                "target": f"signal:{_slug_id(signal)}",
+                "type": "has_signal",
+                "weight": 1,
+            })
+        for folder in (person.get("folders") or [])[:4]:
+            fid = f"folder:{_slug_id(folder)}"
+            if fid in nodes:
+                edges.append({
+                    "source": nid,
+                    "target": fid,
+                    "type": "filed_under",
+                    "weight": 1,
+                })
+
+    top_people_ids = {p.get("case_id") for p in top_people}
+    for point in journey_points[:80]:
+        case_id = point.get("case_id")
+        stage = point.get("stage") or "other_evidence"
+        if case_id not in top_people_ids:
+            continue
+        edges.append({
+            "source": f"person:{_slug_id(case_id)}",
+            "target": f"stage:{_slug_id(stage)}",
+            "type": "appears_in_stage",
+            "weight": 1,
+            "row_id": point.get("row_id"),
+        })
+
+    return {
+        "schema_version": "duecare.process.graph.v1",
+        "nodes": list(nodes.values()),
+        "edges": edges[:220],
+        "meta": {
+            "n_nodes": len(nodes),
+            "n_edges": min(len(edges), 220),
+            "truncated_edges": len(edges) > 220,
+            "top_signal_count": len(top_signal_names),
+        },
+    }
+
+
 def _build_intelligence(rows: list[dict], results: list[dict]) -> dict:
     """Create the process-harness intelligence view shown in the UI.
 
@@ -289,6 +495,8 @@ def _build_intelligence(rows: list[dict], results: list[dict]) -> dict:
     journey_points: list[dict] = []
     media_assets: list[dict] = []
     parent_docs: dict[str, dict] = {}
+    risk_signal_counts: dict[str, int] = {}
+    folder_counts: dict[str, int] = {}
 
     by_row = {r.get("row_id"): r for r in results}
     for row in rows:
@@ -301,6 +509,9 @@ def _build_intelligence(rows: list[dict], results: list[dict]) -> dict:
         parent = parent_docs.setdefault(parent_doc, {
             "document_id": parent_doc,
             "source": row.get("source"),
+            "source_path": row.get("source_path") or row_id,
+            "folders": row.get("folders") or [],
+            "folder_context": row.get("folder_context"),
             "chunks": 0,
             "page_indexes": [],
             "document_types": {},
@@ -319,11 +530,20 @@ def _build_intelligence(rows: list[dict], results: list[dict]) -> dict:
                 "media_type": row.get("media_type") or ("pdf" if kind == "scanned_pdf" else "image"),
                 "bytes": int(row.get("binary_size") or 0),
                 "status": "queued_for_ocr_and_multimodal_extraction",
+                "source_path": row.get("source_path") or row_id,
+                "folders": row.get("folders") or [],
+                "folder_context": row.get("folder_context"),
                 "recommended_passes": [
                     "OCR or document text extraction",
                     "Gemma 4 multimodal page description",
                     "entity extraction from OCR plus image description",
                     "edge linking into the local graph",
+                ],
+                "gemma_questions": [
+                    "What type of document or screenshot is this page?",
+                    "What names, agencies, employers, amounts, dates, and locations are visible?",
+                    "Do visual features contradict or confirm the plain-text OCR?",
+                    "Which trafficking, fee, document-control, or coercion indicators are visible?",
                 ],
             })
         case_id = _norm_case_id(row_id) or _norm_case_id(text) or "UNKNOWN"
@@ -340,12 +560,17 @@ def _build_intelligence(rows: list[dict], results: list[dict]) -> dict:
             "amounts": [],
             "locations": [],
             "timeline": [],
+            "folders": [],
         })
         person["row_ids"].append(row_id)
         person["document_types"][kind] = person["document_types"].get(kind, 0) + 1
         person["name"] = person["name"] or _first_match(_NAME_RE, text)
         person["employer"] = person["employer"] or _first_match(_EMPLOYER_RE, text)
         person["agency"] = person["agency"] or _first_match(_AGENCY_RE, text)
+        for folder in row.get("folders") or []:
+            folder_counts[folder] = folder_counts.get(folder, 0) + 1
+            if folder not in person["folders"]:
+                person["folders"].append(folder)
         row_locations: list[str] = []
         row_dates: list[str] = []
         row_payments: list[dict] = []
@@ -382,13 +607,18 @@ def _build_intelligence(rows: list[dict], results: list[dict]) -> dict:
                 person["risk_signals"].append(rid)
             if rid not in row_signals:
                 row_signals.append(rid)
+                risk_signal_counts[rid] = risk_signal_counts.get(rid, 0) + 1
             row_severities.append(severity)
             evidence_edges.append({
                 "case_id": case_id,
                 "row_id": row_id,
                 "rule_id": rid,
+                "label": hit.get("indicator") or rid,
                 "severity": severity,
                 "document_type": kind,
+                "edge_type": "grep_rule",
+                "modalities": ["plain_text"],
+                "methods": ["grep_rule", "entity_regex", "row_chunk_linking"],
             })
 
         keyword_risk = (
@@ -401,11 +631,40 @@ def _build_intelligence(rows: list[dict], results: list[dict]) -> dict:
         )
         lower = text.lower()
         for needle, label in keyword_risk:
-            if needle in lower and label not in person["risk_signals"]:
+            if needle not in lower:
+                continue
+            if label not in person["risk_signals"]:
                 person["risk_score"] += 6
                 person["risk_signals"].append(label)
-            if needle in lower and label not in row_signals:
+            if label not in row_signals:
                 row_signals.append(label)
+                risk_signal_counts[label] = risk_signal_counts.get(label, 0) + 1
+                evidence_edges.append({
+                    "case_id": case_id,
+                    "row_id": row_id,
+                    "rule_id": "keyword:" + _slug_id(label),
+                    "label": label,
+                    "severity": "medium",
+                    "document_type": kind,
+                    "edge_type": "keyword_signal",
+                    "modalities": ["plain_text"],
+                    "methods": ["keyword_signal", "entity_regex", "row_chunk_linking"],
+                })
+
+        folder_context = row.get("folder_context")
+        if folder_context:
+            evidence_edges.append({
+                "case_id": case_id,
+                "row_id": row_id,
+                "rule_id": "folder_context:" + _slug_id(folder_context),
+                "label": str(folder_context),
+                "severity": "info",
+                "document_type": kind,
+                "edge_type": "folder_context",
+                "source_path": row.get("source_path") or row_id,
+                "modalities": ["file_structure"],
+                "methods": ["zip_inventory", "folder_path_context"],
+            })
 
         stage = _journey_stage(row_id, text, kind)
         if row_signals or row_payments or kind != "other":
@@ -435,6 +694,7 @@ def _build_intelligence(rows: list[dict], results: list[dict]) -> dict:
             "risk_signals": (p.get("risk_signals") or [])[:12],
             "locations": (p.get("locations") or [])[:12],
             "timeline": (p.get("timeline") or [])[:10],
+            "folders": (p.get("folders") or [])[:12],
         })
     person_rows.sort(key=lambda p: (-p.get("risk_score", 0), p.get("case_id", "")))
     timeline.sort(key=lambda x: str(x.get("date", "")))
@@ -482,6 +742,19 @@ def _build_intelligence(rows: list[dict], results: list[dict]) -> dict:
         row["page_indexes"] = pages[:60]
         parent_document_rows.append(row)
 
+    top_risk_signals = [
+        {"signal": k, "count": v}
+        for k, v in sorted(risk_signal_counts.items(), key=lambda kv: (-kv[1], kv[0]))[:20]
+    ]
+    graph = _build_graph_view(
+        doc_type_counts=doc_type_counts,
+        person_rows=person_rows,
+        journey_points=journey_points,
+        risk_signal_counts=risk_signal_counts,
+        folder_counts=folder_counts,
+        evidence_edges=evidence_edges,
+    )
+
     processing_plan = {
         "schema_version": "duecare.process.processing_plan.v1",
         "n_parent_documents": len(parent_docs),
@@ -489,6 +762,28 @@ def _build_intelligence(rows: list[dict], results: list[dict]) -> dict:
         "n_chunks": len(rows),
         "n_media_assets": len(media_assets),
         "chunk_chars": _CHUNK_CHARS,
+        "analysis_methods": [
+            {
+                "id": "plain_text",
+                "label": "Plain-text extraction",
+                "detail": "Text, CSV, JSONL, markdown, logs, and extractable PDF pages are chunked locally and scanned.",
+            },
+            {
+                "id": "file_structure",
+                "label": "File and folder structure",
+                "detail": "ZIP paths and folder names are preserved as graph edges because case folders are often named by client, agency, stage, or source.",
+            },
+            {
+                "id": "investigative_search",
+                "label": "Investigative document search",
+                "detail": "The contract mirrors common e-discovery and investigative review patterns: inventory, OCR queue, entity extraction, link analysis, timeline, and graph chat.",
+            },
+            {
+                "id": "gemma_page_questions",
+                "label": "Gemma 4 page-question pass",
+                "detail": "Each queued image, scan, or PDF page carries standard questions for document identification, visible entities, visual/text agreement, and trafficking indicators.",
+            },
+        ],
         "passes": [
             {
                 "id": "inventory",
@@ -536,12 +831,18 @@ def _build_intelligence(rows: list[dict], results: list[dict]) -> dict:
         "n_documents": len(rows),
         "n_evidence_edges": len(evidence_edges),
         "document_type_counts": doc_type_counts,
+        "folder_counts": [
+            {"folder": k, "count": v}
+            for k, v in sorted(folder_counts.items(), key=lambda kv: (-kv[1], kv[0]))[:30]
+        ],
         "people": person_rows,
         "hierarchy": hierarchy,
         "top_payments": payments[:20],
+        "top_risk_signals": top_risk_signals,
         "timeline": timeline[:40],
         "locations": [{"name": k, "count": v} for k, v in sorted(locations.items(), key=lambda kv: (-kv[1], kv[0]))[:20]],
         "evidence_edges": evidence_edges[:80],
+        "graph": graph,
         "journey_points": journey_points[:120],
         "critical_fee_points": critical_fee_points,
         "processing_plan": processing_plan,
@@ -628,7 +929,13 @@ def _parse_upload(filename: str, contents: bytes) -> list[dict]:
                 txt = obj.get("prompt") or obj.get("text") or _json.dumps(obj)
             except Exception:
                 txt = line
-            rows.append({"row_id": f"line_{i}", "text": txt, "source": filename})
+            row_id = f"line_{i}"
+            rows.append({
+                "row_id": row_id,
+                "text": txt,
+                "source": filename,
+                **_path_metadata(row_id),
+            })
     elif fname_l.endswith(".csv"):
         buf = _io.StringIO(contents.decode("utf-8", errors="replace"))
         reader = _csv.reader(buf)
@@ -637,7 +944,13 @@ def _parse_upload(filename: str, contents: bytes) -> list[dict]:
         for i, row in enumerate(all_rows[start:]):
             if not row:
                 continue
-            rows.append({"row_id": f"row_{i}", "text": row[0], "source": filename})
+            row_id = f"row_{i}"
+            rows.append({
+                "row_id": row_id,
+                "text": row[0],
+                "source": filename,
+                **_path_metadata(row_id),
+            })
     else:
         if _ext(filename) == ".pdf":
             pdf_rows = _try_pdf_text_rows(filename, contents, filename)
@@ -670,9 +983,10 @@ def _score_rows(rows: list[dict], grep_call: Any) -> tuple[list[dict], dict, dic
                 except TypeError:
                     gr = grep_call(text, extra_rules=None) or {}
                 for h in (gr.get("hits") or [])[:10]:
-                    rid = h.get("rule_id") or h.get("id") or "?"
+                    rid = h.get("rule_id") or h.get("id") or h.get("rule") or "unknown_rule"
                     grep_hits.append({
                         "rule_id": rid,
+                        "indicator": h.get("indicator") or h.get("description") or rid,
                         "category": h.get("category"),
                         "severity": h.get("severity"),
                         "match": (h.get("match_text") or h.get("match") or "")[:120],

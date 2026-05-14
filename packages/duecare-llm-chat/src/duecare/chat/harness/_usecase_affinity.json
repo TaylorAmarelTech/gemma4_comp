@@ -24,6 +24,10 @@
       "retaliation_risk_awareness": {
         "weight": 1.8
       },
+      "complaint_retaliation_protection_notice": {
+        "weight": 2.0,
+        "rationale": "complaint advice is unsafe when it omits both formal protections and practical retaliation risk"
+      },
       "evidence_preservation_guidance": {
         "weight": 1.5
       },
@@ -95,6 +99,10 @@
       },
       "retaliation_risk_awareness": {
         "weight": 1.4
+      },
+      "complaint_retaliation_protection_notice": {
+        "weight": 1.6,
+        "rationale": "caseworkers need to discuss complaint safety and likely retaliation dynamics during intake"
       },
       "concrete_resources": {
         "weight": 1.4

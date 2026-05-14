@@ -19,11 +19,27 @@ from .backends import build_registry, pick_backend
 _MAX_TOP_N = 20
 
 
+_BACKEND_META = {
+    "searxng": {
+        "display_name": "SearXNG",
+        "description": "Privacy-preserving meta-search when DUECARE_SEARXNG_URL is configured.",
+    },
+    "legacy": {
+        "display_name": "Kernel search hook",
+        "description": "Uses the kernel-provided online_search_call hook, typically Tavily, Brave, or DuckDuckGo.",
+    },
+}
+
+
 def _do_search(app: Any, body: dict, kind: str) -> dict:
     query = (body.get("query") or "").strip()
     if not query:
         raise HTTPException(400, "query is required")
-    top_n = min(int(body.get("top_n") or 5), _MAX_TOP_N)
+    try:
+        top_n = int(body.get("top_n") or 5)
+    except (TypeError, ValueError):
+        raise HTTPException(400, "top_n must be an integer")
+    top_n = max(1, min(top_n, _MAX_TOP_N))
     preferred = body.get("backend") or None
 
     backend = pick_backend(app, preferred=preferred)
@@ -33,7 +49,7 @@ def _do_search(app: Any, body: dict, kind: str) -> dict:
             "kind": kind,
             "backend": None,
             "results": [],
-            "note": "no backend available -- set DUECARE_SEARXNG_URL or wire online_search_call",
+            "note": "No backend available. Set DUECARE_SEARXNG_URL or wire online_search_call.",
         }
 
     try:
@@ -106,9 +122,18 @@ def register_routes(app: Any) -> None:
         reg = build_registry(app)
         return {
             "backends": [
-                {"name": name, "available": b.is_available()}
+                {
+                    "name": name,
+                    "display_name": _BACKEND_META.get(name, {}).get("display_name", name),
+                    "description": _BACKEND_META.get(name, {}).get("description", ""),
+                    "available": b.is_available(),
+                }
                 for name, b in reg.items()
             ],
             "default_preference": list(("searxng", "legacy")),
+            "default_preference_labels": [
+                _BACKEND_META[name]["display_name"]
+                for name in ("searxng", "legacy")
+            ],
             "configured_searxng_url": bool(os.environ.get("DUECARE_SEARXNG_URL")),
         }
