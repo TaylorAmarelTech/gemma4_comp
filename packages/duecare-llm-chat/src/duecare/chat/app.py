@@ -1685,12 +1685,35 @@ def create_app(
     }
 
     static_dir = Path(__file__).parent / "static"
+
+    # NOTE: register the explicit /static/chat.html alias BEFORE the
+    # StaticFiles mount, otherwise the mount swallows every /static/*
+    # path and the alias never fires.
+    @app.get("/static/chat.html", response_class=HTMLResponse)
+    def chat_page() -> Any:
+        """Canonical chat surface. Serves the same content as
+        /static/index.html (which remains for back-compat) under a
+        cleaner URL that matches the workflow naming on the nav."""
+        idx = static_dir / "index.html"
+        if idx.exists():
+            return HTMLResponse(idx.read_text(encoding="utf-8"))
+        return HTMLResponse("<h1>Chat surface unavailable</h1>",
+                            status_code=503)
+
     if static_dir.exists():
         app.mount("/static", StaticFiles(directory=str(static_dir)),
                   name="static")
 
     @app.get("/", response_class=HTMLResponse)
     def root() -> Any:
+        """Workbench home -- Getting Started, not the chat itself.
+        Chat moved to /static/chat.html so the first-time reviewer
+        lands on an orientation page that explains what each layer
+        does and how to read a grade."""
+        gs = static_dir / "getting-started.html"
+        if gs.exists():
+            return HTMLResponse(gs.read_text(encoding="utf-8"))
+        # Fallback to chat if getting-started isn't bundled (older wheel)
         idx = static_dir / "index.html"
         if idx.exists():
             return HTMLResponse(idx.read_text(encoding="utf-8"))
@@ -1889,6 +1912,36 @@ def create_app(
     def api_model_info() -> Any:
         return app.state.model_info or {"loaded": False, "name": None,
                                           "display": "(no model)"}
+
+    @app.get("/api/harness/inventory")
+    def api_harness_inventory() -> Any:
+        """Baseline counts of the built-in knowledge catalog so the
+        chat empty-state can show 'Built-in: N GREP rules + M RAG
+        docs + ...' alongside the user-added-knowledge-object count.
+        Distinct from /api/knowledge/list which only reports
+        persisted user envelopes, and from /api/harness-info which
+        reports per-layer wiring flags."""
+        from duecare.chat.harness import GREP_RULES, RAG_CORPUS
+        try:
+            from duecare.chat.harness import NGO_DIRECTORY
+            ngo_count = len(NGO_DIRECTORY)
+        except Exception:
+            ngo_count = None
+        try:
+            from duecare.chat.harness import STATUTE_CITATIONS
+            statute_count = len(STATUTE_CITATIONS)
+        except Exception:
+            statute_count = None
+        # Knowledge-extras added since boot via /api/knowledge/import
+        extras_grep = len(getattr(app.state, "knowledge_extras_grep", []) or [])
+        return {
+            "grep_rules": len(GREP_RULES) + extras_grep,
+            "grep_builtin": len(GREP_RULES),
+            "grep_extras_runtime": extras_grep,
+            "rag_docs": len(RAG_CORPUS),
+            "ngo_count": ngo_count,
+            "statute_count": statute_count,
+        }
 
     @app.get("/api/harness-info")
     def api_harness_info() -> Any:

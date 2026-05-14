@@ -777,22 +777,47 @@ header.bar .badge.loaded .dot {
       <div class="wb-trust" style="background: oklch(0.92 0.06 155); color: oklch(0.32 0.07 155); padding: 8px 14px; border-radius: 8px; font-size: 12.5px; margin: 0 0 14px;"><b>Trust boundary:</b> Your prompts go to the Gemma 4 loaded in this kernel. Safety layers (GREP / RAG / tools / online) run locally; the Online layer is opt-in per-message and the only one that touches a network. Anonymization can be toggled in the composer for sensitive snippets.</div>
       <div id="kx-state-row"
            style="font-size:11.5px; color:var(--muted); margin-top:8px;
-                  padding:8px 12px; background:rgba(76,122,138,0.06);
+                  padding:10px 14px; background:rgba(76,122,138,0.06);
                   border:1px solid var(--border, #DDD8C9); border-radius:8px;
-                  max-width:760px; margin-left:auto; margin-right:auto;">
-        <b>Knowledge state:</b> <span id="kx-state-counts">checking...</span><br>
-        Envelopes synced from
-        <a href="/static/sync.html" style="color:var(--accent); text-decoration:underline;">Sync</a>
-        or imported on
-        <a href="/static/knowledge.html" style="color:var(--accent); text-decoration:underline;">Knowledge Extraction</a>
-        hot-load into the GREP / RAG / rubric / tool layers and apply
-        <b>globally</b> to Chat, Compare, Process Files, Search, and
-        Insights on the next prompt -- no kernel restart needed.
+                  max-width:780px; margin-left:auto; margin-right:auto;
+                  text-align:left;">
+        <div style="display:flex; gap:18px; flex-wrap:wrap; margin-bottom:6px; font-size:12px;">
+          <span><b>Built-in:</b> <span id="kx-state-builtin">checking...</span></span>
+          <span><b>User-added:</b> <span id="kx-state-imported">checking...</span></span>
+        </div>
+        <span style="color:var(--muted);">
+          The kernel ships with a baseline catalog of knowledge objects
+          (GREP rules, RAG docs, NGO directory, statute citations) that
+          are always live. Knowledge objects synced from
+          <a href="/static/sync.html" style="color:var(--accent); text-decoration:underline;">Sync</a>
+          or imported on
+          <a href="/static/knowledge.html" style="color:var(--accent); text-decoration:underline;">Knowledge Extraction</a>
+          hot-load on top of the baseline and apply <b>globally</b> to
+          Chat, Compare, Process Files, Search, and Insights on the next
+          prompt -- no kernel restart needed.
+        </span>
       </div>
       <script>
-        // Poll /api/knowledge/list once on first paint to surface live
-        // counts. Failures are silent -- this is a hint, not a gate.
+        // Built-in baseline vs user-added knowledge objects.
+        // Both checks fall back gracefully if the endpoints are missing.
         (async function () {
+          try {
+            const r = await fetch('/api/harness/inventory');
+            if (r.ok) {
+              const inv = await r.json();
+              const parts = [];
+              if (inv.grep_rules != null) parts.push(inv.grep_rules + ' GREP rules');
+              if (inv.rag_docs != null) parts.push(inv.rag_docs + ' RAG docs');
+              if (inv.ngo_count != null) parts.push(inv.ngo_count + ' NGOs');
+              if (inv.statute_count != null) parts.push(inv.statute_count + ' statutes');
+              document.getElementById('kx-state-builtin').textContent =
+                parts.length ? parts.join(', ') : '(catalog unavailable)';
+            } else {
+              document.getElementById('kx-state-builtin').textContent = '(catalog unavailable)';
+            }
+          } catch (e) {
+            document.getElementById('kx-state-builtin').textContent = '(catalog unavailable)';
+          }
           try {
             const r = await fetch('/api/knowledge/list');
             if (!r.ok) throw new Error('HTTP ' + r.status);
@@ -803,18 +828,23 @@ header.bar .badge.loaded .dot {
               const t = it.type || '?';
               counts[t] = (counts[t] || 0) + 1;
             });
-            const span = document.getElementById('kx-state-counts');
-            if (!span) return;
             const total = items.length;
-            const parts = Object.entries(counts)
-              .sort((a, b) => b[1] - a[1])
-              .slice(0, 6)
-              .map(([k, v]) => k + ': ' + v);
-            span.textContent = total + ' envelopes loaded'
-              + (parts.length ? ' (' + parts.join(', ') + ')' : '');
+            const span = document.getElementById('kx-state-imported');
+            if (!span) return;
+            if (total === 0) {
+              span.textContent = '0 knowledge objects imported yet';
+            } else {
+              const parts = Object.entries(counts)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 6)
+                .map(([k, v]) => k + ': ' + v);
+              span.textContent = total + ' knowledge object'
+                + (total === 1 ? '' : 's') + ' imported'
+                + (parts.length ? ' (' + parts.join(', ') + ')' : '');
+            }
           } catch (e) {
-            const span = document.getElementById('kx-state-counts');
-            if (span) span.textContent = '(unavailable -- /api/knowledge/list failed)';
+            const span = document.getElementById('kx-state-imported');
+            if (span) span.textContent = '(unavailable)';
           }
         })();
       </script>

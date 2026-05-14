@@ -5,8 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>DueCare Workbench - Harness Comparison</title>
   <link rel="stylesheet" href="/static/_chrome.css">
+  <script src="/static/_nav.js" defer></script>
+  <script src="/static/_activity_log.js" defer></script>
   <style>
-    .wb-page { max-width: 1320px; margin: 24px auto 60px; padding: 0 18px;
+    .wb-page { max-width: 1380px; margin: 24px auto 60px; padding: 0 18px;
                color: #0E1116; font-family: Inter, system-ui, sans-serif; line-height: 1.55; }
     .wb-h1 { font-size: 26px; font-weight: 700; margin: 0 0 8px; }
     .wb-lede { font-size: 13.5px; color: #2A2D34; margin: 0 0 18px; max-width: 940px; }
@@ -25,47 +27,60 @@
     .wb-pill { display: inline-block; padding: 1px 8px; background: #F1EFE7; border-radius: 3px;
                 font-size: 11px; color: #5B5F68; font-family: 'JetBrains Mono', monospace; }
     .wb-twocol { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-    @media (max-width: 900px) { .wb-twocol { grid-template-columns: 1fr; } }
-    .wb-variant h3 { font-size: 13px; font-weight: 700; margin: 0 0 8px;
-                      color: oklch(0.32 0.07 195); letter-spacing: 0.04em;
-                      text-transform: uppercase; }
-    .wb-variant .toggles { display: flex; gap: 6px; flex-wrap: wrap; margin: 6px 0 10px;
-                            font-size: 11.5px; }
-    .wb-variant .toggle { padding: 3px 8px; background: #F7F6F1; border-radius: 4px;
-                           border: 1px solid #DDD8C9; transition: background 120ms; }
-    .wb-variant .toggle.on { background: oklch(0.92 0.06 195); border-color: oklch(0.52 0.08 195);
-                              color: oklch(0.32 0.07 195); }
-    .wb-variant .toggle.fired { background: oklch(0.92 0.06 155); border-color: oklch(0.55 0.10 155);
-                                 color: oklch(0.32 0.10 155); font-weight: 600; }
-    .wb-variant .toggle.skipped { opacity: 0.45; }
-    .wb-variant .response { font-family: 'JetBrains Mono', monospace; font-size: 12px;
-                             white-space: pre-wrap; padding: 12px; background: #F7F6F1;
-                             border: 1px solid #DDD8C9; border-radius: 6px;
-                             min-height: 220px; max-height: 520px; overflow-y: auto;
-                             line-height: 1.5; color: #0E1116; }
-    .wb-variant .response.empty { color: #8A8E97; font-style: italic; }
-    .wb-variant .meta { margin-top: 8px; font-size: 11.5px; color: #5B5F68; }
-    .wb-error { background: oklch(0.94 0.04 25); color: oklch(0.32 0.10 25); padding: 8px 12px;
-                 border-radius: 6px; font-size: 12px; margin-top: 8px; }
-    /* Live log panel */
-    .wb-log { background: #0E1116; color: #E4E1D7; font-family: 'JetBrains Mono', monospace;
-              font-size: 11px; border-radius: 8px; padding: 10px 12px;
-              max-height: 320px; overflow-y: auto; line-height: 1.55; }
-    .wb-log .ev { margin-bottom: 3px; }
-    .wb-log .ts { color: #8A8E97; }
-    .wb-log .va { color: oklch(0.78 0.12 195); }
-    .wb-log .vb { color: oklch(0.80 0.14 80); }
-    .wb-log .step { color: #E4E1D7; }
-    .wb-log .ok { color: oklch(0.78 0.14 155); }
-    .wb-log .err { color: oklch(0.72 0.16 25); }
-    .wb-progress { display: flex; gap: 8px; margin: 8px 0 0; align-items: center;
-                    font-size: 11.5px; color: #5B5F68; flex-wrap: wrap; }
-    .wb-progress .dot { width: 8px; height: 8px; border-radius: 50%; background: #DDD8C9;
-                        display: inline-block; transition: background 200ms; }
-    .wb-progress .dot.run { background: oklch(0.68 0.18 80); animation: wb-pulse 1s ease-in-out infinite; }
-    .wb-progress .dot.done { background: oklch(0.55 0.10 155); }
-    .wb-progress .dot.err { background: oklch(0.55 0.18 25); }
-    @keyframes wb-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.45; } }
+    @media (max-width: 980px) { .wb-twocol { grid-template-columns: 1fr; } }
+
+    /* Variant cards mimic the chat surface so reviewers see two
+       'chat threads' side by side. */
+    .cv-card { background: #FFF; border: 1px solid #DDD8C9; border-radius: 12px;
+                padding: 16px 18px; display: flex; flex-direction: column; min-height: 360px; }
+    .cv-header { display: flex; align-items: center; justify-content: space-between;
+                  margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px solid #EFEDE4; }
+    .cv-title { font-size: 13px; font-weight: 700; letter-spacing: 0.04em;
+                 text-transform: uppercase; color: oklch(0.32 0.07 195); }
+    .cv-meta { font-size: 11.5px; color: #5B5F68; font-family: 'JetBrains Mono', monospace; }
+    .cv-toggles { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px;
+                   font-size: 11.5px; }
+    .cv-toggle { padding: 3px 8px; background: #F7F6F1; border-radius: 4px;
+                  border: 1px solid #DDD8C9; transition: background 120ms; }
+    .cv-toggle.on { background: oklch(0.92 0.06 195); border-color: oklch(0.52 0.08 195);
+                     color: oklch(0.32 0.07 195); }
+    .cv-toggle.fired { background: oklch(0.92 0.06 155); border-color: oklch(0.55 0.10 155);
+                        color: oklch(0.32 0.10 155); font-weight: 600; }
+    .cv-toggle.skipped { opacity: 0.45; }
+
+    /* Chat-style messages */
+    .cv-msgs { flex: 1; display: flex; flex-direction: column; gap: 12px;
+                overflow-y: auto; max-height: 540px; padding-right: 4px; }
+    .cv-empty { color: #8A8E97; font-style: italic; padding: 24px 8px;
+                 text-align: center; font-size: 12.5px; }
+    .cv-msg { display: flex; gap: 10px; align-items: flex-start; }
+    .cv-msg-avatar { flex: 0 0 28px; height: 28px; border-radius: 50%;
+                      display: flex; align-items: center; justify-content: center;
+                      font-family: 'JetBrains Mono', monospace; font-size: 11px;
+                      font-weight: 700; color: #FFF; }
+    .cv-msg.user .cv-msg-avatar    { background: oklch(0.45 0.04 240); }
+    .cv-msg.gemma .cv-msg-avatar   { background: oklch(0.52 0.08 195); }
+    .cv-msg-body { flex: 1; background: #F7F6F1; border: 1px solid #DDD8C9;
+                    border-radius: 10px; padding: 10px 12px; font-size: 13px;
+                    line-height: 1.55; white-space: pre-wrap; color: #0E1116;
+                    word-wrap: break-word; overflow-wrap: anywhere; }
+    .cv-msg.user .cv-msg-body  { background: oklch(0.97 0.01 240); }
+    .cv-msg.gemma .cv-msg-body { background: #FAF9F4; }
+    .cv-msg-foot { font-size: 11px; color: #5B5F68; margin-top: 4px;
+                    font-family: 'JetBrains Mono', monospace; }
+
+    .wb-progress-row {
+      display: flex; gap: 8px; margin: 6px 0 10px; align-items: center;
+      font-size: 11.5px; color: #5B5F68; flex-wrap: wrap;
+    }
+    .wb-progress-row .dot { width: 8px; height: 8px; border-radius: 50%;
+                              background: #DDD8C9; display: inline-block;
+                              transition: background 200ms; }
+    .wb-progress-row .dot.run { background: oklch(0.68 0.18 80); animation: cv-pulse 1s ease-in-out infinite; }
+    .wb-progress-row .dot.done { background: oklch(0.55 0.10 155); }
+    .wb-progress-row .dot.err { background: oklch(0.55 0.18 25); }
+    @keyframes cv-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.45; } }
+
     /* Grade panel */
     .wb-grade { background: #FAF9F4; border: 1px solid #EFEDE4; border-radius: 8px;
                  padding: 12px 14px; }
@@ -75,15 +90,15 @@
     .wb-grade pre { background: #FFF; padding: 8px 10px; border-radius: 6px;
                      border: 1px solid #DDD8C9; font-size: 11px; max-height: 280px;
                      overflow-y: auto; white-space: pre-wrap; margin: 0; }
-    .wb-grade .score-line { font-size: 18px; font-weight: 700; margin: 4px 0 8px;
+    .wb-grade .score-line { font-size: 22px; font-weight: 700; margin: 4px 0 8px;
                               color: oklch(0.32 0.07 195); }
+    .wb-error { background: oklch(0.94 0.04 25); color: oklch(0.32 0.10 25); padding: 8px 12px;
+                 border-radius: 6px; font-size: 12px; margin-top: 8px; }
     textarea, input, select { font-family: inherit; }
     a { color: oklch(0.32 0.07 195); }
     code { background: #F1EFE7; padding: 1px 5px; border-radius: 3px; font-size: 11.5px;
            font-family: 'JetBrains Mono', monospace; }
   </style>
-  <script src="/static/_nav.js" defer></script>
-  <script src="/static/_activity_log.js" defer></script>
 </head>
 <body data-nav="compare">
   <main class="wb-page">
@@ -91,11 +106,12 @@
     <p class="wb-lede">
       Send one prompt through TWO harness configurations and see what
       each safety layer changes. Variant A is typically stock Gemma 4
-      (no layers); Variant B is the full DueCare harness. <b>Run order:</b>
-      both variants share the single loaded Gemma 4, so they execute
-      <i>sequentially</i> (A first, then B) -- the safety layers (Persona,
-      GREP, RAG, Tools, Online) fire <i>per variant</i> before each model
-      call. Every step streams into the activity log below in real time.
+      (no layers); Variant B is the full DueCare harness.
+      <b>Run order:</b> both variants share the single loaded Gemma 4,
+      so they execute <i>sequentially</i> (A first, then B). The safety
+      layers (Persona, GREP, RAG, Tools, Online) fire <i>per variant</i>
+      before each model call. Every step streams into the activity log
+      at the bottom of the page in real time.
     </p>
 
     <div class="wb-card">
@@ -104,18 +120,11 @@
         <textarea id="cmp-prompt" rows="3"
           style="flex:1; min-width: 280px; padding: 10px; border: 1px solid #DDD8C9;
                   border-radius: 8px; font-size: 13px; background: #FFF;"
-          placeholder="Type a prompt, or pick an example from the dropdown..."></textarea>
-        <div style="display: flex; flex-direction: column; gap: 6px; min-width: 240px;">
+          placeholder="Type a prompt, or pick an example below..."></textarea>
+        <div style="display: flex; flex-direction: column; gap: 6px; min-width: 260px;">
           <select id="cmp-example" onchange="cmpLoadExample()"
             style="padding: 8px; border: 1px solid #DDD8C9; border-radius: 6px; font-size: 12.5px;">
-            <option value="">-- Pick an example --</option>
-            <option data-prompt="A Saudi employer wants me to hand over my passport for safekeeping. Is that normal?">Passport retention (Saudi)</option>
-            <option data-prompt="A recruiter in Manila says the placement fee for a job in Hong Kong is 30000 PHP. Is that legal?">Placement fee (PHL -&gt; HKG)</option>
-            <option data-prompt="My contract was rewritten when I arrived. The pay is now half what was promised. What should I do?">Contract substitution</option>
-            <option data-prompt="The employer's agent says I owe two years of salary because they paid for my flight. Is this a debt I have to pay?">Debt bondage indicator</option>
-            <option data-prompt="I'm a domestic worker in Singapore and the employer locks the door when they leave. Should I be worried?">Confinement signal (SGP)</option>
-            <option data-prompt="My agent in Nepal told me I'll be working in a hotel, but when I got to Qatar I was put on a construction site. Is this contract substitution?">Recruitment misrepresentation</option>
-            <option data-prompt="Are placement fees for migrant fishing workers in Taiwan capped by law? Where do I check?">Fee cap inquiry</option>
+            <option value="">-- Loading examples...</option>
           </select>
           <button class="wb-btn-secondary" onclick="cmpFillFromLastChat()"
             title="Fill the prompt box with whatever you last sent on the Chat tab">
@@ -123,6 +132,10 @@
           </button>
         </div>
       </div>
+      <p class="wb-muted" style="margin: 8px 0 0;">
+        Examples come from the same shared catalog as the
+        <a href="/static/chat.html">Chat</a> page (<code>/api/examples</code>).
+      </p>
     </div>
 
     <div class="wb-card">
@@ -151,62 +164,79 @@
         <button class="wb-btn-secondary" onclick="cmpPreset('grep_only_vs_full')">grep-only vs full</button>
         <button class="wb-btn-secondary" onclick="cmpPreset('with_online_vs_without')">with online vs without</button>
       </div>
+    </div>
+
+    <div class="wb-card">
+      <h2>3. Generation settings (avoid response cutoffs)</h2>
+      <p class="wb-muted" style="margin: 0 0 10px;">
+        Default is <b>2048 tokens</b> -- enough for most multi-paragraph
+        responses. If you see a response truncated mid-sentence, raise
+        <code>max_new_tokens</code>. The same value is sent for both
+        variants so the comparison is apples-to-apples.
+      </p>
+      <div class="wb-row" style="gap: 16px; align-items: center;">
+        <label style="font-size: 12.5px;">
+          <span style="margin-right: 6px;">max_new_tokens:</span>
+          <input type="number" id="cmp-max-tokens" min="128" max="8192" step="128" value="2048"
+            style="width: 90px; padding: 5px 8px; border: 1px solid #DDD8C9; border-radius: 6px; font-size: 12.5px;">
+        </label>
+        <label style="font-size: 12.5px;">
+          <span style="margin-right: 6px;">temperature:</span>
+          <input type="number" id="cmp-temperature" min="0" max="2" step="0.1" value="1.0"
+            style="width: 70px; padding: 5px 8px; border: 1px solid #DDD8C9; border-radius: 6px; font-size: 12.5px;">
+        </label>
+        <label style="font-size: 12.5px;">
+          <input type="checkbox" id="cmp-show-truncation" checked>
+          Warn if response hits the token cap
+        </label>
+      </div>
       <div class="wb-row" style="margin-top: 12px; align-items: center;">
-        <button id="cmp-run" class="wb-btn-primary" onclick="cmpRun()">3. Run comparison</button>
+        <button id="cmp-run" class="wb-btn-primary" onclick="cmpRun()">4. Run comparison</button>
+        <button class="wb-btn-secondary" onclick="cmpReset()">Reset</button>
         <span class="wb-muted" id="cmp-status"></span>
       </div>
       <div id="cmp-error" class="wb-error" style="display:none;"></div>
     </div>
 
-    <div class="wb-card">
-      <h2>Activity log</h2>
-      <p class="wb-muted" style="margin: 0 0 8px;">
-        Live SSE stream from <code>/api/chat/send</code>. Each layer's
-        <code>step_start</code> and <code>step_done</code> events
-        appear here as they happen, color-coded by variant. The Gemma
-        is shared, so Variant A finishes generating before Variant B
-        begins.
-      </p>
-      <div class="wb-progress">
-        <span class="dot" id="A-dot"></span>
-        <span><span class="wb-pill" style="color:oklch(0.32 0.07 195)">A</span> <span id="A-progress-text">idle</span></span>
-        <span style="margin-left: 18px;">
-          <span class="dot" id="B-dot"></span>
-          <span><span class="wb-pill" style="color:oklch(0.32 0.10 80)">B</span> <span id="B-progress-text">idle</span></span>
-        </span>
-      </div>
-      <div id="cmp-log" class="wb-log" style="margin-top: 10px;">
-        <div class="ev wb-muted">[idle] click <b>Run comparison</b> to start. Events from each safety layer will stream here in real time.</div>
-      </div>
-    </div>
-
     <div class="wb-twocol" style="margin-top: 18px;">
-      <div class="wb-card wb-variant">
-        <h3>Variant A <span class="wb-pill" id="A-label">stock</span></h3>
-        <div class="toggles" id="A-toggles"></div>
-        <div id="A-response" class="response empty">(no run yet)</div>
-        <div class="meta" id="A-meta"></div>
+      <div class="cv-card">
+        <div class="cv-header">
+          <span class="cv-title">Variant A <span class="wb-pill" id="A-label">stock</span></span>
+          <span class="cv-meta" id="A-meta">idle</span>
+        </div>
+        <div class="cv-toggles" id="A-toggles"></div>
+        <div class="wb-progress-row">
+          <span class="dot" id="A-dot"></span>
+          <span id="A-progress-text">queued</span>
+        </div>
+        <div class="cv-msgs" id="A-msgs">
+          <div class="cv-empty">No run yet. Variant A's prompt + response will appear here.</div>
+        </div>
       </div>
-      <div class="wb-card wb-variant">
-        <h3>Variant B <span class="wb-pill" id="B-label">harness on</span></h3>
-        <div class="toggles" id="B-toggles"></div>
-        <div id="B-response" class="response empty">(no run yet)</div>
-        <div class="meta" id="B-meta"></div>
+      <div class="cv-card">
+        <div class="cv-header">
+          <span class="cv-title">Variant B <span class="wb-pill" id="B-label">harness on</span></span>
+          <span class="cv-meta" id="B-meta">idle</span>
+        </div>
+        <div class="cv-toggles" id="B-toggles"></div>
+        <div class="wb-progress-row">
+          <span class="dot" id="B-dot"></span>
+          <span id="B-progress-text">queued</span>
+        </div>
+        <div class="cv-msgs" id="B-msgs">
+          <div class="cv-empty">No run yet. Variant B's prompt + response will appear here.</div>
+        </div>
       </div>
     </div>
 
-    <div class="wb-card" id="grade-card" style="display:none;">
-      <h2>4. Grade both responses</h2>
+    <div class="wb-card" id="grade-card" style="display:none; margin-top: 18px;">
+      <h2>5. Grade both responses</h2>
       <p class="wb-muted" style="margin: 0 0 10px;">
         Score each variant on the same rubric. Mode determines which
         grader runs:
-        <b>deterministic</b> = rules-based (<code>/api/grade</code>, universal
-        v3 rubric);
-        <b>deep</b> = Gemma-as-judge over the loaded model
-        (<code>/api/grade-deep</code>, ~5-15 s/variant);
-        <b>combined</b> = weighted blend of both
-        (<code>/api/grade-combined</code>).
-        Higher <code>pct_score</code> is better.
+        <b>deterministic</b> = rules-based (<code>/api/grade</code>);
+        <b>deep</b> = Gemma-as-judge (<code>/api/grade-deep</code>, slower);
+        <b>combined</b> = weighted blend.
       </p>
       <div class="wb-row" style="gap: 10px; align-items: center;">
         <label>Mode:
@@ -233,6 +263,21 @@
       </div>
     </div>
 
+    <!-- Activity log moved to the bottom (per request). -->
+    <div class="wb-card" style="margin-top: 18px;">
+      <h2>Activity log</h2>
+      <p class="wb-muted" style="margin: 0 0 8px;">
+        Live SSE stream from <code>/api/chat/send</code> for each
+        variant. Color coded: <span style="color:oklch(0.52 0.08 195);">[A]</span>
+        is Variant A, <span style="color:oklch(0.55 0.18 80);">[B]</span>
+        is Variant B. Layer-fired chips above each variant card light
+        up as their <code>step_done</code> events arrive.
+      </p>
+      <div id="cmp-log" class="dc-activity-log">
+        <div class="dc-log-idle">Click <b>Run comparison</b> to start. Per-step events from each safety layer will stream here.</div>
+      </div>
+    </div>
+
     <p class="wb-muted" style="margin-top: 14px;">
       Trust boundary: both runs hit the same loaded Gemma 4 in this
       kernel. Nothing leaves the kernel (except the Online layer, if
@@ -241,11 +286,48 @@
   </main>
 
   <script>
-    // All safety layers the chat send-handler may emit step events for.
     const LAYERS = ['persona', 'grep', 'rag', 'tools', 'online'];
-    // Steps that don't have a toggle but DO emit progress events.
-    const NON_LAYER_STEPS = ['resolve', 'import', 'model'];
     const VARIANTS = ['A', 'B'];
+    let _examplesCache = null;
+    let _dcLog = null;
+
+    // ============== Examples loader (shared with Chat) ==============
+    async function _fetchExamples() {
+      if (_examplesCache !== null) return _examplesCache;
+      try {
+        const r = await fetch('/api/examples', {cache: 'no-store'});
+        if (!r.ok) { _examplesCache = []; return _examplesCache; }
+        const data = await r.json();
+        _examplesCache = data.examples || [];
+        return _examplesCache;
+      } catch (e) { _examplesCache = []; return _examplesCache; }
+    }
+    async function populateExamples() {
+      const sel = document.getElementById('cmp-example');
+      const examples = await _fetchExamples();
+      while (sel.firstChild) sel.removeChild(sel.firstChild);
+      const opt0 = document.createElement('option');
+      opt0.value = '';
+      opt0.textContent = '-- Pick an example (' + examples.length + ' available) --';
+      sel.appendChild(opt0);
+      const byCat = {};
+      examples.forEach(ex => {
+        const cat = ex.category || 'other';
+        (byCat[cat] = byCat[cat] || []).push(ex);
+      });
+      Object.keys(byCat).sort().forEach(cat => {
+        const og = document.createElement('optgroup');
+        og.label = cat;
+        byCat[cat].forEach(ex => {
+          const o = document.createElement('option');
+          o.value = ex.id || '';
+          o.textContent = (ex.label || (ex.text || '').slice(0, 80) + ((ex.text || '').length > 80 ? '...' : ''));
+          o.dataset.prompt = ex.text || '';
+          og.appendChild(o);
+        });
+        sel.appendChild(og);
+      });
+    }
 
     // ============== UI helpers ==============
     function cmpLoadExample() {
@@ -316,34 +398,30 @@
       LAYERS.forEach((k, i) => {
         if (i > 0) host.appendChild(document.createTextNode(' '));
         const span = document.createElement('span');
-        span.className = 'toggle' + (t[k] ? ' on' : '');
+        span.className = 'cv-toggle' + (t[k] ? ' on' : '');
         span.id = variant + '-chip-' + k;
         span.textContent = k.charAt(0).toUpperCase() + k.slice(1);
         host.appendChild(span);
       });
     }
-    function escapeHtml(s) {
-      return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-    }
 
-    // ============== Live log ==============
-        // Shared activity-log primitive (window.dcActivityLog). The
-    // previous bespoke logEvent() hand-rolled DOM construction with
-    // per-variant channels; we now delegate to the shared helper and
-    // call .channel() to set the variant prefix.
-    const _dcLog = (window.dcActivityLog
-                     ? window.dcActivityLog.attach('#cmp-log')
-                     : null);
-    const logEvent = (variant, kind, msg, detail) => {
-      if (!_dcLog) return;
-      _dcLog.channel(variant || null);
-      const fn = ({info: _dcLog.info, ok: _dcLog.ok, warn: _dcLog.warn,
-                    err: _dcLog.err, step: _dcLog.step,
-                    net: _dcLog.net, anon: _dcLog.anon}[kind]
-                   || _dcLog.info);
-      fn(msg, detail);
+    // ============== Activity log (lazy-init, fixes race with defer'd helper) ==============
+    function getLog() {
+      if (_dcLog !== null) return _dcLog;
+      if (!window.dcActivityLog) return null;
+      _dcLog = window.dcActivityLog.attach('#cmp-log',
+        {idlePlaceholder: 'Click Run comparison to start.'});
+      return _dcLog;
     }
+    const logEvent = (variant, kind, msg, detail) => {
+      const log = getLog();
+      if (!log) return;
+      log.channel(variant || null);
+      const fn = ({info: log.info, ok: log.ok, warn: log.warn, err: log.err,
+                    step: log.step, net: log.net, anon: log.anon}[kind]
+                   || log.info);
+      fn(msg, detail);
+    };
     function setVariantProgress(variant, state, text) {
       const dot = document.getElementById(variant + '-dot');
       if (dot) dot.className = 'dot ' + (state || '');
@@ -358,12 +436,58 @@
       else if (fired === false) chip.classList.add('skipped');
     }
 
+    // ============== Chat-style message rendering ==============
+    function clearMsgs(variant) {
+      const host = document.getElementById(variant + '-msgs');
+      while (host.firstChild) host.removeChild(host.firstChild);
+    }
+    function renderEmpty(variant, text) {
+      const host = document.getElementById(variant + '-msgs');
+      while (host.firstChild) host.removeChild(host.firstChild);
+      const e = document.createElement('div');
+      e.className = 'cv-empty';
+      e.textContent = text || 'No run yet.';
+      host.appendChild(e);
+    }
+    function appendMessage(variant, role, text, footText) {
+      const host = document.getElementById(variant + '-msgs');
+      const first = host.firstChild;
+      if (first && first.classList && first.classList.contains('cv-empty')) {
+        while (host.firstChild) host.removeChild(host.firstChild);
+      }
+      const wrap = document.createElement('div');
+      wrap.className = 'cv-msg ' + role;
+      const av = document.createElement('div');
+      av.className = 'cv-msg-avatar';
+      av.textContent = (role === 'user' ? 'You' : 'G4');
+      wrap.appendChild(av);
+      const body = document.createElement('div');
+      body.style.cssText = 'flex:1; display:flex; flex-direction:column;';
+      const msg = document.createElement('div');
+      msg.className = 'cv-msg-body';
+      msg.textContent = text || '';
+      body.appendChild(msg);
+      if (footText) {
+        const ft = document.createElement('div');
+        ft.className = 'cv-msg-foot';
+        ft.textContent = footText;
+        body.appendChild(ft);
+      }
+      wrap.appendChild(body);
+      host.appendChild(wrap);
+      host.scrollTop = host.scrollHeight;
+    }
+    function setVariantMeta(variant, text) {
+      const m = document.getElementById(variant + '-meta');
+      if (m) m.textContent = text;
+    }
+
     // ============== SSE-streamed run ==============
-    async function runOne(variant, prompt) {
+    async function runOne(variant, prompt, maxTokens, temperature) {
       const toggles = readToggles(variant);
       const onLayers = Object.keys(toggles).filter(k => toggles[k]);
       logEvent(variant, 'info',
-        'POST /api/chat/send  layers_on=[' + (onLayers.join(',') || 'none') + ']');
+        'POST /api/chat/send  layers_on=[' + (onLayers.join(',') || 'none') + '] max_tokens=' + maxTokens);
       setVariantProgress(variant, 'run', 'connecting...');
       const t0 = performance.now();
       let r;
@@ -374,18 +498,22 @@
           body: JSON.stringify({
             messages: [{role: 'user', content: [{type: 'text', text: prompt}]}],
             toggles: toggles,
-            generation: {max_new_tokens: 768},
+            generation: {max_new_tokens: maxTokens, temperature: temperature},
           }),
         });
       } catch (e) {
         logEvent(variant, 'err', 'network error: ' + e);
         setVariantProgress(variant, 'err', 'network failed');
+        appendMessage(variant, 'gemma', '(network failed: ' + e + ')',
+                       'request never sent');
         return {ok: false, error: String(e)};
       }
       if (!r.ok) {
         const body = await r.text();
         logEvent(variant, 'err', 'HTTP ' + r.status, body.slice(0, 300));
         setVariantProgress(variant, 'err', 'HTTP ' + r.status);
+        appendMessage(variant, 'gemma', '(HTTP ' + r.status + ')\n\n' + body.slice(0, 500),
+                       'request failed');
         return {ok: false, status: r.status, body: body};
       }
       const reader = r.body.getReader();
@@ -396,11 +524,9 @@
         const {value, done} = await reader.read();
         if (done) break;
         buffer += decoder.decode(value, {stream: true});
-        // SSE frames are separated by \n\n
         const frames = buffer.split('\n\n');
         buffer = frames.pop() || '';
         for (const frame of frames) {
-          // Each frame can have several "data: ..." lines plus comments
           const line = frame.split('\n').find(l => l.startsWith('data: '));
           if (!line) continue;
           let evt;
@@ -411,16 +537,44 @@
           if (evt.type === 'error') {
             logEvent(variant, 'err', 'error: ' + (evt.error || 'unknown'));
             setVariantProgress(variant, 'err', 'failed');
+            appendMessage(variant, 'gemma',
+                           '(error: ' + (evt.error || 'unknown') + ')',
+                           'see activity log');
             return {ok: false, error: evt.error};
           }
         }
       }
       const dt = Math.round(performance.now() - t0);
       setVariantProgress(variant, 'done', 'complete in ' + dt + ' ms');
-      logEvent(variant, 'ok',
-        'complete (' + dt + ' ms wall, '
-        + (final && final.response ? final.response.length : 0) + ' chars)');
+      const respText = (final && final.response) || '';
+      const layerSummary = computeFiredSummary(final);
+      const truncWarn = checkTruncation(respText, maxTokens);
+      const footParts = [
+        (final && final.elapsed_ms ? final.elapsed_ms + ' ms model' : dt + ' ms wall'),
+        respText.length + ' chars',
+        layerSummary,
+      ].filter(Boolean);
+      if (truncWarn) footParts.push(truncWarn);
+      appendMessage(variant, 'gemma', respText || '(empty response)', footParts.join(' · '));
+      setVariantMeta(variant, footParts.join(' | '));
+      logEvent(variant, 'ok', 'complete (' + dt + ' ms wall, ' + respText.length + ' chars)');
+      if (truncWarn) logEvent(variant, 'warn', truncWarn);
       return {ok: true, dt: dt, final: final, prompt: prompt};
+    }
+    function computeFiredSummary(final) {
+      if (!final || !final.harness_trace) return '';
+      const fired = Object.keys(final.harness_trace).filter(k =>
+        final.harness_trace[k] && final.harness_trace[k].fired
+      );
+      return fired.length ? 'fired: ' + fired.join(',') : 'no layers fired';
+    }
+    function checkTruncation(text, maxTokens) {
+      if (!document.getElementById('cmp-show-truncation').checked) return '';
+      const approxTokens = (text || '').length / 4;
+      if (approxTokens > maxTokens * 0.92) {
+        return 'WARNING: response may be truncated at ' + maxTokens + ' tokens; raise max_new_tokens.';
+      }
+      return '';
     }
     function handleEvent(variant, evt) {
       if (evt.type === 'step_start') {
@@ -448,28 +602,23 @@
           detail = String(evt.summary);
         }
         logEvent(variant, fired ? 'ok' : 'info', label, detail);
-      } else if (evt.type === 'complete') {
-        renderResponse(variant, evt.response || '', evt);
       }
-    }
-    function renderResponse(variant, text, evt) {
-      const respEl = document.getElementById(variant + '-response');
-      const metaEl = document.getElementById(variant + '-meta');
-      respEl.className = 'response';
-      respEl.textContent = text || '(empty response)';
-      const meta = [];
-      meta.push((evt.elapsed_ms || 0) + ' ms (model)');
-      if (evt.harness_trace && typeof evt.harness_trace === 'object') {
-        const fired = Object.keys(evt.harness_trace).filter(k =>
-          evt.harness_trace[k] && evt.harness_trace[k].fired
-        );
-        meta.push('layers fired: ' + (fired.join(', ') || 'none'));
-      }
-      meta.push((text || '').length + ' chars');
-      metaEl.textContent = meta.join(' | ');
     }
 
     // ============== Top-level orchestration ==============
+    function cmpReset() {
+      document.getElementById('cmp-prompt').value = '';
+      const log = getLog(); if (log) log.clear();
+      for (const v of VARIANTS) {
+        renderEmpty(v, 'No run yet.');
+        setVariantMeta(v, 'idle');
+        setVariantProgress(v, '', 'queued');
+        LAYERS.forEach(L => markLayerFired(v, L, null));
+      }
+      document.getElementById('cmp-status').textContent = '';
+      document.getElementById('cmp-error').style.display = 'none';
+      document.getElementById('grade-card').style.display = 'none';
+    }
     async function cmpRun() {
       const prompt = (document.getElementById('cmp-prompt').value || '').trim();
       const status = document.getElementById('cmp-status');
@@ -479,18 +628,20 @@
         status.textContent = 'Type a prompt or pick an example first.';
         return;
       }
+      const maxTokens = Math.max(128, Math.min(8192,
+        parseInt(document.getElementById('cmp-max-tokens').value, 10) || 2048));
+      const temperature = Math.max(0, Math.min(2,
+        parseFloat(document.getElementById('cmp-temperature').value) || 1.0));
       try { localStorage.setItem('duecare:last-chat-prompt', prompt); } catch (e) {}
       renderToggleChips('A'); renderToggleChips('B');
-      const logHost = document.getElementById('cmp-log');
-      while (logHost.firstChild) logHost.removeChild(logHost.firstChild);
+      const log = getLog(); if (log) log.clear();
       document.getElementById('grade-card').style.display = 'none';
-      logEvent(null, 'info', 'starting comparison; runs are SEQUENTIAL (single shared Gemma)');
+      logEvent(null, 'info', 'starting comparison; runs are SEQUENTIAL (single shared Gemma) max_tokens=' + maxTokens);
       for (const v of VARIANTS) {
-        const r = document.getElementById(v + '-response');
-        r.className = 'response empty'; r.textContent = '(queued...)';
-        document.getElementById(v + '-meta').textContent = '';
+        clearMsgs(v);
+        appendMessage(v, 'user', prompt, 'queued');
         setVariantProgress(v, '', 'queued');
-        // Reset chip "fired" badges from any prior run
+        setVariantMeta(v, 'queued');
         LAYERS.forEach(L => markLayerFired(v, L, null));
       }
       const btn = document.getElementById('cmp-run');
@@ -499,11 +650,9 @@
       status.textContent = 'Running Variant A, then Variant B...';
       window._cmpResults = {A: null, B: null, prompt: prompt};
       try {
-        document.getElementById('A-response').textContent = '(running...)';
-        const resA = await runOne('A', prompt);
+        const resA = await runOne('A', prompt, maxTokens, temperature);
         window._cmpResults.A = resA;
-        document.getElementById('B-response').textContent = '(running...)';
-        const resB = await runOne('B', prompt);
+        const resB = await runOne('B', prompt, maxTokens, temperature);
         window._cmpResults.B = resB;
         const sa = resA.ok ? ('OK ' + resA.dt + 'ms') : 'failed';
         const sb = resB.ok ? ('OK ' + resB.dt + 'ms') : 'failed';
@@ -590,9 +739,11 @@
       return '?';
     }
 
-    // ============== Initial render ==============
+    // ============== Init ==============
     document.addEventListener('DOMContentLoaded', function () {
       renderToggleChips('A'); renderToggleChips('B');
+      getLog();  // eager-init so idle placeholder is visible right away
+      populateExamples();
       const params = new URLSearchParams(window.location.search);
       const fromQuery = params.get('prompt');
       const input = document.getElementById('cmp-prompt');
