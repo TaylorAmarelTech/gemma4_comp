@@ -222,15 +222,28 @@ header.bar .badge.loaded .dot {
 .harness-tile {
   background: var(--panel2);
   border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 14px 16px;
+  border-radius: 8px;
+  padding: 7px 10px;
   cursor: pointer;
   transition: border-color 0.15s ease, background 0.15s ease;
   user-select: none;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 3px;
 }
+/* Hide the long description by default -- it was bloating each tile.
+   Reveal on hover or when the tile is in expanded state. */
+.harness-tile .harness-tile-desc { display: none; }
+.harness-tile.expanded .harness-tile-desc,
+.harness-tile:hover .harness-tile-desc {
+  display: block;
+  margin-top: 4px;
+  font-size: 11.5px; line-height: 1.45;
+}
+/* "View & Configure" is also hidden until hover/expand to keep tiles slim. */
+.harness-tile .harness-catalog-link { display: none; }
+.harness-tile.expanded .harness-catalog-link,
+.harness-tile:hover .harness-catalog-link { display: inline-block; }
 .harness-tile:hover[data-wired="true"] { border-color: var(--ink); }
 .harness-tile[data-wired="false"] {
   opacity: 0.45;
@@ -906,7 +919,7 @@ header.bar .badge.loaded .dot {
       <label>temp <input type="range" id="temp" min="0.1" max="2" step="0.1" value="1.0" oninput="document.getElementById('temp-out').value=this.value"><input type="number" id="temp-out" value="1.0" min="0.1" max="2" step="0.1"></label>
       <label>top_p <input type="range" id="topp" min="0.1" max="1" step="0.05" value="0.95" oninput="document.getElementById('topp-out').value=this.value"><input type="number" id="topp-out" value="0.95" min="0" max="1" step="0.05"></label>
       <label>top_k <input type="number" id="topk" value="64" min="0" max="500"></label>
-      <label>max tokens <input type="number" id="maxtok" value="8192" min="32" max="32768"></label>
+      <label>max tokens <input type="number" id="maxtok" value="16384" min="32" max="32768"></label>
       <button class="btn secondary" style="margin-left:auto" onclick="resetChat()">Clear</button>
     </div>
     <div class="harness-tiles" id="harness-tiles">
@@ -7008,7 +7021,7 @@ async function _compareRunChatOnce(prompt, toggles, signal) {
   // which made Variant B look WORSE than stock just because it ran
   // out of token budget. Reported 2026-05-12 from a real comparison
   // where stock returned 4817 chars and harnessed got cut at 762.
-  let maxNewTokens = 8192;
+  let maxNewTokens = 16384;
   try {
     const el = document.getElementById('maxtok');
     if (el && el.value) {

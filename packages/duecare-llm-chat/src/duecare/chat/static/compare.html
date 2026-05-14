@@ -120,14 +120,17 @@
         <textarea id="cmp-prompt" rows="3"
           style="flex:1; min-width: 280px; padding: 10px; border: 1px solid #DDD8C9;
                   border-radius: 8px; font-size: 13px; background: #FFF;"
-          placeholder="Type a prompt, or pick an example below..."></textarea>
-        <div style="display: flex; flex-direction: column; gap: 6px; min-width: 260px;">
-          <select id="cmp-example" onchange="cmpLoadExample()"
-            style="padding: 8px; border: 1px solid #DDD8C9; border-radius: 6px; font-size: 12.5px;">
-            <option value="">-- Loading examples...</option>
-          </select>
+          placeholder="Type a prompt, or click >> Examples to pick from the shared catalog..."></textarea>
+        <div style="display: flex; flex-direction: column; gap: 6px; min-width: 220px;">
+          <button class="wb-btn-secondary" onclick="cmpOpenExamples()"
+            title="Browse the same example prompts that the Chat page uses"
+            style="font-weight: 600; text-align: left;">
+            &raquo; Examples
+            <span class="wb-muted" style="margin-left: 6px;" id="cmp-examples-count">(loading...)</span>
+          </button>
           <button class="wb-btn-secondary" onclick="cmpFillFromLastChat()"
-            title="Fill the prompt box with whatever you last sent on the Chat tab">
+            title="Fill the prompt box with whatever you last sent on the Chat tab"
+            style="text-align: left;">
             Use last chat prompt
           </button>
         </div>
@@ -136,6 +139,37 @@
         Examples come from the same shared catalog as the
         <a href="/static/chat.html">Chat</a> page (<code>/api/examples</code>).
       </p>
+    </div>
+
+    <!-- Examples lightbox modal -- same shape as the Chat page's
+         examples picker, kept page-local for back-compat. -->
+    <div id="cmp-ex-modal-overlay"
+         style="display:none; position:fixed; inset:0; background:rgba(14,17,22,0.55);
+                z-index:9000; align-items:center; justify-content:center; padding:24px;"
+         onclick="cmpCloseExamples(event)">
+      <div id="cmp-ex-modal"
+           style="background:#FFF; border-radius:12px; max-width:880px; width:100%;
+                  max-height:84vh; display:flex; flex-direction:column; overflow:hidden;
+                  box-shadow:0 12px 40px rgba(14,17,22,0.32);"
+           onclick="event.stopPropagation()">
+        <div style="display:flex; justify-content:space-between; align-items:center;
+                     padding:14px 20px; border-bottom:1px solid #EFEDE4; background:#FAF9F4;">
+          <div>
+            <div style="font-size:16px; font-weight:700; color:#0E1116;">Example prompts</div>
+            <div class="wb-muted" id="cmp-ex-modal-sub">from /api/examples -- same as Chat</div>
+          </div>
+          <button class="wb-btn-secondary" onclick="cmpCloseExamples()">Close</button>
+        </div>
+        <div style="padding:12px 20px; border-bottom:1px solid #EFEDE4;">
+          <input type="text" id="cmp-ex-filter" placeholder="Filter examples by text or category..."
+                 oninput="cmpFilterExamples()"
+                 style="width:100%; padding:8px 10px; border:1px solid #DDD8C9;
+                        border-radius:6px; font-size:13px; box-sizing:border-box;">
+        </div>
+        <div id="cmp-ex-list" style="overflow-y:auto; flex:1; padding:8px 20px 20px;">
+          Loading examples...
+        </div>
+      </div>
     </div>
 
     <div class="wb-card">
@@ -169,7 +203,7 @@
     <div class="wb-card">
       <h2>3. Generation settings (avoid response cutoffs)</h2>
       <p class="wb-muted" style="margin: 0 0 10px;">
-        Default is <b>2048 tokens</b> -- enough for most multi-paragraph
+        Default is <b>16384 tokens</b> -- enough for the longest multi-paragraph
         responses. If you see a response truncated mid-sentence, raise
         <code>max_new_tokens</code>. The same value is sent for both
         variants so the comparison is apples-to-apples.
@@ -177,7 +211,7 @@
       <div class="wb-row" style="gap: 16px; align-items: center;">
         <label style="font-size: 12.5px;">
           <span style="margin-right: 6px;">max_new_tokens:</span>
-          <input type="number" id="cmp-max-tokens" min="128" max="8192" step="128" value="2048"
+          <input type="number" id="cmp-max-tokens" min="128" max="32768" step="128" value="16384"
             style="width: 90px; padding: 5px 8px; border: 1px solid #DDD8C9; border-radius: 6px; font-size: 12.5px;">
         </label>
         <label style="font-size: 12.5px;">
@@ -205,9 +239,12 @@
           <span class="cv-meta" id="A-meta">idle</span>
         </div>
         <div class="cv-toggles" id="A-toggles"></div>
-        <div class="wb-progress-row">
-          <span class="dot" id="A-dot"></span>
-          <span id="A-progress-text">queued</span>
+        <div class="cv-pipeline" id="A-pipeline" style="margin: 6px 0 10px; padding: 8px 10px; background: #FAF9F4; border: 1px solid #EFEDE4; border-radius: 8px; display: none;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <span style="font-size: 12px; font-weight: 700; color: #0E1116;">Pipeline progress</span>
+            <span style="font-size: 11px; color: #5B5F68; font-family: 'JetBrains Mono', monospace;" id="A-pipeline-elapsed">0s elapsed</span>
+          </div>
+          <div id="A-pipeline-rows"></div>
         </div>
         <div class="cv-msgs" id="A-msgs">
           <div class="cv-empty">No run yet. Variant A's prompt + response will appear here.</div>
@@ -219,9 +256,12 @@
           <span class="cv-meta" id="B-meta">idle</span>
         </div>
         <div class="cv-toggles" id="B-toggles"></div>
-        <div class="wb-progress-row">
-          <span class="dot" id="B-dot"></span>
-          <span id="B-progress-text">queued</span>
+        <div class="cv-pipeline" id="B-pipeline" style="margin: 6px 0 10px; padding: 8px 10px; background: #FAF9F4; border: 1px solid #EFEDE4; border-radius: 8px; display: none;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <span style="font-size: 12px; font-weight: 700; color: #0E1116;">Pipeline progress</span>
+            <span style="font-size: 11px; color: #5B5F68; font-family: 'JetBrains Mono', monospace;" id="B-pipeline-elapsed">0s elapsed</span>
+          </div>
+          <div id="B-pipeline-rows"></div>
         </div>
         <div class="cv-msgs" id="B-msgs">
           <div class="cv-empty">No run yet. Variant B's prompt + response will appear here.</div>
@@ -302,42 +342,98 @@
         return _examplesCache;
       } catch (e) { _examplesCache = []; return _examplesCache; }
     }
+    // ============== Examples LIGHTBOX (mirrors the Chat page modal) ==============
     async function populateExamples() {
-      const sel = document.getElementById('cmp-example');
       const examples = await _fetchExamples();
-      while (sel.firstChild) sel.removeChild(sel.firstChild);
-      const opt0 = document.createElement('option');
-      opt0.value = '';
-      opt0.textContent = '-- Pick an example (' + examples.length + ' available) --';
-      sel.appendChild(opt0);
+      const c = document.getElementById('cmp-examples-count');
+      if (c) c.textContent = '(' + examples.length + ' available)';
+      _renderExamplesList(examples, '');
+    }
+    function _renderExamplesList(examples, filterText) {
+      const host = document.getElementById('cmp-ex-list');
+      while (host.firstChild) host.removeChild(host.firstChild);
+      const q = (filterText || '').trim().toLowerCase();
+      const filtered = q ? examples.filter(ex => {
+        const hay = ((ex.text || '') + ' ' + (ex.category || '') + ' ' + (ex.label || '')).toLowerCase();
+        return hay.indexOf(q) >= 0;
+      }) : examples;
+      if (!filtered.length) {
+        const e = document.createElement('div');
+        e.className = 'wb-muted';
+        e.style.padding = '24px 0';
+        e.textContent = q ? 'No examples match "' + q + '".' : 'No examples loaded.';
+        host.appendChild(e); return;
+      }
       const byCat = {};
-      examples.forEach(ex => {
+      filtered.forEach(ex => {
         const cat = ex.category || 'other';
         (byCat[cat] = byCat[cat] || []).push(ex);
       });
       Object.keys(byCat).sort().forEach(cat => {
-        const og = document.createElement('optgroup');
-        og.label = cat;
+        const h = document.createElement('div');
+        h.style.cssText = 'font-size:11px; font-weight:700; color:#5B5F68; text-transform:uppercase; letter-spacing:0.05em; margin:14px 0 6px;';
+        h.textContent = cat + ' (' + byCat[cat].length + ')';
+        host.appendChild(h);
         byCat[cat].forEach(ex => {
-          const o = document.createElement('option');
-          o.value = ex.id || '';
-          o.textContent = (ex.label || (ex.text || '').slice(0, 80) + ((ex.text || '').length > 80 ? '...' : ''));
-          o.dataset.prompt = ex.text || '';
-          og.appendChild(o);
+          const row = document.createElement('div');
+          row.style.cssText = 'padding:10px 12px; margin-bottom:6px; background:#FAF9F4; border:1px solid #EFEDE4; border-radius:8px; cursor:pointer; font-size:12.5px; line-height:1.5;';
+          row.onmouseenter = () => { row.style.background = '#F1EFE7'; };
+          row.onmouseleave = () => { row.style.background = '#FAF9F4'; };
+          row.onclick = () => { _useExample(ex); };
+          if (ex.label) {
+            const lbl = document.createElement('div');
+            lbl.style.cssText = 'font-weight:600; color:#0E1116; margin-bottom:4px;';
+            lbl.textContent = ex.label;
+            row.appendChild(lbl);
+          }
+          const txt = document.createElement('div');
+          txt.style.cssText = 'color:#2A2D34;';
+          txt.textContent = (ex.text || '').slice(0, 260) + ((ex.text || '').length > 260 ? '...' : '');
+          row.appendChild(txt);
+          if (ex.id) {
+            const id = document.createElement('div');
+            id.className = 'wb-muted';
+            id.style.cssText = 'margin-top:4px; font-family:JetBrains Mono, monospace; font-size:10.5px;';
+            id.textContent = ex.id;
+            row.appendChild(id);
+          }
+          host.appendChild(row);
         });
-        sel.appendChild(og);
       });
     }
-
-    // ============== UI helpers ==============
-    function cmpLoadExample() {
-      const sel = document.getElementById('cmp-example');
-      const opt = sel.options[sel.selectedIndex];
-      if (!opt || !opt.dataset || !opt.dataset.prompt) return;
+    function _useExample(ex) {
       const input = document.getElementById('cmp-prompt');
-      input.value = opt.dataset.prompt;
+      input.value = ex.text || '';
       input.dispatchEvent(new Event('input', {bubbles: true}));
+      cmpCloseExamples();
     }
+    function cmpOpenExamples() {
+      document.getElementById('cmp-ex-modal-overlay').style.display = 'flex';
+      // Re-render in case the cache populated after initial load.
+      _fetchExamples().then(examples => _renderExamplesList(examples,
+        document.getElementById('cmp-ex-filter').value));
+      setTimeout(() => {
+        const f = document.getElementById('cmp-ex-filter');
+        if (f) f.focus();
+      }, 50);
+    }
+    function cmpCloseExamples(evt) {
+      // Only close on backdrop click, not modal-body click.
+      if (evt && evt.target && evt.target.id !== 'cmp-ex-modal-overlay'
+          && !evt.target.classList.contains('wb-btn-secondary')) return;
+      document.getElementById('cmp-ex-modal-overlay').style.display = 'none';
+    }
+    function cmpFilterExamples() {
+      _fetchExamples().then(examples => _renderExamplesList(examples,
+        document.getElementById('cmp-ex-filter').value));
+    }
+    // ESC to close the modal.
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        const m = document.getElementById('cmp-ex-modal-overlay');
+        if (m && m.style.display === 'flex') m.style.display = 'none';
+      }
+    });
     function cmpFillFromLastChat() {
       try {
         const last = localStorage.getItem('duecare:last-chat-prompt') || '';
@@ -423,6 +519,8 @@
       fn(msg, detail);
     };
     function setVariantProgress(variant, state, text) {
+      // Legacy single-dot fallback (kept for back-compat; the rich
+      // pipeline panel below replaces this when a run starts).
       const dot = document.getElementById(variant + '-dot');
       if (dot) dot.className = 'dot ' + (state || '');
       const txt = document.getElementById(variant + '-progress-text');
@@ -435,6 +533,145 @@
       if (fired === true) chip.classList.add('fired');
       else if (fired === false) chip.classList.add('skipped');
     }
+
+    // ============== Pipeline progress (mirrors Chat page) ==============
+    // Same step labels + ordering as index.html so reviewers see a
+    // consistent layout across pages.
+    const PIPELINE_STEPS = [
+      {id: 'resolve', label: 'Preparing message'},
+      {id: 'persona', label: 'Applied persona'},
+      {id: 'grep',    label: 'Running GREP regex rules'},
+      {id: 'rag',     label: 'Retrieving from RAG corpus'},
+      {id: 'import',  label: 'Loading imported documents'},
+      {id: 'tools',   label: 'Calling lookup tools'},
+      {id: 'online',  label: 'Searching the web'},
+      {id: 'model',   label: 'Generating response'},
+    ];
+    // State per variant: {steps: {id -> {status, summary, elapsed_ms}}, started_at: ms}
+    const _pipelineState = {A: null, B: null};
+
+    function pipelineInit(variant) {
+      _pipelineState[variant] = {
+        steps: Object.fromEntries(PIPELINE_STEPS.map(s => [s.id, {
+          status: 'pending', summary: '', elapsed_ms: 0,
+        }])),
+        startedAt: Date.now(),
+      };
+      const host = document.getElementById(variant + '-pipeline');
+      if (host) host.style.display = 'block';
+      pipelineRender(variant);
+    }
+    function pipelineSetStep(variant, stepId, status, summary, elapsed_ms) {
+      const st = _pipelineState[variant];
+      if (!st || !st.steps[stepId]) return;
+      st.steps[stepId].status = status;
+      if (summary != null) st.steps[stepId].summary = summary;
+      if (elapsed_ms != null) st.steps[stepId].elapsed_ms = elapsed_ms;
+      pipelineRender(variant);
+    }
+    function pipelineRender(variant) {
+      const st = _pipelineState[variant];
+      if (!st) return;
+      const rows = document.getElementById(variant + '-pipeline-rows');
+      const elapsedEl = document.getElementById(variant + '-pipeline-elapsed');
+      if (!rows) return;
+      while (rows.firstChild) rows.removeChild(rows.firstChild);
+      const elapsedS = Math.max(0, Math.floor((Date.now() - st.startedAt) / 1000));
+      if (elapsedEl) elapsedEl.textContent = elapsedS + 's elapsed';
+      PIPELINE_STEPS.forEach(s => {
+        const stepState = st.steps[s.id];
+        const row = document.createElement('div');
+        row.style.cssText = 'display:flex; align-items:center; gap:10px; padding:4px 0; font-size:12px;';
+        // icon
+        const icon = document.createElement('span');
+        icon.style.cssText = 'flex:0 0 16px; height:16px; display:inline-flex; align-items:center; justify-content:center; font-size:10px; font-weight:700; border-radius:50%;';
+        if (stepState.status === 'running') {
+          icon.style.background = 'oklch(0.68 0.18 80)';
+          icon.style.color = '#FFF';
+          icon.style.animation = 'cv-pulse 1s ease-in-out infinite';
+        } else if (stepState.status === 'complete') {
+          icon.style.background = 'oklch(0.55 0.10 155)';
+          icon.style.color = '#FFF';
+          icon.textContent = '✓';
+        } else if (stepState.status === 'noop') {
+          icon.style.background = '#DDD8C9';
+          icon.style.color = '#5B5F68';
+          icon.textContent = '·';
+        } else if (stepState.status === 'skipped' || stepState.status === 'not_wired') {
+          icon.style.border = '2px dashed #DDD8C9';
+          icon.style.background = 'transparent';
+          icon.style.width = '12px'; icon.style.height = '12px';
+        } else if (stepState.status === 'error') {
+          icon.style.background = 'oklch(0.55 0.18 25)';
+          icon.style.color = '#FFF';
+          icon.textContent = '!';
+        } else {
+          icon.style.background = '#F1EFE7';
+          icon.style.border = '1px solid #DDD8C9';
+          icon.style.width = '12px'; icon.style.height = '12px';
+        }
+        row.appendChild(icon);
+        // label
+        const lbl = document.createElement('span');
+        lbl.style.cssText = 'flex:0 0 180px; color:#0E1116; font-weight:500;';
+        lbl.textContent = s.label;
+        row.appendChild(lbl);
+        // status badge
+        const badge = document.createElement('span');
+        badge.style.cssText = 'flex:0 0 70px; font-size:9.5px; font-weight:700; padding:2px 7px; border-radius:8px; text-transform:uppercase; letter-spacing:0.4px; text-align:center;';
+        if (stepState.status === 'running') {
+          badge.style.background = 'oklch(0.92 0.06 80)'; badge.style.color = 'oklch(0.32 0.10 80)';
+          badge.textContent = 'running';
+        } else if (stepState.status === 'complete') {
+          badge.style.background = 'oklch(0.92 0.06 155)'; badge.style.color = 'oklch(0.32 0.07 155)';
+          badge.textContent = 'fired';
+        } else if (stepState.status === 'skipped') {
+          badge.style.background = '#F1EFE7'; badge.style.color = '#5B5F68';
+          badge.textContent = 'skipped';
+        } else if (stepState.status === 'noop') {
+          badge.style.background = '#F1EFE7'; badge.style.color = '#5B5F68';
+          badge.textContent = 'no-op';
+        } else if (stepState.status === 'not_wired') {
+          badge.style.background = '#F1EFE7'; badge.style.color = '#5B5F68';
+          badge.textContent = 'not wired';
+        } else if (stepState.status === 'error') {
+          badge.style.background = 'oklch(0.94 0.04 25)'; badge.style.color = 'oklch(0.32 0.10 25)';
+          badge.textContent = 'error';
+        } else {
+          badge.textContent = '';
+        }
+        row.appendChild(badge);
+        // summary
+        const sum = document.createElement('span');
+        sum.style.cssText = 'flex:1; min-width:0; font-size:11px; color:#5B5F68;';
+        let summaryText = stepState.summary || '';
+        if (stepState.status === 'skipped') summaryText = 'toggle was OFF';
+        else if (stepState.status === 'not_wired') summaryText = 'kernel did not enable this layer';
+        else if (stepState.status === 'pending') summaryText = '';
+        else if (stepState.status === 'running') summaryText = 'in progress...';
+        if (stepState.elapsed_ms && (stepState.status === 'complete' || stepState.status === 'noop')) {
+          const tStr = stepState.elapsed_ms < 1000
+            ? stepState.elapsed_ms + ' ms'
+            : (stepState.elapsed_ms / 1000).toFixed(1) + ' s';
+          summaryText = (summaryText ? summaryText + ' · ' : '') + tStr;
+        }
+        sum.textContent = summaryText;
+        row.appendChild(sum);
+        rows.appendChild(row);
+      });
+    }
+    // Tick the elapsed counter while any pipeline is active.
+    setInterval(() => {
+      ['A', 'B'].forEach(v => {
+        const st = _pipelineState[v];
+        if (!st) return;
+        const anyRunning = Object.values(st.steps).some(s => s.status === 'running');
+        if (anyRunning) {
+          const elEl = document.getElementById(v + '-pipeline-elapsed');
+          if (elEl) elEl.textContent = Math.floor((Date.now() - st.startedAt) / 1000) + 's elapsed';
+        }
+      });
+    }, 1000);
 
     // ============== Chat-style message rendering ==============
     function clearMsgs(variant) {
@@ -489,6 +726,15 @@
       logEvent(variant, 'info',
         'POST /api/chat/send  layers_on=[' + (onLayers.join(',') || 'none') + '] max_tokens=' + maxTokens);
       setVariantProgress(variant, 'run', 'connecting...');
+      // Initialize the chat-style pipeline progress per variant.
+      pipelineInit(variant);
+      // Pre-mark layers whose toggle is OFF as 'skipped' so the panel
+      // shows the intended-skip status before the server confirms.
+      ['persona', 'grep', 'rag', 'tools', 'online'].forEach(layer => {
+        if (!toggles[layer]) {
+          pipelineSetStep(variant, layer, 'skipped');
+        }
+      });
       const t0 = performance.now();
       let r;
       try {
@@ -580,28 +826,50 @@
       if (evt.type === 'step_start') {
         logEvent(variant, 'info', 'step ' + evt.step + ' starting');
         setVariantProgress(variant, 'run', evt.step);
+        pipelineSetStep(variant, evt.step, 'running');
       } else if (evt.type === 'step_done') {
         const fired = !!evt.fired;
         const wired = evt.wired !== false;
+        const enabled = evt.enabled !== false;
         if (evt.step && LAYERS.indexOf(evt.step) >= 0) {
           markLayerFired(variant, evt.step, fired);
         }
+        // Translate server step_done into pipeline status. Mirrors
+        // the chat page logic so the panels are visually identical.
+        let pipeStatus;
+        if (!enabled) pipeStatus = 'skipped';
+        else if (!wired) pipeStatus = 'not_wired';
+        else pipeStatus = fired ? 'complete' : 'noop';
+        // Build the per-step summary text shown on the right column.
+        let summary = '';
+        if (evt.step === 'grep' && evt.hits != null) {
+          summary = evt.hits + ' rule hit' + (evt.hits === 1 ? '' : 's');
+        } else if (evt.step === 'rag' && evt.docs != null) {
+          summary = evt.docs + ' doc' + (evt.docs === 1 ? '' : 's') + ' retrieved';
+        } else if (evt.step === 'tools' && evt.calls != null) {
+          const n = Array.isArray(evt.calls) ? evt.calls.length : 1;
+          summary = n + ' tool call' + (n === 1 ? '' : 's');
+        } else if (evt.step === 'online' && evt.providers) {
+          summary = 'via ' + (Array.isArray(evt.providers) ? evt.providers.join(',') : evt.providers);
+        } else if (evt.summary) {
+          summary = String(evt.summary);
+        }
+        pipelineSetStep(variant, evt.step, pipeStatus, summary, evt.elapsed_ms);
+
         let label = 'step ' + evt.step
           + ' ' + (fired ? 'FIRED' : (wired ? 'no-fire' : 'not wired'))
           + ' (' + (evt.elapsed_ms || 0) + ' ms)';
-        let detail = '';
-        if (evt.step === 'grep' && evt.hits != null) {
-          detail = 'hits=' + evt.hits + (evt.rule_ids ? ' rules=' + evt.rule_ids.join(',') : '');
-        } else if (evt.step === 'rag' && evt.docs != null) {
-          detail = 'docs=' + evt.docs;
-        } else if (evt.step === 'tools' && evt.calls != null) {
-          detail = 'tool_calls=' + JSON.stringify(evt.calls).slice(0, 160);
-        } else if (evt.step === 'online' && evt.providers) {
-          detail = 'providers=' + (Array.isArray(evt.providers) ? evt.providers.join(',') : evt.providers);
-        } else if (evt.summary) {
-          detail = String(evt.summary);
+        logEvent(variant, fired ? 'ok' : 'info', label, summary);
+      } else if (evt.type === 'complete') {
+        // Mark anything still running as complete.
+        const st = _pipelineState[variant];
+        if (st) {
+          Object.keys(st.steps).forEach(k => {
+            if (st.steps[k].status === 'running') {
+              pipelineSetStep(variant, k, 'complete');
+            }
+          });
         }
-        logEvent(variant, fired ? 'ok' : 'info', label, detail);
       }
     }
 
@@ -614,6 +882,10 @@
         setVariantMeta(v, 'idle');
         setVariantProgress(v, '', 'queued');
         LAYERS.forEach(L => markLayerFired(v, L, null));
+        // Clear the pipeline panel and hide it again.
+        _pipelineState[v] = null;
+        const ph = document.getElementById(v + '-pipeline');
+        if (ph) ph.style.display = 'none';
       }
       document.getElementById('cmp-status').textContent = '';
       document.getElementById('cmp-error').style.display = 'none';
@@ -629,7 +901,7 @@
         return;
       }
       const maxTokens = Math.max(128, Math.min(8192,
-        parseInt(document.getElementById('cmp-max-tokens').value, 10) || 2048));
+        parseInt(document.getElementById('cmp-max-tokens').value, 10) || 16384));
       const temperature = Math.max(0, Math.min(2,
         parseFloat(document.getElementById('cmp-temperature').value) || 1.0));
       try { localStorage.setItem('duecare:last-chat-prompt', prompt); } catch (e) {}

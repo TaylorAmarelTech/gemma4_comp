@@ -1445,7 +1445,7 @@ KO_TYPES = frozenset(KO_BRANCHES.keys())
 
 
 class GenerationParams(BaseModel):
-    max_new_tokens: int = 8192
+    max_new_tokens: int = 16384
     temperature: float = 1.0
     top_p: float = 0.95
     top_k: int = 64
