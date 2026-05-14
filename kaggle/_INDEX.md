@@ -64,7 +64,7 @@ cross-kernel artifact contract that A-03 / A-08 consume is in
 `01-duecare-exploration-workbench` kernel to see every capability
 surface, then proceed to `02-live-demo` for the focused real-inference
 demo and `03-duecare-video-pitch` for the slides + cached replay
-recording surface. `A-00` is the omni experiment control plane for
+recording surface. `A-00` is the omni experiment workbench for
 bulk prompt runs, reruns, evaluation, synthetic data, fine-tuning jobs,
 and proof reports. The specialised appendix kernels (A-01..A-24) cover
 the reproducible model-improvement pipeline, website-aligned extensions,
@@ -95,7 +95,7 @@ rubric labels (`HARMFUL` to `BEST`) and the review labels (`WORST`, `BAD`,
 |---|---|:-:|---|---|:-:|
 | **1** | [`01-duecare-exploration-workbench/`](./01-duecare-exploration-workbench/) ★ omni playground | ✓ 3 (script) | `taylorsamarel/duecare-harness-chat-wheels` ✓ live | `taylorsamarel/duecare-exploration-workbench` | pending |
 | **2** | [`02-live-demo/`](./02-live-demo/) ★ focused live demo | ✓ kernel | `taylorsamarel/duecare-live-demo-wheels` ✓ live | `taylorsamarel/duecare-live-demo` | live |
-| A0 | [`A-00-omni-evaluation-and-training/`](./A-00-omni-evaluation-and-training/) (experiment control plane) | ✓ kernel | (GitHub install only) | `taylorsamarel/duecare-a-00-omni-evaluation-and-training` | pending |
+| A0 | [`A-00-omni-experiment-workbench/`](./A-00-omni-experiment-workbench/) (experiment workbench) | ✓ kernel | (GitHub install only) | `taylorsamarel/duecare-a-00-omni-experiment-workbench` | pending |
 | A1 | [`A-01-chat-playground/`](./A-01-chat-playground/) (baseline, harness OFF) | ✓ kernel | `taylorsamarel/duecare-chat-playground-wheels` ✓ live | `taylorsamarel/duecare-chat-playground` | live |
 | A2 | [`A-02-chat-playground-with-grep-rag-tools/`](./A-02-chat-playground-with-grep-rag-tools/) (4-toggle harness) | ✓ kernel | `taylorsamarel/duecare-chat-playground-with-grep-rag-tools-wheels` ✓ live | `taylorsamarel/duecare-chat-playground-with-grep-rag-tools` | live |
 | A3 | [`A-03-content-classification-playground/`](./A-03-content-classification-playground/) | ✓ kernel | `taylorsamarel/duecare-content-classification-playground-wheels` ✓ live | `taylorsamarel/duecare-content-classification-playground` | pending |

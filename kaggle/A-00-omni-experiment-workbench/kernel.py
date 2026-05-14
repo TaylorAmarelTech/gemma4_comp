@@ -1,8 +1,8 @@
-# DueCare A-00 Omni Evaluation and Training Workbench
+# DueCare A-00 Omni Experiment Workbench
 #
 # Single Kaggle script kernel for model loading, batch evaluation,
-# harness comparison, synthetic-data generation, knowledge-pack sync,
-# and LoRA training handoff.
+# harness comparison, synthetic-data generation, local research graphing,
+# knowledge-pack sync, and LoRA training handoff.
 #
 # Source of truth: this file. Run it in Kaggle, open the printed URL,
 # and use the web UI to create portable experiment bundles.
@@ -15,10 +15,8 @@ import io
 import json
 import os
 import re
-import shutil
 import subprocess
 import sys
-import tarfile
 import threading
 import time
 import zipfile
@@ -167,7 +165,7 @@ except Exception as exc:  # noqa: BLE001
     raise SystemExit(f"DueCare shell import failed: {type(exc).__name__}: {exc}")
 
 
-set_kernel_id("a-00-omni")
+set_kernel_id("a-00-omni-experiment")
 
 
 @dataclass
@@ -325,6 +323,13 @@ MODEL_PRESETS = [
 
 
 APPENDIX_WORKFLOWS: dict[str, dict[str, Any]] = {
+    "a00_omni_control_plane": {
+        "notebook": "A-00",
+        "label": "Omni experiment workbench",
+        "capability": "Coordinate every appendix workflow, including evaluation, synthetic data, research graphing, fine-tuning, imports, exports, and proof reports.",
+        "run_mode": "capability_bundle",
+        "outputs": ["workflow_manifest.json", "handoff.md"],
+    },
     "a01_stock_chat_baseline": {
         "notebook": "A-01",
         "label": "Stock Gemma 4 chat baseline",
@@ -1613,7 +1618,11 @@ except Exception as exc:
 
 
 def _create_training_job(req: TrainRequest) -> dict[str, Any]:
-    data_path = Path(req.data_path)
+    requested_data_path = (req.data_path or "").strip()
+    if not requested_data_path:
+        synth = _generate_synthetic(SyntheticRequest(count=24, harness_profile="chat_full"))
+        requested_data_path = synth["artifacts"]["sft"]
+    data_path = Path(requested_data_path)
     if not data_path.is_absolute():
         data_path = (OUTPUT_DIR / req.data_path).resolve()
     if not data_path.exists():
@@ -1643,6 +1652,26 @@ def _create_training_job(req: TrainRequest) -> dict[str, Any]:
     STATE["jobs"][job_id] = job
     _write_json(TRAIN_DIR / f"{job_id}_job.json", job)
     return job
+
+
+def _ensure_sample_comparison_runs() -> list[str]:
+    if len(STATE["exports"]) >= 2:
+        return list(STATE["exports"].keys())[-2:]
+    baseline = _run_batch(BatchRunRequest(
+        prompt_set="chat_safety_core",
+        harness_profile="none",
+        limit=6,
+        run_label="auto-baseline",
+        evaluate=True,
+    ))
+    harnessed = _run_batch(BatchRunRequest(
+        prompt_set="chat_safety_core",
+        harness_profile="chat_full",
+        limit=6,
+        run_label="auto-harnessed",
+        evaluate=True,
+    ))
+    return [baseline["run_id"], harnessed["run_id"]]
 
 
 def _read_document_bundle(filename: str, data: bytes) -> list[dict[str, Any]]:
@@ -1942,7 +1971,8 @@ def _run_workflow(req: WorkflowRequest) -> dict[str, Any]:
             )),
         }
     if mode == "local_report":
-        return {"kind": "report", "result": _build_report(ReportRequest(run_ids=[]))}
+        run_ids = _ensure_sample_comparison_runs()
+        return {"kind": "report", "result": _build_report(ReportRequest(run_ids=run_ids))}
     if mode == "research_bundle":
         graph = _extract_research_graph(_sample_research_docs(), label=req.workflow_id)
         artifacts = _write_research_artifacts(graph, req.workflow_id)
@@ -2196,7 +2226,7 @@ HOMEPAGE_HTML = r"""<!doctype html>
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>DueCare A-00 Omni Workbench</title>
+  <title>DueCare A-00 Omni Experiment Workbench</title>
   <link rel="stylesheet" href="/static/_chrome.css">
   <link rel="stylesheet" href="/static/showcase.css">
   <script src="/static/_nav.js" defer></script>
@@ -2204,6 +2234,10 @@ HOMEPAGE_HTML = r"""<!doctype html>
     .a00 { max-width: 1180px; margin: 0 auto; padding: 28px 24px 56px; }
     .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; }
     .panel { background: var(--paper); border: 1px solid var(--line); border-radius: 8px; padding: 16px; }
+    .hero-panel { background: #fff; border-color: var(--ink); }
+    .proof-steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 10px; margin-top: 12px; }
+    .proof-step { border: 1px solid var(--line); border-radius: 8px; padding: 10px; background: var(--paper-2); }
+    .proof-step b { display: block; font-size: 13px; margin-bottom: 4px; }
     .panel h2 { margin: 0 0 10px; font-size: 16px; }
     .panel p { color: var(--ink-2); font-size: 13px; line-height: 1.5; }
     .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin: 8px 0; }
@@ -2219,15 +2253,34 @@ HOMEPAGE_HTML = r"""<!doctype html>
 </head>
 <body data-nav="tools">
 <main class="a00">
-  <div class="crumbs">Appendix A-00 | Omni evaluation and training</div>
-  <h1>Experiment workbench for harness lift, retraining lift, and combined lift.</h1>
+  <div class="crumbs">Appendix A-00 | Omni experiment workbench</div>
+  <h1>One workbench for harness lift, synthetic data, research graphs, and fine-tuning.</h1>
   <p class="lede">
     Load one model per Kaggle run, execute prompt batches through selected harnesses,
     import prior exports, compare quality and speed, generate synthetic training data,
-    and create LoRA training jobs from the same UI.
+    process local research bundles, and create fine-tuning jobs from the same UI.
   </p>
 
   <section class="grid" id="kpis"></section>
+
+  <section class="panel hero-panel">
+    <h2>Recommended proof path</h2>
+    <p>
+      The fastest judge path is to create two small exports, compare them, then open
+      the HTML report. The same controls scale to 100+ prompts and later reruns with
+      a fine-tuned model or an abliterated adversary.
+    </p>
+    <div class="proof-steps">
+      <div class="proof-step"><b>1. Baseline</b>Run Chat Safety prompts with No harness.</div>
+      <div class="proof-step"><b>2. Harnessed</b>Run the same prompts with Chat safety harness.</div>
+      <div class="proof-step"><b>3. Report</b>Select both exports and build the score, speed, and cost report.</div>
+      <div class="proof-step"><b>4. Research</b>Upload a case bundle or run the sample local graph.</div>
+    </div>
+    <div class="row">
+      <button onclick="quickProof()">Create baseline + harness proof</button>
+      <button class="secondary" onclick="runSampleResearch()">Run local research sample</button>
+    </div>
+  </section>
 
   <section class="grid" style="margin-top:16px;">
     <div class="panel">
@@ -2330,7 +2383,7 @@ HOMEPAGE_HTML = r"""<!doctype html>
     </div>
 
     <div class="panel">
-      <h2>7. Appendix workflow registry</h2>
+    <h2>7. Appendix workflow registry</h2>
       <p>A-00 exposes every appendix capability. Lightweight workflows run here; heavy GPU paths export a focused handoff bundle.</p>
       <label>Workflow <select id="workflow-id"></select></label>
       <div class="row">
@@ -2372,6 +2425,7 @@ async function refreshStatus() {
     ["Model", s.model && s.model.loaded ? s.model.model_ref : "dry run"],
     ["Exports", s.n_exports || 0],
     ["Packs", s.packs ? s.packs.length : 0],
+    ["Research graphs", s.research_bundles ? s.research_bundles.length : 0],
     ["Jobs", s.jobs ? s.jobs.length : 0],
   ];
   $("kpis").innerHTML = kpis.map(([a,b]) => `<div class="panel kpi"><span class="muted">${a}</span><b>${b}</b></div>`).join("");
@@ -2419,6 +2473,18 @@ async function runBatch() {
   const res = await getJson("/api/a00/run-batch", {method:"POST", headers:{"content-type":"application/json"}, body:JSON.stringify(body)});
   if (res.run_id && !selectedRuns.includes(res.run_id)) selectedRuns.push(res.run_id);
   log(res);
+}
+async function quickProof() {
+  $("prompt-set").value = "chat_safety_core";
+  $("limit").value = 6;
+  $("harness-profile").value = "none";
+  $("run-label").value = "quick-baseline";
+  const base = await getJson("/api/a00/run-batch", {method:"POST", headers:{"content-type":"application/json"}, body:JSON.stringify({prompt_set:"chat_safety_core", harness_profile:"none", limit:6, run_label:"quick-baseline", evaluate:true})});
+  if (base.run_id && !selectedRuns.includes(base.run_id)) selectedRuns.push(base.run_id);
+  const harness = await getJson("/api/a00/run-batch", {method:"POST", headers:{"content-type":"application/json"}, body:JSON.stringify({prompt_set:"chat_safety_core", harness_profile:"chat_full", limit:6, run_label:"quick-harnessed", evaluate:true})});
+  if (harness.run_id && !selectedRuns.includes(harness.run_id)) selectedRuns.push(harness.run_id);
+  const report = await getJson("/api/a00/report", {method:"POST", headers:{"content-type":"application/json"}, body:JSON.stringify({run_ids:selectedRuns.slice(-2), include_pdf:true})});
+  log({baseline:base, harnessed:harness, report});
 }
 async function importExport() {
   const f = $("import-file").files[0];
@@ -2488,11 +2554,11 @@ loadOptions();
 
 
 summary_payload = {
-    "title": "A-00 Omni Evaluation and Training Workbench",
+    "title": "A-00 Omni Experiment Workbench",
     "audience": "researcher",
-    "lede": "Control-plane notebook for bulk evaluation, harness comparison, synthetic data, and adapter training.",
+    "lede": "Control-plane notebook for bulk evaluation, harness comparison, synthetic data, local research graphs, and adapter training.",
     "results": [
-        {"label": "Workflows", "value": "7"},
+        {"label": "Capability groups", "value": "9"},
         {"label": "Harness profiles", "value": str(len(HARNESS_PROFILES))},
         {"label": "Appendix workflows", "value": str(len(APPENDIX_WORKFLOWS))},
         {"label": "Prompt scenarios", "value": str(sum(len(v) for v in PROMPT_SETS.values()))},
@@ -2530,7 +2596,7 @@ _SHUTDOWN_EVENT = threading.Event()
 try:
     app, public_url = build_minimal_shell(
         summary=summary_payload,
-        kernel_id="a-00-omni",
+        kernel_id="a-00-omni-experiment",
         port=PORT,
         homepage_html=HOMEPAGE_HTML,
         extra_routes=extra_routes,

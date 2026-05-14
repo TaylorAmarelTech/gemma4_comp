@@ -24,8 +24,9 @@ Notebook 03 is the video pitch surface. It provides deterministic scenes for rec
 
 Appendix A-00 is the technical proof workbench. It is the control plane for
 bulk prompt runs, export/import reruns, rule and LLM judging, knowledge-pack
-sync, synthetic-data generation, and LoRA training jobs. The narrower
-appendix notebooks remain useful as simple single-claim reproductions.
+sync, synthetic-data generation, local research graph extraction, and LoRA
+training jobs. The narrower appendix notebooks remain useful as simple
+single-claim reproductions.
 
 The workbench has seven harness contracts:
 

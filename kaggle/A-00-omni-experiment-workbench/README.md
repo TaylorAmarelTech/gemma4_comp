@@ -1,4 +1,4 @@
-# DueCare A-00 Omni Evaluation and Training Workbench
+# DueCare A-00 Omni Experiment Workbench
 
 > Control-plane appendix for the Gemma 4 Good submission. This notebook is the
 > single UI for running batches, rerunning exports, comparing harnesses,
@@ -9,7 +9,7 @@
 
 | Section | This notebook |
 |---|---|
-| Lede | One interactive workbench that proves what improves quality: harness, retraining, or both. |
+| Lede | One interactive workbench that proves what improves quality across harnessing, synthetic data, research graphing, retraining, or combined runs. |
 | What it does | Loads one selected model per Kaggle run, runs bulk prompt sets through any harness profile, exports results, imports earlier exports, evaluates with rule and LLM judges, generates synthetic SFT/DPO data, launches LoRA fine-tuning when dependencies are available, processes local case/research bundles into graphs, and exposes A-01 through A-24 as workflows. |
 | Demo path | Run all, open the printed Cloudflare URL, load Gemma 4 E2B or a custom model path, run Chat Safety prompts with harness off and on, generate the report, then export the JSON bundle. |
 | Audience | Researcher, developer, platform safety, NGO/regulator. |
@@ -19,7 +19,7 @@
 ## Why A-00 Exists
 
 The other appendix notebooks are intentionally narrow. A-00 is the experiment
-orchestrator. It exists because Kaggle sessions usually hold one loaded model
+workbench. It exists because Kaggle sessions usually hold one loaded model
 at a time. Instead of loading and unloading models in one process, A-00 exports
 portable bundles:
 
@@ -30,8 +30,8 @@ portable bundles:
 4. Import all bundles into A-00 and produce the comparison report.
 
 That report is the technical proof referenced by the writeup: quality lift,
-dimension-level deltas, grounding gains, latency, throughput, and estimated
-inference cost.
+dimension-level deltas, grounding gains, research graph extraction, latency,
+throughput, and estimated inference cost.
 
 ## Supported Workflows
 

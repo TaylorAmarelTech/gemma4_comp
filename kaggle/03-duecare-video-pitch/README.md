@@ -11,7 +11,7 @@
   routes.
 - **03 Video Pitch:** the slide deck plus cached demo replay for recording the
   three-minute hackathon video.
-- **A-00 Omni Workbench:** the technical proof surface for bulk evaluation,
+- **A-00 Omni Experiment Workbench:** the technical proof surface for bulk evaluation,
   synthetic data, fine-tuning jobs, reports, and graphs.
 
 02 and 03 are intentionally different. Use 03 to record the story cleanly. Use
@@ -80,7 +80,7 @@ Outputs from setup mode:
 
 ## Related Notebooks
 
-- `../A-00-omni-evaluation-and-training/`: technical proof, prompt runs,
+- `../A-00-omni-experiment-workbench/`: technical proof, prompt runs,
   reports, synthetic data, and training jobs.
 - `../A-24-demo-replay/`: appendix replay surface.
 - `../A-20-privacy-boundary/`: privacy-boundary visualization.
