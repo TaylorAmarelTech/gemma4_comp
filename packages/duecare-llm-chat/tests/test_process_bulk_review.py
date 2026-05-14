@@ -70,3 +70,36 @@ def test_process_batch_returns_intelligence_for_sample():
     assert intel["document_type_counts"]["payment_history"] == 30
     assert intel["gemma_case_brief"]["status"] == "no_model_loaded"
     assert len(intel["harness_trace"]) >= 5
+    assert intel["journey_points"]
+    assert intel["critical_fee_points"]
+    stages = {point["stage"] for point in intel["journey_points"]}
+    assert {"payment_and_debt", "travel"}.issubset(stages)
+    assert len(stages) >= 3
+
+
+def test_process_batch_surfaces_media_and_ocr_work_queue():
+    from duecare.chat.app import create_app
+
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, "w") as zf:
+        zf.writestr(
+            "complaints/DC-PH-HK-999.txt",
+            "worker_name: Test Person\n"
+            "complaint date 2026-04-01. Recruiter demanded PHP 50000 placement fee.",
+        )
+        zf.writestr("scans/passport_page.png", b"\x89PNG\r\n\x1a\n" + b"\x00" * 64)
+        zf.writestr("scans/contract.pdf", b"%PDF-1.7\n% synthetic scan placeholder\n")
+
+    client = TestClient(create_app())
+    response = client.post(
+        "/api/process/batch",
+        files={"file": ("mixed_media_bundle.zip", io.BytesIO(buf.getvalue()), "application/zip")},
+    )
+    assert response.status_code == 200, response.text
+    intel = response.json()["intelligence"]
+    plan = intel["processing_plan"]
+    assert plan["n_media_assets"] == 2
+    assert "n_pages" in plan
+    assert {asset["media_type"] for asset in plan["media_assets"]} == {"image", "pdf"}
+    assert any(p["id"] == "ocr" and p["status"] == "queued_contract" for p in plan["passes"])
+    assert any(p["id"] == "gemma_multimodal" for p in plan["passes"])

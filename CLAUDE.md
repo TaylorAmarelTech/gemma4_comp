@@ -143,19 +143,50 @@ source chain.
 [D4] Video Materials    → Script, screenshots, demo recordings
 ```
 
-## Multi-harness architecture (2026-05-13)
+## Multi-harness architecture (2026-05-14)
 
-Every safety-bearing surface in the kernel is a **harness** -- a self-contained
-module exposing `name`, `applied_layers: tuple[str,...]`, and `register_routes(app)`.
-Four PRIMARY harnesses (chat / process / extraction / anonymization), one
-SECONDARY (import_corpus). Per-harness optional `tools.py`, `knowledge.py`,
-`evaluation.py`. Each handler calls
-`harnesses._training_log.log_interaction(...)` at completion so the harness
-boundary is also the per-task finetuning-data boundary -- one JSONL stream per
+Every reviewer-facing safety surface in the kernel is a harness module: a
+self-contained component exposing `name`, `applied_layers: tuple[str, ...]`,
+`consumes`, `emits`, and `register_routes(app)`.
+
+Current contract:
+
+- PRIMARY Gemma-backed harnesses: `chat`, `process`, `extraction`
+- PRIMARY hard safety gates: `anonymization`, `search_safety`
+- SECONDARY utilities: `search`, `import_corpus`
+
+Use the word "harness" carefully. `search` and `import_corpus` are utility
+surfaces unless they are feeding a Gemma-backed harness. `anonymization` and
+`search_safety` are safety gates because their main job is protecting trust
+boundaries before model or third-party calls.
+
+Bulk File Review is now the process harness name. It accepts ZIP, CSV, JSONL,
+text, images, and PDFs. Text and extractable PDF pages are chunked locally.
+Scanned PDFs and images become explicit OCR plus Gemma 4 vision work items so
+the UI never pretends a media file has been read when it has only been queued.
+
+Each handler should call `harnesses._training_log.log_interaction(...)` at
+completion when it produces model-relevant input or output. The harness
+boundary is also the per-task fine-tuning data boundary: one JSONL stream per
 harness at `/kaggle/working/training/<harness>.jsonl`.
 
-Full pattern + 10-step recipe for new harnesses + multi-rubric review:
+Full pattern plus 10-step recipe for new harnesses and multi-rubric review:
 @docs/harness_pattern.md
+
+### A-00 synthetic data and small-model retraining
+
+A-00 is the control plane for technical proof. It should be able to:
+
+- generate rubric-polished SFT and DPO rows with `generator_mode=rubric_polisher`
+- mark stable knowledge for memorization and volatile facts for tool calls
+- create a tiny E2B or E4B fine-tune smoke job before a full Kaggle GPU run
+- export prompt, response, trace, grade, timing, cost, and provenance bundles
+
+Training data should teach structure, not stale phone numbers. Memorize stable
+reasoning habits, refusal behavior, ILO indicator categories, privacy
+boundaries, and evidence-first response shape. Use tools or vetted knowledge
+packs for hotline numbers, addresses, current advisories, fee caps, wage rules,
+and fresh statutes.
 
 
 ### Naming convention (post-Phase 9)

@@ -82,24 +82,24 @@ _HARNESS_SURFACE_CONTRACTS: tuple[dict[str, Any], ...] = (
         "tier": "primary",
         "kind": "gemma_harness",
         "label": "Bulk file review",
-        "summary": "Review ZIP, CSV, or JSONL bundles, extract intelligence, and ask Gemma 4 about the parsed graph.",
+        "summary": "Review ZIP, CSV, JSONL, text, image, and PDF bundles, extract intelligence, and ask Gemma 4 about the parsed graph.",
         "applied_layers": ("grep", "rag", "tools"),
-        "consumes": ("zip_bundle", "csv", "jsonl", "case_text"),
-        "emits": ("process_bundle", "entity_graph", "graph_chat_answer"),
+        "consumes": ("zip_bundle", "csv", "jsonl", "case_text", "pdf", "image"),
+        "emits": ("process_bundle", "entity_graph", "processing_plan", "ocr_queue", "graph_chat_answer"),
         "gemma_mode": "hybrid",
-        "model_role": "Batch parsing is local; graph-chat uses Gemma 4 with GREP/RAG/tools grounding.",
+        "model_role": "Batch parsing is local; graph-chat uses Gemma 4 with GREP/RAG/tools grounding. OCR and Gemma vision work items stay explicit when media backends are not wired.",
         "test_pages": (
-            {"label": "Process files", "href": "/static/process.html"},
+            {"label": "Bulk File Review", "href": "/static/process.html"},
         ),
         "endpoints": (
             {"method": "POST", "path": "/api/process/batch", "summary": "Parse and score uploaded rows"},
             {"method": "POST", "path": "/api/process/graph-chat", "summary": "Ask Gemma 4 about the last bundle"},
         ),
         "examples": (
-            "Upload a ZIP of recruiter chats and ask which rows mention passport retention.",
+            "Upload a ZIP of recruiter chats, scanned IDs, and payment receipts, then inspect the OCR and vision queue.",
             "Upload a CSV of complaints and ask for the top fee-camouflage patterns.",
         ),
-        "comparison": "Use Process Files for batch output, then paste representative rows into Compare.",
+        "comparison": "Use Bulk File Review for batch output, then paste representative rows into Compare.",
     },
     {
         "name": "extraction",
@@ -4657,7 +4657,7 @@ def create_app(
 
     # ====================================================================
     # Phase 14 (2026-05-12): workflow endpoints for kernel-01 tabs.
-    # Process Files / Anonymization / Submit. Knowledge promotion lands
+    # Bulk File Review / Anonymization / Submit. Knowledge promotion lands
     # in a follow-up; for now Knowledge Creation is a frontend scaffold.
     # ====================================================================
 

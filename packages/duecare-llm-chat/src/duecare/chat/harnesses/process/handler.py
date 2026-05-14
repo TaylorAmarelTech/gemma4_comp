@@ -1,8 +1,8 @@
-"""Process Files harness handler.
+"""Bulk File Review harness handler.
 
 Owns:
-  - POST /api/process/batch -- multipart upload -> v1.0 bundle envelope
-  - POST /api/process/graph-chat -- Gemma 4 query over the last bundle
+  - POST /api/process/batch: multipart upload to v1.0 bundle envelope
+  - POST /api/process/graph-chat: Gemma 4 query over the last bundle
 """
 from __future__ import annotations
 
@@ -22,12 +22,27 @@ from .prompts import GRAPH_CHAT_SYSTEM_PROMPT, build_context_block
 
 
 _ROW_CAP = 200
+_TEXT_EXTS = {".txt", ".md", ".csv", ".json", ".jsonl", ".log"}
+_MEDIA_EXTS = {".png", ".jpg", ".jpeg", ".webp", ".tif", ".tiff", ".bmp"}
+_DOC_IMAGE_EXTS = _MEDIA_EXTS | {".pdf"}
+_CHUNK_CHARS = 4500
 _DATE_RE = _re.compile(r"\b(?:20\d{2}[-/]\d{1,2}[-/]\d{1,2}|\d{1,2}\s+(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\s+20\d{2})\b", _re.IGNORECASE)
 _CASE_RE = _re.compile(r"\b(?:DC-)?PH[-_ ]?HK[-_ ]?\d{3}\b|\bperson[-_ ]?\d{3}\b|\bCASE[-_ ]?\d{3}\b", _re.IGNORECASE)
 _NAME_RE = _re.compile(r"\b(?:name|worker_name|complainant|subject)\s*[:=]\s*([A-Z][A-Za-z.' -]{2,60})")
 _EMPLOYER_RE = _re.compile(r"\b(?:employer|household|company)\s*[:=]\s*([A-Z][A-Za-z0-9 &'.,-]{2,80})")
 _AGENCY_RE = _re.compile(r"\b(?:agency|recruiter|broker)\s*[:=]\s*([A-Z][A-Za-z0-9 &'.,-]{2,80})")
 _LOCATION_RE = _re.compile(r"\b(?:Manila|Quezon City|Cebu|Davao|Iloilo|Clark|Makati|Hong Kong|Central|Causeway Bay|Mong Kok|Sha Tin|Kowloon|Wan Chai|Tsuen Wan|Yuen Long|Tuen Mun)\b", _re.IGNORECASE)
+_JOURNEY_STAGE_ORDER = {
+    "recruitment": 1,
+    "payment_and_debt": 2,
+    "contracting": 3,
+    "documents_and_identity": 4,
+    "travel": 5,
+    "arrival_and_placement": 6,
+    "employment_control": 7,
+    "complaint_and_escalation": 8,
+    "other_evidence": 99,
+}
 
 
 def _norm_case_id(text: str) -> str | None:
@@ -54,6 +69,10 @@ def _first_match(pattern: _re.Pattern, text: str) -> str | None:
 
 def _file_kind(row_id: str, text: str) -> str:
     hay = f"{row_id}\n{text}".lower()
+    if any(hay.endswith(ext) or ext + "\n" in hay for ext in _MEDIA_EXTS):
+        return "media_image"
+    if ".pdf" in hay and "requiring ocr" in hay:
+        return "scanned_pdf"
     checks = (
         ("id_card", ("id_card", "identity card", "philippine id", "passport no")),
         ("complaint", ("complaint", "affidavit", "sworn statement")),
@@ -70,6 +89,125 @@ def _file_kind(row_id: str, text: str) -> str:
     return "other"
 
 
+def _ext(name: str) -> str:
+    dot = "." + (name.rsplit(".", 1)[-1].lower() if "." in name else "")
+    return dot if dot != "." else ""
+
+
+def _is_probably_text(name: str, data: bytes) -> bool:
+    ext = _ext(name)
+    if ext in _TEXT_EXTS:
+        return True
+    if ext in _DOC_IMAGE_EXTS:
+        return False
+    sample = data[:4096]
+    if b"\x00" in sample:
+        return False
+    decoded = sample.decode("utf-8", errors="replace")
+    if not decoded:
+        return False
+    return decoded.count("\ufffd") / max(1, len(decoded)) < 0.03
+
+
+def _chunk_text_rows(
+    name: str,
+    text: str,
+    source: str,
+    *,
+    parent_doc: str | None = None,
+    page_index: int | None = None,
+) -> list[dict]:
+    clean = text or ""
+    parent = parent_doc or name
+    base_level = "page" if page_index is not None else "document"
+    if len(clean) <= _CHUNK_CHARS * 1.2:
+        return [{
+            "row_id": name,
+            "text": clean,
+            "source": source,
+            "parent_doc": parent,
+            "page_index": page_index,
+            "chunk_index": 0,
+            "processing_level": base_level,
+        }]
+    rows: list[dict] = []
+    for idx, start in enumerate(range(0, len(clean), _CHUNK_CHARS)):
+        chunk = clean[start:start + _CHUNK_CHARS]
+        suffix = f"page-{page_index:03d}-chunk-{idx + 1:03d}" if page_index is not None else f"chunk-{idx + 1:03d}"
+        rows.append({
+            "row_id": f"{parent}#{suffix}",
+            "text": chunk,
+            "source": source,
+            "parent_doc": parent,
+            "page_index": page_index,
+            "chunk_index": idx,
+            "processing_level": f"{base_level}_chunk",
+        })
+    return rows
+
+
+def _try_pdf_text_rows(name: str, data: bytes, source: str) -> list[dict]:
+    """Extract page text from a PDF when a reader is already installed.
+
+    Kaggle images vary. The process harness should benefit from pypdf or
+    PyPDF2 when present, while still treating scanned or unsupported PDFs as
+    explicit OCR/Gemma-vision work items.
+    """
+    reader_cls = None
+    try:
+        from pypdf import PdfReader  # type: ignore
+
+        reader_cls = PdfReader
+    except Exception:
+        try:
+            from PyPDF2 import PdfReader  # type: ignore
+
+            reader_cls = PdfReader
+        except Exception:
+            return []
+
+    try:
+        reader = reader_cls(_io.BytesIO(data))
+        rows: list[dict] = []
+        for idx, page in enumerate(getattr(reader, "pages", []) or [], start=1):
+            try:
+                text = page.extract_text() or ""
+            except Exception:
+                text = ""
+            if text.strip():
+                rows.extend(_chunk_text_rows(
+                    f"{name}#page-{idx:03d}",
+                    text,
+                    source,
+                    parent_doc=name,
+                    page_index=idx,
+                ))
+        return rows
+    except Exception:
+        return []
+
+
+def _media_row(name: str, data: bytes, source: str) -> dict:
+    ext = _ext(name)
+    media_type = "pdf" if ext == ".pdf" else "image"
+    return {
+        "row_id": name,
+        "text": (
+            f"[{media_type} asset requiring OCR or multimodal Gemma pass]\n"
+            f"file: {name}\n"
+            f"bytes: {len(data)}\n"
+            "status: queued_for_ocr_and_multimodal_extraction"
+        ),
+        "source": source,
+        "parent_doc": name,
+        "chunk_index": 0,
+        "processing_level": "media_asset",
+        "media_type": media_type,
+        "binary_size": len(data),
+        "needs_ocr": True,
+    }
+
+
 def _amount_value(raw: str) -> float:
     match = _re.search(r"([\d,]+(?:\.\d+)?)", raw or "")
     if not match:
@@ -78,6 +216,61 @@ def _amount_value(raw: str) -> float:
         return float(match.group(1).replace(",", ""))
     except Exception:
         return 0.0
+
+
+def _journey_stage(row_id: str, text: str, kind: str) -> str:
+    hay = f"{row_id}\n{text}".lower()
+    if kind == "payment_history":
+        return "payment_and_debt"
+    if kind == "contract":
+        return "contracting"
+    if kind == "id_card":
+        return "documents_and_identity"
+    if kind == "travel_history":
+        return "travel"
+    if kind == "location_history":
+        return "arrival_and_placement"
+    if kind in {"complaint", "police_report"}:
+        return "complaint_and_escalation"
+    if kind == "chat_messages":
+        return "recruitment"
+    if any(n in hay for n in ("placement fee", "processing fee", "training fee", "salary deduction", "remittance", "receipt", "loan", "debt")):
+        return "payment_and_debt"
+    if any(n in hay for n in ("contract", "side letter", "second contract", "replacement agreement")):
+        return "contracting"
+    if any(n in hay for n in ("passport", "identity card", "visa", "document", "id card")):
+        return "documents_and_identity"
+    if any(n in hay for n in ("flight", "airport", "arrival", "departure", "travel history")):
+        return "travel"
+    if any(n in hay for n in ("gps", "location ping", "cell tower", "arrival address")):
+        return "arrival_and_placement"
+    if any(n in hay for n in ("live-in", "day off", "food", "phone", "locked", "threat", "curfew", "employer")):
+        return "employment_control"
+    if any(n in hay for n in ("complaint", "police report", "case officer", "affidavit", "sworn statement")):
+        return "complaint_and_escalation"
+    if any(n in hay for n in ("recruiter", "agency", "broker", "slot", "dm", "whatsapp", "telegram")):
+        return "recruitment"
+    return "other_evidence"
+
+
+def _journey_summary(stage: str, kind: str, signals: list[str], payments: list[dict], locations: list[str]) -> str:
+    parts: list[str] = [stage.replace("_", " ")]
+    if kind and kind != "other":
+        parts.append(kind.replace("_", " "))
+    if payments:
+        parts.append(f"{len(payments)} payment mention(s)")
+    if signals:
+        parts.append(f"{len(signals)} risk signal(s)")
+    if locations:
+        parts.append("locations: " + ", ".join(locations[:3]))
+    return " | ".join(parts)
+
+
+def _row_severity(severities: list[str]) -> str:
+    rank = {"critical": 4, "high": 3, "medium": 2, "low": 1}
+    if not severities:
+        return "info"
+    return max(severities, key=lambda s: rank.get(str(s).lower(), 0))
 
 
 def _build_intelligence(rows: list[dict], results: list[dict]) -> dict:
@@ -93,6 +286,9 @@ def _build_intelligence(rows: list[dict], results: list[dict]) -> dict:
     payments: list[dict] = []
     locations: dict[str, int] = {}
     evidence_edges: list[dict] = []
+    journey_points: list[dict] = []
+    media_assets: list[dict] = []
+    parent_docs: dict[str, dict] = {}
 
     by_row = {r.get("row_id"): r for r in results}
     for row in rows:
@@ -101,6 +297,35 @@ def _build_intelligence(rows: list[dict], results: list[dict]) -> dict:
         scored = by_row.get(row_id) or {}
         kind = _file_kind(row_id, text)
         doc_type_counts[kind] = doc_type_counts.get(kind, 0) + 1
+        parent_doc = row.get("parent_doc") or row_id
+        parent = parent_docs.setdefault(parent_doc, {
+            "document_id": parent_doc,
+            "source": row.get("source"),
+            "chunks": 0,
+            "page_indexes": [],
+            "document_types": {},
+            "media_type": row.get("media_type"),
+            "needs_ocr": bool(row.get("needs_ocr")),
+        })
+        parent["chunks"] += 1
+        if row.get("page_index") is not None and row.get("page_index") not in parent["page_indexes"]:
+            parent["page_indexes"].append(row.get("page_index"))
+        parent["document_types"][kind] = parent["document_types"].get(kind, 0) + 1
+        parent["needs_ocr"] = bool(parent.get("needs_ocr") or row.get("needs_ocr"))
+        if row.get("needs_ocr"):
+            media_assets.append({
+                "row_id": row_id,
+                "document_id": parent_doc,
+                "media_type": row.get("media_type") or ("pdf" if kind == "scanned_pdf" else "image"),
+                "bytes": int(row.get("binary_size") or 0),
+                "status": "queued_for_ocr_and_multimodal_extraction",
+                "recommended_passes": [
+                    "OCR or document text extraction",
+                    "Gemma 4 multimodal page description",
+                    "entity extraction from OCR plus image description",
+                    "edge linking into the local graph",
+                ],
+            })
         case_id = _norm_case_id(row_id) or _norm_case_id(text) or "UNKNOWN"
         person = people.setdefault(case_id, {
             "case_id": case_id,
@@ -121,23 +346,32 @@ def _build_intelligence(rows: list[dict], results: list[dict]) -> dict:
         person["name"] = person["name"] or _first_match(_NAME_RE, text)
         person["employer"] = person["employer"] or _first_match(_EMPLOYER_RE, text)
         person["agency"] = person["agency"] or _first_match(_AGENCY_RE, text)
+        row_locations: list[str] = []
+        row_dates: list[str] = []
+        row_payments: list[dict] = []
+        row_signals: list[str] = []
+        row_severities: list[str] = []
 
         for loc in _LOCATION_RE.findall(text):
             loc_norm = str(loc).title()
             locations[loc_norm] = locations.get(loc_norm, 0) + 1
             if loc_norm not in person["locations"]:
                 person["locations"].append(loc_norm)
+            if loc_norm not in row_locations:
+                row_locations.append(loc_norm)
 
         for date in _DATE_RE.findall(text)[:6]:
             item = {"case_id": case_id, "row_id": row_id, "date": date, "document_type": kind}
             timeline.append(item)
             person["timeline"].append(item)
+            row_dates.append(date)
 
         for amt in (scored.get("entities") or {}).get("AMOUNT", []):
             value = _amount_value(amt)
             pay = {"case_id": case_id, "row_id": row_id, "amount": amt, "value": value, "document_type": kind}
             payments.append(pay)
             person["amounts"].append(pay)
+            row_payments.append(pay)
 
         for hit in scored.get("grep_hits") or []:
             severity = (hit.get("severity") or "medium").lower()
@@ -146,6 +380,9 @@ def _build_intelligence(rows: list[dict], results: list[dict]) -> dict:
             rid = hit.get("rule_id") or "unknown_rule"
             if rid not in person["risk_signals"]:
                 person["risk_signals"].append(rid)
+            if rid not in row_signals:
+                row_signals.append(rid)
+            row_severities.append(severity)
             evidence_edges.append({
                 "case_id": case_id,
                 "row_id": row_id,
@@ -167,6 +404,25 @@ def _build_intelligence(rows: list[dict], results: list[dict]) -> dict:
             if needle in lower and label not in person["risk_signals"]:
                 person["risk_score"] += 6
                 person["risk_signals"].append(label)
+            if needle in lower and label not in row_signals:
+                row_signals.append(label)
+
+        stage = _journey_stage(row_id, text, kind)
+        if row_signals or row_payments or kind != "other":
+            journey_points.append({
+                "stage": stage,
+                "stage_order": _JOURNEY_STAGE_ORDER.get(stage, 99),
+                "case_id": case_id,
+                "row_id": row_id,
+                "document_type": kind,
+                "date": row_dates[0] if row_dates else None,
+                "locations": row_locations[:6],
+                "payments": row_payments[:6],
+                "risk_signals": row_signals[:8],
+                "severity": _row_severity(row_severities),
+                "summary": _journey_summary(stage, kind, row_signals, row_payments, row_locations),
+                "is_critical": bool(row_payments or any(s in {"critical", "high"} for s in row_severities)),
+            })
 
     person_rows = []
     for p in people.values():
@@ -183,6 +439,26 @@ def _build_intelligence(rows: list[dict], results: list[dict]) -> dict:
     person_rows.sort(key=lambda p: (-p.get("risk_score", 0), p.get("case_id", "")))
     timeline.sort(key=lambda x: str(x.get("date", "")))
     payments.sort(key=lambda x: -float(x.get("value") or 0))
+    journey_points.sort(key=lambda x: (
+        x.get("stage_order", 99),
+        str(x.get("date") or "9999"),
+        x.get("case_id", ""),
+        x.get("row_id", ""),
+    ))
+    critical_fee_points = [
+        {
+            "stage": p.get("stage"),
+            "case_id": p.get("case_id"),
+            "row_id": p.get("row_id"),
+            "date": p.get("date"),
+            "document_type": p.get("document_type"),
+            "payments": p.get("payments", []),
+            "risk_signals": p.get("risk_signals", []),
+            "summary": p.get("summary"),
+        }
+        for p in journey_points
+        if p.get("payments")
+    ][:30]
     hierarchy = {
         "root": "uploaded_bundle",
         "document_types": [
@@ -198,6 +474,62 @@ def _build_intelligence(rows: list[dict], results: list[dict]) -> dict:
             for p in person_rows[:50]
         ],
     }
+    parent_document_rows = []
+    for doc in parent_docs.values():
+        pages = sorted(int(x) for x in doc.get("page_indexes", []) if x is not None)
+        row = {k: v for k, v in doc.items() if k != "page_indexes"}
+        row["n_pages"] = len(pages)
+        row["page_indexes"] = pages[:60]
+        parent_document_rows.append(row)
+
+    processing_plan = {
+        "schema_version": "duecare.process.processing_plan.v1",
+        "n_parent_documents": len(parent_docs),
+        "n_pages": sum(int(d.get("n_pages") or 0) for d in parent_document_rows),
+        "n_chunks": len(rows),
+        "n_media_assets": len(media_assets),
+        "chunk_chars": _CHUNK_CHARS,
+        "passes": [
+            {
+                "id": "inventory",
+                "label": "Document inventory",
+                "status": "implemented",
+                "detail": "ZIP, CSV, JSONL, text, PDF, and image assets are enumerated locally.",
+            },
+            {
+                "id": "chunking",
+                "label": "Document and page chunking",
+                "status": "implemented_for_text_and_extractable_pdfs",
+                "detail": f"Text files and extractable PDF pages are split into chunks of about {_CHUNK_CHARS} characters; scanned pages and images become media work items.",
+            },
+            {
+                "id": "ocr",
+                "label": "OCR and layout extraction",
+                "status": "queued_contract",
+                "detail": "Media assets are detected and queued; OCR engine wiring is the next implementation step.",
+            },
+            {
+                "id": "gemma_multimodal",
+                "label": "Gemma 4 multimodal extraction",
+                "status": "queued_contract",
+                "detail": "Each media asset needs a Gemma vision pass over image plus OCR text to extract entities and edges.",
+            },
+            {
+                "id": "entity_resolution",
+                "label": "Entity resolution and edge linking",
+                "status": "implemented_basic",
+                "detail": "Case IDs, people, agencies, employers, amounts, locations, dates, rule hits, and journey stages are linked deterministically.",
+            },
+            {
+                "id": "review_loop",
+                "label": "Iterative reviewer loop",
+                "status": "implemented_basic",
+                "detail": "Graph chat asks Gemma questions over the local graph; unresolved OCR/media work remains visible.",
+            },
+        ],
+        "media_assets": media_assets[:80],
+        "parent_documents": parent_document_rows[:120],
+    }
     return {
         "version": "process-intelligence-v1",
         "n_people": len([p for p in person_rows if p.get("case_id") != "UNKNOWN"]),
@@ -210,6 +542,9 @@ def _build_intelligence(rows: list[dict], results: list[dict]) -> dict:
         "timeline": timeline[:40],
         "locations": [{"name": k, "count": v} for k, v in sorted(locations.items(), key=lambda kv: (-kv[1], kv[0]))[:20]],
         "evidence_edges": evidence_edges[:80],
+        "journey_points": journey_points[:120],
+        "critical_fee_points": critical_fee_points,
+        "processing_plan": processing_plan,
     }
 
 
@@ -267,11 +602,22 @@ def _parse_upload(filename: str, contents: bytes) -> list[dict]:
             for name in zf.namelist():
                 if name.endswith("/"):
                     continue
+                data = zf.read(name)
+                if _ext(name) == ".pdf":
+                    pdf_rows = _try_pdf_text_rows(name, data, filename)
+                    if pdf_rows:
+                        rows.extend(pdf_rows)
+                        continue
+                    rows.append(_media_row(name, data, filename))
+                    continue
+                if not _is_probably_text(name, data):
+                    rows.append(_media_row(name, data, filename))
+                    continue
                 try:
-                    txt = zf.read(name).decode("utf-8", errors="replace")
+                    txt = data.decode("utf-8", errors="replace")
                 except Exception:
                     continue
-                rows.append({"row_id": name, "text": txt, "source": filename})
+                rows.extend(_chunk_text_rows(name, txt, filename))
     elif fname_l.endswith(".jsonl"):
         for i, line in enumerate(contents.decode("utf-8", errors="replace").splitlines()):
             line = line.strip()
@@ -293,9 +639,18 @@ def _parse_upload(filename: str, contents: bytes) -> list[dict]:
                 continue
             rows.append({"row_id": f"row_{i}", "text": row[0], "source": filename})
     else:
+        if _ext(filename) == ".pdf":
+            pdf_rows = _try_pdf_text_rows(filename, contents, filename)
+            if pdf_rows:
+                return pdf_rows
+            rows.append(_media_row(filename, contents, filename))
+            return rows
+        if not _is_probably_text(filename, contents):
+            rows.append(_media_row(filename, contents, filename))
+            return rows
         blob = contents.decode("utf-8", errors="replace")
         for i, chunk in enumerate([c for c in blob.split("\n\n") if c.strip()]):
-            rows.append({"row_id": f"chunk_{i}", "text": chunk, "source": filename})
+            rows.extend(_chunk_text_rows(f"chunk_{i}", chunk, filename))
     return rows
 
 
@@ -481,7 +836,7 @@ def register_routes(app: Any) -> None:
         if bundle is None:
             return JSONResponse({
                 "answer": "No bundle has been uploaded yet on this kernel. "
-                "Upload a ZIP/CSV/JSONL on the Process Files tab first, then "
+                "Upload a ZIP/CSV/JSONL on the Bulk File Review page first, then "
                 "ask the question again.",
                 "bundle_present": False,
                 "cited_rows": [],

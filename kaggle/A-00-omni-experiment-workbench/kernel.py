@@ -322,6 +322,43 @@ MODEL_PRESETS = [
 ]
 
 
+RESPONSE_BLUEPRINT = {
+    "version": "duecare.response_blueprint.v1",
+    "sections": [
+        "direct answer and risk summary",
+        "evidence from the prompt",
+        "international considerations",
+        "country and corridor considerations",
+        "local considerations and support pathway",
+        "precedent or historical pattern when available",
+        "safe next steps and limits",
+    ],
+    "goal": (
+        "Train small Gemma 4 models to produce complete, grounded, rubric-friendly "
+        "DueCare answers without memorizing volatile facts that should come from tools."
+    ),
+}
+
+
+MEMORY_TOOL_POLICY = {
+    "version": "duecare.memory_tool_policy.v1",
+    "memorize": [
+        "stable reasoning structure",
+        "ILO forced-labour indicator categories",
+        "safe refusal and non-uplift behavior",
+        "evidence-first citation discipline",
+        "privacy and anonymization boundaries",
+    ],
+    "tool_call": [
+        "hotline phone numbers and addresses",
+        "current advisories",
+        "fee caps and wage rules",
+        "statutory text that may change",
+        "search results and fresh enforcement actions",
+    ],
+}
+
+
 APPENDIX_WORKFLOWS: dict[str, dict[str, Any]] = {
     "a00_omni_control_plane": {
         "notebook": "A-00",
@@ -852,6 +889,40 @@ def _dry_run_response(prompt: str, trace: dict[str, Any], row: Optional[dict[str
     hits = trace.get("grep", {}).get("hits", [])
     facts = trace.get("rag", {}).get("facts", [])
     profile = trace.get("profile", "none")
+    if profile == "response_polish":
+        source_prompt = row.get("source_prompt") or row.get("prompt") or prompt
+        draft = row.get("draft_response") or ""
+        focus = row.get("rubric_focus") or []
+        focus_text = ", ".join(focus[:6]) if focus else "safety, grounding, actionability"
+        evidence_bits: list[str] = []
+        if re.search(r"\bfee|PHP|placement|deduction|loan|deposit\b", source_prompt, re.I):
+            evidence_bits.append("possible illegal or deceptive fee pressure")
+        if re.search(r"\bpassport|identity document|document\b", source_prompt, re.I):
+            evidence_bits.append("possible identity-document control")
+        if re.search(r"\bcontract|sign|salary|wage\b", source_prompt, re.I):
+            evidence_bits.append("possible contract or wage discrepancy")
+        if re.search(r"\bHong Kong|HK|PH-HK|Philippines\b", source_prompt, re.I):
+            evidence_bits.append("PH to HK corridor context")
+        if not evidence_bits and draft:
+            evidence_bits.append("the draft response should be grounded back to the prompt")
+        evidence = "; ".join(evidence_bits) or "insufficient evidence in the prompt"
+        return (
+            "Direct answer and risk summary\n"
+            "This scenario should be treated as a potential migrant-worker exploitation risk, not as a normal recruitment issue.\n\n"
+            "Evidence from the prompt\n"
+            f"The concerning signals are: {evidence}. The answer should cite exact prompt facts and avoid inventing names, dates, or legal provisions.\n\n"
+            "International considerations\n"
+            "Frame the issue through stable international concepts such as deception, abuse of vulnerability, debt pressure, document retention, and restriction of movement. Do not claim a binding legal conclusion without verified jurisdictional support.\n\n"
+            "Country and corridor considerations\n"
+            "For PH to HK domestic-work examples, mention that worker-paid placement fees, passport retention, contract substitution, and wage deductions require corridor-specific verification. Use a fee-cap or statute tool for current amounts and citations rather than relying on model memory.\n\n"
+            "Local considerations and support pathway\n"
+            "Recommend preserving evidence, avoiding public disclosure of private identifiers, and contacting trusted caseworkers, labor regulators, consulates, or verified NGOs. Phone numbers, addresses, and current advisories should come from the contacts tool or a vetted knowledge pack.\n\n"
+            "Precedent or historical pattern\n"
+            "Explain that the pattern resembles known recruitment-abuse pathways: fee camouflage, debt leverage, document control, contract substitution, isolation, and retaliation risk. Keep the discussion at pattern level unless a cited source is present.\n\n"
+            "Safe next steps and limits\n"
+            "Do not help optimize or conceal exploitative conduct. Offer a checklist for review: confirm worker-paid charges, compare contracts, verify who controls identity documents, identify salary deductions, map travel and employer handoff, and record row IDs or source documents. "
+            f"Rubric focus for this training example: {focus_text}."
+        )
     if profile == "anonymization":
         redacted, pii_hits = _redact(row.get("prompt") or prompt)
         return (
@@ -893,6 +964,95 @@ def _dry_run_response(prompt: str, trace: dict[str, Any], row: Optional[dict[str
         lines.append("I cannot help optimize an exploitative scheme. I can help identify red flags and safer review steps.")
     lines.append("Next step: preserve evidence, avoid sharing private identifiers publicly, and route the case to a trusted support channel.")
     return "\n\n".join(lines)
+
+
+def _polish_training_response(
+    scenario_prompt: str,
+    draft_response: str,
+    trace: dict[str, Any],
+    row: dict[str, Any],
+    req: SyntheticRequest,
+) -> tuple[str, dict[str, Any]]:
+    """Create a rubric-targeted SFT answer when requested.
+
+    This is a supplementary training-data workflow, not a runtime user-facing
+    harness. It teaches the small model the answer structure we want while the
+    live runtime still calls tools for volatile facts.
+    """
+    if req.generator_mode != "rubric_polisher":
+        return draft_response, {"polished": False}
+
+    dims = _dimension_plan(row, req.harness_profile, trace)
+    dim_lines = "\n".join(
+        f"- {d['id']}: {d['label']} weight={d['weight']}" for d in dims[:12]
+    )
+    polish_prompt = (
+        "You are the DueCare rubric-polish harness for training-data creation.\n"
+        "Rewrite the draft assistant answer into an ideal SFT target that would score highly on the rubric.\n"
+        "Use only facts from the prompt, the harness trace, and the draft. Do not invent phone numbers, statute sections, or current advisories.\n"
+        "Use this response blueprint:\n"
+        + _json_dumps(RESPONSE_BLUEPRINT)
+        + "\n\nUse this memorization policy:\n"
+        + _json_dumps(MEMORY_TOOL_POLICY)
+        + "\n\nRubric dimensions:\n"
+        + dim_lines
+        + "\n\nUser prompt:\n"
+        + scenario_prompt
+        + "\n\nDraft response:\n"
+        + draft_response
+        + "\n\nReturn only the polished assistant response."
+    )
+    polish_trace = {
+        "profile": "response_polish",
+        "layers": ["response_blueprint", "rubric_dimensions", "memory_tool_policy"],
+        "prompt_sha256": _sha256_text(scenario_prompt),
+        "model_prompt_sha256": _sha256_text(polish_prompt),
+        "source_trace_sha256": _sha256_text(_json_dumps(trace)),
+        "steps": [
+            {"layer": "response_blueprint", "status": "pass", "version": RESPONSE_BLUEPRINT["version"]},
+            {"layer": "rubric_dimensions", "status": "pass", "n": len(dims)},
+            {"layer": "memory_tool_policy", "status": "pass", "version": MEMORY_TOOL_POLICY["version"]},
+        ],
+    }
+    polished, meta = _generate(
+        polish_prompt,
+        max_new_tokens=760,
+        temperature=min(float(req.temperature or 0.2), 0.3),
+        trace=polish_trace,
+        row={
+            **row,
+            "source_prompt": scenario_prompt,
+            "draft_response": draft_response,
+            "rubric_focus": [d["id"] for d in dims],
+        },
+    )
+    if len(polished.strip()) < 200:
+        polish_row = {
+            **row,
+            "source_prompt": scenario_prompt,
+            "draft_response": draft_response,
+            "rubric_focus": [d["id"] for d in dims],
+        }
+        fallback, fallback_meta = _generate(
+            polish_prompt,
+            max_new_tokens=760,
+            temperature=0.0,
+            trace=polish_trace,
+            row=polish_row,
+        )
+        polished = fallback
+        meta = {"primary": meta, "fallback": fallback_meta}
+        if len(polished.strip()) < 200:
+            polished = _dry_run_response(polish_prompt, polish_trace, polish_row)
+            meta["deterministic_blueprint_fallback"] = True
+    return polished, {
+        "polished": True,
+        "blueprint": RESPONSE_BLUEPRINT["version"],
+        "memory_tool_policy": MEMORY_TOOL_POLICY["version"],
+        "rubric_dimensions": [d["id"] for d in dims],
+        "generation": meta,
+        "trace": polish_trace,
+    }
 
 
 def _load_model_runtime(req: ModelLoadRequest) -> dict[str, Any]:
@@ -1461,8 +1621,9 @@ def _generate_synthetic(req: SyntheticRequest) -> dict[str, Any]:
             + f"\n\nVariation {i + 1}: make the scenario realistic, compact, and suitable for evaluating the {req.harness_profile} profile."
         )
         model_prompt, trace = _build_harness_prompt({**seed, "prompt": scenario_prompt}, req.harness_profile)
-        chosen, meta = _generate(model_prompt, max_new_tokens=520, temperature=req.temperature, trace=trace, row=seed)
-        rejected = _dry_run_response(seed["prompt"], {"profile": "none", "layers": []}, seed)
+        draft, meta = _generate(model_prompt, max_new_tokens=520, temperature=req.temperature, trace=trace, row=seed)
+        chosen, polish_meta = _polish_training_response(scenario_prompt, draft, trace, seed, req)
+        rejected = draft if req.generator_mode == "rubric_polisher" else _dry_run_response(seed["prompt"], {"profile": "none", "layers": []}, seed)
         prompt_id = f"{base_id}_{i + 1:04d}"
         sft_rows.append({
             "id": prompt_id,
@@ -1477,6 +1638,9 @@ def _generate_synthetic(req: SyntheticRequest) -> dict[str, Any]:
                 "seed_prompt_id": seed.get("prompt_id"),
                 "trace": trace,
                 "generation": meta,
+                "polish": polish_meta,
+                "response_blueprint": RESPONSE_BLUEPRINT["version"] if polish_meta.get("polished") else "",
+                "memory_tool_policy": MEMORY_TOOL_POLICY["version"] if polish_meta.get("polished") else "",
             },
         })
         prompt_tests.append({
@@ -1493,7 +1657,13 @@ def _generate_synthetic(req: SyntheticRequest) -> dict[str, Any]:
                 "prompt": scenario_prompt,
                 "chosen": chosen,
                 "rejected": rejected,
-                "metadata": {"generator_mode": req.generator_mode, "harness_profile": req.harness_profile},
+                "metadata": {
+                    "generator_mode": req.generator_mode,
+                    "harness_profile": req.harness_profile,
+                    "rejected_kind": "draft_before_polish" if req.generator_mode == "rubric_polisher" else "no_harness_dry_run",
+                    "response_blueprint": RESPONSE_BLUEPRINT["version"] if polish_meta.get("polished") else "",
+                    "memory_tool_policy": MEMORY_TOOL_POLICY["version"] if polish_meta.get("polished") else "",
+                },
             })
         if req.include_knowledge_facts:
             facts.append({
@@ -1524,6 +1694,8 @@ def _generate_synthetic(req: SyntheticRequest) -> dict[str, Any]:
         "generator_mode": req.generator_mode,
         "harness_profile": req.harness_profile,
         "model": STATE["model_info"],
+        "response_blueprint": RESPONSE_BLUEPRINT if req.generator_mode == "rubric_polisher" else None,
+        "memory_tool_policy": MEMORY_TOOL_POLICY if req.generator_mode == "rubric_polisher" else None,
         "counts": {
             "sft": len(sft_rows),
             "dpo": len(dpo_rows),
@@ -1680,6 +1852,9 @@ def _read_document_bundle(filename: str, data: bytes) -> list[dict[str, Any]]:
     def add_doc(name: str, body: bytes) -> None:
         lower = name.lower()
         if not lower.endswith((".txt", ".md", ".csv", ".json", ".jsonl")):
+            media_type = "pdf" if lower.endswith(".pdf") else (
+                "image" if lower.endswith((".png", ".jpg", ".jpeg", ".webp", ".tif", ".tiff", ".bmp")) else "binary"
+            )
             docs.append({
                 "doc_id": _safe_slug(name),
                 "filename": name,
@@ -1688,6 +1863,8 @@ def _read_document_bundle(filename: str, data: bytes) -> list[dict[str, Any]]:
                 "sha256": hashlib.sha256(body).hexdigest(),
                 "size_bytes": len(body),
                 "media_only": True,
+                "media_type": media_type,
+                "needs_ocr": media_type in {"pdf", "image"},
             })
             return
         text = body.decode("utf-8", errors="ignore")
@@ -1719,6 +1896,7 @@ def _extract_research_graph(docs: list[dict[str, Any]], label: str = "research_b
     edges: list[dict[str, Any]] = []
     timeline: list[dict[str, Any]] = []
     doc_rows: list[dict[str, Any]] = []
+    media_queue: list[dict[str, Any]] = []
 
     def entity(eid: str, etype: str, value: str, doc_id: str) -> None:
         key = f"{etype}:{value}".lower()
@@ -1737,6 +1915,19 @@ def _extract_research_graph(docs: list[dict[str, Any]], label: str = "research_b
         lower_name = doc.get("filename", "").lower()
         if doc.get("media_only"):
             doc_type = "media"
+            media_queue.append({
+                "doc_id": doc_id,
+                "filename": doc.get("filename"),
+                "media_type": doc.get("media_type") or "binary",
+                "size_bytes": doc.get("size_bytes"),
+                "status": "queued_for_ocr_and_gemma_vision",
+                "passes": [
+                    "OCR or PDF text extraction",
+                    "Gemma 4 multimodal page description",
+                    "entity and edge extraction",
+                    "reviewer confirmation before promotion",
+                ],
+            })
         elif "complaint" in lower_name:
             doc_type = "complaint"
         elif "police" in lower_name:
@@ -1814,6 +2005,8 @@ def _extract_research_graph(docs: list[dict[str, Any]], label: str = "research_b
             "n_chars": len(text),
             "n_rules": len(hits),
             "n_entities": len(names) + len(phones) + len(passports) + len(amounts) + len(locations) + len(agencies),
+            "media_type": doc.get("media_type") or "",
+            "needs_ocr": bool(doc.get("needs_ocr")),
         })
 
     people_out = []
@@ -1833,8 +2026,10 @@ def _extract_research_graph(docs: list[dict[str, Any]], label: str = "research_b
             "n_entities": len(entities),
             "n_edges": len(edges),
             "n_timeline_events": len(timeline),
+            "n_media_assets": len(media_queue),
         },
         "documents": doc_rows,
+        "media_queue": media_queue,
         "people": people_out,
         "entities": list(entities.values()),
         "edges": edges,
@@ -1847,16 +2042,18 @@ def _write_research_artifacts(graph: dict[str, Any], label: str) -> dict[str, st
     graph_path = RUN_DIR / f"{bundle_id}_graph.json"
     edge_path = RUN_DIR / f"{bundle_id}_edges.csv"
     doc_path = RUN_DIR / f"{bundle_id}_documents.csv"
+    media_path = RUN_DIR / f"{bundle_id}_media_manifest.json"
     html_path = RUN_DIR / f"{bundle_id}_report.html"
     zip_path = RUN_DIR / f"{bundle_id}_bundle.zip"
     _write_json(graph_path, graph)
+    _write_json(media_path, graph.get("media_queue", []))
     with edge_path.open("w", encoding="utf-8", newline="") as f:
         writer = csv.DictWriter(f, fieldnames=["source", "target", "type", "doc_id", "confidence"])
         writer.writeheader()
         for row in graph.get("edges", []):
             writer.writerow(row)
     with doc_path.open("w", encoding="utf-8", newline="") as f:
-        fieldnames = ["doc_id", "filename", "doc_type", "sha256", "n_chars", "n_rules", "n_entities"]
+        fieldnames = ["doc_id", "filename", "doc_type", "sha256", "n_chars", "n_rules", "n_entities", "media_type", "needs_ocr"]
         writer = csv.DictWriter(f, fieldnames=fieldnames)
         writer.writeheader()
         for row in graph.get("documents", []):
@@ -1878,16 +2075,18 @@ def _write_research_artifacts(graph: dict[str, Any], label: str) -> dict[str, st
 <div class="k">People: {graph['summary']['n_people']}</div>
 <div class="k">Entities: {graph['summary']['n_entities']}</div>
 <div class="k">Edges: {graph['summary']['n_edges']}</div>
+<div class="k">Media queued: {graph['summary'].get('n_media_assets', 0)}</div>
 <h2>Documents</h2><table><thead><tr><th>File</th><th>Type</th><th>Rules</th><th>Entities</th></tr></thead><tbody>{html_rows}</tbody></table>
 <h2>People and Risk Indicators</h2><table><thead><tr><th>Person</th><th>Documents</th><th>Risk indicators</th><th>Amounts</th></tr></thead><tbody>{people_rows}</tbody></table>
 </body></html>""", encoding="utf-8")
     with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as z:
-        for path in [graph_path, edge_path, doc_path, html_path]:
+        for path in [graph_path, edge_path, doc_path, media_path, html_path]:
             z.write(path, arcname=path.name)
     return {
         "graph": str(graph_path),
         "edges": str(edge_path),
         "documents": str(doc_path),
+        "media_manifest": str(media_path),
         "html": str(html_path),
         "zip": str(zip_path),
     }
@@ -2362,12 +2561,20 @@ HOMEPAGE_HTML = r"""<!doctype html>
         <label>Generator
           <select id="generator-mode">
             <option>harness_teacher</option>
+            <option>rubric_polisher</option>
             <option>abliterated_adversary</option>
             <option>finetuned_teacher</option>
           </select>
         </label>
       </div>
-      <button onclick="generateSynthetic()">Generate data bundle</button>
+      <div class="row">
+        <button onclick="generateSynthetic()">Generate data bundle</button>
+        <button class="secondary" onclick="generatePolished()">Generate rubric-polished SFT</button>
+      </div>
+      <p class="muted">
+        The rubric-polished mode is the supplementary training-data harness:
+        it teaches response structure while marking volatile facts for tool calls.
+      </p>
     </div>
 
     <div class="panel">
@@ -2380,6 +2587,7 @@ HOMEPAGE_HTML = r"""<!doctype html>
         <label>Execute now <select id="execute-train"><option value="false">false</option><option value="true">true</option></select></label>
       </div>
       <button onclick="createTrainingJob()">Create training job</button>
+      <button class="secondary" onclick="finetuneSmoke()">Tiny fine-tune smoke bundle</button>
     </div>
 
     <div class="panel">
@@ -2520,6 +2728,11 @@ async function generateSynthetic() {
   if (res.artifacts && res.artifacts.sft) $("train-data-path").value = res.artifacts.sft;
   log(res);
 }
+async function generatePolished() {
+  $("generator-mode").value = "rubric_polisher";
+  $("synth-count").value = Math.max(8, Number($("synth-count").value || 40));
+  await generateSynthetic();
+}
 async function createTrainingJob() {
   const body = {
     data_path: $("train-data-path").value,
@@ -2528,6 +2741,12 @@ async function createTrainingJob() {
     execute: $("execute-train").value === "true"
   };
   log(await getJson("/api/a00/train", {method:"POST", headers:{"content-type":"application/json"}, body:JSON.stringify(body)}));
+}
+async function finetuneSmoke() {
+  const synth = await getJson("/api/a00/synthetic/generate", {method:"POST", headers:{"content-type":"application/json"}, body:JSON.stringify({source_prompt_set:"chat_safety_core", count:8, harness_profile:"chat_full", generator_mode:"rubric_polisher", include_dpo:true, include_knowledge_facts:true})});
+  if (synth.artifacts && synth.artifacts.sft) $("train-data-path").value = synth.artifacts.sft;
+  const job = await getJson("/api/a00/train", {method:"POST", headers:{"content-type":"application/json"}, body:JSON.stringify({data_path:synth.artifacts && synth.artifacts.sft || "", base_model_ref:$("train-base-model").value, max_steps:5, execute:false, adapter_name:"duecare-a00-smoke-e2b-lora"})});
+  log({synthetic:synth, training_job:job, next:"On Kaggle GPU, set Execute now=true after confirming model path and dependencies."});
 }
 async function runWorkflow() {
   const body = {

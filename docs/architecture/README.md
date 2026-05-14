@@ -72,3 +72,4 @@ Canonical product definition: [`../product_definition.md`](../product_definition
 4. **Contacts are deterministic.** Contacts come from verified data, not model output.
 5. **Evaluation gates every update.** New rules / docs / rubrics run through regression tests before release.
 6. **Mobile app consumes vetted packs.** The app pulls versioned, offline-compatible safety packs.
+7. **Training data teaches structure, tools supply volatile facts.** Small-model SFT/DPO should reinforce safe response shape, citation discipline, privacy boundaries, and forced-labour indicators. Phone numbers, addresses, current advisories, fee caps, wage rules, and fresh statutes should come from tools or versioned packs.

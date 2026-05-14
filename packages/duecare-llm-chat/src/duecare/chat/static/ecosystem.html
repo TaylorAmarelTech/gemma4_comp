@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Ecosystem Map | DueCare Workbench</title>
+  <link rel="stylesheet" href="/static/_chrome.css">
+  <script src="/static/_nav.js" defer></script>
+  <style>
+    .page { max-width: 1120px; margin: 24px auto 64px; padding: 0 18px; color: var(--ink); font-family: Inter, system-ui, sans-serif; line-height: 1.55; }
+    h1 { font-size: 26px; margin: 0 0 6px; letter-spacing: 0; }
+    h2 { font-size: 15px; margin: 0 0 10px; }
+    h3 { font-size: 13px; margin: 0 0 6px; }
+    .lede { color: var(--ink-2); font-size: 13.5px; margin: 0 0 16px; max-width: 880px; }
+    .panel { background: var(--paper); border: 1px solid var(--line); border-radius: 8px; padding: 16px 18px; margin-bottom: 14px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(225px, 1fr)); gap: 10px; }
+    .node { border: 1px solid var(--line); border-radius: 8px; padding: 12px; background: #fff; min-height: 94px; }
+    .node strong { display: block; font-size: 13px; margin-bottom: 4px; }
+    .node span { color: var(--ink-3); font-size: 11.5px; }
+    .node.primary { border-color: var(--accent); box-shadow: inset 0 3px 0 var(--accent); }
+    .node.gate { border-color: var(--ember); box-shadow: inset 0 3px 0 var(--ember); }
+    .flow { display: grid; gap: 8px; }
+    .flow-row { display: grid; grid-template-columns: 135px minmax(0, 1fr); gap: 10px; align-items: stretch; }
+    .flow-label { font-family: var(--mono); font-size: 10.5px; color: var(--ink-3); text-transform: uppercase; letter-spacing: .06em; padding-top: 10px; }
+    .flow-track { display: grid; grid-template-columns: repeat(auto-fit, minmax(135px, 1fr)); gap: 8px; }
+    .step { background: var(--paper-2); border: 1px solid var(--line-soft); border-radius: 8px; padding: 10px; min-height: 76px; }
+    .step b { display: block; font-size: 12.5px; margin-bottom: 4px; }
+    .step small { color: var(--ink-3); font-size: 11px; }
+    .legend { display: flex; flex-wrap: wrap; gap: 7px; margin: 10px 0 0; }
+    .pill { display: inline-block; border: 1px solid var(--line); border-radius: 999px; padding: 2px 7px; background: var(--paper-2); color: var(--ink-2); font-size: 10.5px; font-family: var(--mono); }
+    .actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+    .btn { border: 1px solid var(--line); border-radius: 7px; padding: 8px 12px; background: var(--paper); color: var(--ink); text-decoration: none; font-size: 12.5px; font-weight: 600; }
+    .btn.primary { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+    table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    th, td { border-bottom: 1px solid var(--line-soft); padding: 7px 8px; text-align: left; vertical-align: top; }
+    th { font-family: var(--mono); color: var(--ink-3); font-size: 10.5px; text-transform: uppercase; letter-spacing: .05em; }
+    @media (max-width: 720px) {
+      .flow-row { grid-template-columns: 1fr; }
+      .flow-label { padding-top: 0; }
+    }
+  </style>
+</head>
+<body data-nav="ecosystem">
+  <main class="page">
+    <h1>DueCare Ecosystem Map</h1>
+    <p class="lede">
+      Judge-facing map of how the live workbench, harnesses, knowledge packs,
+      evaluation, synthetic data, fine-tuning, and deployment targets fit
+      together. The diagram is implemented in HTML and CSS so it ships inside
+      the Kaggle demo without an external image dependency.
+    </p>
+
+    <section class="panel">
+      <h2>Runtime System</h2>
+      <div class="flow">
+        <div class="flow-row">
+          <div class="flow-label">User surface</div>
+          <div class="flow-track">
+            <div class="step"><b>Chat</b><small>single prompt, optional image, live model response</small></div>
+            <div class="step"><b>Compare</b><small>same prompt across harness profiles</small></div>
+            <div class="step"><b>Bulk File Review</b><small>ZIP, PDF, image, CSV, JSONL, text bundles</small></div>
+            <div class="step"><b>Knowledge and Search</b><small>draft packs, sanitize queries, collect sources</small></div>
+          </div>
+        </div>
+        <div class="flow-row">
+          <div class="flow-label">Safety substrate</div>
+          <div class="flow-track">
+            <div class="step"><b>Persona</b><small>bounded expert role and refusal posture</small></div>
+            <div class="step"><b>GREP</b><small>161 deterministic risk rules</small></div>
+            <div class="step"><b>RAG</b><small>versioned citations and policy facts</small></div>
+            <div class="step"><b>Tools</b><small>fee caps, contacts, indicators, fresh facts</small></div>
+            <div class="step"><b>Online</b><small>opt-in public source checks after sanitization</small></div>
+          </div>
+        </div>
+        <div class="flow-row">
+          <div class="flow-label">Model layer</div>
+          <div class="flow-track">
+            <div class="step"><b>Gemma 4</b><small>one loaded model per Kaggle run</small></div>
+            <div class="step"><b>Trace</b><small>layer outcomes, prompts, hashes, timings</small></div>
+            <div class="step"><b>Grade</b><small>rule judge, LLM judge, combined score</small></div>
+            <div class="step"><b>Export</b><small>JSON, CSV, HTML, ZIP, training rows</small></div>
+          </div>
+        </div>
+      </div>
+      <div class="legend">
+        <span class="pill">local first</span>
+        <span class="pill">one model resident</span>
+        <span class="pill">hash provenance</span>
+        <span class="pill">tool facts for volatile data</span>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Seven Surfaces</h2>
+      <div class="grid">
+        <div class="node primary"><strong>Chat</strong><span>Gemma-backed primary harness: Persona, GREP, RAG, Tools, Online.</span></div>
+        <div class="node primary"><strong>Process</strong><span>Gemma-backed bulk review: GREP, RAG, Tools, graph chat, media queue.</span></div>
+        <div class="node primary"><strong>Extraction</strong><span>Gemma-assisted knowledge-object drafting with validation.</span></div>
+        <div class="node gate"><strong>Anonymization</strong><span>Hard privacy gate. No Gemma required before boundary crossing.</span></div>
+        <div class="node gate"><strong>Search Safety</strong><span>Hard outbound-query gate with optional Gemma rephrase.</span></div>
+        <div class="node"><strong>Search</strong><span>Secondary utility after query sanitization.</span></div>
+        <div class="node"><strong>Import Corpus</strong><span>Secondary evidence CRUD. Feeds Gemma-backed harnesses.</span></div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Evaluation And Training Flywheel</h2>
+      <table>
+        <thead><tr><th>Stage</th><th>What It Proves</th><th>Where To Test</th></tr></thead>
+        <tbody>
+          <tr><td>Baseline run</td><td>Stock Gemma 4 behavior on the same prompts.</td><td>A-00 or Compare with no harness.</td></tr>
+          <tr><td>Harnessed run</td><td>Quality lift from safety layers, RAG, tools, and traceable grounding.</td><td>A-00 batch run or live Compare.</td></tr>
+          <tr><td>Rubric-polished synthetic data</td><td>Ideal response structure for SFT/DPO rows, with volatile facts marked for tools.</td><td>A-00 Synthetic Data, `rubric_polisher` mode.</td></tr>
+          <tr><td>Fine-tune smoke</td><td>Small-model training path works before a full GPU run.</td><td>A-00 Train Adapter, tiny 5-step script.</td></tr>
+          <tr><td>Report</td><td>Score, latency, local cost, and provenance across exports.</td><td>A-00 HTML report and ZIP bundle.</td></tr>
+        </tbody>
+      </table>
+      <div class="actions">
+        <a class="btn primary" href="/static/compare.html">Run Harness Comparison</a>
+        <a class="btn" href="/static/process.html">Open Bulk File Review</a>
+        <a class="btn" href="/static/ui-audit.html">Open UI Audit</a>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

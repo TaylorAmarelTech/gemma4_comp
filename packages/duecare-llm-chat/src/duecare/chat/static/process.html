@@ -72,8 +72,9 @@
     </div>
 
     <p class="wb-lede">
-      Drop a ZIP, folder, CSV, or JSONL of case material: chat exports,
-      scans, recruitment ads, court excerpts, recorded testimony transcripts.
+      Drop a ZIP, CSV, JSONL, PDF, image, or text bundle of case material:
+      chat exports, scans, recruitment ads, court excerpts, recorded testimony
+      transcripts, and document photos.
       Each row goes through the process harness: GREP, entity extraction,
       document typing, person linking, hierarchy construction, and a compact
       Gemma 4 case-brief pass when a model is loaded. The page renders the
@@ -85,10 +86,10 @@
       <h2 style="margin-top:0;">Process harness path</h2>
       <div class="wb-pipeline" id="wb-static-pipeline">
         <div class="wb-step"><div class="num">Step 1</div><div class="name">Upload</div><div class="detail">ZIP, CSV, JSONL, TXT, or MD enters the local kernel.</div></div>
-        <div class="wb-step"><div class="num">Step 2</div><div class="name">Parse</div><div class="detail">Files become rows with source paths and document types.</div></div>
+        <div class="wb-step"><div class="num">Step 2</div><div class="name">Parse</div><div class="detail">Files become text chunks, PDF page rows, or media work items.</div></div>
         <div class="wb-step"><div class="num">Step 3</div><div class="name">GREP</div><div class="detail">Trafficking and labor-risk rules fire with citations.</div></div>
         <div class="wb-step"><div class="num">Step 4</div><div class="name">Attributes</div><div class="detail">People, payments, dates, locations, statutes, and corridors are linked.</div></div>
-        <div class="wb-step"><div class="num">Step 5</div><div class="name">Gemma brief</div><div class="detail">Gemma 4 summarizes case theory and missing evidence when loaded.</div></div>
+        <div class="wb-step"><div class="num">Step 5</div><div class="name">Gemma passes</div><div class="detail">Gemma 4 briefs extracted facts and queues vision passes for media.</div></div>
         <div class="wb-step"><div class="num">Step 6</div><div class="name">Graph chat</div><div class="detail">Questions use the local graph plus GREP, RAG, and tools grounding.</div></div>
       </div>
       <p class="wb-muted" style="font-size:11.5px; margin-top:10px;">
@@ -124,7 +125,8 @@
     <div class="wb-card">
       <h2>Drop a bundle</h2>
       <p>Accepted: <span class="wb-pill">.zip</span> <span class="wb-pill">.csv</span>
-      <span class="wb-pill">.jsonl</span> <span class="wb-pill">.txt</span></p>
+      <span class="wb-pill">.jsonl</span> <span class="wb-pill">.txt</span>
+      <span class="wb-pill">.pdf</span> <span class="wb-pill">images</span></p>
       <div id="wb-dropzone" onclick="document.getElementById('wb-file-input').click()"
            style="border: 2px dashed #DDD8C9; border-radius: 10px; padding: 36px 18px;
                   text-align: center; background: #FFF; color: #5B5F68; font-size: 13px; cursor: pointer;">
@@ -133,7 +135,7 @@
         <div class="wb-muted" style="margin-top: 6px;">Up to 200 rows / request (excess flagged).</div>
       </div>
       <input type="file" id="wb-file-input" style="display: none;"
-             accept=".zip,.csv,.jsonl,.txt,.md" onchange="wbHandle(event)">
+             accept=".zip,.csv,.jsonl,.txt,.md,.log,.pdf,.png,.jpg,.jpeg,.webp,.tif,.tiff,.bmp" onchange="wbHandle(event)">
       <div id="wb-file-info" class="wb-row"></div>
       <div class="wb-row">
         <button class="wb-btn-primary" id="wb-process-btn" disabled onclick="wbProcess()">Start processing</button>
@@ -150,6 +152,16 @@
         <div class="wb-pipeline" id="wb-trace"></div>
       </div>
       <div class="wb-card">
+        <h2>Advanced processing plan</h2>
+        <p class="wb-muted" style="margin-top:0;">
+          Bulk review now separates implemented deterministic passes from queued
+          OCR and multimodal extraction work. Images, scans, and PDFs are not
+          treated as plain text; they become media work items for OCR plus
+          Gemma 4 vision extraction.
+        </p>
+        <div id="wb-processing-plan"></div>
+      </div>
+      <div class="wb-card">
         <h2>Extracted intelligence</h2>
         <div class="wb-intel-grid" id="wb-intel-metrics"></div>
       </div>
@@ -164,6 +176,15 @@
       <div class="wb-card">
         <h2>Timeline</h2>
         <div id="wb-timeline" style="max-height: 260px; overflow-y: auto;"></div>
+      </div>
+      <div class="wb-card">
+        <h2>Migrant worker journey: critical points</h2>
+        <p class="wb-muted" style="margin-top:0;">
+          The process harness maps extracted facts onto journey stages so fee,
+          document-control, travel, placement, employment-control, and complaint
+          signals are easier to inspect before graph chat.
+        </p>
+        <div id="wb-journey"></div>
       </div>
       <div class="wb-card">
         <h2>Gemma 4 case brief</h2>
@@ -368,7 +389,9 @@
       const s = b.summary || {};
       const intel = b.intelligence || {};
       wbRenderTrace(intel.harness_trace || []);
+      wbRenderProcessingPlan(intel.processing_plan || {});
       wbRenderIntelligence(intel, s);
+      wbRenderJourney(intel);
       document.getElementById('wb-summary').innerHTML =
         // audit-allow:innerHTML-safe: summary fields are numeric counts from /api/process/batch
         '<div><b>Rows:</b> ' + s.n_rows_processed + ' / ' + s.n_rows_total +
@@ -409,6 +432,33 @@
         '</div>'
       ).join('');
     }
+    function wbRenderProcessingPlan(plan) {
+      const host = document.getElementById('wb-processing-plan');
+      const passes = plan.passes || [];
+      const media = plan.media_assets || [];
+      const parentDocs = plan.parent_documents || [];
+      const passHtml = passes.length ? passes.map(p =>
+        '<div class="wb-step ' + (String(p.status || '').includes('implemented') ? 'complete' : '') + '">' +
+        '<div class="num">' + wbEsc(p.status || 'planned') + '</div>' +
+        '<div class="name">' + wbEsc(p.label || p.id) + '</div>' +
+        '<div class="detail">' + wbEsc(p.detail || '') + '</div>' +
+        '</div>'
+      ).join('') : '<div class="wb-muted">No processing plan returned.</div>';
+      const mediaHtml = media.length ? media.slice(0, 10).map(m =>
+        '<tr><td><code>' + wbEsc(m.row_id) + '</code></td><td>' + wbEsc(m.media_type) +
+        '</td><td>' + wbEsc(m.bytes || 0) + '</td><td>' + wbEsc(m.status) + '</td></tr>'
+      ).join('') : '<tr><td colspan="4" class="wb-muted">No image, scan, or PDF assets detected in this upload.</td></tr>';
+      host.innerHTML =
+        '<div class="wb-intel-grid" style="margin-bottom:10px;">' +
+        '<div class="wb-metric"><div class="label">Parent documents</div><div class="value">' + wbEsc(plan.n_parent_documents || parentDocs.length || 0) + '</div></div>' +
+        '<div class="wb-metric"><div class="label">PDF pages extracted</div><div class="value">' + wbEsc(plan.n_pages || 0) + '</div></div>' +
+        '<div class="wb-metric"><div class="label">Chunks / rows</div><div class="value">' + wbEsc(plan.n_chunks || 0) + '</div></div>' +
+        '<div class="wb-metric"><div class="label">Media assets queued</div><div class="value">' + wbEsc(plan.n_media_assets || media.length || 0) + '</div></div>' +
+        '</div>' +
+        '<div class="wb-pipeline" style="margin-bottom:12px;">' + passHtml + '</div>' +
+        '<h3 style="font-size:13px; margin:0 0 6px;">OCR and multimodal queue</h3>' +
+        '<div style="max-height:220px; overflow:auto;"><table class="wb-small-table"><thead><tr><th>asset</th><th>type</th><th>bytes</th><th>status</th></tr></thead><tbody>' + mediaHtml + '</tbody></table></div>';
+    }
     function wbRenderIntelligence(intel, summary) {
       const people = intel.people || [];
       const docCounts = intel.document_type_counts || {};
@@ -416,6 +466,7 @@
         ['People', intel.n_people || 0],
         ['Documents', intel.n_documents || (summary.n_rows_processed || 0)],
         ['Evidence edges', intel.n_evidence_edges || 0],
+        ['Journey points', (intel.journey_points || []).length],
         ['Gemma brief', (intel.gemma_case_brief || {}).status || 'not run'],
       ];
       document.getElementById('wb-intel-metrics').innerHTML = metrics.map(m =>
@@ -453,6 +504,52 @@
         briefJson ? '<pre style="white-space:pre-wrap; max-height:300px; overflow:auto; background:#FAF9F4; border:1px solid #EFEDE4; border-radius:8px; padding:10px; font-size:11.5px;">' + wbEsc(JSON.stringify(briefJson, null, 2)) + '</pre>' :
         brief.text ? '<pre style="white-space:pre-wrap; max-height:300px; overflow:auto; background:#FAF9F4; border:1px solid #EFEDE4; border-radius:8px; padding:10px; font-size:11.5px;">' + wbEsc(brief.text) + '</pre>' :
         '<div class="wb-muted">Gemma case brief status: ' + wbEsc(brief.status || 'not run') + '</div>';
+    }
+    function wbRenderJourney(intel) {
+      const host = document.getElementById('wb-journey');
+      const points = intel.journey_points || [];
+      if (!points.length) {
+        host.innerHTML = '<div class="wb-muted">No journey-stage evidence detected.</div>';
+        return;
+      }
+      const groups = {};
+      points.forEach(p => {
+        const stage = p.stage || 'other_evidence';
+        if (!groups[stage]) groups[stage] = [];
+        groups[stage].push(p);
+      });
+      const stageOrder = [
+        'recruitment',
+        'payment_and_debt',
+        'contracting',
+        'documents_and_identity',
+        'travel',
+        'arrival_and_placement',
+        'employment_control',
+        'complaint_and_escalation',
+        'other_evidence',
+      ];
+      host.innerHTML = stageOrder.filter(s => groups[s]).map(stage => {
+        const rows = groups[stage].slice(0, 8);
+        const critical = rows.filter(p => p.is_critical).length;
+        const body = rows.map(p => {
+          const payments = (p.payments || []).slice(0, 3).map(x => wbPill(x.amount || '')).join('');
+          const signals = (p.risk_signals || []).slice(0, 4).map(wbPill).join('');
+          return '<div style="border-top:1px solid #EFEDE4; padding:8px 0;">' +
+            '<div style="display:flex; justify-content:space-between; gap:8px; flex-wrap:wrap;">' +
+            '<b>' + wbEsc(p.case_id || 'UNKNOWN') + '</b>' +
+            '<span class="wb-muted"><code>' + wbEsc(p.row_id || '') + '</code></span></div>' +
+            '<div class="wb-muted" style="margin-top:3px;">' + wbEsc(p.summary || '') + '</div>' +
+            (payments ? '<div class="wb-chip-list"><span class="wb-muted">payments</span>' + payments + '</div>' : '') +
+            (signals ? '<div class="wb-chip-list"><span class="wb-muted">signals</span>' + signals + '</div>' : '') +
+            '</div>';
+        }).join('');
+        return '<section style="margin-bottom:12px; border:1px solid #EFEDE4; border-radius:8px; padding:10px 12px; background:#FAF9F4;">' +
+          '<div style="display:flex; justify-content:space-between; gap:8px; flex-wrap:wrap;">' +
+          '<h3 style="font-size:13px; margin:0;">' + wbEsc(stage.replace(/_/g, ' ')) + '</h3>' +
+          '<span class="wb-pill">' + rows.length + ' points, ' + critical + ' critical</span>' +
+          '</div>' + body + '</section>';
+      }).join('');
     }
     function wbDownloadBundle() {
       if (!wbBundle) return;

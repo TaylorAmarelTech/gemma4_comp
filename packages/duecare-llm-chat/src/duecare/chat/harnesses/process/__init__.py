@@ -1,4 +1,4 @@
-"""Process Files harness — bundle analyst + graph-chat."""
+"""Bulk File Review harness: bundle analyst + graph-chat."""
 from __future__ import annotations
 
 from .handler import register_routes

@@ -62,5 +62,5 @@ is for a predictable video recording.
 
 - `../01-duecare-exploration-workbench/`: full workbench.
 - `../03-duecare-video-pitch/`: screen-recording deck and cached replay.
-- `../A-00-omni-evaluation-and-training/`: proof reports, synthetic data, and training.
+- `../A-00-omni-experiment-workbench/`: proof reports, synthetic data, and training.
 - `../A-11-grading-evaluation/`: narrow harness-lift regenerator.

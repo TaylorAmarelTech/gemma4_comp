@@ -53,13 +53,33 @@ throughput, and estimated inference cost.
    abliterated model runs.
 7. **Fine-tuning:** Create and optionally execute an Unsloth or PEFT LoRA
    training job from exported synthetic data.
-8. **Appendix workflow registry:** Select any appendix capability from A-01
+8. **Rubric-polished SFT/DPO data:** Use `rubric_polisher` mode to turn
+   harness responses into ideal training targets. The generated rows include
+   the response blueprint, rubric dimensions, and a memory-versus-tool policy
+   so small models learn structure while volatile facts remain tool calls.
+9. **Appendix workflow registry:** Select any appendix capability from A-01
    through A-24. A-00 runs lightweight workflows directly and writes handoff
    manifests for focused heavy-GPU reproductions.
-9. **Local research graph:** Upload case files, document bundles, images, CSV,
+10. **Local research graph:** Upload case files, document bundles, images, CSV,
    JSONL, or ZIP files. A-00 extracts documents, entities, people, locations,
    amounts, risk-rule hits, timeline events, and edges into JSON, CSV, HTML,
    and ZIP artifacts.
+
+## Small-Model Fine-Tune Smoke Path
+
+Use this path before recording if you plan to fine-tune E2B or E4B:
+
+1. Run A-00 on Kaggle with GPU and internet enabled.
+2. Open the UI and keep `dry_run` if you only want artifact validation, or load
+   the smallest selected Gemma 4 model.
+3. In Synthetic Data, choose `rubric_polisher` and generate 8 to 40 rows.
+4. In Train Adapter, click `Tiny fine-tune smoke bundle`. This writes a valid
+   SFT JSONL, DPO JSONL, manifest, bundle ZIP, and a 5-step training script.
+5. After verifying the paths, switch `Execute now` to `true` for the real
+   Unsloth run on the Kaggle GPU.
+
+Local troubleshooting is useful for JSONL shape, import/export, reports, and
+script generation. Real training should run on Kaggle or another CUDA host.
 
 ## Relationship to the Other Appendix Notebooks
 
