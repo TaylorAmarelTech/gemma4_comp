@@ -68,25 +68,25 @@
 </head>
 <body data-nav="getting-started">
   <main class="wb-page">
-    <h1 class="wb-h1">Getting Started -- the DueCare Workbench</h1>
+    <h1 class="wb-h1">Getting started</h1>
     <p class="wb-lede">
       A safety harness around Gemma 4 for migrant-worker recruitment
       and trafficking. This kernel ships a baseline catalog of
       <span class="live-counter" id="hero-grep">--</span> GREP rules,
       <span class="live-counter" id="hero-rag">--</span> RAG docs, and a
-      knowledge taxonomy spanning 6 branches and 21 leaf types. You
-      can chat, compare harness configs, process bundles, draft new
-      knowledge, search the web through a sanitization layer, and
-      sync vetted knowledge from the public hub -- all from this kernel.
+      knowledge taxonomy spanning 6 branches and 21 leaf types. From
+      this kernel you can chat with Gemma 4, compare harness configs,
+      process case bundles, draft new knowledge, search the web through
+      a sanitization layer, and sync vetted knowledge from the public hub.
     </p>
 
     <div class="wb-toc">
       <b>Table of contents</b>
       <ol>
-        <li><a href="#quick-start">Quick start (5 min)</a></li>
+        <li><a href="#quick-start">Quick start</a></li>
         <li><a href="#architecture">Architecture &amp; data flow</a></li>
         <li><a href="#harnesses">The 7 harnesses</a></li>
-        <li><a href="#pages">Every page (12 workflows)</a></li>
+        <li><a href="#pages">Every page</a></li>
         <li><a href="#taxonomy">Knowledge object taxonomy</a></li>
         <li><a href="#trust">Trust boundaries</a></li>
         <li><a href="#endpoints">API endpoint reference</a></li>
@@ -97,38 +97,46 @@
     </div>
 
     <div class="wb-card" id="quick-start">
-      <h2>1. Quick start (5 minutes)</h2>
-      <p>The fastest path from cold kernel to a graded comparison:</p>
+      <h2>1. Quick start</h2>
+      <p>The shortest path from a fresh kernel to a graded comparison:</p>
       <div class="wb-grid-3">
         <div class="wb-flow-step">
-          <h4>Step 1</h4><h5>Open Chat</h5>
-          <p>Hit <a href="/static/chat.html">Chat</a>. The model is already loaded; flip
-            GREP / RAG / Tools / Online toggles to taste.</p>
+          <h4>Step 1</h4><h5>Open Chat and load a model</h5>
+          <p>Open <a href="/static/chat.html">Chat</a>. On first visit a model
+            picker appears: pick a Gemma 4 variant and wait for it to load.
+            Smaller variants load in under a minute; larger ones can take
+            several minutes on a first run.</p>
         </div>
         <div class="wb-flow-step">
           <h4>Step 2</h4><h5>Try an example</h5>
-          <p>Pick a prompt from the dropdown ("Passport retention", "Placement fee", etc.).
-            Watch the harness layers fire in the activity log.</p>
+          <p>Once the model is ready, flip the GREP / RAG / Tools / Online
+            toggles and pick a prompt from the examples dropdown (for
+            example "Passport retention" or "Placement fee"). Watch the
+            harness layers fire in the activity log.</p>
         </div>
         <div class="wb-flow-step">
           <h4>Step 3</h4><h5>Compare configs</h5>
-          <p>Switch to <a href="/static/compare.html">Compare</a>, pick "stock vs full"
-            preset, click Run. See the same prompt with and without the harness.</p>
+          <p>Switch to <a href="/static/compare.html">Compare</a>, pick the
+            stock-vs-full preset, click Run. See the same prompt with and
+            without the harness, side by side.</p>
         </div>
         <div class="wb-flow-step">
           <h4>Step 4</h4><h5>Grade both</h5>
-          <p>Scroll to the bottom of Compare and click "Grade both". Universal v3
-            rubric returns a 0-100 score for each variant.</p>
+          <p>Scroll to the bottom of Compare and click Grade both. The
+            Universal v3 rubric returns a 0-100 score for each variant
+            so the lift is quantitative, not anecdotal.</p>
         </div>
         <div class="wb-flow-step">
           <h4>Step 5</h4><h5>Process a sample</h5>
-          <p>Go to <a href="/static/process.html">Process Files</a>, click "Use sample".
-            See GREP rule firings + entity extraction on a tiny case bundle.</p>
+          <p>Go to <a href="/static/process.html">Process Files</a>, click
+            Use sample. See GREP rule firings and entity extraction on a
+            small case bundle.</p>
         </div>
         <div class="wb-flow-step">
           <h4>Step 6</h4><h5>Check Status</h5>
-          <p>Visit <a href="/static/status.html">Status</a> to see live counts of
-            knowledge objects, sync history, model state, and search-backend wiring.</p>
+          <p>Visit <a href="/static/status.html">Status</a> for live counts
+            of knowledge objects, sync history, model state, and search
+            backend wiring.</p>
         </div>
       </div>
     </div>
@@ -136,14 +144,14 @@
     <div class="wb-card" id="architecture">
       <h2>2. Architecture &amp; data flow</h2>
       <p>
-        Every user-facing surface in the kernel is a <b>harness</b> --
+        Every user-facing surface in the kernel is a <b>harness</b>:
         a self-contained module that registers FastAPI routes, declares
-        the knowledge types it consumes/emits, and writes per-task
+        the knowledge types it consumes and emits, and writes per-task
         audit JSONL to <code>/kaggle/working/training/&lt;harness&gt;.jsonl</code>.
         Safety layers (Persona, GREP, RAG, Tools, Online) are composed
-        per harness; the Chat harness uses all five, Extraction uses
-        only Persona+GREP+RAG, Anonymization runs no layers because it
-        IS a safety layer.
+        per harness. Chat uses all five, Extraction uses Persona + GREP
+        + RAG, and Anonymization runs no layers because it <i>is</i> a
+        safety layer.
       </p>
 
       <h3>Request lifecycle on Chat</h3>
@@ -234,10 +242,11 @@
           <span class="wb-pill wb-pill-primary">PRIMARY</span>
           <span class="wb-pill">applied_layers: grep, rag, tools</span>
         </div>
-        <p>Bulk-process an uploaded bundle (ZIP, CSV, JSONL). Each row goes through
-          the GREP layer (161 rules) and an entity extractor (AMOUNT, PHONE,
-          EMAIL, STATUTE, CORRIDOR). Builds a local knowledge graph and lets
-          you chat against the bundle.</p>
+        <p>Bulk-process an uploaded bundle (ZIP, CSV, JSONL). Each row passes
+          through the GREP layer and an entity extractor (amounts, phone numbers,
+          email addresses, statute references, recruitment corridors). The
+          harness builds a local knowledge graph from the bundle so you can chat
+          against the parsed contents.</p>
         <div class="endpoints">
           POST /api/process/batch &middot;
           POST /api/process/graph-chat
@@ -261,11 +270,13 @@
         <div class="header">
           <span class="name">anonymization</span>
           <span class="wb-pill wb-pill-primary">PRIMARY</span>
-          <span class="wb-pill">applied_layers: () -- IS a safety layer</span>
+          <span class="wb-pill">applied_layers: ()</span>
+          <span class="wb-pill">is a safety layer</span>
         </div>
-        <p>Hard gate. Detects PII via regex + NER, redacts before any data crosses a
-          trust boundary. The audit log stores <code>sha256(original)</code>,
-          never plaintext. Owns the hub-submission flow.</p>
+        <p>Hard gate. Detects PII via regex + NER and redacts before any data
+          crosses a trust boundary. The audit log stores
+          <code>sha256(original)</code>, never plaintext. Owns the
+          hub-submission flow.</p>
         <div class="endpoints">
           POST /api/anonymize &middot;
           POST /api/submit/knowledge &middot;
@@ -277,12 +288,13 @@
         <div class="header">
           <span class="name">search_safety</span>
           <span class="wb-pill wb-pill-primary">PRIMARY</span>
-          <span class="wb-pill">applied_layers: () -- IS a safety layer</span>
+          <span class="wb-pill">applied_layers: ()</span>
+          <span class="wb-pill">is a safety layer</span>
         </div>
         <p>Intercepts outbound search queries before they reach any third-party
-          backend. Strips emails / phones / passport numbers / IBANs / monetary
-          amounts / URLs / national IDs. Optionally asks Gemma to rephrase the
-          redacted query into a more general form.</p>
+          backend. Strips emails, phone numbers, passport numbers, IBANs,
+          monetary amounts, URLs, and national IDs. Optionally asks Gemma to
+          rephrase the redacted query into a more general form.</p>
         <div class="endpoints">
           POST /api/search/sanitize &middot;
           GET /api/search/safety-info
