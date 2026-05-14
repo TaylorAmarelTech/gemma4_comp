@@ -112,13 +112,15 @@ KnowledgeObject (envelope, v1.0)
 ```json
 {"corridor":"PH-HK", "label":"Philippines to Hong Kong",
  "fee_cap_php":0, "passport_retention_legal":false,
- "statutes":["POEA MC 14-2017"], "hotlines":["+63-2-8722-1144"]}
+ "statutes":["POEA MC 14-2017"], "contact_pack_refs":["poea_dmw_anti_illegal_recruitment"]}
 ```
 
 **ngo_directory**
 ```json
-{"name":"POEA", "jurisdiction":"PH", "phone":"+63-2-8722-1144",
- "email":"...", "url":"https://dmw.gov.ph",
+{"name":"DMW Anti-Illegal Recruitment Branch", "jurisdiction":"PH",
+ "phone":"<verified current phone>", "email":"<verified current email>",
+ "url":"https://dmw.gov.ph",
+ "verified":"2026-05-08",
  "applicable_corridors":["PH-*"]}
 ```
 

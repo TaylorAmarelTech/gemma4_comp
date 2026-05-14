@@ -3,7 +3,9 @@
   "version":      "1.0.0",
   "last_updated": "2026-05-08",
   "curator":      "Duecare team",
-  "notes":        "Structured directory of NGOs, regulators, embassies, and hotlines for migrant-worker / trafficking complaints. Powers /api/contacts and /static/hotlines.html. Numbers verified at last_updated; bumping a contact requires confirming current_phone_number AND current_web_form_url AND current_email — embassy contacts especially can change with rotation. Curator workflow: edit this file, bump version + last_updated, run scripts/validate_curator_blocks.py. SAFETY: nothing in this file may auto-trigger an outbound email / phone call / form submission. The chat package's role is to surface contacts and pre-fill drafts the USER submits; it must never act on behalf of the user.",
+  "pack_type":    "volatile_contact_knowledge_pack",
+  "update_policy":"Phone numbers, URLs, forms, intake hours, names, and emergency pathways are volatile. Responses should cite this pack or the contacts tool instead of memorizing contact details. Curators must bump version and last_updated after confirming current phone, email, and web-form details.",
+  "notes":        "Structured directory of NGOs, regulators, embassies, and hotlines for migrant-worker / trafficking complaints. Powers /api/contacts and /static/hotlines.html. Numbers verified at last_updated; bumping a contact requires confirming current_phone_number AND current_web_form_url AND current_email. Embassy contacts especially can change with rotation. Curator workflow: edit this file, bump version + last_updated, run scripts/validate_curator_blocks.py. SAFETY: nothing in this file may auto-trigger an outbound email / phone call / form submission. The chat package's role is to surface contacts and pre-fill drafts the USER submits; it must never act on behalf of the user.",
   "categories": {
     "regulator":        "Government recruitment / labour / anti-trafficking regulator",
     "ngo":              "Non-governmental anti-trafficking / migrant-worker organization",

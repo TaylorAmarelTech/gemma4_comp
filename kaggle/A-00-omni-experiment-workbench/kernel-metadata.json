@@ -22,6 +22,11 @@
     "evaluation",
     "harness",
     "finetuning",
-    "synthetic-data"
+    "synthetic-data",
+    "anti-trafficking",
+    "red-team",
+    "research-graphs",
+    "lora",
+    "knowledge-packs"
   ]
 }

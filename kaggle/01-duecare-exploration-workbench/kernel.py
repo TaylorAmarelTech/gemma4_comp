@@ -1,16 +1,16 @@
 # <!-- duecare:kernel-intro -->
 # DueCare Exploration Workbench
-# Core notebook #01 of 27 in the DueCare submission (3 core + 24 appendix).
+# Core notebook #01 of 28 in the DueCare submission (3 core + 25 appendix).
 #
 # Unified workbench surface for every audience and every harness capability:
 #   - 5 audience showcase pages (Platform safety / NGO & regulator / Worker /
 #     Researcher / Developer) with curated sample prompts per lane.
-#   - Free-form chat playground with all 6 safety layers, 4 grading modes,
-#     and 9 Gemma 4 variants on the home page.
+#   - Free-form chat playground with five safety layers plus local imports,
+#     4 grading modes, and 9 Gemma 4 variants on the home page.
 #   - Layer transparency: 161 GREP rules / 46 RAG docs / 5 tools, each
 #     browsable with its own viewer page under /static/harness.html.
 #   - Anonymization preview, hotlines directory, cross-layer search, and a
-#     full Tools index at /static/all-tools.html — all behind one nav bar.
+#     full Tools index at /static/all-tools.html, all behind one nav bar.
 #
 # Demo path: Run All -> cloudflared URL prints -> pick a model -> click any
 # of the 5 audience tabs in the top nav to land on a curated lane demo, or
@@ -20,7 +20,8 @@
 
 """
 ============================================================================
-  DUECARE EXPLORATION WORKBENCH  --  unified Kaggle notebook (core #01)
+  DUECARE EXPLORATION WORKBENCH
+  Unified Kaggle notebook, core #01
   (paste into a single code cell)
 ============================================================================
 
@@ -48,7 +49,7 @@
       Online       optional agentic web search via Playwright / Brave
                      (BYOK API key) with httpx deep-fetch and
                      DuckDuckGo HTML fallback
-      Grade        4 modes (Rule-Based / LLM-Based / Combined / Expert) --
+      Grade        4 modes (Rule-Based / LLM-Based / Combined / Expert):
              Rule-Based = current multi-signal grader (numeric
              applicability rubric), LLM-Based = LLM evaluator sending response
                      back to the loaded model with one yes/no question
@@ -84,7 +85,7 @@
     - Platform: Works in Kaggle, Google Colab, local Jupyter, any Python env
     - HF_TOKEN: Optional (required for gated 31B/26B-A4B variants)
 
-  Installation: Universal compatibility via PyPI → GitHub releases → source
+  Installation: Universal compatibility via PyPI, GitHub releases, then source
 ============================================================================
 """
 from __future__ import annotations

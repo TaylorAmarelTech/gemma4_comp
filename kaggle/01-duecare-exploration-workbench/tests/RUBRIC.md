@@ -18,12 +18,13 @@ better than code.
 
 ## Content correctness
 
-- [ ] Hotline numbers use canonical international format `+63-2-8722-1144`
+- [ ] Contact details come from the contacts tool or vetted contacts pack,
+      with current verification metadata visible when possible
 - [ ] Statute IDs in citations match the canonical set:
       `POEA MC 14-2017`, `ILO C189`, `RA 8042`, `BP2MI Reg 8-2023`
 - [ ] No "for judges" framing in body copy (prefer "peer review")
 - [ ] No off-by-one slot labels (folder N == display N)
-- [ ] No stale roster counts (current: 3 core + 24 appendix = 27)
+- [ ] No stale roster counts (current: 3 core + 25 appendix = 28)
 
 ## Behavior
 

@@ -179,11 +179,14 @@ DEMO_SCRIPT = {
                         "ask domestic workers for placement fees.\n"
                         "2. Document everything (screenshots, receipts, "
                         "agency name) before saying anything.\n"
-                        "3. Report it. POEA hotline: +63-2-8722-1144. "
-                        "Or use Blas F. Ople Center hotline +63-2-8833-"
-                        "0596 for confidential help.\n\n"
-                        "I am an AI tool, not a lawyer. The contacts "
-                        "above are real people who can help."),
+                        "3. Report it through the DMW/POEA Anti-Illegal "
+                        "Recruitment pathway, and verify current details "
+                        "through the DueCare contacts tool or the official "
+                        "site. A trusted NGO can help you decide what to "
+                        "share.\n\n"
+                        "I am an AI tool, not a lawyer. The contacts pack "
+                        "points to real organizations, but you should verify "
+                        "current intake details before sharing private data."),
                     "harness_trace": {
                         "persona": {"enabled": True},
                         "grep": {"rules_fired": [
@@ -222,12 +225,13 @@ DEMO_SCRIPT = {
                         "1. Try to retrieve it calmly first if it feels "
                         "safe.\n"
                         "2. If it isn't returned, contact the HK Labour "
-                        "Department (2717-1771) or the Philippine "
-                        "Consulate (2823-8500). Your consulate can "
-                        "issue a travel document.\n"
-                        "3. NGOs that help in HK: HELP for Domestic "
-                        "Workers (2523-4020), Mission for Migrant "
-                        "Workers.\n\n"
+                        "Department or the Philippine Consulate through "
+                        "the vetted contacts pack or their official "
+                        "websites. Your consulate can issue a travel "
+                        "document.\n"
+                        "3. NGOs that help in HK include HELP for Domestic "
+                        "Workers and Mission for Migrant Workers. Verify "
+                        "current intake details before sharing private data.\n\n"
                         "Your passport is your property and your boss "
                         "has no legal right to keep it."),
                     "harness_trace": {
@@ -276,9 +280,9 @@ DEMO_SCRIPT = {
                         "before paying anything.\n"
                         "3. Talk to others who used the same recruiter "
                         "and came home safely, not just the broker.\n\n"
-                        "When in doubt, the Blas F. Ople Center "
-                        "(+63-2-8833-0596) gives free pre-departure "
-                        "advice."),
+                        "When in doubt, use the vetted contacts pack to "
+                        "reach a trusted pre-departure advice organization "
+                        "and verify current intake details."),
                     "harness_trace": {
                         "persona": {"enabled": True},
                         "grep": {"rules_fired": [
@@ -319,8 +323,9 @@ DEMO_SCRIPT = {
                         "1. Write down everything while it's fresh: the "
                         "months unpaid, the amount, who said what.\n"
                         "2. Reach an NGO before confronting the boss. "
-                        "In HK: HELP for Domestic Workers (2523-4020). "
-                        "In the Gulf: Migrant-Rights.org partners.\n"
+                        "In HK, use the contacts tool for HELP for Domestic "
+                        "Workers or Mission for Migrant Workers. In the Gulf, "
+                        "use vetted Migrant-Rights.org partner listings.\n"
                         "3. Your country's embassy can issue a travel "
                         "document and help with repatriation if you "
                         "decide to leave.\n\n"
@@ -381,14 +386,17 @@ DEMO_SCRIPT = {
                         "- Debt bondage (recruiter)\n"
                         "- Abuse of vulnerability (recruiter unreachable)\n\n"
                         "### Suggested actions\n"
-                        "1. Immediate: contact PH Consulate HK "
-                        "(2823-8500) for passport reissue track.\n"
+                        "1. Immediate: verify current PH Consulate HK "
+                        "contact details through the contacts tool for "
+                        "passport reissue track.\n"
                         "2. 48h: file MECAB referral with HK Labour "
-                        "Dept (2717-1771) for unpaid wages.\n"
+                        "Dept using the official channel verified by the "
+                        "contacts tool for unpaid wages.\n"
                         "3. Within 1 week: open POEA case against "
                         "recruiter for license-violation review.\n"
-                        "4. NGO referral: HELP for Domestic Workers "
-                        "(2523-4020) for shelter + legal aid.\n\n"
+                        "4. NGO referral: HELP for Domestic Workers or "
+                        "Mission for Migrant Workers through a verified "
+                        "intake channel for shelter + legal aid.\n\n"
                         "### Statutes to cite in any filing\n"
                         "- POEA MC 14-2017 (zero placement fee)\n"
                         "- HK Employment Ordinance Cap 57 (wages)\n"
@@ -768,7 +776,7 @@ DEMO_SCRIPT = {
                         "**Pinned hash:** "
                         "`sha256:7e2c4a8f1b9d3e5c6a0f8d7e2b1c9f3a4e8b...`\n"
                         "**Released:** 2026-02-08\n"
-                        "**Curator:** Polaris Project (verified)\n"
+                        "**Curator:** DueCare built-in vetted pack\n"
                         "**Source documents (12):**\n"
                         "  - POEA MC 14-2017 (PH zero-fee circular)\n"
                         "  - ILO C189 (Domestic Workers convention)\n"
@@ -781,7 +789,8 @@ DEMO_SCRIPT = {
                         "@1.4.0\n"
                         "  pulled 12 docs (4.2 MB)\n"
                         "  hash verified: ok\n"
-                        "  curator signature: Polaris Project (valid)\n"
+                        "  pack manifest: DueCare built-in vetted source "
+                        "(valid)\n"
                         "```\n\n"
                         "Re-run any analysis from your Q1 report against "
                         "this pinned pack and you will get the SAME "
@@ -889,7 +898,7 @@ DEMO_SCRIPT = {
                         "construction@1.2.0 + bd-gulf-domestic@1.1.0\n"
                         "- Test set: bundled smoke_25.jsonl + "
                         "extended_200.jsonl from the harness\n"
-                        "- Git SHA: e56c818\n"
+                        "- Git SHA: captured in the A-00 export manifest\n"
                         "- Dataset version: smoke@2026-05-04\n\n"
                         "### Run command\n"
                         "```bash\n"
@@ -898,7 +907,7 @@ DEMO_SCRIPT = {
                         "  --adapter safetyjudge-v1 \\\n"
                         "  --pack ph-hk-domestic-worker@1.4.0 \\\n"
                         "  --test-set extended_200 \\\n"
-                        "  --git-sha e56c818\n"
+                        "  --git-sha <captured_export_sha>\n"
                         "```\n\n"
                         "### Result\n"
                         "Stock label_f1: 0.317. Harness ON label_f1: "
@@ -908,7 +917,7 @@ DEMO_SCRIPT = {
                         "please file them with the run command + "
                         "observed result."),
                     "harness_trace": {},
-                    "citations": ["git_sha:e56c818", "smoke_set:2026-05-04"],
+                    "citations": ["git_sha:A-00-export", "smoke_set:2026-05-04"],
                     "latency_simulation_ms": 2700,
                 },
             ],
@@ -1261,7 +1270,7 @@ SLIDES = {
                       "answer with no citations.\n\n"
                       "The same Gemma 4 with the DueCare harness "
                       "cites POEA MC 14-2017, mentions ILO C189, "
-                      "names the Blas F. Ople Center hotline, and "
+                      "routes the worker to vetted contact pathways, and "
                       "refuses to send the worker into the trap.\n\n"
                       "+56.5 percentage points on safety-judging "
                       "accuracy."),
@@ -1293,8 +1302,8 @@ SLIDES = {
                      "platform queue, researcher notebook, partner API.\n"
                      "Server surfaces: optional hub, vetted pack sync, "
                      "anonymized signal intake, public-source proposals.\n"
-                     "Proof surfaces: A-00 evaluation, grading packs, "
-                     "fine-tune exports, and reproducible reports."),
+                     "Proof surfaces: A-00 experiment bundles, grading packs, "
+                     "synthetic-data exports, fine-tune exports, and reports."),
             "notes": "This slide prevents the demo from feeling like a toy app.",
         },
         {
@@ -1305,7 +1314,7 @@ SLIDES = {
                       "PrivacyRedactor LoRA adapters)\n"
                       "- GGUF export for llama.cpp (laptops); "
                       "LiteRT recipe for mobile\n"
-                      "- A-00 omni evaluator plus appendix experiment ladder, each "
+                      "- A-00 omni experiment workbench plus appendix ladder, each "
                       "kernel paste-and-run on Kaggle\n"
                       "- All numbers reproducible from "
                       "(git_sha, dataset_version)"),
@@ -1344,7 +1353,7 @@ except Exception:
 
 INDEX_HTML_TPL = r"""<!doctype html>
 <html lang="en"><head><meta charset="utf-8">
-<title>DueCare 03 . Video Pitch</title>
+<title>DueCare 03 | Video Pitch</title>
 <link rel="stylesheet" href="/static/_chrome.css">
 <style>
   :root{
@@ -1494,7 +1503,7 @@ INDEX_HTML_TPL = r"""<!doctype html>
 </style></head><body>
 
 <div class="topbar">
-  <div class="brand">DueCare . 03 Video Pitch</div>
+  <div class="brand">DueCare 03 | Video Pitch</div>
   <div class="tabs">
     <button class="tab" data-mode="slides">Slides</button>
     <button class="tab active" data-mode="presentation">Presentation</button>
@@ -1647,7 +1656,7 @@ function renderLaneBar(){
   for (const k of Object.keys(SCRIPT.lanes)){
     const b = document.createElement("button");
     b.className = "lane" + (k===currentLane ? " active" : "");
-    b.textContent = SCRIPT.lanes[k].label.split("--")[0].trim();
+    b.textContent = SCRIPT.lanes[k].label.split(" - Lane")[0].trim();
     b.onclick = ()=>{
       currentLane = k; currentScene = 0;
       renderLaneBar(); renderLaneHead(); playScene();

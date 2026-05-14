@@ -16,7 +16,7 @@
 | **Demo path** | Run `kernel.py`, open the cloudflared URL, select a fast Gemma 4 variant, and follow the 5-minute walkthrough below. |
 | **Audience** | NGO & regulator, Researcher, and Developer / integration partner. |
 | **Inputs** | 9-variant Gemma 4 model picker (E2B / E4B / 26B-A4B / 31B IT + abliterated variants) attached as Kaggle Models; bundled trafficking-prompts library. |
-| **Gemma 4 features** | All 6 harness layers exercised together; 9-variant Gemma 4 model picker (E2B / E4B / 26B-A4B / 31B IT) so judges can see the latency/quality tradeoff in one place. |
+| **Gemma 4 features** | Five chat safety layers, local imports/evidence, 4 grading modes, and a 9-variant Gemma 4 model picker so judges can see the latency/quality tradeoff in one place. |
 | **Outputs** | Live chat responses, A/B comparisons, retrieval traces, grading evidence, and `dc_log` events. |
 | **Cross-links** | Continue to the focused live demo and appendix notebooks from the quick links at the bottom. |
 
@@ -61,8 +61,8 @@ Then proceed to the walkthrough below.
    - **Yellow Online demo:** recent POEA enforcement query
    - **Purple Compare:** multi-jurisdiction protections
    - **Blue Social-eng:** humanitarian framing trap
-6. **Flip toggles** below the input. Try the same prompt with all 6
-   off (baseline) vs all 6 on (full harness). Or use the new **Compare**
+6. **Flip toggles** below the input. Try the same prompt with the five safety layers
+   off (baseline) vs the five safety layers on (full harness). Or use the new **Compare**
    tab in the top bar for a one-click side-by-side. Expected: baseline
    gives a vague answer; full harness cites specific statutes + hotlines.
 7. **Click `View pipeline`** on any response. Top of the modal shows
@@ -172,14 +172,14 @@ safe enough for judges to test live:
 | 0:00 | Click the cloudflared URL | Model picker opens before chat |
 | 0:15 | Pick E4B, then click **View logs** | Live phases appear; card shows loading state |
 | 1:15 | Picker auto-enters chat when ready | Chat UI loads with empty state showing 5 colored quick-action buttons |
-| 1:30 | Click "Headline lift", toggle ALL 6 layers ON, then Send | Response cites ILO C029 section 1, POEA MC 14-2017, HK Cap. 57 section 32, MfMW HK +852-2522-8264 |
+| 1:30 | Click "Headline lift", toggle the five safety layers ON, then Send | Response cites ILO C029 section 1, POEA MC 14-2017, HK Cap. 57 section 32, and a vetted contacts-pack reference |
 | 2:30 | Click `View pipeline` on the response | Latency bar shows per-layer ms; cards show GREP hits + RAG docs + tool results + online results |
 | 3:30 | Click `Grade`, then switch to **Combined** | Rule-Based score + LLM-Based score + agreement % + disagreement table |
-| 4:30 | Click `Safety layers` in top bar | Opens `/static/harness.html`: 6 layer cards with live counts; click any to drill into the dedicated viewer |
-| 6:00 | Click "Jailbreak", toggle ALL 6 layers OFF, then Send | Should refuse but vaguely (this is baseline Gemma) |
-| 7:00 | Same prompt with all 6 layers ON | Refuses with citations + hotlines |
+| 4:30 | Click `Safety layers` in top bar | Opens `/static/harness.html`: layer cards with live counts; click any to drill into the dedicated viewer |
+| 6:00 | Click "Jailbreak", toggle the five safety layers OFF, then Send | Should refuse but vaguely (this is baseline Gemma) |
+| 7:00 | Same prompt with the five safety layers ON | Refuses with citations + contact pathways |
 | 8:00 | Click `Grade`, then select **LLM-Based** mode | LLM judge sends the configured evaluator questions back to Gemma; per-dimension verdicts include evidence quotes from the response |
-| 10:00 | `curl https://<url>/api/brand` | Returns chat package version + 6-layer metadata + live counts for GREP, RAG, tools, rubric dimensions, evaluator questions, citations, and examples |
+| 10:00 | `curl https://<url>/api/brand` | Returns chat package version, layer metadata, live counts for GREP, RAG, tools, rubric dimensions, evaluator questions, citations, and examples |
 
 ## Full UI Audit Targets
 
@@ -289,7 +289,7 @@ Index page: [`kaggle/_INDEX.md`](../_INDEX.md).
 
 ## Cross-links
 
-- **[DueCare Exploration Workbench (#01)](https://www.kaggle.com/code/taylorsamarel/duecare-exploration-workbench)**: the full chat playground with all 6 harness layers, 9-variant model picker, 4 grading modes, A/B compare, and every visualization in one place.
+- **[DueCare Exploration Workbench (#01)](https://www.kaggle.com/code/taylorsamarel/duecare-exploration-workbench)**: the full chat playground with five safety layers, local imports/evidence, 9-variant model picker, 4 grading modes, A/B compare, and every visualization in one place.
 - **[Live demo (#02)](https://www.kaggle.com/code/taylorsamarel/duecare-live-demo)**: focused public-hub walkthrough demonstrating the +56.5pp lift on a curated set of compound-indicator prompts.
 - **[Next step: A-11 grading-evaluation](https://www.kaggle.com/code/taylorsamarel/duecare-grading-evaluation)**: regenerate the headline +56.5pp lift number live from a git SHA.
 - **[Public hub: duecare-ai.com](https://duecare-ai.com)**: knowledge-pack registry, anonymized signal intake, public-source proposal intake, and the 5-lane audience showcase.

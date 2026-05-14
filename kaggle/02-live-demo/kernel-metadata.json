@@ -17,5 +17,11 @@
     "google/gemma-4/Transformers/gemma-4-31b-it/1"
   ],
   "docker_image_pinning_type": "original",
-  "keywords": []
+  "keywords": [
+    "gemma-4",
+    "live-demo",
+    "anti-trafficking",
+    "migrant-workers",
+    "safety-harness"
+  ]
 }
