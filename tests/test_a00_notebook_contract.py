@@ -43,7 +43,10 @@ def test_a00_has_judge_facing_quick_proof_and_research_flow():
     for marker in [
         "Recommended proof path",
         "quickProof",
+        "runRedteamProof",
+        "anti_tip_redteam_regressions",
         "Local research graph",
+        "PRIMARY_NOTEBOOK_AUDIT",
         "_ensure_sample_comparison_runs",
         "_extract_research_graph",
     ]:
@@ -59,5 +62,16 @@ def test_a00_has_synthetic_polish_and_training_smoke_path():
         "_polish_training_response",
         "generatePolished",
         "finetuneSmoke",
+    ]:
+        assert marker in text
+
+
+def test_a00_reports_dimension_level_evidence():
+    text = A00.read_text(encoding="utf-8")
+    for marker in [
+        "Dimension-Level Evidence",
+        "dimension_summary",
+        "mean_score_0_10",
+        "Mean dynamic weight",
     ]:
         assert marker in text

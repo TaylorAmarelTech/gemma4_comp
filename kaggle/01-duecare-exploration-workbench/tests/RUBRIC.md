@@ -60,8 +60,8 @@ better than code.
 
 - [ ] Bundle export downloads a valid `<RUN_ID>_bundle.zip` with
       manifest.json + results.json + run.jsonl + metadata.json
-- [ ] `/api/brand` returns the expected counts (161 GREP / 46 RAG /
-      5 tools / 46-dim rubric / 587 example prompts)
+- [ ] `/api/brand` returns the expected live counts (GREP / RAG /
+      live tools / current rubric / example prompts)
 - [ ] `/api/health-check` returns 200 with all layers `enabled: true`
 - [ ] Reviewer quick-path table in the kernel's README matches what
       the live kernel actually does

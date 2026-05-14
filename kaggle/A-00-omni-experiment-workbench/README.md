@@ -33,6 +33,25 @@ That report is the technical proof referenced by the writeup: quality lift,
 dimension-level deltas, grounding gains, research graph extraction, latency,
 throughput, and estimated inference cost.
 
+## Proof Recipes
+
+Use these recipes as the minimum pre-submission validation set:
+
+1. **Harness lift:** run `chat_safety_core` with `No harness`, run the same set
+   with `Chat safety harness`, then build the HTML report.
+2. **Prior red-team regression:** run `anti_tip_redteam_regressions`. This
+   prompt set converts the 2025 GPT OSS failure modes into reusable checks:
+   business-framed exploitation, jurisdiction shopping, predatory debt,
+   prompt-attack formatting, and worker revictimization.
+3. **Synthetic training:** choose `rubric_polisher`, generate SFT/DPO rows, and
+   create a tiny training handoff before any full fine-tune.
+4. **Research graph:** run the sample local research graph or upload a ZIP with
+   notes, CSV, JSONL, images, and documents. Confirm documents, entities, risk
+   edges, media queue, and timeline artifacts are exported.
+5. **Contact grounding:** use a worker or NGO prompt that asks what to do next.
+   The grader should activate civil-society contact, regulator contact,
+   contact currency, and consent-aware referral dimensions.
+
 ## Supported Workflows
 
 1. **Model loading:** Kaggle-attached model path, Hugging Face id, local upload,

@@ -49,8 +49,8 @@
                      (BYOK API key) with httpx deep-fetch and
                      DuckDuckGo HTML fallback
       Grade        4 modes (Rule-Based / LLM-Based / Combined / Expert) --
-             Rule-Based = 46-dim multi-signal grader (rubric
-             v3.10), LLM-Based = LLM evaluator sending response
+             Rule-Based = current multi-signal grader (numeric
+             applicability rubric), LLM-Based = LLM evaluator sending response
                      back to the loaded model with one yes/no question
                      per applicable dimension (the academic literature
                      calls this 'LLM-as-judge')
@@ -1911,7 +1911,7 @@ print(f"   harness:  Persona + GREP ({len(GREP_RULES)} rules across "
 print(f"   personas: 1 default + 7 curated (NGO intake, lawyer research,")
 print(f"               regulator audit, journalist fact-check, researcher")
 print(f"               tagging, worker advocate, skeptical reviewer)")
-print(f"   grade:    Rule-Based (46-dim rubric v3.10, ~1-3s) / LLM-Based / Combined")
+print(f"   grade:    Rule-Based (current numeric rubric, ~1-3s) / LLM-Based / Combined")
 print(f"             + Expert legacy (5-dim per-category)")
 print(f"\n   On first page-load, the model picker overlay appears.")
 print(f"   Pick a variant; load takes ~30s (E4B) to ~5-10+ min (31B first run).")

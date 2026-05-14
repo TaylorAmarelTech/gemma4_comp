@@ -481,8 +481,8 @@ code, .mono {
   color: var(--ink);
 }
 .dc-wb-status-label {
-  text-transform: uppercase; letter-spacing: 0.08em;
-  color: var(--ink-4); font-weight: 500;
+  text-transform: uppercase; letter-spacing: 0;
+  color: var(--ink-3); font-weight: 600;
 }
 .dc-wb-status-value { color: var(--ink-2); font-weight: 500; }
 .dc-wb-status-sep { color: var(--ink-4); }

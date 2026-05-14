@@ -8,13 +8,13 @@ test.describe('smoke', () => {
   });
 
   test('safety harness panel is present', async ({ page }) => {
-    await page.goto('/');
+    await page.goto('/static/chat.html');
     const harnessSection = page.locator('#harness-tiles, [class*=harness]').first();
     await expect(harnessSection).toBeVisible({ timeout: 15_000 });
   });
 
   test('model picker overlay can open', async ({ page }) => {
-    await page.goto('/');
+    await page.goto('/static/chat.html');
     const overlay = page.locator('#picker-overlay');
     const overlayVisible = await overlay.isVisible().catch(() => false);
     if (!overlayVisible) {
@@ -25,7 +25,7 @@ test.describe('smoke', () => {
   });
 
   test('input composer + send button render', async ({ page }) => {
-    await page.goto('/');
+    await page.goto('/static/chat.html');
     await expect(page.locator('#input')).toBeVisible();
     await expect(page.locator('#send')).toBeVisible();
   });
@@ -34,9 +34,9 @@ test.describe('smoke', () => {
     const resp = await request.get('/api/brand');
     expect(resp.ok()).toBeTruthy();
     const j = await resp.json();
-    expect(j).toHaveProperty('grep_rules');
-    expect(j).toHaveProperty('rag_docs');
-    expect(j).toHaveProperty('tools');
-    expect(Number(j.grep_rules)).toBeGreaterThan(0);
+    expect(j.counts).toHaveProperty('n_grep_rules');
+    expect(j.counts).toHaveProperty('n_rag_docs');
+    expect(j.counts).toHaveProperty('n_dimensions');
+    expect(Number(j.counts.n_grep_rules)).toBeGreaterThan(0);
   });
 });
