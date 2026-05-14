@@ -3,90 +3,684 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>DueCare Workbench - Getting Started</title>
+  <title>Getting Started -- DueCare Workbench</title>
   <link rel="stylesheet" href="/static/_chrome.css">
-  <style>
-    .wb-page { max-width: 920px; margin: 24px auto 60px; padding: 0 18px; color: #0E1116;
-                font-family: Inter, system-ui, sans-serif; line-height: 1.55; }
-    .wb-h1 { font-size: 28px; font-weight: 700; margin: 0 0 12px; letter-spacing: -0.01em; }
-    .wb-lede { font-size: 15px; color: #2A2D34; margin: 0 0 24px; }
-    .wb-card { background: #FFF; border: 1px solid #DDD8C9; border-radius: 12px;
-               padding: 18px 22px; margin-bottom: 18px; box-shadow: 0 1px 2px rgba(14,17,22,0.04); }
-    .wb-card h2 { font-size: 17px; font-weight: 600; margin: 0 0 10px;
-                  color: #0E1116; letter-spacing: -0.005em; }
-    .wb-step { display: grid; grid-template-columns: 38px 1fr; gap: 14px; margin: 0 0 12px; }
-    .wb-step .n { width: 32px; height: 32px; border-radius: 50%; background: oklch(0.92 0.03 195);
-                  color: oklch(0.32 0.07 195); font-family: 'JetBrains Mono', monospace;
-                  font-size: 13px; font-weight: 700; display: flex; align-items: center;
-                  justify-content: center; }
-    .wb-step h3 { margin: 4px 0 4px; font-size: 14px; font-weight: 600; }
-    .wb-step p { margin: 0 0 4px; font-size: 12.5px; color: #2A2D34; }
-    .wb-layer-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-                     gap: 12px; margin: 6px 0 0; }
-    .wb-layer { padding: 12px 14px; border-radius: 10px; border: 1px solid #DDD8C9; background: #FAF9F4; }
-    .wb-layer h4 { margin: 0 0 4px; font-size: 13px; font-weight: 700; color: oklch(0.32 0.07 195); }
-    .wb-layer p { margin: 0; font-size: 12px; color: #2A2D34; line-height: 1.45; }
-    .wb-cta-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px; }
-    .wb-cta-row a { display: inline-flex; align-items: center; padding: 8px 14px;
-                    background: oklch(0.52 0.08 195); color: #FFF; border-radius: 6px;
-                    text-decoration: none; font-size: 13px; font-weight: 500; }
-    .wb-cta-row a.secondary { background: #FFF; color: #0E1116; border: 1px solid #DDD8C9; }
-    code { background: #F1EFE7; padding: 1px 5px; border-radius: 3px; font-size: 11.5px;
-           font-family: 'JetBrains Mono', monospace; }
-    a { color: oklch(0.32 0.07 195); }
-  </style>
   <script src="/static/_nav.js" defer></script>
+  <script src="/static/_activity_log.js" defer></script>
+  <style>
+    .wb-page { max-width: 1280px; margin: 24px auto 60px; padding: 0 24px;
+               color: #0E1116; font-family: Inter, system-ui, sans-serif; line-height: 1.6; }
+    .wb-h1 { font-size: 30px; font-weight: 700; margin: 0 0 12px; }
+    .wb-lede { font-size: 14.5px; color: #2A2D34; margin: 0 0 22px; }
+    .wb-card { background: #FFF; border: 1px solid #DDD8C9; border-radius: 12px;
+               padding: 18px 22px; margin-bottom: 16px; }
+    .wb-card h2 { font-size: 19px; font-weight: 700; margin: 0 0 12px;
+                   border-bottom: 2px solid oklch(0.92 0.06 195); padding-bottom: 6px;
+                   color: oklch(0.32 0.07 195); }
+    .wb-card h3 { font-size: 15px; font-weight: 600; margin: 14px 0 6px; color: #0E1116; }
+    .wb-card h4 { font-size: 13.5px; font-weight: 700; margin: 12px 0 4px; color: oklch(0.32 0.07 195); }
+    .wb-card p { font-size: 13.5px; color: #2A2D34; margin: 0 0 10px; }
+    .wb-card ul, .wb-card ol { font-size: 13.5px; color: #2A2D34; margin: 6px 0 12px 22px; padding: 0; }
+    .wb-card li { margin-bottom: 4px; }
+    .wb-muted { color: #5B5F68; font-size: 12px; }
+    .wb-pill { display: inline-block; padding: 1px 8px; background: #F1EFE7; border-radius: 4px;
+                font-size: 11px; color: #5B5F68; font-family: 'JetBrains Mono', monospace; margin: 0 4px 4px 0; }
+    .wb-pill-primary { background: oklch(0.92 0.06 195); color: oklch(0.32 0.07 195); }
+    .wb-btn-primary { padding: 9px 17px; background: oklch(0.52 0.08 195); color: #FFF;
+                      border: 0; border-radius: 6px; font-size: 13.5px; font-weight: 500;
+                      cursor: pointer; text-decoration: none; display: inline-block; }
+    .wb-btn-secondary { padding: 7px 13px; background: #FFF; color: #0E1116;
+                         border: 1px solid #DDD8C9; border-radius: 6px; font-size: 12.5px;
+                         cursor: pointer; text-decoration: none; display: inline-block; }
+    .wb-grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+                  gap: 12px; margin: 12px 0; }
+    code { background: #F1EFE7; padding: 1px 6px; border-radius: 4px; font-size: 12px;
+           font-family: 'JetBrains Mono', monospace; color: #0E1116; }
+    a { color: oklch(0.32 0.07 195); }
+    .wb-toc { background: #FAF9F4; border: 1px solid #EFEDE4; border-radius: 8px;
+               padding: 12px 16px; margin-bottom: 18px; }
+    .wb-toc ol { columns: 2; column-gap: 22px; margin: 4px 0 0 22px; font-size: 13px; }
+    @media (max-width: 760px) { .wb-toc ol { columns: 1; } }
+    .wb-diagram { background: #0E1116; color: #E4E1D7; font-family: 'JetBrains Mono', monospace;
+                   font-size: 11.5px; padding: 14px 18px; border-radius: 8px;
+                   white-space: pre; overflow-x: auto; line-height: 1.45; margin: 10px 0; }
+    .wb-flow-step { padding: 12px 14px; background: #FAF9F4; border: 1px solid #EFEDE4;
+                     border-radius: 8px; border-left: 4px solid oklch(0.52 0.08 195); }
+    .wb-flow-step h4 { font-size: 12.5px; margin: 0 0 4px;
+                        color: #5B5F68; text-transform: uppercase; letter-spacing: 0.05em; }
+    .wb-flow-step h5 { font-size: 14px; font-weight: 600; margin: 0 0 6px; color: #0E1116; }
+    .wb-flow-step p  { font-size: 12.5px; margin: 0; }
+    .wb-harness-row { padding: 14px 16px; background: #FAF9F4; border: 1px solid #EFEDE4;
+                       border-radius: 10px; margin-bottom: 12px; }
+    .wb-harness-row .header { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .wb-harness-row .name { font-size: 16px; font-weight: 700; color: oklch(0.32 0.07 195); }
+    .wb-harness-row .endpoints { font-family: 'JetBrains Mono', monospace; font-size: 11.5px;
+                                   color: #5B5F68; margin-top: 6px; }
+    .wb-table { width: 100%; border-collapse: collapse; font-size: 12.5px; margin: 10px 0; }
+    .wb-table th, .wb-table td { padding: 7px 10px; border-bottom: 1px solid #EFEDE4;
+                                    text-align: left; vertical-align: top; }
+    .wb-table thead tr { background: #F7F6F1; }
+    .wb-table th { font-weight: 700; font-size: 11.5px; text-transform: uppercase;
+                    letter-spacing: 0.04em; color: #5B5F68; }
+    .live-counter { font-family: 'JetBrains Mono', monospace; color: oklch(0.32 0.07 195);
+                     font-weight: 700; }
+  </style>
 </head>
 <body data-nav="getting-started">
   <main class="wb-page">
-    <h1 class="wb-h1">Getting Started -- the DueCare Workbench in 3 minutes</h1>
+    <h1 class="wb-h1">Getting Started -- the DueCare Workbench</h1>
     <p class="wb-lede">
-      A safety harness around Gemma 4 for migrant-worker recruitment and
-      trafficking. Pick a model, flip safety layers, send a prompt, then
-      grade the response. Everything runs locally in the Kaggle kernel;
-      the public hub only receives content you anonymize and explicitly
-      submit.
+      A safety harness around Gemma 4 for migrant-worker recruitment
+      and trafficking. This kernel ships a baseline catalog of
+      <span class="live-counter" id="hero-grep">--</span> GREP rules,
+      <span class="live-counter" id="hero-rag">--</span> RAG docs, and a
+      knowledge taxonomy spanning 6 branches and 21 leaf types. You
+      can chat, compare harness configs, process bundles, draft new
+      knowledge, search the web through a sanitization layer, and
+      sync vetted knowledge from the public hub -- all from this kernel.
     </p>
 
-    <div class="wb-card">
-      <h2>The flow</h2>
-      <div class="wb-step"><div class="n">1</div><div><h3>Pick a model</h3><p>Gemma 4 E2B for speed, E4B for the baseline, 31B for depth. Multi-GB load -- expect 30-90 s.</p></div></div>
-      <div class="wb-step"><div class="n">2</div><div><h3>Flip safety layers</h3><p>Each layer toggles independently. Start with all off to see stock Gemma, then turn them on one at a time.</p></div></div>
-      <div class="wb-step"><div class="n">3</div><div><h3>Send a prompt</h3><p>Free-form on Chat, A/B on Harness Comparison, or batch from a ZIP on Process Files.</p></div></div>
-      <div class="wb-step"><div class="n">4</div><div><h3>Grade the response</h3><p>Deterministic rules, Gemma-as-judge, or combined mode across 46 dimensions.</p></div></div>
+    <div style="margin-bottom: 18px; gap: 8px; display: flex; flex-wrap: wrap;">
+      <a class="wb-btn-primary" href="/static/chat.html">Start chatting -&gt;</a>
+      <a class="wb-btn-secondary" href="/static/compare.html">Compare harness configs</a>
+      <a class="wb-btn-secondary" href="/static/process.html">Process a bundle</a>
+      <a class="wb-btn-secondary" href="/static/status.html">Status &amp; counts</a>
     </div>
 
-    <div class="wb-card">
-      <h2>The six layers</h2>
-      <div class="wb-layer-grid">
-        <div class="wb-layer"><h4>Persona</h4><p>Anti-trafficking expert system instructions. Keeps Gemma in the right register.</p></div>
-        <div class="wb-layer"><h4>GREP</h4><p>161 deterministic regex rules covering debt bondage, document retention, fee camouflage, ILO indicators.</p></div>
-        <div class="wb-layer"><h4>RAG</h4><p>Retrieval over a 46-document public legal/NGO corpus with a 46-edge citation graph.</p></div>
-        <div class="wb-layer"><h4>Imports</h4><p>User-provided local evidence kept in-session. Files never leave the kernel unless you anonymize + submit.</p></div>
-        <div class="wb-layer"><h4>Tools</h4><p>Gemma 4 native function calls: corridor fee caps, ILO indicators, NGO intake contacts.</p></div>
-        <div class="wb-layer"><h4>Online</h4><p>Optional web search treated as candidate evidence, not ground truth. Off by default.</p></div>
+    <div class="wb-toc">
+      <b>Table of contents</b>
+      <ol>
+        <li><a href="#quick-start">Quick start (5 min)</a></li>
+        <li><a href="#architecture">Architecture &amp; data flow</a></li>
+        <li><a href="#harnesses">The 7 harnesses</a></li>
+        <li><a href="#pages">Every page (12 workflows)</a></li>
+        <li><a href="#taxonomy">Knowledge object taxonomy</a></li>
+        <li><a href="#trust">Trust boundaries</a></li>
+        <li><a href="#endpoints">API endpoint reference</a></li>
+        <li><a href="#workflows">Common workflows</a></li>
+        <li><a href="#faq">FAQ &amp; troubleshooting</a></li>
+        <li><a href="#activity-log">Activity log</a></li>
+      </ol>
+    </div>
+
+    <div class="wb-card" id="quick-start">
+      <h2>1. Quick start (5 minutes)</h2>
+      <p>The fastest path from cold kernel to a graded comparison:</p>
+      <div class="wb-grid-3">
+        <div class="wb-flow-step">
+          <h4>Step 1 -- 30s</h4><h5>Open Chat</h5>
+          <p>Hit <a href="/static/chat.html">Chat</a>. The model is already loaded; flip
+            GREP / RAG / Tools / Online toggles to taste.</p>
+        </div>
+        <div class="wb-flow-step">
+          <h4>Step 2 -- 60s</h4><h5>Try an example</h5>
+          <p>Pick a prompt from the dropdown ("Passport retention", "Placement fee", etc.).
+            Watch the harness layers fire in the activity log.</p>
+        </div>
+        <div class="wb-flow-step">
+          <h4>Step 3 -- 60s</h4><h5>Compare configs</h5>
+          <p>Switch to <a href="/static/compare.html">Compare</a>, pick "stock vs full"
+            preset, click Run. See the same prompt with and without the harness.</p>
+        </div>
+        <div class="wb-flow-step">
+          <h4>Step 4 -- 30s</h4><h5>Grade both</h5>
+          <p>Scroll to the bottom of Compare and click "Grade both". Universal v3
+            rubric returns a 0-100 score for each variant.</p>
+        </div>
+        <div class="wb-flow-step">
+          <h4>Step 5 -- 60s</h4><h5>Process a sample</h5>
+          <p>Go to <a href="/static/process.html">Process Files</a>, click "Use sample".
+            See GREP rule firings + entity extraction on a tiny case bundle.</p>
+        </div>
+        <div class="wb-flow-step">
+          <h4>Step 6 -- 30s</h4><h5>Check Status</h5>
+          <p>Visit <a href="/static/status.html">Status</a> to see live counts of
+            knowledge objects, sync history, model state, and search-backend wiring.</p>
+        </div>
       </div>
     </div>
 
-    <div class="wb-card">
-      <h2>Other workflows</h2>
-      <p><b>Process Files</b> -- drop a folder of case notes, scans, or chat exports. Builds a local knowledge graph you can chat against.</p>
-      <p><b>Knowledge Extraction</b> -- paste a passage; Gemma 4 drafts a standardized KnowledgeObject (rule / citation / indicator).</p>
-      <p><b>Anonymization &amp; Sharing</b> -- review extracted facts, redact, and submit to the public hub at <a href="https://gemma4-comp.onrender.com/" target="_blank">gemma4-comp.onrender.com</a> (moving to duecare-ai.com).</p>
-      <p><b>Sync</b> -- pull vetted (and optionally unvetted) knowledge from the hub into this kernel.</p>
+    <div class="wb-card" id="architecture">
+      <h2>2. Architecture &amp; data flow</h2>
+      <p>
+        Every user-facing surface in the kernel is a <b>harness</b> --
+        a self-contained module that registers FastAPI routes, declares
+        the knowledge types it consumes/emits, and writes per-task
+        audit JSONL to <code>/kaggle/working/training/&lt;harness&gt;.jsonl</code>.
+        Safety layers (Persona, GREP, RAG, Tools, Online) are composed
+        per harness; the Chat harness uses all five, Extraction uses
+        only Persona+GREP+RAG, Anonymization runs no layers because it
+        IS a safety layer.
+      </p>
+
+      <h3>Request lifecycle on Chat</h3>
+      <pre class="wb-diagram">
+   [Browser]                    [Kernel: FastAPI app]                [Loaded Gemma 4]
+       |                                |                                    |
+       |  POST /api/chat/send (SSE)     |                                    |
+       |------------------------------->|                                    |
+       |                                |                                    |
+       |                          +-----+-----+                              |
+       |                          | resolve   | (validate input, queue)     |
+       |                          +-----+-----+                              |
+       |   step_start: persona          |                                    |
+       |&lt;-------------------------------|                                    |
+       |                          +-----+-----+                              |
+       |                          | persona   | (prepend expert pre-instr.) |
+       |                          +-----+-----+                              |
+       |                          +-----+-----+                              |
+       |                          | grep      | (run 161 regex rules)       |
+       |                          +-----+-----+                              |
+       |   step_done: grep fired=true   |                                    |
+       |&lt;-------------------------------|                                    |
+       |                          +-----+-----+                              |
+       |                          | rag       | (BM25 retrieve top-K docs)  |
+       |                          +-----+-----+                              |
+       |                          +-----+-----+                              |
+       |                          | tools     | (offer function calling)    |
+       |                          +-----+-----+                              |
+       |                          +-----+-----+                              |
+       |                          | online    | (opt-in web search)         |
+       |                          +-----+-----+                              |
+       |                                |                                    |
+       |                          +-----+-----+        prompt + context     |
+       |                          | model     |-----------------------------&gt;|
+       |                          +-----+-----+                              |
+       |                                |       response stream             |
+       |                                |&lt;----------------------------------|
+       |   complete: response, trace    |                                    |
+       |&lt;-------------------------------|                                    |
+       |                                |                                    |
+       |                        write training/chat.jsonl                   |
+       |                        (input_sha256, output_sha256, trace)        |
+</pre>
+
+      <h3>Where data lives</h3>
+      <table class="wb-table">
+        <thead><tr><th>Data</th><th>Location</th><th>Lifetime</th></tr></thead>
+        <tbody>
+          <tr><td>Loaded Gemma 4 weights</td><td>GPU VRAM</td><td>Until kernel shutdown</td></tr>
+          <tr><td>Baseline GREP rules + RAG corpus</td><td>Wheel (read-only)</td><td>Permanent (re-shipped per release)</td></tr>
+          <tr><td>User-imported knowledge objects</td><td><code>/kaggle/working/knowledge/&lt;type&gt;/&lt;id&gt;.json</code></td><td>Until kernel shutdown</td></tr>
+          <tr><td>Uploaded case bundles</td><td><code>/kaggle/working/process-staging/</code></td><td>Until kernel shutdown</td></tr>
+          <tr><td>Per-harness training-data JSONL</td><td><code>/kaggle/working/training/&lt;harness&gt;.jsonl</code></td><td>Until kernel shutdown</td></tr>
+          <tr><td>Audit log (sha256 fingerprints only)</td><td>Same JSONL streams above</td><td>Until kernel shutdown</td></tr>
+        </tbody>
+      </table>
     </div>
 
-    <div class="wb-card">
-      <h2>Trust boundary</h2>
-      <p>Everything you upload or paste stays in <code>/kaggle/working/</code> inside the kernel. The only outbound traffic is Sync (a GET for already-public packs) and Submit on Anonymization &amp; Sharing (an explicit POST you trigger, with an audit log).</p>
+    <div class="wb-card" id="harnesses">
+      <h2>3. The 7 harnesses</h2>
+      <p>
+        Each harness exports a fixed contract (<code>name</code>,
+        <code>applied_layers</code>, <code>consumes</code>, <code>emits</code>,
+        <code>register_routes</code>). The five PRIMARY harnesses are
+        the user-named safety surfaces; the two SECONDARY harnesses
+        are utility/CRUD surfaces.
+      </p>
+
+      <div class="wb-harness-row">
+        <div class="header">
+          <span class="name">chat</span>
+          <span class="wb-pill wb-pill-primary">PRIMARY</span>
+          <span class="wb-pill">applied_layers: persona, grep, rag, tools, online</span>
+        </div>
+        <p>Free-form multi-turn chat with the loaded Gemma 4. The richest harness:
+          all five safety layers compose into a single response. Optional
+          image upload for multimodal prompts.</p>
+        <div class="endpoints">
+          POST /api/chat/send (SSE) &middot;
+          POST /api/chat/upload-image &middot;
+          GET /api/chat/image/{sid}
+        </div>
+      </div>
+
+      <div class="wb-harness-row">
+        <div class="header">
+          <span class="name">process</span>
+          <span class="wb-pill wb-pill-primary">PRIMARY</span>
+          <span class="wb-pill">applied_layers: grep, rag, tools</span>
+        </div>
+        <p>Bulk-process an uploaded bundle (ZIP, CSV, JSONL). Each row goes through
+          the GREP layer (161 rules) and an entity extractor (AMOUNT, PHONE,
+          EMAIL, STATUTE, CORRIDOR). Builds a local knowledge graph and lets
+          you chat against the bundle.</p>
+        <div class="endpoints">
+          POST /api/process/batch &middot;
+          POST /api/process/graph-chat
+        </div>
+      </div>
+
+      <div class="wb-harness-row">
+        <div class="header">
+          <span class="name">extraction</span>
+          <span class="wb-pill wb-pill-primary">PRIMARY</span>
+          <span class="wb-pill">applied_layers: grep, rag</span>
+        </div>
+        <p>Drafts a standardized knowledge-object envelope from raw text. Pick a
+          target leaf type (grep_rule / rag_doc / context_snippet / ...) and
+          Gemma 4 produces a validated envelope that can be promoted into the
+          local knowledge store.</p>
+        <div class="endpoints">POST /api/knowledge/draft-envelope</div>
+      </div>
+
+      <div class="wb-harness-row">
+        <div class="header">
+          <span class="name">anonymization</span>
+          <span class="wb-pill wb-pill-primary">PRIMARY</span>
+          <span class="wb-pill">applied_layers: () -- IS a safety layer</span>
+        </div>
+        <p>Hard gate. Detects PII via regex + NER, redacts before any data crosses a
+          trust boundary. The audit log stores <code>sha256(original)</code>,
+          never plaintext. Owns the hub-submission flow.</p>
+        <div class="endpoints">
+          POST /api/anonymize &middot;
+          POST /api/submit/knowledge &middot;
+          POST /api/submit/local
+        </div>
+      </div>
+
+      <div class="wb-harness-row">
+        <div class="header">
+          <span class="name">search_safety</span>
+          <span class="wb-pill wb-pill-primary">PRIMARY</span>
+          <span class="wb-pill">applied_layers: () -- IS a safety layer</span>
+        </div>
+        <p>Intercepts outbound search queries before they reach any third-party
+          backend. Strips emails / phones / passport numbers / IBANs / monetary
+          amounts / URLs / national IDs. Optionally asks Gemma to rephrase the
+          redacted query into a more general form.</p>
+        <div class="endpoints">
+          POST /api/search/sanitize &middot;
+          GET /api/search/safety-info
+        </div>
+      </div>
+
+      <div class="wb-harness-row">
+        <div class="header">
+          <span class="name">search</span>
+          <span class="wb-pill">SECONDARY</span>
+          <span class="wb-pill">applied_layers: ()</span>
+        </div>
+        <p>Web search via SearXNG (preferred, privacy-preserving) or Tavily / Brave /
+          DuckDuckGo / Wikipedia as fallbacks. Always called AFTER search_safety
+          sanitizes the query when the page-side toggle is on.</p>
+        <div class="endpoints">
+          POST /api/search/client &middot;
+          POST /api/search/server &middot;
+          GET /api/search/backends
+        </div>
+      </div>
+
+      <div class="wb-harness-row">
+        <div class="header">
+          <span class="name">import_corpus</span>
+          <span class="wb-pill">SECONDARY</span>
+          <span class="wb-pill">applied_layers: ()</span>
+        </div>
+        <p>CRUD over user-attached evidence. Drag-drop a file, paste a snippet, list
+          and delete imports. No LLM call; pure file storage with audit metadata.</p>
+        <div class="endpoints">
+          POST /api/import/upload &middot;
+          POST /api/import/snippet &middot;
+          GET /api/import/list &middot;
+          GET / DELETE /api/import/{doc_id}
+        </div>
+      </div>
     </div>
 
-    <div class="wb-cta-row">
-      <a href="/">Start chatting</a>
-      <a href="/static/compare.html" class="secondary">Run an A/B</a>
-      <a href="/static/process.html" class="secondary">Upload a case folder</a>
-      <a href="/static/knowledge.html" class="secondary">Extract knowledge</a>
+    <div class="wb-card" id="pages">
+      <h2>4. Every page (12 workflows)</h2>
+      <p>
+        Every page is self-contained and follows the same UI primitives
+        (rule_70): shared chrome &amp; nav, trust-boundary banner if the
+        page mutates state, sample artifacts if the page accepts uploads,
+        and an activity log at the very bottom.
+      </p>
+      <table class="wb-table">
+        <thead><tr><th>Page</th><th>URL</th><th>What it does</th><th>Key controls</th></tr></thead>
+        <tbody>
+          <tr><td><b>Getting Started</b></td><td><code>/</code></td>
+              <td>This page -- overview of everything in the kernel</td>
+              <td>navigation hubs</td></tr>
+          <tr><td><b>Chat</b></td><td><code>/static/chat.html</code></td>
+              <td>Free-form chat with safety toggles + image upload</td>
+              <td>5 layer toggles, model picker, examples lightbox, persona editor</td></tr>
+          <tr><td><b>Harness Comparison</b></td><td><code>/static/compare.html</code></td>
+              <td>Same prompt through 2 harness configs, side-by-side</td>
+              <td>5 toggles per variant, presets, max_new_tokens, grade modes</td></tr>
+          <tr><td><b>Process Files</b></td><td><code>/static/process.html</code></td>
+              <td>Upload a bundle (ZIP/CSV/JSONL), see GREP + entity extractions</td>
+              <td>file drop, sample-bundle button, graph-chat after processing</td></tr>
+          <tr><td><b>Knowledge Extraction</b></td><td><code>/static/knowledge.html</code></td>
+              <td>Paste raw text, Gemma drafts a knowledge object envelope</td>
+              <td>target-leaf selector, anonymize toggle, sample import</td></tr>
+          <tr><td><b>Search</b></td><td><code>/static/search.html</code></td>
+              <td>Web search via SearXNG / Tavily / Brave / DDG / Wikipedia</td>
+              <td>sanitize toggle, Gemma rephrase, top_n, backend picker, post-result draft</td></tr>
+          <tr><td><b>Anonymization &amp; Sharing</b></td><td><code>/static/share.html</code></td>
+              <td>Review, redact, and submit anonymized knowledge to the hub</td>
+              <td>redaction preview, submission queue, audit log</td></tr>
+          <tr><td><b>Sync</b></td><td><code>/static/sync.html</code></td>
+              <td>Pull vetted/unvetted knowledge from the public hub</td>
+              <td>vetted-only/all radio, manual upload, sample import</td></tr>
+          <tr><td><b>Status</b></td><td><code>/static/status.html</code></td>
+              <td>Live counts: knowledge, syncs, imports, backends, model</td>
+              <td>refresh, per-branch breakdown, harness consume/emit map</td></tr>
+          <tr><td><b>Layers</b></td><td><code>/static/harness.html</code></td>
+              <td>Browse every harness layer's catalog (GREP / RAG / tools / online)</td>
+              <td>per-layer drill-in</td></tr>
+          <tr><td><b>Settings</b></td><td><code>/static/settings.html</code></td>
+              <td>Retrieval, online-search BYOK, model loading mode</td>
+              <td>BM25/rerank knobs, Brave/Tavily keys, single/multi-model</td></tr>
+          <tr><td><b>Logs</b></td><td><code>/static/logs.html</code></td>
+              <td>Tail every <code>dc_log()</code> event in real time</td>
+              <td>tail size, level, kind, layer filters</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="wb-card" id="taxonomy">
+      <h2>5. Knowledge object taxonomy (6 branches, 21 leaves)</h2>
+      <p>
+        Every persisted artefact in
+        <code>/kaggle/working/knowledge/</code> conforms to a v1.0
+        envelope: <code>{schema_version:"1.0", knowledge_object_type:&lt;leaf&gt;,
+        id:&lt;kebab&gt;, content:{...}}</code>. Six branches partition
+        the 21 leaf types:
+      </p>
+      <div class="wb-grid-3">
+        <div class="wb-flow-step">
+          <h4>matching_knowledge</h4><h5>4 leaves</h5>
+          <p><code>grep_rule</code>, <code>glob_rule</code>, <code>classifier_rule</code>, <code>heuristic_rule</code>
+            -- patterns that match input to a label/category.</p>
+        </div>
+        <div class="wb-flow-step">
+          <h4>grounding_knowledge</h4><h5>4 leaves</h5>
+          <p><code>rag_doc</code>, <code>citation_edge</code>, <code>corridor_profile</code>, <code>ngo_directory</code>
+            -- statutes, NGO contacts, statute-to-statute relations.</p>
+        </div>
+        <div class="wb-flow-step">
+          <h4>reasoning_knowledge</h4><h5>4 leaves</h5>
+          <p><code>persona_block</code>, <code>context_snippet</code>, <code>reasoning_step</code>, <code>rubric_dimension</code>
+            -- how the model should think through a problem.</p>
+        </div>
+        <div class="wb-flow-step">
+          <h4>tool_knowledge</h4><h5>3 leaves</h5>
+          <p><code>tool_definition</code>, <code>tool_example</code>, <code>tool_chain</code>
+            -- function-calling specs and example invocations.</p>
+        </div>
+        <div class="wb-flow-step">
+          <h4>input_knowledge</h4><h5>3 leaves</h5>
+          <p><code>fact_template</code>, <code>upload_schema</code>, <code>prompt_template</code>
+            -- shapes user input must take to be ingestible.</p>
+        </div>
+        <div class="wb-flow-step">
+          <h4>output_knowledge</h4><h5>3 leaves</h5>
+          <p><code>envelope_schema</code>, <code>audit_template</code>, <code>submission_schema</code>
+            -- shapes the system outputs to downstream consumers.</p>
+        </div>
+      </div>
+      <p class="wb-muted">
+        Live counts on this kernel:
+        <span class="live-counter" id="tax-builtin">checking...</span>,
+        <span class="live-counter" id="tax-imported">checking...</span>.
+        See <a href="/static/status.html">Status</a> for the per-leaf breakdown.
+      </p>
+    </div>
+
+    <div class="wb-card" id="trust">
+      <h2>6. Trust boundaries</h2>
+      <p>What stays local and what touches a network. Three boundaries to know:</p>
+      <pre class="wb-diagram">
+                       +-----------------------------+
+                       |       YOUR DEVICE           |
+                       |   (browser, localStorage)   |
+                       +--------------+--------------+
+                                      |  HTTPS via Cloudflared tunnel
+                                      |  (the only thing leaving your laptop)
+                                      v
+   +========================================================================+
+   |                       KAGGLE KERNEL (private to you)                   |
+   |                                                                        |
+   |   +---------+    +-----------+    +------------+    +---------------+ |
+   |   |  Chat   |---&gt;| Anonymizer|---&gt;|  Gemma 4   |    |  Anonymization| |
+   |   |  page   |    |  (regex   |    |  (loaded   |    |   audit log   | |
+   |   +---------+    |   + NER)  |    |   in GPU)  |    |  (sha256 only)| |
+   |                  +-----------+    +------------+    +---------------+ |
+   |                                                                        |
+   |   +---------+    +---------------+    +-----------+                   |
+   |   | Process |---&gt;| GREP+entity   |---&gt;| local KG  |                   |
+   |   |  page   |    | extractor     |    | in memory |                   |
+   |   +---------+    +---------------+    +-----------+                   |
+   |                                                                        |
+   |   +---------+    +---------------+        outbound HTTPS              |
+   |   | Search  |---&gt;| search_safety |---&gt;-------------------------+      |
+   |   |  page   |    |  (PII strip)  |    sanitized query only     |      |
+   |   +---------+    +---------------+                              |     |
+   |                                                                 |     |
+   |   +---------+    +---------------+        outbound HTTPS         |     |
+   |   |  Sync   |---&gt;| HTTPS GET hub |&lt;----- vetted envelopes only -+      |
+   |   |  page   |    +---------------+                                    |
+   |   +---------+                                                          |
+   +========================================================================+
+                                      |
+                                      |  outbound only (and only via the
+                                      |  surfaces above, with PII stripped)
+                                      v
+              +------------------+              +------------------+
+              | SearXNG/Brave/   |              |  DueCare hub     |
+              | Tavily/DDG       |              |  (public         |
+              | (search backend) |              |  knowledge)      |
+              +------------------+              +------------------+
+</pre>
+      <ul>
+        <li><b>Browser &lt;-&gt; Kernel:</b> HTTPS via Cloudflared. Only your laptop sees it
+          (or whoever has the tunnel URL).</li>
+        <li><b>Kernel -&gt; Search backend:</b> opt-in per search; only the sanitized query
+          flows (sanitize toggle defaults ON in <a href="/static/search.html">Search</a>).</li>
+        <li><b>Kernel -&gt; DueCare hub:</b> outbound GET only on <a href="/static/sync.html">Sync</a>
+          (pulls vetted envelopes). The hub does NOT see anything on this kernel
+          unless you go through <a href="/static/share.html">Anonymization &amp; Sharing</a>
+          and explicitly submit a redacted artefact.</li>
+      </ul>
+      <p>
+        <b>Never logged in plaintext:</b> raw chat messages, raw uploads, raw search queries.
+        The training-data JSONL streams under <code>/kaggle/working/training/</code> use
+        <code>sha256</code> fingerprints, not raw content.
+      </p>
+    </div>
+
+    <div class="wb-card" id="endpoints">
+      <h2>7. API endpoint reference</h2>
+      <p>Every route the kernel exposes, grouped by purpose:</p>
+
+      <h3>Chat surface</h3>
+      <ul>
+        <li><code>POST /api/chat/send</code> -- SSE stream of step events + final response</li>
+        <li><code>POST /api/chat/upload-image</code> -- attach image for multimodal prompts</li>
+        <li><code>GET /api/chat/image/{sid}</code> -- serve a previously-uploaded image</li>
+      </ul>
+
+      <h3>Grading</h3>
+      <ul>
+        <li><code>POST /api/grade</code> -- deterministic rubric grader (rules-based, fast)</li>
+        <li><code>POST /api/grade-deep</code> -- Gemma-as-judge over each rubric dimension</li>
+        <li><code>POST /api/grade-combined</code> -- weighted blend of both</li>
+        <li><code>POST /api/grade-deep-stream</code>, <code>/api/grade-combined-stream</code> -- SSE versions for slow runs</li>
+      </ul>
+
+      <h3>Process &amp; ingestion</h3>
+      <ul>
+        <li><code>POST /api/process/batch</code> -- multipart bundle upload</li>
+        <li><code>POST /api/process/graph-chat</code> -- chat against the local knowledge graph</li>
+        <li><code>POST /api/import/upload</code>, <code>POST /api/import/snippet</code> -- attach evidence</li>
+        <li><code>GET /api/import/list</code>, <code>GET/DELETE /api/import/{doc_id}</code> -- evidence CRUD</li>
+      </ul>
+
+      <h3>Knowledge object pipeline</h3>
+      <ul>
+        <li><code>POST /api/knowledge/draft-envelope</code> -- Gemma drafts a typed envelope</li>
+        <li><code>POST /api/knowledge/promote</code> -- persist a validated envelope</li>
+        <li><code>POST /api/knowledge/import</code> -- multipart ZIP bundle import</li>
+        <li><code>POST /api/knowledge/sync</code> -- pull vetted+unvetted from hub</li>
+        <li><code>GET /api/knowledge/list</code>, <code>GET /api/knowledge/{type}/{id}</code> -- inspect</li>
+        <li><code>GET /api/knowledge/export</code> -- export the local store</li>
+        <li><code>GET /api/knowledge/taxonomy</code> -- the live 21-leaf catalog</li>
+      </ul>
+
+      <h3>Anonymization &amp; submission</h3>
+      <ul>
+        <li><code>POST /api/anonymize</code> -- redact text via regex + NER</li>
+        <li><code>POST /api/submit/knowledge</code> -- submit a redacted artefact to the hub</li>
+        <li><code>POST /api/submit/local</code> -- legacy alias</li>
+      </ul>
+
+      <h3>Search (PII-safe by default)</h3>
+      <ul>
+        <li><code>POST /api/search/sanitize</code> -- strip PII from a query (sanitize harness)</li>
+        <li><code>GET /api/search/safety-info</code> -- which sanitization modes are wired</li>
+        <li><code>POST /api/search/client</code>, <code>POST /api/search/server</code> -- execute search</li>
+        <li><code>GET /api/search/backends</code> -- list available backends + availability</li>
+      </ul>
+
+      <h3>Configuration &amp; introspection</h3>
+      <ul>
+        <li><code>GET /api/harness/inventory</code> -- baseline counts (built-in GREP/RAG/...)</li>
+        <li><code>GET /api/harness-info</code> -- per-layer wiring flags</li>
+        <li><code>GET /api/harness-catalog/{layer}</code> -- drill-in for a single layer</li>
+        <li><code>GET /api/version</code>, <code>GET /api/model-info</code> -- kernel/model state</li>
+        <li><code>GET/POST /api/retrieval/config</code> -- RAG knobs (BM25, rerank, parent-expand)</li>
+        <li><code>GET/POST /api/online/config</code>, <code>POST /api/online/test</code> -- search BYOK</li>
+        <li><code>GET /api/dc-logs</code>, <code>GET /api/dc-logs/stats</code>, <code>POST /api/dc-logs/clear</code> -- structured logs</li>
+      </ul>
+    </div>
+
+    <div class="wb-card" id="workflows">
+      <h2>8. Common workflows</h2>
+
+      <h3>A. Stock-vs-harness comparison for the demo video</h3>
+      <ol>
+        <li>Open <a href="/static/compare.html">Compare</a>.</li>
+        <li>Click the <b>stock vs full</b> preset.</li>
+        <li>Pick "Passport retention (Saudi)" from the examples dropdown.</li>
+        <li>Click <b>Run comparison</b>. Variant A returns a generic Gemma answer; Variant B
+          returns the harnessed answer with GREP rule firings and statute citations.</li>
+        <li>Click <b>Grade both</b>. Variant B typically scores 70-90, Variant A 30-50.</li>
+        <li>Take a screenshot of the side-by-side view for the demo reel.</li>
+      </ol>
+
+      <h3>B. Onboard a new NGO's local knowledge</h3>
+      <ol>
+        <li>Have the NGO export their case files as a ZIP.</li>
+        <li>Drop the ZIP on <a href="/static/process.html">Process Files</a>; review the GREP/entity output.</li>
+        <li>For unmodeled patterns, paste excerpts into <a href="/static/knowledge.html">Knowledge Extraction</a>
+          with <code>target_leaf=grep_rule</code>; Gemma drafts a candidate rule.</li>
+        <li>On <a href="/static/share.html">Anonymization &amp; Sharing</a>, redact + submit the new rules
+          to the public hub.</li>
+        <li>The hub vetting queue surfaces them to reviewers; once vetted, every
+          DueCare kernel that runs Sync picks them up.</li>
+      </ol>
+
+      <h3>C. Safe web research for a worker case</h3>
+      <ol>
+        <li>Open <a href="/static/search.html">Search</a>; keep <b>Sanitize query before sending</b> ON.</li>
+        <li>Paste a query that might contain PII (e.g., a worker name or passport number).</li>
+        <li>Click Search. The sanitize-preview panel shows exactly what was redacted before dispatch.</li>
+        <li>Review results; click <b>Draft as knowledge objects</b> to convert relevant pages
+          into <code>rag_doc</code> envelopes via Gemma.</li>
+        <li>Click <b>Send to Anonymization &amp; Share</b> to queue the drafts for hub submission.</li>
+      </ol>
+    </div>
+
+    <div class="wb-card" id="faq">
+      <h2>9. FAQ &amp; troubleshooting</h2>
+
+      <h4>The activity log on a page is empty.</h4>
+      <p>Click the action button (Run, Search, Process, etc.) -- the log only fills as
+        events arrive. If the page itself hasn't done anything yet, the log is intentionally
+        idle. If the log stays empty after a successful action, hit hard-refresh
+        (Ctrl+Shift+R) -- there was a race that's now fixed but stale browser caches
+        can still hit it.</p>
+
+      <h4>A response is cut off mid-sentence.</h4>
+      <p>On Compare, the default is 2048 tokens; raise <b>max_new_tokens</b> in section 3.
+        On Chat, click the generation-config gear next to the composer.</p>
+
+      <h4>The Online layer says "not wired" on a kernel.</h4>
+      <p>Open <a href="/static/settings.html">Settings</a> &rarr; Online search and provide a
+        Brave or Tavily API key (BYOK). Alternatively, set <code>DUECARE_SEARXNG_URL</code>
+        in the kernel env so the kernel reaches your self-hosted SearXNG.</p>
+
+      <h4>Where do my synced or imported knowledge objects show up?</h4>
+      <p>Globally: any harness that consumes the leaf type the new object uses picks
+        it up on the next prompt. See the consume/emit map on
+        <a href="/static/status.html">Status</a>. No kernel restart needed.</p>
+
+      <h4>Can I disable the search-safety harness?</h4>
+      <p>You can flip the page-side toggle off on Search, but the search.html UI strongly
+        discourages this. The harness exists because queries leave the kernel; once they
+        do, you can't take them back. If you have a use case for sending raw queries
+        (e.g., looking up a public statute URL), turn it off for that single query.</p>
+
+      <h4>How do I freeze the kernel for final submission?</h4>
+      <p>Run <code>python scripts/freeze_kernels_for_submission.py</code>. It flips
+        <code>configs/submission_freeze.json</code> to <code>frozen=true</code> and
+        re-pins every kernel's install path to an immutable SHA. The install-policy test
+        will then reject any moving-ref (<code>master</code> / <code>main</code> /
+        <code>HEAD</code>) install.</p>
+    </div>
+
+    <div class="wb-card" id="activity-log" style="margin-top: 18px;">
+      <h2>10. Activity log</h2>
+      <p class="wb-muted" style="margin: 0 0 8px;">
+        This page is read-only. The log below records the inventory probes
+        (<code>/api/harness/inventory</code> + <code>/api/knowledge/list</code>)
+        used to populate the live counters above.
+      </p>
+      <div id="gs-log" class="dc-activity-log">
+        <div class="dc-log-idle">Probing kernel state...</div>
+      </div>
     </div>
   </main>
+
+  <script>
+    (async function () {
+      const log = window.dcActivityLog
+        ? window.dcActivityLog.attach('#gs-log', {idlePlaceholder: 'Probing kernel state...'})
+        : null;
+      const _set = (id, val) => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = val;
+      };
+      try {
+        log && log.info('GET /api/harness/inventory');
+        const r = await fetch('/api/harness/inventory');
+        if (r.ok) {
+          const d = await r.json();
+          _set('hero-grep', d.grep_rules || '?');
+          _set('hero-rag', d.rag_docs || '?');
+          _set('tax-builtin', (d.grep_rules || 0) + ' GREP + ' + (d.rag_docs || 0) + ' RAG built-in');
+          log && log.ok('inventory OK', 'GREP=' + d.grep_rules + ' RAG=' + d.rag_docs);
+        } else {
+          log && log.warn('inventory HTTP ' + r.status);
+        }
+      } catch (e) {
+        log && log.err('inventory failed', '' + e);
+      }
+      try {
+        log && log.info('GET /api/knowledge/list');
+        const r = await fetch('/api/knowledge/list');
+        if (r.ok) {
+          const d = await r.json();
+          const n = (d.n != null) ? d.n : ((d.objects || d.items || []).length);
+          _set('tax-imported', n + ' user-imported');
+          log && log.ok('knowledge list OK', 'n=' + n);
+        }
+      } catch (e) {
+        log && log.err('knowledge list failed', '' + e);
+      }
+    })();
+  </script>
 </body>
 </html>
