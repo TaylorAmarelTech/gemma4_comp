@@ -45,13 +45,21 @@
     .wb-draft-card pre { background: #F7F6F1; padding: 8px 10px; border-radius: 6px;
                           font-size: 11px; max-height: 200px; overflow-y: auto;
                           white-space: pre-wrap; margin: 6px 0 0; }
+    .search-pipeline { display: grid; grid-template-columns: repeat(auto-fit, minmax(155px, 1fr)); gap: 8px; margin: 10px 0; }
+    .search-step { border: 1px solid #DDD8C9; border-radius: 8px; padding: 10px 11px; background: #FAF9F4; min-height: 72px; }
+    .search-step .num { font-family: 'JetBrains Mono', monospace; color: #5B5F68; font-size: 10px; text-transform: uppercase; letter-spacing: 0.07em; }
+    .search-step .name { font-weight: 700; font-size: 12.5px; margin: 5px 0 3px; }
+    .search-step .detail { color: #5B5F68; font-size: 11px; line-height: 1.4; }
+    .search-step.complete { border-color: oklch(0.72 0.08 155); background: oklch(0.97 0.02 155); }
+    .search-example { text-align:left; background:#FAF9F4; border:1px solid #DDD8C9; border-radius:8px; padding:8px 10px; cursor:pointer; font-size:12px; color:#2A2D34; }
+    .search-example:hover { border-color: oklch(0.52 0.08 195); color:#0E1116; }
     code { background: #F1EFE7; padding: 1px 5px; border-radius: 3px;
            font-size: 11.5px; font-family: 'JetBrains Mono', monospace; }
   </style>
 </head>
 <body data-nav="search">
   <main class="wb-page">
-    <h1 class="wb-h1">Search -- web search utility</h1>
+    <h1 class="wb-h1">Search Utility</h1>
     <p class="wb-lede">
       Calls <code>POST /api/search/client</code>. This is a secondary
       utility surface, not a Gemma response harness by itself. Uses SearXNG when
@@ -63,6 +71,22 @@
       or markdown, or send the set into Anonymization &amp; Sharing
       for hub upload.
     </p>
+
+    <div class="wb-card" style="border-left: 4px solid oklch(0.52 0.08 195);">
+      <h2>Search harness actions</h2>
+      <div class="search-pipeline" id="search-pipeline">
+        <div class="search-step"><div class="num">Step 1</div><div class="name">Query</div><div class="detail">User enters a public-source research query.</div></div>
+        <div class="search-step"><div class="num">Step 2</div><div class="name">Search Safety</div><div class="detail">PII is redacted and Gemma can generalize the query.</div></div>
+        <div class="search-step"><div class="num">Step 3</div><div class="name">Backend</div><div class="detail">SearXNG, Tavily, Brave, DuckDuckGo, or Wikipedia returns results.</div></div>
+        <div class="search-step"><div class="num">Step 4</div><div class="name">Review</div><div class="detail">Results stay visible for inspection and download.</div></div>
+        <div class="search-step"><div class="num">Step 5</div><div class="name">Gemma draft</div><div class="detail">Optional knowledge drafting passes snippets to Gemma 4.</div></div>
+      </div>
+      <div class="wb-row" style="gap:8px;">
+        <button class="search-example" type="button" onclick="searchUseExample('ILO C181 Article 7 recruitment fee prohibition migrant workers')">ILO fee prohibition</button>
+        <button class="search-example" type="button" onclick="searchUseExample('Hong Kong foreign domestic helper passport retention employer')">Passport retention</button>
+        <button class="search-example" type="button" onclick="searchUseExample('Philippines Hong Kong domestic worker placement fee cap POEA')">PH to HK fee cap</button>
+      </div>
+    </div>
 
     <div class="wb-card">
       <h2>1. Query</h2>
@@ -157,8 +181,17 @@
     let _searchQuery = '';
     let _searchBackend = '';
     let _drafts = [];          // {url, title, envelope}
+    function searchSetPipeline(active) {
+      document.querySelectorAll('#search-pipeline .search-step').forEach((el, idx) => {
+        el.classList.toggle('complete', idx <= active);
+      });
+    }
+    function searchUseExample(q) {
+      document.getElementById('q').value = q;
+      searchSetPipeline(0);
+    }
 
-    // ============== Backends + Search ==============
+    // Backends and search
     async function loadBackends() {
       try {
         const r = await fetch('/api/search/backends');
@@ -196,14 +229,16 @@
       const rephrase = document.getElementById('rephrase').checked;
       const btn = document.getElementById('go-btn');
       btn.disabled = true;
+      searchSetPipeline(0);
 
-      // ============== Step 1: search-safety harness sanitize ==============
+      // Step 1: search-safety harness sanitize
       let query = rawQuery;
       const previewEl = document.getElementById('sanitize-preview');
       const previewText = document.getElementById('sanitize-preview-text');
       const previewMeta = document.getElementById('sanitize-preview-meta');
       previewEl.style.display = 'none';
       if (sanitize) {
+        searchSetPipeline(1);
         _searchLog.anon('POST /api/search/sanitize  (strip PII before any external call)');
         try {
           const sr = await fetch('/api/search/sanitize', {
@@ -232,10 +267,11 @@
             _searchLog.warn('sanitize failed (HTTP ' + sr.status + '), sending raw query');
           }
         } catch (e) {
-          _searchLog.warn('sanitize error: ' + e + ' -- sending raw query');
+          _searchLog.warn('sanitize error: ' + e + '. Sending raw query.');
         }
       }
 
+      searchSetPipeline(2);
       _searchQuery = query;
       _searchLog.info('POST /api/search/client', 'q=' + query + ' top_n=' + top_n + ' backend=' + (backend || 'auto') + ' anonymize_backend=' + anon);
       if (anon) _searchLog.anon('anonymize_query=true (server-side PII strip in addition to page-side)');
@@ -264,6 +300,7 @@
                        + ' results=' + ((out.results || []).length));
         if (note) _searchLog.info('note: ' + note);
         _searchResults = out.results || [];
+        searchSetPipeline(3);
         renderResults(_searchResults);
         document.getElementById('results-card').style.display = _searchResults.length ? '' : 'none';
       } catch (e) {
@@ -274,7 +311,7 @@
       }
     }
 
-    // ============== Render results (DOM-only, no innerHTML on network content) ==============
+    // Render results with DOM APIs and no innerHTML on network content.
     function renderResults(rows) {
       const host = document.getElementById('results');
       while (host.firstChild) host.removeChild(host.firstChild);
@@ -302,7 +339,7 @@
       });
     }
 
-    // ============== Post-result actions ==============
+    // Post-result actions
     function searchDownloadResults(format) {
       if (!_searchResults.length) {
         _searchLog && _searchLog.warn('no results to download');
@@ -346,6 +383,7 @@
       }
       const btn = document.getElementById('draft-btn');
       btn.disabled = true;
+      searchSetPipeline(4);
       document.getElementById('draft-status').textContent =
         'Drafting ' + _searchResults.length + ' envelopes via Gemma...';
       _drafts = [];

@@ -1,5 +1,5 @@
 # <!-- duecare:kernel-intro -->
-# DueCare — Video pitch (slides + scripted demo + setup mode)
+# DueCare - Video pitch (slides + scripted demo + setup mode)
 # Core notebook #03 of the DueCare submission.
 #
 # The dedicated video-recording surface. THREE modes via URL param:
@@ -22,7 +22,7 @@
 
 """
 ============================================================================
-  DUECARE 03 VIDEO PITCH -- Kaggle notebook
+  DUECARE 03 VIDEO PITCH: Kaggle notebook
 ============================================================================
   How it works:
     1. Bundled DEMO_SCRIPT dict (no attached datasets needed)
@@ -42,12 +42,14 @@
 """
 from __future__ import annotations
 
+import csv
 import json
 import os
 import subprocess
 import sys
 import threading
 import time
+import zipfile
 from pathlib import Path
 from typing import Any, Optional
 
@@ -60,7 +62,7 @@ TUNNEL = "cloudflared"
 
 
 # ===========================================================================
-# PHASE 1 -- DueCare from GitHub (lightweight; only need kernel_shell)
+# PHASE 1: DueCare from GitHub (lightweight; only need kernel_shell)
 # ===========================================================================
 DUECARE_VERSION    = "0.1.0"
 DUECARE_REPO       = "TaylorAmarelTech/gemma4_comp"
@@ -71,6 +73,30 @@ DUECARE_PACKAGES   = ["duecare-llm-chat"]
 # future video-pitch artifacts.
 OUTPUT_DIR = Path("/kaggle/working")
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+MEDIA_DIR = OUTPUT_DIR / "video_pitch_media"
+MEDIA_DIR.mkdir(parents=True, exist_ok=True)
+
+SYNTHETIC_ID_CARD_PATH = MEDIA_DIR / "synthetic_ph_hk_id_card.svg"
+SYNTHETIC_ID_CARD_PATH.write_text(
+    """<svg xmlns="http://www.w3.org/2000/svg" width="960" height="560" viewBox="0 0 960 560">
+  <rect width="960" height="560" rx="28" fill="#f7f6f1"/>
+  <rect x="42" y="42" width="876" height="476" rx="22" fill="#ffffff" stroke="#d9d4c8" stroke-width="4"/>
+  <rect x="42" y="42" width="876" height="94" rx="22" fill="#15384a"/>
+  <text x="76" y="102" font-family="Arial, sans-serif" font-size="32" fill="#ffffff" font-weight="700">Synthetic Case Intake Image</text>
+  <text x="76" y="174" font-family="Arial, sans-serif" font-size="22" fill="#5b5f68">Worker ID image, generated for demo only</text>
+  <rect x="76" y="214" width="220" height="220" rx="18" fill="#e7edf0" stroke="#b9c3ca"/>
+  <circle cx="186" cy="284" r="52" fill="#9eb4bf"/>
+  <path d="M106 416c20-62 138-62 160 0" fill="#9eb4bf"/>
+  <text x="342" y="238" font-family="Arial, sans-serif" font-size="27" fill="#0e1116" font-weight="700">Maria S. Example</text>
+  <text x="342" y="288" font-family="Arial, sans-serif" font-size="23" fill="#2a2d34">Corridor: PH to HK</text>
+  <text x="342" y="333" font-family="Arial, sans-serif" font-size="23" fill="#2a2d34">Reported fee: PHP 65,000</text>
+  <text x="342" y="378" font-family="Arial, sans-serif" font-size="23" fill="#2a2d34">Passport status: held by employer</text>
+  <text x="342" y="423" font-family="Arial, sans-serif" font-size="23" fill="#9e3f3f" font-weight="700">Private fields redacted before export</text>
+  <text x="76" y="486" font-family="Arial, sans-serif" font-size="18" fill="#5b5f68">This is synthetic media for a screen-recorded demo. It is not a real identity document.</text>
+</svg>""",
+    encoding="utf-8",
+)
+SYNTHETIC_ID_CARD_URL = "/artifact/video_pitch_media/synthetic_ph_hk_id_card.svg"
 
 
 def install_duecare_from_github() -> bool:
@@ -126,7 +152,7 @@ DEMO_SCRIPT = {
     "kernel_id": "03-duecare-video-pitch",
     "lanes": {
         "worker": {
-            "label": "Migrant worker — Lane 03",
+            "label": "Migrant worker - Lane 03",
             "intro": ("A worker on a low-spec phone with a "
                        "recruitment-fee question. Same harness, "
                        "same packs, on-device."),
@@ -278,7 +304,7 @@ DEMO_SCRIPT = {
                                  "recruiter. I have nothing. What do I do?"),
                     "response": (
                         "I am sorry. What you are describing is wage "
-                        "theft combined with debt bondage — both are "
+                        "theft combined with debt bondage - both are "
                         "recognized ILO indicators of forced labour.\n\n"
                         "### What the law says\n"
                         "- The employer must pay your salary directly to "
@@ -325,7 +351,7 @@ DEMO_SCRIPT = {
             ],
         },
         "caseworker": {
-            "label": "NGO caseworker / regulator — Lane 02",
+            "label": "NGO caseworker / regulator - Lane 02",
             "intro": ("A caseworker triaging an intake on a laptop. "
                        "Same harness, runs locally, never uploads "
                        "raw case content."),
@@ -336,6 +362,14 @@ DEMO_SCRIPT = {
                                  "reports passport retention + 6 months "
                                  "salary withheld + recruiter "
                                  "disappeared. Triage."),
+                    "media": {
+                        "type": "image",
+                        "src": SYNTHETIC_ID_CARD_URL,
+                        "alt": "Synthetic redacted ID-card style intake image",
+                        "caption": ("Synthetic media example. The harness "
+                                    "redacts private identifiers before "
+                                    "exporting any presentation evidence."),
+                    },
                     "response": (
                         "### Triage summary\n"
                         "**Severity:** HIGH (multi-indicator).\n"
@@ -436,12 +470,12 @@ DEMO_SCRIPT = {
                                  "recruiter agency in case `[CASE_a3f7]`."),
                     "response": (
                         "### Draft: POEA complaint letter\n"
-                        "**Status:** DRAFT — review before sending.\n\n"
+                        "**Status:** DRAFT - review before sending.\n\n"
                         "```\n"
                         "Date: [TODAY]\n"
                         "To:   Philippine Overseas Employment Admin\n"
                         "      [POEA Anti-Illegal Recruitment Branch]\n"
-                        "Re:   Formal complaint — License No. "
+                        "Re:   Formal complaint - License No. "
                         "[RECRUITER_LICENSE]\n"
                         "From: [NGO_NAME] on behalf of complainant\n"
                         "      Reference: [CASE_a3f7]\n"
@@ -471,7 +505,7 @@ DEMO_SCRIPT = {
                         "Respectfully,\n"
                         "[NGO_AUTHORIZED_SIGNER]\n"
                         "```\n\n"
-                        "Reviewable as a draft — fill in the bracketed "
+                        "Reviewable as a draft - fill in the bracketed "
                         "fields, then submit through your normal POEA "
                         "intake channel."),
                     "harness_trace": {
@@ -518,7 +552,7 @@ DEMO_SCRIPT = {
                         "}\n"
                         "```\n\n"
                         "**No PII included.** Recruiter hashes are "
-                        "salted and one-way — only the count of repeat "
+                        "salted and one-way - only the count of repeat "
                         "appearances is exposed. This is the only thing "
                         "that leaves your machine when you click "
                         "'Share with regulators'."),
@@ -534,7 +568,7 @@ DEMO_SCRIPT = {
             ],
         },
         "platform": {
-            "label": "Platform safety — Lane 01",
+            "label": "Platform safety - Lane 01",
             "intro": ("A trust & safety analyst screening exploitative "
                        "UGC at scale."),
             "scenes": [
@@ -607,11 +641,11 @@ DEMO_SCRIPT = {
                         "** 142\n"
                         "**Queued for human review:** 145\n\n"
                         "### Top indicators today\n"
-                        "1. illegal_placement_fee — 89 posts\n"
-                        "2. unlicensed_recruiter_offer — 67\n"
-                        "3. passport_retention_offer — 41\n"
-                        "4. contract_substitution_signal — 34\n"
-                        "5. time_pressure_tactic — 28\n\n"
+                        "1. illegal_placement_fee - 89 posts\n"
+                        "2. unlicensed_recruiter_offer - 67\n"
+                        "3. passport_retention_offer - 41\n"
+                        "4. contract_substitution_signal - 34\n"
+                        "5. time_pressure_tactic - 28\n\n"
                         "### Corridor concentration\n"
                         "- PH-HK: 41% of flags\n"
                         "- PH-UAE: 22%\n"
@@ -633,7 +667,7 @@ DEMO_SCRIPT = {
                 {
                     "scene_id": "platform_corridor_drill_03",
                     "prompt": ("Drill into the PH-HK fee-overcharge rule "
-                                 "— what does the rule fire on?"),
+                                 "- what does the rule fire on?"),
                     "response": (
                         "### Rule: ph_hk_placement_fee_overcharge\n"
                         "**Severity:** HIGH\n"
@@ -677,7 +711,7 @@ DEMO_SCRIPT = {
                     "response": (
                         "### False positive case study\n"
                         "**Post:** \"PH-HK transfer fee for old domestic "
-                        "helper changing employer in HK — what is the "
+                        "helper changing employer in HK - what is the "
                         "legal limit?\"\n\n"
                         "**Initial GREP fire:** ph_hk_placement_fee_"
                         "overcharge at confidence 0.71 (medium-low)\n"
@@ -720,7 +754,7 @@ DEMO_SCRIPT = {
             ],
         },
         "researcher": {
-            "label": "Researcher / journalist — Lane 04",
+            "label": "Researcher / journalist - Lane 04",
             "intro": ("A researcher pulling cite-able corridor data with "
                        "version-pinned packs."),
             "scenes": [
@@ -768,7 +802,7 @@ DEMO_SCRIPT = {
                     "prompt": ("Show indicator-frequency trends across "
                                  "PH-HK over the last 12 months."),
                     "response": (
-                        "### Indicator trends — PH-HK corridor (12 mo)\n"
+                        "### Indicator trends - PH-HK corridor (12 mo)\n"
                         "Source: aggregated NGO-share signal (no PII).\n\n"
                         "| Indicator | 2025-Q2 | 2025-Q3 | 2025-Q4 | "
                         "2026-Q1 | trend |\n"
@@ -783,10 +817,10 @@ DEMO_SCRIPT = {
                         "+29% |\n"
                         "| isolation | 12 | 19 | 23 | 31 | +158% |\n\n"
                         "### Reading\n"
-                        "- **Fee overcharge is dropping** — likely POEA "
+                        "- **Fee overcharge is dropping** - likely POEA "
                         "enforcement of MC 14-2017 working as intended.\n"
                         "- **Passport retention and isolation are rising** "
-                        "— possibly a substitution effect: agencies that "
+                        "- possibly a substitution effect: agencies that "
                         "can no longer extract money on fees are "
                         "extracting control on documents and movement.\n\n"
                         "**Reproducibility:** chart generated against "
@@ -808,7 +842,7 @@ DEMO_SCRIPT = {
                     "prompt": ("Compare passport-retention rates across "
                                  "PH-HK, NP-Gulf, BD-Gulf for Q1 2026."),
                     "response": (
-                        "### Passport retention — Q1 2026 cross-corridor\n"
+                        "### Passport retention - Q1 2026 cross-corridor\n"
                         "Source: aggregate NGO signal (no PII).\n\n"
                         "| Corridor | Cases | % of all indicators | "
                         "Per-1000 workers est. |\n"
@@ -823,7 +857,7 @@ DEMO_SCRIPT = {
                         "training infrastructure on the Nepal side and "
                         "more concentrated kafala employer power on the "
                         "Gulf side.\n"
-                        "- **PH-HK shows the lowest** — POEA + HK Labour "
+                        "- **PH-HK shows the lowest** - POEA + HK Labour "
                         "Dept have the most mature dual-side enforcement.\n\n"
                         "Each cell links to the underlying pack-versioned "
                         "evidence base; click to see the rules and "
@@ -868,7 +902,7 @@ DEMO_SCRIPT = {
                         "```\n\n"
                         "### Result\n"
                         "Stock label_f1: 0.317. Harness ON label_f1: "
-                        "0.882. **Lift: +56.5 percentage points** — "
+                        "0.882. **Lift: +56.5 percentage points** - "
                         "matches the writeup, deterministically.\n\n"
                         "Mismatches against this number are bug reports; "
                         "please file them with the run command + "
@@ -880,7 +914,7 @@ DEMO_SCRIPT = {
             ],
         },
         "developer": {
-            "label": "Developer / integration partner — Lane 05",
+            "label": "Developer / integration partner - Lane 05",
             "intro": ("A developer wiring the runtime into a Messenger "
                        "bot or moderation console."),
             "scenes": [
@@ -971,13 +1005,13 @@ DEMO_SCRIPT = {
                     "response": (
                         "### Pinning a production release\n"
                         "Three things must be pinned together:\n\n"
-                        "1. **Container image** — pin to a SHA, never "
+                        "1. **Container image** - pin to a SHA, never "
                         "`:latest`.\n"
                         "   ```bash\n"
                         "   docker pull ghcr.io/taylorscottamarel/duecare:"
                         "v0.1.0@sha256:7e2c4a8f1b9d...\n"
                         "   ```\n"
-                        "2. **Pack manifest** — pin every pack to a "
+                        "2. **Pack manifest** - pin every pack to a "
                         "version + hash.\n"
                         "   ```yaml\n"
                         "   # packs.lock\n"
@@ -988,7 +1022,7 @@ DEMO_SCRIPT = {
                         "     version: 1.2.0\n"
                         "     hash: sha256:a4f1b8c2...\n"
                         "   ```\n"
-                        "3. **Optional adapter** — if using a fine-tuned "
+                        "3. **Optional adapter** - if using a fine-tuned "
                         "adapter, pin the HF Hub revision.\n"
                         "   ```bash\n"
                         "   --adapter TaylorScottAmarel/duecare-gemma-4-"
@@ -999,7 +1033,7 @@ DEMO_SCRIPT = {
                         "change the answer to the same question. Pin all "
                         "three and your production behaviour is "
                         "reproducible. Mismatch against the bench report? "
-                        "File a bug — the pinning makes it investigable."),
+                        "File a bug - the pinning makes it investigable."),
                     "harness_trace": {},
                     "citations": [],
                     "latency_simulation_ms": 1400,
@@ -1011,14 +1045,14 @@ DEMO_SCRIPT = {
                     "response": (
                         "### Local KB API\n"
                         "Three endpoints close the case-management loop:\n\n"
-                        "1. **Ingest** — drop a case file in.\n"
+                        "1. **Ingest** - drop a case file in.\n"
                         "   ```bash\n"
                         "   POST /api/local-kb/ingest\n"
                         "     {\"case_id\": \"case_abc\",\n"
                         "      \"content\": \"<intake notes>\"}\n"
                         "   # response: redaction summary, entity hashes\n"
                         "   ```\n"
-                        "2. **Query** — find similar cases across the "
+                        "2. **Query** - find similar cases across the "
                         "local DB (privacy-preserving).\n"
                         "   ```bash\n"
                         "   POST /api/local-kb/query\n"
@@ -1026,7 +1060,7 @@ DEMO_SCRIPT = {
                         "      \"corridor\": \"PH-HK\"}\n"
                         "   # response: list of redacted match summaries\n"
                         "   ```\n"
-                        "3. **Aggregate** — preview anonymized signal "
+                        "3. **Aggregate** - preview anonymized signal "
                         "before sharing.\n"
                         "   ```bash\n"
                         "   POST /api/local-kb/aggregate-preview\n"
@@ -1050,11 +1084,11 @@ DEMO_SCRIPT = {
 # ===========================================================================
 # 2.5 SLIDES (intro / problem / solution / lanes / closing deck)
 # ===========================================================================
-# 8 slides walked through with the spacebar during the video pitch.
+# Fifteen slides walked through with the spacebar during the video pitch.
 # All narration text is curated for the video; no real data here.
 SLIDES = {
     "schema_version": "1.0",
-    "deck_id": "duecare-hackathon-pitch-v1",
+    "deck_id": "duecare-hackathon-pitch-v2",
     "slides": [
         {
             "id": "title",
@@ -1084,6 +1118,46 @@ SLIDES = {
                        "the frontier-models-cost-too-much frame."),
         },
         {
+            "id": "history_legal",
+            "title": "The legal problem is known. The operational gap is not solved.",
+            "subtitle": "History and legal precedents",
+            "body": ("International and corridor-specific rules already "
+                     "name the harms: forced-labour indicators, domestic "
+                     "worker protections, recruitment-fee bans, wage rules, "
+                     "and passport-retention limits.\n\n"
+                     "The gap is daily enforcement at intake speed. Workers, "
+                     "NGOs, regulators, and platforms need grounded answers "
+                     "before a case becomes invisible."),
+            "notes": "Use this slide to show that DueCare is not inventing policy.",
+        },
+        {
+            "id": "why_llms_fail",
+            "title": "Why normal LLMs underperform here.",
+            "subtitle": "Attention x economic value x data",
+            "body": ("1. Attention: the risky detail is often one phrase "
+                     "inside a long chat, job ad, or intake file.\n"
+                     "2. Economic value: bad actors profit from ambiguity, "
+                     "coded fees, and contract language.\n"
+                     "3. Data: the most useful case data is private, local, "
+                     "and unsafe to centralize.\n\n"
+                     "A generic model can sound fluent while missing the "
+                     "specific indicator, law, or privacy boundary."),
+            "notes": "This is the thesis slide for why harnesses exist.",
+        },
+        {
+            "id": "prior_art",
+            "title": "Prior art helps, but each piece is incomplete alone.",
+            "subtitle": "What came before",
+            "body": ("Rule systems are precise but brittle. RAG systems cite "
+                     "sources but can retrieve the wrong paragraph. Intake "
+                     "forms structure evidence but do not reason. Large "
+                     "closed models reason better but can be expensive, "
+                     "remote, and hard to audit.\n\n"
+                     "DueCare combines local Gemma 4, rule packs, retrieval, "
+                     "tool calls, grading, and exportable evidence."),
+            "notes": "Keep this neutral. The pitch is combination and proof.",
+        },
+        {
             "id": "solution",
             "title": "Gemma 4 + DueCare harness. On a laptop. On a "
                       "phone. On an NGO's tiny VM.",
@@ -1100,20 +1174,83 @@ SLIDES = {
                        "bullet."),
         },
         {
-            "id": "5_lanes",
-            "title": "Five audiences. One harness.",
-            "subtitle": "How it gets used",
-            "body": ("01 Platform safety: screen UGC at scale.\n"
-                      "02 NGO & regulator: case intake + triage.\n"
-                      "03 Individual worker / mobile: on-device "
-                      "answers in their language.\n"
-                      "04 Researcher: cite-able corridor data, "
-                      "version-pinned packs.\n"
-                      "05 Developer / integration partner: drop the "
-                      "runtime into a Messenger bot, moderator "
-                      "console, or case-management screen."),
-            "notes": ("Switch to /?mode=presentation&lane=worker for "
-                       "the live walkthrough after this slide."),
+            "id": "why_gemma",
+            "title": "Why Gemma 4 is the right backbone.",
+            "subtitle": "Open, local, tool-using, adaptable",
+            "body": ("Gemma 4 gives us open weights, small variants for "
+                     "edge deployment, larger variants for research, "
+                     "multimodal understanding, native tool-call patterns, "
+                     "and a practical path to LoRA fine-tuning.\n\n"
+                     "That means the same architecture can serve a phone, "
+                     "a Kaggle notebook, an NGO laptop, and a regulator "
+                     "analysis workflow."),
+            "notes": "Connect directly to the hackathon technical criteria.",
+        },
+        {
+            "id": "validation",
+            "title": "Technical validation is exported, not asserted.",
+            "subtitle": "How we prove improvement",
+            "body": ("A-00 runs the same prompts across four conditions: "
+                     "stock Gemma, stock plus harness, fine-tuned Gemma, "
+                     "and fine-tuned plus harness.\n\n"
+                     "It exports prompts, responses, trace, scores, timing, "
+                     "tokens per second, and report graphs. The writeup can "
+                     "cite the artifact, not a screenshot."),
+            "notes": "Show A-00 in the appendices after the recorded demo.",
+        },
+        {
+            "id": "use_case_platform",
+            "title": "Use case 01: platform safety.",
+            "subtitle": "High-volume UGC review",
+            "body": ("Recruitment marketplaces and trust teams can screen "
+                     "job ads, DMs, and creator posts for illegal fees, "
+                     "passport retention, deceptive work categories, and "
+                     "contract substitution.\n\n"
+                     "DueCare flags and explains. The platform keeps the "
+                     "final review action inside its existing workflow."),
+            "notes": "After this slide, demo the platform lane if time allows.",
+        },
+        {
+            "id": "use_case_ngo",
+            "title": "Use case 02: NGOs and regulators.",
+            "subtitle": "Case intake and triage",
+            "body": ("Caseworkers can run on their own machine, summarize "
+                     "complaints, surface relevant laws and advisories, "
+                     "draft forms, and spot repeated patterns across cases "
+                     "without raw data leaving local control.\n\n"
+                     "This is the strongest slide for the media image demo."),
+            "notes": "Switch to caseworker lane and show the synthetic ID image.",
+        },
+        {
+            "id": "use_case_worker",
+            "title": "Use case 03: individual worker and mobile.",
+            "subtitle": "Plain-language corridor answers",
+            "body": ("Workers and community channels can ask about fees, "
+                     "contracts, passports, and rights in their own language. "
+                     "DueCare never files complaints or instructs risky "
+                     "action. It points to verified resources and trusted "
+                     "caseworkers."),
+            "notes": "Use worker lane scenes for the opening human story.",
+        },
+        {
+            "id": "use_case_researcher",
+            "title": "Use case 04: researcher.",
+            "subtitle": "Citeable corridor research",
+            "body": ("Researchers, policy analysts, and journalists can study "
+                     "corridor risk with version-pinned packs and anonymized "
+                     "signals. They can cite a hash, rerun months later, and "
+                     "inspect the exact rules, sources, and scores."),
+            "notes": "Connect to A-00 and A-11 artifacts.",
+        },
+        {
+            "id": "use_case_developer",
+            "title": "Use case 05: developer and integration partner.",
+            "subtitle": "Drop-in runtime",
+            "body": ("A partner can wire DueCare into Messenger, WhatsApp, "
+                     "a moderator dashboard, a case-management plug-in, or "
+                     "an on-prem deployment. They own the channel. DueCare "
+                     "provides the harness, packs, and Gemma 4 layer."),
+            "notes": "Use developer lane if the audience asks how to integrate.",
         },
         {
             "id": "before_after",
@@ -1149,6 +1286,18 @@ SLIDES = {
                        "trust beat."),
         },
         {
+            "id": "ecosystem",
+            "title": "The full solution is an ecosystem, not one chat box.",
+            "subtitle": "Client, server, packs, eval, trainer",
+            "body": ("Client surfaces: worker mobile, caseworker laptop, "
+                     "platform queue, researcher notebook, partner API.\n"
+                     "Server surfaces: optional hub, vetted pack sync, "
+                     "anonymized signal intake, public-source proposals.\n"
+                     "Proof surfaces: A-00 evaluation, grading packs, "
+                     "fine-tune exports, and reproducible reports."),
+            "notes": "This slide prevents the demo from feeling like a toy app.",
+        },
+        {
             "id": "tech_depth",
             "title": "Real, not faked for the demo.",
             "subtitle": "Technical depth",
@@ -1156,7 +1305,7 @@ SLIDES = {
                       "PrivacyRedactor LoRA adapters)\n"
                       "- GGUF export for llama.cpp (laptops); "
                       "LiteRT recipe for mobile\n"
-                      "- 20-slot appendix experiment ladder, each "
+                      "- A-00 omni evaluator plus appendix experiment ladder, each "
                       "kernel paste-and-run on Kaggle\n"
                       "- All numbers reproducible from "
                       "(git_sha, dataset_version)"),
@@ -1271,6 +1420,13 @@ INDEX_HTML_TPL = r"""<!doctype html>
          margin:1px 4px 1px 0;font-weight:600}
   .trace{margin-top:8px;font-family:"JetBrains Mono",ui-monospace,monospace;
           font-size:11px;color:#8A8E97}
+  .media-card{align-self:flex-start;max-width:420px;background:#FFF;
+              border:1px solid var(--line);border-radius:12px;
+              padding:10px;margin:2px 0 0}
+  .media-card img{display:block;width:100%;height:auto;border-radius:8px;
+                  border:1px solid var(--paper-2)}
+  .media-caption{font-size:12px;color:var(--ink-3);line-height:1.45;
+                 margin-top:8px}
 
   #setup-view{display:none}
   .setup-grid{display:grid;grid-template-columns:280px 1fr;
@@ -1379,6 +1535,7 @@ INDEX_HTML_TPL = r"""<!doctype html>
           <button onclick="setupSave()"
                   style="background:var(--ink);color:var(--paper)">
             Save to /kaggle/working</button>
+          <button onclick="setupExportEvidence()">Export evidence bundle</button>
           <label style="margin-top:8px;font-size:11px;
                           color:var(--ink-3);text-transform:uppercase;
                           letter-spacing:.06em">Load JSON</label>
@@ -1406,12 +1563,20 @@ const SCRIPT_INIT = __SCRIPT_JSON__;
 const SLIDES_DATA = __SLIDES_JSON__;
 let SCRIPT = JSON.parse(JSON.stringify(SCRIPT_INIT));
 
-let currentMode = "presentation";
-let currentLane = "worker";
+const URL_PARAMS = new URLSearchParams(window.location.search);
+let currentMode = URL_PARAMS.get("mode") || "slides";
+let currentLane = URL_PARAMS.get("lane") || "worker";
 let currentScene = 0;
 let currentSlide = 0;
 let setupSelected = 0;
 let abortToken = 0;
+
+if (!["slides","presentation","setup"].includes(currentMode)) {
+  currentMode = "slides";
+}
+if (!SCRIPT.lanes[currentLane]) {
+  currentLane = "worker";
+}
 
 function _el(tag, cls, txt){
   const e = document.createElement(tag);
@@ -1458,11 +1623,22 @@ function showSlide(i){
   const body = _el("div","slide-body");
   body.textContent = s.body;
   card.appendChild(body);
+  if (s.media) card.appendChild(renderMedia(s.media));
   card.appendChild(_el("div","slide-meta",
     "Slide " + (i+1) + " / " + SLIDES_DATA.slides.length +
     " . id: " + s.id));
   root.appendChild(card);
   updateRemote();
+}
+
+function renderMedia(media){
+  const wrap = _el("div", "media-card");
+  const img = document.createElement("img");
+  img.src = media.src;
+  img.alt = media.alt || "Demo media";
+  wrap.appendChild(img);
+  if (media.caption) wrap.appendChild(_el("div", "media-caption", media.caption));
+  return wrap;
 }
 
 function renderLaneBar(){
@@ -1522,6 +1698,7 @@ async function playScene(){
   const user = _el("div","msg user");
   chat.appendChild(user);
   await typewrite(user, s.prompt, 28);
+  if (s.media) chat.appendChild(renderMedia(s.media));
   const t = _el("div","thinking","thinking ...");
   chat.appendChild(t);
   await sleep(s.latency_simulation_ms || 1500);
@@ -1560,6 +1737,7 @@ function skip(){
   if (!s) return;
   const u = _el("div","msg user"); u.textContent = s.prompt;
   chat.appendChild(u);
+  if (s.media) chat.appendChild(renderMedia(s.media));
   const a = _el("div","msg assistant"); a.textContent = s.response;
   chat.appendChild(a);
   if ((s.citations||[]).length){
@@ -1685,6 +1863,25 @@ function renderSetupEditor(){
   field("Scene ID", "scene_id", false);
   field("Prompt (user message)", "prompt", true);
   field("Response (assistant message)", "response", true);
+  wrap.appendChild(_el("label", null, "Media image URL"));
+  const mediaUrl = document.createElement("input");
+  mediaUrl.type = "text";
+  mediaUrl.value = s.media && s.media.src ? s.media.src : "";
+  mediaUrl.oninput = ()=>{
+    if (!mediaUrl.value.trim()){ delete s.media; return; }
+    s.media = s.media || {type:"image"};
+    s.media.src = mediaUrl.value.trim();
+  };
+  wrap.appendChild(mediaUrl);
+  wrap.appendChild(_el("label", null, "Media caption"));
+  const mediaCaption = document.createElement("input");
+  mediaCaption.type = "text";
+  mediaCaption.value = s.media && s.media.caption ? s.media.caption : "";
+  mediaCaption.oninput = ()=>{
+    s.media = s.media || {type:"image", src: mediaUrl.value.trim()};
+    s.media.caption = mediaCaption.value;
+  };
+  wrap.appendChild(mediaCaption);
   wrap.appendChild(_el("label", null, "Latency simulation (ms)"));
   const lat = document.createElement("input");
   lat.type = "number";
@@ -1821,7 +2018,24 @@ async function setupReloadFromServer(){
   } catch (e){ setupStatus("reload error: " + e, true); }
 }
 
-setMode("presentation");
+async function setupExportEvidence(){
+  setupStatus("exporting evidence bundle ...");
+  try {
+    const r = await fetch("/api/export-presentation", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({script: SCRIPT, slides: SLIDES_DATA}),
+    }).then(r=>r.json());
+    if (r.ok){
+      const link = r.artifacts && r.artifacts.zip ? r.artifacts.zip : "";
+      setupStatus("exported " + (link || r.bundle || "bundle"));
+    } else {
+      setupStatus("export failed: " + (r.error || "unknown"), true);
+    }
+  } catch (e){ setupStatus("export error: " + e, true); }
+}
+
+setMode(currentMode);
 </script>
 </body></html>
 """
@@ -1841,9 +2055,9 @@ try:
         "title": "03 DueCare Video Pitch (slides + replay + setup)",
         "audience": "all",
         "lede": ("Main notebook 03. THREE modes via URL param:\n"
-                  "  ?mode=slides         intro/problem/solution deck\n"
-                  "  ?mode=presentation   5-lane x 4-scene replay\n"
-                  "  ?mode=setup          inspect/copy demo script\n"
+                  "  ?mode=slides         recording deck, opens by default\n"
+                  "  ?mode=presentation   5-lane cached replay\n"
+                  "  ?mode=setup          edit, save, and export evidence\n"
                   "Zero inference, predictable cadence. Use this for "
                   "the hackathon video recording."),
         "results": [
@@ -1853,17 +2067,16 @@ try:
             {"label": "Compute", "value": "CPU-only, no model load"},
         ],
         "links": [
-            ("?lane=worker", "/?lane=worker"),
-            ("?lane=caseworker", "/?lane=caseworker"),
-            ("?lane=platform", "/?lane=platform"),
-            ("?lane=researcher", "/?lane=researcher"),
-            ("?lane=developer", "/?lane=developer"),
+            ("slides", "/?mode=slides"),
+            ("worker replay", "/?mode=presentation&lane=worker"),
+            ("caseworker replay", "/?mode=presentation&lane=caseworker"),
+            ("setup export", "/?mode=setup"),
         ],
         "next_steps": [
-            "Open the printed cloudflared URL with ?lane=worker.",
-            "Auto-plays scene 1 (typewriter + thinking + stream).",
-            "Press Space to advance scenes; switch lanes via top bar.",
-            "Record one continuous video per lane.",
+            "Open the printed cloudflared URL. It starts on the title slide.",
+            "Press Space to advance the deck.",
+            "Switch to Presentation for cached 5-lane demos.",
+            "Use Setup to export prompts, responses, traces, scorecards, and media.",
         ],
     }
     app, public_url = build_minimal_shell(
@@ -1878,6 +2091,114 @@ try:
     # /kaggle/working/demo_script_authored.json.
     _SCRIPT_RUNTIME = {"script": DEMO_SCRIPT}
     _AUTHORED_PATH = OUTPUT_DIR / "demo_script_authored.json"
+
+    def _artifact_url(path: Path) -> str:
+        try:
+            rel = path.resolve().relative_to(OUTPUT_DIR.resolve())
+            return "/artifact/" + str(rel).replace("\\", "/")
+        except Exception:
+            return str(path)
+
+    def _scene_score(scene: dict) -> dict:
+        trace = scene.get("harness_trace") or {}
+        grep = len(((trace.get("grep") or {}).get("rules_fired")) or [])
+        rag = len(((trace.get("rag") or {}).get("docs_retrieved")) or [])
+        tools = len(((trace.get("tools") or {}).get("tools_called")) or [])
+        citations = len(scene.get("citations") or [])
+        media = 1 if scene.get("media") else 0
+        score = min(10, 4 + grep + rag + tools + citations + media)
+        return {
+            "score_0_10": score,
+            "grep_rules": grep,
+            "rag_docs": rag,
+            "tool_calls": tools,
+            "citations": citations,
+            "media_assets": media,
+        }
+
+    def _write_presentation_export(script: dict, slides: dict) -> dict:
+        stamp = time.strftime("%Y%m%d_%H%M%S")
+        export_id = f"video_pitch_export_{stamp}"
+        json_path = OUTPUT_DIR / f"{export_id}.json"
+        csv_path = OUTPUT_DIR / f"{export_id}_scenes.csv"
+        md_path = OUTPUT_DIR / f"{export_id}.md"
+        zip_path = OUTPUT_DIR / f"{export_id}.zip"
+
+        rows = []
+        for lane_id, lane in (script.get("lanes") or {}).items():
+            for idx, scene in enumerate(lane.get("scenes") or [], 1):
+                score = _scene_score(scene)
+                rows.append({
+                    "lane_id": lane_id,
+                    "lane_label": lane.get("label", ""),
+                    "scene_index": idx,
+                    "scene_id": scene.get("scene_id", ""),
+                    "prompt": scene.get("prompt", ""),
+                    "response": scene.get("response", ""),
+                    "citations": "; ".join(scene.get("citations") or []),
+                    **score,
+                })
+
+        payload = {
+            "schema_version": "duecare.video_pitch_export.v1",
+            "export_id": export_id,
+            "created_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+            "purpose": ("Screen-recording evidence bundle with cached "
+                        "prompts, responses, traces, scores, slides, "
+                        "and media references."),
+            "slides": slides,
+            "script": script,
+            "scene_scorecards": rows,
+            "media": [{
+                "name": SYNTHETIC_ID_CARD_PATH.name,
+                "path": str(SYNTHETIC_ID_CARD_PATH),
+                "url": SYNTHETIC_ID_CARD_URL,
+                "note": "Synthetic media generated inside the notebook.",
+            }],
+        }
+        json_path.write_text(json.dumps(payload, indent=2,
+                                        ensure_ascii=False),
+                             encoding="utf-8")
+        with csv_path.open("w", encoding="utf-8", newline="") as f:
+            writer = csv.DictWriter(f, fieldnames=list(rows[0].keys())
+                                    if rows else ["lane_id", "scene_id"])
+            writer.writeheader()
+            for row in rows:
+                writer.writerow(row)
+        md_lines = [
+            "# DueCare Video Pitch Evidence Export",
+            "",
+            f"Export id: `{export_id}`",
+            "",
+            "This bundle is the cached presentation record used for the "
+            "screen recording. It includes prompts, responses, harness "
+            "traces, citations, qualitative scorecards, slide copy, and "
+            "synthetic media references.",
+            "",
+            "| Lane | Scene | Score | GREP | RAG | Tools | Citations | Media |",
+            "|---|---|---:|---:|---:|---:|---:|---:|",
+        ]
+        for row in rows:
+            md_lines.append(
+                f"| {row['lane_id']} | {row['scene_id']} | "
+                f"{row['score_0_10']} | {row['grep_rules']} | "
+                f"{row['rag_docs']} | {row['tool_calls']} | "
+                f"{row['citations']} | {row['media_assets']} |"
+            )
+        md_path.write_text("\n".join(md_lines), encoding="utf-8")
+        with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as z:
+            for p in [json_path, csv_path, md_path, SYNTHETIC_ID_CARD_PATH]:
+                if p.exists():
+                    z.write(p, arcname=p.name)
+        return {
+            "export_id": export_id,
+            "artifacts": {
+                "json": _artifact_url(json_path),
+                "csv": _artifact_url(csv_path),
+                "markdown": _artifact_url(md_path),
+                "zip": _artifact_url(zip_path),
+            },
+        }
 
     from fastapi import Request as _Request
 
@@ -1920,14 +2241,28 @@ try:
         except Exception:
             pass
         return {"ok": True}
+
+    @app.post("/api/export-presentation")
+    async def _export_presentation(req: _Request):
+        body = await req.json()
+        script = body.get("script") or _SCRIPT_RUNTIME["script"]
+        slides = body.get("slides") or SLIDES
+        if not isinstance(script, dict) or "lanes" not in script:
+            return {"ok": False, "error": "expected script with lanes"}
+        try:
+            out = _write_presentation_export(script, slides)
+        except Exception as _e:
+            return {"ok": False,
+                    "error": f"export failed: {type(_e).__name__}: "
+                              f"{str(_e)[:200]}"}
+        return {"ok": True, **out}
     if public_url:
         print(f"  ok UI: {public_url}")
-    print("\n  03 VIDEO PITCH READY -- record from your browser\n")
+    print("\n  03 VIDEO PITCH READY: record from your browser\n")
     while not _SHUTDOWN_EVENT.is_set():
         time.sleep(1)
 except KeyboardInterrupt:
     print("\n  interrupted")
 except Exception as e:
     print(f"  shell unavailable: {type(e).__name__}: {e}")
-
-print("\n  shutdown complete -- cell exiting.\n")
+print("\n  shutdown complete: cell exiting.\n")

@@ -75,3 +75,41 @@ def test_search_safety_page_serves(client):
         'id="mode-rephrase"',
     ]:
         assert marker in text
+
+
+def test_use_cases_page_serves_five_audience_lanes(client):
+    r = client.get("/static/use-cases.html")
+    assert r.status_code == 200
+    text = r.text
+    for marker in [
+        'data-nav="use-cases"',
+        "Platform safety",
+        "For NGOs &amp; regulators",
+        "Individual worker / mobile",
+        "Researcher",
+        "Developer / integration partner",
+        "/static/showcase-platform.html",
+        "/static/showcase-ngo.html",
+        "/static/showcase-worker.html",
+        "/static/showcase-researcher.html",
+        "/static/showcase-developer.html",
+    ]:
+        assert marker in text
+
+
+def test_showcase_pages_use_consistent_chat_alias(client):
+    pages = [
+        "/static/showcase-platform.html",
+        "/static/showcase-ngo.html",
+        "/static/showcase-worker.html",
+        "/static/showcase-researcher.html",
+        "/static/showcase-developer.html",
+    ]
+    for page in pages:
+        r = client.get(page)
+        assert r.status_code == 200
+        text = r.text
+        assert 'data-nav="use-cases"' in text
+        assert "/static/chat.html?audience=" in text
+        assert 'href="/?audience=' not in text
+        assert "window.location.href='/?prompt=" not in text

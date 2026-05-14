@@ -1,4 +1,4 @@
-/* DueCare Workbench — shared styles for the 5 audience showcase pages.
+/* DueCare Workbench: shared styles for the five audience showcase pages.
    Imported by showcase-platform / showcase-ngo / showcase-worker /
    showcase-researcher / showcase-developer. Consumes the duecare-ai.com
    token system from _chrome.css. */
@@ -14,7 +14,7 @@
 }
 .showcase h1 {
   font-size: clamp(28px, 4vw, 40px); font-weight: 600;
-  letter-spacing: -0.022em; margin: 0 0 14px; color: var(--ink);
+  letter-spacing: 0; margin: 0 0 14px; color: var(--ink);
   max-width: 22ch;
 }
 .showcase .lede {
@@ -35,7 +35,7 @@
 }
 .demo-prompt {
   background: var(--paper); border: 1px solid var(--line);
-  border-radius: 12px; padding: 18px 20px;
+  border-radius: 8px; padding: 18px 20px;
   cursor: pointer; transition: border-color 0.12s, box-shadow 0.12s;
   font-family: inherit; text-align: left; color: inherit;
   width: 100%;
@@ -60,7 +60,7 @@
 .tool-card {
   display: block; padding: 16px 18px;
   background: var(--paper); border: 1px solid var(--line);
-  border-radius: 10px; text-decoration: none; color: var(--ink);
+  border-radius: 8px; text-decoration: none; color: var(--ink);
   transition: border-color 0.12s;
 }
 .tool-card:hover { border-color: var(--ink-3); text-decoration: none; }

@@ -58,19 +58,17 @@ for the slot definitions, hard rules, and build status. The
 cross-kernel artifact contract that A-03 / A-08 consume is in
 [`../docs/appendix_artifact_schema.md`](../docs/appendix_artifact_schema.md).
 
-## Build status — 3 core + 24 appendix = 27 submission kernels
+## Build status — 3 core + 25 appendix = 28 submission kernels
 
-**Submission shape (2026-05-12):** reviewers land on the unified
+**Submission shape (2026-05-14):** reviewers land on the unified
 `01-duecare-exploration-workbench` kernel to see every capability
-surface, then proceed to `02-live-demo` for the focused thesis
-demonstration and `03-duecare-video-pitch` for the slides + setup
-mode. The 23 specialised appendix kernels (A-01..A-23) cover the
-reproducible model-improvement pipeline (A-01..A-11), the
-website-aligned extensions (A-12..A-20), and the three zero-inference
-Gemma 4 feature showcases (A-21 long-context, A-22 streaming, A-23
-Coordinator). Folder names use the `01-` / `02-` / `03-` / `A-01-` ...
-`A-23-` numbered prefix convention so the `ls kaggle/` listing reads
-in canonical presentation order.
+surface, then proceed to `02-live-demo` for the focused real-inference
+demo and `03-duecare-video-pitch` for the slides + cached replay
+recording surface. `A-00` is the omni experiment control plane for
+bulk prompt runs, reruns, evaluation, synthetic data, fine-tuning jobs,
+and proof reports. The specialised appendix kernels (A-01..A-24) cover
+the reproducible model-improvement pipeline, website-aligned extensions,
+and Gemma 4 feature showcases.
 
 **Training appendix path:** `A-06 Prompt Generation -> A-07 Bench and
 Tune -> A-11 Grading Evaluation` has two distinct meanings. A-06 creates
@@ -97,6 +95,7 @@ rubric labels (`HARMFUL` to `BEST`) and the review labels (`WORST`, `BAD`,
 |---|---|:-:|---|---|:-:|
 | **1** | [`01-duecare-exploration-workbench/`](./01-duecare-exploration-workbench/) ★ omni playground | ✓ 3 (script) | `taylorsamarel/duecare-harness-chat-wheels` ✓ live | `taylorsamarel/duecare-exploration-workbench` | pending |
 | **2** | [`02-live-demo/`](./02-live-demo/) ★ focused live demo | ✓ kernel | `taylorsamarel/duecare-live-demo-wheels` ✓ live | `taylorsamarel/duecare-live-demo` | live |
+| A0 | [`A-00-omni-evaluation-and-training/`](./A-00-omni-evaluation-and-training/) (experiment control plane) | ✓ kernel | (GitHub install only) | `taylorsamarel/duecare-a-00-omni-evaluation-and-training` | pending |
 | A1 | [`A-01-chat-playground/`](./A-01-chat-playground/) (baseline, harness OFF) | ✓ kernel | `taylorsamarel/duecare-chat-playground-wheels` ✓ live | `taylorsamarel/duecare-chat-playground` | live |
 | A2 | [`A-02-chat-playground-with-grep-rag-tools/`](./A-02-chat-playground-with-grep-rag-tools/) (4-toggle harness) | ✓ kernel | `taylorsamarel/duecare-chat-playground-with-grep-rag-tools-wheels` ✓ live | `taylorsamarel/duecare-chat-playground-with-grep-rag-tools` | live |
 | A3 | [`A-03-content-classification-playground/`](./A-03-content-classification-playground/) | ✓ kernel | `taylorsamarel/duecare-content-classification-playground-wheels` ✓ live | `taylorsamarel/duecare-content-classification-playground` | pending |
@@ -174,7 +173,7 @@ attached dataset path at startup.
 | `kaggle/kernels/` | archived | Former generated/research notebook mirrors moved to `_archive/kaggle-notebook-previews-2026-05-11/`; NOT part of the 27-folder judge-facing submission. |
 | `kaggle/models/` | reference | Model card YAML + HF Hub push helpers |
 | `kaggle/shared-datasets/` | reference | Shared assets pulled by multiple kernels |
-| `kaggle/README.md` | live | Human-readable overview of the 3 core + 24 appendix submission shape |
+| `kaggle/README.md` | live | Human-readable overview of the 3 core + 25 appendix submission shape |
 
 ## How to update this file
 

@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Getting Started -- DueCare Workbench</title>
+  <title>Getting Started | DueCare Workbench</title>
   <link rel="stylesheet" href="/static/_chrome.css">
   <script src="/static/_nav.js" defer></script>
   <script src="/static/_activity_log.js" defer></script>
@@ -84,6 +84,7 @@
       <b>Table of contents</b>
       <ol>
         <li><a href="#quick-start">Quick start</a></li>
+        <li><a href="#competition-runbook">Competition runbook</a></li>
         <li><a href="#architecture">Architecture &amp; data flow</a></li>
         <li><a href="#harnesses">The 7 harnesses</a></li>
         <li><a href="#pages">Every page</a></li>
@@ -128,9 +129,9 @@
         </div>
         <div class="wb-flow-step">
           <h4>Step 5</h4><h5>Process a sample</h5>
-          <p>Go to <a href="/static/process.html">Process Files</a>, click
-            Use sample. See GREP rule firings and entity extraction on a
-            small case bundle.</p>
+          <p>Go to <a href="/static/process.html">Bulk File Review</a>, click
+            Use sample. See GREP rule firings, entity extraction,
+            document attributes, and graph edges on a PH to HK case bundle.</p>
         </div>
         <div class="wb-flow-step">
           <h4>Step 6</h4><h5>Check Status</h5>
@@ -139,6 +140,44 @@
             backend wiring.</p>
         </div>
       </div>
+    </div>
+
+    <div class="wb-card" id="competition-runbook">
+      <h2>Competition runbook</h2>
+      <p>
+        The three core notebooks should stay distinct. Notebook 01 is the
+        exploration workbench and validation surface. Notebook 02 is the
+        focused live demo with one loaded Gemma 4 model. Notebook 03 is the
+        deterministic video pitch surface for recording.
+      </p>
+      <div class="wb-grid-3">
+        <div class="wb-flow-step">
+          <h4>01</h4><h5>Exploration Workbench</h5>
+          <p>Test every harness, create synthetic case artifacts, build
+            knowledge packs, run grading, and export evidence bundles for
+            appendix notebooks.</p>
+        </div>
+        <div class="wb-flow-step">
+          <h4>02</h4><h5>Live Demo</h5>
+          <p>Keep the path narrow: one active model, one polished route
+            through Chat, Compare, Bulk File Review, Knowledge Extraction,
+            Search Safety, and grading.</p>
+        </div>
+        <div class="wb-flow-step">
+          <h4>03</h4><h5>Video Pitch</h5>
+          <p>Use deterministic scenes to film the value proposition without
+            waiting on inference. The visible names and harness sequence
+            should mirror the live demo.</p>
+        </div>
+      </div>
+      <p>
+        Kaggle sessions can realistically keep only one large model resident.
+        Appendix notebooks should pass artifacts between runs: synthetic data
+        JSONL, knowledge-pack ZIPs, grading reports, graph exports, adapter
+        metadata, and model-comparison tables. That supports base, harnessed,
+        fine-tuned, and fine-tuned plus harnessed comparisons without loading
+        multiple large models in one session.
+      </p>
     </div>
 
     <div class="wb-card" id="architecture">
@@ -346,7 +385,7 @@
         <thead><tr><th>Page</th><th>URL</th><th>What it does</th><th>Key controls</th></tr></thead>
         <tbody>
           <tr><td><b>Getting Started</b></td><td><code>/</code></td>
-              <td>This page -- overview of everything in the kernel</td>
+              <td>This page: overview of everything in the kernel</td>
               <td>navigation hubs</td></tr>
           <tr><td><b>Chat</b></td><td><code>/static/chat.html</code></td>
               <td>Free-form chat with safety toggles + image upload</td>
@@ -354,8 +393,8 @@
           <tr><td><b>Harness Comparison</b></td><td><code>/static/compare.html</code></td>
               <td>Same prompt through 2 harness configs, side-by-side</td>
               <td>5 toggles per variant, presets, max_new_tokens, grade modes</td></tr>
-          <tr><td><b>Process Files</b></td><td><code>/static/process.html</code></td>
-              <td>Upload a bundle (ZIP/CSV/JSONL), see GREP + entity extractions</td>
+          <tr><td><b>Bulk File Review</b></td><td><code>/static/process.html</code></td>
+              <td>Upload a bundle, extract attributes, build a local graph, and chat against it</td>
               <td>file drop, sample-bundle button, graph-chat after processing</td></tr>
           <tr><td><b>Knowledge Extraction</b></td><td><code>/static/knowledge.html</code></td>
               <td>Paste raw text, Gemma drafts a knowledge object envelope</td>
@@ -578,7 +617,7 @@
       <h3>B. Onboard a new NGO's local knowledge</h3>
       <ol>
         <li>Have the NGO export their case files as a ZIP.</li>
-        <li>Drop the ZIP on <a href="/static/process.html">Process Files</a>; review the GREP/entity output.</li>
+        <li>Drop the ZIP on <a href="/static/process.html">Bulk File Review</a>; review the extracted attributes, graph, and GREP/entity output.</li>
         <li>For unmodeled patterns, paste excerpts into <a href="/static/knowledge.html">Knowledge Extraction</a>
           with <code>target_leaf=grep_rule</code>; Gemma drafts a candidate rule.</li>
         <li>On <a href="/static/share.html">Anonymization &amp; Sharing</a>, redact + submit the new rules

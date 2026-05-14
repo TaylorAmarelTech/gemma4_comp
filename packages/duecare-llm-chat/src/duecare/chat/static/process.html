@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <title>Process Files -- DueCare Workbench</title>
+  <title>Bulk File Review | DueCare Workbench</title>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="stylesheet" href="/static/_chrome.css">
@@ -27,6 +27,22 @@
     .wb-muted { color: #5B5F68; font-size: 11.5px; }
     .wb-status-pill { background: oklch(0.92 0.06 155); color: oklch(0.32 0.07 155);
                        padding: 6px 12px; border-radius: 999px; font-size: 11px; }
+    .wb-pipeline { display: grid; grid-template-columns: repeat(auto-fit, minmax(145px, 1fr)); gap: 8px; }
+    .wb-step { border: 1px solid #DDD8C9; border-radius: 8px; padding: 10px 11px; background: #FAF9F4; min-height: 76px; }
+    .wb-step .num { font-family: var(--mono); font-size: 10px; color: #5B5F68; text-transform: uppercase; letter-spacing: 0.07em; }
+    .wb-step .name { font-size: 12.5px; font-weight: 700; margin: 5px 0 3px; }
+    .wb-step .detail { font-size: 11px; color: #5B5F68; line-height: 1.4; }
+    .wb-step.complete { border-color: oklch(0.72 0.08 155); background: oklch(0.97 0.02 155); }
+    .wb-step.skipped { opacity: 0.72; }
+    .wb-intel-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 10px; }
+    .wb-metric { background: #FAF9F4; border: 1px solid #EFEDE4; border-radius: 8px; padding: 12px; }
+    .wb-metric .value { font-size: 24px; font-weight: 700; color: #0E1116; }
+    .wb-metric .label { color: #5B5F68; font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; font-family: var(--mono); }
+    .wb-person-card { border: 1px solid #DDD8C9; border-radius: 8px; padding: 10px 12px; background: #FFF; }
+    .wb-riskbar { height: 6px; border-radius: 999px; background: #EFEDE4; overflow: hidden; margin-top: 6px; }
+    .wb-riskbar span { display:block; height:100%; background: oklch(0.52 0.12 35); }
+    .wb-chip-list { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 7px; }
+    .wb-small-table td, .wb-small-table th { font-size: 11.5px; }
     table { width: 100%; border-collapse: collapse; font-size: 12px; }
     th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid #EFEDE4; }
     thead tr { background: #EFEDE4; }
@@ -47,7 +63,7 @@
 </head>
 <body data-nav="process">
   <main class="wb-page">
-    <h1 class="wb-h1">Process Files -- bulk exploration of a case bundle</h1>
+    <h1 class="wb-h1">Bulk File Review</h1>
     <div class="wb-trust" style="background: oklch(0.92 0.06 155); color: oklch(0.32 0.07 155); padding: 8px 14px; border-radius: 8px; font-size: 12.5px; margin-bottom: 14px;">
       <b>Trust boundary:</b> Uploaded rows are processed locally in the kernel
       (<code>/kaggle/working/process-staging/</code>). The harness runs in-process;
@@ -56,37 +72,24 @@
     </div>
 
     <p class="wb-lede">
-      Drop a ZIP, folder, CSV, or JSONL of case material -- chat exports,
+      Drop a ZIP, folder, CSV, or JSONL of case material: chat exports,
       scans, recruitment ads, court excerpts, recorded testimony transcripts.
-      Each row goes through the GREP harness (161 rules) and a regex entity
-      extractor (AMOUNT / PHONE / EMAIL / STATUTE / CORRIDOR). The kernel
-      builds a local privacy-aware knowledge graph from the extracted
-      entities and indicators. Then ask Gemma 4 questions about the bundle.
+      Each row goes through the process harness: GREP, entity extraction,
+      document typing, person linking, hierarchy construction, and a compact
+      Gemma 4 case-brief pass when a model is loaded. The page renders the
+      extracted intelligence so you can inspect the graph before asking
+      Gemma 4 questions about it.
     </p>
 
     <div class="wb-card" style="border-left: 4px solid oklch(0.52 0.08 195);">
-      <h2 style="margin-top:0;">What happens when you upload</h2>
-      <div class="wb-flow" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap:10px; margin-top:8px;">
-        <div class="wb-flow-step" style="padding:12px; border:1px solid #DDD8C9; border-radius:8px; background:#FAF9F4;">
-          <div style="font-family:var(--mono); font-size:10px; color:#5B5F68; text-transform:uppercase; letter-spacing:0.07em;">Step 1</div>
-          <div style="font-size:13px; font-weight:600; margin:6px 0 4px;">Unpack</div>
-          <div style="font-size:11.5px; color:#2A2D34; line-height:1.45;">ZIP/folder unpacked into <code>/kaggle/working/process-staging/</code>. Files counted, types detected.</div>
-        </div>
-        <div class="wb-flow-step" style="padding:12px; border:1px solid #DDD8C9; border-radius:8px; background:#FAF9F4;">
-          <div style="font-family:var(--mono); font-size:10px; color:#5B5F68; text-transform:uppercase; letter-spacing:0.07em;">Step 2</div>
-          <div style="font-size:13px; font-weight:600; margin:6px 0 4px;">Extract</div>
-          <div style="font-size:11.5px; color:#2A2D34; line-height:1.45;">Regex extractor pulls AMOUNT / PHONE / EMAIL / STATUTE / CORRIDOR. GREP scans each row for 161 trafficking indicators.</div>
-        </div>
-        <div class="wb-flow-step" style="padding:12px; border:1px solid #DDD8C9; border-radius:8px; background:#FAF9F4;">
-          <div style="font-family:var(--mono); font-size:10px; color:#5B5F68; text-transform:uppercase; letter-spacing:0.07em;">Step 3</div>
-          <div style="font-size:13px; font-weight:600; margin:6px 0 4px;">Graph</div>
-          <div style="font-size:11.5px; color:#2A2D34; line-height:1.45;">Entities link into a local graph: people, employers, fees, corridors, statutes. Nothing leaves the kernel.</div>
-        </div>
-        <div class="wb-flow-step" style="padding:12px; border:1px solid #DDD8C9; border-radius:8px; background:#FAF9F4;">
-          <div style="font-family:var(--mono); font-size:10px; color:#5B5F68; text-transform:uppercase; letter-spacing:0.07em;">Step 4</div>
-          <div style="font-size:13px; font-weight:600; margin:6px 0 4px;">Chat</div>
-          <div style="font-size:11.5px; color:#2A2D34; line-height:1.45;">Ask Gemma 4 questions about the bundle. Answers cite specific extracted facts + GREP rule hits.</div>
-        </div>
+      <h2 style="margin-top:0;">Process harness path</h2>
+      <div class="wb-pipeline" id="wb-static-pipeline">
+        <div class="wb-step"><div class="num">Step 1</div><div class="name">Upload</div><div class="detail">ZIP, CSV, JSONL, TXT, or MD enters the local kernel.</div></div>
+        <div class="wb-step"><div class="num">Step 2</div><div class="name">Parse</div><div class="detail">Files become rows with source paths and document types.</div></div>
+        <div class="wb-step"><div class="num">Step 3</div><div class="name">GREP</div><div class="detail">Trafficking and labor-risk rules fire with citations.</div></div>
+        <div class="wb-step"><div class="num">Step 4</div><div class="name">Attributes</div><div class="detail">People, payments, dates, locations, statutes, and corridors are linked.</div></div>
+        <div class="wb-step"><div class="num">Step 5</div><div class="name">Gemma brief</div><div class="detail">Gemma 4 summarizes case theory and missing evidence when loaded.</div></div>
+        <div class="wb-step"><div class="num">Step 6</div><div class="name">Graph chat</div><div class="detail">Questions use the local graph plus GREP, RAG, and tools grounding.</div></div>
       </div>
       <p class="wb-muted" style="font-size:11.5px; margin-top:10px;">
         Typical use: an NGO uploads a folder of recruitment chats and scans.
@@ -99,10 +102,10 @@
     <div class="wb-card" style="border-left: 4px solid oklch(0.55 0.10 155);">
       <h2 style="margin-top:0;">First time here? Try the sample bundle</h2>
       <p class="wb-muted" style="font-size:12px; margin:4px 0 10px;">
-        A small judge-safe ZIP (5 files, ~3 KB) with composite recruiter chats,
-        a contract excerpt with debt-bondage wording, and 5 short messages.
-        Downloads instantly, then either drag-and-drop it onto the dropzone
-        below or click "Use sample" to fill the file picker directly.
+        A judge-safe PH to HK case bundle with 30 synthetic individuals and
+        180 evidence files: ID card records, complaints, police reports,
+        travel history, location history, payment history, and recruiter
+        chat excerpts. Click "Use sample" to fill the file picker directly.
       </p>
       <div class="wb-row">
         <a class="wb-btn-secondary" href="/static/samples/case_files_sample.zip"
@@ -142,6 +145,30 @@
     
 
     <div id="wb-results" style="display: none;">
+      <div class="wb-card">
+        <h2>Harness trace</h2>
+        <div class="wb-pipeline" id="wb-trace"></div>
+      </div>
+      <div class="wb-card">
+        <h2>Extracted intelligence</h2>
+        <div class="wb-intel-grid" id="wb-intel-metrics"></div>
+      </div>
+      <div class="wb-card">
+        <h2>People and risk signals</h2>
+        <div class="wb-intel-grid" id="wb-people"></div>
+      </div>
+      <div class="wb-grid-2">
+        <div class="wb-card"><h2>Document hierarchy</h2><div id="wb-hierarchy"></div></div>
+        <div class="wb-card"><h2>Location and payment intelligence</h2><div id="wb-intel-side"></div></div>
+      </div>
+      <div class="wb-card">
+        <h2>Timeline</h2>
+        <div id="wb-timeline" style="max-height: 260px; overflow-y: auto;"></div>
+      </div>
+      <div class="wb-card">
+        <h2>Gemma 4 case brief</h2>
+        <div id="wb-gemma-brief"></div>
+      </div>
       <div class="wb-grid-2">
         <div class="wb-card"><h2>Summary</h2><div id="wb-summary"></div></div>
         <div class="wb-card"><h2>Top indicators</h2><div id="wb-top-indicators"></div></div>
@@ -159,8 +186,8 @@
       <div class="wb-card">
         <h2>Next steps</h2>
         <div class="wb-row">
-          <a class="wb-btn-secondary" href="/static/knowledge.html">Promote -> Knowledge Creation</a>
-          <a class="wb-btn-secondary" href="/static/share.html">Anonymize & Share -></a>
+          <a class="wb-btn-secondary" href="/static/knowledge.html">Promote to Knowledge Creation</a>
+          <a class="wb-btn-secondary" href="/static/share.html">Anonymize and Share</a>
           <button class="wb-btn-secondary" onclick="wbDownloadBundle()">Download v1.0 bundle (JSON)</button>
         </div>
       </div>
@@ -171,14 +198,20 @@
       <p class="wb-muted" style="font-size:12px; margin-top:0;">
         After processing a bundle, the extracted entities + GREP hits stay
         cached in the kernel. Ask Gemma 4 questions about the bundle and
-        the harness includes the local graph as grounding context. Example:
+        the harness includes the local graph as grounding context.
       </p>
-      <ul style="margin: 4px 0 10px 18px; padding: 0; font-size: 12px; color: #2A2D34; line-height: 1.7;">
-        <li>Which rows in this bundle mention placement fees above the legal cap?</li>
-        <li>What corridors appear most frequently?</li>
-        <li>Are there document-retention indicators in the recruiter messages?</li>
-        <li>Summarize the strongest trafficking risk signal across the bundle.</li>
-      </ul>
+      <div class="wb-pipeline" id="pg-pipeline" style="margin: 10px 0;">
+        <div class="wb-step"><div class="num">Prompt</div><div class="name">User question</div><div class="detail">The graph-chat question is captured as model input.</div></div>
+        <div class="wb-step"><div class="num">Context</div><div class="name">Local graph</div><div class="detail">Bundle summary, people, payments, dates, and row IDs are added.</div></div>
+        <div class="wb-step"><div class="num">Layers</div><div class="name">GREP, RAG, tools</div><div class="detail">The question gets legal and safety grounding.</div></div>
+        <div class="wb-step"><div class="num">Model</div><div class="name">Gemma 4</div><div class="detail">Gemma answers using only the uploaded bundle and cited row IDs.</div></div>
+      </div>
+      <div class="wb-row" style="gap:6px;">
+        <button class="wb-btn-secondary" type="button" onclick="pgUseQuestion('Which people have the strongest evidence of placement fees above the legal cap? Cite row IDs.')">Fee risk</button>
+        <button class="wb-btn-secondary" type="button" onclick="pgUseQuestion('Which rows show passport retention or identity document control?')">Document control</button>
+        <button class="wb-btn-secondary" type="button" onclick="pgUseQuestion('Build a PH to HK timeline across travel, payments, and complaints.')">Timeline</button>
+        <button class="wb-btn-secondary" type="button" onclick="pgUseQuestion('What missing evidence would strengthen this case before escalation?')">Missing evidence</button>
+      </div>
       <div class="wb-row" style="gap: 8px; align-items: stretch;">
         <textarea id="pg-question" rows="2"
           style="flex:1; min-width: 280px; padding: 10px; border: 1px solid #DDD8C9;
@@ -196,6 +229,14 @@
     </div>
 
     <script>
+      function pgUseQuestion(q){
+        document.getElementById("pg-question").value = q;
+      }
+      function pgSetPipeline(active){
+        document.querySelectorAll('#pg-pipeline .wb-step').forEach((el, idx) => {
+          el.classList.toggle('complete', idx <= active);
+        });
+      }
       async function pgAsk(){
         const q=(document.getElementById("pg-question").value||"").trim();
         const statusEl=document.getElementById("pg-status");
@@ -203,6 +244,7 @@
         if(!q){ statusEl.textContent="Type a question first."; return; }
         const btn=document.getElementById("pg-ask-btn");
         btn.disabled=true; const origTxt=btn.textContent; btn.textContent="Asking...";
+        pgSetPipeline(1);
         statusEl.textContent="POST /api/process/graph-chat ...";
         ansEl.textContent="";
         try{
@@ -211,6 +253,7 @@
             body:JSON.stringify({question:q})
           });
           const out=await r.json();
+          pgSetPipeline(3);
           if(!r.ok){
             statusEl.textContent="Graph-chat failed: HTTP "+r.status;
             ansEl.textContent=JSON.stringify(out,null,2);
@@ -228,7 +271,7 @@
       }
     </script>
   <div class="wb-card">
-      <h2>Activity log <span class="wb-muted" style="font-weight: normal;">-- every API call + response is transparent</span></h2>
+      <h2>Activity log <span class="wb-muted" style="font-weight: normal;">every API call and response is transparent</span></h2>
       <div id="wb-log" class="dc-activity-log" role="log" aria-label="Activity log" aria-live="polite">
         <div class="wb-muted">No activity yet. Click <i>Start processing</i> to begin.</div>
       </div>
@@ -273,12 +316,19 @@
                    || _dcLog.info);
       fn(msg, detail);
     };
+    function wbEsc(s) {
+      return String(s == null ? '' : s).replace(/[&<>"']/g, c =>
+        ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    }
+    function wbPill(s) {
+      return '<span class="wb-pill">' + wbEsc(s) + '</span>';
+    }
     function wbHandle(ev) {
       const f = (ev.target.files || [])[0];
       if (!f) return;
       wbFile = f;
       document.getElementById('wb-file-info').innerHTML =
-        '<span class="wb-pill">' + (window.escapeHtml ? escapeHtml(f.name) : (window.esc ? esc(f.name) : String(f.name).replace(/[<>&"']/g, ''))) + ' (' + Math.round(f.size / 1024) + ' KB)</span>';
+        '<span class="wb-pill">' + wbEsc(f.name) + ' (' + Math.round(f.size / 1024) + ' KB)</span>';
       document.getElementById('wb-process-btn').disabled = false;
       document.getElementById('wb-process-hint').textContent = 'Click Start processing.';
       document.getElementById('wb-error').style.display = 'none';
@@ -316,27 +366,93 @@
     }
     function wbRender(b) {
       const s = b.summary || {};
+      const intel = b.intelligence || {};
+      wbRenderTrace(intel.harness_trace || []);
+      wbRenderIntelligence(intel, s);
       document.getElementById('wb-summary').innerHTML =
-        // audit-allow:innerHTML-safe -- summary fields are numeric counts from /api/process/batch
+        // audit-allow:innerHTML-safe: summary fields are numeric counts from /api/process/batch
         '<div><b>Rows:</b> ' + s.n_rows_processed + ' / ' + s.n_rows_total +
         (s.truncated ? ' <span class="wb-pill" style="background:oklch(0.94 0.04 45); color:oklch(0.32 0.07 45);">truncated</span>' : '') +
         '</div><div style="margin-top:4px;"><b>GREP rules fired:</b> ' + s.n_grep_rules_fired + '</div>' +
         '<div style="margin-top:4px;"><b>Entities extracted:</b> ' + s.n_entities_extracted + '</div>' +
-        '<div style="margin-top:4px;"><b>RUN_ID:</b> <code>' + b.run_id + '</code></div>';
+        '<div style="margin-top:4px;"><b>People detected:</b> ' + (s.n_people_detected || 0) + '</div>' +
+        '<div style="margin-top:4px;"><b>Evidence edges:</b> ' + (s.n_evidence_edges || 0) + '</div>' +
+        '<div style="margin-top:4px;"><b>RUN_ID:</b> <code>' + wbEsc(b.run_id) + '</code></div>';
       document.getElementById('wb-top-indicators').innerHTML = (s.top_grep || []).length ?
         (s.top_grep || []).map(g => '<div style="margin-bottom:4px;"><span class="wb-pill">' + g.rule_id + '</span> x ' + g.count + '</div>').join('') :
         '<div class="wb-muted">No GREP rules fired.</div>';
       document.getElementById('wb-top-statutes').innerHTML = (s.top_statutes || []).length ?
         (s.top_statutes || []).map(t => '<div style="margin-bottom:4px;"><span class="wb-pill">' + t.statute + '</span> x ' + t.count + '</div>').join('') :
         '<div class="wb-muted">No statute citations detected.</div>';
-      // audit-allow:innerHTML-safe -- r.row_id and h.rule_id are server-controlled identifiers; safe defensively but worth a future escape pass
+      // audit-allow:innerHTML-safe: row IDs and rule IDs are escaped before rendering
       document.getElementById('wb-rows-tbody').innerHTML = (b.results || []).map(r =>
-        '<tr><td><code>' + r.row_id + '</code></td><td>' + r.char_count + '</td>' +
-        '<td>' + ((r.grep_hits || []).map(h => '<span class="wb-pill">' + h.rule_id + '</span>').join('') || '<span class="wb-muted">-</span>') + '</td>' +
+        '<tr><td><code>' + wbEsc(r.row_id) + '</code></td><td>' + r.char_count + '</td>' +
+        '<td>' + ((r.grep_hits || []).map(h => wbPill(h.rule_id)).join('') || '<span class="wb-muted">none</span>') + '</td>' +
         '<td>' + (Object.entries(r.entities || {}).length ?
-                   Object.entries(r.entities).map(([k, v]) => '<span class="wb-pill">' + k + ' x ' + v.length + '</span>').join('') :
-                   '<span class="wb-muted">-</span>') + '</td></tr>'
+                   Object.entries(r.entities).map(([k, v]) => wbPill(k + ' x ' + v.length)).join('') :
+                   '<span class="wb-muted">none</span>') + '</td></tr>'
       ).join('');
+    }
+    function wbRenderTrace(trace) {
+      const host = document.getElementById('wb-trace');
+      const rows = trace.length ? trace : [
+        {label: 'Upload', status: 'complete', detail: 'file accepted'},
+        {label: 'Parse', status: 'complete', detail: 'rows created'},
+        {label: 'GREP', status: 'complete', detail: 'rules scanned'},
+        {label: 'Attributes', status: 'complete', detail: 'intelligence extracted'},
+      ];
+      host.innerHTML = rows.map((step, idx) =>
+        '<div class="wb-step ' + wbEsc(step.status || '') + '">' +
+        '<div class="num">Step ' + (idx + 1) + '</div>' +
+        '<div class="name">' + wbEsc(step.label || step.id || 'Step') + '</div>' +
+        '<div class="detail">' + wbEsc(step.detail || step.status || '') + '</div>' +
+        '</div>'
+      ).join('');
+    }
+    function wbRenderIntelligence(intel, summary) {
+      const people = intel.people || [];
+      const docCounts = intel.document_type_counts || {};
+      const metrics = [
+        ['People', intel.n_people || 0],
+        ['Documents', intel.n_documents || (summary.n_rows_processed || 0)],
+        ['Evidence edges', intel.n_evidence_edges || 0],
+        ['Gemma brief', (intel.gemma_case_brief || {}).status || 'not run'],
+      ];
+      document.getElementById('wb-intel-metrics').innerHTML = metrics.map(m =>
+        '<div class="wb-metric"><div class="label">' + wbEsc(m[0]) + '</div><div class="value">' + wbEsc(m[1]) + '</div></div>'
+      ).join('');
+      document.getElementById('wb-people').innerHTML = people.length ? people.slice(0, 12).map(p => {
+        const risk = Math.max(0, Math.min(100, parseInt(p.risk_score || 0, 10)));
+        return '<div class="wb-person-card">' +
+          '<div style="display:flex; justify-content:space-between; gap:8px;"><b>' + wbEsc(p.name || p.case_id) + '</b><span class="wb-pill">risk ' + risk + '</span></div>' +
+          '<div class="wb-muted" style="margin-top:3px;">' + wbEsc(p.case_id) + ' | docs ' + wbEsc(p.n_documents || 0) + ' | payments ' + wbEsc(p.n_payments || 0) + '</div>' +
+          '<div class="wb-riskbar"><span style="width:' + risk + '%"></span></div>' +
+          '<div class="wb-chip-list">' + (p.risk_signals || []).slice(0, 5).map(wbPill).join('') + '</div>' +
+        '</div>';
+      }).join('') : '<div class="wb-muted">No person-level identifiers detected.</div>';
+      document.getElementById('wb-hierarchy').innerHTML =
+        Object.entries(docCounts).length ? Object.entries(docCounts).map(([k, v]) =>
+          '<div style="display:flex; justify-content:space-between; border-bottom:1px solid #EFEDE4; padding:6px 0;"><span>' + wbEsc(k.replace(/_/g, ' ')) + '</span><b>' + v + '</b></div>'
+        ).join('') : '<div class="wb-muted">No document hierarchy available.</div>';
+      const locs = (intel.locations || []).slice(0, 8).map(l => wbPill(l.name + ' x ' + l.count)).join('');
+      const pays = (intel.top_payments || []).slice(0, 8).map(p =>
+        '<tr><td><code>' + wbEsc(p.case_id) + '</code></td><td>' + wbEsc(p.amount) + '</td><td>' + wbEsc(p.document_type) + '</td></tr>'
+      ).join('');
+      document.getElementById('wb-intel-side').innerHTML =
+        '<h3 style="font-size:13px; margin:0 0 6px;">Locations</h3>' +
+        '<div class="wb-chip-list">' + (locs || '<span class="wb-muted">No locations detected.</span>') + '</div>' +
+        '<h3 style="font-size:13px; margin:12px 0 6px;">Top payments</h3>' +
+        '<table class="wb-small-table"><tbody>' + (pays || '<tr><td class="wb-muted">No payments detected.</td></tr>') + '</tbody></table>';
+      document.getElementById('wb-timeline').innerHTML = (intel.timeline || []).length ? (intel.timeline || []).slice(0, 30).map(t =>
+        '<div style="display:grid; grid-template-columns:120px 120px minmax(0,1fr); gap:8px; border-bottom:1px solid #EFEDE4; padding:7px 0; font-size:12px;">' +
+        '<code>' + wbEsc(t.date) + '</code><span>' + wbEsc(t.case_id) + '</span><span>' + wbEsc(t.document_type) + ' | ' + wbEsc(t.row_id) + '</span></div>'
+      ).join('') : '<div class="wb-muted">No dates detected.</div>';
+      const brief = intel.gemma_case_brief || {};
+      const briefJson = brief.json || null;
+      document.getElementById('wb-gemma-brief').innerHTML =
+        briefJson ? '<pre style="white-space:pre-wrap; max-height:300px; overflow:auto; background:#FAF9F4; border:1px solid #EFEDE4; border-radius:8px; padding:10px; font-size:11.5px;">' + wbEsc(JSON.stringify(briefJson, null, 2)) + '</pre>' :
+        brief.text ? '<pre style="white-space:pre-wrap; max-height:300px; overflow:auto; background:#FAF9F4; border:1px solid #EFEDE4; border-radius:8px; padding:10px; font-size:11.5px;">' + wbEsc(brief.text) + '</pre>' :
+        '<div class="wb-muted">Gemma case brief status: ' + wbEsc(brief.status || 'not run') + '</div>';
     }
     function wbDownloadBundle() {
       if (!wbBundle) return;
