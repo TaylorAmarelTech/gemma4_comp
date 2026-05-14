@@ -39,10 +39,7 @@ def test_returns_none_when_cloudflared_missing(monkeypatch) -> None:
     unavailable, the function must return None (NEVER raise)."""
     import duecare.chat.extensions.tunnel as t
 
-    monkeypatch.setattr(
-        "duecare.chat.extensions.tunnel.shutil.which",
-        lambda _name: None,
-    )
+    monkeypatch.setattr(t.shutil, "which", lambda _name: None)
     import sys
 
     saved = sys.modules.pop("duecare.server.tunnel", None)

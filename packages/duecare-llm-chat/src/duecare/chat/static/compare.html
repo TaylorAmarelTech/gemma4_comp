@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="/static/_chrome.css">
   <script src="/static/_nav.js" defer></script>
   <script src="/static/_activity_log.js" defer></script>
+  <script src="/static/_examples_picker.js" defer></script>
   <style>
     .wb-page { max-width: 1380px; margin: 24px auto 60px; padding: 0 18px;
                color: #0E1116; font-family: Inter, system-ui, sans-serif; line-height: 1.55; }
@@ -163,39 +164,6 @@
       </div>
     </div>
 
-    <!-- Examples lightbox modal -- same shape as the Chat page's
-         examples picker, kept page-local for back-compat. -->
-    <div id="cmp-ex-modal-overlay"
-         style="display:none; position:fixed; inset:0; background:rgba(14,17,22,0.55);
-                z-index:9000; align-items:center; justify-content:center; padding:24px;"
-         onclick="cmpCloseExamples(event)"
-         role="presentation">
-      <div id="cmp-ex-modal"
-           role="dialog" aria-modal="true" aria-labelledby="cmp-ex-modal-title"
-           style="background:#FFF; border-radius:12px; max-width:880px; width:100%;
-                  max-height:84vh; display:flex; flex-direction:column; overflow:hidden;
-                  box-shadow:0 12px 40px rgba(14,17,22,0.32);"
-           onclick="event.stopPropagation()">
-        <div style="display:flex; justify-content:space-between; align-items:center;
-                     padding:14px 20px; border-bottom:1px solid #EFEDE4; background:#FAF9F4;">
-          <div>
-            <div id="cmp-ex-modal-title" style="font-size:16px; font-weight:700; color:#0E1116;">Example prompts</div>
-            <div class="wb-muted" id="cmp-ex-modal-sub">from /api/examples -- same as Chat</div>
-          </div>
-          <button class="wb-btn-secondary" onclick="cmpCloseExamples()">Close</button>
-        </div>
-        <div style="padding:12px 20px; border-bottom:1px solid #EFEDE4;">
-          <input type="text" id="cmp-ex-filter" placeholder="Filter examples by text or category..."
-                 oninput="cmpFilterExamples()"
-                 style="width:100%; padding:8px 10px; border:1px solid #DDD8C9;
-                        border-radius:6px; font-size:13px; box-sizing:border-box;">
-        </div>
-        <div id="cmp-ex-list" style="overflow-y:auto; flex:1; padding:8px 20px 20px;">
-          Loading examples...
-        </div>
-      </div>
-    </div>
-
     <div class="wb-card">
       <h2>2. Configure the two variants</h2>
       <div class="wb-twocol">
@@ -299,32 +267,23 @@
       </div>
     </div>
 
-    <!-- Cumulative timing summary -- shown after both variants complete. -->
-    <div class="wb-card" id="timing-card" style="display:none; margin-top: 14px;">
+    <!-- Cumulative timing summary. Visible before a run so the page
+         communicates what evidence will appear once both variants finish. -->
+    <div class="wb-card" id="timing-card" style="margin-top: 14px;">
       <h2>5. Timing breakdown</h2>
       <p class="wb-muted" style="margin:0 0 8px;">
         Per-step elapsed_ms for each variant. Useful to verify the
         harness layers add value at a cost you accept.
       </p>
-      <div id="timing-rows"></div>
-    </div>
-
-    <!-- Post-run actions (Send-to-Chat) -->
-    <div class="wb-card" id="postrun-card" style="display:none; margin-top: 14px;">
-      <h2>Post-run actions</h2>
-      <div class="wb-row" style="gap:8px;">
-        <button class="wb-btn-secondary" onclick="cmpSendToChat('A')"
-                title="Open the Chat page with Variant A's toggles preset (via URL hash)">Send Variant A config to Chat</button>
-        <button class="wb-btn-secondary" onclick="cmpSendToChat('B')"
-                title="Open the Chat page with Variant B's toggles preset (via URL hash)">Send Variant B config to Chat</button>
-        <button class="wb-btn-secondary" onclick="cmpCopyShareLink()"
-                title="Copy a URL that reproduces this exact comparison">Copy share link</button>
-        <span class="wb-muted" id="postrun-status"></span>
+      <div id="timing-rows">
+        <div class="wb-muted" id="timing-pending">
+          Timing info will be available once Variant A and Variant B have finished running.
+        </div>
       </div>
     </div>
 
-    <div class="wb-card" id="grade-card" style="display:none; margin-top: 18px;">
-      <h2>5. Grade both responses</h2>
+    <div class="wb-card" id="grade-card" style="margin-top: 18px;">
+      <h2>6. Grade both responses</h2>
       <p class="wb-muted" style="margin: 0 0 10px;">
         Score each variant on the same rubric. Mode determines which
         grader runs:
@@ -340,8 +299,8 @@
             <option value="combined">combined (50/50 blend)</option>
           </select>
         </label>
-        <button class="wb-btn-primary" id="grade-btn" onclick="cmpGrade()">Grade both</button>
-        <span class="wb-muted" id="grade-status"></span>
+        <button class="wb-btn-primary" id="grade-btn" onclick="cmpGrade()" disabled>Grade both</button>
+        <span class="wb-muted" id="grade-status">Available once both variants finish running.</span>
       </div>
       <div class="wb-twocol" style="margin-top: 12px;">
         <div class="wb-grade">
@@ -354,6 +313,28 @@
           <div class="score-line" id="B-grade-score">--</div>
           <pre id="B-grade">(not graded yet)</pre>
         </div>
+      </div>
+    </div>
+
+    <!-- Export and handoff actions intentionally sit after grading so
+         users first see the evaluation evidence, then choose what to copy. -->
+    <div class="wb-card" id="postrun-card" style="margin-top: 14px;">
+      <h2>7. Export and handoff</h2>
+      <p class="wb-muted" style="margin:0 0 10px;">
+        Copyable artifacts will be available after the run and grade complete.
+        Prompt links point at the current kernel URL; Cloudflare quick-tunnel
+        links are temporary and may not work after the Kaggle session stops.
+      </p>
+      <div class="wb-row" style="gap:8px;">
+        <button class="wb-btn-secondary" id="postrun-send-A" onclick="cmpSendToChat('A')" disabled
+                title="Open the Chat page with Variant A's toggles preset (via URL hash)">Send Variant A config to Chat</button>
+        <button class="wb-btn-secondary" id="postrun-send-B" onclick="cmpSendToChat('B')" disabled
+                title="Open the Chat page with Variant B's toggles preset (via URL hash)">Send Variant B config to Chat</button>
+        <button class="wb-btn-secondary" id="postrun-share" onclick="cmpCopyShareLink()"
+                title="Copy a prompt/config URL for this current kernel">Copy prompt link</button>
+        <button class="wb-btn-secondary" id="postrun-copy-md" onclick="cmpCopyGradeMarkdown()" disabled>Copy Markdown report</button>
+        <button class="wb-btn-secondary" id="postrun-copy-json" onclick="cmpCopyGradeJson()" disabled>Copy JSON results</button>
+        <span class="wb-muted" id="postrun-status"></span>
       </div>
     </div>
 
@@ -382,6 +363,7 @@
   <script>
     const LAYERS = ['persona', 'grep', 'rag', 'tools', 'online'];
     const VARIANTS = ['A', 'B'];
+    let _cmpLastPreset = 'stock_vs_full';
     let _examplesCache = null;
     let _dcLog = null;
     // AbortController per variant for the Interrupt button.
@@ -391,6 +373,11 @@
 
     // ============== Image attachment (Tier 4 #17) ==============
     let _cmpImageRef = null;
+    function _cmpStoreRefFromUpload(out) {
+      const ref = out && (out.id || out.image_url || out.url || out.sid);
+      if (!ref) return '';
+      return String(ref).startsWith('store://') ? String(ref) : 'store://' + ref;
+    }
     async function cmpAttachImage(evt) {
       const f = evt.target.files && evt.target.files[0];
       if (!f) return;
@@ -398,24 +385,60 @@
       status.textContent = 'uploading ' + f.name + '...';
       try {
         const fd = new FormData();
-        fd.append('image', f);
+        fd.append('file', f);
         const r = await fetch('/api/chat/upload-image', {method: 'POST', body: fd});
         if (!r.ok) {
           status.textContent = 'upload failed: HTTP ' + r.status;
           return;
         }
         const out = await r.json();
-        const ref = out.image_url || out.url || out.sid;
+        const ref = _cmpStoreRefFromUpload(out);
         if (!ref) {
-          status.textContent = 'upload returned no image_url';
+          status.textContent = 'upload returned no image id';
           return;
         }
-        _cmpImageRef = ref.startsWith('store://') ? ref : 'store://' + ref;
+        _cmpImageRef = ref;
         status.textContent = 'attached: ' + f.name + ' (' + Math.round(f.size / 1024) + ' KB)';
         document.getElementById('cmp-image-clear').style.display = 'inline-block';
         logEvent(null, 'info', 'image attached for both variants', _cmpImageRef);
       } catch (e) {
         status.textContent = 'upload error: ' + e;
+      }
+    }
+    async function cmpAttachSyntheticImage(imagePath, imageId) {
+      if (!imagePath) return;
+      const status = document.getElementById('cmp-image-status');
+      const url = imagePath.startsWith('http')
+        ? imagePath
+        : (imagePath.startsWith('/') ? imagePath : '/' + imagePath);
+      status.textContent = 'attaching bundled image...';
+      try {
+        const res = await fetch(url, {cache: 'force-cache'});
+        if (!res.ok) {
+          status.textContent = 'bundled image fetch failed: HTTP ' + res.status;
+          return;
+        }
+        const blob = await res.blob();
+        const filename = url.split('/').pop() || ('synthetic-' + (imageId || 'example') + '.png');
+        const fd = new FormData();
+        fd.append('file', blob, filename);
+        const r = await fetch('/api/chat/upload-image', {method: 'POST', body: fd});
+        if (!r.ok) {
+          status.textContent = 'bundled image upload failed: HTTP ' + r.status;
+          return;
+        }
+        const out = await r.json();
+        const ref = _cmpStoreRefFromUpload(out);
+        if (!ref) {
+          status.textContent = 'bundled image upload returned no image id';
+          return;
+        }
+        _cmpImageRef = ref;
+        status.textContent = 'attached bundled image: ' + filename;
+        document.getElementById('cmp-image-clear').style.display = 'inline-block';
+        logEvent(null, 'info', 'bundled image attached for both variants', _cmpImageRef);
+      } catch (e) {
+        status.textContent = 'bundled image attach error: ' + e;
       }
     }
     function cmpClearImage() {
@@ -443,8 +466,11 @@
       } catch (e) { return null; }
     }
 
-    // ============== Examples loader (shared with Chat) ==============
+    // ============== Examples loader (shared Chat-style picker) ==============
     async function _fetchExamples() {
+      if (window.dcExamplesPicker && window.dcExamplesPicker.fetchAll) {
+        return window.dcExamplesPicker.fetchAll();
+      }
       if (_examplesCache !== null) return _examplesCache;
       try {
         const r = await fetch('/api/examples', {cache: 'no-store'});
@@ -454,98 +480,41 @@
         return _examplesCache;
       } catch (e) { _examplesCache = []; return _examplesCache; }
     }
-    // ============== Examples LIGHTBOX (mirrors the Chat page modal) ==============
     async function populateExamples() {
       const examples = await _fetchExamples();
       const c = document.getElementById('cmp-examples-count');
       if (c) c.textContent = '(' + examples.length + ' available)';
-      _renderExamplesList(examples, '');
-    }
-    function _renderExamplesList(examples, filterText) {
-      const host = document.getElementById('cmp-ex-list');
-      while (host.firstChild) host.removeChild(host.firstChild);
-      const q = (filterText || '').trim().toLowerCase();
-      const filtered = q ? examples.filter(ex => {
-        const hay = ((ex.text || '') + ' ' + (ex.category || '') + ' ' + (ex.label || '')).toLowerCase();
-        return hay.indexOf(q) >= 0;
-      }) : examples;
-      if (!filtered.length) {
-        const e = document.createElement('div');
-        e.className = 'wb-muted';
-        e.style.padding = '24px 0';
-        e.textContent = q ? 'No examples match "' + q + '".' : 'No examples loaded.';
-        host.appendChild(e); return;
-      }
-      const byCat = {};
-      filtered.forEach(ex => {
-        const cat = ex.category || 'other';
-        (byCat[cat] = byCat[cat] || []).push(ex);
-      });
-      Object.keys(byCat).sort().forEach(cat => {
-        const h = document.createElement('div');
-        h.style.cssText = 'font-size:11px; font-weight:700; color:#5B5F68; text-transform:uppercase; letter-spacing:0.05em; margin:14px 0 6px;';
-        h.textContent = cat + ' (' + byCat[cat].length + ')';
-        host.appendChild(h);
-        byCat[cat].forEach(ex => {
-          const row = document.createElement('div');
-          row.style.cssText = 'padding:10px 12px; margin-bottom:6px; background:#FAF9F4; border:1px solid #EFEDE4; border-radius:8px; cursor:pointer; font-size:12.5px; line-height:1.5;';
-          row.onmouseenter = () => { row.style.background = '#F1EFE7'; };
-          row.onmouseleave = () => { row.style.background = '#FAF9F4'; };
-          row.onclick = () => { _useExample(ex); };
-          if (ex.label) {
-            const lbl = document.createElement('div');
-            lbl.style.cssText = 'font-weight:600; color:#0E1116; margin-bottom:4px;';
-            lbl.textContent = ex.label;
-            row.appendChild(lbl);
-          }
-          const txt = document.createElement('div');
-          txt.style.cssText = 'color:#2A2D34;';
-          txt.textContent = (ex.text || '').slice(0, 260) + ((ex.text || '').length > 260 ? '...' : '');
-          row.appendChild(txt);
-          if (ex.id) {
-            const id = document.createElement('div');
-            id.className = 'wb-muted';
-            id.style.cssText = 'margin-top:4px; font-family:JetBrains Mono, monospace; font-size:10.5px;';
-            id.textContent = ex.id;
-            row.appendChild(id);
-          }
-          host.appendChild(row);
-        });
-      });
     }
     function _useExample(ex) {
       const input = document.getElementById('cmp-prompt');
       input.value = ex.text || '';
       input.dispatchEvent(new Event('input', {bubbles: true}));
-      cmpCloseExamples();
+      if (ex.synthetic_image) {
+        cmpAttachSyntheticImage(ex.synthetic_image, ex.image_id || ex.id);
+      } else if (ex.image_hint) {
+        document.getElementById('cmp-status').textContent =
+          'This example expects an image: ' + ex.image_hint;
+      }
     }
     function cmpOpenExamples() {
-      document.getElementById('cmp-ex-modal-overlay').style.display = 'flex';
-      // Re-render in case the cache populated after initial load.
-      _fetchExamples().then(examples => _renderExamplesList(examples,
-        document.getElementById('cmp-ex-filter').value));
-      setTimeout(() => {
-        const f = document.getElementById('cmp-ex-filter');
-        if (f) f.focus();
-      }, 50);
+      if (window.dcExamplesPicker && window.dcExamplesPicker.open) {
+        window.dcExamplesPicker.open({
+          title: 'Example prompts',
+          onPick: _useExample,
+        });
+        return;
+      }
+      document.getElementById('cmp-status').textContent =
+        'Examples picker is still loading; try again in a moment.';
     }
     function cmpCloseExamples(evt) {
-      // Only close on backdrop click, not modal-body click.
-      if (evt && evt.target && evt.target.id !== 'cmp-ex-modal-overlay'
-          && !evt.target.classList.contains('wb-btn-secondary')) return;
-      document.getElementById('cmp-ex-modal-overlay').style.display = 'none';
+      const overlay = document.getElementById('_dc_ex_overlay');
+      if (overlay) overlay.remove();
     }
     function cmpFilterExamples() {
-      _fetchExamples().then(examples => _renderExamplesList(examples,
-        document.getElementById('cmp-ex-filter').value));
+      // Kept as a no-op for old bookmarks/extensions that called the
+      // page-local picker. Filtering now lives inside _examples_picker.js.
     }
-    // ESC to close the modal.
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') {
-        const m = document.getElementById('cmp-ex-modal-overlay');
-        if (m && m.style.display === 'flex') m.style.display = 'none';
-      }
-    });
     function cmpFillFromLastChat() {
       try {
         const last = localStorage.getItem('duecare:last-chat-prompt') || '';
@@ -580,6 +549,7 @@
         },
       };
       const p = presets[name]; if (!p) return;
+      _cmpLastPreset = name;
       for (const v of VARIANTS) {
         for (const layer of LAYERS) {
           const el = document.getElementById(v + '-' + layer);
@@ -867,7 +837,7 @@
         // see the same multimodal input.
         const userContent = [{type: 'text', text: prompt}];
         if (_cmpImageRef) {
-          userContent.push({type: 'image_url', image_url: {url: _cmpImageRef}});
+          userContent.push({type: 'image', image: _cmpImageRef});
         }
         r = await fetch('/api/chat/send', {
           method: 'POST',
@@ -1083,10 +1053,12 @@
       const haveA = _pipelineState.A;
       const haveB = _pipelineState.B;
       if (!haveA && !haveB) {
-        card.style.display = 'none';
+        const pending = document.createElement('div');
+        pending.className = 'wb-muted';
+        pending.textContent = 'Timing info will be available once Variant A and Variant B have finished running.';
+        host.appendChild(pending);
         return;
       }
-      card.style.display = 'block';
       // Header
       const head = document.createElement('div');
       head.style.cssText = 'display:grid; grid-template-columns:180px 1fr 1fr 110px; gap:8px; font-size:11px; font-weight:700; color:#5B5F68; text-transform:uppercase; letter-spacing:0.04em; padding:6px 0; border-bottom:1px solid #EFEDE4;';
@@ -1143,55 +1115,159 @@
       host.appendChild(totalRow);
     }
 
-    // ============== Better grade rendering (bars + dimension verdicts) ==============
+    // ============== Better grade rendering (full evaluation details) ==============
+    function cmpEscape(s) {
+      return String(s == null ? '' : s).replace(/[&<>"']/g, ch => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+      })[ch]);
+    }
+    function cmpScoreNumber(g) {
+      if (!g || typeof g !== 'object') return null;
+      if (typeof g.pct_score === 'number') return g.pct_score;
+      if (typeof g.percent === 'number') return g.percent;
+      if (typeof g.score === 'number' && g.score <= 1) return g.score * 100;
+      if (g.combined && typeof g.combined.pct_score === 'number') return g.combined.pct_score;
+      if (g.deterministic && typeof g.deterministic.pct_score === 'number') return g.deterministic.pct_score;
+      if (g.evaluator && typeof g.evaluator.pct_score === 'number') return g.evaluator.pct_score;
+      return null;
+    }
+    function cmpDimsOf(g) {
+      if (!g || typeof g !== 'object') return [];
+      if (Array.isArray(g.dimensions)) return g.dimensions;
+      if (g.evaluator && Array.isArray(g.evaluator.dimensions)) return g.evaluator.dimensions;
+      if (g.deterministic && Array.isArray(g.deterministic.dimensions)) return g.deterministic.dimensions;
+      return [];
+    }
+    function cmpVerdictRaw(d) {
+      return d.status || d.verdict || d.value || d.result ||
+        (d.score != null ? d.score : 'not_applicable');
+    }
+    function cmpVerdictLabel(v) {
+      const s = String(v == null ? 'not_applicable' : v).trim();
+      const u = s.toUpperCase().replace(/[\/\s-]+/g, '_');
+      const map = {
+        YES: 'YES', PASS: 'PASS', TRUE: 'YES',
+        PARTIAL: 'PARTIAL',
+        NO: 'NO', FAIL: 'FAIL', FALSE: 'NO',
+        UNCERTAIN: 'UNCERTAIN',
+        SKIPPED: 'N/A', NOT_APPLICABLE: 'N/A', N_A: 'N/A', NA: 'N/A',
+      };
+      if (map[u]) return map[u];
+      if (!Number.isNaN(Number(s))) return s;
+      return s || 'N/A';
+    }
+    function cmpVerdictColor(v) {
+      const label = cmpVerdictLabel(v);
+      if (['YES', 'PASS'].includes(label)) return 'oklch(0.32 0.10 155)';
+      if (label === 'PARTIAL') return 'oklch(0.45 0.12 80)';
+      if (['NO', 'FAIL'].includes(label)) return 'oklch(0.50 0.18 25)';
+      if (label === 'UNCERTAIN') return 'oklch(0.32 0.07 195)';
+      return '#5B5F68';
+    }
+    function cmpRenderTrace(trace) {
+      if (!trace) return '<div class="wb-muted">No pipeline trace returned.</div>';
+      return LAYERS.map(layer => {
+        const t = trace[layer] || {};
+        const state = t.fired ? 'fired' : (t.enabled === false ? 'off' : (t.wired === false ? 'not wired' : 'no-op'));
+        return '<div style="display:flex; gap:8px; padding:3px 0; border-bottom:1px dotted #EFEDE4;">' +
+          '<span style="flex:0 0 70px; font-family:JetBrains Mono,monospace; font-size:10.5px;">' + cmpEscape(layer) + '</span>' +
+          '<span style="flex:0 0 74px; color:' + cmpVerdictColor(state === 'fired' ? 'PASS' : 'N/A') + ';">' + cmpEscape(state) + '</span>' +
+          '<span style="flex:1; color:#5B5F68;">' + cmpEscape(t.summary || '') + '</span>' +
+          '<span style="flex:0 0 70px; text-align:right; font-family:JetBrains Mono,monospace;">' + cmpEscape(t.elapsed_ms || 0) + ' ms</span>' +
+        '</div>';
+      }).join('');
+    }
     function renderGradeBars(variant, gradeResult) {
       const host = document.getElementById(variant + '-grade');
       if (!host) return;
       while (host.firstChild) host.removeChild(host.firstChild);
-      // Show the pct_score as a big number + horizontal bar
-      const pct = (gradeResult && (gradeResult.pct_score ?? gradeResult.percent ?? null));
-      if (pct == null) {
-        const pre = document.createElement('div');
-        pre.style.cssText = 'font-family:JetBrains Mono, monospace; font-size:10.5px; white-space:pre-wrap; max-height:200px; overflow-y:auto;';
-        pre.textContent = JSON.stringify(gradeResult, null, 2);
-        host.appendChild(pre);
+      if (!gradeResult || gradeResult.error) {
+        const err = document.createElement('div');
+        err.className = 'wb-error';
+        err.textContent = gradeResult && gradeResult.error
+          ? gradeResult.error + (gradeResult.body ? ': ' + String(gradeResult.body).slice(0, 500) : '')
+          : 'No grade result returned.';
+        host.appendChild(err);
         return;
       }
+      const pct = cmpScoreNumber(gradeResult);
       const barWrap = document.createElement('div');
       barWrap.style.cssText = 'background:#EFEDE4; border-radius:6px; height:8px; overflow:hidden; margin:6px 0 10px;';
       const fill = document.createElement('div');
-      fill.style.cssText = 'background:oklch(0.55 0.10 155); height:100%; width:' + Math.max(0, Math.min(100, pct)) + '%; transition:width 300ms;';
+      fill.style.cssText = 'background:oklch(0.55 0.10 155); height:100%; width:' +
+        Math.max(0, Math.min(100, pct == null ? 0 : pct)) + '%; transition:width 300ms;';
       barWrap.appendChild(fill);
       host.appendChild(barWrap);
-      // Dimension verdicts
-      const dims = (gradeResult && gradeResult.dimensions) || [];
-      if (Array.isArray(dims) && dims.length) {
-        const ul = document.createElement('div');
-        ul.style.cssText = 'font-size:11.5px; max-height:200px; overflow-y:auto; padding-right:4px;';
-        dims.forEach(d => {
-          const row = document.createElement('div');
-          row.style.cssText = 'display:flex; justify-content:space-between; gap:6px; padding:3px 0; border-bottom:1px dotted #EFEDE4;';
-          const lbl = document.createElement('span');
-          lbl.style.cssText = 'flex:1; color:#0E1116;';
-          lbl.textContent = d.id || d.name || d.label || '?';
-          row.appendChild(lbl);
-          const v = document.createElement('span');
-          v.style.cssText = 'font-family:JetBrains Mono, monospace; font-size:10.5px; flex:0 0 90px; text-align:right;';
-          const verdict = d.verdict || d.value || d.result || (d.score != null ? d.score : '?');
-          v.textContent = String(verdict).slice(0, 20);
-          if (verdict === 'PASS' || verdict === 'YES' || verdict === true || (typeof verdict === 'number' && verdict >= 0.7)) v.style.color = 'oklch(0.32 0.10 155)';
-          else if (verdict === 'FAIL' || verdict === 'NO' || verdict === false || (typeof verdict === 'number' && verdict < 0.3)) v.style.color = 'oklch(0.50 0.18 25)';
-          else v.style.color = '#5B5F68';
-          row.appendChild(v);
-          ul.appendChild(row);
-        });
-        host.appendChild(ul);
-      } else {
-        const note = document.createElement('div');
-        note.className = 'wb-muted'; note.style.fontSize = '11.5px';
-        note.textContent = 'no dimension breakdown returned';
-        host.appendChild(note);
+      const dims = cmpDimsOf(gradeResult);
+      const counts = {};
+      dims.forEach(d => {
+        const label = cmpVerdictLabel(cmpVerdictRaw(d));
+        counts[label] = (counts[label] || 0) + 1;
+      });
+      const summary = document.createElement('div');
+      summary.className = 'wb-muted';
+      summary.style.marginBottom = '8px';
+      summary.textContent = dims.length
+        ? Object.keys(counts).map(k => k + ': ' + counts[k]).join(' | ')
+        : 'No dimension breakdown returned.';
+      host.appendChild(summary);
+
+      if (gradeResult.mode === 'combined' && gradeResult.agreement) {
+        const agree = document.createElement('div');
+        agree.className = 'wb-muted';
+        agree.style.marginBottom = '8px';
+        agree.textContent = 'Agreement: ' + (gradeResult.agreement.agreement_pct ?? 0) +
+          '% (' + (gradeResult.agreement.n_agree ?? 0) + '/' +
+          (gradeResult.agreement.n_compared ?? 0) + ' dimensions)';
+        host.appendChild(agree);
       }
+
+      const rows = dims.map(d => {
+        const raw = cmpVerdictRaw(d);
+        const label = cmpVerdictLabel(raw);
+        const evidence = d.evidence_quote
+          ? '<div style="margin-top:4px; padding:6px 8px; background:#FFF; border-left:3px solid oklch(0.52 0.08 195); border-radius:3px; color:#2A2D34;">"' + cmpEscape(d.evidence_quote) + '"</div>'
+          : '';
+        const inspect = (d.evaluator_prompt || d.evaluator_response)
+          ? '<details style="margin-top:6px;"><summary style="cursor:pointer; color:#5B5F68;">Inspect evaluator prompt + raw model response</summary>' +
+              '<div style="margin-top:6px; font-size:11px;">' +
+              '<div><b>Question:</b> ' + cmpEscape(d.evaluator_question || '') + '</div>' +
+              '<div style="margin-top:4px;"><b>Prompt sent:</b></div>' +
+              '<pre style="white-space:pre-wrap; max-height:160px; overflow:auto;">' + cmpEscape(d.evaluator_prompt || '') + '</pre>' +
+              '<div><b>Raw model response:</b></div>' +
+              '<pre style="white-space:pre-wrap; max-height:140px; overflow:auto;">' + cmpEscape(d.evaluator_response || '') + '</pre>' +
+              '<div class="wb-muted">parse_ok=' + cmpEscape(d.parse_ok) +
+              ' | evidence_grounded=' + cmpEscape(d.evidence_grounded) + '</div>' +
+              '</div></details>'
+          : '';
+        return '<div style="padding:8px 0; border-bottom:1px dotted #EFEDE4;">' +
+          '<div style="display:flex; gap:8px; align-items:baseline;">' +
+          '<span style="flex:1; font-weight:600; color:#0E1116;">' + cmpEscape(d.name || d.id || 'dimension') + '</span>' +
+          '<span style="font-family:JetBrains Mono,monospace; font-size:10.5px; color:' + cmpVerdictColor(raw) + ';">' + cmpEscape(label) + '</span>' +
+          '</div>' +
+          '<div class="wb-muted" style="font-family:JetBrains Mono,monospace; font-size:10.5px;">' + cmpEscape(d.id || '') + '</div>' +
+          (d.rationale ? '<div class="wb-muted" style="margin-top:3px;">' + cmpEscape(d.rationale) + '</div>' : '') +
+          evidence + inspect +
+        '</div>';
+      }).join('');
+      const details = document.createElement('details');
+      details.open = true;
+      details.innerHTML =
+        '<summary style="cursor:pointer; font-weight:700; font-size:12px; color:#0E1116;">Evaluation details (' +
+        dims.length + ' dimensions)</summary>' +
+        '<div style="margin-top:8px; max-height:360px; overflow-y:auto; padding-right:4px;">' +
+        (rows || '<div class="wb-muted">No per-dimension details returned.</div>') +
+        '</div>';
+      host.appendChild(details);
+
+      const raw = document.createElement('details');
+      raw.style.marginTop = '10px';
+      raw.innerHTML = '<summary style="cursor:pointer; font-weight:700; font-size:12px; color:#0E1116;">Raw JSON</summary>';
+      const pre = document.createElement('pre');
+      pre.style.cssText = 'margin-top:8px; white-space:pre-wrap; max-height:320px; overflow:auto;';
+      pre.textContent = JSON.stringify(gradeResult, null, 2);
+      raw.appendChild(pre);
+      host.appendChild(raw);
     }
 
     // ============== Send winning to Chat ==============
@@ -1210,18 +1286,115 @@
       const promptVal = document.getElementById('cmp-prompt').value.trim();
       const params = new URLSearchParams();
       if (promptVal) params.set('prompt', promptVal);
+      if (_cmpLastPreset) params.set('preset', _cmpLastPreset);
+      for (const v of VARIANTS) {
+        const toggles = readToggles(v);
+        LAYERS.forEach(layer => {
+          params.set(v + '_' + layer, toggles[layer] ? '1' : '0');
+        });
+      }
+      params.set('max_new_tokens', document.getElementById('cmp-max-tokens').value || '16384');
+      params.set('temperature', document.getElementById('cmp-temperature').value || '1.0');
       const url = location.origin + '/static/compare.html?' + params.toString();
       const status = document.getElementById('postrun-status');
       try {
         await navigator.clipboard.writeText(url);
-        status.textContent = 'copied to clipboard';
+        status.textContent = 'prompt link copied (temporary kernel URL)';
         setTimeout(() => { status.textContent = ''; }, 3000);
       } catch (e) {
         status.textContent = 'copy failed; URL: ' + url;
       }
     }
+    async function cmpCopyText(text, okMsg) {
+      const status = document.getElementById('postrun-status');
+      try {
+        await navigator.clipboard.writeText(text);
+        status.textContent = okMsg;
+      } catch (e) {
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        ta.style.position = 'fixed';
+        ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.select();
+        try { document.execCommand('copy'); status.textContent = okMsg; }
+        catch (_) { status.textContent = 'copy failed'; }
+        document.body.removeChild(ta);
+      }
+      setTimeout(() => { status.textContent = ''; }, 3000);
+    }
+    function cmpGradeDimsMarkdown(g) {
+      const dims = cmpDimsOf(g);
+      if (!dims.length) return '_No dimension details returned._\n';
+      let md = '| Dimension | Verdict | Evidence / hits |\n|---|---|---|\n';
+      dims.forEach(d => {
+        const hits = [
+          ...(d.pass_hits || []),
+          ...(d.fail_hits || []),
+          d.evidence_quote || '',
+        ].filter(Boolean).slice(0, 4).join(', ') || '';
+        md += '| `' + String(d.id || '').replace(/\|/g, '\\|') + '` ' +
+          String(d.name || '').replace(/\|/g, '\\|') + ' | **' +
+          cmpVerdictLabel(cmpVerdictRaw(d)).replace(/\|/g, '\\|') + '** | ' +
+          hits.replace(/\|/g, '\\|').slice(0, 240) + ' |\n';
+      });
+      return md;
+    }
+    function cmpBuildGradeMarkdown() {
+      const r = window._cmpGradeResults;
+      if (!r) return '';
+      const A = r.variantA;
+      const B = r.variantB;
+      let md = '# DueCare Compare evaluation\n\n';
+      md += '_Captured ' + r.ts + ' | mode: **' + r.mode + '**_\n\n';
+      md += '## Prompt\n\n```text\n' + r.prompt + '\n```\n\n';
+      md += '## Summary\n\n| | Variant A | Variant B |\n|---|---|---|\n';
+      md += '| Layers | ' + Object.keys(A.toggles).filter(k => A.toggles[k]).join(', ') + ' | ' + Object.keys(B.toggles).filter(k => B.toggles[k]).join(', ') + ' |\n';
+      md += '| Score | ' + scoreLabel(A.grade) + ' | ' + scoreLabel(B.grade) + ' |\n';
+      md += '| Grade time | ' + (A.grade_ms / 1000).toFixed(1) + 's | ' + (B.grade_ms / 1000).toFixed(1) + 's |\n';
+      md += '| Response chars | ' + A.response.length + ' | ' + B.response.length + ' |\n\n';
+      md += '## Variant A dimensions\n\n' + cmpGradeDimsMarkdown(A.grade) + '\n';
+      md += '## Variant B dimensions\n\n' + cmpGradeDimsMarkdown(B.grade) + '\n';
+      md += '## Variant A response\n\n```text\n' + A.response + '\n```\n\n';
+      md += '## Variant B response\n\n```text\n' + B.response + '\n```\n\n';
+      md += '## Raw JSON\n\n```json\n' + JSON.stringify(r, null, 2) + '\n```\n';
+      return md;
+    }
+    function cmpCopyGradeMarkdown() {
+      const md = cmpBuildGradeMarkdown();
+      if (!md) return;
+      cmpCopyText(md, 'Markdown report copied');
+    }
+    function cmpCopyGradeJson() {
+      const r = window._cmpGradeResults;
+      if (!r) return;
+      cmpCopyText(JSON.stringify(r, null, 2), 'JSON results copied');
+    }
 
     // ============== Top-level orchestration ==============
+    function cmpSetExportState(runReady, gradeReady) {
+      ['postrun-send-A', 'postrun-send-B'].forEach(id => {
+        const b = document.getElementById(id);
+        if (b) b.disabled = !runReady;
+      });
+      ['postrun-copy-md', 'postrun-copy-json'].forEach(id => {
+        const b = document.getElementById(id);
+        if (b) b.disabled = !gradeReady;
+      });
+    }
+    function cmpResetGradePanel() {
+      window._cmpGradeResults = null;
+      const btn = document.getElementById('grade-btn');
+      if (btn) btn.disabled = true;
+      document.getElementById('grade-status').textContent =
+        'Available once both variants finish running.';
+      document.getElementById('A-grade-score').textContent = '--';
+      document.getElementById('B-grade-score').textContent = '--';
+      document.getElementById('A-grade').textContent = '(not graded yet)';
+      document.getElementById('B-grade').textContent = '(not graded yet)';
+      document.getElementById('postrun-status').textContent = '';
+      cmpSetExportState(false, false);
+    }
     function cmpReset() {
       document.getElementById('cmp-prompt').value = '';
       const log = getLog(); if (log) log.clear();
@@ -1237,7 +1410,9 @@
       }
       document.getElementById('cmp-status').textContent = '';
       document.getElementById('cmp-error').style.display = 'none';
-      document.getElementById('grade-card').style.display = 'none';
+      window._cmpResults = {A: null, B: null, prompt: ''};
+      renderTimingSummary();
+      cmpResetGradePanel();
     }
     async function cmpRun() {
       const prompt = (document.getElementById('cmp-prompt').value || '').trim();
@@ -1256,9 +1431,8 @@
       renderToggleChips('A'); renderToggleChips('B');
       refreshVariantLabels();
       const log = getLog(); if (log) log.clear();
-      document.getElementById('grade-card').style.display = 'none';
-      document.getElementById('timing-card').style.display = 'none';
-      document.getElementById('postrun-card').style.display = 'none';
+      cmpResetGradePanel();
+      renderTimingSummary();
       logEvent(null, 'info', 'starting comparison; runs are SEQUENTIAL (single shared Gemma) max_tokens=' + maxTokens);
       for (const v of VARIANTS) {
         clearMsgs(v);
@@ -1288,9 +1462,12 @@
         status.textContent = 'Done. A: ' + sa + '  |  B: ' + sb;
         logEvent(null, 'ok', 'comparison complete: A=' + sa + ', B=' + sb);
         if (resA.ok && resB.ok) {
-          document.getElementById('grade-card').style.display = 'block';
           renderTimingSummary();
-          document.getElementById('postrun-card').style.display = 'block';
+          const gradeBtn = document.getElementById('grade-btn');
+          if (gradeBtn) gradeBtn.disabled = false;
+          document.getElementById('grade-status').textContent =
+            'Ready to grade both responses.';
+          cmpSetExportState(true, false);
         }
       } catch (e) {
         err.style.display = 'block';
@@ -1305,6 +1482,73 @@
     }
 
     // ============== Grade panel ==============
+    async function cmpGradeOne(variant, res, prompt, mode, progress) {
+      const responseText = (res.final && res.final.response) || '';
+      if (!responseText.trim()) return {error: 'empty response_text'};
+      if (mode === 'deterministic') {
+        progress('Variant ' + variant + ': running deterministic grader...');
+        const r = await fetch('/api/grade', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({
+            response_text: responseText,
+            prompt_text: prompt,
+            harness_trace: (res.final && res.final.harness_trace) || null,
+            mode: 'universal',
+          }),
+        });
+        if (!r.ok) return {error: 'HTTP ' + r.status, body: await r.text()};
+        return r.json();
+      }
+      const url = mode === 'deep'
+        ? '/api/grade-deep-stream'
+        : '/api/grade-combined-stream';
+      progress('Variant ' + variant + ': opening ' + url + '...');
+      const body = mode === 'deep'
+        ? {response_text: responseText, prompt_text: prompt}
+        : {response_text: responseText, prompt_text: prompt, evaluator_weight: 0.5};
+      const r = await fetch(url, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(body),
+      });
+      if (!r.ok) return {error: 'HTTP ' + r.status, body: await r.text()};
+      const reader = r.body.getReader();
+      const decoder = new TextDecoder('utf-8');
+      let buffer = '';
+      let finalResult = null;
+      while (true) {
+        const {done, value} = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, {stream: true});
+        let sep;
+        while ((sep = buffer.indexOf('\n\n')) !== -1) {
+          const frame = buffer.slice(0, sep);
+          buffer = buffer.slice(sep + 2);
+          if (!frame.trim() || frame.startsWith(':')) continue;
+          const line = frame.split('\n').find(l => l.startsWith('data:'));
+          if (!line) continue;
+          let evt;
+          try { evt = JSON.parse(line.slice(5).trim()); }
+          catch (e) { continue; }
+          if (evt.type === 'deterministic_done') {
+            progress('Variant ' + variant + ': deterministic pass complete; waiting for LLM judge...');
+          } else if (evt.type === 'dim_done') {
+            progress('Variant ' + variant + ': judge dimension ' +
+              (evt.n_done || '?') + '/' + (evt.n_total || '?') +
+              ' - ' + ((evt.row && (evt.row.id || evt.row.name)) || 'dimension'));
+          } else if (evt.type === 'complete') {
+            finalResult = evt.result || evt;
+            break;
+          } else if (evt.type === 'error') {
+            return {error: evt.error || 'stream error', code: evt.code};
+          }
+        }
+        if (finalResult) break;
+      }
+      return finalResult || {error: 'stream ended without final result'};
+    }
+
     async function cmpGrade() {
       const mode = document.getElementById('grade-mode').value;
       const status = document.getElementById('grade-status');
@@ -1316,45 +1560,49 @@
       }
       btn.disabled = true; const origTxt = btn.textContent;
       btn.textContent = 'Grading...';
-      const endpoints = {
-        deterministic: '/api/grade',
-        deep: '/api/grade-deep',
-        combined: '/api/grade-combined',
-      };
-      const endpoint = endpoints[mode] || '/api/grade';
-      status.textContent = 'POST ' + endpoint + ' x 2 ...';
-      logEvent(null, 'info', 'grading mode=' + mode + ' endpoint=' + endpoint);
-      function bodyFor(res) {
-        const body = {
-          response_text: (res.final && res.final.response) || '',
-          prompt_text: r.prompt,
-        };
-        if (mode === 'deterministic') body.mode = 'universal';
-        return body;
-      }
       try {
-        const [gA, gB] = await Promise.all([
-          fetch(endpoint, {
-            method: 'POST', headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify(bodyFor(r.A)),
-          }).then(async x => {
-            if (!x.ok) return {error: 'HTTP ' + x.status, body: await x.text()};
-            return x.json();
-          }),
-          fetch(endpoint, {
-            method: 'POST', headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify(bodyFor(r.B)),
-          }).then(async x => {
-            if (!x.ok) return {error: 'HTTP ' + x.status, body: await x.text()};
-            return x.json();
-          }),
-        ]);
+        const endpoint = mode === 'deterministic'
+          ? '/api/grade'
+          : (mode === 'deep' ? '/api/grade-deep-stream' : '/api/grade-combined-stream');
+        status.textContent = 'Grading Variant A via ' + endpoint + '...';
+        logEvent(null, 'info', 'grading mode=' + mode + ' endpoint=' + endpoint + ' sequential');
+        const progress = (msg) => {
+          status.textContent = msg;
+          logEvent(null, 'info', msg);
+        };
+        const tA0 = performance.now();
+        const gA = await cmpGradeOne('A', r.A, r.prompt, mode, progress);
+        const gAMs = Math.round(performance.now() - tA0);
+        renderGradeBars('A', gA);
+        document.getElementById('A-grade-score').textContent = scoreLabel(gA);
+
+        const tB0 = performance.now();
+        const gB = await cmpGradeOne('B', r.B, r.prompt, mode, progress);
+        const gBMs = Math.round(performance.now() - tB0);
         renderGradeBars('A', gA);
         renderGradeBars('B', gB);
         document.getElementById('A-grade-score').textContent = scoreLabel(gA);
         document.getElementById('B-grade-score').textContent = scoreLabel(gB);
+        window._cmpGradeResults = {
+          ts: new Date().toISOString(),
+          mode: mode,
+          prompt: r.prompt,
+          variantA: {
+            grade: gA, grade_ms: gAMs,
+            response: (r.A.final && r.A.final.response) || '',
+            trace: (r.A.final && r.A.final.harness_trace) || null,
+            toggles: readToggles('A'),
+          },
+          variantB: {
+            grade: gB, grade_ms: gBMs,
+            response: (r.B.final && r.B.final.response) || '',
+            trace: (r.B.final && r.B.final.harness_trace) || null,
+            toggles: readToggles('B'),
+          },
+        };
         status.textContent = 'A=' + scoreLabel(gA) + '  |  B=' + scoreLabel(gB);
         logEvent(null, 'ok', 'grade  A=' + scoreLabel(gA) + '  B=' + scoreLabel(gB));
+        cmpSetExportState(true, true);
       } catch (e) {
         status.textContent = 'grade failed: ' + e;
         logEvent(null, 'err', 'grade exception: ' + e);
@@ -1365,10 +1613,9 @@
     function scoreLabel(g) {
       if (!g || typeof g !== 'object') return '?';
       if (g.error) return 'err';
-      if (g.pct_score != null) return Math.round(g.pct_score) + '%';
-      if (g.percent != null) return Math.round(g.percent) + '%';
+      const pct = cmpScoreNumber(g);
+      if (pct != null) return Math.round(pct) + '%';
       if (g.score != null) return String(g.score);
-      if (g.combined && g.combined.pct_score != null) return Math.round(g.combined.pct_score) + '% (blend)';
       return '?';
     }
 
@@ -1386,6 +1633,7 @@
         LAYERS.forEach(L => {
           const el = document.getElementById(v + '-' + L);
           if (el) el.addEventListener('change', () => {
+            _cmpLastPreset = '';
             renderToggleChips(v);
             refreshVariantLabels();
           });
@@ -1407,6 +1655,8 @@
       const fromQuery = params.get('prompt');
       const preset = params.get('preset');
       const autorun = params.get('autorun');
+      const maxNewTokens = params.get('max_new_tokens');
+      const temperature = params.get('temperature');
       if (fromQuery) {
         input.value = fromQuery;
         input.dispatchEvent(new Event('input', {bubbles: true}));
@@ -1421,6 +1671,34 @@
       }
       if (preset && ['stock_vs_full', 'grep_only_vs_full', 'with_online_vs_without'].includes(preset)) {
         cmpPreset(preset);
+      }
+      if (maxNewTokens) {
+        const mt = document.getElementById('cmp-max-tokens');
+        if (mt) mt.value = maxNewTokens;
+      }
+      if (temperature) {
+        const temp = document.getElementById('cmp-temperature');
+        if (temp) temp.value = temperature;
+      }
+      let hasSharedToggles = false;
+      for (const v of VARIANTS) {
+        for (const layer of LAYERS) {
+          const key = v + '_' + layer;
+          if (params.has(key)) {
+            const el = document.getElementById(v + '-' + layer);
+            if (el) el.checked = params.get(key) === '1';
+            hasSharedToggles = true;
+          }
+        }
+      }
+      if (hasSharedToggles) {
+        _cmpLastPreset = preset || '';
+        for (const v of VARIANTS) {
+          const label = preset ? document.getElementById(v + '-preset').textContent : 'shared config';
+          document.getElementById(v + '-preset').textContent = label;
+          document.getElementById(v + '-label').textContent = label;
+          renderToggleChips(v);
+        }
       }
       if (autorun === '1' && input.value.trim()) {
         // Slight delay so renders settle.

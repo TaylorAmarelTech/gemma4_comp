@@ -57,11 +57,8 @@ def test_required_markup_present(client):
         'id="grade-card"',
         'id="timing-card"',
         'id="postrun-card"',
-        # examples lightbox
-        'id="cmp-ex-modal-overlay"',
-        'id="cmp-ex-modal"',
-        'id="cmp-ex-list"',
-        'id="cmp-ex-filter"',
+        # shared examples lightbox
+        'src="/static/_examples_picker.js"',
         # log
         'id="cmp-log"',
     ]
@@ -73,10 +70,8 @@ def test_aria_attributes_present(client):
     """Tier 1 audit fix: ARIA on modal, variant cards, log host."""
     r = client.get("/static/compare.html")
     text = r.text
-    aria_required = [
-        'role="dialog"',
-        'aria-modal="true"',
-        'aria-labelledby="cmp-ex-modal-title"',
+    picker = client.get("/static/_examples_picker.js").text
+    compare_aria_required = [
         'role="region"',
         'aria-label="Variant A pipeline progress"',
         'aria-label="Variant B pipeline progress"',
@@ -84,7 +79,13 @@ def test_aria_attributes_present(client):
         'aria-live="polite"',
         'role="alert"',
     ]
-    missing = [a for a in aria_required if a not in text]
+    picker_aria_required = [
+        "modal.setAttribute('role', 'dialog')",
+        "modal.setAttribute('aria-modal', 'true')",
+        "modal.setAttribute('aria-labelledby', 'cmp-ex-modal-title')",
+    ]
+    missing = [a for a in compare_aria_required if a not in text]
+    missing += [a for a in picker_aria_required if a not in picker]
     assert not missing, f"ARIA attributes missing: {missing}"
 
 
@@ -147,7 +148,7 @@ def test_mobile_breakpoint(client):
 
 def test_examples_modal_close_on_esc(client):
     """ESC key handler is wired so the modal is keyboard-dismissible."""
-    r = client.get("/static/compare.html")
+    r = client.get("/static/_examples_picker.js")
     text = r.text
     assert "keydown" in text
     assert "Escape" in text

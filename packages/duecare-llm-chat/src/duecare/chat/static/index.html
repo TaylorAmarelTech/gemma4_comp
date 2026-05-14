@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Migrant-worker safety playground · DueCare</title>
   <link rel="stylesheet" href="/static/_chrome.css" />
+  <script src="/static/_examples_picker.js" defer></script>
 <style>
 :root {
   /* Light civic-tech research lab theme - matches duecare-ai.com.
@@ -2296,21 +2297,15 @@ async function _attachSyntheticImage(imagePath, imageId) {
     const data = await uploadRes.json();
     if (!data || !data.id) return;
     // Mirror the pending-images render path used by onUploadChange.
-    if (typeof window._pendingImages === "undefined") window._pendingImages = [];
-    window._pendingImages.push({
+    pendingImages.push({
       id:     data.id,
       mime:   data.mime || file.type,
       bytes:  data.bytes || file.size,
       name:   filename,
-      preview: url,             // local URL — safe to reuse as <img src>
+      dataUrl: url,             // local URL, safe to reuse as <img src>
       synthetic: true,           // marker so the audit trail shows it
     });
-    // The kernel-side onUploadChange path renders the pending images
-    // by calling _renderPendingImages(); we reuse that to avoid
-    // duplicating the thumbnail HTML.
-    if (typeof _renderPendingImages === "function") {
-      _renderPendingImages();
-    }
+    renderPendingImages();
   } catch (e) {
     console.warn("[synthetic image] attach error", e);
   }
@@ -2478,6 +2473,14 @@ function _setExamplesBucket(b) {
 }
 
 async function openExamplesModal() {
+  if (window.dcExamplesPicker && window.dcExamplesPicker.open) {
+    window.dcExamplesPicker.open({
+      title: LAYER_TITLES.examples,
+      bucket: _examplesBucket,
+      onPick: (ex) => useExample(ex.id),
+    });
+    return;
+  }
   const examples = await _fetchExamples();
   if (!examples.length) {
     document.getElementById('modal-body').innerHTML =
