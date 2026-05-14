@@ -169,7 +169,19 @@ def register_routes(app: Any) -> None:
             with open(audit_path, "a", encoding="utf-8") as f:
                 f.write(_json.dumps(entry) + "\n")
         except Exception as e:
-            raise HTTPException(500, f"audit write failed: {e}")
+            fallback_path = _Path(".") / ".duecare-audit" / "submit_log.jsonl"
+            try:
+                fallback_path.parent.mkdir(parents=True, exist_ok=True)
+                entry["audit_fallback_reason"] = f"{type(e).__name__}: {e}"
+                with open(fallback_path, "a", encoding="utf-8") as f:
+                    f.write(_json.dumps(entry) + "\n")
+                audit_path = fallback_path
+            except Exception as fallback_error:
+                raise HTTPException(
+                    500,
+                    "audit write failed: "
+                    f"{e}; fallback failed: {fallback_error}",
+                )
         return JSONResponse({
             "ok": True,
             "run_id": run_id,

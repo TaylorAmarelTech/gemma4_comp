@@ -1,122 +1,279 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Safety layers · DueCare</title>
-  <link rel="stylesheet" href="/static/_chrome.css" />
-  <style>
-    .err { color: oklch(0.32 0.13 45); padding: 18px; background: var(--ember-soft);
-            border: 1px dashed oklch(0.78 0.06 45); border-radius: 8px; }
-  </style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Harness Workbench - DueCare</title>
+  <link rel="stylesheet" href="/static/_chrome.css">
   <script src="/static/_nav.js" defer></script>
+  <style>
+    .page { max-width: 1180px; margin: 24px auto 70px; padding: 0 18px; color: var(--ink); }
+    .hero {
+      display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(280px, 0.7fr);
+      gap: 16px; align-items: stretch; margin-bottom: 16px;
+    }
+    .panel {
+      background: var(--paper); border: 1px solid var(--line);
+      border-radius: 10px; padding: 18px 20px;
+    }
+    h1 { font-size: 28px; letter-spacing: 0; margin: 0 0 8px; }
+    h2 { font-size: 16px; margin: 0 0 10px; }
+    h3 { font-size: 14px; margin: 0 0 6px; }
+    p { line-height: 1.55; }
+    .lede { color: var(--ink-2); font-size: 13.5px; margin: 0; }
+    .muted { color: var(--ink-3); font-size: 12px; }
+    .status { display: grid; gap: 8px; font-size: 12px; }
+    .status-row { display: flex; justify-content: space-between; gap: 12px; border-bottom: 1px solid var(--line-soft); padding-bottom: 7px; }
+    .status-row:last-child { border-bottom: 0; padding-bottom: 0; }
+    .mono { font-family: var(--mono); }
+    .toolbar { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin: 14px 0; }
+    select {
+      min-width: 260px; padding: 8px 10px; border: 1px solid var(--line);
+      border-radius: 7px; background: var(--paper); color: var(--ink); font-size: 13px;
+    }
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center;
+      min-height: 34px; padding: 7px 12px; border-radius: 7px;
+      border: 1px solid var(--line); background: var(--paper); color: var(--ink);
+      text-decoration: none; cursor: pointer; font-size: 12.5px; font-weight: 600;
+    }
+    .btn.primary { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+    .btn:hover { border-color: var(--accent); }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(255px, 1fr)); gap: 12px; }
+    .card {
+      background: var(--paper); border: 1px solid var(--line); border-radius: 8px;
+      padding: 14px; cursor: pointer; min-height: 190px;
+      display: flex; flex-direction: column; gap: 9px;
+    }
+    .card:hover, .card.active { border-color: var(--accent); box-shadow: 0 0 0 3px oklch(0.85 0.05 195 / 0.25); }
+    .card-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
+    .badge {
+      display: inline-block; padding: 2px 7px; border-radius: 4px;
+      font-family: var(--mono); font-size: 10px; text-transform: uppercase;
+      letter-spacing: 0.06em; border: 1px solid var(--line); background: var(--paper-2);
+      color: var(--ink-2);
+    }
+    .badge.primary { background: oklch(0.92 0.06 155); color: oklch(0.32 0.08 155); border-color: oklch(0.82 0.05 155); }
+    .badge.secondary { background: oklch(0.94 0.03 250); color: oklch(0.35 0.05 250); border-color: oklch(0.84 0.03 250); }
+    .badge.gemma { background: oklch(0.93 0.05 195); color: oklch(0.31 0.07 195); border-color: oklch(0.80 0.05 195); }
+    .badge.gate { background: oklch(0.95 0.04 85); color: oklch(0.35 0.08 85); border-color: oklch(0.84 0.05 85); }
+    .badge.utility { background: #F1EFE7; }
+    .layers { display: flex; flex-wrap: wrap; gap: 5px; }
+    .layer { font-family: var(--mono); font-size: 10.5px; padding: 2px 6px; border-radius: 999px; background: var(--paper-2); color: var(--ink-2); }
+    .detail { display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); gap: 14px; margin-top: 14px; }
+    .contract-list { display: grid; gap: 8px; }
+    .contract-row { display: grid; grid-template-columns: 120px minmax(0, 1fr); gap: 10px; font-size: 12.5px; border-bottom: 1px solid var(--line-soft); padding-bottom: 8px; }
+    .contract-row:last-child { border-bottom: 0; }
+    .label { color: var(--ink-3); font-family: var(--mono); font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.06em; }
+    .endpoint { display: grid; grid-template-columns: 52px minmax(0, 1fr); gap: 8px; padding: 7px 0; border-bottom: 1px solid var(--line-soft); font-size: 12px; }
+    .endpoint:last-child { border-bottom: 0; }
+    .method { font-family: var(--mono); font-size: 10px; color: var(--ink-2); }
+    code { background: var(--paper-2); border-radius: 4px; padding: 1px 5px; font-family: var(--mono); font-size: 11.5px; }
+    .examples { display: grid; gap: 8px; margin-top: 10px; }
+    .example {
+      text-align: left; border: 1px solid var(--line); background: var(--paper-2);
+      border-radius: 7px; padding: 9px 10px; cursor: pointer; color: var(--ink-2);
+      font-size: 12.5px; line-height: 1.45;
+    }
+    .example:hover { border-color: var(--accent); color: var(--ink); }
+    .catalog-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+    @media (max-width: 860px) {
+      .hero, .detail { grid-template-columns: 1fr; }
+      .contract-row { grid-template-columns: 1fr; gap: 4px; }
+    }
+  </style>
 </head>
-<body data-nav="layers">
-  <header class="dc-chrome-header">
-    <a href="/" class="brand"><span class="brand-mark">D</span>DueCare<span class="brand-tag">wheel</span></a>
-    <div>
-      <h1>Safety layers</h1>
-      <div class="sub">Six configurable safety layers. Click any card to view its catalog.</div>
-    </div>
-    <a href="/" style="font-family: var(--mono); font-size: 12px; color: var(--ink-3);">← Back to chat</a>
-  </header>
-  <nav class="dc-chrome-nav" aria-label="Cross-page nav">
-    <a href="/static/harness.html" class="on">Catalog</a>
-    <a href="/static/persona.html">Persona</a>
-    <a href="/static/grep-rules.html">GREP rules</a>
-    <a href="/static/rag-corpus.html">RAG corpus</a>
-    <a href="/static/tools.html">Tools</a>
-    <a href="/static/online.html">Online</a>
-    <a href="/static/grep-tester.html">Live GREP tester</a>
-    <a href="/static/rag-graph.html">Citation graph</a>
-    <a href="/static/search.html">Cross-layer search</a>
-    <a href="/static/hotlines.html">Hotlines</a>
-  </nav>
-  <div class="dc-chrome-container">
-    <div id="grid" class="dc-chrome-grid"></div>
-    <div class="dc-chrome-help">
-      <h4>Direct API endpoints — call from a Kaggle kernel or curl</h4>
-      <ul>
-        <li><code>GET /api/version</code> · chat-package + rubric version + per-layer counts</li>
-        <li><code>GET /api/health-check</code> · wired layers + model info</li>
-        <li><code>GET /api/harness-catalog/{persona|grep|rag|tools|online}</code> · raw catalog JSON</li>
-        <li><code>GET /api/rag/graph</code> · corpus + 46-edge citation graph (force-directed view)</li>
-        <li><code>GET /api/governance</code> · list of curator-block JSON files</li>
-        <li><code>GET /api/governance/&lt;name&gt;</code> · raw curator JSON for a single block</li>
-      </ul>
-    </div>
-  </div>
+<body data-nav="harness">
+  <main class="page">
+    <section class="hero">
+      <div class="panel">
+        <h1>Harness Workbench</h1>
+        <p class="lede">
+          Seven reviewer-facing surfaces are grouped by contract: five primary safety surfaces and two secondary utilities.
+          Gemma-backed harnesses are labeled separately from hard safety gates and pure CRUD/search utilities.
+        </p>
+        <div class="toolbar">
+          <select id="harness-select" aria-label="Select harness"></select>
+          <a class="btn primary" id="open-test-page" href="/static/chat.html">Open test page</a>
+          <a class="btn" id="open-compare-page" href="/static/compare.html">Open comparison</a>
+          <a class="btn" href="/static/search-safety.html">Search Safety</a>
+          <button class="btn" type="button" onclick="refreshHarnesses()">Refresh contracts</button>
+        </div>
+        <div class="muted">
+          Rule of thumb: <b>Gemma harness</b> means the surface calls Gemma 4 directly.
+          <b>Safety gate</b> protects a trust boundary. <b>Utility surface</b> stores or fetches evidence for other harnesses.
+        </div>
+      </div>
+      <div class="panel status" id="model-status">
+        <div class="status-row"><span class="label">Model</span><span class="mono">checking...</span></div>
+        <div class="status-row"><span class="label">Contracts</span><span class="mono">loading...</span></div>
+        <div class="status-row"><span class="label">Primary</span><span class="mono">-</span></div>
+        <div class="status-row"><span class="label">Secondary</span><span class="mono">-</span></div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Primary Safety Surfaces</h2>
+      <div class="grid" id="primary-grid"></div>
+    </section>
+
+    <section class="panel" style="margin-top:14px;">
+      <h2>Secondary Utilities</h2>
+      <div class="grid" id="secondary-grid"></div>
+    </section>
+
+    <section class="detail" id="detail">
+      <div class="panel">
+        <h2 id="detail-title">Select a harness</h2>
+        <p class="lede" id="detail-summary"></p>
+        <div class="contract-list" id="contract-list"></div>
+        <h3 style="margin-top:16px;">Examples</h3>
+        <div class="examples" id="example-list"></div>
+      </div>
+      <div class="panel">
+        <h2>Routes and Test Pages</h2>
+        <div id="endpoint-list"></div>
+        <h3 style="margin-top:16px;">Dedicated Pages</h3>
+        <div class="catalog-row" id="page-list"></div>
+        <h3 style="margin-top:16px;">Layer Catalogs</h3>
+        <div class="catalog-row">
+          <a class="btn" href="/static/persona.html">Persona</a>
+          <a class="btn" href="/static/grep-rules.html">GREP</a>
+          <a class="btn" href="/static/rag-corpus.html">RAG</a>
+          <a class="btn" href="/static/tools.html">Tools</a>
+          <a class="btn" href="/static/online.html">Online</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
   <script>
-    function titleCase(s) { return s.charAt(0) + s.slice(1).toLowerCase(); }
-    function escapeHtml(s) {
+    let harnesses = [];
+    let selectedName = "chat";
+
+    function esc(s) {
       return String(s == null ? "" : s).replace(/[&<>"']/g, c =>
         ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
     }
-    async function load() {
-      const grid = document.getElementById("grid");
-      let cards = [];
-      try {
-        const r = await fetch("/api/brand", {cache: "no-store"});
-        if (r.ok) {
-          const d = await r.json();
-          for (const l of (d.layers || [])) {
-            cards.push({
-              key: l.key,
-              label: (l.label || l.key).toUpperCase(),
-              href: l.viewer_path || `/static/${l.key}.html`,
-              desc: l.short_desc || l.description || "",
-              isLayer: true,
-            });
-          }
-          for (const x of (d.extras || [])) {
-            cards.push({
-              key: x.key,
-              label: (x.label || x.key).toUpperCase(),
-              href: x.viewer_path,
-              desc: x.short_desc,
-              isLayer: false,
-            });
-          }
-        }
-      } catch (_) {}
-      if (!cards.length) {
-        cards = [
-          {key: "persona", label: "PERSONA", href: "/static/persona.html", desc: "System-prompt library."},
-          {key: "grep",    label: "GREP",    href: "/static/grep-rules.html", desc: "Regex rules."},
-          {key: "rag",     label: "RAG",     href: "/static/rag-corpus.html", desc: "Legal-corpus docs."},
-          {key: "tools",   label: "TOOLS",   href: "/static/tools.html", desc: "Function-calling lookups."},
-          {key: "online",  label: "ONLINE",  href: "/static/online.html", desc: "Live web search."},
-        ];
-      }
-      const counts = {};
-      await Promise.all(cards.map(async (c) => {
-        try {
-          const r = await fetch(`/api/harness-catalog/${c.key}`, {cache: "no-store"});
-          if (r.ok) {
-            const d = await r.json();
-            counts[c.label] = d.n_items != null ? d.n_items :
-              (Array.isArray(d.items) ? d.items.length : null);
-          }
-        } catch (_) {}
-      }));
-      try {
-        const r = await fetch("/api/rag/graph", {cache: "no-store"});
-        if (r.ok) {
-          const d = await r.json();
-          counts["RAG GRAPH"] = `${d.meta.n_nodes} nodes / ${d.meta.n_edges} edges`;
-        }
-      } catch (_) {}
-      grid.innerHTML = cards.map(c => `
-        <a href="${escapeHtml(c.href)}" class="dc-chrome-card" target="_blank">
-          <span class="dc-badge ${escapeHtml(c.key)}">${escapeHtml(c.label)}</span>
-          <h3>${c.label === "RAG GRAPH" ? "Citation graph" : escapeHtml(titleCase(c.label))}</h3>
-          <div class="count">${counts[c.label] != null ? escapeHtml(String(counts[c.label])) : "—"}</div>
-          <div class="desc">${escapeHtml(c.desc)}</div>
-          <span class="open">Open viewer →</span>
-        </a>
-      `).join("");
+    function kindLabel(kind) {
+      if (kind === "gemma_harness") return "Gemma harness";
+      if (kind === "safety_gate") return "Safety gate";
+      return "Utility surface";
     }
-    load();
+    function kindClass(kind) {
+      if (kind === "gemma_harness") return "gemma";
+      if (kind === "safety_gate") return "gate";
+      return "utility";
+    }
+    function firstPage(h) {
+      return ((h.test_pages || [])[0] || {}).href || "/static/harness.html";
+    }
+    function renderStatus(data, model) {
+      const el = document.getElementById("model-status");
+      const loaded = model && (model.loaded || model.name || model.display);
+      const modelText = loaded ? (model.display || model.name || "loaded") : "not loaded";
+      el.innerHTML = `
+        <div class="status-row"><span class="label">Model</span><span class="mono">${esc(modelText)}</span></div>
+        <div class="status-row"><span class="label">Contracts</span><span class="mono">${esc(data.n_harnesses || harnesses.length)} surfaces</span></div>
+        <div class="status-row"><span class="label">Primary</span><span class="mono">${esc((data.primary || []).length)} safety surfaces</span></div>
+        <div class="status-row"><span class="label">Secondary</span><span class="mono">${esc((data.secondary || []).length)} utilities</span></div>
+      `;
+    }
+    function renderCard(h) {
+      const layers = (h.applied_layers || []).length
+        ? h.applied_layers.map(l => `<span class="layer">${esc(l)}</span>`).join("")
+        : `<span class="layer">no composed layers</span>`;
+      const active = h.name === selectedName ? " active" : "";
+      return `
+        <article class="card${active}" onclick="selectHarness('${esc(h.name)}')">
+          <div class="card-top">
+            <div>
+              <span class="badge ${esc(h.tier)}">${esc(h.tier)}</span>
+              <span class="badge ${kindClass(h.kind)}">${esc(kindLabel(h.kind))}</span>
+            </div>
+            <span class="badge">${esc(h.gemma_mode || "n/a")}</span>
+          </div>
+          <h3>${esc(h.label || h.name)}</h3>
+          <div class="muted">${esc(h.summary || "")}</div>
+          <div class="layers">${layers}</div>
+        </article>
+      `;
+    }
+    function renderGrids() {
+      document.getElementById("primary-grid").innerHTML =
+        harnesses.filter(h => h.tier === "primary").map(renderCard).join("");
+      document.getElementById("secondary-grid").innerHTML =
+        harnesses.filter(h => h.tier === "secondary").map(renderCard).join("");
+    }
+    function renderSelect() {
+      const sel = document.getElementById("harness-select");
+      sel.innerHTML = harnesses.map(h =>
+        `<option value="${esc(h.name)}">${esc(h.label || h.name)} (${esc(kindLabel(h.kind))})</option>`
+      ).join("");
+      sel.value = selectedName;
+      sel.onchange = () => selectHarness(sel.value);
+    }
+    function renderDetail() {
+      const h = harnesses.find(x => x.name === selectedName) || harnesses[0];
+      if (!h) return;
+      selectedName = h.name;
+      const select = document.getElementById("harness-select");
+      if (select.value !== selectedName) select.value = selectedName;
+      document.getElementById("detail-title").textContent = h.label || h.name;
+      document.getElementById("detail-summary").textContent = h.summary || "";
+      document.getElementById("open-test-page").href = firstPage(h);
+      document.getElementById("open-compare-page").href = h.name === "chat" ? "/static/compare.html" : "/static/compare.html?harness=" + encodeURIComponent(h.name);
+
+      const rows = [
+        ["name", h.name],
+        ["tier", h.tier],
+        ["kind", kindLabel(h.kind)],
+        ["applied_layers", (h.applied_layers || []).join(", ") || "none"],
+        ["consumes", (h.consumes || []).join(", ") || "none declared"],
+        ["emits", (h.emits || []).join(", ") || "none declared"],
+        ["Gemma role", h.model_role || ""],
+        ["comparison", h.comparison || ""],
+        ["routes", h.register_routes ? "registered" : "not registered"],
+      ];
+      document.getElementById("contract-list").innerHTML = rows.map(([k, v]) => `
+        <div class="contract-row"><div class="label">${esc(k)}</div><div>${esc(v)}</div></div>
+      `).join("");
+      document.getElementById("example-list").innerHTML = (h.examples || []).map(ex =>
+        `<button class="example" type="button" onclick="navigator.clipboard && navigator.clipboard.writeText('${esc(ex).replace(/'/g, "\\'")}')">${esc(ex)}</button>`
+      ).join("");
+      document.getElementById("endpoint-list").innerHTML = (h.endpoints || []).map(ep => `
+        <div class="endpoint">
+          <div class="method">${esc(ep.method)}</div>
+          <div><code>${esc(ep.path)}</code><div class="muted">${esc(ep.summary || "")}</div></div>
+        </div>
+      `).join("");
+      document.getElementById("page-list").innerHTML = (h.test_pages || []).map(p =>
+        `<a class="btn" href="${esc(p.href)}">${esc(p.label)}</a>`
+      ).join("");
+      renderGrids();
+    }
+    function selectHarness(name) {
+      selectedName = name;
+      renderDetail();
+    }
+    async function refreshHarnesses() {
+      const [hRes, mRes] = await Promise.all([
+        fetch("/api/harnesses", {cache: "no-store"}),
+        fetch("/api/model-info", {cache: "no-store"}).catch(() => null),
+      ]);
+      const data = await hRes.json();
+      const model = mRes && mRes.ok ? await mRes.json() : {};
+      harnesses = data.harnesses || [];
+      if (!harnesses.find(h => h.name === selectedName)) selectedName = (harnesses[0] || {}).name || "chat";
+      renderStatus(data, model);
+      renderSelect();
+      renderGrids();
+      renderDetail();
+    }
+    refreshHarnesses().catch(err => {
+      document.getElementById("primary-grid").innerHTML =
+        `<div class="panel">Could not load /api/harnesses: ${esc(err.message)}</div>`;
+    });
   </script>
 </body>
 </html>

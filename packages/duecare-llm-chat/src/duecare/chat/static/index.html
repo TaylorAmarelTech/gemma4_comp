@@ -225,6 +225,7 @@ header.bar .badge.loaded .dot {
   border: 1px solid var(--border);
   border-radius: 8px;
   padding: 7px 10px;
+  min-height: 118px;
   cursor: pointer;
   transition: border-color 0.15s ease, background 0.15s ease;
   user-select: none;
@@ -232,19 +233,24 @@ header.bar .badge.loaded .dot {
   flex-direction: column;
   gap: 3px;
 }
-/* Hide the long description by default -- it was bloating each tile.
-   Reveal on hover or when the tile is in expanded state. */
-.harness-tile .harness-tile-desc { display: none; }
-.harness-tile.expanded .harness-tile-desc,
-.harness-tile:hover .harness-tile-desc {
-  display: block;
+/* Keep tile height stable. Previous hover-only descriptions made the
+   whole CSS-grid row grow while only one tile revealed text. */
+.harness-tile .harness-tile-desc {
+  display: -webkit-box;
   margin-top: 4px;
+  min-height: 34px;
   font-size: 11.5px; line-height: 1.45;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
-/* "View & Configure" is also hidden until hover/expand to keep tiles slim. */
-.harness-tile .harness-catalog-link { display: none; }
-.harness-tile.expanded .harness-catalog-link,
-.harness-tile:hover .harness-catalog-link { display: inline-block; }
+.harness-tile .harness-catalog-link {
+  display: inline-block;
+  visibility: hidden;
+  min-height: 16px;
+}
+.harness-tile:hover .harness-catalog-link,
+.harness-tile:focus-within .harness-catalog-link { visibility: visible; }
 .harness-tile:hover[data-wired="true"] { border-color: var(--ink); }
 .harness-tile[data-wired="false"] {
   opacity: 0.45;
@@ -685,7 +691,7 @@ header.bar .badge.loaded .dot {
   .composer .controls { display: none; }
   .harness-tiles { gap: 6px; }
   .harness-tile {
-    padding: 10px; min-height: 56px;  /* touch-friendly */
+    padding: 10px; min-height: 108px;  /* touch-friendly, stable */
   }
   .empty { padding: 24px 16px; }
   .empty h2 { font-size: 20px; }

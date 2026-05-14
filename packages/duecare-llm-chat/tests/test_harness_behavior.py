@@ -1064,13 +1064,18 @@ def test_grade_response_combined_blends_evaluator_and_deterministic() -> None:
     assert result["evaluator_weight"] == 0.5
     assert result["evaluator"]["pct_score"] is not None
     assert result["evaluator"]["pct_score"] >= result["deterministic"]["pct_score"]
-    # Combined should be the average of deterministic and evaluator pct.
+    # The legacy headline average is still exposed for compatibility, while
+    # pct_score now comes from per-dimension numeric fusion with dynamic
+    # applicability weights.
     expected = round(
         result["deterministic"]["pct_score"] * 0.5
         + result["evaluator"]["pct_score"] * 0.5,
         1,
     )
-    assert result["pct_score"] == expected
+    assert result["legacy_pct_score"] == expected
+    assert "dimension_fusion" in result
+    assert 0 <= result["pct_score"] <= 100
+    assert 0 <= result["score_0_10"] <= 10
     # Agreement metric returns sane values
     assert "agreement" in result
     assert result["agreement"]["n_compared"] >= 1

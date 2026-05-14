@@ -51,11 +51,12 @@
 </head>
 <body data-nav="search">
   <main class="wb-page">
-    <h1 class="wb-h1">Search -- web search via the DueCare search harness</h1>
+    <h1 class="wb-h1">Search -- web search utility</h1>
     <p class="wb-lede">
-      Calls <code>POST /api/search/client</code>. Uses SearXNG when
+      Calls <code>POST /api/search/client</code>. This is a secondary
+      utility surface, not a Gemma response harness by itself. Uses SearXNG when
       configured (privacy-preserving meta-search), falls back to the
-      kernel's wired Tavily/Brave/DDG. Anonymize-query strips PII
+      kernel's wired Tavily/Brave/DDG. Search Safety strips PII
       before the query reaches any backend. After results arrive,
       use the action buttons below the results to draft knowledge
       envelopes from each snippet, download the result set as JSON
@@ -88,6 +89,8 @@
         <label title="Pass `anonymize_query=true` to the backend so server-side anonymization runs even when the page-side sanitize is off.">
           <input type="checkbox" id="anon" checked> Anonymize on backend too
         </label>
+        <a class="wb-btn-secondary" href="/static/search-safety.html"
+           title="Open the dedicated Search Safety gate tester">Test Search Safety</a>
       </div>
       <div id="sanitize-preview" style="display:none; margin-top:10px; padding:8px 10px; background:#FAF9F4; border-left:3px solid oklch(0.55 0.10 155); border-radius:6px; font-size:12px;">
         <div style="font-family:'JetBrains Mono', monospace; color:#5B5F68; margin-bottom:4px;">SANITIZED QUERY (sent to backend):</div>

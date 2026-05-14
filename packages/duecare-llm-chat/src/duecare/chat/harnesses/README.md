@@ -1,24 +1,31 @@
 # Harnesses
 
-This folder holds the four DueCare safety harnesses that wrap Gemma 4
-for the migrant-worker recruitment / trafficking domain.
+This folder holds the seven reviewer-facing DueCare harness surfaces for
+the migrant-worker recruitment / trafficking domain. Five are primary
+safety surfaces. Two are secondary utilities that support the Gemma-backed
+flows but are not themselves Gemma response harnesses.
 
-## The four harnesses
+## The seven harness surfaces
 
-| Harness | Endpoint(s) | Gemma 4 role | Safety layers applied |
-|---|---|---|---|
-| `chat/` | `/api/chat/{send,upload-image,image/{sid}}` | full multimodal orchestrator | persona, grep, rag, tools, online |
-| `process/` | `/api/process/{batch,graph-chat}` | bundle analyst over uploaded case material | grep, rag, tools |
-| `extraction/` | `/api/knowledge/draft-envelope` | drafts typed KnowledgeObject envelopes | grep, rag |
-| `anonymization/` | `/api/{anonymize,submit/knowledge,submit/local}` | NOT USED (regex-only safety gate) | none, by design |
+| Surface | Tier | Endpoint(s) | Gemma 4 role | Safety layers applied |
+|---|---|---|---|---|
+| `chat/` | primary | `/api/chat/{send,upload-image,image/{sid}}` | full multimodal orchestrator | persona, grep, rag, tools, online |
+| `process/` | primary | `/api/process/{batch,graph-chat}` | graph-chat analyst over uploaded case material | grep, rag, tools |
+| `extraction/` | primary | `/api/knowledge/draft-envelope` | drafts typed KnowledgeObject envelopes | grep, rag |
+| `anonymization/` | primary | `/api/{anonymize,submit/knowledge,submit/local}` | not required; hard privacy gate | none, by design |
+| `search_safety/` | primary | `/api/search/{sanitize,safety-info}` | optional rephrase after redaction | none; this is the safety layer |
+| `search/` | secondary | `/api/search/{client,server,backends}` | downstream only, when results feed extraction/chat | none |
+| `import_corpus/` | secondary | `/api/import/*` | none; imported evidence feeds Gemma-backed harnesses | none |
 
 ## Architectural contract
 
-Every harness exports three names from `__init__.py`:
+Every harness surface exports these names from `__init__.py`:
 
 ```python
 name: str                              # canonical short name
 applied_layers: tuple[str, ...]        # which safety layers fire
+consumes: tuple[str, ...]              # KnowledgeObject types read
+emits: tuple[str, ...]                 # KnowledgeObject types written
 def register_routes(app) -> None: ...  # attaches routes to a FastAPI app
 ```
 
