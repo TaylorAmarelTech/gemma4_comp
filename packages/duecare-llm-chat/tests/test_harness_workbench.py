@@ -146,6 +146,21 @@ def test_share_page_has_bulk_review_selection_controls(client):
     assert 'id="wb-select-all-btn"' in text
     assert 'id="wb-clear-all-btn"' in text
     assert "function escapeHtml" in text
+    assert '<details class="wb-step" id="wb-step-1" open>' in text
+    assert "function wbSetStep" in text
+    assert "wbSetStep(2)" in text
+
+
+def test_sync_page_uses_guided_pack_flow(client):
+    r = client.get("/static/sync.html")
+    assert r.status_code == 200
+    text = r.text
+    assert 'id="sync-guide"' in text
+    assert '<details class="sync-step" open>' in text
+    assert "Choose source" in text
+    assert "Validate envelopes" in text
+    assert "Hot-load runtime extras" in text
+    assert "function syncSetStep" in text
 
 
 def test_process_page_has_graph_visualization_and_graph_chat_logging(client):

@@ -22,13 +22,17 @@
     .wb-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-top: 12px; }
     .wb-status-pill { background: oklch(0.92 0.06 155); color: oklch(0.32 0.07 155);
                        padding: 6px 12px; border-radius: 999px; font-size: 11px; }
-    .wb-step { display: flex; align-items: flex-start; gap: 14px; padding: 14px 16px;
-                background: #FFF; border: 1px solid #DDD8C9; border-radius: 10px; margin-bottom: 10px; }
+    .wb-step { display: block; background: #FFF; border: 1px solid #DDD8C9;
+                border-radius: 10px; margin-bottom: 10px; overflow: hidden; }
+    .wb-step summary { display: flex; align-items: flex-start; gap: 14px; padding: 14px 16px;
+                       cursor: pointer; list-style: none; }
+    .wb-step summary::-webkit-details-marker { display: none; }
     .wb-step-num { flex: 0 0 32px; width: 32px; height: 32px; border-radius: 50%;
                     background: oklch(0.52 0.08 195); color: #F7F6F1; font-weight: 700;
                     font-size: 13px; display: flex; align-items: center; justify-content: center; }
     .wb-step.done .wb-step-num { background: oklch(0.55 0.10 155); }
-    .wb-step-body { flex: 1; }
+    .wb-step-summary { flex: 1; }
+    .wb-step-body { padding: 0 16px 16px 62px; }
     .wb-step h3 { margin: 0 0 4px; font-size: 14px; font-weight: 600; }
     .wb-step p { margin: 0 0 8px; font-size: 12.5px; color: #2A2D34; line-height: 1.5; }
     .wb-muted { color: #5B5F68; font-size: 11.5px; }
@@ -69,11 +73,15 @@
     </p>
 
     <!-- Step 1 -->
-    <div class="wb-step" id="wb-step-1">
+    <details class="wb-step" id="wb-step-1" open>
+      <summary>
       <span class="wb-step-num">1</span>
-      <div class="wb-step-body">
-        <h3>Upload a ZIP of findings</h3>
+      <div class="wb-step-summary">
+        <h3>Upload a bundle of candidate findings</h3>
         <p>Accepted: <span class="wb-pill">.zip</span> <span class="wb-pill">.jsonl</span> <span class="wb-pill">.csv</span></p>
+      </div>
+      </summary>
+      <div class="wb-step-body">
         <div id="wb-dropzone" onclick="document.getElementById('wb-file-input').click()"
              style="border: 2px dashed #DDD8C9; border-radius: 10px; padding: 24px 18px;
                     text-align: center; background: #FFF; color: #5B5F68; font-size: 13px; cursor: pointer; margin-top: 8px;">
@@ -87,14 +95,18 @@
         </div>
         <div id="wb-step1-error" class="wb-error" style="display: none; margin-top: 8px;"></div>
       </div>
-    </div>
+    </details>
 
     <!-- Step 2 -->
-    <div class="wb-step" id="wb-step-2">
+    <details class="wb-step" id="wb-step-2">
+      <summary>
       <span class="wb-step-num">2</span>
-      <div class="wb-step-body">
-        <h3>Review the extracted knowledge items &amp; patterns</h3>
+      <div class="wb-step-summary">
+        <h3>Review the extracted knowledge items and patterns</h3>
         <p>Tick each item you want to submit. Default: nothing checked.</p>
+      </div>
+      </summary>
+      <div class="wb-step-body">
         <div style="max-height: 240px; overflow-y: auto;">
           <table>
             <thead><tr><th>submit?</th><th>row_id</th><th>indicators</th><th>chars</th><th>entities preview</th></tr></thead>
@@ -110,16 +122,20 @@
           <span class="wb-muted" id="wb-step2-count">0 items selected.</span>
         </div>
       </div>
-    </div>
+    </details>
 
     <!-- Step 3 -->
-    <div class="wb-step" id="wb-step-3">
+    <details class="wb-step" id="wb-step-3">
+      <summary>
       <span class="wb-step-num">3</span>
-      <div class="wb-step-body">
+      <div class="wb-step-summary">
         <h3>Anonymize the selected items</h3>
         <p>Regex pass: <span class="wb-pill">PERSON</span> <span class="wb-pill">EMAIL</span>
         <span class="wb-pill">PHONE</span> <span class="wb-pill">AMOUNT</span>
         <span class="wb-pill">ID</span>. Each match becomes a salted-hash placeholder.</p>
+      </div>
+      </summary>
+      <div class="wb-step-body">
         <div id="wb-diff-host" style="background: #FFF; border: 1px solid #EFEDE4; border-radius: 8px;
              padding: 8px; max-height: 240px; overflow-y: auto;">
           <div class="wb-muted" style="padding: 12px; text-align: center;">(complete Step 2 first)</div>
@@ -129,14 +145,18 @@
         </div>
         <div id="wb-step3-error" class="wb-error" style="display: none; margin-top: 8px;"></div>
       </div>
-    </div>
+    </details>
 
     <!-- Step 4 -->
-    <div class="wb-step" id="wb-step-4">
+    <details class="wb-step" id="wb-step-4">
+      <summary>
       <span class="wb-step-num">4</span>
-      <div class="wb-step-body">
+      <div class="wb-step-summary">
         <h3>Submit anonymized knowledge to the hub</h3>
         <p>Target: <code>POST</code> to the hub URL below. Audit log: <code>/kaggle/working/audit/submit_log.jsonl</code>.</p>
+      </div>
+      </summary>
+      <div class="wb-step-body">
         <label style="display:block; font-size:11px; color:#5B5F68; text-transform:uppercase; letter-spacing:.04em; margin-bottom:5px;">Hub submit URL</label>
         <input id="wb-hub-url" type="text"
                value="https://gemma4-comp.onrender.com/api/submit/knowledge"
@@ -146,19 +166,26 @@
         </div>
         <div id="wb-step4-result" style="margin-top: 12px;"></div>
       </div>
-    </div>
+    </details>
 
     <!-- Activity log -->
     <div class="wb-card">
       <h2>Activity log <span class="wb-muted" style="font-weight: normal;">every API call, response, sha256, audit-log entry</span></h2>
       <div id="wb-log" class="dc-activity-log">
-        <div class="wb-muted">No activity yet. Click <i>Step 1</i> to begin.</div>
+        <div class="wb-muted">No activity yet. Start with Step 1.</div>
       </div>
     </div>
   </main>
 
   <script>
     let wbFile = null, wbBundle = null, wbChecked = new Set(), wbAnonymized = null;
+    function wbSetStep(active) {
+      [1, 2, 3, 4].forEach(n => {
+        const step = document.getElementById('wb-step-' + n);
+        if (!step) return;
+        step.open = n === active;
+      });
+    }
         // Shared activity-log primitive (window.dcActivityLog). The
     // previous bespoke wbLog() hand-rolled DOM construction; we now
     // delegate to the shared helper so styling, sanitisation, and
@@ -185,6 +212,7 @@
       document.getElementById('wb-file-info').innerHTML =
         '<span class="wb-pill">' + escapeHtml(f.name) + ' (' + Math.round(f.size / 1024) + ' KB)</span>';
       document.getElementById('wb-step1-btn').disabled = false;
+      wbSetStep(1);
       wbLog('info', 'File attached: ' + f.name + ' (' + f.size + ' bytes)');
     }
     async function wbStep1() {
@@ -204,6 +232,7 @@
         wbLog('ok', 'HTTP ' + r.status + ' (' + dt + 'ms)',
               'run_id=' + wbBundle.run_id + ' | rows=' + wbBundle.summary.n_rows_processed);
         wbRenderFacts(); document.getElementById('wb-step-1').classList.add('done');
+        wbSetStep(2);
       } catch (e) {
         const err = document.getElementById('wb-step1-error');
         err.textContent = 'Step 1 failed: ' + (e && e.message || e); err.style.display = '';
@@ -255,6 +284,7 @@
       document.getElementById('wb-diff-host').innerHTML =
         '<div class="wb-muted" style="padding:12px;">' + escapeHtml(selected.length) + ' fact(s) staged. Click Step 3 to redact PII.</div>';
       document.getElementById('wb-step3-btn').disabled = selected.length === 0;
+      wbSetStep(3);
       wbLog('info', 'Step 2 confirmed', selected.length + ' facts staged for anonymization');
     }
     async function wbStep3() {
@@ -285,6 +315,7 @@
         wbAnonymized = { selected: selected, redacted: out.redacted || [], diffs: out.diffs || [] };
         wbRenderDiffs(); document.getElementById('wb-step-3').classList.add('done');
         document.getElementById('wb-step4-btn').disabled = false;
+        wbSetStep(4);
       } catch (e) {
         const err = document.getElementById('wb-step3-error');
         err.textContent = 'Step 3 failed: ' + (e && e.message || e); err.style.display = '';
@@ -336,6 +367,7 @@
           '<div style="margin-top: 6px; font-size: 11.5px;">' + escapeHtml(out.note || '') + '</div>' +
           '</div>';
         document.getElementById('wb-step-4').classList.add('done');
+        document.getElementById('wb-step-4').open = true;
       } catch (e) {
         resultHost.innerHTML = '<div class="wb-error">Step 4 failed: ' + escapeHtml(e && e.message || e) + '</div>';
       } finally { btn.disabled = false; btn.textContent = 'Step 4: Submit to hub'; }
