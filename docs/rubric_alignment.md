@@ -363,7 +363,7 @@ grounded in real cases from the benchmark.
 > "Here's what our tool tells her."
 >
 > [cut to our enhanced Gemma 4 giving grade-best output with ILO
-> citations, POEA hotline, specific actions]
+> citations, DMW/POEA contacts-pack pathway, specific actions]
 
 **Why:** Names + faces beat statistics every time. Judges remember Maria.
 They forget "migrant workers as a category."

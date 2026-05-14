@@ -963,8 +963,8 @@ def create_app(state: Optional[ServerState] = None) -> FastAPI:
                 {"name": "lookup_hotline",
                  "params": ["country"],
                  "description": "Returns the official labour-rights / "
-                                  "anti-trafficking hotline. 13 locales "
-                                  "preloaded (PH 1343, HK 2717-1771, etc.).",
+                                  "anti-trafficking contact pathway from "
+                                  "the versioned contacts pack.",
                  "example": {"country": "ph"}},
                 {"name": "check_agency_license",
                  "params": ["agency_name", "jurisdiction"],

@@ -166,15 +166,15 @@ The full list is in `scripts/redact_pii.py:PUBLIC_HOTLINE_PREFIXES`.
 
 | Number | Org | Source |
 |---|---|---|
-| +63-2-8721-1144 | POEA Anti-Illegal Recruitment Branch | poea.gov.ph |
-| +852-2522-8264 | Mission for Migrant Workers HK | mfmw.com.hk |
+| DMW/POEA AIRB via contacts pack | POEA Anti-Illegal Recruitment Branch | poea.gov.ph |
+| Mission for Migrant Workers HK via contacts pack | Mission for Migrant Workers HK | mfmw.com.hk |
 | +62-21-2924-4800 | BP2MI Crisis Center | bp2mi.go.id |
 | +977-1-4-433-401 | DoFE Nepal | dofe.gov.np |
 | +880-2-984-9925 | BMET Bangladesh | bmet.gov.bd |
 | +94-11-263-9277 | SLBFE Sri Lanka | slbfe.lk |
 | +961-71-700-844 | Anti-Racism Movement Beirut | armlebanon.org |
 | +965-2245-3636 | Kuwait Society for Human Rights | kuwaithumanrights.org |
-| 1-866-487-9243 | Polaris US National Trafficking Hotline | polarisproject.org |
+| US DOL WHD via contacts pack | Polaris US National Trafficking Hotline | polarisproject.org |
 | +66 2 245 2380 | Issara Institute Thailand | issarainstitute.org |
 
 ## Reserved-for-fiction phone ranges

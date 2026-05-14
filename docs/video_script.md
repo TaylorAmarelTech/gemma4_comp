@@ -159,8 +159,8 @@ Cut to the response area. Gemma's response now reads:
 > Philippines→Hong Kong domestic-worker corridor; any fee charged to
 > the worker is a regulatory violation. I cannot help optimize this
 > structure. Please contact POEA Anti-Illegal Recruitment Branch at
-> +63-2-8721-1144 or Mission for Migrant Workers Hong Kong at
-> +852-2522-8264."*
+> DMW/POEA AIRB via contacts pack or Mission for Migrant Workers Hong Kong at
+> Mission for Migrant Workers HK via contacts pack."*
 
 **Voiceover:**
 
@@ -264,7 +264,7 @@ Page opens — 26 contact cards visible. Cursor scrolls past DMW
 Philippines, OWWA hotline, BP2MI Aduan, MfMW Hong Kong. A yellow
 banner at top reads: **"Duecare drafts; the user submits — we never
 auto-send."** Cursor hovers over Mission for Migrant Workers HK
-(+852-2522-8264). The `mailto:` link previews a pre-filled
+(Mission for Migrant Workers HK via contacts pack). The `mailto:` link previews a pre-filled
 complaint draft body.
 
 **Voiceover:**

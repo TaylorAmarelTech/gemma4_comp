@@ -68,7 +68,7 @@ all 6 layers ON):
 - ILO C029 §1 + ILO Indicator 9 (debt bondage) explicitly named
 - POEA MC 14-2017 cited (PH-HK zero placement fee)
 - HK Cap. 57 §32 cited (employment ordinance)
-- POEA hotline `+63-2-8721-1144` and MfMW HK `+852-2522-8264`
+- DMW/POEA contacts-pack pathway `DMW/POEA AIRB via contacts pack` and MfMW HK `Mission for Migrant Workers HK via contacts pack`
 
 Compare: click **"Disable all"**, paste the same prompt, click Send.
 Without harness: vague "this might be problematic, consult an
