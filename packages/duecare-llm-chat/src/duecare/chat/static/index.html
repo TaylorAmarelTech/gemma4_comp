@@ -818,7 +818,7 @@ header.bar .badge.loaded .dot {
           or imported on
           <a href="/static/knowledge.html" style="color:var(--accent); text-decoration:underline;">Knowledge Extraction</a>
           hot-load on top of the baseline and apply <b>globally</b> to
-          Chat, Compare, Process Files, Search, and Insights on the next
+          Chat, Compare, Bulk File Review, Search, and Insights on the next
           prompt -- no kernel restart needed.
         </span>
       </div>
@@ -1035,7 +1035,7 @@ header.bar .badge.loaded .dot {
     <div class="picker-actions">
       <button id="picker-view-logs" type="button">View logs</button>
       <button id="picker-enter-chat" type="button" style="display:none">Enter chat</button>
-      <button id="picker-close" type="button" style="display:none" title="Close picker (a model is already loaded)">Close</button>
+      <button id="picker-close" type="button" style="display:inline-block" title="Close picker">Close</button>
     </div>
     <pre id="picker-logs" class="picker-logs">No loader events yet.</pre>
   </div>
@@ -1768,7 +1768,7 @@ function openAboutModal() {
             modes you pick before clicking <b>Run scoring</b>:
           <ul style="margin:4px 0 0; padding-left:18px;">
             <li><b>Rule-Based</b> (~1-3s) — deterministic keyword + cluster
-                + token-overlap scoring across the 46-dimension rubric. Fast,
+                + token-overlap scoring across the current rubric. Fast,
                 repeatable, runs without using the loaded model.</li>
             <li><b>LLM-Based</b> (~30-90s) — sends the response back to
                 the loaded Gemma with one yes/no question per applicable
@@ -4352,7 +4352,7 @@ async function openGradeModal(messageIdx) {
       title: 'Rule-Based',
       pill: '★ default',
       eta: '~1-3s',
-      desc: 'Deterministic keyword + cluster + token-overlap scoring across the 46-dimension rubric. Fast, repeatable.',
+      desc: 'Deterministic keyword + cluster + token-overlap scoring across the current rubric. Fast, repeatable.',
       pillColor: '#10b981',
       enabled: true,
     },
@@ -5796,7 +5796,7 @@ async function autoGradeChips(msgIdx, responseText, promptText, harnessTrace) {
     try { grade = await r.json(); }
     catch (parseErr) { return; }  // malformed JSON — leave chips pending
     if (!grade || typeof grade !== 'object') return;
-    // Project the 46-dimension grade into 3 chip values. All field reads are
+    // Project the current rubric grade into 3 chip values. All field reads are
     // defensive — a server-side bug or upgrade-skew should leave chips
     // in a "best-effort" state, never crash the renderChat loop.
     const score   = (typeof grade.pct_score === 'number') ? Math.round(grade.pct_score) : null;

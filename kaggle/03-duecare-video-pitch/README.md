@@ -38,6 +38,18 @@
 7. Use `?mode=setup` and click **Export evidence bundle** to create the JSON,
    CSV, Markdown, ZIP, and synthetic media artifacts.
 
+## Recording Preflight
+
+Run this checklist once before screen capture:
+
+1. Open `?mode=slides` and confirm the deck starts on the problem statement.
+2. Check that the validation slide points to A-00 reports rather than relying on the replay alone.
+3. Open `?mode=presentation&lane=worker` and verify the cached response shows worker-centered, non-revictimizing guidance.
+4. Open `?mode=presentation&lane=caseworker` and confirm the synthetic media example renders.
+5. Open platform, researcher, and developer lanes at least once so stale copy or broken controls are caught.
+6. Open `?mode=setup`, export evidence, and confirm the ZIP contains scenes, traces, scorecards, slides, and media.
+7. Keep the exported A-00 report URL or artifact path ready for the technical-depth slide.
+
 ## Cached Demo Evidence
 
 The presentation replay is zero-inference by design. Each scene includes:

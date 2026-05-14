@@ -5,15 +5,25 @@ import { test, expect } from '@playwright/test';
 // duplicate shutdown).
 
 test.describe('UI bug regressions (2026-05-12 batch)', () => {
+  async function closePickerIfOpen(page) {
+    const overlay = page.locator('#picker-overlay');
+    if (await overlay.isVisible().catch(() => false)) {
+      const closeBtn = overlay.getByRole('button', { name: /close/i }).first();
+      if (await closeBtn.isVisible().catch(() => false)) {
+        await closeBtn.click();
+        await expect(overlay).not.toHaveClass(/show/, { timeout: 5_000 });
+      }
+    }
+  }
 
   test('Bug 2: "This prompt expects an image" hint is hidden by default', async ({ page }) => {
-    await page.goto('/');
+    await page.goto('/static/chat.html');
     const hint = page.locator('#pending-image-hint');
     await expect(hint).toBeHidden();
   });
 
   test('Bug 1: "best for judges" badge is gone (replaced with peer-review inline label)', async ({ page }) => {
-    await page.goto('/');
+    await page.goto('/static/chat.html');
     await expect(page.getByText(/best for judges/i)).toHaveCount(0);
     await expect(page.getByText(/recommended for peer review/i)).toBeVisible();
   });
@@ -21,7 +31,8 @@ test.describe('UI bug regressions (2026-05-12 batch)', () => {
   test('Bug 3: Compare card uses inline notice instead of browser alert', async ({ page }) => {
     let dialogFired = false;
     page.on('dialog', async (d) => { dialogFired = true; await d.dismiss(); });
-    await page.goto('/');
+    await page.goto('/static/chat.html');
+    await closePickerIfOpen(page);
     const compareCard = page.locator('text=/compare two configs/i').first();
     await compareCard.click({ trial: false });
     await page.waitForTimeout(800);
@@ -29,7 +40,7 @@ test.describe('UI bug regressions (2026-05-12 batch)', () => {
   });
 
   test('Bug 4: model picker close button is visible on re-open', async ({ page }) => {
-    await page.goto('/');
+    await page.goto('/static/chat.html');
     const overlay = page.locator('#picker-overlay');
     if (await overlay.isVisible().catch(() => false)) {
       const closeBtn = page.locator('#picker-overlay').getByRole('button', { name: /close/i }).first();
@@ -37,6 +48,7 @@ test.describe('UI bug regressions (2026-05-12 batch)', () => {
         await closeBtn.click();
       }
     }
+    await expect(overlay).not.toHaveClass(/show/, { timeout: 5_000 });
     const pickBtn = page.getByRole('button', { name: /pick a model/i }).first();
     if (await pickBtn.isVisible().catch(() => false)) {
       await pickBtn.click();
@@ -69,7 +81,7 @@ test.describe('UI bug regressions (2026-05-12 batch)', () => {
     // Reported 2026-05-12: a second nav appears below the model status
     // strip after the first chat round-trip. Count visible <nav> +
     // role=navigation elements; only one should be visible at the top.
-    await page.goto('/');
+    await page.goto('/static/chat.html');
     await page.waitForLoadState('networkidle');
     const navs = page.locator('header nav, [role="navigation"]');
     const visibleCount = await navs.evaluateAll((els) =>
@@ -85,7 +97,7 @@ test.describe('UI bug regressions (2026-05-12 batch)', () => {
   test('Bug 7: at most one shutdown/power button in the top bar', async ({ page }) => {
     // Reported 2026-05-12. Look for buttons whose accessible name or
     // title matches /shut ?down|power off|stop kernel|terminate/.
-    await page.goto('/');
+    await page.goto('/static/chat.html');
     const buttons = page.locator('button, [role="button"], a');
     const candidates = await buttons.evaluateAll((els) =>
       els.filter((el) => {
@@ -103,20 +115,16 @@ test.describe('UI bug regressions (2026-05-12 batch)', () => {
     // Added 2026-05-12: improved visibility for the Compare flow.
     // Navigating directly to /#compare should auto-open the modal
     // without a manual click, so the URL is shareable + bookmarkable.
-    await page.goto('/#compare');
+    await page.goto('/static/chat.html#compare');
     await page.waitForLoadState('networkidle');
     const overlay = page.locator('#modal-overlay');
     await expect(overlay).toHaveClass(/active/, { timeout: 8_000 });
-    // The page-local toolbar Compare button is the canonical entry
-    // point (chrome banner was stripped to model status + Shutdown +
-    // duecare-ai.com link only, per Taylor's "no website pages in the
-    // kernel" feedback 2026-05-12).
-    const compareBtn = page.locator('#compare-btn');
-    await expect(compareBtn).toBeVisible();
+    await expect(page.locator('#compare-prompt')).toBeVisible();
+    await expect(page.locator('#compare-run-btn')).toBeVisible();
   });
 
   test('Hash deep-link: closing the compare modal clears #compare from URL', async ({ page }) => {
-    await page.goto('/#compare');
+    await page.goto('/static/chat.html#compare');
     await page.waitForLoadState('networkidle');
     const overlay = page.locator('#modal-overlay');
     await expect(overlay).toHaveClass(/active/, { timeout: 8_000 });

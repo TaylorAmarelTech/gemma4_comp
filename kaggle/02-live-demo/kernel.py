@@ -1,5 +1,5 @@
 # <!-- duecare:kernel-intro -->
-# DueCare — Live demo (focused walkthrough)
+# DueCare Live Demo (focused walkthrough)
 # Core notebook #02 of 27 in the DueCare submission (3 core + 24 appendix).
 #
 # The polished demo URL judges land on. Same harness, scripted demo path, +56pp lift baked in.
@@ -15,16 +15,16 @@
 
 """
 ============================================================================
-  DUECARE LIVE DEMO -- Self-bootstrapping notebook
+  DUECARE LIVE DEMO
 ============================================================================
 
     RUNNING ON KAGGLE:
     Setup Required (in notebook settings):
-    1. Set Accelerator → GPU T4 x2 (recommended) or T4/P100/A100
-    2. Set Internet → ON
+    1. Set Accelerator to GPU T4 x2 (recommended) or T4/P100/A100
+    2. Set Internet to ON
     3. Click "Run All" - everything else is automatic!
 
-    ✅ NO MANUAL STEPS: No dataset linking, no "Add Data" requirements
+    NO MANUAL STEPS: No dataset linking, no "Add Data" requirements
 
     RUNNING LOCALLY:
     System Requirements:
@@ -39,15 +39,15 @@
 
     RUNNING ON COLAB/CLOUD:
     - Enable GPU runtime (T4/V100/A100)
-    - Runtime → Change runtime type → Hardware accelerator → GPU
+    - Runtime: Change runtime type, then Hardware accelerator, then GPU
     - Run notebook - auto-detects environment and installs dependencies
 
-  📦 INSTALLATION STRATEGY (automatic):
+  INSTALLATION STRATEGY (automatic):
     1. GitHub Release Assets (fastest, most reliable)
     2. GitHub Repository Install (pinned commit, development)
     3. Local wheel fallback (for repository-adjacent environments)
 
-  🔑 OPTIONAL:
+  OPTIONAL:
     - HF_TOKEN: Only needed for HF Hub model downloads (vs Kaggle Models)
 ============================================================================
 """
@@ -68,7 +68,7 @@ from typing import Any, Callable, Optional
 
 
 # ---------------------------------------------------------------------------
-# CONFIG -- edit these for your run
+# CONFIG: edit these for your run
 # ---------------------------------------------------------------------------
 # DueCare package installation from GitHub
 DUECARE_VERSION = "0.1.0"
@@ -724,11 +724,11 @@ DEMO_PACKAGES = [
 def log_step(message: str, level: str = "INFO") -> None:
     """Log installation steps with clear formatting."""
     prefix = {
-        "INFO": "📦",
-        "SUCCESS": "✅",
-        "ERROR": "ERROR",
-        "WARNING": "WARNING",
-        "DEBUG": "DEBUG"
+        "INFO": "[info]",
+        "SUCCESS": "[ok]",
+        "ERROR": "[error]",
+        "WARNING": "[warn]",
+        "DEBUG": "[debug]"
     }.get(level, "INFO")
     print(f"{prefix} {message}")
 

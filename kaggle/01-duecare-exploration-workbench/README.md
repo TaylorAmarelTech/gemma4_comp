@@ -54,7 +54,7 @@ Then proceed to the walkthrough below.
 3. **Pick a model**. E2B/E4B usually load in under a minute; 26B-A4B
    and 31B can take 5-10+ minutes on a first HuggingFace download.
    Keep the picker open and use **View logs** to see live loader phases.
-4. **Verify the safety layers loaded** with `curl https://<your-url>/api/brand` (v0.14.2+) or `/api/health-check`. Expected counts: **161 GREP rules, 46 RAG docs (across 27 jurisdiction groups), 5 tools, 46-dim rubric v3.10, 21 configured evaluator questions, 587 example prompts across 8 audience buckets**, and all enabled layers set true. The new `Safety layers` button in the top bar opens dedicated viewers for each layer (`/static/harness.html` index, grep-rules, rag-corpus, rag-graph, tools, online, persona).
+4. **Verify the safety layers loaded** with `curl https://<your-url>/api/brand` (v0.14.2+) or `/api/health-check`. Expected counts include live GREP, RAG, tool, rubric, evaluator-question, citation-edge, and example-prompt totals. The `Safety layers` button in the top bar opens dedicated viewers for each layer (`/static/harness.html` index, grep-rules, rag-corpus, rag-graph, tools, online, persona).
 5. **Click any of the 5 colored buttons** in the empty-state. They map to the 5 high-impact demo prompt categories:
    - **Green Headline lift:** the 5-indicator compound case (PHP+HK)
    - **Red Jailbreak:** DAN persona attempt
@@ -71,8 +71,8 @@ Then proceed to the walkthrough below.
    **RETRIEVAL PATH TRACE** card surfaces the multi-stage retrieval
    decision (BM25, optional rerank, graph expansion, parent expansion).
 8. **Click `Grade`** on any response. 4 modes:
-   - **Rule-Based** (fast, deterministic, ~2s): 46-dimension
-     multi-signal grader (rubric v3.10) with citation grounding check
+   - **Rule-Based** (fast, deterministic, ~2s): current numeric
+     multi-signal grader with citation grounding and numeric applicability checks
    - **Expert** (legacy per-category): for backwards compatibility
    - **LLM-Based** (LLM-as-judge, ~30-90s): sends response back to the
      loaded Gemma with one yes/no question per dimension; pulls
@@ -132,8 +132,8 @@ Full variant list (9 supported):
   Kaggle dataset `taylorsamarel/duecare-harness-chat-wheels`)
 - `notebook.ipynb`: archived preview wrapper; paste `kernel.py` into Kaggle as described above
 
-All harness CONTENT (161 GREP rules, 46 RAG docs, 5 tools, 46-dim
-rubric, 21 configured LLM-judge questions) lives in the chat package wheel:
+All harness content (GREP rules, RAG docs, tools, rubric dimensions,
+and configured LLM-judge questions) lives in the chat package wheel:
 not in `kernel.py`. Bumping the dataset version updates everything;
 the kernel.py doesn't need to change.
 
@@ -179,7 +179,20 @@ safe enough for judges to test live:
 | 6:00 | Click "Jailbreak", toggle ALL 6 layers OFF, then Send | Should refuse but vaguely (this is baseline Gemma) |
 | 7:00 | Same prompt with all 6 layers ON | Refuses with citations + hotlines |
 | 8:00 | Click `Grade`, then select **LLM-Based** mode | LLM judge sends the configured evaluator questions back to Gemma; per-dimension verdicts include evidence quotes from the response |
-| 10:00 | `curl https://<url>/api/brand` | Returns chat package version + 6-layer metadata + live counts (161 GREP / 46 RAG / 46 dims) |
+| 10:00 | `curl https://<url>/api/brand` | Returns chat package version + 6-layer metadata + live counts for GREP, RAG, tools, rubric dimensions, evaluator questions, citations, and examples |
+
+## Full UI Audit Targets
+
+Use this checklist when reviewing the polished workbench:
+
+1. Top chrome: global model status, model picker, DueCare hub link, page width, and consistent navigation.
+2. Chat: example picker, harness tiles, input composer, image upload, response cards, pipeline modal, and grade modal.
+3. Compare: direct navigation to `/static/compare.html`, same example picker behavior as chat, inherited model status, side-by-side outputs, and prompt visibility.
+4. Bulk File Review: upload controls, sample ZIP, graph-chat prompts, extracted entities, document/page rows, media queue, and export links.
+5. Knowledge Extraction: target object selector, draft envelope output, validation notes, and promotion pathway to local knowledge packs.
+6. Search: search-safety sanitization, optional search call, query trace, redaction summary, and backend status.
+7. Safety Layers: harness index, persona, GREP rules, RAG corpus, RAG graph, tools, online/search, hotlines, contacts, and all-tools pages.
+8. Evaluation: rule judge, LLM judge, combined judge, dynamic applicability, contact grounding, and N/A behavior driven by the prompt rather than by response verbosity.
 
 ## Submission context
 
@@ -216,7 +229,7 @@ submission roster.
 - **Online layer returns no results:** DuckDuckGo HTML can rate-
   limit; for Brave Search / Playwright agentic search use appendix A9
   (`duecare-chat-playground-with-agentic-research`)
-- **Combined-mode grade is slow:** it is running up to 21 configured LLM-judge calls
+- **Combined-mode grade is slow:** it runs one configured LLM-judge call per applicable dimension
   against the loaded model (one per applicable rubric dimension);
   ~30-90s for E4B, several minutes for 31B
 - **Cold-boot timeout:** the unsloth-stack install can take 90s on

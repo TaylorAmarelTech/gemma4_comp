@@ -48,6 +48,17 @@ is for a predictable video recording.
 5. Use notebook 03 for the polished slide and cached replay version.
 6. Use A-00 for the quantitative report that backs the video claim.
 
+## Review Checklist
+
+Before recording or sharing the live URL, verify:
+
+1. The first screen has a clear model status and no stale "getting started" language.
+2. The curated PH-HK fee prompt returns a bounded answer rather than payment-collection advice.
+3. The trace shows the applied harness layers and the exact evidence used.
+4. The grading output includes dynamic dimensions, contact grounding, and non-uplift checks.
+5. The run context is documented: model variant, quantization, GPU, package version, and public URL.
+6. A-00 can reproduce the same prompt set as a baseline and harnessed comparison export.
+
 ## Files
 
 ```text
