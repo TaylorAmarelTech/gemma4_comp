@@ -68,8 +68,19 @@ def test_process_batch_returns_intelligence_for_sample():
     assert intel["n_documents"] >= 180
     assert intel["document_type_counts"]["id_card"] == 30
     assert intel["document_type_counts"]["payment_history"] == 30
+    assert intel["document_type_counts"]["chat_messages"] == 30
     assert intel["gemma_case_brief"]["status"] == "no_model_loaded"
     assert len(intel["harness_trace"]) >= 5
+    assert intel["top_risk_signals"]
+    assert intel["folder_counts"]
+    assert intel["n_evidence_edges"] > 100
+    assert intel["graph"]["schema_version"] == "duecare.process.graph.v1"
+    assert intel["graph"]["meta"]["n_nodes"] > 20
+    assert any(n["group"] == "folder" for n in intel["graph"]["nodes"])
+    assert any(e["edge_type"] == "folder_context" for e in intel["evidence_edges"])
+    assert "file_structure" in {
+        method["id"] for method in intel["processing_plan"]["analysis_methods"]
+    }
     assert intel["journey_points"]
     assert intel["critical_fee_points"]
     stages = {point["stage"] for point in intel["journey_points"]}
@@ -101,5 +112,6 @@ def test_process_batch_surfaces_media_and_ocr_work_queue():
     assert plan["n_media_assets"] == 2
     assert "n_pages" in plan
     assert {asset["media_type"] for asset in plan["media_assets"]} == {"image", "pdf"}
+    assert all(asset["gemma_questions"] for asset in plan["media_assets"])
     assert any(p["id"] == "ocr" and p["status"] == "queued_contract" for p in plan["passes"])
     assert any(p["id"] == "gemma_multimodal" for p in plan["passes"])

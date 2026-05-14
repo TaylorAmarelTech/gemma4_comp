@@ -43,6 +43,12 @@
     .wb-riskbar span { display:block; height:100%; background: oklch(0.52 0.12 35); }
     .wb-chip-list { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 7px; }
     .wb-small-table td, .wb-small-table th { font-size: 11.5px; }
+    .wb-graph-shell { display: grid; grid-template-columns: minmax(0, 1.7fr) minmax(260px, 0.8fr); gap: 12px; align-items: stretch; }
+    .wb-graph-panel { border: 1px solid #EFEDE4; border-radius: 8px; background: #FAF9F4; min-height: 420px; overflow: hidden; }
+    .wb-graph-detail { border: 1px solid #EFEDE4; border-radius: 8px; background: #FFF; padding: 12px; min-height: 420px; max-height: 420px; overflow: auto; font-size: 12px; }
+    .wb-edge-table { max-height: 220px; overflow: auto; border: 1px solid #EFEDE4; border-radius: 8px; margin-top: 10px; }
+    .wb-node { cursor: pointer; }
+    .wb-node text { pointer-events: none; }
     table { width: 100%; border-collapse: collapse; font-size: 12px; }
     th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid #EFEDE4; }
     thead tr { background: #EFEDE4; }
@@ -58,6 +64,7 @@
     @media (max-width: 620px) {
       .wb-page { padding: 0 12px !important; }
       .wb-h1 { font-size: 22px !important; }
+      .wb-graph-shell { grid-template-columns: 1fr; }
     }
 </style>
 </head>
@@ -166,6 +173,25 @@
         <div class="wb-intel-grid" id="wb-intel-metrics"></div>
       </div>
       <div class="wb-card">
+        <div style="display:flex; justify-content:space-between; gap:10px; align-items:center; flex-wrap:wrap;">
+          <div>
+            <h2 style="margin:0 0 4px;">Intelligence graph</h2>
+            <div class="wb-muted">
+              Bundle, folders, documents, journey stages, people, and risk signals.
+              Click a node to inspect edge details.
+            </div>
+          </div>
+          <button class="wb-btn-secondary" type="button" onclick="wbDownloadGraphSvg()">Download graph SVG</button>
+        </div>
+        <div class="wb-graph-shell" style="margin-top:12px;">
+          <div class="wb-graph-panel" id="wb-graph-viz"></div>
+          <div class="wb-graph-detail" id="wb-graph-detail">
+            <div class="wb-muted">Process a bundle, then click a graph node.</div>
+          </div>
+        </div>
+        <div id="wb-edge-details" class="wb-edge-table"></div>
+      </div>
+      <div class="wb-card">
         <h2>People and risk signals</h2>
         <div class="wb-intel-grid" id="wb-people"></div>
       </div>
@@ -232,6 +258,11 @@
         <button class="wb-btn-secondary" type="button" onclick="pgUseQuestion('Which rows show passport retention or identity document control?')">Document control</button>
         <button class="wb-btn-secondary" type="button" onclick="pgUseQuestion('Build a PH to HK timeline across travel, payments, and complaints.')">Timeline</button>
         <button class="wb-btn-secondary" type="button" onclick="pgUseQuestion('What missing evidence would strengthen this case before escalation?')">Missing evidence</button>
+        <button class="wb-btn-secondary" type="button" onclick="pgUseQuestion('Which entities or folders are associated with the highest overcharging amounts? Group by recruiter, agency, employer, or source folder when available.')">Overcharging entities</button>
+        <button class="wb-btn-secondary" type="button" onclick="pgUseQuestion('Which individuals have the strongest cases to move forward first, and what row IDs support that ranking?')">Strongest cases</button>
+        <button class="wb-btn-secondary" type="button" onclick="pgUseQuestion('Which people could plausibly be grouped into a class-style or pattern case, and what common agency, fee, folder, document, or journey-stage links connect them?')">Grouped action</button>
+        <button class="wb-btn-secondary" type="button" onclick="pgUseQuestion('What does the file and folder structure suggest about clients, agencies, stages, or evidence sources? Cite the folder-derived edges and row IDs.')">Folder clues</button>
+        <button class="wb-btn-secondary" type="button" onclick="pgUseQuestion('Which media, scan, image, or PDF items still need OCR or Gemma 4 vision review, and what questions should be asked of each page?')">Media queue</button>
       </div>
       <div class="wb-row" style="gap: 8px; align-items: stretch;">
         <textarea id="pg-question" rows="2"
@@ -268,16 +299,24 @@
         pgSetPipeline(1);
         statusEl.textContent="POST /api/process/graph-chat ...";
         ansEl.textContent="";
+        if (typeof wbLog === 'function') {
+          wbLog('net', 'POST /api/process/graph-chat', q.slice(0, 180));
+        }
+        const t0 = performance.now();
         try{
           const r=await fetch("/api/process/graph-chat",{
             method:"POST",headers:{"Content-Type":"application/json"},
             body:JSON.stringify({question:q})
           });
+          const dt = Math.round(performance.now() - t0);
           const out=await r.json();
           pgSetPipeline(3);
           if(!r.ok){
             statusEl.textContent="Graph-chat failed: HTTP "+r.status;
             ansEl.textContent=JSON.stringify(out,null,2);
+            if (typeof wbLog === 'function') {
+              wbLog('err', 'HTTP ' + r.status + ' (' + dt + 'ms)', JSON.stringify(out).slice(0, 240));
+            }
             return;
           }
           const text=out.answer||out.response_text||JSON.stringify(out);
@@ -286,8 +325,15 @@
           if(out.cited_rows && Array.isArray(out.cited_rows)) extra+=" cited rows: "+out.cited_rows.length;
           if(out.grep_hits!=null) extra+=" | grep hits: "+out.grep_hits;
           statusEl.textContent="Answered."+extra;
+          if (typeof wbLog === 'function') {
+            wbLog('ok', 'Graph-chat answered (' + dt + 'ms)',
+              'chars=' + text.length + extra);
+          }
         }catch(e){
           statusEl.textContent="Graph-chat failed: "+String(e).slice(0,200);
+          if (typeof wbLog === 'function') {
+            wbLog('err', 'Graph-chat failed', String(e).slice(0, 240));
+          }
         }finally{ btn.disabled=false; btn.textContent=origTxt; }
       }
     </script>
@@ -335,7 +381,8 @@
                     err: _dcLog.err, step: _dcLog.step,
                     net: _dcLog.net, anon: _dcLog.anon}[kind]
                    || _dcLog.info);
-      fn(msg, detail);
+      const cleanDetail = detail == null ? detail : String(detail).replace(/\u00c2\u00b7/g, ' | ');
+      fn(msg, cleanDetail);
     };
     function wbEsc(s) {
       return String(s == null ? '' : s).replace(/[&<>"']/g, c =>
@@ -391,6 +438,7 @@
       wbRenderTrace(intel.harness_trace || []);
       wbRenderProcessingPlan(intel.processing_plan || {});
       wbRenderIntelligence(intel, s);
+      wbRenderGraph(intel.graph || {}, intel);
       wbRenderJourney(intel);
       document.getElementById('wb-summary').innerHTML =
         // audit-allow:innerHTML-safe: summary fields are numeric counts from /api/process/batch
@@ -401,9 +449,11 @@
         '<div style="margin-top:4px;"><b>People detected:</b> ' + (s.n_people_detected || 0) + '</div>' +
         '<div style="margin-top:4px;"><b>Evidence edges:</b> ' + (s.n_evidence_edges || 0) + '</div>' +
         '<div style="margin-top:4px;"><b>RUN_ID:</b> <code>' + wbEsc(b.run_id) + '</code></div>';
-      document.getElementById('wb-top-indicators').innerHTML = (s.top_grep || []).length ?
-        (s.top_grep || []).map(g => '<div style="margin-bottom:4px;"><span class="wb-pill">' + g.rule_id + '</span> x ' + g.count + '</div>').join('') :
-        '<div class="wb-muted">No GREP rules fired.</div>';
+      const topSignals = (intel.top_risk_signals || []).map(g => ({rule_id: g.signal, count: g.count}));
+      const indicatorRows = (s.top_grep || []).length ? (s.top_grep || []) : topSignals;
+      document.getElementById('wb-top-indicators').innerHTML = indicatorRows.length ?
+        indicatorRows.map(g => '<div style="margin-bottom:4px;"><span class="wb-pill">' + wbEsc(g.rule_id) + '</span> x ' + wbEsc(g.count) + '</div>').join('') :
+        '<div class="wb-muted">No GREP or keyword risk signals detected.</div>';
       document.getElementById('wb-top-statutes').innerHTML = (s.top_statutes || []).length ?
         (s.top_statutes || []).map(t => '<div style="margin-bottom:4px;"><span class="wb-pill">' + t.statute + '</span> x ' + t.count + '</div>').join('') :
         '<div class="wb-muted">No statute citations detected.</div>';
@@ -437,6 +487,7 @@
       const passes = plan.passes || [];
       const media = plan.media_assets || [];
       const parentDocs = plan.parent_documents || [];
+      const methods = plan.analysis_methods || [];
       const passHtml = passes.length ? passes.map(p =>
         '<div class="wb-step ' + (String(p.status || '').includes('implemented') ? 'complete' : '') + '">' +
         '<div class="num">' + wbEsc(p.status || 'planned') + '</div>' +
@@ -448,6 +499,9 @@
         '<tr><td><code>' + wbEsc(m.row_id) + '</code></td><td>' + wbEsc(m.media_type) +
         '</td><td>' + wbEsc(m.bytes || 0) + '</td><td>' + wbEsc(m.status) + '</td></tr>'
       ).join('') : '<tr><td colspan="4" class="wb-muted">No image, scan, or PDF assets detected in this upload.</td></tr>';
+      const methodHtml = methods.length ? methods.map(m =>
+        '<div class="wb-metric"><div class="label">' + wbEsc(m.label || m.id) + '</div><div style="font-size:12px; line-height:1.45; margin-top:6px;">' + wbEsc(m.detail || '') + '</div></div>'
+      ).join('') : '';
       host.innerHTML =
         '<div class="wb-intel-grid" style="margin-bottom:10px;">' +
         '<div class="wb-metric"><div class="label">Parent documents</div><div class="value">' + wbEsc(plan.n_parent_documents || parentDocs.length || 0) + '</div></div>' +
@@ -455,6 +509,7 @@
         '<div class="wb-metric"><div class="label">Chunks / rows</div><div class="value">' + wbEsc(plan.n_chunks || 0) + '</div></div>' +
         '<div class="wb-metric"><div class="label">Media assets queued</div><div class="value">' + wbEsc(plan.n_media_assets || media.length || 0) + '</div></div>' +
         '</div>' +
+        (methodHtml ? '<h3 style="font-size:13px; margin:0 0 6px;">Extraction and graph-building methods</h3><div class="wb-intel-grid" style="margin-bottom:12px;">' + methodHtml + '</div>' : '') +
         '<div class="wb-pipeline" style="margin-bottom:12px;">' + passHtml + '</div>' +
         '<h3 style="font-size:13px; margin:0 0 6px;">OCR and multimodal queue</h3>' +
         '<div style="max-height:220px; overflow:auto;"><table class="wb-small-table"><thead><tr><th>asset</th><th>type</th><th>bytes</th><th>status</th></tr></thead><tbody>' + mediaHtml + '</tbody></table></div>';
@@ -462,6 +517,7 @@
     function wbRenderIntelligence(intel, summary) {
       const people = intel.people || [];
       const docCounts = intel.document_type_counts || {};
+      const folderCounts = intel.folder_counts || [];
       const metrics = [
         ['People', intel.n_people || 0],
         ['Documents', intel.n_documents || (summary.n_rows_processed || 0)],
@@ -481,10 +537,13 @@
           '<div class="wb-chip-list">' + (p.risk_signals || []).slice(0, 5).map(wbPill).join('') + '</div>' +
         '</div>';
       }).join('') : '<div class="wb-muted">No person-level identifiers detected.</div>';
-      document.getElementById('wb-hierarchy').innerHTML =
-        Object.entries(docCounts).length ? Object.entries(docCounts).map(([k, v]) =>
+      const docHtml = Object.entries(docCounts).length ? Object.entries(docCounts).map(([k, v]) =>
           '<div style="display:flex; justify-content:space-between; border-bottom:1px solid #EFEDE4; padding:6px 0;"><span>' + wbEsc(k.replace(/_/g, ' ')) + '</span><b>' + v + '</b></div>'
         ).join('') : '<div class="wb-muted">No document hierarchy available.</div>';
+      const folderHtml = folderCounts.length ? '<h3 style="font-size:13px; margin:12px 0 6px;">Folder-derived edges</h3>' + folderCounts.slice(0, 10).map(f =>
+        '<div style="display:flex; justify-content:space-between; border-bottom:1px solid #EFEDE4; padding:6px 0;"><code>' + wbEsc(f.folder) + '</code><b>' + wbEsc(f.count) + '</b></div>'
+      ).join('') : '';
+      document.getElementById('wb-hierarchy').innerHTML = docHtml + folderHtml;
       const locs = (intel.locations || []).slice(0, 8).map(l => wbPill(l.name + ' x ' + l.count)).join('');
       const pays = (intel.top_payments || []).slice(0, 8).map(p =>
         '<tr><td><code>' + wbEsc(p.case_id) + '</code></td><td>' + wbEsc(p.amount) + '</td><td>' + wbEsc(p.document_type) + '</td></tr>'
@@ -504,6 +563,121 @@
         briefJson ? '<pre style="white-space:pre-wrap; max-height:300px; overflow:auto; background:#FAF9F4; border:1px solid #EFEDE4; border-radius:8px; padding:10px; font-size:11.5px;">' + wbEsc(JSON.stringify(briefJson, null, 2)) + '</pre>' :
         brief.text ? '<pre style="white-space:pre-wrap; max-height:300px; overflow:auto; background:#FAF9F4; border:1px solid #EFEDE4; border-radius:8px; padding:10px; font-size:11.5px;">' + wbEsc(brief.text) + '</pre>' :
         '<div class="wb-muted">Gemma case brief status: ' + wbEsc(brief.status || 'not run') + '</div>';
+    }
+    let wbLastGraphSvg = '';
+    function wbGraphColor(group) {
+      return ({
+        root: '#0f766e',
+        folder: '#6d5f2a',
+        document_type: '#2563eb',
+        stage: '#7c3aed',
+        person: '#b45309',
+        signal: '#b91c1c',
+      })[group] || '#5B5F68';
+    }
+    function wbGraphLabel(text, maxLen) {
+      const s = String(text || '');
+      return s.length > maxLen ? s.slice(0, maxLen - 1) + '...' : s;
+    }
+    function wbRenderGraph(graph, intel) {
+      const host = document.getElementById('wb-graph-viz');
+      const detail = document.getElementById('wb-graph-detail');
+      const edgeHost = document.getElementById('wb-edge-details');
+      const nodes = graph.nodes || [];
+      const edges = graph.edges || [];
+      window._wbProcessGraph = graph;
+      if (!nodes.length) {
+        host.innerHTML = '<div class="wb-muted" style="padding:14px;">No graph nodes returned.</div>';
+        detail.innerHTML = '<div class="wb-muted">No graph detail available.</div>';
+        edgeHost.innerHTML = '';
+        wbLastGraphSvg = '';
+        return;
+      }
+      const order = ['root', 'folder', 'document_type', 'stage', 'person', 'signal'];
+      const xByGroup = {root:70, folder:220, document_type:360, stage:520, person:700, signal:880};
+      const grouped = {};
+      nodes.forEach(n => {
+        const g = n.group || 'other';
+        if (!grouped[g]) grouped[g] = [];
+        grouped[g].push(n);
+      });
+      const maxGroup = Math.max(1, ...Object.values(grouped).map(a => a.length));
+      const height = Math.max(460, maxGroup * 46 + 86);
+      const pos = {};
+      order.concat(Object.keys(grouped).filter(g => !order.includes(g))).forEach(group => {
+        const rows = grouped[group] || [];
+        const gap = Math.min(52, Math.max(34, (height - 100) / Math.max(1, rows.length)));
+        const top = 54;
+        rows.forEach((node, idx) => {
+          pos[node.id] = {x: xByGroup[group] || 940, y: top + idx * gap};
+        });
+      });
+      const edgeSvg = edges.filter(e => pos[e.source] && pos[e.target]).map(e => {
+        const a = pos[e.source], b = pos[e.target];
+        const weight = Math.max(1, Math.min(5, Number(e.weight || 1)));
+        return '<path d="M' + a.x + ' ' + a.y + ' C' + (a.x + 80) + ' ' + a.y + ' ' + (b.x - 80) + ' ' + b.y + ' ' + b.x + ' ' + b.y + '"' +
+          ' stroke="#CFC8B8" stroke-width="' + weight + '" fill="none" opacity="0.58"><title>' + wbEsc(e.type || 'edge') + '</title></path>';
+      }).join('');
+      const nodeSvg = nodes.map(n => {
+        const p = pos[n.id] || {x:940, y:40};
+        const color = wbGraphColor(n.group);
+        const radius = n.group === 'root' ? 14 : Math.max(7, Math.min(14, 7 + Math.sqrt(Number(n.count || n.risk_score || 1)) / 2));
+        const label = wbGraphLabel(n.label || n.id, n.group === 'person' ? 18 : 16);
+        const meta = n.count != null ? String(n.count) : (n.risk_score != null ? 'risk ' + n.risk_score : '');
+        return '<g class="wb-node" onclick="wbGraphSelect(' + JSON.stringify(n.id).replace(/"/g, '&quot;') + ')">' +
+          '<circle cx="' + p.x + '" cy="' + p.y + '" r="' + radius + '" fill="' + color + '" opacity="0.92"><title>' + wbEsc(n.label || n.id) + '</title></circle>' +
+          '<text x="' + (p.x + radius + 5) + '" y="' + (p.y - 2) + '" font-size="11" fill="#0E1116">' + wbEsc(label) + '</text>' +
+          (meta ? '<text x="' + (p.x + radius + 5) + '" y="' + (p.y + 12) + '" font-size="9" fill="#5B5F68">' + wbEsc(meta) + '</text>' : '') +
+        '</g>';
+      }).join('');
+      const legend = order.filter(g => grouped[g]).map(g =>
+        '<span style="display:inline-flex; align-items:center; gap:4px; margin-right:10px;"><span style="width:9px;height:9px;border-radius:99px;background:' + wbGraphColor(g) + ';display:inline-block;"></span>' + wbEsc(g.replace(/_/g, ' ')) + '</span>'
+      ).join('');
+      wbLastGraphSvg = '<svg id="wb-process-graph-svg" width="100%" height="' + height + '" viewBox="0 0 1000 ' + height + '" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Process intelligence graph">' +
+        '<rect x="0" y="0" width="1000" height="' + height + '" fill="#FAF9F4"/>' +
+        '<text x="16" y="24" font-size="12" fill="#5B5F68">Edge sources: plain text, file structure, queued OCR, Gemma 4 page questions</text>' +
+        edgeSvg + nodeSvg + '</svg>';
+      host.innerHTML = '<div style="padding:10px 12px; font-size:11px; border-bottom:1px solid #EFEDE4;">' + legend + '</div>' + wbLastGraphSvg;
+      wbGraphSelect(nodes[0].id);
+      const edgeRows = (intel.evidence_edges || []).slice(0, 80).map(e =>
+        '<tr><td>' + wbEsc(e.edge_type || 'edge') + '</td><td><code>' + wbEsc(e.case_id || '') + '</code></td>' +
+        '<td><code>' + wbEsc(e.row_id || '') + '</code></td><td>' + wbEsc(e.label || e.rule_id || '') + '</td>' +
+        '<td>' + wbEsc((e.modalities || []).join(', ') || 'plain_text') + '</td><td>' + wbEsc((e.methods || []).join(', ')) + '</td></tr>'
+      ).join('');
+      edgeHost.innerHTML =
+        '<table class="wb-small-table"><thead><tr><th>edge</th><th>case</th><th>row</th><th>label</th><th>source</th><th>methods</th></tr></thead><tbody>' +
+        (edgeRows || '<tr><td colspan="6" class="wb-muted">No evidence edges returned.</td></tr>') +
+        '</tbody></table>';
+    }
+    function wbGraphSelect(id) {
+      const graph = window._wbProcessGraph || {};
+      const node = (graph.nodes || []).find(n => n.id === id);
+      const detail = document.getElementById('wb-graph-detail');
+      if (!node) return;
+      const linked = (graph.edges || []).filter(e => e.source === id || e.target === id).slice(0, 20);
+      detail.innerHTML =
+        '<div class="wb-pill">' + wbEsc(node.group || 'node') + '</div>' +
+        '<h3 style="font-size:16px; margin:8px 0 6px;">' + wbEsc(node.label || node.id) + '</h3>' +
+        '<div class="wb-muted" style="margin-bottom:8px;">' + wbEsc(node.id) + '</div>' +
+        '<pre style="white-space:pre-wrap; background:#FAF9F4; border:1px solid #EFEDE4; border-radius:8px; padding:8px; font-size:11px;">' +
+        wbEsc(JSON.stringify(node, null, 2)) + '</pre>' +
+        '<h4 style="font-size:12px; margin:10px 0 6px;">Linked edges</h4>' +
+        (linked.length ? linked.map(e =>
+          '<div style="border-top:1px solid #EFEDE4; padding:6px 0;"><span class="wb-pill">' + wbEsc(e.type || 'edge') + '</span> ' +
+          '<code>' + wbEsc(e.source) + '</code> to <code>' + wbEsc(e.target) + '</code>' +
+          (e.row_id ? '<div class="wb-muted">row: ' + wbEsc(e.row_id) + '</div>' : '') + '</div>'
+        ).join('') : '<div class="wb-muted">No linked edges.</div>');
+    }
+    function wbDownloadGraphSvg() {
+      if (!wbLastGraphSvg) return;
+      const blob = new Blob([wbLastGraphSvg], {type: 'image/svg+xml'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'duecare-process-graph.svg';
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      wbLog('info', 'Downloaded process graph SVG', 'duecare-process-graph.svg');
     }
     function wbRenderJourney(intel) {
       const host = document.getElementById('wb-journey');

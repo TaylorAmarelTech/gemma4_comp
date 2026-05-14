@@ -40,6 +40,8 @@ def test_required_markup_present(client):
         'id="cmp-temperature"',
         'id="cmp-show-truncation"',
         'id="grade-mode"',
+        'id="A-import_corpus"',
+        'id="B-import_corpus"',
         # variant cards
         'id="A-msgs"',
         'id="B-msgs"',
@@ -106,6 +108,15 @@ def test_pipeline_step_labels_match_chat(client):
         "Calling lookup tools", "Searching the web", "Generating response",
     ]:
         assert label in text, f"pipeline step label missing: {label!r}"
+
+
+def test_import_layer_visible_in_variant_controls(client):
+    """Compare must expose the same Import layer Chat exposes."""
+    r = client.get("/static/compare.html")
+    text = r.text
+    assert "import_corpus" in text
+    assert "Loading imported documents" in text
+    assert "Import" in text
 
 
 def test_helper_functions_defined(client):

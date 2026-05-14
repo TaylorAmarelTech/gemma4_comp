@@ -77,6 +77,61 @@ def test_search_safety_page_serves(client):
         assert marker in text
 
 
+def test_search_page_blocks_when_page_sanitizer_fails(client):
+    """The search page must not silently send a raw query after the
+    page-side Search Safety gate errors.
+    """
+    r = client.get("/static/search.html")
+    assert r.status_code == 200
+    text = r.text
+    assert "Search stopped because sanitization failed" in text
+    assert "sending raw query" not in text
+    assert "Kernel search hook" in text
+
+
+def test_search_backends_contract_has_human_labels(client):
+    r = client.get("/api/search/backends")
+    assert r.status_code == 200
+    data = r.json()
+    by_name = {b["name"]: b for b in data["backends"]}
+    assert by_name["searxng"]["display_name"] == "SearXNG"
+    assert by_name["legacy"]["display_name"] == "Kernel search hook"
+    assert "default_preference_labels" in data
+
+
+def test_search_client_rejects_bad_top_n(client):
+    r = client.post("/api/search/client", json={
+        "query": "ILO C181 recruitment fee",
+        "top_n": "not-a-number",
+    })
+    assert r.status_code == 400
+
+
+def test_share_page_has_bulk_review_selection_controls(client):
+    r = client.get("/static/share.html")
+    assert r.status_code == 200
+    text = r.text
+    assert 'id="wb-select-all-btn"' in text
+    assert 'id="wb-clear-all-btn"' in text
+    assert "function escapeHtml" in text
+
+
+def test_process_page_has_graph_visualization_and_graph_chat_logging(client):
+    r = client.get("/static/process.html")
+    assert r.status_code == 200
+    text = r.text
+    assert 'id="wb-graph-viz"' in text
+    assert "function wbRenderGraph" in text
+    assert "Download graph SVG" in text
+    assert "Overcharging entities" in text
+    assert "Strongest cases" in text
+    assert "Grouped action" in text
+    assert "Folder clues" in text
+    assert "Media queue" in text
+    assert "POST /api/process/graph-chat" in text
+    assert "wbLog('net', 'POST /api/process/graph-chat'" in text
+
+
 def test_use_cases_page_serves_five_audience_lanes(client):
     r = client.get("/static/use-cases.html")
     assert r.status_code == 200

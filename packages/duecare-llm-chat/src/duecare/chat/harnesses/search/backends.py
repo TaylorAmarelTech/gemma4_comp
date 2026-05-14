@@ -102,8 +102,7 @@ def build_registry(app: Any) -> dict[str, SearchBackend]:
     reg: dict[str, SearchBackend] = {}
     reg["searxng"] = SearXNGBackend()
     legacy = getattr(app.state, "online_search_call", None)
-    if legacy is not None:
-        reg["legacy"] = LegacyCallableBackend(legacy)
+    reg["legacy"] = LegacyCallableBackend(legacy)
     return reg
 
 

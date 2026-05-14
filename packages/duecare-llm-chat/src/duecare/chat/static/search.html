@@ -77,7 +77,7 @@
       <div class="search-pipeline" id="search-pipeline">
         <div class="search-step"><div class="num">Step 1</div><div class="name">Query</div><div class="detail">User enters a public-source research query.</div></div>
         <div class="search-step"><div class="num">Step 2</div><div class="name">Search Safety</div><div class="detail">PII is redacted and Gemma can generalize the query.</div></div>
-        <div class="search-step"><div class="num">Step 3</div><div class="name">Backend</div><div class="detail">SearXNG, Tavily, Brave, DuckDuckGo, or Wikipedia returns results.</div></div>
+        <div class="search-step"><div class="num">Step 3</div><div class="name">Backend</div><div class="detail">SearXNG or the kernel search hook returns public-source results.</div></div>
         <div class="search-step"><div class="num">Step 4</div><div class="name">Review</div><div class="detail">Results stay visible for inspection and download.</div></div>
         <div class="search-step"><div class="num">Step 5</div><div class="name">Gemma draft</div><div class="detail">Optional knowledge drafting passes snippets to Gemma 4.</div></div>
       </div>
@@ -95,9 +95,9 @@
                style="flex:1; min-width:280px;"
                value="ILO C181 fee prohibition migrant worker">
         <select id="backend" title="Backend selection (auto picks first available)">
-          <option value="">auto</option>
-          <option value="searxng">searxng</option>
-          <option value="legacy">legacy</option>
+          <option value="">auto (best available)</option>
+          <option value="searxng">SearXNG</option>
+          <option value="legacy">Kernel search hook</option>
         </select>
         <input type="number" id="top_n" value="5" min="1" max="20"
                style="width:60px;" title="top_n">
@@ -181,6 +181,13 @@
     let _searchQuery = '';
     let _searchBackend = '';
     let _drafts = [];          // {url, title, envelope}
+    function searchBackendLabel(name) {
+      const labels = {
+        searxng: 'SearXNG',
+        legacy: 'kernel search hook',
+      };
+      return labels[name] || name || '(none)';
+    }
     function searchSetPipeline(active) {
       document.querySelectorAll('#search-pipeline .search-step').forEach((el, idx) => {
         el.classList.toggle('complete', idx <= active);
@@ -202,7 +209,7 @@
           const p = document.createElement('span');
           p.className = 'wb-pill';
           if (!x.available) p.style.opacity = '0.5';
-          p.textContent = x.name + ': ' + (x.available ? 'OK' : 'unavailable');
+          p.textContent = searchBackendLabel(x.name) + ': ' + (x.available ? 'OK' : 'unavailable');
           host.appendChild(p);
           host.appendChild(document.createTextNode(' '));
         });
@@ -256,6 +263,9 @@
               (kinds.length ? kinds.length + ' redaction(s): ' + kinds.join(', ') : 'no PII detected')
               + (so.rephrase_fired ? ' · Gemma rephrase applied' : '')
               + (so.rephrase_wired === false && rephrase ? ' · (rephrase requested but Gemma not wired)' : '');
+            previewMeta.textContent = previewMeta.textContent
+              .replace(/\u00c2\u00b7/g, ' | ')
+              .replace(/\s+\|\s+/g, ' | ');
             _searchLog.ok('sanitize complete', kinds.length + ' redaction(s): ' + kinds.join(', '));
             if (so.blocked) {
               _searchLog.err('sanitize BLOCKED the query: ' + (so.reason || 'unsafe'));
@@ -264,10 +274,18 @@
               return;
             }
           } else {
-            _searchLog.warn('sanitize failed (HTTP ' + sr.status + '), sending raw query');
+            _searchLog.err('sanitize failed (HTTP ' + sr.status + '); search stopped');
+            document.getElementById('status').textContent =
+              'Search stopped because sanitization failed. Disable the sanitizer only for public, non-sensitive queries.';
+            btn.disabled = false;
+            return;
           }
         } catch (e) {
-          _searchLog.warn('sanitize error: ' + e + '. Sending raw query.');
+          _searchLog.err('sanitize error: ' + e + '; search stopped');
+          document.getElementById('status').textContent =
+            'Search stopped because sanitization failed. Disable the sanitizer only for public, non-sensitive queries.';
+          btn.disabled = false;
+          return;
         }
       }
 
@@ -293,10 +311,10 @@
         _searchBackend = out.backend || '';
         const note = out.note || out.error || '';
         document.getElementById('status').textContent =
-          'backend=' + (out.backend || '(none)') + ' | results=' +
+          'backend=' + searchBackendLabel(out.backend) + ' | results=' +
           ((out.results || []).length) + ' | elapsed_ms=' + (out.elapsed_ms || dt)
           + (note ? ' | ' + note : '');
-        _searchLog.ok('HTTP 200 (' + dt + 'ms) backend=' + (out.backend || '(none)')
+        _searchLog.ok('HTTP 200 (' + dt + 'ms) backend=' + searchBackendLabel(out.backend)
                        + ' results=' + ((out.results || []).length));
         if (note) _searchLog.info('note: ' + note);
         _searchResults = out.results || [];

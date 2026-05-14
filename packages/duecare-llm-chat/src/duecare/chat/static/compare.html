@@ -129,12 +129,12 @@
         <textarea id="cmp-prompt" rows="3"
           style="flex:1; min-width: 280px; padding: 10px; border: 1px solid #DDD8C9;
                   border-radius: 8px; font-size: 13px; background: #FFF;"
-          placeholder="Type a prompt, or click >> Examples to pick from the shared catalog..."></textarea>
+          placeholder="Type a prompt, or click Examples to pick from the shared catalog..."></textarea>
         <div style="display: flex; flex-direction: column; gap: 6px; min-width: 220px;">
           <button class="wb-btn-secondary" onclick="cmpOpenExamples()"
             title="Browse the same example prompts that the Chat page uses"
             style="font-weight: 600; text-align: left;">
-            &raquo; Examples
+            Examples
             <span class="wb-muted" style="margin-left: 6px;" id="cmp-examples-count">(loading...)</span>
           </button>
           <button class="wb-btn-secondary" onclick="cmpFillFromLastChat()"
@@ -175,6 +175,7 @@
           <label style="font-size: 12.5px; margin-left: 10px;"><input type="checkbox" id="A-rag"> RAG</label>
           <label style="font-size: 12.5px; margin-left: 10px;"><input type="checkbox" id="A-tools"> Tools</label>
           <label style="font-size: 12.5px; margin-left: 10px;"><input type="checkbox" id="A-online"> Online</label>
+          <label style="font-size: 12.5px; margin-left: 10px;"><input type="checkbox" id="A-import_corpus"> Import</label>
         </div>
         <div>
           <h3 style="font-size: 12.5px; margin: 0 0 6px; color: #5B5F68; text-transform: uppercase; letter-spacing: 0.04em;">Variant B <span class="wb-pill" id="B-preset">harness on</span></h3>
@@ -183,6 +184,7 @@
           <label style="font-size: 12.5px; margin-left: 10px;"><input type="checkbox" id="B-rag" checked> RAG</label>
           <label style="font-size: 12.5px; margin-left: 10px;"><input type="checkbox" id="B-tools" checked> Tools</label>
           <label style="font-size: 12.5px; margin-left: 10px;"><input type="checkbox" id="B-online"> Online <span class="wb-muted">(only fires if provider is wired)</span></label>
+          <label style="font-size: 12.5px; margin-left: 10px;"><input type="checkbox" id="B-import_corpus" checked> Import</label>
         </div>
       </div>
       <div class="wb-row" style="margin-top: 14px; gap: 6px; align-items: center;">
@@ -196,7 +198,7 @@
     <div class="wb-card">
       <h2>3. Generation settings (avoid response cutoffs)</h2>
       <p class="wb-muted" style="margin: 0 0 10px;">
-        Default is <b>16384 tokens</b> -- enough for the longest multi-paragraph
+        Default is <b>16384 tokens</b>, enough for the longest multi-paragraph
         responses. If you see a response truncated mid-sentence, raise
         <code>max_new_tokens</code>. The same value is sent for both
         variants so the comparison is apples-to-apples.
@@ -296,7 +298,7 @@
         <label>Mode:
           <select id="grade-mode">
             <option value="deterministic" selected>deterministic (fast, rules-based)</option>
-            <option value="deep">deep (Gemma judge -- slower)</option>
+            <option value="deep">deep (Gemma judge, slower)</option>
             <option value="combined">combined (50/50 blend)</option>
           </select>
         </label>
@@ -306,12 +308,12 @@
       <div class="wb-twocol" style="margin-top: 12px;">
         <div class="wb-grade">
           <h3>Variant A grade</h3>
-          <div class="score-line" id="A-grade-score">--</div>
+          <div class="score-line" id="A-grade-score">not graded</div>
           <pre id="A-grade">(not graded yet)</pre>
         </div>
         <div class="wb-grade">
           <h3>Variant B grade</h3>
-          <div class="score-line" id="B-grade-score">--</div>
+          <div class="score-line" id="B-grade-score">not graded</div>
           <pre id="B-grade">(not graded yet)</pre>
         </div>
       </div>
@@ -362,7 +364,32 @@
   </main>
 
   <script>
-    const LAYERS = ['persona', 'grep', 'rag', 'tools', 'online'];
+    const LAYERS = ['persona', 'grep', 'rag', 'tools', 'online', 'import_corpus'];
+    const LAYER_LABELS = {
+      persona: 'Persona',
+      grep: 'GREP',
+      rag: 'RAG',
+      tools: 'Tools',
+      online: 'Online',
+      import_corpus: 'Import',
+    };
+    const PIPELINE_LAYER_IDS = {
+      persona: 'persona',
+      grep: 'grep',
+      rag: 'rag',
+      tools: 'tools',
+      online: 'online',
+      import_corpus: 'import',
+    };
+    const EVENT_LAYER_IDS = {
+      persona: 'persona',
+      grep: 'grep',
+      rag: 'rag',
+      tools: 'tools',
+      online: 'online',
+      import: 'import_corpus',
+      import_corpus: 'import_corpus',
+    };
     const VARIANTS = ['A', 'B'];
     let _cmpLastPreset = 'stock_vs_full';
     let _examplesCache = null;
@@ -691,18 +718,18 @@
     function cmpPreset(name) {
       const presets = {
         stock_vs_full: {
-          A: {persona: false, grep: false, rag: false, tools: false, online: false},
-          B: {persona: true,  grep: true,  rag: true,  tools: true,  online: false},
+          A: {persona: false, grep: false, rag: false, tools: false, online: false, import_corpus: false},
+          B: {persona: true,  grep: true,  rag: true,  tools: true,  online: false, import_corpus: true},
           A_label: 'stock', B_label: 'harness on',
         },
         grep_only_vs_full: {
-          A: {persona: false, grep: true,  rag: false, tools: false, online: false},
-          B: {persona: true,  grep: true,  rag: true,  tools: true,  online: false},
+          A: {persona: false, grep: true,  rag: false, tools: false, online: false, import_corpus: false},
+          B: {persona: true,  grep: true,  rag: true,  tools: true,  online: false, import_corpus: true},
           A_label: 'grep only', B_label: 'harness on',
         },
         with_online_vs_without: {
-          A: {persona: true,  grep: true,  rag: true,  tools: true,  online: false},
-          B: {persona: true,  grep: true,  rag: true,  tools: true,  online: true},
+          A: {persona: true,  grep: true,  rag: true,  tools: true,  online: false, import_corpus: true},
+          B: {persona: true,  grep: true,  rag: true,  tools: true,  online: true,  import_corpus: true},
           A_label: 'no online', B_label: 'with online',
         },
       };
@@ -736,7 +763,7 @@
         const span = document.createElement('span');
         span.className = 'cv-toggle' + (t[k] ? ' on' : '');
         span.id = variant + '-chip-' + k;
-        span.textContent = k.charAt(0).toUpperCase() + k.slice(1);
+        span.textContent = LAYER_LABELS[k] || (k.charAt(0).toUpperCase() + k.slice(1));
         host.appendChild(span);
       });
     }
@@ -974,9 +1001,9 @@
       setVariantProgress(variant, 'run', 'connecting...');
       _runTimings[variant] = {};
       pipelineInit(variant);
-      ['persona', 'grep', 'rag', 'tools', 'online'].forEach(layer => {
+      LAYERS.forEach(layer => {
         if (!toggles[layer]) {
-          pipelineSetStep(variant, layer, 'skipped');
+          pipelineSetStep(variant, PIPELINE_LAYER_IDS[layer] || layer, 'skipped');
         }
       });
       const t0 = performance.now();
@@ -1128,8 +1155,9 @@
         const fired = !!evt.fired;
         const wired = evt.wired !== false;
         const enabled = evt.enabled !== false;
-        if (evt.step && LAYERS.indexOf(evt.step) >= 0) {
-          markLayerFired(variant, evt.step, fired);
+        const layerId = EVENT_LAYER_IDS[evt.step] || evt.step;
+        if (layerId && LAYERS.indexOf(layerId) >= 0) {
+          markLayerFired(variant, layerId, fired);
         }
         // Translate server step_done into pipeline status. Mirrors
         // the chat page logic so the panels are visually identical.
@@ -1176,9 +1204,9 @@
       const on = LAYERS.filter(L => t[L]);
       if (on.length === 0) return 'stock';
       if (on.length === LAYERS.length) return 'all on';
-      // "harness on" = persona+grep+rag+tools, online off
-      if (t.persona && t.grep && t.rag && t.tools && !t.online) return 'harness on';
-      if (t.grep && !t.persona && !t.rag && !t.tools && !t.online) return 'grep only';
+      // "harness on" = persona+grep+rag+tools+imports, online off
+      if (t.persona && t.grep && t.rag && t.tools && t.import_corpus && !t.online) return 'harness on';
+      if (t.grep && !t.persona && !t.rag && !t.tools && !t.online && !t.import_corpus) return 'grep only';
       return 'custom (' + on.length + '/' + LAYERS.length + ')';
     }
     function refreshVariantLabels() {
@@ -1234,10 +1262,10 @@
         const row = document.createElement('div');
         row.style.cssText = 'display:grid; grid-template-columns:180px 1fr 1fr 110px; gap:8px; font-size:12px; padding:5px 0; border-bottom:1px dotted #EFEDE4;';
         const fmt = (ms, status) => {
-          if (status === 'skipped') return '— skipped';
-          if (status === 'not_wired') return '— not wired';
+          if (status === 'skipped') return 'skipped';
+          if (status === 'not_wired') return 'not wired';
           if (status === 'noop') return ms + ' ms (no-op)';
-          return ms ? ms + ' ms' : '—';
+          return ms ? ms + ' ms' : 'pending';
         };
         const mkCell = (txt, mono) => {
           const c = document.createElement('div');
@@ -1546,8 +1574,8 @@
       if (btn) btn.disabled = true;
       document.getElementById('grade-status').textContent =
         'Available once both variants finish running.';
-      document.getElementById('A-grade-score').textContent = '--';
-      document.getElementById('B-grade-score').textContent = '--';
+      document.getElementById('A-grade-score').textContent = 'not graded';
+      document.getElementById('B-grade-score').textContent = 'not graded';
       document.getElementById('A-grade').textContent = '(not graded yet)';
       document.getElementById('B-grade').textContent = '(not graded yet)';
       document.getElementById('postrun-status').textContent = '';
