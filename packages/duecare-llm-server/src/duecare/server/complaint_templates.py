@@ -697,7 +697,7 @@ Respectfully,
 {complainant_name_or_alias}
 {contact_for_followup}
 
-cc: Polaris Project National Hotline (1-888-373-7888)
+cc: National Human Trafficking Hotline pathway via vetted contacts pack
 """.strip(),
         notes="In the US, victims have access to T-visa protection "
                 "for cooperation with law enforcement. Counsel from a "

@@ -126,7 +126,7 @@ The bundled corridor profiles include:
   referred to for shelter, legal aid, return assistance.
 
 For PH-HK consular work specifically: POEA Anti-Illegal
-Recruitment Branch (+63-2-8721-1144), HK Labour Department
+Recruitment Branch (DMW/POEA AIRB via contacts pack), HK Labour Department
 Foreign Domestic Helpers Section (+852 2717 1771), Mission for
 Migrant Workers HK (+852 2522 8264), PathFinders HK (+852 5190
 4886), HELP for Domestic Workers (+852 2523 4020) — all bundled,

@@ -228,26 +228,27 @@ _LEGITIMATE_SIGNALS: list[tuple[str, list[str], int]] = [
 ]
 
 
-# Locale-aware hotline directory.
+# Locale-aware hotline directory. Concrete numbers are volatile; live
+# surfaces should prefer the versioned contacts knowledge pack.
 _HOTLINES = {
-    "ph":  ("POEA / DMW Migrant Worker Hotline", "1343"),
-    "id":  ("BP2MI Crisis Center", "+62-21-2924-3333"),
+    "ph":  ("POEA / DMW Migrant Worker Hotline", "verify via contacts pack"),
+    "id":  ("BP2MI Crisis Center", "verify via contacts pack"),
     "np":  ("HRD Nepal Migrant Worker Help",
-            "+977-1-4218000"),
+            "verify via contacts pack"),
     "in":  ("MEA OIA Madad Helpline",
-            "+91-11-1800-11-3090"),
+            "verify via contacts pack"),
     "bd":  ("Wage Earners' Welfare Board",
-            "+880-2-9143006"),
-    "lk":  ("SLBFE Help Desk", "+94-11-258-0996"),
+            "verify via contacts pack"),
+    "lk":  ("SLBFE Help Desk", "verify via contacts pack"),
     "hk":  ("Mission for Migrant Workers HK",
-            "+852-2522-8264"),
+            "verify via contacts pack"),
     "sa":  ("Musaned (worker grievance)",
-            "+966-9200-19797"),
+            "verify via contacts pack"),
     "ae":  ("MOHRE Worker Helpline (UAE)",
-            "+971-800-665"),
+            "verify via contacts pack"),
     "qa":  ("ADLSA Workers' Hotline (Qatar)",
-            "+974-4406-2244"),
-    "kw":  ("PAM Hotline (Kuwait)", "+965-128"),
+            "verify via contacts pack"),
+    "kw":  ("PAM Hotline (Kuwait)", "verify via contacts pack"),
     "en":  ("ILO TIP Reporting", "https://www.ilo.org/contact"),
 }
 
