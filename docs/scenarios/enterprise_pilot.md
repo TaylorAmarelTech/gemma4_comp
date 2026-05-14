@@ -161,7 +161,7 @@ Avoid:
 
 | You get | You build |
 |---|---|
-| 17 PyPI packages + 13 submission Kaggle notebooks + Helm chart + Docker image | Your client UI (web / mobile / Slack / Discord / etc.) |
+| 17 PyPI packages + 27 submission Kaggle notebooks (3 core + 24 appendix) + Helm chart + Docker image | Your client UI (web / mobile / Slack / Discord / etc.) |
 | 161 GREP rules + 46 RAG docs + 5 corridor and ILO lookups | Your domain-specific extensions (custom GREP rules, internal corpus, internal tools) |
 | 11 ILO C029 indicators + 20 corridor profiles | Your jurisdiction-specific corridors / regulators / NGO lists |
 | Per-tenant token + cost meter | Hook to your billing pipeline |

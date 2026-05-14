@@ -2,7 +2,7 @@
 
 > **Self-contained brief.** Paste this whole document into GPT 5.5x. No
 > external file fetches required. Goal: an expert UI/UX + product review
-> of the 2 main + 11 appendix Kaggle notebooks against the design system
+> of the 3 core + 24 appendix Kaggle notebooks against the design system
 > and primitives the project just adopted.
 
 ---

@@ -7,10 +7,10 @@
 > `_archive/kaggle-notebook-previews-2026-05-11/`.
 
 > **Self-contained brief.** Paste this whole document into GPT 5.5x. No
-> external file fetches required. Goal: **iterate and improve** all 13
-> Kaggle script kernels toward production polish suitable for the 3-minute
-> hackathon screen-recording video. Output concrete edits / diffs /
-> file contents, not just recommendations.
+> external file fetches required. Goal: **iterate and improve** all 27
+> Kaggle script kernels (3 core + 24 appendix) toward production polish
+> suitable for the 3-minute hackathon screen-recording video. Output
+> concrete edits / diffs / file contents, not just recommendations.
 
 ---
 
@@ -214,7 +214,8 @@ higher-effort, or are stylistic preferences worth a second pair of eyes:
    output the full replacement set as a single batch edit.
 
 2. **Per-kernel polish review (Layer A in §16 below).** For each of
-   the 13, output the top 5 concrete edits with file:line precision.
+   the 27 (3 core + 24 appendix), output the top 5 concrete edits with
+   file:line precision.
    Cover the empty/loading/error states each kernel hits before the
    model loads — those are camera-on moments.
 
