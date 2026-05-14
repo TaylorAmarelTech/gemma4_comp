@@ -85,6 +85,7 @@
       <ol>
         <li><a href="#quick-start">Quick start</a></li>
         <li><a href="#competition-runbook">Competition runbook</a></li>
+        <li><a href="#deployment-modes">Deployment modes</a></li>
         <li><a href="#architecture">Architecture &amp; data flow</a></li>
         <li><a href="/static/ecosystem.html">Ecosystem map</a></li>
         <li><a href="#harnesses">The 7 harnesses</a></li>
@@ -185,6 +186,41 @@
         fine-tuned, and fine-tuned plus harnessed comparisons without loading
         multiple large models in one session.
       </p>
+    </div>
+
+    <div class="wb-card" id="deployment-modes">
+      <h2>Deployment modes</h2>
+      <p>
+        DueCare is not only a notebook UI. The workbench is the judge-facing
+        proof surface for a runtime that can run locally, inside an enterprise
+        review environment, or with an optional networked hub for shared
+        knowledge. The safety rule is the same in every mode: sensitive user
+        content stays under the control of the worker, NGO, platform, or
+        researcher unless a person explicitly creates a sanitized submission.
+      </p>
+      <table class="wb-table">
+        <thead><tr><th>Mode</th><th>Use Case</th><th>Local Work</th><th>Network Work</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><b>Local worker or caseworker instance</b></td>
+            <td>Private answers, case intake, local research, evidence review.</td>
+            <td>Gemma 4, GREP, RAG, tools, imports, grading, anonymization, and graph extraction.</td>
+            <td>Off by default except optional sanitized search and optional vetted pack sync.</td>
+          </tr>
+          <tr>
+            <td><b>Enterprise or on-prem screening</b></td>
+            <td>Platform moderation, regulator queues, NGO office review, developer integration.</td>
+            <td>Batch content scoring, reviewer explanations, tenant packs, audit logs, and local graph analysis.</td>
+            <td>Optional anonymized pattern signals and pack updates. Existing review systems make enforcement decisions.</td>
+          </tr>
+          <tr>
+            <td><b>Networked hub</b></td>
+            <td>Civil-society fact vetting, public-source updates, shared evaluation packs.</td>
+            <td>Clients preview, redact, label, and hash submissions before sending anything.</td>
+            <td>The hub receives sanitized objects, public-source proposals, pack metadata, and curator decisions.</td>
+          </tr>
+        </tbody>
+      </table>
     </div>
 
     <div class="wb-card" id="architecture">
@@ -527,7 +563,9 @@
         <li><b>Kernel -&gt; DueCare hub:</b> outbound GET only on <a href="/static/sync.html">Sync</a>
           (pulls vetted envelopes). The hub does NOT see anything on this kernel
           unless you go through <a href="/static/share.html">Anonymization &amp; Sharing</a>
-          and explicitly submit a redacted artefact.</li>
+          and explicitly submit a redacted artefact. Hub-side automation re-checks
+          for PII and routes proposals to human civil-society or curator review
+          before any vetted pack changes.</li>
       </ul>
       <p>
         <b>Never logged in plaintext:</b> raw chat messages, raw uploads, raw search queries.

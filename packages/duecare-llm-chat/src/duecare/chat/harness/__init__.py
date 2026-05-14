@@ -4123,7 +4123,7 @@ def _grep_call(text: str, extra_rules=None) -> dict:
 
 
 # ===========================================================================
-# 2. RAG CORPUS (35 docs) + BM25 retrieval
+# 2. RAG CORPUS (54 docs) + hybrid-capable retrieval
 # ===========================================================================
 RAG_CORPUS = [
     # ----- ILO Conventions (paraphrased excerpts; full text on
@@ -4814,6 +4814,104 @@ RAG_CORPUS = [
      "on Trafficking in Persons + Regional Support Office) provide "
      "the coordination framework that bilateral agreements often "
      "lack."),
+    # ----- Fair recruitment and vulnerability guidance -----
+    ("ilo_fair_recruitment_principles_2016",
+     "ILO General Principles and Operational Guidelines for Fair Recruitment",
+     "ILO Fair Recruitment Principles and Operational Guidelines (2016)",
+     "The ILO fair recruitment principles require recruitment to be "
+     "transparent, regulated, and free from deception, coercion, and "
+     "retaliation. Employment terms must be clear before departure; "
+     "workers must not be charged recruitment fees or related costs; "
+     "contracts and job offers must not be substituted after a worker "
+     "has committed to migration. PRACTICAL: when a prompt asks for "
+     "contract riders, side letters, post-arrival deductions, or "
+     "collection agents, the answer should analyze whether the "
+     "arrangement changes the worker's actual terms or shifts employer "
+     "costs to the worker."),
+    ("ilo_recruitment_fees_costs_2019",
+     "ILO Definition of Recruitment Fees and Related Costs (2019)",
+     "ILO Definition of Recruitment Fees and Related Costs, adopted 2019",
+     "Recruitment fees and related costs include any fees or costs "
+     "incurred in the recruitment process for workers to secure "
+     "employment or placement, regardless of the manner, timing, or "
+     "location of collection. Costs can include payments for "
+     "recruitment services, referrals, medical checks, skills tests, "
+     "training, documentation, passports, visas, work permits, travel, "
+     "equipment, deposits, insurance, orientation, or administrative "
+     "services when shifted to the worker. PRACTICAL: relabeling a "
+     "payment as training, medical, processing, insurance, deposit, "
+     "or reimbursement does not remove it from fee analysis."),
+    ("unodc_abuse_vulnerability_issue_paper",
+     "UNODC Issue Paper on Abuse of a Position of Vulnerability",
+     "UNODC Abuse of a Position of Vulnerability Issue Paper",
+     "Abuse of a position of vulnerability is a trafficking means when "
+     "the person has no real or acceptable alternative but to submit "
+     "to the abuse involved. Vulnerability can arise from migration "
+     "status, debt, language barriers, poverty, gender, isolation, "
+     "lack of documents, dependence on an employer, or fear of "
+     "deportation. PRACTICAL: a worker's apparent agreement to a "
+     "deduction or debt is weak evidence of consent when the same "
+     "scenario also contains poverty, recruitment debt, threat of job "
+     "loss, passport control, or cross-border dependence."),
+    ("iom_determinants_migrant_vulnerability",
+     "IOM Determinants of Migrant Vulnerability Model",
+     "IOM Handbook on Protection and Assistance for Migrants Vulnerable to Violence, Exploitation and Abuse",
+     "IOM's vulnerability model examines factors at individual, "
+     "household, community, and structural levels. Individual factors "
+     "include age, gender, language, health, documents, and debt. "
+     "Household factors include dependents and family pressure. "
+     "Community factors include discrimination and lack of trusted "
+     "support. Structural factors include recruitment markets, visa "
+     "systems, debt enforcement, and weak labour inspection. "
+     "PRACTICAL: a good response should explain which level of "
+     "vulnerability is active instead of treating the worker as an "
+     "ordinary commercial counterparty."),
+    ("fatf_human_trafficking_financial_flows",
+     "FATF/APG Financial Flows from Human Trafficking and Migrant Smuggling",
+     "FATF/APG typologies on financial flows from human trafficking and migrant smuggling",
+     "Financial-flow indicators can include repeated cash deposits, "
+     "structured remittances, salary redirection, wage withdrawals by "
+     "third parties, recruitment-fee transfers, use of money service "
+     "businesses or mobile wallets, payments to travel or training "
+     "vendors controlled by recruiters, and cross-border movement of "
+     "debt claims. PRACTICAL: salary assignment, loan novation, and "
+     "collection-agent structures should be analyzed as potential "
+     "trafficking proceeds and money-laundering risks, not only as "
+     "private debt management."),
+    ("ra_9208_anti_trafficking_persons",
+     "PH RA 9208 Anti-Trafficking in Persons Act as amended",
+     "Philippines RA 9208 as amended by RA 10364 and RA 11862",
+     "The Philippine Anti-Trafficking in Persons Act criminalizes "
+     "recruitment, transport, transfer, harboring, provision, or "
+     "receipt of persons by means such as threat, coercion, fraud, "
+     "deception, abuse of vulnerability, or giving payments for "
+     "purposes of exploitation, including forced labour, slavery, "
+     "servitude, and debt bondage. PRACTICAL: an overseas employment "
+     "scheme can implicate both illegal recruitment law and "
+     "anti-trafficking law when recruitment fees, deception, document "
+     "control, or debt pressure are used to obtain labour."),
+    ("ungp_business_human_rights_hrdd",
+     "UN Guiding Principles on Business and Human Rights",
+     "UN Guiding Principles on Business and Human Rights (2011)",
+     "Businesses have a responsibility to respect human rights, avoid "
+     "causing or contributing to adverse impacts, and conduct human "
+     "rights due diligence across their operations and business "
+     "relationships. PRACTICAL: a platform, marketplace, lender, or "
+     "recruitment intermediary should not only ask whether an isolated "
+     "contract clause is legal; it should assess foreseeable labour "
+     "exploitation risk, supplier conduct, grievance access, and "
+     "remediation."),
+    ("ilo_c138_c182_child_labour",
+     "ILO Minimum Age and Worst Forms of Child Labour Conventions",
+     "ILO C138 Minimum Age; ILO C182 Worst Forms of Child Labour",
+     "ILO C138 sets minimum-age obligations for admission to "
+     "employment, and ILO C182 requires immediate action against the "
+     "worst forms of child labour, including slavery, trafficking, "
+     "debt bondage, forced labour, and work likely to harm the "
+     "health, safety, or morals of children. PRACTICAL: prompts about "
+     "recruiting minors, family-sponsored migration, or document age "
+     "irregularities should trigger child-protection analysis before "
+     "any ordinary employment guidance."),
 ]
 
 

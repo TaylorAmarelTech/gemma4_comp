@@ -101,13 +101,26 @@
   -->
   <nav class="dc-wb-nav" aria-label="Workbench workflows">
     <div class="dc-wb-nav-inner">
+      <button type="button"
+              class="dc-wb-nav-toggle"
+              id="dc-wb-nav-toggle"
+              aria-expanded="false"
+              aria-controls="dc-wb-nav-links"
+              aria-label="Open workbench navigation">
+        Menu
+      </button>
       <div class="dc-wb-nav-links" id="dc-wb-nav-links">
-        <a href="/"                              data-nav-key="getting-started"
-           title="What this workbench is, what each layer does, and how to read a grade">Getting Started</a>
-        <a href="/static/use-cases.html"         data-nav-key="use-cases"
-           title="Five judge-facing use cases: platform, NGO/regulator, worker, researcher, and developer">Use Cases</a>
-        <a href="/static/ecosystem.html"         data-nav-key="ecosystem"
-           title="Judge-facing ecosystem diagram for runtime, harnesses, evaluation, synthetic data, training, and deployment">Ecosystem</a>
+        <details class="dc-wb-nav-group" data-nav-group="overview">
+          <summary>Overview</summary>
+          <div class="dc-wb-nav-menu">
+            <a href="/"                              data-nav-key="getting-started"
+               title="What this workbench is, what each layer does, and how to read a grade">Getting Started</a>
+            <a href="/static/use-cases.html"         data-nav-key="use-cases"
+               title="Five judge-facing use cases: platform, NGO/regulator, worker, researcher, and developer">Use Cases</a>
+            <a href="/static/ecosystem.html"         data-nav-key="ecosystem"
+               title="Judge-facing ecosystem diagram for runtime, harnesses, evaluation, synthetic data, training, and deployment">Ecosystem</a>
+          </div>
+        </details>
         <a href="/static/chat.html"              data-nav-key="chat"
            title="Free-form chat against the loaded Gemma 4 model with any harness combination">Chat</a>
         <a href="/static/compare.html"           data-nav-key="compare"
@@ -120,14 +133,19 @@
            title="Secondary search utility. Use Search Safety before external backends; draft results into Gemma-reviewed knowledge when needed.">Search</a>
         <a href="/static/share.html"             data-nav-key="share"
            title="Review, redact, and submit anonymized knowledge to the public hub">Anonymization &amp; Sharing</a>
-        <a href="/static/sync.html"              data-nav-key="sync"
-           title="Pull vetted + unvetted knowledge from the public hub into the local kernel">Sync</a>
-        <a href="/static/status.html"            data-nav-key="status"
-           title="Local instance health: knowledge counts, sync history, backend availability, model state">Status</a>
-        <a href="/static/harness.html"          data-nav-key="harness"
-           title="Select and inspect all seven primary/secondary harness contracts and their test pages">Harnesses</a>
-        <a href="/static/ui-audit.html"         data-nav-key="audit"
-           title="Pre-recording audit for every kernel, page, control, input, output, and backlog item">UI Audit</a>
+        <details class="dc-wb-nav-group" data-nav-group="system">
+          <summary>System</summary>
+          <div class="dc-wb-nav-menu">
+            <a href="/static/sync.html"              data-nav-key="sync"
+               title="Pull vetted and unvetted knowledge from the public hub into the local kernel">Sync</a>
+            <a href="/static/status.html"            data-nav-key="status"
+               title="Local instance health: knowledge counts, sync history, backend availability, model state">Status</a>
+            <a href="/static/harness.html"           data-nav-key="harness"
+               title="Select and inspect all seven primary/secondary harness contracts and their test pages">Harnesses</a>
+            <a href="/static/ui-audit.html"          data-nav-key="audit"
+               title="Pre-recording audit for every kernel, page, control, input, output, and backlog item">UI Audit</a>
+          </div>
+        </details>
       </div>
     </div>
   </nav>

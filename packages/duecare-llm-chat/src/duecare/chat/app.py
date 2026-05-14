@@ -288,8 +288,8 @@ _ONLINE_CONFIG_LOCK = threading.Lock()
 #     wedge the system (Pydantic-shape validation in the endpoint).
 _RETRIEVAL_CONFIG: dict = {
     # ── Chunking parameters (applied at upload + RAG-corpus load) ──
-    "chunk_max_chars":      900,    # target chunk size; smaller → finer BM25
-    "chunk_overlap_chars":  120,    # tail-prepend on non-first chunks
+    "chunk_max_chars":      850,    # target chunk size; smaller -> finer BM25
+    "chunk_overlap_chars":  150,    # tail-prepend on non-first chunks
 
     # ── Parent expansion ───────────────────────────────────────────
     # After chunk-level BM25 returns a hit, optionally expand the
@@ -308,11 +308,11 @@ _RETRIEVAL_CONFIG: dict = {
     "graph_expand_max_chars":   1800,   # total char budget for added context
 
     # ── Hybrid retrieval (BM25 + optional dense) ────────────────────
-    # mode = "bm25"      → lexical only (v0.14.0 default; deterministic)
+    # mode = "bm25"      → lexical only; deterministic fallback
     #        "dense"     → embedding-only (requires embed_call wired)
-    #        "hybrid_rrf"→ both, fused via Reciprocal Rank Fusion
-    "retrieval_mode":           "bm25",
-    "dense_top_k":              20,
+    #        "hybrid_rrf"→ preferred default: BM25 + dense, fused via RRF
+    "retrieval_mode":           "hybrid_rrf",
+    "dense_top_k":              32,
     "rrf_k":                    60,     # standard RRF constant
 
     # ── Reranker (v0.6.0 hook, made first-class here) ───────────────
@@ -1957,7 +1957,7 @@ def create_app(
            harness: {rubric_version: "<live rubric version>",
                      n_dimensions: <live count>,
                      n_evaluation_questions: <live count>, n_grep_rules: 161,
-                     n_rag_docs: 46, n_tools: 5, n_examples: 587,
+                     n_rag_docs: 54, n_tools: 5, n_examples: 587,
                      n_classifier_signals: <auto>, n_authoritative_statutes: <auto>,
                      n_use_cases: 7, n_languages: 12},
            curator_blocks: [{name, schema, version, last_updated, n_entries}],
@@ -2978,7 +2978,7 @@ def create_app(
     def api_harness_catalog(layer: str) -> Any:
         """Return a JSON catalog of what each harness layer exposes.
 
-        Layers: 'grep' (161 regex rules), 'rag' (46-doc corpus),
+        Layers: 'grep' (161 regex rules), 'rag' (54-doc corpus),
                 'tools' (5 lookups + their backing tables),
                 'online' (search providers), 'persona' (persona library).
 
@@ -3585,10 +3585,27 @@ def create_app(
                 cache_stats = embed_call.cache.stats()
             except Exception:  # noqa: BLE001
                 cache_stats = None
+        requested_mode = cfg.get("retrieval_mode", "hybrid_rrf")
+        embed_wired = embed_call is not None
+        rerank_wired = app.state.rerank_call is not None
+        if requested_mode in ("dense", "hybrid_rrf") and not embed_wired:
+            effective_mode = "bm25_rerank_graph" if rerank_wired else "bm25_graph"
+            fallback_reason = "embed_call is not wired, so dense retrieval is skipped"
+        else:
+            effective_mode = requested_mode
+            fallback_reason = ""
         return {
             **cfg,
-            "rerank_wired":  app.state.rerank_call is not None,
-            "embed_wired":   embed_call is not None,
+            "profile":       "hybrid preferred",
+            "effective_mode": effective_mode,
+            "fallback_reason": fallback_reason,
+            "rag_vs_grep": (
+                "RAG retrieves evidence passages for grounding; GREP fires "
+                "deterministic risk rules and citations. BM25 is not the "
+                "same layer as GREP."
+            ),
+            "rerank_wired":  rerank_wired,
+            "embed_wired":   embed_wired,
             "embed_cache":   cache_stats,
             "evaluator_wired": getattr(app.state, "evaluator_call", None) is not None,
             "available_modes": ["bm25", "dense", "hybrid_rrf"],
@@ -3615,6 +3632,22 @@ def create_app(
         post-patch live state."""
         if not isinstance(req, dict):
             raise HTTPException(400, "body must be a JSON object")
+        req = dict(req)
+        # Backwards compatibility for older settings panels. The
+        # current API names the control `retrieval_mode`; older pages
+        # sent `mode` with `rrf` for hybrid. Keep accepting it so a
+        # stale browser tab can still tune the live server correctly.
+        if "mode" in req and "retrieval_mode" not in req:
+            legacy_mode = req.pop("mode")
+            req["retrieval_mode"] = (
+                "hybrid_rrf" if legacy_mode == "rrf" else legacy_mode
+            )
+        else:
+            req.pop("mode", None)
+        if "top_k" in req and "rerank_keep" not in req:
+            req["rerank_keep"] = req.pop("top_k")
+        else:
+            req.pop("top_k", None)
         # Allowed keys + per-key validators. Each validator returns the
         # cleaned value or raises HTTPException(400, ...).
         def _bounded_int(name, lo, hi):
@@ -4239,16 +4272,27 @@ def create_app(
         _t0 = time.time()
         if toggles.rag and app.state.rag_call is not None:
             try:
+                _ret_cfg = _retrieval_cfg_snapshot()
+                _retrieval_mode = _ret_cfg.get("retrieval_mode", "hybrid_rrf")
+                candidate_k = max(
+                    int(_ret_cfg.get("rerank_top_k", 50)),
+                    int(_ret_cfg.get("dense_top_k", 32)),
+                    int(_ret_cfg.get("rerank_keep", 8)),
+                )
+                candidate_k = max(5, min(200, candidate_k))
                 try:
                     rr = app.state.rag_call(user_text,
+                                              top_k=candidate_k,
                                               extra_docs=toggles.custom_rag_docs) or {}
                 except TypeError:
-                    rr = app.state.rag_call(user_text) or {}
+                    try:
+                        rr = app.state.rag_call(user_text, top_k=candidate_k) or {}
+                    except TypeError:
+                        rr = app.state.rag_call(user_text) or {}
                 docs = rr.get("docs") or []
+                n_first_stage_docs = len(docs)
                 # v0.14.0: layer-scoped path-trace init + retrieval cfg.
                 _path_trace_init(trace["rag"])
-                _ret_cfg = _retrieval_cfg_snapshot()
-                _retrieval_mode = _ret_cfg.get("retrieval_mode", "bm25")
                 # v0.14.0: hybrid retrieval — BM25 → optional dense fusion
                 # via Reciprocal Rank Fusion. No-op when retrieval_mode
                 # is "bm25" or no embed_call is wired.
@@ -4289,8 +4333,21 @@ def create_app(
                             reranked = True
                     except Exception:  # noqa: BLE001
                         pass  # rerank failure → keep BM25 order
+                keep_n = max(1, int(_ret_cfg.get("rerank_keep", 8)))
+                docs = docs[:keep_n]
                 citations = rr.get("citations") or []
                 graph_neighbours = rr.get("graph_neighbours") or []
+                final_ids = {d.get("id") for d in docs if isinstance(d, dict)}
+                if final_ids:
+                    citations = [
+                        c for c in citations
+                        if c.get("from") in final_ids or c.get("to") in final_ids
+                    ]
+                    graph_neighbours = [
+                        n for n in graph_neighbours
+                        if ((n.get("via_edge") or {}).get("trigger") in final_ids
+                            or n.get("id") in final_ids)
+                    ]
                 # Trace records for the harness-side stages that ran
                 # inside _rag_call (BM25 + citation lookup + graph
                 # expansion). We don't have the elapsed-ms breakdown
@@ -4298,7 +4355,7 @@ def create_app(
                 # so we report the aggregate elapsed_ms against bm25
                 # and tag the graph stage with n_in/n_out only.
                 _path_trace_record(trace["rag"], layer="rag", stage="bm25",
-                                      n_in=len(docs) if docs else 0,
+                                      n_in=n_first_stage_docs,
                                       n_out=len(docs),
                                       elapsed_ms=int(rr.get("elapsed_ms", 0)))
                 if citations:

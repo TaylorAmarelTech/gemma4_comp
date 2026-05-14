@@ -22,7 +22,7 @@ from a chatbot into an **auditable decision-support system**.
 |---|---|---|
 | Anonymizer | PII strip / generalize before storage / sharing | `harness/__init__.py` (planned curator block) |
 | GREP / rule engine | 161 hand-curated regex rules across 31 categories | `harness/__init__.py` `GREP_RULES` |
-| RAG database | 46-doc curated legal corpus + 46-edge citation graph | `harness/__init__.py` `RAG_CORPUS` + `_citations.json` |
+| RAG database | 54-doc curated legal and typology corpus + 46-edge citation graph | `harness/__init__.py` `RAG_CORPUS` + `_citations.json` |
 | Tool layer | 5 function-calling lookups + 72 backing-table rows | `harness/__init__.py` `_TOOL_DISPATCH` + `CORRIDOR_FEE_CAPS` etc. |
 | Contacts directory | 26-entry curator-block | `harness/_contacts.json` |
 | Prompt / context builder | Converts signals + RAG into model context | `app.py` chat pipeline |
@@ -36,7 +36,7 @@ from a chatbot into an **auditable decision-support system**.
 |---|---|---|
 | Persona | purple | 40-year anti-trafficking expert system prompt; user-extendable |
 | GREP | red | 161 regex rules across 31 categories |
-| RAG | blue | 46-doc corpus + 46-edge citation graph (BM25 + optional dense + RRF) |
+| RAG | blue | 54-doc corpus + 46-edge citation graph (hybrid preferred: BM25 + optional dense + RRF) |
 | Imports | teal | User-attached evidence (images / docs / posts) |
 | Tools | green | 5 function-calling lookups |
 | Online | amber | Live web search (Brave / DDG fallback / Playwright) with cross-check warning |
@@ -70,7 +70,7 @@ edit.
 GET  /api/brand                — single source of truth
 GET  /api/version              — chat-package + harness counts + 13 curator-block index
 GET  /api/health-check         — wired layers + model info
-GET  /api/rag/graph            — 46 nodes + 46 edges + jurisdiction groups
+GET  /api/rag/graph            — 54 nodes + 46 edges + jurisdiction groups
 GET  /api/harness-catalog/{persona|grep|rag|tools|online}
 POST /api/grep/test            — paste text, get firing rules
 GET  /api/search-all?q=        — federated cross-layer search

@@ -6178,18 +6178,18 @@ async function _renderRetrievalConfigPanel() {
     </label>`;
   panel.innerHTML = `
     <details open>
-      <summary style="cursor:pointer; padding:8px 12px; background:rgba(47,85,99,0.06); border-left:3px solid #2f5563; border-radius:4px; font-weight:700; color:#2f5563; user-select:none;">▸ Configure retrieval (v0.8.0 knobs)</summary>
+      <summary style="cursor:pointer; padding:8px 12px; background:rgba(47,85,99,0.06); border-left:3px solid #2f5563; border-radius:4px; font-weight:700; color:#2f5563; user-select:none;">Configure retrieval</summary>
       <div style="padding:12px; background:rgba(47,85,99,0.03); border:1px solid rgba(168,85,247,0.2); border-radius:0 0 6px 6px; margin-top:-1px;">
         <div style="font-size:10.5px; color:var(--muted); margin-bottom:10px; line-height:1.55;">
-          All knobs persist for the kernel session. Reranker wired: <b style="color:${cfg.rerank_wired ? '#10b981' : '#5B5F68'}">${cfg.rerank_wired ? 'yes' : 'no'}</b> · Embedder wired: <b style="color:${cfg.embed_wired ? '#10b981' : '#5B5F68'}">${cfg.embed_wired ? 'yes' : 'no'}</b>. When a hook is unwired, the corresponding mode degrades gracefully to BM25.
+          All knobs persist for the kernel session. Reranker wired: <b style="color:${cfg.rerank_wired ? '#10b981' : '#5B5F68'}">${cfg.rerank_wired ? 'yes' : 'no'}</b> | Embedder wired: <b style="color:${cfg.embed_wired ? '#10b981' : '#5B5F68'}">${cfg.embed_wired ? 'yes' : 'no'}</b>. Effective mode: <b>${escapeHtml(cfg.effective_mode || cfg.retrieval_mode || 'pending')}</b>. ${cfg.fallback_reason ? escapeHtml(cfg.fallback_reason) + '.' : ''}
           ${cfg.embed_cache ? `<br><span style="margin-top:4px; display:inline-block;"><b>Embed cache:</b> ${cfg.embed_cache.size.toLocaleString()} entries, ${cfg.embed_cache.hit_rate}% hit-rate (${cfg.embed_cache.hits.toLocaleString()} hits / ${cfg.embed_cache.misses.toLocaleString()} misses) <button onclick="_clearEmbedCache()" style="margin-left:6px; background:transparent; border:1px solid var(--border); color:var(--muted); padding:2px 8px; border-radius:4px; font-size:10px; cursor:pointer;">Clear cache</button></span>` : ''}
         </div>
 
         <div style="margin-bottom:14px;">
           <div style="font-size:11px; color:var(--muted); font-weight:700; text-transform:uppercase; margin-bottom:6px;">Retrieval mode</div>
           <div style="display:flex; flex-direction:column; gap:5px;">
-            ${radio('retrieval_mode', 'bm25',       'BM25 (lexical only)',   'Deterministic; default. Best for keyword-rich legal text.', cfg.retrieval_mode)}
-            ${radio('retrieval_mode', 'hybrid_rrf', 'Hybrid (BM25 + dense, RRF fused)', 'Requires embed_call wired. Adds semantic recall on top of lexical precision.', cfg.retrieval_mode)}
+            ${radio('retrieval_mode', 'hybrid_rrf', 'Hybrid preferred (BM25 + dense, RRF fused)', 'Default. Adds semantic recall when embed_call is wired, with BM25 fallback.', cfg.retrieval_mode)}
+            ${radio('retrieval_mode', 'bm25',       'BM25 lexical fallback', 'Deterministic. Strong for statute IDs and keyword-rich legal text.', cfg.retrieval_mode)}
             ${radio('retrieval_mode', 'dense',      'Dense only (semantic)', 'Requires embed_call. Best for paraphrase-style queries; weaker on exact statute IDs.', cfg.retrieval_mode)}
           </div>
         </div>
@@ -6245,7 +6245,7 @@ async function _renderRetrievalConfigPanel() {
 // ===========================================================================
 // RAG GRAPH VIEWER (v0.14.0)
 // ---------------------------------------------------------------------------
-// Force-directed graph of the 46-doc RAG corpus + 46-edge citation graph.
+// Force-directed graph of the bundled RAG corpus + citation graph.
 // Pure SVG, ~150 lines, no D3/Cytoscape dependency. Color-codes nodes by
 // source jurisdiction (ILO / national / regional / NGO) so the corpus
 // structure is visible at a glance. Click a node → render its content
@@ -6266,7 +6266,7 @@ async function _renderRagGraphViewer() {
   panel.innerHTML = `
     <details>
       <summary style="cursor:pointer; padding:8px 12px; background:rgba(47,85,99,0.06); border-left:3px solid #2f5563; border-radius:4px; font-weight:700; color:#2f5563; user-select:none;">
-        ▸ Browse the corpus as a graph (${graph.meta.n_nodes} docs, ${graph.meta.n_edges} citation edges)
+        Browse the corpus as a graph (${graph.meta.n_nodes} docs, ${graph.meta.n_edges} citation edges)
       </summary>
       <div style="padding:14px; background:rgba(47,85,99,0.03); border:1px solid rgba(124,58,237,0.2); border-radius:0 0 6px 6px; margin-top:-1px;">
         <div style="font-size:10.5px; color:var(--muted); margin-bottom:10px; line-height:1.5;">

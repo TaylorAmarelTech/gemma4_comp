@@ -19,6 +19,12 @@
         if (link) {
             link.setAttribute('aria-current', 'page');
             link.classList.add('on');
+            const group = link.closest('.dc-wb-nav-group');
+            if (group) {
+                group.classList.add('on');
+                const summary = group.querySelector('summary');
+                if (summary) summary.classList.add('on');
+            }
         }
     }
 
@@ -288,6 +294,24 @@
         renderModelOptions(null, null);
     }
 
+    function wireNavToggle() {
+        const btn = document.getElementById('dc-wb-nav-toggle');
+        const links = document.getElementById('dc-wb-nav-links');
+        if (!btn || !links) return;
+        btn.addEventListener('click', function () {
+            const open = !document.body.classList.contains('dc-wb-nav-open');
+            document.body.classList.toggle('dc-wb-nav-open', open);
+            btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+        });
+        links.addEventListener('click', function (event) {
+            const target = event.target;
+            if (target && target.tagName === 'A') {
+                document.body.classList.remove('dc-wb-nav-open');
+                btn.setAttribute('aria-expanded', 'false');
+            }
+        });
+    }
+
     async function isModelReadyForPage() {
         const state = await refreshModelLoaderStatus();
         if (state.info && state.info.loaded) return true;
@@ -302,9 +326,9 @@
             const ok = window.confirm(
                 'Shut down the Kaggle kernel?\n\n' +
                 'This will:\n' +
-                '  • release GPU memory\n' +
-                '  • close the cloudflared tunnel\n' +
-                '  • make this URL unreachable until the kernel is restarted\n\n' +
+                '  - release GPU memory\n' +
+                '  - close the cloudflared tunnel\n' +
+                '  - make this URL unreachable until the kernel is restarted\n\n' +
                 'You will need to re-run the Kaggle cell to bring it back.'
             );
             if (!ok) return;
@@ -350,6 +374,7 @@
         }
         const key = document.body.getAttribute('data-nav') || '';
         activate(nav, key);
+        wireNavToggle();
         wireModelPopover();
         wireShutdown();
         wireClearChat();

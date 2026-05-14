@@ -31,7 +31,7 @@ def test_harness_loads_with_expected_counts() -> None:
     """Current wheel harness counts stay pinned for demo reproducibility."""
     h = _load_harness_module()
     assert len(h.GREP_RULES) == 161
-    assert len(h.RAG_CORPUS) == 46
+    assert len(h.RAG_CORPUS) == 54
     assert len(h._TOOL_DISPATCH) == 5
     assert len(h.EXAMPLE_PROMPTS) == 587
     assert len(h.RUBRICS_5TIER) == 207

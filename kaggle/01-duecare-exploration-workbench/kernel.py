@@ -7,7 +7,7 @@
 #     Researcher / Developer) with curated sample prompts per lane.
 #   - Free-form chat playground with five safety layers plus local imports,
 #     4 grading modes, and 9 Gemma 4 variants on the home page.
-#   - Layer transparency: 161 GREP rules / 46 RAG docs / 5 tools, each
+#   - Layer transparency: 161 GREP rules / 54 RAG docs / 5 tools, each
 #     browsable with its own viewer page under /static/harness.html.
 #   - Anonymization preview, hotlines directory, cross-layer search, and a
 #     full Tools index at /static/all-tools.html, all behind one nav bar.
@@ -38,8 +38,8 @@
                      recovery suppression / repatriation barriers,
                      additional corridors, platform / digital
                      recruitment patterns)
-      RAG          BM25 (+ optional dense + RRF) over a 46-doc
-                     reference corpus across 27 jurisdiction groups,
+      RAG          Hybrid preferred RAG over a 54-doc
+                     reference corpus across curated source groups,
                      plus a 46-edge citation graph for 1-hop expansion
       Imports      user-attached evidence (images / docs / posts)
                      auto-bound to the prompt context
@@ -1572,8 +1572,8 @@ if ENABLE_ONLINE_SEARCH:
 # Replaces the 30+ lines of per-kernel boilerplate that used to live
 # here — pattern is now identical across all 13 kernels.
 # Env vars:
-#   ENABLE_RERANKER=1   (default ON  — ~70 MB CPU model)
-#   ENABLE_EMBEDDER=1   (default OFF — ~80 MB CPU model + cache)
+#   ENABLE_RERANKER=1   (default ON; ~70 MB CPU model)
+#   ENABLE_EMBEDDER=1   (default ON; ~80 MB CPU model + cache)
 #   DUECARE_DISABLE_*=1 (hard kill switch for either hook)
 try:
     from duecare.chat.kernel_helpers import default_optional_hooks

@@ -125,7 +125,7 @@ LAYERS: dict[str, HarnessLayer] = {
         key="rag",
         label="RAG",
         color="#4c7a8a",
-        short_desc="BM25 retrieval over the curated legal corpus.",
+        short_desc="Hybrid RAG over the curated legal and typology corpus.",
         description=(
             "BM25 (+ optional dense + RRF fusion) over a curated "
             "in-kernel corpus spanning ILO conventions, national "
@@ -223,6 +223,8 @@ class Jurisdiction:
 
 JURISDICTIONS: tuple[Jurisdiction, ...] = (
     Jurisdiction("ilo_p",   "ilo_protocol",   "ILO Protocol",        "#a855f7"),
+    Jurisdiction("ilo_f",   "ilo_guidance",   "ILO Guidance",        "#6d28d9"),
+    Jurisdiction("ilo_r",   "ilo_guidance",   "ILO Guidance",        "#6d28d9"),
     Jurisdiction("ilo_c",   "ilo_convention", "ILO Convention",      "#7c3aed"),
     Jurisdiction("poea_",   "poea",           "POEA / PH",           "#10b981"),
     Jurisdiction("ra_",     "ph_ra",          "PH RA Statute",       "#059669"),
@@ -245,6 +247,9 @@ JURISDICTIONS: tuple[Jurisdiction, ...] = (
     Jurisdiction("uncrc_",  "uncrc",          "UNCRC",               "#f59e0b"),
     Jurisdiction("cedaw_",  "cedaw",          "CEDAW",               "#d97706"),
     Jurisdiction("who_",    "who",            "WHO Code",            "#16a34a"),
+    Jurisdiction("unodc_",  "unodc",          "UNODC",               "#be123c"),
+    Jurisdiction("iom_",    "iom",            "IOM",                 "#2563eb"),
+    Jurisdiction("ungp_",   "ungp",           "UNGP",                "#475569"),
     Jurisdiction("pacific_","pacific",        "Pacific Framework",   "#06b6d4"),
     Jurisdiction("bali_",   "bali",           "Bali Process",        "#0284c7"),
     Jurisdiction("fatf_",   "fatf",           "FATF Recommendation", "#475569"),
@@ -271,7 +276,7 @@ def classify_doc(doc_id: str) -> tuple[str, str, str]:
 
     Single source of truth for how a corpus document gets bucketed
     on every UI surface. The fallback is the grey "Other" group, but
-    the canonical 46-doc corpus has 0 docs in Other (Pattern Brief
+    the bundled corpus has 0 docs in Other (Pattern Brief
     catches the cross-cutting analytical entries).
     """
     if doc_id in PATTERN_BRIEF_IDS:

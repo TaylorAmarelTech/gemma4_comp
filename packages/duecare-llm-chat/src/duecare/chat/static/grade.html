@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Grade — DueCare Workbench</title>
+  <title>Grade | DueCare Workbench</title>
   <link rel="stylesheet" href="/static/_chrome.css">
   <link rel="stylesheet" href="/static/showcase.css">
   <script src="/static/_nav.js" defer></script>
@@ -125,7 +125,7 @@
 <body data-nav="grade">
 <main class="showcase">
   <div class="wb-trust" style="background: oklch(0.92 0.06 155); color: oklch(0.32 0.07 155); padding: 8px 14px; border-radius: 8px; font-size: 12.5px; margin: 0 0 14px;"><b>Trust boundary:</b> Grading runs against the loaded Gemma 4 in this kernel (deep / combined modes) or via deterministic rules (universal). No prompt, response, or rubric leaves the kernel. Graded transcripts are appended to the per-task training-log JSONL.</div>
-  <div class="crumbs">Workbench tool · Chat &amp; classification</div>
+  <div class="crumbs">Workbench tool | Chat &amp; classification</div>
   <h1>Grade a response</h1>
   <p class="lede">
     Paste a prompt + an assistant response. The current universal rubric
@@ -150,9 +150,9 @@
 
       <label style="margin-top:14px;">Mode <span>which grader to run</span></label>
       <div class="mode-row" role="group" aria-label="Grader mode">
-        <button class="mode-pill on" type="button" data-mode="rule">Rule-based · ~2s</button>
-        <button class="mode-pill"    type="button" data-mode="deep">LLM-judge · ~30-90s</button>
-        <button class="mode-pill"    type="button" data-mode="combined">Combined · ~30-90s</button>
+        <button class="mode-pill on" type="button" data-mode="rule">Rule-based | about 2s</button>
+        <button class="mode-pill"    type="button" data-mode="deep">LLM-judge | about 30-90s</button>
+        <button class="mode-pill"    type="button" data-mode="combined">Combined | about 30-90s</button>
       </div>
       <div class="mode-help" id="mode-help"></div>
 
@@ -179,7 +179,7 @@
         Live trace of API calls + per-step events from this page.
       </p>
       <div id="page-activity-log" class="dc-activity-log" role="log" aria-label="Activity log" aria-live="polite">
-        <div class="dc-log-idle">No activity yet -- interact with the page to populate.</div>
+        <div class="dc-log-idle">No activity yet. Interact with the page to populate.</div>
       </div>
     </div>
 
@@ -187,7 +187,7 @@
 
 <script>
   const MODE_HELP = {
-    rule: "Deterministic — fires 46 rubric rules over the response text. No LLM call. Best for fast CI/regression checks.",
+    rule: "Deterministic: fires 46 rubric rules over the response text. No LLM call. Best for fast CI/regression checks.",
     deep: "Sends each dimension's yes/no question back to the loaded Gemma model. Captures evidence quotes from the response itself.",
     combined: "Runs both graders in parallel and blends the scores 50/50. The disagreement panel highlights dimensions where the two views diverge."
   };
@@ -253,7 +253,7 @@
       <div class="result-header">
         // audit-allow:innerHTML-safe -- pct is numeric grade score; verdictClass returns fixed CSS class names
         <span class="score-big">${pct}%</span>
-        <span class="score-label">overall · ${escapeHtml(mode)} grader</span>
+        <span class="score-label">overall | ${escapeHtml(mode)} grader</span>
         <span class="verdict ${verdictClass(pct)}">${escapeHtml(verdict)}</span>
       </div>
       <div class="progress"><div class="bar" style="width:${pct}%"></div></div>
