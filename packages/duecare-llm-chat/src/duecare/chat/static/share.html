@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <title>Anonymization &amp; Sharing -- DueCare Workbench</title>
+  <title>Anonymization &amp; Sharing | DueCare Workbench</title>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="stylesheet" href="/static/_chrome.css">
@@ -48,20 +48,21 @@
 </head>
 <body data-nav="share">
   <main class="wb-page">
-    <h1 class="wb-h1">Anonymization &amp; Sharing -- review, redact, submit</h1>
+    <h1 class="wb-h1">Anonymization &amp; Sharing</h1>
     <div class="wb-trust" style="background: oklch(0.94 0.04 45); color: oklch(0.32 0.07 45); padding: 8px 14px; border-radius: 8px; font-size: 12.5px; margin-bottom: 14px;">
       <b>Trust boundary:</b> Steps 1-3 happen entirely inside the kernel.
       Step 4 (Submit) performs a real HTTPS POST
-      to <code>duecare-ai.com/api/submit/knowledge</code> with a 10s timeout; the local audit captures the remote status + any failure reason. The
+      to the configured DueCare hub with a 10s timeout; the local audit captures the remote status and any failure reason. The
       audit log at <code>/kaggle/working/audit/submit_log.jsonl</code> records
-      every Step-4 click + sha256.
+      every Step 4 click and sha256.
     </div>
 
     <p class="wb-lede">
       Upload a ZIP, review extracted facts, anonymize, then submit. Every step
       logs the API call + response in the live activity log below so you can
-      see exactly what the kernel is doing. Step 4 is currently an audited
-      local stage; the live HTTPS POST to duecare-ai.com is the next wiring.
+      see exactly what the kernel is doing. The default target is the current
+      Render hub; switch it to <code>https://duecare-ai.com/api/submit/knowledge</code>
+      once that domain is wired.
     </p>
 
     <!-- Step 1 -->
@@ -129,10 +130,14 @@
     <div class="wb-step" id="wb-step-4">
       <span class="wb-step-num">4</span>
       <div class="wb-step-body">
-        <h3>Submit anonymized knowledge to duecare-ai.com</h3>
-        <p>Target: <code>POST https://duecare-ai.com/api/submit/knowledge</code>. Audit log: <code>/kaggle/working/audit/submit_log.jsonl</code>.</p>
+        <h3>Submit anonymized knowledge to the hub</h3>
+        <p>Target: <code>POST</code> to the hub URL below. Audit log: <code>/kaggle/working/audit/submit_log.jsonl</code>.</p>
+        <label style="display:block; font-size:11px; color:#5B5F68; text-transform:uppercase; letter-spacing:.04em; margin-bottom:5px;">Hub submit URL</label>
+        <input id="wb-hub-url" type="text"
+               value="https://gemma4-comp.onrender.com/api/submit/knowledge"
+               style="width:100%; box-sizing:border-box; padding:8px 10px; border:1px solid #DDD8C9; border-radius:6px; font-size:12px;">
         <div class="wb-row">
-          <button class="wb-btn-primary" id="wb-step4-btn" disabled onclick="wbStep4()">Step 4: Submit to duecare-ai.com</button>
+          <button class="wb-btn-primary" id="wb-step4-btn" disabled onclick="wbStep4()">Step 4: Submit to hub</button>
         </div>
         <div id="wb-step4-result" style="margin-top: 12px;"></div>
       </div>
@@ -140,7 +145,7 @@
 
     <!-- Activity log -->
     <div class="wb-card">
-      <h2>Activity log <span class="wb-muted" style="font-weight: normal;">-- every API call, response, sha256, audit-log entry</span></h2>
+      <h2>Activity log <span class="wb-muted" style="font-weight: normal;">every API call, response, sha256, audit-log entry</span></h2>
       <div id="wb-log" class="dc-activity-log">
         <div class="wb-muted">No activity yet. Click <i>Step 1</i> to begin.</div>
       </div>
@@ -187,7 +192,7 @@
         }
         wbBundle = await r.json();
         wbLog('ok', 'HTTP ' + r.status + ' (' + dt + 'ms)',
-              'run_id=' + wbBundle.run_id + ' · rows=' + wbBundle.summary.n_rows_processed);
+              'run_id=' + wbBundle.run_id + ' | rows=' + wbBundle.summary.n_rows_processed);
         wbRenderFacts(); document.getElementById('wb-step-1').classList.add('done');
       } catch (e) {
         const err = document.getElementById('wb-step1-error');
@@ -254,7 +259,7 @@
         const out = await r.json();
         const totalRed = (out.diffs || []).reduce((a, d) => a + (d.n_redactions || 0), 0);
         wbLog('ok', 'HTTP ' + r.status + ' (' + dt + 'ms)',
-              'n_redactions_total=' + totalRed + ' · per-text=' + (out.diffs || []).map(d => d.n_redactions).join(','));
+              'n_redactions_total=' + totalRed + ' | per-text=' + (out.diffs || []).map(d => d.n_redactions).join(','));
         wbAnonymized = { selected: selected, redacted: out.redacted || [], diffs: out.diffs || [] };
         wbRenderDiffs(); document.getElementById('wb-step-3').classList.add('done');
         document.getElementById('wb-step4-btn').disabled = false;
@@ -284,12 +289,13 @@
         redacted_text: r,
         n_redactions: (wbAnonymized.diffs[i] || {}).n_redactions || 0,
       }));
-      wbLog('info', 'POST /api/submit/knowledge', 'n_items=' + knowledge.length);
+      const targetUrl = (document.getElementById('wb-hub-url').value || '').trim();
+      wbLog('info', 'POST /api/submit/knowledge', 'n_items=' + knowledge.length + ' | target=' + targetUrl);
       const t0 = performance.now();
       try {
         const r = await fetch('/api/submit/knowledge', {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ knowledge: knowledge })
+          body: JSON.stringify({ knowledge: knowledge, target_url: targetUrl })
         });
         const dt = Math.round(performance.now() - t0);
         if (!r.ok) {
@@ -298,7 +304,7 @@
         }
         const out = await r.json();
         wbLog('ok', 'HTTP ' + r.status + ' (' + dt + 'ms)',
-              'run_id=' + out.run_id + ' · audit=' + out.audit_path + ' · sha256=' + out.sha256_blob.slice(0, 16) + '...');
+              'run_id=' + out.run_id + ' | audit=' + out.audit_path + ' | sha256=' + out.sha256_blob.slice(0, 16) + '...');
         resultHost.innerHTML =
           '<div style="background: oklch(0.92 0.06 155); color: oklch(0.32 0.07 155); padding: 12px; border-radius: 8px;">' +
           '<b>Submission processed.</b><br>' +
@@ -310,7 +316,7 @@
         document.getElementById('wb-step-4').classList.add('done');
       } catch (e) {
         resultHost.innerHTML = '<div class="wb-error">Step 4 failed: ' + (e && e.message || e) + '</div>';
-      } finally { btn.disabled = false; btn.textContent = 'Step 4: Submit to duecare-ai.com'; }
+      } finally { btn.disabled = false; btn.textContent = 'Step 4: Submit to hub'; }
     }
     const dz = document.getElementById('wb-dropzone');
     if (dz) {

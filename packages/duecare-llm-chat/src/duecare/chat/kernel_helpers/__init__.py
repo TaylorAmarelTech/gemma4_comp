@@ -68,9 +68,9 @@ def default_optional_hooks(*,
         app = create_app(gemma_call=..., **default_optional_hooks(),
                          **default_harness())
 
-    Each hook is opt-in via env var (defaults match the primary
-    01-duecare-exploration-workbench kernel — reranker ON, embedder OFF since
-    embed adds 80 MB and most kernels stay on pure BM25 retrieval).
+    Each hook can be controlled via env var. Defaults match the
+    primary workbench profile: reranker ON and embedder ON, with
+    graceful fallback to BM25 if the small CPU embedder cannot load.
 
     Args:
         rerank: explicit override for ENABLE_RERANKER. None = read env.
@@ -80,7 +80,7 @@ def default_optional_hooks(*,
 
     Env vars:
         ENABLE_RERANKER=1|0          (default: 1)
-        ENABLE_EMBEDDER=1|0          (default: 0)
+        ENABLE_EMBEDDER=1|0          (default: 1)
         DUECARE_DISABLE_RERANKER=1   (hard kill switch)
         DUECARE_DISABLE_EMBEDDER=1   (hard kill switch)
         DUECARE_EMBED_CACHE_SIZE=N   (default: 50000)
@@ -108,7 +108,7 @@ def default_optional_hooks(*,
                 print(f"[kernel_helpers] reranker unavailable: {e}",
                       file=_sys.stderr)
 
-    enable_embed = (_os.environ.get("ENABLE_EMBEDDER", "0") == "1"
+    enable_embed = (_os.environ.get("ENABLE_EMBEDDER", "1") == "1"
                       if embed is None else bool(embed))
     if enable_embed:
         try:

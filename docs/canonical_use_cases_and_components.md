@@ -85,6 +85,26 @@ Avoid using these as top-level user labels:
 
 Technical nicknames such as Runtime, Harness, Eval, and Exchange can remain internal package names, but public pages should use plain-language component names.
 
+## 3a. Deployment promises
+
+Use these deployment descriptions consistently in the writeup, notebook UI,
+video narration, and public hub:
+
+1. **Local instance:** Gemma 4, harness layers, imported evidence, grading,
+   anonymization, and graph extraction run on the user's device, Kaggle
+   session, or tenant-owned machine. Raw worker chats, case files, IDs,
+   images, and private documents stay there unless a user deliberately exports
+   or submits a sanitized object.
+2. **Enterprise or on-prem screening:** platforms, regulators, and NGOs can
+   run the same FastAPI harness contracts inside existing review queues. The
+   system flags, explains, and audits. The customer's reviewer workflow makes
+   moderation, referral, or enforcement decisions.
+3. **Networked knowledge hub:** the public server coordinates vetted packs,
+   public-source updates, anonymized pattern signals, and evaluation artifacts.
+   It must not be described as a raw case repository. The hub receives
+   sanitized objects, rejects raw PII, and requires civil-society or curator
+   review before a pack becomes vetted.
+
 ## 4. Technical components, grouped by what they do
 
 Implementation-status note: this page is the canonical public vocabulary and target component map, not a release inventory. Validated current state is tracked in [PACKAGE_INVENTORY.md](PACKAGE_INVENTORY.md) and [SUBMISSION_READINESS_AUDIT.md](SUBMISSION_READINESS_AUDIT.md). Components marked as target or planned must not be described as live in the writeup or video until their code path and validation evidence exist.

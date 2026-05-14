@@ -75,6 +75,24 @@
   </div>
 
   <section class="section">
+    <h2>Deployment modes</h2>
+    <div class="tools-row">
+      <div class="tool-card">
+        <div class="name">Local runtime</div>
+        <div class="desc">Run the workbench or API on a laptop, Kaggle kernel, office server, or mobile-adjacent device. Raw content stays local.</div>
+      </div>
+      <div class="tool-card">
+        <div class="name">Enterprise screening</div>
+        <div class="desc">Wire the API into a moderation queue or case system. DueCare flags and explains; your existing reviewer workflow acts.</div>
+      </div>
+      <div class="tool-card">
+        <div class="name">Networked hub</div>
+        <div class="desc">Submit only anonymized pattern objects, pull vetted packs, and keep volatile contacts and policy facts out of model memory.</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
     <h2>Integration surface</h2>
     <table class="api-table">
       <thead>
@@ -104,7 +122,7 @@
         <tr>
           <td><code>POST /api/anonymize</code></td>
           <td>Hard privacy boundary for redaction before hub submission or external routing.</td>
-          <td><a href="/static/anonymization.html">Anonymization</a></td>
+          <td><a href="/static/share.html">Anonymization</a></td>
         </tr>
         <tr>
           <td><code>GET /api/harnesses</code></td>

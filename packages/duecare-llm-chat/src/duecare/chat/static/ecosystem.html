@@ -91,6 +91,45 @@
     </section>
 
     <section class="panel">
+      <h2>Deployment Modes</h2>
+      <p class="lede">
+        The same harness contracts support three operational shapes. Judges can
+        test the local Kaggle instance today, while partners can map the same
+        contracts into tenant-owned moderation queues or a privacy-preserving
+        knowledge network.
+      </p>
+      <table>
+        <thead><tr><th>Mode</th><th>Primary Users</th><th>What Runs Locally</th><th>What Can Touch The Network</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>Local instance</td>
+            <td>Worker, caseworker, researcher, judge</td>
+            <td>Gemma 4, harness layers, imported evidence, grading, and graph extraction.</td>
+            <td>Only optional search and optional pack sync. Raw case files stay in the kernel or device.</td>
+          </tr>
+          <tr>
+            <td>Enterprise or on-prem screening</td>
+            <td>Platform safety, regulator, NGO office, integration partner</td>
+            <td>Moderation API, batch review queue, tenant packs, audit logs, local graph, and reviewer UI.</td>
+            <td>Optional anonymized pattern signals and vetted pack pulls. The enterprise review pipeline decides actions.</td>
+          </tr>
+          <tr>
+            <td>Networked knowledge hub</td>
+            <td>Civil-society curators, researchers, partner deployments</td>
+            <td>Local anonymization, consent labels, hash receipts, and proposal preview.</td>
+            <td>Public-source facts, anonymized signals, vetted/unvetted pack metadata, and curator-approved updates.</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="legend">
+        <span class="pill">raw cases stay local</span>
+        <span class="pill">hub stores sanitized objects</span>
+        <span class="pill">civil society vets updates</span>
+        <span class="pill">clients pull versioned packs</span>
+      </div>
+    </section>
+
+    <section class="panel">
       <h2>Seven Surfaces</h2>
       <div class="grid">
         <div class="node primary"><strong>Chat</strong><span>Gemma-backed primary harness: Persona, GREP, RAG, Tools, Online.</span></div>

@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <title>Sync -- DueCare Workbench</title>
+  <title>Sync Knowledge Packs | DueCare Workbench</title>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="stylesheet" href="/static/_chrome.css">
@@ -45,7 +45,7 @@
 </head>
 <body data-nav="sync">
   <main class="wb-page">
-    <h1 class="wb-h1">Sync -- pull knowledge from the public hub into this kernel</h1>
+    <h1 class="wb-h1">Sync Knowledge Packs</h1>
     <div class="wb-trust">
       <b>Trust boundary:</b> This tab makes an outbound HTTPS GET to the
       DueCare hub (currently <code>gemma4-comp.onrender.com</code>, moving
@@ -84,8 +84,8 @@
       <h2 style="margin-top:0;">Manual upload (offline / air-gapped / private bundles)</h2>
       <p class="wb-muted" style="font-size:12px; margin:0 0 10px;">
         Have a knowledge bundle ZIP from somewhere other than the public
-        hub -- a colleague's export, an NGO-vetted set, a sample from
-        this page -- import it directly via
+        hub, such as a colleague's export, an NGO-vetted set, a sample from
+        this page. Import it directly via
         <code>POST /api/knowledge/import</code>. The ZIP must contain
         entries pathed <code>&lt;type&gt;/&lt;id&gt;.json</code>; each
         envelope is validated (schema_version, knowledge_object_type,
@@ -112,6 +112,18 @@
         <span class="wb-muted" id="sync-upload-status"></span>
       </div>
       <div id="sync-upload-result" style="margin-top:10px;"></div>
+    </div>
+
+    <div class="wb-card">
+      <h2>Civil society vetting loop</h2>
+      <p class="wb-muted" style="font-size:12px; margin:0;">
+        Sync is a pull operation. It downloads only knowledge envelopes that
+        already exist on the hub. New facts travel the other direction through
+        Anonymization &amp; Sharing: the local kernel strips private identifiers,
+        the hub rejects raw PII, civil-society or curator reviewers inspect the
+        proposal, evaluation runs against the changed pack, and clients pull
+        the next version here.
+      </p>
     </div>
 
     <div class="wb-card">

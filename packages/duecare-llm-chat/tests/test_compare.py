@@ -131,7 +131,11 @@ def test_model_selector_lives_in_shared_nav(client):
     assert 'id="cmp-model-select"' not in compare
     assert 'id="dc-wb-model-open"' in nav
     assert 'id="dc-wb-model-select"' in nav
+    assert 'data-nav-group="overview"' in nav
+    assert 'data-nav-group="system"' in nav
+    assert 'id="dc-wb-nav-toggle"' in nav
     assert "dcWbEnsureModelReady" in nav_js
+    assert "wireNavToggle" in nav_js
 
 
 def test_abort_controller_wired(client):

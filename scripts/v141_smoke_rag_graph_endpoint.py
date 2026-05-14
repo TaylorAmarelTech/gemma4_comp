@@ -2,7 +2,7 @@
 
 Spins up the FastAPI app via TestClient (no real network), hits the
 endpoint, asserts the schema matches what the JS viewer expects:
-  * meta.n_nodes == 46
+  * meta.n_nodes == 54
   * meta.n_edges == 46
   * every edge.from / edge.to is a valid node id
   * every node has {id, label, source, snippet, group}
@@ -54,14 +54,14 @@ def main() -> int:
     issues: list[str] = []
 
     meta = data.get("meta") or {}
-    if meta.get("n_nodes") != 46:
-        issues.append(f"meta.n_nodes = {meta.get('n_nodes')} (expected 46)")
+    if meta.get("n_nodes") != 54:
+        issues.append(f"meta.n_nodes = {meta.get('n_nodes')} (expected 54)")
     if meta.get("n_edges") != 46:
         issues.append(f"meta.n_edges = {meta.get('n_edges')} (expected 46)")
 
     nodes = data.get("nodes") or []
-    if len(nodes) != 46:
-        issues.append(f"nodes count = {len(nodes)} (expected 46)")
+    if len(nodes) != 54:
+        issues.append(f"nodes count = {len(nodes)} (expected 54)")
 
     node_ids = {n["id"] for n in nodes if "id" in n}
 

@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "last_updated": "2026-05-07",
   "curator": "Taylor Amarel",
-  "rationale": "Hand-curated cross-reference graph for the 35-doc RAG corpus. When a doc is retrieved as primary evidence, related docs surface as 'see also' entries — gives the model an opening to cite the supplementing protocol, the controlling national statute, or the operational manual it would otherwise miss. Kept small (~30 edges) and human-curated rather than auto-extracted because legal cross-references are subtle (e.g., 'amended by' vs 'supersedes for jurisdiction X' carry different weight). Schema is intentionally simple: from/to are RAG_CORPUS ids, relation is a free-form short verb phrase, note is the human-readable why.",
+  "rationale": "Hand-curated cross-reference graph for the bundled RAG corpus. When a doc is retrieved as primary evidence, related docs surface as 'see also' entries so the model can cite the supplementing protocol, controlling national statute, or operational manual it would otherwise miss. Kept small and human-curated rather than auto-extracted because legal cross-references are subtle. Schema is intentionally simple: from/to are RAG_CORPUS ids, relation is a free-form short verb phrase, note is the human-readable why.",
   "relations_glossary": {
     "supplemented_by":          "Later instrument that adds obligations without replacing the earlier one (e.g., a Protocol to a Convention).",
     "operationalized_by":       "Later document that turns a high-level obligation into measurable indicators or procedures.",

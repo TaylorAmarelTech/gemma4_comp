@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Settings — DueCare Workbench</title>
+  <title>Settings | DueCare Workbench</title>
   <link rel="stylesheet" href="/static/_chrome.css">
   <link rel="stylesheet" href="/static/showcase.css">
   <script src="/static/_nav.js" defer></script>
@@ -81,44 +81,66 @@
 <body data-nav="settings">
 <main class="showcase">
   <div class="wb-trust" style="background: oklch(0.92 0.06 155); color: oklch(0.32 0.07 155); padding: 8px 14px; border-radius: 8px; font-size: 12.5px; margin: 0 0 14px;"><b>Trust boundary:</b> All settings on this page are stored in <code>localStorage</code> on your device or in the kernel's in-memory config (retrieval / online-search). BYOK API keys are only used at request time and are never written to disk inside the kernel.</div>
-  <div class="crumbs">Workbench tool · System &amp; observability</div>
+  <div class="crumbs">Workbench tool | System &amp; observability</div>
   <h1>Settings</h1>
   <p class="lede">
-    Tune retrieval (BM25 / rerank / parent-expand) and online-search
-    (Brave / Tavily / DuckDuckGo / Wikipedia) without restarting the
-    kernel. Changes apply to the next chat turn.
+    Tune retrieval, reranking, parent expansion, and online search
+    without restarting the kernel. Changes apply to the next chat turn.
   </p>
 
   <section class="panel">
     <h2>Retrieval (RAG)</h2>
-    <p>Knobs for the BM25 retriever, optional cross-encoder rerank,
-       parent-document expansion, and embed-cache reset. Backed by
-       <code>/api/retrieval/config</code>.</p>
+    <p>Default profile is hybrid preferred: BM25 candidate recall,
+       optional dense embeddings, reciprocal-rank fusion, cross-encoder
+       rerank, parent expansion, and citation graph expansion. If the
+       embedder is unavailable, the system keeps BM25 plus rerank and
+       graph expansion rather than failing. RAG retrieves evidence;
+       GREP fires deterministic risk rules.</p>
     <div id="ret-status" style="margin-bottom: 14px;"></div>
     <div class="grid">
       <div>
-        <label>Mode <span>bm25 / dense / rrf</span></label>
+        <label>Mode <span>bm25 / hybrid_rrf / dense</span></label>
         <select id="ret-mode">
-          <option value="bm25">bm25</option>
-          <option value="dense">dense</option>
-          <option value="rrf">rrf (reciprocal-rank fusion)</option>
+          <option value="hybrid_rrf">hybrid_rrf (BM25 + dense + RRF)</option>
+          <option value="bm25">bm25 (lexical fallback)</option>
+          <option value="dense">dense (semantic only)</option>
         </select>
       </div>
       <div>
-        <label>Top K <span>docs returned per query</span></label>
-        <input type="number" id="ret-topk" min="1" max="20" value="5">
+        <label>Final Keep <span>docs sent to Gemma</span></label>
+        <input type="number" id="ret-keep" min="1" max="50" value="8">
       </div>
       <div>
-        <label>Parent expand <span>chunk / section / off</span></label>
+        <label>Candidate Pool <span>first-stage docs</span></label>
+        <input type="number" id="ret-candidates" min="1" max="200" value="50">
+      </div>
+      <div>
+        <label>Dense Candidates <span>semantic candidate cap</span></label>
+        <input type="number" id="ret-dense" min="1" max="100" value="32">
+      </div>
+      <div>
+        <label>Parent Expand <span>off / section / doc</span></label>
         <select id="ret-parent">
-          <option value="off">off</option>
           <option value="section">section</option>
-          <option value="chunk">chunk</option>
+          <option value="doc">doc</option>
+          <option value="off">off</option>
         </select>
       </div>
       <div>
-        <label>Parent max chars <span>character cap</span></label>
-        <input type="number" id="ret-parent-max" min="200" max="20000" value="2400">
+        <label>Parent Max Chars <span>character cap</span></label>
+        <input type="number" id="ret-parent-max" min="200" max="12000" value="2400">
+      </div>
+      <div>
+        <label>Graph Depth <span>0 / 1 / 2 hops</span></label>
+        <input type="number" id="ret-graph-depth" min="0" max="2" value="1">
+      </div>
+      <div>
+        <label>Chunk Size <span>target characters</span></label>
+        <input type="number" id="ret-chunk" min="200" max="5000" value="850">
+      </div>
+      <div class="check-row" style="grid-column: 1 / -1;">
+        <label><input type="checkbox" id="ret-rerank"> Enable cross-encoder rerank</label>
+        <label style="margin-left: 16px;"><input type="checkbox" id="ret-trace"> Enable path tracing</label>
       </div>
     </div>
     <div class="actions">
@@ -128,8 +150,8 @@
     </div>
     <div id="ret-flash"></div>
     <details style="margin-top:14px;">
-      <summary style="cursor:pointer; font-family: var(--mono); font-size: 11px; color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.06em;">▸ Raw config JSON</summary>
-      <div class="json-dump" id="ret-dump" style="margin-top: 8px;">—</div>
+      <summary style="cursor:pointer; font-family: var(--mono); font-size: 11px; color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.06em;">Raw config JSON</summary>
+      <div class="json-dump" id="ret-dump" style="margin-top: 8px;">pending</div>
     </details>
   </section>
 
@@ -147,7 +169,6 @@
           <option value="brave">brave</option>
           <option value="tavily">tavily</option>
           <option value="ddg">duckduckgo</option>
-          <option value="wikipedia">wikipedia</option>
         </select>
       </div>
       <div>
@@ -174,8 +195,8 @@
     <div id="online-flash"></div>
     <div id="online-test-out" style="margin-top: 12px;"></div>
     <details style="margin-top:14px;">
-      <summary style="cursor:pointer; font-family: var(--mono); font-size: 11px; color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.06em;">▸ Raw config JSON</summary>
-      <div class="json-dump" id="online-dump" style="margin-top: 8px;">—</div>
+      <summary style="cursor:pointer; font-family: var(--mono); font-size: 11px; color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.06em;">Raw config JSON</summary>
+      <div class="json-dump" id="online-dump" style="margin-top: 8px;">pending</div>
     </details>
   </section>
 
@@ -196,8 +217,8 @@
       <div>
         <label>Mode <span>single (default) / multi</span></label>
         <select id="model-load-mode">
-          <option value="single">single -- unload previous on swap (safe default)</option>
-          <option value="multi">multi -- keep loaded models hot (needs VRAM)</option>
+          <option value="single">single: unload previous on swap (safe default)</option>
+          <option value="multi">multi: keep loaded models hot (needs VRAM)</option>
         </select>
       </div>
       <div>
@@ -239,7 +260,7 @@
         Live trace of API calls + per-step events from this page.
       </p>
       <div id="page-activity-log" class="dc-activity-log" role="log" aria-label="Activity log" aria-live="polite">
-        <div class="dc-log-idle">No activity yet -- interact with the page to populate.</div>
+        <div class="dc-log-idle">No activity yet. Interact with the page to populate.</div>
       </div>
     </div>
 
@@ -260,13 +281,22 @@
     try {
       const r = await fetch("/api/retrieval/config", {cache: "no-store"});
       const d = await r.json();
-      document.getElementById("ret-mode").value = d.mode || "bm25";
-      document.getElementById("ret-topk").value = d.top_k || 5;
-      document.getElementById("ret-parent").value = d.parent_expand || "off";
+      document.getElementById("ret-mode").value = d.retrieval_mode || "hybrid_rrf";
+      document.getElementById("ret-keep").value = d.rerank_keep || 8;
+      document.getElementById("ret-candidates").value = d.rerank_top_k || 50;
+      document.getElementById("ret-dense").value = d.dense_top_k || 32;
+      document.getElementById("ret-parent").value = d.parent_expand || "section";
       document.getElementById("ret-parent-max").value = d.parent_expand_max_chars || 2400;
+      document.getElementById("ret-graph-depth").value = d.graph_expand_depth == null ? 1 : d.graph_expand_depth;
+      document.getElementById("ret-chunk").value = d.chunk_max_chars || 850;
+      document.getElementById("ret-rerank").checked = !!d.rerank_enabled;
+      document.getElementById("ret-trace").checked = !!d.path_trace_enabled;
+      const fallback = d.fallback_reason ? `<br><span>${escapeHtml(d.fallback_reason)}</span>` : "";
       document.getElementById("ret-status").innerHTML = `
         <span class="wired-pill ${d.rerank_wired ? "on" : "off"}">rerank: ${d.rerank_wired ? "wired" : "not wired"}</span>
         <span class="wired-pill ${d.embed_wired  ? "on" : "off"}">embed: ${d.embed_wired  ? "wired" : "not wired"}</span>
+        <span class="wired-pill on">effective: ${escapeHtml(d.effective_mode || d.retrieval_mode || "pending")}</span>
+        <div style="margin-top:8px; color:var(--ink-3); font-size:12.5px; line-height:1.5;">${escapeHtml(d.rag_vs_grep || "")}${fallback}</div>
       `;
       document.getElementById("ret-dump").textContent = JSON.stringify(d, null, 2);
     } catch (e) {
@@ -275,10 +305,16 @@
   }
   async function saveRetrieval() {
     const body = {
-      mode: document.getElementById("ret-mode").value,
-      top_k: parseInt(document.getElementById("ret-topk").value, 10),
+      retrieval_mode: document.getElementById("ret-mode").value,
+      rerank_keep: parseInt(document.getElementById("ret-keep").value, 10),
+      rerank_top_k: parseInt(document.getElementById("ret-candidates").value, 10),
+      dense_top_k: parseInt(document.getElementById("ret-dense").value, 10),
       parent_expand: document.getElementById("ret-parent").value,
       parent_expand_max_chars: parseInt(document.getElementById("ret-parent-max").value, 10),
+      graph_expand_depth: parseInt(document.getElementById("ret-graph-depth").value, 10),
+      chunk_max_chars: parseInt(document.getElementById("ret-chunk").value, 10),
+      rerank_enabled: document.getElementById("ret-rerank").checked,
+      path_trace_enabled: document.getElementById("ret-trace").checked,
     };
     try {
       const r = await fetch("/api/retrieval/config", {
@@ -307,13 +343,13 @@
       const r = await fetch("/api/online/config", {cache: "no-store"});
       const d = await r.json();
       document.getElementById("online-backend").value = d.backend || "auto";
-      document.getElementById("online-topn").value = d.top_n || 5;
-      document.getElementById("online-brave").value = d.brave_api_key ? "(set)" : "";
-      document.getElementById("online-tavily").value = d.tavily_api_key ? "(set)" : "";
+      document.getElementById("online-topn").value = d.fetch_top_n || 3;
+      document.getElementById("online-brave").value = d.brave_configured ? "(set)" : "";
+      document.getElementById("online-tavily").value = d.tavily_configured ? "(set)" : "";
       document.getElementById("online-fetch").checked = !!d.fetch_pages;
       document.getElementById("online-status").innerHTML = `
-        <span class="wired-pill ${d.brave_api_key  ? "on" : "off"}">brave: ${d.brave_api_key  ? "key set" : "no key"}</span>
-        <span class="wired-pill ${d.tavily_api_key ? "on" : "off"}">tavily: ${d.tavily_api_key ? "key set" : "no key"}</span>
+        <span class="wired-pill ${d.brave_configured  ? "on" : "off"}">brave: ${d.brave_configured  ? "key set" : "no key"}</span>
+        <span class="wired-pill ${d.tavily_configured ? "on" : "off"}">tavily: ${d.tavily_configured ? "key set" : "no key"}</span>
         <span class="wired-pill ${d.fetch_pages    ? "on" : "off"}">deep-fetch: ${d.fetch_pages ? "on" : "off"}</span>
       `;
       document.getElementById("online-dump").textContent = JSON.stringify(d, null, 2);
@@ -324,7 +360,7 @@
   async function saveOnline() {
     const body = {
       backend: document.getElementById("online-backend").value,
-      top_n: parseInt(document.getElementById("online-topn").value, 10),
+      fetch_top_n: parseInt(document.getElementById("online-topn").value, 10),
       fetch_pages: document.getElementById("online-fetch").checked,
     };
     const brave  = document.getElementById("online-brave").value.trim();
@@ -345,7 +381,7 @@
   }
   async function testOnline() {
     const out = document.getElementById("online-test-out");
-    out.innerHTML = `<div class="flash" style="background:var(--paper-2); color:var(--ink-2);">Running test query… (this hits the configured backend)</div>`;
+    out.innerHTML = `<div class="flash" style="background:var(--paper-2); color:var(--ink-2);">Running test query. This hits the configured backend.</div>`;
     try {
       const r = await fetch("/api/online/test", {
         method: "POST", headers: {"content-type": "application/json"},
@@ -354,7 +390,7 @@
       const d = await r.json();
       const results = d.results || [];
       if (!results.length) {
-        out.innerHTML = `<div class="flash err">No results — backend may be unreachable or rate-limited.</div>`;
+        out.innerHTML = `<div class="flash err">No results. Backend may be unreachable or rate-limited.</div>`;
         return;
       }
       out.innerHTML = `<div class="json-dump">${escapeHtml(JSON.stringify(results.slice(0, 3), null, 2))}</div>`;
