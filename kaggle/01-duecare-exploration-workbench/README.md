@@ -194,6 +194,9 @@ Use this checklist when reviewing the polished workbench:
 7. Safety Layers: harness index, persona, GREP rules, RAG corpus, RAG graph, tools, online/search, hotlines, contacts, and all-tools pages.
 8. Evaluation: rule judge, LLM judge, combined judge, dynamic applicability, contact grounding, and N/A behavior driven by the prompt rather than by response verbosity.
 
+For the full page-by-page audit, purpose map, API map, design philosophy,
+and consolidation notes, see [PAGE_AUDIT.md](PAGE_AUDIT.md).
+
 ## Submission context
 
 This is **core notebook #1** of 3:
