@@ -41,13 +41,18 @@
     details.wb-branch > summary::before { content: "+ "; color: oklch(0.32 0.07 195); }
     details.wb-branch[open] > summary::before { content: "- "; }
     details.wb-branch > summary .wb-muted { font-weight: normal; margin-left: 8px; }
+    body:not(.kx-show-taxonomy) details.wb-branch { display: none; }
     .wb-trust { background: oklch(0.92 0.06 155); color: oklch(0.32 0.07 155); padding: 8px 14px; border-radius: 8px; font-size: 12.5px; margin-bottom: 14px; }
     .wb-error { background: oklch(0.94 0.04 25); color: oklch(0.32 0.10 25); padding: 8px 10px; border-radius: 6px; font-size: 12px; margin-top: 8px; }
-    .kx-pipeline { display: grid; grid-template-columns: repeat(auto-fit, minmax(155px, 1fr)); gap: 8px; margin: 10px 0; }
-    .kx-step { border: 1px solid #DDD8C9; border-radius: 8px; background: #FAF9F4; padding: 10px 11px; min-height: 70px; }
+    .kx-pipeline { display: grid; gap: 8px; margin: 10px 0; }
+    .kx-step { border: 1px solid #DDD8C9; border-radius: 8px; background: #FAF9F4; padding: 0 11px; }
+    .kx-step summary { cursor: pointer; list-style: none; padding: 10px 0; }
+    .kx-step summary::-webkit-details-marker { display: none; }
+    .kx-step summary::before { content: "+ "; color: oklch(0.32 0.07 195); }
+    .kx-step[open] summary::before { content: "- "; }
     .kx-step .num { font-family: var(--mono); color: #5B5F68; font-size: 10px; text-transform: uppercase; letter-spacing: 0.07em; }
     .kx-step .name { font-weight: 700; font-size: 12.5px; margin: 5px 0 3px; }
-    .kx-step .detail { color: #5B5F68; font-size: 11px; line-height: 1.4; }
+    .kx-step .detail { color: #5B5F68; font-size: 11px; line-height: 1.4; padding: 0 0 10px 18px; }
     .kx-step.complete { border-color: oklch(0.72 0.08 155); background: oklch(0.97 0.02 155); }
     .kx-example { text-align:left; background:#FAF9F4; border:1px solid #DDD8C9; border-radius:8px; padding:9px 10px; cursor:pointer; font-size:12px; color:#2A2D34; line-height:1.45; }
     .kx-example:hover { border-color: oklch(0.52 0.08 195); color:#0E1116; }
@@ -68,22 +73,21 @@
       unless you anonymize and submit on Anonymization &amp; Sharing.
     </div>
     <p class="wb-lede">
-      Paste raw text (a recruiter message, a court filing, an NGO field
-      note). Gemma 4 + the extraction prompts draft a candidate envelope
-      (grep_rule, glossary_term, statute_citation, indicator,
-      fact_template). Review the draft, optionally anonymize, then promote
-      it, or jump to Anonymization &amp; Sharing to submit the lot to
-      the public hub.
+      Paste raw text from a recruiter message, case note, statute, report,
+      or contract. The extraction harness anonymizes it, scans it against
+      existing GREP/RAG knowledge, asks Gemma 4 to draft useful knowledge
+      objects, and shows suggested envelopes for review. Advanced users can
+      still choose a specific leaf type or manually author any taxonomy leaf.
     </p>
 
     <div class="wb-card" style="border-left: 4px solid oklch(0.52 0.08 195);">
       <h2 style="margin-top:0;">Extraction harness path</h2>
       <div class="kx-pipeline" id="kx-pipeline">
-        <div class="kx-step"><div class="num">Step 1</div><div class="name">Raw text</div><div class="detail">Paste a snippet and choose one target leaf type.</div></div>
-        <div class="kx-step"><div class="num">Step 2</div><div class="name">Optional anonymize</div><div class="detail">Email, phone, and passport-like tokens are stripped before Gemma.</div></div>
-        <div class="kx-step"><div class="num">Step 3</div><div class="name">GREP and RAG</div><div class="detail">Existing knowledge grounds the draft with local citations.</div></div>
-        <div class="kx-step"><div class="num">Step 4</div><div class="name">Gemma 4 draft</div><div class="detail">The model produces one reviewable envelope.</div></div>
-        <div class="kx-step"><div class="num">Step 5</div><div class="name">Promote or submit</div><div class="detail">Save locally or send only anonymized knowledge to the hub.</div></div>
+        <details class="kx-step" open><summary><div class="num">Step 1</div><div class="name">Raw text</div></summary><div class="detail">Paste or sample a passage worth preserving. The normal path does not require choosing a schema first.</div></details>
+        <details class="kx-step"><summary><div class="num">Step 2</div><div class="name">Optional anonymize</div></summary><div class="detail">Email, phone, and passport-like tokens are stripped before Gemma. Keep this on for case notes and user-submitted text.</div></details>
+        <details class="kx-step"><summary><div class="num">Step 3</div><div class="name">Infer types</div></summary><div class="detail">The harness suggests useful leaves such as grep_rule, rag_doc, fact_template, context_snippet, ngo_directory, or rubric_dimension.</div></details>
+        <details class="kx-step"><summary><div class="num">Step 4</div><div class="name">Gemma 4 draft</div></summary><div class="detail">Gemma drafts reviewable envelopes with local grounding. If no model is loaded, deterministic drafts keep the flow testable.</div></details>
+        <details class="kx-step"><summary><div class="num">Step 5</div><div class="name">Promote or submit</div></summary><div class="detail">Save reviewed envelopes locally, export them, or send only anonymized knowledge to the hub.</div></details>
       </div>
       <div class="wb-row" style="gap:8px;">
         <button class="kx-example" type="button" onclick="kxUseExample('A recruiter wrote: Worker agrees to a PHP 45,000 processing loan deducted from salary in Hong Kong until fully repaid. Agency: Pearl Bridge Manpower. Corridor: PH-HK.')">Fee rule example</button>
@@ -125,39 +129,34 @@
     </div>
 
     <div class="wb-card" style="border-left: 4px solid oklch(0.52 0.08 195);">
-      <h2 style="margin-top:0;">1. Paste raw text</h2>
+      <h2 style="margin-top:0;">1. Paste source text</h2>
       <p class="wb-muted" style="font-size:12px; margin:4px 0 8px;">
-        Gemma 4 will infer the regex / citation / definition that best
-        captures this passage. Examples: a recruiter clause hiding a
-        placement fee, a statute citation, a sector-specific term.
+        The default path does not ask you to choose from 21 internal leaf
+        types. Paste the source, click draft, then review the suggested
+        knowledge objects.
       </p>
       <textarea id="kx-raw" rows="6" placeholder="Paste a recruiter message, a contract clause, a court filing excerpt, or an NGO report fragment..." style="width:100%; box-sizing:border-box; font-family:var(--mono); font-size:12.5px; padding:10px; border:1px solid #DDD8C9; border-radius:8px; background:#FFF;"></textarea>
       <div class="wb-row" style="margin-top:10px; gap:10px; align-items:center; flex-wrap:wrap;">
-        <label style="font-size:12px;">Target leaf:</label>
-        <select id="kx-leaf" style="font-size:12px; padding:5px 8px; border:1px solid #DDD8C9; border-radius:6px;">
-          <option value="grep_rule">grep_rule: regex pattern</option>
-          <option value="glossary_term">glossary_term: definition</option>
-          <option value="statute_citation">statute_citation: legal cite</option>
-          <option value="indicator">indicator: ILO or safety signal</option>
-          <option value="fact_template">fact_template: factual entry</option>
-        </select>
         <label style="font-size:12px; margin-left:8px;">
           <input type="checkbox" id="kx-anonymize" checked> Anonymize raw text first
         </label>
-        <button class="wb-btn-primary" id="kx-extract-btn" onclick="kxExtract()" style="margin-left:auto;">2. Extract with Gemma 4</button>
+        <button class="wb-btn-primary" id="kx-extract-btn" onclick="kxExtract()" style="margin-left:auto;">2. Draft suggestions</button>
       </div>
-      <div class="wb-muted" style="font-size:11.5px; margin-top:8px;">
-        <b>One leaf per draft:</b> Gemma drafts a SINGLE envelope of the
-        selected type each time you click Extract. The selector controls
-        what shape Gemma produces (regex vs. definition vs. citation
-        etc.); the page itself does not generate all five at once because
-        each leaf type has a distinct schema and prompt. To draft several
-        leaves from the same passage, change the selector and click
-        Extract again. Each draft is saved separately. For batch
-        generation across all 21 leaves of the taxonomy, use the manual
-        authoring section below or the workflows under
-        <a href="/static/harness.html">Harness Workbench</a>.
-      </div>
+      <details style="margin-top:10px;">
+        <summary style="cursor:pointer; font-size:12px; font-weight:600;">Advanced draft settings</summary>
+        <div class="wb-row" style="margin-top:8px;">
+          <label style="font-size:12px;">Override suggested type</label>
+          <select id="kx-leaf" style="font-size:12px; padding:5px 8px; border:1px solid #DDD8C9; border-radius:6px; max-width:320px;">
+            <option value="auto" selected>Auto-suggest useful leaves</option>
+            <option value="grep_rule">grep_rule: regex pattern</option>
+            <option value="rag_doc">rag_doc: source document</option>
+            <option value="context_snippet">context_snippet: grounding summary</option>
+            <option value="rubric_dimension">rubric_dimension: grading rule</option>
+            <option value="ngo_directory">ngo_directory: contact resource</option>
+            <option value="fact_template">fact_template: structured extraction</option>
+          </select>
+        </div>
+      </details>
       <div id="kx-extract-status" class="wb-muted" style="font-size:11.5px; margin-top:8px;"></div>
       <div id="kx-extract-result" style="margin-top:10px;"></div>
       <div class="wb-row" style="margin-top:14px; gap:8px;">
@@ -167,28 +166,35 @@
     </div>
 
     <details style="margin: 22px 0 8px; border:1px solid #DDD8C9; border-radius:8px; padding:10px 14px; background:#FFF;">
-      <summary style="cursor:pointer; font-size:13px; font-weight:600; color:var(--ink, #0E1116);">Manual authoring for 21 leaf types</summary>
+      <summary style="cursor:pointer; font-size:13px; font-weight:600; color:var(--ink, #0E1116);">Advanced: manual authoring for 21 leaf types</summary>
       <p class="wb-muted" style="font-size:12px; margin:8px 0 10px;">
-        Skip Gemma extraction and author a typed envelope directly,
-        useful when you already know the exact pattern/citation. Each
-        artefact persists to
+        Most users should use the guided draft flow above. Open the advanced
+        taxonomy only when you already know the exact schema you want to
+        author. Each artefact persists to
         <code>/kaggle/working/knowledge/&lt;type&gt;/&lt;id&gt;.json</code>.
         See <a href="../../docs/knowledge_module_schema.md">spec</a> for
         the 6 branches and 21 leaves.
       </p>
+      <button class="wb-btn-secondary" type="button" onclick="kxToggleTaxonomy()">Show or hide advanced taxonomy forms</button>
     </details>
 
     <script>
       function kxSetPipeline(active){
-        document.querySelectorAll('#kx-pipeline .kx-step').forEach((el, idx) => {
+        const steps = Array.from(document.querySelectorAll('#kx-pipeline .kx-step'));
+        steps.forEach((el, idx) => {
           el.classList.toggle('complete', idx <= active);
+          if ('open' in el) el.open = idx === Math.min(active, steps.length - 1);
         });
       }
-      function kxUseExample(text){
-        document.getElementById("kx-raw").value = text;
-        kxSetPipeline(0);
-      }
-      async function kxExtract(){
+    function kxUseExample(text){
+      document.getElementById("kx-raw").value = text;
+      kxSetPipeline(0);
+    }
+    function kxToggleTaxonomy(){
+      document.body.classList.toggle('kx-show-taxonomy');
+    }
+    let kxDrafts = [];
+    async function kxExtract(){
         const raw=(document.getElementById("kx-raw").value||"").trim();
         const leaf=document.getElementById("kx-leaf").value;
         const anonymize=document.getElementById("kx-anonymize").checked;
@@ -198,7 +204,7 @@
         const btn=document.getElementById("kx-extract-btn");
         btn.disabled=true; const origTxt=btn.textContent; btn.textContent="Extracting...";
         kxSetPipeline(anonymize ? 1 : 0);
-        statusEl.textContent="POST /api/knowledge/draft-envelope ...";
+        statusEl.textContent="POST /api/knowledge/draft-envelope (auto-suggest) ...";
         try{
           const r=await fetch("/api/knowledge/draft-envelope",{
             method:"POST",headers:{"Content-Type":"application/json"},
@@ -211,13 +217,39 @@
             resultEl.innerHTML="<pre style=\"background:#FFF1F1; border:1px solid #FCC; padding:10px; border-radius:6px; font-size:11.5px; overflow:auto;\">"+escapeHtml(JSON.stringify(out,null,2))+"</pre>";
             return;
           }
-          statusEl.textContent="Draft ready. Review below, edit if needed, then open Anonymization & Sharing to submit.";
+          statusEl.textContent="Draft suggestions ready. Review, promote useful ones, then anonymize and share if appropriate.";
           kxSetPipeline(4);
-          const env=out.envelope||out;
-          resultEl.innerHTML="<div style=\"font-size:12px; margin-bottom:4px;\"><b>Draft envelope ("+escapeHtml(leaf)+"):</b></div><pre style=\"background:#F7F6F1; border:1px solid #DDD8C9; padding:10px; border-radius:6px; font-size:11.5px; overflow:auto; max-height:340px;\">"+escapeHtml(JSON.stringify(env,null,2))+"</pre>";
+          kxDrafts = out.suggestions || (out.envelope ? [out.envelope] : [out]);
+          resultEl.innerHTML = kxDrafts.map((env, idx) =>
+            '<section class="wb-card" style="background:#FAF9F4; margin:8px 0; padding:12px;">' +
+            '<div style="display:flex; justify-content:space-between; gap:8px; flex-wrap:wrap;">' +
+            '<div><b>' + escapeHtml(env.knowledge_object_type || 'knowledge_object') + '</b> ' +
+            '<span class="wb-muted">' + escapeHtml(env.id || '') + '</span></div>' +
+            '<button class="wb-btn-primary" type="button" onclick="kxPromoteDraft(' + idx + ')">Promote this draft</button>' +
+            '</div>' +
+            '<pre style="background:#FFF; border:1px solid #DDD8C9; padding:10px; border-radius:6px; font-size:11.5px; overflow:auto; max-height:240px;">' +
+            escapeHtml(JSON.stringify(env, null, 2)) + '</pre></section>'
+          ).join('');
         }catch(e){
           statusEl.textContent="Extract failed: "+String(e).slice(0,200);
         }finally{ btn.disabled=false; btn.textContent=origTxt; }
+      }
+      async function kxPromoteDraft(idx){
+        const env = kxDrafts[idx];
+        if(!env){ return; }
+        wbLog('info', 'POST /api/knowledge/promote', 'type=' + env.knowledge_object_type + ' id=' + env.id);
+        const t0 = performance.now();
+        try{
+          const r = await fetch('/api/knowledge/promote', {
+            method:'POST', headers:{'Content-Type':'application/json'},
+            body:JSON.stringify(env)
+          });
+          const dt = Math.round(performance.now() - t0);
+          if(!r.ok){ wbLog('err', 'HTTP ' + r.status + ' (' + dt + 'ms)', (await r.text()).slice(0,200)); return; }
+          const out = await r.json();
+          wbLog('ok', 'Promoted draft (' + dt + 'ms)', 'written_to=' + out.written_to);
+          kRefresh();
+        }catch(e){ wbLog('err', 'Promote draft failed', String(e).slice(0,200)); }
       }
       function escapeHtml(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
 

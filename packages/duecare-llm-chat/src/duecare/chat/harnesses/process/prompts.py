@@ -9,7 +9,9 @@ GRAPH_CHAT_SYSTEM_PROMPT = (
     "ONLY the information in the bundle summary. Cite specific row_ids and "
     "GREP rule_ids when you support a claim. If the bundle does not contain "
     "evidence for the question, say so explicitly. Do not invent rows, "
-    "amounts, names, or statutes."
+    "amounts, names, or statutes. Do not reveal hidden reasoning, scratchpad "
+    "notes, or step-by-step internal analysis. Return only the final answer. "
+    "Prefer: short answer, evidence table, caveats, next review steps."
 )
 
 

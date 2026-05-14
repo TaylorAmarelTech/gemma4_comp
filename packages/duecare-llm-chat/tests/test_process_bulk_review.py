@@ -39,7 +39,11 @@ def test_case_files_sample_has_ph_hk_bulk_review_depth():
             "payment_history/",
             "chats/",
         ]:
-            assert any(n.startswith(required_dir) for n in names)
+            assert any(required_dir in n for n in names)
+        assert sum(n.lower().endswith(".png") for n in names) >= 18
+        assert sum(n.lower().endswith(".jpg") for n in names) >= 12
+        assert sum(n.lower().endswith(".pdf") for n in names) >= 10
+        assert any(n.startswith("case_folders/") for n in names)
 
 
 def test_process_batch_returns_intelligence_for_sample():
@@ -64,15 +68,20 @@ def test_process_batch_returns_intelligence_for_sample():
     body = response.json()
     intel = body["intelligence"]
     assert body["summary"]["n_people_detected"] == 30
+    assert body["summary"]["truncated"] is False
     assert intel["n_people"] == 30
-    assert intel["n_documents"] >= 180
+    assert intel["n_documents"] >= 240
     assert intel["document_type_counts"]["id_card"] == 30
     assert intel["document_type_counts"]["payment_history"] == 30
     assert intel["document_type_counts"]["chat_messages"] == 30
-    assert intel["gemma_case_brief"]["status"] == "no_model_loaded"
+    assert intel["document_type_counts"]["media_image"] >= 30
+    assert intel["document_type_counts"]["scanned_pdf"] >= 10
+    assert intel["gemma_case_brief"]["status"] == "deterministic_no_model"
     assert len(intel["harness_trace"]) >= 5
     assert intel["top_risk_signals"]
+    assert not any(s["signal"] == "?" for s in intel["top_risk_signals"])
     assert intel["folder_counts"]
+    assert intel["processing_plan"]["n_media_assets"] >= 40
     assert intel["n_evidence_edges"] > 100
     assert intel["graph"]["schema_version"] == "duecare.process.graph.v1"
     assert intel["graph"]["meta"]["n_nodes"] > 20
@@ -86,6 +95,22 @@ def test_process_batch_returns_intelligence_for_sample():
     stages = {point["stage"] for point in intel["journey_points"]}
     assert {"payment_and_debt", "travel"}.issubset(stages)
     assert len(stages) >= 3
+
+    chat = client.post(
+        "/api/process/graph-chat",
+        json={
+            "question": (
+                "Which individuals have the strongest cases to move forward "
+                "first, and what row IDs support that ranking?"
+            )
+        },
+    )
+    assert chat.status_code == 200, chat.text
+    chat_body = chat.json()
+    assert chat_body["analysis_kind"] == "fee_or_priority_ranking"
+    assert chat_body["cited_rows"]
+    assert "The user is asking" not in chat_body["answer"]
+    assert "|---" not in chat_body["answer"]
 
 
 def test_process_batch_surfaces_media_and_ocr_work_queue():
