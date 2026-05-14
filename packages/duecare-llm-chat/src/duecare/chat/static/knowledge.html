@@ -43,7 +43,12 @@
     details.wb-branch > summary .wb-muted { font-weight: normal; margin-left: 8px; }
     .wb-trust { background: oklch(0.92 0.06 155); color: oklch(0.32 0.07 155); padding: 8px 14px; border-radius: 8px; font-size: 12.5px; margin-bottom: 14px; }
     .wb-error { background: oklch(0.94 0.04 25); color: oklch(0.32 0.10 25); padding: 8px 10px; border-radius: 6px; font-size: 12px; margin-top: 8px; }
-  </style>
+  
+    @media (max-width: 620px) {
+      .wb-page { padding: 0 12px !important; }
+      .wb-h1 { font-size: 22px !important; }
+    }
+</style>
 </head>
 <body data-nav="knowledge">
   <main class="wb-page">
@@ -464,7 +469,7 @@
     </div>
   <div class="wb-card">
       <h2>Activity log</h2>
-      <div id="wb-log" class="dc-activity-log">
+      <div id="wb-log" class="dc-activity-log" role="log" aria-label="Activity log" aria-live="polite">
         <div class="wb-muted">No activity yet.</div>
       </div>
     </div>

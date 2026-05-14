@@ -38,7 +38,12 @@
     .wb-log .ok { color: oklch(0.78 0.14 155); }
     .wb-log .err { color: oklch(0.72 0.16 25); }
     a { color: oklch(0.32 0.07 195); }
-  </style>
+  
+    @media (max-width: 620px) {
+      .wb-page { padding: 0 12px !important; }
+      .wb-h1 { font-size: 22px !important; }
+    }
+</style>
 </head>
 <body data-nav="process">
   <main class="wb-page">
@@ -131,7 +136,7 @@
         <button class="wb-btn-primary" id="wb-process-btn" disabled onclick="wbProcess()">Start processing</button>
         <span class="wb-muted" id="wb-process-hint">Drop a file first.</span>
       </div>
-      <div id="wb-error" class="wb-error" style="display: none; margin-top: 10px;"></div>
+      <div id="wb-error" class="wb-error" style="display: none; margin-top: 10px;" role="alert"></div>
     </div>
 
     
@@ -224,7 +229,7 @@
     </script>
   <div class="wb-card">
       <h2>Activity log <span class="wb-muted" style="font-weight: normal;">-- every API call + response is transparent</span></h2>
-      <div id="wb-log" class="dc-activity-log">
+      <div id="wb-log" class="dc-activity-log" role="log" aria-label="Activity log" aria-live="polite">
         <div class="wb-muted">No activity yet. Click <i>Start processing</i> to begin.</div>
       </div>
     </div>

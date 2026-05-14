@@ -98,11 +98,16 @@
       font-family: var(--mono); font-size: 12.5px; color: var(--ink-2);
     }
     .stat-row span { padding: 4px 10px; border-radius: 999px; background: var(--paper-2); border: 1px solid var(--line); }
-  </style>
+  
+    @media (max-width: 620px) {
+      .wb-page { padding: 0 12px !important; }
+      .wb-h1 { font-size: 22px !important; }
+    }
+</style>
 </head>
 <body data-nav="import">
 <main class="showcase">
-  <div class="wb-trust" style="background: oklch(0.92 0.06 155); color: oklch(0.32 0.07 155); padding: 8px 14px; border-radius: 8px; font-size: 12.5px; margin: 0 0 14px;"><b>Trust boundary:</b> Uploaded ZIPs are unpacked to <code>/kaggle/working/knowledge/</code> inside this kernel. Validated envelopes hot-load into the GREP / RAG / rubric layers; rejected entries are reported back. Nothing is uploaded anywhere by this page.</div>
+  <div class="wb-trust" style="background: oklch(0.92 0.06 155); color: oklch(0.32 0.07 155); padding: 8px 14px; border-radius: 8px; font-size: 12.5px; margin: 0 0 14px;"><b>Trust boundary:</b> Uploaded ZIPs are unpacked to <code>/kaggle/working/knowledge/</code> inside this kernel. Validated knowledge object (envelope) hot-load into the GREP / RAG / rubric layers; rejected entries are reported back. Nothing is uploaded anywhere by this page.</div>
   <div class="crumbs">Workbench tool · Worker &amp; NGO utilities</div>
   <h1>Import knowledge</h1>
   <p class="lede">
@@ -152,7 +157,18 @@
       </div>
     </section>
   </div>
-</main>
+
+    <div class="wb-card" id="page-activity-log-card" style="margin-top: 14px;">
+      <h2>Activity log</h2>
+      <p class="wb-muted" style="margin: 0 0 8px;">
+        Live trace of API calls + per-step events from this page.
+      </p>
+      <div id="page-activity-log" class="dc-activity-log" role="log" aria-label="Activity log" aria-live="polite">
+        <div class="dc-log-idle">No activity yet -- interact with the page to populate.</div>
+      </div>
+    </div>
+
+  </main>
 
 <script>
   function escapeHtml(s) {
