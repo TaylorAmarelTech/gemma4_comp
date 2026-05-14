@@ -28,6 +28,13 @@
                 font-size: 11px; color: #5B5F68; font-family: 'JetBrains Mono', monospace; }
     .wb-twocol { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
     @media (max-width: 980px) { .wb-twocol { grid-template-columns: 1fr; } }
+    @media (max-width: 620px) {
+      .wb-page { padding: 0 12px; }
+      .wb-h1 { font-size: 22px; }
+      #cmp-ex-modal { max-height: 92vh; }
+      .cv-card { min-height: 280px; padding: 12px 14px; }
+      .cv-msgs { max-height: 420px; }
+    }
 
     /* Variant cards mimic the chat surface so reviewers see two
        'chat threads' side by side. */
@@ -146,8 +153,10 @@
     <div id="cmp-ex-modal-overlay"
          style="display:none; position:fixed; inset:0; background:rgba(14,17,22,0.55);
                 z-index:9000; align-items:center; justify-content:center; padding:24px;"
-         onclick="cmpCloseExamples(event)">
+         onclick="cmpCloseExamples(event)"
+         role="presentation">
       <div id="cmp-ex-modal"
+           role="dialog" aria-modal="true" aria-labelledby="cmp-ex-modal-title"
            style="background:#FFF; border-radius:12px; max-width:880px; width:100%;
                   max-height:84vh; display:flex; flex-direction:column; overflow:hidden;
                   box-shadow:0 12px 40px rgba(14,17,22,0.32);"
@@ -155,7 +164,7 @@
         <div style="display:flex; justify-content:space-between; align-items:center;
                      padding:14px 20px; border-bottom:1px solid #EFEDE4; background:#FAF9F4;">
           <div>
-            <div style="font-size:16px; font-weight:700; color:#0E1116;">Example prompts</div>
+            <div id="cmp-ex-modal-title" style="font-size:16px; font-weight:700; color:#0E1116;">Example prompts</div>
             <div class="wb-muted" id="cmp-ex-modal-sub">from /api/examples -- same as Chat</div>
           </div>
           <button class="wb-btn-secondary" onclick="cmpCloseExamples()">Close</button>
@@ -225,47 +234,77 @@
         </label>
       </div>
       <div class="wb-row" style="margin-top: 12px; align-items: center;">
-        <button id="cmp-run" class="wb-btn-primary" onclick="cmpRun()">4. Run comparison</button>
-        <button class="wb-btn-secondary" onclick="cmpReset()">Reset</button>
-        <span class="wb-muted" id="cmp-status"></span>
+        <button id="cmp-run" class="wb-btn-primary" onclick="cmpRun()" aria-label="Run comparison">4. Run comparison</button>
+        <button id="cmp-interrupt" class="wb-btn-secondary"
+                onclick="cmpInterrupt()" disabled
+                title="Cancel the in-flight comparison; both variants stop after the current step"
+                aria-label="Interrupt running comparison">Interrupt</button>
+        <button class="wb-btn-secondary" onclick="cmpReset()" aria-label="Reset comparison state">Reset</button>
+        <span class="wb-muted" id="cmp-status" aria-live="polite"></span>
       </div>
-      <div id="cmp-error" class="wb-error" style="display:none;"></div>
+      <div id="cmp-error" class="wb-error" style="display:none;" role="alert"></div>
     </div>
 
     <div class="wb-twocol" style="margin-top: 18px;">
-      <div class="cv-card">
+      <div class="cv-card" role="region" aria-labelledby="A-title">
         <div class="cv-header">
-          <span class="cv-title">Variant A <span class="wb-pill" id="A-label">stock</span></span>
-          <span class="cv-meta" id="A-meta">idle</span>
+          <span class="cv-title" id="A-title">Variant A <span class="wb-pill" id="A-label">stock</span></span>
+          <span class="cv-meta" id="A-meta" aria-live="polite">idle</span>
         </div>
-        <div class="cv-toggles" id="A-toggles"></div>
-        <div class="cv-pipeline" id="A-pipeline" style="margin: 6px 0 10px; padding: 8px 10px; background: #FAF9F4; border: 1px solid #EFEDE4; border-radius: 8px; display: none;">
+        <div class="cv-toggles" id="A-toggles" aria-label="Variant A active safety layers"></div>
+        <div class="cv-pipeline" id="A-pipeline" style="margin: 6px 0 10px; padding: 8px 10px; background: #FAF9F4; border: 1px solid #EFEDE4; border-radius: 8px; display: none;"
+             role="region" aria-label="Variant A pipeline progress" aria-live="polite">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
             <span style="font-size: 12px; font-weight: 700; color: #0E1116;">Pipeline progress</span>
             <span style="font-size: 11px; color: #5B5F68; font-family: 'JetBrains Mono', monospace;" id="A-pipeline-elapsed">0s elapsed</span>
           </div>
           <div id="A-pipeline-rows"></div>
         </div>
-        <div class="cv-msgs" id="A-msgs">
+        <div class="cv-msgs" id="A-msgs" role="log" aria-label="Variant A conversation">
           <div class="cv-empty">No run yet. Variant A's prompt + response will appear here.</div>
         </div>
       </div>
-      <div class="cv-card">
+      <div class="cv-card" role="region" aria-labelledby="B-title">
         <div class="cv-header">
-          <span class="cv-title">Variant B <span class="wb-pill" id="B-label">harness on</span></span>
-          <span class="cv-meta" id="B-meta">idle</span>
+          <span class="cv-title" id="B-title">Variant B <span class="wb-pill" id="B-label">harness on</span></span>
+          <span class="cv-meta" id="B-meta" aria-live="polite">idle</span>
         </div>
-        <div class="cv-toggles" id="B-toggles"></div>
-        <div class="cv-pipeline" id="B-pipeline" style="margin: 6px 0 10px; padding: 8px 10px; background: #FAF9F4; border: 1px solid #EFEDE4; border-radius: 8px; display: none;">
+        <div class="cv-toggles" id="B-toggles" aria-label="Variant B active safety layers"></div>
+        <div class="cv-pipeline" id="B-pipeline" style="margin: 6px 0 10px; padding: 8px 10px; background: #FAF9F4; border: 1px solid #EFEDE4; border-radius: 8px; display: none;"
+             role="region" aria-label="Variant B pipeline progress" aria-live="polite">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
             <span style="font-size: 12px; font-weight: 700; color: #0E1116;">Pipeline progress</span>
             <span style="font-size: 11px; color: #5B5F68; font-family: 'JetBrains Mono', monospace;" id="B-pipeline-elapsed">0s elapsed</span>
           </div>
           <div id="B-pipeline-rows"></div>
         </div>
-        <div class="cv-msgs" id="B-msgs">
+        <div class="cv-msgs" id="B-msgs" role="log" aria-label="Variant B conversation">
           <div class="cv-empty">No run yet. Variant B's prompt + response will appear here.</div>
         </div>
+      </div>
+    </div>
+
+    <!-- Cumulative timing summary -- shown after both variants complete. -->
+    <div class="wb-card" id="timing-card" style="display:none; margin-top: 14px;">
+      <h2>5. Timing breakdown</h2>
+      <p class="wb-muted" style="margin:0 0 8px;">
+        Per-step elapsed_ms for each variant. Useful to verify the
+        harness layers add value at a cost you accept.
+      </p>
+      <div id="timing-rows"></div>
+    </div>
+
+    <!-- Post-run actions (Send-to-Chat) -->
+    <div class="wb-card" id="postrun-card" style="display:none; margin-top: 14px;">
+      <h2>Post-run actions</h2>
+      <div class="wb-row" style="gap:8px;">
+        <button class="wb-btn-secondary" onclick="cmpSendToChat('A')"
+                title="Open the Chat page with Variant A's toggles preset (via URL hash)">Send Variant A config to Chat</button>
+        <button class="wb-btn-secondary" onclick="cmpSendToChat('B')"
+                title="Open the Chat page with Variant B's toggles preset (via URL hash)">Send Variant B config to Chat</button>
+        <button class="wb-btn-secondary" onclick="cmpCopyShareLink()"
+                title="Copy a URL that reproduces this exact comparison">Copy share link</button>
+        <span class="wb-muted" id="postrun-status"></span>
       </div>
     </div>
 
@@ -330,6 +369,10 @@
     const VARIANTS = ['A', 'B'];
     let _examplesCache = null;
     let _dcLog = null;
+    // AbortController per variant for the Interrupt button.
+    const _abortCtls = {A: null, B: null};
+    // Per-run timing breakdown captured from step_done events.
+    const _runTimings = {A: {}, B: {}};
 
     // ============== Examples loader (shared with Chat) ==============
     async function _fetchExamples() {
@@ -594,11 +637,17 @@
           icon.style.color = '#FFF';
           icon.textContent = '✓';
         } else if (stepState.status === 'noop') {
-          icon.style.background = '#DDD8C9';
-          icon.style.color = '#5B5F68';
-          icon.textContent = '·';
-        } else if (stepState.status === 'skipped' || stepState.status === 'not_wired') {
+          // Filled grey dot -- "we ran the check, nothing fired"
+          icon.style.background = '#8A8E97';
+          icon.style.width = '8px'; icon.style.height = '8px';
+        } else if (stepState.status === 'skipped') {
+          // Dashed circle, faint -- "user toggled this off"
           icon.style.border = '2px dashed #DDD8C9';
+          icon.style.background = 'transparent';
+          icon.style.width = '12px'; icon.style.height = '12px';
+        } else if (stepState.status === 'not_wired') {
+          // Dotted circle with red tint -- "kernel didn't enable this layer"
+          icon.style.border = '2px dotted oklch(0.78 0.06 25)';
           icon.style.background = 'transparent';
           icon.style.width = '12px'; icon.style.height = '12px';
         } else if (stepState.status === 'error') {
@@ -726,16 +775,17 @@
       logEvent(variant, 'info',
         'POST /api/chat/send  layers_on=[' + (onLayers.join(',') || 'none') + '] max_tokens=' + maxTokens);
       setVariantProgress(variant, 'run', 'connecting...');
-      // Initialize the chat-style pipeline progress per variant.
+      _runTimings[variant] = {};
       pipelineInit(variant);
-      // Pre-mark layers whose toggle is OFF as 'skipped' so the panel
-      // shows the intended-skip status before the server confirms.
       ['persona', 'grep', 'rag', 'tools', 'online'].forEach(layer => {
         if (!toggles[layer]) {
           pipelineSetStep(variant, layer, 'skipped');
         }
       });
       const t0 = performance.now();
+      // AbortController lets the Interrupt button cancel mid-stream.
+      const ctl = new AbortController();
+      _abortCtls[variant] = ctl;
       let r;
       try {
         r = await fetch('/api/chat/send', {
@@ -746,8 +796,16 @@
             toggles: toggles,
             generation: {max_new_tokens: maxTokens, temperature: temperature},
           }),
+          signal: ctl.signal,
         });
       } catch (e) {
+        if (e.name === 'AbortError') {
+          logEvent(variant, 'warn', 'interrupted by user');
+          setVariantProgress(variant, 'err', 'interrupted');
+          appendMessage(variant, 'gemma', '(interrupted by user)',
+                         'aborted before any response was received');
+          return {ok: false, error: 'aborted', aborted: true};
+        }
         logEvent(variant, 'err', 'network error: ' + e);
         setVariantProgress(variant, 'err', 'network failed');
         appendMessage(variant, 'gemma', '(network failed: ' + e + ')',
@@ -766,46 +824,76 @@
       const decoder = new TextDecoder();
       let buffer = '';
       let final = null;
-      while (true) {
-        const {value, done} = await reader.read();
-        if (done) break;
-        buffer += decoder.decode(value, {stream: true});
-        const frames = buffer.split('\n\n');
-        buffer = frames.pop() || '';
-        for (const frame of frames) {
-          const line = frame.split('\n').find(l => l.startsWith('data: '));
-          if (!line) continue;
-          let evt;
-          try { evt = JSON.parse(line.substring(6)); }
-          catch (e) { continue; }
-          handleEvent(variant, evt);
-          if (evt.type === 'complete') final = evt;
-          if (evt.type === 'error') {
-            logEvent(variant, 'err', 'error: ' + (evt.error || 'unknown'));
-            setVariantProgress(variant, 'err', 'failed');
-            appendMessage(variant, 'gemma',
-                           '(error: ' + (evt.error || 'unknown') + ')',
-                           'see activity log');
-            return {ok: false, error: evt.error};
+      let streamErr = null;
+      try {
+        while (true) {
+          const {value, done} = await reader.read();
+          if (done) break;
+          buffer += decoder.decode(value, {stream: true});
+          const frames = buffer.split('\n\n');
+          buffer = frames.pop() || '';
+          for (const frame of frames) {
+            const line = frame.split('\n').find(l => l.startsWith('data: '));
+            if (!line) continue;
+            let evt;
+            try { evt = JSON.parse(line.substring(6)); }
+            catch (e) { continue; }
+            handleEvent(variant, evt);
+            if (evt.type === 'complete') final = evt;
+            if (evt.type === 'error') {
+              streamErr = evt.error || 'unknown stream error';
+              break;
+            }
           }
+          if (streamErr) break;
         }
+      } catch (e) {
+        if (e.name === 'AbortError') {
+          logEvent(variant, 'warn', 'interrupted mid-stream');
+          appendMessage(variant, 'gemma',
+                         '(interrupted by user mid-stream)',
+                         'partial response not shown');
+          return {ok: false, error: 'aborted', aborted: true};
+        }
+        streamErr = e.message || String(e);
       }
       const dt = Math.round(performance.now() - t0);
+      if (streamErr) {
+        logEvent(variant, 'err', 'stream error: ' + streamErr);
+        setVariantProgress(variant, 'err', 'stream failed');
+        appendMessage(variant, 'gemma',
+                       '(stream error: ' + streamErr + ')',
+                       'see activity log for details');
+        return {ok: false, error: streamErr};
+      }
+      if (!final) {
+        // Stream ended cleanly but never produced a `complete` event.
+        // This is the Cloudflared-idle-timeout / proxy-cut case.
+        logEvent(variant, 'err', 'stream ended without complete event (likely tunnel idle timeout)');
+        setVariantProgress(variant, 'err', 'stream truncated');
+        appendMessage(variant, 'gemma',
+                       '(stream ended without final response)',
+                       'the Cloudflared tunnel likely timed out; retry or lower max_new_tokens');
+        return {ok: false, error: 'stream ended without final event'};
+      }
       setVariantProgress(variant, 'done', 'complete in ' + dt + ' ms');
-      const respText = (final && final.response) || '';
+      const respText = final.response || '';
       const layerSummary = computeFiredSummary(final);
       const truncWarn = checkTruncation(respText, maxTokens);
+      // Approximate token count (4 chars/token) for the per-variant meta.
+      const tokenApprox = Math.round(respText.length / 4);
       const footParts = [
-        (final && final.elapsed_ms ? final.elapsed_ms + ' ms model' : dt + ' ms wall'),
+        (final.elapsed_ms ? final.elapsed_ms + ' ms model' : dt + ' ms wall'),
         respText.length + ' chars',
+        '~' + tokenApprox + ' tok',
         layerSummary,
       ].filter(Boolean);
       if (truncWarn) footParts.push(truncWarn);
       appendMessage(variant, 'gemma', respText || '(empty response)', footParts.join(' · '));
       setVariantMeta(variant, footParts.join(' | '));
-      logEvent(variant, 'ok', 'complete (' + dt + ' ms wall, ' + respText.length + ' chars)');
+      logEvent(variant, 'ok', 'complete (' + dt + ' ms wall, ' + respText.length + ' chars, ~' + tokenApprox + ' tok)');
       if (truncWarn) logEvent(variant, 'warn', truncWarn);
-      return {ok: true, dt: dt, final: final, prompt: prompt};
+      return {ok: true, dt: dt, final: final, prompt: prompt, approx_tokens: tokenApprox};
     }
     function computeFiredSummary(final) {
       if (!final || !final.harness_trace) return '';
@@ -873,6 +961,185 @@
       }
     }
 
+    // ============== Variant label auto-update ==============
+    function _deriveVariantLabel(variant) {
+      const t = readToggles(variant);
+      const on = LAYERS.filter(L => t[L]);
+      if (on.length === 0) return 'stock';
+      if (on.length === LAYERS.length) return 'all on';
+      // "harness on" = persona+grep+rag+tools, online off
+      if (t.persona && t.grep && t.rag && t.tools && !t.online) return 'harness on';
+      if (t.grep && !t.persona && !t.rag && !t.tools && !t.online) return 'grep only';
+      return 'custom (' + on.length + '/' + LAYERS.length + ')';
+    }
+    function refreshVariantLabels() {
+      for (const v of VARIANTS) {
+        const label = _deriveVariantLabel(v);
+        const lbl = document.getElementById(v + '-label');
+        const preset = document.getElementById(v + '-preset');
+        if (lbl) lbl.textContent = label;
+        if (preset) preset.textContent = label;
+      }
+    }
+
+    // ============== Interrupt ==============
+    function cmpInterrupt() {
+      for (const v of VARIANTS) {
+        const ctl = _abortCtls[v];
+        if (ctl && !ctl.signal.aborted) {
+          ctl.abort();
+          logEvent(v, 'warn', 'interrupt requested');
+        }
+      }
+    }
+
+    // ============== Cumulative timing summary ==============
+    function renderTimingSummary() {
+      const card = document.getElementById('timing-card');
+      const host = document.getElementById('timing-rows');
+      if (!host || !card) return;
+      while (host.firstChild) host.removeChild(host.firstChild);
+      const haveA = _pipelineState.A;
+      const haveB = _pipelineState.B;
+      if (!haveA && !haveB) {
+        card.style.display = 'none';
+        return;
+      }
+      card.style.display = 'block';
+      // Header
+      const head = document.createElement('div');
+      head.style.cssText = 'display:grid; grid-template-columns:180px 1fr 1fr 110px; gap:8px; font-size:11px; font-weight:700; color:#5B5F68; text-transform:uppercase; letter-spacing:0.04em; padding:6px 0; border-bottom:1px solid #EFEDE4;';
+      ['Step','Variant A','Variant B','Δ (B-A)'].forEach(s => {
+        const c = document.createElement('div'); c.textContent = s; head.appendChild(c);
+      });
+      host.appendChild(head);
+      let totalA = 0, totalB = 0;
+      PIPELINE_STEPS.forEach(s => {
+        const aStep = haveA?.steps[s.id];
+        const bStep = haveB?.steps[s.id];
+        const aMs = aStep?.elapsed_ms || 0;
+        const bMs = bStep?.elapsed_ms || 0;
+        totalA += aMs; totalB += bMs;
+        const row = document.createElement('div');
+        row.style.cssText = 'display:grid; grid-template-columns:180px 1fr 1fr 110px; gap:8px; font-size:12px; padding:5px 0; border-bottom:1px dotted #EFEDE4;';
+        const fmt = (ms, status) => {
+          if (status === 'skipped') return '— skipped';
+          if (status === 'not_wired') return '— not wired';
+          if (status === 'noop') return ms + ' ms (no-op)';
+          return ms ? ms + ' ms' : '—';
+        };
+        const mkCell = (txt, mono) => {
+          const c = document.createElement('div');
+          c.textContent = txt;
+          if (mono) c.style.fontFamily = 'JetBrains Mono, monospace';
+          return c;
+        };
+        row.appendChild(mkCell(s.label));
+        row.appendChild(mkCell(fmt(aMs, aStep?.status), true));
+        row.appendChild(mkCell(fmt(bMs, bStep?.status), true));
+        const delta = bMs - aMs;
+        const dcell = mkCell((delta > 0 ? '+' : '') + delta + ' ms', true);
+        if (delta > 0) dcell.style.color = 'oklch(0.50 0.18 25)';
+        else if (delta < 0) dcell.style.color = 'oklch(0.32 0.10 155)';
+        row.appendChild(dcell);
+        host.appendChild(row);
+      });
+      // Total row
+      const totalRow = document.createElement('div');
+      totalRow.style.cssText = 'display:grid; grid-template-columns:180px 1fr 1fr 110px; gap:8px; font-size:12.5px; font-weight:700; padding:8px 0 4px;';
+      const mkb = (s, mono, color) => {
+        const c = document.createElement('div'); c.textContent = s;
+        if (mono) c.style.fontFamily = 'JetBrains Mono, monospace';
+        if (color) c.style.color = color;
+        return c;
+      };
+      totalRow.appendChild(mkb('TOTAL'));
+      totalRow.appendChild(mkb(totalA + ' ms', true));
+      totalRow.appendChild(mkb(totalB + ' ms', true));
+      const tDelta = totalB - totalA;
+      totalRow.appendChild(mkb((tDelta > 0 ? '+' : '') + tDelta + ' ms', true,
+        tDelta > 0 ? 'oklch(0.50 0.18 25)' : 'oklch(0.32 0.10 155)'));
+      host.appendChild(totalRow);
+    }
+
+    // ============== Better grade rendering (bars + dimension verdicts) ==============
+    function renderGradeBars(variant, gradeResult) {
+      const host = document.getElementById(variant + '-grade');
+      if (!host) return;
+      while (host.firstChild) host.removeChild(host.firstChild);
+      // Show the pct_score as a big number + horizontal bar
+      const pct = (gradeResult && (gradeResult.pct_score ?? gradeResult.percent ?? null));
+      if (pct == null) {
+        const pre = document.createElement('div');
+        pre.style.cssText = 'font-family:JetBrains Mono, monospace; font-size:10.5px; white-space:pre-wrap; max-height:200px; overflow-y:auto;';
+        pre.textContent = JSON.stringify(gradeResult, null, 2);
+        host.appendChild(pre);
+        return;
+      }
+      const barWrap = document.createElement('div');
+      barWrap.style.cssText = 'background:#EFEDE4; border-radius:6px; height:8px; overflow:hidden; margin:6px 0 10px;';
+      const fill = document.createElement('div');
+      fill.style.cssText = 'background:oklch(0.55 0.10 155); height:100%; width:' + Math.max(0, Math.min(100, pct)) + '%; transition:width 300ms;';
+      barWrap.appendChild(fill);
+      host.appendChild(barWrap);
+      // Dimension verdicts
+      const dims = (gradeResult && gradeResult.dimensions) || [];
+      if (Array.isArray(dims) && dims.length) {
+        const ul = document.createElement('div');
+        ul.style.cssText = 'font-size:11.5px; max-height:200px; overflow-y:auto; padding-right:4px;';
+        dims.forEach(d => {
+          const row = document.createElement('div');
+          row.style.cssText = 'display:flex; justify-content:space-between; gap:6px; padding:3px 0; border-bottom:1px dotted #EFEDE4;';
+          const lbl = document.createElement('span');
+          lbl.style.cssText = 'flex:1; color:#0E1116;';
+          lbl.textContent = d.id || d.name || d.label || '?';
+          row.appendChild(lbl);
+          const v = document.createElement('span');
+          v.style.cssText = 'font-family:JetBrains Mono, monospace; font-size:10.5px; flex:0 0 90px; text-align:right;';
+          const verdict = d.verdict || d.value || d.result || (d.score != null ? d.score : '?');
+          v.textContent = String(verdict).slice(0, 20);
+          if (verdict === 'PASS' || verdict === 'YES' || verdict === true || (typeof verdict === 'number' && verdict >= 0.7)) v.style.color = 'oklch(0.32 0.10 155)';
+          else if (verdict === 'FAIL' || verdict === 'NO' || verdict === false || (typeof verdict === 'number' && verdict < 0.3)) v.style.color = 'oklch(0.50 0.18 25)';
+          else v.style.color = '#5B5F68';
+          row.appendChild(v);
+          ul.appendChild(row);
+        });
+        host.appendChild(ul);
+      } else {
+        const note = document.createElement('div');
+        note.className = 'wb-muted'; note.style.fontSize = '11.5px';
+        note.textContent = 'no dimension breakdown returned';
+        host.appendChild(note);
+      }
+    }
+
+    // ============== Send winning to Chat ==============
+    function cmpSendToChat(variant) {
+      const t = readToggles(variant);
+      const params = new URLSearchParams();
+      LAYERS.forEach(L => { if (t[L]) params.set(L, '1'); });
+      const promptVal = document.getElementById('cmp-prompt').value.trim();
+      if (promptVal) {
+        try { localStorage.setItem('duecare:last-chat-prompt', promptVal); } catch (e) {}
+      }
+      const hash = '#from=compare&variant=' + variant + '&' + params.toString();
+      location.href = '/static/chat.html' + hash;
+    }
+    async function cmpCopyShareLink() {
+      const promptVal = document.getElementById('cmp-prompt').value.trim();
+      const params = new URLSearchParams();
+      if (promptVal) params.set('prompt', promptVal);
+      const url = location.origin + '/static/compare.html?' + params.toString();
+      const status = document.getElementById('postrun-status');
+      try {
+        await navigator.clipboard.writeText(url);
+        status.textContent = 'copied to clipboard';
+        setTimeout(() => { status.textContent = ''; }, 3000);
+      } catch (e) {
+        status.textContent = 'copy failed; URL: ' + url;
+      }
+    }
+
     // ============== Top-level orchestration ==============
     function cmpReset() {
       document.getElementById('cmp-prompt').value = '';
@@ -900,14 +1167,17 @@
         status.textContent = 'Type a prompt or pick an example first.';
         return;
       }
-      const maxTokens = Math.max(128, Math.min(8192,
+      const maxTokens = Math.max(128, Math.min(32768,
         parseInt(document.getElementById('cmp-max-tokens').value, 10) || 16384));
       const temperature = Math.max(0, Math.min(2,
         parseFloat(document.getElementById('cmp-temperature').value) || 1.0));
       try { localStorage.setItem('duecare:last-chat-prompt', prompt); } catch (e) {}
       renderToggleChips('A'); renderToggleChips('B');
+      refreshVariantLabels();
       const log = getLog(); if (log) log.clear();
       document.getElementById('grade-card').style.display = 'none';
+      document.getElementById('timing-card').style.display = 'none';
+      document.getElementById('postrun-card').style.display = 'none';
       logEvent(null, 'info', 'starting comparison; runs are SEQUENTIAL (single shared Gemma) max_tokens=' + maxTokens);
       for (const v of VARIANTS) {
         clearMsgs(v);
@@ -917,13 +1187,19 @@
         LAYERS.forEach(L => markLayerFired(v, L, null));
       }
       const btn = document.getElementById('cmp-run');
+      const interruptBtn = document.getElementById('cmp-interrupt');
       btn.disabled = true; const origTxt = btn.textContent;
       btn.textContent = 'Running...';
+      if (interruptBtn) interruptBtn.disabled = false;
       status.textContent = 'Running Variant A, then Variant B...';
       window._cmpResults = {A: null, B: null, prompt: prompt};
       try {
         const resA = await runOne('A', prompt, maxTokens, temperature);
         window._cmpResults.A = resA;
+        if (resA.aborted) {
+          status.textContent = 'Comparison aborted before Variant B.';
+          return;
+        }
         const resB = await runOne('B', prompt, maxTokens, temperature);
         window._cmpResults.B = resB;
         const sa = resA.ok ? ('OK ' + resA.dt + 'ms') : 'failed';
@@ -932,6 +1208,8 @@
         logEvent(null, 'ok', 'comparison complete: A=' + sa + ', B=' + sb);
         if (resA.ok && resB.ok) {
           document.getElementById('grade-card').style.display = 'block';
+          renderTimingSummary();
+          document.getElementById('postrun-card').style.display = 'block';
         }
       } catch (e) {
         err.style.display = 'block';
@@ -940,6 +1218,8 @@
         logEvent(null, 'err', 'exception: ' + e);
       } finally {
         btn.disabled = false; btn.textContent = origTxt;
+        if (interruptBtn) interruptBtn.disabled = true;
+        _abortCtls.A = null; _abortCtls.B = null;
       }
     }
 
@@ -988,8 +1268,8 @@
             return x.json();
           }),
         ]);
-        document.getElementById('A-grade').textContent = JSON.stringify(gA, null, 2);
-        document.getElementById('B-grade').textContent = JSON.stringify(gB, null, 2);
+        renderGradeBars('A', gA);
+        renderGradeBars('B', gB);
         document.getElementById('A-grade-score').textContent = scoreLabel(gA);
         document.getElementById('B-grade-score').textContent = scoreLabel(gB);
         status.textContent = 'A=' + scoreLabel(gA) + '  |  B=' + scoreLabel(gB);
@@ -1014,11 +1294,38 @@
     // ============== Init ==============
     document.addEventListener('DOMContentLoaded', function () {
       renderToggleChips('A'); renderToggleChips('B');
+      refreshVariantLabels();
       getLog();  // eager-init so idle placeholder is visible right away
       populateExamples();
+
+      // Wire toggle-change listeners so the variant label pill stays
+      // in sync with the actual toggle state (no more 'stock' lying
+      // when the user manually flipped a layer on).
+      VARIANTS.forEach(v => {
+        LAYERS.forEach(L => {
+          const el = document.getElementById(v + '-' + L);
+          if (el) el.addEventListener('change', () => {
+            renderToggleChips(v);
+            refreshVariantLabels();
+          });
+        });
+      });
+
+      // Enter (no shift) inside the prompt fires Run. Shift+Enter
+      // keeps the newline. Matches the Chat page ergonomic.
+      const input = document.getElementById('cmp-prompt');
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) {
+          e.preventDefault();
+          cmpRun();
+        }
+      });
+
+      // Honor ?prompt=... and ?preset=... + optional ?autorun=1
       const params = new URLSearchParams(window.location.search);
       const fromQuery = params.get('prompt');
-      const input = document.getElementById('cmp-prompt');
+      const preset = params.get('preset');
+      const autorun = params.get('autorun');
       if (fromQuery) {
         input.value = fromQuery;
         input.dispatchEvent(new Event('input', {bubbles: true}));
@@ -1030,6 +1337,13 @@
             input.dispatchEvent(new Event('input', {bubbles: true}));
           }
         } catch (e) {}
+      }
+      if (preset && ['stock_vs_full', 'grep_only_vs_full', 'with_online_vs_without'].includes(preset)) {
+        cmpPreset(preset);
+      }
+      if (autorun === '1' && input.value.trim()) {
+        // Slight delay so renders settle.
+        setTimeout(() => cmpRun(), 200);
       }
     });
   </script>
