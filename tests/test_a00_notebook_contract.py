@@ -48,3 +48,16 @@ def test_a00_has_judge_facing_quick_proof_and_research_flow():
         "_extract_research_graph",
     ]:
         assert marker in text
+
+
+def test_a00_has_synthetic_polish_and_training_smoke_path():
+    text = A00.read_text(encoding="utf-8")
+    for marker in [
+        "RESPONSE_BLUEPRINT",
+        "MEMORY_TOOL_POLICY",
+        "rubric_polisher",
+        "_polish_training_response",
+        "generatePolished",
+        "finetuneSmoke",
+    ]:
+        assert marker in text

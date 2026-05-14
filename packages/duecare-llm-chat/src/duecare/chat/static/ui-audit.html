@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>UI Audit | DueCare Workbench</title>
+  <link rel="stylesheet" href="/static/_chrome.css">
+  <script src="/static/_nav.js" defer></script>
+  <style>
+    .page { max-width: 1120px; margin: 24px auto 60px; padding: 0 18px; color: var(--ink); font-family: Inter, system-ui, sans-serif; line-height: 1.55; }
+    h1 { font-size: 26px; margin: 0 0 6px; }
+    h2 { font-size: 15px; margin: 0 0 10px; }
+    .lede { color: var(--ink-2); font-size: 13.5px; margin: 0 0 16px; }
+    .panel { background: var(--paper); border: 1px solid var(--line); border-radius: 8px; padding: 16px 18px; margin-bottom: 14px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; }
+    .metric { background: var(--paper-2); border: 1px solid var(--line-soft); border-radius: 8px; padding: 12px; }
+    .metric b { display: block; font-size: 24px; line-height: 1.1; }
+    .metric span { color: var(--ink-3); font-size: 11px; text-transform: uppercase; letter-spacing: .05em; font-family: var(--mono); }
+    table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    th, td { text-align: left; vertical-align: top; border-bottom: 1px solid var(--line-soft); padding: 7px 8px; }
+    th { color: var(--ink-3); font-size: 10.5px; text-transform: uppercase; letter-spacing: .05em; font-family: var(--mono); }
+    .pill { display: inline-block; border: 1px solid var(--line); border-radius: 999px; padding: 2px 7px; margin: 0 3px 4px 0; background: var(--paper-2); color: var(--ink-2); font-size: 10.5px; font-family: var(--mono); }
+    .priority-P0 { background: oklch(0.94 0.04 25); color: oklch(0.32 0.10 25); }
+    .priority-P1 { background: oklch(0.94 0.04 80); color: oklch(0.34 0.08 80); }
+    .priority-P2 { background: oklch(0.94 0.03 250); color: oklch(0.34 0.06 250); }
+    .muted { color: var(--ink-3); font-size: 12px; }
+    .toolbar { display: flex; gap: 8px; flex-wrap: wrap; margin: 12px 0; }
+    button, .btn { border: 1px solid var(--line); background: var(--paper); color: var(--ink); border-radius: 7px; padding: 8px 12px; font-size: 12.5px; cursor: pointer; text-decoration: none; }
+    button.primary { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+    code { background: var(--paper-2); border-radius: 4px; padding: 1px 5px; font-family: var(--mono); font-size: 11.5px; }
+  </style>
+</head>
+<body data-nav="audit">
+  <main class="page">
+    <h1>UI Audit</h1>
+    <p class="lede">
+      Pre-recording checklist for every kernel and shared workbench page. This
+      page is backed by <code>/static/ui_audit_manifest.json</code> so the audit
+      stays versioned with the code.
+    </p>
+    <div class="toolbar">
+      <button class="primary" type="button" onclick="loadAudit()">Refresh manifest</button>
+      <a class="btn" href="/static/status.html">Status</a>
+      <a class="btn" href="/static/process.html">Bulk File Review</a>
+      <a class="btn" href="/static/compare.html">Harness Comparison</a>
+    </div>
+
+    <section class="grid" id="metrics"></section>
+    <section class="panel"><h2>Global Gates</h2><div id="gates" class="muted">Loading...</div></section>
+    <section class="panel"><h2>Kernels</h2><div id="kernels"></div></section>
+    <section class="panel"><h2>Static Pages And Controls</h2><div id="pages"></div></section>
+    <section class="panel"><h2>Improvement Backlog</h2><div id="backlog"></div></section>
+  </main>
+
+  <script>
+    const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    const pills = (items) => (items || []).map(x => '<span class="pill">' + esc(x) + '</span>').join('');
+    async function loadAudit() {
+      const r = await fetch('/static/ui_audit_manifest.json', {cache: 'no-store'});
+      const data = await r.json();
+      document.getElementById('metrics').innerHTML = [
+        ['Kernels', (data.kernels || []).length],
+        ['Static pages', (data.static_pages || []).length],
+        ['Global gates', (data.global_gates || []).length],
+        ['Backlog items', (data.backlog || []).length],
+      ].map(([label, value]) => '<div class="metric"><span>' + esc(label) + '</span><b>' + esc(value) + '</b></div>').join('');
+      document.getElementById('gates').innerHTML = '<ol>' + (data.global_gates || []).map(x => '<li>' + esc(x) + '</li>').join('') + '</ol>';
+      document.getElementById('kernels').innerHTML =
+        '<table><thead><tr><th>ID</th><th>Folder</th><th>Role</th><th>UI</th><th>Status</th></tr></thead><tbody>' +
+        (data.kernels || []).map(k => '<tr><td><code>' + esc(k.id) + '</code></td><td>' + esc(k.folder) + '</td><td>' + esc(k.role) + '</td><td>' + esc(k.ui) + '</td><td>' + esc(k.status) + '</td></tr>').join('') +
+        '</tbody></table>';
+      document.getElementById('pages').innerHTML =
+        '<table><thead><tr><th>Route</th><th>Purpose</th><th>Controls</th><th>Outputs</th><th>Audit Focus</th></tr></thead><tbody>' +
+        (data.static_pages || []).map(p => '<tr><td><a href="' + esc(p.route) + '">' + esc(p.route) + '</a><br><code>' + esc(p.file) + '</code></td><td>' + esc(p.purpose) + '</td><td>' + pills(p.controls) + '</td><td>' + pills(p.outputs) + '</td><td>' + pills(p.audit) + '</td></tr>').join('') +
+        '</tbody></table>';
+      document.getElementById('backlog').innerHTML =
+        '<table><thead><tr><th>Priority</th><th>Item</th><th>Owner</th></tr></thead><tbody>' +
+        (data.backlog || []).map(b => '<tr><td><span class="pill priority-' + esc(b.priority) + '">' + esc(b.priority) + '</span></td><td>' + esc(b.item) + '</td><td>' + esc(b.owner) + '</td></tr>').join('') +
+        '</tbody></table>';
+    }
+    loadAudit().catch(e => {
+      document.getElementById('gates').textContent = 'Failed to load audit manifest: ' + e;
+    });
+  </script>
+</body>
+</html>

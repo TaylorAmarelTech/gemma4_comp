@@ -30,7 +30,7 @@
               aria-expanded="false">
         <span class="dc-wb-status-dot" id="dc-wb-status-dot" aria-hidden="true"></span>
         <span class="dc-wb-status-label">Model</span>
-        <span class="dc-wb-status-value" id="dc-wb-status-model">checking…</span>
+        <span class="dc-wb-status-value" id="dc-wb-status-model">checking...</span>
       </button>
       <div class="dc-wb-model-popover" id="dc-wb-model-popover" role="dialog" aria-label="Model selector" hidden>
         <div class="dc-wb-model-popover-head">
@@ -50,12 +50,12 @@
         </div>
         <pre class="dc-wb-model-log" id="dc-wb-model-log">No loader events yet.</pre>
       </div>
-      <span class="dc-wb-status-sep" aria-hidden="true">·</span>
+      <span class="dc-wb-status-sep" aria-hidden="true">|</span>
       <span class="dc-wb-status-item">
         <span class="dc-wb-status-label">Version</span>
         <span class="dc-wb-status-value" id="dc-wb-status-version">pending</span>
       </span>
-      <span class="dc-wb-status-sep" aria-hidden="true">·</span>
+      <span class="dc-wb-status-sep" aria-hidden="true">|</span>
       <span class="dc-wb-status-item dc-wb-status-mem">
         <span class="dc-wb-status-label">GPU</span>
         <span class="dc-wb-status-value" id="dc-wb-status-gpu">pending</span>
@@ -65,7 +65,7 @@
          rel="noopener"
          class="dc-wb-status-item dc-wb-status-website"
          title="Open the live DueCare hub (gemma4-comp.onrender.com; moving to duecare-ai.com)">
-        DueCare hub <span aria-hidden="true">↗</span>
+        DueCare hub
       </a>
       <button type="button" class="dc-wb-status-clearchat"
               id="dc-wb-clearchat-btn"
@@ -78,7 +78,7 @@
               id="dc-wb-shutdown-btn"
               title="Stop the kernel and release GPU memory"
               aria-label="Shutdown kernel">
-        <span aria-hidden="true">⏻</span> Shutdown
+        Shutdown
       </button>
     </div>
   </div>
@@ -106,6 +106,8 @@
            title="What this workbench is, what each layer does, and how to read a grade">Getting Started</a>
         <a href="/static/use-cases.html"         data-nav-key="use-cases"
            title="Five judge-facing use cases: platform, NGO/regulator, worker, researcher, and developer">Use Cases</a>
+        <a href="/static/ecosystem.html"         data-nav-key="ecosystem"
+           title="Judge-facing ecosystem diagram for runtime, harnesses, evaluation, synthetic data, training, and deployment">Ecosystem</a>
         <a href="/static/chat.html"              data-nav-key="chat"
            title="Free-form chat against the loaded Gemma 4 model with any harness combination">Chat</a>
         <a href="/static/compare.html"           data-nav-key="compare"
@@ -124,6 +126,8 @@
            title="Local instance health: knowledge counts, sync history, backend availability, model state">Status</a>
         <a href="/static/harness.html"          data-nav-key="harness"
            title="Select and inspect all seven primary/secondary harness contracts and their test pages">Harnesses</a>
+        <a href="/static/ui-audit.html"         data-nav-key="audit"
+           title="Pre-recording audit for every kernel, page, control, input, output, and backlog item">UI Audit</a>
       </div>
     </div>
   </nav>

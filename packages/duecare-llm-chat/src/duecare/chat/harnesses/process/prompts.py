@@ -62,6 +62,18 @@ def build_context_block(bundle: dict | None) -> str:
                     f"risk={p.get('risk_score')} docs={p.get('n_documents')} "
                     f"signals={', '.join((p.get('risk_signals') or [])[:4])}"
                 )
+        journey = intelligence.get("journey_points") or []
+        if journey:
+            lines.append("  critical journey points:")
+            for point in [p for p in journey if p.get("is_critical")][:12]:
+                payments = ", ".join(x.get("amount", "") for x in (point.get("payments") or [])[:3])
+                signals = ", ".join((point.get("risk_signals") or [])[:4])
+                lines.append(
+                    "    "
+                    f"{point.get('stage')} row_id={point.get('row_id')} "
+                    f"case={point.get('case_id')} payments=[{payments}] "
+                    f"signals=[{signals}]"
+                )
         brief = (intelligence.get("gemma_case_brief") or {}).get("json")
         if isinstance(brief, dict):
             lines.append("  Gemma case brief:")
