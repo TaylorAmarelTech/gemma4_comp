@@ -1,5 +1,5 @@
 /*
- * DueCare Exploration Workbench — shared nav + status loader.
+ * DueCare Exploration Workbench: shared nav + status loader.
  *
  * Each viewer page tags itself with <body data-nav="<key>"> where
  * <key> matches a `data-nav-key` attribute in `_nav.html`. This script
@@ -24,7 +24,7 @@
 
     function setText(id, value) {
         const el = document.getElementById(id);
-        if (el) el.textContent = value == null ? '—' : String(value);
+        if (el) el.textContent = value == null ? 'pending' : String(value);
     }
 
     function setDot(state) {
@@ -34,11 +34,161 @@
     }
 
     function fmtBytes(n) {
-        if (n == null || isNaN(n)) return '—';
+        if (n == null || isNaN(n)) return 'pending';
         if (n < 1024) return n + 'B';
         if (n < 1024 * 1024) return (n / 1024).toFixed(0) + 'KB';
         if (n < 1024 * 1024 * 1024) return (n / 1024 / 1024).toFixed(0) + 'MB';
         return (n / 1024 / 1024 / 1024).toFixed(1) + 'GB';
+    }
+
+    const MODEL_FALLBACK_VARIANTS = {
+        'e2b-it':         {display: 'Gemma 4 E2B-it', size_gb: 2.0, category: 'on-device', load_eta: '~20-30 sec'},
+        'e4b-it':         {display: 'Gemma 4 E4B-it', size_gb: 4.0, category: 'on-device', load_eta: '~30-60 sec'},
+        '26b-a4b-it':     {display: 'Gemma 4 26B-A4B-it', size_gb: 14.0, category: 'on-device', load_eta: '~6-15 min first run'},
+        '31b-it':         {display: 'Gemma 4 31B-it', size_gb: 18.0, category: 'on-device', load_eta: '~15-25 min first run'},
+        'jailbroken-31b': {display: 'Gemma 4 31B abliterated', size_gb: 18.0, category: 'jailbroken', load_eta: '~15-25 min first run'},
+        'jailbroken-e4b': {display: 'Gemma 4 E4B abliterated', size_gb: 4.0, category: 'jailbroken', load_eta: '~30-60 sec'},
+        'cloud-gemini':   {display: 'Gemini API (cloud)', size_gb: 0.0, category: 'cloud', load_eta: 'instant'},
+        'cloud-openai':   {display: 'OpenAI-compatible (cloud)', size_gb: 0.0, category: 'cloud', load_eta: 'instant'},
+        'cloud-ollama':   {display: 'Ollama (cloud/local)', size_gb: 0.0, category: 'cloud', load_eta: 'instant'}
+    };
+    let modelPollTimer = null;
+    let modelLastStatus = {loaded: false};
+
+    function modelSelectEl() {
+        return document.getElementById('dc-wb-model-select');
+    }
+
+    function renderModelOptions(variants, activeVariant) {
+        const sel = modelSelectEl();
+        if (!sel) return;
+        const prior = sel.value;
+        const map = (variants && Object.keys(variants).length)
+            ? variants : MODEL_FALLBACK_VARIANTS;
+        sel.innerHTML = '';
+        Object.keys(map).forEach(function (key) {
+            const info = map[key] || {};
+            const opt = document.createElement('option');
+            opt.value = key;
+            opt.textContent = (info.display || key)
+                + (info.load_eta ? ' | ' + info.load_eta : '');
+            sel.appendChild(opt);
+        });
+        const keys = Object.keys(map);
+        if (activeVariant && keys.indexOf(activeVariant) >= 0) sel.value = activeVariant;
+        else if (prior && keys.indexOf(prior) >= 0) sel.value = prior;
+        else if (keys.indexOf('e4b-it') >= 0) sel.value = 'e4b-it';
+    }
+
+    function renderModelLogs(logs) {
+        const el = document.getElementById('dc-wb-model-log');
+        if (!el) return;
+        if (!logs || !logs.length) {
+            el.textContent = 'No loader events yet.';
+            return;
+        }
+        el.classList.add('show');
+        el.textContent = logs.slice(-80).map(function (e) {
+            const elapsed = e.elapsed_s == null ? '' : '+' + Number(e.elapsed_s).toFixed(0) + 's ';
+            const phase = e.phase ? '[' + e.phase + '] ' : '';
+            const level = e.level && e.level !== 'info' ? e.level.toUpperCase() + ' ' : '';
+            return (e.ts || '') + ' ' + elapsed + level + phase + (e.message || '');
+        }).join('\n');
+        el.scrollTop = el.scrollHeight;
+    }
+
+    function setModelPopoverStatus(text) {
+        const el = document.getElementById('dc-wb-model-popover-status');
+        if (el) el.textContent = text || '';
+    }
+
+    async function refreshModelLoaderStatus() {
+        let info = {};
+        let load = {};
+        try {
+            const r = await fetch('/api/model-info', {cache: 'no-store'});
+            if (r.ok) info = await r.json();
+        } catch (_) { /* quiet */ }
+        try {
+            const r = await fetch('/api/load-model/status', {cache: 'no-store'});
+            if (r.ok) load = await r.json();
+        } catch (_) { /* kernels without the loader endpoint still use model-info */ }
+
+        const loaded = !!info.loaded;
+        const loading = load.status === 'loading';
+        modelLastStatus = {...info, loaded};
+        renderModelOptions(load.variants, load.variant || info.variant || info.name);
+        renderModelLogs(load.logs || []);
+
+        const name = loaded
+            ? (info.display || info.name || load.variant || 'model loaded')
+            : (loading ? 'Loading ' + (load.variant || 'model') : 'no model loaded');
+        setText('dc-wb-status-model', name);
+        setDot(loading ? 'loading' : (loaded ? 'loaded' : (load.status === 'error' ? 'error' : 'idle')));
+
+        const loadBtn = document.getElementById('dc-wb-model-load');
+        if (loadBtn) {
+            loadBtn.disabled = loading;
+            loadBtn.textContent = loading ? 'Loading...' : (loaded ? 'Switch/load selected' : 'Load selected');
+        }
+
+        const parts = [];
+        if (loaded && (info.device || info.quantization)) {
+            parts.push([info.device, info.quantization].filter(Boolean).join(' | '));
+        }
+        if (loading) {
+            parts.push('phase: ' + (load.phase || 'loading'));
+            if (load.elapsed_s != null) parts.push(Math.round(load.elapsed_s) + 's elapsed');
+        }
+        if (load.status === 'error' && load.error) parts.push('error: ' + load.error);
+        setModelPopoverStatus(parts.join(' | ') || 'Select a model, then load it for all pages.');
+
+        if (loading) {
+            if (modelPollTimer) clearTimeout(modelPollTimer);
+            modelPollTimer = setTimeout(refreshModelLoaderStatus, 1500);
+        }
+        return {info, load};
+    }
+
+    async function loadSelectedModel() {
+        const sel = modelSelectEl();
+        const variant = sel && sel.value;
+        if (!variant) return;
+        setModelPopoverStatus('Starting model load: ' + variant);
+        try {
+            const r = await fetch('/api/load-model', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({variant: variant})
+            });
+            const payload = await r.json().catch(function () { return {}; });
+            if (!r.ok || payload.status === 'error') {
+                setDot('error');
+                setModelPopoverStatus('Model load failed: '
+                    + (payload.error || payload.message || ('HTTP ' + r.status)));
+                return;
+            }
+            await refreshModelLoaderStatus();
+        } catch (e) {
+            setDot('error');
+            setModelPopoverStatus('Model load request failed: ' + ((e && e.message) || e));
+        }
+    }
+
+    function openModelPopover() {
+        const pop = document.getElementById('dc-wb-model-popover');
+        const btn = document.getElementById('dc-wb-model-open');
+        if (!pop) return;
+        pop.hidden = false;
+        if (btn) btn.setAttribute('aria-expanded', 'true');
+        refreshModelLoaderStatus();
+    }
+
+    function closeModelPopover() {
+        const pop = document.getElementById('dc-wb-model-popover');
+        const btn = document.getElementById('dc-wb-model-open');
+        if (pop) pop.hidden = true;
+        if (btn) btn.setAttribute('aria-expanded', 'false');
     }
 
     async function refreshStatus() {
@@ -48,7 +198,7 @@
             if (r.ok) {
                 const d = await r.json();
                 const v = d.chat_package || d.version || d.duecare_llm_chat || '';
-                setText('dc-wb-status-version', v ? 'v' + v : '—');
+                setText('dc-wb-status-version', v ? 'v' + v : 'pending');
             }
         } catch (_) { /* quiet */ }
 
@@ -104,6 +254,47 @@
         });
     }
 
+    function wireModelPopover() {
+        const openBtn = document.getElementById('dc-wb-model-open');
+        const closeBtn = document.getElementById('dc-wb-model-close');
+        const loadBtn = document.getElementById('dc-wb-model-load');
+        const refreshBtn = document.getElementById('dc-wb-model-refresh');
+        if (openBtn) {
+            openBtn.addEventListener('click', function (event) {
+                event.stopPropagation();
+                const pop = document.getElementById('dc-wb-model-popover');
+                if (pop && !pop.hidden) closeModelPopover();
+                else openModelPopover();
+            });
+        }
+        if (closeBtn) closeBtn.addEventListener('click', closeModelPopover);
+        if (loadBtn) loadBtn.addEventListener('click', loadSelectedModel);
+        if (refreshBtn) refreshBtn.addEventListener('click', refreshModelLoaderStatus);
+        document.addEventListener('click', function (event) {
+            const pop = document.getElementById('dc-wb-model-popover');
+            const btn = document.getElementById('dc-wb-model-open');
+            if (!pop || pop.hidden) return;
+            if (pop.contains(event.target) || (btn && btn.contains(event.target))) return;
+            closeModelPopover();
+        });
+        document.addEventListener('keydown', function (event) {
+            if (event.key === 'Escape') closeModelPopover();
+        });
+        window.dcWbOpenModelSelector = openModelPopover;
+        window.dcWbRefreshModelStatus = refreshModelLoaderStatus;
+        window.dcWbLoadSelectedModel = loadSelectedModel;
+        window.dcWbEnsureModelReady = isModelReadyForPage;
+        window.dcWbModelStatus = function () { return modelLastStatus; };
+        renderModelOptions(null, null);
+    }
+
+    async function isModelReadyForPage() {
+        const state = await refreshModelLoaderStatus();
+        if (state.info && state.info.loaded) return true;
+        openModelPopover();
+        return false;
+    }
+
     function wireShutdown() {
         const btn = document.getElementById('dc-wb-shutdown-btn');
         if (!btn) return;
@@ -138,7 +329,7 @@
         // Idempotency guard: if a chrome partial is already mounted
         // (because this script ran once, OR the page re-fetched the
         // partial after a DOM swap, OR the script tag is included
-        // twice), don't duplicate it -- that produced the "two nav
+        // twice), don't duplicate it. That produced the "two nav
         // bars + duplicate Shutdown buttons" bug reported 2026-05-12.
         if (document.querySelector('.dc-wb-shell')
             || document.body.classList.contains('dc-wb-has-nav')) {
@@ -159,12 +350,17 @@
         }
         const key = document.body.getAttribute('data-nav') || '';
         activate(nav, key);
+        wireModelPopover();
         wireShutdown();
         wireClearChat();
         refreshStatus();
+        refreshModelLoaderStatus();
         // Light polling so the status strip stays current without blowing up
         // a phone battery: every 8 seconds.
-        setInterval(refreshStatus, 8000);
+        setInterval(function () {
+            refreshStatus();
+            refreshModelLoaderStatus();
+        }, 8000);
     }
 
     function load() {

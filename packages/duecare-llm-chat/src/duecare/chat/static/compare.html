@@ -102,19 +102,6 @@
                               color: oklch(0.32 0.07 195); }
     .wb-error { background: oklch(0.94 0.04 25); color: oklch(0.32 0.10 25); padding: 8px 12px;
                  border-radius: 6px; font-size: 12px; margin-top: 8px; }
-    .cmp-model-card { display: grid; grid-template-columns: minmax(260px, 1fr) minmax(280px, 1.4fr); gap: 14px; align-items: start; }
-    .cmp-model-status { display: flex; flex-direction: column; gap: 6px; }
-    .cmp-model-name { font-size: 16px; font-weight: 700; color: #0E1116; }
-    .cmp-model-meta { color: #5B5F68; font-size: 12px; }
-    .cmp-model-dot { width: 9px; height: 9px; border-radius: 50%; background: #DDD8C9; display: inline-block; margin-right: 6px; }
-    .cmp-model-dot.ready { background: oklch(0.55 0.10 155); }
-    .cmp-model-dot.loading { background: oklch(0.68 0.18 80); animation: cv-pulse 1s ease-in-out infinite; }
-    .cmp-model-dot.error { background: oklch(0.55 0.18 25); }
-    .cmp-model-controls { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
-    .cmp-model-controls select { min-width: 230px; padding: 7px 9px; border: 1px solid #DDD8C9; border-radius: 6px; font-size: 12.5px; background: #FFF; }
-    .cmp-model-log { margin-top: 8px; display: none; max-height: 150px; overflow: auto; white-space: pre-wrap; background: #FAF9F4; border: 1px solid #EFEDE4; border-radius: 6px; padding: 8px 10px; font-size: 11px; color: #2A2D34; }
-    .cmp-model-log.show { display: block; }
-    @media (max-width: 760px) { .cmp-model-card { grid-template-columns: 1fr; } }
     textarea, input, select { font-family: inherit; }
     a { color: oklch(0.32 0.07 195); }
     code { background: #F1EFE7; padding: 1px 5px; border-radius: 3px; font-size: 11.5px;
@@ -132,37 +119,9 @@
       so they execute <i>sequentially</i> (A first, then B). The safety
       layers (Persona, GREP, RAG, Tools, Online) fire <i>per variant</i>
       before each model call. Every step streams into the activity log
-      at the bottom of the page in real time.
+      at the bottom of the page in real time. Use the top <b>Model</b>
+      control to load or switch the active model for all workbench pages.
     </p>
-
-    <div class="wb-card" id="cmp-model-card">
-      <h2>0. Model</h2>
-      <div class="cmp-model-card">
-        <div class="cmp-model-status">
-          <div class="cmp-model-name">
-            <span class="cmp-model-dot" id="cmp-model-dot"></span>
-            <span id="cmp-model-name">Checking model...</span>
-          </div>
-          <div class="cmp-model-meta" id="cmp-model-meta">
-            Compare uses the same single active model as Chat. Both variants run sequentially.
-          </div>
-          <div class="cmp-model-meta" id="cmp-model-load-meta"></div>
-        </div>
-        <div>
-          <div class="cmp-model-controls">
-            <select id="cmp-model-select" aria-label="Model variant"></select>
-            <button class="wb-btn-primary" id="cmp-model-load" type="button"
-                    onclick="cmpLoadSelectedModel()">Load selected model</button>
-            <button class="wb-btn-secondary" type="button"
-                    onclick="cmpRefreshModelStatus()">Refresh</button>
-            <button class="wb-btn-secondary" id="cmp-model-logs-toggle" type="button"
-                    onclick="cmpToggleModelLogs()">Logs</button>
-            <a class="wb-btn-secondary" href="/static/models.html">Full models page</a>
-          </div>
-          <pre class="cmp-model-log" id="cmp-model-log">No loader events yet.</pre>
-        </div>
-      </div>
-    </div>
 
     <div class="wb-card">
       <h2>1. Shared prompt</h2>
@@ -555,12 +514,18 @@
       cmpRefreshModelStatus();
     }
     async function cmpEnsureModelReady() {
-      const state = await cmpRefreshModelStatus();
-      if (state.info && state.info.loaded) return true;
+      let state = null;
+      if (window.dcWbEnsureModelReady) {
+        const ok = await window.dcWbEnsureModelReady();
+        if (ok) return true;
+        state = {info: {loaded: false}};
+      } else {
+        state = await cmpRefreshModelStatus();
+        if (state.info && state.info.loaded) return true;
+      }
       const status = document.getElementById('cmp-status');
-      if (status) status.textContent = 'Choose and load a model before running Compare.';
-      const card = document.getElementById('cmp-model-card');
-      if (card) card.scrollIntoView({behavior: 'smooth', block: 'start'});
+      if (status) status.textContent = 'Choose and load a model from the top Model control before running Compare.';
+      if (window.dcWbOpenModelSelector) window.dcWbOpenModelSelector();
       return false;
     }
 

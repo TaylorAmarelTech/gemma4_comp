@@ -1,19 +1,15 @@
 <!--
-  DueCare workbench — single pinned status banner.
+  DueCare workbench: single pinned status banner.
 
   This partial is intentionally minimal: one horizontal strip at the
   very top with model state, version, GPU info, a Shutdown button,
-  and a deep-link out to duecare-ai.com. The kernel is NOT a
-  recreation of the public website, so we don't surface the 5
-  audience lane pages from here — those live at duecare-ai.com and
-  reviewers reach them via the link.
+  and a deep-link out to duecare-ai.com. The kernel also exposes
+  the five audience use-case lanes so reviewers can test the same
+  story shown on the public site.
 
   Earlier versions of this file rendered a second navigation row
-  with 5 audience tabs (Platform safety / NGO & regulator /
-  Individual worker / Researcher / Developer). Removed 2026-05-12
-  per Taylor's feedback: that row duplicated the website and
-  produced the "two horizontal nav bars" bug stacked with
-  index.html's page-local toolbar.
+  with 5 audience tabs. The current implementation keeps one
+  row and links to a compact Use Cases hub instead.
 
   How it loads:
     Each viewer page includes <script src="/static/_nav.js" defer></script>
@@ -26,20 +22,43 @@
   <!-- Layer 1: status strip (informational) -->
   <div class="dc-wb-status" role="status" aria-live="polite">
     <div class="dc-wb-status-inner">
-      <span class="dc-wb-status-item dc-wb-status-model">
+      <button type="button"
+              class="dc-wb-status-item dc-wb-status-model dc-wb-model-open"
+              id="dc-wb-model-open"
+              title="Select, load, or inspect the active Gemma 4 model"
+              aria-haspopup="dialog"
+              aria-expanded="false">
         <span class="dc-wb-status-dot" id="dc-wb-status-dot" aria-hidden="true"></span>
         <span class="dc-wb-status-label">Model</span>
         <span class="dc-wb-status-value" id="dc-wb-status-model">checking…</span>
-      </span>
+      </button>
+      <div class="dc-wb-model-popover" id="dc-wb-model-popover" role="dialog" aria-label="Model selector" hidden>
+        <div class="dc-wb-model-popover-head">
+          <div>
+            <div class="dc-wb-model-popover-title">Active model</div>
+            <div class="dc-wb-model-popover-sub" id="dc-wb-model-popover-status">Checking loader state...</div>
+          </div>
+          <button type="button" class="dc-wb-model-popover-close" id="dc-wb-model-close" aria-label="Close model selector">Close</button>
+        </div>
+        <div class="dc-wb-model-popover-controls">
+          <select id="dc-wb-model-select" aria-label="Gemma 4 model variant"></select>
+          <button type="button" id="dc-wb-model-load">Load selected</button>
+          <button type="button" id="dc-wb-model-refresh">Refresh</button>
+        </div>
+        <div class="dc-wb-model-popover-note">
+          Kaggle can usually keep one large model resident. Switching may require waiting for unload/load or restarting the notebook if CUDA memory is fragmented.
+        </div>
+        <pre class="dc-wb-model-log" id="dc-wb-model-log">No loader events yet.</pre>
+      </div>
       <span class="dc-wb-status-sep" aria-hidden="true">·</span>
       <span class="dc-wb-status-item">
         <span class="dc-wb-status-label">Version</span>
-        <span class="dc-wb-status-value" id="dc-wb-status-version">—</span>
+        <span class="dc-wb-status-value" id="dc-wb-status-version">pending</span>
       </span>
       <span class="dc-wb-status-sep" aria-hidden="true">·</span>
       <span class="dc-wb-status-item dc-wb-status-mem">
         <span class="dc-wb-status-label">GPU</span>
-        <span class="dc-wb-status-value" id="dc-wb-status-gpu">—</span>
+        <span class="dc-wb-status-value" id="dc-wb-status-gpu">pending</span>
       </span>
       <a href="https://gemma4-comp.onrender.com/"
          target="_blank"
@@ -71,10 +90,10 @@
     intentionally removed 2026-05-12). These tabs are the 5 actual
     workflows the kernel supports:
 
+      Use Cases  five audience lanes from the public story
       Chat       free-form chat with any harness toggle combination
       Compare    A/B same prompt, two harness configs, side-by-side
-      Upload     drop a ZIP / CSV / case files for batch processing
-      Insights   Gemma-guided summaries + GREP/RAG graph viz
+      Bulk Review drop a ZIP / CSV / case files for processing
       Submit     anonymize + queue facts for upload to duecare-ai.com
 
     Each page is self-contained inside the kernel. No content here
@@ -85,12 +104,14 @@
       <div class="dc-wb-nav-links" id="dc-wb-nav-links">
         <a href="/"                              data-nav-key="getting-started"
            title="What this workbench is, what each layer does, and how to read a grade">Getting Started</a>
+        <a href="/static/use-cases.html"         data-nav-key="use-cases"
+           title="Five judge-facing use cases: platform, NGO/regulator, worker, researcher, and developer">Use Cases</a>
         <a href="/static/chat.html"              data-nav-key="chat"
            title="Free-form chat against the loaded Gemma 4 model with any harness combination">Chat</a>
         <a href="/static/compare.html"           data-nav-key="compare"
            title="A/B compare: same prompt, two harness configs, side-by-side grades">Harness Comparison</a>
         <a href="/static/process.html"           data-nav-key="process"
-           title="Upload a ZIP/folder; build a local knowledge graph; chat against it">Process Files</a>
+           title="Upload a case bundle, extract intelligence, build a local graph, and chat against it">Bulk File Review</a>
         <a href="/static/knowledge.html"         data-nav-key="knowledge"
            title="Paste text; Gemma 4 drafts a standardized knowledge module">Knowledge Extraction</a>
         <a href="/static/search.html"            data-nav-key="search"

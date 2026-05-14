@@ -3,134 +3,139 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Developer / integration partner — DueCare Workbench</title>
+  <title>Developer / Integration Partner | DueCare Workbench</title>
   <link rel="stylesheet" href="/static/_chrome.css">
   <link rel="stylesheet" href="/static/showcase.css">
   <script src="/static/_nav.js" defer></script>
   <style>
     .api-table {
-      width: 100%; border-collapse: collapse;
-      background: var(--paper); border: 1px solid var(--line);
-      border-radius: 12px; overflow: hidden; margin-top: 14px;
+      width: 100%;
+      border-collapse: collapse;
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      overflow: hidden;
+      margin-top: 14px;
       font-size: 13px;
     }
     .api-table th {
-      text-align: left; padding: 10px 14px;
-      background: var(--paper-2); color: var(--ink-3);
-      font-family: var(--mono); font-size: 11px; font-weight: 500;
-      text-transform: uppercase; letter-spacing: 0.08em;
+      text-align: left;
+      padding: 10px 14px;
+      background: var(--paper-2);
+      color: var(--ink-3);
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
       border-bottom: 1px solid var(--line);
     }
     .api-table td {
-      padding: 10px 14px; border-bottom: 1px solid var(--line-soft);
-      vertical-align: top; color: var(--ink-2);
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--line-soft);
+      vertical-align: top;
+      color: var(--ink-2);
     }
     .api-table code {
-      font-family: var(--mono); font-size: 12px;
-      background: var(--paper-2); color: var(--ink);
-      padding: 2px 6px; border-radius: 4px;
+      font-family: var(--mono);
+      font-size: 12px;
+      background: var(--paper-2);
+      color: var(--ink);
+      padding: 2px 6px;
+      border-radius: 4px;
       border: 1px solid var(--line-soft);
     }
     pre.curl {
-      background: var(--ink); color: var(--paper);
-      padding: 14px 16px; border-radius: 10px;
-      font-family: var(--mono); font-size: 12.5px; line-height: 1.55;
-      overflow-x: auto; margin: 14px 0 0;
+      background: var(--ink);
+      color: var(--paper);
+      padding: 14px 16px;
+      border-radius: 8px;
+      font-family: var(--mono);
+      font-size: 12.5px;
+      line-height: 1.55;
+      overflow-x: auto;
+      margin: 14px 0 0;
     }
   </style>
 </head>
-<body data-nav="developer">
+<body data-nav="use-cases">
 <main class="showcase">
-  <div class="crumbs">Showcase · For developers + integration partners</div>
-  <h1>Embed the harness, packs, and APIs into your own product.</h1>
+  <div class="crumbs">Use Case 05 | Developer / integration partner</div>
+  <h1>Drop the runtime into your own product or channel.</h1>
   <p class="lede">
-    Developers, technical partners, and IT teams use the workbench to verify
-    every API endpoint, copy embed snippets, validate pack schemas, version-pin
-    the wheels, and wire the harness into moderation tools, NGO systems, mobile
-    clients, dashboards, or custom workflows.
+    A containerized runtime with a small, well-defined API can be wired into a
+    Messenger or WhatsApp bot, a moderator console, an internal case-management
+    system, or a sibling app. You own the channel. DueCare provides the
+    harness, the rule packs, and the Gemma 4 model layer.
   </p>
 
   <div class="cta-row">
-    <a class="cta cta-primary" href="/?audience=developer">Open the playground →</a>
-    <a class="cta cta-ghost" href="/api/version" target="_blank">Inspect /api/version →</a>
+    <a class="cta cta-primary" href="/static/harness.html">Inspect Harness Contracts</a>
+    <a class="cta cta-ghost" href="/api/version" target="_blank">Open /api/version</a>
   </div>
 
   <section class="section">
-    <h2>Quick API tour</h2>
+    <h2>Integration surface</h2>
     <table class="api-table">
       <thead>
-        <tr><th>Endpoint</th><th>Purpose</th><th>Try it</th></tr>
+        <tr><th>Endpoint</th><th>Contract</th><th>Try it</th></tr>
       </thead>
       <tbody>
         <tr>
-          <td><code>GET /api/version</code></td>
-          <td>Chat-package version + per-layer counts (161 GREP / 46 RAG / 5 tools).</td>
-          <td><a href="/api/version" target="_blank">Open →</a></td>
-        </tr>
-        <tr>
-          <td><code>GET /api/health-check</code></td>
-          <td>Wired layers + currently-loaded model + status flags.</td>
-          <td><a href="/api/health-check" target="_blank">Open →</a></td>
-        </tr>
-        <tr>
-          <td><code>GET /api/brand</code></td>
-          <td>Palette tokens, viewer paths, layer metadata for embedders.</td>
-          <td><a href="/api/brand" target="_blank">Open →</a></td>
-        </tr>
-        <tr>
-          <td><code>GET /api/harness-catalog/{layer}</code></td>
-          <td>Raw catalog JSON for persona / grep / rag / tools / online.</td>
-          <td><a href="/api/harness-catalog/grep" target="_blank">grep →</a></td>
-        </tr>
-        <tr>
-          <td><code>POST /api/grep/test</code></td>
-          <td>Paste any text, get fired rules. No LLM. ~5ms.</td>
-          <td><a href="/static/grep-tester.html">Live UI →</a></td>
-        </tr>
-        <tr>
           <td><code>POST /api/chat/send</code></td>
-          <td>Main chat endpoint — streams SSE, returns pipeline trace.</td>
-          <td><a href="/">Live UI →</a></td>
+          <td>Primary Gemma 4 chat harness with persona, GREP, RAG, tools, online, and trace events.</td>
+          <td><a href="/static/chat.html?audience=developer">Chat UI</a></td>
         </tr>
         <tr>
-          <td><code>POST /api/grade</code></td>
-          <td>46-dim rule-based grader, ~2s per response.</td>
-          <td><a href="/static/grade.html">Standalone →</a></td>
+          <td><code>POST /api/process/batch</code></td>
+          <td>Bulk File Review harness for bundles, extracted entities, hierarchy, graph, and case brief.</td>
+          <td><a href="/static/process.html">Bulk review</a></td>
         </tr>
         <tr>
-          <td><code>POST /api/import/upload</code></td>
-          <td>Add your own documents to the BM25 retrieval pool.</td>
-          <td><a href="/static/import.html">Standalone →</a></td>
+          <td><code>POST /api/knowledge/draft-envelope</code></td>
+          <td>Knowledge extraction harness that turns raw text into typed pack objects.</td>
+          <td><a href="/static/knowledge.html">Knowledge UI</a></td>
+        </tr>
+        <tr>
+          <td><code>POST /api/search/sanitize</code></td>
+          <td>Search safety gate that strips private identifiers before outbound search.</td>
+          <td><a href="/static/search-safety.html">Safety UI</a></td>
+        </tr>
+        <tr>
+          <td><code>POST /api/anonymize</code></td>
+          <td>Hard privacy boundary for redaction before hub submission or external routing.</td>
+          <td><a href="/static/anonymization.html">Anonymization</a></td>
+        </tr>
+        <tr>
+          <td><code>GET /api/harnesses</code></td>
+          <td>Fixed contract for the seven harness and utility surfaces.</td>
+          <td><a href="/api/harnesses" target="_blank">JSON</a></td>
         </tr>
       </tbody>
     </table>
-    <pre class="curl">$ curl -s "$WORKBENCH_URL/api/version" | jq .
-$ curl -s "$WORKBENCH_URL/api/grep/test" \
-    -H 'content-type: application/json' \
-    -d '{"text":"Manila agency, PHP 50,000 placement fee, employer in Hong Kong holds passport"}'
-$ curl -sN "$WORKBENCH_URL/api/chat/send" \
-    -H 'content-type: application/json' \
-    -d '{"messages":[{"role":"user","content":[{"type":"text","text":"Is a PHP 50,000 placement fee legal?"}]}],"toggles":{"persona":true,"grep":true,"rag":true,"tools":true}}'</pre>
+    <pre class="curl">curl -s "$WORKBENCH_URL/api/harnesses"
+curl -s "$WORKBENCH_URL/api/search/sanitize" -H "content-type: application/json" -d "{\"query\":\"Manila worker 0917 555 0101 passport held HK\"}"
+curl -sN "$WORKBENCH_URL/api/chat/send" -H "content-type: application/json" -d "{\"messages\":[{\"role\":\"user\",\"content\":[{\"type\":\"text\",\"text\":\"Is a PHP 50,000 placement fee legal for PH-HK domestic work?\"}]}],\"toggles\":{\"persona\":true,\"grep\":true,\"rag\":true,\"tools\":true}}"</pre>
   </section>
 
   <section class="section">
-    <h2>Tools for integration</h2>
+    <h2>Partner paths</h2>
     <div class="tools-row">
       <a class="tool-card" href="/static/harness.html">
-        <div class="name">Layer catalog browser</div>
-        <div class="desc">Drill into every layer; verify counts; export any catalog as JSON.</div>
+        <div class="name">Harness Contracts</div>
+        <div class="desc">Names, layers, inputs, outputs, and route lists for each surface.</div>
       </a>
       <a class="tool-card" href="/static/tools.html">
-        <div class="name">Function-calling tools + tables</div>
-        <div class="desc">5 tools + corridor fee caps + camouflage labels + ILO indicators + NGO groups.</div>
+        <div class="name">Tool Definitions</div>
+        <div class="desc">Fee caps, ILO indicators, corridor facts, NGO directories, and examples.</div>
       </a>
       <a class="tool-card" href="/static/online.html">
-        <div class="name">Online providers</div>
-        <div class="desc">Web-search backend config (Brave / Tavily / DDG) and BYOK key wiring.</div>
+        <div class="name">Online Providers</div>
+        <div class="desc">SearXNG, Tavily, Brave, DuckDuckGo, and Wikipedia backend settings.</div>
       </a>
-      <a class="tool-card" href="/static/all-tools.html">
-        <div class="name">All tools →</div>
-        <div class="desc">The full workbench tools index.</div>
+      <a class="tool-card" href="/static/use-cases.html">
+        <div class="name">Use Case Hub</div>
+        <div class="desc">Map the same runtime into the five judge-facing audience lanes.</div>
       </a>
     </div>
   </section>

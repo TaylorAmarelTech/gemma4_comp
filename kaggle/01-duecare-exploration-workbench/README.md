@@ -192,7 +192,8 @@ This is **core notebook #1** of 3:
 - **#3** `duecare-video-pitch` — in-app slides + presenter remote + setup
   modes for the video walkthrough
 
-The other 24 notebooks are appendix (A-01..A-24): specialised playgrounds,
+The other 25 notebooks are appendix (A-00..A-24): A-00 is the omni
+evaluation and training control plane, followed by specialised playgrounds,
 the SafetyJudge / PrivacyRedactor training pipeline, research graphs,
 agentic web research, jailbroken-models proof, lift regenerator, and the
 zero-inference Gemma 4 feature showcases (long-context, streaming,
@@ -243,6 +244,7 @@ You are here: **#01 core — Migrant-worker safety playground**.
 - **[#01 core: Migrant-worker safety playground](../01-duecare-exploration-workbench/README.md)**
 - [#02 core: Live demo (focused walkthrough)](../02-live-demo/README.md)
 - [#03 core: Video pitch (in-app slides + presenter remote)](../03-duecare-video-pitch/README.md)
+- [#A00 appendix: Omni evaluation and training workbench](../A-00-omni-evaluation-and-training/README.md)
 - [#A01 appendix: Stock Gemma 4 chat baseline](../A-01-chat-playground/README.md)
 - [#A02 appendix: Harness ablation runner](../A-02-chat-playground-with-grep-rag-tools/README.md)
 - [#A03 appendix: Hands-on classification sandbox](../A-03-content-classification-playground/README.md)

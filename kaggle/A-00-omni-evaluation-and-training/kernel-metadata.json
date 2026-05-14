@@ -1,0 +1,27 @@
+{
+  "id": "taylorsamarel/duecare-a-00-omni-evaluation-and-training",
+  "title": "DueCare A-00 Omni Evaluation and Training Workbench",
+  "code_file": "kernel.py",
+  "language": "python",
+  "kernel_type": "script",
+  "is_private": false,
+  "enable_gpu": true,
+  "enable_internet": true,
+  "dataset_sources": [],
+  "competition_sources": [],
+  "kernel_sources": [],
+  "model_sources": [
+    "google/gemma-4/Transformers/gemma-4-e4b-it/1",
+    "google/gemma-4/Transformers/gemma-4-e2b-it/1",
+    "google/gemma-4/Transformers/gemma-4-26b-a4b-it/1",
+    "google/gemma-4/Transformers/gemma-4-31b-it/1"
+  ],
+  "docker_image_pinning_type": "original",
+  "keywords": [
+    "gemma-4",
+    "evaluation",
+    "harness",
+    "finetuning",
+    "synthetic-data"
+  ]
+}

@@ -39,9 +39,6 @@ def test_required_markup_present(client):
         'id="cmp-max-tokens"',
         'id="cmp-temperature"',
         'id="cmp-show-truncation"',
-        'id="cmp-model-card"',
-        'id="cmp-model-select"',
-        'id="cmp-model-load"',
         'id="grade-mode"',
         # variant cards
         'id="A-msgs"',
@@ -123,6 +120,18 @@ def test_helper_functions_defined(client):
         "pipelineInit", "pipelineSetStep", "pipelineRender",
     ]:
         assert fn in text, f"function {fn} not in compare.html"
+
+
+def test_model_selector_lives_in_shared_nav(client):
+    """The model picker is shared top chrome, not a Compare-only card."""
+    compare = client.get("/static/compare.html").text
+    nav = client.get("/static/_nav.html").text
+    nav_js = client.get("/static/_nav.js").text
+    assert 'id="cmp-model-card"' not in compare
+    assert 'id="cmp-model-select"' not in compare
+    assert 'id="dc-wb-model-open"' in nav
+    assert 'id="dc-wb-model-select"' in nav
+    assert "dcWbEnsureModelReady" in nav_js
 
 
 def test_abort_controller_wired(client):

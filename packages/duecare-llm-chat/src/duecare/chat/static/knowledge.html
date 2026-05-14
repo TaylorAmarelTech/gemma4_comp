@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <title>Knowledge Creation -- DueCare Workbench</title>
+  <title>Knowledge Extraction | DueCare Workbench</title>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="stylesheet" href="/static/_chrome.css">
@@ -43,6 +43,14 @@
     details.wb-branch > summary .wb-muted { font-weight: normal; margin-left: 8px; }
     .wb-trust { background: oklch(0.92 0.06 155); color: oklch(0.32 0.07 155); padding: 8px 14px; border-radius: 8px; font-size: 12.5px; margin-bottom: 14px; }
     .wb-error { background: oklch(0.94 0.04 25); color: oklch(0.32 0.10 25); padding: 8px 10px; border-radius: 6px; font-size: 12px; margin-top: 8px; }
+    .kx-pipeline { display: grid; grid-template-columns: repeat(auto-fit, minmax(155px, 1fr)); gap: 8px; margin: 10px 0; }
+    .kx-step { border: 1px solid #DDD8C9; border-radius: 8px; background: #FAF9F4; padding: 10px 11px; min-height: 70px; }
+    .kx-step .num { font-family: var(--mono); color: #5B5F68; font-size: 10px; text-transform: uppercase; letter-spacing: 0.07em; }
+    .kx-step .name { font-weight: 700; font-size: 12.5px; margin: 5px 0 3px; }
+    .kx-step .detail { color: #5B5F68; font-size: 11px; line-height: 1.4; }
+    .kx-step.complete { border-color: oklch(0.72 0.08 155); background: oklch(0.97 0.02 155); }
+    .kx-example { text-align:left; background:#FAF9F4; border:1px solid #DDD8C9; border-radius:8px; padding:9px 10px; cursor:pointer; font-size:12px; color:#2A2D34; line-height:1.45; }
+    .kx-example:hover { border-color: oklch(0.52 0.08 195); color:#0E1116; }
   
     @media (max-width: 620px) {
       .wb-page { padding: 0 12px !important; }
@@ -52,7 +60,7 @@
 </head>
 <body data-nav="knowledge">
   <main class="wb-page">
-    <h1 class="wb-h1">Knowledge Extraction -- paste text, Gemma 4 drafts a standardized knowledge module</h1>
+    <h1 class="wb-h1">Knowledge Extraction</h1>
     <div class="wb-trust">
       <b>Trust boundary:</b> Extraction runs locally against the loaded
       Gemma 4 model. Drafted envelopes stay in
@@ -64,9 +72,25 @@
       note). Gemma 4 + the extraction prompts draft a candidate envelope
       (grep_rule, glossary_term, statute_citation, indicator,
       fact_template). Review the draft, optionally anonymize, then promote
-      it -- or jump to Anonymization &amp; Sharing to submit the lot to
+      it, or jump to Anonymization &amp; Sharing to submit the lot to
       the public hub.
     </p>
+
+    <div class="wb-card" style="border-left: 4px solid oklch(0.52 0.08 195);">
+      <h2 style="margin-top:0;">Extraction harness path</h2>
+      <div class="kx-pipeline" id="kx-pipeline">
+        <div class="kx-step"><div class="num">Step 1</div><div class="name">Raw text</div><div class="detail">Paste a snippet and choose one target leaf type.</div></div>
+        <div class="kx-step"><div class="num">Step 2</div><div class="name">Optional anonymize</div><div class="detail">Email, phone, and passport-like tokens are stripped before Gemma.</div></div>
+        <div class="kx-step"><div class="num">Step 3</div><div class="name">GREP and RAG</div><div class="detail">Existing knowledge grounds the draft with local citations.</div></div>
+        <div class="kx-step"><div class="num">Step 4</div><div class="name">Gemma 4 draft</div><div class="detail">The model produces one reviewable envelope.</div></div>
+        <div class="kx-step"><div class="num">Step 5</div><div class="name">Promote or submit</div><div class="detail">Save locally or send only anonymized knowledge to the hub.</div></div>
+      </div>
+      <div class="wb-row" style="gap:8px;">
+        <button class="kx-example" type="button" onclick="kxUseExample('A recruiter wrote: Worker agrees to a PHP 45,000 processing loan deducted from salary in Hong Kong until fully repaid. Agency: Pearl Bridge Manpower. Corridor: PH-HK.')">Fee rule example</button>
+        <button class="kx-example" type="button" onclick="kxUseExample('Police report: complainant states employer kept passport for safekeeping, required live-in work, and threatened termination if she contacted POLO Hong Kong.')">Complaint example</button>
+        <button class="kx-example" type="button" onclick="kxUseExample('ILO C181 Article 7 prohibits private employment agencies from charging fees or costs directly or indirectly to workers, except narrow authorized exceptions.')">Citation example</button>
+      </div>
+    </div>
 
     <div class="wb-card" style="border-left: 4px solid oklch(0.55 0.10 155);">
       <h2 style="margin-top:0;">Try the sample envelopes (round-trip the import flow)</h2>
@@ -111,11 +135,11 @@
       <div class="wb-row" style="margin-top:10px; gap:10px; align-items:center; flex-wrap:wrap;">
         <label style="font-size:12px;">Target leaf:</label>
         <select id="kx-leaf" style="font-size:12px; padding:5px 8px; border:1px solid #DDD8C9; border-radius:6px;">
-          <option value="grep_rule">grep_rule -- regex pattern</option>
-          <option value="glossary_term">glossary_term -- definition</option>
-          <option value="statute_citation">statute_citation -- legal cite</option>
-          <option value="indicator">indicator -- ILO / safety signal</option>
-          <option value="fact_template">fact_template -- factual entry</option>
+          <option value="grep_rule">grep_rule: regex pattern</option>
+          <option value="glossary_term">glossary_term: definition</option>
+          <option value="statute_citation">statute_citation: legal cite</option>
+          <option value="indicator">indicator: ILO or safety signal</option>
+          <option value="fact_template">fact_template: factual entry</option>
         </select>
         <label style="font-size:12px; margin-left:8px;">
           <input type="checkbox" id="kx-anonymize" checked> Anonymize raw text first
@@ -129,10 +153,10 @@
         etc.); the page itself does not generate all five at once because
         each leaf type has a distinct schema and prompt. To draft several
         leaves from the same passage, change the selector and click
-        Extract again -- each draft is saved separately. For batch
+        Extract again. Each draft is saved separately. For batch
         generation across all 21 leaves of the taxonomy, use the manual
         authoring section below or the workflows under
-        <a href="/static/harness.html">Layers</a>.
+        <a href="/static/harness.html">Harness Workbench</a>.
       </div>
       <div id="kx-extract-status" class="wb-muted" style="font-size:11.5px; margin-top:8px;"></div>
       <div id="kx-extract-result" style="margin-top:10px;"></div>
@@ -143,9 +167,9 @@
     </div>
 
     <details style="margin: 22px 0 8px; border:1px solid #DDD8C9; border-radius:8px; padding:10px 14px; background:#FFF;">
-      <summary style="cursor:pointer; font-size:13px; font-weight:600; color:var(--ink, #0E1116);">Manual authoring (21 leaf types) -- power users</summary>
+      <summary style="cursor:pointer; font-size:13px; font-weight:600; color:var(--ink, #0E1116);">Manual authoring for 21 leaf types</summary>
       <p class="wb-muted" style="font-size:12px; margin:8px 0 10px;">
-        Skip Gemma extraction and author a typed envelope directly --
+        Skip Gemma extraction and author a typed envelope directly,
         useful when you already know the exact pattern/citation. Each
         artefact persists to
         <code>/kaggle/working/knowledge/&lt;type&gt;/&lt;id&gt;.json</code>.
@@ -155,6 +179,15 @@
     </details>
 
     <script>
+      function kxSetPipeline(active){
+        document.querySelectorAll('#kx-pipeline .kx-step').forEach((el, idx) => {
+          el.classList.toggle('complete', idx <= active);
+        });
+      }
+      function kxUseExample(text){
+        document.getElementById("kx-raw").value = text;
+        kxSetPipeline(0);
+      }
       async function kxExtract(){
         const raw=(document.getElementById("kx-raw").value||"").trim();
         const leaf=document.getElementById("kx-leaf").value;
@@ -164,6 +197,7 @@
         if(!raw){ statusEl.textContent="Paste some text first."; return; }
         const btn=document.getElementById("kx-extract-btn");
         btn.disabled=true; const origTxt=btn.textContent; btn.textContent="Extracting...";
+        kxSetPipeline(anonymize ? 1 : 0);
         statusEl.textContent="POST /api/knowledge/draft-envelope ...";
         try{
           const r=await fetch("/api/knowledge/draft-envelope",{
@@ -171,12 +205,14 @@
             body:JSON.stringify({raw_text:raw, target_leaf:leaf, anonymize:anonymize})
           });
           const out=await r.json();
+          kxSetPipeline(3);
           if(!r.ok){
             statusEl.textContent="Extract failed: HTTP "+r.status;
             resultEl.innerHTML="<pre style=\"background:#FFF1F1; border:1px solid #FCC; padding:10px; border-radius:6px; font-size:11.5px; overflow:auto;\">"+escapeHtml(JSON.stringify(out,null,2))+"</pre>";
             return;
           }
           statusEl.textContent="Draft ready. Review below, edit if needed, then open Anonymization & Sharing to submit.";
+          kxSetPipeline(4);
           const env=out.envelope||out;
           resultEl.innerHTML="<div style=\"font-size:12px; margin-bottom:4px;\"><b>Draft envelope ("+escapeHtml(leaf)+"):</b></div><pre style=\"background:#F7F6F1; border:1px solid #DDD8C9; padding:10px; border-radius:6px; font-size:11.5px; overflow:auto; max-height:340px;\">"+escapeHtml(JSON.stringify(env,null,2))+"</pre>";
         }catch(e){
@@ -232,7 +268,7 @@
             det.style.cssText='margin-top:6px;';
             const sum=document.createElement('summary');
             sum.className='wb-muted';
-            sum.textContent=out.rejected.length+' rejected (typically README.txt -- expected)';
+            sum.textContent=out.rejected.length+' rejected (typically README.txt, expected)';
             det.appendChild(sum);
             const pre=document.createElement('pre');
             pre.style.cssText='font-size:11px; margin:4px 0 0;';
@@ -248,7 +284,7 @@
     </script>
 
     <details class="wb-branch" open>
-      <summary>matching_knowledge <span class="wb-muted">-- pattern -&gt; label / indicator (4 leaves)</span></summary>
+      <summary>matching_knowledge <span class="wb-muted">pattern to label or indicator (4 leaves)</span></summary>
       <div class="wb-grid-2">
         <div class="wb-card"><h3>grep_rule <span class="wb-pill">hot-loads</span></h3><p class="wb-muted">Regex pattern in the GREP layer.</p>
           <label>id</label><input type="text" id="grep_rule-id" placeholder="ph_hk_placement_fee_zero_cap">
@@ -280,7 +316,7 @@
     </details>
 
     <details class="wb-branch">
-      <summary>grounding_knowledge <span class="wb-muted">-- what's the law / norm / reference? (4 leaves)</span></summary>
+      <summary>grounding_knowledge <span class="wb-muted">law, norm, or reference (4 leaves)</span></summary>
       <div class="wb-grid-2">
         <div class="wb-card"><h3>rag_doc</h3>
           <label>id</label><input type="text" id="rag_doc-id" placeholder="poea-mc-14-2017">
@@ -290,7 +326,7 @@
           <label>text</label><textarea id="rag_doc-text" style="min-height: 80px;"></textarea>
           <div class="wb-row"><button class="wb-btn-primary" onclick="kPromoteLeaf('rag_doc')">Promote</button></div></div>
         <div class="wb-card"><h3>citation_edge</h3>
-          <label>id</label><input type="text" id="citation_edge-id" placeholder="poea-mc-14-2017--ilo-c189">
+          <label>id</label><input type="text" id="citation_edge-id" placeholder="poea-mc-14-2017_to_ilo-c189">
           <label>from_statute</label><input type="text" id="citation_edge-from_statute">
           <label>to_statute</label><input type="text" id="citation_edge-to_statute">
           <label>relation</label><select id="citation_edge-relation"><option>implements</option><option>supersedes</option><option selected>references</option><option>cites</option></select>
@@ -316,7 +352,7 @@
     </details>
 
     <details class="wb-branch">
-      <summary>reasoning_knowledge <span class="wb-muted">-- how should the model think? (4 leaves)</span></summary>
+      <summary>reasoning_knowledge <span class="wb-muted">how the model should think (4 leaves)</span></summary>
       <div class="wb-grid-2">
         <div class="wb-card"><h3>persona_block</h3>
           <label>id</label><input type="text" id="persona_block-id" placeholder="duecare-safety-judge">
@@ -346,7 +382,7 @@
     </details>
 
     <details class="wb-branch">
-      <summary>tool_knowledge <span class="wb-muted">-- what can the model call? (3 leaves)</span></summary>
+      <summary>tool_knowledge <span class="wb-muted">what the model can call (3 leaves)</span></summary>
       <div class="wb-grid-2">
         <div class="wb-card"><h3>tool_definition</h3>
           <label>id</label><input type="text" id="tool_definition-id" placeholder="lookup-fee-cap">
@@ -369,7 +405,7 @@
     </details>
 
     <details class="wb-branch">
-      <summary>input_knowledge <span class="wb-muted">-- what should be uploaded? (3 leaves)</span></summary>
+      <summary>input_knowledge <span class="wb-muted">what should be uploaded (3 leaves)</span></summary>
       <div class="wb-grid-2">
         <div class="wb-card"><h3>fact_template</h3>
           <label>id</label><input type="text" id="fact_template-id" placeholder="fee_violation_v1">
@@ -393,7 +429,7 @@
     </details>
 
     <details class="wb-branch">
-      <summary>output_knowledge <span class="wb-muted">-- what gets emitted? (3 leaves)</span></summary>
+      <summary>output_knowledge <span class="wb-muted">what gets emitted (3 leaves)</span></summary>
       <div class="wb-grid-2">
         <div class="wb-card"><h3>envelope_schema</h3>
           <label>id</label><input type="text" id="envelope_schema-id" placeholder="bundle-envelope-v1">
@@ -417,7 +453,7 @@
     </details>
 
     <div class="wb-card" id="k-import-card">
-      <h2>Import a knowledge bundle ZIP <span class="wb-muted" style="font-weight: normal;">-- accepts output of /api/knowledge/export</span></h2>
+      <h2>Import a knowledge bundle ZIP <span class="wb-muted" style="font-weight: normal;">accepts output of /api/knowledge/export</span></h2>
       <p class="wb-muted">Entries must be <code>&lt;type&gt;/&lt;id&gt;.json</code>; invalid entries rejected with reason.</p>
       <div id="k-import-dz" style="border: 2px dashed #DDD8C9; border-radius: 10px; padding: 18px; text-align: center; background: #FFF; cursor: pointer; font-size: 12.5px; color: #5B5F68;" onclick="document.getElementById('k-import-input').click()">
         <div style="font-size: 22px; margin-bottom: 4px;">+</div>
@@ -461,9 +497,9 @@
     <div class="wb-card">
       <h2>Cross-links</h2>
       <div class="wb-row">
-        <a class="wb-btn-secondary" href="/static/process.html">&larr; Process Files</a>
+        <a class="wb-btn-secondary" href="/static/process.html">&larr; Bulk File Review</a>
         <a class="wb-btn-secondary" href="/static/share.html">Anonymize &amp; share &rarr;</a>
-        <a class="wb-btn-secondary" href="/static/harness.html">Layer inspector</a>
+        <a class="wb-btn-secondary" href="/static/harness.html">Harness Workbench</a>
         <a class="wb-btn-secondary" href="/api/knowledge/taxonomy" target="_blank">GET /api/knowledge/taxonomy</a>
       </div>
     </div>

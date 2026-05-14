@@ -22,6 +22,241 @@ from .prompts import GRAPH_CHAT_SYSTEM_PROMPT, build_context_block
 
 
 _ROW_CAP = 200
+_DATE_RE = _re.compile(r"\b(?:20\d{2}[-/]\d{1,2}[-/]\d{1,2}|\d{1,2}\s+(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\s+20\d{2})\b", _re.IGNORECASE)
+_CASE_RE = _re.compile(r"\b(?:DC-)?PH[-_ ]?HK[-_ ]?\d{3}\b|\bperson[-_ ]?\d{3}\b|\bCASE[-_ ]?\d{3}\b", _re.IGNORECASE)
+_NAME_RE = _re.compile(r"\b(?:name|worker_name|complainant|subject)\s*[:=]\s*([A-Z][A-Za-z.' -]{2,60})")
+_EMPLOYER_RE = _re.compile(r"\b(?:employer|household|company)\s*[:=]\s*([A-Z][A-Za-z0-9 &'.,-]{2,80})")
+_AGENCY_RE = _re.compile(r"\b(?:agency|recruiter|broker)\s*[:=]\s*([A-Z][A-Za-z0-9 &'.,-]{2,80})")
+_LOCATION_RE = _re.compile(r"\b(?:Manila|Quezon City|Cebu|Davao|Iloilo|Clark|Makati|Hong Kong|Central|Causeway Bay|Mong Kok|Sha Tin|Kowloon|Wan Chai|Tsuen Wan|Yuen Long|Tuen Mun)\b", _re.IGNORECASE)
+
+
+def _norm_case_id(text: str) -> str | None:
+    match = _CASE_RE.search(text or "")
+    if not match:
+        return None
+    raw = match.group(0).upper().replace("_", "-").replace(" ", "-")
+    raw = raw.replace("PERSON-", "PH-HK-").replace("CASE-", "PH-HK-")
+    if raw.startswith("DC-"):
+        return raw
+    if raw.startswith("PH-HK-"):
+        return "DC-" + raw
+    digits = _re.search(r"(\d{3})", raw)
+    return f"DC-PH-HK-{digits.group(1)}" if digits else raw
+
+
+def _first_match(pattern: _re.Pattern, text: str) -> str | None:
+    match = pattern.search(text or "")
+    if not match:
+        return None
+    value = match.group(1) if match.lastindex else match.group(0)
+    return " ".join(str(value).strip().split())
+
+
+def _file_kind(row_id: str, text: str) -> str:
+    hay = f"{row_id}\n{text}".lower()
+    checks = (
+        ("id_card", ("id_card", "identity card", "philippine id", "passport no")),
+        ("complaint", ("complaint", "affidavit", "sworn statement")),
+        ("police_report", ("police report", "incident report", "case officer")),
+        ("travel_history", ("travel history", "flight", "arrival", "departure")),
+        ("location_history", ("location history", "gps", "cell tower", "location ping")),
+        ("payment_history", ("payment history", "remittance", "receipt", "salary deduction")),
+        ("chat_messages", ("chat", "whatsapp", "telegram", "message")),
+        ("contract", ("contract", "employment agreement", "live-in")),
+    )
+    for kind, needles in checks:
+        if any(n in hay for n in needles):
+            return kind
+    return "other"
+
+
+def _amount_value(raw: str) -> float:
+    match = _re.search(r"([\d,]+(?:\.\d+)?)", raw or "")
+    if not match:
+        return 0.0
+    try:
+        return float(match.group(1).replace(",", ""))
+    except Exception:
+        return 0.0
+
+
+def _build_intelligence(rows: list[dict], results: list[dict]) -> dict:
+    """Create the process-harness intelligence view shown in the UI.
+
+    This is intentionally deterministic and fast. When Gemma is loaded,
+    _gemma_case_brief adds a model-authored case brief on top of these
+    structured facts.
+    """
+    people: dict[str, dict] = {}
+    doc_type_counts: dict[str, int] = {}
+    timeline: list[dict] = []
+    payments: list[dict] = []
+    locations: dict[str, int] = {}
+    evidence_edges: list[dict] = []
+
+    by_row = {r.get("row_id"): r for r in results}
+    for row in rows:
+        row_id = row.get("row_id") or "row"
+        text = row.get("text") or ""
+        scored = by_row.get(row_id) or {}
+        kind = _file_kind(row_id, text)
+        doc_type_counts[kind] = doc_type_counts.get(kind, 0) + 1
+        case_id = _norm_case_id(row_id) or _norm_case_id(text) or "UNKNOWN"
+        person = people.setdefault(case_id, {
+            "case_id": case_id,
+            "name": None,
+            "corridor": "PH-HK" if _re.search(r"\bPH[-\s]?HK\b|Philippines|Hong Kong", text, _re.I) else None,
+            "employer": None,
+            "agency": None,
+            "document_types": {},
+            "row_ids": [],
+            "risk_score": 0,
+            "risk_signals": [],
+            "amounts": [],
+            "locations": [],
+            "timeline": [],
+        })
+        person["row_ids"].append(row_id)
+        person["document_types"][kind] = person["document_types"].get(kind, 0) + 1
+        person["name"] = person["name"] or _first_match(_NAME_RE, text)
+        person["employer"] = person["employer"] or _first_match(_EMPLOYER_RE, text)
+        person["agency"] = person["agency"] or _first_match(_AGENCY_RE, text)
+
+        for loc in _LOCATION_RE.findall(text):
+            loc_norm = str(loc).title()
+            locations[loc_norm] = locations.get(loc_norm, 0) + 1
+            if loc_norm not in person["locations"]:
+                person["locations"].append(loc_norm)
+
+        for date in _DATE_RE.findall(text)[:6]:
+            item = {"case_id": case_id, "row_id": row_id, "date": date, "document_type": kind}
+            timeline.append(item)
+            person["timeline"].append(item)
+
+        for amt in (scored.get("entities") or {}).get("AMOUNT", []):
+            value = _amount_value(amt)
+            pay = {"case_id": case_id, "row_id": row_id, "amount": amt, "value": value, "document_type": kind}
+            payments.append(pay)
+            person["amounts"].append(pay)
+
+        for hit in scored.get("grep_hits") or []:
+            severity = (hit.get("severity") or "medium").lower()
+            inc = {"critical": 30, "high": 20, "medium": 12, "low": 6}.get(severity, 8)
+            person["risk_score"] += inc
+            rid = hit.get("rule_id") or "unknown_rule"
+            if rid not in person["risk_signals"]:
+                person["risk_signals"].append(rid)
+            evidence_edges.append({
+                "case_id": case_id,
+                "row_id": row_id,
+                "rule_id": rid,
+                "severity": severity,
+                "document_type": kind,
+            })
+
+        keyword_risk = (
+            ("passport", "passport retention"),
+            ("deduction", "salary deduction"),
+            ("loan", "loan or debt"),
+            ("placement fee", "placement fee"),
+            ("live-in", "live-in control"),
+            ("threat", "threat or coercion"),
+        )
+        lower = text.lower()
+        for needle, label in keyword_risk:
+            if needle in lower and label not in person["risk_signals"]:
+                person["risk_score"] += 6
+                person["risk_signals"].append(label)
+
+    person_rows = []
+    for p in people.values():
+        person_rows.append({
+            **p,
+            "risk_score": min(100, int(p.get("risk_score") or 0)),
+            "n_documents": len(p.get("row_ids") or []),
+            "n_payments": len(p.get("amounts") or []),
+            "total_payment_value": round(sum(float(x.get("value") or 0) for x in p.get("amounts") or []), 2),
+            "risk_signals": (p.get("risk_signals") or [])[:12],
+            "locations": (p.get("locations") or [])[:12],
+            "timeline": (p.get("timeline") or [])[:10],
+        })
+    person_rows.sort(key=lambda p: (-p.get("risk_score", 0), p.get("case_id", "")))
+    timeline.sort(key=lambda x: str(x.get("date", "")))
+    payments.sort(key=lambda x: -float(x.get("value") or 0))
+    hierarchy = {
+        "root": "uploaded_bundle",
+        "document_types": [
+            {"type": k, "count": v} for k, v in sorted(doc_type_counts.items(), key=lambda kv: (-kv[1], kv[0]))
+        ],
+        "people": [
+            {
+                "case_id": p["case_id"],
+                "name": p.get("name"),
+                "documents": p.get("document_types", {}),
+                "risk_score": p.get("risk_score", 0),
+            }
+            for p in person_rows[:50]
+        ],
+    }
+    return {
+        "version": "process-intelligence-v1",
+        "n_people": len([p for p in person_rows if p.get("case_id") != "UNKNOWN"]),
+        "n_documents": len(rows),
+        "n_evidence_edges": len(evidence_edges),
+        "document_type_counts": doc_type_counts,
+        "people": person_rows,
+        "hierarchy": hierarchy,
+        "top_payments": payments[:20],
+        "timeline": timeline[:40],
+        "locations": [{"name": k, "count": v} for k, v in sorted(locations.items(), key=lambda kv: (-kv[1], kv[0]))[:20]],
+        "evidence_edges": evidence_edges[:80],
+    }
+
+
+def _gemma_case_brief(app: Any, bundle: dict, intelligence: dict) -> dict:
+    gc = getattr(app.state, "gemma_call", None)
+    if gc is None:
+        return {"available": False, "status": "no_model_loaded"}
+    compact = {
+        "summary": bundle.get("summary", {}),
+        "people": (intelligence.get("people") or [])[:12],
+        "document_types": intelligence.get("document_type_counts", {}),
+        "top_payments": (intelligence.get("top_payments") or [])[:10],
+        "timeline": (intelligence.get("timeline") or [])[:12],
+    }
+    prompt = (
+        "You are DueCare's Gemma 4 process harness analyst. "
+        "Given a locally extracted PH to HK case-bundle intelligence object, "
+        "produce compact JSON with keys: case_theory, priority_people, "
+        "risk_clusters, missing_evidence, recommended_questions. "
+        "Use only the supplied facts and row_ids. Do not invent facts.\n\n"
+        + _json.dumps(compact, ensure_ascii=False)[:12000]
+    )
+    try:
+        model_out = gc(prompt, max_new_tokens=700, temperature=0.2)
+        text = model_out if isinstance(model_out, str) else (
+            (model_out or {}).get("text") or (model_out or {}).get("response") or ""
+        )
+        match = _re.search(r"\{[\s\S]*\}", text or "")
+        parsed = None
+        if match:
+            try:
+                parsed = _json.loads(match.group(0))
+            except Exception:
+                parsed = None
+        return {
+            "available": True,
+            "status": "ok" if parsed else "unparsed_text",
+            "text": text[:3000],
+            "json": parsed,
+            "prompt_chars": len(prompt),
+        }
+    except Exception as exc:
+        return {
+            "available": True,
+            "status": "error",
+            "error": f"{type(exc).__name__}: {exc}"[:300],
+        }
 
 
 def _parse_upload(filename: str, contents: bytes) -> list[dict]:
@@ -158,6 +393,51 @@ def register_routes(app: Any) -> None:
             },
             "results": results,
         }
+        intelligence = _build_intelligence(capped, results)
+        gemma_brief = _gemma_case_brief(app, bundle, intelligence)
+        intelligence["gemma_case_brief"] = gemma_brief
+        intelligence["harness_trace"] = [
+            {
+                "id": "upload",
+                "label": "Upload accepted",
+                "status": "complete",
+                "detail": f"{filename} with {len(rows)} parsed rows",
+            },
+            {
+                "id": "unpack",
+                "label": "Bundle unpacked",
+                "status": "complete",
+                "detail": f"{len(capped)} rows kept under cap {_ROW_CAP}",
+            },
+            {
+                "id": "grep",
+                "label": "GREP safety scan",
+                "status": "complete",
+                "detail": f"{len(agg_grep)} unique rules fired",
+            },
+            {
+                "id": "attributes",
+                "label": "Entity and document attributes",
+                "status": "complete",
+                "detail": f"{intelligence.get('n_people', 0)} people, {len(intelligence.get('document_type_counts') or {})} document types",
+            },
+            {
+                "id": "gemma",
+                "label": "Gemma 4 case brief",
+                "status": "complete" if gemma_brief.get("status") in {"ok", "unparsed_text"} else "skipped",
+                "detail": gemma_brief.get("status", "not_run"),
+            },
+            {
+                "id": "graph",
+                "label": "Local graph cached",
+                "status": "complete",
+                "detail": f"{intelligence.get('n_evidence_edges', 0)} evidence edges",
+            },
+        ]
+        bundle["intelligence"] = intelligence
+        bundle["summary"]["n_people_detected"] = intelligence.get("n_people", 0)
+        bundle["summary"]["n_evidence_edges"] = intelligence.get("n_evidence_edges", 0)
+        bundle["summary"]["gemma_case_brief_status"] = gemma_brief.get("status")
         app.state.last_process_bundle = bundle
         try:
             from .._training_log import log_interaction as _log
@@ -170,9 +450,14 @@ def register_routes(app: Any) -> None:
                     "n_processed": _summary.get("n_rows_processed", 0),
                     "top_grep": _summary.get("top_grep", []),
                     "entity_totals": _summary.get("entity_totals", {}),
+                    "n_people_detected": _summary.get("n_people_detected", 0),
+                    "gemma_case_brief_status": _summary.get("gemma_case_brief_status"),
                 },
                 applied_layers={"grep": {"fired": _summary.get("n_grep_rules_fired", 0) > 0}},
-                trace={"top_statutes": _summary.get("top_statutes", [])},
+                trace={
+                    "top_statutes": _summary.get("top_statutes", []),
+                    "harness_trace": intelligence.get("harness_trace", []),
+                },
                 extra={"kind": "batch"},
             )
         except Exception:

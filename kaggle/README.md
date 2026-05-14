@@ -7,16 +7,17 @@ files here are bundles built from those packages, plus the kernel
 sources judges open in Kaggle.
 
 > **Quick reference:** [`kaggle/_INDEX.md`](./_INDEX.md) is the
-> machine-readable roster of all 27 submission kernels (3 core + 24
+> machine-readable roster of all 28 submission kernels (3 core + 25
 > appendix) with file + wheel + publish status per row. Refresh
 > whenever a kernel is added, removed, or pushed to Kaggle.
 
-## Submission shape: 3 core + 24 appendix
+## Submission shape: 3 core + 25 appendix
 
 The 2026 Gemma 4 Good Hackathon submission is structured as **3 core
 kernels** (the omni playground, the focused live demo, and the video
-pitch with in-app slides) plus **24 appendix kernels** (specialised
-playgrounds, the SafetyJudge / PrivacyRedactor training pipeline,
+pitch with in-app slides) plus **25 appendix kernels** (the A-00 omni
+experiment control plane, specialised playgrounds, the SafetyJudge /
+PrivacyRedactor training pipeline,
 research visualization, agentic-research proof-of-concept,
 jailbroken-models comparison, lift regenerator, the Unsloth +
 on-device export pipeline, the five-lane website extensions, and the
@@ -78,6 +79,7 @@ compatibility labels (`HARMFUL` → `BEST`) and the screen-facing review labels
 
 | # | Folder | Kaggle URL | Purpose |
 |---|---|---|---|
+| A0 | [`omni-evaluation-and-training/`](./A-00-omni-evaluation-and-training/) | https://www.kaggle.com/code/taylorsamarel/duecare-a-00-omni-evaluation-and-training _(publish pending)_ | **The experiment control plane.** Load one model per run, run bulk prompts with or without harnesses, import exports, compare results, generate synthetic data, create LoRA training jobs, and export proof reports with graphs, timing, and cost notes. |
 | A1 | [`chat-playground/`](./A-01-chat-playground/) | https://www.kaggle.com/code/taylorsamarel/duecare-chat-playground | Raw Gemma 4 chat — NO harness. The baseline that demonstrates the failure mode. |
 | A2 | [`chat-playground-with-grep-rag-tools/`](./A-02-chat-playground-with-grep-rag-tools/) | https://www.kaggle.com/code/taylorsamarel/duecare-chat-playground-with-grep-rag-tools | Harness ablation runner: same chat UI with GREP, RAG, Tools, and Imports toggles plus trace evidence for each layer. |
 | A3 | [`content-classification-playground/`](./A-03-content-classification-playground/) | https://www.kaggle.com/code/taylorsamarel/duecare-content-classification-playground _(publish pending)_ | Hands-on classification sandbox. Paste content, pick a schema, see the merged prompt + raw response + parsed JSON. |
@@ -119,8 +121,8 @@ Cross-kernel datasets that aren't bundled into one folder:
 ## Other folders
 
 - [`kernels/`](./kernels/) — archived generated/research notebook mirrors.
-  The current judge-facing path is the 27 root script-kernel folders (3 core
-  + 24 appendix); use
+  The current judge-facing path is the 28 root script-kernel folders (3 core
+  + 25 appendix); use
   `_archive/kaggle-notebook-previews-2026-05-11/` for historical recovery.
   Older root-level `legacy_notebooks/` and `skunkworks/` mirrors are archived
   under `../_archive/legacy-research-2026-05-09/` and should only be restored

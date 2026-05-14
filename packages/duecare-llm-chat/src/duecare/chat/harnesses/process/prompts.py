@@ -1,4 +1,4 @@
-"""Process Files prompts."""
+"""Bulk File Review prompts."""
 from __future__ import annotations
 
 GRAPH_CHAT_SYSTEM_PROMPT = (
@@ -41,6 +41,33 @@ def build_context_block(bundle: dict | None) -> str:
             "  entity totals: "
             + ", ".join(f"{k}={v}" for k, v in entity_totals.items())
         )
+    intelligence = bundle.get("intelligence") or {}
+    if intelligence:
+        lines.append("Intelligence graph:")
+        lines.append(f"  people detected: {intelligence.get('n_people', 0)}")
+        lines.append(f"  evidence edges: {intelligence.get('n_evidence_edges', 0)}")
+        doc_counts = intelligence.get("document_type_counts") or {}
+        if doc_counts:
+            lines.append(
+                "  document types: "
+                + ", ".join(f"{k}={v}" for k, v in doc_counts.items())
+            )
+        people = intelligence.get("people") or []
+        if people:
+            lines.append("  highest risk people:")
+            for p in people[:8]:
+                lines.append(
+                    "    "
+                    f"{p.get('case_id')} name={p.get('name') or 'unknown'} "
+                    f"risk={p.get('risk_score')} docs={p.get('n_documents')} "
+                    f"signals={', '.join((p.get('risk_signals') or [])[:4])}"
+                )
+        brief = (intelligence.get("gemma_case_brief") or {}).get("json")
+        if isinstance(brief, dict):
+            lines.append("  Gemma case brief:")
+            for key in ("case_theory", "risk_clusters", "missing_evidence"):
+                if brief.get(key):
+                    lines.append(f"    {key}: {brief.get(key)}")
     results = bundle.get("results") or []
     if results:
         lines.append("Sample rows (first 10):")

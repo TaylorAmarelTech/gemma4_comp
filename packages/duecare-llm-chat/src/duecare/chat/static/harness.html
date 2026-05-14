@@ -7,17 +7,14 @@
   <link rel="stylesheet" href="/static/_chrome.css">
   <script src="/static/_nav.js" defer></script>
   <style>
-    .page { max-width: 1180px; margin: 24px auto 70px; padding: 0 18px; color: var(--ink); }
-    .hero {
-      display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(280px, 0.7fr);
-      gap: 16px; align-items: stretch; margin-bottom: 16px;
-    }
+    .page { max-width: 1120px; margin: 24px auto 60px; padding: 0 18px; color: var(--ink); font-family: Inter, system-ui, sans-serif; line-height: 1.55; }
+    .hero { display: grid; grid-template-columns: 1fr; gap: 12px; margin-bottom: 14px; }
     .panel {
       background: var(--paper); border: 1px solid var(--line);
-      border-radius: 10px; padding: 18px 20px;
+      border-radius: 12px; padding: 16px 18px;
     }
-    h1 { font-size: 28px; letter-spacing: 0; margin: 0 0 8px; }
-    h2 { font-size: 16px; margin: 0 0 10px; }
+    h1 { font-size: 26px; letter-spacing: 0; margin: 0 0 8px; }
+    h2 { font-size: 15px; margin: 0 0 10px; }
     h3 { font-size: 14px; margin: 0 0 6px; }
     p { line-height: 1.55; }
     .lede { color: var(--ink-2); font-size: 13.5px; margin: 0; }
@@ -135,14 +132,6 @@
         <div id="endpoint-list"></div>
         <h3 style="margin-top:16px;">Dedicated Pages</h3>
         <div class="catalog-row" id="page-list"></div>
-        <h3 style="margin-top:16px;">Layer Catalogs</h3>
-        <div class="catalog-row">
-          <a class="btn" href="/static/persona.html">Persona</a>
-          <a class="btn" href="/static/grep-rules.html">GREP</a>
-          <a class="btn" href="/static/rag-corpus.html">RAG</a>
-          <a class="btn" href="/static/tools.html">Tools</a>
-          <a class="btn" href="/static/online.html">Online</a>
-        </div>
       </div>
     </section>
   </main>

@@ -1,84 +1,94 @@
-# Kaggle Writeup — DueCare
+# Kaggle Writeup Draft: DueCare
 
-> **Title:** DueCare — Gemma 4 safety infrastructure for migrant-worker protection
->
-> **Track:** Safety & Trust. Special Technology alignment: Gemma 4, Unsloth, llama.cpp / LiteRT deployment path.
->
-> **One-line claim:** DueCare turns Gemma 4 into grounded safety infrastructure that helps platforms prevent exploitation, helps NGOs and workers act on safer guidance, and helps researchers understand what is happening and why — while keeping raw cases out of the public hub.
->
-> **Status as of 2026-05-12:** final reviewer-facing submission path is 27 Kaggle script-kernel folders (3 core + 24 appendix); generated/research notebook mirrors are archived historical context. The harness currently has 6 layers, 161 GREP rules, a 46-doc RAG corpus, a 46-edge citation graph, a 46-dimension grader, 587 example prompts, a 65-test adversarial validation suite, 28 public-hub tests, 4 example knowledge packs, token-gated admin logs, server automation, operator-side local KB, and Cloudflare demo app styling aligned to the public website.
->
-> **Word count:** checked by `scripts/v141_word_count.py`; counted body remains under Kaggle's 1,500-word cap.
+**Title:** DueCare: Gemma 4 safety infrastructure for migrant-worker protection
 
----
+**Subtitle:** A local-first Gemma 4 workbench that helps workers, NGOs, platforms, regulators, and researchers detect exploitation, ground answers in public law, preserve privacy, and prove safety lift with reproducible evaluation bundles.
 
-## Knowledge taxonomy
+**Track:** Safety & Trust. Special Technology alignment: Unsloth fine-tuning, local Gemma 4 deployment, GGUF and LiteRT export path.
 
-DueCare classifies every reusable artefact -- regex rules, retrieval docs, citation links, persona prompts, tool definitions, fact templates, schemas -- under one canonical `KnowledgeObject` envelope (`schema_version: "1.0"`). 6 branches (matching / grounding / reasoning / tool / input / output knowledge) across 21 leaf types. One persistence convention, one runtime API (`/api/knowledge/{promote,list,import,export,taxonomy,<type>/<id>}`), one vocabulary across kernel + website + writeup + diagram. Spec: `docs/knowledge_module_schema.md`. ADR: `docs/adr/007-knowledge-object-taxonomy.md`.
+## Summary
 
-## TL;DR
+DueCare addresses a real and high-stakes gap: migrant workers and the people who support them often need help interpreting recruiter messages, contracts, receipts, screenshots, and case bundles that may contain exploitation indicators. The dangerous parts are frequently hidden in ordinary language: "processing loans," salary deductions, passport safekeeping, contract substitution, forged documents, or corridor-specific fee caps.
 
-Stock LLMs can miss coercion when abuse is hidden in ordinary recruitment language: salary deductions, document control, fee labels, contract substitution, or jurisdiction hopping. DueCare wraps Gemma 4 with deterministic rules, retrieval, function calls, multimodal inspection, and a scored evaluation harness. It does not replace an NGO caseworker or regulator. It gives them a private local assistant, reproducible evidence, and a public coordination layer that stores only anonymized signals and vetted knowledge packs.
+A generic chatbot can miss those signals, give generic legal disclaimers, or send sensitive case facts to a cloud service. DueCare instead wraps Gemma 4 in a private, inspectable safety harness. The system runs in a Kaggle session or local environment, keeps raw evidence inside the user-controlled runtime, and exposes every safety step so reviewers can see what changed and why.
 
-## 1. Problem
+## What We Built
 
-Migrant workers often ask for help with messages, contracts, receipts, or recruitment ads that may contain exploitation indicators. The hard part is not only answering the question. It is answering safely, citing the right corridor law, avoiding victim-blaming, refusing to optimize recruiter abuse, and preserving a useful evidence trail.
+DueCare has three core submission surfaces.
 
-The common cloud-LLM workflow breaks the trust model. NGOs, labour ministries, and worker advocates may hold case files with names, contact details, identity documents, employer information, medical records, and retaliation risks. Sending those to a frontier API is often unacceptable. DueCare is built around that constraint: Individual worker and NGO & regulator analysis runs locally; the public hub only receives public-source updates, vetted pack metadata, and anonymized aggregate signals.
+Notebook 01 is the exploration workbench. It includes Chat, Harness Comparison, Bulk File Review, Knowledge Extraction, Search Safety, Anonymization, Sync, Status, and Harnesses pages. A shared top model selector loads the active Gemma 4 model once for every page. The comparison page sends the same prompt through two harness configurations and grades both outputs.
 
-## 2. What DueCare does
+Notebook 02 is the focused live demo. It keeps the story narrow: one loaded Gemma 4 model, one polished route through the safety layers, and a clear before-and-after comparison.
 
-DueCare has two product surfaces.
+Notebook 03 is the video pitch surface. It provides deterministic scenes for recording a three-minute story without waiting on live inference.
 
-**The local runtime** is the Gemma 4 harness. A worker, moderator, researcher, or caseworker can paste a suspicious post or document into a Cloudflare-served Kaggle app, local laptop app, or future mobile build. Six optional layers can be toggled per prompt:
+Appendix A-00 is the technical proof workbench. It is the control plane for
+bulk prompt runs, export/import reruns, rule and LLM judging, knowledge-pack
+sync, synthetic-data generation, and LoRA training jobs. The narrower
+appendix notebooks remain useful as simple single-claim reproductions.
 
-- **Persona:** anti-trafficking expert instructions.
-- **GREP:** 161 deterministic rules for debt bondage, document retention, fee camouflage, ILO indicators, corridor caps, kafala signals, and legal-citation cues.
-- **RAG:** retrieval over a 46-document public legal and NGO corpus with a 46-edge citation graph.
-- **Imports:** user-provided local evidence, kept in-session.
-- **Tools:** native function calls for corridor fee caps, fee labels, ILO indicators, NGO intake contacts, and convention lookup.
-- **Online:** optional web search treated as candidate evidence, not ground truth.
+The workbench has seven harness contracts:
 
-Each response can be scored by deterministic rules, Gemma-as-judge, or a combined mode across 46 safety dimensions. The point is visible technical depth: users can see which rule fired, which document was retrieved, which tool returned a value, and how the score changed when layers are toggled.
+1. Chat: free-form Gemma 4 chat with persona, GREP, RAG, tools, online search, imports, optional image input, and grading.
+2. Bulk File Review: ZIP, CSV, or JSONL upload with entity extraction, GREP scanning, person/document linking, local graph construction, and Gemma 4 case briefing.
+3. Knowledge Extraction: Gemma 4 drafts standardized knowledge-object envelopes from raw text.
+4. Anonymization: regex and NER redaction before evidence crosses a trust boundary.
+5. Search Safety: strips PII from outbound search queries before any third-party backend.
+6. Search: secondary web-search utility called only after safety sanitization when enabled.
+7. Import Corpus: local evidence CRUD. It is intentionally not labeled a Gemma harness because it performs no model call.
 
-<!-- audit-allow:drift  reason: explicitly documents the OpenClaw -> server automation rename and backward-compat policy -->
-**The public hub** is the coordination layer at duecare-ai.com. It serves a schema-backed knowledge-object hierarchy, a real pack registry with four example packs, public pack APIs, server-side automation for public-source update triage, a reference `hub_client.py`, and token-gated redacted admin logs. Client submissions carry explicit visibility, attribution, submitter, label-source, and consent fields: anonymous remains anonymous unless a client deliberately selects pseudonymous, organization-tagged, verified-organization, public-source, or public-display modes. Legacy OpenClaw aliases remain as redirects and env-var fallbacks, but the public language is now server automation. Render deployment uses one FastAPI Docker service plus a persistent disk; raw worker case content stays in worker-controlled or tenant-controlled deployments.
+## How Gemma 4 Is Used
 
-## 3. Why Gemma 4 matters
+Gemma 4 is the reasoning engine behind the product, not a decorative dependency.
 
-Gemma 4's features are load-bearing, not decorative.
+In Chat, Gemma 4 receives a composed prompt that may include persona guidance, deterministic GREP findings, retrieved public-law context, imported evidence snippets, tool outputs, and optional search results. The UI shows the model-visible path before generation.
 
-**Native function calling** powers the Tools layer. Instead of hoping the model remembers a fee cap or hotline, the harness calls a typed lookup and injects the result into the answer and trace.
+In Bulk File Review, Gemma 4 summarizes a locally extracted intelligence graph. The deterministic layer first detects entities, document types, locations, payment patterns, rule hits, and evidence edges. Gemma 4 then produces a case brief using only those facts.
 
-**Multimodal understanding** powers document and screenshot workflows. The demo accepts recruitment flyers, contract images, and evidence screenshots, then routes findings through the same rubric and safety trace as text.
+In Knowledge Extraction, Gemma 4 turns messy text into typed knowledge envelopes such as GREP rules, RAG docs, citation edges, context snippets, and rubric dimensions.
 
-**Local deployment** is the impact story. The validated paths today are Kaggle and laptop execution; llama.cpp/GGUF and LiteRT-style mobile packaging are explicit export targets for the same privacy-preserving architecture. The worker or NGO keeps sensitive material on-device while still benefiting from Gemma 4 reasoning and grounded public knowledge.
+In evaluation, Gemma 4 can act as a judge across rubric dimensions. The deterministic grader and LLM grader are separated so users can compare fast rule evidence against semantic judgment.
 
-## 4. Evidence and notebooks
+For post-training, appendix notebooks generate synthetic and composite training data, fine-tune adapters with Unsloth, and export comparison artifacts. The design respects Kaggle's practical one-model-per-session constraint: each run exports a canonical bundle, then later sessions import that bundle to compare base, harnessed, fine-tuned, and fine-tuned plus harnessed conditions.
 
-The kernel suite is intentionally broad because judges can verify different claims without trusting a video. The final submission path is 27 Kaggle script-kernel folders (3 core + 24 appendix). Generated/research notebook mirrors are archived historical context, not a separate required reading path. The priority path is:
+## Technical Architecture
 
-1. **01 exploration workbench:** full Gemma 4 harness with model picker, layer toggles, traces, and A/B comparison.
-2. **02 live demo:** focused screen-recording surface plus public-hub story.
-3. **A-01 / A-02 / A-10:** raw Gemma, harness ablation, and jailbroken-model comparison.
-4. **A-03 / A-04 / A-05:** classification, knowledge-building, and NGO & regulator dashboard.
-5. **A-06 / A-07 / A-08 / A-09 / A-11:** prompt generation, Unsloth fine-tune pipeline, research graphs, agentic research, and lift regeneration.
+DueCare is a FastAPI app packaged as `duecare-llm-chat`, with shared static UI, harness modules, and tests. Each harness declares what layers it applies, what data it consumes, what it emits, and which routes it registers. The harnesses share a knowledge-object system: all reusable rules, documents, prompts, schemas, rubric dimensions, tool definitions, and evidence objects use a versioned envelope.
 
-The fine-tuning story is explicit: supervised fine-tuning uses curated public, synthetic, composite, or anonymized data; raw worker chats and raw case files are excluded. Preference optimization is framed as DPO-style response ranking, not vague reinforcement learning. Every headline number should be reproducible from a git SHA, dataset version, and notebook artifact.
+The core safety layers are:
 
-## 5. What is live now
+* Persona: anti-trafficking expert instruction.
+* GREP: deterministic pattern detection for fee camouflage, debt bondage, passport control, ILO indicators, corridor fee caps, document fraud, employer abuse, and related patterns.
+* RAG: public legal and NGO reference retrieval.
+* Tools: typed lookups for corridor fees, ILO indicators, NGO contacts, and conventions.
+* Online: optional search with PII safety gates.
+* Imports: local evidence context.
 
-- **Code:** MIT monorepo with Python packages, FastAPI apps, notebook builders, tests, and generated inventory docs.
-- **Public hub:** health, status, pack registry, anonymized signal intake, public-source update proposals, client submission / retract endpoints, local-KB API, admin redaction, robots and sitemap.
-- **Notebook apps:** primary chat, classifier, live demo dashboard, content classification playground, and knowledge-builder playground now share the DueCare website's fonts, brand mark, focus states, card language, and civic-teal controls while preserving high-contrast operator workspaces where useful.
-- **Tests:** hub routes, pack registry, admin redaction, PII rejection, notebook inventory, guide generation, and chat smoke tests are covered.
+Every meaningful run can produce a v1.0 appendix bundle with `results.json`, `run.jsonl`, `metadata.json`, and `manifest.json`. Those bundles are the glue between notebooks and make quantitative claims reproducible.
 
-## 6. Impact
+## Evaluation Plan
 
-DueCare is not a chatbot for replacing experts. It is infrastructure for exercising due care: help a worker understand risk, help a caseworker document facts, help a platform screen recruitment posts, help a regulator audit patterns, and help researchers compare model behavior. The named downstream institutions are real — Polaris, IJM, ECPAT, POEA / DMW, BP2MI, HRD Nepal — but the demo characters and examples are composites.
+The submission proves lift in three ways.
 
-If DueCare works, a small NGO can run a private safety evaluator on a laptop, a platform can hold risky recruitment content for review before workers see it, and a worker can ask for guidance without uploading their case to someone else's server.
+First, the live Harness Comparison page shows one prompt with and without the harness, then grades both responses.
 
-## 7. Going deeper
+Second, A-00 and the appendix evaluation notebooks can run 100+ prompts under one condition, export the responses and metadata, then import that bundle in a later session to run another condition. This supports no-harness, harnessed, fine-tuned, and fine-tuned plus harnessed comparisons without loading multiple models at once.
 
-[notebook guide](notebook_guide.md) · [for judges](FOR_JUDGES.md) · [architecture](architecture.md) · [deployment modes](deployment_modes.md) · [fine-tuning data strategy](finetuning_data_strategy.md) · [demo recording runbook](demo_recording_runbook.md) · [Render deployment](../apps/duecare-ai.com/docs/RENDER.md)
+Third, rule-based and LLM-based grading score each response across prompt-appropriate dimensions. The rubric uses dynamic applicability so N/A is driven primarily by the prompt and task, not by whether a response happened to mention a topic.
+
+## Impact
+
+DueCare is not a replacement for lawyers, caseworkers, or hotlines. It is infrastructure for exercising due care. A worker can ask a private question about recruiter fees or passport retention. An NGO can review a case bundle without uploading raw evidence to a public server. A platform can screen recruitment content before workers see it. A regulator or researcher can compare model behavior with reproducible artifacts.
+
+The positive-change claim is practical: make local Gemma 4 reasoning useful in places where privacy, trust, and limited connectivity matter.
+
+## Current Submission Assets
+
+* Public repository: `https://github.com/TaylorAmarelTech/gemma4_comp`
+* Live demo: attach the active Cloudflare tunnel URL from Notebook 02.
+* Video: attach the public YouTube link from the Notebook 03 recording.
+* Media gallery: cover image plus screenshots of Chat, Harness Comparison, Bulk File Review, and the appendix report.
+
+## Why This Fits Gemma 4 Good
+
+DueCare targets Safety & Trust with real technical depth: local Gemma 4 inference, native function-style tools, multimodal evidence intake, retrieval-grounded answers, rule and LLM evaluation, synthetic data generation, Unsloth adapter training, and exportable proof bundles. The product story is simple: vulnerable workers need safer help, sensitive evidence must stay private, and every safety claim should be inspectable.
