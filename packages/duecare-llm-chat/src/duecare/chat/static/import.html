@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Import — DueCare Workbench</title>
+  <title>Import | DueCare Workbench</title>
   <link rel="stylesheet" href="/static/_chrome.css">
   <link rel="stylesheet" href="/static/showcase.css">
   <script src="/static/_nav.js" defer></script>
@@ -98,6 +98,30 @@
       font-family: var(--mono); font-size: 12.5px; color: var(--ink-2);
     }
     .stat-row span { padding: 4px 10px; border-radius: 999px; background: var(--paper-2); border: 1px solid var(--line); }
+    .import-guide {
+      display: grid; gap: 10px; margin-top: 18px;
+    }
+    .import-step {
+      border: 1px solid var(--line); border-radius: 10px; background: var(--paper);
+      overflow: hidden;
+    }
+    .import-step[open] { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+    .import-step summary {
+      cursor: pointer; list-style: none; display: flex; gap: 12px; align-items: flex-start;
+      padding: 13px 14px;
+    }
+    .import-step summary::-webkit-details-marker { display: none; }
+    .import-step-num {
+      flex: 0 0 auto; display: inline-flex; align-items: center; justify-content: center;
+      width: 24px; height: 24px; border-radius: 999px; background: var(--paper-2);
+      border: 1px solid var(--line); font-family: var(--mono); font-size: 11px; color: var(--ink-3);
+    }
+    .import-step[open] .import-step-num { background: var(--accent-soft); color: var(--ink); border-color: var(--accent); }
+    .import-step-title { font-weight: 600; color: var(--ink); margin-bottom: 2px; }
+    .import-step-hint { color: var(--ink-3); font-size: 12.5px; line-height: 1.45; }
+    .import-step-body {
+      padding: 0 14px 14px 50px; color: var(--ink-3); font-size: 12.5px; line-height: 1.55;
+    }
   
     @media (max-width: 620px) {
       .wb-page { padding: 0 12px !important; }
@@ -108,15 +132,51 @@
 <body data-nav="import">
 <main class="showcase">
   <div class="wb-trust" style="background: oklch(0.92 0.06 155); color: oklch(0.32 0.07 155); padding: 8px 14px; border-radius: 8px; font-size: 12.5px; margin: 0 0 14px;"><b>Trust boundary:</b> Uploaded ZIPs are unpacked to <code>/kaggle/working/knowledge/</code> inside this kernel. Validated knowledge object (envelope) hot-load into the GREP / RAG / rubric layers; rejected entries are reported back. Nothing is uploaded anywhere by this page.</div>
-  <div class="crumbs">Workbench tool · Worker &amp; NGO utilities</div>
+  <div class="crumbs">Workbench tool | Worker and NGO utilities</div>
   <h1>Import knowledge</h1>
   <p class="lede">
     Drop your own documents (contracts, NGO briefs, case files, screenshots
     saved as <code>.txt</code> or <code>.md</code>) into the in-kernel BM25
-    retrieval pool. Everything stays on the kernel running this URL — no
+    retrieval pool. Everything stays on the kernel running this URL. No
     upload to the public hub unless you explicitly use the
     <a href="/static/anonymization-preview.html">Anonymize</a> page.
   </p>
+
+  <section class="panel">
+    <h2>Import path</h2>
+    <div class="import-guide" id="import-guide">
+      <details class="import-step" id="import-step-1" open>
+        <summary>
+          <span class="import-step-num">1</span>
+          <span>
+            <span class="import-step-title">Add local evidence</span>
+            <span class="import-step-hint">Drop files or paste a snippet. The page stores them only inside this kernel.</span>
+          </span>
+        </summary>
+        <div class="import-step-body">Use this for supporting evidence that should be searchable by RAG but should not be submitted to the hub yet.</div>
+      </details>
+      <details class="import-step" id="import-step-2">
+        <summary>
+          <span class="import-step-num">2</span>
+          <span>
+            <span class="import-step-title">Chunk and index</span>
+            <span class="import-step-hint">Text is split into local chunks and added to the retrieval pool.</span>
+          </span>
+        </summary>
+        <div class="import-step-body">This is a utility surface, not a Gemma harness. It prepares local evidence for chat, search, grading, and knowledge extraction.</div>
+      </details>
+      <details class="import-step" id="import-step-3">
+        <summary>
+          <span class="import-step-num">3</span>
+          <span>
+            <span class="import-step-title">Review or clear</span>
+            <span class="import-step-hint">Inspect imported documents, chunk counts, source labels, and delete anything unnecessary.</span>
+          </span>
+        </summary>
+        <div class="import-step-body">Only move to anonymization and sharing after you have reviewed the imported evidence and removed sensitive raw material.</div>
+      </details>
+    </div>
+  </section>
 
   <div class="import-layout">
     <section class="panel">
@@ -124,7 +184,7 @@
 
       <div class="drop" id="drop" onclick="document.getElementById('file').click()">
         <div class="hint"><strong>Drop a file</strong> or click to choose<br>
-          .txt · .md · .json · .csv · .pdf (small) · zip of any of these</div>
+          .txt | .md | .json | .csv | .pdf (small) | zip of any of these</div>
       </div>
       <input type="file" id="file" multiple>
 
@@ -133,7 +193,7 @@
           <span>title + body inline</span></label>
         <input type="text" id="snip-title"  placeholder="Title (e.g. 'My recruiter's WhatsApp')">
         <input type="text" id="snip-source" placeholder="Source / URL (optional)"  style="margin-top:8px;">
-        <textarea id="snip-body" rows="6" placeholder="Paste the text here…" style="margin-top:8px;"></textarea>
+        <textarea id="snip-body" rows="6" placeholder="Paste the text here..." style="margin-top:8px;"></textarea>
         <div class="actions">
           <button class="btn" type="button" onclick="addSnippet()">Add snippet</button>
         </div>
@@ -144,7 +204,7 @@
 
     <section class="panel">
       <h2>Imported documents</h2>
-      <div class="stat-row" id="stats"><span>Loading…</span></div>
+      <div class="stat-row" id="stats"><span>Loading...</span></div>
       <div id="docs-table">
         <div class="empty">
           <h3>No documents yet</h3>
@@ -164,7 +224,7 @@
         Live trace of API calls + per-step events from this page.
       </p>
       <div id="page-activity-log" class="dc-activity-log" role="log" aria-label="Activity log" aria-live="polite">
-        <div class="dc-log-idle">No activity yet -- interact with the page to populate.</div>
+        <div class="dc-log-idle">No activity yet. Add content to populate.</div>
       </div>
     </div>
 
@@ -176,7 +236,7 @@
       ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   }
   function fmtBytes(n) {
-    if (n == null) return "—";
+    if (n == null) return "-";
     if (n < 1024) return n + "B";
     if (n < 1e6) return Math.round(n/1024) + "KB";
     return (n/1e6).toFixed(1) + "MB";
@@ -185,6 +245,11 @@
     const el = document.getElementById("form-flash");
     el.innerHTML = `<div class="${ok ? "ok-flash" : "err"}">${escapeHtml(msg)}</div>`;
     setTimeout(() => { el.innerHTML = ""; }, 4000);
+  }
+  function setImportStep(active) {
+    document.querySelectorAll("#import-guide .import-step").forEach((step, idx) => {
+      step.open = idx === active;
+    });
   }
 
   async function refresh() {
@@ -198,10 +263,12 @@
         <span>${fmtBytes(docs.reduce((s, x) => s + (x.char_count || 0), 0))} text</span>
       `;
       if (!docs.length) {
+        setImportStep(0);
         document.getElementById("docs-table").innerHTML =
           `<div class="empty"><h3>No documents yet</h3><p>Drop a file or paste a snippet on the left.</p></div>`;
         return;
       }
+      setImportStep(2);
       document.getElementById("docs-table").innerHTML = `
         <table class="imports">
           <thead><tr>
@@ -213,7 +280,7 @@
           <tbody>
             ${docs.map(x => `<tr>
               <td class="title">${escapeHtml(x.title || x.id || "?")}<div class="id">${escapeHtml(x.id || "")}</div></td>
-              <td>${escapeHtml(x.source || "—")}</td>
+              <td>${escapeHtml(x.source || "-")}</td>
               <td class="meta" style="text-align:right;">${x.n_chunks || 0}</td>
               <td class="meta" style="text-align:right;">${fmtBytes(x.char_count || 0)}</td>
               <td><button class="row-del" type="button" data-doc-id="${escapeHtml(x.id || "")}">delete</button></td>
@@ -241,6 +308,7 @@
       }
       const d = await r.json();
       flash(`Uploaded ${d.title || file.name}: ${d.n_chunks || "?"} chunk(s).`, true);
+      setImportStep(1);
       refresh();
     } catch (e) {
       flash(`Upload error: ${e && e.message || e}`, false);
@@ -259,6 +327,7 @@
       });
       if (!r.ok) { flash(`Snippet failed (HTTP ${r.status})`, false); return; }
       flash("Snippet added.", true);
+      setImportStep(1);
       document.getElementById("snip-title").value = "";
       document.getElementById("snip-source").value = "";
       document.getElementById("snip-body").value = "";

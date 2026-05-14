@@ -71,6 +71,30 @@
       font-size: 12px; color: var(--ink-2); white-space: pre-wrap;
       word-break: break-word; max-height: 240px; overflow: auto;
     }
+    .settings-guide {
+      display: grid; gap: 10px; margin-top: 18px;
+    }
+    .settings-step {
+      border: 1px solid var(--line); border-radius: 10px; background: var(--paper);
+      overflow: hidden;
+    }
+    .settings-step[open] { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+    .settings-step summary {
+      cursor: pointer; list-style: none; display: flex; gap: 12px; align-items: flex-start;
+      padding: 13px 14px;
+    }
+    .settings-step summary::-webkit-details-marker { display: none; }
+    .settings-step-num {
+      flex: 0 0 auto; display: inline-flex; align-items: center; justify-content: center;
+      width: 24px; height: 24px; border-radius: 999px; background: var(--paper-2);
+      border: 1px solid var(--line); font-family: var(--mono); font-size: 11px; color: var(--ink-3);
+    }
+    .settings-step[open] .settings-step-num { background: var(--accent-soft); color: var(--ink); border-color: var(--accent); }
+    .settings-step-title { font-weight: 600; color: var(--ink); margin-bottom: 2px; }
+    .settings-step-hint { color: var(--ink-3); font-size: 12.5px; line-height: 1.45; }
+    .settings-step-body {
+      padding: 0 14px 14px 50px; color: var(--ink-3); font-size: 12.5px; line-height: 1.55;
+    }
   
     @media (max-width: 620px) {
       .wb-page { padding: 0 12px !important; }
@@ -87,6 +111,42 @@
     Tune retrieval, reranking, parent expansion, and online search
     without restarting the kernel. Changes apply to the next chat turn.
   </p>
+
+  <section class="panel">
+    <h2>Settings path</h2>
+    <div class="settings-guide" id="settings-guide">
+      <details class="settings-step" id="settings-step-1" open>
+        <summary>
+          <span class="settings-step-num">1</span>
+          <span>
+            <span class="settings-step-title">Tune retrieval first</span>
+            <span class="settings-step-hint">Hybrid RAG should be the default path, with BM25 fallback visible when embeddings are unavailable.</span>
+          </span>
+        </summary>
+        <div class="settings-step-body">RAG settings affect every page that asks Gemma to ground an answer in legal or factual evidence.</div>
+      </details>
+      <details class="settings-step" id="settings-step-2">
+        <summary>
+          <span class="settings-step-num">2</span>
+          <span>
+            <span class="settings-step-title">Wire online search only when needed</span>
+            <span class="settings-step-hint">Search is optional and must remain downstream of search safety sanitization.</span>
+          </span>
+        </summary>
+        <div class="settings-step-body">Use this for public web retrieval with BYOK keys. Sensitive local case material should stay in import, RAG, and process graph flows.</div>
+      </details>
+      <details class="settings-step" id="settings-step-3">
+        <summary>
+          <span class="settings-step-num">3</span>
+          <span>
+            <span class="settings-step-title">Choose model loading behavior</span>
+            <span class="settings-step-hint">Single-model is safer on Kaggle. Multi-model is only for high VRAM environments.</span>
+          </span>
+        </summary>
+        <div class="settings-step-body">This keeps compare and demo pages honest about reload cost, VRAM pressure, and the one-model Kaggle session constraint.</div>
+      </details>
+    </div>
+  </section>
 
   <section class="panel">
     <h2>Retrieval (RAG)</h2>
@@ -276,6 +336,11 @@
     el.innerHTML = `<div class="flash ${ok ? "ok" : "err"}">${escapeHtml(msg)}</div>`;
     setTimeout(() => { el.innerHTML = ""; }, 4000);
   }
+  function settingsSetStep(active) {
+    document.querySelectorAll("#settings-guide .settings-step").forEach((step, idx) => {
+      step.open = idx === active;
+    });
+  }
 
   async function loadRetrieval() {
     try {
@@ -323,6 +388,7 @@
       });
       if (!r.ok) { flash("ret-flash", `HTTP ${r.status}`, false); return; }
       flash("ret-flash", "Retrieval config saved.", true);
+      settingsSetStep(0);
       loadRetrieval();
     } catch (e) {
       flash("ret-flash", `Save failed: ${e && e.message || e}`, false);
@@ -374,6 +440,7 @@
       });
       if (!r.ok) { flash("online-flash", `HTTP ${r.status}`, false); return; }
       flash("online-flash", "Online config saved.", true);
+      settingsSetStep(1);
       loadOnline();
     } catch (e) {
       flash("online-flash", `Save failed: ${e && e.message || e}`, false);
@@ -381,6 +448,7 @@
   }
   async function testOnline() {
     const out = document.getElementById("online-test-out");
+    settingsSetStep(1);
     out.innerHTML = `<div class="flash" style="background:var(--paper-2); color:var(--ink-2);">Running test query. This hits the configured backend.</div>`;
     try {
       const r = await fetch("/api/online/test", {
@@ -432,6 +500,7 @@
     try {
       localStorage.setItem('duecare:model-load-mode', mode);
       renderModelLoadModeState();
+      settingsSetStep(2);
       _modeFlash('ok', 'Saved: model-load-mode = ' + mode
         + (mode === 'multi' ? ' (caveat: needs VRAM; watch for OOMs)' : ''));
     } catch (e) {
@@ -442,6 +511,7 @@
     try {
       localStorage.setItem('duecare:model-load-mode', 'single');
       renderModelLoadModeState();
+      settingsSetStep(2);
       _modeFlash('ok', 'Reset to single (safe default).');
     } catch (e) {
       _modeFlash('err', 'localStorage unavailable: ' + e);

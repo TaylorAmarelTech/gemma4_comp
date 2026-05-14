@@ -115,6 +115,30 @@
       overflow: hidden; margin: 8px 0;
     }
     .progress > .bar { height: 100%; background: var(--accent); transition: width 0.3s; }
+    .grade-guide {
+      display: grid; gap: 10px; margin-top: 18px;
+    }
+    .grade-step {
+      border: 1px solid var(--line); border-radius: 10px; background: var(--paper);
+      overflow: hidden;
+    }
+    .grade-step[open] { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+    .grade-step summary {
+      cursor: pointer; list-style: none; display: flex; gap: 12px; align-items: flex-start;
+      padding: 13px 14px;
+    }
+    .grade-step summary::-webkit-details-marker { display: none; }
+    .grade-step-num {
+      flex: 0 0 auto; display: inline-flex; align-items: center; justify-content: center;
+      width: 24px; height: 24px; border-radius: 999px; background: var(--paper-2);
+      border: 1px solid var(--line); font-family: var(--mono); font-size: 11px; color: var(--ink-3);
+    }
+    .grade-step[open] .grade-step-num { background: var(--accent-soft); color: var(--ink); border-color: var(--accent); }
+    .grade-step-title { font-weight: 600; color: var(--ink); margin-bottom: 2px; }
+    .grade-step-hint { color: var(--ink-3); font-size: 12.5px; line-height: 1.45; }
+    .grade-step-body {
+      padding: 0 14px 14px 50px; color: var(--ink-3); font-size: 12.5px; line-height: 1.55;
+    }
   
     @media (max-width: 620px) {
       .wb-page { padding: 0 12px !important; }
@@ -135,6 +159,42 @@
     yes/no dimension question back to the loaded Gemma model;
     Combined blends the two with a disagreement panel.
   </p>
+
+  <section class="panel">
+    <h2>Grading path</h2>
+    <div class="grade-guide" id="grade-guide">
+      <details class="grade-step" id="grade-step-1" open>
+        <summary>
+          <span class="grade-step-num">1</span>
+          <span>
+            <span class="grade-step-title">Paste a complete exchange</span>
+            <span class="grade-step-hint">The prompt determines which dimensions are applicable. The response determines scoring.</span>
+          </span>
+        </summary>
+        <div class="grade-step-body">This keeps N/A driven by the scenario instead of rewarding responses that avoid important content.</div>
+      </details>
+      <details class="grade-step" id="grade-step-2">
+        <summary>
+          <span class="grade-step-num">2</span>
+          <span>
+            <span class="grade-step-title">Pick the judge</span>
+            <span class="grade-step-hint">Rule-based is fast. LLM judge checks harder dimensions. Combined exposes disagreement.</span>
+          </span>
+        </summary>
+        <div class="grade-step-body">Use combined mode for demo evidence and regression review. Use rule mode for quick bulk checks.</div>
+      </details>
+      <details class="grade-step" id="grade-step-3">
+        <summary>
+          <span class="grade-step-num">3</span>
+          <span>
+            <span class="grade-step-title">Inspect evidence</span>
+            <span class="grade-step-hint">Scores, rationales, and disagreement details reveal what the harness or model needs to improve.</span>
+          </span>
+        </summary>
+        <div class="grade-step-body">Dimensions around authoritative contacts, regulator contacts, retaliation risk, citation grounding, and refusal quality are surfaced when relevant.</div>
+      </details>
+    </div>
+  </section>
 
   <div class="grade-layout">
     <section class="panel">
@@ -197,12 +257,18 @@
   };
 
   let mode = "rule";
+  function gradeSetStep(active) {
+    document.querySelectorAll("#grade-guide .grade-step").forEach((step, idx) => {
+      step.open = idx === active;
+    });
+  }
   document.querySelectorAll(".mode-pill").forEach(p => {
     p.addEventListener("click", () => {
       document.querySelectorAll(".mode-pill").forEach(x => x.classList.remove("on"));
       p.classList.add("on");
       mode = p.dataset.mode;
       document.getElementById("mode-help").textContent = MODE_HELP[mode];
+      gradeSetStep(1);
     });
   });
   document.getElementById("mode-help").textContent = MODE_HELP[mode];
@@ -210,6 +276,7 @@
   document.getElementById("example").addEventListener("click", () => {
     document.getElementById("prompt").value   = EXAMPLE.prompt;
     document.getElementById("response").value = EXAMPLE.response;
+    gradeSetStep(1);
   });
 
   function escapeHtml(s) {
@@ -251,7 +318,6 @@
 
     document.getElementById("result").innerHTML = `
       <div class="result-header">
-        // audit-allow:innerHTML-safe -- pct is numeric grade score; verdictClass returns fixed CSS class names
         <span class="score-big">${pct}%</span>
         <span class="score-label">overall | ${escapeHtml(mode)} grader</span>
         <span class="verdict ${verdictClass(pct)}">${escapeHtml(verdict)}</span>
@@ -273,9 +339,10 @@
       return;
     }
     const btn = document.getElementById("run");
-    btn.disabled = true; btn.textContent = "Grading…";
+    gradeSetStep(1);
+    btn.disabled = true; btn.textContent = "Grading...";
     document.getElementById("result").innerHTML =
-      `<div class="empty"><h3>Grading…</h3><p>${mode === "rule" ? "Running 46 rubric rules…" : "Asking Gemma a yes/no question per dimension — this can take 30-90s."}</p></div>`;
+      `<div class="empty"><h3>Grading...</h3><p>${mode === "rule" ? "Running 46 rubric rules..." : "Asking Gemma a yes/no question per dimension. This can take 30 to 90 seconds."}</p></div>`;
     const endpoint = mode === "rule"     ? "/api/grade"
                    : mode === "deep"     ? "/api/grade-deep"
                    :                       "/api/grade-combined";
@@ -291,6 +358,7 @@
       }
       const d = await r.json();
       renderResult(d);
+      gradeSetStep(2);
     } catch (e) {
       document.getElementById("result").innerHTML =
         `<div class="err">${escapeHtml(String(e && e.message || e))}</div>`;

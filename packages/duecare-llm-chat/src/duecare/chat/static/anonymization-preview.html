@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Anonymization preview · DueCare</title>
+  <title>Anonymization preview | DueCare</title>
   <link rel="stylesheet" href="/static/_chrome.css" />
   <style>
     .ap-grid {
@@ -182,6 +182,30 @@
     }
     .ap-cta-band .label-block { font-size: 13.5px; color: var(--ink-3); }
     .ap-cta-band .label-block strong { color: var(--ink); }
+    .ap-guide {
+      display: grid; gap: 10px; margin: 18px 0 20px;
+    }
+    .ap-step {
+      border: 1px solid var(--line); border-radius: 10px; background: var(--paper);
+      overflow: hidden;
+    }
+    .ap-step[open] { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+    .ap-step summary {
+      cursor: pointer; list-style: none; display: flex; gap: 12px; align-items: flex-start;
+      padding: 13px 14px;
+    }
+    .ap-step summary::-webkit-details-marker { display: none; }
+    .ap-step-num {
+      flex: 0 0 auto; display: inline-flex; align-items: center; justify-content: center;
+      width: 24px; height: 24px; border-radius: 999px; background: var(--paper-2);
+      border: 1px solid var(--line); font-family: var(--mono); font-size: 11px; color: var(--ink-3);
+    }
+    .ap-step[open] .ap-step-num { background: var(--accent-soft); color: var(--ink); border-color: var(--accent); }
+    .ap-step-title { font-weight: 600; color: var(--ink); margin-bottom: 2px; }
+    .ap-step-hint { color: var(--ink-3); font-size: 12.5px; line-height: 1.45; }
+    .ap-step-body {
+      padding: 0 14px 14px 50px; color: var(--ink-3); font-size: 12.5px; line-height: 1.55;
+    }
   
     @media (max-width: 620px) {
       .wb-page { padding: 0 12px !important; }
@@ -198,7 +222,7 @@
       <h1>Anonymization preview</h1>
       <div class="sub">Paste text, see exactly what would be sent to the public hub before you send it.</div>
     </div>
-    <a href="/" style="font-family: var(--mono); font-size: 12px; color: var(--ink-3);">← Back to chat</a>
+    <a href="/" style="font-family: var(--mono); font-size: 12px; color: var(--ink-3);">Back to chat</a>
   </header>
 
   <div class="wb-trust" style="background: oklch(0.92 0.06 155); color: oklch(0.32 0.07 155); padding: 8px 14px; border-radius: 8px; font-size: 12.5px; margin: 10px 18px;">
@@ -226,6 +250,39 @@
     <h2>What gets shared, when you click "Send"</h2>
     <p class="lede">DueCare runs a local anonymization pipeline before any text crosses to the public hub. This page lets you preview the exact payload. Nothing is sent until you choose to send it.</p>
 
+    <div class="ap-guide" id="ap-guide">
+      <details class="ap-step" id="ap-step-1" open>
+        <summary>
+          <span class="ap-step-num">1</span>
+          <span>
+            <span class="ap-step-title">Paste local text</span>
+            <span class="ap-step-hint">Raw text stays in the kernel while the local anonymizer prepares a preview.</span>
+          </span>
+        </summary>
+        <div class="ap-step-body">Use this for proposed knowledge-pack updates, contact updates, rubric ideas, and public-source summaries.</div>
+      </details>
+      <details class="ap-step" id="ap-step-2">
+        <summary>
+          <span class="ap-step-num">2</span>
+          <span>
+            <span class="ap-step-title">Review redaction and payload</span>
+            <span class="ap-step-hint">PII patterns are replaced before any hub request is possible.</span>
+          </span>
+        </summary>
+        <div class="ap-step-body">The outbound JSON is visible before submit, and server automation re-checks it before curator review.</div>
+      </details>
+      <details class="ap-step" id="ap-step-3">
+        <summary>
+          <span class="ap-step-num">3</span>
+          <span>
+            <span class="ap-step-title">Keep local or send to hub</span>
+            <span class="ap-step-hint">Sending creates a proposal only. Nothing publishes without curation.</span>
+          </span>
+        </summary>
+        <div class="ap-step-body">Keep local for sensitive material. Send only public, redacted, consented proposals intended for shared knowledge packs.</div>
+      </details>
+    </div>
+
     <div class="ap-controls">
       <select id="kind" aria-label="Proposal type">
         <option value="context">Public-source advisory</option>
@@ -237,7 +294,7 @@
       </select>
       <input id="jurisdiction" placeholder="Jurisdiction (e.g. PHL)" />
       <input id="corridor" placeholder="Corridor (e.g. PHL-KWT)" />
-      <button class="primary" id="run">Run anonymization &rarr;</button>
+      <button class="primary" id="run">Run anonymization</button>
       <button class="ghost" id="clear">Clear</button>
     </div>
 
@@ -246,7 +303,7 @@
     <div class="ap-grid">
       <!-- Stage 01: Local -->
       <div class="ap-pane local">
-        <span class="lab">Stage 01 &middot; Local only (never leaves your device)</span>
+        <span class="lab">Stage 01 | Local only (never leaves your device)</span>
         <h3>Original text</h3>
         <textarea id="input" placeholder="Paste a public-source advisory, a pattern description, a contact-channel update, or any other text you might want to propose. The pipeline below will show you what (if anything) gets sent."></textarea>
         <p class="ap-stage-info">This is the raw text you typed. It stays in your browser. The hub never sees it directly.</p>
@@ -254,15 +311,15 @@
 
       <!-- Stage 02: GREP + regex anonymizer -->
       <div class="ap-pane boundary">
-        <span class="lab">Stage 02 &middot; Local anonymizer (GREP + regex)</span>
+        <span class="lab">Stage 02 | Local anonymizer (GREP + regex)</span>
         <h3>What the regex pass redacted</h3>
-        <pre id="redacted">Paste text and click <em>Run anonymization &rarr;</em> to preview.</pre>
+        <pre id="redacted">Paste text and click Run anonymization to preview.</pre>
         <p class="ap-stage-info" id="redactedNote">Local rules look for emails, phone numbers, ID-like strings, and street addresses. Anything matching gets replaced with a typed placeholder (e.g. <code>[email]</code>) so the hub never receives the literal string.</p>
       </div>
 
       <!-- Stage 03: Outbound payload -->
       <div class="ap-pane outbound" style="grid-column: 1 / -1;">
-        <span class="lab">Stage 03 &middot; What would be POSTed to the public hub</span>
+        <span class="lab">Stage 03 | What would be POSTed to the public hub</span>
         <h3>Outbound payload</h3>
         <pre id="payload">Run anonymization above to see the JSON that would be sent.</pre>
         <p class="ap-stage-info">This is the exact body that would POST to <code>/api/hub/client/submission</code> on the configured hub URL. The server-side automation re-checks for PII and sends the proposal to a curator queue. Nothing publishes without a human signature.</p>
@@ -275,7 +332,7 @@
       </div>
       <div style="display: flex; gap: 10px;">
         <button class="ghost" id="keepLocal">Keep local only</button>
-        <button class="primary" id="send" disabled>Send to hub &rarr;</button>
+        <button class="primary" id="send" disabled>Send to hub</button>
       </div>
     </div>
 
@@ -318,6 +375,11 @@
       el.className = "ap-status " + kind;
       el.textContent = msg;
     }
+    function setAnonymizeStep(active) {
+      document.querySelectorAll("#ap-guide .ap-step").forEach((step, idx) => {
+        step.open = idx === active;
+      });
+    }
 
     let lastPayload = null;
 
@@ -350,6 +412,7 @@
       lastPayload = payload;
       document.getElementById("payload").textContent = JSON.stringify(payload, null, 2);
       document.getElementById("send").disabled = false;
+      setAnonymizeStep(1);
       setStatus("ok", "Pipeline ran locally. Review the outbound payload before sending.");
     });
 
@@ -360,6 +423,7 @@
       document.getElementById("payload").textContent = "Run anonymization above to see the JSON that would be sent.";
       document.getElementById("send").disabled = true;
       lastPayload = null;
+      setAnonymizeStep(0);
       setStatus("", "");
       document.getElementById("status").style.display = "none";
     });
@@ -367,6 +431,7 @@
     document.getElementById("keepLocal").addEventListener("click", () => {
       setStatus("ok", "Kept local. Nothing was sent to the hub.");
       document.getElementById("send").disabled = true;
+      setAnonymizeStep(2);
     });
 
     document.getElementById("send").addEventListener("click", async () => {
@@ -381,6 +446,7 @@
         if (r.ok) {
           setStatus("ok", `Sent. Tracking id: ${data.id}. Server automation verdict: ${data.automation_verdict} (${data.automation_model}).`);
           document.getElementById("send").disabled = true;
+          setAnonymizeStep(2);
         } else {
           setStatus("err", `Server rejected: ${data.detail || r.status}`);
         }
@@ -393,7 +459,7 @@
   <div class="wb-card" id="page-activity-log-card" style="margin: 14px 18px;">
     <h3 style="font-size: 15px; font-weight: 600; margin: 0 0 8px;">Activity log</h3>
     <div id="page-activity-log" class="dc-activity-log" role="log" aria-label="Activity log" aria-live="polite">
-      <div class="dc-log-idle">No activity yet -- interact with the page to populate.</div>
+      <div class="dc-log-idle">No activity yet. Run anonymization to populate.</div>
     </div>
   </div>
 </body>

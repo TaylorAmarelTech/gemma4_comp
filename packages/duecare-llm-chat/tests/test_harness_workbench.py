@@ -163,6 +163,77 @@ def test_sync_page_uses_guided_pack_flow(client):
     assert "function syncSetStep" in text
 
 
+def test_import_page_uses_guided_local_import_flow(client):
+    r = client.get("/static/import.html")
+    assert r.status_code == 200
+    text = r.text
+    assert 'id="import-guide"' in text
+    assert '<details class="import-step" id="import-step-1" open>' in text
+    assert "This is a utility surface, not a Gemma harness" in text
+    assert "function setImportStep" in text
+    assert "No activity yet. Add content to populate." in text
+    assert "â" not in text
+    assert "Â" not in text
+    assert "—" not in text
+
+
+def test_grade_page_uses_guided_scoring_flow(client):
+    r = client.get("/static/grade.html")
+    assert r.status_code == 200
+    text = r.text
+    assert 'id="grade-guide"' in text
+    assert '<details class="grade-step" id="grade-step-1" open>' in text
+    assert "The prompt determines which dimensions are applicable" in text
+    assert "authoritative contacts, regulator contacts, retaliation risk" in text
+    assert "function gradeSetStep" in text
+    assert "audit-allow" not in text
+    assert "Grading..." in text
+    assert "â" not in text
+    assert "Â" not in text
+    assert "—" not in text
+
+
+def test_settings_page_uses_guided_configuration_flow(client):
+    r = client.get("/static/settings.html")
+    assert r.status_code == 200
+    text = r.text
+    assert 'id="settings-guide"' in text
+    assert '<details class="settings-step" id="settings-step-1" open>' in text
+    assert "Hybrid RAG should be the default path" in text
+    assert "Search is optional and must remain downstream of search safety sanitization" in text
+    assert "one-model Kaggle session constraint" in text
+    assert "function settingsSetStep" in text
+
+
+def test_anonymization_preview_uses_guided_boundary_flow(client):
+    r = client.get("/static/anonymization-preview.html")
+    assert r.status_code == 200
+    text = r.text
+    assert 'id="ap-guide"' in text
+    assert '<details class="ap-step" id="ap-step-1" open>' in text
+    assert "PII patterns are replaced before any hub request is possible" in text
+    assert "function setAnonymizeStep" in text
+    assert "No activity yet. Run anonymization to populate." in text
+    assert "â" not in text
+    assert "Â" not in text
+    assert "—" not in text
+
+
+def test_models_page_uses_guided_load_flow(client):
+    r = client.get("/static/models.html")
+    assert r.status_code == 200
+    text = r.text
+    assert 'id="model-guide"' in text
+    assert '<details class="model-step" id="model-step-1" open>' in text
+    assert "Kaggle is most reliable when one Gemma variant is resident at a time" in text
+    assert "function modelSetStep" in text
+    assert "No activity yet. Load a model to populate." in text
+    assert "single T4 | fastest" in text
+    assert "â" not in text
+    assert "Â" not in text
+    assert "—" not in text
+
+
 def test_process_page_has_graph_visualization_and_graph_chat_logging(client):
     r = client.get("/static/process.html")
     assert r.status_code == 200
