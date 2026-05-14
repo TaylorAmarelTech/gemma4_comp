@@ -11,7 +11,7 @@
     .wb-page { max-width: 1120px; margin: 24px auto 60px; padding: 0 18px;
                color: #0E1116; font-family: Inter, system-ui, sans-serif; line-height: 1.55; }
     .wb-h1 { font-size: 26px; font-weight: 700; margin: 0 0 8px; }
-    .wb-lede { font-size: 13.5px; color: #2A2D34; margin: 0 0 18px; max-width: 880px; }
+    .wb-lede { font-size: 13.5px; color: #2A2D34; margin: 0 0 18px; }
     .wb-card { background: #FFF; border: 1px solid #DDD8C9; border-radius: 12px;
                padding: 16px 18px; margin-bottom: 14px; }
     .wb-card h2 { font-size: 15px; font-weight: 600; margin: 0 0 10px; }
@@ -76,8 +76,23 @@
         </select>
         <input type="number" id="top_n" value="5" min="1" max="20"
                style="width:60px;" title="top_n">
-        <label><input type="checkbox" id="anon" checked> Anonymize</label>
         <button class="wb-btn-primary" id="go-btn" onclick="runSearch()">Search</button>
+      </div>
+      <div class="wb-row" style="margin-top: 10px; gap: 16px; font-size: 12.5px;">
+        <label title="Sanitize the query via /api/search/sanitize BEFORE dispatching to any external backend. Strips PII (emails, phones, passport numbers, monetary amounts, URLs). Strongly recommended.">
+          <input type="checkbox" id="sanitize" checked> <b>Sanitize query before sending</b> (recommended)
+        </label>
+        <label title="If a Gemma model is loaded AND sanitize is on, ask Gemma to rephrase the redacted query into a more general form. Slower but stronger generalization.">
+          <input type="checkbox" id="rephrase"> Also ask Gemma to rephrase
+        </label>
+        <label title="Pass `anonymize_query=true` to the backend so server-side anonymization runs even when the page-side sanitize is off.">
+          <input type="checkbox" id="anon" checked> Anonymize on backend too
+        </label>
+      </div>
+      <div id="sanitize-preview" style="display:none; margin-top:10px; padding:8px 10px; background:#FAF9F4; border-left:3px solid oklch(0.55 0.10 155); border-radius:6px; font-size:12px;">
+        <div style="font-family:'JetBrains Mono', monospace; color:#5B5F68; margin-bottom:4px;">SANITIZED QUERY (sent to backend):</div>
+        <div id="sanitize-preview-text" style="font-family:'JetBrains Mono', monospace; color:#0E1116;"></div>
+        <div id="sanitize-preview-meta" class="wb-muted" style="margin-top:4px;"></div>
       </div>
       <div id="status" class="wb-muted" style="margin-top:8px;"></div>
     </div>
@@ -87,16 +102,7 @@
       <div id="backends" class="wb-muted">checking...</div>
     </div>
 
-    <div class="wb-card">
-      <h2>Activity log</h2>
-      <p class="wb-muted" style="margin: 0 0 8px;">
-        Live trace of search calls, anonymization, envelope drafts,
-        and downstream actions.
-      </p>
-      <div id="search-log" class="dc-activity-log">
-        <div class="dc-log-idle">Run a search to begin.</div>
-      </div>
-    </div>
+    
 
     <div class="wb-card" id="results-card" style="display:none;">
       <h2>2. Results</h2>
@@ -128,6 +134,17 @@
       </div>
       <div id="drafts-list"></div>
     </div>
+  <div class="wb-card">
+      <h2>Activity log</h2>
+      <p class="wb-muted" style="margin: 0 0 8px;">
+        Live trace of search calls, anonymization, envelope drafts,
+        and downstream actions.
+      </p>
+      <div id="search-log" class="dc-activity-log">
+        <div class="dc-log-idle">Run a search to begin.</div>
+      </div>
+    </div>
+
   </main>
 
   <script>
@@ -167,16 +184,58 @@
     async function runSearch() {
       _searchLog = _searchLog || window.dcActivityLog.attach('#search-log');
       _searchLog.clear && _searchLog.clear();
-      const query = (document.getElementById('q').value || '').trim();
-      if (!query) return;
+      const rawQuery = (document.getElementById('q').value || '').trim();
+      if (!rawQuery) return;
       const backend = document.getElementById('backend').value || null;
       const top_n = parseInt(document.getElementById('top_n').value || '5', 10);
       const anon = document.getElementById('anon').checked;
-      _searchQuery = query;
+      const sanitize = document.getElementById('sanitize').checked;
+      const rephrase = document.getElementById('rephrase').checked;
       const btn = document.getElementById('go-btn');
       btn.disabled = true;
-      _searchLog.info('POST /api/search/client', 'q=' + query + ' top_n=' + top_n + ' backend=' + (backend || 'auto') + ' anonymize=' + anon);
-      if (anon) _searchLog.anon('anonymize_query=true (PII stripped before reaching backend)');
+
+      // ============== Step 1: search-safety harness sanitize ==============
+      let query = rawQuery;
+      const previewEl = document.getElementById('sanitize-preview');
+      const previewText = document.getElementById('sanitize-preview-text');
+      const previewMeta = document.getElementById('sanitize-preview-meta');
+      previewEl.style.display = 'none';
+      if (sanitize) {
+        _searchLog.anon('POST /api/search/sanitize  (strip PII before any external call)');
+        try {
+          const sr = await fetch('/api/search/sanitize', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({query: rawQuery, mode: rephrase ? 'rephrase' : 'strict'}),
+          });
+          if (sr.ok) {
+            const so = await sr.json();
+            query = so.sanitized;
+            const kinds = (so.redactions || []).map(r => r.kind);
+            previewEl.style.display = 'block';
+            previewText.textContent = so.sanitized;
+            previewMeta.textContent =
+              (kinds.length ? kinds.length + ' redaction(s): ' + kinds.join(', ') : 'no PII detected')
+              + (so.rephrase_fired ? ' · Gemma rephrase applied' : '')
+              + (so.rephrase_wired === false && rephrase ? ' · (rephrase requested but Gemma not wired)' : '');
+            _searchLog.ok('sanitize complete', kinds.length + ' redaction(s): ' + kinds.join(', '));
+            if (so.blocked) {
+              _searchLog.err('sanitize BLOCKED the query: ' + (so.reason || 'unsafe'));
+              document.getElementById('status').textContent = 'Blocked: ' + (so.reason || 'unsafe');
+              btn.disabled = false;
+              return;
+            }
+          } else {
+            _searchLog.warn('sanitize failed (HTTP ' + sr.status + '), sending raw query');
+          }
+        } catch (e) {
+          _searchLog.warn('sanitize error: ' + e + ' -- sending raw query');
+        }
+      }
+
+      _searchQuery = query;
+      _searchLog.info('POST /api/search/client', 'q=' + query + ' top_n=' + top_n + ' backend=' + (backend || 'auto') + ' anonymize_backend=' + anon);
+      if (anon) _searchLog.anon('anonymize_query=true (server-side PII strip in addition to page-side)');
       document.getElementById('status').textContent = 'POST /api/search/client ...';
       const t0 = performance.now();
       try {
