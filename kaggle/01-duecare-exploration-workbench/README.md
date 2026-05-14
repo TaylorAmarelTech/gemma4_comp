@@ -1,9 +1,9 @@
-# DueCare — Migrant-worker safety playground (#01 core)
+# DueCare: Migrant-worker safety playground (#01 core)
 
 > AI infrastructure to combat migrant-worker exploitation. This core kernel: every safety layer, every Gemma 4 variant, every grading mode in one workbench.
 
 <!-- duecare:lane-label -->
-> **Serves lanes:** 02 NGO & regulator · 04 Researcher · 05 Developer / integration partner
+> **Serves lanes:** 02 NGO & regulator | 04 Researcher | 05 Developer / integration partner
 
 <!-- duecare:judge-quick-path -->
 
@@ -30,12 +30,12 @@
 This folder publishes as a **script kernel** (`kernel.py` only, no
 `notebook.ipynb`). To run it on Kaggle:
 
-1. <https://kaggle.com> → **New Notebook** → Python.
-2. **Notebook settings** → enable GPU (T4 single is fine for E2B/E4B;
-   T4×2 or P100 for 26B-A4B / 31B).
-3. **Add data** → search `taylorsamarel/duecare-harness-chat-wheels`
+1. Open <https://kaggle.com>, choose **New Notebook**, then choose Python.
+2. In **Notebook settings**, enable GPU (T4 single is fine for E2B/E4B;
+   T4x2 or P100 for 26B-A4B / 31B).
+3. Use **Add data** and search `taylorsamarel/duecare-harness-chat-wheels`
    and attach.
-4. **Add model** → search `google/gemma-4` and attach the variant you
+4. Use **Add model**, search `google/gemma-4`, and attach the variant you
    plan to load (defaults to `gemma-4-e4b-it`). You can also load via
    HuggingFace at runtime if you set `HF_TOKEN` as a Kaggle secret.
 5. Open `kernel.py` from this folder, copy the entire file, paste into
@@ -54,30 +54,30 @@ Then proceed to the walkthrough below.
 3. **Pick a model**. E2B/E4B usually load in under a minute; 26B-A4B
    and 31B can take 5-10+ minutes on a first HuggingFace download.
    Keep the picker open and use **View logs** to see live loader phases.
-4. **Verify the safety layers loaded** with `curl https://<your-url>/api/brand` (v0.14.2+) or `/api/health-check`. Expected counts: **161 GREP rules, 46 RAG docs (across 27 jurisdiction groups), 5 tools, 46-dim rubric v3.10, 21 configured evaluator questions, 587 example prompts across 8 audience buckets**, and all enabled layers set true. The new `Safety layers ↗` button in the top bar opens dedicated viewers for each layer (`/static/harness.html` index → grep-rules / rag-corpus / rag-graph / tools / online / persona).
+4. **Verify the safety layers loaded** with `curl https://<your-url>/api/brand` (v0.14.2+) or `/api/health-check`. Expected counts: **161 GREP rules, 46 RAG docs (across 27 jurisdiction groups), 5 tools, 46-dim rubric v3.10, 21 configured evaluator questions, 587 example prompts across 8 audience buckets**, and all enabled layers set true. The new `Safety layers` button in the top bar opens dedicated viewers for each layer (`/static/harness.html` index, grep-rules, rag-corpus, rag-graph, tools, online, persona).
 5. **Click any of the 5 colored buttons** in the empty-state. They map to the 5 high-impact demo prompt categories:
-   - 🟢 **Headline lift** — the 5-indicator compound case (PHP+HK)
-   - 🔴 **Jailbreak** — DAN persona attempt
-   - 🟡 **Online demo** — recent POEA enforcement query
-   - 🟣 **Compare** — multi-jurisdiction protections
-   - 🔵 **Social-eng** — humanitarian framing trap
+   - **Green Headline lift:** the 5-indicator compound case (PHP+HK)
+   - **Red Jailbreak:** DAN persona attempt
+   - **Yellow Online demo:** recent POEA enforcement query
+   - **Purple Compare:** multi-jurisdiction protections
+   - **Blue Social-eng:** humanitarian framing trap
 6. **Flip toggles** below the input. Try the same prompt with all 6
    off (baseline) vs all 6 on (full harness). Or use the new **Compare**
    tab in the top bar for a one-click side-by-side. Expected: baseline
    gives a vague answer; full harness cites specific statutes + hotlines.
-7. **Click `▸ View pipeline`** on any response. Top of the modal shows
+7. **Click `View pipeline`** on any response. Top of the modal shows
    a latency-budget bar (per-layer ms + Gemma generation time, with
    harness % of total). Each layer card below shows what fired. The
    **RETRIEVAL PATH TRACE** card surfaces the multi-stage retrieval
-   decision (BM25 → optional rerank → graph expansion → parent expansion).
+   decision (BM25, optional rerank, graph expansion, parent expansion).
 8. **Click `Grade`** on any response. 4 modes:
-   - **Rule-Based** (fast, deterministic, ~2s) — 46-dimension
+   - **Rule-Based** (fast, deterministic, ~2s): 46-dimension
      multi-signal grader (rubric v3.10) with citation grounding check
-   - **Expert** (legacy per-category) — for backwards compatibility
-   - **LLM-Based** (LLM-as-judge, ~30-90s) — sends response back to the
+   - **Expert** (legacy per-category): for backwards compatibility
+   - **LLM-Based** (LLM-as-judge, ~30-90s): sends response back to the
      loaded Gemma with one yes/no question per dimension; pulls
      evidence quotes from the response itself
-   - **Combined** (Rule + LLM, ~30-90s) — blended 50/50 with
+   - **Combined** (Rule + LLM, ~30-90s): blended 50/50 with
      a disagreement panel showing dimensions where the two graders
      see different evidence (the high-information cases)
 
@@ -93,8 +93,8 @@ through the **View logs** button.
 cloud routes that should skip the Unsloth install phase:
 
 ```bash
-%env GEMMA_MODEL_VARIANT=e4b-it     # default — single T4
-%env GEMMA_MODEL_VARIANT=31b-it      # T4×2 in 4-bit (~5-10+ min first run)
+%env GEMMA_MODEL_VARIANT=e4b-it     # default: single T4
+%env GEMMA_MODEL_VARIANT=31b-it      # T4x2 in 4-bit (~5-10+ min first run)
 %env GEMMA_MODEL_VARIANT=jailbroken-31b   # abliterated; harness still wins
 %env GEMMA_MODEL_VARIANT=cloud-gemini    # BYOK (set GEMINI_API_KEY)
 ```
@@ -116,9 +116,9 @@ Full variant list (9 supported):
 |---|---|---|---|
 | `e2b-it` | `unsloth/gemma-4-E2B-it` | single T4 | smallest on-device |
 | `e4b-it` | `unsloth/gemma-4-E4B-it` | single T4 | **default** |
-| `26b-a4b-it` | `unsloth/gemma-4-26B-A4B-it` | T4×2 (4-bit) | MoE |
-| `31b-it` | `unsloth/gemma-4-31B-it` | T4×2 (4-bit) | flagship |
-| `jailbroken-31b` | `dealignai/Gemma-4-31B-JANG_4M-CRACK` | T4×2 | abliterated; the strongest "real, not faked" proof |
+| `26b-a4b-it` | `unsloth/gemma-4-26B-A4B-it` | T4x2 (4-bit) | MoE |
+| `31b-it` | `unsloth/gemma-4-31B-it` | T4x2 (4-bit) | flagship |
+| `jailbroken-31b` | `dealignai/Gemma-4-31B-JANG_4M-CRACK` | T4x2 | abliterated; the strongest "real, not faked" proof |
 | `jailbroken-e4b` | `mlabonne/Gemma-4-E4B-it-abliterated` | single T4 | smaller abliterated |
 | `cloud-gemini` | Gemini 1.5 Flash API | CPU-only | needs `GEMINI_API_KEY` |
 | `cloud-openai` | OpenAI-compat | CPU-only | needs `OPENAI_API_KEY`, `OPENAI_BASE_URL`, `OPENAI_MODEL` |
@@ -126,14 +126,14 @@ Full variant list (9 supported):
 
 ## What lives where
 
-- `kernel.py` — minimal orchestration: install wheels → load model
-  variant → wire harness → start FastAPI + cloudflared
-- `wheels/` — duecare-llm-chat / -core / -models (bundled into the
+- `kernel.py`: minimal orchestration: install wheels, load model
+  variant, wire harness, start FastAPI + cloudflared
+- `wheels/`: duecare-llm-chat / -core / -models (bundled into the
   Kaggle dataset `taylorsamarel/duecare-harness-chat-wheels`)
-- `notebook.ipynb` — archived preview wrapper; paste `kernel.py` into Kaggle as described above
+- `notebook.ipynb`: archived preview wrapper; paste `kernel.py` into Kaggle as described above
 
 All harness CONTENT (161 GREP rules, 46 RAG docs, 5 tools, 46-dim
-rubric, 21 configured LLM-judge questions) lives in the chat package wheel —
+rubric, 21 configured LLM-judge questions) lives in the chat package wheel:
 not in `kernel.py`. Bumping the dataset version updates everything;
 the kernel.py doesn't need to change.
 
@@ -172,28 +172,28 @@ safe enough for judges to test live:
 | 0:00 | Click the cloudflared URL | Model picker opens before chat |
 | 0:15 | Pick E4B, then click **View logs** | Live phases appear; card shows loading state |
 | 1:15 | Picker auto-enters chat when ready | Chat UI loads with empty state showing 5 colored quick-action buttons |
-| 1:30 | Click 🟢 "Headline lift" → toggle ALL 6 layers ON → Send | Response cites ILO C029 §1, POEA MC 14-2017, HK Cap. 57 §32, MfMW HK +852-2522-8264 |
-| 2:30 | Click `▸ View pipeline` on the response | Latency bar shows per-layer ms; cards show GREP hits + RAG docs + tool results + online results |
-| 3:30 | Click `Grade` → switch to **Combined** | Rule-Based score + LLM-Based score + agreement % + disagreement table |
-| 4:30 | Click `Safety layers ↗` in top bar | Opens `/static/harness.html` — 6 layer cards with live counts; click any to drill into the dedicated viewer |
-| 6:00 | Click 🔴 "Jailbreak" → toggle ALL 6 layers OFF → Send | Should refuse but vaguely (this is baseline Gemma) |
+| 1:30 | Click "Headline lift", toggle ALL 6 layers ON, then Send | Response cites ILO C029 section 1, POEA MC 14-2017, HK Cap. 57 section 32, MfMW HK +852-2522-8264 |
+| 2:30 | Click `View pipeline` on the response | Latency bar shows per-layer ms; cards show GREP hits + RAG docs + tool results + online results |
+| 3:30 | Click `Grade`, then switch to **Combined** | Rule-Based score + LLM-Based score + agreement % + disagreement table |
+| 4:30 | Click `Safety layers` in top bar | Opens `/static/harness.html`: 6 layer cards with live counts; click any to drill into the dedicated viewer |
+| 6:00 | Click "Jailbreak", toggle ALL 6 layers OFF, then Send | Should refuse but vaguely (this is baseline Gemma) |
 | 7:00 | Same prompt with all 6 layers ON | Refuses with citations + hotlines |
-| 8:00 | Click `Grade` → **LLM-Based** mode | LLM judge sends the configured evaluator questions back to Gemma; per-dimension verdicts include evidence quotes from the response |
+| 8:00 | Click `Grade`, then select **LLM-Based** mode | LLM judge sends the configured evaluator questions back to Gemma; per-dimension verdicts include evidence quotes from the response |
 | 10:00 | `curl https://<url>/api/brand` | Returns chat package version + 6-layer metadata + live counts (161 GREP / 46 RAG / 46 dims) |
 
 ## Submission context
 
 This is **core notebook #1** of 3:
 
-- **#1** `duecare-exploration-workbench` (this notebook) — flip every toggle,
+- **#1** `duecare-exploration-workbench` (this notebook): flip every toggle,
   switch every model
-- **#2** `duecare-live-demo` — focused, scripted demonstration of the
+- **#2** `duecare-live-demo`: focused, scripted demonstration of the
   +56.5pp lift thesis
-- **#3** `duecare-video-pitch` — in-app slides + presenter remote + setup
+- **#3** `duecare-video-pitch`: in-app slides + presenter remote + setup
   modes for the video walkthrough
 
 The other 25 notebooks are appendix (A-00..A-24): A-00 is the omni
-evaluation and training control plane, followed by specialised playgrounds,
+experiment workbench, followed by specialised playgrounds,
 the SafetyJudge / PrivacyRedactor training pipeline, research graphs,
 agentic web research, jailbroken-models proof, lift regenerator, and the
 zero-inference Gemma 4 feature showcases (long-context, streaming,
@@ -202,24 +202,24 @@ submission roster.
 
 ## Troubleshooting
 
-- **"GPU not available"** with on-device variant → switch to
+- **"GPU not available"** with on-device variant: switch to
   `cloud-gemini` / `cloud-openai` / `cloud-ollama` (no GPU needed)
-- **31B/26B-A4B fails to load** → set `HF_TOKEN` (these are gated)
-- **31B looks stuck** → open **View logs** in the picker. If the last
+- **31B/26B-A4B fails to load:** set `HF_TOKEN` (these are gated)
+- **31B looks stuck:** open **View logs** in the picker. If the last
   phase is `from_pretrained`, it is likely still downloading, mapping
   shards, quantizing, or planning CUDA memory; first runs can take
   5-10+ minutes.
-- **Clicked multiple models** → only the first click is honored. Mid-load
+- **Clicked multiple models:** only the first click is honored. Mid-load
   switching is intentionally blocked; restart the cell to change course.
-- **Picker does not advance after ready** → click **Enter chat**. The
+- **Picker does not advance after ready:** click **Enter chat**. The
   API model is ready; the button is a hydration fallback.
-- **Online layer returns no results** → DuckDuckGo HTML can rate-
+- **Online layer returns no results:** DuckDuckGo HTML can rate-
   limit; for Brave Search / Playwright agentic search use appendix A9
   (`duecare-chat-playground-with-agentic-research`)
-- **Combined-mode grade is slow** → it's running up to 21 configured LLM-judge calls
+- **Combined-mode grade is slow:** it is running up to 21 configured LLM-judge calls
   against the loaded model (one per applicable rubric dimension);
   ~30-90s for E4B, several minutes for 31B
-- **Cold-boot timeout** → the unsloth-stack install can take 90s on
+- **Cold-boot timeout:** the unsloth-stack install can take 90s on
   a fresh Kaggle worker; subsequent restarts skip via marker file
 
 ---
@@ -239,12 +239,12 @@ submission roster.
 
 ### All DueCare kernels
 
-You are here: **#01 core — Migrant-worker safety playground**.
+You are here: **#01 core: Migrant-worker safety playground**.
 
 - **[#01 core: Migrant-worker safety playground](../01-duecare-exploration-workbench/README.md)**
 - [#02 core: Live demo (focused walkthrough)](../02-live-demo/README.md)
 - [#03 core: Video pitch (in-app slides + presenter remote)](../03-duecare-video-pitch/README.md)
-- [#A00 appendix: Omni evaluation and training workbench](../A-00-omni-evaluation-and-training/README.md)
+- [#A00 appendix: Omni experiment workbench](../A-00-omni-experiment-workbench/README.md)
 - [#A01 appendix: Stock Gemma 4 chat baseline](../A-01-chat-playground/README.md)
 - [#A02 appendix: Harness ablation runner](../A-02-chat-playground-with-grep-rag-tools/README.md)
 - [#A03 appendix: Hands-on classification sandbox](../A-03-content-classification-playground/README.md)
@@ -276,7 +276,7 @@ Index page: [`kaggle/_INDEX.md`](../_INDEX.md).
 
 ## Cross-links
 
-- **[DueCare Exploration Workbench (#01)](https://www.kaggle.com/code/taylorsamarel/duecare-exploration-workbench)** — the full chat playground with all 6 harness layers, 9-variant model picker, 4 grading modes, A/B compare, and every visualization in one place.
-- **[Live demo (#02)](https://www.kaggle.com/code/taylorsamarel/duecare-live-demo)** — focused public-hub walkthrough demonstrating the +56.5pp lift on a curated set of compound-indicator prompts.
-- **[Next step → A-11 grading-evaluation](https://www.kaggle.com/code/taylorsamarel/duecare-grading-evaluation)** — regenerate the headline +56.5pp lift number live from a git SHA.
-- **[Public hub: duecare-ai.com](https://duecare-ai.com)** — knowledge-pack registry, anonymized signal intake, public-source proposal intake, and the 5-lane audience showcase.
+- **[DueCare Exploration Workbench (#01)](https://www.kaggle.com/code/taylorsamarel/duecare-exploration-workbench)**: the full chat playground with all 6 harness layers, 9-variant model picker, 4 grading modes, A/B compare, and every visualization in one place.
+- **[Live demo (#02)](https://www.kaggle.com/code/taylorsamarel/duecare-live-demo)**: focused public-hub walkthrough demonstrating the +56.5pp lift on a curated set of compound-indicator prompts.
+- **[Next step: A-11 grading-evaluation](https://www.kaggle.com/code/taylorsamarel/duecare-grading-evaluation)**: regenerate the headline +56.5pp lift number live from a git SHA.
+- **[Public hub: duecare-ai.com](https://duecare-ai.com)**: knowledge-pack registry, anonymized signal intake, public-source proposal intake, and the 5-lane audience showcase.

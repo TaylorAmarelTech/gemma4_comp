@@ -72,8 +72,8 @@
     <p class="wb-lede">
       A safety harness around Gemma 4 for migrant-worker recruitment
       and trafficking. This kernel ships a baseline catalog of
-      <span class="live-counter" id="hero-grep">--</span> GREP rules,
-      <span class="live-counter" id="hero-rag">--</span> RAG docs, and a
+      <span class="live-counter" id="hero-grep">loading</span> GREP rules,
+      <span class="live-counter" id="hero-rag">loading</span> RAG docs, and a
       knowledge taxonomy spanning 6 branches and 21 leaf types. From
       this kernel you can chat with Gemma 4, compare harness configs,
       process case bundles, draft new knowledge, search the web through
@@ -436,33 +436,27 @@
       <div class="wb-grid-3">
         <div class="wb-flow-step">
           <h4>matching_knowledge</h4><h5>4 leaves</h5>
-          <p><code>grep_rule</code>, <code>glob_rule</code>, <code>classifier_rule</code>, <code>heuristic_rule</code>
-            -- patterns that match input to a label/category.</p>
+          <p><code>grep_rule</code>, <code>glob_rule</code>, <code>classifier_rule</code>, <code>heuristic_rule</code>: patterns that match input to a label/category.</p>
         </div>
         <div class="wb-flow-step">
           <h4>grounding_knowledge</h4><h5>4 leaves</h5>
-          <p><code>rag_doc</code>, <code>citation_edge</code>, <code>corridor_profile</code>, <code>ngo_directory</code>
-            -- statutes, NGO contacts, statute-to-statute relations.</p>
+          <p><code>rag_doc</code>, <code>citation_edge</code>, <code>corridor_profile</code>, <code>ngo_directory</code>: statutes, NGO contacts, statute-to-statute relations.</p>
         </div>
         <div class="wb-flow-step">
           <h4>reasoning_knowledge</h4><h5>4 leaves</h5>
-          <p><code>persona_block</code>, <code>context_snippet</code>, <code>reasoning_step</code>, <code>rubric_dimension</code>
-            -- how the model should think through a problem.</p>
+          <p><code>persona_block</code>, <code>context_snippet</code>, <code>reasoning_step</code>, <code>rubric_dimension</code>: how the model should think through a problem.</p>
         </div>
         <div class="wb-flow-step">
           <h4>tool_knowledge</h4><h5>3 leaves</h5>
-          <p><code>tool_definition</code>, <code>tool_example</code>, <code>tool_chain</code>
-            -- function-calling specs and example invocations.</p>
+          <p><code>tool_definition</code>, <code>tool_example</code>, <code>tool_chain</code>: function-calling specs and example invocations.</p>
         </div>
         <div class="wb-flow-step">
           <h4>input_knowledge</h4><h5>3 leaves</h5>
-          <p><code>fact_template</code>, <code>upload_schema</code>, <code>prompt_template</code>
-            -- shapes user input must take to be ingestible.</p>
+          <p><code>fact_template</code>, <code>upload_schema</code>, <code>prompt_template</code>: shapes user input must take to be ingestible.</p>
         </div>
         <div class="wb-flow-step">
           <h4>output_knowledge</h4><h5>3 leaves</h5>
-          <p><code>envelope_schema</code>, <code>audit_template</code>, <code>submission_schema</code>
-            -- shapes the system outputs to downstream consumers.</p>
+          <p><code>envelope_schema</code>, <code>audit_template</code>, <code>submission_schema</code>: shapes the system outputs to downstream consumers.</p>
         </div>
       </div>
       <p class="wb-muted">
@@ -541,62 +535,62 @@
 
       <h3>Chat surface</h3>
       <ul>
-        <li><code>POST /api/chat/send</code> -- SSE stream of step events + final response</li>
-        <li><code>POST /api/chat/upload-image</code> -- attach image for multimodal prompts</li>
-        <li><code>GET /api/chat/image/{sid}</code> -- serve a previously-uploaded image</li>
+        <li><code>POST /api/chat/send</code>: SSE stream of step events + final response</li>
+        <li><code>POST /api/chat/upload-image</code>: attach image for multimodal prompts</li>
+        <li><code>GET /api/chat/image/{sid}</code>: serve a previously-uploaded image</li>
       </ul>
 
       <h3>Grading</h3>
       <ul>
-        <li><code>POST /api/grade</code> -- deterministic rubric grader (rules-based, fast)</li>
-        <li><code>POST /api/grade-deep</code> -- Gemma-as-judge over each rubric dimension</li>
-        <li><code>POST /api/grade-combined</code> -- weighted blend of both</li>
-        <li><code>POST /api/grade-deep-stream</code>, <code>/api/grade-combined-stream</code> -- SSE versions for slow runs</li>
+        <li><code>POST /api/grade</code>: deterministic rubric grader (rules-based, fast)</li>
+        <li><code>POST /api/grade-deep</code>: Gemma-as-judge over each rubric dimension</li>
+        <li><code>POST /api/grade-combined</code>: weighted blend of both</li>
+        <li><code>POST /api/grade-deep-stream</code>, <code>/api/grade-combined-stream</code>: SSE versions for slow runs</li>
       </ul>
 
       <h3>Process &amp; ingestion</h3>
       <ul>
-        <li><code>POST /api/process/batch</code> -- multipart bundle upload</li>
-        <li><code>POST /api/process/graph-chat</code> -- chat against the local knowledge graph</li>
-        <li><code>POST /api/import/upload</code>, <code>POST /api/import/snippet</code> -- attach evidence</li>
-        <li><code>GET /api/import/list</code>, <code>GET/DELETE /api/import/{doc_id}</code> -- evidence CRUD</li>
+        <li><code>POST /api/process/batch</code>: multipart bundle upload</li>
+        <li><code>POST /api/process/graph-chat</code>: chat against the local knowledge graph</li>
+        <li><code>POST /api/import/upload</code>, <code>POST /api/import/snippet</code>: attach evidence</li>
+        <li><code>GET /api/import/list</code>, <code>GET/DELETE /api/import/{doc_id}</code>: evidence CRUD</li>
       </ul>
 
       <h3>Knowledge object pipeline</h3>
       <ul>
-        <li><code>POST /api/knowledge/draft-envelope</code> -- Gemma drafts a typed envelope</li>
-        <li><code>POST /api/knowledge/promote</code> -- persist a validated envelope</li>
-        <li><code>POST /api/knowledge/import</code> -- multipart ZIP bundle import</li>
-        <li><code>POST /api/knowledge/sync</code> -- pull vetted+unvetted from hub</li>
-        <li><code>GET /api/knowledge/list</code>, <code>GET /api/knowledge/{type}/{id}</code> -- inspect</li>
-        <li><code>GET /api/knowledge/export</code> -- export the local store</li>
-        <li><code>GET /api/knowledge/taxonomy</code> -- the live 21-leaf catalog</li>
+        <li><code>POST /api/knowledge/draft-envelope</code>: Gemma drafts a typed envelope</li>
+        <li><code>POST /api/knowledge/promote</code>: persist a validated envelope</li>
+        <li><code>POST /api/knowledge/import</code>: multipart ZIP bundle import</li>
+        <li><code>POST /api/knowledge/sync</code>: pull vetted+unvetted from hub</li>
+        <li><code>GET /api/knowledge/list</code>, <code>GET /api/knowledge/{type}/{id}</code>: inspect</li>
+        <li><code>GET /api/knowledge/export</code>: export the local store</li>
+        <li><code>GET /api/knowledge/taxonomy</code>: the live 21-leaf catalog</li>
       </ul>
 
       <h3>Anonymization &amp; submission</h3>
       <ul>
-        <li><code>POST /api/anonymize</code> -- redact text via regex + NER</li>
-        <li><code>POST /api/submit/knowledge</code> -- submit a redacted artefact to the hub</li>
-        <li><code>POST /api/submit/local</code> -- legacy alias</li>
+        <li><code>POST /api/anonymize</code>: redact text via regex + NER</li>
+        <li><code>POST /api/submit/knowledge</code>: submit a redacted artefact to the hub</li>
+        <li><code>POST /api/submit/local</code>: legacy alias</li>
       </ul>
 
       <h3>Search (PII-safe by default)</h3>
       <ul>
-        <li><code>POST /api/search/sanitize</code> -- strip PII from a query (sanitize harness)</li>
-        <li><code>GET /api/search/safety-info</code> -- which sanitization modes are wired</li>
-        <li><code>POST /api/search/client</code>, <code>POST /api/search/server</code> -- execute search</li>
-        <li><code>GET /api/search/backends</code> -- list available backends + availability</li>
+        <li><code>POST /api/search/sanitize</code>: strip PII from a query (sanitize harness)</li>
+        <li><code>GET /api/search/safety-info</code>: which sanitization modes are wired</li>
+        <li><code>POST /api/search/client</code>, <code>POST /api/search/server</code>: execute search</li>
+        <li><code>GET /api/search/backends</code>: list available backends + availability</li>
       </ul>
 
       <h3>Configuration &amp; introspection</h3>
       <ul>
-        <li><code>GET /api/harness/inventory</code> -- baseline counts (built-in GREP/RAG/...)</li>
-        <li><code>GET /api/harness-info</code> -- per-layer wiring flags</li>
-        <li><code>GET /api/harness-catalog/{layer}</code> -- drill-in for a single layer</li>
-        <li><code>GET /api/version</code>, <code>GET /api/model-info</code> -- kernel/model state</li>
-        <li><code>GET/POST /api/retrieval/config</code> -- RAG knobs (BM25, rerank, parent-expand)</li>
-        <li><code>GET/POST /api/online/config</code>, <code>POST /api/online/test</code> -- search BYOK</li>
-        <li><code>GET /api/dc-logs</code>, <code>GET /api/dc-logs/stats</code>, <code>POST /api/dc-logs/clear</code> -- structured logs</li>
+        <li><code>GET /api/harness/inventory</code>: baseline counts (built-in GREP/RAG/...)</li>
+        <li><code>GET /api/harness-info</code>: per-layer wiring flags</li>
+        <li><code>GET /api/harness-catalog/{layer}</code>: drill-in for a single layer</li>
+        <li><code>GET /api/version</code>, <code>GET /api/model-info</code>: kernel/model state</li>
+        <li><code>GET/POST /api/retrieval/config</code>: RAG knobs (BM25, rerank, parent-expand)</li>
+        <li><code>GET/POST /api/online/config</code>, <code>POST /api/online/test</code>: search BYOK</li>
+        <li><code>GET /api/dc-logs</code>, <code>GET /api/dc-logs/stats</code>, <code>POST /api/dc-logs/clear</code>: structured logs</li>
       </ul>
     </div>
 
@@ -641,10 +635,10 @@
       <h2>9. FAQ &amp; troubleshooting</h2>
 
       <h4>The activity log on a page is empty.</h4>
-      <p>Click the action button (Run, Search, Process, etc.) -- the log only fills as
+      <p>Click the action button (Run, Search, Process, etc.): the log only fills as
         events arrive. If the page itself hasn't done anything yet, the log is intentionally
         idle. If the log stays empty after a successful action, hit hard-refresh
-        (Ctrl+Shift+R) -- there was a race that's now fixed but stale browser caches
+        (Ctrl+Shift+R): there was a race that's now fixed but stale browser caches
         can still hit it.</p>
 
       <h4>A response is cut off mid-sentence.</h4>
