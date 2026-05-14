@@ -4328,6 +4328,15 @@ def create_app(
     from .harnesses import anonymization as _anonymization_harness
     _anonymization_harness.register_routes(app)
 
+    # ====================================================================
+    # search_safety harness (2026-05-13): sanitize outbound search
+    # queries before they reach any third-party backend. Defense-in-
+    # depth alongside anonymization. Owns POST /api/search/sanitize and
+    # GET /api/search/safety-info.
+    # ====================================================================
+    from .harnesses import search_safety as _search_safety_harness
+    _search_safety_harness.register_routes(app)
+
 
     # ====================================================================
     # Phase 15 (2026-05-12): standardized KnowledgeObject endpoints.
