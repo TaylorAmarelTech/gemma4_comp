@@ -146,6 +146,21 @@
         Examples come from the same shared catalog as the
         <a href="/static/chat.html">Chat</a> page (<code>/api/examples</code>).
       </p>
+      <!-- Tier 4 #17: optional image attachment for multimodal Compare.
+           Both variants receive the same image so the comparison is
+           apples-to-apples. Uses the existing /api/chat/upload-image
+           endpoint that Chat uses. -->
+      <div class="wb-row" style="margin-top: 10px; gap: 10px; align-items: center;">
+        <label class="wb-btn-secondary" style="cursor: pointer;" for="cmp-image-file"
+               title="Optional: attach an image; both variants will receive it (multimodal)">
+          + Attach image
+          <input type="file" id="cmp-image-file" accept="image/*"
+                 style="display:none;" onchange="cmpAttachImage(event)">
+        </label>
+        <span class="wb-muted" id="cmp-image-status">no image attached</span>
+        <button class="wb-btn-secondary" id="cmp-image-clear" type="button"
+                onclick="cmpClearImage()" style="display:none;">Clear image</button>
+      </div>
     </div>
 
     <!-- Examples lightbox modal -- same shape as the Chat page's
@@ -373,6 +388,60 @@
     const _abortCtls = {A: null, B: null};
     // Per-run timing breakdown captured from step_done events.
     const _runTimings = {A: {}, B: {}};
+
+    // ============== Image attachment (Tier 4 #17) ==============
+    let _cmpImageRef = null;
+    async function cmpAttachImage(evt) {
+      const f = evt.target.files && evt.target.files[0];
+      if (!f) return;
+      const status = document.getElementById('cmp-image-status');
+      status.textContent = 'uploading ' + f.name + '...';
+      try {
+        const fd = new FormData();
+        fd.append('image', f);
+        const r = await fetch('/api/chat/upload-image', {method: 'POST', body: fd});
+        if (!r.ok) {
+          status.textContent = 'upload failed: HTTP ' + r.status;
+          return;
+        }
+        const out = await r.json();
+        const ref = out.image_url || out.url || out.sid;
+        if (!ref) {
+          status.textContent = 'upload returned no image_url';
+          return;
+        }
+        _cmpImageRef = ref.startsWith('store://') ? ref : 'store://' + ref;
+        status.textContent = 'attached: ' + f.name + ' (' + Math.round(f.size / 1024) + ' KB)';
+        document.getElementById('cmp-image-clear').style.display = 'inline-block';
+        logEvent(null, 'info', 'image attached for both variants', _cmpImageRef);
+      } catch (e) {
+        status.textContent = 'upload error: ' + e;
+      }
+    }
+    function cmpClearImage() {
+      _cmpImageRef = null;
+      document.getElementById('cmp-image-status').textContent = 'no image attached';
+      document.getElementById('cmp-image-clear').style.display = 'none';
+      const inp = document.getElementById('cmp-image-file');
+      if (inp) inp.value = '';
+    }
+
+    // ============== Persona passthrough from Chat ==============
+    // Tier 4 #16: read the same localStorage key as the chat page and
+    // pull the active persona text if the user customized it there.
+    // This way, when a Compare variant has persona=on, it uses the
+    // same persona content the chat page would use (custom or default).
+    const CHAT_STORE_KEY = 'duecare.customizations.v1';
+    function _chatPersonaText() {
+      try {
+        const raw = localStorage.getItem(CHAT_STORE_KEY);
+        if (!raw) return null;
+        const s = JSON.parse(raw);
+        if (!s.activePersonaName) return null;
+        const own = (s.customPersonas || []).find(p => p.name === s.activePersonaName);
+        return own ? own.text : null;
+      } catch (e) { return null; }
+    }
 
     // ============== Examples loader (shared with Chat) ==============
     async function _fetchExamples() {
@@ -788,12 +857,24 @@
       _abortCtls[variant] = ctl;
       let r;
       try {
+        // Tier 4 #16: persona_text from chat-side localStorage.
+        const togglesWithPersona = {...toggles};
+        if (toggles.persona) {
+          const ptext = _chatPersonaText();
+          if (ptext) togglesWithPersona.persona_text = ptext;
+        }
+        // Tier 4 #17: include attached image (if any) so both variants
+        // see the same multimodal input.
+        const userContent = [{type: 'text', text: prompt}];
+        if (_cmpImageRef) {
+          userContent.push({type: 'image_url', image_url: {url: _cmpImageRef}});
+        }
         r = await fetch('/api/chat/send', {
           method: 'POST',
           headers: {'Content-Type': 'application/json'},
           body: JSON.stringify({
-            messages: [{role: 'user', content: [{type: 'text', text: prompt}]}],
-            toggles: toggles,
+            messages: [{role: 'user', content: userContent}],
+            toggles: togglesWithPersona,
             generation: {max_new_tokens: maxTokens, temperature: temperature},
           }),
           signal: ctl.signal,
