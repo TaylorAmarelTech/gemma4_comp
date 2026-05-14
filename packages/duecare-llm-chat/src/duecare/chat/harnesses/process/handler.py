@@ -17,11 +17,12 @@ from typing import Any
 from fastapi import HTTPException, Request
 from fastapi.responses import JSONResponse
 
+from ..._model_output import sanitize_model_output
 from .extractor import ENTITY_PATTERNS
 from .prompts import GRAPH_CHAT_SYSTEM_PROMPT, build_context_block
 
 
-_ROW_CAP = 200
+_ROW_CAP = 300
 _TEXT_EXTS = {".txt", ".md", ".csv", ".json", ".jsonl", ".log"}
 _MEDIA_EXTS = {".png", ".jpg", ".jpeg", ".webp", ".tif", ".tiff", ".bmp"}
 _DOC_IMAGE_EXTS = _MEDIA_EXTS | {".pdf"}
@@ -310,6 +311,13 @@ def _slug_id(value: str) -> str:
     return slug or "unknown"
 
 
+def _clean_signal(value: Any, *, fallback: str = "unknown_signal") -> str:
+    text = " ".join(str(value or "").strip().split())
+    if not text or text in {"?", "??", "unknown", "unknown_rule"}:
+        return fallback
+    return text
+
+
 def _build_graph_view(
     *,
     doc_type_counts: dict[str, int],
@@ -400,6 +408,7 @@ def _build_graph_view(
         )[:12]
     ]
     for signal in top_signal_names:
+        signal = _clean_signal(signal)
         nid = f"signal:{_slug_id(signal)}"
         nodes[nid] = {
             "id": nid,
@@ -434,6 +443,7 @@ def _build_graph_view(
             "weight": max(1, int(person.get("n_documents") or 1)),
         })
         for signal in (person.get("risk_signals") or [])[:5]:
+            signal = _clean_signal(signal)
             if signal not in top_signal_names:
                 continue
             edges.append({
@@ -602,7 +612,11 @@ def _build_intelligence(rows: list[dict], results: list[dict]) -> dict:
             severity = (hit.get("severity") or "medium").lower()
             inc = {"critical": 30, "high": 20, "medium": 12, "low": 6}.get(severity, 8)
             person["risk_score"] += inc
-            rid = hit.get("rule_id") or "unknown_rule"
+            rid = _clean_signal(
+                hit.get("rule_id") or hit.get("indicator") or hit.get("category"),
+                fallback="grep:" + _slug_id(hit.get("category") or "rule"),
+            )
+            label = _clean_signal(hit.get("indicator") or rid, fallback=rid)
             if rid not in person["risk_signals"]:
                 person["risk_signals"].append(rid)
             if rid not in row_signals:
@@ -613,7 +627,7 @@ def _build_intelligence(rows: list[dict], results: list[dict]) -> dict:
                 "case_id": case_id,
                 "row_id": row_id,
                 "rule_id": rid,
-                "label": hit.get("indicator") or rid,
+                "label": label,
                 "severity": severity,
                 "document_type": kind,
                 "edge_type": "grep_rule",
@@ -742,15 +756,21 @@ def _build_intelligence(rows: list[dict], results: list[dict]) -> dict:
         row["page_indexes"] = pages[:60]
         parent_document_rows.append(row)
 
+    cleaned_signal_counts: dict[str, int] = {}
+    for key, count in risk_signal_counts.items():
+        clean = _clean_signal(key)
+        if clean == "unknown_signal":
+            continue
+        cleaned_signal_counts[clean] = cleaned_signal_counts.get(clean, 0) + count
     top_risk_signals = [
         {"signal": k, "count": v}
-        for k, v in sorted(risk_signal_counts.items(), key=lambda kv: (-kv[1], kv[0]))[:20]
+        for k, v in sorted(cleaned_signal_counts.items(), key=lambda kv: (-kv[1], kv[0]))[:20]
     ]
     graph = _build_graph_view(
         doc_type_counts=doc_type_counts,
         person_rows=person_rows,
         journey_points=journey_points,
-        risk_signal_counts=risk_signal_counts,
+        risk_signal_counts=cleaned_signal_counts,
         folder_counts=folder_counts,
         evidence_edges=evidence_edges,
     )
@@ -849,10 +869,60 @@ def _build_intelligence(rows: list[dict], results: list[dict]) -> dict:
     }
 
 
+def _deterministic_case_brief(bundle: dict, intelligence: dict) -> dict:
+    people = (intelligence.get("people") or [])[:10]
+    top_people = [
+        {
+            "case_id": p.get("case_id"),
+            "name": p.get("name"),
+            "risk_score": p.get("risk_score"),
+            "total_payment_value": p.get("total_payment_value"),
+            "signals": (p.get("risk_signals") or [])[:5],
+            "row_ids": (p.get("row_ids") or [])[:5],
+        }
+        for p in people[:6]
+    ]
+    signals = intelligence.get("top_risk_signals") or []
+    media = ((intelligence.get("processing_plan") or {}).get("media_assets") or [])
+    return {
+        "case_theory": (
+            "The bundle shows a PH to HK recruitment pattern with worker-paid "
+            "fees, salary-deduction repayment, debt indicators, and document "
+            "control signals. The deterministic graph should be reviewed before "
+            "any escalation because it preserves row IDs, folder-derived context, "
+            "and media items still queued for OCR or Gemma 4 vision review."
+        ),
+        "priority_people": top_people,
+        "risk_clusters": [
+            f"{s.get('signal')} x {s.get('count')}" for s in signals[:8]
+        ],
+        "missing_evidence": [
+            "OCR text and Gemma 4 vision extraction for queued media assets",
+            "original employment contracts and side letters",
+            "proof of payment recipient, account, wallet, or remittance trail",
+            "agency, employer, and broker identifiers across folders",
+            "complaint status and any retaliation evidence",
+        ],
+        "recommended_questions": [
+            "Which people have the highest total payment demands?",
+            "Which folders or agencies connect multiple cases?",
+            "Which media assets still require OCR or Gemma 4 page review?",
+            "Which cases share the same fee pattern and could be grouped?",
+        ],
+        "media_assets_queued": len(media),
+    }
+
+
 def _gemma_case_brief(app: Any, bundle: dict, intelligence: dict) -> dict:
     gc = getattr(app.state, "gemma_call", None)
+    deterministic = _deterministic_case_brief(bundle, intelligence)
     if gc is None:
-        return {"available": False, "status": "no_model_loaded"}
+        return {
+            "available": False,
+            "status": "deterministic_no_model",
+            "json": deterministic,
+            "text": _json.dumps(deterministic, indent=2),
+        }
     compact = {
         "summary": bundle.get("summary", {}),
         "people": (intelligence.get("people") or [])[:12],
@@ -873,6 +943,7 @@ def _gemma_case_brief(app: Any, bundle: dict, intelligence: dict) -> dict:
         text = model_out if isinstance(model_out, str) else (
             (model_out or {}).get("text") or (model_out or {}).get("response") or ""
         )
+        text = sanitize_model_output(text)
         match = _re.search(r"\{[\s\S]*\}", text or "")
         parsed = None
         if match:
@@ -884,14 +955,16 @@ def _gemma_case_brief(app: Any, bundle: dict, intelligence: dict) -> dict:
             "available": True,
             "status": "ok" if parsed else "unparsed_text",
             "text": text[:3000],
-            "json": parsed,
+            "json": parsed or deterministic,
             "prompt_chars": len(prompt),
         }
     except Exception as exc:
         return {
             "available": True,
-            "status": "error",
+            "status": "model_error_deterministic_fallback",
             "error": f"{type(exc).__name__}: {exc}"[:300],
+            "json": deterministic,
+            "text": _json.dumps(deterministic, indent=2),
         }
 
 
@@ -1015,6 +1088,240 @@ def _score_rows(rows: list[dict], grep_call: Any) -> tuple[list[dict], dict, dic
         })
 
     return results, agg_grep, agg_entity, agg_statute
+
+
+def _format_money(value: float) -> str:
+    return f"PHP {int(value):,}" if value else "not quantified"
+
+
+def _person_support_rows(person: dict, limit: int = 4) -> list[str]:
+    rows = person.get("row_ids") or []
+    priority = [
+        r for r in rows
+        if any(part in str(r).lower() for part in ("payment", "complaint", "chat"))
+    ]
+    merged = list(dict.fromkeys(priority + rows))
+    return [str(r) for r in merged[:limit]]
+
+
+def _graph_chat_deterministic_answer(bundle: dict, question: str) -> dict | None:
+    """Answer common investigative graph questions without model drift.
+
+    Gemma is useful for synthesis, but ranking fees, citing row IDs, listing
+    queued media, and grouping repeated patterns should be computed directly
+    from the graph so the page behaves like a document review tool.
+    """
+    q = (question or "").lower()
+    intelligence = bundle.get("intelligence") or {}
+    people = intelligence.get("people") or []
+    summary = bundle.get("summary") or {}
+    cited_rows: list[str] = []
+
+    def add_rows(rows: list[str]) -> None:
+        for row in rows:
+            if row and row not in cited_rows:
+                cited_rows.append(row)
+
+    wants_fee = any(k in q for k in (
+        "fee", "overcharg", "payment", "salary deduction", "legal cap",
+        "placement", "charged", "debt",
+    ))
+    wants_strongest = any(k in q for k in (
+        "strongest", "move forward", "priority", "prioritize", "rank",
+    ))
+    wants_group = any(k in q for k in (
+        "class action", "group", "grouped", "same pattern", "common",
+        "cluster", "collective",
+    ))
+    wants_folder = any(k in q for k in (
+        "folder", "file structure", "path", "directory", "client",
+    ))
+    wants_media = any(k in q for k in (
+        "media", "ocr", "image", "scan", "pdf", "photo", "screenshot",
+        "vision",
+    ))
+    wants_missing = any(k in q for k in (
+        "missing evidence", "missing", "strengthen", "next evidence",
+    ))
+
+    if wants_media:
+        media = ((intelligence.get("processing_plan") or {}).get("media_assets") or [])
+        if not media:
+            return {
+                "answer": (
+                    "No queued image, scan, or PDF media assets were found in "
+                    "the processed rows. That means this bundle is currently "
+                    "being analyzed through plain text, CSV, JSONL, extractable "
+                    "PDF text, and folder-path evidence only."
+                ),
+                "cited_rows": [],
+                "analysis_kind": "media_queue",
+            }
+        lines = [
+            "Queued OCR and Gemma 4 vision review items:",
+            "",
+        ]
+        for idx, asset in enumerate(media[:12], start=1):
+            rid = str(asset.get("row_id") or "")
+            add_rows([rid])
+            questions = "; ".join((asset.get("gemma_questions") or [])[:2])
+            lines.append(
+                f"{idx}. `{rid}` | type: {asset.get('media_type')} | "
+                f"source: {asset.get('source_path') or rid} | questions: {questions}"
+            )
+        lines.append("")
+        lines.append(
+            "Review order: run OCR first, ask Gemma 4 to identify document type "
+            "and visible entities, then reconcile image findings with row IDs, "
+            "payments, folders, and person nodes."
+        )
+        return {
+            "answer": "\n".join(lines),
+            "cited_rows": cited_rows,
+            "analysis_kind": "media_queue",
+        }
+
+    if wants_folder:
+        folders = intelligence.get("folder_counts") or []
+        lines = [
+            "Folder and file-structure evidence:",
+            "",
+        ]
+        for item in folders[:12]:
+            folder = str(item.get("folder") or "")
+            reason = (
+                "Potential source, client, stage, agency, or evidence-type label "
+                "from the original ZIP path."
+            )
+            lines.append(
+                f"- folder: `{folder}` | rows: {item.get('count')} | why: {reason}"
+            )
+        edges = [
+            e for e in (intelligence.get("evidence_edges") or [])
+            if e.get("edge_type") == "folder_context"
+        ][:8]
+        if edges:
+            lines.append("")
+            lines.append("Example folder-derived row links:")
+            for edge in edges:
+                row = str(edge.get("row_id") or "")
+                add_rows([row])
+                lines.append(
+                    f"- `{edge.get('case_id')}` linked to folder "
+                    f"`{edge.get('label')}` via `{row}`"
+                )
+        return {
+            "answer": "\n".join(lines),
+            "cited_rows": cited_rows,
+            "analysis_kind": "folder_structure",
+        }
+
+    if wants_group:
+        signal_groups: dict[str, list[dict]] = {}
+        for person in people:
+            for signal in (person.get("risk_signals") or [])[:8]:
+                signal_groups.setdefault(str(signal), []).append(person)
+        ranked = sorted(
+            signal_groups.items(),
+            key=lambda kv: (-len(kv[1]), kv[0]),
+        )[:6]
+        lines = [
+            "Potential grouped or pattern-case candidates:",
+            "",
+        ]
+        for signal, members in ranked:
+            rows: list[str] = []
+            for person in members[:5]:
+                rows.extend(_person_support_rows(person, limit=2))
+            rows = list(dict.fromkeys(rows))[:8]
+            add_rows(rows)
+            lines.append(
+                f"- shared pattern: {signal} | people: {len(members)} | support rows: "
+                + ", ".join(f"`{r}`" for r in rows)
+            )
+        lines.append("")
+        lines.append(
+            "These are investigative groupings, not legal conclusions. A reviewer "
+            "should confirm common agency, employer, fee recipient, contract form, "
+            "and retaliation pattern before treating cases as one coordinated matter."
+        )
+        return {
+            "answer": "\n".join(lines),
+            "cited_rows": cited_rows,
+            "analysis_kind": "pattern_grouping",
+        }
+
+    if wants_fee or wants_strongest:
+        ranked_people = sorted(
+            people,
+            key=lambda p: (
+                -float(p.get("total_payment_value") or 0),
+                -int(p.get("risk_score") or 0),
+                str(p.get("case_id") or ""),
+            ),
+        )[:10]
+        title = (
+            "Strongest cases to move forward first"
+            if wants_strongest else
+            "People with strongest overcharging or placement-fee evidence"
+        )
+        lines = [
+            title + ":",
+            "",
+        ]
+        for idx, person in enumerate(ranked_people, start=1):
+            rows = _person_support_rows(person)
+            add_rows(rows)
+            signals = ", ".join((person.get("risk_signals") or [])[:5])
+            label = person.get("name") or person.get("case_id")
+            lines.append(
+                f"{idx}. {label} (`{person.get('case_id')}`) | "
+                f"payments found: {_format_money(float(person.get('total_payment_value') or 0))} | "
+                f"risk: {person.get('risk_score')} | signals: {signals} | support rows: "
+                + ", ".join(f"`{r}`" for r in rows)
+            )
+        lines.append("")
+        lines.append(
+            "Why these rank high: the graph combines payment amounts, row-level "
+            "risk signals, document types, and person-level linked records. For "
+            "PH to HK domestic-worker scenarios, any worker-paid placement, "
+            "training, medical, or repayment fee should be checked against the "
+            "zero-fee rule and wage-deduction restrictions."
+        )
+        if wants_missing:
+            lines.append("")
+            lines.append(
+                "Missing evidence to strengthen review: original receipts, payment "
+                "recipient identity, agency license records, employment contract, "
+                "screenshots with timestamps, passport-control evidence, complaint "
+                "status, and any retaliation messages."
+            )
+        return {
+            "answer": "\n".join(lines),
+            "cited_rows": cited_rows,
+            "analysis_kind": "fee_or_priority_ranking",
+        }
+
+    if wants_missing:
+        media_count = ((intelligence.get("processing_plan") or {})
+                       .get("n_media_assets", 0))
+        answer = (
+            "Evidence that would strengthen this bundle before escalation:\n\n"
+            "1. Original receipts or transfer records showing fee recipient and date.\n"
+            "2. Agency, broker, employer, and payment-account identifiers.\n"
+            "3. Employment contract, side letter, and any replacement contract.\n"
+            "4. Screenshots with timestamps and sender handles.\n"
+            "5. Passport or identity-document custody evidence.\n"
+            "6. Complaint filings, case numbers, and retaliation messages.\n"
+            f"7. OCR and Gemma 4 vision review for queued media assets: {media_count}."
+        )
+        return {
+            "answer": answer,
+            "cited_rows": [],
+            "analysis_kind": "missing_evidence",
+        }
+
+    return None
 
 
 def register_routes(app: Any) -> None:
@@ -1157,6 +1464,35 @@ def register_routes(app: Any) -> None:
                 "grep_hits": 0,
             })
 
+        deterministic = _graph_chat_deterministic_answer(bundle, question)
+        if deterministic is not None:
+            summary = bundle.get("summary") or {}
+            cited = deterministic.get("cited_rows") or []
+            try:
+                from .._training_log import log_interaction as _log
+                _log(
+                    "process",
+                    input_payload={"question": question, "bundle_run_id": bundle.get("run_id")},
+                    output_payload=deterministic.get("answer", ""),
+                    applied_layers={"graph_analyst": {"fired": True}},
+                    trace={
+                        "cited_rows": cited,
+                        "analysis_kind": deterministic.get("analysis_kind"),
+                    },
+                    extra={"kind": "graph_chat"},
+                )
+            except Exception:
+                pass
+            return JSONResponse({
+                "answer": deterministic.get("answer", ""),
+                "bundle_present": True,
+                "cited_rows": cited[:30],
+                "grep_hits": summary.get("n_grep_rules_fired", 0),
+                "evidence_edges": (bundle.get("summary") or {}).get("n_evidence_edges", 0),
+                "analysis_kind": deterministic.get("analysis_kind"),
+                "applied_layers": {"graph_analyst": {"fired": True}},
+            })
+
         if gc is None:
             summary = bundle.get("summary") or {}
             top = (summary.get("top_grep") or [])[:3]
@@ -1192,11 +1528,21 @@ def register_routes(app: Any) -> None:
             response_text = model_out if isinstance(model_out, str) else (
                 (model_out or {}).get("text") or (model_out or {}).get("response") or ""
             )
+            response_text = sanitize_model_output(response_text)
         except Exception as e:
-            return JSONResponse(
-                {"answer": f"Model call failed: {str(e)[:200]}", "bundle_present": True},
-                status_code=500,
-            )
+            fallback = _deterministic_case_brief(bundle, bundle.get("intelligence") or {})
+            return JSONResponse({
+                "answer": (
+                    "Gemma graph-chat failed, so I am returning the deterministic "
+                    "case-graph brief instead.\n\n"
+                    + _json.dumps(fallback, indent=2)
+                ),
+                "bundle_present": True,
+                "cited_rows": [],
+                "grep_hits": (bundle.get("summary") or {}).get("n_grep_rules_fired", 0),
+                "fallback": "model_error_deterministic_brief",
+                "error": f"{type(e).__name__}: {e}"[:240],
+            })
 
         results = bundle.get("results") or []
         cited_rows: list[str] = []

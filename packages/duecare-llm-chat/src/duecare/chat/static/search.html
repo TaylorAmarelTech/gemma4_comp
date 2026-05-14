@@ -45,11 +45,15 @@
     .wb-draft-card pre { background: #F7F6F1; padding: 8px 10px; border-radius: 6px;
                           font-size: 11px; max-height: 200px; overflow-y: auto;
                           white-space: pre-wrap; margin: 6px 0 0; }
-    .search-pipeline { display: grid; grid-template-columns: repeat(auto-fit, minmax(155px, 1fr)); gap: 8px; margin: 10px 0; }
-    .search-step { border: 1px solid #DDD8C9; border-radius: 8px; padding: 10px 11px; background: #FAF9F4; min-height: 72px; }
+    .search-pipeline { display: grid; gap: 8px; margin: 10px 0; }
+    .search-step { border: 1px solid #DDD8C9; border-radius: 8px; padding: 0 11px; background: #FAF9F4; }
+    .search-step summary { cursor: pointer; list-style: none; padding: 10px 0; }
+    .search-step summary::-webkit-details-marker { display: none; }
+    .search-step summary::before { content: "+ "; color: oklch(0.32 0.07 195); }
+    .search-step[open] summary::before { content: "- "; }
     .search-step .num { font-family: 'JetBrains Mono', monospace; color: #5B5F68; font-size: 10px; text-transform: uppercase; letter-spacing: 0.07em; }
     .search-step .name { font-weight: 700; font-size: 12.5px; margin: 5px 0 3px; }
-    .search-step .detail { color: #5B5F68; font-size: 11px; line-height: 1.4; }
+    .search-step .detail { color: #5B5F68; font-size: 11px; line-height: 1.4; padding: 0 0 10px 18px; }
     .search-step.complete { border-color: oklch(0.72 0.08 155); background: oklch(0.97 0.02 155); }
     .search-example { text-align:left; background:#FAF9F4; border:1px solid #DDD8C9; border-radius:8px; padding:8px 10px; cursor:pointer; font-size:12px; color:#2A2D34; }
     .search-example:hover { border-color: oklch(0.52 0.08 195); color:#0E1116; }
@@ -75,11 +79,26 @@
     <div class="wb-card" style="border-left: 4px solid oklch(0.52 0.08 195);">
       <h2>Search harness actions</h2>
       <div class="search-pipeline" id="search-pipeline">
-        <div class="search-step"><div class="num">Step 1</div><div class="name">Query</div><div class="detail">User enters a public-source research query.</div></div>
-        <div class="search-step"><div class="num">Step 2</div><div class="name">Search Safety</div><div class="detail">PII is redacted and Gemma can generalize the query.</div></div>
-        <div class="search-step"><div class="num">Step 3</div><div class="name">Backend</div><div class="detail">SearXNG or the kernel search hook returns public-source results.</div></div>
-        <div class="search-step"><div class="num">Step 4</div><div class="name">Review</div><div class="detail">Results stay visible for inspection and download.</div></div>
-        <div class="search-step"><div class="num">Step 5</div><div class="name">Gemma draft</div><div class="detail">Optional knowledge drafting passes snippets to Gemma 4.</div></div>
+        <details class="search-step" open>
+          <summary><div class="num">Step 1</div><div class="name">Query</div></summary>
+          <div class="detail">Enter a public-source research query. Avoid names, phone numbers, addresses, or case details unless you intentionally test sanitization.</div>
+        </details>
+        <details class="search-step">
+          <summary><div class="num">Step 2</div><div class="name">Search Safety</div></summary>
+          <div class="detail">The safety gate redacts PII and can ask Gemma 4 to generalize the query before any external search backend sees it.</div>
+        </details>
+        <details class="search-step">
+          <summary><div class="num">Step 3</div><div class="name">Backend</div></summary>
+          <div class="detail">SearXNG or the kernel search hook returns public-source results. Backend anonymization can run as a second guard.</div>
+        </details>
+        <details class="search-step">
+          <summary><div class="num">Step 4</div><div class="name">Review results</div></summary>
+          <div class="detail">Inspect each source card, download the result set, or draft knowledge from one useful result without leaving this page.</div>
+        </details>
+        <details class="search-step">
+          <summary><div class="num">Step 5</div><div class="name">Draft knowledge</div></summary>
+          <div class="detail">The extraction harness infers useful knowledge object types, drafts envelopes, and lets you promote reviewed drafts locally.</div>
+        </details>
       </div>
       <div class="wb-row" style="gap:8px;">
         <button class="search-example" type="button" onclick="searchUseExample('ILO C181 Article 7 recruitment fee prohibition migrant workers')">ILO fee prohibition</button>
@@ -132,13 +151,17 @@
     
 
     <div class="wb-card" id="results-card" style="display:none;">
-      <h2>2. Results</h2>
+      <h2>2. Review results and convert to knowledge</h2>
+      <p class="wb-muted" style="margin:0 0 10px;">
+        Use <b>Draft this result</b> on a specific source, or draft from all
+        visible results. Drafts are reviewable before anything is saved.
+      </p>
       <div id="results"></div>
       <div class="wb-row" style="margin-top:14px; gap:8px; padding-top:10px; border-top:1px solid #EFEDE4;">
         <span class="wb-muted" style="align-self:center;">After results:</span>
         <button class="wb-btn-secondary" id="dl-json-btn" onclick="searchDownloadResults('json')">Download results (.json)</button>
         <button class="wb-btn-secondary" id="dl-md-btn" onclick="searchDownloadResults('md')">Download as markdown</button>
-        <button class="wb-btn-primary" id="draft-btn" onclick="searchDraftKnowledge()">Draft as knowledge objects (Gemma)</button>
+        <button class="wb-btn-primary" id="draft-btn" onclick="searchDraftKnowledge()">Draft knowledge from all results</button>
         <button class="wb-btn-secondary" id="share-btn" onclick="searchSendToShare()">Send to Anonymization &amp; Share</button>
       </div>
       <div id="draft-status" class="wb-muted" style="margin-top:8px;"></div>
@@ -148,8 +171,9 @@
       <h2>3. Drafted envelopes (review before saving)</h2>
       <p class="wb-muted" style="margin: 0 0 8px;">
         Each search result was passed to <code>/api/knowledge/draft-envelope</code>
-        with <code>target_leaf=rag_doc</code> and the kernel's
-        Anonymizer is applied first. Review each draft, then click
+        with <code>target_leaf=auto</code> and the kernel's
+        Anonymizer is applied first. The extraction harness suggests
+        the best leaf types for each source. Review each draft, then click
         <b>Save all to local knowledge store</b> to persist them via
         <code>/api/knowledge/promote</code>, or download as a single
         JSON for offline review.
@@ -189,8 +213,10 @@
       return labels[name] || name || '(none)';
     }
     function searchSetPipeline(active) {
-      document.querySelectorAll('#search-pipeline .search-step').forEach((el, idx) => {
+      const steps = Array.from(document.querySelectorAll('#search-pipeline .search-step'));
+      steps.forEach((el, idx) => {
         el.classList.toggle('complete', idx <= active);
+        if ('open' in el) el.open = idx === Math.min(active, steps.length - 1);
       });
     }
     function searchUseExample(q) {
@@ -338,7 +364,7 @@
         p.textContent = 'no results'; host.appendChild(p);
         return;
       }
-      rows.forEach(r => {
+      rows.forEach((r, idx) => {
         const card = document.createElement('div'); card.className = 'wb-result';
         const h = document.createElement('h3');
         const lead = document.createElement('span'); lead.textContent = '[' + (r.rank || '?') + '] ';
@@ -353,6 +379,23 @@
         const s = document.createElement('div'); s.className = 'snippet';
         s.textContent = String(r.snippet || '');
         card.appendChild(s);
+        const actions = document.createElement('div');
+        actions.className = 'wb-row';
+        actions.style.cssText = 'margin-top:8px; gap:8px;';
+        const draft = document.createElement('button');
+        draft.type = 'button';
+        draft.className = 'wb-btn-secondary';
+        draft.textContent = 'Draft this result';
+        draft.addEventListener('click', () => searchDraftOne(idx));
+        actions.appendChild(draft);
+        const open = document.createElement('a');
+        open.className = 'wb-btn-secondary';
+        open.href = String(r.url || '#');
+        open.target = '_blank';
+        open.rel = 'noopener';
+        open.textContent = 'Open source';
+        actions.appendChild(open);
+        card.appendChild(actions);
         host.appendChild(card);
       });
     }
@@ -394,6 +437,85 @@
       _searchLog.ok('downloaded ' + name, blob.size + ' bytes');
     }
 
+    function searchRawTextForResult(r) {
+      return '# ' + (r.title || '') + '\n\n'
+        + 'Source: ' + (r.url || '') + '\n\n' + (r.snippet || '');
+    }
+
+    function searchRenderDraftCard(entry, idx) {
+      const env = entry.envelope || {};
+      const draftsList = document.getElementById('drafts-list');
+      const card = document.createElement('div');
+      card.className = 'wb-draft-card';
+      const h = document.createElement('div');
+      h.style.cssText = 'font-size: 13px; font-weight: 600;';
+      h.textContent = '[' + (idx + 1) + '] ' + (entry.title || entry.url || env.id || 'draft');
+      card.appendChild(h);
+      const meta = document.createElement('div');
+      meta.className = 'wb-muted';
+      meta.textContent = (env.knowledge_object_type || 'knowledge_object') + ' | ' + (entry.url || '');
+      card.appendChild(meta);
+      const row = document.createElement('div');
+      row.className = 'wb-row';
+      row.style.cssText = 'gap:8px; margin:8px 0;';
+      const save = document.createElement('button');
+      save.className = 'wb-btn-secondary';
+      save.type = 'button';
+      save.textContent = 'Save this draft';
+      save.addEventListener('click', () => searchSaveOneDraft(idx));
+      row.appendChild(save);
+      card.appendChild(row);
+      const pre = document.createElement('pre');
+      pre.textContent = JSON.stringify(env, null, 2);
+      card.appendChild(pre);
+      draftsList.appendChild(card);
+    }
+
+    async function searchDraftResultAt(i) {
+      const r = _searchResults[i];
+      if (!r) return 0;
+      const rawText = searchRawTextForResult(r);
+      _searchLog.step('drafting result ' + (i + 1), r.title || r.url);
+      const t0 = performance.now();
+      const resp = await fetch('/api/knowledge/draft-envelope', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+          raw_text: rawText,
+          target_leaf: 'auto',
+          anonymize: true,
+        }),
+      });
+      const dt = Math.round(performance.now() - t0);
+      const out = await resp.json();
+      if (!resp.ok) {
+        _searchLog.err('draft result ' + (i + 1) + ' HTTP ' + resp.status + ' (' + dt + 'ms)',
+                        JSON.stringify(out).slice(0, 200));
+        return 0;
+      }
+      const suggestions = out.suggestions || (out.envelope ? [out.envelope] : [out]);
+      let count = 0;
+      suggestions.forEach(env => {
+        const entry = {source_rank: r.rank || i + 1, url: r.url, title: r.title, envelope: env};
+        _drafts.push(entry);
+        searchRenderDraftCard(entry, _drafts.length - 1);
+        count++;
+      });
+      _searchLog.ok('drafted result ' + (i + 1) + ' (' + dt + 'ms)',
+                    count + ' suggested envelope(s)');
+      return count;
+    }
+
+    async function searchDraftOne(i) {
+      _searchLog = _searchLog || window.dcActivityLog.attach('#search-log');
+      searchSetPipeline(4);
+      document.getElementById('draft-status').textContent = 'Drafting one selected result...';
+      document.getElementById('drafts-card').style.display = '';
+      const made = await searchDraftResultAt(i);
+      document.getElementById('draft-status').textContent =
+        made ? 'Drafted ' + made + ' suggestion(s). Review below.' : 'No draft created.';
+    }
+
     async function searchDraftKnowledge() {
       if (!_searchResults.length) {
         _searchLog && _searchLog.warn('no results to draft from');
@@ -403,49 +525,14 @@
       btn.disabled = true;
       searchSetPipeline(4);
       document.getElementById('draft-status').textContent =
-        'Drafting ' + _searchResults.length + ' envelopes via Gemma...';
+        'Drafting knowledge suggestions from ' + _searchResults.length + ' result(s)...';
       _drafts = [];
       const draftsList = document.getElementById('drafts-list');
       while (draftsList.firstChild) draftsList.removeChild(draftsList.firstChild);
       try {
         for (let i = 0; i < _searchResults.length; i++) {
-          const r = _searchResults[i];
-          const rawText = '# ' + (r.title || '') + '\n\n'
-            + 'Source: ' + (r.url || '') + '\n\n' + (r.snippet || '');
-          _searchLog.step('drafting envelope ' + (i + 1) + '/' + _searchResults.length, r.title || r.url);
           try {
-            const t0 = performance.now();
-            const resp = await fetch('/api/knowledge/draft-envelope', {
-              method: 'POST',
-              headers: {'Content-Type': 'application/json'},
-              body: JSON.stringify({
-                raw_text: rawText,
-                target_leaf: 'rag_doc',
-                anonymize: true,
-              }),
-            });
-            const dt = Math.round(performance.now() - t0);
-            const out = await resp.json();
-            if (!resp.ok) {
-              _searchLog.err('draft ' + (i + 1) + ' HTTP ' + resp.status + ' (' + dt + 'ms)',
-                              JSON.stringify(out).slice(0, 200));
-              continue;
-            }
-            const env = out.envelope || out;
-            _drafts.push({url: r.url, title: r.title, envelope: env});
-            _searchLog.ok('drafted ' + (i + 1) + '/' + _searchResults.length + ' (' + dt + 'ms)');
-            const card = document.createElement('div');
-            card.className = 'wb-draft-card';
-            const h = document.createElement('div');
-            h.style.cssText = 'font-size: 13px; font-weight: 600;';
-            h.textContent = '[' + (i + 1) + '] ' + (r.title || r.url);
-            card.appendChild(h);
-            const u = document.createElement('div'); u.className = 'wb-muted'; u.textContent = r.url || '';
-            card.appendChild(u);
-            const pre = document.createElement('pre');
-            pre.textContent = JSON.stringify(env, null, 2);
-            card.appendChild(pre);
-            draftsList.appendChild(card);
+            await searchDraftResultAt(i);
           } catch (e) {
             _searchLog.err('draft ' + (i + 1) + ' failed', '' + e);
           }
@@ -458,6 +545,27 @@
       }
     }
 
+    async function searchSaveOneDraft(i) {
+      const d = _drafts[i];
+      if (!d || !d.envelope) return false;
+      try {
+        const r = await fetch('/api/knowledge/promote', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify(d.envelope),
+        });
+        if (r.ok) {
+          _searchLog.ok('promoted ' + ((d.envelope && d.envelope.id) || '(unknown id)'));
+          return true;
+        }
+        const t = await r.text();
+        _searchLog.err('promote HTTP ' + r.status, t.slice(0, 200));
+      } catch (e) {
+        _searchLog.err('promote failed', '' + e);
+      }
+      return false;
+    }
+
     async function searchSaveAllDrafts() {
       if (!_drafts.length) return;
       const btn = document.getElementById('save-all-btn');
@@ -465,23 +573,8 @@
       const saveStatus = document.getElementById('save-status');
       saveStatus.textContent = 'Saving ' + _drafts.length + ' drafts...';
       let saved = 0;
-      for (const d of _drafts) {
-        try {
-          const r = await fetch('/api/knowledge/promote', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({envelope: d.envelope}),
-          });
-          if (r.ok) {
-            saved++;
-            _searchLog.ok('promoted ' + ((d.envelope && d.envelope.id) || '(unknown id)'));
-          } else {
-            const t = await r.text();
-            _searchLog.err('promote HTTP ' + r.status, t.slice(0, 200));
-          }
-        } catch (e) {
-          _searchLog.err('promote failed', '' + e);
-        }
+      for (let i = 0; i < _drafts.length; i++) {
+        if (await searchSaveOneDraft(i)) saved++;
       }
       saveStatus.textContent = 'Saved ' + saved + ' / ' + _drafts.length + '.';
       btn.disabled = false;

@@ -87,6 +87,38 @@ def test_search_page_blocks_when_page_sanitizer_fails(client):
     assert "Search stopped because sanitization failed" in text
     assert "sending raw query" not in text
     assert "Kernel search hook" in text
+    assert "Draft this result" in text
+    assert "target_leaf: 'auto'" in text
+    assert "searchSaveOneDraft" in text
+    assert "body: JSON.stringify(d.envelope)" in text
+
+
+def test_knowledge_page_uses_guided_auto_suggestion_flow(client):
+    r = client.get("/static/knowledge.html")
+    assert r.status_code == 200
+    text = r.text
+    assert "Auto-suggest useful leaves" in text
+    assert "Advanced: manual authoring for 21 leaf types" in text
+    assert "kxToggleTaxonomy" in text
+    assert "out.suggestions" in text
+    assert '<details class="kx-step" open>' in text
+
+
+def test_knowledge_draft_endpoint_auto_suggests_multiple_leaf_types(client):
+    r = client.post("/api/knowledge/draft-envelope", json={
+        "raw_text": (
+            "ILO C181 Article 7 prohibits recruitment fees. Worker paid "
+            "PHP 45000 for training and medical fees in the PH-HK corridor. "
+            "Hotline contact details should be verified before use."
+        ),
+        "target_leaf": "auto",
+        "anonymize": True,
+    })
+    assert r.status_code == 200, r.text
+    data = r.json()
+    assert data["auto_suggested"] is True
+    assert {"rag_doc", "grep_rule", "fact_template"}.issubset(data["suggested_types"])
+    assert len(data["suggestions"]) >= 3
 
 
 def test_search_backends_contract_has_human_labels(client):
