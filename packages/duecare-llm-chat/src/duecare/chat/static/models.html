@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Models — DueCare Workbench</title>
+  <title>Models | DueCare Workbench</title>
   <link rel="stylesheet" href="/static/_chrome.css">
   <link rel="stylesheet" href="/static/showcase.css">
   <script src="/static/_nav.js" defer></script>
@@ -55,6 +55,30 @@
       border: 1px solid var(--line-soft); border-radius: 8px;
     }
     .stat-row .label { color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.06em; font-size: 10.5px; margin-right: 5px; }
+    .model-guide {
+      display: grid; gap: 10px; margin-top: 18px;
+    }
+    .model-step {
+      border: 1px solid var(--line); border-radius: 10px; background: var(--paper);
+      overflow: hidden;
+    }
+    .model-step[open] { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+    .model-step summary {
+      cursor: pointer; list-style: none; display: flex; gap: 12px; align-items: flex-start;
+      padding: 13px 14px;
+    }
+    .model-step summary::-webkit-details-marker { display: none; }
+    .model-step-num {
+      flex: 0 0 auto; display: inline-flex; align-items: center; justify-content: center;
+      width: 24px; height: 24px; border-radius: 999px; background: var(--paper-2);
+      border: 1px solid var(--line); font-family: var(--mono); font-size: 11px; color: var(--ink-3);
+    }
+    .model-step[open] .model-step-num { background: var(--accent-soft); color: var(--ink); border-color: var(--accent); }
+    .model-step-title { font-weight: 600; color: var(--ink); margin-bottom: 2px; }
+    .model-step-hint { color: var(--ink-3); font-size: 12.5px; line-height: 1.45; }
+    .model-step-body {
+      padding: 0 14px 14px 50px; color: var(--ink-3); font-size: 12.5px; line-height: 1.55;
+    }
   
     @media (max-width: 620px) {
       .wb-page { padding: 0 12px !important; }
@@ -64,8 +88,8 @@
 </head>
 <body data-nav="models">
 <main class="showcase">
-  <div class="wb-trust" style="background: oklch(0.92 0.06 155); color: oklch(0.32 0.07 155); padding: 8px 14px; border-radius: 8px; font-size: 12.5px; margin: 0 0 14px;"><b>Trust boundary:</b> Model loads happen locally on this kernel's GPU. Weights are pulled from Hugging Face or attached Kaggle datasets; no inference traffic leaves the kernel after load. Default load mode is single-model -- swap behaviour is set on <a href="/static/settings.html">Settings</a>.</div>
-  <div class="crumbs">Workbench tool · System &amp; observability</div>
+  <div class="wb-trust" style="background: oklch(0.92 0.06 155); color: oklch(0.32 0.07 155); padding: 8px 14px; border-radius: 8px; font-size: 12.5px; margin: 0 0 14px;"><b>Trust boundary:</b> Model loads happen locally on this kernel's GPU. Weights are pulled from Hugging Face or attached Kaggle datasets; no inference traffic leaves the kernel after load. Default load mode is single-model. Swap behaviour is set on <a href="/static/settings.html">Settings</a>.</div>
+  <div class="crumbs">Workbench tool | System and observability</div>
   <h1>Models</h1>
   <p class="lede">
     The 9 Gemma 4 variants the workbench can load, the currently-resident
@@ -75,8 +99,44 @@
   </p>
 
   <div class="panel">
+    <h2>Model load path</h2>
+    <div class="model-guide" id="model-guide">
+      <details class="model-step" id="model-step-1" open>
+        <summary>
+          <span class="model-step-num">1</span>
+          <span>
+            <span class="model-step-title">Choose one model for the session</span>
+            <span class="model-step-hint">Kaggle is most reliable when one Gemma variant is resident at a time.</span>
+          </span>
+        </summary>
+        <div class="model-step-body">Use Settings only if you intentionally want multi-model hot loading on a high VRAM machine.</div>
+      </details>
+      <details class="model-step" id="model-step-2">
+        <summary>
+          <span class="model-step-num">2</span>
+          <span>
+            <span class="model-step-title">Wait for load logs</span>
+            <span class="model-step-hint">The loader streams progress and exposes errors without leaving the page.</span>
+          </span>
+        </summary>
+        <div class="model-step-body">The top chrome model selector and compare page use the same loaded model state.</div>
+      </details>
+      <details class="model-step" id="model-step-3">
+        <summary>
+          <span class="model-step-num">3</span>
+          <span>
+            <span class="model-step-title">Use the loaded model everywhere</span>
+            <span class="model-step-hint">Chat, comparison, grading, extraction, and process graph chat all read the same kernel model.</span>
+          </span>
+        </summary>
+        <div class="model-step-body">This keeps the live demo aligned with Kaggle's practical one-model session constraint.</div>
+      </details>
+    </div>
+  </div>
+
+  <div class="panel">
     <h2>Currently loaded</h2>
-    <div class="stat-row" id="status">Loading…</div>
+    <div class="stat-row" id="status">Loading...</div>
   </div>
 
   <div class="panel">
@@ -86,7 +146,7 @@
 
   <div class="panel">
     <h2>Load log (live)</h2>
-    <div class="logs" id="logs">Polling /api/load-model/logs…</div>
+    <div class="logs" id="logs">Polling /api/load-model/logs...</div>
   </div>
 
     <div class="wb-card" id="page-activity-log-card" style="margin-top: 14px;">
@@ -95,7 +155,7 @@
         Live trace of API calls + per-step events from this page.
       </p>
       <div id="page-activity-log" class="dc-activity-log" role="log" aria-label="Activity log" aria-live="polite">
-        <div class="dc-log-idle">No activity yet -- interact with the page to populate.</div>
+        <div class="dc-log-idle">No activity yet. Load a model to populate.</div>
       </div>
     </div>
 
@@ -103,15 +163,15 @@
 
 <script>
   const VARIANTS = [
-    {key: "e2b-it",          name: "Gemma 4 E2B-it",        hf: "unsloth/gemma-4-E2B-it",          hw: "single T4 — fastest" , badges: ["gpu"]},
-    {key: "e4b-it",          name: "Gemma 4 E4B-it",        hf: "unsloth/gemma-4-E4B-it",          hw: "single T4 — default" , badges: ["gpu"]},
-    {key: "26b-a4b-it",      name: "Gemma 4 26B-A4B-it",    hf: "unsloth/gemma-4-26B-A4B-it",      hw: "T4x2 (4-bit) — MoE"  , badges: ["gpu"]},
-    {key: "31b-it",          name: "Gemma 4 31B-it",        hf: "unsloth/gemma-4-31B-it",          hw: "T4x2 (4-bit) — flagship", badges: ["gpu"]},
-    {key: "jailbroken-31b",  name: "Gemma 4 31B JANG_4M-CRACK", hf: "dealignai/Gemma-4-31B-JANG_4M-CRACK", hw: "T4x2 — abliterated", badges: ["gpu"]},
-    {key: "jailbroken-e4b",  name: "Gemma 4 E4B abliterated", hf: "mlabonne/Gemma-4-E4B-it-abliterated", hw: "single T4 — abliterated", badges: ["gpu"]},
-    {key: "cloud-gemini",    name: "Gemini 1.5 Flash (cloud)", hf: "—",                            hw: "CPU only — needs GEMINI_API_KEY", badges: ["cloud"]},
-    {key: "cloud-openai",    name: "OpenAI-compatible (cloud)", hf: "—",                            hw: "CPU only — needs OPENAI_*",     badges: ["cloud"]},
-    {key: "cloud-ollama",    name: "Ollama (cloud)",         hf: "—",                            hw: "CPU only — needs OLLAMA_HOST",   badges: ["cloud"]},
+    {key: "e2b-it",          name: "Gemma 4 E2B-it",        hf: "unsloth/gemma-4-E2B-it",          hw: "single T4 | fastest" , badges: ["gpu"]},
+    {key: "e4b-it",          name: "Gemma 4 E4B-it",        hf: "unsloth/gemma-4-E4B-it",          hw: "single T4 | default" , badges: ["gpu"]},
+    {key: "26b-a4b-it",      name: "Gemma 4 26B-A4B-it",    hf: "unsloth/gemma-4-26B-A4B-it",      hw: "T4x2 (4-bit) | MoE"  , badges: ["gpu"]},
+    {key: "31b-it",          name: "Gemma 4 31B-it",        hf: "unsloth/gemma-4-31B-it",          hw: "T4x2 (4-bit) | flagship", badges: ["gpu"]},
+    {key: "jailbroken-31b",  name: "Gemma 4 31B JANG_4M-CRACK", hf: "dealignai/Gemma-4-31B-JANG_4M-CRACK", hw: "T4x2 | abliterated", badges: ["gpu"]},
+    {key: "jailbroken-e4b",  name: "Gemma 4 E4B abliterated", hf: "mlabonne/Gemma-4-E4B-it-abliterated", hw: "single T4 | abliterated", badges: ["gpu"]},
+    {key: "cloud-gemini",    name: "Gemini 1.5 Flash (cloud)", hf: "-",                            hw: "CPU only | needs GEMINI_API_KEY", badges: ["cloud"]},
+    {key: "cloud-openai",    name: "OpenAI-compatible (cloud)", hf: "-",                            hw: "CPU only | needs OPENAI_*",     badges: ["cloud"]},
+    {key: "cloud-ollama",    name: "Ollama (cloud)",         hf: "-",                            hw: "CPU only | needs OLLAMA_HOST",   badges: ["cloud"]},
   ];
 
   function escapeHtml(s) {
@@ -119,10 +179,15 @@
       ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   }
   function fmtBytes(n) {
-    if (n == null) return "—";
+    if (n == null) return "-";
     if (n < 1e6) return Math.round(n/1024) + "KB";
     if (n < 1e9) return (n/1e6).toFixed(0) + "MB";
     return (n/1e9).toFixed(1) + "GB";
+  }
+  function modelSetStep(active) {
+    document.querySelectorAll("#model-guide .model-step").forEach((step, idx) => {
+      step.open = idx === active;
+    });
   }
 
   async function refreshStatus() {
@@ -140,9 +205,10 @@
     const cur = info.display || info.name || info.variant || "(no model loaded)";
     const loaded = !!(info.loaded !== false && !/no model/i.test(cur));
     const phase = load.phase || (loaded ? "ready" : "idle");
+    if (loaded) modelSetStep(2);
     const gpu  = info.gpu_memory_bytes != null ? fmtBytes(info.gpu_memory_bytes) :
                  (info.gpu_memory_mb != null ? info.gpu_memory_mb + "MB" :
-                 (info.device || "—"));
+                 (info.device || "-"));
 
     document.getElementById("status").innerHTML = `
       <span><span class="label">Model</span>${escapeHtml(cur)}</span>
@@ -158,7 +224,7 @@
       const cls = isLoaded ? "loaded" : (isLoading ? "loading" : "");
       const badges = v.badges.map(b => `<span class="badge ${b}">${b}</span>`).join("");
       const stateBadge = isLoaded ? `<span class="badge loaded">loaded</span>` :
-                        (isLoading ? `<span class="badge">loading…</span>` : "");
+                        (isLoading ? `<span class="badge">loading...</span>` : "");
       return `<div class="model-card ${cls}">
         <div class="name">${escapeHtml(v.name)}</div>
         <div class="id">${escapeHtml(v.hf)}</div>
@@ -169,7 +235,7 @@
                   style="padding:6px 12px; font-size:12.5px;"
                   ${isLoaded || isLoading ? "disabled" : ""}
                   onclick="loadModel('${escapeHtml(v.key)}')">
-            ${isLoaded ? "Loaded ✓" : (isLoading ? "Loading…" : "Load")}
+            ${isLoaded ? "Loaded" : (isLoading ? "Loading..." : "Load")}
           </button>
         </div>
       </div>`;
@@ -185,7 +251,7 @@
         `[${e.ts || ""}] ${e.phase ? "(" + e.phase + ") " : ""}${e.severity || "info"}: ${e.message || ""}`);
       const el = document.getElementById("logs");
       if (lines.length === 0) {
-        el.textContent = "(no load events yet — pick a variant above to start a load)";
+        el.textContent = "(no load events yet. Pick a variant above to start a load)";
         return;
       }
       const wasBottom = el.scrollTop + el.clientHeight >= el.scrollHeight - 10;
@@ -196,6 +262,7 @@
 
   async function loadModel(variant) {
     if (!window.confirm(`Load ${variant}? GPU loads are not cancellable; the page will poll for progress.`)) return;
+    modelSetStep(1);
     try {
       const r = await fetch("/api/load-model", {
         method: "POST",
