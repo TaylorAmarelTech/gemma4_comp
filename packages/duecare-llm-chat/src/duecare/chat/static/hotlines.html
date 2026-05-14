@@ -73,8 +73,8 @@
   <header>
     
     <h1>Hotlines & contacts</h1>
-    <div class="sub" id="stats">Loading…</div>
-    <input id="search" type="text" placeholder="Search name / country / topic…" />
+    <div class="sub" id="stats">Loading...</div>
+    <input id="search" type="text" placeholder="Search name / country / topic..." />
   </header>
   <div class="filterbar">
     <select id="f-category"><option value="">All categories</option></select>
@@ -86,9 +86,11 @@
       <strong>Important:</strong> The DueCare harness <strong>never auto-sends</strong>
       reports on a user's behalf. Click-to-call (<code>tel:</code>) and click-to-email
       (<code>mailto:</code>) links open your device's phone app or mail client with
-      pre-filled context — <strong>you</strong> review and submit. Web-form URLs
+      pre-filled context. <strong>You</strong> review and submit. Web-form URLs
       open in a new tab. Auto-sending would create abuse vectors and remove
-      worker agency over the report. If a contact is wrong, please file an
+      worker agency over the report. Contacts are volatile knowledge-pack data:
+      verify the shown <code>last updated</code> value before relying on a phone
+      number, email, or form. If a contact is wrong, please file an
       issue at <code>github.com/TaylorAmarelTech/gemma4_comp</code> with the
       contact <code>id</code> and the corrected information.
     </div>
@@ -108,7 +110,7 @@
         entries = d.entries || [];
         categories = d.categories || {};
         document.getElementById('stats').textContent =
-          `${entries.length} contacts (schema ${d.schema}@${d.version}, last updated ${d.last_updated})`;
+          `${entries.length} contacts (${d.pack_type || d.schema}@${d.version}, last updated ${d.last_updated})`;
         // Populate filter dropdowns from data
         const catSel = document.getElementById('f-category');
         catSel.innerHTML = '<option value="">All categories</option>' +
@@ -158,11 +160,11 @@
       cardsDiv.innerHTML = visible.map(e => {
         const phones = [e.phone, e.phone_alt].filter(Boolean);
         const phoneBtns = phones.map(p =>
-          `<a class="btn" href="tel:${encodeURIComponent(p.replace(/[^+\d]/g, ''))}">📞 ${escapeHtml(p)}</a>`).join('');
-        const emailBtn = e.email ? `<a class="btn secondary" href="mailto:${encodeURIComponent(e.email)}?subject=Migrant-worker%20complaint%20referral">✉ ${escapeHtml(e.email)}</a>` : '';
-        const formBtn = e.web_form_url ? `<a class="btn secondary" href="${escapeHtml(e.web_form_url)}" target="_blank">📝 File complaint</a>` : '';
-        const webBtn  = e.web_url ? `<a class="btn secondary" href="${escapeHtml(e.web_url)}" target="_blank">🌐 Website</a>` : '';
-        const smsBtn  = e.sms ? `<a class="btn secondary" href="sms:${encodeURIComponent(e.sms)}">💬 SMS</a>` : '';
+          `<a class="btn" href="tel:${encodeURIComponent(p.replace(/[^+\d]/g, ''))}">Call ${escapeHtml(p)}</a>`).join('');
+        const emailBtn = e.email ? `<a class="btn secondary" href="mailto:${encodeURIComponent(e.email)}?subject=Migrant-worker%20complaint%20referral">Email ${escapeHtml(e.email)}</a>` : '';
+        const formBtn = e.web_form_url ? `<a class="btn secondary" href="${escapeHtml(e.web_form_url)}" target="_blank">Open form</a>` : '';
+        const webBtn  = e.web_url ? `<a class="btn secondary" href="${escapeHtml(e.web_url)}" target="_blank">Website</a>` : '';
+        const smsBtn  = e.sms ? `<a class="btn secondary" href="sms:${encodeURIComponent(e.sms)}">SMS</a>` : '';
         const socialEntries = Object.entries(e.social || {});
         const socialBtns = socialEntries.map(([platform, handle]) =>
           `<span class="chip">${escapeHtml(platform)}: ${escapeHtml(handle)}</span>`).join('');
@@ -182,12 +184,12 @@
             <h2>${escapeHtml(e.name)}</h2>
             <span class="badge ${escapeHtml(e.category)}">${escapeHtml(e.category)}</span>
           </div>
-          <div class="country">${escapeHtml(e.country || '')}${e.address ? ' · ' + escapeHtml(e.address) : ''}</div>
+          <div class="country">${escapeHtml(e.country || '')}${e.address ? ' | ' + escapeHtml(e.address) : ''}</div>
           <div class="actions">${phoneBtns}${smsBtn}${emailBtn}${formBtn}${webBtn}</div>
           <div class="meta">
             <span><span class="key">Response:</span>${escapeHtml(responseTime)}</span>
             ${e.after_hours_alternative ? `<span><span class="key">After-hours:</span>${escapeHtml(e.after_hours_alternative)}</span>` : ''}
-            ${e.verified ? `<span class="verified">✓ verified ${escapeHtml(e.verified)}</span>` : ''}
+            ${e.verified ? `<span class="verified">verified ${escapeHtml(e.verified)}</span>` : ''}
           </div>
           ${corridorChips ? `<div class="corridors">${corridorChips}</div>` : ''}
           ${langChips ? `<div class="langs">${langChips}</div>` : ''}

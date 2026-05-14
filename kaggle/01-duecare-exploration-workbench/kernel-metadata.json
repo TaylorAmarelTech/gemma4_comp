@@ -12,5 +12,15 @@
   "kernel_sources": [],
   "model_sources": [
     "google/gemma-4"
+  ],
+  "docker_image_pinning_type": "original",
+  "keywords": [
+    "gemma-4",
+    "anti-trafficking",
+    "migrant-workers",
+    "safety",
+    "harness",
+    "rag",
+    "evaluation"
   ]
 }

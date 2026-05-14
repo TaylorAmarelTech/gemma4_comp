@@ -1,6 +1,6 @@
 # <!-- duecare:kernel-intro -->
 # DueCare Live Demo (focused walkthrough)
-# Core notebook #02 of 27 in the DueCare submission (3 core + 24 appendix).
+# Core notebook #02 of 28 in the DueCare submission (3 core + 25 appendix).
 #
 # The polished demo URL judges land on. Same harness, scripted demo path, +56pp lift baked in.
 #
@@ -9,7 +9,7 @@
 #   - The retrieval-path trace card explains why the cited source was used.
 #   - The grading panel shows the rubric breakdown for the visible answer.
 #
-# Demo path: Run All -> open the live URL -> watch the scripted prompt sequence walk through the 6-layer story.
+# Demo path: Run All -> open the live URL -> watch the scripted prompt sequence walk through the five-layer safety story plus evidence trace.
 #
 # Full README + cross-kernel index: see the README in this folder.
 
