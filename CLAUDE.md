@@ -34,6 +34,30 @@ project memory level. Currently:
 - `60_notebook_presentation.md` — Kaggle-safe styling, no-truncation, pandas Styler + Markdown over raw HTML; shared helpers in `scripts/_notebook_display.py`
 - `70_workbench_ui_primitives.md` — every page needs an activity log + status discoverability + sample artifact + trust boundary; model loading defaults to ONE model at a time (multi is opt-in via settings); shared `.dc-activity-log` CSS + `_activity_log.js` helper
 
+## Recording-critical surfaces
+
+Before a video recording pass, treat these four Kaggle kernels as the
+blocking set:
+
+- `kaggle/01-duecare-exploration-workbench`: broad reviewer workbench.
+  Every page should load from a direct URL, share the top model state,
+  show an activity log, and expose the trust boundary for its workflow.
+- `kaggle/02-live-demo`: focused interactive demo path. Use cached or
+  pre-generated scenes when live model latency would weaken the story.
+- `kaggle/03-duecare-video-pitch`: slide-first recording surface. The
+  validation slide should point to A-00 exports, not just the replay.
+- `kaggle/A-00-omni-experiment-workbench`: technical proof control plane.
+  It must cover bulk prompt runs, harness profiles, import/export, grading,
+  synthetic SFT/DPO generation, tiny training smoke bundles, and report
+  export for baseline vs harness vs fine-tuned comparisons.
+
+Do not hardcode volatile phone numbers, URLs, fee caps, wage rules, or
+office names into training targets or page copy unless they are also
+represented as versioned knowledge objects. Stable response structure,
+privacy boundaries, refusal style, ILO indicator reasoning, and evidence
+citation habits are appropriate for fine-tuning. Volatile contacts and
+current rules should come from tools, RAG, or synced knowledge packs.
+
 ## Execution phases (the 4-phase arc)
 
 | Phase | Name | Core Question | Deliverable |

@@ -168,12 +168,40 @@ def test_shared_nav_injects_fallback_activity_log(client):
     nav_js = client.get("/static/_nav.js").text
     chrome = client.get("/static/_chrome.css").text
     assert "ensureDefaultActivityLog" in nav_js
-    assert "dc-wb-auto-log-card" in nav_js
+    assert "dc-wb-auto-log-card" in chrome
     assert "/static/_activity_log.js" in nav_js
     assert "instrumentFetchForAutoLog" in nav_js
     assert "shouldAutoLogFetch" in nav_js
     assert "document.querySelector('.dc-activity-log')" in nav_js
     assert ".dc-wb-auto-log-card" in chrome
+
+
+def test_chat_import_layer_catalog_serves_local_evidence(client):
+    """The Chat Import tile exposes a configure link, so the matching
+    harness catalog route must be a real endpoint too.
+    """
+    empty = client.get("/api/harness-catalog/import")
+    assert empty.status_code == 200
+    assert empty.json()["layer"] == "import"
+    assert empty.json()["items"] == []
+
+    added = client.post(
+        "/api/import/snippet",
+        json={
+            "title": "PH-HK fee note",
+            "source": "test fixture",
+            "text": "A Manila recruiter charged PHP 45,000 as a processing loan.",
+        },
+    )
+    assert added.status_code == 200
+    filled = client.get("/api/harness-catalog/import")
+    assert filled.status_code == 200
+    data = filled.json()
+    assert data["n_items"] == 1
+    assert data["items"][0]["title"] == "PH-HK fee note"
+    assert "processing loan" in data["items"][0]["preview"]
+
+    client.delete("/api/import")
 
 
 def test_shared_nav_maps_utility_pages_to_parent_nav_items(client):

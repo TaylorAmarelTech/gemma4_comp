@@ -2990,17 +2990,18 @@ def create_app(
     def api_harness_catalog(layer: str) -> Any:
         """Return a JSON catalog of what each harness layer exposes.
 
-        Layers: 'grep' (161 regex rules), 'rag' (54-doc corpus),
+        Layers: 'grep' (live regex rules), 'rag' (live corpus),
                 'tools' (5 lookups + their backing tables),
-                'online' (search providers), 'persona' (persona library).
+                'online' (search providers), 'persona' (persona library),
+                'import' (local imported evidence metadata).
 
         The kernel can override the default by setting
-        `app.state.{grep,rag,tools,online,persona}_catalog` to something
+        `app.state.{grep,rag,tools,online,persona,import}_catalog` to something
         serializable; otherwise we expose the in-process harness data
         directly so the static catalog pages always have something to
         render.
         """
-        valid_layers = ("grep", "rag", "tools", "online", "persona")
+        valid_layers = ("grep", "rag", "tools", "online", "persona", "import")
         if layer not in valid_layers:
             raise HTTPException(404, f"unknown layer {layer}")
         catalog = getattr(app.state, f"{layer}_catalog", None)
@@ -3094,6 +3095,35 @@ def create_app(
                                  "Default: DuckDuckGo HTML; with BRAVE_API_KEY "
                                  "Brave Search is preferred. Appendix A9 also "
                                  "supports Playwright-driven agentic web.")}
+
+        if layer == "import":
+            with _IMPORT_LOCK:
+                docs = sorted(
+                    _IMPORT_STORE.values(),
+                    key=lambda d: -d.get("uploaded_at", 0),
+                )
+                items = [{
+                    "id": d.get("id", ""),
+                    "title": d.get("title", ""),
+                    "source": d.get("source", ""),
+                    "size_bytes": d.get("size_bytes", 0),
+                    "uploaded_at": d.get("uploaded_at", 0),
+                    "preview": (d.get("text") or "")[:240],
+                } for d in docs]
+                total_bytes = _import_total_bytes()
+            return {
+                "layer": "import",
+                "wired": True,
+                "n_items": len(items),
+                "items": items,
+                "total_bytes": total_bytes,
+                "max_docs": _IMPORT_MAX_DOCS,
+                "max_bytes": _IMPORT_MAX_TOTAL_BYTES,
+                "note": (
+                    "Imported evidence is stored only in this kernel and is "
+                    "used by Gemma-backed harnesses when the Import layer is on."
+                ),
+            }
 
         # persona
         try:
