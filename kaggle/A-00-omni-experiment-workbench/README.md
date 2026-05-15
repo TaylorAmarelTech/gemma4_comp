@@ -89,6 +89,11 @@ Use these recipes as the minimum pre-submission validation set:
    OCR, metadata, and, for larger multimodal variants, page images. Cloud or
    frontier models can be noted as future enhancement, but the demo path keeps
    raw case material local.
+12. **Prompt-tree experimentation:** Start each document/page/page-item with
+   classification, then branch into targeted prompts for receipts, chat
+   screenshots, contracts, cross-document linking, and knowledge-object
+   synthesis. A-00 can compare quick, standard, and exhaustive local budgets
+   before and after importing reviewed knowledge files.
 
 ## Small-Model Fine-Tune Smoke Path
 

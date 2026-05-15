@@ -10,6 +10,7 @@ import csv as _csv
 import hashlib as _hashlib
 import io as _io
 import json as _json
+import os as _os
 import re as _re
 import threading as _threading
 import zipfile
@@ -28,6 +29,7 @@ from .prompts import (
     GRAPH_CHAT_SYSTEM_PROMPT,
     GRAPH_EDGE_EXTRACTION_SYSTEM_PROMPT,
     GRAPH_EDGE_PROMPT_TEMPLATES,
+    PAGE_ITEM_PROMPT_TREE,
     build_context_block,
     build_graph_edge_extraction_prompt,
 )
@@ -40,6 +42,48 @@ _SPREADSHEET_EXTS = {".xlsx"}
 _OFFICE_DOC_EXTS = {".doc", ".docx", ".xls", ".xlsx", ".ppt", ".pptx", ".msg"}
 _DOC_IMAGE_EXTS = _MEDIA_EXTS | {".pdf"} | _OFFICE_DOC_EXTS
 _CHUNK_CHARS = 4500
+_PROCESS_REVIEW_MODES: dict[str, dict[str, Any]] = {
+    "quick_triage": {
+        "id": "quick_triage",
+        "label": "Quick triage",
+        "runtime_budget_minutes": 5,
+        "max_gemma_calls": 20,
+        "gemma_calls_per_item": 1,
+        "edge_strictness": "conservative",
+        "routing": "deterministic_all_items_gemma_high_risk_only",
+        "description": "Fast first pass for very large uploads. Deterministic extraction runs everywhere; Gemma is reserved for highest-risk items and repeated entities.",
+    },
+    "standard_review": {
+        "id": "standard_review",
+        "label": "Standard review",
+        "runtime_budget_minutes": 15,
+        "max_gemma_calls": 75,
+        "gemma_calls_per_item": 1,
+        "edge_strictness": "balanced",
+        "routing": "classify_all_items_gemma_high_signal_and_media",
+        "description": "Recommended default. OCR/layout and deterministic edges run broadly; Gemma reviews high-signal text, media, receipts, chats, contracts, and repeated clusters.",
+    },
+    "exhaustive_review": {
+        "id": "exhaustive_review",
+        "label": "Exhaustive review",
+        "runtime_budget_minutes": 60,
+        "max_gemma_calls": 240,
+        "gemma_calls_per_item": 2,
+        "edge_strictness": "exploratory",
+        "routing": "classify_and_target_every_page_item_with_budget",
+        "description": "Deep local review for smaller bundles or final case prep. Gemma can run multiple targeted prompts per page item until the local budget is exhausted.",
+    },
+}
+_DEFAULT_PAGE_ITEM_TYPES = [
+    "text_block",
+    "table",
+    "image_or_screenshot",
+    "receipt",
+    "contract_or_form",
+    "signature_or_stamp",
+    "audio_segment",
+    "video_frame_or_scene",
+]
 _DATE_RE = _re.compile(r"\b(?:20\d{2}[-/]\d{1,2}[-/]\d{1,2}|\d{1,2}\s+(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\s+20\d{2})\b", _re.IGNORECASE)
 _CASE_RE = _re.compile(r"\b(?:DC-)?PH[-_ ]?HK[-_ ]?\d{3}\b|\bperson[-_ ]?\d{3}\b|\bCASE[-_ ]?\d{3}\b", _re.IGNORECASE)
 _NAME_RE = _re.compile(r"\b(?:name|worker_name|complainant|subject)\s*[:=]\s*([A-Z][A-Za-z.' -]{2,60})")
@@ -98,6 +142,165 @@ def _stage_upload(filename: str, contents: bytes, run_id: str) -> dict:
     except Exception as exc:
         out["error"] = f"{type(exc).__name__}: {exc}"[:240]
     return out
+
+
+def _process_mode(mode_id: str | None = None) -> dict[str, Any]:
+    mode = _PROCESS_REVIEW_MODES.get(str(mode_id or "").strip()) or _PROCESS_REVIEW_MODES["standard_review"]
+    return dict(mode)
+
+
+def _int_setting(value: Any, default: int, *, minimum: int, maximum: int) -> int:
+    try:
+        out = int(value)
+    except Exception:
+        out = default
+    return max(minimum, min(maximum, out))
+
+
+def _bool_setting(value: Any, default: bool = False) -> bool:
+    if value is None:
+        return default
+    return str(value).strip().lower() in {"1", "true", "yes", "on", "checked"}
+
+
+def _parse_json_list(value: Any, default: list[str]) -> list[str]:
+    if value is None:
+        return list(default)
+    if isinstance(value, list):
+        raw = value
+    else:
+        try:
+            raw = _json.loads(str(value))
+        except Exception:
+            raw = str(value).split(",")
+    out: list[str] = []
+    for item in raw:
+        text = _slug_id(str(item or ""))
+        if text and text not in out:
+            out.append(text)
+    return out or list(default)
+
+
+def _process_settings_from_mapping(data: Any | None = None) -> dict[str, Any]:
+    data = data or {}
+    mode = _process_mode(data.get("review_mode") or data.get("mode"))
+    page_item_types = _parse_json_list(data.get("page_item_types"), _DEFAULT_PAGE_ITEM_TYPES)
+    runtime_default = int(mode.get("runtime_budget_minutes") or 15)
+    calls_default = int(mode.get("max_gemma_calls") or 75)
+    per_item_default = int(mode.get("gemma_calls_per_item") or 1)
+    strictness = str(data.get("edge_strictness") or mode.get("edge_strictness") or "balanced")
+    if strictness not in {"conservative", "balanced", "exploratory"}:
+        strictness = str(mode.get("edge_strictness") or "balanced")
+    return {
+        "schema_version": "duecare.process.settings.v1",
+        "review_mode": mode,
+        "runtime_budget_minutes": _int_setting(
+            data.get("runtime_budget_minutes"),
+            runtime_default,
+            minimum=1,
+            maximum=240,
+        ),
+        "max_gemma_calls": _int_setting(
+            data.get("max_gemma_calls"),
+            calls_default,
+            minimum=0,
+            maximum=1000,
+        ),
+        "gemma_calls_per_item": _int_setting(
+            data.get("gemma_calls_per_item"),
+            per_item_default,
+            minimum=0,
+            maximum=5,
+        ),
+        "edge_strictness": strictness,
+        "generate_knowledge_candidates": _bool_setting(
+            data.get("generate_knowledge_candidates"),
+            True,
+        ),
+        "include_imported_knowledge": _bool_setting(
+            data.get("include_imported_knowledge"),
+            True,
+        ),
+        "page_item_types": page_item_types,
+        "advanced_open_by_default": False,
+    }
+
+
+def _process_settings_from_form(form: Any) -> dict[str, Any]:
+    return _process_settings_from_mapping({
+        "review_mode": form.get("review_mode"),
+        "runtime_budget_minutes": form.get("runtime_budget_minutes"),
+        "max_gemma_calls": form.get("max_gemma_calls"),
+        "gemma_calls_per_item": form.get("gemma_calls_per_item"),
+        "edge_strictness": form.get("edge_strictness"),
+        "generate_knowledge_candidates": form.get("generate_knowledge_candidates"),
+        "include_imported_knowledge": form.get("include_imported_knowledge"),
+        "page_item_types": form.get("page_item_types"),
+    })
+
+
+def _knowledge_roots_for_process() -> list[_Path]:
+    roots: list[_Path] = []
+    env_root = _os.getenv("DUECARE_KNOWLEDGE_ROOT")
+    if env_root:
+        roots.append(_Path(env_root))
+    roots.extend((_Path("/kaggle/working/knowledge"), _Path(".") / ".duecare-knowledge"))
+    return roots
+
+
+def _load_local_knowledge_context(limit: int = 24) -> dict[str, Any]:
+    """Read imported/promoted KnowledgeObject envelopes for local Gemma context."""
+    objects: list[dict[str, Any]] = []
+    seen: set[str] = set()
+    for root in _knowledge_roots_for_process():
+        if not root.exists():
+            continue
+        for path in sorted(root.glob("*/*.json")):
+            if len(objects) >= limit:
+                break
+            try:
+                env = _json.loads(path.read_text(encoding="utf-8"))
+            except Exception:
+                continue
+            ko_type = str(env.get("knowledge_object_type") or path.parent.name)
+            ko_id = str(env.get("id") or path.stem)
+            key = f"{ko_type}/{ko_id}"
+            if key in seen:
+                continue
+            seen.add(key)
+            content = env.get("content") or {}
+            summary = ""
+            if isinstance(content, dict):
+                for candidate_key in ("title", "label", "description", "text", "pattern", "name"):
+                    val = content.get(candidate_key)
+                    if val:
+                        summary = " ".join(str(val).split())[:360]
+                        break
+                if not summary:
+                    summary = _json.dumps(content, ensure_ascii=False)[:360]
+            objects.append({
+                "type": ko_type,
+                "id": ko_id,
+                "version": env.get("version"),
+                "summary": summary,
+                "tags": env.get("tags") or [],
+                "path": str(path),
+                "last_verified_at": (env.get("provenance") or {}).get("last_verified_at")
+                    or (env.get("extensions") or {}).get("last_verified_at"),
+            })
+        if len(objects) >= limit:
+            break
+    by_type: dict[str, int] = {}
+    for obj in objects:
+        by_type[obj["type"]] = by_type.get(obj["type"], 0) + 1
+    return {
+        "schema_version": "duecare.process.knowledge_context.v1",
+        "local_only": True,
+        "sources": [str(root) for root in _knowledge_roots_for_process()],
+        "n_objects": len(objects),
+        "by_type": by_type,
+        "objects": objects,
+    }
 
 
 def _norm_case_id(text: str) -> str | None:
@@ -900,7 +1103,15 @@ def _build_graph_view(
     }
 
 
-def _build_intelligence(rows: list[dict], results: list[dict]) -> dict:
+def _build_intelligence(
+    rows: list[dict],
+    results: list[dict],
+    *,
+    process_settings: dict[str, Any] | None = None,
+    knowledge_context: dict[str, Any] | None = None,
+) -> dict:
+    process_settings = process_settings or _process_settings_from_mapping({})
+    knowledge_context = knowledge_context or _load_local_knowledge_context(limit=24)
     """Create the process-harness intelligence view shown in the UI.
 
     This is intentionally deterministic and fast. When Gemma is loaded,
@@ -1328,6 +1539,24 @@ def _build_intelligence(rows: list[dict], results: list[dict]) -> dict:
 
     processing_plan = {
         "schema_version": "duecare.process.processing_plan.v1",
+        "review_mode": process_settings.get("review_mode") or _process_mode(),
+        "process_settings": process_settings,
+        "gemma_budget": {
+            "runtime_budget_minutes": process_settings.get("runtime_budget_minutes", 15),
+            "max_gemma_calls": process_settings.get("max_gemma_calls", 75),
+            "gemma_calls_per_item": process_settings.get("gemma_calls_per_item", 1),
+            "edge_strictness": process_settings.get("edge_strictness", "balanced"),
+            "knowledge_candidates_enabled": bool(process_settings.get("generate_knowledge_candidates", True)),
+            "include_imported_knowledge": bool(process_settings.get("include_imported_knowledge", True)),
+        },
+        "page_item_prompt_tree": PAGE_ITEM_PROMPT_TREE,
+        "knowledge_context": knowledge_context if process_settings.get("include_imported_knowledge", True) else {
+            "schema_version": "duecare.process.knowledge_context.v1",
+            "local_only": True,
+            "n_objects": 0,
+            "objects": [],
+            "disabled_by_settings": True,
+        },
         "n_parent_documents": len(parent_docs),
         "n_pages": sum(int(d.get("n_pages") or 0) for d in parent_document_rows),
         "n_chunks": len(rows),
@@ -1364,6 +1593,12 @@ def _build_intelligence(rows: list[dict], results: list[dict]) -> dict:
                     "status": "queued_contract_when_multimodal_model_loaded",
                 },
             ],
+            "knowledge_object_context": (
+                "Imported/promoted local KnowledgeObject envelopes can be read "
+                "into the Gemma edge/RAG prompt as versioned context. They are "
+                "not treated as automatic truth; they guide extraction and "
+                "remain visible for reviewer audit."
+            ),
             "frontier_model_note": (
                 "Frontier cloud models could enhance OCR or visual QA in other deployments, "
                 "but this workbench is designed for local Gemma 4 and local preprocessing."
@@ -1392,6 +1627,8 @@ def _build_intelligence(rows: list[dict], results: list[dict]) -> dict:
                 "layout_region_detection",
                 "local_ocr_or_asr",
                 "document_classification",
+                "page_item_classification",
+                "targeted_prompt_branching",
                 "deterministic_entity_edges",
                 "gemma4_text_edge_pass",
                 "gemma4_multimodal_edge_pass_when_available",
@@ -1424,8 +1661,13 @@ def _build_intelligence(rows: list[dict], results: list[dict]) -> dict:
             },
             {
                 "id": "gemma_page_questions",
-                "label": "Gemma 4 page-question pass",
-                "detail": "Each queued image, scan, or PDF page carries standard questions for document identification, visible entities, visual/text agreement, and trafficking indicators.",
+                "label": "Gemma 4 page-item prompt tree",
+                "detail": "Each document/page/page-region starts with classification, then routes into targeted prompts for receipts, chats, contracts, cross-document linking, and knowledge-object candidates within the selected local budget.",
+            },
+            {
+                "id": "knowledge_object_context",
+                "label": "Local knowledge-object context",
+                "detail": "Imported knowledge files can supply reviewed rules, patterns, prompt templates, RAG docs, and fact templates for continuous local improvement of the Gemma edge/RAG pass.",
             },
             {
                 "id": "typed_graph_edges",
@@ -1511,6 +1753,7 @@ def _build_intelligence(rows: list[dict], results: list[dict]) -> dict:
             "status": "not_run",
             "detail": "Run /api/process/graph-extract after review to ask local Gemma 4 for additional typed edges and RAG candidates.",
             "prompt_templates": GRAPH_EDGE_PROMPT_TEMPLATES,
+            "page_item_prompt_tree": PAGE_ITEM_PROMPT_TREE,
         },
         "graph": graph,
         "journey_points": _balanced_journey_points(journey_points, limit=120),
@@ -2123,6 +2366,9 @@ def _gemma_edge_pass(app: Any, bundle: dict, *, prompt_id: str, limit: int) -> d
         "local_only": True,
         "remote_api_calls": False,
         "prompt_templates": GRAPH_EDGE_PROMPT_TEMPLATES,
+        "page_item_prompt_tree": PAGE_ITEM_PROMPT_TREE,
+        "process_settings": (bundle.get("config") or {}).get("process_settings") or {},
+        "knowledge_context": (bundle.get("config") or {}).get("local_knowledge_context") or {},
         "seed_typed_edges": deterministic_edges,
         "rag_candidates": deterministic_candidates,
     }
@@ -2222,8 +2468,21 @@ def register_routes(app: Any) -> None:
         *,
         progress: Any | None = None,
         job_id: str | None = None,
+        process_settings: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         """Build the process bundle synchronously, with optional job progress."""
+        process_settings = process_settings or _process_settings_from_mapping({})
+        knowledge_context = (
+            _load_local_knowledge_context(limit=24)
+            if process_settings.get("include_imported_knowledge", True)
+            else {
+                "schema_version": "duecare.process.knowledge_context.v1",
+                "local_only": True,
+                "n_objects": 0,
+                "objects": [],
+                "disabled_by_settings": True,
+            }
+        )
         def mark(phase: str, pct: int, detail: str) -> None:
             if progress:
                 progress(phase=phase, pct=pct, detail=detail)
@@ -2258,6 +2517,14 @@ def register_routes(app: Any) -> None:
                 "source": filename,
                 "gemma_case_brief": "deferred",
                 "processing_mode": "async_job" if job_id else "direct",
+                "process_settings": process_settings,
+                "local_knowledge_context": {
+                    "local_only": True,
+                    "n_objects": knowledge_context.get("n_objects", 0),
+                    "by_type": knowledge_context.get("by_type", {}),
+                    "sources": knowledge_context.get("sources", []),
+                    "disabled_by_settings": knowledge_context.get("disabled_by_settings", False),
+                },
             },
             "metadata": {"started_at": ts, "completed_at": ts, "host": "kernel-01"},
             "summary": {
@@ -2272,7 +2539,12 @@ def register_routes(app: Any) -> None:
             },
             "results": results,
         }
-        intelligence = _build_intelligence(capped, results)
+        intelligence = _build_intelligence(
+            capped,
+            results,
+            process_settings=process_settings,
+            knowledge_context=knowledge_context,
+        )
         mark("brief", 80, "Creating deterministic case brief; Gemma 4 vision/OCR remains explicit when not wired.")
         deterministic_brief = _deterministic_case_brief(bundle, intelligence)
         gemma_brief = {
@@ -2352,7 +2624,12 @@ def register_routes(app: Any) -> None:
             _summary = bundle.get("summary") or {}
             _log(
                 "process",
-                input_payload={"filename": filename, "n_rows": len(rows)},
+                input_payload={
+                    "filename": filename,
+                    "n_rows": len(rows),
+                    "review_mode": (process_settings.get("review_mode") or {}).get("id"),
+                    "max_gemma_calls": process_settings.get("max_gemma_calls"),
+                },
                 output_payload={
                     "run_id": bundle.get("run_id"),
                     "n_processed": _summary.get("n_rows_processed", 0),
@@ -2360,6 +2637,7 @@ def register_routes(app: Any) -> None:
                     "entity_totals": _summary.get("entity_totals", {}),
                     "n_people_detected": _summary.get("n_people_detected", 0),
                     "n_typed_edges": _summary.get("n_typed_edges", 0),
+                    "n_imported_knowledge_objects": knowledge_context.get("n_objects", 0),
                     "gemma_case_brief_status": _summary.get("gemma_case_brief_status"),
                 },
                 applied_layers={"grep": {"fired": _summary.get("n_grep_rules_fired", 0) > 0}},
@@ -2383,7 +2661,12 @@ def register_routes(app: Any) -> None:
             raise HTTPException(400, "no `file` field in multipart upload")
         contents = await upload.read()
         filename = getattr(upload, "filename", "uploaded") or "uploaded"
-        return JSONResponse(_build_process_bundle(filename, contents))
+        process_settings = _process_settings_from_form(form)
+        return JSONResponse(_build_process_bundle(
+            filename,
+            contents,
+            process_settings=process_settings,
+        ))
 
     @app.post("/api/process/batch/start")
     async def api_process_batch_start(request: Request) -> Any:
@@ -2394,6 +2677,7 @@ def register_routes(app: Any) -> None:
             raise HTTPException(400, "no `file` field in multipart upload")
         contents = await upload.read()
         filename = getattr(upload, "filename", "uploaded") or "uploaded"
+        process_settings = _process_settings_from_form(form)
         job_id = f"process_{_uuid4().hex[:12]}"
         now = _dt.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
         jobs, lock = _process_jobs()
@@ -2405,6 +2689,7 @@ def register_routes(app: Any) -> None:
                 "pct": 6,
                 "filename": filename,
                 "bytes": len(contents),
+                "process_settings": process_settings,
                 "created_at": now,
                 "updated_at": now,
                 "events": [{
@@ -2429,6 +2714,7 @@ def register_routes(app: Any) -> None:
                     filename,
                     contents,
                     job_id=job_id,
+                    process_settings=process_settings,
                     progress=lambda **kw: _process_job_update(job_id, status="running", **kw),
                 )
                 _process_job_update(
@@ -2458,6 +2744,7 @@ def register_routes(app: Any) -> None:
             "pct": 6,
             "filename": filename,
             "bytes": len(contents),
+            "process_settings": process_settings,
             "poll_url": f"/api/process/batch/status/{job_id}",
         })
 
@@ -2491,6 +2778,33 @@ def register_routes(app: Any) -> None:
                 "bundle_present": False,
                 "message": "Upload and process a bundle before running the Gemma edge pass.",
             })
+        settings = (
+            (bundle.get("config") or {}).get("process_settings")
+            or _process_settings_from_mapping({})
+        )
+        if settings.get("include_imported_knowledge", True):
+            knowledge_context = _load_local_knowledge_context(limit=24)
+        else:
+            knowledge_context = {
+                "schema_version": "duecare.process.knowledge_context.v1",
+                "local_only": True,
+                "n_objects": 0,
+                "objects": [],
+                "disabled_by_settings": True,
+            }
+        bundle.setdefault("config", {})["process_settings"] = settings
+        bundle["config"]["local_knowledge_context"] = {
+            "local_only": True,
+            "n_objects": knowledge_context.get("n_objects", 0),
+            "by_type": knowledge_context.get("by_type", {}),
+            "sources": knowledge_context.get("sources", []),
+            "disabled_by_settings": knowledge_context.get("disabled_by_settings", False),
+        }
+        bundle["config"]["imported_knowledge_objects"] = (
+            knowledge_context.get("objects", [])[:12]
+            if settings.get("include_imported_knowledge", True)
+            else []
+        )
         out = _gemma_edge_pass(app, bundle, prompt_id=prompt_id, limit=limit)
         intelligence = bundle.setdefault("intelligence", {})
         intelligence["gemma_edge_pass"] = out
@@ -2511,6 +2825,8 @@ def register_routes(app: Any) -> None:
                     "local_only": True,
                     "remote_api_calls": False,
                     "prompt_templates": [t.get("id") for t in GRAPH_EDGE_PROMPT_TEMPLATES],
+                    "page_item_prompt_tree": [p.get("phase") for p in PAGE_ITEM_PROMPT_TREE],
+                    "knowledge_context": bundle["config"].get("local_knowledge_context"),
                 },
                 extra={"kind": "graph_extract"},
             )
@@ -2521,6 +2837,8 @@ def register_routes(app: Any) -> None:
             "bundle_present": True,
             "evidence_edges": (bundle.get("summary") or {}).get("n_evidence_edges", 0),
             "typed_edges": (intelligence.get("typed_edges") or [])[:limit],
+            "knowledge_context": bundle["config"].get("local_knowledge_context"),
+            "page_item_prompt_tree": PAGE_ITEM_PROMPT_TREE,
         })
 
     @app.post("/api/process/graph-chat")

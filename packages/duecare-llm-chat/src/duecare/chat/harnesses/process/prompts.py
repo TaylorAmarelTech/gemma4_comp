@@ -18,6 +18,15 @@ GRAPH_CHAT_SYSTEM_PROMPT = (
 
 GRAPH_EDGE_PROMPT_TEMPLATES: list[dict] = [
     {
+        "id": "page_item_classification",
+        "label": "Classify page item",
+        "purpose": (
+            "Ask Gemma 4 to classify one page item or OCR/text block before "
+            "routing it into targeted extraction prompts."
+        ),
+        "output_keys": ["item_type", "risk_signals", "recommended_next_prompts", "uncertainties"],
+    },
+    {
         "id": "case_graph_edges",
         "label": "Extract case graph edges",
         "purpose": (
@@ -52,6 +61,102 @@ GRAPH_EDGE_PROMPT_TEMPLATES: list[dict] = [
             "screenshots, receipts, and PDFs that remain queued as media assets."
         ),
         "output_keys": ["media_questions", "edges", "uncertainties"],
+    },
+    {
+        "id": "receipt_payment_extraction",
+        "label": "Extract payment/receipt edges",
+        "purpose": (
+            "Ask Gemma 4 to extract payer, payee, amount, date, fee label, "
+            "receipt channel, and source evidence from receipt-like page items."
+        ),
+        "output_keys": ["edges", "amounts", "uncertainties"],
+    },
+    {
+        "id": "chat_screenshot_extraction",
+        "label": "Extract chat screenshot edges",
+        "purpose": (
+            "Ask Gemma 4 to extract speaker roles, fee demands, threats, "
+            "deduction language, dates, and row/page evidence from chat screenshots."
+        ),
+        "output_keys": ["edges", "timeline_events", "uncertainties"],
+    },
+    {
+        "id": "contract_clause_extraction",
+        "label": "Extract contract clause edges",
+        "purpose": (
+            "Ask Gemma 4 to extract clauses about recruitment fees, salary "
+            "deductions, repayment, passport handling, termination penalties, "
+            "forum selection, substitution, and work restrictions."
+        ),
+        "output_keys": ["edges", "clause_flags", "uncertainties"],
+    },
+]
+
+PAGE_ITEM_PROMPT_TREE: list[dict] = [
+    {
+        "phase": "classify",
+        "prompt_id": "page_item_classification",
+        "applies_to": ["document", "page", "page_region", "text_block", "table", "image_or_screenshot", "audio_segment", "video_frame_or_scene"],
+        "questions": [
+            "What kind of page item is this?",
+            "Does it contain fee, debt, deduction, identity-document, threat, travel, agency, employer, or complaint signals?",
+            "Which targeted prompt should run next, if any?",
+        ],
+        "outputs": ["item_type", "risk_signals", "recommended_next_prompts", "confidence"],
+    },
+    {
+        "phase": "target_fee_payment",
+        "prompt_id": "receipt_payment_extraction",
+        "branch_when": ["item_type in receipt|payment_schedule|bank_record|mobile_wallet|invoice", "risk_signals contains fee|loan|deduction|amount"],
+        "questions": [
+            "What amount, currency, payer, payee, date, and fee label are visible?",
+            "Is this tied to recruitment, training, medical, processing, placement, or salary deduction?",
+            "What exact evidence quote or visual field supports the edge?",
+        ],
+        "outputs": ["charged_or_collected_fee", "fee_amount_observed", "payment_channel", "candidate_rag_grounding"],
+    },
+    {
+        "phase": "target_chat",
+        "prompt_id": "chat_screenshot_extraction",
+        "branch_when": ["item_type in chat_screenshot|message_export|email_thread", "risk_signals contains threat|fee|passport|deduction"],
+        "questions": [
+            "Who appears to be requesting action and who is receiving it?",
+            "Does the message contain fee demands, repayment, salary deduction, passport control, or retaliation language?",
+            "Which row/page/bbox or quote should anchor each edge?",
+        ],
+        "outputs": ["threat_or_retaliation_signal", "salary_deduction_signal", "document_control_signal", "dated_evidence"],
+    },
+    {
+        "phase": "target_contract",
+        "prompt_id": "contract_clause_extraction",
+        "branch_when": ["item_type in contract|agreement|side_letter|policy|terms", "risk_signals contains clause|deduction|fee|passport|penalty"],
+        "questions": [
+            "Which clauses change worker obligations, fees, documents, repayment, termination, forum, or wages?",
+            "Does the clause conflict with folder facts, payment evidence, or corridor knowledge?",
+            "What clause text anchors each edge?",
+        ],
+        "outputs": ["contract_clause_flag", "salary_deduction_signal", "document_control_signal", "rule_hit"],
+    },
+    {
+        "phase": "cross_document_link",
+        "prompt_id": "cross_document_linking",
+        "branch_when": ["same agency|recruiter|employer|phone|amount|phrase appears in multiple rows", "review mode is standard_review or exhaustive_review"],
+        "questions": [
+            "Which non-PII entities, organizations, aliases, folders, amounts, and phrases repeat across documents?",
+            "Which links are direct evidence and which are hypotheses needing review?",
+        ],
+        "outputs": ["same_actor_or_phrase", "filed_under", "candidate_rag_grounding"],
+    },
+    {
+        "phase": "knowledge_candidate",
+        "prompt_id": "rag_candidate_synthesis",
+        "branch_when": ["repeated pattern across cases", "reviewer enabled knowledge-object suggestions"],
+        "questions": [
+            "Can this repeated pattern become a general modus-operandi note, fact template, or context snippet?",
+            "Which source rows and deterministic edges support the candidate?",
+            "Does the candidate avoid PII and preserve provenance?",
+        ],
+        "outputs": ["modus_operandi", "fact_template", "context_snippet", "extracted_fact"],
     },
 ]
 
@@ -90,6 +195,20 @@ def build_graph_edge_extraction_prompt(
         "local_only": True,
         "remote_api_calls": False,
         "prompt_template": template,
+        "page_item_prompt_tree": PAGE_ITEM_PROMPT_TREE,
+        "processing_settings": (
+            (bundle.get("config") or {}).get("process_settings")
+            or (bundle.get("config") or {}).get("processing_settings")
+            or {}
+        ),
+        "imported_knowledge_objects": (
+            (bundle.get("config") or {}).get("imported_knowledge_objects")
+            or []
+        )[:12],
+        "local_knowledge_context": (
+            (bundle.get("config") or {}).get("local_knowledge_context")
+            or {}
+        ),
         "bundle_summary": bundle.get("summary") or {},
         "allowed_edge_types": [
             "charged_or_collected_fee",
