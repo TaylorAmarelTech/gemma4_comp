@@ -95,6 +95,10 @@ def test_search_page_blocks_when_page_sanitizer_fails(client):
     assert "body: JSON.stringify(envelope)" in text
     assert 'id="search-step-query" open' in text
     assert "What this workflow does" in text
+    assert "Search does not require Gemma" in text
+    assert "Result-to-knowledge path" in text
+    assert "deeper Gemma drafting belongs in Knowledge Extraction" in text
+    assert "Current phone numbers" in text
     assert 'id="results-card"' in text
     assert 'id="drafts-card"' in text
     assert 'id="search-activity-card"' in text
@@ -162,6 +166,10 @@ def test_knowledge_page_uses_guided_auto_suggestion_flow(client):
     assert "let _dcLog = null" in text
     assert "window.addEventListener('DOMContentLoaded', wbGetLog)" in text
     assert "Model required before knowledge drafting" in text
+    assert "Draft prompt path" in text
+    assert "never treated as automatic truth" in text
+    assert "Small text models work best" in text
+    assert "media-derived claims should stay" in text
     assert "Extraction harness path" not in text
 
 
@@ -235,6 +243,9 @@ def test_share_page_has_bulk_review_selection_controls(client):
     assert "Upload source bundle or knowledge files" in text
     assert "gemma_review: true" in text
     assert "Gemma privacy review" in text
+    assert "optionally Gemma-review selected items" in text
+    assert "Gemma privacy review is a second local check" in text
+    assert "human review remains required" in text
     assert "knowledge_files_sample.zip" in text
     assert "case_files_media_rich_sample.zip" in text
     assert '/static/_activity_log.js' in text
