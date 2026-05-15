@@ -91,6 +91,11 @@ def test_search_page_blocks_when_page_sanitizer_fails(client):
     assert "target_leaf: 'auto'" in text
     assert "searchSaveOneDraft" in text
     assert "body: JSON.stringify(d.envelope)" in text
+    assert 'id="search-step-query" open' in text
+    assert 'id="results-card"' in text
+    assert 'id="drafts-card"' in text
+    assert "function searchSetWorkflow" in text
+    assert 'id="search-pipeline"' not in text
 
 
 def test_knowledge_page_uses_guided_auto_suggestion_flow(client):
@@ -247,6 +252,7 @@ def test_process_page_has_graph_visualization_and_graph_chat_logging(client):
     assert 'id="wb-step-process"' in text
     assert 'id="wb-step-intelligence"' in text
     assert 'id="wb-step-export"' in text
+    assert "#wb-results { display: grid; gap: 12px; }" in text
     assert "Process harness path" not in text
     assert 'id="wb-static-pipeline"' not in text
     assert 'id="pg-pipeline"' not in text
