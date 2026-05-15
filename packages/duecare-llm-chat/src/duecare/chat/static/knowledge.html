@@ -367,9 +367,18 @@
         'Upload staged: ' + (bundle.staging && bundle.staging.path || 'not saved'),
         'Rows parsed: ' + (s.n_rows_total || 0) + '; rows processed: ' + (s.n_rows_processed || 0),
         'People detected: ' + (s.n_people_detected || 0) + '; evidence edges: ' + (s.n_evidence_edges || 0),
+        'Typed edges: ' + (s.n_typed_edges || intel.n_typed_edges || 0),
         'Media or OCR work items queued: ' + (plan.n_media_assets || 0),
         '',
       ];
+      const local = plan.local_processing_contract || {};
+      if (local.local_only) {
+        lines.push(
+          'Local processing contract: local_only=true; remote_api_calls=' + String(local.remote_api_calls === true),
+          'Optional local engines: ' + ((local.optional_local_engines || []).map(x => (x.id || '') + ':' + (x.status || '')).join(', ') || '(none)'),
+          ''
+        );
+      }
       const topSignals = (intel.top_risk_signals || []).slice(0, 12)
         .map(x => (x.signal || x.rule_id || 'signal') + ' x ' + (x.count || 0));
       if (topSignals.length) lines.push('Top risk signals: ' + topSignals.join(', '), '');
@@ -399,6 +408,29 @@
           'payments: ' + ((point.payments || []).join(', ') || '(none)'),
           'signals: ' + ((point.signals || point.risk_signals || []).join(', ') || '(none)'),
           'summary: ' + (point.summary || point.detail || ''),
+          ''
+        );
+      });
+      (intel.typed_edges || []).slice(0, 28).forEach((edge, idx) => {
+        const ev = edge.evidence || {};
+        lines.push(
+          'typed_edge_' + (idx + 1) + ':',
+          'edge_type: ' + (edge.edge_type || ''),
+          'source_node: ' + (edge.source_node || ''),
+          'target_node: ' + (edge.target_node || ''),
+          'row_id: ' + (edge.row_id || ''),
+          'quote: ' + (ev.quote || ''),
+          'extractors: ' + ((edge.extractors || []).join(', ') || '(none)'),
+          ''
+        );
+      });
+      (intel.rag_candidates || []).slice(0, 12).forEach((candidate, idx) => {
+        lines.push(
+          'rag_candidate_' + (idx + 1) + ':',
+          'type: ' + (candidate.knowledge_object_type || ''),
+          'title: ' + (candidate.title || candidate.candidate_id || ''),
+          'text: ' + (candidate.text || ''),
+          'source_rows: ' + ((candidate.source_row_ids || []).join(', ') || '(none)'),
           ''
         );
       });

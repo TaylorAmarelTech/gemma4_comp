@@ -157,11 +157,29 @@ def test_process_batch_returns_intelligence_for_sample():
     assert intel["folder_counts"]
     assert intel["processing_plan"]["n_media_assets"] >= 60
     assert intel["n_evidence_edges"] > 100
+    assert intel["n_typed_edges"] > intel["n_evidence_edges"]
+    assert intel["typed_edges"]
+    first_typed = intel["typed_edges"][0]
+    assert first_typed["schema_version"] == "duecare.process.typed_edge.v1"
+    assert first_typed["local_only"] is True
+    assert first_typed["review_status"] == "needs_review"
+    assert {"source_node", "target_node", "evidence", "extractors"}.issubset(first_typed)
+    assert intel["typed_edge_counts"]
+    assert intel["rag_candidates"]
+    assert intel["processing_plan"]["local_processing_contract"]["remote_api_calls"] is False
+    assert intel["processing_plan"]["scalable_queue_contract"]["batching_policy"]["queue_large_archives"] is True
+    assert any(
+        t["id"] == "case_graph_edges"
+        for t in intel["processing_plan"]["gemma_edge_prompt_templates"]
+    )
     assert intel["graph"]["schema_version"] == "duecare.process.graph.v1"
     assert intel["graph"]["meta"]["n_nodes"] > 20
     assert any(n["group"] == "folder" for n in intel["graph"]["nodes"])
     assert any(e["edge_type"] == "folder_context" for e in intel["evidence_edges"])
     assert "file_structure" in {
+        method["id"] for method in intel["processing_plan"]["analysis_methods"]
+    }
+    assert "typed_graph_edges" in {
         method["id"] for method in intel["processing_plan"]["analysis_methods"]
     }
     assert intel["journey_points"]
@@ -185,6 +203,18 @@ def test_process_batch_returns_intelligence_for_sample():
     assert chat_body["cited_rows"]
     assert "The user is asking" not in chat_body["answer"]
     assert "|---" not in chat_body["answer"]
+
+    edge_pass = client.post(
+        "/api/process/graph-extract",
+        json={"prompt_id": "case_graph_edges", "limit": 12},
+    )
+    assert edge_pass.status_code == 200, edge_pass.text
+    edge_body = edge_pass.json()
+    assert edge_body["status"] == "deterministic_no_model"
+    assert edge_body["remote_api_calls"] is False
+    assert edge_body["typed_edges"]
+    assert edge_body["rag_candidates"]
+    assert any(t["id"] == "case_graph_edges" for t in edge_body["prompt_templates"])
 
 
 def test_process_batch_returns_intelligence_for_media_rich_sample():
@@ -215,6 +245,9 @@ def test_process_batch_returns_intelligence_for_media_rich_sample():
     assert intel["document_type_counts"]["payment_history"] >= 6
     assert intel["document_type_counts"]["chat_messages"] >= 6
     assert intel["processing_plan"]["n_media_assets"] >= 50
+    assert intel["n_typed_edges"] >= intel["n_evidence_edges"]
+    assert "media_requires_gemma_vision" in {c["edge_type"] for c in intel["typed_edge_counts"]}
+    assert any(c["knowledge_object_type"] in {"modus_operandi", "fact_template"} for c in intel["rag_candidates"])
     assert intel["top_risk_signals"]
     assert not any(s["signal"] == "?" for s in intel["top_risk_signals"])
     assert any("media_rich_cases" in edge.get("source_path", "") for edge in intel["evidence_edges"])

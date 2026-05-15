@@ -165,8 +165,8 @@
         export the bundle for the appendix notebooks.
       </p>
       <div class="wb-hero-grid">
-        <div class="wb-hero-item"><b>Local first</b><span>Rows, media queue, graph edges, and notes stay in the Kaggle kernel until you explicitly export or share.</span></div>
-        <div class="wb-hero-item"><b>Deterministic plus Gemma</b><span>Parsing, GREP, entity extraction, folder edges, and journey mapping run deterministically. Gemma 4 adds case briefs and graph synthesis when loaded.</span></div>
+        <div class="wb-hero-item"><b>Local only by default</b><span>No cloud API calls are required. Rows, media queue, graph edges, and notes stay in the Kaggle kernel until you explicitly export or share.</span></div>
+        <div class="wb-hero-item"><b>Deterministic plus Gemma</b><span>Parsing, GREP, entity extraction, folder edges, and journey mapping run deterministically. Local Gemma 4 can add typed edge and RAG candidates when loaded.</span></div>
         <div class="wb-hero-item"><b>Reviewer controlled</b><span>Step 3 is a review gate. Confirm extracted intelligence before graph questions or downstream export.</span></div>
         <div class="wb-hero-item"><b>Evidence oriented</b><span>Every answer should point back to row IDs, folders, files, people, payments, dates, or queued media work.</span></div>
       </div>
@@ -344,6 +344,25 @@
           </div>
         </div>
         <div id="wb-edge-details" class="wb-edge-table"></div>
+      </div>
+      <div class="wb-card">
+        <div style="display:flex; justify-content:space-between; gap:10px; align-items:center; flex-wrap:wrap;">
+          <div>
+            <h2 style="margin:0 0 4px;">Typed edges and RAG candidates</h2>
+            <div class="wb-muted">
+              Deterministic edges use a stable source-node, target-node,
+              evidence, extractor, confidence, and review-status schema.
+              Run the local Gemma 4 edge pass after review to propose
+              additional edges and candidate knowledge objects.
+            </div>
+          </div>
+          <button class="wb-btn-secondary" id="wb-gemma-edge-btn" type="button" onclick="wbRunGemmaEdgePass()">
+            Run local Gemma edge pass
+          </button>
+        </div>
+        <div id="wb-typed-edges" style="margin-top:10px;"></div>
+        <div id="wb-rag-candidates" style="margin-top:10px;"></div>
+        <div id="wb-gemma-edge-pass" style="margin-top:10px;"></div>
       </div>
       <div class="wb-card">
         <h2>People and risk signals</h2>
@@ -916,6 +935,7 @@
       wbRenderProcessingPlan(intel.processing_plan || {});
       wbRenderIntelligence(intel, s);
       wbRenderGraph(intel.graph || {}, intel);
+      wbRenderTypedEdges(intel);
       wbRenderJourney(intel);
       document.getElementById('wb-summary').innerHTML =
         // audit-allow:innerHTML-safe: summary fields are numeric counts from /api/process/batch
@@ -925,6 +945,7 @@
         '<div style="margin-top:4px;"><b>Entities extracted:</b> ' + s.n_entities_extracted + '</div>' +
         '<div style="margin-top:4px;"><b>People detected:</b> ' + (s.n_people_detected || 0) + '</div>' +
         '<div style="margin-top:4px;"><b>Evidence edges:</b> ' + (s.n_evidence_edges || 0) + '</div>' +
+        '<div style="margin-top:4px;"><b>Typed edges:</b> ' + (s.n_typed_edges || intel.n_typed_edges || 0) + '</div>' +
         '<div style="margin-top:4px;"><b>Upload staged:</b> ' + (b.staging && b.staging.saved ? 'yes' : 'not saved') +
         (b.staging && b.staging.path ? ' <code>' + wbEsc(b.staging.path) + '</code>' : '') + '</div>' +
         '<div style="margin-top:4px;"><b>RUN_ID:</b> <code>' + wbEsc(b.run_id) + '</code></div>';
@@ -973,6 +994,8 @@
       const media = plan.media_assets || [];
       const parentDocs = plan.parent_documents || [];
       const methods = plan.analysis_methods || [];
+      const local = plan.local_processing_contract || {};
+      const queue = plan.scalable_queue_contract || {};
       const passHtml = passes.length ? passes.map(p =>
         '<div class="wb-step ' + (String(p.status || '').includes('implemented') ? 'complete' : '') + '">' +
         '<div class="num">' + wbEsc(p.status || 'planned') + '</div>' +
@@ -987,6 +1010,22 @@
       const methodHtml = methods.length ? methods.map(m =>
         '<div class="wb-metric"><div class="label">' + wbEsc(m.label || m.id) + '</div><div style="font-size:12px; line-height:1.45; margin-top:6px;">' + wbEsc(m.detail || '') + '</div></div>'
       ).join('') : '';
+      const localHtml = local.local_only ? (
+        '<div class="wb-card" style="background:#FAF9F4; margin:0 0 12px; padding:12px;">' +
+        '<h3 style="font-size:13px; margin:0 0 6px;">Local-only processing contract</h3>' +
+        '<div class="wb-muted" style="font-size:12px; line-height:1.5;">No cloud API calls: ' +
+        wbEsc(local.remote_api_calls === false ? 'yes' : 'check config') +
+        '. Staging roots: ' + wbEsc((local.staging_roots || []).join(', ')) +
+        '. Optional local engines: ' + wbEsc((local.optional_local_engines || []).map(e => e.id + ':' + e.status).join(' | ')) +
+        '</div></div>'
+      ) : '';
+      const queueHtml = queue.schema_version ? (
+        '<div class="wb-card" style="background:#FAF9F4; margin:0 0 12px; padding:12px;">' +
+        '<h3 style="font-size:13px; margin:0 0 6px;">Large-archive queue contract</h3>' +
+        '<div class="wb-muted" style="font-size:12px; line-height:1.5;">' + wbEsc(queue.purpose || '') + '</div>' +
+        '<div class="wb-chip-list" style="margin-top:8px;">' + (queue.recommended_phases || []).slice(0, 12).map(wbPill).join('') + '</div>' +
+        '</div>'
+      ) : '';
       host.innerHTML =
         '<div class="wb-intel-grid" style="margin-bottom:10px;">' +
         '<div class="wb-metric"><div class="label">Parent documents</div><div class="value">' + wbEsc(plan.n_parent_documents || parentDocs.length || 0) + '</div></div>' +
@@ -994,6 +1033,7 @@
         '<div class="wb-metric"><div class="label">Chunks / rows</div><div class="value">' + wbEsc(plan.n_chunks || 0) + '</div></div>' +
         '<div class="wb-metric"><div class="label">Media assets queued</div><div class="value">' + wbEsc(plan.n_media_assets || media.length || 0) + '</div></div>' +
         '</div>' +
+        localHtml + queueHtml +
         (methodHtml ? '<h3 style="font-size:13px; margin:0 0 6px;">Extraction and graph-building methods</h3><div class="wb-intel-grid" style="margin-bottom:12px;">' + methodHtml + '</div>' : '') +
         '<div class="wb-pipeline" style="margin-bottom:12px;">' + passHtml + '</div>' +
         '<h3 style="font-size:13px; margin:0 0 6px;">OCR and multimodal queue</h3>' +
@@ -1007,6 +1047,7 @@
         ['People', intel.n_people || 0],
         ['Documents', intel.n_documents || (summary.n_rows_processed || 0)],
         ['Evidence edges', intel.n_evidence_edges || 0],
+        ['Typed edges', intel.n_typed_edges || 0],
         ['Journey points', (intel.journey_points || []).length],
         ['Gemma brief', wbBriefStatusLabel((intel.gemma_case_brief || {}).status)],
       ];
@@ -1157,7 +1198,7 @@
       ).join('');
       wbLastGraphSvg = '<svg id="wb-process-graph-svg" width="100%" height="' + height + '" viewBox="0 0 1000 ' + height + '" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Process intelligence graph">' +
         '<rect x="0" y="0" width="1000" height="' + height + '" fill="#FAF9F4"/>' +
-        '<text x="16" y="24" font-size="12" fill="#5B5F68">Edge sources: plain text, file structure, queued OCR, Gemma 4 page questions</text>' +
+        '<text x="16" y="24" font-size="12" fill="#5B5F68">Edge sources: plain text, file structure, typed-edge schema, queued OCR, local Gemma 4 edge pass</text>' +
         edgeSvg + nodeSvg + '</svg>';
       host.innerHTML = '<div style="padding:10px 12px; font-size:11px; border-bottom:1px solid #EFEDE4;">' + legend + '</div>' + wbLastGraphSvg;
       wbGraphSelect(nodes[0].id);
@@ -1200,6 +1241,99 @@
       a.click();
       setTimeout(() => URL.revokeObjectURL(url), 1000);
       wbLog('info', 'Downloaded process graph SVG', 'duecare-process-graph.svg');
+    }
+    function wbRenderTypedEdges(intel) {
+      const typedHost = document.getElementById('wb-typed-edges');
+      const ragHost = document.getElementById('wb-rag-candidates');
+      const passHost = document.getElementById('wb-gemma-edge-pass');
+      if (!typedHost || !ragHost || !passHost) return;
+      const counts = intel.typed_edge_counts || [];
+      const edges = intel.typed_edges || [];
+      const candidates = intel.rag_candidates || [];
+      const edgeRows = edges.slice(0, 18).map(e =>
+        '<tr><td>' + wbEsc(e.edge_type || 'edge') + '</td>' +
+        '<td><code>' + wbEsc(e.source_node || '') + '</code></td>' +
+        '<td><code>' + wbEsc(e.target_node || '') + '</code></td>' +
+        '<td><code>' + wbEsc(e.row_id || '') + '</code></td>' +
+        '<td>' + wbEsc(((e.evidence || {}).quote || e.label || '').slice(0, 160)) + '</td>' +
+        '<td>' + wbEsc(e.confidence == null ? '' : e.confidence) + '</td></tr>'
+      ).join('');
+      typedHost.innerHTML =
+        '<div class="wb-intel-grid" style="margin-bottom:10px;">' +
+        '<div class="wb-metric"><div class="label">Typed edges</div><div class="value">' + wbEsc(intel.n_typed_edges || edges.length || 0) + '</div></div>' +
+        '<div class="wb-metric"><div class="label">Edge types</div><div class="value">' + wbEsc(counts.length || 0) + '</div></div>' +
+        '<div class="wb-metric"><div class="label">RAG candidates</div><div class="value">' + wbEsc(candidates.length || 0) + '</div></div>' +
+        '</div>' +
+        (counts.length ? '<div class="wb-chip-list" style="margin-bottom:8px;">' +
+          counts.slice(0, 10).map(c => wbPill((c.edge_type || 'edge') + ' x ' + (c.count || 0))).join('') +
+          '</div>' : '') +
+        '<div style="max-height:260px; overflow:auto;"><table class="wb-small-table"><thead><tr><th>edge</th><th>source</th><th>target</th><th>row</th><th>evidence quote</th><th>conf</th></tr></thead><tbody>' +
+        (edgeRows || '<tr><td colspan="6" class="wb-muted">No typed edges returned.</td></tr>') +
+        '</tbody></table></div>';
+      ragHost.innerHTML = candidates.length
+        ? '<h3 style="font-size:13px; margin:0 0 6px;">Reviewable RAG / knowledge candidates</h3>' +
+          candidates.slice(0, 8).map(c =>
+            '<div style="border:1px solid #EFEDE4; border-radius:8px; padding:9px 10px; margin:7px 0; background:#FAF9F4;">' +
+            '<div style="display:flex; justify-content:space-between; gap:8px; flex-wrap:wrap;"><b>' + wbEsc(c.title || c.candidate_id || 'candidate') + '</b>' +
+            '<span class="wb-pill">' + wbEsc(c.knowledge_object_type || 'knowledge_candidate') + '</span></div>' +
+            '<div class="wb-muted" style="margin-top:4px;">' + wbEsc((c.text || '').slice(0, 360)) + '</div>' +
+            '<div class="wb-muted" style="margin-top:4px;">rows: ' + wbEsc((c.source_row_ids || []).slice(0, 6).join(', ') || 'n/a') + '</div>' +
+            '</div>'
+          ).join('')
+        : '<div class="wb-muted">No RAG candidates returned.</div>';
+      const pass = intel.gemma_edge_pass || {};
+      const modelRows = (pass.model_edges || []).slice(0, 12).map(e =>
+        '<tr><td>' + wbEsc(e.edge_type || 'edge') + '</td><td><code>' + wbEsc(e.source_node || '') + '</code></td>' +
+        '<td><code>' + wbEsc(e.target_node || '') + '</code></td><td>' + wbEsc(((e.evidence || {}).quote || '').slice(0, 180)) + '</td></tr>'
+      ).join('');
+      passHost.innerHTML =
+        '<h3 style="font-size:13px; margin:0 0 6px;">Gemma 4 local edge pass</h3>' +
+        '<div class="wb-muted">Status: ' + wbEsc(pass.status || 'not_run') +
+        ' | model proposed edges: ' + wbEsc((pass.model_edges || []).length || 0) +
+        ' | local_only: ' + wbEsc(pass.local_only === false ? 'false' : 'true') + '</div>' +
+        (modelRows ? '<div style="max-height:220px; overflow:auto; margin-top:8px;"><table class="wb-small-table"><thead><tr><th>edge</th><th>source</th><th>target</th><th>quote</th></tr></thead><tbody>' + modelRows + '</tbody></table></div>' : '');
+    }
+    async function wbRunGemmaEdgePass() {
+      if (!wbBundle) {
+        wbLog('warn', 'Gemma edge pass blocked', 'Process a bundle first.');
+        return;
+      }
+      if (!wbIntelligenceConfirmed) {
+        wbSetWorkflow(2);
+        wbLog('warn', 'Gemma edge pass blocked', 'Confirm extracted intelligence before running model edge synthesis.');
+        return;
+      }
+      if (window.dcWbEnsureModelReady && !(await window.dcWbEnsureModelReady())) {
+        wbLog('warn', 'Model required before Gemma edge pass', 'Load a local Gemma 4 model from the selector.');
+        return;
+      }
+      const btn = document.getElementById('wb-gemma-edge-btn');
+      if (btn) { btn.disabled = true; btn.textContent = 'Running local Gemma...'; }
+      wbLog('net', 'POST /api/process/graph-extract', 'prompt_id=case_graph_edges');
+      const t0 = performance.now();
+      try {
+        const r = await fetch('/api/process/graph-extract', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({prompt_id: 'case_graph_edges', limit: 32})
+        });
+        const out = await r.json();
+        const dt = Math.round(performance.now() - t0);
+        if (!r.ok) {
+          wbLog('err', 'Gemma edge pass failed HTTP ' + r.status + ' (' + dt + 'ms)', JSON.stringify(out).slice(0, 240));
+          return;
+        }
+        wbBundle.intelligence = wbBundle.intelligence || {};
+        wbBundle.intelligence.gemma_edge_pass = out;
+        wbRenderTypedEdges(wbBundle.intelligence);
+        wbLog('ok', 'Gemma edge pass complete (' + dt + 'ms)',
+          'status=' + (out.status || 'unknown') + ' | model_edges=' + ((out.model_edges || []).length || 0) +
+          ' | rag_candidates=' + ((out.rag_candidates || []).length || 0));
+      } catch (e) {
+        wbLog('err', 'Gemma edge pass failed', String(e).slice(0, 240));
+      } finally {
+        if (btn) { btn.disabled = false; btn.textContent = 'Run local Gemma edge pass'; }
+      }
     }
     function wbRenderJourney(intel) {
       const host = document.getElementById('wb-journey');

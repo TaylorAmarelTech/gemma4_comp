@@ -68,10 +68,7 @@
         '26b-a4b-it':     {display: 'Gemma 4 26B-A4B-it', size_gb: 14.0, category: 'on-device', load_eta: '~6-15 min first run'},
         '31b-it':         {display: 'Gemma 4 31B-it', size_gb: 18.0, category: 'on-device', load_eta: '~15-25 min first run'},
         'jailbroken-31b': {display: 'Gemma 4 31B abliterated', size_gb: 18.0, category: 'jailbroken', load_eta: '~15-25 min first run'},
-        'jailbroken-e4b': {display: 'Gemma 4 E4B abliterated', size_gb: 4.0, category: 'jailbroken', load_eta: '~30-60 sec'},
-        'cloud-gemini':   {display: 'Gemini API (cloud)', size_gb: 0.0, category: 'cloud', load_eta: 'instant'},
-        'cloud-openai':   {display: 'OpenAI-compatible (cloud)', size_gb: 0.0, category: 'cloud', load_eta: 'instant'},
-        'cloud-ollama':   {display: 'Ollama (cloud/local)', size_gb: 0.0, category: 'cloud', load_eta: 'instant'}
+        'jailbroken-e4b': {display: 'Gemma 4 E4B abliterated', size_gb: 4.0, category: 'jailbroken', load_eta: '~30-60 sec'}
     };
     let modelPollTimer = null;
     let modelLastStatus = {loaded: false};

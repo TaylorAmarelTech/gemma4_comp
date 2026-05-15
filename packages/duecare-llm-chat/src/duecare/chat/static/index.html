@@ -1021,13 +1021,13 @@ header.bar .badge.loaded .dot {
 <div id="picker-overlay" class="picker-overlay" role="dialog" aria-modal="true">
   <div class="picker-box">
     <h2 class="picker-title">Choose a Gemma 4 model</h2>
-    <p class="picker-sub">Each variant loads once for the session. Bigger models = better answers but slower start. Cloud routes need an API key set in Kaggle Secrets before launch.</p>
+    <p class="picker-sub">Each variant loads once for the session. Bigger models = better answers but slower start. The demo selector is local-first and avoids cloud API calls.</p>
     <div class="picker-banner">
       <b>⏱ Estimated load time</b> shown on each card. The model
       downloads from HuggingFace on first run (cached for the
       session). E2B / E4B start in under a minute; 26B-A4B and 31B
-      take a few minutes. Cloud routes are instant once the API key
-      is set. Closing this tab during load is safe — the load
+      take a few minutes. Case-file processing and Gemma edge extraction
+      stay local in the Kaggle kernel. Closing this tab during load is safe — the load
       continues server-side.
     </div>
     <div id="picker-groups"></div>
@@ -1256,14 +1256,10 @@ const PICKER_FALLBACK_VARIANTS = {
   '31b-it':         {display: 'Gemma 4 31B-it',           size_gb: 18.0, fits: 'T4 ×2 (4-bit)', category: 'on-device', load_eta: '~15–25 min first run · ~5–8 min cached'},
   'jailbroken-31b': {display: 'Gemma 4 31B (abliterated)',size_gb: 18.0, fits: 'T4 ×2 (4-bit)', category: 'jailbroken',load_eta: '~15–25 min first run · repo quirks possible'},
   'jailbroken-e4b': {display: 'Gemma 4 E4B (abliterated)',size_gb: 4.0,  fits: 'single T4',     category: 'jailbroken',load_eta: '~30–60 sec'},
-  'cloud-gemini':   {display: 'Gemini API (cloud)',       size_gb: 0.0,  fits: 'no GPU',        category: 'cloud',     load_eta: 'instant'},
-  'cloud-openai':   {display: 'OpenAI-compat (cloud)',    size_gb: 0.0,  fits: 'no GPU',        category: 'cloud',     load_eta: 'instant'},
-  'cloud-ollama':   {display: 'Ollama (cloud/local)',     size_gb: 0.0,  fits: 'no GPU',        category: 'cloud',     load_eta: 'instant'},
 };
 const PICKER_GROUP_LABELS = {
   'on-device': 'On-device (Gemma 4 weights, runs in your Kaggle GPU)',
   'jailbroken': 'Abliterated / jailbroken (proves harness still works on cracked models)',
-  'cloud': 'Cloud routes (no GPU needed — set API key in Kaggle Secrets first)',
 };
 let _pickerLoadingVariant = null;
 let _pickerPollTimer = null;
@@ -1337,7 +1333,9 @@ function _pickerBuildCards(variants) {
     if (!byCat[cat]) byCat[cat] = [];
     byCat[cat].push([k, v]);
   }
-  ['on-device', 'jailbroken', 'cloud'].forEach(function(cat) {
+  ['on-device', 'jailbroken'].concat(Object.keys(byCat).filter(function(cat) {
+    return ['on-device', 'jailbroken'].indexOf(cat) < 0;
+  })).forEach(function(cat) {
     if (!byCat[cat]) return;
     const div = document.createElement('div');
     div.className = 'picker-group';
@@ -1700,13 +1698,12 @@ function openAboutModal() {
         1 · Open model selector
       </h4>
       <p style="margin:0;">
-        Click <b>Open model selector</b> in the top bar to choose from 9 variants:
+        Click <b>Open model selector</b> in the top bar to choose from local Gemma 4 variants:
         <b>E2B / E4B</b> (fast, single GPU),
         <b>26B-A4B / 31B</b> (heavier, T4 ×2, 4-bit),
         <b>2 jailbroken</b> (proves the harness still constrains
-        abliterated weights),
-        <b>3 cloud BYOK</b> (Gemini / OpenAI-compat / Ollama —
-        set the API key as a Kaggle Secret first).
+        abliterated weights). The demo path avoids cloud API calls so
+        document and case processing remain local.
       </p>
 
       <h4 style="margin:18px 0 6px; font-size:14px; color:var(--accent);">
@@ -4427,7 +4424,7 @@ async function openGradeModal(messageIdx) {
           <div style="margin-top:6px; font-size:11px; color:var(--muted);">
             What the hook supports outside Kaggle (commentary):
             <ul style="margin:4px 0 0 18px; padding:0;">
-              <li><strong>Frontier judge</strong> (GPT-4 / Claude 3.5 / Gemini 1.5 Pro) — the G-Eval / MT-Bench / Auto-J methodology. Gold-standard accuracy. Requires a network call so chat stays on-device while grading runs in a separate cloud process for periodic benchmark replay.</li>
+              <li><strong>External frontier judge</strong> can be used in a separate research deployment for periodic benchmark replay, but it is not part of the local-first demo path.</li>
               <li><strong>Abliterated Gemma variant</strong> (e.g. <code>dealignai/Gemma-4-31B-JANG_4M-CRACK</code>) — engages with adversarial responses the safety-tuned chat model refuses to grade. Useful for adversarial-suite scoring at production scale where you have headroom for two model loads.</li>
               <li><strong>Larger Gemma variant</strong> as the judge while a smaller one chats. Same VRAM-headroom precondition.</li>
             </ul>

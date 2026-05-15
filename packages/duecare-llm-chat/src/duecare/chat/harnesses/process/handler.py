@@ -24,7 +24,13 @@ from fastapi.responses import JSONResponse
 
 from ..._model_output import sanitize_model_output
 from .extractor import ENTITY_PATTERNS
-from .prompts import GRAPH_CHAT_SYSTEM_PROMPT, build_context_block
+from .prompts import (
+    GRAPH_CHAT_SYSTEM_PROMPT,
+    GRAPH_EDGE_EXTRACTION_SYSTEM_PROMPT,
+    GRAPH_EDGE_PROMPT_TEMPLATES,
+    build_context_block,
+    build_graph_edge_extraction_prompt,
+)
 
 
 _ROW_CAP = 300
@@ -517,6 +523,212 @@ def _clean_signal(value: Any, *, fallback: str = "unknown_signal") -> str:
     return text
 
 
+def _node_id(kind: str, value: Any) -> str:
+    return f"{_slug_id(kind)}:{_slug_id(str(value or 'unknown'))}"
+
+
+def _edge_id(*parts: Any) -> str:
+    raw = "|".join(str(p or "") for p in parts)
+    return _hashlib.sha1(raw.encode("utf-8", errors="ignore")).hexdigest()[:14]
+
+
+def _chunk_id(row: dict) -> str:
+    parent = str(row.get("parent_doc") or row.get("row_id") or "row")
+    page = row.get("page_index")
+    chunk = int(row.get("chunk_index") or 0)
+    if page is not None:
+        return f"{parent}#page-{int(page):03d}-chunk-{chunk + 1:03d}"
+    return f"{parent}#chunk-{chunk + 1:03d}"
+
+
+def _money_parts(raw: str) -> dict[str, Any]:
+    currency_match = _re.search(r"\b(PHP|HKD|USD|SGD|AED|SAR)\b", raw or "", _re.I)
+    return {
+        "raw": raw,
+        "currency": currency_match.group(1).upper() if currency_match else None,
+        "value": _amount_value(raw),
+    }
+
+
+def _evidence_quote(text: str, *needles: Any, max_chars: int = 260) -> str:
+    flat = " ".join(str(text or "").split())
+    if not flat:
+        return ""
+    search_terms = [
+        str(n).lower()
+        for n in needles
+        if n is not None and str(n).strip()
+    ]
+    chunks = _re.split(r"(?<=[.!?])\s+|\n+|;\s+", flat)
+    for chunk in chunks:
+        low = chunk.lower()
+        if search_terms and any(term[:80] in low for term in search_terms):
+            return chunk[:max_chars]
+    return flat[:max_chars]
+
+
+def _typed_edge(
+    *,
+    edge_type: str,
+    source_node: str,
+    target_node: str,
+    row: dict,
+    case_id: str,
+    label: str,
+    extractors: list[str],
+    confidence: float,
+    text: str,
+    modalities: list[str] | None = None,
+    **extra: Any,
+) -> dict[str, Any]:
+    row_id = str(row.get("row_id") or "")
+    edge = {
+        "schema_version": "duecare.process.typed_edge.v1",
+        "edge_id": _edge_id(edge_type, source_node, target_node, row_id, label),
+        "edge_type": edge_type,
+        "source_node": source_node,
+        "target_node": target_node,
+        "case_id": case_id,
+        "row_id": row_id,
+        "label": label,
+        "evidence": {
+            "file": row.get("source_path") or row_id,
+            "parent_doc": row.get("parent_doc") or row_id,
+            "page": row.get("page_index"),
+            "chunk_id": _chunk_id(row),
+            "quote": _evidence_quote(text, label, extra.get("amount", {}).get("raw") if isinstance(extra.get("amount"), dict) else ""),
+        },
+        "extractors": list(dict.fromkeys(extractors)),
+        "modalities": modalities or ["plain_text"],
+        "confidence": round(max(0.0, min(1.0, float(confidence))), 2),
+        "review_status": "needs_review",
+        "local_only": True,
+    }
+    edge.update({k: v for k, v in extra.items() if v is not None})
+    return edge
+
+
+def _typed_edge_counts(edges: list[dict]) -> list[dict]:
+    counts: dict[str, int] = {}
+    for edge in edges:
+        edge_type = str(edge.get("edge_type") or "edge")
+        counts[edge_type] = counts.get(edge_type, 0) + 1
+    return [
+        {"edge_type": k, "count": v}
+        for k, v in sorted(counts.items(), key=lambda kv: (-kv[1], kv[0]))[:24]
+    ]
+
+
+def _build_rag_candidates(
+    *,
+    person_rows: list[dict],
+    typed_edges: list[dict],
+    top_risk_signals: list[dict],
+    media_assets: list[dict],
+    critical_fee_points: list[dict],
+) -> list[dict]:
+    """Create local reviewable RAG/knowledge candidates from graph facts."""
+    candidates: list[dict] = []
+    fee_edges = [
+        e for e in typed_edges
+        if e.get("edge_type") in {"charged_or_collected_fee", "fee_amount_observed"}
+    ]
+    signal_names = [str(s.get("signal") or "") for s in top_risk_signals]
+    top_cases = [
+        str(p.get("case_id") or "")
+        for p in person_rows
+        if p.get("case_id") and p.get("case_id") != "UNKNOWN"
+    ][:8]
+
+    if fee_edges:
+        source_rows = list(dict.fromkeys(str(e.get("row_id") or "") for e in fee_edges if e.get("row_id")))[:12]
+        edge_ids = [str(e.get("edge_id") or "") for e in fee_edges[:20]]
+        candidates.append({
+            "schema_version": "duecare.process.rag_candidate.v1",
+            "candidate_id": "ph_hk_fee_salary_deduction_pattern",
+            "knowledge_object_type": "modus_operandi",
+            "title": "PH-HK worker-paid fee or debt pattern with post-arrival collection",
+            "text": (
+                "Local bundle evidence shows worker-paid recruitment, processing, "
+                "training, medical, loan, or salary-deduction signals across "
+                f"{len(source_rows)} row(s). Candidate cases include: "
+                + ", ".join(top_cases)
+                + ". Review against zero-fee recruitment rules, wage-deduction "
+                "limits, debt-bondage indicators, and source/destination corridor law."
+            ),
+            "source_edge_ids": edge_ids,
+            "source_row_ids": source_rows,
+            "tags": ["local_graph", "fees", "salary_deduction", "needs_review"],
+            "review_status": "needs_review",
+            "local_only": True,
+        })
+
+    if any("passport" in s.lower() or "document" in s.lower() for s in signal_names):
+        doc_edges = [
+            e for e in typed_edges
+            if e.get("edge_type") == "document_control_signal"
+        ]
+        candidates.append({
+            "schema_version": "duecare.process.rag_candidate.v1",
+            "candidate_id": "identity_document_control_pattern",
+            "knowledge_object_type": "context_snippet",
+            "title": "Identity-document control signal",
+            "text": (
+                "Rows in this local bundle mention passport or identity-document "
+                "control. Treat this as a high-priority review signal and link it "
+                "to any worker-paid fee, debt, threat, live-in, or movement-control "
+                "evidence before drawing conclusions."
+            ),
+            "source_edge_ids": [str(e.get("edge_id") or "") for e in doc_edges[:20]],
+            "source_row_ids": list(dict.fromkeys(str(e.get("row_id") or "") for e in doc_edges if e.get("row_id")))[:12],
+            "tags": ["local_graph", "document_control", "needs_review"],
+            "review_status": "needs_review",
+            "local_only": True,
+        })
+
+    if media_assets:
+        candidates.append({
+            "schema_version": "duecare.process.rag_candidate.v1",
+            "candidate_id": "queued_media_local_ocr_vision_review",
+            "knowledge_object_type": "fact_template",
+            "title": "Queued media local OCR and Gemma 4 vision review",
+            "text": (
+                f"{len(media_assets)} media asset(s) require local OCR and, when "
+                "a multimodal Gemma 4 model is loaded, vision extraction. Store "
+                "page-level entities, visible amounts, document type, screenshots, "
+                "receipts, and contradictions as typed edges with row/page evidence."
+            ),
+            "source_edge_ids": [
+                str(e.get("edge_id") or "") for e in typed_edges
+                if e.get("edge_type") in {"media_requires_ocr", "media_requires_gemma_vision"}
+            ][:20],
+            "source_row_ids": [str(m.get("row_id") or "") for m in media_assets[:12]],
+            "tags": ["local_graph", "ocr", "gemma4_vision", "needs_review"],
+            "review_status": "needs_review",
+            "local_only": True,
+        })
+
+    if critical_fee_points:
+        candidates.append({
+            "schema_version": "duecare.process.rag_candidate.v1",
+            "candidate_id": "critical_journey_fee_points",
+            "knowledge_object_type": "extracted_fact",
+            "title": "Critical fee points along the worker journey",
+            "text": (
+                "The journey graph has critical payment/debt points that can feed "
+                "timelines, overcharging charts, entity clustering, and reviewer "
+                "questions about strongest cases or grouped patterns."
+            ),
+            "source_edge_ids": [str(e.get("edge_id") or "") for e in fee_edges[:20]],
+            "source_row_ids": list(dict.fromkeys(str(p.get("row_id") or "") for p in critical_fee_points if p.get("row_id")))[:12],
+            "tags": ["local_graph", "journey", "fees", "needs_review"],
+            "review_status": "needs_review",
+            "local_only": True,
+        })
+
+    return candidates
+
+
 def _build_graph_view(
     *,
     doc_type_counts: dict[str, int],
@@ -701,6 +913,7 @@ def _build_intelligence(rows: list[dict], results: list[dict]) -> dict:
     payments: list[dict] = []
     locations: dict[str, int] = {}
     evidence_edges: list[dict] = []
+    typed_edges: list[dict] = []
     journey_points: list[dict] = []
     media_assets: list[dict] = []
     parent_docs: dict[str, dict] = {}
@@ -780,6 +993,34 @@ def _build_intelligence(rows: list[dict], results: list[dict]) -> dict:
             folder_counts[folder] = folder_counts.get(folder, 0) + 1
             if folder not in person["folders"]:
                 person["folders"].append(folder)
+        if row.get("needs_ocr"):
+            document_node = _node_id("document", parent_doc)
+            typed_edges.append(_typed_edge(
+                edge_type="media_requires_ocr",
+                source_node=document_node,
+                target_node=_node_id("work_item", "local_ocr"),
+                row=row,
+                case_id=case_id,
+                label="queued for local OCR/layout extraction",
+                extractors=["zip_inventory", "media_detector"],
+                confidence=0.98,
+                text=text,
+                modalities=["file_structure", row.get("media_type") or "media"],
+                media_type=row.get("media_type"),
+            ))
+            typed_edges.append(_typed_edge(
+                edge_type="media_requires_gemma_vision",
+                source_node=document_node,
+                target_node=_node_id("work_item", "gemma4_local_multimodal"),
+                row=row,
+                case_id=case_id,
+                label="queued for Gemma 4 local multimodal extraction",
+                extractors=["zip_inventory", "media_detector", "gemma4_prompt_contract"],
+                confidence=0.92,
+                text=text,
+                modalities=["file_structure", row.get("media_type") or "media"],
+                media_type=row.get("media_type"),
+            ))
         row_locations: list[str] = []
         row_dates: list[str] = []
         row_payments: list[dict] = []
@@ -793,12 +1034,34 @@ def _build_intelligence(rows: list[dict], results: list[dict]) -> dict:
                 person["locations"].append(loc_norm)
             if loc_norm not in row_locations:
                 row_locations.append(loc_norm)
+                typed_edges.append(_typed_edge(
+                    edge_type="located_at",
+                    source_node=_node_id("case", case_id),
+                    target_node=_node_id("location", loc_norm),
+                    row=row,
+                    case_id=case_id,
+                    label=loc_norm,
+                    extractors=["location_regex", "row_chunk_linking"],
+                    confidence=0.74,
+                    text=text,
+                ))
 
         for date in _DATE_RE.findall(text)[:6]:
             item = {"case_id": case_id, "row_id": row_id, "date": date, "document_type": kind}
             timeline.append(item)
             person["timeline"].append(item)
             row_dates.append(date)
+            typed_edges.append(_typed_edge(
+                edge_type="dated_evidence",
+                source_node=_node_id("case", case_id),
+                target_node=_node_id("date", date),
+                row=row,
+                case_id=case_id,
+                label=date,
+                extractors=["date_regex", "row_chunk_linking"],
+                confidence=0.76,
+                text=text,
+            ))
 
         for amt in (scored.get("entities") or {}).get("AMOUNT", []):
             value = _amount_value(amt)
@@ -806,6 +1069,29 @@ def _build_intelligence(rows: list[dict], results: list[dict]) -> dict:
             payments.append(pay)
             person["amounts"].append(pay)
             row_payments.append(pay)
+            money = _money_parts(amt)
+            actor = person.get("agency") or person.get("employer")
+            if actor:
+                source_node = _node_id("entity", actor)
+                target_node = _node_id("case", case_id)
+                edge_type = "charged_or_collected_fee"
+            else:
+                source_node = _node_id("case", case_id)
+                target_node = _node_id("amount", amt)
+                edge_type = "fee_amount_observed"
+            typed_edges.append(_typed_edge(
+                edge_type=edge_type,
+                source_node=source_node,
+                target_node=target_node,
+                row=row,
+                case_id=case_id,
+                label=amt,
+                extractors=["amount_regex", "row_chunk_linking", "entity_regex"],
+                confidence=0.78 if actor else 0.7,
+                text=text,
+                amount=money,
+                document_type=kind,
+            ))
 
         for hit in scored.get("grep_hits") or []:
             severity = (hit.get("severity") or "medium").lower()
@@ -833,6 +1119,20 @@ def _build_intelligence(rows: list[dict], results: list[dict]) -> dict:
                 "modalities": ["plain_text"],
                 "methods": ["grep_rule", "entity_regex", "row_chunk_linking"],
             })
+            typed_edges.append(_typed_edge(
+                edge_type="rule_hit",
+                source_node=_node_id("case", case_id),
+                target_node=_node_id("rule", rid),
+                row=row,
+                case_id=case_id,
+                label=label,
+                extractors=["grep_rule", "row_chunk_linking"],
+                confidence=0.86 if severity in {"critical", "high"} else 0.76,
+                text=text,
+                severity=severity,
+                rule_id=rid,
+                document_type=kind,
+            ))
 
         keyword_risk = (
             ("passport", "passport retention"),
@@ -863,6 +1163,26 @@ def _build_intelligence(rows: list[dict], results: list[dict]) -> dict:
                     "modalities": ["plain_text"],
                     "methods": ["keyword_signal", "entity_regex", "row_chunk_linking"],
                 })
+                if "passport" in label or "document" in label:
+                    edge_type = "document_control_signal"
+                elif "deduction" in label:
+                    edge_type = "salary_deduction_signal"
+                elif "threat" in label or "coercion" in label:
+                    edge_type = "threat_or_retaliation_signal"
+                else:
+                    edge_type = "journey_stage_observation"
+                typed_edges.append(_typed_edge(
+                    edge_type=edge_type,
+                    source_node=_node_id("case", case_id),
+                    target_node=_node_id("signal", label),
+                    row=row,
+                    case_id=case_id,
+                    label=label,
+                    extractors=["keyword_signal", "row_chunk_linking"],
+                    confidence=0.68,
+                    text=text,
+                    document_type=kind,
+                ))
 
         folder_context = row.get("folder_context")
         if folder_context:
@@ -878,9 +1198,34 @@ def _build_intelligence(rows: list[dict], results: list[dict]) -> dict:
                 "modalities": ["file_structure"],
                 "methods": ["zip_inventory", "folder_path_context"],
             })
+            typed_edges.append(_typed_edge(
+                edge_type="filed_under",
+                source_node=_node_id("case", case_id),
+                target_node=_node_id("folder", folder_context),
+                row=row,
+                case_id=case_id,
+                label=str(folder_context),
+                extractors=["zip_inventory", "folder_path_context"],
+                confidence=0.82,
+                text=text,
+                modalities=["file_structure"],
+                source_path=row.get("source_path") or row_id,
+            ))
 
         stage = _journey_stage(row_id, text, kind)
         if row_signals or row_payments or kind != "other":
+            typed_edges.append(_typed_edge(
+                edge_type="journey_stage_observation",
+                source_node=_node_id("case", case_id),
+                target_node=_node_id("journey_stage", stage),
+                row=row,
+                case_id=case_id,
+                label=stage.replace("_", " "),
+                extractors=["document_classifier", "journey_stage_heuristic"],
+                confidence=0.72,
+                text=text,
+                document_type=kind,
+            ))
             journey_points.append({
                 "stage": stage,
                 "stage_order": _JOURNEY_STAGE_ORDER.get(stage, 99),
@@ -965,6 +1310,13 @@ def _build_intelligence(rows: list[dict], results: list[dict]) -> dict:
         {"signal": k, "count": v}
         for k, v in sorted(cleaned_signal_counts.items(), key=lambda kv: (-kv[1], kv[0]))[:20]
     ]
+    rag_candidates = _build_rag_candidates(
+        person_rows=person_rows,
+        typed_edges=typed_edges,
+        top_risk_signals=top_risk_signals,
+        media_assets=media_assets,
+        critical_fee_points=critical_fee_points,
+    )
     graph = _build_graph_view(
         doc_type_counts=doc_type_counts,
         person_rows=person_rows,
@@ -981,6 +1333,79 @@ def _build_intelligence(rows: list[dict], results: list[dict]) -> dict:
         "n_chunks": len(rows),
         "n_media_assets": len(media_assets),
         "chunk_chars": _CHUNK_CHARS,
+        "local_processing_contract": {
+            "local_only": True,
+            "remote_api_calls": False,
+            "staging_roots": ["/kaggle/working/process-staging", ".duecare-process-staging"],
+            "privacy_boundary": "Raw files, OCR text, graph edges, and Gemma prompts stay in the kernel unless the reviewer explicitly exports or submits a sanitized bundle.",
+            "deterministic_layers": [
+                "archive_inventory",
+                "text_extraction",
+                "file_structure_edges",
+                "grep_rules",
+                "entity_regex",
+                "journey_stage_mapping",
+                "typed_edge_contract",
+            ],
+            "optional_local_engines": [
+                {
+                    "id": "ocr_layout_engine",
+                    "examples": ["Tesseract", "EasyOCR", "PaddleOCR", "Docling", "Marker", "MinerU"],
+                    "status": "queued_contract",
+                },
+                {
+                    "id": "gemma4_text_edge_pass",
+                    "examples": ["Gemma 4 local text model over OCR/text chunks"],
+                    "status": "implemented_as_post_process_endpoint",
+                },
+                {
+                    "id": "gemma4_multimodal_edge_pass",
+                    "examples": ["Gemma 4 multimodal local model over image/page plus OCR context"],
+                    "status": "queued_contract_when_multimodal_model_loaded",
+                },
+            ],
+            "frontier_model_note": (
+                "Frontier cloud models could enhance OCR or visual QA in other deployments, "
+                "but this workbench is designed for local Gemma 4 and local preprocessing."
+            ),
+        },
+        "scalable_queue_contract": {
+            "schema_version": "duecare.process.queue_contract.v1",
+            "purpose": "Scale from one ZIP to thousands of files or years of case history without a single long request.",
+            "work_item_levels": [
+                "collection",
+                "archive_member",
+                "document",
+                "page",
+                "page_region",
+                "text_block",
+                "table",
+                "image_or_screenshot",
+                "signature_or_stamp",
+                "audio_segment",
+                "video_frame_or_scene",
+            ],
+            "recommended_phases": [
+                "inventory_and_hash",
+                "deduplicate",
+                "page_split",
+                "layout_region_detection",
+                "local_ocr_or_asr",
+                "document_classification",
+                "deterministic_entity_edges",
+                "gemma4_text_edge_pass",
+                "gemma4_multimodal_edge_pass_when_available",
+                "entity_resolution",
+                "edge_merge_and_conflict_check",
+                "review_queue",
+            ],
+            "batching_policy": {
+                "max_request_rows": _ROW_CAP,
+                "queue_large_archives": True,
+                "idempotency_key": "sha256(file_bytes)+source_path+page+region",
+                "resume_strategy": "skip completed work items and retry failed OCR/Gemma items independently",
+            },
+        },
         "analysis_methods": [
             {
                 "id": "plain_text",
@@ -1001,6 +1426,16 @@ def _build_intelligence(rows: list[dict], results: list[dict]) -> dict:
                 "id": "gemma_page_questions",
                 "label": "Gemma 4 page-question pass",
                 "detail": "Each queued image, scan, or PDF page carries standard questions for document identification, visible entities, visual/text agreement, and trafficking indicators.",
+            },
+            {
+                "id": "typed_graph_edges",
+                "label": "Typed graph-edge contract",
+                "detail": "Deterministic passes emit typed edges with source_node, target_node, evidence file/page/chunk, extractors, confidence, local_only, and review_status fields. Gemma 4 can propose additional edges against the same schema.",
+            },
+            {
+                "id": "rag_candidate_generation",
+                "label": "RAG and knowledge candidates",
+                "detail": "Repeated local patterns are turned into reviewable RAG/context/modus-operandi candidates before any promotion into knowledge files.",
             },
         ],
         "passes": [
@@ -1029,6 +1464,12 @@ def _build_intelligence(rows: list[dict], results: list[dict]) -> dict:
                 "detail": "Each media asset needs a Gemma vision pass over image plus OCR text to extract entities and edges.",
             },
             {
+                "id": "gemma_text_edges",
+                "label": "Gemma 4 text edge extraction",
+                "status": "implemented_post_process",
+                "detail": "After deterministic processing, /api/process/graph-extract asks local Gemma 4 to propose typed edges and RAG candidates from bounded text, OCR, folder, and graph context.",
+            },
+            {
                 "id": "entity_resolution",
                 "label": "Entity resolution and edge linking",
                 "status": "implemented_basic",
@@ -1043,12 +1484,14 @@ def _build_intelligence(rows: list[dict], results: list[dict]) -> dict:
         ],
         "media_assets": media_assets[:80],
         "parent_documents": parent_document_rows[:120],
+        "gemma_edge_prompt_templates": GRAPH_EDGE_PROMPT_TEMPLATES,
     }
     return {
         "version": "process-intelligence-v1",
         "n_people": len([p for p in person_rows if p.get("case_id") != "UNKNOWN"]),
         "n_documents": len(rows),
         "n_evidence_edges": len(evidence_edges),
+        "n_typed_edges": len(typed_edges),
         "document_type_counts": doc_type_counts,
         "folder_counts": [
             {"folder": k, "count": v}
@@ -1058,9 +1501,17 @@ def _build_intelligence(rows: list[dict], results: list[dict]) -> dict:
         "hierarchy": hierarchy,
         "top_payments": payments[:20],
         "top_risk_signals": top_risk_signals,
+        "typed_edge_counts": _typed_edge_counts(typed_edges),
         "timeline": timeline[:40],
         "locations": [{"name": k, "count": v} for k, v in sorted(locations.items(), key=lambda kv: (-kv[1], kv[0]))[:20]],
         "evidence_edges": evidence_edges[:80],
+        "typed_edges": typed_edges[:240],
+        "rag_candidates": rag_candidates,
+        "gemma_edge_pass": {
+            "status": "not_run",
+            "detail": "Run /api/process/graph-extract after review to ask local Gemma 4 for additional typed edges and RAG candidates.",
+            "prompt_templates": GRAPH_EDGE_PROMPT_TEMPLATES,
+        },
         "graph": graph,
         "journey_points": _balanced_journey_points(journey_points, limit=120),
         "critical_fee_points": critical_fee_points,
@@ -1608,6 +2059,138 @@ def _graph_chat_deterministic_answer(bundle: dict, question: str) -> dict | None
     return None
 
 
+def _extract_json_object(text: str) -> dict | None:
+    match = _re.search(r"\{[\s\S]*\}", text or "")
+    if not match:
+        return None
+    try:
+        parsed = _json.loads(match.group(0))
+    except Exception:
+        return None
+    return parsed if isinstance(parsed, dict) else None
+
+
+def _normalize_model_edge(edge: Any, *, fallback_case_id: str = "UNKNOWN") -> dict | None:
+    if not isinstance(edge, dict):
+        return None
+    edge_type = str(edge.get("edge_type") or "").strip()
+    source_node = str(edge.get("source_node") or "").strip()
+    target_node = str(edge.get("target_node") or "").strip()
+    if not edge_type or not source_node or not target_node:
+        return None
+    evidence = edge.get("evidence") if isinstance(edge.get("evidence"), dict) else {}
+    normalized = {
+        "schema_version": "duecare.process.typed_edge.v1",
+        "edge_id": str(edge.get("edge_id") or _edge_id(
+            "gemma4", edge_type, source_node, target_node,
+            evidence.get("file"), evidence.get("quote"),
+        )),
+        "edge_type": edge_type,
+        "source_node": source_node,
+        "target_node": target_node,
+        "case_id": str(edge.get("case_id") or fallback_case_id),
+        "row_id": str(edge.get("row_id") or evidence.get("file") or ""),
+        "label": str(edge.get("label") or edge_type.replace("_", " ")),
+        "evidence": {
+            "file": evidence.get("file") or edge.get("row_id") or "",
+            "page": evidence.get("page"),
+            "chunk_id": evidence.get("chunk_id") or "",
+            "quote": str(evidence.get("quote") or "")[:320],
+        },
+        "extractors": list(dict.fromkeys(
+            [str(x) for x in (edge.get("extractors") or []) if str(x).strip()]
+            + ["gemma4_local"]
+        )),
+        "modalities": edge.get("modalities") or ["plain_text"],
+        "confidence": round(max(0.0, min(1.0, float(edge.get("confidence") or 0.5))), 2),
+        "review_status": "needs_review",
+        "local_only": True,
+    }
+    for key in ("amount", "severity", "rule_id", "document_type", "notes"):
+        if key in edge:
+            normalized[key] = edge[key]
+    return normalized
+
+
+def _gemma_edge_pass(app: Any, bundle: dict, *, prompt_id: str, limit: int) -> dict:
+    intelligence = bundle.get("intelligence") or {}
+    deterministic_edges = (intelligence.get("typed_edges") or [])[:limit]
+    deterministic_candidates = intelligence.get("rag_candidates") or []
+    gc = getattr(app.state, "gemma_call", None)
+    base = {
+        "schema_version": "duecare.process.gemma_edge_pass.v1",
+        "prompt_id": prompt_id,
+        "local_only": True,
+        "remote_api_calls": False,
+        "prompt_templates": GRAPH_EDGE_PROMPT_TEMPLATES,
+        "seed_typed_edges": deterministic_edges,
+        "rag_candidates": deterministic_candidates,
+    }
+    if gc is None:
+        return {
+            **base,
+            "status": "deterministic_no_model",
+            "model_edges": [],
+            "uncertainties": [
+                "No local Gemma 4 model is loaded; deterministic typed edges and RAG candidates are returned for review.",
+            ],
+        }
+
+    prompt = build_graph_edge_extraction_prompt(bundle, prompt_id=prompt_id, limit=limit)
+    messages = [
+        {"role": "system", "content": [{"type": "text", "text": GRAPH_EDGE_EXTRACTION_SYSTEM_PROMPT}]},
+        {"role": "user", "content": [{"type": "text", "text": prompt}]},
+    ]
+    try:
+        try:
+            model_out = gc(messages, max_new_tokens=1200, temperature=0.15)
+        except TypeError:
+            model_out = gc(messages)
+        text = model_out if isinstance(model_out, str) else (
+            (model_out or {}).get("text") or (model_out or {}).get("response") or ""
+        )
+        text = sanitize_model_output(text)
+        parsed = _extract_json_object(text)
+        if not parsed:
+            return {
+                **base,
+                "status": "model_unparsed_deterministic_fallback",
+                "model_edges": [],
+                "text_preview": text[:900],
+                "uncertainties": ["Gemma output did not parse as JSON; review deterministic edges."],
+            }
+        fallback_case_id = ((intelligence.get("people") or [{}])[0] or {}).get("case_id") or "UNKNOWN"
+        model_edges = [
+            e for e in (
+                _normalize_model_edge(edge, fallback_case_id=fallback_case_id)
+                for edge in (parsed.get("edges") or [])
+            )
+            if e
+        ][:limit]
+        candidates = parsed.get("rag_candidates")
+        if not isinstance(candidates, list):
+            candidates = deterministic_candidates
+        uncertainties = parsed.get("uncertainties")
+        if not isinstance(uncertainties, list):
+            uncertainties = []
+        return {
+            **base,
+            "status": "ok",
+            "model_edges": model_edges,
+            "rag_candidates": candidates[:12],
+            "uncertainties": [str(x)[:240] for x in uncertainties[:12]],
+            "prompt_chars": len(prompt),
+        }
+    except Exception as exc:
+        return {
+            **base,
+            "status": "model_error_deterministic_fallback",
+            "model_edges": [],
+            "error": f"{type(exc).__name__}: {exc}"[:300],
+            "uncertainties": ["Gemma edge pass failed; deterministic typed edges remain available."],
+        }
+
+
 def register_routes(app: Any) -> None:
     """Attach the process routes to a FastAPI app."""
 
@@ -1750,13 +2333,17 @@ def register_routes(app: Any) -> None:
                 "id": "graph",
                 "label": "Local graph cached",
                 "status": "complete",
-                "detail": f"{intelligence.get('n_evidence_edges', 0)} evidence edges",
+                "detail": (
+                    f"{intelligence.get('n_evidence_edges', 0)} evidence edges; "
+                    f"{intelligence.get('n_typed_edges', 0)} typed edges"
+                ),
             },
         ]
         bundle["intelligence"] = intelligence
         bundle["staging"] = staging
         bundle["summary"]["n_people_detected"] = intelligence.get("n_people", 0)
         bundle["summary"]["n_evidence_edges"] = intelligence.get("n_evidence_edges", 0)
+        bundle["summary"]["n_typed_edges"] = intelligence.get("n_typed_edges", 0)
         bundle["summary"]["gemma_case_brief_status"] = gemma_brief.get("status")
         app.state.last_process_bundle = bundle
         mark("caching", 92, "Caching local graph for graph chat and export.")
@@ -1772,6 +2359,7 @@ def register_routes(app: Any) -> None:
                     "top_grep": _summary.get("top_grep", []),
                     "entity_totals": _summary.get("entity_totals", {}),
                     "n_people_detected": _summary.get("n_people_detected", 0),
+                    "n_typed_edges": _summary.get("n_typed_edges", 0),
                     "gemma_case_brief_status": _summary.get("gemma_case_brief_status"),
                 },
                 applied_layers={"grep": {"fired": _summary.get("n_grep_rules_fired", 0) > 0}},
@@ -1882,6 +2470,58 @@ def register_routes(app: Any) -> None:
         if not job:
             raise HTTPException(404, f"unknown process job: {job_id}")
         return JSONResponse(job)
+
+    @app.post("/api/process/graph-extract")
+    async def api_process_graph_extract(request: Request) -> Any:
+        """Ask local Gemma 4 to propose typed graph edges and RAG candidates."""
+        try:
+            body = await request.json()
+        except Exception:
+            body = {}
+        prompt_id = str(body.get("prompt_id") or "case_graph_edges")
+        try:
+            limit = int(body.get("limit") or 24)
+        except Exception:
+            limit = 24
+        limit = max(4, min(limit, 80))
+        bundle = getattr(app.state, "last_process_bundle", None)
+        if bundle is None:
+            return JSONResponse({
+                "status": "no_bundle",
+                "bundle_present": False,
+                "message": "Upload and process a bundle before running the Gemma edge pass.",
+            })
+        out = _gemma_edge_pass(app, bundle, prompt_id=prompt_id, limit=limit)
+        intelligence = bundle.setdefault("intelligence", {})
+        intelligence["gemma_edge_pass"] = out
+        bundle.setdefault("summary", {})["gemma_edge_pass_status"] = out.get("status")
+        bundle["summary"]["n_model_proposed_edges"] = len(out.get("model_edges") or [])
+        try:
+            from .._training_log import log_interaction as _log
+            _log(
+                "process",
+                input_payload={"prompt_id": prompt_id, "bundle_run_id": bundle.get("run_id")},
+                output_payload={
+                    "status": out.get("status"),
+                    "n_model_edges": len(out.get("model_edges") or []),
+                    "n_rag_candidates": len(out.get("rag_candidates") or []),
+                },
+                applied_layers={"gemma_edge_pass": {"fired": bool(out.get("model_edges"))}},
+                trace={
+                    "local_only": True,
+                    "remote_api_calls": False,
+                    "prompt_templates": [t.get("id") for t in GRAPH_EDGE_PROMPT_TEMPLATES],
+                },
+                extra={"kind": "graph_extract"},
+            )
+        except Exception:
+            pass
+        return JSONResponse({
+            **out,
+            "bundle_present": True,
+            "evidence_edges": (bundle.get("summary") or {}).get("n_evidence_edges", 0),
+            "typed_edges": (intelligence.get("typed_edges") or [])[:limit],
+        })
 
     @app.post("/api/process/graph-chat")
     async def api_process_graph_chat(request: Request) -> Any:

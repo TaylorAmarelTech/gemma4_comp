@@ -1,6 +1,8 @@
 """Bulk File Review prompts."""
 from __future__ import annotations
 
+import json as _json
+
 GRAPH_CHAT_SYSTEM_PROMPT = (
     "You are DueCare's case-bundle analyst. The user has uploaded a folder "
     "of case material (chat exports, scans, recruitment ads, court filings, "
@@ -13,6 +15,113 @@ GRAPH_CHAT_SYSTEM_PROMPT = (
     "notes, or step-by-step internal analysis. Return only the final answer. "
     "Prefer: short answer, evidence table, caveats, next review steps."
 )
+
+GRAPH_EDGE_PROMPT_TEMPLATES: list[dict] = [
+    {
+        "id": "case_graph_edges",
+        "label": "Extract case graph edges",
+        "purpose": (
+            "Ask Gemma 4 to propose typed entity, payment, document-control, "
+            "folder, timeline, and journey-stage edges from local bundle facts."
+        ),
+        "output_keys": ["edges", "rag_candidates", "uncertainties"],
+    },
+    {
+        "id": "cross_document_linking",
+        "label": "Link repeated actors across documents",
+        "purpose": (
+            "Ask Gemma 4 to identify agencies, employers, recruiters, payment "
+            "recipients, folders, and phrases that appear across multiple rows."
+        ),
+        "output_keys": ["edges", "entity_aliases", "uncertainties"],
+    },
+    {
+        "id": "rag_candidate_synthesis",
+        "label": "Draft RAG and knowledge candidates",
+        "purpose": (
+            "Ask Gemma 4 to turn repeated non-PII patterns into reviewable "
+            "context snippets, modus-operandi notes, and extracted-fact shapes."
+        ),
+        "output_keys": ["rag_candidates", "knowledge_object_hints", "uncertainties"],
+    },
+    {
+        "id": "media_page_questions",
+        "label": "Plan OCR and multimodal page review",
+        "purpose": (
+            "Ask Gemma 4 to define local vision/OCR questions for images, scans, "
+            "screenshots, receipts, and PDFs that remain queued as media assets."
+        ),
+        "output_keys": ["media_questions", "edges", "uncertainties"],
+    },
+]
+
+GRAPH_EDGE_EXTRACTION_SYSTEM_PROMPT = (
+    "You are DueCare's local graph extraction harness. You receive a compact "
+    "summary of a case bundle already processed inside the Kaggle kernel. "
+    "Propose additional graph edges and RAG/knowledge candidates using ONLY "
+    "the supplied facts, row_ids, folder paths, OCR text if present, and media "
+    "queue metadata. Do not use cloud services, external search, or private "
+    "knowledge. Do not invent names, amounts, statutes, contacts, or row_ids. "
+    "Return JSON only with keys: edges, rag_candidates, uncertainties. "
+    "Each edge must include edge_type, source_node, target_node, confidence, "
+    "evidence {file, page, chunk_id, quote}, extractors, local_only=true, "
+    "and review_status='needs_review'. Prefer conservative edges with direct "
+    "row evidence over speculative links."
+)
+
+
+def build_graph_edge_extraction_prompt(
+    bundle: dict | None,
+    *,
+    prompt_id: str = "case_graph_edges",
+    limit: int = 24,
+) -> str:
+    """Render a bounded prompt for the local Gemma 4 graph-edge pass."""
+    if not bundle:
+        return "(No bundle uploaded yet.)"
+    intelligence = bundle.get("intelligence") or {}
+    plan = intelligence.get("processing_plan") or {}
+    template = next(
+        (t for t in GRAPH_EDGE_PROMPT_TEMPLATES if t.get("id") == prompt_id),
+        GRAPH_EDGE_PROMPT_TEMPLATES[0],
+    )
+    compact = {
+        "schema_version": "duecare.process.gemma_edge_prompt.v1",
+        "local_only": True,
+        "remote_api_calls": False,
+        "prompt_template": template,
+        "bundle_summary": bundle.get("summary") or {},
+        "allowed_edge_types": [
+            "charged_or_collected_fee",
+            "fee_amount_observed",
+            "salary_deduction_signal",
+            "document_control_signal",
+            "threat_or_retaliation_signal",
+            "rule_hit",
+            "filed_under",
+            "located_at",
+            "dated_evidence",
+            "same_actor_or_phrase",
+            "media_requires_ocr",
+            "media_requires_gemma_vision",
+            "journey_stage_observation",
+            "candidate_rag_grounding",
+        ],
+        "typed_edges_seed": (intelligence.get("typed_edges") or [])[:limit],
+        "rag_candidates_seed": (intelligence.get("rag_candidates") or [])[:10],
+        "people": (intelligence.get("people") or [])[:12],
+        "critical_fee_points": (intelligence.get("critical_fee_points") or [])[:16],
+        "top_risk_signals": (intelligence.get("top_risk_signals") or [])[:16],
+        "folder_counts": (intelligence.get("folder_counts") or [])[:16],
+        "media_assets": (plan.get("media_assets") or [])[:12],
+        "sample_rows": (bundle.get("results") or [])[:12],
+    }
+    return (
+        "Run this local Gemma 4 edge pass.\n"
+        "Task: " + str(template.get("purpose") or template.get("label")) + "\n"
+        "Output JSON only. Keep every claim tied to row evidence.\n\n"
+        + _json.dumps(compact, ensure_ascii=False)[:28000]
+    )
 
 
 def build_context_block(bundle: dict | None) -> str:
@@ -48,6 +157,7 @@ def build_context_block(bundle: dict | None) -> str:
         lines.append("Intelligence graph:")
         lines.append(f"  people detected: {intelligence.get('n_people', 0)}")
         lines.append(f"  evidence edges: {intelligence.get('n_evidence_edges', 0)}")
+        lines.append(f"  typed edges: {intelligence.get('n_typed_edges', 0)}")
         doc_counts = intelligence.get("document_type_counts") or {}
         if doc_counts:
             lines.append(
@@ -75,6 +185,26 @@ def build_context_block(bundle: dict | None) -> str:
                     f"{point.get('stage')} row_id={point.get('row_id')} "
                     f"case={point.get('case_id')} payments=[{payments}] "
                     f"signals=[{signals}]"
+                )
+        typed_edges = intelligence.get("typed_edges") or []
+        if typed_edges:
+            lines.append("  typed edge samples:")
+            for edge in typed_edges[:10]:
+                evidence = edge.get("evidence") or {}
+                lines.append(
+                    "    "
+                    f"{edge.get('edge_type')} {edge.get('source_node')} -> "
+                    f"{edge.get('target_node')} row_id={edge.get('row_id')} "
+                    f"quote={str(evidence.get('quote') or '')[:120]}"
+                )
+        rag_candidates = intelligence.get("rag_candidates") or []
+        if rag_candidates:
+            lines.append("  reviewable RAG candidates:")
+            for cand in rag_candidates[:6]:
+                lines.append(
+                    "    "
+                    f"{cand.get('knowledge_object_type')}:{cand.get('candidate_id')} "
+                    f"title={cand.get('title')}"
                 )
         brief = (intelligence.get("gemma_case_brief") or {}).get("json")
         if isinstance(brief, dict):
