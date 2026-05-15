@@ -1048,6 +1048,28 @@ def _demo_priority_examples() -> dict[str, object]:
     return json.loads(DEMO_PRIORITY_EXAMPLES_PATH.read_text(encoding="utf-8"))
 
 
+def _stats_page_context(request: Request) -> dict[str, object]:
+    """Return live counters plus an explicit beta-data disclosure for /stats."""
+    state = _state(request)
+    signal_count, update_count = state.store.counts()
+    return {
+        "stats_live": {
+            "generated_at": datetime.now(UTC).strftime("%Y-%m-%d %H:%M UTC"),
+            "pack_count": pack_registry.index_size(),
+            "tool_count": len(_hub_tool_manifest().tools),
+            "signal_count": signal_count,
+            "update_proposal_count": update_count,
+            "public_record_count": signal_count + update_count,
+        },
+        "stats_data_notice": (
+            "Beta page: the headline counters are live counts from this deployment. "
+            "Charts, corridor examples, review funnels, release timelines, and audit rows "
+            "are synthetic/composite demo previews until production ingestion and curator "
+            "governance are fully live."
+        ),
+    }
+
+
 def create_app(*, data_dir: Path | None = None) -> FastAPI:
     """Create the Duecare AI public hub FastAPI application."""
     store = FileHubStore((data_dir or default_data_dir()).resolve())
@@ -1712,7 +1734,10 @@ def create_app(*, data_dir: Path | None = None) -> FastAPI:
         )
 
     def _render(template_name: str, request: Request) -> HTMLResponse:
-        return templates.TemplateResponse(request, template_name, {"version": __version__})
+        context: dict[str, object] = {"version": __version__}
+        if template_name == "stats.html":
+            context.update(_stats_page_context(request))
+        return templates.TemplateResponse(request, template_name, context)
 
     def _make_route(template_name: str):
         async def _handler(request: Request) -> HTMLResponse:

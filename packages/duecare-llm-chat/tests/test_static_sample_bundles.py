@@ -127,11 +127,17 @@ def test_search_and_training_seed_samples_have_expected_assets():
     training_names = _zip_names("prompt_eval_training_seed_sample.zip")
     assert "prompt_sets/use_case_prompts.jsonl" in training_names
     assert "prompt_sets/adversarial_prompts.jsonl" in training_names
+    assert "manifest/unified_demo_story.json" in training_names
     assert "rubrics/evaluation_dimensions.json" in training_names
     assert "training/synthetic_sft_pairs.jsonl" in training_names
     assert "training/preference_pairs.jsonl" in training_names
     assert "training/tool_call_examples.jsonl" in training_names
     assert "manifest/finetune_seed_manifest.json" in training_names
+
+    with zipfile.ZipFile(SAMPLES / "prompt_eval_training_seed_sample.zip") as zf:
+        story = json.loads(zf.read("manifest/unified_demo_story.json"))
+        assert story["case_id"] == "DC-PH-HK-101"
+        assert story["agency"] == "Pearl Bridge Manpower"
 
 
 def test_pages_link_downloadable_sample_packs():

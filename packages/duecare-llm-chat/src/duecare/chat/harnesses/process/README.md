@@ -13,6 +13,8 @@ what remains queued before trusting the graph.
 | Method | Path | Purpose |
 |---|---|---|
 | POST | `/api/process/batch` | multipart upload to v1.0 bundle envelope |
+| POST | `/api/process/batch/start` | acknowledge upload, start background process job, return job ID |
+| GET | `/api/process/batch/status/{job_id}` | poll server-side phases and retrieve result when complete |
 | POST | `/api/process/graph-chat` | ask Gemma 4 about the last uploaded bundle |
 
 ## Files

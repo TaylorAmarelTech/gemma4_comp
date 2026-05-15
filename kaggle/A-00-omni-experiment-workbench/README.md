@@ -86,16 +86,22 @@ Use these recipes as the minimum pre-submission validation set:
 
 ## Small-Model Fine-Tune Smoke Path
 
-Use this path before recording if you plan to fine-tune E2B or E4B:
+Use this path before recording if you plan to fine-tune the smallest Gemma 4
+variant for a quick demo:
 
 1. Run A-00 on Kaggle with GPU and internet enabled.
 2. Open the UI and keep `dry_run` if you only want artifact validation, or load
-   the smallest selected Gemma 4 model.
+   the smallest selected Gemma 4 model. The training panel defaults to
+   `google/gemma-4-e2b-it`; adjust the exact Hugging Face/Unsloth model path
+   to match the Kaggle image before executing.
 3. In Synthetic Data, choose `rubric_polisher` and generate 8 to 40 rows.
 4. In Train Adapter, click `Tiny fine-tune smoke bundle`. This writes a valid
    SFT JSONL, DPO JSONL, manifest, bundle ZIP, and a 5-step training script.
-5. After verifying the paths, switch `Execute now` to `true` for the real
-   Unsloth run on the Kaggle GPU.
+5. Run the baseline eval on the same prompt set, then after verifying paths
+   switch `Execute now` to `true` for the real Unsloth run on the Kaggle GPU.
+6. Reload the base model plus adapter and rerun the same eval prompts to show
+   before/after lift in legal specificity, contact-pack/tool-call behavior,
+   refusal grounding, and retaliation-risk dimensions.
 
 Expected artifacts after step 4:
 

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import io
+import time
 import zipfile
 from pathlib import Path
 
@@ -69,6 +70,8 @@ def test_case_files_media_rich_sample_has_messy_intake_depth():
         names = [n for n in zf.namelist() if not n.endswith("/")]
         assert len(names) < 300
         assert any(n.startswith("media_rich_cases/") for n in names)
+        assert "00_reference_sources/official_source_catalog.json" in names
+        assert "00_demo_story/UNIFIED_DEMO_STORY.md" in names
         for marker in [
             "facebook_messenger/",
             "whatsapp_retaliation",
@@ -201,6 +204,45 @@ def test_process_batch_returns_intelligence_for_media_rich_sample():
     assert any("media_rich_cases" in edge.get("source_path", "") for edge in intel["evidence_edges"])
     stages = {point["stage"] for point in intel["journey_points"]}
     assert {"recruitment", "payment_and_debt", "travel", "documents_and_identity"}.issubset(stages)
+
+
+def test_process_batch_async_job_returns_media_rich_result():
+    from duecare.chat.app import create_app
+
+    sample = (
+        Path(__file__).parents[1]
+        / "src"
+        / "duecare"
+        / "chat"
+        / "static"
+        / "samples"
+        / "case_files_media_rich_sample.zip"
+    )
+    client = TestClient(create_app())
+    start = client.post(
+        "/api/process/batch/start",
+        files={"file": (sample.name, io.BytesIO(sample.read_bytes()), "application/zip")},
+    )
+    assert start.status_code == 200, start.text
+    job_id = start.json()["job_id"]
+    status = None
+    for _ in range(20):
+        poll = client.get(f"/api/process/batch/status/{job_id}")
+        assert poll.status_code == 200, poll.text
+        status = poll.json()
+        if status["status"] == "complete":
+            break
+        time.sleep(0.05)
+    assert status is not None
+    assert status["status"] == "complete"
+    assert status["pct"] == 100
+    assert status["events"]
+    assert any(e["phase"] == "parsing" for e in status["events"])
+    body = status["result"]
+    assert body["job_id"] == job_id
+    assert body["config"]["processing_mode"] == "async_job"
+    assert body["summary"]["n_people_detected"] == 6
+    assert body["intelligence"]["processing_plan"]["n_media_assets"] >= 45
 
 
 def test_process_batch_surfaces_media_and_ocr_work_queue():
