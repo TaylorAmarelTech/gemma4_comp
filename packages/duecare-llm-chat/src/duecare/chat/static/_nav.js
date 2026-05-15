@@ -61,6 +61,13 @@
     let modelPollTimer = null;
     let modelLastStatus = {loaded: false};
     let modelSelectorRequired = false;
+    const modelRequiredNavKeys = new Set([
+        'chat',
+        'compare',
+        'process',
+        'knowledge',
+        'search',
+    ]);
 
     function modelSelectEl() {
         return document.getElementById('dc-wb-model-select');
@@ -339,6 +346,13 @@
         return false;
     }
 
+    function pageRequiresModelOnLoad() {
+        const mode = document.body.getAttribute('data-model-gate') || '';
+        if (mode === 'required') return true;
+        if (mode === 'optional' || mode === 'disabled') return false;
+        return modelRequiredNavKeys.has(document.body.getAttribute('data-nav') || '');
+    }
+
     function wireShutdown() {
         const btn = document.getElementById('dc-wb-shutdown-btn');
         if (!btn) return;
@@ -401,7 +415,7 @@
         refreshStatus();
         refreshModelLoaderStatus().then(function (state) {
             const onModelsPage = (document.body.getAttribute('data-nav') || '') === 'models';
-            if (!onModelsPage && state.info && !state.info.loaded) {
+            if (!onModelsPage && pageRequiresModelOnLoad() && state.info && !state.info.loaded) {
                 openModelPopover({required: true});
             }
         });

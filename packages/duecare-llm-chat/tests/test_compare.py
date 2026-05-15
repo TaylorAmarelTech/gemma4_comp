@@ -148,8 +148,22 @@ def test_model_selector_lives_in_shared_nav(client):
     assert 'id="dc-wb-nav-toggle"' in nav
     assert "dcWbEnsureModelReady" in nav_js
     assert "openModelPopover({required: true})" in nav_js
+    assert "modelRequiredNavKeys" in nav_js
+    assert "'compare'" in nav_js
+    assert "pageRequiresModelOnLoad()" in nav_js
     assert "dc-wb-model-required" in client.get("/static/_chrome.css").text
     assert "wireNavToggle" in nav_js
+
+
+def test_root_page_does_not_force_model_gate(client):
+    """The home page is orientation content, not an inference surface.
+    It should still get the shared status strip, but the global model
+    gate must be scoped to interactive workbench pages."""
+    r = client.get("/")
+    assert r.status_code == 200
+    assert 'data-nav="getting-started"' in r.text
+    nav_js = client.get("/static/_nav.js").text
+    assert "'getting-started'" not in nav_js.split("modelRequiredNavKeys", 1)[1].split("]);", 1)[0]
 
 
 def test_abort_controller_wired(client):
