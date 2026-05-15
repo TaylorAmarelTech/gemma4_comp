@@ -116,7 +116,7 @@
 <p style="font-family:var(--mono);font-size:14.5px;background:var(--paper-2);border:1px solid var(--line);border-radius:8px;padding:14px 18px;margin-top:12px;line-height:1.5;">capability spike &asymp; verifiability &times; training attention &times; data coverage &times; economic value</p>
 <p style="margin-top:14px;">Migrant worker exploitation scores low on every factor. Outcomes are hard to verify (workers go silent, cases close years later, and definitions vary by jurisdiction). Training corpora rarely emphasize labour law, recruitment fees, or corridor-specific scams. Public data is thin and scattered across regulators, NGOs, and court filings. The economic incentive to optimize a frontier model for this domain is small relative to coding or search.</p>
 <p>The result: stock models give plausible-sounding answers that are wrong in load-bearing ways. They miss the cited statute. They under-estimate corridor risk. They invent NGO contacts. They paraphrase a recruiter euphemism instead of flagging it.</p>
-<p>Until inherent capability arrives, the gap has to be closed by structure: deterministic <strong>grep</strong> rules that fire before the model speaks, <strong>retrieval</strong> against vetted corridor packs, <strong>tool calls</strong> that ground every claim in a verified source, and a <strong>safety harness</strong> that refuses to answer when it cannot cite. Gemma 4 was chosen because it ships with native tool-calling and is small enough to run on a worker&rsquo;s phone, which is what makes the harness practical.</p>
+<p>Until inherent capability arrives, the gap has to be closed by structure: deterministic <strong>grep</strong> rules that fire before the model speaks, <strong>retrieval</strong> against vetted corridor packs, <strong>tool calls</strong> that ground claims in verified sources, and a <strong>safety harness</strong> that can refuse or narrow an answer when it cannot cite. Gemma 4 was chosen because it ships with native tool-calling and can run in local, edge, and on-device-oriented deployments, which is what makes the harness practical.</p>
 </div>
 </div></section>
 
@@ -124,7 +124,7 @@
 <span class="ix">03 &middot; The mission</span>
 <h2>Make trustworthy safety guidance easier to run, audit, and improve.</h2>
 <div class="body">
-<p>DueCare publishes vetted knowledge packs, a tools registry, evaluation suites, and a small AI safety harness. Anyone can run them. Everyone can verify them. The whole system fails closed when it can&rsquo;t cite a public source.</p>
+<p>DueCare publishes vetted knowledge packs, a tools registry, evaluation suites, and a small AI safety harness. Anyone can run them. Everyone can verify them. Citation-critical paths are designed to fail closed or narrow the answer when they can&rsquo;t cite a public source.</p>
 <p>The mission isn&rsquo;t a single product. It&rsquo;s shared infrastructure: a thin public hub that holds reviewed knowledge, paired with private deployments at the edges where worker context lives.</p>
 <p>That infrastructure also gives NGOs a safer way to coordinate with each other and with regulators: share vetted public sources, pattern labels, contact updates, and anonymized corridor trends, not raw case files, names, documents, or narratives.</p>
 </div>
@@ -135,7 +135,7 @@
 <h2>Six concrete jobs.</h2>
 <div class="ms-do">
 <article><span class="tag">01</span><h4>Finds risk signals</h4><p>Detects fee-request patterns, passport-handling clauses, identity-mismatch hints, and other anonymized signals across job posts, chat snippets, and contract text.</p></article>
-<article><span class="tag">02</span><h4>Grounds responses</h4><p>Every claim is anchored to a vetted knowledge pack with a public-source citation and a date. No source, no claim.</p></article>
+<article><span class="tag">02</span><h4>Grounds responses</h4><p>Load-bearing safety claims are anchored to vetted knowledge packs with public-source citations and dates. The system shows when a claim is grounded, missing, or awaiting review.</p></article>
 <article><span class="tag">03</span><h4>Protects privacy</h4><p>Raw worker context stays at the edge. The hub never receives names, narratives, or document images.</p></article>
 <article><span class="tag">04</span><h4>Enables safe sharing</h4><p>NGOs can exchange vetted patterns and source updates, and regulators can receive anonymized corridor-level signals without receiving private case details.</p></article>
 <article><span class="tag">05</span><h4>Improves shared knowledge</h4><p>Reviewers and partners feed verified updates back through a public review queue with a curator-vetted release pipeline.</p></article>
@@ -162,7 +162,7 @@
 <div class="ms-pillars">
 <article><span class="num">01</span><h4>Platform safety</h4><p>Job-board moderation runs grep rules + corridor packs at edit time. Postings are screened before they reach workers.</p></article>
 <article><span class="num">02</span><h4>NGO &amp; regulator</h4><p>Caseworker copilots draft cited briefings; NGOs share vetted patterns; regulator dashboards see corridor-level anonymized trends. Cases stay local.</p></article>
-<article><span class="num">03</span><h4>Individual worker / mobile</h4><p>An on-device sibling app answers in the worker&rsquo;s language, on their phone, even offline.</p></article>
+<article><span class="num">03</span><h4>Individual worker / mobile</h4><p>A worker/mobile lane answers in the worker&rsquo;s language through local, edge, or partner-controlled channels, with offline-capable on-device deployment as the target path.</p></article>
 <article><span class="num">04</span><h4>Researcher</h4><p>Versioned evaluation packs and reproducible benchmarks for researchers studying labour-market safety.</p></article>
 <article><span class="num">05</span><h4>Developer / integration partner</h4><p>APIs, Docker, schemas, examples, and packs let teams embed DueCare into their own prevention, assistance, and research workflows.</p></article>
 </div>
@@ -176,7 +176,7 @@
 <div>
 <span class="label">Composite character &middot; not a real person</span>
 <h3>Maria, 28, considering a domestic-work contract overseas.</h3>
-<p>A recruiter sends Maria a contract over chat and a list of fees. She opens DueCare on her phone. The app reads the contract <em>locally</em>; nothing is uploaded. It flags two clauses that contradict her source-country labour ministry&rsquo;s most recent circular and one fee that exceeds the corridor&rsquo;s legal cap.</p>
+<p>A recruiter sends Maria a contract over chat and a list of fees. She opens a DueCare-enabled worker channel. The contract is read inside a worker-controlled or trusted partner environment; nothing is uploaded to the public hub. It flags two clauses that contradict her source-country labour ministry&rsquo;s most recent circular and one fee that exceeds the corridor&rsquo;s legal cap.</p>
 <p>Each flag links to the public source, with the date. The app drafts questions Maria can ask the recruiter and lists verified contacts at her embassy and at a partner NGO. DueCare does not contact anyone on her behalf.</p>
 <p>If Maria opts in, an anonymized signal &mdash; <code>fee_excess</code> on this corridor, this week &mdash; is contributed to the public hub. If enough other workers see the same pattern, it shows up on a regulator&rsquo;s dashboard as a corridor-level trend, with no path back to Maria.</p>
 </div>
@@ -208,7 +208,7 @@
 <h2>What happens to sensitive data.</h2>
 <div class="pledges">
 <p>Raw worker chats, case files, IDs, contact details, and private documents stay on the worker device or trusted NGO hardware unless an authorized user creates a sanitized submission.</p>
-<p>Sensitive PII is anonymized by the local Gemma 4 workflow before anything is submitted to the public hub.</p>
+<p>Sensitive PII is anonymized by the local workflow before anything is submitted to the public hub; Gemma 4 may assist that workflow where the local deployment enables it.</p>
 <p>The server runs a second PII detector that rejects raw-PII submissions before storage and redacts detector-class PII in admin/debug views.</p>
 <p>DueCare drafts; the user or trusted caseworker decides.</p>
 <p>If anything we ship looks like it violates this, treat it as a bug.</p>
