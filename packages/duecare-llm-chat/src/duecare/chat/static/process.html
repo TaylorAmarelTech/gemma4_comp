@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="/static/_chrome.css">
   <script src="/static/_nav.js" defer></script>
   <script src="/static/_activity_log.js" defer></script>
+  <script src="/static/_workflow.js" defer></script>
   <style>
     body { font-family: 'Inter', sans-serif; background: #F7F6F1; color: #0E1116; margin: 0; padding: 0; }
     .wb-page { max-width: 1120px; margin: 0 auto; padding: 24px 22px 80px; }
@@ -763,20 +764,20 @@
       tick();
       wbProcessProgressTimer = setInterval(tick, 1000);
     }
+    let wbWorkflowStepper = null;
+    function wbGetWorkflowStepper() {
+      if (!wbWorkflowStepper && window.dcWorkflow) {
+        wbWorkflowStepper = window.dcWorkflow.createStepper({
+          ids: ['wb-step-upload', 'wb-step-process', 'wb-step-intelligence',
+                'wb-graph-chat', 'wb-step-export'],
+          stateIdFor: (id) => id === 'wb-graph-chat' ? 'wb-step-chat-state' : id + '-state',
+        });
+      }
+      return wbWorkflowStepper;
+    }
     function wbSetWorkflow(active) {
-      const ids = ['wb-step-upload', 'wb-step-process', 'wb-step-intelligence',
-                   'wb-graph-chat', 'wb-step-export'];
-      ids.forEach((id, idx) => {
-        const el = document.getElementById(id);
-        if (!el) return;
-        el.classList.toggle('complete', idx < active);
-        if ('open' in el) el.open = idx === active;
-        const stateId = id === 'wb-graph-chat'
-          ? 'wb-step-chat-state'
-          : id + '-state';
-        const state = document.getElementById(stateId);
-        if (state) state.textContent = idx < active ? 'Done' : (idx === active ? 'Active' : 'Waiting');
-      });
+      const stepper = wbGetWorkflowStepper();
+      if (stepper) stepper.set(active);
     }
     function wbSetGuide(active) {
       wbSetWorkflow(Math.max(0, Math.min(4, active)));
