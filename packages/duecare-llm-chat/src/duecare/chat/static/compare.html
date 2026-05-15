@@ -198,7 +198,7 @@
           <label style="font-size: 12.5px; margin-left: 10px;"><input type="checkbox" id="B-rag" checked> RAG</label>
           <label style="font-size: 12.5px; margin-left: 10px;"><input type="checkbox" id="B-tools" checked> Tools</label>
           <label style="font-size: 12.5px; margin-left: 10px;"><input type="checkbox" id="B-online"> Online <span class="wb-muted">(only fires if provider is wired)</span></label>
-          <label style="font-size: 12.5px; margin-left: 10px;"><input type="checkbox" id="B-import_corpus" checked> Import</label>
+          <label style="font-size: 12.5px; margin-left: 10px;"><input type="checkbox" id="B-import_corpus"> Import</label>
         </div>
       </div>
       <div class="wb-row" style="margin-top: 14px; gap: 6px; align-items: center;">
@@ -733,17 +733,17 @@
       const presets = {
         stock_vs_full: {
           A: {persona: false, grep: false, rag: false, tools: false, online: false, import_corpus: false},
-          B: {persona: true,  grep: true,  rag: true,  tools: true,  online: false, import_corpus: true},
+          B: {persona: true,  grep: true,  rag: true,  tools: true,  online: false, import_corpus: false},
           A_label: 'stock', B_label: 'harness on',
         },
         grep_only_vs_full: {
           A: {persona: false, grep: true,  rag: false, tools: false, online: false, import_corpus: false},
-          B: {persona: true,  grep: true,  rag: true,  tools: true,  online: false, import_corpus: true},
+          B: {persona: true,  grep: true,  rag: true,  tools: true,  online: false, import_corpus: false},
           A_label: 'grep only', B_label: 'harness on',
         },
         with_online_vs_without: {
-          A: {persona: true,  grep: true,  rag: true,  tools: true,  online: false, import_corpus: true},
-          B: {persona: true,  grep: true,  rag: true,  tools: true,  online: true,  import_corpus: true},
+          A: {persona: true,  grep: true,  rag: true,  tools: true,  online: false, import_corpus: false},
+          B: {persona: true,  grep: true,  rag: true,  tools: true,  online: true,  import_corpus: false},
           A_label: 'no online', B_label: 'with online',
         },
       };

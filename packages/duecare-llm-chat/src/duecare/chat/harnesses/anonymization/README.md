@@ -6,7 +6,7 @@ PII redaction + audited submission to the public hub.
 
 | Method | Path | Purpose |
 |---|---|---|
-| POST | `/api/anonymize` | batch redact PII in a list of texts |
+| POST | `/api/anonymize` | batch redact PII in a list of texts; optional Gemma review of already-redacted output |
 | POST | `/api/submit/knowledge` | audit + HTTPS POST to the hub |
 | POST | `/api/submit/local` | deprecated alias for `/api/submit/knowledge` |
 
@@ -16,18 +16,18 @@ PII redaction + audited submission to the public hub.
 - `detector.py` -- 5 PII regex patterns (EMAIL/PHONE/AMOUNT/ID/PERSON)
 - `redactor.py` -- salted-hash placeholder builder + raw_sha256 helper
 
-## Why regex-only (no Gemma, no GREP, no RAG)
+## Privacy review model
 
-This harness is the **safety gate**. By design, no raw PII reaches a
-language model from here. The deterministic regex pass is what makes
-the gate auditable -- you can prove exactly what was redacted, what
-sha256 the raw value hashed to, and what placeholder replaced it.
+This harness is the **safety gate**. The deterministic regex pass is
+mandatory and auditable -- you can prove exactly what was redacted,
+what sha256 the raw value hashed to, and what placeholder replaced it.
 
-A future Gemma 4 NER pass could be wired as a *redundant second-stage
-detector* that runs AFTER regex redaction (so it only sees already-
-redacted text). That would catch entities the regex missed (e.g.,
-names without titles). It would NOT run before redaction; that would
-defeat the purpose of the gate.
+When `gemma_review=true`, a loaded Gemma 4 model runs as a redundant
+second-stage reviewer AFTER regex redaction. The prompt instructs the
+model not to quote any suspected remaining personal data; it returns
+categories, severities, and review guidance only. If no model is
+loaded, the endpoint reports `status=no_model` and the deterministic
+redaction result is still returned.
 
 ## Audit log
 

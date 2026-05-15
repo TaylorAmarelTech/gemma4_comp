@@ -126,8 +126,13 @@ def test_process_batch_returns_intelligence_for_sample():
     assert intel["document_type_counts"]["chat_messages"] == 30
     assert intel["document_type_counts"]["media_image"] >= 50
     assert intel["document_type_counts"]["scanned_pdf"] >= 10
-    assert intel["gemma_case_brief"]["status"] == "deterministic_no_model"
+    assert body["staging"]["bytes"] == len(data)
+    assert body["staging"]["sha256"]
+    assert body["config"]["gemma_case_brief"] == "deferred"
+    assert intel["gemma_case_brief"]["status"] == "deterministic_deferred_model"
+    assert intel["gemma_case_brief"]["deferred"] is True
     assert len(intel["harness_trace"]) >= 5
+    assert any(step["id"] == "stage" for step in intel["harness_trace"])
     assert intel["top_risk_signals"]
     assert not any(s["signal"] == "?" for s in intel["top_risk_signals"])
     assert intel["folder_counts"]

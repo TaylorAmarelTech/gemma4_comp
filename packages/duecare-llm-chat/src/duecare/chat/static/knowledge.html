@@ -104,21 +104,24 @@
       unless you anonymize and submit on Anonymization &amp; Sharing.
     </div>
     <p class="wb-lede">
-      Paste raw text or upload a source bundle from recruiter messages,
-      case notes, statutes, reports, PDFs, images, or contracts. The
-      extraction harness anonymizes it, scans it against
-      existing GREP/RAG knowledge, asks Gemma 4 to draft useful knowledge
-      objects, and shows suggested envelopes for review. Advanced users can
-      still choose a specific leaf type or manually author any taxonomy leaf.
+      Upload source bundles or evidence files containing recruiter messages, case notes, statutes,
+      reports, PDFs, images, or contracts. The page first runs the same local
+      Bulk File Review harness used on Process: upload staging, parsing, GREP,
+      entity extraction, folder edges, document classification, media queue,
+      journey stages, and deterministic graph summary. The extraction harness
+      then uses that reviewed bundle to draft standardized knowledge objects.
+      Advanced users can still paste a short text excerpt or manually author
+      any taxonomy leaf. Existing knowledge-object ZIPs are called
+      <b>knowledge files</b> and belong in the import/export step.
     </p>
 
     <section class="kx-hero" aria-label="Knowledge extraction overview">
       <h2>What this workflow does</h2>
       <p class="wb-muted" style="font-size:12.5px; line-height:1.55; margin:0;">
-        This page turns reviewed text and uploaded source bundles into
+        This page turns reviewed source bundles and public-source evidence into
         maintainable knowledge objects. The normal path is add source,
         draft suggestions, promote useful envelopes, then finish by
-        exporting or sharing through the redaction flow.
+        exporting knowledge files or sharing through the redaction flow.
       </p>
       <div class="kx-hero-grid">
         <div class="kx-hero-item"><b>No schema up front</b><span>Gemma 4 and deterministic hints suggest useful object types automatically.</span></div>
@@ -132,8 +135,8 @@
         <summary>
           <span class="kx-step-index">1</span>
           <span>
-            <span class="kx-step-title">Add source text or upload files</span>
-            <span class="kx-step-summary">Paste a passage, upload a bundle, or load an example. The normal path does not require choosing a schema first.</span>
+            <span class="kx-step-title">Upload a source bundle or add source text</span>
+            <span class="kx-step-summary">Upload a ZIP or file bundle first. It runs through the same local process harness as Bulk File Review before drafting.</span>
           </span>
           <span class="kx-step-state" id="kx-step-source-state">Ready</span>
         </summary>
@@ -152,12 +155,12 @@
             <button class="kx-example" type="button" onclick="kxUseExample('ILO C181 Article 7 prohibits private employment agencies from charging fees or costs directly or indirectly to workers, except narrow authorized exceptions.')">Citation example</button>
           </div>
           <div class="kx-source-upload" id="kx-source-dropzone" onclick="kxOpenSourceUpload()" ondragover="kxDragSource(event)" ondrop="kxDropSource(event)">
-            <b>Upload source files</b>
-            <span>Accepted: ZIP, CSV, JSONL, TXT, MD, LOG, JSON, DOC/DOCX, XLSX, EML, HTML, RTF, PDF, PNG, JPG, WEBP, TIF, BMP. Files are parsed locally into bounded drafting text.</span>
+            <b>Upload source bundle or evidence files</b>
+            <span>Accepted: ZIP, CSV, JSONL, TXT, MD, LOG, JSON, DOC/DOCX, XLSX, EML, HTML, RTF, PDF, PNG, JPG, WEBP, TIF, BMP. Evidence files are processed locally by the Bulk File Review harness, then summarized for knowledge drafting.</span>
           </div>
           <input type="file" id="kx-source-file-input" style="display:none;" accept=".zip,.csv,.jsonl,.txt,.md,.log,.json,.doc,.docx,.xls,.xlsx,.eml,.html,.htm,.rtf,.pdf,.png,.jpg,.jpeg,.webp,.tif,.tiff,.bmp" onchange="kxHandleSourceFile(event)">
           <div id="kx-source-file-status" class="wb-muted" style="margin:-2px 0 8px;"></div>
-          <textarea id="kx-raw" rows="6" placeholder="Paste a recruiter message, a contract clause, a court filing excerpt, or an NGO report fragment..." style="width:100%; box-sizing:border-box; font-family:var(--mono); font-size:12.5px; padding:10px; border:1px solid #DDD8C9; border-radius:8px; background:#FFF;"></textarea>
+          <textarea id="kx-raw" rows="6" placeholder="Optional: paste a short recruiter message, contract clause, court filing excerpt, or NGO report fragment if you do not have a source bundle to upload..." style="width:100%; box-sizing:border-box; font-family:var(--mono); font-size:12.5px; padding:10px; border:1px solid #DDD8C9; border-radius:8px; background:#FFF;"></textarea>
           <div class="wb-row" style="margin-top:10px; gap:10px; align-items:center; flex-wrap:wrap;">
             <label style="font-size:12px; margin-left:8px;">
               <input type="checkbox" id="kx-anonymize" checked> Anonymize raw text first
@@ -217,30 +220,30 @@
         <summary>
           <span class="kx-step-index">3</span>
           <span>
-            <span class="kx-step-title">Import or export knowledge packs</span>
-            <span class="kx-step-summary">Bring in a vetted pack ZIP or export the local knowledge store as a ZIP.</span>
+            <span class="kx-step-title">Import or export knowledge files</span>
+            <span class="kx-step-summary">Bring in a vetted knowledge-object ZIP or export the local knowledge store as knowledge files.</span>
           </span>
           <span class="kx-step-state" id="kx-step-pack-state">Waiting</span>
         </summary>
         <div class="kx-step-body">
           <div class="kx-action-grid">
             <div class="kx-action-card">
-              <h3>Import pack ZIP</h3>
-              <p>Load a vetted or local knowledge pack. Entries must be stored as <code>&lt;type&gt;/&lt;id&gt;.json</code>.</p>
+              <h3>Import knowledge files</h3>
+              <p>Load vetted or local knowledge files. Entries must be stored as <code>&lt;type&gt;/&lt;id&gt;.json</code>.</p>
               <div class="kx-card-actions"><button class="wb-btn-primary" type="button" onclick="kxOpenPackImport()">Import ZIP</button></div>
             </div>
             <div class="kx-action-card">
-              <h3>Example import packs</h3>
-              <p>Download a compact starter pack or a richer multi-leaf pack, then import it here to inspect object structure.</p>
+              <h3>Example knowledge files</h3>
+              <p>Download a compact starter set or a richer multi-leaf ZIP, then import it here to inspect object structure.</p>
               <div class="kx-card-actions">
                 <a class="wb-btn-secondary" href="/static/samples/knowledge_bundle_sample.zip" download="knowledge_bundle_sample.zip">Starter pack</a>
                 <a class="wb-btn-secondary" href="/static/samples/knowledge_pack_rich_sample.zip" download="knowledge_pack_rich_sample.zip">Rich pack</a>
               </div>
             </div>
             <div class="kx-action-card">
-              <h3>Export local packs</h3>
-              <p>Download every persisted object for appendix notebooks, sync review, or later anonymized sharing.</p>
-              <div class="kx-card-actions"><a class="wb-btn-primary" href="/api/knowledge/export" download>Export ZIP</a></div>
+              <h3>Export local knowledge files</h3>
+              <p>Download every persisted object plus metadata for appendix notebooks, sync review, or later anonymized sharing.</p>
+              <div class="kx-card-actions"><a class="wb-btn-primary" href="/api/knowledge/export" download="knowledge_files.zip">Export knowledge_files.zip</a></div>
             </div>
           </div>
           <input type="file" id="kx-pack-import-input" style="display:none;" accept=".zip" onchange="kxImportPack(event)">
@@ -295,39 +298,96 @@
       const f = event.target && event.target.files && event.target.files[0];
       if (f) kxLoadSourceFile(f);
     }
+    function kxBuildTextFromProcessBundle(bundle){
+      const s = bundle.summary || {};
+      const intel = bundle.intelligence || {};
+      const plan = intel.processing_plan || {};
+      const lines = [
+        'Knowledge file process bundle: ' + (bundle.config && bundle.config.source || 'uploaded'),
+        'RUN_ID: ' + (bundle.run_id || ''),
+        'Upload staged: ' + (bundle.staging && bundle.staging.path || 'not saved'),
+        'Rows parsed: ' + (s.n_rows_total || 0) + '; rows processed: ' + (s.n_rows_processed || 0),
+        'People detected: ' + (s.n_people_detected || 0) + '; evidence edges: ' + (s.n_evidence_edges || 0),
+        'Media or OCR work items queued: ' + (plan.n_media_assets || 0),
+        '',
+      ];
+      const topSignals = (intel.top_risk_signals || []).slice(0, 12)
+        .map(x => (x.signal || x.rule_id || 'signal') + ' x ' + (x.count || 0));
+      if (topSignals.length) lines.push('Top risk signals: ' + topSignals.join(', '), '');
+      const topStats = (s.top_statutes || []).slice(0, 10)
+        .map(x => (x.statute || '') + ' x ' + (x.count || 0));
+      if (topStats.length) lines.push('Top statutes: ' + topStats.join(', '), '');
+      const folders = (intel.folder_counts || []).slice(0, 12)
+        .map(x => (x.folder || '') + ' x ' + (x.count || 0));
+      if (folders.length) lines.push('Folder-derived context: ' + folders.join(', '), '');
+      (intel.people || []).slice(0, 20).forEach((p, idx) => {
+        lines.push(
+          '[' + (idx + 1) + '] case_id: ' + (p.case_id || ''),
+          'name_or_label: ' + (p.name || ''),
+          'risk_score: ' + (p.risk_score || 0),
+          'total_payment_value: ' + (p.total_payment_value || 0),
+          'signals: ' + ((p.risk_signals || []).join(', ') || '(none)'),
+          'row_ids: ' + ((p.row_ids || []).slice(0, 8).join(', ') || '(none)'),
+          ''
+        );
+      });
+      (intel.critical_fee_points || intel.journey_points || []).slice(0, 24).forEach((point, idx) => {
+        lines.push(
+          'critical_or_journey_point_' + (idx + 1) + ':',
+          'stage: ' + (point.stage || ''),
+          'case_id: ' + (point.case_id || ''),
+          'row_id: ' + (point.row_id || ''),
+          'payments: ' + ((point.payments || []).join(', ') || '(none)'),
+          'signals: ' + ((point.signals || point.risk_signals || []).join(', ') || '(none)'),
+          'summary: ' + (point.summary || point.detail || ''),
+          ''
+        );
+      });
+      (plan.media_assets || []).slice(0, 20).forEach((m, idx) => {
+        lines.push(
+          'queued_media_' + (idx + 1) + ': ' + (m.row_id || ''),
+          'media_type: ' + (m.media_type || '') + '; status: ' + (m.status || 'queued'),
+          'source_path: ' + (m.source_path || m.row_id || ''),
+          ''
+        );
+      });
+      return lines.join('\n').trim();
+    }
     async function kxLoadSourceFile(file){
       const status = document.getElementById('kx-source-file-status');
       const rawEl = document.getElementById('kx-raw');
-      if (status) status.textContent = 'Parsing ' + file.name + ' locally for drafting...';
-      wbLog('net', 'POST /api/knowledge/source-file', 'file=' + file.name + ' bytes=' + file.size);
+      if (status) status.textContent = 'Processing source bundle through the Bulk File Review harness...';
+      wbLog('net', 'POST /api/process/batch', 'source bundle=' + file.name + ' bytes=' + file.size);
       const fd = new FormData();
       fd.append('file', file);
-      fd.append('max_rows', '40');
-      fd.append('max_chars', '28000');
       const t0 = performance.now();
       try {
-        const r = await fetch('/api/knowledge/source-file', {method:'POST', body:fd});
+        const r = await fetch('/api/process/batch', {method:'POST', body:fd});
         const text = await r.text();
         let out = null;
         try { out = JSON.parse(text); } catch (_) {}
         const dt = Math.round(performance.now() - t0);
         if (!r.ok || !out) {
           const preview = (text || '').replace(/\s+/g, ' ').slice(0, 220);
-          if (status) status.textContent = 'Upload parse failed. Check the activity log.';
-          wbLog('err', 'source-file parse failed HTTP ' + r.status + ' (' + dt + 'ms)', preview);
+          if (status) status.textContent = 'Source bundle processing failed. Check the activity log.';
+          wbLog('err', 'process batch failed HTTP ' + r.status + ' (' + dt + 'ms)', preview);
           return;
         }
-        rawEl.value = out.raw_text || '';
+        rawEl.value = kxBuildTextFromProcessBundle(out);
         if (status) {
-          status.textContent = 'Loaded ' + out.filename + ': ' + out.n_rows_included +
-            ' row(s) included, ' + out.n_media_assets + ' media/OCR item(s) queued.';
+          const summary = out.summary || {};
+          const plan = (out.intelligence || {}).processing_plan || {};
+          status.textContent = 'Processed source bundle ' + file.name + ': ' + (summary.n_rows_processed || 0) +
+            ' rows, ' + ((out.intelligence || {}).n_evidence_edges || 0) +
+            ' evidence edges, ' + (plan.n_media_assets || 0) + ' media/OCR item(s) queued.';
         }
-        wbLog('ok', 'Source file parsed (' + dt + 'ms)',
-          'rows=' + out.n_rows_included + '/' + out.n_rows_total + ' media=' + out.n_media_assets);
+        wbLog('ok', 'Source bundle processed (' + dt + 'ms)',
+          'run_id=' + out.run_id + ' rows=' + ((out.summary || {}).n_rows_processed || 0) +
+          ' staged=' + (out.staging && out.staging.saved ? 'yes' : 'no'));
         kxSetWorkflow(0);
       } catch (e) {
-        if (status) status.textContent = 'Upload parse failed: ' + String(e).slice(0, 160);
-        wbLog('err', 'source-file parse failed', String(e).slice(0, 200));
+        if (status) status.textContent = 'Source bundle processing failed: ' + String(e).slice(0, 160);
+        wbLog('err', 'source bundle processing failed', String(e).slice(0, 200));
       }
     }
     function kxUseExample(text){

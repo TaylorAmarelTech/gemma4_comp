@@ -6,6 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="stylesheet" href="/static/_chrome.css">
   <script src="/static/_nav.js" defer></script>
+  <script src="/static/_activity_log.js" defer></script>
   <style>
     body { font-family: 'Inter', sans-serif; background: #F7F6F1; color: #0E1116; margin: 0; padding: 0; }
     .wb-page { max-width: 1120px; margin: 0 auto; padding: 24px 22px 80px; }
@@ -65,11 +66,14 @@
     </div>
 
     <p class="wb-lede">
-      Upload a ZIP, review extracted facts, anonymize, then submit. Every step
-      logs the API call + response in the live activity log below so you can
-      see exactly what the kernel is doing. The default target is the current
-      Render hub; switch it to <code>https://duecare-ai.com/api/submit/knowledge</code>
-      once that domain is wired.
+      Upload a source bundle, candidate finding export, or existing knowledge
+      files ZIP, review the extracted items, anonymize them, run a Gemma 4
+      privacy review over the redacted output when a model is loaded, then
+      submit. Every step logs the API call + response in the live activity log
+      below so you can see exactly what the kernel is doing. The default target
+      is the current Render hub; switch it to
+      <code>https://duecare-ai.com/api/submit/knowledge</code> once that domain
+      is wired.
     </p>
 
     <!-- Step 1 -->
@@ -77,8 +81,8 @@
       <summary>
       <span class="wb-step-num">1</span>
       <div class="wb-step-summary">
-        <h3>Upload a bundle of candidate findings</h3>
-        <p>Accepted: <span class="wb-pill">.zip</span> <span class="wb-pill">.jsonl</span> <span class="wb-pill">.csv</span></p>
+        <h3>Upload source bundle or knowledge files</h3>
+        <p>Accepted: <span class="wb-pill">.zip</span> <span class="wb-pill">.jsonl</span> <span class="wb-pill">.csv</span>. Use <b>knowledge files</b> for existing knowledge-object envelopes; use <b>source bundle</b> for case/evidence material.</p>
       </div>
       </summary>
       <div class="wb-step-body">
@@ -86,7 +90,7 @@
              style="border: 2px dashed #DDD8C9; border-radius: 10px; padding: 24px 18px;
                     text-align: center; background: #FFF; color: #5B5F68; font-size: 13px; cursor: pointer; margin-top: 8px;">
           <div style="font-size: 22px; margin-bottom: 4px;">+</div>
-          <div>Drop a bundle or <span style="color: oklch(0.32 0.07 195); text-decoration: underline;">browse</span></div>
+          <div>Drop source bundle or knowledge files, or <span style="color: oklch(0.32 0.07 195); text-decoration: underline;">browse</span></div>
         </div>
         <input type="file" id="wb-file-input" style="display: none;" accept=".zip,.jsonl,.csv" onchange="wbHandle(event)">
         <div id="wb-file-info" class="wb-row"></div>
@@ -129,10 +133,10 @@
       <summary>
       <span class="wb-step-num">3</span>
       <div class="wb-step-summary">
-        <h3>Anonymize the selected items</h3>
+        <h3>Anonymize and Gemma-review selected items</h3>
         <p>Regex pass: <span class="wb-pill">PERSON</span> <span class="wb-pill">EMAIL</span>
         <span class="wb-pill">PHONE</span> <span class="wb-pill">AMOUNT</span>
-        <span class="wb-pill">ID</span>. Each match becomes a salted-hash placeholder.</p>
+        <span class="wb-pill">ID</span>. Each match becomes a salted-hash placeholder. If a model is loaded, Gemma 4 reviews the already-redacted text for residual PII without quoting suspected values.</p>
       </div>
       </summary>
       <div class="wb-step-body">
@@ -141,7 +145,7 @@
           <div class="wb-muted" style="padding: 12px; text-align: center;">(complete Step 2 first)</div>
         </div>
         <div class="wb-row">
-          <button class="wb-btn-primary" id="wb-step3-btn" disabled onclick="wbStep3()">Step 3: Run anonymization</button>
+          <button class="wb-btn-primary" id="wb-step3-btn" disabled onclick="wbStep3()">Step 3: Run anonymization + Gemma review</button>
         </div>
         <div id="wb-step3-error" class="wb-error" style="display: none; margin-top: 8px;"></div>
       </div>
@@ -190,10 +194,15 @@
     // previous bespoke wbLog() hand-rolled DOM construction; we now
     // delegate to the shared helper so styling, sanitisation, and
     // trim/scroll behaviour are uniform across the workbench.
-    const _dcLog = (window.dcActivityLog
-                     ? window.dcActivityLog.attach('#wb-log')
-                     : null);
+    let _dcLog = null;
+    function wbGetLog() {
+      if (!_dcLog && window.dcActivityLog) {
+        _dcLog = window.dcActivityLog.attach('#wb-log');
+      }
+      return _dcLog;
+    }
     const wbLog = (kind, msg, detail) => {
+      const _dcLog = wbGetLog();
       if (!_dcLog) return;
       const fn = ({info: _dcLog.info, ok: _dcLog.ok, warn: _dcLog.warn,
                     err: _dcLog.err, step: _dcLog.step,
@@ -201,6 +210,7 @@
                    || _dcLog.info);
       fn(msg, detail);
     };
+    window.addEventListener('DOMContentLoaded', wbGetLog);
     function escapeHtml(value) {
       return String(value == null ? '' : value).replace(/[&<>"']/g, ch => ({
         '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
@@ -296,12 +306,12 @@
         const ents = Object.entries(r.entities || {}).map(([k, v]) => k + ': ' + (v || []).join(', ')).join(' | ');
         return 'row_id=' + r.row_id + ' source=' + (r.source || '') + ' entities=' + ents;
       });
-      wbLog('info', 'POST /api/anonymize', 'n_texts=' + texts.length);
+      wbLog('info', 'POST /api/anonymize', 'n_texts=' + texts.length + ' | gemma_review=true');
       const t0 = performance.now();
       try {
         const r = await fetch('/api/anonymize', {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ texts: texts })
+          body: JSON.stringify({ texts: texts, gemma_review: true })
         });
         const dt = Math.round(performance.now() - t0);
         if (!r.ok) {
@@ -310,16 +320,18 @@
         }
         const out = await r.json();
         const totalRed = (out.diffs || []).reduce((a, d) => a + (d.n_redactions || 0), 0);
+        const review = out.gemma_review || {};
         wbLog('ok', 'HTTP ' + r.status + ' (' + dt + 'ms)',
-              'n_redactions_total=' + totalRed + ' | per-text=' + (out.diffs || []).map(d => d.n_redactions).join(','));
-        wbAnonymized = { selected: selected, redacted: out.redacted || [], diffs: out.diffs || [] };
+              'n_redactions_total=' + totalRed + ' | per-text=' + (out.diffs || []).map(d => d.n_redactions).join(',') +
+              ' | gemma_review=' + (review.overall_status || review.status || 'unknown'));
+        wbAnonymized = { selected: selected, redacted: out.redacted || [], diffs: out.diffs || [], gemma_review: review };
         wbRenderDiffs(); document.getElementById('wb-step-3').classList.add('done');
         document.getElementById('wb-step4-btn').disabled = false;
         wbSetStep(4);
       } catch (e) {
         const err = document.getElementById('wb-step3-error');
         err.textContent = 'Step 3 failed: ' + (e && e.message || e); err.style.display = '';
-      } finally { btn.disabled = false; btn.textContent = 'Step 3: Run anonymization'; }
+      } finally { btn.disabled = false; btn.textContent = 'Step 3: Run anonymization + Gemma review'; }
     }
     function wbRenderDiffs() {
       const host = document.getElementById('wb-diff-host');
@@ -334,6 +346,16 @@
           '<div><b>After (' + escapeHtml(diff.n_redactions || 0) + ' redaction(s))</b><br><span class="redacted">' + escapeHtml(red) + '</span></div>' +
           '</div>';
       }).join('');
+      const review = wbAnonymized.gemma_review || {};
+      const findings = review.findings || [];
+      host.innerHTML += '<div style="margin-top:10px; padding:10px 12px; border:1px solid #EFEDE4; border-radius:8px; background:#FAF9F4;">' +
+        '<b>Gemma privacy review</b><br>' +
+        '<span class="wb-muted">status: ' + escapeHtml(review.overall_status || review.status || 'not run') +
+        ' | findings: ' + escapeHtml(findings.length || 0) + '</span>' +
+        (findings.length ? '<ul style="margin:8px 0 0; padding-left:18px; font-size:12px;">' +
+          findings.map(f => '<li>' + escapeHtml((f.category || 'finding') + ': ' + (f.explanation_without_quote || f.explanation || 'review manually')) + '</li>').join('') +
+          '</ul>' : '<div class="wb-muted" style="margin-top:6px;">No residual PII findings returned by the model review.</div>') +
+        '</div>';
     }
     async function wbStep4() {
       const btn = document.getElementById('wb-step4-btn'); btn.disabled = true; btn.textContent = 'Submitting...';
