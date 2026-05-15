@@ -2,10 +2,11 @@
 
 Bulk ingest of a case bundle plus Gemma 4 graph-chat over it.
 
-The handler supports ZIP, CSV, JSONL, text, images, and PDFs. Text files and
-extractable PDF pages are chunked locally. Scanned PDFs and images are surfaced
-as explicit OCR and Gemma 4 vision work items so reviewers can see what remains
-queued before trusting the graph.
+The handler supports ZIP, CSV, JSONL, text, RTF/HTML/email, DOCX, simple XLSX,
+images, and PDFs. Text-like files, DOCX, simple XLSX, and extractable PDF pages
+are chunked locally. Scanned PDFs, legacy Office binaries, and images are
+surfaced as explicit OCR and Gemma 4 vision work items so reviewers can see
+what remains queued before trusting the graph.
 
 ## Endpoints
 

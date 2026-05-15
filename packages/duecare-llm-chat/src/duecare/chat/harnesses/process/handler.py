@@ -11,6 +11,7 @@ import io as _io
 import json as _json
 import re as _re
 import zipfile
+import xml.etree.ElementTree as _ET
 from datetime import datetime as _dt
 from typing import Any
 
@@ -23,9 +24,11 @@ from .prompts import GRAPH_CHAT_SYSTEM_PROMPT, build_context_block
 
 
 _ROW_CAP = 300
-_TEXT_EXTS = {".txt", ".md", ".csv", ".json", ".jsonl", ".log"}
+_TEXT_EXTS = {".txt", ".md", ".csv", ".json", ".jsonl", ".log", ".rtf", ".html", ".htm", ".eml"}
 _MEDIA_EXTS = {".png", ".jpg", ".jpeg", ".webp", ".tif", ".tiff", ".bmp"}
-_DOC_IMAGE_EXTS = _MEDIA_EXTS | {".pdf"}
+_SPREADSHEET_EXTS = {".xlsx"}
+_OFFICE_DOC_EXTS = {".doc", ".docx", ".xls", ".xlsx", ".ppt", ".pptx", ".msg"}
+_DOC_IMAGE_EXTS = _MEDIA_EXTS | {".pdf"} | _OFFICE_DOC_EXTS
 _CHUNK_CHARS = 4500
 _DATE_RE = _re.compile(r"\b(?:20\d{2}[-/]\d{1,2}[-/]\d{1,2}|\d{1,2}\s+(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\s+20\d{2})\b", _re.IGNORECASE)
 _CASE_RE = _re.compile(r"\b(?:DC-)?PH[-_ ]?HK[-_ ]?\d{3}\b|\bperson[-_ ]?\d{3}\b|\bCASE[-_ ]?\d{3}\b", _re.IGNORECASE)
@@ -81,7 +84,7 @@ def _file_kind(row_id: str, text: str) -> str:
         ("location_history", ("location_history/", "locations/")),
         ("travel_history", ("travel_history/", "travel/")),
         ("id_card", ("id_cards/", "identity/", "ids/")),
-        ("complaint", ("complaints/", "intake/")),
+        ("complaint", ("complaints/", "intake/", "intake_forms/", "forms/")),
         ("police_report", ("police_reports/", "reports/")),
     )
     for kind, needles in path_checks:
@@ -134,6 +137,33 @@ def _is_probably_text(name: str, data: bytes) -> bool:
     if not decoded:
         return False
     return decoded.count("\ufffd") / max(1, len(decoded)) < 0.03
+
+
+def _rtf_to_text(text: str) -> str:
+    """Best-effort RTF cleanup for legacy Word exports saved as RTF/.doc."""
+    clean = _re.sub(r"\\'[0-9a-fA-F]{2}", " ", text or "")
+    clean = _re.sub(r"\\[a-zA-Z]+-?\d* ?", " ", clean)
+    clean = clean.replace("{", " ").replace("}", " ")
+    return "\n".join(line.strip() for line in clean.splitlines() if line.strip())
+
+
+def _markup_to_text(text: str) -> str:
+    clean = _re.sub(r"(?is)<(script|style).*?>.*?</\1>", " ", text or "")
+    clean = _re.sub(r"(?is)<br\s*/?>", "\n", clean)
+    clean = _re.sub(r"(?is)</p\s*>", "\n", clean)
+    clean = _re.sub(r"(?is)<[^>]+>", " ", clean)
+    clean = clean.replace("&nbsp;", " ").replace("&amp;", "&").replace("&lt;", "<").replace("&gt;", ">")
+    return "\n".join(" ".join(line.split()) for line in clean.splitlines() if line.strip())
+
+
+def _decode_documentish_text(name: str, data: bytes) -> str:
+    text = data.decode("utf-8", errors="replace")
+    ext = _ext(name)
+    if ext in {".rtf", ".doc"} and text.lstrip().startswith("{\\rtf"):
+        return _rtf_to_text(text)
+    if ext in {".html", ".htm"}:
+        return _markup_to_text(text)
+    return text
 
 
 def _chunk_text_rows(
@@ -218,9 +248,99 @@ def _try_pdf_text_rows(name: str, data: bytes, source: str) -> list[dict]:
         return []
 
 
+def _try_docx_text_rows(name: str, data: bytes, source: str) -> list[dict]:
+    """Extract paragraph text from a DOCX without adding a heavyweight dependency."""
+    try:
+        with zipfile.ZipFile(_io.BytesIO(data)) as zf:
+            document_xml = zf.read("word/document.xml")
+    except Exception:
+        return []
+
+    try:
+        root = _ET.fromstring(document_xml)
+    except Exception:
+        return []
+
+    paragraphs: list[str] = []
+    ns = "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}"
+    for para in root.iter(f"{ns}p"):
+        parts = [node.text or "" for node in para.iter(f"{ns}t")]
+        text = "".join(parts).strip()
+        if text:
+            paragraphs.append(text)
+
+    if paragraphs:
+        text = "\n".join(paragraphs)
+    else:
+        text = " ".join(t.strip() for t in root.itertext() if str(t).strip())
+    if not text.strip():
+        return []
+    return _chunk_text_rows(name, text, source, parent_doc=name)
+
+
+def _try_legacy_doc_text_rows(name: str, data: bytes, source: str) -> list[dict]:
+    """Parse RTF/text-backed .doc exports; queue true binary .doc files."""
+    if data.lstrip().startswith(b"{\\rtf"):
+        text = _rtf_to_text(data.decode("utf-8", errors="replace"))
+    elif _is_probably_text(name + ".txt", data):
+        text = data.decode("utf-8", errors="replace")
+    else:
+        return []
+    if not text.strip():
+        return []
+    return _chunk_text_rows(name, text, source, parent_doc=name)
+
+
+def _try_xlsx_text_rows(name: str, data: bytes, source: str) -> list[dict]:
+    """Extract visible cell values from simple XLSX workbooks without openpyxl."""
+    try:
+        with zipfile.ZipFile(_io.BytesIO(data)) as zf:
+            shared: list[str] = []
+            if "xl/sharedStrings.xml" in zf.namelist():
+                root = _ET.fromstring(zf.read("xl/sharedStrings.xml"))
+                ns = "{http://schemas.openxmlformats.org/spreadsheetml/2006/main}"
+                for item in root.iter(f"{ns}si"):
+                    shared.append("".join(t.text or "" for t in item.iter(f"{ns}t")))
+            sheet_names = sorted(n for n in zf.namelist() if n.startswith("xl/worksheets/") and n.endswith(".xml"))
+            sheet_text: list[str] = []
+            ns = "{http://schemas.openxmlformats.org/spreadsheetml/2006/main}"
+            for sheet_index, sheet_name in enumerate(sheet_names, start=1):
+                root = _ET.fromstring(zf.read(sheet_name))
+                sheet_text.append(f"sheet_{sheet_index}: {sheet_name}")
+                for row in root.iter(f"{ns}row"):
+                    cells: list[str] = []
+                    for cell in row.iter(f"{ns}c"):
+                        ref = cell.attrib.get("r", "cell")
+                        value_node = cell.find(f"{ns}v")
+                        value = value_node.text if value_node is not None else ""
+                        if cell.attrib.get("t") == "s":
+                            try:
+                                value = shared[int(value or "0")]
+                            except Exception:
+                                value = ""
+                        elif cell.attrib.get("t") == "inlineStr":
+                            inline = cell.find(f"{ns}is")
+                            value = "".join(t.text or "" for t in (inline.iter(f"{ns}t") if inline is not None else []))
+                        if value:
+                            cells.append(f"{ref}={value}")
+                    if cells:
+                        sheet_text.append("; ".join(cells))
+            text = "\n".join(sheet_text)
+    except Exception:
+        return []
+    if not text.strip():
+        return []
+    return _chunk_text_rows(name, text, source, parent_doc=name)
+
+
 def _media_row(name: str, data: bytes, source: str) -> dict:
     ext = _ext(name)
-    media_type = "pdf" if ext == ".pdf" else "image"
+    if ext == ".pdf":
+        media_type = "pdf"
+    elif ext in _OFFICE_DOC_EXTS:
+        media_type = "document"
+    else:
+        media_type = "image"
     meta = _path_metadata(name)
     return {
         "row_id": name,
@@ -297,6 +417,40 @@ def _journey_summary(stage: str, kind: str, signals: list[str], payments: list[d
     if locations:
         parts.append("locations: " + ", ".join(locations[:3]))
     return " | ".join(parts)
+
+
+def _balanced_journey_points(points: list[dict], limit: int = 120, per_stage: int = 12) -> list[dict]:
+    """Keep the UI sample broad enough to show each journey stage."""
+    selected: list[dict] = []
+    seen: set[tuple[str, str]] = set()
+    stages = sorted(
+        {str(p.get("stage") or "other_evidence") for p in points},
+        key=lambda s: _JOURNEY_STAGE_ORDER.get(s, 99),
+    )
+    for stage in stages:
+        for point in [p for p in points if p.get("stage") == stage][:per_stage]:
+            key = (str(point.get("case_id") or ""), str(point.get("row_id") or ""))
+            if key in seen:
+                continue
+            selected.append(point)
+            seen.add(key)
+            if len(selected) >= limit:
+                return selected
+    for point in points:
+        key = (str(point.get("case_id") or ""), str(point.get("row_id") or ""))
+        if key in seen:
+            continue
+        selected.append(point)
+        seen.add(key)
+        if len(selected) >= limit:
+            break
+    selected.sort(key=lambda x: (
+        x.get("stage_order", 99),
+        str(x.get("date") or "9999"),
+        x.get("case_id", ""),
+        x.get("row_id", ""),
+    ))
+    return selected
 
 
 def _row_severity(severities: list[str]) -> str:
@@ -786,7 +940,7 @@ def _build_intelligence(rows: list[dict], results: list[dict]) -> dict:
             {
                 "id": "plain_text",
                 "label": "Plain-text extraction",
-                "detail": "Text, CSV, JSONL, markdown, logs, and extractable PDF pages are chunked locally and scanned.",
+                "detail": "Text, CSV, JSONL, markdown, logs, DOCX, simple XLSX, RTF/HTML/email, and extractable PDF pages are chunked locally and scanned.",
             },
             {
                 "id": "file_structure",
@@ -809,13 +963,13 @@ def _build_intelligence(rows: list[dict], results: list[dict]) -> dict:
                 "id": "inventory",
                 "label": "Document inventory",
                 "status": "implemented",
-                "detail": "ZIP, CSV, JSONL, text, PDF, and image assets are enumerated locally.",
+                "detail": "ZIP, CSV, JSONL, text, DOCX, legacy Office, spreadsheet, email, PDF, and image assets are enumerated locally.",
             },
             {
                 "id": "chunking",
                 "label": "Document and page chunking",
                 "status": "implemented_for_text_and_extractable_pdfs",
-                "detail": f"Text files and extractable PDF pages are split into chunks of about {_CHUNK_CHARS} characters; scanned pages and images become media work items.",
+                "detail": f"Text, DOCX, simple XLSX, RTF/HTML/email, and extractable PDF pages are split into chunks of about {_CHUNK_CHARS} characters; scanned pages, legacy Office binaries, and images become media work items.",
             },
             {
                 "id": "ocr",
@@ -863,7 +1017,7 @@ def _build_intelligence(rows: list[dict], results: list[dict]) -> dict:
         "locations": [{"name": k, "count": v} for k, v in sorted(locations.items(), key=lambda kv: (-kv[1], kv[0]))[:20]],
         "evidence_edges": evidence_edges[:80],
         "graph": graph,
-        "journey_points": journey_points[:120],
+        "journey_points": _balanced_journey_points(journey_points, limit=120),
         "critical_fee_points": critical_fee_points,
         "processing_plan": processing_plan,
     }
@@ -981,6 +1135,27 @@ def _parse_upload(filename: str, contents: bytes) -> list[dict]:
                 if name.endswith("/"):
                     continue
                 data = zf.read(name)
+                if _ext(name) == ".docx":
+                    docx_rows = _try_docx_text_rows(name, data, filename)
+                    if docx_rows:
+                        rows.extend(docx_rows)
+                        continue
+                    rows.append(_media_row(name, data, filename))
+                    continue
+                if _ext(name) == ".doc":
+                    doc_rows = _try_legacy_doc_text_rows(name, data, filename)
+                    if doc_rows:
+                        rows.extend(doc_rows)
+                        continue
+                    rows.append(_media_row(name, data, filename))
+                    continue
+                if _ext(name) == ".xlsx":
+                    xlsx_rows = _try_xlsx_text_rows(name, data, filename)
+                    if xlsx_rows:
+                        rows.extend(xlsx_rows)
+                        continue
+                    rows.append(_media_row(name, data, filename))
+                    continue
                 if _ext(name) == ".pdf":
                     pdf_rows = _try_pdf_text_rows(name, data, filename)
                     if pdf_rows:
@@ -992,7 +1167,7 @@ def _parse_upload(filename: str, contents: bytes) -> list[dict]:
                     rows.append(_media_row(name, data, filename))
                     continue
                 try:
-                    txt = data.decode("utf-8", errors="replace")
+                    txt = _decode_documentish_text(name, data)
                 except Exception:
                     continue
                 rows.extend(_chunk_text_rows(name, txt, filename))
@@ -1038,6 +1213,24 @@ def _parse_upload(filename: str, contents: bytes) -> list[dict]:
                 **_path_metadata(row_id),
             })
     else:
+        if _ext(filename) == ".docx":
+            docx_rows = _try_docx_text_rows(filename, contents, filename)
+            if docx_rows:
+                return docx_rows
+            rows.append(_media_row(filename, contents, filename))
+            return rows
+        if _ext(filename) == ".doc":
+            doc_rows = _try_legacy_doc_text_rows(filename, contents, filename)
+            if doc_rows:
+                return doc_rows
+            rows.append(_media_row(filename, contents, filename))
+            return rows
+        if _ext(filename) == ".xlsx":
+            xlsx_rows = _try_xlsx_text_rows(filename, contents, filename)
+            if xlsx_rows:
+                return xlsx_rows
+            rows.append(_media_row(filename, contents, filename))
+            return rows
         if _ext(filename) == ".pdf":
             pdf_rows = _try_pdf_text_rows(filename, contents, filename)
             if pdf_rows:
@@ -1047,7 +1240,7 @@ def _parse_upload(filename: str, contents: bytes) -> list[dict]:
         if not _is_probably_text(filename, contents):
             rows.append(_media_row(filename, contents, filename))
             return rows
-        blob = contents.decode("utf-8", errors="replace")
+        blob = _decode_documentish_text(filename, contents)
         for i, chunk in enumerate([c for c in blob.split("\n\n") if c.strip()]):
             rows.extend(_chunk_text_rows(f"chunk_{i}", chunk, filename))
     return rows

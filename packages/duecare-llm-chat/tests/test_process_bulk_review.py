@@ -42,7 +42,15 @@ def test_case_files_sample_has_ph_hk_bulk_review_depth():
             assert any(required_dir in n for n in names)
         assert sum(n.lower().endswith(".png") for n in names) >= 18
         assert sum(n.lower().endswith(".jpg") for n in names) >= 12
+        assert sum(n.lower().endswith(".jpeg") for n in names) >= 10
         assert sum(n.lower().endswith(".pdf") for n in names) >= 10
+        assert sum(n.lower().endswith(".docx") for n in names) >= 12
+        assert sum(n.lower().endswith(".doc") for n in names) >= 4
+        assert sum(n.lower().endswith(".xlsx") for n in names) >= 5
+        assert sum(n.lower().endswith(".eml") for n in names) >= 4
+        assert sum(n.lower().endswith(".html") for n in names) >= 2
+        assert any("facebook_messenger/" in n for n in names)
+        assert any("receipt_photos/" in n for n in names)
         assert any(n.startswith("case_folders/") for n in names)
 
 
@@ -70,18 +78,18 @@ def test_process_batch_returns_intelligence_for_sample():
     assert body["summary"]["n_people_detected"] == 30
     assert body["summary"]["truncated"] is False
     assert intel["n_people"] == 30
-    assert intel["n_documents"] >= 240
+    assert intel["n_documents"] >= 295
     assert intel["document_type_counts"]["id_card"] == 30
-    assert intel["document_type_counts"]["payment_history"] == 30
+    assert intel["document_type_counts"]["payment_history"] >= 30
     assert intel["document_type_counts"]["chat_messages"] == 30
-    assert intel["document_type_counts"]["media_image"] >= 30
+    assert intel["document_type_counts"]["media_image"] >= 50
     assert intel["document_type_counts"]["scanned_pdf"] >= 10
     assert intel["gemma_case_brief"]["status"] == "deterministic_no_model"
     assert len(intel["harness_trace"]) >= 5
     assert intel["top_risk_signals"]
     assert not any(s["signal"] == "?" for s in intel["top_risk_signals"])
     assert intel["folder_counts"]
-    assert intel["processing_plan"]["n_media_assets"] >= 40
+    assert intel["processing_plan"]["n_media_assets"] >= 60
     assert intel["n_evidence_edges"] > 100
     assert intel["graph"]["schema_version"] == "duecare.process.graph.v1"
     assert intel["graph"]["meta"]["n_nodes"] > 20
