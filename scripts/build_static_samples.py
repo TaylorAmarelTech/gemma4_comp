@@ -575,6 +575,370 @@ def _scan_pdf_bytes(case_id: str, name: str, amount: int) -> bytes:
     return body.encode("ascii")
 
 
+def _image_asset_bytes(lines: Iterable[str], *, title: str, fmt: str) -> bytes:
+    """Return a simple synthetic image in PNG/JPEG/TIFF/WEBP form."""
+    if Image is None:
+        return _draw_text_image(lines, title=title)
+    img = Image.new("RGB", (900, 1100), (248, 247, 241))
+    draw = ImageDraw.Draw(img)
+    try:
+        title_font = ImageFont.truetype("arial.ttf", 30)
+        body_font = ImageFont.truetype("arial.ttf", 23)
+    except Exception:
+        title_font = body_font = ImageFont.load_default()
+    draw.rectangle([36, 34, 864, 100], fill=(238, 235, 222), outline=(205, 200, 180))
+    draw.text((58, 52), title[:62], font=title_font, fill=(18, 22, 28))
+    y = 136
+    for raw in lines:
+        for part in textwrap.wrap(str(raw), width=72)[:3]:
+            draw.text((58, y), part, font=body_font, fill=(20, 24, 28))
+            y += 34
+        y += 8
+        if y > 1010:
+            break
+    buf = io.BytesIO()
+    img.save(buf, format=fmt)
+    return buf.getvalue()
+
+
+def _nested_zip_bytes(files: dict[str, bytes | str]) -> bytes:
+    """Build a deterministic nested ZIP for recursive-ingest testing."""
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as zf:
+        for name, payload in sorted(files.items()):
+            data = payload.encode("utf-8") if isinstance(payload, str) else payload
+            _zip_write_deterministic(zf, name, data)
+    return buf.getvalue()
+
+
+def _synthetic_audio_placeholder(kind: str, case_id: str) -> bytes:
+    """Small non-playable placeholder that still exercises media inventory."""
+    return (
+        f"SYNTHETIC {kind.upper()} AUDIO PLACEHOLDER\n"
+        f"case_id={case_id}\n"
+        "No real voice, biometrics, or recording content is included.\n"
+        "Expected handling: inventory asset, queue transcription if wired.\n"
+    ).encode("utf-8")
+
+
+def _write_media_rich_expected_outputs(zf: zipfile.ZipFile) -> None:
+    """Add judge-repeatable expected answers for the media-rich sample."""
+    readme = """\
+# Expected outputs for the media-rich sample
+
+These fixtures are not the model answer. They are a stable reference for
+judge/demo testing so a reviewer can compare graph-chat answers against the
+synthetic evidence structure.
+
+The uploaded graph should be able to answer:
+- which entities are associated with the largest fee amounts
+- which individuals have the strongest evidence package
+- which row paths support salary deduction and passport retention
+- which records are clean, borderline, or false-positive calibration cases
+
+All cases and entities are synthetic.
+"""
+    _zip_write_deterministic(zf, "expected_outputs/README.md", readme.encode("utf-8"))
+    strongest = {
+        "schema_version": "duecare.expected_output.v1",
+        "question": "Which individuals have the strongest cases to move forward first?",
+        "expected_top_cases": [
+            {
+                "case_id": "DC-PH-HK-106",
+                "why": "Highest synthetic fee amount plus chat, receipt photo, PDF scan, payment schedule, passport photo, and caseworker note.",
+                "supporting_path_fragments": [
+                    "DC-PH-HK-106_Celia_Ramos/01_chats/",
+                    "DC-PH-HK-106_Celia_Ramos/02_worker_uploads/receipt_photo",
+                    "DC-PH-HK-106_Celia_Ramos/04_tables/payment_schedule",
+                ],
+            },
+            {
+                "case_id": "DC-PH-HK-105",
+                "why": "High fee amount and multiple independent synthetic evidence types.",
+                "supporting_path_fragments": [
+                    "DC-PH-HK-105_Rhea_Mendoza/01_chats/",
+                    "DC-PH-HK-105_Rhea_Mendoza/03_documents/",
+                ],
+            },
+            {
+                "case_id": "DC-PH-HK-101",
+                "why": "Canonical unified demo story with broad evidence coverage and retaliation language.",
+                "supporting_path_fragments": [
+                    "DC-PH-HK-101_Ana_Cruz/00_case_index/",
+                    "DC-PH-HK-101_Ana_Cruz/01_chats/",
+                    "DC-PH-HK-101_Ana_Cruz/05_caseworker_notes/",
+                ],
+            },
+        ],
+    }
+    _zip_write_deterministic(
+        zf,
+        "expected_outputs/strongest_cases_expected.json",
+        json.dumps(strongest, indent=2, sort_keys=True).encode("utf-8"),
+    )
+    overcharging = {
+        "schema_version": "duecare.expected_output.v1",
+        "question": "Which entities are overcharging the most?",
+        "expected_entities": [
+            {"entity": "Eastline Manpower Services", "max_fee_php": 74500, "case_id": "DC-PH-HK-106"},
+            {"entity": "Crown Bay Employment", "max_fee_php": 68000, "case_id": "DC-PH-HK-105"},
+            {"entity": "Metro Star Training Center", "max_fee_php": 61500, "case_id": "DC-PH-HK-104"},
+            {"entity": "Pearl Bridge Manpower", "max_fee_php": 42000, "case_id": "DC-PH-HK-101"},
+        ],
+        "note": "Amounts are synthetic. The graph answer should cite row or path evidence, not just totals.",
+    }
+    _zip_write_deterministic(
+        zf,
+        "expected_outputs/overcharging_entities_expected.json",
+        json.dumps(overcharging, indent=2, sort_keys=True).encode("utf-8"),
+    )
+    salary = {
+        "schema_version": "duecare.expected_output.v1",
+        "question": "Which files support salary deduction and passport retention findings?",
+        "expected_path_patterns": [
+            "*/01_chats/plain_text_chat_export_*.txt",
+            "*/01_chats/facebook_messenger/*.png",
+            "*/01_chats/whatsapp/*.png",
+            "*/02_worker_uploads/side_letter_photo_*.jpg",
+            "*/03_documents/worker_intake_*.docx",
+            "*/04_tables/payment_schedule_*.xlsx",
+            "*/05_caseworker_notes/review_notes_*.txt",
+        ],
+    }
+    _zip_write_deterministic(
+        zf,
+        "expected_outputs/salary_deduction_evidence_expected.json",
+        json.dumps(salary, indent=2, sort_keys=True).encode("utf-8"),
+    )
+
+
+def _write_synthetic_public_records(zf: zipfile.ZipFile) -> None:
+    """Add synthetic public-record shapes plus licensing/source metadata."""
+    policy = """\
+# Public-record inclusion policy
+
+This sample bundle ships synthetic public-record-like documents only. Real
+government publications, judgments, court opinions, labour-department press
+releases, and regulator notices can be bundled later when the source record is
+matched to explicit public-domain, open-government, court-publication, or
+otherwise reusable licensing terms.
+
+Before including an actual public document, add a manifest entry with:
+- source URL
+- publisher / court / agency
+- publication date
+- license or public-domain basis
+- last_verified_at
+- exact file hash
+- reason it is useful for the anti-TIP workflow
+
+If that metadata is missing, link the source but do not embed the document.
+"""
+    candidates = {
+        "schema_version": "duecare.public_record_candidates.v1",
+        "synthetic_only": True,
+        "include_actual_text_when": [
+            "the page is a court or government publication with explicit reuse permission",
+            "the source jurisdiction treats the material as public domain",
+            "a curator records source URL, license basis, last_verified_at, and sha256",
+        ],
+        "candidate_types": [
+            "employment-agency prosecution press release",
+            "magistrates court judgment or sentencing remarks",
+            "labour-department advisory",
+            "immigration standard-form update",
+            "public regulator complaint procedure",
+        ],
+    }
+    _zip_write_deterministic(zf, "public_records_synthetic/README.md", policy.encode("utf-8"))
+    _zip_write_deterministic(
+        zf,
+        "public_records_synthetic/public_record_source_candidates.json",
+        json.dumps(candidates, indent=2, sort_keys=True).encode("utf-8"),
+    )
+    _zip_write_deterministic(
+        zf,
+        "public_records_synthetic/synthetic_magistrates_judgment_excerpt.pdf",
+        _text_pdf_bytes(
+            "Synthetic magistrates judgment excerpt",
+            [
+                "This is not a real judgment.",
+                "Issue: unlicensed employment agency and worker-paid fee collection.",
+                "Findings: repeated fee demands, receipt evidence, and salary-deduction records.",
+                "Use: teaches the graph to distinguish public court records from private case files.",
+            ],
+        ),
+    )
+    _zip_write_deterministic(
+        zf,
+        "public_records_synthetic/synthetic_labour_department_press_release.html",
+        (
+            "<!doctype html><html><body><h1>Synthetic Labour Department Press Release</h1>"
+            "<p>Composite public-record shape for an employment-agency enforcement action.</p>"
+            "<p>Contains no real case, court, person, or agency information.</p>"
+            "</body></html>"
+        ).encode("utf-8"),
+    )
+    _zip_write_deterministic(
+        zf,
+        "public_records_synthetic/synthetic_regulator_complaint_procedure.md",
+        (
+            "# Synthetic regulator complaint procedure\n\n"
+            "Purpose: model a public complaint pathway document without copying a real website.\n"
+            "Fields: agency name, complaint channel, worker-protection note, retaliation warning, last verified date.\n"
+        ).encode("utf-8"),
+    )
+
+
+def _write_calibration_case_folders(zf: zipfile.ZipFile) -> None:
+    """Add clean, borderline, and false-positive calibration folders."""
+    cases = [
+        {
+            "kind": "clean_compliant",
+            "case_id": "DC-PH-HK-201",
+            "name": "Clean Compliant Sample 01",
+            "agency": "Compliant Pathways Agency",
+            "fee": 0,
+            "deduction": 0,
+            "signals": "employer-paid recruitment; worker keeps passport; no deductions",
+        },
+        {
+            "kind": "clean_compliant",
+            "case_id": "DC-PH-HK-202",
+            "name": "Clean Compliant Sample 02",
+            "agency": "Clear Contract Placement",
+            "fee": 0,
+            "deduction": 0,
+            "signals": "written no-fee confirmation; passport-return clause; rest-day terms",
+        },
+        {
+            "kind": "borderline_incomplete",
+            "case_id": "DC-PH-HK-301",
+            "name": "Borderline Incomplete Sample 01",
+            "agency": "Unclear Training Provider",
+            "fee": 8500,
+            "deduction": 0,
+            "signals": "training payment mentioned but payer and statutory category unclear",
+        },
+        {
+            "kind": "borderline_incomplete",
+            "case_id": "DC-PH-HK-302",
+            "name": "Borderline Incomplete Sample 02",
+            "agency": "Ambiguous Support Office",
+            "fee": 12000,
+            "deduction": 0,
+            "signals": "receipt exists but relationship to recruitment is unclear",
+        },
+        {
+            "kind": "false_positive_bait",
+            "case_id": "DC-PH-HK-401",
+            "name": "False Positive Bait 01",
+            "agency": "Passport Photo Studio",
+            "fee": 300,
+            "deduction": 0,
+            "signals": "passport photo fee only; no passport retention",
+        },
+        {
+            "kind": "false_positive_bait",
+            "case_id": "DC-PH-HK-402",
+            "name": "False Positive Bait 02",
+            "agency": "Salary Deduction Tax Example",
+            "fee": 0,
+            "deduction": 120,
+            "signals": "legal tax deduction example; no recruitment fee",
+        },
+    ]
+    for item in cases:
+        safe = _safe_folder(item["name"])
+        root = f"calibration_cases/{item['kind']}/{item['case_id']}_{safe}"
+        summary = f"""\
+# Calibration case
+
+case_id: {item['case_id']}
+label: {item['kind']}
+name: {item['name']}
+agency: {item['agency']}
+fee_php: {item['fee']}
+deduction_hkd: {item['deduction']}
+expected_interpretation: {item['signals']}
+
+Use these cases to test specificity. The harness should not treat every
+amount, passport word, or salary-deduction phrase as trafficking evidence.
+"""
+        chat = (
+            f"case_id: {item['case_id']}\n"
+            f"agency: {item['agency']}\n"
+            f"calibration_label: {item['kind']}\n"
+            f"details: {item['signals']}\n"
+        )
+        _zip_write_deterministic(zf, f"{root}/case_summary.md", summary.encode("utf-8"))
+        _zip_write_deterministic(zf, f"{root}/chat_or_note.txt", chat.encode("utf-8"))
+        _zip_write_deterministic(
+            zf,
+            f"{root}/supporting_document.pdf",
+            _text_pdf_bytes(f"Synthetic calibration document {item['case_id']}", summary.splitlines()),
+        )
+
+
+def _write_extra_format_examples(zf: zipfile.ZipFile) -> None:
+    """Add realistic but synthetic odd-format files to exercise inventory."""
+    base = "format_edge_cases"
+    whatsapp_txt = """\
+WhatsApp Chat with Recruiter - Synthetic Export
+2026-05-01, 09:00 - Recruiter: The processing package is PHP 42000.
+2026-05-01, 09:03 - Worker: I need to ask a caseworker first.
+2026-05-01, 09:08 - Recruiter: Do not complain before arrival.
+<Media omitted>
+"""
+    html_export = """\
+<!doctype html><html><body>
+<h1>Messenger export - synthetic</h1>
+<div data-speaker="recruiter">PHP 42000 package, collected after arrival.</div>
+<div data-speaker="worker">I want to confirm this with the consulate.</div>
+</body></html>
+"""
+    mbox = """\
+From synthetic-intake@example.invalid Fri May 15 12:00:00 2026
+Subject: Synthetic intake thread
+
+Case DC-PH-HK-101 includes salary deduction and passport safekeeping language.
+"""
+    _zip_write_deterministic(zf, f"{base}/whatsapp_export/WhatsApp Chat with Recruiter.txt", whatsapp_txt.encode("utf-8"))
+    _zip_write_deterministic(zf, f"{base}/web_exports/facebook_data_download.html", html_export.encode("utf-8"))
+    _zip_write_deterministic(zf, f"{base}/email_exports/intake_threads.mbox", mbox.encode("utf-8"))
+    _zip_write_deterministic(zf, f"{base}/open_document/intake_note.rtf", b"{\\rtf1\\ansi Synthetic RTF intake note.}")
+    _zip_write_deterministic(
+        zf,
+        f"{base}/open_document/intake_note.odt",
+        _nested_zip_bytes({"content.xml": "<document>Synthetic ODT intake note.</document>"}),
+    )
+    _zip_write_deterministic(
+        zf,
+        f"{base}/nested_archives/phone_export_nested.zip",
+        _nested_zip_bytes({
+            "messages/thread_001.txt": whatsapp_txt,
+            "media/receipt_nested.webp": _image_asset_bytes(["Nested synthetic receipt", "PHP 42000"], title="Nested receipt", fmt="WEBP"),
+        }),
+    )
+    _zip_write_deterministic(
+        zf,
+        f"{base}/image_formats/receipt_scan.tiff",
+        _image_asset_bytes(["Synthetic TIFF receipt", "Training/medical/processing package", "PHP 42000"], title="TIFF receipt", fmt="TIFF"),
+    )
+    _zip_write_deterministic(
+        zf,
+        f"{base}/image_formats/chat_screenshot.webp",
+        _image_asset_bytes(["Synthetic WEBP chat screenshot", "Salary deduction mentioned"], title="WEBP chat", fmt="WEBP"),
+    )
+    _zip_write_deterministic(
+        zf,
+        f"{base}/image_formats/phone_photo_placeholder.heic",
+        b"ftypheic\x00\x00synthetic HEIC placeholder; no real image data",
+    )
+    _zip_write_deterministic(zf, f"{base}/audio_placeholders/voice_note.opus", _synthetic_audio_placeholder("opus", "DC-PH-HK-101"))
+    _zip_write_deterministic(zf, f"{base}/audio_placeholders/caseworker_note.m4a", _synthetic_audio_placeholder("m4a", "DC-PH-HK-101"))
+
+
 def build_case_files_zip() -> None:
     buf = io.BytesIO()
     with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as zf:
@@ -805,6 +1169,13 @@ This smaller bundle is for demoing upload review. Each case includes:
 - XLSX payment schedule
 - CSV travel/location timeline
 - caseworker review notes
+- HTML/MBOX/WhatsApp export examples
+- TIFF/WEBP/HEIC-format media inventory examples
+- nested ZIP export from a phone backup
+- OPUS/M4A voice-note placeholders
+- clean, borderline, and false-positive calibration folders
+- expected-output fixtures for graph-chat testing
+- synthetic public-record shapes for court, regulator, and press-release material
 - a few queued binary Office artifacts to show inventory handling
 
 All content is fictional and composite. Use this when a judge asks whether the
@@ -891,6 +1262,10 @@ Extraction, Search intake, Anonymization & Sharing, and A-00 synthetic
 training. The names, IDs, accounts, receipts, and documents are fictional.
 """
         _zip_write_deterministic(zf, "00_demo_story/UNIFIED_DEMO_STORY.md", unified_story.encode("utf-8"))
+        _write_media_rich_expected_outputs(zf)
+        _write_synthetic_public_records(zf)
+        _write_calibration_case_folders(zf)
+        _write_extra_format_examples(zf)
         for offset in range(6):
             idx = offset + 101
             display_idx = offset + 1

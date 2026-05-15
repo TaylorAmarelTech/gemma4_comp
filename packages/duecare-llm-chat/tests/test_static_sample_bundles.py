@@ -40,6 +40,37 @@ def test_static_sample_catalog_contains_rich_downloadables():
     assert all((SAMPLES / name).stat().st_size > 1000 for name in expected)
 
 
+def test_media_rich_sample_has_expected_outputs_and_public_record_policy():
+    names = _zip_names("case_files_media_rich_sample.zip")
+    required = {
+        "expected_outputs/README.md",
+        "expected_outputs/strongest_cases_expected.json",
+        "expected_outputs/overcharging_entities_expected.json",
+        "expected_outputs/salary_deduction_evidence_expected.json",
+        "public_records_synthetic/README.md",
+        "public_records_synthetic/public_record_source_candidates.json",
+        "public_records_synthetic/synthetic_magistrates_judgment_excerpt.pdf",
+        "public_records_synthetic/synthetic_labour_department_press_release.html",
+        "format_edge_cases/nested_archives/phone_export_nested.zip",
+        "format_edge_cases/image_formats/receipt_scan.tiff",
+        "format_edge_cases/image_formats/chat_screenshot.webp",
+        "format_edge_cases/image_formats/phone_photo_placeholder.heic",
+        "format_edge_cases/audio_placeholders/voice_note.opus",
+        "format_edge_cases/audio_placeholders/caseworker_note.m4a",
+    }
+    assert required.issubset(set(names))
+    assert any(n.startswith("calibration_cases/clean_compliant/") for n in names)
+    assert any(n.startswith("calibration_cases/borderline_incomplete/") for n in names)
+    assert any(n.startswith("calibration_cases/false_positive_bait/") for n in names)
+
+    with zipfile.ZipFile(SAMPLES / "case_files_media_rich_sample.zip") as zf:
+        expected = json.loads(zf.read("expected_outputs/strongest_cases_expected.json"))
+        assert expected["expected_top_cases"][0]["case_id"] == "DC-PH-HK-106"
+        policy = zf.read("public_records_synthetic/README.md").decode("utf-8")
+        assert "license or public-domain basis" in policy
+        assert "do not embed the document" in policy
+
+
 def test_rich_knowledge_pack_uses_importable_envelope_paths():
     from duecare.chat.app import KO_TYPES
 
