@@ -131,7 +131,7 @@
     </div>
 
     <p class="wb-lede">
-      Drop a ZIP, CSV, JSONL, PDF, image, or text bundle of case material:
+      Drop a ZIP, CSV, JSONL, Office document, PDF, image, email, or text bundle of case material:
       chat exports, scans, recruitment ads, court excerpts, recorded testimony
       transcripts, and document photos.
       Each row goes through the process harness: GREP, entity extraction,
@@ -163,7 +163,7 @@
           <span class="wb-step-index">1</span>
           <span>
             <span class="wb-step-title">Drop a bundle or use the sample</span>
-            <span class="wb-step-summary">Upload ZIP, CSV, JSONL, PDF, image, or text evidence. Folder names are preserved as graph edges.</span>
+            <span class="wb-step-summary">Upload ZIP, CSV, JSONL, Office, PDF, image, email, or text evidence. Folder names are preserved as graph edges.</span>
           </span>
           <span class="wb-step-state" id="wb-step-upload-state">Ready</span>
         </summary>
@@ -174,8 +174,9 @@
               <p class="wb-muted" style="font-size:12px; margin:4px 0 10px;">
                 Judge-safe PH to HK case material with 30 synthetic individuals,
                 client-style folders, ID records, complaints, police reports,
-                travel, location, payment history, recruiter chats, screenshots,
-                document photos, and scan-like PDFs queued for OCR and Gemma 4 vision review.
+                travel, location, payment history, recruiter chats, DOCX intake forms,
+                Messenger-style screenshots, receipt photos, document photos, and scan-like
+                PDFs queued for OCR and Gemma 4 vision review.
               </p>
               <div class="wb-row">
                 <a class="wb-btn-secondary" href="/static/samples/case_files_sample.zip"
@@ -194,14 +195,16 @@
               <h2>Upload evidence bundle</h2>
               <p>Accepted: <span class="wb-pill">.zip</span> <span class="wb-pill">.csv</span>
               <span class="wb-pill">.jsonl</span> <span class="wb-pill">.txt</span>
-              <span class="wb-pill">.pdf</span> <span class="wb-pill">images</span></p>
+              <span class="wb-pill">.doc/.docx</span> <span class="wb-pill">.xlsx</span>
+              <span class="wb-pill">.eml/.html/.rtf</span> <span class="wb-pill">.pdf</span>
+              <span class="wb-pill">images</span></p>
               <div id="wb-dropzone" class="wb-dropzone" onclick="document.getElementById('wb-file-input').click()">
                 <div style="font-size: 24px; margin-bottom: 6px;">+</div>
                 <div>Drop a bundle or <span style="color: oklch(0.32 0.07 195); text-decoration: underline;">browse</span></div>
                 <div class="wb-muted" style="margin-top: 6px;">Up to 300 rows / request. Excess rows are flagged.</div>
               </div>
               <input type="file" id="wb-file-input" style="display: none;"
-                     accept=".zip,.csv,.jsonl,.txt,.md,.log,.pdf,.png,.jpg,.jpeg,.webp,.tif,.tiff,.bmp" onchange="wbHandle(event)">
+                     accept=".zip,.csv,.jsonl,.txt,.md,.log,.rtf,.html,.htm,.eml,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.msg,.pdf,.png,.jpg,.jpeg,.webp,.tif,.tiff,.bmp" onchange="wbHandle(event)">
               <div id="wb-file-info" class="wb-row"></div>
               <div class="wb-row">
                 <button class="wb-btn-primary" id="wb-process-btn" disabled onclick="wbProcess()">Start processing</button>

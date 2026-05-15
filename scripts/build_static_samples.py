@@ -16,6 +16,8 @@ from __future__ import annotations
 
 import io
 import json
+import html
+import textwrap
 import zipfile
 from pathlib import Path
 from typing import Iterable
@@ -231,6 +233,210 @@ def _draw_document_photo(lines: Iterable[str], *, title: str) -> bytes:
     return buf.getvalue()
 
 
+def _draw_messenger_screenshot(case_id: str, name: str, agency: str, amount: int, deduction: int) -> bytes:
+    """Create a synthetic Messenger-style screenshot for media review demos."""
+    lines = [
+        f"{agency}: Your PH-HK file is ready.",
+        f"{agency}: Training, medical, and processing total PHP {amount}.",
+        f"{name}: Can this be deducted after I arrive in Hong Kong?",
+        f"{agency}: Yes. Employer deducts HKD {deduction} monthly.",
+        f"{agency}: Passport stays with employer until balance is cleared.",
+        f"{name}: I thought Hong Kong placement should be zero fee.",
+    ]
+    if Image is None:
+        return _draw_text_image(lines, title="Synthetic Facebook Messenger screenshot")
+
+    img = Image.new("RGB", (900, 1280), (244, 245, 248))
+    draw = ImageDraw.Draw(img)
+    try:
+        header = ImageFont.truetype("arial.ttf", 32)
+        body = ImageFont.truetype("arial.ttf", 25)
+        small = ImageFont.truetype("arial.ttf", 18)
+    except Exception:
+        header = body = small = ImageFont.load_default()
+
+    draw.rectangle([0, 0, 900, 112], fill=(0, 132, 255))
+    draw.ellipse([34, 26, 86, 78], fill=(235, 244, 255))
+    draw.text((108, 32), "Pearl Bridge Recruiter", font=header, fill=(255, 255, 255))
+    draw.text((108, 72), f"Messenger thread | {case_id}", font=small, fill=(223, 239, 255))
+    y = 150
+    for idx, line in enumerate(lines):
+        incoming = idx in {0, 1, 3, 4}
+        wrapped = textwrap.wrap(line, width=42)
+        bubble_h = max(54, 34 * len(wrapped) + 24)
+        if incoming:
+            x1, x2, fill, ink = 46, 650, (255, 255, 255), (28, 33, 40)
+        else:
+            x1, x2, fill, ink = 250, 854, (0, 132, 255), (255, 255, 255)
+        draw.rounded_rectangle([x1, y, x2, y + bubble_h], radius=26, fill=fill, outline=(224, 226, 232))
+        ty = y + 13
+        for part in wrapped:
+            draw.text((x1 + 24, ty), part, font=body, fill=ink)
+            ty += 33
+        y += bubble_h + 22
+    draw.text((46, 1218), "Synthetic screenshot. No real account, person, or message.", font=small, fill=(98, 104, 116))
+    buf = io.BytesIO()
+    img.save(buf, format="PNG")
+    return buf.getvalue()
+
+
+def _draw_receipt_photo(case_id: str, name: str, agency: str, amount: int) -> bytes:
+    if Image is None:
+        return _draw_document_photo(
+            [
+                f"CASE: {case_id}",
+                f"WORKER: {name}",
+                f"AGENCY: {agency}",
+                f"TOTAL: PHP {amount}",
+                "NOTE: repayment after arrival",
+            ],
+            title="Synthetic receipt photo",
+        )
+    img = Image.new("RGB", (900, 1200), (206, 209, 201))
+    draw = ImageDraw.Draw(img)
+    draw.polygon([(190, 80), (725, 48), (792, 1056), (142, 1110)], fill=(255, 255, 246), outline=(164, 160, 142))
+    try:
+        title_font = ImageFont.truetype("arial.ttf", 30)
+        body = ImageFont.truetype("arial.ttf", 23)
+        small = ImageFont.truetype("arial.ttf", 18)
+    except Exception:
+        title_font = body = small = ImageFont.load_default()
+    y = 130
+    rows = [
+        "PEARL BRIDGE TRAINING CENTER",
+        "OFFICIAL RECEIPT - SYNTHETIC",
+        f"Case: {case_id}",
+        f"Worker: {name}",
+        f"Agency: {agency}",
+        "Item: pre-departure training",
+        "Item: medical clearance",
+        "Item: processing package",
+        f"TOTAL PAID: PHP {amount}",
+        "Payment channel: cash / e-wallet",
+        "Balance recovered after arrival",
+        "Collection method: salary deduction",
+    ]
+    for idx, row in enumerate(rows):
+        font = title_font if idx == 0 else body
+        draw.text((220, y), row[:54], font=font, fill=(22, 24, 28))
+        y += 48 if idx < 2 else 42
+    draw.rectangle([250, 780, 430, 960], outline=(20, 24, 28), width=3)
+    for gx in range(5):
+        for gy in range(5):
+            if (gx * 2 + gy + amount) % 3:
+                draw.rectangle([265 + gx * 30, 795 + gy * 30, 284 + gx * 30, 814 + gy * 30], fill=(20, 24, 28))
+    draw.text((460, 820), "QR / e-wallet", font=small, fill=(70, 74, 82))
+    draw.text((460, 850), "placeholder", font=small, fill=(70, 74, 82))
+    draw.text((210, 1038), "Synthetic receipt photo. Not real evidence.", font=small, fill=(95, 100, 108))
+    buf = io.BytesIO()
+    img.save(buf, format="JPEG", quality=86)
+    return buf.getvalue()
+
+
+def _docx_bytes(title: str, paragraphs: Iterable[str]) -> bytes:
+    """Build a minimal DOCX with deterministic ZIP metadata."""
+    body = []
+    for paragraph in [title, *list(paragraphs)]:
+        escaped = html.escape(str(paragraph), quote=True)
+        body.append(f"<w:p><w:r><w:t>{escaped}</w:t></w:r></w:p>")
+    document = (
+        '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+        '<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">'
+        f"<w:body>{''.join(body)}<w:sectPr/></w:body>"
+        "</w:document>"
+    )
+    content_types = (
+        '<?xml version="1.0" encoding="UTF-8"?>'
+        '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">'
+        '<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>'
+        '<Default Extension="xml" ContentType="application/xml"/>'
+        '<Override PartName="/word/document.xml" '
+        'ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/>'
+        "</Types>"
+    )
+    rels = (
+        '<?xml version="1.0" encoding="UTF-8"?>'
+        '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
+        '<Relationship Id="rId1" '
+        'Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" '
+        'Target="word/document.xml"/>'
+        "</Relationships>"
+    )
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as zf:
+        _zip_write_deterministic(zf, "[Content_Types].xml", content_types.encode("utf-8"))
+        _zip_write_deterministic(zf, "_rels/.rels", rels.encode("utf-8"))
+        _zip_write_deterministic(zf, "word/document.xml", document.encode("utf-8"))
+    return buf.getvalue()
+
+
+def _xlsx_bytes(rows: list[list[str]]) -> bytes:
+    """Build a tiny XLSX payment schedule with inline string cells."""
+    def col_name(idx: int) -> str:
+        name = ""
+        while idx:
+            idx, rem = divmod(idx - 1, 26)
+            name = chr(65 + rem) + name
+        return name
+
+    sheet_rows: list[str] = []
+    for r_idx, row in enumerate(rows, start=1):
+        cells = []
+        for c_idx, value in enumerate(row, start=1):
+            ref = f"{col_name(c_idx)}{r_idx}"
+            escaped = html.escape(str(value), quote=True)
+            cells.append(f'<c r="{ref}" t="inlineStr"><is><t>{escaped}</t></is></c>')
+        sheet_rows.append(f'<row r="{r_idx}">{"".join(cells)}</row>')
+    worksheet = (
+        '<?xml version="1.0" encoding="UTF-8"?>'
+        '<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">'
+        f'<sheetData>{"".join(sheet_rows)}</sheetData>'
+        '</worksheet>'
+    )
+    workbook = (
+        '<?xml version="1.0" encoding="UTF-8"?>'
+        '<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" '
+        'xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">'
+        '<sheets><sheet name="Payment schedule" sheetId="1" r:id="rId1"/></sheets>'
+        '</workbook>'
+    )
+    content_types = (
+        '<?xml version="1.0" encoding="UTF-8"?>'
+        '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">'
+        '<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>'
+        '<Default Extension="xml" ContentType="application/xml"/>'
+        '<Override PartName="/xl/workbook.xml" '
+        'ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>'
+        '<Override PartName="/xl/worksheets/sheet1.xml" '
+        'ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>'
+        '</Types>'
+    )
+    rels = (
+        '<?xml version="1.0" encoding="UTF-8"?>'
+        '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
+        '<Relationship Id="rId1" '
+        'Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" '
+        'Target="xl/workbook.xml"/>'
+        '</Relationships>'
+    )
+    wb_rels = (
+        '<?xml version="1.0" encoding="UTF-8"?>'
+        '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
+        '<Relationship Id="rId1" '
+        'Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" '
+        'Target="worksheets/sheet1.xml"/>'
+        '</Relationships>'
+    )
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as zf:
+        _zip_write_deterministic(zf, "[Content_Types].xml", content_types.encode("utf-8"))
+        _zip_write_deterministic(zf, "_rels/.rels", rels.encode("utf-8"))
+        _zip_write_deterministic(zf, "xl/workbook.xml", workbook.encode("utf-8"))
+        _zip_write_deterministic(zf, "xl/_rels/workbook.xml.rels", wb_rels.encode("utf-8"))
+        _zip_write_deterministic(zf, "xl/worksheets/sheet1.xml", worksheet.encode("utf-8"))
+    return buf.getvalue()
+
+
 def _scan_pdf_bytes(case_id: str, name: str, amount: int) -> bytes:
     # Intentionally scan-like: valid PDF wrapper with no extractable text
     # stream. The process harness queues it for OCR and Gemma 4 vision.
@@ -263,7 +469,13 @@ Included evidence types:
 - complaints and police-style summaries
 - ID-card records
 - location, travel, and payment CSVs
+- DOCX worker intake forms
+- legacy DOC/RTF notes from an older case system
+- XLSX payment schedules
+- EML email handoff records
 - PNG screenshots of recruiter chats
+- Facebook Messenger-style PNG screenshots
+- JPEG receipt photos
 - JPEG document photos
 - scan-like PDF receipts queued for OCR and Gemma 4 vision
 
@@ -362,6 +574,26 @@ synthetic_phone: {phone}
                 )
                 _zip_write_deterministic(zf, f"{root}/screenshots/chat_fee_{idx:03d}.png", img)
             if idx <= 12:
+                intake_docx = _docx_bytes(
+                    f"Worker intake form - {case_id}",
+                    [
+                        f"case_id: {case_id}",
+                        f"worker_name: {name}",
+                        f"agency: {agency}",
+                        f"origin: {origin}; destination: Hong Kong; assigned area: {area}",
+                        f"reported fee: PHP {base_fee} for training, medical, and processing",
+                        f"repayment plan: HKD {deduction} salary deduction after arrival",
+                        "reported concern: passport held by employer for safekeeping",
+                        "caseworker note: explain zero-fee rule, retaliation risk, and safe referral options.",
+                    ],
+                )
+                _zip_write_deterministic(zf, f"{root}/intake_forms/worker_intake_{idx:03d}.docx", intake_docx)
+            if idx <= 10:
+                messenger = _draw_messenger_screenshot(case_id, name, agency, base_fee, deduction)
+                _zip_write_deterministic(zf, f"{root}/facebook_messenger/thread_fee_{idx:03d}.png", messenger)
+                receipt_photo = _draw_receipt_photo(case_id, name, agency, base_fee)
+                _zip_write_deterministic(zf, f"{root}/receipt_photos/fee_receipt_{idx:03d}.jpeg", receipt_photo)
+            if idx <= 12:
                 photo = _draw_document_photo(
                     [
                         f"CASE: {case_id}",
@@ -376,6 +608,44 @@ synthetic_phone: {phone}
                 _zip_write_deterministic(zf, f"{root}/document_photos/contract_photo_{idx:03d}.jpg", photo)
             if idx <= 10:
                 _zip_write_deterministic(zf, f"{root}/scans/receipt_scan_{idx:03d}.pdf", _scan_pdf_bytes(case_id, name, base_fee))
+            if idx <= 5:
+                schedule = _xlsx_bytes([
+                    ["case_id", "worker", "agency", "amount", "currency", "deduction", "note"],
+                    [case_id, name, agency, str(base_fee), "PHP", f"HKD {deduction}", "salary deduction after arrival"],
+                    [case_id, name, agency, "0", "PHP", "passport retained", "document control concern"],
+                ])
+                _zip_write_deterministic(zf, f"{root}/spreadsheets/payment_schedule_{idx:03d}.xlsx", schedule)
+            if idx <= 4:
+                legacy_doc = (
+                    r"{\rtf1\ansi "
+                    f"Legacy intake note for {case_id}. "
+                    f"Worker {name} reports Pearl Bridge Manpower charged PHP {base_fee}. "
+                    r"Passport retention and salary deduction reported. "
+                    r"Caseworker should preserve screenshots and receipts.}"
+                )
+                _zip_write_deterministic(zf, f"{root}/legacy_case_system/case_note_{idx:03d}.doc", legacy_doc.encode("utf-8"))
+                email = (
+                    f"From: caseworker{idx}@example.invalid\n"
+                    "To: supervisor@example.invalid\n"
+                    f"Subject: Synthetic intake handoff {case_id}\n"
+                    "Date: Fri, 15 May 2026 10:00:00 +0800\n\n"
+                    f"Please review {case_id}. {name} reports PHP {base_fee} in recruitment-related fees, "
+                    f"post-arrival salary deductions of HKD {deduction}, and passport safekeeping by employer. "
+                    "Attachments in the local folder include chat screenshots, receipt photos, and payment schedule."
+                )
+                _zip_write_deterministic(zf, f"{root}/emails/intake_handoff_{idx:03d}.eml", email.encode("utf-8"))
+            if idx <= 2:
+                html_report = f"""\
+<!doctype html>
+<html><body>
+<h1>Synthetic evidence index {case_id}</h1>
+<p>Worker: {html.escape(name)}</p>
+<p>Agency: {html.escape(agency)}</p>
+<p>Fee pattern: PHP {base_fee} training, medical, and processing charges.</p>
+<p>Risk signals: salary deduction, passport retention, possible fee camouflage.</p>
+</body></html>
+"""
+                _zip_write_deterministic(zf, f"{root}/web_exports/evidence_index_{idx:03d}.html", html_report.encode("utf-8"))
     out = OUT / "case_files_sample.zip"
     out.write_bytes(buf.getvalue())
     print(f"wrote {out}  ({out.stat().st_size:,} bytes)")
