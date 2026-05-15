@@ -7,12 +7,14 @@ Owns:
 from __future__ import annotations
 
 import csv as _csv
+import hashlib as _hashlib
 import io as _io
 import json as _json
 import re as _re
 import zipfile
 import xml.etree.ElementTree as _ET
 from datetime import datetime as _dt
+from pathlib import Path as _Path
 from typing import Any
 
 from fastapi import HTTPException, Request
@@ -47,6 +49,47 @@ _JOURNEY_STAGE_ORDER = {
     "complaint_and_escalation": 8,
     "other_evidence": 99,
 }
+
+
+def _process_staging_root() -> _Path | None:
+    """Return a writable staging directory for uploaded process bundles."""
+    for root in (_Path("/kaggle/working/process-staging"), _Path(".duecare-process-staging")):
+        try:
+            root.mkdir(parents=True, exist_ok=True)
+            return root
+        except Exception:
+            continue
+    return None
+
+
+def _safe_stage_name(name: str) -> str:
+    base = _re.sub(r"[^A-Za-z0-9._-]+", "_", (name or "uploaded").strip())
+    return (base[:120] or "uploaded").strip("._") or "uploaded"
+
+
+def _stage_upload(filename: str, contents: bytes, run_id: str) -> dict:
+    """Persist the uploaded archive so the UI can truthfully report staging."""
+    root = _process_staging_root()
+    digest = _hashlib.sha256(contents).hexdigest()
+    out = {
+        "saved": False,
+        "root": str(root) if root else None,
+        "filename": filename,
+        "bytes": len(contents),
+        "sha256": digest,
+    }
+    if root is None:
+        out["error"] = "no writable process-staging directory"
+        return out
+    try:
+        run_dir = root / run_id
+        run_dir.mkdir(parents=True, exist_ok=True)
+        path = run_dir / _safe_stage_name(filename)
+        path.write_bytes(contents)
+        out.update({"saved": True, "path": str(path)})
+    except Exception as exc:
+        out["error"] = f"{type(exc).__name__}: {exc}"[:240]
+    return out
 
 
 def _norm_case_id(text: str) -> str | None:
@@ -1576,6 +1619,10 @@ def register_routes(app: Any) -> None:
         contents = await upload.read()
         filename = getattr(upload, "filename", "uploaded") or "uploaded"
 
+        ts = _dt.utcnow().strftime("%Y-%m-%dT%H-%M-%SZ")
+        run_id = f"01_process_{ts}"
+        staging = _stage_upload(filename, contents, run_id)
+
         try:
             rows = _parse_upload(filename, contents)
         except Exception as e:
@@ -1586,15 +1633,13 @@ def register_routes(app: Any) -> None:
             capped, getattr(app.state, "grep_call", None)
         )
 
-        ts = _dt.utcnow().strftime("%Y-%m-%dT%H-%M-%SZ")
-        run_id = f"01_process_{ts}"
         top_grep = sorted(agg_grep.items(), key=lambda x: -x[1])[:10]
         top_statute = sorted(agg_statute.items(), key=lambda x: -x[1])[:10]
         bundle = {
             "schema_version": "1.0",
             "kernel_id": "01-duecare-exploration-workbench",
             "run_id": run_id,
-            "config": {"row_cap": _ROW_CAP, "source": filename},
+            "config": {"row_cap": _ROW_CAP, "source": filename, "gemma_case_brief": "deferred"},
             "metadata": {"started_at": ts, "completed_at": ts, "host": "kernel-01"},
             "summary": {
                 "n_rows_total": len(rows),
@@ -1609,14 +1654,32 @@ def register_routes(app: Any) -> None:
             "results": results,
         }
         intelligence = _build_intelligence(capped, results)
-        gemma_brief = _gemma_case_brief(app, bundle, intelligence)
+        deterministic_brief = _deterministic_case_brief(bundle, intelligence)
+        gemma_brief = {
+            "available": bool(getattr(app.state, "gemma_call", None)),
+            "status": "deterministic_deferred_model",
+            "json": deterministic_brief,
+            "text": _json.dumps(deterministic_brief, indent=2),
+            "deferred": True,
+            "detail": (
+                "The upload endpoint returns a deterministic case brief so Cloudflare "
+                "does not time out while Gemma 4 is generating. Use graph chat after "
+                "review to ask model-backed questions over the local graph."
+            ),
+        }
         intelligence["gemma_case_brief"] = gemma_brief
         intelligence["harness_trace"] = [
             {
                 "id": "upload",
                 "label": "Upload accepted",
                 "status": "complete",
-                "detail": f"{filename} with {len(rows)} parsed rows",
+                "detail": f"{filename} ({len(contents)} bytes) received",
+            },
+            {
+                "id": "stage",
+                "label": "Stored in process staging",
+                "status": "complete" if staging.get("saved") else "skipped",
+                "detail": staging.get("path") or staging.get("error") or staging.get("root") or "staging unavailable",
             },
             {
                 "id": "unpack",
@@ -1639,7 +1702,7 @@ def register_routes(app: Any) -> None:
             {
                 "id": "gemma",
                 "label": "Gemma 4 case brief",
-                "status": "complete" if gemma_brief.get("status") in {"ok", "unparsed_text"} else "skipped",
+                "status": "deferred",
                 "detail": gemma_brief.get("status", "not_run"),
             },
             {
@@ -1650,6 +1713,7 @@ def register_routes(app: Any) -> None:
             },
         ]
         bundle["intelligence"] = intelligence
+        bundle["staging"] = staging
         bundle["summary"]["n_people_detected"] = intelligence.get("n_people", 0)
         bundle["summary"]["n_evidence_edges"] = intelligence.get("n_evidence_edges", 0)
         bundle["summary"]["gemma_case_brief_status"] = gemma_brief.get("status")

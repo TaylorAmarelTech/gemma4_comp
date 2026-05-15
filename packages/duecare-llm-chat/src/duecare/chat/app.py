@@ -133,14 +133,14 @@ _HARNESS_SURFACE_CONTRACTS: tuple[dict[str, Any], ...] = (
         "applied_layers": (),
         "consumes": ("raw_text", "knowledge_submission"),
         "emits": ("redacted_text", "audit_record", "hub_submission"),
-        "gemma_mode": "not_required",
-        "model_role": "No Gemma call is required; this is a safety layer protecting Gemma and hub workflows.",
+        "gemma_mode": "optional",
+        "model_role": "Regex redaction is mandatory; Gemma 4 can review already-redacted text for residual PII before hub submission.",
         "test_pages": (
             {"label": "Anonymization and sharing", "href": "/static/share.html"},
             {"label": "Preview redaction", "href": "/static/anonymization-preview.html"},
         ),
         "endpoints": (
-            {"method": "POST", "path": "/api/anonymize", "summary": "Redact PII from text"},
+            {"method": "POST", "path": "/api/anonymize", "summary": "Redact PII and optionally run Gemma privacy review"},
             {"method": "POST", "path": "/api/submit/knowledge", "summary": "Submit sanitized knowledge"},
             {"method": "POST", "path": "/api/submit/local", "summary": "Deprecated local-submit alias"},
         ),

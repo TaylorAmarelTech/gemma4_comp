@@ -117,6 +117,8 @@ def test_import_layer_visible_in_variant_controls(client):
     assert "import_corpus" in text
     assert "Loading imported documents" in text
     assert "Import" in text
+    assert 'id="B-import_corpus" checked' not in text
+    assert "B: {persona: true,  grep: true,  rag: true,  tools: true,  online: false, import_corpus: false}" in text
 
 
 def test_helper_functions_defined(client):

@@ -102,6 +102,11 @@ def test_search_page_blocks_when_page_sanitizer_fails(client):
     assert "Draft from all results" in text
     assert "Download evidence set" in text
     assert 'id="search-draft-progress"' in text
+    assert "HK EA enforcement" in text
+    assert "DMW anti-illegal recruitment" in text
+    assert "Financial crime typology" in text
+    assert "Retaliation after complaint" in text
+    assert "Current commission cap" in text
     assert "searchReadJsonOrText" in text
     assert "returned non-JSON" in text
     assert "Drafting moved to Step 3" in text
@@ -123,9 +128,9 @@ def test_knowledge_page_uses_guided_auto_suggestion_flow(client):
     assert 'id="kx-step-source" open' in text
     assert 'id="kx-step-draft"' in text
     assert 'id="kx-step-pack"' in text
-    assert "Import or export knowledge packs" in text
+    assert "Import or export knowledge files" in text
     assert "Import ZIP" in text
-    assert "Export ZIP" in text
+    assert "Export knowledge_files.zip" in text
     assert "Download sample bundle" not in text
     assert "Open Anonymization &amp; Sharing" not in text
     assert "extracted_fact: non-PII trend fact" in text
@@ -133,10 +138,12 @@ def test_knowledge_page_uses_guided_auto_suggestion_flow(client):
     assert "modus_operandi: generalized abuse pattern" in text
     assert "What this workflow does" in text
     assert "Continue to draft" in text
-    assert "Add source text or upload files" in text
+    assert "Upload a source bundle or add source text" in text
     assert 'id="kx-source-file-input"' in text
-    assert "POST /api/knowledge/source-file" in text
+    assert "POST /api/process/batch" in text
     assert "kxLoadSourceFile" in text
+    assert "kxBuildTextFromProcessBundle" in text
+    assert "knowledge files" in text
     assert "Next: draft suggestions" not in text
     assert "Draft knowledge objects" in text
     assert "Finish review" in text
@@ -219,6 +226,33 @@ def test_share_page_has_bulk_review_selection_controls(client):
     assert '<details class="wb-step" id="wb-step-1" open>' in text
     assert "function wbSetStep" in text
     assert "wbSetStep(2)" in text
+    assert "Upload source bundle or knowledge files" in text
+    assert "gemma_review: true" in text
+    assert "Gemma privacy review" in text
+    assert '/static/_activity_log.js' in text
+    assert "function wbGetLog" in text
+
+
+def test_anonymization_endpoint_can_run_gemma_privacy_review():
+    from duecare.chat.app import create_app
+
+    calls = []
+
+    def gemma_call(messages, **kwargs):
+        calls.append((messages, kwargs))
+        return '{"overall_status":"pass","findings":[],"recommended_action":"submit"}'
+
+    local = TestClient(create_app(gemma_call=gemma_call))
+    r = local.post("/api/anonymize", json={
+        "texts": ["Worker Maria called +852 1234 5678 about PHP 45000."],
+        "gemma_review": True,
+    })
+    assert r.status_code == 200, r.text
+    data = r.json()
+    assert calls
+    assert data["gemma_review"]["status"] == "ok"
+    assert data["gemma_review"]["overall_status"] == "pass"
+    assert "<PHONE_" in data["redacted"][0]
 
 
 def test_sync_page_uses_guided_pack_flow(client):
@@ -316,12 +350,21 @@ def test_process_page_has_graph_visualization_and_graph_chat_logging(client):
     assert 'id="wb-step-export"' in text
     assert "#wb-results { display: grid; gap: 16px; }" in text
     assert 'id="wb-process-progress-fill"' in text
+    assert 'id="wb-process-progress-note"' in text
+    assert 'id="wb-process-substeps"' in text
+    assert "const WB_PROCESS_STAGES" in text
+    assert "Uploading bundle to Kaggle kernel" in text
+    assert "Queueing OCR and media work" in text
+    assert "Still working locally" in text
+    assert "function wbStartProcessProgressLoop" in text
+    assert "function wbStopProcessProgressLoop" in text
     assert 'id="wb-confirm-intel-btn"' in text
     assert "function wbConfirmIntelligence" in text
     assert "Reviewer verification checklist" in text
     assert "Confirm extracted intelligence before downloading" in text
     assert "function wbRequireConfirmedNavigation" in text
     assert "Deterministic fallback" in text
+    assert "Deterministic brief; Gemma deferred" in text
     assert 'id="wb-activity-card"' in text
     assert "let _dcLog = null" in text
     assert "Process harness path" not in text

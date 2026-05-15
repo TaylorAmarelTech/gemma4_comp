@@ -16,6 +16,7 @@ from typing import Any
 from fastapi import HTTPException, Request
 from fastapi.responses import JSONResponse
 
+from ..._model_output import sanitize_model_output
 from .detector import PII_PATTERNS
 from .redactor import DEFAULT_SALT, placeholder, raw_sha256
 
@@ -76,6 +77,95 @@ def _post_payload(target_url: str, payload: dict, sha: str) -> tuple[int | None,
         return None, None, f"{type(e).__name__}: {e}", False
 
 
+def _gemma_anonymization_review(app: Any, redacted_texts: list[str]) -> dict:
+    """Ask the loaded model to review already-redacted text for residual PII.
+
+    Regex remains the mandatory safety gate. This model pass is a redundant
+    review over the redacted output and is instructed not to quote any
+    remaining personal data it suspects.
+    """
+    gc = getattr(app.state, "gemma_call", None)
+    if gc is None:
+        return {
+            "available": False,
+            "status": "no_model",
+            "findings": [],
+            "detail": "No Gemma 4 model is loaded; deterministic redaction still ran.",
+        }
+    snippets = [
+        {"index": idx, "text": str(text)[:1200]}
+        for idx, text in enumerate(redacted_texts[:20])
+    ]
+    prompt = (
+        "You are DueCare's privacy reviewer. You are reviewing text AFTER "
+        "deterministic regex redaction. Do not repeat, quote, or copy any "
+        "remaining personal data. Return compact JSON only with keys: "
+        "overall_status ('pass' or 'review_required'), findings (array of "
+        "{index, category, severity, explanation_without_quote}), and "
+        "recommended_action. Flag possible remaining names, phone numbers, "
+        "emails, IDs, exact addresses, case narratives that identify a worker, "
+        "or unredacted third-party contact details. If none are visible, return "
+        "overall_status='pass'.\n\n"
+        + _json.dumps({"redacted_texts": snippets}, ensure_ascii=False)
+    )
+    try:
+        messages = [{"role": "user", "content": [{"type": "text", "text": prompt}]}]
+        try:
+            model_out = gc(messages, max_new_tokens=240, temperature=0.0)
+        except TypeError:
+            model_out = gc(messages)
+        text = model_out if isinstance(model_out, str) else (
+            (model_out or {}).get("text") or (model_out or {}).get("response") or ""
+        )
+        text = sanitize_model_output(text)
+        parsed = None
+        try:
+            start = text.find("{")
+            end = text.rfind("}")
+            if start >= 0 and end > start:
+                parsed = _json.loads(text[start:end + 1])
+        except Exception:
+            parsed = None
+        if isinstance(parsed, dict):
+            findings = parsed.get("findings") or []
+            if not isinstance(findings, list):
+                findings = []
+            return {
+                "available": True,
+                "status": "ok",
+                "overall_status": parsed.get("overall_status") or ("review_required" if findings else "pass"),
+                "findings": findings[:20],
+                "recommended_action": parsed.get("recommended_action") or "",
+                "prompt_chars": len(prompt),
+            }
+        return {
+            "available": True,
+            "status": "unparsed_text",
+            "overall_status": "review_required",
+            "findings": [{
+                "index": None,
+                "category": "model_review_unparsed",
+                "severity": "medium",
+                "explanation_without_quote": "Gemma returned non-JSON output; review anonymized text manually before submit.",
+            }],
+            "text_preview": text[:500],
+            "prompt_chars": len(prompt),
+        }
+    except Exception as exc:
+        return {
+            "available": True,
+            "status": "model_error",
+            "overall_status": "review_required",
+            "findings": [{
+                "index": None,
+                "category": "model_review_error",
+                "severity": "medium",
+                "explanation_without_quote": f"{type(exc).__name__}: {exc}"[:220],
+            }],
+            "recommended_action": "Review anonymized text manually before submitting.",
+        }
+
+
 def register_routes(app: Any) -> None:
 
     @app.post("/api/anonymize")
@@ -89,6 +179,7 @@ def register_routes(app: Any) -> None:
         if not isinstance(texts, list):
             raise HTTPException(400, "`texts` must be a list of strings")
         salt = body.get("salt") or DEFAULT_SALT
+        gemma_review_requested = bool(body.get("gemma_review"))
 
         out_texts: list[str] = []
         out_diffs: list[dict] = []
@@ -110,6 +201,15 @@ def register_routes(app: Any) -> None:
                     redacted = redacted.replace(raw, ph)
             out_texts.append(redacted)
             out_diffs.append({"n_redactions": len(redactions), "redactions": redactions})
+        gemma_review = (
+            _gemma_anonymization_review(app, out_texts)
+            if gemma_review_requested
+            else {
+                "available": bool(getattr(app.state, "gemma_call", None)),
+                "status": "not_requested",
+                "findings": [],
+            }
+        )
         try:
             from .._training_log import log_interaction as _log
             _log(
@@ -121,6 +221,8 @@ def register_routes(app: Any) -> None:
                     "labels_seen": sorted({r["label"]
                                           for d in out_diffs
                                           for r in d["redactions"]}),
+                    "gemma_review_status": gemma_review.get("status"),
+                    "gemma_review_overall": gemma_review.get("overall_status"),
                 },
                 applied_layers={},
                 trace={},
@@ -128,7 +230,11 @@ def register_routes(app: Any) -> None:
             )
         except Exception:
             pass
-        return JSONResponse({"redacted": out_texts, "diffs": out_diffs})
+        return JSONResponse({
+            "redacted": out_texts,
+            "diffs": out_diffs,
+            "gemma_review": gemma_review,
+        })
 
     @app.post("/api/submit/knowledge")
     async def api_submit_knowledge(request: Request) -> Any:
