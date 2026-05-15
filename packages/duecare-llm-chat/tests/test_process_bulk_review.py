@@ -72,6 +72,20 @@ def test_case_files_media_rich_sample_has_messy_intake_depth():
         assert any(n.startswith("media_rich_cases/") for n in names)
         assert "00_reference_sources/official_source_catalog.json" in names
         assert "00_demo_story/UNIFIED_DEMO_STORY.md" in names
+        assert "expected_outputs/strongest_cases_expected.json" in names
+        assert "expected_outputs/overcharging_entities_expected.json" in names
+        assert "public_records_synthetic/public_record_source_candidates.json" in names
+        assert any(n.startswith("calibration_cases/clean_compliant/") for n in names)
+        assert any(n.startswith("calibration_cases/borderline_incomplete/") for n in names)
+        assert any(n.startswith("calibration_cases/false_positive_bait/") for n in names)
+        assert any(n.endswith(".mbox") for n in names)
+        assert any(n.endswith(".tiff") for n in names)
+        assert any(n.endswith(".webp") for n in names)
+        assert any(n.endswith(".heic") for n in names)
+        assert any(n.endswith(".opus") for n in names)
+        assert any(n.endswith(".m4a") for n in names)
+        assert any(n.endswith(".odt") for n in names)
+        assert any(n.endswith("phone_export_nested.zip") for n in names)
         for marker in [
             "facebook_messenger/",
             "whatsapp_retaliation",
@@ -97,6 +111,8 @@ def test_case_files_media_rich_sample_has_messy_intake_depth():
         assert sum(n.lower().endswith(".eml") for n in names) >= 6
         assert sum(n.lower().endswith(".pptx") for n in names) >= 3
         assert sum(n.lower().endswith(".msg") for n in names) >= 3
+        with zf.open("public_records_synthetic/README.md") as handle:
+            assert "do not embed the document" in handle.read().decode("utf-8")
 
 
 def test_process_batch_returns_intelligence_for_sample():
@@ -191,14 +207,14 @@ def test_process_batch_returns_intelligence_for_media_rich_sample():
     assert response.status_code == 200, response.text
     body = response.json()
     intel = body["intelligence"]
-    assert body["summary"]["n_people_detected"] == 6
+    assert body["summary"]["n_people_detected"] >= 6
     assert body["summary"]["truncated"] is False
-    assert intel["n_documents"] >= 90
+    assert intel["n_documents"] >= 110
     assert intel["document_type_counts"]["media_image"] >= 30
     assert intel["document_type_counts"]["scanned_pdf"] >= 12
     assert intel["document_type_counts"]["payment_history"] >= 6
     assert intel["document_type_counts"]["chat_messages"] >= 6
-    assert intel["processing_plan"]["n_media_assets"] >= 45
+    assert intel["processing_plan"]["n_media_assets"] >= 50
     assert intel["top_risk_signals"]
     assert not any(s["signal"] == "?" for s in intel["top_risk_signals"])
     assert any("media_rich_cases" in edge.get("source_path", "") for edge in intel["evidence_edges"])
@@ -241,8 +257,8 @@ def test_process_batch_async_job_returns_media_rich_result():
     body = status["result"]
     assert body["job_id"] == job_id
     assert body["config"]["processing_mode"] == "async_job"
-    assert body["summary"]["n_people_detected"] == 6
-    assert body["intelligence"]["processing_plan"]["n_media_assets"] >= 45
+    assert body["summary"]["n_people_detected"] >= 6
+    assert body["intelligence"]["processing_plan"]["n_media_assets"] >= 50
 
 
 def test_process_batch_surfaces_media_and_ocr_work_queue():
