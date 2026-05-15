@@ -170,6 +170,13 @@ def test_process_batch_returns_intelligence_for_sample():
     assert intel["processing_plan"]["scalable_queue_contract"]["batching_policy"]["queue_large_archives"] is True
     assert intel["processing_plan"]["review_mode"]["id"] == "standard_review"
     assert intel["processing_plan"]["gemma_budget"]["max_gemma_calls"] == 75
+    assert intel["processing_plan"]["model_capability_notes"]
+    assert {
+        "deterministic_processing",
+        "text_edge_pass",
+        "multimodal_page_review",
+        "exhaustive_review",
+    }.issubset({n["capability"] for n in intel["processing_plan"]["model_capability_notes"]})
     assert intel["processing_plan"]["page_item_prompt_tree"]
     assert {
         "classify",
@@ -227,6 +234,7 @@ def test_process_batch_returns_intelligence_for_sample():
     assert edge_body["typed_edges"]
     assert edge_body["rag_candidates"]
     assert edge_body["page_item_prompt_tree"]
+    assert edge_body["model_capability_notes"]
     assert edge_body["knowledge_context"]["local_only"] is True
     assert any(t["id"] == "case_graph_edges" for t in edge_body["prompt_templates"])
 

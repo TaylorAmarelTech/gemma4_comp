@@ -51,6 +51,22 @@ The budget controls how many page items are sent to Gemma after deterministic
 OCR/layout/entity extraction. Deterministic typed edges are always emitted first.
 Gemma-proposed edges and knowledge candidates are marked `needs_review`.
 
+## Model Capability Warnings
+
+The harness should be honest about model fit:
+
+- Deterministic processing does not require Gemma at all.
+- Smaller local text models are appropriate for text-grounded typed edges,
+  graph chat, and RAG/knowledge candidates over compact OCR/text context.
+- Smaller models may miss cross-document links, struggle with long bundles, or
+  produce noisier edge proposals; keep `quick_triage` or `standard_review`
+  budgets unless a reviewer has time to inspect more output.
+- Image, scan, audio, and video review requires local preprocessing first
+  (OCR/layout/ASR/frame extraction). Vision-grounded extraction also requires a
+  multimodal-capable local model/runtime.
+- If multimodal support is unavailable, media remains explicit queued work
+  rather than being silently treated as reviewed.
+
 ## Page-Item Prompt Path
 
 Every page item follows the same local-first route:

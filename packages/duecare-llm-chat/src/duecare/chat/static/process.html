@@ -275,6 +275,13 @@
                 <span>Deep local pass for smaller bundles or final case preparation.</span>
               </button>
             </div>
+            <div class="wb-muted" style="margin-top:10px; line-height:1.5;">
+              <b>Model fit:</b> Deterministic extraction works without Gemma.
+              Smaller text models are best for text-grounded edge proposals and
+              graph chat. OCR quality depends on local OCR, and image/audio/video
+              edge extraction requires local preprocessing plus a multimodal-capable
+              model/runtime.
+            </div>
             <details class="wb-advanced-settings">
               <summary>Advanced processing settings</summary>
               <div class="wb-settings-grid">
@@ -1174,6 +1181,7 @@
       const budget = plan.gemma_budget || {};
       const promptTree = plan.page_item_prompt_tree || [];
       const knowledgeContext = plan.knowledge_context || {};
+      const modelNotes = plan.model_capability_notes || [];
       const passHtml = passes.length ? passes.map(p =>
         '<div class="wb-step ' + (String(p.status || '').includes('implemented') ? 'complete' : '') + '">' +
         '<div class="num">' + wbEsc(p.status || 'planned') + '</div>' +
@@ -1241,6 +1249,14 @@
           '</div>' : '') +
         '</div>'
       );
+      const modelNotesHtml = modelNotes.length ? (
+        '<div class="wb-card" style="background:#FAF9F4; margin:0 0 12px; padding:12px;">' +
+        '<h3 style="font-size:13px; margin:0 0 6px;">Model capability notes</h3>' +
+        '<div class="wb-muted" style="font-size:12px; line-height:1.5;">Some local Gemma variants are better suited for text-only graph work than media-heavy review. The harness keeps deterministic edges visible when model support is limited.</div>' +
+        '<div style="max-height:180px; overflow:auto; margin-top:8px;"><table class="wb-small-table"><thead><tr><th>capability</th><th>status</th><th>note</th></tr></thead><tbody>' +
+        modelNotes.map(n => '<tr><td>' + wbEsc(n.capability || '') + '</td><td>' + wbEsc(n.status || '') + '</td><td>' + wbEsc(n.detail || '') + '</td></tr>').join('') +
+        '</tbody></table></div></div>'
+      ) : '';
       host.innerHTML =
         '<div class="wb-intel-grid" style="margin-bottom:10px;">' +
         '<div class="wb-metric"><div class="label">Parent documents</div><div class="value">' + wbEsc(plan.n_parent_documents || parentDocs.length || 0) + '</div></div>' +
@@ -1248,7 +1264,7 @@
         '<div class="wb-metric"><div class="label">Chunks / rows</div><div class="value">' + wbEsc(plan.n_chunks || 0) + '</div></div>' +
         '<div class="wb-metric"><div class="label">Media assets queued</div><div class="value">' + wbEsc(plan.n_media_assets || media.length || 0) + '</div></div>' +
         '</div>' +
-        modeHtml + localHtml + queueHtml + promptTreeHtml + knowledgeHtml +
+        modeHtml + localHtml + queueHtml + modelNotesHtml + promptTreeHtml + knowledgeHtml +
         (methodHtml ? '<h3 style="font-size:13px; margin:0 0 6px;">Extraction and graph-building methods</h3><div class="wb-intel-grid" style="margin-bottom:12px;">' + methodHtml + '</div>' : '') +
         '<div class="wb-pipeline" style="margin-bottom:12px;">' + passHtml + '</div>' +
         '<h3 style="font-size:13px; margin:0 0 6px;">OCR and multimodal queue</h3>' +

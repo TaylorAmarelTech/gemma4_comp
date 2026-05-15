@@ -84,6 +84,28 @@ _DEFAULT_PAGE_ITEM_TYPES = [
     "audio_segment",
     "video_frame_or_scene",
 ]
+_MODEL_CAPABILITY_NOTES: list[dict[str, Any]] = [
+    {
+        "capability": "deterministic_processing",
+        "status": "available_without_model",
+        "detail": "Archive inventory, text extraction, GREP, entity regex, folder edges, journey mapping, typed deterministic edges, and media queueing do not require Gemma.",
+    },
+    {
+        "capability": "text_edge_pass",
+        "status": "works_with_small_text_models",
+        "detail": "Smaller local Gemma text models can propose text-grounded typed edges and RAG candidates, but use conservative budgets and expect more reviewer validation on long or messy bundles.",
+    },
+    {
+        "capability": "multimodal_page_review",
+        "status": "requires_multimodal_support_and_local_preprocessing",
+        "detail": "Image, scan, audio, and video edge extraction requires local OCR/layout/ASR and a model/runtime that can consume the relevant media or rendered page context.",
+    },
+    {
+        "capability": "exhaustive_review",
+        "status": "larger_or_more_capable_models_recommended",
+        "detail": "Exhaustive multi-prompt review over many page items can be slow or low-quality on smaller models; use Quick or Standard mode when runtime or memory is constrained.",
+    },
+]
 _DATE_RE = _re.compile(r"\b(?:20\d{2}[-/]\d{1,2}[-/]\d{1,2}|\d{1,2}\s+(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\s+20\d{2})\b", _re.IGNORECASE)
 _CASE_RE = _re.compile(r"\b(?:DC-)?PH[-_ ]?HK[-_ ]?\d{3}\b|\bperson[-_ ]?\d{3}\b|\bCASE[-_ ]?\d{3}\b", _re.IGNORECASE)
 _NAME_RE = _re.compile(r"\b(?:name|worker_name|complainant|subject)\s*[:=]\s*([A-Z][A-Za-z.' -]{2,60})")
@@ -1549,6 +1571,7 @@ def _build_intelligence(
             "knowledge_candidates_enabled": bool(process_settings.get("generate_knowledge_candidates", True)),
             "include_imported_knowledge": bool(process_settings.get("include_imported_knowledge", True)),
         },
+        "model_capability_notes": _MODEL_CAPABILITY_NOTES,
         "page_item_prompt_tree": PAGE_ITEM_PROMPT_TREE,
         "knowledge_context": knowledge_context if process_settings.get("include_imported_knowledge", True) else {
             "schema_version": "duecare.process.knowledge_context.v1",
@@ -2367,6 +2390,7 @@ def _gemma_edge_pass(app: Any, bundle: dict, *, prompt_id: str, limit: int) -> d
         "remote_api_calls": False,
         "prompt_templates": GRAPH_EDGE_PROMPT_TEMPLATES,
         "page_item_prompt_tree": PAGE_ITEM_PROMPT_TREE,
+        "model_capability_notes": _MODEL_CAPABILITY_NOTES,
         "process_settings": (bundle.get("config") or {}).get("process_settings") or {},
         "knowledge_context": (bundle.get("config") or {}).get("local_knowledge_context") or {},
         "seed_typed_edges": deterministic_edges,
@@ -2839,6 +2863,7 @@ def register_routes(app: Any) -> None:
             "typed_edges": (intelligence.get("typed_edges") or [])[:limit],
             "knowledge_context": bundle["config"].get("local_knowledge_context"),
             "page_item_prompt_tree": PAGE_ITEM_PROMPT_TREE,
+            "model_capability_notes": _MODEL_CAPABILITY_NOTES,
         })
 
     @app.post("/api/process/graph-chat")
