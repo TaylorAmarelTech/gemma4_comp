@@ -89,6 +89,16 @@ def test_harness_workbench_page_serves(client):
         assert marker in text
 
 
+def test_shared_workflow_helper_serves(client):
+    r = client.get("/static/_workflow.js")
+    assert r.status_code == 200
+    text = r.text
+    assert "window.dcWorkflow" in text
+    assert "createStepper" in text
+    assert "completeWhen" in text
+    assert "stateIdFor" in text
+
+
 def test_search_safety_page_serves(client):
     r = client.get("/static/search-safety.html")
     assert r.status_code == 200
@@ -145,6 +155,8 @@ def test_search_page_blocks_when_page_sanitizer_fails(client):
     assert "Drafting moved to Step 3" in text
     assert "search-step-actions" in text
     assert "function searchSetWorkflow" in text
+    assert '/static/_workflow.js' in text
+    assert "window.dcWorkflow.createStepper" in text
     assert 'id="search-pipeline"' not in text
     assert 'id="search-step-log"' not in text
     assert "searchSendToShare" not in text
@@ -189,6 +201,8 @@ def test_knowledge_page_uses_guided_auto_suggestion_flow(client):
     assert "function kxFinishDraftReview" in text
     assert "function kxOpenPackImport" in text
     assert "function kxSetWorkflow" in text
+    assert '/static/_workflow.js' in text
+    assert "window.dcWorkflow.createStepper" in text
     assert "let _dcLog = null" in text
     assert "window.addEventListener('DOMContentLoaded', wbGetLog)" in text
     assert "Model required before knowledge drafting" in text
@@ -275,6 +289,8 @@ def test_share_page_has_bulk_review_selection_controls(client):
     assert "knowledge_files_sample.zip" in text
     assert "case_files_media_rich_sample.zip" in text
     assert '/static/_activity_log.js' in text
+    assert '/static/_workflow.js' in text
+    assert "window.dcWorkflow.createStepper" in text
     assert "function wbGetLog" in text
 
 
@@ -321,6 +337,9 @@ def test_sync_page_uses_guided_pack_flow(client):
     assert "Validate envelopes" in text
     assert "Hot-load runtime extras" in text
     assert "function syncSetStep" in text
+    assert "/static/_workflow.js" in text
+    assert "syncGetWorkflowStepper" in text
+    assert "function wbGetLog" in text
 
 
 def test_import_page_uses_guided_local_import_flow(client):
@@ -425,6 +444,9 @@ def test_process_page_has_graph_visualization_and_graph_chat_logging(client):
     assert "/api/process/batch/status/" in text
     assert "Use primary sample" in text
     assert 'id="wb-activity-card"' in text
+    assert '/static/_workflow.js' in text
+    assert "function wbGetWorkflowStepper" in text
+    assert "window.dcWorkflow.createStepper" in text
     assert "let _dcLog = null" in text
     assert "Process harness path" not in text
     assert 'id="wb-static-pipeline"' not in text

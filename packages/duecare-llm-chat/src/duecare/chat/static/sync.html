@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="/static/_chrome.css">
   <script src="/static/_nav.js" defer></script>
   <script src="/static/_activity_log.js" defer></script>
+  <script src="/static/_workflow.js" defer></script>
   <style>
     body { font-family: 'Inter', sans-serif; background: #F7F6F1; color: #0E1116; margin: 0; padding: 0; }
     .wb-page { max-width: 1080px; margin: 0 auto; padding: 24px 22px 80px; }
@@ -180,21 +181,35 @@
 
   </main>
   <script>
+    let syncWorkflowStepper = null;
+    function syncGetWorkflowStepper(){
+      if (!syncWorkflowStepper && window.dcWorkflow) {
+        const elements = Array.from(document.querySelectorAll('#sync-guide .sync-step'));
+        syncWorkflowStepper = window.dcWorkflow.createStepper({
+          elements,
+          completeWhen: (idx, active) => idx <= active,
+          openWhen: (idx, active, _el, n) => idx === Math.min(active, n - 1),
+        });
+      }
+      return syncWorkflowStepper;
+    }
     function syncSetStep(active){
-      const steps = Array.from(document.querySelectorAll('#sync-guide .sync-step'));
-      steps.forEach((el, idx) => {
-        el.classList.toggle('complete', idx <= active);
-        if ('open' in el) el.open = idx === Math.min(active, steps.length - 1);
-      });
+      const stepper = syncGetWorkflowStepper();
+      if (stepper) stepper.set(active);
     }
         // Shared activity-log primitive (window.dcActivityLog). The
     // previous bespoke wbLog() hand-rolled DOM construction; we now
     // delegate to the shared helper so styling, sanitisation, and
     // trim/scroll behaviour are uniform across the workbench.
-    const _dcLog = (window.dcActivityLog
-                     ? window.dcActivityLog.attach('#wb-log')
-                     : null);
+    let _dcLog = null;
+    function wbGetLog(){
+      if (!_dcLog && window.dcActivityLog) {
+        _dcLog = window.dcActivityLog.attach('#wb-log', {idlePlaceholder: 'Waiting...'});
+      }
+      return _dcLog;
+    }
     const wbLog = (kind, msg, detail) => {
+      const _dcLog = wbGetLog();
       if (!_dcLog) return;
       const fn = ({info: _dcLog.info, ok: _dcLog.ok, warn: _dcLog.warn,
                     err: _dcLog.err, step: _dcLog.step,
@@ -202,6 +217,7 @@
                    || _dcLog.info);
       fn(msg, detail);
     };
+    window.addEventListener('DOMContentLoaded', wbGetLog);
     function _syncErrLine(target, msg){
       while(target.firstChild) target.removeChild(target.firstChild);
       const d=document.createElement('div');

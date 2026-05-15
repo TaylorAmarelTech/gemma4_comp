@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="/static/_chrome.css">
   <script src="/static/_nav.js" defer></script>
   <script src="/static/_activity_log.js" defer></script>
+  <script src="/static/_workflow.js" defer></script>
   <style>
     .wb-page { max-width: 1120px; margin: 24px auto 60px; padding: 0 18px;
                color: #0E1116; font-family: Inter, system-ui, sans-serif; line-height: 1.55; }
@@ -356,16 +357,18 @@
       const mapped = active >= 4 ? 2 : (active >= 3 ? 1 : 0);
       searchSetWorkflow(mapped);
     }
+    let searchWorkflowStepper = null;
+    function searchGetWorkflowStepper() {
+      if (!searchWorkflowStepper && window.dcWorkflow) {
+        searchWorkflowStepper = window.dcWorkflow.createStepper({
+          ids: ['search-step-query', 'results-card', 'drafts-card'],
+        });
+      }
+      return searchWorkflowStepper;
+    }
     function searchSetWorkflow(active) {
-      const ids = ['search-step-query', 'results-card', 'drafts-card'];
-      ids.forEach((id, idx) => {
-        const el = document.getElementById(id);
-        if (!el) return;
-        el.classList.toggle('complete', idx < active);
-        if ('open' in el) el.open = idx === active;
-        const state = document.getElementById(id + '-state');
-        if (state) state.textContent = idx < active ? 'Done' : (idx === active ? 'Active' : 'Waiting');
-      });
+      const stepper = searchGetWorkflowStepper();
+      if (stepper) stepper.set(active);
     }
     function searchUseExample(q) {
       document.getElementById('q').value = q;

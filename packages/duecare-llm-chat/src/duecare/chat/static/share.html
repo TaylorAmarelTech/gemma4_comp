@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="/static/_chrome.css">
   <script src="/static/_nav.js" defer></script>
   <script src="/static/_activity_log.js" defer></script>
+  <script src="/static/_workflow.js" defer></script>
   <style>
     body { font-family: 'Inter', sans-serif; background: #F7F6F1; color: #0E1116; margin: 0; padding: 0; }
     .wb-page { max-width: 1120px; margin: 0 auto; padding: 24px 22px 80px; }
@@ -191,12 +192,19 @@
 
   <script>
     let wbFile = null, wbBundle = null, wbChecked = new Set(), wbAnonymized = null;
+    let wbShareStepper = null;
+    function wbGetShareStepper() {
+      if (!wbShareStepper && window.dcWorkflow) {
+        wbShareStepper = window.dcWorkflow.createStepper({
+          ids: ['wb-step-1', 'wb-step-2', 'wb-step-3', 'wb-step-4'],
+          completeClass: 'done',
+        });
+      }
+      return wbShareStepper;
+    }
     function wbSetStep(active) {
-      [1, 2, 3, 4].forEach(n => {
-        const step = document.getElementById('wb-step-' + n);
-        if (!step) return;
-        step.open = n === active;
-      });
+      const stepper = wbGetShareStepper();
+      if (stepper) stepper.set((Number(active) || 1) - 1);
     }
         // Shared activity-log primitive (window.dcActivityLog). The
     // previous bespoke wbLog() hand-rolled DOM construction; we now

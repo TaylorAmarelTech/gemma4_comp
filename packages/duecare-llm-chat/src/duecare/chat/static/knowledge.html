@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="/static/_chrome.css">
   <script src="/static/_nav.js" defer></script>
   <script src="/static/_activity_log.js" defer></script>
+  <script src="/static/_workflow.js" defer></script>
   <style>
     body { font-family: 'Inter', sans-serif; background: #F7F6F1; color: #0E1116; margin: 0; padding: 0; }
     .wb-page { max-width: 1180px; margin: 0 auto; padding: 24px 22px 80px; }
@@ -287,16 +288,18 @@
     </details>
 
     <script>
+      let kxWorkflowStepper = null;
+      function kxGetWorkflowStepper(){
+        if (!kxWorkflowStepper && window.dcWorkflow) {
+          kxWorkflowStepper = window.dcWorkflow.createStepper({
+            ids: ['kx-step-source', 'kx-step-draft', 'kx-step-pack'],
+          });
+        }
+        return kxWorkflowStepper;
+      }
       function kxSetWorkflow(active){
-        const ids = ['kx-step-source', 'kx-step-draft', 'kx-step-pack'];
-        ids.forEach((id, idx) => {
-          const el = document.getElementById(id);
-          if (!el) return;
-          el.classList.toggle('complete', idx < active);
-          if ('open' in el) el.open = idx === active;
-          const state = document.getElementById(id + '-state');
-          if (state) state.textContent = idx < active ? 'Done' : (idx === active ? 'Active' : 'Waiting');
-        });
+        const stepper = kxGetWorkflowStepper();
+        if (stepper) stepper.set(active);
       }
       function kxSetPipeline(active){
         const mapped = active >= 4 ? 2 : (active >= 1 ? 1 : 0);
