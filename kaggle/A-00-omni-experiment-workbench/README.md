@@ -97,6 +97,21 @@ Use this path before recording if you plan to fine-tune E2B or E4B:
 5. After verifying the paths, switch `Execute now` to `true` for the real
    Unsloth run on the Kaggle GPU.
 
+Expected artifacts after step 4:
+
+- `a00_synthetic_*_sft.jsonl`
+- `a00_synthetic_*_dpo.jsonl`
+- `a00_synthetic_*_manifest.json`
+- `a00_synthetic_*_bundle.zip`
+- `a00_train_*_job.json`
+- `a00_train_*.py`
+
+For the video, it is acceptable to show the generated smoke bundle and script
+without running a full adapter training job live. Run `Execute now=true` only
+after confirming the base model path, CUDA availability, Unsloth dependencies,
+and that the SFT rows teach stable response structure rather than volatile
+contacts or fee rules.
+
 Local troubleshooting is useful for JSONL shape, import/export, reports, and
 script generation. Real training should run on Kaggle or another CUDA host.
 

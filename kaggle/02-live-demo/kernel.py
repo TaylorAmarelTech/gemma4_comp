@@ -71,9 +71,9 @@ from typing import Any, Callable, Optional
 # CONFIG: edit these for your run
 # ---------------------------------------------------------------------------
 # DueCare package installation from GitHub
-DUECARE_VERSION = "0.1.0"
-GITHUB_REPO = "TaylorAmarelTech/gemma4_comp"
-PINNED_COMMIT = "6da0e04bae38bcd75abd3d8c178cc80c183f4f41"  # Pinned for reproducibility
+DUECARE_VERSION = os.environ.get("DUECARE_VERSION", "0.17.0")
+GITHUB_REPO = os.environ.get("DUECARE_REPO", "TaylorAmarelTech/gemma4_comp")
+PINNED_COMMIT = os.environ.get("DUECARE_COMMIT_SHA", "master")
 
 # ===== Model selection =====================================================
 # Pick which Gemma 4 to serve. The kernel will fall back to heuristic-only

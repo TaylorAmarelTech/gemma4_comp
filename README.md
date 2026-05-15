@@ -1,8 +1,8 @@
-# Duecare — Gemma 4-powered safety infrastructure for migrant-worker protection
+# DueCare: Gemma 4 safety infrastructure for migrant-worker protection
 
-> 🌐 **Public hub:** [duecare-ai.com](https://duecare-ai.com) ·
-> 📓 **Kaggle submission:** [kaggle.com/code/taylorsamarel/duecare-exploration-workbench](https://www.kaggle.com/code/taylorsamarel/duecare-exploration-workbench) ·
-> 📦 **Source:** this repo (MIT)
+> **Public hub:** [duecare-ai.com](https://duecare-ai.com) |
+> **Kaggle submission:** [kaggle.com/code/taylorsamarel/duecare-exploration-workbench](https://www.kaggle.com/code/taylorsamarel/duecare-exploration-workbench) |
+> **Source:** this repo (MIT)
 >
 > **Duecare is Gemma 4-powered safety infrastructure for migrant-worker
 > protection.** It does three things: **prevents exploitation before it
@@ -13,10 +13,10 @@
 > analysis. The public product is organized into five setup lanes:
 > **Platform safety**, **NGO & regulator**, **Individual worker / mobile**,
 > **Researcher**, and **Developer / integration partner**.
-> **Core platform pieces:** Gemma 4 Model Layer · Safety Guidance Layer ·
-> Knowledge Packs · Quality Testing Framework · Central Knowledge Server ·
-> Local Anonymization · Information Submission · Public Information Research ·
-> Stakeholder Engagement · Newsletter and Alerts · Fine-Tuning · Channel and
+> **Core platform pieces:** Gemma 4 Model Layer, Safety Guidance Layer,
+> Knowledge Packs, Quality Testing Framework, Central Knowledge Server,
+> Local Anonymization, Information Submission, Public Information Research,
+> Stakeholder Engagement, Newsletter and Alerts, Fine-Tuning, Channel and
 > Deployment Package. **Live core** for the Kaggle submission is Gemma 4 +
 > Safety Guidance + Knowledge Packs + Quality Testing. **Prototype:**
 > Fine-Tuning (`kaggle/A-07-bench-and-tune/`). **Roadmap:** Central server
@@ -27,14 +27,14 @@
 > use-case and component wording:
 > [`docs/canonical_use_cases_and_components.md`](docs/canonical_use_cases_and_components.md).
 >
-> Named for Cal. Civ. Code § 1714(a) — the duty of care standard that
+> Named for Cal. Civ. Code section 1714(a), the duty of care standard that
 > a California jury applied to find Meta and Google negligent for
 > defective platform design in March 2026. Duecare applies the same
 > standard to LLM safety: does the model exercise *due care* when
 > responding to prompts about trafficking, exploitation, and financial crime?
 >
 > **North star: inform AND document.** A migrant worker can follow
-> the chatbot's advice (don't pay the illegal fee) — or pay anyway
+> the chatbot's advice (don't pay the illegal fee) or pay anyway
 > under their corridor's real constraints, with the journal
 > capturing every receipt + statute citation + recipient so the
 > same harness pre-stages the refund claim. Harm reduction, not
@@ -48,55 +48,47 @@
 
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](./LICENSE)
-[![Tests](https://img.shields.io/badge/tests-194%20passing-brightgreen.svg)](#tests)
+[![Tests](https://img.shields.io/badge/chat%20tests-281%20passing-brightgreen.svg)](#tests)
 [![Packages](https://img.shields.io/badge/packages-17-blue.svg)](#packages)
 
-> ### 🚀 Submission state (Gemma 4 Good Hackathon, due 2026-05-18)
+> ### Submission state (Gemma 4 Good Hackathon, due 2026-05-18)
 >
-> **3 core + 24 appendix = 27 Kaggle folders.** Judges land on
+> **3 core + 25 appendix = 28 Kaggle folders.** Judges land on
 > the unified omni playground, then proceed to the focused live
-> demo. The 24 appendix notebooks add depth-of-engineering signal
+> demo. The appendix notebooks add depth-of-engineering signal
 > without competing for the first 5 minutes.
 >
-> **Core (judges evaluate first — in this order):**
+> **Core (judges evaluate first, in this order):**
 >
-> 1. [`duecare-exploration-workbench`](https://www.kaggle.com/code/taylorsamarel/duecare-exploration-workbench) ★ **The omni playground.** All 6 harness toggles (Persona / GREP 161 rules / RAG 46 docs + 46-edge citation graph / Imports / Tools 5 lookups / Online live web search with deep-fetch) + 4 grade modes (Universal / Expert / **Deep LLM-as-judge** / Combined) + **9-variant Gemma 4 model selector** (E2B / E4B / 26B-A4B / 31B / 2 jailbroken / 3 cloud BYOK) + A/B Compare tab + retrieval-config panel + retrieval path-trace card + **interactive RAG graph viewer** (in-modal + standalone full-screen at `/static/rag-graph.html`). One configurable interface for the whole capability surface.
-> 2. [`duecare-live-demo`](https://www.kaggle.com/code/taylorsamarel/duecare-live-demo) — focused, scripted live URL. Polished classification + knowledge-building product with the +56.5pp lift demonstration.
+> 1. [`duecare-exploration-workbench`](https://www.kaggle.com/code/taylorsamarel/duecare-exploration-workbench) - the broad workbench. Chat, Harness Comparison, Bulk File Review, Knowledge Extraction, Search, Anonymization and Sharing, Sync, Status, UI Audit, live layer catalogs, global model selector, A/B comparison, retrieval trace, grading, local imports, and RAG graph views.
+> 2. [`duecare-live-demo`](https://www.kaggle.com/code/taylorsamarel/duecare-live-demo) - focused live product demo with real Gemma 4 inference and a curated safety-harness scenario.
+> 3. [`duecare-video-pitch`](https://www.kaggle.com/code/taylorsamarel/duecare-video-pitch) - recording-first slide deck, cached replay, setup editor, and exportable presentation evidence.
 >
-> **Appendix (11):**
+> **Appendix command center:**
 >
-> - A1. [`duecare-chat-playground`](https://www.kaggle.com/code/taylorsamarel/duecare-chat-playground) — raw Gemma 4 chat baseline (no harness)
-> - A2. [`duecare-chat-playground-with-grep-rag-tools`](https://www.kaggle.com/code/taylorsamarel/duecare-chat-playground-with-grep-rag-tools) — harness ablation runner with GREP, RAG, Tools, and Imports toggles
-> - A3. `duecare-content-classification-playground` — hands-on classifier sandbox (4 schemas)
-> - A4. `duecare-content-knowledge-builder-playground` — hands-on KB builder + JSON export
-> - A5. [`duecare-gemma-content-classification-evaluation`](https://www.kaggle.com/code/taylorsamarel/duecare-gemma-content-classification-evaluation) — NGO & regulator scorecard with risk vectors + queue
-> - A6. `duecare-prompt-generation` — two-track synthetic data generator for SafetyJudge prompts and PrivacyRedactor cases
-> - A7. `duecare-bench-and-tune` — SafetyJudge adapter training + stock-vs-fine-tuned benchmark + GGUF/HF Hub export
-> - A8. `duecare-research-graphs` — 6 interactive Plotly charts (CPU-only)
-> - A9. `duecare-chat-playground-with-agentic-research` — Playwright real-browser BYOK agentic web search (the deeper version of Online layer)
-> - A10. `duecare-chat-playground-jailbroken-models` — loads abliterated/cracked Gemma 4 variants; proves harness still works even when refusals are ablated
-> - A11. `duecare-grading-evaluation` — **the runtime harness-lift regenerator.** Runs N prompts through the same weights with the harness OFF vs ON, grades both, and emits MD+JSON with provenance tuple `(model, git_sha, dataset_version)`.
+> - A-00 [`duecare-a-00-omni-experiment-workbench`](./kaggle/A-00-omni-experiment-workbench/) is the technical proof surface: baseline vs harness vs fine-tuned vs fine-tuned-plus-harness exports, rule and LLM grading, synthetic SFT/DPO generation, tiny LoRA smoke bundles, local research graphs, and HTML/PDF reports.
+> - A-01 through A-24 are focused verification slices for raw baselines, harness ablations, prompt generation, training, grading, research graphs, privacy redaction, multimodal document analysis, on-device export, UGC moderation, NGO local knowledge bases, and Gemma 4 feature showcases.
 >
 > **Judges start here:** [`docs/peer_review_5min_test_plan.md`](./docs/peer_review_5min_test_plan.md) (one-page click-by-click guide).
 > Or: [`docs/FOR_PEER_REVIEW.md`](./docs/FOR_PEER_REVIEW.md) (full verification roster).
-> **Writeup (≤1500 words):** [`docs/writeup_draft.md`](./docs/writeup_draft.md).
+> **Writeup (1500 words max):** [`docs/writeup_draft.md`](./docs/writeup_draft.md).
 > **Video script (~2:50):** [`docs/video_script.md`](./docs/video_script.md).
 > **Audit / report card:** [`docs/REPORT_CARD.md`](./docs/REPORT_CARD.md).
-> **Harness lift report:** [`docs/harness_lift_report.md`](./docs/harness_lift_report.md) — quantifies how RAG/GREP/Tools change rubric scores (mean **+56.5 pp** on the cross-cutting `legal_citation_quality` rubric, 207/207 prompts).
-> **Corpus coverage:** [`docs/corpus_coverage.md`](./docs/corpus_coverage.md) — 2D coverage matrices across category × sector × corridor × ILO indicator.
-> **Stretch — Android (LiteRT track):** [`docs/android_app_architecture.md`](./docs/android_app_architecture.md) — Duecare Journey, the on-device companion. v1 architecture published here; **APK skeleton + GitHub Actions APK build pipeline live in the sibling repo `duecare-journey-android/`** (separated so Android tooling doesn't collide with the Python research workflow). v1 MVP build lands week of 2026-05-19.
-> **Provenance:** [`RESULTS.md`](./RESULTS.md) — every metric pinned to `(git_sha, dataset_version, model_revision)`.
+> **Harness lift report:** [`docs/harness_lift_report.md`](./docs/harness_lift_report.md) - quantifies how the safety layers change rubric scores.
+> **Corpus coverage:** [`docs/corpus_coverage.md`](./docs/corpus_coverage.md) - coverage matrices across category, sector, corridor, and ILO indicator.
+> **Stretch Android path:** [`docs/android_app_architecture.md`](./docs/android_app_architecture.md) - Duecare Journey, the on-device companion.
+> **Provenance:** [`RESULTS.md`](./RESULTS.md) - every metric pinned to `(git_sha, dataset_version, model_revision)`.
 >
 > **Three headline benefits shown in the demo:**
 >
-> - **Prevent exploitation before it spreads** — platform and marketplace moderation with explained risk envelopes. Setup: [`docs/deployment_enterprise.md`](./docs/deployment_enterprise.md).
-> - **Assist victims and at-risk workers** — NGO/regulator intake plus worker-facing mobile workflows. Setup: [`docs/scenarios/ngo-office-deployment.md`](./docs/scenarios/ngo-office-deployment.md) and [`docs/scenarios/worker-self-help.md`](./docs/scenarios/worker-self-help.md).
-> - **Understand what is happening and why** — reproducible Kaggle notebooks, knowledge packs, trend signals, and provenance. Start with [`docs/FOR_PEER_REVIEW.md`](./docs/FOR_PEER_REVIEW.md) (canonical reviewer entry) or [`docs/FOR_KAGGLE_JUDGES.md`](./docs/FOR_KAGGLE_JUDGES.md) for the hackathon-specific quick path.
+> - **Prevent exploitation before it spreads** - platform and marketplace moderation with explained risk envelopes. Setup: [`docs/deployment_enterprise.md`](./docs/deployment_enterprise.md).
+> - **Assist victims and at-risk workers** - NGO/regulator intake plus worker-facing mobile workflows. Setup: [`docs/scenarios/ngo-office-deployment.md`](./docs/scenarios/ngo-office-deployment.md) and [`docs/scenarios/worker-self-help.md`](./docs/scenarios/worker-self-help.md).
+> - **Understand what is happening and why** - reproducible Kaggle notebooks, knowledge packs, trend signals, and provenance. Start with [`docs/FOR_PEER_REVIEW.md`](./docs/FOR_PEER_REVIEW.md) (canonical reviewer entry) or [`docs/FOR_KAGGLE_JUDGES.md`](./docs/FOR_KAGGLE_JUDGES.md) for the hackathon-specific quick path.
 
 ---
 
 
-## Architecture — multi-harness pattern
+## Architecture: multi-harness pattern
 
 Duecare is built around **six self-describing harness modules** on the kernel
 side and **five** on the hub side. Each owns one safety task:
@@ -106,7 +98,7 @@ side and **five** on the hub side. Each owns one safety task:
 | Kernel | `chat` | full multimodal orchestrator (persona / grep / rag / tools / online) |
 | Kernel | `process` | bulk case-bundle analysis + graph-chat |
 | Kernel | `extraction` | drafts typed KnowledgeObject envelopes from raw text |
-| Kernel | `anonymization` | PII gate (regex-only by design — never sees raw PII through Gemma) |
+| Kernel | `anonymization` | PII gate (regex-only by design; never sees raw PII through Gemma) |
 | Kernel | `import_corpus` | user-attached evidence CRUD |
 | Kernel | `search` | server + client web search via SearXNG or legacy backends |
 | Hub | `curator` | human-in-the-loop vetting queue |
