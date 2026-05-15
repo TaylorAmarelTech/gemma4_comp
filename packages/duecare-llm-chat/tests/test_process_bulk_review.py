@@ -168,6 +168,18 @@ def test_process_batch_returns_intelligence_for_sample():
     assert intel["rag_candidates"]
     assert intel["processing_plan"]["local_processing_contract"]["remote_api_calls"] is False
     assert intel["processing_plan"]["scalable_queue_contract"]["batching_policy"]["queue_large_archives"] is True
+    assert intel["processing_plan"]["review_mode"]["id"] == "standard_review"
+    assert intel["processing_plan"]["gemma_budget"]["max_gemma_calls"] == 75
+    assert intel["processing_plan"]["page_item_prompt_tree"]
+    assert {
+        "classify",
+        "target_fee_payment",
+        "target_chat",
+        "target_contract",
+        "cross_document_link",
+        "knowledge_candidate",
+    }.issubset({p["phase"] for p in intel["processing_plan"]["page_item_prompt_tree"]})
+    assert intel["processing_plan"]["knowledge_context"]["local_only"] is True
     assert any(
         t["id"] == "case_graph_edges"
         for t in intel["processing_plan"]["gemma_edge_prompt_templates"]
@@ -214,7 +226,50 @@ def test_process_batch_returns_intelligence_for_sample():
     assert edge_body["remote_api_calls"] is False
     assert edge_body["typed_edges"]
     assert edge_body["rag_candidates"]
+    assert edge_body["page_item_prompt_tree"]
+    assert edge_body["knowledge_context"]["local_only"] is True
     assert any(t["id"] == "case_graph_edges" for t in edge_body["prompt_templates"])
+
+
+def test_process_batch_accepts_review_mode_settings():
+    from duecare.chat.app import create_app
+
+    sample = (
+        Path(__file__).parents[1]
+        / "src"
+        / "duecare"
+        / "chat"
+        / "static"
+        / "samples"
+        / "case_files_media_rich_sample.zip"
+    )
+    client = TestClient(create_app())
+    response = client.post(
+        "/api/process/batch",
+        data={
+            "review_mode": "quick_triage",
+            "runtime_budget_minutes": "5",
+            "max_gemma_calls": "12",
+            "gemma_calls_per_item": "1",
+            "edge_strictness": "conservative",
+            "generate_knowledge_candidates": "false",
+            "include_imported_knowledge": "false",
+            "page_item_types": '["text_block","receipt"]',
+        },
+        files={"file": (sample.name, io.BytesIO(sample.read_bytes()), "application/zip")},
+    )
+    assert response.status_code == 200, response.text
+    body = response.json()
+    settings = body["config"]["process_settings"]
+    plan = body["intelligence"]["processing_plan"]
+    assert settings["review_mode"]["id"] == "quick_triage"
+    assert settings["max_gemma_calls"] == 12
+    assert settings["generate_knowledge_candidates"] is False
+    assert settings["include_imported_knowledge"] is False
+    assert settings["page_item_types"] == ["text_block", "receipt"]
+    assert plan["gemma_budget"]["knowledge_candidates_enabled"] is False
+    assert plan["knowledge_context"]["disabled_by_settings"] is True
+    assert plan["page_item_prompt_tree"][0]["prompt_id"] == "page_item_classification"
 
 
 def test_process_batch_returns_intelligence_for_media_rich_sample():

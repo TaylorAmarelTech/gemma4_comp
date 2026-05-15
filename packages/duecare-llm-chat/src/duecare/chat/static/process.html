@@ -74,6 +74,17 @@
     .wb-action-card { border: 1px solid #EFEDE4; border-radius: 8px; padding: 12px; background: #FAF9F4; }
     .wb-action-card h3 { font-size: 13px; margin: 0 0 5px; }
     .wb-action-card p { color: #5B5F68; font-size: 11.5px; line-height: 1.45; margin: 0 0 10px; }
+    .wb-mode-panel { border: 1px solid #EFEDE4; border-radius: 10px; padding: 12px; background: #FAF9F4; margin-top: 12px; }
+    .wb-mode-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(165px, 1fr)); gap: 8px; margin-top: 8px; }
+    .wb-mode-card { border: 1px solid #DDD8C9; border-radius: 8px; background: #FFF; padding: 10px 11px; cursor: pointer; text-align: left; }
+    .wb-mode-card.active { border-color: oklch(0.52 0.08 195); background: oklch(0.97 0.02 195); box-shadow: inset 0 0 0 1px oklch(0.52 0.08 195); }
+    .wb-mode-card b { display: block; font-size: 12.5px; margin-bottom: 3px; }
+    .wb-mode-card span { display: block; color: #5B5F68; font-size: 11px; line-height: 1.38; }
+    .wb-advanced-settings { margin-top: 10px; border-top: 1px solid #EFEDE4; padding-top: 10px; }
+    .wb-advanced-settings summary { cursor: pointer; color: oklch(0.32 0.07 195); font-size: 12px; font-weight: 600; }
+    .wb-settings-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 10px; margin-top: 10px; }
+    .wb-setting label { display: block; color: #5B5F68; font-size: 11px; margin-bottom: 4px; }
+    .wb-setting input, .wb-setting select { width: 100%; box-sizing: border-box; border: 1px solid #DDD8C9; border-radius: 7px; padding: 7px 8px; font-size: 12px; background: #FFF; }
     .wb-review-checks { display: grid; gap: 6px; margin: 10px 0; }
     .wb-review-checks label { display: flex; gap: 8px; align-items: flex-start; color: #2A2D34; font-size: 12px; line-height: 1.45; }
     .wb-review-checks input { margin-top: 2px; }
@@ -238,6 +249,81 @@
               </div>
               <div id="wb-error" class="wb-error" style="display: none; margin-top: 10px;" role="alert"></div>
             </div>
+          </div>
+          <div class="wb-mode-panel" aria-label="Processing configuration">
+            <div style="display:flex; justify-content:space-between; gap:10px; align-items:flex-start; flex-wrap:wrap;">
+              <div>
+                <h2 style="margin:0 0 4px;">Processing configuration</h2>
+                <div class="wb-muted" id="wb-settings-summary">
+                  Default: Standard review. Deterministic extraction runs first;
+                  Gemma 4 is budgeted for high-signal page items and knowledge candidates.
+                </div>
+              </div>
+              <span class="wb-pill">recommended default selected</span>
+            </div>
+            <div class="wb-mode-row" role="radiogroup" aria-label="Review depth">
+              <button class="wb-mode-card" type="button" data-mode="quick_triage" onclick="wbSetReviewMode('quick_triage')" role="radio" aria-checked="false">
+                <b>Quick triage</b>
+                <span>Fast pass for very large archives. Gemma only reviews top-risk items.</span>
+              </button>
+              <button class="wb-mode-card active" type="button" data-mode="standard_review" onclick="wbSetReviewMode('standard_review')" role="radio" aria-checked="true">
+                <b>Standard review</b>
+                <span>Recommended. Classify all items, then run targeted Gemma prompts on high-signal evidence.</span>
+              </button>
+              <button class="wb-mode-card" type="button" data-mode="exhaustive_review" onclick="wbSetReviewMode('exhaustive_review')" role="radio" aria-checked="false">
+                <b>Exhaustive review</b>
+                <span>Deep local pass for smaller bundles or final case preparation.</span>
+              </button>
+            </div>
+            <details class="wb-advanced-settings">
+              <summary>Advanced processing settings</summary>
+              <div class="wb-settings-grid">
+                <div class="wb-setting">
+                  <label for="wb-runtime-budget">Runtime budget</label>
+                  <select id="wb-runtime-budget" onchange="wbUpdateSettingsSummary()">
+                    <option value="5">5 minutes</option>
+                    <option value="15" selected>15 minutes</option>
+                    <option value="60">60 minutes</option>
+                    <option value="240">Unlimited local session</option>
+                  </select>
+                </div>
+                <div class="wb-setting">
+                  <label for="wb-max-gemma-calls">Max Gemma calls</label>
+                  <input id="wb-max-gemma-calls" type="number" min="0" max="1000" value="75" onchange="wbUpdateSettingsSummary()">
+                </div>
+                <div class="wb-setting">
+                  <label for="wb-calls-per-item">Gemma calls per page item</label>
+                  <select id="wb-calls-per-item" onchange="wbUpdateSettingsSummary()">
+                    <option value="0">0 - deterministic only</option>
+                    <option value="1" selected>1 - targeted default</option>
+                    <option value="2">2 - classification + target</option>
+                    <option value="3">3 - deeper branch review</option>
+                  </select>
+                </div>
+                <div class="wb-setting">
+                  <label for="wb-edge-strictness">Edge strictness</label>
+                  <select id="wb-edge-strictness" onchange="wbUpdateSettingsSummary()">
+                    <option value="conservative">Conservative</option>
+                    <option value="balanced" selected>Balanced</option>
+                    <option value="exploratory">Exploratory</option>
+                  </select>
+                </div>
+              </div>
+              <div class="wb-review-checks" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));">
+                <label><input type="checkbox" class="wb-page-item-type" value="text_block" checked onchange="wbUpdateSettingsSummary()"> Text blocks</label>
+                <label><input type="checkbox" class="wb-page-item-type" value="table" checked onchange="wbUpdateSettingsSummary()"> Tables</label>
+                <label><input type="checkbox" class="wb-page-item-type" value="image_or_screenshot" checked onchange="wbUpdateSettingsSummary()"> Images and screenshots</label>
+                <label><input type="checkbox" class="wb-page-item-type" value="receipt" checked onchange="wbUpdateSettingsSummary()"> Receipts and payment records</label>
+                <label><input type="checkbox" class="wb-page-item-type" value="contract_or_form" checked onchange="wbUpdateSettingsSummary()"> Contracts and forms</label>
+                <label><input type="checkbox" class="wb-page-item-type" value="signature_or_stamp" checked onchange="wbUpdateSettingsSummary()"> Signatures and stamps</label>
+                <label><input type="checkbox" class="wb-page-item-type" value="audio_segment" checked onchange="wbUpdateSettingsSummary()"> Audio segments</label>
+                <label><input type="checkbox" class="wb-page-item-type" value="video_frame_or_scene" checked onchange="wbUpdateSettingsSummary()"> Video frames/scenes</label>
+              </div>
+              <div class="wb-review-checks">
+                <label><input type="checkbox" id="wb-generate-knowledge" checked onchange="wbUpdateSettingsSummary()"> Generate reviewable knowledge-object candidates from repeated patterns.</label>
+                <label><input type="checkbox" id="wb-include-knowledge" checked onchange="wbUpdateSettingsSummary()"> Use imported local knowledge files as context for Gemma edge/RAG prompts.</label>
+              </div>
+            </details>
           </div>
         </div>
       </details>
@@ -740,7 +826,10 @@
       const cleanDetail = detail == null ? detail : String(detail).replace(/\u00c2\u00b7/g, ' | ');
       fn(msg, cleanDetail);
     };
-    window.addEventListener('DOMContentLoaded', wbGetLog);
+    window.addEventListener('DOMContentLoaded', () => {
+      wbGetLog();
+      wbSetReviewMode('standard_review');
+    });
     function wbEsc(s) {
       return String(s == null ? '' : s).replace(/[&<>"']/g, c =>
         ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -756,6 +845,79 @@
         deterministic_deferred_model: 'Deterministic brief; Gemma/media deferred',
         model_error_deterministic_fallback: 'Deterministic fallback',
       })[status] || (status || 'not run');
+    }
+    const WB_REVIEW_MODES = {
+      quick_triage: {
+        label: 'Quick triage',
+        runtime: 5,
+        calls: 20,
+        perItem: 1,
+        strictness: 'conservative',
+        detail: 'Fast pass for very large archives. Deterministic extraction runs everywhere; Gemma reviews top-risk items.'
+      },
+      standard_review: {
+        label: 'Standard review',
+        runtime: 15,
+        calls: 75,
+        perItem: 1,
+        strictness: 'balanced',
+        detail: 'Recommended default. Classify all items, then run targeted Gemma prompts on high-signal evidence.'
+      },
+      exhaustive_review: {
+        label: 'Exhaustive review',
+        runtime: 60,
+        calls: 240,
+        perItem: 2,
+        strictness: 'exploratory',
+        detail: 'Deep local pass for smaller bundles or final case prep. Gemma can run multiple targeted prompts per item.'
+      }
+    };
+    let wbReviewMode = 'standard_review';
+    function wbPageItemTypes() {
+      return Array.from(document.querySelectorAll('.wb-page-item-type'))
+        .filter(el => el.checked)
+        .map(el => el.value);
+    }
+    function wbSetReviewMode(mode) {
+      wbReviewMode = WB_REVIEW_MODES[mode] ? mode : 'standard_review';
+      const cfg = WB_REVIEW_MODES[wbReviewMode];
+      document.querySelectorAll('.wb-mode-card').forEach(el => {
+        const active = el.getAttribute('data-mode') === wbReviewMode;
+        el.classList.toggle('active', active);
+        el.setAttribute('aria-checked', active ? 'true' : 'false');
+      });
+      const runtime = document.getElementById('wb-runtime-budget');
+      const calls = document.getElementById('wb-max-gemma-calls');
+      const perItem = document.getElementById('wb-calls-per-item');
+      const strict = document.getElementById('wb-edge-strictness');
+      if (runtime) runtime.value = String(cfg.runtime);
+      if (calls) calls.value = String(cfg.calls);
+      if (perItem) perItem.value = String(cfg.perItem);
+      if (strict) strict.value = cfg.strictness;
+      wbUpdateSettingsSummary();
+    }
+    function wbProcessSettings() {
+      return {
+        review_mode: wbReviewMode,
+        runtime_budget_minutes: parseInt(document.getElementById('wb-runtime-budget')?.value || '15', 10),
+        max_gemma_calls: parseInt(document.getElementById('wb-max-gemma-calls')?.value || '75', 10),
+        gemma_calls_per_item: parseInt(document.getElementById('wb-calls-per-item')?.value || '1', 10),
+        edge_strictness: document.getElementById('wb-edge-strictness')?.value || 'balanced',
+        generate_knowledge_candidates: !!document.getElementById('wb-generate-knowledge')?.checked,
+        include_imported_knowledge: !!document.getElementById('wb-include-knowledge')?.checked,
+        page_item_types: wbPageItemTypes()
+      };
+    }
+    function wbUpdateSettingsSummary() {
+      const host = document.getElementById('wb-settings-summary');
+      if (!host) return;
+      const cfg = WB_REVIEW_MODES[wbReviewMode] || WB_REVIEW_MODES.standard_review;
+      const settings = wbProcessSettings();
+      host.textContent = cfg.label + ': ' + cfg.detail + ' Budget: ' +
+        settings.runtime_budget_minutes + ' min, max ' + settings.max_gemma_calls +
+        ' Gemma call(s), ' + settings.gemma_calls_per_item + ' call(s) per page item, ' +
+        settings.edge_strictness + ' edges. Page-item types: ' +
+        (settings.page_item_types.length ? settings.page_item_types.join(', ') : 'none') + '.';
     }
     function wbReviewChecklist() {
       return Array.from(document.querySelectorAll('.wb-review-check')).map((el, idx) => ({
@@ -873,11 +1035,23 @@
       wbResetReview();
       document.getElementById('pg-ask-btn').disabled = true;
       _wbLastProcessPollPhase = '';
-      wbLog('info', 'POST /api/process/batch/start', 'multipart upload, file=' + wbFile.name);
+      const settings = wbProcessSettings();
+      wbLog('info', 'POST /api/process/batch/start',
+        'multipart upload, file=' + wbFile.name + ' | mode=' + settings.review_mode +
+        ' | max_gemma_calls=' + settings.max_gemma_calls);
       wbSetProcessActive(true);
       wbSetProcessProgress(5, 'Uploading bundle to Kaggle kernel', 'Sending the source bundle to the local workbench server.');
       wbSetWorkflow(1);
-      const fd = new FormData(); fd.append('file', wbFile);
+      const fd = new FormData();
+      fd.append('file', wbFile);
+      fd.append('review_mode', settings.review_mode);
+      fd.append('runtime_budget_minutes', String(settings.runtime_budget_minutes));
+      fd.append('max_gemma_calls', String(settings.max_gemma_calls));
+      fd.append('gemma_calls_per_item', String(settings.gemma_calls_per_item));
+      fd.append('edge_strictness', settings.edge_strictness);
+      fd.append('generate_knowledge_candidates', settings.generate_knowledge_candidates ? 'true' : 'false');
+      fd.append('include_imported_knowledge', settings.include_imported_knowledge ? 'true' : 'false');
+      fd.append('page_item_types', JSON.stringify(settings.page_item_types));
       const t0 = performance.now();
       try {
         const start = await fetch('/api/process/batch/start', { method: 'POST', body: fd });
@@ -996,6 +1170,10 @@
       const methods = plan.analysis_methods || [];
       const local = plan.local_processing_contract || {};
       const queue = plan.scalable_queue_contract || {};
+      const mode = plan.review_mode || {};
+      const budget = plan.gemma_budget || {};
+      const promptTree = plan.page_item_prompt_tree || [];
+      const knowledgeContext = plan.knowledge_context || {};
       const passHtml = passes.length ? passes.map(p =>
         '<div class="wb-step ' + (String(p.status || '').includes('implemented') ? 'complete' : '') + '">' +
         '<div class="num">' + wbEsc(p.status || 'planned') + '</div>' +
@@ -1026,6 +1204,43 @@
         '<div class="wb-chip-list" style="margin-top:8px;">' + (queue.recommended_phases || []).slice(0, 12).map(wbPill).join('') + '</div>' +
         '</div>'
       ) : '';
+      const modeHtml = (
+        '<div class="wb-card" style="background:#FAF9F4; margin:0 0 12px; padding:12px;">' +
+        '<h3 style="font-size:13px; margin:0 0 6px;">Selected review mode and Gemma budget</h3>' +
+        '<div class="wb-muted" style="font-size:12px; line-height:1.5;">' +
+        '<b>' + wbEsc(mode.label || mode.id || 'Standard review') + '</b>: ' +
+        wbEsc(mode.description || '') + '</div>' +
+        '<div class="wb-chip-list" style="margin-top:8px;">' +
+        wbPill('runtime ' + (budget.runtime_budget_minutes || 15) + ' min') +
+        wbPill('max Gemma calls ' + (budget.max_gemma_calls || 75)) +
+        wbPill('calls per item ' + (budget.gemma_calls_per_item || 1)) +
+        wbPill('strictness ' + (budget.edge_strictness || 'balanced')) +
+        wbPill('knowledge candidates ' + (budget.knowledge_candidates_enabled === false ? 'off' : 'on')) +
+        wbPill('imported knowledge ' + (budget.include_imported_knowledge === false ? 'off' : 'on')) +
+        '</div></div>'
+      );
+      const promptTreeHtml = promptTree.length ? (
+        '<div class="wb-card" style="background:#FAF9F4; margin:0 0 12px; padding:12px;">' +
+        '<h3 style="font-size:13px; margin:0 0 6px;">Page-item prompt tree</h3>' +
+        '<div class="wb-muted" style="font-size:12px; line-height:1.5;">The harness starts with page-item classification, then branches into targeted Gemma prompts for receipts, chats, contracts, cross-document links, and knowledge candidates.</div>' +
+        '<div style="max-height:240px; overflow:auto; margin-top:8px;"><table class="wb-small-table"><thead><tr><th>phase</th><th>prompt</th><th>branch</th><th>outputs</th></tr></thead><tbody>' +
+        promptTree.map(p => '<tr><td>' + wbEsc(p.phase || '') + '</td><td><code>' + wbEsc(p.prompt_id || '') + '</code></td><td>' +
+          wbEsc((p.branch_when || p.applies_to || []).slice(0, 3).join(' | ')) + '</td><td>' +
+          wbEsc((p.outputs || []).slice(0, 5).join(', ')) + '</td></tr>').join('') +
+        '</tbody></table></div></div>'
+      ) : '';
+      const knowledgeHtml = (
+        '<div class="wb-card" style="background:#FAF9F4; margin:0 0 12px; padding:12px;">' +
+        '<h3 style="font-size:13px; margin:0 0 6px;">Imported knowledge-file context</h3>' +
+        '<div class="wb-muted" style="font-size:12px; line-height:1.5;">' +
+        wbEsc((knowledgeContext.disabled_by_settings ? 'Disabled by settings. ' : '') +
+          ((knowledgeContext.n_objects || 0) + ' local KnowledgeObject(s) available for Gemma edge/RAG prompts.')) +
+        '</div>' +
+        ((knowledgeContext.objects || []).length ? '<div class="wb-chip-list" style="margin-top:8px;">' +
+          (knowledgeContext.objects || []).slice(0, 10).map(o => wbPill((o.type || 'object') + '/' + (o.id || 'id'))).join('') +
+          '</div>' : '') +
+        '</div>'
+      );
       host.innerHTML =
         '<div class="wb-intel-grid" style="margin-bottom:10px;">' +
         '<div class="wb-metric"><div class="label">Parent documents</div><div class="value">' + wbEsc(plan.n_parent_documents || parentDocs.length || 0) + '</div></div>' +
@@ -1033,7 +1248,7 @@
         '<div class="wb-metric"><div class="label">Chunks / rows</div><div class="value">' + wbEsc(plan.n_chunks || 0) + '</div></div>' +
         '<div class="wb-metric"><div class="label">Media assets queued</div><div class="value">' + wbEsc(plan.n_media_assets || media.length || 0) + '</div></div>' +
         '</div>' +
-        localHtml + queueHtml +
+        modeHtml + localHtml + queueHtml + promptTreeHtml + knowledgeHtml +
         (methodHtml ? '<h3 style="font-size:13px; margin:0 0 6px;">Extraction and graph-building methods</h3><div class="wb-intel-grid" style="margin-bottom:12px;">' + methodHtml + '</div>' : '') +
         '<div class="wb-pipeline" style="margin-bottom:12px;">' + passHtml + '</div>' +
         '<h3 style="font-size:13px; margin:0 0 6px;">OCR and multimodal queue</h3>' +
@@ -1309,13 +1524,18 @@
       }
       const btn = document.getElementById('wb-gemma-edge-btn');
       if (btn) { btn.disabled = true; btn.textContent = 'Running local Gemma...'; }
-      wbLog('net', 'POST /api/process/graph-extract', 'prompt_id=case_graph_edges');
+      const settings = (wbBundle.config && wbBundle.config.process_settings) || wbProcessSettings();
+      const rawLimit = settings.max_gemma_calls || 32;
+      const limit = Math.max(4, Math.min(80, parseInt(rawLimit, 10) || 32));
+      const modeLabel = (settings.review_mode && settings.review_mode.id) || settings.review_mode || 'standard_review';
+      wbLog('net', 'POST /api/process/graph-extract',
+        'prompt_id=case_graph_edges | mode=' + modeLabel + ' | returned edge limit=' + limit);
       const t0 = performance.now();
       try {
         const r = await fetch('/api/process/graph-extract', {
           method: 'POST',
           headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({prompt_id: 'case_graph_edges', limit: 32})
+          body: JSON.stringify({prompt_id: 'case_graph_edges', limit: limit})
         });
         const out = await r.json();
         const dt = Math.round(performance.now() - t0);
