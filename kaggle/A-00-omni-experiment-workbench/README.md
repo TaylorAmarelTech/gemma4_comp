@@ -83,6 +83,12 @@ Use these recipes as the minimum pre-submission validation set:
    JSONL, or ZIP files. A-00 extracts documents, entities, people, locations,
    amounts, risk-rule hits, timeline events, and edges into JSON, CSV, HTML,
    and ZIP artifacts.
+11. **Local multimodal edge plan:** For large case histories, inventory files
+   first, split documents into pages and page items, run local OCR/layout/ASR
+   where installed, then use Gemma 4 to propose typed edges over bounded text,
+   OCR, metadata, and, for larger multimodal variants, page images. Cloud or
+   frontier models can be noted as future enhancement, but the demo path keeps
+   raw case material local.
 
 ## Small-Model Fine-Tune Smoke Path
 
