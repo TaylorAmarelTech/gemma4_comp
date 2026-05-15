@@ -55,6 +55,11 @@ EXTRACTION_SYSTEM_PROMPT = (
     "worker names, emails, phones, passport or national IDs) with placeholders "
     "like <PERSON_a1b2c3d4>. Include aggregation_keys when the object can feed "
     "charts, maps, entity graphs, corridor trends, or server-side vetting. "
+    "For volatile or safety-critical facts such as contacts, phone numbers, "
+    "current statutes, regulator URLs, media-derived claims, or enforcement "
+    "outcomes, preserve a verification_note/confidence field and keep the "
+    "object reviewer-verifiable instead of treating the detail as hardcoded "
+    "truth. "
     "Do not include any prose outside the JSON object."
 )
 

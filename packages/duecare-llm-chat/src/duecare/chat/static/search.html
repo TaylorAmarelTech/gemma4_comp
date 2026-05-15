@@ -120,6 +120,7 @@
         <div class="search-hero-item"><b>Safety first</b><span>PII is stripped before any third-party backend sees the query.</span></div>
         <div class="search-hero-item"><b>Source review</b><span>Each result stays inspectable as a source card before it becomes knowledge.</span></div>
         <div class="search-hero-item"><b>Knowledge path</b><span>Drafts go through the same Knowledge Extraction envelope flow used elsewhere.</span></div>
+        <div class="search-hero-item"><b>Model fit</b><span>Search does not require Gemma. Optional query rephrasing needs a loaded model; deeper Gemma drafting belongs in Knowledge Extraction.</span></div>
       </div>
     </section>
 
@@ -223,6 +224,14 @@
         Use <b>Draft this result</b> on a specific source, or draft from all
         visible results. Drafts are reviewable before anything is saved.
       </p>
+      <div class="search-empty" style="margin-bottom:10px;">
+        <b>Result-to-knowledge path:</b> source card -&gt; deterministic
+        envelope draft -&gt; reviewer inspection -&gt; save to local knowledge
+        store -&gt; optional export or anonymized sharing. The page intentionally
+        drafts with <code>use_gemma=false</code> by default to avoid tunnel
+        timeouts; use Knowledge Extraction when you want slower Gemma
+        refinement.
+      </div>
       <div id="results" class="search-empty">Run a search to populate public-source result cards.</div>
       <div class="search-action-grid">
         <div class="search-action-card">
@@ -264,6 +273,13 @@
         <b>Save all to local knowledge store</b> to persist them via
         <code>/api/knowledge/promote</code>, or download as a single
         JSON for offline review.
+      </p>
+      <p class="wb-muted" style="margin: 0 0 8px;">
+        Model fit: small Gemma models are useful for later rephrasing or
+        compact refinement, but search-result snippets should still be checked
+        against the opened source before promotion. Current phone numbers,
+        statutes, and enforcement facts should remain reviewable knowledge, not
+        hardcoded text.
       </p>
       <div class="search-progress" id="search-draft-progress" aria-live="polite">
         <div class="search-progress-head">

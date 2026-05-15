@@ -137,10 +137,14 @@
       <summary>
       <span class="wb-step-num">3</span>
       <div class="wb-step-summary">
-        <h3>Anonymize and Gemma-review selected items</h3>
+        <h3>Anonymize and optionally Gemma-review selected items</h3>
         <p>Regex pass: <span class="wb-pill">PERSON</span> <span class="wb-pill">EMAIL</span>
         <span class="wb-pill">PHONE</span> <span class="wb-pill">AMOUNT</span>
         <span class="wb-pill">ID</span>. Each match becomes a salted-hash placeholder. If a model is loaded, Gemma 4 reviews the already-redacted text for residual PII without quoting suspected values.</p>
+        <p><b>Model fit:</b> deterministic redaction is the first control.
+        Gemma privacy review is a second local check, not a guarantee. Smaller
+        models may miss residual PII, so human review remains required before
+        submission.</p>
       </div>
       </summary>
       <div class="wb-step-body">
