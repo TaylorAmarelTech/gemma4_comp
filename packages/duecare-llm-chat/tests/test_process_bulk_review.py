@@ -54,6 +54,48 @@ def test_case_files_sample_has_ph_hk_bulk_review_depth():
         assert any(n.startswith("case_folders/") for n in names)
 
 
+def test_case_files_media_rich_sample_has_messy_intake_depth():
+    sample = (
+        Path(__file__).parents[1]
+        / "src"
+        / "duecare"
+        / "chat"
+        / "static"
+        / "samples"
+        / "case_files_media_rich_sample.zip"
+    )
+    assert sample.exists()
+    with zipfile.ZipFile(sample) as zf:
+        names = [n for n in zf.namelist() if not n.endswith("/")]
+        assert len(names) < 300
+        assert any(n.startswith("media_rich_cases/") for n in names)
+        for marker in [
+            "facebook_messenger/",
+            "whatsapp_retaliation",
+            "receipt_photo",
+            "passport_page_photo",
+            "worker_intake",
+            "employment_contract_extractable",
+            "receipt_scan_ocr_needed",
+            "legacy_case_note",
+            "email_handoff",
+            "payment_schedule",
+            "travel_location_timeline",
+            "unparsed_binary",
+        ]:
+            assert any(marker in n for n in names)
+        assert sum(n.lower().endswith(".png") for n in names) >= 12
+        assert sum(n.lower().endswith(".jpg") for n in names) >= 12
+        assert sum(n.lower().endswith(".jpeg") for n in names) >= 6
+        assert sum(n.lower().endswith(".pdf") for n in names) >= 12
+        assert sum(n.lower().endswith(".docx") for n in names) >= 6
+        assert sum(n.lower().endswith(".doc") for n in names) >= 6
+        assert sum(n.lower().endswith(".xlsx") for n in names) >= 6
+        assert sum(n.lower().endswith(".eml") for n in names) >= 6
+        assert sum(n.lower().endswith(".pptx") for n in names) >= 3
+        assert sum(n.lower().endswith(".msg") for n in names) >= 3
+
+
 def test_process_batch_returns_intelligence_for_sample():
     from duecare.chat.app import create_app
 
@@ -119,6 +161,41 @@ def test_process_batch_returns_intelligence_for_sample():
     assert chat_body["cited_rows"]
     assert "The user is asking" not in chat_body["answer"]
     assert "|---" not in chat_body["answer"]
+
+
+def test_process_batch_returns_intelligence_for_media_rich_sample():
+    from duecare.chat.app import create_app
+
+    sample = (
+        Path(__file__).parents[1]
+        / "src"
+        / "duecare"
+        / "chat"
+        / "static"
+        / "samples"
+        / "case_files_media_rich_sample.zip"
+    )
+    client = TestClient(create_app())
+    response = client.post(
+        "/api/process/batch",
+        files={"file": (sample.name, io.BytesIO(sample.read_bytes()), "application/zip")},
+    )
+    assert response.status_code == 200, response.text
+    body = response.json()
+    intel = body["intelligence"]
+    assert body["summary"]["n_people_detected"] == 6
+    assert body["summary"]["truncated"] is False
+    assert intel["n_documents"] >= 90
+    assert intel["document_type_counts"]["media_image"] >= 30
+    assert intel["document_type_counts"]["scanned_pdf"] >= 12
+    assert intel["document_type_counts"]["payment_history"] >= 6
+    assert intel["document_type_counts"]["chat_messages"] >= 6
+    assert intel["processing_plan"]["n_media_assets"] >= 45
+    assert intel["top_risk_signals"]
+    assert not any(s["signal"] == "?" for s in intel["top_risk_signals"])
+    assert any("media_rich_cases" in edge.get("source_path", "") for edge in intel["evidence_edges"])
+    stages = {point["stage"] for point in intel["journey_points"]}
+    assert {"recruitment", "payment_and_debt", "travel", "documents_and_identity"}.issubset(stages)
 
 
 def test_process_batch_surfaces_media_and_ocr_work_queue():
