@@ -23,6 +23,7 @@ Contract (rule_70 / docs/harness_pattern.md):
 from __future__ import annotations
 
 from .handler import register_routes
+from ..base import HarnessSpec
 
 name = "search_safety"
 applied_layers: tuple[str, ...] = ()  # this IS a layer, not a consumer of layers
@@ -47,7 +48,53 @@ capabilities = {
     ),
 }
 
+spec = HarnessSpec(
+    name=name,
+    tier="primary",
+    kind="safety_gate",
+    label="Search safety gate",
+    summary="Sanitize outbound search queries before they reach a third-party backend.",
+    applied_layers=applied_layers,
+    consumes=consumes,
+    emits=emits,
+    gemma_mode="optional",
+    model_role="Regex redaction is mandatory; Gemma 4 can optionally rephrase the redacted query.",
+    test_pages=(
+        {"label": "Search safety", "href": "/static/search-safety.html"},
+        {"label": "Search", "href": "/static/search.html"},
+    ),
+    endpoints=(
+        {"method": "POST", "path": "/api/search/sanitize", "summary": "Redact and optionally rephrase a query"},
+        {"method": "GET", "path": "/api/search/safety-info", "summary": "Report safety wiring and patterns"},
+    ),
+    examples=(
+        "Sanitize a query containing a phone number, passport number, and destination corridor.",
+        "Ask Gemma to generalize a redacted query before web search.",
+    ),
+    comparison="Run strict vs Gemma-rephrased sanitization on /static/search-safety.html.",
+    capabilities=capabilities,
+    workflow=(
+        "Receive raw search query inside the kernel.",
+        "Run deterministic regex PII redaction and record sha256-only audit metadata.",
+        "Optionally ask Gemma to rephrase the redacted query in a general form.",
+        "Return sanitized query for Search or Online layers; block future unredactable cases.",
+    ),
+    prompt_sets=(
+        "regex redaction catalog",
+        "optional Gemma rephrase prompt over already-redacted query",
+    ),
+    knowledge_flow=(
+        "Consumes PII pattern and prompt-template knowledge when configured; "
+        "emits sanitized queries and redaction audit records, not source evidence."
+    ),
+    model_fit=(
+        "Strict redaction works without Gemma. Optional rephrasing works with "
+        "small text models, but the sanitized query should still avoid private "
+        "details before any external backend call."
+    ),
+)
+
 __all__ = [
     "name", "applied_layers", "consumes", "emits", "capabilities",
-    "register_routes",
+    "register_routes", "spec",
 ]

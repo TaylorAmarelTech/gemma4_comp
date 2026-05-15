@@ -66,6 +66,18 @@
     .endpoint:last-child { border-bottom: 0; }
     .method { font-family: var(--mono); font-size: 10px; color: var(--ink-2); }
     code { background: var(--paper-2); border-radius: 4px; padding: 1px 5px; font-family: var(--mono); font-size: 11.5px; }
+    .flow-list { display: grid; gap: 7px; margin-top: 8px; }
+    .flow-item {
+      display: grid; grid-template-columns: 26px minmax(0, 1fr); gap: 8px;
+      align-items: start; padding: 8px 9px; border: 1px solid var(--line-soft);
+      border-radius: 7px; background: var(--paper-2); color: var(--ink-2);
+      font-size: 12px; line-height: 1.45;
+    }
+    .flow-num {
+      width: 22px; height: 22px; border-radius: 999px; display: inline-grid;
+      place-items: center; background: var(--paper); border: 1px solid var(--line);
+      color: var(--ink-3); font-family: var(--mono); font-size: 10px; font-weight: 700;
+    }
     .examples { display: grid; gap: 8px; margin-top: 10px; }
     .example {
       text-align: left; border: 1px solid var(--line); background: var(--paper-2);
@@ -132,6 +144,10 @@
         <div id="endpoint-list"></div>
         <h3 style="margin-top:16px;">Dedicated Pages</h3>
         <div class="catalog-row" id="page-list"></div>
+        <h3 style="margin-top:16px;">Workflow Path</h3>
+        <div class="flow-list" id="workflow-list"></div>
+        <h3 style="margin-top:16px;">Prompt Sets</h3>
+        <div class="flow-list" id="prompt-list"></div>
       </div>
     </section>
   </main>
@@ -221,12 +237,16 @@
         ["consumes", (h.consumes || []).join(", ") || "none declared"],
         ["emits", (h.emits || []).join(", ") || "none declared"],
         ["Gemma role", h.model_role || ""],
+        ["Model fit", h.model_fit || ""],
+        ["Knowledge flow", h.knowledge_flow || ""],
         ["comparison", h.comparison || ""],
         ["routes", h.register_routes ? "registered" : "not registered"],
       ];
       document.getElementById("contract-list").innerHTML = rows.map(([k, v]) => `
         <div class="contract-row"><div class="label">${esc(k)}</div><div>${esc(v)}</div></div>
       `).join("");
+      const workflow = h.workflow || [];
+      const promptSets = h.prompt_sets || [];
       document.getElementById("example-list").innerHTML = (h.examples || []).map(ex =>
         `<button class="example" type="button" onclick="navigator.clipboard && navigator.clipboard.writeText('${esc(ex).replace(/'/g, "\\'")}')">${esc(ex)}</button>`
       ).join("");
@@ -239,6 +259,16 @@
       document.getElementById("page-list").innerHTML = (h.test_pages || []).map(p =>
         `<a class="btn" href="${esc(p.href)}">${esc(p.label)}</a>`
       ).join("");
+      document.getElementById("workflow-list").innerHTML = workflow.length
+        ? workflow.map((item, idx) => `
+            <div class="flow-item"><span class="flow-num">${idx + 1}</span><span>${esc(item)}</span></div>
+          `).join("")
+        : `<div class="muted">No workflow path declared.</div>`;
+      document.getElementById("prompt-list").innerHTML = promptSets.length
+        ? promptSets.map((item, idx) => `
+            <div class="flow-item"><span class="flow-num">${idx + 1}</span><span>${esc(item)}</span></div>
+          `).join("")
+        : `<div class="muted">No prompt set declared for this utility.</div>`;
       renderGrids();
     }
     function selectHarness(name) {

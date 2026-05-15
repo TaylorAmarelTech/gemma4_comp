@@ -2197,43 +2197,49 @@ def create_app(
         """
         try:
             from duecare.chat.harnesses import all_harnesses
-            modules = {getattr(m, "name", ""): m for m in all_harnesses()}
+            from duecare.chat.harnesses.base import contract_from_module
+            modules = all_harnesses()
         except Exception:
-            modules = {}
+            modules = []
+            contract_from_module = None  # type: ignore[assignment]
 
         model_loaded = bool((app.state.model_info or {}).get("loaded"))
         out: list[dict[str, Any]] = []
-        for item in _HARNESS_SURFACE_CONTRACTS:
-            module = modules.get(item["name"])
-            contract = dict(item)
-            if module is not None:
-                contract["applied_layers"] = list(getattr(module, "applied_layers", item["applied_layers"]))
-                contract["consumes"] = list(getattr(module, "consumes", item["consumes"]))
-                contract["emits"] = list(getattr(module, "emits", item["emits"]))
-                contract["register_routes"] = callable(getattr(module, "register_routes", None))
-                capabilities = getattr(module, "capabilities", ())
-                if isinstance(capabilities, dict):
-                    contract["capabilities"] = capabilities
-                else:
-                    contract["capabilities"] = list(capabilities or ())
-            else:
+        fallbacks = {item["name"]: item for item in _HARNESS_SURFACE_CONTRACTS}
+        if modules and contract_from_module is not None:
+            for module in modules:
+                name = getattr(module, "name", "")
+                out.append(contract_from_module(
+                    module,
+                    fallback=fallbacks.get(name),
+                    model_loaded=model_loaded,
+                    gemma_available=app.state.gemma_call is not None,
+                ))
+        else:
+            for item in _HARNESS_SURFACE_CONTRACTS:
+                contract = dict(item)
                 contract["applied_layers"] = list(item["applied_layers"])
                 contract["consumes"] = list(item["consumes"])
                 contract["emits"] = list(item["emits"])
+                contract["test_pages"] = list(item["test_pages"])
+                contract["endpoints"] = list(item["endpoints"])
+                contract["examples"] = list(item["examples"])
+                contract["workflow"] = list(item.get("workflow", ()))
+                contract["prompt_sets"] = list(item.get("prompt_sets", ()))
+                contract["knowledge_flow"] = item.get("knowledge_flow", "")
+                contract["model_fit"] = item.get("model_fit", "")
                 contract["register_routes"] = False
                 contract["capabilities"] = []
-            contract["test_pages"] = list(item["test_pages"])
-            contract["endpoints"] = list(item["endpoints"])
-            contract["examples"] = list(item["examples"])
-            contract["model_loaded"] = model_loaded
-            contract["gemma_available"] = app.state.gemma_call is not None
-            out.append(contract)
+                contract["model_loaded"] = model_loaded
+                contract["gemma_available"] = app.state.gemma_call is not None
+                out.append(contract)
 
         return {
             "version": "2026-05-14",
             "contract_fields": [
                 "name", "tier", "kind", "applied_layers", "consumes",
-                "emits", "register_routes",
+                "emits", "workflow", "prompt_sets", "knowledge_flow",
+                "model_fit", "register_routes",
             ],
             "n_harnesses": len(out),
             "primary": [h for h in out if h.get("tier") == "primary"],
