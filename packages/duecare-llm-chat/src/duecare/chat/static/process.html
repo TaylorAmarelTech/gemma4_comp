@@ -42,6 +42,30 @@
     .wb-step .detail { font-size: 11px; color: #5B5F68; line-height: 1.4; }
     .wb-step.complete { border-color: oklch(0.72 0.08 155); background: oklch(0.97 0.02 155); }
     .wb-step.skipped { opacity: 0.72; }
+    .wb-workflow { display: grid; gap: 12px; margin: 18px 0 0; }
+    .wb-workflow-step { background: #FFF; border: 1px solid #DDD8C9; border-left: 4px solid #DDD8C9;
+                        border-radius: 12px; overflow: hidden; }
+    .wb-workflow-step[open] { border-left-color: oklch(0.52 0.08 195); box-shadow: 0 10px 24px rgba(14,17,22,0.06); }
+    .wb-workflow-step.complete { border-left-color: oklch(0.62 0.10 155); }
+    .wb-workflow-step > summary { cursor: pointer; list-style: none; display: grid;
+                                  grid-template-columns: auto minmax(0, 1fr) auto; gap: 12px;
+                                  align-items: center; padding: 15px 18px; }
+    .wb-workflow-step > summary::-webkit-details-marker { display: none; }
+    .wb-workflow-step:not([open]) > summary { border-bottom: 0; }
+    .wb-workflow-step[open] > summary { border-bottom: 1px solid #EFEDE4; }
+    .wb-step-index { width: 34px; height: 34px; border-radius: 999px; display: inline-grid;
+                     place-items: center; background: #EFEDE4; color: #2A2D34;
+                     font-family: var(--mono); font-size: 11px; font-weight: 700; }
+    .wb-workflow-step[open] .wb-step-index { background: oklch(0.52 0.08 195); color: #F7F6F1; }
+    .wb-workflow-step.complete .wb-step-index { background: oklch(0.62 0.10 155); color: #F7F6F1; }
+    .wb-step-title { font-size: 15.5px; font-weight: 700; color: #0E1116; }
+    .wb-step-summary { color: #5B5F68; font-size: 11.5px; line-height: 1.4; margin-top: 2px; }
+    .wb-step-state { color: #5B5F68; font-size: 10.5px; font-family: var(--mono);
+                     text-transform: uppercase; letter-spacing: 0.06em; }
+    .wb-step-body { padding: 16px 18px 18px; }
+    .wb-dropzone { border: 2px dashed #DDD8C9; border-radius: 10px; padding: 36px 18px;
+                   text-align: center; background: #FFF; color: #5B5F68; font-size: 13px; cursor: pointer; }
+    .wb-dropzone:hover { border-color: oklch(0.52 0.08 195); background: #FAF9F4; }
     .wb-intel-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 10px; }
     .wb-metric { background: #FAF9F4; border: 1px solid #EFEDE4; border-radius: 8px; padding: 12px; }
     .wb-metric .value { font-size: 24px; font-weight: 700; color: #0E1116; }
@@ -98,86 +122,101 @@
       Gemma 4 questions about it.
     </p>
 
-    <div class="wb-card" style="border-left: 4px solid oklch(0.52 0.08 195);">
-      <h2 style="margin-top:0;">Process harness path</h2>
-      <div class="wb-pipeline wb-guide" id="wb-static-pipeline">
-        <details class="wb-step" open><summary><div class="num">Step 1</div><div class="name">Upload</div></summary><div class="detail">Use the sample bundle or drop a ZIP, CSV, JSONL, TXT, MD, PDF, or image bundle. Folder names are preserved as graph edges.</div></details>
-        <details class="wb-step"><summary><div class="num">Step 2</div><div class="name">Parse</div></summary><div class="detail">Files become text chunks, extractable PDF pages, or media work items queued for OCR and Gemma 4 vision review.</div></details>
-        <details class="wb-step"><summary><div class="num">Step 3</div><div class="name">GREP</div></summary><div class="detail">Trafficking and labor-risk rules fire with citations before any model pass.</div></details>
-        <details class="wb-step"><summary><div class="num">Step 4</div><div class="name">Attributes</div></summary><div class="detail">People, payments, dates, locations, statutes, folders, document types, and journey stages are linked into evidence edges.</div></details>
-        <details class="wb-step"><summary><div class="num">Step 5</div><div class="name">Gemma passes</div></summary><div class="detail">Gemma 4 drafts a case brief when available. If the model errors, the deterministic analyst stays visible instead of breaking the page.</div></details>
-        <details class="wb-step"><summary><div class="num">Step 6</div><div class="name">Graph chat</div></summary><div class="detail">Ask questions about the local graph. The answer should cite rows, folder-derived edges, and unresolved media work.</div></details>
-      </div>
-      <p class="wb-muted" style="font-size:11.5px; margin-top:10px;">
-        Typical use: an NGO uploads a folder of recruitment chats and scans.
-        The graph surfaces fee outliers, corridor patterns, and document-retention
-        signals. The chat answers <i>"Which messages mention placement fees over
-        the legal cap?"</i> with direct row pointers.
-      </p>
-    </div>
-
-    <div class="wb-card" style="border-left: 4px solid oklch(0.55 0.10 155);">
-      <h2 style="margin-top:0;">First time here? Try the sample bundle</h2>
-      <p class="wb-muted" style="font-size:12px; margin:4px 0 10px;">
-        A judge-safe PH to HK case bundle with 30 synthetic individuals and
-        250+ evidence files: client-style folders, ID records, complaints,
-        police reports, travel/location/payment history, recruiter chats,
-        screenshots, document photos, and scan-like PDFs queued for OCR and
-        Gemma 4 vision review. Click "Use sample" to fill the file picker.
-      </p>
-      <div class="wb-row">
-        <a class="wb-btn-secondary" href="/static/samples/case_files_sample.zip"
-           download="case_files_sample.zip"
-           title="Download the synthetic case bundle (ZIP)">
-          Download sample bundle (case_files_sample.zip)
-        </a>
-        <button class="wb-btn-secondary" type="button" onclick="wbUseSample()"
-           title="Fetch the sample ZIP into the file picker so you can press Start processing">
-          Use sample (auto-fill picker)
-        </button>
-        <span class="wb-muted" id="wb-sample-status"></span>
-      </div>
-    </div>
-
-    <div class="wb-card">
-      <h2>Drop a bundle</h2>
-      <p>Accepted: <span class="wb-pill">.zip</span> <span class="wb-pill">.csv</span>
-      <span class="wb-pill">.jsonl</span> <span class="wb-pill">.txt</span>
-      <span class="wb-pill">.pdf</span> <span class="wb-pill">images</span></p>
-      <div id="wb-dropzone" onclick="document.getElementById('wb-file-input').click()"
-           style="border: 2px dashed #DDD8C9; border-radius: 10px; padding: 36px 18px;
-                  text-align: center; background: #FFF; color: #5B5F68; font-size: 13px; cursor: pointer;">
-        <div style="font-size: 24px; margin-bottom: 6px;">+</div>
-        <div>Drop a bundle or <span style="color: oklch(0.32 0.07 195); text-decoration: underline;">browse</span></div>
-        <div class="wb-muted" style="margin-top: 6px;">Up to 300 rows / request (excess flagged).</div>
-      </div>
-      <input type="file" id="wb-file-input" style="display: none;"
-             accept=".zip,.csv,.jsonl,.txt,.md,.log,.pdf,.png,.jpg,.jpeg,.webp,.tif,.tiff,.bmp" onchange="wbHandle(event)">
-      <div id="wb-file-info" class="wb-row"></div>
-      <div class="wb-row">
-        <button class="wb-btn-primary" id="wb-process-btn" disabled onclick="wbProcess()">Start processing</button>
-        <span class="wb-muted" id="wb-process-hint">Drop a file first.</span>
-      </div>
-      <div id="wb-error" class="wb-error" style="display: none; margin-top: 10px;" role="alert"></div>
-    </div>
+    <div class="wb-workflow" aria-label="Bulk file review workflow">
+      <details class="wb-workflow-step" id="wb-step-upload" open>
+        <summary>
+          <span class="wb-step-index">1</span>
+          <span>
+            <span class="wb-step-title">Drop a bundle or use the sample</span>
+            <span class="wb-step-summary">Upload ZIP, CSV, JSONL, PDF, image, or text evidence. Folder names are preserved as graph edges.</span>
+          </span>
+          <span class="wb-step-state" id="wb-step-upload-state">Ready</span>
+        </summary>
+        <div class="wb-step-body">
+          <div class="wb-grid-2">
+            <div>
+              <h2>Sample case bundle</h2>
+              <p class="wb-muted" style="font-size:12px; margin:4px 0 10px;">
+                Judge-safe PH to HK case material with 30 synthetic individuals,
+                client-style folders, ID records, complaints, police reports,
+                travel, location, payment history, recruiter chats, screenshots,
+                document photos, and scan-like PDFs queued for OCR and Gemma 4 vision review.
+              </p>
+              <div class="wb-row">
+                <a class="wb-btn-secondary" href="/static/samples/case_files_sample.zip"
+                   download="case_files_sample.zip"
+                   title="Download the synthetic case bundle ZIP">
+                  Download sample bundle
+                </a>
+                <button class="wb-btn-secondary" type="button" onclick="wbUseSample()"
+                   title="Fetch the sample ZIP into the file picker so you can press Start processing">
+                  Use sample
+                </button>
+                <span class="wb-muted" id="wb-sample-status"></span>
+              </div>
+            </div>
+            <div>
+              <h2>Upload evidence bundle</h2>
+              <p>Accepted: <span class="wb-pill">.zip</span> <span class="wb-pill">.csv</span>
+              <span class="wb-pill">.jsonl</span> <span class="wb-pill">.txt</span>
+              <span class="wb-pill">.pdf</span> <span class="wb-pill">images</span></p>
+              <div id="wb-dropzone" class="wb-dropzone" onclick="document.getElementById('wb-file-input').click()">
+                <div style="font-size: 24px; margin-bottom: 6px;">+</div>
+                <div>Drop a bundle or <span style="color: oklch(0.32 0.07 195); text-decoration: underline;">browse</span></div>
+                <div class="wb-muted" style="margin-top: 6px;">Up to 300 rows / request. Excess rows are flagged.</div>
+              </div>
+              <input type="file" id="wb-file-input" style="display: none;"
+                     accept=".zip,.csv,.jsonl,.txt,.md,.log,.pdf,.png,.jpg,.jpeg,.webp,.tif,.tiff,.bmp" onchange="wbHandle(event)">
+              <div id="wb-file-info" class="wb-row"></div>
+              <div class="wb-row">
+                <button class="wb-btn-primary" id="wb-process-btn" disabled onclick="wbProcess()">Start processing</button>
+                <span class="wb-muted" id="wb-process-hint">Drop a file first.</span>
+              </div>
+              <div id="wb-error" class="wb-error" style="display: none; margin-top: 10px;" role="alert"></div>
+            </div>
+          </div>
+        </div>
+      </details>
 
     
 
-    <div id="wb-results" style="display: none;">
-      <div class="wb-card">
-        <h2>Harness trace</h2>
-        <div class="wb-pipeline" id="wb-trace"></div>
-      </div>
-      <div class="wb-card">
-        <h2>Advanced processing plan</h2>
-        <p class="wb-muted" style="margin-top:0;">
-          Bulk review now separates implemented deterministic passes from queued
-          OCR and multimodal extraction work. Images, scans, and PDFs are not
-          treated as plain text; they become media work items for OCR plus
-          Gemma 4 vision extraction.
-        </p>
-        <div id="wb-processing-plan"></div>
-      </div>
+      <div id="wb-results">
+        <details class="wb-workflow-step" id="wb-step-process">
+          <summary>
+            <span class="wb-step-index">2</span>
+            <span>
+              <span class="wb-step-title">Process bundle and review trace</span>
+              <span class="wb-step-summary">See parser counts, GREP hits, OCR queue status, Gemma 4 case-brief status, and any errors.</span>
+            </span>
+            <span class="wb-step-state" id="wb-step-process-state">Waiting</span>
+          </summary>
+          <div class="wb-step-body">
+            <div class="wb-card">
+              <h2>Harness trace</h2>
+              <div class="wb-pipeline" id="wb-trace"></div>
+            </div>
+            <div class="wb-card">
+              <h2>Advanced processing plan</h2>
+              <p class="wb-muted" style="margin-top:0;">
+                Bulk review separates implemented deterministic passes from queued
+                OCR and multimodal extraction work. Images, scans, and PDFs become
+                media work items for OCR plus Gemma 4 vision extraction.
+              </p>
+              <div id="wb-processing-plan"></div>
+            </div>
+          </div>
+        </details>
+
+        <details class="wb-workflow-step" id="wb-step-intelligence">
+          <summary>
+            <span class="wb-step-index">3</span>
+            <span>
+              <span class="wb-step-title">Inspect extracted intelligence</span>
+              <span class="wb-step-summary">Review people, folders, documents, journey stages, payments, locations, graph edges, and row-level evidence.</span>
+            </span>
+            <span class="wb-step-state" id="wb-step-intelligence-state">Waiting</span>
+          </summary>
+          <div class="wb-step-body">
       <div class="wb-card">
         <h2>Extracted intelligence</h2>
         <div class="wb-intel-grid" id="wb-intel-metrics"></div>
@@ -240,29 +279,25 @@
           </table>
         </div>
       </div>
-      <div class="wb-card">
-        <h2>Next steps</h2>
-        <div class="wb-row">
-          <a class="wb-btn-secondary" href="/static/knowledge.html">Promote to Knowledge Creation</a>
-          <a class="wb-btn-secondary" href="/static/share.html">Anonymize and Share</a>
-          <button class="wb-btn-secondary" onclick="wbDownloadBundle()">Download v1.0 bundle (JSON)</button>
-        </div>
+          </div>
+        </details>
       </div>
-    </div>
   
-    <div class="wb-card" id="wb-graph-chat" style="margin-top: 22px; border-left: 4px solid oklch(0.55 0.10 155);">
-      <h2 style="margin-top:0;">Chat against the uploaded graph</h2>
+      <details class="wb-workflow-step" id="wb-graph-chat">
+        <summary>
+          <span class="wb-step-index">4</span>
+          <span>
+            <span class="wb-step-title">Ask questions against the local graph</span>
+            <span class="wb-step-summary">Use example questions or write your own. The activity log records the graph-chat API call and response summary.</span>
+          </span>
+          <span class="wb-step-state" id="wb-step-chat-state">Waiting</span>
+        </summary>
+        <div class="wb-step-body">
       <p class="wb-muted" style="font-size:12px; margin-top:0;">
-        After processing a bundle, the extracted entities + GREP hits stay
+        After processing a bundle, the extracted entities and GREP hits stay
         cached in the kernel. Ask Gemma 4 questions about the bundle and
         the harness includes the local graph as grounding context.
       </p>
-      <div class="wb-pipeline wb-guide" id="pg-pipeline" style="margin: 10px 0;">
-        <details class="wb-step" open><summary><div class="num">Prompt</div><div class="name">User question</div></summary><div class="detail">The graph-chat question is captured as model input.</div></details>
-        <details class="wb-step"><summary><div class="num">Context</div><div class="name">Local graph</div></summary><div class="detail">Bundle summary, people, payments, dates, folder edges, media queue, and row IDs are added.</div></details>
-        <details class="wb-step"><summary><div class="num">Layers</div><div class="name">GREP, RAG, tools</div></summary><div class="detail">The question gets legal and safety grounding before the final analyst response.</div></details>
-        <details class="wb-step"><summary><div class="num">Answer</div><div class="name">Gemma 4 or deterministic analyst</div></summary><div class="detail">The answer uses only the uploaded bundle and cites row IDs whenever the evidence exists.</div></details>
-      </div>
       <div class="wb-row" style="gap:6px;">
         <button class="wb-btn-secondary" type="button" onclick="pgUseQuestion('Which people have the strongest evidence of placement fees above the legal cap? Cite row IDs.')">Fee risk</button>
         <button class="wb-btn-secondary" type="button" onclick="pgUseQuestion('Which rows show passport retention or identity document control?')">Document control</button>
@@ -288,18 +323,18 @@
         Gemma reads it locally; no remote call. Anonymize and submit via
         <a href="/static/share.html">Anonymization &amp; Sharing</a>.
       </p>
-    </div>
+        </div>
+      </details>
 
     <script>
       function pgUseQuestion(q){
         document.getElementById("pg-question").value = q;
+        wbSetWorkflow(3);
       }
       function pgSetPipeline(active){
-        const steps = Array.from(document.querySelectorAll('#pg-pipeline .wb-step'));
-        steps.forEach((el, idx) => {
-          el.classList.toggle('complete', idx <= active);
-          if ('open' in el) el.open = idx === Math.min(active, steps.length - 1);
-        });
+        wbSetWorkflow(3);
+        const state = document.getElementById('wb-step-chat-state');
+        if (state) state.textContent = active >= 3 ? 'Answered' : 'Active';
       }
       async function pgAsk(){
         const q=(document.getElementById("pg-question").value||"").trim();
@@ -350,23 +385,52 @@
         }finally{ btn.disabled=false; btn.textContent=origTxt; }
       }
     </script>
-  <div class="wb-card">
-      <h2>Activity log <span class="wb-muted" style="font-weight: normal;">every API call and response is transparent</span></h2>
-      <div id="wb-log" class="dc-activity-log" role="log" aria-label="Activity log" aria-live="polite">
-        <div class="wb-muted">No activity yet. Click <i>Start processing</i> to begin.</div>
-      </div>
+      <details class="wb-workflow-step" id="wb-step-export">
+        <summary>
+          <span class="wb-step-index">5</span>
+          <span>
+            <span class="wb-step-title">Export, promote, or share</span>
+            <span class="wb-step-summary">Download the processed bundle, promote findings to knowledge extraction, anonymize for sharing, and inspect API activity.</span>
+          </span>
+          <span class="wb-step-state" id="wb-step-export-state">Waiting</span>
+        </summary>
+        <div class="wb-step-body">
+          <div class="wb-row">
+            <a class="wb-btn-secondary" href="/static/knowledge.html">Promote to Knowledge Extraction</a>
+            <a class="wb-btn-secondary" href="/static/share.html">Anonymize and Share</a>
+            <button class="wb-btn-secondary" onclick="wbDownloadBundle()">Download v1.0 bundle (JSON)</button>
+          </div>
+          <div style="margin-top:14px;">
+            <h2>Activity log <span class="wb-muted" style="font-weight: normal;">every API call and response is transparent</span></h2>
+            <div id="wb-log" class="dc-activity-log" role="log" aria-label="Activity log" aria-live="polite">
+              <div class="wb-muted">No activity yet. Click <i>Start processing</i> to begin.</div>
+            </div>
+          </div>
+        </div>
+      </details>
     </div>
 
   </main>
 
   <script>
     let wbFile = null, wbBundle = null;
-    function wbSetGuide(active) {
-      const steps = Array.from(document.querySelectorAll('#wb-static-pipeline .wb-step'));
-      steps.forEach((el, idx) => {
-        el.classList.toggle('complete', idx <= active);
-        if ('open' in el) el.open = idx === Math.min(active, steps.length - 1);
+    function wbSetWorkflow(active) {
+      const ids = ['wb-step-upload', 'wb-step-process', 'wb-step-intelligence',
+                   'wb-graph-chat', 'wb-step-export'];
+      ids.forEach((id, idx) => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.classList.toggle('complete', idx < active);
+        if ('open' in el) el.open = idx === active;
+        const stateId = id === 'wb-graph-chat'
+          ? 'wb-step-chat-state'
+          : id + '-state';
+        const state = document.getElementById(stateId);
+        if (state) state.textContent = idx < active ? 'Done' : (idx === active ? 'Active' : 'Waiting');
       });
+    }
+    function wbSetGuide(active) {
+      wbSetWorkflow(Math.max(0, Math.min(4, active)));
     }
     // Fetch the bundled sample ZIP, convert to a File object, and feed
     // it into wbHandle as if the user had dropped it. The sample is
@@ -381,10 +445,10 @@
         const file = new File([blob], 'case_files_sample.zip',
                               {type: 'application/zip'});
         wbHandle({target: {files: [file]}});
-        wbSetGuide(0);
+        wbSetWorkflow(0);
         statusEl.textContent = 'Sample loaded. Click Start processing.';
         wbLog('ok', 'Sample bundle attached',
-              'case_files_sample.zip · ' + blob.size + ' bytes');
+              'case_files_sample.zip | ' + blob.size + ' bytes');
       } catch (e) {
         statusEl.textContent = 'Failed: ' + e;
       }
@@ -422,7 +486,7 @@
       document.getElementById('wb-process-hint').textContent = 'Click Start processing.';
       document.getElementById('wb-error').style.display = 'none';
       wbLog('info', 'File attached: ' + f.name + ' (' + f.size + ' bytes)');
-      wbSetGuide(0);
+      wbSetWorkflow(0);
     }
     async function wbProcess() {
       if (!wbFile) return;
@@ -430,7 +494,7 @@
       btn.disabled = true; btn.textContent = 'Processing...';
       document.getElementById('wb-error').style.display = 'none';
       wbLog('info', 'POST /api/process/batch', 'multipart upload, file=' + wbFile.name);
-      wbSetGuide(1);
+      wbSetWorkflow(1);
       const fd = new FormData(); fd.append('file', wbFile);
       const t0 = performance.now();
       try {
@@ -443,12 +507,12 @@
         }
         wbBundle = await r.json();
         wbLog('ok', 'HTTP ' + r.status + ' (' + dt + 'ms)',
-              'run_id=' + wbBundle.run_id + ' · rows_processed=' + wbBundle.summary.n_rows_processed +
-              ' · grep_rules_fired=' + wbBundle.summary.n_grep_rules_fired +
-              ' · entities=' + wbBundle.summary.n_entities_extracted);
+              'run_id=' + wbBundle.run_id + ' | rows_processed=' + wbBundle.summary.n_rows_processed +
+              ' | grep_rules_fired=' + wbBundle.summary.n_grep_rules_fired +
+              ' | entities=' + wbBundle.summary.n_entities_extracted);
         wbRender(wbBundle);
         document.getElementById('wb-results').style.display = '';
-        wbSetGuide(5);
+        wbSetWorkflow(2);
       } catch (e) {
         const err = document.getElementById('wb-error');
         err.textContent = 'Process failed: ' + (e && e.message || e); err.style.display = '';
@@ -784,6 +848,7 @@
     }
     function wbDownloadBundle() {
       if (!wbBundle) return;
+      wbSetWorkflow(4);
       const blob = new Blob([JSON.stringify(wbBundle, null, 2)], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a'); a.href = url; a.download = wbBundle.run_id + '_bundle.json'; a.click();
