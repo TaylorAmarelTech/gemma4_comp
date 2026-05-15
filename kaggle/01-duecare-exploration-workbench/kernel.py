@@ -1487,11 +1487,41 @@ def load_gemma() -> Optional[LoadedModel]:
     _log_load(f"chat template skipped: {type(e).__name__}: {e}",
           phase="chat-template", level="warn")
 
+  def _infer_input_device() -> str:
+    if eff_dmap == "balanced":
+      return "cuda:0"
+    try:
+      dev = getattr(model, "device", None)
+      if dev is not None and str(dev) not in {"meta", "None"}:
+        return str(dev)
+    except Exception:
+      pass
+    try:
+      dev = next(model.parameters()).device
+      if dev is not None and str(dev) not in {"meta", "None"}:
+        return str(dev)
+    except Exception:
+      pass
+    try:
+      if torch.cuda.is_available():
+        alloc = [
+          (torch.cuda.memory_allocated(idx), idx)
+          for idx in range(torch.cuda.device_count())
+        ]
+        if alloc:
+          return f"cuda:{max(alloc)[1]}"
+    except Exception:
+      pass
+    return "cuda:0" if torch.cuda.is_available() else "cpu"
+
+  input_device = _infer_input_device()
+  _log_load(f"model input device resolved: {input_device}", phase="ready")
+
   def _gemma_call(messages, max_new_tokens=512, temperature=1.0,
           top_p=0.95, top_k=64):
     inputs = tokenizer.apply_chat_template(
       messages, add_generation_prompt=True, tokenize=True,
-      return_dict=True, return_tensors="pt").to("cuda")
+      return_dict=True, return_tensors="pt").to(input_device)
     out = model.generate(
       **inputs, max_new_tokens=max_new_tokens,
       use_cache=True,
@@ -1511,7 +1541,7 @@ def load_gemma() -> Optional[LoadedModel]:
     size_b=_model_size_b(variant),
     quantization="4-bit nf4" if GEMMA_LOAD_IN_4BIT else "bf16",
     device=(f"balanced ({gpu['count']}x {gpu['name']})"
-        if eff_dmap == "balanced" else "cuda:0"))
+        if eff_dmap == "balanced" else input_device))
 
 
 # ===========================================================================

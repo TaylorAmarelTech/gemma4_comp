@@ -142,6 +142,7 @@ def test_model_selector_lives_in_shared_nav(client):
     assert 'id="cmp-model-select"' not in compare
     assert 'id="dc-wb-model-open"' in nav
     assert 'id="dc-wb-model-select"' in nav
+    assert 'id="dc-wb-model-detail"' in nav
     assert 'id="dc-wb-model-overlay"' in nav
     assert 'data-nav-group="overview"' in nav
     assert 'data-nav-group="system"' in nav
@@ -151,7 +152,12 @@ def test_model_selector_lives_in_shared_nav(client):
     assert "modelRequiredNavKeys" in nav_js
     assert "'compare'" in nav_js
     assert "pageRequiresModelOnLoad()" in nav_js
-    assert "dc-wb-model-required" in client.get("/static/_chrome.css").text
+    assert "renderSelectedModelDetail" in nav_js
+    assert "This panel closes automatically" in nav
+    chrome = client.get("/static/_chrome.css").text
+    assert "dc-wb-model-required" in chrome
+    assert "top: 72px" in chrome
+    assert "bottom: 24px" in chrome
     assert "wireNavToggle" in nav_js
 
 

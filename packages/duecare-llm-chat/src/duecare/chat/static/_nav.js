@@ -61,6 +61,8 @@
     let modelPollTimer = null;
     let modelLastStatus = {loaded: false};
     let modelSelectorRequired = false;
+    let modelVariantMap = MODEL_FALLBACK_VARIANTS;
+    let modelActiveVariant = '';
     const modelRequiredNavKeys = new Set([
         'chat',
         'compare',
@@ -73,12 +75,45 @@
         return document.getElementById('dc-wb-model-select');
     }
 
+    function escText(s) {
+        return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+            return {'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[c];
+        });
+    }
+
+    function renderSelectedModelDetail() {
+        const host = document.getElementById('dc-wb-model-detail');
+        const sel = modelSelectEl();
+        if (!host || !sel) return;
+        const key = sel.value || modelActiveVariant || '';
+        const info = modelVariantMap[key] || {};
+        if (!key) {
+            host.textContent = 'Select a model to see size, runtime class, and estimated load time.';
+            return;
+        }
+        const active = modelLastStatus.loaded
+            && (key === modelActiveVariant
+                || key === modelLastStatus.variant
+                || key === modelLastStatus.name);
+        const bits = [];
+        if (info.category) bits.push('class: ' + info.category);
+        if (info.size_gb != null) bits.push('runtime size: ' + info.size_gb);
+        if (info.load_eta) bits.push('load: ' + info.load_eta);
+        host.innerHTML =
+            '<b>' + escText(info.display || key) + '</b>' +
+            (active ? ' <span class="dc-wb-status-dot dc-wb-status-dot-loaded" aria-hidden="true" style="display:inline-block; vertical-align:-1px; margin:0 4px;"></span><b>loaded</b>' : '') +
+            '<br>' + escText(bits.join(' | ') || 'Loader metadata is not available for this model.') +
+            '<br><span class="dc-wb-model-popover-sub">Loaded models are shared across all workbench pages.</span>';
+    }
+
     function renderModelOptions(variants, activeVariant) {
         const sel = modelSelectEl();
         if (!sel) return;
         const prior = sel.value;
         const map = (variants && Object.keys(variants).length)
             ? variants : MODEL_FALLBACK_VARIANTS;
+        modelVariantMap = map;
+        modelActiveVariant = activeVariant || '';
         sel.innerHTML = '';
         Object.keys(map).forEach(function (key) {
             const info = map[key] || {};
@@ -92,6 +127,7 @@
         if (activeVariant && keys.indexOf(activeVariant) >= 0) sel.value = activeVariant;
         else if (prior && keys.indexOf(prior) >= 0) sel.value = prior;
         else if (keys.indexOf('e4b-it') >= 0) sel.value = 'e4b-it';
+        renderSelectedModelDetail();
     }
 
     function renderModelLogs(logs) {
@@ -303,6 +339,8 @@
         if (closeBtn) closeBtn.addEventListener('click', closeModelPopover);
         if (loadBtn) loadBtn.addEventListener('click', loadSelectedModel);
         if (refreshBtn) refreshBtn.addEventListener('click', refreshModelLoaderStatus);
+        const sel = modelSelectEl();
+        if (sel) sel.addEventListener('change', renderSelectedModelDetail);
         document.addEventListener('click', function (event) {
             const pop = document.getElementById('dc-wb-model-popover');
             const btn = document.getElementById('dc-wb-model-open');

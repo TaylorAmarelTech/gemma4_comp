@@ -529,14 +529,16 @@ code, .mono {
 .dc-wb-model-popover[hidden] { display: none; }
 .dc-wb-model-required .dc-wb-model-popover {
   position: fixed;
-  top: 50%;
+  top: 72px;
+  bottom: 24px;
   left: 50%;
   width: min(680px, calc(100vw - 32px));
-  max-height: calc(100vh - 40px);
+  max-height: none;
   overflow: auto;
-  transform: translate(-50%, -50%);
+  transform: translateX(-50%);
   z-index: 90;
   box-shadow: 0 24px 80px rgba(14, 17, 22, 0.34);
+  padding: 18px;
 }
 .dc-wb-model-required .dc-wb-model-popover-title::after {
   content: " required";
@@ -569,6 +571,20 @@ code, .mono {
 .dc-wb-model-popover-note {
   margin-top: 8px;
   line-height: 1.45;
+}
+.dc-wb-model-detail {
+  margin-top: 9px;
+  padding: 9px 10px;
+  border: 1px solid var(--line-soft);
+  border-radius: 8px;
+  background: #FAF9F4;
+  color: var(--ink-2);
+  font-size: 11.5px;
+  line-height: 1.45;
+}
+.dc-wb-model-detail b {
+  color: var(--ink);
+  font-weight: 700;
 }
 .dc-wb-model-popover-controls {
   display: grid;
@@ -782,6 +798,14 @@ code, .mono {
     left: 12px;
     top: 40px;
     width: calc(100vw - 24px);
+  }
+  .dc-wb-model-required .dc-wb-model-popover {
+    top: 64px;
+    bottom: 16px;
+    left: 12px;
+    width: calc(100vw - 24px);
+    transform: none;
+    padding: 14px;
   }
   .dc-wb-model-popover-controls {
     grid-template-columns: 1fr;
