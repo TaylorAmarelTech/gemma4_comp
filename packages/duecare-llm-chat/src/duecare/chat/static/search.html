@@ -45,16 +45,28 @@
     .wb-draft-card pre { background: #F7F6F1; padding: 8px 10px; border-radius: 6px;
                           font-size: 11px; max-height: 200px; overflow-y: auto;
                           white-space: pre-wrap; margin: 6px 0 0; }
-    .search-pipeline { display: grid; gap: 8px; margin: 10px 0; }
-    .search-step { border: 1px solid #DDD8C9; border-radius: 8px; padding: 0 11px; background: #FAF9F4; }
-    .search-step summary { cursor: pointer; list-style: none; padding: 10px 0; }
-    .search-step summary::-webkit-details-marker { display: none; }
-    .search-step summary::before { content: "+ "; color: oklch(0.32 0.07 195); }
-    .search-step[open] summary::before { content: "- "; }
-    .search-step .num { font-family: 'JetBrains Mono', monospace; color: #5B5F68; font-size: 10px; text-transform: uppercase; letter-spacing: 0.07em; }
-    .search-step .name { font-weight: 700; font-size: 12.5px; margin: 5px 0 3px; }
-    .search-step .detail { color: #5B5F68; font-size: 11px; line-height: 1.4; padding: 0 0 10px 18px; }
-    .search-step.complete { border-color: oklch(0.72 0.08 155); background: oklch(0.97 0.02 155); }
+    .search-workflow { display: grid; gap: 12px; margin: 16px 0 0; }
+    .search-workflow-step { background: #FFF; border: 1px solid #DDD8C9; border-left: 4px solid #DDD8C9;
+                            border-radius: 12px; overflow: hidden; }
+    .search-workflow-step[open] { border-left-color: oklch(0.52 0.08 195); box-shadow: 0 10px 24px rgba(14,17,22,0.06); }
+    .search-workflow-step.complete { border-left-color: oklch(0.62 0.10 155); }
+    .search-workflow-step > summary { cursor: pointer; list-style: none; display: grid;
+                                      grid-template-columns: auto minmax(0, 1fr) auto; gap: 12px;
+                                      align-items: center; padding: 15px 18px; }
+    .search-workflow-step > summary::-webkit-details-marker { display: none; }
+    .search-workflow-step[open] > summary { border-bottom: 1px solid #EFEDE4; }
+    .search-step-index { width: 34px; height: 34px; border-radius: 999px; display: inline-grid;
+                         place-items: center; background: #EFEDE4; color: #2A2D34;
+                         font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 700; }
+    .search-workflow-step[open] .search-step-index { background: oklch(0.52 0.08 195); color: #F7F6F1; }
+    .search-workflow-step.complete .search-step-index { background: oklch(0.62 0.10 155); color: #F7F6F1; }
+    .search-step-title { font-size: 15.5px; font-weight: 700; color: #0E1116; }
+    .search-step-summary { color: #5B5F68; font-size: 11.5px; line-height: 1.4; margin-top: 2px; }
+    .search-step-state { color: #5B5F68; font-size: 10.5px; font-family: 'JetBrains Mono', monospace;
+                         text-transform: uppercase; letter-spacing: 0.06em; }
+    .search-step-body { padding: 16px 18px 18px; }
+    .search-empty { border: 1px dashed #DDD8C9; border-radius: 8px; background: #FAF9F4;
+                    padding: 16px; color: #5B5F68; font-size: 12px; }
     .search-example { text-align:left; background:#FAF9F4; border:1px solid #DDD8C9; border-radius:8px; padding:8px 10px; cursor:pointer; font-size:12px; color:#2A2D34; }
     .search-example:hover { border-color: oklch(0.52 0.08 195); color:#0E1116; }
     code { background: #F1EFE7; padding: 1px 5px; border-radius: 3px;
@@ -76,87 +88,76 @@
       for hub upload.
     </p>
 
-    <div class="wb-card" style="border-left: 4px solid oklch(0.52 0.08 195);">
-      <h2>Search harness actions</h2>
-      <div class="search-pipeline" id="search-pipeline">
-        <details class="search-step" open>
-          <summary><div class="num">Step 1</div><div class="name">Query</div></summary>
-          <div class="detail">Enter a public-source research query. Avoid names, phone numbers, addresses, or case details unless you intentionally test sanitization.</div>
-        </details>
-        <details class="search-step">
-          <summary><div class="num">Step 2</div><div class="name">Search Safety</div></summary>
-          <div class="detail">The safety gate redacts PII and can ask Gemma 4 to generalize the query before any external search backend sees it.</div>
-        </details>
-        <details class="search-step">
-          <summary><div class="num">Step 3</div><div class="name">Backend</div></summary>
-          <div class="detail">SearXNG or the kernel search hook returns public-source results. Backend anonymization can run as a second guard.</div>
-        </details>
-        <details class="search-step">
-          <summary><div class="num">Step 4</div><div class="name">Review results</div></summary>
-          <div class="detail">Inspect each source card, download the result set, or draft knowledge from one useful result without leaving this page.</div>
-        </details>
-        <details class="search-step">
-          <summary><div class="num">Step 5</div><div class="name">Draft knowledge</div></summary>
-          <div class="detail">The extraction harness infers useful knowledge object types, drafts envelopes, and lets you promote reviewed drafts locally.</div>
-        </details>
-      </div>
-      <div class="wb-row" style="gap:8px;">
-        <button class="search-example" type="button" onclick="searchUseExample('ILO C181 Article 7 recruitment fee prohibition migrant workers')">ILO fee prohibition</button>
-        <button class="search-example" type="button" onclick="searchUseExample('Hong Kong foreign domestic helper passport retention employer')">Passport retention</button>
-        <button class="search-example" type="button" onclick="searchUseExample('Philippines Hong Kong domestic worker placement fee cap POEA')">PH to HK fee cap</button>
-      </div>
-    </div>
+    <div class="search-workflow" aria-label="Search workflow">
+      <details class="search-workflow-step" id="search-step-query" open>
+        <summary>
+          <span class="search-step-index">1</span>
+          <span>
+            <span class="search-step-title">Enter a public-source query</span>
+            <span class="search-step-summary">Sanitize first, choose the backend if needed, then search. Examples stay in the same working panel.</span>
+          </span>
+          <span class="search-step-state" id="search-step-query-state">Ready</span>
+        </summary>
+        <div class="search-step-body">
+          <div class="wb-row" style="gap:8px; margin-bottom:10px;">
+            <button class="search-example" type="button" onclick="searchUseExample('ILO C181 Article 7 recruitment fee prohibition migrant workers')">ILO fee prohibition</button>
+            <button class="search-example" type="button" onclick="searchUseExample('Hong Kong foreign domestic helper passport retention employer')">Passport retention</button>
+            <button class="search-example" type="button" onclick="searchUseExample('Philippines Hong Kong domestic worker placement fee cap POEA')">PH to HK fee cap</button>
+          </div>
+          <div class="wb-row" style="gap: 8px; align-items: stretch;">
+            <input type="text" id="q" placeholder="Search query"
+                   style="flex:1; min-width:280px;"
+                   value="ILO C181 fee prohibition migrant worker">
+            <select id="backend" title="Backend selection (auto picks first available)">
+              <option value="">auto (best available)</option>
+              <option value="searxng">SearXNG</option>
+              <option value="legacy">Kernel search hook</option>
+            </select>
+            <input type="number" id="top_n" value="5" min="1" max="20"
+                   style="width:60px;" title="top_n">
+            <button class="wb-btn-primary" id="go-btn" onclick="runSearch()">Search</button>
+          </div>
+          <div class="wb-row" style="margin-top: 10px; gap: 16px; font-size: 12.5px;">
+            <label title="Sanitize the query via /api/search/sanitize BEFORE dispatching to any external backend. Strips PII (emails, phones, passport numbers, monetary amounts, URLs). Strongly recommended.">
+              <input type="checkbox" id="sanitize" checked> <b>Sanitize query before sending</b> (recommended)
+            </label>
+            <label title="If a Gemma model is loaded AND sanitize is on, ask Gemma to rephrase the redacted query into a more general form. Slower but stronger generalization.">
+              <input type="checkbox" id="rephrase"> Also ask Gemma to rephrase
+            </label>
+            <label title="Pass `anonymize_query=true` to the backend so server-side anonymization runs even when the page-side sanitize is off.">
+              <input type="checkbox" id="anon" checked> Anonymize on backend too
+            </label>
+            <a class="wb-btn-secondary" href="/static/search-safety.html"
+               title="Open the dedicated Search Safety gate tester">Test Search Safety</a>
+          </div>
+          <div id="sanitize-preview" style="display:none; margin-top:10px; padding:8px 10px; background:#FAF9F4; border-left:3px solid oklch(0.55 0.10 155); border-radius:6px; font-size:12px;">
+            <div style="font-family:'JetBrains Mono', monospace; color:#5B5F68; margin-bottom:4px;">SANITIZED QUERY (sent to backend):</div>
+            <div id="sanitize-preview-text" style="font-family:'JetBrains Mono', monospace; color:#0E1116;"></div>
+            <div id="sanitize-preview-meta" class="wb-muted" style="margin-top:4px;"></div>
+          </div>
+          <div id="status" class="wb-muted" style="margin-top:8px;"></div>
+          <div style="margin-top:12px;">
+            <h2>Backends</h2>
+            <div id="backends" class="wb-muted">checking...</div>
+          </div>
+        </div>
+      </details>
 
-    <div class="wb-card">
-      <h2>1. Query</h2>
-      <div class="wb-row" style="gap: 8px; align-items: stretch;">
-        <input type="text" id="q" placeholder="Search query"
-               style="flex:1; min-width:280px;"
-               value="ILO C181 fee prohibition migrant worker">
-        <select id="backend" title="Backend selection (auto picks first available)">
-          <option value="">auto (best available)</option>
-          <option value="searxng">SearXNG</option>
-          <option value="legacy">Kernel search hook</option>
-        </select>
-        <input type="number" id="top_n" value="5" min="1" max="20"
-               style="width:60px;" title="top_n">
-        <button class="wb-btn-primary" id="go-btn" onclick="runSearch()">Search</button>
-      </div>
-      <div class="wb-row" style="margin-top: 10px; gap: 16px; font-size: 12.5px;">
-        <label title="Sanitize the query via /api/search/sanitize BEFORE dispatching to any external backend. Strips PII (emails, phones, passport numbers, monetary amounts, URLs). Strongly recommended.">
-          <input type="checkbox" id="sanitize" checked> <b>Sanitize query before sending</b> (recommended)
-        </label>
-        <label title="If a Gemma model is loaded AND sanitize is on, ask Gemma to rephrase the redacted query into a more general form. Slower but stronger generalization.">
-          <input type="checkbox" id="rephrase"> Also ask Gemma to rephrase
-        </label>
-        <label title="Pass `anonymize_query=true` to the backend so server-side anonymization runs even when the page-side sanitize is off.">
-          <input type="checkbox" id="anon" checked> Anonymize on backend too
-        </label>
-        <a class="wb-btn-secondary" href="/static/search-safety.html"
-           title="Open the dedicated Search Safety gate tester">Test Search Safety</a>
-      </div>
-      <div id="sanitize-preview" style="display:none; margin-top:10px; padding:8px 10px; background:#FAF9F4; border-left:3px solid oklch(0.55 0.10 155); border-radius:6px; font-size:12px;">
-        <div style="font-family:'JetBrains Mono', monospace; color:#5B5F68; margin-bottom:4px;">SANITIZED QUERY (sent to backend):</div>
-        <div id="sanitize-preview-text" style="font-family:'JetBrains Mono', monospace; color:#0E1116;"></div>
-        <div id="sanitize-preview-meta" class="wb-muted" style="margin-top:4px;"></div>
-      </div>
-      <div id="status" class="wb-muted" style="margin-top:8px;"></div>
-    </div>
-
-    <div class="wb-card">
-      <h2>Backends</h2>
-      <div id="backends" class="wb-muted">checking...</div>
-    </div>
-
-    
-
-    <div class="wb-card" id="results-card" style="display:none;">
-      <h2>2. Review results and convert to knowledge</h2>
+    <details class="search-workflow-step" id="results-card">
+      <summary>
+        <span class="search-step-index">2</span>
+        <span>
+          <span class="search-step-title">Review results and convert to knowledge</span>
+          <span class="search-step-summary">Inspect each source card, download the result set, or draft knowledge from useful results without leaving this page.</span>
+        </span>
+        <span class="search-step-state" id="results-card-state">Waiting</span>
+      </summary>
+      <div class="search-step-body">
       <p class="wb-muted" style="margin:0 0 10px;">
         Use <b>Draft this result</b> on a specific source, or draft from all
         visible results. Drafts are reviewable before anything is saved.
       </p>
-      <div id="results"></div>
+      <div id="results" class="search-empty">Run a search to populate public-source result cards.</div>
       <div class="wb-row" style="margin-top:14px; gap:8px; padding-top:10px; border-top:1px solid #EFEDE4;">
         <span class="wb-muted" style="align-self:center;">After results:</span>
         <button class="wb-btn-secondary" id="dl-json-btn" onclick="searchDownloadResults('json')">Download results (.json)</button>
@@ -165,10 +166,19 @@
         <button class="wb-btn-secondary" id="share-btn" onclick="searchSendToShare()">Send to Anonymization &amp; Share</button>
       </div>
       <div id="draft-status" class="wb-muted" style="margin-top:8px;"></div>
-    </div>
+      </div>
+    </details>
 
-    <div class="wb-card" id="drafts-card" style="display:none;">
-      <h2>3. Drafted envelopes (review before saving)</h2>
+    <details class="search-workflow-step" id="drafts-card">
+      <summary>
+        <span class="search-step-index">3</span>
+        <span>
+          <span class="search-step-title">Review drafted envelopes and save</span>
+          <span class="search-step-summary">The extraction harness suggests knowledge object types. Review each draft, then save locally or download JSON.</span>
+        </span>
+        <span class="search-step-state" id="drafts-card-state">Waiting</span>
+      </summary>
+      <div class="search-step-body">
       <p class="wb-muted" style="margin: 0 0 8px;">
         Each search result was passed to <code>/api/knowledge/draft-envelope</code>
         with <code>target_leaf=auto</code> and the kernel's
@@ -183,10 +193,20 @@
         <button class="wb-btn-secondary" id="download-drafts-btn" onclick="searchDownloadDrafts()">Download drafts (.json)</button>
         <span class="wb-muted" id="save-status"></span>
       </div>
-      <div id="drafts-list"></div>
-    </div>
-  <div class="wb-card">
-      <h2>Activity log</h2>
+      <div id="drafts-list" class="search-empty">Drafted knowledge objects appear here after Step 2.</div>
+      </div>
+    </details>
+
+    <details class="search-workflow-step" id="search-step-log">
+      <summary>
+        <span class="search-step-index">4</span>
+        <span>
+          <span class="search-step-title">Inspect activity and downstream actions</span>
+          <span class="search-step-summary">Every search, sanitizer call, draft request, and save action is visible in the local activity log.</span>
+        </span>
+        <span class="search-step-state" id="search-step-log-state">Waiting</span>
+      </summary>
+      <div class="search-step-body">
       <p class="wb-muted" style="margin: 0 0 8px;">
         Live trace of search calls, anonymization, envelope drafts,
         and downstream actions.
@@ -194,6 +214,8 @@
       <div id="search-log" class="dc-activity-log">
         <div class="dc-log-idle">Run a search to begin.</div>
       </div>
+      </div>
+    </details>
     </div>
 
   </main>
@@ -213,10 +235,18 @@
       return labels[name] || name || '(none)';
     }
     function searchSetPipeline(active) {
-      const steps = Array.from(document.querySelectorAll('#search-pipeline .search-step'));
-      steps.forEach((el, idx) => {
-        el.classList.toggle('complete', idx <= active);
-        if ('open' in el) el.open = idx === Math.min(active, steps.length - 1);
+      const mapped = active >= 4 ? 2 : (active >= 3 ? 1 : 0);
+      searchSetWorkflow(mapped);
+    }
+    function searchSetWorkflow(active) {
+      const ids = ['search-step-query', 'results-card', 'drafts-card', 'search-step-log'];
+      ids.forEach((id, idx) => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.classList.toggle('complete', idx < active);
+        if ('open' in el) el.open = idx === active;
+        const state = document.getElementById(id + '-state');
+        if (state) state.textContent = idx < active ? 'Done' : (idx === active ? 'Active' : 'Waiting');
       });
     }
     function searchUseExample(q) {
@@ -346,7 +376,7 @@
         _searchResults = out.results || [];
         searchSetPipeline(3);
         renderResults(_searchResults);
-        document.getElementById('results-card').style.display = _searchResults.length ? '' : 'none';
+        searchSetWorkflow(1);
       } catch (e) {
         _searchLog.err('network failed', '' + e);
         document.getElementById('status').textContent = 'failed: ' + e;
@@ -360,10 +390,12 @@
       const host = document.getElementById('results');
       while (host.firstChild) host.removeChild(host.firstChild);
       if (!rows.length) {
+        host.className = 'search-empty';
         const p = document.createElement('div'); p.className = 'wb-muted'; p.style.padding = '20px';
         p.textContent = 'no results'; host.appendChild(p);
         return;
       }
+      host.className = '';
       rows.forEach((r, idx) => {
         const card = document.createElement('div'); card.className = 'wb-result';
         const h = document.createElement('h3');
@@ -445,6 +477,7 @@
     function searchRenderDraftCard(entry, idx) {
       const env = entry.envelope || {};
       const draftsList = document.getElementById('drafts-list');
+      draftsList.className = '';
       const card = document.createElement('div');
       card.className = 'wb-draft-card';
       const h = document.createElement('div');
@@ -510,7 +543,6 @@
       _searchLog = _searchLog || window.dcActivityLog.attach('#search-log');
       searchSetPipeline(4);
       document.getElementById('draft-status').textContent = 'Drafting one selected result...';
-      document.getElementById('drafts-card').style.display = '';
       const made = await searchDraftResultAt(i);
       document.getElementById('draft-status').textContent =
         made ? 'Drafted ' + made + ' suggestion(s). Review below.' : 'No draft created.';
@@ -529,6 +561,7 @@
       _drafts = [];
       const draftsList = document.getElementById('drafts-list');
       while (draftsList.firstChild) draftsList.removeChild(draftsList.firstChild);
+      draftsList.className = '';
       try {
         for (let i = 0; i < _searchResults.length; i++) {
           try {
@@ -537,7 +570,6 @@
             _searchLog.err('draft ' + (i + 1) + ' failed', '' + e);
           }
         }
-        document.getElementById('drafts-card').style.display = _drafts.length ? '' : 'none';
         document.getElementById('draft-status').textContent =
           'Drafted ' + _drafts.length + ' / ' + _searchResults.length + '. Review below.';
       } finally {
@@ -578,6 +610,7 @@
       }
       saveStatus.textContent = 'Saved ' + saved + ' / ' + _drafts.length + '.';
       btn.disabled = false;
+      searchSetWorkflow(3);
     }
 
     function searchDownloadDrafts() {
