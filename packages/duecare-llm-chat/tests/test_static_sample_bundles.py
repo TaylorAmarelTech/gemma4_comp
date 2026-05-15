@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import io
 import json
+import shutil
 import zipfile
 from pathlib import Path
 
@@ -28,6 +29,7 @@ def test_static_sample_catalog_contains_rich_downloadables():
         "case_files_sample.zip",
         "case_files_media_rich_sample.zip",
         "knowledge_bundle_sample.zip",
+        "knowledge_files_sample.zip",
         "knowledge_pack_rich_sample.zip",
         "knowledge_source_examples_sample.zip",
         "search_intake_examples_sample.zip",
@@ -68,6 +70,33 @@ def test_rich_knowledge_pack_uses_importable_envelope_paths():
         "fact_template",
         "submission_schema",
     }.issubset(types_seen)
+
+
+def test_knowledge_files_sample_has_manifest_and_importable_objects(monkeypatch):
+    from duecare.chat.app import create_app
+
+    names = _zip_names("knowledge_files_sample.zip")
+    assert "README.md" in names
+    assert "manifest.json" in names
+    assert any(n.startswith("grep_rule/") for n in names)
+    assert any(n.startswith("rag_doc/") for n in names)
+
+    knowledge_root = Path.cwd() / ".pytest-tmp-local" / "knowledge-import"
+    shutil.rmtree(knowledge_root, ignore_errors=True)
+    monkeypatch.setenv("DUECARE_KNOWLEDGE_ROOT", str(knowledge_root))
+    client = TestClient(create_app())
+    sample = SAMPLES / "knowledge_files_sample.zip"
+    try:
+        response = client.post(
+            "/api/knowledge/import",
+            files={"file": (sample.name, io.BytesIO(sample.read_bytes()), "application/zip")},
+        )
+        assert response.status_code == 200, response.text
+        body = response.json()
+        assert body["n_imported"] >= 20
+        assert body["n_rejected"] == 0
+    finally:
+        shutil.rmtree(knowledge_root, ignore_errors=True)
 
 
 def test_knowledge_source_examples_parse_for_drafting():
@@ -112,6 +141,7 @@ def test_pages_link_downloadable_sample_packs():
     knowledge = client.get("/static/knowledge.html")
     assert knowledge.status_code == 200
     assert "knowledge_source_examples_sample.zip" in knowledge.text
+    assert "knowledge_files_sample.zip" in knowledge.text
     assert "knowledge_pack_rich_sample.zip" in knowledge.text
     assert "Download sample bundle" not in knowledge.text
 

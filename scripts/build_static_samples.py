@@ -6,6 +6,7 @@ reviewer round-trip the upload/import flow on the workbench pages:
   case_files_sample.zip          -> used on /static/process.html
   knowledge_object_sample.json   -> used on /static/knowledge.html
   knowledge_bundle_sample.zip    -> used on /static/knowledge.html
+  knowledge_files_sample.zip     -> import/share-ready knowledge files ZIP
 
 All names, employers, and corridor specifics are composite. PII is
 synthetic. Re-run this script to regenerate; the output is
@@ -1384,6 +1385,46 @@ def build_knowledge_pack_rich_zip() -> None:
     out = OUT / "knowledge_pack_rich_sample.zip"
     out.write_bytes(buf.getvalue())
     print(f"wrote {out}  ({out.stat().st_size:,} bytes)")
+
+    files_buf = io.BytesIO()
+    with zipfile.ZipFile(files_buf, "w", zipfile.ZIP_DEFLATED) as zf:
+        _zip_write_deterministic(zf, "README.md", (
+            "# DueCare knowledge files sample\n\n"
+            "This ZIP is intentionally named as knowledge files because it "
+            "contains existing knowledge-object envelopes, not raw case files. "
+            "Use it on Knowledge Extraction Step 3, Sync, or Anonymization & "
+            "Sharing when you want a maintained pack of reusable rules, "
+            "citations, reasoning snippets, tool definitions, rubrics, and "
+            "non-PII facts.\n\n"
+            "Importable entries follow `<knowledge_object_type>/<id>.json`. "
+            "Root README/manifest files are informational metadata.\n"
+        ).encode("utf-8"))
+        _zip_write_deterministic(zf, "manifest.json", json.dumps({
+            "schema_version": "duecare.knowledge_files.sample.v1",
+            "created_by": "scripts/build_static_samples.py",
+            "created_at": "2026-05-15T00:00:00Z",
+            "purpose": "Importable synthetic knowledge files for workbench demos.",
+            "n_knowledge_objects": len(envelopes),
+            "safe_to_share": True,
+            "contains_raw_case_files": False,
+            "contains_worker_pii": False,
+            "recommended_pages": [
+                "/static/knowledge.html",
+                "/static/sync.html",
+                "/static/share.html",
+            ],
+        }, indent=2, sort_keys=True).encode("utf-8"))
+        for env in envelopes:
+            ko_type = env["knowledge_object_type"]
+            obj_id = env["id"]
+            _zip_write_deterministic(
+                zf,
+                f"{ko_type}/{obj_id}.json",
+                json.dumps(env, indent=2, sort_keys=True).encode("utf-8"),
+            )
+    files_out = OUT / "knowledge_files_sample.zip"
+    files_out.write_bytes(files_buf.getvalue())
+    print(f"wrote {files_out}  ({files_out.stat().st_size:,} bytes)")
 
 
 def build_knowledge_source_examples_zip() -> None:
