@@ -38,7 +38,7 @@ RUN_DIR.mkdir(parents=True, exist_ok=True)
 TRAIN_DIR = OUTPUT_DIR / "a00_training"
 TRAIN_DIR.mkdir(parents=True, exist_ok=True)
 
-DUECARE_VERSION = os.environ.get("DUECARE_VERSION", "0.1.0")
+DUECARE_VERSION = os.environ.get("DUECARE_VERSION", "0.17.0")
 DUECARE_REPO = os.environ.get("DUECARE_REPO", "TaylorAmarelTech/gemma4_comp")
 DUECARE_COMMIT_SHA = os.environ.get("DUECARE_COMMIT_SHA", "master")
 DUECARE_PACKAGES = ["duecare-llm-chat"]
@@ -2717,6 +2717,8 @@ HOMEPAGE_HTML = r"""<!doctype html>
     .audit-card { border: 1px solid var(--line); border-radius: 8px; background: #fff; padding: 12px; }
     .audit-card b { display: block; margin-bottom: 5px; }
     .audit-card ul { margin: 8px 0 0 18px; padding: 0; color: var(--ink-2); font-size: 12px; line-height: 1.45; }
+    .train-checklist { border: 1px solid var(--line); border-radius: 8px; background: var(--paper-2); padding: 10px 12px; margin: 10px 0; }
+    .train-checklist ol { margin: 6px 0 0 18px; padding: 0; color: var(--ink-2); font-size: 12px; line-height: 1.5; }
     .panel h2 { margin: 0 0 10px; font-size: 16px; }
     .panel p { color: var(--ink-2); font-size: 13px; line-height: 1.5; }
     .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin: 8px 0; }
@@ -2871,6 +2873,15 @@ HOMEPAGE_HTML = r"""<!doctype html>
     <div class="panel">
       <h2>6. Train adapter</h2>
       <p>Create an Unsloth or PEFT LoRA training script from exported synthetic data. Execute only when the Kaggle session has the right GPU and dependencies.</p>
+      <div class="train-checklist">
+        <b>Safe training preflight</b>
+        <ol>
+          <li>Generate rubric-polished SFT/DPO rows first, or click Tiny fine-tune smoke bundle.</li>
+          <li>Confirm the Training JSONL path points to an SFT JSONL under /kaggle/working/a00_training.</li>
+          <li>Leave Execute now as false until the script, base model, GPU, and dependencies look correct.</li>
+          <li>For the recording, export the job JSON and ZIP even if you do not run the full LoRA job live.</li>
+        </ol>
+      </div>
       <label>Training JSONL path <input id="train-data-path" placeholder="/kaggle/working/a00_training/..._sft.jsonl"></label>
       <label>Base model <input id="train-base-model" value="google/gemma-4-e4b-it"></label>
       <div class="row">

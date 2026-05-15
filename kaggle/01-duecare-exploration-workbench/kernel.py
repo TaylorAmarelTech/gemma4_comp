@@ -242,8 +242,8 @@ def install_chat_wheels() -> int:
     start_total = time.time()
 
     # Competition strategy: Pin to specific release artifacts for reproducibility.
-    VERSION = "0.1.0"
-    COMMIT_SHA = "master"
+    VERSION = os.environ.get("DUECARE_VERSION", "0.17.0")
+    COMMIT_SHA = os.environ.get("DUECARE_COMMIT_SHA", "master")
 
     # Method 1: GitHub Release Wheels (fastest when available)
     try:
