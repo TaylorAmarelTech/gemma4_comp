@@ -131,8 +131,8 @@
         <button class="wb-btn-primary" id="sync-upload-btn"
                 onclick="syncManualUpload()">Upload + import ZIP</button>
         <a class="wb-btn-secondary"
-           href="/static/samples/knowledge_bundle_sample.zip"
-           download="knowledge_bundle_sample.zip"
+           href="/static/samples/knowledge_files_sample.zip"
+           download="knowledge_files_sample.zip"
            title="Sample 4-envelope bundle, judge-safe">
           Download sample bundle
         </a>
@@ -318,10 +318,10 @@
       const result=document.getElementById('sync-upload-result');
       status.textContent='Fetching sample bundle...';
       try{
-        const r=await fetch('/static/samples/knowledge_bundle_sample.zip');
+        const r=await fetch('/static/samples/knowledge_files_sample.zip');
         if(!r.ok) throw new Error('HTTP '+r.status);
         const blob=await r.blob();
-        const file=new File([blob], 'knowledge_bundle_sample.zip',
+        const file=new File([blob], 'knowledge_files_sample.zip',
                             {type:'application/zip'});
         syncSetStep(1);
         await _syncDoImport(file, status, result);

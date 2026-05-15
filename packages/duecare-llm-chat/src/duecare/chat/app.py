@@ -4891,12 +4891,24 @@ def create_app(
 
     def _ko_root():
         from pathlib import Path as _Path
-        root = _Path("/kaggle/working/knowledge")
-        try:
-            root.mkdir(parents=True, exist_ok=True)
-        except Exception:
-            root = _Path(".") / ".duecare-knowledge"
-            root.mkdir(parents=True, exist_ok=True)
+        roots: list[_Path] = []
+        env_root = os.getenv("DUECARE_KNOWLEDGE_ROOT")
+        if env_root:
+            roots.append(_Path(env_root))
+        roots.extend((_Path("/kaggle/working/knowledge"), _Path(".") / ".duecare-knowledge"))
+
+        for root in roots:
+            try:
+                root.mkdir(parents=True, exist_ok=True)
+                probe = root / ".write_probe"
+                probe.write_text("ok", encoding="utf-8")
+                probe.unlink(missing_ok=True)
+                return root
+            except Exception:
+                continue
+
+        root = _Path(".") / ".duecare-knowledge"
+        root.mkdir(parents=True, exist_ok=True)
         return root
 
     def _ko_validate(env: dict) -> tuple[bool, str]:
@@ -5122,7 +5134,11 @@ def create_app(
         imported: list[dict] = []
         rejected: list[dict] = []
         for name in zf.namelist():
-            if name == "manifest.json" or name.endswith("/"):
+            root_name = name.strip("/").lower()
+            if (
+                root_name in {"manifest.json", "metadata.json", "readme", "readme.txt", "readme.md"}
+                or name.endswith("/")
+            ):
                 continue
             parts = name.split("/")
             if len(parts) != 2 or not parts[1].endswith(".json"):

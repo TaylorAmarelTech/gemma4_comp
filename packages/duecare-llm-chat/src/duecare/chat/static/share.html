@@ -95,6 +95,10 @@
         <input type="file" id="wb-file-input" style="display: none;" accept=".zip,.jsonl,.csv" onchange="wbHandle(event)">
         <div id="wb-file-info" class="wb-row"></div>
         <div class="wb-row">
+          <a class="wb-btn-secondary" href="/static/samples/knowledge_files_sample.zip" download="knowledge_files_sample.zip">Download sample knowledge files</a>
+          <a class="wb-btn-secondary" href="/static/samples/case_files_media_rich_sample.zip" download="case_files_media_rich_sample.zip">Download sample source bundle</a>
+        </div>
+        <div class="wb-row">
           <button class="wb-btn-primary" id="wb-step1-btn" disabled onclick="wbStep1()">Step 1: Process uploaded file</button>
         </div>
         <div id="wb-step1-error" class="wb-error" style="display: none; margin-top: 8px;"></div>

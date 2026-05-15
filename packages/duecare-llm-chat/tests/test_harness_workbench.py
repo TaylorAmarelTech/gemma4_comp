@@ -229,6 +229,8 @@ def test_share_page_has_bulk_review_selection_controls(client):
     assert "Upload source bundle or knowledge files" in text
     assert "gemma_review: true" in text
     assert "Gemma privacy review" in text
+    assert "knowledge_files_sample.zip" in text
+    assert "case_files_media_rich_sample.zip" in text
     assert '/static/_activity_log.js' in text
     assert "function wbGetLog" in text
 
