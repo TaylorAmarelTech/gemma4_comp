@@ -138,6 +138,14 @@
           <span class="kx-step-state" id="kx-step-source-state">Ready</span>
         </summary>
         <div class="kx-step-body">
+          <div class="kx-action-note" style="margin-bottom:10px;">
+            Need realistic source material? Download a synthetic mixed-source
+            ZIP with recruiter text, complaint notes, DOCX, PDF, JSON, and
+            receipt-photo evidence, then upload it here for drafting.
+            <a class="wb-btn-secondary" style="margin-left:8px;"
+               href="/static/samples/knowledge_source_examples_sample.zip"
+               download="knowledge_source_examples_sample.zip">Download source examples</a>
+          </div>
           <div class="wb-row" style="gap:8px; margin-bottom:10px;">
             <button class="kx-example" type="button" onclick="kxUseExample('A recruiter wrote: Worker agrees to a PHP 45,000 processing loan deducted from salary in Hong Kong until fully repaid. Agency: Pearl Bridge Manpower. Corridor: PH-HK.')">Fee rule example</button>
             <button class="kx-example" type="button" onclick="kxUseExample('Police report: complainant states employer kept passport for safekeeping, required live-in work, and threatened termination if she contacted POLO Hong Kong.')">Complaint example</button>
@@ -145,9 +153,9 @@
           </div>
           <div class="kx-source-upload" id="kx-source-dropzone" onclick="kxOpenSourceUpload()" ondragover="kxDragSource(event)" ondrop="kxDropSource(event)">
             <b>Upload source files</b>
-            <span>Accepted: ZIP, CSV, JSONL, TXT, MD, LOG, JSON, PDF, PNG, JPG, WEBP, TIF, BMP. Files are parsed locally into bounded drafting text.</span>
+            <span>Accepted: ZIP, CSV, JSONL, TXT, MD, LOG, JSON, DOC/DOCX, XLSX, EML, HTML, RTF, PDF, PNG, JPG, WEBP, TIF, BMP. Files are parsed locally into bounded drafting text.</span>
           </div>
-          <input type="file" id="kx-source-file-input" style="display:none;" accept=".zip,.csv,.jsonl,.txt,.md,.log,.json,.pdf,.png,.jpg,.jpeg,.webp,.tif,.tiff,.bmp" onchange="kxHandleSourceFile(event)">
+          <input type="file" id="kx-source-file-input" style="display:none;" accept=".zip,.csv,.jsonl,.txt,.md,.log,.json,.doc,.docx,.xls,.xlsx,.eml,.html,.htm,.rtf,.pdf,.png,.jpg,.jpeg,.webp,.tif,.tiff,.bmp" onchange="kxHandleSourceFile(event)">
           <div id="kx-source-file-status" class="wb-muted" style="margin:-2px 0 8px;"></div>
           <textarea id="kx-raw" rows="6" placeholder="Paste a recruiter message, a contract clause, a court filing excerpt, or an NGO report fragment..." style="width:100%; box-sizing:border-box; font-family:var(--mono); font-size:12.5px; padding:10px; border:1px solid #DDD8C9; border-radius:8px; background:#FFF;"></textarea>
           <div class="wb-row" style="margin-top:10px; gap:10px; align-items:center; flex-wrap:wrap;">
@@ -220,6 +228,14 @@
               <h3>Import pack ZIP</h3>
               <p>Load a vetted or local knowledge pack. Entries must be stored as <code>&lt;type&gt;/&lt;id&gt;.json</code>.</p>
               <div class="kx-card-actions"><button class="wb-btn-primary" type="button" onclick="kxOpenPackImport()">Import ZIP</button></div>
+            </div>
+            <div class="kx-action-card">
+              <h3>Example import packs</h3>
+              <p>Download a compact starter pack or a richer multi-leaf pack, then import it here to inspect object structure.</p>
+              <div class="kx-card-actions">
+                <a class="wb-btn-secondary" href="/static/samples/knowledge_bundle_sample.zip" download="knowledge_bundle_sample.zip">Starter pack</a>
+                <a class="wb-btn-secondary" href="/static/samples/knowledge_pack_rich_sample.zip" download="knowledge_pack_rich_sample.zip">Rich pack</a>
+              </div>
             </div>
             <div class="kx-action-card">
               <h3>Export local packs</h3>
