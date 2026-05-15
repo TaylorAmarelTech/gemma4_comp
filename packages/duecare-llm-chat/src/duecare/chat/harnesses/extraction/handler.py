@@ -26,6 +26,16 @@ _PII_PATTERNS = [
     (_re.compile(r"\+?\d[\d\s().-]{7,}\d"), "<PHONE>"),
     (_re.compile(r"\bA\d{7,9}\b"), "<PASSPORT>"),
 ]
+_MONEY_RE = _re.compile(
+    r"\b(?P<currency>PHP|HKD|USD|SGD)\s*(?P<amount>[\d,]+(?:\.\d+)?)"
+    r"|\b(?P<amount2>[\d,]+(?:\.\d+)?)\s*(?P<currency2>PHP|HKD|USD|SGD)\b",
+    _re.I,
+)
+_ENTITY_RE = _re.compile(
+    r"\b(?:agency|recruiter|broker|employer|training center|company|"
+    r"payment recipient|money lender)\s*[:=]\s*([A-Z][A-Za-z0-9 &'.,-]{2,80})",
+    _re.I,
+)
 
 
 def _light_anonymize(text: str) -> tuple[str, list[str]]:
@@ -51,6 +61,9 @@ def _infer_target_types(text: str) -> list[str]:
         "fee", "salary deduction", "passport", "loan", "debt",
         "placement", "medical", "training", "threat", "retaliation",
     )):
+        picks.append("extracted_fact")
+        picks.append("entity_signal")
+        picks.append("modus_operandi")
         picks.append("grep_rule")
         picks.append("fact_template")
     if any(t in low for t in (
@@ -66,17 +79,74 @@ def _infer_target_types(text: str) -> list[str]:
     if not picks:
         picks.extend(["context_snippet", "fact_template"])
     picks.append("context_snippet")
-    return list(dict.fromkeys(picks))[:4]
+    return list(dict.fromkeys(picks))[:6]
 
 
 def _slug(text: str, fallback: str = "draft") -> str:
     return _re.sub(r"[^a-z0-9]+", "-", (text or "").lower())[:40].strip("-") or fallback
 
 
+def _money_mentions(text: str) -> list[dict[str, Any]]:
+    mentions: list[dict[str, Any]] = []
+    for match in _MONEY_RE.finditer(text or ""):
+        currency = (match.group("currency") or match.group("currency2") or "").upper()
+        raw_amount = match.group("amount") or match.group("amount2") or ""
+        amount = raw_amount.replace(",", "")
+        try:
+            numeric = float(amount)
+        except Exception:
+            numeric = None
+        mentions.append({
+            "currency": currency,
+            "amount": numeric,
+            "raw": match.group(0),
+        })
+    return mentions[:10]
+
+
+def _entity_mentions(text: str) -> list[str]:
+    entities = []
+    for match in _ENTITY_RE.finditer(text or ""):
+        ent = " ".join(match.group(1).strip(" .").split())
+        if ent and ent not in entities:
+            entities.append(ent)
+    return entities[:10]
+
+
+def _corridors(text: str) -> list[str]:
+    low = (text or "").lower()
+    out: list[str] = []
+    if "ph-hk" in low or ("philipp" in low and "hong kong" in low):
+        out.append("PH-HK")
+    if "indonesia" in low and "hong kong" in low:
+        out.append("ID-HK")
+    return out
+
+
+def _indicators(text: str) -> list[str]:
+    low = (text or "").lower()
+    checks = [
+        ("fee_camouflage", ("fee", "processing", "medical", "training")),
+        ("salary_deduction", ("salary deduction", "deducted from salary")),
+        ("debt_bondage", ("loan", "debt", "repay", "payment plan")),
+        ("passport_retention", ("passport", "safekeeping", "retain")),
+        ("retaliation_risk", ("retaliation", "terminate", "blacklist", "threat")),
+        ("jurisdiction_shopping", ("assign", "assignment", "novation", "cross-border")),
+    ]
+    found: list[str] = []
+    for label, needles in checks:
+        if any(n in low for n in needles):
+            found.append(label)
+    return found
+
+
 def _deterministic_content(target_type: str, text: str) -> dict[str, Any]:
     low = text.lower()
     title = " ".join(text.split())[:90] or "Draft knowledge"
-    amount_match = _re.search(r"\b(?:PHP|HKD|USD|SGD)\s*[\d,]+|\b[\d,]+\s*(?:PHP|HKD|USD|SGD)\b", text, _re.I)
+    money = _money_mentions(text)
+    entities = _entity_mentions(text)
+    corridors = _corridors(text)
+    indicators = _indicators(text)
     if target_type == "grep_rule":
         category = "fee_bondage" if any(x in low for x in ("fee", "deduction", "loan", "debt")) else "case_signal"
         pattern = r"\b(training|medical|processing|placement)\s+fee\b|\bsalary\s+deduction\b"
@@ -88,6 +158,8 @@ def _deterministic_content(target_type: str, text: str) -> dict[str, Any]:
             "severity": "high" if category in {"fee_bondage", "document_control"} else "medium",
             "pattern": pattern,
             "description": title,
+            "test_phrases": [text[:160]],
+            "false_positive_notes": "Review against legal context and corridor before automatic escalation.",
         }
     if target_type == "rag_doc":
         return {
@@ -98,12 +170,14 @@ def _deterministic_content(target_type: str, text: str) -> dict[str, Any]:
         }
     if target_type == "context_snippet":
         return {
-            "applies_to_corridors": ["PH-HK"] if "hong kong" in low or "ph-hk" in low else [],
-            "applies_to_indicators": [
-                x for x in ("fee_bondage", "passport_retention", "salary_deduction")
-                if x.replace("_", " ") in low
-            ],
+            "applies_to_corridors": corridors,
+            "applies_to_indicators": indicators,
             "text": text,
+            "response_guidance": (
+                "Use this snippet to recognize the pattern, cite relevant "
+                "corridor law, and avoid operational advice that enables abuse."
+            ),
+            "citation_ids": [],
         }
     if target_type == "rubric_dimension":
         return {
@@ -124,17 +198,99 @@ def _deterministic_content(target_type: str, text: str) -> dict[str, Any]:
     if target_type == "fact_template":
         return {
             "label": title[:70],
-            "applies_to_indicators": ["fee_bondage"] if amount_match else [],
+            "applies_to_indicators": indicators or ["case_signal"],
             "fields": [
                 {"name": "case_id", "type": "string", "required": False},
-                {"name": "person", "type": "string", "required": False},
-                {"name": "amount", "type": "money", "required": bool(amount_match)},
+                {"name": "corridor", "type": "string", "required": bool(corridors)},
+                {"name": "entity_name", "type": "string", "required": False},
+                {"name": "amount", "type": "money", "required": bool(money)},
+                {"name": "indicator", "type": "string", "required": bool(indicators)},
                 {"name": "source_row_id", "type": "string", "required": True},
                 {"name": "evidence_quote", "type": "string", "required": True},
             ],
             "source_excerpt": text[:500],
         }
+    if target_type == "extracted_fact":
+        first_money = money[0] if money else {}
+        return {
+            "fact_type": "fee_or_debt_signal" if money else "case_signal",
+            "corridor": corridors[0] if corridors else "",
+            "amount": first_money.get("amount"),
+            "currency": first_money.get("currency"),
+            "entity_names": entities,
+            "locations": ["Hong Kong"] if "hong kong" in low else [],
+            "indicators": indicators,
+            "journey_stage": "payment_and_debt" if money else "recruitment",
+            "evidence_quote": text[:500],
+            "confidence_0_10": 7,
+            "share_scope": "non_pii_fact_needs_review",
+            "aggregation_keys": {
+                "corridors": corridors,
+                "indicators": indicators,
+                "entities": entities,
+                "currencies": sorted({m.get("currency") for m in money if m.get("currency")}),
+            },
+        }
+    if target_type == "entity_signal":
+        return {
+            "entity_name": entities[0] if entities else "",
+            "entity_type": "agency" if "agency" in low else "unknown",
+            "corridor": corridors[0] if corridors else "",
+            "signal_types": indicators,
+            "evidence_quote": text[:500],
+            "source_context": "drafted_from_local_source_text",
+            "confidence_0_10": 6 if entities else 4,
+            "pii_status": "organization_or_unknown_entity_not_worker_pii",
+            "aggregation_keys": {
+                "entity_names": entities,
+                "corridors": corridors,
+                "signals": indicators,
+            },
+        }
+    if target_type == "modus_operandi":
+        return {
+            "pattern_name": "Worker-paid processing loan with post-arrival salary deductions",
+            "short_description": title,
+            "stages": ["recruitment", "payment_and_debt", "arrival_and_placement"],
+            "indicators": indicators,
+            "generalized_pattern": (
+                "A worker is told a recruitment, training, medical, or processing "
+                "cost is a loan or payment plan, then repayment is collected after "
+                "arrival through salary deduction or pressure from an agency, "
+                "employer, broker, or collection entity."
+            ),
+            "non_pii_example": text[:300],
+            "applicable_corridors": corridors,
+            "chart_dimensions": ["corridor", "indicator", "entity_name", "currency", "journey_stage"],
+            "related_fact_types": ["extracted_fact", "entity_signal"],
+        }
     return {"text": text}
+
+
+def _normalize_content(
+    target_type: str,
+    parsed: dict[str, Any],
+    deterministic: dict[str, Any],
+) -> dict[str, Any]:
+    """Keep Gemma drafts useful and schema-shaped for downstream charts."""
+    content: Any = parsed
+    if isinstance(content, dict) and set(content.keys()) == {"content"}:
+        content = content.get("content")
+    if target_type in {"context_snippet", "rag_doc"} and isinstance(content, str):
+        merged = dict(deterministic)
+        merged["text"] = content
+        return merged
+    if not isinstance(content, dict):
+        merged = dict(deterministic)
+        merged["text"] = str(content)
+        return merged
+    if target_type == "fact_template" and not isinstance(content.get("fields"), list):
+        merged = dict(deterministic)
+        merged["example_fact"] = content
+        return merged
+    merged = dict(deterministic)
+    merged.update(content)
+    return merged
 
 
 def register_routes(app: Any) -> None:
@@ -182,6 +338,7 @@ def register_routes(app: Any) -> None:
         slug_base = _slug(raw_text)
         envelopes: list[dict[str, Any]] = []
         for target_type in target_types:
+            deterministic_content = _deterministic_content(target_type, text_to_send)
             envelope: dict[str, Any] = {
                 "schema_version": "1.0",
                 "knowledge_object_type": target_type,
@@ -192,7 +349,7 @@ def register_routes(app: Any) -> None:
                     "created_by": "kernel-01:draft-envelope",
                     "source_sha256": hashlib.sha256(raw_text.encode("utf-8")).hexdigest()[:16],
                 },
-                "content": _deterministic_content(target_type, text_to_send),
+                "content": deterministic_content,
                 "tags": [f"branch:{KO_BRANCHES.get(target_type, 'unknown')}"],
                 "extensions": {
                     "draft": True,
@@ -227,7 +384,11 @@ def register_routes(app: Any) -> None:
                     try:
                         content = _json.loads(match.group(0))
                         if isinstance(content, dict):
-                            envelope["content"] = content
+                            envelope["content"] = _normalize_content(
+                                target_type,
+                                content,
+                                deterministic_content,
+                            )
                             envelope["extensions"]["gemma_drafted"] = True
                     except Exception:
                         envelope["extensions"]["gemma_parse_failed"] = True

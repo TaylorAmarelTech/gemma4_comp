@@ -42,8 +42,26 @@
     .wb-step .detail { font-size: 11px; color: #5B5F68; line-height: 1.4; }
     .wb-step.complete { border-color: oklch(0.72 0.08 155); background: oklch(0.97 0.02 155); }
     .wb-step.skipped { opacity: 0.72; }
-    .wb-workflow { display: grid; gap: 12px; margin: 18px 0 0; }
-    #wb-results { display: grid; gap: 12px; }
+    .wb-workflow { display: grid; gap: 16px; margin: 18px 0 0; }
+    #wb-results { display: grid; gap: 16px; }
+    .wb-hero { background: #FFF; border: 1px solid #DDD8C9; border-left: 4px solid oklch(0.52 0.08 195);
+               border-radius: 12px; padding: 18px 20px; margin: 0 0 16px; }
+    .wb-hero h2 { font-size: 17px; margin: 0 0 6px; }
+    .wb-hero-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 10px; margin-top: 12px; }
+    .wb-hero-item { background: #FAF9F4; border: 1px solid #EFEDE4; border-radius: 8px; padding: 10px 12px; }
+    .wb-hero-item b { display: block; font-size: 12.5px; margin-bottom: 3px; }
+    .wb-hero-item span { color: #5B5F68; font-size: 11.5px; line-height: 1.45; }
+    .wb-progress-box { background: #FAF9F4; border: 1px solid #EFEDE4; border-radius: 8px; padding: 12px; margin-bottom: 12px; }
+    .wb-progress-head { display: flex; justify-content: space-between; gap: 10px; align-items: center; margin-bottom: 8px; }
+    .wb-progress-track { height: 8px; background: #EFEDE4; border-radius: 999px; overflow: hidden; }
+    .wb-progress-fill { display: block; height: 100%; width: 0%; background: oklch(0.52 0.08 195); transition: width 220ms ease; }
+    .wb-action-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 10px; }
+    .wb-action-card { border: 1px solid #EFEDE4; border-radius: 8px; padding: 12px; background: #FAF9F4; }
+    .wb-action-card h3 { font-size: 13px; margin: 0 0 5px; }
+    .wb-action-card p { color: #5B5F68; font-size: 11.5px; line-height: 1.45; margin: 0 0 10px; }
+    .wb-review-checks { display: grid; gap: 6px; margin: 10px 0; }
+    .wb-review-checks label { display: flex; gap: 8px; align-items: flex-start; color: #2A2D34; font-size: 12px; line-height: 1.45; }
+    .wb-review-checks input { margin-top: 2px; }
     .wb-workflow-step { background: #FFF; border: 1px solid #DDD8C9; border-left: 4px solid #DDD8C9;
                         border-radius: 12px; overflow: hidden; }
     .wb-workflow-step[open] { border-left-color: oklch(0.52 0.08 195); box-shadow: 0 10px 24px rgba(14,17,22,0.06); }
@@ -59,8 +77,8 @@
                      font-family: var(--mono); font-size: 11px; font-weight: 700; }
     .wb-workflow-step[open] .wb-step-index { background: oklch(0.52 0.08 195); color: #F7F6F1; }
     .wb-workflow-step.complete .wb-step-index { background: oklch(0.62 0.10 155); color: #F7F6F1; }
-    .wb-step-title { font-size: 15.5px; font-weight: 700; color: #0E1116; }
-    .wb-step-summary { color: #5B5F68; font-size: 11.5px; line-height: 1.4; margin-top: 2px; }
+    .wb-step-title { display: block; font-size: 15.5px; font-weight: 700; color: #0E1116; }
+    .wb-step-summary { display: block; color: #5B5F68; font-size: 11.5px; line-height: 1.4; margin-top: 2px; }
     .wb-step-state { color: #5B5F68; font-size: 10.5px; font-family: var(--mono);
                      text-transform: uppercase; letter-spacing: 0.06em; }
     .wb-step-body { padding: 16px 18px 18px; }
@@ -122,6 +140,22 @@
       extracted intelligence so you can inspect the graph before asking
       Gemma 4 questions about it.
     </p>
+
+    <section class="wb-hero" aria-label="Bulk file review overview">
+      <h2>What this workflow does</h2>
+      <p class="wb-muted" style="font-size:12.5px; line-height:1.55; margin:0;">
+        This page is a local document-review workbench. Upload a case folder,
+        let the process harness parse and link the evidence, review the extracted
+        intelligence, confirm it, then ask focused investigative questions or
+        export the bundle for the appendix notebooks.
+      </p>
+      <div class="wb-hero-grid">
+        <div class="wb-hero-item"><b>Local first</b><span>Rows, media queue, graph edges, and notes stay in the Kaggle kernel until you explicitly export or share.</span></div>
+        <div class="wb-hero-item"><b>Deterministic plus Gemma</b><span>Parsing, GREP, entity extraction, folder edges, and journey mapping run deterministically. Gemma 4 adds case briefs and graph synthesis when loaded.</span></div>
+        <div class="wb-hero-item"><b>Reviewer controlled</b><span>Step 3 is a review gate. Confirm extracted intelligence before graph questions or downstream export.</span></div>
+        <div class="wb-hero-item"><b>Evidence oriented</b><span>Every answer should point back to row IDs, folders, files, people, payments, dates, or queued media work.</span></div>
+      </div>
+    </section>
 
     <div class="wb-workflow" aria-label="Bulk file review workflow">
       <details class="wb-workflow-step" id="wb-step-upload" open>
@@ -192,6 +226,18 @@
             <span class="wb-step-state" id="wb-step-process-state">Waiting</span>
           </summary>
           <div class="wb-step-body">
+            <div class="wb-progress-box" id="wb-process-progress-box">
+              <div class="wb-progress-head">
+                <div>
+                  <b id="wb-process-stage">Waiting for upload</b>
+                  <div class="wb-muted" id="wb-process-progress-detail">Drop a bundle, then click Start processing.</div>
+                </div>
+                <span class="wb-pill" id="wb-process-progress-label">0%</span>
+              </div>
+              <div class="wb-progress-track" aria-hidden="true">
+                <span class="wb-progress-fill" id="wb-process-progress-fill"></span>
+              </div>
+            </div>
             <div class="wb-card">
               <h2>Harness trace</h2>
               <div class="wb-pipeline" id="wb-trace"></div>
@@ -218,6 +264,28 @@
             <span class="wb-step-state" id="wb-step-intelligence-state">Waiting</span>
           </summary>
           <div class="wb-step-body">
+      <div class="wb-card">
+        <h2>Review and confirm extracted intelligence</h2>
+        <p class="wb-muted" style="margin-top:0;">
+          Inspect the metrics, graph, people, timeline, journey points, and row table below.
+          Use the checklist and notes to record any corrections before graph chat
+          or export actions.
+        </p>
+        <div class="wb-review-checks" aria-label="Reviewer verification checklist">
+          <label><input type="checkbox" class="wb-review-check" onchange="wbUpdateReviewReady()"> People, case IDs, and folder-derived links look reasonable.</label>
+          <label><input type="checkbox" class="wb-review-check" onchange="wbUpdateReviewReady()"> Payments, currencies, dates, and journey-stage labels have been spot checked.</label>
+          <label><input type="checkbox" class="wb-review-check" onchange="wbUpdateReviewReady()"> OCR, scan, image, PDF, and Gemma 4 media queue status has been reviewed.</label>
+        </div>
+        <textarea id="wb-review-notes" rows="2"
+          style="width:100%; box-sizing:border-box; padding:10px; border:1px solid #DDD8C9; border-radius:8px; font-size:12.5px;"
+          placeholder="Optional reviewer notes, corrections, or data-quality concerns. These notes are included in the downloaded JSON export."></textarea>
+        <div class="wb-row">
+          <button class="wb-btn-primary" id="wb-confirm-intel-btn" type="button" onclick="wbConfirmIntelligence()" disabled>
+            Confirm extracted intelligence
+          </button>
+          <span class="wb-muted" id="wb-review-status">Process a bundle first.</span>
+        </div>
+      </div>
       <div class="wb-card">
         <h2>Extracted intelligence</h2>
         <div class="wb-intel-grid" id="wb-intel-metrics"></div>
@@ -288,25 +356,25 @@
         <summary>
           <span class="wb-step-index">4</span>
           <span>
-            <span class="wb-step-title">Ask questions against the local graph</span>
-            <span class="wb-step-summary">Use example questions or write your own. The activity log records the graph-chat API call and response summary.</span>
+            <span class="wb-step-title">Interrogate the confirmed case graph</span>
+            <span class="wb-step-summary">Ask focused review questions after Step 3 is confirmed. Answers should cite row IDs and evidence edges.</span>
           </span>
           <span class="wb-step-state" id="wb-step-chat-state">Waiting</span>
         </summary>
         <div class="wb-step-body">
       <p class="wb-muted" style="font-size:12px; margin-top:0;">
-        After processing a bundle, the extracted entities and GREP hits stay
-        cached in the kernel. Ask Gemma 4 questions about the bundle and
-        the harness includes the local graph as grounding context.
+        After confirmation, ask Gemma 4 and the deterministic graph analyst
+        targeted questions about fees, strongest cases, grouped patterns,
+        missing evidence, media queues, and folder-derived links.
       </p>
       <div class="wb-row" style="gap:6px;">
+        <button class="wb-btn-secondary" type="button" onclick="pgUseQuestion('Which individuals have the strongest cases to move forward first, and what row IDs support that ranking?')">Strongest cases</button>
         <button class="wb-btn-secondary" type="button" onclick="pgUseQuestion('Which people have the strongest evidence of placement fees above the legal cap? Cite row IDs.')">Fee risk</button>
+        <button class="wb-btn-secondary" type="button" onclick="pgUseQuestion('Which entities or folders are associated with the highest overcharging amounts? Group by recruiter, agency, employer, or source folder when available.')">Overcharging entities</button>
+        <button class="wb-btn-secondary" type="button" onclick="pgUseQuestion('Which people could plausibly be grouped into a class-style or pattern case, and what common agency, fee, folder, document, or journey-stage links connect them?')">Grouped action</button>
+        <button class="wb-btn-secondary" type="button" onclick="pgUseQuestion('What missing evidence would strengthen this case before escalation?')">Missing evidence</button>
         <button class="wb-btn-secondary" type="button" onclick="pgUseQuestion('Which rows show passport retention or identity document control?')">Document control</button>
         <button class="wb-btn-secondary" type="button" onclick="pgUseQuestion('Build a PH to HK timeline across travel, payments, and complaints.')">Timeline</button>
-        <button class="wb-btn-secondary" type="button" onclick="pgUseQuestion('What missing evidence would strengthen this case before escalation?')">Missing evidence</button>
-        <button class="wb-btn-secondary" type="button" onclick="pgUseQuestion('Which entities or folders are associated with the highest overcharging amounts? Group by recruiter, agency, employer, or source folder when available.')">Overcharging entities</button>
-        <button class="wb-btn-secondary" type="button" onclick="pgUseQuestion('Which individuals have the strongest cases to move forward first, and what row IDs support that ranking?')">Strongest cases</button>
-        <button class="wb-btn-secondary" type="button" onclick="pgUseQuestion('Which people could plausibly be grouped into a class-style or pattern case, and what common agency, fee, folder, document, or journey-stage links connect them?')">Grouped action</button>
         <button class="wb-btn-secondary" type="button" onclick="pgUseQuestion('What does the file and folder structure suggest about clients, agencies, stages, or evidence sources? Cite the folder-derived edges and row IDs.')">Folder clues</button>
         <button class="wb-btn-secondary" type="button" onclick="pgUseQuestion('Which media, scan, image, or PDF items still need OCR or Gemma 4 vision review, and what questions should be asked of each page?')">Media queue</button>
       </div>
@@ -315,9 +383,9 @@
           style="flex:1; min-width: 280px; padding: 10px; border: 1px solid #DDD8C9;
                   border-radius: 8px; font-size: 13px; background: #FFF;"
           placeholder="Ask a question about the uploaded bundle..."></textarea>
-        <button id="pg-ask-btn" class="wb-btn-primary" onclick="pgAsk()" style="align-self: stretch; padding: 0 18px;">Ask Gemma 4</button>
+        <button id="pg-ask-btn" class="wb-btn-primary" onclick="pgAsk()" style="align-self: stretch; padding: 0 18px;" disabled>Ask graph</button>
       </div>
-      <div id="pg-status" class="wb-muted" style="font-size:11.5px; margin-top:8px;"></div>
+      <div id="pg-status" class="wb-muted" style="font-size:11.5px; margin-top:8px;">Confirm Step 3 before asking graph questions.</div>
       <div id="pg-answer" style="margin-top:10px; font-family:var(--mono); font-size:12px; white-space:pre-wrap; padding:0;"></div>
       <p class="wb-muted" style="font-size:11px; margin-top:14px; padding-top:10px; border-top:1px solid #EFEDE4;">
         Trust boundary: the graph stays in <code>/kaggle/working/process-staging/</code>.
@@ -330,7 +398,8 @@
     <script>
       function pgUseQuestion(q){
         document.getElementById("pg-question").value = q;
-        wbSetWorkflow(3);
+        if (wbIntelligenceConfirmed) wbSetWorkflow(3);
+        else wbSetWorkflow(2);
       }
       function pgSetPipeline(active){
         wbSetWorkflow(3);
@@ -342,6 +411,15 @@
         const statusEl=document.getElementById("pg-status");
         const ansEl=document.getElementById("pg-answer");
         if(!q){ statusEl.textContent="Type a question first."; return; }
+        if(!wbIntelligenceConfirmed){
+          wbSetWorkflow(2);
+          statusEl.textContent="Confirm Step 3 before asking graph questions.";
+          return;
+        }
+        if (window.dcWbEnsureModelReady && !(await window.dcWbEnsureModelReady())) {
+          statusEl.textContent="Load a model before graph chat.";
+          return;
+        }
         const btn=document.getElementById("pg-ask-btn");
         btn.disabled=true; const origTxt=btn.textContent; btn.textContent="Asking...";
         pgSetPipeline(1);
@@ -391,30 +469,56 @@
           <span class="wb-step-index">5</span>
           <span>
             <span class="wb-step-title">Export, promote, or share</span>
-            <span class="wb-step-summary">Download the processed bundle, promote findings to knowledge extraction, anonymize for sharing, and inspect API activity.</span>
+            <span class="wb-step-summary">Choose the right downstream path after the graph has been reviewed and confirmed.</span>
           </span>
           <span class="wb-step-state" id="wb-step-export-state">Waiting</span>
         </summary>
         <div class="wb-step-body">
-          <div class="wb-row">
-            <a class="wb-btn-secondary" href="/static/knowledge.html">Promote to Knowledge Extraction</a>
-            <a class="wb-btn-secondary" href="/static/share.html">Anonymize and Share</a>
-            <button class="wb-btn-secondary" onclick="wbDownloadBundle()">Download v1.0 bundle (JSON)</button>
-          </div>
-          <div style="margin-top:14px;">
-            <h2>Activity log <span class="wb-muted" style="font-weight: normal;">every API call and response is transparent</span></h2>
-            <div id="wb-log" class="dc-activity-log" role="log" aria-label="Activity log" aria-live="polite">
-              <div class="wb-muted">No activity yet. Click <i>Start processing</i> to begin.</div>
+          <div class="wb-action-grid">
+            <div class="wb-action-card">
+              <h3>Download processed bundle</h3>
+              <p>Use this for appendix notebooks, offline review, reproducibility, and comparing future model or harness runs.</p>
+              <button class="wb-btn-secondary" onclick="wbDownloadBundle()">Download JSON</button>
+            </div>
+            <div class="wb-action-card">
+              <h3>Promote to knowledge extraction</h3>
+              <p>Use this when a finding should become a reusable GREP rule, RAG citation, context snippet, contact, or rubric dimension.</p>
+              <a class="wb-btn-secondary" href="/static/knowledge.html"
+                 onclick="return wbRequireConfirmedNavigation(event, 'Knowledge Extraction')">Open Knowledge Extraction</a>
+            </div>
+            <div class="wb-action-card">
+              <h3>Anonymize and share</h3>
+              <p>Use this only after review when you want to submit redacted facts or knowledge objects to the hub.</p>
+              <a class="wb-btn-secondary" href="/static/share.html"
+                 onclick="return wbRequireConfirmedNavigation(event, 'Anonymization and Sharing')">Open Anonymization &amp; Sharing</a>
             </div>
           </div>
         </div>
       </details>
     </div>
 
+    <div class="wb-card" id="wb-activity-card" style="margin-top:14px;">
+      <h2>Activity log <span class="wb-muted" style="font-weight: normal;">every API call and response is transparent</span></h2>
+      <div id="wb-log" class="dc-activity-log" role="log" aria-label="Activity log" aria-live="polite">
+        <div class="wb-muted">No activity yet. Click <i>Start processing</i> to begin.</div>
+      </div>
+    </div>
+
   </main>
 
   <script>
-    let wbFile = null, wbBundle = null;
+    let wbFile = null, wbBundle = null, wbIntelligenceConfirmed = false;
+    function wbSetProcessProgress(percent, stage, detail) {
+      const pct = Math.max(0, Math.min(100, Number(percent) || 0));
+      const fill = document.getElementById('wb-process-progress-fill');
+      const label = document.getElementById('wb-process-progress-label');
+      const stageEl = document.getElementById('wb-process-stage');
+      const detailEl = document.getElementById('wb-process-progress-detail');
+      if (fill) fill.style.width = pct + '%';
+      if (label) label.textContent = pct + '%';
+      if (stageEl) stageEl.textContent = stage || 'Waiting';
+      if (detailEl) detailEl.textContent = detail || '';
+    }
     function wbSetWorkflow(active) {
       const ids = ['wb-step-upload', 'wb-step-process', 'wb-step-intelligence',
                    'wb-graph-chat', 'wb-step-export'];
@@ -458,18 +562,24 @@
     // previous bespoke wbLog() hand-rolled DOM construction; we now
     // delegate to the shared helper so styling, sanitisation, and
     // trim/scroll behaviour are uniform across the workbench.
-    const _dcLog = (window.dcActivityLog
-                     ? window.dcActivityLog.attach('#wb-log')
-                     : null);
+    let _dcLog = null;
+    function wbGetLog() {
+      if (!_dcLog && window.dcActivityLog) {
+        _dcLog = window.dcActivityLog.attach('#wb-log');
+      }
+      return _dcLog;
+    }
     const wbLog = (kind, msg, detail) => {
-      if (!_dcLog) return;
-      const fn = ({info: _dcLog.info, ok: _dcLog.ok, warn: _dcLog.warn,
-                    err: _dcLog.err, step: _dcLog.step,
-                    net: _dcLog.net, anon: _dcLog.anon}[kind]
-                   || _dcLog.info);
+      const log = wbGetLog();
+      if (!log) return;
+      const fn = ({info: log.info, ok: log.ok, warn: log.warn,
+                    err: log.err, step: log.step,
+                    net: log.net, anon: log.anon}[kind]
+                   || log.info);
       const cleanDetail = detail == null ? detail : String(detail).replace(/\u00c2\u00b7/g, ' | ');
       fn(msg, cleanDetail);
     };
+    window.addEventListener('DOMContentLoaded', wbGetLog);
     function wbEsc(s) {
       return String(s == null ? '' : s).replace(/[&<>"']/g, c =>
         ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -477,29 +587,95 @@
     function wbPill(s) {
       return '<span class="wb-pill">' + wbEsc(s) + '</span>';
     }
+    function wbBriefStatusLabel(status) {
+      return ({
+        ok: 'Gemma brief ready',
+        unparsed_text: 'Gemma text brief',
+        deterministic_no_model: 'Deterministic brief',
+        model_error_deterministic_fallback: 'Deterministic fallback',
+      })[status] || (status || 'not run');
+    }
+    function wbReviewChecklist() {
+      return Array.from(document.querySelectorAll('.wb-review-check')).map((el, idx) => ({
+        index: idx + 1,
+        label: (el.parentElement ? el.parentElement.textContent : '').trim(),
+        checked: !!el.checked,
+      }));
+    }
+    function wbResetReview() {
+      document.querySelectorAll('.wb-review-check').forEach(el => { el.checked = false; });
+      const notes = document.getElementById('wb-review-notes');
+      if (notes) notes.value = '';
+      const btn = document.getElementById('wb-confirm-intel-btn');
+      if (btn) btn.disabled = true;
+      const status = document.getElementById('wb-review-status');
+      if (status) status.textContent = 'Process a bundle first.';
+    }
+    function wbUpdateReviewReady() {
+      const status = document.getElementById('wb-review-status');
+      const btn = document.getElementById('wb-confirm-intel-btn');
+      if (!wbBundle) {
+        if (btn) btn.disabled = true;
+        if (status) status.textContent = 'Process a bundle first.';
+        return;
+      }
+      const checks = wbReviewChecklist();
+      const checked = checks.filter(c => c.checked).length;
+      if (btn) btn.disabled = false;
+      if (status) {
+        status.textContent = checked
+          ? checked + ' of ' + checks.length + ' review checks marked. Confirm when ready.'
+          : 'Review the extracted intelligence, then confirm when ready.';
+      }
+    }
+    function wbAttachReviewMetadata() {
+      if (!wbBundle) return;
+      wbBundle.reviewer_confirmation = {
+        confirmed: wbIntelligenceConfirmed,
+        confirmed_at: wbIntelligenceConfirmed ? new Date().toISOString() : null,
+        notes: (document.getElementById('wb-review-notes').value || '').trim(),
+        checklist: wbReviewChecklist(),
+      };
+    }
     function wbHandle(ev) {
       const f = (ev.target.files || [])[0];
       if (!f) return;
       wbFile = f;
+      wbBundle = null;
+      wbIntelligenceConfirmed = false;
+      wbResetReview();
       document.getElementById('wb-file-info').innerHTML =
         '<span class="wb-pill">' + wbEsc(f.name) + ' (' + Math.round(f.size / 1024) + ' KB)</span>';
       document.getElementById('wb-process-btn').disabled = false;
       document.getElementById('wb-process-hint').textContent = 'Click Start processing.';
       document.getElementById('wb-error').style.display = 'none';
+      document.getElementById('wb-review-status').textContent = 'Process the bundle, then review extracted intelligence.';
+      document.getElementById('pg-ask-btn').disabled = true;
+      document.getElementById('pg-status').textContent = 'Confirm Step 3 before asking graph questions.';
+      wbSetProcessProgress(0, 'Ready to process', 'Click Start processing to parse, score, link, and brief the bundle.');
       wbLog('info', 'File attached: ' + f.name + ' (' + f.size + ' bytes)');
       wbSetWorkflow(0);
     }
     async function wbProcess() {
       if (!wbFile) return;
+      if (window.dcWbEnsureModelReady && !(await window.dcWbEnsureModelReady())) {
+        wbLog('warn', 'Model required before bulk processing', 'Load a Gemma 4 model from the selector.');
+        return;
+      }
       const btn = document.getElementById('wb-process-btn');
       btn.disabled = true; btn.textContent = 'Processing...';
       document.getElementById('wb-error').style.display = 'none';
+      wbIntelligenceConfirmed = false;
+      wbResetReview();
+      document.getElementById('pg-ask-btn').disabled = true;
       wbLog('info', 'POST /api/process/batch', 'multipart upload, file=' + wbFile.name);
+      wbSetProcessProgress(18, 'Uploading bundle', 'Sending the local file to the in-kernel process harness.');
       wbSetWorkflow(1);
       const fd = new FormData(); fd.append('file', wbFile);
       const t0 = performance.now();
       try {
         const r = await fetch('/api/process/batch', { method: 'POST', body: fd });
+        wbSetProcessProgress(62, 'Parsing and linking evidence', 'Building rows, GREP hits, entities, folder edges, journey points, and media queue.');
         const dt = Math.round(performance.now() - t0);
         if (!r.ok) {
           const t = await r.text();
@@ -512,14 +688,28 @@
               ' | grep_rules_fired=' + wbBundle.summary.n_grep_rules_fired +
               ' | entities=' + wbBundle.summary.n_entities_extracted);
         wbRender(wbBundle);
-        document.getElementById('wb-results').style.display = '';
+        wbUpdateReviewReady();
+        wbSetProcessProgress(100, 'Processing complete', 'Review the extracted intelligence and confirm Step 3 before graph chat or export.');
         wbSetWorkflow(2);
       } catch (e) {
         const err = document.getElementById('wb-error');
         err.textContent = 'Process failed: ' + (e && e.message || e); err.style.display = '';
+        wbSetProcessProgress(0, 'Processing failed', (e && e.message) || String(e));
       } finally {
         btn.disabled = false; btn.textContent = 'Start processing';
       }
+    }
+    function wbConfirmIntelligence() {
+      if (!wbBundle) return;
+      wbIntelligenceConfirmed = true;
+      const notes = (document.getElementById('wb-review-notes').value || '').trim();
+      wbAttachReviewMetadata();
+      document.getElementById('wb-review-status').textContent =
+        notes ? 'Confirmed with reviewer notes.' : 'Confirmed. Graph chat and export actions are ready.';
+      document.getElementById('pg-ask-btn').disabled = false;
+      document.getElementById('pg-status').textContent = 'Ready. Choose an example question or write your own.';
+      wbLog('ok', 'Reviewer confirmed extracted intelligence', notes ? notes.slice(0, 180) : 'no notes');
+      wbSetWorkflow(3);
     }
     function wbRender(b) {
       const s = b.summary || {};
@@ -612,7 +802,7 @@
         ['Documents', intel.n_documents || (summary.n_rows_processed || 0)],
         ['Evidence edges', intel.n_evidence_edges || 0],
         ['Journey points', (intel.journey_points || []).length],
-        ['Gemma brief', (intel.gemma_case_brief || {}).status || 'not run'],
+        ['Gemma brief', wbBriefStatusLabel((intel.gemma_case_brief || {}).status)],
       ];
       document.getElementById('wb-intel-metrics').innerHTML = metrics.map(m =>
         '<div class="wb-metric"><div class="label">' + wbEsc(m[0]) + '</div><div class="value">' + wbEsc(m[1]) + '</div></div>'
@@ -650,10 +840,14 @@
       ).join('') : '<div class="wb-muted">No dates detected.</div>';
       const brief = intel.gemma_case_brief || {};
       const briefJson = brief.json || null;
+      const briefStatus = brief.status || 'not run';
+      const briefHead = briefStatus === 'model_error_deterministic_fallback'
+        ? '<div class="wb-error" style="margin-bottom:8px;">Gemma 4 case brief failed, so the page is showing the deterministic case brief. Error: ' + wbEsc(brief.error || 'unknown model error') + '</div>'
+        : '<div class="wb-status-pill" style="display:inline-block; margin-bottom:8px;">' + wbEsc(wbBriefStatusLabel(briefStatus)) + '</div>';
       document.getElementById('wb-gemma-brief').innerHTML =
-        briefJson ? '<pre style="white-space:pre-wrap; max-height:300px; overflow:auto; background:#FAF9F4; border:1px solid #EFEDE4; border-radius:8px; padding:10px; font-size:11.5px;">' + wbEsc(JSON.stringify(briefJson, null, 2)) + '</pre>' :
-        brief.text ? '<pre style="white-space:pre-wrap; max-height:300px; overflow:auto; background:#FAF9F4; border:1px solid #EFEDE4; border-radius:8px; padding:10px; font-size:11.5px;">' + wbEsc(brief.text) + '</pre>' :
-        '<div class="wb-muted">Gemma case brief status: ' + wbEsc(brief.status || 'not run') + '</div>';
+        briefJson ? briefHead + '<pre style="white-space:pre-wrap; max-height:300px; overflow:auto; background:#FAF9F4; border:1px solid #EFEDE4; border-radius:8px; padding:10px; font-size:11.5px;">' + wbEsc(JSON.stringify(briefJson, null, 2)) + '</pre>' :
+        brief.text ? briefHead + '<pre style="white-space:pre-wrap; max-height:300px; overflow:auto; background:#FAF9F4; border:1px solid #EFEDE4; border-radius:8px; padding:10px; font-size:11.5px;">' + wbEsc(brief.text) + '</pre>' :
+        '<div class="wb-muted">Gemma case brief status: ' + wbEsc(wbBriefStatusLabel(briefStatus)) + '</div>';
     }
     let wbLastGraphSvg = '';
     function wbGraphColor(group) {
@@ -849,12 +1043,29 @@
     }
     function wbDownloadBundle() {
       if (!wbBundle) return;
+      if (!wbIntelligenceConfirmed) {
+        wbSetWorkflow(2);
+        document.getElementById('wb-review-status').textContent =
+          'Confirm extracted intelligence before downloading the processed bundle.';
+        wbLog('warn', 'Download blocked until review confirmation', 'Confirm Step 3 first.');
+        return;
+      }
+      wbAttachReviewMetadata();
       wbSetWorkflow(4);
       const blob = new Blob([JSON.stringify(wbBundle, null, 2)], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a'); a.href = url; a.download = wbBundle.run_id + '_bundle.json'; a.click();
       setTimeout(() => URL.revokeObjectURL(url), 1000);
       wbLog('info', 'Downloaded bundle JSON', wbBundle.run_id + '_bundle.json');
+    }
+    function wbRequireConfirmedNavigation(event, target) {
+      if (wbIntelligenceConfirmed) return true;
+      if (event) event.preventDefault();
+      wbSetWorkflow(2);
+      document.getElementById('wb-review-status').textContent =
+        'Confirm extracted intelligence before moving to ' + target + '.';
+      wbLog('warn', 'Navigation blocked until review confirmation', target);
+      return false;
     }
     const dz = document.getElementById('wb-dropzone');
     if (dz) {

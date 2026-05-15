@@ -939,7 +939,11 @@ def _gemma_case_brief(app: Any, bundle: dict, intelligence: dict) -> dict:
         + _json.dumps(compact, ensure_ascii=False)[:12000]
     )
     try:
-        model_out = gc(prompt, max_new_tokens=700, temperature=0.2)
+        messages = [{"role": "user", "content": [{"type": "text", "text": prompt}]}]
+        try:
+            model_out = gc(messages, max_new_tokens=700, temperature=0.2)
+        except TypeError:
+            model_out = gc(messages)
         text = model_out if isinstance(model_out, str) else (
             (model_out or {}).get("text") or (model_out or {}).get("response") or ""
         )

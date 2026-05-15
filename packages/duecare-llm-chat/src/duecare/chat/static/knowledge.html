@@ -15,7 +15,7 @@
     .wb-card { background: #FFF; border: 1px solid #DDD8C9; border-radius: 12px; padding: 16px 18px; margin-bottom: 12px; }
     .wb-card h3 { font-size: 14px; font-weight: 600; margin: 0 0 6px; }
     .wb-pill { display: inline-block; font-family: 'JetBrains Mono', monospace; font-size: 10px; color: #2A2D34; background: #EFEDE4; border-radius: 4px; padding: 2px 7px; margin: 0 4px 4px 0; }
-    .wb-btn-primary { background: oklch(0.52 0.08 195); color: #F7F6F1; border: 0; padding: 7px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; }
+    .wb-btn-primary { background: oklch(0.52 0.08 195); color: #F7F6F1; border: 0; padding: 7px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; text-decoration: none; display: inline-block; }
     .wb-btn-secondary { background: #EFEDE4; color: #0E1116; border: 1px solid #DDD8C9; padding: 6px 12px; border-radius: 8px; font-size: 12px; cursor: pointer; text-decoration: none; display: inline-block; }
     .wb-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 8px; }
     .wb-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
@@ -44,7 +44,18 @@
     body:not(.kx-show-taxonomy) details.wb-branch { display: none; }
     .wb-trust { background: oklch(0.92 0.06 155); color: oklch(0.32 0.07 155); padding: 8px 14px; border-radius: 8px; font-size: 12.5px; margin-bottom: 14px; }
     .wb-error { background: oklch(0.94 0.04 25); color: oklch(0.32 0.10 25); padding: 8px 10px; border-radius: 6px; font-size: 12px; margin-top: 8px; }
-    .kx-workflow { display: grid; gap: 12px; margin: 16px 0 18px; }
+    .kx-hero { background:#FFF; border:1px solid #DDD8C9; border-left:4px solid oklch(0.52 0.08 195);
+               border-radius:12px; padding:16px 18px; margin:0 0 16px; }
+    .kx-hero h2 { font-size:16px; margin:0 0 6px; }
+    .kx-hero-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(210px,1fr)); gap:10px; margin-top:10px; }
+    .kx-hero-item { background:#FAF9F4; border:1px solid #EFEDE4; border-radius:8px; padding:10px 12px; }
+    .kx-hero-item b { display:block; font-size:12.5px; margin-bottom:3px; }
+    .kx-hero-item span { color:#5B5F68; font-size:11.5px; line-height:1.45; }
+    .kx-workflow { display: grid; gap: 16px; margin: 16px 0 18px; }
+    .kx-action-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(240px,1fr)); gap:12px; }
+    .kx-action-card { background:#FAF9F4; border:1px solid #EFEDE4; border-radius:8px; padding:12px; }
+    .kx-action-card h3 { font-size:13px; margin:0 0 5px; }
+    .kx-action-card p { color:#5B5F68; font-size:11.5px; line-height:1.45; margin:0 0 10px; }
     .kx-workflow-step { background: #FFF; border: 1px solid #DDD8C9; border-left: 4px solid #DDD8C9;
                         border-radius: 12px; overflow: hidden; }
     .kx-workflow-step[open] { border-left-color: oklch(0.52 0.08 195); box-shadow: 0 10px 24px rgba(14,17,22,0.06); }
@@ -59,8 +70,8 @@
                      font-family: var(--mono); font-size: 11px; font-weight: 700; }
     .kx-workflow-step[open] .kx-step-index { background: oklch(0.52 0.08 195); color: #F7F6F1; }
     .kx-workflow-step.complete .kx-step-index { background: oklch(0.62 0.10 155); color: #F7F6F1; }
-    .kx-step-title { font-size: 15.5px; font-weight: 700; color: #0E1116; }
-    .kx-step-summary { color: #5B5F68; font-size: 11.5px; line-height: 1.4; margin-top: 2px; }
+    .kx-step-title { display: block; font-size: 15.5px; font-weight: 700; color: #0E1116; }
+    .kx-step-summary { display: block; color: #5B5F68; font-size: 11.5px; line-height: 1.4; margin-top: 2px; }
     .kx-step-state { color: #5B5F68; font-size: 10.5px; font-family: var(--mono);
                      text-transform: uppercase; letter-spacing: 0.06em; }
     .kx-step-body { padding: 16px 18px 18px; }
@@ -68,6 +79,7 @@
                 padding: 16px; color: #5B5F68; font-size: 12px; }
     .kx-example { text-align:left; background:#FAF9F4; border:1px solid #DDD8C9; border-radius:8px; padding:9px 10px; cursor:pointer; font-size:12px; color:#2A2D34; line-height:1.45; }
     .kx-example:hover { border-color: oklch(0.52 0.08 195); color:#0E1116; }
+    .kx-action-note { background:#FAF9F4; border:1px solid #EFEDE4; border-radius:8px; padding:10px 12px; color:#5B5F68; font-size:12px; line-height:1.45; }
   
     @media (max-width: 620px) {
       .wb-page { padding: 0 12px !important; }
@@ -92,6 +104,20 @@
       still choose a specific leaf type or manually author any taxonomy leaf.
     </p>
 
+    <section class="kx-hero" aria-label="Knowledge extraction overview">
+      <h2>What this workflow does</h2>
+      <p class="wb-muted" style="font-size:12.5px; line-height:1.55; margin:0;">
+        This page turns reviewed text into maintainable knowledge objects.
+        The normal path is paste source, draft suggestions, promote useful
+        envelopes, then finish by exporting or sharing through the redaction flow.
+      </p>
+      <div class="kx-hero-grid">
+        <div class="kx-hero-item"><b>No schema up front</b><span>Gemma 4 and deterministic hints suggest useful object types automatically.</span></div>
+        <div class="kx-hero-item"><b>Reviewer controlled</b><span>Drafts are suggestions until a human promotes them into the local knowledge store.</span></div>
+        <div class="kx-hero-item"><b>Pack ready</b><span>Promoted objects can be exported, synced, or anonymized for hub submission.</span></div>
+      </div>
+    </section>
+
     <div class="kx-workflow" aria-label="Knowledge extraction workflow">
       <details class="kx-workflow-step" id="kx-step-source" open>
         <summary>
@@ -113,7 +139,7 @@
             <label style="font-size:12px; margin-left:8px;">
               <input type="checkbox" id="kx-anonymize" checked> Anonymize raw text first
             </label>
-            <button class="wb-btn-secondary" type="button" onclick="kxSetWorkflow(1)" style="margin-left:auto;">Next: draft suggestions</button>
+            <button class="wb-btn-primary" type="button" onclick="kxContinueToDraft()" style="margin-left:auto;">Continue to draft</button>
           </div>
           <details style="margin-top:10px;">
             <summary style="cursor:pointer; font-size:12px; font-weight:600;">Advanced draft settings</summary>
@@ -127,6 +153,9 @@
                 <option value="rubric_dimension">rubric_dimension: grading rule</option>
                 <option value="ngo_directory">ngo_directory: contact resource</option>
                 <option value="fact_template">fact_template: structured extraction</option>
+                <option value="extracted_fact">extracted_fact: non-PII trend fact</option>
+                <option value="entity_signal">entity_signal: organization or actor signal</option>
+                <option value="modus_operandi">modus_operandi: generalized abuse pattern</option>
               </select>
             </div>
           </details>
@@ -144,9 +173,14 @@
         </summary>
         <div class="kx-step-body">
           <div class="wb-row" style="margin-top:0; gap:8px;">
-            <button class="wb-btn-primary" id="kx-extract-btn" onclick="kxExtract()">Draft suggestions</button>
+            <button class="wb-btn-primary" id="kx-extract-btn" onclick="kxExtract()">Draft knowledge objects</button>
             <a class="wb-btn-secondary" href="/api/knowledge/taxonomy" target="_blank">Runtime taxonomy JSON</a>
+            <button class="wb-btn-secondary" id="kx-finish-review-btn" type="button" onclick="kxFinishDraftReview()" disabled>Finish review</button>
             <span id="kx-extract-status" class="wb-muted" style="font-size:11.5px;"></span>
+          </div>
+          <div class="kx-action-note" style="margin-top:10px;">
+            Draft creates suggestions only. Promote the useful ones into local knowledge,
+            then click Finish review to move to import, export, or sharing.
           </div>
           <div id="kx-extract-result" class="kx-empty" style="margin-top:10px;">
             Drafted envelopes will appear here with promote buttons after Step 1 has source text.
@@ -158,44 +192,32 @@
         <summary>
           <span class="kx-step-index">3</span>
           <span>
-            <span class="kx-step-title">Import, export, or share knowledge packs</span>
-            <span class="kx-step-summary">Round-trip the sample bundle, promote useful objects, or open anonymized sharing.</span>
+            <span class="kx-step-title">Import or export knowledge packs</span>
+            <span class="kx-step-summary">Bring in a vetted pack ZIP or export the local knowledge store as a ZIP.</span>
           </span>
           <span class="kx-step-state" id="kx-step-pack-state">Waiting</span>
         </summary>
         <div class="kx-step-body">
-          <p class="wb-muted" style="font-size:12px; margin:0 0 10px;">
-            The sample bundle is a ZIP of four envelopes pathed as
-            <code>&lt;type&gt;/&lt;id&gt;.json</code>, so <code>/api/knowledge/import</code>
-            accepts it directly.
-          </p>
-          <div class="wb-row" style="gap:8px;">
-            <a class="wb-btn-secondary"
-               href="/static/samples/knowledge_object_sample.json"
-               download="knowledge_object_sample.json"
-               title="Download one envelope as JSON for inspection">
-              Download single envelope
-            </a>
-            <a class="wb-btn-secondary"
-               href="/static/samples/knowledge_bundle_sample.zip"
-               download="knowledge_bundle_sample.zip"
-               title="Download a bundle of 4 envelopes as ZIP">
-              Download sample bundle
-            </a>
-            <button class="wb-btn-primary" type="button" onclick="kxImportSampleBundle()"
-               title="Fetch the sample bundle ZIP and POST it to /api/knowledge/import">
-              Import sample bundle now
-            </button>
-            <a class="wb-btn-secondary" href="/static/share.html">Open Anonymization &amp; Sharing</a>
-            <span class="wb-muted" id="kx-sample-status"></span>
+          <div class="kx-action-grid">
+            <div class="kx-action-card">
+              <h3>Import pack ZIP</h3>
+              <p>Load a vetted or local knowledge pack. Entries must be stored as <code>&lt;type&gt;/&lt;id&gt;.json</code>.</p>
+              <button class="wb-btn-primary" type="button" onclick="kxOpenPackImport()">Import ZIP</button>
+            </div>
+            <div class="kx-action-card">
+              <h3>Export local packs</h3>
+              <p>Download every persisted object for appendix notebooks, sync review, or later anonymized sharing.</p>
+              <a class="wb-btn-primary" href="/api/knowledge/export" download>Export ZIP</a>
+            </div>
           </div>
-          <div id="kx-sample-result" style="margin-top:10px; font-size:12px;"></div>
+          <input type="file" id="kx-pack-import-input" style="display:none;" accept=".zip" onchange="kxImportPack(event)">
+          <div id="kx-pack-import-result" style="margin-top:10px; font-size:12px;"></div>
         </div>
       </details>
     </div>
 
     <details style="margin: 22px 0 8px; border:1px solid #DDD8C9; border-radius:8px; padding:10px 14px; background:#FFF;">
-      <summary style="cursor:pointer; font-size:13px; font-weight:600; color:var(--ink, #0E1116);">Advanced: manual authoring for 21 leaf types</summary>
+      <summary style="cursor:pointer; font-size:13px; font-weight:600; color:var(--ink, #0E1116);">Advanced: manual authoring for specialized leaf types</summary>
       <p class="wb-muted" style="font-size:12px; margin:8px 0 10px;">
         Most users should use the guided draft flow above. Open the advanced
         taxonomy only when you already know the exact schema you want to
@@ -226,11 +248,36 @@
     function kxUseExample(text){
       document.getElementById("kx-raw").value = text;
       kxSetWorkflow(0);
+      wbLog('info', 'Example source loaded', text.slice(0, 120));
+    }
+    function kxContinueToDraft(){
+      const raw=(document.getElementById("kx-raw").value||"").trim();
+      const statusEl=document.getElementById("kx-extract-status");
+      if(!raw){
+        if (statusEl) statusEl.textContent="Paste source text or load an example first.";
+        wbLog('warn', 'Draft step blocked', 'No source text.');
+        kxSetWorkflow(0);
+        return;
+      }
+      kxSetWorkflow(1);
+      wbLog('step', 'Source text ready for drafting', raw.length + ' chars');
     }
     function kxToggleTaxonomy(){
       document.body.classList.toggle('kx-show-taxonomy');
     }
     let kxDrafts = [];
+    let kxPromotedDrafts = 0;
+    function kxFinishDraftReview(){
+      if (!kxDrafts.length) {
+        document.getElementById("kx-extract-status").textContent="Draft suggestions before finishing review.";
+        wbLog('warn', 'Finish review blocked', 'No draft suggestions.');
+        kxSetWorkflow(1);
+        return;
+      }
+      document.getElementById("kx-extract-status").textContent="Review finished. Export, import, or share knowledge packs in Step 3.";
+      wbLog('ok', 'Knowledge draft review finished', kxDrafts.length + ' suggestion(s) reviewed.');
+      kxSetWorkflow(2);
+    }
     async function kxExtract(){
         const raw=(document.getElementById("kx-raw").value||"").trim();
         const leaf=document.getElementById("kx-leaf").value;
@@ -238,120 +285,110 @@
         const statusEl=document.getElementById("kx-extract-status");
         const resultEl=document.getElementById("kx-extract-result");
         if(!raw){ statusEl.textContent="Paste some text first."; kxSetWorkflow(0); return; }
+        if (window.dcWbEnsureModelReady && !(await window.dcWbEnsureModelReady())) {
+          statusEl.textContent="Load a model before drafting knowledge objects.";
+          wbLog('warn', 'Model required before knowledge drafting', 'Load a Gemma 4 model from the selector.');
+          return;
+        }
         const btn=document.getElementById("kx-extract-btn");
         btn.disabled=true; const origTxt=btn.textContent; btn.textContent="Extracting...";
         kxSetWorkflow(1);
         statusEl.textContent="POST /api/knowledge/draft-envelope (auto-suggest) ...";
+        wbLog('net', 'POST /api/knowledge/draft-envelope', 'target_leaf=' + leaf + ' | anonymize=' + anonymize + ' | chars=' + raw.length);
+        const t0 = performance.now();
         try{
           const r=await fetch("/api/knowledge/draft-envelope",{
             method:"POST",headers:{"Content-Type":"application/json"},
             body:JSON.stringify({raw_text:raw, target_leaf:leaf, anonymize:anonymize})
           });
           const out=await r.json();
+          const dt = Math.round(performance.now() - t0);
           kxSetWorkflow(1);
           if(!r.ok){
             statusEl.textContent="Extract failed: HTTP "+r.status;
             resultEl.innerHTML="<pre style=\"background:#FFF1F1; border:1px solid #FCC; padding:10px; border-radius:6px; font-size:11.5px; overflow:auto;\">"+escapeHtml(JSON.stringify(out,null,2))+"</pre>";
+            wbLog('err', 'HTTP ' + r.status + ' (' + dt + 'ms)', JSON.stringify(out).slice(0, 200));
             return;
           }
           statusEl.textContent="Draft suggestions ready. Review, promote useful ones, then anonymize and share if appropriate.";
           kxSetWorkflow(1);
           kxDrafts = out.suggestions || (out.envelope ? [out.envelope] : [out]);
+          kxPromotedDrafts = 0;
+          document.getElementById('kx-finish-review-btn').disabled = false;
+          wbLog('ok', 'Draft suggestions ready (' + dt + 'ms)', 'suggestions=' + kxDrafts.length);
           resultEl.innerHTML = kxDrafts.map((env, idx) =>
             '<section class="wb-card" style="background:#FAF9F4; margin:8px 0; padding:12px;">' +
             '<div style="display:flex; justify-content:space-between; gap:8px; flex-wrap:wrap;">' +
             '<div><b>' + escapeHtml(env.knowledge_object_type || 'knowledge_object') + '</b> ' +
             '<span class="wb-muted">' + escapeHtml(env.id || '') + '</span></div>' +
-            '<button class="wb-btn-primary" type="button" onclick="kxPromoteDraft(' + idx + ')">Promote this draft</button>' +
+            '<div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">' +
+            '<span class="wb-muted" id="kx-promote-status-' + idx + '">Not promoted</span>' +
+            '<button class="wb-btn-primary" id="kx-promote-btn-' + idx + '" type="button" onclick="kxPromoteDraft(' + idx + ')">Promote draft</button>' +
+            '</div>' +
             '</div>' +
             '<pre style="background:#FFF; border:1px solid #DDD8C9; padding:10px; border-radius:6px; font-size:11.5px; overflow:auto; max-height:240px;">' +
             escapeHtml(JSON.stringify(env, null, 2)) + '</pre></section>'
           ).join('');
         }catch(e){
           statusEl.textContent="Extract failed: "+String(e).slice(0,200);
+          wbLog('err', 'Draft suggestions failed', String(e).slice(0,200));
         }finally{ btn.disabled=false; btn.textContent=origTxt; }
       }
       async function kxPromoteDraft(idx){
         const env = kxDrafts[idx];
         if(!env){ return; }
-        wbLog('info', 'POST /api/knowledge/promote', 'type=' + env.knowledge_object_type + ' id=' + env.id);
+        const btn = document.getElementById('kx-promote-btn-' + idx);
+        const status = document.getElementById('kx-promote-status-' + idx);
+        const promoted = JSON.parse(JSON.stringify(env));
+        promoted.id = String(promoted.id || ('draft-' + idx)).replace(/-draft$/, '');
+        promoted.version = 'v1';
+        promoted.extensions = Object.assign({}, promoted.extensions || {}, {
+          draft: false,
+          needs_review: false,
+          promoted_from_draft: env.id || '',
+          promoted_at: new Date().toISOString(),
+        });
+        if (btn) { btn.disabled = true; btn.textContent = 'Promoting...'; }
+        if (status) status.textContent = 'POST /api/knowledge/promote ...';
+        wbLog('net', 'POST /api/knowledge/promote', 'type=' + promoted.knowledge_object_type + ' id=' + promoted.id);
         const t0 = performance.now();
         try{
           const r = await fetch('/api/knowledge/promote', {
             method:'POST', headers:{'Content-Type':'application/json'},
-            body:JSON.stringify(env)
+            body:JSON.stringify(promoted)
           });
           const dt = Math.round(performance.now() - t0);
-          if(!r.ok){ wbLog('err', 'HTTP ' + r.status + ' (' + dt + 'ms)', (await r.text()).slice(0,200)); return; }
+          if(!r.ok){
+            const errText = (await r.text()).slice(0,200);
+            wbLog('err', 'HTTP ' + r.status + ' (' + dt + 'ms)', errText);
+            if (status) status.textContent = 'Promote failed: HTTP ' + r.status;
+            if (btn) { btn.disabled = false; btn.textContent = 'Try again'; }
+            return;
+          }
           const out = await r.json();
           wbLog('ok', 'Promoted draft (' + dt + 'ms)', 'written_to=' + out.written_to);
-          kxSetWorkflow(2);
+          if (status) status.textContent = 'Promoted to ' + out.type + '/' + out.id;
+          if (btn) btn.textContent = 'Promoted';
+          kxPromotedDrafts += 1;
+          document.getElementById("kx-extract-status").textContent =
+            kxPromotedDrafts + ' draft(s) promoted. Click Finish review when done.';
           kRefresh();
-        }catch(e){ wbLog('err', 'Promote draft failed', String(e).slice(0,200)); }
+        }catch(e){
+          wbLog('err', 'Promote draft failed', String(e).slice(0,200));
+          if (status) status.textContent = 'Promote failed. See activity log.';
+          if (btn) { btn.disabled = false; btn.textContent = 'Try again'; }
+        }
       }
       function escapeHtml(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
 
-      // Fetch the bundled sample ZIP and POST it to /api/knowledge/import
-      // so the user can verify the import path end-to-end without
-      // hunting down a sample file locally.
-      async function kxImportSampleBundle(){
-        const status=document.getElementById('kx-sample-status');
-        const result=document.getElementById('kx-sample-result');
-        result.textContent='';
-        kxSetWorkflow(2);
-        status.textContent='Fetching sample bundle...';
-        try{
-          const r=await fetch('/static/samples/knowledge_bundle_sample.zip');
-          if(!r.ok) throw new Error('HTTP '+r.status+' fetching sample');
-          const blob=await r.blob();
-          status.textContent='POST /api/knowledge/import ('+blob.size+' bytes)...';
-          const fd=new FormData();
-          fd.append('file', blob, 'knowledge_bundle_sample.zip');
-          const r2=await fetch('/api/knowledge/import',{method:'POST', body:fd});
-          const out=await r2.json();
-          if(!r2.ok){
-            status.textContent='Import failed: HTTP '+r2.status;
-            const pre=document.createElement('pre');
-            pre.style.cssText='background:#FFF1F1; border:1px solid #FCC; padding:10px; border-radius:6px; font-size:11.5px; overflow:auto; max-height:240px;';
-            pre.textContent=JSON.stringify(out,null,2);
-            result.textContent=''; result.appendChild(pre);
-            return;
-          }
-          status.textContent='Imported '+(out.n_imported||0)+' rejected '+(out.n_rejected||0);
-          const wrap=document.createElement('div');
-          const head=document.createElement('div');
-          head.style.cssText='font-size:12px; margin-bottom:6px;';
-          head.textContent='Imported '+(out.n_imported||0)+' envelopes. Runtime matching extras: '+JSON.stringify(out.runtime_matching_extras||{});
-          wrap.appendChild(head);
-          if(Array.isArray(out.imported)){
-            const ul=document.createElement('ul');
-            ul.style.cssText='margin:4px 0 0 18px; padding:0; font-size:11.5px;';
-            out.imported.forEach(e=>{
-              const li=document.createElement('li');
-              const code=document.createElement('code'); code.textContent=e.type+'/'+e.id;
-              li.appendChild(code);
-              ul.appendChild(li);
-            });
-            wrap.appendChild(ul);
-          }
-          if(Array.isArray(out.rejected) && out.rejected.length){
-            const det=document.createElement('details');
-            det.style.cssText='margin-top:6px;';
-            const sum=document.createElement('summary');
-            sum.className='wb-muted';
-            sum.textContent=out.rejected.length+' rejected (typically README.txt, expected)';
-            det.appendChild(sum);
-            const pre=document.createElement('pre');
-            pre.style.cssText='font-size:11px; margin:4px 0 0;';
-            pre.textContent=JSON.stringify(out.rejected,null,2);
-            det.appendChild(pre);
-            wrap.appendChild(det);
-          }
-          result.textContent=''; result.appendChild(wrap);
-        }catch(e){
-          status.textContent='Failed: '+String(e).slice(0,200);
-        }
+      function kxOpenPackImport(){
+        document.getElementById('kx-pack-import-input').click();
       }
+      async function kxImportPack(ev){
+        kxSetWorkflow(2);
+        await kImport(ev);
+      }
+
     </script>
 
     <details class="wb-branch" open>
@@ -523,17 +560,6 @@
       </div>
     </details>
 
-    <div class="wb-card" id="k-import-card">
-      <h2>Import a knowledge bundle ZIP <span class="wb-muted" style="font-weight: normal;">accepts output of /api/knowledge/export</span></h2>
-      <p class="wb-muted">Entries must be <code>&lt;type&gt;/&lt;id&gt;.json</code>; invalid entries rejected with reason.</p>
-      <div id="k-import-dz" style="border: 2px dashed #DDD8C9; border-radius: 10px; padding: 18px; text-align: center; background: #FFF; cursor: pointer; font-size: 12.5px; color: #5B5F68;" onclick="document.getElementById('k-import-input').click()">
-        <div style="font-size: 22px; margin-bottom: 4px;">+</div>
-        Drop a <code>.zip</code> here or <span style="color: oklch(0.32 0.07 195); text-decoration: underline;">browse</span>
-      </div>
-      <input type="file" id="k-import-input" style="display: none;" accept=".zip" onchange="kImport(event)">
-      <div id="k-import-result" style="margin-top: 10px;"></div>
-    </div>
-
     <div class="wb-card" id="k-inspect-card" style="display: none;">
       <h2>Inspect <span id="k-inspect-id" class="wb-muted"></span></h2>
       <pre id="k-inspect-body" style="background: #0E1116; color: #E4E1D7; padding: 12px; border-radius: 8px; font-family: 'JetBrains Mono', monospace; font-size: 11.5px; overflow-x: auto; max-height: 380px; overflow-y: auto;"></pre>
@@ -556,7 +582,6 @@
           <option value="input_knowledge">input_knowledge</option>
           <option value="output_knowledge">output_knowledge</option>
         </select>
-        <a class="wb-btn-secondary" href="/api/knowledge/export" download>Export all as ZIP</a>
       </div>
       <div id="k-roster" class="wb-roster" style="margin-top: 10px;">
         <div class="wb-muted">Click <i>Refresh roster</i> to fetch.</div>
@@ -592,17 +617,23 @@
     // previous bespoke wbLog() hand-rolled DOM construction; we now
     // delegate to the shared helper so styling, sanitisation, and
     // trim/scroll behaviour are uniform across the workbench.
-    const _dcLog = (window.dcActivityLog
-                     ? window.dcActivityLog.attach('#wb-log')
-                     : null);
+    let _dcLog = null;
+    function wbGetLog() {
+      if (!_dcLog && window.dcActivityLog) {
+        _dcLog = window.dcActivityLog.attach('#wb-log');
+      }
+      return _dcLog;
+    }
     const wbLog = (kind, msg, detail) => {
-      if (!_dcLog) return;
-      const fn = ({info: _dcLog.info, ok: _dcLog.ok, warn: _dcLog.warn,
-                    err: _dcLog.err, step: _dcLog.step,
-                    net: _dcLog.net, anon: _dcLog.anon}[kind]
-                   || _dcLog.info);
+      const log = wbGetLog();
+      if (!log) return;
+      const fn = ({info: log.info, ok: log.ok, warn: log.warn,
+                    err: log.err, step: log.step,
+                    net: log.net, anon: log.anon}[kind]
+                   || log.info);
       fn(msg, detail);
     };
+    window.addEventListener('DOMContentLoaded', wbGetLog);
 
     async function kPromote(type, id, content) {
       if (!id) { wbLog('err', 'No id supplied for ' + type, ''); return; }
@@ -736,8 +767,8 @@
     async function kImport(ev) {
       const f = (ev.target.files || [])[0];
       if (!f) return;
-      const resultHost = document.getElementById('k-import-result');
-      resultHost.textContent = '';
+      const resultHost = document.getElementById('kx-pack-import-result') || document.getElementById('k-import-result');
+      if (resultHost) resultHost.textContent = '';
       wbLog('info', 'POST /api/knowledge/import', 'file=' + f.name);
       const t0 = performance.now();
       try {
@@ -747,7 +778,8 @@
         if (!r.ok) {
           const t = await r.text();
           wbLog('err', 'HTTP ' + r.status + ' (' + dt + 'ms)', t.slice(0, 200));
-          resultHost.innerHTML = '<div class="wb-error">' + esc(t.slice(0,200)) + '</div>'; return;
+          if (resultHost) resultHost.innerHTML = '<div class="wb-error">' + esc(t.slice(0,200)) + '</div>';
+          return;
         }
         const out = await r.json();
         wbLog('ok', 'HTTP ' + r.status + ' (' + dt + 'ms)', 'imported=' + out.n_imported + ' rejected=' + out.n_rejected);
@@ -760,11 +792,11 @@
           html += '<details style="margin-top:6px;" open><summary class="wb-muted">rejected</summary><ul style="margin:4px 0 0 18px;padding:0;">' +
             out.rejected.map(e => '<li><code>' + esc(e.name) + '</code>: ' + esc(e.reason) + '</li>').join('') + '</ul></details>';
         }
-        resultHost.innerHTML = html;
+        if (resultHost) resultHost.innerHTML = html;
         kRefresh();
       } catch (e) {
         wbLog('err', 'Import failed', '' + (e && e.message || e));
-        resultHost.innerHTML = '<div class="wb-error">' + esc(e && e.message || '') + '</div>';
+        if (resultHost) resultHost.innerHTML = '<div class="wb-error">' + esc(e && e.message || '') + '</div>';
       } finally { ev.target.value = ''; }
     }
 

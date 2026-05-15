@@ -37,16 +37,20 @@ def compose_layers(
                 except TypeError:
                     out = gc(text, extra_rules=None) or {}
                 hits = (out.get("hits") or [])[:10]
+                rule_ids = [
+                    rid for rid in (h.get("rule_id") or h.get("id") for h in hits)
+                    if rid
+                ]
                 trace["grep"] = {
                     "fired": bool(hits),
                     "n_hits": len(hits),
-                    "rule_ids": [h.get("rule_id") or h.get("id") for h in hits],
+                    "rule_ids": rule_ids,
                 }
                 if hits:
                     grounding_chunks.append(
                         "[GREP layer fired]\n"
                         + "\n".join(
-                            f"- {h.get('rule_id') or h.get('id')} "
+                            f"- {h.get('rule_id') or h.get('id') or 'unnamed_rule'} "
                             f"({h.get('severity', 'medium')}): "
                             f"{(h.get('match_text') or h.get('match') or '')[:120]}"
                             for h in hits
