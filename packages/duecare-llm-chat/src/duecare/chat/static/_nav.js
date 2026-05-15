@@ -252,6 +252,8 @@
         if (!pop) return;
         modelSelectorRequired = !!opts.required;
         pop.hidden = false;
+        pop.setAttribute('aria-modal', modelSelectorRequired ? 'true' : 'false');
+        pop.setAttribute('data-required', modelSelectorRequired ? 'true' : 'false');
         if (overlay) overlay.hidden = !modelSelectorRequired;
         document.body.classList.toggle('dc-wb-model-required', modelSelectorRequired);
         if (btn) btn.setAttribute('aria-expanded', 'true');
@@ -260,6 +262,10 @@
                 'Load a Gemma 4 model to continue. The top bar can switch models after one is loaded.'
             );
         }
+        setTimeout(function () {
+            const sel = modelSelectEl();
+            if (sel) sel.focus();
+        }, 0);
         refreshModelLoaderStatus();
     }
 
@@ -270,6 +276,10 @@
         if (modelSelectorRequired && !force && !modelLastStatus.loaded) return;
         modelSelectorRequired = false;
         if (pop) pop.hidden = true;
+        if (pop) {
+            pop.setAttribute('aria-modal', 'false');
+            pop.removeAttribute('data-required');
+        }
         if (overlay) overlay.hidden = true;
         document.body.classList.remove('dc-wb-model-required');
         if (btn) btn.setAttribute('aria-expanded', 'false');

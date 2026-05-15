@@ -154,10 +154,15 @@ def test_model_selector_lives_in_shared_nav(client):
     assert "pageRequiresModelOnLoad()" in nav_js
     assert "renderSelectedModelDetail" in nav_js
     assert "This panel closes automatically" in nav
+    assert "aria-modal" in nav_js
+    assert "data-required" in nav_js
     chrome = client.get("/static/_chrome.css").text
     assert "dc-wb-model-required" in chrome
-    assert "top: 72px" in chrome
-    assert "bottom: 24px" in chrome
+    assert "top: 50%" in chrome
+    assert "transform: translate(-50%, -50%)" in chrome
+    assert "width: min(760px, calc(100vw - 32px))" in chrome
+    assert "max-height: min(760px, calc(100vh - 48px))" in chrome
+    assert "overflow-y: auto" in chrome
     assert "wireNavToggle" in nav_js
 
 
