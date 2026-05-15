@@ -1006,6 +1006,36 @@ code, .mono {
   color: #8A8E97; font-style: italic; padding: 4px 0;
 }
 
+/* Fallback bottom log injected by _nav.js on pages that do not define
+   their own activity log. Page-specific logs win; this only covers older
+   catalog and utility pages so every workbench surface has the same
+   transparent endpoint trail. */
+.dc-wb-auto-log-card {
+  max-width: 1120px;
+  margin: 18px auto 60px;
+  padding: 16px 18px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  color: var(--ink);
+  font-family: var(--sans);
+}
+main > .dc-wb-auto-log-card {
+  max-width: none;
+  margin: 18px 0 0;
+}
+.dc-wb-auto-log-card h2 {
+  margin: 0 0 10px;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0;
+}
+.dc-wb-auto-log-card h2 span {
+  color: var(--ink-3);
+  font-size: 12px;
+  font-weight: 400;
+}
+
 /* Mini progress dots paired with an activity log. */
 .dc-progress-row {
   display: flex; gap: 8px; flex-wrap: wrap; align-items: center;

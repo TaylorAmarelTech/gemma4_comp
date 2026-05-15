@@ -29,6 +29,26 @@ def _load_harness():
     return importlib.import_module("duecare.chat.harness")
 
 
+def test_chat_harness_precontext_pins_response_contract() -> None:
+    """The chat pre-context should turn fired layers into rubric-aligned
+    response requirements, not just a generic warning.
+    """
+    src = (
+        Path(__file__).parent.parent
+        / "src"
+        / "duecare"
+        / "chat"
+        / "harnesses"
+        / "chat"
+        / "send.py"
+    ).read_text(encoding="utf-8")
+    assert "Return only the final answer" in src
+    assert "substance over form" in src
+    assert "formal protection from retaliation" in src
+    assert "retaliation risk" in src
+    assert "vetted contacts pack" in src
+
+
 def test_grep_fires_on_predatory_lending() -> None:
     """The GREP layer should detect 68% APR as a usury pattern."""
     h = _load_harness()
@@ -977,6 +997,17 @@ def test_worker_complaint_advice_requires_retaliation_notice() -> None:
     assert weak_dim["status"] == "FAIL", weak_dim
 
 
+def test_grep_complaint_retaliation_employer_pressure_rule() -> None:
+    """Agency calls to employers after a worker complains are a
+    retaliation pattern, not ordinary case administration.
+    """
+    text = (
+        "The recruiter said if I file a complaint with the Labour Department, "
+        "the agency will call my employer and I may be blacklisted."
+    )
+    assert "complaint_retaliation_employer_pressure" in _grep_rule_ids(text)
+
+
 def test_operator_assignment_prompt_activates_evasion_dims_not_worker_help() -> None:
     """The legal-soundness prompt is hostile/operator framed, not a
     first-person worker-help prompt. Evasion dimensions should apply;
@@ -1438,6 +1469,19 @@ def test_rag_poea_complaint_procedure_top_for_complaint_query() -> None:
     )["docs"]
     ids = [d["id"] for d in docs]
     assert "poea_complaint_procedure_ra8042_s10" in ids
+
+
+def test_rag_complaint_retaliation_safe_reporting_top_for_worker_query() -> None:
+    """Complaint retaliation queries should retrieve safe-reporting
+    guidance, not only complaint filing mechanics.
+    """
+    h = _load_harness()
+    docs = h._rag_call(
+        "my agency may call my employer if I file a complaint and blacklist me",
+        top_k=5,
+    )["docs"]
+    ids = [d["id"] for d in docs]
+    assert "complaint_retaliation_safe_reporting" in ids
 
 
 def test_rag_c188_fishing_top_for_fishing_query() -> None:

@@ -754,11 +754,17 @@
         {label: 'Attributes', status: 'complete', detail: 'intelligence extracted'},
       ];
       host.innerHTML = rows.map((step, idx) =>
+        {
+          const detail = (step.id === 'gemma' || /gemma/i.test(step.label || ''))
+            ? wbBriefStatusLabel(step.detail || step.status || '')
+            : (step.detail || step.status || '');
+          return (
         '<div class="wb-step ' + wbEsc(step.status || '') + '">' +
         '<div class="num">Step ' + (idx + 1) + '</div>' +
         '<div class="name">' + wbEsc(step.label || step.id || 'Step') + '</div>' +
-        '<div class="detail">' + wbEsc(step.detail || step.status || '') + '</div>' +
-        '</div>'
+        '<div class="detail">' + wbEsc(detail) + '</div>' +
+        '</div>');
+        }
       ).join('');
     }
     function wbRenderProcessingPlan(plan) {
@@ -842,7 +848,7 @@
       const briefJson = brief.json || null;
       const briefStatus = brief.status || 'not run';
       const briefHead = briefStatus === 'model_error_deterministic_fallback'
-        ? '<div class="wb-error" style="margin-bottom:8px;">Gemma 4 case brief failed, so the page is showing the deterministic case brief. Error: ' + wbEsc(brief.error || 'unknown model error') + '</div>'
+        ? '<div style="margin-bottom:8px; background:#FAF9F4; border:1px solid #DDD8C9; border-left:3px solid oklch(0.52 0.08 195); border-radius:8px; padding:10px 12px; color:#2A2D34; font-size:12px; line-height:1.45;">Gemma 4 was unavailable for this brief, so the page is showing the deterministic case brief. Loader detail: ' + wbEsc(brief.error || 'model call unavailable') + '</div>'
         : '<div class="wb-status-pill" style="display:inline-block; margin-bottom:8px;">' + wbEsc(wbBriefStatusLabel(briefStatus)) + '</div>';
       document.getElementById('wb-gemma-brief').innerHTML =
         briefJson ? briefHead + '<pre style="white-space:pre-wrap; max-height:300px; overflow:auto; background:#FAF9F4; border:1px solid #EFEDE4; border-radius:8px; padding:10px; font-size:11.5px;">' + wbEsc(JSON.stringify(briefJson, null, 2)) + '</pre>' :
