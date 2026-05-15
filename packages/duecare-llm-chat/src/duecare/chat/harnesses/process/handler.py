@@ -11,11 +11,13 @@ import hashlib as _hashlib
 import io as _io
 import json as _json
 import re as _re
+import threading as _threading
 import zipfile
 import xml.etree.ElementTree as _ET
 from datetime import datetime as _dt
 from pathlib import Path as _Path
 from typing import Any
+from uuid import uuid4 as _uuid4
 
 from fastapi import HTTPException, Request
 from fastapi.responses import JSONResponse
@@ -1609,37 +1611,71 @@ def _graph_chat_deterministic_answer(bundle: dict, question: str) -> dict | None
 def register_routes(app: Any) -> None:
     """Attach the process routes to a FastAPI app."""
 
-    @app.post("/api/process/batch")
-    async def api_process_batch(request: Request) -> Any:
-        """Multipart upload -> rows -> GREP hits + entity regex -> v1.0 bundle."""
-        form = await request.form()
-        upload = form.get("file")
-        if upload is None:
-            raise HTTPException(400, "no `file` field in multipart upload")
-        contents = await upload.read()
-        filename = getattr(upload, "filename", "uploaded") or "uploaded"
+    def _process_jobs() -> tuple[dict[str, dict[str, Any]], _threading.Lock]:
+        if not hasattr(app.state, "process_jobs"):
+            app.state.process_jobs = {}
+        if not hasattr(app.state, "process_jobs_lock"):
+            app.state.process_jobs_lock = _threading.Lock()
+        return app.state.process_jobs, app.state.process_jobs_lock
 
+    def _process_job_update(job_id: str, **fields: Any) -> None:
+        jobs, lock = _process_jobs()
+        with lock:
+            job = jobs.setdefault(job_id, {"job_id": job_id, "events": []})
+            event = {
+                "ts": _dt.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"),
+                "status": fields.get("status", job.get("status", "running")),
+                "phase": fields.get("phase", job.get("phase", "")),
+                "pct": fields.get("pct", job.get("pct", 0)),
+                "detail": fields.get("detail", ""),
+            }
+            job.update(fields)
+            job.setdefault("events", []).append(event)
+            job["updated_at"] = event["ts"]
+
+    def _build_process_bundle(
+        filename: str,
+        contents: bytes,
+        *,
+        progress: Any | None = None,
+        job_id: str | None = None,
+    ) -> dict[str, Any]:
+        """Build the process bundle synchronously, with optional job progress."""
+        def mark(phase: str, pct: int, detail: str) -> None:
+            if progress:
+                progress(phase=phase, pct=pct, detail=detail)
+
+        mark("staging", 12, "Saving the uploaded knowledge/source bundle in local process staging.")
         ts = _dt.utcnow().strftime("%Y-%m-%dT%H-%M-%SZ")
         run_id = f"01_process_{ts}"
         staging = _stage_upload(filename, contents, run_id)
 
+        mark("parsing", 24, "Enumerating ZIP members, folders, pages, tables, messages, and media assets.")
         try:
             rows = _parse_upload(filename, contents)
         except Exception as e:
             raise HTTPException(400, f"parse failed: {e}")
 
+        mark("scoring", 42, "Running GREP rules and deterministic entity extraction over parsed rows.")
         capped = rows[:_ROW_CAP]
         results, agg_grep, agg_entity, agg_statute = _score_rows(
             capped, getattr(app.state, "grep_call", None)
         )
 
+        mark("linking", 63, "Building people, folders, journey stages, payments, locations, and evidence edges.")
         top_grep = sorted(agg_grep.items(), key=lambda x: -x[1])[:10]
         top_statute = sorted(agg_statute.items(), key=lambda x: -x[1])[:10]
         bundle = {
             "schema_version": "1.0",
             "kernel_id": "01-duecare-exploration-workbench",
             "run_id": run_id,
-            "config": {"row_cap": _ROW_CAP, "source": filename, "gemma_case_brief": "deferred"},
+            "job_id": job_id,
+            "config": {
+                "row_cap": _ROW_CAP,
+                "source": filename,
+                "gemma_case_brief": "deferred",
+                "processing_mode": "async_job" if job_id else "direct",
+            },
             "metadata": {"started_at": ts, "completed_at": ts, "host": "kernel-01"},
             "summary": {
                 "n_rows_total": len(rows),
@@ -1654,6 +1690,7 @@ def register_routes(app: Any) -> None:
             "results": results,
         }
         intelligence = _build_intelligence(capped, results)
+        mark("brief", 80, "Creating deterministic case brief; Gemma 4 vision/OCR remains explicit when not wired.")
         deterministic_brief = _deterministic_case_brief(bundle, intelligence)
         gemma_brief = {
             "available": bool(getattr(app.state, "gemma_call", None)),
@@ -1668,6 +1705,7 @@ def register_routes(app: Any) -> None:
             ),
         }
         intelligence["gemma_case_brief"] = gemma_brief
+        media_count = ((intelligence.get("processing_plan") or {}).get("n_media_assets", 0))
         intelligence["harness_trace"] = [
             {
                 "id": "upload",
@@ -1701,9 +1739,12 @@ def register_routes(app: Any) -> None:
             },
             {
                 "id": "gemma",
-                "label": "Gemma 4 case brief",
+                "label": "Gemma 4 case brief / media vision",
                 "status": "deferred",
-                "detail": gemma_brief.get("status", "not_run"),
+                "detail": (
+                    f"{gemma_brief.get('status', 'not_run')}; "
+                    f"{media_count} media item(s) queued for OCR/Gemma 4 page review"
+                ),
             },
             {
                 "id": "graph",
@@ -1718,6 +1759,7 @@ def register_routes(app: Any) -> None:
         bundle["summary"]["n_evidence_edges"] = intelligence.get("n_evidence_edges", 0)
         bundle["summary"]["gemma_case_brief_status"] = gemma_brief.get("status")
         app.state.last_process_bundle = bundle
+        mark("caching", 92, "Caching local graph for graph chat and export.")
         try:
             from .._training_log import log_interaction as _log
             _summary = bundle.get("summary") or {}
@@ -1741,7 +1783,105 @@ def register_routes(app: Any) -> None:
             )
         except Exception:
             pass
-        return JSONResponse(bundle)
+        mark("complete", 100, "Processing complete. Review extracted intelligence before graph chat or export.")
+        return bundle
+
+    @app.post("/api/process/batch")
+    async def api_process_batch(request: Request) -> Any:
+        """Multipart upload -> rows -> GREP hits + entity regex -> v1.0 bundle."""
+        form = await request.form()
+        upload = form.get("file")
+        if upload is None:
+            raise HTTPException(400, "no `file` field in multipart upload")
+        contents = await upload.read()
+        filename = getattr(upload, "filename", "uploaded") or "uploaded"
+        return JSONResponse(_build_process_bundle(filename, contents))
+
+    @app.post("/api/process/batch/start")
+    async def api_process_batch_start(request: Request) -> Any:
+        """Start a background process job and return immediately for polling."""
+        form = await request.form()
+        upload = form.get("file")
+        if upload is None:
+            raise HTTPException(400, "no `file` field in multipart upload")
+        contents = await upload.read()
+        filename = getattr(upload, "filename", "uploaded") or "uploaded"
+        job_id = f"process_{_uuid4().hex[:12]}"
+        now = _dt.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
+        jobs, lock = _process_jobs()
+        with lock:
+            jobs[job_id] = {
+                "job_id": job_id,
+                "status": "queued",
+                "phase": "received",
+                "pct": 6,
+                "filename": filename,
+                "bytes": len(contents),
+                "created_at": now,
+                "updated_at": now,
+                "events": [{
+                    "ts": now,
+                    "status": "queued",
+                    "phase": "received",
+                    "pct": 6,
+                    "detail": f"{filename} received by Kaggle kernel; background parsing queued.",
+                }],
+            }
+
+        def worker() -> None:
+            try:
+                _process_job_update(
+                    job_id,
+                    status="running",
+                    phase="starting",
+                    pct=8,
+                    detail="Background worker started inside the Kaggle kernel.",
+                )
+                bundle = _build_process_bundle(
+                    filename,
+                    contents,
+                    job_id=job_id,
+                    progress=lambda **kw: _process_job_update(job_id, status="running", **kw),
+                )
+                _process_job_update(
+                    job_id,
+                    status="complete",
+                    phase="complete",
+                    pct=100,
+                    detail="Bundle processed and cached for graph chat.",
+                    result=bundle,
+                )
+            except Exception as e:
+                _process_job_update(
+                    job_id,
+                    status="error",
+                    phase="failed",
+                    pct=100,
+                    detail=str(e),
+                    error=str(e),
+                )
+
+        thread = _threading.Thread(target=worker, name=f"duecare-{job_id}", daemon=True)
+        thread.start()
+        return JSONResponse({
+            "job_id": job_id,
+            "status": "queued",
+            "phase": "received",
+            "pct": 6,
+            "filename": filename,
+            "bytes": len(contents),
+            "poll_url": f"/api/process/batch/status/{job_id}",
+        })
+
+    @app.get("/api/process/batch/status/{job_id}")
+    def api_process_batch_status(job_id: str) -> Any:
+        """Return current process-job progress and result when complete."""
+        jobs, lock = _process_jobs()
+        with lock:
+            job = dict(jobs.get(job_id) or {})
+        if not job:
+            raise HTTPException(404, f"unknown process job: {job_id}")
+        return JSONResponse(job)
 
     @app.post("/api/process/graph-chat")
     async def api_process_graph_chat(request: Request) -> Any:

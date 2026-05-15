@@ -107,6 +107,9 @@ def test_search_page_blocks_when_page_sanitizer_fails(client):
     assert "Financial crime typology" in text
     assert "Retaliation after complaint" in text
     assert "Current commission cap" in text
+    assert "HK ID 407" in text
+    assert "POEA zero fee" in text
+    assert "Unified demo story" in text
     assert "searchReadJsonOrText" in text
     assert "returned non-JSON" in text
     assert "Drafting moved to Step 3" in text
@@ -141,6 +144,9 @@ def test_knowledge_page_uses_guided_auto_suggestion_flow(client):
     assert "Upload a source bundle or add source text" in text
     assert 'id="kx-source-file-input"' in text
     assert "POST /api/process/batch" in text
+    assert "case_files_media_rich_sample.zip" in text
+    assert "kxUseSourceSample" in text
+    assert "kxPollProcessJob" in text
     assert "kxLoadSourceFile" in text
     assert "kxBuildTextFromProcessBundle" in text
     assert "knowledge files" in text
@@ -233,6 +239,17 @@ def test_share_page_has_bulk_review_selection_controls(client):
     assert "case_files_media_rich_sample.zip" in text
     assert '/static/_activity_log.js' in text
     assert "function wbGetLog" in text
+
+
+def test_contacts_api_exposes_versioned_last_verified_dates(client):
+    r = client.get("/api/contacts")
+    assert r.status_code == 200
+    data = r.json()
+    assert data["version"]
+    assert data["last_updated"]
+    assert data["entries"]
+    assert all("last_verified_at" in entry for entry in data["entries"])
+    assert all(entry.get("knowledge_pack_version") == data["version"] for entry in data["entries"])
 
 
 def test_anonymization_endpoint_can_run_gemma_privacy_review():
@@ -366,7 +383,10 @@ def test_process_page_has_graph_visualization_and_graph_chat_logging(client):
     assert "Confirm extracted intelligence before downloading" in text
     assert "function wbRequireConfirmedNavigation" in text
     assert "Deterministic fallback" in text
-    assert "Deterministic brief; Gemma deferred" in text
+    assert "Deterministic brief; Gemma/media deferred" in text
+    assert "/api/process/batch/start" in text
+    assert "/api/process/batch/status/" in text
+    assert "Use primary sample" in text
     assert 'id="wb-activity-card"' in text
     assert "let _dcLog = null" in text
     assert "Process harness path" not in text

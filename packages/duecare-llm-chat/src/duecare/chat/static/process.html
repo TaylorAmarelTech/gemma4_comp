@@ -187,13 +187,24 @@
             <div>
               <h2>Sample case bundles</h2>
               <p class="wb-muted" style="font-size:12px; margin:4px 0 10px;">
-                Use the broad bundle for graph-scale review across 30 synthetic
-                people. Use the media-rich bundle for a smaller, messier intake
-                folder with Messenger and WhatsApp screenshots, receipt photos,
-                passport photos, DOCX, PDF, XLSX, email, and queued binary Office
-                artifacts.
+                Use the media-rich bundle as the primary judge demo: it shows
+                Messenger and WhatsApp screenshots, receipt photos, passport
+                photos, DOCX, PDF, XLSX, email, and queued Office artifacts.
+                The broad bundle is available when you want graph scale across
+                30 synthetic people.
               </p>
               <div class="wb-row" style="gap:8px;">
+                <a class="wb-btn-primary" href="/static/samples/case_files_media_rich_sample.zip"
+                   download="case_files_media_rich_sample.zip"
+                   title="Download the primary media-rich synthetic case bundle ZIP">
+                  Download primary media-rich bundle
+                </a>
+                <button class="wb-btn-secondary" type="button" onclick="wbUseSample('media')"
+                   title="Fetch the media-rich sample ZIP into the file picker so you can press Start processing">
+                  Use primary sample
+                </button>
+              </div>
+              <div class="wb-row" style="gap:8px; margin-top:8px;">
                 <a class="wb-btn-secondary" href="/static/samples/case_files_sample.zip"
                    download="case_files_sample.zip"
                    title="Download the broad synthetic case bundle ZIP">
@@ -202,17 +213,6 @@
                 <button class="wb-btn-secondary" type="button" onclick="wbUseSample('broad')"
                    title="Fetch the broad sample ZIP into the file picker so you can press Start processing">
                   Use broad bundle
-                </button>
-              </div>
-              <div class="wb-row" style="gap:8px; margin-top:8px;">
-                <a class="wb-btn-secondary" href="/static/samples/case_files_media_rich_sample.zip"
-                   download="case_files_media_rich_sample.zip"
-                   title="Download the media-rich synthetic case bundle ZIP">
-                  Download media-rich bundle
-                </a>
-                <button class="wb-btn-secondary" type="button" onclick="wbUseSample('media')"
-                   title="Fetch the media-rich sample ZIP into the file picker so you can press Start processing">
-                  Use media-rich bundle
                 </button>
                 <span class="wb-muted" id="wb-sample-status"></span>
               </div>
@@ -282,7 +282,8 @@
               <p class="wb-muted" style="margin-top:0;">
                 Bulk review separates implemented deterministic passes from queued
                 OCR and multimodal extraction work. Images, scans, and PDFs become
-                media work items for OCR plus Gemma 4 vision extraction.
+                explicit media work items. When OCR/Gemma 4 vision is not wired,
+                the queue is labeled as deterministic fallback rather than hidden.
               </p>
               <div id="wb-processing-plan"></div>
             </div>
@@ -733,7 +734,7 @@
         ok: 'Gemma brief ready',
         unparsed_text: 'Gemma text brief',
         deterministic_no_model: 'Deterministic brief',
-        deterministic_deferred_model: 'Deterministic brief; Gemma deferred',
+        deterministic_deferred_model: 'Deterministic brief; Gemma/media deferred',
         model_error_deterministic_fallback: 'Deterministic fallback',
       })[status] || (status || 'not run');
     }
@@ -779,6 +780,46 @@
         checklist: wbReviewChecklist(),
       };
     }
+    let _wbLastProcessPollPhase = '';
+    async function wbSleep(ms) {
+      return new Promise(resolve => setTimeout(resolve, ms));
+    }
+    async function wbPollProcessJob(jobId, t0) {
+      const pollUrl = '/api/process/batch/status/' + encodeURIComponent(jobId);
+      for (let attempt = 0; attempt < 240; attempt += 1) {
+        const r = await fetch(pollUrl, {cache: 'no-store'});
+        const text = await r.text();
+        let job = null;
+        try { job = JSON.parse(text); } catch (_) {}
+        const dt = Math.round(performance.now() - t0);
+        if (!r.ok || !job) {
+          wbLog('err', 'Process job poll failed HTTP ' + r.status + ' (' + dt + 'ms)', text.slice(0, 220));
+          throw new Error('Process job polling failed: HTTP ' + r.status);
+        }
+        const phase = job.phase || job.status || 'running';
+        const pct = Math.max(0, Math.min(100, Number(job.pct || 0)));
+        const detail = job.detail || ('status=' + (job.status || 'unknown'));
+        wbSetProcessProgress(pct, phase, detail,
+          'Server-side job ' + jobId + ' | ' + (job.status || 'running') + ' | elapsed ' + Math.round(dt / 1000) + 's');
+        const stageIndex = Math.max(0, Math.min(WB_PROCESS_STAGES.length - 1, Math.floor((pct / 100) * (WB_PROCESS_STAGES.length - 1))));
+        wbRenderProcessSubsteps(stageIndex, job.status === 'complete');
+        if (phase !== _wbLastProcessPollPhase) {
+          _wbLastProcessPollPhase = phase;
+          wbLog(job.status === 'error' ? 'err' : 'step',
+            'Process job ' + jobId + ': ' + phase,
+            detail);
+        }
+        if (job.status === 'complete') {
+          if (!job.result) throw new Error('Process job completed without a result payload.');
+          return job.result;
+        }
+        if (job.status === 'error') {
+          throw new Error(job.error || job.detail || 'Process job failed.');
+        }
+        await wbSleep(1200);
+      }
+      throw new Error('Process job polling timed out locally after 240 attempts.');
+    }
     function wbHandle(ev) {
       const f = (ev.target.files || [])[0];
       if (!f) return;
@@ -812,26 +853,32 @@
       wbIntelligenceConfirmed = false;
       wbResetReview();
       document.getElementById('pg-ask-btn').disabled = true;
-      wbLog('info', 'POST /api/process/batch', 'multipart upload, file=' + wbFile.name);
-      wbStartProcessProgressLoop();
+      _wbLastProcessPollPhase = '';
+      wbLog('info', 'POST /api/process/batch/start', 'multipart upload, file=' + wbFile.name);
+      wbSetProcessActive(true);
+      wbSetProcessProgress(5, 'Uploading bundle to Kaggle kernel', 'Sending the source bundle to the local workbench server.');
       wbSetWorkflow(1);
       const fd = new FormData(); fd.append('file', wbFile);
       const t0 = performance.now();
       try {
-        const r = await fetch('/api/process/batch', { method: 'POST', body: fd });
-        wbStopProcessProgressLoop();
-        wbSetProcessProgress(96, 'Response received', 'Parsing the returned JSON and rendering the intelligence graph.');
+        const start = await fetch('/api/process/batch/start', { method: 'POST', body: fd });
         const dt = Math.round(performance.now() - t0);
-        if (!r.ok) {
-          const t = await r.text();
-          wbLog('err', 'HTTP ' + r.status + ' (' + dt + 'ms)', t.slice(0, 200));
-          const hint = r.status === 524
-            ? 'HTTP 524: Cloudflare timed out before the Kaggle kernel returned. The upload request was open too long; after this update the batch endpoint uses a deterministic fast path and does not wait for Gemma 4 generation.'
-            : 'HTTP ' + r.status;
+        const startText = await start.text();
+        let startJob = null;
+        try { startJob = JSON.parse(startText); } catch (_) {}
+        if (!start.ok || !startJob || !startJob.job_id) {
+          wbLog('err', 'HTTP ' + start.status + ' (' + dt + 'ms)', startText.slice(0, 220));
+          const hint = start.status === 524
+            ? 'HTTP 524: Cloudflare timed out before the Kaggle kernel acknowledged the upload. Try the media-rich sample first or reduce the ZIP size.'
+            : 'HTTP ' + start.status;
           throw new Error(hint);
         }
-        wbBundle = await r.json();
-        wbLog('ok', 'HTTP ' + r.status + ' (' + dt + 'ms)',
+        wbLog('ok', 'Process job accepted (' + dt + 'ms)',
+              'job_id=' + startJob.job_id + ' | bytes=' + (startJob.bytes || wbFile.size));
+        wbBundle = await wbPollProcessJob(startJob.job_id, t0);
+        wbStopProcessProgressLoop();
+        wbSetProcessProgress(96, 'Response received', 'Parsing the returned JSON and rendering the intelligence graph.');
+        wbLog('ok', 'Process job complete',
               'run_id=' + wbBundle.run_id + ' | rows_processed=' + wbBundle.summary.n_rows_processed +
               ' | grep_rules_fired=' + wbBundle.summary.n_grep_rules_fired +
               ' | entities=' + wbBundle.summary.n_entities_extracted);

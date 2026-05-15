@@ -93,6 +93,8 @@ _HARNESS_SURFACE_CONTRACTS: tuple[dict[str, Any], ...] = (
         ),
         "endpoints": (
             {"method": "POST", "path": "/api/process/batch", "summary": "Parse and score uploaded rows"},
+            {"method": "POST", "path": "/api/process/batch/start", "summary": "Start background upload processing job"},
+            {"method": "GET", "path": "/api/process/batch/status/{job_id}", "summary": "Poll upload-processing job status"},
             {"method": "POST", "path": "/api/process/graph-chat", "summary": "Ask Gemma 4 about the last bundle"},
         ),
         "examples": (
@@ -2805,7 +2807,14 @@ def create_app(
                     return False
             return True
 
-        filtered = [e for e in entries if keep(e)]
+        def normalize_contact(e: dict) -> dict:
+            out = dict(e)
+            out.setdefault("last_verified_at", out.get("verified") or block.get("last_updated"))
+            out.setdefault("knowledge_pack_version", block.get("version"))
+            out.setdefault("volatile_contact", True)
+            return out
+
+        filtered = [normalize_contact(e) for e in entries if keep(e)]
         return {
             "schema":       block.get("schema"),
             "version":      block.get("version"),

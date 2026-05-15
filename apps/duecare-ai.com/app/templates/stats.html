@@ -11,6 +11,9 @@
 .st-hero .lede { margin-top: 18px; font-size: 17px; line-height: 1.55; color: var(--ink-2); max-width: 56ch; }
 .st-hero .updated { margin-top: 18px; font-family: var(--mono); font-size: 12px; color: var(--ink-3); }
 .st-hero .updated b { color: var(--accent-ink); font-weight: 600; }
+.st-notice { margin-top: 22px; border: 1px solid oklch(0.70 0.10 55); border-left: 4px solid oklch(0.58 0.13 45); border-radius: 10px; background: oklch(0.98 0.02 75); padding: 14px 16px; max-width: 64ch; }
+.st-notice strong { display: block; font-family: var(--mono); font-size: 11px; letter-spacing: 0.10em; text-transform: uppercase; color: oklch(0.36 0.11 45); margin-bottom: 5px; }
+.st-notice p { margin: 0; font-size: 14px; line-height: 1.55; color: var(--ink-2); }
 .st-hero .toc { border: 1px solid var(--line); border-radius: 12px; background: var(--paper-2); padding: 18px 20px; }
 .st-hero .toc h3 { font-family: var(--mono); font-size: 11px; font-weight: 600; color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.10em; margin: 0 0 12px; }
 .st-hero .toc ol { list-style: none; padding: 0; margin: 0; counter-reset: t; }
@@ -30,6 +33,7 @@
 .st-strip .lbl { font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.10em; color: var(--ink-3); text-transform: uppercase; }
 .st-strip .val { font-size: 32px; letter-spacing: -0.025em; margin-top: 6px; }
 .st-strip .delta { font-family: var(--mono); font-size: 11.5px; color: var(--accent-ink); margin-top: 2px; }
+.st-strip .scope { display: inline-flex; margin-top: 10px; border: 1px solid var(--line); border-radius: 999px; padding: 4px 8px; font-family: var(--mono); font-size: 10px; color: var(--ink-3); background: var(--paper-2); }
 .st-section { padding: 56px 0; border-bottom: 1px solid var(--line-soft); }
 .st-section .head { display: flex; justify-content: space-between; gap: 24px; align-items: end; flex-wrap: wrap; margin-bottom: 28px; }
 .st-section .ix { font-family: var(--mono); font-size: 11px; letter-spacing: 0.12em; color: var(--ink-3); text-transform: uppercase; }
@@ -81,8 +85,8 @@
 .st-audit .obj { color: oklch(0.92 0.01 60); }
 .st-audit .by { color: oklch(0.65 0.08 200); text-align: right; }
 .st-audit-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 12px; gap: 16px; flex-wrap: wrap; }
-.st-audit-head .live { display: inline-flex; align-items: center; gap: 8px; font-family: var(--mono); font-size: 12px; color: var(--accent-ink); }
-.st-audit-head .live::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: oklch(0.55 0.13 30); animation: pulse 1.6s ease-in-out infinite; }
+.st-audit-head .preview { display: inline-flex; align-items: center; gap: 8px; font-family: var(--mono); font-size: 12px; color: var(--accent-ink); }
+.st-audit-head .preview::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: oklch(0.62 0.10 55); }
 @keyframes pulse { 0%,100% { opacity: 0.5; } 50% { opacity: 1; } }
 </style>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%230E1116'/%3E%3Ctext x='16' y='21' text-anchor='middle' font-family='monospace' font-weight='700' font-size='14' fill='%23F7F6F1'%3ED%3C/text%3E%3C/svg%3E" />
@@ -91,28 +95,29 @@
 <section class="st-hero" data-screen-label="Stats &middot; Hero"><div class="wrap">
 <div class="grid">
 <div>
-<span class="kicker">Hub data, in the open</span>
-<h1>What the hub holds. What it has done. Always replayable.</h1>
-<p class="lede">Everything on this page is computed from the same public audit feed any partner can pull. Aggregates respect the k&ge;30 floor. Nothing here references a worker, a case, or a private channel.</p>
-<div class="updated">Updated <b>2026-04-22 14:02 UTC</b></div>
+<span class="kicker">Beta stats surface</span>
+<h1>Live hub counters plus synthetic demo charts.</h1>
+<p class="lede">The headline counters below are computed from the current deployment. The charts and activity examples on this page are beta preview fixtures, not field prevalence metrics, impact claims, or live operational case counts.</p>
+<div class="st-notice" role="note"><strong>Beta data notice</strong><p>{{ stats_data_notice }}</p></div>
+<div class="updated">Generated <b>{{ stats_live.generated_at }}</b></div>
 </div>
 <nav class="toc hero-toc" aria-label="Sections on this page">
   <h3>On this page</h3>
   <ol>
-    <li><a href="#growth"><span>Pack growth over time</span><span class="arrow">&rarr;</span></a></li>
-    <li><a href="#signals"><span>Anonymized signals by corridor</span><span class="arrow">&rarr;</span></a></li>
-    <li><a href="#review"><span>Crawler review queue</span><span class="arrow">&rarr;</span></a></li>
-    <li><a href="#releases"><span>Curator-vetted releases</span><span class="arrow">&rarr;</span></a></li>
-    <li><a href="#audit"><span>Live history feed</span><span class="arrow">&rarr;</span></a></li>
+    <li><a href="#growth"><span>Registry preview</span><span class="arrow">&rarr;</span></a></li>
+    <li><a href="#signals"><span>Synthetic signal examples</span><span class="arrow">&rarr;</span></a></li>
+    <li><a href="#review"><span>Review queue preview</span><span class="arrow">&rarr;</span></a></li>
+    <li><a href="#releases"><span>Release timeline preview</span><span class="arrow">&rarr;</span></a></li>
+    <li><a href="#audit"><span>Demo audit rows</span><span class="arrow">&rarr;</span></a></li>
   </ol>
 </nav>
 </div>
 </div></section>
 
-<section data-screen-label="Stats &middot; Headline"><div class="st-strip-wrap"><div class="st-strip"><div class="cell"><div class="lbl">Vetted packs</div><div class="val">42</div><div class="delta">&uarr; 6 in last 90d</div></div><div class="cell"><div class="lbl">Tools in registry</div><div class="val">17</div><div class="delta">&uarr; 2 in last 90d</div></div><div class="cell"><div class="lbl">Anonymized signals (90d)</div><div class="val">14,208</div><div class="delta">k&ge;30 floor enforced</div></div><div class="cell"><div class="lbl">History feed events</div><div class="val">3.1M</div><div class="delta">nothing overwritten</div></div></div></div></section>
+<section data-screen-label="Stats &middot; Headline"><div class="st-strip-wrap"><div class="st-strip"><div class="cell" data-metric="registered-packs"><div class="lbl">Registered packs</div><div class="val">{{ stats_live.pack_count }}</div><div class="delta">file-backed registry</div><span class="scope">live counter</span></div><div class="cell" data-metric="public-tools"><div class="lbl">Public tools</div><div class="val">{{ stats_live.tool_count }}</div><div class="delta">read-only manifest</div><span class="scope">live counter</span></div><div class="cell" data-metric="accepted-signals"><div class="lbl">Accepted signals</div><div class="val">{{ stats_live.signal_count }}</div><div class="delta">current deployment</div><span class="scope">live counter</span></div><div class="cell" data-metric="public-proposals"><div class="lbl">Public proposals</div><div class="val">{{ stats_live.update_proposal_count }}</div><div class="delta">current deployment</div><span class="scope">live counter</span></div></div></div></section>
 
 <section id="growth" class="st-section" data-screen-label="Stats &middot; Growth"><div class="wrap">
-<div class="head"><div><span class="ix">01 &middot; What the hub holds, over time</span><h2>Knowledge packs and tools, week by week.</h2></div><p class="summary">Each release is a curator-vetted KnowledgeObject bundle (<a href="/hub#hub-vetting">vetting process</a>). Each step on these lines corresponds to a row in the audit feed. Researchers and partners can pull the same data via <a href="/api/hub/knowledge/download?vetted=true">/api/hub/knowledge/download</a>.</p></div>
+<div class="head"><div><span class="ix">01 &middot; Registry preview</span><h2>Knowledge packs and tools, week by week.</h2></div><p class="summary">This chart is synthetic/composite beta data that illustrates the intended audit view. The live registry count above comes from the file-backed pack registry, and partners can pull current pack metadata via <a href="/api/hub/knowledge/download?vetted=true">/api/hub/knowledge/download</a>.</p></div>
 <div class="st-row2">
 <div class="st-card"><div class="h"><h3>Cumulative pack versions</h3><span class="meta">52 weeks</span></div><p class="sub">Counts every vetted pack release across all corridors. Major + minor + patch.</p><svg viewBox="0 0 420 164" preserveAspectRatio="none">
     <g class="grid"><line x1="0" y1="35" x2="420" y2="35"/><line x1="0" y1="70" x2="420" y2="70"/><line x1="0" y1="105" x2="420" y2="105"/></g>
@@ -130,7 +135,7 @@
 </div></section>
 
 <section id="signals" class="st-section" data-screen-label="Stats &middot; Signals"><div class="wrap">
-<div class="head"><div><span class="ix">02 &middot; Anonymized signals, by corridor</span><h2>Opt-in anonymized signals, k-anonymity floored.</h2></div><p class="summary">Stacked weekly counts across the four highest-volume corridors. Slices below k=30 are not shown; they appear in the audit feed as suppressed rows.</p></div>
+<div class="head"><div><span class="ix">02 &middot; Synthetic signal examples</span><h2>Opt-in anonymized signal flow, k-anonymity floored.</h2></div><p class="summary">These corridor charts are synthetic/composite fixtures for the beta page. They show the reporting shape we intend to support; they should not be cited as real corridor prevalence, incident counts, or production partner activity.</p></div>
 <div class="st-row2">
 <div class="st-card"><div class="h"><h3>Signals received per week</h3><span class="meta">last 12 weeks</span></div><svg viewBox="0 0 420 204" preserveAspectRatio="none">
     <g class="grid"><line x1="40" y1="45" x2="420" y2="45"/><line x1="40" y1="90" x2="420" y2="90"/><line x1="40" y1="135" x2="420" y2="135"/><line x1="40" y1="180" x2="420" y2="180"/></g>
@@ -149,7 +154,7 @@
 </div></section>
 
 <section id="review" class="st-section" data-screen-label="Stats &middot; Review"><div class="wrap">
-<div class="head"><div><span class="ix">03 &middot; Research-monitor review queue</span><h2>Crawler proposals never auto-publish.</h2></div><p class="summary">Funnel from crawler discovery through curator review to vetted release. Last 90 days.</p></div>
+<div class="head"><div><span class="ix">03 &middot; Review queue preview</span><h2>Crawler proposals never auto-publish.</h2></div><p class="summary">Synthetic/composite funnel from crawler discovery through curator review to vetted release. The design is representative; production counts will replace it once review operations are running.</p></div>
 <div class="st-row2">
 <div class="st-card"><div class="h"><h3>Proposal funnel</h3><span class="meta">last 90d</span></div>
 <div class="st-funnel">
@@ -174,29 +179,29 @@
 </div></section>
 
 <section id="releases" class="st-section" data-screen-label="Stats &middot; Releases"><div class="wrap">
-<div class="head"><div><span class="ix">04 &middot; Curator-vetted releases</span><h2>Every key rotation. Every vetted release.</h2></div><p class="summary">Timeline of signing-key rotations and the releases they cover. Old keys remain in the public log.</p></div>
+<div class="head"><div><span class="ix">04 &middot; Release timeline preview</span><h2>Every key rotation. Every vetted release.</h2></div><p class="summary">Synthetic/composite timeline showing how release and key-rotation provenance should appear. It is not yet a production release history.</p></div>
 <div class="st-timeline">
-<div class="ev"><span class="when">2026-04-12 &middot; 09:14 UTC</span><h4>Vetted release &middot; <code>npl-qat-construction@1.4.0</code></h4><p>Material change: revised host-country fee cap. Reviewed by curator key <code>k.maharjan</code>. Alert sent.</p></div>
-<div class="ev"><span class="when">2026-03-28 &middot; 14:02 UTC</span><h4>Vetted release &middot; <code>bgd-sau-domestic@2.1.0</code></h4><p>Advisory: passport-handling clause clarified. Curator key <code>r.haque</code>.</p></div>
-<div class="ev"><span class="when">2026-02-19 &middot; 06:48 UTC</span><h4>Vetted release &middot; <code>idn-hkg-domestic@3.0.0</code></h4><p>Breaking: agency-licensing taxonomy revised. Curator key <code>m.tan</code>.</p></div>
+<div class="ev"><span class="when">2026-04-12 &middot; 09:14 UTC</span><h4>Vetted release &middot; <code>npl-qat-construction@1.4.0</code></h4><p>Material change: revised host-country fee cap. Synthetic curator key <code>demo-key-01</code>. Alert sent.</p></div>
+<div class="ev"><span class="when">2026-03-28 &middot; 14:02 UTC</span><h4>Vetted release &middot; <code>bgd-sau-domestic@2.1.0</code></h4><p>Advisory: passport-handling clause clarified. Synthetic curator key <code>demo-key-02</code>.</p></div>
+<div class="ev"><span class="when">2026-02-19 &middot; 06:48 UTC</span><h4>Vetted release &middot; <code>idn-hkg-domestic@3.0.0</code></h4><p>Breaking: agency-licensing taxonomy revised. Synthetic curator key <code>demo-key-03</code>.</p></div>
 <div class="ev"><span class="when">2025-09-08 &middot; 12:37 UTC</span><h4>Curator key rotation</h4><p>Routine root rotation. Old key archived; historical packs continue to verify.</p></div>
 <div class="ev"><span class="when">2025-06-21 &middot; 10:02 UTC</span><h4>Vetted release &middot; tools registry v1.6</h4><p>Two new tools added; one tool deprecated with migration notes.</p></div>
 </div>
 </div></section>
 
 <section id="audit" class="st-section" data-screen-label="Stats &middot; Audit feed"><div class="wrap">
-<div class="head"><div><span class="ix">05 &middot; Anonymized server-action log</span><h2>Live tail of the public audit feed.</h2></div><p class="summary">Append-only, vetted in batches. No actor identifies a worker; curator keys are the only personal-ish identifier and they are public by design.</p></div>
-<div class="st-audit-head"><span class="live">live tail &middot; /api/hub/audit?stream=1</span><span style="font-family:var(--mono);font-size:12px;color:var(--ink-3);">last 28 events</span></div>
+<div class="head"><div><span class="ix">05 &middot; Demo audit rows</span><h2>Append-only audit feed shape.</h2></div><p class="summary">The rows below are synthetic/composite examples. Live production audit streaming is still a beta integration target; this page should not imply that the sample rows are real server events.</p></div>
+<div class="st-audit-head"><span class="preview">demo preview &middot; planned /api/hub/audit stream</span><span style="font-family:var(--mono);font-size:12px;color:var(--ink-3);">synthetic sample rows</span></div>
 <div class="st-audit">
 <div class="row"><span class="ts">14:02:11.034</span><span class="verb">PACK_PULL</span><span class="obj">npl-qat-construction@1.4.0</span><span class="by">api/anon</span></div>
 <div class="row"><span class="ts">14:02:09.882</span><span class="verb">SIGNAL_POST</span><span class="obj">corridor=NPL→QAT pattern=fee_request k=412</span><span class="by">deploy:8c2</span></div>
 <div class="row"><span class="ts">14:02:07.451</span><span class="verb">PACK_PULL</span><span class="obj">bgd-sau-domestic@2.1.0</span><span class="by">api/anon</span></div>
 <div class="row"><span class="ts">14:02:04.117</span><span class="verb">TOOL_PULL</span><span class="obj">employer.lookup_license@1.0.0</span><span class="by">api/anon</span></div>
 <div class="row"><span class="ts">14:01:58.703</span><span class="verb">SIGNAL_POST</span><span class="obj">corridor=BGD→SAU pattern=passport_clause k=308</span><span class="by">deploy:1f4</span></div>
-<div class="row"><span class="ts">14:01:55.218</span><span class="verb">PROPOSAL_REVIEWED</span><span class="obj">crawler#4191 → accepted</span><span class="by">curator:k.maharjan</span></div>
+<div class="row"><span class="ts">14:01:55.218</span><span class="verb">PROPOSAL_REVIEWED</span><span class="obj">crawler#4191 → accepted</span><span class="by">curator:demo-key-01</span></div>
 <div class="row"><span class="ts">14:01:51.040</span><span class="verb">SIGNAL_SUPPRESSED</span><span class="obj">corridor=VNM→JPN pattern=fee_request k=18 (k&lt;30)</span><span class="by">policy:k_anon</span></div>
 <div class="row"><span class="ts">14:01:48.776</span><span class="verb">PACK_PULL</span><span class="obj">phl-kwt-domestic@1.7.2</span><span class="by">api/anon</span></div>
-<div class="row"><span class="ts">14:01:42.119</span><span class="verb">PROPOSAL_REJECTED</span><span class="obj">crawler#4188 → low-quality source</span><span class="by">curator:r.haque</span></div>
+<div class="row"><span class="ts">14:01:42.119</span><span class="verb">PROPOSAL_REJECTED</span><span class="obj">crawler#4188 → low-quality source</span><span class="by">curator:demo-key-02</span></div>
 <div class="row"><span class="ts">14:01:38.502</span><span class="verb">FEEDBACK_RECEIVED</span><span class="obj">tk-2026-04-22-0091 → pack feedback</span><span class="by">email-gw</span></div>
 <div class="row"><span class="ts">14:01:35.911</span><span class="verb">PACK_PULL</span><span class="obj">npl-qat-construction@1.4.0</span><span class="by">api/anon</span></div>
 <div class="row"><span class="ts">14:01:34.084</span><span class="verb">SIGNAL_POST</span><span class="obj">corridor=IDN→HKG pattern=identity_mismatch k=276</span><span class="by">deploy:9a3</span></div>
@@ -207,7 +212,7 @@
 <div class="row"><span class="ts">14:01:18.055</span><span class="verb">FEEDBACK_RECEIVED</span><span class="obj">tk-2026-04-22-0090 → governance</span><span class="by">email-gw</span></div>
 <div class="row"><span class="ts">14:01:14.711</span><span class="verb">PACK_PULL</span><span class="obj">bgd-sau-domestic@2.1.0</span><span class="by">api/anon</span></div>
 <div class="row"><span class="ts">14:01:10.298</span><span class="verb">SIGNAL_POST</span><span class="obj">corridor=NPL→QAT pattern=passport_clause k=412</span><span class="by">deploy:8c2</span></div>
-<div class="row"><span class="ts">14:01:07.844</span><span class="verb">PROPOSAL_REVIEWED</span><span class="obj">crawler#4189 → revisions requested</span><span class="by">curator:m.tan</span></div>
+<div class="row"><span class="ts">14:01:07.844</span><span class="verb">PROPOSAL_REVIEWED</span><span class="obj">crawler#4189 → revisions requested</span><span class="by">curator:demo-key-03</span></div>
 <div class="row"><span class="ts">14:01:03.512</span><span class="verb">PACK_PULL</span><span class="obj">npl-qat-construction@1.4.0</span><span class="by">api/anon</span></div>
 <div class="row"><span class="ts">14:00:59.108</span><span class="verb">TOOL_PULL</span><span class="obj">recruiter.lookup_blocklist@1.2.0</span><span class="by">api/anon</span></div>
 <div class="row"><span class="ts">14:00:54.673</span><span class="verb">SIGNAL_POST</span><span class="obj">corridor=BGD→SAU pattern=fee_request k=308</span><span class="by">deploy:1f4</span></div>
@@ -217,7 +222,7 @@
 <div class="row"><span class="ts">14:00:38.077</span><span class="verb">PACK_PULL</span><span class="obj">idn-hkg-domestic@3.0.0</span><span class="by">api/anon</span></div>
 <div class="row"><span class="ts">14:00:34.405</span><span class="verb">PROPOSAL_PROPOSED</span><span class="obj">crawler#4193 → npl-qat (source: dofe.gov.np)</span><span class="by">monitor:auto</span></div>
 </div>
-<p style="font-size:13px;color:var(--ink-3);margin-top:14px;max-width:64ch;">Anyone can replay this feed against a fresh pack pull and reproduce every advisory the harness has ever surfaced.</p>
+<p style="font-size:13px;color:var(--ink-3);margin-top:14px;max-width:64ch;">When production audit streaming is enabled, this section should be generated from the append-only feed and linked to the corresponding pack versions. Until then, these rows are demonstration fixtures only.</p>
 </div></section>
 {% include "_footer.html" %}
 </body></html>

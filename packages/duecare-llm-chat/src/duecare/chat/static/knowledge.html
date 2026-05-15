@@ -142,12 +142,17 @@
         </summary>
         <div class="kx-step-body">
           <div class="kx-action-note" style="margin-bottom:10px;">
-            Need realistic source material? Download a synthetic mixed-source
-            ZIP with recruiter text, complaint notes, DOCX, PDF, JSON, and
-            receipt-photo evidence, then upload it here for drafting.
+            Need realistic source material? Use the same primary media-rich
+            case bundle as Bulk File Review, or download a smaller source
+            examples ZIP with recruiter text, complaint notes, DOCX, PDF, JSON,
+            and receipt-photo evidence.
+            <button class="wb-btn-primary" style="margin-left:8px;" type="button"
+              onclick="kxUseSourceSample('media')">Use primary media-rich sample</button>
             <a class="wb-btn-secondary" style="margin-left:8px;"
                href="/static/samples/knowledge_source_examples_sample.zip"
                download="knowledge_source_examples_sample.zip">Download source examples</a>
+            <button class="wb-btn-secondary" style="margin-left:8px;" type="button"
+              onclick="kxUseSourceSample('source')">Use source examples</button>
           </div>
           <div class="wb-row" style="gap:8px; margin-bottom:10px;">
             <button class="kx-example" type="button" onclick="kxUseExample('A recruiter wrote: Worker agrees to a PHP 45,000 processing loan deducted from salary in Hong Kong until fully repaid. Agency: Pearl Bridge Manpower. Corridor: PH-HK.')">Fee rule example</button>
@@ -299,6 +304,59 @@
       const f = event.target && event.target.files && event.target.files[0];
       if (f) kxLoadSourceFile(f);
     }
+    async function kxSleep(ms) {
+      return new Promise(resolve => setTimeout(resolve, ms));
+    }
+    async function kxUseSourceSample(kind){
+      const sample = kind === 'media'
+        ? {
+            path: '/static/samples/case_files_media_rich_sample.zip',
+            name: 'case_files_media_rich_sample.zip',
+            label: 'primary media-rich case bundle'
+          }
+        : {
+            path: '/static/samples/knowledge_source_examples_sample.zip',
+            name: 'knowledge_source_examples_sample.zip',
+            label: 'knowledge source examples'
+          };
+      const status = document.getElementById('kx-source-file-status');
+      if (status) status.textContent = 'Fetching ' + sample.label + '...';
+      try {
+        const r = await fetch(sample.path);
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        const blob = await r.blob();
+        const file = new File([blob], sample.name, {type:'application/zip'});
+        wbLog('ok', 'Sample source attached', sample.name + ' | ' + blob.size + ' bytes');
+        await kxLoadSourceFile(file);
+      } catch (e) {
+        if (status) status.textContent = 'Sample load failed: ' + String(e).slice(0, 160);
+        wbLog('err', 'sample source load failed', String(e).slice(0, 200));
+      }
+    }
+    async function kxPollProcessJob(jobId, t0){
+      let lastPhase = '';
+      for (let attempt = 0; attempt < 240; attempt += 1) {
+        const r = await fetch('/api/process/batch/status/' + encodeURIComponent(jobId), {cache:'no-store'});
+        const text = await r.text();
+        let job = null;
+        try { job = JSON.parse(text); } catch (_) {}
+        const dt = Math.round(performance.now() - t0);
+        if (!r.ok || !job) throw new Error('job poll failed HTTP ' + r.status);
+        const phase = job.phase || job.status || 'running';
+        if (phase !== lastPhase) {
+          lastPhase = phase;
+          wbLog(job.status === 'error' ? 'err' : 'step',
+            'Source-bundle job ' + jobId + ': ' + phase,
+            (job.detail || '') + ' | elapsed=' + Math.round(dt / 1000) + 's');
+        }
+        const status = document.getElementById('kx-source-file-status');
+        if (status) status.textContent = 'Processing source bundle: ' + phase + ' (' + (job.pct || 0) + '%).';
+        if (job.status === 'complete') return job.result;
+        if (job.status === 'error') throw new Error(job.error || job.detail || 'source bundle job failed');
+        await kxSleep(1200);
+      }
+      throw new Error('source bundle polling timed out');
+    }
     function kxBuildTextFromProcessBundle(bundle){
       const s = bundle.summary || {};
       const intel = bundle.intelligence || {};
@@ -358,22 +416,24 @@
       const status = document.getElementById('kx-source-file-status');
       const rawEl = document.getElementById('kx-raw');
       if (status) status.textContent = 'Processing source bundle through the Bulk File Review harness...';
-      wbLog('net', 'POST /api/process/batch', 'source bundle=' + file.name + ' bytes=' + file.size);
+      wbLog('net', 'POST /api/process/batch/start', 'source bundle=' + file.name + ' bytes=' + file.size);
       const fd = new FormData();
       fd.append('file', file);
       const t0 = performance.now();
       try {
-        const r = await fetch('/api/process/batch', {method:'POST', body:fd});
+        const r = await fetch('/api/process/batch/start', {method:'POST', body:fd});
         const text = await r.text();
         let out = null;
         try { out = JSON.parse(text); } catch (_) {}
         const dt = Math.round(performance.now() - t0);
-        if (!r.ok || !out) {
+        if (!r.ok || !out || !out.job_id) {
           const preview = (text || '').replace(/\s+/g, ' ').slice(0, 220);
           if (status) status.textContent = 'Source bundle processing failed. Check the activity log.';
           wbLog('err', 'process batch failed HTTP ' + r.status + ' (' + dt + 'ms)', preview);
           return;
         }
+        wbLog('ok', 'Source-bundle job accepted (' + dt + 'ms)', 'job_id=' + out.job_id);
+        out = await kxPollProcessJob(out.job_id, t0);
         rawEl.value = kxBuildTextFromProcessBundle(out);
         if (status) {
           const summary = out.summary || {};

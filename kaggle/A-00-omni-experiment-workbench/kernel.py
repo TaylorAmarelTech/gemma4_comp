@@ -795,7 +795,7 @@ class SyntheticRequest(BaseModel):
 
 class TrainRequest(BaseModel):
     data_path: str = ""
-    base_model_ref: str = "google/gemma-4-e4b-it"
+    base_model_ref: str = "google/gemma-4-e2b-it"
     adapter_name: str = "duecare-a00-safetyjudge-lora"
     method: str = "sft"
     use_unsloth: bool = True
@@ -2089,6 +2089,12 @@ def _create_training_job(req: TrainRequest) -> dict[str, Any]:
         "base_model_ref": req.base_model_ref,
         "method": req.method,
         "execute": req.execute,
+        "smoke_eval_plan": [
+            "Run baseline evaluation on chat_safety_core before loading adapter.",
+            "Train tiny LoRA for max_steps on rubric-polished SFT rows.",
+            "Reload base model plus adapter and rerun the same evaluation prompts.",
+            "Compare legal specificity, refusal grounding, contact-pack/tool-call behavior, and retaliation-risk dimensions.",
+        ],
     }
     if req.execute:
         proc = subprocess.run([sys.executable, str(script_path)], capture_output=True, text=True, timeout=60 * 60 * 8)
@@ -2883,7 +2889,7 @@ HOMEPAGE_HTML = r"""<!doctype html>
         </ol>
       </div>
       <label>Training JSONL path <input id="train-data-path" placeholder="/kaggle/working/a00_training/..._sft.jsonl"></label>
-      <label>Base model <input id="train-base-model" value="google/gemma-4-e4b-it"></label>
+      <label>Base model <input id="train-base-model" value="google/gemma-4-e2b-it"></label>
       <div class="row">
         <label>Max steps <input id="max-steps" type="number" value="60"></label>
         <label>Execute now <select id="execute-train"><option value="false">false</option><option value="true">true</option></select></label>

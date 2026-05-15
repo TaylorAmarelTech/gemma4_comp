@@ -194,6 +194,39 @@ def test_every_design_route_renders(tmp_path) -> None:
         assert "/static/styles.css" in response.text, f"{path} did not link the design CSS"
 
 
+def test_stats_page_discloses_beta_data_and_uses_live_counters(tmp_path) -> None:
+    client = TestClient(create_app(data_dir=tmp_path))
+
+    response = client.get("/stats")
+
+    assert response.status_code == 200
+    assert "Beta data notice" in response.text
+    assert "synthetic/composite demo previews" in response.text
+    assert "not field prevalence metrics" in response.text
+    assert "14,208" not in response.text
+    assert "3.1M" not in response.text
+    assert "live tail" not in response.text.lower()
+
+    posted = client.post(
+        "/api/hub/signals",
+        json={
+            "source": "synthetic_demo",
+            "jurisdiction": "Philippines / Hong Kong",
+            "corridor": "PH-HK domestic work",
+            "risk_tags": ["fee_excess"],
+            "summary": "Synthetic aggregate pattern for the stats page counter without person-specific details.",
+            "consent_basis": "synthetic_demo",
+        },
+    )
+    assert posted.status_code == 202
+
+    updated = client.get("/stats")
+    assert (
+        '<div class="cell" data-metric="accepted-signals"><div class="lbl">Accepted signals</div>'
+        '<div class="val">1</div>'
+    ) in updated.text
+
+
 def test_admin_logs_are_token_gated_and_redacted(tmp_path, monkeypatch) -> None:
     monkeypatch.delenv("DUECARE_ADMIN_TOKEN", raising=False)
     monkeypatch.delenv("DUECARE_HUB_ADMIN_TOKEN", raising=False)
