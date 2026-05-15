@@ -517,7 +517,38 @@ code, .mono {
   padding: 12px;
   font-family: var(--sans);
 }
+.dc-wb-model-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  background: rgba(14, 17, 22, 0.42);
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+}
+.dc-wb-model-overlay[hidden] { display: none; }
 .dc-wb-model-popover[hidden] { display: none; }
+.dc-wb-model-required .dc-wb-model-popover {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  width: min(680px, calc(100vw - 32px));
+  max-height: calc(100vh - 40px);
+  overflow: auto;
+  transform: translate(-50%, -50%);
+  z-index: 90;
+  box-shadow: 0 24px 80px rgba(14, 17, 22, 0.34);
+}
+.dc-wb-model-required .dc-wb-model-popover-title::after {
+  content: " required";
+  margin-left: 7px;
+  color: var(--warn);
+  font-family: var(--mono);
+  font-size: 10px;
+  text-transform: uppercase;
+}
+.dc-wb-model-required .dc-wb-model-popover-close {
+  display: none;
+}
 .dc-wb-model-popover-head {
   display: flex;
   justify-content: space-between;

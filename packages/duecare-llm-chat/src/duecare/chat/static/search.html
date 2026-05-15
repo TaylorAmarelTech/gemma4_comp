@@ -45,7 +45,14 @@
     .wb-draft-card pre { background: #F7F6F1; padding: 8px 10px; border-radius: 6px;
                           font-size: 11px; max-height: 200px; overflow-y: auto;
                           white-space: pre-wrap; margin: 6px 0 0; }
-    .search-workflow { display: grid; gap: 12px; margin: 16px 0 0; }
+    .search-hero { background:#FFF; border:1px solid #DDD8C9; border-left:4px solid oklch(0.52 0.08 195);
+                   border-radius:12px; padding:16px 18px; margin:0 0 16px; }
+    .search-hero h2 { font-size:16px; margin:0 0 6px; }
+    .search-hero-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(210px,1fr)); gap:10px; margin-top:10px; }
+    .search-hero-item { background:#FAF9F4; border:1px solid #EFEDE4; border-radius:8px; padding:10px 12px; }
+    .search-hero-item b { display:block; font-size:12.5px; margin-bottom:3px; }
+    .search-hero-item span { color:#5B5F68; font-size:11.5px; line-height:1.45; }
+    .search-workflow { display: grid; gap: 16px; margin: 16px 0 0; }
     .search-workflow-step { background: #FFF; border: 1px solid #DDD8C9; border-left: 4px solid #DDD8C9;
                             border-radius: 12px; overflow: hidden; }
     .search-workflow-step[open] { border-left-color: oklch(0.52 0.08 195); box-shadow: 0 10px 24px rgba(14,17,22,0.06); }
@@ -60,8 +67,8 @@
                          font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 700; }
     .search-workflow-step[open] .search-step-index { background: oklch(0.52 0.08 195); color: #F7F6F1; }
     .search-workflow-step.complete .search-step-index { background: oklch(0.62 0.10 155); color: #F7F6F1; }
-    .search-step-title { font-size: 15.5px; font-weight: 700; color: #0E1116; }
-    .search-step-summary { color: #5B5F68; font-size: 11.5px; line-height: 1.4; margin-top: 2px; }
+    .search-step-title { display: block; font-size: 15.5px; font-weight: 700; color: #0E1116; }
+    .search-step-summary { display: block; color: #5B5F68; font-size: 11.5px; line-height: 1.4; margin-top: 2px; }
     .search-step-state { color: #5B5F68; font-size: 10.5px; font-family: 'JetBrains Mono', monospace;
                          text-transform: uppercase; letter-spacing: 0.06em; }
     .search-step-body { padding: 16px 18px 18px; }
@@ -69,31 +76,48 @@
                     padding: 16px; color: #5B5F68; font-size: 12px; }
     .search-example { text-align:left; background:#FAF9F4; border:1px solid #DDD8C9; border-radius:8px; padding:8px 10px; cursor:pointer; font-size:12px; color:#2A2D34; }
     .search-example:hover { border-color: oklch(0.52 0.08 195); color:#0E1116; }
+    .search-action-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(210px,1fr)); gap:10px; margin-top:14px; padding-top:10px; border-top:1px solid #EFEDE4; }
+    .search-action-card { background:#FAF9F4; border:1px solid #EFEDE4; border-radius:8px; padding:11px 12px; }
+    .search-action-card h3 { font-size:13px; margin:0 0 5px; }
+    .search-action-card p { color:#5B5F68; font-size:11.5px; line-height:1.45; margin:0 0 10px; }
     code { background: #F1EFE7; padding: 1px 5px; border-radius: 3px;
            font-size: 11.5px; font-family: 'JetBrains Mono', monospace; }
   </style>
 </head>
 <body data-nav="search">
   <main class="wb-page">
-    <h1 class="wb-h1">Search Utility</h1>
+    <h1 class="wb-h1">Search and Source Intake</h1>
     <p class="wb-lede">
       Calls <code>POST /api/search/client</code>. This is a secondary
       utility surface, not a Gemma response harness by itself. Uses SearXNG when
       configured (privacy-preserving meta-search), falls back to the
       kernel's wired Tavily/Brave/DDG. Search Safety strips PII
       before the query reaches any backend. After results arrive,
-      use the action buttons below the results to draft knowledge
-      envelopes from each snippet, download the result set as JSON
-      or markdown, or send the set into Anonymization &amp; Sharing
-      for hub upload.
+      use the result cards to draft knowledge envelopes from each
+      snippet or download the result set as JSON or markdown.
     </p>
+
+    <section class="search-hero" aria-label="Search overview">
+      <h2>What this workflow does</h2>
+      <p class="wb-muted" style="font-size:12.5px; line-height:1.55; margin:0;">
+        Search is the public-source intake path. Sanitize a query, retrieve
+        sources, review result cards, then draft useful results into knowledge
+        objects that can be saved locally and later exported or shared through
+        the dedicated knowledge and anonymization flows.
+      </p>
+      <div class="search-hero-grid">
+        <div class="search-hero-item"><b>Safety first</b><span>PII is stripped before any third-party backend sees the query.</span></div>
+        <div class="search-hero-item"><b>Source review</b><span>Each result stays inspectable as a source card before it becomes knowledge.</span></div>
+        <div class="search-hero-item"><b>Knowledge path</b><span>Drafts go through the same Knowledge Extraction envelope flow used elsewhere.</span></div>
+      </div>
+    </section>
 
     <div class="search-workflow" aria-label="Search workflow">
       <details class="search-workflow-step" id="search-step-query" open>
         <summary>
           <span class="search-step-index">1</span>
           <span>
-            <span class="search-step-title">Enter a public-source query</span>
+            <span class="search-step-title">Search public sources</span>
             <span class="search-step-summary">Sanitize first, choose the backend if needed, then search. Examples stay in the same working panel.</span>
           </span>
           <span class="search-step-state" id="search-step-query-state">Ready</span>
@@ -147,7 +171,7 @@
       <summary>
         <span class="search-step-index">2</span>
         <span>
-          <span class="search-step-title">Review results and convert to knowledge</span>
+          <span class="search-step-title">Review source cards</span>
           <span class="search-step-summary">Inspect each source card, download the result set, or draft knowledge from useful results without leaving this page.</span>
         </span>
         <span class="search-step-state" id="results-card-state">Waiting</span>
@@ -158,12 +182,20 @@
         visible results. Drafts are reviewable before anything is saved.
       </p>
       <div id="results" class="search-empty">Run a search to populate public-source result cards.</div>
-      <div class="wb-row" style="margin-top:14px; gap:8px; padding-top:10px; border-top:1px solid #EFEDE4;">
-        <span class="wb-muted" style="align-self:center;">After results:</span>
-        <button class="wb-btn-secondary" id="dl-json-btn" onclick="searchDownloadResults('json')">Download results (.json)</button>
-        <button class="wb-btn-secondary" id="dl-md-btn" onclick="searchDownloadResults('md')">Download as markdown</button>
-        <button class="wb-btn-primary" id="draft-btn" onclick="searchDraftKnowledge()">Draft knowledge from all results</button>
-        <button class="wb-btn-secondary" id="share-btn" onclick="searchSendToShare()">Send to Anonymization &amp; Share</button>
+      <div class="search-action-grid">
+        <div class="search-action-card">
+          <h3>Draft knowledge</h3>
+          <p>Create reviewable knowledge-object drafts from all visible result snippets.</p>
+          <button class="wb-btn-primary" id="draft-btn" onclick="searchDraftKnowledge()">Draft from all results</button>
+        </div>
+        <div class="search-action-card">
+          <h3>Download evidence set</h3>
+          <p>Export the source list for appendix notebooks, manual review, or repeatability.</p>
+          <div class="wb-row" style="gap:8px;">
+            <button class="wb-btn-secondary" id="dl-json-btn" onclick="searchDownloadResults('json')">JSON</button>
+            <button class="wb-btn-secondary" id="dl-md-btn" onclick="searchDownloadResults('md')">Markdown</button>
+          </div>
+        </div>
       </div>
       <div id="draft-status" class="wb-muted" style="margin-top:8px;"></div>
       </div>
@@ -173,7 +205,7 @@
       <summary>
         <span class="search-step-index">3</span>
         <span>
-          <span class="search-step-title">Review drafted envelopes and save</span>
+          <span class="search-step-title">Review and save knowledge objects</span>
           <span class="search-step-summary">The extraction harness suggests knowledge object types. Review each draft, then save locally or download JSON.</span>
         </span>
         <span class="search-step-state" id="drafts-card-state">Waiting</span>
@@ -197,25 +229,13 @@
       </div>
     </details>
 
-    <details class="search-workflow-step" id="search-step-log">
-      <summary>
-        <span class="search-step-index">4</span>
-        <span>
-          <span class="search-step-title">Inspect activity and downstream actions</span>
-          <span class="search-step-summary">Every search, sanitizer call, draft request, and save action is visible in the local activity log.</span>
-        </span>
-        <span class="search-step-state" id="search-step-log-state">Waiting</span>
-      </summary>
-      <div class="search-step-body">
-      <p class="wb-muted" style="margin: 0 0 8px;">
-        Live trace of search calls, anonymization, envelope drafts,
-        and downstream actions.
-      </p>
+    </div>
+
+    <div class="wb-card" id="search-activity-card" style="margin-top:14px;">
+      <h2>Activity log <span class="wb-muted" style="font-weight: normal;">sanitizer, search, draft, and save calls</span></h2>
       <div id="search-log" class="dc-activity-log">
         <div class="dc-log-idle">Run a search to begin.</div>
       </div>
-      </div>
-    </details>
     </div>
 
   </main>
@@ -234,12 +254,18 @@
       };
       return labels[name] || name || '(none)';
     }
+    function searchGetLog() {
+      if (!_searchLog && window.dcActivityLog) {
+        _searchLog = window.dcActivityLog.attach('#search-log', {idlePlaceholder: 'Run a search to begin.'});
+      }
+      return _searchLog;
+    }
     function searchSetPipeline(active) {
       const mapped = active >= 4 ? 2 : (active >= 3 ? 1 : 0);
       searchSetWorkflow(mapped);
     }
     function searchSetWorkflow(active) {
-      const ids = ['search-step-query', 'results-card', 'drafts-card', 'search-step-log'];
+      const ids = ['search-step-query', 'results-card', 'drafts-card'];
       ids.forEach((id, idx) => {
         const el = document.getElementById(id);
         if (!el) return;
@@ -252,6 +278,8 @@
     function searchUseExample(q) {
       document.getElementById('q').value = q;
       searchSetPipeline(0);
+      const log = searchGetLog();
+      if (log) log.info('Example query loaded', q);
     }
 
     // Backends and search
@@ -281,8 +309,8 @@
       }
     }
     async function runSearch() {
-      _searchLog = _searchLog || window.dcActivityLog.attach('#search-log');
-      _searchLog.clear && _searchLog.clear();
+      _searchLog = searchGetLog();
+      if (_searchLog && _searchLog.clear) _searchLog.clear();
       const rawQuery = (document.getElementById('q').value || '').trim();
       if (!rawQuery) return;
       const backend = document.getElementById('backend').value || null;
@@ -302,7 +330,7 @@
       previewEl.style.display = 'none';
       if (sanitize) {
         searchSetPipeline(1);
-        _searchLog.anon('POST /api/search/sanitize  (strip PII before any external call)');
+        _searchLog && _searchLog.anon('POST /api/search/sanitize  (strip PII before any external call)');
         try {
           const sr = await fetch('/api/search/sanitize', {
             method: 'POST',
@@ -322,22 +350,22 @@
             previewMeta.textContent = previewMeta.textContent
               .replace(/\u00c2\u00b7/g, ' | ')
               .replace(/\s+\|\s+/g, ' | ');
-            _searchLog.ok('sanitize complete', kinds.length + ' redaction(s): ' + kinds.join(', '));
+            _searchLog && _searchLog.ok('sanitize complete', kinds.length + ' redaction(s): ' + kinds.join(', '));
             if (so.blocked) {
-              _searchLog.err('sanitize BLOCKED the query: ' + (so.reason || 'unsafe'));
+              _searchLog && _searchLog.err('sanitize BLOCKED the query: ' + (so.reason || 'unsafe'));
               document.getElementById('status').textContent = 'Blocked: ' + (so.reason || 'unsafe');
               btn.disabled = false;
               return;
             }
           } else {
-            _searchLog.err('sanitize failed (HTTP ' + sr.status + '); search stopped');
+            _searchLog && _searchLog.err('sanitize failed (HTTP ' + sr.status + '); search stopped');
             document.getElementById('status').textContent =
               'Search stopped because sanitization failed. Disable the sanitizer only for public, non-sensitive queries.';
             btn.disabled = false;
             return;
           }
         } catch (e) {
-          _searchLog.err('sanitize error: ' + e + '; search stopped');
+          _searchLog && _searchLog.err('sanitize error: ' + e + '; search stopped');
           document.getElementById('status').textContent =
             'Search stopped because sanitization failed. Disable the sanitizer only for public, non-sensitive queries.';
           btn.disabled = false;
@@ -347,8 +375,8 @@
 
       searchSetPipeline(2);
       _searchQuery = query;
-      _searchLog.info('POST /api/search/client', 'q=' + query + ' top_n=' + top_n + ' backend=' + (backend || 'auto') + ' anonymize_backend=' + anon);
-      if (anon) _searchLog.anon('anonymize_query=true (server-side PII strip in addition to page-side)');
+      _searchLog && _searchLog.info('POST /api/search/client', 'q=' + query + ' top_n=' + top_n + ' backend=' + (backend || 'auto') + ' anonymize_backend=' + anon);
+      if (anon && _searchLog) _searchLog.anon('anonymize_query=true (server-side PII strip in addition to page-side)');
       document.getElementById('status').textContent = 'POST /api/search/client ...';
       const t0 = performance.now();
       try {
@@ -360,7 +388,7 @@
         const dt = Math.round(performance.now() - t0);
         const out = await r.json();
         if (!r.ok) {
-          _searchLog.err('HTTP ' + r.status + ' (' + dt + 'ms)', JSON.stringify(out).slice(0, 200));
+          _searchLog && _searchLog.err('HTTP ' + r.status + ' (' + dt + 'ms)', JSON.stringify(out).slice(0, 200));
           document.getElementById('status').textContent = 'HTTP ' + r.status;
           return;
         }
@@ -370,15 +398,15 @@
           'backend=' + searchBackendLabel(out.backend) + ' | results=' +
           ((out.results || []).length) + ' | elapsed_ms=' + (out.elapsed_ms || dt)
           + (note ? ' | ' + note : '');
-        _searchLog.ok('HTTP 200 (' + dt + 'ms) backend=' + searchBackendLabel(out.backend)
+        _searchLog && _searchLog.ok('HTTP 200 (' + dt + 'ms) backend=' + searchBackendLabel(out.backend)
                        + ' results=' + ((out.results || []).length));
-        if (note) _searchLog.info('note: ' + note);
+        if (note && _searchLog) _searchLog.info('note: ' + note);
         _searchResults = out.results || [];
         searchSetPipeline(3);
         renderResults(_searchResults);
         searchSetWorkflow(1);
       } catch (e) {
-        _searchLog.err('network failed', '' + e);
+        _searchLog && _searchLog.err('network failed', '' + e);
         document.getElementById('status').textContent = 'failed: ' + e;
       } finally {
         btn.disabled = false;
@@ -466,7 +494,8 @@
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a'); a.href = url; a.download = name; a.click();
       setTimeout(() => URL.revokeObjectURL(url), 1000);
-      _searchLog.ok('downloaded ' + name, blob.size + ' bytes');
+      _searchLog = searchGetLog();
+      _searchLog && _searchLog.ok('downloaded ' + name, blob.size + ' bytes');
     }
 
     function searchRawTextForResult(r) {
@@ -507,8 +536,9 @@
     async function searchDraftResultAt(i) {
       const r = _searchResults[i];
       if (!r) return 0;
+      _searchLog = searchGetLog();
       const rawText = searchRawTextForResult(r);
-      _searchLog.step('drafting result ' + (i + 1), r.title || r.url);
+      _searchLog && _searchLog.step('drafting result ' + (i + 1), r.title || r.url);
       const t0 = performance.now();
       const resp = await fetch('/api/knowledge/draft-envelope', {
         method: 'POST',
@@ -522,7 +552,7 @@
       const dt = Math.round(performance.now() - t0);
       const out = await resp.json();
       if (!resp.ok) {
-        _searchLog.err('draft result ' + (i + 1) + ' HTTP ' + resp.status + ' (' + dt + 'ms)',
+        _searchLog && _searchLog.err('draft result ' + (i + 1) + ' HTTP ' + resp.status + ' (' + dt + 'ms)',
                         JSON.stringify(out).slice(0, 200));
         return 0;
       }
@@ -534,13 +564,13 @@
         searchRenderDraftCard(entry, _drafts.length - 1);
         count++;
       });
-      _searchLog.ok('drafted result ' + (i + 1) + ' (' + dt + 'ms)',
+      _searchLog && _searchLog.ok('drafted result ' + (i + 1) + ' (' + dt + 'ms)',
                     count + ' suggested envelope(s)');
       return count;
     }
 
     async function searchDraftOne(i) {
-      _searchLog = _searchLog || window.dcActivityLog.attach('#search-log');
+      _searchLog = searchGetLog();
       searchSetPipeline(4);
       document.getElementById('draft-status').textContent = 'Drafting one selected result...';
       const made = await searchDraftResultAt(i);
@@ -567,7 +597,7 @@
           try {
             await searchDraftResultAt(i);
           } catch (e) {
-            _searchLog.err('draft ' + (i + 1) + ' failed', '' + e);
+          _searchLog && _searchLog.err('draft ' + (i + 1) + ' failed', '' + e);
           }
         }
         document.getElementById('draft-status').textContent =
@@ -580,20 +610,32 @@
     async function searchSaveOneDraft(i) {
       const d = _drafts[i];
       if (!d || !d.envelope) return false;
+      _searchLog = searchGetLog();
+      const envelope = JSON.parse(JSON.stringify(d.envelope));
+      envelope.id = String(envelope.id || ('search-draft-' + i)).replace(/-draft$/, '');
+      envelope.version = 'v1';
+      envelope.extensions = Object.assign({}, envelope.extensions || {}, {
+        draft: false,
+        needs_review: false,
+        promoted_from_search: true,
+        source_url: d.url || '',
+        source_rank: d.source_rank || i + 1,
+        promoted_at: new Date().toISOString(),
+      });
       try {
         const r = await fetch('/api/knowledge/promote', {
           method: 'POST',
           headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify(d.envelope),
+          body: JSON.stringify(envelope),
         });
         if (r.ok) {
-          _searchLog.ok('promoted ' + ((d.envelope && d.envelope.id) || '(unknown id)'));
+          _searchLog && _searchLog.ok('promoted ' + (envelope.id || '(unknown id)'));
           return true;
         }
         const t = await r.text();
-        _searchLog.err('promote HTTP ' + r.status, t.slice(0, 200));
+        _searchLog && _searchLog.err('promote HTTP ' + r.status, t.slice(0, 200));
       } catch (e) {
-        _searchLog.err('promote failed', '' + e);
+        _searchLog && _searchLog.err('promote failed', '' + e);
       }
       return false;
     }
@@ -623,35 +665,12 @@
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a'); a.href = url; a.download = 'search_drafts.json'; a.click();
       setTimeout(() => URL.revokeObjectURL(url), 1000);
-      _searchLog.ok('downloaded search_drafts.json', blob.size + ' bytes');
-    }
-
-    function searchSendToShare() {
-      if (!_searchResults.length) {
-        _searchLog && _searchLog.warn('no results to send');
-        return;
-      }
-      try {
-        sessionStorage.setItem('duecare:share-queue', JSON.stringify({
-          source: 'search',
-          query: _searchQuery,
-          backend: _searchBackend,
-          retrieved_at: new Date().toISOString(),
-          drafts: _drafts,
-          results: _searchResults,
-        }));
-        _searchLog.info('queued ' + _searchResults.length + ' results for Anonymization & Share');
-        location.href = '/static/share.html#from=search';
-      } catch (e) {
-        _searchLog.err('sessionStorage failed', '' + e);
-      }
+      _searchLog && _searchLog.ok('downloaded search_drafts.json', blob.size + ' bytes');
     }
 
     // ============== Init ==============
     document.addEventListener('DOMContentLoaded', function () {
-      _searchLog = window.dcActivityLog
-        ? window.dcActivityLog.attach('#search-log', {idlePlaceholder: 'Run a search to begin.'})
-        : null;
+      searchGetLog();
       loadBackends();
     });
   </script>

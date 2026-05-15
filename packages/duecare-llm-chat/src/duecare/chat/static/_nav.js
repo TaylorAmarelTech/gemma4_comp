@@ -60,6 +60,7 @@
     };
     let modelPollTimer = null;
     let modelLastStatus = {loaded: false};
+    let modelSelectorRequired = false;
 
     function modelSelectEl() {
         return document.getElementById('dc-wb-model-select');
@@ -149,6 +150,10 @@
         if (load.status === 'error' && load.error) parts.push('error: ' + load.error);
         setModelPopoverStatus(parts.join(' | ') || 'Select a model, then load it for all pages.');
 
+        if (loaded && modelSelectorRequired) {
+            closeModelPopover(true);
+        }
+
         if (loading) {
             if (modelPollTimer) clearTimeout(modelPollTimer);
             modelPollTimer = setTimeout(refreshModelLoaderStatus, 1500);
@@ -181,19 +186,34 @@
         }
     }
 
-    function openModelPopover() {
+    function openModelPopover(options) {
+        const opts = options || {};
         const pop = document.getElementById('dc-wb-model-popover');
         const btn = document.getElementById('dc-wb-model-open');
+        const overlay = document.getElementById('dc-wb-model-overlay');
         if (!pop) return;
+        modelSelectorRequired = !!opts.required;
         pop.hidden = false;
+        if (overlay) overlay.hidden = !modelSelectorRequired;
+        document.body.classList.toggle('dc-wb-model-required', modelSelectorRequired);
         if (btn) btn.setAttribute('aria-expanded', 'true');
+        if (modelSelectorRequired) {
+            setModelPopoverStatus(
+                'Load a Gemma 4 model to continue. The top bar can switch models after one is loaded.'
+            );
+        }
         refreshModelLoaderStatus();
     }
 
-    function closeModelPopover() {
+    function closeModelPopover(force) {
         const pop = document.getElementById('dc-wb-model-popover');
         const btn = document.getElementById('dc-wb-model-open');
+        const overlay = document.getElementById('dc-wb-model-overlay');
+        if (modelSelectorRequired && !force && !modelLastStatus.loaded) return;
+        modelSelectorRequired = false;
         if (pop) pop.hidden = true;
+        if (overlay) overlay.hidden = true;
+        document.body.classList.remove('dc-wb-model-required');
         if (btn) btn.setAttribute('aria-expanded', 'false');
     }
 
@@ -270,7 +290,7 @@
                 event.stopPropagation();
                 const pop = document.getElementById('dc-wb-model-popover');
                 if (pop && !pop.hidden) closeModelPopover();
-                else openModelPopover();
+                else openModelPopover({required: false});
             });
         }
         if (closeBtn) closeBtn.addEventListener('click', closeModelPopover);
@@ -315,7 +335,7 @@
     async function isModelReadyForPage() {
         const state = await refreshModelLoaderStatus();
         if (state.info && state.info.loaded) return true;
-        openModelPopover();
+        openModelPopover({required: true});
         return false;
     }
 
@@ -379,7 +399,12 @@
         wireShutdown();
         wireClearChat();
         refreshStatus();
-        refreshModelLoaderStatus();
+        refreshModelLoaderStatus().then(function (state) {
+            const onModelsPage = (document.body.getAttribute('data-nav') || '') === 'models';
+            if (!onModelsPage && state.info && !state.info.loaded) {
+                openModelPopover({required: true});
+            }
+        });
         // Light polling so the status strip stays current without blowing up
         // a phone battery: every 8 seconds.
         setInterval(function () {

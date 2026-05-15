@@ -90,12 +90,19 @@ def test_search_page_blocks_when_page_sanitizer_fails(client):
     assert "Draft this result" in text
     assert "target_leaf: 'auto'" in text
     assert "searchSaveOneDraft" in text
-    assert "body: JSON.stringify(d.envelope)" in text
+    assert "body: JSON.stringify(envelope)" in text
     assert 'id="search-step-query" open' in text
+    assert "What this workflow does" in text
     assert 'id="results-card"' in text
     assert 'id="drafts-card"' in text
+    assert 'id="search-activity-card"' in text
+    assert "searchGetLog" in text
+    assert "Draft from all results" in text
+    assert "Download evidence set" in text
     assert "function searchSetWorkflow" in text
     assert 'id="search-pipeline"' not in text
+    assert 'id="search-step-log"' not in text
+    assert "searchSendToShare" not in text
 
 
 def test_knowledge_page_uses_guided_auto_suggestion_flow(client):
@@ -103,13 +110,34 @@ def test_knowledge_page_uses_guided_auto_suggestion_flow(client):
     assert r.status_code == 200
     text = r.text
     assert "Auto-suggest useful leaves" in text
-    assert "Advanced: manual authoring for 21 leaf types" in text
+    assert "Advanced: manual authoring for specialized leaf types" in text
     assert "kxToggleTaxonomy" in text
     assert "out.suggestions" in text
     assert 'id="kx-step-source" open' in text
     assert 'id="kx-step-draft"' in text
     assert 'id="kx-step-pack"' in text
+    assert "Import or export knowledge packs" in text
+    assert "Import ZIP" in text
+    assert "Export ZIP" in text
+    assert "Download sample bundle" not in text
+    assert "Open Anonymization &amp; Sharing" not in text
+    assert "extracted_fact: non-PII trend fact" in text
+    assert "entity_signal: organization or actor signal" in text
+    assert "modus_operandi: generalized abuse pattern" in text
+    assert "What this workflow does" in text
+    assert "Continue to draft" in text
+    assert "Next: draft suggestions" not in text
+    assert "Draft knowledge objects" in text
+    assert "Finish review" in text
+    assert "Promote draft" in text
+    assert "kxPromotedDrafts" in text
+    assert "function kxContinueToDraft" in text
+    assert "function kxFinishDraftReview" in text
+    assert "function kxOpenPackImport" in text
     assert "function kxSetWorkflow" in text
+    assert "let _dcLog = null" in text
+    assert "window.addEventListener('DOMContentLoaded', wbGetLog)" in text
+    assert "Model required before knowledge drafting" in text
     assert "Extraction harness path" not in text
 
 
@@ -126,8 +154,11 @@ def test_knowledge_draft_endpoint_auto_suggests_multiple_leaf_types(client):
     assert r.status_code == 200, r.text
     data = r.json()
     assert data["auto_suggested"] is True
-    assert {"rag_doc", "grep_rule", "fact_template"}.issubset(data["suggested_types"])
+    assert {"rag_doc", "grep_rule", "fact_template", "extracted_fact", "modus_operandi"}.issubset(data["suggested_types"])
     assert len(data["suggestions"]) >= 3
+    by_type = {e["knowledge_object_type"]: e for e in data["suggestions"]}
+    assert "aggregation_keys" in by_type["extracted_fact"]["content"]
+    assert "fields" in by_type["fact_template"]["content"]
 
 
 def test_search_backends_contract_has_human_labels(client):
@@ -248,11 +279,21 @@ def test_process_page_has_graph_visualization_and_graph_chat_logging(client):
     assert r.status_code == 200
     text = r.text
     assert 'id="wb-step-upload" open' in text
+    assert "What this workflow does" in text
     assert "Drop a bundle or use the sample" in text
     assert 'id="wb-step-process"' in text
     assert 'id="wb-step-intelligence"' in text
     assert 'id="wb-step-export"' in text
-    assert "#wb-results { display: grid; gap: 12px; }" in text
+    assert "#wb-results { display: grid; gap: 16px; }" in text
+    assert 'id="wb-process-progress-fill"' in text
+    assert 'id="wb-confirm-intel-btn"' in text
+    assert "function wbConfirmIntelligence" in text
+    assert "Reviewer verification checklist" in text
+    assert "Confirm extracted intelligence before downloading" in text
+    assert "function wbRequireConfirmedNavigation" in text
+    assert "Deterministic fallback" in text
+    assert 'id="wb-activity-card"' in text
+    assert "let _dcLog = null" in text
     assert "Process harness path" not in text
     assert 'id="wb-static-pipeline"' not in text
     assert 'id="pg-pipeline"' not in text
@@ -266,6 +307,30 @@ def test_process_page_has_graph_visualization_and_graph_chat_logging(client):
     assert "Media queue" in text
     assert "POST /api/process/graph-chat" in text
     assert "wbLog('net', 'POST /api/process/graph-chat'" in text
+
+
+def test_process_case_brief_calls_gemma_with_message_contract():
+    from types import SimpleNamespace
+
+    from duecare.chat.harnesses.process.handler import _gemma_case_brief
+
+    calls = []
+
+    def gemma_call(messages, **kwargs):
+        calls.append((messages, kwargs))
+        return (
+            '{"case_theory":"fee camouflage","priority_people":[],'
+            '"risk_clusters":[],"missing_evidence":[],'
+            '"recommended_questions":[]}'
+        )
+
+    app = SimpleNamespace(state=SimpleNamespace(gemma_call=gemma_call))
+    out = _gemma_case_brief(app, {"summary": {}}, {"people": []})
+
+    assert out["status"] == "ok"
+    assert calls
+    assert isinstance(calls[0][0], list)
+    assert calls[0][0][0]["role"] == "user"
 
 
 def test_chat_page_uses_shared_model_selector(client):
