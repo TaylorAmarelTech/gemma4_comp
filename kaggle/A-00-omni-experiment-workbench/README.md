@@ -94,6 +94,10 @@ Use these recipes as the minimum pre-submission validation set:
    screenshots, contracts, cross-document linking, and knowledge-object
    synthesis. A-00 can compare quick, standard, and exhaustive local budgets
    before and after importing reviewed knowledge files.
+13. **Model-fit checks:** Record which Gemma variant was loaded and keep
+   deterministic edges as the baseline. Smaller text models are suitable for
+   compact text-edge proposals; multimodal edge extraction requires local
+   OCR/layout/ASR plus a model/runtime that can consume the relevant media.
 
 ## Small-Model Fine-Tune Smoke Path
 
