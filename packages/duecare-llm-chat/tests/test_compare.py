@@ -161,6 +161,30 @@ def test_model_selector_lives_in_shared_nav(client):
     assert "wireNavToggle" in nav_js
 
 
+def test_shared_nav_injects_fallback_activity_log(client):
+    """Pages without a bespoke log still get a consistent bottom
+    activity log, while pages that already define one are not duplicated.
+    """
+    nav_js = client.get("/static/_nav.js").text
+    chrome = client.get("/static/_chrome.css").text
+    assert "ensureDefaultActivityLog" in nav_js
+    assert "dc-wb-auto-log-card" in nav_js
+    assert "/static/_activity_log.js" in nav_js
+    assert "instrumentFetchForAutoLog" in nav_js
+    assert "shouldAutoLogFetch" in nav_js
+    assert "document.querySelector('.dc-activity-log')" in nav_js
+    assert ".dc-wb-auto-log-card" in chrome
+
+
+def test_shared_nav_maps_utility_pages_to_parent_nav_items(client):
+    nav_js = client.get("/static/_nav.js").text
+    assert "const navAliases" in nav_js
+    assert "layers: 'harness'" in nav_js
+    assert "import: 'process'" in nav_js
+    assert "grade: 'compare'" in nav_js
+    assert "settings: 'status'" in nav_js
+
+
 def test_root_page_does_not_force_model_gate(client):
     """The home page is orientation content, not an inference surface.
     It should still get the shared status strip, but the global model

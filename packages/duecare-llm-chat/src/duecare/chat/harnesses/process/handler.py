@@ -1117,6 +1117,39 @@ def _person_support_rows(person: dict, limit: int = 4) -> list[str]:
     return [str(r) for r in merged[:limit]]
 
 
+def _looks_like_reasoning_leak(text: str) -> bool:
+    """Detect plain-language scratchpad leakage from a graph-chat model.
+
+    The normal model-output sanitizer removes Gemma template tokens and
+    explicit <think> blocks. Some runtimes still emit natural-language
+    planning such as "The user is asking..." without a template marker.
+    Process graph chat is an evidence-review surface, so a deterministic
+    brief is preferable to exposing scratchpad text.
+    """
+    stripped = (text or "").strip().lower()
+    if not stripped:
+        return False
+    starts_like_scratchpad = stripped.startswith((
+        "the user is asking",
+        "we need to answer",
+        "i need to answer",
+        "i need to look",
+        "let's analyze",
+        "let us analyze",
+    ))
+    if not starts_like_scratchpad:
+        return False
+    planning_markers = (
+        "identify relevant information",
+        "scan the summary",
+        "scan the grounding",
+        "examine critical",
+        "based only on the provided",
+        "i should",
+    )
+    return any(marker in stripped for marker in planning_markers)
+
+
 def _graph_chat_deterministic_answer(bundle: dict, question: str) -> dict | None:
     """Answer common investigative graph questions without model drift.
 
@@ -1542,6 +1575,21 @@ def register_routes(app: Any) -> None:
                 (model_out or {}).get("text") or (model_out or {}).get("response") or ""
             )
             response_text = sanitize_model_output(response_text)
+            if _looks_like_reasoning_leak(response_text):
+                fallback = _deterministic_case_brief(bundle, bundle.get("intelligence") or {})
+                return JSONResponse({
+                    "answer": (
+                        "The model returned scratchpad-style reasoning, so I am "
+                        "suppressing it and returning the deterministic case-graph "
+                        "brief instead.\n\n"
+                        + _json.dumps(fallback, indent=2)
+                    ),
+                    "bundle_present": True,
+                    "cited_rows": [],
+                    "grep_hits": (bundle.get("summary") or {}).get("n_grep_rules_fired", 0),
+                    "fallback": "reasoning_leak_suppressed",
+                    "evidence_edges": (bundle.get("summary") or {}).get("n_evidence_edges", 0),
+                })
         except Exception as e:
             fallback = _deterministic_case_brief(bundle, bundle.get("intelligence") or {})
             return JSONResponse({

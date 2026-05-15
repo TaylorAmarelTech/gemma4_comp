@@ -766,6 +766,44 @@ GREP_RULES = [
                        "their embassy immediately.",
     },
     {
+        "rule": "complaint_retaliation_employer_pressure",
+        "patterns": [r"\b(?:complaint|report|case|claim|labou?r\s+"
+                      r"department|embassy|consulate|NGO)\b.{0,120}\b"
+                      r"(?:call|contact|message|notify|tell)\b.{0,90}\b"
+                      r"(?:employer|boss|sponsor|kafeel)\b",
+                      r"\b(?:agency|recruiter|broker)\b.{0,90}\b"
+                      r"(?:call|contact|message|notify|tell)\b.{0,90}\b"
+                      r"(?:employer|boss|sponsor|kafeel)\b.{0,90}\b"
+                      r"(?:complaint|report|case|claim|labou?r\s+"
+                      r"department|embassy|consulate|NGO)\b",
+                      r"\b(?:complaint|report|case|claim)\b.{0,90}\b"
+                      r"(?:agency|recruiter|broker)\b.{0,90}\b"
+                      r"(?:call|contact|message|notify|tell)\b.{0,90}\b"
+                      r"(?:employer|boss|sponsor|kafeel)\b",
+                      r"\b(?:withdraw|drop|cancel)\b.{0,50}\b"
+                      r"(?:complaint|report|case|claim)\b.{0,90}\b"
+                      r"(?:terminate|blacklist|send\s+(?:you|her|him|"
+                      r"them)\s+home|deport|cancel\s+(?:your|her|his|"
+                      r"their)\s+contract)\b",
+                      r"\b(?:retaliation|retaliate)\b.{0,90}\b"
+                      r"(?:complaint|report|agency|employer|recruiter|"
+                      r"blacklist|termination)\b"],
+        "all_required": False,
+        "severity": "high",
+        "citation": "ILO C190 Art. 1 and Art. 10; ILO C189 Art. 17; "
+                      "ILO Forced Labour Protocol P029 Art. 4; Palermo "
+                      "Protocol Art. 6",
+        "indicator": "Complaint retaliation pressure: an agency, "
+                       "recruiter, employer, sponsor, or lender may "
+                       "pressure a worker to withdraw a complaint, call "
+                       "the employer after a worker reports, threaten "
+                       "termination, blacklisting, deportation, or other "
+                       "retaliation. Responses should explain formal "
+                       "protections, practical retaliation risk, safe "
+                       "reporting through a trusted caseworker, and "
+                       "evidence preservation.",
+    },
+    {
         "rule": "esoteric_archaic_legal_language",
         "patterns": [r"\bindenture\b",
                       r"\bbondswomen?\b",
@@ -4123,7 +4161,7 @@ def _grep_call(text: str, extra_rules=None) -> dict:
 
 
 # ===========================================================================
-# 2. RAG CORPUS (54 docs) + hybrid-capable retrieval
+# 2. RAG CORPUS (55 docs) + hybrid-capable retrieval
 # ===========================================================================
 RAG_CORPUS = [
     # ----- ILO Conventions (paraphrased excerpts; full text on
@@ -4581,6 +4619,25 @@ RAG_CORPUS = [
      "license suspension), and RA 10022 §15 (joint and several "
      "liability of foreign principal + local agency). Verified "
      "agency-status check at https://onlineservices.poea.gov.ph/."),
+    ("complaint_retaliation_safe_reporting",
+     "Complaint Retaliation and Safe Reporting for Migrant Workers",
+     "ILO C190 Art. 1 and Art. 10; ILO P029 Art. 4; Palermo "
+     "Protocol Art. 6; ILO C189 Art. 17",
+     "When a worker asks whether to file a complaint against an "
+     "agency, employer, recruiter, sponsor, lender, or training center, "
+     "the response should cover two realities at the same time: formal "
+     "retaliation, intimidation, and obstruction of remedy are prohibited "
+     "or challengeable through official channels, but retaliation can "
+     "still happen in practice. Agencies may call the employer, pressure "
+     "the worker to withdraw a complaint, threaten termination or "
+     "blacklisting, discourage embassy or NGO contact, or use migration "
+     "status as leverage. Protective response pattern: do not advise the "
+     "worker to confront the employer or agency alone; suggest a trusted "
+     "caseworker, embassy or consulate, labour regulator, or NGO; preserve "
+     "screenshots, receipts, contracts, payslips, and message timelines; "
+     "share personal data only with consent and trusted channels; use the "
+     "vetted contacts pack or contacts tool for current phone numbers, "
+     "URLs, forms, office names, and intake hours."),
     # ----- ILO Forced Labour Protocol P029 -----
     ("ilo_p029_2014_protocol",
      "ILO Forced Labour Protocol P029 (2014)",

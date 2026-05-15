@@ -15,9 +15,24 @@
 
     function activate(root, key) {
         if (!key || !root) return;
-        const link = root.querySelector('a[data-nav-key="' + key + '"]');
+        const navAliases = {
+            layers: 'harness',
+            tools: 'harness',
+            hotlines: 'share',
+            anonymize: 'share',
+            import: 'process',
+            grade: 'compare',
+            logs: 'status',
+            models: 'status',
+            settings: 'status',
+        };
+        let link = root.querySelector('a[data-nav-key="' + key + '"]');
+        const exact = !!link;
+        if (!link && navAliases[key]) {
+            link = root.querySelector('a[data-nav-key="' + navAliases[key] + '"]');
+        }
         if (link) {
-            link.setAttribute('aria-current', 'page');
+            if (exact) link.setAttribute('aria-current', 'page');
             link.classList.add('on');
             const group = link.closest('.dc-wb-nav-group');
             if (group) {
@@ -323,6 +338,118 @@
         });
     }
 
+    function ensureActivityLogScript(cb) {
+        if (window.dcActivityLog) {
+            cb();
+            return;
+        }
+        const existing = document.getElementById('dc-activity-log-js');
+        if (existing) {
+            existing.addEventListener('load', cb, {once: true});
+            return;
+        }
+        const script = document.createElement('script');
+        script.id = 'dc-activity-log-js';
+        script.src = '/static/_activity_log.js';
+        script.defer = true;
+        script.addEventListener('load', cb, {once: true});
+        document.body.appendChild(script);
+    }
+
+    function shouldAutoLogFetch(path) {
+        if (!path || path.indexOf('/api/') !== 0) return false;
+        const quiet = new Set([
+            '/api/version',
+            '/api/model-info',
+            '/api/load-model/status',
+            '/api/brand',
+        ]);
+        if (quiet.has(path)) return false;
+        return true;
+    }
+
+    function instrumentFetchForAutoLog(log) {
+        if (!log || !window.fetch || window.__dcWbAutoLogFetchWrapped) return;
+        const nativeFetch = window.fetch.bind(window);
+        window.__dcWbAutoLogFetchWrapped = true;
+        window.fetch = function (input, init) {
+            let method = (init && init.method) || 'GET';
+            let path = '';
+            try {
+                const rawUrl = typeof input === 'string'
+                    ? input
+                    : (input && input.url) || '';
+                const url = new URL(rawUrl, window.location.origin);
+                path = url.pathname;
+                if ((!init || !init.method) && input && input.method) {
+                    method = input.method;
+                }
+            } catch (_) {
+                path = '';
+            }
+            method = String(method || 'GET').toUpperCase();
+            const shouldLog = shouldAutoLogFetch(path);
+            const t0 = performance.now();
+            if (shouldLog) log.net(method + ' ' + path);
+            return nativeFetch(input, init).then(function (resp) {
+                if (shouldLog) {
+                    const dt = Math.round(performance.now() - t0);
+                    const fn = resp.ok ? log.ok : log.err;
+                    fn('HTTP ' + resp.status + ' (' + dt + 'ms)', method + ' ' + path);
+                }
+                return resp;
+            }).catch(function (err) {
+                if (shouldLog) {
+                    log.err('Fetch failed', method + ' ' + path + ' | ' + ((err && err.message) || err));
+                }
+                throw err;
+            });
+        };
+    }
+
+    function ensureDefaultActivityLog() {
+        if (document.querySelector('.dc-activity-log')
+            || document.querySelector('.dc-wb-auto-log-card')) {
+            return;
+        }
+        const navKey = document.body.getAttribute('data-nav') || 'page';
+        const card = document.createElement('section');
+        card.className = 'dc-wb-auto-log-card';
+        card.setAttribute('aria-label', 'Activity log');
+
+        const title = document.createElement('h2');
+        title.textContent = 'Activity log';
+        const sub = document.createElement('span');
+        sub.textContent = ' page activity and API calls';
+        title.appendChild(sub);
+        card.appendChild(title);
+
+        const logHost = document.createElement('div');
+        logHost.className = 'dc-activity-log';
+        logHost.id = 'dc-wb-auto-log';
+        logHost.setAttribute('role', 'log');
+        logHost.setAttribute('aria-label', 'Activity log');
+        logHost.setAttribute('aria-live', 'polite');
+        const idle = document.createElement('div');
+        idle.className = 'dc-log-idle';
+        idle.textContent = 'No page activity yet.';
+        logHost.appendChild(idle);
+        card.appendChild(logHost);
+
+        const target = document.querySelector('main') || document.body;
+        target.appendChild(card);
+
+        ensureActivityLogScript(function () {
+            if (!window.dcActivityLog) return;
+            const log = window.dcActivityLog.attach(logHost, {
+                idlePlaceholder: 'No page activity yet.',
+            });
+            window.dcWbPageLog = log;
+            log.info('Page loaded', navKey + ' | ' + window.location.pathname);
+            instrumentFetchForAutoLog(log);
+        });
+    }
+
     function wireModelPopover() {
         const openBtn = document.getElementById('dc-wb-model-open');
         const closeBtn = document.getElementById('dc-wb-model-close');
@@ -450,6 +577,7 @@
         wireModelPopover();
         wireShutdown();
         wireClearChat();
+        ensureDefaultActivityLog();
         refreshStatus();
         refreshModelLoaderStatus().then(function (state) {
             const onModelsPage = (document.body.getAttribute('data-nav') || '') === 'models';

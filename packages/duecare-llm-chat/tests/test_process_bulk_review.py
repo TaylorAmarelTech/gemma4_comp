@@ -140,3 +140,17 @@ def test_process_batch_surfaces_media_and_ocr_work_queue():
     assert all(asset["gemma_questions"] for asset in plan["media_assets"])
     assert any(p["id"] == "ocr" and p["status"] == "queued_contract" for p in plan["passes"])
     assert any(p["id"] == "gemma_multimodal" for p in plan["passes"])
+
+
+def test_process_graph_chat_suppresses_plain_language_reasoning_leak():
+    from duecare.chat.harnesses.process.handler import _looks_like_reasoning_leak
+
+    leaked = (
+        "The user is asking to identify people with the strongest evidence.\n\n"
+        "1. Identify relevant information.\n"
+        "2. Scan the summary for payment and debt signals."
+    )
+    assert _looks_like_reasoning_leak(leaked)
+    assert not _looks_like_reasoning_leak(
+        "People with strongest overcharging evidence:\n\n1. DC-PH-HK-001"
+    )
