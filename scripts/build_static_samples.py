@@ -280,6 +280,87 @@ def _draw_messenger_screenshot(case_id: str, name: str, agency: str, amount: int
     return buf.getvalue()
 
 
+def _draw_whatsapp_screenshot(case_id: str, name: str, agency: str, amount: int, deduction: int) -> bytes:
+    """Create a synthetic WhatsApp-style screenshot with complaint-relevant signals."""
+    lines = [
+        (agency, f"Medical and training package: PHP {amount}."),
+        (agency, f"We can collect by HKD {deduction} monthly salary deduction."),
+        (name, "I want to ask DMW or the consulate if this is allowed."),
+        (agency, "Do not complain. Employer will be informed and your placement may stop."),
+        (name, "They also kept my passport for safekeeping."),
+    ]
+    if Image is None:
+        return _draw_text_image([f"{speaker}: {msg}" for speaker, msg in lines], title="Synthetic WhatsApp screenshot")
+
+    img = Image.new("RGB", (900, 1280), (230, 221, 205))
+    draw = ImageDraw.Draw(img)
+    try:
+        header = ImageFont.truetype("arial.ttf", 30)
+        body = ImageFont.truetype("arial.ttf", 24)
+        small = ImageFont.truetype("arial.ttf", 18)
+    except Exception:
+        header = body = small = ImageFont.load_default()
+
+    draw.rectangle([0, 0, 900, 116], fill=(7, 94, 84))
+    draw.ellipse([34, 28, 86, 80], fill=(219, 239, 232))
+    draw.text((108, 32), "Recruiter chat", font=header, fill=(255, 255, 255))
+    draw.text((108, 74), f"WhatsApp export image | {case_id}", font=small, fill=(205, 230, 224))
+    y = 156
+    for idx, (speaker, message) in enumerate(lines):
+        incoming = speaker == agency
+        wrapped = textwrap.wrap(message, width=44)
+        bubble_h = max(56, 34 * len(wrapped) + 28)
+        if incoming:
+            x1, x2, fill = 44, 690, (255, 255, 255)
+        else:
+            x1, x2, fill = 230, 856, (220, 248, 198)
+        draw.rounded_rectangle([x1, y, x2, y + bubble_h], radius=18, fill=fill, outline=(204, 204, 190))
+        draw.text((x1 + 22, y + 11), speaker[:28], font=small, fill=(7, 94, 84))
+        ty = y + 34
+        for part in wrapped:
+            draw.text((x1 + 22, ty), part, font=body, fill=(22, 26, 30))
+            ty += 32
+        y += bubble_h + 22
+    draw.text((44, 1220), "Synthetic screenshot. No real account, person, or message.", font=small, fill=(80, 84, 88))
+    buf = io.BytesIO()
+    img.save(buf, format="PNG")
+    return buf.getvalue()
+
+
+def _draw_passport_scan_photo(case_id: str, name: str, origin: str) -> bytes:
+    if Image is None:
+        return _draw_document_photo([f"CASE: {case_id}", f"WORKER: {name}", f"ORIGIN: {origin}"], title="Synthetic passport page photo")
+    img = Image.new("RGB", (1000, 760), (190, 194, 185))
+    draw = ImageDraw.Draw(img)
+    draw.rounded_rectangle([82, 72, 918, 674], radius=14, fill=(242, 246, 238), outline=(130, 138, 125), width=3)
+    draw.rectangle([120, 130, 392, 492], fill=(214, 225, 222), outline=(125, 135, 132), width=2)
+    draw.ellipse([196, 190, 310, 306], fill=(175, 187, 184), outline=(105, 112, 110))
+    draw.rectangle([166, 330, 338, 454], fill=(166, 178, 175), outline=(105, 112, 110))
+    try:
+        title = ImageFont.truetype("arial.ttf", 30)
+        body = ImageFont.truetype("arial.ttf", 24)
+        mono = ImageFont.truetype("arial.ttf", 21)
+    except Exception:
+        title = body = mono = ImageFont.load_default()
+    rows = [
+        "PASSPORT / ID PAGE PHOTO",
+        "SYNTHETIC SAMPLE - NOT REAL ID",
+        f"Case: {case_id}",
+        f"Name: {name}",
+        f"Origin: {origin}",
+        "Status note: employer safekeeping reported",
+        "Visible issue: worker photo + identity fields",
+    ]
+    y = 132
+    for idx, row in enumerate(rows):
+        draw.text((430, y), row, font=title if idx == 0 else body, fill=(20, 24, 28))
+        y += 48
+    draw.text((120, 600), f"<<SYNTHETIC<<{case_id.replace('-', '<')}<<NOTREAL<<<<<<<<", font=mono, fill=(20, 24, 28))
+    buf = io.BytesIO()
+    img.save(buf, format="JPEG", quality=86)
+    return buf.getvalue()
+
+
 def _draw_receipt_photo(case_id: str, name: str, agency: str, amount: int) -> bytes:
     if Image is None:
         return _draw_document_photo(
@@ -435,6 +516,44 @@ def _xlsx_bytes(rows: list[list[str]]) -> bytes:
         _zip_write_deterministic(zf, "xl/_rels/workbook.xml.rels", wb_rels.encode("utf-8"))
         _zip_write_deterministic(zf, "xl/worksheets/sheet1.xml", worksheet.encode("utf-8"))
     return buf.getvalue()
+
+
+def _pdf_escape(text: str) -> str:
+    return str(text).replace("\\", "\\\\").replace("(", "\\(").replace(")", "\\)")
+
+
+def _text_pdf_bytes(title: str, lines: Iterable[str]) -> bytes:
+    """Build a small extractable PDF with a simple text stream."""
+    content_lines = ["BT", "/F1 12 Tf", "72 740 Td", f"({_pdf_escape(title)}) Tj"]
+    for line in lines:
+        content_lines.append("0 -18 Td")
+        content_lines.append(f"({_pdf_escape(str(line)[:90])}) Tj")
+    content_lines.append("ET")
+    stream = "\n".join(content_lines).encode("latin-1", errors="replace")
+    objects = [
+        b"<< /Type /Catalog /Pages 2 0 R >>",
+        b"<< /Type /Pages /Kids [3 0 R] /Count 1 >>",
+        b"<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 5 0 R >> >> /Contents 4 0 R >>",
+        b"<< /Length " + str(len(stream)).encode("ascii") + b" >>\nstream\n" + stream + b"\nendstream",
+        b"<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>",
+    ]
+    out = bytearray(b"%PDF-1.4\n")
+    offsets = [0]
+    for idx, obj in enumerate(objects, start=1):
+        offsets.append(len(out))
+        out.extend(f"{idx} 0 obj\n".encode("ascii"))
+        out.extend(obj)
+        out.extend(b"\nendobj\n")
+    xref_start = len(out)
+    out.extend(f"xref\n0 {len(objects) + 1}\n".encode("ascii"))
+    out.extend(b"0000000000 65535 f \n")
+    for offset in offsets[1:]:
+        out.extend(f"{offset:010d} 00000 n \n".encode("ascii"))
+    out.extend(
+        f"trailer << /Size {len(objects) + 1} /Root 1 0 R >>\n"
+        f"startxref\n{xref_start}\n%%EOF\n".encode("ascii")
+    )
+    return bytes(out)
 
 
 def _scan_pdf_bytes(case_id: str, name: str, amount: int) -> bytes:
@@ -651,6 +770,236 @@ synthetic_phone: {phone}
     print(f"wrote {out}  ({out.stat().st_size:,} bytes)")
 
 
+def build_media_rich_case_files_zip() -> None:
+    """Build a smaller, denser bundle for demoing mixed-media intake folders."""
+    agencies = [
+        "Pearl Bridge Manpower",
+        "Harbour Link Recruitment",
+        "Silver Gate Placement",
+        "Metro Star Training Center",
+        "Crown Bay Employment",
+        "Eastline Manpower Services",
+    ]
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as zf:
+        readme = """\
+DueCare Bulk File Review - media-rich sample bundle
+
+Fully synthetic PH to HK intake packet designed to look like a real local case
+folder without using real people, real IDs, real chat accounts, or real evidence.
+
+This smaller bundle is for demoing upload review. Each case includes:
+- plain-text chat export
+- Facebook Messenger-style screenshot PNG
+- WhatsApp-style screenshot PNG
+- receipt photo JPEG
+- passport / ID-page photo JPG
+- contract or side-letter photo JPG
+- worker intake DOCX
+- extractable PDF contract excerpt
+- scan-like PDF receipt queued for OCR and Gemma 4 vision
+- legacy DOC/RTF case note
+- EML handoff email
+- XLSX payment schedule
+- CSV travel/location timeline
+- caseworker review notes
+- a few queued binary Office artifacts to show inventory handling
+
+All content is fictional and composite. Use this when a judge asks whether the
+bulk review page can handle the messy folder shape NGOs and caseworkers see.
+"""
+        _zip_write_deterministic(zf, "README.txt", readme.encode("utf-8"))
+        for offset in range(6):
+            idx = offset + 101
+            display_idx = offset + 1
+            case_id = f"DC-PH-HK-{idx:03d}"
+            name = _SAMPLE_NAMES[offset]
+            safe_name = _safe_folder(name)
+            root = f"media_rich_cases/{case_id}_{safe_name}"
+            origin = _PH_ORIGINS[offset % len(_PH_ORIGINS)]
+            area = _HK_AREAS[(offset + 2) % len(_HK_AREAS)]
+            agency = agencies[offset]
+            employer = f"Hong Kong Household MR-{display_idx:03d}"
+            base_fee = 42000 + offset * 6500
+            deduction = 1380 + offset * 210
+            phone = f"+63 918 111 {idx:04d}"
+            summary = f"""\
+# Synthetic case folder index
+
+case_id: {case_id}
+worker_name: {name}
+agency: {agency}
+employer: {employer}
+corridor: PH-HK
+origin_city: {origin}
+destination_area: {area}
+
+Primary allegations in this synthetic packet:
+- PHP {base_fee} in training, medical, processing, and documentation charges
+- salary deduction of HKD {deduction} after arrival in Hong Kong
+- passport retained by employer for "safekeeping"
+- warning that complaint filing may affect placement or employer support
+
+Reviewer prompt ideas:
+- Which entities appear across the most evidence types?
+- Which cases have the strongest fee-overcharge evidence?
+- Which files need OCR or Gemma 4 vision before the graph can be trusted?
+- Which individuals could be grouped for a pattern or class-style review?
+"""
+            chat = f"""\
+case_id: {case_id}
+worker_name: {name}
+agency: {agency}
+channel: exported chat text
+date: 2026-04-{display_idx + 4:02d}
+Recruiter: Your Hong Kong placement is approved.
+Recruiter: Total pre-departure package is PHP {base_fee}; labels are training, medical, processing, documentation, and service coordination.
+Worker: Is this allowed? I read Hong Kong domestic worker deployment should be zero placement fee.
+Recruiter: Do not call it placement. It is a package and you agreed.
+Recruiter: We will collect through salary deduction of HKD {deduction} after arrival.
+Worker: My passport is still with the employer.
+Recruiter: The employer keeps it for safekeeping until your balance is complete.
+Worker: I may ask a caseworker or regulator.
+Recruiter: If you complain, the employer may stop supporting you even if the law says no retaliation.
+contact_phone: {phone}
+"""
+            timeline_csv = (
+                "case_id,date,location,event,source\n"
+                f"{case_id},2026-04-01,{origin},agency orientation,intake_form\n"
+                f"{case_id},2026-04-05,Manila,medical and training payment,receipt_photo\n"
+                f"{case_id},2026-04-15,Manila,flight departure,travel_record\n"
+                f"{case_id},2026-04-16,Hong Kong,arrival,travel_record\n"
+                f"{case_id},2026-04-18,{area},employer household,location_ping\n"
+            )
+            notes = f"""\
+case_id: {case_id}
+caseworker review note
+subject: {name}
+agency: {agency}
+strongest evidence: chat export, receipt photo, payment schedule, intake DOCX.
+queued media: Messenger screenshot, WhatsApp screenshot, receipt photo, passport photo, side-letter photo, scanned receipt PDF.
+legal anchor candidates: POEA MC 14-2017; ILO C181 Art. 7; ILO C095 Art. 9; Hong Kong Employment Ordinance Cap. 57.
+follow-up questions: Who received the payment? Was the passport returned on request? Were deductions made by employer or collector?
+"""
+            _zip_write_deterministic(zf, f"{root}/00_case_index/case_summary.md", summary.encode("utf-8"))
+            _zip_write_deterministic(zf, f"{root}/01_chats/plain_text_chat_export_{display_idx:02d}.txt", chat.encode("utf-8"))
+            _zip_write_deterministic(
+                zf,
+                f"{root}/01_chats/facebook_messenger/facebook_messenger_fee_thread_{display_idx:02d}.png",
+                _draw_messenger_screenshot(case_id, name, agency, base_fee, deduction),
+            )
+            _zip_write_deterministic(
+                zf,
+                f"{root}/01_chats/whatsapp/whatsapp_retaliation_thread_{display_idx:02d}.png",
+                _draw_whatsapp_screenshot(case_id, name, agency, base_fee, deduction),
+            )
+            _zip_write_deterministic(
+                zf,
+                f"{root}/02_worker_uploads/receipt_photo_processing_fee_{display_idx:02d}.jpeg",
+                _draw_receipt_photo(case_id, name, agency, base_fee),
+            )
+            _zip_write_deterministic(
+                zf,
+                f"{root}/02_worker_uploads/passport_page_photo_{display_idx:02d}.jpg",
+                _draw_passport_scan_photo(case_id, name, origin),
+            )
+            _zip_write_deterministic(
+                zf,
+                f"{root}/02_worker_uploads/side_letter_photo_{display_idx:02d}.jpg",
+                _draw_document_photo(
+                    [
+                        f"CASE: {case_id}",
+                        f"WORKER: {name}",
+                        f"AGENCY: {agency}",
+                        f"TOTAL PACKAGE: PHP {base_fee}",
+                        f"DEDUCTION: HKD {deduction} per month",
+                        "PASSPORT: employer safekeeping",
+                        "NOTE: worker agrees not to complain directly",
+                    ],
+                    title="Synthetic side-letter photo",
+                ),
+            )
+            _zip_write_deterministic(
+                zf,
+                f"{root}/03_documents/worker_intake_{display_idx:02d}.docx",
+                _docx_bytes(
+                    f"Worker intake form - {case_id}",
+                    [
+                        f"case_id: {case_id}",
+                        f"worker_name: {name}",
+                        f"agency: {agency}",
+                        f"employer: {employer}",
+                        f"origin: {origin}; destination: Hong Kong; assigned area: {area}",
+                        f"reported fee: PHP {base_fee}",
+                        f"salary deduction: HKD {deduction}",
+                        "reported document issue: passport retained by employer",
+                        "reported retaliation concern: recruiter said employer may stop support if complaint is filed.",
+                    ],
+                ),
+            )
+            _zip_write_deterministic(
+                zf,
+                f"{root}/03_documents/employment_contract_extractable_{display_idx:02d}.pdf",
+                _text_pdf_bytes(
+                    f"Synthetic employment contract excerpt - {case_id}",
+                    [
+                        f"Worker: {name}",
+                        f"Agency: {agency}",
+                        f"Total recruitment-related package: PHP {base_fee}",
+                        f"Repayment: HKD {deduction} salary deduction after Hong Kong arrival",
+                        "Document custody: employer keeps passport for safekeeping",
+                        "This is fictional test evidence for DueCare.",
+                    ],
+                ),
+            )
+            _zip_write_deterministic(
+                zf,
+                f"{root}/03_documents/receipt_scan_ocr_needed_{display_idx:02d}.pdf",
+                _scan_pdf_bytes(case_id, name, base_fee),
+            )
+            legacy_doc = (
+                r"{\rtf1\ansi "
+                f"Legacy note {case_id}: {name} reports PHP {base_fee} charged by {agency}. "
+                f"HKD {deduction} monthly salary deduction and passport retention reported. "
+                r"Caseworker flagged possible fee camouflage and retaliation risk.}"
+            )
+            _zip_write_deterministic(zf, f"{root}/03_documents/legacy_case_note_{display_idx:02d}.doc", legacy_doc.encode("utf-8"))
+            email = (
+                f"From: intake{display_idx}@example.invalid\n"
+                "To: reviewer@example.invalid\n"
+                f"Subject: Synthetic media-rich packet {case_id}\n"
+                "Date: Fri, 15 May 2026 11:00:00 +0800\n\n"
+                f"Please review {case_id}. Evidence includes chat screenshots, receipt photo, scanned receipt PDF, "
+                f"DOCX intake form, and payment schedule. The non-PII agency label is {agency}."
+            )
+            _zip_write_deterministic(zf, f"{root}/03_documents/email_handoff_{display_idx:02d}.eml", email.encode("utf-8"))
+            _zip_write_deterministic(
+                zf,
+                f"{root}/04_tables/payment_schedule_{display_idx:02d}.xlsx",
+                _xlsx_bytes([
+                    ["case_id", "worker", "agency", "amount", "currency", "deduction", "recipient", "note"],
+                    [case_id, name, agency, str(base_fee), "PHP", f"HKD {deduction}", agency, "pre-departure package"],
+                    [case_id, name, agency, str(deduction), "HKD", "monthly", employer, "salary deduction"],
+                ]),
+            )
+            _zip_write_deterministic(zf, f"{root}/04_tables/travel_location_timeline_{display_idx:02d}.csv", timeline_csv.encode("utf-8"))
+            _zip_write_deterministic(zf, f"{root}/05_caseworker_notes/review_notes_{display_idx:02d}.txt", notes.encode("utf-8"))
+            if display_idx <= 3:
+                _zip_write_deterministic(
+                    zf,
+                    f"{root}/06_unparsed_binary/recruiter_pitch_{display_idx:02d}.pptx",
+                    b"PK\x03\x04synthetic pptx placeholder; queued document asset for inventory only",
+                )
+                _zip_write_deterministic(
+                    zf,
+                    f"{root}/06_unparsed_binary/outlook_forward_{display_idx:02d}.msg",
+                    b"\xd0\xcf\x11\xe0synthetic outlook msg placeholder; queued document asset for inventory only",
+                )
+    out = OUT / "case_files_media_rich_sample.zip"
+    out.write_bytes(buf.getvalue())
+    print(f"wrote {out}  ({out.stat().st_size:,} bytes)")
+
+
 # Section 2: Knowledge object sample (single envelope)
 #
 # Envelope schema (from packages/duecare-llm-chat/src/duecare/chat/app.py
@@ -839,6 +1188,7 @@ def build_knowledge_bundle_zip() -> None:
 
 def main() -> None:
     build_case_files_zip()
+    build_media_rich_case_files_zip()
     build_knowledge_object_sample()
     build_knowledge_bundle_zip()
     print(f"\nAll samples in {OUT}")
