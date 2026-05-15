@@ -30,9 +30,30 @@ pitch (#3) for the slides + presenter remote.
 
 | # | Folder | Kaggle URL | Purpose |
 |---|---|---|---|
-| **1** | [`01-duecare-exploration-workbench/`](./01-duecare-exploration-workbench/) ★ | https://www.kaggle.com/code/taylorsamarel/duecare-exploration-workbench _(publish pending)_ | **The omni playground.** All 6 harness toggles (Persona / GREP 161 rules / RAG 54 docs / Imports / Tools 5 lookups / Online + deep-fetch) + 4 grading modes (Rule-Based / LLM-Based / Combined / Expert) + **9-variant Gemma 4 model selector** (E2B / E4B / 26B-A4B / 31B / 2 jailbroken / 3 cloud BYOK) + A/B Compare + retrieval-config + path-trace. |
+| **1** | [`01-duecare-exploration-workbench/`](./01-duecare-exploration-workbench/) ★ | https://www.kaggle.com/code/taylorsamarel/duecare-exploration-workbench _(publish pending)_ | **The omni playground.** All 6 harness toggles (Persona / live GREP catalog / live RAG corpus / Imports / Tools / Online + deep-fetch) + 4 grading modes (Rule-Based / LLM-Based / Combined / Expert) + **9-variant Gemma 4 model selector** (E2B / E4B / 26B-A4B / 31B / 2 jailbroken / 3 cloud BYOK) + A/B Compare + retrieval-config + path-trace. |
 | **2** | [`02-live-demo/`](./02-live-demo/) ★ | https://www.kaggle.com/code/taylorsamarel/duecare-live-demo | **The user-facing live URL.** Full safety-harness pipeline + audit Workbench + the polished classification + knowledge-building product with the +56.5pp lift demonstration. |
 | **3** | [`03-duecare-video-pitch/`](./03-duecare-video-pitch/) ★ | https://www.kaggle.com/code/taylorsamarel/duecare-video-pitch _(publish pending)_ | **The video pitch kernel.** In-app slides + presenter remote + real setup-mode editor for filming the 3-minute walkthrough; the demo-replay path is mirrored in A-24 for zero-inference reviewers. |
+
+### Pre-video recording gate
+
+Before recording, run the four recording-critical kernels in this order:
+
+1. `01-duecare-exploration-workbench`: direct-link test Chat, Harness
+   Comparison, Bulk File Review, Knowledge Extraction, Search, Anonymization
+   and Sharing, Sync, Status, Harnesses, and UI Audit. Confirm model loading
+   works from a deep link, every primary action logs to the page activity log,
+   and the sample bundles produce exportable artifacts.
+2. `A-00-omni-experiment-workbench`: run a small baseline export, rerun the
+   same prompts with the harness profile, generate rubric-polished SFT/DPO
+   rows, create the tiny fine-tune smoke bundle, and export the HTML report.
+3. `02-live-demo`: confirm the focused use-case path opens cleanly from the
+   Cloudflare URL and that any cached scenes match the A-00 report numbers.
+4. `03-duecare-video-pitch`: run setup mode once, export the script bundle,
+   then record slides or presentation mode with the A-00 report path ready for
+   the validation slide.
+
+Treat stale counts, missing activity logs, confusing model-gate behavior,
+unclear trust boundaries, and broken export buttons as blockers for recording.
 
 ### Appendix kernels (specialised + research)
 

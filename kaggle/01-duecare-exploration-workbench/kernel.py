@@ -6,8 +6,8 @@
 #   - 5 audience showcase pages (Platform safety / NGO & regulator / Worker /
 #     Researcher / Developer) with curated sample prompts per lane.
 #   - Free-form chat playground with five safety layers plus local imports,
-#     4 grading modes, and 9 Gemma 4 variants on the home page.
-#   - Layer transparency: 161 GREP rules / 54 RAG docs / 5 tools, each
+#     4 grading modes, and 9 Gemma 4 variants through the shared model picker.
+#   - Layer transparency: live GREP rules / live RAG docs / tools, each
 #     browsable with its own viewer page under /static/harness.html.
 #   - Anonymization preview, hotlines directory, cross-layer search, and a
 #     full Tools index at /static/all-tools.html, all behind one nav bar.
@@ -29,7 +29,8 @@
   submission visible here:
 
       Persona      expert anti-trafficking persona prepended to context
-      GREP         161 regex KB rules across 31 categories (debt
+      GREP         Live regex KB rules across trafficking and labour-risk
+                     categories (debt
                      bondage, fee camouflage, corridor fee caps,
                      ILO indicators, kafala framework + extended
                      mechanisms, sector-specific labour abuse,
@@ -38,9 +39,9 @@
                      recovery suppression / repatriation barriers,
                      additional corridors, platform / digital
                      recruitment patterns)
-      RAG          Hybrid preferred RAG over a 54-doc
-                     reference corpus across curated source groups,
-                     plus a 46-edge citation graph for 1-hop expansion
+      RAG          Hybrid preferred RAG over the bundled corpus
+                     across curated source groups,
+                     plus the citation graph for 1-hop expansion
       Imports      user-attached evidence (images / docs / posts)
                      auto-bound to the prompt context
       Tools        5 lookup functions (corridor fee caps, fee

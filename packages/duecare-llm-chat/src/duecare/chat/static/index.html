@@ -1951,6 +1951,7 @@ const LAYER_TITLES = {
   rag:      'RAG corpus',
   tools:    'Tools registry',
   online:   'Online search',
+  import:   'Imported evidence',
   audit:    'Safety harness pipeline',
   pipeline: 'Safety harness pipeline',
   examples: 'Example prompts',
@@ -2903,9 +2904,13 @@ async function openLayerModal(layer) {
     }
     // ------ Custom-entry section at the TOP for visibility ------
     html += renderCustomSection(layer, store);
-    // ------ Built-in catalog ------
-    html += `<div style="color:var(--muted); font-size:11.5px; margin:18px 0 10px 0; padding-top:14px; border-top:1px solid var(--border);">${data.items.length} built-in items (read-only — to extend the bundled set, edit the harness module)</div>`;
-    for (const it of data.items) {
+    // ------ Built-in or local catalog ------
+    const catalogItems = Array.isArray(data.items) ? data.items : [];
+    const catalogLabel = layer === 'import'
+      ? `${catalogItems.length} local imported item(s). Use the Import controls to add, inspect, or clear evidence in this kernel.`
+      : `${catalogItems.length} built-in items. To extend the bundled set, edit the harness module.`;
+    html += `<div style="color:var(--muted); font-size:11.5px; margin:18px 0 10px 0; padding-top:14px; border-top:1px solid var(--border);">${escapeHtml(catalogLabel)}</div>`;
+    for (const it of catalogItems) {
       html += '<div class="item">';
       if (layer === 'grep') {
         const sevClass = `severity-${it.severity || 'info'}`;
@@ -2919,6 +2924,10 @@ async function openLayerModal(layer) {
       } else if (layer === 'tools') {
         html += `<div class="name">${escapeHtml(it.name)}<span style="color:var(--muted); font-weight:400;">(${escapeHtml(it.args)})</span></div>`;
         html += `<div class="body">${escapeHtml(it.description)}</div>`;
+      } else if (layer === 'import') {
+        html += `<div class="name">${escapeHtml(it.title || it.id || 'Imported document')}</div>`;
+        html += `<div class="meta">${escapeHtml(it.source || 'local import')} | ${escapeHtml(String(it.size_bytes || 0))} bytes</div>`;
+        html += `<div class="body">${escapeHtml(it.preview || 'No preview available.')}</div>`;
       }
       html += '</div>';
     }

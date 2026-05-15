@@ -61,6 +61,37 @@ Current audit status:
 - Good: model selector is global, compare can be entered directly, and system pages are grouped.
 - Watch: standalone older layer pages still have some legacy title punctuation and should be cleaned after the primary demo flow is stable.
 
+## 2026-05-15 Validation Snapshot
+
+Local FastAPI smoke testing covered every static route bundled in
+`packages/duecare-llm-chat/src/duecare/chat/static` and the core JSON API
+surface used by Chat, Harness Comparison, Bulk File Review, Knowledge
+Extraction, Search, Anonymization and Sharing, Sync, Status, and the layer
+catalog pages.
+
+Confirmed locally:
+
+- 38 static routes return HTTP 200 or intentionally redirect to the current
+  workflow page.
+- Pages without a bespoke activity log receive the shared bottom activity log
+  from `_nav.js`; primary workflow pages keep their explicit logs.
+- `/api/harness-catalog/import` now serves local imported evidence metadata
+  so the Chat Import layer has a real inspectable catalog endpoint.
+- The sample case bundle serves from `/static/samples/case_files_sample.zip`;
+  `/api/process/batch` and `/api/process/graph-chat` return stable local
+  results without requiring a remote service.
+- `/api/knowledge/draft-envelope`, `/api/import/*`, `/api/anonymize`,
+  `/api/contacts`, `/api/grep/test`, `/api/retrieval/config`, and the main
+  harness catalogs respond under `TestClient`.
+
+Still requires live Kaggle review before recording:
+
+- Model loading and model-required lightboxes on direct deep links.
+- Real Gemma 4 generation paths, including process case briefs and graph chat.
+- Browser screenshots at desktop, tablet, and mobile widths.
+- Web search with the selected backend or the kernel search hook.
+- A-00 synthetic generation plus tiny fine-tune smoke bundle on GPU.
+
 ## Primary Pages
 
 | Page | Route | Dependency | Purpose | Main Functions | Design Notes |
@@ -521,4 +552,3 @@ The remaining risk is not architectural. It is polish and proof density:
 - Grading needs continued refinement around applicability, dynamic weights, contacts, retaliation risk, and response templates.
 - Legacy layer pages need one more visual normalization pass.
 - The A-00 appendix should generate quantitative reports that tie back to these exact pages.
-
