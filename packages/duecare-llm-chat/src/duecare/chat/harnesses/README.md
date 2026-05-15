@@ -26,6 +26,7 @@ name: str                              # canonical short name
 applied_layers: tuple[str, ...]        # which safety layers fire
 consumes: tuple[str, ...]              # KnowledgeObject types read
 emits: tuple[str, ...]                 # KnowledgeObject types written
+spec: HarnessSpec                      # user-facing route/prompt/model contract
 def register_routes(app) -> None: ...  # attaches routes to a FastAPI app
 ```
 
@@ -33,16 +34,30 @@ The shared `_layers.py` module provides `compose_layers(app, text, *, layers)`
 which fans out to `app.state.{grep_call, rag_call, tools_call, online_search_call}`
 and returns `{"trace": {...}, "grounding": str}`.
 
+`base.py` provides two levels of abstraction:
+
+- `HarnessBase`: optional helper for composed layers, training-row emission,
+  and local knowledge loading.
+- `HarnessSpec`: the normalized metadata contract used by `/api/harnesses`.
+  The spec should live next to the implementation and declare workflow steps,
+  prompt sets, model-fit limits, endpoints, examples, and knowledge flow.
+
+The design rule is practical: route handlers can stay specialized, but every
+surface should expose the same contract shape so the Harness Workbench,
+documentation, and video narrative remain consistent.
+
 ## Adding a new harness
 
 1. `mkdir harnesses/<name>/`
 2. Write `__init__.py` re-exporting `name`, `applied_layers`, `register_routes`.
-3. Write `handler.py` with handlers inside `register_routes(app)`.
-4. Write `prompts.py` if the harness calls Gemma 4.
-5. Add domain helpers as separate modules for fast unit-testing.
-6. Write a `README.md` documenting the contract.
-7. Add the new (path, method) pairs to `tests/test_route_contract.py`.
-8. Wire in `app.py` `create_app`:
+3. Add `spec = HarnessSpec(...)` in `__init__.py`, including workflow,
+   prompt sets, model-fit limits, and knowledge flow.
+4. Write `handler.py` with handlers inside `register_routes(app)`.
+5. Write `prompts.py` if the harness calls Gemma 4.
+6. Add domain helpers as separate modules for fast unit-testing.
+7. Write a `README.md` documenting the contract.
+8. Add route/page assertions to the relevant tests.
+9. Wire in `app.py` `create_app`:
    ```python
    from .harnesses import <name> as _h
    _h.register_routes(app)

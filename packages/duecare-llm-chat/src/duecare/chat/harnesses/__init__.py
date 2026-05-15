@@ -15,7 +15,7 @@ from . import (
 # third-party backend). It sits next to anonymization in the safety
 # tier even though it does not compose layers itself.
 PRIMARY_HARNESSES: tuple = (chat, process, extraction, anonymization, search_safety)
-SECONDARY_HARNESSES: tuple = (import_corpus, search)
+SECONDARY_HARNESSES: tuple = (search, import_corpus)
 
 __all__ = [
     "anonymization", "chat", "extraction", "import_corpus",

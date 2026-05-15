@@ -46,6 +46,26 @@ def test_harness_contract_nomenclature_is_explicit(client):
     assert by_name["search"]["kind"] == "utility_surface"
     assert by_name["import_corpus"]["gemma_mode"] == "not_required"
     assert all(h["register_routes"] for h in data["harnesses"])
+    assert "workflow" in data["contract_fields"]
+    assert "prompt_sets" in data["contract_fields"]
+    assert "model_fit" in data["contract_fields"]
+    assert by_name["process"]["workflow"]
+    assert any("PAGE_ITEM_PROMPT_TREE" in p for p in by_name["process"]["prompt_sets"])
+    assert "Multimodal" in by_name["process"]["model_fit"]
+    assert "EXTRACTION_SYSTEM_PROMPT" in " ".join(by_name["extraction"]["prompt_sets"])
+    assert "human review" in by_name["anonymization"]["model_fit"]
+
+
+def test_harness_modules_expose_specs():
+    from duecare.chat.harnesses import all_harnesses
+    from duecare.chat.harnesses.base import HarnessSpec
+
+    for module in all_harnesses():
+        spec = getattr(module, "spec", None)
+        assert isinstance(spec, HarnessSpec), getattr(module, "name", module)
+        assert spec.workflow, spec.name
+        assert spec.prompt_sets, spec.name
+        assert spec.model_fit, spec.name
 
 
 def test_harness_workbench_page_serves(client):
@@ -59,6 +79,12 @@ def test_harness_workbench_page_serves(client):
         "Primary Safety Surfaces",
         "Secondary Utilities",
         "/static/search-safety.html",
+        "Workflow Path",
+        "Prompt Sets",
+        "Model fit",
+        "Knowledge flow",
+        'id="workflow-list"',
+        'id="prompt-list"',
     ]:
         assert marker in text
 
