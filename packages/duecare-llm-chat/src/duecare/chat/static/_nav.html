@@ -46,8 +46,14 @@
           <button type="button" id="dc-wb-model-load">Load selected</button>
           <button type="button" id="dc-wb-model-refresh">Refresh</button>
         </div>
+        <div class="dc-wb-model-detail" id="dc-wb-model-detail">
+          Select a model to see size, runtime class, and estimated load time.
+        </div>
         <div class="dc-wb-model-popover-note">
-          Kaggle can usually keep one large model resident. Switching may require waiting for unload/load or restarting the notebook if CUDA memory is fragmented.
+          This panel closes automatically when the selected model reports loaded.
+          If a model is already loaded, pages do not open this panel automatically.
+          Kaggle can usually keep one large model resident. Switching may require
+          waiting for unload/load or restarting the notebook if CUDA memory is fragmented.
         </div>
         <pre class="dc-wb-model-log" id="dc-wb-model-log">No loader events yet.</pre>
       </div>

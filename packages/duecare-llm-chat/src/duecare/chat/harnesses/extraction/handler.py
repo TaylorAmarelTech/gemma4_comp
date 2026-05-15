@@ -296,6 +296,120 @@ def _normalize_content(
 def register_routes(app: Any) -> None:
     """Attach the extraction routes to a FastAPI app."""
 
+    @app.post("/api/knowledge/source-file")
+    async def api_knowledge_source_file(request: Request) -> Any:
+        """Parse an uploaded source bundle into bounded text for drafting.
+
+        This intentionally reuses the Bulk File Review parser so Knowledge
+        Extraction accepts the same practical evidence shapes: ZIP, CSV,
+        JSONL, text, extractable PDFs, images, and scan-like media assets.
+        The endpoint does not promote anything. It only prepares local source
+        text that the reviewer can inspect before drafting envelopes.
+        """
+        form = await request.form()
+        upload = form.get("file")
+        if upload is None:
+            raise HTTPException(400, "no `file` field in multipart upload")
+        filename = getattr(upload, "filename", "uploaded") or "uploaded"
+        contents = await upload.read()
+        try:
+            max_rows = int(form.get("max_rows") or 40)
+        except Exception:
+            max_rows = 40
+        try:
+            max_chars = int(form.get("max_chars") or 28000)
+        except Exception:
+            max_chars = 28000
+        max_rows = max(1, min(max_rows, 80))
+        max_chars = max(4000, min(max_chars, 60000))
+
+        try:
+            from ..process.handler import _ROW_CAP, _parse_upload, _score_rows
+
+            rows = _parse_upload(filename, contents)
+            capped = rows[:min(max_rows, _ROW_CAP)]
+            results, agg_grep, agg_entity, agg_statute = _score_rows(
+                capped, getattr(app.state, "grep_call", None)
+            )
+        except Exception as e:
+            raise HTTPException(400, f"parse failed: {e}")
+
+        by_row = {r.get("row_id"): r for r in results}
+        media_rows = [r for r in rows if r.get("processing_level") == "media_asset" or r.get("needs_ocr")]
+        lines = [
+            f"Knowledge source upload: {filename}",
+            f"Rows parsed: {len(rows)}; rows included for drafting: {len(capped)}",
+            f"Media or OCR work items queued: {len(media_rows)}",
+            "",
+        ]
+        if agg_grep:
+            top_rules = ", ".join(f"{k} x {v}" for k, v in sorted(agg_grep.items(), key=lambda kv: -kv[1])[:8])
+            lines.append("Top GREP rules: " + top_rules)
+        if agg_statute:
+            top_statutes = ", ".join(f"{k} x {v}" for k, v in sorted(agg_statute.items(), key=lambda kv: -kv[1])[:8])
+            lines.append("Top statutes: " + top_statutes)
+        if agg_entity:
+            entity_totals = ", ".join(f"{k} x {v}" for k, v in sorted(agg_entity.items())[:12])
+            lines.append("Entity totals: " + entity_totals)
+        if agg_grep or agg_statute or agg_entity:
+            lines.append("")
+
+        row_summaries: list[dict[str, Any]] = []
+        char_budget = max_chars
+        for idx, row in enumerate(capped, start=1):
+            row_id = str(row.get("row_id") or f"row-{idx}")
+            scored = by_row.get(row_id) or {}
+            text = str(row.get("text") or "")
+            snippet = text[:1200]
+            hit_ids = [
+                str(h.get("rule") or h.get("rule_id") or h.get("id") or "")
+                for h in (scored.get("grep_hits") or [])
+            ]
+            hit_ids = [h for h in hit_ids if h]
+            entity_counts = {
+                key: len(value or [])
+                for key, value in (scored.get("entities") or {}).items()
+                if value
+            }
+            block = [
+                f"[{idx}] row_id: {row_id}",
+                f"source_path: {row.get('source_path') or row_id}",
+                f"folders: {', '.join(row.get('folders') or []) or '(none)'}",
+                f"processing_level: {row.get('processing_level') or 'document'}",
+            ]
+            if row.get("media_type"):
+                block.append(f"media_type: {row.get('media_type')}; status: queued_for_ocr_and_multimodal_extraction")
+            if hit_ids:
+                block.append("grep_hits: " + ", ".join(hit_ids[:8]))
+            if entity_counts:
+                block.append("entities: " + _json.dumps(entity_counts, sort_keys=True))
+            block.extend(["text:", snippet.strip(), ""])
+            block_text = "\n".join(block)
+            if len(block_text) > char_budget:
+                lines.append(f"[truncated before {row_id}: source upload exceeded {max_chars} characters]")
+                break
+            lines.append(block_text)
+            char_budget -= len(block_text)
+            row_summaries.append({
+                "row_id": row_id,
+                "source_path": row.get("source_path") or row_id,
+                "processing_level": row.get("processing_level") or "document",
+                "media_type": row.get("media_type"),
+                "grep_hits": hit_ids,
+                "entity_counts": entity_counts,
+                "char_count": len(text),
+            })
+
+        return JSONResponse({
+            "filename": filename,
+            "n_rows_total": len(rows),
+            "n_rows_included": len(row_summaries),
+            "n_media_assets": len(media_rows),
+            "truncated": len(rows) > len(row_summaries),
+            "raw_text": "\n".join(lines).strip(),
+            "row_summaries": row_summaries,
+        })
+
     @app.post("/api/knowledge/draft-envelope")
     async def api_knowledge_draft_envelope(request: Request) -> Any:
         """Gemma-assisted: raw text + target leaf -> draft envelope."""
@@ -306,6 +420,7 @@ def register_routes(app: Any) -> None:
         raw_text = (body.get("raw_text") or "").strip()
         requested_type = body.get("target_type") or body.get("target_leaf") or "auto"
         anonymize = bool(body.get("anonymize", False))
+        use_gemma = bool(body.get("use_gemma", True))
 
         from ...app import KO_TYPES, KO_BRANCHES
 
@@ -332,7 +447,7 @@ def register_routes(app: Any) -> None:
         layer_out = compose_layers(
             app, raw_text, layers=("grep", "rag"),
         )
-        gc = getattr(app.state, "gemma_call", None)
+        gc = getattr(app.state, "gemma_call", None) if use_gemma else None
 
         ts = _dt.utcnow().strftime("%Y-%m-%dT%H-%M-%SZ")
         slug_base = _slug(raw_text)
@@ -361,7 +476,11 @@ def register_routes(app: Any) -> None:
                 },
             }
             if gc is None:
-                envelope["extensions"]["fallback"] = "no model loaded; deterministic draft"
+                envelope["extensions"]["fallback"] = (
+                    "gemma disabled by caller; deterministic draft"
+                    if not use_gemma else
+                    "no model loaded; deterministic draft"
+                )
                 envelopes.append(envelope)
                 continue
             try:
@@ -402,7 +521,7 @@ def register_routes(app: Any) -> None:
             from .._training_log import log_interaction as _log
             _log(
                 "extraction",
-                input_payload={"raw_text": raw_text, "target_type": requested_type},
+                input_payload={"raw_text": raw_text, "target_type": requested_type, "use_gemma": use_gemma},
                 output_payload={"suggestions": envelopes},
                 applied_layers=layer_out["trace"],
                 trace={

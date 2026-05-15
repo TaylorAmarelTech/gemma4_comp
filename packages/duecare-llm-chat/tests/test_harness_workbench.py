@@ -89,6 +89,8 @@ def test_search_page_blocks_when_page_sanitizer_fails(client):
     assert "Kernel search hook" in text
     assert "Draft this result" in text
     assert "target_leaf: 'auto'" in text
+    assert "use_gemma: false" in text
+    assert "avoids long tunnel waits" in text
     assert "searchSaveOneDraft" in text
     assert "body: JSON.stringify(envelope)" in text
     assert 'id="search-step-query" open' in text
@@ -99,6 +101,11 @@ def test_search_page_blocks_when_page_sanitizer_fails(client):
     assert "searchGetLog" in text
     assert "Draft from all results" in text
     assert "Download evidence set" in text
+    assert 'id="search-draft-progress"' in text
+    assert "searchReadJsonOrText" in text
+    assert "returned non-JSON" in text
+    assert "Drafting moved to Step 3" in text
+    assert "search-step-actions" in text
     assert "function searchSetWorkflow" in text
     assert 'id="search-pipeline"' not in text
     assert 'id="search-step-log"' not in text
@@ -126,6 +133,10 @@ def test_knowledge_page_uses_guided_auto_suggestion_flow(client):
     assert "modus_operandi: generalized abuse pattern" in text
     assert "What this workflow does" in text
     assert "Continue to draft" in text
+    assert "Add source text or upload files" in text
+    assert 'id="kx-source-file-input"' in text
+    assert "POST /api/knowledge/source-file" in text
+    assert "kxLoadSourceFile" in text
     assert "Next: draft suggestions" not in text
     assert "Draft knowledge objects" in text
     assert "Finish review" in text
@@ -139,6 +150,25 @@ def test_knowledge_page_uses_guided_auto_suggestion_flow(client):
     assert "window.addEventListener('DOMContentLoaded', wbGetLog)" in text
     assert "Model required before knowledge drafting" in text
     assert "Extraction harness path" not in text
+
+
+def test_knowledge_source_file_endpoint_parses_upload(client):
+    payload = (
+        "case_id,agency,note\n"
+        "DC-PH-HK-001,Pearl Bridge Manpower,"
+        "Worker paid PHP 45000 processing fee and salary deduction was proposed\n"
+    )
+    r = client.post(
+        "/api/knowledge/source-file",
+        files={"file": ("source.csv", payload.encode("utf-8"), "text/csv")},
+    )
+    assert r.status_code == 200, r.text
+    data = r.json()
+    assert data["filename"] == "source.csv"
+    assert data["n_rows_included"] >= 1
+    assert "Knowledge source upload: source.csv" in data["raw_text"]
+    assert "PHP 45000" in data["raw_text"]
+    assert data["row_summaries"]
 
 
 def test_knowledge_draft_endpoint_auto_suggests_multiple_leaf_types(client):

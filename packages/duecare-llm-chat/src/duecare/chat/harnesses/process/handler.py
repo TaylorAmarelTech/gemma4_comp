@@ -1017,14 +1017,23 @@ def _parse_upload(filename: str, contents: bytes) -> list[dict]:
         buf = _io.StringIO(contents.decode("utf-8", errors="replace"))
         reader = _csv.reader(buf)
         all_rows = list(reader)
-        start = 1 if all_rows and all_rows[0] else 0
+        headers = [str(h or "").strip() for h in (all_rows[0] if all_rows else [])]
+        start = 1 if headers else 0
         for i, row in enumerate(all_rows[start:]):
             if not row:
                 continue
+            if headers:
+                parts = []
+                for idx, value in enumerate(row):
+                    header = headers[idx] if idx < len(headers) and headers[idx] else f"col_{idx + 1}"
+                    parts.append(f"{header}: {value}")
+                txt = "; ".join(parts)
+            else:
+                txt = ", ".join(str(v) for v in row)
             row_id = f"row_{i}"
             rows.append({
                 "row_id": row_id,
-                "text": row[0],
+                "text": txt,
                 "source": filename,
                 **_path_metadata(row_id),
             })

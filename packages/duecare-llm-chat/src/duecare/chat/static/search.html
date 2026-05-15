@@ -78,8 +78,19 @@
     .search-example:hover { border-color: oklch(0.52 0.08 195); color:#0E1116; }
     .search-action-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(210px,1fr)); gap:10px; margin-top:14px; padding-top:10px; border-top:1px solid #EFEDE4; }
     .search-action-card { background:#FAF9F4; border:1px solid #EFEDE4; border-radius:8px; padding:11px 12px; }
+    .search-action-card { display:flex; flex-direction:column; min-height:128px; }
     .search-action-card h3 { font-size:13px; margin:0 0 5px; }
     .search-action-card p { color:#5B5F68; font-size:11.5px; line-height:1.45; margin:0 0 10px; }
+    .search-card-actions { margin-top:auto; display:flex; justify-content:flex-end; gap:8px; flex-wrap:wrap; }
+    .search-step-actions { display:flex; justify-content:flex-end; align-items:center; gap:8px; flex-wrap:wrap; margin-top:12px; }
+    .search-progress { display:none; background:#FAF9F4; border:1px solid #EFEDE4; border-radius:8px; padding:11px 12px; margin:10px 0; }
+    .search-progress.show { display:block; }
+    .search-progress-head { display:flex; justify-content:space-between; gap:10px; align-items:center; margin-bottom:7px; }
+    .search-progress-title { font-size:12.5px; font-weight:700; color:#0E1116; }
+    .search-progress-meta { color:#5B5F68; font-size:11.5px; font-family:'JetBrains Mono', monospace; }
+    .search-progress-track { height:8px; background:#EFEDE4; border-radius:999px; overflow:hidden; }
+    .search-progress-fill { display:block; height:100%; width:0%; background:oklch(0.52 0.08 195); transition:width 180ms ease; }
+    .search-progress-detail { color:#5B5F68; font-size:11.5px; margin-top:7px; }
     code { background: #F1EFE7; padding: 1px 5px; border-radius: 3px;
            font-size: 11.5px; font-family: 'JetBrains Mono', monospace; }
   </style>
@@ -185,13 +196,15 @@
       <div class="search-action-grid">
         <div class="search-action-card">
           <h3>Draft knowledge</h3>
-          <p>Create reviewable knowledge-object drafts from all visible result snippets.</p>
-          <button class="wb-btn-primary" id="draft-btn" onclick="searchDraftKnowledge()">Draft from all results</button>
+          <p>Create fast reviewable knowledge-object drafts from all visible result snippets.</p>
+          <div class="search-card-actions">
+            <button class="wb-btn-primary" id="draft-btn" onclick="searchDraftKnowledge()">Draft from all results</button>
+          </div>
         </div>
         <div class="search-action-card">
           <h3>Download evidence set</h3>
           <p>Export the source list for appendix notebooks, manual review, or repeatability.</p>
-          <div class="wb-row" style="gap:8px;">
+          <div class="search-card-actions">
             <button class="wb-btn-secondary" id="dl-json-btn" onclick="searchDownloadResults('json')">JSON</button>
             <button class="wb-btn-secondary" id="dl-md-btn" onclick="searchDownloadResults('md')">Markdown</button>
           </div>
@@ -213,19 +226,28 @@
       <div class="search-step-body">
       <p class="wb-muted" style="margin: 0 0 8px;">
         Each search result was passed to <code>/api/knowledge/draft-envelope</code>
-        with <code>target_leaf=auto</code> and the kernel's
-        Anonymizer is applied first. The extraction harness suggests
-        the best leaf types for each source. Review each draft, then click
+        with <code>target_leaf=auto</code>, <code>use_gemma=false</code>,
+        and the kernel's Anonymizer applied first. This keeps public-source
+        intake fast and avoids long tunnel waits. Open Knowledge Extraction
+        for deeper Gemma refinement of any saved source. Review each draft, then click
         <b>Save all to local knowledge store</b> to persist them via
         <code>/api/knowledge/promote</code>, or download as a single
         JSON for offline review.
       </p>
-      <div class="wb-row" style="gap:8px; margin-bottom:10px;">
-        <button class="wb-btn-primary" id="save-all-btn" onclick="searchSaveAllDrafts()">Save all to local knowledge store</button>
-        <button class="wb-btn-secondary" id="download-drafts-btn" onclick="searchDownloadDrafts()">Download drafts (.json)</button>
-        <span class="wb-muted" id="save-status"></span>
+      <div class="search-progress" id="search-draft-progress" aria-live="polite">
+        <div class="search-progress-head">
+          <span class="search-progress-title" id="search-draft-progress-title">Preparing draft run</span>
+          <span class="search-progress-meta" id="search-draft-progress-meta">0 / 0</span>
+        </div>
+        <div class="search-progress-track"><span class="search-progress-fill" id="search-draft-progress-fill"></span></div>
+        <div class="search-progress-detail" id="search-draft-progress-detail">Drafted knowledge objects will appear below as each source finishes.</div>
       </div>
       <div id="drafts-list" class="search-empty">Drafted knowledge objects appear here after Step 2.</div>
+      <div class="search-step-actions">
+        <span class="wb-muted" id="save-status"></span>
+        <button class="wb-btn-secondary" id="download-drafts-btn" onclick="searchDownloadDrafts()">Download drafts (.json)</button>
+        <button class="wb-btn-primary" id="save-all-btn" onclick="searchSaveAllDrafts()">Save all to local knowledge store</button>
+      </div>
       </div>
     </details>
 
@@ -259,6 +281,29 @@
         _searchLog = window.dcActivityLog.attach('#search-log', {idlePlaceholder: 'Run a search to begin.'});
       }
       return _searchLog;
+    }
+    async function searchReadJsonOrText(resp) {
+      const text = await resp.text();
+      if (!text) return {json: {}, text: ''};
+      try {
+        return {json: JSON.parse(text), text};
+      } catch (e) {
+        return {json: null, text};
+      }
+    }
+    function searchSetDraftProgress(done, total, title, detail) {
+      const host = document.getElementById('search-draft-progress');
+      const fill = document.getElementById('search-draft-progress-fill');
+      const meta = document.getElementById('search-draft-progress-meta');
+      const titleEl = document.getElementById('search-draft-progress-title');
+      const detailEl = document.getElementById('search-draft-progress-detail');
+      if (!host) return;
+      host.classList.add('show');
+      const pct = total ? Math.max(0, Math.min(100, Math.round((done / total) * 100))) : 0;
+      if (fill) fill.style.width = pct + '%';
+      if (meta) meta.textContent = String(done || 0) + ' / ' + String(total || 0);
+      if (titleEl) titleEl.textContent = title || 'Drafting knowledge suggestions';
+      if (detailEl) detailEl.textContent = detail || 'Drafted knowledge objects will appear below as each source finishes.';
     }
     function searchSetPipeline(active) {
       const mapped = active >= 4 ? 2 : (active >= 3 ? 1 : 0);
@@ -547,10 +592,20 @@
           raw_text: rawText,
           target_leaf: 'auto',
           anonymize: true,
+          use_gemma: false,
         }),
       });
       const dt = Math.round(performance.now() - t0);
-      const out = await resp.json();
+      const parsed = await searchReadJsonOrText(resp);
+      const out = parsed.json;
+      if (!out) {
+        const preview = (parsed.text || '').replace(/\s+/g, ' ').slice(0, 240);
+        _searchLog && _searchLog.err('draft result ' + (i + 1) + ' returned non-JSON (' + dt + 'ms)',
+                        'HTTP ' + resp.status + ' ' + preview);
+        document.getElementById('draft-status').textContent =
+          'Draft result ' + (i + 1) + ' returned a non-JSON response. Check the activity log; continuing.';
+        return 0;
+      }
       if (!resp.ok) {
         _searchLog && _searchLog.err('draft result ' + (i + 1) + ' HTTP ' + resp.status + ' (' + dt + 'ms)',
                         JSON.stringify(out).slice(0, 200));
@@ -572,10 +627,12 @@
     async function searchDraftOne(i) {
       _searchLog = searchGetLog();
       searchSetPipeline(4);
-      document.getElementById('draft-status').textContent = 'Drafting one selected result...';
+      searchSetDraftProgress(0, 1, 'Drafting selected result', (_searchResults[i] && (_searchResults[i].title || _searchResults[i].url)) || '');
+      document.getElementById('draft-status').textContent = 'Drafting moved to Step 3.';
       const made = await searchDraftResultAt(i);
       document.getElementById('draft-status').textContent =
         made ? 'Drafted ' + made + ' suggestion(s). Review below.' : 'No draft created.';
+      searchSetDraftProgress(1, 1, made ? 'Selected result drafted' : 'Selected result finished with no draft', made ? made + ' suggestion(s) created.' : 'Check the activity log for details.');
     }
 
     async function searchDraftKnowledge() {
@@ -586,22 +643,27 @@
       const btn = document.getElementById('draft-btn');
       btn.disabled = true;
       searchSetPipeline(4);
+      searchSetDraftProgress(0, _searchResults.length, 'Drafting knowledge suggestions', 'Starting with result 1 of ' + _searchResults.length + '.');
       document.getElementById('draft-status').textContent =
-        'Drafting knowledge suggestions from ' + _searchResults.length + ' result(s)...';
+        'Drafting moved to Step 3. Suggestions appear there as each source finishes.';
       _drafts = [];
       const draftsList = document.getElementById('drafts-list');
       while (draftsList.firstChild) draftsList.removeChild(draftsList.firstChild);
       draftsList.className = '';
       try {
         for (let i = 0; i < _searchResults.length; i++) {
+          const title = (_searchResults[i] && (_searchResults[i].title || _searchResults[i].url)) || ('result ' + (i + 1));
+          searchSetDraftProgress(i, _searchResults.length, 'Drafting result ' + (i + 1) + ' of ' + _searchResults.length, title);
           try {
             await searchDraftResultAt(i);
           } catch (e) {
           _searchLog && _searchLog.err('draft ' + (i + 1) + ' failed', '' + e);
           }
+          searchSetDraftProgress(i + 1, _searchResults.length, 'Drafted ' + (i + 1) + ' of ' + _searchResults.length, _drafts.length + ' envelope suggestion(s) created so far.');
         }
         document.getElementById('draft-status').textContent =
           'Drafted ' + _drafts.length + ' / ' + _searchResults.length + '. Review below.';
+        searchSetDraftProgress(_searchResults.length, _searchResults.length, 'Draft run complete', 'Created ' + _drafts.length + ' reviewable envelope suggestion(s).');
       } finally {
         btn.disabled = false;
       }

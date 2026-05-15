@@ -54,8 +54,15 @@
     .kx-workflow { display: grid; gap: 16px; margin: 16px 0 18px; }
     .kx-action-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(240px,1fr)); gap:12px; }
     .kx-action-card { background:#FAF9F4; border:1px solid #EFEDE4; border-radius:8px; padding:12px; }
+    .kx-action-card { display:flex; flex-direction:column; min-height:128px; }
     .kx-action-card h3 { font-size:13px; margin:0 0 5px; }
     .kx-action-card p { color:#5B5F68; font-size:11.5px; line-height:1.45; margin:0 0 10px; }
+    .kx-card-actions { margin-top:auto; display:flex; justify-content:flex-end; gap:8px; flex-wrap:wrap; }
+    .kx-step-actions { display:flex; justify-content:flex-end; align-items:center; gap:8px; flex-wrap:wrap; margin-top:12px; }
+    .kx-source-upload { border:2px dashed #DDD8C9; border-radius:10px; padding:18px 16px; background:#FFF; color:#5B5F68; text-align:center; cursor:pointer; margin:10px 0; }
+    .kx-source-upload:hover { border-color:oklch(0.52 0.08 195); background:#FAF9F4; color:#0E1116; }
+    .kx-source-upload b { display:block; color:#0E1116; font-size:13px; margin-bottom:3px; }
+    .kx-source-upload span { display:block; font-size:11.5px; line-height:1.45; }
     .kx-workflow-step { background: #FFF; border: 1px solid #DDD8C9; border-left: 4px solid #DDD8C9;
                         border-radius: 12px; overflow: hidden; }
     .kx-workflow-step[open] { border-left-color: oklch(0.52 0.08 195); box-shadow: 0 10px 24px rgba(14,17,22,0.06); }
@@ -97,8 +104,9 @@
       unless you anonymize and submit on Anonymization &amp; Sharing.
     </div>
     <p class="wb-lede">
-      Paste raw text from a recruiter message, case note, statute, report,
-      or contract. The extraction harness anonymizes it, scans it against
+      Paste raw text or upload a source bundle from recruiter messages,
+      case notes, statutes, reports, PDFs, images, or contracts. The
+      extraction harness anonymizes it, scans it against
       existing GREP/RAG knowledge, asks Gemma 4 to draft useful knowledge
       objects, and shows suggested envelopes for review. Advanced users can
       still choose a specific leaf type or manually author any taxonomy leaf.
@@ -107,9 +115,10 @@
     <section class="kx-hero" aria-label="Knowledge extraction overview">
       <h2>What this workflow does</h2>
       <p class="wb-muted" style="font-size:12.5px; line-height:1.55; margin:0;">
-        This page turns reviewed text into maintainable knowledge objects.
-        The normal path is paste source, draft suggestions, promote useful
-        envelopes, then finish by exporting or sharing through the redaction flow.
+        This page turns reviewed text and uploaded source bundles into
+        maintainable knowledge objects. The normal path is add source,
+        draft suggestions, promote useful envelopes, then finish by
+        exporting or sharing through the redaction flow.
       </p>
       <div class="kx-hero-grid">
         <div class="kx-hero-item"><b>No schema up front</b><span>Gemma 4 and deterministic hints suggest useful object types automatically.</span></div>
@@ -123,8 +132,8 @@
         <summary>
           <span class="kx-step-index">1</span>
           <span>
-            <span class="kx-step-title">Add source text</span>
-            <span class="kx-step-summary">Paste a passage or load an example. The normal path does not require choosing a schema first.</span>
+            <span class="kx-step-title">Add source text or upload files</span>
+            <span class="kx-step-summary">Paste a passage, upload a bundle, or load an example. The normal path does not require choosing a schema first.</span>
           </span>
           <span class="kx-step-state" id="kx-step-source-state">Ready</span>
         </summary>
@@ -134,12 +143,20 @@
             <button class="kx-example" type="button" onclick="kxUseExample('Police report: complainant states employer kept passport for safekeeping, required live-in work, and threatened termination if she contacted POLO Hong Kong.')">Complaint example</button>
             <button class="kx-example" type="button" onclick="kxUseExample('ILO C181 Article 7 prohibits private employment agencies from charging fees or costs directly or indirectly to workers, except narrow authorized exceptions.')">Citation example</button>
           </div>
+          <div class="kx-source-upload" id="kx-source-dropzone" onclick="kxOpenSourceUpload()" ondragover="kxDragSource(event)" ondrop="kxDropSource(event)">
+            <b>Upload source files</b>
+            <span>Accepted: ZIP, CSV, JSONL, TXT, MD, LOG, JSON, PDF, PNG, JPG, WEBP, TIF, BMP. Files are parsed locally into bounded drafting text.</span>
+          </div>
+          <input type="file" id="kx-source-file-input" style="display:none;" accept=".zip,.csv,.jsonl,.txt,.md,.log,.json,.pdf,.png,.jpg,.jpeg,.webp,.tif,.tiff,.bmp" onchange="kxHandleSourceFile(event)">
+          <div id="kx-source-file-status" class="wb-muted" style="margin:-2px 0 8px;"></div>
           <textarea id="kx-raw" rows="6" placeholder="Paste a recruiter message, a contract clause, a court filing excerpt, or an NGO report fragment..." style="width:100%; box-sizing:border-box; font-family:var(--mono); font-size:12.5px; padding:10px; border:1px solid #DDD8C9; border-radius:8px; background:#FFF;"></textarea>
           <div class="wb-row" style="margin-top:10px; gap:10px; align-items:center; flex-wrap:wrap;">
             <label style="font-size:12px; margin-left:8px;">
               <input type="checkbox" id="kx-anonymize" checked> Anonymize raw text first
             </label>
-            <button class="wb-btn-primary" type="button" onclick="kxContinueToDraft()" style="margin-left:auto;">Continue to draft</button>
+          </div>
+          <div class="kx-step-actions">
+            <button class="wb-btn-primary" type="button" onclick="kxContinueToDraft()">Continue to draft</button>
           </div>
           <details style="margin-top:10px;">
             <summary style="cursor:pointer; font-size:12px; font-weight:600;">Advanced draft settings</summary>
@@ -172,18 +189,18 @@
           <span class="kx-step-state" id="kx-step-draft-state">Waiting</span>
         </summary>
         <div class="kx-step-body">
-          <div class="wb-row" style="margin-top:0; gap:8px;">
-            <button class="wb-btn-primary" id="kx-extract-btn" onclick="kxExtract()">Draft knowledge objects</button>
-            <a class="wb-btn-secondary" href="/api/knowledge/taxonomy" target="_blank">Runtime taxonomy JSON</a>
-            <button class="wb-btn-secondary" id="kx-finish-review-btn" type="button" onclick="kxFinishDraftReview()" disabled>Finish review</button>
-            <span id="kx-extract-status" class="wb-muted" style="font-size:11.5px;"></span>
-          </div>
           <div class="kx-action-note" style="margin-top:10px;">
             Draft creates suggestions only. Promote the useful ones into local knowledge,
             then click Finish review to move to import, export, or sharing.
           </div>
           <div id="kx-extract-result" class="kx-empty" style="margin-top:10px;">
             Drafted envelopes will appear here with promote buttons after Step 1 has source text.
+          </div>
+          <div class="kx-step-actions">
+            <span id="kx-extract-status" class="wb-muted" style="font-size:11.5px;"></span>
+            <a class="wb-btn-secondary" href="/api/knowledge/taxonomy" target="_blank">Runtime taxonomy JSON</a>
+            <button class="wb-btn-secondary" id="kx-finish-review-btn" type="button" onclick="kxFinishDraftReview()" disabled>Finish review</button>
+            <button class="wb-btn-primary" id="kx-extract-btn" onclick="kxExtract()">Draft knowledge objects</button>
           </div>
         </div>
       </details>
@@ -202,12 +219,12 @@
             <div class="kx-action-card">
               <h3>Import pack ZIP</h3>
               <p>Load a vetted or local knowledge pack. Entries must be stored as <code>&lt;type&gt;/&lt;id&gt;.json</code>.</p>
-              <button class="wb-btn-primary" type="button" onclick="kxOpenPackImport()">Import ZIP</button>
+              <div class="kx-card-actions"><button class="wb-btn-primary" type="button" onclick="kxOpenPackImport()">Import ZIP</button></div>
             </div>
             <div class="kx-action-card">
               <h3>Export local packs</h3>
               <p>Download every persisted object for appendix notebooks, sync review, or later anonymized sharing.</p>
-              <a class="wb-btn-primary" href="/api/knowledge/export" download>Export ZIP</a>
+              <div class="kx-card-actions"><a class="wb-btn-primary" href="/api/knowledge/export" download>Export ZIP</a></div>
             </div>
           </div>
           <input type="file" id="kx-pack-import-input" style="display:none;" accept=".zip" onchange="kxImportPack(event)">
@@ -245,6 +262,58 @@
         const mapped = active >= 4 ? 2 : (active >= 1 ? 1 : 0);
         kxSetWorkflow(mapped);
       }
+    function kxOpenSourceUpload(){
+      const input = document.getElementById('kx-source-file-input');
+      if (input) input.click();
+    }
+    function kxDragSource(event){
+      event.preventDefault();
+      if (event.dataTransfer) event.dataTransfer.dropEffect = 'copy';
+    }
+    function kxDropSource(event){
+      event.preventDefault();
+      const f = event.dataTransfer && event.dataTransfer.files && event.dataTransfer.files[0];
+      if (f) kxLoadSourceFile(f);
+    }
+    function kxHandleSourceFile(event){
+      const f = event.target && event.target.files && event.target.files[0];
+      if (f) kxLoadSourceFile(f);
+    }
+    async function kxLoadSourceFile(file){
+      const status = document.getElementById('kx-source-file-status');
+      const rawEl = document.getElementById('kx-raw');
+      if (status) status.textContent = 'Parsing ' + file.name + ' locally for drafting...';
+      wbLog('net', 'POST /api/knowledge/source-file', 'file=' + file.name + ' bytes=' + file.size);
+      const fd = new FormData();
+      fd.append('file', file);
+      fd.append('max_rows', '40');
+      fd.append('max_chars', '28000');
+      const t0 = performance.now();
+      try {
+        const r = await fetch('/api/knowledge/source-file', {method:'POST', body:fd});
+        const text = await r.text();
+        let out = null;
+        try { out = JSON.parse(text); } catch (_) {}
+        const dt = Math.round(performance.now() - t0);
+        if (!r.ok || !out) {
+          const preview = (text || '').replace(/\s+/g, ' ').slice(0, 220);
+          if (status) status.textContent = 'Upload parse failed. Check the activity log.';
+          wbLog('err', 'source-file parse failed HTTP ' + r.status + ' (' + dt + 'ms)', preview);
+          return;
+        }
+        rawEl.value = out.raw_text || '';
+        if (status) {
+          status.textContent = 'Loaded ' + out.filename + ': ' + out.n_rows_included +
+            ' row(s) included, ' + out.n_media_assets + ' media/OCR item(s) queued.';
+        }
+        wbLog('ok', 'Source file parsed (' + dt + 'ms)',
+          'rows=' + out.n_rows_included + '/' + out.n_rows_total + ' media=' + out.n_media_assets);
+        kxSetWorkflow(0);
+      } catch (e) {
+        if (status) status.textContent = 'Upload parse failed: ' + String(e).slice(0, 160);
+        wbLog('err', 'source-file parse failed', String(e).slice(0, 200));
+      }
+    }
     function kxUseExample(text){
       document.getElementById("kx-raw").value = text;
       kxSetWorkflow(0);
