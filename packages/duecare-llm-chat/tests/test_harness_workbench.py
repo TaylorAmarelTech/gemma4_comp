@@ -101,7 +101,11 @@ def test_knowledge_page_uses_guided_auto_suggestion_flow(client):
     assert "Advanced: manual authoring for 21 leaf types" in text
     assert "kxToggleTaxonomy" in text
     assert "out.suggestions" in text
-    assert '<details class="kx-step" open>' in text
+    assert 'id="kx-step-source" open' in text
+    assert 'id="kx-step-draft"' in text
+    assert 'id="kx-step-pack"' in text
+    assert "function kxSetWorkflow" in text
+    assert "Extraction harness path" not in text
 
 
 def test_knowledge_draft_endpoint_auto_suggests_multiple_leaf_types(client):
@@ -238,6 +242,14 @@ def test_process_page_has_graph_visualization_and_graph_chat_logging(client):
     r = client.get("/static/process.html")
     assert r.status_code == 200
     text = r.text
+    assert 'id="wb-step-upload" open' in text
+    assert "Drop a bundle or use the sample" in text
+    assert 'id="wb-step-process"' in text
+    assert 'id="wb-step-intelligence"' in text
+    assert 'id="wb-step-export"' in text
+    assert "Process harness path" not in text
+    assert 'id="wb-static-pipeline"' not in text
+    assert 'id="pg-pipeline"' not in text
     assert 'id="wb-graph-viz"' in text
     assert "function wbRenderGraph" in text
     assert "Download graph SVG" in text
@@ -248,6 +260,16 @@ def test_process_page_has_graph_visualization_and_graph_chat_logging(client):
     assert "Media queue" in text
     assert "POST /api/process/graph-chat" in text
     assert "wbLog('net', 'POST /api/process/graph-chat'" in text
+
+
+def test_chat_page_uses_shared_model_selector(client):
+    r = client.get("/static/chat.html")
+    assert r.status_code == 200
+    text = r.text
+    assert "function openModelPickerFromUI" in text
+    assert "window.dcWbOpenModelSelector" in text
+    assert "Open model selector" in text
+    assert "if (!cachedLoaded)" not in text
 
 
 def test_use_cases_page_serves_five_audience_lanes(client):

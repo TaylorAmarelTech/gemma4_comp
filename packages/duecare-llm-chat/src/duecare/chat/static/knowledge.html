@@ -44,16 +44,28 @@
     body:not(.kx-show-taxonomy) details.wb-branch { display: none; }
     .wb-trust { background: oklch(0.92 0.06 155); color: oklch(0.32 0.07 155); padding: 8px 14px; border-radius: 8px; font-size: 12.5px; margin-bottom: 14px; }
     .wb-error { background: oklch(0.94 0.04 25); color: oklch(0.32 0.10 25); padding: 8px 10px; border-radius: 6px; font-size: 12px; margin-top: 8px; }
-    .kx-pipeline { display: grid; gap: 8px; margin: 10px 0; }
-    .kx-step { border: 1px solid #DDD8C9; border-radius: 8px; background: #FAF9F4; padding: 0 11px; }
-    .kx-step summary { cursor: pointer; list-style: none; padding: 10px 0; }
-    .kx-step summary::-webkit-details-marker { display: none; }
-    .kx-step summary::before { content: "+ "; color: oklch(0.32 0.07 195); }
-    .kx-step[open] summary::before { content: "- "; }
-    .kx-step .num { font-family: var(--mono); color: #5B5F68; font-size: 10px; text-transform: uppercase; letter-spacing: 0.07em; }
-    .kx-step .name { font-weight: 700; font-size: 12.5px; margin: 5px 0 3px; }
-    .kx-step .detail { color: #5B5F68; font-size: 11px; line-height: 1.4; padding: 0 0 10px 18px; }
-    .kx-step.complete { border-color: oklch(0.72 0.08 155); background: oklch(0.97 0.02 155); }
+    .kx-workflow { display: grid; gap: 12px; margin: 16px 0 18px; }
+    .kx-workflow-step { background: #FFF; border: 1px solid #DDD8C9; border-left: 4px solid #DDD8C9;
+                        border-radius: 12px; overflow: hidden; }
+    .kx-workflow-step[open] { border-left-color: oklch(0.52 0.08 195); box-shadow: 0 10px 24px rgba(14,17,22,0.06); }
+    .kx-workflow-step.complete { border-left-color: oklch(0.62 0.10 155); }
+    .kx-workflow-step > summary { cursor: pointer; list-style: none; display: grid;
+                                  grid-template-columns: auto minmax(0, 1fr) auto; gap: 12px;
+                                  align-items: center; padding: 15px 18px; }
+    .kx-workflow-step > summary::-webkit-details-marker { display: none; }
+    .kx-workflow-step[open] > summary { border-bottom: 1px solid #EFEDE4; }
+    .kx-step-index { width: 34px; height: 34px; border-radius: 999px; display: inline-grid;
+                     place-items: center; background: #EFEDE4; color: #2A2D34;
+                     font-family: var(--mono); font-size: 11px; font-weight: 700; }
+    .kx-workflow-step[open] .kx-step-index { background: oklch(0.52 0.08 195); color: #F7F6F1; }
+    .kx-workflow-step.complete .kx-step-index { background: oklch(0.62 0.10 155); color: #F7F6F1; }
+    .kx-step-title { font-size: 15.5px; font-weight: 700; color: #0E1116; }
+    .kx-step-summary { color: #5B5F68; font-size: 11.5px; line-height: 1.4; margin-top: 2px; }
+    .kx-step-state { color: #5B5F68; font-size: 10.5px; font-family: var(--mono);
+                     text-transform: uppercase; letter-spacing: 0.06em; }
+    .kx-step-body { padding: 16px 18px 18px; }
+    .kx-empty { border: 1px dashed #DDD8C9; border-radius: 8px; background: #FAF9F4;
+                padding: 16px; color: #5B5F68; font-size: 12px; }
     .kx-example { text-align:left; background:#FAF9F4; border:1px solid #DDD8C9; border-radius:8px; padding:9px 10px; cursor:pointer; font-size:12px; color:#2A2D34; line-height:1.45; }
     .kx-example:hover { border-color: oklch(0.52 0.08 195); color:#0E1116; }
   
@@ -80,89 +92,106 @@
       still choose a specific leaf type or manually author any taxonomy leaf.
     </p>
 
-    <div class="wb-card" style="border-left: 4px solid oklch(0.52 0.08 195);">
-      <h2 style="margin-top:0;">Extraction harness path</h2>
-      <div class="kx-pipeline" id="kx-pipeline">
-        <details class="kx-step" open><summary><div class="num">Step 1</div><div class="name">Raw text</div></summary><div class="detail">Paste or sample a passage worth preserving. The normal path does not require choosing a schema first.</div></details>
-        <details class="kx-step"><summary><div class="num">Step 2</div><div class="name">Optional anonymize</div></summary><div class="detail">Email, phone, and passport-like tokens are stripped before Gemma. Keep this on for case notes and user-submitted text.</div></details>
-        <details class="kx-step"><summary><div class="num">Step 3</div><div class="name">Infer types</div></summary><div class="detail">The harness suggests useful leaves such as grep_rule, rag_doc, fact_template, context_snippet, ngo_directory, or rubric_dimension.</div></details>
-        <details class="kx-step"><summary><div class="num">Step 4</div><div class="name">Gemma 4 draft</div></summary><div class="detail">Gemma drafts reviewable envelopes with local grounding. If no model is loaded, deterministic drafts keep the flow testable.</div></details>
-        <details class="kx-step"><summary><div class="num">Step 5</div><div class="name">Promote or submit</div></summary><div class="detail">Save reviewed envelopes locally, export them, or send only anonymized knowledge to the hub.</div></details>
-      </div>
-      <div class="wb-row" style="gap:8px;">
-        <button class="kx-example" type="button" onclick="kxUseExample('A recruiter wrote: Worker agrees to a PHP 45,000 processing loan deducted from salary in Hong Kong until fully repaid. Agency: Pearl Bridge Manpower. Corridor: PH-HK.')">Fee rule example</button>
-        <button class="kx-example" type="button" onclick="kxUseExample('Police report: complainant states employer kept passport for safekeeping, required live-in work, and threatened termination if she contacted POLO Hong Kong.')">Complaint example</button>
-        <button class="kx-example" type="button" onclick="kxUseExample('ILO C181 Article 7 prohibits private employment agencies from charging fees or costs directly or indirectly to workers, except narrow authorized exceptions.')">Citation example</button>
-      </div>
-    </div>
-
-    <div class="wb-card" style="border-left: 4px solid oklch(0.55 0.10 155);">
-      <h2 style="margin-top:0;">Try the sample envelopes (round-trip the import flow)</h2>
-      <p class="wb-muted" style="font-size:12px; margin:4px 0 10px;">
-        Two pre-built artefacts let you confirm the import path works
-        end-to-end. The <b>single envelope</b> is a plain JSON file you
-        can open in a text editor; the <b>bundle</b> is a ZIP of four
-        envelopes (grep_rule + rag_doc + context_snippet +
-        rubric_dimension) pathed as <code>&lt;type&gt;/&lt;id&gt;.json</code>
-        so <code>/api/knowledge/import</code> accepts it directly.
-      </p>
-      <div class="wb-row" style="gap:8px;">
-        <a class="wb-btn-secondary"
-           href="/static/samples/knowledge_object_sample.json"
-           download="knowledge_object_sample.json"
-           title="Download one envelope as JSON for inspection">
-          Download single envelope (.json)
-        </a>
-        <a class="wb-btn-secondary"
-           href="/static/samples/knowledge_bundle_sample.zip"
-           download="knowledge_bundle_sample.zip"
-           title="Download a bundle of 4 envelopes as ZIP">
-          Download sample bundle (.zip)
-        </a>
-        <button class="wb-btn-primary" type="button" onclick="kxImportSampleBundle()"
-           title="Fetch the sample bundle ZIP and POST it to /api/knowledge/import">
-          Import sample bundle now
-        </button>
-        <span class="wb-muted" id="kx-sample-status"></span>
-      </div>
-      <div id="kx-sample-result" style="margin-top:10px; font-size:12px;"></div>
-    </div>
-
-    <div class="wb-card" style="border-left: 4px solid oklch(0.52 0.08 195);">
-      <h2 style="margin-top:0;">1. Paste source text</h2>
-      <p class="wb-muted" style="font-size:12px; margin:4px 0 8px;">
-        The default path does not ask you to choose from 21 internal leaf
-        types. Paste the source, click draft, then review the suggested
-        knowledge objects.
-      </p>
-      <textarea id="kx-raw" rows="6" placeholder="Paste a recruiter message, a contract clause, a court filing excerpt, or an NGO report fragment..." style="width:100%; box-sizing:border-box; font-family:var(--mono); font-size:12.5px; padding:10px; border:1px solid #DDD8C9; border-radius:8px; background:#FFF;"></textarea>
-      <div class="wb-row" style="margin-top:10px; gap:10px; align-items:center; flex-wrap:wrap;">
-        <label style="font-size:12px; margin-left:8px;">
-          <input type="checkbox" id="kx-anonymize" checked> Anonymize raw text first
-        </label>
-        <button class="wb-btn-primary" id="kx-extract-btn" onclick="kxExtract()" style="margin-left:auto;">2. Draft suggestions</button>
-      </div>
-      <details style="margin-top:10px;">
-        <summary style="cursor:pointer; font-size:12px; font-weight:600;">Advanced draft settings</summary>
-        <div class="wb-row" style="margin-top:8px;">
-          <label style="font-size:12px;">Override suggested type</label>
-          <select id="kx-leaf" style="font-size:12px; padding:5px 8px; border:1px solid #DDD8C9; border-radius:6px; max-width:320px;">
-            <option value="auto" selected>Auto-suggest useful leaves</option>
-            <option value="grep_rule">grep_rule: regex pattern</option>
-            <option value="rag_doc">rag_doc: source document</option>
-            <option value="context_snippet">context_snippet: grounding summary</option>
-            <option value="rubric_dimension">rubric_dimension: grading rule</option>
-            <option value="ngo_directory">ngo_directory: contact resource</option>
-            <option value="fact_template">fact_template: structured extraction</option>
-          </select>
+    <div class="kx-workflow" aria-label="Knowledge extraction workflow">
+      <details class="kx-workflow-step" id="kx-step-source" open>
+        <summary>
+          <span class="kx-step-index">1</span>
+          <span>
+            <span class="kx-step-title">Add source text</span>
+            <span class="kx-step-summary">Paste a passage or load an example. The normal path does not require choosing a schema first.</span>
+          </span>
+          <span class="kx-step-state" id="kx-step-source-state">Ready</span>
+        </summary>
+        <div class="kx-step-body">
+          <div class="wb-row" style="gap:8px; margin-bottom:10px;">
+            <button class="kx-example" type="button" onclick="kxUseExample('A recruiter wrote: Worker agrees to a PHP 45,000 processing loan deducted from salary in Hong Kong until fully repaid. Agency: Pearl Bridge Manpower. Corridor: PH-HK.')">Fee rule example</button>
+            <button class="kx-example" type="button" onclick="kxUseExample('Police report: complainant states employer kept passport for safekeeping, required live-in work, and threatened termination if she contacted POLO Hong Kong.')">Complaint example</button>
+            <button class="kx-example" type="button" onclick="kxUseExample('ILO C181 Article 7 prohibits private employment agencies from charging fees or costs directly or indirectly to workers, except narrow authorized exceptions.')">Citation example</button>
+          </div>
+          <textarea id="kx-raw" rows="6" placeholder="Paste a recruiter message, a contract clause, a court filing excerpt, or an NGO report fragment..." style="width:100%; box-sizing:border-box; font-family:var(--mono); font-size:12.5px; padding:10px; border:1px solid #DDD8C9; border-radius:8px; background:#FFF;"></textarea>
+          <div class="wb-row" style="margin-top:10px; gap:10px; align-items:center; flex-wrap:wrap;">
+            <label style="font-size:12px; margin-left:8px;">
+              <input type="checkbox" id="kx-anonymize" checked> Anonymize raw text first
+            </label>
+            <button class="wb-btn-secondary" type="button" onclick="kxSetWorkflow(1)" style="margin-left:auto;">Next: draft suggestions</button>
+          </div>
+          <details style="margin-top:10px;">
+            <summary style="cursor:pointer; font-size:12px; font-weight:600;">Advanced draft settings</summary>
+            <div class="wb-row" style="margin-top:8px;">
+              <label style="font-size:12px;">Override suggested type</label>
+              <select id="kx-leaf" style="font-size:12px; padding:5px 8px; border:1px solid #DDD8C9; border-radius:6px; max-width:320px;">
+                <option value="auto" selected>Auto-suggest useful leaves</option>
+                <option value="grep_rule">grep_rule: regex pattern</option>
+                <option value="rag_doc">rag_doc: source document</option>
+                <option value="context_snippet">context_snippet: grounding summary</option>
+                <option value="rubric_dimension">rubric_dimension: grading rule</option>
+                <option value="ngo_directory">ngo_directory: contact resource</option>
+                <option value="fact_template">fact_template: structured extraction</option>
+              </select>
+            </div>
+          </details>
         </div>
       </details>
-      <div id="kx-extract-status" class="wb-muted" style="font-size:11.5px; margin-top:8px;"></div>
-      <div id="kx-extract-result" style="margin-top:10px;"></div>
-      <div class="wb-row" style="margin-top:14px; gap:8px;">
-        <a class="wb-btn-secondary" href="/static/share.html">3. Open Anonymization &amp; Sharing</a>
-        <a class="wb-btn-secondary" href="/api/knowledge/taxonomy" target="_blank">Runtime taxonomy (JSON)</a>
-      </div>
+
+      <details class="kx-workflow-step" id="kx-step-draft">
+        <summary>
+          <span class="kx-step-index">2</span>
+          <span>
+            <span class="kx-step-title">Draft and review suggested knowledge objects</span>
+            <span class="kx-step-summary">Gemma 4 suggests reviewable envelopes such as GREP rules, RAG docs, context snippets, contacts, or rubric dimensions.</span>
+          </span>
+          <span class="kx-step-state" id="kx-step-draft-state">Waiting</span>
+        </summary>
+        <div class="kx-step-body">
+          <div class="wb-row" style="margin-top:0; gap:8px;">
+            <button class="wb-btn-primary" id="kx-extract-btn" onclick="kxExtract()">Draft suggestions</button>
+            <a class="wb-btn-secondary" href="/api/knowledge/taxonomy" target="_blank">Runtime taxonomy JSON</a>
+            <span id="kx-extract-status" class="wb-muted" style="font-size:11.5px;"></span>
+          </div>
+          <div id="kx-extract-result" class="kx-empty" style="margin-top:10px;">
+            Drafted envelopes will appear here with promote buttons after Step 1 has source text.
+          </div>
+        </div>
+      </details>
+
+      <details class="kx-workflow-step" id="kx-step-pack">
+        <summary>
+          <span class="kx-step-index">3</span>
+          <span>
+            <span class="kx-step-title">Import, export, or share knowledge packs</span>
+            <span class="kx-step-summary">Round-trip the sample bundle, promote useful objects, or open anonymized sharing.</span>
+          </span>
+          <span class="kx-step-state" id="kx-step-pack-state">Waiting</span>
+        </summary>
+        <div class="kx-step-body">
+          <p class="wb-muted" style="font-size:12px; margin:0 0 10px;">
+            The sample bundle is a ZIP of four envelopes pathed as
+            <code>&lt;type&gt;/&lt;id&gt;.json</code>, so <code>/api/knowledge/import</code>
+            accepts it directly.
+          </p>
+          <div class="wb-row" style="gap:8px;">
+            <a class="wb-btn-secondary"
+               href="/static/samples/knowledge_object_sample.json"
+               download="knowledge_object_sample.json"
+               title="Download one envelope as JSON for inspection">
+              Download single envelope
+            </a>
+            <a class="wb-btn-secondary"
+               href="/static/samples/knowledge_bundle_sample.zip"
+               download="knowledge_bundle_sample.zip"
+               title="Download a bundle of 4 envelopes as ZIP">
+              Download sample bundle
+            </a>
+            <button class="wb-btn-primary" type="button" onclick="kxImportSampleBundle()"
+               title="Fetch the sample bundle ZIP and POST it to /api/knowledge/import">
+              Import sample bundle now
+            </button>
+            <a class="wb-btn-secondary" href="/static/share.html">Open Anonymization &amp; Sharing</a>
+            <span class="wb-muted" id="kx-sample-status"></span>
+          </div>
+          <div id="kx-sample-result" style="margin-top:10px; font-size:12px;"></div>
+        </div>
+      </details>
     </div>
 
     <details style="margin: 22px 0 8px; border:1px solid #DDD8C9; border-radius:8px; padding:10px 14px; background:#FFF;">
@@ -179,16 +208,24 @@
     </details>
 
     <script>
-      function kxSetPipeline(active){
-        const steps = Array.from(document.querySelectorAll('#kx-pipeline .kx-step'));
-        steps.forEach((el, idx) => {
-          el.classList.toggle('complete', idx <= active);
-          if ('open' in el) el.open = idx === Math.min(active, steps.length - 1);
+      function kxSetWorkflow(active){
+        const ids = ['kx-step-source', 'kx-step-draft', 'kx-step-pack'];
+        ids.forEach((id, idx) => {
+          const el = document.getElementById(id);
+          if (!el) return;
+          el.classList.toggle('complete', idx < active);
+          if ('open' in el) el.open = idx === active;
+          const state = document.getElementById(id + '-state');
+          if (state) state.textContent = idx < active ? 'Done' : (idx === active ? 'Active' : 'Waiting');
         });
+      }
+      function kxSetPipeline(active){
+        const mapped = active >= 4 ? 2 : (active >= 1 ? 1 : 0);
+        kxSetWorkflow(mapped);
       }
     function kxUseExample(text){
       document.getElementById("kx-raw").value = text;
-      kxSetPipeline(0);
+      kxSetWorkflow(0);
     }
     function kxToggleTaxonomy(){
       document.body.classList.toggle('kx-show-taxonomy');
@@ -200,10 +237,10 @@
         const anonymize=document.getElementById("kx-anonymize").checked;
         const statusEl=document.getElementById("kx-extract-status");
         const resultEl=document.getElementById("kx-extract-result");
-        if(!raw){ statusEl.textContent="Paste some text first."; return; }
+        if(!raw){ statusEl.textContent="Paste some text first."; kxSetWorkflow(0); return; }
         const btn=document.getElementById("kx-extract-btn");
         btn.disabled=true; const origTxt=btn.textContent; btn.textContent="Extracting...";
-        kxSetPipeline(anonymize ? 1 : 0);
+        kxSetWorkflow(1);
         statusEl.textContent="POST /api/knowledge/draft-envelope (auto-suggest) ...";
         try{
           const r=await fetch("/api/knowledge/draft-envelope",{
@@ -211,14 +248,14 @@
             body:JSON.stringify({raw_text:raw, target_leaf:leaf, anonymize:anonymize})
           });
           const out=await r.json();
-          kxSetPipeline(3);
+          kxSetWorkflow(1);
           if(!r.ok){
             statusEl.textContent="Extract failed: HTTP "+r.status;
             resultEl.innerHTML="<pre style=\"background:#FFF1F1; border:1px solid #FCC; padding:10px; border-radius:6px; font-size:11.5px; overflow:auto;\">"+escapeHtml(JSON.stringify(out,null,2))+"</pre>";
             return;
           }
           statusEl.textContent="Draft suggestions ready. Review, promote useful ones, then anonymize and share if appropriate.";
-          kxSetPipeline(4);
+          kxSetWorkflow(1);
           kxDrafts = out.suggestions || (out.envelope ? [out.envelope] : [out]);
           resultEl.innerHTML = kxDrafts.map((env, idx) =>
             '<section class="wb-card" style="background:#FAF9F4; margin:8px 0; padding:12px;">' +
@@ -248,6 +285,7 @@
           if(!r.ok){ wbLog('err', 'HTTP ' + r.status + ' (' + dt + 'ms)', (await r.text()).slice(0,200)); return; }
           const out = await r.json();
           wbLog('ok', 'Promoted draft (' + dt + 'ms)', 'written_to=' + out.written_to);
+          kxSetWorkflow(2);
           kRefresh();
         }catch(e){ wbLog('err', 'Promote draft failed', String(e).slice(0,200)); }
       }
@@ -260,6 +298,7 @@
         const status=document.getElementById('kx-sample-status');
         const result=document.getElementById('kx-sample-result');
         result.textContent='';
+        kxSetWorkflow(2);
         status.textContent='Fetching sample bundle...';
         try{
           const r=await fetch('/static/samples/knowledge_bundle_sample.zip');
