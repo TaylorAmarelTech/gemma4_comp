@@ -4501,6 +4501,10 @@ try:
     )
     if public_url:
         print(f"  UI: {public_url}")
+    else:
+        print(f"  UI tunnel not available; local server is listening on http://localhost:{PORT}")
+        print("  If this is running on Kaggle, check the [tunnel] log lines above.")
+        print("  A public https://*.trycloudflare.com URL is required for browser access from your laptop.")
     print("  A-00 READY")
     print("  Use dry-run mode for UI inspection, then load one model per Kaggle run for real exports.")
     while not _SHUTDOWN_EVENT.is_set():
