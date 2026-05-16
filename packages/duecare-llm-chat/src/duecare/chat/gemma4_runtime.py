@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import gc
+import threading
 import time
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -69,7 +70,7 @@ def resolve_model_ref(source: str, model_ref: str) -> tuple[str, str, str]:
     if variant.startswith("jailbroken-"):
         repos = {
             "jailbroken-e4b": "mlabonne/Gemma-4-E4B-it-abliterated",
-            "jailbroken-31b": "mlabonne/Gemma-4-31B-it-abliterated",
+            "jailbroken-31b": "dealignai/Gemma-4-31B-JANG_4M-CRACK",
         }
         return repos.get(variant, model_ref), variant, "hf"
 
@@ -114,35 +115,93 @@ class Gemma4Runtime:
 
     def load(self, spec: Gemma4LoadSpec) -> Gemma4LoadedModel:
         try:
+            self.log("importing", "importing torch and Unsloth FastModel")
             import torch
             from unsloth import FastModel
         except Exception as exc:  # noqa: BLE001
             raise RuntimeError(f"Unsloth FastModel stack not available: {exc}") from exc
 
+        cuda_version = getattr(torch.version, "cuda", "unknown")
+        self.log(
+            "imported",
+            f"torch={torch.__version__}; cuda={cuda_version}; cuda_available={torch.cuda.is_available()}",
+        )
         if not torch.cuda.is_available():
             raise RuntimeError("CUDA is not available. Gemma 4 local runtime requires Kaggle GPU.")
 
         self.unload("loading replacement model")
+        self.log("gpu-check", self._gpu_inventory(torch))
         resolved_ref, variant, resolved_source = resolve_model_ref(spec.source, spec.model_ref)
         device_count = max(1, torch.cuda.device_count())
         device_map = "balanced" if variant in {"26b-a4b-it", "31b-it"} and device_count >= 2 else "auto"
 
-        self.log("resolve", f"{spec.model_ref} -> {resolved_ref}")
-        t0 = time.time()
-        model, tokenizer = FastModel.from_pretrained(
-            model_name=resolved_ref,
-            dtype=None,
-            max_seq_length=int(spec.max_seq_length or DEFAULT_MAX_SEQ_LENGTH),
-            load_in_4bit=spec.quantization.lower() in {"4bit", "nf4"},
-            full_finetuning=False,
-            device_map=device_map,
+        self.log("resolve-repo", f"{spec.model_ref} -> {resolved_ref}")
+        if resolved_source == "hf":
+            self.log("resolve-repo", f"no local Kaggle model attachment found; will download from HF Hub: {resolved_ref}")
+        else:
+            self.log("resolve-repo", f"using local attached model: {resolved_ref}")
+        if variant in {"26b-a4b-it", "31b-it", "jailbroken-31b"}:
+            self.log(
+                "preload",
+                "large-model path: first run can take 15-25 min; cached runs are faster. "
+                "weights download, shard-map, quantization, and CUDA memory planning happen inside FastModel.from_pretrained.",
+            )
+        self.log(
+            "from_pretrained",
+            "FastModel.from_pretrained("
+            f"model={resolved_ref}, max_seq={int(spec.max_seq_length or DEFAULT_MAX_SEQ_LENGTH)}, "
+            f"4bit={spec.quantization.lower() in {'4bit', 'nf4'}}, device_map={device_map})",
         )
+
+        heartbeat_stop = threading.Event()
+
+        def _heartbeat_loop() -> None:
+            last_alloc: list[float] = []
+            tick = 0
+            while not heartbeat_stop.wait(15.0):
+                tick += 1
+                try:
+                    alloc_per_dev = [
+                        torch.cuda.memory_allocated(idx) / 1_073_741_824
+                        for idx in range(torch.cuda.device_count())
+                    ]
+                    delta = sum(alloc_per_dev) - sum(last_alloc[: len(alloc_per_dev)])
+                    last_alloc = alloc_per_dev
+                    phase_hint = "loading_to_gpu" if sum(alloc_per_dev) > 0.1 else "downloading_or_cpu_init"
+                    msg = (
+                        f"heartbeat #{tick} (still alive after {tick * 15}s): VRAM "
+                        + " | ".join(f"cuda:{i}={gb:.2f}GB" for i, gb in enumerate(alloc_per_dev))
+                        + (f" - +{delta:.2f}GB since last tick" if abs(delta) > 0.01 else " - no change since last tick")
+                    )
+                    self.log(phase_hint, msg)
+                except Exception as exc:  # noqa: BLE001
+                    self.log("heartbeat_error", f"heartbeat #{tick} probe failed: {type(exc).__name__}: {exc}")
+
+        threading.Thread(target=_heartbeat_loop, daemon=True, name="duecare-gemma4-loader-heartbeat").start()
+        t0 = time.time()
+        try:
+            model, tokenizer = FastModel.from_pretrained(
+                model_name=resolved_ref,
+                dtype=None,
+                max_seq_length=int(spec.max_seq_length or DEFAULT_MAX_SEQ_LENGTH),
+                load_in_4bit=spec.quantization.lower() in {"4bit", "nf4"},
+                full_finetuning=False,
+                device_map=device_map,
+            )
+        except Exception as exc:  # noqa: BLE001
+            self.log("error", f"FastModel FAILED: {type(exc).__name__}: {str(exc)[:500]}")
+            raise
+        finally:
+            heartbeat_stop.set()
         self.log("loaded", f"FastModel returned in {time.time() - t0:.1f}s")
+        self._log_gpu_memory(torch)
 
         try:
+            self.log("chat-template", "applying gemma-4-thinking chat template")
             from unsloth.chat_templates import get_chat_template
 
             tokenizer = get_chat_template(tokenizer, chat_template="gemma-4-thinking")
+            self.log("chat-template", "chat template ready")
         except Exception as exc:  # noqa: BLE001
             self.log("chat-template", f"skipped: {type(exc).__name__}: {exc}")
 
@@ -154,7 +213,8 @@ class Gemma4Runtime:
             except Exception as exc:  # noqa: BLE001
                 raise RuntimeError(f"adapter load failed: {exc}") from exc
 
-        input_device = self._infer_input_device(model, torch)
+        input_device = "cuda:0" if device_map == "balanced" else self._infer_input_device(model, torch)
+        self.log("ready", f"model input device resolved: {input_device}")
 
         def _normalise_messages(prompt_or_messages) -> list[dict]:
             if isinstance(prompt_or_messages, list):
@@ -180,7 +240,14 @@ class Gemma4Runtime:
                 messages_out.append(item)
             return messages_out
 
-        def backend(prompt, *, max_new_tokens: int = 512, temperature: float = 0.2) -> str:
+        def backend(
+            prompt,
+            *,
+            max_new_tokens: int = 512,
+            temperature: float = 1.0,
+            top_p: float = 0.95,
+            top_k: int = 64,
+        ) -> str:
             messages = _normalise_messages(prompt)
             if hasattr(tokenizer, "apply_chat_template"):
                 inputs = tokenizer.apply_chat_template(
@@ -199,7 +266,8 @@ class Gemma4Runtime:
                 use_cache=True,
                 do_sample=temperature > 0,
                 temperature=max(float(temperature or 0.0), 0.01),
-                top_p=0.95,
+                top_p=top_p,
+                top_k=top_k,
             )
             try:
                 text = tokenizer.batch_decode(out)[0]
@@ -219,6 +287,9 @@ class Gemma4Runtime:
             "quantization": spec.quantization,
             "loaded_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
             "device": input_device,
+            "device_map": device_map,
+            "loader": "unsloth.FastModel",
+            "max_seq_length": int(spec.max_seq_length or DEFAULT_MAX_SEQ_LENGTH),
             "notes": "Model loaded through shared DueCare Gemma 4 Unsloth/FastModel runtime.",
         }
         self.loaded = Gemma4LoadedModel(
@@ -229,6 +300,26 @@ class Gemma4Runtime:
             raw={"torch": torch},
         )
         return self.loaded
+
+    def _gpu_inventory(self, torch: Any) -> str:
+        try:
+            devices = []
+            for idx in range(torch.cuda.device_count()):
+                props = torch.cuda.get_device_properties(idx)
+                devices.append(f"{props.name} cuda:{idx} ({props.total_memory / 1_073_741_824:.1f} GB)")
+            return "GPU: " + " | ".join(devices) if devices else "GPU: none"
+        except Exception as exc:  # noqa: BLE001
+            return f"GPU inventory unavailable: {type(exc).__name__}: {exc}"
+
+    def _log_gpu_memory(self, torch: Any) -> None:
+        try:
+            for idx in range(torch.cuda.device_count()):
+                alloc = torch.cuda.memory_allocated(idx) / 1_073_741_824
+                reserved = torch.cuda.memory_reserved(idx) / 1_073_741_824
+                name = torch.cuda.get_device_name(idx)
+                self.log("gpu-memory", f"cuda:{idx} {name}: allocated={alloc:.2f} GB; reserved={reserved:.2f} GB")
+        except Exception as exc:  # noqa: BLE001
+            self.log("gpu-memory", f"GPU memory summary unavailable: {type(exc).__name__}: {exc}")
 
     @staticmethod
     def _infer_input_device(model: Any, torch: Any) -> str:

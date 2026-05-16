@@ -1365,221 +1365,45 @@ def load_gemma() -> Optional[LoadedModel]:
           phase="cloud-route")
     return _load_cloud_route()
 
-  _log_load("checking Kaggle GPU inventory", phase="gpu-check")
-  gpu = _detect_gpu()
-  _log_load(
-    f"GPU: {gpu['name']} x{gpu['count']}  ({gpu['vram_gb']:.1f} GB)"
-    if gpu["available"] else "GPU: none",
-    phase="gpu-check",
-  )
-  if not gpu["available"]:
-    _log_load("No GPU available. Re-run with one of the cloud-* "
-          "variants (cloud-gemini / cloud-openai / cloud-ollama) "
-          "or attach a T4.", phase="error", level="error")
-    return None
-
+  # Canonical local Gemma 4 path. This delegates to the same shared
+  # Unsloth FastModel runtime used by A-00 and 02-live-demo:
+  # That shared primitive owns the Unsloth load call, Gemma-4 thinking
+  # template, heartbeat logs, GPU memory logs, and sanitized model output.
   try:
-    _log_load("importing torch and Unsloth FastModel",
-          phase="importing")
-    import torch
-    from unsloth import FastModel
-    cuda_version = getattr(torch.version, "cuda", "unknown")
-    _log_load(f"torch={torch.__version__}; cuda={cuda_version}; "
-          f"cuda_available={torch.cuda.is_available()}",
-          phase="imported")
-  except Exception as e:
-    _log_load(f"FastModel import FAILED: {type(e).__name__}: {e}",
-          phase="error", level="error")
-    return None
+    from duecare.chat.gemma4_runtime import Gemma4LoadSpec, Gemma4Runtime
 
-  variant = GEMMA_MODEL_VARIANT
-  _log_load(f"resolving repository for variant={variant}",
-        phase="resolve-repo")
-  if variant.startswith("jailbroken-"):
-    repo = _VARIANT_HF_ID.get(variant, variant)
-    _log_load(f"using non-standard / abliterated repo: {repo}",
-          phase="resolve-repo", level="warn")
-  else:
-    repo_variant = (variant.replace("e2b-it", "E2B-it")
-                .replace("e4b-it", "E4B-it")
-                .replace("26b-a4b-it", "26B-A4B-it")
-                .replace("31b-it", "31B-it"))
-    hf_repo = f"unsloth/gemma-4-{repo_variant}"
-    repo = hf_repo
-    for v in ("1", "2", "3"):
-      p = (f"/kaggle/input/models/google/gemma-4/transformers/"
-         f"gemma-4-{variant}/{v}")
-      if Path(p, "config.json").exists():
-        repo = p
-        break
-    if repo == hf_repo:
-      _log_load(f"no local Kaggle model attachment found; will "
-            f"download from HF Hub: {hf_repo}",
-            phase="resolve-repo", level="warn")
-    else:
-      _log_load(f"using local attached model: {repo}",
-            phase="resolve-repo")
+    def _runtime_log(phase: str, message: str) -> None:
+      level = "warn" if phase in {"preload"} else "error" if phase == "error" else "info"
+      _log_load(message, phase=phase, level=level)
 
-  eff_dmap = GEMMA_DEVICE_MAP
-  if eff_dmap == "auto" and variant in ("31b-it", "26b-a4b-it"):
-    eff_dmap = "balanced" if gpu["count"] >= 2 else "auto"
-  if variant in ("31b-it", "26b-a4b-it", "jailbroken-31b"):
-    _log_load("large-model path: first run can take 15-25 min "
-          "(HF download is slow; cached runs are ~5-8 min). "
-          "weights download → shard-map → quantization → CUDA "
-          "memory planning all happen inside from_pretrained.",
-          phase="preload", level="warn")
-  _log_load(f"FastModel.from_pretrained(model={repo}, "
-        f"max_seq={GEMMA_MAX_SEQ_LEN}, "
-        f"4bit={GEMMA_LOAD_IN_4BIT}, device_map={eff_dmap})",
-        phase="from_pretrained")
-
-  # H1 (live-test feedback 2026-05-07): the from_pretrained call is a
-  # 15-25 minute black box on first run for 31B. Without a heartbeat
-  # the user sees "Loading 31b-it ... 1334 seconds elapsed" with no
-  # phase update for 22 minutes and reasonably assumes the kernel
-  # crashed. Spawn a daemon that polls VRAM every 15s and emits a
-  # progress event so the UI knows the load is alive. Killed on
-  # return from from_pretrained.
-  _heartbeat_stop = threading.Event()
-  def _heartbeat_loop():
-    last_alloc = [0.0, 0.0]
-    tick = 0
-    while not _heartbeat_stop.wait(15.0):
-      tick += 1
-      try:
-        if torch.cuda.is_available():
-          alloc_per_dev = []
-          for idx in range(torch.cuda.device_count()):
-            gb = torch.cuda.memory_allocated(idx) / 1_073_741_824
-            alloc_per_dev.append(gb)
-          # Detect growth = download → CPU → GPU is making progress
-          delta = sum(alloc_per_dev) - sum(last_alloc[:len(alloc_per_dev)])
-          last_alloc = alloc_per_dev
-          phase_hint = ("loading_to_gpu" if sum(alloc_per_dev) > 0.1
-                            else "downloading_or_cpu_init")
-          msg = (
-              f"heartbeat #{tick} (still alive after "
-              f"{tick * 15}s): VRAM "
-              + " | ".join(f"cuda:{i}={gb:.2f}GB"
-                              for i, gb in enumerate(alloc_per_dev))
-              + (f" · +{delta:.2f}GB since last tick"
-                  if abs(delta) > 0.01 else " · no change since last tick")
-          )
-          _log_load(msg, phase=phase_hint)
-        else:
-          _log_load(f"heartbeat #{tick}: no CUDA available; CPU init "
-                        f"in progress (still alive after {tick * 15}s)",
-                        phase="cpu_init")
-      except Exception as e:  # noqa: BLE001
-        _log_load(f"heartbeat #{tick} probe failed: {type(e).__name__}: {e}",
-                  phase="heartbeat_error", level="warn")
-
-  _heartbeat_thread = threading.Thread(
-      target=_heartbeat_loop, daemon=True, name="gemma-loader-heartbeat")
-  _heartbeat_thread.start()
-
-  t_load = time.time()
-  try:
-    model, tokenizer = FastModel.from_pretrained(
-      model_name=repo, dtype=None,
+    loaded_shared = Gemma4Runtime(log=_runtime_log).load(Gemma4LoadSpec(
+      source="hf",
+      model_ref=GEMMA_MODEL_VARIANT,
+      quantization="4bit" if GEMMA_LOAD_IN_4BIT else "bf16",
       max_seq_length=GEMMA_MAX_SEQ_LEN,
-      load_in_4bit=GEMMA_LOAD_IN_4BIT,
-      full_finetuning=False,
-      device_map=eff_dmap,
+    ))
+    info = loaded_shared.info
+    variant = str(info.get("variant") or GEMMA_MODEL_VARIANT)
+    device = str(info.get("device") or "cuda")
+    if info.get("device_map") == "balanced":
+      gpu = _detect_gpu()
+      device = f"balanced ({gpu.get('count', 2)}x {gpu.get('name', 'GPU')})"
+    _log_load("model backend callable ready", phase="ready")
+    return LoadedModel(
+      backend=loaded_shared.backend,
+      tokenizer=loaded_shared.tokenizer,
+      model=loaded_shared.model,
+      name=f"gemma-4-{variant}",
+      size_b=_model_size_b(variant),
+      quantization="4-bit nf4" if GEMMA_LOAD_IN_4BIT else "bf16",
+      device=device,
     )
-  except Exception as e:
-    _heartbeat_stop.set()
-    _log_load(f"FastModel FAILED: {type(e).__name__}: {str(e)[:500]}",
+  except Exception as e:  # noqa: BLE001
+    _log_load(f"shared FastModel runtime FAILED: {type(e).__name__}: {str(e)[:500]}",
           phase="error", level="error")
     for line in traceback.format_exc().splitlines()[-10:]:
       _log_load(line, phase="error", level="error")
     return None
-  finally:
-    _heartbeat_stop.set()
-  _log_load(f"FastModel returned in {time.time()-t_load:.1f}s",
-        phase="post-load")
-
-  try:
-    if torch.cuda.is_available():
-      for idx in range(torch.cuda.device_count()):
-        alloc = torch.cuda.memory_allocated(idx) / 1_073_741_824
-        reserved = torch.cuda.memory_reserved(idx) / 1_073_741_824
-        name = torch.cuda.get_device_name(idx)
-        _log_load(f"cuda:{idx} {name}: allocated={alloc:.2f} GB; "
-              f"reserved={reserved:.2f} GB",
-              phase="gpu-memory")
-  except Exception as e:
-    _log_load(f"GPU memory summary unavailable: {type(e).__name__}: {e}",
-          phase="gpu-memory", level="warn")
-
-  try:
-    _log_load("applying gemma-4-thinking chat template",
-          phase="chat-template")
-    from unsloth.chat_templates import get_chat_template
-    tokenizer = get_chat_template(tokenizer,
-                    chat_template="gemma-4-thinking")
-    _log_load("chat template ready", phase="chat-template")
-  except Exception as e:
-    _log_load(f"chat template skipped: {type(e).__name__}: {e}",
-          phase="chat-template", level="warn")
-
-  def _infer_input_device() -> str:
-    if eff_dmap == "balanced":
-      return "cuda:0"
-    try:
-      dev = getattr(model, "device", None)
-      if dev is not None and str(dev) not in {"meta", "None"}:
-        return str(dev)
-    except Exception:
-      pass
-    try:
-      dev = next(model.parameters()).device
-      if dev is not None and str(dev) not in {"meta", "None"}:
-        return str(dev)
-    except Exception:
-      pass
-    try:
-      if torch.cuda.is_available():
-        alloc = [
-          (torch.cuda.memory_allocated(idx), idx)
-          for idx in range(torch.cuda.device_count())
-        ]
-        if alloc:
-          return f"cuda:{max(alloc)[1]}"
-    except Exception:
-      pass
-    return "cuda:0" if torch.cuda.is_available() else "cpu"
-
-  input_device = _infer_input_device()
-  _log_load(f"model input device resolved: {input_device}", phase="ready")
-
-  def _gemma_call(messages, max_new_tokens=512, temperature=1.0,
-          top_p=0.95, top_k=64):
-    inputs = tokenizer.apply_chat_template(
-      messages, add_generation_prompt=True, tokenize=True,
-      return_dict=True, return_tensors="pt").to(input_device)
-    out = model.generate(
-      **inputs, max_new_tokens=max_new_tokens,
-      use_cache=True,
-      temperature=temperature, top_p=top_p, top_k=top_k)
-    text = tokenizer.batch_decode(out)[0]
-    # Single-source sanitizer covers Gemma 4 thinking-mode
-    # <channel|> separator, <thinking>/<think> blocks, turn delimiters,
-    # and template control tokens. Same helper is used by cloud /
-    # Ollama paths so artifacts don't surface on a different backend.
-    from duecare.chat._model_output import sanitize_model_output
-    return sanitize_model_output(text)
-
-  _log_load("model backend callable ready", phase="ready")
-  return LoadedModel(
-    backend=_gemma_call, tokenizer=tokenizer, model=model,
-    name=f"gemma-4-{variant}",
-    size_b=_model_size_b(variant),
-    quantization="4-bit nf4" if GEMMA_LOAD_IN_4BIT else "bf16",
-    device=(f"balanced ({gpu['count']}x {gpu['name']})"
-        if eff_dmap == "balanced" else input_device))
-
 
 # ===========================================================================
 # 3. Build chat server WITHOUT a model loaded yet. The picker overlay

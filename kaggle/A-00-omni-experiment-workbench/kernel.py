@@ -2312,39 +2312,45 @@ RANDOM_STATE = {int(training_cfg["random_state"])}
 TARGET_MODULES = {training_cfg["target_modules"]!r}
 
 try:
-    from unsloth import FastLanguageModel
+    from unsloth import FastModel
     try:
         from unsloth import is_bfloat16_supported
     except Exception:
         is_bfloat16_supported = None
+    from unsloth.chat_templates import get_chat_template, train_on_responses_only
     from datasets import load_dataset
-    from trl import SFTTrainer
-    from transformers import TrainingArguments
+    from trl import SFTTrainer, SFTConfig
     import inspect
     import torch
 
-    model, tokenizer = FastLanguageModel.from_pretrained(
+    model, tokenizer = FastModel.from_pretrained(
         model_name=BASE_MODEL,
         max_seq_length=MAX_SEQ_LENGTH,
         dtype=None,
         load_in_4bit=True,
+        full_finetuning=False,
     )
-    model = FastLanguageModel.get_peft_model(
+    model = FastModel.get_peft_model(
         model,
+        finetune_vision_layers=False,
+        finetune_language_layers=True,
+        finetune_attention_modules=True,
+        finetune_mlp_modules=True,
         r=LORA_R,
-        target_modules=TARGET_MODULES,
         lora_alpha=LORA_ALPHA,
         lora_dropout=LORA_DROPOUT,
         bias="none",
-        use_gradient_checkpointing="unsloth",
         random_state=RANDOM_STATE,
     )
+    tokenizer = get_chat_template(tokenizer, chat_template="gemma-4-thinking")
     ds = load_dataset("json", data_files=DATA_PATH, split="train")
 
     def normalize_messages(messages):
         out = []
         for msg in messages:
             item = dict(msg)
+            if item.get("role") == "assistant":
+                item["role"] = "model"
             content = item.get("content")
             if isinstance(content, str):
                 item["content"] = [{{"type": "text", "text": content}}]
@@ -2354,7 +2360,11 @@ try:
     def render(row):
         messages = normalize_messages(row.get("messages") or [])
         if hasattr(tokenizer, "apply_chat_template"):
-            return {{"text": tokenizer.apply_chat_template(messages, tokenize=False)}}
+            return {{"text": tokenizer.apply_chat_template(
+                messages,
+                tokenize=False,
+                add_generation_prompt=False,
+            ).removeprefix("<bos>")}}
         text = "\\n".join(f"{{m.get('role')}}: {{m.get('content')}}" for m in messages)
         return {{"text": text}}
 
@@ -2366,7 +2376,8 @@ try:
     use_fp16 = bool(torch.cuda.is_available() and not use_bf16)
     print(f"[training] precision bf16={{use_bf16}} fp16={{use_fp16}}")
 
-    training_args = TrainingArguments(
+    training_args = SFTConfig(
+            dataset_text_field="text",
             per_device_train_batch_size=PER_DEVICE_BATCH,
             gradient_accumulation_steps=GRAD_ACCUM_STEPS,
             warmup_steps=WARMUP_STEPS,
@@ -2377,13 +2388,14 @@ try:
             logging_steps=5,
             output_dir=OUTPUT_DIR,
             optim="adamw_8bit",
+            weight_decay=0.001,
+            lr_scheduler_type="linear",
             seed=RANDOM_STATE,
+            report_to="none",
     )
     trainer_kwargs = {{
         "model": model,
         "train_dataset": ds,
-        "dataset_text_field": "text",
-        "max_seq_length": MAX_SEQ_LENGTH,
         "args": training_args,
     }}
     trainer_sig = inspect.signature(SFTTrainer.__init__)
@@ -2393,6 +2405,11 @@ try:
         trainer_kwargs["processing_class"] = tokenizer
     trainer_kwargs = {{k: v for k, v in trainer_kwargs.items() if k in trainer_sig.parameters or k in {{"model", "args", "train_dataset"}}}}
     trainer = SFTTrainer(**trainer_kwargs)
+    trainer = train_on_responses_only(
+        trainer,
+        instruction_part="<|turn>user\\n",
+        response_part="<|turn>model\\n",
+    )
     trainer.train()
     model.save_pretrained(OUTPUT_DIR)
     tokenizer.save_pretrained(OUTPUT_DIR)

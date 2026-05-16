@@ -14,6 +14,7 @@ WHEELS = KERNEL_DIR / "wheels"
 A00_KERNEL = REPO / "kaggle" / "A-00-omni-experiment-workbench" / "kernel.py"
 LIVE_DEMO_KERNEL = REPO / "kaggle" / "02-live-demo" / "kernel.py"
 GEMMA4_RUNTIME = REPO / "packages" / "duecare-llm-chat" / "src" / "duecare" / "chat" / "gemma4_runtime.py"
+MODEL_LOADING_TRACE = REPO / "docs" / "model_loading_trace.md"
 
 
 def _text(path: Path) -> str:
@@ -164,6 +165,8 @@ def test_live_demo_and_a00_expose_page_level_controls():
         "/api/live/model/load",
         "Gemma4Runtime",
         "load_gemma_shared",
+        "load_gemma_unsloth delegates to shared Gemma4Runtime",
+        "load_gemma_smart delegates to shared Gemma4Runtime",
     ]:
         assert token in live
     assert "p.label + ' - ' + (p.notes || p.ref || '')" not in live
@@ -255,6 +258,37 @@ def test_shared_gemma_runtime_uses_gemma4_message_content_blocks():
     assert "def _normalise_messages" in runtime
     assert '"content"] = [{"type": "text", "text": content}]' in runtime
     assert "tokenizer.apply_chat_template(" in runtime
+    assert "FastModel.from_pretrained(" in runtime
+    assert "full_finetuning=False" in runtime
+    assert "device_map = \"balanced\"" in runtime
+    assert "heartbeat #" in runtime
+    assert "top_p=top_p" in runtime
+    assert "top_k=top_k" in runtime
+    assert "dealignai/Gemma-4-31B-JANG_4M-CRACK" in runtime
+
+
+def test_kernel01_delegates_local_model_loading_to_shared_fastmodel_runtime():
+    text = _text(KERNEL)
+    assert "from duecare.chat.gemma4_runtime import Gemma4LoadSpec, Gemma4Runtime" in text
+    assert "Gemma4Runtime(log=_runtime_log).load(Gemma4LoadSpec(" in text
+    assert "shared FastModel runtime FAILED" in text
+    assert "FastModel.from_pretrained(" not in text.split("def load_gemma() -> Optional[LoadedModel]:", 1)[1].split("# ===========================================================================\n# 3.", 1)[0]
+
+
+def test_model_loading_trace_documents_the_shared_fastmodel_path():
+    doc = _text(MODEL_LOADING_TRACE)
+    for token in [
+        "Gemma4Runtime",
+        "FastModel.from_pretrained",
+        'device_map="balanced"',
+        "01 exploration workbench",
+        "02 live demo",
+        "A-00 preconfigured experiment",
+        "FastModel.get_peft_model",
+        "train_on_responses_only",
+        "transformers==5.5.0",
+    ]:
+        assert token in doc
 
 
 def test_primary_kernels_bootstrap_from_github_source_with_full_package_closure():
