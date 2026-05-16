@@ -143,7 +143,7 @@ TRAINING_PROFILES: tuple[dict[str, Any], ...] = (
     {
         "id": "tiny_lora_smoke",
         "label": "Tiny LoRA smoke run",
-        "base_model_ref": "google/gemma-4-e2b-it",
+        "base_model_ref": "google/gemma-4-2b-it",
         "adapter_name": "duecare-a00-smoke-e2b-lora",
         "method": "sft",
         "execute": False,
@@ -162,7 +162,7 @@ TRAINING_PROFILES: tuple[dict[str, Any], ...] = (
     {
         "id": "a07_t4_standard_sft",
         "label": "A-07 T4 standard SFT",
-        "base_model_ref": "google/gemma-4-e4b-it",
+        "base_model_ref": "google/gemma-4-4b-it",
         "max_examples": 200,
         "num_epochs": 2,
         "learning_rate": 2e-4,

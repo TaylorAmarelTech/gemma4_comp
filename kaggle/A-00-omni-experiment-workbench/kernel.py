@@ -48,6 +48,8 @@ A00_TRAINING_TIMEOUT_SEC = int(os.environ.get("A00_TRAINING_TIMEOUT_SEC", str(60
 DUECARE_VERSION = os.environ.get("DUECARE_VERSION", "0.17.0")
 DUECARE_REPO = os.environ.get("DUECARE_REPO", "TaylorAmarelTech/gemma4_comp")
 DUECARE_COMMIT_SHA = os.environ.get("DUECARE_COMMIT_SHA", "master")
+A00_SMALL_MODEL_REF = os.environ.get("DUECARE_A00_SMALL_MODEL_REF", "google/gemma-4-2b-it")
+A00_DEFAULT_MODEL_REF = os.environ.get("DUECARE_A00_DEFAULT_MODEL_REF", "google/gemma-4-4b-it")
 DUECARE_PACKAGES = [
     "duecare-llm-core",
     "duecare-llm-models",
@@ -66,6 +68,7 @@ DUECARE_PACKAGES = [
     "duecare-llm-training",
     "duecare-llm-chat",
 ]
+_A00_MODEL_STACK_MARKER = Path("/tmp/.duecare_a00_model_stack_v2_done")
 
 
 def _utc() -> str:
@@ -191,6 +194,68 @@ def _install_duecare_from_github() -> bool:
     return True
 
 
+def _install_model_training_stack() -> bool:
+    if os.environ.get("A00_INSTALL_MODEL_DEPS", "1") == "0":
+        print("[phase 0] A00_INSTALL_MODEL_DEPS=0, skipping model/training stack install")
+        return True
+    if _A00_MODEL_STACK_MARKER.exists():
+        print("[phase 0] A-00 model/training stack marker present; skipping install")
+        return True
+
+    print("=" * 76)
+    print("[phase 0] installing Gemma 4 model + LoRA training stack")
+    print("=" * 76)
+    print("  purpose: A-00 one-click baseline, harness, synthetic SFT, LoRA, adapter eval")
+    try:
+        import numpy as _np, PIL as _pil
+
+        np_pin = f"numpy=={_np.__version__}"
+        pil_pin = f"pillow=={_pil.__version__}"
+    except Exception:
+        np_pin, pil_pin = "numpy", "pillow"
+
+    uv_check = subprocess.run(["uv", "--version"], capture_output=True, text=True)
+    if uv_check.returncode == 0:
+        installer = ["uv", "pip", "install", "-qqq", "--system"]
+    else:
+        installer = [
+            sys.executable, "-m", "pip", "install", "-q", "--no-input",
+            "--disable-pip-version-check",
+        ]
+    cmd = installer + [
+        "torch>=2.8.0",
+        "triton>=3.4.0",
+        np_pin,
+        pil_pin,
+        "torchvision",
+        "bitsandbytes",
+        "unsloth",
+        "unsloth_zoo>=2026.4.6",
+        "transformers==5.5.0",
+        "torchcodec",
+        "timm",
+        "datasets",
+        "trl",
+        "peft",
+        "accelerate",
+    ]
+    print(f"  $ {' '.join(cmd)}")
+    t0 = time.time()
+    proc = subprocess.run(cmd, capture_output=True, text=True, timeout=1200)
+    if proc.returncode != 0:
+        msg = (proc.stderr or proc.stdout or "")[-1200:]
+        raise SystemExit("A-00 model/training stack install failed: " + msg)
+    try:
+        _A00_MODEL_STACK_MARKER.write_text(
+            json.dumps({"installed_at": _utc(), "small_model_ref": A00_SMALL_MODEL_REF}, indent=2),
+            encoding="utf-8",
+        )
+    except Exception:
+        pass
+    print(f"  installed model/training stack in {time.time() - t0:.0f}s")
+    return True
+
+
 def _install_runtime_deps() -> None:
     print("=" * 76)
     print("[2/7] checking UI dependencies")
@@ -206,9 +271,12 @@ def _install_runtime_deps() -> None:
         sys.executable, "-m", "pip", "install", "--quiet", "--no-input",
         "--disable-pip-version-check", *deps,
     ]
-    subprocess.run(cmd, capture_output=True, text=True, timeout=240)
+    proc = subprocess.run(cmd, capture_output=True, text=True, timeout=240)
+    if proc.returncode != 0:
+        raise SystemExit("A-00 UI dependency install failed: " + (proc.stderr or proc.stdout or "")[-1000:])
 
 
+_install_model_training_stack()
 _install_duecare_from_github()
 _install_runtime_deps()
 
@@ -397,13 +465,13 @@ HARNESS_PROFILES = harness_profile_map()
 MODEL_PRESETS = [
     {
         "label": "Gemma 4 E2B IT",
-        "ref": "google/gemma-4-e2b-it",
+        "ref": A00_SMALL_MODEL_REF,
         "source": "hf",
         "notes": "Smallest judge-friendly baseline.",
     },
     {
         "label": "Gemma 4 E4B IT",
-        "ref": "google/gemma-4-e4b-it",
+        "ref": A00_DEFAULT_MODEL_REF,
         "source": "hf",
         "notes": "Best default for T4 when available.",
     },
@@ -987,18 +1055,6 @@ PRIMARY_NOTEBOOK_AUDIT: list[dict[str, Any]] = [
             "Record the public URL and model variant used so A-00 reports can cite the same run context.",
         ],
         "evidence": ["Live responses", "trace cards", "audit events"],
-    },
-    {
-        "id": "03",
-        "name": "Video pitch",
-        "purpose": "Recording-first slide deck plus cached demo replay with exportable evidence and synthetic media.",
-        "run_url": "../03-duecare-video-pitch/README.md",
-        "verify": [
-            "Open mode=slides and walk the deck from problem to validation to use cases.",
-            "Open presentation lanes for worker, caseworker, platform, researcher, and developer.",
-            "Open setup mode, export the evidence bundle, and confirm JSON, CSV, Markdown, ZIP, and media files are written.",
-        ],
-        "evidence": ["Slides", "cached replay", "evidence ZIP", "media artifact"],
     },
     {
         "id": "A-00",
@@ -2369,7 +2425,7 @@ def _training_suggestion(path: Path, manifest: dict[str, Any], inspection: dict[
     suggested_base = (
         training_profile.get("base_model_ref")
         or A00_TRAINING_DEFAULT.get("base_model_ref")
-        or "google/gemma-4-e2b-it"
+        or A00_SMALL_MODEL_REF
     )
     suggested_steps = int(training_profile.get("max_steps") or A00_TRAINING_DEFAULT.get("max_steps") or 60)
     return {
@@ -3309,26 +3365,33 @@ def _run_pipeline_job(job_id: str, req: PipelineRequest) -> None:
 
             elif req.preset_id == "synthetic_train_benchmark_cycle":
                 if req.unload_between_steps:
+                    _append_job_step(job_id, "unload before base model", "running")
                     _unload_model_runtime(f"pipeline {job_id}: before synthetic generation")
                 _append_job_step(job_id, "load teacher/base model", "running", {"source": req.model_a_source, "model_ref": req.model_a_ref})
-                _load_model_runtime(_model_request(req.model_a_source, req.model_a_ref, req.model_a_adapter_ref, req.quantization))
+                model_info = _load_model_runtime(_model_request(req.model_a_source, req.model_a_ref, req.model_a_adapter_ref, req.quantization))
+                _append_job_step(job_id, "loaded teacher/base model", "running", model_info)
+                _append_job_step(job_id, "run base Gemma without harness", "running", {"prompt_set": req.prompt_set, "limit": req.limit})
                 base_no_harness = _run_batch(BatchRunRequest(
                     prompt_set=req.prompt_set,
                     harness_profile=req.baseline_harness_profile,
                     limit=req.limit,
                     run_label=f"{req.run_label or job_id}-stock",
                     evaluate=req.evaluate_outputs,
-                    llm_judge=req.llm_judge,
+                    llm_judge=False,
                 ))
+                _append_job_step(job_id, "completed base Gemma without harness", "running", {"run_id": base_no_harness["run_id"], "summary": base_no_harness["summary"]})
+                _append_job_step(job_id, "run base Gemma with DueCare harness", "running", {"prompt_set": req.prompt_set, "limit": req.limit, "harness": req.harness_profile})
                 base_harness = _run_batch(BatchRunRequest(
                     prompt_set=req.prompt_set,
                     harness_profile=req.harness_profile,
                     limit=req.limit,
                     run_label=f"{req.run_label or job_id}-stock-harness",
                     evaluate=req.evaluate_outputs,
-                    llm_judge=req.llm_judge,
+                    llm_judge=False,
                 ))
+                _append_job_step(job_id, "completed base Gemma with DueCare harness", "running", {"run_id": base_harness["run_id"], "summary": base_harness["summary"]})
                 run_ids.extend([base_no_harness["run_id"], base_harness["run_id"]])
+                _append_job_step(job_id, "generate synthetic SFT rows with harness", "running", {"count": req.synthetic_count, "generator_mode": req.generator_mode})
                 synth = _generate_synthetic(SyntheticRequest(
                     source_prompt_set="synthetic_seed",
                     count=req.synthetic_count,
@@ -3337,7 +3400,9 @@ def _run_pipeline_job(job_id: str, req: PipelineRequest) -> None:
                 ))
                 _append_job_step(job_id, "generated synthetic data", "running", {"artifacts": synth["artifacts"], "counts": synth.get("counts")})
                 if req.unload_between_steps:
+                    _append_job_step(job_id, "unload before LoRA training", "running")
                     _unload_model_runtime(f"pipeline {job_id}: before training")
+                _append_job_step(job_id, "create LoRA fine-tune job", "running", {"execute_training": req.execute_training, "max_steps": req.max_steps})
                 train_job = _create_training_job(TrainRequest(
                     data_path=synth["artifacts"]["sft"],
                     base_model_ref=req.model_b_ref or req.model_a_ref,
@@ -3348,31 +3413,50 @@ def _run_pipeline_job(job_id: str, req: PipelineRequest) -> None:
                 ))
                 _append_job_step(job_id, "created training job", "running", train_job)
                 if req.execute_training:
+                    _append_job_step(job_id, "execute LoRA fine-tune with synthetic data", "running", {"job_id": train_job["job_id"]})
                     final_train = _wait_for_training_job(train_job["job_id"], job_id, A00_TRAINING_TIMEOUT_SEC)
                     if final_train.get("status") != "completed":
                         raise RuntimeError(f"training job did not complete: {final_train.get('status')}")
                     adapter_path = final_train.get("output_dir") or train_job.get("output_dir")
                     if req.unload_between_steps:
+                        _append_job_step(job_id, "unload before adapter benchmark", "running")
                         _unload_model_runtime(f"pipeline {job_id}: before adapter benchmark")
                     _append_job_step(job_id, "load fine-tuned adapter", "running", {"base_model_ref": req.model_b_ref or req.model_a_ref, "adapter_ref": adapter_path})
-                    _load_model_runtime(_model_request(req.model_b_source or req.model_a_source, req.model_b_ref or req.model_a_ref, str(adapter_path), req.quantization))
+                    ft_model_info = _load_model_runtime(_model_request(req.model_b_source or req.model_a_source, req.model_b_ref or req.model_a_ref, str(adapter_path), req.quantization))
+                    _append_job_step(job_id, "loaded fine-tuned adapter", "running", ft_model_info)
+                    _append_job_step(job_id, "run fine-tuned Gemma without harness", "running", {"prompt_set": req.prompt_set, "limit": req.limit})
                     ft_no_harness = _run_batch(BatchRunRequest(
                         prompt_set=req.prompt_set,
                         harness_profile=req.baseline_harness_profile,
                         limit=req.limit,
                         run_label=f"{req.run_label or job_id}-finetuned",
                         evaluate=req.evaluate_outputs,
-                        llm_judge=req.llm_judge,
+                        llm_judge=False,
                     ))
+                    _append_job_step(job_id, "completed fine-tuned Gemma without harness", "running", {"run_id": ft_no_harness["run_id"], "summary": ft_no_harness["summary"]})
+                    _append_job_step(job_id, "run fine-tuned Gemma with DueCare harness", "running", {"prompt_set": req.prompt_set, "limit": req.limit, "harness": req.harness_profile})
                     ft_harness = _run_batch(BatchRunRequest(
                         prompt_set=req.prompt_set,
                         harness_profile=req.harness_profile,
                         limit=req.limit,
                         run_label=f"{req.run_label or job_id}-finetuned-harness",
                         evaluate=req.evaluate_outputs,
-                        llm_judge=req.llm_judge,
+                        llm_judge=False,
                     ))
+                    _append_job_step(job_id, "completed fine-tuned Gemma with DueCare harness", "running", {"run_id": ft_harness["run_id"], "summary": ft_harness["summary"]})
                     run_ids.extend([ft_no_harness["run_id"], ft_harness["run_id"]])
+                else:
+                    _append_job_step(job_id, "training handoff created; fine-tuned arms skipped until execute training is enabled", "running", {"run_ids": run_ids})
+                if req.llm_judge and run_ids:
+                    if req.unload_between_steps:
+                        _append_job_step(job_id, "unload before combined grading", "running")
+                        _unload_model_runtime(f"pipeline {job_id}: before combined grading")
+                    _append_job_step(job_id, "load normal Gemma for combined grading", "running", {"source": req.model_a_source, "model_ref": req.model_a_ref})
+                    judge_info = _load_model_runtime(_model_request(req.model_a_source, req.model_a_ref, req.model_a_adapter_ref, req.quantization))
+                    _append_job_step(job_id, "grade all outputs with normal Gemma plus rules", "running", {"run_ids": run_ids, "judge_model": judge_info})
+                    graded = api_evaluate(EvaluateRequest(run_ids=run_ids, llm_judge=True))
+                    _append_job_step(job_id, "combined grading complete", "running", graded)
+                _append_job_step(job_id, "build final comparison report", "running", {"run_ids": run_ids})
                 report = _build_report(ReportRequest(
                     run_ids=run_ids,
                     title=f"A-00 pipeline stock/fine-tuned/harness matrix: {req.run_label or job_id}",
@@ -3746,7 +3830,25 @@ HOMEPAGE_HTML = r"""<!doctype html>
     .a00 { max-width: 1180px; margin: 0 auto; padding: 28px 24px 56px; }
     .a00-header { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 18px; align-items: end; margin-bottom: 16px; border-bottom: 1px solid var(--line); padding-bottom: 18px; }
     .a00-header h1 { margin: 4px 0 8px; font-size: clamp(30px, 4vw, 48px); line-height: 1.02; letter-spacing: 0; }
-    .a00-actions { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; }
+    .a00-actions { display: none; }
+    .a00-choice-grid { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(320px, 0.9fr); gap: 14px; margin-top: 16px; }
+    .a00-choice { min-height: 360px; display: flex; flex-direction: column; }
+    .a00-choice h2 { margin-top: 0; font-size: 22px; letter-spacing: 0; }
+    .a00-choice p { color: var(--ink-3); }
+    .a00-choice ol { margin: 10px 0 14px; padding-left: 22px; color: var(--ink-2); }
+    .a00-choice li { margin-bottom: 7px; }
+    .a00-choice-controls { margin-top: auto; display: grid; gap: 10px; }
+    .a00-choice-controls .row { margin: 0; }
+    .a00-choice-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+    .a00-preconfigured { border-color: var(--ink); }
+    .a00-custom-note { background: var(--paper-2); border: 1px solid var(--line); border-radius: 8px; padding: 12px; margin-top: 12px; }
+    .pipeline-progress { height: 10px; border: 1px solid var(--line); border-radius: 999px; background: var(--paper-2); overflow: hidden; }
+    .pipeline-progress > div { width: 0%; height: 100%; background: var(--accent); transition: width 180ms ease; }
+    .preconfigured-status { min-height: 36px; color: var(--ink-3); font-size: 12px; }
+    .experiment-flow, .primary-grid, .advanced-panel { display: none; }
+    body.a00-custom .experiment-flow { display: block; }
+    body.a00-custom .primary-grid { display: grid; }
+    body.a00-custom .advanced-panel { display: block; }
     .kpi-strip { display: grid; grid-template-columns: repeat(5, minmax(120px, 1fr)); gap: 10px; margin: 14px 0 16px; }
     .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; }
     .primary-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-top: 12px; }
@@ -3800,7 +3902,7 @@ HOMEPAGE_HTML = r"""<!doctype html>
     .kpi b { font-size: 20px; }
     .muted { color: var(--ink-3); font-size: 12px; }
     @media (max-width: 900px) {
-      .a00-header, .primary-grid, .advanced-grid { grid-template-columns: 1fr; }
+      .a00-header, .a00-choice-grid, .primary-grid, .advanced-grid { grid-template-columns: 1fr; }
       .kpi-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .flow-grid { grid-template-columns: 1fr; }
       .a00-actions { justify-content: flex-start; }
@@ -3827,6 +3929,58 @@ HOMEPAGE_HTML = r"""<!doctype html>
   </header>
 
   <section class="kpi-strip" id="kpis"></section>
+
+  <section class="a00-choice-grid" aria-label="A-00 start options">
+    <div class="panel a00-choice a00-preconfigured">
+      <div class="panel-heading">
+        <div>
+          <h2>Preconfigured Harness, Training, and Evaluation</h2>
+          <p>One guided run using the smaller Gemma 4 path and the shared PH-HK benchmark prompts.</p>
+        </div>
+        <span class="status-pill">recommended</span>
+      </div>
+      <ol>
+        <li>Run Gemma 4 without the harness against the selected prompts.</li>
+        <li>Run Gemma 4 with the DueCare harness against the same prompts.</li>
+        <li>Use harnessed Gemma 4 to generate filtered synthetic SFT rows.</li>
+        <li>Create or execute the LoRA fine-tune job from those rows.</li>
+        <li>Run the fine-tuned model without the harness.</li>
+        <li>Run the fine-tuned model with the harness.</li>
+        <li>Grade all outputs with normal Gemma plus rules combined mode and build the final report.</li>
+      </ol>
+      <div class="a00-choice-controls">
+        <div class="row compact-row">
+          <label>Prompt count <input id="preconfig-limit" type="number" min="1" max="50" value="5"></label>
+          <label>Synthetic rows <input id="preconfig-synth-count" type="number" min="1" max="100" value="10"></label>
+          <label>Execute training <select id="preconfig-execute"><option value="true">execute now</option><option value="false">create job only</option></select></label>
+        </div>
+        <div class="pipeline-progress" aria-label="Preconfigured pipeline progress"><div id="preconfig-progress"></div></div>
+        <div class="preconfigured-status" id="preconfig-status">Ready. Defaults use Gemma 4 E2B, chat_full harness, combined grading, and one model resident at a time.</div>
+        <div class="a00-choice-actions">
+          <button onclick="runPreconfiguredPipeline()">Run preconfigured pipeline</button>
+          <button class="secondary" onclick="useE2BPipelineDefaults(); revealCustom()">Review exact settings</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel a00-choice">
+      <div class="panel-heading">
+        <div>
+          <h2>Custom</h2>
+          <p>Open the full experiment console when you need custom prompt sets, adapters, uploads, knowledge packs, or research graph workflows.</p>
+        </div>
+      </div>
+      <div class="a00-custom-note">
+        Keep this path for debugging, importing prior exports, changing model sources, or running a partial benchmark instead of the full end-to-end preset.
+      </div>
+      <div class="a00-choice-controls">
+        <div class="a00-choice-actions">
+          <button class="secondary" onclick="revealCustom()">Open custom controls</button>
+          <button class="secondary" onclick="buildReport()">Build report from selected runs</button>
+        </div>
+      </div>
+    </div>
+  </section>
 
   <section class="panel hero-panel experiment-flow">
     <div class="panel-heading">
@@ -3858,7 +4012,7 @@ HOMEPAGE_HTML = r"""<!doctype html>
             <option value="github">github</option>
           </select>
         </label>
-        <label>Model ref or path <input id="model-ref" value="google/gemma-4-e4b-it"></label>
+        <label>Model ref or path <input id="model-ref" value="google/gemma-4-4b-it"></label>
         <label>Quantization <select id="quantization"><option>4bit</option><option>8bit</option><option>bf16</option></select></label>
       </div>
       <div class="row compact-row">
@@ -3915,7 +4069,7 @@ HOMEPAGE_HTML = r"""<!doctype html>
             <option>finetuned_teacher</option>
           </select>
         </label>
-        <label>Base model <input id="train-base-model" value="google/gemma-4-e2b-it"></label>
+        <label>Base model <input id="train-base-model" value="google/gemma-4-2b-it"></label>
       </div>
       <label>Training JSONL path <input id="train-data-path" placeholder="/kaggle/working/a00_training/..._sft.jsonl"></label>
       <div class="row compact-row">
@@ -3960,7 +4114,7 @@ HOMEPAGE_HTML = r"""<!doctype html>
     </div>
     <div class="row compact-row">
       <label>Fine-tune base source <select id="pipeline-b-source"><option value="dry_run">dry_run</option><option value="hf">hf</option><option value="kaggle_path">kaggle_path</option><option value="local_path">local_path</option></select></label>
-      <label>Fine-tune base model/path <input id="pipeline-b-ref" value="google/gemma-4-e2b-it"></label>
+      <label>Fine-tune base model/path <input id="pipeline-b-ref" value="google/gemma-4-2b-it"></label>
       <label>Existing adapter path <input id="pipeline-b-adapter" placeholder="/kaggle/input/adapter-b"></label>
     </div>
     <div class="row compact-row">
@@ -4029,6 +4183,43 @@ let selectedRuns = [];
 let activeJobPolls = {};
 let lastIntake = null;
 function log(obj) { $("log").textContent = typeof obj === "string" ? obj : JSON.stringify(obj, null, 2); refreshStatus(); }
+function revealCustom() {
+  document.body.classList.add("a00-custom");
+  const first = document.querySelector(".experiment-flow");
+  if (first) first.scrollIntoView({behavior:"smooth", block:"start"});
+}
+function setPreconfiguredProgress(percent, message) {
+  const bar = $("preconfig-progress");
+  const status = $("preconfig-status");
+  if (bar) bar.style.width = Math.max(0, Math.min(100, Number(percent || 0))) + "%";
+  if (status && message) status.textContent = message;
+}
+function updatePreconfiguredFromJob(job) {
+  if (!job || job.kind !== "pipeline") return;
+  const labels = (job.steps || []).map(s => String(s.label || "").toLowerCase());
+  let pct = 10;
+  if (labels.some(x => x.includes("load teacher"))) pct = 18;
+  if (labels.some(x => x.includes("run base gemma without"))) pct = 24;
+  if (labels.some(x => x.includes("completed base gemma without"))) pct = 32;
+  if (labels.some(x => x.includes("completed base gemma with"))) pct = 42;
+  if (labels.some(x => x.includes("generate synthetic"))) pct = 46;
+  if (labels.some(x => x.includes("generated synthetic"))) pct = 48;
+  if (labels.some(x => x.includes("created training"))) pct = 60;
+  if (labels.some(x => x.includes("training heartbeat"))) pct = 70;
+  if (labels.some(x => x.includes("load fine-tuned"))) pct = 80;
+  if (labels.some(x => x.includes("completed fine-tuned gemma without"))) pct = 86;
+  if (labels.some(x => x.includes("completed fine-tuned gemma with"))) pct = 90;
+  if (labels.some(x => x.includes("combined grading complete"))) pct = 96;
+  if (labels.some(x => x.includes("pipeline report"))) pct = 98;
+  if (job.status === "completed") pct = 100;
+  if (job.status === "failed") pct = 0;
+  const msg = job.status === "completed"
+    ? "Complete. Open the report from Jobs or Activity."
+    : job.status === "failed"
+      ? "Pipeline failed. Check Activity for the exact error."
+      : `Running ${job.job_id}: ${((job.steps || []).slice(-1)[0] || {}).label || job.status}`;
+  setPreconfiguredProgress(pct, msg);
+}
 async function getJson(url, opts) {
   const r = await fetch(url, opts);
   const text = await r.text();
@@ -4140,6 +4331,7 @@ async function pollJob(jobId) {
     while (true) {
       const res = await getJson("/api/a00/jobs/" + encodeURIComponent(jobId));
       if (res.job) {
+        updatePreconfiguredFromJob(res.job);
         log({job_status: res.job});
         const status = String(res.job.status || "");
         if (!["queued", "running"].includes(status)) break;
@@ -4226,10 +4418,10 @@ function useE2BPipelineDefaults() {
   $("pipeline-preset").value = "synthetic_train_benchmark_cycle";
   $("pipeline-label").value = "e2b-four-arm-smoke";
   $("pipeline-a-source").value = "hf";
-  $("pipeline-a-ref").value = "google/gemma-4-e2b-it";
+  $("pipeline-a-ref").value = "google/gemma-4-2b-it";
   $("pipeline-a-adapter").value = "";
   $("pipeline-b-source").value = "hf";
-  $("pipeline-b-ref").value = "google/gemma-4-e2b-it";
+  $("pipeline-b-ref").value = "google/gemma-4-2b-it";
   $("pipeline-b-adapter").value = "";
   $("pipeline-limit").value = 5;
   $("pipeline-synth-count").value = 5;
@@ -4237,7 +4429,50 @@ function useE2BPipelineDefaults() {
   $("pipeline-report").value = "true";
   $("pipeline-unload").value = "true";
   $("pipeline-execute").value = "false";
+  $("llm-judge").value = "true";
   log({next: "E2B four-arm defaults loaded. Set Execute training=true when Kaggle GPU/dependencies are ready, then queue the pipeline."});
+}
+async function runPreconfiguredPipeline() {
+  setPreconfiguredProgress(5, "Loading E2B four-arm defaults...");
+  useE2BPipelineDefaults();
+  const limit = Math.max(1, Math.min(50, Number($("preconfig-limit").value || 5)));
+  const synth = Math.max(1, Math.min(100, Number($("preconfig-synth-count").value || 10)));
+  const execute = $("preconfig-execute").value === "true";
+  $("pipeline-limit").value = limit;
+  $("pipeline-synth-count").value = synth;
+  $("pipeline-execute").value = execute ? "true" : "false";
+  $("pipeline-report").value = "true";
+  $("pipeline-evaluate").value = "true";
+  $("pipeline-unload").value = "true";
+  $("pipeline-label").value = execute ? "e2b-full-train-eval" : "e2b-training-handoff-eval";
+  setPreconfiguredProgress(18, "Queued: base Gemma without harness, base Gemma with harness, synthetic data, LoRA handoff, fine-tuned comparisons, combined grading, final report.");
+  const body = {
+    preset_id: "synthetic_train_benchmark_cycle",
+    model_a_source: "hf",
+    model_a_ref: "google/gemma-4-2b-it",
+    model_a_adapter_ref: "",
+    model_b_source: "hf",
+    model_b_ref: "google/gemma-4-2b-it",
+    model_b_adapter_ref: "",
+    prompt_set: $("pipeline-prompt-set").value || $("prompt-set").value,
+    harness_profile: "chat_full",
+    baseline_harness_profile: "none",
+    limit,
+    synthetic_count: synth,
+    generator_mode: "rubric_polisher",
+    evaluate_outputs: true,
+    include_report: true,
+    execute_training: execute,
+    max_steps: Number($("pipeline-max-steps").value || 60),
+    training_output_dir: $("pipeline-output-dir").value,
+    unload_between_steps: true,
+    llm_judge: true,
+    run_label: $("pipeline-label").value
+  };
+  const res = await getJson("/api/a00/pipeline/run", {method:"POST", headers:{"content-type":"application/json"}, body:JSON.stringify(body)});
+  setPreconfiguredProgress(res && res.ok === false ? 0 : 35, res && res.ok === false ? "Pipeline request failed. Open Activity for details." : "Pipeline started. Watch Activity and Jobs for each phase.");
+  log(res);
+  trackJobsFrom(res);
 }
 function setAbliterated() {
   $("model-source").value = "hf";

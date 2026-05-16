@@ -28,7 +28,7 @@ def test_training_plan_to_json() -> None:
         pytest.skip(f"training depends on packages not installed: {e}")
     plan = TrainingPlan(
         training_run_id="train_test_000",
-        base_model="google/gemma-4-e4b-it",
+        base_model="google/gemma-4-4b-it",
         dataset_train_path="/tmp/train.jsonl",
         dataset_val_path="/tmp/val.jsonl",
         dataset_test_path="/tmp/test.jsonl",

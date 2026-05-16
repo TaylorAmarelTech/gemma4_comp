@@ -330,9 +330,9 @@ table.dc-table tbody tr:hover td { background: var(--paper-2); }
 .dc-footer a { color: var(--ink-2); text-decoration: none; margin: 0 8px; }
 .dc-footer a:hover { color: var(--accent-ink); }
 
-/* ---- Global "Backend: <model>" floating pill ---- */
+/* ---- Global "Backend: <model>" runtime pill ---- */
 .dc-backend-badge {
-  position: fixed; bottom: 14px; right: 14px; z-index: 90;
+  position: fixed; top: 9px; right: 132px; bottom: auto; z-index: 100000;
   background: var(--paper); color: var(--ink);
   border: 1px solid var(--line); border-radius: 999px;
   padding: 6px 14px; font-size: 12px; font-weight: 500;
@@ -341,6 +341,12 @@ table.dc-table tbody tr:hover td { background: var(--paper-2); }
   box-shadow: 0 1px 0 rgba(14,17,22,0.04), 0 8px 24px -12px rgba(14,17,22,0.10);
   max-width: 90vw; overflow: hidden; text-overflow: ellipsis;
   white-space: nowrap; pointer-events: none;
+}
+.dc-backend-badge.in-runtime-bar {
+  position: static;
+  z-index: auto;
+  max-width: min(46vw, 520px);
+  box-shadow: none;
 }
 .dc-backend-badge .dot {
   width: 8px; height: 8px; border-radius: 50%;
@@ -351,7 +357,8 @@ table.dc-table tbody tr:hover td { background: var(--paper-2); }
 .dc-backend-badge .name { color: var(--ink); font-weight: 600; }
 @media (max-width: 600px) {
   .dc-backend-badge {
-    bottom: 8px; right: 8px; font-size: 10.5px; padding: 4px 10px;
+    top: 8px; right: 104px; font-size: 10.5px; padding: 4px 10px;
   }
+  .dc-backend-badge .label { display: none; }
+  .dc-backend-badge.in-runtime-bar { max-width: 44vw; }
 }
-body.dc-slideshow .dc-backend-badge { bottom: 70px; }

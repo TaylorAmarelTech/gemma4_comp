@@ -23,7 +23,7 @@ class EngineConfig(BaseModel):
 
     # Model
     model: str = Field(
-        default="google/gemma-4-e4b-it",
+        default="google/gemma-4-4b-it",
         description="HF model id or local path. Maps to MM_MODEL / "
                     "MM_MODEL_PATH.")
     max_new_tokens: int = Field(default=384)

@@ -12,9 +12,7 @@ README = KERNEL_DIR / "README.md"
 PORTABILITY_AUDIT = KERNEL_DIR / "PORTABILITY_AUDIT.md"
 WHEELS = KERNEL_DIR / "wheels"
 A00_KERNEL = REPO / "kaggle" / "A-00-omni-experiment-workbench" / "kernel.py"
-A07_KERNEL = REPO / "kaggle" / "A-07-bench-and-tune" / "kernel.py"
 LIVE_DEMO_KERNEL = REPO / "kaggle" / "02-live-demo" / "kernel.py"
-VIDEO_PITCH_KERNEL = REPO / "kaggle" / "03-duecare-video-pitch" / "kernel.py"
 
 
 def _text(path: Path) -> str:
@@ -25,7 +23,6 @@ def _main_kernel_paths() -> list[Path]:
     return [
         REPO / "kaggle" / "01-duecare-exploration-workbench" / "kernel.py",
         REPO / "kaggle" / "02-live-demo" / "kernel.py",
-        REPO / "kaggle" / "03-duecare-video-pitch" / "kernel.py",
         *sorted((REPO / "kaggle").glob("A-*/kernel.py")),
     ]
 
@@ -81,9 +78,8 @@ def test_kernel01_readme_and_audit_explain_next_notebook_reuse():
     assert "portability_contract_payload" in audit
     assert "verify_app_contract" in audit
     assert "02 Live Demo" in audit
-    assert "03 Video Pitch" in audit
     assert "A-00 Omni Experiment Workbench" in audit
-    assert "Appendix Notebooks" in audit
+    assert "Archived Appendix Notebooks" in audit
 
     for primitive in [
         "Workbench inventory endpoint",
@@ -130,9 +126,8 @@ def test_appendix_kernels_default_to_current_duecare_version():
     assert stale == []
 
 
-def test_a00_and_a07_use_shared_experiment_contracts():
+def test_a00_uses_shared_experiment_contracts():
     a00 = _text(A00_KERNEL)
-    a07 = _text(A07_KERNEL)
 
     for token in [
         "experiment_contract_payload",
@@ -148,18 +143,9 @@ def test_a00_and_a07_use_shared_experiment_contracts():
     ]:
         assert token in a00
 
-    for token in [
-        "training_profile_map",
-        "upload_limit_map",
-        "_refresh_shared_experiment_defaults",
-        "experiment_contract_payload",
-    ]:
-        assert token in a07
 
-
-def test_live_demo_video_pitch_and_a00_expose_page_level_controls():
+def test_live_demo_and_a00_expose_page_level_controls():
     live = _text(LIVE_DEMO_KERNEL)
-    video = _text(VIDEO_PITCH_KERNEL)
     a00 = _text(A00_KERNEL)
 
     for token in [
@@ -170,20 +156,10 @@ def test_live_demo_video_pitch_and_a00_expose_page_level_controls():
         "/api/query",
         "/api/moderate",
         "/api/worker_check",
+        "_dc-runtime-topbar",
+        "_dc-backend-slot",
     ]:
         assert token in live
-
-    for token in [
-        "DueCare - Video pitch",
-        "/setup",
-        "/api/get-script",
-        "/api/save-script",
-        "/api/load-script",
-        "/api/export-presentation",
-        "/api/portability",
-        "video_pitch_export_",
-    ]:
-        assert token in video
 
     for token in [
         "Quantitative profile",
@@ -207,7 +183,11 @@ def test_a00_uses_focused_experiment_console_not_exploration_nav():
     assert "Bulk File Review" not in homepage
     assert "Knowledge Extraction" not in homepage
     assert "Benchmark, generate, fine-tune, compare." in homepage
-    assert "Default experiment path" in homepage
+    assert "Preconfigured Harness, Training, and Evaluation" in homepage
+    assert "runPreconfiguredPipeline" in homepage
+    assert "preconfig-progress" in homepage
+    assert "google/gemma-4-2b-it" in homepage
+    assert "normal Gemma plus rules combined mode" in homepage
     assert "Advanced model-switching pipeline" in homepage
     assert "Appendix workflow registry" in homepage
 
@@ -258,7 +238,7 @@ def test_primary_kernels_bootstrap_from_github_source_with_full_package_closure(
 
 def test_primary_browser_kernels_fail_loudly_without_public_tunnel():
     """READY without a usable Cloudflare URL is misleading on Kaggle."""
-    for path in [LIVE_DEMO_KERNEL, VIDEO_PITCH_KERNEL, A00_KERNEL, REPO / "kaggle" / "A-24-demo-replay" / "kernel.py"]:
+    for path in [LIVE_DEMO_KERNEL, A00_KERNEL]:
         text = _text(path)
         rel = str(path.relative_to(REPO))
         assert "DUECARE_ALLOW_LOCAL_ONLY" in text, rel
@@ -272,7 +252,7 @@ def test_next_notebooks_inherit_reusable_contracts_without_redeclaring_lists():
 
     missing_runtime_contract: list[str] = []
     redeclared_contract_lists: list[str] = []
-    for kernel in [LIVE_DEMO_KERNEL, VIDEO_PITCH_KERNEL, *appendix_kernels]:
+    for kernel in [LIVE_DEMO_KERNEL, *appendix_kernels]:
         text = _text(kernel)
         rel = str(kernel.relative_to(REPO))
         uses_shared_runtime = (

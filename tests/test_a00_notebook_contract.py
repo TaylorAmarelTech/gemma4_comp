@@ -7,15 +7,13 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 A00 = ROOT / "kaggle" / "A-00-omni-experiment-workbench" / "kernel.py"
-PITCH = ROOT / "kaggle" / "03-duecare-video-pitch" / "kernel.py"
 
 
-def test_a00_and_video_pitch_compile():
+def test_a00_compiles():
     py_compile.compile(str(A00), doraise=True)
-    py_compile.compile(str(PITCH), doraise=True)
 
 
-def test_a00_exposes_every_appendix_workflow():
+def test_a00_retains_archived_appendix_workflow_registry():
     text = A00.read_text(encoding="utf-8")
     workflow_ids = set(re.findall(r'"(a\d{2}_[a-z0-9_]+)": \{', text))
     assert len(workflow_ids) == 25
@@ -41,7 +39,12 @@ def test_a00_core_routes_are_registered():
 def test_a00_has_judge_facing_quick_proof_and_research_flow():
     text = A00.read_text(encoding="utf-8")
     for marker in [
-        "Default experiment path",
+        "Preconfigured Harness, Training, and Evaluation",
+        "Custom",
+        "runPreconfiguredPipeline",
+        "preconfig-progress",
+        "google/gemma-4-2b-it",
+        "grade all outputs with normal Gemma plus rules",
         "Benchmark, generate, fine-tune, compare.",
         "quickProof",
         "runRedteamProof",
@@ -63,6 +66,7 @@ def test_a00_has_synthetic_polish_and_training_smoke_path():
         "_polish_training_response",
         "generatePolished",
         "finetuneSmoke",
+        "_install_model_training_stack",
     ]:
         assert marker in text
 

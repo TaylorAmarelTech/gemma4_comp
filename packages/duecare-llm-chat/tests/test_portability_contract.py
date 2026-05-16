@@ -52,9 +52,7 @@ def test_portability_contract_module_evaluates_current_app():
         arm["id"]
         for arm in experiment["comparison_matrices"]["stock_vs_finetuned_harness_matrix"]["arms"]
     } == {"stock", "stock_harness", "finetuned", "finetuned_harness"}
-    assert {item["id"] for item in reference["core_notebooks"]}.issuperset(
-        {"01", "02", "03", "A-00"}
-    )
+    assert {item["id"] for item in reference["core_notebooks"]} == {"01", "02", "A-00"}
 
     app = create_app()
     payload = verify_app_contract(
@@ -149,7 +147,7 @@ def test_experiment_contract_helpers_are_canonical():
     assert synthetic["rubric_polisher_24"]["generator_mode"] == "rubric_polisher"
 
     training = training_profile_map()
-    assert training["tiny_lora_smoke"]["base_model_ref"] == "google/gemma-4-e2b-it"
+    assert training["tiny_lora_smoke"]["base_model_ref"] == "google/gemma-4-2b-it"
     assert training["a07_t4_standard_sft"]["max_examples"] == 200
 
     limits = upload_limit_map()

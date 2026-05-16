@@ -19,7 +19,7 @@
 > Stakeholder Engagement, Newsletter and Alerts, Fine-Tuning, Channel and
 > Deployment Package. **Live core** for the Kaggle submission is Gemma 4 +
 > Safety Guidance + Knowledge Packs + Quality Testing. **Prototype:**
-> Fine-Tuning (`kaggle/A-07-bench-and-tune/`). **Roadmap:** Central server
+> Fine-Tuning and benchmarking (`kaggle/A-00-omni-experiment-workbench/`). **Roadmap:** Central server
 > modules, research monitor, stakeholder engagement, newsletter, and channel
 > deployment. **Sibling repo (live):** Mobile (Duecare Journey
 > v0.9.0). Full canonical definition:
@@ -53,21 +53,20 @@
 
 > ### Submission state (Gemma 4 Good Hackathon, due 2026-05-18)
 >
-> **3 core + 25 appendix = 28 Kaggle folders.** Judges land on
-> the unified omni playground, then proceed to the focused live
-> demo. The appendix notebooks add depth-of-engineering signal
-> without competing for the first 5 minutes.
+> **Active Kaggle path: 01 + 02 + A-00.** Judges land on
+> the exploration workbench, then proceed to the focused live
+> demo and the A-00 experiment console. The former video-pitch
+> and appendix notebooks are archived under `kaggle/_archive/notebooks`
+> to keep the submission path testable.
 >
 > **Core (judges evaluate first, in this order):**
 >
 > 1. [`duecare-exploration-workbench`](https://www.kaggle.com/code/taylorsamarel/duecare-exploration-workbench) - the broad workbench. Chat, Harness Comparison, Bulk File Review, Knowledge Extraction, Search, Anonymization and Sharing, Sync, Status, UI Audit, live layer catalogs, global model selector, A/B comparison, retrieval trace, grading, local imports, and RAG graph views.
 > 2. [`duecare-live-demo`](https://www.kaggle.com/code/taylorsamarel/duecare-live-demo) - focused live product demo with real Gemma 4 inference and a curated safety-harness scenario.
-> 3. [`duecare-video-pitch`](https://www.kaggle.com/code/taylorsamarel/duecare-video-pitch) - recording-first slide deck, cached replay, setup editor, and exportable presentation evidence.
->
-> **Appendix command center:**
+> **Experiment command center:**
 >
 > - A-00 [`duecare-a-00-omni-experiment-workbench`](./kaggle/A-00-omni-experiment-workbench/) is the technical proof surface: baseline vs harness vs fine-tuned vs fine-tuned-plus-harness exports, rule and LLM grading, synthetic SFT/DPO generation, tiny LoRA smoke bundles, local research graphs, and HTML/PDF reports.
-> - A-01 through A-24 are focused verification slices for raw baselines, harness ablations, prompt generation, training, grading, research graphs, privacy redaction, multimodal document analysis, on-device export, UGC moderation, NGO local knowledge bases, and Gemma 4 feature showcases.
+> - Archived A-01 through A-24 plus the former video-pitch kernel remain available as reference material, but they are not part of the active validation or recording path.
 >
 > **Judges start here:** [`docs/peer_review_5min_test_plan.md`](./docs/peer_review_5min_test_plan.md) (one-page click-by-click guide).
 > Or: [`docs/FOR_PEER_REVIEW.md`](./docs/FOR_PEER_REVIEW.md) (full verification roster).
@@ -324,12 +323,12 @@ uvicorn src.demo.app:app --port 8080
 
 ### Kaggle submission — judge reading order
 
-The active submission is the 13-folder Kaggle set under `kaggle/`: two core
-surfaces followed by eleven appendix notebooks. The current generated/research
-inventory under `kaggle/kernels/*` contains 9 kernels and is tracked in
-[`docs/current_kaggle_notebook_state.md`](./docs/current_kaggle_notebook_state.md).
-Older 52/74/77-kernel notes are historical archive context, not the current
-judge path.
+The active submission path is intentionally narrow: three Kaggle folders under
+`kaggle/`. Each active kernel installs the DueCare packages from GitHub, writes
+outputs under `/kaggle/working`, launches a local server, and must print a
+public `https://*.trycloudflare.com` URL for browser access. The former video
+pitch kernel and A-01 through A-24 appendix notebooks are archived under
+`kaggle/_archive/notebooks/` as reference material.
 
 #### Start here
 
@@ -337,12 +336,10 @@ judge path.
 |---|---|---|
 | 01 | [`kaggle/01-duecare-exploration-workbench/`](./kaggle/01-duecare-exploration-workbench/) | Core omni workbench with model picker, layer toggles, traces, and A/B comparison |
 | 02 | [`kaggle/02-live-demo/`](./kaggle/02-live-demo/) | Focused screen-recording surface and public-hub demo |
-| A-01 / A-02 / A-10 | `kaggle/A-01-*`, `kaggle/A-02-*`, `kaggle/A-10-*` | Raw Gemma, harness ablation, and jailbroken-model comparison |
-| A-03 / A-04 / A-05 | `kaggle/A-03-*`, `kaggle/A-04-*`, `kaggle/A-05-*` | Classification, knowledge-building, and NGO & regulator evaluation |
-| A-06 / A-07 / A-08 / A-09 / A-11 | `kaggle/A-06-*` through `kaggle/A-11-*` | Prompt generation, Unsloth pipeline, graphs, agentic research, and lift regeneration |
+| A-00 | [`kaggle/A-00-omni-experiment-workbench/`](./kaggle/A-00-omni-experiment-workbench/) | Two-path experiment console: preconfigured harness/training/evaluation pipeline or custom runs |
 
-See [`kaggle/_INDEX.md`](./kaggle/_INDEX.md) for the complete folder list and
-manual publication checklist.
+See [`kaggle/_INDEX.md`](./kaggle/_INDEX.md) for the active folder list and
+archive note.
 
 ## Architecture
 
@@ -598,10 +595,9 @@ Latest full run:
 ## Demo notebooks
 
 The active notebook sources live under `kaggle/`. For the final hackathon
-submission path, use the 3 core + 24 appendix folders listed in
-`kaggle/_INDEX.md`. For supporting generated/research kernels, use the
-current 9-kernel inventory under `kaggle/kernels/*/` and
-[`docs/current_kaggle_notebook_state.md`](./docs/current_kaggle_notebook_state.md).
+submission path, use `01-duecare-exploration-workbench`, `02-live-demo`, and
+`A-00-omni-experiment-workbench`. The former video-pitch notebook and A-01
+through A-24 appendix notebooks are archived under `kaggle/_archive/notebooks/`.
 
 The old `legacy_notebooks/` and `skunkworks/` root folders have been
 archived under `_archive/legacy-research-2026-05-09/` and are not part
@@ -659,17 +655,8 @@ gemma4_comp/
 ├── kaggle/                       # Kaggle deliverables (per-notebook bundles)
 │   ├── 01-duecare-exploration-workbench/  # CORE #01: omni playground (script kernel)
 │   ├── 02-live-demo/             # CORE #02: focused live URL
-│   ├── A-01-chat-playground/     # appendix: stock Gemma 4 baseline (no harness)
-│   ├── A-02-chat-playground-with-grep-rag-tools/  # appendix: harness ablation runner
-│   ├── A-03-content-classification-playground/    # appendix: classifier sandbox
-│   ├── A-04-content-knowledge-builder-playground/ # appendix: KB builder
-│   ├── A-05-gemma-content-classification-evaluation/  # appendix: NGO & regulator evaluation
-│   ├── A-06-prompt-generation/   # appendix: two-track synthetic data generator
-│   ├── A-07-bench-and-tune/      # appendix: adapter training + new-model benchmark
-│   ├── A-08-research-graphs/     # appendix: 6 Plotly charts
-│   ├── A-09-chat-playground-with-agentic-research/  # appendix: Playwright BYOK
-│   ├── A-10-chat-playground-jailbroken-models/      # appendix: abliterated proof
-│   ├── A-11-grading-evaluation/  # appendix: runtime harness-lift regenerator
+│   ├── A-00-omni-experiment-workbench/  # ACTIVE: harness/training/evaluation console
+│   ├── _archive/notebooks/        # archived video pitch and A-01 through A-24
 │   ├── shared-datasets/          # cross-notebook: trafficking-prompts, eval-results
 │   ├── kernels/                  # 9 generated/research kernels (separate from submission folders)
 │   └── models/                   # Kaggle Models artifacts

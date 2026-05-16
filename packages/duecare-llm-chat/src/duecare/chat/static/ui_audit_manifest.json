@@ -7,10 +7,11 @@
     "live_required": "Needs a running Kaggle kernel and Cloudflare URL.",
     "model_required": "Needs a loaded Gemma 4 model.",
     "visual_required": "Needs desktop, tablet, and mobile screenshots.",
-    "follow_up": "Known improvement opportunity, not a blocking route failure."
+    "follow_up": "Known improvement opportunity, not a blocking route failure.",
+    "archived": "Kept under kaggle/_archive/notebooks for reference, not part of the active recording or validation path."
   },
   "global_gates": [
-    "Every kernel has README, kernel.py, and kernel-metadata.json.",
+    "Every active kernel has README, kernel.py, and kernel-metadata.json.",
     "Every static page has shared top chrome or is intentionally standalone.",
     "Every primary action button has a visible result, disabled/loading state, and activity log entry.",
     "Every file input states accepted formats, privacy boundary, and output artifact.",
@@ -26,32 +27,7 @@
   "kernels": [
     {"id": "01", "folder": "01-duecare-exploration-workbench", "role": "primary product workbench", "ui": "shared static workbench", "status": "live_required"},
     {"id": "02", "folder": "02-live-demo", "role": "focused live demo", "ui": "single story path", "status": "live_required"},
-    {"id": "03", "folder": "03-duecare-video-pitch", "role": "video pitch slide deck and replay", "ui": "slide-first recording surface", "status": "live_required"},
-    {"id": "A-00", "folder": "A-00-omni-experiment-workbench", "role": "omni experiment workbench", "ui": "A-00 control plane", "status": "static_verified"},
-    {"id": "A-01", "folder": "A-01-chat-playground", "role": "stock Gemma baseline", "ui": "chat baseline", "status": "live_required"},
-    {"id": "A-02", "folder": "A-02-chat-playground-with-grep-rag-tools", "role": "harness ablation", "ui": "chat with layer toggles", "status": "live_required"},
-    {"id": "A-03", "folder": "A-03-content-classification-playground", "role": "classification sandbox", "ui": "classification playground", "status": "live_required"},
-    {"id": "A-04", "folder": "A-04-content-knowledge-builder-playground", "role": "knowledge builder", "ui": "knowledge envelope drafting", "status": "live_required"},
-    {"id": "A-05", "folder": "A-05-gemma-content-classification-evaluation", "role": "classifier evaluation", "ui": "evaluation dashboard", "status": "live_required"},
-    {"id": "A-06", "folder": "A-06-prompt-generation", "role": "synthetic prompt and training data generation", "ui": "generation workflow", "status": "live_required"},
-    {"id": "A-07", "folder": "A-07-bench-and-tune", "role": "benchmark and fine-tune", "ui": "training handoff", "status": "model_required"},
-    {"id": "A-08", "folder": "A-08-research-graphs", "role": "research graph generation", "ui": "graph artifacts", "status": "live_required"},
-    {"id": "A-09", "folder": "A-09-chat-playground-with-agentic-research", "role": "agentic research", "ui": "search and research trace", "status": "live_required"},
-    {"id": "A-10", "folder": "A-10-chat-playground-jailbroken-models", "role": "abliterated model stress test", "ui": "comparison chat", "status": "model_required"},
-    {"id": "A-11", "folder": "A-11-grading-evaluation", "role": "grading evaluation", "ui": "score regeneration", "status": "live_required"},
-    {"id": "A-12", "folder": "A-12-pii-fine-tune-eval", "role": "privacy fine-tune and eval", "ui": "privacy benchmark", "status": "model_required"},
-    {"id": "A-13", "folder": "A-13-multimodal-document-analyzer", "role": "multimodal document analysis", "ui": "image/document analyzer", "status": "model_required"},
-    {"id": "A-14", "folder": "A-14-on-device-export", "role": "on-device export", "ui": "export handoff", "status": "live_required"},
-    {"id": "A-15", "folder": "A-15-ugc-batch-moderator", "role": "UGC batch moderation", "ui": "batch moderator", "status": "live_required"},
-    {"id": "A-16", "folder": "A-16-ngo-local-kb", "role": "NGO local knowledge base", "ui": "case-file ingestion", "status": "live_required"},
-    {"id": "A-17", "folder": "A-17-knowledge-pack-builder", "role": "knowledge-pack builder", "ui": "pack verifier", "status": "live_required"},
-    {"id": "A-18", "folder": "A-18-sentinel-research-monitor", "role": "research monitor", "ui": "sentinel dashboard", "status": "live_required"},
-    {"id": "A-19", "folder": "A-19-multilingual-demo", "role": "multilingual playback", "ui": "five-language demo", "status": "live_required"},
-    {"id": "A-20", "folder": "A-20-privacy-boundary", "role": "privacy boundary visualization", "ui": "boundary diagram", "status": "live_required"},
-    {"id": "A-21", "folder": "A-21-long-context-demo", "role": "long-context demo", "ui": "long-context proof", "status": "model_required"},
-    {"id": "A-22", "folder": "A-22-streaming-demo", "role": "streaming demo", "ui": "SSE token stream", "status": "model_required"},
-    {"id": "A-23", "folder": "A-23-coordinator-demo", "role": "function-calling coordinator", "ui": "tool-call trace", "status": "model_required"},
-    {"id": "A-24", "folder": "A-24-demo-replay", "role": "zero-inference replay", "ui": "demo replay", "status": "live_required"}
+    {"id": "A-00", "folder": "A-00-omni-experiment-workbench", "role": "omni experiment workbench", "ui": "A-00 control plane", "status": "static_verified"}
   ],
   "static_pages": [
     {"route": "/", "file": "getting-started.html", "purpose": "home and orientation", "controls": ["top model selector", "workflow links", "endpoint reference"], "outputs": ["orientation", "deployment modes", "trust boundaries"], "audit": ["copy clarity", "local enterprise hub distinction", "no stale names"]},
