@@ -210,6 +210,11 @@ def test_a00_uses_focused_experiment_console_not_exploration_nav():
     assert "openStartCard('/custom'" in homepage
     assert "Open custom controls" not in homepage
     assert "Build report from selected runs" not in homepage
+    assert "Load model</button>" not in homepage
+    assert "unloadModel()" not in homepage
+    assert "runtime-model-select" not in a00
+    assert "runtime-model-modal" not in a00
+    assert "runtime-model-button" not in a00
     assert "body.a00-custom .primary-grid { display: grid; }" in homepage
     assert re.search(r"(?m)^\s*\.primary-grid\s*\{\s*display:\s*grid;", homepage) is None
     assert "__A00_SMALL_MODEL_REF__" in homepage
@@ -223,8 +228,11 @@ def test_a00_uses_focused_experiment_console_not_exploration_nav():
     assert "A guided pipeline is running, so model loading is owned by that job" in a00
     assert "Pipeline already running" in a00
     assert "lastJobStepSignature" in homepage
-    assert "res && res.ok && modelInfo.loaded" in homepage
-    assert "Manual model loading is disabled while the guided pipeline is running" in homepage
+    assert "include_model_selector=False" in a00
+    assert "The selected model loads automatically" in homepage
+    assert "selectedModelPayload" in homepage
+    assert "auto_load_model: bool = True" in a00
+    assert "_ensure_model_loaded_for_run" in a00
     assert "Pipeline controls model" in homepage
     assert "grade_response_combined" in a00
     assert "grade_response_universal" in a00

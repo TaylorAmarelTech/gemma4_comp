@@ -114,6 +114,13 @@ def test_portability_model_and_sample_helpers_are_canonical():
     assert "runtime-model-modal" in topbar
     assert "runtime-model-button" in topbar
     assert "_dc-shutdown-btn" in topbar
+    a00_topbar = runtime_model_topbar_html(title="DueCare A-00", include_model_selector=False)
+    assert "_dc-runtime-topbar" in a00_topbar
+    assert "runtime-model-name" in a00_topbar
+    assert "_dc-shutdown-btn" in a00_topbar
+    assert "runtime-model-select" not in a00_topbar
+    assert "runtime-model-modal" not in a00_topbar
+    assert "runtime-model-button" not in a00_topbar
 
     samples = sample_artifact_map()
     assert samples["primary_source_bundle"] == "case_files_media_rich_sample.zip"

@@ -8,6 +8,7 @@ def runtime_model_topbar_html(
     note: str = "Gemma 4 required for real exports",
     custom_href: str = "/custom",
     shutdown_function: str = "shutdownA00",
+    include_model_selector: bool = True,
 ) -> str:
     """Shared notebook runtime banner.
 
@@ -15,20 +16,13 @@ def runtime_model_topbar_html(
     shared: model text, model note, KPI slot, custom-controls link, and shutdown
     button keep the same ids/classes across 01-derived pages, 02, and A-00.
     """
-    return f"""
-<div id="_dc-runtime-topbar" role="banner" aria-label="{title} runtime controls">
-  <div class="runtime-brand">{title}</div>
-  <div class="runtime-model">
-    <b id="runtime-model-name">{model_text}</b>
-    <span id="runtime-model-note">{note}</span>
-  </div>
-  <div class="runtime-actions">
-    <div class="runtime-metrics" id="kpis" aria-label="Runtime status"></div>
-    <button class="runtime-button" id="runtime-model-button" type="button" onclick="openModelSelector()">Model</button>
-    <button class="runtime-button" type="button" onclick="location.href='{custom_href}'">Custom controls</button>
-    <button class="runtime-button" id="_dc-shutdown-btn" type="button" onclick="{shutdown_function}()">Shutdown</button>
-  </div>
-</div>
+    model_button = (
+        '<button class="runtime-button" id="runtime-model-button" type="button" onclick="openModelSelector()">Model</button>'
+        if include_model_selector
+        else ""
+    )
+    model_modal = (
+        """
 <div class="runtime-model-overlay" id="runtime-model-overlay" hidden></div>
 <div class="runtime-model-modal" id="runtime-model-modal" role="dialog" aria-modal="true" aria-label="Model selector" hidden>
   <div class="runtime-model-modal-head">
@@ -44,4 +38,23 @@ def runtime_model_topbar_html(
   </div>
   <pre id="runtime-model-loader-log">No loader events yet.</pre>
 </div>
+""".strip()
+        if include_model_selector
+        else ""
+    )
+    return f"""
+<div id="_dc-runtime-topbar" role="banner" aria-label="{title} runtime controls">
+  <div class="runtime-brand">{title}</div>
+  <div class="runtime-model">
+    <b id="runtime-model-name">{model_text}</b>
+    <span id="runtime-model-note">{note}</span>
+  </div>
+  <div class="runtime-actions">
+    <div class="runtime-metrics" id="kpis" aria-label="Runtime status"></div>
+    {model_button}
+    <button class="runtime-button" type="button" onclick="location.href='{custom_href}'">Custom controls</button>
+    <button class="runtime-button" id="_dc-shutdown-btn" type="button" onclick="{shutdown_function}()">Shutdown</button>
+  </div>
+</div>
+{model_modal}
 """.strip()
