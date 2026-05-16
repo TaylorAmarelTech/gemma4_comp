@@ -455,6 +455,14 @@ def build_minimal_shell(
             if url:
                 dc_log("kernel.shell.tunnel", f"cloudflared up: {url}",
                        kernel=kid, url=url)
+            else:
+                dc_log(
+                    "kernel.shell.tunnel",
+                    "cloudflared did not return a public URL; serving local-only",
+                    level="warn",
+                    kernel=kid,
+                    port=port,
+                )
         except Exception as e:
             dc_log("kernel.shell.tunnel", f"cloudflared unavailable: {e}",
                    level="warn", kernel=kid)
