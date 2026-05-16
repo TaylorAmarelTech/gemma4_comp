@@ -55,6 +55,8 @@ def test_a00_has_judge_facing_quick_proof_and_research_flow():
         "Static settings used for this run",
         "Persona + GREP rules + RAG/context + deterministic tools",
         "Combined rule-based score plus LLM judge",
+        "precision bf16={{use_bf16}} fp16={{use_fp16}}",
+        "Fine-tuning failed; review training log",
         "Benchmark, generate, fine-tune, compare.",
         "quickProof",
         "runRedteamProof",

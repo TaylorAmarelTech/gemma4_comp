@@ -235,6 +235,8 @@ def test_a00_uses_focused_experiment_console_not_exploration_nav():
     assert "Refresh status" not in homepage
     assert "Checking if any model is currently loaded" in a00
     assert "Evaluating responses using combined rule + LLM judge" in a00
+    assert "Fine-tuning failed; review training log" in a00
+    assert "torch.cuda.is_bf16_supported" in a00
     assert "The selected model loads automatically" in homepage
     assert "selectedModelPayload" in homepage
     assert "auto_load_model: bool = True" in a00
