@@ -186,6 +186,10 @@ def test_a00_uses_focused_experiment_console_not_exploration_nav():
     assert "Preconfigured Harness, Training, and Evaluation" in homepage
     assert "runPreconfiguredPipeline" in homepage
     assert "preconfig-progress" in homepage
+    assert "_dc-runtime-topbar" in homepage
+    assert "runtime-model-name" in homepage
+    assert "body.a00-custom .primary-grid { display: grid; }" in homepage
+    assert re.search(r"(?m)^\s*\.primary-grid\s*\{\s*display:\s*grid;", homepage) is None
     assert "google/gemma-4-2b-it" in homepage
     assert "normal Gemma plus rules combined mode" in homepage
     assert "Advanced model-switching pipeline" in homepage
