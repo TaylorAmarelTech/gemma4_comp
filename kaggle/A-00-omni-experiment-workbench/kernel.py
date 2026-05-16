@@ -927,6 +927,11 @@ class ModelLoadRequest(BaseModel):
 
 
 class BatchRunRequest(BaseModel):
+    model_source: str = "hf"
+    model_ref: str = A00_SMALL_MODEL_REF
+    model_adapter_ref: str = ""
+    quantization: str = "4bit"
+    auto_load_model: bool = True
     prompt_set: str = A00_BULK_COMPARE_DEFAULT["prompt_set"]
     harness_profile: str = A00_BULK_COMPARE_DEFAULT["treatment_harness"]
     limit: int = A00_BULK_COMPARE_DEFAULT["limit"]
@@ -956,6 +961,11 @@ class PackSyncRequest(BaseModel):
 
 
 class SyntheticRequest(BaseModel):
+    model_source: str = "hf"
+    model_ref: str = A00_SMALL_MODEL_REF
+    model_adapter_ref: str = ""
+    quantization: str = "4bit"
+    auto_load_model: bool = True
     source_prompt_set: str = A00_SYNTHETIC_DEFAULT["source_prompt_set"]
     count: int = A00_SYNTHETIC_DEFAULT["count"]
     harness_profile: str = A00_SYNTHETIC_DEFAULT["harness_profile"]
@@ -992,6 +1002,10 @@ class QuantitativeProfileRequest(BaseModel):
     profile_id: str = "bulk_text_25"
     execute_training: bool = False
     run_label: str = ""
+    model_source: str = "hf"
+    model_ref: str = A00_SMALL_MODEL_REF
+    model_adapter_ref: str = ""
+    quantization: str = "4bit"
 
 
 class PipelineRequest(BaseModel):
@@ -1877,6 +1891,14 @@ def _load_export_from_bytes(filename: str, data: bytes) -> dict[str, Any]:
 
 
 def _run_batch(req: BatchRunRequest) -> dict[str, Any]:
+    if req.auto_load_model:
+        _ensure_model_loaded_for_run(
+            source=req.model_source,
+            model_ref=req.model_ref,
+            adapter_ref=req.model_adapter_ref,
+            quantization=req.quantization,
+            label=f"batch {req.run_label or req.harness_profile}",
+        )
     if req.imported_run_id:
         source = STATE["exports"].get(req.imported_run_id)
         if not source:
@@ -2134,6 +2156,14 @@ th {{ background: #f4f6f8; }}
 
 
 def _generate_synthetic(req: SyntheticRequest) -> dict[str, Any]:
+    if req.auto_load_model:
+        _ensure_model_loaded_for_run(
+            source=req.model_source,
+            model_ref=req.model_ref,
+            adapter_ref=req.model_adapter_ref,
+            quantization=req.quantization,
+            label=f"synthetic {req.generator_mode}",
+        )
     seeds = PROMPT_SETS.get(req.source_prompt_set, PROMPT_SETS["synthetic_seed"])
     count = max(1, min(req.count, 500))
     sft_rows: list[dict[str, Any]] = []
@@ -3274,6 +3304,10 @@ def _run_quantitative_profile(req: QuantitativeProfileRequest) -> dict[str, Any]
         label = req.run_label or profile["id"]
         generation = profile.get("generation", {})
         baseline = _run_batch(BatchRunRequest(
+            model_source=req.model_source,
+            model_ref=req.model_ref,
+            model_adapter_ref=req.model_adapter_ref,
+            quantization=req.quantization,
             prompt_set=profile["prompt_set"],
             harness_profile=profile["baseline_harness"],
             limit=int(profile["limit"]),
@@ -3284,6 +3318,10 @@ def _run_quantitative_profile(req: QuantitativeProfileRequest) -> dict[str, Any]
             run_label=f"{label}-baseline",
         ))
         treatment = _run_batch(BatchRunRequest(
+            model_source=req.model_source,
+            model_ref=req.model_ref,
+            model_adapter_ref=req.model_adapter_ref,
+            quantization=req.quantization,
             prompt_set=profile["prompt_set"],
             harness_profile=profile["treatment_harness"],
             limit=int(profile["limit"]),
@@ -3315,7 +3353,13 @@ def _run_quantitative_profile(req: QuantitativeProfileRequest) -> dict[str, Any]
             profile.get("training_profile", "tiny_lora_smoke"),
             A00_TRAINING_DEFAULT,
         )
-        synth = _generate_synthetic(SyntheticRequest(**synth_profile))
+        synth = _generate_synthetic(SyntheticRequest(
+            **synth_profile,
+            model_source=req.model_source,
+            model_ref=req.model_ref,
+            model_adapter_ref=req.model_adapter_ref,
+            quantization=req.quantization,
+        ))
         job = _create_training_job(TrainRequest(
             data_path=synth["artifacts"]["sft"],
             base_model_ref=training_profile.get("base_model_ref", A00_TRAINING_DEFAULT["base_model_ref"]),
@@ -3380,6 +3424,21 @@ def _current_model_matches(source: str, ref: str, adapter_ref: str) -> bool:
     return requested in loaded_refs and loaded_adapter == str(adapter_ref or "")
 
 
+def _ensure_model_loaded_for_run(
+    *,
+    source: str,
+    model_ref: str,
+    adapter_ref: str = "",
+    quantization: str = "4bit",
+    label: str = "run",
+) -> dict[str, Any]:
+    """Load the selected model as part of a run, not as a separate UI step."""
+    if _current_model_matches(source, model_ref, adapter_ref):
+        return STATE.get("model_info", {})
+    dc_log("a00.model.auto_load", f"{label}: {model_ref}", source=source, adapter_ref=adapter_ref)
+    return _load_model_runtime(_model_request(source, model_ref, adapter_ref, quantization))
+
+
 def _wait_for_training_job(job_id: str, pipeline_job_id: str, timeout_sec: int) -> dict[str, Any]:
     deadline = time.time() + timeout_sec
     while time.time() < deadline:
@@ -3417,6 +3476,7 @@ def _run_pipeline_job(job_id: str, req: PipelineRequest) -> None:
                     model_info = _load_model_runtime(_model_request(source, ref, adapter, req.quantization))
                     _append_job_step(job_id, f"loaded {label}", "running", model_info)
                     bundle = _run_batch(BatchRunRequest(
+                        auto_load_model=False,
                         prompt_set=req.prompt_set,
                         harness_profile=req.harness_profile,
                         limit=req.limit,
@@ -3449,6 +3509,7 @@ def _run_pipeline_job(job_id: str, req: PipelineRequest) -> None:
                     _append_job_step(job_id, "loaded teacher/base model", "running", model_info)
                 _append_job_step(job_id, "run base Gemma without harness", "running", {"prompt_set": req.prompt_set, "limit": req.limit})
                 base_no_harness = _run_batch(BatchRunRequest(
+                    auto_load_model=False,
                     prompt_set=req.prompt_set,
                     harness_profile=req.baseline_harness_profile,
                     limit=req.limit,
@@ -3459,6 +3520,7 @@ def _run_pipeline_job(job_id: str, req: PipelineRequest) -> None:
                 _append_job_step(job_id, "completed base Gemma without harness", "running", {"run_id": base_no_harness["run_id"], "summary": base_no_harness["summary"]})
                 _append_job_step(job_id, "run base Gemma with DueCare harness", "running", {"prompt_set": req.prompt_set, "limit": req.limit, "harness": req.harness_profile})
                 base_harness = _run_batch(BatchRunRequest(
+                    auto_load_model=False,
                     prompt_set=req.prompt_set,
                     harness_profile=req.harness_profile,
                     limit=req.limit,
@@ -3470,6 +3532,7 @@ def _run_pipeline_job(job_id: str, req: PipelineRequest) -> None:
                 run_ids.extend([base_no_harness["run_id"], base_harness["run_id"]])
                 _append_job_step(job_id, "generate synthetic SFT rows with harness", "running", {"count": req.synthetic_count, "generator_mode": req.generator_mode})
                 synth = _generate_synthetic(SyntheticRequest(
+                    auto_load_model=False,
                     source_prompt_set="synthetic_seed",
                     count=req.synthetic_count,
                     harness_profile=req.harness_profile,
@@ -3503,6 +3566,7 @@ def _run_pipeline_job(job_id: str, req: PipelineRequest) -> None:
                     _append_job_step(job_id, "loaded fine-tuned adapter", "running", ft_model_info)
                     _append_job_step(job_id, "run fine-tuned Gemma without harness", "running", {"prompt_set": req.prompt_set, "limit": req.limit})
                     ft_no_harness = _run_batch(BatchRunRequest(
+                        auto_load_model=False,
                         prompt_set=req.prompt_set,
                         harness_profile=req.baseline_harness_profile,
                         limit=req.limit,
@@ -3513,6 +3577,7 @@ def _run_pipeline_job(job_id: str, req: PipelineRequest) -> None:
                     _append_job_step(job_id, "completed fine-tuned Gemma without harness", "running", {"run_id": ft_no_harness["run_id"], "summary": ft_no_harness["summary"]})
                     _append_job_step(job_id, "run fine-tuned Gemma with DueCare harness", "running", {"prompt_set": req.prompt_set, "limit": req.limit, "harness": req.harness_profile})
                     ft_harness = _run_batch(BatchRunRequest(
+                        auto_load_model=False,
                         prompt_set=req.prompt_set,
                         harness_profile=req.harness_profile,
                         limit=req.limit,
@@ -3951,13 +4016,6 @@ HOMEPAGE_HTML = r"""<!doctype html>
     .runtime-stat b { color: var(--ink); font-weight: 800; }
     .runtime-button { border: 1px solid var(--line); background: var(--paper); color: var(--ink); border-radius: 6px; padding: 7px 10px; font-size: 12px; font-weight: 700; }
     .runtime-button:disabled { opacity: 0.55; cursor: not-allowed; background: var(--paper-2); }
-    .runtime-model-overlay { position: fixed; inset: 52px 0 0; z-index: 99996; background: rgba(14,17,22,0.38); }
-    .runtime-model-modal { position: fixed; z-index: 99997; top: 50%; left: 50%; transform: translate(-50%, -50%); width: min(760px, calc(100vw - 28px)); max-height: min(720px, calc(100vh - 84px)); overflow: auto; background: var(--paper); color: var(--ink); border: 1px solid var(--line); border-radius: 8px; box-shadow: 0 18px 60px rgba(14,17,22,0.18); padding: 16px; }
-    .runtime-model-modal[hidden], .runtime-model-overlay[hidden] { display: none; }
-    .runtime-model-modal-head { display: flex; align-items: start; justify-content: space-between; gap: 12px; border-bottom: 1px solid var(--line); padding-bottom: 12px; margin-bottom: 12px; }
-    .runtime-model-modal-head p { margin: 4px 0 0; color: var(--ink-3); font-size: 12px; }
-    .runtime-model-modal-controls { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; align-items: end; }
-    #runtime-model-loader-log { margin-top: 12px; min-height: 88px; }
     .a00 { max-width: 1180px; margin: 0 auto; padding: 28px 24px 56px; }
     .a00-header { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 18px; align-items: end; margin-bottom: 16px; border-bottom: 1px solid var(--line); padding-bottom: 18px; }
     .a00-header h1 { margin: 4px 0 8px; font-size: clamp(30px, 4vw, 48px); line-height: 1.02; letter-spacing: 0; }
@@ -4166,10 +4224,9 @@ __A00_RUNTIME_TOPBAR__
         <label>Prompt count <input id="limit" type="number" min="1" max="500" value="25"></label>
       </div>
       <div class="row action-row">
-        <button onclick="loadModel()">Load model</button>
-        <button class="secondary" onclick="unloadModel()">Unload</button>
         <button class="secondary" onclick="setAbliterated()">Use abliterated adversary</button>
       </div>
+      <p class="muted">The selected model loads automatically when you run a batch, quantitative profile, synthetic generation, or pipeline.</p>
     </div>
 
     <div class="panel control-panel">
@@ -4412,58 +4469,6 @@ async function shutdownA00() {
     log("Shutdown request failed: " + (err && err.message ? err.message : err));
   }
 }
-function openModelSelector() {
-  if (pipelineActive) {
-    setModelSelectorStatus("A guided pipeline is running. Model loading is owned by that job until it completes or fails.");
-    log("Manual model loading is disabled while the guided pipeline is running.");
-    return;
-  }
-  const overlay = $("runtime-model-overlay");
-  const modal = $("runtime-model-modal");
-  if (overlay) overlay.hidden = false;
-  if (modal) modal.hidden = false;
-}
-function closeModelSelector() {
-  const overlay = $("runtime-model-overlay");
-  const modal = $("runtime-model-modal");
-  if (overlay) overlay.hidden = true;
-  if (modal) modal.hidden = true;
-}
-function setModelSelectorStatus(message) {
-  const el = $("runtime-model-selector-status");
-  if (el) el.textContent = message || "";
-}
-async function loadSelectedRuntimeModel() {
-  if (pipelineActive) {
-    setModelSelectorStatus("A guided pipeline is running. Wait for the active job before loading another model.");
-    log("Manual model loading is disabled while the guided pipeline is running.");
-    return;
-  }
-  const select = $("runtime-model-select");
-  const selected = select && select.selectedOptions && select.selectedOptions[0];
-  if (!selected) return;
-  const source = selected.getAttribute("data-source") || "hf";
-  const modelRef = selected.value;
-  const loaderLog = $("runtime-model-loader-log");
-  setModelSelectorStatus("Loading " + selected.textContent + ". Watch Activity for loader details.");
-  if (loaderLog) loaderLog.textContent = `[${new Date().toLocaleTimeString()}] Model load request sent for ${selected.textContent}. This can take 1-3 minutes on first Kaggle load.`;
-  log({kind: "model.load.start", source, model_ref: modelRef});
-  $("model-source").value = source;
-  $("model-ref").value = modelRef;
-  const res = await getJson("/api/a00/model/load", {method:"POST", headers:{"content-type":"application/json"}, body:JSON.stringify({source:source, model_ref:modelRef, quantization:$("quantization").value || "4bit"})});
-  const modelInfo = (res && res.model) ? res.model : (res || {});
-  if (res && res.ok && modelInfo.loaded) {
-    setModelSelectorStatus("Loaded " + (modelInfo.model_ref || modelRef));
-    if ($("preconfig-model")) $("preconfig-model").value = modelRef;
-    if (loaderLog) loaderLog.textContent += `\n[${new Date().toLocaleTimeString()}] Loaded ${modelInfo.model_ref || modelRef} on ${modelInfo.device || "device unknown"}.`;
-    closeModelSelector();
-  } else {
-    const reason = res && res.detail ? res.detail : "Check Activity for the exact error.";
-    setModelSelectorStatus("Model load failed. " + reason);
-    if (loaderLog) loaderLog.textContent += `\n[${new Date().toLocaleTimeString()}] Model load failed. ${reason}`;
-  }
-  log(res);
-}
 function setPreconfiguredProgress(percent, message) {
   const bar = $("preconfig-progress");
   const status = $("preconfig-status");
@@ -4584,6 +4589,7 @@ async function rerunIntakeRun() {
   const r = ((lastIntake || {}).imported_runs || [])[0];
   if (!r) return log("No uploaded run detected.");
   const body = {
+    ...selectedModelPayload(),
     imported_run_id: r.run_id,
     harness_profile: $("harness-profile").value,
     limit: Number($("limit").value || 25),
@@ -4655,17 +4661,9 @@ async function refreshStatus() {
         model.source || "hf",
         model.quantization || "",
         model.adapter_ref ? "adapter: " + model.adapter_ref : ""
-      ].filter(Boolean).join(" | ");
+  ].filter(Boolean).join(" | ");
   if ($("runtime-model-name")) $("runtime-model-name").textContent = "Model: " + modelName;
   if ($("runtime-model-note")) $("runtime-model-note").textContent = modelBits || "Guided experiment console";
-  const modelButton = $("runtime-model-button");
-  if (modelButton) {
-    modelButton.disabled = pipelineActive;
-    modelButton.textContent = pipelineActive ? "Pipeline running" : "Model";
-    modelButton.title = pipelineActive
-      ? "The active guided pipeline owns model loading and unloading."
-      : "Load or switch the Gemma model for manual/custom runs.";
-  }
   const preconfigRun = $("preconfig-run-btn");
   if (preconfigRun) {
     preconfigRun.disabled = pipelineActive;
@@ -4725,9 +4723,6 @@ async function loadOptions() {
   const presets = await getJson("/api/a00/pipeline/presets");
   if ($("pipeline-preset")) $("pipeline-preset").innerHTML = Object.entries(presets.presets || {}).map(([id,p]) => `<option value="${id}">${p.label}</option>`).join("");
   const modelPresets = await getJson("/api/a00/model-presets");
-  if ($("runtime-model-select")) {
-    $("runtime-model-select").innerHTML = (modelPresets.presets || []).map(p => `<option value="${p.ref}" data-source="${p.source || "hf"}">${p.label || p.ref}</option>`).join("");
-  }
   if ($("preconfig-model")) {
     $("preconfig-model").innerHTML = (modelPresets.presets || []).map(p => `<option value="${p.ref}" data-source="${p.source || "hf"}">${p.label || p.ref}</option>`).join("");
     $("preconfig-model").value = "__A00_SMALL_MODEL_REF__";
@@ -4836,20 +4831,20 @@ function setAbliterated() {
   $("model-ref").value = "mlabonne/Gemma-4-E4B-it-abliterated";
   $("run-label").value = "abliterated-adversary";
 }
-async function loadModel() {
-  const body = {
-    source: $("model-source").value,
+function selectedModelPayload() {
+  return {
+    model_source: $("model-source").value,
     model_ref: $("model-ref").value,
-    adapter_ref: $("adapter-ref").value,
+    model_adapter_ref: $("adapter-ref").value,
     quantization: $("quantization").value
   };
-  log(await getJson("/api/a00/model/load", {method:"POST", headers:{"content-type":"application/json"}, body:JSON.stringify(body)}));
-}
-async function unloadModel() {
-  log(await getJson("/api/a00/model/unload", {method:"POST"}));
 }
 async function runBatch() {
   const body = {
+    model_source: $("model-source").value,
+    model_ref: $("model-ref").value,
+    model_adapter_ref: $("adapter-ref").value,
+    quantization: $("quantization").value,
     prompt_set: $("prompt-set").value,
     harness_profile: $("harness-profile").value,
     limit: Number($("limit").value || 25),
@@ -4863,13 +4858,14 @@ async function runBatch() {
 async function quickProof() {
   const contract = await getJson("/api/a00/experiment-contract");
   const profile = contract.quantitative_run_profiles.bulk_text_25;
+  const model = selectedModelPayload();
   $("prompt-set").value = profile.prompt_set;
   $("limit").value = profile.limit;
   $("harness-profile").value = profile.baseline_harness;
   $("run-label").value = "quick-baseline";
-  const base = await getJson("/api/a00/run-batch", {method:"POST", headers:{"content-type":"application/json"}, body:JSON.stringify({prompt_set:profile.prompt_set, harness_profile:profile.baseline_harness, limit:profile.limit, run_label:"quick-baseline", evaluate:true})});
+  const base = await getJson("/api/a00/run-batch", {method:"POST", headers:{"content-type":"application/json"}, body:JSON.stringify({...model, prompt_set:profile.prompt_set, harness_profile:profile.baseline_harness, limit:profile.limit, run_label:"quick-baseline", evaluate:true})});
   if (base.run_id && !selectedRuns.includes(base.run_id)) selectedRuns.push(base.run_id);
-  const harness = await getJson("/api/a00/run-batch", {method:"POST", headers:{"content-type":"application/json"}, body:JSON.stringify({prompt_set:profile.prompt_set, harness_profile:profile.treatment_harness, limit:profile.limit, run_label:"quick-harnessed", evaluate:true})});
+  const harness = await getJson("/api/a00/run-batch", {method:"POST", headers:{"content-type":"application/json"}, body:JSON.stringify({...model, prompt_set:profile.prompt_set, harness_profile:profile.treatment_harness, limit:profile.limit, run_label:"quick-harnessed", evaluate:true})});
   if (harness.run_id && !selectedRuns.includes(harness.run_id)) selectedRuns.push(harness.run_id);
   const report = await getJson("/api/a00/report", {method:"POST", headers:{"content-type":"application/json"}, body:JSON.stringify({run_ids:selectedRuns.slice(-2), title:profile.report_title, include_pdf:true})});
   log({baseline:base, harnessed:harness, report});
@@ -4877,7 +4873,8 @@ async function quickProof() {
 async function runQuantProfile() {
   const body = {
     profile_id: $("quant-profile").value,
-    execute_training: $("quant-execute").value === "true"
+    execute_training: $("quant-execute").value === "true",
+    ...selectedModelPayload()
   };
   const res = await getJson("/api/a00/quantitative/run", {method:"POST", headers:{"content-type":"application/json"}, body:JSON.stringify(body)});
   const runIds = [];
@@ -4923,11 +4920,12 @@ async function runAdvancedPipeline() {
   trackJobsFrom(res);
 }
 async function runRedteamProof() {
+  const model = selectedModelPayload();
   $("prompt-set").value = "anti_tip_redteam_regressions";
   $("limit").value = 5;
-  const base = await getJson("/api/a00/run-batch", {method:"POST", headers:{"content-type":"application/json"}, body:JSON.stringify({prompt_set:"anti_tip_redteam_regressions", harness_profile:"none", limit:5, run_label:"gptoss-regression-baseline", evaluate:true})});
+  const base = await getJson("/api/a00/run-batch", {method:"POST", headers:{"content-type":"application/json"}, body:JSON.stringify({...model, prompt_set:"anti_tip_redteam_regressions", harness_profile:"none", limit:5, run_label:"gptoss-regression-baseline", evaluate:true})});
   if (base.run_id && !selectedRuns.includes(base.run_id)) selectedRuns.push(base.run_id);
-  const harness = await getJson("/api/a00/run-batch", {method:"POST", headers:{"content-type":"application/json"}, body:JSON.stringify({prompt_set:"anti_tip_redteam_regressions", harness_profile:"chat_full", limit:5, run_label:"gptoss-regression-harnessed", evaluate:true})});
+  const harness = await getJson("/api/a00/run-batch", {method:"POST", headers:{"content-type":"application/json"}, body:JSON.stringify({...model, prompt_set:"anti_tip_redteam_regressions", harness_profile:"chat_full", limit:5, run_label:"gptoss-regression-harnessed", evaluate:true})});
   if (harness.run_id && !selectedRuns.includes(harness.run_id)) selectedRuns.push(harness.run_id);
   const report = await getJson("/api/a00/report", {method:"POST", headers:{"content-type":"application/json"}, body:JSON.stringify({run_ids:selectedRuns.slice(-2), title:"DueCare anti-TIP red-team regression report", include_pdf:true})});
   log({baseline:base, harnessed:harness, report, source:"prior GPT OSS red-team failure patterns"});
@@ -4968,6 +4966,7 @@ async function importPack() {
 }
 async function generateSynthetic() {
   const body = {
+    ...selectedModelPayload(),
     source_prompt_set: "synthetic_seed",
     count: Number($("synth-count").value || 24),
     harness_profile: $("harness-profile").value,
@@ -5052,7 +5051,10 @@ loadOptions().then(() => {
 </html>
 """
 
-_A00_RUNTIME_TOPBAR_HTML = runtime_model_topbar_html(title="DueCare A-00")
+_A00_RUNTIME_TOPBAR_HTML = runtime_model_topbar_html(
+    title="DueCare A-00",
+    include_model_selector=False,
+)
 _A00_BASE_HTML = (
     HOMEPAGE_HTML
     .replace("__A00_SMALL_MODEL_REF__", A00_SMALL_MODEL_REF)
