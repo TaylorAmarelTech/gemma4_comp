@@ -194,8 +194,9 @@ def test_a00_uses_focused_experiment_console_not_exploration_nav():
     assert "Preconfigured Harness, Training, and Evaluation" in homepage
     assert "runPreconfiguredPipeline" in homepage
     assert "preconfig-progress" in homepage
-    assert "__A00_RUNTIME_TOPBAR__" in homepage
-    assert "runtime_model_topbar_html" in a00
+    assert "__A00_SHUTDOWN_CONTROL__" in homepage
+    assert "_A00_SHUTDOWN_CONTROL_HTML" in a00
+    assert "runtime_model_topbar_html" not in a00
     assert '${p.label || p.ref} | ${p.notes || ""}' not in a00
     assert "p.label || p.ref}</option>" in a00
     assert "Model: dry run" not in homepage
@@ -228,15 +229,13 @@ def test_a00_uses_focused_experiment_console_not_exploration_nav():
     assert "A guided pipeline is running, so model loading is owned by that job" in a00
     assert "Pipeline already running" in a00
     assert "lastJobStepSignature" in homepage
-    assert "include_model_selector=False" in a00
     assert "The selected model loads automatically" in homepage
     assert "selectedModelPayload" in homepage
     assert "auto_load_model: bool = True" in a00
     assert "_ensure_model_loaded_for_run" in a00
-    assert "include_custom_controls=False" in a00
-    assert "Select a model in Preconfigured or Custom. A-00 loads it when a run starts." in a00
     assert "Pipeline running" in homepage
     assert "not loaded:" not in homepage
+    assert "a00-shutdown-control" in homepage
     assert "grade_response_combined" in a00
     assert "grade_response_universal" in a00
     assert "Advanced model-switching pipeline" in homepage
