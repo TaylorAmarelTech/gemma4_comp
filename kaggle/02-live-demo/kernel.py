@@ -890,7 +890,10 @@ def install_duecare_packages(verbose: bool = True) -> tuple[list[str], dict]:
     install_system_dependencies()
 
     packages = DEMO_PACKAGES
-    clone_root = Path("/tmp/duecare_gemma4_comp_source")
+    clone_root = Path(os.environ.get(
+        "DUECARE_SOURCE_ROOT",
+        "/kaggle/working/_duecare_source/gemma4_comp",
+    ))
     if clone_root.exists():
         shutil.rmtree(clone_root)
 
