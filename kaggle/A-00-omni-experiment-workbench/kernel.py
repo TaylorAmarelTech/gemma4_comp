@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import csv
 import hashlib
+import importlib.util
 import io
 import json
 import os
@@ -37,6 +38,11 @@ RUN_DIR = OUTPUT_DIR / "a00_runs"
 RUN_DIR.mkdir(parents=True, exist_ok=True)
 TRAIN_DIR = OUTPUT_DIR / "a00_training"
 TRAIN_DIR.mkdir(parents=True, exist_ok=True)
+TRAIN_JOB_LOCK = threading.Lock()
+MODEL_RUNTIME_LOCK = threading.RLock()
+PIPELINE_JOB_LOCK = threading.Lock()
+JOB_STATE_LOCK = threading.RLock()
+A00_TRAINING_TIMEOUT_SEC = int(os.environ.get("A00_TRAINING_TIMEOUT_SEC", str(60 * 60 * 8)))
 
 DUECARE_VERSION = os.environ.get("DUECARE_VERSION", "0.17.0")
 DUECARE_REPO = os.environ.get("DUECARE_REPO", "TaylorAmarelTech/gemma4_comp")
@@ -160,12 +166,30 @@ except Exception:  # noqa: BLE001
 
 try:
     from duecare.chat._dc_log import dc_log, set_kernel_id
+    from duecare.chat.experiment_contracts import (
+        experiment_contract_payload,
+        harness_profile_map,
+        model_preset_list,
+        quantitative_run_profile_map,
+        synthetic_generation_profile_map,
+        training_profile_map,
+    )
     from duecare.chat.kernel_shell import build_minimal_shell
+    from duecare.chat.portability import model_variant_map
+    from duecare.chat.portability import reference_portability_contract_payload
 except Exception as exc:  # noqa: BLE001
     raise SystemExit(f"DueCare shell import failed: {type(exc).__name__}: {exc}")
 
 
 set_kernel_id("a-00-omni-experiment")
+WORKBENCH_PORTABILITY_CONTRACT = reference_portability_contract_payload()
+WORKBENCH_EXPERIMENT_CONTRACT = experiment_contract_payload()
+A00_RUN_PROFILES = quantitative_run_profile_map()
+A00_SYNTHETIC_PROFILES = synthetic_generation_profile_map()
+A00_TRAINING_PROFILES = training_profile_map()
+A00_BULK_COMPARE_DEFAULT = A00_RUN_PROFILES["bulk_text_25"]
+A00_SYNTHETIC_DEFAULT = A00_SYNTHETIC_PROFILES["rubric_polisher_24"]
+A00_TRAINING_DEFAULT = A00_TRAINING_PROFILES["tiny_lora_smoke"]
 
 
 @dataclass
@@ -304,6 +328,7 @@ HARNESS_PROFILES: dict[str, dict[str, Any]] = {
         "description": "Evidence CRUD surface with audit metadata. No Gemma call required.",
     },
 }
+HARNESS_PROFILES = harness_profile_map()
 
 
 MODEL_PRESETS = [
@@ -338,6 +363,11 @@ MODEL_PRESETS = [
         "notes": "Use for adversarial prompt and rejected-answer generation.",
     },
 ]
+try:
+    _MODEL_VARIANTS = model_variant_map()
+    MODEL_PRESETS = model_preset_list(_MODEL_VARIANTS)
+except Exception:
+    pass
 
 
 RESPONSE_BLUEPRINT = {
@@ -755,13 +785,13 @@ class ModelLoadRequest(BaseModel):
 
 
 class BatchRunRequest(BaseModel):
-    prompt_set: str = "chat_safety_core"
-    harness_profile: str = "chat_full"
-    limit: int = 25
-    temperature: float = 0.2
-    max_new_tokens: int = 420
-    evaluate: bool = True
-    llm_judge: bool = False
+    prompt_set: str = A00_BULK_COMPARE_DEFAULT["prompt_set"]
+    harness_profile: str = A00_BULK_COMPARE_DEFAULT["treatment_harness"]
+    limit: int = A00_BULK_COMPARE_DEFAULT["limit"]
+    temperature: float = A00_BULK_COMPARE_DEFAULT["generation"]["temperature"]
+    max_new_tokens: int = A00_BULK_COMPARE_DEFAULT["generation"]["max_new_tokens"]
+    evaluate: bool = A00_BULK_COMPARE_DEFAULT["generation"]["evaluate"]
+    llm_judge: bool = A00_BULK_COMPARE_DEFAULT["generation"]["llm_judge"]
     imported_run_id: str = ""
     run_label: str = ""
 
@@ -784,31 +814,66 @@ class PackSyncRequest(BaseModel):
 
 
 class SyntheticRequest(BaseModel):
-    source_prompt_set: str = "synthetic_seed"
-    count: int = 40
-    harness_profile: str = "chat_full"
-    generator_mode: str = "harness_teacher"
-    include_dpo: bool = True
-    include_knowledge_facts: bool = True
-    temperature: float = 0.7
+    source_prompt_set: str = A00_SYNTHETIC_DEFAULT["source_prompt_set"]
+    count: int = A00_SYNTHETIC_DEFAULT["count"]
+    harness_profile: str = A00_SYNTHETIC_DEFAULT["harness_profile"]
+    generator_mode: str = A00_SYNTHETIC_DEFAULT["generator_mode"]
+    include_dpo: bool = A00_SYNTHETIC_DEFAULT["include_dpo"]
+    include_knowledge_facts: bool = A00_SYNTHETIC_DEFAULT["include_knowledge_facts"]
+    temperature: float = A00_SYNTHETIC_DEFAULT["temperature"]
 
 
 class TrainRequest(BaseModel):
     data_path: str = ""
-    base_model_ref: str = "google/gemma-4-e2b-it"
-    adapter_name: str = "duecare-a00-safetyjudge-lora"
-    method: str = "sft"
+    base_model_ref: str = A00_TRAINING_DEFAULT["base_model_ref"]
+    adapter_name: str = A00_TRAINING_DEFAULT["adapter_name"]
+    method: str = A00_TRAINING_DEFAULT["method"]
     use_unsloth: bool = True
-    execute: bool = False
-    max_steps: int = 60
-    learning_rate: float = 2e-4
+    execute: bool = A00_TRAINING_DEFAULT["execute"]
+    max_steps: int = A00_TRAINING_DEFAULT["max_steps"]
+    learning_rate: float = A00_TRAINING_DEFAULT["learning_rate"]
     output_dir: str = ""
+
+
+class TrainingDataInspection(BaseModel):
+    path: str
 
 
 class WorkflowRequest(BaseModel):
     workflow_id: str
     limit: int = 25
     execute: bool = False
+    run_label: str = ""
+
+
+class QuantitativeProfileRequest(BaseModel):
+    profile_id: str = "bulk_text_25"
+    execute_training: bool = False
+    run_label: str = ""
+
+
+class PipelineRequest(BaseModel):
+    preset_id: str = "synthetic_train_benchmark_cycle"
+    model_a_source: str = "dry_run"
+    model_a_ref: str = "dry_run"
+    model_a_adapter_ref: str = ""
+    model_b_source: str = "dry_run"
+    model_b_ref: str = A00_TRAINING_DEFAULT["base_model_ref"]
+    model_b_adapter_ref: str = ""
+    quantization: str = "4bit"
+    prompt_set: str = A00_BULK_COMPARE_DEFAULT["prompt_set"]
+    harness_profile: str = A00_BULK_COMPARE_DEFAULT["treatment_harness"]
+    baseline_harness_profile: str = A00_BULK_COMPARE_DEFAULT["baseline_harness"]
+    limit: int = 5
+    synthetic_count: int = 5
+    generator_mode: str = A00_SYNTHETIC_DEFAULT["generator_mode"]
+    evaluate_outputs: bool = True
+    include_report: bool = True
+    execute_training: bool = False
+    max_steps: int = A00_TRAINING_DEFAULT["max_steps"]
+    training_output_dir: str = ""
+    unload_between_steps: bool = True
+    llm_judge: bool = False
     run_label: str = ""
 
 
@@ -829,6 +894,8 @@ STATE: dict[str, Any] = {
     "jobs": {},
     "last_report": None,
     "research_bundles": {},
+    "portability_contract": WORKBENCH_PORTABILITY_CONTRACT,
+    "experiment_contract": WORKBENCH_EXPERIMENT_CONTRACT,
 }
 
 
@@ -1201,140 +1268,173 @@ def _polish_training_response(
     }
 
 
-def _load_model_runtime(req: ModelLoadRequest) -> dict[str, Any]:
-    if req.source == "dry_run":
+def _unload_model_runtime(reason: str = "manual") -> dict[str, Any]:
+    with MODEL_RUNTIME_LOCK:
         STATE["model"] = None
         STATE["tokenizer"] = None
+        try:
+            import gc
+            gc.collect()
+        except Exception:
+            pass
+        try:
+            import torch
+            if torch.cuda.is_available():
+                torch.cuda.empty_cache()
+                torch.cuda.ipc_collect()
+        except Exception:
+            pass
         STATE["model_info"] = {
             "loaded": False,
-            "source": "dry_run",
-            "model_ref": "dry_run",
+            "source": "unloaded",
+            "model_ref": "",
             "adapter_ref": "",
             "quantization": "",
-            "loaded_at": _utc(),
-            "notes": "Dry-run generator active. No model weights loaded.",
+            "loaded_at": "",
+            "unloaded_at": _utc(),
+            "notes": f"Model unloaded: {reason}. Dry-run generator active until another model is loaded.",
         }
         return STATE["model_info"]
 
-    model_ref = req.model_ref.strip()
-    if not model_ref:
-        raise HTTPException(400, "model_ref is required")
 
-    try:
-        import torch
-        from transformers import AutoModelForCausalLM, AutoTokenizer
-    except Exception as exc:  # noqa: BLE001
-        raise HTTPException(500, f"transformers/torch not available: {exc}")
+def _load_model_runtime(req: ModelLoadRequest) -> dict[str, Any]:
+    with MODEL_RUNTIME_LOCK:
+        if req.source == "dry_run":
+            STATE["model"] = None
+            STATE["tokenizer"] = None
+            STATE["model_info"] = {
+                "loaded": False,
+                "source": "dry_run",
+                "model_ref": "dry_run",
+                "adapter_ref": "",
+                "quantization": "",
+                "loaded_at": _utc(),
+                "notes": "Dry-run generator active. No model weights loaded.",
+            }
+            return STATE["model_info"]
 
-    kwargs: dict[str, Any] = {"trust_remote_code": req.trust_remote_code}
-    quant = req.quantization.lower()
-    if quant in {"4bit", "nf4"}:
+        model_ref = req.model_ref.strip()
+        if not model_ref:
+            raise HTTPException(400, "model_ref is required")
+
         try:
-            from transformers import BitsAndBytesConfig
-            kwargs["quantization_config"] = BitsAndBytesConfig(
-                load_in_4bit=True,
-                bnb_4bit_quant_type="nf4",
-                bnb_4bit_compute_dtype=torch.bfloat16 if torch.cuda.is_available() else torch.float32,
-            )
+            import torch
+            from transformers import AutoModelForCausalLM, AutoTokenizer
+        except Exception as exc:  # noqa: BLE001
+            raise HTTPException(500, f"transformers/torch not available: {exc}")
+
+        _unload_model_runtime("loading replacement model")
+
+        kwargs: dict[str, Any] = {"trust_remote_code": req.trust_remote_code}
+        quant = req.quantization.lower()
+        if quant in {"4bit", "nf4"}:
+            try:
+                from transformers import BitsAndBytesConfig
+                kwargs["quantization_config"] = BitsAndBytesConfig(
+                    load_in_4bit=True,
+                    bnb_4bit_quant_type="nf4",
+                    bnb_4bit_compute_dtype=torch.bfloat16 if torch.cuda.is_available() else torch.float32,
+                )
+                kwargs["device_map"] = "auto"
+            except Exception:
+                kwargs["torch_dtype"] = torch.bfloat16 if torch.cuda.is_available() else torch.float32
+                kwargs["device_map"] = "auto" if torch.cuda.is_available() else None
+        elif quant in {"8bit", "int8"}:
+            kwargs["load_in_8bit"] = True
             kwargs["device_map"] = "auto"
-        except Exception:
+        else:
             kwargs["torch_dtype"] = torch.bfloat16 if torch.cuda.is_available() else torch.float32
             kwargs["device_map"] = "auto" if torch.cuda.is_available() else None
-    elif quant in {"8bit", "int8"}:
-        kwargs["load_in_8bit"] = True
-        kwargs["device_map"] = "auto"
-    else:
-        kwargs["torch_dtype"] = torch.bfloat16 if torch.cuda.is_available() else torch.float32
-        kwargs["device_map"] = "auto" if torch.cuda.is_available() else None
 
-    if req.source == "github":
-        if requests is None:
-            raise HTTPException(500, "requests is not available for GitHub downloads")
-        archive_url = model_ref
-        target = MODEL_DIR / (_safe_slug(Path(model_ref).stem) + ".zip")
-        with requests.get(archive_url, stream=True, timeout=120) as r:
-            r.raise_for_status()
-            with target.open("wb") as f:
-                for chunk in r.iter_content(chunk_size=1024 * 1024):
-                    if chunk:
-                        f.write(chunk)
-        extract_dir = MODEL_DIR / _safe_slug(target.stem)
-        extract_dir.mkdir(exist_ok=True)
-        with zipfile.ZipFile(target) as z:
-            z.extractall(extract_dir)
-        model_ref = str(extract_dir)
+        if req.source == "github":
+            if requests is None:
+                raise HTTPException(500, "requests is not available for GitHub downloads")
+            archive_url = model_ref
+            target = MODEL_DIR / (_safe_slug(Path(model_ref).stem) + ".zip")
+            with requests.get(archive_url, stream=True, timeout=120) as r:
+                r.raise_for_status()
+                with target.open("wb") as f:
+                    for chunk in r.iter_content(chunk_size=1024 * 1024):
+                        if chunk:
+                            f.write(chunk)
+            extract_dir = MODEL_DIR / _safe_slug(target.stem)
+            extract_dir.mkdir(exist_ok=True)
+            with zipfile.ZipFile(target) as z:
+                z.extractall(extract_dir)
+            model_ref = str(extract_dir)
 
-    tokenizer = AutoTokenizer.from_pretrained(model_ref, trust_remote_code=req.trust_remote_code)
-    model = AutoModelForCausalLM.from_pretrained(model_ref, **{k: v for k, v in kwargs.items() if v is not None})
+        tokenizer = AutoTokenizer.from_pretrained(model_ref, trust_remote_code=req.trust_remote_code)
+        model = AutoModelForCausalLM.from_pretrained(model_ref, **{k: v for k, v in kwargs.items() if v is not None})
 
-    if req.adapter_ref:
-        try:
-            from peft import PeftModel
-            model = PeftModel.from_pretrained(model, req.adapter_ref)
-        except Exception as exc:  # noqa: BLE001
-            raise HTTPException(500, f"adapter load failed: {exc}")
+        if req.adapter_ref:
+            try:
+                from peft import PeftModel
+                model = PeftModel.from_pretrained(model, req.adapter_ref)
+            except Exception as exc:  # noqa: BLE001
+                raise HTTPException(500, f"adapter load failed: {exc}")
 
-    STATE["model"] = model
-    STATE["tokenizer"] = tokenizer
-    STATE["model_info"] = {
-        "loaded": True,
-        "source": req.source,
-        "model_ref": model_ref,
-        "adapter_ref": req.adapter_ref,
-        "quantization": req.quantization,
-        "loaded_at": _utc(),
-        "device": str(next(model.parameters()).device) if hasattr(model, "parameters") else "unknown",
-        "notes": "Model loaded for generation, LLM judging, and synthetic data.",
-    }
-    return STATE["model_info"]
+        STATE["model"] = model
+        STATE["tokenizer"] = tokenizer
+        STATE["model_info"] = {
+            "loaded": True,
+            "source": req.source,
+            "model_ref": model_ref,
+            "adapter_ref": req.adapter_ref,
+            "quantization": req.quantization,
+            "loaded_at": _utc(),
+            "device": str(next(model.parameters()).device) if hasattr(model, "parameters") else "unknown",
+            "notes": "Model loaded for generation, LLM judging, and synthetic data.",
+        }
+        return STATE["model_info"]
 
 
 def _generate(prompt: str, *, max_new_tokens: int, temperature: float, trace: dict[str, Any], row: dict[str, Any]) -> tuple[str, dict[str, Any]]:
     t0 = time.perf_counter()
-    model = STATE.get("model")
-    tokenizer = STATE.get("tokenizer")
-    if model is None or tokenizer is None:
-        response = _dry_run_response(prompt, trace, row)
-        elapsed = time.perf_counter() - t0
-        return response, {
-            "mode": "dry_run",
-            "seconds": round(elapsed, 4),
-            "input_tokens_est": _estimate_tokens(prompt),
-            "output_tokens_est": _estimate_tokens(response),
-        }
+    with MODEL_RUNTIME_LOCK:
+        model = STATE.get("model")
+        tokenizer = STATE.get("tokenizer")
+        if model is None or tokenizer is None:
+            response = _dry_run_response(prompt, trace, row)
+            elapsed = time.perf_counter() - t0
+            return response, {
+                "mode": "dry_run",
+                "seconds": round(elapsed, 4),
+                "input_tokens_est": _estimate_tokens(prompt),
+                "output_tokens_est": _estimate_tokens(response),
+            }
 
-    try:
-        import torch
-        inputs = tokenizer(prompt, return_tensors="pt")
-        device = next(model.parameters()).device
-        inputs = {k: v.to(device) for k, v in inputs.items()}
-        gen_kwargs = {
-            "max_new_tokens": max_new_tokens,
-            "do_sample": temperature > 0,
-            "temperature": max(temperature, 0.01),
-            "top_p": 0.9,
-            "pad_token_id": tokenizer.eos_token_id,
-        }
-        with torch.no_grad():
-            out = model.generate(**inputs, **gen_kwargs)
-        text = tokenizer.decode(out[0][inputs["input_ids"].shape[-1]:], skip_special_tokens=True).strip()
-        elapsed = time.perf_counter() - t0
-        return text, {
-            "mode": "model",
-            "seconds": round(elapsed, 4),
-            "input_tokens_est": int(inputs["input_ids"].shape[-1]),
-            "output_tokens_est": _estimate_tokens(text),
-        }
-    except Exception as exc:  # noqa: BLE001
-        response = _dry_run_response(prompt, trace, row)
-        elapsed = time.perf_counter() - t0
-        return response, {
-            "mode": "fallback_after_error",
-            "error": f"{type(exc).__name__}: {str(exc)[:240]}",
-            "seconds": round(elapsed, 4),
-            "input_tokens_est": _estimate_tokens(prompt),
-            "output_tokens_est": _estimate_tokens(response),
-        }
+        try:
+            import torch
+            inputs = tokenizer(prompt, return_tensors="pt")
+            device = next(model.parameters()).device
+            inputs = {k: v.to(device) for k, v in inputs.items()}
+            gen_kwargs = {
+                "max_new_tokens": max_new_tokens,
+                "do_sample": temperature > 0,
+                "temperature": max(temperature, 0.01),
+                "top_p": 0.9,
+                "pad_token_id": tokenizer.eos_token_id,
+            }
+            with torch.no_grad():
+                out = model.generate(**inputs, **gen_kwargs)
+            text = tokenizer.decode(out[0][inputs["input_ids"].shape[-1]:], skip_special_tokens=True).strip()
+            elapsed = time.perf_counter() - t0
+            return text, {
+                "mode": "model",
+                "seconds": round(elapsed, 4),
+                "input_tokens_est": int(inputs["input_ids"].shape[-1]),
+                "output_tokens_est": _estimate_tokens(text),
+            }
+        except Exception as exc:  # noqa: BLE001
+            response = _dry_run_response(prompt, trace, row)
+            elapsed = time.perf_counter() - t0
+            return response, {
+                "mode": "fallback_after_error",
+                "error": f"{type(exc).__name__}: {str(exc)[:240]}",
+                "seconds": round(elapsed, 4),
+                "input_tokens_est": _estimate_tokens(prompt),
+                "output_tokens_est": _estimate_tokens(response),
+            }
 
 
 def _dimension_plan(row: dict[str, Any], harness_profile: str, trace: dict[str, Any]) -> list[dict[str, Any]]:
@@ -1689,6 +1789,12 @@ def _run_batch(req: BatchRunRequest) -> dict[str, Any]:
             {"slug": p.get("slug"), "version": p.get("version"), "trust": p.get("trust"), "sha256": p.get("sha256")}
             for p in STATE["packs"].values()
         ],
+        "portability_contract": {
+            "schema_version": WORKBENCH_PORTABILITY_CONTRACT.get("schema_version"),
+            "required_chat_version": WORKBENCH_PORTABILITY_CONTRACT.get("required_chat_version"),
+            "sha256": _sha256_text(_json_dumps(WORKBENCH_PORTABILITY_CONTRACT)),
+            "workbench_defaults": WORKBENCH_PORTABILITY_CONTRACT.get("workbench_defaults", {}),
+        },
         "summary": _summarize_results(results),
         "results": results,
     }
@@ -1994,6 +2100,7 @@ def _generate_synthetic(req: SyntheticRequest) -> dict[str, Any]:
 
 
 def _training_script(req: TrainRequest, resolved_data_path: str, output_dir: Path) -> str:
+    training_cfg = A00_TRAINING_DEFAULT
     return f'''from __future__ import annotations
 import os
 from pathlib import Path
@@ -2003,6 +2110,15 @@ DATA_PATH = {resolved_data_path!r}
 OUTPUT_DIR = {str(output_dir)!r}
 MAX_STEPS = {int(req.max_steps)}
 LEARNING_RATE = {float(req.learning_rate)}
+MAX_SEQ_LENGTH = {int(training_cfg["max_seq_length"])}
+PER_DEVICE_BATCH = {int(training_cfg["per_device_train_batch_size"])}
+GRAD_ACCUM_STEPS = {int(training_cfg["gradient_accumulation_steps"])}
+WARMUP_STEPS = {int(training_cfg["warmup_steps"])}
+LORA_R = {int(training_cfg["lora_r"])}
+LORA_ALPHA = {int(training_cfg["lora_alpha"])}
+LORA_DROPOUT = {float(training_cfg["lora_dropout"])}
+RANDOM_STATE = {int(training_cfg["random_state"])}
+TARGET_MODULES = {training_cfg["target_modules"]!r}
 
 try:
     from unsloth import FastLanguageModel
@@ -2012,19 +2128,19 @@ try:
 
     model, tokenizer = FastLanguageModel.from_pretrained(
         model_name=BASE_MODEL,
-        max_seq_length=4096,
+        max_seq_length=MAX_SEQ_LENGTH,
         dtype=None,
         load_in_4bit=True,
     )
     model = FastLanguageModel.get_peft_model(
         model,
-        r=16,
-        target_modules=["q_proj", "k_proj", "v_proj", "o_proj", "gate_proj", "up_proj", "down_proj"],
-        lora_alpha=16,
-        lora_dropout=0,
+        r=LORA_R,
+        target_modules=TARGET_MODULES,
+        lora_alpha=LORA_ALPHA,
+        lora_dropout=LORA_DROPOUT,
         bias="none",
         use_gradient_checkpointing="unsloth",
-        random_state=3407,
+        random_state=RANDOM_STATE,
     )
     ds = load_dataset("json", data_files=DATA_PATH, split="train")
 
@@ -2041,11 +2157,11 @@ try:
         tokenizer=tokenizer,
         train_dataset=ds,
         dataset_text_field="text",
-        max_seq_length=4096,
+        max_seq_length=MAX_SEQ_LENGTH,
         args=TrainingArguments(
-            per_device_train_batch_size=1,
-            gradient_accumulation_steps=8,
-            warmup_steps=5,
+            per_device_train_batch_size=PER_DEVICE_BATCH,
+            gradient_accumulation_steps=GRAD_ACCUM_STEPS,
+            warmup_steps=WARMUP_STEPS,
             max_steps=MAX_STEPS,
             learning_rate=LEARNING_RATE,
             fp16=False,
@@ -2053,7 +2169,7 @@ try:
             logging_steps=5,
             output_dir=OUTPUT_DIR,
             optim="adamw_8bit",
-            seed=3407,
+            seed=RANDOM_STATE,
         ),
     )
     trainer.train()
@@ -2064,10 +2180,498 @@ except Exception as exc:
 '''
 
 
+def _tail_text(path: Path, limit: int = 4000) -> str:
+    try:
+        data = path.read_bytes()
+    except Exception:
+        return ""
+    return data[-limit:].decode("utf-8", errors="replace")
+
+
+def _write_job_record(job: dict[str, Any]) -> None:
+    try:
+        _write_json(TRAIN_DIR / f"{job['job_id']}_job.json", job)
+    except Exception as exc:  # noqa: BLE001
+        job["record_write_error"] = f"{type(exc).__name__}: {exc}"
+
+
+def _public_job(job: dict[str, Any]) -> dict[str, Any]:
+    public = dict(job)
+    for key in ("script", "log_path", "output_dir", "data_path"):
+        if public.get(key):
+            public[f"{key}_link"] = _artifact_link(str(public[key]))
+    report = public.get("report")
+    if isinstance(report, dict) and isinstance(report.get("artifacts"), dict):
+        public["report"] = {
+            **report,
+            "artifact_links": {k: _artifact_link(v) for k, v in report["artifacts"].items()},
+        }
+    return public
+
+
+def _append_job_step(job_id: str, label: str, status: str, detail: Any = None) -> None:
+    with JOB_STATE_LOCK:
+        job = STATE["jobs"].get(job_id)
+        if not job:
+            return
+        steps = job.setdefault("steps", [])
+        steps.append({"ts": _utc(), "label": label, "status": status, "detail": detail})
+        job["status"] = status if status in {"queued", "running", "completed", "failed", "timeout"} else job.get("status", "running")
+        job["heartbeat_at"] = _utc()
+        _write_job_record(job)
+
+
+def _training_preflight() -> dict[str, Any]:
+    packages = {
+        name: importlib.util.find_spec(name) is not None
+        for name in ["torch", "unsloth", "trl", "datasets", "peft", "bitsandbytes", "transformers"]
+    }
+    cuda: dict[str, Any] = {"checked": False, "available": False, "devices": []}
+    if packages.get("torch"):
+        try:
+            import torch  # type: ignore
+
+            cuda["checked"] = True
+            cuda["available"] = bool(torch.cuda.is_available())
+            if cuda["available"]:
+                cuda["devices"] = [
+                    {
+                        "index": i,
+                        "name": torch.cuda.get_device_name(i),
+                        "total_memory_gb": round(torch.cuda.get_device_properties(i).total_memory / (1024 ** 3), 2),
+                    }
+                    for i in range(torch.cuda.device_count())
+                ]
+        except Exception as exc:  # noqa: BLE001
+            cuda["error"] = f"{type(exc).__name__}: {exc}"
+    missing = [name for name, ok in packages.items() if not ok]
+    return {
+        "ok": bool(cuda.get("available")) and not missing,
+        "cuda": cuda,
+        "packages": packages,
+        "missing_required": missing,
+        "notes": [
+            "Training runs asynchronously through /api/a00/train and /api/a00/jobs/{job_id}.",
+            "CUDA plus torch, unsloth, trl, datasets, peft, and transformers are required for the generated Unsloth script.",
+            "bitsandbytes is expected for the default 4-bit optimizer path.",
+        ],
+    }
+
+
+def _inspect_training_rows(path: Path, max_rows: int = 5) -> dict[str, Any]:
+    rows: list[dict[str, Any]] = []
+    n_rows = 0
+    errors: list[str] = []
+    try:
+        with path.open("r", encoding="utf-8") as f:
+            for line in f:
+                if not line.strip():
+                    continue
+                n_rows += 1
+                if len(rows) < max_rows:
+                    try:
+                        rows.append(json.loads(line))
+                    except Exception as exc:  # noqa: BLE001
+                        errors.append(f"row {n_rows}: {type(exc).__name__}: {exc}")
+    except Exception as exc:  # noqa: BLE001
+        errors.append(f"{type(exc).__name__}: {exc}")
+    message_rows = sum(1 for r in rows if isinstance(r.get("messages"), list))
+    dpo_rows = sum(1 for r in rows if "chosen" in r and "rejected" in r)
+    generator_modes = sorted({
+        str((r.get("metadata") or {}).get("generator_mode"))
+        for r in rows
+        if isinstance(r.get("metadata"), dict) and (r.get("metadata") or {}).get("generator_mode")
+    })
+    harness_profiles = sorted({
+        str((r.get("metadata") or {}).get("harness_profile"))
+        for r in rows
+        if isinstance(r.get("metadata"), dict) and (r.get("metadata") or {}).get("harness_profile")
+    })
+    return {
+        "path": str(path),
+        "n_rows": n_rows,
+        "sample_rows": rows,
+        "shape": "sft_messages" if message_rows else "dpo_pairs" if dpo_rows else "unknown_jsonl",
+        "message_rows_in_sample": message_rows,
+        "dpo_rows_in_sample": dpo_rows,
+        "generator_modes": generator_modes,
+        "harness_profiles": harness_profiles,
+        "errors": errors,
+    }
+
+
+def _training_suggestion(path: Path, manifest: dict[str, Any], inspection: dict[str, Any]) -> dict[str, Any]:
+    training_profile = manifest.get("training_profile") or {}
+    synthetic_profile = manifest.get("synthetic_profile") or manifest.get("profile") or {}
+    suggested_base = (
+        training_profile.get("base_model_ref")
+        or A00_TRAINING_DEFAULT.get("base_model_ref")
+        or "google/gemma-4-e2b-it"
+    )
+    suggested_steps = int(training_profile.get("max_steps") or A00_TRAINING_DEFAULT.get("max_steps") or 60)
+    return {
+        "data_path": str(path),
+        "base_model_ref": suggested_base,
+        "max_steps": suggested_steps,
+        "execute": False,
+        "next_action": (
+            "Review row shape and metadata, run training preflight, then click Create training job. "
+            "Switch Execute now to true only when CUDA and dependencies pass."
+        ),
+        "detected_generator_mode": synthetic_profile.get("generator_mode") or (inspection.get("generator_modes") or [""])[0],
+        "detected_harness_profile": synthetic_profile.get("harness_profile") or (inspection.get("harness_profiles") or [""])[0],
+    }
+
+
+def _load_training_data_upload(filename: str, data: bytes) -> dict[str, Any]:
+    upload_id = "upload_" + datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S") + "_" + _safe_slug(filename)
+    target_dir = TRAIN_DIR / upload_id
+    target_dir.mkdir(parents=True, exist_ok=True)
+    manifest: dict[str, Any] = {}
+    candidates: list[Path] = []
+    if filename.lower().endswith(".zip"):
+        with zipfile.ZipFile(io.BytesIO(data)) as z:
+            for name in z.namelist():
+                if name.endswith("/"):
+                    continue
+                safe_name = Path(*[_safe_slug(part) for part in Path(name).parts if part and part not in {".", ".."}])
+                out_path = target_dir / safe_name
+                out_path.parent.mkdir(parents=True, exist_ok=True)
+                out_path.write_bytes(z.read(name))
+                if out_path.suffix.lower() == ".jsonl":
+                    candidates.append(out_path)
+                if out_path.name.lower().endswith("manifest.json"):
+                    try:
+                        manifest = json.loads(out_path.read_text(encoding="utf-8"))
+                    except Exception:
+                        pass
+    else:
+        out_path = target_dir / _safe_slug(filename or "training_data.jsonl")
+        out_path.write_bytes(data)
+        if out_path.suffix.lower() == ".jsonl":
+            candidates.append(out_path)
+        elif out_path.suffix.lower() == ".json":
+            try:
+                manifest = json.loads(out_path.read_text(encoding="utf-8"))
+            except Exception:
+                pass
+    sft_candidates = [p for p in candidates if "sft" in p.name.lower()]
+    selected = sft_candidates[0] if sft_candidates else candidates[0] if candidates else None
+    if not selected:
+        raise HTTPException(400, "No JSONL training data found. Upload an SFT JSONL or a ZIP containing *_sft.jsonl.")
+    inspection = _inspect_training_rows(selected)
+    suggestion = _training_suggestion(selected, manifest, inspection)
+    return {
+        "upload_id": upload_id,
+        "target_dir": str(target_dir),
+        "selected_data_path": str(selected),
+        "jsonl_candidates": [str(p) for p in candidates],
+        "manifest": manifest,
+        "inspection": inspection,
+        "suggested_train_request": suggestion,
+    }
+
+
+def _read_jsonish_uploads(filename: str, data: bytes) -> list[dict[str, Any]]:
+    items: list[dict[str, Any]] = []
+
+    def add(name: str, body: bytes) -> None:
+        lower = name.lower()
+        text = body.decode("utf-8", errors="ignore")
+        if lower.endswith(".json"):
+            try:
+                items.append({"name": name, "kind": "json", "data": json.loads(text), "text": text})
+            except Exception:
+                items.append({"name": name, "kind": "text", "text": text})
+        elif lower.endswith(".jsonl"):
+            rows = []
+            for line in text.splitlines():
+                if not line.strip():
+                    continue
+                try:
+                    rows.append(json.loads(line))
+                except Exception:
+                    pass
+            items.append({"name": name, "kind": "jsonl", "rows": rows, "text": text})
+        elif lower.endswith((".txt", ".md", ".csv")):
+            items.append({"name": name, "kind": "text", "text": text})
+
+    if filename.lower().endswith(".zip"):
+        with zipfile.ZipFile(io.BytesIO(data)) as z:
+            for name in z.namelist():
+                if name.endswith("/"):
+                    continue
+                lower = name.lower()
+                if lower.endswith((".json", ".jsonl", ".txt", ".md", ".csv")):
+                    add(name, z.read(name))
+    else:
+        add(filename, data)
+    return items
+
+
+def _normalize_prompt_row(row: dict[str, Any], idx: int) -> Optional[dict[str, Any]]:
+    prompt = row.get("prompt") or row.get("user") or row.get("input") or row.get("question")
+    if not prompt and isinstance(row.get("messages"), list):
+        for msg in row["messages"]:
+            if isinstance(msg, dict) and msg.get("role") == "user":
+                prompt = msg.get("content")
+                break
+    if not isinstance(prompt, str) or not prompt.strip():
+        return None
+    return {
+        "prompt_id": str(row.get("prompt_id") or row.get("id") or f"upload_{idx:04d}"),
+        "lane": row.get("lane") or row.get("audience") or "researcher",
+        "harness": row.get("harness") or row.get("harness_profile") or "chat_full",
+        "prompt": prompt.strip(),
+        "expected": row.get("expected") if isinstance(row.get("expected"), list) else [],
+    }
+
+
+def _bundle_from_prompt_response_rows(rows: list[dict[str, Any]], label: str, source_name: str) -> dict[str, Any]:
+    results: list[dict[str, Any]] = []
+    harness_profile = ""
+    model_ref = ""
+    for i, row in enumerate(rows, start=1):
+        prompt_row = _normalize_prompt_row(row, i)
+        if not prompt_row:
+            continue
+        response = row.get("response") or row.get("assistant") or row.get("output") or row.get("completion") or ""
+        if not isinstance(response, str):
+            response = json.dumps(response, ensure_ascii=False)
+        harness_profile = harness_profile or str(row.get("harness_profile") or row.get("harness") or "")
+        model = row.get("model") if isinstance(row.get("model"), dict) else {}
+        model_ref = model_ref or str(row.get("model_ref") or model.get("model_ref") or model.get("name") or "")
+        results.append({
+            "prompt_id": prompt_row["prompt_id"],
+            "lane": prompt_row["lane"],
+            "prompt": prompt_row["prompt"],
+            "expected": prompt_row["expected"],
+            "response": response,
+            "harness_trace": row.get("harness_trace") if isinstance(row.get("harness_trace"), dict) else {},
+            "generation": row.get("generation") if isinstance(row.get("generation"), dict) else {},
+            "grade": row.get("grade"),
+        })
+    run_id = "import_" + _safe_slug(label) + "_" + _sha256_text(source_name + json.dumps(results, sort_keys=True, default=str))[:10]
+    bundle = {
+        "schema_version": "duecare.a00.run.v1",
+        "run_id": run_id,
+        "created_at": _utc(),
+        "prompt_set": f"upload:{source_name}",
+        "harness_profile": harness_profile or "unknown",
+        "harness": HARNESS_PROFILES.get(harness_profile or "none", {}),
+        "model": {"model_ref": model_ref or "uploaded", "source": "uploaded_artifact"},
+        "knowledge_packs": [],
+        "summary": _summarize_results(results),
+        "results": results,
+        "source_upload": source_name,
+    }
+    bundle["artifacts"] = _write_run_artifacts(bundle)
+    STATE["exports"][run_id] = bundle
+    return bundle
+
+
+def _triage_uploaded_artifact(filename: str, data: bytes) -> dict[str, Any]:
+    upload_id = "intake_" + datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S") + "_" + _safe_slug(filename)
+    items = _read_jsonish_uploads(filename, data)
+    actions: list[dict[str, Any]] = []
+    imported_runs: list[dict[str, Any]] = []
+    imported_prompt_sets: list[dict[str, Any]] = []
+    imported_packs: list[str] = []
+    training_result: Optional[dict[str, Any]] = None
+    detected_types: set[str] = set()
+
+    try:
+        training_result = _load_training_data_upload(filename, data)
+        detected_types.add("synthetic_training_data")
+        actions.append({
+            "id": "finetune",
+            "label": "Fine-tune a model from this data",
+            "description": "A-00 found SFT JSONL rows and can fill the training path, base model, and max steps.",
+            "suggested_train_request": training_result.get("suggested_train_request", {}),
+        })
+    except Exception:
+        training_result = None
+
+    for item in items:
+        data_obj = item.get("data")
+        rows = item.get("rows") if isinstance(item.get("rows"), list) else None
+        name = str(item.get("name") or filename)
+        if isinstance(data_obj, dict) and data_obj.get("schema_version") == "duecare.a00.run.v1" and isinstance(data_obj.get("results"), list):
+            bundle = dict(data_obj)
+            run_id = bundle.get("run_id") or "import_" + _sha256_text(json.dumps(bundle, sort_keys=True, default=str))[:12]
+            bundle["run_id"] = run_id
+            bundle["summary"] = bundle.get("summary") or _summarize_results(bundle.get("results", []))
+            bundle["artifacts"] = bundle.get("artifacts") or _write_run_artifacts(bundle)
+            STATE["exports"][run_id] = bundle
+            imported_runs.append({"run_id": run_id, "n": len(bundle.get("results", [])), "harness_profile": bundle.get("harness_profile"), "source": name})
+            detected_types.add("run_export")
+        elif isinstance(data_obj, dict) and isinstance(data_obj.get("results"), list):
+            bundle = _bundle_from_prompt_response_rows(data_obj["results"], Path(name).stem, name)
+            imported_runs.append({"run_id": bundle["run_id"], "n": len(bundle.get("results", [])), "harness_profile": bundle.get("harness_profile"), "source": name})
+            detected_types.add("prompt_response_set")
+        elif isinstance(data_obj, dict) and ("slug" in data_obj and ("facts" in data_obj or "rules" in data_obj)):
+            slug = _safe_slug(str(data_obj.get("slug") or Path(name).stem))
+            data_obj["sha256"] = _sha256_text(json.dumps(data_obj, sort_keys=True, default=str))
+            STATE["packs"][slug] = data_obj
+            imported_packs.append(slug)
+            detected_types.add("knowledge_pack")
+        elif isinstance(data_obj, list):
+            rows = data_obj
+        if rows:
+            training_like_rows = any(
+                isinstance(r, dict)
+                and (
+                    (
+                        isinstance(r.get("messages"), list)
+                        and any(isinstance(m, dict) and m.get("role") == "assistant" for m in r.get("messages", []))
+                    )
+                    or ("chosen" in r and "rejected" in r)
+                )
+                for r in rows
+            )
+            if training_like_rows:
+                continue
+            prompt_rows = [_normalize_prompt_row(r, i + 1) for i, r in enumerate(rows) if isinstance(r, dict)]
+            prompt_rows = [r for r in prompt_rows if r]
+            response_rows = [
+                r for r in rows
+                if isinstance(r, dict) and any(k in r for k in ("response", "assistant", "output", "completion"))
+            ]
+            if response_rows:
+                bundle = _bundle_from_prompt_response_rows(response_rows, Path(name).stem, name)
+                imported_runs.append({"run_id": bundle["run_id"], "n": len(bundle.get("results", [])), "harness_profile": bundle.get("harness_profile"), "source": name})
+                detected_types.add("prompt_response_set")
+            elif prompt_rows:
+                prompt_set_id = "upload_" + _safe_slug(Path(name).stem) + "_" + _sha256_text(name + json.dumps(prompt_rows, sort_keys=True, default=str))[:8]
+                PROMPT_SETS[prompt_set_id] = prompt_rows
+                imported_prompt_sets.append({"prompt_set": prompt_set_id, "n": len(prompt_rows), "source": name})
+                detected_types.add("prompt_set")
+
+    if imported_prompt_sets:
+        actions.append({
+            "id": "run_prompts",
+            "label": "Run uploaded prompts",
+            "description": "Choose a model/harness profile, then run this prompt set and export responses.",
+            "prompt_set": imported_prompt_sets[0]["prompt_set"],
+        })
+    if imported_runs:
+        actions.append({
+            "id": "rerun_or_compare",
+            "label": "Rerun, grade, or compare uploaded responses",
+            "description": "The prompt-response export is now selectable. Add another run or build a comparison report.",
+            "run_ids": [r["run_id"] for r in imported_runs],
+        })
+    if imported_packs:
+        actions.append({
+            "id": "use_packs",
+            "label": "Use imported knowledge packs",
+            "description": "The packs are loaded into this session and will be referenced by subsequent runs.",
+            "packs": imported_packs,
+        })
+
+    if not actions:
+        actions.append({
+            "id": "review_unknown",
+            "label": "Review manually",
+            "description": "A-00 could not confidently classify this artifact. Use the source-specific upload panel.",
+        })
+
+    return {
+        "upload_id": upload_id,
+        "filename": filename,
+        "detected_types": sorted(detected_types) or ["unknown"],
+        "n_items": len(items),
+        "training_data": training_result,
+        "imported_prompt_sets": imported_prompt_sets,
+        "imported_runs": imported_runs,
+        "imported_packs": imported_packs,
+        "suggested_actions": actions,
+    }
+
+
+def _run_training_job(job_id: str) -> None:
+    with JOB_STATE_LOCK:
+        job = STATE["jobs"].get(job_id)
+        if not job:
+            return
+        job["status"] = "queued"
+        job["queued_at"] = job.get("queued_at") or _utc()
+        _write_job_record(job)
+
+    with TRAIN_JOB_LOCK:
+        with JOB_STATE_LOCK:
+            job = STATE["jobs"].get(job_id)
+            if not job:
+                return
+            job["status"] = "running"
+            job["started_at"] = _utc()
+            _write_job_record(job)
+
+        script_path = Path(job["script"])
+        log_path = Path(job["log_path"])
+        deadline = time.time() + A00_TRAINING_TIMEOUT_SEC
+        returncode: Optional[int] = None
+        try:
+            with log_path.open("ab") as log_file:
+                log_file.write(
+                    f"[{_utc()}] starting training script: {script_path}\n".encode("utf-8")
+                )
+                proc = subprocess.Popen(  # noqa: S603
+                    [sys.executable, str(script_path)],
+                    stdout=log_file,
+                    stderr=subprocess.STDOUT,
+                )
+                with JOB_STATE_LOCK:
+                    job = STATE["jobs"][job_id]
+                    job["pid"] = proc.pid
+                    job["log_tail"] = _tail_text(log_path)
+                    _write_job_record(job)
+                while proc.poll() is None:
+                    if time.time() > deadline:
+                        proc.terminate()
+                        try:
+                            proc.wait(timeout=30)
+                        except subprocess.TimeoutExpired:
+                            proc.kill()
+                        returncode = proc.returncode
+                        with JOB_STATE_LOCK:
+                            job = STATE["jobs"][job_id]
+                            job["status"] = "timeout"
+                            job["finished_at"] = _utc()
+                            job["returncode"] = returncode
+                            job["log_tail"] = _tail_text(log_path)
+                            _write_job_record(job)
+                        return
+                    time.sleep(5)
+                    with JOB_STATE_LOCK:
+                        job = STATE["jobs"][job_id]
+                        job["heartbeat_at"] = _utc()
+                        job["log_tail"] = _tail_text(log_path)
+                        _write_job_record(job)
+                returncode = proc.returncode
+            with JOB_STATE_LOCK:
+                job = STATE["jobs"][job_id]
+                job["returncode"] = returncode
+                job["finished_at"] = _utc()
+                job["log_tail"] = _tail_text(log_path)
+                job["status"] = "completed" if returncode == 0 else "failed"
+                _write_job_record(job)
+        except Exception as exc:  # noqa: BLE001
+            with JOB_STATE_LOCK:
+                job = STATE["jobs"].get(job_id)
+                if not job:
+                    return
+                job["status"] = "failed"
+                job["finished_at"] = _utc()
+                job["error"] = f"{type(exc).__name__}: {exc}"
+                job["log_tail"] = _tail_text(log_path)
+                _write_job_record(job)
+
+
 def _create_training_job(req: TrainRequest) -> dict[str, Any]:
     requested_data_path = (req.data_path or "").strip()
     if not requested_data_path:
-        synth = _generate_synthetic(SyntheticRequest(count=24, harness_profile="chat_full"))
+        synth = _generate_synthetic(SyntheticRequest(**A00_SYNTHETIC_DEFAULT))
         requested_data_path = synth["artifacts"]["sft"]
     data_path = Path(requested_data_path)
     if not data_path.is_absolute():
@@ -2078,17 +2682,21 @@ def _create_training_job(req: TrainRequest) -> dict[str, Any]:
     output_dir = Path(req.output_dir) if req.output_dir else TRAIN_DIR / job_id
     output_dir.mkdir(parents=True, exist_ok=True)
     script_path = TRAIN_DIR / f"{job_id}.py"
+    log_path = TRAIN_DIR / f"{job_id}.log"
     script_path.write_text(_training_script(req, str(data_path), output_dir), encoding="utf-8")
     job = {
         "job_id": job_id,
         "created_at": _utc(),
-        "status": "script_created",
+        "status": "queued" if req.execute else "script_created",
         "script": str(script_path),
+        "log_path": str(log_path),
         "data_path": str(data_path),
         "output_dir": str(output_dir),
         "base_model_ref": req.base_model_ref,
         "method": req.method,
         "execute": req.execute,
+        "async": bool(req.execute),
+        "timeout_sec": A00_TRAINING_TIMEOUT_SEC,
         "smoke_eval_plan": [
             "Run baseline evaluation on chat_safety_core before loading adapter.",
             "Train tiny LoRA for max_steps on rubric-polished SFT rows.",
@@ -2097,30 +2705,37 @@ def _create_training_job(req: TrainRequest) -> dict[str, Any]:
         ],
     }
     if req.execute:
-        proc = subprocess.run([sys.executable, str(script_path)], capture_output=True, text=True, timeout=60 * 60 * 8)
-        job["returncode"] = proc.returncode
-        job["stdout_tail"] = (proc.stdout or "")[-4000:]
-        job["stderr_tail"] = (proc.stderr or "")[-4000:]
-        job["status"] = "completed" if proc.returncode == 0 else "failed"
-    STATE["jobs"][job_id] = job
-    _write_json(TRAIN_DIR / f"{job_id}_job.json", job)
-    return job
+        log_path.write_text(
+            f"[{_utc()}] queued async LoRA training job {job_id}\n",
+            encoding="utf-8",
+        )
+    with JOB_STATE_LOCK:
+        STATE["jobs"][job_id] = job
+        _write_job_record(job)
+    if req.execute:
+        threading.Thread(
+            target=_run_training_job,
+            args=(job_id,),
+            name=f"a00-train-{job_id}",
+            daemon=True,
+        ).start()
+    return _public_job(job)
 
 
 def _ensure_sample_comparison_runs() -> list[str]:
     if len(STATE["exports"]) >= 2:
         return list(STATE["exports"].keys())[-2:]
     baseline = _run_batch(BatchRunRequest(
-        prompt_set="chat_safety_core",
-        harness_profile="none",
-        limit=6,
+        prompt_set=A00_BULK_COMPARE_DEFAULT["prompt_set"],
+        harness_profile=A00_BULK_COMPARE_DEFAULT["baseline_harness"],
+        limit=A00_BULK_COMPARE_DEFAULT["limit"],
         run_label="auto-baseline",
         evaluate=True,
     ))
     harnessed = _run_batch(BatchRunRequest(
-        prompt_set="chat_safety_core",
-        harness_profile="chat_full",
-        limit=6,
+        prompt_set=A00_BULK_COMPARE_DEFAULT["prompt_set"],
+        harness_profile=A00_BULK_COMPARE_DEFAULT["treatment_harness"],
+        limit=A00_BULK_COMPARE_DEFAULT["limit"],
         run_label="auto-harnessed",
         evaluate=True,
     ))
@@ -2471,6 +3086,286 @@ def _run_workflow(req: WorkflowRequest) -> dict[str, Any]:
     return {"kind": "capability_manifest", "result": {"workflow": workflow, "artifacts": artifacts}}
 
 
+def _run_quantitative_profile(req: QuantitativeProfileRequest) -> dict[str, Any]:
+    profile = A00_RUN_PROFILES.get(req.profile_id)
+    if not profile:
+        raise HTTPException(404, f"unknown quantitative profile {req.profile_id}")
+
+    if profile.get("baseline_harness") and profile.get("treatment_harness"):
+        label = req.run_label or profile["id"]
+        generation = profile.get("generation", {})
+        baseline = _run_batch(BatchRunRequest(
+            prompt_set=profile["prompt_set"],
+            harness_profile=profile["baseline_harness"],
+            limit=int(profile["limit"]),
+            temperature=float(generation.get("temperature", 0.2)),
+            max_new_tokens=int(generation.get("max_new_tokens", 420)),
+            evaluate=bool(generation.get("evaluate", True)),
+            llm_judge=bool(generation.get("llm_judge", False)),
+            run_label=f"{label}-baseline",
+        ))
+        treatment = _run_batch(BatchRunRequest(
+            prompt_set=profile["prompt_set"],
+            harness_profile=profile["treatment_harness"],
+            limit=int(profile["limit"]),
+            temperature=float(generation.get("temperature", 0.2)),
+            max_new_tokens=int(generation.get("max_new_tokens", 420)),
+            evaluate=bool(generation.get("evaluate", True)),
+            llm_judge=bool(generation.get("llm_judge", False)),
+            run_label=f"{label}-harness",
+        ))
+        report = _build_report(ReportRequest(
+            run_ids=[baseline["run_id"], treatment["run_id"]],
+            title=profile.get("report_title", "DueCare quantitative comparison"),
+        ))
+        return {
+            "kind": "bulk_harness_comparison",
+            "profile": profile,
+            "run_ids": [baseline["run_id"], treatment["run_id"]],
+            "baseline": {"run_id": baseline["run_id"], "summary": baseline["summary"]},
+            "treatment": {"run_id": treatment["run_id"], "summary": treatment["summary"]},
+            "report": report,
+        }
+
+    if profile.get("training_profile"):
+        synth_profile = A00_SYNTHETIC_PROFILES.get(
+            profile.get("synthetic_profile", "rubric_polisher_24"),
+            A00_SYNTHETIC_DEFAULT,
+        )
+        training_profile = A00_TRAINING_PROFILES.get(
+            profile.get("training_profile", "tiny_lora_smoke"),
+            A00_TRAINING_DEFAULT,
+        )
+        synth = _generate_synthetic(SyntheticRequest(**synth_profile))
+        job = _create_training_job(TrainRequest(
+            data_path=synth["artifacts"]["sft"],
+            base_model_ref=training_profile.get("base_model_ref", A00_TRAINING_DEFAULT["base_model_ref"]),
+            adapter_name=training_profile.get("adapter_name", A00_TRAINING_DEFAULT["adapter_name"]),
+            method=training_profile.get("method", "sft"),
+            execute=bool(req.execute_training),
+            max_steps=int(training_profile.get("max_steps", A00_TRAINING_DEFAULT["max_steps"])),
+            learning_rate=float(training_profile.get("learning_rate", A00_TRAINING_DEFAULT["learning_rate"])),
+        ))
+        matrix = WORKBENCH_EXPERIMENT_CONTRACT["comparison_matrices"][
+            profile.get("comparison_matrix", "stock_vs_finetuned_harness_matrix")
+        ]
+        return {
+            "kind": "synthetic_finetune_smoke",
+            "profile": profile,
+            "synthetic": synth,
+            "training_job": job,
+            "comparison_matrix": matrix,
+            "next_steps": [
+                "Run stock and stock+harness on the shared prompt set.",
+                "Execute the LoRA job on a GPU session when paths and dependencies are confirmed.",
+                "Load the adapter as the fine-tuned model and rerun the same prompt set with harness off and on.",
+                "Build the report using the four exported run IDs from the comparison matrix.",
+            ],
+        }
+
+    raise HTTPException(400, f"profile {req.profile_id} has no runnable strategy")
+
+
+PIPELINE_PRESETS = {
+    "compare_two_models": {
+        "label": "Compare two models one at a time",
+        "description": "Unload, load Model A, run prompts, unload, load Model B, run the same prompts, then build a comparison report.",
+    },
+    "synthetic_train_benchmark_cycle": {
+        "label": "Four-arm fine-tune proof path",
+        "description": "Run base/no-harness, base+harness, generate polished synthetic data, train, then run fine-tuned/no-harness and fine-tuned+harness on the same prompts.",
+    },
+}
+
+
+def _model_request(source: str, ref: str, adapter_ref: str, quantization: str) -> ModelLoadRequest:
+    return ModelLoadRequest(
+        source=source or "dry_run",
+        model_ref=ref or "dry_run",
+        adapter_ref=adapter_ref or "",
+        quantization=quantization or "4bit",
+    )
+
+
+def _wait_for_training_job(job_id: str, pipeline_job_id: str, timeout_sec: int) -> dict[str, Any]:
+    deadline = time.time() + timeout_sec
+    while time.time() < deadline:
+        with JOB_STATE_LOCK:
+            job = STATE["jobs"].get(job_id, {})
+            status = job.get("status")
+            tail = str(job.get("log_tail") or "")[-1000:]
+        _append_job_step(pipeline_job_id, "training heartbeat", "running", {"job_id": job_id, "status": status, "log_tail": tail})
+        if status in {"completed", "failed", "timeout"}:
+            return job
+        time.sleep(10)
+    return {"job_id": job_id, "status": "timeout", "error": "pipeline wait timed out"}
+
+
+def _run_pipeline_job(job_id: str, req: PipelineRequest) -> None:
+    with PIPELINE_JOB_LOCK:
+        with JOB_STATE_LOCK:
+            job = STATE["jobs"].get(job_id)
+            if not job:
+                return
+            job["status"] = "running"
+            job["started_at"] = _utc()
+            _write_job_record(job)
+        run_ids: list[str] = []
+        try:
+            if req.preset_id == "compare_two_models":
+                for label, source, ref, adapter in [
+                    ("model_a", req.model_a_source, req.model_a_ref, req.model_a_adapter_ref),
+                    ("model_b", req.model_b_source, req.model_b_ref, req.model_b_adapter_ref),
+                ]:
+                    if req.unload_between_steps:
+                        _append_job_step(job_id, f"unload before {label}", "running")
+                        _unload_model_runtime(f"pipeline {job_id}: before {label}")
+                    _append_job_step(job_id, f"load {label}", "running", {"source": source, "model_ref": ref, "adapter_ref": adapter})
+                    model_info = _load_model_runtime(_model_request(source, ref, adapter, req.quantization))
+                    _append_job_step(job_id, f"loaded {label}", "running", model_info)
+                    bundle = _run_batch(BatchRunRequest(
+                        prompt_set=req.prompt_set,
+                        harness_profile=req.harness_profile,
+                        limit=req.limit,
+                        run_label=f"{req.run_label or job_id}-{label}",
+                        evaluate=req.evaluate_outputs,
+                        llm_judge=req.llm_judge,
+                    ))
+                    run_ids.append(bundle["run_id"])
+                    _append_job_step(job_id, f"ran {label}", "running", {"run_id": bundle["run_id"], "summary": bundle["summary"]})
+                report = _build_report(ReportRequest(
+                    run_ids=run_ids,
+                    title=f"A-00 pipeline model comparison: {req.run_label or job_id}",
+                )) if req.include_report else {}
+                with JOB_STATE_LOCK:
+                    job = STATE["jobs"][job_id]
+                    job["run_ids"] = run_ids
+                    if report:
+                        job["report"] = report
+                _append_job_step(job_id, "comparison report" if report else "runs ready for later grading", "running", report or {"run_ids": run_ids})
+
+            elif req.preset_id == "synthetic_train_benchmark_cycle":
+                if req.unload_between_steps:
+                    _unload_model_runtime(f"pipeline {job_id}: before synthetic generation")
+                _append_job_step(job_id, "load teacher/base model", "running", {"source": req.model_a_source, "model_ref": req.model_a_ref})
+                _load_model_runtime(_model_request(req.model_a_source, req.model_a_ref, req.model_a_adapter_ref, req.quantization))
+                base_no_harness = _run_batch(BatchRunRequest(
+                    prompt_set=req.prompt_set,
+                    harness_profile=req.baseline_harness_profile,
+                    limit=req.limit,
+                    run_label=f"{req.run_label or job_id}-stock",
+                    evaluate=req.evaluate_outputs,
+                    llm_judge=req.llm_judge,
+                ))
+                base_harness = _run_batch(BatchRunRequest(
+                    prompt_set=req.prompt_set,
+                    harness_profile=req.harness_profile,
+                    limit=req.limit,
+                    run_label=f"{req.run_label or job_id}-stock-harness",
+                    evaluate=req.evaluate_outputs,
+                    llm_judge=req.llm_judge,
+                ))
+                run_ids.extend([base_no_harness["run_id"], base_harness["run_id"]])
+                synth = _generate_synthetic(SyntheticRequest(
+                    source_prompt_set="synthetic_seed",
+                    count=req.synthetic_count,
+                    harness_profile=req.harness_profile,
+                    generator_mode=req.generator_mode,
+                ))
+                _append_job_step(job_id, "generated synthetic data", "running", {"artifacts": synth["artifacts"], "counts": synth.get("counts")})
+                if req.unload_between_steps:
+                    _unload_model_runtime(f"pipeline {job_id}: before training")
+                train_job = _create_training_job(TrainRequest(
+                    data_path=synth["artifacts"]["sft"],
+                    base_model_ref=req.model_b_ref or req.model_a_ref,
+                    adapter_name=f"{_safe_slug(req.run_label or job_id)}-adapter",
+                    execute=req.execute_training,
+                    max_steps=req.max_steps,
+                    output_dir=req.training_output_dir,
+                ))
+                _append_job_step(job_id, "created training job", "running", train_job)
+                if req.execute_training:
+                    final_train = _wait_for_training_job(train_job["job_id"], job_id, A00_TRAINING_TIMEOUT_SEC)
+                    if final_train.get("status") != "completed":
+                        raise RuntimeError(f"training job did not complete: {final_train.get('status')}")
+                    adapter_path = final_train.get("output_dir") or train_job.get("output_dir")
+                    if req.unload_between_steps:
+                        _unload_model_runtime(f"pipeline {job_id}: before adapter benchmark")
+                    _append_job_step(job_id, "load fine-tuned adapter", "running", {"base_model_ref": req.model_b_ref or req.model_a_ref, "adapter_ref": adapter_path})
+                    _load_model_runtime(_model_request(req.model_b_source or req.model_a_source, req.model_b_ref or req.model_a_ref, str(adapter_path), req.quantization))
+                    ft_no_harness = _run_batch(BatchRunRequest(
+                        prompt_set=req.prompt_set,
+                        harness_profile=req.baseline_harness_profile,
+                        limit=req.limit,
+                        run_label=f"{req.run_label or job_id}-finetuned",
+                        evaluate=req.evaluate_outputs,
+                        llm_judge=req.llm_judge,
+                    ))
+                    ft_harness = _run_batch(BatchRunRequest(
+                        prompt_set=req.prompt_set,
+                        harness_profile=req.harness_profile,
+                        limit=req.limit,
+                        run_label=f"{req.run_label or job_id}-finetuned-harness",
+                        evaluate=req.evaluate_outputs,
+                        llm_judge=req.llm_judge,
+                    ))
+                    run_ids.extend([ft_no_harness["run_id"], ft_harness["run_id"]])
+                report = _build_report(ReportRequest(
+                    run_ids=run_ids,
+                    title=f"A-00 pipeline stock/fine-tuned/harness matrix: {req.run_label or job_id}",
+                )) if req.include_report else {}
+                with JOB_STATE_LOCK:
+                    job = STATE["jobs"][job_id]
+                    job["run_ids"] = run_ids
+                    job["synthetic"] = synth
+                    job["training_job"] = train_job
+                    if report:
+                        job["report"] = report
+                _append_job_step(job_id, "pipeline report" if report else "runs ready for later grading", "running", report or {"run_ids": run_ids})
+            else:
+                raise HTTPException(404, f"unknown pipeline preset {req.preset_id}")
+
+            if req.unload_between_steps:
+                _unload_model_runtime(f"pipeline {job_id}: complete")
+            with JOB_STATE_LOCK:
+                job = STATE["jobs"][job_id]
+                job["status"] = "completed"
+                job["finished_at"] = _utc()
+                _write_job_record(job)
+        except Exception as exc:  # noqa: BLE001
+            with JOB_STATE_LOCK:
+                job = STATE["jobs"].get(job_id)
+                if job:
+                    job["status"] = "failed"
+                    job["finished_at"] = _utc()
+                    job["error"] = f"{type(exc).__name__}: {exc}"
+                    _write_job_record(job)
+            _append_job_step(job_id, "pipeline failed", "failed", f"{type(exc).__name__}: {exc}")
+
+
+def _create_pipeline_job(req: PipelineRequest) -> dict[str, Any]:
+    job_id = "a00_pipeline_" + _safe_slug(req.run_label or req.preset_id) + "_" + datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+    job = {
+        "job_id": job_id,
+        "kind": "pipeline",
+        "created_at": _utc(),
+        "status": "queued",
+        "pipeline_request": req.dict(),
+        "steps": [],
+        "async": True,
+    }
+    with JOB_STATE_LOCK:
+        STATE["jobs"][job_id] = job
+        _write_job_record(job)
+    threading.Thread(
+        target=_run_pipeline_job,
+        args=(job_id, req),
+        name=f"a00-pipeline-{job_id}",
+        daemon=True,
+    ).start()
+    return _public_job(job)
+
+
 def _artifact_link(path: str) -> str:
     try:
         p = Path(path).resolve()
@@ -2500,8 +3395,10 @@ def api_a00_status() -> Any:
             {k: p.get(k) for k in ["slug", "version", "trust", "sha256", "source_url"]}
             for p in STATE["packs"].values()
         ],
+        "portability_contract": STATE["portability_contract"],
+        "experiment_contract": STATE["experiment_contract"],
         "primary_notebook_audit": PRIMARY_NOTEBOOK_AUDIT,
-        "jobs": list(STATE["jobs"].values())[-10:],
+        "jobs": [_public_job(j) for j in list(STATE["jobs"].values())[-10:]],
         "research_bundles": [
             {
                 "bundle_id": bid,
@@ -2514,12 +3411,47 @@ def api_a00_status() -> Any:
     }
 
 
+def api_a00_jobs() -> Any:
+    return {"ok": True, "jobs": [_public_job(j) for j in list(STATE["jobs"].values())[-50:]]}
+
+
+def api_a00_job_status(job_id: str) -> Any:
+    job = STATE["jobs"].get(job_id)
+    if not job:
+        raise HTTPException(404, f"unknown job {job_id}")
+    public = _public_job(job)
+    log_path = Path(str(job.get("log_path") or ""))
+    if log_path.exists():
+        public["log_tail"] = _tail_text(log_path)
+    return {"ok": True, "job": public}
+
+
+def api_training_preflight() -> Any:
+    return _training_preflight()
+
+
+async def api_training_data_upload(file: UploadFile = File(...)) -> Any:
+    data = await file.read()
+    result = _load_training_data_upload(file.filename or "training_data.jsonl", data)
+    return {"ok": True, **result}
+
+
+async def api_intake_upload(file: UploadFile = File(...)) -> Any:
+    data = await file.read()
+    result = _triage_uploaded_artifact(file.filename or "artifact", data)
+    return {"ok": True, **result}
+
+
 def api_model_presets() -> Any:
     return {"presets": MODEL_PRESETS}
 
 
 def api_harness_profiles() -> Any:
     return {"profiles": HARNESS_PROFILES}
+
+
+def api_experiment_contract() -> Any:
+    return STATE["experiment_contract"]
 
 
 def api_workflows() -> Any:
@@ -2539,6 +3471,21 @@ def api_model_load(req: ModelLoadRequest) -> Any:
     info = _load_model_runtime(req)
     dc_log("a00.model.load", f"source={req.source}", model_ref=info.get("model_ref"))
     return {"ok": True, "model": info}
+
+
+def api_model_unload() -> Any:
+    info = _unload_model_runtime("manual request")
+    dc_log("a00.model.unload", "manual unload", model_ref=info.get("model_ref"))
+    return {"ok": True, "model": info}
+
+
+def api_pipeline_presets() -> Any:
+    return {"ok": True, "presets": PIPELINE_PRESETS}
+
+
+def api_pipeline_run(req: PipelineRequest) -> Any:
+    job = _create_pipeline_job(req)
+    return {"ok": True, "job": job}
 
 
 async def api_model_upload(file: UploadFile = File(...)) -> Any:
@@ -2684,6 +3631,28 @@ def api_run_workflow(req: WorkflowRequest) -> Any:
     return {"ok": True, "workflow_id": req.workflow_id, **out}
 
 
+def api_run_quantitative_profile(req: QuantitativeProfileRequest) -> Any:
+    out = _run_quantitative_profile(req)
+    if out.get("kind") == "bulk_harness_comparison":
+        report = out.get("report", {})
+        if isinstance(report, dict) and "artifacts" in report:
+            out["report"] = {
+                **report,
+                "artifact_links": {k: _artifact_link(v) for k, v in report["artifacts"].items()},
+            }
+    if out.get("kind") == "synthetic_finetune_smoke":
+        synth = out.get("synthetic", {})
+        if isinstance(synth, dict) and "artifacts" in synth:
+            out["synthetic"] = {
+                **synth,
+                "artifact_links": {k: _artifact_link(v) for k, v in synth["artifacts"].items()},
+            }
+        job = out.get("training_job", {})
+        if isinstance(job, dict) and "script" in job:
+            out["training_job"] = {**job, "script_link": _artifact_link(job["script"])}
+    return {"ok": True, **out}
+
+
 async def api_research_upload(file: UploadFile = File(...)) -> Any:
     data = await file.read()
     docs = _read_document_bundle(file.filename or "upload", data)
@@ -2725,6 +3694,15 @@ HOMEPAGE_HTML = r"""<!doctype html>
     .audit-card ul { margin: 8px 0 0 18px; padding: 0; color: var(--ink-2); font-size: 12px; line-height: 1.45; }
     .train-checklist { border: 1px solid var(--line); border-radius: 8px; background: var(--paper-2); padding: 10px 12px; margin: 10px 0; }
     .train-checklist ol { margin: 6px 0 0 18px; padding: 0; color: var(--ink-2); font-size: 12px; line-height: 1.5; }
+    .job-list { display: grid; gap: 8px; margin-top: 10px; }
+    .job-card { border: 1px solid var(--line); border-radius: 8px; background: #fff; padding: 10px; font-size: 12px; }
+    .job-card b { display: block; margin-bottom: 4px; }
+    .status-pill { display: inline-block; border: 1px solid var(--line); border-radius: 999px; padding: 2px 8px; background: var(--paper-2); color: var(--ink-2); font-size: 11px; }
+    .status-running, .status-queued { border-color: #7c6f2e; background: #fff8d6; color: #4f4300; }
+    .status-completed { border-color: #2f7d4f; background: #e8f7ee; color: #15532e; }
+    .status-failed, .status-timeout { border-color: #a33; background: #ffecec; color: #7a1d1d; }
+    .intake-result { display: grid; gap: 8px; margin-top: 10px; }
+    .intake-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
     .panel h2 { margin: 0 0 10px; font-size: 16px; }
     .panel p { color: var(--ink-2); font-size: 13px; line-height: 1.5; }
     .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin: 8px 0; }
@@ -2772,6 +3750,101 @@ HOMEPAGE_HTML = r"""<!doctype html>
   </section>
 
   <section class="panel" style="margin-top:16px;">
+    <h2>Already have a file?</h2>
+    <p>
+      Upload a synthetic training bundle, prompt set, prompt-response export,
+      combined comparison bundle, or knowledge pack. A-00 reads the metadata,
+      imports what it can, and suggests the next action.
+    </p>
+    <div class="row">
+      <input type="file" id="intake-file" accept=".zip,.json,.jsonl,.csv,.txt,.md">
+      <button onclick="analyzeIntake()">Analyze upload and suggest next step</button>
+    </div>
+    <div id="intake-result" class="intake-result"></div>
+  </section>
+
+  <section class="panel" style="margin-top:16px;">
+    <h2>Quantitative proof profiles</h2>
+    <p>
+      These are shared-contract runs used by the downstream notebooks: a text-only
+      harness comparison for 20-50 prompts, and a tiny fine-tune smoke path that
+      generates synthetic SFT rows before creating a LoRA job bundle.
+    </p>
+    <div class="row">
+      <label>Profile <select id="quant-profile"></select></label>
+      <label>Execute training
+        <select id="quant-execute">
+          <option value="false">false</option>
+          <option value="true">true</option>
+        </select>
+      </label>
+    </div>
+    <div class="row">
+      <button onclick="runQuantProfile()">Run selected profile</button>
+      <span class="muted">Heavy training stays disabled by default for recording-safe runs.</span>
+    </div>
+  </section>
+
+  <section class="panel" style="margin-top:16px;">
+    <h2>Advanced pipeline presets</h2>
+    <p>
+      Queue multi-step runs that load, unload, train, and benchmark one model at
+      a time. These presets are for smaller models such as E2B/E4B or dry-run
+      validation before a real GPU session.
+    </p>
+    <details>
+      <summary>Configure model-switching pipeline</summary>
+      <div class="row">
+        <label>Preset <select id="pipeline-preset"></select></label>
+        <label>Pipeline label <input id="pipeline-label" placeholder="e4b-vs-adapter-smoke"></label>
+        <label>Prompt count <input id="pipeline-limit" type="number" min="1" max="100" value="5"></label>
+      </div>
+      <div class="row">
+        <label>Base/eval model source <select id="pipeline-a-source"><option value="dry_run">dry_run</option><option value="hf">hf</option><option value="kaggle_path">kaggle_path</option><option value="local_path">local_path</option></select></label>
+        <label>Base/eval model ref <input id="pipeline-a-ref" value="dry_run"></label>
+        <label>Model A adapter <input id="pipeline-a-adapter" placeholder="/kaggle/input/adapter-a"></label>
+      </div>
+      <div class="row">
+        <label>Fine-tune base source <select id="pipeline-b-source"><option value="dry_run">dry_run</option><option value="hf">hf</option><option value="kaggle_path">kaggle_path</option><option value="local_path">local_path</option></select></label>
+        <label>Fine-tune base model/path <input id="pipeline-b-ref" value="google/gemma-4-e2b-it"></label>
+        <label>Existing adapter path <input id="pipeline-b-adapter" placeholder="/kaggle/input/adapter-b"></label>
+      </div>
+      <div class="row">
+        <label>Prompt set <select id="pipeline-prompt-set"></select></label>
+        <label>Baseline harness <select id="pipeline-baseline-harness"></select></label>
+        <label>Treatment harness <select id="pipeline-harness"></select></label>
+      </div>
+      <div class="row">
+        <label>Synthetic rows <input id="pipeline-synth-count" type="number" min="1" max="200" value="5"></label>
+        <label>Max train steps <input id="pipeline-max-steps" type="number" min="1" max="500" value="60"></label>
+        <label>Training output path <input id="pipeline-output-dir" placeholder="/kaggle/working/a00_training/my_adapter"></label>
+      </div>
+      <div class="row">
+        <label>Grade outputs <select id="pipeline-evaluate"><option value="true">now</option><option value="false">later</option></select></label>
+        <label>Build report <select id="pipeline-report"><option value="true">yes</option><option value="false">later</option></select></label>
+        <label>Execute training <select id="pipeline-execute"><option value="false">false</option><option value="true">true</option></select></label>
+        <label>Unload between steps <select id="pipeline-unload"><option value="true">true</option><option value="false">false</option></select></label>
+      </div>
+      <div class="row">
+        <button class="secondary" onclick="useE2BPipelineDefaults()">Use E2B four-arm defaults</button>
+        <button onclick="runAdvancedPipeline()">Queue advanced pipeline</button>
+        <span class="muted">The job runs in the background and appears in the Jobs list.</span>
+      </div>
+    </details>
+  </section>
+
+  <section class="panel" style="margin-top:16px;">
+    <h2>Training quality gates</h2>
+    <p>
+      Synthetic SFT and DPO rows follow the shared experiment contract from Kernel 01.
+      The default path keeps evaluation prompts held out, filters PII and unsafe chosen
+      answers, and reports stock, stock+harness, fine-tuned, and fine-tuned+harness
+      arms separately.
+    </p>
+    <div id="training-guidance" class="audit-grid"></div>
+  </section>
+
+  <section class="panel" style="margin-top:16px;">
     <h2>Primary notebook audit</h2>
     <p>
       Use this checklist to verify the three core notebooks and A-00 before recording or submitting.
@@ -2808,6 +3881,7 @@ HOMEPAGE_HTML = r"""<!doctype html>
       </div>
       <div class="row">
         <button onclick="loadModel()">Load model</button>
+        <button class="secondary" onclick="unloadModel()">Unload model</button>
         <button class="secondary" onclick="setAbliterated()">Use abliterated adversary</button>
       </div>
     </div>
@@ -2878,17 +3952,21 @@ HOMEPAGE_HTML = r"""<!doctype html>
 
     <div class="panel">
       <h2>6. Train adapter</h2>
-      <p>Create an Unsloth or PEFT LoRA training script from exported synthetic data. Execute only when the Kaggle session has the right GPU and dependencies.</p>
+      <p>Create an Unsloth or PEFT LoRA training script from exported synthetic data. If execution is enabled, the job runs asynchronously and this page polls status instead of holding a long Cloudflare request open.</p>
       <div class="train-checklist">
         <b>Safe training preflight</b>
         <ol>
           <li>Generate rubric-polished SFT/DPO rows first, or click Tiny fine-tune smoke bundle.</li>
           <li>Confirm the Training JSONL path points to an SFT JSONL under /kaggle/working/a00_training.</li>
-          <li>Leave Execute now as false until the script, base model, GPU, and dependencies look correct.</li>
-          <li>For the recording, export the job JSON and ZIP even if you do not run the full LoRA job live.</li>
+          <li>Run Execute now only after the base model, GPU, and dependencies look correct; one training process runs at a time.</li>
+          <li>For recording, the generated job JSON, log, script, SFT/DPO rows, and adapter output path are enough to document the handoff.</li>
         </ol>
       </div>
       <label>Training JSONL path <input id="train-data-path" placeholder="/kaggle/working/a00_training/..._sft.jsonl"></label>
+      <div class="row">
+        <input type="file" id="train-upload-file" accept=".jsonl,.json,.zip">
+        <button class="secondary" onclick="uploadTrainingData()">Upload and inspect training data</button>
+      </div>
       <label>Base model <input id="train-base-model" value="google/gemma-4-e2b-it"></label>
       <div class="row">
         <label>Max steps <input id="max-steps" type="number" value="60"></label>
@@ -2896,6 +3974,9 @@ HOMEPAGE_HTML = r"""<!doctype html>
       </div>
       <button onclick="createTrainingJob()">Create training job</button>
       <button class="secondary" onclick="finetuneSmoke()">Tiny fine-tune smoke bundle</button>
+      <button class="secondary" onclick="checkTrainingPreflight()">Check training preflight</button>
+      <div id="training-preflight" class="muted"></div>
+      <div id="jobs" class="job-list"></div>
     </div>
 
     <div class="panel">
@@ -2929,11 +4010,132 @@ HOMEPAGE_HTML = r"""<!doctype html>
 <script>
 const $ = (id) => document.getElementById(id);
 let selectedRuns = [];
+let activeJobPolls = {};
+let lastIntake = null;
 function log(obj) { $("log").textContent = typeof obj === "string" ? obj : JSON.stringify(obj, null, 2); refreshStatus(); }
 async function getJson(url, opts) {
   const r = await fetch(url, opts);
   const text = await r.text();
   try { return JSON.parse(text); } catch { return {ok:false, text}; }
+}
+function jobStatusClass(status) {
+  return "status-pill status-" + String(status || "unknown").replace(/[^a-z0-9_-]/gi, "-").toLowerCase();
+}
+function renderJobs(jobs) {
+  const box = $("jobs");
+  if (!box) return;
+  const rows = (jobs || []).slice().reverse().map(j => {
+    const links = [
+      j.script_link ? `<a href="${j.script_link}" target="_blank">script</a>` : "",
+      j.log_path_link ? `<a href="${j.log_path_link}" target="_blank">log</a>` : "",
+      j.output_dir_link ? `<a href="${j.output_dir_link}" target="_blank">adapter dir</a>` : "",
+      j.data_path_link ? `<a href="${j.data_path_link}" target="_blank">data</a>` : "",
+    ].filter(Boolean).join(" · ");
+    const tail = j.log_tail ? `<details><summary>log tail</summary><pre>${escapeHtml(j.log_tail)}</pre></details>` : "";
+    const steps = (j.steps || []).slice(-8).map(s => `<li>${escapeHtml(s.ts || "")} · ${escapeHtml(s.label || "")} · ${escapeHtml(s.status || "")}</li>`).join("");
+    const reportUrl = j.report && j.report.artifact_links ? j.report.artifact_links.html : "";
+    const report = reportUrl ? `<p><a href="${reportUrl}" target="_blank">open report</a></p>` : "";
+    return `<div class="job-card"><b>${j.job_id}</b><span class="${jobStatusClass(j.status)}">${j.status || "unknown"}</span> <span class="muted">${j.started_at || j.created_at || ""}</span><p class="muted">kind: ${j.kind || "training"} · base: ${j.base_model_ref || ""} · method: ${j.method || ""}</p><p>${links}</p>${report}${steps ? `<details open><summary>steps</summary><ul>${steps}</ul></details>` : ""}${tail}</div>`;
+  }).join("");
+  box.innerHTML = rows || "<div class='muted'>No training jobs yet.</div>";
+}
+function escapeHtml(s) {
+  return String(s || "").replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function renderIntake(res) {
+  const box = $("intake-result");
+  if (!box) return;
+  const types = (res.detected_types || []).join(", ");
+  const promptSets = (res.imported_prompt_sets || []).map(p => `${p.prompt_set} (${p.n})`).join(", ") || "none";
+  const runs = (res.imported_runs || []).map(r => `${r.run_id} (${r.n})`).join(", ") || "none";
+  const packs = (res.imported_packs || []).join(", ") || "none";
+  const actions = (res.suggested_actions || []).map(a => `<li><b>${escapeHtml(a.label)}</b>: ${escapeHtml(a.description)}</li>`).join("");
+  const buttons = [];
+  if ((res.training_data || {}).suggested_train_request) {
+    buttons.push(`<button onclick="useIntakeTraining()">Use for fine-tuning</button>`);
+  }
+  if ((res.imported_prompt_sets || []).length) {
+    buttons.push(`<button class="secondary" onclick="useIntakePromptSet()">Run uploaded prompts</button>`);
+  }
+  if ((res.imported_runs || []).length) {
+    buttons.push(`<button class="secondary" onclick="selectIntakeRuns()">Select uploaded runs</button>`);
+    buttons.push(`<button class="secondary" onclick="rerunIntakeRun()">Rerun uploaded prompts with selected harness</button>`);
+    buttons.push(`<button class="secondary" onclick="gradeIntakeRuns()">Grade selected uploaded runs</button>`);
+    buttons.push(`<button class="secondary" onclick="buildReport()">Build comparison report</button>`);
+  }
+  box.innerHTML = `<div class="job-card"><b>${escapeHtml(res.filename || "Uploaded artifact")}</b><p><span class="status-pill">${escapeHtml(types)}</span></p><p class="muted">Prompt sets: ${escapeHtml(promptSets)}<br>Runs: ${escapeHtml(runs)}<br>Packs: ${escapeHtml(packs)}</p><ul>${actions}</ul><div class="intake-actions">${buttons.join("")}</div></div>`;
+}
+function useIntakeTraining() {
+  const suggestion = ((lastIntake || {}).training_data || {}).suggested_train_request || {};
+  if (suggestion.data_path) $("train-data-path").value = suggestion.data_path;
+  if (suggestion.base_model_ref) $("train-base-model").value = suggestion.base_model_ref;
+  if (suggestion.max_steps) $("max-steps").value = suggestion.max_steps;
+  log({next: "Training fields populated from uploaded metadata. Run training preflight, then create the job.", suggested_train_request: suggestion});
+}
+function useIntakePromptSet() {
+  const p = ((lastIntake || {}).imported_prompt_sets || [])[0];
+  if (!p) return log("No uploaded prompt set detected.");
+  $("prompt-set").value = p.prompt_set;
+  $("limit").value = p.n || $("limit").value;
+  log({next: "Prompt set selected. Choose harness/model settings, then Run batch and export.", prompt_set: p});
+}
+function selectIntakeRuns() {
+  for (const r of ((lastIntake || {}).imported_runs || [])) {
+    if (r.run_id && !selectedRuns.includes(r.run_id)) selectedRuns.push(r.run_id);
+  }
+  log({selected_runs: selectedRuns, next: "Import another run, rerun with a different harness, grade, compare, or build report."});
+}
+async function rerunIntakeRun() {
+  const r = ((lastIntake || {}).imported_runs || [])[0];
+  if (!r) return log("No uploaded run detected.");
+  const body = {
+    imported_run_id: r.run_id,
+    harness_profile: $("harness-profile").value,
+    limit: Number($("limit").value || 25),
+    run_label: "rerun-" + r.run_id,
+    llm_judge: $("llm-judge").value === "true"
+  };
+  const res = await getJson("/api/a00/run-batch", {method:"POST", headers:{"content-type":"application/json"}, body:JSON.stringify(body)});
+  if (res.run_id && !selectedRuns.includes(res.run_id)) selectedRuns.push(res.run_id);
+  log(res);
+}
+async function gradeIntakeRuns() {
+  selectIntakeRuns();
+  const res = await getJson("/api/a00/evaluate", {method:"POST", headers:{"content-type":"application/json"}, body:JSON.stringify({run_ids:selectedRuns, llm_judge:$("llm-judge").value === "true"})});
+  log(res);
+}
+function trackJobsFrom(obj) {
+  const found = [];
+  function walk(x) {
+    if (!x || typeof x !== "object") return;
+    if (x.job_id && (x.status === "queued" || x.status === "running")) found.push(x.job_id);
+    for (const v of Object.values(x)) {
+      if (Array.isArray(v)) v.forEach(walk);
+      else if (v && typeof v === "object") walk(v);
+    }
+  }
+  walk(obj);
+  found.forEach(pollJob);
+}
+async function pollJob(jobId) {
+  if (!jobId || activeJobPolls[jobId]) return;
+  activeJobPolls[jobId] = true;
+  try {
+    while (true) {
+      const res = await getJson("/api/a00/jobs/" + encodeURIComponent(jobId));
+      if (res.job) {
+        log({job_status: res.job});
+        const status = String(res.job.status || "");
+        if (!["queued", "running"].includes(status)) break;
+      } else {
+        log(res);
+        break;
+      }
+      await new Promise(resolve => setTimeout(resolve, 5000));
+    }
+  } finally {
+    delete activeJobPolls[jobId];
+  }
 }
 async function refreshStatus() {
   const s = await getJson("/api/a00/status");
@@ -2950,25 +4152,76 @@ async function refreshStatus() {
     return `<label style="display:block;"><input type="checkbox" ${checked} onchange="toggleRun('${e.run_id}', this.checked)"> ${e.run_id} | ${e.harness_profile} | ${e.summary.mean_score_pct || ""}% <a href="${e.artifacts.zip}">zip</a></label>`;
   }).join("");
   $("exports").innerHTML = exports || "No exports yet.";
+  renderJobs(s.jobs || []);
   const audit = (s.primary_notebook_audit || []).map(item => {
     const checks = (item.verify || []).slice(0, 4).map(v => `<li>${v}</li>`).join("");
     const evidence = (item.evidence || []).join(", ");
     return `<div class="audit-card"><b>${item.id}. ${item.name}</b><span class="muted">${item.purpose}</span><ul>${checks}</ul><p class="muted">Evidence: ${evidence}</p></div>`;
   }).join("");
   $("primary-audit").innerHTML = audit || "<div class='muted'>Audit checklist unavailable.</div>";
+  const contract = s.experiment_contract || {};
+  const gates = (contract.training_quality_gates || []).slice(0, 6).map(item => {
+    const blocking = item.blocking ? "blocking" : "advisory";
+    return `<div class="audit-card"><b>${item.label}</b><span class="muted">${blocking}</span><p>${item.check}</p></div>`;
+  }).join("");
+  const practices = (contract.post_training_best_practices || []).slice(0, 3).map(item =>
+    `<li><b>${item.label}:</b> ${item.practice}</li>`
+  ).join("");
+  $("training-guidance").innerHTML = gates + (practices
+    ? `<div class="audit-card"><b>Default post-training strategy</b><ul>${practices}</ul></div>`
+    : "");
 }
 function toggleRun(id, on) {
   selectedRuns = selectedRuns.filter(x => x !== id);
   if (on) selectedRuns.push(id);
 }
 async function loadOptions() {
+  const contract = await getJson("/api/a00/experiment-contract");
   const ps = await getJson("/api/a00/prompt-sets");
   $("prompt-set").innerHTML = ps.prompt_sets.map(p => `<option value="${p.id}">${p.id} (${p.n})</option>`).join("");
+  if ($("pipeline-prompt-set")) $("pipeline-prompt-set").innerHTML = $("prompt-set").innerHTML;
   const hp = await getJson("/api/a00/harness-profiles");
   $("harness-profile").innerHTML = Object.entries(hp.profiles).map(([id,p]) => `<option value="${id}">${p.label}</option>`).join("");
+  if ($("pipeline-harness")) $("pipeline-harness").innerHTML = $("harness-profile").innerHTML;
+  if ($("pipeline-baseline-harness")) $("pipeline-baseline-harness").innerHTML = $("harness-profile").innerHTML;
   const wf = await getJson("/api/a00/workflows");
   $("workflow-id").innerHTML = Object.entries(wf.workflows).map(([id,w]) => `<option value="${id}">${w.notebook} | ${w.label}</option>`).join("");
+  $("quant-profile").innerHTML = Object.entries(contract.quantitative_run_profiles).map(([id,p]) => `<option value="${id}">${id} | ${p.purpose || p.label}</option>`).join("");
+  const presets = await getJson("/api/a00/pipeline/presets");
+  if ($("pipeline-preset")) $("pipeline-preset").innerHTML = Object.entries(presets.presets || {}).map(([id,p]) => `<option value="${id}">${p.label}</option>`).join("");
+  const bulk = contract.quantitative_run_profiles.bulk_text_25;
+  const synth = contract.synthetic_generation_profiles.rubric_polisher_24;
+  const train = contract.training_profiles.tiny_lora_smoke;
+  $("prompt-set").value = bulk.prompt_set;
+  $("harness-profile").value = bulk.treatment_harness;
+  $("limit").value = bulk.limit;
+  $("synth-count").value = synth.count;
+  $("train-base-model").value = train.base_model_ref;
+  $("max-steps").value = train.max_steps;
+  if ($("pipeline-prompt-set")) $("pipeline-prompt-set").value = bulk.prompt_set;
+  if ($("pipeline-baseline-harness")) $("pipeline-baseline-harness").value = bulk.baseline_harness;
+  if ($("pipeline-harness")) $("pipeline-harness").value = bulk.treatment_harness;
+  if ($("pipeline-synth-count")) $("pipeline-synth-count").value = 5;
+  if ($("pipeline-max-steps")) $("pipeline-max-steps").value = train.max_steps;
+  if ($("pipeline-b-ref")) $("pipeline-b-ref").value = train.base_model_ref || "dry_run";
   refreshStatus();
+}
+function useE2BPipelineDefaults() {
+  $("pipeline-preset").value = "synthetic_train_benchmark_cycle";
+  $("pipeline-label").value = "e2b-four-arm-smoke";
+  $("pipeline-a-source").value = "hf";
+  $("pipeline-a-ref").value = "google/gemma-4-e2b-it";
+  $("pipeline-a-adapter").value = "";
+  $("pipeline-b-source").value = "hf";
+  $("pipeline-b-ref").value = "google/gemma-4-e2b-it";
+  $("pipeline-b-adapter").value = "";
+  $("pipeline-limit").value = 5;
+  $("pipeline-synth-count").value = 5;
+  $("pipeline-evaluate").value = "true";
+  $("pipeline-report").value = "true";
+  $("pipeline-unload").value = "true";
+  $("pipeline-execute").value = "false";
+  log({next: "E2B four-arm defaults loaded. Set Execute training=true when Kaggle GPU/dependencies are ready, then queue the pipeline."});
 }
 function setAbliterated() {
   $("model-source").value = "hf";
@@ -2984,6 +4237,9 @@ async function loadModel() {
   };
   log(await getJson("/api/a00/model/load", {method:"POST", headers:{"content-type":"application/json"}, body:JSON.stringify(body)}));
 }
+async function unloadModel() {
+  log(await getJson("/api/a00/model/unload", {method:"POST"}));
+}
 async function runBatch() {
   const body = {
     prompt_set: $("prompt-set").value,
@@ -2997,16 +4253,66 @@ async function runBatch() {
   log(res);
 }
 async function quickProof() {
-  $("prompt-set").value = "chat_safety_core";
-  $("limit").value = 6;
-  $("harness-profile").value = "none";
+  const contract = await getJson("/api/a00/experiment-contract");
+  const profile = contract.quantitative_run_profiles.bulk_text_25;
+  $("prompt-set").value = profile.prompt_set;
+  $("limit").value = profile.limit;
+  $("harness-profile").value = profile.baseline_harness;
   $("run-label").value = "quick-baseline";
-  const base = await getJson("/api/a00/run-batch", {method:"POST", headers:{"content-type":"application/json"}, body:JSON.stringify({prompt_set:"chat_safety_core", harness_profile:"none", limit:6, run_label:"quick-baseline", evaluate:true})});
+  const base = await getJson("/api/a00/run-batch", {method:"POST", headers:{"content-type":"application/json"}, body:JSON.stringify({prompt_set:profile.prompt_set, harness_profile:profile.baseline_harness, limit:profile.limit, run_label:"quick-baseline", evaluate:true})});
   if (base.run_id && !selectedRuns.includes(base.run_id)) selectedRuns.push(base.run_id);
-  const harness = await getJson("/api/a00/run-batch", {method:"POST", headers:{"content-type":"application/json"}, body:JSON.stringify({prompt_set:"chat_safety_core", harness_profile:"chat_full", limit:6, run_label:"quick-harnessed", evaluate:true})});
+  const harness = await getJson("/api/a00/run-batch", {method:"POST", headers:{"content-type":"application/json"}, body:JSON.stringify({prompt_set:profile.prompt_set, harness_profile:profile.treatment_harness, limit:profile.limit, run_label:"quick-harnessed", evaluate:true})});
   if (harness.run_id && !selectedRuns.includes(harness.run_id)) selectedRuns.push(harness.run_id);
-  const report = await getJson("/api/a00/report", {method:"POST", headers:{"content-type":"application/json"}, body:JSON.stringify({run_ids:selectedRuns.slice(-2), include_pdf:true})});
+  const report = await getJson("/api/a00/report", {method:"POST", headers:{"content-type":"application/json"}, body:JSON.stringify({run_ids:selectedRuns.slice(-2), title:profile.report_title, include_pdf:true})});
   log({baseline:base, harnessed:harness, report});
+}
+async function runQuantProfile() {
+  const body = {
+    profile_id: $("quant-profile").value,
+    execute_training: $("quant-execute").value === "true"
+  };
+  const res = await getJson("/api/a00/quantitative/run", {method:"POST", headers:{"content-type":"application/json"}, body:JSON.stringify(body)});
+  const runIds = [];
+  if (res.baseline && res.baseline.run_id) runIds.push(res.baseline.run_id);
+  if (res.treatment && res.treatment.run_id) runIds.push(res.treatment.run_id);
+  if (Array.isArray(res.run_ids)) runIds.push(...res.run_ids);
+  for (const runId of runIds) {
+    if (runId && !selectedRuns.includes(runId)) selectedRuns.push(runId);
+  }
+  if (res.synthetic && res.synthetic.artifacts && res.synthetic.artifacts.sft) {
+    $("train-data-path").value = res.synthetic.artifacts.sft;
+  }
+  log(res);
+  trackJobsFrom(res);
+}
+async function runAdvancedPipeline() {
+  const body = {
+    preset_id: $("pipeline-preset").value,
+    model_a_source: $("pipeline-a-source").value,
+    model_a_ref: $("pipeline-a-ref").value,
+    model_a_adapter_ref: $("pipeline-a-adapter").value,
+    model_b_source: $("pipeline-b-source").value,
+    model_b_ref: $("pipeline-b-ref").value,
+    model_b_adapter_ref: $("pipeline-b-adapter").value,
+    quantization: $("quantization").value,
+    prompt_set: $("pipeline-prompt-set").value,
+    harness_profile: $("pipeline-harness").value,
+    baseline_harness_profile: $("pipeline-baseline-harness").value,
+    limit: Number($("pipeline-limit").value || 10),
+    synthetic_count: Number($("pipeline-synth-count").value || 24),
+    generator_mode: $("generator-mode").value,
+    evaluate_outputs: $("pipeline-evaluate").value === "true",
+    include_report: $("pipeline-report").value === "true",
+    execute_training: $("pipeline-execute").value === "true",
+    max_steps: Number($("pipeline-max-steps").value || 60),
+    training_output_dir: $("pipeline-output-dir").value,
+    unload_between_steps: $("pipeline-unload").value === "true",
+    llm_judge: $("llm-judge").value === "true",
+    run_label: $("pipeline-label").value
+  };
+  const res = await getJson("/api/a00/pipeline/run", {method:"POST", headers:{"content-type":"application/json"}, body:JSON.stringify(body)});
+  log(res);
+  trackJobsFrom(res);
 }
 async function runRedteamProof() {
   $("prompt-set").value = "anti_tip_redteam_regressions";
@@ -3017,6 +4323,17 @@ async function runRedteamProof() {
   if (harness.run_id && !selectedRuns.includes(harness.run_id)) selectedRuns.push(harness.run_id);
   const report = await getJson("/api/a00/report", {method:"POST", headers:{"content-type":"application/json"}, body:JSON.stringify({run_ids:selectedRuns.slice(-2), title:"DueCare anti-TIP red-team regression report", include_pdf:true})});
   log({baseline:base, harnessed:harness, report, source:"prior GPT OSS red-team failure patterns"});
+}
+async function analyzeIntake() {
+  const f = $("intake-file").files[0];
+  if (!f) return log("Choose a synthetic bundle, prompt set, run export, comparison ZIP, or knowledge pack first.");
+  const fd = new FormData(); fd.append("file", f);
+  const res = await getJson("/api/a00/intake/upload", {method:"POST", body:fd});
+  lastIntake = res;
+  await loadOptions();
+  renderIntake(res);
+  if ((res.imported_runs || []).length) selectIntakeRuns();
+  log(res);
 }
 async function importExport() {
   const f = $("import-file").files[0];
@@ -3044,7 +4361,7 @@ async function importPack() {
 async function generateSynthetic() {
   const body = {
     source_prompt_set: "synthetic_seed",
-    count: Number($("synth-count").value || 40),
+    count: Number($("synth-count").value || 24),
     harness_profile: $("harness-profile").value,
     generator_mode: $("generator-mode").value
   };
@@ -3053,9 +4370,30 @@ async function generateSynthetic() {
   log(res);
 }
 async function generatePolished() {
+  const contract = await getJson("/api/a00/experiment-contract");
+  const profile = contract.synthetic_generation_profiles.rubric_polisher_24;
   $("generator-mode").value = "rubric_polisher";
-  $("synth-count").value = Math.max(8, Number($("synth-count").value || 40));
+  $("synth-count").value = Math.max(profile.count, Number($("synth-count").value || profile.count));
   await generateSynthetic();
+}
+async function uploadTrainingData() {
+  const f = $("train-upload-file").files[0];
+  if (!f) return log("Choose an SFT JSONL, manifest JSON, or synthetic training ZIP first.");
+  const fd = new FormData(); fd.append("file", f);
+  const res = await getJson("/api/a00/training/upload-data", {method:"POST", body:fd});
+  const suggestion = res.suggested_train_request || {};
+  if (suggestion.data_path) $("train-data-path").value = suggestion.data_path;
+  if (suggestion.base_model_ref) $("train-base-model").value = suggestion.base_model_ref;
+  if (suggestion.max_steps) $("max-steps").value = suggestion.max_steps;
+  log(res);
+}
+async function checkTrainingPreflight() {
+  const res = await getJson("/api/a00/training/preflight");
+  const box = $("training-preflight");
+  const missing = (res.missing_required || []).join(", ") || "none";
+  const devices = res.cuda && res.cuda.devices ? res.cuda.devices.map(d => `${d.name} (${d.total_memory_gb} GB)`).join(", ") : "none";
+  box.innerHTML = `<div class="job-card"><b>Training preflight</b><span class="${jobStatusClass(res.ok ? "completed" : "failed")}">${res.ok ? "ready" : "needs attention"}</span><p>CUDA: ${res.cuda && res.cuda.available ? "available" : "not available"} · devices: ${devices}</p><p>Missing required packages: ${missing}</p></div>`;
+  log(res);
 }
 async function createTrainingJob() {
   const body = {
@@ -3064,12 +4402,17 @@ async function createTrainingJob() {
     max_steps: Number($("max-steps").value || 60),
     execute: $("execute-train").value === "true"
   };
-  log(await getJson("/api/a00/train", {method:"POST", headers:{"content-type":"application/json"}, body:JSON.stringify(body)}));
+  const res = await getJson("/api/a00/train", {method:"POST", headers:{"content-type":"application/json"}, body:JSON.stringify(body)});
+  log(res);
+  trackJobsFrom(res);
 }
 async function finetuneSmoke() {
-  const synth = await getJson("/api/a00/synthetic/generate", {method:"POST", headers:{"content-type":"application/json"}, body:JSON.stringify({source_prompt_set:"chat_safety_core", count:8, harness_profile:"chat_full", generator_mode:"rubric_polisher", include_dpo:true, include_knowledge_facts:true})});
+  const contract = await getJson("/api/a00/experiment-contract");
+  const synthProfile = contract.synthetic_generation_profiles.rubric_polisher_24;
+  const trainProfile = contract.training_profiles.tiny_lora_smoke;
+  const synth = await getJson("/api/a00/synthetic/generate", {method:"POST", headers:{"content-type":"application/json"}, body:JSON.stringify(synthProfile)});
   if (synth.artifacts && synth.artifacts.sft) $("train-data-path").value = synth.artifacts.sft;
-  const job = await getJson("/api/a00/train", {method:"POST", headers:{"content-type":"application/json"}, body:JSON.stringify({data_path:synth.artifacts && synth.artifacts.sft || "", base_model_ref:$("train-base-model").value, max_steps:5, execute:false, adapter_name:"duecare-a00-smoke-e2b-lora"})});
+  const job = await getJson("/api/a00/train", {method:"POST", headers:{"content-type":"application/json"}, body:JSON.stringify({data_path:synth.artifacts && synth.artifacts.sft || "", base_model_ref:$("train-base-model").value || trainProfile.base_model_ref, max_steps:trainProfile.max_steps, execute:false, adapter_name:trainProfile.adapter_name})});
   log({synthetic:synth, training_job:job, next:"On Kaggle GPU, set Execute now=true after confirming model path and dependencies."});
 }
 async function runWorkflow() {
@@ -3078,7 +4421,9 @@ async function runWorkflow() {
     limit: Number($("workflow-limit").value || 25),
     execute: $("workflow-execute").value === "true"
   };
-  log(await getJson("/api/a00/workflows/run", {method:"POST", headers:{"content-type":"application/json"}, body:JSON.stringify(body)}));
+  const res = await getJson("/api/a00/workflows/run", {method:"POST", headers:{"content-type":"application/json"}, body:JSON.stringify(body)});
+  log(res);
+  trackJobsFrom(res);
 }
 async function uploadResearch() {
   const f = $("research-file").files[0];
@@ -3117,9 +4462,13 @@ extra_routes = {
     "/api/a00/status": ("GET", api_a00_status),
     "/api/a00/model-presets": ("GET", api_model_presets),
     "/api/a00/harness-profiles": ("GET", api_harness_profiles),
+    "/api/a00/experiment-contract": ("GET", api_experiment_contract),
     "/api/a00/workflows": ("GET", api_workflows),
     "/api/a00/prompt-sets": ("GET", api_prompt_sets),
     "/api/a00/model/load": ("POST", api_model_load),
+    "/api/a00/model/unload": ("POST", api_model_unload),
+    "/api/a00/pipeline/presets": ("GET", api_pipeline_presets),
+    "/api/a00/pipeline/run": ("POST", api_pipeline_run),
     "/api/a00/model/upload": ("POST", api_model_upload),
     "/api/a00/run-batch": ("POST", api_run_batch),
     "/api/a00/import-export": ("POST", api_import_export),
@@ -3130,7 +4479,13 @@ extra_routes = {
     "/api/a00/packs/import": ("POST", api_pack_import),
     "/api/a00/synthetic/generate": ("POST", api_generate_synthetic),
     "/api/a00/train": ("POST", api_train),
+    "/api/a00/jobs": ("GET", api_a00_jobs),
+    "/api/a00/jobs/{job_id}": ("GET", api_a00_job_status),
+    "/api/a00/training/preflight": ("GET", api_training_preflight),
+    "/api/a00/training/upload-data": ("POST", api_training_data_upload),
+    "/api/a00/intake/upload": ("POST", api_intake_upload),
     "/api/a00/workflows/run": ("POST", api_run_workflow),
+    "/api/a00/quantitative/run": ("POST", api_run_quantitative_profile),
     "/api/a00/research/upload": ("POST", api_research_upload),
 }
 

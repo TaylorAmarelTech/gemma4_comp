@@ -5,6 +5,7 @@ cleanly without network calls."""
 from __future__ import annotations
 
 import os
+import builtins
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -49,9 +50,18 @@ class TestTransformersAdapter:
     def test_load_raises_without_transformers(self):
         from duecare.models.transformers_adapter import TransformersModel
         m = TransformersModel("google/gemma-4-e4b-it")
-        # transformers isn't installed in the test env; should raise ImportError
+        real_import = builtins.__import__
+
+        def fake_import(name, *args, **kwargs):
+            if name == "transformers" or name.startswith("transformers."):
+                raise ImportError("transformers intentionally hidden for smoke test")
+            return real_import(name, *args, **kwargs)
+
+        # Simulate an environment without the optional transformers extra,
+        # regardless of what is installed on the developer machine.
         with pytest.raises(ImportError, match=r"duecare-llm-models\[transformers\]"):
-            m._load()
+            with patch.object(builtins, "__import__", side_effect=fake_import):
+                m._load()
 
 
 class TestLlamaCppAdapter:

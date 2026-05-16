@@ -37,14 +37,20 @@ throughput, and estimated inference cost.
 
 Use these recipes as the minimum pre-submission validation set:
 
-1. **Harness lift:** run `chat_safety_core` with `No harness`, run the same set
-   with `Chat safety harness`, then build the HTML report.
+The page exposes them in the **Quantitative proof profiles** panel so the
+same shared contract can be run from the UI or through
+`POST /api/a00/quantitative/run`.
+
+1. **Harness lift:** run the shared `bulk_text_25` profile: `chat_safety_core`
+   with `No harness`, then the same 25 prompts with `Chat safety harness`, then
+   build the HTML/Markdown/JSON report.
 2. **Prior red-team regression:** run `anti_tip_redteam_regressions`. This
    prompt set converts the 2025 GPT OSS failure modes into reusable checks:
    business-framed exploitation, jurisdiction shopping, predatory debt,
    prompt-attack formatting, and worker revictimization.
-3. **Synthetic training:** choose `rubric_polisher`, generate SFT/DPO rows, and
-   create a tiny training handoff before any full fine-tune.
+3. **Synthetic training:** run the shared `tiny_lora_smoke` path: generate 24
+   rubric-polished SFT/DPO rows, create the tiny LoRA handoff, optionally train
+   on GPU, then compare stock, stock+harness, fine-tuned, and fine-tuned+harness.
 4. **Research graph:** run the sample local research graph or upload a ZIP with
    notes, CSV, JSONL, images, and documents. Confirm documents, entities, risk
    edges, media queue, and timeline artifacts are exported.
@@ -109,14 +115,50 @@ variant for a quick demo:
    the smallest selected Gemma 4 model. The training panel defaults to
    `google/gemma-4-e2b-it`; adjust the exact Hugging Face/Unsloth model path
    to match the Kaggle image before executing.
-3. In Synthetic Data, choose `rubric_polisher` and generate 8 to 40 rows.
-4. In Train Adapter, click `Tiny fine-tune smoke bundle`. This writes a valid
-   SFT JSONL, DPO JSONL, manifest, bundle ZIP, and a 5-step training script.
-5. Run the baseline eval on the same prompt set, then after verifying paths
+3. If you already have an artifact, use `Already have a file?` first. A-00 can
+   inspect synthetic training bundles, prompt sets, prompt-response exports,
+   combined run ZIPs, and knowledge packs, then suggest whether to fine-tune,
+   rerun prompts under a different harness, grade/compare existing responses,
+   or load packs for later runs.
+4. In Synthetic Data, use the default `rubric_polisher_24` profile.
+5. In Train Adapter, click `Tiny fine-tune smoke bundle`. This writes a valid
+   SFT JSONL, DPO JSONL, manifest, bundle ZIP, and a contract-derived training
+   script. You can also upload a prior SFT JSONL or synthetic ZIP; A-00 inspects
+   its metadata and fills the training path, base model, and step suggestion.
+6. Click `Check training preflight` to verify CUDA and required packages.
+7. Run the baseline eval on the same prompt set, then after verifying paths
    switch `Execute now` to `true` for the real Unsloth run on the Kaggle GPU.
-6. Reload the base model plus adapter and rerun the same eval prompts to show
+   Training runs asynchronously; the UI polls `/api/a00/jobs/{job_id}` and
+   shows the job status, log tail, generated script, data path, and output dir.
+8. Reload the base model plus adapter and rerun the same eval prompts to show
    before/after lift in legal specificity, contact-pack/tool-call behavior,
    refusal grounding, and retaliation-risk dimensions.
+
+## Advanced Model-Switching Presets
+
+The A-00 UI includes an **Advanced pipeline presets** section for users who
+want the notebook to orchestrate several steps without manually jumping between
+panels. These presets are background jobs and are intentionally visible in the
+Jobs list.
+
+- **Compare two models one at a time:** unload current model, load Model A,
+  run the prompt set, unload, load Model B, run the same prompt set, then build
+  a comparison report.
+- **Four-arm fine-tune proof path:** load the selected small Gemma 4 model,
+  run base/no-harness and base+harness on the same configurable prompt count
+  (default 5), generate a configurable number of rubric-polished SFT/DPO rows
+  (default 5), unload before training, create or execute the LoRA job, then
+  load the adapter and benchmark fine-tuned/no-harness and
+  fine-tuned+harness arms on the same prompts.
+
+For T4 x2 sessions, start with E2B/E4B or dry-run validation. Keep
+`Unload between steps=true` unless you are deliberately testing memory reuse.
+If `Execute training=false`, A-00 still exports the synthetic data, job JSON,
+training script, and report handoff without trying to keep a long GPU job in
+the browser request path. Use `Grade outputs=now` for a finished four-arm
+report in one pass, or `Grade outputs=later` when you want to run generation
+first and grade the uploaded run exports in a later session or with a stronger
+judge model.
 
 Expected artifacts after step 4:
 
@@ -143,6 +185,32 @@ other notebooks still remain useful because they are narrow verification
 slices. A judge can use A-00 as the command center or open a focused notebook
 when they want to validate only one claim, such as harness lift, prompt
 generation, fine-tuning, privacy redaction, multimodal analysis, or streaming.
+
+## Reuse From Kernel 01
+
+A-00 should consume the same reusable primitives exposed by Kernel 01 rather
+than maintaining a parallel contract:
+
+- Import `duecare.chat.portability` for the required package version,
+  endpoints, sample files, and primitive list.
+- Import `duecare.chat.experiment_contracts` for harness profiles, the
+  `bulk_text_25` comparison profile, synthetic generation profiles, upload
+  limits, tiny LoRA defaults, and the four-arm stock/fine-tuned/harness matrix.
+- Use `GET /api/a00/experiment-contract` to inspect the active contract and
+  `POST /api/a00/quantitative/run` to execute `bulk_text_25` or prepare the
+  `tiny_lora_smoke` synthetic/training handoff.
+- Use `knowledge_files_sample.zip` as the reference importable knowledge-files
+  bundle.
+- Use `prompt_eval_training_seed_sample.zip` as the reference prompt,
+  grading, and synthetic-training seed.
+- Use `case_files_media_rich_sample.zip` as the reference local graph and
+  multimodal processing source bundle.
+- Keep generated graph edges compatible with the Kernel 01 edge contract:
+  source file, page/chunk, extractor, confidence, quote or bbox when
+  available, and local-only provenance.
+- Include the portability payload or its hash in experiment exports so later
+  benchmark and fine-tune results can be traced back to the exact workbench
+  contract.
 
 ## Notes
 

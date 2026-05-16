@@ -11,7 +11,7 @@ from __future__ import annotations
 import hashlib
 import json as _json
 import re as _re
-from datetime import datetime as _dt
+from datetime import UTC as _UTC, datetime as _dt
 from typing import Any
 
 from fastapi import HTTPException, Request
@@ -449,7 +449,7 @@ def register_routes(app: Any) -> None:
         )
         gc = getattr(app.state, "gemma_call", None) if use_gemma else None
 
-        ts = _dt.utcnow().strftime("%Y-%m-%dT%H-%M-%SZ")
+        ts = _dt.now(_UTC).strftime("%Y-%m-%dT%H-%M-%SZ")
         slug_base = _slug(raw_text)
         envelopes: list[dict[str, Any]] = []
         for target_type in target_types:

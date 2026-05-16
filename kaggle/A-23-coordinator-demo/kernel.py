@@ -56,7 +56,7 @@ OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 # ===========================================================================
 # PHASE 1 -- DueCare from GitHub
 # ===========================================================================
-DUECARE_VERSION = "0.1.0"
+DUECARE_VERSION = os.environ.get("DUECARE_VERSION", "0.17.0")
 DUECARE_REPO = "TaylorAmarelTech/gemma4_comp"
 DUECARE_COMMIT_SHA = "master"
 DUECARE_PACKAGES = ["duecare-llm-chat"]
@@ -133,7 +133,9 @@ TOOLS: dict[str, dict[str, object]] = {
     },
     "find_hotline": {
         "description": (
-            "Find verified NGO / regulator hotlines for a corridor."),
+            "Find vetted NGO / regulator contact pathways for a corridor. "
+            "Phone numbers and URLs are volatile; verify current details "
+            "from the contacts knowledge pack before sharing them."),
         "args_schema": {
             "corridor": "<origin>-<destination>",
             "side": "origin | destination | both",
@@ -179,9 +181,9 @@ COORDINATOR_SCENARIOS: list[dict[str, object]] = [
             {"name": "find_hotline",
              "result": {
                  "origin_hotline": "POEA Anti-Illegal Recruitment Branch",
-                 "origin_phone": "+63-2-8722-1144",
+                 "origin_contact": "verify current phone, URL, and intake steps via contacts pack",
                  "destination_hotline": "Mission for Migrant Workers HK",
-                 "destination_phone": "+852-2522-8264",
+                 "destination_contact": "verify current phone, URL, and intake steps via contacts pack",
              }},
         ],
         "synthesized_response": (
@@ -191,8 +193,10 @@ COORDINATOR_SCENARIOS: list[dict[str, object]] = [
             "charge is criminal illegal recruitment under RA 8042 Sec. "
             "6(a). To report:\n\n"
             "  - POEA Anti-Illegal Recruitment Branch (Philippines): "
-            "+63-2-8722-1144\n"
-            "  - Mission for Migrant Workers Hong Kong: +852-2522-8264\n\n"
+            "verify current phone, URL, and intake steps via the vetted "
+            "contacts pack.\n"
+            "  - Mission for Migrant Workers Hong Kong: verify current "
+            "phone, URL, and intake steps via the vetted contacts pack.\n\n"
             "Refuse the payment. The agency's POEA license is at risk "
             "for this arrangement."
         ),
@@ -245,12 +249,12 @@ COORDINATOR_SCENARIOS: list[dict[str, object]] = [
             {"name": "find_hotline",
              "result": {
                  "origin_hotline": "BP2MI Hotline (Indonesia)",
-                 "origin_phone": "+62 21 3457 1419",
+                 "origin_contact": "verify current phone, URL, and intake steps via contacts pack",
                  "destination_hotline": ("UAE Ministry of Human "
                                            "Resources MOHRE"),
-                 "destination_phone": "+971 600 590000",
+                 "destination_contact": "verify current phone, URL, and intake steps via contacts pack",
                  "embassy": "Indonesian Embassy Abu Dhabi",
-                 "embassy_phone": "+971 2 445 4448",
+                 "embassy_contact": "verify current phone, URL, and intake steps via contacts pack",
              }},
         ],
         "synthesized_response": (
@@ -267,9 +271,12 @@ COORDINATOR_SCENARIOS: list[dict[str, object]] = [
             "     document processing on the foreign employer; he has "
             "     no right to custody.\n\n"
             "Who to call:\n"
-            "  - Indonesian Embassy Abu Dhabi: +971 2 445 4448\n"
-            "  - BP2MI Hotline (Indonesia): +62 21 3457 1419\n"
-            "  - UAE MOHRE: +971 600 590000\n\n"
+            "  - Indonesian Embassy Abu Dhabi: verify current phone, URL, "
+            "and intake steps via the vetted contacts pack.\n"
+            "  - BP2MI Hotline (Indonesia): verify current phone, URL, "
+            "and intake steps via the vetted contacts pack.\n"
+            "  - UAE MOHRE: verify current phone, URL, and intake steps "
+            "via the vetted contacts pack.\n\n"
             "Request your passport in writing first. If refused, the "
             "Embassy is your safest first call."
         ),

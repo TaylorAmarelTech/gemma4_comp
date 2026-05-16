@@ -209,12 +209,11 @@ class FileHubStore:
 class KnowledgeSubmissionIn(BaseModel):
     """Inbound knowledge submission from a DueCare kernel client."""
 
+    model_config = ConfigDict(extra="allow")
+
     submission_id: Optional[str] = None
     ts: Optional[str] = None
     items: list[dict] = Field(default_factory=list)
-
-    class Config:
-        extra = "allow"
 
 
 class KnowledgeSubmissionReceipt(BaseModel):
@@ -1162,7 +1161,7 @@ def create_app(*, data_dir: Path | None = None) -> FastAPI:
         ingest; the hub stores no raw worker identifiers.
         """
         import io as _io, zipfile as _zipfile, json as _json
-        from datetime import datetime as _dt
+        from datetime import UTC as _UTC, datetime as _dt
         packs = _knowledge_packs()
         if vetted:
             packs = [p for p in packs if p.status == "live"]
@@ -1176,7 +1175,7 @@ def create_app(*, data_dir: Path | None = None) -> FastAPI:
                     "version": p.version,
                     "provenance": {
                         "created_by": "duecare-ai.com hub",
-                        "served_at": _dt.utcnow().strftime("%Y-%m-%dT%H-%M-%SZ"),
+                        "served_at": _dt.now(_UTC).strftime("%Y-%m-%dT%H-%M-%SZ"),
                         "vetted": p.status == "live",
                         "status": p.status,
                     },
@@ -1193,7 +1192,7 @@ def create_app(*, data_dir: Path | None = None) -> FastAPI:
                               _json.dumps(envelope, indent=2, sort_keys=True))
             manifest = {
                 "schema_version": "1.0",
-                "exported_at": _dt.utcnow().strftime("%Y-%m-%dT%H-%M-%SZ"),
+                "exported_at": _dt.now(_UTC).strftime("%Y-%m-%dT%H-%M-%SZ"),
                 "exporter": "duecare-ai.com/api/hub/knowledge/download",
                 "vetted_only": bool(vetted),
                 "n_entries": len(packs),
@@ -1266,12 +1265,12 @@ def create_app(*, data_dir: Path | None = None) -> FastAPI:
     ) -> CuratorDecisionReceipt:
         """Stage 04 -- curator accepts / rejects / requests changes."""
         import json as _json, hashlib as _hashlib
-        from datetime import datetime as _dt
+        from datetime import UTC as _UTC, datetime as _dt
         if body.decision not in {"accept", "reject", "request_changes"}:
             raise HTTPException(400, "decision must be accept|reject|request_changes")
         state = _state(request)
         root = state.store.root
-        ts = _dt.utcnow().strftime("%Y-%m-%dT%H-%M-%SZ")
+        ts = _dt.now(_UTC).strftime("%Y-%m-%dT%H-%M-%SZ")
         key_hash = None
         if body.curator_key:
             key_hash = _hashlib.sha256(body.curator_key.encode()).hexdigest()[:16]
@@ -1323,12 +1322,12 @@ def create_app(*, data_dir: Path | None = None) -> FastAPI:
         on the hub per the privacy invariant.
         """
         import json as _json, hashlib as _hashlib, uuid as _uuid
-        from datetime import datetime as _dt
+        from datetime import UTC as _UTC, datetime as _dt
         if "@" not in (body.email or ""):
             raise HTTPException(400, "invalid email")
         state = _state(request)
         root = state.store.root
-        ts = _dt.utcnow().strftime("%Y-%m-%dT%H-%M-%SZ")
+        ts = _dt.now(_UTC).strftime("%Y-%m-%dT%H-%M-%SZ")
         sid = f"sub_{_uuid.uuid4().hex[:12]}"
         email_sha = _hashlib.sha256(body.email.encode()).hexdigest()
         entry = {
@@ -1375,9 +1374,9 @@ def create_app(*, data_dir: Path | None = None) -> FastAPI:
         vetted releases (Stage 05).
         """
         import json as _json, hashlib as _hashlib, re as _re
-        from datetime import datetime as _dt
+        from datetime import UTC as _UTC, datetime as _dt
 
-        ts = _dt.utcnow().strftime("%Y-%m-%dT%H-%M-%SZ")
+        ts = _dt.now(_UTC).strftime("%Y-%m-%dT%H-%M-%SZ")
         run_id = body.submission_id or f"hub_submit_{ts}"
         items = body.items or []
 

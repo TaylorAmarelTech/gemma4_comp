@@ -57,7 +57,7 @@
                      per applicable dimension (the academic literature
                      calls this 'LLM-as-judge')
 
-      Static viewers (v0.14.2): /static/harness.html landing page +
+      Static viewers: /static/harness.html landing page +
       /static/{persona,grep-rules,rag-corpus,rag-graph,tools,online}.html
       catalog viewers, all driven by /api/harness-catalog/{layer} and
       /api/brand. Single source of truth for layer metadata + counts.
@@ -108,6 +108,9 @@ from typing import Any, Optional
 # CONFIG
 # ---------------------------------------------------------------------------
 DATASET_SLUG = "duecare-harness-chat-wheels"
+DUECARE_REQUIRED_CHAT_VERSION = os.environ.get(
+    "DUECARE_REQUIRED_CHAT_VERSION", "0.17.0"
+)
 
 # Pick which model to load. Override at runtime by exporting the env var:
 #   %env GEMMA_MODEL_VARIANT=e4b-it     (in a Kaggle cell BEFORE this one)
@@ -379,6 +382,18 @@ def install_chat_wheels() -> int:
             print("  ✗ no Kaggle wheels found either")
             raise Exception("No wheels available")
 
+        def _wheel_install_key(path: str) -> tuple[int, str]:
+            name = Path(path).name.lower()
+            package_order = 9
+            if "duecare_llm_core" in name:
+                package_order = 0
+            elif "duecare_llm_models" in name:
+                package_order = 1
+            elif "duecare_llm_chat" in name:
+                package_order = 2
+            return (package_order, name)
+
+        found_wheels = sorted(found_wheels, key=_wheel_install_key)
         print(f"  → installing {len(found_wheels)} wheel(s)...")
         success_count = 0
 
@@ -452,7 +467,7 @@ subprocess.run([sys.executable, "-m", "pip", "install", "--quiet",
 
 
 # ===========================================================================
-# DEPLOYMENT SELF-AUDIT (v0.14.5)
+# DEPLOYMENT SELF-AUDIT (portability contract)
 # ---------------------------------------------------------------------------
 # After the wheel install, before the model load, verify that the
 # wheel actually serving the kernel matches what we expect. This
@@ -469,6 +484,20 @@ def _verify_chat_wheel_freshness() -> None:
     chat_v = "unknown"
 
   try:
+    from duecare.chat.portability import (
+      REQUIRED_CHAT_VERSION,
+      SELF_AUDIT_MINIMUM_COUNTS,
+    )
+    required_chat_version = os.environ.get(
+      "DUECARE_REQUIRED_CHAT_VERSION", REQUIRED_CHAT_VERSION
+    )
+    expected = dict(SELF_AUDIT_MINIMUM_COUNTS)
+  except Exception as e:  # noqa: BLE001
+    print(f"  WARN  portability audit constants unavailable: {e}")
+    required_chat_version = DUECARE_REQUIRED_CHAT_VERSION
+    expected = {"n_grep_rules": 100, "n_rag_docs": 30, "n_dimensions": 20}
+
+  try:
     from duecare.chat.harness import (
       GREP_RULES, RAG_CORPUS, RUBRIC_UNIVERSAL,
     )
@@ -482,24 +511,31 @@ def _verify_chat_wheel_freshness() -> None:
     print(f"  ERROR could not import harness counts: {e}")
     return
 
-  # Submission-minimum thresholds. If actual counts fall below these,
-  # something has gone backwards — fail loudly. The user gets a clear
-  # failure mode (rather than the old phantom "21 dim" mystery) and a
-  # concrete instruction to fix it.
-  # Flexible requirements for demo compatibility
-  expected = {"n_grep_rules": 100, "n_rag_docs": 30,  # Lowered for wheels v0.3.8 compatibility
-                "n_dimensions": 20}
+  def _version_key(v: str) -> tuple[int, int, int]:
+    parts = [int(x) for x in re.findall(r"\d+", v or "")[:3]]
+    while len(parts) < 3:
+      parts.append(0)
+    return tuple(parts[:3])
+
 
   print()
   print("=" * 68)
   print(f"  DUECARE SELF-AUDIT  ·  chat-package {chat_v}")
   print("=" * 68)
+  print(f"    required_version  {required_chat_version}")
   for k, v in counts.items():
     print(f"    {k:18s} {v}")
   print(f"    rubric           {counts['rubric_version']}")
   print("=" * 68)
 
   failures = []
+  if (
+      chat_v != "unknown"
+      and _version_key(chat_v) < _version_key(required_chat_version)
+  ):
+    failures.append(
+      f"duecare-llm-chat {chat_v} < required {required_chat_version}"
+    )
   for key, minimum in expected.items():
     if counts.get(key, 0) < minimum:
       failures.append(
@@ -519,7 +555,7 @@ def _verify_chat_wheel_freshness() -> None:
     else:
       raise RuntimeError(msg)
   else:
-    print("  ✓ all counts at or above v0.14.x submission minimums")
+    print("  OK chat package version and harness counts meet the Kernel 01 contract")
 
 
 _verify_chat_wheel_freshness()
@@ -1528,7 +1564,7 @@ def load_gemma() -> Optional[LoadedModel]:
       use_cache=True,
       temperature=temperature, top_p=top_p, top_k=top_k)
     text = tokenizer.batch_decode(out)[0]
-    # v0.14.5: single-source sanitizer covers Gemma 4 thinking-mode
+    # Single-source sanitizer covers Gemma 4 thinking-mode
     # <channel|> separator, <thinking>/<think> blocks, turn delimiters,
     # and template control tokens. Same helper is used by cloud /
     # Ollama paths so artifacts don't surface on a different backend.
@@ -1616,6 +1652,61 @@ except Exception as _e:  # noqa: BLE001
 app = create_app(**_create_kwargs)
 _attach_shutdown(app)
 
+
+def _verify_portable_app_contract(app) -> None:
+    """Fail fast if Kernel 01 is not serving the reusable workbench contract."""
+    try:
+        from duecare.chat.app import KO_TYPES, KO_TYPE_CATALOG
+        from duecare.chat.portability import verify_app_contract
+        contract = verify_app_contract(
+            app,
+            ko_types_count=len(KO_TYPES),
+            ko_catalog_count=len(KO_TYPE_CATALOG),
+        )
+    except Exception as e:  # noqa: BLE001
+        contract = {
+            "evaluation": {
+                "ok": False,
+                "failures": [f"portability contract import failed: {type(e).__name__}: {e}"],
+                "counts": {},
+            },
+            "required_endpoints": [],
+            "required_sample_files": [],
+        }
+    evaluation = contract.get("evaluation", {})
+    counts = evaluation.get("counts", {})
+    failures = list(evaluation.get("failures") or [])
+
+    print()
+    print("=" * 68)
+    print("  KERNEL 01 PORTABILITY CONTRACT")
+    print("=" * 68)
+    print(f"    required_routes  {counts.get('required_routes', len(contract.get('required_endpoints', [])))}")
+    print(f"    served_routes    {counts.get('served_routes', 0)}")
+    print(f"    ko_types         {counts.get('knowledge_types', 0)}")
+    print(f"    ko_catalog       {counts.get('knowledge_types_with_catalog', 0)}")
+    print(f"    required_samples {counts.get('required_samples', len(contract.get('required_sample_files', [])))}")
+    print("=" * 68)
+
+    if failures:
+        msg = (
+            "Kernel 01 portability contract FAILED:\n  - "
+            + "\n  - ".join(failures)
+            + "\n\nThis usually means the notebook is serving an old or partial "
+              "duecare-llm-chat package. Rebuild/publish the 0.17.0 wheel or "
+              "force the GitHub/source install path. To override intentionally, "
+              "set DUECARE_ALLOW_OLD_WHEEL=1."
+        )
+        if os.environ.get("DUECARE_ALLOW_OLD_WHEEL") == "1":
+            print(f"  WARN  {msg}\n  (proceeding because DUECARE_ALLOW_OLD_WHEEL=1)")
+        else:
+            raise RuntimeError(msg)
+    else:
+        print("  OK reusable endpoints, knowledge catalog, and sample assets are present")
+
+
+_verify_portable_app_contract(app)
+
 # ---------------------------------------------------------------------------
 # Model picker — POST /api/load-model + GET /api/load-model/status
 # ---------------------------------------------------------------------------
@@ -1645,6 +1736,11 @@ _VARIANT_INFO = {
     "cloud-openai":   {"display": "OpenAI-compat (cloud)",    "size_gb": 0.0,  "fits": "no GPU",     "category": "cloud", "load_eta": "instant"},
     "cloud-ollama":   {"display": "Ollama (cloud/local)",     "size_gb": 0.0,  "fits": "no GPU",     "category": "cloud", "load_eta": "instant"},
 }
+try:
+    from duecare.chat.portability import model_variant_ui_map as _dc_model_variant_ui_map
+    _VARIANT_INFO = _dc_model_variant_ui_map()
+except Exception:
+    pass
 
 
 @app.get("/api/load-model/status")

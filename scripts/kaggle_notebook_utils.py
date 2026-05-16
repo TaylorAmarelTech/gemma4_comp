@@ -2,7 +2,7 @@
 
 This module keeps notebook inventory logic in one place so publishing,
 reporting, and docs generation all read the same source of truth:
-`kaggle/kernels/*/kernel-metadata.json`.
+`kaggle/*/kernel-metadata.json`.
 """
 
 from __future__ import annotations
@@ -15,7 +15,7 @@ from pathlib import Path
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-KERNELS_DIR = REPO_ROOT / "kaggle" / "kernels"
+KERNELS_DIR = REPO_ROOT / "kaggle"
 NOTEBOOKS_DIR = REPO_ROOT / "legacy_notebooks"
 SKUNKWORKS_NOTEBOOKS_DIR = REPO_ROOT / "skunkworks" / "notebooks"
 
@@ -110,7 +110,7 @@ def discover_kernel_notebooks(
 ) -> list[KaggleNotebook]:
     """Return every tracked Kaggle kernel discovered from metadata files.
 
-    Kaggle kernel directories are authoritative. Legacy and skunkworks
+    Top-level Kaggle kernel directories are authoritative. Legacy and skunkworks
     notebooks are optional archive mirrors; when those folders have been
     moved out of the repo, entries simply report `mirror_path=None`."""
     entries: list[KaggleNotebook] = []

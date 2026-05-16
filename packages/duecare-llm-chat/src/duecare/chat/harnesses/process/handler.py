@@ -15,7 +15,7 @@ import re as _re
 import threading as _threading
 import zipfile
 import xml.etree.ElementTree as _ET
-from datetime import datetime as _dt
+from datetime import UTC as _UTC, datetime as _dt
 from pathlib import Path as _Path
 from typing import Any
 from uuid import uuid4 as _uuid4
@@ -2476,7 +2476,7 @@ def register_routes(app: Any) -> None:
         with lock:
             job = jobs.setdefault(job_id, {"job_id": job_id, "events": []})
             event = {
-                "ts": _dt.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"),
+                "ts": _dt.now(_UTC).strftime("%Y-%m-%dT%H:%M:%SZ"),
                 "status": fields.get("status", job.get("status", "running")),
                 "phase": fields.get("phase", job.get("phase", "")),
                 "pct": fields.get("pct", job.get("pct", 0)),
@@ -2512,7 +2512,7 @@ def register_routes(app: Any) -> None:
                 progress(phase=phase, pct=pct, detail=detail)
 
         mark("staging", 12, "Saving the uploaded knowledge/source bundle in local process staging.")
-        ts = _dt.utcnow().strftime("%Y-%m-%dT%H-%M-%SZ")
+        ts = _dt.now(_UTC).strftime("%Y-%m-%dT%H-%M-%SZ")
         run_id = f"01_process_{ts}"
         staging = _stage_upload(filename, contents, run_id)
 
@@ -2703,7 +2703,7 @@ def register_routes(app: Any) -> None:
         filename = getattr(upload, "filename", "uploaded") or "uploaded"
         process_settings = _process_settings_from_form(form)
         job_id = f"process_{_uuid4().hex[:12]}"
-        now = _dt.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
+        now = _dt.now(_UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
         jobs, lock = _process_jobs()
         with lock:
             jobs[job_id] = {

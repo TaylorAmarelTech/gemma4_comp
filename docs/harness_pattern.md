@@ -185,13 +185,14 @@ Each endpoint emits to the correct per-task JSONL stream at completion.
 
 Every harness self-describes which `KnowledgeObject` types it reads and
 writes via `consumes` and `emits` tuples on its `__init__.py`. Validated
-against the 21-leaf taxonomy by `tests/test_harness_imports.py`.
+against the live taxonomy exposed by `KO_BRANCHES` and
+`GET /api/knowledge/taxonomy`.
 
 | Harness | consumes | emits |
 |---|---|---|
 | `chat` | grep_rule, glob_rule, classifier_rule, heuristic_rule, rag_doc, citation_edge, corridor_profile, ngo_directory, persona_block, context_snippet, reasoning_step, rubric_dimension, tool_definition, tool_example | (none) |
-| `process` | grep_rule, glob_rule, rag_doc, corridor_profile, ngo_directory, tool_definition, context_snippet | audit_template |
-| `extraction` | grep_rule, rag_doc, prompt_template, fact_template | grep_rule, glossary_term, statute_citation, indicator, fact_template, envelope_schema |
+| `process` | grep_rule, glob_rule, rag_doc, corridor_profile, ngo_directory, tool_definition, context_snippet | audit_template, extracted_fact, entity_signal, modus_operandi, fact_template, context_snippet |
+| `extraction` | grep_rule, rag_doc, prompt_template, fact_template | grep_rule, rag_doc, ngo_directory, fact_template, extracted_fact, entity_signal, context_snippet, modus_operandi, rubric_dimension, citation_edge, envelope_schema |
 | `anonymization` | prompt_template | audit_template, submission_schema |
 | `import_corpus` | upload_schema | context_snippet |
 

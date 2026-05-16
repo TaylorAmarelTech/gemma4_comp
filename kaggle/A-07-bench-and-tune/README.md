@@ -139,6 +139,24 @@ data?" question: treat them as supervised and preference data first. Only
 call it RL if a later notebook adds PPO/GRPO or another online
 reward-optimization step.
 
+## Shared Experiment Contract
+
+A7 now reads the same defaults used by A-00 from
+`duecare.chat.experiment_contracts` after installing `duecare-llm-chat`.
+That contract centralizes the T4 SFT/DPO profile, upload limits, and
+comparison matrix so A7 does not silently drift from the workbench:
+
+- `a07_t4_standard_sft`: 200 examples, 2 epochs, LoRA r=16, alpha=32,
+  dropout=0.05, max sequence length 4096.
+- `a07_t4_standard_dpo`: 100 pairs, 1 epoch, beta=0.1.
+- Shared upload limits for A6/A7 JSONL/ZIP handoff validation.
+- `stock_vs_finetuned_harness_matrix` for reporting stock, stock+harness,
+  fine-tuned, and fine-tuned+harness runs against the same prompt set.
+
+If the package contract is unavailable during the bootstrap phase, the notebook
+uses identical fallback defaults, then refreshes from the installed package
+before model loading and training.
+
 ## Wheels included (6)
 
 `duecare-llm-core`, `duecare-llm-models`, `duecare-llm-domains`,

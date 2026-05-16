@@ -1,0 +1,11 @@
+groups:
+  - name: duecare-api
+    rules:
+      - alert: DuecareApiDown
+        expr: up{job="duecare-api"} == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: DueCare API is not reachable
+          description: Prometheus cannot scrape the private DueCare API target.

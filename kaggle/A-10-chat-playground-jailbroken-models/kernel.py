@@ -182,7 +182,7 @@ print("\n" + "=" * 76)
 #   1. GitHub Release wheels at /releases/download/v{VERSION}/
 #   2. GitHub source install via git+https://...@<sha>#subdirectory=...
 # Notebook 01's install_chat_wheels() is the canonical reference.
-DUECARE_VERSION    = "0.1.0"
+DUECARE_VERSION    = os.environ.get("DUECARE_VERSION", "0.17.0")
 DUECARE_REPO       = "TaylorAmarelTech/gemma4_comp"
 DUECARE_COMMIT_SHA = "master"
 DUECARE_PACKAGES   = ["duecare-llm-chat"]   # pulls in core for harness data
@@ -981,6 +981,7 @@ from duecare.chat import create_app
 from duecare.chat.harness import (
     default_harness, GREP_RULES, RAG_CORPUS, _TOOL_DISPATCH,
 )
+from duecare.chat.portability import reference_portability_contract_payload
 import uvicorn
 
 model_info = {
@@ -1005,6 +1006,9 @@ app = create_app(
     **_hooks,
 )
 _attach_shutdown(app)
+_A10_PORTABILITY_CONTRACT = reference_portability_contract_payload()
+print("  portability: full chat app exposes /api/portability "
+      f"({_A10_PORTABILITY_CONTRACT['required_chat_version']})")
 print(f"  harness loaded: {len(GREP_RULES)} GREP rules, "
       f"{len(RAG_CORPUS)} RAG docs, {len(_TOOL_DISPATCH)} tools")
 print(f"  ✓ Online toggle = OFF (jailbroken kernel does not wire "

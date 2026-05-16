@@ -75,7 +75,7 @@ capabilities = ()
 
 Plus `handler.py` with `register_routes(app)`, `prompts.py` for any
 Gemma calls, `knowledge.py` declaring `EMITS` / `CONSUMES` from the
-21-leaf KO taxonomy. The contract tests
+live KO taxonomy. The contract tests
 (`tests/test_harness_imports.py`) enforce the shape.
 
 Full 10-step recipe + contract details: [harness_pattern.md](harness_pattern.md).
@@ -91,7 +91,7 @@ The new harness modules are wired transparently inside `create_app`.
 | File | What it pins |
 |---|---|
 | `tests/test_route_contract.py` | every (path, method) on the kernel app |
-| `tests/test_harness_imports.py` | 31 assertions across the 6 kernel harnesses |
+| `tests/test_harness_imports.py` | Assertions across the kernel harness contracts |
 | `tests/test_compose_layers.py` | unit tests for the shared layer composer |
 | `tests/test_multi_harness_integration.py` | extract -> anonymize -> submit chain |
 | `tests/test_per_harness_tools.py` | tool spec shape per harness |

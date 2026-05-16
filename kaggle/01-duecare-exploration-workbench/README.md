@@ -54,7 +54,7 @@ Then proceed to the walkthrough below.
 3. **Pick a model**. E2B/E4B usually load in under a minute; 26B-A4B
    and 31B can take 5-10+ minutes on a first HuggingFace download.
    Keep the picker open and use **View logs** to see live loader phases.
-4. **Verify the safety layers loaded** with `curl https://<your-url>/api/brand` (v0.14.2+) or `/api/health-check`. Expected counts include live GREP, RAG, tool, rubric, evaluator-question, citation-edge, and example-prompt totals. The `Safety layers` button in the top bar opens dedicated viewers for each layer (`/static/harness.html` index, grep-rules, rag-corpus, rag-graph, tools, online, persona).
+4. **Verify the safety layers loaded** with `curl https://<your-url>/api/brand`, `/api/portability`, or `/api/health-check`. Expected counts include live GREP, RAG, tool, rubric, evaluator-question, citation-edge, example-prompt totals, and the reusable portability contract. The `Safety layers` button in the top bar opens dedicated viewers for each layer (`/static/harness.html` index, grep-rules, rag-corpus, rag-graph, tools, online, persona).
 5. **Click any of the 5 colored buttons** in the empty-state. They map to the 5 high-impact demo prompt categories:
    - **Green Headline lift:** the 5-indicator compound case (PHP+HK)
    - **Red Jailbreak:** DAN persona attempt
@@ -136,6 +136,36 @@ All harness content (GREP rules, RAG docs, tools, rubric dimensions,
 and configured LLM-judge questions) lives in the chat package wheel:
 not in `kernel.py`. Bumping the dataset version updates everything;
 the kernel.py doesn't need to change.
+
+## Portability contract for the next notebooks
+
+Kernel 01 is now the reference runtime contract for the focused live
+demo, video-pitch notebook, A-00 omni workbench, and appendix notebooks.
+After `create_app(...)`, `kernel.py` verifies the reusable API surface,
+knowledge taxonomy, type catalog, and bundled sample assets are present.
+If a stale wheel is served, the kernel fails early instead of opening a
+partially working UI.
+
+The next notebooks should reuse or mirror these primitives rather than
+rebuilding their own versions:
+
+- `/api/audit/workbench-inventory` for live page, harness, sample, and
+  import/export inventory.
+- `/api/portability` for the reusable version, endpoint, sample,
+  model-fit, trust-boundary, and primitive contract.
+- `/api/knowledge/type-catalog` for the 28 knowledge leaf types and
+  subtype guidance.
+- `/api/harnesses` for the canonical harness surface map.
+- `/api/process/batch/start` plus `/api/process/batch/status/{job_id}`
+  for long-running local bundle processing.
+- `static/samples/sample_manifest.json` for source case bundles,
+  knowledge files, search examples, and training/eval seeds.
+- `case_files_media_rich_sample.zip` as the primary PH-HK source bundle.
+- `knowledge_files_sample.zip` as the primary importable knowledge-files
+  bundle.
+
+See [PORTABILITY_AUDIT.md](PORTABILITY_AUDIT.md) for the full version,
+endpoint, sample, knowledge taxonomy, and appendix-readiness checklist.
 
 ## Recent review: loader observability and UI hardening
 

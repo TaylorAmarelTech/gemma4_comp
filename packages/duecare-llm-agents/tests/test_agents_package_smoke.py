@@ -166,9 +166,10 @@ class TestTrainerAgent:
         ctx.record("val_jsonl", [{"id": f"v{i}", "text": "y"} for i in range(2)])
         tr = agent_registry.get("trainer")
         out = tr.execute(ctx)
-        # Stub returns SKIPPED
+        # Local smoke environments without Unsloth skip cleanly with install
+        # guidance; GPU environments may use the same agent for real training.
         assert out.status == TaskStatus.SKIPPED
-        assert "STUB" in out.decision
+        assert "unsloth" in out.decision.lower() or "install" in out.decision.lower()
         assert out.metrics["n_train_samples"] == 10.0
 
 

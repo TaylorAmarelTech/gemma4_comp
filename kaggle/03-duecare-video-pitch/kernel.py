@@ -2060,6 +2060,8 @@ _SHUTDOWN_EVENT = threading.Event()
 
 try:
     from duecare.chat.kernel_shell import build_minimal_shell
+    from duecare.chat.portability import reference_portability_contract_payload
+    PORTABILITY_CONTRACT = reference_portability_contract_payload()
     summary_payload = {
         "title": "03 DueCare Video Pitch (slides + replay + setup)",
         "audience": "all",
@@ -2074,6 +2076,7 @@ try:
             {"label": "Scenes", "value": str(sum(
                 len(l["scenes"]) for l in DEMO_SCRIPT["lanes"].values()))},
             {"label": "Compute", "value": "CPU-only, no model load"},
+            {"label": "Contract", "value": PORTABILITY_CONTRACT["required_chat_version"]},
         ],
         "links": [
             ("slides", "/?mode=slides"),
@@ -2157,6 +2160,11 @@ try:
                         "and media references."),
             "slides": slides,
             "script": script,
+            "portability_contract": {
+                "schema_version": PORTABILITY_CONTRACT.get("schema_version"),
+                "required_chat_version": PORTABILITY_CONTRACT.get("required_chat_version"),
+                "workbench_defaults": PORTABILITY_CONTRACT.get("workbench_defaults", {}),
+            },
             "scene_scorecards": rows,
             "media": [{
                 "name": SYNTHETIC_ID_CARD_PATH.name,
@@ -2214,6 +2222,10 @@ try:
     @app.get("/api/get-script")
     def _get_script():
         return {"ok": True, "script": _SCRIPT_RUNTIME["script"]}
+
+    @app.get("/api/portability")
+    def _portability():
+        return PORTABILITY_CONTRACT
 
     @app.post("/api/save-script")
     async def _save_script(req: _Request):

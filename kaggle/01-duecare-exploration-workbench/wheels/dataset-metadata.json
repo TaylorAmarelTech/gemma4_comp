@@ -1,17 +1,18 @@
 {
-  "title": "Duecare harness chat — wheels",
+  "title": "DueCare workbench wheels",
   "id": "taylorsamarel/duecare-harness-chat-wheels",
   "licenses": [
     {
       "name": "MIT"
     }
   ],
-  "subtitle": "v0.14.5 — P0 hardening: _brand.py single source of truth + 11 per-layer viewer pages (harness landing, persona, grep-rules, grep-tester live regex, rag-corpus with retrieval overlay, rag-graph, tools, online, hotlines, search, contacts directory) + deployment self-audit gate + sanitizer for Gemma 4 thinking-channel artifacts + comprehensive no-model smoke script",
-  "description": "v0.14.5 / chat-package 0.14.5 (2026-05-08) — pre-submission hardening pass driven by external review. (1) DEPLOYMENT SELF-AUDIT: kernel.py prints chat-package version + /api/brand counts + rubric version after wheel install, fails loudly if counts fall below v0.14.x minimums (n_grep_rules≥150, n_rag_docs≥40, n_dimensions≥40). Override via DUECARE_ALLOW_OLD_WHEEL=1. Eliminates the 'old wheel still serving' phantom-bug class entirely. (2) MODEL-OUTPUT SANITIZER centralized into duecare.chat._model_output.sanitize_model_output() with regression tests covering Gemma 4 thinking-mode strings, multi-channel emissions, malformed escape sequences. Local Gemma + cloud-Gemini + cloud-OpenAI + cloud-Ollama paths all use the same helper. (3) FIXED HEALTH ENDPOINT: /api/health-check now returns the live importlib.metadata version (was stale '0.1.0'); /api/version curator_blocks list now includes 'contacts'. (4) GENERICIZED in-app extension docs in harness/__init__.py — no embedded counts; says 'counts are live at /api/brand'. (5) WRITEUP + VIDEO SCRIPT updated for v0.14.5 (subtitle '35-doc corpus' → '46-doc corpus', '5 layers'/'108 rules' refresh). (6) NEW comprehensive smoke script scripts/v141_smoke_all_endpoints.py asserts every critical API surface (8 endpoints, schemas, expected counts). (7) PIPELINE LATENCY HEADER reframed: 'Harness added 32 ms; Gemma generated for 60,000 ms' so harness overhead remains legible even when Gemma generation dominates. (8) CONTACTS DIRECTORY (v0.14.4): _contacts.json curator-block with 26 entries (DMW PH, OWWA, BP2MI Aduan, Nepal DoFE, BD BMET, HK Labour Dept, SG MOM, Saudi Musaned 19911, UAE MoHRE, Kuwait PAM, Lebanon ISF, IJM, Polaris US, MfMW HK, IMWU HK, ECPAT, PNCC, NAPTIP, ILO Bangkok, IOM, PH consulates HK + Riyadh, ID consulate HK, US TIP, ASEAN ACTIP, INTERPOL THB) + /api/contacts with corridor/country/category/language/topic filters + /static/hotlines.html. (9) PRESERVED FROM v0.14.0-0.14.3: interactive RAG graph viewer (arrowheads + search + zoom/pan + SVG export), live GREP tester, cross-layer search, RAG retrieval overlay, GREP fire-count leaderboard, jurisdiction grouping centralized in _brand.JURISDICTIONS, evaluator_call hook (in-process self-grade in Kaggle by VRAM necessity). Bundled wheels: duecare-llm-chat 0.14.5, duecare-llm-core, duecare-llm-models. Updates land here — bump this dataset version to refresh attached notebooks.",
+  "subtitle": "v0.17.0 portability bundle: workbench inventory, type catalog, media-rich samples, async process jobs, graph-edge contract, and local-first knowledge files",
+  "description": "DueCare workbench wheel bundle for the core exploration notebook. The source-first install path remains GitHub release/source for maximum transparency. This local fallback now includes duecare-llm-chat 0.17.0 alongside legacy infrastructure wheels. Kernel 01 enforces the reusable portability contract before opening the UI: /api/portability, /api/audit/workbench-inventory, /api/harnesses, /api/knowledge/type-catalog, /api/process/batch/start, /api/process/batch/status/{job_id}, /api/search/sanitize, and /api/anonymize must be present. The 0.17.0 chat package includes the sample manifest, media-rich PH-HK case bundle, knowledge_files.zip import/export contract, prompt/eval training seed, model-fit profiles, trust-boundary vocabulary, process phases, and typed graph-edge contract used by 02, 03, A-00, and appendix notebooks.",
   "keywords": [
     "duecare",
     "gemma-4",
     "trafficking",
-    "safety-harness"
+    "safety-harness",
+    "portability"
   ]
 }

@@ -133,6 +133,16 @@ apps/duecare-ai.com/.duecare/
 
 # Local audit / TestClient smoke directory created by validate_public_surface.py
 .duecare-smoke/
+.duecare-audit/
+.duecare-knowledge/
+.duecare-process-staging/
+.duecare-test/
+.build/
+_local_tmp/
+.pytest-basetemp*/
+.pytest-tmp-local/
+*.duckdb
+*.duckdb.wal
 
 # Hokage harness machine-local artifacts. The harness.toml at the repo
 # root is the source-of-truth (committed); .claude-plugin/ + .harness/

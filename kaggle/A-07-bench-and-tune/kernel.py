@@ -89,13 +89,25 @@ from typing import Any, Optional
 # ===========================================================================
 # DEPRECATED 2026-05-11 (GitHub-only): DATASET_SLUG = "duecare-bench-and-tune-wheels"
 
+try:
+    from duecare.chat.experiment_contracts import training_profile_map, upload_limit_map
+except Exception:  # noqa: BLE001
+    training_profile_map = None  # type: ignore[assignment]
+    upload_limit_map = None  # type: ignore[assignment]
+
+_TRAINING_PROFILES = training_profile_map() if training_profile_map else {}
+_UPLOAD_LIMITS = upload_limit_map() if upload_limit_map else {}
+_A07_SFT_DEFAULT = _TRAINING_PROFILES.get("a07_t4_standard_sft", {})
+_A07_DPO_DEFAULT = _TRAINING_PROFILES.get("a07_t4_standard_dpo", {})
+
 # ===== Model =================================================================
 # Base for fine-tune. Use the IT variant -- the chat template is what we want
 # to specialize, and SFT/DPO over IT preserves the generic instruction-tuning
 # while adding our domain-specific citation behavior.
 GEMMA_MODEL_VARIANT = "e4b-it"     # "e2b-it" | "e4b-it" | "26b-a4b-it" | "31b-it"
 GEMMA_LOAD_IN_4BIT  = True
-GEMMA_MAX_SEQ_LEN   = 4096          # tighter than the live-demo 8192 to fit
+GEMMA_MAX_SEQ_LEN   = int(os.environ.get(
+    "GEMMA_MAX_SEQ_LEN", str(_A07_SFT_DEFAULT.get("max_seq_length", 4096))))  # tighter than the live-demo 8192 to fit
                                      # SFT batches on T4. Bump if you have room.
 
 # Unsloth FastModel HF repo names (CapitalCase is mandatory for the small
@@ -128,37 +140,37 @@ ALLOWED_GENERATION_PROFILES = {
     "unknown",
 }
 TRUSTED_BEST_PROFILES = {"stock_harness_teacher", "human_curated_review"}
-MAX_A04_JSONL_ROWS = 20_000
-MAX_A04_TEXT_CHARS = 20_000
-MAX_A04_ZIP_BYTES = 200_000_000
-MAX_A04_JSONL_BYTES = 200_000_000
-MAX_A04_JSONL_LINE_CHARS = 200_000
-MAX_A04_MEMBER_BYTES = 100_000_000
-MAX_A04_UNCOMPRESSED_BYTES = 500_000_000
-MAX_A04_UPLOAD_FILES = 8
+MAX_A04_JSONL_ROWS = int(_UPLOAD_LIMITS.get("max_jsonl_rows", 20_000))
+MAX_A04_TEXT_CHARS = int(_UPLOAD_LIMITS.get("max_text_chars", 20_000))
+MAX_A04_ZIP_BYTES = int(_UPLOAD_LIMITS.get("max_zip_bytes", 200_000_000))
+MAX_A04_JSONL_BYTES = int(_UPLOAD_LIMITS.get("max_jsonl_bytes", 200_000_000))
+MAX_A04_JSONL_LINE_CHARS = int(_UPLOAD_LIMITS.get("max_jsonl_line_chars", 200_000))
+MAX_A04_MEMBER_BYTES = int(_UPLOAD_LIMITS.get("max_member_bytes", 100_000_000))
+MAX_A04_UNCOMPRESSED_BYTES = int(_UPLOAD_LIMITS.get("max_uncompressed_bytes", 500_000_000))
+MAX_A04_UPLOAD_FILES = int(_UPLOAD_LIMITS.get("max_upload_files", 8))
 STRICT_A04_CHECKSUM_VALIDATION = True
 
 # ===== SFT hyperparameters ===================================================
 # Dataset size: cap to keep T4 runs short. The harness can generate as
 # many examples as we want -- 200-400 is plenty for behavioral specialization.
-SFT_MAX_EXAMPLES        = 200
-SFT_NUM_EPOCHS          = 2
-SFT_LEARNING_RATE       = 2e-4
-SFT_PER_DEVICE_BATCH    = 2
-SFT_GRAD_ACCUM_STEPS    = 4
-SFT_WARMUP_RATIO        = 0.03
-SFT_LORA_R              = 16
-SFT_LORA_ALPHA          = 32
-SFT_LORA_DROPOUT        = 0.05
+SFT_MAX_EXAMPLES        = int(_A07_SFT_DEFAULT.get("max_examples", 200))
+SFT_NUM_EPOCHS          = int(_A07_SFT_DEFAULT.get("num_epochs", 2))
+SFT_LEARNING_RATE       = float(_A07_SFT_DEFAULT.get("learning_rate", 2e-4))
+SFT_PER_DEVICE_BATCH    = int(_A07_SFT_DEFAULT.get("per_device_train_batch_size", 2))
+SFT_GRAD_ACCUM_STEPS    = int(_A07_SFT_DEFAULT.get("gradient_accumulation_steps", 4))
+SFT_WARMUP_RATIO        = float(_A07_SFT_DEFAULT.get("warmup_ratio", 0.03))
+SFT_LORA_R              = int(_A07_SFT_DEFAULT.get("lora_r", 16))
+SFT_LORA_ALPHA          = int(_A07_SFT_DEFAULT.get("lora_alpha", 32))
+SFT_LORA_DROPOUT        = float(_A07_SFT_DEFAULT.get("lora_dropout", 0.05))
 SFT_OUTPUT_DIR          = "/kaggle/working/duecare_sft_lora"
 
 # ===== DPO hyperparameters ===================================================
-DPO_MAX_PAIRS           = 100
-DPO_NUM_EPOCHS          = 1
-DPO_LEARNING_RATE       = 5e-6
-DPO_PER_DEVICE_BATCH    = 1
-DPO_GRAD_ACCUM_STEPS    = 4
-DPO_BETA                = 0.1
+DPO_MAX_PAIRS           = int(_A07_DPO_DEFAULT.get("max_pairs", 100))
+DPO_NUM_EPOCHS          = int(_A07_DPO_DEFAULT.get("num_epochs", 1))
+DPO_LEARNING_RATE       = float(_A07_DPO_DEFAULT.get("learning_rate", 5e-6))
+DPO_PER_DEVICE_BATCH    = int(_A07_DPO_DEFAULT.get("per_device_train_batch_size", 1))
+DPO_GRAD_ACCUM_STEPS    = int(_A07_DPO_DEFAULT.get("gradient_accumulation_steps", 4))
+DPO_BETA                = float(_A07_DPO_DEFAULT.get("beta", 0.1))
 DPO_OUTPUT_DIR          = "/kaggle/working/duecare_dpo_lora"
 
 # ===== Benchmark =============================================================
@@ -298,7 +310,7 @@ else:
 #   1. GitHub Release wheels at /releases/download/v{VERSION}/
 #   2. GitHub source install via git+https://...@<sha>#subdirectory=...
 # Notebook 01's install_chat_wheels() is the canonical reference.
-DUECARE_VERSION    = "0.1.0"
+DUECARE_VERSION    = os.environ.get("DUECARE_VERSION", "0.17.0")
 DUECARE_REPO       = "TaylorAmarelTech/gemma4_comp"
 DUECARE_COMMIT_SHA = "master"
 DUECARE_PACKAGES   = ["duecare-llm-chat"]   # pulls in core for harness data
@@ -357,6 +369,58 @@ def install_duecare_wheels() -> int:
 
 
 N_WHEELS = install_duecare_wheels()
+
+
+def _refresh_shared_experiment_defaults() -> None:
+    """Refresh local bootstrap defaults from the installed chat package."""
+    global GEMMA_MAX_SEQ_LEN
+    global MAX_A04_JSONL_ROWS, MAX_A04_TEXT_CHARS, MAX_A04_ZIP_BYTES
+    global MAX_A04_JSONL_BYTES, MAX_A04_JSONL_LINE_CHARS, MAX_A04_MEMBER_BYTES
+    global MAX_A04_UNCOMPRESSED_BYTES, MAX_A04_UPLOAD_FILES
+    global SFT_MAX_EXAMPLES, SFT_NUM_EPOCHS, SFT_LEARNING_RATE
+    global SFT_PER_DEVICE_BATCH, SFT_GRAD_ACCUM_STEPS, SFT_WARMUP_RATIO
+    global SFT_LORA_R, SFT_LORA_ALPHA, SFT_LORA_DROPOUT
+    global DPO_MAX_PAIRS, DPO_NUM_EPOCHS, DPO_LEARNING_RATE
+    global DPO_PER_DEVICE_BATCH, DPO_GRAD_ACCUM_STEPS, DPO_BETA
+
+    try:
+        from duecare.chat.experiment_contracts import training_profile_map as _tpm
+        from duecare.chat.experiment_contracts import upload_limit_map as _ulm
+    except Exception as exc:  # noqa: BLE001
+        print(f"  shared experiment contract unavailable; using bootstrap defaults: {exc}")
+        return
+    training = _tpm()
+    limits = _ulm()
+    sft = training.get("a07_t4_standard_sft", {})
+    dpo = training.get("a07_t4_standard_dpo", {})
+    GEMMA_MAX_SEQ_LEN = int(os.environ.get("GEMMA_MAX_SEQ_LEN", str(sft.get("max_seq_length", GEMMA_MAX_SEQ_LEN))))
+    MAX_A04_JSONL_ROWS = int(limits.get("max_jsonl_rows", MAX_A04_JSONL_ROWS))
+    MAX_A04_TEXT_CHARS = int(limits.get("max_text_chars", MAX_A04_TEXT_CHARS))
+    MAX_A04_ZIP_BYTES = int(limits.get("max_zip_bytes", MAX_A04_ZIP_BYTES))
+    MAX_A04_JSONL_BYTES = int(limits.get("max_jsonl_bytes", MAX_A04_JSONL_BYTES))
+    MAX_A04_JSONL_LINE_CHARS = int(limits.get("max_jsonl_line_chars", MAX_A04_JSONL_LINE_CHARS))
+    MAX_A04_MEMBER_BYTES = int(limits.get("max_member_bytes", MAX_A04_MEMBER_BYTES))
+    MAX_A04_UNCOMPRESSED_BYTES = int(limits.get("max_uncompressed_bytes", MAX_A04_UNCOMPRESSED_BYTES))
+    MAX_A04_UPLOAD_FILES = int(limits.get("max_upload_files", MAX_A04_UPLOAD_FILES))
+    SFT_MAX_EXAMPLES = int(sft.get("max_examples", SFT_MAX_EXAMPLES))
+    SFT_NUM_EPOCHS = int(sft.get("num_epochs", SFT_NUM_EPOCHS))
+    SFT_LEARNING_RATE = float(sft.get("learning_rate", SFT_LEARNING_RATE))
+    SFT_PER_DEVICE_BATCH = int(sft.get("per_device_train_batch_size", SFT_PER_DEVICE_BATCH))
+    SFT_GRAD_ACCUM_STEPS = int(sft.get("gradient_accumulation_steps", SFT_GRAD_ACCUM_STEPS))
+    SFT_WARMUP_RATIO = float(sft.get("warmup_ratio", SFT_WARMUP_RATIO))
+    SFT_LORA_R = int(sft.get("lora_r", SFT_LORA_R))
+    SFT_LORA_ALPHA = int(sft.get("lora_alpha", SFT_LORA_ALPHA))
+    SFT_LORA_DROPOUT = float(sft.get("lora_dropout", SFT_LORA_DROPOUT))
+    DPO_MAX_PAIRS = int(dpo.get("max_pairs", DPO_MAX_PAIRS))
+    DPO_NUM_EPOCHS = int(dpo.get("num_epochs", DPO_NUM_EPOCHS))
+    DPO_LEARNING_RATE = float(dpo.get("learning_rate", DPO_LEARNING_RATE))
+    DPO_PER_DEVICE_BATCH = int(dpo.get("per_device_train_batch_size", DPO_PER_DEVICE_BATCH))
+    DPO_GRAD_ACCUM_STEPS = int(dpo.get("gradient_accumulation_steps", DPO_GRAD_ACCUM_STEPS))
+    DPO_BETA = float(dpo.get("beta", DPO_BETA))
+    print("  shared experiment contract loaded: a07_t4_standard_sft / a07_t4_standard_dpo")
+
+
+_refresh_shared_experiment_defaults()
 
 
 # ===========================================================================
@@ -1611,9 +1675,15 @@ def push_gguf_to_hf(gguf_dir: Path, repo: str) -> bool:
 # MAIN -- orchestrate the phases
 # ===========================================================================
 def main() -> dict:
+    try:
+        from duecare.chat.experiment_contracts import experiment_contract_payload
+        experiment_contract = experiment_contract_payload()
+    except Exception as exc:  # noqa: BLE001
+        experiment_contract = {"unavailable": f"{type(exc).__name__}: {exc}"}
     eval_results: dict = {
         "version": "0.1.0",
         "started_at": time.strftime("%Y-%m-%dT%H:%M:%S"),
+        "experiment_contract": experiment_contract,
         "config": {
             "variant": GEMMA_MODEL_VARIANT,
             "max_seq_length": GEMMA_MAX_SEQ_LEN,

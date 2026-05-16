@@ -61,7 +61,7 @@ SUBSEQUENT_TOKEN_MS = int(os.environ.get("DC_SUBSEQUENT_TOKEN_MS", "25"))
 # ===========================================================================
 # PHASE 1 -- DueCare from GitHub (release wheels first, commit-pinned fallback)
 # ===========================================================================
-DUECARE_VERSION = "0.1.0"
+DUECARE_VERSION = os.environ.get("DUECARE_VERSION", "0.17.0")
 DUECARE_REPO = "TaylorAmarelTech/gemma4_comp"
 DUECARE_COMMIT_SHA = "master"
 DUECARE_PACKAGES = ["duecare-llm-chat"]

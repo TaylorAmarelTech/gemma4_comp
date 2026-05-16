@@ -7,6 +7,8 @@ reference framework's 631-mutator registry.
 
 from __future__ import annotations
 
+from itertools import islice
+
 from duecare.core.enums import AgentRole, TaskStatus
 from duecare.core.schemas import AgentContext, AgentOutput, ToolSpec
 from duecare.agents import agent_registry
@@ -30,6 +32,9 @@ class AdversaryAgent:
     outputs: set[str] = {"adversarial_probes"}
     cost_budget_usd = 0.0
 
+    def __init__(self, max_fallback_probes: int = 50) -> None:
+        self.max_fallback_probes = max_fallback_probes
+
     def execute(self, ctx: AgentContext) -> AgentOutput:
         out = fresh_agent_output(self.id, self.role)
         try:
@@ -37,7 +42,7 @@ class AdversaryAgent:
             if not probes:
                 from duecare.domains import load_domain_pack
                 pack = load_domain_pack(ctx.domain_id)
-                probes = list(pack.seed_prompts())
+                probes = list(islice(pack.seed_prompts(), self.max_fallback_probes))
 
             adversarial: list[dict] = []
             for p in probes:

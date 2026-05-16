@@ -48,6 +48,25 @@ is for a predictable video recording.
 5. Use notebook 03 for the polished slide and cached replay version.
 6. Use A-00 for the quantitative report that backs the video claim.
 
+## Reuse From Kernel 01
+
+Notebook 02 should stay focused, but it should not fork the workbench
+contract. Treat notebook 01 as the runtime source of truth and reuse the
+same package primitives:
+
+- `duecare.chat.portability` for the version floor, required endpoints,
+  sample artifact names, and reusable primitive list.
+- `/api/portability` for the same contract at runtime.
+- `/api/audit/workbench-inventory` for live page, harness, sample, and
+  taxonomy counts.
+- `/api/harnesses` for the canonical harness surface map.
+- `/api/knowledge/type-catalog` for knowledge-object leaf language.
+- `case_files_media_rich_sample.zip` and `prompt_eval_training_seed_sample.zip`
+  for the unified PH-HK demo story and comparison/evaluation seed.
+
+Before recording, the live demo should either pass the same portability
+contract or clearly state that it is a focused subset of Kernel 01.
+
 ## Review Checklist
 
 Before recording or sharing the live URL, verify:

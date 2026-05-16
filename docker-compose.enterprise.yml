@@ -1,0 +1,161 @@
+name: duecare-enterprise
+
+# DueCare enterprise-style local stack.
+#
+# This compose file is intentionally tied to files that exist in this
+# repository. It runs the current DueCare FastAPI server behind Nginx with
+# optional PostgreSQL, Redis, Prometheus, and Grafana services for teams that
+# want a private evaluation environment.
+#
+# Usage:
+#   Copy .env.enterprise.example to .env.enterprise and set strong secrets.
+#   docker compose --env-file .env.enterprise -f docker-compose.enterprise.yml up --build -d
+#   docker compose --env-file .env.enterprise -f docker-compose.enterprise.yml logs -f duecare-api
+#   docker compose --env-file .env.enterprise -f docker-compose.enterprise.yml down
+#
+# Monitoring is optional:
+#   docker compose --env-file .env.enterprise -f docker-compose.enterprise.yml --profile monitoring up --build -d
+
+services:
+  duecare-api:
+    build:
+      context: .
+      dockerfile: deployment/docker/api.Dockerfile
+    image: duecare/api:${DUECARE_VERSION:-local}
+    environment:
+      DUECARE_API_TOKEN: ${DUECARE_API_TOKEN:-}
+      DUECARE_DB: /data/duecare/evidence.sqlite
+      DUECARE_PIPELINE_OUT: /data/duecare/pipeline_out
+      DUECARE_MODEL_BACKEND: ${DUECARE_MODEL_BACKEND:-ollama}
+      DUECARE_MODEL_NAME: ${DUECARE_MODEL_NAME:-gemma4:e2b}
+      DUECARE_RAW_DATA_POLICY: raw case data stays inside this private stack unless an authorized sanitized export is created.
+      DATABASE_URL: postgresql://${POSTGRES_USER:-duecare_user}:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env.enterprise}@postgres:5432/${POSTGRES_DB:-duecare_db}
+      REDIS_URL: redis://:${REDIS_PASSWORD:?Set REDIS_PASSWORD in .env.enterprise}@redis:6379/0
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+    volumes:
+      - ./configs:/app/configs:ro
+      - duecare-data:/data/duecare
+      - duecare-cache:/app/cache
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - duecare-enterprise
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8080/healthz"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-duecare_db}
+      POSTGRES_USER: ${POSTGRES_USER:-duecare_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env.enterprise}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - duecare-enterprise
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -d $${POSTGRES_DB} -U $${POSTGRES_USER}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  redis:
+    image: redis:7-alpine
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD:?Set REDIS_PASSWORD in .env.enterprise}
+    command:
+      - redis-server
+      - --appendonly
+      - "yes"
+      - --maxmemory
+      - 512mb
+      - --maxmemory-policy
+      # Redis is cache/session storage only in this stack. Do not store
+      # audit-critical evidence here; use the evidence database instead.
+      - allkeys-lru
+      - --requirepass
+      - ${REDIS_PASSWORD:?Set REDIS_PASSWORD in .env.enterprise}
+    volumes:
+      - redis-data:/data
+    networks:
+      - duecare-enterprise
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli --pass \"$${REDIS_PASSWORD}\" ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  nginx:
+    image: nginx:1.27-alpine
+    ports:
+      - "${HTTP_PORT:-8088}:80"
+    volumes:
+      - ./deployment/nginx/nginx.enterprise.conf:/etc/nginx/nginx.conf:ro
+      - nginx-logs:/var/log/nginx
+    depends_on:
+      duecare-api:
+        condition: service_healthy
+    networks:
+      - duecare-enterprise
+    restart: unless-stopped
+
+  prometheus:
+    image: prom/prometheus:v2.55.1
+    profiles: ["monitoring"]
+    ports:
+      - "${PROMETHEUS_PORT:-9090}:9090"
+    volumes:
+      - ./deployment/monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./deployment/monitoring/alert-rules.yml:/etc/prometheus/alert-rules.yml:ro
+      - prometheus-data:/prometheus
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --storage.tsdb.retention.time=30d
+      - --web.enable-lifecycle
+    networks:
+      - duecare-enterprise
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:11.3.0
+    profiles: ["monitoring"]
+    ports:
+      - "${GRAFANA_PORT:-3001}:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:?Set GRAFANA_PASSWORD in .env.enterprise}
+      GF_SECURITY_SECRET_KEY: ${GRAFANA_SECRET_KEY:?Set GRAFANA_SECRET_KEY in .env.enterprise}
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./deployment/monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ./deployment/monitoring/grafana/datasources:/etc/grafana/provisioning/datasources:ro
+    depends_on:
+      - prometheus
+    networks:
+      - duecare-enterprise
+    restart: unless-stopped
+
+volumes:
+  duecare-data:
+  duecare-cache:
+  postgres-data:
+  redis-data:
+  nginx-logs:
+  prometheus-data:
+  grafana-data:
+
+networks:
+  duecare-enterprise:
+    driver: bridge

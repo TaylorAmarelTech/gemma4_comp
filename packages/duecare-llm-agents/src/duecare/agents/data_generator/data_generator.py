@@ -7,6 +7,8 @@ the "synthetic" output. A full implementation would call a teacher model
 
 from __future__ import annotations
 
+from itertools import islice
+
 from duecare.core.enums import AgentRole, TaskStatus
 from duecare.core.schemas import AgentContext, AgentOutput, ToolSpec
 from duecare.agents import agent_registry
@@ -35,7 +37,7 @@ class DataGeneratorAgent:
             pack = load_domain_pack(ctx.domain_id)
 
             # MVP: reuse the seed prompts as synthetic probes
-            probes = list(pack.seed_prompts())[: self.num_probes]
+            probes = list(islice(pack.seed_prompts(), self.num_probes))
 
             ctx.record("synthetic_probes", probes)
 

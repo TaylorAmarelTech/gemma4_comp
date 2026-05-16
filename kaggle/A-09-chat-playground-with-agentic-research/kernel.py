@@ -89,7 +89,7 @@ RANDOM_SEED = int(os.environ.get("DUECARE_PII_SEED", "20260511"))
 # ===========================================================================
 # PHASE 1 -- install DueCare from GitHub (no Kaggle wheel datasets)
 # ===========================================================================
-DUECARE_VERSION    = "0.1.0"
+DUECARE_VERSION    = os.environ.get("DUECARE_VERSION", "0.17.0")
 DUECARE_REPO       = "TaylorAmarelTech/gemma4_comp"
 DUECARE_COMMIT_SHA = "master"
 DUECARE_PACKAGES   = ["duecare-llm-chat"]

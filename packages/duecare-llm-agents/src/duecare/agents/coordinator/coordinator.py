@@ -178,7 +178,12 @@ class CoordinatorAgent:
             out.decision = (
                 f"Ran {len(executed)} agents via {mode}: {', '.join(executed)}"
             )
-            out.metrics = {**self.supervisor.summary(), "orchestration_mode": mode}
+            out.metrics = {
+                **{k: float(v) for k, v in self.supervisor.summary().items()},
+                "orchestration_steps": float(len(executed)),
+                "orchestration_mode_code": 1.0 if self.use_gemma_orchestration else 0.0,
+            }
+            out.context_updates = {"orchestration_mode": mode}
         except Exception as e:
             out.status = TaskStatus.FAILED
             out.decision = f"failed: {e}"

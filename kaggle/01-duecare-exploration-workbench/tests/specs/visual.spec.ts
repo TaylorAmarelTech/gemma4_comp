@@ -13,12 +13,20 @@ test.describe('visual capture', () => {
 
   test('model picker open', async ({ page }, info) => {
     await page.goto('/static/chat.html');
-    const overlay = page.locator('#picker-overlay');
-    if (!(await overlay.isVisible().catch(() => false))) {
-      const btn = page.getByRole('button', { name: /pick a model/i }).first();
-      if (await btn.isVisible().catch(() => false)) await btn.click();
+    const sharedPopover = page.locator('#dc-wb-model-popover');
+    const legacyOverlay = page.locator('#picker-overlay');
+    if (!(await sharedPopover.evaluate((el) => !el.hasAttribute('hidden')).catch(() => false))
+      && !(await legacyOverlay.isVisible().catch(() => false))) {
+      const sharedBtn = page.locator('#dc-wb-model-open').first();
+      if (await sharedBtn.isVisible().catch(() => false)) {
+        await sharedBtn.click();
+      } else {
+        const btn = page.getByRole('button', { name: /open model selector|pick a model/i }).first();
+        if (await btn.isVisible().catch(() => false)) await btn.click();
+      }
     }
     await page.waitForTimeout(500);
+    await expect(page.locator('#dc-wb-model-popover, #picker-overlay').first()).not.toHaveAttribute('hidden', '');
     await page.screenshot({
       path: `test-results/screenshots/${info.project.name}-model-picker.png`,
       fullPage: false,

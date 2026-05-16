@@ -1,4 +1,4 @@
-"""Minimal-shell helper for notebook-only kernels.
+﻿"""Minimal-shell helper for notebook-only kernels.
 
 Notebooks that compute outputs but don't need the full chat playground
 (A-05 evaluation, A-06 prompt-generation, A-07 fine-tune, A-08 graphs,
@@ -60,6 +60,7 @@ import threading
 import time
 from pathlib import Path
 from typing import Any, Optional
+from urllib.parse import quote
 
 # Re-export so callers only need one import line.
 from duecare.chat._dc_log import (
@@ -91,7 +92,32 @@ def _resolve_static_dir() -> Path:
     return static
 
 
-def _render_summary_html(summary: dict[str, Any], kernel_id: str) -> str:
+def _artifact_href(raw_path: str, display_name: str, artifact_root: Path) -> str:
+    """Return a working /artifact URL for an artifact record.
+
+    Minimal-shell callers often store artifacts in nested output folders, while
+    their display name is just ``results.json``. The artifact endpoint serves
+    paths relative to ``artifact_root``, so the URL must preserve that relative
+    path instead of blindly linking by display name.
+    """
+    candidate = Path(raw_path) if raw_path else Path(display_name)
+    try:
+        if candidate.is_absolute():
+            rel = candidate.resolve().relative_to(artifact_root.resolve())
+        else:
+            rel = candidate
+    except Exception:
+        rel = Path(display_name)
+    rel_text = str(rel).replace("\\", "/").lstrip("/")
+    return "/artifact/" + quote(rel_text or display_name)
+
+
+def _render_summary_html(
+    summary: dict[str, Any],
+    kernel_id: str,
+    *,
+    artifact_root: Path = Path("/kaggle/working"),
+) -> str:
     """Render the kernel's summary page using the workbench shell.
     Loads `_chrome.css` + `showcase.css` + `_nav.js` from the static
     mount so it inherits the same nav as the rest of the workbench."""
@@ -124,10 +150,13 @@ def _render_summary_html(summary: dict[str, Any], kernel_id: str) -> str:
     if artifacts := summary.get("artifacts"):
         items = []
         for a in artifacts:
-            name = html.escape(str(a.get("name", "")))
-            path = html.escape(str(a.get("path", "")))
+            raw_name = str(a.get("name", ""))
+            raw_path = str(a.get("path", ""))
+            name = html.escape(raw_name)
+            path = html.escape(raw_path)
+            href = html.escape(_artifact_href(raw_path, raw_name, artifact_root), quote=True)
             items.append(
-                f'<a class="tool-card" href="/artifact/{name}" download>'
+                f'<a class="tool-card" href="{href}" download>'
                 f'<div class="name">{name}</div>'
                 f'<div class="desc"><code>{path}</code></div></a>'
             )
@@ -173,7 +202,7 @@ def _render_summary_html(summary: dict[str, Any], kernel_id: str) -> str:
         '</div>'
     )
 
-    return f"""<!doctype html>
+    rendered = f"""<!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8">
@@ -197,6 +226,13 @@ def _render_summary_html(summary: dict[str, Any], kernel_id: str) -> str:
 </body>
 </html>
 """
+    return (
+        rendered
+        .replace("\u00e2\u2020\u2014", "open")
+        .replace("\u00e2\u2020\u2019", "")
+        .replace("\u00e2\u20ac\u201d", "-")
+        .replace("\u00c2\u00b7", "-")
+    )
 
 
 def log_kernel_interaction(
@@ -311,11 +347,11 @@ def build_minimal_shell(
     def index() -> str:
         if homepage_html:
             return homepage_html
-        return _render_summary_html(summary, kid)
+        return _render_summary_html(summary, kid, artifact_root=artifact_root)
 
     @app.get("/summary", response_class=HTMLResponse)
     def summary_page() -> str:
-        return _render_summary_html(summary, kid)
+        return _render_summary_html(summary, kid, artifact_root=artifact_root)
 
     @app.get("/healthz")
     def healthz() -> Any:
@@ -329,6 +365,27 @@ def build_minimal_shell(
         except Exception:
             v = "?"
         return {"kernel": kid, "kind": "minimal-shell", "chat_package": v}
+
+    @app.get("/api/portability")
+    def api_portability() -> Any:
+        from duecare.chat.portability import reference_portability_contract_payload
+
+        payload = reference_portability_contract_payload()
+        return {
+            **payload,
+            "served_by": "minimal-shell",
+            "kernel": kid,
+        }
+
+    @app.get("/api/experiment-contract")
+    def api_experiment_contract() -> Any:
+        from duecare.chat.experiment_contracts import experiment_contract_payload
+
+        return {
+            **experiment_contract_payload(),
+            "served_by": "minimal-shell",
+            "kernel": kid,
+        }
 
     @app.get("/api/model-info")
     def api_model_info() -> Any:

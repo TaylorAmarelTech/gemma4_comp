@@ -8935,7 +8935,7 @@ def format_lift_report_md(
     import datetime as _dt
     md = []
     md.append(f"# {title}\n")
-    md.append(f"_Generated {_dt.datetime.utcnow().isoformat()}Z_\n")
+    md.append(f"_Generated {_dt.datetime.now(_dt.UTC).isoformat()}_\n")
     md.append(f"Model: `{model_name}` · Git SHA: `{git_sha}` · Dataset: `{dataset_version}`\n")
     md.append("")
     md.append("## Headline numbers\n")

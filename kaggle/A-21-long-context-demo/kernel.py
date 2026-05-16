@@ -63,7 +63,7 @@ OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 # ===========================================================================
 # PHASE 1 -- DueCare from GitHub (release wheels first, commit-pinned fallback)
 # ===========================================================================
-DUECARE_VERSION = "0.1.0"
+DUECARE_VERSION = os.environ.get("DUECARE_VERSION", "0.17.0")
 DUECARE_REPO = "TaylorAmarelTech/gemma4_comp"
 DUECARE_COMMIT_SHA = "master"
 DUECARE_PACKAGES = ["duecare-llm-chat"]

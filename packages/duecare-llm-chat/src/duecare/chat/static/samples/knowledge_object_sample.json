@@ -2,9 +2,12 @@
   "schema_version": "1.0",
   "knowledge_object_type": "grep_rule",
   "id": "sample-passport-retention-v1",
-  "source": {
-    "kind": "composite",
-    "provenance": "duecare workbench sample bundle (judge-safe synthetic)"
+  "version": "v1",
+  "provenance": {
+    "created_at": "2026-05-12T00-00-00Z",
+    "created_by": "duecare-workbench-sample",
+    "source_kind": "composite",
+    "source_note": "duecare workbench sample bundle (judge-safe synthetic)"
   },
   "content": {
     "category": "document_retention",
@@ -26,13 +29,21 @@
       }
     ]
   },
-  "audit": {
-    "drafted_by": "duecare workbench sample",
-    "date": "2026-05-12",
-    "checks_passed": [
-      "pii_clean",
-      "regex_compiles",
-      "test_cases_pass"
-    ]
+  "tags": [
+    "branch:matching_knowledge",
+    "indicator:passport_retention",
+    "sample:true"
+  ],
+  "extensions": {
+    "sample": true,
+    "audit": {
+      "drafted_by": "duecare workbench sample",
+      "date": "2026-05-12",
+      "checks_passed": [
+        "pii_clean",
+        "regex_compiles",
+        "test_cases_pass"
+      ]
+    }
   }
 }
