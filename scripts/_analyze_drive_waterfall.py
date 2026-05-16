@@ -261,13 +261,13 @@ def main() -> int:
     ap.add_argument("--cluster-threshold", type=float, default=0.72,
                     help="Cosine similarity threshold for doc clustering")
     ap.add_argument("--min-cross-bundle", type=int, default=2)
-    ap.add_argument("--api-key",
-                    default=os.environ.get(
-                        "GOOGLE_DRIVE_API_KEY",
-                        "REDACTED-GOOGLE-API-KEY-DISABLED-SEE-SECURITY-MD"))
+    ap.add_argument("--api-key", default=os.environ.get("GOOGLE_DRIVE_API_KEY", ""))
     ap.add_argument("--skip-download", action="store_true",
                     help="Use only what's already cached (no Drive calls)")
     args = ap.parse_args()
+    if not args.api_key and not args.skip_download:
+        print("[waterfall] GOOGLE_DRIVE_API_KEY or --api-key is required")
+        return 1
 
     try:
         from googleapiclient.discovery import build

@@ -14,10 +14,8 @@ import sys
 import time
 from pathlib import Path
 
-os.environ.setdefault(
-    "KAGGLE_API_TOKEN",
-    "KGAT_60334d61220fab3203911577dc47b268",
-)
+if not os.environ.get("KAGGLE_API_TOKEN"):
+    raise SystemExit("Set KAGGLE_API_TOKEN in the environment; do not hardcode it.")
 
 from kaggle.api.kaggle_api_extended import KaggleApi
 

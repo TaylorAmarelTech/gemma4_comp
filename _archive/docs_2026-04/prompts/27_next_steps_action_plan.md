@@ -16,7 +16,7 @@ Actions to perform in one push session.
 
    ```
    $env:PYTHONIOENCODING = "utf-8"
-   $env:KAGGLE_API_TOKEN = "KGAT_cae9959f7adc60ceb6d52746bd3fd807"
+   $env:KAGGLE_API_TOKEN = "<set-in-shell-not-in-repo>"
    kaggle kernels status taylorsamarel/duecare-gemma-vs-oss-comparison
    ```
 
