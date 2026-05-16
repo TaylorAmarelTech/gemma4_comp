@@ -18,20 +18,17 @@ chat UI that real kernels use, with typewriter prompt + token-stream
 response cadence that LOOKS exactly like a real run, but executes
 in deterministic seconds.
 
-## Modes
+## Routes
 
-URL params switch the kernel's surface during recording:
+Clean paths switch the replay lane during recording:
 
-- **`?mode=presentation&lane=worker`** (default) — auto-plays the
-  selected lane's scenes in order. This is the recording target.
-- **`?mode=setup`** — author / edit the DEMO_SCRIPT in-browser.
-  Save writes `/kaggle/working/demo_script_authored.json` so you
-  can download + commit it back into the kernel for future
-  recordings. Load accepts an uploaded JSON to restore.
-- **`?mode=slides`** — pre-built slide deck (title / problem /
-  solution / background / lane intros / closing). Spacebar
-  advances. Cleanly cuts to `?mode=presentation&lane=X` between
-  slides.
+- **`/presentation/worker`** (default) - auto-plays the worker lane's scenes in order. This is the primary recording target.
+- **`/presentation/caseworker`** - caseworker / regulator lane.
+- **`/presentation/platform`** - platform safety lane.
+- **`/presentation/researcher`** - researcher / journalist lane.
+- **`/presentation/developer`** - developer / integration partner lane.
+
+Legacy `?lane=worker` links still work for old bookmarks, but the visible navigation uses clean route paths.
 
 ## Lanes (5)
 
