@@ -1374,6 +1374,11 @@ try:
         return INDEX_HTML
     if public_url:
         print(f"  ok UI: {public_url}")
+    elif os.environ.get("DUECARE_ALLOW_LOCAL_ONLY") != "1":
+        raise SystemExit(
+            "A-24 Demo Replay requires a public Cloudflare URL on Kaggle. "
+            "Set DUECARE_ALLOW_LOCAL_ONLY=1 only for local developer testing."
+        )
     print("\n  A-24 DEMO REPLAY READY -- record from your browser\n")
     while not _SHUTDOWN_EVENT.is_set():
         time.sleep(1)

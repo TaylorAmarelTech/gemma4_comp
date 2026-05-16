@@ -2325,6 +2325,11 @@ try:
         return {"ok": True, **out}
     if public_url:
         print(f"  ok UI: {public_url}")
+    elif os.environ.get("DUECARE_ALLOW_LOCAL_ONLY") != "1":
+        raise SystemExit(
+            "03 Video Pitch requires a public Cloudflare URL on Kaggle. "
+            "Set DUECARE_ALLOW_LOCAL_ONLY=1 only for local developer testing."
+        )
     print("\n  03 VIDEO PITCH READY: record from your browser\n")
     while not _SHUTDOWN_EVENT.is_set():
         time.sleep(1)

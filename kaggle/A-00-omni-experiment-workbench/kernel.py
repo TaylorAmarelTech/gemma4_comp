@@ -16,6 +16,7 @@ import io
 import json
 import os
 import re
+import shutil
 import subprocess
 import sys
 import threading
@@ -47,7 +48,24 @@ A00_TRAINING_TIMEOUT_SEC = int(os.environ.get("A00_TRAINING_TIMEOUT_SEC", str(60
 DUECARE_VERSION = os.environ.get("DUECARE_VERSION", "0.17.0")
 DUECARE_REPO = os.environ.get("DUECARE_REPO", "TaylorAmarelTech/gemma4_comp")
 DUECARE_COMMIT_SHA = os.environ.get("DUECARE_COMMIT_SHA", "master")
-DUECARE_PACKAGES = ["duecare-llm-chat"]
+DUECARE_PACKAGES = [
+    "duecare-llm-core",
+    "duecare-llm-models",
+    "duecare-llm-domains",
+    "duecare-llm-tasks",
+    "duecare-llm-agents",
+    "duecare-llm-workflows",
+    "duecare-llm-publishing",
+    "duecare-llm-evidence-db",
+    "duecare-llm-engine",
+    "duecare-llm-nl2sql",
+    "duecare-llm-research-tools",
+    "duecare-llm-benchmark",
+    "duecare-llm-server",
+    "duecare-llm-cli",
+    "duecare-llm-training",
+    "duecare-llm-chat",
+]
 
 
 def _utc() -> str:
@@ -87,44 +105,86 @@ def _install_duecare_from_github() -> bool:
         return True
 
     print("=" * 76)
-    print("[1/7] installing DueCare packages")
+    print("[1/7] installing DueCare packages from GitHub source")
     print("=" * 76)
+    print(f"  repository: https://github.com/{DUECARE_REPO}")
+    print(f"  ref:        {DUECARE_COMMIT_SHA}")
+    print("  strategy:   one git clone, local package install, import verification")
 
-    base_url = f"https://github.com/{DUECARE_REPO}/releases/download/v{DUECARE_VERSION}"
-    installed = 0
-    for pkg in DUECARE_PACKAGES:
-        wheel_name = f"{pkg.replace('-', '_')}-{DUECARE_VERSION}-py3-none-any.whl"
-        url = f"{base_url}/{wheel_name}"
-        print(f"  release wheel: {wheel_name}")
-        cmd = [
-            sys.executable, "-m", "pip", "install", "--no-input",
-            "--disable-pip-version-check", "--timeout=60", url,
-        ]
-        proc = subprocess.run(cmd, capture_output=True, text=True, timeout=100)
-        if proc.returncode == 0:
-            installed += 1
-            continue
-        tail = (proc.stderr or proc.stdout or "")[-260:]
-        print(f"  wheel unavailable, source fallback: {tail}")
-        break
+    clone_root = Path("/tmp/duecare_gemma4_comp_source")
+    if clone_root.exists():
+        shutil.rmtree(clone_root)
 
-    if installed == len(DUECARE_PACKAGES):
-        return True
-
-    git_pkgs = [
-        f"git+https://github.com/{DUECARE_REPO}.git@{DUECARE_COMMIT_SHA}"
-        f"#subdirectory=packages/{pkg}"
-        for pkg in DUECARE_PACKAGES
+    clone_cmd = [
+        "git", "clone", "--depth", "1", "--branch", DUECARE_COMMIT_SHA,
+        f"https://github.com/{DUECARE_REPO}.git", str(clone_root),
     ]
+    proc = subprocess.run(clone_cmd, capture_output=True, text=True, timeout=300)
+    if proc.returncode != 0:
+        print("  shallow branch clone failed; retrying full clone + checkout")
+        if clone_root.exists():
+            shutil.rmtree(clone_root)
+        proc = subprocess.run(
+            ["git", "clone", f"https://github.com/{DUECARE_REPO}.git", str(clone_root)],
+            capture_output=True,
+            text=True,
+            timeout=600,
+        )
+        if proc.returncode != 0:
+            raise SystemExit("DueCare git clone failed: " + (proc.stderr or proc.stdout or "")[-800:])
+        checkout = subprocess.run(
+            ["git", "-C", str(clone_root), "checkout", DUECARE_COMMIT_SHA],
+            capture_output=True,
+            text=True,
+            timeout=180,
+        )
+        if checkout.returncode != 0:
+            raise SystemExit("DueCare git checkout failed: " + (checkout.stderr or checkout.stdout or "")[-800:])
+
+    package_paths = [clone_root / "packages" / pkg for pkg in DUECARE_PACKAGES]
+    missing = [str(path) for path in package_paths if not (path / "pyproject.toml").exists()]
+    if missing:
+        raise SystemExit("DueCare source checkout is missing package paths: " + ", ".join(missing))
+
     cmd = [
         sys.executable, "-m", "pip", "install", "--no-input",
-        "--disable-pip-version-check", "--timeout=420", *git_pkgs,
+        "--disable-pip-version-check", "--timeout=600", *map(str, package_paths),
     ]
-    proc = subprocess.run(cmd, capture_output=True, text=True, timeout=600)
+    proc = subprocess.run(cmd, capture_output=True, text=True, timeout=1200)
     if proc.returncode != 0:
         raise SystemExit(
-            "DueCare install failed: " + (proc.stderr or proc.stdout or "")[-500:]
+            "DueCare source install failed: " + (proc.stderr or proc.stdout or "")[-1200:]
         )
+
+    for mod in list(sys.modules):
+        if mod == "duecare" or mod.startswith("duecare."):
+            del sys.modules[mod]
+
+    required_imports = [
+        "duecare.core",
+        "duecare.models",
+        "duecare.domains",
+        "duecare.tasks",
+        "duecare.agents",
+        "duecare.workflows",
+        "duecare.publishing",
+        "duecare.evidence",
+        "duecare.engine",
+        "duecare.nl2sql",
+        "duecare.research_tools",
+        "duecare.benchmark",
+        "duecare.server",
+        "duecare.cli",
+        "duecare.training",
+        "duecare.chat",
+    ]
+    for module_name in required_imports:
+        try:
+            __import__(module_name)
+        except Exception as exc:
+            raise SystemExit(f"DueCare import verification failed for {module_name}: {exc}") from exc
+
+    print(f"  installed and verified {len(DUECARE_PACKAGES)} local DueCare packages")
     return True
 
 
@@ -4505,6 +4565,11 @@ try:
         print(f"  UI tunnel not available; local server is listening on http://localhost:{PORT}")
         print("  If this is running on Kaggle, check the [tunnel] log lines above.")
         print("  A public https://*.trycloudflare.com URL is required for browser access from your laptop.")
+        if os.environ.get("DUECARE_ALLOW_LOCAL_ONLY") != "1":
+            raise SystemExit(
+                "A-00 requires a public Cloudflare URL on Kaggle. "
+                "Set DUECARE_ALLOW_LOCAL_ONLY=1 only for local developer testing."
+            )
     print("  A-00 READY")
     print("  Use dry-run mode for UI inspection, then load one model per Kaggle run for real exports.")
     while not _SHUTDOWN_EVENT.is_set():

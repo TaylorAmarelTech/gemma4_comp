@@ -9,6 +9,7 @@ These tests pin both the import path and the function contract.
 from __future__ import annotations
 
 import importlib
+from pathlib import Path
 
 import pytest
 
@@ -62,22 +63,48 @@ def test_kernel_shell_can_boot_without_tunnel() -> None:
         kernel_id="tunnel-test",
         harnesses=[anonymization, extraction],
         tunnel=False,
+        background=False,
     )
     assert app is not None
     assert url is None
 
 
-def test_kernel_shell_handles_tunnel_failure_gracefully() -> None:
+def test_kernel_shell_handles_tunnel_failure_gracefully(monkeypatch) -> None:
     """When tunnel=True but cloudflared isn't available, the shell
     must still return successfully (url=None or local fallback)."""
     from duecare.chat.kernel_shell import build_minimal_shell
+    import duecare.chat.extensions.tunnel as tunnel
     from duecare.chat.harnesses import anonymization
 
+    monkeypatch.setattr(tunnel, "start_cloudflared_tunnel", lambda port: None)
     app, url = build_minimal_shell(
         summary={"title": "tunnel-fail-test", "role": "test"},
         kernel_id="tunnel-fail-test",
         harnesses=[anonymization],
         tunnel=True,
+        background=False,
     )
     assert app is not None
     assert url is None or url.startswith("http")
+
+
+def test_server_tunnel_auto_installs_to_temp_not_system_bin() -> None:
+    """The live-demo kernel uses duecare.server.tunnel directly.
+
+    Kaggle does not guarantee that /usr/local/bin is writable, so the
+    helper must download cloudflared to a temp path just like the
+    exploration workbench/minimal-shell path.
+    """
+    repo = Path(__file__).parents[3]
+    source = (
+        repo
+        / "packages"
+        / "duecare-llm-server"
+        / "src"
+        / "duecare"
+        / "server"
+        / "tunnel.py"
+    ).read_text(encoding="utf-8")
+    assert "tempfile.gettempdir()" in source
+    assert 'target = "/usr/local/bin/cloudflared"' not in source
+    assert "downloaded" in source and "cloudflared" in source

@@ -7,12 +7,16 @@ because they need no account or auth token.
 from __future__ import annotations
 
 import os
+import platform
 import re
 import shutil
+import stat
 import subprocess
 import sys
+import tempfile
 import threading
 import time
+import urllib.request
 from typing import Optional
 
 
@@ -63,23 +67,32 @@ def _open_cloudflared(port: int,
 
 
 def _install_cloudflared() -> Optional[str]:
-    """Best-effort install on Linux (Kaggle). Pulls the static binary
-    from Cloudflare's release page."""
-    if sys.platform != "linux":
+    """Best-effort install on Linux notebook runtimes.
+
+    Kaggle kernels may not have a writable `/usr/local/bin`, so keep the
+    downloaded binary in the temp directory. This mirrors the exploration
+    workbench path and avoids silently falling back to local-only mode.
+    """
+    if sys.platform != "linux" or platform.machine().lower() not in {"x86_64", "amd64"}:
         return None
+
+    target = os.path.join(tempfile.gettempdir(), "cloudflared")
+    if os.path.exists(target) and os.access(target, os.X_OK):
+        return target
+
     try:
         url = ("https://github.com/cloudflare/cloudflared/releases/"
                "latest/download/cloudflared-linux-amd64")
-        target = "/usr/local/bin/cloudflared"
-        # Try wget first, then curl, then urllib.
+        print("[tunnel] cloudflared not on PATH -- downloading ...")
         if shutil.which("wget"):
             subprocess.run(["wget", "-q", "-O", target, url], check=True)
         elif shutil.which("curl"):
             subprocess.run(["curl", "-sSL", "-o", target, url], check=True)
         else:
-            import urllib.request as ur
-            ur.urlretrieve(url, target)
-        os.chmod(target, 0o755)
+            urllib.request.urlretrieve(url, target)
+        os.chmod(target, stat.S_IRWXU | stat.S_IXGRP | stat.S_IXOTH)
+        size_mb = os.path.getsize(target) // 1_000_000
+        print(f"[tunnel] downloaded {size_mb} MB to {target}")
         return target
     except Exception as e:
         print(f"[tunnel] cloudflared auto-install FAILED: "
