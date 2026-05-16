@@ -3827,6 +3827,23 @@ HOMEPAGE_HTML = r"""<!doctype html>
   <link rel="stylesheet" href="/static/_chrome.css">
   <link rel="stylesheet" href="/static/showcase.css">
   <style>
+    body { padding-top: 52px; }
+    #_dc-runtime-topbar {
+      position: fixed; top: 0; left: 0; right: 0; height: 52px;
+      z-index: 99998; display: flex; align-items: center; gap: 12px;
+      padding: 0 14px; background: var(--paper, #f7f6f1);
+      border-bottom: 1px solid var(--line, #ddd8c9);
+      box-shadow: 0 1px 0 rgba(14,17,22,0.04);
+    }
+    .runtime-brand { color: var(--ink); font-weight: 800; font-size: 13px; white-space: nowrap; }
+    .runtime-model { min-width: 0; display: grid; gap: 1px; }
+    .runtime-model b { max-width: 42vw; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; }
+    .runtime-model span { color: var(--ink-3); font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .runtime-actions { margin-left: auto; display: flex; align-items: center; gap: 8px; min-width: 0; }
+    .runtime-metrics { display: flex; align-items: center; gap: 6px; min-width: 0; }
+    .runtime-stat { border: 1px solid var(--line); border-radius: 999px; padding: 4px 8px; background: var(--paper-2); color: var(--ink-2); font-size: 11px; white-space: nowrap; }
+    .runtime-stat b { color: var(--ink); font-weight: 800; }
+    .runtime-button { border: 1px solid var(--line); background: var(--paper); color: var(--ink); border-radius: 6px; padding: 7px 10px; font-size: 12px; font-weight: 700; }
     .a00 { max-width: 1180px; margin: 0 auto; padding: 28px 24px 56px; }
     .a00-header { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 18px; align-items: end; margin-bottom: 16px; border-bottom: 1px solid var(--line); padding-bottom: 18px; }
     .a00-header h1 { margin: 4px 0 8px; font-size: clamp(30px, 4vw, 48px); line-height: 1.02; letter-spacing: 0; }
@@ -3849,9 +3866,8 @@ HOMEPAGE_HTML = r"""<!doctype html>
     body.a00-custom .experiment-flow { display: block; }
     body.a00-custom .primary-grid { display: grid; }
     body.a00-custom .advanced-panel { display: block; }
-    .kpi-strip { display: grid; grid-template-columns: repeat(5, minmax(120px, 1fr)); gap: 10px; margin: 14px 0 16px; }
     .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; }
-    .primary-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-top: 12px; }
+    .primary-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-top: 12px; }
     .panel { background: var(--paper); border: 1px solid var(--line); border-radius: 8px; padding: 16px; }
     .hero-panel { background: #fff; border-color: var(--ink); }
     .panel-heading { display: flex; align-items: start; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
@@ -3903,13 +3919,31 @@ HOMEPAGE_HTML = r"""<!doctype html>
     .muted { color: var(--ink-3); font-size: 12px; }
     @media (max-width: 900px) {
       .a00-header, .a00-choice-grid, .primary-grid, .advanced-grid { grid-template-columns: 1fr; }
-      .kpi-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .flow-grid { grid-template-columns: 1fr; }
       .a00-actions { justify-content: flex-start; }
+      .runtime-metrics { display: none; }
+      .runtime-model b { max-width: 48vw; }
+    }
+    @media (max-width: 640px) {
+      .runtime-model span { display: none; }
+      #_dc-runtime-topbar { gap: 8px; padding: 0 10px; }
+      .runtime-button { padding: 6px 8px; }
     }
   </style>
 </head>
 <body>
+<div id="_dc-runtime-topbar" role="banner" aria-label="DueCare A-00 runtime controls">
+  <div class="runtime-brand">DueCare A-00</div>
+  <div class="runtime-model">
+    <b id="runtime-model-name">Model: dry run</b>
+    <span id="runtime-model-note">Guided experiment console</span>
+  </div>
+  <div class="runtime-actions">
+    <div class="runtime-metrics" id="kpis" aria-label="Runtime status"></div>
+    <button class="runtime-button" type="button" onclick="revealCustom()">Custom controls</button>
+    <button class="runtime-button" id="_dc-shutdown-btn" type="button" onclick="shutdownA00()">Shutdown</button>
+  </div>
+</div>
 <main class="a00">
   <header class="a00-header">
     <div>
@@ -3927,8 +3961,6 @@ HOMEPAGE_HTML = r"""<!doctype html>
       <button class="secondary" onclick="buildReport()">Export report</button>
     </div>
   </header>
-
-  <section class="kpi-strip" id="kpis"></section>
 
   <section class="a00-choice-grid" aria-label="A-00 start options">
     <div class="panel a00-choice a00-preconfigured">
@@ -3958,7 +3990,7 @@ HOMEPAGE_HTML = r"""<!doctype html>
         <div class="preconfigured-status" id="preconfig-status">Ready. Defaults use Gemma 4 E2B, chat_full harness, combined grading, and one model resident at a time.</div>
         <div class="a00-choice-actions">
           <button onclick="runPreconfiguredPipeline()">Run preconfigured pipeline</button>
-          <button class="secondary" onclick="useE2BPipelineDefaults(); revealCustom()">Review exact settings</button>
+          <button class="secondary" onclick="reviewPreconfiguredSettings()">Review exact settings</button>
         </div>
       </div>
     </div>
@@ -4188,6 +4220,30 @@ function revealCustom() {
   const first = document.querySelector(".experiment-flow");
   if (first) first.scrollIntoView({behavior:"smooth", block:"start"});
 }
+function reviewPreconfiguredSettings() {
+  useE2BPipelineDefaults();
+  revealCustom();
+}
+async function shutdownA00() {
+  const btn = document.getElementById("_dc-shutdown-btn");
+  if (btn && btn.getAttribute("aria-disabled") === "true") return;
+  if (!confirm("Shut down the A-00 workbench?")) return;
+  if (btn) {
+    btn.setAttribute("aria-disabled", "true");
+    btn.textContent = "Stopping...";
+  }
+  try {
+    await fetch("/api/shutdown", {method:"POST"});
+    const note = $("runtime-model-note");
+    if (note) note.textContent = "Shutdown requested. The Kaggle cell will exit shortly.";
+  } catch (err) {
+    if (btn) {
+      btn.removeAttribute("aria-disabled");
+      btn.textContent = "Shutdown";
+    }
+    log("Shutdown request failed: " + (err && err.message ? err.message : err));
+  }
+}
 function setPreconfiguredProgress(percent, message) {
   const bar = $("preconfig-progress");
   const status = $("preconfig-status");
@@ -4237,12 +4293,12 @@ function renderJobs(jobs) {
       j.log_path_link ? `<a href="${j.log_path_link}" target="_blank">log</a>` : "",
       j.output_dir_link ? `<a href="${j.output_dir_link}" target="_blank">adapter dir</a>` : "",
       j.data_path_link ? `<a href="${j.data_path_link}" target="_blank">data</a>` : "",
-    ].filter(Boolean).join(" · ");
+    ].filter(Boolean).join(" | ");
     const tail = j.log_tail ? `<details><summary>log tail</summary><pre>${escapeHtml(j.log_tail)}</pre></details>` : "";
-    const steps = (j.steps || []).slice(-8).map(s => `<li>${escapeHtml(s.ts || "")} · ${escapeHtml(s.label || "")} · ${escapeHtml(s.status || "")}</li>`).join("");
+    const steps = (j.steps || []).slice(-8).map(s => `<li>${escapeHtml(s.ts || "")} | ${escapeHtml(s.label || "")} | ${escapeHtml(s.status || "")}</li>`).join("");
     const reportUrl = j.report && j.report.artifact_links ? j.report.artifact_links.html : "";
     const report = reportUrl ? `<p><a href="${reportUrl}" target="_blank">open report</a></p>` : "";
-    return `<div class="job-card"><b>${j.job_id}</b><span class="${jobStatusClass(j.status)}">${j.status || "unknown"}</span> <span class="muted">${j.started_at || j.created_at || ""}</span><p class="muted">kind: ${j.kind || "training"} · base: ${j.base_model_ref || ""} · method: ${j.method || ""}</p><p>${links}</p>${report}${steps ? `<details open><summary>steps</summary><ul>${steps}</ul></details>` : ""}${tail}</div>`;
+    return `<div class="job-card"><b>${j.job_id}</b><span class="${jobStatusClass(j.status)}">${j.status || "unknown"}</span> <span class="muted">${j.started_at || j.created_at || ""}</span><p class="muted">kind: ${j.kind || "training"} | base: ${j.base_model_ref || ""} | method: ${j.method || ""}</p><p>${links}</p>${report}${steps ? `<details open><summary>steps</summary><ul>${steps}</ul></details>` : ""}${tail}</div>`;
   }).join("");
   box.innerHTML = rows || "<div class='muted'>No training jobs yet.</div>";
 }
@@ -4347,14 +4403,23 @@ async function pollJob(jobId) {
 }
 async function refreshStatus() {
   const s = await getJson("/api/a00/status");
+  const model = s.model || {};
+  const modelName = model.loaded ? (model.model_ref || "loaded model") : "dry run";
+  const modelBits = [
+    model.loaded ? "loaded" : "not loaded",
+    model.source || "dry_run",
+    model.quantization || "",
+    model.adapter_ref ? "adapter: " + model.adapter_ref : ""
+  ].filter(Boolean).join(" | ");
+  if ($("runtime-model-name")) $("runtime-model-name").textContent = "Model: " + modelName;
+  if ($("runtime-model-note")) $("runtime-model-note").textContent = modelBits || "Guided experiment console";
   const kpis = [
-    ["Model", s.model && s.model.loaded ? s.model.model_ref : "dry run"],
     ["Exports", s.n_exports || 0],
     ["Packs", s.packs ? s.packs.length : 0],
-    ["Research graphs", s.research_bundles ? s.research_bundles.length : 0],
+    ["Graphs", s.research_bundles ? s.research_bundles.length : 0],
     ["Jobs", s.jobs ? s.jobs.length : 0],
   ];
-  $("kpis").innerHTML = kpis.map(([a,b]) => `<div class="panel kpi"><span class="muted">${a}</span><b>${b}</b></div>`).join("");
+  $("kpis").innerHTML = kpis.map(([a,b]) => `<span class="runtime-stat">${a}: <b>${b}</b></span>`).join("");
   const exports = (s.exports || []).map(e => {
     const checked = selectedRuns.includes(e.run_id) ? "checked" : "";
     return `<label style="display:block;"><input type="checkbox" ${checked} onchange="toggleRun('${e.run_id}', this.checked)"> ${e.run_id} | ${e.harness_profile} | ${e.summary.mean_score_pct || ""}% <a href="${e.artifacts.zip}">zip</a></label>`;
@@ -4418,10 +4483,10 @@ function useE2BPipelineDefaults() {
   $("pipeline-preset").value = "synthetic_train_benchmark_cycle";
   $("pipeline-label").value = "e2b-four-arm-smoke";
   $("pipeline-a-source").value = "hf";
-  $("pipeline-a-ref").value = "google/gemma-4-2b-it";
+  $("pipeline-a-ref").value = "__A00_SMALL_MODEL_REF__";
   $("pipeline-a-adapter").value = "";
   $("pipeline-b-source").value = "hf";
-  $("pipeline-b-ref").value = "google/gemma-4-2b-it";
+  $("pipeline-b-ref").value = "__A00_SMALL_MODEL_REF__";
   $("pipeline-b-adapter").value = "";
   $("pipeline-limit").value = 5;
   $("pipeline-synth-count").value = 5;
@@ -4449,10 +4514,10 @@ async function runPreconfiguredPipeline() {
   const body = {
     preset_id: "synthetic_train_benchmark_cycle",
     model_a_source: "hf",
-    model_a_ref: "google/gemma-4-2b-it",
+    model_a_ref: "__A00_SMALL_MODEL_REF__",
     model_a_adapter_ref: "",
     model_b_source: "hf",
-    model_b_ref: "google/gemma-4-2b-it",
+    model_b_ref: "__A00_SMALL_MODEL_REF__",
     model_b_adapter_ref: "",
     prompt_set: $("pipeline-prompt-set").value || $("prompt-set").value,
     harness_profile: "chat_full",
@@ -4643,7 +4708,7 @@ async function checkTrainingPreflight() {
   const box = $("training-preflight");
   const missing = (res.missing_required || []).join(", ") || "none";
   const devices = res.cuda && res.cuda.devices ? res.cuda.devices.map(d => `${d.name} (${d.total_memory_gb} GB)`).join(", ") : "none";
-  box.innerHTML = `<div class="job-card"><b>Training preflight</b><span class="${jobStatusClass(res.ok ? "completed" : "failed")}">${res.ok ? "ready" : "needs attention"}</span><p>CUDA: ${res.cuda && res.cuda.available ? "available" : "not available"} · devices: ${devices}</p><p>Missing required packages: ${missing}</p></div>`;
+  box.innerHTML = `<div class="job-card"><b>Training preflight</b><span class="${jobStatusClass(res.ok ? "completed" : "failed")}">${res.ok ? "ready" : "needs attention"}</span><p>CUDA: ${res.cuda && res.cuda.available ? "available" : "not available"} | devices: ${devices}</p><p>Missing required packages: ${missing}</p></div>`;
   log(res);
 }
 async function createTrainingJob() {
@@ -4686,7 +4751,7 @@ async function runSampleResearch() {
   log(await getJson("/api/a00/workflows/run", {method:"POST", headers:{"content-type":"application/json"}, body:JSON.stringify({workflow_id:"a16_ngo_local_kb", limit:25})}));
 }
 loadOptions().then(() => {
-  $("log").textContent = "Ready. Start with Run baseline vs harness, Run selected profile, or Generate SFT rows.";
+  $("log").textContent = "Ready. Use the preconfigured card for the guided full pipeline, or open Custom controls for partial runs.";
 }).catch(err => {
   $("log").textContent = "Startup failed: " + (err && err.message ? err.message : err);
 });
@@ -4694,6 +4759,8 @@ loadOptions().then(() => {
 </body>
 </html>
 """
+
+HOMEPAGE_HTML = HOMEPAGE_HTML.replace("__A00_SMALL_MODEL_REF__", A00_SMALL_MODEL_REF)
 
 
 summary_payload = {
@@ -4713,7 +4780,16 @@ print("=" * 76)
 print("[3/7] launching A-00 workbench")
 print("=" * 76)
 
+_SHUTDOWN_EVENT = threading.Event()
+
+
+def api_shutdown() -> Any:
+    _SHUTDOWN_EVENT.set()
+    return {"ok": True, "message": "A-00 shutdown requested"}
+
+
 extra_routes = {
+    "/api/shutdown": ("POST", api_shutdown),
     "/api/a00/status": ("GET", api_a00_status),
     "/api/a00/model-presets": ("GET", api_model_presets),
     "/api/a00/harness-profiles": ("GET", api_harness_profiles),
@@ -4743,8 +4819,6 @@ extra_routes = {
     "/api/a00/quantitative/run": ("POST", api_run_quantitative_profile),
     "/api/a00/research/upload": ("POST", api_research_upload),
 }
-
-_SHUTDOWN_EVENT = threading.Event()
 
 try:
     app, public_url = build_minimal_shell(
