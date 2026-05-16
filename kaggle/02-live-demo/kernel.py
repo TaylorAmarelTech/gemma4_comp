@@ -707,20 +707,24 @@ PACKAGE_INSTALL_ORDER = [
     "duecare-llm-models",
     "duecare-llm-domains",
     "duecare-llm-tasks",
+    "duecare-llm-agents",
+    "duecare-llm-workflows",
+    "duecare-llm-publishing",
     "duecare-llm-evidence-db",
     "duecare-llm-engine",
+    "duecare-llm-nl2sql",
+    "duecare-llm-research-tools",
+    "duecare-llm-benchmark",
     "duecare-llm-server",
     "duecare-llm-cli",
+    "duecare-llm-training",
+    "duecare-llm-chat",
 ]
 
-# Demo mode package subset (core functionality only)
-DEMO_PACKAGES = [
-    "duecare-llm-core",
-    "duecare-llm-models",
-    "duecare-llm-domains",
-    "duecare-llm-tasks",
-    "duecare-llm-server"
-]
+# Live-demo installs the same local package closure as the exploration
+# workbench. Installing these paths together lets pip resolve unpublished
+# internal DueCare dependencies from the GitHub checkout instead of PyPI.
+DEMO_PACKAGES = PACKAGE_INSTALL_ORDER
 
 
 def log_step(message: str, level: str = "INFO") -> None:
@@ -877,55 +881,93 @@ def install_duecare_packages(verbose: bool = True) -> tuple[list[str], dict]:
     Install DueCare packages using multi-tier GitHub strategy.
     Returns (successful_packages, install_status_per_package)
     """
-    log_step(f"🚀 DueCare Bootstrap - demo mode", "INFO")
+    log_step("DueCare Bootstrap - live demo", "INFO")
     log_step(f"Repository: {GITHUB_REPO}", "INFO")
     log_step(f"Version: {DUECARE_VERSION}", "INFO")
     log_step(f"Commit: {PINNED_COMMIT}", "INFO")
+    log_step("Strategy: one git clone, local package install, import verification", "INFO")
 
-    # Install system dependencies first
     install_system_dependencies()
 
-    # Use demo package subset for notebook
     packages = DEMO_PACKAGES
+    clone_root = Path("/tmp/duecare_gemma4_comp_source")
+    if clone_root.exists():
+        shutil.rmtree(clone_root)
 
-    successful_packages = []
-    install_status = {}
+    clone_cmd = [
+        "git", "clone", "--depth", "1", "--branch", PINNED_COMMIT,
+        f"https://github.com/{GITHUB_REPO}.git", str(clone_root),
+    ]
+    log_step(f"Cloning source: {' '.join(clone_cmd)}", "DEBUG")
+    proc = subprocess.run(clone_cmd, capture_output=True, text=True, timeout=300)
+    if proc.returncode != 0:
+        log_step("Shallow branch clone failed; retrying full clone + checkout", "WARNING")
+        if clone_root.exists():
+            shutil.rmtree(clone_root)
+        proc = subprocess.run(
+            ["git", "clone", f"https://github.com/{GITHUB_REPO}.git", str(clone_root)],
+            capture_output=True,
+            text=True,
+            timeout=600,
+        )
+        if proc.returncode != 0:
+            raise SystemExit("DueCare git clone failed: " + (proc.stderr or proc.stdout or "")[-1200:])
+        checkout = subprocess.run(
+            ["git", "-C", str(clone_root), "checkout", PINNED_COMMIT],
+            capture_output=True,
+            text=True,
+            timeout=180,
+        )
+        if checkout.returncode != 0:
+            raise SystemExit("DueCare git checkout failed: " + (checkout.stderr or checkout.stdout or "")[-1200:])
 
-    for package in packages:
-        # Skip if already installed
-        if check_package_installed(package):
-            successful_packages.append(package)
-            install_status[package] = "already_installed"
-            continue
+    package_paths = [clone_root / "packages" / package for package in packages]
+    missing = [str(path) for path in package_paths if not (path / "pyproject.toml").exists()]
+    if missing:
+        raise SystemExit("DueCare source checkout is missing package paths: " + ", ".join(missing))
 
-        # Try multi-tier installation
-        if install_package_with_fallback(package):
-            successful_packages.append(package)
-            install_status[package] = "installed"
-        else:
-            install_status[package] = "failed"
+    cmd = [
+        sys.executable, "-m", "pip", "install", "--no-input",
+        "--disable-pip-version-check", "--timeout=600", *map(str, package_paths),
+    ]
+    log_step("Installing local DueCare package paths together", "INFO")
+    proc = subprocess.run(cmd, capture_output=True, text=True, timeout=1200)
+    if proc.returncode != 0:
+        raise SystemExit("DueCare source install failed: " + (proc.stderr or proc.stdout or "")[-1600:])
 
-    # Drop already-imported duecare/transformers from sys.modules so the
-    # newly-installed versions take effect.
     for mod in list(sys.modules):
         if (mod == "duecare" or mod.startswith("duecare.")
                 or mod == "transformers" or mod.startswith("transformers.")):
             del sys.modules[mod]
 
-    # Summary
-    total_packages = len(packages)
-    successful_count = len(successful_packages)
-    log_step(f"Installation complete: {successful_count}/{total_packages} packages",
-             "SUCCESS" if successful_count == total_packages else "WARNING")
+    required_imports = [
+        "duecare.core",
+        "duecare.models",
+        "duecare.domains",
+        "duecare.tasks",
+        "duecare.agents",
+        "duecare.workflows",
+        "duecare.publishing",
+        "duecare.evidence",
+        "duecare.engine",
+        "duecare.nl2sql",
+        "duecare.research_tools",
+        "duecare.benchmark",
+        "duecare.server",
+        "duecare.cli",
+        "duecare.training",
+        "duecare.chat",
+    ]
+    for module_name in required_imports:
+        try:
+            __import__(module_name)
+        except Exception as exc:
+            raise SystemExit(f"DueCare import verification failed for {module_name}: {exc}") from exc
 
-    if successful_count < total_packages:
-        failed = [p for p in packages if p not in successful_packages]
-        log_step(f"Failed packages: {', '.join(failed)}", "ERROR")
-        log_step("Some packages failed - notebook may have limited functionality", "WARNING")
-    else:
-        log_step("All packages installed successfully! 🎉", "SUCCESS")
+    install_status = {package: "installed_from_github_source" for package in packages}
+    log_step(f"Installed and verified {len(packages)} DueCare packages from GitHub source", "SUCCESS")
+    return list(packages), install_status
 
-    return successful_packages, install_status
 
 
 @dataclass
@@ -2169,7 +2211,12 @@ if TUNNEL != "none":
         state.public_url = public_url
     except Exception as e:
         print(f"  tunnel FAILED: {type(e).__name__}: {e}")
-        public_url = f"http://localhost:{PORT} (no public URL)"
+        if os.environ.get("DUECARE_ALLOW_LOCAL_ONLY") != "1":
+            raise SystemExit(
+                "02 Live Demo requires a public Cloudflare URL on Kaggle. "
+                "Set DUECARE_ALLOW_LOCAL_ONLY=1 only for local developer testing."
+            )
+        public_url = f"http://localhost:{PORT} (local-only developer mode)"
 else:
     public_url = f"http://localhost:{PORT}"
 

@@ -196,6 +196,59 @@ def test_live_demo_video_pitch_and_a00_expose_page_level_controls():
         assert token in a00
 
 
+def test_primary_kernels_bootstrap_from_github_source_with_full_package_closure():
+    """Kaggle users copy/paste kernels; the kernels must not assume local
+    packages or partial release wheels are already available."""
+    live = _text(LIVE_DEMO_KERNEL)
+    a00 = _text(A00_KERNEL)
+
+    required_packages = [
+        "duecare-llm-core",
+        "duecare-llm-models",
+        "duecare-llm-domains",
+        "duecare-llm-tasks",
+        "duecare-llm-agents",
+        "duecare-llm-workflows",
+        "duecare-llm-publishing",
+        "duecare-llm-evidence-db",
+        "duecare-llm-engine",
+        "duecare-llm-nl2sql",
+        "duecare-llm-research-tools",
+        "duecare-llm-benchmark",
+        "duecare-llm-server",
+        "duecare-llm-cli",
+        "duecare-llm-training",
+        "duecare-llm-chat",
+    ]
+    required_imports = [
+        "duecare.server",
+        "duecare.cli",
+        "duecare.training",
+        "duecare.chat",
+    ]
+
+    for label, text in {"02-live-demo": live, "A-00": a00}.items():
+        assert "one git clone, local package install, import verification" in text, label
+        assert "git\", \"clone" in text, label
+        assert "/tmp/duecare_gemma4_comp_source" in text, label
+        assert "--disable-pip-version-check" in text, label
+        assert "installed_from_github_source" in text or "installed and verified" in text, label
+        for package in required_packages:
+            assert package in text, f"{label} missing {package}"
+        for module in required_imports:
+            assert module in text, f"{label} does not verify {module}"
+
+
+def test_primary_browser_kernels_fail_loudly_without_public_tunnel():
+    """READY without a usable Cloudflare URL is misleading on Kaggle."""
+    for path in [LIVE_DEMO_KERNEL, VIDEO_PITCH_KERNEL, A00_KERNEL, REPO / "kaggle" / "A-24-demo-replay" / "kernel.py"]:
+        text = _text(path)
+        rel = str(path.relative_to(REPO))
+        assert "DUECARE_ALLOW_LOCAL_ONLY" in text, rel
+        assert "requires a public Cloudflare URL on Kaggle" in text, rel
+        assert "raise SystemExit" in text, rel
+
+
 def test_next_notebooks_inherit_reusable_contracts_without_redeclaring_lists():
     appendix_kernels = sorted((REPO / "kaggle").glob("A-*/kernel.py"))
     assert appendix_kernels
