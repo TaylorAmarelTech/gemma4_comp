@@ -28,6 +28,14 @@ def _validate_entry(entry, *, cpu_only: bool, require_mirrors: bool) -> list[str
         return errors
 
     kernel_nb_path = entry.dir_path / entry.code_file
+    if kernel_nb_path.suffix.lower() == ".py":
+        source = kernel_nb_path.read_text(encoding="utf-8")
+        if not source.strip():
+            return ["Script kernel is empty"]
+        if entry.mirror_path is not None and kernel_nb_path.read_bytes() != entry.mirror_path.read_bytes():
+            errors.append("Kernel script and local mirror differ")
+        return errors
+
     notebook = json.loads(kernel_nb_path.read_text(encoding="utf-8"))
     cells = notebook.get("cells", [])
     if not cells:

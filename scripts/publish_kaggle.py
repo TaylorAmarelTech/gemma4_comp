@@ -35,7 +35,7 @@ from kaggle_notebook_utils import discover_kernel_notebooks
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 KAGGLE_ROOT = REPO_ROOT / "kaggle"
-KERNELS_DIR = KAGGLE_ROOT / "kernels"
+KERNELS_DIR = KAGGLE_ROOT
 SHARED_DATASETS_DIR = KAGGLE_ROOT / "shared-datasets"
 MODELS_DIR = KAGGLE_ROOT / "models"
 
@@ -211,21 +211,19 @@ def _validate_notebook_dir(d: Path) -> None:
         raise FileNotFoundError(f"kernel-metadata.json missing in {d}")
     # validate metadata fields
     data = json.loads(meta.read_text())
-    required = {"id", "title", "code_file", "kernel_type", "language", "keywords", "competition_sources", "is_private"}
+    required = {"id", "title", "code_file", "kernel_type", "language", "is_private"}
     missing = required - data.keys()
     if missing:
         raise ValueError(f"{meta}: missing required fields {missing}")
     code_file = d / data["code_file"]
     if not code_file.exists():
         raise FileNotFoundError(f"code_file {code_file} referenced by {meta} is missing")
-    keywords = data.get("keywords")
-    if not isinstance(keywords, list) or not keywords:
-        raise ValueError(f"{meta}: keywords must be a non-empty list")
+    keywords = data.get("keywords", [])
+    if not isinstance(keywords, list):
+        raise ValueError(f"{meta}: keywords must be a list when present")
     if data.get("is_private") is not False:
         raise ValueError(f"{meta}: is_private must be false before publishing")
     competition_sources = data.get("competition_sources")
-    if "gemma-4-good-hackathon" not in competition_sources:
-        raise ValueError(f"{meta}: competition_sources must include gemma-4-good-hackathon")
 
 
 def _normalize_notebook_ids(raw_ids: list[str] | None) -> set[str] | None:

@@ -1,0 +1,253 @@
+from __future__ import annotations
+
+import ast
+import re
+from pathlib import Path
+
+
+REPO = Path(__file__).parents[3]
+KERNEL_DIR = REPO / "kaggle" / "01-duecare-exploration-workbench"
+KERNEL = KERNEL_DIR / "kernel.py"
+README = KERNEL_DIR / "README.md"
+PORTABILITY_AUDIT = KERNEL_DIR / "PORTABILITY_AUDIT.md"
+WHEELS = KERNEL_DIR / "wheels"
+A00_KERNEL = REPO / "kaggle" / "A-00-omni-experiment-workbench" / "kernel.py"
+A07_KERNEL = REPO / "kaggle" / "A-07-bench-and-tune" / "kernel.py"
+LIVE_DEMO_KERNEL = REPO / "kaggle" / "02-live-demo" / "kernel.py"
+VIDEO_PITCH_KERNEL = REPO / "kaggle" / "03-duecare-video-pitch" / "kernel.py"
+
+
+def _text(path: Path) -> str:
+    return path.read_text(encoding="utf-8", errors="replace")
+
+
+def _main_kernel_paths() -> list[Path]:
+    return [
+        REPO / "kaggle" / "01-duecare-exploration-workbench" / "kernel.py",
+        REPO / "kaggle" / "02-live-demo" / "kernel.py",
+        REPO / "kaggle" / "03-duecare-video-pitch" / "kernel.py",
+        *sorted((REPO / "kaggle").glob("A-*/kernel.py")),
+    ]
+
+
+def test_kernel01_declares_reusable_runtime_contract():
+    from duecare.chat.portability import REQUIRED_APP_ENDPOINTS, REQUIRED_SAMPLE_FILES
+
+    text = _text(KERNEL)
+    assert 'DUECARE_REQUIRED_CHAT_VERSION", REQUIRED_CHAT_VERSION' in text
+    assert "verify_app_contract" in text
+    assert "SELF_AUDIT_MINIMUM_COUNTS" in text
+    assert "_verify_portable_app_contract(app)" in text
+    assert "DUECARE_REQUIRED_APP_ENDPOINTS = (" not in text
+    assert "DUECARE_REQUIRED_SAMPLE_FILES = (" not in text
+    assert "DUECARE_REQUIRED_KO_TYPES =" not in text
+
+    for endpoint in [
+        "/api/audit/workbench-inventory",
+        "/api/portability",
+        "/api/experiment-contract",
+        "/api/knowledge/type-catalog",
+        "/api/harnesses",
+        "/api/knowledge/import",
+        "/api/knowledge/export",
+        "/api/process/batch/start",
+        "/api/process/batch/status/{job_id}",
+        "/api/search/sanitize",
+        "/api/anonymize",
+    ]:
+        assert endpoint in REQUIRED_APP_ENDPOINTS
+        assert endpoint not in text
+
+    for sample in [
+        "sample_manifest.json",
+        "case_files_media_rich_sample.zip",
+        "knowledge_files_sample.zip",
+        "knowledge_source_examples_sample.zip",
+        "search_intake_examples_sample.zip",
+        "prompt_eval_training_seed_sample.zip",
+    ]:
+        assert sample in REQUIRED_SAMPLE_FILES
+        assert sample not in text
+
+
+def test_kernel01_readme_and_audit_explain_next_notebook_reuse():
+    readme = _text(README)
+    audit = _text(PORTABILITY_AUDIT)
+
+    assert "Portability contract for the next notebooks" in readme
+    assert "PORTABILITY_AUDIT.md" in readme
+    assert "Kernel 01 Portability Audit" in audit
+    assert "duecare.chat.portability" in audit
+    assert "portability_contract_payload" in audit
+    assert "verify_app_contract" in audit
+    assert "02 Live Demo" in audit
+    assert "03 Video Pitch" in audit
+    assert "A-00 Omni Experiment Workbench" in audit
+    assert "Appendix Notebooks" in audit
+
+    for primitive in [
+        "Workbench inventory endpoint",
+        "Knowledge type catalog",
+        "Sample manifest",
+        "Harness surface contracts",
+        "Async job contract",
+        "Graph edge schema",
+        "Model fit profile",
+        "Trust-boundary vocabulary",
+        "Activity log primitive",
+        "Import/export envelope contract",
+    ]:
+        assert primitive in audit
+
+
+def test_kernel01_documents_stale_fallback_wheel_risk_until_rebuilt():
+    audit = _text(PORTABILITY_AUDIT).lower()
+    wheel_names = [p.name for p in WHEELS.glob("duecare_llm_chat-*.whl")]
+    has_required_wheel = any("duecare_llm_chat-0.17.0-" in name for name in wheel_names)
+
+    assert has_required_wheel
+    assert "publish the refreshed" in audit
+    assert "0.17.0" in audit
+
+
+def test_core_wheel_metadata_is_not_stale_v014_copy():
+    for metadata_path in [
+        REPO / "kaggle" / "01-duecare-exploration-workbench" / "wheels" / "dataset-metadata.json",
+        REPO / "kaggle" / "02-live-demo" / "wheels" / "dataset-metadata.json",
+    ]:
+        text = _text(metadata_path)
+        assert "v0.17.0" in text
+        assert "v0.14.5 / chat-package 0.14.5" not in text
+        assert "/api/portability" in text or "portability" in text.lower()
+
+
+def test_appendix_kernels_default_to_current_duecare_version():
+    stale: list[str] = []
+    for kernel in sorted((REPO / "kaggle").glob("A-*/kernel.py")):
+        text = _text(kernel)
+        if 'DUECARE_VERSION = "0.1.0"' in text or 'DUECARE_VERSION    = "0.1.0"' in text:
+            stale.append(str(kernel.relative_to(REPO)))
+    assert stale == []
+
+
+def test_a00_and_a07_use_shared_experiment_contracts():
+    a00 = _text(A00_KERNEL)
+    a07 = _text(A07_KERNEL)
+
+    for token in [
+        "experiment_contract_payload",
+        "harness_profile_map",
+        "quantitative_run_profile_map",
+        "synthetic_generation_profile_map",
+        "training_profile_map",
+        "/api/a00/experiment-contract",
+        "/api/a00/quantitative/run",
+        "bulk_text_25",
+        "tiny_lora_smoke",
+        "QuantitativeProfileRequest",
+    ]:
+        assert token in a00
+
+    for token in [
+        "training_profile_map",
+        "upload_limit_map",
+        "_refresh_shared_experiment_defaults",
+        "experiment_contract_payload",
+    ]:
+        assert token in a07
+
+
+def test_live_demo_video_pitch_and_a00_expose_page_level_controls():
+    live = _text(LIVE_DEMO_KERNEL)
+    video = _text(VIDEO_PITCH_KERNEL)
+    a00 = _text(A00_KERNEL)
+
+    for token in [
+        "/api/portability",
+        "/api/experiment-contract",
+        "/api/shutdown",
+        "Entity graph (demo)",
+        "/api/query",
+        "/api/moderate",
+        "/api/worker_check",
+    ]:
+        assert token in live
+
+    for token in [
+        "DueCare - Video pitch",
+        "?mode=setup",
+        "/api/get-script",
+        "/api/save-script",
+        "/api/load-script",
+        "/api/export-presentation",
+        "/api/portability",
+        "video_pitch_export_",
+    ]:
+        assert token in video
+
+    for token in [
+        "Quantitative proof profiles",
+        'id="quant-profile"',
+        "runQuantProfile",
+        "/api/a00/quantitative/run",
+        "Primary notebook audit",
+        "Activity",
+    ]:
+        assert token in a00
+
+
+def test_next_notebooks_inherit_reusable_contracts_without_redeclaring_lists():
+    appendix_kernels = sorted((REPO / "kaggle").glob("A-*/kernel.py"))
+    assert appendix_kernels
+
+    missing_runtime_contract: list[str] = []
+    redeclared_contract_lists: list[str] = []
+    for kernel in [LIVE_DEMO_KERNEL, VIDEO_PITCH_KERNEL, *appendix_kernels]:
+        text = _text(kernel)
+        rel = str(kernel.relative_to(REPO))
+        uses_shared_runtime = (
+            "build_minimal_shell" in text
+            or "duecare.chat.app import create_app" in text
+            or "from duecare.server import create_app" in text
+            or "/api/portability" in text
+            or "reference_portability_contract_payload" in text
+        )
+        if not uses_shared_runtime:
+            missing_runtime_contract.append(rel)
+        for marker in [
+            "DUECARE_REQUIRED_APP_ENDPOINTS = (",
+            "DUECARE_REQUIRED_SAMPLE_FILES = (",
+            "DUECARE_REQUIRED_KO_TYPES =",
+        ]:
+            if marker in text:
+                redeclared_contract_lists.append(f"{rel}: {marker}")
+
+    assert missing_runtime_contract == []
+    assert redeclared_contract_lists == []
+
+    shell = _text(REPO / "packages" / "duecare-llm-chat" / "src" / "duecare" / "chat" / "kernel_shell.py")
+    assert "/api/portability" in shell
+    assert "/api/experiment-contract" in shell
+
+
+def test_all_main_kernels_are_plain_utf8_parseable_and_repo_portable():
+    local_path_pattern = re.compile(
+        r"(?:C:[\\/]|OneDrive|\\Users\\|/Users/|/home/[A-Za-z0-9_.-]+|/mnt/[A-Za-z0-9_.-]+)"
+    )
+    failures: list[str] = []
+
+    for kernel in _main_kernel_paths():
+        rel = str(kernel.relative_to(REPO))
+        raw = kernel.read_bytes()
+        if raw.startswith(b"\xef\xbb\xbf"):
+            failures.append(f"{rel}: UTF-8 BOM present")
+            continue
+        text = raw.decode("utf-8")
+        try:
+            ast.parse(text, filename=rel)
+        except SyntaxError as exc:
+            failures.append(f"{rel}: syntax {exc.lineno}:{exc.offset} {exc.msg}")
+        if local_path_pattern.search(text):
+            failures.append(f"{rel}: local absolute path leaked")
+
+    assert failures == []

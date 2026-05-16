@@ -1,8 +1,8 @@
 """Knowledge-pack manifest for the anonymization harness.
 
 Declares the KnowledgeObject types this harness reads (CONSUMES) and
-produces (EMITS). Drawn from the 21-leaf taxonomy in
-docs/knowledge_module_schema.md. Validated by tests/test_harness_imports.py.
+produces (EMITS). Drawn from the canonical taxonomy in
+docs/knowledge_module_schema.md. Validated by workbench inventory tests.
 """
 from __future__ import annotations
 

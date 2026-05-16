@@ -1,6 +1,6 @@
 {
   "schema_version": "duecare.ui_audit.v1",
-  "review_date": "2026-05-14",
+  "review_date": "2026-05-15",
   "purpose": "Single source of truth for pre-recording UI, notebook, and interaction audit.",
   "status_legend": {
     "static_verified": "Route, title, required controls, and copy can be checked without a live model.",
@@ -20,7 +20,8 @@
     "Every first-run path distinguishes local instance, enterprise/on-prem screening, and networked hub deployment.",
     "Every hub-sharing surface states that raw cases stay local, submissions are sanitized, and humans vet knowledge-pack changes.",
     "No visible mojibake, stale notebook names, unexplained placeholders, or redundant public-website copy.",
-    "Screenshots exist for desktop, tablet, and mobile before final video recording."
+    "Screenshots exist for desktop, tablet, and mobile before final video recording.",
+    "The live inventory endpoint shows no missing sample references, no unmanifested sample files, and complete harness specs."
   ],
   "kernels": [
     {"id": "01", "folder": "01-duecare-exploration-workbench", "role": "primary product workbench", "ui": "shared static workbench", "status": "live_required"},
@@ -81,11 +82,11 @@
     {"route": "/static/online.html", "file": "online.html", "purpose": "online layer config", "controls": ["backend settings", "test"], "outputs": ["backend status"], "audit": ["BYOK clarity"]},
     {"route": "/static/search-safety.html", "file": "search-safety.html", "purpose": "search sanitization", "controls": ["query", "sanitize", "rephrase"], "outputs": ["redactions", "safe query"], "audit": ["PII coverage"]},
     {"route": "/static/import.html", "file": "import.html", "purpose": "local import corpus", "controls": ["upload", "snippet", "delete"], "outputs": ["local evidence list"], "audit": ["CRUD clarity"]},
-    {"route": "/static/upload.html", "file": "upload.html", "purpose": "legacy upload alias", "controls": [], "outputs": ["redirect to /static/process.html"], "audit": ["kept only for old links"]},
-    {"route": "/static/submit.html", "file": "submit.html", "purpose": "legacy submit alias", "controls": [], "outputs": ["redirect to /static/share.html"], "audit": ["kept only for old links"]},
+    {"route": "/static/upload.html", "file": "upload.html", "purpose": "legacy upload alias", "controls": ["automatic redirect"], "outputs": ["redirect to /static/process.html"], "audit": ["kept only for old links"]},
+    {"route": "/static/submit.html", "file": "submit.html", "purpose": "legacy submit alias", "controls": ["automatic redirect"], "outputs": ["redirect to /static/share.html"], "audit": ["kept only for old links"]},
     {"route": "/static/models.html", "file": "models.html", "purpose": "model info", "controls": ["refresh"], "outputs": ["model state"], "audit": ["align with shared top selector"]},
     {"route": "/static/logs.html", "file": "logs.html", "purpose": "runtime logs", "controls": ["tail", "filter", "clear"], "outputs": ["dc_log events"], "audit": ["privacy-safe logs"]},
-    {"route": "/static/insights.html", "file": "insights.html", "purpose": "legacy insights alias", "controls": [], "outputs": ["redirect to /static/process.html"], "audit": ["kept only for old links"]},
+    {"route": "/static/insights.html", "file": "insights.html", "purpose": "legacy insights alias", "controls": ["automatic redirect"], "outputs": ["redirect to /static/process.html"], "audit": ["kept only for old links"]},
     {"route": "/static/all-tools.html", "file": "all-tools.html", "purpose": "tool index", "controls": ["tool links"], "outputs": ["navigation"], "audit": ["avoid duplicate nav"]},
     {"route": "/static/hotlines.html", "file": "hotlines.html", "purpose": "contacts", "controls": ["filter"], "outputs": ["hotline list"], "audit": ["citation freshness"]},
     {"route": "/static/settings.html", "file": "settings.html", "purpose": "settings", "controls": ["config inputs"], "outputs": ["local config"], "audit": ["secret handling"]},
@@ -97,7 +98,7 @@
     {"priority": "P0", "item": "Run A-00 rubric-polished synthetic generation and a tiny E2B/E4B fine-tune smoke job on Kaggle GPU.", "owner": "training proof"},
     {"priority": "P1", "item": "Wire OCR engine for PDFs/images and feed OCR plus image to Gemma 4 multimodal extraction.", "owner": "bulk review"},
     {"priority": "P1", "item": "Add entity-resolution review UI for merged people, agencies, employers, phones, wallets, and locations.", "owner": "bulk review"},
-    {"priority": "P1", "item": "Add graph visualization for critical fee points along the migrant worker journey.", "owner": "bulk review"},
+    {"priority": "P1", "item": "Extend graph visualization controls with filtering, clustering, and evidence-edge detail panels.", "owner": "bulk review"},
     {"priority": "P1", "item": "Promote the hub civil-society vetting queue into a live reviewer UI with acceptance, rejection, pack diff, and regression-gate status.", "owner": "hub"},
     {"priority": "P1", "item": "Promote evaluation prompts, dimensions, weights, and judge prompts into downloadable knowledge packs.", "owner": "evaluation"},
     {"priority": "P2", "item": "Consolidate redundant upload, submit, import, and anonymization helper pages after video recording.", "owner": "UI"}

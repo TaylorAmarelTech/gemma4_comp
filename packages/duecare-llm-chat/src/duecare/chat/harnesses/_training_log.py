@@ -20,7 +20,7 @@ from __future__ import annotations
 
 import hashlib
 import json
-from datetime import datetime
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -81,7 +81,7 @@ def log_interaction(
     live response path.
     """
     try:
-        ts = datetime.utcnow().strftime("%Y-%m-%dT%H-%M-%SZ")
+        ts = datetime.now(UTC).strftime("%Y-%m-%dT%H-%M-%SZ")
         in_text = _to_text(input_payload)
         out_text = _to_text(output_payload)
         in_sha = hashlib.sha256(in_text.encode("utf-8")).hexdigest()[:16]

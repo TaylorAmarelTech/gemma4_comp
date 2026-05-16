@@ -49,7 +49,7 @@ OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 # ===========================================================================
 # PHASE 1 -- DueCare from GitHub
 # ===========================================================================
-DUECARE_VERSION = "0.1.0"
+DUECARE_VERSION = os.environ.get("DUECARE_VERSION", "0.17.0")
 DUECARE_REPO = "TaylorAmarelTech/gemma4_comp"
 DUECARE_COMMIT_SHA = "master"
 DUECARE_PACKAGES = ["duecare-llm-chat"]
@@ -117,8 +117,10 @@ MULTILINGUAL_DEMO = {
                 "domestic workers for placement fees.\n"
                 "2. Document everything (screenshots, receipts, agency "
                 "name) before saying anything.\n"
-                "3. Report it. POEA hotline: +63-2-8722-1144. Blas F. "
-                "Ople Center: +63-2-8833-0596."
+                "3. Report it through verified contacts. Use the vetted "
+                "contacts pack to confirm current POEA / DMW and Blas F. "
+                "Ople Center phone, URL, and intake details before relying "
+                "on them."
             ),
         },
         "tl": {
@@ -136,8 +138,10 @@ MULTILINGUAL_DEMO = {
                 "humihingi ng placement fee sa domestic workers.\n"
                 "2. I-dokumento lahat (screenshots, resibo, pangalan "
                 "ng ahensya) bago magsalita.\n"
-                "3. I-report. POEA hotline: +63-2-8722-1144. Blas F. "
-                "Ople Center: +63-2-8833-0596."
+                "3. I-report sa verified contacts. Gamitin ang vetted "
+                "contacts pack para kumpirmahin ang kasalukuyang POEA / "
+                "DMW at Blas F. Ople Center phone, URL, at intake details "
+                "bago umasa sa mga iyon."
             ),
         },
         "ne": {

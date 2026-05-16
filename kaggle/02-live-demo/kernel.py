@@ -100,7 +100,9 @@ GEMMA_LOADER        = "auto"     # "auto" | "transformers" | "unsloth"
                                   # "transformers" = force legacy on any variant
 GEMMA_LOAD_IN_4BIT  = True       # 4-bit quantization on small GPUs
 GEMMA_DEVICE_MAP    = "auto"     # "auto" | "balanced" (2xT4 for 31B) | {"":0}
-GEMMA_MAX_SEQ_LEN   = 8192       # context window
+GEMMA_MAX_SEQ_LEN   = int(os.environ.get("GEMMA_MAX_SEQ_LEN", "32768"))
+                                  # shared workbench default; override lower
+                                  # when memory-constrained
 USE_GEMMA           = "auto"     # "auto" | True | False; False = heuristic only
 
 # Unsloth FastModel supports all 8 Gemma 4 variants (per Hanchen's
@@ -790,14 +792,19 @@ def try_local_wheel_install(package: str) -> bool:
     possible_paths = [
         Path(f"packages/{package}/dist"),
         Path(f"dist"),
+        Path("wheels"),
         Path(f"wheels/{package}"),
     ]
 
     for wheel_dir in possible_paths:
         if wheel_dir.exists():
-            wheel_files = list(wheel_dir.glob(f"{package.replace('-', '_')}-*.whl"))
+            wheel_files = sorted(
+                wheel_dir.glob(f"{package.replace('-', '_')}-*.whl"),
+                key=lambda p: p.name,
+                reverse=True,
+            )
             if wheel_files:
-                wheel_path = wheel_files[0]  # Use newest
+                wheel_path = wheel_files[0]
                 log_step(f"Trying local wheel for {package}: {wheel_path}")
                 success, stdout, stderr = run_pip_command(["install", str(wheel_path)])
 
@@ -1994,6 +2001,15 @@ print("[4/8] building server state")
 print("=" * 76)
 from duecare.server.state import ServerState
 state = ServerState(db_path=DUECARE_DB, pipeline_output_dir=PIPELINE_OUT)
+try:
+    from duecare.chat.portability import reference_portability_contract_payload
+    PORTABILITY_CONTRACT = reference_portability_contract_payload()
+    state.portability_contract = PORTABILITY_CONTRACT
+except Exception as _portability_exc:  # noqa: BLE001
+    PORTABILITY_CONTRACT = {
+        "schema_version": "duecare.portability_contract.unavailable",
+        "error": f"{type(_portability_exc).__name__}: {_portability_exc}",
+    }
 if gemma_call is not None:
     # Pass model metadata so the UI badge (/api/model-info) can show
     # "Backend: gemma-4-31b-it · 31.0B · 4-bit nf4" or similar.
@@ -2116,6 +2132,16 @@ import uvicorn
 
 app = create_app(state)
 _attach_shutdown(app)
+
+
+@app.get("/api/portability")
+def api_portability():
+    return PORTABILITY_CONTRACT
+
+
+@app.get("/api/experiment-contract")
+def api_experiment_contract():
+    return PORTABILITY_CONTRACT.get("quantitative_experiment_contract", {})
 
 
 def _server_thread():

@@ -10,6 +10,10 @@ sources judges open in Kaggle.
 > machine-readable roster of all 28 submission kernels (3 core + 25
 > appendix) with file + wheel + publish status per row. Refresh
 > whenever a kernel is added, removed, or pushed to Kaggle.
+>
+> **Human runbook:** [`NOTEBOOK_PURPOSE_AND_RUNBOOK.md`](./NOTEBOOK_PURPOSE_AND_RUNBOOK.md)
+> explains the role of each notebook, expected Cloudflare URL behavior,
+> guided UI path, and the A-00 benchmark/synthetic/fine-tune workflow.
 
 ## Submission shape: 3 core + 25 appendix
 

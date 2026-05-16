@@ -181,6 +181,12 @@ def test_knowledge_page_uses_guided_auto_suggestion_flow(client):
     assert "extracted_fact: non-PII trend fact" in text
     assert "entity_signal: organization or actor signal" in text
     assert "modus_operandi: generalized abuse pattern" in text
+    assert "evaluation_knowledge" in text
+    assert "evaluation_dimension" in text
+    assert "evaluation_prompt" in text
+    assert "evaluation_metric" in text
+    assert "evaluation_weighting" in text
+    assert "/api/knowledge/type-catalog" in text
     assert "What this workflow does" in text
     assert "Continue to draft" in text
     assert "Upload a source bundle or add source text" in text

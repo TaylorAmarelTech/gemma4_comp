@@ -3,3 +3,6 @@ test-results/
 playwright-report/
 playwright/.cache/
 *.local
+.duecare-knowledge/
+.duecare-process-staging/
+debug.log

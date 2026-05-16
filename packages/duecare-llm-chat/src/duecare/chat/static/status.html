@@ -86,7 +86,7 @@
         <div class="stat-card">
           <div class="stat-label">Knowledge envelopes loaded</div>
           <div class="stat-value" id="stat-ko-total">--</div>
-          <div class="stat-sub" id="stat-ko-total-sub">across 6 branches</div>
+          <div class="stat-sub" id="stat-ko-total-sub">across 7 branches</div>
         </div>
         <div class="stat-card">
           <div class="stat-label">Hub syncs (this device)</div>
@@ -114,7 +114,7 @@
     <div class="wb-card">
       <h2>Knowledge objects by branch and leaf type</h2>
       <p class="wb-muted" style="margin: 0 0 10px;">
-        The DueCare taxonomy has <b>6 branches</b> and <b>21 leaf types</b>.
+        The DueCare taxonomy has <b>7 branches</b> and <b>28 leaf types</b>.
         Every leaf type is consumed by at least one harness; counts below
         are the persisted envelopes under
         <code>/kaggle/working/knowledge/&lt;leaf&gt;/</code>. Synced or
@@ -203,9 +203,10 @@
     const KO_BRANCH_MAP = {
       matching_knowledge: ['grep_rule', 'glob_rule', 'classifier_rule', 'heuristic_rule'],
       grounding_knowledge: ['rag_doc', 'citation_edge', 'corridor_profile', 'ngo_directory'],
-      reasoning_knowledge: ['persona_block', 'context_snippet', 'reasoning_step', 'rubric_dimension'],
+      reasoning_knowledge: ['persona_block', 'context_snippet', 'reasoning_step', 'rubric_dimension', 'modus_operandi'],
+      evaluation_knowledge: ['evaluation_dimension', 'evaluation_prompt', 'evaluation_metric', 'evaluation_weighting'],
       tool_knowledge: ['tool_definition', 'tool_example', 'tool_chain'],
-      input_knowledge: ['fact_template', 'upload_schema', 'prompt_template'],
+      input_knowledge: ['fact_template', 'extracted_fact', 'entity_signal', 'upload_schema', 'prompt_template'],
       output_knowledge: ['envelope_schema', 'audit_template', 'submission_schema'],
     };
 

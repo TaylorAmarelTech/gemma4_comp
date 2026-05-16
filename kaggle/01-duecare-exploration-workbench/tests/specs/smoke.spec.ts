@@ -1,5 +1,27 @@
 import { test, expect } from '@playwright/test';
 
+async function openAnyModelSelector(page) {
+  const sharedPopover = page.locator('#dc-wb-model-popover');
+  if (await sharedPopover.evaluate((el) => !el.hasAttribute('hidden')).catch(() => false)) {
+    return sharedPopover;
+  }
+  const sharedButton = page.locator('#dc-wb-model-open').first();
+  if (await sharedButton.isVisible().catch(() => false)) {
+    await sharedButton.click();
+    await expect(sharedPopover).not.toHaveAttribute('hidden', '', { timeout: 5_000 });
+    return sharedPopover;
+  }
+
+  const legacyOverlay = page.locator('#picker-overlay');
+  if (await legacyOverlay.isVisible().catch(() => false)) {
+    return legacyOverlay;
+  }
+  const legacyButton = page.getByRole('button', { name: /open model selector|pick a model/i }).first();
+  await legacyButton.click();
+  await expect(legacyOverlay).toBeVisible({ timeout: 5_000 });
+  return legacyOverlay;
+}
+
 test.describe('smoke', () => {
   test('homepage returns 200 with title', async ({ page }) => {
     const response = await page.goto('/');
@@ -15,13 +37,9 @@ test.describe('smoke', () => {
 
   test('model picker overlay can open', async ({ page }) => {
     await page.goto('/static/chat.html');
-    const overlay = page.locator('#picker-overlay');
-    const overlayVisible = await overlay.isVisible().catch(() => false);
-    if (!overlayVisible) {
-      const pickBtn = page.getByRole('button', { name: /pick a model/i }).first();
-      await pickBtn.click();
-    }
-    await expect(overlay).toHaveClass(/show/);
+    const selector = await openAnyModelSelector(page);
+    await expect(selector).toBeVisible();
+    await expect(page.locator('#dc-wb-model-select, #model-select').first()).toBeVisible();
   });
 
   test('input composer + send button render', async ({ page }) => {

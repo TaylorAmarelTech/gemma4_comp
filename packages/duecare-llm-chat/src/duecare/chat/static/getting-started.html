@@ -74,7 +74,7 @@
       and trafficking. This kernel ships a baseline catalog of
       <span class="live-counter" id="hero-grep">loading</span> GREP rules,
       <span class="live-counter" id="hero-rag">loading</span> RAG docs, and a
-      knowledge taxonomy spanning 6 branches and 21 leaf types. From
+      knowledge taxonomy spanning 7 branches and 28 leaf types. From
       this kernel you can chat with Gemma 4, compare harness configs,
       process case bundles, draft new knowledge, search the web through
       a sanitization layer, and sync vetted knowledge from the public hub.
@@ -468,13 +468,13 @@
     </div>
 
     <div class="wb-card" id="taxonomy">
-      <h2>5. Knowledge object taxonomy (6 branches, 21 leaves)</h2>
+      <h2>5. Knowledge object taxonomy (7 branches, 28 leaves)</h2>
       <p>
         Every persisted artefact in
         <code>/kaggle/working/knowledge/</code> conforms to a v1.0
         envelope: <code>{schema_version:"1.0", knowledge_object_type:&lt;leaf&gt;,
-        id:&lt;kebab&gt;, content:{...}}</code>. Six branches partition
-        the 21 leaf types:
+        id:&lt;kebab&gt;, content:{...}}</code>. Seven branches partition
+        the 28 leaf types:
       </p>
       <div class="wb-grid-3">
         <div class="wb-flow-step">
@@ -486,16 +486,20 @@
           <p><code>rag_doc</code>, <code>citation_edge</code>, <code>corridor_profile</code>, <code>ngo_directory</code>: statutes, NGO contacts, statute-to-statute relations.</p>
         </div>
         <div class="wb-flow-step">
-          <h4>reasoning_knowledge</h4><h5>4 leaves</h5>
-          <p><code>persona_block</code>, <code>context_snippet</code>, <code>reasoning_step</code>, <code>rubric_dimension</code>: how the model should think through a problem.</p>
+          <h4>reasoning_knowledge</h4><h5>5 leaves</h5>
+          <p><code>persona_block</code>, <code>context_snippet</code>, <code>reasoning_step</code>, <code>rubric_dimension</code>, <code>modus_operandi</code>: how the model should think through a problem.</p>
+        </div>
+        <div class="wb-flow-step">
+          <h4>evaluation_knowledge</h4><h5>4 leaves</h5>
+          <p><code>evaluation_dimension</code>, <code>evaluation_prompt</code>, <code>evaluation_metric</code>, <code>evaluation_weighting</code>: grader dimensions, judge prompts, metrics, and use-case weights.</p>
         </div>
         <div class="wb-flow-step">
           <h4>tool_knowledge</h4><h5>3 leaves</h5>
           <p><code>tool_definition</code>, <code>tool_example</code>, <code>tool_chain</code>: function-calling specs and example invocations.</p>
         </div>
         <div class="wb-flow-step">
-          <h4>input_knowledge</h4><h5>3 leaves</h5>
-          <p><code>fact_template</code>, <code>upload_schema</code>, <code>prompt_template</code>: shapes user input must take to be ingestible.</p>
+          <h4>input_knowledge</h4><h5>5 leaves</h5>
+          <p><code>fact_template</code>, <code>extracted_fact</code>, <code>entity_signal</code>, <code>upload_schema</code>, <code>prompt_template</code>: source facts, non-PII entity signals, and ingestible input shapes.</p>
         </div>
         <div class="wb-flow-step">
           <h4>output_knowledge</h4><h5>3 leaves</h5>
@@ -609,7 +613,15 @@
         <li><code>POST /api/knowledge/sync</code>: pull vetted+unvetted from hub</li>
         <li><code>GET /api/knowledge/list</code>, <code>GET /api/knowledge/{type}/{id}</code>: inspect</li>
         <li><code>GET /api/knowledge/export</code>: export the local store</li>
-        <li><code>GET /api/knowledge/taxonomy</code>: the live 21-leaf catalog</li>
+        <li><code>GET /api/knowledge/taxonomy</code>: the live taxonomy catalog</li>
+        <li><code>GET /api/knowledge/type-catalog</code>: per-leaf purpose, keys, and subtype fields</li>
+      </ul>
+
+      <h3>Audit and inventory</h3>
+      <ul>
+        <li><code>GET /api/harnesses</code>: live harness contracts for every reviewer-facing surface</li>
+        <li><code>GET /api/portability</code>: reusable version, endpoint, sample, model-fit, trust-boundary, and primitive contract</li>
+        <li><code>GET /api/audit/workbench-inventory</code>: pages, samples, harnesses, import/export, and taxonomy inventory</li>
       </ul>
 
       <h3>Anonymization &amp; submission</h3>

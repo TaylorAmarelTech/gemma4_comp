@@ -31,7 +31,7 @@ from the model.
 | Cloud OpenAI-compat | BYOK fallback | per-deploy |
 | Cloud Ollama | BYOK fallback | per-deploy |
 
-## Output sanitizer (v0.14.5)
+## Output sanitizer
 
 Single-source `_model_output.sanitize_model_output()` strips:
 
@@ -54,16 +54,17 @@ After wheel install, `kernel.py` prints:
 
 ```
 ======================================================================
-  DUECARE SELF-AUDIT  ·  chat-package 0.14.5
+  DUECARE SELF-AUDIT  -  chat-package 0.17.0
 ======================================================================
     n_grep_rules       161
     n_rag_docs         46
     n_dimensions       46
     rubric           v3.10-evaluator-quality
 ======================================================================
-  ✓ all counts at or above v0.14.x submission minimums
+  OK all counts at or above the 0.17.0 portability minimums
 ```
 
-Fails loudly if counts fall below v0.14.x minimums (eliminates the
-"old wheel still serving" phantom-bug class). Override with
-`DUECARE_ALLOW_OLD_WHEEL=1` for intentional roll-back.
+Fails loudly if counts fall below the portability minimums (eliminates
+the "old wheel still serving" phantom-bug class). The reusable contract
+is exposed by `duecare.chat.portability` and `GET /api/portability`.
+Override with `DUECARE_ALLOW_OLD_WHEEL=1` for intentional roll-back.

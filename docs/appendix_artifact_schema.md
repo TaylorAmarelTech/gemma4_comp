@@ -61,7 +61,7 @@ single-file Add Data attachment in A-03 / A-08.
     "completed_at": "2026-05-11T14:39:14Z",
     "duration_s": 426,
     "git_sha": "e56c818",
-    "duecare_chat_version": "0.16.0",
+    "duecare_chat_version": "0.17.0",
     "torch_version": "2.8.0",
     "transformers_version": "5.5.0",
     "gpu_name": "Tesla T4",
@@ -208,7 +208,9 @@ finetuned delta (orthogonal to harness-on-vs-off).
 A-01 / A-02 / A-06 / A-07 read from
 `packages/duecare-llm-chat/src/duecare/chat/harness/_examples.json`:
 
-- 587 curated prompts as of `chat 0.16.0`.
+- Prompt counts and buckets should be read from the bundled prompt/eval
+  seed or from `/api/portability` + `/api/audit/workbench-inventory` for
+  the current `duecare-llm-chat 0.17.0` contract.
 - Schema per prompt: `{id, text, category, subcategory, sector, corridor, difficulty, ilo_indicators, bucket}`.
 - Each kernel can subset by `--n-prompts N`, `--difficulty easy|medium|hard`,
   or `--corridor PH-HK,PH-UAE`.

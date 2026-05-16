@@ -84,7 +84,7 @@ OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 # Two-tier strategy:
 #   1. GitHub Release wheels at /releases/download/v{VERSION}/
 #   2. GitHub source install via git+https://...@<sha>#subdirectory=...
-DUECARE_VERSION    = "0.1.0"
+DUECARE_VERSION    = os.environ.get("DUECARE_VERSION", "0.17.0")
 DUECARE_REPO       = "TaylorAmarelTech/gemma4_comp"
 DUECARE_COMMIT_SHA = "master"
 DUECARE_PACKAGES   = ["duecare-llm-chat"]   # pulls in core for harness data

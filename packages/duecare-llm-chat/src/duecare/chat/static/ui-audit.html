@@ -40,12 +40,16 @@
     </p>
     <div class="toolbar">
       <button class="primary" type="button" onclick="loadAudit()">Refresh manifest</button>
+      <a class="btn" href="/api/audit/workbench-inventory" target="_blank">Live inventory JSON</a>
+      <a class="btn" href="/static/samples/sample_manifest.json" target="_blank">Sample manifest</a>
+      <a class="btn" href="/api/knowledge/type-catalog" target="_blank">Type catalog</a>
       <a class="btn" href="/static/status.html">Status</a>
       <a class="btn" href="/static/process.html">Bulk File Review</a>
       <a class="btn" href="/static/compare.html">Harness Comparison</a>
     </div>
 
     <section class="grid" id="metrics"></section>
+    <section class="panel"><h2>Live Inventory</h2><div id="inventory" class="muted">Loading...</div></section>
     <section class="panel"><h2>Global Gates</h2><div id="gates" class="muted">Loading...</div></section>
     <section class="panel"><h2>Kernels</h2><div id="kernels"></div></section>
     <section class="panel"><h2>Static Pages And Controls</h2><div id="pages"></div></section>
@@ -77,6 +81,27 @@
         '<table><thead><tr><th>Priority</th><th>Item</th><th>Owner</th></tr></thead><tbody>' +
         (data.backlog || []).map(b => '<tr><td><span class="pill priority-' + esc(b.priority) + '">' + esc(b.priority) + '</span></td><td>' + esc(b.item) + '</td><td>' + esc(b.owner) + '</td></tr>').join('') +
         '</tbody></table>';
+
+      const ir = await fetch('/api/audit/workbench-inventory', {cache: 'no-store'});
+      const inv = await ir.json();
+      const c = inv.counts || {};
+      const sampleIssues = []
+        .concat((inv.samples || {}).missing_referenced_samples || [])
+        .concat((inv.samples || {}).manifest_entries_without_file || [])
+        .concat((inv.samples || {}).unmanifested_sample_files || []);
+      document.getElementById('inventory').innerHTML =
+        '<div class="grid">' +
+        [
+          ['Harnesses', c.harnesses],
+          ['Knowledge types', c.knowledge_types],
+          ['Knowledge branches', c.knowledge_branches],
+          ['Sample files', c.sample_files],
+          ['Manifest entries', c.sample_manifest_entries],
+          ['Scanned pages', c.static_pages],
+        ].map(([label, value]) => '<div class="metric"><span>' + esc(label) + '</span><b>' + esc(value) + '</b></div>').join('') +
+        '</div><p class="muted">' +
+        (sampleIssues.length ? 'Sample catalog issues: ' + esc(sampleIssues.join(', ')) : 'Sample references and manifest entries are aligned.') +
+        '</p>';
     }
     loadAudit().catch(e => {
       document.getElementById('gates').textContent = 'Failed to load audit manifest: ' + e;

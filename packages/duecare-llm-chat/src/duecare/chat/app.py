@@ -29,9 +29,12 @@ from typing import Any, Callable, Optional
 from uuid import uuid4
 
 from fastapi import FastAPI, HTTPException, UploadFile, File, Request
-from fastapi.responses import HTMLResponse, JSONResponse, StreamingResponse
+from fastapi.responses import HTMLResponse, JSONResponse, Response, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
+
+from .experiment_contracts import experiment_contract_payload
+from .portability import portability_contract_payload
 
 
 # In-memory image store (transient, request-scoped). Each upload
@@ -1644,6 +1647,237 @@ KO_BRANCHES: dict[str, str] = {
 KO_TYPES = frozenset(KO_BRANCHES.keys())
 
 
+KO_TYPE_CATALOG: dict[str, dict[str, Any]] = {
+    "grep_rule": {
+        "purpose": "Regex rule that maps text to a risk label or indicator.",
+        "required_content_keys": ["pattern"],
+        "recommended_content_keys": ["rule_id", "category", "severity", "description", "examples"],
+        "subtype_fields": ["category", "severity"],
+        "common_subtypes": {
+            "severity": ["info", "low", "medium", "high", "critical"],
+            "category": ["fee_camouflage", "debt_bondage", "passport_retention", "contract_substitution", "retaliation"],
+        },
+        "hot_loads": True,
+    },
+    "glob_rule": {
+        "purpose": "Filename or asset-path pattern used to classify uploaded files before text extraction.",
+        "required_content_keys": ["pattern"],
+        "recommended_content_keys": ["rule_id", "label", "severity", "description"],
+        "subtype_fields": ["label", "severity"],
+        "common_subtypes": {"label": ["id_document", "receipt", "chat_export", "contract", "public_record"]},
+        "hot_loads": "planned",
+    },
+    "classifier_rule": {
+        "purpose": "Small local classifier card for text, image, audio, or page-item labeling.",
+        "required_content_keys": ["label", "model_uri", "input_format"],
+        "recommended_content_keys": ["rule_id", "threshold", "description"],
+        "subtype_fields": ["label", "input_format"],
+        "common_subtypes": {"input_format": ["text", "image", "page_item", "audio", "video"]},
+        "hot_loads": "planned",
+    },
+    "heuristic_rule": {
+        "purpose": "Code-defined predicate for deterministic extraction or validation.",
+        "required_content_keys": ["predicate_py"],
+        "recommended_content_keys": ["rule_id", "category", "description"],
+        "subtype_fields": ["category"],
+        "common_subtypes": {"category": ["amount_outlier", "corridor_mismatch", "date_sequence", "entity_link"]},
+        "hot_loads": "planned",
+    },
+    "rag_doc": {
+        "purpose": "Vetted reference text used by RAG, citations, and legal grounding.",
+        "required_content_keys": ["title", "text"],
+        "recommended_content_keys": ["jurisdiction", "doc_type", "source_url", "fetched_at", "applicable_corridors"],
+        "subtype_fields": ["jurisdiction", "doc_type"],
+        "common_subtypes": {"doc_type": ["law", "regulation", "guidance", "court_record", "ngo_brief", "pattern_note"]},
+        "hot_loads": False,
+    },
+    "citation_edge": {
+        "purpose": "Typed link between statutes, advisories, cases, or knowledge references.",
+        "required_content_keys": ["from_statute", "to_statute", "relation"],
+        "recommended_content_keys": ["weight", "evidence_quote"],
+        "subtype_fields": ["relation"],
+        "common_subtypes": {"relation": ["implements", "supersedes", "references", "cites", "conflicts_with", "interprets"]},
+        "hot_loads": False,
+    },
+    "corridor_profile": {
+        "purpose": "Corridor-level fee caps, contact-pack refs, and risk context.",
+        "required_content_keys": ["corridor", "label"],
+        "recommended_content_keys": ["fee_cap_php", "statutes", "contact_pack_refs", "passport_retention_legal"],
+        "subtype_fields": ["corridor"],
+        "common_subtypes": {"corridor": ["PH-HK", "ID-HK", "NP-Gulf", "BD-Gulf"]},
+        "hot_loads": False,
+    },
+    "ngo_directory": {
+        "purpose": "Versioned contact or referral entry with verification metadata.",
+        "required_content_keys": ["name", "jurisdiction"],
+        "recommended_content_keys": ["phone", "email", "url", "last_verified_at", "applicable_corridors"],
+        "subtype_fields": ["jurisdiction", "contact_type"],
+        "common_subtypes": {"contact_type": ["government_regulator", "civil_society", "embassy", "hotline", "legal_aid"]},
+        "hot_loads": False,
+    },
+    "persona_block": {
+        "purpose": "Reusable role or policy prompt block for a harness.",
+        "required_content_keys": ["label", "text"],
+        "recommended_content_keys": ["applies_to_harnesses", "max_tokens"],
+        "subtype_fields": ["applies_to_harnesses"],
+        "common_subtypes": {"applies_to_harnesses": ["chat", "compare", "process", "extraction", "anonymization"]},
+        "hot_loads": False,
+    },
+    "context_snippet": {
+        "purpose": "Short prependable explanation or domain note selected by rules/RAG.",
+        "required_content_keys": ["text"],
+        "recommended_content_keys": ["snippet_id", "applies_to_corridors", "applies_to_indicators"],
+        "subtype_fields": ["applies_to_indicators"],
+        "common_subtypes": {"applies_to_indicators": ["fee_camouflage", "debt_bondage", "retaliation", "passport_retention"]},
+        "hot_loads": False,
+    },
+    "reasoning_step": {
+        "purpose": "Ordered instruction for how a harness should analyze a scenario.",
+        "required_content_keys": ["instruction"],
+        "recommended_content_keys": ["label", "order", "applies_to_harnesses"],
+        "subtype_fields": ["applies_to_harnesses"],
+        "common_subtypes": {"applies_to_harnesses": ["chat", "grade", "process", "extraction"]},
+        "hot_loads": False,
+    },
+    "rubric_dimension": {
+        "purpose": "Legacy/simple grading dimension that asks one behavioral question.",
+        "required_content_keys": ["question"],
+        "recommended_content_keys": ["label", "scale", "weight"],
+        "subtype_fields": ["scale"],
+        "common_subtypes": {"scale": ["yes_no", "pass_partial_fail_na", "numeric"]},
+        "hot_loads": False,
+    },
+    "modus_operandi": {
+        "purpose": "Generalized abuse pattern distilled from reviewed facts, not raw case narrative.",
+        "required_content_keys": ["pattern_name"],
+        "recommended_content_keys": ["description", "indicators", "aggregation_keys", "review_status"],
+        "subtype_fields": ["pattern_name", "indicators", "review_status"],
+        "common_subtypes": {"review_status": ["draft", "reviewed", "rejected"]},
+        "hot_loads": False,
+    },
+    "evaluation_dimension": {
+        "purpose": "Canonical grader dimension contract for LLM or deterministic evaluation.",
+        "required_content_keys": ["id", "name", "description"],
+        "recommended_content_keys": ["applies_to", "scale", "blocking_if_fail"],
+        "subtype_fields": ["scale", "applies_to"],
+        "common_subtypes": {"scale": ["pass_partial_fail_na", "numeric", "binary"]},
+        "hot_loads": False,
+    },
+    "evaluation_prompt": {
+        "purpose": "Judge prompt tied to one evaluation dimension.",
+        "required_content_keys": ["dimension_id", "question"],
+        "recommended_content_keys": ["positive_examples", "negative_examples", "evidence_requirements"],
+        "subtype_fields": ["dimension_id"],
+        "common_subtypes": {},
+        "hot_loads": False,
+    },
+    "evaluation_metric": {
+        "purpose": "Metric definition and fields for reporting grader or benchmark results.",
+        "required_content_keys": ["label", "metric"],
+        "recommended_content_keys": ["description", "fields"],
+        "subtype_fields": ["metric"],
+        "common_subtypes": {"metric": ["pass_rate", "agreement_rate", "weighted_score", "latency_ms", "coverage"]},
+        "hot_loads": False,
+    },
+    "evaluation_weighting": {
+        "purpose": "Use-case-specific weights for dimensions and blocking failures.",
+        "required_content_keys": ["use_case", "dimension_id", "weight"],
+        "recommended_content_keys": ["blocking_if_fail", "rationale"],
+        "subtype_fields": ["use_case", "dimension_id"],
+        "common_subtypes": {"use_case": ["worker_help", "platform_safety", "caseworker_reply", "research_eval"]},
+        "hot_loads": False,
+    },
+    "tool_definition": {
+        "purpose": "Callable tool schema and description for harness orchestration.",
+        "required_content_keys": ["name", "schema"],
+        "recommended_content_keys": ["description", "safety_notes"],
+        "subtype_fields": ["name"],
+        "common_subtypes": {},
+        "hot_loads": False,
+    },
+    "tool_example": {
+        "purpose": "Example tool invocation and result used for prompting or tests.",
+        "required_content_keys": ["tool_name", "args", "result"],
+        "recommended_content_keys": ["scenario", "expected_trace"],
+        "subtype_fields": ["tool_name"],
+        "common_subtypes": {},
+        "hot_loads": False,
+    },
+    "tool_chain": {
+        "purpose": "Multi-tool plan for lookup, verification, or grounding workflows.",
+        "required_content_keys": ["label", "steps"],
+        "recommended_content_keys": ["failure_mode", "safety_boundary"],
+        "subtype_fields": ["label"],
+        "common_subtypes": {},
+        "hot_loads": False,
+    },
+    "fact_template": {
+        "purpose": "Reusable structured intake or extraction template.",
+        "required_content_keys": ["fields"],
+        "recommended_content_keys": ["template_id", "label", "applies_to_indicators"],
+        "subtype_fields": ["applies_to_indicators"],
+        "common_subtypes": {"applies_to_indicators": ["fee_camouflage", "debt_bondage", "retaliation", "financial_crime"]},
+        "hot_loads": False,
+    },
+    "extracted_fact": {
+        "purpose": "Non-PII specific or aggregate fact extracted from reviewed source material.",
+        "required_content_keys": ["fact_type"],
+        "recommended_content_keys": ["summary", "values", "aggregation_keys", "source_refs", "pii_status"],
+        "subtype_fields": ["fact_type", "pii_status"],
+        "common_subtypes": {"fact_type": ["fee_overcharge", "salary_deduction", "document_retention", "threat", "retaliation", "payment_rail"]},
+        "hot_loads": False,
+    },
+    "entity_signal": {
+        "purpose": "Non-PII signal about an organization, role, channel, or recurring actor.",
+        "required_content_keys": ["entity_name", "entity_type"],
+        "recommended_content_keys": ["signal_type", "signal_types", "corridors", "source_refs", "pii_status"],
+        "subtype_fields": ["entity_type", "signal_type", "signal_types"],
+        "common_subtypes": {"entity_type": ["agency", "employer", "training_center", "money_lender", "payment_channel", "public_office"]},
+        "hot_loads": False,
+    },
+    "upload_schema": {
+        "purpose": "Accepted source-bundle, CSV, JSONL, or evidence-row contract.",
+        "required_content_keys": ["label", "format"],
+        "recommended_content_keys": ["required_columns", "optional_columns", "accepted_extensions"],
+        "subtype_fields": ["format"],
+        "common_subtypes": {"format": ["zip", "csv", "jsonl", "folder_export", "media_bundle"]},
+        "hot_loads": False,
+    },
+    "prompt_template": {
+        "purpose": "Reusable prompt seed for chat, search, grading, or extraction.",
+        "required_content_keys": ["text"],
+        "recommended_content_keys": ["label", "variables", "applies_to_harnesses"],
+        "subtype_fields": ["applies_to_harnesses"],
+        "common_subtypes": {"applies_to_harnesses": ["chat", "compare", "grade", "search_safety", "extraction"]},
+        "hot_loads": False,
+    },
+    "envelope_schema": {
+        "purpose": "Versioned output envelope contract.",
+        "required_content_keys": ["label", "version"],
+        "recommended_content_keys": ["schema_url", "json_schema"],
+        "subtype_fields": ["version"],
+        "common_subtypes": {},
+        "hot_loads": False,
+    },
+    "audit_template": {
+        "purpose": "Audit-log row schema for local traces and submit logs.",
+        "required_content_keys": ["label", "version"],
+        "recommended_content_keys": ["fields", "privacy_boundary"],
+        "subtype_fields": ["version"],
+        "common_subtypes": {},
+        "hot_loads": False,
+    },
+    "submission_schema": {
+        "purpose": "Payload schema accepted by the public hub or local export flow.",
+        "required_content_keys": ["label", "version"],
+        "recommended_content_keys": ["schema_url", "fields", "rejection_rules"],
+        "subtype_fields": ["version"],
+        "common_subtypes": {},
+        "hot_loads": False,
+    },
+}
+
+
 class GenerationParams(BaseModel):
     max_new_tokens: int = 16384
     temperature: float = 1.0
@@ -2185,16 +2419,7 @@ def create_app(
             "grade_categories": app.state.rubrics_required_categories or [],
         }
 
-    @app.get("/api/harnesses")
-    def api_harnesses() -> Any:
-        """Expose the seven reviewer-facing harness/utility contracts.
-
-        This endpoint deliberately distinguishes Gemma-backed harnesses
-        from hard safety gates and secondary utility surfaces. That keeps
-        the UI nomenclature honest: import_corpus and search are useful
-        test surfaces, but they are not themselves Gemma response
-        harnesses.
-        """
+    def _harness_contract_payload() -> dict[str, Any]:
         try:
             from duecare.chat.harnesses import all_harnesses
             from duecare.chat.harnesses.base import contract_from_module
@@ -2246,6 +2471,192 @@ def create_app(
             "secondary": [h for h in out if h.get("tier") == "secondary"],
             "harnesses": out,
         }
+
+    @app.get("/api/harnesses")
+    def api_harnesses() -> Any:
+        """Expose the seven reviewer-facing harness/utility contracts.
+
+        This endpoint deliberately distinguishes Gemma-backed harnesses
+        from hard safety gates and secondary utility surfaces. That keeps
+        the UI nomenclature honest: import_corpus and search are useful
+        test surfaces, but they are not themselves Gemma response
+        harnesses.
+        """
+        return _harness_contract_payload()
+
+    @app.get("/api/audit/workbench-inventory")
+    def api_audit_workbench_inventory() -> Any:
+        """Return a machine-checkable inventory for the recording audit.
+
+        The UI Audit page is a human checklist. This endpoint complements
+        it with live counts and cross-links for static pages, sample
+        downloadables, harness contracts, import/export endpoints, and the
+        KnowledgeObject taxonomy.
+        """
+        static_root = Path(__file__).resolve().parent / "static"
+        samples_root = static_root / "samples"
+
+        def _read_json(path: Path) -> dict[str, Any]:
+            try:
+                data = json.loads(path.read_text(encoding="utf-8"))
+                return data if isinstance(data, dict) else {}
+            except Exception:
+                return {}
+
+        ui_manifest = _read_json(static_root / "ui_audit_manifest.json")
+        sample_manifest = _read_json(samples_root / "sample_manifest.json")
+        sample_entries = sample_manifest.get("entries")
+        if not isinstance(sample_entries, list):
+            sample_entries = []
+        manifest_names = {
+            str(item.get("name"))
+            for item in sample_entries
+            if isinstance(item, dict) and item.get("name")
+        }
+
+        referenced_samples: set[str] = set()
+        page_records: list[dict[str, Any]] = []
+        for page in sorted(static_root.glob("*.html")):
+            refs: list[str] = []
+            try:
+                text = page.read_text(encoding="utf-8", errors="replace")
+                refs = sorted(set(re.findall(r"/static/samples/([^\"'<>\s)]+)", text)))
+                referenced_samples.update(refs)
+            except Exception:
+                refs = []
+            page_records.append({
+                "file": page.name,
+                "route": f"/static/{page.name}",
+                "sample_refs": refs,
+            })
+
+        sample_files: list[dict[str, Any]] = []
+        if samples_root.exists():
+            for sample in sorted(samples_root.iterdir()):
+                if not sample.is_file() or sample.name == "sample_manifest.json":
+                    continue
+                record: dict[str, Any] = {
+                    "name": sample.name,
+                    "bytes": sample.stat().st_size,
+                    "suffix": sample.suffix.lower(),
+                    "in_manifest": sample.name in manifest_names,
+                }
+                if sample.suffix.lower() == ".zip":
+                    try:
+                        with zipfile.ZipFile(sample) as zf:
+                            names = [n for n in zf.namelist() if not n.endswith("/")]
+                            exts = sorted({Path(n).suffix.lower() or "[none]" for n in names})
+                            record.update({
+                                "entries": len(names),
+                                "extensions": exts,
+                                "has_readme": any("readme" in n.lower() for n in names),
+                                "has_manifest_or_metadata": any(
+                                    "manifest" in n.lower() or "metadata" in n.lower()
+                                    for n in names
+                                ),
+                            })
+                    except Exception as exc:
+                        record["zip_error"] = f"{type(exc).__name__}: {exc}"
+                sample_files.append(record)
+
+        sample_file_names = {item["name"] for item in sample_files}
+        branches: dict[str, list[str]] = {}
+        for ko_type, branch in KO_BRANCHES.items():
+            branches.setdefault(branch, []).append(ko_type)
+        for branch in branches:
+            branches[branch].sort()
+        type_catalog: dict[str, dict[str, Any]] = {}
+        for ko_type in sorted(KO_TYPES):
+            meta = dict(KO_TYPE_CATALOG.get(ko_type, {}))
+            meta["branch"] = KO_BRANCHES.get(ko_type, "unknown")
+            type_catalog[ko_type] = meta
+        missing_type_catalog = sorted(t for t in KO_TYPES if t not in KO_TYPE_CATALOG)
+        extra_type_catalog = sorted(t for t in KO_TYPE_CATALOG if t not in KO_TYPES)
+
+        harness_payload = _harness_contract_payload()
+        route_paths = {getattr(route, "path", "") for route in getattr(app, "routes", [])}
+        portability_payload = portability_contract_payload(
+            route_paths=route_paths,
+            ko_types_count=len(KO_TYPES),
+            ko_catalog_count=len(KO_TYPE_CATALOG),
+            samples_root=samples_root,
+        )
+        return JSONResponse({
+            "schema_version": "duecare.workbench_inventory.v1",
+            "generated_at": time.strftime("%Y-%m-%dT%H-%M-%SZ", time.gmtime()),
+            "counts": {
+                "manifest_pages": len(ui_manifest.get("static_pages") or []),
+                "static_pages": len(page_records),
+                "harnesses": harness_payload.get("n_harnesses", 0),
+                "sample_files": len(sample_files),
+                "sample_manifest_entries": len(sample_entries),
+                "knowledge_branches": len(branches),
+                "knowledge_types": len(KO_TYPES),
+                "knowledge_types_with_catalog": len(type_catalog),
+            },
+            "pages": {
+                "manifest": ui_manifest.get("static_pages") or [],
+                "scanned": page_records,
+            },
+            "harnesses": harness_payload,
+            "portability": portability_payload,
+            "knowledge": {
+                "branches": branches,
+                "types": sorted(KO_TYPES),
+                "type_catalog": type_catalog,
+                "missing_type_catalog": missing_type_catalog,
+                "extra_type_catalog": extra_type_catalog,
+            },
+            "samples": {
+                "manifest": sample_manifest,
+                "files": sample_files,
+                "referenced_by_pages": sorted(referenced_samples),
+                "missing_referenced_samples": sorted(
+                    name for name in referenced_samples
+                    if name != "sample_manifest.json" and name not in sample_file_names
+                ),
+                "manifest_entries_without_file": sorted(
+                    name for name in manifest_names if name not in sample_file_names
+                ),
+                "unmanifested_sample_files": sorted(
+                    name for name in sample_file_names if name not in manifest_names
+                ),
+            },
+            "import_export": {
+                "knowledge_files_contract": (
+                    "Knowledge files import/export ZIPs use <knowledge_object_type>/<id>.json "
+                    "plus optional manifest.json and README.md entries."
+                ),
+                "source_bundle_contract": (
+                    "Source case bundles are evidence files for processing/extraction; "
+                    "they are not pre-existing knowledge files."
+                ),
+                "endpoints": [
+                    {"method": "POST", "path": "/api/knowledge/import", "artifact": "knowledge_files.zip"},
+                    {"method": "GET", "path": "/api/knowledge/export", "artifact": "knowledge_files.zip"},
+                    {"method": "POST", "path": "/api/knowledge/promote", "artifact": "single envelope JSON"},
+                    {"method": "POST", "path": "/api/process/batch/start", "artifact": "source case bundle"},
+                    {"method": "POST", "path": "/api/anonymize", "artifact": "redacted submission draft"},
+                ],
+            },
+        })
+
+    @app.get("/api/portability")
+    def api_portability_contract() -> Any:
+        """Return the reusable notebook/runtime portability contract."""
+        static_root = Path(__file__).resolve().parent / "static"
+        route_paths = {getattr(route, "path", "") for route in getattr(app, "routes", [])}
+        return portability_contract_payload(
+            route_paths=route_paths,
+            ko_types_count=len(KO_TYPES),
+            ko_catalog_count=len(KO_TYPE_CATALOG),
+            samples_root=static_root / "samples",
+        )
+
+    @app.get("/api/experiment-contract")
+    def api_experiment_contract() -> Any:
+        """Return shared quantitative comparison and training defaults."""
+        return experiment_contract_payload()
 
     @app.get("/api/docs/{layer}")
     def api_docs(layer: str) -> Any:
@@ -2547,7 +2958,7 @@ def create_app(
         import io as _io
         import json as _json
         import zipfile as _zipfile
-        from datetime import datetime as _dt
+        from datetime import UTC as _UTC, datetime as _dt
         from .harness import EVALUATION_QUESTIONS, RUBRIC_UNIVERSAL
 
         def _env(ko_type: str, ko_id: str, content: dict,
@@ -2559,7 +2970,7 @@ def create_app(
                 "version": "v1",
                 "tags": ["evaluation-pack"] + (tags or []),
                 "provenance": {
-                    "created_at": _dt.utcnow().strftime("%Y-%m-%dT%H-%M-%SZ"),
+                    "created_at": _dt.now(_UTC).strftime("%Y-%m-%dT%H-%M-%SZ"),
                     "created_by": "duecare-bundled-evaluator",
                     "source": "packages/duecare-llm-chat",
                 },
@@ -2635,7 +3046,7 @@ def create_app(
                 "rubric_version": RUBRIC_UNIVERSAL.get("version"),
                 "n_dimensions": len(RUBRIC_UNIVERSAL.get("dimensions", []) or []),
                 "n_prompts": len(EVALUATION_QUESTIONS),
-                "exported_at": _dt.utcnow().strftime("%Y-%m-%dT%H-%M-%SZ"),
+                "exported_at": _dt.now(_UTC).strftime("%Y-%m-%dT%H-%M-%SZ"),
             }
             zf.writestr("manifest.json", _json.dumps(manifest, indent=2))
         buf.seek(0)
@@ -3169,13 +3580,13 @@ def create_app(
         The `grade_call` callable is wired at create_app time. Returns
         503 if not wired (e.g. older kernels that don't pass it)."""
         gc = app.state.grade_call
-        if gc is None and not req.mode == "universal":
-            raise HTTPException(503, "grading not enabled in this kernel")
         if not req.response_text or not req.response_text.strip():
             raise HTTPException(400, "response_text is required")
         # Default mode = universal (no prompt_id or category needed)
         mode = req.mode or ("category" if req.category else
                               "prompt_id" if req.prompt_id else "universal")
+        if gc is None and mode == "prompt_id":
+            raise HTTPException(503, "grading not enabled in this kernel")
         try:
             if mode == "universal":
                 from .harness import grade_response_universal
@@ -4951,7 +5362,7 @@ def create_app(
         digests on next kernel boot (no live hot-reload yet).
         """
         import json as _json
-        from datetime import datetime as _dt
+        from datetime import UTC as _UTC, datetime as _dt
 
         try:
             env = await request.json()
@@ -4962,7 +5373,7 @@ def create_app(
             raise HTTPException(400, err)
 
         prov = env.setdefault("provenance", {})
-        prov.setdefault("created_at", _dt.utcnow().strftime("%Y-%m-%dT%H-%M-%SZ"))
+        prov.setdefault("created_at", _dt.now(_UTC).strftime("%Y-%m-%dT%H-%M-%SZ"))
         prov.setdefault("created_by", "kernel-01")
         env.setdefault("version", "v1")
         env.setdefault("tags", [])
@@ -5036,6 +5447,7 @@ def create_app(
                     "context_snippet":  ("text",),
                     "reasoning_step":   ("label", "instruction"),
                     "rubric_dimension": ("label", "question"),
+                    "modus_operandi": ("label", "pattern_name", "description"),
                     "evaluation_dimension": ("name", "description", "id"),
                     "evaluation_prompt": ("dimension_id", "question"),
                     "evaluation_metric": ("label", "metric", "description"),
@@ -5044,6 +5456,8 @@ def create_app(
                     "tool_example":     ("tool_name",),
                     "tool_chain":       ("label",),
                     "fact_template":    ("label", "template_id"),
+                    "extracted_fact":   ("label", "fact_type", "summary"),
+                    "entity_signal":    ("label", "entity_name", "signal_type"),
                     "upload_schema":    ("label", "format"),
                     "prompt_template":  ("label", "text"),
                     "envelope_schema":  ("label", "version"),
@@ -5075,7 +5489,7 @@ def create_app(
 
     @app.get("/api/knowledge/taxonomy")
     async def api_knowledge_taxonomy() -> Any:
-        """Return the 21-leaf / 6-branch hierarchy for UI auto-discovery."""
+        """Return the live KnowledgeObject hierarchy for UI auto-discovery."""
         from collections import OrderedDict
         branches: "OrderedDict[str, list[str]]" = OrderedDict()
         for b in ("matching_knowledge", "grounding_knowledge",
@@ -5089,13 +5503,35 @@ def create_app(
             branches[b].sort()
         return JSONResponse({"branches": branches, "n_types": len(KO_TYPES)})
 
+    @app.get("/api/knowledge/type-catalog")
+    async def api_knowledge_type_catalog() -> Any:
+        """Return per-leaf purpose, content keys, and subtype fields.
+
+        This is intentionally separate from `/api/knowledge/taxonomy`:
+        taxonomy is the compact branch/leaf roster, while this catalog is
+        the reviewer/developer contract for authoring useful envelopes.
+        """
+        rows: dict[str, dict[str, Any]] = {}
+        for ko_type in sorted(KO_TYPES):
+            meta = dict(KO_TYPE_CATALOG.get(ko_type, {}))
+            meta["branch"] = KO_BRANCHES.get(ko_type, "unknown")
+            rows[ko_type] = meta
+        return JSONResponse({
+            "schema_version": "duecare.knowledge_type_catalog.v1",
+            "n_types": len(KO_TYPES),
+            "n_cataloged": len(rows),
+            "missing": sorted(t for t in KO_TYPES if t not in KO_TYPE_CATALOG),
+            "extra": sorted(t for t in KO_TYPE_CATALOG if t not in KO_TYPES),
+            "types": rows,
+        })
+
     @app.get("/api/knowledge/export")
     async def api_knowledge_export() -> Any:
         """Pack all persisted KnowledgeObjects into a ZIP -- one entry
         per artefact at `<type>/<id>.json` plus a manifest.json.
         """
         import io as _io, zipfile as _zipfile, json as _json
-        from datetime import datetime as _dt
+        from datetime import UTC as _UTC, datetime as _dt
         root = _ko_root()
         buf = _io.BytesIO()
         with _zipfile.ZipFile(buf, "w", _zipfile.ZIP_DEFLATED) as zf:
@@ -5110,7 +5546,7 @@ def create_app(
                         pass
             manifest = {
                 "schema_version": "1.0",
-                "exported_at": _dt.utcnow().strftime("%Y-%m-%dT%H-%M-%SZ"),
+                "exported_at": _dt.now(_UTC).strftime("%Y-%m-%dT%H-%M-%SZ"),
                 "exporter": "kernel-01",
             }
             zf.writestr("manifest.json", _json.dumps(manifest, indent=2))
@@ -5119,7 +5555,7 @@ def create_app(
             content=buf.read(),
             media_type="application/zip",
             headers={
-                "Content-Disposition": 'attachment; filename="duecare_knowledge_bundle.zip"',
+                "Content-Disposition": 'attachment; filename="knowledge_files.zip"',
             },
         )
 

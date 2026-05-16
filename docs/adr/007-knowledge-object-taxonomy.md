@@ -13,15 +13,16 @@ website, writeup, system map) used incompatible vocabularies.
 ## Decision
 
 One canonical envelope -- `KnowledgeObject (v1.0)` -- carries every kind
-of knowledge. 6 branches, 21 leaves.
+of knowledge. 7 branches, 28 leaves.
 
 ```
 KnowledgeObject (v1.0)
 +- matching_knowledge   grep_rule | glob_rule | classifier_rule | heuristic_rule
 +- grounding_knowledge  rag_doc | citation_edge | corridor_profile | ngo_directory
-+- reasoning_knowledge  persona_block | context_snippet | reasoning_step | rubric_dimension
++- reasoning_knowledge  persona_block | context_snippet | reasoning_step | rubric_dimension | modus_operandi
++- evaluation_knowledge evaluation_dimension | evaluation_prompt | evaluation_metric | evaluation_weighting
 +- tool_knowledge       tool_definition | tool_example | tool_chain
-+- input_knowledge      fact_template | upload_schema | prompt_template
++- input_knowledge      fact_template | extracted_fact | entity_signal | upload_schema | prompt_template
 +- output_knowledge     envelope_schema | audit_template | submission_schema
 ```
 
@@ -33,7 +34,7 @@ provenance, content, tags, extensions}`.
 - One persistence: `/kaggle/working/knowledge/<type>/<id>.json`
 - One runtime API: `POST /api/knowledge/promote`, `GET /list?branch=?type=?`,
   `GET /api/knowledge/{type}/{id}`, `POST /import`, `GET /export`,
-  `GET /api/knowledge/taxonomy`
+  `GET /api/knowledge/taxonomy`, `GET /api/knowledge/type-catalog`
 - One vocabulary across kernel / website / writeup / system map
 - 5-step expansion contract (docs/knowledge_module_schema.md Section 8)
 

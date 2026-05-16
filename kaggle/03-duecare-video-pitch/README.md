@@ -65,6 +65,22 @@ The first caseworker scene includes a synthetic ID-card style image. It is
 generated inside the notebook under `/kaggle/working/video_pitch_media/` and is
 included in the exported evidence ZIP.
 
+## Reuse From Kernel 01
+
+Notebook 03 is intentionally zero-inference, but its language and artifacts
+should mirror the live workbench contract:
+
+- Use `duecare-llm-chat >= 0.17.0` terminology and sample names.
+- Keep source case bundles distinct from importable knowledge files.
+- Use the same five audience lanes and the same trust-boundary vocabulary.
+- Reference Kernel 01's `case_files_media_rich_sample.zip`,
+  `knowledge_files_sample.zip`, and `prompt_eval_training_seed_sample.zip`
+  when describing what the replay represents.
+- Keep cached scenes aligned with `/api/harnesses`,
+  `/api/portability`, `/api/knowledge/type-catalog`, and
+  `/api/audit/workbench-inventory` so
+  the video does not promise a workflow the live workbench cannot show.
+
 ## Controls
 
 | Key | Slides mode | Presentation mode |

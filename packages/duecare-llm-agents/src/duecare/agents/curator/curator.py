@@ -6,6 +6,7 @@ splits using SimHash dedup + stratified sampling.
 
 from __future__ import annotations
 
+from itertools import islice
 import random
 
 from duecare.core.enums import AgentRole, TaskStatus
@@ -25,9 +26,15 @@ class CuratorAgent:
     outputs: set[str] = {"train_jsonl", "val_jsonl", "test_jsonl", "split_stats"}
     cost_budget_usd = 0.0
 
-    def __init__(self, split_ratios: tuple[float, float, float] = (0.8, 0.1, 0.1), seed: int = 3407) -> None:
+    def __init__(
+        self,
+        split_ratios: tuple[float, float, float] = (0.8, 0.1, 0.1),
+        seed: int = 3407,
+        max_fallback_probes: int = 500,
+    ) -> None:
         self.split_ratios = split_ratios
         self.seed = seed
+        self.max_fallback_probes = max_fallback_probes
 
     def execute(self, ctx: AgentContext) -> AgentOutput:
         out = fresh_agent_output(self.id, self.role)
@@ -37,7 +44,7 @@ class CuratorAgent:
                 # Fall back to the domain pack's seed prompts
                 from duecare.domains import load_domain_pack
                 pack = load_domain_pack(ctx.domain_id)
-                probes = list(pack.seed_prompts())
+                probes = list(islice(pack.seed_prompts(), self.max_fallback_probes))
 
             # SimHash dedupe with Hamming-distance threshold
             seen_hashes: list[int] = []

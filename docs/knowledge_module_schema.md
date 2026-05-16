@@ -12,7 +12,7 @@
 ```json
 {
   "schema_version": "1.0",
-  "knowledge_object_type": "<one of 21 leaves below>",
+  "knowledge_object_type": "<one of the live taxonomy leaves below>",
   "id": "<kebab-case-slug>",
   "version": "v1",
   "provenance": {
@@ -29,7 +29,7 @@
 
 Required: `schema_version`, `knowledge_object_type`, `id`, `content`.
 
-## 2. Hierarchy (6 branches, 21 leaves)
+## 2. Hierarchy (7 branches, 28 leaves)
 
 ```
 KnowledgeObject (envelope, v1.0)
@@ -48,12 +48,20 @@ KnowledgeObject (envelope, v1.0)
 |  +- context_snippet    prepend-on-match paragraph
 |  +- reasoning_step     ordered prompt template (chain-of-thought)
 |  +- rubric_dimension   per-dim grading question + score gate
+|  +- modus_operandi     generalized abuse pattern
++- evaluation_knowledge "how do we test and weight behavior?"
+|  +- evaluation_dimension  grading dimension contract
+|  +- evaluation_prompt     judge prompt for a dimension
+|  +- evaluation_metric     metric definition and reporting fields
+|  +- evaluation_weighting  use-case-specific score weights
 +- tool_knowledge       "what can the model call?"
 |  +- tool_definition    function name + JSON schema + docstring
 |  +- tool_example       (args, result) demonstration
 |  +- tool_chain         multi-call orchestration plan
 +- input_knowledge      "what should be uploaded; how should it look?"
 |  +- fact_template      structured intake form definition
+|  +- extracted_fact     non-PII fact or aggregate from reviewed source
+|  +- entity_signal      non-PII actor / organization signal
 |  +- upload_schema      ZIP / CSV / JSONL row contract
 |  +- prompt_template    user-prompt starting point
 +- output_knowledge     "what gets emitted; in what shape?"
@@ -63,6 +71,8 @@ KnowledgeObject (envelope, v1.0)
 ```
 
 `GET /api/knowledge/taxonomy` returns the hierarchy at runtime.
+`GET /api/knowledge/type-catalog` returns purpose text, expected content
+keys, subtype fields, and common subtype examples for every leaf.
 
 ## 3. `content` payloads per leaf
 
@@ -151,7 +161,53 @@ KnowledgeObject (envelope, v1.0)
  "scale":"yes|no|partial|n/a", "weight":1.0}
 ```
 
-### 3.4 tool_knowledge
+**modus_operandi**
+```json
+{"label":"Cross-border fee assignment",
+ "pattern_name":"fee camouflage via post-arrival collection",
+ "description":"Worker-paid recruitment costs are relabeled as training, medical, payment-plan, assignment, or reimbursement obligations.",
+ "indicators":["fee_camouflage","debt_bondage","jurisdiction_shopping"],
+ "aggregation_keys":["corridor","agency_name","fee_label","collection_method"],
+ "review_status":"draft|reviewed"}
+```
+
+### 3.4 evaluation_knowledge
+
+**evaluation_dimension**
+```json
+{"id":"retaliation_risk_awareness",
+ "name":"Retaliation-risk awareness",
+ "description":"Checks whether worker-facing complaint guidance explains legal protections and practical retaliation risk.",
+ "applies_to":["worker_help","caseworker_reply","complaint_guidance"],
+ "scale":"pass|partial|fail|n/a"}
+```
+
+**evaluation_prompt**
+```json
+{"dimension_id":"retaliation_risk_awareness",
+ "question":"Does the response explain both formal anti-retaliation protection and real-world risk that an agency/employer may pressure or block the worker?",
+ "positive_examples":["mentions safe reporting and trusted caseworker paths"],
+ "negative_examples":["only says retaliation is illegal"]}
+```
+
+**evaluation_metric**
+```json
+{"label":"dimension agreement",
+ "metric":"agreement_rate",
+ "description":"Agreement between deterministic expectations and model judge verdicts.",
+ "fields":["dimension_id","verdict","evidence_quote","rationale"]}
+```
+
+**evaluation_weighting**
+```json
+{"label":"worker-help response weights",
+ "use_case":"worker_help",
+ "dimension_id":"retaliation_risk_awareness",
+ "weight":1.5,
+ "blocking_if_fail":false}
+```
+
+### 3.5 tool_knowledge
 
 **tool_definition**
 ```json
@@ -172,13 +228,35 @@ KnowledgeObject (envelope, v1.0)
             {"tool":"lookup_statute","args_from":"$1.statute"}]}
 ```
 
-### 3.5 input_knowledge
+### 3.6 input_knowledge
 
 **fact_template**
 ```json
 {"template_id":"fee_violation_v1", "label":"Recruitment-fee violation",
  "applies_to_indicators":["fee_camouflage"],
  "fields":[{"name":"corridor","type":"string","required":true}, ...]}
+```
+
+**extracted_fact**
+```json
+{"label":"PH-HK overcharge amount",
+ "fact_type":"fee_overcharge",
+ "summary":"Synthetic worker group reported PHP 45,000-75,000 processing/training fees.",
+ "values":{"min_php":45000,"max_php":75000},
+ "aggregation_keys":["corridor","agency_name","fee_label"],
+ "source_refs":["process_run:01_process_..."],
+ "pii_status":"non_pii_aggregate"}
+```
+
+**entity_signal**
+```json
+{"label":"Pearl Bridge Manpower fee signal",
+ "entity_name":"Pearl Bridge Manpower",
+ "entity_type":"agency",
+ "signal_type":"fee_camouflage",
+ "corridors":["PH-HK"],
+ "source_refs":["row:payment_history/person_001_payments.csv"],
+ "pii_status":"organization_only"}
 ```
 
 **upload_schema**
@@ -194,7 +272,7 @@ KnowledgeObject (envelope, v1.0)
  "text":"I am a {corridor} domestic worker. My recruiter quoted {amount}..."}
 ```
 
-### 3.6 output_knowledge
+### 3.7 output_knowledge
 
 **envelope_schema**
 ```json
@@ -229,6 +307,7 @@ KnowledgeObject (envelope, v1.0)
 | POST | `/api/knowledge/import` | multipart ZIP |
 | GET  | `/api/knowledge/export` | ZIP download |
 | GET  | `/api/knowledge/taxonomy` | full hierarchy |
+| GET  | `/api/knowledge/type-catalog` | per-leaf purpose, keys, and subtype fields |
 
 ## 6. Runtime re-digestion
 

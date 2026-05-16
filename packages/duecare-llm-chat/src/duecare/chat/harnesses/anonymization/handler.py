@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import hashlib
 import json as _json
-from datetime import datetime as _dt
+from datetime import UTC as _UTC, datetime as _dt
 from pathlib import Path as _Path
 from typing import Any
 
@@ -248,7 +248,7 @@ def register_routes(app: Any) -> None:
         if not isinstance(items, list):
             raise HTTPException(400, "`knowledge` must be a list")
 
-        ts = _dt.utcnow().strftime("%Y-%m-%dT%H-%M-%SZ")
+        ts = _dt.now(_UTC).strftime("%Y-%m-%dT%H-%M-%SZ")
         run_id = f"01_submit_{ts}"
         payload = {"submission_id": run_id, "ts": ts, "items": items}
         blob = _json.dumps(payload, sort_keys=True, ensure_ascii=False).encode("utf-8")
