@@ -311,7 +311,6 @@ try:
     from duecare.chat.kernel_shell import build_minimal_shell
     from duecare.chat.portability import model_variant_map
     from duecare.chat.portability import reference_portability_contract_payload
-    from duecare.chat.runtime_chrome import runtime_model_topbar_html
 except Exception as exc:  # noqa: BLE001
     raise SystemExit(f"DueCare shell import failed: {type(exc).__name__}: {exc}")
 
@@ -3998,24 +3997,23 @@ HOMEPAGE_HTML = r"""<!doctype html>
   <link rel="stylesheet" href="/static/_chrome.css">
   <link rel="stylesheet" href="/static/showcase.css">
   <style>
-    body { padding-top: 52px; }
-    #_dc-runtime-topbar {
-      position: fixed; top: 0; left: 0; right: 0; height: 52px;
-      z-index: 99998; display: flex; align-items: center; gap: 12px;
-      padding: 0 14px; background: var(--paper, #f7f6f1);
-      border-bottom: 1px solid var(--line, #ddd8c9);
-      box-shadow: 0 1px 0 rgba(14,17,22,0.04);
+    body { padding-top: 0; }
+    .a00-shutdown-control {
+      position: fixed;
+      top: 12px;
+      right: 14px;
+      z-index: 99998;
     }
-    .runtime-brand { color: var(--ink); font-weight: 800; font-size: 13px; white-space: nowrap; }
-    .runtime-model { min-width: 0; display: grid; gap: 1px; }
-    .runtime-model b { max-width: 42vw; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; }
-    .runtime-model span { color: var(--ink-3); font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .runtime-actions { margin-left: auto; display: flex; align-items: center; gap: 8px; min-width: 0; }
-    .runtime-metrics { display: flex; align-items: center; gap: 6px; min-width: 0; }
-    .runtime-stat { border: 1px solid var(--line); border-radius: 999px; padding: 4px 8px; background: var(--paper-2); color: var(--ink-2); font-size: 11px; white-space: nowrap; }
-    .runtime-stat b { color: var(--ink); font-weight: 800; }
-    .runtime-button { border: 1px solid var(--line); background: var(--paper); color: var(--ink); border-radius: 6px; padding: 7px 10px; font-size: 12px; font-weight: 700; }
-    .runtime-button:disabled { opacity: 0.55; cursor: not-allowed; background: var(--paper-2); }
+    .a00-shutdown-control button {
+      border: 1px solid var(--line);
+      background: var(--paper);
+      color: var(--ink);
+      border-radius: 6px;
+      padding: 7px 10px;
+      font-size: 12px;
+      font-weight: 700;
+      box-shadow: 0 8px 24px rgba(14,17,22,0.10);
+    }
     .a00 { max-width: 1180px; margin: 0 auto; padding: 28px 24px 56px; }
     .a00-header { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 18px; align-items: end; margin-bottom: 16px; border-bottom: 1px solid var(--line); padding-bottom: 18px; }
     .a00-header h1 { margin: 4px 0 8px; font-size: clamp(30px, 4vw, 48px); line-height: 1.02; letter-spacing: 0; }
@@ -4112,18 +4110,14 @@ HOMEPAGE_HTML = r"""<!doctype html>
       .a00-header, .a00-choice-grid, .primary-grid, .advanced-grid { grid-template-columns: 1fr; }
       .flow-grid { grid-template-columns: 1fr; }
       .a00-actions { justify-content: flex-start; }
-      .runtime-metrics { display: none; }
-      .runtime-model b { max-width: 48vw; }
     }
     @media (max-width: 640px) {
-      .runtime-model span { display: none; }
-      #_dc-runtime-topbar { gap: 8px; padding: 0 10px; }
-      .runtime-button { padding: 6px 8px; }
+      .a00-shutdown-control { top: 8px; right: 8px; }
     }
   </style>
 </head>
 <body class="__A00_BODY_CLASS__">
-__A00_RUNTIME_TOPBAR__
+__A00_SHUTDOWN_CONTROL__
 <main class="a00">
   <header class="a00-header">
     <div>
@@ -4459,8 +4453,6 @@ async function shutdownA00() {
   }
   try {
     await fetch("/api/shutdown", {method:"POST"});
-    const note = $("runtime-model-note");
-    if (note) note.textContent = "Shutdown requested. The Kaggle cell will exit shortly.";
   } catch (err) {
     if (btn) {
       btn.removeAttribute("aria-disabled");
@@ -4647,37 +4639,13 @@ async function pollJob(jobId) {
 }
 async function refreshStatus() {
   const s = await getJson("/api/a00/status");
-  const model = s.model || {};
   const activePipeline = (s.jobs || []).slice().reverse().find(j => j.kind === "pipeline" && ["queued", "running"].includes(String(j.status || "")));
   pipelineActive = Boolean(activePipeline);
-  const activeStep = activePipeline ? ((activePipeline.steps || []).slice(-1)[0] || {}) : null;
-  const bannerStatus = activePipeline
-    ? "Pipeline running"
-    : model.loaded ? "Model ready" : "Ready";
-  const bannerNote = activePipeline
-    ? `${activePipeline.status || "running"} | ${activeStep && activeStep.label ? activeStep.label : activePipeline.job_id}`
-    : model.loaded
-      ? [
-          model.model_ref || "loaded model",
-          model.source || "hf",
-          model.quantization || "",
-          model.adapter_ref ? "adapter: " + model.adapter_ref : ""
-        ].filter(Boolean).join(" | ")
-      : "Select a model in Preconfigured or Custom. A-00 loads it when a run starts.";
-  if ($("runtime-model-name")) $("runtime-model-name").textContent = bannerStatus;
-  if ($("runtime-model-note")) $("runtime-model-note").textContent = bannerNote || "Guided experiment console";
   const preconfigRun = $("preconfig-run-btn");
   if (preconfigRun) {
     preconfigRun.disabled = pipelineActive;
     preconfigRun.textContent = pipelineActive ? "Pipeline running" : "Run preconfigured pipeline";
   }
-  const kpis = [
-    ["Exports", s.n_exports || 0],
-    ["Packs", s.packs ? s.packs.length : 0],
-    ["Graphs", s.research_bundles ? s.research_bundles.length : 0],
-    ["Jobs", s.jobs ? s.jobs.length : 0],
-  ];
-  $("kpis").innerHTML = kpis.map(([a,b]) => `<span class="runtime-stat">${a}: <b>${b}</b></span>`).join("");
   const exports = (s.exports || []).map(e => {
     const checked = selectedRuns.includes(e.run_id) ? "checked" : "";
     return `<label style="display:block;"><input type="checkbox" ${checked} onchange="toggleRun('${e.run_id}', this.checked)"> ${e.run_id} | ${e.harness_profile} | ${e.summary.mean_score_pct || ""}% <a href="${e.artifacts.zip}">zip</a></label>`;
@@ -5053,17 +5021,15 @@ loadOptions().then(() => {
 </html>
 """
 
-_A00_RUNTIME_TOPBAR_HTML = runtime_model_topbar_html(
-    title="DueCare A-00",
-    model_text="Ready",
-    note="Select a model in Preconfigured or Custom. A-00 loads it when a run starts.",
-    include_model_selector=False,
-    include_custom_controls=False,
+_A00_SHUTDOWN_CONTROL_HTML = (
+    '<div class="a00-shutdown-control">'
+    '<button id="_dc-shutdown-btn" type="button" onclick="shutdownA00()">Shutdown</button>'
+    "</div>"
 )
 _A00_BASE_HTML = (
     HOMEPAGE_HTML
     .replace("__A00_SMALL_MODEL_REF__", A00_SMALL_MODEL_REF)
-    .replace("__A00_RUNTIME_TOPBAR__", _A00_RUNTIME_TOPBAR_HTML)
+    .replace("__A00_SHUTDOWN_CONTROL__", _A00_SHUTDOWN_CONTROL_HTML)
 )
 HOMEPAGE_HTML = _A00_BASE_HTML.replace("__A00_BODY_CLASS__", "a00-landing")
 A00_PRECONFIGURED_HTML = _A00_BASE_HTML.replace("__A00_BODY_CLASS__", "a00-preconfigured")
