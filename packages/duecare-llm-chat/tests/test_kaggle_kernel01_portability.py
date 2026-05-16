@@ -186,14 +186,30 @@ def test_live_demo_video_pitch_and_a00_expose_page_level_controls():
         assert token in video
 
     for token in [
-        "Quantitative proof profiles",
+        "Quantitative profile",
         'id="quant-profile"',
         "runQuantProfile",
         "/api/a00/quantitative/run",
-        "Primary notebook audit",
+        "Quality gates and notebook audit",
         "Activity",
     ]:
         assert token in a00
+
+
+def test_a00_uses_focused_experiment_console_not_exploration_nav():
+    a00 = _text(A00_KERNEL)
+    homepage = a00.split('HOMEPAGE_HTML = r"""', 1)[1].split('"""', 1)[0]
+
+    assert "_nav.js" not in homepage
+    assert 'data-nav="tools"' not in homepage
+    assert "DueCare hub" not in homepage
+    assert "Harness Comparison" not in homepage
+    assert "Bulk File Review" not in homepage
+    assert "Knowledge Extraction" not in homepage
+    assert "Benchmark, generate, fine-tune, compare." in homepage
+    assert "Default experiment path" in homepage
+    assert "Advanced model-switching pipeline" in homepage
+    assert "Appendix workflow registry" in homepage
 
 
 def test_primary_kernels_bootstrap_from_github_source_with_full_package_closure():
