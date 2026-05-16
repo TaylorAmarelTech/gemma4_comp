@@ -230,7 +230,8 @@ def test_primary_kernels_bootstrap_from_github_source_with_full_package_closure(
     for label, text in {"02-live-demo": live, "A-00": a00}.items():
         assert "one git clone, local package install, import verification" in text, label
         assert "git\", \"clone" in text, label
-        assert "/tmp/duecare_gemma4_comp_source" in text, label
+        assert "DUECARE_SOURCE_ROOT" in text, label
+        assert "_duecare_source" in text, label
         assert "--disable-pip-version-check" in text, label
         assert "installed_from_github_source" in text or "installed and verified" in text, label
         for package in required_packages:

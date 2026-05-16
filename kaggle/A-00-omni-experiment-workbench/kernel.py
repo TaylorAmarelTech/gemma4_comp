@@ -111,7 +111,10 @@ def _install_duecare_from_github() -> bool:
     print(f"  ref:        {DUECARE_COMMIT_SHA}")
     print("  strategy:   one git clone, local package install, import verification")
 
-    clone_root = Path("/tmp/duecare_gemma4_comp_source")
+    clone_root = Path(os.environ.get(
+        "DUECARE_SOURCE_ROOT",
+        str(OUTPUT_DIR / "_duecare_source" / "gemma4_comp"),
+    ))
     if clone_root.exists():
         shutil.rmtree(clone_root)
 
