@@ -41,7 +41,8 @@ def test_a00_core_routes_are_registered():
 def test_a00_has_judge_facing_quick_proof_and_research_flow():
     text = A00.read_text(encoding="utf-8")
     for marker in [
-        "Recommended proof path",
+        "Default experiment path",
+        "Benchmark, generate, fine-tune, compare.",
         "quickProof",
         "runRedteamProof",
         "anti_tip_redteam_regressions",

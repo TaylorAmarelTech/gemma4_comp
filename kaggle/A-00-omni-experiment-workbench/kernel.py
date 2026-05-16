@@ -3742,12 +3742,34 @@ HOMEPAGE_HTML = r"""<!doctype html>
   <title>DueCare A-00 Omni Experiment Workbench</title>
   <link rel="stylesheet" href="/static/_chrome.css">
   <link rel="stylesheet" href="/static/showcase.css">
-  <script src="/static/_nav.js" defer></script>
   <style>
     .a00 { max-width: 1180px; margin: 0 auto; padding: 28px 24px 56px; }
+    .a00-header { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 18px; align-items: end; margin-bottom: 16px; border-bottom: 1px solid var(--line); padding-bottom: 18px; }
+    .a00-header h1 { margin: 4px 0 8px; font-size: clamp(30px, 4vw, 48px); line-height: 1.02; letter-spacing: 0; }
+    .a00-actions { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; }
+    .kpi-strip { display: grid; grid-template-columns: repeat(5, minmax(120px, 1fr)); gap: 10px; margin: 14px 0 16px; }
     .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; }
+    .primary-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-top: 12px; }
     .panel { background: var(--paper); border: 1px solid var(--line); border-radius: 8px; padding: 16px; }
     .hero-panel { background: #fff; border-color: var(--ink); }
+    .panel-heading { display: flex; align-items: start; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
+    .panel-heading h2 { margin: 0; }
+    .experiment-flow { margin-top: 12px; }
+    .flow-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; margin-top: 12px; }
+    .flow-step { border: 1px solid var(--line); border-radius: 8px; padding: 12px; background: var(--paper-2); min-height: 128px; }
+    .flow-step span { display: inline-grid; place-items: center; width: 24px; height: 24px; border-radius: 999px; background: var(--ink); color: var(--paper); font-size: 12px; font-weight: 700; margin-bottom: 8px; }
+    .flow-step b { display: block; font-size: 13px; margin-bottom: 4px; }
+    .flow-step p { margin: 0; font-size: 12px; line-height: 1.4; }
+    .control-panel { min-height: 260px; }
+    .compact-row label { min-width: 160px; }
+    .action-row { justify-content: flex-start; }
+    .advanced-panel { margin-top: 12px; }
+    .advanced-panel > summary { cursor: pointer; font-weight: 700; color: var(--ink); }
+    .advanced-panel[open] > summary { margin-bottom: 10px; }
+    .advanced-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-top: 10px; }
+    .advanced-grid h3 { margin: 0 0 8px; font-size: 14px; }
+    .activity-panel { margin-top: 14px; }
+    .export-list { margin-top: 10px; max-height: 150px; overflow: auto; }
     .proof-steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 10px; margin-top: 12px; }
     .proof-step { border: 1px solid var(--line); border-radius: 8px; padding: 10px; background: var(--paper-2); }
     .proof-step b { display: block; font-size: 13px; margin-bottom: 4px; }
@@ -3777,151 +3799,57 @@ HOMEPAGE_HTML = r"""<!doctype html>
     .kpi { display: grid; gap: 3px; }
     .kpi b { font-size: 20px; }
     .muted { color: var(--ink-3); font-size: 12px; }
+    @media (max-width: 900px) {
+      .a00-header, .primary-grid, .advanced-grid { grid-template-columns: 1fr; }
+      .kpi-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .flow-grid { grid-template-columns: 1fr; }
+      .a00-actions { justify-content: flex-start; }
+    }
   </style>
 </head>
-<body data-nav="tools">
+<body>
 <main class="a00">
-  <div class="crumbs">Appendix A-00 | Omni experiment workbench</div>
-  <h1>One workbench for harness lift, synthetic data, research graphs, and fine-tuning.</h1>
-  <p class="lede">
-    Load one model per Kaggle run, execute prompt batches through selected harnesses,
-    import prior exports, compare quality and speed, generate synthetic training data,
-    process local research bundles, and create fine-tuning jobs from the same UI.
-  </p>
-
-  <section class="grid" id="kpis"></section>
-
-  <section class="panel hero-panel">
-    <h2>Recommended proof path</h2>
-    <p>
-      The fastest judge path is to create two small exports, compare them, then open
-      the HTML report. The same controls scale to 100+ prompts and later reruns with
-      a fine-tuned model or an abliterated adversary.
-    </p>
-    <div class="proof-steps">
-      <div class="proof-step"><b>1. Baseline</b>Run Chat Safety prompts with No harness.</div>
-      <div class="proof-step"><b>2. Harnessed</b>Run the same prompts with Chat safety harness.</div>
-      <div class="proof-step"><b>3. Report</b>Select both exports and build the score, speed, and cost report.</div>
-      <div class="proof-step"><b>4. Regression</b>Run the GPT OSS anti-TIP failure-pattern prompt set.</div>
-      <div class="proof-step"><b>5. Research</b>Upload a case bundle or run the sample local graph.</div>
+  <header class="a00-header">
+    <div>
+      <div class="crumbs">DueCare A-00 | Experiment console</div>
+      <h1>Benchmark, generate, fine-tune, compare.</h1>
+      <p class="lede">
+        A focused control plane for quantitative runs: base Gemma, Gemma with harness,
+        fine-tuned Gemma, and fine-tuned Gemma with harness. Start with dry-run outputs,
+        then repeat with a loaded Gemma 4 model on Kaggle GPU.
+      </p>
     </div>
-    <div class="row">
-      <button onclick="quickProof()">Create baseline + harness proof</button>
-      <button class="secondary" onclick="runRedteamProof()">Run red-team regression proof</button>
-      <button class="secondary" onclick="runSampleResearch()">Run local research sample</button>
+    <div class="a00-actions">
+      <button onclick="quickProof()">Run baseline vs harness</button>
+      <button class="secondary" onclick="runQuantProfile()">Run selected profile</button>
+      <button class="secondary" onclick="buildReport()">Export report</button>
     </div>
-  </section>
+  </header>
 
-  <section class="panel" style="margin-top:16px;">
-    <h2>Already have a file?</h2>
-    <p>
-      Upload a synthetic training bundle, prompt set, prompt-response export,
-      combined comparison bundle, or knowledge pack. A-00 reads the metadata,
-      imports what it can, and suggests the next action.
-    </p>
-    <div class="row">
-      <input type="file" id="intake-file" accept=".zip,.json,.jsonl,.csv,.txt,.md">
-      <button onclick="analyzeIntake()">Analyze upload and suggest next step</button>
-    </div>
-    <div id="intake-result" class="intake-result"></div>
-  </section>
+  <section class="kpi-strip" id="kpis"></section>
 
-  <section class="panel" style="margin-top:16px;">
-    <h2>Quantitative proof profiles</h2>
-    <p>
-      These are shared-contract runs used by the downstream notebooks: a text-only
-      harness comparison for 20-50 prompts, and a tiny fine-tune smoke path that
-      generates synthetic SFT rows before creating a LoRA job bundle.
-    </p>
-    <div class="row">
-      <label>Profile <select id="quant-profile"></select></label>
-      <label>Execute training
-        <select id="quant-execute">
-          <option value="false">false</option>
-          <option value="true">true</option>
-        </select>
-      </label>
+  <section class="panel hero-panel experiment-flow">
+    <div class="panel-heading">
+      <div>
+        <h2>Default experiment path</h2>
+        <p>Use this path for the next measurable proof run and for the video narrative.</p>
+      </div>
+      <span class="status-pill">one model resident at a time</span>
     </div>
-    <div class="row">
-      <button onclick="runQuantProfile()">Run selected profile</button>
-      <span class="muted">Heavy training stays disabled by default for recording-safe runs.</span>
+    <div class="flow-grid">
+      <div class="flow-step"><span>1</span><b>Select prompts</b><p>Choose the shared PH-HK benchmark set and prompt count.</p></div>
+      <div class="flow-step"><span>2</span><b>Run baseline</b><p>Base Gemma answers the same prompts with no DueCare harness.</p></div>
+      <div class="flow-step"><span>3</span><b>Run harnessed</b><p>Same model, same prompts, DueCare harness and grading enabled.</p></div>
+      <div class="flow-step"><span>4</span><b>Generate SFT rows</b><p>Create synthetic, filtered training rows for a small LoRA smoke path.</p></div>
+      <div class="flow-step"><span>5</span><b>Compare four arms</b><p>Report base, base+harness, fine-tuned, and fine-tuned+harness.</p></div>
     </div>
   </section>
 
-  <section class="panel" style="margin-top:16px;">
-    <h2>Advanced pipeline presets</h2>
-    <p>
-      Queue multi-step runs that load, unload, train, and benchmark one model at
-      a time. These presets are for smaller models such as E2B/E4B or dry-run
-      validation before a real GPU session.
-    </p>
-    <details>
-      <summary>Configure model-switching pipeline</summary>
-      <div class="row">
-        <label>Preset <select id="pipeline-preset"></select></label>
-        <label>Pipeline label <input id="pipeline-label" placeholder="e4b-vs-adapter-smoke"></label>
-        <label>Prompt count <input id="pipeline-limit" type="number" min="1" max="100" value="5"></label>
-      </div>
-      <div class="row">
-        <label>Base/eval model source <select id="pipeline-a-source"><option value="dry_run">dry_run</option><option value="hf">hf</option><option value="kaggle_path">kaggle_path</option><option value="local_path">local_path</option></select></label>
-        <label>Base/eval model ref <input id="pipeline-a-ref" value="dry_run"></label>
-        <label>Model A adapter <input id="pipeline-a-adapter" placeholder="/kaggle/input/adapter-a"></label>
-      </div>
-      <div class="row">
-        <label>Fine-tune base source <select id="pipeline-b-source"><option value="dry_run">dry_run</option><option value="hf">hf</option><option value="kaggle_path">kaggle_path</option><option value="local_path">local_path</option></select></label>
-        <label>Fine-tune base model/path <input id="pipeline-b-ref" value="google/gemma-4-e2b-it"></label>
-        <label>Existing adapter path <input id="pipeline-b-adapter" placeholder="/kaggle/input/adapter-b"></label>
-      </div>
-      <div class="row">
-        <label>Prompt set <select id="pipeline-prompt-set"></select></label>
-        <label>Baseline harness <select id="pipeline-baseline-harness"></select></label>
-        <label>Treatment harness <select id="pipeline-harness"></select></label>
-      </div>
-      <div class="row">
-        <label>Synthetic rows <input id="pipeline-synth-count" type="number" min="1" max="200" value="5"></label>
-        <label>Max train steps <input id="pipeline-max-steps" type="number" min="1" max="500" value="60"></label>
-        <label>Training output path <input id="pipeline-output-dir" placeholder="/kaggle/working/a00_training/my_adapter"></label>
-      </div>
-      <div class="row">
-        <label>Grade outputs <select id="pipeline-evaluate"><option value="true">now</option><option value="false">later</option></select></label>
-        <label>Build report <select id="pipeline-report"><option value="true">yes</option><option value="false">later</option></select></label>
-        <label>Execute training <select id="pipeline-execute"><option value="false">false</option><option value="true">true</option></select></label>
-        <label>Unload between steps <select id="pipeline-unload"><option value="true">true</option><option value="false">false</option></select></label>
-      </div>
-      <div class="row">
-        <button class="secondary" onclick="useE2BPipelineDefaults()">Use E2B four-arm defaults</button>
-        <button onclick="runAdvancedPipeline()">Queue advanced pipeline</button>
-        <span class="muted">The job runs in the background and appears in the Jobs list.</span>
-      </div>
-    </details>
-  </section>
-
-  <section class="panel" style="margin-top:16px;">
-    <h2>Training quality gates</h2>
-    <p>
-      Synthetic SFT and DPO rows follow the shared experiment contract from Kernel 01.
-      The default path keeps evaluation prompts held out, filters PII and unsafe chosen
-      answers, and reports stock, stock+harness, fine-tuned, and fine-tuned+harness
-      arms separately.
-    </p>
-    <div id="training-guidance" class="audit-grid"></div>
-  </section>
-
-  <section class="panel" style="margin-top:16px;">
-    <h2>Primary notebook audit</h2>
-    <p>
-      Use this checklist to verify the three core notebooks and A-00 before recording or submitting.
-      It keeps the product demo, live inference path, video story, and technical proof aligned.
-    </p>
-    <div id="primary-audit" class="audit-grid"></div>
-  </section>
-
-  <section class="grid" style="margin-top:16px;">
-    <div class="panel">
-      <h2>1. Model</h2>
-      <p>Use dry run for UI inspection, a Kaggle-attached path, a Hugging Face id, or an abliterated model for adversarial generation.</p>
-      <div class="row">
-        <label>Source
+  <section class="primary-grid">
+    <div class="panel control-panel">
+      <div class="panel-heading"><h2>1. Model and prompts</h2></div>
+      <div class="row compact-row">
+        <label>Model source
           <select id="model-source">
             <option value="dry_run">dry_run</option>
             <option value="hf">hf</option>
@@ -3930,146 +3858,171 @@ HOMEPAGE_HTML = r"""<!doctype html>
             <option value="github">github</option>
           </select>
         </label>
-        <label>Model ref or path
-          <input id="model-ref" value="google/gemma-4-e4b-it">
-        </label>
+        <label>Model ref or path <input id="model-ref" value="google/gemma-4-e4b-it"></label>
+        <label>Quantization <select id="quantization"><option>4bit</option><option>8bit</option><option>bf16</option></select></label>
       </div>
-      <div class="row">
-        <label>Adapter path
-          <input id="adapter-ref" placeholder="/kaggle/input/my-lora">
-        </label>
-        <label>Quantization
-          <select id="quantization"><option>4bit</option><option>8bit</option><option>bf16</option></select>
-        </label>
+      <div class="row compact-row">
+        <label>Adapter path <input id="adapter-ref" placeholder="/kaggle/input/my-lora"></label>
+        <label>Prompt set <select id="prompt-set"></select></label>
+        <label>Prompt count <input id="limit" type="number" min="1" max="500" value="25"></label>
       </div>
-      <div class="row">
+      <div class="row action-row">
         <button onclick="loadModel()">Load model</button>
-        <button class="secondary" onclick="unloadModel()">Unload model</button>
+        <button class="secondary" onclick="unloadModel()">Unload</button>
         <button class="secondary" onclick="setAbliterated()">Use abliterated adversary</button>
       </div>
     </div>
 
-    <div class="panel">
-      <h2>2. Batch run</h2>
-      <p>Run the same prompts with no harness, a chat harness, a fine-tuned model, or a fine-tuned model plus harness.</p>
-      <div class="row">
-        <label>Prompt set <select id="prompt-set"></select></label>
-        <label>Harness <select id="harness-profile"></select></label>
-        <label>Limit <input id="limit" type="number" min="1" max="500" value="25"></label>
-      </div>
-      <div class="row">
+    <div class="panel control-panel">
+      <div class="panel-heading"><h2>2. Benchmark run</h2></div>
+      <div class="row compact-row">
+        <label>Harness profile <select id="harness-profile"></select></label>
         <label>Run label <input id="run-label" placeholder="baseline, harnessed, finetuned"></label>
-        <label><span class="muted">LLM judge</span>
-          <select id="llm-judge"><option value="false">off</option><option value="true">on</option></select>
-        </label>
+        <label>Grade outputs <select id="llm-judge"><option value="false">rule-based</option><option value="true">llm + rule</option></select></label>
       </div>
-      <button onclick="runBatch()">Run batch and export</button>
+      <div class="row action-row">
+        <button onclick="runBatch()">Run batch and export</button>
+        <button class="secondary" onclick="quickProof()">Auto baseline + harness</button>
+        <button class="secondary" onclick="runRedteamProof()">Anti-TIP regression</button>
+      </div>
+      <div id="exports" class="export-list muted">No exports yet.</div>
     </div>
+  </section>
 
-    <div class="panel">
-      <h2>3. Import and compare</h2>
-      <p>Upload prior A-00, A-01, A-02, or A-07 style JSON or ZIP exports, then produce the proof report.</p>
-      <input type="file" id="import-file">
-      <div class="row">
-        <button onclick="importExport()">Import export</button>
+  <section class="primary-grid">
+    <div class="panel control-panel">
+      <div class="panel-heading"><h2>3. Quantitative profile</h2></div>
+      <div class="row compact-row">
+        <label>Profile <select id="quant-profile"></select></label>
+        <label>Execute training <select id="quant-execute"><option value="false">false</option><option value="true">true</option></select></label>
+      </div>
+      <div class="row action-row">
+        <button onclick="runQuantProfile()">Run profile</button>
         <button class="secondary" onclick="compareRuns()">Compare selected</button>
-        <button class="secondary" onclick="buildReport()">Build HTML/PDF report</button>
-      </div>
-      <div id="exports" class="muted"></div>
-    </div>
-
-    <div class="panel">
-      <h2>4. Knowledge packs</h2>
-      <p>Sync vetted and optional unvetted packs, or upload local pack JSON/ZIP files.</p>
-      <label>Hub URL <input id="hub-url" value="https://gemma4-comp.onrender.com/api/knowledge/packs"></label>
-      <div class="row">
-        <button onclick="syncPacks()">Sync packs</button>
-        <input type="file" id="pack-file">
-        <button class="secondary" onclick="importPack()">Import pack</button>
+        <button class="secondary" onclick="buildReport()">Build report</button>
       </div>
     </div>
 
-    <div class="panel">
-      <h2>5. Synthetic data</h2>
-      <p>Generate SFT rows, DPO pairs, prompt-test scenarios, and draft knowledge facts with harnessed or adversarial model runs.</p>
-      <div class="row">
-        <label>Count <input id="synth-count" type="number" min="1" max="500" value="40"></label>
+    <div class="panel control-panel">
+      <div class="panel-heading"><h2>4. Synthetic data and fine-tune</h2></div>
+      <div class="row compact-row">
+        <label>Synthetic rows <input id="synth-count" type="number" min="1" max="500" value="24"></label>
         <label>Generator
           <select id="generator-mode">
-            <option>harness_teacher</option>
             <option>rubric_polisher</option>
+            <option>harness_teacher</option>
             <option>abliterated_adversary</option>
             <option>finetuned_teacher</option>
           </select>
         </label>
-      </div>
-      <div class="row">
-        <button onclick="generateSynthetic()">Generate data bundle</button>
-        <button class="secondary" onclick="generatePolished()">Generate rubric-polished SFT</button>
-      </div>
-      <p class="muted">
-        The rubric-polished mode is the supplementary training-data harness:
-        it teaches response structure while marking volatile facts for tool calls.
-      </p>
-    </div>
-
-    <div class="panel">
-      <h2>6. Train adapter</h2>
-      <p>Create an Unsloth or PEFT LoRA training script from exported synthetic data. If execution is enabled, the job runs asynchronously and this page polls status instead of holding a long Cloudflare request open.</p>
-      <div class="train-checklist">
-        <b>Safe training preflight</b>
-        <ol>
-          <li>Generate rubric-polished SFT/DPO rows first, or click Tiny fine-tune smoke bundle.</li>
-          <li>Confirm the Training JSONL path points to an SFT JSONL under /kaggle/working/a00_training.</li>
-          <li>Run Execute now only after the base model, GPU, and dependencies look correct; one training process runs at a time.</li>
-          <li>For recording, the generated job JSON, log, script, SFT/DPO rows, and adapter output path are enough to document the handoff.</li>
-        </ol>
+        <label>Base model <input id="train-base-model" value="google/gemma-4-e2b-it"></label>
       </div>
       <label>Training JSONL path <input id="train-data-path" placeholder="/kaggle/working/a00_training/..._sft.jsonl"></label>
-      <div class="row">
-        <input type="file" id="train-upload-file" accept=".jsonl,.json,.zip">
-        <button class="secondary" onclick="uploadTrainingData()">Upload and inspect training data</button>
-      </div>
-      <label>Base model <input id="train-base-model" value="google/gemma-4-e2b-it"></label>
-      <div class="row">
+      <div class="row compact-row">
         <label>Max steps <input id="max-steps" type="number" value="60"></label>
         <label>Execute now <select id="execute-train"><option value="false">false</option><option value="true">true</option></select></label>
       </div>
-      <button onclick="createTrainingJob()">Create training job</button>
-      <button class="secondary" onclick="finetuneSmoke()">Tiny fine-tune smoke bundle</button>
-      <button class="secondary" onclick="checkTrainingPreflight()">Check training preflight</button>
+      <div class="row action-row">
+        <button onclick="generatePolished()">Generate SFT rows</button>
+        <button class="secondary" onclick="finetuneSmoke()">Tiny LoRA smoke</button>
+        <button class="secondary" onclick="createTrainingJob()">Create training job</button>
+        <button class="secondary" onclick="checkTrainingPreflight()">Preflight</button>
+      </div>
       <div id="training-preflight" class="muted"></div>
       <div id="jobs" class="job-list"></div>
     </div>
-
-    <div class="panel">
-    <h2>7. Appendix workflow registry</h2>
-      <p>A-00 exposes every appendix capability. Lightweight workflows run here; heavy GPU paths export a focused handoff bundle.</p>
-      <label>Workflow <select id="workflow-id"></select></label>
-      <div class="row">
-        <label>Limit <input id="workflow-limit" type="number" min="1" max="500" value="25"></label>
-        <label>Execute training <select id="workflow-execute"><option value="false">false</option><option value="true">true</option></select></label>
-      </div>
-      <button onclick="runWorkflow()">Run or export workflow</button>
-    </div>
-
-    <div class="panel">
-      <h2>8. Local research graph</h2>
-      <p>Upload a ZIP, CSV, JSONL, text file, image, or document bundle. A-00 extracts entities, documents, risk rules, locations, amounts, timeline events, and graph edges locally.</p>
-      <input type="file" id="research-file">
-      <div class="row">
-        <button onclick="uploadResearch()">Process research bundle</button>
-        <button class="secondary" onclick="runSampleResearch()">Run sample graph</button>
-      </div>
-    </div>
   </section>
 
-  <section class="section">
-    <h2>Activity</h2>
+  <details class="panel advanced-panel">
+    <summary>Upload existing experiment files</summary>
+    <p>Upload synthetic training data, a prompt set, a prompt-response export, a combined comparison bundle, or a knowledge pack. A-00 reads metadata and suggests the next step.</p>
+    <div class="row compact-row">
+      <input type="file" id="intake-file" accept=".zip,.json,.jsonl,.csv,.txt,.md">
+      <button onclick="analyzeIntake()">Analyze upload</button>
+      <input type="file" id="import-file">
+      <button class="secondary" onclick="importExport()">Import run export</button>
+    </div>
+    <div id="intake-result" class="intake-result"></div>
+  </details>
+
+  <details class="panel advanced-panel">
+    <summary>Advanced model-switching pipeline</summary>
+    <p>Queue a full base, harnessed, synthetic, LoRA, fine-tuned, fine-tuned+harness cycle. Keep this collapsed for normal judge walkthroughs.</p>
+    <div class="row compact-row">
+      <label>Preset <select id="pipeline-preset"></select></label>
+      <label>Pipeline label <input id="pipeline-label" placeholder="e2b-four-arm-smoke"></label>
+      <label>Prompt count <input id="pipeline-limit" type="number" min="1" max="100" value="5"></label>
+    </div>
+    <div class="row compact-row">
+      <label>Base/eval model source <select id="pipeline-a-source"><option value="dry_run">dry_run</option><option value="hf">hf</option><option value="kaggle_path">kaggle_path</option><option value="local_path">local_path</option></select></label>
+      <label>Base/eval model ref <input id="pipeline-a-ref" value="dry_run"></label>
+      <label>Model A adapter <input id="pipeline-a-adapter" placeholder="/kaggle/input/adapter-a"></label>
+    </div>
+    <div class="row compact-row">
+      <label>Fine-tune base source <select id="pipeline-b-source"><option value="dry_run">dry_run</option><option value="hf">hf</option><option value="kaggle_path">kaggle_path</option><option value="local_path">local_path</option></select></label>
+      <label>Fine-tune base model/path <input id="pipeline-b-ref" value="google/gemma-4-e2b-it"></label>
+      <label>Existing adapter path <input id="pipeline-b-adapter" placeholder="/kaggle/input/adapter-b"></label>
+    </div>
+    <div class="row compact-row">
+      <label>Prompt set <select id="pipeline-prompt-set"></select></label>
+      <label>Baseline harness <select id="pipeline-baseline-harness"></select></label>
+      <label>Treatment harness <select id="pipeline-harness"></select></label>
+    </div>
+    <div class="row compact-row">
+      <label>Synthetic rows <input id="pipeline-synth-count" type="number" min="1" max="200" value="5"></label>
+      <label>Max train steps <input id="pipeline-max-steps" type="number" min="1" max="500" value="60"></label>
+      <label>Training output path <input id="pipeline-output-dir" placeholder="/kaggle/working/a00_training/my_adapter"></label>
+    </div>
+    <div class="row compact-row">
+      <label>Grade outputs <select id="pipeline-evaluate"><option value="true">now</option><option value="false">later</option></select></label>
+      <label>Build report <select id="pipeline-report"><option value="true">yes</option><option value="false">later</option></select></label>
+      <label>Execute training <select id="pipeline-execute"><option value="false">false</option><option value="true">true</option></select></label>
+      <label>Unload between steps <select id="pipeline-unload"><option value="true">true</option><option value="false">false</option></select></label>
+    </div>
+    <div class="row action-row">
+      <button class="secondary" onclick="useE2BPipelineDefaults()">Use E2B four-arm defaults</button>
+      <button onclick="runAdvancedPipeline()">Queue advanced pipeline</button>
+    </div>
+  </details>
+
+  <details class="panel advanced-panel">
+    <summary>Training data upload, knowledge packs, research graph, appendix registry</summary>
+    <div class="advanced-grid">
+      <div>
+        <h3>Training data upload</h3>
+        <input type="file" id="train-upload-file" accept=".jsonl,.json,.zip">
+        <button class="secondary" onclick="uploadTrainingData()">Upload and inspect training data</button>
+      </div>
+      <div>
+        <h3>Knowledge packs</h3>
+        <label>Hub URL <input id="hub-url" value="https://gemma4-comp.onrender.com/api/knowledge/packs"></label>
+        <div class="row action-row"><button onclick="syncPacks()">Sync packs</button><input type="file" id="pack-file"><button class="secondary" onclick="importPack()">Import pack</button></div>
+      </div>
+      <div>
+        <h3>Local research graph</h3>
+        <input type="file" id="research-file">
+        <div class="row action-row"><button onclick="uploadResearch()">Process bundle</button><button class="secondary" onclick="runSampleResearch()">Run sample graph</button></div>
+      </div>
+      <div>
+        <h3>Appendix workflow registry</h3>
+        <label>Workflow <select id="workflow-id"></select></label>
+        <div class="row compact-row"><label>Limit <input id="workflow-limit" type="number" min="1" max="500" value="25"></label><label>Execute training <select id="workflow-execute"><option value="false">false</option><option value="true">true</option></select></label></div>
+        <button onclick="runWorkflow()">Run or export workflow</button>
+      </div>
+    </div>
+  </details>
+
+  <details class="panel advanced-panel">
+    <summary>Quality gates and notebook audit</summary>
+    <div class="audit-grid" id="training-guidance"></div>
+    <div class="audit-grid" id="primary-audit" style="margin-top:12px;"></div>
+  </details>
+
+  <section class="panel activity-panel">
+    <div class="panel-heading"><h2>Activity</h2><button class="secondary" onclick="refreshStatus()">Refresh status</button></div>
     <pre id="log">Loading...</pre>
   </section>
 </main>
-
 <script>
 const $ = (id) => document.getElementById(id);
 let selectedRuns = [];
@@ -4497,7 +4450,11 @@ async function uploadResearch() {
 async function runSampleResearch() {
   log(await getJson("/api/a00/workflows/run", {method:"POST", headers:{"content-type":"application/json"}, body:JSON.stringify({workflow_id:"a16_ngo_local_kb", limit:25})}));
 }
-loadOptions();
+loadOptions().then(() => {
+  $("log").textContent = "Ready. Start with Run baseline vs harness, Run selected profile, or Generate SFT rows.";
+}).catch(err => {
+  $("log").textContent = "Startup failed: " + (err && err.message ? err.message : err);
+});
 </script>
 </body>
 </html>
