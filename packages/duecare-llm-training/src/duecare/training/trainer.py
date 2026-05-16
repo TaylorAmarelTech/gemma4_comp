@@ -62,7 +62,7 @@ class UnslothTrainer:
 
     def kickoff(self,
                   manifest_path: str,
-                  base_model: str = "google/gemma-4-e4b-it",
+                  base_model: str = "google/gemma-4-4b-it",
                   output_lora_path: str = "./duecare_lora",
                   config: Optional[dict] = None,
                   dry_run: Optional[bool] = None,

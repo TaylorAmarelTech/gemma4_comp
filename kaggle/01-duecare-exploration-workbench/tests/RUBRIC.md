@@ -24,7 +24,7 @@ better than code.
       `POEA MC 14-2017`, `ILO C189`, `RA 8042`, `BP2MI Reg 8-2023`
 - [ ] No "for judges" framing in body copy (prefer "peer review")
 - [ ] No off-by-one slot labels (folder N == display N)
-- [ ] No stale roster counts (current: 3 core + 25 appendix = 28)
+- [ ] No stale roster counts (current active path: 01, 02, and A-00; remaining notebooks archived)
 
 ## Behavior
 

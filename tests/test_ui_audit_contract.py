@@ -19,7 +19,7 @@ def _manifest() -> dict:
 def test_ui_audit_manifest_covers_all_runnable_kernels():
     data = _manifest()
     kernels = data["kernels"]
-    assert len(kernels) == 28
+    assert len(kernels) == 3
     for item in kernels:
         folder = KAGGLE / item["folder"]
         assert folder.exists(), item
@@ -106,8 +106,6 @@ def test_primary_notebook_copy_is_consistent():
         KAGGLE / "01-duecare-exploration-workbench" / "README.md",
         KAGGLE / "02-live-demo" / "kernel.py",
         KAGGLE / "02-live-demo" / "README.md",
-        KAGGLE / "03-duecare-video-pitch" / "kernel.py",
-        KAGGLE / "03-duecare-video-pitch" / "README.md",
         KAGGLE / "A-00-omni-experiment-workbench" / "kernel.py",
         KAGGLE / "A-00-omni-experiment-workbench" / "README.md",
     ]
@@ -131,7 +129,6 @@ def test_primary_kernel_metadata_has_keywords():
     metadata_files = [
         KAGGLE / "01-duecare-exploration-workbench" / "kernel-metadata.json",
         KAGGLE / "02-live-demo" / "kernel-metadata.json",
-        KAGGLE / "03-duecare-video-pitch" / "kernel-metadata.json",
         KAGGLE / "A-00-omni-experiment-workbench" / "kernel-metadata.json",
     ]
     for path in metadata_files:
@@ -139,23 +136,6 @@ def test_primary_kernel_metadata_has_keywords():
         keywords = data.get("keywords", [])
         assert "gemma-4" in keywords, path
         assert any(k in keywords for k in ["anti-trafficking", "safety-harness", "red-team"]), path
-
-
-def test_video_pitch_routes_contacts_through_vetted_pack():
-    text = (KAGGLE / "03-duecare-video-pitch" / "kernel.py").read_text(encoding="utf-8")
-    for marker in [
-        "8722-1144",
-        "8833-0596",
-        "2717-1771",
-        "2823-8500",
-        "2523-4020",
-        "e56c818",
-        "Polaris Project (verified)",
-        "curator signature: Polaris Project",
-    ]:
-        assert marker not in text
-    assert "vetted contacts pack" in text
-    assert "contacts tool" in text
 
 
 def test_default_personas_treat_contact_details_as_pack_data():

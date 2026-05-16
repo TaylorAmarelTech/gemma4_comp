@@ -36,20 +36,20 @@ class TestAdapterRegistration:
 class TestTransformersAdapter:
     def test_constructs_without_loading(self):
         from duecare.models.transformers_adapter import TransformersModel
-        m = TransformersModel("google/gemma-4-e4b-it")
-        assert m.id == "transformers:google/gemma-4-e4b-it"
+        m = TransformersModel("google/gemma-4-4b-it")
+        assert m.id == "transformers:google/gemma-4-4b-it"
         assert m.provider == "transformers"
         assert Capability.TEXT in m.capabilities
         assert Capability.FINE_TUNABLE in m.capabilities
 
     def test_satisfies_model_protocol(self):
         from duecare.models.transformers_adapter import TransformersModel
-        m = TransformersModel("google/gemma-4-e4b-it")
+        m = TransformersModel("google/gemma-4-4b-it")
         assert isinstance(m, Model)
 
     def test_load_raises_without_transformers(self):
         from duecare.models.transformers_adapter import TransformersModel
-        m = TransformersModel("google/gemma-4-e4b-it")
+        m = TransformersModel("google/gemma-4-4b-it")
         real_import = builtins.__import__
 
         def fake_import(name, *args, **kwargs):

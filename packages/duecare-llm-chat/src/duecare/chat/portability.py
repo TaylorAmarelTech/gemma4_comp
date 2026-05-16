@@ -288,12 +288,6 @@ CORE_NOTEBOOKS: tuple[dict[str, str], ...] = (
         "serves": "scripted but live Gemma 4 interaction over the same contract",
     },
     {
-        "id": "03",
-        "path": "kaggle/03-duecare-video-pitch",
-        "role": "zero-inference recording deck and cached replay",
-        "serves": "video evidence and story alignment with the live contract",
-    },
-    {
         "id": "A-00",
         "path": "kaggle/A-00-omni-experiment-workbench",
         "role": "appendix control plane",
@@ -360,16 +354,12 @@ NOTEBOOK_REUSE_TARGETS: tuple[dict[str, str], ...] = (
         "reuse": "Call live inventory/type-catalog endpoints and reuse the media-rich PH-HK sample story.",
     },
     {
-        "notebook": "03-duecare-video-pitch",
-        "reuse": "Use the same labels, trust-boundary language, and sample names in zero-inference scenes.",
-    },
-    {
         "notebook": "A-00-omni-experiment-workbench",
         "reuse": "Consume knowledge files, prompt/eval seeds, and graph-edge schema for training and reports.",
     },
     {
-        "notebook": "appendix kernels",
-        "reuse": "Pin to the same package floor or mark legacy notebooks explicitly.",
+        "notebook": "archived appendix kernels",
+        "reuse": "Keep prior experimental slices in kaggle/_archive/notebooks for reference, not active submission validation.",
     },
 )
 

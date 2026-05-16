@@ -649,7 +649,7 @@ def cmd_train_dataset(ctx, output, min_confidence, only_human_reviewed) -> None:
 @cmd_train.command("kickoff")
 @click.option("--manifest", required=True, type=click.Path(exists=True),
                 help="Path to dataset manifest JSON.")
-@click.option("--base-model", default="google/gemma-4-e4b-it")
+@click.option("--base-model", default="google/gemma-4-4b-it")
 @click.option("--output-lora", default="./duecare_lora", type=click.Path())
 @click.option("--dry-run/--for-real", default=None,
                 help="Default: dry-run unless MM_TRAINING_ENABLED=1.")

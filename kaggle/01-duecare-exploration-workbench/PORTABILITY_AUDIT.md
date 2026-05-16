@@ -2,7 +2,7 @@
 
 Review date: 2026-05-15
 
-Purpose: make `01-duecare-exploration-workbench` the reusable source of truth for the next notebooks: `02-live-demo`, `03-duecare-video-pitch`, `A-00-omni-experiment-workbench`, and appendix kernels.
+Purpose: make `01-duecare-exploration-workbench` the reusable source of truth for the active notebooks: `02-live-demo` and `A-00-omni-experiment-workbench`.
 
 Companion audit: `NEXT_NOTEBOOK_REUSE_AUDIT.md` records how each next
 notebook consumes these contracts.
@@ -81,7 +81,7 @@ Use these as shared modules or mirrored contracts in the next notebooks:
 - **Graph edge schema**: every edge should carry source file, page/chunk, extractor, confidence, quote/bbox where available, and `local_only` provenance.
 - **Model fit profile**: shared warnings for small vs large Gemma 4 variants, especially OCR/vision, graph-edge generation, and LLM grading.
 - **Process phase contract**: upload, stage, inventory, parse, OCR/layout, deterministic extraction, Gemma edge pass, and reviewer verification.
-- **Core notebook roster**: one map for the roles of 01, 02, 03, and A-00.
+- **Core notebook roster**: one map for the roles of 01, 02, and A-00. The former video pitch and appendix slices are archived under `kaggle/_archive/notebooks`.
 - **Trust-boundary vocabulary**: consistently distinguish source case bundles, knowledge files, redacted submissions, and hub-bound aggregate facts.
 - **Activity log primitive**: every workflow writes the same bottom activity log entries for API calls, status changes, errors, and exports.
 - **Import/export envelope contract**: knowledge files are ZIPs of reviewed KnowledgeObject envelopes plus README/metadata, not raw case folders.
@@ -108,16 +108,6 @@ Reuse the Kernel 01 package and endpoint contract, but keep the UI focused. It s
 
 Recommended design: scripted panels over the same primitives, not a second bespoke harness.
 
-### 03 Video Pitch
-
-Keep zero-inference if needed, but align screenshots and language with Kernel 01:
-
-- package version `0.17.0`
-- same five audience lanes
-- same trust-boundary terms
-- same source bundle vs knowledge file distinction
-- same warning that media/OCR/Gemma-vision quality depends on model size and local wiring
-
 ### A-00 Omni Experiment Workbench
 
 A-00 should import the Kernel 01 taxonomy and sample manifest where possible:
@@ -127,13 +117,14 @@ A-00 should import the Kernel 01 taxonomy and sample manifest where possible:
 - reuse the graph-edge schema for generated synthetic cases
 - keep fine-tune smoke tests tiny, local, and clearly separated from production claims
 
-### Appendix Notebooks
+### Archived Appendix Notebooks
 
-Appendix kernels should now use `os.environ.get("DUECARE_VERSION", "0.17.0")`
-instead of hardcoded `0.1.0` pins. Before recording or publishing, verify:
+Appendix kernels have been moved out of the active submission path. They remain
+under `kaggle/_archive/notebooks` as reference material only. Before reviving
+one, verify:
 
-- each appendix inherits the `0.17.0` default or an explicit override, and
-- any intentionally old appendix is marked legacy/illustrative while the three core notebooks plus A-00 remain the authoritative runtime.
+- it inherits the current package floor or declares a deliberate legacy pin, and
+- it uses the shared portability, experiment, sample, and trust-boundary contracts.
 
 ## Known Portability Risks
 
@@ -147,7 +138,7 @@ Required before final video:
 1. Publish the refreshed `duecare-llm-chat 0.17.0` wheel datasets to Kaggle.
 2. Refresh Kaggle wheel dataset metadata from the local `wheels/dataset-metadata.json` files.
 3. Re-run Kernel 01 and confirm the portability contract prints OK.
-4. Run 02, 03, A-00 using the same version floor.
+4. Run 02 and A-00 using the same version floor.
 
 ## Monday Polish Queue
 

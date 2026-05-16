@@ -1,6 +1,6 @@
 # <!-- duecare:kernel-intro -->
 # DueCare Live Demo (focused walkthrough)
-# Core notebook #02 of 28 in the DueCare submission (3 core + 25 appendix).
+# Active notebook #02 in the DueCare Kaggle submission path.
 #
 # The polished demo URL judges land on. Same harness, scripted demo path, +56pp lift baked in.
 #
@@ -228,7 +228,7 @@ GGUF_HF_REPO         = ""            # e.g. "taylorscottamarel/duecare-gemma-4-E
 #     taylorscottamarel/duecare-gemma-4-E4B-it-SafetyJudge-DPO-v0.1.0
 #
 # Model card MUST include a "Built with Google's Gemma 4" attribution
-# and link to https://huggingface.co/google/gemma-4-e4b-it (or the
+# and link to https://huggingface.co/google/gemma-4-4b-it (or the
 # variant you fine-tuned). Used under Apache 2.0.
 # ============================================================================
 
@@ -1850,36 +1850,80 @@ _CLOUDFLARED_PROC: dict = {"p": None}
 
 _SHUTDOWN_BUTTON_SNIPPET = """
 <style>
-  #_dc-shutdown-btn {
-    position: fixed; bottom: 14px; right: 14px; z-index: 99999;
-    background: oklch(0.58 0.14 45); color: white; padding: 8px 14px;
-    border-radius: 8px; font-family: -apple-system,system-ui,sans-serif;
-    font-weight: 700; font-size: 12px; cursor: pointer; border: none;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+  body { padding-top: 48px !important; }
+  #_dc-runtime-topbar {
+    position: fixed; top: 0; left: 0; right: 0; height: 48px;
+    z-index: 99998; display: flex; align-items: center; gap: 12px;
+    padding: 0 14px; background: var(--paper, #f7f6f1);
+    border-bottom: 1px solid var(--line, #ddd8c9);
+    box-shadow: 0 1px 0 rgba(14,17,22,0.04);
+    font-family: var(--sans, -apple-system, system-ui, sans-serif);
   }
-  #_dc-shutdown-btn:hover { background: oklch(0.50 0.16 45); }
-  #_dc-shutdown-btn:focus-visible { outline: 3px solid white; outline-offset: 2px; }
+  #_dc-runtime-title {
+    color: var(--ink, #0e1116); font-weight: 700; font-size: 13px;
+    white-space: nowrap;
+  }
+  #_dc-runtime-note {
+    color: var(--ink-3, #5b5f68); font-size: 12px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  #_dc-runtime-actions {
+    margin-left: auto; display: flex; align-items: center; gap: 8px;
+    min-width: 0;
+  }
+  #_dc-backend-slot {
+    display: flex; align-items: center; min-width: 0;
+  }
+  #_dc-shutdown-btn {
+    background: var(--ink, #0e1116); color: var(--paper, #f7f6f1);
+    padding: 7px 11px; border-radius: 6px;
+    font-family: var(--sans, -apple-system, system-ui, sans-serif);
+    font-weight: 700; font-size: 12px; cursor: pointer;
+    border: 1px solid var(--ink, #0e1116);
+  }
+  #_dc-shutdown-btn:hover { background: #1a1d24; }
+  #_dc-shutdown-btn:focus-visible { outline: 3px solid oklch(0.85 0.05 195 / 0.35); outline-offset: 2px; }
   #_dc-shutdown-btn[aria-disabled="true"] { cursor: wait; opacity: 0.82; }
   #_dc-shutdown-status {
-    position: fixed; bottom: 58px; right: 14px; z-index: 99999;
     max-width: min(320px, calc(100vw - 28px)); padding: 10px 12px;
-    background: #f8fafc; color: #1f2937; border: 1px solid #e5e7eb;
-    border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.16);
-    font-family: -apple-system,system-ui,sans-serif; font-size: 12px;
+    background: var(--paper, #f7f6f1); color: var(--ink, #0e1116);
+    border: 1px solid var(--line, #ddd8c9);
+    border-radius: 6px;
+    font-family: var(--sans, -apple-system, system-ui, sans-serif);
+    font-size: 12px;
   }
   #_dc-shutdown-status[hidden] { display: none; }
   @media (max-width: 640px) {
-    #_dc-shutdown-btn { left: 12px; right: 12px; bottom: 12px; width: calc(100% - 24px); }
-    #_dc-shutdown-status { left: 12px; right: 12px; bottom: 58px; max-width: none; }
+    #_dc-runtime-note { display: none; }
+    #_dc-runtime-topbar { gap: 8px; padding: 0 10px; }
+    #_dc-runtime-title { font-size: 12px; }
+    #_dc-shutdown-btn { padding: 6px 9px; }
   }
 </style>
-<button id="_dc-shutdown-btn" type="button" aria-label="Shutdown DueCare server">Shutdown</button>
-<div id="_dc-shutdown-status" role="status" aria-live="polite" hidden></div>
+<div id="_dc-runtime-topbar" role="banner" aria-label="DueCare runtime controls">
+  <div id="_dc-runtime-title">DueCare live demo</div>
+  <div id="_dc-runtime-note">Kaggle runtime controls</div>
+  <div id="_dc-runtime-actions">
+    <div id="_dc-backend-slot" aria-label="Backend status"></div>
+    <button id="_dc-shutdown-btn" type="button" aria-label="Shutdown DueCare server">Shutdown</button>
+    <div id="_dc-shutdown-status" role="status" aria-live="polite" hidden></div>
+  </div>
+</div>
 <script>
 (function() {
   var btn = document.getElementById('_dc-shutdown-btn');
   var status = document.getElementById('_dc-shutdown-status');
+  var slot = document.getElementById('_dc-backend-slot');
   if (!btn || !status) return;
+  function mountBackendBadge() {
+    var badge = document.querySelector('.dc-backend-badge');
+    if (badge && slot && badge.parentElement !== slot) {
+      badge.classList.add('in-runtime-bar');
+      slot.appendChild(badge);
+    }
+  }
+  mountBackendBadge();
+  window.setTimeout(mountBackendBadge, 250);
   function showStatus(message) {
     status.textContent = message;
     status.hidden = false;

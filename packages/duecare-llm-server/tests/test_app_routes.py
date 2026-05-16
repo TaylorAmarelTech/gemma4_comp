@@ -45,6 +45,32 @@ def test_homepage_renders() -> None:
         assert b"duecare" in r.content.lower()
 
 
+def test_homepage_uses_five_lane_live_demo_console() -> None:
+    pytest.importorskip("fastapi.testclient")
+    from fastapi.testclient import TestClient
+    with tempfile.TemporaryDirectory() as tmp:
+        try:
+            app, _ = _make_app(tmp)
+        except Exception as e:
+            pytest.skip(f"server cannot construct: {e}")
+        client = TestClient(app)
+        r = client.get("/")
+        assert r.status_code == 200
+        html = r.text
+        for marker in [
+            "Run the Gemma 4 safety harness.",
+            "Platform safety",
+            "NGO &amp; regulator",
+            "Individual worker / mobile",
+            "Researcher",
+            "Developer / integration partner",
+            "Processing surfaces",
+        ]:
+            assert marker in html
+        assert "Use case 1" not in html
+        assert "Use case 2" not in html
+
+
 def test_workspace_page_renders() -> None:
     pytest.importorskip("fastapi.testclient")
     from fastapi.testclient import TestClient

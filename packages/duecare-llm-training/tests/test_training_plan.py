@@ -12,7 +12,7 @@ def test_training_plan_round_trip() -> None:
     from duecare.training import TrainingPlan
     plan = TrainingPlan(
         training_run_id="run_42",
-        base_model="google/gemma-4-e4b-it",
+        base_model="google/gemma-4-4b-it",
         dataset_train_path="/tmp/train.jsonl",
         dataset_val_path="/tmp/val.jsonl",
         dataset_test_path="/tmp/test.jsonl",
