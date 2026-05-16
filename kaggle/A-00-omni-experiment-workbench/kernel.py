@@ -2313,9 +2313,15 @@ TARGET_MODULES = {training_cfg["target_modules"]!r}
 
 try:
     from unsloth import FastLanguageModel
+    try:
+        from unsloth import is_bfloat16_supported
+    except Exception:
+        is_bfloat16_supported = None
     from datasets import load_dataset
     from trl import SFTTrainer
     from transformers import TrainingArguments
+    import inspect
+    import torch
 
     model, tokenizer = FastLanguageModel.from_pretrained(
         model_name=BASE_MODEL,
@@ -2353,26 +2359,40 @@ try:
         return {{"text": text}}
 
     ds = ds.map(render)
-    trainer = SFTTrainer(
-        model=model,
-        tokenizer=tokenizer,
-        train_dataset=ds,
-        dataset_text_field="text",
-        max_seq_length=MAX_SEQ_LENGTH,
-        args=TrainingArguments(
+    try:
+        use_bf16 = bool(is_bfloat16_supported()) if is_bfloat16_supported else bool(torch.cuda.is_available() and torch.cuda.is_bf16_supported())
+    except Exception:
+        use_bf16 = False
+    use_fp16 = bool(torch.cuda.is_available() and not use_bf16)
+    print(f"[training] precision bf16={{use_bf16}} fp16={{use_fp16}}")
+
+    training_args = TrainingArguments(
             per_device_train_batch_size=PER_DEVICE_BATCH,
             gradient_accumulation_steps=GRAD_ACCUM_STEPS,
             warmup_steps=WARMUP_STEPS,
             max_steps=MAX_STEPS,
             learning_rate=LEARNING_RATE,
-            fp16=False,
-            bf16=True,
+            fp16=use_fp16,
+            bf16=use_bf16,
             logging_steps=5,
             output_dir=OUTPUT_DIR,
             optim="adamw_8bit",
             seed=RANDOM_STATE,
-        ),
     )
+    trainer_kwargs = {{
+        "model": model,
+        "train_dataset": ds,
+        "dataset_text_field": "text",
+        "max_seq_length": MAX_SEQ_LENGTH,
+        "args": training_args,
+    }}
+    trainer_sig = inspect.signature(SFTTrainer.__init__)
+    if "tokenizer" in trainer_sig.parameters:
+        trainer_kwargs["tokenizer"] = tokenizer
+    elif "processing_class" in trainer_sig.parameters:
+        trainer_kwargs["processing_class"] = tokenizer
+    trainer_kwargs = {{k: v for k, v in trainer_kwargs.items() if k in trainer_sig.parameters or k in {{"model", "args", "train_dataset"}}}}
+    trainer = SFTTrainer(**trainer_kwargs)
     trainer.train()
     model.save_pretrained(OUTPUT_DIR)
     tokenizer.save_pretrained(OUTPUT_DIR)
@@ -2857,6 +2877,8 @@ def _run_training_job(job_id: str) -> None:
                 job["finished_at"] = _utc()
                 job["log_tail"] = _tail_text(log_path)
                 job["status"] = "completed" if returncode == 0 else "failed"
+                if returncode != 0:
+                    job["error"] = f"training script exited with return code {returncode}"
                 _write_job_record(job)
         except Exception as exc:  # noqa: BLE001
             with JOB_STATE_LOCK:
@@ -3699,7 +3721,21 @@ def _run_pipeline_job(job_id: str, req: PipelineRequest) -> None:
                     _append_job_step(job_id, "12. Running LoRA fine-tune", "running", {"job_id": train_job["job_id"], "max_steps": req.max_steps})
                     final_train = _wait_for_training_job(train_job["job_id"], job_id, A00_TRAINING_TIMEOUT_SEC)
                     if final_train.get("status") != "completed":
-                        raise RuntimeError(f"training job did not complete: {final_train.get('status')}")
+                        failure_detail = {
+                            "job_id": final_train.get("job_id"),
+                            "status": final_train.get("status"),
+                            "error": final_train.get("error") or "training job ended without a completed status",
+                            "returncode": final_train.get("returncode"),
+                            "log_tail": str(final_train.get("log_tail") or "")[-4000:],
+                            "log_path": final_train.get("log_path"),
+                            "log_link": _artifact_link(str(final_train.get("log_path"))) if final_train.get("log_path") else "",
+                            "script_link": _artifact_link(str(final_train.get("script"))) if final_train.get("script") else "",
+                        }
+                        _append_job_step(job_id, "12. Fine-tuning failed; review training log", "failed", failure_detail)
+                        raise RuntimeError(
+                            f"fine-tuning failed ({failure_detail['status']}): {failure_detail['error']}. "
+                            f"Open log: {failure_detail['log_link'] or failure_detail['log_path']}"
+                        )
                     adapter_path = final_train.get("output_dir") or train_job.get("output_dir")
                     _append_job_step(job_id, "13. Saving fine-tuned model adapter", "running", {"adapter_path": adapter_path, "training_job": final_train.get("job_id")})
                     if req.unload_between_steps:
