@@ -233,7 +233,10 @@ def test_a00_uses_focused_experiment_console_not_exploration_nav():
     assert "selectedModelPayload" in homepage
     assert "auto_load_model: bool = True" in a00
     assert "_ensure_model_loaded_for_run" in a00
-    assert "Pipeline controls model" in homepage
+    assert "include_custom_controls=False" in a00
+    assert "Select a model in Preconfigured or Custom. A-00 loads it when a run starts." in a00
+    assert "Pipeline running" in homepage
+    assert "not loaded:" not in homepage
     assert "grade_response_combined" in a00
     assert "grade_response_universal" in a00
     assert "Advanced model-switching pipeline" in homepage

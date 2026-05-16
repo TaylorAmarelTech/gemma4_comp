@@ -4651,19 +4651,21 @@ async function refreshStatus() {
   const activePipeline = (s.jobs || []).slice().reverse().find(j => j.kind === "pipeline" && ["queued", "running"].includes(String(j.status || "")));
   pipelineActive = Boolean(activePipeline);
   const activeStep = activePipeline ? ((activePipeline.steps || []).slice(-1)[0] || {}) : null;
-  const modelName = activePipeline
-    ? "Pipeline controls model"
-    : model.loaded ? (model.model_ref || "loaded model") : ("not loaded: " + (model.model_ref || "__A00_SMALL_MODEL_REF__"));
-  const modelBits = activePipeline
+  const bannerStatus = activePipeline
+    ? "Pipeline running"
+    : model.loaded ? "Model ready" : "Ready";
+  const bannerNote = activePipeline
     ? `${activePipeline.status || "running"} | ${activeStep && activeStep.label ? activeStep.label : activePipeline.job_id}`
-    : [
-        model.loaded ? "loaded" : "not loaded",
-        model.source || "hf",
-        model.quantization || "",
-        model.adapter_ref ? "adapter: " + model.adapter_ref : ""
-  ].filter(Boolean).join(" | ");
-  if ($("runtime-model-name")) $("runtime-model-name").textContent = "Model: " + modelName;
-  if ($("runtime-model-note")) $("runtime-model-note").textContent = modelBits || "Guided experiment console";
+    : model.loaded
+      ? [
+          model.model_ref || "loaded model",
+          model.source || "hf",
+          model.quantization || "",
+          model.adapter_ref ? "adapter: " + model.adapter_ref : ""
+        ].filter(Boolean).join(" | ")
+      : "Select a model in Preconfigured or Custom. A-00 loads it when a run starts.";
+  if ($("runtime-model-name")) $("runtime-model-name").textContent = bannerStatus;
+  if ($("runtime-model-note")) $("runtime-model-note").textContent = bannerNote || "Guided experiment console";
   const preconfigRun = $("preconfig-run-btn");
   if (preconfigRun) {
     preconfigRun.disabled = pipelineActive;
@@ -5042,7 +5044,7 @@ async function runSampleResearch() {
   log(await getJson("/api/a00/workflows/run", {method:"POST", headers:{"content-type":"application/json"}, body:JSON.stringify({workflow_id:"a16_ngo_local_kb", limit:25})}));
 }
 loadOptions().then(() => {
-  $("log").textContent = "Ready. Use the preconfigured card for the guided full pipeline, or open Custom controls for partial runs.";
+  $("log").textContent = "Ready. Use the preconfigured card for the guided full pipeline, or open Custom for partial runs.";
 }).catch(err => {
   $("log").textContent = "Startup failed: " + (err && err.message ? err.message : err);
 });
@@ -5053,7 +5055,10 @@ loadOptions().then(() => {
 
 _A00_RUNTIME_TOPBAR_HTML = runtime_model_topbar_html(
     title="DueCare A-00",
+    model_text="Ready",
+    note="Select a model in Preconfigured or Custom. A-00 loads it when a run starts.",
     include_model_selector=False,
+    include_custom_controls=False,
 )
 _A00_BASE_HTML = (
     HOMEPAGE_HTML

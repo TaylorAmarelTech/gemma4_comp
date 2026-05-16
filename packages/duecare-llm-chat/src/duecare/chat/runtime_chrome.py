@@ -9,6 +9,7 @@ def runtime_model_topbar_html(
     custom_href: str = "/custom",
     shutdown_function: str = "shutdownA00",
     include_model_selector: bool = True,
+    include_custom_controls: bool = True,
 ) -> str:
     """Shared notebook runtime banner.
 
@@ -19,6 +20,11 @@ def runtime_model_topbar_html(
     model_button = (
         '<button class="runtime-button" id="runtime-model-button" type="button" onclick="openModelSelector()">Model</button>'
         if include_model_selector
+        else ""
+    )
+    custom_button = (
+        f'<button class="runtime-button" type="button" onclick="location.href=\'{custom_href}\'">Custom controls</button>'
+        if include_custom_controls
         else ""
     )
     model_modal = (
@@ -52,7 +58,7 @@ def runtime_model_topbar_html(
   <div class="runtime-actions">
     <div class="runtime-metrics" id="kpis" aria-label="Runtime status"></div>
     {model_button}
-    <button class="runtime-button" type="button" onclick="location.href='{custom_href}'">Custom controls</button>
+    {custom_button}
     <button class="runtime-button" id="_dc-shutdown-btn" type="button" onclick="{shutdown_function}()">Shutdown</button>
   </div>
 </div>
