@@ -156,8 +156,22 @@ class Gemma4Runtime:
 
         input_device = self._infer_input_device(model, torch)
 
-        def backend(prompt: str, *, max_new_tokens: int = 512, temperature: float = 0.2) -> str:
-            messages = [{"role": "user", "content": prompt}]
+        def _normalise_messages(prompt_or_messages) -> list[dict]:
+            if isinstance(prompt_or_messages, list):
+                messages_in = prompt_or_messages
+            else:
+                messages_in = [{"role": "user", "content": str(prompt_or_messages)}]
+            messages_out: list[dict] = []
+            for msg in messages_in:
+                item = dict(msg)
+                content = item.get("content")
+                if isinstance(content, str):
+                    item["content"] = [{"type": "text", "text": content}]
+                messages_out.append(item)
+            return messages_out
+
+        def backend(prompt, *, max_new_tokens: int = 512, temperature: float = 0.2) -> str:
+            messages = _normalise_messages(prompt)
             if hasattr(tokenizer, "apply_chat_template"):
                 inputs = tokenizer.apply_chat_template(
                     messages,

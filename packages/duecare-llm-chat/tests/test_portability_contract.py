@@ -155,11 +155,12 @@ def test_experiment_contract_helpers_are_canonical():
 
     runs = quantitative_run_profile_map()
     assert runs["bulk_text_25"]["baseline_harness"] == "none"
-    assert runs["bulk_text_25"]["treatment_harness"] == "chat_full"
+    assert runs["bulk_text_25"]["treatment_harness"] == "chat_no_online"
     assert runs["tiny_lora_smoke"]["synthetic_count"] == 24
 
     synthetic = synthetic_generation_profile_map()
     assert synthetic["rubric_polisher_24"]["generator_mode"] == "rubric_polisher"
+    assert synthetic["rubric_polisher_24"]["harness_profile"] == "chat_no_online"
 
     training = training_profile_map()
     assert training["tiny_lora_smoke"]["base_model_ref"] == "google/gemma-4-2b-it"

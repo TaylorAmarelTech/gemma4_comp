@@ -2107,7 +2107,7 @@ _SHUTDOWN_BUTTON_SNIPPET = """
       (data.presets || []).forEach(function(p) {
         var opt = document.createElement('option');
         opt.value = JSON.stringify({source:p.source || 'hf', model_ref:p.ref || ''});
-        opt.textContent = p.label + ' - ' + (p.notes || p.ref || '');
+        opt.textContent = p.label || p.ref || 'Gemma 4 model';
         select.appendChild(opt);
       });
     } catch (error) {
