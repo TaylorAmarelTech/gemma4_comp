@@ -3670,6 +3670,14 @@ def api_model_presets() -> Any:
     return {"presets": MODEL_PRESETS}
 
 
+def _active_pipeline_job() -> Optional[dict[str, Any]]:
+    with JOB_STATE_LOCK:
+        for job in reversed(list(STATE["jobs"].values())):
+            if job.get("kind") == "pipeline" and job.get("status") in {"queued", "running"}:
+                return _public_job(job)
+    return None
+
+
 def api_harness_profiles() -> Any:
     return {"profiles": HARNESS_PROFILES}
 
@@ -3692,12 +3700,30 @@ def api_prompt_sets() -> Any:
 
 
 def api_model_load(req: ModelLoadRequest) -> Any:
+    active = _active_pipeline_job()
+    if active:
+        raise HTTPException(
+            409,
+            (
+                "A guided pipeline is running, so model loading is owned by that job. "
+                f"Wait for {active.get('job_id')} to complete or fail before loading another model."
+            ),
+        )
     info = _load_model_runtime(req)
     dc_log("a00.model.load", f"source={req.source}", model_ref=info.get("model_ref"))
     return {"ok": True, "model": info}
 
 
 def api_model_unload() -> Any:
+    active = _active_pipeline_job()
+    if active:
+        raise HTTPException(
+            409,
+            (
+                "A guided pipeline is running, so model unloading is owned by that job. "
+                f"Wait for {active.get('job_id')} to complete or fail before unloading the model."
+            ),
+        )
     info = _unload_model_runtime("manual request")
     dc_log("a00.model.unload", "manual unload", model_ref=info.get("model_ref"))
     return {"ok": True, "model": info}
@@ -3708,6 +3734,9 @@ def api_pipeline_presets() -> Any:
 
 
 def api_pipeline_run(req: PipelineRequest) -> Any:
+    active = _active_pipeline_job()
+    if active:
+        raise HTTPException(409, f"Pipeline already running: {active.get('job_id')}")
     job = _create_pipeline_job(req)
     return {"ok": True, "job": job}
 
@@ -3921,8 +3950,9 @@ HOMEPAGE_HTML = r"""<!doctype html>
     .runtime-stat { border: 1px solid var(--line); border-radius: 999px; padding: 4px 8px; background: var(--paper-2); color: var(--ink-2); font-size: 11px; white-space: nowrap; }
     .runtime-stat b { color: var(--ink); font-weight: 800; }
     .runtime-button { border: 1px solid var(--line); background: var(--paper); color: var(--ink); border-radius: 6px; padding: 7px 10px; font-size: 12px; font-weight: 700; }
+    .runtime-button:disabled { opacity: 0.55; cursor: not-allowed; background: var(--paper-2); }
     .runtime-model-overlay { position: fixed; inset: 52px 0 0; z-index: 99996; background: rgba(14,17,22,0.38); }
-    .runtime-model-modal { position: fixed; z-index: 99997; top: 78px; left: 50%; transform: translateX(-50%); width: min(760px, calc(100vw - 28px)); max-height: calc(100vh - 104px); overflow: auto; background: var(--paper); color: var(--ink); border: 1px solid var(--line); border-radius: 8px; box-shadow: 0 18px 60px rgba(14,17,22,0.18); padding: 16px; }
+    .runtime-model-modal { position: fixed; z-index: 99997; top: 50%; left: 50%; transform: translate(-50%, -50%); width: min(760px, calc(100vw - 28px)); max-height: min(720px, calc(100vh - 84px)); overflow: auto; background: var(--paper); color: var(--ink); border: 1px solid var(--line); border-radius: 8px; box-shadow: 0 18px 60px rgba(14,17,22,0.18); padding: 16px; }
     .runtime-model-modal[hidden], .runtime-model-overlay[hidden] { display: none; }
     .runtime-model-modal-head { display: flex; align-items: start; justify-content: space-between; gap: 12px; border-bottom: 1px solid var(--line); padding-bottom: 12px; margin-bottom: 12px; }
     .runtime-model-modal-head p { margin: 4px 0 0; color: var(--ink-3); font-size: 12px; }
@@ -4080,7 +4110,7 @@ __A00_RUNTIME_TOPBAR__
         <div class="pipeline-progress" aria-label="Preconfigured pipeline progress"><div id="preconfig-progress"></div></div>
         <div class="preconfigured-status" id="preconfig-status">Ready. Click Run to queue the guided job. The server loads the selected Gemma model first, then runs baseline, local harnessed mode (Persona + GREP + RAG/context + tools, no internet/import), synthetic-data, fine-tune, final grading, and report steps.</div>
         <div class="a00-choice-actions">
-          <button class="run-action" onclick="runPreconfiguredPipeline()">Run preconfigured pipeline</button>
+          <button class="run-action" id="preconfig-run-btn" onclick="runPreconfiguredPipeline()">Run preconfigured pipeline</button>
         </div>
       </div>
     </div>
@@ -4296,6 +4326,8 @@ __A00_RUNTIME_TOPBAR__
 const $ = (id) => document.getElementById(id);
 let selectedRuns = [];
 let activeJobPolls = {};
+let lastJobStepSignature = {};
+let pipelineActive = false;
 let lastIntake = null;
 function summarizeActivity(obj) {
   if (typeof obj === "string") return obj;
@@ -4304,16 +4336,36 @@ function summarizeActivity(obj) {
     const last = (j.steps || []).slice(-1)[0] || {};
     return `${j.job_id || "job"} | ${j.status || "unknown"} | ${last.label || j.kind || ""}`;
   }
+  if (obj && obj.job && obj.job.job_id) return `${obj.job.job_id} | ${obj.job.status || "queued"} | ${obj.job.kind || "job"}`;
   if (obj && obj.job_id) return `${obj.job_id} | ${obj.status || "queued"} | ${obj.kind || "job"}`;
   if (obj && obj.run_id) return `${obj.run_id} | run exported`;
   if (obj && obj.report && obj.report.report_id) return `${obj.report.report_id} | report ready`;
   return JSON.stringify(obj, null, 2);
 }
+function activityDetail(obj) {
+  if (typeof obj === "string") return "";
+  if (obj && obj.job_status) {
+    const j = obj.job_status;
+    const last = (j.steps || []).slice(-1)[0] || {};
+    const bits = [];
+    if (last.detail !== undefined && last.detail !== null) {
+      bits.push(typeof last.detail === "string" ? last.detail : JSON.stringify(last.detail, null, 2));
+    }
+    if (j.error) bits.push("error: " + j.error);
+    return bits.length ? "\n" + bits.join("\n") : "";
+  }
+  if (obj && obj.job && obj.job.job_id) {
+    const j = obj.job;
+    const last = (j.steps || []).slice(-1)[0] || {};
+    return last.detail ? "\n" + (typeof last.detail === "string" ? last.detail : JSON.stringify(last.detail, null, 2)) : "";
+  }
+  return "\n" + JSON.stringify(obj, null, 2);
+}
 function log(obj) {
   const el = $("log");
   const stamp = new Date().toLocaleTimeString();
   const summary = summarizeActivity(obj);
-  const detail = typeof obj === "string" ? "" : "\n" + JSON.stringify(obj, null, 2);
+  const detail = activityDetail(obj);
   el.textContent = `[${stamp}] ${summary}${detail}\n\n` + (el.textContent || "").slice(0, 18000);
   refreshStatus();
 }
@@ -4361,6 +4413,11 @@ async function shutdownA00() {
   }
 }
 function openModelSelector() {
+  if (pipelineActive) {
+    setModelSelectorStatus("A guided pipeline is running. Model loading is owned by that job until it completes or fails.");
+    log("Manual model loading is disabled while the guided pipeline is running.");
+    return;
+  }
   const overlay = $("runtime-model-overlay");
   const modal = $("runtime-model-modal");
   if (overlay) overlay.hidden = false;
@@ -4377,6 +4434,11 @@ function setModelSelectorStatus(message) {
   if (el) el.textContent = message || "";
 }
 async function loadSelectedRuntimeModel() {
+  if (pipelineActive) {
+    setModelSelectorStatus("A guided pipeline is running. Wait for the active job before loading another model.");
+    log("Manual model loading is disabled while the guided pipeline is running.");
+    return;
+  }
   const select = $("runtime-model-select");
   const selected = select && select.selectedOptions && select.selectedOptions[0];
   if (!selected) return;
@@ -4389,14 +4451,16 @@ async function loadSelectedRuntimeModel() {
   $("model-source").value = source;
   $("model-ref").value = modelRef;
   const res = await getJson("/api/a00/model/load", {method:"POST", headers:{"content-type":"application/json"}, body:JSON.stringify({source:source, model_ref:modelRef, quantization:$("quantization").value || "4bit"})});
-  if (res.loaded) {
-    setModelSelectorStatus("Loaded " + (res.model_ref || modelRef));
+  const modelInfo = (res && res.model) ? res.model : (res || {});
+  if (res && res.ok && modelInfo.loaded) {
+    setModelSelectorStatus("Loaded " + (modelInfo.model_ref || modelRef));
     if ($("preconfig-model")) $("preconfig-model").value = modelRef;
-    if (loaderLog) loaderLog.textContent += `\n[${new Date().toLocaleTimeString()}] Loaded ${res.model_ref || modelRef} on ${res.device || "device unknown"}.`;
+    if (loaderLog) loaderLog.textContent += `\n[${new Date().toLocaleTimeString()}] Loaded ${modelInfo.model_ref || modelRef} on ${modelInfo.device || "device unknown"}.`;
     closeModelSelector();
   } else {
-    setModelSelectorStatus("Model load failed. Check Activity for the exact error.");
-    if (loaderLog) loaderLog.textContent += `\n[${new Date().toLocaleTimeString()}] Model load failed.`;
+    const reason = res && res.detail ? res.detail : "Check Activity for the exact error.";
+    setModelSelectorStatus("Model load failed. " + reason);
+    if (loaderLog) loaderLog.textContent += `\n[${new Date().toLocaleTimeString()}] Model load failed. ${reason}`;
   }
   log(res);
 }
@@ -4409,6 +4473,7 @@ function setPreconfiguredProgress(percent, message) {
 function updatePreconfiguredFromJob(job) {
   if (!job || job.kind !== "pipeline") return;
   const labels = (job.steps || []).map(s => String(s.label || "").toLowerCase());
+  const last = ((job.steps || []).slice(-1)[0] || {});
   let pct = 10;
   if (labels.some(x => x.includes("load teacher"))) pct = 18;
   if (labels.some(x => x.includes("run base gemma without"))) pct = 24;
@@ -4429,13 +4494,24 @@ function updatePreconfiguredFromJob(job) {
     ? "Complete. Open the report from Jobs or Activity."
     : job.status === "failed"
       ? "Pipeline failed. Check Activity for the exact error."
-      : `Running ${job.job_id}: ${((job.steps || []).slice(-1)[0] || {}).label || job.status}`;
+      : `Running ${job.job_id}: ${last.label || job.status}`;
   setPreconfiguredProgress(pct, msg);
+  const runBtn = $("preconfig-run-btn");
+  if (runBtn && ["completed", "failed", "timeout"].includes(String(job.status || ""))) {
+    runBtn.disabled = false;
+    runBtn.textContent = "Run preconfigured pipeline";
+  }
 }
 async function getJson(url, opts) {
   const r = await fetch(url, opts);
   const text = await r.text();
-  try { return JSON.parse(text); } catch { return {ok:false, text}; }
+  let data;
+  try { data = JSON.parse(text); } catch { data = {ok:false, text}; }
+  if (!r.ok) {
+    data.ok = false;
+    data.http_status = r.status;
+  }
+  return data;
 }
 function jobStatusClass(status) {
   return "status-pill status-" + String(status || "unknown").replace(/[^a-z0-9_-]/gi, "-").toLowerCase();
@@ -4544,7 +4620,13 @@ async function pollJob(jobId) {
       const res = await getJson("/api/a00/jobs/" + encodeURIComponent(jobId));
       if (res.job) {
         updatePreconfiguredFromJob(res.job);
-        log({job_status: res.job});
+        const steps = res.job.steps || [];
+        const last = steps.slice(-1)[0] || {};
+        const signature = `${res.job.status || ""}|${steps.length}|${last.label || ""}|${last.status || ""}|${res.job.error || ""}`;
+        if (lastJobStepSignature[jobId] !== signature) {
+          lastJobStepSignature[jobId] = signature;
+          log({job_status: res.job});
+        }
         const status = String(res.job.status || "");
         if (!["queued", "running"].includes(status)) break;
       } else {
@@ -4560,15 +4642,35 @@ async function pollJob(jobId) {
 async function refreshStatus() {
   const s = await getJson("/api/a00/status");
   const model = s.model || {};
-  const modelName = model.loaded ? (model.model_ref || "loaded model") : ("not loaded: " + (model.model_ref || "__A00_SMALL_MODEL_REF__"));
-  const modelBits = [
-    model.loaded ? "loaded" : "not loaded",
-    model.source || "hf",
-    model.quantization || "",
-    model.adapter_ref ? "adapter: " + model.adapter_ref : ""
-  ].filter(Boolean).join(" | ");
+  const activePipeline = (s.jobs || []).slice().reverse().find(j => j.kind === "pipeline" && ["queued", "running"].includes(String(j.status || "")));
+  pipelineActive = Boolean(activePipeline);
+  const activeStep = activePipeline ? ((activePipeline.steps || []).slice(-1)[0] || {}) : null;
+  const modelName = activePipeline
+    ? "Pipeline controls model"
+    : model.loaded ? (model.model_ref || "loaded model") : ("not loaded: " + (model.model_ref || "__A00_SMALL_MODEL_REF__"));
+  const modelBits = activePipeline
+    ? `${activePipeline.status || "running"} | ${activeStep && activeStep.label ? activeStep.label : activePipeline.job_id}`
+    : [
+        model.loaded ? "loaded" : "not loaded",
+        model.source || "hf",
+        model.quantization || "",
+        model.adapter_ref ? "adapter: " + model.adapter_ref : ""
+      ].filter(Boolean).join(" | ");
   if ($("runtime-model-name")) $("runtime-model-name").textContent = "Model: " + modelName;
   if ($("runtime-model-note")) $("runtime-model-note").textContent = modelBits || "Guided experiment console";
+  const modelButton = $("runtime-model-button");
+  if (modelButton) {
+    modelButton.disabled = pipelineActive;
+    modelButton.textContent = pipelineActive ? "Pipeline running" : "Model";
+    modelButton.title = pipelineActive
+      ? "The active guided pipeline owns model loading and unloading."
+      : "Load or switch the Gemma model for manual/custom runs.";
+  }
+  const preconfigRun = $("preconfig-run-btn");
+  if (preconfigRun) {
+    preconfigRun.disabled = pipelineActive;
+    preconfigRun.textContent = pipelineActive ? "Pipeline running" : "Run preconfigured pipeline";
+  }
   const kpis = [
     ["Exports", s.n_exports || 0],
     ["Packs", s.packs ? s.packs.length : 0],
@@ -4582,6 +4684,10 @@ async function refreshStatus() {
   }).join("");
   $("exports").innerHTML = exports || "No exports yet.";
   renderJobs(s.jobs || []);
+  if (activePipeline) {
+    updatePreconfiguredFromJob(activePipeline);
+    if (!activeJobPolls[activePipeline.job_id]) pollJob(activePipeline.job_id);
+  }
   const audit = (s.primary_notebook_audit || []).map(item => {
     const checks = (item.verify || []).slice(0, 4).map(v => `<li>${v}</li>`).join("");
     const evidence = (item.evidence || []).join(", ");
@@ -4643,7 +4749,7 @@ async function loadOptions() {
   if ($("pipeline-b-ref")) $("pipeline-b-ref").value = train.base_model_ref || "__A00_SMALL_MODEL_REF__";
   refreshStatus();
 }
-function useE2BPipelineDefaults() {
+function useE2BPipelineDefaults(silent=false) {
   $("pipeline-preset").value = "synthetic_train_benchmark_cycle";
   $("pipeline-label").value = "e2b-four-arm-smoke";
   $("pipeline-a-source").value = "hf";
@@ -4660,11 +4766,21 @@ function useE2BPipelineDefaults() {
   $("pipeline-execute").value = "true";
   $("llm-judge").value = "true";
   $("pipeline-harness").value = "chat_no_online";
-  log({next: "E2B four-arm defaults loaded: 2 PH-HK prompts, Persona + GREP + RAG/context + tools, no internet/import, combined LLM + rule grading, report export."});
+  if (!silent) log({next: "E2B four-arm defaults loaded: 2 PH-HK prompts, Persona + GREP + RAG/context + tools, no internet/import, combined LLM + rule grading, report export."});
 }
 async function runPreconfiguredPipeline() {
-  setPreconfiguredProgress(5, "Loading E2B four-arm defaults...");
-  useE2BPipelineDefaults();
+  if (pipelineActive) {
+    setPreconfiguredProgress(18, "A guided pipeline is already running. Watch Activity and Jobs for the active phase.");
+    log("A guided pipeline is already running; not queueing a duplicate job.");
+    return;
+  }
+  const runBtn = $("preconfig-run-btn");
+  if (runBtn) {
+    runBtn.disabled = true;
+    runBtn.textContent = "Queueing...";
+  }
+  setPreconfiguredProgress(5, "Applying guided defaults...");
+  useE2BPipelineDefaults(true);
   const limit = Math.max(1, Math.min(50, Number($("preconfig-limit").value || 2)));
   const synth = limit;
   const execute = true;
@@ -4678,7 +4794,7 @@ async function runPreconfiguredPipeline() {
   $("pipeline-evaluate").value = "true";
   $("pipeline-unload").value = "true";
   $("pipeline-label").value = execute ? "e2b-full-train-eval" : "e2b-training-handoff-eval";
-  setPreconfiguredProgress(18, "Queueing async pipeline. Step 1 loads the selected Gemma model server-side, then baseline, harnessed, synthetic data, LoRA fine-tune, final grading, and report generation run in order.");
+  setPreconfiguredProgress(18, "Queueing guided pipeline. Step 1 loads the selected Gemma model server-side, then baseline, harnessed, synthetic data, LoRA fine-tune, final grading, and report generation run in order.");
   const body = {
     preset_id: "synthetic_train_benchmark_cycle",
     model_a_source: modelSource,
@@ -4703,7 +4819,15 @@ async function runPreconfiguredPipeline() {
     run_label: $("pipeline-label").value
   };
   const res = await getJson("/api/a00/pipeline/run", {method:"POST", headers:{"content-type":"application/json"}, body:JSON.stringify(body)});
-  setPreconfiguredProgress(res && res.ok === false ? 0 : 35, res && res.ok === false ? "Pipeline request failed. Open Activity for details." : "Pipeline started. Watch Activity and Jobs for each phase.");
+  if (res && res.ok === false) {
+    setPreconfiguredProgress(0, res.detail || "Pipeline request failed. Open Activity for details.");
+    if (runBtn) {
+      runBtn.disabled = false;
+      runBtn.textContent = "Run preconfigured pipeline";
+    }
+  } else {
+    setPreconfiguredProgress(35, "Pipeline started. Watch Activity and Jobs for each phase.");
+  }
   log(res);
   trackJobsFrom(res);
 }

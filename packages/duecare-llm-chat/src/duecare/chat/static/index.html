@@ -337,11 +337,11 @@ header.bar .badge.loaded .dot {
 .picker-overlay {
   position: fixed; inset: 0; z-index: 99998;
   display: none;
-  align-items: flex-start; justify-content: center;
+  align-items: center; justify-content: center;
   background: rgba(14, 17, 22, 0.40);
   color: var(--ink);
   -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
-  padding: clamp(8px, 2vh, 24px);
+  padding: clamp(12px, 3vh, 28px);
   overflow-y: auto;
 }
 .picker-overlay.show { display: flex; }
@@ -351,11 +351,11 @@ header.bar .badge.loaded .dot {
   border-radius: 14px;
   padding: clamp(20px, 4vh, 32px) clamp(20px, 4vw, 36px);
   box-shadow: 0 25px 60px rgba(14, 17, 22, 0.18);
-  max-width: 980px; width: 100%;
-  max-height: calc(100dvh - 48px);
-  overflow-y: auto;
+  width: min(980px, calc(100vw - 32px));
+  max-height: min(820px, calc(100dvh - 32px));
+  overflow: auto;
   color: var(--ink);
-  margin: auto 0;
+  margin: auto;
 }
 .picker-title { margin: 0 0 6px; font-size: 22px; font-weight: 600; color: var(--ink); letter-spacing: -0.018em; }
 .picker-sub { margin: 0 0 20px; color: var(--muted); font-size: 14px; }
@@ -658,8 +658,8 @@ header.bar .badge.loaded .dot {
   header.bar .badge { font-size: 10px; padding: 4px 8px; }
   /* Picker overlay shrinks to fit a phone — variant cards single-column,
      padding tightened, banner text smaller. */
-  .picker-overlay { padding: 12px; }
-  .picker-box { padding: 16px 14px; }
+  .picker-overlay { align-items: stretch; padding: 10px; }
+  .picker-box { width: 100%; max-height: calc(100dvh - 20px); padding: 16px 14px; }
   .picker-title { font-size: 18px; }
   .picker-sub { font-size: 12px; }
   .picker-banner { font-size: 11px; padding: 8px 10px; }

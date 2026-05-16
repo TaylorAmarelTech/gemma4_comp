@@ -500,6 +500,8 @@ def test_chat_page_uses_shared_model_selector(client):
     assert "function openModelPickerFromUI" in text
     assert "window.dcWbOpenModelSelector" in text
     assert "Open model selector" in text
+    assert "align-items: center; justify-content: center;" in text
+    assert "max-height: min(820px, calc(100dvh - 32px));" in text
     assert "if (!cachedLoaded)" not in text
 
 

@@ -112,6 +112,7 @@ def test_portability_model_and_sample_helpers_are_canonical():
     assert "runtime-model-name" in topbar
     assert "runtime-model-select" in topbar
     assert "runtime-model-modal" in topbar
+    assert "runtime-model-button" in topbar
     assert "_dc-shutdown-btn" in topbar
 
     samples = sample_artifact_map()

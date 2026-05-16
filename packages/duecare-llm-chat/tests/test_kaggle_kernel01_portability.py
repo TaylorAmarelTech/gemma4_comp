@@ -205,6 +205,7 @@ def test_a00_uses_focused_experiment_console_not_exploration_nav():
     assert 'id="preconfig-limit" type="number" min="1" max="50" value="2"' in homepage
     assert "preconfig-synth-count" not in homepage
     assert "preconfig-execute" not in homepage
+    assert 'id="preconfig-run-btn"' in homepage
     assert "openStartCard('/preconfigured'" in homepage
     assert "openStartCard('/custom'" in homepage
     assert "Open custom controls" not in homepage
@@ -219,6 +220,12 @@ def test_a00_uses_focused_experiment_console_not_exploration_nav():
     assert "normal Gemma plus rules combined mode" in homepage
     assert 'harness_profile: "chat_no_online"' in homepage
     assert "no internet/import" in homepage
+    assert "A guided pipeline is running, so model loading is owned by that job" in a00
+    assert "Pipeline already running" in a00
+    assert "lastJobStepSignature" in homepage
+    assert "res && res.ok && modelInfo.loaded" in homepage
+    assert "Manual model loading is disabled while the guided pipeline is running" in homepage
+    assert "Pipeline controls model" in homepage
     assert "grade_response_combined" in a00
     assert "grade_response_universal" in a00
     assert "Advanced model-switching pipeline" in homepage
