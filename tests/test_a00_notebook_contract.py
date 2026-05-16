@@ -47,7 +47,14 @@ def test_a00_has_judge_facing_quick_proof_and_research_flow():
         'harness_profile: "chat_no_online"',
         "grade_response_combined",
         "google/gemma-4-2b-it",
-        "grade all outputs with normal Gemma plus rules",
+        "Evaluating responses using combined rule + LLM judge",
+        "Checking if any model is currently loaded",
+        "Loading model with the shared Unsloth FastModel runtime",
+        "Sending prompts to Gemma without the DueCare harness",
+        "Sending prompts to Gemma with the DueCare harness",
+        "Static settings used for this run",
+        "Persona + GREP rules + RAG/context + deterministic tools",
+        "Combined rule-based score plus LLM judge",
         "Benchmark, generate, fine-tune, compare.",
         "quickProof",
         "runRedteamProof",
@@ -58,6 +65,8 @@ def test_a00_has_judge_facing_quick_proof_and_research_flow():
         "_extract_research_graph",
     ]:
         assert marker in text
+    assert "Refresh status" not in text
+    assert "teacher/base model" not in text
 
 
 def test_a00_has_synthetic_polish_and_training_smoke_path():

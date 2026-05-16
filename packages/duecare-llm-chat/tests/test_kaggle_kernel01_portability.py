@@ -207,6 +207,9 @@ def test_a00_uses_focused_experiment_console_not_exploration_nav():
     assert "preconfig-synth-count" not in homepage
     assert "preconfig-execute" not in homepage
     assert 'id="preconfig-run-btn"' in homepage
+    assert "Static settings used for this run" in homepage
+    assert "body.a00-landing .a00-static-settings" in homepage
+    assert "Combined rule-based score plus LLM judge" in homepage
     assert "openStartCard('/preconfigured'" in homepage
     assert "openStartCard('/custom'" in homepage
     assert "Open custom controls" not in homepage
@@ -228,7 +231,10 @@ def test_a00_uses_focused_experiment_console_not_exploration_nav():
     assert "no internet/import" in homepage
     assert "A guided pipeline is running, so model loading is owned by that job" in a00
     assert "Pipeline already running" in a00
-    assert "lastJobStepSignature" in homepage
+    assert "lastJobStepCount" in homepage
+    assert "Refresh status" not in homepage
+    assert "Checking if any model is currently loaded" in a00
+    assert "Evaluating responses using combined rule + LLM judge" in a00
     assert "The selected model loads automatically" in homepage
     assert "selectedModelPayload" in homepage
     assert "auto_load_model: bool = True" in a00

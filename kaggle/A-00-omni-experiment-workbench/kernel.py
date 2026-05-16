@@ -3438,6 +3438,148 @@ def _ensure_model_loaded_for_run(
     return _load_model_runtime(_model_request(source, model_ref, adapter_ref, quantization))
 
 
+def _disk_snapshot() -> dict[str, Any]:
+    usage = shutil.disk_usage(str(OUTPUT_DIR))
+    total_gb = usage.total / (1024 ** 3)
+    free_gb = usage.free / (1024 ** 3)
+    return {
+        "path": str(OUTPUT_DIR),
+        "total_gb": round(total_gb, 2),
+        "used_gb": round((usage.total - usage.free) / (1024 ** 3), 2),
+        "free_gb": round(free_gb, 2),
+        "free_pct": round((usage.free / usage.total) * 100, 1) if usage.total else 0,
+    }
+
+
+def _model_download_detail(source: str, ref: str, quantization: str) -> dict[str, Any]:
+    try:
+        resolved_ref, variant, resolved_source = resolve_model_ref(source or "hf", ref or A00_SMALL_MODEL_REF)
+    except Exception as exc:  # noqa: BLE001
+        return {
+            "source": source or "hf",
+            "requested_model": ref or A00_SMALL_MODEL_REF,
+            "quantization": quantization or "4bit",
+            "runtime": "DueCare shared Gemma 4 runtime using Unsloth FastModel",
+            "resolve_warning": f"{type(exc).__name__}: {exc}",
+        }
+    return {
+        "source": source or "hf",
+        "requested_model": ref or A00_SMALL_MODEL_REF,
+        "resolved_source": resolved_source,
+        "resolved_model": resolved_ref,
+        "variant": variant,
+        "quantization": quantization or "4bit",
+        "runtime": "DueCare shared Gemma 4 runtime using Unsloth FastModel",
+    }
+
+
+def _preflight_loaded_model(job_id: str) -> None:
+    _append_job_step(
+        job_id,
+        "7. Running model preflight test",
+        "running",
+        {"purpose": "Verify the loaded Gemma model can return a short response before batch generation starts."},
+    )
+    text, meta = _generate(
+        "Reply with exactly: OK",
+        max_new_tokens=8,
+        temperature=0.0,
+        trace={"profile": "a00_preflight", "harness_profile": "none"},
+        row={"prompt_id": "a00_preflight", "prompt": "Reply with exactly: OK"},
+    )
+    _append_job_step(
+        job_id,
+        "7. Model preflight test passed",
+        "running",
+        {"response_preview": text.strip()[:80], "generation": meta},
+    )
+
+
+def _prepare_base_model_for_pipeline(job_id: str, req: PipelineRequest) -> None:
+    _append_job_step(
+        job_id,
+        "1. Checking if any model is currently loaded",
+        "running",
+        STATE.get("model_info") or {"loaded": False},
+    )
+    current_matches = _current_model_matches(req.model_a_source, req.model_a_ref, req.model_a_adapter_ref)
+    if current_matches:
+        _append_job_step(
+            job_id,
+            "2. Selected Gemma model is already loaded; no unload needed",
+            "running",
+            STATE.get("model_info"),
+        )
+    else:
+        loaded = bool((STATE.get("model_info") or {}).get("loaded"))
+        if loaded or req.unload_between_steps:
+            _append_job_step(
+                job_id,
+                "2. Unloading any model currently in memory",
+                "running",
+                STATE.get("model_info") or {"loaded": False},
+            )
+            _unload_model_runtime(f"pipeline {job_id}: before base Gemma load")
+        else:
+            _append_job_step(
+                job_id,
+                "2. No model is loaded; memory is ready",
+                "running",
+                {"loaded": False},
+            )
+
+    disk = _disk_snapshot()
+    _append_job_step(job_id, "3. Checking disk space", "running", disk)
+    cleanup_needed = float(disk.get("free_gb") or 0) < 5.0
+    _append_job_step(
+        job_id,
+        "4. Cleaning disk space if needed",
+        "running",
+        {
+            "needed": cleanup_needed,
+            "action": "no cleanup needed" if not cleanup_needed else "cleanup deferred to known generated files only; free space is low",
+            "disk": disk,
+        },
+    )
+
+    if current_matches:
+        _append_job_step(
+            job_id,
+            "5. Selected Gemma model is already available; download skipped",
+            "running",
+            STATE.get("model_info"),
+        )
+        _append_job_step(
+            job_id,
+            "6. Selected Gemma model is already loaded with Unsloth FastModel",
+            "running",
+            STATE.get("model_info"),
+        )
+    else:
+        _append_job_step(
+            job_id,
+            "5. Downloading selected Gemma model if not already cached",
+            "running",
+            _model_download_detail(req.model_a_source, req.model_a_ref, req.quantization),
+        )
+        _append_job_step(
+            job_id,
+            "6. Loading model with the shared Unsloth FastModel runtime",
+            "running",
+            {"source": req.model_a_source, "model_ref": req.model_a_ref, "adapter_ref": req.model_a_adapter_ref},
+        )
+        model_info = _load_model_runtime(_model_request(req.model_a_source, req.model_a_ref, req.model_a_adapter_ref, req.quantization))
+        _append_job_step(job_id, "6. Model loaded with the shared Unsloth FastModel runtime", "running", model_info)
+
+    _preflight_loaded_model(job_id)
+    _append_job_step(
+        job_id,
+        "8. Clearing model context before benchmark prompts",
+        "running",
+        {"context_policy": "A-00 uses stateless per-prompt calls; no prior chat history is carried into the benchmark."},
+    )
+
+
 def _wait_for_training_job(job_id: str, pipeline_job_id: str, timeout_sec: int) -> dict[str, Any]:
     deadline = time.time() + timeout_sec
     while time.time() < deadline:
@@ -3445,7 +3587,7 @@ def _wait_for_training_job(job_id: str, pipeline_job_id: str, timeout_sec: int) 
             job = STATE["jobs"].get(job_id, {})
             status = job.get("status")
             tail = str(job.get("log_tail") or "")[-1000:]
-        _append_job_step(pipeline_job_id, "training heartbeat", "running", {"job_id": job_id, "status": status, "log_tail": tail})
+        _append_job_step(pipeline_job_id, "12. Fine-tuning progress update", "running", {"job_id": job_id, "status": status, "log_tail": tail})
         if status in {"completed", "failed", "timeout"}:
             return job
         time.sleep(10)
@@ -3497,16 +3639,8 @@ def _run_pipeline_job(job_id: str, req: PipelineRequest) -> None:
                 _append_job_step(job_id, "comparison report" if report else "runs ready for later grading", "running", report or {"run_ids": run_ids})
 
             elif req.preset_id == "synthetic_train_benchmark_cycle":
-                if _current_model_matches(req.model_a_source, req.model_a_ref, req.model_a_adapter_ref):
-                    _append_job_step(job_id, "use already-loaded teacher/base model", "running", STATE.get("model_info"))
-                else:
-                    if req.unload_between_steps:
-                        _append_job_step(job_id, "prepare model slot before base model", "running")
-                        _unload_model_runtime(f"pipeline {job_id}: before synthetic generation")
-                    _append_job_step(job_id, "load teacher/base model", "running", {"source": req.model_a_source, "model_ref": req.model_a_ref})
-                    model_info = _load_model_runtime(_model_request(req.model_a_source, req.model_a_ref, req.model_a_adapter_ref, req.quantization))
-                    _append_job_step(job_id, "loaded teacher/base model", "running", model_info)
-                _append_job_step(job_id, "run base Gemma without harness", "running", {"prompt_set": req.prompt_set, "limit": req.limit})
+                _prepare_base_model_for_pipeline(job_id, req)
+                _append_job_step(job_id, "9. Sending prompts to Gemma without the DueCare harness", "running", {"prompt_set": req.prompt_set, "limit": req.limit, "harness_profile": req.baseline_harness_profile})
                 base_no_harness = _run_batch(BatchRunRequest(
                     auto_load_model=False,
                     prompt_set=req.prompt_set,
@@ -3516,8 +3650,18 @@ def _run_pipeline_job(job_id: str, req: PipelineRequest) -> None:
                     evaluate=req.evaluate_outputs,
                     llm_judge=False,
                 ))
-                _append_job_step(job_id, "completed base Gemma without harness", "running", {"run_id": base_no_harness["run_id"], "summary": base_no_harness["summary"]})
-                _append_job_step(job_id, "run base Gemma with DueCare harness", "running", {"prompt_set": req.prompt_set, "limit": req.limit, "harness": req.harness_profile})
+                _append_job_step(job_id, "9. Completed Gemma without-harness responses", "running", {"run_id": base_no_harness["run_id"], "summary": base_no_harness["summary"]})
+                _append_job_step(
+                    job_id,
+                    "10. Sending prompts to Gemma with the DueCare harness",
+                    "running",
+                    {
+                        "prompt_set": req.prompt_set,
+                        "limit": req.limit,
+                        "harness_profile": req.harness_profile,
+                        "layers": "Persona + GREP + RAG/context + tools; no internet/import for the default proof path.",
+                    },
+                )
                 base_harness = _run_batch(BatchRunRequest(
                     auto_load_model=False,
                     prompt_set=req.prompt_set,
@@ -3527,9 +3671,9 @@ def _run_pipeline_job(job_id: str, req: PipelineRequest) -> None:
                     evaluate=req.evaluate_outputs,
                     llm_judge=False,
                 ))
-                _append_job_step(job_id, "completed base Gemma with DueCare harness", "running", {"run_id": base_harness["run_id"], "summary": base_harness["summary"]})
+                _append_job_step(job_id, "10. Completed Gemma harnessed responses", "running", {"run_id": base_harness["run_id"], "summary": base_harness["summary"]})
                 run_ids.extend([base_no_harness["run_id"], base_harness["run_id"]])
-                _append_job_step(job_id, "generate synthetic SFT rows with harness", "running", {"count": req.synthetic_count, "generator_mode": req.generator_mode})
+                _append_job_step(job_id, "11. Generating synthetic training data with harnessed Gemma", "running", {"count": req.synthetic_count, "generator_mode": req.generator_mode, "harness_profile": req.harness_profile})
                 synth = _generate_synthetic(SyntheticRequest(
                     auto_load_model=False,
                     source_prompt_set="synthetic_seed",
@@ -3537,11 +3681,11 @@ def _run_pipeline_job(job_id: str, req: PipelineRequest) -> None:
                     harness_profile=req.harness_profile,
                     generator_mode=req.generator_mode,
                 ))
-                _append_job_step(job_id, "generated synthetic data", "running", {"artifacts": synth["artifacts"], "counts": synth.get("counts")})
+                _append_job_step(job_id, "11. Synthetic training data saved", "running", {"artifacts": synth["artifacts"], "counts": synth.get("counts")})
                 if req.unload_between_steps:
-                    _append_job_step(job_id, "unload before LoRA training", "running")
+                    _append_job_step(job_id, "12. Unloading Gemma before fine-tuning", "running")
                     _unload_model_runtime(f"pipeline {job_id}: before training")
-                _append_job_step(job_id, "create LoRA fine-tune job", "running", {"execute_training": req.execute_training, "max_steps": req.max_steps})
+                _append_job_step(job_id, "12. Fine-tuning model with synthetic data", "running", {"execute_training": req.execute_training, "max_steps": req.max_steps})
                 train_job = _create_training_job(TrainRequest(
                     data_path=synth["artifacts"]["sft"],
                     base_model_ref=req.model_b_ref or req.model_a_ref,
@@ -3550,20 +3694,21 @@ def _run_pipeline_job(job_id: str, req: PipelineRequest) -> None:
                     max_steps=req.max_steps,
                     output_dir=req.training_output_dir,
                 ))
-                _append_job_step(job_id, "created training job", "running", train_job)
+                _append_job_step(job_id, "12. Fine-tune job created", "running", train_job)
                 if req.execute_training:
-                    _append_job_step(job_id, "execute LoRA fine-tune with synthetic data", "running", {"job_id": train_job["job_id"]})
+                    _append_job_step(job_id, "12. Running LoRA fine-tune", "running", {"job_id": train_job["job_id"], "max_steps": req.max_steps})
                     final_train = _wait_for_training_job(train_job["job_id"], job_id, A00_TRAINING_TIMEOUT_SEC)
                     if final_train.get("status") != "completed":
                         raise RuntimeError(f"training job did not complete: {final_train.get('status')}")
                     adapter_path = final_train.get("output_dir") or train_job.get("output_dir")
+                    _append_job_step(job_id, "13. Saving fine-tuned model adapter", "running", {"adapter_path": adapter_path, "training_job": final_train.get("job_id")})
                     if req.unload_between_steps:
-                        _append_job_step(job_id, "unload before adapter benchmark", "running")
+                        _append_job_step(job_id, "14. Preparing to load fine-tuned model", "running")
                         _unload_model_runtime(f"pipeline {job_id}: before adapter benchmark")
-                    _append_job_step(job_id, "load fine-tuned adapter", "running", {"base_model_ref": req.model_b_ref or req.model_a_ref, "adapter_ref": adapter_path})
+                    _append_job_step(job_id, "14. Loading fine-tuned model", "running", {"base_model_ref": req.model_b_ref or req.model_a_ref, "adapter_ref": adapter_path})
                     ft_model_info = _load_model_runtime(_model_request(req.model_b_source or req.model_a_source, req.model_b_ref or req.model_a_ref, str(adapter_path), req.quantization))
-                    _append_job_step(job_id, "loaded fine-tuned adapter", "running", ft_model_info)
-                    _append_job_step(job_id, "run fine-tuned Gemma without harness", "running", {"prompt_set": req.prompt_set, "limit": req.limit})
+                    _append_job_step(job_id, "14. Fine-tuned model loaded", "running", ft_model_info)
+                    _append_job_step(job_id, "15. Sending prompts to fine-tuned Gemma without the DueCare harness", "running", {"prompt_set": req.prompt_set, "limit": req.limit, "harness_profile": req.baseline_harness_profile})
                     ft_no_harness = _run_batch(BatchRunRequest(
                         auto_load_model=False,
                         prompt_set=req.prompt_set,
@@ -3573,8 +3718,8 @@ def _run_pipeline_job(job_id: str, req: PipelineRequest) -> None:
                         evaluate=req.evaluate_outputs,
                         llm_judge=False,
                     ))
-                    _append_job_step(job_id, "completed fine-tuned Gemma without harness", "running", {"run_id": ft_no_harness["run_id"], "summary": ft_no_harness["summary"]})
-                    _append_job_step(job_id, "run fine-tuned Gemma with DueCare harness", "running", {"prompt_set": req.prompt_set, "limit": req.limit, "harness": req.harness_profile})
+                    _append_job_step(job_id, "15. Completed fine-tuned without-harness responses", "running", {"run_id": ft_no_harness["run_id"], "summary": ft_no_harness["summary"]})
+                    _append_job_step(job_id, "16. Sending prompts to fine-tuned Gemma with the DueCare harness", "running", {"prompt_set": req.prompt_set, "limit": req.limit, "harness_profile": req.harness_profile})
                     ft_harness = _run_batch(BatchRunRequest(
                         auto_load_model=False,
                         prompt_set=req.prompt_set,
@@ -3584,20 +3729,33 @@ def _run_pipeline_job(job_id: str, req: PipelineRequest) -> None:
                         evaluate=req.evaluate_outputs,
                         llm_judge=False,
                     ))
-                    _append_job_step(job_id, "completed fine-tuned Gemma with DueCare harness", "running", {"run_id": ft_harness["run_id"], "summary": ft_harness["summary"]})
+                    _append_job_step(job_id, "16. Completed fine-tuned harnessed responses", "running", {"run_id": ft_harness["run_id"], "summary": ft_harness["summary"]})
                     run_ids.extend([ft_no_harness["run_id"], ft_harness["run_id"]])
+                    if req.unload_between_steps:
+                        _append_job_step(job_id, "17. Unloading fine-tuned model", "running", ft_model_info)
+                        _unload_model_runtime(f"pipeline {job_id}: after fine-tuned benchmark")
                 else:
                     _append_job_step(job_id, "training handoff created; fine-tuned arms skipped until execute training is enabled", "running", {"run_ids": run_ids})
                 if req.llm_judge and run_ids:
                     if req.unload_between_steps:
-                        _append_job_step(job_id, "unload before combined grading", "running")
+                        _append_job_step(job_id, "18. Preparing normal Gemma model for final evaluation", "running")
                         _unload_model_runtime(f"pipeline {job_id}: before combined grading")
-                    _append_job_step(job_id, "load normal Gemma for combined grading", "running", {"source": req.model_a_source, "model_ref": req.model_a_ref})
+                    _append_job_step(job_id, "18. Loading Gemma model for final evaluation", "running", {"source": req.model_a_source, "model_ref": req.model_a_ref})
                     judge_info = _load_model_runtime(_model_request(req.model_a_source, req.model_a_ref, req.model_a_adapter_ref, req.quantization))
-                    _append_job_step(job_id, "grade all outputs with normal Gemma plus rules", "running", {"run_ids": run_ids, "judge_model": judge_info})
-                    graded = api_evaluate(EvaluateRequest(run_ids=run_ids, llm_judge=True))
-                    _append_job_step(job_id, "combined grading complete", "running", graded)
-                _append_job_step(job_id, "build final comparison report", "running", {"run_ids": run_ids})
+                    _append_job_step(job_id, "18. Gemma evaluator loaded", "running", judge_info)
+                    graded_results = []
+                    total_sets = len(run_ids)
+                    for idx, run_id in enumerate(run_ids, start=1):
+                        _append_job_step(
+                            job_id,
+                            f"19. Evaluating responses using combined rule + LLM judge ({idx} of {total_sets})",
+                            "running",
+                            {"run_id": run_id, "judge_model": judge_info, "rule_judge": True, "llm_judge": True},
+                        )
+                        graded = api_evaluate(EvaluateRequest(run_ids=[run_id], llm_judge=True))
+                        graded_results.append(graded)
+                    _append_job_step(job_id, "19. Combined rule + LLM judging complete", "running", {"graded_sets": total_sets, "results": graded_results})
+                _append_job_step(job_id, "20. Generating final comparison report", "running", {"run_ids": run_ids})
                 report = _build_report(ReportRequest(
                     run_ids=run_ids,
                     title=f"A-00 pipeline stock/fine-tuned/harness matrix: {req.run_label or job_id}",
@@ -3609,7 +3767,7 @@ def _run_pipeline_job(job_id: str, req: PipelineRequest) -> None:
                     job["training_job"] = train_job
                     if report:
                         job["report"] = report
-                _append_job_step(job_id, "pipeline report" if report else "runs ready for later grading", "running", report or {"run_ids": run_ids})
+                _append_job_step(job_id, "21. Saving report", "running", report or {"run_ids": run_ids, "report": "not requested"})
             else:
                 raise HTTPException(404, f"unknown pipeline preset {req.preset_id}")
 
@@ -4027,6 +4185,11 @@ HOMEPAGE_HTML = r"""<!doctype html>
     .a00-choice-controls { margin-top: auto; display: grid; gap: 10px; }
     .a00-choice-controls .row { margin: 0; }
     .a00-choice-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+    .a00-static-settings { border: 1px solid var(--line); background: var(--paper-2); border-radius: 8px; padding: 12px; margin: 12px 0 14px; display: grid; gap: 8px; }
+    .a00-static-settings h3 { margin: 0; font-size: 14px; }
+    .a00-static-settings dl { margin: 0; display: grid; grid-template-columns: minmax(140px, 0.36fr) minmax(0, 1fr); gap: 6px 12px; }
+    .a00-static-settings dt { color: var(--ink-3); font-size: 12px; }
+    .a00-static-settings dd { margin: 0; color: var(--ink-1); font-size: 13px; }
     .a00-preconfigured { border-color: var(--ink); }
     .a00-custom-note { background: var(--paper-2); border: 1px solid var(--line); border-radius: 8px; padding: 12px; margin-top: 12px; }
     .pipeline-progress { height: 10px; border: 1px solid var(--line); border-radius: 999px; background: var(--paper-2); overflow: hidden; }
@@ -4041,6 +4204,7 @@ HOMEPAGE_HTML = r"""<!doctype html>
     body.a00-landing .a00-choice:focus { outline: 3px solid rgba(14,17,22,0.18); outline-offset: 3px; }
     body.a00-landing .a00-choice ol,
     body.a00-landing .a00-choice-controls,
+    body.a00-landing .a00-static-settings,
     body.a00-landing .status-pill,
     body.a00-landing .run-action,
     body.a00-landing .experiment-flow,
@@ -4154,13 +4318,30 @@ __A00_SHUTDOWN_CONTROL__
         <li>Run the fine-tuned model with the harness.</li>
         <li>Grade all outputs with normal Gemma plus rules combined mode and build the final report.</li>
       </ol>
+      <div class="a00-static-settings" aria-label="Static preconfigured settings">
+        <h3>Static settings used for this run</h3>
+        <dl>
+          <dt>Baseline arm</dt>
+          <dd>No DueCare harness. Same prompts, same selected Gemma model.</dd>
+          <dt>Harnessed arm</dt>
+          <dd>Persona + GREP rules + RAG/context + deterministic tools. Internet and import are off.</dd>
+          <dt>Synthetic data</dt>
+          <dd>Harnessed Gemma generates rubric-polished SFT rows; rows are filtered before fine-tuning.</dd>
+          <dt>Fine-tune path</dt>
+          <dd>Small LoRA smoke path using the generated SFT rows, then the same prompts are rerun.</dd>
+          <dt>Evaluation</dt>
+          <dd>Combined rule-based score plus LLM judge using the normal selected Gemma model.</dd>
+          <dt>Report</dt>
+          <dd>Four-arm report: base, base+harness, fine-tuned, and fine-tuned+harness.</dd>
+        </dl>
+      </div>
       <div class="a00-choice-controls">
         <div class="row compact-row">
           <label>Gemma model <select id="preconfig-model"></select></label>
           <label>Prompt count <input id="preconfig-limit" type="number" min="1" max="50" value="2"></label>
         </div>
         <div class="pipeline-progress" aria-label="Preconfigured pipeline progress"><div id="preconfig-progress"></div></div>
-        <div class="preconfigured-status" id="preconfig-status">Ready. Click Run to queue the guided job. The server loads the selected Gemma model first, then runs baseline, local harnessed mode (Persona + GREP + RAG/context + tools, no internet/import), synthetic-data, fine-tune, final grading, and report steps.</div>
+        <div class="preconfigured-status" id="preconfig-status">Ready. Click Run to queue the guided job. The server checks current model state, clears memory if needed, checks disk space, loads the selected Gemma model with the shared Unsloth FastModel runtime, then runs baseline, local harnessed mode (Persona + GREP + RAG/context + tools, no internet/import), synthetic-data, fine-tune, final grading, and report steps.</div>
         <div class="a00-choice-actions">
           <button class="run-action" id="preconfig-run-btn" onclick="runPreconfiguredPipeline()">Run preconfigured pipeline</button>
         </div>
@@ -4369,7 +4550,7 @@ __A00_SHUTDOWN_CONTROL__
   </details>
 
   <section class="panel activity-panel">
-    <div class="panel-heading"><h2>Activity</h2><button class="secondary" onclick="refreshStatus()">Refresh status</button></div>
+    <div class="panel-heading"><h2>Activity</h2><span class="muted">Auto-updates while a run is active.</span></div>
     <pre id="log">Loading...</pre>
   </section>
 </main>
@@ -4377,7 +4558,8 @@ __A00_SHUTDOWN_CONTROL__
 const $ = (id) => document.getElementById(id);
 let selectedRuns = [];
 let activeJobPolls = {};
-let lastJobStepSignature = {};
+let lastJobStepCount = {};
+let lastJobTerminalSignature = {};
 let pipelineActive = false;
 let lastIntake = null;
 function summarizeActivity(obj) {
@@ -4385,7 +4567,7 @@ function summarizeActivity(obj) {
   if (obj && obj.job_status) {
     const j = obj.job_status;
     const last = (j.steps || []).slice(-1)[0] || {};
-    return `${j.job_id || "job"} | ${j.status || "unknown"} | ${last.label || j.kind || ""}`;
+    return `${last.label || j.kind || "job"} | ${last.status || j.status || "unknown"}`;
   }
   if (obj && obj.job && obj.job.job_id) return `${obj.job.job_id} | ${obj.job.status || "queued"} | ${obj.job.kind || "job"}`;
   if (obj && obj.job_id) return `${obj.job_id} | ${obj.status || "queued"} | ${obj.kind || "job"}`;
@@ -4472,26 +4654,37 @@ function updatePreconfiguredFromJob(job) {
   const labels = (job.steps || []).map(s => String(s.label || "").toLowerCase());
   const last = ((job.steps || []).slice(-1)[0] || {});
   let pct = 10;
-  if (labels.some(x => x.includes("load teacher"))) pct = 18;
-  if (labels.some(x => x.includes("run base gemma without"))) pct = 24;
-  if (labels.some(x => x.includes("completed base gemma without"))) pct = 32;
-  if (labels.some(x => x.includes("completed base gemma with"))) pct = 42;
-  if (labels.some(x => x.includes("generate synthetic"))) pct = 46;
-  if (labels.some(x => x.includes("generated synthetic"))) pct = 48;
-  if (labels.some(x => x.includes("created training"))) pct = 60;
-  if (labels.some(x => x.includes("training heartbeat"))) pct = 70;
-  if (labels.some(x => x.includes("load fine-tuned"))) pct = 80;
-  if (labels.some(x => x.includes("completed fine-tuned gemma without"))) pct = 86;
-  if (labels.some(x => x.includes("completed fine-tuned gemma with"))) pct = 90;
-  if (labels.some(x => x.includes("combined grading complete"))) pct = 96;
-  if (labels.some(x => x.includes("pipeline report"))) pct = 98;
+  if (labels.some(x => x.includes("1. checking"))) pct = 4;
+  if (labels.some(x => x.includes("2. unloading") || x.includes("2. selected") || x.includes("2. no model"))) pct = 8;
+  if (labels.some(x => x.includes("3. checking disk"))) pct = 12;
+  if (labels.some(x => x.includes("4. cleaning disk"))) pct = 16;
+  if (labels.some(x => x.includes("5. downloading") || x.includes("5. selected"))) pct = 20;
+  if (labels.some(x => x.includes("6. model loaded") || x.includes("6. selected"))) pct = 28;
+  if (labels.some(x => x.includes("7. model preflight"))) pct = 32;
+  if (labels.some(x => x.includes("8. clearing"))) pct = 34;
+  if (labels.some(x => x.includes("9. sending prompts"))) pct = 38;
+  if (labels.some(x => x.includes("9. completed"))) pct = 44;
+  if (labels.some(x => x.includes("10. sending prompts"))) pct = 48;
+  if (labels.some(x => x.includes("10. completed"))) pct = 54;
+  if (labels.some(x => x.includes("11. generating"))) pct = 58;
+  if (labels.some(x => x.includes("11. synthetic"))) pct = 62;
+  if (labels.some(x => x.includes("12. fine-tun"))) pct = 70;
+  if (labels.some(x => x.includes("13. saving fine-tuned"))) pct = 76;
+  if (labels.some(x => x.includes("14. fine-tuned model loaded"))) pct = 80;
+  if (labels.some(x => x.includes("15. completed"))) pct = 86;
+  if (labels.some(x => x.includes("16. completed"))) pct = 90;
+  if (labels.some(x => x.includes("17. unloading"))) pct = 92;
+  if (labels.some(x => x.includes("18. gemma evaluator loaded"))) pct = 94;
+  if (labels.some(x => x.includes("19. combined"))) pct = 96;
+  if (labels.some(x => x.includes("20. generating"))) pct = 98;
+  if (labels.some(x => x.includes("21. saving"))) pct = 99;
   if (job.status === "completed") pct = 100;
   if (job.status === "failed") pct = 0;
   const msg = job.status === "completed"
     ? "Complete. Open the report from Jobs or Activity."
     : job.status === "failed"
       ? "Pipeline failed. Check Activity for the exact error."
-      : `Running ${job.job_id}: ${last.label || job.status}`;
+      : `${last.label || "Pipeline running"}`;
   setPreconfiguredProgress(pct, msg);
   const runBtn = $("preconfig-run-btn");
   if (runBtn && ["completed", "failed", "timeout"].includes(String(job.status || ""))) {
@@ -4619,11 +4812,17 @@ async function pollJob(jobId) {
       if (res.job) {
         updatePreconfiguredFromJob(res.job);
         const steps = res.job.steps || [];
-        const last = steps.slice(-1)[0] || {};
-        const signature = `${res.job.status || ""}|${steps.length}|${last.label || ""}|${last.status || ""}|${res.job.error || ""}`;
-        if (lastJobStepSignature[jobId] !== signature) {
-          lastJobStepSignature[jobId] = signature;
-          log({job_status: res.job});
+        const previousCount = lastJobStepCount[jobId] || 0;
+        const newSteps = steps.slice(previousCount);
+        if (newSteps.length) {
+          newSteps.forEach(step => log({job_status: {...res.job, steps: [step]}}));
+          lastJobStepCount[jobId] = steps.length;
+        } else {
+          const signature = `${res.job.status || ""}|${steps.length}|${res.job.error || ""}`;
+          if (lastJobTerminalSignature[jobId] !== signature && !["queued", "running"].includes(String(res.job.status || ""))) {
+            lastJobTerminalSignature[jobId] = signature;
+            log({job_status: res.job});
+          }
         }
         const status = String(res.job.status || "");
         if (!["queued", "running"].includes(status)) break;
@@ -4759,7 +4958,7 @@ async function runPreconfiguredPipeline() {
   $("pipeline-evaluate").value = "true";
   $("pipeline-unload").value = "true";
   $("pipeline-label").value = execute ? "e2b-full-train-eval" : "e2b-training-handoff-eval";
-  setPreconfiguredProgress(18, "Queueing guided pipeline. Step 1 loads the selected Gemma model server-side, then baseline, harnessed, synthetic data, LoRA fine-tune, final grading, and report generation run in order.");
+  setPreconfiguredProgress(6, "Queueing guided pipeline. Step 1 checks current model state; then A-00 unloads memory if needed, checks disk, loads the selected Gemma model, runs both benchmark arms, fine-tunes, grades, and saves the report.");
   const body = {
     preset_id: "synthetic_train_benchmark_cycle",
     model_a_source: modelSource,
@@ -5125,7 +5324,7 @@ try:
                 "Set DUECARE_ALLOW_LOCAL_ONLY=1 only for local developer testing."
             )
     print("  A-00 READY")
-    print("  Open the URL, choose Preconfigured, load a Gemma model when prompted, then run the guided pipeline.")
+    print("  Open the URL, choose Preconfigured, select the Gemma model in the page, then run the guided pipeline.")
     while not _SHUTDOWN_EVENT.is_set():
         time.sleep(1)
 except KeyboardInterrupt:
