@@ -7,8 +7,8 @@
 # NO MODEL LOAD. NO INFERENCE LATENCY. Designed for screen-recording
 # the cloudflared web UI without unpredictable inference waits.
 #
-# Lane switcher in URL: /?lane=worker | caseworker | researcher |
-# platform | developer.
+# Lane switcher in URL: /presentation/worker | /presentation/caseworker |
+# /presentation/researcher | /presentation/platform | /presentation/developer.
 #
 # Manual scene control during recording:
 #   spacebar   advance to next scene
@@ -1142,6 +1142,10 @@ const SCRIPT = __SCRIPT_JSON__;
 const DEFAULT_LANE = 'worker';
 
 function getLane() {
+  const pathParts = window.location.pathname.split('/').filter(Boolean);
+  if (pathParts[0] === 'presentation' && pathParts[1]) {
+    return SCRIPT.lanes[pathParts[1]] ? pathParts[1] : DEFAULT_LANE;
+  }
   const sp = new URLSearchParams(window.location.search);
   const l = sp.get('lane') || DEFAULT_LANE;
   return SCRIPT.lanes[l] ? l : DEFAULT_LANE;
@@ -1156,7 +1160,7 @@ function renderLaneBar() {
   bar.replaceChildren();
   for (const k of Object.keys(SCRIPT.lanes)) {
     const a = document.createElement('a');
-    a.href = '?lane=' + k;
+    a.href = '/presentation/' + encodeURIComponent(k);
     a.textContent = SCRIPT.lanes[k].label;
     if (k === currentLane) a.className = 'active';
     bar.appendChild(a);
@@ -1340,14 +1344,14 @@ try:
             {"label": "Compute", "value": "CPU-only, no model load"},
         ],
         "links": [
-            ("?lane=worker", "/?lane=worker"),
-            ("?lane=caseworker", "/?lane=caseworker"),
-            ("?lane=platform", "/?lane=platform"),
-            ("?lane=researcher", "/?lane=researcher"),
-            ("?lane=developer", "/?lane=developer"),
+            ("worker replay", "/presentation/worker"),
+            ("caseworker replay", "/presentation/caseworker"),
+            ("platform replay", "/presentation/platform"),
+            ("researcher replay", "/presentation/researcher"),
+            ("developer replay", "/presentation/developer"),
         ],
         "next_steps": [
-            "Open the printed cloudflared URL with ?lane=worker.",
+            "Open the printed cloudflared URL with /presentation/worker.",
             "Auto-plays scene 1 (typewriter + thinking + stream).",
             "Press Space to advance scenes; switch lanes via top bar.",
             "Record one continuous video per lane.",
@@ -1358,6 +1362,16 @@ try:
         kernel_id="a-24-demo-replay",
         port=PORT, homepage_html=INDEX_HTML,
     )
+
+    from fastapi.responses import HTMLResponse as _HTMLResponse
+
+    @app.get("/presentation", response_class=_HTMLResponse)
+    def _presentation_page() -> str:
+        return INDEX_HTML
+
+    @app.get("/presentation/{lane}", response_class=_HTMLResponse)
+    def _presentation_lane_page(lane: str) -> str:
+        return INDEX_HTML
     if public_url:
         print(f"  ok UI: {public_url}")
     print("\n  A-24 DEMO REPLAY READY -- record from your browser\n")

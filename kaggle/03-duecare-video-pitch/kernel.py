@@ -2,10 +2,10 @@
 # DueCare - Video pitch (slides + scripted demo + setup mode)
 # Core notebook #03 of the DueCare submission.
 #
-# The dedicated video-recording surface. THREE modes via URL param:
-#   /?mode=slides         intro/problem/solution/lanes/closing deck
-#   /?mode=presentation   curated 5-lane x 4-scene demo replay
-#   /?mode=setup          author/edit/save/load the demo script
+# The dedicated video-recording surface. THREE clean browser routes:
+#   /slides               intro/problem/solution/lanes/closing deck
+#   /presentation/worker  curated 5-lane x 4-scene demo replay
+#   /setup                author/edit/save/load the demo script
 #
 # NO MODEL LOAD. NO INFERENCE LATENCY. Designed for screen-recording
 # the cloudflared web UI with predictable cadence.
@@ -1573,8 +1573,19 @@ const SLIDES_DATA = __SLIDES_JSON__;
 let SCRIPT = JSON.parse(JSON.stringify(SCRIPT_INIT));
 
 const URL_PARAMS = new URLSearchParams(window.location.search);
-let currentMode = URL_PARAMS.get("mode") || "slides";
-let currentLane = URL_PARAMS.get("lane") || "worker";
+const PATH_PARTS = window.location.pathname.split("/").filter(Boolean);
+function modeFromPath(){
+  if (PATH_PARTS[0] === "slides") return "slides";
+  if (PATH_PARTS[0] === "setup") return "setup";
+  if (PATH_PARTS[0] === "presentation") return "presentation";
+  return URL_PARAMS.get("mode") || "slides";
+}
+function laneFromPath(){
+  if (PATH_PARTS[0] === "presentation" && PATH_PARTS[1]) return PATH_PARTS[1];
+  return URL_PARAMS.get("lane") || "worker";
+}
+let currentMode = modeFromPath();
+let currentLane = laneFromPath();
 let currentScene = 0;
 let currentSlide = 0;
 let setupSelected = 0;
@@ -1594,10 +1605,26 @@ function _el(tag, cls, txt){
   return e;
 }
 
-function setMode(m){
+function cleanPathForState(){
+  if (currentMode === "slides") return "/slides";
+  if (currentMode === "setup") return "/setup";
+  if (currentMode === "presentation") return "/presentation/" + encodeURIComponent(currentLane);
+  return "/";
+}
+
+function syncRoute(){
+  const next = cleanPathForState();
+  if (window.location.pathname !== next) {
+    window.history.replaceState({}, "", next);
+  }
+}
+
+function setMode(m, opts){
   if (!["slides","presentation","setup"].includes(m)) return;
   abortToken++;
   currentMode = m;
+  if (opts && opts.lane && SCRIPT.lanes[opts.lane]) currentLane = opts.lane;
+  if (!opts || opts.sync !== false) syncRoute();
   document.querySelectorAll(".topbar .tab").forEach(t=>{
     t.classList.toggle("active", t.dataset.mode === m);
   });
@@ -1659,6 +1686,7 @@ function renderLaneBar(){
     b.textContent = SCRIPT.lanes[k].label.split(" - Lane")[0].trim();
     b.onclick = ()=>{
       currentLane = k; currentScene = 0;
+      syncRoute();
       renderLaneBar(); renderLaneHead(); playScene();
     };
     wrap.appendChild(b);
@@ -2044,7 +2072,7 @@ async function setupExportEvidence(){
   } catch (e){ setupStatus("export error: " + e, true); }
 }
 
-setMode(currentMode);
+setMode(currentMode, {sync: false});
 </script>
 </body></html>
 """
@@ -2065,10 +2093,10 @@ try:
     summary_payload = {
         "title": "03 DueCare Video Pitch (slides + replay + setup)",
         "audience": "all",
-        "lede": ("Main notebook 03. THREE modes via URL param:\n"
-                  "  ?mode=slides         recording deck, opens by default\n"
-                  "  ?mode=presentation   5-lane cached replay\n"
-                  "  ?mode=setup          edit, save, and export evidence\n"
+        "lede": ("Main notebook 03. THREE clean browser routes:\n"
+                  "  /slides               recording deck, opens by default\n"
+                  "  /presentation/worker  5-lane cached replay\n"
+                  "  /setup                edit, save, and export evidence\n"
                   "Zero inference, predictable cadence. Use this for "
                   "the hackathon video recording."),
         "results": [
@@ -2079,10 +2107,10 @@ try:
             {"label": "Contract", "value": PORTABILITY_CONTRACT["required_chat_version"]},
         ],
         "links": [
-            ("slides", "/?mode=slides"),
-            ("worker replay", "/?mode=presentation&lane=worker"),
-            ("caseworker replay", "/?mode=presentation&lane=caseworker"),
-            ("setup export", "/?mode=setup"),
+            ("slides", "/slides"),
+            ("worker replay", "/presentation/worker"),
+            ("caseworker replay", "/presentation/caseworker"),
+            ("setup export", "/setup"),
         ],
         "next_steps": [
             "Open the printed cloudflared URL. It starts on the title slide.",
@@ -2096,6 +2124,24 @@ try:
         kernel_id="03-duecare-video-pitch",
         port=PORT, homepage_html=INDEX_HTML,
     )
+
+    from fastapi.responses import HTMLResponse as _HTMLResponse
+
+    @app.get("/slides", response_class=_HTMLResponse)
+    def _slides_page() -> str:
+        return INDEX_HTML
+
+    @app.get("/setup", response_class=_HTMLResponse)
+    def _setup_page() -> str:
+        return INDEX_HTML
+
+    @app.get("/presentation", response_class=_HTMLResponse)
+    def _presentation_page() -> str:
+        return INDEX_HTML
+
+    @app.get("/presentation/{lane}", response_class=_HTMLResponse)
+    def _presentation_lane_page(lane: str) -> str:
+        return INDEX_HTML
 
     # Setup-mode endpoints: get / save / load the in-memory DEMO_SCRIPT
     # so the operator can author scenes through the browser without

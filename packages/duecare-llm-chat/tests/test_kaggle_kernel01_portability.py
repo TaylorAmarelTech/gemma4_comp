@@ -175,7 +175,7 @@ def test_live_demo_video_pitch_and_a00_expose_page_level_controls():
 
     for token in [
         "DueCare - Video pitch",
-        "?mode=setup",
+        "/setup",
         "/api/get-script",
         "/api/save-script",
         "/api/load-script",

@@ -21,33 +21,37 @@
 
 | Mode | URL | What it shows |
 |---|---|---|
-| Slides | `?mode=slides` | Fifteen-slide pitch deck: problem, legal context, why normal LLMs fail, prior art, solution, why Gemma 4, validation, five use cases, ecosystem, closing. Opens by default. |
-| Presentation | `?mode=presentation&lane=worker` | Cached 5-lane replay with typewriter prompt, thinking indicator, response stream, citations, and harness trace. |
-| Setup | `?mode=setup` | Edit cached scenes, save script JSON, and export prompts, responses, traces, scorecards, slides, and synthetic media. |
+| Slides | `/slides` | Fifteen-slide pitch deck: problem, legal context, why normal LLMs fail, prior art, solution, why Gemma 4, validation, five use cases, ecosystem, closing. Opens by default. |
+| Presentation | `/presentation/worker` | Cached 5-lane replay with typewriter prompt, thinking indicator, response stream, citations, and harness trace. |
+| Setup | `/setup` | Edit cached scenes, save script JSON, and export prompts, responses, traces, scorecards, slides, and synthetic media. |
+
+Legacy query-string links such as `?mode=slides` and
+`?mode=presentation&lane=worker` still work for backward compatibility, but the
+visible UI and recording checklist use clean route paths.
 
 ## Recording Flow
 
-1. Open the printed Cloudflare URL. It starts in `?mode=slides`.
+1. Open the printed Cloudflare URL. It starts in `/slides`.
 2. Advance through the title, problem, legal context, LLM failure, prior art,
    solution, why Gemma 4, and validation slides.
-3. Switch to `?mode=presentation&lane=worker` for the worker story.
-4. Switch to `?mode=presentation&lane=caseworker` to show the synthetic media
+3. Switch to `/presentation/worker` for the worker story.
+4. Switch to `/presentation/caseworker` to show the synthetic media
    image and local intake workflow.
 5. Optionally show platform, researcher, or developer lanes.
 6. Return to slides for ecosystem, technical depth, and closing.
-7. Use `?mode=setup` and click **Export evidence bundle** to create the JSON,
+7. Use `/setup` and click **Export evidence bundle** to create the JSON,
    CSV, Markdown, ZIP, and synthetic media artifacts.
 
 ## Recording Preflight
 
 Run this checklist once before screen capture:
 
-1. Open `?mode=slides` and confirm the deck starts on the problem statement.
+1. Open `/slides` and confirm the deck starts on the problem statement.
 2. Check that the validation slide points to A-00 reports rather than relying on the replay alone.
-3. Open `?mode=presentation&lane=worker` and verify the cached response shows worker-centered, non-revictimizing guidance.
-4. Open `?mode=presentation&lane=caseworker` and confirm the synthetic media example renders.
+3. Open `/presentation/worker` and verify the cached response shows worker-centered, non-revictimizing guidance.
+4. Open `/presentation/caseworker` and confirm the synthetic media example renders.
 5. Open platform, researcher, and developer lanes at least once so stale copy or broken controls are caught.
-6. Open `?mode=setup`, export evidence, and confirm the ZIP contains scenes, traces, scorecards, slides, and media.
+6. Open `/setup`, export evidence, and confirm the ZIP contains scenes, traces, scorecards, slides, and media.
 7. Keep the exported A-00 report URL or artifact path ready for the technical-depth slide.
 
 ## Cached Demo Evidence
