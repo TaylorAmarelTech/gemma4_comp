@@ -103,11 +103,11 @@ def main() -> int:
     ap.add_argument("--min-score", type=int, default=20)
     ap.add_argument("--languages", default="en",
                     help="EasyOCR languages (comma-separated), e.g. 'en,tl'")
-    ap.add_argument("--api-key",
-                    default=os.environ.get(
-                        "GOOGLE_DRIVE_API_KEY",
-                        "AIzaSyCJ3BJkAEjHG5XMuWkJtSFwCPHvk3h9RJA"))
+    ap.add_argument("--api-key", default=os.environ.get("GOOGLE_DRIVE_API_KEY", ""))
     args = ap.parse_args()
+    if not args.api_key:
+        print("[ocr] GOOGLE_DRIVE_API_KEY or --api-key is required")
+        return 1
 
     IMG_CACHE.mkdir(parents=True, exist_ok=True)
     OCR_CACHE.mkdir(parents=True, exist_ok=True)

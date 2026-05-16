@@ -182,10 +182,9 @@ def _download_file_text(svc, file_id: str, mime: str) -> str:
 
     if mime == "application/pdf":
         # alt=media download + pypdfium2 text extraction
-        api_key = os.environ.get(
-            "GOOGLE_DRIVE_API_KEY",
-            "AIzaSyCJ3BJkAEjHG5XMuWkJtSFwCPHvk3h9RJA",
-        )
+        api_key = os.environ.get("GOOGLE_DRIVE_API_KEY", "")
+        if not api_key:
+            return ""
         url = (f"https://www.googleapis.com/drive/v3/files/{file_id}"
                f"?alt=media&key={api_key}")
         try:
@@ -216,10 +215,9 @@ def _download_file_text(svc, file_id: str, mime: str) -> str:
     if mime in (
         "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
     ):
-        api_key = os.environ.get(
-            "GOOGLE_DRIVE_API_KEY",
-            "AIzaSyCJ3BJkAEjHG5XMuWkJtSFwCPHvk3h9RJA",
-        )
+        api_key = os.environ.get("GOOGLE_DRIVE_API_KEY", "")
+        if not api_key:
+            return ""
         url = (f"https://www.googleapis.com/drive/v3/files/{file_id}"
                f"?alt=media&key={api_key}")
         try:
@@ -250,11 +248,11 @@ def main() -> int:
     ap.add_argument("--min-cross-bundle", type=int, default=2,
                     help="Entity must appear in >=N bundles to be a "
                          "'connector' (drives the refined list ranking).")
-    ap.add_argument("--api-key",
-                    default=os.environ.get(
-                        "GOOGLE_DRIVE_API_KEY",
-                        "AIzaSyCJ3BJkAEjHG5XMuWkJtSFwCPHvk3h9RJA"))
+    ap.add_argument("--api-key", default=os.environ.get("GOOGLE_DRIVE_API_KEY", ""))
     args = ap.parse_args()
+    if not args.api_key:
+        print("[analyze] GOOGLE_DRIVE_API_KEY or --api-key is required")
+        return 1
 
     try:
         from googleapiclient.discovery import build

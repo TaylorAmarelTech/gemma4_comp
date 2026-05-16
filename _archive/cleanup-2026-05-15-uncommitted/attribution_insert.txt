@@ -1,0 +1,12 @@
+## Attribution
+
+This project builds on several excellent open-source libraries:
+
+- **[FastAPI](https://github.com/tiangolo/fastapi)** (MIT) by Sebastian Ramirez - Web API framework
+- **[Transformers](https://github.com/huggingface/transformers)** (Apache 2.0) by Hugging Face Inc. - Gemma 4 model integration
+- **[Unsloth](https://github.com/unslothai/unsloth)** (Apache 2.0) by Unsloth AI - Efficient fine-tuning
+- **[PyTorch](https://github.com/pytorch/pytorch)** (BSD 3-Clause) by Meta - Deep learning framework
+- **[Pydantic](https://github.com/pydantic/pydantic)** (MIT) by Samuel Colvin - Data validation
+- **[Ollama](https://github.com/ollama/ollama)** (MIT) by Jeffrey Morgan - Local model serving
+
+All dependencies are permissively licensed and compatible with our MIT license. See individual package `pyproject.toml` files for complete dependency lists.

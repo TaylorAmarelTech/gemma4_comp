@@ -184,7 +184,7 @@ repair required before `42 of 42 OK` can be claimed in the writeup.
 
 ```
 $env:PYTHONIOENCODING = "utf-8"
-$env:KAGGLE_API_TOKEN = "KGAT_cae9959f7adc60ceb6d52746bd3fd807"
+$env:KAGGLE_API_TOKEN = "<set-in-shell-not-in-repo>"
 kaggle kernels push -p kaggle/kernels/duecare_220_ollama_cloud_comparison
 kaggle kernels push -p kaggle/kernels/duecare_130_prompt_corpus_exploration
 kaggle kernels push -p kaggle/kernels/duecare_399_baseline_text_comparisons_conclusion

@@ -325,9 +325,7 @@ def main() -> int:
     ap.add_argument("--curate-top", type=int, default=500,
                     help="How many top-scored files to write to "
                          "drive_curated_file_ids.json")
-    ap.add_argument("--api-key",
-                    default=os.environ.get("GOOGLE_DRIVE_API_KEY",
-                                            "AIzaSyCJ3BJkAEjHG5XMuWkJtSFwCPHvk3h9RJA"))
+    ap.add_argument("--api-key", default=os.environ.get("GOOGLE_DRIVE_API_KEY", ""))
     args = ap.parse_args()
 
     if not args.api_key:

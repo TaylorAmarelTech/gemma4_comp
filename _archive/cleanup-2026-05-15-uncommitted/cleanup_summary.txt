@@ -1,0 +1,12 @@
+=== Folder Cleanup Summary (2026-05-10) ===
+
+MOVED TO ARCHIVE:
+- legacy_notebooks/ → _archive/cleanup-2026-05-10-folder-consolidation/legacy_notebooks-redundant/
+  Reason: Contained only 1 stale build artifact; full archive exists in _archive/legacy-research-2026-05-09/
+
+KEPT BOTH HF SPACE FOLDERS (Not redundant):
+- hf_space/ - 'Harness Chat' Space (newer, May 2026, has app.py + requirements.txt)
+- hf-space/ - 'Live Demo' Space (older, April 2026, different Docker approach)
+
+RESTORE COMMAND:
+mv '_archive/cleanup-2026-05-10-folder-consolidation/legacy_notebooks-redundant/' ./legacy_notebooks/
