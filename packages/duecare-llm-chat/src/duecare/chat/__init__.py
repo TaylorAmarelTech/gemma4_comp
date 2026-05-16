@@ -26,6 +26,14 @@ from duecare.chat.experiment_contracts import (
     training_profile_map,
     upload_limit_map,
 )
+from duecare.chat.gemma4_runtime import (
+    Gemma4LoadedModel,
+    Gemma4LoadSpec,
+    Gemma4Runtime,
+    resolve_model_ref,
+    variant_from_ref,
+)
+from duecare.chat.runtime_chrome import runtime_model_topbar_html
 
 __all__ = [
     "create_app",
@@ -50,4 +58,10 @@ __all__ = [
     "synthetic_generation_profile_map",
     "training_profile_map",
     "upload_limit_map",
+    "Gemma4LoadedModel",
+    "Gemma4LoadSpec",
+    "Gemma4Runtime",
+    "resolve_model_ref",
+    "variant_from_ref",
+    "runtime_model_topbar_html",
 ]

@@ -87,8 +87,10 @@ PINNED_COMMIT = os.environ.get("DUECARE_COMMIT_SHA", "master")
 #
 # Setting LOADER="unsloth" uses Unsloth's FastModel which gives the cleanest
 # 31B-on-2xT4 path. LOADER="transformers" is the legacy path (E4B / E2B).
-GEMMA_MODEL_VARIANT = "e4b-it"   # "e2b-it" | "e4b-it" | "26b-a4b-it" | "31b-it"
-GEMMA_LOADER        = "auto"     # "auto" | "transformers" | "unsloth"
+GEMMA_MODEL_VARIANT = os.environ.get("DUECARE_GEMMA_VARIANT", "e4b-it")
+                                  # "e2b-it" | "e4b-it" | "26b-a4b-it" | "31b-it"
+GEMMA_LOADER        = os.environ.get("DUECARE_GEMMA_LOADER", "unsloth")
+                                  # "auto" | "transformers" | "unsloth"
                                   # "auto" = legacy transformers for E2B/E4B
                                   #          (~30s start, server runs in same
                                   #           cell, no restart needed)
@@ -257,8 +259,9 @@ os.environ["DUECARE_MODEL_NAME"] = (
 def _need_unsloth_stack() -> bool:
     """Phase 0 install triggers ONLY when the user picks a variant
     that REQUIRES Unsloth (31B / 26B-A4B), or explicitly opts in.
-    E4B / E2B keep the fast 30-second legacy transformers path that
-    has been working for weeks -- no install + restart dance needed.
+    E4B / E2B can use the legacy path, but the shared DueCare model
+    primitive is Unsloth/FastModel. The live demo defaults to Unsloth so
+    the loader behavior matches Kernel 01 and A-00.
 
       - GEMMA_LOADER == "unsloth"                                : always
       - GEMMA_LOADER == "auto" + variant in {31b-it, 26b-a4b-it} : install
@@ -1833,12 +1836,125 @@ print()
 print("=== installing optional server deps ===")
 opt_status = install_optional_deps()
 
+from duecare.chat.experiment_contracts import model_preset_list
+from duecare.chat.gemma4_runtime import Gemma4LoadSpec, Gemma4Runtime, variant_from_ref
+from duecare.chat.portability import model_variant_map
+from duecare.chat.runtime_chrome import runtime_model_topbar_html
+
+
+def _live_model_log(phase: str, message: str) -> None:
+    dc_log(f"model.{phase}", message)
+
+
+_LIVE_MODEL_RUNTIME = Gemma4Runtime(log=_live_model_log)
+_LIVE_MODEL_INFO: dict[str, Any] = {
+    "loaded": False,
+    "source": "hf",
+    "model_ref": GEMMA_MODEL,
+    "resolved_model_ref": "",
+    "variant": GEMMA_MODEL_VARIANT,
+    "adapter_ref": "",
+    "quantization": "4bit" if GEMMA_LOAD_IN_4BIT else "bf16",
+    "notes": "No model loaded yet. Use the top-bar model selector or let startup load the configured Gemma 4 variant.",
+}
+
+
+def _live_model_presets() -> list[dict[str, str]]:
+    try:
+        presets = model_preset_list(model_variant_map())
+        if presets:
+            return presets
+    except Exception:
+        pass
+    return [
+        {
+            "label": "Gemma 4 E4B IT",
+            "ref": GEMMA_MODEL,
+            "source": "hf",
+            "notes": "Default live-demo path.",
+        }
+    ]
+
+
+def _compat_loaded_from_shared(shared: Any, env: Env) -> LoadedModel:
+    info = dict(getattr(shared, "info", {}) or {})
+    variant = info.get("variant") or variant_from_ref(info.get("model_ref", "")) or GEMMA_MODEL_VARIANT
+    try:
+        import torch
+
+        vram = round(sum(
+            torch.cuda.memory_allocated(i) for i in range(torch.cuda.device_count())
+        ) / 1024**3, 2)
+    except Exception:
+        vram = 0.0
+    return LoadedModel(
+        backend=shared.backend,
+        processor=shared.tokenizer,
+        mode="unsloth-shared",
+        vram_used_gb=vram,
+        model_name=f"gemma-4-{variant}",
+        model_size_b=_model_size_b_for(variant),
+        quantization="4-bit nf4" if str(info.get("quantization", "")).lower() in {"4bit", "nf4"} else str(info.get("quantization", "")),
+        device=str(info.get("device") or ("cuda" if env.gpu.available else "cpu")),
+        loader="shared-gemma4-runtime",
+        raw_model=shared.model,
+    )
+
+
+def load_gemma_shared(
+    env: Env,
+    *,
+    source: str = "hf",
+    model_ref: str = GEMMA_MODEL,
+    adapter_ref: str = "",
+    quantization: str | None = None,
+    verbose: bool = True,
+) -> Optional[LoadedModel]:
+    """Load Gemma 4 through the shared DueCare runtime primitive.
+
+    This is now the primary live-demo path. It intentionally mirrors the
+    Kernel 01/A-00 Unsloth FastModel behavior instead of maintaining a
+    separate per-notebook loader.
+    """
+    global _LIVE_MODEL_INFO
+    if not env.gpu.available:
+        if verbose:
+            print("  no GPU -- skipping shared Gemma 4 load")
+        return None
+    q = quantization or ("4bit" if GEMMA_LOAD_IN_4BIT else "bf16")
+    try:
+        shared = _LIVE_MODEL_RUNTIME.load(Gemma4LoadSpec(
+            source=source,
+            model_ref=model_ref,
+            adapter_ref=adapter_ref,
+            quantization=q,
+            max_seq_length=GEMMA_MAX_SEQ_LEN,
+        ))
+        _LIVE_MODEL_INFO = dict(shared.info)
+        if verbose:
+            print(
+                "  shared Gemma runtime ready: "
+                f"{_LIVE_MODEL_INFO.get('resolved_model_ref')} "
+                f"({_LIVE_MODEL_INFO.get('device')})"
+            )
+        return _compat_loaded_from_shared(shared, env)
+    except Exception as exc:
+        _LIVE_MODEL_INFO = {
+            **_LIVE_MODEL_INFO,
+            "loaded": False,
+            "error": f"{type(exc).__name__}: {exc}",
+            "notes": "Shared Gemma 4 load failed. Check Kaggle GPU, internet, and model access.",
+        }
+        if verbose:
+            print(f"  shared Gemma runtime FAILED: {type(exc).__name__}: {exc}")
+        return None
+
 
 
 # ===========================================================================
-# CLEAN SHUTDOWN -- /api/shutdown POST + /shutdown GET + floating button.
+# CLEAN SHUTDOWN -- /api/shutdown POST + /shutdown GET + top runtime bar.
 # Users can:
-#   (1) click the floating "Shutdown" button in the top-right of the UI
+#   (1) click the shared top-bar "Shutdown" button
 #   (2) open <public-url>/shutdown for a full confirmation page
 #   (3) POST /api/shutdown directly (curl, etc.)
 # All three signal the main loop to exit; cleanup runs after.
@@ -1859,31 +1975,39 @@ _SHUTDOWN_BUTTON_SNIPPET = """
     box-shadow: 0 1px 0 rgba(14,17,22,0.04);
     font-family: var(--sans, -apple-system, system-ui, sans-serif);
   }
-  #_dc-runtime-title {
+  .runtime-brand {
     color: var(--ink, #0e1116); font-weight: 700; font-size: 13px;
     white-space: nowrap;
   }
-  #_dc-runtime-note {
+  .runtime-model {
+    color: var(--ink-3, #5b5f68); font-size: 12px;
+    display: flex; align-items: center; gap: 7px;
+    min-width: 0; overflow: hidden;
+  }
+  #runtime-model-name {
+    color: var(--ink, #0e1116); white-space: nowrap;
+  }
+  #runtime-model-note {
     color: var(--ink-3, #5b5f68); font-size: 12px;
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   }
-  #_dc-runtime-actions {
+  .runtime-actions {
     margin-left: auto; display: flex; align-items: center; gap: 8px;
     min-width: 0;
   }
-  #_dc-backend-slot {
-    display: flex; align-items: center; min-width: 0;
+  .runtime-metrics {
+    display: flex; align-items: center; gap: 7px; min-width: 0;
   }
-  #_dc-shutdown-btn {
+  .runtime-button {
     background: var(--ink, #0e1116); color: var(--paper, #f7f6f1);
     padding: 7px 11px; border-radius: 6px;
     font-family: var(--sans, -apple-system, system-ui, sans-serif);
     font-weight: 700; font-size: 12px; cursor: pointer;
     border: 1px solid var(--ink, #0e1116);
   }
-  #_dc-shutdown-btn:hover { background: #1a1d24; }
-  #_dc-shutdown-btn:focus-visible { outline: 3px solid oklch(0.85 0.05 195 / 0.35); outline-offset: 2px; }
-  #_dc-shutdown-btn[aria-disabled="true"] { cursor: wait; opacity: 0.82; }
+  .runtime-button:hover { background: #1a1d24; }
+  .runtime-button:focus-visible { outline: 3px solid oklch(0.85 0.05 195 / 0.35); outline-offset: 2px; }
+  .runtime-button[aria-disabled="true"] { cursor: wait; opacity: 0.82; }
   #_dc-shutdown-status {
     max-width: min(320px, calc(100vw - 28px)); padding: 10px 12px;
     background: var(--paper, #f7f6f1); color: var(--ink, #0e1116);
@@ -1893,42 +2017,134 @@ _SHUTDOWN_BUTTON_SNIPPET = """
     font-size: 12px;
   }
   #_dc-shutdown-status[hidden] { display: none; }
+  .runtime-model-overlay {
+    position: fixed; inset: 0; z-index: 100010;
+    background: rgba(14, 17, 22, 0.38);
+  }
+  .runtime-model-modal {
+    position: fixed; left: 50%; top: 78px; transform: translateX(-50%);
+    z-index: 100011; width: min(620px, calc(100vw - 28px));
+    background: var(--paper, #f7f6f1); border: 1px solid var(--line, #ddd8c9);
+    border-radius: 8px; box-shadow: 0 24px 90px rgba(14,17,22,0.24);
+    padding: 18px; font-family: var(--sans, -apple-system, system-ui, sans-serif);
+  }
+  .runtime-model-modal[hidden], .runtime-model-overlay[hidden] { display: none; }
+  .runtime-model-modal-head {
+    display: flex; justify-content: space-between; gap: 14px; align-items: flex-start;
+  }
+  .runtime-model-modal-head p {
+    margin: 5px 0 0; color: var(--ink-3, #5b5f68); font-size: 13px;
+  }
+  .runtime-model-modal-controls {
+    display: grid; grid-template-columns: 1fr auto; gap: 10px; margin-top: 16px;
+  }
+  #runtime-model-select {
+    min-width: 0; border: 1px solid var(--line, #ddd8c9);
+    border-radius: 6px; padding: 8px 10px; background: white;
+  }
+  #runtime-model-loader-log {
+    margin: 14px 0 0; min-height: 92px; max-height: 220px; overflow: auto;
+    border: 1px solid var(--line, #ddd8c9); border-radius: 6px;
+    background: #fbfaf6; padding: 10px; white-space: pre-wrap;
+    font-size: 12px; color: var(--ink-3, #5b5f68);
+  }
   @media (max-width: 640px) {
-    #_dc-runtime-note { display: none; }
+    #runtime-model-note { display: none; }
     #_dc-runtime-topbar { gap: 8px; padding: 0 10px; }
-    #_dc-runtime-title { font-size: 12px; }
-    #_dc-shutdown-btn { padding: 6px 9px; }
+    .runtime-brand { font-size: 12px; }
+    .runtime-button { padding: 6px 9px; }
   }
 </style>
-<div id="_dc-runtime-topbar" role="banner" aria-label="DueCare runtime controls">
-  <div id="_dc-runtime-title">DueCare live demo</div>
-  <div id="_dc-runtime-note">Kaggle runtime controls</div>
-  <div id="_dc-runtime-actions">
-    <div id="_dc-backend-slot" aria-label="Backend status"></div>
-    <button id="_dc-shutdown-btn" type="button" aria-label="Shutdown DueCare server">Shutdown</button>
-    <div id="_dc-shutdown-status" role="status" aria-live="polite" hidden></div>
-  </div>
-</div>
+""" + runtime_model_topbar_html(
+    title="DueCare live demo",
+    custom_href="/settings",
+    shutdown_function="_dcRuntimeShutdown",
+) + """
+<div id="_dc-shutdown-status" role="status" aria-live="polite" hidden></div>
 <script>
 (function() {
-  var btn = document.getElementById('_dc-shutdown-btn');
   var status = document.getElementById('_dc-shutdown-status');
-  var slot = document.getElementById('_dc-backend-slot');
-  if (!btn || !status) return;
+  var modelName = document.getElementById('runtime-model-name');
+  var modelNote = document.getElementById('runtime-model-note');
+  var kpis = document.getElementById('kpis');
+  var overlay = document.getElementById('runtime-model-overlay');
+  var modal = document.getElementById('runtime-model-modal');
+  var select = document.getElementById('runtime-model-select');
+  var loaderLog = document.getElementById('runtime-model-loader-log');
+  var selectorStatus = document.getElementById('runtime-model-selector-status');
   function mountBackendBadge() {
     var badge = document.querySelector('.dc-backend-badge');
-    if (badge && slot && badge.parentElement !== slot) {
+    if (badge && kpis && badge.parentElement !== kpis) {
       badge.classList.add('in-runtime-bar');
-      slot.appendChild(badge);
+      kpis.appendChild(badge);
     }
   }
-  mountBackendBadge();
-  window.setTimeout(mountBackendBadge, 250);
   function showStatus(message) {
+    if (!status) return;
     status.textContent = message;
     status.hidden = false;
   }
-  btn.addEventListener('click', function() {
+  function setLoaderLog(message) {
+    if (loaderLog) loaderLog.textContent = message;
+    if (selectorStatus) selectorStatus.textContent = message;
+  }
+  async function refreshRuntimeInfo() {
+    try {
+      var res = await fetch('/api/model-info');
+      var info = await res.json();
+      if (modelName) modelName.textContent = info.loaded ? ('Model: ' + info.display) : 'Model: not loaded';
+      if (modelNote) modelNote.textContent = info.loaded ? (info.device || 'Gemma 4 ready') : 'Load Gemma 4 for live inference';
+      mountBackendBadge();
+    } catch (error) {
+      if (modelNote) modelNote.textContent = 'Model status unavailable';
+    }
+  }
+  async function loadModelPresets() {
+    if (!select || select.options.length) return;
+    try {
+      var res = await fetch('/api/live/model-presets');
+      var data = await res.json();
+      (data.presets || []).forEach(function(p) {
+        var opt = document.createElement('option');
+        opt.value = JSON.stringify({source:p.source || 'hf', model_ref:p.ref || ''});
+        opt.textContent = p.label + ' - ' + (p.notes || p.ref || '');
+        select.appendChild(opt);
+      });
+    } catch (error) {
+      setLoaderLog('Model preset load failed: ' + error.message);
+    }
+  }
+  window.openModelSelector = function() {
+    if (overlay) overlay.hidden = false;
+    if (modal) modal.hidden = false;
+    loadModelPresets();
+  };
+  window.closeModelSelector = function() {
+    if (overlay) overlay.hidden = true;
+    if (modal) modal.hidden = true;
+  };
+  window.loadSelectedRuntimeModel = async function() {
+    if (!select || !select.value) return;
+    var payload = JSON.parse(select.value);
+    setLoaderLog('Loading ' + payload.model_ref + ' through shared Gemma 4 runtime...');
+    try {
+      var res = await fetch('/api/live/model/load', {
+        method: 'POST',
+        headers: {'content-type': 'application/json'},
+        body: JSON.stringify(payload)
+      });
+      var data = await res.json();
+      if (!res.ok || data.loaded === false) throw new Error(data.error || data.detail || 'model load failed');
+      setLoaderLog('Loaded ' + (data.resolved_model_ref || data.model_ref || 'Gemma 4'));
+      await refreshRuntimeInfo();
+      window.setTimeout(window.closeModelSelector, 450);
+    } catch (error) {
+      setLoaderLog('Model load failed: ' + error.message);
+    }
+  };
+  window._dcRuntimeShutdown = function() {
+    var btn = document.getElementById('_dc-shutdown-btn');
+    if (!btn) return;
     if (btn.getAttribute('aria-disabled') === 'true') return;
     if (!confirm('Shut down DueCare?')) return;
     btn.setAttribute('aria-disabled', 'true');
@@ -1939,7 +2155,10 @@ _SHUTDOWN_BUTTON_SNIPPET = """
       btn.textContent = 'Shutdown';
       showStatus('Shutdown request failed: ' + error.message);
     });
-  });
+  };
+  mountBackendBadge();
+  refreshRuntimeInfo();
+  window.setInterval(refreshRuntimeInfo, 10000);
 })();
 </script>
 """
@@ -1953,7 +2172,7 @@ _HIDE_HARNESS_TILES_SNIPPET = """
 
 
 def _attach_shutdown(app, hide_harness_tiles: bool = False) -> None:
-    """Bolt /api/shutdown + /shutdown + floating button onto any FastAPI app."""
+    """Bolt /api/shutdown + /shutdown + shared runtime bar onto the app."""
     from fastapi.responses import HTMLResponse, JSONResponse
     from starlette.middleware.base import BaseHTTPMiddleware
 
@@ -1999,7 +2218,7 @@ def _attach_shutdown(app, hide_harness_tiles: bool = False) -> None:
     app.add_api_route("/api/shutdown", _api_shutdown, methods=["POST"])
     app.add_api_route("/shutdown", _shutdown_page, methods=["GET"])
 
-    # Inject the floating shutdown button into the main page via middleware.
+    # Inject the shared runtime top bar into the main page via middleware.
     # Filters: only path "/" + content-type text/html. Streaming endpoints
     # like /api/chat (SSE / JSON) pass through untouched.
     extras = _SHUTDOWN_BUTTON_SNIPPET
@@ -2052,16 +2271,17 @@ print(f"  sample corpus at {sample_dir} ({n_files} files)")
 
 
 # ===========================================================================
-# 3. Load Gemma 4 (smart -- auto-picks config)
+# 3. Load Gemma 4 (shared runtime -- same primitive as Kernel 01/A-00)
 # ===========================================================================
 print("\n" + "=" * 76)
-print("[3/8] Gemma 4 backend (smart loader)")
+print("[3/8] Gemma 4 backend (shared runtime)")
 print("=" * 76)
 gemma_call = None
+loaded = None
 if USE_GEMMA == "no" or USE_GEMMA is False:
     print("  USE_GEMMA = no -- skipping load")
 else:
-    loaded = load_gemma_smart(env)
+    loaded = load_gemma_shared(env, model_ref=GEMMA_MODEL)
     if loaded:
         gemma_call = loaded.backend
         print(f"  Gemma backend ready (mode: {loaded.mode}, "
@@ -2221,6 +2441,54 @@ import uvicorn
 
 app = create_app(state)
 _attach_shutdown(app)
+
+
+@app.get("/api/live/model-presets")
+def api_live_model_presets():
+    return {"presets": _live_model_presets()}
+
+
+@app.post("/api/live/model/load")
+def api_live_model_load(payload: dict[str, Any]):
+    global gemma_call, loaded, _LIVE_MODEL_INFO
+    model_ref = str(payload.get("model_ref") or GEMMA_MODEL).strip()
+    source = str(payload.get("source") or "hf").strip()
+    adapter_ref = str(payload.get("adapter_ref") or "").strip()
+    quantization = str(payload.get("quantization") or ("4bit" if GEMMA_LOAD_IN_4BIT else "bf16")).strip()
+    next_loaded = load_gemma_shared(
+        env,
+        source=source,
+        model_ref=model_ref,
+        adapter_ref=adapter_ref,
+        quantization=quantization,
+        verbose=True,
+    )
+    if next_loaded is None:
+        return {
+            **_LIVE_MODEL_INFO,
+            "loaded": False,
+            "error": _LIVE_MODEL_INFO.get("error", "model load failed"),
+        }
+    loaded = next_loaded
+    gemma_call = loaded.backend
+    state.set_gemma_call(
+        gemma_call,
+        model_name=loaded.model_name,
+        model_size_b=loaded.model_size_b,
+        model_quantization=loaded.quantization,
+        model_device=loaded.device,
+    )
+    return _LIVE_MODEL_INFO
+
+
+@app.post("/api/live/model/unload")
+def api_live_model_unload():
+    global gemma_call, loaded, _LIVE_MODEL_INFO
+    _LIVE_MODEL_INFO = _LIVE_MODEL_RUNTIME.unload("live demo UI unload")
+    loaded = None
+    gemma_call = None
+    state.set_gemma_call(None)
+    return _LIVE_MODEL_INFO
 
 
 @app.get("/api/portability")

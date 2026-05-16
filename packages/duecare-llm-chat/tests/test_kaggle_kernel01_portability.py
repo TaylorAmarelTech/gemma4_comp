@@ -157,7 +157,12 @@ def test_live_demo_and_a00_expose_page_level_controls():
         "/api/moderate",
         "/api/worker_check",
         "_dc-runtime-topbar",
-        "_dc-backend-slot",
+        "runtime_model_topbar_html",
+        "runtime-model-select",
+        "/api/live/model-presets",
+        "/api/live/model/load",
+        "Gemma4Runtime",
+        "load_gemma_shared",
     ]:
         assert token in live
 
@@ -186,11 +191,17 @@ def test_a00_uses_focused_experiment_console_not_exploration_nav():
     assert "Preconfigured Harness, Training, and Evaluation" in homepage
     assert "runPreconfiguredPipeline" in homepage
     assert "preconfig-progress" in homepage
-    assert "_dc-runtime-topbar" in homepage
-    assert "runtime-model-name" in homepage
+    assert "__A00_RUNTIME_TOPBAR__" in homepage
+    assert "runtime_model_topbar_html" in a00
+    assert "Model: dry run" not in homepage
+    assert "Start with dry-run outputs" not in homepage
     assert "body.a00-custom .primary-grid { display: grid; }" in homepage
     assert re.search(r"(?m)^\s*\.primary-grid\s*\{\s*display:\s*grid;", homepage) is None
-    assert "google/gemma-4-2b-it" in homepage
+    assert "__A00_SMALL_MODEL_REF__" in homepage
+    assert "a00-landing" in a00
+    assert "A00_PRECONFIGURED_HTML" in a00
+    assert '"/preconfigured"' in a00
+    assert '"/custom"' in a00
     assert "normal Gemma plus rules combined mode" in homepage
     assert "Advanced model-switching pipeline" in homepage
     assert "Appendix workflow registry" in homepage
