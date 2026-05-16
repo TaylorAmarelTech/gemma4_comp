@@ -13,6 +13,7 @@ PORTABILITY_AUDIT = KERNEL_DIR / "PORTABILITY_AUDIT.md"
 WHEELS = KERNEL_DIR / "wheels"
 A00_KERNEL = REPO / "kaggle" / "A-00-omni-experiment-workbench" / "kernel.py"
 LIVE_DEMO_KERNEL = REPO / "kaggle" / "02-live-demo" / "kernel.py"
+GEMMA4_RUNTIME = REPO / "packages" / "duecare-llm-chat" / "src" / "duecare" / "chat" / "gemma4_runtime.py"
 
 
 def _text(path: Path) -> str:
@@ -165,6 +166,8 @@ def test_live_demo_and_a00_expose_page_level_controls():
         "load_gemma_shared",
     ]:
         assert token in live
+    assert "p.label + ' - ' + (p.notes || p.ref || '')" not in live
+    assert "p.label || p.ref || 'Gemma 4 model'" in live
 
     for token in [
         "Quantitative profile",
@@ -193,8 +196,19 @@ def test_a00_uses_focused_experiment_console_not_exploration_nav():
     assert "preconfig-progress" in homepage
     assert "__A00_RUNTIME_TOPBAR__" in homepage
     assert "runtime_model_topbar_html" in a00
+    assert '${p.label || p.ref} | ${p.notes || ""}' not in a00
+    assert "p.label || p.ref}</option>" in a00
     assert "Model: dry run" not in homepage
     assert "Start with dry-run outputs" not in homepage
+    assert "body.a00-landing .a00-choice-controls" in homepage
+    assert 'id="preconfig-model"' in homepage
+    assert 'id="preconfig-limit" type="number" min="1" max="50" value="2"' in homepage
+    assert "preconfig-synth-count" not in homepage
+    assert "preconfig-execute" not in homepage
+    assert "openStartCard('/preconfigured'" in homepage
+    assert "openStartCard('/custom'" in homepage
+    assert "Open custom controls" not in homepage
+    assert "Build report from selected runs" not in homepage
     assert "body.a00-custom .primary-grid { display: grid; }" in homepage
     assert re.search(r"(?m)^\s*\.primary-grid\s*\{\s*display:\s*grid;", homepage) is None
     assert "__A00_SMALL_MODEL_REF__" in homepage
@@ -203,8 +217,19 @@ def test_a00_uses_focused_experiment_console_not_exploration_nav():
     assert '"/preconfigured"' in a00
     assert '"/custom"' in a00
     assert "normal Gemma plus rules combined mode" in homepage
+    assert 'harness_profile: "chat_no_online"' in homepage
+    assert "no internet/import" in homepage
+    assert "grade_response_combined" in a00
+    assert "grade_response_universal" in a00
     assert "Advanced model-switching pipeline" in homepage
     assert "Appendix workflow registry" in homepage
+
+
+def test_shared_gemma_runtime_uses_gemma4_message_content_blocks():
+    runtime = _text(GEMMA4_RUNTIME)
+    assert "def _normalise_messages" in runtime
+    assert '"content"] = [{"type": "text", "text": content}]' in runtime
+    assert "tokenizer.apply_chat_template(" in runtime
 
 
 def test_primary_kernels_bootstrap_from_github_source_with_full_package_closure():

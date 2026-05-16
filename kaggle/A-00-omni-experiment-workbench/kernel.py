@@ -306,7 +306,8 @@ try:
         synthetic_generation_profile_map,
         training_profile_map,
     )
-    from duecare.chat.gemma4_runtime import Gemma4LoadSpec, Gemma4Runtime
+    from duecare.chat.gemma4_runtime import Gemma4LoadSpec, Gemma4Runtime, resolve_model_ref
+    from duecare.chat.harness import grade_response_combined, grade_response_universal
     from duecare.chat.kernel_shell import build_minimal_shell
     from duecare.chat.portability import model_variant_map
     from duecare.chat.portability import reference_portability_contract_payload
@@ -1005,7 +1006,7 @@ class PipelineRequest(BaseModel):
     prompt_set: str = A00_BULK_COMPARE_DEFAULT["prompt_set"]
     harness_profile: str = A00_BULK_COMPARE_DEFAULT["treatment_harness"]
     baseline_harness_profile: str = A00_BULK_COMPARE_DEFAULT["baseline_harness"]
-    limit: int = 5
+    limit: int = 2
     synthetic_count: int = 5
     generator_mode: str = A00_SYNTHETIC_DEFAULT["generator_mode"]
     evaluate_outputs: bool = True
@@ -1014,7 +1015,7 @@ class PipelineRequest(BaseModel):
     max_steps: int = A00_TRAINING_DEFAULT["max_steps"]
     training_output_dir: str = ""
     unload_between_steps: bool = True
-    llm_judge: bool = False
+    llm_judge: bool = True
     run_label: str = ""
 
 
@@ -1659,31 +1660,12 @@ def _score_dimension(dim_id: str, response: str, row: dict[str, Any], trace: dic
 
 
 def _rule_evaluate(row: dict[str, Any], response: str, harness_profile: str, trace: dict[str, Any]) -> dict[str, Any]:
-    dims = _dimension_plan(row, harness_profile, trace)
-    scores = []
-    total_w = 0.0
-    weighted = 0.0
-    for dim in dims:
-        score, rationale = _score_dimension(dim["id"], response, row, trace)
-        weighted += float(score) * float(dim["weight"])
-        total_w += float(dim["weight"])
-        scores.append({
-            "id": dim["id"],
-            "label": dim["label"],
-            "weight": round(float(dim["weight"]), 3),
-            "score_0_10": round(float(score), 2),
-            "rationale": rationale,
-            "source": "rule",
-        })
-    score_0_10 = weighted / total_w if total_w else 0.0
-    return {
-        "judge": "rule",
-        "score_0_10": round(score_0_10, 2),
-        "score_pct": round(score_0_10 * 10, 1),
-        "n_dimensions": len(scores),
-        "dimensions": scores,
-        "dynamic_weight_total": round(total_w, 3),
-    }
+    shared = grade_response_universal(
+        response,
+        prompt_text=row.get("prompt", ""),
+        harness_trace=trace,
+    )
+    return _normalise_shared_grade(shared, mode="rule")["rule"]
 
 
 def _llm_evaluate(row: dict[str, Any], response: str, rule_grade: dict[str, Any], trace: dict[str, Any]) -> Optional[dict[str, Any]]:
@@ -1730,17 +1712,100 @@ def _llm_evaluate(row: dict[str, Any], response: str, rule_grade: dict[str, Any]
 
 
 def _combined_grade(row: dict[str, Any], response: str, harness_profile: str, trace: dict[str, Any], use_llm: bool) -> dict[str, Any]:
-    rule = _rule_evaluate(row, response, harness_profile, trace)
-    llm = _llm_evaluate(row, response, rule, trace) if use_llm else None
-    if not llm:
-        return {"mode": "rule", "score_0_10": rule["score_0_10"], "score_pct": rule["score_pct"], "rule": rule, "llm": None}
-    score = rule["score_0_10"] * 0.55 + llm["score_0_10"] * 0.45
+    model_call = _grading_model_call(row) if use_llm else None
+    try:
+        shared = grade_response_combined(
+            response,
+            model_call=model_call,
+            prompt_text=row.get("prompt", ""),
+            harness_trace=trace,
+            evaluator_weight=0.5 if model_call else 0.0,
+        )
+        mode = "combined" if model_call else "rule"
+        return _normalise_shared_grade(shared, mode=mode)
+    except Exception as exc:  # noqa: BLE001
+        shared = grade_response_universal(
+            response,
+            prompt_text=row.get("prompt", ""),
+            harness_trace=trace,
+        )
+        fallback = _normalise_shared_grade(shared, mode="rule")
+        fallback["combined_error"] = f"{type(exc).__name__}: {exc}"
+        return fallback
+
+
+def _grading_model_call(row: dict[str, Any]) -> Optional[Any]:
+    backend = STATE.get("model_backend")
+    if backend is not None:
+        def call(prompt: str) -> str:
+            return str(backend(prompt, max_new_tokens=900, temperature=0.0))
+        return call
+    if STATE.get("model") is not None and STATE.get("tokenizer") is not None:
+        def call(prompt: str) -> str:
+            raw, _meta = _generate(
+                prompt,
+                max_new_tokens=900,
+                temperature=0.0,
+                trace={"profile": "shared_grade_combined"},
+                row=row,
+            )
+            return raw
+        return call
+    return None
+
+
+def _normalise_shared_dimensions(dimensions: Any) -> list[dict[str, Any]]:
+    rows: list[dict[str, Any]] = []
+    if not isinstance(dimensions, list):
+        return rows
+    for dim in dimensions:
+        if not isinstance(dim, dict):
+            continue
+        did = dim.get("id")
+        if not did:
+            continue
+        weight = dim.get("weight", dim.get("effective_weight", 1.0))
+        rows.append({
+            "id": did,
+            "label": dim.get("label") or dim.get("name") or did,
+            "weight": round(float(weight or 1.0), 3),
+            "score_0_10": round(float(dim.get("score_0_10", 0) or 0), 2),
+            "rationale": dim.get("rationale") or dim.get("reasoning") or dim.get("status") or "",
+            "source": dim.get("source") or dim.get("mode") or "shared_harness",
+            "status": dim.get("status"),
+        })
+    return rows
+
+
+def _normalise_shared_grade(payload: dict[str, Any], *, mode: str) -> dict[str, Any]:
+    pct = payload.get("pct_score")
+    score = payload.get("score_0_10")
+    if pct is None and score is not None:
+        pct = float(score) * 10.0
+    if score is None and pct is not None:
+        score = float(pct) / 10.0
+    pct = round(float(pct or 0.0), 1)
+    score = round(float(score or 0.0), 2)
+
+    deterministic = payload.get("deterministic") if isinstance(payload.get("deterministic"), dict) else payload
+    dimension_source = payload.get("dimension_fusion") or deterministic.get("dimensions", [])
+    rule = {
+        "judge": "duecare.chat.harness.grade_response_universal",
+        "score_0_10": score if mode == "rule" else round(float(deterministic.get("score_0_10", score) or score), 2),
+        "score_pct": pct if mode == "rule" else round(float(deterministic.get("pct_score", pct) or pct), 1),
+        "n_dimensions": len(_normalise_shared_dimensions(dimension_source)),
+        "dimensions": _normalise_shared_dimensions(dimension_source),
+        "dynamic_weight_total": round(float(payload.get("total_weight", deterministic.get("total_weight", 0)) or 0), 3),
+        "shared_payload": deterministic,
+    }
     return {
-        "mode": "combined",
-        "score_0_10": round(score, 2),
-        "score_pct": round(score * 10, 1),
+        "mode": mode,
+        "score_0_10": score,
+        "score_pct": pct,
         "rule": rule,
-        "llm": llm,
+        "llm": payload.get("evaluator"),
+        "combined": payload if mode == "combined" else None,
+        "grader": "duecare.chat.harness.grade_response_combined" if mode == "combined" else "duecare.chat.harness.grade_response_universal",
     }
 
 
@@ -2241,8 +2306,18 @@ try:
     )
     ds = load_dataset("json", data_files=DATA_PATH, split="train")
 
+    def normalize_messages(messages):
+        out = []
+        for msg in messages:
+            item = dict(msg)
+            content = item.get("content")
+            if isinstance(content, str):
+                item["content"] = [{{"type": "text", "text": content}}]
+            out.append(item)
+        return out
+
     def render(row):
-        messages = row.get("messages") or []
+        messages = normalize_messages(row.get("messages") or [])
         if hasattr(tokenizer, "apply_chat_template"):
             return {{"text": tokenizer.apply_chat_template(messages, tokenize=False)}}
         text = "\\n".join(f"{{m.get('role')}}: {{m.get('content')}}" for m in messages)
@@ -2316,6 +2391,7 @@ def _append_job_step(job_id: str, label: str, status: str, detail: Any = None) -
         job["status"] = status if status in {"queued", "running", "completed", "failed", "timeout"} else job.get("status", "running")
         job["heartbeat_at"] = _utc()
         _write_job_record(job)
+    dc_log("a00.pipeline.step", f"{job_id}: {label}", status=status, detail=detail)
 
 
 def _training_preflight() -> dict[str, Any]:
@@ -2780,7 +2856,10 @@ def _create_training_job(req: TrainRequest) -> dict[str, Any]:
     output_dir.mkdir(parents=True, exist_ok=True)
     script_path = TRAIN_DIR / f"{job_id}.py"
     log_path = TRAIN_DIR / f"{job_id}.log"
-    script_path.write_text(_training_script(req, str(data_path), output_dir), encoding="utf-8")
+    base_source = "local_path" if Path(req.base_model_ref).exists() else "hf"
+    resolved_base_model_ref, resolved_variant, resolved_source = resolve_model_ref(base_source, req.base_model_ref)
+    script_req = TrainRequest(**{**req.dict(), "base_model_ref": resolved_base_model_ref})
+    script_path.write_text(_training_script(script_req, str(data_path), output_dir), encoding="utf-8")
     job = {
         "job_id": job_id,
         "created_at": _utc(),
@@ -2790,6 +2869,9 @@ def _create_training_job(req: TrainRequest) -> dict[str, Any]:
         "data_path": str(data_path),
         "output_dir": str(output_dir),
         "base_model_ref": req.base_model_ref,
+        "resolved_base_model_ref": resolved_base_model_ref,
+        "resolved_base_model_source": resolved_source,
+        "resolved_base_model_variant": resolved_variant,
         "method": req.method,
         "execute": req.execute,
         "async": bool(req.execute),
@@ -3284,6 +3366,20 @@ def _model_request(source: str, ref: str, adapter_ref: str, quantization: str) -
     )
 
 
+def _current_model_matches(source: str, ref: str, adapter_ref: str) -> bool:
+    info = STATE.get("model_info") or {}
+    if not info.get("loaded"):
+        return False
+    loaded_refs = {
+        str(info.get("model_ref") or ""),
+        str(info.get("resolved_model_ref") or ""),
+        str(info.get("variant") or ""),
+    }
+    requested = str(ref or A00_SMALL_MODEL_REF)
+    loaded_adapter = str(info.get("adapter_ref") or "")
+    return requested in loaded_refs and loaded_adapter == str(adapter_ref or "")
+
+
 def _wait_for_training_job(job_id: str, pipeline_job_id: str, timeout_sec: int) -> dict[str, Any]:
     deadline = time.time() + timeout_sec
     while time.time() < deadline:
@@ -3342,12 +3438,15 @@ def _run_pipeline_job(job_id: str, req: PipelineRequest) -> None:
                 _append_job_step(job_id, "comparison report" if report else "runs ready for later grading", "running", report or {"run_ids": run_ids})
 
             elif req.preset_id == "synthetic_train_benchmark_cycle":
-                if req.unload_between_steps:
-                    _append_job_step(job_id, "unload before base model", "running")
-                    _unload_model_runtime(f"pipeline {job_id}: before synthetic generation")
-                _append_job_step(job_id, "load teacher/base model", "running", {"source": req.model_a_source, "model_ref": req.model_a_ref})
-                model_info = _load_model_runtime(_model_request(req.model_a_source, req.model_a_ref, req.model_a_adapter_ref, req.quantization))
-                _append_job_step(job_id, "loaded teacher/base model", "running", model_info)
+                if _current_model_matches(req.model_a_source, req.model_a_ref, req.model_a_adapter_ref):
+                    _append_job_step(job_id, "use already-loaded teacher/base model", "running", STATE.get("model_info"))
+                else:
+                    if req.unload_between_steps:
+                        _append_job_step(job_id, "prepare model slot before base model", "running")
+                        _unload_model_runtime(f"pipeline {job_id}: before synthetic generation")
+                    _append_job_step(job_id, "load teacher/base model", "running", {"source": req.model_a_source, "model_ref": req.model_a_ref})
+                    model_info = _load_model_runtime(_model_request(req.model_a_source, req.model_a_ref, req.model_a_adapter_ref, req.quantization))
+                    _append_job_step(job_id, "loaded teacher/base model", "running", model_info)
                 _append_job_step(job_id, "run base Gemma without harness", "running", {"prompt_set": req.prompt_set, "limit": req.limit})
                 base_no_harness = _run_batch(BatchRunRequest(
                     prompt_set=req.prompt_set,
@@ -3851,6 +3950,12 @@ HOMEPAGE_HTML = r"""<!doctype html>
     body.a00-custom .experiment-flow { display: block; }
     body.a00-custom .primary-grid { display: grid; }
     body.a00-custom .advanced-panel { display: block; }
+    body.a00-landing .a00-choice { min-height: 230px; cursor: pointer; transition: border-color 140ms ease, transform 140ms ease; }
+    body.a00-landing .a00-choice:hover { border-color: var(--ink); transform: translateY(-1px); }
+    body.a00-landing .a00-choice:focus { outline: 3px solid rgba(14,17,22,0.18); outline-offset: 3px; }
+    body.a00-landing .a00-choice ol,
+    body.a00-landing .a00-choice-controls,
+    body.a00-landing .status-pill,
     body.a00-landing .run-action,
     body.a00-landing .experiment-flow,
     body.a00-landing .primary-grid,
@@ -3863,7 +3968,7 @@ HOMEPAGE_HTML = r"""<!doctype html>
       grid-template-columns: minmax(0, 860px);
       justify-content: center;
     }
-    body.a00-preconfigured .experiment-flow { display: block; }
+    body.a00-preconfigured .experiment-flow { display: none; }
     .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; }
     .primary-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-top: 12px; }
     .panel { background: var(--paper); border: 1px solid var(--line); border-radius: 8px; padding: 16px; }
@@ -3950,7 +4055,7 @@ __A00_RUNTIME_TOPBAR__
   </header>
 
   <section class="a00-choice-grid" aria-label="A-00 start options">
-    <div class="panel a00-choice a00-preconfigured preconfig-card">
+    <div class="panel a00-choice a00-preconfigured preconfig-card" role="link" tabindex="0" onclick="openStartCard('/preconfigured', event)" onkeydown="openStartCardKey('/preconfigured', event)">
       <div class="panel-heading">
         <div>
           <h2>Preconfigured Harness, Training, and Evaluation</h2>
@@ -3969,21 +4074,18 @@ __A00_RUNTIME_TOPBAR__
       </ol>
       <div class="a00-choice-controls">
         <div class="row compact-row">
-          <label>Prompt count <input id="preconfig-limit" type="number" min="1" max="50" value="5"></label>
-          <label>Synthetic rows <input id="preconfig-synth-count" type="number" min="1" max="100" value="10"></label>
-          <label>Execute training <select id="preconfig-execute"><option value="true">execute now</option><option value="false">create job only</option></select></label>
+          <label>Gemma model <select id="preconfig-model"></select></label>
+          <label>Prompt count <input id="preconfig-limit" type="number" min="1" max="50" value="2"></label>
         </div>
         <div class="pipeline-progress" aria-label="Preconfigured pipeline progress"><div id="preconfig-progress"></div></div>
-        <div class="preconfigured-status" id="preconfig-status">Ready. Defaults use Gemma 4 E2B, chat_full harness, combined grading, and one model resident at a time.</div>
+        <div class="preconfigured-status" id="preconfig-status">Ready. Defaults use Gemma 4 E2B, 2 PH-HK prompts, Persona + GREP + RAG/context + tools, no internet/import, combined LLM + rule grading, and final report export.</div>
         <div class="a00-choice-actions">
-          <button class="landing-action" onclick="location.href='/preconfigured'">Open preconfigured pipeline</button>
           <button class="run-action" onclick="runPreconfiguredPipeline()">Run preconfigured pipeline</button>
-          <button class="secondary run-action" onclick="reviewPreconfiguredSettings()">Review exact settings</button>
         </div>
       </div>
     </div>
 
-    <div class="panel a00-choice custom-card">
+    <div class="panel a00-choice custom-card" role="link" tabindex="0" onclick="openStartCard('/custom', event)" onkeydown="openStartCardKey('/custom', event)">
       <div class="panel-heading">
         <div>
           <h2>Custom</h2>
@@ -3992,12 +4094,6 @@ __A00_RUNTIME_TOPBAR__
       </div>
       <div class="a00-custom-note">
         Keep this path for debugging, importing prior exports, changing model sources, or running a partial benchmark instead of the full end-to-end preset.
-      </div>
-      <div class="a00-choice-controls">
-        <div class="a00-choice-actions">
-          <button class="secondary" onclick="location.href='/custom'">Open custom controls</button>
-          <button class="secondary" onclick="buildReport()">Build report from selected runs</button>
-        </div>
       </div>
     </div>
   </section>
@@ -4201,7 +4297,37 @@ const $ = (id) => document.getElementById(id);
 let selectedRuns = [];
 let activeJobPolls = {};
 let lastIntake = null;
-function log(obj) { $("log").textContent = typeof obj === "string" ? obj : JSON.stringify(obj, null, 2); refreshStatus(); }
+function summarizeActivity(obj) {
+  if (typeof obj === "string") return obj;
+  if (obj && obj.job_status) {
+    const j = obj.job_status;
+    const last = (j.steps || []).slice(-1)[0] || {};
+    return `${j.job_id || "job"} | ${j.status || "unknown"} | ${last.label || j.kind || ""}`;
+  }
+  if (obj && obj.job_id) return `${obj.job_id} | ${obj.status || "queued"} | ${obj.kind || "job"}`;
+  if (obj && obj.run_id) return `${obj.run_id} | run exported`;
+  if (obj && obj.report && obj.report.report_id) return `${obj.report.report_id} | report ready`;
+  return JSON.stringify(obj, null, 2);
+}
+function log(obj) {
+  const el = $("log");
+  const stamp = new Date().toLocaleTimeString();
+  const summary = summarizeActivity(obj);
+  const detail = typeof obj === "string" ? "" : "\n" + JSON.stringify(obj, null, 2);
+  el.textContent = `[${stamp}] ${summary}${detail}\n\n` + (el.textContent || "").slice(0, 18000);
+  refreshStatus();
+}
+function openStartCard(path, event) {
+  if (!document.body.classList.contains("a00-landing")) return;
+  if (event && event.target && event.target.closest && event.target.closest("button,input,select,textarea,a")) return;
+  location.href = path;
+}
+function openStartCardKey(path, event) {
+  if (event.key === "Enter" || event.key === " ") {
+    event.preventDefault();
+    openStartCard(path, event);
+  }
+}
 function revealCustom() {
   if (!document.body.classList.contains("a00-custom")) {
     location.href = "/custom";
@@ -4262,6 +4388,8 @@ async function loadSelectedRuntimeModel() {
   const res = await getJson("/api/a00/model/load", {method:"POST", headers:{"content-type":"application/json"}, body:JSON.stringify({source:source, model_ref:modelRef, quantization:$("quantization").value || "4bit"})});
   if (res.loaded) {
     setModelSelectorStatus("Loaded " + (res.model_ref || modelRef));
+    if ($("preconfig-model")) $("preconfig-model").value = modelRef;
+    window.preconfiguredModelAcknowledged = true;
     closeModelSelector();
   } else {
     setModelSelectorStatus("Model load failed. Check Activity for the exact error.");
@@ -4488,21 +4616,25 @@ async function loadOptions() {
   if ($("pipeline-preset")) $("pipeline-preset").innerHTML = Object.entries(presets.presets || {}).map(([id,p]) => `<option value="${id}">${p.label}</option>`).join("");
   const modelPresets = await getJson("/api/a00/model-presets");
   if ($("runtime-model-select")) {
-    $("runtime-model-select").innerHTML = (modelPresets.presets || []).map(p => `<option value="${p.ref}" data-source="${p.source || "hf"}">${p.label || p.ref} | ${p.notes || ""}</option>`).join("");
+    $("runtime-model-select").innerHTML = (modelPresets.presets || []).map(p => `<option value="${p.ref}" data-source="${p.source || "hf"}">${p.label || p.ref}</option>`).join("");
+  }
+  if ($("preconfig-model")) {
+    $("preconfig-model").innerHTML = (modelPresets.presets || []).map(p => `<option value="${p.ref}" data-source="${p.source || "hf"}">${p.label || p.ref}</option>`).join("");
+    $("preconfig-model").value = "__A00_SMALL_MODEL_REF__";
   }
   const bulk = contract.quantitative_run_profiles.bulk_text_25;
   const synth = contract.synthetic_generation_profiles.rubric_polisher_24;
   const train = contract.training_profiles.tiny_lora_smoke;
   $("prompt-set").value = bulk.prompt_set;
-  $("harness-profile").value = bulk.treatment_harness;
+  $("harness-profile").value = "chat_no_online";
   $("limit").value = bulk.limit;
   $("synth-count").value = synth.count;
   $("train-base-model").value = train.base_model_ref;
   $("max-steps").value = train.max_steps;
   if ($("pipeline-prompt-set")) $("pipeline-prompt-set").value = bulk.prompt_set;
   if ($("pipeline-baseline-harness")) $("pipeline-baseline-harness").value = bulk.baseline_harness;
-  if ($("pipeline-harness")) $("pipeline-harness").value = bulk.treatment_harness;
-  if ($("pipeline-synth-count")) $("pipeline-synth-count").value = 5;
+  if ($("pipeline-harness")) $("pipeline-harness").value = "chat_no_online";
+  if ($("pipeline-synth-count")) $("pipeline-synth-count").value = 2;
   if ($("pipeline-max-steps")) $("pipeline-max-steps").value = train.max_steps;
   if ($("pipeline-b-ref")) $("pipeline-b-ref").value = train.base_model_ref || "__A00_SMALL_MODEL_REF__";
   refreshStatus();
@@ -4516,21 +4648,34 @@ function useE2BPipelineDefaults() {
   $("pipeline-b-source").value = "hf";
   $("pipeline-b-ref").value = "__A00_SMALL_MODEL_REF__";
   $("pipeline-b-adapter").value = "";
-  $("pipeline-limit").value = 5;
-  $("pipeline-synth-count").value = 5;
+  $("pipeline-limit").value = 2;
+  $("pipeline-synth-count").value = 2;
   $("pipeline-evaluate").value = "true";
   $("pipeline-report").value = "true";
   $("pipeline-unload").value = "true";
-  $("pipeline-execute").value = "false";
+  $("pipeline-execute").value = "true";
   $("llm-judge").value = "true";
-  log({next: "E2B four-arm defaults loaded. Set Execute training=true when Kaggle GPU/dependencies are ready, then queue the pipeline."});
+  $("pipeline-harness").value = "chat_no_online";
+  log({next: "E2B four-arm defaults loaded: 2 PH-HK prompts, Persona + GREP + RAG/context + tools, no internet/import, combined LLM + rule grading, report export."});
 }
 async function runPreconfiguredPipeline() {
   setPreconfiguredProgress(5, "Loading E2B four-arm defaults...");
   useE2BPipelineDefaults();
-  const limit = Math.max(1, Math.min(50, Number($("preconfig-limit").value || 5)));
-  const synth = Math.max(1, Math.min(100, Number($("preconfig-synth-count").value || 10)));
-  const execute = $("preconfig-execute").value === "true";
+  const limit = Math.max(1, Math.min(50, Number($("preconfig-limit").value || 2)));
+  const synth = limit;
+  const execute = true;
+  const selected = $("preconfig-model") && $("preconfig-model").selectedOptions ? $("preconfig-model").selectedOptions[0] : null;
+  const modelRef = selected ? selected.value : "__A00_SMALL_MODEL_REF__";
+  const modelSource = selected ? (selected.getAttribute("data-source") || "hf") : "hf";
+  const current = await getJson("/api/a00/status");
+  if (!(current.model || {}).loaded && !window.preconfiguredModelAcknowledged) {
+    if ($("runtime-model-select")) $("runtime-model-select").value = modelRef;
+    setModelSelectorStatus("Choose and load the Gemma model before starting the guided pipeline. Then click Run preconfigured pipeline again.");
+    openModelSelector();
+    setPreconfiguredProgress(0, "Waiting for Gemma model load. The guided path uses one selected smaller Gemma model, then reloads only when training or final grading requires it.");
+    window.preconfiguredModelAcknowledged = true;
+    return;
+  }
   $("pipeline-limit").value = limit;
   $("pipeline-synth-count").value = synth;
   $("pipeline-execute").value = execute ? "true" : "false";
@@ -4538,17 +4683,17 @@ async function runPreconfiguredPipeline() {
   $("pipeline-evaluate").value = "true";
   $("pipeline-unload").value = "true";
   $("pipeline-label").value = execute ? "e2b-full-train-eval" : "e2b-training-handoff-eval";
-  setPreconfiguredProgress(18, "Queued: base Gemma without harness, base Gemma with harness, synthetic data, LoRA handoff, fine-tuned comparisons, combined grading, final report.");
+  setPreconfiguredProgress(18, "Queued: base Gemma without harness, base Gemma with local DueCare harness, synthetic data, LoRA fine-tune, fine-tuned comparisons, shared combined grading, final report.");
   const body = {
     preset_id: "synthetic_train_benchmark_cycle",
-    model_a_source: "hf",
-    model_a_ref: "__A00_SMALL_MODEL_REF__",
+    model_a_source: modelSource,
+    model_a_ref: modelRef,
     model_a_adapter_ref: "",
-    model_b_source: "hf",
-    model_b_ref: "__A00_SMALL_MODEL_REF__",
+    model_b_source: modelSource,
+    model_b_ref: modelRef,
     model_b_adapter_ref: "",
     prompt_set: $("pipeline-prompt-set").value || $("prompt-set").value,
-    harness_profile: "chat_full",
+    harness_profile: "chat_no_online",
     baseline_harness_profile: "none",
     limit,
     synthetic_count: synth,
@@ -4888,7 +5033,7 @@ try:
                 "Set DUECARE_ALLOW_LOCAL_ONLY=1 only for local developer testing."
             )
     print("  A-00 READY")
-    print("  Use dry-run mode for UI inspection, then load one model per Kaggle run for real exports.")
+    print("  Open the URL, choose Preconfigured, load a Gemma model when prompted, then run the guided pipeline.")
     while not _SHUTDOWN_EVENT.is_set():
         time.sleep(1)
 except KeyboardInterrupt:
