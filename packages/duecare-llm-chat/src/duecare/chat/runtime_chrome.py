@@ -24,7 +24,7 @@ def runtime_model_topbar_html(
   </div>
   <div class="runtime-actions">
     <div class="runtime-metrics" id="kpis" aria-label="Runtime status"></div>
-    <button class="runtime-button" type="button" onclick="openModelSelector()">Model</button>
+    <button class="runtime-button" id="runtime-model-button" type="button" onclick="openModelSelector()">Model</button>
     <button class="runtime-button" type="button" onclick="location.href='{custom_href}'">Custom controls</button>
     <button class="runtime-button" id="_dc-shutdown-btn" type="button" onclick="{shutdown_function}()">Shutdown</button>
   </div>
