@@ -1128,6 +1128,10 @@ def load_gemma_unsloth(env: Env, verbose: bool = True) -> Optional[LoadedModel]:
             device_map="balanced",   # <-- splits across 2 T4
         )
     """
+    if verbose:
+        print("  load_gemma_unsloth delegates to shared Gemma4Runtime")
+    return load_gemma_shared(env, model_ref=GEMMA_MODEL, verbose=verbose)
+
     if not env.gpu.available:
         if verbose: print("  no GPU; skipping Unsloth load")
         return None
@@ -1392,6 +1396,10 @@ def load_gemma_smart(env: Env, model_id: str = GEMMA_MODEL,
 
     Demo's gemma_call only needs text generation (moderate /
     worker_check / query). Multimodal is a bonus."""
+    if verbose:
+        print("  load_gemma_smart delegates to shared Gemma4Runtime")
+    return load_gemma_shared(env, model_ref=model_id, verbose=verbose)
+
     # ---- Loader dispatch ------------------------------------------------
     # FastModel (Unsloth) only fires for variants that REQUIRE it:
     #   - 31b-it, 26b-a4b-it: Unsloth is the only path that fits on T4 x2
