@@ -167,6 +167,16 @@ class Gemma4Runtime:
                 content = item.get("content")
                 if isinstance(content, str):
                     item["content"] = [{"type": "text", "text": content}]
+                elif isinstance(content, list):
+                    normalised_content: list[dict[str, Any]] = []
+                    for part in content:
+                        if isinstance(part, str):
+                            normalised_content.append({"type": "text", "text": part})
+                        elif isinstance(part, dict):
+                            normalised_content.append(part)
+                        else:
+                            normalised_content.append({"type": "text", "text": str(part)})
+                    item["content"] = normalised_content
                 messages_out.append(item)
             return messages_out
 
