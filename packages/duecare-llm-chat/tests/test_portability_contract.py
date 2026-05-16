@@ -86,6 +86,7 @@ def test_portability_contract_module_evaluates_current_app():
 
 
 def test_portability_model_and_sample_helpers_are_canonical():
+    from duecare.chat.gemma4_runtime import resolve_model_ref, variant_from_ref
     from duecare.chat.portability import (
         model_variant_map,
         model_variant_ui_map,
@@ -98,6 +99,20 @@ def test_portability_model_and_sample_helpers_are_canonical():
     assert models["e4b-it"]["google_hf_id"] == "google/gemma-4-4b-it"
     assert ui_models["e4b-it"]["display"] == "Gemma 4 E4B-it"
     assert ui_models["cloud-gemini"]["category"] == "cloud"
+    assert variant_from_ref("google/gemma-4-2b-it") == "e2b-it"
+    resolved, variant, source = resolve_model_ref("hf", "google/gemma-4-2b-it")
+    assert resolved == "unsloth/gemma-4-E2B-it"
+    assert variant == "e2b-it"
+    assert source == "hf"
+
+    from duecare.chat.runtime_chrome import runtime_model_topbar_html
+
+    topbar = runtime_model_topbar_html(title="DueCare A-00")
+    assert "_dc-runtime-topbar" in topbar
+    assert "runtime-model-name" in topbar
+    assert "runtime-model-select" in topbar
+    assert "runtime-model-modal" in topbar
+    assert "_dc-shutdown-btn" in topbar
 
     samples = sample_artifact_map()
     assert samples["primary_source_bundle"] == "case_files_media_rich_sample.zip"

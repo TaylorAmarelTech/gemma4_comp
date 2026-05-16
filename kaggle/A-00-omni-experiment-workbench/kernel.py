@@ -44,12 +44,13 @@ MODEL_RUNTIME_LOCK = threading.RLock()
 PIPELINE_JOB_LOCK = threading.Lock()
 JOB_STATE_LOCK = threading.RLock()
 A00_TRAINING_TIMEOUT_SEC = int(os.environ.get("A00_TRAINING_TIMEOUT_SEC", str(60 * 60 * 8)))
+A00_ALLOW_DRY_RUN = os.environ.get("DUECARE_A00_ALLOW_DRY_RUN", "").strip() == "1"
 
 DUECARE_VERSION = os.environ.get("DUECARE_VERSION", "0.17.0")
 DUECARE_REPO = os.environ.get("DUECARE_REPO", "TaylorAmarelTech/gemma4_comp")
 DUECARE_COMMIT_SHA = os.environ.get("DUECARE_COMMIT_SHA", "master")
 A00_SMALL_MODEL_REF = os.environ.get("DUECARE_A00_SMALL_MODEL_REF", "google/gemma-4-2b-it")
-A00_DEFAULT_MODEL_REF = os.environ.get("DUECARE_A00_DEFAULT_MODEL_REF", "google/gemma-4-4b-it")
+A00_DEFAULT_MODEL_REF = os.environ.get("DUECARE_A00_DEFAULT_MODEL_REF", A00_SMALL_MODEL_REF)
 DUECARE_PACKAGES = [
     "duecare-llm-core",
     "duecare-llm-models",
@@ -305,9 +306,11 @@ try:
         synthetic_generation_profile_map,
         training_profile_map,
     )
+    from duecare.chat.gemma4_runtime import Gemma4LoadSpec, Gemma4Runtime
     from duecare.chat.kernel_shell import build_minimal_shell
     from duecare.chat.portability import model_variant_map
     from duecare.chat.portability import reference_portability_contract_payload
+    from duecare.chat.runtime_chrome import runtime_model_topbar_html
 except Exception as exc:  # noqa: BLE001
     raise SystemExit(f"DueCare shell import failed: {type(exc).__name__}: {exc}")
 
@@ -321,6 +324,13 @@ A00_TRAINING_PROFILES = training_profile_map()
 A00_BULK_COMPARE_DEFAULT = A00_RUN_PROFILES["bulk_text_25"]
 A00_SYNTHETIC_DEFAULT = A00_SYNTHETIC_PROFILES["rubric_polisher_24"]
 A00_TRAINING_DEFAULT = A00_TRAINING_PROFILES["tiny_lora_smoke"]
+
+
+def _a00_model_log(phase: str, msg: str) -> None:
+    dc_log("a00.model." + phase, msg, level="info")
+
+
+A00_MODEL_RUNTIME = Gemma4Runtime(log=_a00_model_log)
 
 
 @dataclass
@@ -907,8 +917,8 @@ PROMPT_SETS = _build_prompt_library()
 
 
 class ModelLoadRequest(BaseModel):
-    source: str = Field("dry_run", description="dry_run, hf, kaggle_path, local_path, github")
-    model_ref: str = ""
+    source: str = Field("hf", description="hf, kaggle_path, local_path, github; dry_run is dev-only")
+    model_ref: str = A00_SMALL_MODEL_REF
     adapter_ref: str = ""
     quantization: str = "4bit"
     trust_remote_code: bool = True
@@ -985,11 +995,11 @@ class QuantitativeProfileRequest(BaseModel):
 
 class PipelineRequest(BaseModel):
     preset_id: str = "synthetic_train_benchmark_cycle"
-    model_a_source: str = "dry_run"
-    model_a_ref: str = "dry_run"
+    model_a_source: str = "hf"
+    model_a_ref: str = A00_SMALL_MODEL_REF
     model_a_adapter_ref: str = ""
-    model_b_source: str = "dry_run"
-    model_b_ref: str = A00_TRAINING_DEFAULT["base_model_ref"]
+    model_b_source: str = "hf"
+    model_b_ref: str = A00_SMALL_MODEL_REF
     model_b_adapter_ref: str = ""
     quantization: str = "4bit"
     prompt_set: str = A00_BULK_COMPARE_DEFAULT["prompt_set"]
@@ -1011,14 +1021,15 @@ class PipelineRequest(BaseModel):
 STATE: dict[str, Any] = {
     "model": None,
     "tokenizer": None,
+    "model_backend": None,
     "model_info": {
         "loaded": False,
-        "source": "dry_run",
-        "model_ref": "dry_run",
+        "source": "hf",
+        "model_ref": A00_SMALL_MODEL_REF,
         "adapter_ref": "",
         "quantization": "",
         "loaded_at": "",
-        "notes": "No model loaded. Dry-run generation is enabled.",
+        "notes": "No model loaded yet. Load Gemma 4 before running benchmarks or synthetic generation.",
     },
     "exports": {},
     "packs": {DEFAULT_PACK.slug: DEFAULT_PACK.to_dict()},
@@ -1375,8 +1386,11 @@ def _polish_training_response(
         polished = fallback
         meta = {"primary": meta, "fallback": fallback_meta}
         if len(polished.strip()) < 200:
-            polished = _dry_run_response(polish_prompt, polish_trace, polish_row)
-            meta["deterministic_blueprint_fallback"] = True
+            if A00_ALLOW_DRY_RUN:
+                polished = _dry_run_response(polish_prompt, polish_trace, polish_row)
+                meta["deterministic_blueprint_fallback"] = True
+            else:
+                meta["short_polish_warning"] = "Gemma returned a short polish response; deterministic fallback is disabled."
     return polished, {
         "polished": True,
         "blueprint": RESPONSE_BLUEPRINT["version"],
@@ -1391,36 +1405,22 @@ def _unload_model_runtime(reason: str = "manual") -> dict[str, Any]:
     with MODEL_RUNTIME_LOCK:
         STATE["model"] = None
         STATE["tokenizer"] = None
-        try:
-            import gc
-            gc.collect()
-        except Exception:
-            pass
-        try:
-            import torch
-            if torch.cuda.is_available():
-                torch.cuda.empty_cache()
-                torch.cuda.ipc_collect()
-        except Exception:
-            pass
-        STATE["model_info"] = {
-            "loaded": False,
-            "source": "unloaded",
-            "model_ref": "",
-            "adapter_ref": "",
-            "quantization": "",
-            "loaded_at": "",
-            "unloaded_at": _utc(),
-            "notes": f"Model unloaded: {reason}. Dry-run generator active until another model is loaded.",
-        }
+        STATE["model_backend"] = None
+        STATE["model_info"] = A00_MODEL_RUNTIME.unload(reason)
         return STATE["model_info"]
 
 
 def _load_model_runtime(req: ModelLoadRequest) -> dict[str, Any]:
     with MODEL_RUNTIME_LOCK:
         if req.source == "dry_run":
+            if not A00_ALLOW_DRY_RUN:
+                raise HTTPException(
+                    400,
+                    "Dry-run generation is disabled for A-00. Load a real Gemma 4 model first.",
+                )
             STATE["model"] = None
             STATE["tokenizer"] = None
+            STATE["model_backend"] = None
             STATE["model_info"] = {
                 "loaded": False,
                 "source": "dry_run",
@@ -1437,82 +1437,35 @@ def _load_model_runtime(req: ModelLoadRequest) -> dict[str, Any]:
             raise HTTPException(400, "model_ref is required")
 
         try:
-            import torch
-            from transformers import AutoModelForCausalLM, AutoTokenizer
+            loaded = A00_MODEL_RUNTIME.load(Gemma4LoadSpec(
+                source=req.source,
+                model_ref=model_ref,
+                adapter_ref=req.adapter_ref,
+                quantization=req.quantization,
+                trust_remote_code=req.trust_remote_code,
+                max_seq_length=int(A00_TRAINING_DEFAULT.get("max_seq_length", 4096)),
+            ))
         except Exception as exc:  # noqa: BLE001
-            raise HTTPException(500, f"transformers/torch not available: {exc}")
+            raise HTTPException(500, f"Gemma 4 shared runtime load failed: {exc}")
 
-        _unload_model_runtime("loading replacement model")
-
-        kwargs: dict[str, Any] = {"trust_remote_code": req.trust_remote_code}
-        quant = req.quantization.lower()
-        if quant in {"4bit", "nf4"}:
-            try:
-                from transformers import BitsAndBytesConfig
-                kwargs["quantization_config"] = BitsAndBytesConfig(
-                    load_in_4bit=True,
-                    bnb_4bit_quant_type="nf4",
-                    bnb_4bit_compute_dtype=torch.bfloat16 if torch.cuda.is_available() else torch.float32,
-                )
-                kwargs["device_map"] = "auto"
-            except Exception:
-                kwargs["torch_dtype"] = torch.bfloat16 if torch.cuda.is_available() else torch.float32
-                kwargs["device_map"] = "auto" if torch.cuda.is_available() else None
-        elif quant in {"8bit", "int8"}:
-            kwargs["load_in_8bit"] = True
-            kwargs["device_map"] = "auto"
-        else:
-            kwargs["torch_dtype"] = torch.bfloat16 if torch.cuda.is_available() else torch.float32
-            kwargs["device_map"] = "auto" if torch.cuda.is_available() else None
-
-        if req.source == "github":
-            if requests is None:
-                raise HTTPException(500, "requests is not available for GitHub downloads")
-            archive_url = model_ref
-            target = MODEL_DIR / (_safe_slug(Path(model_ref).stem) + ".zip")
-            with requests.get(archive_url, stream=True, timeout=120) as r:
-                r.raise_for_status()
-                with target.open("wb") as f:
-                    for chunk in r.iter_content(chunk_size=1024 * 1024):
-                        if chunk:
-                            f.write(chunk)
-            extract_dir = MODEL_DIR / _safe_slug(target.stem)
-            extract_dir.mkdir(exist_ok=True)
-            with zipfile.ZipFile(target) as z:
-                z.extractall(extract_dir)
-            model_ref = str(extract_dir)
-
-        tokenizer = AutoTokenizer.from_pretrained(model_ref, trust_remote_code=req.trust_remote_code)
-        model = AutoModelForCausalLM.from_pretrained(model_ref, **{k: v for k, v in kwargs.items() if v is not None})
-
-        if req.adapter_ref:
-            try:
-                from peft import PeftModel
-                model = PeftModel.from_pretrained(model, req.adapter_ref)
-            except Exception as exc:  # noqa: BLE001
-                raise HTTPException(500, f"adapter load failed: {exc}")
-
-        STATE["model"] = model
-        STATE["tokenizer"] = tokenizer
-        STATE["model_info"] = {
-            "loaded": True,
-            "source": req.source,
-            "model_ref": model_ref,
-            "adapter_ref": req.adapter_ref,
-            "quantization": req.quantization,
-            "loaded_at": _utc(),
-            "device": str(next(model.parameters()).device) if hasattr(model, "parameters") else "unknown",
-            "notes": "Model loaded for generation, LLM judging, and synthetic data.",
-        }
+        STATE["model"] = loaded.model
+        STATE["tokenizer"] = loaded.tokenizer
+        STATE["model_backend"] = loaded.backend
+        STATE["model_info"] = loaded.info
         return STATE["model_info"]
 
 
 def _generate(prompt: str, *, max_new_tokens: int, temperature: float, trace: dict[str, Any], row: dict[str, Any]) -> tuple[str, dict[str, Any]]:
     t0 = time.perf_counter()
     with MODEL_RUNTIME_LOCK:
+        backend = STATE.get("model_backend")
         model = STATE.get("model")
         tokenizer = STATE.get("tokenizer")
-        if model is None or tokenizer is None:
+        if backend is None and (model is None or tokenizer is None):
+            if not A00_ALLOW_DRY_RUN:
+                raise RuntimeError(
+                    "No Gemma 4 model is loaded. Use the preconfigured pipeline or load a model before running A-00 generation."
+                )
             response = _dry_run_response(prompt, trace, row)
             elapsed = time.perf_counter() - t0
             return response, {
@@ -1523,6 +1476,15 @@ def _generate(prompt: str, *, max_new_tokens: int, temperature: float, trace: di
             }
 
         try:
+            if backend is not None:
+                text = backend(prompt, max_new_tokens=max_new_tokens, temperature=temperature)
+                elapsed = time.perf_counter() - t0
+                return text, {
+                    "mode": "model",
+                    "seconds": round(elapsed, 4),
+                    "input_tokens_est": _estimate_tokens(prompt),
+                    "output_tokens_est": _estimate_tokens(text),
+                }
             import torch
             inputs = tokenizer(prompt, return_tensors="pt")
             device = next(model.parameters()).device
@@ -1545,6 +1507,8 @@ def _generate(prompt: str, *, max_new_tokens: int, temperature: float, trace: di
                 "output_tokens_est": _estimate_tokens(text),
             }
         except Exception as exc:  # noqa: BLE001
+            if not A00_ALLOW_DRY_RUN:
+                raise RuntimeError(f"Gemma 4 generation failed: {type(exc).__name__}: {str(exc)[:240]}") from exc
             response = _dry_run_response(prompt, trace, row)
             elapsed = time.perf_counter() - t0
             return response, {
@@ -2123,7 +2087,20 @@ def _generate_synthetic(req: SyntheticRequest) -> dict[str, Any]:
         model_prompt, trace = _build_harness_prompt({**seed, "prompt": scenario_prompt}, req.harness_profile)
         draft, meta = _generate(model_prompt, max_new_tokens=520, temperature=req.temperature, trace=trace, row=seed)
         chosen, polish_meta = _polish_training_response(scenario_prompt, draft, trace, seed, req)
-        rejected = draft if req.generator_mode == "rubric_polisher" else _dry_run_response(seed["prompt"], {"profile": "none", "layers": []}, seed)
+        rejected_meta: dict[str, Any] = {}
+        if req.generator_mode == "rubric_polisher":
+            rejected = draft
+            rejected_kind = "draft_before_polish"
+        else:
+            rejected_prompt, rejected_trace = _build_harness_prompt({**seed, "prompt": scenario_prompt}, "none")
+            rejected, rejected_meta = _generate(
+                rejected_prompt,
+                max_new_tokens=360,
+                temperature=req.temperature,
+                trace=rejected_trace,
+                row=seed,
+            )
+            rejected_kind = "model_without_harness"
         prompt_id = f"{base_id}_{i + 1:04d}"
         sft_rows.append({
             "id": prompt_id,
@@ -2160,7 +2137,8 @@ def _generate_synthetic(req: SyntheticRequest) -> dict[str, Any]:
                 "metadata": {
                     "generator_mode": req.generator_mode,
                     "harness_profile": req.harness_profile,
-                    "rejected_kind": "draft_before_polish" if req.generator_mode == "rubric_polisher" else "no_harness_dry_run",
+                    "rejected_kind": rejected_kind,
+                    "rejected_generation": rejected_meta,
                     "response_blueprint": RESPONSE_BLUEPRINT["version"] if polish_meta.get("polished") else "",
                     "memory_tool_policy": MEMORY_TOOL_POLICY["version"] if polish_meta.get("polished") else "",
                 },
@@ -3299,8 +3277,8 @@ PIPELINE_PRESETS = {
 
 def _model_request(source: str, ref: str, adapter_ref: str, quantization: str) -> ModelLoadRequest:
     return ModelLoadRequest(
-        source=source or "dry_run",
-        model_ref=ref or "dry_run",
+        source=source or "hf",
+        model_ref=ref or A00_SMALL_MODEL_REF,
         adapter_ref=adapter_ref or "",
         quantization=quantization or "4bit",
     )
@@ -3844,6 +3822,13 @@ HOMEPAGE_HTML = r"""<!doctype html>
     .runtime-stat { border: 1px solid var(--line); border-radius: 999px; padding: 4px 8px; background: var(--paper-2); color: var(--ink-2); font-size: 11px; white-space: nowrap; }
     .runtime-stat b { color: var(--ink); font-weight: 800; }
     .runtime-button { border: 1px solid var(--line); background: var(--paper); color: var(--ink); border-radius: 6px; padding: 7px 10px; font-size: 12px; font-weight: 700; }
+    .runtime-model-overlay { position: fixed; inset: 52px 0 0; z-index: 99996; background: rgba(14,17,22,0.38); }
+    .runtime-model-modal { position: fixed; z-index: 99997; top: 78px; left: 50%; transform: translateX(-50%); width: min(760px, calc(100vw - 28px)); max-height: calc(100vh - 104px); overflow: auto; background: var(--paper); color: var(--ink); border: 1px solid var(--line); border-radius: 8px; box-shadow: 0 18px 60px rgba(14,17,22,0.18); padding: 16px; }
+    .runtime-model-modal[hidden], .runtime-model-overlay[hidden] { display: none; }
+    .runtime-model-modal-head { display: flex; align-items: start; justify-content: space-between; gap: 12px; border-bottom: 1px solid var(--line); padding-bottom: 12px; margin-bottom: 12px; }
+    .runtime-model-modal-head p { margin: 4px 0 0; color: var(--ink-3); font-size: 12px; }
+    .runtime-model-modal-controls { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; align-items: end; }
+    #runtime-model-loader-log { margin-top: 12px; min-height: 88px; }
     .a00 { max-width: 1180px; margin: 0 auto; padding: 28px 24px 56px; }
     .a00-header { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 18px; align-items: end; margin-bottom: 16px; border-bottom: 1px solid var(--line); padding-bottom: 18px; }
     .a00-header h1 { margin: 4px 0 8px; font-size: clamp(30px, 4vw, 48px); line-height: 1.02; letter-spacing: 0; }
@@ -3866,6 +3851,19 @@ HOMEPAGE_HTML = r"""<!doctype html>
     body.a00-custom .experiment-flow { display: block; }
     body.a00-custom .primary-grid { display: grid; }
     body.a00-custom .advanced-panel { display: block; }
+    body.a00-landing .run-action,
+    body.a00-landing .experiment-flow,
+    body.a00-landing .primary-grid,
+    body.a00-landing .advanced-panel,
+    body.a00-landing .activity-panel { display: none; }
+    body.a00-preconfigured .landing-action,
+    body.a00-preconfigured .custom-card,
+    body.a00-custom .a00-choice-grid { display: none; }
+    body.a00-preconfigured .a00-choice-grid {
+      grid-template-columns: minmax(0, 860px);
+      justify-content: center;
+    }
+    body.a00-preconfigured .experiment-flow { display: block; }
     .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; }
     .primary-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-top: 12px; }
     .panel { background: var(--paper); border: 1px solid var(--line); border-radius: 8px; padding: 16px; }
@@ -3931,19 +3929,8 @@ HOMEPAGE_HTML = r"""<!doctype html>
     }
   </style>
 </head>
-<body>
-<div id="_dc-runtime-topbar" role="banner" aria-label="DueCare A-00 runtime controls">
-  <div class="runtime-brand">DueCare A-00</div>
-  <div class="runtime-model">
-    <b id="runtime-model-name">Model: dry run</b>
-    <span id="runtime-model-note">Guided experiment console</span>
-  </div>
-  <div class="runtime-actions">
-    <div class="runtime-metrics" id="kpis" aria-label="Runtime status"></div>
-    <button class="runtime-button" type="button" onclick="revealCustom()">Custom controls</button>
-    <button class="runtime-button" id="_dc-shutdown-btn" type="button" onclick="shutdownA00()">Shutdown</button>
-  </div>
-</div>
+<body class="__A00_BODY_CLASS__">
+__A00_RUNTIME_TOPBAR__
 <main class="a00">
   <header class="a00-header">
     <div>
@@ -3951,8 +3938,8 @@ HOMEPAGE_HTML = r"""<!doctype html>
       <h1>Benchmark, generate, fine-tune, compare.</h1>
       <p class="lede">
         A focused control plane for quantitative runs: base Gemma, Gemma with harness,
-        fine-tuned Gemma, and fine-tuned Gemma with harness. Start with dry-run outputs,
-        then repeat with a loaded Gemma 4 model on Kaggle GPU.
+        fine-tuned Gemma, and fine-tuned Gemma with harness. The guided path loads
+        a small Gemma 4 model on Kaggle GPU before producing exports.
       </p>
     </div>
     <div class="a00-actions">
@@ -3963,7 +3950,7 @@ HOMEPAGE_HTML = r"""<!doctype html>
   </header>
 
   <section class="a00-choice-grid" aria-label="A-00 start options">
-    <div class="panel a00-choice a00-preconfigured">
+    <div class="panel a00-choice a00-preconfigured preconfig-card">
       <div class="panel-heading">
         <div>
           <h2>Preconfigured Harness, Training, and Evaluation</h2>
@@ -3989,13 +3976,14 @@ HOMEPAGE_HTML = r"""<!doctype html>
         <div class="pipeline-progress" aria-label="Preconfigured pipeline progress"><div id="preconfig-progress"></div></div>
         <div class="preconfigured-status" id="preconfig-status">Ready. Defaults use Gemma 4 E2B, chat_full harness, combined grading, and one model resident at a time.</div>
         <div class="a00-choice-actions">
-          <button onclick="runPreconfiguredPipeline()">Run preconfigured pipeline</button>
-          <button class="secondary" onclick="reviewPreconfiguredSettings()">Review exact settings</button>
+          <button class="landing-action" onclick="location.href='/preconfigured'">Open preconfigured pipeline</button>
+          <button class="run-action" onclick="runPreconfiguredPipeline()">Run preconfigured pipeline</button>
+          <button class="secondary run-action" onclick="reviewPreconfiguredSettings()">Review exact settings</button>
         </div>
       </div>
     </div>
 
-    <div class="panel a00-choice">
+    <div class="panel a00-choice custom-card">
       <div class="panel-heading">
         <div>
           <h2>Custom</h2>
@@ -4007,7 +3995,7 @@ HOMEPAGE_HTML = r"""<!doctype html>
       </div>
       <div class="a00-choice-controls">
         <div class="a00-choice-actions">
-          <button class="secondary" onclick="revealCustom()">Open custom controls</button>
+          <button class="secondary" onclick="location.href='/custom'">Open custom controls</button>
           <button class="secondary" onclick="buildReport()">Build report from selected runs</button>
         </div>
       </div>
@@ -4037,14 +4025,13 @@ HOMEPAGE_HTML = r"""<!doctype html>
       <div class="row compact-row">
         <label>Model source
           <select id="model-source">
-            <option value="dry_run">dry_run</option>
             <option value="hf">hf</option>
             <option value="kaggle_path">kaggle_path</option>
             <option value="local_path">local_path</option>
             <option value="github">github</option>
           </select>
         </label>
-        <label>Model ref or path <input id="model-ref" value="google/gemma-4-4b-it"></label>
+        <label>Model ref or path <input id="model-ref" value="__A00_SMALL_MODEL_REF__"></label>
         <label>Quantization <select id="quantization"><option>4bit</option><option>8bit</option><option>bf16</option></select></label>
       </div>
       <div class="row compact-row">
@@ -4101,7 +4088,7 @@ HOMEPAGE_HTML = r"""<!doctype html>
             <option>finetuned_teacher</option>
           </select>
         </label>
-        <label>Base model <input id="train-base-model" value="google/gemma-4-2b-it"></label>
+        <label>Base model <input id="train-base-model" value="__A00_SMALL_MODEL_REF__"></label>
       </div>
       <label>Training JSONL path <input id="train-data-path" placeholder="/kaggle/working/a00_training/..._sft.jsonl"></label>
       <div class="row compact-row">
@@ -4140,13 +4127,13 @@ HOMEPAGE_HTML = r"""<!doctype html>
       <label>Prompt count <input id="pipeline-limit" type="number" min="1" max="100" value="5"></label>
     </div>
     <div class="row compact-row">
-      <label>Base/eval model source <select id="pipeline-a-source"><option value="dry_run">dry_run</option><option value="hf">hf</option><option value="kaggle_path">kaggle_path</option><option value="local_path">local_path</option></select></label>
-      <label>Base/eval model ref <input id="pipeline-a-ref" value="dry_run"></label>
+      <label>Base/eval model source <select id="pipeline-a-source"><option value="hf">hf</option><option value="kaggle_path">kaggle_path</option><option value="local_path">local_path</option></select></label>
+      <label>Base/eval model ref <input id="pipeline-a-ref" value="__A00_SMALL_MODEL_REF__"></label>
       <label>Model A adapter <input id="pipeline-a-adapter" placeholder="/kaggle/input/adapter-a"></label>
     </div>
     <div class="row compact-row">
-      <label>Fine-tune base source <select id="pipeline-b-source"><option value="dry_run">dry_run</option><option value="hf">hf</option><option value="kaggle_path">kaggle_path</option><option value="local_path">local_path</option></select></label>
-      <label>Fine-tune base model/path <input id="pipeline-b-ref" value="google/gemma-4-2b-it"></label>
+      <label>Fine-tune base source <select id="pipeline-b-source"><option value="hf">hf</option><option value="kaggle_path">kaggle_path</option><option value="local_path">local_path</option></select></label>
+      <label>Fine-tune base model/path <input id="pipeline-b-ref" value="__A00_SMALL_MODEL_REF__"></label>
       <label>Existing adapter path <input id="pipeline-b-adapter" placeholder="/kaggle/input/adapter-b"></label>
     </div>
     <div class="row compact-row">
@@ -4216,13 +4203,16 @@ let activeJobPolls = {};
 let lastIntake = null;
 function log(obj) { $("log").textContent = typeof obj === "string" ? obj : JSON.stringify(obj, null, 2); refreshStatus(); }
 function revealCustom() {
+  if (!document.body.classList.contains("a00-custom")) {
+    location.href = "/custom";
+    return;
+  }
   document.body.classList.add("a00-custom");
   const first = document.querySelector(".experiment-flow");
   if (first) first.scrollIntoView({behavior:"smooth", block:"start"});
 }
 function reviewPreconfiguredSettings() {
-  useE2BPipelineDefaults();
-  revealCustom();
+  location.href = "/custom";
 }
 async function shutdownA00() {
   const btn = document.getElementById("_dc-shutdown-btn");
@@ -4243,6 +4233,40 @@ async function shutdownA00() {
     }
     log("Shutdown request failed: " + (err && err.message ? err.message : err));
   }
+}
+function openModelSelector() {
+  const overlay = $("runtime-model-overlay");
+  const modal = $("runtime-model-modal");
+  if (overlay) overlay.hidden = false;
+  if (modal) modal.hidden = false;
+}
+function closeModelSelector() {
+  const overlay = $("runtime-model-overlay");
+  const modal = $("runtime-model-modal");
+  if (overlay) overlay.hidden = true;
+  if (modal) modal.hidden = true;
+}
+function setModelSelectorStatus(message) {
+  const el = $("runtime-model-selector-status");
+  if (el) el.textContent = message || "";
+}
+async function loadSelectedRuntimeModel() {
+  const select = $("runtime-model-select");
+  const selected = select && select.selectedOptions && select.selectedOptions[0];
+  if (!selected) return;
+  const source = selected.getAttribute("data-source") || "hf";
+  const modelRef = selected.value;
+  setModelSelectorStatus("Loading " + selected.textContent + ". Watch Activity for loader details.");
+  $("model-source").value = source;
+  $("model-ref").value = modelRef;
+  const res = await getJson("/api/a00/model/load", {method:"POST", headers:{"content-type":"application/json"}, body:JSON.stringify({source:source, model_ref:modelRef, quantization:$("quantization").value || "4bit"})});
+  if (res.loaded) {
+    setModelSelectorStatus("Loaded " + (res.model_ref || modelRef));
+    closeModelSelector();
+  } else {
+    setModelSelectorStatus("Model load failed. Check Activity for the exact error.");
+  }
+  log(res);
 }
 function setPreconfiguredProgress(percent, message) {
   const bar = $("preconfig-progress");
@@ -4404,10 +4428,10 @@ async function pollJob(jobId) {
 async function refreshStatus() {
   const s = await getJson("/api/a00/status");
   const model = s.model || {};
-  const modelName = model.loaded ? (model.model_ref || "loaded model") : "dry run";
+  const modelName = model.loaded ? (model.model_ref || "loaded model") : ("not loaded: " + (model.model_ref || "__A00_SMALL_MODEL_REF__"));
   const modelBits = [
     model.loaded ? "loaded" : "not loaded",
-    model.source || "dry_run",
+    model.source || "hf",
     model.quantization || "",
     model.adapter_ref ? "adapter: " + model.adapter_ref : ""
   ].filter(Boolean).join(" | ");
@@ -4462,6 +4486,10 @@ async function loadOptions() {
   $("quant-profile").innerHTML = Object.entries(contract.quantitative_run_profiles).map(([id,p]) => `<option value="${id}">${id} | ${p.purpose || p.label}</option>`).join("");
   const presets = await getJson("/api/a00/pipeline/presets");
   if ($("pipeline-preset")) $("pipeline-preset").innerHTML = Object.entries(presets.presets || {}).map(([id,p]) => `<option value="${id}">${p.label}</option>`).join("");
+  const modelPresets = await getJson("/api/a00/model-presets");
+  if ($("runtime-model-select")) {
+    $("runtime-model-select").innerHTML = (modelPresets.presets || []).map(p => `<option value="${p.ref}" data-source="${p.source || "hf"}">${p.label || p.ref} | ${p.notes || ""}</option>`).join("");
+  }
   const bulk = contract.quantitative_run_profiles.bulk_text_25;
   const synth = contract.synthetic_generation_profiles.rubric_polisher_24;
   const train = contract.training_profiles.tiny_lora_smoke;
@@ -4476,7 +4504,7 @@ async function loadOptions() {
   if ($("pipeline-harness")) $("pipeline-harness").value = bulk.treatment_harness;
   if ($("pipeline-synth-count")) $("pipeline-synth-count").value = 5;
   if ($("pipeline-max-steps")) $("pipeline-max-steps").value = train.max_steps;
-  if ($("pipeline-b-ref")) $("pipeline-b-ref").value = train.base_model_ref || "dry_run";
+  if ($("pipeline-b-ref")) $("pipeline-b-ref").value = train.base_model_ref || "__A00_SMALL_MODEL_REF__";
   refreshStatus();
 }
 function useE2BPipelineDefaults() {
@@ -4760,7 +4788,15 @@ loadOptions().then(() => {
 </html>
 """
 
-HOMEPAGE_HTML = HOMEPAGE_HTML.replace("__A00_SMALL_MODEL_REF__", A00_SMALL_MODEL_REF)
+_A00_RUNTIME_TOPBAR_HTML = runtime_model_topbar_html(title="DueCare A-00")
+_A00_BASE_HTML = (
+    HOMEPAGE_HTML
+    .replace("__A00_SMALL_MODEL_REF__", A00_SMALL_MODEL_REF)
+    .replace("__A00_RUNTIME_TOPBAR__", _A00_RUNTIME_TOPBAR_HTML)
+)
+HOMEPAGE_HTML = _A00_BASE_HTML.replace("__A00_BODY_CLASS__", "a00-landing")
+A00_PRECONFIGURED_HTML = _A00_BASE_HTML.replace("__A00_BODY_CLASS__", "a00-preconfigured")
+A00_CUSTOM_HTML = _A00_BASE_HTML.replace("__A00_BODY_CLASS__", "a00-custom")
 
 
 summary_payload = {
@@ -4788,8 +4824,20 @@ def api_shutdown() -> Any:
     return {"ok": True, "message": "A-00 shutdown requested"}
 
 
+def page_preconfigured() -> Any:
+    from fastapi.responses import HTMLResponse
+    return HTMLResponse(A00_PRECONFIGURED_HTML)
+
+
+def page_custom() -> Any:
+    from fastapi.responses import HTMLResponse
+    return HTMLResponse(A00_CUSTOM_HTML)
+
+
 extra_routes = {
     "/api/shutdown": ("POST", api_shutdown),
+    "/preconfigured": ("GET", page_preconfigured),
+    "/custom": ("GET", page_custom),
     "/api/a00/status": ("GET", api_a00_status),
     "/api/a00/model-presets": ("GET", api_model_presets),
     "/api/a00/harness-profiles": ("GET", api_harness_profiles),
