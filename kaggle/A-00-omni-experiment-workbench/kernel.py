@@ -4078,7 +4078,7 @@ __A00_RUNTIME_TOPBAR__
           <label>Prompt count <input id="preconfig-limit" type="number" min="1" max="50" value="2"></label>
         </div>
         <div class="pipeline-progress" aria-label="Preconfigured pipeline progress"><div id="preconfig-progress"></div></div>
-        <div class="preconfigured-status" id="preconfig-status">Ready. Defaults use Gemma 4 E2B, 2 PH-HK prompts, Persona + GREP + RAG/context + tools, no internet/import, combined LLM + rule grading, and final report export.</div>
+        <div class="preconfigured-status" id="preconfig-status">Ready. Click Run to queue the guided job. The server loads the selected Gemma model first, then runs baseline, local harnessed mode (Persona + GREP + RAG/context + tools, no internet/import), synthetic-data, fine-tune, final grading, and report steps.</div>
         <div class="a00-choice-actions">
           <button class="run-action" onclick="runPreconfiguredPipeline()">Run preconfigured pipeline</button>
         </div>
@@ -4382,17 +4382,21 @@ async function loadSelectedRuntimeModel() {
   if (!selected) return;
   const source = selected.getAttribute("data-source") || "hf";
   const modelRef = selected.value;
+  const loaderLog = $("runtime-model-loader-log");
   setModelSelectorStatus("Loading " + selected.textContent + ". Watch Activity for loader details.");
+  if (loaderLog) loaderLog.textContent = `[${new Date().toLocaleTimeString()}] Model load request sent for ${selected.textContent}. This can take 1-3 minutes on first Kaggle load.`;
+  log({kind: "model.load.start", source, model_ref: modelRef});
   $("model-source").value = source;
   $("model-ref").value = modelRef;
   const res = await getJson("/api/a00/model/load", {method:"POST", headers:{"content-type":"application/json"}, body:JSON.stringify({source:source, model_ref:modelRef, quantization:$("quantization").value || "4bit"})});
   if (res.loaded) {
     setModelSelectorStatus("Loaded " + (res.model_ref || modelRef));
     if ($("preconfig-model")) $("preconfig-model").value = modelRef;
-    window.preconfiguredModelAcknowledged = true;
+    if (loaderLog) loaderLog.textContent += `\n[${new Date().toLocaleTimeString()}] Loaded ${res.model_ref || modelRef} on ${res.device || "device unknown"}.`;
     closeModelSelector();
   } else {
     setModelSelectorStatus("Model load failed. Check Activity for the exact error.");
+    if (loaderLog) loaderLog.textContent += `\n[${new Date().toLocaleTimeString()}] Model load failed.`;
   }
   log(res);
 }
@@ -4667,15 +4671,6 @@ async function runPreconfiguredPipeline() {
   const selected = $("preconfig-model") && $("preconfig-model").selectedOptions ? $("preconfig-model").selectedOptions[0] : null;
   const modelRef = selected ? selected.value : "__A00_SMALL_MODEL_REF__";
   const modelSource = selected ? (selected.getAttribute("data-source") || "hf") : "hf";
-  const current = await getJson("/api/a00/status");
-  if (!(current.model || {}).loaded && !window.preconfiguredModelAcknowledged) {
-    if ($("runtime-model-select")) $("runtime-model-select").value = modelRef;
-    setModelSelectorStatus("Choose and load the Gemma model before starting the guided pipeline. Then click Run preconfigured pipeline again.");
-    openModelSelector();
-    setPreconfiguredProgress(0, "Waiting for Gemma model load. The guided path uses one selected smaller Gemma model, then reloads only when training or final grading requires it.");
-    window.preconfiguredModelAcknowledged = true;
-    return;
-  }
   $("pipeline-limit").value = limit;
   $("pipeline-synth-count").value = synth;
   $("pipeline-execute").value = execute ? "true" : "false";
@@ -4683,7 +4678,7 @@ async function runPreconfiguredPipeline() {
   $("pipeline-evaluate").value = "true";
   $("pipeline-unload").value = "true";
   $("pipeline-label").value = execute ? "e2b-full-train-eval" : "e2b-training-handoff-eval";
-  setPreconfiguredProgress(18, "Queued: base Gemma without harness, base Gemma with local DueCare harness, synthetic data, LoRA fine-tune, fine-tuned comparisons, shared combined grading, final report.");
+  setPreconfiguredProgress(18, "Queueing async pipeline. Step 1 loads the selected Gemma model server-side, then baseline, harnessed, synthetic data, LoRA fine-tune, final grading, and report generation run in order.");
   const body = {
     preset_id: "synthetic_train_benchmark_cycle",
     model_a_source: modelSource,
