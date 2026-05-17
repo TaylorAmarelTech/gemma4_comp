@@ -1,4 +1,4 @@
-# Copilot handoff — DueCare Gemma 4 harness ecosystem (snapshot 2026-05-16, HEAD=ab2e7a6)
+# Copilot handoff — DueCare Gemma 4 harness ecosystem (snapshot 2026-05-16, HEAD=8141134)
 
 Paste this into GitHub Copilot Chat (or open it alongside the file you
 want Copilot to work on) when picking up DueCare work after this
@@ -13,7 +13,7 @@ history.
 
 Repo: `C:\Users\amare\OneDrive\Documents\gemma4_comp`
 Branch: `master` (clean, in sync with `origin/master`)
-HEAD: `ab2e7a6 Cross-link harness doc trinity and archive legacy notebook-era docs`
+HEAD: `8141134 Add Copilot handoff snapshot for 2026-05-16 session`
 
 Test baseline (last verified):
 - North-star contract gate: 149 passed
