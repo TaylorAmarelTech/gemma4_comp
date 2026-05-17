@@ -1017,6 +1017,9 @@ class TrainRequest(BaseModel):
     max_steps: int = A00_TRAINING_DEFAULT["max_steps"]
     learning_rate: float = A00_TRAINING_DEFAULT["learning_rate"]
     output_dir: str = ""
+    resume_from_checkpoint: str = ""
+    save_steps: int = 10
+    save_total_limit: int = 3
 
 
 class TrainingDataInspection(BaseModel):
@@ -1070,6 +1073,9 @@ class PipelineRequest(BaseModel):
     execute_training: bool = False
     max_steps: int = A00_TRAINING_DEFAULT["max_steps"]
     training_output_dir: str = ""
+    training_resume_from_checkpoint: str = ""
+    training_save_steps: int = 10
+    training_save_total_limit: int = 3
     unload_between_steps: bool = True
     llm_judge: bool = True
     run_label: str = ""
@@ -2944,6 +2950,9 @@ DATA_PATH = {resolved_data_path!r}
 OUTPUT_DIR = {str(output_dir)!r}
 MAX_STEPS = {int(req.max_steps)}
 LEARNING_RATE = {float(req.learning_rate)}
+RESUME_FROM_CHECKPOINT = {req.resume_from_checkpoint!r}
+SAVE_STEPS = {max(1, int(req.save_steps or 10))}
+SAVE_TOTAL_LIMIT = {max(1, int(req.save_total_limit or 3))}
 MAX_SEQ_LENGTH = {int(training_cfg["max_seq_length"])}
 PER_DEVICE_BATCH = {int(training_cfg["per_device_train_batch_size"])}
 GRAD_ACCUM_STEPS = {int(training_cfg["gradient_accumulation_steps"])}
@@ -2953,6 +2962,24 @@ LORA_ALPHA = {int(training_cfg["lora_alpha"])}
 LORA_DROPOUT = {float(training_cfg["lora_dropout"])}
 RANDOM_STATE = {int(training_cfg["random_state"])}
 TARGET_MODULES = {training_cfg["target_modules"]!r}
+
+def latest_checkpoint(output_dir):
+    root = Path(output_dir)
+    if not root.exists():
+        return ""
+    checkpoints = []
+    for path in root.glob("checkpoint-*"):
+        if not path.is_dir():
+            continue
+        try:
+            step = int(path.name.rsplit("-", 1)[-1])
+        except Exception:
+            step = -1
+        checkpoints.append((step, path))
+    if not checkpoints:
+        return ""
+    checkpoints.sort(key=lambda item: item[0])
+    return str(checkpoints[-1][1])
 
 try:
     from unsloth import FastModel
@@ -3018,6 +3045,8 @@ try:
         use_bf16 = False
     use_fp16 = bool(torch.cuda.is_available() and not use_bf16)
     print(f"[training] precision bf16={{use_bf16}} fp16={{use_fp16}}")
+    print(f"[training] output_dir={{OUTPUT_DIR}}")
+    print(f"[training] checkpointing save_steps={{SAVE_STEPS}} save_total_limit={{SAVE_TOTAL_LIMIT}}")
 
     training_args = SFTConfig(
             dataset_text_field="text",
@@ -3029,6 +3058,9 @@ try:
             fp16=use_fp16,
             bf16=use_bf16,
             logging_steps=5,
+            save_strategy="steps",
+            save_steps=SAVE_STEPS,
+            save_total_limit=SAVE_TOTAL_LIMIT,
             output_dir=OUTPUT_DIR,
             optim="adamw_8bit",
             weight_decay=0.001,
@@ -3053,9 +3085,16 @@ try:
         instruction_part="<|turn>user\\n",
         response_part="<|turn>model\\n",
     )
-    trainer.train()
+    resume_checkpoint = RESUME_FROM_CHECKPOINT or latest_checkpoint(OUTPUT_DIR)
+    if resume_checkpoint:
+        print(f"[training] resuming from checkpoint: {{resume_checkpoint}}")
+    else:
+        print("[training] no checkpoint found; starting from step 0")
+    trainer.train(resume_from_checkpoint=resume_checkpoint if resume_checkpoint else None)
+    trainer.save_state()
     model.save_pretrained(OUTPUT_DIR)
     tokenizer.save_pretrained(OUTPUT_DIR)
+    print(f"[training] saved final LoRA adapter to {{OUTPUT_DIR}}")
 except Exception as exc:
     raise SystemExit(f"Training failed: {{type(exc).__name__}}: {{exc}}")
 '''
@@ -3069,8 +3108,26 @@ def _tail_text(path: Path, limit: int = 20000) -> str:
     return data[-limit:].decode("utf-8", errors="replace")
 
 
+def _checkpoint_step(path: Path) -> int:
+    try:
+        return int(path.name.rsplit("-", 1)[-1])
+    except Exception:
+        return -1
+
+
+def _checkpoint_dirs(output_dir: str | Path) -> list[Path]:
+    root = Path(str(output_dir or ""))
+    if not root.exists():
+        return []
+    checkpoints = [p for p in root.glob("checkpoint-*") if p.is_dir()]
+    return sorted(checkpoints, key=_checkpoint_step)
+
+
 def _training_log_activity(job: dict[str, Any]) -> dict[str, Any]:
     log_path = Path(str(job.get("log_path") or ""))
+    output_dir = Path(str(job.get("output_dir") or ""))
+    checkpoints = _checkpoint_dirs(output_dir)
+    latest_checkpoint = checkpoints[-1] if checkpoints else None
     log_chars = 0
     if log_path.exists():
         try:
@@ -3088,6 +3145,11 @@ def _training_log_activity(job: dict[str, Any]) -> dict[str, Any]:
         "log_chars": log_chars,
         "log_excerpt_tail_chars": len(log_excerpt),
         "log_excerpt": log_excerpt,
+        "output_dir": str(output_dir) if str(output_dir) else "",
+        "checkpointing": job.get("checkpointing", {}),
+        "latest_checkpoint": str(latest_checkpoint) if latest_checkpoint else "",
+        "checkpoint_paths": [str(p) for p in checkpoints[-10:]],
+        "resume_from_checkpoint": job.get("resume_from_checkpoint", ""),
         "full_log_note": "Open log_link for the complete training log; Activity keeps every poll entry and no longer truncates its own buffer.",
     }
 
@@ -3744,6 +3806,8 @@ def _run_training_job(job_id: str) -> None:
                     job = STATE["jobs"][job_id]
                     job["pid"] = proc.pid
                     job["log_tail"] = _tail_text(log_path)
+                    checkpoints = _checkpoint_dirs(job.get("output_dir", ""))
+                    job["latest_checkpoint"] = str(checkpoints[-1]) if checkpoints else ""
                     _write_job_record(job)
                 while proc.poll() is None:
                     if time.time() > deadline:
@@ -3759,6 +3823,8 @@ def _run_training_job(job_id: str) -> None:
                             job["finished_at"] = _utc()
                             job["returncode"] = returncode
                             job["log_tail"] = _tail_text(log_path)
+                            checkpoints = _checkpoint_dirs(job.get("output_dir", ""))
+                            job["latest_checkpoint"] = str(checkpoints[-1]) if checkpoints else ""
                             _write_job_record(job)
                         return
                     time.sleep(5)
@@ -3766,6 +3832,8 @@ def _run_training_job(job_id: str) -> None:
                         job = STATE["jobs"][job_id]
                         job["heartbeat_at"] = _utc()
                         job["log_tail"] = _tail_text(log_path)
+                        checkpoints = _checkpoint_dirs(job.get("output_dir", ""))
+                        job["latest_checkpoint"] = str(checkpoints[-1]) if checkpoints else ""
                         _write_job_record(job)
                 returncode = proc.returncode
             with JOB_STATE_LOCK:
@@ -3773,6 +3841,8 @@ def _run_training_job(job_id: str) -> None:
                 job["returncode"] = returncode
                 job["finished_at"] = _utc()
                 job["log_tail"] = _tail_text(log_path)
+                checkpoints = _checkpoint_dirs(job.get("output_dir", ""))
+                job["latest_checkpoint"] = str(checkpoints[-1]) if checkpoints else ""
                 job["status"] = "completed" if returncode == 0 else "failed"
                 if returncode != 0:
                     job["error"] = f"training script exited with return code {returncode}"
@@ -3786,6 +3856,8 @@ def _run_training_job(job_id: str) -> None:
                 job["finished_at"] = _utc()
                 job["error"] = f"{type(exc).__name__}: {exc}"
                 job["log_tail"] = _tail_text(log_path)
+                checkpoints = _checkpoint_dirs(job.get("output_dir", ""))
+                job["latest_checkpoint"] = str(checkpoints[-1]) if checkpoints else ""
                 _write_job_record(job)
 
 
@@ -3802,11 +3874,14 @@ def _create_training_job(req: TrainRequest) -> dict[str, Any]:
     job_id = "a00_train_" + _safe_slug(req.adapter_name) + "_" + datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
     output_dir = Path(req.output_dir) if req.output_dir else TRAIN_DIR / job_id
     output_dir.mkdir(parents=True, exist_ok=True)
+    existing_checkpoints = _checkpoint_dirs(output_dir)
+    auto_resume_checkpoint = str(existing_checkpoints[-1]) if existing_checkpoints else ""
+    resume_checkpoint = (req.resume_from_checkpoint or auto_resume_checkpoint).strip()
     script_path = TRAIN_DIR / f"{job_id}.py"
     log_path = TRAIN_DIR / f"{job_id}.log"
     base_source = "local_path" if Path(req.base_model_ref).exists() else "hf"
     resolved_base_model_ref, resolved_variant, resolved_source = resolve_model_ref(base_source, req.base_model_ref)
-    script_req = TrainRequest(**{**req.dict(), "base_model_ref": resolved_base_model_ref})
+    script_req = TrainRequest(**{**req.dict(), "base_model_ref": resolved_base_model_ref, "resume_from_checkpoint": resume_checkpoint})
     script_path.write_text(_training_script(script_req, str(data_path), output_dir), encoding="utf-8")
     job = {
         "job_id": job_id,
@@ -3822,6 +3897,16 @@ def _create_training_job(req: TrainRequest) -> dict[str, Any]:
         "resolved_base_model_variant": resolved_variant,
         "method": req.method,
         "execute": req.execute,
+        "resume_from_checkpoint": resume_checkpoint,
+        "checkpointing": {
+            "save_strategy": "steps",
+            "save_steps": max(1, int(req.save_steps or 10)),
+            "save_total_limit": max(1, int(req.save_total_limit or 3)),
+            "auto_resume_checkpoint": auto_resume_checkpoint,
+            "requested_resume_from_checkpoint": req.resume_from_checkpoint,
+            "latest_checkpoint": resume_checkpoint,
+            "resume_note": "If a Kaggle session ends before completion, rerun with the same output_dir or pass resume_from_checkpoint to continue from the latest checkpoint.",
+        },
         "async": bool(req.execute),
         "timeout_sec": A00_TRAINING_TIMEOUT_SEC,
         "smoke_eval_plan": [
@@ -4762,7 +4847,23 @@ def _run_pipeline_job(job_id: str, req: PipelineRequest) -> None:
                 if req.unload_between_steps:
                     _append_job_step(job_id, "12. Unloading Gemma before fine-tuning", "running")
                     _unload_model_runtime(f"pipeline {job_id}: before training")
-                _append_job_step(job_id, "12. Fine-tuning model with synthetic data", "running", {"execute_training": req.execute_training, "max_steps": req.max_steps})
+                _append_job_step(
+                    job_id,
+                    "12. Fine-tuning model with synthetic data",
+                    "running",
+                    {
+                        "execute_training": req.execute_training,
+                        "max_steps": req.max_steps,
+                        "training_output_dir": req.training_output_dir,
+                        "resume_from_checkpoint": req.training_resume_from_checkpoint,
+                        "checkpointing": {
+                            "save_strategy": "steps",
+                            "save_steps": req.training_save_steps,
+                            "save_total_limit": req.training_save_total_limit,
+                            "auto_resume": "If training_output_dir already contains checkpoint-* folders, the script resumes from the newest one.",
+                        },
+                    },
+                )
                 train_job = _create_training_job(TrainRequest(
                     data_path=synth["artifacts"]["sft"],
                     base_model_ref=req.model_b_ref or req.model_a_ref,
@@ -4770,10 +4871,24 @@ def _run_pipeline_job(job_id: str, req: PipelineRequest) -> None:
                     execute=req.execute_training,
                     max_steps=req.max_steps,
                     output_dir=req.training_output_dir,
+                    resume_from_checkpoint=req.training_resume_from_checkpoint,
+                    save_steps=req.training_save_steps,
+                    save_total_limit=req.training_save_total_limit,
                 ))
                 _append_job_step(job_id, "12. Fine-tune job created", "running", train_job)
                 if req.execute_training:
-                    _append_job_step(job_id, "12. Running LoRA fine-tune", "running", {"job_id": train_job["job_id"], "max_steps": req.max_steps})
+                    _append_job_step(
+                        job_id,
+                        "12. Running LoRA fine-tune",
+                        "running",
+                        {
+                            "job_id": train_job["job_id"],
+                            "max_steps": req.max_steps,
+                            "output_dir": train_job.get("output_dir"),
+                            "checkpointing": train_job.get("checkpointing"),
+                            "resume_from_checkpoint": train_job.get("resume_from_checkpoint"),
+                        },
+                    )
                     final_train = _wait_for_training_job(train_job["job_id"], job_id, A00_TRAINING_TIMEOUT_SEC)
                     if final_train.get("status") != "completed":
                         failure_detail = {
@@ -5227,7 +5342,7 @@ def api_generate_synthetic(req: SyntheticRequest) -> Any:
 
 def api_train(req: TrainRequest) -> Any:
     job = _create_training_job(req)
-    return {"ok": job.get("status") != "failed", "job": {**job, "script_link": _artifact_link(job["script"])}}
+    return {"ok": job.get("status") != "failed", "job": _public_job(job)}
 
 
 def api_run_workflow(req: WorkflowRequest) -> Any:
@@ -5594,8 +5709,10 @@ __A00_SHUTDOWN_CONTROL__
         <label>Base model <input id="train-base-model" value="__A00_SMALL_MODEL_REF__"></label>
       </div>
       <label>Training JSONL path <input id="train-data-path" placeholder="/kaggle/working/a00_training/..._sft.jsonl"></label>
+      <label>Resume checkpoint <input id="train-resume-checkpoint" placeholder="/kaggle/working/a00_training/.../checkpoint-40"></label>
       <div class="row compact-row">
         <label>Max steps <input id="max-steps" type="number" value="60"></label>
+        <label>Save every N steps <input id="train-save-steps" type="number" min="1" max="500" value="10"></label>
         <label>Execute now <select id="execute-train"><option value="false">false</option><option value="true">true</option></select></label>
       </div>
       <div class="row action-row">
@@ -5639,6 +5756,7 @@ __A00_SHUTDOWN_CONTROL__
       <label>Fine-tune base model/path <input id="pipeline-b-ref" value="__A00_SMALL_MODEL_REF__"></label>
       <label>Existing adapter path <input id="pipeline-b-adapter" placeholder="/kaggle/input/adapter-b"></label>
     </div>
+    <label>Resume training checkpoint <input id="pipeline-resume-checkpoint" placeholder="/kaggle/working/a00_training/.../checkpoint-40"></label>
     <div class="row compact-row">
       <label>Judge model source <select id="pipeline-judge-source"><option value="hf">hf</option><option value="kaggle_path">kaggle_path</option><option value="local_path">local_path</option></select></label>
       <label>Judge model ref/path <input id="pipeline-judge-ref" value="__A00_SMALL_MODEL_REF__"></label>
@@ -5652,6 +5770,7 @@ __A00_SHUTDOWN_CONTROL__
     <div class="row compact-row">
       <label>Synthetic rows <input id="pipeline-synth-count" type="number" min="1" max="200" value="5"></label>
       <label>Max train steps <input id="pipeline-max-steps" type="number" min="1" max="500" value="60"></label>
+      <label>Save every N steps <input id="pipeline-save-steps" type="number" min="1" max="500" value="10"></label>
       <label>Training output path <input id="pipeline-output-dir" placeholder="/kaggle/working/a00_training/my_adapter"></label>
     </div>
     <div class="row compact-row">
@@ -6184,6 +6303,9 @@ async function loadOptions() {
   if ($("pipeline-synth-count")) $("pipeline-synth-count").value = 4;
   if ($("pipeline-max-steps")) $("pipeline-max-steps").value = train.max_steps;
   if ($("pipeline-b-ref")) $("pipeline-b-ref").value = train.base_model_ref || "__A00_SMALL_MODEL_REF__";
+  if ($("pipeline-resume-checkpoint")) $("pipeline-resume-checkpoint").value = "";
+  if ($("pipeline-save-steps")) $("pipeline-save-steps").value = 10;
+  if ($("train-save-steps")) $("train-save-steps").value = 10;
   if ($("pipeline-judge-source")) $("pipeline-judge-source").value = "hf";
   if ($("pipeline-judge-ref")) $("pipeline-judge-ref").value = "__A00_SMALL_MODEL_REF__";
   if ($("pipeline-judge-adapter")) $("pipeline-judge-adapter").value = "";
@@ -6198,11 +6320,13 @@ function useE2BPipelineDefaults(silent=false) {
   $("pipeline-b-source").value = "hf";
   $("pipeline-b-ref").value = "__A00_SMALL_MODEL_REF__";
   $("pipeline-b-adapter").value = "";
+  $("pipeline-resume-checkpoint").value = "";
   $("pipeline-judge-source").value = "hf";
   $("pipeline-judge-ref").value = "__A00_SMALL_MODEL_REF__";
   $("pipeline-judge-adapter").value = "";
   $("pipeline-limit").value = 4;
   $("pipeline-synth-count").value = 4;
+  $("pipeline-save-steps").value = 10;
   $("pipeline-evaluate").value = "true";
   $("pipeline-report").value = "true";
   $("pipeline-unload").value = "true";
@@ -6266,6 +6390,9 @@ async function runPreconfiguredPipeline() {
     execute_training: execute,
     max_steps: Number($("pipeline-max-steps").value || 60),
     training_output_dir: $("pipeline-output-dir").value,
+    training_resume_from_checkpoint: $("pipeline-resume-checkpoint").value,
+    training_save_steps: Number($("pipeline-save-steps").value || 10),
+    training_save_total_limit: 3,
     unload_between_steps: true,
     llm_judge: true,
     run_label: $("pipeline-label").value
@@ -6371,6 +6498,9 @@ async function runAdvancedPipeline() {
     execute_training: $("pipeline-execute").value === "true",
     max_steps: Number($("pipeline-max-steps").value || 60),
     training_output_dir: $("pipeline-output-dir").value,
+    training_resume_from_checkpoint: $("pipeline-resume-checkpoint").value,
+    training_save_steps: Number($("pipeline-save-steps").value || 10),
+    training_save_total_limit: 3,
     unload_between_steps: $("pipeline-unload").value === "true",
     llm_judge: $("llm-judge").value === "true",
     run_label: $("pipeline-label").value
@@ -6467,6 +6597,9 @@ async function createTrainingJob() {
     data_path: $("train-data-path").value,
     base_model_ref: $("train-base-model").value,
     max_steps: Number($("max-steps").value || 60),
+    resume_from_checkpoint: $("train-resume-checkpoint").value,
+    save_steps: Number($("train-save-steps").value || 10),
+    save_total_limit: 3,
     execute: $("execute-train").value === "true"
   };
   const res = await getJson("/api/a00/train", {method:"POST", headers:{"content-type":"application/json"}, body:JSON.stringify(body)});
@@ -6479,7 +6612,7 @@ async function finetuneSmoke() {
   const trainProfile = contract.training_profiles.tiny_lora_smoke;
   const synth = await getJson("/api/a00/synthetic/generate", {method:"POST", headers:{"content-type":"application/json"}, body:JSON.stringify(synthProfile)});
   if (synth.artifacts && synth.artifacts.sft) $("train-data-path").value = synth.artifacts.sft;
-  const job = await getJson("/api/a00/train", {method:"POST", headers:{"content-type":"application/json"}, body:JSON.stringify({data_path:synth.artifacts && synth.artifacts.sft || "", base_model_ref:$("train-base-model").value || trainProfile.base_model_ref, max_steps:trainProfile.max_steps, execute:false, adapter_name:trainProfile.adapter_name})});
+  const job = await getJson("/api/a00/train", {method:"POST", headers:{"content-type":"application/json"}, body:JSON.stringify({data_path:synth.artifacts && synth.artifacts.sft || "", base_model_ref:$("train-base-model").value || trainProfile.base_model_ref, max_steps:trainProfile.max_steps, execute:false, adapter_name:trainProfile.adapter_name, save_steps:10, save_total_limit:3})});
   log({synthetic:synth, training_job:job, next:"On Kaggle GPU, set Execute now=true after confirming model path and dependencies."});
 }
 async function runWorkflow() {

@@ -230,6 +230,31 @@ def test_a00_training_activity_exposes_larger_log_excerpt_and_full_log_link() ->
     assert '_append_job_step(pipeline_job_id, "12. Fine-tuning progress update", "running", detail)' in text
 
 
+def test_a00_training_saves_and_resumes_checkpoints() -> None:
+    text = _a00_text()
+    assert 'resume_from_checkpoint: str = ""' in text
+    assert "save_steps: int = 10" in text
+    assert "training_resume_from_checkpoint: str = \"\"" in text
+    assert "training_save_steps: int = 10" in text
+    assert 'save_strategy="steps"' in text
+    assert "save_steps=SAVE_STEPS" in text
+    assert "save_total_limit=SAVE_TOTAL_LIMIT" in text
+    assert "def latest_checkpoint(output_dir):" in text
+    assert 'root.glob("checkpoint-*")' in text
+    assert "trainer.train(resume_from_checkpoint=resume_checkpoint if resume_checkpoint else None)" in text
+    assert "trainer.save_state()" in text
+    assert "def _checkpoint_dirs(output_dir: str | Path) -> list[Path]:" in text
+    assert '"latest_checkpoint": str(latest_checkpoint) if latest_checkpoint else ""' in text
+    assert '"checkpoint_paths": [str(p) for p in checkpoints[-10:]]' in text
+    assert '"resume_note": "If a Kaggle session ends before completion, rerun with the same output_dir or pass resume_from_checkpoint to continue from the latest checkpoint."' in text
+    assert 'id="pipeline-resume-checkpoint"' in text
+    assert 'id="pipeline-save-steps"' in text
+    assert 'id="train-resume-checkpoint"' in text
+    assert 'id="train-save-steps"' in text
+    assert "training_resume_from_checkpoint: $(\"pipeline-resume-checkpoint\").value" in text
+    assert "resume_from_checkpoint: $(\"train-resume-checkpoint\").value" in text
+
+
 def test_a00_pipeline_supports_separate_judge_model() -> None:
     text = _a00_text()
     assert "def _judge_model_request(req: PipelineRequest) -> ModelLoadRequest:" in text
