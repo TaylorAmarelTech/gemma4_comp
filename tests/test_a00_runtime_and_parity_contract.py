@@ -150,6 +150,10 @@ def test_a00_combined_grading_uses_shared_grade_response_combined() -> None:
     assert "_evaluate_run_for_pipeline(" in text
     assert "duecare.chat.harness.grade_response_combined" in text
     assert "duecare.chat.harness.grade_response_universal" in text
+    assert "def traced_model_call(prompt: str) -> str:" in text
+    assert '"judge_prompt": prompt' in text
+    assert '"judge_response": judge_response' in text
+    assert 'normalised["judge_call"] = judge_call_trace' in text
 
 
 def test_a00_pipeline_report_title_conditional_on_arms_run() -> None:
@@ -209,9 +213,19 @@ def test_a00_activity_logs_full_prompts_responses_and_untruncated_buffer() -> No
     Activity buffer must not silently truncate earlier entries."""
     text = _a00_text()
     assert "def _run_activity_detail(bundle: dict[str, Any]) -> dict[str, Any]:" in text
+    assert 'activity_job_id: str = ""' in text
+    assert 'activity_label: str = ""' in text
+    assert "def append_batch_activity(label: str, status: str, detail: dict[str, Any]) -> None:" in text
+    assert 'f"{activity_label}: sending prompt {prompt_index} of {len(prompts)}"' in text
+    assert 'f"{activity_label}: completed prompt {prompt_index} of {len(prompts)}"' in text
+    assert 'f"{activity_label}: checkpoint saved after prompt {prompt_index} of {len(prompts)}"' in text
+    assert '"generation_settings": {' in text
     assert '"raw_prompt": row.get("prompt", "")' in text
     assert '"model_prompt_sent_to_gemma": row.get("model_prompt", "")' in text
     assert '"response": row.get("response", "")' in text
+    assert '"prompt_sha256": prompt_sha' in text
+    assert '"response_sha256": _sha256_text(response)' in text
+    assert '"requested_max_new_tokens": int(max_new_tokens)' in text
     assert '"prompt_response_pairs": pairs' in text
     assert '"model_prompt": model_prompt' in text
     assert '"sample_sft_rows": sft_rows[: min(10, len(sft_rows))]' in text
@@ -583,6 +597,7 @@ def test_a00_judging_phase_emits_per_response_progress() -> None:
     assert '"model_prompt_sent_to_gemma": row.get("model_prompt", "")' in text
     assert '"response": row.get("response", "")' in text
     assert 'grade["judge_model"] = {' in text
+    assert '"grade": row.get("grade", {})' in text
 
 
 def test_a00_report_writes_complete_writeup_evidence_bundle() -> None:
@@ -614,6 +629,8 @@ def test_a00_exports_full_activity_log_and_root_output_index() -> None:
     assert 'OUTPUT_INDEX_DIR = OUTPUT_DIR / "a00_outputs"' in text
     assert "def _write_activity_artifacts(job: dict[str, Any]) -> dict[str, str]:" in text
     assert "def _write_output_index() -> None:" in text
+    assert "## Artifact Shortcuts" in text
+    assert "ARTIFACT SHORTCUTS" in text
     assert 'job["activity_artifacts"] = _write_activity_artifacts(job)' in text
     assert '"activity_zip": str(ACTIVITY_DIR / f"{safe_id}_activity_bundle.zip")' in text
     assert '"output_manifest": str(OUTPUT_DIR / "A00_LATEST_OUTPUTS.json")' in text
@@ -629,6 +646,18 @@ def test_a00_exports_full_activity_log_and_root_output_index() -> None:
     assert "function jobArtifactLinks(job)" in text
     assert "function activityArtifactLinks(job)" in text
     assert "Download activity ZIP" in text
+
+
+def test_a00_pipeline_failures_export_traceback_and_troubleshooting_links() -> None:
+    text = _a00_text()
+    assert "import traceback" in text
+    assert "traceback_text = traceback.format_exc()" in text
+    assert 'job["traceback"] = traceback_text' in text
+    assert '"traceback": traceback_text' in text
+    assert '"activity_artifacts": _artifact_links(failed_job.get("activity_artifacts", {}))' in text
+    assert '"report_artifacts": _artifact_links((failed_job.get("report") or {}).get("artifacts", {}) if isinstance(failed_job.get("report"), dict) else {})' in text
+    assert "Open the activity ZIP or activity JSON for the full step-by-step record." in text
+    assert "If the failure happened during judging, inspect the row-level 19. Judging response Activity entry immediately before this error." in text
 
 
 def test_a00_batch_runs_flush_prompt_checkpoints_for_long_kaggle_runs() -> None:
