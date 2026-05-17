@@ -24,9 +24,25 @@ For project language, use this definition:
 | `kaggle/01-duecare-exploration-workbench/kernel.py` | Canonical live exploration and harness comparison workbench. |
 | `kaggle/A-00-omni-experiment-workbench/kernel.py` | Quantitative control plane for benchmark runs, synthetic data, LoRA training, judging, reports, and research graphs. |
 
-The normalized field contract for logic paths, knowledge packs, logic packs,
-model I/O, model targets, input/output verification, and privacy boundaries lives in
-[`docs/harness_standard_contract.md`](harness_standard_contract.md).
+## The harness documentation trinity
+
+Three documents define the DueCare harness system. Read them as a set:
+
+- **`docs/harness_ecosystem.md`** (this file) — vocabulary, inventory of
+  registered harnesses, broader harness families, naming conventions.
+  The "what we have" view.
+- [`docs/harness_pattern.md`](harness_pattern.md) — required module
+  contract (`name`, `applied_layers`, `register_routes`), per-task
+  JSONL training-data flow, and the 10-step recipe for adding a new
+  registered harness. The "how to build one" view.
+- [`docs/harness_standard_contract.md`](harness_standard_contract.md) —
+  the `HarnessSpec` field shape: `logic_paths`, `knowledge_packs`,
+  `logic_packs`, `model_io`, `model_targets`, `input_verification`,
+  `output_verification`, `privacy_boundaries`. The "fields each harness
+  declares" view.
+
+If the three documents disagree about a registered harness, this file
+is authoritative for the inventory. Update the others to match.
 
 ## Universal model-target layer
 
