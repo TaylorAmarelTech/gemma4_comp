@@ -50,11 +50,13 @@ def test_harness_contract_nomenclature_is_explicit(client):
     assert "logic_paths" in data["contract_fields"]
     assert "knowledge_packs" in data["contract_fields"]
     assert "logic_packs" in data["contract_fields"]
+    assert "model_targets" in data["contract_fields"]
     assert "input_verification" in data["contract_fields"]
     assert "prompt_sets" in data["contract_fields"]
     assert "model_fit" in data["contract_fields"]
     assert by_name["process"]["workflow"]
     assert by_name["chat"]["logic_paths"][0]["id"] == "chat_response"
+    assert by_name["chat"]["model_targets"][0]["transport"] == "gemma4_runtime"
     assert by_name["search_safety"]["logic_paths"][0]["id"] == "sanitize_query"
     assert any("PAGE_ITEM_PROMPT_TREE" in p for p in by_name["process"]["prompt_sets"])
     assert "Multimodal" in by_name["process"]["model_fit"]
@@ -89,6 +91,7 @@ def test_harness_workbench_page_serves(client):
         "Standard Logic Paths",
         "Knowledge Packs",
         "Logic Packs",
+        "Model Targets",
         "Verification and Privacy",
         "Prompt Sets",
         "Model fit",
@@ -97,6 +100,7 @@ def test_harness_workbench_page_serves(client):
         'id="logic-path-list"',
         'id="knowledge-pack-list"',
         'id="logic-pack-list"',
+        'id="model-target-list"',
         'id="verification-list"',
         'id="prompt-list"',
     ]:

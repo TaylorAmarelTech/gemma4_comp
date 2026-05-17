@@ -19,6 +19,39 @@ from collections.abc import Mapping
 from dataclasses import dataclass
 from typing import Any, Protocol
 
+MODEL_TRANSPORTS: tuple[str, ...] = (
+    "none",
+    "callable",
+    "gemma4_runtime",
+    "duecare_model_adapter",
+    "transformers",
+    "unsloth",
+    "llama_cpp",
+    "ollama",
+    "openai_compatible",
+    "anthropic",
+    "google_gemini",
+    "hf_inference_endpoint",
+    "frontier_api",
+)
+
+MODEL_CAPABILITIES: tuple[str, ...] = (
+    "text_generation",
+    "chat_messages",
+    "structured_json",
+    "tool_calling",
+    "vision",
+    "audio",
+    "long_context",
+    "embedding",
+    "streaming",
+    "grading",
+    "privacy_review",
+    "query_rewrite",
+    "synthetic_data",
+    "fine_tuning",
+)
+
 
 class HarnessBase(Protocol):
     """Structural-typing contract every harness module satisfies."""
@@ -156,6 +189,41 @@ class HarnessPackContract:
 
 
 @dataclass(frozen=True)
+class HarnessModelTarget:
+    """Model target a harness can use.
+
+    This is intentionally provider-neutral. A target may be the shared
+    Kaggle Gemma4Runtime, a local Ollama server, a DueCare model adapter,
+    a cloud frontier endpoint, or no model at all for deterministic paths.
+    """
+
+    id: str
+    label: str
+    transport: str
+    role: str
+    capabilities: tuple[str, ...] = ()
+    required: bool = False
+    default: bool = False
+    trust_boundary: str = "local"
+    credential_env: tuple[str, ...] = ()
+    notes: str = ""
+
+    def to_contract(self) -> dict[str, Any]:
+        return {
+            "id": self.id,
+            "label": self.label,
+            "transport": self.transport,
+            "role": self.role,
+            "capabilities": list(self.capabilities),
+            "required": self.required,
+            "default": self.default,
+            "trust_boundary": self.trust_boundary,
+            "credential_env": list(self.credential_env),
+            "notes": self.notes,
+        }
+
+
+@dataclass(frozen=True)
 class HarnessSpec:
     """User-facing contract for one harness surface.
 
@@ -188,6 +256,7 @@ class HarnessSpec:
     knowledge_packs: tuple[HarnessPackContract | Mapping[str, Any], ...] = ()
     logic_packs: tuple[HarnessPackContract | Mapping[str, Any], ...] = ()
     model_io: Mapping[str, Any] | None = None
+    model_targets: tuple[HarnessModelTarget | Mapping[str, Any], ...] = ()
     input_verification: tuple[str, ...] = ()
     output_verification: tuple[str, ...] = ()
     privacy_boundaries: tuple[str, ...] = ()
@@ -227,6 +296,7 @@ class HarnessSpec:
             "knowledge_packs": _contract_sequence(self.knowledge_packs),
             "logic_packs": _contract_sequence(self.logic_packs),
             "model_io": dict(self.model_io or {}),
+            "model_targets": _contract_sequence(self.model_targets),
             "input_verification": list(self.input_verification),
             "output_verification": list(self.output_verification),
             "privacy_boundaries": list(self.privacy_boundaries),
@@ -282,6 +352,7 @@ def spec_from_mapping(data: Mapping[str, Any]) -> HarnessSpec:
         knowledge_packs=_tuple(data.get("knowledge_packs")),
         logic_packs=_tuple(data.get("logic_packs")),
         model_io=data.get("model_io") or None,
+        model_targets=_tuple(data.get("model_targets")),
         input_verification=_tuple(data.get("input_verification")),
         output_verification=_tuple(data.get("output_verification")),
         privacy_boundaries=_tuple(data.get("privacy_boundaries")),
@@ -356,6 +427,7 @@ def contract_from_module(
             knowledge_packs=spec.knowledge_packs,
             logic_packs=spec.logic_packs,
             model_io=spec.model_io,
+            model_targets=spec.model_targets,
             input_verification=spec.input_verification,
             output_verification=spec.output_verification,
             privacy_boundaries=spec.privacy_boundaries,

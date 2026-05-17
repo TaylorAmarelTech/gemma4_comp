@@ -2457,6 +2457,7 @@ def create_app(
                 contract["knowledge_packs"] = list(item.get("knowledge_packs", ()))
                 contract["logic_packs"] = list(item.get("logic_packs", ()))
                 contract["model_io"] = dict(item.get("model_io", {}) or {})
+                contract["model_targets"] = list(item.get("model_targets", ()))
                 contract["input_verification"] = list(item.get("input_verification", ()))
                 contract["output_verification"] = list(item.get("output_verification", ()))
                 contract["privacy_boundaries"] = list(item.get("privacy_boundaries", ()))
@@ -2467,13 +2468,13 @@ def create_app(
                 out.append(contract)
 
         return {
-            "version": "2026-05-14",
+            "version": "2026-05-16",
             "contract_fields": [
                 "name", "tier", "kind", "applied_layers", "consumes",
                 "emits", "workflow", "prompt_sets", "knowledge_flow",
                 "model_fit", "logic_paths", "knowledge_packs", "logic_packs",
-                "model_io", "input_verification", "output_verification",
-                "privacy_boundaries", "register_routes",
+                "model_io", "model_targets", "input_verification",
+                "output_verification", "privacy_boundaries", "register_routes",
             ],
             "n_harnesses": len(out),
             "primary": [h for h in out if h.get("tier") == "primary"],

@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from .handler import register_routes
 from .knowledge import CONSUMES as consumes, EMITS as emits
-from ..base import HarnessLogicPath, HarnessPackContract, HarnessSpec
+from ..base import HarnessLogicPath, HarnessModelTarget, HarnessPackContract, HarnessSpec
 
 name = "process"
 applied_layers: tuple[str, ...] = ("grep", "rag", "tools")
@@ -101,6 +101,35 @@ spec = HarnessSpec(
         "output": "process rows, graph edges, graph-chat answer, knowledge candidates",
         "model_transport": "deterministic parser first; Gemma 4 only for graph-chat and optional edge passes",
     },
+    model_targets=(
+        HarnessModelTarget(
+            "deterministic_parser",
+            "Deterministic local parser",
+            "none",
+            "Default path for upload inventory, basic extraction, and source provenance.",
+            ("structured_json",),
+            required=True,
+            default=True,
+            trust_boundary="local",
+        ),
+        HarnessModelTarget(
+            "local_gemma4_runtime",
+            "Local Gemma 4 graph analyst",
+            "gemma4_runtime",
+            "Optional local model for graph chat, edge refinement, and media-aware review.",
+            ("text_generation", "chat_messages", "vision", "structured_json", "long_context"),
+            trust_boundary="local",
+        ),
+        HarnessModelTarget(
+            "external_structured_extractor",
+            "External structured extractor",
+            "duecare_model_adapter",
+            "Optional stronger adapter for large-document graph extraction after anonymization policy is satisfied.",
+            ("text_generation", "chat_messages", "structured_json", "long_context"),
+            trust_boundary="configurable",
+            notes="Route external calls through anonymization and policy gates before use.",
+        ),
+    ),
     input_verification=("upload size/type constraints", "explicit unread-media queue", "local-only provenance tracking"),
     output_verification=("typed edge schema", "row/page/chunk grounding", "review_status for model-proposed facts"),
     privacy_boundaries=("case files remain local", "raw bundles are not submitted to the public hub"),

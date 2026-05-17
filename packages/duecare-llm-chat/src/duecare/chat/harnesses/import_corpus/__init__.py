@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from .handler import register_routes
 from .knowledge import CONSUMES as consumes, EMITS as emits
-from ..base import HarnessLogicPath, HarnessPackContract, HarnessSpec
+from ..base import HarnessLogicPath, HarnessModelTarget, HarnessPackContract, HarnessSpec
 
 name = "import_corpus"
 applied_layers: tuple[str, ...] = ()
@@ -81,6 +81,18 @@ spec = HarnessSpec(
         "output": "local context snippets and import metadata",
         "model_transport": "none; downstream harnesses decide whether to call Gemma",
     },
+    model_targets=(
+        HarnessModelTarget(
+            "local_import_only",
+            "Local import only",
+            "none",
+            "Stores local evidence and exposes snippets to downstream harnesses without calling a model.",
+            ("structured_json",),
+            required=True,
+            default=True,
+            trust_boundary="local",
+        ),
+    ),
     input_verification=("upload schema", "file size/type limits", "local source metadata"),
     output_verification=("stable doc IDs", "delete/list/read contract", "context exposed only when selected"),
     privacy_boundaries=("imports remain local", "downstream sharing should pass through anonymization"),

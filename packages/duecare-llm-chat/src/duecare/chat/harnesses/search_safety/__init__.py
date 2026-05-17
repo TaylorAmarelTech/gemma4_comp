@@ -23,7 +23,7 @@ Contract (rule_70 / docs/harness_pattern.md):
 from __future__ import annotations
 
 from .handler import register_routes
-from ..base import HarnessLogicPath, HarnessPackContract, HarnessSpec
+from ..base import HarnessLogicPath, HarnessModelTarget, HarnessPackContract, HarnessSpec
 
 name = "search_safety"
 applied_layers: tuple[str, ...] = ()  # this IS a layer, not a consumer of layers
@@ -121,6 +121,35 @@ spec = HarnessSpec(
         "output": "sanitized query, redaction audit, block reason if unsafe",
         "model_transport": "optional Gemma 4 rephrase over redacted query only",
     },
+    model_targets=(
+        HarnessModelTarget(
+            "deterministic_query_sanitizer",
+            "Deterministic query sanitizer",
+            "none",
+            "Required local query redaction before any third-party search backend.",
+            ("privacy_review", "query_rewrite", "structured_json"),
+            required=True,
+            default=True,
+            trust_boundary="local",
+        ),
+        HarnessModelTarget(
+            "local_gemma4_query_rewriter",
+            "Local Gemma 4 query rewriter",
+            "gemma4_runtime",
+            "Optional rewrite of an already-redacted query into generalized search terms.",
+            ("text_generation", "chat_messages", "query_rewrite"),
+            trust_boundary="local",
+        ),
+        HarnessModelTarget(
+            "external_query_rewriter",
+            "External query rewriter",
+            "frontier_api",
+            "Optional rewrite only after direct identifiers are removed locally.",
+            ("text_generation", "chat_messages", "query_rewrite"),
+            trust_boundary="external",
+            credential_env=("OPENAI_API_KEY", "ANTHROPIC_API_KEY", "GOOGLE_API_KEY"),
+        ),
+    ),
     input_verification=("redact before any third-party backend", "detect passport/email/phone/address markers"),
     output_verification=("sanitized query contains no direct identifiers", "unsafe queries can be blocked"),
     privacy_boundaries=("external search sees only sanitized query", "raw search intent stays local"),

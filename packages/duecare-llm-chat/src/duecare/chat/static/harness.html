@@ -152,6 +152,8 @@
         <div class="flow-list" id="knowledge-pack-list"></div>
         <h3 style="margin-top:16px;">Logic Packs</h3>
         <div class="flow-list" id="logic-pack-list"></div>
+        <h3 style="margin-top:16px;">Model Targets</h3>
+        <div class="flow-list" id="model-target-list"></div>
         <h3 style="margin-top:16px;">Verification and Privacy</h3>
         <div class="flow-list" id="verification-list"></div>
         <h3 style="margin-top:16px;">Prompt Sets</h3>
@@ -304,6 +306,20 @@
       }
       document.getElementById("knowledge-pack-list").innerHTML = renderPacks(h.knowledge_packs);
       document.getElementById("logic-pack-list").innerHTML = renderPacks(h.logic_packs);
+      document.getElementById("model-target-list").innerHTML = (h.model_targets || []).length
+        ? (h.model_targets || []).map((m, idx) => `
+            <div class="flow-item">
+              <span class="flow-num">${idx + 1}</span>
+              <span>
+                <b>${esc(m.label || m.id)}</b>
+                <span class="muted"> - ${esc(m.transport || "none")} - ${m.required ? "required" : "optional"}${m.default ? " - default" : ""}</span><br>
+                ${esc(m.role || "")}
+                ${(m.capabilities || []).length ? `<br><span class="muted">capabilities: ${esc((m.capabilities || []).join(", "))}</span>` : ""}
+                ${(m.credential_env || []).length ? `<br><span class="muted">credentials: ${esc((m.credential_env || []).join(", "))}</span>` : ""}
+              </span>
+            </div>
+          `).join("")
+        : `<div class="muted">No model target declared.</div>`;
       const verification = [
         ...(h.input_verification || []).map(v => "input: " + v),
         ...(h.output_verification || []).map(v => "output: " + v),

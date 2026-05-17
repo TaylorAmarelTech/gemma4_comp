@@ -4,7 +4,7 @@ from __future__ import annotations
 from .handler import register_routes
 from .send import serve_chat_send
 from .knowledge import CONSUMES as consumes, EMITS as emits
-from ..base import HarnessLogicPath, HarnessPackContract, HarnessSpec
+from ..base import HarnessLogicPath, HarnessModelTarget, HarnessPackContract, HarnessSpec
 
 name = "chat"
 applied_layers: tuple[str, ...] = ("persona", "grep", "rag", "tools", "online")
@@ -89,6 +89,38 @@ spec = HarnessSpec(
         "output": "assistant response, layer trace, timing, optional grade payload",
         "model_transport": "app.state.gemma_call / shared Gemma4Runtime when loaded",
     },
+    model_targets=(
+        HarnessModelTarget(
+            "local_gemma4_runtime",
+            "Local Gemma 4 runtime",
+            "gemma4_runtime",
+            "Primary Kaggle/local model for answer generation and default LLM grading.",
+            ("text_generation", "chat_messages", "vision", "tool_calling", "grading"),
+            required=True,
+            default=True,
+            trust_boundary="local",
+            notes="Backed by Gemma4Runtime.load() and Unsloth FastModel on Kaggle.",
+        ),
+        HarnessModelTarget(
+            "duecare_model_adapter",
+            "DueCare model adapter",
+            "duecare_model_adapter",
+            "Portable adapter path for Ollama, OpenAI-compatible, Anthropic, Gemini, HF endpoint, transformers, or llama.cpp.",
+            ("text_generation", "chat_messages", "structured_json", "tool_calling"),
+            trust_boundary="configurable",
+            notes="Use the shared duecare-llm-models Model.generate() protocol when a non-Gemma provider is configured.",
+        ),
+        HarnessModelTarget(
+            "frontier_chat_or_judge",
+            "Frontier chat or judge model",
+            "frontier_api",
+            "Optional stronger cloud model for grading, synthetic-data review, or response comparison.",
+            ("text_generation", "chat_messages", "structured_json", "grading", "long_context"),
+            trust_boundary="external",
+            credential_env=("OPENAI_API_KEY", "ANTHROPIC_API_KEY", "GOOGLE_API_KEY"),
+            notes="Only redacted or policy-approved content should cross this boundary.",
+        ),
+    ),
     input_verification=("PII and unsafe-pattern checks through selected layers", "tool and online calls stay allow-listed"),
     output_verification=("trace emitted for every active layer", "optional rule-based, LLM-based, or combined grading"),
     privacy_boundaries=("raw prompts stay local to the runtime", "online layer must be explicitly enabled and should be paired with search_safety"),

@@ -6,8 +6,11 @@ from duecare.chat.app import KO_BRANCHES, create_app
 from duecare.chat.harnesses import all_harnesses
 from duecare.chat.harnesses.base import (
     HarnessLogicPath,
+    HarnessModelTarget,
     HarnessPackContract,
     HarnessSpec,
+    MODEL_CAPABILITIES,
+    MODEL_TRANSPORTS,
     contract_from_module,
 )
 
@@ -17,6 +20,7 @@ STANDARD_FIELDS = {
     "knowledge_packs",
     "logic_packs",
     "model_io",
+    "model_targets",
     "input_verification",
     "output_verification",
     "privacy_boundaries",
@@ -31,6 +35,7 @@ def test_harness_spec_exposes_standardized_logic_pack_and_verification_fields():
         assert isinstance(spec, HarnessSpec), name
         assert spec.logic_paths, name
         assert spec.model_io, name
+        assert spec.model_targets, name
         assert spec.input_verification, name
         assert spec.output_verification, name
         assert spec.privacy_boundaries, name
@@ -48,6 +53,18 @@ def test_harness_spec_exposes_standardized_logic_pack_and_verification_fields():
             assert pack.kind in {"knowledge_pack", "logic_pack"}, name
             assert set(pack.types).issubset(valid_ko), (name, pack.id, pack.types)
 
+        default_targets = [target for target in spec.model_targets if target.default]
+        assert default_targets, name
+        for target in spec.model_targets:
+            assert isinstance(target, HarnessModelTarget), name
+            assert target.id and target.label and target.role, name
+            assert target.transport in MODEL_TRANSPORTS, (name, target.transport)
+            assert set(target.capabilities).issubset(set(MODEL_CAPABILITIES)), (
+                name,
+                target.id,
+                target.capabilities,
+            )
+
 
 def test_contract_from_module_serializes_standard_fields():
     for module in all_harnesses():
@@ -57,11 +74,14 @@ def test_contract_from_module_serializes_standard_fields():
         assert isinstance(contract["knowledge_packs"], list), module.name
         assert isinstance(contract["logic_packs"], list), module.name
         assert isinstance(contract["model_io"], dict) and contract["model_io"], module.name
+        assert isinstance(contract["model_targets"], list) and contract["model_targets"], module.name
         assert isinstance(contract["input_verification"], list), module.name
         assert isinstance(contract["output_verification"], list), module.name
         assert isinstance(contract["privacy_boundaries"], list), module.name
         for path in contract["logic_paths"]:
             assert {"id", "label", "steps", "model_call", "verification"}.issubset(path), module.name
+        for target in contract["model_targets"]:
+            assert {"id", "label", "transport", "role", "capabilities", "trust_boundary"}.issubset(target), module.name
 
 
 def test_harnesses_endpoint_exposes_standard_fields_to_ui():
@@ -72,3 +92,5 @@ def test_harnesses_endpoint_exposes_standard_fields_to_ui():
     assert by_name["chat"]["logic_paths"][0]["id"] == "chat_response"
     assert by_name["search_safety"]["logic_paths"][0]["id"] == "sanitize_query"
     assert by_name["import_corpus"]["model_io"]["model_transport"].startswith("none")
+    assert by_name["chat"]["model_targets"][0]["transport"] == "gemma4_runtime"
+    assert by_name["search"]["model_targets"][0]["transport"] == "none"

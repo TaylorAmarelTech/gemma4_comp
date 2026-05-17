@@ -47,6 +47,11 @@ and returns `{"trace": {...}, "grounding": str}`.
 - `HarnessSpec`: the normalized metadata contract used by `/api/harnesses`.
   The spec should live next to the implementation and declare workflow steps,
   prompt sets, model-fit limits, endpoints, examples, and knowledge flow.
+- `HarnessModelTarget`: provider-neutral model target metadata. A harness can
+  declare local Gemma, DueCare model adapters, Ollama, OpenAI-compatible,
+  Anthropic, Gemini, HF endpoint, frontier API, callable, or no-model paths.
+- `model_interface.py`: portable request/response and caller helpers for
+  `.generate(...)`, `.chat(...)`, `.complete(...)`, or direct callables.
 
 The design rule is practical: route handlers can stay specialized, but every
 surface should expose the same contract shape so the Harness Workbench,
@@ -57,7 +62,7 @@ documentation, and video narrative remain consistent.
 1. `mkdir harnesses/<name>/`
 2. Write `__init__.py` re-exporting `name`, `applied_layers`, `register_routes`.
 3. Add `spec = HarnessSpec(...)` in `__init__.py`, including workflow,
-   prompt sets, model-fit limits, and knowledge flow.
+   prompt sets, model-fit limits, knowledge flow, and model targets.
 4. Write `handler.py` with handlers inside `register_routes(app)`.
 5. Write `prompts.py` if the harness calls Gemma 4.
 6. Add domain helpers as separate modules for fast unit-testing.

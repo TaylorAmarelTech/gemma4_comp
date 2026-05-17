@@ -133,6 +133,31 @@ surfaces; A-00's preconfigured proof intentionally uses the offline subset
 `chat_no_online` so the run is reproducible and does not require web/search
 credentials.
 
+## Universal harness/model abstraction (2026-05-16)
+
+Do not describe DueCare as one hardcoded Gemma harness. The registered
+harnesses expose a provider-neutral contract through `HarnessSpec`:
+
+- `logic_paths`: named workflow paths and verification checks.
+- `knowledge_packs`: facts/context a harness consumes.
+- `logic_packs`: prompts, schemas, tools, rubrics, and backend registries.
+- `model_io`: what reaches a model and what comes back.
+- `model_targets`: local Gemma, DueCare adapter, Ollama,
+  OpenAI-compatible, Anthropic, Gemini, HF endpoint, frontier API, callable,
+  or no-model targets.
+- `input_verification`, `output_verification`, and `privacy_boundaries`.
+
+The implementation source is
+`packages/duecare-llm-chat/src/duecare/chat/harnesses/base.py`.
+The portable model caller is
+`packages/duecare-llm-chat/src/duecare/chat/harnesses/model_interface.py`.
+
+For Kaggle proof runs, local Gemma 4 still uses `Gemma4Runtime.load()`.
+For broader deployments, harnesses should call a configured model through
+the universal request/response shape or a `duecare-llm-models` adapter rather
+than hardcoding a provider-specific SDK in a route handler. External frontier
+targets must receive only redacted, generalized, or policy-approved content.
+
 ## Execution phases (the 4-phase arc)
 
 | Phase | Name | Core Question | Deliverable |

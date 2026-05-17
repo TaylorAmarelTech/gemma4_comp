@@ -18,14 +18,33 @@ For project language, use this definition:
 |---|---|
 | `packages/duecare-llm-chat/src/duecare/chat/harness/__init__.py` | Legacy singular module that still holds the canonical GREP rules, RAG corpus, tool dispatch, and combined grading primitives used by Kernel 01 and A-00. |
 | `packages/duecare-llm-chat/src/duecare/chat/harnesses/` | Registered reviewer-facing harness surfaces with `name`, `applied_layers`, `consumes`, `emits`, `spec`, and `register_routes(app)`. |
+| `packages/duecare-llm-chat/src/duecare/chat/harnesses/model_interface.py` | Provider-neutral model request/response helper for harnesses that need local Gemma, DueCare adapters, Ollama, OpenAI-compatible endpoints, Anthropic, Gemini, HF endpoints, frontier APIs, or test callables. |
 | `packages/duecare-llm-chat/src/duecare/chat/gemma4_runtime.py` | Shared Gemma 4 runtime primitive for loading, unloading, and generating with Unsloth `FastModel`. |
 | `packages/duecare-llm-chat/src/duecare/chat/experiment_contracts.py` | Shared experiment profiles for harness comparison, synthetic data, training, and comparison matrices. |
 | `kaggle/01-duecare-exploration-workbench/kernel.py` | Canonical live exploration and harness comparison workbench. |
 | `kaggle/A-00-omni-experiment-workbench/kernel.py` | Quantitative control plane for benchmark runs, synthetic data, LoRA training, judging, reports, and research graphs. |
 
 The normalized field contract for logic paths, knowledge packs, logic packs,
-model I/O, input/output verification, and privacy boundaries lives in
+model I/O, model targets, input/output verification, and privacy boundaries lives in
 [`docs/harness_standard_contract.md`](harness_standard_contract.md).
+
+## Universal model-target layer
+
+Every registered harness now declares `model_targets` in its `HarnessSpec`.
+This separates the harness workflow from the model provider:
+
+- local Kaggle proof runs use `gemma4_runtime` and the shared Unsloth
+  `FastModel` loader;
+- local/private deployments can route through `ollama`, `llama_cpp`,
+  `transformers`, `unsloth`, or a generic `duecare_model_adapter`;
+- cloud or frontier judging can route through `openai_compatible`,
+  `anthropic`, `google_gemini`, `hf_inference_endpoint`, or `frontier_api`;
+- deterministic gates such as anonymization, search safety, search, and
+  import explicitly declare `none` targets so they remain usable without an
+  LLM.
+
+The privacy boundary travels with the target. External targets should receive
+only redacted, generalized, or policy-approved content.
 
 ## Registered harness surfaces
 
