@@ -22,6 +22,7 @@ import subprocess
 import sys
 import threading
 import time
+import traceback
 import zipfile
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
@@ -1028,6 +1029,8 @@ class BatchRunRequest(BaseModel):
     imported_run_id: str = ""
     run_label: str = ""
     checkpoint_every: int = 1
+    activity_job_id: str = ""
+    activity_label: str = ""
 
 
 class EvaluateRequest(BaseModel):
@@ -1899,10 +1902,13 @@ def _load_model_runtime(req: ModelLoadRequest) -> dict[str, Any]:
 
 def _generate(prompt: str, *, max_new_tokens: int, temperature: float, trace: dict[str, Any], row: dict[str, Any]) -> tuple[str, dict[str, Any]]:
     t0 = time.perf_counter()
+    prompt_tokens_est = _estimate_tokens(prompt)
+    prompt_sha = _sha256_text(prompt)
     with MODEL_RUNTIME_LOCK:
         backend = STATE.get("model_backend")
         model = STATE.get("model")
         tokenizer = STATE.get("tokenizer")
+        model_info = dict(STATE.get("model_info") or {})
         if backend is None and (model is None or tokenizer is None):
             if not A00_ALLOW_DRY_RUN:
                 raise RuntimeError(
@@ -1913,8 +1919,15 @@ def _generate(prompt: str, *, max_new_tokens: int, temperature: float, trace: di
             return response, {
                 "mode": "dry_run",
                 "seconds": round(elapsed, 4),
-                "input_tokens_est": _estimate_tokens(prompt),
+                "input_tokens_est": prompt_tokens_est,
                 "output_tokens_est": _estimate_tokens(response),
+                "requested_max_new_tokens": int(max_new_tokens),
+                "temperature": float(temperature),
+                "prompt_chars": len(prompt),
+                "response_chars": len(response),
+                "prompt_sha256": prompt_sha,
+                "response_sha256": _sha256_text(response),
+                "model_info": model_info,
             }
 
         try:
@@ -1924,8 +1937,15 @@ def _generate(prompt: str, *, max_new_tokens: int, temperature: float, trace: di
                 return text, {
                     "mode": "model",
                     "seconds": round(elapsed, 4),
-                    "input_tokens_est": _estimate_tokens(prompt),
+                    "input_tokens_est": prompt_tokens_est,
                     "output_tokens_est": _estimate_tokens(text),
+                    "requested_max_new_tokens": int(max_new_tokens),
+                    "temperature": float(temperature),
+                    "prompt_chars": len(prompt),
+                    "response_chars": len(text),
+                    "prompt_sha256": prompt_sha,
+                    "response_sha256": _sha256_text(text),
+                    "model_info": model_info,
                 }
             # Defensive raw-generate fallback used only when no backend
             # callable is attached. Aligned with the Gemma 4 recipe
@@ -1952,6 +1972,13 @@ def _generate(prompt: str, *, max_new_tokens: int, temperature: float, trace: di
                 "seconds": round(elapsed, 4),
                 "input_tokens_est": int(inputs["input_ids"].shape[-1]),
                 "output_tokens_est": _estimate_tokens(text),
+                "requested_max_new_tokens": int(max_new_tokens),
+                "temperature": float(temperature),
+                "prompt_chars": len(prompt),
+                "response_chars": len(text),
+                "prompt_sha256": prompt_sha,
+                "response_sha256": _sha256_text(text),
+                "model_info": model_info,
             }
         except Exception as exc:  # noqa: BLE001
             if not A00_ALLOW_DRY_RUN:
@@ -1962,8 +1989,15 @@ def _generate(prompt: str, *, max_new_tokens: int, temperature: float, trace: di
                 "mode": "fallback_after_error",
                 "error": f"{type(exc).__name__}: {str(exc)[:240]}",
                 "seconds": round(elapsed, 4),
-                "input_tokens_est": _estimate_tokens(prompt),
+                "input_tokens_est": prompt_tokens_est,
                 "output_tokens_est": _estimate_tokens(response),
+                "requested_max_new_tokens": int(max_new_tokens),
+                "temperature": float(temperature),
+                "prompt_chars": len(prompt),
+                "response_chars": len(response),
+                "prompt_sha256": prompt_sha,
+                "response_sha256": _sha256_text(response),
+                "model_info": model_info,
             }
 
 
@@ -2524,16 +2558,39 @@ def _configure_external_judge_for_pipeline(job_id: str, req: PipelineRequest) ->
 
 def _combined_grade(row: dict[str, Any], response: str, harness_profile: str, trace: dict[str, Any], use_llm: bool) -> dict[str, Any]:
     model_call = _grading_model_call(row) if use_llm else None
+    judge_call_trace: dict[str, Any] = {}
+    traced_model_call = None
+    if model_call:
+        def traced_model_call(prompt: str) -> str:
+            t0 = time.perf_counter()
+            judge_response = str(model_call(prompt))
+            judge_call_trace.update({
+                "judge_prompt": prompt,
+                "judge_prompt_sha256": _sha256_text(prompt),
+                "judge_prompt_chars": len(prompt),
+                "judge_prompt_tokens_est": _estimate_tokens(prompt),
+                "judge_response": judge_response,
+                "judge_response_sha256": _sha256_text(judge_response),
+                "judge_response_chars": len(judge_response),
+                "judge_response_tokens_est": _estimate_tokens(judge_response),
+                "seconds": round(time.perf_counter() - t0, 4),
+                "max_new_tokens": A00_COMBINED_JUDGE_MAX_NEW_TOKENS,
+            })
+            return judge_response
+
     try:
         shared = grade_response_combined(
             response,
-            model_call=model_call,
+            model_call=traced_model_call,
             prompt_text=row.get("prompt", ""),
             harness_trace=trace,
-            evaluator_weight=0.5 if model_call else 0.0,
+            evaluator_weight=0.5 if traced_model_call else 0.0,
         )
-        mode = "combined" if model_call else "rule"
-        return _normalise_shared_grade(shared, mode=mode)
+        mode = "combined" if traced_model_call else "rule"
+        normalised = _normalise_shared_grade(shared, mode=mode)
+        if judge_call_trace:
+            normalised["judge_call"] = judge_call_trace
+        return normalised
     except Exception as exc:  # noqa: BLE001
         shared = grade_response_universal(
             response,
@@ -2542,6 +2599,8 @@ def _combined_grade(row: dict[str, Any], response: str, harness_profile: str, tr
         )
         fallback = _normalise_shared_grade(shared, mode="rule")
         fallback["combined_error"] = f"{type(exc).__name__}: {exc}"
+        if judge_call_trace:
+            fallback["judge_call"] = judge_call_trace
         return fallback
 
 
@@ -2815,6 +2874,12 @@ def _run_batch(req: BatchRunRequest) -> dict[str, Any]:
         resume_source = ""
     completed_indices = {int(r.get("prompt_index") or 0) for r in results if int(r.get("prompt_index") or 0) > 0}
     checkpoint_every = max(1, int(req.checkpoint_every or 1))
+    activity_job_id = str(req.activity_job_id or "")
+    activity_label = str(req.activity_label or f"Batch run {run_id}")
+
+    def append_batch_activity(label: str, status: str, detail: dict[str, Any]) -> None:
+        if activity_job_id:
+            _append_job_step(activity_job_id, label, status, detail)
 
     def checkpoint_bundle(status: str, next_index: int) -> dict[str, Any]:
         ordered_results = sorted(results, key=lambda r: int(r.get("prompt_index") or 0))
@@ -2863,22 +2928,92 @@ def _run_batch(req: BatchRunRequest) -> dict[str, Any]:
         resume_source=resume_source,
         completed=len(results),
     )
+    append_batch_activity(
+        f"{activity_label}: batch initialized",
+        "running",
+        {
+            "run_id": run_id,
+            "run_label": req.run_label,
+            "prompt_set": prompt_set,
+            "harness_profile": req.harness_profile,
+            "limit": req.limit,
+            "n_prompts": len(prompts),
+            "already_completed": len(completed_indices),
+            "resume_source": resume_source,
+            "checkpoint_every": checkpoint_every,
+            "generation_settings": {
+                "temperature": req.temperature,
+                "max_new_tokens": req.max_new_tokens,
+                "evaluate": req.evaluate,
+                "llm_judge": req.llm_judge,
+            },
+            "model_info": STATE.get("model_info", {}),
+        },
+    )
 
     for prompt_index, row in enumerate(prompts, start=1):
         if prompt_index in completed_indices:
+            append_batch_activity(
+                f"{activity_label}: skipped completed prompt {prompt_index} of {len(prompts)}",
+                "running",
+                {
+                    "run_id": run_id,
+                    "prompt_index": prompt_index,
+                    "prompt_id": row.get("prompt_id") or _sha256_text(row.get("prompt", ""))[:12],
+                    "resume_source": resume_source,
+                },
+            )
             continue
         model_prompt, trace = _build_harness_prompt(row, req.harness_profile)
-        response, gen_meta = _generate(
-            model_prompt,
-            max_new_tokens=req.max_new_tokens,
-            temperature=req.temperature,
-            trace=trace,
-            row=row,
+        prompt_id = row.get("prompt_id") or _sha256_text(row.get("prompt", ""))[:12]
+        append_batch_activity(
+            f"{activity_label}: sending prompt {prompt_index} of {len(prompts)}",
+            "running",
+            {
+                "run_id": run_id,
+                "prompt_index": prompt_index,
+                "prompt_id": prompt_id,
+                "lane": row.get("lane", "researcher"),
+                "harness_profile": req.harness_profile,
+                "raw_prompt": row.get("prompt", ""),
+                "expected": row.get("expected", []),
+                "model_prompt_sent_to_gemma": model_prompt,
+                "model_prompt_sha256": trace.get("model_prompt_sha256") or _sha256_text(model_prompt),
+                "harness_trace": trace,
+                "generation_settings": {
+                    "temperature": req.temperature,
+                    "max_new_tokens": req.max_new_tokens,
+                },
+            },
         )
-        grade = _combined_grade(row, response, req.harness_profile, trace, req.llm_judge) if req.evaluate else None
-        results.append({
+        try:
+            response, gen_meta = _generate(
+                model_prompt,
+                max_new_tokens=req.max_new_tokens,
+                temperature=req.temperature,
+                trace=trace,
+                row=row,
+            )
+            grade = _combined_grade(row, response, req.harness_profile, trace, req.llm_judge) if req.evaluate else None
+        except Exception as exc:  # noqa: BLE001
+            append_batch_activity(
+                f"{activity_label}: generation failed for prompt {prompt_index} of {len(prompts)}",
+                "failed",
+                {
+                    "run_id": run_id,
+                    "prompt_index": prompt_index,
+                    "prompt_id": prompt_id,
+                    "raw_prompt": row.get("prompt", ""),
+                    "model_prompt_sent_to_gemma": model_prompt,
+                    "harness_trace": trace,
+                    "error": f"{type(exc).__name__}: {exc}",
+                    "partial_artifacts": _artifact_links((STATE["exports"].get(run_id) or {}).get("artifacts", {})),
+                },
+            )
+            raise
+        result_row = {
             "prompt_index": prompt_index,
-            "prompt_id": row.get("prompt_id") or _sha256_text(row.get("prompt", ""))[:12],
+            "prompt_id": prompt_id,
             "lane": row.get("lane", "researcher"),
             "prompt": row.get("prompt", ""),
             "expected": row.get("expected", []),
@@ -2888,15 +3023,50 @@ def _run_batch(req: BatchRunRequest) -> dict[str, Any]:
             "harness_trace": trace,
             "generation": gen_meta,
             "grade": grade,
-        })
+        }
+        results.append(result_row)
+        append_batch_activity(
+            f"{activity_label}: completed prompt {prompt_index} of {len(prompts)}",
+            "running",
+            {
+                "run_id": run_id,
+                "prompt_index": prompt_index,
+                "prompt_id": prompt_id,
+                "lane": row.get("lane", "researcher"),
+                "harness_profile": req.harness_profile,
+                "raw_prompt": row.get("prompt", ""),
+                "model_prompt_sent_to_gemma": model_prompt,
+                "response": response,
+                "harness_trace": trace,
+                "generation": gen_meta,
+                "grade": grade,
+            },
+        )
         if len(results) % checkpoint_every == 0 or len(results) == len(prompts):
             bundle = checkpoint_bundle("running", prompt_index + 1)
             dc_log("a00.batch.checkpoint", f"run_id={run_id}", completed=len(results), total=len(prompts), artifacts=bundle.get("artifacts", {}))
+            append_batch_activity(
+                f"{activity_label}: checkpoint saved after prompt {prompt_index} of {len(prompts)}",
+                "running",
+                {
+                    "run_id": run_id,
+                    "completed_prompts": len(results),
+                    "total_prompts": len(prompts),
+                    "next_prompt_index": prompt_index + 1,
+                    "artifacts": _artifact_links(bundle.get("artifacts", {})),
+                    "checkpoint": bundle.get("checkpoint", {}),
+                },
+            )
 
     bundle = checkpoint_bundle("completed", len(prompts) + 1)
     bundle["artifacts"] = _write_run_artifacts(bundle)
     STATE["exports"][run_id] = bundle
     dc_log("a00.batch.done", f"run_id={run_id}", summary=bundle["summary"])
+    append_batch_activity(
+        f"{activity_label}: batch completed",
+        "running",
+        _run_activity_detail(bundle),
+    )
     return bundle
 
 
@@ -3805,6 +3975,16 @@ def _activity_markdown(job: dict[str, Any]) -> str:
         _json_dumps(job.get("pipeline_request", {})),
         "```",
         "",
+        "## Artifact Shortcuts",
+        "",
+        "```json",
+        _json_dumps({
+            "activity_artifacts": job.get("activity_artifacts", {}),
+            "report_artifacts": (job.get("report") or {}).get("artifacts", {}) if isinstance(job.get("report"), dict) else {},
+            "run_ids": job.get("run_ids", []),
+        }),
+        "```",
+        "",
         "## Steps",
         "",
     ]
@@ -3833,6 +4013,13 @@ def _activity_text(job: dict[str, Any]) -> str:
         "",
         "PIPELINE CONFIGURATION",
         _json_dumps(job.get("pipeline_request", {})),
+        "",
+        "ARTIFACT SHORTCUTS",
+        _json_dumps({
+            "activity_artifacts": job.get("activity_artifacts", {}),
+            "report_artifacts": (job.get("report") or {}).get("artifacts", {}) if isinstance(job.get("report"), dict) else {},
+            "run_ids": job.get("run_ids", []),
+        }),
         "",
         "STEPS",
     ]
@@ -5319,6 +5506,7 @@ def _evaluate_run_for_pipeline(
                 "score_pct": row.get("grade", {}).get("score_pct"),
                 "grader": row.get("grade", {}).get("grader"),
                 "judge_model": row.get("grade", {}).get("judge_model"),
+                "grade": row.get("grade", {}),
             },
         )
     bundle["summary"] = _summarize_results(bundle.get("results", []))
@@ -5385,6 +5573,8 @@ def _run_pipeline_job(job_id: str, req: PipelineRequest) -> None:
                         run_label=f"{req.run_label or job_id}-{label}",
                         evaluate=req.evaluate_outputs,
                         llm_judge=req.llm_judge,
+                        activity_job_id=job_id,
+                        activity_label=f"{label} comparison arm",
                     ))
                     run_ids.append(bundle["run_id"])
                     _append_job_step(job_id, f"ran {label}", "running", _run_activity_detail(bundle))
@@ -5433,6 +5623,8 @@ def _run_pipeline_job(job_id: str, req: PipelineRequest) -> None:
                     run_label=f"{req.run_label or job_id}-stock",
                     evaluate=req.evaluate_outputs,
                     llm_judge=False,
+                    activity_job_id=job_id,
+                    activity_label="9. Baseline Gemma without harness",
                 ))
                 _append_job_step(job_id, "9. Completed Gemma without-harness responses", "running", _run_activity_detail(base_no_harness))
                 _append_job_step(
@@ -5455,6 +5647,8 @@ def _run_pipeline_job(job_id: str, req: PipelineRequest) -> None:
                     run_label=f"{req.run_label or job_id}-stock-harness",
                     evaluate=req.evaluate_outputs,
                     llm_judge=False,
+                    activity_job_id=job_id,
+                    activity_label="10. Baseline Gemma with DueCare harness",
                 ))
                 _append_job_step(job_id, "10. Completed Gemma harnessed responses", "running", _run_activity_detail(base_harness))
                 run_ids.extend([base_no_harness["run_id"], base_harness["run_id"]])
@@ -5546,6 +5740,8 @@ def _run_pipeline_job(job_id: str, req: PipelineRequest) -> None:
                         run_label=f"{req.run_label or job_id}-finetuned",
                         evaluate=req.evaluate_outputs,
                         llm_judge=False,
+                        activity_job_id=job_id,
+                        activity_label="15. Fine-tuned Gemma without harness",
                     ))
                     _append_job_step(job_id, "15. Completed fine-tuned without-harness responses", "running", _run_activity_detail(ft_no_harness))
                     _append_job_step(job_id, "16. Sending prompts to fine-tuned Gemma with the DueCare harness", "running", {
@@ -5562,6 +5758,8 @@ def _run_pipeline_job(job_id: str, req: PipelineRequest) -> None:
                         run_label=f"{req.run_label or job_id}-finetuned-harness",
                         evaluate=req.evaluate_outputs,
                         llm_judge=False,
+                        activity_job_id=job_id,
+                        activity_label="16. Fine-tuned Gemma with DueCare harness",
                     ))
                     _append_job_step(job_id, "16. Completed fine-tuned harnessed responses", "running", _run_activity_detail(ft_harness))
                     run_ids.extend([ft_no_harness["run_id"], ft_harness["run_id"]])
@@ -5660,14 +5858,36 @@ def _run_pipeline_job(job_id: str, req: PipelineRequest) -> None:
             if _is_external_judge_source(req.judge_model_source):
                 STATE["judge_model_call"] = None
                 STATE["judge_model_info"] = None
+            traceback_text = traceback.format_exc()
             with JOB_STATE_LOCK:
                 job = STATE["jobs"].get(job_id)
                 if job:
                     job["status"] = "failed"
                     job["finished_at"] = _utc()
                     job["error"] = f"{type(exc).__name__}: {exc}"
+                    job["traceback"] = traceback_text
                     _write_job_record(job)
-            _append_job_step(job_id, "pipeline failed", "failed", f"{type(exc).__name__}: {exc}")
+            with JOB_STATE_LOCK:
+                failed_job = dict(STATE["jobs"].get(job_id, {}))
+            _append_job_step(
+                job_id,
+                "pipeline failed",
+                "failed",
+                {
+                    "error": f"{type(exc).__name__}: {exc}",
+                    "traceback": traceback_text,
+                    "run_ids": failed_job.get("run_ids", run_ids),
+                    "training_job": failed_job.get("training_job"),
+                    "judge_model": failed_job.get("judge_model"),
+                    "activity_artifacts": _artifact_links(failed_job.get("activity_artifacts", {})),
+                    "report_artifacts": _artifact_links((failed_job.get("report") or {}).get("artifacts", {}) if isinstance(failed_job.get("report"), dict) else {}),
+                    "troubleshooting": [
+                        "Open the activity ZIP or activity JSON for the full step-by-step record.",
+                        "If the failure happened during training, open the training log_link from the most recent fine-tuning progress step.",
+                        "If the failure happened during judging, inspect the row-level 19. Judging response Activity entry immediately before this error.",
+                    ],
+                },
+            )
 
 
 def _create_pipeline_job(req: PipelineRequest) -> dict[str, Any]:
