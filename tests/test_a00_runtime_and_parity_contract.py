@@ -77,6 +77,9 @@ def test_a00_pipeline_request_defaults_match_proof_contract() -> None:
         'preset_id: str = "synthetic_train_benchmark_cycle"',
         'model_a_ref: str = A00_SMALL_MODEL_REF',
         'model_b_ref: str = A00_SMALL_MODEL_REF',
+        'judge_model_source: str = "hf"',
+        'judge_model_ref: str = ""',
+        'judge_model_adapter_ref: str = ""',
         'harness_profile: str = A00_BULK_COMPARE_DEFAULT["treatment_harness"]',
         'baseline_harness_profile: str = A00_BULK_COMPARE_DEFAULT["baseline_harness"]',
         'limit: int = 2',
@@ -144,7 +147,7 @@ def test_a00_combined_grading_uses_shared_grade_response_combined() -> None:
     assert "from duecare.chat.harness import grade_response_combined, grade_response_universal" in text
     assert "grade_response_combined(" in text
     assert "def _combined_grade(row: dict[str, Any], response: str, harness_profile: str, trace: dict[str, Any], use_llm: bool) -> dict[str, Any]:" in text
-    assert "api_evaluate(EvaluateRequest(run_ids=[run_id], llm_judge=True))" in text
+    assert "_evaluate_run_for_pipeline(" in text
     assert "duecare.chat.harness.grade_response_combined" in text
     assert "duecare.chat.harness.grade_response_universal" in text
 
@@ -225,3 +228,29 @@ def test_a00_training_activity_exposes_larger_log_excerpt_and_full_log_link() ->
     assert '"log_link": _artifact_link(str(log_path)) if log_path.exists() else ""' in text
     assert "Open log_link for the complete training log" in text
     assert '_append_job_step(pipeline_job_id, "12. Fine-tuning progress update", "running", detail)' in text
+
+
+def test_a00_pipeline_supports_separate_judge_model() -> None:
+    text = _a00_text()
+    assert "def _judge_model_request(req: PipelineRequest) -> ModelLoadRequest:" in text
+    assert "req.judge_model_ref or req.model_a_ref" in text
+    assert 'id="preconfig-judge-model"' in text
+    assert "const judgeSelected = $(\"preconfig-judge-model\")" in text
+    assert "judge_model_ref: judgeModelRef" in text
+    assert "judge_model_source: $(\"pipeline-judge-source\").value" in text
+    assert '"18. Loading judge Gemma model for final evaluation"' in text
+    assert '"experiment_model_ref": req.model_a_ref' in text
+    assert '"reason": "Final grading uses the selected normal judge model; it does not reuse the fine-tuned adapter unless explicitly configured."' in text
+
+
+def test_a00_judging_phase_emits_per_response_progress() -> None:
+    text = _a00_text()
+    assert "def _evaluate_run_for_pipeline(" in text
+    assert "19. Evaluating responses using combined rule + LLM judge for run {run_index} of {total_runs}" in text
+    assert "19. Judging response {row_index} of {len(rows)}" in text
+    assert "19. Completed judgment {row_index} of {len(rows)}" in text
+    assert '"n_responses": len(rows)' in text
+    assert '"prompt_id": row.get("prompt_id")' in text
+    assert '"model_prompt_sent_to_gemma": row.get("model_prompt", "")' in text
+    assert '"response": row.get("response", "")' in text
+    assert 'grade["judge_model"] = {' in text

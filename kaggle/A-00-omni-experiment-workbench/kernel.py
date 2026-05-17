@@ -1043,6 +1043,11 @@ class PipelineRequest(BaseModel):
     model_b_source: str = "hf"
     model_b_ref: str = A00_SMALL_MODEL_REF
     model_b_adapter_ref: str = ""
+    judge_model_source: str = "hf"
+    # Empty means "reuse model_a_ref". The UI still sends an explicit
+    # selected judge model for clarity, but API callers can omit it.
+    judge_model_ref: str = ""
+    judge_model_adapter_ref: str = ""
     quantization: str = "4bit"
     prompt_set: str = A00_BULK_COMPARE_DEFAULT["prompt_set"]
     harness_profile: str = A00_BULK_COMPARE_DEFAULT["treatment_harness"]
@@ -3762,6 +3767,20 @@ def _model_request(source: str, ref: str, adapter_ref: str, quantization: str) -
     )
 
 
+def _judge_model_request(req: PipelineRequest) -> ModelLoadRequest:
+    """Final grading uses a normal evaluator model, not the fine-tuned adapter.
+
+    The preconfigured UI sends this explicitly. API callers can leave the
+    judge fields empty to reuse model A for a fast smoke proof.
+    """
+    return _model_request(
+        req.judge_model_source or req.model_a_source,
+        req.judge_model_ref or req.model_a_ref,
+        req.judge_model_adapter_ref or "",
+        req.quantization,
+    )
+
+
 def _current_model_matches(source: str, ref: str, adapter_ref: str) -> bool:
     info = STATE.get("model_info") or {}
     if not info.get("loaded"):
@@ -3947,6 +3966,103 @@ def _wait_for_training_job(job_id: str, pipeline_job_id: str, timeout_sec: int) 
     return {"job_id": job_id, "status": "timeout", "error": "pipeline wait timed out"}
 
 
+def _evaluate_run_for_pipeline(
+    *,
+    pipeline_job_id: str,
+    run_id: str,
+    judge_info: dict[str, Any],
+    run_index: int,
+    total_runs: int,
+) -> dict[str, Any]:
+    """Grade one exported run with per-response Activity updates."""
+    bundle = STATE["exports"].get(run_id)
+    if not bundle:
+        _append_job_step(
+            pipeline_job_id,
+            f"19. Evaluating run {run_index} of {total_runs}: missing export",
+            "failed",
+            {"run_id": run_id},
+        )
+        raise RuntimeError(f"cannot evaluate missing run export: {run_id}")
+
+    rows = list(bundle.get("results", []) or [])
+    _append_job_step(
+        pipeline_job_id,
+        f"19. Evaluating responses using combined rule + LLM judge for run {run_index} of {total_runs}: {run_id}",
+        "running",
+        {
+            "run_id": run_id,
+            "harness_profile": bundle.get("harness_profile"),
+            "n_responses": len(rows),
+            "judge_model": judge_info,
+            "rule_judge": True,
+            "llm_judge": True,
+        },
+    )
+    for row_index, row in enumerate(rows, start=1):
+        _append_job_step(
+            pipeline_job_id,
+            f"19. Judging response {row_index} of {len(rows)} for {run_id}",
+            "running",
+            {
+                "run_id": run_id,
+                "prompt_id": row.get("prompt_id"),
+                "lane": row.get("lane"),
+                "harness_profile": bundle.get("harness_profile"),
+                "raw_prompt": row.get("prompt", ""),
+                "model_prompt_sent_to_gemma": row.get("model_prompt", ""),
+                "response": row.get("response", ""),
+                "judge_model": judge_info,
+                "rule_judge": True,
+                "llm_judge": True,
+            },
+        )
+        try:
+            grade = _combined_grade(
+                row,
+                row.get("response", ""),
+                bundle.get("harness_profile", "none"),
+                row.get("harness_trace", {}),
+                True,
+            )
+            grade["judge_model"] = {
+                "source": judge_info.get("source"),
+                "model_ref": judge_info.get("model_ref"),
+                "resolved_model_ref": judge_info.get("resolved_model_ref"),
+                "variant": judge_info.get("variant"),
+            }
+            row["grade"] = grade
+        except Exception as exc:  # noqa: BLE001
+            _append_job_step(
+                pipeline_job_id,
+                f"19. Judging failed for response {row_index} of {len(rows)}",
+                "failed",
+                {"run_id": run_id, "prompt_id": row.get("prompt_id"), "error": f"{type(exc).__name__}: {exc}"},
+            )
+            raise
+        _append_job_step(
+            pipeline_job_id,
+            f"19. Completed judgment {row_index} of {len(rows)} for {run_id}",
+            "running",
+            {
+                "run_id": run_id,
+                "prompt_id": row.get("prompt_id"),
+                "score_0_10": row.get("grade", {}).get("score_0_10"),
+                "score_pct": row.get("grade", {}).get("score_pct"),
+                "grader": row.get("grade", {}).get("grader"),
+                "judge_model": row.get("grade", {}).get("judge_model"),
+            },
+        )
+    bundle["summary"] = _summarize_results(bundle.get("results", []))
+    bundle["artifacts"] = _write_run_artifacts(bundle)
+    return {
+        "run_id": run_id,
+        "harness_profile": bundle.get("harness_profile"),
+        "summary": bundle["summary"],
+        "artifacts": _artifact_links(bundle.get("artifacts", {})),
+    }
+
+
 def _run_pipeline_job(job_id: str, req: PipelineRequest) -> None:
     with PIPELINE_JOB_LOCK:
         with JOB_STATE_LOCK:
@@ -4116,21 +4232,34 @@ def _run_pipeline_job(job_id: str, req: PipelineRequest) -> None:
                     _append_job_step(job_id, "training handoff created; fine-tuned arms skipped until execute training is enabled", "running", {"run_ids": run_ids})
                 if req.llm_judge and run_ids:
                     if req.unload_between_steps:
-                        _append_job_step(job_id, "18. Preparing normal Gemma model for final evaluation", "running")
+                        _append_job_step(job_id, "18. Preparing normal Gemma judge model for final evaluation", "running")
                         _unload_model_runtime(f"pipeline {job_id}: before combined grading")
-                    _append_job_step(job_id, "18. Loading Gemma model for final evaluation", "running", {"source": req.model_a_source, "model_ref": req.model_a_ref})
-                    judge_info = _load_model_runtime(_model_request(req.model_a_source, req.model_a_ref, req.model_a_adapter_ref, req.quantization))
-                    _append_job_step(job_id, "18. Gemma evaluator loaded", "running", judge_info)
+                    judge_req = _judge_model_request(req)
+                    _append_job_step(
+                        job_id,
+                        "18. Loading judge Gemma model for final evaluation",
+                        "running",
+                        {
+                            "judge_model_source": judge_req.source,
+                            "judge_model_ref": judge_req.model_ref,
+                            "judge_model_adapter_ref": judge_req.adapter_ref,
+                            "experiment_model_source": req.model_a_source,
+                            "experiment_model_ref": req.model_a_ref,
+                            "reason": "Final grading uses the selected normal judge model; it does not reuse the fine-tuned adapter unless explicitly configured.",
+                        },
+                    )
+                    judge_info = _load_model_runtime(judge_req)
+                    _append_job_step(job_id, "18. Judge Gemma evaluator loaded", "running", judge_info)
                     graded_results = []
                     total_sets = len(run_ids)
                     for idx, run_id in enumerate(run_ids, start=1):
-                        _append_job_step(
-                            job_id,
-                            f"19. Evaluating responses using combined rule + LLM judge ({idx} of {total_sets})",
-                            "running",
-                            {"run_id": run_id, "judge_model": judge_info, "rule_judge": True, "llm_judge": True},
+                        graded = _evaluate_run_for_pipeline(
+                            pipeline_job_id=job_id,
+                            run_id=run_id,
+                            judge_info=judge_info,
+                            run_index=idx,
+                            total_runs=total_sets,
                         )
-                        graded = api_evaluate(EvaluateRequest(run_ids=[run_id], llm_judge=True))
                         graded_results.append(graded)
                     _append_job_step(job_id, "19. Combined rule + LLM judging complete", "running", {"graded_sets": total_sets, "results": graded_results})
                 _append_job_step(job_id, "20. Generating final comparison report", "running", {"run_ids": run_ids})
@@ -4150,6 +4279,8 @@ def _run_pipeline_job(job_id: str, req: PipelineRequest) -> None:
                     job["run_ids"] = run_ids
                     job["synthetic"] = synth
                     job["training_job"] = train_job
+                    if req.llm_judge and run_ids:
+                        job["judge_model"] = STATE.get("model_info")
                     if report:
                         job["report"] = report
                 _append_job_step(job_id, "21. Saving report", "running", report or {"run_ids": run_ids, "report": "not requested"})
@@ -4701,7 +4832,7 @@ __A00_SHUTDOWN_CONTROL__
         <li>Create or execute the LoRA fine-tune job from those rows.</li>
         <li>Run the fine-tuned model without the harness.</li>
         <li>Run the fine-tuned model with the harness.</li>
-        <li>Grade all outputs with normal Gemma plus rules combined mode and build the final report.</li>
+        <li>Grade all outputs with the selected normal Gemma plus rules combined mode and build the final report.</li>
       </ol>
       <div class="a00-static-settings" aria-label="Static preconfigured settings">
         <h3>Static settings used for this run</h3>
@@ -4715,14 +4846,15 @@ __A00_SHUTDOWN_CONTROL__
           <dt>Fine-tune path</dt>
           <dd>Small LoRA smoke path using the generated SFT rows, then the same prompts are rerun.</dd>
           <dt>Evaluation</dt>
-          <dd>Combined rule-based score plus LLM judge using the normal selected Gemma model.</dd>
+          <dd>Combined rule-based score plus LLM judge using the selected normal judge Gemma model. Use the same model for fast smoke tests or a larger Gemma model for final review.</dd>
           <dt>Report</dt>
           <dd>Four-arm report: base, base+harness, fine-tuned, and fine-tuned+harness.</dd>
         </dl>
       </div>
       <div class="a00-choice-controls">
         <div class="row compact-row">
-          <label>Gemma model <select id="preconfig-model"></select></label>
+          <label>Run/train Gemma model <select id="preconfig-model"></select></label>
+          <label>Judge Gemma model <select id="preconfig-judge-model"></select></label>
           <label>Prompt count <input id="preconfig-limit" type="number" min="1" max="50" value="2"></label>
         </div>
         <div class="pipeline-progress" aria-label="Preconfigured pipeline progress"><div id="preconfig-progress"></div></div>
@@ -4878,6 +5010,11 @@ __A00_SHUTDOWN_CONTROL__
       <label>Fine-tune base source <select id="pipeline-b-source"><option value="hf">hf</option><option value="kaggle_path">kaggle_path</option><option value="local_path">local_path</option></select></label>
       <label>Fine-tune base model/path <input id="pipeline-b-ref" value="__A00_SMALL_MODEL_REF__"></label>
       <label>Existing adapter path <input id="pipeline-b-adapter" placeholder="/kaggle/input/adapter-b"></label>
+    </div>
+    <div class="row compact-row">
+      <label>Judge model source <select id="pipeline-judge-source"><option value="hf">hf</option><option value="kaggle_path">kaggle_path</option><option value="local_path">local_path</option></select></label>
+      <label>Judge model ref/path <input id="pipeline-judge-ref" value="__A00_SMALL_MODEL_REF__"></label>
+      <label>Judge adapter path <input id="pipeline-judge-adapter" placeholder="leave empty for normal judge model"></label>
     </div>
     <div class="row compact-row">
       <label>Prompt set <select id="pipeline-prompt-set"></select></label>
@@ -5278,8 +5415,13 @@ async function loadOptions() {
   if ($("pipeline-preset")) $("pipeline-preset").innerHTML = Object.entries(presets.presets || {}).map(([id,p]) => `<option value="${id}">${p.label}</option>`).join("");
   const modelPresets = await getJson("/api/a00/model-presets");
   if ($("preconfig-model")) {
-    $("preconfig-model").innerHTML = (modelPresets.presets || []).map(p => `<option value="${p.ref}" data-source="${p.source || "hf"}">${p.label || p.ref}</option>`).join("");
+    const modelOptions = (modelPresets.presets || []).map(p => `<option value="${p.ref}" data-source="${p.source || "hf"}">${p.label || p.ref}</option>`).join("");
+    $("preconfig-model").innerHTML = modelOptions;
     $("preconfig-model").value = "__A00_SMALL_MODEL_REF__";
+    if ($("preconfig-judge-model")) {
+      $("preconfig-judge-model").innerHTML = modelOptions;
+      $("preconfig-judge-model").value = "__A00_SMALL_MODEL_REF__";
+    }
   }
   const bulk = contract.quantitative_run_profiles.bulk_text_25;
   const synth = contract.synthetic_generation_profiles.rubric_polisher_24;
@@ -5296,6 +5438,9 @@ async function loadOptions() {
   if ($("pipeline-synth-count")) $("pipeline-synth-count").value = 2;
   if ($("pipeline-max-steps")) $("pipeline-max-steps").value = train.max_steps;
   if ($("pipeline-b-ref")) $("pipeline-b-ref").value = train.base_model_ref || "__A00_SMALL_MODEL_REF__";
+  if ($("pipeline-judge-source")) $("pipeline-judge-source").value = "hf";
+  if ($("pipeline-judge-ref")) $("pipeline-judge-ref").value = "__A00_SMALL_MODEL_REF__";
+  if ($("pipeline-judge-adapter")) $("pipeline-judge-adapter").value = "";
   refreshStatus();
 }
 function useE2BPipelineDefaults(silent=false) {
@@ -5307,6 +5452,9 @@ function useE2BPipelineDefaults(silent=false) {
   $("pipeline-b-source").value = "hf";
   $("pipeline-b-ref").value = "__A00_SMALL_MODEL_REF__";
   $("pipeline-b-adapter").value = "";
+  $("pipeline-judge-source").value = "hf";
+  $("pipeline-judge-ref").value = "__A00_SMALL_MODEL_REF__";
+  $("pipeline-judge-adapter").value = "";
   $("pipeline-limit").value = 2;
   $("pipeline-synth-count").value = 2;
   $("pipeline-evaluate").value = "true";
@@ -5336,6 +5484,9 @@ async function runPreconfiguredPipeline() {
   const selected = $("preconfig-model") && $("preconfig-model").selectedOptions ? $("preconfig-model").selectedOptions[0] : null;
   const modelRef = selected ? selected.value : "__A00_SMALL_MODEL_REF__";
   const modelSource = selected ? (selected.getAttribute("data-source") || "hf") : "hf";
+  const judgeSelected = $("preconfig-judge-model") && $("preconfig-judge-model").selectedOptions ? $("preconfig-judge-model").selectedOptions[0] : null;
+  const judgeModelRef = judgeSelected ? judgeSelected.value : modelRef;
+  const judgeModelSource = judgeSelected ? (judgeSelected.getAttribute("data-source") || "hf") : modelSource;
   $("pipeline-limit").value = limit;
   $("pipeline-synth-count").value = synth;
   $("pipeline-execute").value = execute ? "true" : "false";
@@ -5343,7 +5494,10 @@ async function runPreconfiguredPipeline() {
   $("pipeline-evaluate").value = "true";
   $("pipeline-unload").value = "true";
   $("pipeline-label").value = execute ? "e2b-full-train-eval" : "e2b-training-handoff-eval";
-  setPreconfiguredProgress(6, "Queueing guided pipeline. Step 1 checks current model state; then A-00 unloads memory if needed, checks disk, loads the selected Gemma model, runs both benchmark arms, fine-tunes, grades, and saves the report.");
+  $("pipeline-judge-source").value = judgeModelSource;
+  $("pipeline-judge-ref").value = judgeModelRef;
+  $("pipeline-judge-adapter").value = "";
+  setPreconfiguredProgress(6, "Queueing guided pipeline. Step 1 checks current model state; then A-00 unloads memory if needed, checks disk, loads the selected run/train Gemma model, runs both benchmark arms, fine-tunes, loads the selected judge Gemma model for final combined grading, and saves the report.");
   const body = {
     preset_id: "synthetic_train_benchmark_cycle",
     model_a_source: modelSource,
@@ -5352,6 +5506,9 @@ async function runPreconfiguredPipeline() {
     model_b_source: modelSource,
     model_b_ref: modelRef,
     model_b_adapter_ref: "",
+    judge_model_source: judgeModelSource,
+    judge_model_ref: judgeModelRef,
+    judge_model_adapter_ref: "",
     prompt_set: $("pipeline-prompt-set").value || $("prompt-set").value,
     harness_profile: "chat_no_online",
     baseline_harness_profile: "none",
@@ -5453,6 +5610,9 @@ async function runAdvancedPipeline() {
     model_b_source: $("pipeline-b-source").value,
     model_b_ref: $("pipeline-b-ref").value,
     model_b_adapter_ref: $("pipeline-b-adapter").value,
+    judge_model_source: $("pipeline-judge-source").value,
+    judge_model_ref: $("pipeline-judge-ref").value,
+    judge_model_adapter_ref: $("pipeline-judge-adapter").value,
     quantization: $("quantization").value,
     prompt_set: $("pipeline-prompt-set").value,
     harness_profile: $("pipeline-harness").value,
