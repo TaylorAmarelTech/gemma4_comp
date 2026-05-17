@@ -430,6 +430,41 @@ def test_a00_tools_layer_always_emits_trace_for_consistency() -> None:
     assert '"status": "degraded"' in body
 
 
+def test_a00_inference_uses_at_least_16k_context_window() -> None:
+    """The combined rule + LLM judge runs over (prompt + response +
+    17-dimension rubric + harness trace + JSON instructions), which can
+    easily exceed 4096 tokens for a real benchmark row. A-00 must load
+    the shared Gemma 4 runtime with at least a 16K context so grading
+    and full-harness benchmark prompts are not silently truncated.
+
+    The training script keeps a separate, intentionally tighter
+    max_seq_length on the smoke LoRA profile; this test only pins the
+    inference loading path.
+    """
+    text = _a00_text()
+    # The dedicated constant must exist with an env override.
+    assert 'A00_INFERENCE_MAX_SEQ_LENGTH = int(os.environ.get("DUECARE_A00_INFERENCE_MAX_SEQ_LENGTH", "16384"))' in text
+    # _load_model_runtime must pass the constant, not the training default.
+    pieces = text.split("def _load_model_runtime(req: ModelLoadRequest) -> dict[str, Any]:", 1)
+    assert len(pieces) == 2, "_load_model_runtime not found"
+    body, _rest = pieces[1].split("\ndef ", 1)
+    assert "max_seq_length=A00_INFERENCE_MAX_SEQ_LENGTH" in body, (
+        "Inference must load at the 16K constant, not the training profile fallback."
+    )
+    assert 'max_seq_length=int(A00_TRAINING_DEFAULT.get("max_seq_length", 4096))' not in body, (
+        "Old 4096 training fallback must not be reachable from the inference loader."
+    )
+    # Defensive parse: the default literal must be at least 16384 so a
+    # future contributor who tweaks the constant cannot silently drop
+    # below grading context needs.
+    pieces2 = text.split('A00_INFERENCE_MAX_SEQ_LENGTH = int(os.environ.get("DUECARE_A00_INFERENCE_MAX_SEQ_LENGTH", "', 1)
+    assert len(pieces2) == 2, "constant default literal not found"
+    default_literal = pieces2[1].split('"', 1)[0]
+    assert int(default_literal) >= 16384, (
+        f"A00_INFERENCE_MAX_SEQ_LENGTH default {default_literal} must be at least 16384."
+    )
+
+
 def test_a00_grep_and_rag_layers_distinguish_noop_from_evidence() -> None:
     """A zero-hit GREP/RAG pass is materially different from an
     evidence-producing pass. The activity trace should let reviewers
