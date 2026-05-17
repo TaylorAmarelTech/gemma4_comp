@@ -474,7 +474,7 @@ def test_a00_combined_judge_has_structured_output_budget() -> None:
     """
     text = _a00_text()
     assert (
-        'A00_COMBINED_JUDGE_MAX_NEW_TOKENS = int(os.environ.get("DUECARE_A00_COMBINED_JUDGE_MAX_NEW_TOKENS", "1600"))'
+        'A00_COMBINED_JUDGE_MAX_NEW_TOKENS = int(os.environ.get("DUECARE_A00_COMBINED_JUDGE_MAX_NEW_TOKENS", "2048"))'
         in text
     )
     pieces = text.split(
@@ -483,8 +483,8 @@ def test_a00_combined_judge_has_structured_output_budget() -> None:
     )
     assert len(pieces) == 2, "combined judge token-budget constant not found"
     default_literal = pieces[1].split('"', 1)[0]
-    assert int(default_literal) >= 1500, (
-        f"A00_COMBINED_JUDGE_MAX_NEW_TOKENS default {default_literal} must be at least 1500."
+    assert int(default_literal) >= 2048, (
+        f"A00_COMBINED_JUDGE_MAX_NEW_TOKENS default {default_literal} must be at least 2048."
     )
     assert "max_tokens=A00_COMBINED_JUDGE_MAX_NEW_TOKENS" in text
     assert "max_new_tokens=A00_COMBINED_JUDGE_MAX_NEW_TOKENS" in text
