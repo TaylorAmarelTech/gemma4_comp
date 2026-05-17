@@ -56,6 +56,8 @@ DUECARE_REPO = os.environ.get("DUECARE_REPO", "TaylorAmarelTech/gemma4_comp")
 DUECARE_COMMIT_SHA = os.environ.get("DUECARE_COMMIT_SHA", "master")
 A00_SMALL_MODEL_REF = os.environ.get("DUECARE_A00_SMALL_MODEL_REF", "google/gemma-4-2b-it")
 A00_DEFAULT_MODEL_REF = os.environ.get("DUECARE_A00_DEFAULT_MODEL_REF", A00_SMALL_MODEL_REF)
+A00_OLLAMA_JUDGE_MODEL_REF = os.environ.get("DUECARE_A00_OLLAMA_JUDGE_MODEL_REF", "gpt-oss:20b")
+A00_OLLAMA_CLOUD_HOST = os.environ.get("DUECARE_A00_OLLAMA_CLOUD_HOST", "https://ollama.com")
 DUECARE_PACKAGES = [
     "duecare-llm-core",
     "duecare-llm-models",
@@ -542,6 +544,22 @@ try:
     MODEL_PRESETS = model_preset_list(_MODEL_VARIANTS)
 except Exception:
     pass
+
+JUDGE_MODEL_PRESETS = [
+    *MODEL_PRESETS,
+    {
+        "label": "Ollama Cloud gpt-oss 20B judge",
+        "ref": "gpt-oss:20b",
+        "source": "ollama_cloud",
+        "notes": "External judge via https://ollama.com/api/chat; requires OLLAMA_API_KEY.",
+    },
+    {
+        "label": "Ollama Cloud gpt-oss 120B judge",
+        "ref": "gpt-oss:120b",
+        "source": "ollama_cloud",
+        "notes": "Stronger external judge via https://ollama.com/api/chat; requires OLLAMA_API_KEY.",
+    },
+]
 
 
 RESPONSE_BLUEPRINT = {
@@ -1086,6 +1104,8 @@ STATE: dict[str, Any] = {
     "model": None,
     "tokenizer": None,
     "model_backend": None,
+    "judge_model_call": None,
+    "judge_model_info": None,
     "model_info": {
         "loaded": False,
         "source": "hf",
@@ -1657,6 +1677,8 @@ def _unload_model_runtime(reason: str = "manual") -> dict[str, Any]:
         STATE["model"] = None
         STATE["tokenizer"] = None
         STATE["model_backend"] = None
+        STATE["judge_model_call"] = None
+        STATE["judge_model_info"] = None
         STATE["model_info"] = A00_MODEL_RUNTIME.unload(reason)
         return STATE["model_info"]
 
@@ -1966,6 +1988,136 @@ def _llm_evaluate(row: dict[str, Any], response: str, rule_grade: dict[str, Any]
         }
 
 
+def _secret_value(names: list[str]) -> str:
+    for name in names:
+        value = os.environ.get(name, "").strip()
+        if value:
+            return value
+    try:
+        from kaggle_secrets import UserSecretsClient  # type: ignore[import-not-found]
+
+        client = UserSecretsClient()
+        for name in names:
+            try:
+                value = str(client.get_secret(name) or "").strip()
+            except Exception:
+                value = ""
+            if value:
+                return value
+    except Exception:
+        pass
+    return ""
+
+
+def _is_ollama_judge_source(source: str) -> bool:
+    return (source or "").strip().lower().replace("-", "_") in {"ollama", "ollama_cloud", "cloud_ollama"}
+
+
+def _is_ollama_cloud_source(source: str) -> bool:
+    return (source or "").strip().lower().replace("-", "_") in {"ollama_cloud", "cloud_ollama"}
+
+
+def _ollama_api_endpoint(source: str) -> str:
+    if _is_ollama_cloud_source(source):
+        base = os.environ.get("OLLAMA_CLOUD_HOST", A00_OLLAMA_CLOUD_HOST).strip() or A00_OLLAMA_CLOUD_HOST
+    else:
+        base = os.environ.get("OLLAMA_HOST", "http://localhost:11434").strip() or "http://localhost:11434"
+    base = base.rstrip("/")
+    return f"{base}/chat" if base.endswith("/api") else f"{base}/api/chat"
+
+
+def _ollama_model_call_factory(*, source: str, model_ref: str, endpoint: str, api_key: str) -> Any:
+    timeout = float(os.environ.get("DUECARE_A00_OLLAMA_TIMEOUT_SEC", "240"))
+
+    def call(prompt: str) -> str:
+        if requests is None:
+            raise RuntimeError("requests is required for Ollama judging")
+        headers = {"Content-Type": "application/json"}
+        if api_key:
+            headers["Authorization"] = f"Bearer {api_key}"
+        payload = {
+            "model": model_ref,
+            "messages": [{"role": "user", "content": prompt}],
+            "stream": False,
+            "format": "json",
+            "options": {"temperature": 0},
+        }
+        t0 = time.perf_counter()
+        resp = requests.post(endpoint, headers=headers, json=payload, timeout=timeout)
+        elapsed = time.perf_counter() - t0
+        if resp.status_code >= 400:
+            raise RuntimeError(f"Ollama judge HTTP {resp.status_code}: {resp.text[:500]}")
+        data = resp.json()
+        message = data.get("message") if isinstance(data, dict) else {}
+        content = ""
+        if isinstance(message, dict):
+            content = str(message.get("content") or "")
+        if not content and isinstance(data, dict):
+            content = str(data.get("response") or "")
+        if not content:
+            raise RuntimeError(f"Ollama judge returned no content: {str(data)[:500]}")
+        dc_log(
+            "a00.ollama_judge.call",
+            f"model={model_ref}",
+            source=source,
+            endpoint=endpoint,
+            seconds=round(elapsed, 3),
+            prompt_tokens=data.get("prompt_eval_count") if isinstance(data, dict) else None,
+            output_tokens=data.get("eval_count") if isinstance(data, dict) else None,
+        )
+        return content
+
+    return call
+
+
+def _configure_ollama_judge_for_pipeline(job_id: str, req: PipelineRequest) -> dict[str, Any]:
+    source = req.judge_model_source or "ollama_cloud"
+    model_ref = (req.judge_model_ref or os.environ.get("OLLAMA_MODEL") or A00_OLLAMA_JUDGE_MODEL_REF).strip()
+    endpoint = _ollama_api_endpoint(source)
+    api_key = _secret_value(["OLLAMA_API_KEY", "DUECARE_OLLAMA_API_KEY", "OLLAMA_TOKEN"])
+    if _is_ollama_cloud_source(source) and not api_key:
+        raise RuntimeError(
+            "Ollama Cloud judge requires Kaggle Secret or environment variable OLLAMA_API_KEY. "
+            "Use a local Gemma judge or set OLLAMA_API_KEY before running the pipeline."
+        )
+    info = {
+        "loaded": True,
+        "source": "ollama_cloud" if _is_ollama_cloud_source(source) else "ollama",
+        "model_ref": model_ref,
+        "resolved_model_ref": model_ref,
+        "variant": model_ref,
+        "adapter_ref": "",
+        "quantization": "external",
+        "loaded_at": _utc(),
+        "device": "external_api" if _is_ollama_cloud_source(source) else "ollama_host",
+        "device_map": "external",
+        "loader": "ollama.api.chat",
+        "endpoint": endpoint,
+        "api_key_configured": bool(api_key),
+        "notes": (
+            "External Ollama judge used only for final combined grading. "
+            "Prompts, responses, and harness traces are sent to the configured Ollama API."
+        ),
+    }
+    STATE["judge_model_call"] = _ollama_model_call_factory(
+        source=str(info["source"]),
+        model_ref=model_ref,
+        endpoint=endpoint,
+        api_key=api_key,
+    )
+    STATE["judge_model_info"] = info
+    _append_job_step(
+        job_id,
+        "18. Configuring Ollama judge for final evaluation",
+        "running",
+        {
+            **info,
+            "privacy_note": "Final grading sends benchmark prompts, model responses, and harness traces to Ollama.",
+        },
+    )
+    return info
+
+
 def _combined_grade(row: dict[str, Any], response: str, harness_profile: str, trace: dict[str, Any], use_llm: bool) -> dict[str, Any]:
     model_call = _grading_model_call(row) if use_llm else None
     try:
@@ -1990,6 +2142,9 @@ def _combined_grade(row: dict[str, Any], response: str, harness_profile: str, tr
 
 
 def _grading_model_call(row: dict[str, Any]) -> Optional[Any]:
+    external = STATE.get("judge_model_call")
+    if callable(external):
+        return external
     backend = STATE.get("model_backend")
     if backend is not None:
         def call(prompt: str) -> str:
@@ -4805,6 +4960,7 @@ def _run_pipeline_job(job_id: str, req: PipelineRequest) -> None:
             job["started_at"] = _utc()
             _write_job_record(job)
         run_ids: list[str] = []
+        judge_info: dict[str, Any] = {}
         try:
             if req.preset_id == "compare_two_models":
                 for label, source, ref, adapter in [
@@ -5012,24 +5168,27 @@ def _run_pipeline_job(job_id: str, req: PipelineRequest) -> None:
                     _append_job_step(job_id, "training handoff created; fine-tuned arms skipped until execute training is enabled", "running", {"run_ids": run_ids})
                 if req.llm_judge and run_ids:
                     if req.unload_between_steps:
-                        _append_job_step(job_id, "18. Preparing normal Gemma judge model for final evaluation", "running")
+                        _append_job_step(job_id, "18. Preparing judge model for final evaluation", "running")
                         _unload_model_runtime(f"pipeline {job_id}: before combined grading")
-                    judge_req = _judge_model_request(req)
-                    _append_job_step(
-                        job_id,
-                        "18. Loading judge Gemma model for final evaluation",
-                        "running",
-                        {
-                            "judge_model_source": judge_req.source,
-                            "judge_model_ref": judge_req.model_ref,
-                            "judge_model_adapter_ref": judge_req.adapter_ref,
-                            "experiment_model_source": req.model_a_source,
-                            "experiment_model_ref": req.model_a_ref,
-                            "reason": "Final grading uses the selected normal judge model; it does not reuse the fine-tuned adapter unless explicitly configured.",
-                        },
-                    )
-                    judge_info = _load_model_runtime(judge_req)
-                    _append_job_step(job_id, "18. Judge Gemma evaluator loaded", "running", judge_info)
+                    if _is_ollama_judge_source(req.judge_model_source):
+                        judge_info = _configure_ollama_judge_for_pipeline(job_id, req)
+                    else:
+                        judge_req = _judge_model_request(req)
+                        _append_job_step(
+                            job_id,
+                            "18. Loading judge Gemma model for final evaluation",
+                            "running",
+                            {
+                                "judge_model_source": judge_req.source,
+                                "judge_model_ref": judge_req.model_ref,
+                                "judge_model_adapter_ref": judge_req.adapter_ref,
+                                "experiment_model_source": req.model_a_source,
+                                "experiment_model_ref": req.model_a_ref,
+                                "reason": "Final grading uses the selected normal judge model; it does not reuse the fine-tuned adapter unless explicitly configured.",
+                            },
+                        )
+                        judge_info = _load_model_runtime(judge_req)
+                        _append_job_step(job_id, "18. Judge Gemma evaluator loaded", "running", judge_info)
                     graded_results = []
                     total_sets = len(run_ids)
                     for idx, run_id in enumerate(run_ids, start=1):
@@ -5041,6 +5200,9 @@ def _run_pipeline_job(job_id: str, req: PipelineRequest) -> None:
                             total_runs=total_sets,
                         )
                         graded_results.append(graded)
+                    if _is_ollama_judge_source(req.judge_model_source):
+                        STATE["judge_model_call"] = None
+                        STATE["judge_model_info"] = None
                     _append_job_step(job_id, "19. Combined rule + LLM judging complete", "running", {"graded_sets": total_sets, "results": graded_results})
                 _append_job_step(job_id, "20. Generating final comparison report", "running", {"run_ids": run_ids})
                 # Report title reflects the actual arms that ran.
@@ -5060,7 +5222,7 @@ def _run_pipeline_job(job_id: str, req: PipelineRequest) -> None:
                     job["synthetic"] = synth
                     job["training_job"] = train_job
                     if req.llm_judge and run_ids:
-                        job["judge_model"] = STATE.get("model_info")
+                        job["judge_model"] = judge_info or STATE.get("model_info")
                     if report:
                         job["report"] = report
                 _append_job_step(job_id, "21. Saving report and write-up evidence bundle", "running", _report_activity_detail(report, run_ids))
@@ -5091,6 +5253,9 @@ def _run_pipeline_job(job_id: str, req: PipelineRequest) -> None:
                 job["finished_at"] = _utc()
                 _write_job_record(job)
         except Exception as exc:  # noqa: BLE001
+            if _is_ollama_judge_source(req.judge_model_source):
+                STATE["judge_model_call"] = None
+                STATE["judge_model_info"] = None
             with JOB_STATE_LOCK:
                 job = STATE["jobs"].get(job_id)
                 if job:
@@ -5201,7 +5366,13 @@ async def api_intake_upload(file: UploadFile = File(...)) -> Any:
 
 
 def api_model_presets() -> Any:
-    return {"presets": MODEL_PRESETS}
+    ollama_key = _secret_value(["OLLAMA_API_KEY", "DUECARE_OLLAMA_API_KEY", "OLLAMA_TOKEN"])
+    return {
+        "presets": MODEL_PRESETS,
+        "judge_presets": JUDGE_MODEL_PRESETS,
+        "ollama_cloud_ready": bool(ollama_key),
+        "default_judge_ref": A00_OLLAMA_JUDGE_MODEL_REF if ollama_key else A00_SMALL_MODEL_REF,
+    }
 
 
 def _active_pipeline_job() -> Optional[dict[str, Any]]:
@@ -5651,6 +5822,8 @@ __A00_SHUTDOWN_CONTROL__
           <dd>Small LoRA smoke path using the generated SFT rows, then the same prompts are rerun.</dd>
           <dt>Evaluation</dt>
           <dd>Combined rule-based score plus LLM judge using the selected normal judge Gemma model. A larger Gemma model or frontier model may produce stronger final grading than the fast smoke-test judge.</dd>
+          <dt>External judge option</dt>
+          <dd>If OLLAMA_API_KEY is available, Ollama Cloud can grade the final response sets without loading another local judge model.</dd>
           <dt>Report</dt>
           <dd>Four-arm report: base, base+harness, fine-tuned, and fine-tuned+harness.</dd>
           <dt>Runtime budget</dt>
@@ -5660,7 +5833,7 @@ __A00_SHUTDOWN_CONTROL__
       <div class="a00-choice-controls">
         <div class="row compact-row">
           <label>Run/train Gemma model <select id="preconfig-model"></select></label>
-          <label>Judge Gemma model <select id="preconfig-judge-model"></select></label>
+          <label>Judge model <select id="preconfig-judge-model"></select></label>
           <label>Prompt count <input id="preconfig-limit" type="number" min="1" max="50" value="4"></label>
         </div>
         <div class="pipeline-progress" aria-label="Preconfigured pipeline progress"><div id="preconfig-progress"></div></div>
@@ -5821,7 +5994,7 @@ __A00_SHUTDOWN_CONTROL__
     </div>
     <label>Resume training checkpoint <input id="pipeline-resume-checkpoint" placeholder="/kaggle/working/a00_training/.../checkpoint-40"></label>
     <div class="row compact-row">
-      <label>Judge model source <select id="pipeline-judge-source"><option value="hf">hf</option><option value="kaggle_path">kaggle_path</option><option value="local_path">local_path</option></select></label>
+      <label>Judge model source <select id="pipeline-judge-source"><option value="hf">hf</option><option value="kaggle_path">kaggle_path</option><option value="local_path">local_path</option><option value="ollama_cloud">ollama_cloud</option><option value="ollama">ollama</option></select></label>
       <label>Judge model ref/path <input id="pipeline-judge-ref" value="__A00_SMALL_MODEL_REF__"></label>
       <label>Judge adapter path <input id="pipeline-judge-adapter" placeholder="leave empty for normal judge model"></label>
     </div>
@@ -6344,11 +6517,12 @@ async function loadOptions() {
   const modelPresets = await getJson("/api/a00/model-presets");
   if ($("preconfig-model")) {
     const modelOptions = (modelPresets.presets || []).map(p => `<option value="${p.ref}" data-source="${p.source || "hf"}">${p.label || p.ref}</option>`).join("");
+    const judgeOptions = (modelPresets.judge_presets || modelPresets.presets || []).map(p => `<option value="${p.ref}" data-source="${p.source || "hf"}">${p.label || p.ref}</option>`).join("");
     $("preconfig-model").innerHTML = modelOptions;
     $("preconfig-model").value = "__A00_SMALL_MODEL_REF__";
     if ($("preconfig-judge-model")) {
-      $("preconfig-judge-model").innerHTML = modelOptions;
-      $("preconfig-judge-model").value = "__A00_SMALL_MODEL_REF__";
+      $("preconfig-judge-model").innerHTML = judgeOptions;
+      $("preconfig-judge-model").value = modelPresets.default_judge_ref || "__A00_SMALL_MODEL_REF__";
     }
   }
   const bulk = contract.quantitative_run_profiles.bulk_text_25;
@@ -6369,8 +6543,8 @@ async function loadOptions() {
   if ($("pipeline-resume-checkpoint")) $("pipeline-resume-checkpoint").value = "";
   if ($("pipeline-save-steps")) $("pipeline-save-steps").value = 10;
   if ($("train-save-steps")) $("train-save-steps").value = 10;
-  if ($("pipeline-judge-source")) $("pipeline-judge-source").value = "hf";
-  if ($("pipeline-judge-ref")) $("pipeline-judge-ref").value = "__A00_SMALL_MODEL_REF__";
+  if ($("pipeline-judge-source")) $("pipeline-judge-source").value = modelPresets.ollama_cloud_ready ? "ollama_cloud" : "hf";
+  if ($("pipeline-judge-ref")) $("pipeline-judge-ref").value = modelPresets.default_judge_ref || "__A00_SMALL_MODEL_REF__";
   if ($("pipeline-judge-adapter")) $("pipeline-judge-adapter").value = "";
   refreshStatus();
 }
@@ -6430,7 +6604,7 @@ async function runPreconfiguredPipeline() {
   $("pipeline-judge-source").value = judgeModelSource;
   $("pipeline-judge-ref").value = judgeModelRef;
   $("pipeline-judge-adapter").value = "";
-  setPreconfiguredProgress(6, "Queueing guided pipeline. Step 1 checks current model state; then A-00 unloads memory if needed, checks disk, loads the selected run/train Gemma model, runs both benchmark arms, fine-tunes, loads the selected judge Gemma model for final combined grading, and saves the report.");
+  setPreconfiguredProgress(6, "Queueing guided pipeline. Step 1 checks current model state; then A-00 unloads memory if needed, checks disk, loads the selected run/train Gemma model, runs both benchmark arms, fine-tunes, configures the selected judge model or Ollama judge for final combined grading, and saves the report.");
   const body = {
     preset_id: "synthetic_train_benchmark_cycle",
     model_a_source: modelSource,

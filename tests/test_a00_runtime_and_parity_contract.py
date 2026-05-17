@@ -268,6 +268,34 @@ def test_a00_pipeline_supports_separate_judge_model() -> None:
     assert '"reason": "Final grading uses the selected normal judge model; it does not reuse the fine-tuned adapter unless explicitly configured."' in text
 
 
+def test_a00_pipeline_supports_ollama_external_judge() -> None:
+    """The final LLM judge can use Ollama Cloud/local Ollama without
+    loading another local Gemma model. This should affect only the
+    grading call path, not the Gemma generation or fine-tuning path."""
+    text = _a00_text()
+    assert 'A00_OLLAMA_JUDGE_MODEL_REF = os.environ.get("DUECARE_A00_OLLAMA_JUDGE_MODEL_REF", "gpt-oss:20b")' in text
+    assert "JUDGE_MODEL_PRESETS = [" in text
+    assert '"source": "ollama_cloud"' in text
+    assert '<option value="ollama">ollama</option>' in text
+    assert '"OLLAMA_API_KEY"' in text
+    assert "def _is_ollama_judge_source(source: str) -> bool:" in text
+    assert "def _ollama_api_endpoint(source: str) -> str:" in text
+    assert "https://ollama.com" in text
+    assert "/api/chat" in text
+    assert 'headers["Authorization"] = f"Bearer {api_key}"' in text
+    assert '"format": "json"' in text
+    assert "def _configure_ollama_judge_for_pipeline(job_id: str, req: PipelineRequest) -> dict[str, Any]:" in text
+    assert 'STATE["judge_model_call"] = _ollama_model_call_factory(' in text
+    assert "external = STATE.get(\"judge_model_call\")" in text
+    assert "if callable(external):" in text
+    assert "if _is_ollama_judge_source(req.judge_model_source):" in text
+    assert '"18. Configuring Ollama judge for final evaluation"' in text
+    assert "External Ollama judge used only for final combined grading" in text
+    assert '"ollama_cloud_ready": bool(ollama_key)' in text
+    assert "const judgeOptions = (modelPresets.judge_presets || modelPresets.presets || [])" in text
+    assert '<option value="ollama_cloud">ollama_cloud</option>' in text
+
+
 def test_a00_judging_phase_emits_per_response_progress() -> None:
     text = _a00_text()
     assert "def _evaluate_run_for_pipeline(" in text
