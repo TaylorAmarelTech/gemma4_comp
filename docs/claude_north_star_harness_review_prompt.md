@@ -23,7 +23,7 @@ We recently consolidated the project around three active Kaggle kernels only:
 
 The archived scope is intentional:
 - kaggle/03-duecare-video-pitch is archived for this push.
-- A-01 through A-24 appendix notebooks are archived for this push.
+- Retired notebook-era surfaces are archived for this push.
 - Do not revive archived notebooks, broad Kaggle publishing, or unrelated packages unless a failing contract directly requires it.
 
 Recent implemented direction:

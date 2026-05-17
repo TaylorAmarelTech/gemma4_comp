@@ -38,7 +38,9 @@ Review active notebooks and runtime paths only:
 - `docs/harness_pattern.md`
 - relevant tests under `tests/` and `packages/duecare-llm-chat/tests/`
 
-Do not revive or broaden into archived appendix notebooks. A-01 through A-24 and `03-duecare-video-pitch` should remain out of scope except as historical references.
+Do not revive or broaden into archived notebook-era surfaces. Retired appendix
+and video-pitch notebooks should remain out of scope except as historical
+references.
 
 ## Specific Questions To Answer
 

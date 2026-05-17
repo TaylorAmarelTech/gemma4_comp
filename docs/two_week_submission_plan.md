@@ -55,7 +55,7 @@ session.
 
 ## Do Not Spend Time On
 
-- Rebuilding archived appendix notebooks.
+- Rebuilding archived notebook-era surfaces.
 - Reintroducing duplicate model-selection UI.
 - Refactoring the canonical GREP/RAG corpus during final proof runs.
 - Adding broad new docs that compete with `FOR_PEER_REVIEW.md`,
