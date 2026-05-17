@@ -2081,7 +2081,7 @@ def _write_run_artifacts(bundle: dict[str, Any]) -> dict[str, str]:
     with csv_path.open("w", encoding="utf-8", newline="") as f:
         writer = csv.DictWriter(f, fieldnames=[
             "run_id", "prompt_id", "lane", "harness_profile", "score_0_10",
-            "seconds", "input_tokens_est", "output_tokens_est", "prompt", "response",
+            "seconds", "input_tokens_est", "output_tokens_est", "prompt", "model_prompt", "response",
         ])
         writer.writeheader()
         for row in rows:
@@ -2095,12 +2095,75 @@ def _write_run_artifacts(bundle: dict[str, Any]) -> dict[str, str]:
                 "input_tokens_est": row.get("generation", {}).get("input_tokens_est"),
                 "output_tokens_est": row.get("generation", {}).get("output_tokens_est"),
                 "prompt": row.get("prompt"),
+                "model_prompt": row.get("model_prompt"),
                 "response": row.get("response"),
             })
     with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as z:
         z.write(json_path, arcname=json_path.name)
         z.write(csv_path, arcname=csv_path.name)
     return {"json": str(json_path), "csv": str(csv_path), "zip": str(zip_path)}
+
+
+def _artifact_links(paths: dict[str, Any]) -> dict[str, str]:
+    return {k: _artifact_link(str(v)) for k, v in (paths or {}).items() if v}
+
+
+def _prompt_manifest_for_activity(prompt_set: str, limit: int) -> list[dict[str, Any]]:
+    rows = list(PROMPT_SETS.get(prompt_set, []))[: max(1, min(int(limit or 25), 500))]
+    return [
+        {
+            "index": idx,
+            "prompt_id": row.get("prompt_id"),
+            "lane": row.get("lane", "researcher"),
+            "default_harness": row.get("harness"),
+            "prompt": row.get("prompt", ""),
+            "expected": row.get("expected", []),
+        }
+        for idx, row in enumerate(rows, start=1)
+    ]
+
+
+def _run_activity_detail(bundle: dict[str, Any]) -> dict[str, Any]:
+    """Full prompt/response payload for Activity and job records.
+
+    The run artifact JSON remains the source of truth; this projection keeps
+    the live pipeline log reviewable without forcing a user to open the ZIP.
+    """
+    pairs = []
+    for idx, row in enumerate(bundle.get("results", []) or [], start=1):
+        pairs.append({
+            "index": idx,
+            "prompt_id": row.get("prompt_id"),
+            "lane": row.get("lane"),
+            "harness_profile": bundle.get("harness_profile"),
+            "raw_prompt": row.get("prompt", ""),
+            "model_prompt_sent_to_gemma": row.get("model_prompt", ""),
+            "response": row.get("response", ""),
+            "generation": row.get("generation", {}),
+            "grade": row.get("grade"),
+            "harness_trace": row.get("harness_trace", {}),
+        })
+    return {
+        "run_id": bundle.get("run_id"),
+        "prompt_set": bundle.get("prompt_set"),
+        "harness_profile": bundle.get("harness_profile"),
+        "model": bundle.get("model", {}),
+        "summary": bundle.get("summary", {}),
+        "artifacts": _artifact_links(bundle.get("artifacts", {})),
+        "prompt_response_pairs": pairs,
+    }
+
+
+def _synthetic_activity_detail(manifest: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "id": manifest.get("id"),
+        "generator_mode": manifest.get("generator_mode"),
+        "harness_profile": manifest.get("harness_profile"),
+        "counts": manifest.get("counts", {}),
+        "artifacts": _artifact_links(manifest.get("artifacts", {})),
+        "sample_sft_rows": manifest.get("sample_sft_rows", []),
+        "sample_prompt_tests": manifest.get("sample_prompt_tests", []),
+    }
 
 
 def _load_export_from_bytes(filename: str, data: bytes) -> dict[str, Any]:
@@ -2165,6 +2228,7 @@ def _run_batch(req: BatchRunRequest) -> dict[str, Any]:
             "prompt": row.get("prompt", ""),
             "expected": row.get("expected", []),
             "model_prompt_sha256": trace.get("model_prompt_sha256"),
+            "model_prompt": model_prompt,
             "response": response,
             "harness_trace": trace,
             "generation": gen_meta,
@@ -2499,6 +2563,8 @@ def _generate_synthetic(req: SyntheticRequest) -> dict[str, Any]:
             "prompt_tests": len(prompt_tests),
             "knowledge_facts": len(facts),
         },
+        "sample_sft_rows": sft_rows[: min(10, len(sft_rows))],
+        "sample_prompt_tests": prompt_tests[: min(10, len(prompt_tests))],
         "artifacts": {
             "sft": str(sft_path),
             "dpo": str(dpo_path),
@@ -2643,12 +2709,35 @@ except Exception as exc:
 '''
 
 
-def _tail_text(path: Path, limit: int = 4000) -> str:
+def _tail_text(path: Path, limit: int = 20000) -> str:
     try:
         data = path.read_bytes()
     except Exception:
         return ""
     return data[-limit:].decode("utf-8", errors="replace")
+
+
+def _training_log_activity(job: dict[str, Any]) -> dict[str, Any]:
+    log_path = Path(str(job.get("log_path") or ""))
+    log_chars = 0
+    if log_path.exists():
+        try:
+            log_chars = log_path.stat().st_size
+        except Exception:
+            log_chars = 0
+    log_excerpt = _tail_text(log_path) if log_path.exists() else str(job.get("log_tail") or "")
+    return {
+        "job_id": job.get("job_id"),
+        "status": job.get("status"),
+        "returncode": job.get("returncode"),
+        "error": job.get("error"),
+        "log_path": str(log_path) if str(log_path) else "",
+        "log_link": _artifact_link(str(log_path)) if log_path.exists() else "",
+        "log_chars": log_chars,
+        "log_excerpt_tail_chars": len(log_excerpt),
+        "log_excerpt": log_excerpt,
+        "full_log_note": "Open log_link for the complete training log; Activity keeps every poll entry and no longer truncates its own buffer.",
+    }
 
 
 def _write_job_record(job: dict[str, Any]) -> None:
@@ -3850,8 +3939,8 @@ def _wait_for_training_job(job_id: str, pipeline_job_id: str, timeout_sec: int) 
         with JOB_STATE_LOCK:
             job = STATE["jobs"].get(job_id, {})
             status = job.get("status")
-            tail = str(job.get("log_tail") or "")[-1000:]
-        _append_job_step(pipeline_job_id, "12. Fine-tuning progress update", "running", {"job_id": job_id, "status": status, "log_tail": tail})
+            detail = _training_log_activity(job)
+        _append_job_step(pipeline_job_id, "12. Fine-tuning progress update", "running", detail)
         if status in {"completed", "failed", "timeout"}:
             return job
         time.sleep(10)
@@ -3890,7 +3979,7 @@ def _run_pipeline_job(job_id: str, req: PipelineRequest) -> None:
                         llm_judge=req.llm_judge,
                     ))
                     run_ids.append(bundle["run_id"])
-                    _append_job_step(job_id, f"ran {label}", "running", {"run_id": bundle["run_id"], "summary": bundle["summary"]})
+                    _append_job_step(job_id, f"ran {label}", "running", _run_activity_detail(bundle))
                 report = _build_report(ReportRequest(
                     run_ids=run_ids,
                     title=f"A-00 pipeline model comparison: {req.run_label or job_id}",
@@ -3904,7 +3993,12 @@ def _run_pipeline_job(job_id: str, req: PipelineRequest) -> None:
 
             elif req.preset_id == "synthetic_train_benchmark_cycle":
                 _prepare_base_model_for_pipeline(job_id, req)
-                _append_job_step(job_id, "9. Sending prompts to Gemma without the DueCare harness", "running", {"prompt_set": req.prompt_set, "limit": req.limit, "harness_profile": req.baseline_harness_profile})
+                _append_job_step(job_id, "9. Sending prompts to Gemma without the DueCare harness", "running", {
+                    "prompt_set": req.prompt_set,
+                    "limit": req.limit,
+                    "harness_profile": req.baseline_harness_profile,
+                    "prompts": _prompt_manifest_for_activity(req.prompt_set, req.limit),
+                })
                 base_no_harness = _run_batch(BatchRunRequest(
                     auto_load_model=False,
                     prompt_set=req.prompt_set,
@@ -3914,7 +4008,7 @@ def _run_pipeline_job(job_id: str, req: PipelineRequest) -> None:
                     evaluate=req.evaluate_outputs,
                     llm_judge=False,
                 ))
-                _append_job_step(job_id, "9. Completed Gemma without-harness responses", "running", {"run_id": base_no_harness["run_id"], "summary": base_no_harness["summary"]})
+                _append_job_step(job_id, "9. Completed Gemma without-harness responses", "running", _run_activity_detail(base_no_harness))
                 _append_job_step(
                     job_id,
                     "10. Sending prompts to Gemma with the DueCare harness",
@@ -3924,6 +4018,7 @@ def _run_pipeline_job(job_id: str, req: PipelineRequest) -> None:
                         "limit": req.limit,
                         "harness_profile": req.harness_profile,
                         "layers": "Persona + GREP + RAG/context + tools; no internet/import for the default proof path.",
+                        "prompts": _prompt_manifest_for_activity(req.prompt_set, req.limit),
                     },
                 )
                 base_harness = _run_batch(BatchRunRequest(
@@ -3935,7 +4030,7 @@ def _run_pipeline_job(job_id: str, req: PipelineRequest) -> None:
                     evaluate=req.evaluate_outputs,
                     llm_judge=False,
                 ))
-                _append_job_step(job_id, "10. Completed Gemma harnessed responses", "running", {"run_id": base_harness["run_id"], "summary": base_harness["summary"]})
+                _append_job_step(job_id, "10. Completed Gemma harnessed responses", "running", _run_activity_detail(base_harness))
                 run_ids.extend([base_no_harness["run_id"], base_harness["run_id"]])
                 _append_job_step(job_id, "11. Generating synthetic training data with harnessed Gemma", "running", {"count": req.synthetic_count, "generator_mode": req.generator_mode, "harness_profile": req.harness_profile})
                 synth = _generate_synthetic(SyntheticRequest(
@@ -3945,7 +4040,7 @@ def _run_pipeline_job(job_id: str, req: PipelineRequest) -> None:
                     harness_profile=req.harness_profile,
                     generator_mode=req.generator_mode,
                 ))
-                _append_job_step(job_id, "11. Synthetic training data saved", "running", {"artifacts": synth["artifacts"], "counts": synth.get("counts")})
+                _append_job_step(job_id, "11. Synthetic training data saved", "running", _synthetic_activity_detail(synth))
                 if req.unload_between_steps:
                     _append_job_step(job_id, "12. Unloading Gemma before fine-tuning", "running")
                     _unload_model_runtime(f"pipeline {job_id}: before training")
@@ -3964,13 +4059,8 @@ def _run_pipeline_job(job_id: str, req: PipelineRequest) -> None:
                     final_train = _wait_for_training_job(train_job["job_id"], job_id, A00_TRAINING_TIMEOUT_SEC)
                     if final_train.get("status") != "completed":
                         failure_detail = {
-                            "job_id": final_train.get("job_id"),
-                            "status": final_train.get("status"),
+                            **_training_log_activity(final_train),
                             "error": final_train.get("error") or "training job ended without a completed status",
-                            "returncode": final_train.get("returncode"),
-                            "log_tail": str(final_train.get("log_tail") or "")[-4000:],
-                            "log_path": final_train.get("log_path"),
-                            "log_link": _artifact_link(str(final_train.get("log_path"))) if final_train.get("log_path") else "",
                             "script_link": _artifact_link(str(final_train.get("script"))) if final_train.get("script") else "",
                         }
                         _append_job_step(job_id, "12. Fine-tuning failed; review training log", "failed", failure_detail)
@@ -3986,7 +4076,12 @@ def _run_pipeline_job(job_id: str, req: PipelineRequest) -> None:
                     _append_job_step(job_id, "14. Loading fine-tuned model", "running", {"base_model_ref": req.model_b_ref or req.model_a_ref, "adapter_ref": adapter_path})
                     ft_model_info = _load_model_runtime(_model_request(req.model_b_source or req.model_a_source, req.model_b_ref or req.model_a_ref, str(adapter_path), req.quantization))
                     _append_job_step(job_id, "14. Fine-tuned model loaded", "running", ft_model_info)
-                    _append_job_step(job_id, "15. Sending prompts to fine-tuned Gemma without the DueCare harness", "running", {"prompt_set": req.prompt_set, "limit": req.limit, "harness_profile": req.baseline_harness_profile})
+                    _append_job_step(job_id, "15. Sending prompts to fine-tuned Gemma without the DueCare harness", "running", {
+                        "prompt_set": req.prompt_set,
+                        "limit": req.limit,
+                        "harness_profile": req.baseline_harness_profile,
+                        "prompts": _prompt_manifest_for_activity(req.prompt_set, req.limit),
+                    })
                     ft_no_harness = _run_batch(BatchRunRequest(
                         auto_load_model=False,
                         prompt_set=req.prompt_set,
@@ -3996,8 +4091,13 @@ def _run_pipeline_job(job_id: str, req: PipelineRequest) -> None:
                         evaluate=req.evaluate_outputs,
                         llm_judge=False,
                     ))
-                    _append_job_step(job_id, "15. Completed fine-tuned without-harness responses", "running", {"run_id": ft_no_harness["run_id"], "summary": ft_no_harness["summary"]})
-                    _append_job_step(job_id, "16. Sending prompts to fine-tuned Gemma with the DueCare harness", "running", {"prompt_set": req.prompt_set, "limit": req.limit, "harness_profile": req.harness_profile})
+                    _append_job_step(job_id, "15. Completed fine-tuned without-harness responses", "running", _run_activity_detail(ft_no_harness))
+                    _append_job_step(job_id, "16. Sending prompts to fine-tuned Gemma with the DueCare harness", "running", {
+                        "prompt_set": req.prompt_set,
+                        "limit": req.limit,
+                        "harness_profile": req.harness_profile,
+                        "prompts": _prompt_manifest_for_activity(req.prompt_set, req.limit),
+                    })
                     ft_harness = _run_batch(BatchRunRequest(
                         auto_load_model=False,
                         prompt_set=req.prompt_set,
@@ -4007,7 +4107,7 @@ def _run_pipeline_job(job_id: str, req: PipelineRequest) -> None:
                         evaluate=req.evaluate_outputs,
                         llm_judge=False,
                     ))
-                    _append_job_step(job_id, "16. Completed fine-tuned harnessed responses", "running", {"run_id": ft_harness["run_id"], "summary": ft_harness["summary"]})
+                    _append_job_step(job_id, "16. Completed fine-tuned harnessed responses", "running", _run_activity_detail(ft_harness))
                     run_ids.extend([ft_no_harness["run_id"], ft_harness["run_id"]])
                     if req.unload_between_steps:
                         _append_job_step(job_id, "17. Unloading fine-tuned model", "running", ft_model_info)
@@ -4884,7 +4984,7 @@ function log(obj) {
   const stamp = new Date().toLocaleTimeString();
   const summary = summarizeActivity(obj);
   const detail = activityDetail(obj);
-  el.textContent = `[${stamp}] ${summary}${detail}\n\n` + (el.textContent || "").slice(0, 18000);
+  el.textContent = `[${stamp}] ${summary}${detail}\n\n` + (el.textContent || "");
   refreshStatus();
 }
 function openStartCard(path, event) {
@@ -5002,7 +5102,7 @@ function renderJobs(jobs) {
       j.data_path_link ? `<a href="${j.data_path_link}" target="_blank">data</a>` : "",
     ].filter(Boolean).join(" | ");
     const tail = j.log_tail ? `<details><summary>log tail</summary><pre>${escapeHtml(j.log_tail)}</pre></details>` : "";
-    const steps = (j.steps || []).slice(-8).map(s => `<li>${escapeHtml(s.ts || "")} | ${escapeHtml(s.label || "")} | ${escapeHtml(s.status || "")}</li>`).join("");
+    const steps = (j.steps || []).map(s => `<li>${escapeHtml(s.ts || "")} | ${escapeHtml(s.label || "")} | ${escapeHtml(s.status || "")}</li>`).join("");
     const reportUrl = j.report && j.report.artifact_links ? j.report.artifact_links.html : "";
     const report = reportUrl ? `<p><a href="${reportUrl}" target="_blank">open report</a></p>` : "";
     return `<div class="job-card"><b>${j.job_id}</b><span class="${jobStatusClass(j.status)}">${j.status || "unknown"}</span> <span class="muted">${j.started_at || j.created_at || ""}</span><p class="muted">kind: ${j.kind || "training"} | base: ${j.base_model_ref || ""} | method: ${j.method || ""}</p><p>${links}</p>${report}${steps ? `<details open><summary>steps</summary><ul>${steps}</ul></details>` : ""}${tail}</div>`;
