@@ -57,6 +57,11 @@ def test_a00_has_judge_facing_quick_proof_and_research_flow():
         "Evaluating responses using combined rule + LLM judge",
         "Checking if any model is currently loaded",
         "Loading model with the shared Unsloth FastModel runtime",
+        "model_prompt_sent_to_gemma",
+        "prompt_response_pairs",
+        "raw_prompt",
+        "log_excerpt",
+        "full_log_note",
         "Sending prompts to Gemma without the DueCare harness",
         "Sending prompts to Gemma with the DueCare harness",
         "Static settings used for this run",
@@ -77,6 +82,8 @@ def test_a00_has_judge_facing_quick_proof_and_research_flow():
         assert marker in text
     assert "Refresh status" not in text
     assert "teacher/base model" not in text
+    assert "slice(0, 18000)" not in text
+    assert "slice(-8)" not in text
 
 
 def test_a00_has_synthetic_polish_and_training_smoke_path():

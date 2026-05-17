@@ -197,3 +197,31 @@ def test_a00_pack_rules_and_facts_have_pack_marked_provenance() -> None:
     assert '"source": f"pack:{slug}",' in text
     assert 'str(h.get("citation", "")).startswith("pack:")' in text
     assert 'str(d.get("source", "")).startswith("pack:")' in text
+
+
+def test_a00_activity_logs_full_prompts_responses_and_untruncated_buffer() -> None:
+    """The preconfigured pipeline Activity log is the judge/debug trace.
+    It must expose the raw prompt, the exact model prompt passed to
+    Gemma, and the response for every benchmark row. The browser-side
+    Activity buffer must not silently truncate earlier entries."""
+    text = _a00_text()
+    assert "def _run_activity_detail(bundle: dict[str, Any]) -> dict[str, Any]:" in text
+    assert '"raw_prompt": row.get("prompt", "")' in text
+    assert '"model_prompt_sent_to_gemma": row.get("model_prompt", "")' in text
+    assert '"response": row.get("response", "")' in text
+    assert '"prompt_response_pairs": pairs' in text
+    assert '"model_prompt": model_prompt' in text
+    assert '"sample_sft_rows": sft_rows[: min(10, len(sft_rows))]' in text
+    assert 'el.textContent = `[${stamp}] ${summary}${detail}\\n\\n` + (el.textContent || "");' in text
+    assert "slice(0, 18000)" not in text
+    assert ".slice(-8).map" not in text
+
+
+def test_a00_training_activity_exposes_larger_log_excerpt_and_full_log_link() -> None:
+    text = _a00_text()
+    assert "def _tail_text(path: Path, limit: int = 20000) -> str:" in text
+    assert "def _training_log_activity(job: dict[str, Any]) -> dict[str, Any]:" in text
+    assert '"log_excerpt": log_excerpt' in text
+    assert '"log_link": _artifact_link(str(log_path)) if log_path.exists() else ""' in text
+    assert "Open log_link for the complete training log" in text
+    assert '_append_job_step(pipeline_job_id, "12. Fine-tuning progress update", "running", detail)' in text
