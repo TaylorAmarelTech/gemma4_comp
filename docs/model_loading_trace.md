@@ -38,7 +38,7 @@ Kaggle-attached models are preferred when `/kaggle/input/models/google/gemma-4/t
 - Kernel 02 live demo:
   `/api/live/model/load` and startup loading -> `load_gemma_shared()` -> `_LIVE_MODEL_RUNTIME.load()` -> `FastModel.from_pretrained(...)`.
 - Kernel A-00 preconfigured experiment:
-  `/api/a00/pipeline` -> `_prepare_base_model_for_pipeline()` / `_load_model_runtime()` -> `A00_MODEL_RUNTIME.load()` -> `FastModel.from_pretrained(...)`.
+  `/api/a00/pipeline/run` -> `_create_pipeline_job()` -> `_run_pipeline_job()` -> `_prepare_base_model_for_pipeline()` / `_load_model_runtime()` -> `A00_MODEL_RUNTIME.load()` -> `FastModel.from_pretrained(...)`.
 - Kernel A-00 final LLM grading:
   the same `A00_MODEL_RUNTIME` is reloaded with the selected Gemma 4 model before combined rule + LLM grading.
 
