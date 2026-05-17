@@ -44,9 +44,17 @@ Every registered harness now exposes these additional optional fields through
 | `knowledge_packs` | Fact/context packs consumed by the harness, such as GREP rules, RAG docs, local imports, contacts, and corridor profiles. |
 | `logic_packs` | Prompt templates, tool registries, schemas, rubrics, backend registries, and other non-fact logic dependencies. |
 | `model_io` | What reaches the model, what returns from it, and which model transport is used. |
+| `model_targets` | Provider-neutral targets a harness can use: no model, local Gemma runtime, DueCare model adapter, Ollama, OpenAI-compatible, Anthropic, Gemini, HF endpoint, local transformers/Unsloth/llama.cpp, or a frontier API. |
 | `input_verification` | Preconditions and safety checks before a model call or external boundary. |
 | `output_verification` | Checks after model calls, generated artifacts, or exported reports. |
 | `privacy_boundaries` | Where raw data must stay local, when redaction is mandatory, and what can cross external boundaries. |
+
+The portable caller for those targets lives in
+`harnesses/model_interface.py`. It normalizes prompt strings or chat messages
+into `UniversalModelRequest`, invokes `.generate(...)`, `.chat(...)`,
+`.complete(...)`, or a direct callable, and returns `UniversalModelResponse`.
+That keeps each harness route portable across local Gemma, Ollama,
+OpenAI-compatible endpoints, Anthropic, Gemini, HF endpoints, and test doubles.
 
 ## Primary harnesses (5 -- the user-named safety surfaces)
 

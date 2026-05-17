@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from .handler import register_routes
 from .knowledge import CONSUMES as consumes, EMITS as emits
-from ..base import HarnessLogicPath, HarnessPackContract, HarnessSpec
+from ..base import HarnessLogicPath, HarnessModelTarget, HarnessPackContract, HarnessSpec
 
 name = "anonymization"
 applied_layers: tuple[str, ...] = ()  # regex-only by design
@@ -83,6 +83,35 @@ spec = HarnessSpec(
         "output": "redacted text, redaction audit, optional residual-PII review",
         "model_transport": "optional Gemma 4 review over redacted text only",
     },
+    model_targets=(
+        HarnessModelTarget(
+            "deterministic_redactor",
+            "Deterministic redactor",
+            "none",
+            "Required local privacy gate before any model or external boundary.",
+            ("privacy_review", "structured_json"),
+            required=True,
+            default=True,
+            trust_boundary="local",
+        ),
+        HarnessModelTarget(
+            "local_gemma4_privacy_review",
+            "Local Gemma 4 privacy review",
+            "gemma4_runtime",
+            "Optional second pass over already-redacted text.",
+            ("text_generation", "chat_messages", "privacy_review", "structured_json"),
+            trust_boundary="local",
+        ),
+        HarnessModelTarget(
+            "external_privacy_reviewer",
+            "External privacy reviewer",
+            "frontier_api",
+            "Optional redundant review only after deterministic redaction and reviewer approval.",
+            ("text_generation", "chat_messages", "privacy_review", "structured_json"),
+            trust_boundary="external",
+            credential_env=("OPENAI_API_KEY", "ANTHROPIC_API_KEY", "GOOGLE_API_KEY"),
+        ),
+    ),
     input_verification=("regex PII detection", "confidential-marker detection", "submission schema checks"),
     output_verification=("no direct identifiers in sanitized payload", "hashes recorded instead of raw values"),
     privacy_boundaries=("raw content must not leave the local runtime", "Gemma review sees redacted text only"),

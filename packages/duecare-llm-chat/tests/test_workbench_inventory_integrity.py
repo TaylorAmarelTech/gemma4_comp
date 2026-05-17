@@ -236,6 +236,7 @@ def test_harness_specs_and_knowledge_manifests_are_complete():
         assert spec.model_fit, name
         assert spec.logic_paths, name
         assert spec.model_io, name
+        assert spec.model_targets, name
         assert spec.input_verification, name
         assert spec.output_verification, name
         assert spec.privacy_boundaries, name

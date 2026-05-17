@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from .handler import register_routes
 from .knowledge import CONSUMES as consumes, EMITS as emits
-from ..base import HarnessLogicPath, HarnessPackContract, HarnessSpec
+from ..base import HarnessLogicPath, HarnessModelTarget, HarnessPackContract, HarnessSpec
 
 name = "extraction"
 applied_layers: tuple[str, ...] = ("grep", "rag")
@@ -86,6 +86,34 @@ spec = HarnessSpec(
         "output": "draft KnowledgeObject envelope and validation metadata",
         "model_transport": "optional Gemma 4 drafter, deterministic skeleton fallback",
     },
+    model_targets=(
+        HarnessModelTarget(
+            "deterministic_envelope_skeleton",
+            "Deterministic envelope skeleton",
+            "none",
+            "Builds reviewable KnowledgeObject drafts without a model.",
+            ("structured_json",),
+            default=True,
+            trust_boundary="local",
+        ),
+        HarnessModelTarget(
+            "local_gemma4_drafter",
+            "Local Gemma 4 drafter",
+            "gemma4_runtime",
+            "Drafts schema-shaped KnowledgeObject envelopes from compact local text.",
+            ("text_generation", "chat_messages", "structured_json"),
+            trust_boundary="local",
+        ),
+        HarnessModelTarget(
+            "frontier_long_context_drafter",
+            "Frontier long-context drafter",
+            "frontier_api",
+            "Optional stronger model for long IOM/TIP/court-document extraction after privacy review.",
+            ("text_generation", "chat_messages", "structured_json", "long_context"),
+            trust_boundary="external",
+            credential_env=("OPENAI_API_KEY", "ANTHROPIC_API_KEY", "GOOGLE_API_KEY"),
+        ),
+    ),
     input_verification=("source text size and type checks", "target type must be known"),
     output_verification=("KnowledgeObject schema validation", "review_required before promotion", "volatile facts marked for verification"),
     privacy_boundaries=("drafting stays local", "submission should pass anonymization before hub sharing"),

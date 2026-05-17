@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from .handler import register_routes
 from .knowledge import CONSUMES as consumes, EMITS as emits
-from ..base import HarnessLogicPath, HarnessPackContract, HarnessSpec
+from ..base import HarnessLogicPath, HarnessModelTarget, HarnessPackContract, HarnessSpec
 
 name = "search"
 applied_layers: tuple[str, ...] = ()  # search IS the layer; doesn't compose others
@@ -80,6 +80,19 @@ spec = HarnessSpec(
         "output": "normalized result set and candidate snippets",
         "model_transport": "none in search call; downstream extraction/chat may call Gemma",
     },
+    model_targets=(
+        HarnessModelTarget(
+            "search_backend_only",
+            "Search backend only",
+            "none",
+            "Search executes against a selected backend and does not call an LLM directly.",
+            ("structured_json",),
+            required=True,
+            default=True,
+            trust_boundary="external",
+            notes="Raw prompts should not enter this target; use search_safety first.",
+        ),
+    ),
     input_verification=("query should be sanitized by search_safety", "backend allow-list"),
     output_verification=("source URL/title/snippet preserved", "results are candidates, not verified facts"),
     privacy_boundaries=("third-party backend receives only sanitized query", "raw prompt should not be submitted here"),

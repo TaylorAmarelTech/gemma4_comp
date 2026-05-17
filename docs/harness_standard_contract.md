@@ -28,6 +28,7 @@ The registered harnesses expose these fields through `HarnessSpec` and
 | `knowledge_packs` | Data packs the harness reads: GREP rules, RAG docs, local imports, contact packs, corridor packs, etc. |
 | `logic_packs` | Non-data packs the harness uses: prompt templates, tool registries, schemas, rubrics, backend registries, training profiles. |
 | `model_io` | What goes into the model, what comes out, and which model transport is used. |
+| `model_targets` | Provider-neutral model targets the harness can use: local Gemma runtime, DueCare adapter, Ollama, OpenAI-compatible, Anthropic, Gemini, HF endpoint, frontier API, callable, or no model. |
 | `input_verification` | Checks applied before model calls or external boundaries. |
 | `output_verification` | Checks applied after model calls or generated artifacts. |
 | `privacy_boundaries` | Trust-boundary rules for raw prompts, local files, search queries, submissions, and logs. |
@@ -66,6 +67,61 @@ HarnessLogicPath(
 - `required`: a model call is required for the main output.
 - `external_optional`: local path exists; external judge/model can be used.
 
+## Universal model target shape
+
+`HarnessModelTarget` declares how a harness can talk to models without
+hardcoding one provider:
+
+```python
+HarnessModelTarget(
+    id="local_gemma4_runtime",
+    label="Local Gemma 4 runtime",
+    transport="gemma4_runtime",
+    role="Primary Kaggle/local model for answer generation and grading.",
+    capabilities=("text_generation", "chat_messages", "structured_json"),
+    required=True,
+    default=True,
+    trust_boundary="local",
+)
+```
+
+Supported transports are:
+
+- `none`
+- `callable`
+- `gemma4_runtime`
+- `duecare_model_adapter`
+- `transformers`
+- `unsloth`
+- `llama_cpp`
+- `ollama`
+- `openai_compatible`
+- `anthropic`
+- `google_gemini`
+- `hf_inference_endpoint`
+- `frontier_api`
+
+The model target is a contract, not a mandate to call a model. For example,
+`anonymization` and `search_safety` default to deterministic local gates and
+only optionally call a local or external model after redaction. `chat` defaults
+to the local Gemma 4 runtime, but the same harness contract can be backed by a
+DueCare model adapter or a frontier judge when credentials and privacy policy
+allow it.
+
+`packages/duecare-llm-chat/src/duecare/chat/harnesses/model_interface.py`
+contains the portable caller:
+
+- `UniversalModelRequest`
+- `UniversalModelResponse`
+- `normalize_model_messages(...)`
+- `call_model_backend(...)`
+
+`call_model_backend(...)` supports `duecare-llm-models` adapters with
+`.generate(...)`, objects with `.chat(...)` or `.complete(...)`, and direct
+callables such as `app.state.gemma_call`. This lets harness routes keep one
+logical path while swapping local Gemma, Ollama, OpenAI-compatible endpoints,
+Anthropic, Gemini, HF endpoints, or test doubles.
+
 ## Pack contract shape
 
 `HarnessPackContract` declares either a knowledge pack or a logic pack:
@@ -94,7 +150,7 @@ empty:
 2. Verify input and trust boundary.
 3. Load knowledge packs and logic packs.
 4. Compose deterministic layers or preprocessing.
-5. Call Gemma 4 or another configured model if the path requires it.
+5. Call the configured model target if the path requires it.
 6. Verify the model output or generated artifact.
 7. Emit trace, knowledge objects, training rows, reports, or audit metadata.
 8. Persist artifacts under the correct local path when the workflow is part of
