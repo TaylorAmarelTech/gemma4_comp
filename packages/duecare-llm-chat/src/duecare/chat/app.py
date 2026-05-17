@@ -2453,6 +2453,13 @@ def create_app(
                 contract["prompt_sets"] = list(item.get("prompt_sets", ()))
                 contract["knowledge_flow"] = item.get("knowledge_flow", "")
                 contract["model_fit"] = item.get("model_fit", "")
+                contract["logic_paths"] = list(item.get("logic_paths", ()))
+                contract["knowledge_packs"] = list(item.get("knowledge_packs", ()))
+                contract["logic_packs"] = list(item.get("logic_packs", ()))
+                contract["model_io"] = dict(item.get("model_io", {}) or {})
+                contract["input_verification"] = list(item.get("input_verification", ()))
+                contract["output_verification"] = list(item.get("output_verification", ()))
+                contract["privacy_boundaries"] = list(item.get("privacy_boundaries", ()))
                 contract["register_routes"] = False
                 contract["capabilities"] = []
                 contract["model_loaded"] = model_loaded
@@ -2464,7 +2471,9 @@ def create_app(
             "contract_fields": [
                 "name", "tier", "kind", "applied_layers", "consumes",
                 "emits", "workflow", "prompt_sets", "knowledge_flow",
-                "model_fit", "register_routes",
+                "model_fit", "logic_paths", "knowledge_packs", "logic_packs",
+                "model_io", "input_verification", "output_verification",
+                "privacy_boundaries", "register_routes",
             ],
             "n_harnesses": len(out),
             "primary": [h for h in out if h.get("tier") == "primary"],

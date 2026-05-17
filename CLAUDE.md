@@ -275,6 +275,10 @@ Full pattern plus 10-step recipe for new harnesses and multi-rubric review:
 Broader project inventory and wording rules:
 @docs/harness_ecosystem.md
 
+Standard fields for generalized logic paths, knowledge packs, logic packs,
+model I/O, input/output verification, and privacy boundaries:
+@docs/harness_standard_contract.md
+
 ### A-00 synthetic data and small-model retraining
 
 A-00 is the control plane for technical proof. It should be able to:

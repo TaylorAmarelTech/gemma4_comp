@@ -234,6 +234,11 @@ def test_harness_specs_and_knowledge_manifests_are_complete():
         assert spec.prompt_sets, name
         assert spec.knowledge_flow, name
         assert spec.model_fit, name
+        assert spec.logic_paths, name
+        assert spec.model_io, name
+        assert spec.input_verification, name
+        assert spec.output_verification, name
+        assert spec.privacy_boundaries, name
         assert (Path(module.__file__).parent / "README.md").exists(), name
         assert set(getattr(module, "consumes", ())).issubset(KO_TYPES), name
         assert set(getattr(module, "emits", ())).issubset(KO_TYPES), name

@@ -146,6 +146,14 @@
         <div class="catalog-row" id="page-list"></div>
         <h3 style="margin-top:16px;">Workflow Path</h3>
         <div class="flow-list" id="workflow-list"></div>
+        <h3 style="margin-top:16px;">Standard Logic Paths</h3>
+        <div class="flow-list" id="logic-path-list"></div>
+        <h3 style="margin-top:16px;">Knowledge Packs</h3>
+        <div class="flow-list" id="knowledge-pack-list"></div>
+        <h3 style="margin-top:16px;">Logic Packs</h3>
+        <div class="flow-list" id="logic-pack-list"></div>
+        <h3 style="margin-top:16px;">Verification and Privacy</h3>
+        <div class="flow-list" id="verification-list"></div>
         <h3 style="margin-top:16px;">Prompt Sets</h3>
         <div class="flow-list" id="prompt-list"></div>
       </div>
@@ -239,6 +247,7 @@
         ["Gemma role", h.model_role || ""],
         ["Model fit", h.model_fit || ""],
         ["Knowledge flow", h.knowledge_flow || ""],
+        ["Model I/O", h.model_io ? Object.entries(h.model_io).map(([k, v]) => `${k}: ${v}`).join(" | ") : ""],
         ["comparison", h.comparison || ""],
         ["routes", h.register_routes ? "registered" : "not registered"],
       ];
@@ -264,6 +273,47 @@
             <div class="flow-item"><span class="flow-num">${idx + 1}</span><span>${esc(item)}</span></div>
           `).join("")
         : `<div class="muted">No workflow path declared.</div>`;
+      const logicPaths = h.logic_paths || [];
+      document.getElementById("logic-path-list").innerHTML = logicPaths.length
+        ? logicPaths.map((p, idx) => `
+            <div class="flow-item">
+              <span class="flow-num">${idx + 1}</span>
+              <span>
+                <b>${esc(p.label || p.id)}</b>
+                <span class="muted"> · ${esc(p.model_call || "none")}</span><br>
+                ${esc((p.steps || []).join(" → "))}
+                ${(p.verification || []).length ? `<br><span class="muted">checks: ${esc((p.verification || []).join(", "))}</span>` : ""}
+              </span>
+            </div>
+          `).join("")
+        : `<div class="muted">No standardized logic paths declared.</div>`;
+      function renderPacks(items) {
+        return (items || []).length
+          ? items.map((p, idx) => `
+              <div class="flow-item">
+                <span class="flow-num">${idx + 1}</span>
+                <span>
+                  <b>${esc(p.label || p.id)}</b>
+                  <span class="muted"> · ${esc(p.kind || "pack")} · ${p.required ? "required" : "optional"}</span><br>
+                  ${esc((p.types || []).join(", ") || "no types declared")}
+                  ${p.description ? `<br><span class="muted">${esc(p.description)}</span>` : ""}
+                </span>
+              </div>
+            `).join("")
+          : `<div class="muted">None declared.</div>`;
+      }
+      document.getElementById("knowledge-pack-list").innerHTML = renderPacks(h.knowledge_packs);
+      document.getElementById("logic-pack-list").innerHTML = renderPacks(h.logic_packs);
+      const verification = [
+        ...(h.input_verification || []).map(v => "input: " + v),
+        ...(h.output_verification || []).map(v => "output: " + v),
+        ...(h.privacy_boundaries || []).map(v => "privacy: " + v),
+      ];
+      document.getElementById("verification-list").innerHTML = verification.length
+        ? verification.map((item, idx) => `
+            <div class="flow-item"><span class="flow-num">${idx + 1}</span><span>${esc(item)}</span></div>
+          `).join("")
+        : `<div class="muted">No verification boundaries declared.</div>`;
       document.getElementById("prompt-list").innerHTML = promptSets.length
         ? promptSets.map((item, idx) => `
             <div class="flow-item"><span class="flow-num">${idx + 1}</span><span>${esc(item)}</span></div>

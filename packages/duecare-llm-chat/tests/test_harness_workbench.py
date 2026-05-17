@@ -47,9 +47,15 @@ def test_harness_contract_nomenclature_is_explicit(client):
     assert by_name["import_corpus"]["gemma_mode"] == "not_required"
     assert all(h["register_routes"] for h in data["harnesses"])
     assert "workflow" in data["contract_fields"]
+    assert "logic_paths" in data["contract_fields"]
+    assert "knowledge_packs" in data["contract_fields"]
+    assert "logic_packs" in data["contract_fields"]
+    assert "input_verification" in data["contract_fields"]
     assert "prompt_sets" in data["contract_fields"]
     assert "model_fit" in data["contract_fields"]
     assert by_name["process"]["workflow"]
+    assert by_name["chat"]["logic_paths"][0]["id"] == "chat_response"
+    assert by_name["search_safety"]["logic_paths"][0]["id"] == "sanitize_query"
     assert any("PAGE_ITEM_PROMPT_TREE" in p for p in by_name["process"]["prompt_sets"])
     assert "Multimodal" in by_name["process"]["model_fit"]
     assert "EXTRACTION_SYSTEM_PROMPT" in " ".join(by_name["extraction"]["prompt_sets"])
@@ -80,10 +86,18 @@ def test_harness_workbench_page_serves(client):
         "Secondary Utilities",
         "/static/search-safety.html",
         "Workflow Path",
+        "Standard Logic Paths",
+        "Knowledge Packs",
+        "Logic Packs",
+        "Verification and Privacy",
         "Prompt Sets",
         "Model fit",
         "Knowledge flow",
         'id="workflow-list"',
+        'id="logic-path-list"',
+        'id="knowledge-pack-list"',
+        'id="logic-pack-list"',
+        'id="verification-list"',
         'id="prompt-list"',
     ]:
         assert marker in text

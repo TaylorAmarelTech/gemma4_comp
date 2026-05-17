@@ -23,7 +23,7 @@ Contract (rule_70 / docs/harness_pattern.md):
 from __future__ import annotations
 
 from .handler import register_routes
-from ..base import HarnessSpec
+from ..base import HarnessLogicPath, HarnessPackContract, HarnessSpec
 
 name = "search_safety"
 applied_layers: tuple[str, ...] = ()  # this IS a layer, not a consumer of layers
@@ -92,6 +92,38 @@ spec = HarnessSpec(
         "small text models, but the sanitized query should still avoid private "
         "details before any external backend call."
     ),
+    logic_paths=(
+        HarnessLogicPath(
+            id="sanitize_query",
+            label="Outbound search query sanitization",
+            entrypoints=("/api/search/sanitize", "/static/search-safety.html"),
+            steps=(
+                "receive raw search intent inside the local runtime",
+                "redact PII and confidential markers deterministically",
+                "optionally ask Gemma 4 to generalize the already-redacted query",
+                "block the query if safe generalization is not possible",
+                "return sanitized query and audit metadata",
+            ),
+            consumes=("grep_rule", "prompt_template"),
+            emits=("audit_template",),
+            model_call="optional",
+            verification=("PII redaction before backend call", "block unredactable queries", "audit redacted types only"),
+        ),
+    ),
+    knowledge_packs=(
+        HarnessPackContract("privacy_patterns", "PII and confidentiality patterns", "logic_pack", ("grep_rule",), True, "local"),
+    ),
+    logic_packs=(
+        HarnessPackContract("query_rewrite_prompt", "Safe query rewrite prompt", "logic_pack", ("prompt_template",), False, "local"),
+    ),
+    model_io={
+        "input": "raw search intent or already-redacted query",
+        "output": "sanitized query, redaction audit, block reason if unsafe",
+        "model_transport": "optional Gemma 4 rephrase over redacted query only",
+    },
+    input_verification=("redact before any third-party backend", "detect passport/email/phone/address markers"),
+    output_verification=("sanitized query contains no direct identifiers", "unsafe queries can be blocked"),
+    privacy_boundaries=("external search sees only sanitized query", "raw search intent stays local"),
 )
 
 __all__ = [

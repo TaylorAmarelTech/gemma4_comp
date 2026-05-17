@@ -96,6 +96,66 @@ class BaseHarness:
 
 
 @dataclass(frozen=True)
+class HarnessLogicPath:
+    """Named execution path inside a harness.
+
+    A harness can expose one or more logic paths: for example a chat path,
+    a query-sanitization path, a graph-extraction path, or a report-export
+    path. This makes the route-level implementation discoverable without
+    forcing every handler into the same call stack.
+    """
+
+    id: str
+    label: str
+    steps: tuple[str, ...]
+    description: str = ""
+    entrypoints: tuple[str, ...] = ()
+    consumes: tuple[str, ...] = ()
+    emits: tuple[str, ...] = ()
+    model_call: str = "none"
+    verification: tuple[str, ...] = ()
+
+    def to_contract(self) -> dict[str, Any]:
+        return {
+            "id": self.id,
+            "label": self.label,
+            "description": self.description,
+            "entrypoints": list(self.entrypoints),
+            "steps": list(self.steps),
+            "consumes": list(self.consumes),
+            "emits": list(self.emits),
+            "model_call": self.model_call,
+            "verification": list(self.verification),
+        }
+
+
+@dataclass(frozen=True)
+class HarnessPackContract:
+    """Knowledge or logic pack dependency consumed by a harness."""
+
+    id: str
+    label: str
+    kind: str
+    types: tuple[str, ...] = ()
+    required: bool = False
+    trust_boundary: str = "local"
+    freshness: str = "stable"
+    description: str = ""
+
+    def to_contract(self) -> dict[str, Any]:
+        return {
+            "id": self.id,
+            "label": self.label,
+            "kind": self.kind,
+            "types": list(self.types),
+            "required": self.required,
+            "trust_boundary": self.trust_boundary,
+            "freshness": self.freshness,
+            "description": self.description,
+        }
+
+
+@dataclass(frozen=True)
 class HarnessSpec:
     """User-facing contract for one harness surface.
 
@@ -124,6 +184,13 @@ class HarnessSpec:
     prompt_sets: tuple[str, ...] = ()
     knowledge_flow: str = ""
     model_fit: str = ""
+    logic_paths: tuple[HarnessLogicPath | Mapping[str, Any], ...] = ()
+    knowledge_packs: tuple[HarnessPackContract | Mapping[str, Any], ...] = ()
+    logic_packs: tuple[HarnessPackContract | Mapping[str, Any], ...] = ()
+    model_io: Mapping[str, Any] | None = None
+    input_verification: tuple[str, ...] = ()
+    output_verification: tuple[str, ...] = ()
+    privacy_boundaries: tuple[str, ...] = ()
 
     def to_contract(
         self,
@@ -156,6 +223,13 @@ class HarnessSpec:
             "prompt_sets": list(self.prompt_sets),
             "knowledge_flow": self.knowledge_flow,
             "model_fit": self.model_fit,
+            "logic_paths": _contract_sequence(self.logic_paths),
+            "knowledge_packs": _contract_sequence(self.knowledge_packs),
+            "logic_packs": _contract_sequence(self.logic_packs),
+            "model_io": dict(self.model_io or {}),
+            "input_verification": list(self.input_verification),
+            "output_verification": list(self.output_verification),
+            "privacy_boundaries": list(self.privacy_boundaries),
             "register_routes": register_routes,
             "model_loaded": model_loaded,
             "gemma_available": gemma_available,
@@ -170,6 +244,16 @@ def _tuple(value: Any) -> tuple:
     if isinstance(value, list):
         return tuple(value)
     return (value,)
+
+
+def _contract_sequence(value: Any) -> list[dict[str, Any]]:
+    out: list[dict[str, Any]] = []
+    for item in _tuple(value):
+        if hasattr(item, "to_contract"):
+            out.append(item.to_contract())
+        elif isinstance(item, Mapping):
+            out.append(dict(item))
+    return out
 
 
 def spec_from_mapping(data: Mapping[str, Any]) -> HarnessSpec:
@@ -194,6 +278,13 @@ def spec_from_mapping(data: Mapping[str, Any]) -> HarnessSpec:
         prompt_sets=_tuple(data.get("prompt_sets")),
         knowledge_flow=str(data.get("knowledge_flow") or ""),
         model_fit=str(data.get("model_fit") or ""),
+        logic_paths=_tuple(data.get("logic_paths")),
+        knowledge_packs=_tuple(data.get("knowledge_packs")),
+        logic_packs=_tuple(data.get("logic_packs")),
+        model_io=data.get("model_io") or None,
+        input_verification=_tuple(data.get("input_verification")),
+        output_verification=_tuple(data.get("output_verification")),
+        privacy_boundaries=_tuple(data.get("privacy_boundaries")),
     )
 
 
@@ -261,6 +352,13 @@ def contract_from_module(
             prompt_sets=spec.prompt_sets,
             knowledge_flow=spec.knowledge_flow,
             model_fit=spec.model_fit,
+            logic_paths=spec.logic_paths,
+            knowledge_packs=spec.knowledge_packs,
+            logic_packs=spec.logic_packs,
+            model_io=spec.model_io,
+            input_verification=spec.input_verification,
+            output_verification=spec.output_verification,
+            privacy_boundaries=spec.privacy_boundaries,
         )
     return spec.to_contract(
         register_routes=callable(getattr(module, "register_routes", None)),

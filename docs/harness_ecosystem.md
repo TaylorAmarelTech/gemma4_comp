@@ -23,6 +23,10 @@ For project language, use this definition:
 | `kaggle/01-duecare-exploration-workbench/kernel.py` | Canonical live exploration and harness comparison workbench. |
 | `kaggle/A-00-omni-experiment-workbench/kernel.py` | Quantitative control plane for benchmark runs, synthetic data, LoRA training, judging, reports, and research graphs. |
 
+The normalized field contract for logic paths, knowledge packs, logic packs,
+model I/O, input/output verification, and privacy boundaries lives in
+[`docs/harness_standard_contract.md`](harness_standard_contract.md).
+
 ## Registered harness surfaces
 
 These are the modules exposed through `duecare.chat.harnesses`.

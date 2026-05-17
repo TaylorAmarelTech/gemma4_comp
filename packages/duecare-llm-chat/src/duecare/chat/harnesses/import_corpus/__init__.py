@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from .handler import register_routes
 from .knowledge import CONSUMES as consumes, EMITS as emits
-from ..base import HarnessSpec
+from ..base import HarnessLogicPath, HarnessPackContract, HarnessSpec
 
 name = "import_corpus"
 applied_layers: tuple[str, ...] = ()
@@ -53,6 +53,37 @@ spec = HarnessSpec(
         "No model required. Large imported corpora should be summarized or "
         "retrieved before downstream Gemma calls to avoid long context failures."
     ),
+    logic_paths=(
+        HarnessLogicPath(
+            id="local_import",
+            label="Local evidence import",
+            entrypoints=("/api/import/upload", "/api/import/snippet", "/static/import.html"),
+            steps=(
+                "receive uploaded file, ZIP, or pasted snippet",
+                "validate size, type, and local metadata",
+                "store as local context snippets with source IDs",
+                "expose snippets to chat, process, and extraction when enabled",
+            ),
+            consumes=("upload_schema",),
+            emits=("context_snippet",),
+            model_call="none",
+            verification=("upload constraints", "source IDs", "delete/list/read CRUD contract"),
+        ),
+    ),
+    knowledge_packs=(
+        HarnessPackContract("local_evidence_shelf", "Local imported evidence shelf", "knowledge_pack", ("context_snippet",), False, "local"),
+    ),
+    logic_packs=(
+        HarnessPackContract("upload_schema", "Upload validation schema", "logic_pack", ("upload_schema",), True, "local"),
+    ),
+    model_io={
+        "input": "file, ZIP, text snippet, or existing local import ID",
+        "output": "local context snippets and import metadata",
+        "model_transport": "none; downstream harnesses decide whether to call Gemma",
+    },
+    input_verification=("upload schema", "file size/type limits", "local source metadata"),
+    output_verification=("stable doc IDs", "delete/list/read contract", "context exposed only when selected"),
+    privacy_boundaries=("imports remain local", "downstream sharing should pass through anonymization"),
 )
 
 __all__ = ["name", "applied_layers", "capabilities", "consumes", "emits", "register_routes", "spec"]

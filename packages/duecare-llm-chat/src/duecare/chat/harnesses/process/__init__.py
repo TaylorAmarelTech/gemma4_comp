@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from .handler import register_routes
 from .knowledge import CONSUMES as consumes, EMITS as emits
-from ..base import HarnessSpec
+from ..base import HarnessLogicPath, HarnessPackContract, HarnessSpec
 
 name = "process"
 applied_layers: tuple[str, ...] = ("grep", "rag", "tools")
@@ -56,6 +56,54 @@ spec = HarnessSpec(
         "review, OCR+image reasoning, and exhaustive cross-document linking need "
         "a stronger multimodal-capable local runtime."
     ),
+    logic_paths=(
+        HarnessLogicPath(
+            id="bundle_review",
+            label="Local bundle review",
+            entrypoints=("/api/process/batch", "/api/process/batch/start", "/static/process.html"),
+            steps=(
+                "inventory uploaded files and media",
+                "parse text, tables, images, and document chunks locally",
+                "run deterministic risk/entity extraction and GREP checks",
+                "emit review rows, media queue, graph candidates, and provenance",
+            ),
+            consumes=("grep_rule", "rag_doc", "context_snippet", "tool_definition"),
+            emits=("extracted_fact", "entity_signal", "modus_operandi", "context_snippet"),
+            model_call="optional",
+            verification=("row/page provenance", "media queue explicitly marks unread assets", "local-only source metadata"),
+        ),
+        HarnessLogicPath(
+            id="graph_chat",
+            label="Graph chat and edge refinement",
+            entrypoints=("/api/process/graph-chat", "/api/process/graph-extract"),
+            steps=(
+                "load last parsed bundle graph",
+                "compose GREP/RAG/tool grounding",
+                "ask Gemma 4 for bounded graph analysis or edge proposals",
+                "return typed edges and graph-chat answer with source IDs",
+            ),
+            consumes=("grep_rule", "rag_doc", "corridor_profile", "ngo_directory"),
+            emits=("entity_signal", "modus_operandi", "context_snippet"),
+            model_call="hybrid",
+            verification=("typed edge schema", "source_node/target_node evidence", "review_status on proposed edges"),
+        ),
+    ),
+    knowledge_packs=(
+        HarnessPackContract("local_imports", "Uploaded local evidence", "knowledge_pack", ("context_snippet",), False, "local"),
+        HarnessPackContract("process_grounding", "Process grounding packs", "knowledge_pack", ("grep_rule", "rag_doc", "corridor_profile", "ngo_directory"), True, "local"),
+    ),
+    logic_packs=(
+        HarnessPackContract("process_prompt_tree", "Process prompt tree", "logic_pack", ("prompt_template",), True, "local"),
+        HarnessPackContract("typed_edge_schema", "Typed graph edge schema", "logic_pack", ("envelope_schema",), True, "local"),
+    ),
+    model_io={
+        "input": "case bundle summaries, parsed rows, graph state, selected user question",
+        "output": "process rows, graph edges, graph-chat answer, knowledge candidates",
+        "model_transport": "deterministic parser first; Gemma 4 only for graph-chat and optional edge passes",
+    },
+    input_verification=("upload size/type constraints", "explicit unread-media queue", "local-only provenance tracking"),
+    output_verification=("typed edge schema", "row/page/chunk grounding", "review_status for model-proposed facts"),
+    privacy_boundaries=("case files remain local", "raw bundles are not submitted to the public hub"),
 )
 
 __all__ = ["name", "applied_layers", "capabilities", "consumes", "emits", "register_routes", "spec"]
