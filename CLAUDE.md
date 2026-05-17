@@ -276,7 +276,7 @@ self-contained component exposing `name`, `applied_layers: tuple[str, ...]`,
 Current contract:
 
 - PRIMARY Gemma-backed harnesses: `chat`, `process`, `extraction`
-- PRIMARY hard safety gates: `anonymization`, `search_safety`
+- PRIMARY hard safety gates: `anonymization`, `search_safety`, `post_search_verification`
 - SECONDARY utilities: `search`, `import_corpus`
 
 Use the word "harness" carefully. `search` and `import_corpus` are utility

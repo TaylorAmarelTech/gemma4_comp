@@ -60,6 +60,11 @@ A00_ALLOW_DRY_RUN = os.environ.get("DUECARE_A00_ALLOW_DRY_RUN", "").strip() == "
 # own max_seq_length on the training profile because the smoke LoRA
 # run intentionally uses a tighter window.
 A00_INFERENCE_MAX_SEQ_LENGTH = int(os.environ.get("DUECARE_A00_INFERENCE_MAX_SEQ_LENGTH", "16384"))
+# Output budget for the combined rule + LLM judge. The judge is asked
+# for structured rubric JSON with per-dimension scoring and rationale,
+# so keep this above short-answer generation budgets. Override only
+# when a chosen judge endpoint has a stricter max-token limit.
+A00_COMBINED_JUDGE_MAX_NEW_TOKENS = int(os.environ.get("DUECARE_A00_COMBINED_JUDGE_MAX_NEW_TOKENS", "1600"))
 
 DUECARE_VERSION = os.environ.get("DUECARE_VERSION", "0.17.0")
 DUECARE_REPO = os.environ.get("DUECARE_REPO", "TaylorAmarelTech/gemma4_comp")
@@ -2299,7 +2304,7 @@ def _ollama_model_call_factory(*, source: str, model_ref: str, endpoint: str, ap
         response = call_model_backend(
             backend,
             prompt,
-            max_tokens=900,
+            max_tokens=A00_COMBINED_JUDGE_MAX_NEW_TOKENS,
             temperature=0.0,
             response_format="json",
         )
@@ -2397,7 +2402,7 @@ def _anthropic_model_call_factory(*, source: str, model_ref: str, endpoint: str,
         response = call_model_backend(
             backend,
             prompt,
-            max_tokens=900,
+            max_tokens=A00_COMBINED_JUDGE_MAX_NEW_TOKENS,
             temperature=0.0,
             response_format="json",
         )
@@ -2547,13 +2552,13 @@ def _grading_model_call(row: dict[str, Any]) -> Optional[Any]:
     backend = STATE.get("model_backend")
     if backend is not None:
         def call(prompt: str) -> str:
-            return str(backend(prompt, max_new_tokens=900, temperature=0.0))
+            return str(backend(prompt, max_new_tokens=A00_COMBINED_JUDGE_MAX_NEW_TOKENS, temperature=0.0))
         return call
     if STATE.get("model") is not None and STATE.get("tokenizer") is not None:
         def call(prompt: str) -> str:
             raw, _meta = _generate(
                 prompt,
-                max_new_tokens=900,
+                max_new_tokens=A00_COMBINED_JUDGE_MAX_NEW_TOKENS,
                 temperature=0.0,
                 trace={"profile": "shared_grade_combined"},
                 row=row,
