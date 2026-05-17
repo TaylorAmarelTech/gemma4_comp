@@ -1413,9 +1413,12 @@ def _format_shared_tool_call(call: dict[str, Any]) -> str:
         year = result.get("year") or ""
         focus = result.get("focus") or ""
         articles = result.get("key_articles") or result.get("articles") or []
-        # Show the first two key articles inline; the model rarely needs
-        # more than the headline for a citation cross-check.
-        article_str = "; ".join(str(a)[:200] for a in articles[:2]) if articles else ""
+        # Surface every curated key article. The ILO_CONVENTIONS table
+        # caps each convention at four already-key articles; clipping
+        # here to fewer would silently drop the most-cited article for
+        # several conventions (C189 Art. 9 travel/identity documents,
+        # C188 Art. 22 no-fee fishing, C190 Art. 9 employer duties).
+        article_str = "; ".join(str(a)[:240] for a in articles[:4]) if articles else ""
         ratification = result.get("ratification") or ""
         bits = [
             f"{number} ({year}): {title}".strip(),
@@ -1543,6 +1546,12 @@ def _build_harness_prompt(row: dict[str, Any], harness_profile: str) -> tuple[st
     tools_source = "skipped"
     tools_elapsed_ms: int | None = None
     tools_error = ""
+    # Track shared-call failure independently of tools_source so a
+    # heuristic recovery does not hide the shared error from a reviewer
+    # scanning step.status. Even when heuristic notes are emitted, the
+    # step is marked "degraded" if the shared call raised so the trace
+    # honestly surfaces the partial failure.
+    tools_had_error = False
     if "tools" in layers:
         if _SHARED_HARNESS_AVAILABLE and _shared_tools_call is not None:
             try:
@@ -1561,13 +1570,14 @@ def _build_harness_prompt(row: dict[str, Any], harness_profile: str) -> tuple[st
             except Exception as exc:  # noqa: BLE001
                 tools_source = "shared_error"
                 tools_error = str(exc)[:200]
+                tools_had_error = True
         # Pack-level / heuristic fallback augmentation: always available so
         # A-00-specific PH-HK proof prompts still surface the fee cap note
         # even when the shared dispatcher returns nothing for the phrasing.
         if not tool_notes and re.search(r"\b(PH-HK|Hong Kong|HK|placement fee|PHP)\b", prompt, re.I):
             tool_notes.append("lookup_fee_cap(PH-HK domestic worker) = 0 PHP worker-paid placement fee")
             tool_calls_emitted.append("lookup_fee_cap")
-            tools_source = "heuristic"
+            tools_source = "heuristic_after_shared_error" if tools_had_error else "heuristic"
 
         tools_trace: dict[str, Any] = {
             "called": tool_calls_emitted,
@@ -1579,7 +1589,9 @@ def _build_harness_prompt(row: dict[str, Any], harness_profile: str) -> tuple[st
         if tools_error:
             tools_trace["error"] = tools_error
         trace["tools"] = tools_trace
-        if tools_source == "shared_error":
+        if tools_had_error:
+            # Shared raised. Step is "degraded" whether the heuristic
+            # recovered or not so the partial failure is never silent.
             trace["steps"].append({"layer": "tools", "status": "degraded", "called": tool_calls_emitted, "source": tools_source})
         else:
             trace["steps"].append({"layer": "tools", "status": "pass" if tool_notes else "noop", "called": tool_calls_emitted, "source": tools_source})

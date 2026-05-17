@@ -312,12 +312,45 @@ def test_process_and_extraction_harnesses_declare_local_gemma_default_target() -
     """The chat harness has a specific model-target pin in
     test_harness_universal_model_contract.py. Process and extraction
     should be equivalently pinned so a spec drift cannot quietly drop
-    their local Gemma 4 default target."""
-    process_init = (ROOT / "packages" / "duecare-llm-chat" / "src" / "duecare" / "chat" / "harnesses" / "process" / "__init__.py").read_text(encoding="utf-8")
-    extraction_init = (ROOT / "packages" / "duecare-llm-chat" / "src" / "duecare" / "chat" / "harnesses" / "extraction" / "__init__.py").read_text(encoding="utf-8")
-    for text in (process_init, extraction_init):
-        assert '"gemma4_runtime"' in text
-        assert "default=True" in text
+    their local Gemma 4 default target.
+
+    This test imports the harness modules and walks `spec.model_targets`
+    so a regression that moved `default=True` off the local Gemma
+    target and onto a frontier target (a real privacy risk for the
+    default proof path) would actually trip the assertion.
+    """
+    from duecare.chat.harnesses import extraction as extraction_module
+    from duecare.chat.harnesses import process as process_module
+
+    for module in (process_module, extraction_module):
+        targets = list(module.spec.model_targets)
+        assert targets, module.name
+        defaults = [t for t in targets if getattr(t, "default", False)]
+        assert defaults, f"{module.name} must declare a default model target"
+        # The default target must be local — never a credential-required
+        # external target — so the competition default stays runnable
+        # without paid API keys and without raw prompts leaving the
+        # kernel.
+        for default_target in defaults:
+            assert default_target.transport in {"gemma4_runtime", "none"}, (
+                module.name,
+                default_target.id,
+                default_target.transport,
+            )
+            assert default_target.trust_boundary == "local", (
+                module.name,
+                default_target.id,
+                default_target.trust_boundary,
+            )
+        # At least one local Gemma 4 target must remain available even
+        # if it is not the default (e.g. extraction prefers the
+        # deterministic skeleton by default but should still offer the
+        # local Gemma drafter as an option).
+        local_gemma_targets = [t for t in targets if t.transport == "gemma4_runtime"]
+        assert local_gemma_targets, (
+            f"{module.name} must keep a gemma4_runtime model target so "
+            "Kernel 01 parity stays possible when a real model is loaded"
+        )
 
 
 def test_a00_external_judge_factories_compile_without_runtime_deps() -> None:
@@ -367,7 +400,11 @@ def test_a00_tools_layer_always_emits_trace_for_consistency() -> None:
     """When the tools layer is enabled, trace["tools"] must always be
     present — even when shared tools returned zero calls and the
     heuristic did not match. Otherwise a reviewer cannot distinguish a
-    disabled layer from a no-op pass."""
+    disabled layer from a no-op pass.
+
+    The tools_had_error flag is tracked independently of tools_source
+    so a heuristic recovery does not silently hide a shared failure.
+    """
     text = _a00_text()
     pieces = text.split("def _build_harness_prompt(row: dict[str, Any], harness_profile: str) -> tuple[str, dict[str, Any]]:", 1)
     assert len(pieces) == 2, "_build_harness_prompt not found"
@@ -375,13 +412,20 @@ def test_a00_tools_layer_always_emits_trace_for_consistency() -> None:
     # The trace["tools"] dict is built once at the end of the tools
     # branch, not conditionally on whether notes are non-empty.
     assert "trace[\"tools\"] = tools_trace" in body
-    # Source markers cover the four real states.
+    # Source markers cover every real state, including the explicit
+    # mixed state where heuristic recovered after a shared failure.
     assert 'tools_source = "skipped"' in body
     assert 'tools_source = "shared" if tool_notes else "shared_empty"' in body
     assert 'tools_source = "shared_error"' in body
-    assert 'tools_source = "heuristic"' in body
-    # Step status differentiates pass vs noop vs degraded so reviewers
-    # can grep the trace for fires.
+    assert 'tools_source = "heuristic_after_shared_error" if tools_had_error else "heuristic"' in body
+    # Independent error tracking so heuristic recovery cannot hide a
+    # shared failure from step status.
+    assert "tools_had_error = False" in body
+    assert "tools_had_error = True" in body
+    assert "if tools_had_error:" in body
+    # Step status differentiates pass vs noop so reviewers can grep
+    # the trace for fires. Degraded fires whenever shared raised, even
+    # if the heuristic recovered.
     assert '"pass" if tool_notes else "noop"' in body
     assert '"status": "degraded"' in body
 
