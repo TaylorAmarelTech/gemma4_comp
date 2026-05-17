@@ -5,6 +5,18 @@ handlers stay specialized. This keeps chat, process, extraction, search,
 anonymization, synthetic-data, fine-tuning, judging, and report workflows
 auditable through one vocabulary.
 
+## See also (the harness documentation trinity)
+
+- [`docs/harness_ecosystem.md`](harness_ecosystem.md) — vocabulary,
+  registered harness inventory, broader harness families, naming. The
+  authoritative inventory.
+- [`docs/harness_pattern.md`](harness_pattern.md) — required module
+  contract (`name`, `applied_layers`, `register_routes`), per-task
+  JSONL training-data flow, and the 10-step recipe for adding a new
+  registered harness.
+- **`docs/harness_standard_contract.md`** (this file) — the
+  `HarnessSpec` field shape that every registered harness declares.
+
 ## Definition
 
 A harness is a named, repeatable workflow around Gemma 4 or a trust boundary.

@@ -6,11 +6,22 @@ DueCare sense, a harness is any repeatable chain of preprocessing,
 post-processing, context, tools, privacy checks, evaluation, training, or
 export logic wrapped around Gemma 4 or a trust boundary for a specific goal.
 
+## See also (the harness documentation trinity)
+
+- [`docs/harness_ecosystem.md`](harness_ecosystem.md) — vocabulary,
+  registered harness inventory, broader harness families, naming. The
+  authoritative inventory.
+- **`docs/harness_pattern.md`** (this file) — required module contract,
+  per-task JSONL training-data flow, and the 10-step recipe for adding
+  a new registered harness.
+- [`docs/harness_standard_contract.md`](harness_standard_contract.md) —
+  the `HarnessSpec` field shape that every registered harness declares.
+
 This document covers the registered `duecare.chat.harnesses` module contract.
 For the full project-wide inventory, including A-00 synthetic-data,
 fine-tuning, judging, report, online-grounding, and research-graph harnesses,
-see [`docs/harness_ecosystem.md`](harness_ecosystem.md).
-For the normalized fields every harness should expose, see
+see [`docs/harness_ecosystem.md`](harness_ecosystem.md). For the
+normalized fields every harness should expose, see
 [`docs/harness_standard_contract.md`](harness_standard_contract.md).
 
 ## The contract
