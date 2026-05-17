@@ -58,6 +58,8 @@ A00_SMALL_MODEL_REF = os.environ.get("DUECARE_A00_SMALL_MODEL_REF", "google/gemm
 A00_DEFAULT_MODEL_REF = os.environ.get("DUECARE_A00_DEFAULT_MODEL_REF", A00_SMALL_MODEL_REF)
 A00_OLLAMA_JUDGE_MODEL_REF = os.environ.get("DUECARE_A00_OLLAMA_JUDGE_MODEL_REF", "gpt-oss:20b")
 A00_OLLAMA_CLOUD_HOST = os.environ.get("DUECARE_A00_OLLAMA_CLOUD_HOST", "https://ollama.com")
+A00_ANTHROPIC_JUDGE_MODEL_REF = os.environ.get("DUECARE_A00_ANTHROPIC_JUDGE_MODEL_REF", "claude-opus-4-7")
+A00_ANTHROPIC_API_URL = os.environ.get("DUECARE_A00_ANTHROPIC_API_URL", "https://api.anthropic.com/v1/messages")
 DUECARE_PACKAGES = [
     "duecare-llm-core",
     "duecare-llm-models",
@@ -558,6 +560,24 @@ JUDGE_MODEL_PRESETS = [
         "ref": "gpt-oss:120b",
         "source": "ollama_cloud",
         "notes": "Stronger external judge via https://ollama.com/api/chat; requires OLLAMA_API_KEY.",
+    },
+    {
+        "label": "Claude Opus 4.7 judge",
+        "ref": "claude-opus-4-7",
+        "source": "anthropic",
+        "notes": "External judge via Anthropic Messages API; requires ANTHROPIC_API_KEY.",
+    },
+    {
+        "label": "Claude Opus 4.6 judge",
+        "ref": "claude-opus-4-6",
+        "source": "anthropic",
+        "notes": "External judge via Anthropic Messages API; requires ANTHROPIC_API_KEY.",
+    },
+    {
+        "label": "Claude Opus 4.1 judge",
+        "ref": "claude-opus-4-1-20250805",
+        "source": "anthropic",
+        "notes": "External judge via Anthropic Messages API; requires ANTHROPIC_API_KEY.",
     },
 ]
 
@@ -2017,6 +2037,14 @@ def _is_ollama_cloud_source(source: str) -> bool:
     return (source or "").strip().lower().replace("-", "_") in {"ollama_cloud", "cloud_ollama"}
 
 
+def _is_anthropic_judge_source(source: str) -> bool:
+    return (source or "").strip().lower().replace("-", "_") in {"anthropic", "claude", "claude_api"}
+
+
+def _is_external_judge_source(source: str) -> bool:
+    return _is_ollama_judge_source(source) or _is_anthropic_judge_source(source)
+
+
 def _ollama_api_endpoint(source: str) -> str:
     if _is_ollama_cloud_source(source):
         base = os.environ.get("OLLAMA_CLOUD_HOST", A00_OLLAMA_CLOUD_HOST).strip() or A00_OLLAMA_CLOUD_HOST
@@ -2070,6 +2098,55 @@ def _ollama_model_call_factory(*, source: str, model_ref: str, endpoint: str, ap
     return call
 
 
+def _anthropic_model_call_factory(*, source: str, model_ref: str, endpoint: str, api_key: str) -> Any:
+    timeout = float(os.environ.get("DUECARE_A00_ANTHROPIC_TIMEOUT_SEC", "240"))
+    version = os.environ.get("ANTHROPIC_VERSION", "2023-06-01")
+
+    def call(prompt: str) -> str:
+        if requests is None:
+            raise RuntimeError("requests is required for Anthropic judging")
+        headers = {
+            "Content-Type": "application/json",
+            "x-api-key": api_key,
+            "anthropic-version": version,
+        }
+        payload = {
+            "model": model_ref,
+            "max_tokens": 900,
+            "temperature": 0,
+            "messages": [{"role": "user", "content": prompt}],
+        }
+        t0 = time.perf_counter()
+        resp = requests.post(endpoint, headers=headers, json=payload, timeout=timeout)
+        elapsed = time.perf_counter() - t0
+        if resp.status_code >= 400:
+            raise RuntimeError(f"Anthropic judge HTTP {resp.status_code}: {resp.text[:500]}")
+        data = resp.json()
+        content_blocks = data.get("content") if isinstance(data, dict) else []
+        content = ""
+        if isinstance(content_blocks, list):
+            content = "\n".join(
+                str(block.get("text") or "")
+                for block in content_blocks
+                if isinstance(block, dict) and block.get("type") == "text"
+            ).strip()
+        if not content:
+            raise RuntimeError(f"Anthropic judge returned no text content: {str(data)[:500]}")
+        usage = data.get("usage", {}) if isinstance(data, dict) else {}
+        dc_log(
+            "a00.anthropic_judge.call",
+            f"model={model_ref}",
+            source=source,
+            endpoint=endpoint,
+            seconds=round(elapsed, 3),
+            input_tokens=usage.get("input_tokens") if isinstance(usage, dict) else None,
+            output_tokens=usage.get("output_tokens") if isinstance(usage, dict) else None,
+        )
+        return content
+
+    return call
+
+
 def _configure_ollama_judge_for_pipeline(job_id: str, req: PipelineRequest) -> dict[str, Any]:
     source = req.judge_model_source or "ollama_cloud"
     model_ref = (req.judge_model_ref or os.environ.get("OLLAMA_MODEL") or A00_OLLAMA_JUDGE_MODEL_REF).strip()
@@ -2116,6 +2193,59 @@ def _configure_ollama_judge_for_pipeline(job_id: str, req: PipelineRequest) -> d
         },
     )
     return info
+
+
+def _configure_anthropic_judge_for_pipeline(job_id: str, req: PipelineRequest) -> dict[str, Any]:
+    model_ref = (req.judge_model_ref or A00_ANTHROPIC_JUDGE_MODEL_REF).strip()
+    endpoint = os.environ.get("ANTHROPIC_API_URL", A00_ANTHROPIC_API_URL).strip() or A00_ANTHROPIC_API_URL
+    api_key = _secret_value(["ANTHROPIC_API_KEY", "DUECARE_ANTHROPIC_API_KEY", "CLAUDE_API_KEY"])
+    if not api_key:
+        raise RuntimeError(
+            "Anthropic judge requires Kaggle Secret or environment variable ANTHROPIC_API_KEY. "
+            "Use a local Gemma/Ollama judge or set ANTHROPIC_API_KEY before running the pipeline."
+        )
+    info = {
+        "loaded": True,
+        "source": "anthropic",
+        "model_ref": model_ref,
+        "resolved_model_ref": model_ref,
+        "variant": model_ref,
+        "adapter_ref": "",
+        "quantization": "external",
+        "loaded_at": _utc(),
+        "device": "external_api",
+        "device_map": "external",
+        "loader": "anthropic.messages",
+        "endpoint": endpoint,
+        "api_key_configured": bool(api_key),
+        "notes": (
+            "External Anthropic Claude judge used only for final combined grading. "
+            "Prompts, responses, and harness traces are sent to the configured Anthropic API."
+        ),
+    }
+    STATE["judge_model_call"] = _anthropic_model_call_factory(
+        source="anthropic",
+        model_ref=model_ref,
+        endpoint=endpoint,
+        api_key=api_key,
+    )
+    STATE["judge_model_info"] = info
+    _append_job_step(
+        job_id,
+        "18. Configuring Anthropic Claude judge for final evaluation",
+        "running",
+        {
+            **info,
+            "privacy_note": "Final grading sends benchmark prompts, model responses, and harness traces to Anthropic.",
+        },
+    )
+    return info
+
+
+def _configure_external_judge_for_pipeline(job_id: str, req: PipelineRequest) -> dict[str, Any]:
+    if _is_anthropic_judge_source(req.judge_model_source):
+        return _configure_anthropic_judge_for_pipeline(job_id, req)
+    return _configure_ollama_judge_for_pipeline(job_id, req)
 
 
 def _combined_grade(row: dict[str, Any], response: str, harness_profile: str, trace: dict[str, Any], use_llm: bool) -> dict[str, Any]:
@@ -5170,8 +5300,8 @@ def _run_pipeline_job(job_id: str, req: PipelineRequest) -> None:
                     if req.unload_between_steps:
                         _append_job_step(job_id, "18. Preparing judge model for final evaluation", "running")
                         _unload_model_runtime(f"pipeline {job_id}: before combined grading")
-                    if _is_ollama_judge_source(req.judge_model_source):
-                        judge_info = _configure_ollama_judge_for_pipeline(job_id, req)
+                    if _is_external_judge_source(req.judge_model_source):
+                        judge_info = _configure_external_judge_for_pipeline(job_id, req)
                     else:
                         judge_req = _judge_model_request(req)
                         _append_job_step(
@@ -5200,7 +5330,7 @@ def _run_pipeline_job(job_id: str, req: PipelineRequest) -> None:
                             total_runs=total_sets,
                         )
                         graded_results.append(graded)
-                    if _is_ollama_judge_source(req.judge_model_source):
+                    if _is_external_judge_source(req.judge_model_source):
                         STATE["judge_model_call"] = None
                         STATE["judge_model_info"] = None
                     _append_job_step(job_id, "19. Combined rule + LLM judging complete", "running", {"graded_sets": total_sets, "results": graded_results})
@@ -5253,7 +5383,7 @@ def _run_pipeline_job(job_id: str, req: PipelineRequest) -> None:
                 job["finished_at"] = _utc()
                 _write_job_record(job)
         except Exception as exc:  # noqa: BLE001
-            if _is_ollama_judge_source(req.judge_model_source):
+            if _is_external_judge_source(req.judge_model_source):
                 STATE["judge_model_call"] = None
                 STATE["judge_model_info"] = None
             with JOB_STATE_LOCK:
@@ -5367,11 +5497,23 @@ async def api_intake_upload(file: UploadFile = File(...)) -> Any:
 
 def api_model_presets() -> Any:
     ollama_key = _secret_value(["OLLAMA_API_KEY", "DUECARE_OLLAMA_API_KEY", "OLLAMA_TOKEN"])
+    anthropic_key = _secret_value(["ANTHROPIC_API_KEY", "DUECARE_ANTHROPIC_API_KEY", "CLAUDE_API_KEY"])
+    if anthropic_key:
+        default_judge_ref = A00_ANTHROPIC_JUDGE_MODEL_REF
+        default_judge_source = "anthropic"
+    elif ollama_key:
+        default_judge_ref = A00_OLLAMA_JUDGE_MODEL_REF
+        default_judge_source = "ollama_cloud"
+    else:
+        default_judge_ref = A00_SMALL_MODEL_REF
+        default_judge_source = "hf"
     return {
         "presets": MODEL_PRESETS,
         "judge_presets": JUDGE_MODEL_PRESETS,
         "ollama_cloud_ready": bool(ollama_key),
-        "default_judge_ref": A00_OLLAMA_JUDGE_MODEL_REF if ollama_key else A00_SMALL_MODEL_REF,
+        "anthropic_ready": bool(anthropic_key),
+        "default_judge_ref": default_judge_ref,
+        "default_judge_source": default_judge_source,
     }
 
 
@@ -5814,6 +5956,8 @@ __A00_SHUTDOWN_CONTROL__
           <dd>No DueCare harness. Same prompts, same selected Gemma model.</dd>
           <dt>Harnessed arm</dt>
           <dd>Persona + GREP rules + RAG/context + deterministic tools. Internet and import are off.</dd>
+          <dt>Online grounding</dt>
+          <dd>Disabled in this proof path. The intended online harness is Prompt -> Gemma-anonymized query -> search -> page markdown -> Gemma verification -> knowledge objects, so false or private search results are not injected directly.</dd>
           <dt>Synthetic data</dt>
           <dd>Harnessed Gemma generates rubric-polished SFT rows; rows are filtered before fine-tuning.</dd>
           <dt>Training data quality</dt>
@@ -5823,7 +5967,7 @@ __A00_SHUTDOWN_CONTROL__
           <dt>Evaluation</dt>
           <dd>Combined rule-based score plus LLM judge using the selected normal judge Gemma model. A larger Gemma model or frontier model may produce stronger final grading than the fast smoke-test judge.</dd>
           <dt>External judge option</dt>
-          <dd>If OLLAMA_API_KEY is available, Ollama Cloud can grade the final response sets without loading another local judge model.</dd>
+          <dd>If ANTHROPIC_API_KEY or OLLAMA_API_KEY is available, Claude or Ollama Cloud can grade the final response sets without loading another local judge model.</dd>
           <dt>Report</dt>
           <dd>Four-arm report: base, base+harness, fine-tuned, and fine-tuned+harness.</dd>
           <dt>Runtime budget</dt>
@@ -5994,7 +6138,7 @@ __A00_SHUTDOWN_CONTROL__
     </div>
     <label>Resume training checkpoint <input id="pipeline-resume-checkpoint" placeholder="/kaggle/working/a00_training/.../checkpoint-40"></label>
     <div class="row compact-row">
-      <label>Judge model source <select id="pipeline-judge-source"><option value="hf">hf</option><option value="kaggle_path">kaggle_path</option><option value="local_path">local_path</option><option value="ollama_cloud">ollama_cloud</option><option value="ollama">ollama</option></select></label>
+      <label>Judge model source <select id="pipeline-judge-source"><option value="hf">hf</option><option value="kaggle_path">kaggle_path</option><option value="local_path">local_path</option><option value="anthropic">anthropic</option><option value="ollama_cloud">ollama_cloud</option><option value="ollama">ollama</option></select></label>
       <label>Judge model ref/path <input id="pipeline-judge-ref" value="__A00_SMALL_MODEL_REF__"></label>
       <label>Judge adapter path <input id="pipeline-judge-adapter" placeholder="leave empty for normal judge model"></label>
     </div>
@@ -6543,7 +6687,7 @@ async function loadOptions() {
   if ($("pipeline-resume-checkpoint")) $("pipeline-resume-checkpoint").value = "";
   if ($("pipeline-save-steps")) $("pipeline-save-steps").value = 10;
   if ($("train-save-steps")) $("train-save-steps").value = 10;
-  if ($("pipeline-judge-source")) $("pipeline-judge-source").value = modelPresets.ollama_cloud_ready ? "ollama_cloud" : "hf";
+  if ($("pipeline-judge-source")) $("pipeline-judge-source").value = modelPresets.default_judge_source || (modelPresets.ollama_cloud_ready ? "ollama_cloud" : "hf");
   if ($("pipeline-judge-ref")) $("pipeline-judge-ref").value = modelPresets.default_judge_ref || "__A00_SMALL_MODEL_REF__";
   if ($("pipeline-judge-adapter")) $("pipeline-judge-adapter").value = "";
   refreshStatus();
