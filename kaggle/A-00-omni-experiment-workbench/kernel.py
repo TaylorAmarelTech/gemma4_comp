@@ -1482,7 +1482,7 @@ def _build_harness_prompt(row: dict[str, Any], harness_profile: str) -> tuple[st
                     "source": "shared+packs",
                     "elapsed_ms": shared_result.get("elapsed_ms"),
                 }
-                trace["steps"].append({"layer": "grep", "status": "pass", "n_hits": len(hits), "source": "shared+packs"})
+                trace["steps"].append({"layer": "grep", "status": "pass" if hits else "noop", "n_hits": len(hits), "source": "shared+packs"})
             except Exception as exc:  # noqa: BLE001
                 hits = _rule_hits(prompt)
                 trace["grep"] = {"n_hits": len(hits), "hits": hits[:20], "source": "pack_fallback", "error": str(exc)[:200]}
@@ -1490,7 +1490,7 @@ def _build_harness_prompt(row: dict[str, Any], harness_profile: str) -> tuple[st
         else:
             hits = _rule_hits(prompt)
             trace["grep"] = {"n_hits": len(hits), "hits": hits[:20], "source": "pack_only"}
-            trace["steps"].append({"layer": "grep", "status": "pass", "n_hits": len(hits), "source": "pack_only"})
+            trace["steps"].append({"layer": "grep", "status": "pass" if hits else "noop", "n_hits": len(hits), "source": "pack_only"})
     else:
         hits = []
 
@@ -1521,7 +1521,7 @@ def _build_harness_prompt(row: dict[str, Any], harness_profile: str) -> tuple[st
                     "source": "shared+packs",
                     "elapsed_ms": shared_result.get("elapsed_ms"),
                 }
-                trace["steps"].append({"layer": "rag", "status": "pass", "n_facts": len(facts), "source": "shared+packs"})
+                trace["steps"].append({"layer": "rag", "status": "pass" if facts else "noop", "n_facts": len(facts), "source": "shared+packs"})
             except Exception as exc:  # noqa: BLE001
                 facts = _rag_facts(prompt)
                 trace["rag"] = {"n_facts": len(facts), "facts": facts, "source": "pack_fallback", "error": str(exc)[:200]}
@@ -1529,7 +1529,7 @@ def _build_harness_prompt(row: dict[str, Any], harness_profile: str) -> tuple[st
         else:
             facts = _rag_facts(prompt)
             trace["rag"] = {"n_facts": len(facts), "facts": facts, "source": "pack_only"}
-            trace["steps"].append({"layer": "rag", "status": "pass", "n_facts": len(facts), "source": "pack_only"})
+            trace["steps"].append({"layer": "rag", "status": "pass" if facts else "noop", "n_facts": len(facts), "source": "pack_only"})
     else:
         facts = []
 

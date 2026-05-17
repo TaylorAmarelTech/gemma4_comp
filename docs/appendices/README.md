@@ -4,6 +4,11 @@
 > This index is the entry point for everything that didn't fit but
 > matters for readers who want to go deeper.
 >
+> Current-scope note: this appendix index includes historical and
+> roadmap material. For the active three-kernel Kaggle path, use
+> [`current_kaggle_notebook_state.md`](../current_kaggle_notebook_state.md)
+> and [`kaggle/_INDEX.md`](../../kaggle/_INDEX.md).
+>
 > **Reading order suggestion:** start with the writeup → bird's-eye
 > [system map](../system_map.md) → [author's notes](../authors_notes.md)
 > for the why → then dive into specific appendices below.
@@ -35,7 +40,7 @@ submission.
 | B1 | [Architecture](../architecture.md) | The 17-package PyPI workspace + 6-layer harness mechanics + 4-phase execution arc |
 | B2 | [Embedding guide](../embedding_guide.md) | Embed the harness in your own product (OpenAPI + JS widget + AAR plan) |
 | B3 | [Extension pack format](../extension_pack_format.md) | Build + sign your own GREP/RAG packs (Ed25519-signed) |
-| B4 | [Notebook guide](../notebook_guide.md) | How the 6+5 notebook shape was decided + per-notebook context |
+| B4 | [Current Kaggle state](../current_kaggle_notebook_state.md) | The active three-kernel submission path and what older generated mirrors mean |
 
 ## C. Deployment + operations
 
@@ -105,7 +110,7 @@ submission.
 | H6 | [Notebook QA companion](../notebook_qa_companion.md) | Per-notebook test checklist for all 11 |
 | H7 | [Bench-and-tune readiness](../bench_and_tune_readiness.md) | A7 adapter-training pre-flight + run-time monitoring + post-run verification |
 | H8 | [Cross-NGO trends federation](../cross_ngo_trends_federation.md) | Privacy-preserving aggregation protocol design |
-| H9 | [Smoke test report 2026-05-02](../smoke_test_report_2026-05-02.md) | 24 categories tested, all pass, 5 fixes applied |
+| H9 | [Smoke test report 2026-05-02](../_archive/2026-05-16-legacy-notebook-era/smoke_test_report_2026-05-02.md) | Historical 24-category smoke snapshot from the former notebook-era scope |
 
 ## I. Author voice
 

@@ -23,6 +23,9 @@ should not be used to make decisions about the active submission.
 | `external_review_brief.md` | External GPT-5.5 review brief for the wider chat-package + harness | `docs/claude_a00_tool_dispatch_and_trace_review_prompt.md` and `docs/claude_harness_ecosystem_a00_review_prompt.md` |
 | `kaggle_notebooks_rubric_audit.md` | 13-notebook × 13-principle audit | `docs/harness_ecosystem.md` for inventory and `docs/harness_standard_contract.md` for the contract surface |
 | `repo_cleanup_review_2026-05-10.md` | Point-in-time cleanup review | Superseded by the current trinity-doc approach to harness documentation |
+| `notebook_index.md` | Former 11/26-notebook submission index | `kaggle/_INDEX.md` and `docs/current_kaggle_notebook_state.md` |
+| `smoke_test_report_2026-05-02.md` | Point-in-time smoke report for the former notebook-era scope | `docs/copilot_handoff_2026_05_16.md` for the current in-scope test baseline |
+| `SUBMISSION_READINESS_AUDIT.md` | Point-in-time 2026-05-10 readiness audit | `docs/copilot_handoff_2026_05_16.md` and `docs/PACKAGE_INVENTORY.md` |
 
 ## Where to look now
 

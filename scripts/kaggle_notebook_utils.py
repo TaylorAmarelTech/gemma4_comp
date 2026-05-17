@@ -2,7 +2,7 @@
 
 This module keeps notebook inventory logic in one place so publishing,
 reporting, and docs generation all read the same source of truth:
-`kaggle/*/kernel-metadata.json`.
+root `kaggle/*/kernel-metadata.json` script-kernel folders.
 """
 
 from __future__ import annotations
@@ -164,14 +164,14 @@ def render_inventory_markdown(entries: list[KaggleNotebook]) -> str:
     )
 
     lines: list[str] = []
-    lines.append("# Current Kaggle Notebook State")
+    lines.append("# Current Kaggle Script-Kernel State")
     lines.append("")
-    lines.append("Generated from `kaggle/kernels/*/kernel-metadata.json`. This is the authoritative notebook inventory for the repo.")
+    lines.append("Generated from root `kaggle/*/kernel-metadata.json` script-kernel folders. This is the active judge-facing Kaggle inventory for the repo.")
     lines.append("Public live-state verification is not embedded in this generated file. Rerun `python scripts/verify_kaggle_urls.py` or check Kaggle kernel status directly for current live results.")
     lines.append("")
     lines.append("## Summary")
     lines.append("")
-    lines.append(f"- Tracked Kaggle kernels: {len(entries)}")
+    lines.append(f"- Active Kaggle script kernels: {len(entries)}")
     lines.append(f"- Optional local/archive mirror notebooks: {len(mirrored)}")
     lines.append(f"- Kernels without optional mirrors: {len(missing_mirrors)}")
     lines.append(f"- Legacy directory/code-file aliases: {len(legacy_aliases)}")

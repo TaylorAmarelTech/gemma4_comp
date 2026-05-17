@@ -430,6 +430,23 @@ def test_a00_tools_layer_always_emits_trace_for_consistency() -> None:
     assert '"status": "degraded"' in body
 
 
+def test_a00_grep_and_rag_layers_distinguish_noop_from_evidence() -> None:
+    """A zero-hit GREP/RAG pass is materially different from an
+    evidence-producing pass. The activity trace should let reviewers
+    and report builders tell whether a layer fired, no-oped, or
+    degraded after an exception.
+    """
+    text = _a00_text()
+    pieces = text.split("def _build_harness_prompt(row: dict[str, Any], harness_profile: str) -> tuple[str, dict[str, Any]]:", 1)
+    assert len(pieces) == 2, "_build_harness_prompt not found"
+    body, _rest = pieces[1].split("\ndef ", 1)
+
+    assert '"status": "pass" if hits else "noop"' in body
+    assert '"status": "pass" if facts else "noop"' in body
+    assert '"layer": "grep", "status": "degraded"' in body
+    assert '"layer": "rag", "status": "degraded"' in body
+
+
 def test_a00_pipeline_supports_ollama_external_judge() -> None:
     """The final LLM judge can use Ollama Cloud/local Ollama without
     loading another local Gemma model. This should affect only the

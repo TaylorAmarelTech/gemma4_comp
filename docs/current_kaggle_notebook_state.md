@@ -1,32 +1,40 @@
-# Archived Kaggle Notebook State
+# Current Kaggle Submission State
 
-This file used to summarize the generated/research notebook mirrors under
-`kaggle/kernels/*`. Those `.ipynb` wrappers and their `kernel-metadata.json`
-files were archived on 2026-05-11 under
-`_archive/kaggle-notebook-previews-2026-05-11/kaggle/kernels/`.
+This file is the short operational pointer for the current Kaggle scope.
+Older generated notebook mirrors still exist for provenance and tooling, but
+they are not the active submission path.
 
-The active judge-facing Kaggle surface is now the 13 root script-kernel
-folders listed in [`kaggle/_INDEX.md`](../kaggle/_INDEX.md):
+## Active Judge-Facing Kernels
 
-- `01-duecare-exploration-workbench/`
-- `02-live-demo/`
-- `A-01-chat-playground/` through `A-11-grading-evaluation/`
+The active competition and recording path is exactly three script kernels,
+also listed in [`kaggle/_INDEX.md`](../kaggle/_INDEX.md):
 
-Each active folder uses `kernel.py` plus `kernel-metadata.json`, `README.md`,
-and `wheels/`. Do not recreate `.ipynb` files in active `kaggle/*/` or
-`kaggle/kernels/*/` paths unless Taylor explicitly asks for historical preview
-recovery.
+| Folder | Role |
+|---|---|
+| `kaggle/01-duecare-exploration-workbench/` | Broad workbench: chat, harness comparison, bulk review, knowledge extraction, search, sharing, traces, and activity logs. |
+| `kaggle/02-live-demo/` | Focused live demo for judges and video capture. |
+| `kaggle/A-00-omni-experiment-workbench/` | Quantitative pipeline for baseline, harnessed, synthetic-data, fine-tuning, judging, and report artifacts. |
 
-## Archived generated/research mirrors
+Each active folder uses `kernel.py` as source of truth. Do not recreate or
+publish historical `.ipynb` wrappers for these active folders unless Taylor
+explicitly asks.
 
-| Archived directory | Notebook file | Metadata file |
-|---|---|---|
-| `_archive/kaggle-notebook-previews-2026-05-11/kaggle/kernels/duecare_010_quickstart/` | `010_quickstart.ipynb` | `kernel-metadata.json` |
-| `_archive/kaggle-notebook-previews-2026-05-11/kaggle/kernels/duecare_200_cross_domain_proof/` | `200_cross_domain_proof.ipynb` | `kernel-metadata.json` |
-| `_archive/kaggle-notebook-previews-2026-05-11/kaggle/kernels/duecare_500_agent_swarm_deep_dive/` | `500_agent_swarm_deep_dive.ipynb` | `kernel-metadata.json` |
-| `_archive/kaggle-notebook-previews-2026-05-11/kaggle/kernels/duecare_610_submission_walkthrough/` | `610_submission_walkthrough.ipynb` | `kernel-metadata.json` |
-| `_archive/kaggle-notebook-previews-2026-05-11/kaggle/kernels/duecare_660_enterprise_moderation/` | `660_enterprise_moderation.ipynb` | `kernel-metadata.json` |
-| `_archive/kaggle-notebook-previews-2026-05-11/kaggle/kernels/duecare_670_private_client_side_checker/` | `670_private_client_side_checker.ipynb` | `kernel-metadata.json` |
-| `_archive/kaggle-notebook-previews-2026-05-11/kaggle/kernels/duecare_680_ngo_api_triage/` | `680_ngo_api_triage.ipynb` | `kernel-metadata.json` |
-| `_archive/kaggle-notebook-previews-2026-05-11/kaggle/kernels/duecare_690_migration_case_workflow/` | `690_migration_case_workflow.ipynb` | `kernel-metadata.json` |
-| `_archive/kaggle-notebook-previews-2026-05-11/kaggle/kernels/duecare_695_custom_domain_adoption/` | `695_custom_domain_adoption.ipynb` | `kernel-metadata.json` |
+## Archived Or Reference-Only Material
+
+- `kaggle/_archive/notebooks/` contains the former `03` and `A-01` through
+  `A-24` notebook-era surfaces.
+- `kaggle/kernels/` contains generated/research notebook mirror material used
+  by older tooling and tests. It is not the current judge path.
+- `_archive/kaggle-notebook-previews-2026-05-11/` contains historical notebook
+  wrappers and metadata snapshots.
+
+## Current Review Anchors
+
+- [`docs/copilot_handoff_2026_05_16.md`](copilot_handoff_2026_05_16.md) for
+  the latest runtime, harness, A-00, and test baseline handoff.
+- [`docs/harness_ecosystem.md`](harness_ecosystem.md) for the authoritative
+  registered-harness inventory.
+- [`docs/harness_standard_contract.md`](harness_standard_contract.md) for the
+  universal harness contract.
+- [`docs/model_loading_trace.md`](model_loading_trace.md) for the shared
+  Gemma 4 runtime path.

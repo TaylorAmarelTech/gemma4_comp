@@ -7,6 +7,10 @@ Claude Code session.
 This is a self-contained snapshot. You do not need the prior chat
 history.
 
+Follow-up note: this file was originally captured at commit `8141134`.
+Later commits may have completed items from the "Suggested next work"
+section; use `git log --oneline -10` for the live HEAD.
+
 ---
 
 ## Where we are
@@ -303,40 +307,28 @@ Estimated diff: ~80 LOC in kernel.py, ~30 LOC in tests.
 
 ### 2. Batch-2 legacy docs archive
 
-Three legacy docs are still in `docs/` because they have incoming
-links that need updating first:
+Completed in a follow-up cleanup pass after this snapshot. The legacy
+top-level docs were moved to
+`docs/_archive/2026-05-16-legacy-notebook-era/`, incoming links were
+rewired, and the archive README was updated:
 
-- `docs/notebook_index.md` — linked from `docs/REPORT_CARD.md`
-- `docs/smoke_test_report_2026-05-02.md` — linked from
-  `docs/appendices/README.md`, `docs/project_status.md`
-- `docs/SUBMISSION_READINESS_AUDIT.md` — linked from
-  `docs/canonical_use_cases_and_components.md`,
-  `docs/submission_surface_audit_2026-05-10.md`
-
-For each, decide: (a) update the linker to point to the archive
-location, (b) remove the link if no current replacement exists, or
-(c) refresh the doc in place. Then `git mv` to
-`docs/_archive/2026-05-16-legacy-notebook-era/` with a README update.
+- `docs/_archive/2026-05-16-legacy-notebook-era/notebook_index.md`
+- `docs/_archive/2026-05-16-legacy-notebook-era/smoke_test_report_2026-05-02.md`
+- `docs/_archive/2026-05-16-legacy-notebook-era/SUBMISSION_READINESS_AUDIT.md`
 
 ### 3. Align GREP and RAG layer step status with new `pass/noop/degraded`
 
 In `kaggle/A-00-omni-experiment-workbench/kernel.py::_build_harness_prompt`,
 the tools layer now emits `pass` / `noop` / `degraded` step statuses
-(commit 76e44a1 + 1bde14b). GREP and RAG still always emit `pass`
-even when zero hits / facts. Align them so cross-layer step.status
-comparisons are consistent. Tighten the relevant contract tests.
+(commit 76e44a1 + 1bde14b). Completed in a follow-up cleanup pass:
+GREP and RAG now emit `noop` when they run but find zero hits/facts,
+while exceptions still emit `degraded`.
 
 ### 4. `harness.html` external-trust-boundary visual cue
 
-Add a small pill or warning color for `trust_boundary == "external"`
-so the privacy-sensitive boundary is obvious without reading the text.
-Tiny CSS change in
-`packages/duecare-llm-chat/src/duecare/chat/static/harness.html`.
-Test by visiting `/static/harness.html` and selecting the chat harness
-— the `frontier_chat_or_judge` target should look different from the
-local-runtime target. Update
-`packages/duecare-llm-chat/tests/test_harness_workbench.py` to pin the
-class or attribute the CSS targets.
+Completed in a follow-up cleanup pass. `/static/harness.html` now
+renders model-target trust boundaries as explicit pills, with a
+distinct external-boundary style pinned by a workbench test.
 
 ### 5. Post-search verification harness
 

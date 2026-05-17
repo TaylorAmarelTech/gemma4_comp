@@ -7,6 +7,11 @@
 > **Generated:** 2026-05-02 (T-16 from 2026-05-18 deadline).
 > Refreshed each Sunday + on any major delivery.
 >
+> Current-scope note (2026-05-16): this dashboard is a historical
+> readiness snapshot. The active competition path is now the three-kernel
+> set documented in [`kaggle/_INDEX.md`](../kaggle/_INDEX.md) and
+> [`current_kaggle_notebook_state.md`](current_kaggle_notebook_state.md).
+>
 > **Reading order.** Headline → blocking gaps → per-dimension table
 > → drill-downs. Each dimension links back to the canonical doc that
 > tells the full story.

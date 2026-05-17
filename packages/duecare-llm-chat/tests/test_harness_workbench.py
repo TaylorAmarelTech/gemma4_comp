@@ -105,6 +105,9 @@ def test_harness_workbench_page_serves(client):
         'id="prompt-list"',
     ]:
         assert marker in text
+    assert "function boundaryClass" in text
+    assert 'class="target-boundary ${boundaryClass(boundary)}"' in text
+    assert ".target-boundary.external" in text
 
 
 def test_shared_workflow_helper_serves(client):
