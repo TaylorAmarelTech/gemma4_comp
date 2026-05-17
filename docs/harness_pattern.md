@@ -182,13 +182,21 @@ from duecare.chat.kernel_shell import build_minimal_shell
 from duecare.chat.harnesses import anonymization, extraction
 
 app, url = build_minimal_shell(
-    summary={"title": "A-04 knowledge builder", ...},
-    kernel_id="a-04-content-knowledge-builder",
+    summary={"title": "knowledge-builder kernel", ...},
+    kernel_id="knowledge-builder-kernel",
     harnesses=[anonymization, extraction],  # opt-in
 )
 # /api/anonymize, /api/submit/knowledge, /api/knowledge/draft-envelope
 # now registered, with per-task training-log JSONL emission.
 ```
+
+The example uses a hypothetical kernel name. The active submission
+runs through the three kernels in
+`kaggle/01-duecare-exploration-workbench/`,
+`kaggle/02-live-demo/`, and
+`kaggle/A-00-omni-experiment-workbench/`; the minimal-shell pattern
+remains available for any future single-purpose kernel that needs a
+subset of the registered harnesses.
 
 ### Notebook-only kernels
 

@@ -33,7 +33,7 @@ care which provider implements it.
 | **Brave Search** | Free tier 2k/mo | Yes (`BRAVE_API_KEY`) | High-quality results, fast |
 | **Tavily** | Free tier 1k/mo | Yes (`TAVILY_API_KEY`) | LLM-optimised search, AI-summarised results |
 | **Serper** | Free tier 2.5k/mo | Yes (`SERPER_API_KEY`) | Google search wrapped |
-| **Playwright agentic** | Free | No (browser only) | Real-browser scraping. Slow (~10s) but bypasses bot detection. Used in A-09 appendix. |
+| **Playwright agentic** | Free | No (browser only) | Real-browser scraping. Slow (~10s) but bypasses bot detection. Historical appendix-kernel option; archived under `kaggle/_archive/notebooks/`. |
 | **Custom URL fetch** | Free | No | Direct httpx GET on a URL the user supplies |
 
 The bundled order in `kaggle/01-duecare-exploration-workbench/kernel.py`:

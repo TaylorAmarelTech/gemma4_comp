@@ -333,22 +333,22 @@ distinct external-boundary style pinned by a workbench test.
 
 ### 5. Post-search verification harness
 
-Documented as "planned hardening" in `docs/harness_ecosystem.md`.
-Define it as a registered harness module that takes a sanitized search
-result set and produces a verified set with `source_quality`,
-`relevance_score`, `contradiction_flag`, and `deanonymization_risk`.
-The current online layer can ingest results without this gate; the
-harness should make verification mandatory when Online is enabled.
-Out of scope for the default A-00 proof path (Online stays off there).
+Completed in commit 5c145ab. `harnesses/post_search_verification/` is
+now a registered primary safety gate. It takes a sanitized query plus
+normalized search result cards and emits accepted/review/blocked
+envelopes with source-quality, relevance, contradiction, and
+deanonymization signals. Default trust boundary is `local`, default
+model transport is `none`. The harness is wired in
+`packages/duecare-llm-chat/src/duecare/chat/app.py` and pinned by
+`packages/duecare-llm-chat/tests/test_harness_workbench.py`. Out of
+scope for the default A-00 proof path (Online stays off there).
 
 ### 6. Regenerate `docs/notebook_guide.md` to fix pre-existing test failures
 
-`tests/test_kaggle_notebook_utils.py` has three failing tests because
-the on-disk `docs/notebook_guide.md` does not match what
-`scripts/generate_notebook_guide.py` would produce from the current
-`kaggle/` inventory. Run the generator and commit the result, or
-delete the test if the guide is no longer maintained for the
-three-kernel scope.
+Resolved in commit e2d3857 ("Reduce doc drift and tighten harness
+traces"). `docs/notebook_guide.md` was regenerated against the active
+three-kernel inventory and the four `tests/test_kaggle_notebook_utils.py`
+tests now pass.
 
 ### 7. `tests/unit/*` collection errors
 
