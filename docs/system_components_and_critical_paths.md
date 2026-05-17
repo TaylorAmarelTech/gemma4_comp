@@ -124,6 +124,18 @@ knowledge-object contracts.
 10. Reports, activity logs, raw run outputs, adapters, and checkpoint
     metadata are saved under Kaggle working paths.
 
+Key A-00 runtime knobs:
+
+- `DUECARE_A00_INFERENCE_MAX_SEQ_LENGTH` controls the shared Gemma
+  inference context window used by benchmark generation and final
+  grading. It defaults to a long-context setting so full prompts,
+  responses, harness traces, and grading instructions fit.
+- `DUECARE_A00_COMBINED_JUDGE_MAX_NEW_TOKENS` controls the structured
+  output budget for the combined rule + LLM judge.
+- `A00_TRAINING_TIMEOUT_SEC`, `training_save_steps`, and
+  `training_resume_from_checkpoint` control long LoRA training runs,
+  checkpoint cadence, and resume behavior.
+
 ### Online Search Safety
 
 1. A prompt or analyst request is reduced to an anonymized search

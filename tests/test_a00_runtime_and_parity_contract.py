@@ -465,6 +465,35 @@ def test_a00_inference_uses_at_least_16k_context_window() -> None:
     )
 
 
+def test_a00_combined_judge_has_structured_output_budget() -> None:
+    """The combined LLM judge must have enough output budget to emit
+    structured rubric JSON with per-dimension scores and rationales.
+    A short generation cap can silently truncate JSON and depress
+    scores, especially after the 16K input-context expansion enabled
+    fuller prompts, responses, and traces.
+    """
+    text = _a00_text()
+    assert (
+        'A00_COMBINED_JUDGE_MAX_NEW_TOKENS = int(os.environ.get("DUECARE_A00_COMBINED_JUDGE_MAX_NEW_TOKENS", "1600"))'
+        in text
+    )
+    pieces = text.split(
+        'A00_COMBINED_JUDGE_MAX_NEW_TOKENS = int(os.environ.get("DUECARE_A00_COMBINED_JUDGE_MAX_NEW_TOKENS", "',
+        1,
+    )
+    assert len(pieces) == 2, "combined judge token-budget constant not found"
+    default_literal = pieces[1].split('"', 1)[0]
+    assert int(default_literal) >= 1500, (
+        f"A00_COMBINED_JUDGE_MAX_NEW_TOKENS default {default_literal} must be at least 1500."
+    )
+    assert "max_tokens=A00_COMBINED_JUDGE_MAX_NEW_TOKENS" in text
+    assert "max_new_tokens=A00_COMBINED_JUDGE_MAX_NEW_TOKENS" in text
+    pieces2 = text.split("def _grading_model_call(row: dict[str, Any]) -> Optional[Any]:", 1)
+    assert len(pieces2) == 2, "_grading_model_call not found"
+    body, _rest = pieces2[1].split("\ndef ", 1)
+    assert "max_new_tokens=900" not in body
+
+
 def test_a00_grep_and_rag_layers_distinguish_noop_from_evidence() -> None:
     """A zero-hit GREP/RAG pass is materially different from an
     evidence-producing pass. The activity trace should let reviewers
