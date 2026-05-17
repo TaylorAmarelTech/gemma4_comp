@@ -69,9 +69,16 @@ def test_legacy_notebook_era_docs_are_archived():
         "data_compatibility_plan.md",
         "data_primitives.md",
         "data_surface_inventory.md",
+        "notebook_qa_companion.md",
+        "release_checklist_v0_14_5.md",
+        "REPORT_CARD.md",
+        "rubric_evaluation_v07.md",
+        "submission_gate_checklist.md",
+        "submission_surface_audit_2026-05-10.md",
     ]:
         assert not (ROOT / "docs" / name).exists(), name
         assert (archive / name).exists(), name
+    assert (archive / "project_status.md").exists()
 
 
 def test_current_kaggle_state_points_to_three_active_kernels():
@@ -101,6 +108,12 @@ def test_current_entry_docs_do_not_present_archived_appendix_scope():
         "docs/two_week_submission_plan.md",
         "docs/user_walkthrough.md",
         "docs/gemma4_feature_showcase.md",
+        "docs/project_status.md",
+        "docs/authors_notes.md",
+        "docs/REPO_LAYOUT.md",
+        "docs/writeup_draft.md",
+        "docs/system_map.md",
+        "docs/rubric_alignment.md",
     ]:
         text = _read(path)
         assert "kaggle/01-duecare-exploration-workbench/" in text
@@ -111,6 +124,9 @@ def test_current_entry_docs_do_not_present_archived_appendix_scope():
         assert "A-01..A-11" not in text
         assert "bench_and_tune_readiness.md" not in text
         assert "bench_and_tune_walkthrough.md" not in text
+        assert "rubric_evaluation_v07.md" not in text
+        assert "submission_gate_checklist.md" not in text
+        assert "REPORT_CARD.md" not in text
 
 
 def test_current_navigation_uses_a00_proof_path_not_legacy_bench_docs():
@@ -123,11 +139,16 @@ def test_current_navigation_uses_a00_proof_path_not_legacy_bench_docs():
             "docs/two_week_submission_plan.md",
             "docs/user_walkthrough.md",
             "docs/gemma4_feature_showcase.md",
+            "docs/project_status.md",
+            "docs/system_map.md",
+            "docs/rubric_alignment.md",
         ]
     )
     assert "FOR_PEER_REVIEW.md#a-00-proof-path" in combined
     assert "bench_and_tune_readiness.md" not in combined
     assert "bench_and_tune_walkthrough.md" not in combined
+    assert "submission_gate_checklist.md" not in combined
+    assert "notebook_qa_companion.md" not in combined
 
 
 def test_modernized_architecture_docs_point_trainer_to_a00():

@@ -19,10 +19,10 @@
 
 | You want to... | Use |
 |---|---|
-| Try the harness without installing anything | The 6 published Kaggle notebooks |
+| Try the harness without installing anything | The active Kaggle exploration workbench and live demo |
 | Run on your own dataset (≤ 1000 prompts) | Local CLI: `examples/deployment/local-cli/duecare_cli.py` |
 | Run a batch (1000+ prompts) | A short Python script using `duecare-llm-chat` |
-| Compare Gemma 4 vs other models | The `bench-and-tune` Kaggle notebook |
+| Compare Gemma 4 vs other models | The A-00 omni experiment workbench |
 | Add your domain (medical / fraud / etc.) | Extension pack format + a custom domain pack |
 | Cite specific findings | The `(git_sha, dataset_version, model_revision)` provenance pattern |
 
@@ -122,9 +122,8 @@ For "Gemma 4 vs GPT-4 vs Claude vs Mistral on the trafficking-rubric"
 papers:
 
 ```bash
-# Use the comparison notebooks directly
-# Open in Kaggle: https://www.kaggle.com/code/taylorsamarel/duecare-bench-and-tune
-# (this is one of the 5 appendix notebooks)
+# Use the A-00 comparison pipeline directly
+# Open the active A-00 omni experiment workbench and export the report bundle
 #
 # OR locally:
 python scripts/run_comparison.py \

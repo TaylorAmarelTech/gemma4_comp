@@ -104,10 +104,10 @@ submission.
 |---|---|---|
 | H1 | [For judges](../FOR_KAGGLE_JUDGES.md) | The hackathon-judge entry point + 2-min and 5-min verification paths |
 | H2 | [Readiness dashboard](../readiness_dashboard.md) | Single-screen status across every dimension |
-| H3 | [Submission gate checklist](../submission_gate_checklist.md) | 13-phase pre-Submit verification |
+| H3 | [Manual TODO checklist](../USER_TODO.md) | Current manual submitter actions for the three active kernels |
 | H4 | [Post-submission sustainability](../post_submission_sustainability.md) | T+7 → T+365 plan with 8 non-negotiable principles |
 | H5 | [2-week submission plan](../two_week_submission_plan.md) | T-16 to T-0 day-by-day |
-| H6 | [Notebook QA companion](../notebook_qa_companion.md) | Per-notebook test checklist for all 11 |
+| H6 | [Current Kaggle state](../current_kaggle_notebook_state.md) | Active three-kernel inventory and archived-notebook explanation |
 | H7 | [A-00 proof path](../FOR_PEER_REVIEW.md#a-00-proof-path) | Current quantitative baseline, harness, optional training, judging, and export flow |
 | H8 | [Cross-NGO trends federation](../cross_ngo_trends_federation.md) | Privacy-preserving aggregation protocol design |
 | H9 | [Smoke test report 2026-05-02](../_archive/2026-05-16-legacy-notebook-era/smoke_test_report_2026-05-02.md) | Historical 24-category smoke snapshot from the former notebook-era scope |

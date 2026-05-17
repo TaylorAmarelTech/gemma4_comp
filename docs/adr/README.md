@@ -16,7 +16,7 @@ Format follows [Michael Nygard's template](https://github.com/joelparkerhenderso
 | [003](./003-on-device-default-cloud-opt-in.md) | On-device default; cloud routing opt-in for Android | Accepted |
 | [004](./004-six-plus-five-notebook-shape.md) | 6 core + 5 appendix submission shape (vs single-mega-notebook) | Superseded by [006](./006-two-plus-eleven-notebook-shape.md) |
 | [005](./005-tenant-id-from-edge-proxy.md) | Tenant id extracted from edge proxy headers (vs in-app auth) | Accepted |
-| [006](./006-two-plus-eleven-notebook-shape.md) | 3 core + 24 appendix Kaggle submission shape | Accepted |
+| [006](./006-two-plus-eleven-notebook-shape.md) | Historical 3 core + appendix Kaggle submission shape | Superseded |
 
 ## When to write an ADR
 

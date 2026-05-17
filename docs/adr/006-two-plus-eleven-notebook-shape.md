@@ -1,9 +1,13 @@
 # ADR-006: 3 core + 24 appendix Kaggle submission shape
 
-- **Status:** Accepted
+- **Status:** Superseded for the current competition push
 - **Date:** 2026-05-11
 - **Deciders:** Taylor Amarel
 - **Supersedes:** [ADR-004](./004-six-plus-five-notebook-shape.md)
+
+> **Current-scope note:** this records an intermediate notebook-era shape. Use
+> [`../current_kaggle_notebook_state.md`](../current_kaggle_notebook_state.md)
+> for the active three-kernel path.
 
 ## Context
 

@@ -5,10 +5,9 @@
 > Duecare is production-ready for a 1M+ user roll-out. Honest grades.
 > Each gap has a concrete fix path and a "ship-by" target.
 >
-> **Generated:** 2026-05-01. Read alongside
-> [`docs/rubric_evaluation_v07.md`](../rubric_evaluation_v07.md) (the
-> hackathon-judge view) and [`docs/deployment_topologies.md`](../deployment_topologies.md)
-> (how to deploy what's here today).
+> **Generated:** 2026-05-01. Current submission status is tracked in
+> [`docs/readiness_dashboard.md`](../readiness_dashboard.md); deployment
+> patterns remain in [`docs/deployment_topologies.md`](../deployment_topologies.md).
 
 ## TL;DR — readiness score
 
@@ -28,7 +27,7 @@
 | **Multi-tenancy** | F | Single-tenant by design today. Per-customer isolation needs a tenant-id propagated through every layer + per-tenant rate limits + per-tenant audit log. | P1 |
 | **Compliance posture** | C | MIT license clear. Privacy stance documented. Need explicit SOC 2 / GDPR / HIPAA control mapping and a vendor-questionnaire-ready doc. | P1 |
 | **Disaster recovery** | C– | Backup strategy in `deployment_local.md` + `ngo-office-edge`. RTO/RPO not defined. Restore tested only ad-hoc. | P1 |
-| **Documentation — judges** | A | `FOR_KAGGLE_JUDGES.md`, `writeup_draft.md`, `rubric_evaluation_v07.md`, `deployment_topologies.md`. Current. | done |
+| **Documentation — judges** | A | `FOR_KAGGLE_JUDGES.md`, `FOR_PEER_REVIEW.md`, `writeup_draft.md`, `readiness_dashboard.md`, `deployment_topologies.md`. Current. | done |
 | **Documentation — operators** | C+ | `docs/operations.md` exists. Runbook: not yet. Architecture Decision Records (ADRs): partial. | **P0** |
 | **Documentation — security team** | D | `SECURITY.md` exists (boilerplate). Threat model: in `_reference/`. Penetration-test readiness checklist: not yet. | P1 |
 | **Sustainability** | F | No carbon-cost tracking. No tooling to estimate energy per inference. | P3 |

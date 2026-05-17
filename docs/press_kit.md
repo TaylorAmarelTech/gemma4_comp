@@ -90,7 +90,7 @@ These are reproducible per `(git_sha, dataset_version, model_revision)`
   PH-SA, NP-SA, BD-SA, ID-SG + MX-US, VE-CO, GH-LB, NG-LB,
   SY-DE, UA-PL)
 - **17** PyPI packages, all MIT-licensed
-- **13** judge-facing Kaggle folders (3 core + 24 appendix) plus 9 generated/research kernels under `kaggle/kernels/*`
+- **3** active judge-facing Kaggle kernels plus archived notebook-era surfaces retained for provenance
 - **194** unit tests passing across the harness packages
 
 ## Quotes available for use
@@ -200,7 +200,7 @@ The technical-depth angle. Key data points:
 - 12 migration corridors with statute lookups
 - 161 GREP rules for pattern detection
 - 46-doc legal RAG corpus (ILO conventions, POEA MCs, etc.)
-- 6+5 published Kaggle notebooks for reproducibility
+- Three active Kaggle kernels for reproducibility, with A-00 exporting the quantitative evidence bundle
 
 ### "Open-source labor protection for the global south"
 

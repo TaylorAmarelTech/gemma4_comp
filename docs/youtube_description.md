@@ -42,7 +42,7 @@ Submission for the Gemma 4 Good Hackathon — Safety & Trust track.
 🔗 Links:
 
 • Code (MIT): https://github.com/TaylorAmarelTech/gemma4_comp
-• Kaggle notebooks (3 core + 24 appendix):
+• Kaggle proof path (three active kernels):
   https://www.kaggle.com/taylorsamarel/code
 • Live demo (omni playground):
   https://www.kaggle.com/code/taylorsamarel/duecare-exploration-workbench

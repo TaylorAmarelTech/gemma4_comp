@@ -150,7 +150,7 @@ Avoid:
   benchmarking"** — defeats the point. The harness's lift numbers
   (+56.5 pp mean across 207 hand-graded prompts) are measured
   against Gemma 4. If you want to run it against your internal
-  model, run the bench-and-tune notebook (A2) against that model
+  model, run the A-00 preconfigured pipeline against that model
   first to establish a baseline.
 - **"Build a custom UI; don't use the bundled chat playground"** —
   the playgrounds are reference UIs. Your product surface is your
@@ -161,7 +161,7 @@ Avoid:
 
 | You get | You build |
 |---|---|
-| 17 PyPI packages + 27 submission Kaggle notebooks (3 core + 24 appendix) + Helm chart + Docker image | Your client UI (web / mobile / Slack / Discord / etc.) |
+| Python packages + three active Kaggle proof kernels + Helm chart + Docker image | Your client UI (web / mobile / Slack / Discord / etc.) |
 | 161 GREP rules + 46 RAG docs + 5 corridor and ILO lookups | Your domain-specific extensions (custom GREP rules, internal corpus, internal tools) |
 | 11 ILO C029 indicators + 20 corridor profiles | Your jurisdiction-specific corridors / regulators / NGO lists |
 | Per-tenant token + cost meter | Hook to your billing pipeline |

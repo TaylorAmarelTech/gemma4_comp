@@ -10,7 +10,7 @@ Use a **Kaggle Dataset + benchmark notebook + scoring wheel** first.
 |---|---|---|
 | Versioned benchmark dataset | Prompt rows, expected signals, rubrics, metadata | `packages/duecare-llm-benchmark/` plus curated `configs/duecare/domains/` samples |
 | Scoring wheel | Shared scoring functions so all notebooks rank models the same way | `duecare-llm-benchmark` |
-| Benchmark runner notebook | Loads dataset, runs a selected model/backend, emits scored JSON/CSV | New Kaggle benchmark notebook or appendix derived from A-11 grading evaluation |
+| Benchmark runner notebook | Loads dataset, runs a selected model/backend, emits scored JSON/CSV | A-00 preconfigured pipeline and exported report bundle |
 | Results dataset | Captures model submissions and reproducible scores | Kaggle Dataset, manually published/versioned |
 | Model cards/results table | Human-readable ranking with caveats | docs + Kaggle Dataset README |
 

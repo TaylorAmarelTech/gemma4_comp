@@ -496,7 +496,8 @@ Module** prototype shipped through the A-00 omni experiment workbench.
 - **Quality Testing Framework** (partial) — 46-dim rubric v3.10 + 65-test adversarial suite + 4 grade modes.
 - **Contacts directory** — 26 entries (DMW, OWWA, BP2MI Aduan, MfMW HK, IJM, Polaris, embassies, etc.)
 - **Synthetic multimodal evidence** — 20 CC0 images + 13 structured-post JSONs.
-- **Kaggle live chat demo** — 3 core + 24 appendix = 27 notebooks.
+- **Kaggle live proof path** — three active kernels: exploration workbench,
+  live demo, and A-00 omni experiment workbench.
 
 ### Prototype / appendix / near-term
 
