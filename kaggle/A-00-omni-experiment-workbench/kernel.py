@@ -40,6 +40,10 @@ RUN_DIR = OUTPUT_DIR / "a00_runs"
 RUN_DIR.mkdir(parents=True, exist_ok=True)
 TRAIN_DIR = OUTPUT_DIR / "a00_training"
 TRAIN_DIR.mkdir(parents=True, exist_ok=True)
+ACTIVITY_DIR = OUTPUT_DIR / "a00_activity"
+ACTIVITY_DIR.mkdir(parents=True, exist_ok=True)
+OUTPUT_INDEX_DIR = OUTPUT_DIR / "a00_outputs"
+OUTPUT_INDEX_DIR.mkdir(parents=True, exist_ok=True)
 TRAIN_JOB_LOCK = threading.Lock()
 MODEL_RUNTIME_LOCK = threading.RLock()
 PIPELINE_JOB_LOCK = threading.Lock()
@@ -1053,13 +1057,13 @@ class PipelineRequest(BaseModel):
     prompt_set: str = A00_BULK_COMPARE_DEFAULT["prompt_set"]
     harness_profile: str = A00_BULK_COMPARE_DEFAULT["treatment_harness"]
     baseline_harness_profile: str = A00_BULK_COMPARE_DEFAULT["baseline_harness"]
-    # Default 2 prompts for the fastest real smoke proof (matches the
+    # Default 4 prompts for a slightly stronger demo proof (matches the
     # preconfigured page input default).
-    limit: int = 2
-    # Default 2 synthetic rows so the API-default proof matches the
+    limit: int = 4
+    # Default 4 synthetic rows so the API-default proof matches the
     # preconfigured page (the UI computes synth = limit; direct API users
     # who override limit upward should also override synthetic_count).
-    synthetic_count: int = 2
+    synthetic_count: int = 4
     generator_mode: str = A00_SYNTHETIC_DEFAULT["generator_mode"]
     evaluate_outputs: bool = True
     include_report: bool = True
@@ -3088,9 +3092,219 @@ def _training_log_activity(job: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def _activity_artifact_paths(job_id: str) -> dict[str, str]:
+    safe_id = _safe_slug(job_id)
+    return {
+        "activity_json": str(ACTIVITY_DIR / f"{safe_id}_activity.json"),
+        "activity_markdown": str(ACTIVITY_DIR / f"{safe_id}_activity.md"),
+        "activity_text": str(ACTIVITY_DIR / f"{safe_id}_activity.txt"),
+        "activity_zip": str(ACTIVITY_DIR / f"{safe_id}_activity_bundle.zip"),
+        "job_record": str(ACTIVITY_DIR / f"{safe_id}_job.json"),
+        "output_manifest": str(OUTPUT_DIR / "A00_LATEST_OUTPUTS.json"),
+        "output_readme": str(OUTPUT_DIR / "A00_OUTPUTS_README.md"),
+        "output_index": str(OUTPUT_INDEX_DIR / "index.html"),
+    }
+
+
+def _activity_markdown(job: dict[str, Any]) -> str:
+    lines = [
+        f"# A-00 Activity Log: {job.get('job_id')}",
+        "",
+        f"Status: {job.get('status')}",
+        f"Created: {job.get('created_at', '')}",
+        f"Started: {job.get('started_at', '')}",
+        f"Finished: {job.get('finished_at', '')}",
+        "",
+        "## Pipeline Configuration",
+        "",
+        "```json",
+        _json_dumps(job.get("pipeline_request", {})),
+        "```",
+        "",
+        "## Steps",
+        "",
+    ]
+    for idx, step in enumerate(job.get("steps", []) or [], start=1):
+        lines.extend([
+            f"### {idx}. {step.get('label', '')}",
+            "",
+            f"- Timestamp: `{step.get('ts', '')}`",
+            f"- Status: `{step.get('status', '')}`",
+            "",
+        ])
+        if step.get("detail") is not None:
+            lines.extend(["```json", _json_dumps(step.get("detail")), "```", ""])
+    if job.get("report"):
+        lines.extend(["## Report", "", "```json", _json_dumps(job.get("report")), "```", ""])
+    if job.get("error"):
+        lines.extend(["## Error", "", str(job.get("error")), ""])
+    return "\n".join(lines)
+
+
+def _activity_text(job: dict[str, Any]) -> str:
+    chunks = [
+        f"A-00 Activity Log: {job.get('job_id')}",
+        f"status={job.get('status')}",
+        f"created={job.get('created_at', '')} started={job.get('started_at', '')} finished={job.get('finished_at', '')}",
+        "",
+        "PIPELINE CONFIGURATION",
+        _json_dumps(job.get("pipeline_request", {})),
+        "",
+        "STEPS",
+    ]
+    for idx, step in enumerate(job.get("steps", []) or [], start=1):
+        chunks.append(f"[{idx}] {step.get('ts', '')} | {step.get('label', '')} | {step.get('status', '')}")
+        if step.get("detail") is not None:
+            chunks.append(_json_dumps(step.get("detail")))
+        chunks.append("")
+    if job.get("report"):
+        chunks.extend(["REPORT", _json_dumps(job.get("report")), ""])
+    if job.get("error"):
+        chunks.extend(["ERROR", str(job.get("error")), ""])
+    return "\n".join(chunks)
+
+
+def _write_activity_artifacts(job: dict[str, Any]) -> dict[str, str]:
+    job_id = str(job.get("job_id") or "a00_job")
+    paths = _activity_artifact_paths(job_id)
+    public_job = dict(job)
+    public_job["activity_artifacts"] = paths
+    _write_json(Path(paths["activity_json"]), public_job)
+    _write_json(Path(paths["job_record"]), public_job)
+    Path(paths["activity_markdown"]).write_text(_activity_markdown(public_job), encoding="utf-8")
+    Path(paths["activity_text"]).write_text(_activity_text(public_job), encoding="utf-8")
+    with zipfile.ZipFile(paths["activity_zip"], "w", zipfile.ZIP_DEFLATED) as z:
+        for key in ["activity_json", "activity_markdown", "activity_text", "job_record"]:
+            path = Path(paths[key])
+            if path.exists():
+                z.write(path, arcname=path.name)
+    return paths
+
+
+def _publish_latest_activity_shortcuts(job: dict[str, Any]) -> None:
+    artifacts = job.get("activity_artifacts") or {}
+    suffixes = {
+        "activity_json": ".json",
+        "activity_markdown": ".md",
+        "activity_text": ".txt",
+        "activity_zip": "_bundle.zip",
+        "job_record": ".job.json",
+    }
+    for key, suffix in suffixes.items():
+        src = Path(str(artifacts.get(key) or ""))
+        if src.exists():
+            shutil.copy2(src, OUTPUT_INDEX_DIR / f"latest_activity{suffix}")
+
+
+def _publish_latest_report_shortcuts(report: dict[str, Any]) -> None:
+    artifacts = report.get("artifacts") if isinstance(report, dict) else {}
+    suffixes = {
+        "html": ".html",
+        "pdf": ".pdf",
+        "markdown": ".md",
+        "json": ".json",
+        "comparison_csv": "_comparison.csv",
+        "dimension_csv": "_dimension_summary.csv",
+        "prompt_response_csv": "_prompt_responses.csv",
+        "score_chart_svg": "_score_chart.svg",
+        "latency_chart_svg": "_latency_chart.svg",
+        "evidence_manifest": "_evidence_manifest.json",
+        "evidence_zip": "_evidence_bundle.zip",
+    }
+    for key, suffix in suffixes.items():
+        src = Path(str((artifacts or {}).get(key) or ""))
+        if src.exists():
+            shutil.copy2(src, OUTPUT_INDEX_DIR / f"latest_report{suffix}")
+
+
+def _write_output_index() -> None:
+    try:
+        jobs = list(STATE.get("jobs", {}).values()) if "STATE" in globals() else []
+        reports = [j.get("report") for j in jobs if isinstance(j.get("report"), dict)]
+        latest_report = reports[-1] if reports else STATE.get("last_report", {}) if "STATE" in globals() else {}
+        latest_job = jobs[-1] if jobs else {}
+        if latest_job:
+            _publish_latest_activity_shortcuts(latest_job)
+        if latest_report:
+            _publish_latest_report_shortcuts(latest_report)
+        manifest = {
+            "schema_version": "duecare.a00.outputs.v1",
+            "updated_at": _utc(),
+            "root": str(OUTPUT_DIR),
+            "directories": {
+                "reports_and_run_exports": str(RUN_DIR),
+                "training_and_adapters": str(TRAIN_DIR),
+                "activity_logs": str(ACTIVITY_DIR),
+                "clear_output_shortcuts": str(OUTPUT_INDEX_DIR),
+            },
+            "latest_job_id": latest_job.get("job_id"),
+            "latest_report_id": latest_report.get("report_id") if isinstance(latest_report, dict) else "",
+            "latest_report_artifacts": latest_report.get("artifacts", {}) if isinstance(latest_report, dict) else {},
+            "latest_activity_artifacts": latest_job.get("activity_artifacts", {}) if isinstance(latest_job, dict) else {},
+            "all_jobs": [
+                {
+                    "job_id": job.get("job_id"),
+                    "status": job.get("status"),
+                    "kind": job.get("kind"),
+                    "created_at": job.get("created_at"),
+                    "started_at": job.get("started_at"),
+                    "finished_at": job.get("finished_at"),
+                    "activity_artifacts": job.get("activity_artifacts", {}),
+                    "report_artifacts": (job.get("report") or {}).get("artifacts", {}) if isinstance(job.get("report"), dict) else {},
+                }
+                for job in jobs
+            ],
+        }
+        _write_json(OUTPUT_DIR / "A00_LATEST_OUTPUTS.json", manifest)
+        _write_json(OUTPUT_INDEX_DIR / "latest_outputs.json", manifest)
+        readme = [
+            "# DueCare A-00 Outputs",
+            "",
+            f"Updated: {_utc()}",
+            "",
+            "Clear shortcuts are in `/kaggle/working/a00_outputs`.",
+            "",
+            "Key files when a pipeline completes:",
+            "- `a00_outputs/latest_report.html` - report for browser review",
+            "- `a00_outputs/latest_report.pdf` - PDF report when available, or fallback PDF summary",
+            "- `a00_outputs/latest_report_evidence_bundle.zip` - full evidence bundle",
+            "- `a00_outputs/latest_report_prompt_responses.csv` - prompts, exact model prompts, responses, grades, traces",
+            "- `a00_outputs/latest_activity.md` - full server-side activity log",
+            "- `a00_outputs/latest_activity.json` - complete job configuration, steps, and details",
+            "- `a00_outputs/latest_activity_bundle.zip` - activity artifacts in one ZIP",
+            "",
+            "Canonical subdirectories:",
+            f"- Reports and run exports: `{RUN_DIR}`",
+            f"- Training logs/adapters: `{TRAIN_DIR}`",
+            f"- Activity logs: `{ACTIVITY_DIR}`",
+            "",
+        ]
+        (OUTPUT_DIR / "A00_OUTPUTS_README.md").write_text("\n".join(readme), encoding="utf-8")
+        (OUTPUT_INDEX_DIR / "README.md").write_text("\n".join(readme), encoding="utf-8")
+        html_index = (
+            "<!doctype html><html><head><meta charset=\"utf-8\"><title>A-00 Outputs</title>"
+            "<style>body{font-family:Arial,sans-serif;max-width:900px;margin:32px auto}li{margin:8px 0}</style></head><body>"
+            "<h1>DueCare A-00 Outputs</h1><p>Download shortcuts for the latest run.</p><ul>"
+            "<li><a href=\"latest_report.html\">HTML report</a></li>"
+            "<li><a href=\"latest_report.pdf\">PDF report</a></li>"
+            "<li><a href=\"latest_report_evidence_bundle.zip\">Evidence ZIP</a></li>"
+            "<li><a href=\"latest_report_prompt_responses.csv\">Prompt/response CSV</a></li>"
+            "<li><a href=\"latest_activity.md\">Activity Markdown</a></li>"
+            "<li><a href=\"latest_activity.json\">Activity JSON</a></li>"
+            "<li><a href=\"latest_activity_bundle.zip\">Activity ZIP</a></li>"
+            "<li><a href=\"latest_outputs.json\">Output manifest JSON</a></li>"
+            "</ul></body></html>"
+        )
+        (OUTPUT_INDEX_DIR / "index.html").write_text(html_index, encoding="utf-8")
+    except Exception as exc:  # noqa: BLE001
+        dc_log("a00.outputs.index", f"output index update failed: {exc}", level="warn")
+
+
 def _write_job_record(job: dict[str, Any]) -> None:
     try:
+        job["activity_artifacts"] = _write_activity_artifacts(job)
         _write_json(TRAIN_DIR / f"{job['job_id']}_job.json", job)
+        _write_output_index()
     except Exception as exc:  # noqa: BLE001
         job["record_write_error"] = f"{type(exc).__name__}: {exc}"
 
@@ -3105,6 +3319,10 @@ def _public_job(job: dict[str, Any]) -> dict[str, Any]:
         public["report"] = {
             **report,
             "artifact_links": {k: _artifact_link(v) for k, v in report["artifacts"].items()},
+        }
+    if isinstance(public.get("activity_artifacts"), dict):
+        public["activity_artifact_links"] = {
+            k: _artifact_link(v) for k, v in public["activity_artifacts"].items()
         }
     return public
 
@@ -4474,6 +4692,24 @@ def _run_pipeline_job(job_id: str, req: PipelineRequest) -> None:
                 _append_job_step(job_id, "comparison report" if report else "runs ready for later grading", "running", report or {"run_ids": run_ids})
 
             elif req.preset_id == "synthetic_train_benchmark_cycle":
+                _append_job_step(
+                    job_id,
+                    "0. Capturing pipeline configuration and output locations",
+                    "running",
+                    {
+                        "pipeline_request": req.dict(),
+                        "output_root": str(OUTPUT_DIR),
+                        "clear_output_shortcuts_dir": str(OUTPUT_INDEX_DIR),
+                        "activity_dir": str(ACTIVITY_DIR),
+                        "reports_and_run_exports_dir": str(RUN_DIR),
+                        "training_and_adapter_dir": str(TRAIN_DIR),
+                        "runtime_note": (
+                            "The guided proof path defaults to 4 prompts and 4 synthetic rows. "
+                            "Use 2 prompts for a short smoke run; use Custom settings or a faster workstation "
+                            "for larger training/evaluation runs beyond Kaggle's runtime budget."
+                        ),
+                    },
+                )
                 _prepare_base_model_for_pipeline(job_id, req)
                 _append_job_step(job_id, "9. Sending prompts to Gemma without the DueCare harness", "running", {
                     "prompt_set": req.prompt_set,
@@ -4652,6 +4888,22 @@ def _run_pipeline_job(job_id: str, req: PipelineRequest) -> None:
                 _append_job_step(job_id, "21. Saving report and write-up evidence bundle", "running", _report_activity_detail(report, run_ids))
             else:
                 raise HTTPException(404, f"unknown pipeline preset {req.preset_id}")
+
+            with JOB_STATE_LOCK:
+                activity_paths = _activity_artifact_paths(job_id)
+            _append_job_step(
+                job_id,
+                "22. Saving full Activity log and /kaggle/working output index",
+                "running",
+                {
+                    "activity_artifacts": activity_paths,
+                    "activity_artifact_links": {k: _artifact_link(v) for k, v in activity_paths.items()},
+                    "output_index_dir": str(OUTPUT_INDEX_DIR),
+                    "root_output_manifest": str(OUTPUT_DIR / "A00_LATEST_OUTPUTS.json"),
+                    "root_output_readme": str(OUTPUT_DIR / "A00_OUTPUTS_README.md"),
+                    "note": "Use /kaggle/working/a00_outputs/index.html or A00_OUTPUTS_README.md to find the latest report, evidence ZIP, prompt/response CSV, and full Activity log.",
+                },
+            )
 
             if req.unload_between_steps:
                 _unload_model_runtime(f"pipeline {job_id}: complete")
@@ -5153,6 +5405,7 @@ HOMEPAGE_HTML = r"""<!doctype html>
     input, select, textarea { width: 100%; border: 1px solid var(--line); border-radius: 6px; padding: 8px 10px; font: inherit; background: var(--paper); color: var(--ink); }
     button { border: 1px solid var(--ink); background: var(--ink); color: var(--paper); border-radius: 7px; padding: 9px 12px; cursor: pointer; }
     button.secondary { background: var(--paper); color: var(--ink); border-color: var(--line); }
+    button.compact-button { padding: 6px 9px; font-size: 12px; white-space: nowrap; }
     pre { background: #15171d; color: #f8fafc; padding: 12px; border-radius: 8px; overflow: auto; min-height: 120px; font-size: 12px; }
     .kpi { display: grid; gap: 3px; }
     .kpi b { font-size: 20px; }
@@ -5222,16 +5475,18 @@ __A00_SHUTDOWN_CONTROL__
           <dd>Combined rule-based score plus LLM judge using the selected normal judge Gemma model. A larger Gemma model or frontier model may produce stronger final grading than the fast smoke-test judge.</dd>
           <dt>Report</dt>
           <dd>Four-arm report: base, base+harness, fine-tuned, and fine-tuned+harness.</dd>
+          <dt>Runtime budget</dt>
+          <dd>Default is 4 prompts for a competition proof run. Use 2 prompts for a short smoke test; larger runs should use Custom or a faster workstation.</dd>
         </dl>
       </div>
       <div class="a00-choice-controls">
         <div class="row compact-row">
           <label>Run/train Gemma model <select id="preconfig-model"></select></label>
           <label>Judge Gemma model <select id="preconfig-judge-model"></select></label>
-          <label>Prompt count <input id="preconfig-limit" type="number" min="1" max="50" value="2"></label>
+          <label>Prompt count <input id="preconfig-limit" type="number" min="1" max="50" value="4"></label>
         </div>
         <div class="pipeline-progress" aria-label="Preconfigured pipeline progress"><div id="preconfig-progress"></div></div>
-        <div class="preconfigured-status" id="preconfig-status">Ready. Click Run to queue the guided job. The server checks current model state, clears memory if needed, checks disk space, loads the selected Gemma model with the shared Unsloth FastModel runtime, then runs baseline, local harnessed mode (Persona + GREP + RAG/context + tools, no internet/import), synthetic-data, fine-tune, final grading, and report steps.</div>
+        <div class="preconfigured-status" id="preconfig-status">Ready. Click Run to queue the guided job. Default is 4 prompts for a stronger competition proof; use 2 for a quick smoke test. The server checks current model state, clears memory if needed, checks disk space, loads the selected Gemma model with the shared Unsloth FastModel runtime, then runs baseline, local harnessed mode (Persona + GREP + RAG/context + tools, no internet/import), synthetic-data, fine-tune, final grading, and report steps.</div>
         <div class="a00-choice-actions">
           <button class="run-action" id="preconfig-run-btn" onclick="runPreconfiguredPipeline()">Run preconfigured pipeline</button>
         </div>
@@ -5452,11 +5707,11 @@ __A00_SHUTDOWN_CONTROL__
       </div>
     </div>
     <div id="evidence-links" class="artifact-actions"><span class="muted">No report artifacts yet.</span></div>
-    <div id="evidence-hint" class="evidence-hint">The final evidence ZIP includes report files, charts, CSV tables, and selected run exports.</div>
+    <div id="evidence-hint" class="evidence-hint">The final evidence ZIP includes report files, charts, CSV tables, and selected run exports. Full Activity logs and clear latest-output shortcuts are saved under /kaggle/working/a00_outputs.</div>
   </section>
 
   <section class="panel activity-panel">
-    <div class="panel-heading"><h2>Activity</h2><span class="muted">Auto-updates while a run is active.</span></div>
+    <div class="panel-heading"><h2>Activity</h2><span class="muted">Auto-updates while a run is active.</span><button class="secondary compact-button" onclick="downloadVisibleActivityLog()">Download visible Activity</button></div>
     <pre id="log">Loading...</pre>
   </section>
 </main>
@@ -5508,6 +5763,18 @@ function log(obj) {
   el.textContent = `[${stamp}] ${summary}${detail}\n\n` + (el.textContent || "");
   updateEvidenceLinksFromObject(obj);
   refreshStatus();
+}
+function downloadVisibleActivityLog() {
+  const text = $("log") ? ($("log").textContent || "") : "";
+  const blob = new Blob([text], {type:"text/plain;charset=utf-8"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "duecare_a00_visible_activity_" + new Date().toISOString().replace(/[:.]/g, "-") + ".txt";
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
 }
 function openStartCard(path, event) {
   if (!document.body.classList.contains("a00-landing")) return;
@@ -5587,10 +5854,11 @@ function updatePreconfiguredFromJob(job) {
   if (labels.some(x => x.includes("19. combined"))) pct = 97;
   if (labels.some(x => x.includes("20. generating"))) pct = 98;
   if (labels.some(x => x.includes("21. saving"))) pct = 99;
+  if (labels.some(x => x.includes("22. saving"))) pct = 99;
   if (job.status === "completed") pct = 100;
   if (job.status === "failed") pct = 0;
   const msg = job.status === "completed"
-    ? "Complete. Open the report from Jobs or Activity."
+    ? "Complete. Download the report, evidence ZIP, prompt/response CSV, and full Activity log from Evidence exports or Jobs."
     : job.status === "failed"
       ? "Pipeline failed. Check Activity for the exact error."
       : `${last.label || "Pipeline running"}`;
@@ -5621,32 +5889,54 @@ function reportArtifactLinks(report) {
   if (report.artifacts) return report.artifacts;
   return {};
 }
+function activityArtifactLinks(job) {
+  if (!job) return {};
+  if (job.activity_artifact_links) return job.activity_artifact_links;
+  if (job.activity_artifacts) return job.activity_artifacts;
+  return {};
+}
+function jobArtifactLinks(job) {
+  return {...activityArtifactLinks(job), ...reportArtifactLinks(job && job.report)};
+}
 function evidenceLinksFromObject(obj) {
   if (!obj || typeof obj === "string") return null;
   if (obj.report) return reportArtifactLinks(obj.report);
-  if (obj.job && obj.job.report) return reportArtifactLinks(obj.job.report);
-  if (obj.job_status && obj.job_status.report) return reportArtifactLinks(obj.job_status.report);
+  if (obj.job) return jobArtifactLinks(obj.job);
+  if (obj.job_status) return jobArtifactLinks(obj.job_status);
   const steps = obj.job_status && obj.job_status.steps || obj.steps || [];
   for (let i = steps.length - 1; i >= 0; i--) {
     const detail = steps[i] && steps[i].detail;
     if (detail && detail.artifact_links) return detail.artifact_links;
     if (detail && detail.artifacts) return detail.artifacts;
+    if (detail && detail.activity_artifact_links) return detail.activity_artifact_links;
+    if (detail && detail.activity_artifacts) return detail.activity_artifacts;
   }
   if (obj.artifact_links) return obj.artifact_links;
   if (obj.artifacts) return obj.artifacts;
+  if (obj.activity_artifact_links) return obj.activity_artifact_links;
+  if (obj.activity_artifacts) return obj.activity_artifacts;
   return null;
 }
 function artifactLinksHtml(links) {
   if (!links || !Object.keys(links).length) return "";
   const order = [
-    "html", "pdf", "evidence_zip", "markdown", "json",
+    "html", "pdf", "evidence_zip", "activity_zip", "activity_markdown", "activity_json",
+    "job_record", "output_index", "output_manifest", "output_readme", "markdown", "json",
     "prompt_response_csv", "comparison_csv", "dimension_csv",
-    "score_chart_svg", "latency_chart_svg", "evidence_manifest"
+    "score_chart_svg", "latency_chart_svg", "evidence_manifest", "activity_text"
   ];
   const labels = {
     html: "Open HTML report",
     pdf: "Download PDF",
     evidence_zip: "Download evidence ZIP",
+    activity_zip: "Download activity ZIP",
+    activity_markdown: "Activity Markdown",
+    activity_json: "Activity JSON",
+    activity_text: "Activity text",
+    job_record: "Complete job JSON",
+    output_index: "Output index",
+    output_manifest: "Output manifest",
+    output_readme: "Output README",
     markdown: "Markdown",
     json: "JSON",
     prompt_response_csv: "Prompt/response CSV",
@@ -5661,7 +5951,7 @@ function artifactLinksHtml(links) {
   for (const key of order.concat(Object.keys(links))) {
     if (seen.has(key) || !links[key]) continue;
     seen.add(key);
-    const cls = (key === "html" || key === "evidence_zip") ? " class=\"primary\"" : "";
+    const cls = (key === "html" || key === "evidence_zip" || key === "activity_zip") ? " class=\"primary\"" : "";
     anchors.push(`<a${cls} href="${escapeHtml(links[key])}" target="_blank">${escapeHtml(labels[key] || key)}</a>`);
   }
   return anchors.join("");
@@ -5689,9 +5979,9 @@ function renderJobs(jobs) {
     ].filter(Boolean).join(" | ");
     const tail = j.log_tail ? `<details><summary>log tail</summary><pre>${escapeHtml(j.log_tail)}</pre></details>` : "";
     const steps = (j.steps || []).map(s => `<li>${escapeHtml(s.ts || "")} | ${escapeHtml(s.label || "")} | ${escapeHtml(s.status || "")}</li>`).join("");
-    const reportLinks = reportArtifactLinks(j.report);
-    const report = reportLinks && Object.keys(reportLinks).length
-      ? `<div class="artifact-actions">${artifactLinksHtml(reportLinks)}</div>`
+    const artifactLinks = jobArtifactLinks(j);
+    const report = artifactLinks && Object.keys(artifactLinks).length
+      ? `<div class="artifact-actions">${artifactLinksHtml(artifactLinks)}</div>`
       : "";
     return `<div class="job-card"><b>${j.job_id}</b><span class="${jobStatusClass(j.status)}">${j.status || "unknown"}</span> <span class="muted">${j.started_at || j.created_at || ""}</span><p class="muted">kind: ${j.kind || "training"} | base: ${j.base_model_ref || ""} | method: ${j.method || ""}</p><p>${links}</p>${report}${steps ? `<details open><summary>steps</summary><ul>${steps}</ul></details>` : ""}${tail}</div>`;
   }).join("");
@@ -5824,8 +6114,11 @@ async function refreshStatus() {
   }).join("");
   $("exports").innerHTML = exports || "No exports yet.";
   renderJobs(s.jobs || []);
-  const latestReportJob = (s.jobs || []).slice().reverse().find(j => j.report && reportArtifactLinks(j.report) && Object.keys(reportArtifactLinks(j.report)).length);
-  if (latestReportJob) renderArtifactLinks(reportArtifactLinks(latestReportJob.report));
+  const latestArtifactJob = (s.jobs || []).slice().reverse().find(j => {
+    const links = jobArtifactLinks(j);
+    return links && Object.keys(links).length;
+  });
+  if (latestArtifactJob) renderArtifactLinks(jobArtifactLinks(latestArtifactJob));
   if (activePipeline) {
     updatePreconfiguredFromJob(activePipeline);
     if (!activeJobPolls[activePipeline.job_id]) pollJob(activePipeline.job_id);
@@ -5888,7 +6181,7 @@ async function loadOptions() {
   if ($("pipeline-prompt-set")) $("pipeline-prompt-set").value = bulk.prompt_set;
   if ($("pipeline-baseline-harness")) $("pipeline-baseline-harness").value = bulk.baseline_harness;
   if ($("pipeline-harness")) $("pipeline-harness").value = "chat_no_online";
-  if ($("pipeline-synth-count")) $("pipeline-synth-count").value = 2;
+  if ($("pipeline-synth-count")) $("pipeline-synth-count").value = 4;
   if ($("pipeline-max-steps")) $("pipeline-max-steps").value = train.max_steps;
   if ($("pipeline-b-ref")) $("pipeline-b-ref").value = train.base_model_ref || "__A00_SMALL_MODEL_REF__";
   if ($("pipeline-judge-source")) $("pipeline-judge-source").value = "hf";
@@ -5908,15 +6201,15 @@ function useE2BPipelineDefaults(silent=false) {
   $("pipeline-judge-source").value = "hf";
   $("pipeline-judge-ref").value = "__A00_SMALL_MODEL_REF__";
   $("pipeline-judge-adapter").value = "";
-  $("pipeline-limit").value = 2;
-  $("pipeline-synth-count").value = 2;
+  $("pipeline-limit").value = 4;
+  $("pipeline-synth-count").value = 4;
   $("pipeline-evaluate").value = "true";
   $("pipeline-report").value = "true";
   $("pipeline-unload").value = "true";
   $("pipeline-execute").value = "true";
   $("llm-judge").value = "true";
   $("pipeline-harness").value = "chat_no_online";
-  if (!silent) log({next: "E2B four-arm defaults loaded: 2 PH-HK prompts, Persona + GREP + RAG/context + tools, no internet/import, combined LLM + rule grading, report export."});
+  if (!silent) log({next: "E2B four-arm defaults loaded: 4 PH-HK prompts, Persona + GREP + RAG/context + tools, no internet/import, combined LLM + rule grading, report export. Use 2 prompts for a quick smoke test."});
 }
 async function runPreconfiguredPipeline() {
   if (pipelineActive) {
@@ -5931,7 +6224,7 @@ async function runPreconfiguredPipeline() {
   }
   setPreconfiguredProgress(5, "Applying guided defaults...");
   useE2BPipelineDefaults(true);
-  const limit = Math.max(1, Math.min(50, Number($("preconfig-limit").value || 2)));
+  const limit = Math.max(1, Math.min(50, Number($("preconfig-limit").value || 4)));
   const synth = limit;
   const execute = true;
   const selected = $("preconfig-model") && $("preconfig-model").selectedOptions ? $("preconfig-model").selectedOptions[0] : null;

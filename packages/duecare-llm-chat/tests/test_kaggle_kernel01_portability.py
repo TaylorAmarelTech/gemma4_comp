@@ -209,7 +209,7 @@ def test_a00_uses_focused_experiment_console_not_exploration_nav():
     assert "Start with dry-run outputs" not in homepage
     assert "body.a00-landing .a00-choice-controls" in homepage
     assert 'id="preconfig-model"' in homepage
-    assert 'id="preconfig-limit" type="number" min="1" max="50" value="2"' in homepage
+    assert 'id="preconfig-limit" type="number" min="1" max="50" value="4"' in homepage
     assert "preconfig-synth-count" not in homepage
     assert "preconfig-execute" not in homepage
     assert 'id="preconfig-run-btn"' in homepage

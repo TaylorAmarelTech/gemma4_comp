@@ -7,7 +7,7 @@ A-00 omni experiment workbench:
     direct FastModel.from_pretrained inference call. The training-script
     path is the documented exception.
 2.  PipelineRequest's Pydantic defaults remain aligned with the
-    preconfigured page (limit=2, harness_profile=chat_no_online,
+    preconfigured page (limit=4, harness_profile=chat_no_online,
     baseline_harness_profile=none, llm_judge=True, small Gemma path).
 3.  Generation fallback (no backend) uses Gemma 4 recipe defaults
     (top_p=0.95, top_k=64) so a stale path can't silently change scores.
@@ -82,8 +82,8 @@ def test_a00_pipeline_request_defaults_match_proof_contract() -> None:
         'judge_model_adapter_ref: str = ""',
         'harness_profile: str = A00_BULK_COMPARE_DEFAULT["treatment_harness"]',
         'baseline_harness_profile: str = A00_BULK_COMPARE_DEFAULT["baseline_harness"]',
-        'limit: int = 2',
-        'synthetic_count: int = 2',
+        'limit: int = 4',
+        'synthetic_count: int = 4',
         'evaluate_outputs: bool = True',
         'include_report: bool = True',
         'execute_training: bool = False',
@@ -277,3 +277,26 @@ def test_a00_report_writes_complete_writeup_evidence_bundle() -> None:
     assert 'function artifactLinksHtml(links)' in text
     assert 'function updateEvidenceLinksFromObject(obj)' in text
     assert 'Download evidence ZIP' in text
+
+
+def test_a00_exports_full_activity_log_and_root_output_index() -> None:
+    text = _a00_text()
+    assert 'ACTIVITY_DIR = OUTPUT_DIR / "a00_activity"' in text
+    assert 'OUTPUT_INDEX_DIR = OUTPUT_DIR / "a00_outputs"' in text
+    assert "def _write_activity_artifacts(job: dict[str, Any]) -> dict[str, str]:" in text
+    assert "def _write_output_index() -> None:" in text
+    assert 'job["activity_artifacts"] = _write_activity_artifacts(job)' in text
+    assert '"activity_zip": str(ACTIVITY_DIR / f"{safe_id}_activity_bundle.zip")' in text
+    assert '"output_manifest": str(OUTPUT_DIR / "A00_LATEST_OUTPUTS.json")' in text
+    assert '"output_readme": str(OUTPUT_DIR / "A00_OUTPUTS_README.md")' in text
+    assert '"output_index": str(OUTPUT_INDEX_DIR / "index.html")' in text
+    assert 'A00_LATEST_OUTPUTS.json' in text
+    assert 'A00_OUTPUTS_README.md' in text
+    assert 'latest_activity_bundle.zip' in text
+    assert 'latest_report_evidence_bundle.zip' in text
+    assert '"22. Saving full Activity log and /kaggle/working output index"' in text
+    assert "function downloadVisibleActivityLog()" in text
+    assert "Download visible Activity" in text
+    assert "function jobArtifactLinks(job)" in text
+    assert "function activityArtifactLinks(job)" in text
+    assert "Download activity ZIP" in text
