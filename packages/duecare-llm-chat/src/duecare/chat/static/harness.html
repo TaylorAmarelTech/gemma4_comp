@@ -312,10 +312,11 @@
               <span class="flow-num">${idx + 1}</span>
               <span>
                 <b>${esc(m.label || m.id)}</b>
-                <span class="muted"> - ${esc(m.transport || "none")} - ${m.required ? "required" : "optional"}${m.default ? " - default" : ""}</span><br>
+                <span class="muted"> - ${esc(m.transport || "none")} - ${m.required ? "required" : "optional"}${m.default ? " - default" : ""}${m.trust_boundary ? ` - ${esc(m.trust_boundary)}` : ""}</span><br>
                 ${esc(m.role || "")}
                 ${(m.capabilities || []).length ? `<br><span class="muted">capabilities: ${esc((m.capabilities || []).join(", "))}</span>` : ""}
                 ${(m.credential_env || []).length ? `<br><span class="muted">credentials: ${esc((m.credential_env || []).join(", "))}</span>` : ""}
+                ${m.notes ? `<br><span class="muted">${esc(m.notes)}</span>` : ""}
               </span>
             </div>
           `).join("")

@@ -1318,23 +1318,122 @@ def _pack_facts_as_rag_extras() -> list[dict[str, Any]]:
 
 
 def _format_shared_tool_call(call: dict[str, Any]) -> str:
-    """Render one shared _tools_call output into a single line for the
-    context block. Each call dict typically has: name, args, result.
+    """Render one shared _tools_call output into a context-ready line.
+
+    Each call dict from duecare.chat.harness._heuristic_tool_calls has
+    shape {name, args, result}. The result schema varies per tool, so
+    this renderer dispatches by name to surface the fields a Gemma 4
+    prompt actually benefits from (statute, max-fee, ILO indicators,
+    NGO hotlines, convention articles) rather than truncating the raw
+    JSON dump. Unknown tool names fall through to a generic key-value
+    extractor so future tools degrade gracefully instead of disappearing.
     """
-    name = call.get("name") or call.get("tool") or "tool"
+    name = str(call.get("name") or call.get("tool") or "tool")
     args = call.get("args") or call.get("arguments") or {}
     result = call.get("result") or call.get("output") or {}
-    arg_str = ", ".join(f"{k}={v}" for k, v in args.items() if v is not None) if isinstance(args, dict) else str(args)
-    if isinstance(result, dict):
-        bits = []
-        for key in ("citation", "max_fee_worker", "currency", "status", "url", "phone", "note"):
-            val = result.get(key)
-            if val:
-                bits.append(f"{key}={val}")
-        result_str = "; ".join(bits) or json.dumps(result, ensure_ascii=False)[:200]
-    else:
-        result_str = str(result)[:200]
-    return f"{name}({arg_str}) = {result_str}"
+    arg_str = (
+        ", ".join(f"{k}={v}" for k, v in args.items() if v is not None)
+        if isinstance(args, dict)
+        else str(args)
+    )
+
+    if not isinstance(result, dict):
+        return f"{name}({arg_str}) = {str(result)[:400]}"
+
+    if name == "lookup_corridor_fee_cap":
+        bits = [
+            f"statute={result.get('statute')}" if result.get("statute") else "",
+            f"max_fee_worker={result.get('max_fee_worker')}" if result.get("max_fee_worker") is not None else "",
+            f"currency={result.get('currency')}" if result.get("currency") else "",
+            f"url={result.get('url')}" if result.get("url") else "",
+            f"note={result.get('note')}" if result.get("note") else "",
+        ]
+        rendered = "; ".join(b for b in bits if b)
+        return f"{name}({arg_str}) = {rendered or json.dumps(result, ensure_ascii=False)[:400]}"
+
+    if name == "lookup_fee_camouflage":
+        bits = [
+            f"label={result.get('label')}" if result.get("label") else "",
+            f"status={result.get('status')}" if result.get("status") else "",
+            f"commonly_disguises={result.get('commonly_disguises')}" if result.get("commonly_disguises") else "",
+            f"citation={result.get('citation')}" if result.get("citation") else "",
+            f"note={result.get('note')}" if result.get("note") else "",
+        ]
+        rendered = "; ".join(b for b in bits if b)
+        return f"{name}({arg_str}) = {rendered or json.dumps(result, ensure_ascii=False)[:400]}"
+
+    if name == "lookup_ilo_indicator":
+        indicators = result.get("matched_indicators") or []
+        indicator_str = ", ".join(
+            f"{ind.get('indicator')}:{ind.get('name')}"
+            for ind in indicators if isinstance(ind, dict)
+        )
+        interpretation = result.get("interpretation") or ""
+        if indicator_str or interpretation:
+            payload = f"matched=[{indicator_str}]" if indicator_str else "matched=[]"
+            if interpretation:
+                payload += f"; {interpretation}"
+            return f"{name}({arg_str}) = {payload}"
+        return f"{name}({arg_str}) = no_indicators_matched"
+
+    if name == "lookup_ngo_intake":
+        hotlines = result.get("hotlines") or []
+        # Surface up to 3 contact rows so the model sees more than one
+        # option without overwhelming the prompt context.
+        contacts = []
+        for entry in hotlines[:3]:
+            if not isinstance(entry, dict):
+                continue
+            label = entry.get("name") or entry.get("id") or "ngo"
+            phone = entry.get("phone") or entry.get("phone_alt") or ""
+            url = entry.get("url") or entry.get("web_form_url") or ""
+            email = entry.get("email") or ""
+            verified = entry.get("verified") or ""
+            parts = [str(label)]
+            if phone:
+                parts.append(f"phone={phone}")
+            if email:
+                parts.append(f"email={email}")
+            if url:
+                parts.append(f"url={url}")
+            if verified:
+                parts.append(f"verified={verified}")
+            contacts.append(" | ".join(parts))
+        corridor = result.get("corridor") or ""
+        source = result.get("source") or ""
+        suffix = f" (source={source})" if source else ""
+        body = " || ".join(contacts) if contacts else "no_hotlines_for_corridor"
+        return f"{name}({arg_str}) = corridor={corridor}{suffix}; {body}"
+
+    if name == "lookup_ilo_convention":
+        if not result.get("found"):
+            return f"{name}({arg_str}) = not_found (number={result.get('number') or args.get('number')})"
+        number = result.get("number") or args.get("number") or ""
+        title = result.get("title") or ""
+        year = result.get("year") or ""
+        focus = result.get("focus") or ""
+        articles = result.get("key_articles") or result.get("articles") or []
+        # Show the first two key articles inline; the model rarely needs
+        # more than the headline for a citation cross-check.
+        article_str = "; ".join(str(a)[:200] for a in articles[:2]) if articles else ""
+        ratification = result.get("ratification") or ""
+        bits = [
+            f"{number} ({year}): {title}".strip(),
+            f"focus={focus}" if focus else "",
+            f"articles=[{article_str}]" if article_str else "",
+            f"ratification={ratification}" if ratification else "",
+        ]
+        return f"{name}({arg_str}) = " + "; ".join(b for b in bits if b)
+
+    # Unknown tool: generic key extractor over common fields, then JSON
+    # fallback so the call still adds something to the trace.
+    generic_keys = (
+        "citation", "max_fee_worker", "currency", "status", "label",
+        "url", "phone", "email", "note", "title", "summary",
+    )
+    bits = [f"{key}={result.get(key)}" for key in generic_keys if result.get(key)]
+    rendered = "; ".join(bits) or json.dumps(result, ensure_ascii=False)[:400]
+    return f"{name}({arg_str}) = {rendered}"
 
 
 def _build_harness_prompt(row: dict[str, Any], harness_profile: str) -> tuple[str, dict[str, Any]]:
@@ -1434,40 +1533,56 @@ def _build_harness_prompt(row: dict[str, Any], harness_profile: str) -> tuple[st
     # Tools layer. Primary path: shared _tools_call (5 deterministic
     # lookups: corridor fee cap, fee camouflage, ILO indicator, NGO intake,
     # ILO convention). Fallback: A-00's PH-HK fee-cap heuristic.
+    #
+    # Trace consistency: the tools layer always emits a trace["tools"]
+    # entry when "tools" is in layers, even on a no-fire path. Otherwise
+    # the trace would silently drop the layer and a reviewer could not
+    # tell whether the layer was disabled or simply found nothing.
     tool_notes: list[str] = []
     tool_calls_emitted: list[str] = []
+    tools_source = "skipped"
+    tools_elapsed_ms: int | None = None
+    tools_error = ""
     if "tools" in layers:
         if _SHARED_HARNESS_AVAILABLE and _shared_tools_call is not None:
             try:
                 messages_for_tools = [{"role": "user", "content": [{"type": "text", "text": prompt}]}]
                 shared_tools = _shared_tools_call(messages_for_tools) or {}
+                tools_elapsed_ms = shared_tools.get("elapsed_ms")
                 calls = shared_tools.get("tool_calls", []) or []
                 for call in calls:
                     if isinstance(call, dict):
                         rendered = _format_shared_tool_call(call)
                         if rendered:
                             tool_notes.append(rendered)
-                            name = call.get("name") or call.get("tool") or "tool"
-                            tool_calls_emitted.append(str(name))
-                if tool_notes:
-                    trace["tools"] = {
-                        "called": tool_calls_emitted,
-                        "notes": tool_notes,
-                        "source": "shared",
-                        "elapsed_ms": shared_tools.get("elapsed_ms"),
-                    }
-                    trace["steps"].append({"layer": "tools", "status": "pass", "called": tool_calls_emitted, "source": "shared"})
+                            tool_name = call.get("name") or call.get("tool") or "tool"
+                            tool_calls_emitted.append(str(tool_name))
+                tools_source = "shared" if tool_notes else "shared_empty"
             except Exception as exc:  # noqa: BLE001
-                trace["tools"] = {"called": [], "notes": [], "source": "shared_error", "error": str(exc)[:200]}
-                trace["steps"].append({"layer": "tools", "status": "degraded", "called": [], "source": "shared_error"})
+                tools_source = "shared_error"
+                tools_error = str(exc)[:200]
         # Pack-level / heuristic fallback augmentation: always available so
         # A-00-specific PH-HK proof prompts still surface the fee cap note
         # even when the shared dispatcher returns nothing for the phrasing.
         if not tool_notes and re.search(r"\b(PH-HK|Hong Kong|HK|placement fee|PHP)\b", prompt, re.I):
             tool_notes.append("lookup_fee_cap(PH-HK domestic worker) = 0 PHP worker-paid placement fee")
             tool_calls_emitted.append("lookup_fee_cap")
-            trace["tools"] = {"called": tool_calls_emitted, "notes": tool_notes, "source": "heuristic"}
-            trace["steps"].append({"layer": "tools", "status": "pass", "called": tool_calls_emitted, "source": "heuristic"})
+            tools_source = "heuristic"
+
+        tools_trace: dict[str, Any] = {
+            "called": tool_calls_emitted,
+            "notes": tool_notes,
+            "source": tools_source,
+        }
+        if tools_elapsed_ms is not None:
+            tools_trace["elapsed_ms"] = tools_elapsed_ms
+        if tools_error:
+            tools_trace["error"] = tools_error
+        trace["tools"] = tools_trace
+        if tools_source == "shared_error":
+            trace["steps"].append({"layer": "tools", "status": "degraded", "called": tool_calls_emitted, "source": tools_source})
+        else:
+            trace["steps"].append({"layer": "tools", "status": "pass" if tool_notes else "noop", "called": tool_calls_emitted, "source": tools_source})
 
     if "online" in layers:
         trace["online"] = {"status": "skipped", "reason": "A-00 keeps batch runs offline unless a separate search harness job is selected."}

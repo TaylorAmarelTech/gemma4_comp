@@ -268,6 +268,124 @@ def test_a00_pipeline_supports_separate_judge_model() -> None:
     assert '"reason": "Final grading uses the selected normal judge model; it does not reuse the fine-tuned adapter unless explicitly configured."' in text
 
 
+def test_a00_external_judge_factories_preserve_provider_routing_contract() -> None:
+    """A-00 must keep its external judge factories alongside the local
+    Gemma judge so reviewers can run Anthropic / Ollama / Ollama-cloud
+    judging when credentials are present, and the privacy-note + audit
+    trail must travel with the configuration step.
+
+    Hand-rolled HTTP is acceptable today; the contract pinned here is
+    the dispatch surface and privacy disclosure, not the request body.
+    """
+    text = _a00_text()
+    for marker in (
+        "def _is_ollama_judge_source(source: str) -> bool:",
+        "def _is_ollama_cloud_source(source: str) -> bool:",
+        "def _is_anthropic_judge_source(source: str) -> bool:",
+        "def _is_external_judge_source(source: str) -> bool:",
+        "def _ollama_model_call_factory(",
+        "def _anthropic_model_call_factory(",
+        "def _configure_ollama_judge_for_pipeline(",
+        "def _configure_anthropic_judge_for_pipeline(",
+        "def _configure_external_judge_for_pipeline(",
+    ):
+        assert marker in text, marker
+    assert "Ollama Cloud judge requires Kaggle Secret or environment variable OLLAMA_API_KEY" in text
+    assert "Anthropic judge requires Kaggle Secret or environment variable ANTHROPIC_API_KEY" in text
+    assert "Final grading sends benchmark prompts, model responses, and harness traces to Ollama." in text
+    assert "Final grading sends benchmark prompts, model responses, and harness traces to Anthropic." in text
+    assert "if _is_anthropic_judge_source(req.judge_model_source):" in text
+    assert "_configure_external_judge_for_pipeline(job_id, req)" in text
+
+
+def test_a00_external_judge_keeps_local_default_runnable_without_credentials() -> None:
+    """The competition default must not require any paid API key. Local
+    Gemma judging stays the default when judge_model_source is hf or
+    empty."""
+    text = _a00_text()
+    assert 'judge_model_source: str = "hf"' in text
+    assert 'return _is_ollama_judge_source(source) or _is_anthropic_judge_source(source)' in text
+    assert 'STATE["judge_model_call"] = ' in text
+
+
+def test_process_and_extraction_harnesses_declare_local_gemma_default_target() -> None:
+    """The chat harness has a specific model-target pin in
+    test_harness_universal_model_contract.py. Process and extraction
+    should be equivalently pinned so a spec drift cannot quietly drop
+    their local Gemma 4 default target."""
+    process_init = (ROOT / "packages" / "duecare-llm-chat" / "src" / "duecare" / "chat" / "harnesses" / "process" / "__init__.py").read_text(encoding="utf-8")
+    extraction_init = (ROOT / "packages" / "duecare-llm-chat" / "src" / "duecare" / "chat" / "harnesses" / "extraction" / "__init__.py").read_text(encoding="utf-8")
+    for text in (process_init, extraction_init):
+        assert '"gemma4_runtime"' in text
+        assert "default=True" in text
+
+
+def test_a00_external_judge_factories_compile_without_runtime_deps() -> None:
+    """Static smoke: A-00 kernel.py must compile cleanly. The Anthropic
+    and Ollama factories only need `requests` at call time, not at
+    import time."""
+    import py_compile
+    target = ROOT / "kaggle" / "A-00-omni-experiment-workbench" / "kernel.py"
+    py_compile.compile(str(target), doraise=True)
+
+
+def test_format_shared_tool_call_dispatches_by_tool_name() -> None:
+    """The tool-result renderer must surface useful fields per tool,
+    not fall through to a truncated JSON dump. Each of the five
+    deterministic tools from duecare.chat.harness has a distinct result
+    schema; this test pins that the dispatch covers all five so a Gemma
+    4 prompt sees `statute=...`, ILO indicators, NGO hotlines, and
+    convention articles instead of `{...}` blobs."""
+    text = _a00_text()
+    pieces = text.split("def _format_shared_tool_call(call: dict[str, Any]) -> str:", 1)
+    assert len(pieces) == 2, "_format_shared_tool_call not found"
+    body, _rest = pieces[1].split("\ndef ", 1)
+    for tool_name in (
+        "lookup_corridor_fee_cap",
+        "lookup_fee_camouflage",
+        "lookup_ilo_indicator",
+        "lookup_ngo_intake",
+        "lookup_ilo_convention",
+    ):
+        assert f'if name == "{tool_name}":' in body, tool_name
+    # The corridor-fee-cap branch must surface statute. Earlier
+    # versions silently dropped this critical field.
+    assert "f\"statute={result.get('statute')}\"" in body
+    # ILO conventions need title + year + key articles for a citation
+    # cross-check.
+    assert '"title"' in body
+    assert '"year"' in body
+    assert "key_articles" in body
+    # NGO intake must surface at least 3 contact rows, not just one.
+    assert "hotlines[:3]" in body
+    # Unknown tools fall through to a generic-key extractor so future
+    # tools degrade gracefully.
+    assert "generic_keys = (" in body
+
+
+def test_a00_tools_layer_always_emits_trace_for_consistency() -> None:
+    """When the tools layer is enabled, trace["tools"] must always be
+    present — even when shared tools returned zero calls and the
+    heuristic did not match. Otherwise a reviewer cannot distinguish a
+    disabled layer from a no-op pass."""
+    text = _a00_text()
+    pieces = text.split("def _build_harness_prompt(row: dict[str, Any], harness_profile: str) -> tuple[str, dict[str, Any]]:", 1)
+    assert len(pieces) == 2, "_build_harness_prompt not found"
+    body, _rest = pieces[1].split("\ndef ", 1)
+    # The trace["tools"] dict is built once at the end of the tools
+    # branch, not conditionally on whether notes are non-empty.
+    assert "trace[\"tools\"] = tools_trace" in body
+    # Source markers cover the four real states.
+    assert 'tools_source = "skipped"' in body
+    assert 'tools_source = "shared" if tool_notes else "shared_empty"' in body
+    assert 'tools_source = "shared_error"' in body
+    assert 'tools_source = "heuristic"' in body
+    # Step status differentiates pass vs noop vs degraded so reviewers
+    # can grep the trace for fires.
+    assert '"pass" if tool_notes else "noop"' in body
+    assert '"status": "degraded"' in body
+
+
 def test_a00_pipeline_supports_ollama_external_judge() -> None:
     """The final LLM judge can use Ollama Cloud/local Ollama without
     loading another local Gemma model. This should affect only the
