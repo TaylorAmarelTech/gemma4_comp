@@ -37,7 +37,7 @@
 > the chatbot's advice (don't pay the illegal fee) or pay anyway
 > under their corridor's real constraints, with the journal
 > capturing every receipt + statute citation + recipient so the
-> same harness pre-stages the refund claim. Harm reduction, not
+> same harness ecosystem pre-stages the refund claim. Harm reduction, not
 > paternalism. Fully offline.
 >
 > **74,567 repo-config prompts. 6 weighted rubrics. 66 evaluation criteria.
@@ -159,7 +159,7 @@ installable from a single `pip install duecare-llm`:
 | [`duecare-llm-agents`](./docs/components/duecare_llm_agents.md) | 12-agent swarm + AgentSupervisor with retry/budget/harm-abort + Gemma 4 function-calling orchestration | 26 ✅ |
 | [`duecare-llm-workflows`](./docs/components/duecare_llm_workflows.md) | YAML DAG loader + topological runner | 9 ✅ |
 | [`duecare-llm-publishing`](./docs/components/duecare_llm_publishing.md) | HF Hub + Kaggle publisher, markdown reports, HF model cards | 9 ✅ |
-| `duecare-llm-engine` | Heuristic prescan + GREP KB + RAG + tool-call + Gemma verdict pipeline (the safety harness) | — |
+| `duecare-llm-engine` | Heuristic prescan + GREP KB + RAG + tool-call + Gemma verdict pipeline (the core content-safety harness) | — |
 | `duecare-llm-server` | FastAPI app that hosts the pipeline + audit dashboard (the live demo) | — |
 | `duecare-llm-evidence-db` | Redacted-evidence corpus + audit trail SQLite store | — |
 | `duecare-llm-benchmark` | `smoke_25` + `score_row` + `aggregate` scoring helpers (zero deps) | — |
@@ -245,9 +245,12 @@ compliance crosswalk, threat model, vendor questionnaire) at
   via Mermaid; nav by persona / topology / surface.
 - [**Try in 2 minutes**](./docs/try_in_2_minutes.md) — fastest path
   per persona, no install required for most options
+- [**Harness ecosystem**](./docs/harness_ecosystem.md) — the current
+  inventory of content, privacy, search, graph, synthetic-data,
+  fine-tuning, judging, and report harnesses
 - [**Ecosystem overview**](./docs/ecosystem_overview.md) — how the
-  3 outcomes and 5 setup lanes compose around one harness, with
-  Mermaid diagrams
+  3 outcomes and 5 setup lanes compose around the shared harness
+  ecosystem, with Mermaid diagrams
 - [**Maria's case end-to-end**](./docs/marias_case_end_to_end.md)
   — composite case traced through every layer of the ecosystem
   (writeup + video + pitch material)

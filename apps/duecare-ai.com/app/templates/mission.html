@@ -116,7 +116,7 @@
 <p style="font-family:var(--mono);font-size:14.5px;background:var(--paper-2);border:1px solid var(--line);border-radius:8px;padding:14px 18px;margin-top:12px;line-height:1.5;">capability spike &asymp; verifiability &times; training attention &times; data coverage &times; economic value</p>
 <p style="margin-top:14px;">Migrant worker exploitation scores low on every factor. Outcomes are hard to verify (workers go silent, cases close years later, and definitions vary by jurisdiction). Training corpora rarely emphasize labour law, recruitment fees, or corridor-specific scams. Public data is thin and scattered across regulators, NGOs, and court filings. The economic incentive to optimize a frontier model for this domain is small relative to coding or search.</p>
 <p>The result: stock models give plausible-sounding answers that are wrong in load-bearing ways. They miss the cited statute. They under-estimate corridor risk. They invent NGO contacts. They paraphrase a recruiter euphemism instead of flagging it.</p>
-<p>Until inherent capability arrives, the gap has to be closed by structure: deterministic <strong>grep</strong> rules that fire before the model speaks, <strong>retrieval</strong> against vetted corridor packs, <strong>tool calls</strong> that ground claims in verified sources, and a <strong>safety harness</strong> that can refuse or narrow an answer when it cannot cite. Gemma 4 was chosen because it ships with native tool-calling and can run in local, edge, and on-device-oriented deployments, which is what makes the harness practical.</p>
+<p>Until inherent capability arrives, the gap has to be closed by structure: deterministic <strong>grep</strong> rules that fire before the model speaks, <strong>retrieval</strong> against vetted corridor packs, <strong>tool calls</strong> that ground claims in verified sources, and a <strong>harness ecosystem</strong> that can refuse, narrow, anonymize, verify, evaluate, or train around an answer when needed. Gemma 4 was chosen because it ships with native tool-calling and can run in local, edge, and on-device-oriented deployments, which is what makes the harnesses practical.</p>
 </div>
 </div></section>
 
@@ -124,7 +124,7 @@
 <span class="ix">03 &middot; The mission</span>
 <h2>Make trustworthy safety guidance easier to run, audit, and improve.</h2>
 <div class="body">
-<p>DueCare publishes vetted knowledge packs, a tools registry, evaluation suites, and a small AI safety harness. Anyone can run them. Everyone can verify them. Citation-critical paths are designed to fail closed or narrow the answer when they can&rsquo;t cite a public source.</p>
+<p>DueCare publishes vetted knowledge packs, a tools registry, evaluation suites, and a small AI harness ecosystem. Anyone can run them. Everyone can verify them. Citation-critical paths are designed to fail closed or narrow the answer when they can&rsquo;t cite a public source.</p>
 <p>The mission isn&rsquo;t a single product. It&rsquo;s shared infrastructure: a thin public hub that holds reviewed knowledge, paired with private deployments at the edges where worker context lives.</p>
 <p>That infrastructure also gives NGOs a safer way to coordinate with each other and with regulators: share vetted public sources, pattern labels, contact updates, and anonymized corridor trends, not raw case files, names, documents, or narratives.</p>
 </div>

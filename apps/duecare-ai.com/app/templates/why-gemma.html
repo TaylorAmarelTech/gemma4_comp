@@ -35,7 +35,7 @@
 <p style="font-family:var(--mono);font-size:14.5px;background:var(--paper-2);border:1px solid var(--line);border-radius:8px;padding:14px 18px;margin:0;line-height:1.5;">capability spike &asymp; verifiability &times; training attention &times; data coverage &times; economic value</p>
 <p style="margin:0;">Migrant worker exploitation scores low on every factor. Outcomes are hard to verify. Training corpora rarely emphasize labour law or recruitment-fee scams. Public data is thin and scattered across regulators, NGOs, and court filings. The economic incentive to optimize a frontier model for this domain is small relative to coding or search.</p>
 <p style="margin:0;">Stock models, no matter how large, give plausible-sounding answers that miss the cited statute, under-estimate corridor risk, or paraphrase a recruiter euphemism instead of flagging it.</p>
-<p style="margin:0;">Until inherent capability arrives, the gap has to be closed by structure: deterministic <strong>grep</strong> rules that fire before the model speaks, <strong>retrieval</strong> against vetted corridor packs, <strong>tool calls</strong> that ground claims in verified sources, and a <strong>safety harness</strong> that can refuse or narrow an answer when it cannot cite. Gemma 4 makes that structure practical: it ships with native tool-calling and supports local, edge, and on-device-oriented deployment paths.</p>
+<p style="margin:0;">Until inherent capability arrives, the gap has to be closed by structure: deterministic <strong>grep</strong> rules that fire before the model speaks, <strong>retrieval</strong> against vetted corridor packs, <strong>tool calls</strong> that ground claims in verified sources, and a <strong>harness ecosystem</strong> that can refuse, narrow, anonymize, evaluate, or train around an answer when needed. Gemma 4 makes that structure practical: it ships with native tool-calling and supports local, edge, and on-device-oriented deployment paths.</p>
 </div>
 </div></section>
 
@@ -43,7 +43,7 @@
 <div class="head"><div><span class="ix">02 &middot; Five reasons</span><h2>Why this family, specifically.</h2></div><p class="summary">Each reason maps to something concrete a partner or worker actually feels.</p></div>
 <div class="hp-grid-2">
 <article class="hp-card"><span class="role">Reason 01</span><h3>Open weights keep sensitive work local</h3><p>Open weights mean an NGO can run DueCare on its own server, and a worker/mobile deployment can target device-local inference where the selected quantized build is available. With Gemma 4, raw casework can stay inside worker-controlled, NGO-controlled, or tenant-controlled environments, and sensitive PII can be anonymized locally before any optional submission.</p></article>
-<article class="hp-card"><span class="role">Reason 02</span><h3>Efficient inference makes the math work</h3><p>Gemma 4 gives DueCare a practical open-weights inference path at the sizes the project uses. Most users of DueCare are NGOs and labour-ministry teams; their tooling budget is small. Efficient local inference is what makes &ldquo;run the harness on every job post&rdquo; or &ldquo;answer every worker question with a cited draft&rdquo; plausible in real deployments.</p></article>
+<article class="hp-card"><span class="role">Reason 02</span><h3>Efficient inference makes the math work</h3><p>Gemma 4 gives DueCare a practical open-weights inference path at the sizes the project uses. Most users of DueCare are NGOs and labour-ministry teams; their tooling budget is small. Efficient local inference is what makes &ldquo;run the relevant harnesses on every job post&rdquo; or &ldquo;answer every worker question with a cited draft&rdquo; plausible in real deployments.</p></article>
 <article class="hp-card"><span class="role">Reason 03</span><h3>Native tool calling, not bolt-on</h3><p>Gemma 4 emits a structured tool-call format out of the base model. The harness uses it directly. That is how grep-rule outputs, knowledge-pack lookups, and license-registry checks get composed into a single answer. That removes a whole category of brittle prompt-engineering between the model and the tools.</p></article>
 <article class="hp-card"><span class="role">Reason 04</span><h3>Open weights are fine-tunable</h3><p>The harness can pair base packs for general behaviour with per-corridor adapters for the language and idioms a corridor actually uses. A closed API would force every deployment to carry the same broad context. With Gemma 4, the training and adapter path can stay aligned to the corridor and deployment environment.</p></article>
 <article class="hp-card"><span class="role">Reason 05</span><h3>On-device is the worker chat target</h3><p>The small quantized model path is what makes worker-controlled mobile packaging plausible: a worker can receive cited guidance through a trusted app or partner channel without sending raw chats to the public hub. The current Kaggle and local runtimes demonstrate the same harness and privacy boundary while mobile packaging is integrated.</p></article>
@@ -74,7 +74,7 @@
 <article class="hp-card"><span class="role">Layer 03</span><h3>Tools registry</h3><p>Allow-listed lookups (license registers, embassy contacts) called via Gemma 4&rsquo;s native tool-call format.</p></article>
 <article class="hp-card"><span class="role">Layer 04</span><h3>Corridor adapters</h3><p>Small LoRA adapters per corridor + sector, layered on top of the same base weights.</p></article>
 <article class="hp-card"><span class="role">Layer 05</span><h3>Evaluation suite</h3><p>Reproducible evaluation packs. reviewers run the harness against pinned pack versions and replay outputs.</p></article>
-<article class="hp-card"><span class="role">Layer 06</span><h3>Safety harness</h3><p>Refusal logic, citation enforcement, audit emission. Gemma 4 doesn&rsquo;t do this on its own; the harness does.</p></article>
+<article class="hp-card"><span class="role">Layer 06</span><h3>Harness ecosystem</h3><p>Refusal logic, citation enforcement, privacy gates, judging, training, and audit emission. Gemma 4 doesn&rsquo;t do this on its own; the harnesses do.</p></article>
 </div></div></section>
 
 <section class="hp-section" data-screen-label="Gemma &middot; Feature showcases"><div class="wrap">
@@ -87,7 +87,7 @@
 
 <section class="hp-section" data-screen-label="Gemma &middot; CTA"><div class="wrap">
 <div class="hp-callout">
-<div><span class="ix">06 &middot; What this means in practice</span><h2>Run DueCare on your laptop, in a notebook, on an edge box, or through a mobile-oriented deployment.</h2><p>The same harness pattern, the same packs, the same audit feed, on infrastructure you control.</p></div>
+<div><span class="ix">06 &middot; What this means in practice</span><h2>Run DueCare on your laptop, in a notebook, on an edge box, or through a mobile-oriented deployment.</h2><p>The same harness ecosystem, the same packs, the same audit feed, on infrastructure you control.</p></div>
 <a href="/setup" class="btn primary">Setup guides &rarr;</a>
 </div></div></section>
 {% include "_footer.html" %}

@@ -1,9 +1,15 @@
 # Multi-harness architecture
 
 Every safety-bearing surface in the kernel ecosystem is a **harness** -- a
-self-contained module exposing the same minimal contract. This is the
-architectural backbone that lets per-task finetuning, per-task evaluation,
-and per-task knowledge packs work without bespoke plumbing.
+self-contained module exposing the same minimal contract. In the broader
+DueCare sense, a harness is any repeatable chain of preprocessing,
+post-processing, context, tools, privacy checks, evaluation, training, or
+export logic wrapped around Gemma 4 or a trust boundary for a specific goal.
+
+This document covers the registered `duecare.chat.harnesses` module contract.
+For the full project-wide inventory, including A-00 synthetic-data,
+fine-tuning, judging, report, online-grounding, and research-graph harnesses,
+see [`docs/harness_ecosystem.md`](harness_ecosystem.md).
 
 ## The contract
 
@@ -25,7 +31,7 @@ Optional per-harness extensions:
 | `evaluation.py` -> `rubric`, `examples` | per-harness grading rubric + golden examples |
 | `_training_log.log_interaction()` | shared logger; each handler calls it at completion |
 
-## Primary harnesses (4 -- the user-named safety surfaces)
+## Primary harnesses (5 -- the user-named safety surfaces)
 
 | Harness | Endpoints | Gemma 4 role | Applied layers |
 |---|---|---|---|
@@ -33,12 +39,14 @@ Optional per-harness extensions:
 | `process/` | `/api/process/{batch,graph-chat}` | bundle analyst | grep/rag/tools |
 | `extraction/` | `/api/knowledge/draft-envelope` | KnowledgeObject drafter | grep/rag |
 | `anonymization/` | `/api/{anonymize,submit/knowledge,submit/local}` | PII gate (regex-only, NO Gemma) | () |
+| `search_safety/` | `/api/search/{sanitize,safety-info}` | outbound query privacy gate | () |
 
 ## Secondary harnesses
 
 | Harness | Endpoints | Notes |
 |---|---|---|
 | `import_corpus/` | `/api/import/*` (6 routes) | CRUD over user-attached evidence; no LLM |
+| `search/` | `/api/search/{client,server,backends}` | search utility; run only after search-safety sanitization |
 
 ## Per-harness finetuning data flow
 
@@ -53,7 +61,10 @@ training/
 |-- chat.jsonl          # multi-turn safety conversations
 |-- process.jsonl       # bundle-analysis Q&A
 |-- extraction.jsonl    # structured-output (raw_text -> envelope JSON)
-`-- anonymization.jsonl # text -> redactions list
+|-- anonymization.jsonl # text -> redactions list
+|-- search_safety.jsonl # raw/sanitized query audits
+|-- search.jsonl        # result-set metadata when enabled
+`-- import_corpus.jsonl # uploaded evidence metadata
 ```
 
 Each row schema:
@@ -163,9 +174,9 @@ log_kernel_interaction(
 
 ### Verification
 
-A-10 boot-equivalent: `create_app(**default_harness())` registers all
-8 expected harness routes (chat / process / extraction / anonymization /
-import_corpus). Verified via TestClient smoke:
+A-10 boot-equivalent: `create_app(**default_harness())` registers all expected
+harness routes (chat / process / extraction / anonymization / search_safety /
+search / import_corpus). Verified via TestClient smoke:
 
 ```
 /api/chat/send                  OK
@@ -174,6 +185,8 @@ import_corpus). Verified via TestClient smoke:
 /api/process/graph-chat         OK
 /api/knowledge/draft-envelope   OK
 /api/anonymize                  OK
+/api/search/sanitize            OK
+/api/search/client              OK
 /api/submit/knowledge           OK
 /api/import/upload              OK
 ```
@@ -194,6 +207,8 @@ against the live taxonomy exposed by `KO_BRANCHES` and
 | `process` | grep_rule, glob_rule, rag_doc, corridor_profile, ngo_directory, tool_definition, context_snippet | audit_template, extracted_fact, entity_signal, modus_operandi, fact_template, context_snippet |
 | `extraction` | grep_rule, rag_doc, prompt_template, fact_template | grep_rule, rag_doc, ngo_directory, fact_template, extracted_fact, entity_signal, context_snippet, modus_operandi, rubric_dimension, citation_edge, envelope_schema |
 | `anonymization` | prompt_template | audit_template, submission_schema |
+| `search_safety` | grep_rule, prompt_template | audit_template |
+| `search` | corridor_profile, ngo_directory, context_snippet | context_snippet, citation_edge |
 | `import_corpus` | upload_schema | context_snippet |
 
 A knowledge-pack builder kernel can pick a harness, read its `consumes`
@@ -248,7 +263,7 @@ harnesses can pick whichever style fits.
 
 | Rubric | Result |
 |---|---|
-| Functional validation | 5 harnesses importable, all conform |
+| Functional validation | 7 registered harnesses importable, all conform |
 | Flexibility | A new harness needs 5 attributes + 0 ceremony |
 | Extensibility | Optional `tools`, `knowledge`, `evaluation` per harness |
 | Finetuning fitness | Schema consistent across harnesses; Unsloth-ready |

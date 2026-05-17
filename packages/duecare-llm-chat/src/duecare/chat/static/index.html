@@ -1689,9 +1689,9 @@ function openAboutModal() {
   const body = `
     <div style="font-size:13.5px; line-height:1.6; color:var(--ink);">
       <p style="margin-top:0;">
-        DueCare is a Gemma 4 safety harness for migrant-worker recruitment
-        and trafficking cases. This page is the live demo: one Gemma 4
-        variant + 6 optional safety layers + 4 grading modes.
+        DueCare is a Gemma 4 harness ecosystem for migrant-worker recruitment
+        and trafficking cases. This page is the live chat demo: one Gemma 4
+        variant + the core content-safety harness layers + grading modes.
       </p>
 
       <h4 style="margin:18px 0 6px; font-size:14px; color:var(--accent);">
@@ -3908,7 +3908,7 @@ function openPipelineModal(messageIdx) {
         </div>
       </div>`;
   }
-  let html = `<p style="color:var(--muted); margin-top:0; font-size:12px;">Trace of how this one message flowed through the safety harness — from raw user input, through each enabled layer, into the final prompt Gemma received, and out as the response. Each layer either ADDS context or is SKIPPED. The bottom layer's output is what Gemma saw verbatim.</p>` + timingHeader;
+  let html = `<p style="color:var(--muted); margin-top:0; font-size:12px;">Trace of how this one message flowed through the core content harness — from raw user input, through each enabled layer, into the final prompt Gemma received, and out as the response. Each layer either ADDS context or is SKIPPED. The bottom layer's output is what Gemma saw verbatim.</p>` + timingHeader;
   for (let i = 0; i < cards.length; i++) {
     html += cards[i];
     if (i < cards.length - 1) {

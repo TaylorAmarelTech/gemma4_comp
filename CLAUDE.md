@@ -272,6 +272,9 @@ harness at `/kaggle/working/training/<harness>.jsonl`.
 Full pattern plus 10-step recipe for new harnesses and multi-rubric review:
 @docs/harness_pattern.md
 
+Broader project inventory and wording rules:
+@docs/harness_ecosystem.md
+
 ### A-00 synthetic data and small-model retraining
 
 A-00 is the control plane for technical proof. It should be able to:
@@ -296,7 +299,7 @@ The word **"harness"** is used three ways. Be explicit:
 |---|---|---|
 | **harness module** | A subfolder under `harnesses/<name>/` | `chat/`, `process/`, `extraction/` |
 | **safety layer** | One callable in `applied_layers` tuple | "the GREP layer fired" |
-| **Duecare framework** | The whole safety substrate around Gemma 4 | "the Duecare safety harness wraps Gemma 4" |
+| **harness ecosystem** | The full DueCare substrate around Gemma 4: runtime, privacy, search, graph, synthetic-data, training, judging, and report harnesses | "DueCare is a Gemma 4 harness ecosystem" |
 
 The legacy singular module `duecare.chat.harness` (no `s`) is the
 ORIGINAL implementation — `default_harness()`, `GREP_RULES`, `RAG_CORPUS`,
