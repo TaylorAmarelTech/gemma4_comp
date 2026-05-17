@@ -1,9 +1,11 @@
 # Duecare Trainer — model adaptation / retraining
 
-**Status: Prototype (appendix pathway).** Lives in
-[`kaggle/A-07-bench-and-tune/`](../../kaggle/A-07-bench-and-tune/)
-and `packages/duecare-llm-training/`. Bench-and-tune notebook is
-the reference implementation; full Trainer service is post-hackathon.
+**Status: Prototype (A-00 pathway).** The active proof lives in
+[`kaggle/A-00-omni-experiment-workbench/`](../../kaggle/A-00-omni-experiment-workbench/)
+and `packages/duecare-llm-training/`. A-00 is the current reference
+implementation for synthetic rows, LoRA smoke training, checkpoint/resume,
+adapter save/load, and report exports; the full Trainer service is
+post-hackathon.
 
 > A privacy-preserving model-adaptation pipeline that converts
 > validated, anonymized case knowledge into task-specific Gemma 4
@@ -45,7 +47,8 @@ be able to inspect every layer regardless of which model was loaded.
 - NGO intake scripts (subset of `_personas.json`).
 - Public laws / regulations (the 46-doc RAG corpus).
 - Rubric failure cases (the 65-test adversarial suite).
-- Adjudicated good / bad responses (graded outputs from `kaggle/A-11-grading-evaluation/`).
+- Adjudicated good / bad responses (graded outputs from the A-00 combined
+  rule + LLM judging phase).
 - Adversarial prompts.
 - Multilingual worker questions (587 prompts × 11 languages from `_classifier_examples.json`).
 
@@ -94,9 +97,9 @@ the plaintext.
 
 ## Today's bridge (what's actually built)
 
-- **`kaggle/A-07-bench-and-tune/`** — Unsloth SFT + DPO + GGUF + HF
-  Hub push pipeline. Runs end-to-end on a Kaggle T4 / dual-T4
-  session. Produces `Duecare-Gemma-4-E4B-it-SafetyJudge-v0.1.0`.
+- **`kaggle/A-00-omni-experiment-workbench/`** - synthetic SFT row
+  generation, Unsloth LoRA smoke training, checkpoint/resume, adapter
+  save/load, four-arm comparison, combined judging, and report exports.
 - **`packages/duecare-llm-training/`** — training-helper utilities:
   dataset builder, LoRA recipe templates, GGUF export wrapper.
 - **`packages/duecare-llm-publishing/`** — HF Hub upload + model card

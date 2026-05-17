@@ -17,7 +17,7 @@ proposal is safe enough to ship.
 | 65-test adversarial suite (16 attack families) | **Built** | `scripts/adversarial_validate.py` |
 | Model comparison (stock vs harnessed, OFF/ON ablation) | **Built** | A/B Compare tab + `▸ Run ablation` button |
 | Regression tests | **Partial** | sanitizer regression suite at `tests/test_model_output.py`; full gate post-hackathon |
-| Benchmark notebooks | **Built** | `kaggle/A-11-grading-evaluation/` |
+| Benchmark notebooks | **Built** | `kaggle/A-00-omni-experiment-workbench/` combined judging and report path |
 | Governance checks (validate every domain-pack release) | **Built** (curator block) / **Pending** (full gate) | `scripts/validate_curator_blocks.py` |
 
 ## Four grade modes

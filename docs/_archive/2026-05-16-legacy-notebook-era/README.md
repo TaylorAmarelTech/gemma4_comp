@@ -26,6 +26,13 @@ should not be used to make decisions about the active submission.
 | `notebook_index.md` | Former 11/26-notebook submission index | `kaggle/_INDEX.md` and `docs/current_kaggle_notebook_state.md` |
 | `smoke_test_report_2026-05-02.md` | Point-in-time smoke report for the former notebook-era scope | `docs/copilot_handoff_2026_05_16.md` for the current in-scope test baseline |
 | `SUBMISSION_READINESS_AUDIT.md` | Point-in-time 2026-05-10 readiness audit | `docs/copilot_handoff_2026_05_16.md` and `docs/PACKAGE_INVENTORY.md` |
+| `appendix_artifact_schema.md` | Former A-series bundle/appendix artifact schema | `docs/FOR_PEER_REVIEW.md` for current A-00 evidence artifacts and `docs/harness_standard_contract.md` for the harness contract |
+| `appendix_experiment_ladder.md` | Former appendix experiment ladder | `docs/current_kaggle_notebook_state.md` and `kaggle/_INDEX.md` |
+| `bench_and_tune_readiness.md` | Former A7 adapter-training checklist | `docs/FOR_PEER_REVIEW.md#a-00-proof-path` and `docs/two_week_submission_plan.md` |
+| `bench_and_tune_walkthrough.md` | Former A2/A7 bench-and-tune walkthrough | `docs/gemma4_feature_showcase.md` and `docs/model_loading_trace.md` |
+| `data_compatibility_plan.md` | Former cross-notebook data-shape refactor plan | `docs/harness_standard_contract.md` and `docs/knowledge_module_schema.md` |
+| `data_primitives.md` | Former website-side bundle primitive catalog | `docs/harness_standard_contract.md` and `docs/knowledge_module_schema.md` |
+| `data_surface_inventory.md` | Former function/object inventory for the retired notebook ladder | `docs/harness_ecosystem.md` and `docs/PACKAGE_INVENTORY.md` |
 
 ## Where to look now
 

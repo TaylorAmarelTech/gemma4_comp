@@ -30,8 +30,8 @@ public-source continuous-update proposals. Code for the hub is in
 this repo at [`apps/duecare-ai.com/`](../apps/duecare-ai.com/) and
 deploys to Render via the repo-root `render.yaml`. The Kaggle
 submission ships the **live core** — Runtime + Harness + Eval
-(partial) + Contacts — plus a **prototype Trainer** in the A-07
-appendix notebook. The full platform is described by the public
+(partial) + Contacts — plus a **prototype Trainer** path in A-00.
+The full platform is described by the public
 component map (see [`docs/product_definition.md`](product_definition.md)):
 Exchange and the Public Information Research Monitor are
 **hub-scaffolded**. Their proposal-intake and signal-intake endpoints
@@ -81,8 +81,8 @@ Kaggle UI publish steps.
 | **Hub API surface** — `GET /api/hub/knowledge-packs`, `POST /api/hub/signals`, `POST /api/hub/opencrawl/updates`, `GET /api/hub/trends`, `GET /api/hub/status`, `GET /api/health` | [duecare-ai.com/docs](https://duecare-ai.com/docs) (FastAPI auto-generated OpenAPI) |
 | **Live demo URL** | (set after deployment — see `docs/USER_TODO.md` step 6) |
 | **Live YouTube video** | (set after recording — see `docs/USER_TODO.md` step 8) |
-| **Fine-tuned weights on HF Hub** | `TaylorScottAmarel/duecare-gemma-4-e4b-safetyjudge-v0.1.0` (after step 5 in USER_TODO) |
-| **GGUF for llama.cpp** | exported from the bench-and-tune notebook (see step 5) |
+| **Fine-tuned adapter evidence** | exported by the A-00 pipeline when training is enabled; see `/kaggle/working` report and manifest |
+| **GGUF for llama.cpp** | post-A-00 export path; not required for the default three-kernel proof run |
 
 ## Hackathon track qualification (subject to verification)
 
@@ -95,8 +95,8 @@ Kaggle UI publish steps.
 | Track | Why this submission qualifies | Anchored to |
 |---|---|---|
 | **Impact Track → Safety & Trust** | Core concept is LLM safety for the most vulnerable migrant-worker populations. The harness directly targets known trafficking-detection failure modes. | The 50-prompt adversarial suite + the harness-on-vs-harness-off A/B comparison. |
-| **Special Tech → Unsloth** | Fine-tune is via Unsloth + LoRA on Gemma 4 E4B. Weights published to HF Hub. | `kaggle/A-07-bench-and-tune/kernel.py` + HF model card |
-| **Special Tech → llama.cpp** | Fine-tuned weights exported as GGUF for desktop deployment. | bench-and-tune export step + llama-cpp smoke-test |
+| **Special Tech → Unsloth** | Fine-tune is via Unsloth + LoRA on Gemma 4. A-00 preserves the training config, checkpoints, adapter path, and comparison report. | `kaggle/A-00-omni-experiment-workbench/kernel.py` + exported A-00 report bundle |
+| **Special Tech → llama.cpp** | Fine-tuned weights can be exported as GGUF for desktop deployment after the A-00 adapter path. | Post-A-00 export smoke test |
 | **Special Tech → LiteRT** *(if track exists)* | LiteRT conversion for mobile/edge — operationally critical for the Individual worker use case where the worker's device is monitored by the operator/employer. | LiteRT export step (deferred to post-fine-tune) |
 | **Main Track** | Pursued in parallel; depends on overall execution + video. | All of the above bundled. |
 

@@ -234,9 +234,11 @@ proposal is safe enough to ship.
 
 ### 5. Duecare Trainer — model adaptation / retraining pipeline
 
-**Prototype (appendix pathway).** Bench-and-tune notebook at
-`kaggle/A-07-bench-and-tune/` is the reference implementation; full
-multi-tenant Trainer service is post-hackathon.
+**Prototype (A-00 pathway).** The preconfigured pipeline at
+`kaggle/A-00-omni-experiment-workbench/` is the current reference
+implementation for synthetic rows, LoRA smoke training, checkpoint/resume,
+adapter save/load, and report exports; full multi-tenant Trainer service is
+post-hackathon.
 
 > A privacy-preserving model-adaptation pipeline that converts
 > validated, anonymized case knowledge into task-specific Gemma 4
@@ -485,7 +487,7 @@ Every component serves multiple audiences.
 The Kaggle submission is **the first working implementation of the
 Safety Guidance Layer**, running on the **Gemma 4 Model Layer**, with
 a partial **Quality Testing Framework** baked in and a **Fine-Tuning
-Module** prototype shipped as the A-07 appendix notebook.
+Module** prototype shipped through the A-00 omni experiment workbench.
 
 ### Real now
 
@@ -498,7 +500,7 @@ Module** prototype shipped as the A-07 appendix notebook.
 
 ### Prototype / appendix / near-term
 
-- **Fine-Tuning Module** — `kaggle/A-07-bench-and-tune/` runs Unsloth SFT + DPO + GGUF + HF Hub push end-to-end. Adapter targets are scoped (`duecare-gemma-evaluator` shipped as prototype; multi-tenant fine-tuning service post-hackathon).
+- **Fine-Tuning Module** — `kaggle/A-00-omni-experiment-workbench/` runs synthetic row generation, Unsloth LoRA smoke training, checkpoint/resume, adapter save/load, four-arm comparison, combined judging, and report exports. Adapter targets are scoped; multi-tenant fine-tuning service is post-hackathon.
 - **NGO / government RAG packs** — `_contacts.json` curator-block pattern is the bridge. Tenant-specific packs are post-hackathon.
 - **Complaint draft workflows** — `/static/hotlines.html` + `/api/contacts` produce `mailto:` drafts. Channel-specific UX (Messenger / WhatsApp) is roadmap.
 

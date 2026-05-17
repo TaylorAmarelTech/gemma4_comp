@@ -47,6 +47,8 @@ provenance, content, tags, extensions}`.
 ## References
 
 - `docs/knowledge_module_schema.md` -- canonical spec
-- `docs/data_primitives.md` Section 0 -- website-side mirror
+- `docs/_archive/2026-05-16-legacy-notebook-era/data_primitives.md`
+  Section 0 -- historical website-side mirror from the retired notebook-era
+  schema pass
 - `packages/duecare-llm-chat/src/duecare/chat/app.py` -- `KO_BRANCHES`
 - `packages/duecare-llm-chat/src/duecare/chat/static/knowledge.html` -- UI

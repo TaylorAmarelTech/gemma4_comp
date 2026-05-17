@@ -1,113 +1,62 @@
-# Gemma 4 feature showcase across DueCare kernels
+# Gemma 4 Feature Showcase
 
-> Sister to [`gemma4_model_guide.md`](gemma4_model_guide.md).
-> That doc tells you *which variant* to pick; this one tells you
-> *which Gemma 4 capability is exercised in each kernel*. Built
-> specifically for the Hackathon Technical Depth rubric (30 pts)
-> which calls out "innovative use of Gemma 4's unique features
-> (native function calling, multimodal understanding)".
+Current as of 2026-05-17. This document now describes the active three-kernel
+submission path instead of the retired A-series appendix ladder.
 
-## The 7 Gemma 4 capabilities DueCare exercises
+## Features Demonstrated
 
-| Capability | What Gemma 4 brings | Kernels that exercise it |
+| Feature | Where It Appears | Why It Matters |
 |---|---|---|
-| **Native function calling** | Structured tool-call JSON natively emitted by the model -- no glue protocol needed | A-02, A-09, A-13 |
-| **Multimodal vision** | Image-aware text generation in a single forward pass | A-13 |
-| **Multilingual reach** | 5 corridors covered without per-language fine-tune | A-19, A-13 (OCR), A-15 (UGC moderation across languages) |
-| **On-device quantization** | INT4 / Q4_K_M paths that produce real GGUF and LiteRT artifacts a user can run on a laptop or phone | A-14, A-19 (mobile-class fallback) |
-| **Long context (128K)** | Whole-document grounding without retrieval | A-04 (knowledge builder), A-16 (NGO local-KB) |
-| **Instruction-following at small scale** | E2B + E4B variants produce high-quality outputs at sub-2 B and sub-4 B parameter counts | A-01, A-02, A-19, A-20 (all run on E2B by default) |
-| **Adapter compatibility** | LoRA fine-tune via Unsloth + PEFT merge-and-export pipeline | A-12 (PrivacyRedactor), A-07 (SafetyJudge), A-14 (export) |
+| Small-model local inference | Kernels 01, 02, and A-00 | Shows Gemma 4 can be wrapped for practical safety work without a remote frontier dependency. |
+| Shared Unsloth FastModel runtime | `Gemma4Runtime.load()` | Standardizes loading, generation defaults, chat template, quantization, and device mapping. |
+| Harnessed generation | Kernel 01 and A-00 | Holds the base prompt constant while adding DueCare context, rules, and tools. |
+| Deterministic tool use | Kernel 01 and A-00 `chat_no_online` | Grounds answers in fee caps, ILO indicators, convention lookups, and NGO-intake style checks. |
+| Synthetic SFT row generation | A-00 | Uses harnessed Gemma outputs to create filtered training rows. |
+| LoRA fine-tuning | A-00 | Demonstrates the Unsloth/PEFT training path and adapter save/load flow. |
+| Combined rule + LLM judging | A-00 | Produces a defensible score using deterministic rules plus a Gemma/frontier-style judge. |
+| Evidence export | A-00 | Saves reports, traces, activity logs, charts, and machine-readable artifacts for the writeup. |
 
-## Per-kernel capability map
+## Runtime Contract
 
-The "rubric earn" column is the specific Technical Depth point
-each kernel collects.
+All active local inference should load through
+[`Gemma4Runtime.load()`](model_loading_trace.md). The known-good FastModel
+recipe uses:
 
-| Kernel | Primary Gemma 4 feature | Rubric earn |
-|---|---|---|
-| 01-duecare-exploration-workbench | All 6 harness layers + 9-variant model picker | "Unified surface across all features" |
-| 02-live-demo | Instruction-following on E4B + harness orchestration | "+56.5pp lift on compound-indicator prompts" |
-| 03-duecare-video-pitch | Zero-inference replay (showcases harness traces) | Video-pitch enabler |
-| A-01 chat-playground | Raw E2B / E4B baseline (control case) | Stock comparator for lift claims |
-| A-02 grep-rag-tools | Persona / GREP / RAG / **Tools** toggles (function calling on `Tools=ON`) | Native function calling demonstration |
-| A-03 content-classification | Comparison harness reading A-01 + A-02 bundles | Reproducible delta artifact |
-| A-04 knowledge-builder | Long-context document grounding | 128K context window in practice |
-| A-05 classification-eval | Batch evaluation at scale | E2B latency / cost profile |
-| A-06 prompt-generation | Self-supervised synthetic training data | Bootstrapping with Gemma-as-teacher |
-| A-07 bench-and-tune | **Unsloth LoRA fine-tune** + DPO + benchmark | LoRA adapter compatibility |
-| A-08 research-graphs | Cross-prompt analysis (CPU-only) | Insight visualization |
-| A-09 agentic-research | Native function calling + Playwright web tools (BYOK) | Tool use with real-world web search |
-| A-10 jailbroken-models | Side-by-side abliterated baselines | Safety lift against worst-case adversary |
-| A-11 grading-evaluation | Runtime harness lift regenerator | OFF/ON lift on held-constant weights |
-| A-12 pii-fine-tune-eval | PrivacyRedactor LoRA on A-10 synth data | Privacy-specific adapter |
-| A-13 multimodal-document-analyzer | **Multimodal vision** + native function calling | Image-aware tool use |
-| A-14 on-device-export | **GGUF (llama.cpp)** + **LiteRT (mobile)** | On-device quantization ($10K Special Tech) |
-| A-15 ugc-batch-moderator | Multilingual platform-safety classification | Batch moderation across 5 languages |
-| A-16 ngo-local-kb | Long-context case-file ingestion + PrivacyRedactor adapter | 128K context for whole-case grounding |
-| A-17 knowledge-pack-builder | Signed pack registry mechanics | Reproducibility (researcher pull + verify) |
-| A-24 demo-replay | Zero-inference scripted demo | Video-recording surface |
-| A-18 sentinel-research-monitor | Diff-monitor over the pack registry | Trend signaling |
-| A-19 multilingual-demo | **Multilingual** 5-corridor scenario playback | "in their language" Lane 03 |
-| A-20 privacy-boundary | Local-vs-aggregate side-by-side | Privacy claim made concrete |
-| A-21 long-context-demo | **Long context (128K)** -- cross-statute reasoning over a 5-statute compliance corpus in a single thinking step | Closes the 128K-window demonstration gap (was on the "not yet showcased" list) |
-| A-22 streaming-demo | **Token streaming** -- SSE replay at realistic Gemma 4 E4B-IT latencies (500ms first token, 25ms subsequent), live token-rate stats | Closes the streaming-UX gap (was on the "not yet showcased" list) |
-| A-23 coordinator-demo | **Native function calling** -- multi-tool fan-out from one Gemma 4 thinking step; ~3x speedup vs the equivalent chat-loop pattern | Closes the Coordinator gap (CLAUDE.md rule 4 -- "load-bearing, not decorative") |
+- `dtype=None`
+- `load_in_4bit=True`
+- `full_finetuning=False`
+- `device_map="balanced"` for larger two-GPU loads, otherwise the runtime's
+  selected map
+- `gemma-4-thinking` chat template
+- generation defaults `temperature=1.0`, `top_p=0.95`, `top_k=64`
 
-## Where each Special Tech Track is closed
+The active direct `FastModel.from_pretrained` exception is A-00's training
+script, where the model is loaded for LoRA fine-tuning rather than inference.
 
-The hackathon rules name three Special Tech sub-tracks at $10K each.
+## Active Kernel Map
 
-| Special Tech Track | Closed by | Concrete artifact reviewers can run |
-|---|---|---|
-| **Unsloth** | A-07 bench-and-tune (SFT + DPO); A-12 (PrivacyRedactor) | `taylorscottamarel/duecare-gemma-4-*-SafetyJudge-*` on HF Hub |
-| **llama.cpp** | A-14 on-device-export | `<RUN>_safetyjudge_q4km.gguf` (single `llama-server -m ...` away from a working chat) |
-| **LiteRT** | A-14 on-device-export | `<RUN>_safetyjudge.tflite` (drops into the Android demo app at `apps/duecare-android-app/`) |
+| Kernel | Feature Focus |
+|---|---|
+| `kaggle/01-duecare-exploration-workbench/` | Broad harness comparison, trace inspection, knowledge extraction, search controls, and model-runtime UX. |
+| `kaggle/02-live-demo/` | Focused end-user narrative and video-safe interaction path. |
+| `kaggle/A-00-omni-experiment-workbench/` | Quantitative experiment loop: baseline, harnessed output, synthetic training data, optional fine-tune, final judging, and report export. |
 
-## Where each capability is **not** showcased yet
+## Optional Better-Than-Demo Upgrades
 
-Honest gap analysis -- worth filling in a future appendix:
+These are supported directions, not requirements for the default proof path:
 
-- **Coordinator-as-function-calling-router.** ~~Per CLAUDE.md rule 4
-  ("Gemma 4's unique features must be load-bearing, not decorative"),
-  the Coordinator agent should orchestrate via native function-call
-  JSON. A-02 / A-09 / A-13 each call tools individually; a future
-  Coordinator demo would chain multiple tools in one Gemma 4 thinking
-  step.~~ **Closed by A-23 coordinator-demo** -- three cached
-  scenarios that each show Gemma 4 emitting 3-4 structured function
-  calls in one thinking step, fanning out to DueCare lookup tools,
-  and synthesizing a single grounded response with ~3x speedup vs
-  the equivalent chat-loop pattern.
-- **Long-context demonstration at 128K boundary.** ~~A-04 + A-16
-  use long context but no kernel deliberately benchmarks at
-  128K.~~ **Closed by A-21 long-context-demo** -- 5-statute
-  cross-jurisdiction reasoning with 3 cached QA pairs that each
-  require correlating 2-3 statutes in a single thinking step.
-- **Streaming generation.** ~~Gemma 4 supports token streaming; the
-  workbench shell currently returns whole responses. A streaming
-  demo would make the latency-on-mobile story more concrete.~~
-  **Closed by A-22 streaming-demo** -- Server-Sent Events replay
-  at realistic Gemma 4 E4B-IT latencies (500ms first token,
-  25ms subsequent), with live first-token / token-rate / total
-  stats so a reviewer sees the streaming UX without waiting for
-  real inference.
+- Use a larger Gemma model or frontier model to generate higher-quality
+  synthetic training rows.
+- Use a larger Gemma model, Ollama-hosted judge, Anthropic-compatible judge, or
+  other frontier judge for final grading.
+- Expand knowledge packs with IOM documents, US TIP reports, court cases, and
+  NGO-provided fact objects after privacy review.
+- Add online grounding only behind search-safety, anonymization, and
+  post-search verification harnesses.
 
-## How this doc is meant to be used
+## Related Current Docs
 
-1. Reading the writeup or watching the video, a reviewer or
-   first-pass viewer checks the 30-pt Technical Depth box by cross-
-   referencing the per-kernel capability map against this Gemma 4
-   feature inventory.
-2. New contributors deciding which appendix slot to extend can pick
-   a capability that's under-showcased above.
-3. Future Tier-5 standardization should add a `**Gemma 4 features**`
-   row to each kernel's judge-quick-path table so the kernel README
-   self-documents which capability it earns.
-
-## Links
-
-- Hackathon rubric: see CLAUDE.md "Three overarching goals" section.
-- Per-kernel detail: each `kaggle/*/README.md`.
-- Data primitives (BundleEnvelope etc.):
-  [`data_primitives.md`](data_primitives.md).
-- Model variant picker: [`gemma4_model_guide.md`](gemma4_model_guide.md).
+- [`harness_ecosystem.md`](harness_ecosystem.md)
+- [`harness_standard_contract.md`](harness_standard_contract.md)
+- [`model_loading_trace.md`](model_loading_trace.md)
+- [`FOR_PEER_REVIEW.md`](FOR_PEER_REVIEW.md)

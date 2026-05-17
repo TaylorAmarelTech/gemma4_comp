@@ -126,9 +126,9 @@ The chat tier sees the new model on the next request — no rebuild.
 - **Gemma 4 Multilingual** (Q3 2026 expected) — drop-in replacement
   for E4B with extended language coverage. Will be added to the
   picker once published.
-- **Gemma 4 Instruct DPO** — internal Duecare fine-tune at
-  `taylorscottamarel/Duecare-Gemma-4-E4B-it-SafetyJudge-DPO-v0.1.0`
-  pending the bench-and-tune Kaggle T4×2 run. Not yet shipping.
+- **Gemma 4 Instruct LoRA/DPO candidates** — internal Duecare adapters should
+  now be produced through the A-00 preconfigured pipeline and recorded in the
+  exported report bundle before any HF Hub publication. Not yet shipping.
 
 When new variants land, this doc updates + `kaggle/_INDEX.md` + the
 Android app's `ModelManager.kt` get the new entries together.

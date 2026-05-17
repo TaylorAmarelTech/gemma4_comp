@@ -158,7 +158,7 @@ Sorted by who you are:
 - :material-clipboard-check: [**Reproducibility**](reproducibility.md) — every quantitative claim grounded with `(git_sha, dataset_version, eval_set, grader_version)` provenance + one-command re-measurement path
 - :material-table-of-contents: [**Corpus index**](corpus_index.md) — single-page reference: every GREP rule (108) + RAG doc (33) + tool (5) + dimension (17) + judge question (17) by name
 - :material-compare-horizontal: [**Stock vs harnessed examples**](stock_vs_harnessed.md) — 5 textbook prompts side-by-side (mean lift 4.6% → 88.4%)
-- :material-tune-vertical: [**Bench-and-tune walkthrough**](bench_and_tune_walkthrough.md) — step-by-step for the A2 Unsloth fine-tune on Kaggle T4×2
+- :material-tune-vertical: [**A-00 proof path**](FOR_PEER_REVIEW.md#a-00-proof-path) — preconfigured baseline, harness, optional LoRA, judging, and export run
 - :material-clock-fast: [**Judge 5-min test plan**](peer_review_5min_test_plan.md) — the entry point for hackathon judges
 
 ## Headline numbers

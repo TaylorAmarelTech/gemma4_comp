@@ -62,6 +62,13 @@ def test_legacy_notebook_era_docs_are_archived():
         "notebook_index.md",
         "smoke_test_report_2026-05-02.md",
         "SUBMISSION_READINESS_AUDIT.md",
+        "appendix_artifact_schema.md",
+        "appendix_experiment_ladder.md",
+        "bench_and_tune_readiness.md",
+        "bench_and_tune_walkthrough.md",
+        "data_compatibility_plan.md",
+        "data_primitives.md",
+        "data_surface_inventory.md",
     ]:
         assert not (ROOT / "docs" / name).exists(), name
         assert (archive / name).exists(), name
@@ -87,7 +94,14 @@ def test_harness_pattern_active_integration_uses_current_three_kernel_scope():
 
 
 def test_current_entry_docs_do_not_present_archived_appendix_scope():
-    for path in ["docs/FOR_PEER_REVIEW.md", "docs/USER_TODO.md"]:
+    for path in [
+        "docs/FOR_PEER_REVIEW.md",
+        "docs/USER_TODO.md",
+        "docs/readiness_dashboard.md",
+        "docs/two_week_submission_plan.md",
+        "docs/user_walkthrough.md",
+        "docs/gemma4_feature_showcase.md",
+    ]:
         text = _read(path)
         assert "kaggle/01-duecare-exploration-workbench/" in text
         assert "kaggle/02-live-demo/" in text
@@ -95,3 +109,49 @@ def test_current_entry_docs_do_not_present_archived_appendix_scope():
         assert "24 appendix" not in text
         assert "2 core public Kaggle notebooks" not in text
         assert "A-01..A-11" not in text
+        assert "bench_and_tune_readiness.md" not in text
+        assert "bench_and_tune_walkthrough.md" not in text
+
+
+def test_current_navigation_uses_a00_proof_path_not_legacy_bench_docs():
+    combined = "\n".join(
+        _read(path)
+        for path in [
+            "docs/index.md",
+            "docs/appendices/README.md",
+            "docs/readiness_dashboard.md",
+            "docs/two_week_submission_plan.md",
+            "docs/user_walkthrough.md",
+            "docs/gemma4_feature_showcase.md",
+        ]
+    )
+    assert "FOR_PEER_REVIEW.md#a-00-proof-path" in combined
+    assert "bench_and_tune_readiness.md" not in combined
+    assert "bench_and_tune_walkthrough.md" not in combined
+
+
+def test_modernized_architecture_docs_point_trainer_to_a00():
+    combined = "\n".join(
+        _read(path)
+        for path in [
+            "docs/FOR_KAGGLE_JUDGES.md",
+            "docs/android_app_architecture.md",
+            "docs/anonymization_policy.md",
+            "docs/architecture.md",
+            "docs/architecture/README.md",
+            "docs/architecture/duecare_trainer.md",
+            "docs/architecture/duecare_eval.md",
+            "docs/compatibility.md",
+            "docs/component_diagram.md",
+            "docs/deployment_local.md",
+            "docs/harness_pattern.md",
+            "docs/product_definition.md",
+            "docs/gemma4_model_guide.md",
+            "docs/research_server_architecture.md",
+        ]
+    )
+    assert "kaggle/A-00-omni-experiment-workbench/" in combined
+    assert "kaggle/A-07-bench-and-tune" not in combined
+    assert "kaggle/A-11-grading-evaluation" not in combined
+    assert "kaggle/A-01-chat-playground" not in combined
+    assert "kaggle/A-05-gemma-content-classification-evaluation" not in combined

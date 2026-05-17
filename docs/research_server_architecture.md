@@ -178,7 +178,7 @@ ExtractedFact objects matching this schema: {...}. If nothing
 relevant, return [].
 ```
 
-Runs Gemma 4 31B (or whatever the bench-and-tune notebook produced)
+Runs Gemma 4 31B (or the adapter produced by the A-00 training path)
 on a GPU node. Bounded retries; outputs validated against the
 ExtractedFact JSON schema.
 
