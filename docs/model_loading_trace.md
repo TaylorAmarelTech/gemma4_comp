@@ -44,7 +44,7 @@ Kaggle-attached models are preferred when `/kaggle/input/models/google/gemma-4/t
   A-00 loads inference at `DUECARE_A00_INFERENCE_MAX_SEQ_LENGTH` (default `16384`) so grading prompts can carry
   the prompt, response, harness trace, rubric, and JSON instructions without falling back to the shorter training
   context. The combined judge output budget is controlled by `DUECARE_A00_COMBINED_JUDGE_MAX_NEW_TOKENS`
-  (default `1600`) so structured rubric JSON is not silently truncated.
+  (default `2048`) so structured rubric JSON is not silently truncated.
 
 ## Fine-Tuning Path
 

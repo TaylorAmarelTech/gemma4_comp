@@ -131,7 +131,9 @@ Key A-00 runtime knobs:
   grading. It defaults to a long-context setting so full prompts,
   responses, harness traces, and grading instructions fit.
 - `DUECARE_A00_COMBINED_JUDGE_MAX_NEW_TOKENS` controls the structured
-  output budget for the combined rule + LLM judge.
+  output budget for the combined rule + LLM judge. It defaults to
+  `2048` so judge JSON has headroom without treating output budget as
+  another full context window.
 - `A00_TRAINING_TIMEOUT_SEC`, `training_save_steps`, and
   `training_resume_from_checkpoint` control long LoRA training runs,
   checkpoint cadence, and resume behavior.

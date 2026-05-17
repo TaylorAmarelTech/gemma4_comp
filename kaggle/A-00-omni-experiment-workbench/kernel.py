@@ -64,7 +64,7 @@ A00_INFERENCE_MAX_SEQ_LENGTH = int(os.environ.get("DUECARE_A00_INFERENCE_MAX_SEQ
 # for structured rubric JSON with per-dimension scoring and rationale,
 # so keep this above short-answer generation budgets. Override only
 # when a chosen judge endpoint has a stricter max-token limit.
-A00_COMBINED_JUDGE_MAX_NEW_TOKENS = int(os.environ.get("DUECARE_A00_COMBINED_JUDGE_MAX_NEW_TOKENS", "1600"))
+A00_COMBINED_JUDGE_MAX_NEW_TOKENS = int(os.environ.get("DUECARE_A00_COMBINED_JUDGE_MAX_NEW_TOKENS", "2048"))
 
 DUECARE_VERSION = os.environ.get("DUECARE_VERSION", "0.17.0")
 DUECARE_REPO = os.environ.get("DUECARE_REPO", "TaylorAmarelTech/gemma4_comp")
