@@ -69,6 +69,8 @@ def test_a00_has_judge_facing_quick_proof_and_research_flow():
         "Sending prompts to Gemma without the DueCare harness",
         "Sending prompts to Gemma with the DueCare harness",
         "Static settings used for this run",
+        "Using Gemma 31B or a frontier model to draft and polish synthetic training rows may produce stronger training data",
+        "A larger Gemma model or frontier model may produce stronger final grading",
         "Persona + GREP rules + RAG/context + deterministic tools",
         "Combined rule-based score plus LLM judge",
         "Four-arm report: base, base+harness, fine-tuned, and fine-tuned+harness.",

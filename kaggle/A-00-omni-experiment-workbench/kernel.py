@@ -4843,10 +4843,12 @@ __A00_SHUTDOWN_CONTROL__
           <dd>Persona + GREP rules + RAG/context + deterministic tools. Internet and import are off.</dd>
           <dt>Synthetic data</dt>
           <dd>Harnessed Gemma generates rubric-polished SFT rows; rows are filtered before fine-tuning.</dd>
+          <dt>Training data quality</dt>
+          <dd>Using Gemma 31B or a frontier model to draft and polish synthetic training rows may produce stronger training data than the small smoke-test model.</dd>
           <dt>Fine-tune path</dt>
           <dd>Small LoRA smoke path using the generated SFT rows, then the same prompts are rerun.</dd>
           <dt>Evaluation</dt>
-          <dd>Combined rule-based score plus LLM judge using the selected normal judge Gemma model. Use the same model for fast smoke tests or a larger Gemma model for final review.</dd>
+          <dd>Combined rule-based score plus LLM judge using the selected normal judge Gemma model. A larger Gemma model or frontier model may produce stronger final grading than the fast smoke-test judge.</dd>
           <dt>Report</dt>
           <dd>Four-arm report: base, base+harness, fine-tuned, and fine-tuned+harness.</dd>
         </dl>
