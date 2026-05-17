@@ -58,7 +58,7 @@ story.
 
 **Notebook status note:** the current judge-facing Kaggle path is the
 three-kernel set in `kaggle/_INDEX.md`: exploration workbench, live demo, and
-A-00 omni experiment workbench. Retired appendix notebooks are historical.
+A-00 omni experiment workbench. Retired notebook-era surfaces are historical.
 
 ## Where to verify each claim
 

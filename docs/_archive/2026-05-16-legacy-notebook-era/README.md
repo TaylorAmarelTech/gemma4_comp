@@ -40,6 +40,8 @@ should not be used to make decisions about the active submission.
 | `rubric_evaluation_v07.md` | Former rubric projection for the retired notebook scope | `docs/readiness_dashboard.md` |
 | `submission_gate_checklist.md` | Former 13-phase checklist for the retired notebook scope | `docs/USER_TODO.md` |
 | `submission_surface_audit_2026-05-10.md` | Point-in-time audit of A-01 through A-11 appendices | `docs/current_kaggle_notebook_state.md` |
+| `004-six-plus-five-notebook-shape.md` | Superseded ADR for the 6+5 notebook-era shape | `docs/current_kaggle_notebook_state.md` |
+| `006-two-plus-eleven-notebook-shape.md` | Superseded ADR for the later appendix notebook-era shape | `docs/current_kaggle_notebook_state.md` |
 
 ## Where to look now
 

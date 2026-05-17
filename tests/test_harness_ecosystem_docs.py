@@ -75,6 +75,8 @@ def test_legacy_notebook_era_docs_are_archived():
         "rubric_evaluation_v07.md",
         "submission_gate_checklist.md",
         "submission_surface_audit_2026-05-10.md",
+        "004-six-plus-five-notebook-shape.md",
+        "006-two-plus-eleven-notebook-shape.md",
     ]:
         assert not (ROOT / "docs" / name).exists(), name
         assert (archive / name).exists(), name
@@ -127,6 +129,10 @@ def test_current_entry_docs_do_not_present_archived_appendix_scope():
         assert "rubric_evaluation_v07.md" not in text
         assert "submission_gate_checklist.md" not in text
         assert "REPORT_CARD.md" not in text
+    adr_index = _read("docs/adr/README.md")
+    assert "004-six-plus-five-notebook-shape.md" not in adr_index
+    assert "006-two-plus-eleven-notebook-shape.md" not in adr_index
+    assert "docs/_archive/2026-05-16-legacy-notebook-era/" in adr_index
 
 
 def test_current_navigation_uses_a00_proof_path_not_legacy_bench_docs():
