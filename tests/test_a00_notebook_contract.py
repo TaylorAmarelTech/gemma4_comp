@@ -63,6 +63,8 @@ def test_a00_has_judge_facing_quick_proof_and_research_flow():
         "resume_from_checkpoint",
         "training_resume_from_checkpoint",
         "checkpointing",
+        "checkpoint_every",
+        "a00.batch.checkpoint",
         'harness_profile: "chat_no_online"',
         'baseline_harness_profile: "none"',
         "judge_model_ref",

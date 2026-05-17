@@ -325,3 +325,19 @@ def test_a00_exports_full_activity_log_and_root_output_index() -> None:
     assert "function jobArtifactLinks(job)" in text
     assert "function activityArtifactLinks(job)" in text
     assert "Download activity ZIP" in text
+
+
+def test_a00_batch_runs_flush_prompt_checkpoints_for_long_kaggle_runs() -> None:
+    text = _a00_text()
+    assert "checkpoint_every: int = 1" in text
+    assert "def _load_latest_incomplete_run_checkpoint(" in text
+    assert 'RUN_DIR.glob(f"a00_{run_slug}_*.json")' in text
+    assert 'if bundle.get("status") == "completed":' in text
+    assert "resume_bundle, resume_path = _load_latest_incomplete_run_checkpoint(run_slug, prompt_set, req.harness_profile)" in text
+    assert '"status": status' in text
+    assert '"completed_prompts": len(ordered_results)' in text
+    assert '"resume_note": "Rerun the same run label, prompt set, and harness profile to continue an unfinished prompt batch."' in text
+    assert '"prompt_index": prompt_index' in text
+    assert 'if prompt_index in completed_indices:' in text
+    assert 'dc_log("a00.batch.checkpoint"' in text
+    assert 'bundle = checkpoint_bundle("completed", len(prompts) + 1)' in text
