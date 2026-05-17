@@ -88,7 +88,7 @@
         <li><a href="#deployment-modes">Deployment modes</a></li>
         <li><a href="#architecture">Architecture &amp; data flow</a></li>
         <li><a href="/static/ecosystem.html">Ecosystem map</a></li>
-        <li><a href="#harnesses">The 7 harnesses</a></li>
+        <li><a href="#harnesses">Registered harnesses</a></li>
         <li><a href="#pages">Every page</a></li>
         <li><a href="#taxonomy">Knowledge object taxonomy</a></li>
         <li><a href="#trust">Trust boundaries</a></li>
@@ -153,10 +153,10 @@
     <div class="wb-card" id="competition-runbook">
       <h2>Competition runbook</h2>
       <p>
-        The three core notebooks should stay distinct. Notebook 01 is the
-        exploration workbench and validation surface. Notebook 02 is the
-        focused live demo with one loaded Gemma 4 model. Notebook 03 is the
-        deterministic video pitch surface for recording.
+        The three active kernels should stay distinct. Kernel 01 is the
+        exploration workbench and validation surface. Kernel 02 is the
+        focused live demo with one loaded Gemma 4 model. A-00 is the
+        quantitative proof path for benchmark, training, judging, and reports.
       </p>
       <div class="wb-grid-3">
         <div class="wb-flow-step">
@@ -226,14 +226,12 @@
     <div class="wb-card" id="architecture">
       <h2>2. Architecture &amp; data flow</h2>
       <p>
-        Every user-facing surface in the kernel is a <b>harness</b>:
-        a self-contained module that registers FastAPI routes, declares
-        the knowledge types it consumes and emits, and writes per-task
-        audit JSONL to <code>/kaggle/working/training/&lt;harness&gt;.jsonl</code>.
-        Safety layers (Persona, GREP, RAG, Tools, Online) are composed
-        per harness. Chat uses all five, Extraction uses Persona + GREP
-        + RAG, and Anonymization runs no layers because it <i>is</i> a
-        safety layer.
+        The registered harness surfaces are self-contained modules that
+        register FastAPI routes, declare the knowledge types they consume and
+        emit, and write per-task audit JSONL to
+        <code>/kaggle/working/training/&lt;harness&gt;.jsonl</code>. The broader
+        ecosystem also includes pipeline harnesses for search verification,
+        synthetic data, judging, fine-tuning, and report export.
       </p>
 
       <h3>Request lifecycle on Chat</h3>
@@ -252,7 +250,7 @@
        |                          | persona   | (prepend expert pre-instr.) |
        |                          +-----+-----+                              |
        |                          +-----+-----+                              |
-       |                          | grep      | (run 161 regex rules)       |
+       |                          | grep      | (run current GREP rules)    |
        |                          +-----+-----+                              |
        |   step_done: grep fired=true   |                                    |
        |&lt;-------------------------------|                                    |
@@ -293,13 +291,13 @@
     </div>
 
     <div class="wb-card" id="harnesses">
-      <h2>3. The 7 harnesses</h2>
+      <h2>3. Registered harnesses</h2>
       <p>
         Each harness exports a fixed contract (<code>name</code>,
         <code>applied_layers</code>, <code>consumes</code>, <code>emits</code>,
-        <code>register_routes</code>). The five PRIMARY harnesses are
-        the user-named safety surfaces; the two SECONDARY harnesses
-        are utility/CRUD surfaces.
+        <code>register_routes</code>). Primary harnesses are safety surfaces;
+        secondary harnesses are utility or CRUD surfaces that feed the safety
+        flow.
       </p>
 
       <div class="wb-harness-row">
@@ -396,6 +394,22 @@
           POST /api/search/client &middot;
           POST /api/search/server &middot;
           GET /api/search/backends
+        </div>
+      </div>
+
+      <div class="wb-harness-row">
+        <div class="header">
+          <span class="name">post_search_verification</span>
+          <span class="wb-pill wb-pill-primary">PRIMARY</span>
+          <span class="wb-pill">applied_layers: ()</span>
+          <span class="wb-pill">is a safety gate</span>
+        </div>
+        <p>Verifies candidate search results for relevance, source quality,
+          contradiction risk, and deanonymization risk before any result can be
+          injected into a prompt or promoted into a knowledge object.</p>
+        <div class="endpoints">
+          POST /api/search/verify-results &middot;
+          GET /api/search/verification-info
         </div>
       </div>
 

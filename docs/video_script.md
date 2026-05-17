@@ -1,4 +1,4 @@
-# Video Script — Duecare (v5 — body refreshed against v0.14.7, 2026-05-08)
+﻿# Video Script — Duecare (current A-00 proof path, 2026-05-17)
 
 > **Target:** 2:55 (5-second buffer under the 3:00 cap).
 > **Voiceover budget:** ~290 words at ~100 wpm = 2:54.
@@ -6,18 +6,18 @@
 > **Judged at:** 30 pts (Video Pitch & Storytelling) + 40 pts (Impact &
 > Vision is judged FROM the video). **70 of 100 points live in this file.**
 >
-> **Status:** body is in sync with v0.14.7 reality (6 layers, 161 GREP,
-> 46 RAG, 587 prompts, 11 viewer pages, 26-entry hotlines directory,
+> **Status:** body has been reconciled with the current harness ecosystem
+> framing (layered chat harness, 100+ GREP rules, 50+ RAG docs, viewer pages,
 > 8-component platform framing). Asset capture happens AFTER the wheel
 > is pushed and the deployment self-audit banner shows the intended version in
 > kernel stdout. Use `docs/USER_TODO.md` for the current final checklist.
 
-## v0.14.7 demo beats to land (these are the screens the body below records)
+## Demo beats to land (these are the screens the body below records)
 
 Pick 4-5 to demo on screen — not all of them in 3 minutes:
 
 1. **Live GREP tester** (`/static/grep-tester.html`) — paste any text,
-   see which of 161 rules fire instantly. No LLM call. The single
+   see which of 100+ rules fire instantly. No LLM call. The single
    most "make the harness tangible in 30 seconds" moment.
 2. **A/B Compare tab** — side-by-side "stock Gemma" vs "full harness"
    on the same prompt. The score-delta pill is THE most demo-able
@@ -27,7 +27,7 @@ Pick 4-5 to demo on screen — not all of them in 3 minutes:
    the searchable list with jurisdiction chips. After a chat turn
    the corpus list shows yellow `● recent` badges on the docs that
    were actually retrieved.
-4. **Hotlines directory** (`/static/hotlines.html`) — 26 entries:
+4. **Hotlines directory** (`/static/hotlines.html`) — curated entries:
    DMW PH, OWWA, BP2MI Aduan, MfMW HK, IJM, Polaris, embassies,
    etc. Click-to-call / mailto / open complaint form. Land the
    safety boundary: **the user submits — we never auto-send.**
@@ -54,19 +54,19 @@ Pick 4-5 to demo on screen — not all of them in 3 minutes:
    This makes the roadmap feel intentional without making judges
    expect a full Messenger integration in the demo.
 
-## Live numbers (v0.14.7 — read /api/brand for the canonical values)
+## Live capability summary (read /api/brand for exact current counts)
 
 | Field | Value |
 |---|---|
-| Harness layers | **6** (Persona / GREP / RAG / Imports / Tools / Online) |
-| Universal rubric | **46 dimensions** (v3.10-evaluator-quality) |
-| GREP rules | **161 rules** across 31 categories |
-| RAG corpus | **46 docs** + 46-edge citation graph across 27 jurisdictions |
-| Example prompts | **587** across 8 audience buckets |
-| Adversarial suite | **65 tests** across 16 attack families |
-| Synthetic evidence | 20 CC0 images + 13 structured-post JSONs |
-| Hotlines directory | **26 entries** (regulators / NGOs / embassies / hotlines) |
-| Static viewer pages | **11** under `/static/` (harness landing + 10 per-layer) |
+| Harness layers | Persona / GREP / RAG / Imports / Tools / Online |
+| Universal rubric | Multi-dimension evaluator-quality rubric |
+| GREP rules | 100+ rules across active categories |
+| RAG corpus | 50+ docs + citation graph |
+| Example prompts | Large prompt library across audience buckets |
+| Adversarial suite | Tests across multiple attack families |
+| Synthetic evidence | CC0 images + structured-post JSONs |
+| Hotlines directory | Regulator / NGO / embassy / hotline contacts |
+| Static viewer pages | Dedicated harness and layer views under `/static/` |
 | Platform components | **8** (Runtime, Harness, Exchange, Eval, Trainer, Research Monitor, Channels, Mobile) |
 
 These all read from `_brand.py` via `/api/brand`. If a number on the
@@ -142,7 +142,7 @@ Annotations pop up:
 ### 0:35–1:42 — The demo (67 seconds)
 
 **Visual:** Cut to the **duecare-exploration-workbench notebook** — the unified
-omni playground. Same 68%-loan prompt is pasted. **All six toggle
+omni playground. Same 68%-loan prompt is pasted. **The harness toggle
 tiles** are visible at the bottom: Persona (purple), GREP (red),
 RAG (blue), Imports (teal), Tools (green), Online (amber). Cursor
 clicks each ON in sequence. Each tile fills with color and shows `ON`.
@@ -164,12 +164,12 @@ Cut to the response area. Gemma's response now reads:
 
 **Voiceover:**
 
-> *"This is Duecare. Same Gemma 4. Six toggle layers built into the
+> *"This is Duecare. Same Gemma 4. Toggleable layers built into the
 > chat surface. Persona — a 40-year anti-trafficking expert. GREP —
-> 161 hand-curated regex rules across 31 categories, each tagged
+> 100+ hand-curated regex rules across active categories, each tagged
 > with the controlling ILO convention or national statute. RAG —
-> a 46-document curated corpus across 27 jurisdictions, plus a
-> 46-edge citation graph for 1-hop expansion. Imports — user-attached
+> a 50+ document curated corpus, plus a citation graph for 1-hop
+> expansion. Imports — user-attached
 > evidence: a screenshot of the recruiter's WhatsApp, a contract
 > photo. Tools — corridor fee caps, fee-camouflage decoder, ILO
 > indicator matcher, NGO intake hotlines. Online — live web search
@@ -199,7 +199,7 @@ expansion stages.
 ### 1:42–1:55 — Live regex tester (13-second tangible-in-30-seconds beat)
 
 **Visual:** Cursor clicks the **Harness ↗** button in the chat top
-bar → `/static/harness.html` loads with 11 viewer cards. Cursor
+bar → `/static/harness.html` loads with viewer cards. Cursor
 clicks **LIVE TESTER**. The tester page loads. Cursor pastes the
 "5-indicator compound" preset (PHP 50K + HK lender + auto-deduct
 + passport retention + no day off). Click **▶ Run GREP**. The right
@@ -210,7 +210,7 @@ citation badge.
 **Voiceover:**
 
 > *"This is the harness made tangible. Paste any text. See which of
-> 161 rules fire. No model call. Twelve milliseconds. The harness
+> 100+ rules fire. No model call. Twelve milliseconds. The harness
 > isn't a black box."*
 
 ### 1:55–2:08 — Layer ablation, live (13-second proof of lift)
@@ -254,13 +254,13 @@ citations.
 
 > *"Workers don't always type in English. The classifier handles
 > eleven languages — same prompt shape, same recognition. And the
-> harness holds when the prompt is a jailbreak. The 65-test
-> adversarial suite is included with the wheel."*
+> harness holds when the prompt is a jailbreak. The adversarial
+> suite is included with the wheel."*
 
 ### 2:20–2:32 — Hotlines directory + the safety boundary (12 seconds)
 
 **Visual:** Cursor clicks **HOTLINES** card on `/static/harness.html`.
-Page opens — 26 contact cards visible. Cursor scrolls past DMW
+Page opens — contact cards visible. Cursor scrolls past DMW
 Philippines, OWWA hotline, BP2MI Aduan, MfMW Hong Kong. A yellow
 banner at top reads: **"Duecare drafts; the user submits — we never
 auto-send."** Cursor hovers over Mission for Migrant Workers HK
@@ -275,7 +275,7 @@ complaint draft body.
 > Click-to-open-the-complaint-form. Duecare drafts the report.
 > The user submits it. We never auto-send."*
 
-### 2:32–2:42 — Three deployment surfaces, one harness (10 seconds)
+### 2:32–2:42 — Three deployment surfaces, one harness ecosystem (10 seconds)
 
 **Visual:** Three-up split.
 - **Left:** phone showing the chat playground in mobile portrait
@@ -344,7 +344,7 @@ Fade to black. Music fades.
       classification result fill (2:00).
 - [ ] No stock footage of trafficking victims. Ever.
 
-**Asset list (refreshed for v0.14.7):**
+**Asset list (refresh before final capture):**
 
 - [ ] Cold-open serif typewriter animation (Maria's sentence)
 - [ ] Map screenshot: Indonesia / Philippines → Hong Kong corridor
@@ -352,7 +352,7 @@ Fade to black. Music fades.
 - [ ] Screen recording: stock Gemma response to the selected baseline prompt
       from Kernel 01 or the A-00 no-harness arm
 - [ ] Screen recording: `duecare-exploration-workbench`, cursor clicking each
-      of **6 toggles** (Persona / GREP / RAG / Imports / Tools /
+      of the toggles (Persona / GREP / RAG / Imports / Tools /
       Online) ON in sequence, then sending the 68%-loan prompt
 - [ ] Screen recording: `▸ View pipeline` modal — header reads
       "Harness added Xms · Gemma generated for Yms"; vertical flow
@@ -368,7 +368,7 @@ Fade to black. Music fades.
       shows "worker_asking 1.00"
 - [ ] Screen recording: `jb_001` adversarial-jailbreak example →
       send → harness refuses with grounded citations
-- [ ] Screen recording: `/static/hotlines.html` — 26 contact cards
+- [ ] Screen recording: `/static/hotlines.html` — curated contact cards
       visible, yellow safety banner ("Duecare drafts; the user
       submits — we never auto-send"), hover over an entry to show
       `mailto:` preview
@@ -390,7 +390,7 @@ expectations.
 **Schedule (T-10 from 2026-05-08):**
 
 - **By 2026-05-12:** asset capture against the live cloudflared URL
-  AFTER pushing v0.14.7 wheels. All recordings need self-audit
+  AFTER pushing the final wheels. All recordings need self-audit
   banner visible in the kernel stdout to prove freshness.
 - **2026-05-13 / 14:** edit + sound design + on-camera narrator
   close. Color-pass.

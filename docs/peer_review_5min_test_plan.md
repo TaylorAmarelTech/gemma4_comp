@@ -12,7 +12,7 @@ Three claims:
 
 1. **Stock Gemma 4 fails predictably** on migrant-worker
    trafficking prompts (no ILO citations, gives traffickers advice).
-2. **A 6-layer harness with local-first privacy boundaries fixes
+2. **A layered chat harness with local-first privacy boundaries fixes
    it** with a +56.5pp lift on a 12-criterion legal-citation rubric.
 3. **The grader is itself adversarially defended** with a 4-mode
    stack (deterministic + LLM-as-judge + combined).
@@ -43,8 +43,8 @@ In Tab A, after the cloudflared URL prints, run this in any cell:
 !curl -s https://YOUR-URL/api/health-check | python -m json.tool
 ```
 
-Expected: `ready: true`, all 6 layers `wired: true`, all 4 grade
-modes available, harness counts `161 GREP / 33 RAG / 5 tools / 17
+Expected: `ready: true`, all chat layers `wired: true`, all 4 grade
+modes available, harness counts `100+ GREP / 50+ RAG / tools / evaluator
 rubric / 17 judge questions`.
 
 **If this fails, tell us — we'll fix it.** If it passes, the rest of
@@ -64,7 +64,7 @@ action buttons** in the empty state.
 3. Click **Send ↑**.
 
 Watch the response stream in. Expected substantive content (with
-all 6 layers ON):
+all chat layers ON):
 - ILO C029 §1 + ILO Indicator 9 (debt bondage) explicitly named
 - POEA MC 14-2017 cited (PH-HK zero placement fee)
 - HK Cap. 57 §32 cited (employment ordinance)

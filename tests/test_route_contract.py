@@ -84,6 +84,9 @@ EXPECTED_ROUTES: set[tuple[str, str]] = {
     ("/api/search/server", "POST"),
     ("/api/search/client", "POST"),
     ("/api/search/backends", "GET"),
+    # post-search verification harness
+    ("/api/search/verify-results", "POST"),
+    ("/api/search/verification-info", "GET"),
 }
 
 

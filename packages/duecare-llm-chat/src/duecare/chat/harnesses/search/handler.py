@@ -49,6 +49,7 @@ def _do_search(app: Any, body: dict, kind: str) -> dict:
             "kind": kind,
             "backend": None,
             "results": [],
+            "verification_status": "not_applicable",
             "note": "No backend available. Set DUECARE_SEARXNG_URL or wire online_search_call.",
         }
 
@@ -60,12 +61,15 @@ def _do_search(app: Any, body: dict, kind: str) -> dict:
             "kind": kind,
             "backend": backend.name,
             "results": [],
+            "verification_status": "not_applicable",
             "error": f"{type(exc).__name__}: {exc}",
         }
 
     out["query"] = query
     out["kind"] = kind
     out["backend"] = backend.name
+    out["verification_status"] = "candidate_unverified"
+    out["next_step"] = "POST /api/search/verify-results before injecting results into chat, extraction, or knowledge packs."
 
     try:
         from .._training_log import log_interaction

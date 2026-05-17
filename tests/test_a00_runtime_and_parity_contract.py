@@ -457,12 +457,16 @@ def test_a00_pipeline_supports_ollama_external_judge() -> None:
     assert '"source": "ollama_cloud"' in text
     assert '<option value="ollama">ollama</option>' in text
     assert '"OLLAMA_API_KEY"' in text
+    assert "from duecare.chat.harnesses.model_interface import call_model_backend" in text
+    assert "class _OllamaJudgeBackend:" in text
     assert "def _is_ollama_judge_source(source: str) -> bool:" in text
     assert "def _ollama_api_endpoint(source: str) -> str:" in text
     assert "https://ollama.com" in text
     assert "/api/chat" in text
-    assert 'headers["Authorization"] = f"Bearer {api_key}"' in text
+    assert 'headers["Authorization"] = f"Bearer {self.api_key}"' in text
     assert '"format": "json"' in text
+    assert "response = call_model_backend(" in text
+    assert "_record_external_judge_response(source, model_ref, endpoint, response)" in text
     assert "def _configure_ollama_judge_for_pipeline(job_id: str, req: PipelineRequest) -> dict[str, Any]:" in text
     assert 'STATE["judge_model_call"] = _ollama_model_call_factory(' in text
     assert "external = STATE.get(\"judge_model_call\")" in text
@@ -488,9 +492,12 @@ def test_a00_pipeline_supports_anthropic_external_judge() -> None:
     assert "ANTHROPIC_API_KEY" in text
     assert "def _is_anthropic_judge_source(source: str) -> bool:" in text
     assert "def _is_external_judge_source(source: str) -> bool:" in text
+    assert "class _AnthropicJudgeBackend:" in text
     assert "def _anthropic_model_call_factory(" in text
-    assert '"x-api-key": api_key' in text
-    assert '"anthropic-version": version' in text
+    assert '"x-api-key": self.api_key' in text
+    assert '"anthropic-version": self.version' in text
+    assert "response = call_model_backend(" in text
+    assert "_record_external_judge_response(source, model_ref, endpoint, response)" in text
     assert "def _configure_anthropic_judge_for_pipeline(job_id: str, req: PipelineRequest) -> dict[str, Any]:" in text
     assert "def _configure_external_judge_for_pipeline(job_id: str, req: PipelineRequest) -> dict[str, Any]:" in text
     assert "if _is_anthropic_judge_source(req.judge_model_source):" in text

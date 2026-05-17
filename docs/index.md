@@ -1,4 +1,4 @@
----
+﻿---
 hide:
   - navigation
   - toc
@@ -40,7 +40,7 @@ happens. Or after, to recover the money.
 
     Open the live chat playground on Kaggle:
 
-    [duecare-chat-playground-with-grep-rag-tools :octicons-arrow-right-24:](https://www.kaggle.com/code/taylorsamarel/duecare-chat-playground-with-grep-rag-tools){ .md-button .md-button--primary }
+    [duecare-exploration-workbench :octicons-arrow-right-24:](https://www.kaggle.com/code/taylorsamarel/duecare-exploration-workbench){ .md-button .md-button--primary }
 
     Click "Run All". Type:
 
@@ -85,9 +85,8 @@ happens. Or after, to recover the money.
 
 - :material-shield-check: **Harness**
 
-    161 GREP rules + 46 RAG documents + 11 ILO C029 indicators +
-    20 migration corridors. Quantified +56.5pp lift across 207
-    hand-graded prompts.
+    100+ GREP rules + 50+ RAG documents + ILO indicator and corridor
+    packs. Quantified lift is documented in the reproducibility reports.
 
 - :material-cellphone-android: **Android app**
 
@@ -96,17 +95,17 @@ happens. Or after, to recover the money.
 
 - :material-server: **Server**
 
-    FastAPI + 17 PyPI packages. Per-tenant token + cost meter.
+    FastAPI + the Duecare package family. Per-tenant token + cost meter.
     Per-tenant rate limits. Prometheus / OpenTelemetry / Loki
     observability stack.
 
 - :material-package-variant-closed: **Containers**
 
     Multi-arch Docker image at `ghcr.io/tayloramareltech/duecare-llm`.
-    Helm chart with HPA + PDB + NetworkPolicy. 13-platform
+    Helm chart with HPA + PDB + NetworkPolicy. Multi-platform
     cloud deploy cookbook.
 
-- :material-book-open-page-variant: **14 persona walkthroughs**
+- :material-book-open-page-variant: **Persona walkthroughs**
 
     From migrant workers to Big Tech CTOs. Day-1 setup + day-2
     operational rhythm + day-30 expansion + when-something-breaks
@@ -143,6 +142,7 @@ Sorted by who you are:
 ## Quick links
 
 - :material-map-marker-radius: [**System map**](system_map.md) — interactive bird's-eye view of all components, users, deployments, notebooks
+- :material-sitemap-outline: [**System components and critical paths**](system_components_and_critical_paths.md) — stable component map, harness inventory, critical paths, users, and drift rules
 - :material-notebook-edit-outline: [**Author's notes**](authors_notes.md) — informal observations, what didn't work, design judgments
 - :material-bookshelf: [**Appendices**](appendices/README.md) — index of deeper enclosures linked from the writeup
 - :material-format-quote-open: [Press kit](press_kit.md) — one-pager + facts + quotes for journalists
@@ -156,16 +156,16 @@ Sorted by who you are:
 ### Verifiability + reproducibility (judge-focused)
 
 - :material-clipboard-check: [**Reproducibility**](reproducibility.md) — every quantitative claim grounded with `(git_sha, dataset_version, eval_set, grader_version)` provenance + one-command re-measurement path
-- :material-table-of-contents: [**Corpus index**](corpus_index.md) — single-page reference: every GREP rule (108) + RAG doc (33) + tool (5) + dimension (17) + judge question (17) by name
+- :material-table-of-contents: [**Corpus index**](corpus_index.md) — source-of-truth pointers for the live GREP, RAG, tool, rubric, and judge inventories
 - :material-compare-horizontal: [**Stock vs harnessed examples**](stock_vs_harnessed.md) — 5 textbook prompts side-by-side (mean lift 4.6% → 88.4%)
 - :material-tune-vertical: [**A-00 proof path**](FOR_PEER_REVIEW.md#a-00-proof-path) — preconfigured baseline, harness, optional LoRA, judging, and export run
 - :material-clock-fast: [**Judge 5-min test plan**](peer_review_5min_test_plan.md) — the entry point for hackathon judges
 
 ## Headline numbers
 
-The harness, when on, beats the harness off by:
+The measured harness-lift report shows:
 
-- **+56.5 pp** mean lift across 207 hand-graded prompts
+- **+56.5 pp** mean lift across the published hand-graded prompt set
 - **+87.5 pp** on jurisdiction-specific rule citations
 - **+51.2 pp** on ILO / international convention citations
 - **100%** of prompts saw the harness help; 0 saw it hurt
@@ -176,8 +176,8 @@ quantitative claim), and [`RESULTS.md`](https://github.com/TaylorAmarelTech/gemm
 for the `(git_sha, dataset_version, model_revision)` tuples.
 
 **Caveat:** the +56.5pp / +87.5pp / +51.2pp / +34.1pp numbers were
-last measured 2026-05-03 against the prior 49-rule GREP set; the
-v3.16 expansion to 161 rules is purely additive (no rules removed)
+last measured 2026-05-03 against an earlier GREP revision; the
+current expansion to 100+ rules is additive but should be re-measured
 so the lift is expected to remain at-or-above these floors. Re-run
 the A6 `duecare-grading-evaluation` notebook to refresh.
 

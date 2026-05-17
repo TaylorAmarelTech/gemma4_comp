@@ -7,19 +7,22 @@ from __future__ import annotations
 
 from . import (
     anonymization, chat, extraction, import_corpus,
-    process, search, search_safety,
+    post_search_verification, process, search, search_safety,
 )
 
 # search_safety is PRIMARY because it is a defense-in-depth safety
 # layer (intercepts outbound search queries before they reach a
 # third-party backend). It sits next to anonymization in the safety
 # tier even though it does not compose layers itself.
-PRIMARY_HARNESSES: tuple = (chat, process, extraction, anonymization, search_safety)
+PRIMARY_HARNESSES: tuple = (
+    chat, process, extraction, anonymization, search_safety,
+    post_search_verification,
+)
 SECONDARY_HARNESSES: tuple = (search, import_corpus)
 
 __all__ = [
     "anonymization", "chat", "extraction", "import_corpus",
-    "process", "search", "search_safety",
+    "post_search_verification", "process", "search", "search_safety",
     "PRIMARY_HARNESSES", "SECONDARY_HARNESSES", "all_harnesses",
 ]
 

@@ -6,7 +6,7 @@
   .kr-section { padding: 28px 0 12px; border-top: 1px solid var(--line-soft); }
   .kr-section:first-of-type { border-top: none; }
   .kr-section h2 { font-size: 19px; letter-spacing: -0.01em; margin: 0 0 4px; }
-  .kr-section .kr-sub { color: var(--ink-3); font-size: 13px; margin: 0 0 18px; max-width: 720px; line-height: 1.55; }
+  .kr-section .kr-sub { color: var(--ink-3); font-size: 13px; margin: 0 0 18px; max-width: 760px; line-height: 1.55; }
   .kr-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 12px; }
   .kr-card { background: #FFF; border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px; display: flex; flex-direction: column; gap: 8px; }
   .kr-card .slot { font-family: var(--mono); font-size: 11px; color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.08em; font-weight: 600; }
@@ -15,8 +15,6 @@
   .kr-card .links { display: flex; gap: 6px; flex-wrap: wrap; padding-top: 6px; border-top: 1px solid var(--line-soft); }
   .kr-card a.k-link { background: var(--paper-2); border: 1px solid var(--line); color: var(--ink-2); font-family: var(--mono); font-size: 11px; padding: 4px 8px; border-radius: 6px; text-decoration: none; }
   .kr-card a.k-link:hover { background: var(--paper-3); border-color: var(--ink-3); }
-  .kr-card.zero-inf { border-color: oklch(0.55 0.10 195); }
-  .kr-card.zero-inf .slot { color: oklch(0.40 0.10 195); }
   .kr-summary { background: var(--paper-2); border: 1px solid var(--line); border-radius: 12px; padding: 18px 22px; margin-top: 18px; }
   .kr-summary h3 { margin: 0 0 8px; font-size: 14px; }
   .kr-summary ul { margin: 0; padding-left: 18px; font-size: 13px; line-height: 1.6; color: var(--ink-2); }
@@ -27,286 +25,60 @@
 {% include "_nav.html" %}
 <section class="hp-hero" data-screen-label="Docs &middot; Kaggle kernels"><div class="wrap">
 <div class="crumbs"><a href="/">Home</a><span class="sep">/</span><a href="/docs">Docs</a><span class="sep">/</span><span>Kaggle kernels</span></div>
-<span class="kicker">26-kernel roster</span>
-<h1>The full kernel index.</h1>
-<p class="lede">DueCare ships <b>26 Kaggle script kernels</b>: 3 core entry points, 11 reproducible-pipeline appendix slots, 9 website-aligned extensions, and 3 Gemma 4 feature showcases. Every kernel has a folder under <code>kaggle/</code> with <code>kernel.py</code>, a <code>README.md</code> with a Judge-quick-path table, and a <code>kernel-metadata.json</code> for the Kaggle CLI. Source on <a href="https://github.com/TaylorAmarelTech/gemma4_comp/tree/master/kaggle">GitHub</a>; canonical index at <a href="https://github.com/TaylorAmarelTech/gemma4_comp/blob/master/kaggle/_INDEX.md"><code>kaggle/_INDEX.md</code></a>.</p>
+<span class="kicker">Active Kaggle scope</span>
+<h1>The current kernel index.</h1>
+<p class="lede">DueCare's active Kaggle submission centers on three script kernels. Historical appendix kernels are archived and should not be treated as the current reviewer path. Source on <a href="https://github.com/TaylorAmarelTech/gemma4_comp/tree/master/kaggle">GitHub</a>; canonical index at <a href="https://github.com/TaylorAmarelTech/gemma4_comp/blob/master/kaggle/_INDEX.md"><code>kaggle/_INDEX.md</code></a>.</p>
 </div></section>
 
 <section class="page-wrap"><div class="wrap">
 
-<div class="kr-section" data-screen-label="Core &middot; 3 entry kernels">
-  <h2>Three core entry kernels</h2>
-  <p class="kr-sub">Where reviewers land. <code>01</code> is the omni-playground with every harness layer and a 9-variant model picker; <code>02</code> is the focused live demo with the +56.5pp lift headline; <code>03</code> is the slides + setup-mode pitch deck.</p>
+<div class="kr-section" data-screen-label="Active kernels">
+  <h2>Active reviewer kernels</h2>
+  <p class="kr-sub">These are the maintained paths for the current submission: exploration, focused demo, and quantitative proof. They share the same Gemma runtime and harness primitives instead of duplicating model-loading or harness logic.</p>
   <div class="kr-grid">
     <div class="kr-card">
-      <span class="slot">01 &middot; core</span>
+      <span class="slot">01 &middot; exploration</span>
       <span class="name">duecare-exploration-workbench</span>
-      <span class="lede">Unified surface: 9-variant Gemma 4 model picker, all 6 harness layers, 4 grading modes, A/B compare, every visualization.</span>
+      <span class="lede">Interactive workbench for chat, harness comparison, bulk review, extraction, search safety, anonymization, grading, and layer introspection.</span>
       <div class="links">
         <a class="k-link" href="https://www.kaggle.com/code/taylorsamarel/duecare-exploration-workbench" target="_blank">Kaggle &rarr;</a>
         <a class="k-link" href="https://github.com/TaylorAmarelTech/gemma4_comp/tree/master/kaggle/01-duecare-exploration-workbench" target="_blank">GitHub</a>
       </div>
     </div>
     <div class="kr-card">
-      <span class="slot">02 &middot; core</span>
+      <span class="slot">02 &middot; live demo</span>
       <span class="name">duecare-live-demo</span>
-      <span class="lede">Focused live demo. Gemma 4 E4B-IT + the full harness; +56.5pp lift on compound-indicator prompts is the headline.</span>
+      <span class="lede">Focused, presentation-friendly path for showing the shared Gemma runtime, layered harness behavior, and reviewer-facing demo flow.</span>
       <div class="links">
         <a class="k-link" href="https://www.kaggle.com/code/taylorsamarel/duecare-live-demo" target="_blank">Kaggle &rarr;</a>
         <a class="k-link" href="https://github.com/TaylorAmarelTech/gemma4_comp/tree/master/kaggle/02-live-demo" target="_blank">GitHub</a>
       </div>
     </div>
-    <div class="kr-card zero-inf">
-      <span class="slot">03 &middot; core &middot; zero-inference</span>
-      <span class="name">duecare-video-pitch</span>
-      <span class="lede">Slides + Setup + Presentation tabs. Pre-authored 8-slide pitch and a Setup editor that writes the demo-script JSON for video recording.</span>
+    <div class="kr-card">
+      <span class="slot">A-00 &middot; quantitative proof</span>
+      <span class="name">A-00 omni experiment workbench</span>
+      <span class="lede">Benchmark, synthetic-data, optional LoRA training, checkpoint/resume, combined judging, and report/export artifacts.</span>
       <div class="links">
-        <a class="k-link" href="https://github.com/TaylorAmarelTech/gemma4_comp/tree/master/kaggle/03-duecare-video-pitch" target="_blank">GitHub</a>
+        <a class="k-link" href="https://github.com/TaylorAmarelTech/gemma4_comp/tree/master/kaggle/A-00-omni-experiment-workbench" target="_blank">GitHub</a>
       </div>
     </div>
   </div>
 </div>
 
-<div class="kr-section" data-screen-label="Pipeline &middot; A-01..A-11">
-  <h2>Reproducible model pipeline (A-01..A-11)</h2>
-  <p class="kr-sub">The end-to-end model-improvement ladder. Stock baseline &rarr; harness ablations &rarr; comparison &rarr; new-model baseline (after A-06 synthetic data &rarr; A-07 Unsloth SFT/DPO) &rarr; runtime harness-lift regenerator. Each kernel emits the canonical <code>&lt;RUN&gt;_bundle.zip</code> per <a href="https://github.com/TaylorAmarelTech/gemma4_comp/blob/master/docs/data_primitives.md">data_primitives.md</a>.</p>
-  <div class="kr-grid">
-    <div class="kr-card">
-      <span class="slot">A-01 &middot; baseline</span>
-      <span class="name">chat-playground</span>
-      <span class="lede">Raw Gemma 4 IT (E2B / E4B / 26B-A4B / 31B). Control case for harness-lift claims.</span>
-      <div class="links">
-        <a class="k-link" href="https://www.kaggle.com/code/taylorsamarel/duecare-chat-playground" target="_blank">Kaggle &rarr;</a>
-        <a class="k-link" href="https://github.com/TaylorAmarelTech/gemma4_comp/tree/master/kaggle/A-01-chat-playground" target="_blank">GitHub</a>
-      </div>
-    </div>
-    <div class="kr-card">
-      <span class="slot">A-02 &middot; harnessed</span>
-      <span class="name">chat-playground-with-grep-rag-tools</span>
-      <span class="lede">4-toggle harness (Persona / GREP / RAG / Tools). Flip toggles to see per-layer delta.</span>
-      <div class="links">
-        <a class="k-link" href="https://www.kaggle.com/code/taylorsamarel/duecare-chat-playground-with-grep-rag-tools" target="_blank">Kaggle &rarr;</a>
-        <a class="k-link" href="https://github.com/TaylorAmarelTech/gemma4_comp/tree/master/kaggle/A-02-chat-playground-with-grep-rag-tools" target="_blank">GitHub</a>
-      </div>
-    </div>
-    <div class="kr-card">
-      <span class="slot">A-03 &middot; compare</span>
-      <span class="name">content-classification-playground</span>
-      <span class="lede">Consumes A-01 + A-02 bundles via Add Data; renders the lift delta.</span>
-      <div class="links">
-        <a class="k-link" href="https://www.kaggle.com/code/taylorsamarel/duecare-content-classification-playground" target="_blank">Kaggle &rarr;</a>
-        <a class="k-link" href="https://github.com/TaylorAmarelTech/gemma4_comp/tree/master/kaggle/A-03-content-classification-playground" target="_blank">GitHub</a>
-      </div>
-    </div>
-    <div class="kr-card">
-      <span class="slot">A-04 &middot; explore</span>
-      <span class="name">content-knowledge-builder-playground</span>
-      <span class="lede">Long-context document grounding sandbox. Bundled DueCare corpus.</span>
-      <div class="links">
-        <a class="k-link" href="https://www.kaggle.com/code/taylorsamarel/duecare-content-knowledge-builder-playground" target="_blank">Kaggle &rarr;</a>
-        <a class="k-link" href="https://github.com/TaylorAmarelTech/gemma4_comp/tree/master/kaggle/A-04-content-knowledge-builder-playground" target="_blank">GitHub</a>
-      </div>
-    </div>
-    <div class="kr-card">
-      <span class="slot">A-05 &middot; classify</span>
-      <span class="name">gemma-content-classification-evaluation</span>
-      <span class="lede">Batch classification evaluation dashboard for NGO triage workflows.</span>
-      <div class="links">
-        <a class="k-link" href="https://www.kaggle.com/code/taylorsamarel/duecare-gemma-content-classification-evaluation" target="_blank">Kaggle &rarr;</a>
-        <a class="k-link" href="https://github.com/TaylorAmarelTech/gemma4_comp/tree/master/kaggle/A-05-gemma-content-classification-evaluation" target="_blank">GitHub</a>
-      </div>
-    </div>
-    <div class="kr-card">
-      <span class="slot">A-06 &middot; synth data</span>
-      <span class="name">prompt-generation</span>
-      <span class="lede">Two-track synth: SafetyJudge anti-exploitation prompts + PrivacyRedactor composite redaction rows.</span>
-      <div class="links">
-        <a class="k-link" href="https://www.kaggle.com/code/taylorsamarel/duecare-prompt-generation" target="_blank">Kaggle &rarr;</a>
-        <a class="k-link" href="https://github.com/TaylorAmarelTech/gemma4_comp/tree/master/kaggle/A-06-prompt-generation" target="_blank">GitHub</a>
-      </div>
-    </div>
-    <div class="kr-card">
-      <span class="slot">A-07 &middot; train</span>
-      <span class="name">bench-and-tune</span>
-      <span class="lede"><b>Unsloth</b> LoRA fine-tune + DPO + GGUF export. Special Tech: Unsloth.</span>
-      <div class="links">
-        <a class="k-link" href="https://www.kaggle.com/code/taylorsamarel/duecare-bench-and-tune" target="_blank">Kaggle &rarr;</a>
-        <a class="k-link" href="https://github.com/TaylorAmarelTech/gemma4_comp/tree/master/kaggle/A-07-bench-and-tune" target="_blank">GitHub</a>
-      </div>
-    </div>
-    <div class="kr-card">
-      <span class="slot">A-08 &middot; visualize</span>
-      <span class="name">research-graphs</span>
-      <span class="lede">CPU-only Plotly graphs from harness data: corridors, fee-camouflage co-occurrence, ILO indicator hits.</span>
-      <div class="links">
-        <a class="k-link" href="https://www.kaggle.com/code/taylorsamarel/duecare-research-graphs" target="_blank">Kaggle &rarr;</a>
-        <a class="k-link" href="https://github.com/TaylorAmarelTech/gemma4_comp/tree/master/kaggle/A-08-research-graphs" target="_blank">GitHub</a>
-      </div>
-    </div>
-    <div class="kr-card">
-      <span class="slot">A-09 &middot; agentic</span>
-      <span class="name">chat-playground-with-agentic-research</span>
-      <span class="lede">Native function calling + Playwright web search (BYOK keys for OpenRouter / Mistral).</span>
-      <div class="links">
-        <a class="k-link" href="https://www.kaggle.com/code/taylorsamarel/duecare-chat-playground-with-agentic-research" target="_blank">Kaggle &rarr;</a>
-        <a class="k-link" href="https://github.com/TaylorAmarelTech/gemma4_comp/tree/master/kaggle/A-09-chat-playground-with-agentic-research" target="_blank">GitHub</a>
-      </div>
-    </div>
-    <div class="kr-card">
-      <span class="slot">A-10 &middot; adversarial</span>
-      <span class="name">chat-playground-jailbroken-models</span>
-      <span class="lede">Side-by-side comparison against abliterated / cracked Gemma variants; lift claim survives worst-case adversary.</span>
-      <div class="links">
-        <a class="k-link" href="https://www.kaggle.com/code/taylorsamarel/duecare-chat-playground-jailbroken-models" target="_blank">Kaggle &rarr;</a>
-        <a class="k-link" href="https://github.com/TaylorAmarelTech/gemma4_comp/tree/master/kaggle/A-10-chat-playground-jailbroken-models" target="_blank">GitHub</a>
-      </div>
-    </div>
-    <div class="kr-card">
-      <span class="slot">A-11 &middot; regenerate</span>
-      <span class="name">grading-evaluation</span>
-      <span class="lede">Runtime harness OFF/ON lift on held-constant weights. Isolates harness contribution from fine-tune effect.</span>
-      <div class="links">
-        <a class="k-link" href="https://www.kaggle.com/code/taylorsamarel/duecare-grading-evaluation" target="_blank">Kaggle &rarr;</a>
-        <a class="k-link" href="https://github.com/TaylorAmarelTech/gemma4_comp/tree/master/kaggle/A-11-grading-evaluation" target="_blank">GitHub</a>
-      </div>
-    </div>
+<div class="kr-section" data-screen-label="Shared contracts">
+  <h2>Shared contracts</h2>
+  <p class="kr-sub">The kernels are intentionally narrow wrappers around shared runtime and harness components. Exact catalog sizes are runtime metadata; static prose uses stable capability language to avoid drift.</p>
+  <div class="kr-summary">
+    <h3>What should stay true</h3>
+    <ul>
+      <li><code>01</code>, <code>02</code>, and <code>A-00</code> use the shared Gemma 4 runtime for inference model loads.</li>
+      <li>The default offline proof path uses the same chat harness primitives as the exploration workbench comparison page.</li>
+      <li>A-00 saves benchmark outputs, training artifacts, checkpoints, activity logs, and final reports under Kaggle working directories.</li>
+      <li>Archived appendix kernels should not be revived for the current submission without an explicit new decision.</li>
+    </ul>
   </div>
-</div>
-
-<div class="kr-section" data-screen-label="Extensions &middot; A-12..A-20">
-  <h2>Website-aligned extensions (A-12..A-20)</h2>
-  <p class="kr-sub">Nine extension slots that map to specific public-hub surfaces and lane-specific use cases. Each kernel emits a canonical v1.0 bundle with kernel-specific row keys (case_id, post_id, slug+version, diff_id, etc.).</p>
-  <div class="kr-grid">
-    <div class="kr-card">
-      <span class="slot">A-12 &middot; privacy fine-tune</span>
-      <span class="name">pii-fine-tune-eval</span>
-      <span class="lede"><b>PrivacyRedactor</b> LoRA adapter trained on A-10 PII synth + benchmark vs stock. Separate from SafetyJudge.</span>
-      <div class="links">
-        <a class="k-link" href="https://github.com/TaylorAmarelTech/gemma4_comp/tree/master/kaggle/A-12-pii-fine-tune-eval" target="_blank">GitHub</a>
-      </div>
-    </div>
-    <div class="kr-card">
-      <span class="slot">A-13 &middot; multimodal</span>
-      <span class="name">multimodal-document-analyzer</span>
-      <span class="lede">Image + document analyzer; Gemma 4 vision + native function calling on synthetic receipts.</span>
-      <div class="links">
-        <a class="k-link" href="https://github.com/TaylorAmarelTech/gemma4_comp/tree/master/kaggle/A-13-multimodal-document-analyzer" target="_blank">GitHub</a>
-      </div>
-    </div>
-    <div class="kr-card">
-      <span class="slot">A-14 &middot; on-device</span>
-      <span class="name">on-device-export</span>
-      <span class="lede"><b>GGUF (llama.cpp)</b> + <b>LiteRT (mobile)</b>. Closes two Special Tech tracks at $10K each.</span>
-      <div class="links">
-        <a class="k-link" href="https://github.com/TaylorAmarelTech/gemma4_comp/tree/master/kaggle/A-14-on-device-export" target="_blank">GitHub</a>
-      </div>
-    </div>
-    <div class="kr-card">
-      <span class="slot">A-15 &middot; platform safety</span>
-      <span class="name">ugc-batch-moderator</span>
-      <span class="lede">Batch moderation of inbound posts / ads / listings for Lane 01 platform safety.</span>
-      <div class="links">
-        <a class="k-link" href="https://github.com/TaylorAmarelTech/gemma4_comp/tree/master/kaggle/A-15-ugc-batch-moderator" target="_blank">GitHub</a>
-      </div>
-    </div>
-    <div class="kr-card">
-      <span class="slot">A-16 &middot; NGO local-KB</span>
-      <span class="name">ngo-local-kb</span>
-      <span class="lede">Lane 02 NGO case-file ingestion + salted-hash entity store. Local SQLite, never sent to a frontier API.</span>
-      <div class="links">
-        <a class="k-link" href="/local-kb">Local-KB page</a>
-        <a class="k-link" href="https://github.com/TaylorAmarelTech/gemma4_comp/tree/master/kaggle/A-16-ngo-local-kb" target="_blank">GitHub</a>
-      </div>
-    </div>
-    <div class="kr-card">
-      <span class="slot">A-17 &middot; researcher</span>
-      <span class="name">knowledge-pack-builder</span>
-      <span class="lede">Versioned pack builder + verifier. Content-hash signed manifests for researcher reproducibility.</span>
-      <div class="links">
-        <a class="k-link" href="/knowledge-packs">Packs page</a>
-        <a class="k-link" href="https://github.com/TaylorAmarelTech/gemma4_comp/tree/master/kaggle/A-17-knowledge-pack-builder" target="_blank">GitHub</a>
-      </div>
-    </div>
-    <div class="kr-card zero-inf">
-      <span class="slot">A-24 &middot; zero-inference</span>
-      <span class="name">demo-replay</span>
-      <span class="lede">Zero-inference scripted demo. Used in the submission video.</span>
-      <div class="links">
-        <a class="k-link" href="https://github.com/TaylorAmarelTech/gemma4_comp/tree/master/kaggle/A-24-demo-replay" target="_blank">GitHub</a>
-      </div>
-    </div>
-    <div class="kr-card">
-      <span class="slot">A-18 &middot; sentinel</span>
-      <span class="name">sentinel-research-monitor</span>
-      <span class="lede">Diff monitor over public-source feeds; proposes pack updates with reasoning trace.</span>
-      <div class="links">
-        <a class="k-link" href="/sentinel">Sentinel page</a>
-        <a class="k-link" href="https://github.com/TaylorAmarelTech/gemma4_comp/tree/master/kaggle/A-18-sentinel-research-monitor" target="_blank">GitHub</a>
-      </div>
-    </div>
-    <div class="kr-card zero-inf">
-      <span class="slot">A-19 &middot; zero-inference</span>
-      <span class="name">multilingual-demo</span>
-      <span class="lede">Same recruitment-fee scenario answered in EN / TL / NE / BN / ID. Multilingual reach made concrete. First reference for <code>write_v1_bundle</code>.</span>
-      <div class="links">
-        <a class="k-link" href="https://github.com/TaylorAmarelTech/gemma4_comp/tree/master/kaggle/A-19-multilingual-demo" target="_blank">GitHub</a>
-      </div>
-    </div>
-    <div class="kr-card zero-inf">
-      <span class="slot">A-20 &middot; zero-inference</span>
-      <span class="name">privacy-boundary</span>
-      <span class="lede">Local raw vs aggregate-share side-by-side. The "what stays on device vs what leaves" claim made concrete.</span>
-      <div class="links">
-        <a class="k-link" href="/privacy-boundary">Privacy page</a>
-        <a class="k-link" href="https://github.com/TaylorAmarelTech/gemma4_comp/tree/master/kaggle/A-20-privacy-boundary" target="_blank">GitHub</a>
-      </div>
-    </div>
-  </div>
-</div>
-
-<div class="kr-section" data-screen-label="Showcases &middot; A-21..A-23">
-  <h2>Gemma 4 feature showcases (A-21..A-23, all zero-inference)</h2>
-  <p class="kr-sub">Three demos that close the three "not yet showcased" gaps tracked in <a href="https://github.com/TaylorAmarelTech/gemma4_comp/blob/master/docs/gemma4_feature_showcase.md">gemma4_feature_showcase.md</a>. Each uses the canonical <code>duecare.appendix_primitives.write_v1_bundle()</code> emit pattern (2nd, 3rd, 4th reference implementations). All zero-inference for video recording.</p>
-  <div class="kr-grid">
-    <div class="kr-card zero-inf">
-      <span class="slot">A-21 &middot; long context</span>
-      <span class="name">long-context-demo</span>
-      <span class="lede"><b>128K context window.</b> Five-statute compliance corpus + 3 cross-statute QA pairs that each correlate 2-3 statutes in one Gemma 4 thinking step.</span>
-      <div class="links">
-        <a class="k-link" href="https://github.com/TaylorAmarelTech/gemma4_comp/tree/master/kaggle/A-21-long-context-demo" target="_blank">GitHub</a>
-      </div>
-    </div>
-    <div class="kr-card zero-inf">
-      <span class="slot">A-22 &middot; streaming</span>
-      <span class="name">streaming-demo</span>
-      <span class="lede"><b>Token streaming.</b> Server-Sent Events replay at realistic E4B-IT latencies (500ms first token, 25ms subsequent). Live first-token + token-rate stats.</span>
-      <div class="links">
-        <a class="k-link" href="https://github.com/TaylorAmarelTech/gemma4_comp/tree/master/kaggle/A-22-streaming-demo" target="_blank">GitHub</a>
-      </div>
-    </div>
-    <div class="kr-card zero-inf">
-      <span class="slot">A-23 &middot; coordinator</span>
-      <span class="name">coordinator-demo</span>
-      <span class="lede"><b>Native function calling.</b> Three scenarios where Gemma 4 emits a multi-tool plan in ONE thinking step (3-4 calls), fans out, synthesizes a single grounded response. ~3x speedup vs chat-loop equivalent.</span>
-      <div class="links">
-        <a class="k-link" href="https://github.com/TaylorAmarelTech/gemma4_comp/tree/master/kaggle/A-23-coordinator-demo" target="_blank">GitHub</a>
-      </div>
-    </div>
-  </div>
-</div>
-
-<div class="kr-summary">
-  <h3>Roster invariants (all 26 kernels)</h3>
-  <ul>
-    <li>Every kernel folder has a <code>kernel.py</code>, a <code>README.md</code> with a "Judge quick path" table (Inputs / Gemma 4 features / Outputs rows), and a <code>kernel-metadata.json</code> for the Kaggle CLI.</li>
-    <li>Every JSON-emitting kernel produces a v1.0 BundleEnvelope per <a href="https://github.com/TaylorAmarelTech/gemma4_comp/blob/master/docs/data_primitives.md">docs/data_primitives.md</a> &mdash; <code>schema_version</code> + <code>kernel_id</code> + <code>run_id</code> + <code>summary</code> + <code>results[]</code>.</li>
-    <li>Four kernels (A-19, A-21, A-22, A-23) are reference implementations of <code>duecare.appendix_primitives.write_v1_bundle()</code>; the helper module ships in <code>duecare-llm-chat v0.17.0+</code>.</li>
-    <li>Seven kernels (03, A-24, A-19, A-20, A-21, A-22, A-23) are zero-inference cached patterns &mdash; recording-friendly, no GPU required.</li>
-    <li>Static audit gate at <code>scripts/validate_public_surface.py</code> runs six checks (drift terms, route 200 sweep, five-lane order, kaggle lane labels, bundle envelope v1, manifest checksums) on every PR. Currently 0 findings.</li>
-  </ul>
 </div>
 
 </div></section>
-
 {% include "_footer.html" %}
 </body></html>

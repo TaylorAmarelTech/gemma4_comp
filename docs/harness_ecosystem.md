@@ -73,6 +73,7 @@ These are the modules exposed through `duecare.chat.harnesses`.
 | `extraction` | Draft typed KnowledgeObject envelopes from source text, documents, or process outputs. | Optional drafter; deterministic hints remain available without a model. | Implemented. |
 | `anonymization` | PII and confidential-data gate before sharing or submission. | Optional second review over already-redacted text. | Implemented. |
 | `search_safety` | Convert raw search intent into redacted or generalized search phrases before third-party search. | Optional rephrase over already-redacted query. | Implemented as a gate. |
+| `post_search_verification` | Verify search result candidates for source quality, relevance, contradictions, and deanonymization risk before prompt injection. | Optional local review over sanitized snippets; deterministic gate first. | Implemented as a gate. |
 | `search` | Run a selected search backend after query sanitization and return result cards. | Downstream only; search itself is not a model call. | Implemented utility. |
 | `import_corpus` | Store local uploaded evidence and snippets for later use by chat, process, and extraction. | No model call; supplies context to other harnesses. | Implemented utility. |
 
@@ -88,8 +89,8 @@ auditable proof artifact.
 | Content safety response harness | `harnesses/chat`, Kernel 01 compare, A-00 `chat_no_online` | Runs prompts with and without the safety stack, captures traces, and produces comparable outputs. | Implemented. |
 | Offline default proof harness | A-00 preconfigured pipeline | Uses `chat_no_online`: persona + GREP + RAG/context + deterministic tools, with internet/import disabled for the default reproducible run. | Implemented. |
 | Search anonymization harness | `harnesses/search_safety` | Redacts private facts and can ask Gemma to generalize the query before it reaches a search provider. | Implemented. |
-| Online grounding harness | `harnesses/search`, chat online layer, A-00 documented path | Intended path: prompt -> Gemma-anonymized query -> search -> page markdown -> Gemma verification -> KnowledgeObjects -> prompt injection. | Partially implemented; default A-00 run keeps it off. |
-| Post-search verification harness | Search result to extraction/chat flow | Should review downloaded pages for relevance, source quality, contradictions, and deanonymization risk before any result is injected. | Planned hardening. |
+| Online grounding harness | `harnesses/search`, `harnesses/search_safety`, `harnesses/post_search_verification`, chat online layer, A-00 documented path | Intended path: prompt -> Gemma-anonymized query -> search -> page markdown/snippets -> verification -> KnowledgeObjects -> prompt injection. | Partially implemented; default A-00 run keeps it off. |
+| Post-search verification harness | `harnesses/post_search_verification` | Reviews downloaded/search-result candidates for relevance, source quality, contradictions, and deanonymization risk before any result is injected. | Implemented first deterministic gate; deeper page-markdown review can be added. |
 | Anonymization/deanonymization review harness | `harnesses/anonymization`, A-00 `_redact` | Redacts PII, records hashes, and can run local residual-PII review before hub submission or external calls. | Implemented; external-boundary policy should stay strict. |
 | Knowledge ingestion harness | `harnesses/import_corpus`, `harnesses/extraction`, `harness/_governance.py` | Turns local files, snippets, or source bundles into reviewable, versioned knowledge objects. | Implemented. |
 | Civil-society fact intake harness | Contribute flow plus import/extraction/anonymization modules | Should process NGO/civil-society emails or submissions into sanitized fact proposals and knowledge objects. | Partially implemented through generic import/extraction; dedicated email intake remains a specialization to build. |
@@ -143,8 +144,8 @@ one runtime surface. Better wording:
 - A dedicated civil-society email intake harness is not a separate first-class
   module yet. The current path is generic import -> anonymization -> extraction
   -> reviewer promotion.
-- Post-search verification exists as a required architecture direction, but it
-  should be hardened before online grounding is used as a default benchmark
-  layer.
+- Post-search verification now exists as a registered deterministic gate, but
+  deeper page-markdown review should be added before online grounding becomes a
+  default benchmark layer.
 - External frontier judges can be configured, but the competition default must
   remain runnable without paid API keys.

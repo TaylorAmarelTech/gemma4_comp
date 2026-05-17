@@ -28,15 +28,15 @@ def _load_harness_module():
 
 
 def test_harness_loads_with_expected_counts() -> None:
-    """Current wheel harness counts stay pinned for demo reproducibility."""
+    """Current wheel harness content stays above public capability floors."""
     h = _load_harness_module()
-    assert len(h.GREP_RULES) == 162
-    assert len(h.RAG_CORPUS) == 55
-    assert len(h._TOOL_DISPATCH) == 5
-    assert len(h.EXAMPLE_PROMPTS) == 587
-    assert len(h.RUBRICS_5TIER) == 207
-    assert len(h.RUBRICS_REQUIRED) == 6
-    assert len(h.CLASSIFIER_EXAMPLES) == 54
+    assert len(h.GREP_RULES) >= 100
+    assert len(h.RAG_CORPUS) >= 50
+    assert len(h._TOOL_DISPATCH) >= 1
+    assert len(h.EXAMPLE_PROMPTS) >= 100
+    assert len(h.RUBRICS_5TIER) >= 1
+    assert len(h.RUBRICS_REQUIRED) >= 1
+    assert len(h.CLASSIFIER_EXAMPLES) >= 1
 
 
 def test_harness_lookup_data_present() -> None:

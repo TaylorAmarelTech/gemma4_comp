@@ -1,4 +1,4 @@
-# Duecare Mobile — worker-facing private checker
+﻿# Duecare Mobile — worker-facing private checker
 
 **Status: Built (sibling repo).** Lives in
 [`duecare-journey-android`](https://github.com/TaylorAmarelTech/duecare-journey-android)
@@ -26,7 +26,7 @@ not pretend to provide legal advice.
 |---|---|---|
 | Private checker | Paste / screenshot suspicious job offer or message | Built (Journal tab) |
 | On-device Gemma | Local inference for privacy | Built (MediaPipe LiteRT, Gemma 4 E2B) |
-| Offline packs | Laws, contacts, warning signs by country / corridor | Built (20 corridors hardcoded; Exchange consumption is roadmap) |
+| Offline packs | Laws, contacts, warning signs by country / corridor | Built with bundled corridor packs; Exchange consumption is roadmap |
 | Multimodal scanner | Read job ads, contracts, screenshots | Roadmap (image picker present; on-device multimodal pending) |
 | Risk explanation | Plain-language red flags | Built (Advice tab) |
 | Trusted help | Official contacts and NGOs | Built (subset of `_contacts.json` baked in; full sync via Exchange is roadmap) |
@@ -40,15 +40,15 @@ not pretend to provide legal advice.
 - MediaPipe Gemma 4 E2B running fully on-device
 - Cloud routing (Ollama / OpenAI-compat / HF Inference) as fallback
 - SQLCipher encrypted journal
-- 11 ILO Forced Labour indicators
+- ILO Forced Labour indicators
 - 20 migration corridors (Asia + GCC + LATAM + West Africa)
 - Lebanon kafala framework
 - Syria / Ukraine refugee corridor coverage
 - Add-Fee dialog auto-drafts LegalAssessment + RefundClaim
 - Reports tab generates NGO intake markdown
 - Image picker (multimodal recipe pending)
-- 42 GREP rules (subset of the 161 in the chat package)
-- 42-dim rubric (subset of the 46 in the chat package)
+- GREP-rule subset mirrored from the chat package
+- rubric subset mirrored from the chat package
 
 APK: [v0.9.0-twenty-corridors-new-rules](https://github.com/TaylorAmarelTech/duecare-journey-android/releases/download/v0.9.0-twenty-corridors-new-rules/duecare-journey-v0.9.0-twenty-corridors-new-rules.apk)
 
@@ -56,9 +56,7 @@ APK: [v0.9.0-twenty-corridors-new-rules](https://github.com/TaylorAmarelTech/due
 
 The chat package is the **canonical source** of GREP rules, RAG
 docs, rubrics, contacts, and personas. The Mobile app is a
-**codegen-mirrored** subset — the v0.9.0 app shipped with 42 of the
-161 GREP rules and 42 of the 46 rubric dimensions because that was
-the point in time when the Android codegen was run. Future versions
+**codegen-mirrored** subset. Future versions
 either:
 
 1. Pull updated subsets via the Exchange protocol (vetted packs

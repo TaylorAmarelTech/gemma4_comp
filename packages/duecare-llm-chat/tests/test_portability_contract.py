@@ -15,7 +15,8 @@ def test_portability_contract_module_evaluates_current_app():
     )
 
     assert version_key("0.17.0") >= version_key(REQUIRED_CHAT_VERSION)
-    assert REQUIRED_KO_TYPES == 28
+    assert len(KO_TYPES) >= REQUIRED_KO_TYPES
+    assert len(KO_TYPE_CATALOG) >= REQUIRED_KO_TYPES
     assert "/api/audit/workbench-inventory" in REQUIRED_APP_ENDPOINTS
     assert "/api/portability" in REQUIRED_APP_ENDPOINTS
     assert "/api/experiment-contract" in REQUIRED_APP_ENDPOINTS

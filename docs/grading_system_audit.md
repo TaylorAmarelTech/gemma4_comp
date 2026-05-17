@@ -1,4 +1,4 @@
-# Grading system audit — bugs found, fixes applied, residual gaps
+﻿# Grading system audit — bugs found, fixes applied, residual gaps
 
 > Adversarial audit of the Duecare grading system run 2026-05-06 by
 > the Gemma 4 Good Hackathon submission's automated reviewer (4
@@ -22,7 +22,7 @@ Four grading modes evaluated end-to-end:
 
 `_check_citations_against_corpus` did substring match against a single corpus blob. **"RA 10361" matched "RA 1036"** and either spuriously grounded or spuriously flagged depending on prefix overlap. User hit this in their live test — the screenshot showed RA 10361 (Batas Kasambahay) flagged as "possibly fabricated" — a real, foundational PH worker-protection statute.
 
-**Fix:** new `_word_bounded_in()` helper builds a regex with `(?<!\w)...(?!\w)` boundaries and flexible whitespace/dash handling. Plus a curated `_AUTHORITATIVE_STATUTES_ALLOWLIST` (~80 entries: RA 10361, HK Cap. 200, ILO C190, EU AI Act, FATF Recs, Saudi LRI 2024, etc.) so genuine citations don't fail just because they aren't directly in the 46-doc RAG corpus.
+**Fix:** new `_word_bounded_in()` helper builds a regex with `(?<!\w)...(?!\w)` boundaries and flexible whitespace/dash handling. Plus a curated `_AUTHORITATIVE_STATUTES_ALLOWLIST` (~80 entries: RA 10361, HK Cap. 200, ILO C190, EU AI Act, FATF Recs, Saudi LRI 2024, etc.) so genuine citations don't fail just because they aren't directly in the 50+ document RAG corpus.
 
 ### #2. Section verification too loose
 

@@ -1,4 +1,4 @@
-"""Package-level tests for duecare-llm-models. Verifies all 8 adapters register,
+"""Package-level tests for duecare-llm-models. Verifies core adapters register,
 the base helper works, and the OpenAI-compatible adapter handles errors
 cleanly without network calls."""
 
@@ -15,8 +15,8 @@ from duecare.models import model_registry, ModelAdapterBase
 
 
 class TestAdapterRegistration:
-    def test_all_8_adapters_register(self):
-        expected = {
+    def test_core_adapters_register(self):
+        required = {
             "transformers",
             "llama_cpp",
             "unsloth",
@@ -26,8 +26,8 @@ class TestAdapterRegistration:
             "google_gemini",
             "hf_inference_endpoint",
         }
-        assert set(model_registry.all_ids()) == expected
-        assert len(model_registry) == 8
+        assert required <= set(model_registry.all_ids())
+        assert len(model_registry) >= len(required)
 
     def test_registry_kind(self):
         assert model_registry.kind == "model"

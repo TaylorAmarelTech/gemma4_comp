@@ -1,4 +1,4 @@
-# Press kit
+﻿# Press kit
 
 > Materials for journalists, NGO communications staff, academics
 > writing about Duecare. All content here is freely usable —
@@ -198,8 +198,8 @@ The NGO-office walkthrough angle. Key data points:
 The technical-depth angle. Key data points:
 - 11 ILO C029 forced-labour indicators encoded
 - 12 migration corridors with statute lookups
-- 161 GREP rules for pattern detection
-- 46-doc legal RAG corpus (ILO conventions, POEA MCs, etc.)
+- 100+ GREP rules for pattern detection
+- 50+ document legal RAG corpus (ILO conventions, POEA MCs, etc.)
 - Three active Kaggle kernels for reproducibility, with A-00 exporting the quantitative evidence bundle
 
 ### "Open-source labor protection for the global south"

@@ -1,4 +1,4 @@
-# YouTube video description — Duecare submission
+﻿# YouTube video description — Duecare submission
 
 > Drop this into the YouTube "Description" field when uploading.
 > First line shows under the title; the rest expands when a viewer
@@ -8,8 +8,8 @@
 
 ## Recommended description (≤ 5,000 char limit, currently ~2,000)
 
-Duecare wraps Gemma 4 with a 6-layer safety harness (Persona / GREP /
-RAG / Imports / Tools / Online) that turns stock model output into
+Duecare wraps Gemma 4 with a harness ecosystem, including a layered chat
+harness (Persona / GREP / RAG / Imports / Tools / Online), that turns stock model output into
 migrant-worker safety infrastructure: prevention for platforms,
 assistance for NGOs and workers, and reproducible understanding for
 researchers. Sensitive case data stays in worker-controlled or
@@ -25,17 +25,16 @@ pre-stages the refund claim.
 Submission for the Gemma 4 Good Hackathon — Safety & Trust track.
 
 📊 What's in the harness (verified, not faked):
-• 161 hand-curated GREP rules across 31 pattern categories
-• 46-document RAG corpus + 46-edge citation graph across 27
+• 100+ hand-curated GREP rules across active pattern categories
+• 50+ document RAG corpus + citation graph across multiple
   jurisdictions (ILO C29/C95/C97/C143/C181/C188/C189/C190 + P029,
   POEA, BP2MI, Nepal FEA, Bangladesh OEA, HK Cap. 57/163/57A,
   SG EFMA, Saudi MoHR + kafala reforms 2021/2024, Lebanon 13166/
   2021, Kuwait 19/2018, FATF Rec. 32, Palermo, ICRMW)
-• 46-dimension universal rubric (v3.10) with 4 grading modes
-• 65-test adversarial suite across 16 attack families
-• 587 example prompts across 8 audience buckets
-• 9-variant Gemma 4 model selector (E2B / E4B / 26B-A4B / 31B + 2
-  jailbroken proofs + 3 cloud BYOK)
+• Multi-dimension universal rubric with several grading modes
+• Adversarial suite across multiple attack families
+• Large example prompt library across audience buckets
+• Gemma 4 model selector with local and optional cloud/BYOK paths
 • Interactive RAG graph viewer (force-directed SVG, arrowheads,
   search, jurisdiction filter, zoom/pan, SVG export)
 

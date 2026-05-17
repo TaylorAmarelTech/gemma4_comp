@@ -1,4 +1,4 @@
-# Duecare Trainer — model adaptation / retraining
+﻿# Duecare Trainer — model adaptation / retraining
 
 **Status: Prototype (A-00 pathway).** The active proof lives in
 [`kaggle/A-00-omni-experiment-workbench/`](../../kaggle/A-00-omni-experiment-workbench/)
@@ -45,12 +45,12 @@ be able to inspect every layer regardless of which model was loaded.
 - Synthetic screenshots / documents (the 20 bundled CC0 evidence images + 13 structured-post JSONs).
 - Regulator-provided FAQ material.
 - NGO intake scripts (subset of `_personas.json`).
-- Public laws / regulations (the 46-doc RAG corpus).
-- Rubric failure cases (the 65-test adversarial suite).
+- Public laws / regulations (the 50+ document RAG corpus).
+- Rubric failure cases from the adversarial suite.
 - Adjudicated good / bad responses (graded outputs from the A-00 combined
   rule + LLM judging phase).
 - Adversarial prompts.
-- Multilingual worker questions (587 prompts × 11 languages from `_classifier_examples.json`).
+- Multilingual worker questions from the bundled classifier examples.
 
 ## Outputs
 
@@ -59,7 +59,7 @@ be able to inspect every layer regardless of which model was loaded.
 - GGUF / llama.cpp exports
 - LiteRT / mobile exports
 - Model cards
-- Benchmark reports (universal rubric v3.10 + 65-test adversarial)
+- Benchmark reports (universal rubric + adversarial suite)
 - Safety regression results (gated by Duecare Eval)
 - Provenance manifest pinning `(model_revision, git_sha, dataset_version)`
 
@@ -78,7 +78,7 @@ Dataset builder (Unsloth chat-format JSONL with `Provenance` stamps)
   ↓
 Training (LoRA on Gemma 4 E4B baseline)
   ↓
-Evaluation framework (gates the release — must pass 65-test adversarial + rubric regression)
+Evaluation framework (gates the release — must pass adversarial + rubric regression)
   ↓
 Release (HF Hub model card + GGUF / LiteRT artifacts)
 ```

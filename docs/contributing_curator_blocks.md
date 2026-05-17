@@ -1,4 +1,4 @@
-# Contributing to Duecare's curator-block JSON files
+﻿# Contributing to Duecare's curator-block JSON files
 
 > Guide for stakeholders — NGO partners, jurists, researchers, regulators —
 > who want to PR an edit to one of the 11 curator-JSON files that drive
@@ -141,7 +141,7 @@ are mostly redundant and risk overweighting one signal.
 ### `_authoritative_statutes.json`
 
 The grader uses this list to recognise legitimate statute citations
-that aren't directly bundled in the 46-doc RAG corpus. Add an entry
+that aren't directly bundled in the 50+ document RAG corpus. Add an entry
 when a model is correctly citing a statute the grader is currently
 flagging as "possibly fabricated".
 

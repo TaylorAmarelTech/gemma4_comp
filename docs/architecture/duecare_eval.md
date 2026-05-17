@@ -11,10 +11,10 @@ proposal is safe enough to ship.
 
 | Submodule | Status | Where |
 |---|---|---|
-| Universal rubric (46 dims, v3.10) | **Built** | `harness/_rubric_universal.json` |
+| Universal rubric | **Built** | `harness/_rubric_universal.json` |
 | Domain-specific rubrics | partial — trafficking only; tax_evasion / financial_crime stubbed | `_governance.py` |
 | Evaluation questions (LLM-judge templates) | **Built** | `harness/_evaluation_questions.json` |
-| 65-test adversarial suite (16 attack families) | **Built** | `scripts/adversarial_validate.py` |
+| Adversarial suite | **Built** | `scripts/adversarial_validate.py` |
 | Model comparison (stock vs harnessed, OFF/ON ablation) | **Built** | A/B Compare tab + `▸ Run ablation` button |
 | Regression tests | **Partial** | sanitizer regression suite at `tests/test_model_output.py`; full gate post-hackathon |
 | Benchmark notebooks | **Built** | `kaggle/A-00-omni-experiment-workbench/` combined judging and report path |
@@ -23,7 +23,7 @@ proposal is safe enough to ship.
 ## Four grade modes
 
 1. **Universal** (deterministic, ~2s) — multi-signal scoring across
-   all 46 rubric dimensions; checks keyword + cluster + token-overlap
+   current rubric dimensions; checks keyword + cluster + token-overlap
    against `pass_indicators` / `fail_indicators` arrays.
 2. **Expert** (legacy per-category) — for backwards compatibility.
 3. **Evaluator** (LLM-as-judge, ~30-90s) — sends response back to
@@ -49,25 +49,25 @@ catalogs). Hallucinated quotes are demoted to PARTIAL.
 
 `_baseline_gauge.json` ships with honest disclosure: stock 6% /
 harnessed 88% measured against v3.5 rubric (19 dims); v3.10
-re-measurement (46 dims) is pending GPU budget. Live grader uses
-v3.10. The gauge is labeled "(v3.5)" so users don't mistake it for
-a current measurement.
+current-rubric re-measurement is pending GPU budget. Live grader uses
+the current rubric. The gauge is labeled with its rubric version so
+users don't mistake it for a current measurement.
 
 ## Reproducibility tuple
 
 Every grade carries `(model_revision, git_sha, dataset_version)`.
-The "+56.5pp" headline regenerates live via notebook A11
-(`grading-evaluation`) or via a single-button `▸ Run ablation` in
+The "+56.5pp" headline regenerates live via the active evaluation
+path or via a single-button `▸ Run ablation` in
 the chat UI (4 generations OFF / GREP / RAG / BOTH).
 
 ## Roadmap
 
 - **Full CI regression gate** — every curator-block PR runs the
-  adversarial suite + 207-prompt eval set; blocks merge if pass-rate
+  adversarial suite + benchmark eval set; blocks merge if pass-rate
   drops more than threshold.
 - **Domain rubric expansion** — explicit tax_evasion +
   financial_crime + child_protection rubrics with their own
   evaluator-question packs.
 - **Cross-model comparison harness** — Gemma 4 vs other open
-  models on the same 46-dim rubric; today only Gemma 4 + cloud
+  models on the same rubric; today only Gemma 4 + cloud
   fallbacks are wired.

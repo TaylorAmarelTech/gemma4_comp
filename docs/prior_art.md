@@ -1,4 +1,4 @@
-# Prior Art and Adjacent Work — Duecare Journey
+﻿# Prior Art and Adjacent Work — Duecare Journey
 
 Related projects, datasets, and academic work in the conceptual neighborhood of
 Duecare Journey (on-device Gemma 4 E2B Android app for migrant-worker legal
@@ -65,8 +65,8 @@ with **(cite)** are close enough that we should reference them in the writeup;
   port to Cactus. **(build-on)**
 - **Google AI Edge Gallery** — https://ai.google.dev/edge/mediapipe/solutions/genai/llm_inference/android.
   Google's reference Android app for LiteRT-LM + Gemma 4. Generic chat,
-  no domain. **Duecare differs:** domain-loaded with 161 GREP rules,
-  46-doc RAG corpus, 4 lookup tools. **(build-on)** — same stack.
+  no domain. **Duecare differs:** domain-loaded with 100+ GREP rules,
+  50+ document RAG corpus, 4 lookup tools. **(build-on)** — same stack.
 - **OfflineLLM (jegly)** — https://github.com/jegly/OfflineLLM. Kotlin +
   Compose + llama.cpp ARM NEON. MIT-licensed reference for the runtime
   pattern. **Duecare differs:** legal-advice domain, encrypted journal,

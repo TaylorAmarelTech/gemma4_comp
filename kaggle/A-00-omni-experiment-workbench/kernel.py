@@ -317,6 +317,7 @@ try:
     )
     from duecare.chat.gemma4_runtime import Gemma4LoadSpec, Gemma4Runtime, resolve_model_ref
     from duecare.chat.harness import grade_response_combined, grade_response_universal
+    from duecare.chat.harnesses.model_interface import call_model_backend
     from duecare.chat.kernel_shell import build_minimal_shell
     from duecare.chat.portability import model_variant_map
     from duecare.chat.portability import reference_portability_contract_payload
@@ -2181,24 +2182,65 @@ def _ollama_api_endpoint(source: str) -> str:
     return f"{base}/chat" if base.endswith("/api") else f"{base}/api/chat"
 
 
-def _ollama_model_call_factory(*, source: str, model_ref: str, endpoint: str, api_key: str) -> Any:
-    timeout = float(os.environ.get("DUECARE_A00_OLLAMA_TIMEOUT_SEC", "240"))
+def _record_external_judge_response(provider: str, model_ref: str, endpoint: str, response: Any) -> None:
+    usage = dict(getattr(response, "usage", None) or {})
+    event = {
+        "ts": _utc(),
+        "provider": provider,
+        "model_ref": model_ref,
+        "endpoint": endpoint,
+        "usage": usage,
+        "latency_ms": getattr(response, "latency_ms", None),
+        "finish_reason": getattr(response, "finish_reason", ""),
+    }
+    STATE.setdefault("judge_model_usage_events", []).append(event)
+    STATE["judge_model_last_usage"] = event
 
-    def call(prompt: str) -> str:
+
+class _OllamaJudgeBackend:
+    """Tiny chat adapter so A-00 external judging uses call_model_backend."""
+
+    provider = "ollama"
+
+    def __init__(self, *, source: str, model_ref: str, endpoint: str, api_key: str, timeout: float) -> None:
+        self.source = source
+        self.model_ref = model_ref
+        self.endpoint = endpoint
+        self.api_key = api_key
+        self.timeout = timeout
+        self.id = source
+
+    def chat(
+        self,
+        messages: list[dict[str, Any]],
+        tools: Any = None,
+        images: Any = None,
+        max_tokens: int = 1024,
+        temperature: float = 0.0,
+        **kwargs: Any,
+    ) -> dict[str, Any]:
         if requests is None:
             raise RuntimeError("requests is required for Ollama judging")
         headers = {"Content-Type": "application/json"}
-        if api_key:
-            headers["Authorization"] = f"Bearer {api_key}"
+        if self.api_key:
+            headers["Authorization"] = f"Bearer {self.api_key}"
+        options: dict[str, Any] = {
+            "temperature": temperature,
+            "num_predict": max_tokens,
+        }
+        if kwargs.get("top_p") is not None:
+            options["top_p"] = kwargs["top_p"]
+        if kwargs.get("top_k") is not None:
+            options["top_k"] = kwargs["top_k"]
         payload = {
-            "model": model_ref,
-            "messages": [{"role": "user", "content": prompt}],
+            "model": self.model_ref,
+            "messages": messages,
             "stream": False,
-            "format": "json",
-            "options": {"temperature": 0},
+            "format": "json" if kwargs.get("response_format") == "json" else kwargs.get("response_format") or "json",
+            "options": options,
         }
         t0 = time.perf_counter()
-        resp = requests.post(endpoint, headers=headers, json=payload, timeout=timeout)
+        resp = requests.post(self.endpoint, headers=headers, json=payload, timeout=self.timeout)
         elapsed = time.perf_counter() - t0
         if resp.status_code >= 400:
             raise RuntimeError(f"Ollama judge HTTP {resp.status_code}: {resp.text[:500]}")
@@ -2211,40 +2253,93 @@ def _ollama_model_call_factory(*, source: str, model_ref: str, endpoint: str, ap
             content = str(data.get("response") or "")
         if not content:
             raise RuntimeError(f"Ollama judge returned no content: {str(data)[:500]}")
+        usage = {
+            "prompt_tokens": data.get("prompt_eval_count") if isinstance(data, dict) else None,
+            "completion_tokens": data.get("eval_count") if isinstance(data, dict) else None,
+            "prompt_eval_duration": data.get("prompt_eval_duration") if isinstance(data, dict) else None,
+            "eval_duration": data.get("eval_duration") if isinstance(data, dict) else None,
+        }
+        return {
+            "text": content,
+            "model": self.model_ref,
+            "provider": self.source,
+            "usage": {k: v for k, v in usage.items() if v is not None},
+            "latency_ms": int(elapsed * 1000),
+            "raw": data,
+        }
+
+
+def _ollama_model_call_factory(*, source: str, model_ref: str, endpoint: str, api_key: str) -> Any:
+    timeout = float(os.environ.get("DUECARE_A00_OLLAMA_TIMEOUT_SEC", "240"))
+    backend = _OllamaJudgeBackend(
+        source=source,
+        model_ref=model_ref,
+        endpoint=endpoint,
+        api_key=api_key,
+        timeout=timeout,
+    )
+
+    def call(prompt: str) -> str:
+        response = call_model_backend(
+            backend,
+            prompt,
+            max_tokens=900,
+            temperature=0.0,
+            response_format="json",
+        )
+        _record_external_judge_response(source, model_ref, endpoint, response)
         dc_log(
             "a00.ollama_judge.call",
             f"model={model_ref}",
             source=source,
             endpoint=endpoint,
-            seconds=round(elapsed, 3),
-            prompt_tokens=data.get("prompt_eval_count") if isinstance(data, dict) else None,
-            output_tokens=data.get("eval_count") if isinstance(data, dict) else None,
+            seconds=round((response.latency_ms or 0) / 1000, 3),
+            prompt_tokens=(response.usage or {}).get("prompt_tokens"),
+            output_tokens=(response.usage or {}).get("completion_tokens"),
         )
-        return content
+        return response.text
 
     return call
 
 
-def _anthropic_model_call_factory(*, source: str, model_ref: str, endpoint: str, api_key: str) -> Any:
-    timeout = float(os.environ.get("DUECARE_A00_ANTHROPIC_TIMEOUT_SEC", "240"))
-    version = os.environ.get("ANTHROPIC_VERSION", "2023-06-01")
+class _AnthropicJudgeBackend:
+    """Tiny chat adapter so Claude judging shares the harness model path."""
 
-    def call(prompt: str) -> str:
+    provider = "anthropic"
+
+    def __init__(self, *, source: str, model_ref: str, endpoint: str, api_key: str, timeout: float, version: str) -> None:
+        self.source = source
+        self.model_ref = model_ref
+        self.endpoint = endpoint
+        self.api_key = api_key
+        self.timeout = timeout
+        self.version = version
+        self.id = source
+
+    def chat(
+        self,
+        messages: list[dict[str, Any]],
+        tools: Any = None,
+        images: Any = None,
+        max_tokens: int = 1024,
+        temperature: float = 0.0,
+        **kwargs: Any,
+    ) -> dict[str, Any]:
         if requests is None:
             raise RuntimeError("requests is required for Anthropic judging")
         headers = {
             "Content-Type": "application/json",
-            "x-api-key": api_key,
-            "anthropic-version": version,
+            "x-api-key": self.api_key,
+            "anthropic-version": self.version,
         }
         payload = {
-            "model": model_ref,
-            "max_tokens": 900,
-            "temperature": 0,
-            "messages": [{"role": "user", "content": prompt}],
+            "model": self.model_ref,
+            "max_tokens": max_tokens,
+            "temperature": temperature,
+            "messages": messages,
         }
         t0 = time.perf_counter()
-        resp = requests.post(endpoint, headers=headers, json=payload, timeout=timeout)
+        resp = requests.post(self.endpoint, headers=headers, json=payload, timeout=self.timeout)
         elapsed = time.perf_counter() - t0
         if resp.status_code >= 400:
             raise RuntimeError(f"Anthropic judge HTTP {resp.status_code}: {resp.text[:500]}")
@@ -2260,16 +2355,47 @@ def _anthropic_model_call_factory(*, source: str, model_ref: str, endpoint: str,
         if not content:
             raise RuntimeError(f"Anthropic judge returned no text content: {str(data)[:500]}")
         usage = data.get("usage", {}) if isinstance(data, dict) else {}
+        return {
+            "text": content,
+            "model": self.model_ref,
+            "provider": self.source,
+            "usage": dict(usage) if isinstance(usage, dict) else {},
+            "latency_ms": int(elapsed * 1000),
+            "raw": data,
+        }
+
+
+def _anthropic_model_call_factory(*, source: str, model_ref: str, endpoint: str, api_key: str) -> Any:
+    timeout = float(os.environ.get("DUECARE_A00_ANTHROPIC_TIMEOUT_SEC", "240"))
+    version = os.environ.get("ANTHROPIC_VERSION", "2023-06-01")
+    backend = _AnthropicJudgeBackend(
+        source=source,
+        model_ref=model_ref,
+        endpoint=endpoint,
+        api_key=api_key,
+        timeout=timeout,
+        version=version,
+    )
+
+    def call(prompt: str) -> str:
+        response = call_model_backend(
+            backend,
+            prompt,
+            max_tokens=900,
+            temperature=0.0,
+            response_format="json",
+        )
+        _record_external_judge_response(source, model_ref, endpoint, response)
         dc_log(
             "a00.anthropic_judge.call",
             f"model={model_ref}",
             source=source,
             endpoint=endpoint,
-            seconds=round(elapsed, 3),
-            input_tokens=usage.get("input_tokens") if isinstance(usage, dict) else None,
-            output_tokens=usage.get("output_tokens") if isinstance(usage, dict) else None,
+            seconds=round((response.latency_ms or 0) / 1000, 3),
+            input_tokens=(response.usage or {}).get("input_tokens"),
+            output_tokens=(response.usage or {}).get("output_tokens"),
         )
-        return content
+        return response.text
 
     return call
 

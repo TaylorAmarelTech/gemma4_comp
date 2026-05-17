@@ -1,4 +1,4 @@
-# Stock Gemma 4 vs Duecare-Harnessed Gemma 4 — concrete examples
+﻿# Stock Gemma 4 vs Duecare-Harnessed Gemma 4 — concrete examples
 
 > **For judges who want to see the lift before booting a notebook.**
 > Five judge-impact prompts, side-by-side. Stock = raw Gemma 4 31B
@@ -6,7 +6,7 @@
 > (Persona / GREP / RAG / Tools / Online) ON.
 >
 > **Composite responses, generated 2026-05-04** under harness v3.15
-> (161 GREP rules); the v3.16 expansion to 161 rules adds coverage,
+> (100+ GREP rules); later additive rule maintenance adds coverage,
 > not regression. To regenerate against current `git HEAD`, open the
 > A6 notebook `duecare-grading-evaluation` on Kaggle and set
 > `DUECARE_EVAL_PROMPT_IDS=textbook_loan_68pct,textbook_loan_18pct,traf_002,traf_009,traf_001`.

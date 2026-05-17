@@ -48,6 +48,8 @@ MODEL_CAPABILITIES: tuple[str, ...] = (
     "grading",
     "privacy_review",
     "query_rewrite",
+    "safety_filtering",
+    "evidence_tracing",
     "synthetic_data",
     "fine_tuning",
 )

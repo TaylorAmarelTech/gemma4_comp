@@ -2204,8 +2204,8 @@ def create_app(
           {chat_package: "<from importlib.metadata>",
            harness: {rubric_version: "<live rubric version>",
                      n_dimensions: <live count>,
-                     n_evaluation_questions: <live count>, n_grep_rules: 162,
-                     n_rag_docs: 55, n_tools: 5, n_examples: 587,
+                     n_evaluation_questions: <live count>, n_grep_rules: <live count>,
+                     n_rag_docs: <live count>, n_tools: <live count>, n_examples: <live count>,
                      n_classifier_signals: <auto>, n_authoritative_statutes: <auto>,
                      n_use_cases: 7, n_languages: 12},
            curator_blocks: [{name, schema, version, last_updated, n_entries}],
@@ -3128,7 +3128,7 @@ def create_app(
         """Run the GREP layer against caller-supplied text and return
         the firing rules without invoking Gemma. Powers the live regex
         tester at /static/grep-tester.html — paste any text, see
-        which of the 161 rules match.
+        which of the current GREP rules match.
 
         Request body: {"text": "..."}
         Response shape:
@@ -4041,6 +4041,15 @@ def create_app(
     # ---------------------------------------------------------------
     from .harnesses import search as _search_harness
     _search_harness.register_routes(app)
+
+    # ---------------------------------------------------------------
+    # /api/search/verify-results -- delegated to the post-search
+    # verification harness. Search results are untrusted candidates until
+    # this gate scores source quality, relevance, contradictions, and
+    # deanonymization risk.
+    # ---------------------------------------------------------------
+    from .harnesses import post_search_verification as _post_search_verification_harness
+    _post_search_verification_harness.register_routes(app)
 
     # ---------------------------------------------------------------
     # Retrieval configuration (v0.14.0).

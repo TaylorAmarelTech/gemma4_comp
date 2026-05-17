@@ -1,4 +1,4 @@
-# For Hackathon Judges — Verify Duecare in 5 minutes
+﻿# For Hackathon Judges — Verify Duecare in 5 minutes
 
 > **Canonical reviewer entry doc:** [`FOR_PEER_REVIEW.md`](FOR_PEER_REVIEW.md).
 > This page is the hackathon-specific quick path. The peer-review doc is
@@ -40,9 +40,9 @@ behind them are post-hackathon.
 Channels is documented but post-hackathon.
 
 The harness wraps Gemma 4 with retrieval (BM25 + optional hybrid
-dense-retrieval), structural document chunking, 161 hand-curated
-trafficking-pattern rules, a 54-doc RAG corpus + 46-edge citation
-graph, and a 4-mode grading stack — turning stock Gemma into a
+dense-retrieval), structural document chunking, 100+ hand-curated
+trafficking-pattern rules, a 50+ document RAG corpus + citation
+graph, and a multi-mode grading stack — turning stock Gemma into a
 domain-specialised LLM safety judge for migrant-worker trafficking
 scenarios. The five canonical lanes are **(1) Platform safety,
 (2) NGO & regulator, (3) Individual worker / mobile, (4) Researcher,
@@ -64,13 +64,13 @@ A-00 omni experiment workbench. Retired notebook-era surfaces are historical.
 
 | Claim | Verify at |
 |---|---|
-| **46 grading dimensions** (universal rubric v3.10) | `packages/duecare-llm-chat/src/duecare/chat/harness/_rubric_universal.json` |
-| **161 GREP rules across 31 categories** (crypto / scam-compound / gig-economy / BNPL / Ukrainian + Afghan corridors / Pacific RSE-PALM / sub-Saharan / EU posted workers / climate-displaced / intra-community / domestic-to-sex-work transition / cross-platform signals) | `packages/duecare-llm-chat/src/duecare/chat/harness/__init__.py` (`GREP_RULES = [...]`) |
-| **587 example prompts across 8 audience buckets** (model_capability / enterprise_moderation / ngo_intake / individual_query / research / image_prompts / data_intelligence / regulator_audit) | `packages/duecare-llm-chat/src/duecare/chat/harness/_examples.json` |
-| **20 bundled CC0 synthetic-evidence images + 13 structured-post JSONs** with watermarks + sidecar JSONs + cross-platform-signal links | `packages/duecare-llm-chat/src/duecare/chat/static/synthetic/` + `static/synthetic/posts/` |
-| **54-doc curated RAG corpus** (ILO C29/C95/C97/C143/C181/C188/C189/C190/P029, fair-recruitment guidance, POEA/BP2MI/Nepal/HK/SG/UAE statutes, WHO Global Code, EU 2024 ATD amendment, ASEAN ACTIP, CoE 197, CEDAW GR 38, UNCRC, UNODC/IOM/FATF typologies, Pacific Climate Mobility, Bali Process) | `packages/duecare-llm-chat/src/duecare/chat/harness/__init__.py` (`RAG_CORPUS = [...]`) |
-| **46-edge citation graph** for 1-hop graph expansion at retrieval time | `packages/duecare-llm-chat/src/duecare/chat/harness/_citations.json` |
-| **65-test adversarial validation suite across 16 attack families** including new structured-data-attack / image-injection / regulator-impersonation / multilingual-jailbreak | `scripts/adversarial_validate.py` + `reports/adversarial_*.md` (run output) |
+| **Multi-dimension universal rubric** | `packages/duecare-llm-chat/src/duecare/chat/harness/_rubric_universal.json` |
+| **100+ GREP rules across active categories** (crypto / scam-compound / gig-economy / BNPL / Ukrainian + Afghan corridors / Pacific RSE-PALM / sub-Saharan / EU posted workers / climate-displaced / intra-community / domestic-to-sex-work transition / cross-platform signals) | `packages/duecare-llm-chat/src/duecare/chat/harness/__init__.py` (`GREP_RULES = [...]`) |
+| **Large example prompt library across audience buckets** (model_capability / enterprise_moderation / ngo_intake / individual_query / research / image_prompts / data_intelligence / regulator_audit) | `packages/duecare-llm-chat/src/duecare/chat/harness/_examples.json` |
+| **Bundled CC0 synthetic-evidence images + structured-post JSONs** with watermarks + sidecar JSONs + cross-platform-signal links | `packages/duecare-llm-chat/src/duecare/chat/static/synthetic/` + `static/synthetic/posts/` |
+| **50+ document curated RAG corpus** (ILO C29/C95/C97/C143/C181/C188/C189/C190/P029, fair-recruitment guidance, POEA/BP2MI/Nepal/HK/SG/UAE statutes, WHO Global Code, EU 2024 ATD amendment, ASEAN ACTIP, CoE 197, CEDAW GR 38, UNCRC, UNODC/IOM/FATF typologies, Pacific Climate Mobility, Bali Process) | `packages/duecare-llm-chat/src/duecare/chat/harness/__init__.py` (`RAG_CORPUS = [...]`) |
+| **Citation graph** for 1-hop graph expansion at retrieval time | `packages/duecare-llm-chat/src/duecare/chat/harness/_citations.json` |
+| **Adversarial validation suite across multiple attack families** including new structured-data-attack / image-injection / regulator-impersonation / multilingual-jailbreak | `scripts/adversarial_validate.py` + `reports/adversarial_*.md` (run output) |
 | **`evaluator_call` hook for separating LLM-judge model from chat model** (v0.13.0; abliterated / frontier / larger-Gemma patterns supported, Kaggle-default in-process self-grade due to VRAM) | `packages/duecare-llm-chat/src/duecare/chat/app.py:_evaluator_model_call` |
 | **Hybrid retrieval** — BM25 + optional dense + RRF fusion, with reranker hook | `app.py:_hybrid_fuse_with_dense` + `kernel_helpers/embedding.py` |
 | **Path tracing** — every retrieval-pipeline stage logged | `app.py:_path_trace_record` + chat UI's "RETRIEVAL PATH TRACE" card |
@@ -188,7 +188,7 @@ app = create_app(
   phone-number prefixes. See `LICENSES.md` for the synthetic-
   disclaimer.
 - It does not claim to detect every trafficking pattern in the world.
-   161 GREP rules + 54 RAG docs + 46 citation edges cover the major
+   100+ GREP rules + 50+ RAG docs + 46 citation edges cover the major
   documented vectors well, but new patterns appear weekly — the
   curator-block JSON pattern lets stakeholders contribute updates
   without a code change.

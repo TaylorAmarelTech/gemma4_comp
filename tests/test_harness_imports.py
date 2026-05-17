@@ -79,7 +79,13 @@ def test_harness_capabilities_are_valid(harness):
     assert isinstance(caps, (tuple, dict)), \
         f"{harness.name}.capabilities must be a tuple or dict"
     cap_names = caps.keys() if isinstance(caps, dict) else caps
-    valid = VALID_CAPABILITIES | {"sanitize_query", "block_query"}
+    valid = VALID_CAPABILITIES | {
+        "sanitize_query",
+        "block_query",
+        "verify_search_results",
+        "score_source_quality",
+        "detect_deanonymization_risk",
+    }
     for cap in cap_names:
         assert cap in valid, (
             f"{harness.name}.capabilities contains unknown capability "
@@ -88,7 +94,19 @@ def test_harness_capabilities_are_valid(harness):
 
 
 def test_primary_registry_locked():
-    """The 5 primary safety surfaces must be present and named exactly as expected."""
+    """The required primary safety surfaces must be present.
+
+    Additional primary harnesses are allowed; this avoids a brittle exact-count
+    assertion every time a new safety gate is added.
+    """
     names = {h.name for h in PRIMARY_HARNESSES}
-    assert names == {"chat", "process", "extraction", "anonymization", "search_safety"}, \
-        f"primary harness set drifted: {sorted(names)}"
+    required = {
+        "chat",
+        "process",
+        "extraction",
+        "anonymization",
+        "search_safety",
+        "post_search_verification",
+    }
+    assert required.issubset(names), \
+        f"primary harness set is missing required surfaces: {sorted(required - names)}"

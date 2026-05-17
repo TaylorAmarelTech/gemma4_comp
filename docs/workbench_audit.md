@@ -1,4 +1,4 @@
-# DueCare Workbench — UI/UX audit, rubric, and proposed architecture
+﻿# DueCare Workbench — UI/UX audit, rubric, and proposed architecture
 
 > Three things in one document:
 > 1. A **rubric and design principles** for what the workbench must be (and must not be).
@@ -125,9 +125,9 @@ backgrounds, same Inter + JetBrains Mono fonts, same civic-tech accent.
 
 ### P11. Every claim is verifiable from the workbench
 
-If the README says "161 GREP rules", clicking through must show all
-161. If it says "46 RAG docs across 27 jurisdictions", clicking through
-must show that too. The workbench is the proof of every public claim.
+If the README says "100+ GREP rules", clicking through must show the current
+runtime GREP catalog. If it says "50+ RAG docs", clicking through must show the
+current runtime RAG corpus. The workbench is the proof of every public claim.
 
 - **Do:** cross-link counts from README → live API → live page.
 - **Don't:** leave headline numbers as static text in a doc with no
@@ -223,9 +223,9 @@ must preserve identical behaviour, just on a less-crowded page.
 | `index.html` | All | Chat (currently overloaded — does chat + harness picker + grade + pipeline + import) |
 | `harness.html` | All | Layer catalog index (6 cards) |
 | `persona.html` | All | Persona library |
-| `grep-rules.html` | Researcher / Dev | 161 GREP rules table with citations + fire counts |
+| `grep-rules.html` | Researcher / Dev | 100+ GREP rules table with citations + fire counts |
 | `grep-tester.html` | All | Paste any text → see fired rules (no LLM) |
-| `rag-corpus.html` | NGO / Researcher | 46 RAG docs by jurisdiction with full text + neighbours |
+| `rag-corpus.html` | NGO / Researcher | 50+ RAG docs by jurisdiction with full text + neighbours |
 | `rag-graph.html` | Researcher | Force-directed citation graph |
 | `tools.html` | Dev | 5 function-calling tools + backing tables |
 | `online.html` | Dev | Web search provider config |
@@ -370,7 +370,7 @@ perceived quality lift.
 ### What this audit does NOT change
 
 - Existing API contracts (every endpoint stays at the same path)
-- Existing layer counts (161 / 46 / 5 / 6 / 12 stay verbatim)
+- Current layer counts come from runtime metadata rather than fixed prose.
 - Existing wheel format (still a chat-package wheel)
 - The duecare-ai.com public website (this is the *Kaggle* notebook)
 - The 02-live-demo notebook (stays the focused walkthrough)

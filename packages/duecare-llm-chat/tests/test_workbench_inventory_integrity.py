@@ -28,15 +28,17 @@ def _sample_manifest() -> dict:
 
 def test_workbench_inventory_endpoint_covers_pages_harnesses_samples_and_taxonomy():
     from duecare.chat.app import KO_BRANCHES, KO_TYPES
+    from duecare.chat.harnesses import all_harnesses
     from duecare.chat.portability import REQUIRED_CHAT_VERSION, REQUIRED_SAMPLE_FILES
 
+    expected_harness_names = {module.name for module in all_harnesses()}
     client = _client()
     response = client.get("/api/audit/workbench-inventory")
     assert response.status_code == 200, response.text
     data = response.json()
 
     assert data["schema_version"] == "duecare.workbench_inventory.v1"
-    assert data["counts"]["harnesses"] == 7
+    assert data["counts"]["harnesses"] == len(expected_harness_names)
     assert data["counts"]["knowledge_types"] == len(KO_TYPES)
     assert data["counts"]["knowledge_branches"] == len(set(KO_BRANCHES.values()))
     assert data["counts"]["knowledge_types_with_catalog"] == len(KO_TYPES)
@@ -71,15 +73,7 @@ def test_workbench_inventory_endpoint_covers_pages_harnesses_samples_and_taxonom
     assert data["samples"]["missing_referenced_samples"] == []
     assert data["samples"]["manifest_entries_without_file"] == []
     assert data["samples"]["unmanifested_sample_files"] == []
-    assert {h["name"] for h in data["harnesses"]["harnesses"]} == {
-        "chat",
-        "process",
-        "extraction",
-        "anonymization",
-        "search_safety",
-        "search",
-        "import_corpus",
-    }
+    assert {h["name"] for h in data["harnesses"]["harnesses"]} == expected_harness_names
     assert any(e["path"] == "/api/knowledge/import" for e in data["import_export"]["endpoints"])
     assert any(e["path"] == "/api/knowledge/export" for e in data["import_export"]["endpoints"])
 

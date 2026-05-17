@@ -45,6 +45,6 @@ def test_hub_harness_consumes_emits_are_tuples(hub_harnesses):
         assert isinstance(getattr(h, "emits", None), tuple)
 
 
-def test_hub_primary_harnesses_locked(primary_harnesses):
+def test_hub_primary_harnesses_include_core_surfaces(primary_harnesses):
     names = {h.name for h in primary_harnesses}
-    assert names == {"curator", "sentinel", "submit"}
+    assert {"curator", "sentinel", "submit"} <= names

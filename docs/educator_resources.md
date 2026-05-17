@@ -1,4 +1,4 @@
-# Educator resources — using Duecare in the classroom
+﻿# Educator resources — using Duecare in the classroom
 
 > **Audience.** Social work professors, migration studies faculty,
 > AI ethics instructors, journalism schools, law school clinics,
@@ -88,7 +88,7 @@ undergrad CS practicum.
 
 **In session:**
 - 30 min: tour of the bundled domain content — 11 ILO indicators,
-  6 corridors, 161 GREP rules, 46 RAG docs
+  6 corridors, 100+ GREP rules, 50+ RAG docs
 - 60 min: each participant picks a corridor or pattern not in the
   bundled corpus (e.g., GH-LB if they work in Ghana migration; a
   state-specific anti-fraud regulation; a domain-specific scam

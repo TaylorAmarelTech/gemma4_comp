@@ -1,18 +1,18 @@
-# Architecture — Duecare migrant-worker safety platform
+﻿# Architecture — Duecare migrant-worker safety platform
 
 > Comprehensive component-level architecture for the Gemma 4 Good Hackathon
 > submission. This is the single source of truth for what modules exist,
 > what they own, and how they fit together.
 >
 > Audience: anyone (human or AI) picking up this project.
-> Last updated: 2026-05-08.
+> Last updated: 2026-05-17.
 
-> **Post-Phase 15 update:** The canonical architecture doc is now
+> **Current update:** The canonical harness architecture doc is now
 > [`docs/harness_pattern.md`](harness_pattern.md). This document
 > remains as historical context; for the current harness contract
 > + per-task training-data flow + e2e flywheel, start there.
 
-> **Eight-component platform framing (canonical as of v0.14.7):**
+> **Eight-component platform framing (current competition scope):**
 >
 > | # | Component | Status |
 > |---|---|---|
@@ -37,19 +37,18 @@
 > shape changed substantially since v0.1 architecture was drafted.
 > Quick orientation:
 >
-> **6 harness layers** (was 4): Persona / GREP / RAG / Tools / **Online**
+> **Layered chat harness:** Persona / GREP / RAG / Tools / **Online**
 > (live web search; kernel-supplied so notebook owners swap backends
 > without bumping the wheel).
 >
-> **4 grade modes** (was 1): Universal (deterministic 21-dimension
+> **Multiple grade modes:** Universal (deterministic multi-dimension
 > multi-signal) / Expert (legacy per-category) / **Deep** (LLM-as-
 > judge — sends response back to the loaded Gemma with one yes/no
 > question per dimension; pulls evidence quotes from the response) /
 > **Combined** (50/50 blend with disagreement panel).
 >
-> **9-variant model selector**: on-device Gemma 4 E2B/E4B/26B-A4B/
-> 31B + 2 jailbroken (abliterated) + 3 cloud BYOK (Gemini /
-> OpenAI-compat / Ollama).
+> **Model selector:** local Gemma 4 variants plus optional cloud/BYOK
+> evaluator paths.
 >
 > **Three-kernel submission**: reviewers land on
 > `duecare-exploration-workbench` (broad workbench), `duecare-live-demo`
@@ -59,10 +58,9 @@
 > **`/api/health-check`** smoke endpoint returns wired layers +
 > grade modes + harness counts + model info in one shot.
 >
-> **Bundled content (now):** 161 GREP rules / 46 RAG docs / 5 tools /
-> 46-dim universal rubric / 46 LLM-judge questions / 8 ILO conventions
-> / 16 corridors / 25 fee-camouflage labels / 12 NGO intake groups /
-> 587 example prompts.
+> **Bundled content (now):** 100+ GREP rules / 50+ RAG docs / tool bundle /
+> universal rubric / LLM-judge questions / ILO conventions / corridors /
+> fee-camouflage labels / NGO intake groups / large example-prompt library.
 >
 > The component-level design below is still authoritative; only the
 > chat package's surface area has expanded.
@@ -327,14 +325,14 @@ output is folded into the final context.
          │
          v
 ┌──────────────────┐
-│  [c] GREP        │   108 regex/keyword rules across 16 categories
+│  [c] GREP        │   100+ regex/keyword rules across active categories
 │  (toggle)        │   matched against user text -> ILO + statute
 │                  │   citations + indicator descriptions
 └────────┬─────────┘
          │
          v
 ┌──────────────────┐
-│  [d] RAG         │   BM25 over 46-doc corpus (ILO conventions,
+│  [d] RAG         │   BM25 over 50+ document corpus (ILO conventions,
 │  (toggle)        │   POEA/BP2MI/Nepal/HK statutes, Saudi MoHR,
 │                  │   Palermo Art. 3(b), ICRMW, Hague, kafala
 │                  │   reforms, substance-over-form anchor)
