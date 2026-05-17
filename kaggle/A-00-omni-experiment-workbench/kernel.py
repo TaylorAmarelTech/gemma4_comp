@@ -314,6 +314,26 @@ try:
 except Exception as exc:  # noqa: BLE001
     raise SystemExit(f"DueCare shell import failed: {type(exc).__name__}: {exc}")
 
+# Shared harness layer callables. A-00 uses these as the authoritative GREP /
+# RAG / tools sources so chat_no_online parity with Kernel 01's
+# default_harness() is real. Pack-level rules/facts from STATE["packs"] are
+# folded in via the extra_rules/extra_docs hooks (additive, not replacement),
+# preserving A-00's pack extensibility. Defensive try/except: if the import
+# ever fails, A-00 still runs against pack-only sources via the fallback path
+# in _build_harness_prompt.
+try:
+    from duecare.chat.harness import (
+        _grep_call as _shared_grep_call,
+        _rag_call as _shared_rag_call,
+        _tools_call as _shared_tools_call,
+    )
+    _SHARED_HARNESS_AVAILABLE = True
+except Exception:  # noqa: BLE001
+    _shared_grep_call = None  # type: ignore[assignment]
+    _shared_rag_call = None  # type: ignore[assignment]
+    _shared_tools_call = None  # type: ignore[assignment]
+    _SHARED_HARNESS_AVAILABLE = False
+
 
 set_kernel_id("a-00-omni-experiment")
 WORKBENCH_PORTABILITY_CONTRACT = reference_portability_contract_payload()
@@ -469,7 +489,15 @@ HARNESS_PROFILES: dict[str, dict[str, Any]] = {
         "description": "Evidence CRUD surface with audit metadata. No Gemma call required.",
     },
 }
-HARNESS_PROFILES = harness_profile_map()
+# Source of truth is duecare.chat.experiment_contracts.harness_profile_map().
+# The literal above is a defensive fallback so A-00 still boots if the
+# contract import ever returns an empty dict during a partial wheel install.
+try:
+    _SHARED_PROFILES = harness_profile_map()
+    if _SHARED_PROFILES:
+        HARNESS_PROFILES = _SHARED_PROFILES
+except Exception:  # noqa: BLE001
+    pass
 
 
 MODEL_PRESETS = [
@@ -1019,8 +1047,13 @@ class PipelineRequest(BaseModel):
     prompt_set: str = A00_BULK_COMPARE_DEFAULT["prompt_set"]
     harness_profile: str = A00_BULK_COMPARE_DEFAULT["treatment_harness"]
     baseline_harness_profile: str = A00_BULK_COMPARE_DEFAULT["baseline_harness"]
+    # Default 2 prompts for the fastest real smoke proof (matches the
+    # preconfigured page input default).
     limit: int = 2
-    synthetic_count: int = 5
+    # Default 2 synthetic rows so the API-default proof matches the
+    # preconfigured page (the UI computes synth = limit; direct API users
+    # who override limit upward should also override synthetic_count).
+    synthetic_count: int = 2
     generator_mode: str = A00_SYNTHETIC_DEFAULT["generator_mode"]
     evaluate_outputs: bool = True
     include_report: bool = True
@@ -1120,6 +1153,13 @@ def _redact(text: str) -> tuple[str, list[dict[str, str]]]:
 
 
 def _rule_hits(text: str) -> list[dict[str, Any]]:
+    """Pack-only GREP. Iterates STATE["packs"] for regex rules.
+
+    Retained as a defensive fallback path for _build_harness_prompt when
+    the shared GREP callable is unavailable. The chat_no_online primary
+    path uses duecare.chat.harness._grep_call with pack rules folded in
+    via extra_rules; see _pack_rules_as_grep_extras().
+    """
     hits: list[dict[str, Any]] = []
     for pack in STATE["packs"].values():
         for rule in pack.get("rules", []):
@@ -1130,6 +1170,7 @@ def _rule_hits(text: str) -> list[dict[str, Any]]:
                         "rule_id": rule.get("id"),
                         "severity": rule.get("severity", "medium"),
                         "category": rule.get("category", "unknown"),
+                        "source": "pack",
                     })
             except re.error:
                 continue
@@ -1137,6 +1178,12 @@ def _rule_hits(text: str) -> list[dict[str, Any]]:
 
 
 def _rag_facts(text: str, limit: int = 5) -> list[dict[str, Any]]:
+    """Pack-only RAG via query-term overlap.
+
+    Retained as a defensive fallback path for _build_harness_prompt. The
+    chat_no_online primary path uses duecare.chat.harness._rag_call with
+    pack facts folded in via extra_docs; see _pack_facts_as_rag_extras().
+    """
     query_terms = {t.lower() for t in re.findall(r"[a-zA-Z]{4,}", text or "")}
     scored: list[tuple[int, dict[str, Any], str]] = []
     for pack in STATE["packs"].values():
@@ -1149,9 +1196,88 @@ def _rag_facts(text: str, limit: int = 5) -> list[dict[str, Any]]:
                 item = dict(fact)
                 item["pack"] = pack.get("slug")
                 item["pack_version"] = pack.get("version")
+                item["source"] = "pack"
                 scored.append((score, item, fact.get("id", "")))
     scored.sort(key=lambda x: (x[0], x[2]), reverse=True)
     return [item for _, item, _ in scored[:limit]]
+
+
+def _pack_rules_as_grep_extras() -> list[dict[str, Any]]:
+    """Adapt A-00 pack rules into the shape _grep_call expects via
+    extra_rules.
+
+    Pack rule shape:   {id, pattern, severity, category}
+    Shared rule shape: {rule, patterns, severity, citation, indicator,
+                        all_required (optional), min_capture_value (optional)}
+
+    Each pack rule becomes a single-pattern shared rule that augments the
+    built-in GREP_RULES for the duration of one _grep_call invocation.
+    """
+    extras: list[dict[str, Any]] = []
+    for pack in STATE["packs"].values():
+        slug = pack.get("slug", "pack")
+        version = pack.get("version", "")
+        for rule in pack.get("rules", []) or []:
+            pattern = rule.get("pattern", "")
+            if not pattern:
+                continue
+            rule_id = rule.get("id") or f"{slug}_rule"
+            extras.append({
+                "rule": str(rule_id),
+                "patterns": [pattern],
+                "severity": rule.get("severity", "medium"),
+                "citation": f"pack:{slug}@{version}" if version else f"pack:{slug}",
+                "indicator": rule.get("category", "pack_rule"),
+                "all_required": False,
+            })
+    return extras
+
+
+def _pack_facts_as_rag_extras() -> list[dict[str, Any]]:
+    """Adapt A-00 pack facts into the shape _rag_call expects via
+    extra_docs.
+
+    Pack fact shape:   {id, text, citation, tags}
+    Shared doc shape:  {id, title, source, snippet}
+
+    Facts are scored against the same BM25 stats as the built-in
+    RAG_CORPUS so they compete fairly for the top_k slots.
+    """
+    extras: list[dict[str, Any]] = []
+    for pack in STATE["packs"].values():
+        slug = pack.get("slug", "pack")
+        for fact in pack.get("facts", []) or []:
+            text = fact.get("text", "")
+            if not text:
+                continue
+            fact_id = fact.get("id") or f"{slug}_fact"
+            extras.append({
+                "id": str(fact_id),
+                "title": fact.get("citation") or fact_id,
+                "source": f"pack:{slug}",
+                "snippet": text,
+            })
+    return extras
+
+
+def _format_shared_tool_call(call: dict[str, Any]) -> str:
+    """Render one shared _tools_call output into a single line for the
+    context block. Each call dict typically has: name, args, result.
+    """
+    name = call.get("name") or call.get("tool") or "tool"
+    args = call.get("args") or call.get("arguments") or {}
+    result = call.get("result") or call.get("output") or {}
+    arg_str = ", ".join(f"{k}={v}" for k, v in args.items() if v is not None) if isinstance(args, dict) else str(args)
+    if isinstance(result, dict):
+        bits = []
+        for key in ("citation", "max_fee_worker", "currency", "status", "url", "phone", "note"):
+            val = result.get(key)
+            if val:
+                bits.append(f"{key}={val}")
+        result_str = "; ".join(bits) or json.dumps(result, ensure_ascii=False)[:200]
+    else:
+        result_str = str(result)[:200]
+    return f"{name}({arg_str}) = {result_str}"
 
 
 def _build_harness_prompt(row: dict[str, Any], harness_profile: str) -> tuple[str, dict[str, Any]]:
@@ -1172,25 +1298,119 @@ def _build_harness_prompt(row: dict[str, Any], harness_profile: str) -> tuple[st
         trace["steps"].append({"layer": "privacy_gate", "status": "pass", "n_hits": len(pii_hits)})
         prompt = redacted
 
+    # GREP layer. Primary path: shared _grep_call (108 rules) with pack
+    # rules folded in via extra_rules. Fallback: pack-only _rule_hits.
     if "grep" in layers:
-        hits = _rule_hits(prompt)
-        trace["grep"] = {"n_hits": len(hits), "hits": hits[:20]}
-        trace["steps"].append({"layer": "grep", "status": "pass", "n_hits": len(hits)})
+        if _SHARED_HARNESS_AVAILABLE and _shared_grep_call is not None:
+            try:
+                shared_result = _shared_grep_call(prompt, extra_rules=_pack_rules_as_grep_extras()) or {}
+                shared_hits = shared_result.get("hits", []) or []
+                # Normalize shared hit shape to A-00's downstream consumer.
+                hits = [
+                    {
+                        "rule_id": h.get("rule"),
+                        "severity": h.get("severity", "medium"),
+                        "category": h.get("indicator") or h.get("rule") or "shared_rule",
+                        "citation": h.get("citation", ""),
+                        "match_excerpt": h.get("match_excerpt", ""),
+                        "source": "pack" if str(h.get("citation", "")).startswith("pack:") else "shared",
+                    }
+                    for h in shared_hits
+                ]
+                trace["grep"] = {
+                    "n_hits": len(hits),
+                    "hits": hits[:20],
+                    "source": "shared+packs",
+                    "elapsed_ms": shared_result.get("elapsed_ms"),
+                }
+                trace["steps"].append({"layer": "grep", "status": "pass", "n_hits": len(hits), "source": "shared+packs"})
+            except Exception as exc:  # noqa: BLE001
+                hits = _rule_hits(prompt)
+                trace["grep"] = {"n_hits": len(hits), "hits": hits[:20], "source": "pack_fallback", "error": str(exc)[:200]}
+                trace["steps"].append({"layer": "grep", "status": "degraded", "n_hits": len(hits), "source": "pack_fallback"})
+        else:
+            hits = _rule_hits(prompt)
+            trace["grep"] = {"n_hits": len(hits), "hits": hits[:20], "source": "pack_only"}
+            trace["steps"].append({"layer": "grep", "status": "pass", "n_hits": len(hits), "source": "pack_only"})
     else:
         hits = []
 
+    # RAG layer. Primary path: shared _rag_call (BM25 over RAG_CORPUS +
+    # citation graph) with pack facts folded in via extra_docs. Fallback:
+    # pack-only _rag_facts.
     if "rag" in layers:
-        facts = _rag_facts(prompt)
-        trace["rag"] = {"n_facts": len(facts), "facts": facts}
-        trace["steps"].append({"layer": "rag", "status": "pass", "n_facts": len(facts)})
+        if _SHARED_HARNESS_AVAILABLE and _shared_rag_call is not None:
+            try:
+                shared_result = _shared_rag_call(prompt, top_k=5, extra_docs=_pack_facts_as_rag_extras()) or {}
+                shared_docs = shared_result.get("docs", []) or []
+                facts = [
+                    {
+                        "id": d.get("id"),
+                        "text": d.get("snippet", "") or "",
+                        "citation": d.get("source") or d.get("title", ""),
+                        "title": d.get("title", ""),
+                        "score": d.get("score", 0),
+                        "is_custom": bool(d.get("is_custom")),
+                        "source": "pack" if str(d.get("source", "")).startswith("pack:") else "shared",
+                    }
+                    for d in shared_docs
+                ]
+                trace["rag"] = {
+                    "n_facts": len(facts),
+                    "facts": facts,
+                    "citations": shared_result.get("citations", []),
+                    "source": "shared+packs",
+                    "elapsed_ms": shared_result.get("elapsed_ms"),
+                }
+                trace["steps"].append({"layer": "rag", "status": "pass", "n_facts": len(facts), "source": "shared+packs"})
+            except Exception as exc:  # noqa: BLE001
+                facts = _rag_facts(prompt)
+                trace["rag"] = {"n_facts": len(facts), "facts": facts, "source": "pack_fallback", "error": str(exc)[:200]}
+                trace["steps"].append({"layer": "rag", "status": "degraded", "n_facts": len(facts), "source": "pack_fallback"})
+        else:
+            facts = _rag_facts(prompt)
+            trace["rag"] = {"n_facts": len(facts), "facts": facts, "source": "pack_only"}
+            trace["steps"].append({"layer": "rag", "status": "pass", "n_facts": len(facts), "source": "pack_only"})
     else:
         facts = []
 
+    # Tools layer. Primary path: shared _tools_call (5 deterministic
+    # lookups: corridor fee cap, fee camouflage, ILO indicator, NGO intake,
+    # ILO convention). Fallback: A-00's PH-HK fee-cap heuristic.
     tool_notes: list[str] = []
-    if "tools" in layers and re.search(r"\b(PH-HK|Hong Kong|HK|placement fee|PHP)\b", prompt, re.I):
-        tool_notes.append("lookup_fee_cap(PH-HK domestic worker) = 0 PHP worker-paid placement fee")
-        trace["tools"] = {"called": ["lookup_fee_cap"], "notes": tool_notes}
-        trace["steps"].append({"layer": "tools", "status": "pass", "called": ["lookup_fee_cap"]})
+    tool_calls_emitted: list[str] = []
+    if "tools" in layers:
+        if _SHARED_HARNESS_AVAILABLE and _shared_tools_call is not None:
+            try:
+                messages_for_tools = [{"role": "user", "content": [{"type": "text", "text": prompt}]}]
+                shared_tools = _shared_tools_call(messages_for_tools) or {}
+                calls = shared_tools.get("tool_calls", []) or []
+                for call in calls:
+                    if isinstance(call, dict):
+                        rendered = _format_shared_tool_call(call)
+                        if rendered:
+                            tool_notes.append(rendered)
+                            name = call.get("name") or call.get("tool") or "tool"
+                            tool_calls_emitted.append(str(name))
+                if tool_notes:
+                    trace["tools"] = {
+                        "called": tool_calls_emitted,
+                        "notes": tool_notes,
+                        "source": "shared",
+                        "elapsed_ms": shared_tools.get("elapsed_ms"),
+                    }
+                    trace["steps"].append({"layer": "tools", "status": "pass", "called": tool_calls_emitted, "source": "shared"})
+            except Exception as exc:  # noqa: BLE001
+                trace["tools"] = {"called": [], "notes": [], "source": "shared_error", "error": str(exc)[:200]}
+                trace["steps"].append({"layer": "tools", "status": "degraded", "called": [], "source": "shared_error"})
+        # Pack-level / heuristic fallback augmentation: always available so
+        # A-00-specific PH-HK proof prompts still surface the fee cap note
+        # even when the shared dispatcher returns nothing for the phrasing.
+        if not tool_notes and re.search(r"\b(PH-HK|Hong Kong|HK|placement fee|PHP)\b", prompt, re.I):
+            tool_notes.append("lookup_fee_cap(PH-HK domestic worker) = 0 PHP worker-paid placement fee")
+            tool_calls_emitted.append("lookup_fee_cap")
+            trace["tools"] = {"called": tool_calls_emitted, "notes": tool_notes, "source": "heuristic"}
+            trace["steps"].append({"layer": "tools", "status": "pass", "called": tool_calls_emitted, "source": "heuristic"})
 
     if "online" in layers:
         trace["online"] = {"status": "skipped", "reason": "A-00 keeps batch runs offline unless a separate search harness job is selected."}
@@ -1499,6 +1719,10 @@ def _generate(prompt: str, *, max_new_tokens: int, temperature: float, trace: di
                     "input_tokens_est": _estimate_tokens(prompt),
                     "output_tokens_est": _estimate_tokens(text),
                 }
+            # Defensive raw-generate fallback used only when no backend
+            # callable is attached. Aligned with the Gemma 4 recipe
+            # contract (temperature=1.0, top_p=0.95, top_k=64) so a
+            # stale-runtime regression cannot silently change scores.
             import torch
             inputs = tokenizer(prompt, return_tensors="pt")
             device = next(model.parameters()).device
@@ -1506,8 +1730,9 @@ def _generate(prompt: str, *, max_new_tokens: int, temperature: float, trace: di
             gen_kwargs = {
                 "max_new_tokens": max_new_tokens,
                 "do_sample": temperature > 0,
-                "temperature": max(temperature, 0.01),
-                "top_p": 0.9,
+                "temperature": max(float(temperature), 0.01),
+                "top_p": 0.95,
+                "top_k": 64,
                 "pad_token_id": tokenizer.eos_token_id,
             }
             with torch.no_grad():
@@ -1515,7 +1740,7 @@ def _generate(prompt: str, *, max_new_tokens: int, temperature: float, trace: di
             text = tokenizer.decode(out[0][inputs["input_ids"].shape[-1]:], skip_special_tokens=True).strip()
             elapsed = time.perf_counter() - t0
             return text, {
-                "mode": "model",
+                "mode": "model_fallback_no_backend",
                 "seconds": round(elapsed, 4),
                 "input_tokens_est": int(inputs["input_ids"].shape[-1]),
                 "output_tokens_est": _estimate_tokens(text),
@@ -3809,9 +4034,16 @@ def _run_pipeline_job(job_id: str, req: PipelineRequest) -> None:
                         graded_results.append(graded)
                     _append_job_step(job_id, "19. Combined rule + LLM judging complete", "running", {"graded_sets": total_sets, "results": graded_results})
                 _append_job_step(job_id, "20. Generating final comparison report", "running", {"run_ids": run_ids})
+                # Report title reflects the actual arms that ran.
+                # Four-arm matrix requires execute_training=True AND at
+                # least four run_ids (base+harness × stock+finetuned).
+                if req.execute_training and len(run_ids) >= 4:
+                    _report_title = f"A-00 pipeline stock/fine-tuned/harness matrix: {req.run_label or job_id}"
+                else:
+                    _report_title = f"A-00 pipeline stock vs stock+harness: {req.run_label or job_id}"
                 report = _build_report(ReportRequest(
                     run_ids=run_ids,
-                    title=f"A-00 pipeline stock/fine-tuned/harness matrix: {req.run_label or job_id}",
+                    title=_report_title,
                 )) if req.include_report else {}
                 with JOB_STATE_LOCK:
                     job = STATE["jobs"][job_id]

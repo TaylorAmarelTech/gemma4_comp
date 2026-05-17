@@ -36,7 +36,7 @@ project memory level. Currently:
 
 ## Recording-critical surfaces
 
-Before a video recording pass, treat these four Kaggle kernels as the
+Before a video recording pass, treat these three Kaggle kernels as the
 blocking set:
 
 - `kaggle/01-duecare-exploration-workbench`: broad reviewer workbench.
@@ -44,12 +44,15 @@ blocking set:
   show an activity log, and expose the trust boundary for its workflow.
 - `kaggle/02-live-demo`: focused interactive demo path. Use cached or
   pre-generated scenes when live model latency would weaken the story.
-- `kaggle/03-duecare-video-pitch`: slide-first recording surface. The
-  validation slide should point to A-00 exports, not just the replay.
 - `kaggle/A-00-omni-experiment-workbench`: technical proof control plane.
-  It must cover bulk prompt runs, harness profiles, import/export, grading,
-  synthetic SFT/DPO generation, tiny training smoke bundles, and report
-  export for baseline vs harness vs fine-tuned comparisons.
+  The home page should only offer two navigation cards: Preconfigured
+  Harness, Training, and Evaluation; and Custom. The preconfigured page
+  should expose only the selected Gemma model and prompt count before
+  running the guided proof. Advanced controls belong on Custom only.
+
+`kaggle/03-duecare-video-pitch` and appendix notebooks other than A-00 are
+archived for the current submission push. Do not revive or broaden them unless
+Taylor explicitly asks.
 
 Do not hardcode volatile phone numbers, URLs, fee caps, wage rules, or
 office names into training targets or page copy unless they are also
@@ -57,6 +60,78 @@ represented as versioned knowledge objects. Stable response structure,
 privacy boundaries, refusal style, ILO indicator reasoning, and evidence
 citation habits are appropriate for fine-tuning. Volatile contacts and
 current rules should come from tools, RAG, or synced knowledge packs.
+
+## Canonical Gemma 4 runtime and A-00 proof path (2026-05-16)
+
+The source of truth for local Gemma 4 loading is
+`packages/duecare-llm-chat/src/duecare/chat/gemma4_runtime.py` and the trace
+doc at `docs/model_loading_trace.md`.
+
+All active Kaggle kernels must use the shared `Gemma4Runtime.load()` primitive
+for inference model loading. It follows the known-working Unsloth FastModel
+recipe:
+
+```python
+from unsloth import FastModel
+
+model, tokenizer = FastModel.from_pretrained(
+    model_name=resolved_model_ref,
+    dtype=None,
+    max_seq_length=max_seq_length,
+    load_in_4bit=True,
+    full_finetuning=False,
+    device_map=device_map,  # "balanced" for 31B / 26B-A4B on 2x T4; "auto" otherwise
+)
+```
+
+After loading, the runtime applies `get_chat_template(...,
+chat_template="gemma-4-thinking")`; generation defaults to
+`temperature=1.0`, `top_p=0.95`, and `top_k=64`.
+
+Path trace:
+
+- Kernel 01: `/api/load-model` -> `load_gemma()` -> `Gemma4Runtime.load()`.
+- Kernel 02: `/api/live/model/load` and startup -> `load_gemma_shared()` ->
+  `_LIVE_MODEL_RUNTIME.load()`.
+- A-00: `/api/a00/pipeline/run` -> `_create_pipeline_job()` ->
+  `_run_pipeline_job()` -> `_prepare_base_model_for_pipeline()` /
+  `_load_model_runtime()` -> `A00_MODEL_RUNTIME.load()`.
+
+A-00 fine-tuning is the exception because adapter training uses the Unsloth
+training path, not the inference path: `FastModel.from_pretrained()` ->
+`FastModel.get_peft_model()` -> `SFTTrainer/SFTConfig` ->
+`train_on_responses_only()`.
+
+A-00 preconfigured pipeline contract:
+
+- No dry-run default. The selected Gemma model loads automatically when the
+  user starts the preconfigured pipeline.
+- No top-banner model/custom buttons. The banner can show status and shutdown
+  only if needed; model choice lives in the page body.
+- Default model path is the small Gemma path for Kaggle T4 proof runs
+  (`google/gemma-4-2b-it` resolving to `unsloth/gemma-4-E2B-it` unless a
+  Kaggle-attached model exists).
+- Default prompt set is `chat_safety_core`, default prompt count is 2 for the
+  fastest real smoke proof.
+- Baseline arm uses `baseline_harness_profile="none"`.
+- Harnessed arms use `harness_profile="chat_no_online"`: Persona + GREP +
+  RAG/context + deterministic tools. Internet and Import are off for the
+  default proof path.
+- Final scoring uses the same grading primitives as Kernel 01:
+  `duecare.chat.harness.grade_response_combined` and
+  `grade_response_universal`, with combined rule + LLM judging at the end.
+- The activity log should show clear user-facing steps: check loaded model,
+  unload/clear memory if needed, check/clean disk, download/load selected
+  model with shared FastModel runtime, preflight generation, run baseline,
+  run harnessed, generate synthetic rows, fine-tune, save adapter, load
+  adapter, run fine-tuned baseline/harnessed arms, reload normal Gemma for
+  grading, run combined grading, generate report, save report.
+
+Kernel 01 comparison page remains the behavior reference for harness parity:
+`create_app(**default_harness())` wires Persona, GREP, RAG, Tools, and Online
+surfaces; A-00's preconfigured proof intentionally uses the offline subset
+`chat_no_online` so the run is reproducible and does not require web/search
+credentials.
 
 ## Execution phases (the 4-phase arc)
 
@@ -365,9 +440,9 @@ Archived material is intentionally out of the default review scope:
 Do **not** read, review, lint, validate, regenerate, or summarize these
 archive folders unless the user explicitly asks for historical context,
 restore work, provenance checks, or migration work. They are not part of
-the active Kaggle submission path. Treat the 3 core + 24 appendix folders
-under `kaggle/` as the active kernel sources; `kaggle/kernels/*` notebook
-mirrors are archived.
+the active Kaggle submission path. Treat only `01-duecare-exploration-workbench`,
+`02-live-demo`, and `A-00-omni-experiment-workbench` under `kaggle/` as active
+kernel sources; `kaggle/kernels/*` and other appendix/video folders are archived.
 
 Some older builder scripts may recreate root-level `legacy_notebooks/`
 or `skunkworks/` as optional local mirrors. Those root folders are
@@ -400,11 +475,12 @@ or top-of-file setup block should:
 2. Fail fast with a helpful message if the required GPU/secret/dataset is
    missing. If a sample/offline fallback exists, it must be clearly labeled in
    the output and opening markdown so it is never mistaken for live inference.
-3. Install DueCare from a reproducible source in this preference order:
-   attached Kaggle wheel dataset first; pinned PyPI packages when published;
-   immutable GitHub release wheel URLs or commit-pinned source archives only
-   as a fallback. Do not install from a moving branch such as `main` for a
-   judge-facing kernel.
+3. Install DueCare from a reproducible, transparent source. For the current
+   rapid Kaggle copy/paste workflow, the active kernels may fall back to
+   GitHub source install from `DUECARE_REPO` / `DUECARE_COMMIT_SHA` when
+   release wheels are missing. Always print the repo, ref, resolved package
+   imports, and DueCare version. For a final frozen submission, prefer a
+   commit SHA or release wheel over a moving branch.
 4. Validate imports and print the resolved DueCare version/source before any
    model load or demo output.
 5. Never require `_reference/`, local `.venv`, root-level legacy mirrors, or
@@ -432,16 +508,21 @@ research suite:
    archived with its notebook wrappers under
    `_archive/kaggle-notebook-previews-2026-05-11/`. Older 52/74/77-kernel
    notes are historical unless Taylor explicitly asks for restore or migration work.
-- The judge-facing submission folders under `kaggle/` are **27 folders** (3 core + 24 appendix):
-   3 core kernels (01 / 02 / 03) plus A-01 through A-24. Their `kernel.py` and `README.md`
-   files are the source of truth; notebook wrappers are archived under
-   `_archive/kaggle-notebook-previews-2026-05-11/`.
+- The judge-facing submission folders under `kaggle/` are now the active
+   three-folder set: `01-duecare-exploration-workbench`, `02-live-demo`, and
+   `A-00-omni-experiment-workbench`. Their `kernel.py` and `README.md` files
+   are the source of truth; notebook wrappers are archived.
+- Appendix folders A-01 through A-24 and `03-duecare-video-pitch` are archived
+   for the current push. Do not treat them as active blockers unless Taylor
+   asks for restore/migration work.
 - A conservative first polish pass has already fixed reproducible bootstrap
    drift, notebook preview cell metadata, visible demo PII placeholders, A-08
    design-token drift, and A-09 displayed-result truncation.
-- `tests/test_kaggle_install_policy.py` now rejects judge-facing Git installs
-   and Git ref assignments that use moving refs such as `main`, `master`, or
-   `HEAD`. Keep attached wheels, pinned PyPI, or immutable Git refs only.
+- Older install-policy tests were written for a frozen publication pass.
+   Current active kernels prioritize copy/paste Kaggle reliability: attached
+   wheels when available, otherwise GitHub source fallback with explicit repo
+   and ref logging. If Taylor asks for a freeze, switch defaults to an
+   immutable commit SHA.
 - If a reviewer or subagent reports `kaggle/01-duecare-harness-chat/kernel.py`,
    treat it as stale context first. As of this checkpoint, that path does not
    exist and is not tracked by git.
@@ -450,11 +531,10 @@ research suite:
    metadata points to script kernels, and `scripts/validate_public_surface.py`
    reported 0 findings.
 
-Next safe pass for Claude Code: continue conservative review of the 13
-judge-facing `kaggle/*/README.md` files for the uniform six-section skeleton
-and cross-link block, then inspect above-the-fold served UI copy for canonical
-audience clarity. Do not broaden into archived notebooks, broad redesigns, or
-Kaggle publish actions without explicit Taylor approval.
+Next safe pass for Claude Code: review the shared FastModel runtime, Kernel 01
+comparison harness wiring, and A-00 preconfigured pipeline parity. Do not
+broaden into archived notebooks, broad redesigns, or Kaggle publish actions
+without explicit Taylor approval.
 
 ## Project memory
 

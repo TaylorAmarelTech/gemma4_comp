@@ -169,6 +169,9 @@ def test_live_demo_and_a00_expose_page_level_controls():
         "load_gemma_smart delegates to shared Gemma4Runtime",
     ]:
         assert token in live
+    assert "FastModel.from_pretrained(" not in live
+    assert "AutoModelForCausalLM" not in live
+    assert "AutoModelForImageTextToText" not in live
     assert "p.label + ' - ' + (p.notes || p.ref || '')" not in live
     assert "p.label || p.ref || 'Gemma 4 model'" in live
 
@@ -231,6 +234,14 @@ def test_a00_uses_focused_experiment_console_not_exploration_nav():
     assert '"/custom"' in a00
     assert "normal Gemma plus rules combined mode" in homepage
     assert 'harness_profile: "chat_no_online"' in homepage
+    assert 'baseline_harness_profile: "none"' in homepage
+    assert 'prompt_set: $("pipeline-prompt-set").value || $("prompt-set").value' in homepage
+    assert "synthetic_count: synth" in homepage
+    assert 'generator_mode: "rubric_polisher"' in homepage
+    assert "evaluate_outputs: true" in homepage
+    assert "include_report: true" in homepage
+    assert "execute_training: execute" in homepage
+    assert "llm_judge: true" in homepage
     assert "no internet/import" in homepage
     assert "A guided pipeline is running, so model loading is owned by that job" in a00
     assert "Pipeline already running" in a00
