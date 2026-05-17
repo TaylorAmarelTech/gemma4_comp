@@ -51,9 +51,10 @@
 > 31B + 2 jailbroken (abliterated) + 3 cloud BYOK (Gemini /
 > OpenAI-compat / Ollama).
 >
-> **3 core + 24 appendix submission**: judges land on
-> `duecare-exploration-workbench` (omni playground) -> `duecare-live-demo`
-> (focused thesis demo). The 11 specialised notebooks are appendix.
+> **Three-kernel submission**: reviewers land on
+> `duecare-exploration-workbench` (broad workbench), `duecare-live-demo`
+> (focused thesis demo), and `A-00-omni-experiment-workbench`
+> (quantitative proof path).
 >
 > **`/api/health-check`** smoke endpoint returns wired layers +
 > grade modes + harness counts + model info in one shot.

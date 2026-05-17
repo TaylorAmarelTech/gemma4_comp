@@ -241,7 +241,7 @@ The doc is meant to evolve. The principles are not.
 
 - [`docs/readiness_dashboard.md`](readiness_dashboard.md) — pre-submit dashboard
 - [`docs/persona_readiness_audit.md`](persona_readiness_audit.md) — per-persona happy path
-- [`docs/submission_gate_checklist.md`](submission_gate_checklist.md) — pre-Submit checklist
+- [`docs/USER_TODO.md`](USER_TODO.md) — current manual pre-submit checklist
 - [`docs/first_deployer_feedback.md`](first_deployer_feedback.md) — feedback intake template
 - [`docs/two_week_submission_plan.md`](two_week_submission_plan.md) — pre-submit day-by-day
 - [`docs/cross_ngo_trends_federation.md`](cross_ngo_trends_federation.md) — federation roadmap

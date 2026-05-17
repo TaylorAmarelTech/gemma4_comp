@@ -9,8 +9,8 @@
 > **Status:** body is in sync with v0.14.7 reality (6 layers, 161 GREP,
 > 46 RAG, 587 prompts, 11 viewer pages, 26-entry hotlines directory,
 > 8-component platform framing). Asset capture happens AFTER the wheel
-> is pushed and the deployment self-audit banner shows v0.14.7+ in the
-> kernel stdout — see `docs/release_checklist_v0_14_5.md`.
+> is pushed and the deployment self-audit banner shows the intended version in
+> kernel stdout. Use `docs/USER_TODO.md` for the current final checklist.
 
 ## v0.14.7 demo beats to land (these are the screens the body below records)
 
@@ -349,8 +349,8 @@ Fade to black. Music fades.
 - [ ] Cold-open serif typewriter animation (Maria's sentence)
 - [ ] Map screenshot: Indonesia / Philippines → Hong Kong corridor
       (no personal data)
-- [ ] Screen recording: stock Gemma 4 31B response to the 68%-loan
-      prompt (the failure-mode baseline — `kaggle/A-01-chat-playground/`)
+- [ ] Screen recording: stock Gemma response to the selected baseline prompt
+      from Kernel 01 or the A-00 no-harness arm
 - [ ] Screen recording: `duecare-exploration-workbench`, cursor clicking each
       of **6 toggles** (Persona / GREP / RAG / Imports / Tools /
       Online) ON in sequence, then sending the 68%-loan prompt

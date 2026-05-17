@@ -4,6 +4,10 @@
 - **Date:** 2026-04-20
 - **Deciders:** Taylor Amarel
 
+> **Current-scope note:** ADR-006 is also superseded for the final competition
+> push. Use [`../current_kaggle_notebook_state.md`](../current_kaggle_notebook_state.md)
+> for the active three-kernel path.
+
 ## Context
 
 The Gemma 4 Good Hackathon submission could take any shape: one
@@ -86,4 +90,4 @@ inventory for the rubric numbers, not the artifact judges open.
 - [`kaggle/README.md`](../../kaggle/README.md)
 - [`kaggle/_INDEX.md`](../../kaggle/_INDEX.md)
 - [`docs/FOR_KAGGLE_JUDGES.md`](../FOR_KAGGLE_JUDGES.md)
-- [`docs/rubric_evaluation_v07.md`](../rubric_evaluation_v07.md)
+- [`docs/readiness_dashboard.md`](../readiness_dashboard.md)

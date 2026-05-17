@@ -33,6 +33,13 @@ should not be used to make decisions about the active submission.
 | `data_compatibility_plan.md` | Former cross-notebook data-shape refactor plan | `docs/harness_standard_contract.md` and `docs/knowledge_module_schema.md` |
 | `data_primitives.md` | Former website-side bundle primitive catalog | `docs/harness_standard_contract.md` and `docs/knowledge_module_schema.md` |
 | `data_surface_inventory.md` | Former function/object inventory for the retired notebook ladder | `docs/harness_ecosystem.md` and `docs/PACKAGE_INVENTORY.md` |
+| `notebook_qa_companion.md` | Former 11-notebook QA checklist | `docs/current_kaggle_notebook_state.md` and `docs/USER_TODO.md` |
+| `project_status.md` | Former 77-notebook / 2026-05-02 status snapshot | `docs/project_status.md` |
+| `release_checklist_v0_14_5.md` | Former v0.14.5 release checklist | `docs/USER_TODO.md` |
+| `REPORT_CARD.md` | Former self-grade/status scorecard | `docs/readiness_dashboard.md` |
+| `rubric_evaluation_v07.md` | Former rubric projection for the retired notebook scope | `docs/readiness_dashboard.md` |
+| `submission_gate_checklist.md` | Former 13-phase checklist for the retired notebook scope | `docs/USER_TODO.md` |
+| `submission_surface_audit_2026-05-10.md` | Point-in-time audit of A-01 through A-11 appendices | `docs/current_kaggle_notebook_state.md` |
 
 ## Where to look now
 

@@ -2,7 +2,7 @@
 
 > **Honest disclosure for judges.** This document grounds every
 > quantitative claim in `docs/writeup_draft.md`,
-> `docs/harness_lift_report.md`, `docs/REPORT_CARD.md`, and the
+> `docs/harness_lift_report.md`, `docs/readiness_dashboard.md`, and the
 > video script. Each number has a provenance tuple
 > `(git_sha, dataset_version, eval_set, grader_version, n)` and a
 > one-command path to re-measure.
@@ -184,6 +184,6 @@ during the next re-measurement run).
 2. **`docs/harness_lift_report.md`** — full lift methodology + per-prompt breakdowns
 3. **`docs/reproducibility.md`** *(this file)* — provenance for every number
 4. **`docs/peer_review_5min_test_plan.md`** — the judge entry point
-5. **`docs/REPORT_CARD.md`** — self-graded scorecard against the rubric
+5. **`docs/readiness_dashboard.md`** — current status and evidence-run targets
 6. **`docs/architecture.md`** — technical design (20 sections)
 7. **`docs/FOR_PEER_REVIEW.md`** — quick-orient overview
