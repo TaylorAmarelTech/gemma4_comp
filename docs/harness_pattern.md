@@ -67,7 +67,7 @@ into `UniversalModelRequest`, invokes `.generate(...)`, `.chat(...)`,
 That keeps each harness route portable across local Gemma, Ollama,
 OpenAI-compatible endpoints, Anthropic, Gemini, HF endpoints, and test doubles.
 
-## Primary harnesses (5 -- the user-named safety surfaces)
+## Primary harnesses
 
 | Harness | Endpoints | Gemma 4 role | Applied layers |
 |---|---|---|---|
@@ -76,6 +76,7 @@ OpenAI-compatible endpoints, Anthropic, Gemini, HF endpoints, and test doubles.
 | `extraction/` | `/api/knowledge/draft-envelope` | KnowledgeObject drafter | grep/rag |
 | `anonymization/` | `/api/{anonymize,submit/knowledge,submit/local}` | PII gate (regex-only, NO Gemma) | () |
 | `search_safety/` | `/api/search/{sanitize,safety-info}` | outbound query privacy gate | () |
+| `post_search_verification/` | `/api/search/{verify-results,verification-info}` | candidate result verification gate | () |
 
 ## Secondary harnesses
 
@@ -293,7 +294,7 @@ emits = harness.emits
 register_routes = harness.register_routes
 ```
 
-The existing 5 harnesses continue as plain modules (back-compat). New
+The existing harnesses continue as plain modules (back-compat). New
 harnesses can pick whichever style fits.
 
 
@@ -301,7 +302,7 @@ harnesses can pick whichever style fits.
 
 | Rubric | Result |
 |---|---|
-| Functional validation | 7 registered harnesses importable, all conform |
+| Functional validation | Registered harnesses importable, all conform |
 | Flexibility | A new harness needs 5 attributes + 0 ceremony |
 | Extensibility | Optional `tools`, `knowledge`, `evaluation` per harness |
 | Finetuning fitness | Schema consistent across harnesses; Unsloth-ready |

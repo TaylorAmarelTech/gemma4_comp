@@ -1,4 +1,4 @@
-# Continuous Research Server — Architecture (v1)
+﻿# Continuous Research Server — Architecture (v1)
 
 > **Status (2026-05-01):** architecture only. Implementation is a
 > 2-4 week post-hackathon project. The pull-based update server +
@@ -322,7 +322,7 @@ publisher_id, pack_id, pack_version)`. A simple dashboard answers:
   (which we cannot turn off but contain only IP + timestamp + path,
   no app or worker identifiers).
 - **Not a substitute for the canonical bundle.** The wheel ships
-  with 161 GREP rules, 46 RAG docs, etc. — that's the floor. Packs
+  with 100+ GREP rules, 50+ RAG docs, etc. — that's the floor. Packs
   are additive enhancements.
 
 ## Build phases

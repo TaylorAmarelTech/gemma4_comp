@@ -1,4 +1,4 @@
-# Install
+﻿# Install
 
 Five paths, ranked from "I just want to try it" to "I'm running this
 in production." Pick one.
@@ -22,7 +22,7 @@ What it does:
 1. Detects OS + arch + Python version (needs Python 3.11+ — installs from python.org if missing).
 2. Creates a `.venv` in the current dir.
 3. `pip install duecare-llm` (the meta package; pulls in the Individual worker stack).
-4. Runs `python scripts/verify.py` — confirms 161 GREP rules, 46 RAG docs, 5 tools, 587 prompts, 207 5-tier rubrics, 6 required-rubric categories, 54 classifier examples, 46 universal-rubric dimensions, and 21 LLM-eval questions all import cleanly.
+4. Runs `python scripts/verify.py` — confirms the built-in GREP, RAG, tools, prompt, rubric, classifier, and evaluator bundles import cleanly and meet the published minimum floors.
 5. Prints next-step commands.
 
 After install, run:
@@ -170,15 +170,15 @@ python scripts/verify.py
 Expected output:
 
 ```
-  [  OK  ]  GREP rules             161 >= 108   regex rules across 16 categories (debt bondage / fee camouflage / corridors / ILO indicators / multi-party / kafala extended / sectors / fin flows / employer abuse / doc fraud / sales tactics / recovery suppression / digital)
-  [  OK  ]  RAG corpus              46 >=  33   documents (ILO conventions, statutes, NGO briefs)
-  [  OK  ]  Tools                    5 >=   5   lookup functions (corridor / fee / indicator / NGO / ILO Convention)
-  [  OK  ]  Example prompts        587 >= 407   prompts in the bundled examples library
-  [  OK  ]  5-tier rubrics         207 >= 207   prompts with hand-graded worst..best response examples
-  [  OK  ]  Required rubrics         6 >=   6   categories of required-element rubrics
-  [  OK  ]  Classifier examples     54 >=  54   pre-built classifier examples (30 persona × corridor + 16 originals + 8 multimodal SVG)
-  [  OK  ]  Universal rubric dims   46 >=  21   v3 universal rubric dimensions (v3.6 added operational_information_provided + harm_enablement_check)
-  [  OK  ]  LLM eval questions      21 >=  21   per-dim yes/no questions sent to the LLM evaluator (also called 'LLM-as-judge' in academic literature). Unrelated to contest judging.
+  [  OK  ]  GREP rules             current >= required   regex rules across active categories
+  [  OK  ]  RAG corpus             current >= required   documents (ILO conventions, statutes, NGO briefs)
+  [  OK  ]  Tools                  current >= required   lookup functions
+  [  OK  ]  Example prompts        current >= required   bundled examples library
+  [  OK  ]  5-tier rubrics         current >= required   hand-graded worst..best response examples
+  [  OK  ]  Required rubrics       current >= required   required-element rubric categories
+  [  OK  ]  Classifier examples    current >= required   pre-built classifier examples
+  [  OK  ]  Universal rubric dims  current >= required   universal rubric dimensions
+  [  OK  ]  LLM eval questions     current >= required   questions sent to the LLM evaluator
 
 OK: all 9 checks passed. Harness is ready.
 ```

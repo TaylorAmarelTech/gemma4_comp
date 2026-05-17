@@ -1,4 +1,4 @@
-# NGO office deployment — case intake, document analysis, research
+﻿# NGO office deployment — case intake, document analysis, research
 
 > **Persona.** You direct an NGO with 1-20 caseworkers helping
 > migrant workers, trafficking survivors, or asylum seekers. You
@@ -170,7 +170,7 @@ The chatbot is trained on:
 - POEA / BMET / BP2MI / DoFE recruitment regulations
 - HK / Saudi / Singapore / UAE / Qatar / Malaysia labour codes
 - Migration-corridor placement-fee caps for 6 corridors
-- Trafficking pattern recognition (161 GREP rules)
+- Trafficking pattern recognition (100+ GREP rules)
 
 It is NOT a lawyer. Use it to:
 

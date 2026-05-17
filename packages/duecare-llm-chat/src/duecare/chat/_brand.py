@@ -70,7 +70,7 @@ WIRE_FORMAT_VERSION = "v2.0"
 
 @dataclass(frozen=True)
 class HarnessLayer:
-    """One row of the 6-layer harness toggle bar."""
+    """One row of the layered chat harness toggle bar."""
 
     key: str
     """Stable id used in API + JS (`persona`, `grep`, ...)."""

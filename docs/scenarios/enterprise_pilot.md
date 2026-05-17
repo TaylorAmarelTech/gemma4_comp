@@ -1,4 +1,4 @@
-# Enterprise pilot — adopting Duecare inside a platform org
+﻿# Enterprise pilot — adopting Duecare inside a platform org
 
 > **Audience.** A platform engineer or applied-AI lead at a Big Tech
 > / large enterprise (Google / Meta / Discord / a major bank /
@@ -162,7 +162,7 @@ Avoid:
 | You get | You build |
 |---|---|
 | Python packages + three active Kaggle proof kernels + Helm chart + Docker image | Your client UI (web / mobile / Slack / Discord / etc.) |
-| 161 GREP rules + 46 RAG docs + 5 corridor and ILO lookups | Your domain-specific extensions (custom GREP rules, internal corpus, internal tools) |
+| 100+ GREP rules + 50+ RAG docs + 5 corridor and ILO lookups | Your domain-specific extensions (custom GREP rules, internal corpus, internal tools) |
 | 11 ILO C029 indicators + 20 corridor profiles | Your jurisdiction-specific corridors / regulators / NGO lists |
 | Per-tenant token + cost meter | Hook to your billing pipeline |
 | OpenTelemetry traces + Prometheus metrics | Hook to your existing observability stack |

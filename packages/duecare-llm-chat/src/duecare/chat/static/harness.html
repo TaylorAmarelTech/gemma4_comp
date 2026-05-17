@@ -116,7 +116,7 @@
       <div class="panel">
         <h1>Harness Workbench</h1>
         <p class="lede">
-          Seven reviewer-facing surfaces are grouped by contract: five primary safety surfaces and two secondary utilities.
+          Reviewer-facing surfaces are grouped by contract: primary safety surfaces and secondary utilities.
           Gemma-backed harnesses are labeled separately from hard safety gates and pure CRUD/search utilities.
         </p>
         <div class="toolbar">
@@ -128,7 +128,8 @@
         </div>
         <div class="muted">
           Rule of thumb: <b>Gemma harness</b> means the surface calls Gemma 4 directly.
-          <b>Safety gate</b> protects a trust boundary. <b>Utility surface</b> stores or fetches evidence for other harnesses.
+          <b>Safety gate</b> protects a trust boundary, including the Post-search verification gate.
+          <b>Utility surface</b> stores or fetches evidence for other harnesses.
         </div>
       </div>
       <div class="panel status" id="model-status">

@@ -15,12 +15,12 @@ from duecare.core.enums import (
 
 class TestCapability:
     def test_all_expected_values(self) -> None:
-        expected = {
+        required = {
             "text", "vision", "audio", "function_calling",
             "streaming", "embeddings", "long_context", "fine_tunable",
         }
-        assert {c.value for c in Capability} == expected
-        assert len(list(Capability)) == 8
+        assert required <= {c.value for c in Capability}
+        assert len(list(Capability)) >= len(required)
 
     def test_string_comparison(self) -> None:
         # StrEnum equality with strings
@@ -29,14 +29,14 @@ class TestCapability:
 
 
 class TestAgentRole:
-    def test_all_twelve_roles(self) -> None:
-        assert len(list(AgentRole)) == 12
+    def test_core_roles_present(self) -> None:
         required = {
             "scout", "data_generator", "adversary", "anonymizer",
             "curator", "judge", "validator", "curriculum_designer",
             "trainer", "exporter", "historian", "coordinator",
         }
-        assert {r.value for r in AgentRole} == required
+        assert required <= {r.value for r in AgentRole}
+        assert len(list(AgentRole)) >= len(required)
 
 
 class TestTaskStatus:

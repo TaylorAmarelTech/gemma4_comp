@@ -42,7 +42,7 @@ one of the other two paths — Ollama doesn't run our FastAPI app.
 ## Path 2 — Kaggle kernel.py on your local GPU (recommended for full demo)
 
 Best for "I want the same core chat playground / classifier that judges
-see, with all six harness layers (Persona / GREP / RAG / Tools / Online /
+see, with the layered harness (Persona / GREP / RAG / Tools / Online /
 Imports), the Pipeline modal, the history queue — running on my own GPU."
 
 ### Prerequisites
@@ -81,7 +81,7 @@ uv pip install --system \
 # 5. Set HF token
 export HF_TOKEN=hf_yourtokenhere
 
-# 6. Run the core 6-layer chat playground locally (the same script
+# 6. Run the layered chat harness playground locally (the same script
 #    kernel used by the duecare-exploration-workbench Kaggle notebook)
 python kaggle/01-duecare-exploration-workbench/kernel.py
 ```
@@ -96,7 +96,7 @@ The kernel will:
 4. Print the URL
 
 Open `http://localhost:8080` in your browser. You get the same UI
-judges see on Kaggle: 6 toggle tiles, Examples modal with 587 prompts,
+judges see on Kaggle: layered harness toggles, Examples modal,
 View pipeline modal, Persona library, custom rule additions.
 
 ### To run the **experiment pipeline** instead
@@ -166,7 +166,7 @@ app = create_app(
     gemma_call=gemma_call,
     model_info={"loaded": True, "name": "gemma-4-e4b-it",
                   "display": "Gemma 4 E4B (local)"},
-    **default_harness(),  # all six harness layers wired
+    **default_harness(),  # layered harness configuration wired
 )
 
 uvicorn.run(app, host="0.0.0.0", port=8080)

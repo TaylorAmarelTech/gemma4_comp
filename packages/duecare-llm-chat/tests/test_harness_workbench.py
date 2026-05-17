@@ -11,29 +11,26 @@ def client():
     return TestClient(app)
 
 
-def test_harness_contract_endpoint_lists_seven_surfaces(client):
+def test_harness_contract_endpoint_lists_registered_surfaces(client):
+    from duecare.chat.harnesses import all_harnesses
+
     r = client.get("/api/harnesses")
     assert r.status_code == 200
     data = r.json()
     names = [h["name"] for h in data["harnesses"]]
-    assert names == [
+    expected_names = [h.name for h in all_harnesses()]
+    assert names == expected_names
+    assert data["n_harnesses"] == len(expected_names)
+    required_primary = {
         "chat",
         "process",
         "extraction",
         "anonymization",
         "search_safety",
-        "search",
-        "import_corpus",
-    ]
-    assert data["n_harnesses"] == 7
-    assert [h["name"] for h in data["primary"]] == [
-        "chat",
-        "process",
-        "extraction",
-        "anonymization",
-        "search_safety",
-    ]
-    assert [h["name"] for h in data["secondary"]] == ["search", "import_corpus"]
+        "post_search_verification",
+    }
+    assert required_primary.issubset({h["name"] for h in data["primary"]})
+    assert {"search", "import_corpus"}.issubset({h["name"] for h in data["secondary"]})
 
 
 def test_harness_contract_nomenclature_is_explicit(client):
@@ -58,6 +55,9 @@ def test_harness_contract_nomenclature_is_explicit(client):
     assert by_name["chat"]["logic_paths"][0]["id"] == "chat_response"
     assert by_name["chat"]["model_targets"][0]["transport"] == "gemma4_runtime"
     assert by_name["search_safety"]["logic_paths"][0]["id"] == "sanitize_query"
+    assert by_name["post_search_verification"]["logic_paths"][0]["id"] == "verify_search_results"
+    assert by_name["post_search_verification"]["kind"] == "safety_gate"
+    assert by_name["post_search_verification"]["model_targets"][0]["transport"] == "none"
     assert any("PAGE_ITEM_PROMPT_TREE" in p for p in by_name["process"]["prompt_sets"])
     assert "Multimodal" in by_name["process"]["model_fit"]
     assert "EXTRACTION_SYSTEM_PROMPT" in " ".join(by_name["extraction"]["prompt_sets"])
@@ -87,6 +87,7 @@ def test_harness_workbench_page_serves(client):
         "Primary Safety Surfaces",
         "Secondary Utilities",
         "/static/search-safety.html",
+        "Post-search verification gate",
         "Workflow Path",
         "Standard Logic Paths",
         "Knowledge Packs",
@@ -108,6 +109,48 @@ def test_harness_workbench_page_serves(client):
     assert "function boundaryClass" in text
     assert 'class="target-boundary ${boundaryClass(boundary)}"' in text
     assert ".target-boundary.external" in text
+
+
+def test_post_search_verification_endpoint_scores_candidates(client):
+    r = client.post("/api/search/verify-results", json={
+        "query": "ILO C181 recruitment fee Hong Kong domestic worker",
+        "results": [
+            {
+                "title": "ILO C181 private employment agencies",
+                "url": "https://www.ilo.org/example",
+                "snippet": "C181 prohibits recruitment fees charged to workers.",
+            },
+            {
+                "title": "Worker private phone number",
+                "url": "https://example.com/post",
+                "snippet": "Call +852 1234 5678 for the worker case.",
+            },
+        ],
+    })
+    assert r.status_code == 200, r.text
+    data = r.json()
+    assert data["n_results"] == 2
+    assert data["n_blocked"] == 1
+    assert data["verified_results"][0]["source_quality"] == "high"
+    assert data["verified_results"][0]["status"] == "accepted"
+    assert data["blocked_results"][0]["deanonymization_risk"] == "high"
+
+
+def test_post_search_verification_allows_generic_passport_topics(client):
+    r = client.post("/api/search/verify-results", json={
+        "query": "passport retention ILO indicator domestic worker",
+        "results": [
+            {
+                "title": "ILO forced labour indicators",
+                "url": "https://www.ilo.org/example",
+                "snippet": "Retention of identity documents can be a forced labour indicator.",
+            },
+        ],
+    })
+    assert r.status_code == 200, r.text
+    data = r.json()
+    assert data["n_blocked"] == 0
+    assert data["verified_results"][0]["deanonymization_risk"] == "low"
 
 
 def test_shared_workflow_helper_serves(client):

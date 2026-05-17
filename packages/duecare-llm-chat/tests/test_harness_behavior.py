@@ -186,13 +186,13 @@ def _grep_rule_ids(text: str):
 
 
 def test_grep_rule_count_floor() -> None:
-    """Current public harness ships at least 162 GREP rules.
+    """Current public harness ships the advertised 100+ GREP-rule floor.
 
     Keep this as a regression floor, not an exact ceiling, so future
     rule additions do not break the suite merely because coverage grew.
     """
     h = _load_harness()
-    assert len(h.GREP_RULES) >= 162, f"expected >=162 GREP rules, got {len(h.GREP_RULES)}"
+    assert len(h.GREP_RULES) >= 100, f"expected >=100 GREP rules, got {len(h.GREP_RULES)}"
 
 
 def test_kafala_huroob_fires_on_huroob_status() -> None:

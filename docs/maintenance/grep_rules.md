@@ -1,6 +1,6 @@
-# Maintaining the GREP rule set
+﻿# Maintaining the GREP rule set
 
-> The GREP layer is 161 regex KB rules across 16 categories. Each
+> The GREP layer is 100+ regex KB rules across 16 categories. Each
 > rule has a citation, severity, ILO indicator tag, and match-excerpt
 > annotation. This guide explains how to add new rules, update
 > existing ones, and handle the "the law amended; my rule is stale"
@@ -28,9 +28,9 @@ GREP_RULES = [
 **Status:** Currently still inline Python (not migrated to curator
 JSON yet — a v3.7 task). For now, GREP edits go via Python PR.
 
-## Categories (16)
+## Categories (31)
 
-The 161 rules group by category (each ≈4-12 rules):
+The 100+ rules group by category (each ≈4-12 rules):
 
 1. `debt_bondage` — interest >40%, retroactive consolidation
 2. `fee_camouflage` — training/medical/processing/deposit relabeled fees

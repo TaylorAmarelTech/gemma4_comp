@@ -56,9 +56,9 @@ After wheel install, `kernel.py` prints:
 ======================================================================
   DUECARE SELF-AUDIT  -  chat-package 0.17.0
 ======================================================================
-    n_grep_rules       161
-    n_rag_docs         46
-    n_dimensions       46
+    n_grep_rules       <live count>
+    n_rag_docs         <live count>
+    n_dimensions       <live count>
     rubric           v3.10-evaluator-quality
 ======================================================================
   OK all counts at or above the 0.17.0 portability minimums

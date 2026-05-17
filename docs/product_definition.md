@@ -1,4 +1,4 @@
-# Duecare — canonical product definition
+﻿# Duecare — canonical product definition
 
 > **Duecare is a Gemma 4-powered safety infrastructure platform for
 > migrant-worker protection. It combines local and tuned Gemma
@@ -147,10 +147,10 @@ reasoning support around Gemma.
 | Submodule | Purpose |
 |---|---|
 | Anonymizer | Strip / generalize PII before storage or sharing |
-| GREP / rule engine | Fast deterministic risk-signal detection (161 rules) |
-| RAG database | Laws, regulations, NGO guidance, pattern briefs (46 docs + 46 edges) |
-| Tool layer | Fee calculators, jurisdiction lookup, corridor checks (5 tools + 72 backing-table rows) |
-| Contacts directory | Official help channels, NGOs, regulators, consulates (26 entries) |
+| GREP / rule engine | Fast deterministic risk-signal detection (100+ rules) |
+| RAG database | Laws, regulations, NGO guidance, pattern briefs (50+ docs + citation graph) |
+| Tool layer | Fee calculators, jurisdiction lookup, corridor checks, and backing-table rows |
+| Contacts directory | Official help channels, NGOs, regulators, consulates |
 | Prompt / context builder | Converts signals + RAG into model context |
 | Response policy | Bounds model behavior; no unsafe advice |
 | Trace / audit layer | Shows why the system flagged something |
@@ -220,7 +220,7 @@ compare models · validate new rules / RAG docs before release ·
 prevent regressions · produce reproducible benchmark artifacts ·
 support academic researchers and Kaggle judges.
 
-**Submodules:** Universal rubric (46 dims, v3.10) · domain-specific
+**Submodules:** Universal rubric · domain-specific
 rubrics (trafficking, labor rights, tax evasion, financial crime,
 etc.) · evaluation questions (LLM-judge templates) · regression tests
 (prevent old failures from returning) · model comparison (Gemma vs
@@ -380,7 +380,7 @@ OFW-specific**.
 A first implementation already exists in the sibling repo
 [`duecare-journey-android`](https://github.com/TaylorAmarelTech/duecare-journey-android)
 v0.9.0 with MediaPipe LiteRT on-device Gemma 4 E2B, encrypted
-SQLCipher journal, 11 ILO indicators, 20 corridors. The roadmap
+SQLCipher journal, ILO indicators, and corridor packs. The roadmap
 items below are improvements to that existing app.
 
 **Modules:**
@@ -491,11 +491,11 @@ Module** prototype shipped through the A-00 omni experiment workbench.
 
 ### Real now
 
-- **Gemma 4 Model Layer** — 9-variant Gemma 4 model selector, output sanitizer.
-- **Safety Guidance Layer** — 161 GREP rules, 46-doc RAG, 5 tools, 26-entry contacts.
-- **Quality Testing Framework** (partial) — 46-dim rubric v3.10 + 65-test adversarial suite + 4 grade modes.
-- **Contacts directory** — 26 entries (DMW, OWWA, BP2MI Aduan, MfMW HK, IJM, Polaris, embassies, etc.)
-- **Synthetic multimodal evidence** — 20 CC0 images + 13 structured-post JSONs.
+- **Gemma 4 Model Layer** — Gemma 4 model selector across local and cloud/BYOK targets, output sanitizer.
+- **Safety Guidance Layer** — 100+ GREP rules, 50+ document RAG, function-calling tools, and contact packs.
+- **Quality Testing Framework** (partial) — multi-dimension rubric + adversarial suite + multiple grade modes.
+- **Contacts directory** — curated entries for regulators, NGOs, embassies, and hotlines.
+- **Synthetic multimodal evidence** — bundled CC0 images + structured-post JSONs.
 - **Kaggle live proof path** — three active kernels: exploration workbench,
   live demo, and A-00 omni experiment workbench.
 

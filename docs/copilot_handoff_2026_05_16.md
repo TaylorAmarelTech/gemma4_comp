@@ -1,4 +1,4 @@
-# Copilot handoff — DueCare Gemma 4 harness ecosystem (snapshot 2026-05-16, HEAD=8141134)
+﻿# Copilot handoff — DueCare Gemma 4 harness ecosystem (snapshot 2026-05-16, HEAD=8141134)
 
 Paste this into GitHub Copilot Chat (or open it alongside the file you
 want Copilot to work on) when picking up DueCare work after this
@@ -96,7 +96,7 @@ kernel is inside `_training_script` in A-00 (training, not inference).
   `duecare_model_adapter` / `transformers` / `unsloth` / `llama_cpp` /
   `ollama` / `openai_compatible` / `anthropic` / `google_gemini` /
   `hf_inference_endpoint` / `frontier_api`.
-- `MODEL_CAPABILITIES` (14).
+- `MODEL_CAPABILITIES` (16).
 
 `packages/duecare-llm-chat/src/duecare/chat/harnesses/model_interface.py`
 provides `UniversalModelRequest`, `UniversalModelResponse`,
@@ -104,19 +104,20 @@ provides `UniversalModelRequest`, `UniversalModelResponse`,
 caller supports `duecare-llm-models` adapters with `.generate(...)`,
 objects with `.chat(...)` or `.complete(...)`, and direct callables.
 
-Seven registered harnesses in
+Registered harnesses in
 `packages/duecare-llm-chat/src/duecare/chat/harnesses/__init__.py`:
 
-**Primary (5):**
+**Primary (6):**
 1. `chat` — free-form prompt with persona / GREP / RAG / tools / online / imports
 2. `process` — bulk file review, graph extraction, graph-chat
 3. `extraction` — drafts typed `KnowledgeObject` envelopes
 4. `anonymization` — PII gate (regex-only by design; optional Gemma review)
 5. `search_safety` — outbound query sanitization before third-party search
+6. `post_search_verification` — verifies sanitized search results before prompt injection
 
 **Secondary (2):**
-6. `search` — runs sanitized search after `search_safety`
-7. `import_corpus` — local evidence import utility
+7. `search` — runs sanitized search after `search_safety`
+8. `import_corpus` — local evidence import utility
 
 `/api/harnesses` serializes the full contract.
 `/static/harness.html` renders it (including `trust_boundary` and
@@ -138,11 +139,11 @@ cross-link to each other (since commit ab2e7a6):
   the `HarnessLogicPath` / `HarnessPackContract` / `HarnessModelTarget`
   data classes, model-transport vocabulary.
 
-Plus, for harness families beyond the 7 registered:
+Plus, for harness families beyond the registered:
 - Core layer composer (persona + GREP + RAG + tools + online + imports)
 - A-00 offline default proof harness (`chat_no_online`)
 - Online grounding harness (privacy-gated)
-- Post-search verification harness (planned hardening)
+- Post-search verification harness (implemented deterministic gate)
 - Knowledge ingestion harness (import / extraction / governance)
 - Research graph harness (entities, edges, timelines, risks)
 - Synthetic data generator harness (A-00)

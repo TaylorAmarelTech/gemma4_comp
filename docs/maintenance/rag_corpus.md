@@ -1,6 +1,6 @@
-# Maintaining the RAG corpus
+﻿# Maintaining the RAG corpus
 
-> The RAG layer is BM25 retrieval over a 46-doc in-kernel corpus of
+> The RAG layer is BM25 retrieval over a 50+ document in-kernel corpus of
 > ILO conventions, national statutes, and NGO briefs. This guide
 > explains how to add new documents, refresh amended ones, and
 > handle the BM25 reindex cycle.
@@ -30,7 +30,7 @@ without Python edits.
 
 ## What's in the corpus today
 
-The 46 docs cluster into:
+The 50+ docs cluster into:
 
 - **ILO conventions** (12 docs) — C029, C095, C097, C143, C181,
   C188, C189, C190, P029, R201, ILO conference resolution
@@ -237,7 +237,7 @@ step is required — the next request picks up the change.
 
 For larger corpora (>200 docs), pre-indexing into a sklearn
 TfidfVectorizer or a simple inverted index would reduce latency.
-**Currently out of scope** because 46 docs fits comfortably.
+**Currently out of scope** because 50+ docs fits comfortably.
 
 ## How big can the corpus get?
 
@@ -246,7 +246,7 @@ TfidfVectorizer or a simple inverted index would reduce latency.
 - **At 1000 docs:** need to switch to pre-indexed retrieval (~30ms)
 - **At 10000 docs:** vector embeddings + FAISS becomes worthwhile
 
-Current 46 docs is well below the inflection point. Add docs freely.
+Current 50+ docs is well below the inflection point. Add docs freely.
 
 ## Common pitfalls
 

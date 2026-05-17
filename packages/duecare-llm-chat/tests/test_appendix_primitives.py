@@ -128,14 +128,14 @@ def test_harness_trace_5_layers_always_present() -> None:
 def test_harness_grep_with_rules_fired() -> None:
     grep = HarnessGrep(
         enabled=True,
-        rules_evaluated=161,
+        rules_evaluated=100,
         rules_fired=[
             {"rule_id": "ph_hk_zero_fee", "severity": "high"},
         ],
         elapsed_ms=4.2,
     )
     dumped = grep.model_dump(mode="json")
-    assert dumped["rules_evaluated"] == 161
+    assert dumped["rules_evaluated"] == 100
     assert dumped["rules_fired"][0]["rule_id"] == "ph_hk_zero_fee"
 
 

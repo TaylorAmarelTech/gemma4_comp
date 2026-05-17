@@ -31,6 +31,9 @@ def test_harness_ecosystem_doc_enumerates_broad_harness_families():
     ]
     for phrase in required_phrases:
         assert phrase in text
+    assert "`post_search_verification`" in text
+    assert "Post-search verification harness | Search result to extraction/chat flow" not in text
+    assert "Planned hardening." not in text
 
 
 def test_public_copy_uses_harness_ecosystem_language():
@@ -90,6 +93,44 @@ def test_current_kaggle_state_points_to_three_active_kernels():
     assert "kaggle/02-live-demo/" in text
     assert "kaggle/A-00-omni-experiment-workbench/" in text
     assert "not the active submission path" in text
+
+
+def test_system_components_doc_defines_stable_critical_paths():
+    text = _read("docs/system_components_and_critical_paths.md")
+    required = [
+        "Current Active Scope",
+        "Main Components",
+        "Harness Definition",
+        "Registered Harnesses",
+        "Knowledge And Logic Objects",
+        "Critical Paths",
+        "Kernel 01 Exploration",
+        "Kernel 02 Live Demo",
+        "A-00 Quantitative Proof",
+        "Online Search Safety",
+        "Training Flywheel",
+        "Users And Use Cases",
+        "Drift Rules",
+        "`post_search_verification`",
+        "Exact catalog sizes belong in runtime APIs",
+    ]
+    for phrase in required:
+        assert phrase in text
+
+
+def test_claude_drift_review_prompt_exists():
+    text = _read("docs/claude_north_star_drift_review_prompt.md")
+    required = [
+        "North-Star Drift",
+        "system_components_and_critical_paths.md",
+        "fragile live inventory",
+        "Gemma4Runtime",
+        "post-search verification harness",
+        "activity logs, reports, checkpoints",
+        "Verdict: PASS, PARTIAL, or FAIL",
+    ]
+    for phrase in required:
+        assert phrase in text
 
 
 def test_harness_pattern_active_integration_uses_current_three_kernel_scope():
@@ -155,6 +196,131 @@ def test_current_navigation_uses_a00_proof_path_not_legacy_bench_docs():
     assert "bench_and_tune_walkthrough.md" not in combined
     assert "submission_gate_checklist.md" not in combined
     assert "notebook_qa_companion.md" not in combined
+
+
+def test_active_docs_do_not_carry_known_stale_corpus_counts():
+    stale = [
+        "161 GREP",
+        "162 GREP",
+        "46 RAG",
+        "54 RAG",
+        "55 RAG",
+        "46-doc RAG",
+        "55-doc RAG",
+        "46-document",
+        "55-document",
+        "54-doc RAG",
+        "161 rules",
+        "162 rules",
+        "161 hand-curated",
+        "162 hand-curated",
+        "Primary harnesses (5",
+        "existing 5 harnesses",
+        "The 7 harnesses",
+        "7 harnesses",
+        "6-layer harness",
+        "six-layer harness",
+        "Seven registered harnesses",
+        "Eight registered harnesses",
+        "seven registered harnesses",
+        "eight registered harnesses",
+    ]
+    offenders: list[str] = []
+    for path in (ROOT / "docs").rglob("*.md"):
+        if "_archive" in path.parts:
+            continue
+        text = path.read_text(encoding="utf-8")
+        for phrase in stale:
+            if phrase in text:
+                offenders.append(f"{path.relative_to(ROOT)}: {phrase}")
+    assert offenders == []
+
+
+def test_public_static_copy_avoids_hardcoded_catalog_counts():
+    stale = [
+        "161 deterministic risk rules",
+        "161 hand-curated",
+        "Four families. 161 rules.",
+        "<b>Rules</b> 161",
+        "The 7 harnesses",
+        "five PRIMARY harnesses",
+        "two SECONDARY harnesses",
+        "26-kernel roster",
+        "26 Kaggle script kernels",
+        "All 26 Kaggle kernels",
+        "all 6 harness layers",
+        "6-card index",
+        "5 tools + corridor",
+        "207-prompt offline reference",
+    ]
+    roots = [
+        ROOT / "packages" / "duecare-llm-chat" / "src" / "duecare" / "chat" / "static",
+        ROOT / "apps" / "duecare-ai.com" / "app" / "templates",
+    ]
+    offenders: list[str] = []
+    for root in roots:
+        for path in root.rglob("*"):
+            if path.suffix.lower() not in {".html", ".js"}:
+                continue
+            text = path.read_text(encoding="utf-8", errors="replace")
+            for phrase in stale:
+                if phrase in text:
+                    offenders.append(f"{path.relative_to(ROOT)}: {phrase}")
+    assert offenders == []
+
+
+def test_current_public_docs_avoid_fragile_inventory_counts():
+    checked = [
+        "docs/FOR_KAGGLE_JUDGES.md",
+        "docs/FOR_PEER_REVIEW.md",
+        "docs/index.md",
+        "docs/architecture.md",
+        "docs/architecture/README.md",
+        "docs/architecture/duecare_harness.md",
+        "docs/architecture/duecare_eval.md",
+        "docs/architecture/duecare_trainer.md",
+        "docs/architecture/duecare_mobile.md",
+        "docs/component_diagram.md",
+        "docs/deployment_local.md",
+        "docs/deployment_enterprise.md",
+        "docs/embedding_guide.md",
+        "docs/product_definition.md",
+        "docs/video_script.md",
+        "docs/workbench_audit.md",
+        "docs/youtube_description.md",
+        "docs/system_components_and_critical_paths.md",
+    ]
+    stale = [
+        "46-dim",
+        "46 dims",
+        "46 dimensions",
+        "65-test",
+        "587 prompts",
+        "26-entry",
+        "9-variant",
+        "all six harness",
+        "all 6 harness",
+        "6 toggle tiles",
+        "4 grading modes",
+        "5 tools",
+        "11 viewer",
+        "11 dedicated",
+        "26 contact",
+        "20 corridors",
+        "11 languages",
+        "11 ILO",
+        "6 required",
+        "54 classifier",
+        "72 backing",
+        "Existing layer counts",
+    ]
+    offenders: list[str] = []
+    for path in checked:
+        text = _read(path)
+        for phrase in stale:
+            if phrase in text:
+                offenders.append(f"{path}: {phrase}")
+    assert offenders == []
 
 
 def test_modernized_architecture_docs_point_trainer_to_a00():

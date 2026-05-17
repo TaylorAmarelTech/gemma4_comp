@@ -1,4 +1,4 @@
-# Component diagram — how the parts deploy and communicate
+﻿# Component diagram — how the parts deploy and communicate
 
 > Single-page ERD of every Duecare component, the data each holds,
 > the API surface each exposes, and the wire path between them. Pairs
@@ -38,9 +38,9 @@ graph TB
     subgraph chatpkg["packages/duecare-llm-chat/"]
       app["chat/app.py<br/>FastAPI app factory<br/>23 endpoints"]
       static["chat/static/index.html<br/>~3 kLOC vanilla JS UI"]
-      harness["chat/harness/__init__.py<br/>Universal grader, classifier,<br/>profile detector, 46-dim rubric"]
+      harness["chat/harness/__init__.py<br/>Universal grader, classifier,<br/>profile detector, rubric packs"]
       gov["chat/harness/_governance.py<br/>Curator-block loader"]
-      json_curator["chat/harness/_*.json<br/>11 curator blocks +<br/>rubric_universal +<br/>examples + 5tier + required"]
+      json_curator["chat/harness/_*.json<br/>curator blocks +<br/>rubric_universal +<br/>examples + evaluator packs"]
     end
     subgraph kaggle["kaggle/&lt;slug&gt;/"]
       kpy["kernel.py<br/>Bootstrap script"]
@@ -87,16 +87,16 @@ duecare/
 │   │   ├── _usecase_affinity.json     # 7 use-cases × dim weights
 │   │   ├── _intent_affinity.json      # 5 intents × dim weights
 │   │   ├── _intent_signals.json       # response-side detection
-│   │   ├── _authoritative_statutes.json   # 144 jurist allowlist
+│   │   ├── _authoritative_statutes.json   # jurisdiction allowlist
 │   │   ├── _known_statute_sections.json   # 55 §/Art. ranges
-│   │   ├── _country_hints.json        # 25 corridor countries
-│   │   ├── _grader_config.json        # 14 thresholds + 4 flags
+│   │   ├── _country_hints.json        # corridor country hints
+│   │   ├── _grader_config.json        # thresholds + flags
 │   │   ├── _baseline_gauge.json       # stock 6% / harnessed 88%
-│   │   ├── _rubric_hints.json         # 21 dim PASS/FAIL UI hints
-│   │   ├── _examples.json             # 587 example prompts
-│   │   ├── _classifier_examples.json  # 54 classifier samples
-│   │   ├── _rubrics_5tier.json        # 207 hand-graded prompts
-│   │   └── _rubrics_required.json     # 6 category rubrics
+│   │   ├── _rubric_hints.json         # rubric PASS/FAIL UI hints
+│   │   ├── _examples.json             # example prompts
+│   │   ├── _classifier_examples.json  # classifier samples
+│   │   ├── _rubrics_5tier.json        # graded prompt examples
+│   │   └── _rubrics_required.json     # category rubrics
 │   └── static/
 │       └── index.html     # vanilla JS chat UI
 ```

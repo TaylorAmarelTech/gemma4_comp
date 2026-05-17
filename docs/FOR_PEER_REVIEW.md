@@ -1,4 +1,4 @@
-# For Judges and Reviewers
+﻿# For Judges and Reviewers
 
 This is the current 2026-05-17 verification path for the DueCare Gemma 4
 Good Hackathon submission. Older notebook-era material is archived or marked
@@ -45,10 +45,11 @@ The authoritative harness docs are:
 - [`docs/harness_standard_contract.md`](harness_standard_contract.md) -
   universal `HarnessSpec`, model targets, transports, and pack contracts.
 
-The seven registered harnesses are `chat`, `process`, `extraction`,
-`anonymization`, `search_safety`, `search`, and `import_corpus`. A-00 also uses
-pipeline-specific harness families for synthetic data generation, fine-tuning,
-combined judging, checkpointing, and report/export bundles.
+The registered harnesses are `chat`, `process`, `extraction`,
+`anonymization`, `search_safety`, `post_search_verification`, `search`, and
+`import_corpus`. A-00 also uses pipeline-specific harness families for
+synthetic data generation, fine-tuning, combined judging, checkpointing, and
+report/export bundles.
 
 ## A-00 Proof Path
 

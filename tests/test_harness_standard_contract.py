@@ -91,6 +91,8 @@ def test_harnesses_endpoint_exposes_standard_fields_to_ui():
     by_name = {item["name"]: item for item in data["harnesses"]}
     assert by_name["chat"]["logic_paths"][0]["id"] == "chat_response"
     assert by_name["search_safety"]["logic_paths"][0]["id"] == "sanitize_query"
+    assert by_name["post_search_verification"]["logic_paths"][0]["id"] == "verify_search_results"
+    assert by_name["post_search_verification"]["model_targets"][0]["trust_boundary"] == "local"
     assert by_name["import_corpus"]["model_io"]["model_transport"].startswith("none")
     assert by_name["chat"]["model_targets"][0]["transport"] == "gemma4_runtime"
     assert by_name["search"]["model_targets"][0]["transport"] == "none"
