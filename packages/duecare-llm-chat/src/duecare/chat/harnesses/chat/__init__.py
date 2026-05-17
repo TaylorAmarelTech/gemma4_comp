@@ -4,7 +4,7 @@ from __future__ import annotations
 from .handler import register_routes
 from .send import serve_chat_send
 from .knowledge import CONSUMES as consumes, EMITS as emits
-from ..base import HarnessSpec
+from ..base import HarnessLogicPath, HarnessPackContract, HarnessSpec
 
 name = "chat"
 applied_layers: tuple[str, ...] = ("persona", "grep", "rag", "tools", "online")
@@ -57,6 +57,41 @@ spec = HarnessSpec(
         "text-only turns; image prompts, long imported context, and LLM grading "
         "need more capable or larger local Gemma variants."
     ),
+    logic_paths=(
+        HarnessLogicPath(
+            id="chat_response",
+            label="Prompt to cited response",
+            entrypoints=("/api/chat/send", "/static/chat.html", "/static/compare.html"),
+            steps=(
+                "normalize messages and selected layers",
+                "apply persona and safety layer composition",
+                "call Gemma 4 through the shared runtime hook",
+                "stream response with trace and optional grading hooks",
+            ),
+            consumes=("prompt_template", "grep_rule", "rag_doc", "tool_definition", "persona_block", "context_snippet"),
+            emits=("reasoning_step",),
+            model_call="required",
+            verification=("input layer trace", "citation and rule trace", "optional rule/LLM grading"),
+        ),
+    ),
+    knowledge_packs=(
+        HarnessPackContract("core_grep", "Core GREP rules", "knowledge_pack", ("grep_rule", "glob_rule", "classifier_rule", "heuristic_rule"), True, "local"),
+        HarnessPackContract("core_rag", "Core RAG corpus", "knowledge_pack", ("rag_doc", "citation_edge", "corridor_profile", "ngo_directory"), True, "local"),
+        HarnessPackContract("imports", "User import corpus", "knowledge_pack", ("context_snippet",), False, "local"),
+    ),
+    logic_packs=(
+        HarnessPackContract("persona_defaults", "Persona prompt blocks", "logic_pack", ("persona_block",), True, "local"),
+        HarnessPackContract("tool_registry", "Deterministic tool registry", "logic_pack", ("tool_definition", "tool_example"), True, "local"),
+        HarnessPackContract("grading_rubrics", "Rule and LLM grading rubrics", "logic_pack", ("rubric_dimension",), False, "local"),
+    ),
+    model_io={
+        "input": "messages, selected harness layers, optional image/import context",
+        "output": "assistant response, layer trace, timing, optional grade payload",
+        "model_transport": "app.state.gemma_call / shared Gemma4Runtime when loaded",
+    },
+    input_verification=("PII and unsafe-pattern checks through selected layers", "tool and online calls stay allow-listed"),
+    output_verification=("trace emitted for every active layer", "optional rule-based, LLM-based, or combined grading"),
+    privacy_boundaries=("raw prompts stay local to the runtime", "online layer must be explicitly enabled and should be paired with search_safety"),
 )
 
 __all__ = ["name", "applied_layers", "capabilities", "consumes", "emits",

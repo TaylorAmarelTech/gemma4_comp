@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from .handler import register_routes
 from .knowledge import CONSUMES as consumes, EMITS as emits
-from ..base import HarnessSpec
+from ..base import HarnessLogicPath, HarnessPackContract, HarnessSpec
 
 name = "search"
 applied_layers: tuple[str, ...] = ()  # search IS the layer; doesn't compose others
@@ -52,6 +52,37 @@ spec = HarnessSpec(
         "Search does not require Gemma. Optional query rephrasing belongs to "
         "Search Safety, and deeper result refinement belongs to Knowledge Extraction."
     ),
+    logic_paths=(
+        HarnessLogicPath(
+            id="run_sanitized_search",
+            label="Sanitized search execution",
+            entrypoints=("/api/search/client", "/api/search/server", "/static/search.html"),
+            steps=(
+                "receive sanitized query or require caller-provided safety status",
+                "select available backend",
+                "normalize result cards and source metadata",
+                "return candidates for human review or downstream extraction",
+            ),
+            consumes=("corridor_profile", "ngo_directory", "context_snippet"),
+            emits=("context_snippet", "citation_edge"),
+            model_call="none",
+            verification=("caller should pass through search_safety first", "result cards preserve URL/source metadata"),
+        ),
+    ),
+    knowledge_packs=(
+        HarnessPackContract("search_context", "Search planning context", "knowledge_pack", ("corridor_profile", "ngo_directory", "context_snippet"), False, "local"),
+    ),
+    logic_packs=(
+        HarnessPackContract("backend_registry", "Search backend registry", "logic_pack", ("tool_definition",), True, "local"),
+    ),
+    model_io={
+        "input": "sanitized query, selected backend, optional source constraints",
+        "output": "normalized result set and candidate snippets",
+        "model_transport": "none in search call; downstream extraction/chat may call Gemma",
+    },
+    input_verification=("query should be sanitized by search_safety", "backend allow-list"),
+    output_verification=("source URL/title/snippet preserved", "results are candidates, not verified facts"),
+    privacy_boundaries=("third-party backend receives only sanitized query", "raw prompt should not be submitted here"),
 )
 
 __all__ = ["name", "applied_layers", "capabilities", "consumes", "emits", "register_routes", "spec"]

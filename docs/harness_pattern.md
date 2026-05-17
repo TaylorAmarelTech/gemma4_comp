@@ -10,6 +10,8 @@ This document covers the registered `duecare.chat.harnesses` module contract.
 For the full project-wide inventory, including A-00 synthetic-data,
 fine-tuning, judging, report, online-grounding, and research-graph harnesses,
 see [`docs/harness_ecosystem.md`](harness_ecosystem.md).
+For the normalized fields every harness should expose, see
+[`docs/harness_standard_contract.md`](harness_standard_contract.md).
 
 ## The contract
 
@@ -30,6 +32,21 @@ Optional per-harness extensions:
 | `knowledge.py` -> `manifest()` | KnowledgeObject types emitted/consumed |
 | `evaluation.py` -> `rubric`, `examples` | per-harness grading rubric + golden examples |
 | `_training_log.log_interaction()` | shared logger; each handler calls it at completion |
+
+## Standardized logic/pack contract
+
+Every registered harness now exposes these additional optional fields through
+`HarnessSpec` and `GET /api/harnesses`:
+
+| Field | Purpose |
+|---|---|
+| `logic_paths` | Named execution paths with entrypoints, steps, consumed objects, emitted objects, model-call role, and verification checks. |
+| `knowledge_packs` | Fact/context packs consumed by the harness, such as GREP rules, RAG docs, local imports, contacts, and corridor profiles. |
+| `logic_packs` | Prompt templates, tool registries, schemas, rubrics, backend registries, and other non-fact logic dependencies. |
+| `model_io` | What reaches the model, what returns from it, and which model transport is used. |
+| `input_verification` | Preconditions and safety checks before a model call or external boundary. |
+| `output_verification` | Checks after model calls, generated artifacts, or exported reports. |
+| `privacy_boundaries` | Where raw data must stay local, when redaction is mandatory, and what can cross external boundaries. |
 
 ## Primary harnesses (5 -- the user-named safety surfaces)
 

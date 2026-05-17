@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from .handler import register_routes
 from .knowledge import CONSUMES as consumes, EMITS as emits
-from ..base import HarnessSpec
+from ..base import HarnessLogicPath, HarnessPackContract, HarnessSpec
 
 name = "extraction"
 applied_layers: tuple[str, ...] = ("grep", "rag")
@@ -57,6 +57,38 @@ spec = HarnessSpec(
         "current contacts, and volatile legal facts should remain needs_review "
         "until verified through source documents or stronger local processing."
     ),
+    logic_paths=(
+        HarnessLogicPath(
+            id="draft_envelope",
+            label="KnowledgeObject drafting",
+            entrypoints=("/api/knowledge/source-file", "/api/knowledge/draft-envelope", "/static/knowledge.html"),
+            steps=(
+                "parse or receive compact source text",
+                "infer useful KnowledgeObject leaf type and deterministic hints",
+                "compose GREP/RAG grounding for the draft",
+                "ask Gemma 4 for schema-shaped JSON when loaded",
+                "validate and mark draft for human promotion",
+            ),
+            consumes=("grep_rule", "rag_doc", "prompt_template", "fact_template"),
+            emits=("grep_rule", "rag_doc", "ngo_directory", "fact_template", "extracted_fact", "entity_signal", "context_snippet", "modus_operandi", "rubric_dimension", "citation_edge", "envelope_schema"),
+            model_call="optional",
+            verification=("KnowledgeObject envelope schema", "needs_review for volatile facts", "human promotion required"),
+        ),
+    ),
+    knowledge_packs=(
+        HarnessPackContract("source_context", "Source and existing knowledge context", "knowledge_pack", ("grep_rule", "rag_doc", "prompt_template", "fact_template"), False, "local"),
+    ),
+    logic_packs=(
+        HarnessPackContract("knowledge_schemas", "KnowledgeObject schemas and prompts", "logic_pack", ("envelope_schema", "prompt_template"), True, "local"),
+    ),
+    model_io={
+        "input": "source text, target KnowledgeObject type, deterministic hints",
+        "output": "draft KnowledgeObject envelope and validation metadata",
+        "model_transport": "optional Gemma 4 drafter, deterministic skeleton fallback",
+    },
+    input_verification=("source text size and type checks", "target type must be known"),
+    output_verification=("KnowledgeObject schema validation", "review_required before promotion", "volatile facts marked for verification"),
+    privacy_boundaries=("drafting stays local", "submission should pass anonymization before hub sharing"),
 )
 
 __all__ = ["name", "applied_layers", "capabilities", "consumes", "emits", "register_routes", "spec"]
