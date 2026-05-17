@@ -272,3 +272,8 @@ def test_a00_report_writes_complete_writeup_evidence_bundle() -> None:
     assert '"Single evidence ZIP with report and run exports"' in text
     assert '"21. Saving report and write-up evidence bundle"' in text
     assert "WeasyPrint unavailable; wrote fallback PDF summary" in text
+    assert '<section class="panel evidence-panel">' in text
+    assert 'id="evidence-links"' in text
+    assert 'function artifactLinksHtml(links)' in text
+    assert 'function updateEvidenceLinksFromObject(obj)' in text
+    assert 'Download evidence ZIP' in text

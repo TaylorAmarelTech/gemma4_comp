@@ -43,6 +43,10 @@ def test_a00_has_judge_facing_quick_proof_and_research_flow():
         "Custom",
         "runPreconfiguredPipeline",
         "preconfig-progress",
+        "Evidence exports",
+        "evidence-links",
+        "Download evidence ZIP",
+        "Open HTML report",
         "preconfig-judge-model",
         "Judge Gemma model",
         'id="preconfig-limit" type="number" min="1" max="50" value="2"',
@@ -122,5 +126,7 @@ def test_a00_reports_dimension_level_evidence():
         "evidence_zip",
         "writeup_ready_outputs",
         "WeasyPrint unavailable; wrote fallback PDF summary",
+        "artifactLinksHtml",
+        "updateEvidenceLinksFromObject",
     ]:
         assert marker in text

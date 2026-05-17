@@ -5092,6 +5092,7 @@ HOMEPAGE_HTML = r"""<!doctype html>
     body.a00-landing .experiment-flow,
     body.a00-landing .primary-grid,
     body.a00-landing .advanced-panel,
+    body.a00-landing .evidence-panel,
     body.a00-landing .activity-panel { display: none; }
     body.a00-preconfigured .landing-action,
     body.a00-preconfigured .custom-card,
@@ -5121,7 +5122,11 @@ HOMEPAGE_HTML = r"""<!doctype html>
     .advanced-panel[open] > summary { margin-bottom: 10px; }
     .advanced-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-top: 10px; }
     .advanced-grid h3 { margin: 0 0 8px; font-size: 14px; }
-    .activity-panel { margin-top: 14px; }
+    .evidence-panel, .activity-panel { margin-top: 14px; }
+    .artifact-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+    .artifact-actions a { border: 1px solid var(--line); border-radius: 999px; padding: 6px 10px; text-decoration: none; color: var(--ink); background: var(--paper-2); font-size: 12px; }
+    .artifact-actions a.primary { border-color: var(--ink); background: var(--ink); color: var(--paper); }
+    .evidence-hint { margin-top: 8px; color: var(--ink-3); font-size: 12px; }
     .export-list { margin-top: 10px; max-height: 150px; overflow: auto; }
     .proof-steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 10px; margin-top: 12px; }
     .proof-step { border: 1px solid var(--line); border-radius: 8px; padding: 10px; background: var(--paper-2); }
@@ -5439,6 +5444,17 @@ __A00_SHUTDOWN_CONTROL__
     <div class="audit-grid" id="primary-audit" style="margin-top:12px;"></div>
   </details>
 
+  <section class="panel evidence-panel">
+    <div class="panel-heading">
+      <div>
+        <h2>Evidence exports</h2>
+        <p>Report and download links appear here as soon as A-00 saves the final artifacts.</p>
+      </div>
+    </div>
+    <div id="evidence-links" class="artifact-actions"><span class="muted">No report artifacts yet.</span></div>
+    <div id="evidence-hint" class="evidence-hint">The final evidence ZIP includes report files, charts, CSV tables, and selected run exports.</div>
+  </section>
+
   <section class="panel activity-panel">
     <div class="panel-heading"><h2>Activity</h2><span class="muted">Auto-updates while a run is active.</span></div>
     <pre id="log">Loading...</pre>
@@ -5490,6 +5506,7 @@ function log(obj) {
   const summary = summarizeActivity(obj);
   const detail = activityDetail(obj);
   el.textContent = `[${stamp}] ${summary}${detail}\n\n` + (el.textContent || "");
+  updateEvidenceLinksFromObject(obj);
   refreshStatus();
 }
 function openStartCard(path, event) {
@@ -5598,6 +5615,68 @@ async function getJson(url, opts) {
 function jobStatusClass(status) {
   return "status-pill status-" + String(status || "unknown").replace(/[^a-z0-9_-]/gi, "-").toLowerCase();
 }
+function reportArtifactLinks(report) {
+  if (!report) return {};
+  if (report.artifact_links) return report.artifact_links;
+  if (report.artifacts) return report.artifacts;
+  return {};
+}
+function evidenceLinksFromObject(obj) {
+  if (!obj || typeof obj === "string") return null;
+  if (obj.report) return reportArtifactLinks(obj.report);
+  if (obj.job && obj.job.report) return reportArtifactLinks(obj.job.report);
+  if (obj.job_status && obj.job_status.report) return reportArtifactLinks(obj.job_status.report);
+  const steps = obj.job_status && obj.job_status.steps || obj.steps || [];
+  for (let i = steps.length - 1; i >= 0; i--) {
+    const detail = steps[i] && steps[i].detail;
+    if (detail && detail.artifact_links) return detail.artifact_links;
+    if (detail && detail.artifacts) return detail.artifacts;
+  }
+  if (obj.artifact_links) return obj.artifact_links;
+  if (obj.artifacts) return obj.artifacts;
+  return null;
+}
+function artifactLinksHtml(links) {
+  if (!links || !Object.keys(links).length) return "";
+  const order = [
+    "html", "pdf", "evidence_zip", "markdown", "json",
+    "prompt_response_csv", "comparison_csv", "dimension_csv",
+    "score_chart_svg", "latency_chart_svg", "evidence_manifest"
+  ];
+  const labels = {
+    html: "Open HTML report",
+    pdf: "Download PDF",
+    evidence_zip: "Download evidence ZIP",
+    markdown: "Markdown",
+    json: "JSON",
+    prompt_response_csv: "Prompt/response CSV",
+    comparison_csv: "Comparison CSV",
+    dimension_csv: "Dimension CSV",
+    score_chart_svg: "Score chart SVG",
+    latency_chart_svg: "Latency chart SVG",
+    evidence_manifest: "Evidence manifest"
+  };
+  const seen = new Set();
+  const anchors = [];
+  for (const key of order.concat(Object.keys(links))) {
+    if (seen.has(key) || !links[key]) continue;
+    seen.add(key);
+    const cls = (key === "html" || key === "evidence_zip") ? " class=\"primary\"" : "";
+    anchors.push(`<a${cls} href="${escapeHtml(links[key])}" target="_blank">${escapeHtml(labels[key] || key)}</a>`);
+  }
+  return anchors.join("");
+}
+function renderArtifactLinks(links) {
+  const box = $("evidence-links");
+  const html = artifactLinksHtml(links);
+  if (!box || !html) return "";
+  box.innerHTML = html;
+  return html;
+}
+function updateEvidenceLinksFromObject(obj) {
+  const links = evidenceLinksFromObject(obj);
+  if (links) renderArtifactLinks(links);
+}
 function renderJobs(jobs) {
   const box = $("jobs");
   if (!box) return;
@@ -5610,8 +5689,10 @@ function renderJobs(jobs) {
     ].filter(Boolean).join(" | ");
     const tail = j.log_tail ? `<details><summary>log tail</summary><pre>${escapeHtml(j.log_tail)}</pre></details>` : "";
     const steps = (j.steps || []).map(s => `<li>${escapeHtml(s.ts || "")} | ${escapeHtml(s.label || "")} | ${escapeHtml(s.status || "")}</li>`).join("");
-    const reportUrl = j.report && j.report.artifact_links ? j.report.artifact_links.html : "";
-    const report = reportUrl ? `<p><a href="${reportUrl}" target="_blank">open report</a></p>` : "";
+    const reportLinks = reportArtifactLinks(j.report);
+    const report = reportLinks && Object.keys(reportLinks).length
+      ? `<div class="artifact-actions">${artifactLinksHtml(reportLinks)}</div>`
+      : "";
     return `<div class="job-card"><b>${j.job_id}</b><span class="${jobStatusClass(j.status)}">${j.status || "unknown"}</span> <span class="muted">${j.started_at || j.created_at || ""}</span><p class="muted">kind: ${j.kind || "training"} | base: ${j.base_model_ref || ""} | method: ${j.method || ""}</p><p>${links}</p>${report}${steps ? `<details open><summary>steps</summary><ul>${steps}</ul></details>` : ""}${tail}</div>`;
   }).join("");
   box.innerHTML = rows || "<div class='muted'>No training jobs yet.</div>";
@@ -5743,6 +5824,8 @@ async function refreshStatus() {
   }).join("");
   $("exports").innerHTML = exports || "No exports yet.";
   renderJobs(s.jobs || []);
+  const latestReportJob = (s.jobs || []).slice().reverse().find(j => j.report && reportArtifactLinks(j.report) && Object.keys(reportArtifactLinks(j.report)).length);
+  if (latestReportJob) renderArtifactLinks(reportArtifactLinks(latestReportJob.report));
   if (activePipeline) {
     updatePreconfiguredFromJob(activePipeline);
     if (!activeJobPolls[activePipeline.job_id]) pollJob(activePipeline.job_id);
