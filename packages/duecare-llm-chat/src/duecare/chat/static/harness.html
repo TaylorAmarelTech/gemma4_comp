@@ -57,6 +57,24 @@
     .badge.utility { background: #F1EFE7; }
     .layers { display: flex; flex-wrap: wrap; gap: 5px; }
     .layer { font-family: var(--mono); font-size: 10.5px; padding: 2px 6px; border-radius: 999px; background: var(--paper-2); color: var(--ink-2); }
+    .target-boundary {
+      display: inline-flex; align-items: center; min-height: 18px;
+      padding: 1px 6px; border-radius: 999px; border: 1px solid var(--line);
+      font-family: var(--mono); font-size: 10px; text-transform: uppercase;
+      letter-spacing: 0.04em; background: var(--paper); color: var(--ink-2);
+    }
+    .target-boundary.external {
+      background: oklch(0.94 0.05 35); border-color: oklch(0.82 0.09 35);
+      color: oklch(0.36 0.11 35);
+    }
+    .target-boundary.local {
+      background: oklch(0.94 0.05 155); border-color: oklch(0.82 0.06 155);
+      color: oklch(0.31 0.08 155);
+    }
+    .target-boundary.configurable {
+      background: oklch(0.94 0.04 250); border-color: oklch(0.83 0.05 250);
+      color: oklch(0.34 0.07 250);
+    }
     .detail { display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); gap: 14px; margin-top: 14px; }
     .contract-list { display: grid; gap: 8px; }
     .contract-row { display: grid; grid-template-columns: 120px minmax(0, 1fr); gap: 10px; font-size: 12.5px; border-bottom: 1px solid var(--line-soft); padding-bottom: 8px; }
@@ -179,6 +197,11 @@
       if (kind === "gemma_harness") return "gemma";
       if (kind === "safety_gate") return "gate";
       return "utility";
+    }
+    function boundaryClass(boundary) {
+      if (boundary === "external") return "external";
+      if (boundary === "configurable") return "configurable";
+      return "local";
     }
     function firstPage(h) {
       return ((h.test_pages || [])[0] || {}).href || "/static/harness.html";
@@ -307,19 +330,23 @@
       document.getElementById("knowledge-pack-list").innerHTML = renderPacks(h.knowledge_packs);
       document.getElementById("logic-pack-list").innerHTML = renderPacks(h.logic_packs);
       document.getElementById("model-target-list").innerHTML = (h.model_targets || []).length
-        ? (h.model_targets || []).map((m, idx) => `
+        ? (h.model_targets || []).map((m, idx) => {
+            const boundary = m.trust_boundary || "local";
+            return `
             <div class="flow-item">
               <span class="flow-num">${idx + 1}</span>
               <span>
                 <b>${esc(m.label || m.id)}</b>
-                <span class="muted"> - ${esc(m.transport || "none")} - ${m.required ? "required" : "optional"}${m.default ? " - default" : ""}${m.trust_boundary ? ` - ${esc(m.trust_boundary)}` : ""}</span><br>
+                <span class="muted"> - ${esc(m.transport || "none")} - ${m.required ? "required" : "optional"}${m.default ? " - default" : ""}</span>
+                <span class="target-boundary ${boundaryClass(boundary)}">${esc(boundary)}</span><br>
                 ${esc(m.role || "")}
                 ${(m.capabilities || []).length ? `<br><span class="muted">capabilities: ${esc((m.capabilities || []).join(", "))}</span>` : ""}
                 ${(m.credential_env || []).length ? `<br><span class="muted">credentials: ${esc((m.credential_env || []).join(", "))}</span>` : ""}
                 ${m.notes ? `<br><span class="muted">${esc(m.notes)}</span>` : ""}
               </span>
             </div>
-          `).join("")
+          `;
+          }).join("")
         : `<div class="muted">No model target declared.</div>`;
       const verification = [
         ...(h.input_verification || []).map(v => "input: " + v),

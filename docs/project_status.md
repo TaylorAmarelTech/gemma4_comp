@@ -3,6 +3,12 @@
 > Last updated: 2026-05-02 (readiness suite + smoke test fixes)
 > Deadline: 2026-05-18 (16 days remaining)
 >
+> Historical snapshot: the active submission scope was narrowed after
+> this file was written. Use [`kaggle/_INDEX.md`](../kaggle/_INDEX.md)
+> for the current three-kernel Kaggle path and
+> [`docs/copilot_handoff_2026_05_16.md`](copilot_handoff_2026_05_16.md)
+> for the current harness/runtime handoff.
+>
 > **For the canonical dashboard:** see [`docs/readiness_dashboard.md`](readiness_dashboard.md).
 > **For per-persona happy-path verification:** see [`docs/persona_readiness_audit.md`](persona_readiness_audit.md).
 > **For pre-submit verification:** see [`docs/submission_gate_checklist.md`](submission_gate_checklist.md).
@@ -16,8 +22,9 @@
 - **Kaggle kernels:** 77 directories local; every tracked kernel ships
   the canonical hero banner + header table and the shared
   `canonical_hero_code` helper in `scripts/_canonical_notebook.py`.
-- **Smoke test:** 24 categories run + passing on 2026-05-02; details in
-  [`docs/smoke_test_report_2026-05-02.md`](smoke_test_report_2026-05-02.md).
+- **Smoke test:** 24 categories run + passing on 2026-05-02; historical
+  details are archived in
+  [`docs/_archive/2026-05-16-legacy-notebook-era/smoke_test_report_2026-05-02.md`](_archive/2026-05-16-legacy-notebook-era/smoke_test_report_2026-05-02.md).
 - **Slug source of truth:** `scripts/_public_slugs.py` is the single
   `PUBLIC_SLUG_OVERRIDES` table. `scripts/kaggle_live_slug_map.json`
   is still consumed by the index renderer and stays as a live-state

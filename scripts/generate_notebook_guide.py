@@ -1,8 +1,8 @@
-"""Generate the human-readable DueCare notebook guide.
+"""Generate the human-readable DueCare active-kernel guide.
 
-The authoritative kernel inventory lives in ``kaggle/kernels/*`` metadata and
-``scripts/kaggle_live_slug_map.json``. This script keeps
-``docs/notebook_guide.md`` from drifting away from those sources while
+The active judge-facing Kaggle path lives in the root ``kaggle/*``
+script-kernel folders with ``kernel-metadata.json``. This script keeps
+``docs/notebook_guide.md`` aligned with that active inventory while
 preserving manually curated purpose text when it already exists.
 """
 from __future__ import annotations
@@ -22,35 +22,40 @@ LIVE_MAP_PATH = REPO_ROOT / "scripts" / "kaggle_live_slug_map.json"
 REVIEW_PRIORITY_ROWS = [
     (
         "P0",
-        "000 / 005 / 010 / 600 / 610",
-        "Judge path: index, glossary, quickstart, proof dashboard, and capstone walkthrough.",
+        "01-duecare-exploration-workbench",
+        "Broad reviewer workbench: chat, harness comparison, search, knowledge extraction, bulk review, and trace inspection.",
     ),
     (
         "P0",
-        "520 / 525 / 527 / 530 / 540",
-        "Fine-tuning proof: curriculum, graded data, rubrics, Unsloth training, and delta visualization.",
+        "02-live-demo",
+        "Focused live demo and video path for the current judging story.",
     ),
     (
         "P1",
-        "150 / 152 / 155 / 160 / 180 / 190",
-        "Visible Gemma 4 features: chat, tool calling, multimodal document analysis, and retrieval inspection.",
+        "A-00-omni-experiment-workbench",
+        "Quantitative proof path: baseline, harnessed, synthetic-data, fine-tuning, judging, and report artifacts.",
     ),
     (
         "P1",
-        "200-270 / 300-460 / 500-550",
-        "Technical depth: cross-domain proof, model comparisons, adversarial testing, judge grading, and agent swarm.",
-    ),
-    (
-        "P1",
-        "620 / 650 / 660 / 670 / 680 / 690 / 695",
-        "Implementation surfaces: API tour, custom-domain adoption, and deployment-application narratives.",
-    ),
-    (
-        "P2",
-        "Tracked drafts and skunkworks",
-        "Keep structurally valid and documented; publish only if they strengthen the video story.",
+        "kaggle/kernels/* generated mirrors",
+        "Reference-only generated mirror material. Do not treat it as the active submission path.",
     ),
 ]
+
+ACTIVE_KERNEL_PURPOSES = {
+    "01-duecare-exploration-workbench": (
+        "Broad reviewer workbench for chat, harness comparison, bulk review, "
+        "knowledge extraction, search, sharing, traces, and activity logs."
+    ),
+    "02-live-demo": (
+        "Focused live demo path for judges and video capture, using the shared "
+        "Gemma 4 runtime and live-demo surface."
+    ),
+    "A-00-omni-experiment-workbench": (
+        "Quantitative control plane for baseline, harnessed, synthetic-data, "
+        "fine-tuning, judging, checkpointing, and report evidence bundles."
+    ),
+}
 
 
 def _load_live_map() -> dict[str, str | None]:
@@ -101,7 +106,8 @@ def _fallback_purpose(entry: KaggleNotebook) -> str:
 
 def _purpose_for(entry: KaggleNotebook, existing_purposes: dict[str, str]) -> str:
     return (
-        existing_purposes.get(entry.notebook_number)
+        ACTIVE_KERNEL_PURPOSES.get(entry.dir_name)
+        or existing_purposes.get(entry.notebook_number)
         or _extract_header_description(entry)
         or _fallback_purpose(entry)
     )
@@ -127,8 +133,9 @@ def render_notebook_guide(*, existing_path: Path = OUTPUT_PATH) -> str:
     lines.append("# DueCare Kaggle Kernel Guide")
     lines.append("")
     lines.append(
-        "`docs/current_kaggle_notebook_state.md` is the authoritative tracked-kernel inventory. "
-        "This guide is the human-readable purpose map and review queue generated from the same metadata plus `scripts/kaggle_live_slug_map.json` for public live status."
+        "`kaggle/_INDEX.md` and `docs/current_kaggle_notebook_state.md` are the authoritative active-kernel inventory. "
+        "This guide is the human-readable purpose map generated from the same root `kaggle/*/kernel-metadata.json` script-kernel folders, "
+        "plus `scripts/kaggle_live_slug_map.json` for public live status."
     )
     lines.append("")
     lines.append("## Notebook artifact policy")
@@ -152,35 +159,34 @@ def render_notebook_guide(*, existing_path: Path = OUTPUT_PATH) -> str:
     lines.append("")
     lines.append("## Review order")
     lines.append("")
-    lines.append(f"- Tracked kernels: **{len(entries)}**")
-    lines.append(f"- Public-live notebooks in `kaggle_live_slug_map.json`: **{live_count}**")
-    lines.append(f"- Tracked drafts / pending-publication notebooks: **{draft_count}**")
+    lines.append(f"- Active script kernels: **{len(entries)}**")
+    lines.append(f"- Public-live active kernels in `kaggle_live_slug_map.json`: **{live_count}**")
+    lines.append(f"- Active kernels without a live slug: **{draft_count}**")
     lines.append("")
     lines.append("| Priority | Notebooks / modules | Why review in depth |")
     lines.append("|---|---|---|")
     for priority, notebooks, why in REVIEW_PRIORITY_ROWS:
         lines.append(f"| {priority} | {notebooks} | {why} |")
     lines.append("")
-    lines.append("## Notebook purpose map")
+    lines.append("## Active kernel purpose map")
     lines.append("")
     lines.append("| ID | Title | Status | Kaggle URL | Purpose |")
     lines.append("|---|---|---|---|---|")
     for entry in entries:
         status, url = _status_and_url(entry, live_map)
         purpose = _purpose_for(entry, existing_purposes)
+        display_id = entry.notebook_number if entry.notebook_number != "kernel" else entry.dir_name
         lines.append(
-            f"| `{entry.notebook_number}` | {entry.title} | {status} | {url} | {purpose} |"
+            f"| `{display_id}` | {entry.title} | {status} | {url} | {purpose} |"
         )
     lines.append("")
-    lines.append("## Module deep-review queue")
+    lines.append("## Active module deep-review queue")
     lines.append("")
-    lines.append("1. **Public hub IA and forms** — `apps/duecare-ai.com/app/main.py`, templates, pack filters, contribute flow, admin logs, and Render notes.")
-    lines.append("2. **Wheel chat/runtime** — `packages/duecare-llm-chat/src/duecare/chat/app.py`, static viewers, classifier, harness data, and Cloudflare notebook launchers.")
-    lines.append("3. **Fine-tuning data spine** — notebooks 520/525/527/530/540, `data/training*`, Unsloth settings, SFT/DPO wording, and artifact provenance.")
-    lines.append("4. **Notebook builders and presentation gates** — `scripts/build_notebook_*.py`, `scripts/_notebook_display.py`, no lossy previews, Kaggle-safe HTML, and generated metadata.")
-    lines.append("5. **Publishing and package split** — `packages/duecare-llm-*`, wheel metadata, Kaggle wheel datasets, README/package version consistency.")
-    lines.append("6. **Demo surfaces** — `src/demo`, Cloudflare A-series kernels, deployment notebooks 660-695, cached demo examples, and no-wait recording flow.")
-    lines.append("7. **Safety/privacy gates** — PII detectors, local-KB storage, anonymization previews, admin redaction, and public copy claims.")
+    lines.append("1. **Exploration workbench** - `kaggle/01-duecare-exploration-workbench/kernel.py`, `packages/duecare-llm-chat/src/duecare/chat/app.py`, and the registered harness pages.")
+    lines.append("2. **Live demo** - `kaggle/02-live-demo/kernel.py`, `packages/duecare-llm-server/src/duecare/server`, and the Cloudflare launch path.")
+    lines.append("3. **A-00 experiment pipeline** - `kaggle/A-00-omni-experiment-workbench/kernel.py`, checkpointing, activity artifacts, reports, and judge options.")
+    lines.append("4. **Shared runtime and harnesses** - `gemma4_runtime.py`, `harness/__init__.py`, `harnesses/base.py`, and `harnesses/model_interface.py`.")
+    lines.append("5. **Docs and contract tests** - harness trinity docs, model-loading trace, A-00 parity tests, workbench UI tests, and active Kaggle state docs.")
     lines.append("")
     lines.append("Generated by `python scripts/generate_notebook_guide.py`.")
     lines.append("")

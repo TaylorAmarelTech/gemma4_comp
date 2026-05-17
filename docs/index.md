@@ -6,6 +6,17 @@ hide:
 
 # Duecare
 
+> **Current competition scope (2026-05-16):** this documentation site
+> still contains broader product, deployment, and historical notebook
+> material. The active Kaggle submission path is the three-kernel set
+> in [`kaggle/_INDEX.md`](../kaggle/_INDEX.md). The current Gemma 4
+> runtime and harness ecosystem handoff is
+> [`docs/copilot_handoff_2026_05_16.md`](copilot_handoff_2026_05_16.md).
+> The harness documentation trinity is
+> [`harness_ecosystem.md`](harness_ecosystem.md),
+> [`harness_pattern.md`](harness_pattern.md), and
+> [`harness_standard_contract.md`](harness_standard_contract.md).
+
 > **Open-source AI safety harness around Google's Gemma 4 — for
 > migrant workers, NGOs, regulators, and researchers fighting
 > recruitment fraud and trafficking. MIT licensed. Runs offline.**

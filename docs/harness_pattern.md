@@ -148,8 +148,9 @@ harness boundary already labeled the task.
 - **Per-task tools/knowledge**: scoped namespaces prevent global registry sprawl
 - **Verifiability**: a regulator can grep `applied_layers` and verify
   `anonymization` declares `()` -- i.e., never passes raw PII to Gemma
-- **Reusability**: A-02 (with-grep-rag-tools) and A-10 (jailbroken comparison)
-  auto-inherit all 4 primary harnesses because they call `create_app()`
+- **Reusability**: the exploration workbench and A-00 proof path reuse the
+  same registered harness contracts and shared GREP/RAG/tool primitives instead
+  of carrying divergent local copies.
 
 ## Safety net: route contract + adversarial validation
 
@@ -158,21 +159,22 @@ harness boundary already labeled the task.
 - `tests/test_compose_layers.py` -- unit tests for the shared layer composer.
 - Adversarial validation: every refactor verified via TestClient smoke calls.
 
-## Cross-kernel integration (Phase 8c)
+## Active Kaggle Integration
 
-The harness pattern works across **all three** server-style kernel patterns
-in `kaggle/`:
+The active competition path is the three script-kernel set in
+`kaggle/_INDEX.md`:
 
 | Pattern | Used by | How to opt in |
 |---|---|---|
-| `duecare.chat.create_app(**default_harness())` | 01-duecare-exploration-workbench, A-10 | **Auto-inherits** all 5 harnesses |
-| `duecare.chat.kernel_shell.build_minimal_shell(harnesses=[...])` | A-01, A-03, A-04, A-05, A-11, A-13, A-15, A-16 | Pass list of harness modules |
-| Notebook-only (no FastAPI) | A-06, A-07, A-08, A-12, A-14 | Call `log_kernel_interaction(...)` directly |
+| `duecare.chat.create_app(**default_harness())` | `01-duecare-exploration-workbench` | Auto-inherits the registered harness ecosystem through the chat app |
+| `duecare.server.create_app` plus `Gemma4Runtime` | `02-live-demo` | Uses the shared runtime and focused demo surface |
+| A-00 pipeline with shared harness callables | `A-00-omni-experiment-workbench` | Calls the shared GREP/RAG/tools and combined grading primitives from the pipeline |
 
-### Minimal-shell kernels
+### Legacy minimal-shell kernels
 
-Appendix kernels using the minimal shell get the same harness routes by
-passing `harnesses=[...]`:
+The minimal shell remains useful reference code for archived appendix kernels
+or future small demos, but it is not part of the active three-kernel submission
+path. If it is used again, pass explicit harness modules:
 
 ```python
 from duecare.chat.kernel_shell import build_minimal_shell
@@ -210,7 +212,7 @@ log_kernel_interaction(
 
 ### Verification
 
-A-10 boot-equivalent: `create_app(**default_harness())` registers all expected
+01 workbench boot-equivalent: `create_app(**default_harness())` registers all expected
 harness routes (chat / process / extraction / anonymization / search_safety /
 search / import_corpus). Verified via TestClient smoke:
 

@@ -8,6 +8,12 @@
 > today; remaining work is user-driven (video shoot, kernel pushes,
 > bench-and-tune Kaggle run, HF Spaces deploy).
 
+> **Current-scope note (2026-05-16):** this report is a historical
+> audit snapshot. The active competition path is now the three-kernel
+> set documented in [`kaggle/_INDEX.md`](../kaggle/_INDEX.md) and the
+> current harness/runtime state is summarized in
+> [`docs/copilot_handoff_2026_05_16.md`](copilot_handoff_2026_05_16.md).
+
 > **v3.14 update (2026-05-04, T-14):** since round 3 the harness
 > grew significantly. Current snapshot:
 >
@@ -87,7 +93,7 @@ project's history:
 - `docs/contributing_prompts.md` — 5-step add path + style guide
 - `docs/corpus_stats.md` — auto-generated stats (run `prompt_corpus.py
   stats` to refresh)
-- `docs/notebook_index.md` — single-page reference for all 11 notebooks
+- `docs/_archive/2026-05-16-legacy-notebook-era/notebook_index.md` — historical single-page reference for the former 11/26-notebook era
 - `scripts/prompt_corpus.py` (validate / stats / export-by-category / all)
 - `_examples/by_category/<cat>.json` — 18 per-category splits +
   `_index.json` for selective consumption
@@ -220,7 +226,7 @@ packages/duecare-llm-chat/src/duecare/chat/harness/_examples/by_category/
 | Doc | Words | Status |
 |---|---:|---|
 | `architecture.md` | 8653 | A — comprehensive technical design |
-| `notebook_index.md` | 1651 | **NEW round 2** — single-page reference for all 11 notebooks |
+| `notebook_index.md` | 1651 | **Archived legacy** — historical single-page reference for the former 11/26-notebook era |
 | `FOR_PEER_REVIEW.md` | 1701 | A — 30s/2min/5min verification paths |
 | `writeup_draft.md` | 1496 | A — under 1500 cap |
 | `video_script.md` | 1488 | A — 2:50 target with timing beats |

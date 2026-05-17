@@ -107,7 +107,7 @@ video narration, and public hub:
 
 ## 4. Technical components, grouped by what they do
 
-Implementation-status note: this page is the canonical public vocabulary and target component map, not a release inventory. Validated current state is tracked in [PACKAGE_INVENTORY.md](PACKAGE_INVENTORY.md) and [SUBMISSION_READINESS_AUDIT.md](SUBMISSION_READINESS_AUDIT.md). Components marked as target or planned must not be described as live in the writeup or video until their code path and validation evidence exist.
+Implementation-status note: this page is the canonical public vocabulary and target component map, not a release inventory. Package state is tracked in [PACKAGE_INVENTORY.md](PACKAGE_INVENTORY.md). Current competition runtime and harness state is tracked in [copilot_handoff_2026_05_16.md](copilot_handoff_2026_05_16.md); the older submission readiness audit is archived under `_archive/2026-05-16-legacy-notebook-era/`. Components marked as target or planned must not be described as live in the writeup or video until their code path and validation evidence exist.
 
 ### Group A — Private decision-support experience
 
